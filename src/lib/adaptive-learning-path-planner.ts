@@ -745,6 +745,7 @@ export interface AdaptiveLearningPathPersistenceRecord {
     currentNodeId: string | null;
     score: AdaptiveLearningPathScore;
     confidence: AdaptiveLearningPathPlan['confidence'];
+    pathOptions?: Array<Record<string, unknown>>;
     planNodes: AdaptiveLearningPathPlanNode[];
     alternatives: AdaptiveLearningPathAlternative[];
     explanations: AdaptiveLearningPathExplanation;
@@ -1254,6 +1255,7 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
       'control-correction:time-domain-targets': [
         '性能指标_1_1',
         '动态性能指标_3_a10733c1',
+        '时域指标到目标极点区域_3_36001',
         '稳态误差双路径判断_3_37002',
         '给定-扰动双通道误差分析_3_37001',
       ],
@@ -1270,9 +1272,11 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
         '控制器频域特性矩阵_4_42008',
       ],
       'control-correction:simulation-validation': [
+        '对象化三域验证_3_56cb3a4e',
         '传统设计四联图校正_4_47004',
         '跨模型验证比较_4_47006',
         '工程指标代价函数翻译_4_47003',
+        '剩余风险说明_4_45006',
       ],
       'control-correction:arena-transfer': [
         '跨模型验证比较_4_47006',
@@ -1299,7 +1303,7 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
       minOptions: 2,
       difficultyRhythm: 'steady',
       allowExternalResources: false,
-      preferredResourceTypes: ['knowledge_card', 'textbook_section', 'lesson_step', 'control_workbench', 'simulation', 'arena_task'],
+      preferredResourceTypes: ['knowledge_card', 'textbook_section', 'lesson_step', 'quiz', 'adaptive_quiz', 'control_workbench', 'simulation', 'arena_task'],
     },
     checkpointPolicy: {
       minCheckpoints: 1,
@@ -1374,15 +1378,21 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
     displayName: '反馈与闭环结构基础',
     learningGoal: FEEDBACK_LOOP_CONCEPT_LEARNING_GOAL,
     knowledgeTargetAliases: {
-      '反馈_1_1': ['负反馈_1_0cffeeab', '闭环控制系统_1_10003'],
+      '反馈_1_1': [
+        '负反馈_1_0cffeeab',
+        '闭环控制系统_1_10003',
+        '反馈控制系统_1_98dc667a',
+        '闭环控制_1_1',
+        '负反馈控制原理_1_5a06114b',
+      ],
     },
     allowedResourceMix: FOUNDATION_RESOURCE_MIX,
     starterPathPolicy: {
-      policyFamilies: ['foundation-remediation', 'preference-matched'],
-      minOptions: 2,
+      policyFamilies: ['foundation-remediation', 'simulation-driven', 'preference-matched'],
+      minOptions: 3,
       difficultyRhythm: 'gentle',
       allowExternalResources: false,
-      preferredResourceTypes: ['knowledge_card', 'textbook_section', 'lesson_step', 'quiz'],
+      preferredResourceTypes: ['knowledge_card', 'textbook_section', 'lesson_step', 'quiz', 'adaptive_quiz', 'simulation', 'checkpoint'],
     },
     checkpointPolicy: {
       minCheckpoints: 1,
@@ -2188,6 +2198,7 @@ export function serializeLearningPathPlan(plan: AdaptiveLearningPathPlan): Adapt
       policyFamily: plan.policyFamily,
       policyMetadata: plan.policyMetadata,
       policyBundle: plan.policyBundle,
+      pathOptions: buildSerializablePathOptions(plan),
       currentNodeId: plan.currentNodeId,
       score: plan.score,
       confidence: plan.confidence,
@@ -2220,6 +2231,62 @@ export function serializeLearningPathPlan(plan: AdaptiveLearningPathPlan): Adapt
       studentFacing,
     },
   };
+}
+
+function buildSerializablePathOptions(plan: AdaptiveLearningPathPlan): Array<Record<string, unknown>> {
+  if (plan.policyBundle?.paths.length) {
+    const planNodeById = new Map(plan.mainPath.map((node) => [node.nodeId, node]));
+    return plan.policyBundle.paths.map((path, index) => ({
+      optionId: `path-option-${index + 1}`,
+      ...path,
+      planNodes: Array.isArray(path.planNodes) && path.planNodes.length > 0
+        ? path.planNodes
+        : path.nodeIds.map((nodeId) => planNodeById.get(nodeId)).filter(Boolean),
+    }));
+  }
+  if (plan.mainPath.length === 0) return [];
+  const estimatedMinutes = remainingEstimatedMinutes(plan.mainPath);
+  const terminalValidationNodeIds = plan.mainPath
+    .filter((node) => node.terminalConstraints.includes('terminal-validation'))
+    .map((node) => node.nodeId);
+  const resourceMix = buildModalityMix(plan.mainPath);
+  return [{
+    optionId: 'path-option-1',
+    styleId: 'recommended',
+    policyFamily: plan.policyFamily,
+    label: '推荐学习路径',
+    nodeIds: plan.mainPath.map((node) => node.nodeId),
+    activeNodeIds: activePolicyNodeIds(plan.mainPath),
+    lockedNodeIds: lockedPolicyNodeIds(plan.mainPath),
+    readinessSummary: policyReadinessSummary(plan.mainPath),
+    unlockMessages: policyUnlockMessages(plan.mainPath),
+    planNodes: plan.mainPath,
+    nodeSummaries: plan.mainPath.map(toPathOptionNodeSummary),
+    targetDeficits: [],
+    evidenceBasis: plan.confidence.level === 'low'
+      ? ['learner-evidence-low-confidence']
+      : ['adaptive-learner-state'],
+    estimatedMinutes,
+    modalityMix: resourceMix,
+    resourceMix,
+    overlap: { maxWithOtherOptions: 0 },
+    effort: {
+      estimatedMinutes,
+      relative: effortLabel(estimatedMinutes, Math.max(estimatedMinutes, 1)),
+    },
+    expectedTargetLift: round(plan.score.objectives.learningGain, 3),
+    terminalValidationNodeIds,
+    terminalValidationStrategy: {
+      nodeIds: terminalValidationNodeIds,
+      summary: terminalValidationNodeIds.length > 0
+        ? `terminal validation through ${terminalValidationNodeIds.join(', ')}`
+        : '阶段检查点用于学习反馈',
+    },
+    checkpointNodeIds: terminalValidationNodeIds,
+    limitations: plan.status === 'fallback'
+      ? plan.explanations.fallbackReasons
+      : [],
+  }];
 }
 
 function serializeGraphContextSummary(
@@ -2393,7 +2460,7 @@ function buildGraphContextLimitations(
   if (input.learningGoalBaseline?.coverageState === 'limited') {
     limitations.push({
       code: 'learning-goal-baseline-incomplete',
-      severity: 'blocking',
+      severity: 'warning',
       message: `LearningGoal baseline is incomplete: ${input.learningGoalBaseline.missingBaselineCategories.join(', ') || input.learningGoalBaseline.limitationReason || 'missing reviewed baseline coverage'}.`,
     });
   }
@@ -2765,9 +2832,6 @@ function nodeMatchesGoal(
 ): boolean {
   const planningUnit = planningUnitForNode(node);
   if (!planningUnit) return false;
-  if (graphContext?.targetGraphNodeIds.length && graphTargetsCoveredByPlanningUnit(planningUnit, graphContext).length > 0) {
-    return true;
-  }
   const registeredGoal = getRegisteredAdaptiveLearningPathGoal(goal.id);
   const knowledgeTargets = new Set([
     ...goal.knowledgeTargets,
@@ -2777,6 +2841,9 @@ function nodeMatchesGoal(
   const coversKnowledgeTarget = planningUnit.knowledgeCoverage.some((tag) => knowledgeTargets.has(tag));
   if (knowledgeTargets.size > 0) {
     return coversKnowledgeTarget;
+  }
+  if (graphContext?.targetGraphNodeIds.length && graphTargetsCoveredByPlanningUnit(planningUnit, graphContext).length > 0) {
+    return true;
   }
   if (registeredGoal) {
     return coversKnowledgeTarget;
@@ -3860,7 +3927,6 @@ export function isPathBlockingFallbackReason(reason: string): boolean {
     'terminal-validation-not-final',
     'locked-node-without-fallback',
     'hard-prerequisite-missing',
-    'learning-goal-baseline-incomplete',
     'learning-goal-assessment-coverage-incomplete',
   ].includes(reason);
 }

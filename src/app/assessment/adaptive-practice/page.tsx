@@ -1398,6 +1398,7 @@ export default function AdaptivePracticePage() {
   const [loadedPathContextKey, setLoadedPathContextKey] = useState<string | null>(null);
   const [pathChoicePending, setPathChoicePending] = useState<string | null>(null);
   const [pathChoiceMessage, setPathChoiceMessage] = useState<string | null>(null);
+  const [pathOptionFeedback, setPathOptionFeedback] = useState<Record<string, string>>({});
   const [pathGenerationPanel, setPathGenerationPanel] = useState<PathGenerationPanelState>(restoredPathGenerationPanel);
   const [pathGenerationPending, setPathGenerationPending] = useState<PathGenerationOperation | null>(null);
   const [pathAdvisorReadiness, setPathAdvisorReadiness] = useState<AdaptiveGenerationReadiness | null>(null);
@@ -2078,6 +2079,16 @@ export default function AdaptivePracticePage() {
     }
     setPathGenerationPending(operation);
     setPathChoiceMessage(null);
+    if (option?.optionId) {
+      setPathOptionFeedback((current) => ({
+        ...current,
+        [option.optionId]: operation === 'revise'
+          ? '正在根据这条路径调整方案...'
+          : operation === 'explain'
+            ? '正在生成这条路径的差异说明...'
+            : current[option.optionId] ?? '',
+      }));
+    }
     try {
       const response = await fetch('/api/adaptive/path-advisor-tool', {
         method: 'POST',
@@ -2108,11 +2119,7 @@ export default function AdaptivePracticePage() {
           compareWithOptionId: operation === 'explain'
             ? pathOptions.find((item) => item.optionId !== option?.optionId)?.optionId
             : undefined,
-          rejectedOptionIds: operation === 'revise'
-            ? pathOptions
-                .filter((item) => item.optionId !== option?.optionId)
-                .map((item) => item.optionId)
-            : undefined,
+          rejectedOptionIds: undefined,
           idempotencyKey: `path-generation-panel:${operation}:${pathGenerationPanel.goalId}:${Date.now()}`,
         }),
       });
@@ -2134,6 +2141,9 @@ export default function AdaptivePracticePage() {
           ? payload.result.comparison.message
           : '当前限制条件下暂不能生成可执行学习路径，请调整目标、时间或资源偏好后重试。';
         setPathChoiceMessage(blockedMessage);
+        if (option?.optionId) {
+          setPathOptionFeedback((current) => ({ ...current, [option.optionId]: blockedMessage }));
+        }
         return;
       }
       if (operation !== 'explain') {
@@ -2146,6 +2156,20 @@ export default function AdaptivePracticePage() {
             source: 'generation-panel',
           },
         }));
+        if (operation === 'revise') {
+          const reviseMessage = '路径方案已按新参数调整，请重新比较后选择。';
+          setPathChoiceMessage(reviseMessage);
+          if (option?.optionId) {
+            setPathOptionFeedback((current) => {
+              const next = { ...current, [option.optionId]: reviseMessage };
+              pathOptions.forEach((pathOption) => {
+                next[pathOption.optionId] = reviseMessage;
+              });
+              return next;
+            });
+          }
+          return;
+        }
         const selectionQuery = new URLSearchParams({
           goal: pathGenerationPanel.goalId,
           intent: 'path-selection',
@@ -2165,8 +2189,22 @@ export default function AdaptivePracticePage() {
           ? rationale ?? '已生成路径差异说明。'
           : operation === 'revise' ? '路径方案已按新参数调整。' : '学习路径已生成，请比较后选择方案。',
       );
+      if (option?.optionId) {
+        setPathOptionFeedback((current) => ({
+          ...current,
+          [option.optionId]: operation === 'explain'
+            ? rationale ?? '已生成路径差异说明。'
+            : operation === 'revise'
+              ? '路径方案已按新参数调整。'
+              : '学习路径已生成，请比较后选择方案。',
+        }));
+      }
     } catch (generationError) {
-      setPathChoiceMessage(generationError instanceof Error ? generationError.message : '学习路径生成失败');
+      const errorMessage = generationError instanceof Error ? generationError.message : '学习路径生成失败';
+      setPathChoiceMessage(errorMessage);
+      if (option?.optionId) {
+        setPathOptionFeedback((current) => ({ ...current, [option.optionId]: errorMessage }));
+      }
     } finally {
       setPathGenerationPending(null);
     }
@@ -2201,6 +2239,14 @@ export default function AdaptivePracticePage() {
     }
     setPathChoicePending(`${action}:${option.optionId}`);
     setPathChoiceMessage(null);
+    setPathOptionFeedback((current) => ({
+      ...current,
+      [option.optionId]: action === 'rejection'
+        ? '正在记录暂不采用原因...'
+        : action === 'helpfulness'
+          ? '正在记录这条路径的帮助反馈...'
+          : '正在记录路径选择...',
+    }));
     try {
       const response = await fetch(`/api/learning-paths/${encodeURIComponent(pathId)}/choices`, {
         method: 'POST',
@@ -2227,9 +2273,17 @@ export default function AdaptivePracticePage() {
         window.location.assign(withFeedbackTaskHref(`/assessment/adaptive-practice?${executionQuery.toString()}`));
         return;
       }
-      setPathChoiceMessage('路径选择证据已记录。');
+      const successMessage = action === 'rejection'
+        ? '已记录暂不采用，控灵会在后续调整中避开这类方案。'
+        : action === 'helpfulness'
+          ? '已记录有帮助，后续路径会优先参考这类方案。'
+          : '路径选择证据已记录。';
+      setPathChoiceMessage(successMessage);
+      setPathOptionFeedback((current) => ({ ...current, [option.optionId]: successMessage }));
     } catch (choiceError) {
-      setPathChoiceMessage(choiceError instanceof Error ? choiceError.message : '路径选择写入失败');
+      const errorMessage = choiceError instanceof Error ? choiceError.message : '路径选择写入失败';
+      setPathChoiceMessage(errorMessage);
+      setPathOptionFeedback((current) => ({ ...current, [option.optionId]: errorMessage }));
     } finally {
       setPathChoicePending(null);
     }
@@ -3031,14 +3085,21 @@ export default function AdaptivePracticePage() {
           </section>
           ) : null}
 
-          {pathChoiceMessage && (showGenerationWorkspace || showSelectionWorkspace) ? (
-            <p
-              className="rounded-lg border border-border bg-background/60 px-3 py-2 text-sm text-foreground"
-              role="status"
-              aria-live="polite"
+          {showGenerationWorkspace || showSelectionWorkspace ? (
+            <div
+              className={showSelectionWorkspace ? 'min-h-[2.75rem]' : undefined}
+              data-adaptive-path-status-region={showSelectionWorkspace ? 'reserved' : 'inline'}
             >
-              {pathChoiceMessage}
-            </p>
+              {pathChoiceMessage ? (
+                <p
+                  className="rounded-lg border border-border bg-background/60 px-3 py-2 text-sm text-foreground"
+                  role="status"
+                  aria-live="polite"
+                >
+                  {pathChoiceMessage}
+                </p>
+              ) : null}
+            </div>
           ) : null}
 
           {showPathContextRecovery ? (
@@ -3176,10 +3237,10 @@ export default function AdaptivePracticePage() {
                     ))}
                   </div>
                   <div className="mt-3 flex flex-wrap gap-1.5">
-                    {option.resources.map((resource) => {
+                    {option.resources.map((resource, resourceIndex) => {
                       const Icon = adaptivePathResourceIcons[resource.kind];
                       return (
-                        <span key={`${option.id}:${resource.kind}`} className="inline-flex items-center gap-1 rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-subtle">
+                        <span key={`${option.id}:${resource.kind}:${resourceIndex}`} className="inline-flex items-center gap-1 rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-subtle">
                           <Icon className="size-3.5" aria-hidden="true" />
                           {resource.label}
                         </span>
@@ -3271,6 +3332,16 @@ export default function AdaptivePracticePage() {
                         有帮助
                       </button>
                     </div>
+                    {option.writeOption && pathOptionFeedback[option.writeOption.optionId] ? (
+                      <p
+                        className="rounded-lg border border-border bg-background/65 px-3 py-2 text-xs leading-5 text-foreground"
+                        role="status"
+                        aria-live="polite"
+                        data-learning-path-option-feedback={option.writeOption.optionId}
+                      >
+                        {pathOptionFeedback[option.writeOption.optionId]}
+                      </p>
+                    ) : null}
                   </div>
                 </article>
               ))}
@@ -3317,10 +3388,10 @@ export default function AdaptivePracticePage() {
                   <details className="mt-3 rounded-lg border border-border bg-background/50 px-3 py-2 text-xs text-subtle">
                     <summary className="cursor-pointer font-medium text-foreground">查看资源组合</summary>
                     <div className="mt-2 flex flex-wrap gap-1.5">
-                      {option.resources.map((resource) => {
+                      {option.resources.map((resource, resourceIndex) => {
                         const Icon = adaptivePathResourceIcons[resource.kind];
                         return (
-                          <span key={`${option.id}:mobile:${resource.kind}`} className="inline-flex items-center gap-1 rounded-md border border-border bg-background/60 px-2 py-1">
+                          <span key={`${option.id}:mobile:${resource.kind}:${resourceIndex}`} className="inline-flex items-center gap-1 rounded-md border border-border bg-background/60 px-2 py-1">
                             <Icon className="size-3.5" aria-hidden="true" />
                             {resource.label}
                           </span>
@@ -3413,6 +3484,16 @@ export default function AdaptivePracticePage() {
                         有帮助
                       </button>
                     </div>
+                    {option.writeOption && pathOptionFeedback[option.writeOption.optionId] ? (
+                      <p
+                        className="rounded-lg border border-border bg-background/65 px-3 py-2 text-xs leading-5 text-foreground"
+                        role="status"
+                        aria-live="polite"
+                        data-learning-path-option-feedback={option.writeOption.optionId}
+                      >
+                        {pathOptionFeedback[option.writeOption.optionId]}
+                      </p>
+                    ) : null}
                   </div>
                 </section>
               ))}

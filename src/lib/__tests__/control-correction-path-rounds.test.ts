@@ -470,6 +470,18 @@ describe('control-correction path rounds', () => {
         }),
       }),
     }));
+    const persistedPayload = db.learningPath.upsert.mock.calls[0][0].create.pathPayload;
+    expect(persistedPayload.pathOptions).toEqual([
+      expect.objectContaining({
+        optionId: 'path-option-1',
+        styleId: 'foundation-remediation',
+        nodeIds: [
+          'knowledge-card:control-correction-time-domain-targets',
+          'arena-task:task-second-order-lead-pid',
+        ],
+        planNodes: expect.any(Array),
+      }),
+    ]);
   });
 
   it('persists registered generic path rounds without requiring control-correction terminal validation', async () => {

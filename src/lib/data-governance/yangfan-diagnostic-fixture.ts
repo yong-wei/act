@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { ADAPTIVE_LEARNING_GOAL_DEFINITIONS } from '../adaptive-learning-path-planner';
+import type { CompetencyVector } from './competency-model';
 import {
   refreshStudentEvidenceFeatureCache,
   type StudentEvidenceFeatureCacheDb,
@@ -28,6 +29,8 @@ export interface YangFanDiagnosticFixtureOptions extends StudentEvidenceFeatureR
   nodeEnv?: string | null;
   fixtureDbAllowlist?: string | null;
   readinessSummary?: YangFanReadinessSummaryInput | null;
+  allowFixtureReadinessBlockers?: boolean;
+  replaceCanonicalProfileSummary?: boolean;
   now?: Date;
 }
 
@@ -207,10 +210,10 @@ export async function buildYangFanDiagnosticFixturePlan(
   const duplicateSafety = await classifyDuplicateSafety(db, duplicates);
   const knowledgeNodeIds = canonical ? await loadFixtureKnowledgeNodeIds(db) : [];
   const canonicalSafety = mode !== 'reset' && canonical
-    ? await classifyCanonicalWriteSafety(db, canonical.id, knowledgeNodeIds)
-    : [];
-  const readinessBlockers = mode === 'reset' ? [] : readinessSummaryBlockers(options.readinessSummary);
-  const readinessWarnings = mode === 'reset' ? [] : readinessSummaryWarnings(options.readinessSummary);
+    ? await classifyCanonicalWriteSafety(db, canonical.id, knowledgeNodeIds, options)
+    : { blockers: [], warnings: [] };
+  const readinessBlockers = mode === 'reset' ? [] : readinessSummaryBlockers(options.readinessSummary, options);
+  const readinessWarnings = mode === 'reset' ? [] : readinessSummaryWarnings(options.readinessSummary, options);
   const safetyBlockers = safetyBlockersForMode(mode, options);
   const knowledgeNodeBlockers = mode !== 'reset' && canonical && !hasCompleteFixtureKnowledgeNodes(knowledgeNodeIds)
     ? ['fixture-knowledge-nodes-missing']
@@ -221,7 +224,7 @@ export async function buildYangFanDiagnosticFixturePlan(
     ...(!canonical ? ['canonical-yangfan-account-missing'] : []),
     ...(duplicateSafety.unsafe.length ? ['duplicate-yangfan-account-has-unsafe-records'] : []),
     ...knowledgeNodeBlockers,
-    ...canonicalSafety,
+    ...canonicalSafety.blockers,
   ];
 
   return {
@@ -232,6 +235,7 @@ export async function buildYangFanDiagnosticFixturePlan(
     warnings: unique([
       ...(duplicateSafety.unsafe.length ? ['duplicate-yangfan-account-manual-review-required'] : []),
       ...readinessWarnings,
+      ...canonicalSafety.warnings,
     ]),
     privacy: privacySummary(),
     canonical: canonical ? maskAccount(canonical) : null,
@@ -277,13 +281,13 @@ export async function applyYangFanDiagnosticFixture(
   if (applySafetyBlockers.length > 0) {
     throw new Error(`Cannot apply Yang Fan diagnostic fixture: ${applySafetyBlockers.join(', ')}`);
   }
-  const applyReadinessBlockers = readinessSummaryBlockers(options.readinessSummary);
+  const applyReadinessBlockers = readinessSummaryBlockers(options.readinessSummary, options);
   if (applyReadinessBlockers.length > 0) {
     throw new Error(`Cannot apply Yang Fan diagnostic fixture: ${applyReadinessBlockers.join(', ')}`);
   }
   const applyWarnings = unique([
     ...plan.warnings.filter((warning) => warning !== 'yang-fan-fixture-limited-coverage'),
-    ...readinessSummaryWarnings(options.readinessSummary),
+    ...readinessSummaryWarnings(options.readinessSummary, options),
   ]);
 
   const write = async (tx: YangFanDiagnosticFixtureDb) => {
@@ -320,14 +324,7 @@ export async function applyYangFanDiagnosticFixture(
         id: `${YANGFAN_DIAGNOSTIC_FIXTURE_PREFIX}:snapshot`,
         userId: canonicalUserId,
         snapshotAt: now,
-        competencyVector: {
-          modeling: 0.62,
-          analysis: 0.68,
-          design: 0.58,
-          simulation: 0.71,
-          reflection: 0.55,
-          aiCollaboration: 0.64,
-        },
+        competencyVector: fixtureCompetencyVector(now),
         evidenceSummary: {
           fixtureScope: YANGFAN_DIAGNOSTIC_FIXTURE_VERSION,
           sourceFactIds: FIXTURE_FACT_IDS,
@@ -836,6 +833,18 @@ function profileSummaryData(userId: string, now: Date) {
   };
 }
 
+function fixtureCompetencyVector(now: Date): CompetencyVector {
+  const lastUpdated = now.toISOString();
+  return {
+    controlModeling: { score: 68, trend: 'up', confidence: 0.72, evidenceCount: 3, lastUpdated },
+    parameterDesign: { score: 58, trend: 'stable', confidence: 0.64, evidenceCount: 2, lastUpdated },
+    crossDomainTransfer: { score: 61, trend: 'stable', confidence: 0.58, evidenceCount: 1, lastUpdated },
+    engineeringDecision: { score: 63, trend: 'stable', confidence: 0.62, evidenceCount: 2, lastUpdated },
+    inquiryReflection: { score: 55, trend: 'up', confidence: 0.56, evidenceCount: 1, lastUpdated },
+    selfDirectedLearning: { score: 66, trend: 'up', confidence: 0.68, evidenceCount: 3, lastUpdated },
+  };
+}
+
 function isFixtureProfileSummary(row: Record<string, any> | null | undefined) {
   return recordValue(row?.recentActivityJson).fixtureScope === YANGFAN_DIAGNOSTIC_FIXTURE_VERSION;
 }
@@ -892,8 +901,10 @@ async function classifyCanonicalWriteSafety(
   db: YangFanDiagnosticFixtureDb,
   canonicalUserId: string,
   knowledgeNodeIds: string[],
+  options: YangFanDiagnosticFixtureOptions,
 ) {
   const blockers: string[] = [];
+  const warnings: string[] = [];
   const existingKnowledgeProgress = await db.knowledgeProgress?.findMany?.({
     where: {
       userId: canonicalUserId,
@@ -906,9 +917,13 @@ async function classifyCanonicalWriteSafety(
   }
   const profileSummary = await db.studentProfileSummary?.findUnique({ where: { userId: canonicalUserId } });
   if (profileSummary && !isFixtureProfileSummary(profileSummary)) {
-    blockers.push('canonical-profile-summary-already-exists');
+    if (options.replaceCanonicalProfileSummary === true) {
+      warnings.push('canonical-profile-summary-replace-requested');
+    } else {
+      blockers.push('canonical-profile-summary-already-exists');
+    }
   }
-  return blockers;
+  return { blockers, warnings };
 }
 
 async function loadFixtureKnowledgeNodeIds(db: YangFanDiagnosticFixtureDb) {
@@ -923,7 +938,10 @@ async function loadFixtureKnowledgeNodeIds(db: YangFanDiagnosticFixtureDb) {
   return FIXTURE_KNOWLEDGE_NODE_IDS.filter((nodeId) => available.has(nodeId));
 }
 
-function readinessSummaryBlockers(summary?: YangFanReadinessSummaryInput | null): string[] {
+function readinessSummaryBlockers(
+  summary?: YangFanReadinessSummaryInput | null,
+  options: YangFanDiagnosticFixtureOptions = {},
+): string[] {
   if (!summary) return ['readiness-summary-missing'];
   const resourceCoverage = recordValue(summary.resourceCoverage);
   const fixtureBlockers = recordValue(resourceCoverage.yangFanFixtureBlockers);
@@ -932,13 +950,16 @@ function readinessSummaryBlockers(summary?: YangFanReadinessSummaryInput | null)
     return status === 'passed' ? [] : ['readiness-summary-not-passed'];
   }
   const blockingFindings: string[] = [];
-  if (fixtureBlockers.blocked === true) {
+  if (fixtureBlockers.blocked === true && options.allowFixtureReadinessBlockers !== true) {
     blockingFindings.push('yang-fan-fixture-blockers');
   }
   return unique(blockingFindings);
 }
 
-function readinessSummaryWarnings(summary?: YangFanReadinessSummaryInput | null): string[] {
+function readinessSummaryWarnings(
+  summary?: YangFanReadinessSummaryInput | null,
+  options: YangFanDiagnosticFixtureOptions = {},
+): string[] {
   if (!summary) return [];
   const resourceCoverage = recordValue(summary.resourceCoverage);
   const fixtureBlockers = recordValue(resourceCoverage.yangFanFixtureBlockers);
@@ -947,9 +968,13 @@ function readinessSummaryWarnings(summary?: YangFanReadinessSummaryInput | null)
     recordValue(finding).id === 'yang-fan-fixture-limited-coverage'
   );
   const globalLimitationCount = Number(fixtureBlockers.globalLimitationCount || 0);
-  return hasLimitedCoverageFinding || globalLimitationCount > 0
+  const warnings = hasLimitedCoverageFinding || globalLimitationCount > 0
     ? ['yang-fan-fixture-limited-coverage']
     : [];
+  if (fixtureBlockers.blocked === true && options.allowFixtureReadinessBlockers === true) {
+    warnings.push('yang-fan-fixture-blockers-overridden');
+  }
+  return unique(warnings);
 }
 
 function safetyBlockersForMode(
@@ -1019,9 +1044,9 @@ async function resolveWritableAccounts(
     throw new Error('Cannot write fixture while unsafe duplicate Yang Fan accounts remain.');
   }
   const knowledgeNodeIds = await loadFixtureKnowledgeNodeIds(db);
-  const canonicalSafety = await classifyCanonicalWriteSafety(db, canonical.id, knowledgeNodeIds);
-  if (canonicalSafety.length > 0) {
-    throw new Error(`Cannot write fixture while canonical learner records are unsafe: ${canonicalSafety.join(', ')}`);
+  const canonicalSafety = await classifyCanonicalWriteSafety(db, canonical.id, knowledgeNodeIds, options);
+  if (canonicalSafety.blockers.length > 0) {
+    throw new Error(`Cannot write fixture while canonical learner records are unsafe: ${canonicalSafety.blockers.join(', ')}`);
   }
   return {
     canonical,

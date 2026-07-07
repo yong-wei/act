@@ -52,6 +52,8 @@ async function main() {
     nodeEnv: process.env.NODE_ENV ?? '',
     fixtureDbAllowlist: process.env.YANGFAN_FIXTURE_DB_ALLOWLIST ?? '',
     readinessSummary,
+    allowFixtureReadinessBlockers: hasFlag('--allow-fixture-readiness-blockers'),
+    replaceCanonicalProfileSummary: hasFlag('--replace-canonical-profile-summary'),
   };
 
   const plan = await buildYangFanDiagnosticFixturePlan(prisma, options);

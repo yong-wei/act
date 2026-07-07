@@ -2291,8 +2291,8 @@ async function buildAdaptivePathToolOutput(
   const resourcePreferences = normalizeAdaptivePathResourcePreferences(args.resourcePreference)
     ?? registeredGoal.starterPathPolicy.preferredResourceTypes;
   const plannerRevisionPreference = operation === 'revised'
-    ? buildAdaptivePathRevisionPlannerPreference(args)
-    : {};
+    ? buildAdaptivePathRevisionPlannerPreference(args, registeredGoal)
+    : buildAdaptivePathGenerationPlannerPreference(registeredGoal);
   const graphContext = buildAdaptivePathPlannerGraphContext(input.context.graphContext, goalId, args.graphNodeId);
   const sourcePackInput = await buildAdaptivePathSourcePackCandidates(registry);
   const plan = buildAdaptiveLearningPathPlan({
@@ -2466,6 +2466,7 @@ function normalizeAdaptivePathSelectedGraphNodeIds(
 
 function buildAdaptivePathRevisionPlannerPreference(
   args: z.infer<typeof generateLearningPathParameters> | z.infer<typeof reviseLearningPathOptionsParameters>,
+  registeredGoal: NonNullable<ReturnType<typeof getRegisteredAdaptiveLearningPathGoal>>,
 ): Pick<Parameters<typeof buildAdaptiveLearningPathPlan>[0], 'policyFamily' | 'policyBundle'> {
   if (!('rejectedStyleIds' in args)) return {};
   const preferredFamily = adaptivePathPolicyFamilyFromStyleId(args.preferredStyleId ?? args.selectedStyleId ?? null);
@@ -2474,18 +2475,29 @@ function buildAdaptivePathRevisionPlannerPreference(
     .filter((family): family is AdaptiveLearningPathPolicyFamily => Boolean(family)));
   const candidateFamilies = [
     preferredFamily,
-    'simulation-driven',
-    'preference-matched',
-    'foundation-remediation',
+    ...registeredGoal.starterPathPolicy.policyFamilies,
     'sprint-correction',
   ].filter((family): family is AdaptiveLearningPathPolicyFamily => Boolean(family));
-  const families = Array.from(new Set(candidateFamilies.filter((family) => !rejectedFamilies.has(family))));
+  const families = Array.from(new Set(candidateFamilies.filter((family) => (
+    family === preferredFamily || !rejectedFamilies.has(family)
+  ))));
   if (!preferredFamily && rejectedFamilies.size === 0) return {};
   return {
     policyFamily: preferredFamily ?? families[0] ?? 'rules-plus-graph-search',
     policyBundle: families.length > 0
       ? { families, overlapThreshold: 0.6 }
       : undefined,
+  };
+}
+
+function buildAdaptivePathGenerationPlannerPreference(
+  registeredGoal: NonNullable<ReturnType<typeof getRegisteredAdaptiveLearningPathGoal>>,
+): Pick<Parameters<typeof buildAdaptiveLearningPathPlan>[0], 'policyBundle'> {
+  return {
+    policyBundle: {
+      families: registeredGoal.starterPathPolicy.policyFamilies,
+      overlapThreshold: 0.6,
+    },
   };
 }
 
@@ -2597,31 +2609,34 @@ function normalizeAdaptivePathResourcePreferences(value: string[] | undefined): 
 }
 
 export function buildStudentSafePathOptions(plan: AdaptiveLearningPathPlan) {
-  if (plan.policyBundle?.status === 'ready' && plan.policyBundle.paths.length) {
-    return plan.policyBundle.paths.map((path) => ({
-      styleId: path.styleId,
-      label: path.label,
-      estimatedMinutes: path.effort.estimatedMinutes,
-      effort: path.effort.relative,
-      nodeSummaries: path.nodeSummaries.map((node) => ({
-        nodeId: node.nodeId,
-        title: node.title,
-        resourceType: node.pathNodeType,
-        estimatedTimeMinutes: node.estimatedTimeMinutes,
-        knowledgeCoverage: [],
-      })),
-      targetDeficits: path.targetDeficits.map((target) => target.targetId),
-      evidenceBasis: buildStudentSafeEvidenceBasis(path.evidenceBasis),
-      lockedNodeIds: path.lockedNodeIds,
-      readinessSummary: path.readinessSummary,
-      limitations: path.limitations,
-      terminalValidation: path.terminalValidationStrategy.nodeIds.length > 0
-        ? {
-            required: true,
-            nodeIds: path.terminalValidationStrategy.nodeIds,
-          }
-        : { required: false, nodeIds: [] },
-    }));
+  if (plan.policyBundle?.paths.length) {
+    return plan.policyBundle.paths
+      .filter((path) => Array.isArray(path.nodeIds) && path.nodeIds.length > 0)
+      .map((path, index) => ({
+        optionId: `path-option-${index + 1}`,
+        styleId: path.styleId,
+        label: path.label,
+        estimatedMinutes: path.effort.estimatedMinutes,
+        effort: path.effort.relative,
+        nodeSummaries: path.nodeSummaries.map((node) => ({
+          nodeId: node.nodeId,
+          title: node.title,
+          resourceType: node.pathNodeType,
+          estimatedTimeMinutes: node.estimatedTimeMinutes,
+          knowledgeCoverage: [],
+        })),
+        targetDeficits: path.targetDeficits.map((target) => target.targetId),
+        evidenceBasis: buildStudentSafeEvidenceBasis(path.evidenceBasis),
+        lockedNodeIds: path.lockedNodeIds,
+        readinessSummary: path.readinessSummary,
+        limitations: path.limitations,
+        terminalValidation: path.terminalValidationStrategy.nodeIds.length > 0
+          ? {
+              required: true,
+              nodeIds: path.terminalValidationStrategy.nodeIds,
+            }
+          : { required: false, nodeIds: [] },
+      }));
   }
   const estimatedMinutes = plan.mainPath.reduce((sum, node) => sum + node.estimatedTimeMinutes, 0);
   return [{
@@ -2782,11 +2797,12 @@ async function resolveAdaptivePathGenerationRegistry(goalId: string) {
       }))
     ),
   };
+  const buildGenericRegistry = () => applyCoreResourcePathReadinessDispositions(buildResourceNodeRegistry({
+    registeredResources: getAllRegisteredResourceMetadata(),
+    ...runtimeTextbookInput,
+  }));
   if (goalId === CONTROL_CORRECTION_PATH_ROUND_GOAL_ID) {
-    return applyCoreResourcePathReadinessDispositions(buildResourceNodeRegistry({
-      registeredResources: getAllRegisteredResourceMetadata(),
-      ...runtimeTextbookInput,
-    }));
+    return buildGenericRegistry();
   }
   if (goalId === 'frequency-response-foundations') {
     return applyCoreResourcePathReadinessDispositions(buildResourceNodeRegistry({
@@ -2794,7 +2810,10 @@ async function resolveAdaptivePathGenerationRegistry(goalId: string) {
       ...runtimeTextbookInput,
     }));
   }
-  throw new KonlingRuntimeScopeError(403, '当前学习目标还没有可生成的路径资源注册表。');
+  if (getRegisteredAdaptiveLearningPathGoal(goalId)) {
+    return buildGenericRegistry();
+  }
+  throw new KonlingRuntimeScopeError(404, '当前学习目标未注册。');
 }
 
 async function buildAdaptivePathSourcePackCandidates(

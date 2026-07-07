@@ -1905,7 +1905,7 @@ describe('adaptive learning path planner', () => {
     expect(JSON.stringify(serialized.payload.graphContext)).not.toContain('knowledge-card:graph-frequency-card');
   });
 
-  it('blocks graph-driven paths when LearningGoal baseline coverage is incomplete', () => {
+  it('keeps graph-driven paths usable when LearningGoal baseline coverage is incomplete', () => {
     const learningGoal = ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].learningGoal!;
     const expandedSubgraph = expandLearningGoalSubgraph(learningGoal.id);
     const graphTargetId = learningGoal.targetGraphNodeIds[0];
@@ -1979,10 +1979,11 @@ describe('adaptive learning path planner', () => {
 
     expect(plan.graphContext?.limitations).toContainEqual(expect.objectContaining({
       code: 'learning-goal-baseline-incomplete',
-      severity: 'blocking',
+      severity: 'warning',
     }));
     expect(plan.explanations.fallbackReasons).toContain('learning-goal-baseline-incomplete');
-    expect(plan.mainPath).toEqual([]);
+    expect(plan.mainPath).not.toEqual([]);
+    expect(plan.mainPath.map((node) => node.nodeId)).toContain('knowledge-card:baseline-frequency-card');
   });
 
   it('blocks graph-driven paths when LearningGoal assessment coverage is incomplete', () => {
@@ -3774,6 +3775,54 @@ describe('adaptive learning path planner', () => {
     expect(plan.explanations.fallbackReasons).toContain('checkpoint-resource-missing');
   });
 
+  it('matches registered feedback resources through feedback-loop goal aliases', () => {
+    const registry = applyCoreResourcePathReadinessDispositions(buildResourceNodeRegistry({
+      registeredResources: getAllRegisteredResourceMetadata(),
+    }));
+    const goalDefinition = ADAPTIVE_LEARNING_GOAL_DEFINITIONS['feedback-loop-concept-foundations'];
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: goalDefinition.goal,
+      policyFamily: 'foundation-remediation',
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            '反馈_1_1': { posteriorMastery: 0.2, confidence: 0.65, evidenceCount: 2 },
+          },
+        },
+        primaryCompetencies: {
+          vector: {
+            controlModeling: { score: 0.36, confidence: 0.62, evidenceCount: 2 },
+          },
+        },
+        evidence: {
+          confidence: {
+            level: 'medium',
+            score: 0.62,
+            evidenceCount: 3,
+            sourceCompleteness: 0.7,
+          },
+        },
+      },
+      constraints: {
+        timeBudgetMinutes: 90,
+        privacyScopes: ['student-visible'],
+        device: 'desktop',
+        timelineWindowDays: 7,
+      },
+    }));
+    const aliases = goalDefinition.knowledgeTargetAliases?.['反馈_1_1'] ?? [];
+    const feedbackNodes = plan.mainPath.filter((node) =>
+      node.knowledgeCoverage.some((target) => aliases.includes(target)),
+    );
+
+    expect(feedbackNodes.map((node) => node.nodeId)).toEqual(expect.arrayContaining([
+      'registry:lesson01-feedback-knowledge-deck-v1',
+      'registry:lesson01-feedback-exit-quiz-v1',
+    ]));
+    expect(plan.explanations.fallbackReasons).not.toContain('baseline-resource-missing');
+  });
+
   it('uses registered checkpoint resource types in constraint repair artifacts', () => {
     const registry = buildResourceNodeRegistry({
       knowledgeCards: [{
@@ -5211,6 +5260,13 @@ describe('adaptive learning path planner', () => {
     expect(record.payload.policyFamily).toBe(withFeedback.policyFamily);
     expect(record.payload.policyMetadata).toEqual(withFeedback.policyMetadata);
     expect(record.payload.policyBundle).toEqual(withFeedback.policyBundle);
+    expect(record.payload.pathOptions?.[0]).toMatchObject({
+      optionId: 'path-option-1',
+      styleId: 'recommended',
+      label: '推荐学习路径',
+      nodeIds: withFeedback.mainPath.map((node) => node.nodeId),
+      planNodes: withFeedback.mainPath,
+    });
     expect(record.payload.currentNodeId).toBe(withFeedback.currentNodeId);
     expect(record.payload.score).toEqual(withFeedback.score);
     expect(record.payload.confidence).toEqual(withFeedback.confidence);
