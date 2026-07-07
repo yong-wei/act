@@ -445,8 +445,12 @@ async function readPathOptionStyleLookup(pathId: string, goalId: string, userId:
       pathPayload: true,
     },
   });
-  const policyBundle = readRecord(readRecord(path?.pathPayload).policyBundle);
-  const paths = Array.isArray(policyBundle.paths) ? policyBundle.paths : [];
+  const pathPayload = readRecord(path?.pathPayload);
+  const policyBundle = readRecord(pathPayload.policyBundle);
+  const policyPaths = Array.isArray(policyBundle.paths) ? policyBundle.paths : [];
+  const paths = policyPaths.length > 0
+    ? policyPaths
+    : Array.isArray(pathPayload.pathOptions) ? pathPayload.pathOptions : [];
   const lookup = new Map<string, string>();
   paths
     .map((item, index) => ({ option: readRecord(item), index }))

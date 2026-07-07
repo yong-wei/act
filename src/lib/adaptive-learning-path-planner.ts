@@ -2839,12 +2839,14 @@ function nodeMatchesGoal(
     ...expandedRegisteredKnowledgeTargets(goal, deficits, registeredGoal),
   ]);
   const coversKnowledgeTarget = planningUnit.knowledgeCoverage.some((tag) => knowledgeTargets.has(tag));
+  const coversGraphTarget = Boolean(
+    graphContext?.targetGraphNodeIds.length &&
+    graphTargetsCoveredByPlanningUnit(planningUnit, graphContext).length > 0,
+  );
   if (knowledgeTargets.size > 0) {
-    return coversKnowledgeTarget;
+    return coversKnowledgeTarget || coversGraphTarget;
   }
-  if (graphContext?.targetGraphNodeIds.length && graphTargetsCoveredByPlanningUnit(planningUnit, graphContext).length > 0) {
-    return true;
-  }
+  if (coversGraphTarget) return true;
   if (registeredGoal) {
     return coversKnowledgeTarget;
   }

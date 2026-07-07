@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
   getOrCreateKonlingAgentSession: vi.fn(),
   getServerAuthSession: vi.fn(),
   classFindUnique: vi.fn(),
+  learningPathFindFirst: vi.fn(),
   isRegisteredAdaptiveLearningPathGoal: vi.fn(),
   resolveKonlingTeachingAssistantServerModeContext: vi.fn(),
   resolveKonlingTeachingAssistantSignedGraphNodeId: vi.fn(),
@@ -22,6 +23,9 @@ vi.mock('@/lib/prisma', () => ({
   prisma: {
     class: {
       findUnique: mocks.classFindUnique,
+    },
+    learningPath: {
+      findFirst: mocks.learningPathFindFirst,
     },
   },
 }));
@@ -84,6 +88,7 @@ describe('path advisor tool route readiness', () => {
     });
     mocks.isRegisteredAdaptiveLearningPathGoal.mockReturnValue(true);
     mocks.classFindUnique.mockResolvedValue({ teacherId: 'teacher-1' });
+    mocks.learningPathFindFirst.mockResolvedValue(null);
     mocks.verifyKonlingRuntimeScope.mockResolvedValue({
       ok: true,
       scope: {
@@ -205,5 +210,43 @@ describe('path advisor tool route readiness', () => {
       },
       result: { pathId: 'path-1' },
     });
+  });
+
+  it('resolves selected fallback pathOptions before path advisor explain calls', async () => {
+    const explainLearningPathTradeoff = vi.fn().mockResolvedValue({ explanation: 'ok' });
+    mocks.learningPathFindFirst.mockResolvedValue({
+      id: 'path-1',
+      currentNodeId: 'node-1',
+      nodeIds: ['node-1'],
+      pathPayload: {
+        pathOptions: [{
+          optionId: 'path-option-1',
+          styleId: 'recommended',
+          nodeIds: ['node-1'],
+        }],
+        executionStatus: {
+          completedNodeIds: [],
+        },
+      },
+      lastExecutionMetadata: {},
+    });
+    mocks.buildKonlingToolRuntime.mockReturnValueOnce({
+      explainLearningPathTradeoff,
+      generateLearningPath: vi.fn(),
+      reviseLearningPathOptions: vi.fn(),
+    });
+
+    const response = await post({
+      operation: 'explain',
+      pathId: 'path-1',
+      selectedOptionId: 'path-option-1',
+    });
+
+    expect(response.status).toBe(200);
+    expect(explainLearningPathTradeoff).toHaveBeenCalledWith(expect.objectContaining({
+      pathId: 'path-1',
+      selectedStyleId: 'recommended',
+      styleId: 'recommended',
+    }));
   });
 });

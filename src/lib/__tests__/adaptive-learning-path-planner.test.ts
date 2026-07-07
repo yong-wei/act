@@ -4201,6 +4201,75 @@ describe('adaptive learning path planner', () => {
     expect(plan.constraintRepair?.removedNodeIds).not.toContain('simulation:legacy-b-simulation');
   });
 
+  it('keeps graph-covered capability resources when registered knowledge targets are present', () => {
+    const learningGoal = ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].learningGoal!;
+    const expandedSubgraph = expandLearningGoalSubgraph(learningGoal.id);
+    const graphTargetId = learningGoal.targetGraphNodeIds.find((id) => id.startsWith('cap:'))!;
+    const registry = buildResourceNodeRegistry({
+      simulations: [{
+        id: 'capability-only-simulation',
+        title: '能力目标仿真',
+        launchTarget: '/simulations/capability-only',
+        knowledgeNodeIds: ['legacy-unmatched-knowledge'],
+        planningOverride: {
+          estimatedTimeMinutes: 8,
+          abilityImpact: { parameterDesign: 0.4 },
+          evidenceInstrumentation: ['simulation_run'],
+        },
+      }],
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: {
+        id: learningGoal.id,
+        title: learningGoal.title,
+        knowledgeTargets: ['unmatched-current-target'],
+        competencyTargets: ['parameterDesign'],
+      },
+      learnerState: null,
+      constraints: {
+        timeBudgetMinutes: 20,
+        privacyScopes: ['student-visible'],
+      },
+      graphContext: {
+        learningGoalId: learningGoal.id,
+        learningGoalVersion: learningGoal.version,
+        objectiveBoundary: {
+          knowledgeObjectiveIds: learningGoal.knowledgeObjectiveIds,
+          capabilityObjectiveIds: learningGoal.capabilityObjectiveIds,
+          qualityObjectiveIds: learningGoal.qualityObjectiveIds,
+        },
+        expandedSubgraph,
+        resourceCoverage: {
+          [graphTargetId]: {
+            domain: 'knowledge',
+            nodeId: graphTargetId,
+            linkedResourceCount: 1,
+            pathEligibleResourceCount: 1,
+            ragIndexedCount: 0,
+            citationReadyCount: 0,
+            verifiedCitationCount: 0,
+            assessmentResourceCount: 0,
+            simulationResourceCount: 1,
+            arenaPreviewResourceCount: 0,
+            arenaOfficialResourceCount: 0,
+            terminalValidationCapableResourceCount: 0,
+            coverageState: 'sufficient',
+            missingCoverageTypes: [],
+            linkedResourceIds: ['capability-only-simulation'],
+            pathEligibleResourceIds: ['simulation:capability-only-simulation'],
+            pathEligibleResourceRouteIds: ['/simulations/capability-only'],
+            filterKnowledgeRefs: [],
+          },
+        },
+      },
+    }));
+
+    expect(plan.mainPath.map((node) => node.nodeId)).toContain('simulation:capability-only-simulation');
+    expect(plan.graphContext?.targetGraphNodeIds).toContain(graphTargetId);
+  });
+
   it('does not force ordinary tail nodes to satisfy checkpoint policy', () => {
     const registry = buildResourceNodeRegistry({
       textbooks: [{
