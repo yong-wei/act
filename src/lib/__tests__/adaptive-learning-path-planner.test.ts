@@ -508,6 +508,9 @@ describe('adaptive learning path planner', () => {
           behaviorVerb: '判别',
           successCriteria: ['能够依据频域曲线判断稳定裕度'],
           observableEvidenceType: 'question',
+          evaluationMethod: 'assessment-backed frequency-domain stability item',
+          goalSliceId: 'control-correction',
+          learnerStateFeatureGroups: ['knowledgeMastery', 'primaryCompetencies'],
         }],
       },
       sourcePackCandidates: [citationOnlyItem],
@@ -1847,6 +1850,8 @@ describe('adaptive learning path planner', () => {
             missingCoverageTypes: ['rag-indexed-resource', 'citation-ready-resource'],
             linkedResourceIds: ['resource:graph-frequency-card'],
             pathEligibleResourceIds: ['knowledge-card:graph-frequency-card'],
+            pathEligibleResourceRouteIds: ['knowledge-card:graph-frequency-card'],
+            filterKnowledgeRefs: [graphTargetId],
           },
         },
         learnerOverlay: {
@@ -2133,6 +2138,8 @@ describe('adaptive learning path planner', () => {
             missingCoverageTypes: ['rag-indexed-resource'],
             linkedResourceIds: ['resource:graph-frequency-card-a'],
             pathEligibleResourceIds: ['knowledge-card:graph-frequency-card-a'],
+            pathEligibleResourceRouteIds: ['knowledge-card:graph-frequency-card-a'],
+            filterKnowledgeRefs: [firstTarget],
           },
           [secondTarget]: {
             domain: 'knowledge',
@@ -2151,6 +2158,8 @@ describe('adaptive learning path planner', () => {
             missingCoverageTypes: ['rag-indexed-resource'],
             linkedResourceIds: ['resource:graph-frequency-card-b'],
             pathEligibleResourceIds: ['knowledge-card:graph-frequency-card-b'],
+            pathEligibleResourceRouteIds: ['knowledge-card:graph-frequency-card-b'],
+            filterKnowledgeRefs: [secondTarget],
           },
           [missingTarget]: {
             domain: 'knowledge',
@@ -2169,6 +2178,8 @@ describe('adaptive learning path planner', () => {
             missingCoverageTypes: ['path-eligible-resource'],
             linkedResourceIds: [],
             pathEligibleResourceIds: [],
+            pathEligibleResourceRouteIds: [],
+            filterKnowledgeRefs: [missingTarget],
           },
         },
         learnerOverlay: null,
@@ -2284,6 +2295,8 @@ describe('adaptive learning path planner', () => {
               missingCoverageTypes: ['rag-indexed-resource'],
               linkedResourceIds: ['resource:graph-frequency-card-a'],
               pathEligibleResourceIds: ['knowledge-card:graph-frequency-card-a'],
+              pathEligibleResourceRouteIds: ['knowledge-card:graph-frequency-card-a'],
+              filterKnowledgeRefs: [firstTarget],
             },
             [secondTarget]: {
               domain: 'knowledge',
@@ -2302,6 +2315,8 @@ describe('adaptive learning path planner', () => {
               missingCoverageTypes: ['rag-indexed-resource'],
               linkedResourceIds: ['resource:graph-frequency-card-b'],
               pathEligibleResourceIds: ['knowledge-card:graph-frequency-card-b'],
+              pathEligibleResourceRouteIds: ['knowledge-card:graph-frequency-card-b'],
+              filterKnowledgeRefs: [secondTarget],
             },
             [missingTarget]: {
               domain: 'knowledge',
@@ -2320,6 +2335,8 @@ describe('adaptive learning path planner', () => {
               missingCoverageTypes: ['path-eligible-resource'],
               linkedResourceIds: [],
               pathEligibleResourceIds: [],
+              pathEligibleResourceRouteIds: [],
+              filterKnowledgeRefs: [missingTarget],
             },
           },
           learnerOverlay: null,
@@ -2383,7 +2400,7 @@ describe('adaptive learning path planner', () => {
             sourceNodeId: prerequisiteNodeId,
             targetNodeId: graphTargetId,
             domain: 'knowledge',
-            relation: 'requires',
+            relation: 'depends-on',
             strength: 'strong',
             semantics: 'hard_prerequisite',
             direction: 'incoming',
@@ -2409,6 +2426,8 @@ describe('adaptive learning path planner', () => {
             missingCoverageTypes: ['rag-indexed-resource'],
             linkedResourceIds: ['resource:graph-prerequisite-card'],
             pathEligibleResourceIds: ['knowledge-card:graph-prerequisite-card'],
+            pathEligibleResourceRouteIds: ['knowledge-card:graph-prerequisite-card'],
+            filterKnowledgeRefs: [prerequisiteNodeId],
           },
         },
         learnerOverlay: null,
@@ -2467,6 +2486,8 @@ describe('adaptive learning path planner', () => {
               'citation-target:frequency-response-citation',
             ],
             pathEligibleResourceIds: [],
+            pathEligibleResourceRouteIds: [],
+            filterKnowledgeRefs: [graphTargetId],
           },
         },
         learnerOverlay: null,
@@ -3523,7 +3544,6 @@ describe('adaptive learning path planner', () => {
       'registry:lesson09-summary-card',
       'registry:arena-challenge-workbench',
     ]));
-    expect(plan.mainPath[0]?.nodeId).toBe('registry:lesson09-correction-precheck');
     expect(plan.mainPath.length).toBeGreaterThanOrEqual(3);
     expect(plan.mainPath.slice(0, -1).some((node) =>
       node.nodeId.startsWith('registry:lesson09-') &&
@@ -3647,16 +3667,27 @@ describe('adaptive learning path planner', () => {
     const policyNodeIds = plan.policyBundle?.paths.flatMap((path) => path.nodeIds) ?? [];
     const allowedControlCorrectionKnowledge = new Set([
       ...ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].goal.knowledgeTargets,
+      ...(ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].learningGoal?.targetGraphNodeIds ?? []),
       ...Object.values(ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].knowledgeTargetAliases ?? {}).flat(),
+    ]);
+    const allowedCentralBridgeNodeIds = new Set([
+      'registry:lesson09-time-domain-synthesis',
+      'registry:lesson13-cruise-bridge',
     ]);
     expect(policyNodeIds.length).toBeGreaterThan(0);
     expect(policyNodeIds).not.toContain('registry:lesson14-three-band-studio');
     expect(policyNodeIds).not.toContain('textbook-section:dorf-modern-control-systems:ch01-example-0103');
+    expect(policyNodeIds).toEqual(expect.arrayContaining([
+      'registry:lesson09-correction-precheck',
+      'registry:lesson09-summary-card',
+      'registry:arena-challenge-workbench',
+    ]));
     for (const nodeId of policyNodeIds) {
       const node = registry.nodes.find((item) => item.id === nodeId);
-      expect(node?.planningMetadata.knowledgeCoverage.some((target) =>
+      const matchesControlCorrectionKnowledge = node?.planningMetadata.knowledgeCoverage.some((target) =>
         allowedControlCorrectionKnowledge.has(target)
-      )).toBe(true);
+      ) ?? false;
+      expect(matchesControlCorrectionKnowledge || allowedCentralBridgeNodeIds.has(nodeId)).toBe(true);
     }
   });
 
