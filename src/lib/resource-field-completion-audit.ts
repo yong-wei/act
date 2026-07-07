@@ -715,7 +715,10 @@ function buildRow(input: {
     pathEligibility: {
       current: input.currentPathEligible,
       afterCompletion,
-      masteryAffecting: afterCompletion && input.evidenceContract.complete && isHumanConfirmed(input.reviewStatus),
+      masteryAffecting: afterCompletion &&
+        input.evidenceContract.complete &&
+        input.evidenceContract.learningFactMaterializationPolicy === 'materialized-learning-fact' &&
+        isHumanConfirmed(input.reviewStatus),
       blockedBy,
     },
     groundingEligibility: {

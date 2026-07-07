@@ -1,6 +1,6 @@
 {
   "artifactVersion": "runtime-resource-projections.v1",
-  "generatedAt": "2026-07-04T16:30:00.000Z",
+  "generatedAt": "2026-07-07T10:45:00.000Z",
   "versionRefs": {
     "artifactVersioningVersion": "kaq-artifact-versioning.v1",
     "learningGoalPackageVersion": "learning-goal-package/v1",
@@ -14,13 +14,13 @@
   },
   "totals": {
     "rows": 3038,
-    "resourceNodeCandidates": 450,
-    "segmentOnly": 2588,
-    "registryPathEligible": 201,
+    "resourceNodeCandidates": 452,
+    "segmentOnly": 2586,
+    "registryPathEligible": 203,
     "planningUnitEligible": 52,
-    "humanConfirmed": 52,
-    "provisional": 2837,
-    "stale": 0
+    "humanConfirmed": 56,
+    "provisional": 2833,
+    "stale": 4
   },
   "byFamily": {
     "runtime-lesson-step": 450,
@@ -31,8 +31,8 @@
     "knowledge-infograph": 161
   },
   "byProjectionLevel": {
-    "ResourceNode": 398,
-    "ResourceSegment": 2588,
+    "ResourceNode": 400,
+    "ResourceSegment": 2586,
     "CitationTarget": 0,
     "RetrievalChunk": 0,
     "PlanningUnit": 52
@@ -51,7 +51,7 @@
     "provisional-metadata"
   ],
   "limitations": [
-    "infograph:Bode图_1_1: missing-capability-target, missing-evidence-contract, missing-evidence-instrumentation, missing-human-review, missing-path-profile, missing-segment-ref, provisional-metadata",
+    "infograph:Bode图_1_1: missing-evidence-contract, missing-evidence-instrumentation, missing-path-profile, missing-path-target",
     "infograph:IMC_SIMC与模型匹配整定_4_42013: missing-capability-target, missing-evidence-contract, missing-evidence-instrumentation, missing-human-review, missing-path-profile, missing-segment-ref, provisional-metadata",
     "infograph:MASS协同链路_5_53001: missing-capability-target, missing-evidence-contract, missing-evidence-instrumentation, missing-human-review, missing-path-profile, missing-segment-ref, provisional-metadata",
     "infograph:MASS自动化等级责任边界_5_53008: missing-capability-target, missing-evidence-contract, missing-evidence-instrumentation, missing-human-review, missing-path-profile, missing-segment-ref, provisional-metadata",
@@ -72,7 +72,7 @@
     "infograph:优化前后证据比较表_4_45005: missing-capability-target, missing-evidence-contract, missing-evidence-instrumentation, missing-human-review, missing-path-profile, missing-segment-ref, provisional-metadata",
     "infograph:优化起点与归一化来源_4_44003: missing-capability-target, missing-evidence-contract, missing-evidence-instrumentation, missing-human-review, missing-path-profile, missing-segment-ref, provisional-metadata",
     "infograph:传统控制结构局限_4_47008: missing-capability-target, missing-evidence-contract, missing-evidence-instrumentation, missing-human-review, missing-path-profile, missing-segment-ref, provisional-metadata",
-    "infograph:传统设计四联图校正_4_47004: missing-capability-target, missing-evidence-contract, missing-evidence-instrumentation, missing-human-review, missing-path-profile, missing-segment-ref, provisional-metadata",
+    "infograph:传统设计四联图校正_4_47004: missing-evidence-contract, missing-evidence-instrumentation, missing-path-profile, missing-path-target",
     "infograph:传递函数_1_1: missing-capability-target, missing-evidence-contract, missing-evidence-instrumentation, missing-human-review, missing-path-profile, missing-segment-ref, provisional-metadata",
     "infograph:低频补偿稳态改善路径_3_37003: missing-capability-target, missing-evidence-contract, missing-evidence-instrumentation, missing-human-review, missing-path-profile, missing-segment-ref, provisional-metadata",
     "infograph:典型非线性边界环节_5_51002: missing-capability-target, missing-evidence-contract, missing-evidence-instrumentation, missing-human-review, missing-path-profile, missing-segment-ref, provisional-metadata"
