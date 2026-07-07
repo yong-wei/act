@@ -205,8 +205,8 @@ describe('interactive module registry gate', () => {
           submitScope: 'per_card',
           layoutSpan: 'full',
           options: [
-            { id: 'structure', label: '结构关系' },
-            { id: 'color', label: '颜色偏好' },
+            { value: 'structure', label: '结构关系' },
+            { value: 'color', label: '颜色偏好' },
           ],
           referenceAnswer: '结构关系能支撑建模判断。',
         },
@@ -250,18 +250,18 @@ describe('interactive module registry gate', () => {
           responseScoringMode: 'objective',
           submitScope: 'per_card',
           layoutSpan: 'full',
-          options: [{ id: 'structure', label: '结构关系' }],
+          options: [{ value: 'structure', label: '结构关系' }],
           referenceAnswer: '结构关系能支撑建模判断。',
         },
       ],
     });
-    const step = {
+    const step: InteractiveRuntimeManifest['steps'][number] = {
       ...manifest.steps[0],
       teacherControls: {
-        releaseActivity: 'manual',
-        openBrowse: 'manual',
-        teacherStepReveal: 'manual',
-        revealReferenceAnswer: 'manual',
+        releaseActivity: 'teacher_toggle',
+        openBrowse: 'teacher_toggle',
+        teacherStepReveal: 'teacher_toggle',
+        revealReferenceAnswer: 'teacher_toggle',
       },
     };
     const html = renderToStaticMarkup(

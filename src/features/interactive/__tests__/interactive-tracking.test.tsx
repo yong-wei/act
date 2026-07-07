@@ -11,10 +11,10 @@ describe('useInteractiveTracking', () => {
   });
 
   it('keeps demo session events local instead of posting to persisted event APIs', () => {
-    let tracking: InteractiveTrackingContextValue | null = null;
+    const trackingRef: { current: InteractiveTrackingContextValue | null } = { current: null };
 
     function Harness() {
-      tracking = useInteractiveTracking({
+      trackingRef.current = useInteractiveTracking({
         resourceKey: 'unit-test-resource',
         sessionId: 'demo',
       });
@@ -23,6 +23,7 @@ describe('useInteractiveTracking', () => {
 
     renderToString(<Harness />);
 
+    const tracking = trackingRef.current;
     if (!tracking) throw new Error('Expected interactive tracking');
     tracking.emit('complete', { stepId: 'step-01' });
 
