@@ -386,30 +386,33 @@ describe('learning evidence RAG corpus contract', () => {
       const textbookFigure = textbookDocuments.find((document) => document.kind === 'figure');
       expect(textbookChunk).toBeDefined();
       expect(textbookFigure).toBeDefined();
+      if (!textbookChunk || !textbookFigure) {
+        throw new Error('expected textbook chunk and figure fixtures');
+      }
 
       const textbookAndMedia = [
         chunk({
-          id: textbookChunk?.id,
+          id: textbookChunk.id,
           family: 'course-content',
           sourceType: 'course-content',
           sourceRef: {
-            id: textbookChunk?.id,
+            id: textbookChunk.id,
             goalId: 'root-locus-correction',
-            resourceId: textbookChunk?.resourceProjection.resourceId,
+            resourceId: textbookChunk.resourceProjection.resourceId,
           },
-          spanRef: { kind: 'text-range', start: 0, end: textbookChunk?.text?.length ?? 0, locator: textbookChunk?.citationAddress?.locator },
+          spanRef: { kind: 'text-range', start: 0, end: textbookChunk.text?.length ?? 0, locator: textbookChunk.citationAddress?.locator },
           display: {
-            title: textbookChunk?.title ?? 'Modern Control Systems 教材段落',
-            href: textbookChunk?.href ?? null,
-            capsule: textbookChunk?.text?.slice(0, 120) ?? 'Modern Control Systems 教材段落。',
+            title: textbookChunk.title ?? 'Modern Control Systems 教材段落',
+            href: textbookChunk.href ?? null,
+            capsule: textbookChunk.text?.slice(0, 120) ?? 'Modern Control Systems 教材段落。',
           },
-          citationAddress: textbookChunk?.citationAddress,
+          citationAddress: textbookChunk.citationAddress,
           content: {
-            text: textbookChunk?.text ?? null,
-            redactedSummary: textbookChunk?.text?.slice(0, 160) ?? null,
-            hash: textbookChunk?.contentHash ?? 'hash-textbook-section',
+            text: textbookChunk.text ?? null,
+            redactedSummary: textbookChunk.text?.slice(0, 160) ?? null,
+            hash: textbookChunk.contentHash ?? 'hash-textbook-section',
           },
-          resourceProjection: textbookChunk?.resourceProjection,
+          resourceProjection: textbookChunk.resourceProjection,
           retrieval: {
             tags: ['textbook-section'],
             goals: ['root-locus-correction'],
@@ -417,27 +420,27 @@ describe('learning evidence RAG corpus contract', () => {
           },
         }),
         chunk({
-          id: textbookFigure?.id,
+          id: textbookFigure.id,
           family: 'course-content',
           sourceType: 'course-content',
           sourceRef: {
-            id: textbookFigure?.id,
+            id: textbookFigure.id,
             goalId: 'root-locus-correction',
-            resourceId: textbookFigure?.resourceProjection.resourceId,
+            resourceId: textbookFigure.resourceProjection.resourceId,
           },
-          spanRef: { kind: 'node', locator: textbookFigure?.citationAddress?.locator },
+          spanRef: { kind: 'node', locator: textbookFigure.citationAddress?.locator },
           display: {
-            title: textbookFigure?.title ?? 'Modern Control Systems 教材图片',
-            href: textbookFigure?.href ?? null,
-            capsule: textbookFigure?.text?.slice(0, 120) ?? 'Modern Control Systems 教材图片描述。',
+            title: textbookFigure.title ?? 'Modern Control Systems 教材图片',
+            href: textbookFigure.href ?? null,
+            capsule: textbookFigure.text?.slice(0, 120) ?? 'Modern Control Systems 教材图片描述。',
           },
-          citationAddress: textbookFigure?.citationAddress,
+          citationAddress: textbookFigure.citationAddress,
           content: {
-            text: textbookFigure?.text ?? null,
-            redactedSummary: textbookFigure?.text?.slice(0, 160) ?? null,
-            hash: textbookFigure?.contentHash ?? 'hash-figure-description',
+            text: textbookFigure.text ?? null,
+            redactedSummary: textbookFigure.text?.slice(0, 160) ?? null,
+            hash: textbookFigure.contentHash ?? 'hash-figure-description',
           },
-          resourceProjection: textbookFigure?.resourceProjection,
+          resourceProjection: textbookFigure.resourceProjection,
           retrieval: {
             tags: ['figure-description'],
             goals: ['root-locus-correction'],

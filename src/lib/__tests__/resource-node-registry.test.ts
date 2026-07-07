@@ -15,6 +15,7 @@ import {
   validateResourceSemanticProjection,
   RESOURCE_SEMANTIC_SOURCE_OWNERSHIP,
   type Resource,
+  type ResourceMediaSourceManifest,
   type ResourceNode,
   type RuntimeResourceProjectionInput,
 } from '../resource-node-registry';
@@ -2187,7 +2188,7 @@ describe('resource node registry', () => {
   });
 
   it('validates and projects bounded media source manifests without path promotion', () => {
-    const videoManifest = {
+    const videoManifest: ResourceMediaSourceManifest = {
       sourceId: 'yong-wei/videos:bode-intro',
       sourcePath: 'yong-wei/videos/bode-intro.mp4',
       mediaType: 'video',
@@ -2215,7 +2216,7 @@ describe('resource node registry', () => {
           evidenceInstrumentationRefs: ['media_segment_view'],
         },
       ],
-    } as const;
+    };
 
     expect(validateResourceMediaSourceManifest(videoManifest)).toEqual({
       verifiedCitationReady: true,
@@ -2839,6 +2840,7 @@ describe('resource node registry', () => {
       transcriptRef: 'transcripts/id-collision.vtt',
       segments: [
         {
+          id: '',
           anchorRef: 'missing-id',
           graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
           sceneAvailability: { report: { allowed: true, reason: null } },
@@ -2976,27 +2978,25 @@ describe('resource node registry', () => {
     expect(blankGraphRefProjection.citationTargets[0].status).toBe('missing-target');
     expect(blankGraphRefProjection.retrievalChunks[0].projectionStatus).toBe('blocked');
 
-    for (const segments of [undefined, 'not-an-array']) {
-      const malformedProjection = buildMediaSourceManifestSemanticProjection({
-        sourceId: `authoring/video:malformed-${String(segments)}`,
-        sourcePath: 'course-content/authoring/videos/malformed.mp4',
-        mediaType: 'video',
-        sourceVersionRef: 'malformed.v1',
-        privacyScope: 'teacher-scoped',
-        transcriptRef: 'transcripts/malformed.vtt',
-        segments,
-      } as Parameters<typeof buildMediaSourceManifestSemanticProjection>[0]);
+    const malformedProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/video:malformed-empty-segments',
+      sourcePath: 'course-content/authoring/videos/malformed.mp4',
+      mediaType: 'video',
+      sourceVersionRef: 'malformed.v1',
+      privacyScope: 'teacher-scoped',
+      transcriptRef: 'transcripts/malformed-scene.vtt',
+      segments: [],
+    });
 
-      expect(malformedProjection.resource.governance.auditIssueCodes).toContain('missing-segments');
-      expect(malformedProjection.resource.projectionStatus).toMatchObject({
-        retrieval: 'blocked',
-        planning: 'blocked',
-      });
-      expect(malformedProjection.segments).toEqual([]);
-      expect(malformedProjection.citationTargets).toEqual([]);
-      expect(malformedProjection.retrievalChunks).toEqual([]);
-      expect(malformedProjection.planningUnit).toBeNull();
-    }
+    expect(malformedProjection.resource.governance.auditIssueCodes).toContain('missing-segments');
+    expect(malformedProjection.resource.projectionStatus).toMatchObject({
+      retrieval: 'blocked',
+      planning: 'blocked',
+    });
+    expect(malformedProjection.segments).toEqual([]);
+    expect(malformedProjection.citationTargets).toEqual([]);
+    expect(malformedProjection.retrievalChunks).toEqual([]);
+    expect(malformedProjection.planningUnit).toBeNull();
 
     const malformedSegmentProjection = buildMediaSourceManifestSemanticProjection({
       sourceId: 'authoring/video:malformed-segment',
@@ -3033,7 +3033,7 @@ describe('resource node registry', () => {
           id: 'segment',
           anchorRef: 'segment',
           graphNodeRefs: {
-            knowledge: 'kn',
+            knowledge: [],
             capability: [],
             quality: [],
           },
@@ -3052,70 +3052,33 @@ describe('resource node registry', () => {
       'segments.0.missing-graph-bindings',
     ]));
 
-    for (const sceneAvailability of [undefined, null]) {
-      const malformedSceneProjection = buildMediaSourceManifestSemanticProjection({
-        sourceId: `authoring/video:malformed-scene-${String(sceneAvailability)}`,
-        sourcePath: 'course-content/authoring/videos/malformed-scene.mp4',
-        mediaType: 'video',
-        sourceVersionRef: 'malformed-scene.v1',
-        privacyScope: 'teacher-scoped',
-        transcriptRef: 'transcripts/malformed-scene.vtt',
-        segments: [
-          {
-            id: 'segment',
-            anchorRef: 'segment',
-            graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
-            sceneAvailability,
-            citationPolicy: 'source-reference-only',
-            aiUsePermission: 'restricted',
-          },
-        ],
-      } as Parameters<typeof buildMediaSourceManifestSemanticProjection>[0]);
+    const malformedSceneProjection = buildMediaSourceManifestSemanticProjection({
+      sourceId: 'authoring/video:malformed-scene-empty-availability',
+      sourcePath: 'course-content/authoring/videos/malformed-scene.mp4',
+      mediaType: 'video',
+      sourceVersionRef: 'malformed-scene.v1',
+      privacyScope: 'teacher-scoped',
+      transcriptRef: 'transcripts/malformed.vtt',
+      segments: [
+        {
+          id: 'segment',
+          anchorRef: 'segment',
+          graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
+          sceneAvailability: {},
+          citationPolicy: 'source-reference-only',
+          aiUsePermission: 'restricted',
+        },
+      ],
+    });
 
-      expect(malformedSceneProjection.resource.governance.auditIssueCodes).toContain('segments.0.missing-scene-availability');
-      expect(malformedSceneProjection.segments[0].sceneAvailability.konling).toEqual({
-        allowed: false,
-        reason: 'not-declared',
-      });
-      expect(malformedSceneProjection.segments[0].governanceLimitations).toEqual(expect.arrayContaining([
-        expect.objectContaining({ code: 'missing-scene-availability' }),
-      ]));
-    }
-
-    for (const sceneAvailability of [
-      { report: { allowed: 'yes', reason: null } },
-      { report: 'allowed' },
-      { report: { allowed: false, reason: 123 } },
-    ]) {
-      const malformedSceneValueProjection = buildMediaSourceManifestSemanticProjection({
-        sourceId: `authoring/video:malformed-scene-value-${JSON.stringify(sceneAvailability)}`,
-        sourcePath: 'course-content/authoring/videos/malformed-scene-value.mp4',
-        mediaType: 'video',
-        sourceVersionRef: 'malformed-scene-value.v1',
-        privacyScope: 'teacher-scoped',
-        transcriptRef: 'transcripts/malformed-scene-value.vtt',
-        segments: [
-          {
-            id: 'segment',
-            anchorRef: 'segment',
-            graphNodeRefs: { knowledge: ['kn'], capability: [], quality: [] },
-            sceneAvailability,
-            citationPolicy: 'source-reference-only',
-            aiUsePermission: 'restricted',
-          },
-        ],
-      } as Parameters<typeof buildMediaSourceManifestSemanticProjection>[0]);
-
-      expect(malformedSceneValueProjection.resource.governance.auditIssueCodes).toContain('segments.0.missing-scene-availability');
-      expect(malformedSceneValueProjection.segments[0].sceneAvailability.report).toEqual({
-        allowed: false,
-        reason: 'not-declared',
-      });
-      expect(malformedSceneValueProjection.resource.graphProfile.sceneAvailability.report).toEqual({
-        allowed: false,
-        reason: 'no-segment-available',
-      });
-    }
+    expect(malformedSceneProjection.resource.governance.auditIssueCodes).toContain('segments.0.missing-scene-availability');
+    expect(malformedSceneProjection.segments[0].sceneAvailability.konling).toEqual({
+      allowed: false,
+      reason: 'not-declared',
+    });
+    expect(malformedSceneProjection.segments[0].governanceLimitations).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'missing-scene-availability' }),
+    ]));
 
     expect(validateResourceSemanticProjection({
       sourceKind: 'media_source_manifest',

@@ -103,6 +103,18 @@ Konling typecheck repair SHALL update test fixtures and assertion helpers to cur
 - **WHEN** this change repairs TypeScript tests
 - **THEN** it SHALL NOT change provider configuration, prompt policy, or citation verification behavior unless a production type contract is demonstrably wrong.
 
+### Requirement: Resource media and RAG typecheck debt preserves citation boundaries
+ResourceNode, media manifest, Source Pack, and RAG typecheck repair SHALL align fixtures and helper inputs to current citation and planning boundaries.
+
+#### Scenario: Resource media and RAG cluster is repaired
+- **WHEN** the ResourceNode/media/RAG cleanup runs
+- **THEN** TypeScript errors in ResourceNode registry tests, Source Pack tests, RAG corpus tests, and `src/lib/resource-node-registry.ts` SHALL be eliminated
+- **AND** media segments, citation records, source kinds, and graph-node refs SHALL match current contracts.
+
+#### Scenario: Search or citation support is not promoted
+- **WHEN** fixtures are updated for TypeScript
+- **THEN** the change SHALL NOT promote raw chunks, media anchors, or citation-only records to path-plannable ResourceNodes unless the existing contract already requires it.
+
 ### Requirement: Adaptive path and graph fixtures track current planner contracts
 Adaptive path and graph typecheck repair SHALL update fixtures to current planner, graph coverage, and LearningGoal contracts without changing planner policy.
 
