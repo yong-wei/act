@@ -97,7 +97,7 @@ describe('LearningGoal assessment coverage', () => {
       'generated-q-coverage-test',
       '生成题不能计入正式覆盖。',
       0.5,
-      ['generated'],
+      ['time'],
       ['coverage'],
     );
     const catalog = buildAdaptiveAssessmentItemCatalog({
