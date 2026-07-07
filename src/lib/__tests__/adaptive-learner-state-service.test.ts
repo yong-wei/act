@@ -7,6 +7,7 @@ import {
   type MasteryEvidenceSourceType,
 } from '@/lib/data-governance/adaptive-learner-state-service';
 import type { CompetencyVector } from '@/lib/data-governance/competency-model';
+import type { StudentPathEvidenceSourceReference } from '@/lib/data-governance/student-evidence-feature-cache';
 
 const now = new Date('2026-06-19T06:00:00.000Z');
 
@@ -239,7 +240,8 @@ describe('readAdaptiveLearnerState mastery evidence writeback', () => {
       sourceType: 'LearningPathIntervention',
       sourceId: 'intervention-teacher-1',
       pathId: 'path-active-control',
-      nodeId: null,
+      goalId: CONTROL_CORRECTION_GOAL_ID,
+      nodeId: 'intervention-teacher-node',
       occurredAt: '2026-06-18T07:00:00.000Z',
       privacyLevel: 'teacher-scoped',
       interventionKind: 'hint',
@@ -380,6 +382,10 @@ function createEvidenceDb() {
           taskId: 'task-second-order-lead-pid',
           method: 'pid',
           submittedAt: new Date('2026-06-17T09:00:00.000Z'),
+          evidenceWriteback: {
+            status: 'accepted',
+            terminalValidationAccepted: true,
+          },
           evaluationRun: {
             protocolVersion: getArenaEvaluationProtocolVersion({
               taskId: 'task-second-order-lead-pid',
@@ -518,6 +524,21 @@ function fact(id: string, factType: string, score: number, context: Record<strin
 }
 
 function featureCache(vector: CompetencyVector) {
+  const pathSourceReferences: StudentPathEvidenceSourceReference[] = [
+    {
+      sourceType: 'LearningPathExecution',
+      sourceId: 'path-exec-1',
+      pathId: 'path-active-control',
+      goalId: CONTROL_CORRECTION_GOAL_ID,
+      nodeId: 'node-simulation',
+      occurredAt: '2026-06-18T06:00:00.000Z',
+      privacyLevel: 'student-visible',
+      status: 'completed',
+      resourceType: 'simulation',
+      confidence: 'high',
+    },
+  ];
+
   return {
     id: 'feature-cache-1',
     userId: 'student-1',
@@ -566,19 +587,7 @@ function featureCache(vector: CompetencyVector) {
       },
       pathExecution: {
         allTime: {
-          sourceReferences: [
-            {
-              sourceType: 'LearningPathExecution',
-              sourceId: 'path-exec-1',
-              pathId: 'path-active-control',
-              nodeId: 'node-simulation',
-              occurredAt: '2026-06-18T06:00:00.000Z',
-              privacyLevel: 'student-visible',
-              status: 'completed',
-              resourceType: 'simulation',
-              confidence: 'high',
-            },
-          ],
+          sourceReferences: pathSourceReferences,
         },
       },
     },

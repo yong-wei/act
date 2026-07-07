@@ -366,6 +366,7 @@ describe('control-correction path rounds', () => {
           qualityObjectiveIds: [],
         },
         targetGraphNodeIds: ['cap:autocontrol:synthesize-controller-correction'],
+        selectedGraphNodeIds: ['cap:autocontrol:synthesize-controller-correction'],
         prerequisitePolicy: [],
         overlayStatus: {
           learner: 'available',
@@ -377,6 +378,11 @@ describe('control-correction path rounds', () => {
             linkedResourceCount: 1,
             pathEligibleResourceCount: 1,
           },
+        },
+        resourceCoveragePathEligibleResourceIds: {
+          'cap:autocontrol:synthesize-controller-correction': [
+            'knowledge-card:control-correction-time-domain-targets',
+          ],
         },
         versionRefs: {
           artifactVersioningVersion: 'kaq-artifact-versioning.v1',
