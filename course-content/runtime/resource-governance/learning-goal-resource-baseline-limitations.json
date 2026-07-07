@@ -1,9 +1,9 @@
 {
   "artifactVersion": "learning-goal-resource-baseline.v1",
-  "generatedAt": "2026-07-04T16:30:00.000Z",
+  "generatedAt": "2026-07-07T10:45:00.000Z",
   "sourceWindow": {
     "from": null,
-    "to": "2026-07-04T16:30:00.000Z"
+    "to": "2026-07-07T10:45:00.000Z"
   },
   "versionRefs": {
     "artifactVersioningVersion": "kaq-artifact-versioning.v1",
@@ -199,7 +199,7 @@
         "reviewedBindingCount": 3,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-04T16:30:00.000Z"
+          "to": "2026-07-07T10:45:00.000Z"
         }
       }
     },
@@ -215,8 +215,6 @@
         "remediation"
       ],
       "provisionalResourceIds": [
-        "knowledge-card:Bode图_1_1",
-        "knowledge-card:Bode首轮骨架_5_1e07d9da",
         "knowledge-card:正弦稳态响应_5_b6dc1100",
         "knowledge-card:频域分析_2_2e257d89",
         "knowledge-card:频域响应_1_1",
@@ -265,7 +263,7 @@
         "reviewedBindingCount": 3,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-04T16:30:00.000Z"
+          "to": "2026-07-07T10:45:00.000Z"
         }
       }
     },
@@ -428,7 +426,7 @@
         "reviewedBindingCount": 3,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-04T16:30:00.000Z"
+          "to": "2026-07-07T10:45:00.000Z"
         }
       }
     },
@@ -602,7 +600,7 @@
         "reviewedBindingCount": 3,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-04T16:30:00.000Z"
+          "to": "2026-07-07T10:45:00.000Z"
         }
       }
     },
@@ -789,7 +787,7 @@
         "reviewedBindingCount": 3,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-04T16:30:00.000Z"
+          "to": "2026-07-07T10:45:00.000Z"
         }
       }
     },
@@ -978,7 +976,7 @@
         "reviewedBindingCount": 3,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-04T16:30:00.000Z"
+          "to": "2026-07-07T10:45:00.000Z"
         }
       }
     },
@@ -1102,7 +1100,7 @@
         "reviewedBindingCount": 3,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-04T16:30:00.000Z"
+          "to": "2026-07-07T10:45:00.000Z"
         }
       }
     },
@@ -1209,7 +1207,7 @@
         "reviewedBindingCount": 3,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-04T16:30:00.000Z"
+          "to": "2026-07-07T10:45:00.000Z"
         }
       }
     },
@@ -1324,7 +1322,7 @@
         "reviewedBindingCount": 3,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-04T16:30:00.000Z"
+          "to": "2026-07-07T10:45:00.000Z"
         }
       }
     }

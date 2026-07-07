@@ -296,10 +296,19 @@ function detectProjectionLevel(row: RuntimeResourceProjectionArtifactRow): strin
 }
 
 function detectProjectionStaleness(row: RuntimeResourceProjectionArtifactRow): boolean {
-  const currentReviewSourceHash = row.reviewAudit.promptOrManifestHash ?? row.sourceHash;
   return row.reviewAudit.status === 'human-confirmed' &&
-    (row.reviewAudit.reviewedSourceHash !== currentReviewSourceHash ||
+    (!reviewedSourceMatchesProjection(row) ||
       row.reviewAudit.reviewedVersionRef !== row.sourceVersionRef);
+}
+
+function reviewedSourceMatchesProjection(row: RuntimeResourceProjectionArtifactRow): boolean {
+  if (row.family === 'knowledge-card' || row.family === 'knowledge-infograph') {
+    return row.reviewAudit.reviewedSourceHash === row.sourceHash;
+  }
+  if (row.reviewAudit.promptOrManifestHash) {
+    return row.reviewAudit.reviewedSourceHash === row.reviewAudit.promptOrManifestHash;
+  }
+  return row.reviewAudit.reviewedSourceHash === row.sourceHash;
 }
 
 function isGovernedId(value: string): boolean {

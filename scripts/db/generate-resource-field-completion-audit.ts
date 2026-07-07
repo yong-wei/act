@@ -42,6 +42,9 @@ const EVIDENCE_LINEAGE_EVIDENCE_MD_PATH = path.join(OUTPUT_DIR, 'resource-eviden
 const DISPOSITION_REVIEW_ITEMS_JSONL_PATH = path.join(OUTPUT_DIR, 'resource-disposition-backlog-review-items.jsonl');
 const DISPOSITION_REVIEW_SUMMARY_JSON_PATH = path.join(OUTPUT_DIR, 'resource-disposition-backlog-review-summary.json');
 const DISPOSITION_REVIEW_EVIDENCE_MD_PATH = path.join(OUTPUT_DIR, 'resource-disposition-backlog-review-evidence.md');
+const KNOWLEDGE_VISUAL_SEMANTIC_REVIEW_ITEMS_JSONL_PATH = path.join(OUTPUT_DIR, 'knowledge-visual-semantic-shard-review-items.jsonl');
+const KNOWLEDGE_VISUAL_SEMANTIC_REVIEW_SUMMARY_JSON_PATH = path.join(OUTPUT_DIR, 'knowledge-visual-semantic-shard-summary.json');
+const KNOWLEDGE_VISUAL_SEMANTIC_REVIEW_EVIDENCE_MD_PATH = path.join(OUTPUT_DIR, 'knowledge-visual-semantic-shard-evidence.md');
 const TEXTBOOK_SEARCH_DOCUMENT_CITATION_REVIEW_ITEMS_JSONL_PATH = path.join(OUTPUT_DIR, 'textbook-search-document-citation-shard-review-items.jsonl');
 const HUMAN_REVIEW_INTEGRITY_JSON_PATH = path.join(OUTPUT_DIR, 'resource-human-review-integrity-diagnostics.json');
 const PROJECTION_JSONL_PATH = path.join(OUTPUT_DIR, 'runtime-resource-projections.jsonl');
@@ -145,6 +148,67 @@ interface ResidualDispositionReviewSource {
   reviewBatchId: string;
   sourceHash: string | null;
   sourceVersionRef: string | null;
+}
+
+interface KnowledgeVisualSemanticReviewItem {
+  artifactVersion: 'knowledge-visual-semantic-shard-review.v1';
+  reviewBatchId: string;
+  reviewerId: string;
+  reviewerRole: string;
+  reviewedAt: string;
+  selectedOrder: number;
+  resourceId: string;
+  sourceFamily: 'knowledge-card' | 'knowledge-infograph';
+  title: string;
+  sourcePathOrUrl: string;
+  sourceRecord: string;
+  sourceHash: string;
+  sourceVersionRef: string;
+  originalBlockerCodes: ResourceFieldMissingCode[];
+  selectionReason: string;
+  graphNodeIds: string[];
+  learningGoalIds: string[];
+  knowledgeObjectiveIds: string[];
+  capabilityObjectiveIds: string[];
+  qualityObjectiveIds: string[];
+  kaqContribution: {
+    knowledge: string;
+    capability: string;
+    quality: string;
+  };
+  disposition: ResidualDispositionClassification;
+  pathStageOrSupportRole: string;
+  routeTarget: string | null;
+  citationTargets: string[];
+  citationContract: 'server-owned-runtime-knowledge-card' | 'server-owned-infograph-manifest';
+  authorityLevel: 'runtime-reviewed-source';
+  evidenceBehavior: 'path-execution-evidence-only' | 'citation-display-only';
+  privacyScope: ResourceFieldCompletionCandidate['privacyScope'];
+  limitationState: string[];
+  estimatedTimeMinutes: number | null;
+  segmentRefs: string[];
+  evidenceInstrumentation: string[];
+  currentPathEligible: boolean;
+  reviewerVisibleRationale: string;
+  independentEvidenceRef: string;
+  rawContentIncluded: false;
+  privacyMinimized: true;
+}
+
+interface KnowledgeVisualSemanticReviewSummary {
+  artifactVersion: 'knowledge-visual-semantic-shard-review.v1';
+  reviewBatchId: string;
+  selectedCount: number;
+  selectedResourceIds: string[];
+  selectedBlockerCodes: ResourceFieldMissingCode[];
+  remainingSelectedSemanticReview: number;
+  residualUnselectedCounts: Record<'knowledge-card' | 'knowledge-infograph', number>;
+  byDisposition: Record<string, number>;
+  evidence: {
+    reviewItemsPath: string;
+    auditJsonlPath: string;
+    workqueueItemsPath: string;
+  };
 }
 
 export interface ReviewedRuntimeStepCompletion {
@@ -769,6 +833,12 @@ async function main() {
     sourceWindow: { from: null, to: generatedAt },
     limitations,
   });
+  const knowledgeVisualSemanticReviewItems = Array.from((await loadKnowledgeVisualSemanticReviewMap()).values())
+    .sort((left, right) => left.selectedOrder - right.selectedOrder);
+  const knowledgeVisualSemanticReviewSummary = buildKnowledgeVisualSemanticReviewSummary(
+    knowledgeVisualSemanticReviewItems,
+    result.rows,
+  );
   const projectionArtifacts = buildRuntimeResourceProjectionArtifacts({
     auditRows: result.rows,
     generatedAt,
@@ -859,6 +929,16 @@ async function main() {
     'utf8',
   );
   await fs.writeFile(
+    KNOWLEDGE_VISUAL_SEMANTIC_REVIEW_SUMMARY_JSON_PATH,
+    `${JSON.stringify(knowledgeVisualSemanticReviewSummary, null, 2)}\n`,
+    'utf8',
+  );
+  await fs.writeFile(
+    KNOWLEDGE_VISUAL_SEMANTIC_REVIEW_EVIDENCE_MD_PATH,
+    renderKnowledgeVisualSemanticReviewEvidence(knowledgeVisualSemanticReviewSummary),
+    'utf8',
+  );
+  await fs.writeFile(
     HUMAN_REVIEW_INTEGRITY_JSON_PATH,
     `${JSON.stringify(result.integrityDiagnostics, null, 2)}\n`,
     'utf8',
@@ -909,6 +989,8 @@ async function main() {
   console.log(`Evidence-lineage summary: ${path.relative(process.cwd(), EVIDENCE_LINEAGE_SUMMARY_JSON_PATH)}`);
   console.log(`Evidence-lineage JSONL: ${path.relative(process.cwd(), EVIDENCE_LINEAGE_ITEMS_JSONL_PATH)}`);
   console.log(`Residual disposition review rows: ${dispositionReviewItems.length}`);
+  console.log(`Knowledge visual semantic shard remaining: ${knowledgeVisualSemanticReviewSummary.remainingSelectedSemanticReview}`);
+  console.log(`Knowledge visual semantic shard summary: ${path.relative(process.cwd(), KNOWLEDGE_VISUAL_SEMANTIC_REVIEW_SUMMARY_JSON_PATH)}`);
   console.log(`Residual disposition summary: ${path.relative(process.cwd(), DISPOSITION_REVIEW_SUMMARY_JSON_PATH)}`);
   console.log(`Human review integrity issues: ${result.integrityDiagnostics.invalidHumanConfirmedRows}`);
   console.log(`Runtime resource projections: ${projectionArtifacts.rows.length}`);
@@ -1616,7 +1698,139 @@ async function readJsonlFile<T>(filePath: string): Promise<T[]> {
   }
 }
 
+async function loadKnowledgeVisualSemanticReviewMap(): Promise<Map<string, KnowledgeVisualSemanticReviewItem>> {
+  const items = await readJsonlFile<KnowledgeVisualSemanticReviewItem>(KNOWLEDGE_VISUAL_SEMANTIC_REVIEW_ITEMS_JSONL_PATH);
+  return new Map(items.map((item) => [item.resourceId, item]));
+}
+
+function knowledgeVisualReviewPacketHash(item: KnowledgeVisualSemanticReviewItem) {
+  return `sha256:${sha256(JSON.stringify({
+    resourceId: item.resourceId,
+    sourceHash: item.sourceHash,
+    graphNodeIds: item.graphNodeIds,
+    learningGoalIds: item.learningGoalIds,
+    knowledgeObjectiveIds: item.knowledgeObjectiveIds,
+    capabilityObjectiveIds: item.capabilityObjectiveIds,
+    qualityObjectiveIds: item.qualityObjectiveIds,
+    disposition: item.disposition,
+    citationTargets: item.citationTargets,
+    limitationState: item.limitationState,
+    rationale: item.reviewerVisibleRationale,
+  }))}`;
+}
+
+function applyKnowledgeVisualSemanticReview(
+  candidate: ResourceFieldCompletionCandidate,
+  reviewItem: KnowledgeVisualSemanticReviewItem | undefined,
+): ResourceFieldCompletionCandidate {
+  if (!reviewItem) return candidate;
+  return {
+    ...candidate,
+    sourcePathOrUrl: reviewItem.sourcePathOrUrl,
+    sourceRecord: reviewItem.sourceRecord,
+    knowledgeNodeIds: reviewItem.graphNodeIds,
+    capabilityTargetIds: reviewItem.capabilityObjectiveIds,
+    qualityTargetIds: reviewItem.qualityObjectiveIds,
+    segmentRefs: reviewItem.segmentRefs,
+    citationTargets: reviewItem.citationTargets,
+    pathTarget: reviewItem.routeTarget,
+    estimatedTimeMinutes: reviewItem.estimatedTimeMinutes,
+    evidenceInstrumentation: reviewItem.evidenceInstrumentation,
+    privacyScope: reviewItem.privacyScope,
+    humanConfirmed: true,
+    currentPathEligible: reviewItem.currentPathEligible,
+    contentHash: candidate.contentHash,
+    versionRef: candidate.versionRef,
+    reviewEvidence: {
+      reviewerId: reviewItem.reviewerId,
+      reviewerRole: reviewItem.reviewerRole,
+      reviewedAt: reviewItem.reviewedAt,
+      reviewBatchId: reviewItem.reviewBatchId,
+      reviewerVisibleRationale: reviewItem.reviewerVisibleRationale,
+      independentEvidenceRef: reviewItem.independentEvidenceRef,
+      reviewedSourceHash: reviewItem.sourceHash,
+      reviewedVersionRef: reviewItem.sourceVersionRef,
+      promptOrManifestHash: knowledgeVisualReviewPacketHash(reviewItem),
+      confidence: 0.92,
+    },
+  };
+}
+
+function buildKnowledgeVisualSemanticReviewSummary(
+  reviewItems: KnowledgeVisualSemanticReviewItem[],
+  auditRows: ResourceFieldCompletionAuditRow[],
+): KnowledgeVisualSemanticReviewSummary {
+  const selectedIds = new Set(reviewItems.map((item) => item.resourceId));
+  const selectedRows = auditRows.filter((row) => selectedIds.has(row.resourceId));
+  const remainingSelectedSemanticReview = selectedRows.filter((row) => (
+    row.reviewStatus !== 'human-confirmed' ||
+    row.missingFieldCodes.includes('missing-human-review') ||
+    row.missingFieldCodes.includes('provisional-metadata') ||
+    row.missingFieldCodes.includes('stale-review')
+  )).length;
+  const residualUnselectedCounts = {
+    'knowledge-card': auditRows.filter((row) => (
+      row.family === 'knowledge-card' &&
+      !selectedIds.has(row.resourceId) &&
+      (row.missingFieldCodes.includes('missing-human-review') || row.missingFieldCodes.includes('provisional-metadata'))
+    )).length,
+    'knowledge-infograph': auditRows.filter((row) => (
+      row.family === 'knowledge-infograph' &&
+      !selectedIds.has(row.resourceId) &&
+      (row.missingFieldCodes.includes('missing-human-review') || row.missingFieldCodes.includes('provisional-metadata'))
+    )).length,
+  };
+
+  return {
+    artifactVersion: 'knowledge-visual-semantic-shard-review.v1',
+    reviewBatchId: reviewItems[0]?.reviewBatchId ?? 'knowledge-visual-semantic-shard-review-unknown',
+    selectedCount: reviewItems.length,
+    selectedResourceIds: reviewItems
+      .slice()
+      .sort((left, right) => left.selectedOrder - right.selectedOrder)
+      .map((item) => item.resourceId),
+    selectedBlockerCodes: uniqueMissingCodes(reviewItems.flatMap((item) => item.originalBlockerCodes)),
+    remainingSelectedSemanticReview,
+    residualUnselectedCounts,
+    byDisposition: countBy(reviewItems, (item) => item.disposition),
+    evidence: {
+      reviewItemsPath: path.relative(process.cwd(), KNOWLEDGE_VISUAL_SEMANTIC_REVIEW_ITEMS_JSONL_PATH),
+      auditJsonlPath: path.relative(process.cwd(), AUDIT_JSONL_PATH),
+      workqueueItemsPath: path.relative(process.cwd(), WORKQUEUE_ITEMS_JSONL_PATH),
+    },
+  };
+}
+
+function renderKnowledgeVisualSemanticReviewEvidence(summary: KnowledgeVisualSemanticReviewSummary) {
+  const lines = [
+    '# Knowledge Visual Semantic Shard Review',
+    '',
+    `Review batch: ${summary.reviewBatchId}`,
+    `Selected resources: ${summary.selectedCount}`,
+    `Remaining selected semantic review blockers: ${summary.remainingSelectedSemanticReview}`,
+    '',
+    '## Selected Resources',
+    '',
+    ...summary.selectedResourceIds.map((resourceId) => `- ${resourceId}`),
+    '',
+    '## Residual Unselected Counts',
+    '',
+    `- knowledge-card: ${summary.residualUnselectedCounts['knowledge-card']}`,
+    `- knowledge-infograph: ${summary.residualUnselectedCounts['knowledge-infograph']}`,
+    '',
+    '## Evidence Files',
+    '',
+    `Review items: ${summary.evidence.reviewItemsPath}`,
+    `Audit JSONL: ${summary.evidence.auditJsonlPath}`,
+    `Workqueue JSONL: ${summary.evidence.workqueueItemsPath}`,
+    '',
+    'The selected shard is bounded. Remaining unselected rows are reported as residual backlog and are not completion blockers for this change.',
+  ];
+  return `${lines.join('\n')}\n`;
+}
+
 async function collectAuditOnlyCandidates(textbookDocuments: Awaited<ReturnType<typeof loadAllTextbookRuntimeSearchDocuments>>) {
+  const knowledgeVisualReviewMap = await loadKnowledgeVisualSemanticReviewMap();
   const [
     runtimeManifestCandidates,
     runtimeMediaCandidates,
@@ -1627,8 +1841,8 @@ async function collectAuditOnlyCandidates(textbookDocuments: Awaited<ReturnType<
   ] = await Promise.all([
     collectRuntimeManifestCandidates(),
     collectRuntimeMediaCandidates(),
-    collectKnowledgeCardCandidates(),
-    collectInfographCandidates(),
+    collectKnowledgeCardCandidates(knowledgeVisualReviewMap),
+    collectInfographCandidates(knowledgeVisualReviewMap),
     collectAuthoringTextbookCandidates(),
     loadTextbookSearchDocumentCitationReviews(),
   ]);
@@ -1663,7 +1877,7 @@ async function collectAuditOnlyCandidates(textbookDocuments: Awaited<ReturnType<
           reviewBatchId: review.reviewBatchId,
           reviewerVisibleRationale: review.reviewerVisibleRationale,
           independentEvidenceRef: `${projectPath(TEXTBOOK_SEARCH_DOCUMENT_CITATION_REVIEW_ITEMS_JSONL_PATH)}#${resourceId}`,
-          reviewedSourceHash: review.sourceHash ?? document.contentHash,
+          reviewedSourceHash: review.sourceHash ?? document.contentHash ?? undefined,
           confidence: 0.91,
         }
         : undefined,
@@ -2050,7 +2264,9 @@ function buildRuntimeStepKnowledgeNodeMap(
   ]));
 }
 
-async function collectInfographCandidates() {
+async function collectInfographCandidates(
+  knowledgeVisualReviewMap: Map<string, KnowledgeVisualSemanticReviewItem>,
+) {
   const manifest = await readJson<InfographManifest>(INFOGRAPH_MANIFEST_PATH);
   const candidates = await Promise.all((manifest?.items ?? []).map(async (item): Promise<ResourceFieldCompletionCandidate> => ({
     id: `infograph:${item.nodeId ?? item.path ?? item.title}`,
@@ -2071,12 +2287,17 @@ async function collectInfographCandidates() {
     versionRef: 'knowledge-infograph-manifest.v1',
   })));
   return {
-    candidates,
+    candidates: candidates.map((candidate) => applyKnowledgeVisualSemanticReview(
+      candidate,
+      knowledgeVisualReviewMap.get(candidate.id),
+    )),
     limitations: candidates.length === 0 ? ['No knowledge infograph manifest items were found.'] : [],
   };
 }
 
-async function collectKnowledgeCardCandidates() {
+async function collectKnowledgeCardCandidates(
+  knowledgeVisualReviewMap: Map<string, KnowledgeVisualSemanticReviewItem>,
+) {
   const files = await collectFiles(RUNTIME_KNOWLEDGE_CARDS_DIR);
   const candidates: ResourceFieldCompletionCandidate[] = [];
   for (const filePath of files.filter((file) => file.endsWith('.md'))) {
@@ -2103,7 +2324,10 @@ async function collectKnowledgeCardCandidates() {
     });
   }
   return {
-    candidates,
+    candidates: candidates.map((candidate) => applyKnowledgeVisualSemanticReview(
+      candidate,
+      knowledgeVisualReviewMap.get(candidate.id),
+    )),
     limitations: candidates.length === 0 ? ['No runtime knowledge card markdown files were found.'] : [],
   };
 }

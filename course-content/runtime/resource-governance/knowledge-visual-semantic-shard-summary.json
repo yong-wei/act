@@ -1,0 +1,34 @@
+{
+  "artifactVersion": "knowledge-visual-semantic-shard-review.v1",
+  "reviewBatchId": "knowledge-visual-semantic-shard-review-2026-07-07",
+  "selectedCount": 4,
+  "selectedResourceIds": [
+    "knowledge-card:Bode图_1_1",
+    "infograph:Bode图_1_1",
+    "knowledge-card:Bode首轮骨架_5_1e07d9da",
+    "infograph:传统设计四联图校正_4_47004"
+  ],
+  "selectedBlockerCodes": [
+    "missing-capability-target",
+    "missing-evidence-contract",
+    "missing-evidence-instrumentation",
+    "missing-human-review",
+    "missing-path-profile",
+    "missing-segment-ref",
+    "provisional-metadata"
+  ],
+  "remainingSelectedSemanticReview": 0,
+  "residualUnselectedCounts": {
+    "knowledge-card": 277,
+    "knowledge-infograph": 159
+  },
+  "byDisposition": {
+    "path-plannable": 2,
+    "embedded-asset": 2
+  },
+  "evidence": {
+    "reviewItemsPath": "course-content/runtime/resource-governance/knowledge-visual-semantic-shard-review-items.jsonl",
+    "auditJsonlPath": "course-content/runtime/resource-governance/resource-field-completion-audit.jsonl",
+    "workqueueItemsPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
+  }
+}

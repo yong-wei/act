@@ -133,7 +133,7 @@ function rowToRuntimeProjection(
     routeTarget: projectionLevel === 'ResourceNode' || projectionLevel === 'PlanningUnit'
       ? row.pathTarget
       : null,
-    renderTarget: row.pathTarget ?? row.sourcePathOrUrl,
+    renderTarget: renderTargetForRow(row),
     graphNodeRefs: normalizeGraphNodeRefs(row.graphNodeRefs),
     estimatedTimeMinutes: row.estimatedTimeMinutes,
     evidenceInstrumentation: evidenceInstrumentationFromContract(row.evidenceContract, row.family),
@@ -233,6 +233,15 @@ function resourceNodeIdForRow(row: ResourceFieldCompletionAuditRow): string | nu
   return null;
 }
 
+function renderTargetForRow(row: ResourceFieldCompletionAuditRow): string | null {
+  if (row.family === 'knowledge-infograph') {
+    return row.citationTargets.find((target) => target.startsWith('/course-runtime/')) ??
+      row.pathTarget ??
+      row.sourcePathOrUrl;
+  }
+  return row.pathTarget ?? row.sourcePathOrUrl;
+}
+
 function sourceKindForFamily(family: RuntimeResourceProjectionFamily): ResourceNodeSourceKind {
   if (family === 'runtime-lesson-step' || family === 'runtime-lesson-module') return 'runtime_lesson_step';
   if (family === 'runtime-lesson-media') return 'runtime_lesson_media';
@@ -310,10 +319,19 @@ function normalizeGraphNodeRefs(refs: ResourceGraphNodeRefs): ResourceGraphNodeR
 }
 
 function isStaleProjection(row: RuntimeResourceProjectionArtifactRow): boolean {
-  const currentReviewSourceHash = row.reviewAudit.promptOrManifestHash ?? row.sourceHash;
   return row.reviewAudit.status === 'human-confirmed' &&
-    (row.reviewAudit.reviewedSourceHash !== currentReviewSourceHash ||
+    (!reviewedSourceMatchesProjection(row) ||
       row.reviewAudit.reviewedVersionRef !== row.sourceVersionRef);
+}
+
+function reviewedSourceMatchesProjection(row: RuntimeResourceProjectionArtifactRow): boolean {
+  if (row.family === 'knowledge-card' || row.family === 'knowledge-infograph') {
+    return row.reviewAudit.reviewedSourceHash === row.sourceHash;
+  }
+  if (row.reviewAudit.promptOrManifestHash) {
+    return row.reviewAudit.reviewedSourceHash === row.reviewAudit.promptOrManifestHash;
+  }
+  return row.reviewAudit.reviewedSourceHash === row.sourceHash;
 }
 
 function uniqueSorted(values: readonly string[]): string[] {
