@@ -433,7 +433,7 @@ function rowMatchesPathEligibleCoverageRefs(row: ResourceFieldCompletionAuditRow
     ...row.graphNodeRefs.quality,
     row.sourceRecord,
     row.pathTarget,
-  ].filter(Boolean);
+  ].filter((ref): ref is string => Boolean(ref));
   if (anchoredRefs.length > 0) {
     return anchoredRefs.some((ref) => coverageRefs.has(ref));
   }
