@@ -116,8 +116,12 @@ describe('source pack contract', () => {
       retrievalChunkId: undefined,
       citationTargetId: undefined,
       citation: {
-        ...sampleItem.citation,
         citationTargetId: 'citation:textbook:dorf:ch08:nested-only',
+        sourceId: 'textbook:dorf-modern-control-systems',
+        displayTitle: 'Modern Control Systems Chapter 8',
+        href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch08-sec01.md',
+        resolver: 'course-runtime',
+        verified: true,
       },
     };
     const pack = buildSourcePack({
@@ -393,9 +397,12 @@ describe('source pack contract', () => {
         retrievalChunkId: 'chunk:knowledge-card:Bode首轮骨架_5_1e07d9da',
         citationTargetId: 'citation:knowledge-card:Bode首轮骨架_5_1e07d9da',
         citation: {
-          ...sampleItem.citation,
           citationTargetId: 'citation:knowledge-card:Bode首轮骨架_5_1e07d9da',
           sourceId: 'knowledge-card:Bode首轮骨架_5_1e07d9da',
+          displayTitle: 'Bode 首轮骨架知识卡片',
+          href: '/course-runtime/resources/knowledge-cards/Bode首轮骨架_5_1e07d9da.md',
+          resolver: 'course-runtime',
+          verified: true,
         },
       }],
       now: new Date('2026-06-28T00:00:00.000Z'),

@@ -2709,12 +2709,7 @@ function auditRuntimeProjectionPlanning(node: ResourceNode): ResourceNodeAuditIs
   return issues;
 }
 
-function isRuntimeProjectionReviewStale(projection: {
-  reviewAudit?: RuntimeResourceProjectionReviewAudit | null;
-  sourceHash: string | null;
-  sourceKind?: ResourceNodeSourceKind;
-  sourceVersionRef: string | null;
-}): boolean {
+function isRuntimeProjectionReviewStale(projection: RuntimeResourceProjectionMetadata): boolean {
   return !runtimeProjectionReviewSourceMatches(projection) ||
     projection.reviewAudit?.reviewedVersionRef !== projection.sourceVersionRef;
 }
