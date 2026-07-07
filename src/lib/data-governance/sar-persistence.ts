@@ -371,10 +371,10 @@ export class SarPersistenceRepository {
     return deepClone(this.snapshot);
   }
 
-  restore(snapshot: SarPersistenceSnapshot): SarPersistenceWriteResult {
+  restore(snapshot: unknown): SarPersistenceWriteResult {
     const validation = validateSnapshot(snapshot);
     if (validation.length > 0) return { persisted: false, issues: validation };
-    this.snapshot = deepClone(snapshot);
+    this.snapshot = deepClone(snapshot as SarPersistenceSnapshot);
     this.flush();
     return { persisted: true, issues: [] };
   }
@@ -590,7 +590,7 @@ function persistResultIntoSnapshot(
   }
 }
 
-function validateSnapshot(snapshot: SarPersistenceSnapshot): SarValidationIssue[] {
+function validateSnapshot(snapshot: unknown): SarValidationIssue[] {
   if (!isRecord(snapshot)) {
     return [{ code: 'invalid-object', path: 'snapshot', message: 'SAR persistence snapshot must be an object.' }];
   }
