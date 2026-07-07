@@ -980,6 +980,58 @@ describe('resource field completion audit', () => {
     });
   });
 
+  it('downgrades human-confirmed rows when reviewed source hash is stale', () => {
+    const result = buildResourceFieldCompletionAudit({
+      registry: buildResourceNodeRegistry({}),
+      generatedAt: '2026-06-22T00:00:00.000Z',
+      candidates: [{
+        id: 'knowledge-card:stale-source-review',
+        title: 'Stale source review',
+        family: 'knowledge-card',
+        sourcePathOrUrl: 'course-content/runtime/knowledge/cards/nodes/stale-source-review.md',
+        sourceRecord: 'stale-source-review',
+        knowledgeNodeIds: ['Bode图_1_1'],
+        capabilityTargetIds: ['capability:autocontrol:interpret-time-frequency-response'],
+        segmentRefs: ['stale-source-review'],
+        citationTargets: ['course-content/runtime/knowledge/cards/nodes/stale-source-review.md'],
+        pathTarget: '/knowledge?node=stale-source-review',
+        estimatedTimeMinutes: 4,
+        evidenceInstrumentation: ['knowledge_card_open'],
+        privacyScope: 'student-visible',
+        contentHash: 'sha256:current-source',
+        versionRef: 'runtime-knowledge-card.v1',
+        generatedBy: 'template',
+        humanConfirmed: true,
+        currentPathEligible: true,
+        reviewEvidence: {
+          reviewerId: 'knowledge-card-reviewer',
+          reviewerRole: 'curriculum-data-governance',
+          reviewedAt: '2026-07-03T00:00:00.000Z',
+          reviewBatchId: 'knowledge-card-review-batch',
+          reviewerVisibleRationale: 'The stale source hash must invalidate this review.',
+          independentEvidenceRef: 'review-packet:knowledge-card-stale-source-review',
+          reviewedSourceHash: 'sha256:previous-source',
+          promptOrManifestHash: 'sha256:knowledge-card-review',
+        },
+      }],
+    });
+
+    expect(result.rows[0]).toMatchObject({
+      sourceHash: 'sha256:current-source',
+      reviewStatus: 'stale',
+      missingFieldCodes: expect.arrayContaining([
+        'missing-human-review',
+        'stale-review',
+        'provisional-metadata',
+      ]),
+      pathEligibility: {
+        current: false,
+        afterCompletion: false,
+        masteryAffecting: false,
+      },
+    });
+  });
+
   it('blocks path eligibility and mastery effect when evidence contract fields are missing', () => {
     const result = buildResourceFieldCompletionAudit({
       registry: buildResourceNodeRegistry({}),

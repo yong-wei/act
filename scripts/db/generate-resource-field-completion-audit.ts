@@ -1675,7 +1675,7 @@ function applyKnowledgeVisualSemanticReview(
     privacyScope: reviewItem.privacyScope,
     humanConfirmed: true,
     currentPathEligible: reviewItem.currentPathEligible,
-    contentHash: reviewItem.sourceHash,
+    contentHash: candidate.contentHash,
     versionRef: reviewItem.sourceVersionRef,
     reviewEvidence: {
       reviewerId: reviewItem.reviewerId,

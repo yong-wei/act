@@ -1462,6 +1462,12 @@ function candidateHasFreshHumanReviewEvidence(candidate: ResourceFieldCompletion
     reviewerId.includes('template') ||
     reviewerId.includes('generated');
   const sourceEvidencePresent = Boolean(candidate.contentHash || candidate.versionRef);
+  const reviewedSourceHash = candidate.reviewEvidence?.reviewedSourceHash;
+  const requiresResourceHashMatch = candidate.family === 'knowledge-card' ||
+    candidate.family === 'knowledge-infograph';
+  const reviewedSourceMatches = !requiresResourceHashMatch ||
+    !reviewedSourceHash ||
+    reviewedSourceHash === candidate.contentHash;
   return Boolean(
     reviewerId &&
     !placeholderReviewer &&
@@ -1471,6 +1477,7 @@ function candidateHasFreshHumanReviewEvidence(candidate: ResourceFieldCompletion
     candidate.reviewEvidence?.reviewerVisibleRationale &&
     candidate.reviewEvidence?.independentEvidenceRef &&
     sourceEvidencePresent &&
+    reviewedSourceMatches &&
     (!candidate.generatedBy || candidate.reviewEvidence?.promptOrManifestHash),
   );
 }
