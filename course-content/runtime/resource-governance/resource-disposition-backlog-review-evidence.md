@@ -13,7 +13,7 @@ Raw content included: false
 
 Before queued resources: 5239
 Before primary queue items: 5239
-Before dependent queue items: 28816
+Before dependent queue items: 28786
 After reviewed resources: 5239
 After unresolved disposition blockers: 0
 
@@ -28,7 +28,7 @@ After unresolved disposition blockers: 0
 ## Downstream Blockers
 
 - dependency: 60
-- evidence-lineage: 7494
+- evidence-lineage: 7479
 - path-readiness: 15461
 - runtime-identity: 2192
 

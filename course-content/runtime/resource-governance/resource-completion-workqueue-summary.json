@@ -3,12 +3,12 @@
   "auditMissingFieldRows": 5239,
   "queuedResources": 5239,
   "primaryQueueItems": 5239,
-  "dependentQueueItems": 28816,
+  "dependentQueueItems": 28786,
   "byFollowupBucket": {
     "complete-analysis-design-graph-resource-bindings": 6704,
-    "complete-evidence-lineage-bindings": 7494,
+    "complete-evidence-lineage-bindings": 7479,
     "review-runtime-lesson-planning-units": 8317,
-    "review-runtime-media-handout-dispositions": 8848,
+    "review-runtime-media-handout-dispositions": 8833,
     "complete-foundation-graph-resource-bindings": 440,
     "complete-citation-and-rag-bindings": 1859,
     "repair-resource-identity-bindings": 333,
@@ -16,13 +16,13 @@
   },
   "byMissingFieldCode": {
     "missing-capability-target": 3942,
-    "missing-evidence-contract": 4229,
+    "missing-evidence-contract": 4214,
     "missing-evidence-instrumentation": 3265,
     "missing-knowledge-binding": 3202,
     "missing-path-profile": 4896,
     "missing-path-target": 3421,
     "provisional-metadata": 3942,
-    "missing-human-review": 4906,
+    "missing-human-review": 4891,
     "missing-segment-ref": 161,
     "missing-content-hash": 333,
     "blocked-by-dependency": 60,
@@ -770,7 +770,7 @@
       "missingFieldCode": "missing-evidence-contract",
       "followupBucket": "complete-evidence-lineage-bindings",
       "dependencyState": "needs-human-review",
-      "total": 884,
+      "total": 869,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -782,7 +782,19 @@
       "missingFieldCode": "missing-path-profile",
       "followupBucket": "review-runtime-lesson-planning-units",
       "dependencyState": "needs-human-review",
-      "total": 884,
+      "total": 869,
+      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
+    },
+    {
+      "id": "resource-completion:dependent:textbook-search-document:controlModeling:textbook:missing-path-profile:review-runtime-lesson-planning-units:ready",
+      "queueRole": "dependent",
+      "sourceFamily": "textbook-search-document",
+      "learningGoalId": "controlModeling",
+      "graphDomain": "textbook",
+      "missingFieldCode": "missing-path-profile",
+      "followupBucket": "review-runtime-lesson-planning-units",
+      "dependencyState": "ready",
+      "total": 15,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -794,7 +806,7 @@
       "missingFieldCode": "missing-path-target",
       "followupBucket": "review-runtime-lesson-planning-units",
       "dependencyState": "needs-human-review",
-      "total": 884,
+      "total": 869,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -1142,7 +1154,19 @@
       "missingFieldCode": "missing-human-review",
       "followupBucket": "review-runtime-media-handout-dispositions",
       "dependencyState": "needs-human-review",
-      "total": 884,
+      "total": 869,
+      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
+    },
+    {
+      "id": "resource-completion:primary:textbook-search-document:controlModeling:textbook:missing-path-target:review-runtime-lesson-planning-units:ready",
+      "queueRole": "primary",
+      "sourceFamily": "textbook-search-document",
+      "learningGoalId": "controlModeling",
+      "graphDomain": "textbook",
+      "missingFieldCode": "missing-path-target",
+      "followupBucket": "review-runtime-lesson-planning-units",
+      "dependencyState": "ready",
+      "total": 15,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
