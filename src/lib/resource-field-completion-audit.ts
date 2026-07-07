@@ -1465,9 +1465,9 @@ function candidateHasFreshHumanReviewEvidence(candidate: ResourceFieldCompletion
   const reviewedSourceHash = candidate.reviewEvidence?.reviewedSourceHash;
   const requiresResourceHashMatch = candidate.family === 'knowledge-card' ||
     candidate.family === 'knowledge-infograph';
-  const reviewedSourceMatches = !requiresResourceHashMatch ||
-    !reviewedSourceHash ||
-    reviewedSourceHash === candidate.contentHash;
+  const reviewedSourceMatches = requiresResourceHashMatch
+    ? Boolean(reviewedSourceHash && reviewedSourceHash === candidate.contentHash)
+    : true;
   return Boolean(
     reviewerId &&
     !placeholderReviewer &&

@@ -1032,6 +1032,57 @@ describe('resource field completion audit', () => {
     });
   });
 
+  it('downgrades knowledge visual reviews when reviewed source hash is missing', () => {
+    const result = buildResourceFieldCompletionAudit({
+      registry: buildResourceNodeRegistry({}),
+      generatedAt: '2026-06-22T00:00:00.000Z',
+      candidates: [{
+        id: 'knowledge-card:missing-source-review-hash',
+        title: 'Missing source review hash',
+        family: 'knowledge-card',
+        sourcePathOrUrl: 'course-content/runtime/knowledge/cards/nodes/missing-source-review-hash.md',
+        sourceRecord: 'missing-source-review-hash',
+        knowledgeNodeIds: ['Bode图_1_1'],
+        capabilityTargetIds: ['capability:autocontrol:interpret-time-frequency-response'],
+        segmentRefs: ['missing-source-review-hash'],
+        citationTargets: ['course-content/runtime/knowledge/cards/nodes/missing-source-review-hash.md'],
+        pathTarget: '/knowledge?node=missing-source-review-hash',
+        estimatedTimeMinutes: 4,
+        evidenceInstrumentation: ['knowledge_card_open'],
+        privacyScope: 'student-visible',
+        contentHash: 'sha256:current-source',
+        versionRef: 'runtime-knowledge-card.v1',
+        generatedBy: 'template',
+        humanConfirmed: true,
+        currentPathEligible: true,
+        reviewEvidence: {
+          reviewerId: 'knowledge-card-reviewer',
+          reviewerRole: 'curriculum-data-governance',
+          reviewedAt: '2026-07-03T00:00:00.000Z',
+          reviewBatchId: 'knowledge-card-review-batch',
+          reviewerVisibleRationale: 'Knowledge visual review must carry the independently reviewed source hash.',
+          independentEvidenceRef: 'review-packet:knowledge-card-missing-source-review-hash',
+          promptOrManifestHash: 'sha256:knowledge-card-review',
+        },
+      }],
+    });
+
+    expect(result.rows[0]).toMatchObject({
+      sourceHash: 'sha256:current-source',
+      reviewStatus: 'stale',
+      missingFieldCodes: expect.arrayContaining([
+        'missing-human-review',
+        'stale-review',
+        'provisional-metadata',
+      ]),
+      pathEligibility: {
+        current: false,
+        afterCompletion: false,
+        masteryAffecting: false,
+      },
+    });
+  });
+
   it('blocks path eligibility and mastery effect when evidence contract fields are missing', () => {
     const result = buildResourceFieldCompletionAudit({
       registry: buildResourceNodeRegistry({}),
