@@ -133,7 +133,7 @@ function rowToRuntimeProjection(
     routeTarget: projectionLevel === 'ResourceNode' || projectionLevel === 'PlanningUnit'
       ? row.pathTarget
       : null,
-    renderTarget: row.pathTarget ?? row.sourcePathOrUrl,
+    renderTarget: renderTargetForRow(row),
     graphNodeRefs: normalizeGraphNodeRefs(row.graphNodeRefs),
     estimatedTimeMinutes: row.estimatedTimeMinutes,
     evidenceInstrumentation: evidenceInstrumentationFromContract(row.evidenceContract, row.family),
@@ -231,6 +231,15 @@ function resourceNodeIdForRow(row: ResourceFieldCompletionAuditRow): string | nu
   if (row.family === 'runtime-handout' && row.resourceId.startsWith('runtime-handout:')) return row.resourceId;
   if (row.family === 'knowledge-card' && row.resourceId.startsWith('knowledge-card:')) return row.resourceId;
   return null;
+}
+
+function renderTargetForRow(row: ResourceFieldCompletionAuditRow): string | null {
+  if (row.family === 'knowledge-infograph') {
+    return row.citationTargets.find((target) => target.startsWith('/course-runtime/')) ??
+      row.pathTarget ??
+      row.sourcePathOrUrl;
+  }
+  return row.pathTarget ?? row.sourcePathOrUrl;
 }
 
 function sourceKindForFamily(family: RuntimeResourceProjectionFamily): ResourceNodeSourceKind {
