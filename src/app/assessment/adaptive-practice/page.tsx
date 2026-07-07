@@ -1661,7 +1661,10 @@ export default function AdaptivePracticePage() {
     [pathExecutionNodes],
   );
   const pathManagementTargetModuleId = useMemo<PathWorkspaceModuleId | null>(() => {
-    if (!showPathContextRecovery && (showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0) {
+    if (!showPathContextRecovery && showEvidenceWorkspace && pathExecutionNodes.length > 0) {
+      return 'learning-record';
+    }
+    if (!showPathContextRecovery && (showExecutionWorkspace || showRecoveredExecutionWorkspace) && pathExecutionNodes.length > 0) {
       return 'current-path';
     }
     if (!showPathContextRecovery && showSelectionWorkspace && visiblePathOptions.length > 0) {
