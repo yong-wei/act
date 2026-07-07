@@ -1350,6 +1350,56 @@ describe('resource field completion audit', () => {
     });
   });
 
+  it('keeps adaptive assessment fixture writes inside scoped readiness', () => {
+    const result = buildResourceFieldCompletionAudit({
+      registry: buildResourceNodeRegistry({}),
+      generatedAt: '2026-07-05T00:00:00.000Z',
+      candidates: [
+        {
+          id: 'AdaptiveAssessmentAbilityEstimate:yangfan-diagnostic-fixture-ability-estimate',
+          title: 'Yang Fan fixture ability estimate',
+          family: 'quiz',
+          sourcePathOrUrl: '/fixture/yangfan-diagnostic-fixture-ability-estimate',
+          sourceRecord: 'AdaptiveAssessmentAbilityEstimate:yangfan-diagnostic-fixture-ability-estimate',
+          knowledgeNodeIds: ['性能指标_1_1'],
+          capabilityTargetIds: ['controlModeling'],
+          segmentRefs: ['yangfan-diagnostic-fixture-ability-estimate'],
+          citationTargets: ['AdaptiveAssessmentAnswer:yangfan-diagnostic-fixture-answer'],
+          pathTarget: 'AdaptiveAssessmentAbilityEstimate:yangfan-diagnostic-fixture-ability-estimate',
+          estimatedTimeMinutes: 5,
+          privacyScope: 'student-visible',
+          contentHash: 'sha256:yangfan-diagnostic-fixture-ability-estimate',
+          versionRef: 'yangfan-diagnostic-fixture.v1',
+          humanConfirmed: true,
+          currentPathEligible: true,
+          reviewEvidence: {
+            reviewerId: 'fixture-readiness-reviewer',
+            reviewerRole: 'data-governance',
+            reviewedAt: '2026-07-05T00:00:00.000Z',
+            reviewBatchId: 'fixture-readiness-review-batch',
+            reviewerVisibleRationale: 'Ability estimate owner row has reviewed fixture governance.',
+            independentEvidenceRef: 'review-packet:yangfan-diagnostic-fixture-ability-estimate',
+            reviewedSourceHash: 'sha256:yangfan-diagnostic-fixture-ability-estimate',
+            promptOrManifestHash: 'sha256:fixture-readiness-review',
+          },
+        },
+      ],
+    });
+
+    const fixtureOwnedIds = result.evidenceLineage.items
+      .filter((item) => item.yangFanFixtureScope === 'fixture-owned')
+      .map((item) => item.resourceId);
+
+    expect(fixtureOwnedIds).toContain('yangfan-diagnostic-fixture-algorithm-v1');
+    expect(fixtureOwnedIds).toContain('yangfan-diagnostic-fixture-session');
+    expect(fixtureOwnedIds).toContain('yangfan-diagnostic-fixture-answer');
+    expect(fixtureOwnedIds).toContain('AdaptiveAssessmentAbilityEstimate:yangfan-diagnostic-fixture-ability-estimate');
+    expect(fixtureOwnedIds).not.toContain('yangfan-diagnostic-fixture-ability-estimate');
+    expect(fixtureOwnedIds).toContain('yangfan-diagnostic-fixture-mastery-update');
+    expect(result.evidenceLineage.summary.yangFanFixtureBlockers.scopedBlockerCount)
+      .toBe(YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length);
+  });
+
   it('does not treat an incomplete fixture-owned audit row as governed readiness', () => {
     const result = buildResourceFieldCompletionAudit({
       registry: buildResourceNodeRegistry({}),

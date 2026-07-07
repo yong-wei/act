@@ -19,12 +19,25 @@ export const RESOURCE_FIELD_COMPLETION_AUDIT_VERSION = 'resource-field-completio
 export const YANGFAN_FIXTURE_READINESS_SCOPE_POLICY_VERSION = 'yangfan-fixture-readiness-scope.v1';
 
 export const YANGFAN_FIXTURE_OWNED_RESOURCE_IDS = [
+  'yangfan-diagnostic-fixture:knowledge-progress:性能指标_1_1',
+  'yangfan-diagnostic-fixture:knowledge-progress:根轨迹_1_1',
+  'yangfan-diagnostic-fixture:knowledge-progress:传统设计四联图校正_4_47004',
+  'yangfan-diagnostic-fixture-algorithm-v1',
+  'yangfan-diagnostic-fixture-session',
   'yangfan-diagnostic-fixture-question',
   'yangfan-diagnostic-fixture-item-ref',
+  'yangfan-diagnostic-fixture-answer',
+  'yangfan-diagnostic-fixture-ability-estimate',
+  'yangfan-diagnostic-fixture-mastery-update',
   'yangfan-fixture-control-correction-path',
   'yangfan-diagnostic-fixture:exec-start',
   'yangfan-diagnostic-fixture:exec-complete',
   'yangfan-diagnostic-fixture:exec-terminal',
+  'yangfan-diagnostic-fixture:deviation-low-confidence',
+  'yangfan-diagnostic-fixture:intervention-konling',
+  'yangfan-diagnostic-fixture:snapshot',
+  'yangfan-diagnostic-fixture:student-profile-summary',
+  'yangfan-diagnostic-fixture:student-evidence-feature-cache',
   'yangfan-fixture-fact-assessment',
   'yangfan-fixture-fact-path',
   'yangfan-fixture-fact-konling',
@@ -1013,7 +1026,7 @@ function rowReferencesYangFanFixtureResource(row: ResourceFieldCompletionAuditRo
 }
 
 function normalizeYangFanFixtureStableRef(value: string): string {
-  return value.replace(/^(LearningFact|LearningPathExecution|LearningPath|AdaptiveAssessmentItemRef|AdaptiveAssessmentAnswer):/, '');
+  return value.replace(/^(LearningFact|KnowledgeProgress|LearningPathExecution|LearningPathDeviation|LearningPathIntervention|LearningPath|StudentCompetencySnapshot|StudentProfileSummary|StudentEvidenceFeatureCache|AdaptiveAssessmentAlgorithmVersion|AdaptiveAssessmentSession|AdaptiveAssessmentItemRef|AdaptiveAssessmentAnswer|AdaptiveAssessmentAbilityEstimate|AdaptiveMasteryUpdate):/, '');
 }
 
 function buildEvidenceLineageReadinessSummary(
