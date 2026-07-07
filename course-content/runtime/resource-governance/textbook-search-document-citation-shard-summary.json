@@ -1,0 +1,93 @@
+{
+  "artifactVersion": "textbook-search-document-citation-shard.v1",
+  "generatedAt": "2026-07-07T03:30:00.000Z",
+  "reviewBatchId": "textbook-search-document-citation-shard-2026-07-07",
+  "selectedShardId": "parent-section:ch05-sec21:frequency-margin-search-documents",
+  "selectionBasis": "All textbook-search-document rows whose deterministic parent section is the already reviewed ch05-sec21 frequency-margin section.",
+  "parentSection": {
+    "sectionId": "ch05-sec21",
+    "resourceId": "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-sec21",
+    "parentOwnsPlanningRole": true
+  },
+  "totals": {
+    "sourceWorkqueueRows": 3856,
+    "uniqueSearchDocuments": 964,
+    "selectedRows": 15,
+    "reviewedRows": 15,
+    "selectedSourceWorkqueueRows": 60,
+    "residualUnselectedRows": 949
+  },
+  "selectedShard": {
+    "selectedIds": [
+      "textbook-search-document:ch05-sec21__chunk-001",
+      "textbook-search-document:ch05-sec21__chunk-002",
+      "textbook-search-document:ch05-sec21__chunk-003",
+      "textbook-search-document:ch05-sec21__chunk-004",
+      "textbook-search-document:ch05-sec21__chunk-005",
+      "textbook-search-document:ch05-sec21__chunk-006",
+      "textbook-search-document:ch05-sec21__chunk-007",
+      "textbook-search-document:ch05-sec21__chunk-008",
+      "textbook-search-document:ch05-sec21__chunk-009",
+      "textbook-search-document:ch05-sec21__chunk-010",
+      "textbook-search-document:ch05-sec21__chunk-011",
+      "textbook-search-document:ch05-sec21__chunk-012",
+      "textbook-search-document:ch05-sec21__chunk-013",
+      "textbook-search-document:ch05-sec21__chunk-014",
+      "textbook-search-document:ch05-sec21__chunk-015"
+    ],
+    "reviewedIds": [
+      "textbook-search-document:ch05-sec21__chunk-001",
+      "textbook-search-document:ch05-sec21__chunk-002",
+      "textbook-search-document:ch05-sec21__chunk-003",
+      "textbook-search-document:ch05-sec21__chunk-004",
+      "textbook-search-document:ch05-sec21__chunk-005",
+      "textbook-search-document:ch05-sec21__chunk-006",
+      "textbook-search-document:ch05-sec21__chunk-007",
+      "textbook-search-document:ch05-sec21__chunk-008",
+      "textbook-search-document:ch05-sec21__chunk-009",
+      "textbook-search-document:ch05-sec21__chunk-010",
+      "textbook-search-document:ch05-sec21__chunk-011",
+      "textbook-search-document:ch05-sec21__chunk-012",
+      "textbook-search-document:ch05-sec21__chunk-013",
+      "textbook-search-document:ch05-sec21__chunk-014",
+      "textbook-search-document:ch05-sec21__chunk-015"
+    ],
+    "remaining": 0,
+    "byClassification": {
+      "parent-section-evidence-support": 1,
+      "supporting-citation": 14
+    },
+    "byLearningGoal": {
+      "controlModeling": 15,
+      "diagnosticAssessment": 15
+    },
+    "byBlocker": {
+      "missing-evidence-contract": 15,
+      "missing-human-review": 15,
+      "missing-path-profile": 15,
+      "missing-path-target": 15
+    },
+    "byLimitationState": {
+      "raw-search-document-not-path-node": 15,
+      "derivation-continuation-under-reviewed-section": 1,
+      "matlab-validation-continuation-under-reviewed-section": 1,
+      "bode-figure-anchor-under-reviewed-section": 4,
+      "matlab-command-continuation-under-reviewed-section": 1,
+      "frequency-component-table-under-reviewed-section": 1,
+      "application-figure-anchor-under-reviewed-section": 1,
+      "closed-loop-transfer-continuation-under-reviewed-section": 1,
+      "typical-element-table-under-reviewed-section": 1,
+      "robot-application-figure-under-reviewed-section": 1,
+      "anesthesia-control-diagram-under-reviewed-section": 1,
+      "closed-loop-bode-figure-under-reviewed-section": 1
+    }
+  },
+  "guardrails": {
+    "selectedRowsHaveCitationTargets": true,
+    "selectedRowsHaveParentReview": true,
+    "rawSearchDocumentsPromotedAsPathNodes": false,
+    "rawContentIncluded": false,
+    "allRowsKeepSectionPlanningBoundary": true,
+    "everyRowHasRationale": true
+  }
+}

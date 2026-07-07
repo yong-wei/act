@@ -322,7 +322,7 @@ describe('textbook and media grounding artifacts', () => {
             current: false,
             afterCompletion: false,
             masteryAffecting: false,
-            blockedBy: ['resource-node-planning-audit-required'],
+            blockedBy: ['missing-human-review'],
           },
           groundingEligibility: {
             retrievalReady: true,

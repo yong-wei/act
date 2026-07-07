@@ -389,6 +389,7 @@ export interface RuntimeResourceProjectionInput {
 export interface RuntimeResourceProjectionMetadata {
   id: string;
   projectionLevel: RuntimeResourceProjectionLevel;
+  sourceKind?: ResourceNodeSourceKind;
   sourcePathOrUrl: string | null;
   sourceRecord: string | null;
   sourceHash: string | null;
@@ -2294,6 +2295,7 @@ function normalizeRuntimeProjectionMetadata(
   return {
     id: projection.id,
     projectionLevel: projection.projectionLevel,
+    sourceKind: projection.sourceKind,
     sourcePathOrUrl: projection.sourcePathOrUrl,
     sourceRecord: projection.sourceRecord,
     sourceHash: projection.sourceHash,
@@ -2707,12 +2709,21 @@ function auditRuntimeProjectionPlanning(node: ResourceNode): ResourceNodeAuditIs
   return issues;
 }
 
-function isRuntimeProjectionReviewStale(projection: RuntimeResourceProjectionInput): boolean {
+function isRuntimeProjectionReviewStale(projection: {
+  reviewAudit?: RuntimeResourceProjectionReviewAudit | null;
+  sourceHash: string | null;
+  sourceKind?: ResourceNodeSourceKind;
+  sourceVersionRef: string | null;
+}): boolean {
   return !runtimeProjectionReviewSourceMatches(projection) ||
     projection.reviewAudit?.reviewedVersionRef !== projection.sourceVersionRef;
 }
 
-function runtimeProjectionReviewSourceMatches(projection: RuntimeResourceProjectionInput): boolean {
+function runtimeProjectionReviewSourceMatches(projection: {
+  reviewAudit?: RuntimeResourceProjectionReviewAudit | null;
+  sourceHash: string | null;
+  sourceKind?: ResourceNodeSourceKind;
+}): boolean {
   if (projection.reviewAudit?.reviewedSourceHash === projection.sourceHash) return true;
   if (projection.sourceKind === 'knowledge_graph') return false;
   return projection.reviewAudit?.reviewedSourceHash === projection.reviewAudit?.promptOrManifestHash;

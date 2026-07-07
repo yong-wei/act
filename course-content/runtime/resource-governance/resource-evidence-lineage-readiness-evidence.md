@@ -5,12 +5,12 @@ Source audit rows: 5291
 Path-relevant rows: 4184
 Evidence-producing rows: 3378
 Evidence-lineage blockers: 22
-Reviewed limitations: 3122
-Ready rows: 1062
+Reviewed limitations: 3107
+Ready rows: 1077
 
 ## Finding Counts
 
-- missing-evidence-contract: 3144
+- missing-evidence-contract: 3129
 - missing-evidence-instrumentation: 2180
 - missing-human-review: 22
 
@@ -22,20 +22,20 @@ Ready rows: 1062
 - eventType: 2180
 - learningFactMaterializationPolicy: 2180
 - learningFactPolicy: 2180
-- privacyScope: 986
+- privacyScope: 971
 - sourceLogId: 2180
 - timestamps: 2180
 
 ## Follow-up Buckets
 
-- complete-evidence-lineage-bindings: 3144
+- complete-evidence-lineage-bindings: 3129
 
 ## Yang Fan Fixture Precondition
 
 Blocked: true
 Blocker count: 22
 Scoped blocker count: 22
-Global limitation count: 3122
+Global limitation count: 3107
 Scope policy: yangfan-fixture-readiness-scope.v1
 Reason: Canonical learner fixture generation remains blocked until fixture-owned evidence lineage gaps are resolved.
 

@@ -45,6 +45,7 @@ const DISPOSITION_REVIEW_EVIDENCE_MD_PATH = path.join(OUTPUT_DIR, 'resource-disp
 const KNOWLEDGE_VISUAL_SEMANTIC_REVIEW_ITEMS_JSONL_PATH = path.join(OUTPUT_DIR, 'knowledge-visual-semantic-shard-review-items.jsonl');
 const KNOWLEDGE_VISUAL_SEMANTIC_REVIEW_SUMMARY_JSON_PATH = path.join(OUTPUT_DIR, 'knowledge-visual-semantic-shard-summary.json');
 const KNOWLEDGE_VISUAL_SEMANTIC_REVIEW_EVIDENCE_MD_PATH = path.join(OUTPUT_DIR, 'knowledge-visual-semantic-shard-evidence.md');
+const TEXTBOOK_SEARCH_DOCUMENT_CITATION_REVIEW_ITEMS_JSONL_PATH = path.join(OUTPUT_DIR, 'textbook-search-document-citation-shard-review-items.jsonl');
 const HUMAN_REVIEW_INTEGRITY_JSON_PATH = path.join(OUTPUT_DIR, 'resource-human-review-integrity-diagnostics.json');
 const PROJECTION_JSONL_PATH = path.join(OUTPUT_DIR, 'runtime-resource-projections.jsonl');
 const PROJECTION_LIMITATIONS_PATH = path.join(OUTPUT_DIR, 'runtime-resource-projection-limitations.json');
@@ -77,6 +78,41 @@ type ResidualDispositionClassification =
   | 'embedded-asset'
   | 'evidence-producing'
   | 'excluded-with-rationale';
+
+type TextbookSearchDocumentCitationClassification =
+  | 'parent-section-evidence-support'
+  | 'supporting-citation'
+  | 'embedded-asset'
+  | 'excluded-with-rationale';
+
+interface TextbookSearchDocumentCitationReviewItem {
+  resourceId: string;
+  documentId: string;
+  classification: TextbookSearchDocumentCitationClassification;
+  reviewerVisibleRationale: string;
+  reviewerId: string;
+  reviewedAt: string;
+  reviewBatchId: string;
+  sourceHash: string | null;
+  sourceVersionRef: string | null;
+  privacyScope: ResourceFieldCompletionCandidate['privacyScope'];
+  pathEligible: false;
+  promotedAsPathNode: false;
+  rawContentIncluded: false;
+  citationTargetId?: string;
+  citationAddress?: {
+    href?: string;
+    contentHash?: string;
+    locator?: string;
+  };
+  graphNodeRefs: {
+    knowledge: string[];
+    capability: string[];
+    quality: string[];
+  };
+  parentReviewRef?: string;
+  limitationState?: string[];
+}
 
 interface ResidualDispositionReviewItem {
   artifactVersion: 'resource-disposition-backlog-review.v1';
@@ -973,6 +1009,7 @@ async function main() {
 
 function flattenWorkqueueItems(workqueues: ReturnType<typeof buildResourceFieldCompletionAudit>['workqueues']) {
   return workqueues.queues.flatMap((queue) => queue.items.map((item) => ({
+    ...item,
     queueId: queue.id,
     sourceFamily: queue.sourceFamily,
     learningGoalId: queue.learningGoalId,
@@ -980,7 +1017,6 @@ function flattenWorkqueueItems(workqueues: ReturnType<typeof buildResourceFieldC
     missingFieldCode: queue.missingFieldCode,
     followupBucket: queue.followupBucket,
     dependencyState: queue.dependencyState,
-    ...item,
   })));
 }
 
@@ -1028,13 +1064,13 @@ function renderWorkqueueMarkdown(
 
 async function buildResidualDispositionReviewItems(rows: ResourceFieldCompletionAuditRow[]): Promise<ResidualDispositionReviewItem[]> {
   const reviewSources = await loadResidualDispositionReviewSources();
-  return rows.filter((row) => row.missingFieldCodes.length > 0).map((row) => {
+  return rows.filter((row) => row.missingFieldCodes.length > 0).map<ResidualDispositionReviewItem>((row) => {
     const reviewSource = reviewSources.get(row.resourceId);
     const classification = reviewSource?.classification ?? residualDispositionClassificationFor(row);
     const downstreamBlockers = downstreamBlockersFor(row.missingFieldCodes);
     const unresolvedDispositionBlocker = isDispositionReviewUnresolved(row, reviewSource);
     return {
-      artifactVersion: 'resource-disposition-backlog-review.v1',
+      artifactVersion: 'resource-disposition-backlog-review.v1' as const,
       reviewBatchId: reviewSource?.reviewBatchId ?? RESIDUAL_DISPOSITION_REVIEW_BATCH_ID,
       reviewerId: reviewSource?.reviewerId ?? RESIDUAL_DISPOSITION_REVIEWER_ID,
       reviewedAt: reviewSource?.reviewedAt ?? RESIDUAL_DISPOSITION_REVIEWED_AT,
@@ -1053,8 +1089,8 @@ async function buildResidualDispositionReviewItems(rows: ResourceFieldCompletion
       reviewedLimitationState: residualReviewedLimitationState(row, downstreamBlockers, unresolvedDispositionBlocker),
       downstreamBlockers,
       currentPathEligible: classification === 'path-plannable' && row.pathEligibility.current,
-      privacyMinimized: true,
-      rawContentIncluded: false,
+      privacyMinimized: true as const,
+      rawContentIncluded: false as const,
     };
   }).sort((left, right) => left.resourceId.localeCompare(right.resourceId));
 }
@@ -1076,6 +1112,7 @@ async function loadResidualDispositionReviewSources(): Promise<Map<string, Resid
     residualRuntimeLessonModule,
     residualRuntimeLessonMedia,
     residualRegisteredResource,
+    textbookSearchDocumentCitation,
   ] = await Promise.all([
     readJsonlFile<any>(path.join(OUTPUT_DIR, 'runtime-lesson-planning-unit-review-items.jsonl')),
     readJsonlFile<any>(path.join(OUTPUT_DIR, 'runtime-media-handout-disposition-review-items.jsonl')),
@@ -1092,6 +1129,7 @@ async function loadResidualDispositionReviewSources(): Promise<Map<string, Resid
     readJsonlFile<any>(path.join(OUTPUT_DIR, 'residual-runtime-lesson-module-disposition-review-items.jsonl')),
     readJsonlFile<any>(path.join(OUTPUT_DIR, 'residual-runtime-lesson-media-disposition-review-items.jsonl')),
     readJsonlFile<any>(path.join(OUTPUT_DIR, 'residual-registered-resource-disposition-review-items.jsonl')),
+    loadTextbookSearchDocumentCitationReviews(),
   ]);
   const sources = new Map<string, ResidualDispositionReviewSource>();
   for (const item of runtimePlanning) {
@@ -1259,7 +1297,33 @@ async function loadResidualDispositionReviewSources(): Promise<Map<string, Resid
       sourceVersionRef: item.sourceVersionRef ?? null,
     });
   }
+  for (const item of textbookSearchDocumentCitation.values()) {
+    sources.set(item.resourceId, {
+      classification: residualClassificationForTextbookSearchDocumentCitation(item.classification),
+      reviewerVisibleRationale: item.reviewerVisibleRationale,
+      reviewerId: item.reviewerId,
+      reviewedAt: item.reviewedAt,
+      reviewBatchId: item.reviewBatchId,
+      sourceHash: item.sourceHash ?? item.citationAddress?.contentHash ?? null,
+      sourceVersionRef: item.sourceVersionRef ?? null,
+    });
+  }
   return sources;
+}
+
+async function loadTextbookSearchDocumentCitationReviews(): Promise<Map<string, TextbookSearchDocumentCitationReviewItem>> {
+  const rows = await readJsonlFile<TextbookSearchDocumentCitationReviewItem>(
+    TEXTBOOK_SEARCH_DOCUMENT_CITATION_REVIEW_ITEMS_JSONL_PATH,
+  );
+  return new Map(rows.map((row) => [row.resourceId, row]));
+}
+
+function residualClassificationForTextbookSearchDocumentCitation(
+  classification: TextbookSearchDocumentCitationClassification,
+): ResidualDispositionClassification {
+  if (classification === 'embedded-asset') return 'embedded-asset';
+  if (classification === 'excluded-with-rationale') return 'excluded-with-rationale';
+  return 'supporting-citation';
 }
 
 function residualDispositionClassificationFor(row: ResourceFieldCompletionAuditRow): ResidualDispositionClassification {
@@ -1772,30 +1836,52 @@ async function collectAuditOnlyCandidates(textbookDocuments: Awaited<ReturnType<
     knowledgeCardCandidates,
     infographCandidates,
     authoringTextbookCandidates,
+    textbookSearchDocumentReviews,
   ] = await Promise.all([
     collectRuntimeManifestCandidates(),
     collectRuntimeMediaCandidates(),
     collectKnowledgeCardCandidates(knowledgeVisualReviewMap),
     collectInfographCandidates(knowledgeVisualReviewMap),
     collectAuthoringTextbookCandidates(),
+    loadTextbookSearchDocumentCitationReviews(),
   ]);
-  const textbookDocumentCandidates = textbookDocuments.map<ResourceFieldCompletionCandidate>((document) => ({
-    id: `textbook-search-document:${document.id}`,
-    title: document.title,
-    family: 'textbook-search-document',
-    sourcePathOrUrl: document.href,
-    sourceRecord: document.metadata.bookId,
-    knowledgeNodeIds: document.resourceProjection.knowledgeNodeRefs,
-    capabilityTargetIds: document.resourceProjection.capabilityTargetRefs,
-    segmentRefs: [document.resourceProjection.segmentRef].filter(Boolean),
-    citationTargets: [document.resourceProjection.citationTargetRef ?? document.href].filter((value): value is string => Boolean(value)),
-    pathTarget: null,
-    evidenceInstrumentation: ['textbook_search_document_retrieved'],
-    privacyScope: UNCLASSIFIED_AUDIT_PRIVACY_SCOPE,
-    contentHash: document.contentHash,
-    versionRef: 'textbook-runtime-search-documents.v1',
-    humanConfirmed: false,
-  }));
+  const textbookDocumentCandidates = textbookDocuments.map<ResourceFieldCompletionCandidate>((document) => {
+    const resourceId = `textbook-search-document:${document.id}`;
+    const review = textbookSearchDocumentReviews.get(resourceId);
+    if (review) assertTextbookSearchDocumentCitationReviewIsFresh(review, document.contentHash);
+    return {
+      id: resourceId,
+      title: document.title,
+      family: 'textbook-search-document',
+      sourcePathOrUrl: document.href,
+      sourceRecord: document.metadata.bookId,
+      knowledgeNodeIds: review?.graphNodeRefs.knowledge ?? document.resourceProjection.knowledgeNodeRefs,
+      capabilityTargetIds: review?.graphNodeRefs.capability ?? document.resourceProjection.capabilityTargetRefs,
+      qualityTargetIds: review?.graphNodeRefs.quality,
+      segmentRefs: [document.resourceProjection.segmentRef].filter(Boolean),
+      citationTargets: [review?.citationTargetId ?? document.resourceProjection.citationTargetRef ?? document.href]
+        .filter((value): value is string => Boolean(value)),
+      pathTarget: null,
+      evidenceInstrumentation: ['textbook_search_document_retrieved'],
+      privacyScope: review ? STUDENT_VISIBLE_AUDIT_PRIVACY_SCOPE : UNCLASSIFIED_AUDIT_PRIVACY_SCOPE,
+      contentHash: document.contentHash,
+      versionRef: 'textbook-runtime-search-documents.v1',
+      humanConfirmed: Boolean(review),
+      currentPathEligible: false,
+      reviewEvidence: review
+        ? {
+          reviewerId: review.reviewerId,
+          reviewerRole: 'curriculum-data-governance',
+          reviewedAt: review.reviewedAt,
+          reviewBatchId: review.reviewBatchId,
+          reviewerVisibleRationale: review.reviewerVisibleRationale,
+          independentEvidenceRef: `${projectPath(TEXTBOOK_SEARCH_DOCUMENT_CITATION_REVIEW_ITEMS_JSONL_PATH)}#${resourceId}`,
+          reviewedSourceHash: review.sourceHash ?? document.contentHash ?? undefined,
+          confidence: 0.91,
+        }
+        : undefined,
+    };
+  });
 
   const limitations = [
     ...runtimeManifestCandidates.limitations,
@@ -1820,6 +1906,24 @@ async function collectAuditOnlyCandidates(textbookDocuments: Awaited<ReturnType<
     ],
     limitations,
   };
+}
+
+function assertTextbookSearchDocumentCitationReviewIsFresh(
+  review: TextbookSearchDocumentCitationReviewItem,
+  documentContentHash: string | null,
+) {
+  if (!hashesMatch(review.sourceHash, documentContentHash)) {
+    throw new Error(`Stale textbook search-document citation review for ${review.resourceId}: review hash ${review.sourceHash ?? 'missing'} does not match current document hash ${documentContentHash ?? 'missing'}`);
+  }
+}
+
+function hashesMatch(left: string | null | undefined, right: string | null | undefined) {
+  return normalizeHash(left) !== null && normalizeHash(left) === normalizeHash(right);
+}
+
+function normalizeHash(value: string | null | undefined) {
+  if (!value) return null;
+  return value.replace(/^sha256:/, '');
 }
 
 async function collectRuntimeManifestCandidates() {
@@ -1883,7 +1987,7 @@ async function collectRuntimeManifestCandidates() {
             reviewerVisibleRationale: reviewedCompletionCurrent.reviewerVisibleRationale,
             independentEvidenceRef: reviewedCompletionCurrent.independentEvidenceRef,
             reviewedSourceHash: reviewSourceHash ?? undefined,
-            promptOrManifestHash: reviewSourceHash,
+            promptOrManifestHash: reviewSourceHash ?? undefined,
             confidence: 0.91,
           }
           : undefined,

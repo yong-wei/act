@@ -34,7 +34,7 @@
   },
   "downstreamBlockers": {
     "dependency": 60,
-    "evidence-lineage": 7494,
+    "evidence-lineage": 7479,
     "path-readiness": 15457,
     "runtime-identity": 2190
   },
@@ -42,7 +42,7 @@
     "beforeResidualDispositionReview": {
       "queuedResources": 5237,
       "primaryQueueItems": 5237,
-      "dependentQueueItems": 28804
+      "dependentQueueItems": 28774
     },
     "afterResidualDispositionReview": {
       "reviewedResources": 5237,
