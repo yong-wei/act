@@ -1670,9 +1670,6 @@ export default function AdaptivePracticePage() {
     if (!showPathContextRecovery && showPracticeWorkspace) {
       return 'path-resource';
     }
-    if (showCompletedPathSummary) {
-      return 'learning-record';
-    }
     if (showPresetGoalCards) {
       return 'goal-selection';
     }
@@ -1682,7 +1679,6 @@ export default function AdaptivePracticePage() {
     return null;
   }, [
     pathExecutionNodes.length,
-    showCompletedPathSummary,
     showEvidenceWorkspace,
     showExecutionWorkspace,
     showLandingWorkspace,
