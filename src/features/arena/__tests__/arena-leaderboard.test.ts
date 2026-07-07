@@ -158,7 +158,6 @@ describe('arena submissions and leaderboards', () => {
         taskId: 'task-integrator-low-frequency-balance',
         params: { kp: 1.8, ki: 0.6, kd: 0.12 },
       },
-      userId: 'student-unbound-task',
       studentLabel: '未绑定 KAQ 任务有效成绩',
       submittedAt: '2026-05-10T10:02:00.000Z',
       existingSubmissions: [],
