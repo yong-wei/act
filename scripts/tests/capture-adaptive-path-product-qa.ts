@@ -41,7 +41,28 @@ async function openDock(page: Page) {
   }
 }
 
+async function openPathModule(page: Page, moduleId: string) {
+  const modulePanel = page.locator(`[data-adaptive-path-module="${moduleId}"]`).first();
+  if (!await modulePanel.count()) return;
+  if (await modulePanel.getAttribute('data-adaptive-path-module-state') === 'expanded') return;
+  await modulePanel.getByRole('button').first().click();
+  await page.waitForTimeout(250);
+}
+
+async function openPathSelectionModule(page: Page) {
+  await openPathModule(page, 'path-selection');
+}
+
+async function openCurrentPathModule(page: Page) {
+  await openPathModule(page, 'current-path');
+}
+
+async function openLearningRecordModule(page: Page) {
+  await openPathModule(page, 'learning-record');
+}
+
 async function selectCompletedNode(page: Page) {
+  await openCurrentPathModule(page);
   const completed = page.locator('[data-adaptive-path-node-state="completed"]').first();
   if (await completed.count()) {
     await completed.click();
@@ -50,6 +71,7 @@ async function selectCompletedNode(page: Page) {
 }
 
 async function openSkipWarning(page: Page) {
+  await openCurrentPathModule(page);
   const current = page.locator('[data-adaptive-path-node-state="current"]').first();
   if (await current.count()) {
     await current.click();
@@ -101,6 +123,7 @@ const states: CaptureState[] = [
     width: 1440,
     height: 1100,
     query: '?demo=1&goal=control-correction&intent=path-selection',
+    beforeScreenshot: openPathSelectionModule,
     selector: '[data-learning-path-product-surface]',
   },
   {
@@ -109,6 +132,7 @@ const states: CaptureState[] = [
     width: 320,
     height: 1100,
     query: '?demo=1&goal=control-correction&intent=path-selection',
+    beforeScreenshot: openPathSelectionModule,
     selector: '[data-learning-path-product-surface]',
   },
   {
@@ -117,6 +141,7 @@ const states: CaptureState[] = [
     width: 1440,
     height: 1100,
     query: '?demo=1&goal=control-correction&intent=path-execution',
+    beforeScreenshot: openCurrentPathModule,
     selector: '[data-adaptive-path-execution-surface="active-route"]',
   },
   {
@@ -125,6 +150,7 @@ const states: CaptureState[] = [
     width: 320,
     height: 1200,
     query: '?demo=1&goal=control-correction&intent=path-execution',
+    beforeScreenshot: openCurrentPathModule,
     selector: '[data-adaptive-path-execution-surface="active-route"]',
   },
   {
@@ -151,6 +177,7 @@ const states: CaptureState[] = [
     width: 1440,
     height: 1200,
     query: '?demo=1&goal=control-correction&intent=evidence-review',
+    beforeScreenshot: openLearningRecordModule,
     selector: '[data-adaptive-path-history-surface]',
   },
   {
@@ -159,6 +186,7 @@ const states: CaptureState[] = [
     width: 320,
     height: 1200,
     query: '?demo=1&goal=control-correction&intent=evidence-review',
+    beforeScreenshot: openLearningRecordModule,
     selector: '[data-adaptive-path-history-surface]',
   },
   {
