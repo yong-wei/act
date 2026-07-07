@@ -317,7 +317,7 @@ function PortfolioAppShell({
       title="学习档案"
       subtitle="整理课堂作品、提示词、仿真设计和 AI 协作反思。"
       breadcrumbs={[{ label: '首页', href: '/' }, { label: '个人中心', href: '/profile' }, { label: '学习档案' }]}
-      userMenu={<UserMenu user={{ name: shellSession?.user?.name, email: shellSession?.user?.email, role: shellSession?.user?.role }} />}
+      userMenu={shellSession?.user ? <UserMenu user={{ name: shellSession.user.name, email: shellSession.user.email, role: shellSession.user.role }} /> : undefined}
       className="surface-page"
     >
       <div {...props}>{children}</div>

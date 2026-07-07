@@ -281,7 +281,7 @@ export default function GrowthPage() {
           ))}
         </div>
       )}
-      userMenu={<UserMenu user={{ name: session?.user?.name, email: session?.user?.email, role: session?.user?.role }} />}
+      userMenu={session?.user ? <UserMenu user={{ name: session.user.name, email: session.user.email, role: session.user.role }} /> : undefined}
       className="surface-page"
     >
       <section

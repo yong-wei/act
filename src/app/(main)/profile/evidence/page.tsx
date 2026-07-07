@@ -45,7 +45,7 @@ export default async function StudentEvidencePage({ searchParams }: StudentEvide
       subtitle="学习来源、时间线与隐私范围"
       activeHref="/profile/evidence"
       breadcrumbs={[{ label: '首页', href: '/' }, { label: '个人中心', href: '/profile' }, { label: '学习记录' }]}
-      userMenu={<UserMenu user={{ name: session?.user?.name, email: session?.user?.email, role: session?.user?.role }} />}
+      userMenu={session?.user ? <UserMenu user={{ name: session.user.name, email: session.user.email, role: session.user.role }} /> : undefined}
       className="surface-page"
     >
       <section
