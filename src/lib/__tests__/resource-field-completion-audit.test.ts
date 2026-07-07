@@ -1015,6 +1015,7 @@ describe('resource field completion audit', () => {
           reviewerVisibleRationale: 'The stale source hash must invalidate this review.',
           independentEvidenceRef: 'review-packet:knowledge-card-stale-source-review',
           reviewedSourceHash: 'sha256:previous-source',
+          reviewedVersionRef: 'runtime-knowledge-card.v1',
           promptOrManifestHash: 'sha256:knowledge-card-review',
         },
       }],
@@ -1066,6 +1067,7 @@ describe('resource field completion audit', () => {
           reviewBatchId: 'knowledge-card-review-batch',
           reviewerVisibleRationale: 'Knowledge visual review must carry the independently reviewed source hash.',
           independentEvidenceRef: 'review-packet:knowledge-card-missing-source-review-hash',
+          reviewedVersionRef: 'runtime-knowledge-card.v1',
           promptOrManifestHash: 'sha256:knowledge-card-review',
         },
       }],
@@ -1073,6 +1075,62 @@ describe('resource field completion audit', () => {
 
     expect(result.rows[0]).toMatchObject({
       sourceHash: 'sha256:current-source',
+      reviewStatus: 'stale',
+      missingFieldCodes: expect.arrayContaining([
+        'missing-human-review',
+        'stale-review',
+        'provisional-metadata',
+      ]),
+      pathEligibility: {
+        current: false,
+        afterCompletion: false,
+        masteryAffecting: false,
+      },
+    });
+  });
+
+  it('downgrades knowledge visual reviews when reviewed version ref is stale', () => {
+    const result = buildResourceFieldCompletionAudit({
+      registry: buildResourceNodeRegistry({}),
+      generatedAt: '2026-06-22T00:00:00.000Z',
+      candidates: [{
+        id: 'knowledge-card:stale-version-review',
+        title: 'Stale version review',
+        family: 'knowledge-card',
+        sourcePathOrUrl: 'course-content/runtime/knowledge/cards/nodes/stale-version-review.md',
+        sourceRecord: 'stale-version-review',
+        knowledgeNodeIds: ['Bode图_1_1'],
+        capabilityTargetIds: ['capability:autocontrol:interpret-time-frequency-response'],
+        segmentRefs: ['stale-version-review'],
+        citationTargets: ['course-content/runtime/knowledge/cards/nodes/stale-version-review.md'],
+        pathTarget: '/knowledge?node=stale-version-review',
+        estimatedTimeMinutes: 4,
+        evidenceInstrumentation: ['knowledge_card_open'],
+        privacyScope: 'student-visible',
+        contentHash: 'sha256:current-source',
+        versionRef: 'runtime-knowledge-card.v2',
+        generatedBy: 'template',
+        humanConfirmed: true,
+        currentPathEligible: true,
+        reviewEvidence: {
+          reviewerId: 'knowledge-card-reviewer',
+          reviewerRole: 'curriculum-data-governance',
+          reviewedAt: '2026-07-03T00:00:00.000Z',
+          reviewBatchId: 'knowledge-card-review-batch',
+          reviewerVisibleRationale: 'The stale reviewed version must invalidate this review.',
+          independentEvidenceRef: 'review-packet:knowledge-card-stale-version-review',
+          reviewedSourceHash: 'sha256:current-source',
+          reviewedVersionRef: 'runtime-knowledge-card.v1',
+          promptOrManifestHash: 'sha256:knowledge-card-review',
+        },
+      }],
+    });
+
+    expect(result.rows[0]).toMatchObject({
+      sourceVersionRef: 'runtime-knowledge-card.v2',
+      reviewAudit: {
+        reviewedVersionRef: 'runtime-knowledge-card.v1',
+      },
       reviewStatus: 'stale',
       missingFieldCodes: expect.arrayContaining([
         'missing-human-review',
@@ -1863,6 +1921,7 @@ describe('resource field completion audit', () => {
           reviewerVisibleRationale: 'Knowledge card is a path execution evidence source, not a mastery LearningFact source.',
           independentEvidenceRef: 'review-packet:knowledge-card-feedback-loop',
           reviewedSourceHash: 'sha256:feedback-loop',
+          reviewedVersionRef: 'runtime-knowledge-card.v1',
           promptOrManifestHash: 'sha256:knowledge-card-review',
         },
       }],

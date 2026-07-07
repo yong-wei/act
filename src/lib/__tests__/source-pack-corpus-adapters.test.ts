@@ -1093,13 +1093,29 @@ describe('stale and provisional limitations', () => {
     expect(item.scores.freshness).toBe(0.3);
   });
 
-  it('does not flag projection reviews when prompt hash differs from reviewed source hash', () => {
+  it('flags prompt-scoped projection reviews when prompt hash differs from reviewed source hash', () => {
     const row = makeProjectionRow({
       sourceHash: 'sha256:manifest-source',
       reviewAudit: {
         ...makeProjectionRow().reviewAudit,
         status: 'human-confirmed',
         reviewedSourceHash: 'sha256:manifest-source',
+        promptOrManifestHash: 'sha256:manifest-plus-overlay',
+        reviewedVersionRef: 'runtime.v1',
+      },
+    });
+    const { item, limitations } = adaptResourceProjectionRow(row);
+    expect(limitations.some((limitation) => limitation.code === 'projection-stale')).toBe(true);
+    expect(item.scores.freshness).toBe(0.3);
+  });
+
+  it('does not flag prompt-scoped projection reviews when reviewed source hash matches prompt hash', () => {
+    const row = makeProjectionRow({
+      sourceHash: 'sha256:manifest-source',
+      reviewAudit: {
+        ...makeProjectionRow().reviewAudit,
+        status: 'human-confirmed',
+        reviewedSourceHash: 'sha256:manifest-plus-overlay',
         promptOrManifestHash: 'sha256:manifest-plus-overlay',
         reviewedVersionRef: 'runtime.v1',
       },

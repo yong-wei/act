@@ -1740,7 +1740,7 @@ function applyKnowledgeVisualSemanticReview(
     humanConfirmed: true,
     currentPathEligible: reviewItem.currentPathEligible,
     contentHash: candidate.contentHash,
-    versionRef: reviewItem.sourceVersionRef,
+    versionRef: candidate.versionRef,
     reviewEvidence: {
       reviewerId: reviewItem.reviewerId,
       reviewerRole: reviewItem.reviewerRole,
@@ -1749,6 +1749,7 @@ function applyKnowledgeVisualSemanticReview(
       reviewerVisibleRationale: reviewItem.reviewerVisibleRationale,
       independentEvidenceRef: reviewItem.independentEvidenceRef,
       reviewedSourceHash: reviewItem.sourceHash,
+      reviewedVersionRef: reviewItem.sourceVersionRef,
       promptOrManifestHash: knowledgeVisualReviewPacketHash(reviewItem),
       confidence: 0.92,
     },

@@ -2724,9 +2724,13 @@ function runtimeProjectionReviewSourceMatches(projection: {
   sourceHash: string | null;
   sourceKind?: ResourceNodeSourceKind;
 }): boolean {
-  if (projection.reviewAudit?.reviewedSourceHash === projection.sourceHash) return true;
-  if (projection.sourceKind === 'knowledge_graph') return false;
-  return projection.reviewAudit?.reviewedSourceHash === projection.reviewAudit?.promptOrManifestHash;
+  if (projection.sourceKind === 'knowledge_graph') {
+    return projection.reviewAudit?.reviewedSourceHash === projection.sourceHash;
+  }
+  if (projection.reviewAudit?.promptOrManifestHash) {
+    return projection.reviewAudit.reviewedSourceHash === projection.reviewAudit.promptOrManifestHash;
+  }
+  return projection.reviewAudit?.reviewedSourceHash === projection.sourceHash;
 }
 
 function requiresRuntimeProjectionAudit(node: ResourceNode): boolean {

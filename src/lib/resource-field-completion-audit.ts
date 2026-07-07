@@ -135,6 +135,7 @@ export interface ResourceFieldCompletionCandidate {
     reviewerVisibleRationale?: string;
     independentEvidenceRef?: string;
     reviewedSourceHash?: string;
+    reviewedVersionRef?: string;
     promptOrManifestHash?: string;
     confidence?: number | null;
   };
@@ -619,7 +620,7 @@ function rowFromCandidate(
     reviewAudit: candidate.humanConfirmed
       ? confirmedReviewAudit({
         sourceHash: candidate.reviewEvidence?.reviewedSourceHash ?? candidate.contentHash ?? null,
-        versionRef: candidate.versionRef ?? null,
+        versionRef: candidate.reviewEvidence?.reviewedVersionRef ?? candidate.versionRef ?? null,
         reviewBatchId: candidate.reviewEvidence?.reviewBatchId ?? candidate.versionRef ?? null,
         generationToolOrModel: candidate.generatedBy,
         reviewedAt: candidate.reviewEvidence?.reviewedAt ?? defaultSourceWindow.to,
@@ -1463,10 +1464,14 @@ function candidateHasFreshHumanReviewEvidence(candidate: ResourceFieldCompletion
     reviewerId.includes('generated');
   const sourceEvidencePresent = Boolean(candidate.contentHash || candidate.versionRef);
   const reviewedSourceHash = candidate.reviewEvidence?.reviewedSourceHash;
+  const reviewedVersionRef = candidate.reviewEvidence?.reviewedVersionRef;
   const requiresResourceHashMatch = candidate.family === 'knowledge-card' ||
     candidate.family === 'knowledge-infograph';
   const reviewedSourceMatches = requiresResourceHashMatch
     ? Boolean(reviewedSourceHash && reviewedSourceHash === candidate.contentHash)
+    : true;
+  const reviewedVersionMatches = requiresResourceHashMatch
+    ? Boolean(reviewedVersionRef && reviewedVersionRef === candidate.versionRef)
     : true;
   return Boolean(
     reviewerId &&
@@ -1478,6 +1483,7 @@ function candidateHasFreshHumanReviewEvidence(candidate: ResourceFieldCompletion
     candidate.reviewEvidence?.independentEvidenceRef &&
     sourceEvidencePresent &&
     reviewedSourceMatches &&
+    reviewedVersionMatches &&
     (!candidate.generatedBy || candidate.reviewEvidence?.promptOrManifestHash),
   );
 }

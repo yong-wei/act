@@ -69,6 +69,7 @@ for (const resourceId of selectedIds) {
   assert(!row.missingFieldCodes.includes('provisional-metadata'), `${resourceId} still provisional`);
   assert(!row.missingFieldCodes.includes('stale-review'), `${resourceId} has stale review`);
   assert(row.reviewAudit.reviewerId === 'knowledge-visual-semantic-shard-implementing-agent', `${resourceId} reviewer mismatch`);
+  assert(row.reviewAudit.reviewedVersionRef === row.sourceVersionRef, `${resourceId} reviewed version ref mismatch`);
   assert(row.reviewAudit.promptOrManifestHash?.startsWith('sha256:'), `${resourceId} missing review packet hash`);
   assert(row.groundingEligibility.citationReady === true, `${resourceId} citation grounding must be ready`);
 }

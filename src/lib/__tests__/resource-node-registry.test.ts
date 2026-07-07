@@ -1480,7 +1480,7 @@ describe('resource node registry', () => {
         reviewerRole: 'teacher',
         reviewedAt: '2026-06-22T00:00:00.000Z',
         reviewBatchId: 'runtime-projection-batch-1',
-        reviewedSourceHash: 'sha256:step-manifest',
+        reviewedSourceHash: 'sha256:step-manifest-plus-overlay',
         reviewedVersionRef: 'interactive-manifest.v2',
         generationToolOrModel: 'template',
         promptOrManifestHash: 'sha256:step-manifest-plus-overlay',
