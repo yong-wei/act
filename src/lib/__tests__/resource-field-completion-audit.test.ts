@@ -1351,6 +1351,11 @@ describe('resource field completion audit', () => {
   });
 
   it('keeps adaptive assessment fixture writes inside scoped readiness', () => {
+    const fixtureKnowledgeProgressId = (nodeId: string) =>
+      `yangfan-diagnostic-fixture:knowledge-progress:${createHash('sha256')
+        .update(nodeId)
+        .digest('hex')
+        .slice(0, 12)}`;
     const result = buildResourceFieldCompletionAudit({
       registry: buildResourceNodeRegistry({}),
       generatedAt: '2026-07-05T00:00:00.000Z',
@@ -1396,6 +1401,10 @@ describe('resource field completion audit', () => {
     expect(fixtureOwnedIds).toContain('AdaptiveAssessmentAbilityEstimate:yangfan-diagnostic-fixture-ability-estimate');
     expect(fixtureOwnedIds).not.toContain('yangfan-diagnostic-fixture-ability-estimate');
     expect(fixtureOwnedIds).toContain('yangfan-diagnostic-fixture-mastery-update');
+    expect(fixtureOwnedIds).toContain(fixtureKnowledgeProgressId('性能指标_1_1'));
+    expect(fixtureOwnedIds).toContain(fixtureKnowledgeProgressId('根轨迹_1_1'));
+    expect(fixtureOwnedIds).toContain(fixtureKnowledgeProgressId('传统设计四联图校正_4_47004'));
+    expect(fixtureOwnedIds).not.toContain('yangfan-diagnostic-fixture:knowledge-progress:性能指标_1_1');
     expect(result.evidenceLineage.summary.yangFanFixtureBlockers.scopedBlockerCount)
       .toBe(YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length);
   });

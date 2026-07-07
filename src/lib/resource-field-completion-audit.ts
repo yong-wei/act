@@ -19,9 +19,9 @@ export const RESOURCE_FIELD_COMPLETION_AUDIT_VERSION = 'resource-field-completio
 export const YANGFAN_FIXTURE_READINESS_SCOPE_POLICY_VERSION = 'yangfan-fixture-readiness-scope.v1';
 
 export const YANGFAN_FIXTURE_OWNED_RESOURCE_IDS = [
-  'yangfan-diagnostic-fixture:knowledge-progress:性能指标_1_1',
-  'yangfan-diagnostic-fixture:knowledge-progress:根轨迹_1_1',
-  'yangfan-diagnostic-fixture:knowledge-progress:传统设计四联图校正_4_47004',
+  'yangfan-diagnostic-fixture:knowledge-progress:2e6a2cf5d76b',
+  'yangfan-diagnostic-fixture:knowledge-progress:ff8ef10e4870',
+  'yangfan-diagnostic-fixture:knowledge-progress:5c29bbb95ddf',
   'yangfan-diagnostic-fixture-algorithm-v1',
   'yangfan-diagnostic-fixture-session',
   'yangfan-diagnostic-fixture-question',
