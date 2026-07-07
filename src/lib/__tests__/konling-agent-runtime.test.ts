@@ -50,7 +50,13 @@ vi.mock('@/lib/textbook-runtime-resources', () => ({
 }));
 
 import { buildKonlingSystemPrompt } from '@/lib/ai-prompt-builder';
+import {
+  ADAPTIVE_LEARNER_STATE_FEATURE_FLAG,
+  ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS,
+  ADAPTIVE_LEARNER_STATE_PAYLOAD_VERSION,
+} from '@/lib/data-governance/adaptive-learner-state-service';
 import { buildKonlingKaqGraphContext } from '@/lib/konling-kaq-graph-context';
+import { getRegisteredAdaptiveLearningPathGoal } from '@/lib/adaptive-learning-path-planner';
 import {
   applyKonlingCitationFallback,
   buildKonlingCitationGuard,
@@ -83,6 +89,19 @@ import {
 } from '@/lib/konling-agent-runtime';
 import { clearPendingChanges, getPendingChanges, updateSimulationState } from '@/lib/ai-tools';
 import { buildResourceNodeRegistry } from '@/lib/resource-node-registry';
+
+function expectRecord(value: unknown, label: string): asserts value is Record<string, unknown> {
+  expect(typeof value, `${label} should be an object`).toBe('object');
+  expect(value, `${label} should not be null`).not.toBeNull();
+  expect(Array.isArray(value), `${label} should not be an array`).toBe(false);
+}
+
+function expectStringArray(value: unknown, label: string): asserts value is string[] {
+  expect(Array.isArray(value), `${label} should be an array`).toBe(true);
+  if (Array.isArray(value)) {
+    expect(value.every((item) => typeof item === 'string'), `${label} should contain only strings`).toBe(true);
+  }
+}
 
 function createScope(overrides: Partial<KonlingRuntimeScope> = {}): KonlingRuntimeScope {
   return {
@@ -190,21 +209,26 @@ function createRuntimeContext(overrides: Partial<KonlingRuntimeContext> = {}): K
 function createCompleteGraphContext(
   overrides: Partial<NonNullable<KonlingRuntimeContext['graphContext']>> = {},
 ): NonNullable<KonlingRuntimeContext['graphContext']> {
+  const registeredGoal = getRegisteredAdaptiveLearningPathGoal('control-correction');
+  if (!registeredGoal?.learningGoal) {
+    throw new Error('control-correction learning goal fixture is not registered');
+  }
+  const { learningGoal } = registeredGoal;
   return {
     source: 'server-owned',
     status: 'complete',
     advisoryOnly: true,
     learningGoal: {
-      id: 'control-correction',
-      title: '控制系统校正设计',
-      version: 'test',
+      id: learningGoal.id,
+      title: learningGoal.title,
+      version: learningGoal.version,
       objectiveBoundary: {
-        knowledgeObjectiveIds: [],
-        capabilityObjectiveIds: ['capability:root-locus-design'],
-        qualityObjectiveIds: [],
+        knowledgeObjectiveIds: learningGoal.knowledgeObjectiveIds,
+        capabilityObjectiveIds: learningGoal.capabilityObjectiveIds,
+        qualityObjectiveIds: learningGoal.qualityObjectiveIds,
       },
-      pathPolicyFamily: 'rules-plus-graph-search',
-      terminalValidationPolicy: { mode: 'checkpoint-set', requiredNodeIds: [] },
+      pathPolicyFamily: learningGoal.pathPolicyFamily,
+      terminalValidationPolicy: learningGoal.terminalValidationPolicy,
     },
     selectedGraphNodeIds: ['cap:autocontrol:synthesize-controller-correction'],
     expandedSubgraph: null,
@@ -228,37 +252,97 @@ function createGraphLearnerState(
   score = 0.72,
 ): NonNullable<KonlingRuntimeContext['learnerState']> {
   const evidenceRef = {
-    sourceType: 'LearningPathExecution',
+    sourceType: 'StudentEvidenceFeatureCache' as const,
     sourceId: `exec-${userId}`,
     evidenceAt: '2026-06-21T00:00:00.000Z',
-    confidence: 'verified',
-    privacyLevel: 'teacher-scoped',
+    confidence: 'medium' as const,
+    privacyLevel: 'student-visible' as const,
+  };
+  const competencyScore = {
+    score: Math.round(score * 100),
+    trend: 'stable' as const,
+    confidence: 0.8,
+    evidenceCount: 1,
+    lastUpdated: '2026-06-21T00:00:00.000Z',
+  };
+  const secondaryDimension = {
+    value: Math.round(score * 100),
+    confidence: 0.8,
+    evidenceCount: 1,
+    source: 'primary-competency-derived',
   };
 
   return {
     userId,
+    payloadVersion: ADAPTIVE_LEARNER_STATE_PAYLOAD_VERSION,
     authority: 'server-owned',
     generatedAt: '2026-06-21T00:00:00.000Z',
     roleScope: {
       role: 'student',
       classId: 'class-1',
-      privacyScopes: ['teacher-scoped'],
+      privacyScopes: ['student-visible'],
+    },
+    featureFlag: {
+      name: ADAPTIVE_LEARNER_STATE_FEATURE_FLAG,
+      enabled: true,
+      fallback: 'test-fixture',
+    },
+    clientHints: {
+      received: false,
+      authoritative: false,
+      reason: 'client-hints-non-authoritative',
     },
     primaryCompetencies: {
-      vector: {},
+      source: 'feature-cache',
+      vector: {
+        controlModeling: competencyScore,
+        parameterDesign: competencyScore,
+        crossDomainTransfer: competencyScore,
+        engineeringDecision: competencyScore,
+        inquiryReflection: competencyScore,
+        selfDirectedLearning: competencyScore,
+      },
+    },
+    secondaryDimensions: {
+      conceptMastery: { ...secondaryDimension, primaryDimension: 'controlModeling' },
+      timeFrequencyTransfer: { ...secondaryDimension, primaryDimension: 'crossDomainTransfer' },
+      modelingReliability: { ...secondaryDimension, primaryDimension: 'controlModeling' },
+      tuningEfficiency: { ...secondaryDimension, primaryDimension: 'parameterDesign' },
+      constrainedOptimization: { ...secondaryDimension, primaryDimension: 'parameterDesign' },
+      solutionStability: { ...secondaryDimension, primaryDimension: 'engineeringDecision' },
+      crossModalTransfer: { ...secondaryDimension, primaryDimension: 'crossDomainTransfer' },
+      scenarioGeneralization: { ...secondaryDimension, primaryDimension: 'crossDomainTransfer' },
+      riskRecognition: { ...secondaryDimension, primaryDimension: 'engineeringDecision' },
+      constraintCompliance: { ...secondaryDimension, primaryDimension: 'engineeringDecision' },
+      explanationQuality: { ...secondaryDimension, primaryDimension: 'inquiryReflection' },
+      aiUseStrategy: { ...secondaryDimension, primaryDimension: 'inquiryReflection' },
+      reflectionDepth: { ...secondaryDimension, primaryDimension: 'inquiryReflection' },
+      pathExecution: { ...secondaryDimension, primaryDimension: 'selfDirectedLearning' },
+      persistence: { ...secondaryDimension, primaryDimension: 'selfDirectedLearning' },
+      remedialInitiative: { ...secondaryDimension, primaryDimension: 'selfDirectedLearning' },
     },
     risks: {
+      riskLevel: 'low',
       activeFlags: [],
     },
     knowledgeMastery: {
+      coverage: 'available',
       tags: {
         'kn:autocontrol:controller-correction': {
           posteriorMastery: score,
           confidence: 0.8,
           evidenceCount: 1,
+          source: 'adaptive-assessment',
+          algorithmVersion: 'test-fixture',
           lastUpdatedAt: '2026-06-21T00:00:00.000Z',
           supportingEvidenceRefs: [evidenceRef],
-          sourceCoverage: null,
+          sourceCoverage: {
+            AdaptiveMasteryUpdate: 'missing',
+            LearningFact: 'missing',
+            ArenaSubmission: 'missing',
+            AgentToolRun: 'missing',
+            StudentEvidenceFeatureCache: 'available',
+          },
           limitations: [],
         },
       },
@@ -266,17 +350,38 @@ function createGraphLearnerState(
     masteryTraceability: {
       capabilityTargets: {
         'cap:autocontrol:synthesize-controller-correction': {
+          targetId: 'cap:autocontrol:synthesize-controller-correction',
+          targetKind: 'capability',
           masteryLevel: score,
           confidence: 0.84,
           supportingEvidenceRefs: [evidenceRef],
-          freshness: 'fresh',
-          sourceCoverage: null,
+          freshness: 'current',
+          sourceCoverage: {
+            AdaptiveMasteryUpdate: 'missing',
+            LearningFact: 'missing',
+            ArenaSubmission: 'missing',
+            AgentToolRun: 'missing',
+            StudentEvidenceFeatureCache: 'available',
+          },
           limitations: [],
         },
       },
       knowledgeTargets: {},
     },
+    resourcePreference: {
+      preferredModalities: [],
+      sourceCounts: {},
+      confidence: 'none',
+    },
+    mediaAbsorption: {
+      mediaFactCount: 0,
+      averageCompletion: null,
+      confidence: 'none',
+    },
     pathContext: {
+      activePathCount: 0,
+      bookmarkedPathCount: 0,
+      recentPathIds: [],
       activeControlCorrectionPath: {
         state: 'none',
         pathId: null,
@@ -285,8 +390,35 @@ function createGraphLearnerState(
         terminalValidationState: null,
         lowConfidenceMarkers: [],
       },
+      statusMarkers: ['available'],
     },
-  } as NonNullable<KonlingRuntimeContext['learnerState']>;
+    assessmentState: {
+      latestAbilityEstimate: null,
+    },
+    evidence: {
+      readState: 'ready',
+      evidenceWindow: {
+        firstStartedAt: '2026-06-21T00:00:00.000Z',
+        lastStartedAt: '2026-06-21T00:00:00.000Z',
+        daysCovered: 1,
+      },
+      sourceCounts: {},
+      sourceCoverage: {},
+      confidence: {
+        level: 'medium',
+        score,
+        evidenceCount: 1,
+        sourceCompleteness: 1,
+      },
+      statusMarkers: [],
+    },
+    prerequisiteFeatureGroups: {
+      simulationArena: null,
+      pathExecution: null,
+    },
+    fieldContracts: ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS,
+    missingEvidence: [],
+  };
 }
 
 function textbookRuntimeCatalogFixture() {
@@ -720,6 +852,10 @@ describe('konling agent runtime', () => {
       context: { ...modeRuntimeContext, permittedTools: contract.permittedTools },
     });
     const pageContextOutput = await toolRuntime.getPageContext();
+    expectRecord(pageContextOutput, 'page context output');
+    expectRecord(pageContextOutput.knowledgeCapabilityContext, 'knowledge capability context');
+    expectRecord(pageContextOutput.knowledgeCapabilityContext.scope, 'knowledge capability scope');
+    expectStringArray(pageContextOutput.knowledgeCapabilityContext.citationRefs, 'knowledge capability citations');
     expect(pageContextOutput).toMatchObject({
       knowledgeCapabilityContext: {
         answerIntent: 'path-advice',
@@ -840,6 +976,9 @@ describe('konling agent runtime', () => {
       scope,
       context: { ...runtime, permittedTools: contract.permittedTools },
     }).getPageContext();
+    expectRecord(pageContextOutput, 'page context output');
+    expectRecord(pageContextOutput.graphContext, 'graph context');
+    expectStringArray(pageContextOutput.graphContext.selectedGraphNodeIds, 'graph context selected nodes');
 
     expect(pageContextOutput.graphContext).toMatchObject({
       source: 'server-owned',
@@ -1106,7 +1245,7 @@ describe('konling agent runtime', () => {
         stepId: 'step-03',
         topic: '根轨迹校正',
         learningObjectives: ['解释根轨迹校正'],
-        knowledgeType: 'K',
+        knowledgeType: 'C',
       },
       trustedContentContext: true,
     });
@@ -1148,7 +1287,7 @@ describe('konling agent runtime', () => {
         stepId: 'step-03',
         topic: '根轨迹校正',
         learningObjectives: ['解释根轨迹校正'],
-        knowledgeType: 'K',
+        knowledgeType: 'C',
       },
       trustedContentContext: true,
     });
@@ -1183,7 +1322,7 @@ describe('konling agent runtime', () => {
         stepId: 'step-03',
         topic: '根轨迹校正',
         learningObjectives: ['解释根轨迹校正'],
-        knowledgeType: 'K',
+        knowledgeType: 'C',
       },
       trustedContentContext: true,
     });
@@ -1233,7 +1372,7 @@ describe('konling agent runtime', () => {
         stepId: 'step-03',
         topic: '根轨迹校正',
         learningObjectives: ['解释根轨迹校正'],
-        knowledgeType: 'K',
+        knowledgeType: 'C',
       },
       trustedContentContext: true,
     });
@@ -1317,7 +1456,7 @@ describe('konling agent runtime', () => {
       pageContextHint: {
         courseId: 'control-correction',
         stepId: 'teacher-class-report',
-        pageType: 'teacher-class-report',
+        pageType: 'workspace',
         topic: '班级控制系统校正诊断',
       },
       trustedContentContext: true,
@@ -1383,7 +1522,7 @@ describe('konling agent runtime', () => {
       pageContextHint: {
         courseId: 'control-correction',
         stepId: 'teacher-dashboard',
-        pageType: 'teacher-dashboard',
+        pageType: 'workspace',
       },
     });
 
@@ -1423,7 +1562,7 @@ describe('konling agent runtime', () => {
       pageContextHint: {
         courseId: 'control-correction',
         stepId: 'teacher-prep-pack',
-        pageType: 'teacher-prep-pack',
+        pageType: 'workspace',
       },
     });
 
@@ -7922,22 +8061,25 @@ describe('konling agent runtime', () => {
       context: createRuntimeContext({
         permittedTools: ['revise_learning_path_options'],
         planContext,
+        learnerState: createGraphLearnerState('student-1'),
       }),
     });
 
-    await expect(runtime.reviseLearningPathOptions({
+    const result = await runtime.reviseLearningPathOptions({
       idempotencyKey: 'revise-path-1',
       goalId: 'control-correction',
       pathId: 'path-1',
-      timeBudgetMinutes: 60,
+      timeBudgetMinutes: 90,
       difficultyRhythm: 'challenge',
-      resourcePreference: ['simulation', 'arena_task'],
       checkpointPreference: 'dense',
       naturalLanguageIntent: '我希望减少讲解，先完成仿真和 Arena。',
       rejectedStyleIds: ['foundation-remediation'],
       selectedStyleId: 'arena-simulation-sprint',
-    })).resolves.toMatchObject({
+    });
+    expect(result).toMatchObject({
       operation: 'revised',
+      generationStatus: 'persisted',
+      limitations: [],
       pathOptions: expect.any(Array),
     });
     const revisedCreate = db.learningPath.upsert.mock.calls[0][0].create;
@@ -8251,6 +8393,8 @@ describe('konling agent runtime', () => {
       goalId: 'frequency-response-foundations',
       resourcePreference: ['textbook_section'],
     });
+    expectRecord(result, 'generated learning path result');
+    expect(Array.isArray(result.pathOptions), 'generated learning path result should include path options').toBe(true);
     expect(result).toMatchObject({
       operation: 'generated',
       scope: expect.objectContaining({
