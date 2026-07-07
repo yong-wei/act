@@ -15,6 +15,7 @@ import {
   type ResourceFieldCompletionAuditRow,
   type ResourceFieldCompletionCandidate,
   type ResourceFieldMissingCode,
+  YANGFAN_FIXTURE_READINESS_SCOPE_POLICY_VERSION,
 } from '@/lib/resource-field-completion-audit';
 import {
   buildLearningGoalResourceBaselineArtifacts,
@@ -1318,11 +1319,15 @@ function buildReviewedEvidenceLineageReadiness(
   const items = evidenceLineage.items.map((item) => {
     const disposition = dispositionById.get(item.resourceId);
     if (!disposition || !isReviewedEvidenceLineageLimitation(disposition)) return item;
+    const fixtureScope = item.yangFanFixtureScope;
     return {
       ...item,
       evidenceEffectState: 'reviewed-limitation' as const,
-      blocksYangFanFixture: true,
-      reviewerVisibleRationale: `${item.resourceId} has reviewed disposition ${disposition.classification}; evidence effects remain disabled for this resource class, so missing event lineage is recorded as a reviewed limitation rather than a path blocker, while fixture generation remains blocked until lineage is complete.`,
+      blocksYangFanFixture: fixtureScope === 'fixture-owned',
+      yangFanFixtureScope: fixtureScope,
+      reviewerVisibleRationale: fixtureScope === 'fixture-owned'
+        ? `${item.resourceId} is in the Yang Fan fixture-owned readiness subset and still lacks fixture-required lineage; fixture generation remains blocked until lineage is complete.`
+        : `${item.resourceId} has reviewed disposition ${disposition.classification}; evidence effects remain disabled for this resource class, so missing event lineage is recorded as a global resource-backlog limitation rather than a Yang Fan fixture blocker.`,
     };
   });
   return {
@@ -1351,6 +1356,7 @@ function summarizeReviewedEvidenceLineageReadiness(
   const blockerItems = items.filter((item) => item.evidenceEffectState === 'blocked');
   const reviewedLimitationItems = items.filter((item) => item.evidenceEffectState === 'reviewed-limitation');
   const yangFanFixtureBlockers = items.filter((item) => item.blocksYangFanFixture);
+  const globalYangFanLimitations = items.filter((item) => !item.blocksYangFanFixture);
   return {
     ...baseSummary,
     layerTotals: {
@@ -1365,10 +1371,15 @@ function summarizeReviewedEvidenceLineageReadiness(
     yangFanFixtureBlockers: {
       blocked: yangFanFixtureBlockers.length > 0,
       blockerCount: yangFanFixtureBlockers.length,
+      scopedBlockerCount: yangFanFixtureBlockers.length,
+      globalLimitationCount: globalYangFanLimitations.length,
       blockerFamilies: countBy(yangFanFixtureBlockers, (item) => item.sourceFamily),
       reason: yangFanFixtureBlockers.length > 0
-        ? 'Canonical learner fixture generation remains blocked until path-relevant evidence lineage gaps are resolved; reviewed limitations only remove hard evidence-effect blockers.'
-        : 'Canonical learner fixture generation has no remaining resource evidence-lineage blockers from the helper layer.',
+        ? 'Canonical learner fixture generation remains blocked until fixture-owned evidence lineage gaps are resolved.'
+        : globalYangFanLimitations.length > 0
+          ? 'Canonical learner fixture generation has scoped resource readiness; unrelated global resource backlog remains a limited-coverage diagnostic.'
+          : 'Canonical learner fixture generation has no remaining resource evidence-lineage blockers from the helper layer.',
+      scopePolicy: YANGFAN_FIXTURE_READINESS_SCOPE_POLICY_VERSION,
     },
   };
 }
@@ -1445,6 +1456,9 @@ function renderEvidenceLineageReadinessEvidence(summary: ResourceEvidenceLineage
     '',
     `Blocked: ${summary.yangFanFixtureBlockers.blocked}`,
     `Blocker count: ${summary.yangFanFixtureBlockers.blockerCount}`,
+    `Scoped blocker count: ${summary.yangFanFixtureBlockers.scopedBlockerCount}`,
+    `Global limitation count: ${summary.yangFanFixtureBlockers.globalLimitationCount}`,
+    `Scope policy: ${summary.yangFanFixtureBlockers.scopePolicy}`,
     `Reason: ${summary.yangFanFixtureBlockers.reason}`,
     '',
     '## Evidence Files',

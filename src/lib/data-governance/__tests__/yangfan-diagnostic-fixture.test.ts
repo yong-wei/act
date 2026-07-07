@@ -14,7 +14,7 @@ function passedReadinessSummary() {
     status: 'passed',
     findings: [],
     resourceCoverage: {
-      yangFanFixtureBlockers: { blocked: false, blockerCount: 0 },
+      yangFanFixtureBlockers: { blocked: false, blockerCount: 0, globalLimitationCount: 0 },
     },
   };
 }
@@ -32,9 +32,12 @@ function blockedReadinessSummary() {
 function globallyBlockedButFixtureReadySummary() {
   return {
     status: 'failed',
-    findings: [{ id: 'unrelated-global-resource-blocker', severity: 'blocking' }],
+    findings: [
+      { id: 'unrelated-global-resource-blocker', severity: 'blocking' },
+      { id: 'yang-fan-fixture-limited-coverage', severity: 'warning' },
+    ],
     resourceCoverage: {
-      yangFanFixtureBlockers: { blocked: false, blockerCount: 0 },
+      yangFanFixtureBlockers: { blocked: false, blockerCount: 0, globalLimitationCount: 3124 },
     },
   };
 }
@@ -177,6 +180,73 @@ describe('Yang Fan diagnostic fixture', () => {
     expect(plan.blockers).not.toContain('readiness-summary-not-passed');
     expect(plan.blockers).not.toContain('unrelated-global-resource-blocker');
     expect(plan.blockers).not.toContain('yang-fan-fixture-blockers');
+    expect(plan.warnings).toContain('yang-fan-fixture-limited-coverage');
+
+    const applyDb = createDbWithoutDuplicate();
+    const applyPlan = await buildYangFanDiagnosticFixturePlan(applyDb, {
+      mode: 'apply',
+      apply: true,
+      confirmApply: true,
+      readinessSummary: globallyBlockedButFixtureReadySummary(),
+      databaseUrl: 'postgres://localhost/act_test',
+    });
+    expect(applyPlan.canApply).toBe(true);
+    const result = await applyYangFanDiagnosticFixture(applyDb, applyPlan, {
+      mode: 'apply',
+      apply: true,
+      confirmApply: true,
+      readinessSummary: globallyBlockedButFixtureReadySummary(),
+      databaseUrl: 'postgres://localhost/act_test',
+    });
+    expect(result.warnings).toContain('yang-fan-fixture-limited-coverage');
+  });
+
+  it('recomputes limited-coverage warnings from the apply readiness summary', async () => {
+    const db = createDbWithoutDuplicate();
+    const plan = await buildYangFanDiagnosticFixturePlan(db, {
+      mode: 'apply',
+      apply: true,
+      confirmApply: true,
+      readinessSummary: passedReadinessSummary(),
+      databaseUrl: 'postgres://localhost/act_test',
+    });
+
+    expect(plan.canApply).toBe(true);
+    expect(plan.warnings).not.toContain('yang-fan-fixture-limited-coverage');
+
+    const result = await applyYangFanDiagnosticFixture(db, plan, {
+      mode: 'apply',
+      apply: true,
+      confirmApply: true,
+      readinessSummary: globallyBlockedButFixtureReadySummary(),
+      databaseUrl: 'postgres://localhost/act_test',
+    });
+
+    expect(result.warnings).toContain('yang-fan-fixture-limited-coverage');
+  });
+
+  it('drops stale limited-coverage warnings when the apply readiness summary is clean', async () => {
+    const db = createDbWithoutDuplicate();
+    const plan = await buildYangFanDiagnosticFixturePlan(db, {
+      mode: 'apply',
+      apply: true,
+      confirmApply: true,
+      readinessSummary: globallyBlockedButFixtureReadySummary(),
+      databaseUrl: 'postgres://localhost/act_test',
+    });
+
+    expect(plan.canApply).toBe(true);
+    expect(plan.warnings).toContain('yang-fan-fixture-limited-coverage');
+
+    const result = await applyYangFanDiagnosticFixture(db, plan, {
+      mode: 'apply',
+      apply: true,
+      confirmApply: true,
+      readinessSummary: passedReadinessSummary(),
+      databaseUrl: 'postgres://localhost/act_test',
+    });
+
+    expect(result.warnings).not.toContain('yang-fan-fixture-limited-coverage');
   });
 
   it('requires explicit apply confirmation and a fixture-safe database', async () => {

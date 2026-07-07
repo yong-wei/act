@@ -45,7 +45,7 @@
       "runtime-identity": 2192
     },
     "unresolvedDownstreamPathBlockers": 17713,
-    "evidenceLineageBlockerCount": 0,
+    "evidenceLineageBlockerCount": 22,
     "followupBuckets": {
       "blocked-resource-completion-dependencies": 60,
       "complete-analysis-design-graph-resource-bindings": 6704,
@@ -58,14 +58,14 @@
     },
     "yangFanFixtureBlockers": {
       "blocked": true,
-      "blockerCount": 3124,
+      "blockerCount": 22,
+      "scopedBlockerCount": 22,
+      "globalLimitationCount": 3124,
       "blockerFamilies": {
-        "knowledge-infograph": 161,
-        "runtime-lesson-media": 647,
-        "runtime-lesson-module": 1352,
-        "textbook-search-document": 964
+        "external-resource": 22
       },
-      "reason": "Canonical learner fixture generation remains blocked until path-relevant evidence lineage gaps are resolved; reviewed limitations only remove hard evidence-effect blockers."
+      "reason": "Canonical learner fixture generation remains blocked until fixture-owned evidence lineage gaps are resolved.",
+      "scopePolicy": "yangfan-fixture-readiness-scope.v1"
     }
   },
   "learningGoalDiagnostics": {
@@ -507,10 +507,28 @@
       ]
     },
     {
+      "id": "evidence-lineage-blockers",
+      "severity": "blocking",
+      "count": 22,
+      "message": "Evidence-producing path resources still have hard evidence-lineage blockers.",
+      "evidenceRefs": [
+        "resource-evidence-lineage-readiness-summary.json"
+      ]
+    },
+    {
       "id": "yang-fan-fixture-blockers",
       "severity": "blocking",
+      "count": 22,
+      "message": "Yang Fan fixture generation remains blocked by fixture-owned lineage limitations.",
+      "evidenceRefs": [
+        "resource-evidence-lineage-readiness-summary.json"
+      ]
+    },
+    {
+      "id": "yang-fan-fixture-limited-coverage",
+      "severity": "warning",
       "count": 3124,
-      "message": "Yang Fan fixture generation remains blocked by path-relevant lineage limitations.",
+      "message": "Yang Fan fixture-owned resources are scoped separately; unrelated global resource backlog remains visible as limited coverage.",
       "evidenceRefs": [
         "resource-evidence-lineage-readiness-summary.json"
       ]
