@@ -17,6 +17,7 @@ BOOTSTRAP_DEV_ENV=0
 LINK_OPENWOLF_KNOWLEDGE=0
 GRAPH_ALIAS=""
 ENV_LINKS=()
+RUNTIME_LINK_ROOT="course-content/runtime"
 TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
 BACKUP_ROOT=""
 MANAGED_HOOK_MARKER="# Managed by sync-local-worktree-config.sh"
@@ -98,6 +99,9 @@ Linked with --link-openwolf-knowledge:
   .wolf/config.json
   .wolf/reframe-frameworks.md
   .wolf/cron-manifest.json
+
+Linked by default when present:
+  course-content/runtime
 
 Never copied by this script:
   .next, node_modules, .cache, .tmp, .logs, .code-review-graph, Rust target,
@@ -312,6 +316,7 @@ print_mode() {
   if [[ "$LINK_OPENWOLF_KNOWLEDGE" -eq 1 ]]; then
     echo "OpenWolf knowledge links: enabled"
   fi
+  echo "Runtime link: enabled"
 }
 
 sanitize_graph_alias() {
@@ -573,6 +578,109 @@ link_config_path() {
   ln -s "$src" "$dest"
   echo "linked config path: $rel -> $src"
   ensure_local_exclude "$rel"
+}
+
+runtime_path_label() {
+  local src="$1"
+  if [[ -d "$src" ]]; then
+    printf '%s\n' "runtime directory"
+  else
+    printf '%s\n' "runtime file"
+  fi
+}
+
+link_runtime_path() {
+  local rel="$1"
+  local src="$SOURCE/$rel"
+  local dest="$TARGET/$rel"
+  local label
+
+  if [[ ! -e "$src" ]]; then
+    echo "skip missing runtime source: $rel"
+    return
+  fi
+
+  label="$(runtime_path_label "$src")"
+
+  if same_link_target "$dest" "$src"; then
+    echo "$label link already exists: $rel -> $src"
+    return
+  fi
+
+  if [[ -e "$dest" || -L "$dest" ]]; then
+    if [[ "$NO_OVERWRITE" -eq 1 ]]; then
+      echo "skip existing $label: $rel"
+      return
+    fi
+
+    if [[ "$APPLY" -ne 1 ]]; then
+      echo "would backup and link $label: $rel -> $src"
+      return
+    fi
+
+    backup_existing_path "$rel"
+  elif [[ "$APPLY" -ne 1 ]]; then
+    echo "would link $label: $rel -> $src"
+    return
+  fi
+
+  ensure_parent_dir "$dest"
+  ln -s "$src" "$dest"
+  echo "linked $label: $rel -> $src"
+}
+
+link_runtime_tree() {
+  local rel="$1"
+  local src="$SOURCE/$rel"
+  local dest="$TARGET/$rel"
+  local child
+  local base
+
+  if [[ ! -e "$src" ]]; then
+    echo "skip missing runtime source: $rel"
+    return
+  fi
+
+  base="$(basename "$rel")"
+  if [[ "$base" == ".DS_Store" ]]; then
+    return
+  fi
+
+  if ! path_has_tracked_content "$rel"; then
+    link_runtime_path "$rel"
+    return
+  fi
+
+  if [[ ! -d "$src" ]]; then
+    echo "skip tracked runtime path: $rel"
+    return
+  fi
+
+  if [[ "$APPLY" -ne 1 ]]; then
+    echo "would scan tracked runtime directory: $rel/"
+  else
+    mkdir -p "$dest"
+    echo "scanned tracked runtime directory: $rel/"
+  fi
+
+  for child in "$src"/* "$src"/.[!.]* "$src"/..?*; do
+    [[ -e "$child" ]] || continue
+    base="$(basename "$child")"
+    [[ "$base" == ".DS_Store" ]] && continue
+    link_runtime_tree "$rel/$base"
+  done
+}
+
+link_runtime_directory() {
+  echo
+  echo "Runtime link:"
+  if [[ ! -d "$SOURCE/$RUNTIME_LINK_ROOT" ]]; then
+    echo "skip missing runtime source: $RUNTIME_LINK_ROOT"
+    return
+  fi
+
+  ensure_local_exclude "$RUNTIME_LINK_ROOT/"
+  link_runtime_tree "$RUNTIME_LINK_ROOT"
 }
 
 target_worktree_id() {
@@ -1293,6 +1401,8 @@ fi
 if [[ "$LINK_OPENWOLF_KNOWLEDGE" -eq 1 ]]; then
   link_openwolf_knowledge
 fi
+
+link_runtime_directory
 
 echo
 echo "Ignore/tracking check:"

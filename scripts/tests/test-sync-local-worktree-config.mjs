@@ -105,6 +105,9 @@ writeFile('.wolf/hooks/post-write.js', '// post-write\n');
 writeFile('.wolf/hooks/stop.js', '// stop\n');
 writeFile('.wolf/hooks/shared.js', '// shared\n');
 writeFile('.wolf/hooks/_session.json', '{ "session_id": "source" }\n');
+writeFile('course-content/runtime/lessons/demo/manifest.json', '{ "id": "demo" }\n');
+writeFile('course-content/runtime/knowledge/tracked.json', '{ "tracked": true }\n');
+writeFile('course-content/runtime/knowledge/media/asset.txt', 'asset\n');
 writeTargetFile('.codex/agents/starter.toml', 'name = "old-starter"\n');
 writeTargetFile('.github/workflows/ci.yml', 'name: old-ci\n');
 
@@ -150,6 +153,11 @@ assert.match(
   /--bootstrap-dev-env/,
   '工作树配置同步应提示使用开发环境一键初始化入口',
 );
+assert.match(
+  dryRun.stdout,
+  /would link runtime directory: course-content\/runtime -> /,
+  'dry-run 应说明会把 source runtime 目录软链接到目标工作树',
+);
 
 const apply = run(
   'bash',
@@ -193,6 +201,57 @@ assert.equal(
   fs.existsSync(path.join(target, 'node_modules')),
   false,
   'apply 模式不应创建 node_modules 软链接或目录',
+);
+assert.equal(
+  fs.lstatSync(path.join(target, 'course-content/runtime')).isSymbolicLink(),
+  true,
+  'apply 模式应把 runtime 目录软链接到 source runtime',
+);
+assert.equal(
+  fs.readlinkSync(path.join(target, 'course-content/runtime')),
+  path.join(source, 'course-content/runtime'),
+  'runtime 目录软链接应指向 source runtime',
+);
+
+const trackedRuntimeTarget = path.join(tmpRoot, 'tracked-runtime-target');
+mkdirp(path.join(trackedRuntimeTarget, 'course-content/runtime/knowledge'));
+run('git', ['init'], trackedRuntimeTarget);
+fs.writeFileSync(
+  path.join(trackedRuntimeTarget, 'course-content/runtime/knowledge/tracked.json'),
+  '{ "target": true }\n',
+);
+run('git', ['-C', trackedRuntimeTarget, 'add', 'course-content/runtime/knowledge/tracked.json'], root);
+run(
+  'bash',
+  [
+    path.join(root, 'scripts/dev/sync-local-worktree-config.sh'),
+    '--source',
+    source,
+    '--target',
+    trackedRuntimeTarget,
+    '--apply',
+  ],
+  root,
+);
+assert.equal(
+  fs.lstatSync(path.join(trackedRuntimeTarget, 'course-content/runtime')).isSymbolicLink(),
+  false,
+  '目标 runtime 下有 tracked 文件时不应替换整个 runtime 目录',
+);
+assert.equal(
+  fs.lstatSync(path.join(trackedRuntimeTarget, 'course-content/runtime/lessons')).isSymbolicLink(),
+  true,
+  '无 tracked 内容的 runtime 子目录应直接软链接',
+);
+assert.equal(
+  fs.lstatSync(path.join(trackedRuntimeTarget, 'course-content/runtime/knowledge/tracked.json')).isSymbolicLink(),
+  false,
+  'tracked runtime 文件应保留目标工作树本地文件',
+);
+assert.equal(
+  fs.lstatSync(path.join(trackedRuntimeTarget, 'course-content/runtime/knowledge/media')).isSymbolicLink(),
+  true,
+  'tracked runtime 目录下未跟踪的子目录应递归软链接',
 );
 
 const openwolfDryRun = run(
