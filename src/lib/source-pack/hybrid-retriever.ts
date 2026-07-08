@@ -358,17 +358,27 @@ function answerRelevanceQueryMatch(item: SourcePackItem, query: string): AnswerR
   const normalizedQuery = normalizeAnswerRelevanceText(query);
   if (!normalizedQuery) return null;
   const searchable = answerRelevanceSearchableText(item);
-  if (searchable.includes(normalizedQuery)) {
+  if (searchable.includes(normalizedQuery) && exactQueryMatchAllowed(item, normalizedQuery)) {
     return { basis: 'query-exact', match: 'query' };
   }
-  const queryKeywordMatch = firstSignificantQueryTokenMatch(searchable, query);
+  const queryKeywordMatch = firstSignificantQueryTokenMatch(item, searchable, query);
   if (queryKeywordMatch) {
     return { basis: 'query-lexical', match: `token:${queryKeywordMatch}` };
   }
   return null;
 }
 
-function firstSignificantQueryTokenMatch(searchable: string, query: string): string | null {
+function exactQueryMatchAllowed(item: SourcePackItem, normalizedQuery: string): boolean {
+  const shortChineseTerm = ANSWER_RELEVANCE_CHINESE_TERMS.find((term) => (
+    term === normalizedQuery && term.length < 4
+  ));
+  if (!shortChineseTerm) return true;
+  return answerRelevanceReferenceText(item).includes(shortChineseTerm);
+}
+
+function firstSignificantQueryTokenMatch(item: SourcePackItem, searchable: string, query: string): string | null {
+  const chineseTermMatch = firstChineseAnswerRelevanceTermMatch(item, searchable, query);
+  if (chineseTermMatch) return chineseTermMatch;
   const matches = answerRelevanceQueryTokens(query).filter((token) => searchable.includes(token));
   const distinctiveMatch = matches.find((token) => DISTINCTIVE_ANSWER_RELEVANCE_TOKENS.has(token));
   if (distinctiveMatch) return distinctiveMatch;
@@ -376,6 +386,17 @@ function firstSignificantQueryTokenMatch(searchable: string, query: string): str
     return matches.slice(0, 2).join('+');
   }
   return null;
+}
+
+function firstChineseAnswerRelevanceTermMatch(item: SourcePackItem, searchable: string, query: string): string | null {
+  const normalizedQuery = normalizeAnswerRelevanceText(query);
+  return ANSWER_RELEVANCE_CHINESE_TERMS.find((term) => (
+    normalizedQuery.includes(term) && searchable.includes(term)
+    && (
+      term.length >= 4
+      || answerRelevanceReferenceText(item).includes(term)
+    )
+  )) ?? null;
 }
 
 function answerRelevanceSearchableText(item: SourcePackItem): string {
@@ -391,6 +412,18 @@ function answerRelevanceSearchableText(item: SourcePackItem): string {
     ...(item.metadata ? Object.values(item.metadata).flatMap(metadataValueToText) : []),
   ].join(' '));
   return searchable;
+}
+
+function answerRelevanceReferenceText(item: SourcePackItem): string {
+  return normalizeAnswerRelevanceText([
+    item.id,
+    item.title,
+    item.retrievalChunkId,
+    item.citationTargetId,
+    item.resourceNodeId,
+    item.planningUnitId,
+    ...(item.metadata ? Object.values(item.metadata).flatMap(metadataValueToText) : []),
+  ].join(' '));
 }
 
 const DISTINCTIVE_ANSWER_RELEVANCE_TOKENS = new Set([
@@ -434,6 +467,43 @@ const SUPPORTING_ANSWER_RELEVANCE_TOKENS = new Set([
   'transfer',
   'zero',
 ]);
+
+const ANSWER_RELEVANCE_CHINESE_TERMS = [
+  '伯德图',
+  '闭环传递函数',
+  '闭环',
+  '传递函数',
+  '传函',
+  '超调量',
+  '调节时间',
+  '动态响应',
+  '动态特性',
+  '根轨迹',
+  '渐近稳定性',
+  '胡尔维茨',
+  '极点',
+  '开环传递函数',
+  '开环',
+  '劳斯',
+  '劳斯判据',
+  '奈奎斯特',
+  '频率响应',
+  '扰动响应',
+  '时间响应',
+  '瞬态响应',
+  '稳定判据',
+  '稳定性',
+  '稳定裕度',
+  '稳态误差',
+  '稳态响应',
+  '相位裕度',
+  '状态空间',
+  '增益裕度',
+  '单位阶跃响应',
+  '阶跃响应',
+  '阻尼比',
+  '零点',
+];
 
 function answerRelevanceQueryTokens(query: string): string[] {
   return Array.from(new Set(normalizeAnswerRelevanceText(query).split(/[^a-z0-9]+/)
