@@ -5586,10 +5586,7 @@ async function buildKonlingSourcePackContentCitations(input: {
   );
   const result = retrieveSourcePack({
     query,
-    answerRelevanceQuery: [
-      normalizeSourcePackQueryText(input.currentUserQuery),
-      query,
-    ].filter((value): value is string => Boolean(value)),
+    answerRelevanceQuery: buildKonlingAnswerRelevanceQueries(input.currentUserQuery, query),
     profile: 'konling-answer',
     role: sourcePackRoleForKonling(input.scope.role),
     caller: 'konling-agent-runtime',
@@ -5636,6 +5633,64 @@ function buildKonlingSourcePackQuery(
   ]
     .filter((value): value is string => Boolean(value?.trim()))
     .join(' ');
+}
+
+function buildKonlingAnswerRelevanceQueries(currentUserQuery: string | null | undefined, combinedQuery: string): string[] {
+  const userQuery = normalizeAnswerRelevanceUserQuery(currentUserQuery);
+  if (!userQuery) return [combinedQuery];
+  if (hasSpecificAnswerRelevanceSignal(userQuery)) return [userQuery];
+  return uniqueStrings([userQuery, combinedQuery]);
+}
+
+function normalizeAnswerRelevanceUserQuery(value: string | null | undefined): string | null {
+  const normalized = normalizeSourcePackQueryText(value);
+  if (!normalized) return null;
+  const withoutNegatedContinuation = normalized
+    .replace(/(?:^|[，。；,.!?]\s*)不是[^，。；,.!?]*(?=[，。；,.!?]\s*(?:我|现在|想|要|问))/g, ' ')
+    .replace(/(?:而)?不是继续?(?:讨论|问|看|讲|学习)[^，。；,.!?]*[，。；,.!?]?/g, ' ')
+    .replace(/(?:不要|别)继续?(?:讨论|问|看|讲|学习)[^，。；,.!?]*[，。；,.!?]?/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return withoutNegatedContinuation || normalized;
+}
+
+const SPECIFIC_ANSWER_RELEVANCE_QUERY_TERMS = [
+  'bode',
+  'nyquist',
+  'pid',
+  'root locus',
+  'routh',
+  'hurwitz',
+  'laplace',
+  'mason',
+  '伯德',
+  '闭环',
+  '传递函数',
+  '传函',
+  '超调',
+  '调节时间',
+  '动态响应',
+  '根轨迹',
+  '胡尔维茨',
+  '开环',
+  '劳斯',
+  '奈奎斯特',
+  '频率响应',
+  '稳定',
+  '稳态误差',
+  '相位裕度',
+  '状态空间',
+  '增益裕度',
+  '单位阶跃响应',
+  '阶跃响应',
+  '阻尼比',
+  '零点',
+  '极点',
+];
+
+function hasSpecificAnswerRelevanceSignal(query: string): boolean {
+  const normalized = query.toLowerCase().normalize('NFKC');
+  return SPECIFIC_ANSWER_RELEVANCE_QUERY_TERMS.some((term) => normalized.includes(term));
 }
 
 function normalizeSourcePackQueryText(value: string | null | undefined): string | null {

@@ -3950,14 +3950,18 @@ describe('konling agent runtime', () => {
     expect(JSON.stringify(runtime.citationContext?.contentCitations)).not.toContain('ch01-advanced-problems-031__chunk-001');
   });
 
-  it('uses the current user question in konling-answer Source Pack retrieval', async () => {
+  it.each([
+    '我现在想问 Nyquist 判稳，而不是继续讨论 Bode 图。',
+    '不是 Bode 图，我想问 Nyquist 判稳。',
+    '不是 Bode 图，我不是很理解 Nyquist 判稳。',
+  ])('uses the current user question in konling-answer Source Pack retrieval: %s', async (currentUserQuery) => {
     const runtime = await buildKonlingRuntimeContext({}, {
       authenticatedUserId: 'student-1',
       authenticatedUserName: '张三',
       role: 'STUDENT',
       courseId: 'control-correction',
       pageId: 'student-path-center',
-      currentUserQuery: '我现在想问 Nyquist 判稳，而不是继续讨论 Bode 图。',
+      currentUserQuery,
       trustedContentContext: true,
     });
 
@@ -3965,8 +3969,14 @@ describe('konling agent runtime', () => {
       expect.objectContaining({
         profile: 'konling-answer',
         queryText: expect.stringContaining('Nyquist 判稳'),
+        retrievalChunkIds: [],
+        limitationCodes: expect.arrayContaining([
+          'answer-citation-insufficient-relevance',
+          'coverage-missing-answer-context',
+        ]),
       }),
     ]);
+    expect(JSON.stringify(runtime.citationContext?.contentCitations)).not.toContain('ch08-example-0801');
   });
 
   it('uses path-advisor SAR candidate refs to guide verified Source Pack retrieval', async () => {
