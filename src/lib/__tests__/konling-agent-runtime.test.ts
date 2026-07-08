@@ -3944,17 +3944,20 @@ describe('konling agent runtime', () => {
     expect(runtime.citationContext?.contentCitations).toEqual(expect.arrayContaining([
       expect.objectContaining({
         id: 'content:textbook-citation:root-locus-selected-node__chunk-001',
-        evidenceBasis: expect.stringContaining('answer-relevance:selected-node-ref'),
+        evidenceBasis: expect.stringMatching(/^source-pack:konling-answer:/),
       }),
     ]));
+    expect(JSON.stringify(runtime.citationContext?.contentCitations)).not.toContain('answer-relevance:');
     expect(JSON.stringify(runtime.citationContext?.contentCitations)).not.toContain('ch01-advanced-problems-031__chunk-001');
   });
 
   it.each([
-    '我现在想问 Nyquist 判稳，而不是继续讨论 Bode 图。',
-    '不是 Bode 图，我想问 Nyquist 判稳。',
-    '不是 Bode 图，我不是很理解 Nyquist 判稳。',
-  ])('uses the current user question in konling-answer Source Pack retrieval: %s', async (currentUserQuery) => {
+    ['我现在想问 Nyquist 判稳，而不是继续讨论 Bode 图。', 'Nyquist 判稳'],
+    ['不是 Bode 图，我想问 Nyquist 判稳。', 'Nyquist 判稳'],
+    ['不是 Bode 图，我不是很理解 Nyquist 判稳。', 'Nyquist 判稳'],
+    ['not Bode, I want Nyquist stability', 'Nyquist stability'],
+    ['not Bode, I want Nyquist', 'Nyquist'],
+  ])('uses the current user question in konling-answer Source Pack retrieval: %s', async (currentUserQuery, querySnippet) => {
     const runtime = await buildKonlingRuntimeContext({}, {
       authenticatedUserId: 'student-1',
       authenticatedUserName: '张三',
@@ -3968,7 +3971,7 @@ describe('konling agent runtime', () => {
     expect(runtime.citationContext?.sourcePacks).toEqual([
       expect.objectContaining({
         profile: 'konling-answer',
-        queryText: expect.stringContaining('Nyquist 判稳'),
+        queryText: expect.stringContaining(querySnippet),
         retrievalChunkIds: [],
         limitationCodes: expect.arrayContaining([
           'answer-citation-insufficient-relevance',

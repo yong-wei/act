@@ -5649,6 +5649,7 @@ function normalizeAnswerRelevanceUserQuery(value: string | null | undefined): st
     .replace(/(?:^|[，。；,.!?]\s*)不是[^，。；,.!?]*(?=[，。；,.!?]\s*(?:我|现在|想|要|问))/g, ' ')
     .replace(/(?:而)?不是继续?(?:讨论|问|看|讲|学习)[^，。；,.!?]*[，。；,.!?]?/g, ' ')
     .replace(/(?:不要|别)继续?(?:讨论|问|看|讲|学习)[^，。；,.!?]*[，。；,.!?]?/g, ' ')
+    .replace(/(?:^|[，。；,.!?]\s*)(?:not|no)\s+[^，。；,.!?]*(?=[，。；,.!?]\s*(?:i|we)\b)/gi, ' ')
     .replace(/\s+/g, ' ')
     .trim();
   return withoutNegatedContinuation || normalized;
@@ -5749,17 +5750,13 @@ function buildSourcePackContentCitation(pack: SourcePack, item: SourcePackItem):
   const id = `content:${citationTargetRef}`;
   const title = citation?.displayTitle ?? item.title;
   const href = citation?.href ?? null;
-  const answerRelevanceBasis = metadataString(item, 'answerRelevanceBasis');
   return {
     id,
     sourceType: 'content',
     displayTitle: title,
     href,
     confidence: 'high',
-    evidenceBasis: [
-      `source-pack:${pack.profile}:${pack.packId}`,
-      answerRelevanceBasis ? `answer-relevance:${answerRelevanceBasis}` : null,
-    ].filter((part): part is string => Boolean(part)).join(':'),
+    evidenceBasis: `source-pack:${pack.profile}:${pack.packId}`,
     owner: 'answer',
     citationChip: {
       chunkId: id,
