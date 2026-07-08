@@ -10,9 +10,11 @@ const outputDir = path.join(repoRoot, 'artifacts/knowledge-graph-progressive-loa
 
 const sourceFiles = [
   'src/features/knowledge/knowledge-graph-system.tsx',
+  'src/features/knowledge/sidebar/knowledge-sidebar.tsx',
   'src/lib/knowledge-graph-source.ts',
   'src/app/api/knowledge/graph/route.ts',
   'scripts/tests/capture-knowledge-graph-progressive-loading.ts',
+  'scripts/tests/test-knowledge-graph-progressive-loading-governance.ts',
 ] as const;
 
 type EvidenceRect = { left: number; top: number; right: number; bottom: number; width: number; height: number };
@@ -61,7 +63,7 @@ async function resolveProgressiveTargets() {
   if (!noChildrenNode?.id) throw new Error('Remaining graph payload did not include a no-children node.');
   const noChildrenNodeName = noChildrenNode.name ?? noChildrenNode.id;
   const normalizedSearch = noChildrenNodeName.toLowerCase();
-  const expectedFilteredRootCount = new Set(
+  const expectedFilteredRootNames = [...new Set(
     (remaining.nodes ?? [])
       .filter((node) => {
         const record = node as { description?: string; metadata?: { keywords?: unknown } };
@@ -80,9 +82,10 @@ async function resolveProgressiveTargets() {
         return record.chapterName ?? record.metadata?.chapterName ?? '';
       })
       .filter(Boolean)
-  ).size;
+  )].sort((a, b) => a.localeCompare(b, 'zh-Hans-CN'));
+  const expectedFilteredRootCount = expectedFilteredRootNames.length;
   if (expectedFilteredRootCount <= 0) throw new Error('Selected search target did not map to any expected chapter roots.');
-  return { rootNodeId, noChildrenNodeId: noChildrenNode.id, noChildrenNodeName, expectedFilteredRootCount };
+  return { rootNodeId, noChildrenNodeId: noChildrenNode.id, noChildrenNodeName, expectedFilteredRootCount, expectedFilteredRootNames };
 }
 
 async function openStatePage(browser: Browser, state: CaptureState) {
@@ -283,6 +286,7 @@ async function captureMarkers(page: Page) {
     const inspector = document.querySelector('[data-knowledge-inspector]');
     const localTool = document.querySelector('[data-knowledge-local-tool="legend"]');
     const openLocalTool = document.querySelector('[data-knowledge-local-tool][data-state="open"]');
+    const chapterDirectory = document.querySelector('[data-knowledge-local-panel="chapter-directory"]');
     const rectFor = (element) => {
       if (!element) return null;
       const rect = element.getBoundingClientRect();
@@ -349,6 +353,7 @@ async function captureMarkers(page: Page) {
       } : null,
       localTool: localTool?.getAttribute('data-state') ?? null,
       openLocalTool: openLocalTool?.getAttribute('data-knowledge-local-tool') ?? null,
+      chapterDirectoryText: chapterDirectory?.textContent ?? '',
       inspectorVisible: Boolean(inspector),
       konlingVisible: Boolean(konling),
       canvasPixelEvidence,
@@ -409,7 +414,7 @@ async function captureState(browser: Browser, state: CaptureState) {
 
 async function main() {
   mkdirSync(outputDir, { recursive: true });
-  const { rootNodeId, noChildrenNodeId, noChildrenNodeName, expectedFilteredRootCount } = await resolveProgressiveTargets();
+  const { rootNodeId, noChildrenNodeId, noChildrenNodeName, expectedFilteredRootCount, expectedFilteredRootNames } = await resolveProgressiveTargets();
   const selectedQuery = `?node=${encodeURIComponent(rootNodeId)}`;
   const emptyQuery = `?node=${encodeURIComponent(noChildrenNodeId)}`;
   const states: CaptureState[] = [
@@ -509,6 +514,7 @@ async function main() {
         && expansion('filtered-empty-1440')?.emptyMessage === true,
       collapsedRootFilterRetained: Number(progressive('root-filtered-match-1440')?.visibleNodeCount ?? 0) === expectedFilteredRootCount
         && String(progressive('root-filtered-match-1440')?.activeFilterSummary ?? '').includes(noChildrenNodeName)
+        && expectedFilteredRootNames.every((name) => String(stateMarkers('root-filtered-match-1440')?.chapterDirectoryText ?? '').includes(name))
         && !modes('root-filtered-match-1440').includes('full'),
       localToolNonOverlap: stateMarkers('local-tool-1440')?.localTool === 'open'
         && overlapFree('local-tool-1440'),
@@ -530,6 +536,7 @@ async function main() {
       noChildrenNodeId,
       noChildrenNodeName,
       expectedFilteredRootCount,
+      expectedFilteredRootNames,
       currentSourceSha256: Object.fromEntries(sourceFiles.map((file) => [file, sha256(file)])),
       requiredViewports: [1440, 1279, 1100, 1024, 320],
       assertions,

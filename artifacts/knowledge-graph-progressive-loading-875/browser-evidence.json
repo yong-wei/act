@@ -2,17 +2,33 @@
   "change": "progressive-knowledge-graph-loading",
   "issue": 875,
   "route": "/knowledge",
-  "capturedAt": "2026-07-08T13:15:30.112Z",
+  "capturedAt": "2026-07-08T13:44:23.796Z",
   "baseUrl": "http://127.0.0.1:3002",
   "rootNodeId": "chapter-node:基本概念",
   "noChildrenNodeId": "稳定性_1_7288b4ea",
   "noChildrenNodeName": "稳定性",
   "expectedFilteredRootCount": 12,
+  "expectedFilteredRootNames": [
+    "非线性系统",
+    "根轨迹分析",
+    "基本概念",
+    "建模专题速通",
+    "课程全景",
+    "离散系统",
+    "频域分析",
+    "时域分析",
+    "系统模型",
+    "系统校正",
+    "约束设计层",
+    "状态空间"
+  ],
   "currentSourceSha256": {
     "src/features/knowledge/knowledge-graph-system.tsx": "dab9b0e88b34d87c5a456d68712b9b97924af1e673ce301277d37d1bac29dd11",
+    "src/features/knowledge/sidebar/knowledge-sidebar.tsx": "f8546205bb42cbe30bf52972dccab98db756ae11cd16e2917abe13452236e624",
     "src/lib/knowledge-graph-source.ts": "60e762e1828376a1185ddfc29014413abf4f6c88609365b91731f57d7c49ede8",
     "src/app/api/knowledge/graph/route.ts": "63bf9110c29b7f79ba4002033383c54d96841514a69b561df2fdfd5857f01ee0",
-    "scripts/tests/capture-knowledge-graph-progressive-loading.ts": "0f83f1b4bb2c34a0408ae76a37959ad8fce5b057d0abd5f042731c7e39bf1330"
+    "scripts/tests/capture-knowledge-graph-progressive-loading.ts": "35002bef1d7f37f30a4fde650e0e9d1bd173eaee785ef808fe0efc9f8913a438",
+    "scripts/tests/test-knowledge-graph-progressive-loading-governance.ts": "4a4f7c2c390f8e9caa13be74ce7a22c76f15569f972ad9b94c5ede837d8f134f"
   },
   "requiredViewports": [
     1440,
@@ -51,7 +67,7 @@
         "height": 960
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/root-first-1440.png",
-      "screenshotSha256": "1452522331ef34766a35c2430f200c87d95fed41ba1d64dcf886edac3bae56ef",
+      "screenshotSha256": "3081725acde63e2cf44795d0933b0e70e87f6d80bc5dc2d54cd00bc051e481cc",
       "networkEvents": [
         {
           "event": "request",
@@ -115,12 +131,13 @@
         "expansion": null,
         "localTool": null,
         "openLocalTool": null,
+        "chapterDirectoryText": "",
         "inspectorVisible": false,
         "konlingVisible": false,
         "canvasPixelEvidence": {
           "available": true,
-          "paintedPixels": 37609,
-          "nodeColorPixels": 7000,
+          "paintedPixels": 37947,
+          "nodeColorPixels": 7517,
           "width": 1320,
           "height": 847
         },
@@ -224,6 +241,7 @@
         "expansion": null,
         "localTool": null,
         "openLocalTool": null,
+        "chapterDirectoryText": "",
         "inspectorVisible": false,
         "konlingVisible": false,
         "canvasPixelEvidence": {
@@ -269,7 +287,7 @@
         "height": 820
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/root-first-1100.png",
-      "screenshotSha256": "529117fe6bc353d90afcfc6928140a0be75a77fa86068d92feb6a81aa2d06554",
+      "screenshotSha256": "4ad969786abb0af8ea194e6e4d0e6c4184e840b4b0c3a5a97cb9c99ed6536cce",
       "networkEvents": [
         {
           "event": "request",
@@ -333,12 +351,13 @@
         "expansion": null,
         "localTool": null,
         "openLocalTool": null,
+        "chapterDirectoryText": "",
         "inspectorVisible": false,
         "konlingVisible": false,
         "canvasPixelEvidence": {
           "available": true,
-          "paintedPixels": 17011,
-          "nodeColorPixels": 3620,
+          "paintedPixels": 20633,
+          "nodeColorPixels": 4359,
           "width": 1052,
           "height": 652
         },
@@ -378,7 +397,7 @@
         "height": 820
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/root-first-1024.png",
-      "screenshotSha256": "064882a2502ca9fcbaa4ea3658c816d0b1fe7bcd6f406ba0357133e1f5c21a0f",
+      "screenshotSha256": "5ddb0735fd01cee4f70d4b11493fe4bc03c3660d1b641568853b1f174fd306af",
       "networkEvents": [
         {
           "event": "request",
@@ -442,12 +461,13 @@
         "expansion": null,
         "localTool": null,
         "openLocalTool": null,
+        "chapterDirectoryText": "",
         "inspectorVisible": false,
         "konlingVisible": false,
         "canvasPixelEvidence": {
           "available": true,
-          "paintedPixels": 13418,
-          "nodeColorPixels": 2512,
+          "paintedPixels": 22973,
+          "nodeColorPixels": 4016,
           "width": 976,
           "height": 652
         },
@@ -487,7 +507,7 @@
         "height": 800
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/root-first-320.png",
-      "screenshotSha256": "75fbbf155243edd4b8194584c80f4acd77020c85539093bd3696a919a9504809",
+      "screenshotSha256": "30b1b4a59a99c5196a824f71bb1a76c1594606cf16d38a9c051ead7168b5f42e",
       "networkEvents": [
         {
           "event": "request",
@@ -551,12 +571,13 @@
         "expansion": null,
         "localTool": null,
         "openLocalTool": null,
+        "chapterDirectoryText": "",
         "inspectorVisible": false,
         "konlingVisible": false,
         "canvasPixelEvidence": {
           "available": true,
-          "paintedPixels": 9104,
-          "nodeColorPixels": 415,
+          "paintedPixels": 7575,
+          "nodeColorPixels": 1208,
           "width": 288,
           "height": 502
         },
@@ -685,6 +706,7 @@
         },
         "localTool": null,
         "openLocalTool": null,
+        "chapterDirectoryText": "",
         "inspectorVisible": true,
         "konlingVisible": false,
         "canvasPixelEvidence": {
@@ -744,7 +766,7 @@
         "height": 960
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/expanded-1440.png",
-      "screenshotSha256": "339cd9a3942bc7588b747ea768eaaa025d07454f56d42eedb1cb116d1531f82d",
+      "screenshotSha256": "c47c90348cda657ff3b36188f61b53c599eee887683e3b19ee4573a100718765",
       "networkEvents": [
         {
           "event": "request",
@@ -845,6 +867,7 @@
         },
         "localTool": null,
         "openLocalTool": null,
+        "chapterDirectoryText": "",
         "inspectorVisible": true,
         "konlingVisible": false,
         "canvasPixelEvidence": {
@@ -1005,6 +1028,7 @@
         },
         "localTool": null,
         "openLocalTool": null,
+        "chapterDirectoryText": "",
         "inspectorVisible": true,
         "konlingVisible": false,
         "canvasPixelEvidence": {
@@ -1064,7 +1088,7 @@
         "height": 960
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/cache-reuse-1440.png",
-      "screenshotSha256": "7d212ea7141e80decfbef2071bbaf1183669467534f1bfa150cdfeb9b8a8f4f8",
+      "screenshotSha256": "9deb18db767ca68f7898cdea4b374daaf5c4f28b6d3c76e6ec9d9f84121507c6",
       "networkEvents": [
         {
           "event": "request",
@@ -1165,12 +1189,13 @@
         },
         "localTool": null,
         "openLocalTool": null,
+        "chapterDirectoryText": "",
         "inspectorVisible": true,
         "konlingVisible": false,
         "canvasPixelEvidence": {
           "available": true,
-          "paintedPixels": 69569,
-          "nodeColorPixels": 37198,
+          "paintedPixels": 69541,
+          "nodeColorPixels": 37165,
           "width": 1320,
           "height": 847
         },
@@ -1329,6 +1354,7 @@
         },
         "localTool": null,
         "openLocalTool": null,
+        "chapterDirectoryText": "",
         "inspectorVisible": true,
         "konlingVisible": false,
         "canvasPixelEvidence": {
@@ -1388,7 +1414,7 @@
         "height": 960
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/root-filtered-match-1440.png",
-      "screenshotSha256": "57a87e52fb282369f358f5addfec0cfc51a219b32626b0e54551f28d1dc5491c",
+      "screenshotSha256": "59e7d566dad516f05f6dbab4e21ee49538597fd3fde76bdffc755d3a23856a29",
       "networkEvents": [
         {
           "event": "request",
@@ -1464,6 +1490,7 @@
         "expansion": null,
         "localTool": null,
         "openLocalTool": "chapter-directory",
+        "chapterDirectoryText": "章节目录基本概念1系统模型1时域分析1根轨迹分析1频域分析1系统校正1离散系统1非线性系统1状态空间1建模专题速通1课程全景1约束设计层1",
         "inspectorVisible": false,
         "konlingVisible": false,
         "canvasPixelEvidence": {
@@ -1589,6 +1616,7 @@
         "expansion": null,
         "localTool": null,
         "openLocalTool": "relation-filters",
+        "chapterDirectoryText": "",
         "inspectorVisible": false,
         "konlingVisible": false,
         "canvasPixelEvidence": {
@@ -1713,6 +1741,7 @@
         "expansion": null,
         "localTool": "open",
         "openLocalTool": "legend",
+        "chapterDirectoryText": "",
         "inspectorVisible": false,
         "konlingVisible": false,
         "canvasPixelEvidence": {
@@ -1765,7 +1794,7 @@
         "height": 960
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/selected-inspector-1440.png",
-      "screenshotSha256": "1eb95c3352371c0fd133f26a7c123353a3bf72ff20b11b6e73019354b6b58046",
+      "screenshotSha256": "e53a5c4581093a437847372615ee93669df3b0aae847c71b8c181c50819289b8",
       "networkEvents": [
         {
           "event": "request",
@@ -1849,12 +1878,13 @@
         },
         "localTool": null,
         "openLocalTool": null,
+        "chapterDirectoryText": "",
         "inspectorVisible": true,
         "konlingVisible": false,
         "canvasPixelEvidence": {
           "available": true,
-          "paintedPixels": 40169,
-          "nodeColorPixels": 9488,
+          "paintedPixels": 43786,
+          "nodeColorPixels": 9228,
           "width": 1320,
           "height": 847
         },
@@ -1908,7 +1938,7 @@
         "height": 960
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/konling-expanded-1440.png",
-      "screenshotSha256": "c063702b00a975f9d2b32b203e0b9f8d8a98e6122aa12411bee7666963f1816d",
+      "screenshotSha256": "9add86324871f6c7b94b2e1a59f2748dfe35edc10a1f5efff7d7508e248d092d",
       "networkEvents": [
         {
           "event": "request",
@@ -1992,6 +2022,7 @@
         },
         "localTool": null,
         "openLocalTool": null,
+        "chapterDirectoryText": "",
         "inspectorVisible": true,
         "konlingVisible": false,
         "canvasPixelEvidence": {

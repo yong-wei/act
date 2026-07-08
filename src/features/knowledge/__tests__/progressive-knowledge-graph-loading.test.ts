@@ -143,12 +143,23 @@ describe('progressive knowledge graph loading', () => {
     expect(source).toContain('collapsedRootChildNodesByRootId');
     expect(source).toContain('collapsedRootMatchesNodeFilters');
     expect(source).toContain("relation !== 'contains'");
+    expect(source).toContain('data-knowledge-density-mode');
     expect(source).toContain('data-knowledge-full-graph-first-render="avoided"');
     expect(source).toContain('data-knowledge-expansion-control');
     expect(route).toContain("mode === 'root'");
     expect(route).toContain("mode === 'expansion'");
     expect(route).toContain("mode === 'active-filter'");
     expect(route).toContain("mode === 'remaining'");
+  });
+
+  it('keeps the chapter sidebar aligned to parent-filtered progressive roots', () => {
+    const sidebar = readFileSync(
+      join(process.cwd(), 'src/features/knowledge/sidebar/knowledge-sidebar.tsx'),
+      'utf8'
+    );
+
+    expect(sidebar).toContain('return buildChapterGroups(nodes)');
+    expect(sidebar).not.toContain('nodes.filter((node)');
   });
 
   it('invalidates graph version when middle node content changes without count or edge changes', () => {

@@ -105,9 +105,11 @@ function assertEvidenceContracts(evidence: JsonRecord) {
   const sourceHashes = objectRecord(evidence.currentSourceSha256);
   for (const file of [
     'src/features/knowledge/knowledge-graph-system.tsx',
+    'src/features/knowledge/sidebar/knowledge-sidebar.tsx',
     'src/lib/knowledge-graph-source.ts',
     'src/app/api/knowledge/graph/route.ts',
     'scripts/tests/capture-knowledge-graph-progressive-loading.ts',
+    'scripts/tests/test-knowledge-graph-progressive-loading-governance.ts',
   ]) {
     assert.equal(sourceHashes[file], sha256(file), `${file} source hash drifted after evidence capture`);
   }
@@ -205,6 +207,15 @@ function assertStateContracts(evidence: JsonRecord) {
     true,
     'collapsed root filter evidence did not use the selected child search text'
   );
+  const expectedRootNames = stringArray(evidence.expectedFilteredRootNames);
+  assert.equal(expectedRootNames.length, Number(evidence.expectedFilteredRootCount ?? 0), 'expected filtered root name count mismatch');
+  for (const chapterName of expectedRootNames) {
+    assert.equal(
+      String(filteredRootMarkers.chapterDirectoryText ?? '').includes(chapterName),
+      true,
+      `chapter directory omitted matched root ${chapterName}`
+    );
+  }
   assert.equal(networkModesFor(states.get('root-filtered-match-1440')!).includes('full'), false);
   const denseAllMarkers = objectRecord(states.get('dense-all-1440')!.markers);
   assert.equal(objectRecord(denseAllMarkers.progressive).densityMode, 'all');
