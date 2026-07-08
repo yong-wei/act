@@ -59,7 +59,30 @@ async function resolveProgressiveTargets() {
     && !degreeByNodeId.has(node.id)
   ));
   if (!noChildrenNode?.id) throw new Error('Remaining graph payload did not include a no-children node.');
-  return { rootNodeId, noChildrenNodeId: noChildrenNode.id };
+  const noChildrenNodeName = noChildrenNode.name ?? noChildrenNode.id;
+  const normalizedSearch = noChildrenNodeName.toLowerCase();
+  const expectedFilteredRootCount = new Set(
+    (remaining.nodes ?? [])
+      .filter((node) => {
+        const record = node as { description?: string; metadata?: { keywords?: unknown } };
+        const keywords = Array.isArray(record.metadata?.keywords)
+          ? record.metadata.keywords.filter((item): item is string => typeof item === 'string')
+          : [];
+        const haystack = [
+          node.name,
+          record.description,
+          ...keywords,
+        ].map((item) => String(item ?? '').toLowerCase()).join(' ');
+        return haystack.includes(normalizedSearch);
+      })
+      .map((node) => {
+        const record = node as { chapterName?: string; metadata?: { chapterName?: string } };
+        return record.chapterName ?? record.metadata?.chapterName ?? '';
+      })
+      .filter(Boolean)
+  ).size;
+  if (expectedFilteredRootCount <= 0) throw new Error('Selected search target did not map to any expected chapter roots.');
+  return { rootNodeId, noChildrenNodeId: noChildrenNode.id, noChildrenNodeName, expectedFilteredRootCount };
 }
 
 async function openStatePage(browser: Browser, state: CaptureState) {
@@ -220,6 +243,24 @@ async function selectDenseAllMode(page: Page) {
   };
 }
 
+function filterCollapsedRootsBySearch(searchText: string) {
+  return async (page: Page) => {
+    await clickIfPresent(page, '[data-knowledge-command-trigger="chapter-directory"]');
+    await page.waitForSelector('[data-knowledge-local-panel="chapter-directory"]', { timeout: 8000 });
+    const searchInput = page.locator('[data-knowledge-local-panel="chapter-directory"] input[aria-label="搜索知识点..."]').first();
+    await searchInput.fill(searchText);
+    await page.waitForFunction((expected) => {
+      const canvas = document.querySelector<HTMLElement>('[data-knowledge-canvas-primary="true"]');
+      return canvas?.dataset.knowledgeKonlingRelationSummary?.includes(String(expected))
+        && Number(canvas?.dataset.knowledgeVisibleNodeCount ?? 0) > 0;
+    }, searchText, { timeout: 10000 });
+    return {
+      searchText,
+      visibleNodeCount: await page.locator('[data-knowledge-canvas-primary="true"]').first().getAttribute('data-knowledge-visible-node-count'),
+    };
+  };
+}
+
 async function expandKonlingDock(page: Page) {
   await clickIfPresent(page, '[data-platform-floating-dock] button[data-platform-floating-dock-trigger-label]');
   await page.waitForSelector('[data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]', { timeout: 5000 })
@@ -294,6 +335,8 @@ async function captureMarkers(page: Page) {
         fullGraphFirstRender: canvas.dataset.knowledgeFullGraphFirstRender ?? null,
         selectedNodeId: canvas.dataset.knowledgeSelectedNodeId ?? '',
         densityMode: canvas.dataset.knowledgeKonlingDensityMode ?? '',
+        activeFilterSummary: canvas.dataset.knowledgeKonlingRelationSummary ?? '',
+        visibleNodeCount: Number(canvas.dataset.knowledgeVisibleNodeCount ?? 0),
       } : null,
       expansion: expansionPanel ? {
         state: expansionPanel.getAttribute('data-knowledge-selected-expansion-state'),
@@ -366,7 +409,7 @@ async function captureState(browser: Browser, state: CaptureState) {
 
 async function main() {
   mkdirSync(outputDir, { recursive: true });
-  const { rootNodeId, noChildrenNodeId } = await resolveProgressiveTargets();
+  const { rootNodeId, noChildrenNodeId, noChildrenNodeName, expectedFilteredRootCount } = await resolveProgressiveTargets();
   const selectedQuery = `?node=${encodeURIComponent(rootNodeId)}`;
   const emptyQuery = `?node=${encodeURIComponent(noChildrenNodeId)}`;
   const states: CaptureState[] = [
@@ -380,6 +423,7 @@ async function main() {
     { name: 'collapsed-1440', width: 1440, height: 960, query: selectedQuery, beforeShot: collapseSelectedNode },
     { name: 'cache-reuse-1440', width: 1440, height: 960, query: selectedQuery, beforeShot: expandCollapseExpandFromCache },
     { name: 'filtered-empty-1440', width: 1440, height: 960, query: emptyQuery, beforeShot: expandSelectedEmptyNode },
+    { name: 'root-filtered-match-1440', width: 1440, height: 960, beforeShot: filterCollapsedRootsBySearch(noChildrenNodeName) },
     { name: 'dense-all-1440', width: 1440, height: 960, beforeShot: selectDenseAllMode },
     { name: 'local-tool-1440', width: 1440, height: 960, beforeShot: openLegendTool },
     { name: 'selected-inspector-1440', width: 1440, height: 960, query: emptyQuery },
@@ -463,6 +507,9 @@ async function main() {
         && (byName.get('dense-all-1440')?.interactionEvidence as Record<string, unknown> | undefined)?.selectedDensityMode === 'true',
       filteredEmptyOrNoChildren: expansion('filtered-empty-1440')?.filteredEmpty === 'true'
         && expansion('filtered-empty-1440')?.emptyMessage === true,
+      collapsedRootFilterRetained: Number(progressive('root-filtered-match-1440')?.visibleNodeCount ?? 0) === expectedFilteredRootCount
+        && String(progressive('root-filtered-match-1440')?.activeFilterSummary ?? '').includes(noChildrenNodeName)
+        && !modes('root-filtered-match-1440').includes('full'),
       localToolNonOverlap: stateMarkers('local-tool-1440')?.localTool === 'open'
         && overlapFree('local-tool-1440'),
       selectedNodeInspectorRetained: stateMarkers('selected-inspector-1440')?.inspectorVisible === true
@@ -481,6 +528,8 @@ async function main() {
       baseUrl,
       rootNodeId,
       noChildrenNodeId,
+      noChildrenNodeName,
+      expectedFilteredRootCount,
       currentSourceSha256: Object.fromEntries(sourceFiles.map((file) => [file, sha256(file)])),
       requiredViewports: [1440, 1279, 1100, 1024, 320],
       assertions,

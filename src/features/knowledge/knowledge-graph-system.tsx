@@ -199,6 +199,30 @@ function isCollapsedRootNode(node: KnowledgeNodeData): boolean {
   return Boolean(metadata.isVirtualChapter || metadata.isCollapsedRoot || node.id.startsWith('chapter-node:'));
 }
 
+function hasNodeFilters(input: {
+  searchQuery: string;
+  selectedChapters: string[];
+  selectedCategories: string[];
+  selectedBloomLevels: string[];
+}) {
+  return Boolean(
+    input.searchQuery.trim()
+    || input.selectedChapters.length > 0
+    || input.selectedCategories.length > 0
+    || input.selectedBloomLevels.length > 0
+  );
+}
+
+function collapsedRootMatchesNodeFilters(
+  rootNode: KnowledgeNodeData,
+  rootChildren: KnowledgeNodeData[],
+  filters: Parameters<typeof matchesNodeFilters>[1]
+) {
+  if (matchesNodeFilters(rootNode, filters)) return true;
+  if (rootChildren.length === 0) return true;
+  return rootChildren.some((child) => matchesNodeFilters(child, filters));
+}
+
 function expansionShardKey(graphVersion: string, nodeId: string): string {
   return `${graphVersion}:shard:expansion:${nodeId}`;
 }
@@ -617,6 +641,35 @@ export function KnowledgeGraphSystem({
   }, [nodes]);
 
   const expandedNodeIdSet = useMemo(() => new Set(expandedNodeIds), [expandedNodeIds]);
+  const collapsedRootChildNodesByRootId = useMemo(() => {
+    const childrenByRootId = new Map<string, KnowledgeNodeData[]>();
+    nodes.forEach((node) => {
+      if (isCollapsedRootNode(node)) return;
+      const metadata = (node.metadata ?? {}) as Record<string, unknown>;
+      const chapterName = resolveChapterName(
+        node.chapter,
+        typeof node.chapterName === 'string'
+          ? node.chapterName
+          : (typeof metadata.chapterName === 'string' ? metadata.chapterName : null)
+      );
+      const rootId = `chapter-node:${chapterName}`;
+      const current = childrenByRootId.get(rootId) ?? [];
+      current.push(node);
+      childrenByRootId.set(rootId, current);
+    });
+    const nodeById = new Map(nodes.map((node) => [node.id, node]));
+    links.forEach((link) => {
+      const relation = link.relationType || link.relation;
+      if (relation !== 'contains' || !link.sourceId.startsWith('chapter-node:')) return;
+      const child = nodeById.get(link.targetId);
+      if (!child || isCollapsedRootNode(child)) return;
+      const current = childrenByRootId.get(link.sourceId) ?? [];
+      if (current.some((node) => node.id === child.id)) return;
+      current.push(child);
+      childrenByRootId.set(link.sourceId, current);
+    });
+    return childrenByRootId;
+  }, [links, nodes]);
   const expansionVisibleNodeIds = useMemo(() => {
     const visible = new Set<string>();
     nodes.forEach((node) => {
@@ -641,17 +694,27 @@ export function KnowledgeGraphSystem({
 
   // 节点筛选（章节 / category / bloom_level / 搜索关键词）
   const nodeFilteredByMeta = useMemo(
-    () =>
-      nodes.filter((node) =>
-        expansionVisibleNodeIds.has(node.id) &&
-        matchesNodeFilters(node, {
-          searchQuery,
-          selectedChapters,
-          selectedCategories,
-          selectedBloomLevels,
-        })
-      ),
-    [expansionVisibleNodeIds, nodes, searchQuery, selectedChapters, selectedCategories, selectedBloomLevels]
+    () => {
+      const filters = {
+        searchQuery,
+        selectedChapters,
+        selectedCategories,
+        selectedBloomLevels,
+      };
+      const hasActiveNodeFilters = hasNodeFilters(filters);
+      return nodes.filter((node) => {
+        if (!expansionVisibleNodeIds.has(node.id)) return false;
+        if (isCollapsedRootNode(node) && hasActiveNodeFilters) {
+          return collapsedRootMatchesNodeFilters(
+            node,
+            collapsedRootChildNodesByRootId.get(node.id) ?? [],
+            filters
+          );
+        }
+        return matchesNodeFilters(node, filters);
+      });
+    },
+    [collapsedRootChildNodesByRootId, expansionVisibleNodeIds, nodes, searchQuery, selectedChapters, selectedCategories, selectedBloomLevels]
   );
 
   const nodeFilterIdSet = useMemo(

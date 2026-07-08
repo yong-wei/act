@@ -140,6 +140,9 @@ describe('progressive knowledge graph loading', () => {
     expect(source).toContain("fetchProgressivePayload('active-filter')");
     expect(source).toContain("fetchProgressivePayload('remaining')");
     expect(source).toContain('expansionHasVisibleDescendant');
+    expect(source).toContain('collapsedRootChildNodesByRootId');
+    expect(source).toContain('collapsedRootMatchesNodeFilters');
+    expect(source).toContain("relation !== 'contains'");
     expect(source).toContain('data-knowledge-full-graph-first-render="avoided"');
     expect(source).toContain('data-knowledge-expansion-control');
     expect(route).toContain("mode === 'root'");

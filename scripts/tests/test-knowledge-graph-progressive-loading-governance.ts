@@ -126,6 +126,7 @@ function assertEvidenceContracts(evidence: JsonRecord) {
     'backgroundLoadingNonBlocking',
     'denseModeUsesRemainingShard',
     'filteredEmptyOrNoChildren',
+    'collapsedRootFilterRetained',
     'localToolNonOverlap',
     'selectedNodeInspectorRetained',
     'konlingContextRetained',
@@ -149,6 +150,7 @@ function assertStateContracts(evidence: JsonRecord) {
     'collapsed-1440',
     'cache-reuse-1440',
     'filtered-empty-1440',
+    'root-filtered-match-1440',
     'dense-all-1440',
     'local-tool-1440',
     'selected-inspector-1440',
@@ -191,6 +193,19 @@ function assertStateContracts(evidence: JsonRecord) {
   assert.equal(networkModesFor(states.get('cache-reuse-1440')!).filter((mode) => mode === 'expansion').length, 1);
   assert.equal(markerFor(states.get('filtered-empty-1440')!, 'expansion').filteredEmpty, 'true');
   assert.equal(markerFor(states.get('filtered-empty-1440')!, 'expansion').emptyMessage, true);
+  const filteredRootMarkers = objectRecord(states.get('root-filtered-match-1440')!.markers);
+  const filteredRootProgressive = objectRecord(filteredRootMarkers.progressive);
+  assert.equal(
+    Number(filteredRootProgressive.visibleNodeCount ?? 0),
+    Number(evidence.expectedFilteredRootCount ?? 0),
+    'collapsed root filtering did not match the expected child-hit chapter count'
+  );
+  assert.equal(
+    String(filteredRootProgressive.activeFilterSummary ?? '').includes(String(evidence.noChildrenNodeName ?? '')),
+    true,
+    'collapsed root filter evidence did not use the selected child search text'
+  );
+  assert.equal(networkModesFor(states.get('root-filtered-match-1440')!).includes('full'), false);
   const denseAllMarkers = objectRecord(states.get('dense-all-1440')!.markers);
   assert.equal(objectRecord(denseAllMarkers.progressive).densityMode, 'all');
   assert.equal(denseAllMarkers.openLocalTool, 'relation-filters');
@@ -209,7 +224,7 @@ function assertStateContracts(evidence: JsonRecord) {
   const referencedStates = stateByName(referencedKonlingEvidence);
   assert.ok(referencedStates.has('desktop-konling-selected-expanded-dark'), 'Konling expanded evidence state is missing');
 
-  const overlapStates = ['expanded-1440', 'cache-reuse-1440', 'filtered-empty-1440', 'dense-all-1440', 'local-tool-1440', 'konling-expanded-1440'];
+  const overlapStates = ['expanded-1440', 'cache-reuse-1440', 'filtered-empty-1440', 'root-filtered-match-1440', 'dense-all-1440', 'local-tool-1440', 'konling-expanded-1440'];
   for (const name of overlapStates) {
     const overlaps = objectRecord(objectRecord(states.get(name)!.markers).overlaps);
     assert.equal(overlaps.dockOverlapsExpansion, false, `${name} dock overlaps expansion panel`);

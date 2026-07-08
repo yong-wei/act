@@ -2,15 +2,17 @@
   "change": "progressive-knowledge-graph-loading",
   "issue": 875,
   "route": "/knowledge",
-  "capturedAt": "2026-07-08T12:35:32.080Z",
+  "capturedAt": "2026-07-08T13:15:30.112Z",
   "baseUrl": "http://127.0.0.1:3002",
   "rootNodeId": "chapter-node:基本概念",
   "noChildrenNodeId": "稳定性_1_7288b4ea",
+  "noChildrenNodeName": "稳定性",
+  "expectedFilteredRootCount": 12,
   "currentSourceSha256": {
-    "src/features/knowledge/knowledge-graph-system.tsx": "04ba6cb4dfa0b5a23ac5f9e3b1ad1a2b8c3a7dc3576aff0ee09f0c8898422ab1",
+    "src/features/knowledge/knowledge-graph-system.tsx": "dab9b0e88b34d87c5a456d68712b9b97924af1e673ce301277d37d1bac29dd11",
     "src/lib/knowledge-graph-source.ts": "60e762e1828376a1185ddfc29014413abf4f6c88609365b91731f57d7c49ede8",
     "src/app/api/knowledge/graph/route.ts": "63bf9110c29b7f79ba4002033383c54d96841514a69b561df2fdfd5857f01ee0",
-    "scripts/tests/capture-knowledge-graph-progressive-loading.ts": "10131f223deaafb43bc58cd902e5b9ce72f2ae92a268f28562a59d529eac2625"
+    "scripts/tests/capture-knowledge-graph-progressive-loading.ts": "0f83f1b4bb2c34a0408ae76a37959ad8fce5b057d0abd5f042731c7e39bf1330"
   },
   "requiredViewports": [
     1440,
@@ -28,6 +30,7 @@
     "backgroundLoadingNonBlocking": true,
     "denseModeUsesRemainingShard": true,
     "filteredEmptyOrNoChildren": true,
+    "collapsedRootFilterRetained": true,
     "localToolNonOverlap": true,
     "selectedNodeInspectorRetained": true,
     "konlingContextRetained": true,
@@ -48,7 +51,7 @@
         "height": 960
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/root-first-1440.png",
-      "screenshotSha256": "bbd14dde154865296feee1c503cd0d83eafee9303e2fe0fd644522f3165acb1a",
+      "screenshotSha256": "1452522331ef34766a35c2430f200c87d95fed41ba1d64dcf886edac3bae56ef",
       "networkEvents": [
         {
           "event": "request",
@@ -105,7 +108,9 @@
           "backgroundLoading": "true",
           "fullGraphFirstRender": "avoided",
           "selectedNodeId": "",
-          "densityMode": "structure"
+          "densityMode": "structure",
+          "activeFilterSummary": "强度 >= 0.8 · 仅连通节点",
+          "visibleNodeCount": 15
         },
         "expansion": null,
         "localTool": null,
@@ -114,8 +119,8 @@
         "konlingVisible": false,
         "canvasPixelEvidence": {
           "available": true,
-          "paintedPixels": 37950,
-          "nodeColorPixels": 7441,
+          "paintedPixels": 37609,
+          "nodeColorPixels": 7000,
           "width": 1320,
           "height": 847
         },
@@ -212,7 +217,9 @@
           "backgroundLoading": "true",
           "fullGraphFirstRender": "avoided",
           "selectedNodeId": "",
-          "densityMode": "structure"
+          "densityMode": "structure",
+          "activeFilterSummary": "强度 >= 0.8 · 仅连通节点",
+          "visibleNodeCount": 15
         },
         "expansion": null,
         "localTool": null,
@@ -262,7 +269,7 @@
         "height": 820
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/root-first-1100.png",
-      "screenshotSha256": "effdf06dbd017b56ff20a85dea84e3e35883d9f070ac93fcd1cb72b7690df3ea",
+      "screenshotSha256": "529117fe6bc353d90afcfc6928140a0be75a77fa86068d92feb6a81aa2d06554",
       "networkEvents": [
         {
           "event": "request",
@@ -319,7 +326,9 @@
           "backgroundLoading": "true",
           "fullGraphFirstRender": "avoided",
           "selectedNodeId": "",
-          "densityMode": "structure"
+          "densityMode": "structure",
+          "activeFilterSummary": "强度 >= 0.8 · 仅连通节点",
+          "visibleNodeCount": 15
         },
         "expansion": null,
         "localTool": null,
@@ -328,8 +337,8 @@
         "konlingVisible": false,
         "canvasPixelEvidence": {
           "available": true,
-          "paintedPixels": 22973,
-          "nodeColorPixels": 4016,
+          "paintedPixels": 17011,
+          "nodeColorPixels": 3620,
           "width": 1052,
           "height": 652
         },
@@ -369,7 +378,7 @@
         "height": 820
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/root-first-1024.png",
-      "screenshotSha256": "c4e62351ae39b51331b392a2b59572bdfd8a82fe74a00b98425299139bafa271",
+      "screenshotSha256": "064882a2502ca9fcbaa4ea3658c816d0b1fe7bcd6f406ba0357133e1f5c21a0f",
       "networkEvents": [
         {
           "event": "request",
@@ -426,7 +435,9 @@
           "backgroundLoading": "true",
           "fullGraphFirstRender": "avoided",
           "selectedNodeId": "",
-          "densityMode": "structure"
+          "densityMode": "structure",
+          "activeFilterSummary": "强度 >= 0.8 · 仅连通节点",
+          "visibleNodeCount": 15
         },
         "expansion": null,
         "localTool": null,
@@ -435,8 +446,8 @@
         "konlingVisible": false,
         "canvasPixelEvidence": {
           "available": true,
-          "paintedPixels": 13152,
-          "nodeColorPixels": 2426,
+          "paintedPixels": 13418,
+          "nodeColorPixels": 2512,
           "width": 976,
           "height": 652
         },
@@ -533,7 +544,9 @@
           "backgroundLoading": "true",
           "fullGraphFirstRender": "avoided",
           "selectedNodeId": "",
-          "densityMode": "structure"
+          "densityMode": "structure",
+          "activeFilterSummary": "强度 >= 0.8 · 仅连通节点",
+          "visibleNodeCount": 15
         },
         "expansion": null,
         "localTool": null,
@@ -657,7 +670,9 @@
           "backgroundLoading": "false",
           "fullGraphFirstRender": "avoided",
           "selectedNodeId": "chapter-node:基本概念",
-          "densityMode": "structure"
+          "densityMode": "structure",
+          "activeFilterSummary": "强度 >= 0.8 · 仅连通节点",
+          "visibleNodeCount": 15
         },
         "expansion": {
           "state": "loading",
@@ -729,7 +744,7 @@
         "height": 960
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/expanded-1440.png",
-      "screenshotSha256": "c47c90348cda657ff3b36188f61b53c599eee887683e3b19ee4573a100718765",
+      "screenshotSha256": "339cd9a3942bc7588b747ea768eaaa025d07454f56d42eedb1cb116d1531f82d",
       "networkEvents": [
         {
           "event": "request",
@@ -815,7 +830,9 @@
           "backgroundLoading": "false",
           "fullGraphFirstRender": "avoided",
           "selectedNodeId": "chapter-node:基本概念",
-          "densityMode": "structure"
+          "densityMode": "structure",
+          "activeFilterSummary": "关系 3/6 · 强度 >= 0.8 · 仅连通节点",
+          "visibleNodeCount": 67
         },
         "expansion": {
           "state": "expanded",
@@ -973,7 +990,9 @@
           "backgroundLoading": "false",
           "fullGraphFirstRender": "avoided",
           "selectedNodeId": "chapter-node:基本概念",
-          "densityMode": "structure"
+          "densityMode": "structure",
+          "activeFilterSummary": "强度 >= 0.8 · 仅连通节点",
+          "visibleNodeCount": 15
         },
         "expansion": {
           "state": "collapsed",
@@ -1045,7 +1064,7 @@
         "height": 960
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/cache-reuse-1440.png",
-      "screenshotSha256": "9deb18db767ca68f7898cdea4b374daaf5c4f28b6d3c76e6ec9d9f84121507c6",
+      "screenshotSha256": "7d212ea7141e80decfbef2071bbaf1183669467534f1bfa150cdfeb9b8a8f4f8",
       "networkEvents": [
         {
           "event": "request",
@@ -1131,7 +1150,9 @@
           "backgroundLoading": "false",
           "fullGraphFirstRender": "avoided",
           "selectedNodeId": "chapter-node:基本概念",
-          "densityMode": "structure"
+          "densityMode": "structure",
+          "activeFilterSummary": "关系 3/6 · 强度 >= 0.8 · 仅连通节点",
+          "visibleNodeCount": 67
         },
         "expansion": {
           "state": "expanded",
@@ -1148,8 +1169,8 @@
         "konlingVisible": false,
         "canvasPixelEvidence": {
           "available": true,
-          "paintedPixels": 69541,
-          "nodeColorPixels": 37165,
+          "paintedPixels": 69569,
+          "nodeColorPixels": 37198,
           "width": 1320,
           "height": 847
         },
@@ -1293,7 +1314,9 @@
           "backgroundLoading": "false",
           "fullGraphFirstRender": "avoided",
           "selectedNodeId": "稳定性_1_7288b4ea",
-          "densityMode": "structure"
+          "densityMode": "structure",
+          "activeFilterSummary": "强度 >= 0.8 · 仅连通节点",
+          "visibleNodeCount": 16
         },
         "expansion": {
           "state": "expanded",
@@ -1355,6 +1378,131 @@
           "konlingOverlapsInspector": false,
           "localToolOverlapsExpansion": false
         }
+      }
+    },
+    {
+      "name": "root-filtered-match-1440",
+      "url": "http://127.0.0.1:3002/knowledge?qa=knowledge-progressive",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/root-filtered-match-1440.png",
+      "screenshotSha256": "57a87e52fb282369f358f5addfec0cfc51a219b32626b0e54551f28d1dc5491c",
+      "networkEvents": [
+        {
+          "event": "request",
+          "mode": "root",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=root"
+        },
+        {
+          "event": "request",
+          "mode": "active-filter",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=active-filter"
+        },
+        {
+          "event": "request",
+          "mode": "remaining",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=remaining"
+        }
+      ],
+      "networkResponses": [
+        {
+          "event": "response",
+          "mode": "root",
+          "status": 200,
+          "payloadMode": "root",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:root:chapters",
+          "nodeCount": 15,
+          "linkCount": 0,
+          "rootSummaryCount": 15,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=root"
+        },
+        {
+          "event": "response",
+          "mode": "active-filter",
+          "status": 200,
+          "payloadMode": "active-filter",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:active-filter:density=structure;strength=0.8;connected=true;relations=default",
+          "nodeCount": 820,
+          "linkCount": 5048,
+          "rootSummaryCount": 0,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=active-filter"
+        },
+        {
+          "event": "response",
+          "mode": "remaining",
+          "status": 200,
+          "payloadMode": "remaining",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:remaining:all",
+          "nodeCount": 820,
+          "linkCount": 16545,
+          "rootSummaryCount": 0,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=remaining"
+        }
+      ],
+      "markers": {
+        "workspace": "canvas-first",
+        "progressive": {
+          "loadingMode": "root-first",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "graphVersionPresent": true,
+          "loadedShardCount": 3,
+          "loadingShardCount": 0,
+          "expandedNodeCount": 0,
+          "loadingExpansionCount": 0,
+          "backgroundLoading": "false",
+          "fullGraphFirstRender": "avoided",
+          "selectedNodeId": "",
+          "densityMode": "structure",
+          "activeFilterSummary": "搜索：稳定性 · 强度 >= 0.8 · 仅连通节点",
+          "visibleNodeCount": 12
+        },
+        "expansion": null,
+        "localTool": null,
+        "openLocalTool": "chapter-directory",
+        "inspectorVisible": false,
+        "konlingVisible": false,
+        "canvasPixelEvidence": {
+          "available": true,
+          "paintedPixels": 31491,
+          "nodeColorPixels": 5754,
+          "width": 1320,
+          "height": 847
+        },
+        "rects": {
+          "canvas": {
+            "left": 96,
+            "top": 109,
+            "right": 1416,
+            "bottom": 956,
+            "width": 1320,
+            "height": 847
+          },
+          "expansionPanel": null,
+          "dock": null,
+          "konling": null,
+          "inspector": null,
+          "localTool": null
+        },
+        "scroll": {
+          "viewportWidth": 1440,
+          "viewportHeight": 960,
+          "scrollWidth": 1440,
+          "scrollHeight": 976
+        },
+        "overlaps": {
+          "dockOverlapsExpansion": false,
+          "konlingOverlapsInspector": false,
+          "localToolOverlapsExpansion": false
+        }
+      },
+      "interactionEvidence": {
+        "searchText": "稳定性",
+        "visibleNodeCount": "12"
       }
     },
     {
@@ -1434,7 +1582,9 @@
           "backgroundLoading": "false",
           "fullGraphFirstRender": "avoided",
           "selectedNodeId": "",
-          "densityMode": "all"
+          "densityMode": "all",
+          "activeFilterSummary": "强度 >= 0.8 · 仅连通节点",
+          "visibleNodeCount": 15
         },
         "expansion": null,
         "localTool": null,
@@ -1556,7 +1706,9 @@
           "backgroundLoading": "false",
           "fullGraphFirstRender": "avoided",
           "selectedNodeId": "",
-          "densityMode": "structure"
+          "densityMode": "structure",
+          "activeFilterSummary": "强度 >= 0.8 · 仅连通节点",
+          "visibleNodeCount": 15
         },
         "expansion": null,
         "localTool": "open",
@@ -1613,7 +1765,7 @@
         "height": 960
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/selected-inspector-1440.png",
-      "screenshotSha256": "10a7082cb1cb489a47251806f7b74e2b22d17e91467b740dc8e679d6676c9fa0",
+      "screenshotSha256": "1eb95c3352371c0fd133f26a7c123353a3bf72ff20b11b6e73019354b6b58046",
       "networkEvents": [
         {
           "event": "request",
@@ -1682,7 +1834,9 @@
           "backgroundLoading": "false",
           "fullGraphFirstRender": "avoided",
           "selectedNodeId": "稳定性_1_7288b4ea",
-          "densityMode": "structure"
+          "densityMode": "structure",
+          "activeFilterSummary": "强度 >= 0.8 · 仅连通节点",
+          "visibleNodeCount": 16
         },
         "expansion": {
           "state": "collapsed",
@@ -1699,8 +1853,8 @@
         "konlingVisible": false,
         "canvasPixelEvidence": {
           "available": true,
-          "paintedPixels": 40600,
-          "nodeColorPixels": 9425,
+          "paintedPixels": 40169,
+          "nodeColorPixels": 9488,
           "width": 1320,
           "height": 847
         },
@@ -1823,7 +1977,9 @@
           "backgroundLoading": "false",
           "fullGraphFirstRender": "avoided",
           "selectedNodeId": "稳定性_1_7288b4ea",
-          "densityMode": "structure"
+          "densityMode": "structure",
+          "activeFilterSummary": "强度 >= 0.8 · 仅连通节点",
+          "visibleNodeCount": 16
         },
         "expansion": {
           "state": "collapsed",
