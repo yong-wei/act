@@ -145,6 +145,11 @@ interface DatabaseKnowledgeLinkRow {
   relation: string;
 }
 
+interface FileGraphVersionMetadata {
+  digestInput: string;
+  relationFingerprintCount: number;
+}
+
 const BLOOM_LEVEL_MAP: Record<string, BloomLevel> = {
   REMEMBER: 'REMEMBER',
   UNDERSTAND: 'UNDERSTAND',
@@ -273,15 +278,24 @@ function parseJsonlLines(content: string): RawRelationRecord[] {
   return records;
 }
 
-function countJsonlRecords(content: string): number {
-  return content.split('\n').filter((line) => line.trim().length > 0).length;
+async function readFileGraphVersionMetadata(relationsPath: string): Promise<FileGraphVersionMetadata> {
+  const stats = await fs.stat(relationsPath);
+  return {
+    digestInput: stableJson({
+      relations: {
+        size: stats.size,
+        mtimeMs: stats.mtimeMs,
+      },
+    }),
+    relationFingerprintCount: stats.size,
+  };
 }
 
-function buildRawFileGraphVersionDigest(rawNodes: string, rawRelations: string): string {
+function buildRawFileGraphVersionDigest(rawNodes: string, versionMetadata: FileGraphVersionMetadata): string {
   return createHash('sha256')
     .update(rawNodes)
-    .update('\n---relations---\n')
-    .update(rawRelations)
+    .update('\n---relation-metadata---\n')
+    .update(versionMetadata.digestInput)
     .digest('hex')
     .slice(0, 16);
 }
@@ -406,10 +420,12 @@ async function loadKnowledgeGraphFromFiles(): Promise<UnifiedKnowledgeGraphPaylo
 
   let rawNodes: string;
   let rawRelations: string;
+  let versionMetadata: FileGraphVersionMetadata;
   try {
-    [rawNodes, rawRelations] = await Promise.all([
+    [rawNodes, rawRelations, versionMetadata] = await Promise.all([
       fs.readFile(graphPath, 'utf-8'),
       fs.readFile(relationsPath, 'utf-8'),
+      readFileGraphVersionMetadata(relationsPath),
     ]);
   } catch {
     return null;
@@ -471,8 +487,8 @@ async function loadKnowledgeGraphFromFiles(): Promise<UnifiedKnowledgeGraphPaylo
     nodes,
     links: Array.from(linkMap.values()),
     source: 'file',
-    versionDigest: buildRawFileGraphVersionDigest(rawNodes, rawRelations),
-    versionLinkCount: countJsonlRecords(rawRelations),
+    versionDigest: buildRawFileGraphVersionDigest(rawNodes, versionMetadata),
+    versionLinkCount: versionMetadata.relationFingerprintCount,
   };
 }
 
@@ -481,11 +497,11 @@ async function loadKnowledgeGraphRootFromFiles(): Promise<UnifiedKnowledgeGraphP
   const relationsPath = path.join(process.cwd(), 'course-content', 'runtime', 'knowledge', 'graph', 'relations.jsonl');
 
   let rawNodes: string;
-  let rawRelations: string;
+  let versionMetadata: FileGraphVersionMetadata;
   try {
-    [rawNodes, rawRelations] = await Promise.all([
+    [rawNodes, versionMetadata] = await Promise.all([
       fs.readFile(graphPath, 'utf-8'),
-      fs.readFile(relationsPath, 'utf-8'),
+      readFileGraphVersionMetadata(relationsPath),
     ]);
   } catch {
     return null;
@@ -506,8 +522,8 @@ async function loadKnowledgeGraphRootFromFiles(): Promise<UnifiedKnowledgeGraphP
     nodes: normalizeFileKnowledgeNodes(parsedNodes),
     links: [],
     source: 'file',
-    versionDigest: buildRawFileGraphVersionDigest(rawNodes, rawRelations),
-    versionLinkCount: countJsonlRecords(rawRelations),
+    versionDigest: buildRawFileGraphVersionDigest(rawNodes, versionMetadata),
+    versionLinkCount: versionMetadata.relationFingerprintCount,
   };
 }
 

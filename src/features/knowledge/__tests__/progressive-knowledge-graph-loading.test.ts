@@ -172,6 +172,10 @@ describe('progressive knowledge graph loading', () => {
       join(process.cwd(), 'src/app/api/knowledge/graph/route.ts'),
       'utf8'
     );
+    const payloadSource = readFileSync(
+      join(process.cwd(), 'src/lib/knowledge-graph-source.ts'),
+      'utf8'
+    );
 
     expect(source).toContain("fetchProgressivePayload('root')");
     expect(source).not.toContain("fetch('/api/knowledge/graph'");
@@ -204,6 +208,12 @@ describe('progressive knowledge graph loading', () => {
     expect(route.indexOf('const mode = searchParams.get')).toBeLessThan(route.indexOf('const graph = await loadKnowledgeGraphData();'));
     expect(route.indexOf("mode === 'root'")).toBeLessThan(route.indexOf('const graph = await loadKnowledgeGraphData();'));
     expect(route.indexOf("mode === 'manifest'")).toBeGreaterThan(route.indexOf('const graph = await loadKnowledgeGraphData();'));
+    const rootFileLoader = payloadSource.slice(
+      payloadSource.indexOf('async function loadKnowledgeGraphRootFromFiles'),
+      payloadSource.indexOf('async function loadKnowledgeGraphFromDatabase')
+    );
+    expect(rootFileLoader).toContain('readFileGraphVersionMetadata(relationsPath)');
+    expect(rootFileLoader).not.toContain("fs.readFile(relationsPath, 'utf-8')");
   });
 
   it('keeps the chapter sidebar aligned to parent-filtered progressive roots', () => {
