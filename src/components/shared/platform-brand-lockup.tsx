@@ -17,7 +17,7 @@ export function PlatformBrandLockup({
   return (
     <Link
       href="/"
-      aria-label="深蓝智控首页"
+      aria-label="智控深蓝首页"
       className={cn('group flex min-w-0 flex-col items-start gap-1', className)}
       data-platform-brand-lockup="deepblue-smart-control"
       data-platform-brand-asset={DEEPBLUE_SMART_CONTROL_LOGO_PATH}
@@ -26,7 +26,7 @@ export function PlatformBrandLockup({
       <span className="relative flex h-10 w-[120px] shrink-0 items-center sm:h-12 sm:w-[182px]">
         <Image
           src={DEEPBLUE_SMART_CONTROL_LOGO_PATH}
-          alt="深蓝智控"
+          alt="智控深蓝"
           width={1959}
           height={803}
           priority
