@@ -32,22 +32,8 @@ export function KnowledgeSidebar({
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
 
   const chapterGroups = useMemo(() => {
-    const keyword = searchQuery.trim().toLowerCase();
-    const baseNodes = keyword
-      ? nodes.filter((node) => {
-          const metadata = (node.metadata ?? {}) as Record<string, unknown>;
-          const keywords = Array.isArray(metadata.keywords)
-            ? metadata.keywords.filter((item): item is string => typeof item === 'string')
-            : [];
-          return (
-            node.name.toLowerCase().includes(keyword) ||
-            node.description.toLowerCase().includes(keyword) ||
-            keywords.join(' ').toLowerCase().includes(keyword)
-          );
-        })
-      : nodes;
-    return buildChapterGroups(baseNodes);
-  }, [nodes, searchQuery]);
+    return buildChapterGroups(nodes);
+  }, [nodes]);
 
   useEffect(() => {
     setExpandedGroups((prev) => {

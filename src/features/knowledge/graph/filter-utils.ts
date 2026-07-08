@@ -555,8 +555,6 @@ export function injectChapterNodes(
       chapterName: group.chapterName,
       chapter: index + 1,
       nodeType: 'THEORY',
-      knowledgeDim: 'METACOGNITIVE',
-      bloomLevel: 'UNDERSTAND',
       description: `${group.chapterName}（共 ${group.nodes.length} 个知识点）`,
       positionX: 0,
       positionY: 0,
