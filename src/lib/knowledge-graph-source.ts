@@ -193,6 +193,11 @@ let graphCache: {
   data: UnifiedKnowledgeGraphPayload;
 } | null = null;
 
+let rootGraphCache: {
+  expiresAt: number;
+  data: UnifiedKnowledgeGraphPayload;
+} | null = null;
+
 function normalizeBloomLevel(value?: string): BloomLevel {
   if (!value) return 'UNDERSTAND';
   const mapped = BLOOM_LEVEL_MAP[value.trim()];
@@ -259,33 +264,8 @@ function resolveNodeId(
   return null;
 }
 
-async function loadKnowledgeGraphFromFiles(): Promise<UnifiedKnowledgeGraphPayload | null> {
-  const graphPath = path.join(process.cwd(), 'course-content', 'runtime', 'knowledge', 'graph', 'nodes.json');
-  const relationsPath = path.join(process.cwd(), 'course-content', 'runtime', 'knowledge', 'graph', 'relations.jsonl');
-
-  let rawNodes: string;
-  let rawRelations: string;
-  try {
-    [rawNodes, rawRelations] = await Promise.all([
-      fs.readFile(graphPath, 'utf-8'),
-      fs.readFile(relationsPath, 'utf-8'),
-    ]);
-  } catch {
-    return null;
-  }
-
-  let parsedNodes: UnifiedKnowledgeNode[];
-  try {
-    parsedNodes = JSON.parse(rawNodes) as UnifiedKnowledgeNode[];
-  } catch {
-    return null;
-  }
-
-  if (!Array.isArray(parsedNodes) || parsedNodes.length === 0) {
-    return null;
-  }
-
-  const nodes: UnifiedKnowledgeNode[] = parsedNodes.map((node) => {
+function normalizeFileKnowledgeNodes(parsedNodes: UnifiedKnowledgeNode[]): UnifiedKnowledgeNode[] {
+  return parsedNodes.map((node) => {
     const metadata = (node.metadata ?? {}) as Record<string, unknown>;
     const chapter = typeof node.chapter === 'number'
       ? node.chapter
@@ -316,6 +296,35 @@ async function loadKnowledgeGraphFromFiles(): Promise<UnifiedKnowledgeGraphPaylo
       tags: Array.isArray(node.tags) ? node.tags : [],
     };
   });
+}
+
+async function loadKnowledgeGraphFromFiles(): Promise<UnifiedKnowledgeGraphPayload | null> {
+  const graphPath = path.join(process.cwd(), 'course-content', 'runtime', 'knowledge', 'graph', 'nodes.json');
+  const relationsPath = path.join(process.cwd(), 'course-content', 'runtime', 'knowledge', 'graph', 'relations.jsonl');
+
+  let rawNodes: string;
+  let rawRelations: string;
+  try {
+    [rawNodes, rawRelations] = await Promise.all([
+      fs.readFile(graphPath, 'utf-8'),
+      fs.readFile(relationsPath, 'utf-8'),
+    ]);
+  } catch {
+    return null;
+  }
+
+  let parsedNodes: UnifiedKnowledgeNode[];
+  try {
+    parsedNodes = JSON.parse(rawNodes) as UnifiedKnowledgeNode[];
+  } catch {
+    return null;
+  }
+
+  if (!Array.isArray(parsedNodes) || parsedNodes.length === 0) {
+    return null;
+  }
+
+  const nodes = normalizeFileKnowledgeNodes(parsedNodes);
 
   const nodeById = new Map(nodes.map((node) => [node.id, node]));
   const byNameChapter = new Map<string, string>();
@@ -359,6 +368,34 @@ async function loadKnowledgeGraphFromFiles(): Promise<UnifiedKnowledgeGraphPaylo
   return {
     nodes,
     links: Array.from(linkMap.values()),
+    source: 'file',
+  };
+}
+
+async function loadKnowledgeGraphRootFromFiles(): Promise<UnifiedKnowledgeGraphPayload | null> {
+  const graphPath = path.join(process.cwd(), 'course-content', 'runtime', 'knowledge', 'graph', 'nodes.json');
+
+  let rawNodes: string;
+  try {
+    rawNodes = await fs.readFile(graphPath, 'utf-8');
+  } catch {
+    return null;
+  }
+
+  let parsedNodes: UnifiedKnowledgeNode[];
+  try {
+    parsedNodes = JSON.parse(rawNodes) as UnifiedKnowledgeNode[];
+  } catch {
+    return null;
+  }
+
+  if (!Array.isArray(parsedNodes) || parsedNodes.length === 0) {
+    return null;
+  }
+
+  return {
+    nodes: normalizeFileKnowledgeNodes(parsedNodes),
+    links: [],
     source: 'file',
   };
 }
@@ -429,6 +466,52 @@ async function loadKnowledgeGraphFromDatabase(): Promise<UnifiedKnowledgeGraphPa
   };
 }
 
+async function loadKnowledgeGraphRootFromDatabase(): Promise<UnifiedKnowledgeGraphPayload> {
+  const nodes = await prisma.knowledgeNode.findMany({
+    where: { isActive: true },
+    select: {
+      id: true,
+      name: true,
+      nodeType: true,
+      description: true,
+      positionX: true,
+      positionY: true,
+      positionZ: true,
+      bloomLevel: true,
+      knowledgeDim: true,
+      metadata: true,
+      content: true,
+      resources: true,
+      tags: true,
+    },
+  });
+
+  return {
+    nodes: nodes.map((node) => {
+      const metadata = (node.metadata ?? {}) as Record<string, unknown>;
+      const chapterValue = metadata.chapter;
+      const chapter = typeof chapterValue === 'number' ? chapterValue : undefined;
+      const chapterNameValue = metadata.chapterName;
+      const chapterName = resolveChapterName(
+        chapter,
+        typeof chapterNameValue === 'string' ? chapterNameValue : null
+      );
+
+      return {
+        ...node,
+        chapter,
+        chapterName,
+        metadata,
+        content: (node.content ?? {}) as Record<string, unknown>,
+        resources: Array.isArray(node.resources) ? (node.resources as unknown[]) : [],
+        tags: node.tags ?? [],
+      };
+    }),
+    links: [],
+    source: 'database',
+  };
+}
+
 export async function loadKnowledgeGraphData(): Promise<UnifiedKnowledgeGraphPayload> {
   const now = Date.now();
   if (graphCache && graphCache.expiresAt > now) {
@@ -439,6 +522,23 @@ export async function loadKnowledgeGraphData(): Promise<UnifiedKnowledgeGraphPay
   const data = fileGraph && fileGraph.nodes.length > 0 ? fileGraph : await loadKnowledgeGraphFromDatabase();
 
   graphCache = {
+    expiresAt: now + FILE_GRAPH_CACHE_TTL_MS,
+    data,
+  };
+
+  return data;
+}
+
+export async function loadKnowledgeGraphRootData(): Promise<UnifiedKnowledgeGraphPayload> {
+  const now = Date.now();
+  if (rootGraphCache && rootGraphCache.expiresAt > now) {
+    return rootGraphCache.data;
+  }
+
+  const fileGraph = await loadKnowledgeGraphRootFromFiles();
+  const data = fileGraph && fileGraph.nodes.length > 0 ? fileGraph : await loadKnowledgeGraphRootFromDatabase();
+
+  rootGraphCache = {
     expiresAt: now + FILE_GRAPH_CACHE_TTL_MS,
     data,
   };
@@ -648,6 +748,26 @@ export function buildKnowledgeGraphExpansionPayload(
   nodeId: string
 ): KnowledgeGraphProgressivePayload {
   const graphVersion = getKnowledgeGraphVersion(graph);
+  const targetNode = graph.nodes.find((node) => node.id === nodeId);
+  if (targetNode && !nodeId.startsWith(CHAPTER_ROOT_NODE_PREFIX)) {
+    const directLinks = graph.links.filter((link) => link.sourceId === nodeId || link.targetId === nodeId);
+    const nodeIds = new Set<string>([nodeId]);
+    directLinks.forEach((link) => {
+      nodeIds.add(link.sourceId);
+      nodeIds.add(link.targetId);
+    });
+
+    return {
+      mode: 'expansion',
+      graphVersion,
+      shardKey: buildProgressiveShardKey('expansion', graphVersion, nodeId),
+      filterSignature: DEFAULT_GRAPH_FILTER_SIGNATURE,
+      nodes: graph.nodes.filter((node) => nodeIds.has(node.id)),
+      links: directLinks,
+      source: graph.source,
+    };
+  }
+
   const groups = groupGraphNodesByChapter(graph.nodes);
   const chapterName = nodeId.startsWith(CHAPTER_ROOT_NODE_PREFIX)
     ? nodeId.slice(CHAPTER_ROOT_NODE_PREFIX.length)

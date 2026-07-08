@@ -169,6 +169,13 @@ function mergeProgressiveGraphPayload(
   const resetForVersion = current.graphVersion && graphVersion && current.graphVersion !== graphVersion;
   const nodesById: Record<string, KnowledgeNodeData> = resetForVersion ? {} : { ...current.nodesById };
   const linksByKey: Record<string, KnowledgeLinkData> = resetForVersion ? {} : { ...current.linksByKey };
+  if (resetForVersion) {
+    Object.values(current.nodesById)
+      .filter(isCollapsedRootNode)
+      .forEach((node) => {
+        nodesById[node.id] = node;
+      });
+  }
 
   for (const node of payload.nodes ?? []) {
     nodesById[node.id] = node;
@@ -197,6 +204,14 @@ function mergeProgressiveGraphPayload(
 function isCollapsedRootNode(node: KnowledgeNodeData): boolean {
   const metadata = (node.metadata ?? {}) as Record<string, unknown>;
   return Boolean(metadata.isVirtualChapter || metadata.isCollapsedRoot || node.id.startsWith('chapter-node:'));
+}
+
+function isExpansionLinkForNode(nodeId: string, link: KnowledgeLinkData): boolean {
+  const relation = link.relationType || link.relation;
+  if (nodeId.startsWith('chapter-node:')) {
+    return link.sourceId === nodeId && relation === 'contains';
+  }
+  return link.sourceId === nodeId || link.targetId === nodeId;
 }
 
 function hasNodeFilters(input: {
@@ -486,10 +501,7 @@ export function KnowledgeGraphSystem({
   ) => {
     const nodeById = new Map(candidateNodes.map((node) => [node.id, node]));
     return candidateLinks.some((link) => {
-      const relation = link.relationType || link.relation;
-      const isChapterExpansion = nodeId.startsWith('chapter-node:') && link.sourceId === nodeId && relation === 'contains';
-      const isDirectExpansion = !nodeId.startsWith('chapter-node:') && relation !== 'contains' && (link.sourceId === nodeId || link.targetId === nodeId);
-      if (!isChapterExpansion && !isDirectExpansion) return false;
+      if (!isExpansionLinkForNode(nodeId, link)) return false;
       const descendantId = link.sourceId === nodeId ? link.targetId : link.sourceId;
       if (descendantId === nodeId) return false;
       const descendant = nodeById.get(descendantId);
@@ -682,10 +694,7 @@ export function KnowledgeGraphSystem({
     expandedNodeIdSet.forEach((nodeId) => {
       visible.add(nodeId);
       links.forEach((link) => {
-        const relation = link.relationType || link.relation;
-        const isChapterExpansion = nodeId.startsWith('chapter-node:') && link.sourceId === nodeId && relation === 'contains';
-        const isDirectExpansion = !nodeId.startsWith('chapter-node:') && relation !== 'contains' && (link.sourceId === nodeId || link.targetId === nodeId);
-        if (!isChapterExpansion && !isDirectExpansion) return;
+        if (!isExpansionLinkForNode(nodeId, link)) return;
         visible.add(link.sourceId);
         visible.add(link.targetId);
       });
@@ -756,6 +765,20 @@ export function KnowledgeGraphSystem({
     [focusNeighborhoodSeedLinks, graphFilterFocusNodeId, nodeFilterIdSet]
   );
 
+  const expandedDirectLinks = useMemo(
+    () => eligibleLinks.filter((link) => expandedNodeIds.some((nodeId) => isExpansionLinkForNode(nodeId, link))),
+    [eligibleLinks, expandedNodeIds]
+  );
+  const expandedDirectNodeIds = useMemo(() => {
+    const nodeIds = new Set<string>();
+    expandedDirectLinks.forEach((link) => {
+      nodeIds.add(link.sourceId);
+      nodeIds.add(link.targetId);
+    });
+    expandedNodeIds.forEach((nodeId) => nodeIds.add(nodeId));
+    return nodeIds;
+  }, [expandedDirectLinks, expandedNodeIds]);
+
   useEffect(() => {
     const types = relationTypeStats.map((item) => item.type);
     setSelectedRelationTypes((prev) => {
@@ -771,6 +794,7 @@ export function KnowledgeGraphSystem({
 
   const filteredLinksByRelation = useMemo(() => {
     return eligibleLinks.filter((link) =>
+      expandedDirectLinks.includes(link) ||
       relationPassesActiveFilters(link, {
         densityMode: relationDensityMode,
         selectedRelationTypes,
@@ -779,16 +803,20 @@ export function KnowledgeGraphSystem({
         focusNeighborhood,
       })
     );
-  }, [eligibleLinks, focusNeighborhood, graphFilterFocusNodeId, minRelationStrength, relationDensityMode, selectedRelationTypes]);
+  }, [eligibleLinks, expandedDirectLinks, focusNeighborhood, graphFilterFocusNodeId, minRelationStrength, relationDensityMode, selectedRelationTypes]);
 
   const densityFilteredLinks = useMemo(
-    () =>
-      relationDensityMode === 'structure'
+    () => {
+      const linksAfterDensity = relationDensityMode === 'structure'
         ? limitStructureRelationDensity(filteredLinksByRelation, {
             focusNodeId: graphFilterFocusNodeId,
           })
-        : filteredLinksByRelation,
-    [filteredLinksByRelation, graphFilterFocusNodeId, relationDensityMode]
+        : filteredLinksByRelation;
+      const linkKeys = new Set(linksAfterDensity.map(knowledgeLinkCacheKey));
+      const retainedExpandedLinks = expandedDirectLinks.filter((link) => !linkKeys.has(knowledgeLinkCacheKey(link)));
+      return [...linksAfterDensity, ...retainedExpandedLinks];
+    },
+    [expandedDirectLinks, filteredLinksByRelation, graphFilterFocusNodeId, relationDensityMode]
   );
 
   const filteredNodes = useMemo(() => {
@@ -810,13 +838,14 @@ export function KnowledgeGraphSystem({
     });
 
     return nodeFilteredByMeta.filter((node) => {
+      if (expandedDirectNodeIds.has(node.id)) return true;
       if (relationDensityMode === 'focused' && focusNeighborhood.focusNodeId) {
         return isNodeVisibleInFocusedGraph(node.id, focusNeighborhood, connectedByVisibleLinks);
       }
       if (!connectedInSearch.has(node.id)) return true;
       return connectedByVisibleLinks.has(node.id);
     });
-  }, [densityFilteredLinks, focusNeighborhood, links, nodeFilterIdSet, nodeFilteredByMeta, relationDensityMode, showOnlyConnectedNodes]);
+  }, [densityFilteredLinks, expandedDirectNodeIds, focusNeighborhood, links, nodeFilterIdSet, nodeFilteredByMeta, relationDensityMode, showOnlyConnectedNodes]);
 
   const filteredNodeIdSet = useMemo(() => new Set(filteredNodes.map((item) => item.id)), [filteredNodes]);
 

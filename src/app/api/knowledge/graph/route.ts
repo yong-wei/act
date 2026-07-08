@@ -6,6 +6,7 @@ import {
   buildKnowledgeGraphRemainingPayload,
   buildKnowledgeGraphRootPayload,
   loadKnowledgeGraphData,
+  loadKnowledgeGraphRootData,
 } from '@/lib/knowledge-graph-source';
 
 export const dynamic = 'force-dynamic';
@@ -13,15 +14,17 @@ export const runtime = 'nodejs';
 
 export async function GET(request: Request) {
   try {
-    const graph = await loadKnowledgeGraphData();
     const { searchParams } = new URL(request.url);
     const mode = searchParams.get('mode');
 
+    if (mode === 'root') {
+      const graph = await loadKnowledgeGraphRootData();
+      return NextResponse.json(buildKnowledgeGraphRootPayload(graph));
+    }
+
+    const graph = await loadKnowledgeGraphData();
     if (mode === 'manifest') {
       return NextResponse.json(buildKnowledgeGraphManifestPayload(graph));
-    }
-    if (mode === 'root') {
-      return NextResponse.json(buildKnowledgeGraphRootPayload(graph));
     }
     if (mode === 'expansion') {
       return NextResponse.json(buildKnowledgeGraphExpansionPayload(graph, searchParams.get('nodeId') ?? ''));

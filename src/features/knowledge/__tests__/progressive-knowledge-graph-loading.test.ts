@@ -71,6 +71,14 @@ const graphFixture = (): UnifiedKnowledgeGraphPayload => ({
       relationType: 'related',
       strength: 0.4,
     },
+    {
+      id: 'link-ac-contains',
+      sourceId: 'node-a',
+      targetId: 'node-c',
+      relation: 'contains',
+      relationType: 'contains',
+      strength: 0.7,
+    },
   ],
 });
 
@@ -124,8 +132,11 @@ describe('progressive knowledge graph loading', () => {
       'chapter-link:chapter-node:系统模型->node-c',
       'link-bc',
     ]);
+    const nodeExpansion = buildKnowledgeGraphExpansionPayload(graph, 'node-a');
+    expect(nodeExpansion.nodes.map((node) => node.id)).toEqual(['node-a', 'node-b', 'node-c']);
+    expect(nodeExpansion.links.map((link) => link.id)).toEqual(['link-ab', 'link-ac-contains']);
     expect(active.links.map((link) => link.id)).toEqual(['link-ab']);
-    expect(remaining.links.map((link) => link.id)).toEqual(['link-ab', 'link-bc']);
+    expect(remaining.links.map((link) => link.id)).toEqual(['link-ab', 'link-bc', 'link-ac-contains']);
   });
 
   it('keeps /knowledge first render on progressive endpoints and explicit cache state', () => {
@@ -147,6 +158,9 @@ describe('progressive knowledge graph loading', () => {
     expect(source).toContain('expandedNodeIds');
     expect(source).toContain('loadingExpansionNodeIds');
     expect(source).toContain('resetForVersion');
+    expect(source).toContain('Object.values(current.nodesById)');
+    expect(source).toContain('isExpansionLinkForNode');
+    expect(source).toContain('expandedDirectLinks');
     expect(source).toContain('graphCache.loadedShardKeys.includes(expectedShardKey)');
     expect(source).toContain("fetchProgressivePayload('active-filter')");
     expect(source).toContain("fetchProgressivePayload('remaining')");
@@ -162,6 +176,10 @@ describe('progressive knowledge graph loading', () => {
     expect(route).toContain("mode === 'expansion'");
     expect(route).toContain("mode === 'active-filter'");
     expect(route).toContain("mode === 'remaining'");
+    expect(route).toContain('loadKnowledgeGraphRootData');
+    expect(route.indexOf('const mode = searchParams.get')).toBeLessThan(route.indexOf('const graph = await loadKnowledgeGraphData();'));
+    expect(route.indexOf("mode === 'root'")).toBeLessThan(route.indexOf('const graph = await loadKnowledgeGraphData();'));
+    expect(route.indexOf("mode === 'manifest'")).toBeGreaterThan(route.indexOf('const graph = await loadKnowledgeGraphData();'));
   });
 
   it('keeps the chapter sidebar aligned to parent-filtered progressive roots', () => {
