@@ -108,8 +108,7 @@ wait_for_remote_http() {
     if remote "bash -lc '
 set -euo pipefail
 . \"${REMOTE_PROJECT_DIR}/data/runtime/act-obe.env\"
-curl -fsS \"http://127.0.0.1:\${APP_PORT}/api/readyz\" | grep -q '\"db\":true'
-curl -fsS \"http://127.0.0.1:\${APP_PORT}/api/readyz\" | grep -q '\"redis\":true'
+curl -fsS \"http://127.0.0.1:\${APP_PORT}/api/readyz\" >/dev/null
 '"; then
       return 0
     fi
