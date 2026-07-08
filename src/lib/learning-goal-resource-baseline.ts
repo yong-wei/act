@@ -92,9 +92,9 @@ export interface LearningGoalResourceBaselineReviewedBinding {
   humanConfirmed: true;
   reviewAudit: {
     reviewerId: string;
-    reviewerRole: 'curriculum-governance';
+    reviewerRole: string | null;
     reviewedAt: string;
-    reviewBatchId: typeof LEARNING_GOAL_RESOURCE_BASELINE_VERSION;
+    reviewBatchId: string;
     reviewedSourceHash: string | null;
     reviewedVersionRef: string | null;
     staleInvalidationRule: string;
@@ -391,13 +391,13 @@ function buildReviewedBinding(
     masteryAffecting: row.pathEligibility.masteryAffecting,
     humanConfirmed: true,
     reviewAudit: {
-      reviewerId: 'openspec-buddy:learning-goal-resource-baseline-completion',
-      reviewerRole: 'curriculum-governance',
-      reviewedAt: generatedAt,
-      reviewBatchId: LEARNING_GOAL_RESOURCE_BASELINE_VERSION,
-      reviewedSourceHash: row.sourceHash,
-      reviewedVersionRef: row.sourceVersionRef,
-      staleInvalidationRule: 'invalidate when sourceHash, sourceVersionRef, graph refs, or LearningGoal objective boundary changes',
+      reviewerId: row.reviewAudit.reviewerId ?? 'openspec-buddy:learning-goal-resource-baseline-completion',
+      reviewerRole: row.reviewAudit.reviewerRole ?? 'curriculum-governance',
+      reviewedAt: row.reviewAudit.reviewedAt ?? generatedAt,
+      reviewBatchId: row.reviewAudit.reviewBatchId ?? LEARNING_GOAL_RESOURCE_BASELINE_VERSION,
+      reviewedSourceHash: row.reviewAudit.reviewedSourceHash ?? row.sourceHash,
+      reviewedVersionRef: row.reviewAudit.reviewedVersionRef ?? row.sourceVersionRef,
+      staleInvalidationRule: row.reviewAudit.staleInvalidationRule,
     },
   };
 }
@@ -433,7 +433,7 @@ function rowMatchesPathEligibleCoverageRefs(row: ResourceFieldCompletionAuditRow
     ...row.graphNodeRefs.quality,
     row.sourceRecord,
     row.pathTarget,
-  ].filter(Boolean);
+  ].filter((ref): ref is string => Boolean(ref));
   if (anchoredRefs.length > 0) {
     return anchoredRefs.some((ref) => coverageRefs.has(ref));
   }

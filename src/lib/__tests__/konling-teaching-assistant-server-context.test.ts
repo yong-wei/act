@@ -130,7 +130,7 @@ describe('Konling teaching-assistant server context', () => {
       context: {
         'student-path-center': true,
         'learner-state-summary': true,
-        'graph-node-context': true,
+        'resource-node': true,
       },
     });
 
@@ -153,7 +153,7 @@ describe('Konling teaching-assistant server context', () => {
     })).resolves.toEqual({
       'student-path-center': true,
       'learner-state-summary': true,
-      'graph-node-context': true,
+      'resource-node': true,
     });
 
     await expect(resolveKonlingTeachingAssistantServerModeContext({
@@ -199,7 +199,7 @@ describe('Konling teaching-assistant server context', () => {
       context: {
         'student-path-center': true,
         'learner-state-summary': true,
-        'graph-node-context': true,
+        'resource-node': true,
       },
     });
     const studentPathScope = scope({

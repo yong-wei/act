@@ -200,6 +200,7 @@ export async function persistLearningPathRound(
     score: record.payload.score,
     confidence: record.payload.confidence,
     policyBundle: record.payload.policyBundle ?? null,
+    pathOptions: record.payload.pathOptions ?? [],
     feedbackEvents: record.payload.feedbackEvents,
     selectionHistory,
     activity,

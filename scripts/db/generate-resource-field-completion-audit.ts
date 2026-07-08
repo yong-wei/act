@@ -42,6 +42,10 @@ const EVIDENCE_LINEAGE_EVIDENCE_MD_PATH = path.join(OUTPUT_DIR, 'resource-eviden
 const DISPOSITION_REVIEW_ITEMS_JSONL_PATH = path.join(OUTPUT_DIR, 'resource-disposition-backlog-review-items.jsonl');
 const DISPOSITION_REVIEW_SUMMARY_JSON_PATH = path.join(OUTPUT_DIR, 'resource-disposition-backlog-review-summary.json');
 const DISPOSITION_REVIEW_EVIDENCE_MD_PATH = path.join(OUTPUT_DIR, 'resource-disposition-backlog-review-evidence.md');
+const KNOWLEDGE_VISUAL_SEMANTIC_REVIEW_ITEMS_JSONL_PATH = path.join(OUTPUT_DIR, 'knowledge-visual-semantic-shard-review-items.jsonl');
+const KNOWLEDGE_VISUAL_SEMANTIC_REVIEW_SUMMARY_JSON_PATH = path.join(OUTPUT_DIR, 'knowledge-visual-semantic-shard-summary.json');
+const KNOWLEDGE_VISUAL_SEMANTIC_REVIEW_EVIDENCE_MD_PATH = path.join(OUTPUT_DIR, 'knowledge-visual-semantic-shard-evidence.md');
+const TEXTBOOK_SEARCH_DOCUMENT_CITATION_REVIEW_ITEMS_JSONL_PATH = path.join(OUTPUT_DIR, 'textbook-search-document-citation-shard-review-items.jsonl');
 const HUMAN_REVIEW_INTEGRITY_JSON_PATH = path.join(OUTPUT_DIR, 'resource-human-review-integrity-diagnostics.json');
 const PROJECTION_JSONL_PATH = path.join(OUTPUT_DIR, 'runtime-resource-projections.jsonl');
 const PROJECTION_LIMITATIONS_PATH = path.join(OUTPUT_DIR, 'runtime-resource-projection-limitations.json');
@@ -74,6 +78,41 @@ type ResidualDispositionClassification =
   | 'embedded-asset'
   | 'evidence-producing'
   | 'excluded-with-rationale';
+
+type TextbookSearchDocumentCitationClassification =
+  | 'parent-section-evidence-support'
+  | 'supporting-citation'
+  | 'embedded-asset'
+  | 'excluded-with-rationale';
+
+interface TextbookSearchDocumentCitationReviewItem {
+  resourceId: string;
+  documentId: string;
+  classification: TextbookSearchDocumentCitationClassification;
+  reviewerVisibleRationale: string;
+  reviewerId: string;
+  reviewedAt: string;
+  reviewBatchId: string;
+  sourceHash: string | null;
+  sourceVersionRef: string | null;
+  privacyScope: ResourceFieldCompletionCandidate['privacyScope'];
+  pathEligible: false;
+  promotedAsPathNode: false;
+  rawContentIncluded: false;
+  citationTargetId?: string;
+  citationAddress?: {
+    href?: string;
+    contentHash?: string;
+    locator?: string;
+  };
+  graphNodeRefs: {
+    knowledge: string[];
+    capability: string[];
+    quality: string[];
+  };
+  parentReviewRef?: string;
+  limitationState?: string[];
+}
 
 interface ResidualDispositionReviewItem {
   artifactVersion: 'resource-disposition-backlog-review.v1';
@@ -109,6 +148,67 @@ interface ResidualDispositionReviewSource {
   reviewBatchId: string;
   sourceHash: string | null;
   sourceVersionRef: string | null;
+}
+
+interface KnowledgeVisualSemanticReviewItem {
+  artifactVersion: 'knowledge-visual-semantic-shard-review.v1';
+  reviewBatchId: string;
+  reviewerId: string;
+  reviewerRole: string;
+  reviewedAt: string;
+  selectedOrder: number;
+  resourceId: string;
+  sourceFamily: 'knowledge-card' | 'knowledge-infograph';
+  title: string;
+  sourcePathOrUrl: string;
+  sourceRecord: string;
+  sourceHash: string;
+  sourceVersionRef: string;
+  originalBlockerCodes: ResourceFieldMissingCode[];
+  selectionReason: string;
+  graphNodeIds: string[];
+  learningGoalIds: string[];
+  knowledgeObjectiveIds: string[];
+  capabilityObjectiveIds: string[];
+  qualityObjectiveIds: string[];
+  kaqContribution: {
+    knowledge: string;
+    capability: string;
+    quality: string;
+  };
+  disposition: ResidualDispositionClassification;
+  pathStageOrSupportRole: string;
+  routeTarget: string | null;
+  citationTargets: string[];
+  citationContract: 'server-owned-runtime-knowledge-card' | 'server-owned-infograph-manifest';
+  authorityLevel: 'runtime-reviewed-source';
+  evidenceBehavior: 'path-execution-evidence-only' | 'citation-display-only';
+  privacyScope: ResourceFieldCompletionCandidate['privacyScope'];
+  limitationState: string[];
+  estimatedTimeMinutes: number | null;
+  segmentRefs: string[];
+  evidenceInstrumentation: string[];
+  currentPathEligible: boolean;
+  reviewerVisibleRationale: string;
+  independentEvidenceRef: string;
+  rawContentIncluded: false;
+  privacyMinimized: true;
+}
+
+interface KnowledgeVisualSemanticReviewSummary {
+  artifactVersion: 'knowledge-visual-semantic-shard-review.v1';
+  reviewBatchId: string;
+  selectedCount: number;
+  selectedResourceIds: string[];
+  selectedBlockerCodes: ResourceFieldMissingCode[];
+  remainingSelectedSemanticReview: number;
+  residualUnselectedCounts: Record<'knowledge-card' | 'knowledge-infograph', number>;
+  byDisposition: Record<string, number>;
+  evidence: {
+    reviewItemsPath: string;
+    auditJsonlPath: string;
+    workqueueItemsPath: string;
+  };
 }
 
 export interface ReviewedRuntimeStepCompletion {
@@ -733,6 +833,12 @@ async function main() {
     sourceWindow: { from: null, to: generatedAt },
     limitations,
   });
+  const knowledgeVisualSemanticReviewItems = Array.from((await loadKnowledgeVisualSemanticReviewMap()).values())
+    .sort((left, right) => left.selectedOrder - right.selectedOrder);
+  const knowledgeVisualSemanticReviewSummary = buildKnowledgeVisualSemanticReviewSummary(
+    knowledgeVisualSemanticReviewItems,
+    result.rows,
+  );
   const projectionArtifacts = buildRuntimeResourceProjectionArtifacts({
     auditRows: result.rows,
     generatedAt,
@@ -823,6 +929,16 @@ async function main() {
     'utf8',
   );
   await fs.writeFile(
+    KNOWLEDGE_VISUAL_SEMANTIC_REVIEW_SUMMARY_JSON_PATH,
+    `${JSON.stringify(knowledgeVisualSemanticReviewSummary, null, 2)}\n`,
+    'utf8',
+  );
+  await fs.writeFile(
+    KNOWLEDGE_VISUAL_SEMANTIC_REVIEW_EVIDENCE_MD_PATH,
+    renderKnowledgeVisualSemanticReviewEvidence(knowledgeVisualSemanticReviewSummary),
+    'utf8',
+  );
+  await fs.writeFile(
     HUMAN_REVIEW_INTEGRITY_JSON_PATH,
     `${JSON.stringify(result.integrityDiagnostics, null, 2)}\n`,
     'utf8',
@@ -873,6 +989,8 @@ async function main() {
   console.log(`Evidence-lineage summary: ${path.relative(process.cwd(), EVIDENCE_LINEAGE_SUMMARY_JSON_PATH)}`);
   console.log(`Evidence-lineage JSONL: ${path.relative(process.cwd(), EVIDENCE_LINEAGE_ITEMS_JSONL_PATH)}`);
   console.log(`Residual disposition review rows: ${dispositionReviewItems.length}`);
+  console.log(`Knowledge visual semantic shard remaining: ${knowledgeVisualSemanticReviewSummary.remainingSelectedSemanticReview}`);
+  console.log(`Knowledge visual semantic shard summary: ${path.relative(process.cwd(), KNOWLEDGE_VISUAL_SEMANTIC_REVIEW_SUMMARY_JSON_PATH)}`);
   console.log(`Residual disposition summary: ${path.relative(process.cwd(), DISPOSITION_REVIEW_SUMMARY_JSON_PATH)}`);
   console.log(`Human review integrity issues: ${result.integrityDiagnostics.invalidHumanConfirmedRows}`);
   console.log(`Runtime resource projections: ${projectionArtifacts.rows.length}`);
@@ -891,6 +1009,7 @@ async function main() {
 
 function flattenWorkqueueItems(workqueues: ReturnType<typeof buildResourceFieldCompletionAudit>['workqueues']) {
   return workqueues.queues.flatMap((queue) => queue.items.map((item) => ({
+    ...item,
     queueId: queue.id,
     sourceFamily: queue.sourceFamily,
     learningGoalId: queue.learningGoalId,
@@ -898,7 +1017,6 @@ function flattenWorkqueueItems(workqueues: ReturnType<typeof buildResourceFieldC
     missingFieldCode: queue.missingFieldCode,
     followupBucket: queue.followupBucket,
     dependencyState: queue.dependencyState,
-    ...item,
   })));
 }
 
@@ -946,13 +1064,13 @@ function renderWorkqueueMarkdown(
 
 async function buildResidualDispositionReviewItems(rows: ResourceFieldCompletionAuditRow[]): Promise<ResidualDispositionReviewItem[]> {
   const reviewSources = await loadResidualDispositionReviewSources();
-  return rows.filter((row) => row.missingFieldCodes.length > 0).map((row) => {
+  return rows.filter((row) => row.missingFieldCodes.length > 0).map<ResidualDispositionReviewItem>((row) => {
     const reviewSource = reviewSources.get(row.resourceId);
     const classification = reviewSource?.classification ?? residualDispositionClassificationFor(row);
     const downstreamBlockers = downstreamBlockersFor(row.missingFieldCodes);
     const unresolvedDispositionBlocker = isDispositionReviewUnresolved(row, reviewSource);
     return {
-      artifactVersion: 'resource-disposition-backlog-review.v1',
+      artifactVersion: 'resource-disposition-backlog-review.v1' as const,
       reviewBatchId: reviewSource?.reviewBatchId ?? RESIDUAL_DISPOSITION_REVIEW_BATCH_ID,
       reviewerId: reviewSource?.reviewerId ?? RESIDUAL_DISPOSITION_REVIEWER_ID,
       reviewedAt: reviewSource?.reviewedAt ?? RESIDUAL_DISPOSITION_REVIEWED_AT,
@@ -971,8 +1089,8 @@ async function buildResidualDispositionReviewItems(rows: ResourceFieldCompletion
       reviewedLimitationState: residualReviewedLimitationState(row, downstreamBlockers, unresolvedDispositionBlocker),
       downstreamBlockers,
       currentPathEligible: classification === 'path-plannable' && row.pathEligibility.current,
-      privacyMinimized: true,
-      rawContentIncluded: false,
+      privacyMinimized: true as const,
+      rawContentIncluded: false as const,
     };
   }).sort((left, right) => left.resourceId.localeCompare(right.resourceId));
 }
@@ -994,6 +1112,7 @@ async function loadResidualDispositionReviewSources(): Promise<Map<string, Resid
     residualRuntimeLessonModule,
     residualRuntimeLessonMedia,
     residualRegisteredResource,
+    textbookSearchDocumentCitation,
   ] = await Promise.all([
     readJsonlFile<any>(path.join(OUTPUT_DIR, 'runtime-lesson-planning-unit-review-items.jsonl')),
     readJsonlFile<any>(path.join(OUTPUT_DIR, 'runtime-media-handout-disposition-review-items.jsonl')),
@@ -1010,6 +1129,7 @@ async function loadResidualDispositionReviewSources(): Promise<Map<string, Resid
     readJsonlFile<any>(path.join(OUTPUT_DIR, 'residual-runtime-lesson-module-disposition-review-items.jsonl')),
     readJsonlFile<any>(path.join(OUTPUT_DIR, 'residual-runtime-lesson-media-disposition-review-items.jsonl')),
     readJsonlFile<any>(path.join(OUTPUT_DIR, 'residual-registered-resource-disposition-review-items.jsonl')),
+    loadTextbookSearchDocumentCitationReviews(),
   ]);
   const sources = new Map<string, ResidualDispositionReviewSource>();
   for (const item of runtimePlanning) {
@@ -1177,7 +1297,33 @@ async function loadResidualDispositionReviewSources(): Promise<Map<string, Resid
       sourceVersionRef: item.sourceVersionRef ?? null,
     });
   }
+  for (const item of textbookSearchDocumentCitation.values()) {
+    sources.set(item.resourceId, {
+      classification: residualClassificationForTextbookSearchDocumentCitation(item.classification),
+      reviewerVisibleRationale: item.reviewerVisibleRationale,
+      reviewerId: item.reviewerId,
+      reviewedAt: item.reviewedAt,
+      reviewBatchId: item.reviewBatchId,
+      sourceHash: item.sourceHash ?? item.citationAddress?.contentHash ?? null,
+      sourceVersionRef: item.sourceVersionRef ?? null,
+    });
+  }
   return sources;
+}
+
+async function loadTextbookSearchDocumentCitationReviews(): Promise<Map<string, TextbookSearchDocumentCitationReviewItem>> {
+  const rows = await readJsonlFile<TextbookSearchDocumentCitationReviewItem>(
+    TEXTBOOK_SEARCH_DOCUMENT_CITATION_REVIEW_ITEMS_JSONL_PATH,
+  );
+  return new Map(rows.map((row) => [row.resourceId, row]));
+}
+
+function residualClassificationForTextbookSearchDocumentCitation(
+  classification: TextbookSearchDocumentCitationClassification,
+): ResidualDispositionClassification {
+  if (classification === 'embedded-asset') return 'embedded-asset';
+  if (classification === 'excluded-with-rationale') return 'excluded-with-rationale';
+  return 'supporting-citation';
 }
 
 function residualDispositionClassificationFor(row: ResourceFieldCompletionAuditRow): ResidualDispositionClassification {
@@ -1552,37 +1698,191 @@ async function readJsonlFile<T>(filePath: string): Promise<T[]> {
   }
 }
 
+async function loadKnowledgeVisualSemanticReviewMap(): Promise<Map<string, KnowledgeVisualSemanticReviewItem>> {
+  const items = await readJsonlFile<KnowledgeVisualSemanticReviewItem>(KNOWLEDGE_VISUAL_SEMANTIC_REVIEW_ITEMS_JSONL_PATH);
+  return new Map(items.map((item) => [item.resourceId, item]));
+}
+
+function knowledgeVisualReviewPacketHash(item: KnowledgeVisualSemanticReviewItem) {
+  return `sha256:${sha256(JSON.stringify({
+    resourceId: item.resourceId,
+    sourceHash: item.sourceHash,
+    graphNodeIds: item.graphNodeIds,
+    learningGoalIds: item.learningGoalIds,
+    knowledgeObjectiveIds: item.knowledgeObjectiveIds,
+    capabilityObjectiveIds: item.capabilityObjectiveIds,
+    qualityObjectiveIds: item.qualityObjectiveIds,
+    disposition: item.disposition,
+    citationTargets: item.citationTargets,
+    limitationState: item.limitationState,
+    rationale: item.reviewerVisibleRationale,
+  }))}`;
+}
+
+function applyKnowledgeVisualSemanticReview(
+  candidate: ResourceFieldCompletionCandidate,
+  reviewItem: KnowledgeVisualSemanticReviewItem | undefined,
+): ResourceFieldCompletionCandidate {
+  if (!reviewItem) return candidate;
+  return {
+    ...candidate,
+    sourcePathOrUrl: reviewItem.sourcePathOrUrl,
+    sourceRecord: reviewItem.sourceRecord,
+    knowledgeNodeIds: reviewItem.graphNodeIds,
+    capabilityTargetIds: reviewItem.capabilityObjectiveIds,
+    qualityTargetIds: reviewItem.qualityObjectiveIds,
+    segmentRefs: reviewItem.segmentRefs,
+    citationTargets: reviewItem.citationTargets,
+    pathTarget: reviewItem.routeTarget,
+    estimatedTimeMinutes: reviewItem.estimatedTimeMinutes,
+    evidenceInstrumentation: reviewItem.evidenceInstrumentation,
+    privacyScope: reviewItem.privacyScope,
+    humanConfirmed: true,
+    currentPathEligible: reviewItem.currentPathEligible,
+    contentHash: candidate.contentHash,
+    versionRef: candidate.versionRef,
+    reviewEvidence: {
+      reviewerId: reviewItem.reviewerId,
+      reviewerRole: reviewItem.reviewerRole,
+      reviewedAt: reviewItem.reviewedAt,
+      reviewBatchId: reviewItem.reviewBatchId,
+      reviewerVisibleRationale: reviewItem.reviewerVisibleRationale,
+      independentEvidenceRef: reviewItem.independentEvidenceRef,
+      reviewedSourceHash: reviewItem.sourceHash,
+      reviewedVersionRef: reviewItem.sourceVersionRef,
+      promptOrManifestHash: knowledgeVisualReviewPacketHash(reviewItem),
+      confidence: 0.92,
+    },
+  };
+}
+
+function buildKnowledgeVisualSemanticReviewSummary(
+  reviewItems: KnowledgeVisualSemanticReviewItem[],
+  auditRows: ResourceFieldCompletionAuditRow[],
+): KnowledgeVisualSemanticReviewSummary {
+  const selectedIds = new Set(reviewItems.map((item) => item.resourceId));
+  const selectedRows = auditRows.filter((row) => selectedIds.has(row.resourceId));
+  const remainingSelectedSemanticReview = selectedRows.filter((row) => (
+    row.reviewStatus !== 'human-confirmed' ||
+    row.missingFieldCodes.includes('missing-human-review') ||
+    row.missingFieldCodes.includes('provisional-metadata') ||
+    row.missingFieldCodes.includes('stale-review')
+  )).length;
+  const residualUnselectedCounts = {
+    'knowledge-card': auditRows.filter((row) => (
+      row.family === 'knowledge-card' &&
+      !selectedIds.has(row.resourceId) &&
+      (row.missingFieldCodes.includes('missing-human-review') || row.missingFieldCodes.includes('provisional-metadata'))
+    )).length,
+    'knowledge-infograph': auditRows.filter((row) => (
+      row.family === 'knowledge-infograph' &&
+      !selectedIds.has(row.resourceId) &&
+      (row.missingFieldCodes.includes('missing-human-review') || row.missingFieldCodes.includes('provisional-metadata'))
+    )).length,
+  };
+
+  return {
+    artifactVersion: 'knowledge-visual-semantic-shard-review.v1',
+    reviewBatchId: reviewItems[0]?.reviewBatchId ?? 'knowledge-visual-semantic-shard-review-unknown',
+    selectedCount: reviewItems.length,
+    selectedResourceIds: reviewItems
+      .slice()
+      .sort((left, right) => left.selectedOrder - right.selectedOrder)
+      .map((item) => item.resourceId),
+    selectedBlockerCodes: uniqueMissingCodes(reviewItems.flatMap((item) => item.originalBlockerCodes)),
+    remainingSelectedSemanticReview,
+    residualUnselectedCounts,
+    byDisposition: countBy(reviewItems, (item) => item.disposition),
+    evidence: {
+      reviewItemsPath: path.relative(process.cwd(), KNOWLEDGE_VISUAL_SEMANTIC_REVIEW_ITEMS_JSONL_PATH),
+      auditJsonlPath: path.relative(process.cwd(), AUDIT_JSONL_PATH),
+      workqueueItemsPath: path.relative(process.cwd(), WORKQUEUE_ITEMS_JSONL_PATH),
+    },
+  };
+}
+
+function renderKnowledgeVisualSemanticReviewEvidence(summary: KnowledgeVisualSemanticReviewSummary) {
+  const lines = [
+    '# Knowledge Visual Semantic Shard Review',
+    '',
+    `Review batch: ${summary.reviewBatchId}`,
+    `Selected resources: ${summary.selectedCount}`,
+    `Remaining selected semantic review blockers: ${summary.remainingSelectedSemanticReview}`,
+    '',
+    '## Selected Resources',
+    '',
+    ...summary.selectedResourceIds.map((resourceId) => `- ${resourceId}`),
+    '',
+    '## Residual Unselected Counts',
+    '',
+    `- knowledge-card: ${summary.residualUnselectedCounts['knowledge-card']}`,
+    `- knowledge-infograph: ${summary.residualUnselectedCounts['knowledge-infograph']}`,
+    '',
+    '## Evidence Files',
+    '',
+    `Review items: ${summary.evidence.reviewItemsPath}`,
+    `Audit JSONL: ${summary.evidence.auditJsonlPath}`,
+    `Workqueue JSONL: ${summary.evidence.workqueueItemsPath}`,
+    '',
+    'The selected shard is bounded. Remaining unselected rows are reported as residual backlog and are not completion blockers for this change.',
+  ];
+  return `${lines.join('\n')}\n`;
+}
+
 async function collectAuditOnlyCandidates(textbookDocuments: Awaited<ReturnType<typeof loadAllTextbookRuntimeSearchDocuments>>) {
+  const knowledgeVisualReviewMap = await loadKnowledgeVisualSemanticReviewMap();
   const [
     runtimeManifestCandidates,
     runtimeMediaCandidates,
     knowledgeCardCandidates,
     infographCandidates,
     authoringTextbookCandidates,
+    textbookSearchDocumentReviews,
   ] = await Promise.all([
     collectRuntimeManifestCandidates(),
     collectRuntimeMediaCandidates(),
-    collectKnowledgeCardCandidates(),
-    collectInfographCandidates(),
+    collectKnowledgeCardCandidates(knowledgeVisualReviewMap),
+    collectInfographCandidates(knowledgeVisualReviewMap),
     collectAuthoringTextbookCandidates(),
+    loadTextbookSearchDocumentCitationReviews(),
   ]);
-  const textbookDocumentCandidates = textbookDocuments.map<ResourceFieldCompletionCandidate>((document) => ({
-    id: `textbook-search-document:${document.id}`,
-    title: document.title,
-    family: 'textbook-search-document',
-    sourcePathOrUrl: document.href,
-    sourceRecord: document.metadata.bookId,
-    knowledgeNodeIds: document.resourceProjection.knowledgeNodeRefs,
-    capabilityTargetIds: document.resourceProjection.capabilityTargetRefs,
-    segmentRefs: [document.resourceProjection.segmentRef].filter(Boolean),
-    citationTargets: [document.resourceProjection.citationTargetRef ?? document.href].filter((value): value is string => Boolean(value)),
-    pathTarget: null,
-    evidenceInstrumentation: ['textbook_search_document_retrieved'],
-    privacyScope: UNCLASSIFIED_AUDIT_PRIVACY_SCOPE,
-    contentHash: document.contentHash,
-    versionRef: 'textbook-runtime-search-documents.v1',
-    humanConfirmed: false,
-  }));
+  const textbookDocumentCandidates = textbookDocuments.map<ResourceFieldCompletionCandidate>((document) => {
+    const resourceId = `textbook-search-document:${document.id}`;
+    const review = textbookSearchDocumentReviews.get(resourceId);
+    if (review) assertTextbookSearchDocumentCitationReviewIsFresh(review, document.contentHash);
+    return {
+      id: resourceId,
+      title: document.title,
+      family: 'textbook-search-document',
+      sourcePathOrUrl: document.href,
+      sourceRecord: document.metadata.bookId,
+      knowledgeNodeIds: review?.graphNodeRefs.knowledge ?? document.resourceProjection.knowledgeNodeRefs,
+      capabilityTargetIds: review?.graphNodeRefs.capability ?? document.resourceProjection.capabilityTargetRefs,
+      qualityTargetIds: review?.graphNodeRefs.quality,
+      segmentRefs: [document.resourceProjection.segmentRef].filter(Boolean),
+      citationTargets: [review?.citationTargetId ?? document.resourceProjection.citationTargetRef ?? document.href]
+        .filter((value): value is string => Boolean(value)),
+      pathTarget: null,
+      evidenceInstrumentation: ['textbook_search_document_retrieved'],
+      privacyScope: review ? STUDENT_VISIBLE_AUDIT_PRIVACY_SCOPE : UNCLASSIFIED_AUDIT_PRIVACY_SCOPE,
+      contentHash: document.contentHash,
+      versionRef: 'textbook-runtime-search-documents.v1',
+      humanConfirmed: Boolean(review),
+      currentPathEligible: false,
+      reviewEvidence: review
+        ? {
+          reviewerId: review.reviewerId,
+          reviewerRole: 'curriculum-data-governance',
+          reviewedAt: review.reviewedAt,
+          reviewBatchId: review.reviewBatchId,
+          reviewerVisibleRationale: review.reviewerVisibleRationale,
+          independentEvidenceRef: `${projectPath(TEXTBOOK_SEARCH_DOCUMENT_CITATION_REVIEW_ITEMS_JSONL_PATH)}#${resourceId}`,
+          reviewedSourceHash: review.sourceHash ?? document.contentHash ?? undefined,
+          confidence: 0.91,
+        }
+        : undefined,
+    };
+  });
 
   const limitations = [
     ...runtimeManifestCandidates.limitations,
@@ -1607,6 +1907,24 @@ async function collectAuditOnlyCandidates(textbookDocuments: Awaited<ReturnType<
     ],
     limitations,
   };
+}
+
+function assertTextbookSearchDocumentCitationReviewIsFresh(
+  review: TextbookSearchDocumentCitationReviewItem,
+  documentContentHash: string | null,
+) {
+  if (!hashesMatch(review.sourceHash, documentContentHash)) {
+    throw new Error(`Stale textbook search-document citation review for ${review.resourceId}: review hash ${review.sourceHash ?? 'missing'} does not match current document hash ${documentContentHash ?? 'missing'}`);
+  }
+}
+
+function hashesMatch(left: string | null | undefined, right: string | null | undefined) {
+  return normalizeHash(left) !== null && normalizeHash(left) === normalizeHash(right);
+}
+
+function normalizeHash(value: string | null | undefined) {
+  if (!value) return null;
+  return value.replace(/^sha256:/, '');
 }
 
 async function collectRuntimeManifestCandidates() {
@@ -1670,7 +1988,7 @@ async function collectRuntimeManifestCandidates() {
             reviewerVisibleRationale: reviewedCompletionCurrent.reviewerVisibleRationale,
             independentEvidenceRef: reviewedCompletionCurrent.independentEvidenceRef,
             reviewedSourceHash: reviewSourceHash ?? undefined,
-            promptOrManifestHash: reviewSourceHash,
+            promptOrManifestHash: reviewSourceHash ?? undefined,
             confidence: 0.91,
           }
           : undefined,
@@ -1946,7 +2264,9 @@ function buildRuntimeStepKnowledgeNodeMap(
   ]));
 }
 
-async function collectInfographCandidates() {
+async function collectInfographCandidates(
+  knowledgeVisualReviewMap: Map<string, KnowledgeVisualSemanticReviewItem>,
+) {
   const manifest = await readJson<InfographManifest>(INFOGRAPH_MANIFEST_PATH);
   const candidates = await Promise.all((manifest?.items ?? []).map(async (item): Promise<ResourceFieldCompletionCandidate> => ({
     id: `infograph:${item.nodeId ?? item.path ?? item.title}`,
@@ -1967,12 +2287,17 @@ async function collectInfographCandidates() {
     versionRef: 'knowledge-infograph-manifest.v1',
   })));
   return {
-    candidates,
+    candidates: candidates.map((candidate) => applyKnowledgeVisualSemanticReview(
+      candidate,
+      knowledgeVisualReviewMap.get(candidate.id),
+    )),
     limitations: candidates.length === 0 ? ['No knowledge infograph manifest items were found.'] : [],
   };
 }
 
-async function collectKnowledgeCardCandidates() {
+async function collectKnowledgeCardCandidates(
+  knowledgeVisualReviewMap: Map<string, KnowledgeVisualSemanticReviewItem>,
+) {
   const files = await collectFiles(RUNTIME_KNOWLEDGE_CARDS_DIR);
   const candidates: ResourceFieldCompletionCandidate[] = [];
   for (const filePath of files.filter((file) => file.endsWith('.md'))) {
@@ -1999,7 +2324,10 @@ async function collectKnowledgeCardCandidates() {
     });
   }
   return {
-    candidates,
+    candidates: candidates.map((candidate) => applyKnowledgeVisualSemanticReview(
+      candidate,
+      knowledgeVisualReviewMap.get(candidate.id),
+    )),
     limitations: candidates.length === 0 ? ['No runtime knowledge card markdown files were found.'] : [],
   };
 }

@@ -299,3 +299,34 @@ ResourceNodes that produce or consume learner evidence SHALL declare evidence-li
 - **WHEN** a ResourceNode can mark completion, checkpoint success, mastery lift, readiness unlock, remediation need, or terminal validation
 - **THEN** it SHALL declare event type, event source, clientEventId policy, attemptKey policy, dedupe key, timestamp policy, source-log or source-event linkage, LearningFact materialization policy, confidence policy, and privacy scope
 - **AND** the planner SHALL treat missing required lineage as a readiness blocker.
+
+### Requirement: Textbook search documents do not bypass section-level planning
+Textbook search-document rows SHALL remain citation-support records unless a reviewed parent section owns the PlanningUnit role.
+
+#### Scenario: Search-document row is reviewed
+- **WHEN** a textbook search-document row is classified during resource governance
+- **THEN** it SHALL be linked to a reviewed parent section, supporting citation target, embedded asset, or exclusion rationale
+- **AND** it SHALL NOT become an independent PathNode solely because it is citation-ready.
+
+#### Scenario: Parent section is not reviewed
+- **WHEN** a search-document row belongs to an unreviewed or unsuitable parent section
+- **THEN** the row SHALL remain limited supporting material or excluded with rationale
+- **AND** the helper SHALL report the parent-section dependency separately from citation-anchor gaps.
+
+### Requirement: Knowledge cards and infographs are reviewed in semantic shards
+Knowledge-card and infograph resources SHALL be eligible for path planning or Konling grounding only after deterministic shard-based implementing-agent semantic review.
+
+#### Scenario: Knowledge visual shard is selected
+- **WHEN** the helper reports knowledge-card or infograph resources with missing semantic review, path disposition, graph binding, citation, or evidence fields
+- **THEN** the implementation SHALL select a deterministic shard prioritized by active LearningGoals and graph nodes used by planner or Konling tests
+- **AND** it SHALL record selected ids, blocker codes, source hashes, and residual unselected counts.
+
+#### Scenario: Knowledge visual is promoted
+- **WHEN** a selected knowledge card or infograph is promoted to path-plannable or evidence-producing
+- **THEN** it SHALL include reviewed graph mapping, LearningGoal fit, K/A/Q contribution, path stage or support role, route or citation address, authority level, evidence behavior, privacy policy, source hash, and reviewer-visible rationale
+- **AND** provisional suggestions SHALL NOT satisfy promotion.
+
+#### Scenario: Knowledge visual is supporting only
+- **WHEN** a selected card, image, or infograph is display-only, duplicate, too broad, teacher-only, or unsuitable as an independent path node
+- **THEN** it SHALL be classified as supporting-citation, embedded-asset, evidence-producing, or excluded-with-rationale
+- **AND** it SHALL not become an independent PathNode without a reviewed launch target and evidence contract.

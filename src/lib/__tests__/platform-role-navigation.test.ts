@@ -900,19 +900,23 @@ describe('platform role navigation', () => {
   it('separates learner record, evidence review, and platform data-center semantics', () => {
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/profile')).toMatchObject({
       frame: 'report-ledger',
+      desktopNavigation: 'collapsible',
       mobileNavigation: 'drawer',
     });
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/profile/growth')).toMatchObject({
       frame: 'report-ledger',
-      mobileNavigation: 'role-route-tabs',
+      desktopNavigation: 'collapsible',
+      mobileNavigation: 'drawer',
     });
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/profile/portfolio')).toMatchObject({
       frame: 'report-ledger',
-      mobileNavigation: 'role-route-tabs',
+      desktopNavigation: 'collapsible',
+      mobileNavigation: 'drawer',
     });
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/profile/evidence')).toMatchObject({
       frame: 'report-ledger',
-      mobileNavigation: 'role-route-tabs',
+      desktopNavigation: 'collapsible',
+      mobileNavigation: 'drawer',
       owningChange: 'redesign-learner-data-and-report-surfaces',
     });
     expect(

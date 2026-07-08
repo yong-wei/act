@@ -417,6 +417,8 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain("submitPathGeneration('revise'");
     expect(source).toContain("submitPathGeneration('explain'");
     expect(source).toContain("submitPathChoice('helpfulness'");
+    expect(source).toContain('data-adaptive-path-status-region={showSelectionWorkspace ?');
+    expect(source).toContain('data-learning-path-option-feedback={option.writeOption.optionId}');
   });
 
   it('keeps desktop path option actions inside each comparable option module', () => {
@@ -430,6 +432,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('aria-label={`请控灵调整${option.title}`');
     expect(source).toContain('aria-label={`解释${option.title}差异`');
     expect(source).toContain('aria-label={`暂不采用${option.title}`');
+    expect(source).toContain('pathOptionFeedback[option.writeOption.optionId]');
     expect(source).not.toContain("key={`${option.id}:actions`}");
     expect(source).not.toContain('lg:grid-cols-[repeat(auto-fit,minmax(220px,1fr))]');
   });
@@ -803,7 +806,12 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('开始学习');
     expect(source).toContain('跳过');
     expect(source).toContain('跳过后该资源不会计入完成进度，但会记录为路径偏离，可稍后返回。');
-    expect(source).toContain('路径完成与证据');
+    expect(source).toContain('title="学习记录"');
+    expect(source).toContain('moduleId="current-path"');
+    expect(source).toContain('moduleId="learning-record"');
+    expect(source).toContain('data-adaptive-path-module={moduleId}');
+    expect(source).toContain('data-adaptive-path-module-state={isOpen ? \'expanded\' : \'collapsed\'}');
+    expect(source).toContain('setOpenPathModuleId((current) => (current === moduleId ? null : moduleId))');
     expect(source).toContain('data-adaptive-path-route-flow="connected"');
     expect(source).toContain('data-adaptive-path-route-connector="true"');
     expect(source).toContain('data-adaptive-path-node-selectable="true"');

@@ -78,3 +78,87 @@ React Doctor release-readiness evidence SHALL distinguish owned product diagnost
 - **WHEN** warning totals are included in a release noise baseline
 - **THEN** the report SHALL state whether the totals are advisory-only, security-blocking, or implementation-blocking
 - **AND** the report SHALL include the scan boundary used to produce the counts
+
+### Requirement: Resource-governance typecheck debt is cleared at source
+Resource-governance typecheck repair SHALL align helper/source contracts and fixtures to current resource readiness semantics rather than suppressing TypeScript errors.
+
+#### Scenario: Resource governance typecheck cluster is repaired
+- **WHEN** the resource-governance cleanup runs
+- **THEN** the errors in `scripts/db/generate-resource-field-completion-audit.ts`, `src/lib/__tests__/resource-field-completion-audit.test.ts`, `src/lib/__tests__/textbook-media-grounding.test.ts`, and `src/lib/learning-goal-resource-baseline.ts` SHALL be eliminated
+- **AND** review-confirmed fields, evidence contract completeness, literal artifact versions, and null/undefined policies SHALL remain semantically correct.
+
+#### Scenario: Resource data semantics are out of scope
+- **WHEN** this change repairs TypeScript types
+- **THEN** it SHALL NOT mark resources complete, promote semantic fields, or alter resource readiness data except where required to fix a typed helper contract.
+
+### Requirement: Konling typecheck fixtures match current context contracts
+Konling typecheck repair SHALL update test fixtures and assertion helpers to current context contracts without changing model behavior.
+
+#### Scenario: Konling typecheck cluster is repaired
+- **WHEN** the Konling cleanup runs
+- **THEN** TypeScript errors in `src/lib/__tests__/konling-agent-runtime.test.ts` and `src/lib/__tests__/konling-teaching-assistant-server-context.test.ts` SHALL be eliminated
+- **AND** tool outputs, context keys, page types, knowledge types, and learner-state fixtures SHALL remain narrow and contract-valid.
+
+#### Scenario: Konling runtime behavior is out of scope
+- **WHEN** this change repairs TypeScript tests
+- **THEN** it SHALL NOT change provider configuration, prompt policy, or citation verification behavior unless a production type contract is demonstrably wrong.
+
+### Requirement: Interactive and UI test fixtures match current component contracts
+Interactive, classroom, assessment, and AppShell typecheck repair SHALL update stale test fixtures to current component contracts without masking UI regressions.
+
+#### Scenario: Interactive UI fixture cluster is repaired
+- **WHEN** the interactive/UI cleanup runs
+- **THEN** TypeScript errors in the scoped interactive, classroom, assessment route-state, tracking, and AppShell governance tests SHALL be eliminated
+- **AND** manifest option fields, teacher controls, DOM shims, route props, tracking mocks, and user-role literals SHALL remain contract-valid.
+
+#### Scenario: Product UI behavior is out of scope
+- **WHEN** this change repairs TypeScript fixtures
+- **THEN** it SHALL NOT redesign UI behavior or alter product flows unless a typed component contract is proven incorrect.
+
+### Requirement: Resource media and RAG typecheck debt preserves citation boundaries
+ResourceNode, media manifest, Source Pack, and RAG typecheck repair SHALL align fixtures and helper inputs to current citation and planning boundaries.
+
+#### Scenario: Resource media and RAG cluster is repaired
+- **WHEN** the ResourceNode/media/RAG cleanup runs
+- **THEN** TypeScript errors in ResourceNode registry tests, Source Pack tests, RAG corpus tests, and `src/lib/resource-node-registry.ts` SHALL be eliminated
+- **AND** media segments, citation records, source kinds, and graph-node refs SHALL match current contracts.
+
+#### Scenario: Search or citation support is not promoted
+- **WHEN** fixtures are updated for TypeScript
+- **THEN** the change SHALL NOT promote raw chunks, media anchors, or citation-only records to path-plannable ResourceNodes unless the existing contract already requires it.
+
+### Requirement: Adaptive path and graph fixtures track current planner contracts
+Adaptive path and graph typecheck repair SHALL update fixtures to current planner, graph coverage, and LearningGoal contracts without changing planner policy.
+
+#### Scenario: Adaptive path graph cluster is repaired
+- **WHEN** the adaptive path/graph cleanup runs
+- **THEN** TypeScript errors in adaptive path planner, control-correction path rounds, learner-state, and assessment coverage tests SHALL be eliminated
+- **AND** graph coverage, capability target, LearningGoal, and path graph context fixtures SHALL include required current fields.
+
+#### Scenario: Planner behavior is out of scope
+- **WHEN** this change repairs TypeScript fixtures
+- **THEN** it SHALL NOT change path ranking, resource selection, or low-resource fallback policy unless a typed production contract is demonstrably wrong.
+
+### Requirement: SAR and teacher evidence typecheck debt preserves data governance
+SAR persistence and teacher evidence typecheck repair SHALL update fixtures to current evidence contracts without weakening privacy or authority boundaries.
+
+#### Scenario: SAR teacher evidence cluster is repaired
+- **WHEN** the SAR/teacher evidence cleanup runs
+- **THEN** TypeScript errors in SAR persistence and teacher KAQ evidence trace tests SHALL be eliminated
+- **AND** persisted record types, learner-state fixtures, citation address nullability, corpus families, and source types SHALL match current contracts.
+
+#### Scenario: Governance boundaries remain intact
+- **WHEN** this change repairs TypeScript fixtures
+- **THEN** it SHALL NOT loosen retention, privacy scope, source authority, or official scoring/evidence boundaries.
+
+### Requirement: Arena typecheck debt preserves official evaluation authority
+Arena typecheck repair SHALL update evidence and leaderboard fixtures without changing official scoring or ranking authority.
+
+#### Scenario: Arena cluster is repaired
+- **WHEN** the Arena cleanup runs
+- **THEN** TypeScript errors in Arena evidence writeback persistence and leaderboard tests SHALL be eliminated
+- **AND** mocked evidence writeback payloads and submission input fixtures SHALL match current contracts.
+
+#### Scenario: Arena authority remains unchanged
+- **WHEN** this change repairs TypeScript fixtures
+- **THEN** it SHALL NOT change official Arena score, validity, ranking, leaderboard position, or official submission result semantics.

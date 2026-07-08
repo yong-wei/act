@@ -798,6 +798,30 @@ assert.match(bootstrapDryRun.stdout, /Git hooks: enabled/, 'bootstrap 应启用 
 assert.match(bootstrapDryRun.stdout, /Dependency install: enabled/, 'bootstrap 应启用依赖安装');
 assert.match(bootstrapDryRun.stdout, /OpenWolf knowledge links: enabled/, 'bootstrap 应启用 OpenWolf 长期知识链接');
 
+const selfHooksDryRun = run(
+  'bash',
+  [
+    path.join(root, 'scripts/dev/sync-local-worktree-config.sh'),
+    '--source',
+    target,
+    '--target',
+    target,
+    '--install-hooks',
+  ],
+  root,
+);
+
+assert.match(
+  selfHooksDryRun.stdout,
+  /would install managed Git hook(?: with backup)?: pre-push/,
+  'source=target 且仅安装 hooks 时应允许 dry-run 并包含 pre-push 门禁',
+);
+assert.doesNotMatch(
+  selfHooksDryRun.stdout,
+  /Files:/,
+  'source=target hooks-only 路径不应执行文件同步',
+);
+
 const linkedMain = path.join(tmpRoot, 'linked-main');
 const linkedTarget = path.join(tmpRoot, 'linked-target');
 mkdirp(linkedMain);
@@ -824,6 +848,9 @@ run(
 );
 
 const linkedPostCommitPath = gitHookPath(linkedTarget, 'post-commit');
+const linkedPreCommitPath = gitHookPath(linkedTarget, 'pre-commit');
+const linkedPrePushPath = gitHookPath(linkedTarget, 'pre-push');
+const linkedTypecheckLibPath = gitHookPath(linkedTarget, 'typecheck-hook-lib.sh');
 assert.match(
   linkedPostCommitPath,
   /linked-main\/\.git\/hooks\/post-commit$/,
@@ -833,6 +860,21 @@ assert.match(
   fs.readFileSync(linkedPostCommitPath, 'utf8'),
   /Managed by sync-local-worktree-config\.sh/,
   'linked worktree 的实际 post-commit hook 应被安装',
+);
+assert.match(
+  fs.readFileSync(linkedPreCommitPath, 'utf8'),
+  /typecheck_run "pre-commit"/,
+  'linked worktree 的 pre-commit hook 应执行 TypeScript 门禁',
+);
+assert.match(
+  fs.readFileSync(linkedPrePushPath, 'utf8'),
+  /typecheck_run "pre-push"/,
+  'linked worktree 的 pre-push hook 应执行 TypeScript 门禁',
+);
+assert.match(
+  fs.readFileSync(linkedTypecheckLibPath, 'utf8'),
+  /npm run "verify:\$\{hook_name#pre-\}"/,
+  'linked worktree 应安装共享 TypeScript hook helper',
 );
 
 console.log('local worktree config sync contract passed');

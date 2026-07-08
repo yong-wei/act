@@ -6,6 +6,12 @@ import {
 } from '../evidence-writeback-persistence';
 import type { ArenaSubmissionRecord } from '../submissions/submission-service';
 
+type EvidenceOutboxRow = {
+  causationId: string;
+  status: string;
+  payload: Record<string, unknown>;
+};
+
 function submission(overrides: Partial<ArenaSubmissionRecord> = {}): ArenaSubmissionRecord {
   const artifact = {
     id: 'artifact-arena-writeback',
@@ -52,7 +58,7 @@ function createMockDb() {
         createdAt: new Date('2026-05-16T08:20:00.000Z'),
         updatedAt: new Date('2026-05-16T08:20:00.000Z'),
       })),
-      findMany: vi.fn(async () => []),
+      findMany: vi.fn<() => Promise<EvidenceOutboxRow[]>>(async () => []),
     },
   };
 }

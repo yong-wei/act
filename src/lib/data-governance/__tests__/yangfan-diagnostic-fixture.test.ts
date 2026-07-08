@@ -334,6 +334,34 @@ describe('Yang Fan diagnostic fixture', () => {
     expect(db.learningFact.createMany).not.toHaveBeenCalled();
   });
 
+  it('allows explicitly overriding scoped fixture readiness blockers for diagnostic seed writes', async () => {
+    const db = createDbWithoutDuplicate();
+    const plan = await buildYangFanDiagnosticFixturePlan(db, {
+      mode: 'apply',
+      apply: true,
+      confirmApply: true,
+      allowFixtureReadinessBlockers: true,
+      readinessSummary: blockedReadinessSummary(),
+      databaseUrl: 'postgres://localhost/act_test',
+    });
+
+    expect(plan.canApply).toBe(true);
+    expect(plan.blockers).not.toContain('yang-fan-fixture-blockers');
+    expect(plan.warnings).toContain('yang-fan-fixture-blockers-overridden');
+
+    const result = await applyYangFanDiagnosticFixture(db, plan, {
+      mode: 'apply',
+      apply: true,
+      confirmApply: true,
+      allowFixtureReadinessBlockers: true,
+      readinessSummary: blockedReadinessSummary(),
+      databaseUrl: 'postgres://localhost/act_test',
+    });
+
+    expect(result.warnings).toContain('yang-fan-fixture-blockers-overridden');
+    expect(db.learningFact.createMany).toHaveBeenCalled();
+  });
+
   it('redacts direct identifiers in plan output', async () => {
     const db = createDb();
     const plan = await buildYangFanDiagnosticFixturePlan(db, {
@@ -588,6 +616,44 @@ describe('Yang Fan diagnostic fixture', () => {
     expect(plan.blockers).not.toContain('canonical-knowledge-progress-already-exists');
   });
 
+  it('protects existing canonical profile summaries unless replacement is explicit', async () => {
+    const db = createDbWithoutDuplicate({
+      studentProfileSummary: {
+        upsert: vi.fn(async () => ({})),
+        deleteMany: vi.fn(async () => ({ count: 0 })),
+        findUnique: vi.fn(async () => ({
+          userId: 'user-canonical',
+          overallLevel: 'real-profile',
+          recentActivityJson: { source: 'teacher-review' },
+        })),
+        findMany: vi.fn(async () => []),
+      },
+    });
+    const blockedPlan = await buildYangFanDiagnosticFixturePlan(db, {
+      mode: 'apply',
+      apply: true,
+      confirmApply: true,
+      readinessSummary: passedReadinessSummary(),
+      databaseUrl: 'postgres://localhost/act_test',
+    });
+
+    expect(blockedPlan.canApply).toBe(false);
+    expect(blockedPlan.blockers).toContain('canonical-profile-summary-already-exists');
+
+    const replacePlan = await buildYangFanDiagnosticFixturePlan(db, {
+      mode: 'apply',
+      apply: true,
+      confirmApply: true,
+      replaceCanonicalProfileSummary: true,
+      readinessSummary: passedReadinessSummary(),
+      databaseUrl: 'postgres://localhost/act_test',
+    });
+
+    expect(replacePlan.canApply).toBe(true);
+    expect(replacePlan.blockers).not.toContain('canonical-profile-summary-already-exists');
+    expect(replacePlan.warnings).toContain('canonical-profile-summary-replace-requested');
+  });
+
   it('applies fixture records through governed tables without writing ArenaSubmission', async () => {
     const db = createDbWithoutDuplicate();
     const plan = await buildYangFanDiagnosticFixturePlan(db, {
@@ -654,6 +720,22 @@ describe('Yang Fan diagnostic fixture', () => {
           ]),
         }),
       ]),
+    }));
+    expect(db.studentCompetencySnapshot?.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        competencyVector: expect.objectContaining({
+          controlModeling: expect.objectContaining({
+            score: expect.any(Number),
+            trend: expect.any(String),
+            confidence: expect.any(Number),
+            evidenceCount: expect.any(Number),
+            lastUpdated: '2026-07-06T08:00:00.000Z',
+          }),
+          selfDirectedLearning: expect.objectContaining({
+            confidence: expect.any(Number),
+          }),
+        }),
+      }),
     }));
     expect(db.studentEvidenceFeatureCache.upsert).toHaveBeenCalled();
     expect((db as any).arenaSubmission).toBeUndefined();

@@ -4,7 +4,7 @@
   "reviewerId": "residual-resource-disposition-implementing-agent",
   "reviewedAt": "2026-07-05T17:45:00.000Z",
   "totals": {
-    "reviewedResources": 5239,
+    "reviewedResources": 5237,
     "unresolvedDispositionBlockers": 0,
     "rawContentIncluded": false,
     "privacyMinimized": true
@@ -12,7 +12,7 @@
   "byClassification": {
     "supporting-citation": 1577,
     "embedded-asset": 1343,
-    "evidence-producing": 339,
+    "evidence-producing": 337,
     "path-plannable": 234,
     "excluded-with-rationale": 1746
   },
@@ -22,7 +22,7 @@
     "authoring-textbook-figure": 535,
     "authoring-textbook-section": 25,
     "knowledge-infograph": 161,
-    "knowledge-card": 279,
+    "knowledge-card": 277,
     "registered-resource": 168,
     "runtime-handout": 37,
     "runtime-lesson-media": 759,
@@ -34,18 +34,18 @@
   },
   "downstreamBlockers": {
     "dependency": 60,
-    "evidence-lineage": 7494,
-    "path-readiness": 15461,
-    "runtime-identity": 2192
+    "evidence-lineage": 7479,
+    "path-readiness": 15457,
+    "runtime-identity": 2190
   },
   "evidence": {
     "beforeResidualDispositionReview": {
-      "queuedResources": 5239,
-      "primaryQueueItems": 5239,
-      "dependentQueueItems": 28816
+      "queuedResources": 5237,
+      "primaryQueueItems": 5237,
+      "dependentQueueItems": 28774
     },
     "afterResidualDispositionReview": {
-      "reviewedResources": 5239,
+      "reviewedResources": 5237,
       "unresolvedDispositionBlockers": 0
     },
     "itemJsonlPath": "course-content/runtime/resource-governance/resource-disposition-backlog-review-items.jsonl",

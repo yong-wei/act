@@ -12,6 +12,8 @@ import {
 import {
   buildLearningGoalResourceBaselineArtifacts,
   LEARNING_GOAL_RESOURCE_BASELINE_VERSION,
+  type LearningGoalResourceBaselineArtifacts,
+  type LearningGoalResourceBaselineCategorySummary,
 } from '../learning-goal-resource-baseline';
 import {
   FULL_RESOURCE_PATH_READINESS_GATE_VERSION,
@@ -44,6 +46,8 @@ describe('resource field completion audit', () => {
       capabilityTargetIds: ['controlModeling'],
       estimatedTimeMinutes: 6,
       reviewedSourceHash: reviewedSourceHash!,
+      reviewerVisibleRationale: 'Fixture verifies reviewed runtime step completion invalidation semantics.',
+      independentEvidenceRef: 'test-fixture:reviewed-runtime-step-completion',
     };
 
     expect(reviewedRuntimeStepCompletionForSource(
@@ -138,6 +142,17 @@ describe('resource field completion audit', () => {
       join(process.cwd(), 'course-content/runtime/resource-governance/resource-disposition-backlog-review-evidence.md'),
       'utf8',
     );
+    const knowledgeVisualSemanticReviewSummary = JSON.parse(readFileSync(
+      join(process.cwd(), 'course-content/runtime/resource-governance/knowledge-visual-semantic-shard-summary.json'),
+      'utf8',
+    ));
+    const knowledgeVisualSemanticReviewItems = readFileSync(
+      join(process.cwd(), 'course-content/runtime/resource-governance/knowledge-visual-semantic-shard-review-items.jsonl'),
+      'utf8',
+    )
+      .trim()
+      .split('\n')
+      .map((line) => JSON.parse(line));
     const humanReviewIntegrity = JSON.parse(readFileSync(
       join(process.cwd(), 'course-content/runtime/resource-governance/resource-human-review-integrity-diagnostics.json'),
       'utf8',
@@ -364,7 +379,9 @@ describe('resource field completion audit', () => {
       return item.sourceHash === actualHash;
     })).toBe(true);
     expect(unresolvedDispositionRows.some((item) => item.sourceFamily === 'knowledge-infograph')).toBe(false);
-    expect(reviewedKnowledgeCardRows).toHaveLength(279);
+    expect(reviewedKnowledgeCardRows).toHaveLength(277);
+    expect(reviewedKnowledgeCardRows.some((item) => item.resourceId === 'knowledge-card:Bode图_1_1')).toBe(false);
+    expect(reviewedKnowledgeCardRows.some((item) => item.resourceId === 'knowledge-card:Bode首轮骨架_5_1e07d9da')).toBe(false);
     expect(reviewedKnowledgeCardRows.every((item) =>
       item.classification === 'evidence-producing' &&
       item.sourceHash?.startsWith('sha256:') &&
@@ -379,6 +396,34 @@ describe('resource field completion audit', () => {
       return item.sourceHash === actualHash;
     })).toBe(true);
     expect(unresolvedDispositionRows.some((item) => item.sourceFamily === 'knowledge-card')).toBe(false);
+    expect(knowledgeVisualSemanticReviewSummary).toMatchObject({
+      selectedCount: 4,
+      remainingSelectedSemanticReview: 0,
+      residualUnselectedCounts: {
+        'knowledge-card': 277,
+        'knowledge-infograph': 159,
+      },
+      byDisposition: {
+        'path-plannable': 2,
+        'embedded-asset': 2,
+      },
+    });
+    expect(knowledgeVisualSemanticReviewSummary.selectedResourceIds).toEqual([
+      'knowledge-card:Bode图_1_1',
+      'infograph:Bode图_1_1',
+      'knowledge-card:Bode首轮骨架_5_1e07d9da',
+      'infograph:传统设计四联图校正_4_47004',
+    ]);
+    expect(knowledgeVisualSemanticReviewItems.every((item) =>
+      item.graphNodeIds.length > 0 &&
+      item.learningGoalIds.length > 0 &&
+      item.knowledgeObjectiveIds.length > 0 &&
+      item.capabilityObjectiveIds.length > 0 &&
+      item.qualityObjectiveIds.length > 0 &&
+      item.sourceHash?.startsWith('sha256:') &&
+      item.rawContentIncluded === false &&
+      item.privacyMinimized === true
+    )).toBe(true);
     expect(reviewedAuthoringTextbookFigureDispositionRows).toHaveLength(535);
     expect(reviewedAuthoringTextbookFigureDispositionRows.every((item) =>
       item.classification === 'embedded-asset' &&
@@ -530,7 +575,7 @@ describe('resource field completion audit', () => {
     ]));
     expect(fullResourcePathReadinessGate.futureResourceImportCoverage.auditedResourceTypes).toContain('textbook_section');
     expect(fullResourcePathReadinessGate.futureResourceImportCoverage.missingAuditedResourceTypes).not.toContain('textbook-section');
-    expect(fullResourcePathReadinessGate.findings.map((finding) => finding.id)).toEqual(expect.arrayContaining([
+    expect(fullResourcePathReadinessGate.findings.map((finding: { id: string }) => finding.id)).toEqual(expect.arrayContaining([
       'unresolved-downstream-path-blockers',
       'unreviewed-resource-semantics',
       'unresolved-graph-node-resource-missing',
@@ -549,7 +594,11 @@ describe('resource field completion audit', () => {
     expect(fullResourcePathReadinessEvidence).toContain('Missing diagnostics: none');
     expect(fullResourcePathReadinessEvidence).toContain('frequency-response-foundations: limited');
     expect(fullResourcePathReadinessEvidence).toContain('Attempted path generations: 9');
-    expect(fullResourcePathReadinessEvidence).toContain('Unresolved downstream path blockers: 17713');
+    expect(fullResourcePathReadinessEvidence).toContain(
+      `Unresolved downstream path blockers: ${fullResourcePathReadinessGate.findings.find((finding: { id: string; count?: number }) =>
+        finding.id === 'unresolved-downstream-path-blockers'
+      )?.count}`
+    );
     expect(fullResourcePathReadinessEvidence).toContain('Resource mix not evaluated: 9');
     expect(fullResourcePathReadinessEvidence).toContain('Citation metadata not evaluated: 9');
     const knowledgeCardRows = jsonlRows.filter((row) => row.family === 'knowledge-card');
@@ -708,7 +757,16 @@ describe('resource field completion audit', () => {
       expect(row.sourcePathOrUrl).toBe(`course-content/runtime/knowledge/cards/nodes/${row.sourceRecord}.md`);
       expect(row.coverage.denominatorKey).toContain(row.sourceRecord);
       expect(row.missingFieldCodes).not.toContain('missing-content-hash');
-      expect(row.pathEligibility.afterCompletion).toBe(false);
+      if ([
+        'knowledge-card:Bode图_1_1',
+        'knowledge-card:Bode首轮骨架_5_1e07d9da',
+      ].includes(row.resourceId)) {
+        expect(row.pathEligibility.afterCompletion).toBe(true);
+        expect(row.pathEligibility.current).toBe(true);
+        expect(row.pathEligibility.masteryAffecting).toBe(false);
+      } else {
+        expect(row.pathEligibility.afterCompletion).toBe(false);
+      }
     }
   });
 
@@ -922,6 +980,167 @@ describe('resource field completion audit', () => {
         afterCompletion: false,
         masteryAffecting: false,
         blockedBy: expect.arrayContaining(['missing-human-review', 'provisional-metadata']),
+      },
+    });
+  });
+
+  it('downgrades human-confirmed rows when reviewed source hash is stale', () => {
+    const result = buildResourceFieldCompletionAudit({
+      registry: buildResourceNodeRegistry({}),
+      generatedAt: '2026-06-22T00:00:00.000Z',
+      candidates: [{
+        id: 'knowledge-card:stale-source-review',
+        title: 'Stale source review',
+        family: 'knowledge-card',
+        sourcePathOrUrl: 'course-content/runtime/knowledge/cards/nodes/stale-source-review.md',
+        sourceRecord: 'stale-source-review',
+        knowledgeNodeIds: ['Bode图_1_1'],
+        capabilityTargetIds: ['capability:autocontrol:interpret-time-frequency-response'],
+        segmentRefs: ['stale-source-review'],
+        citationTargets: ['course-content/runtime/knowledge/cards/nodes/stale-source-review.md'],
+        pathTarget: '/knowledge?node=stale-source-review',
+        estimatedTimeMinutes: 4,
+        evidenceInstrumentation: ['knowledge_card_open'],
+        privacyScope: 'student-visible',
+        contentHash: 'sha256:current-source',
+        versionRef: 'runtime-knowledge-card.v1',
+        generatedBy: 'template',
+        humanConfirmed: true,
+        currentPathEligible: true,
+        reviewEvidence: {
+          reviewerId: 'knowledge-card-reviewer',
+          reviewerRole: 'curriculum-data-governance',
+          reviewedAt: '2026-07-03T00:00:00.000Z',
+          reviewBatchId: 'knowledge-card-review-batch',
+          reviewerVisibleRationale: 'The stale source hash must invalidate this review.',
+          independentEvidenceRef: 'review-packet:knowledge-card-stale-source-review',
+          reviewedSourceHash: 'sha256:previous-source',
+          reviewedVersionRef: 'runtime-knowledge-card.v1',
+          promptOrManifestHash: 'sha256:knowledge-card-review',
+        },
+      }],
+    });
+
+    expect(result.rows[0]).toMatchObject({
+      sourceHash: 'sha256:current-source',
+      reviewStatus: 'stale',
+      missingFieldCodes: expect.arrayContaining([
+        'missing-human-review',
+        'stale-review',
+        'provisional-metadata',
+      ]),
+      pathEligibility: {
+        current: false,
+        afterCompletion: false,
+        masteryAffecting: false,
+      },
+    });
+  });
+
+  it('downgrades knowledge visual reviews when reviewed source hash is missing', () => {
+    const result = buildResourceFieldCompletionAudit({
+      registry: buildResourceNodeRegistry({}),
+      generatedAt: '2026-06-22T00:00:00.000Z',
+      candidates: [{
+        id: 'knowledge-card:missing-source-review-hash',
+        title: 'Missing source review hash',
+        family: 'knowledge-card',
+        sourcePathOrUrl: 'course-content/runtime/knowledge/cards/nodes/missing-source-review-hash.md',
+        sourceRecord: 'missing-source-review-hash',
+        knowledgeNodeIds: ['Bode图_1_1'],
+        capabilityTargetIds: ['capability:autocontrol:interpret-time-frequency-response'],
+        segmentRefs: ['missing-source-review-hash'],
+        citationTargets: ['course-content/runtime/knowledge/cards/nodes/missing-source-review-hash.md'],
+        pathTarget: '/knowledge?node=missing-source-review-hash',
+        estimatedTimeMinutes: 4,
+        evidenceInstrumentation: ['knowledge_card_open'],
+        privacyScope: 'student-visible',
+        contentHash: 'sha256:current-source',
+        versionRef: 'runtime-knowledge-card.v1',
+        generatedBy: 'template',
+        humanConfirmed: true,
+        currentPathEligible: true,
+        reviewEvidence: {
+          reviewerId: 'knowledge-card-reviewer',
+          reviewerRole: 'curriculum-data-governance',
+          reviewedAt: '2026-07-03T00:00:00.000Z',
+          reviewBatchId: 'knowledge-card-review-batch',
+          reviewerVisibleRationale: 'Knowledge visual review must carry the independently reviewed source hash.',
+          independentEvidenceRef: 'review-packet:knowledge-card-missing-source-review-hash',
+          reviewedVersionRef: 'runtime-knowledge-card.v1',
+          promptOrManifestHash: 'sha256:knowledge-card-review',
+        },
+      }],
+    });
+
+    expect(result.rows[0]).toMatchObject({
+      sourceHash: 'sha256:current-source',
+      reviewStatus: 'stale',
+      missingFieldCodes: expect.arrayContaining([
+        'missing-human-review',
+        'stale-review',
+        'provisional-metadata',
+      ]),
+      pathEligibility: {
+        current: false,
+        afterCompletion: false,
+        masteryAffecting: false,
+      },
+    });
+  });
+
+  it('downgrades knowledge visual reviews when reviewed version ref is stale', () => {
+    const result = buildResourceFieldCompletionAudit({
+      registry: buildResourceNodeRegistry({}),
+      generatedAt: '2026-06-22T00:00:00.000Z',
+      candidates: [{
+        id: 'knowledge-card:stale-version-review',
+        title: 'Stale version review',
+        family: 'knowledge-card',
+        sourcePathOrUrl: 'course-content/runtime/knowledge/cards/nodes/stale-version-review.md',
+        sourceRecord: 'stale-version-review',
+        knowledgeNodeIds: ['Bode图_1_1'],
+        capabilityTargetIds: ['capability:autocontrol:interpret-time-frequency-response'],
+        segmentRefs: ['stale-version-review'],
+        citationTargets: ['course-content/runtime/knowledge/cards/nodes/stale-version-review.md'],
+        pathTarget: '/knowledge?node=stale-version-review',
+        estimatedTimeMinutes: 4,
+        evidenceInstrumentation: ['knowledge_card_open'],
+        privacyScope: 'student-visible',
+        contentHash: 'sha256:current-source',
+        versionRef: 'runtime-knowledge-card.v2',
+        generatedBy: 'template',
+        humanConfirmed: true,
+        currentPathEligible: true,
+        reviewEvidence: {
+          reviewerId: 'knowledge-card-reviewer',
+          reviewerRole: 'curriculum-data-governance',
+          reviewedAt: '2026-07-03T00:00:00.000Z',
+          reviewBatchId: 'knowledge-card-review-batch',
+          reviewerVisibleRationale: 'The stale reviewed version must invalidate this review.',
+          independentEvidenceRef: 'review-packet:knowledge-card-stale-version-review',
+          reviewedSourceHash: 'sha256:current-source',
+          reviewedVersionRef: 'runtime-knowledge-card.v1',
+          promptOrManifestHash: 'sha256:knowledge-card-review',
+        },
+      }],
+    });
+
+    expect(result.rows[0]).toMatchObject({
+      sourceVersionRef: 'runtime-knowledge-card.v2',
+      reviewAudit: {
+        reviewedVersionRef: 'runtime-knowledge-card.v1',
+      },
+      reviewStatus: 'stale',
+      missingFieldCodes: expect.arrayContaining([
+        'missing-human-review',
+        'stale-review',
+        'provisional-metadata',
+      ]),
+      pathEligibility: {
+        current: false,
+        afterCompletion: false,
+        masteryAffecting: false,
       },
     });
   });
@@ -1702,6 +1921,7 @@ describe('resource field completion audit', () => {
           reviewerVisibleRationale: 'Knowledge card is a path execution evidence source, not a mastery LearningFact source.',
           independentEvidenceRef: 'review-packet:knowledge-card-feedback-loop',
           reviewedSourceHash: 'sha256:feedback-loop',
+          reviewedVersionRef: 'runtime-knowledge-card.v1',
           promptOrManifestHash: 'sha256:knowledge-card-review',
         },
       }],
@@ -1717,6 +1937,7 @@ describe('resource field completion audit', () => {
     });
     expect(result.rows[0].missingFieldCodes).not.toContain('missing-evidence-contract');
     expect(result.rows[0].missingFieldCodes).not.toContain('missing-evidence-instrumentation');
+    expect(result.rows[0].pathEligibility.masteryAffecting).toBe(false);
     expect(result.evidenceLineage.items
       .filter((item) => item.yangFanFixtureScope === 'global-resource-backlog'))
       .toHaveLength(0);
@@ -1729,11 +1950,11 @@ describe('resource field completion audit', () => {
     const matrix = JSON.parse(readFileSync(
       join(process.cwd(), 'course-content/runtime/resource-governance/learning-goal-resource-baseline-matrix.json'),
       'utf8',
-    ));
+    )) as LearningGoalResourceBaselineArtifacts['matrix'];
     const limitations = JSON.parse(readFileSync(
       join(process.cwd(), 'course-content/runtime/resource-governance/learning-goal-resource-baseline-limitations.json'),
       'utf8',
-    ));
+    )) as LearningGoalResourceBaselineArtifacts['limitations'];
     const reviewedBindings = readFileSync(
       join(process.cwd(), 'course-content/runtime/resource-governance/learning-goal-resource-baseline-reviewed-bindings.jsonl'),
       'utf8',
@@ -1741,7 +1962,7 @@ describe('resource field completion audit', () => {
       .trim()
       .split('\n')
       .filter(Boolean)
-      .map((line) => JSON.parse(line));
+      .map((line) => JSON.parse(line) as LearningGoalResourceBaselineArtifacts['reviewedBindings'][number]);
     const reviewedBindingIds = new Set(reviewedBindings.map((row) => row.bindingId));
     const auditRows = readFileSync(
       join(process.cwd(), 'course-content/runtime/resource-governance/resource-field-completion-audit.jsonl'),
@@ -1749,10 +1970,17 @@ describe('resource field completion audit', () => {
     )
       .trim()
       .split('\n')
-      .map((line) => JSON.parse(line));
+      .map((line) => JSON.parse(line) as ResourceFieldCompletionAuditRow);
     const auditRowById = new Map(auditRows.map((row) => [row.resourceId, row]));
     const expectedLearningGoalIds = Object.values(ADAPTIVE_LEARNING_GOAL_DEFINITIONS)
       .map((definition) => definition.learningGoal!.id);
+    const baselineRowFor = (learningGoalId: string): LearningGoalResourceBaselineArtifacts['matrix']['rows'][number] => {
+      const row = matrix.rows.find((item) => item.learningGoalId === learningGoalId);
+      if (!row) {
+        throw new Error(`Missing LearningGoal baseline row: ${learningGoalId}`);
+      }
+      return row;
+    };
 
     expect(matrix.artifactVersion).toBe(LEARNING_GOAL_RESOURCE_BASELINE_VERSION);
     expect(matrix.registeredLearningGoalIds).toEqual(expectedLearningGoalIds);
@@ -1786,7 +2014,7 @@ describe('resource field completion audit', () => {
       'transfer-function-modeling-foundations',
       'time-domain-response-analysis',
     ]) {
-      const row = matrix.rows.find((item) => item.learningGoalId === goalId);
+      const row = baselineRowFor(goalId);
       expect(row.categories.concept.pathEligible).toBeGreaterThan(0);
       expect(row.categories.citation.pathEligible).toBeGreaterThan(0);
       expect(row.categories.diagnostic.pathEligible).toBe(0);
@@ -1805,7 +2033,7 @@ describe('resource field completion audit', () => {
       'frequency-response-foundations',
       'stability-margin-frequency-analysis',
     ]) {
-      const row = matrix.rows.find((item) => item.learningGoalId === goalId);
+      const row = baselineRowFor(goalId);
       expect(row.categories.concept.pathEligible).toBeGreaterThanOrEqual(2);
       expect(row.categories.citation.pathEligible).toBeGreaterThanOrEqual(2);
       expect(row.categories.diagnostic.pathEligible).toBe(0);
@@ -1819,9 +2047,7 @@ describe('resource field completion audit', () => {
         'remediation',
       ]);
     }
-    const simulationValidationRow = matrix.rows.find((item) =>
-      item.learningGoalId === 'simulation-validation-practice'
-    );
+    const simulationValidationRow = baselineRowFor('simulation-validation-practice');
     expect(simulationValidationRow.categories.concept.pathEligible).toBe(8);
     expect(simulationValidationRow.categories.concept.pathEligibleResourceIds.every((id) =>
       id.startsWith('runtime-step:4-7:')
@@ -1841,9 +2067,7 @@ describe('resource field completion audit', () => {
       'remediation',
       'terminal-validation',
     ]);
-    const shipOceanTransferRow = matrix.rows.find((item) =>
-      item.learningGoalId === 'ship-ocean-transfer-application'
-    );
+    const shipOceanTransferRow = baselineRowFor('ship-ocean-transfer-application');
     expect(shipOceanTransferRow.categories.concept.pathEligible).toBe(6);
     expect(shipOceanTransferRow.categories.concept.pathEligibleResourceIds.every((id) =>
       id.startsWith('runtime-step:5-3:')
@@ -1876,13 +2100,17 @@ describe('resource field completion audit', () => {
         artifactVersion: LEARNING_GOAL_RESOURCE_BASELINE_VERSION,
       });
       expect(row.selectedReviewedBindingIds.every((bindingId) => reviewedBindingIds.has(bindingId))).toBe(true);
-      for (const category of Object.values(row.categories)) {
+      for (const category of Object.values(row.categories) as LearningGoalResourceBaselineCategorySummary[]) {
         expect(category.pathEligible).toBeLessThanOrEqual(category.humanConfirmed);
         expect(category.pathEligibleResourceIds.filter((id) => category.provisionalResourceIds.includes(id))).toEqual([]);
       }
     }
     for (const binding of reviewedBindings) {
       const auditRow = auditRowById.get(binding.resourceId);
+      expect(auditRow).toBeDefined();
+      if (!auditRow) {
+        throw new Error(`Missing resource field completion audit row: ${binding.resourceId}`);
+      }
       expect(auditRow).toMatchObject({
         reviewStatus: 'human-confirmed',
         sourceHash: expect.any(String),
@@ -1895,9 +2123,12 @@ describe('resource field completion audit', () => {
         evidenceContractComplete: true,
       });
       expect(binding.reviewAudit).toMatchObject({
-        reviewerId: 'openspec-buddy:learning-goal-resource-baseline-completion',
-        reviewerRole: 'curriculum-governance',
-        reviewBatchId: LEARNING_GOAL_RESOURCE_BASELINE_VERSION,
+        reviewerId: auditRow.reviewAudit.reviewerId,
+        reviewerRole: auditRow.reviewAudit.reviewerRole,
+        reviewedAt: auditRow.reviewAudit.reviewedAt,
+        reviewBatchId: auditRow.reviewAudit.reviewBatchId,
+        reviewedSourceHash: auditRow.reviewAudit.reviewedSourceHash,
+        reviewedVersionRef: auditRow.reviewAudit.reviewedVersionRef,
       });
     }
     expect(limitations.artifactVersion).toBe(LEARNING_GOAL_RESOURCE_BASELINE_VERSION);
@@ -2439,7 +2670,8 @@ describe('resource field completion audit', () => {
         ...ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].learningGoal!,
         terminalValidationPolicy: {
           ...ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].learningGoal!.terminalValidationPolicy,
-          terminalNodeTypes: ['simulation'],
+          terminalNodeTypes: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].learningGoal!
+            .terminalValidationPolicy.terminalNodeTypes.filter((type) => type === 'simulation'),
         },
       },
     };
@@ -2811,6 +3043,8 @@ function baselineAuditRow(
       reviewedVersionRef: null,
       generationToolOrModel: null,
       promptOrManifestHash: null,
+      reviewerVisibleRationale: null,
+      independentEvidenceRef: null,
       confidence: null,
       staleInvalidationRule: 'invalidate on source change',
     },
@@ -2823,6 +3057,7 @@ function baselineAuditRow(
       dedupeKey: true,
       timestamps: true,
       learningFactPolicy: true,
+      learningFactMaterializationPolicy: 'materialized-learning-fact',
       confidencePolicy: true,
       privacyScope: true,
       complete: true,

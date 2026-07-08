@@ -366,6 +366,7 @@ describe('control-correction path rounds', () => {
           qualityObjectiveIds: [],
         },
         targetGraphNodeIds: ['cap:autocontrol:synthesize-controller-correction'],
+        selectedGraphNodeIds: ['cap:autocontrol:synthesize-controller-correction'],
         prerequisitePolicy: [],
         overlayStatus: {
           learner: 'available',
@@ -377,6 +378,11 @@ describe('control-correction path rounds', () => {
             linkedResourceCount: 1,
             pathEligibleResourceCount: 1,
           },
+        },
+        resourceCoveragePathEligibleResourceIds: {
+          'cap:autocontrol:synthesize-controller-correction': [
+            'knowledge-card:control-correction-time-domain-targets',
+          ],
         },
         versionRefs: {
           artifactVersioningVersion: 'kaq-artifact-versioning.v1',
@@ -464,6 +470,18 @@ describe('control-correction path rounds', () => {
         }),
       }),
     }));
+    const persistedPayload = db.learningPath.upsert.mock.calls[0][0].create.pathPayload;
+    expect(persistedPayload.pathOptions).toEqual([
+      expect.objectContaining({
+        optionId: 'path-option-1',
+        styleId: 'foundation-remediation',
+        nodeIds: [
+          'knowledge-card:control-correction-time-domain-targets',
+          'arena-task:task-second-order-lead-pid',
+        ],
+        planNodes: expect.any(Array),
+      }),
+    ]);
   });
 
   it('persists registered generic path rounds without requiring control-correction terminal validation', async () => {

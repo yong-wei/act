@@ -2,6 +2,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test, type BrowserContext, type Page } from '@playwright/test';
 import { encode } from 'next-auth/jwt';
+import { UserRole } from '@prisma/client';
 
 import {
   APP_SHELL_GOVERNANCE_REPRESENTATIVE_ROUTE_MATRIX,
@@ -22,7 +23,11 @@ const routes = APP_SHELL_GOVERNANCE_REPRESENTATIVE_ROUTE_MATRIX.filter(
 async function addRoleSession(context: BrowserContext, role: 'student' | 'teacher' | 'admin' | 'guest') {
   if (role === 'guest') return;
 
-  const authRole = role.toUpperCase();
+  const authRole = {
+    student: UserRole.STUDENT,
+    teacher: UserRole.TEACHER,
+    admin: UserRole.ADMIN,
+  }[role];
   const sessionToken = await encode({
     secret: process.env.NEXTAUTH_SECRET ?? 'replace-with-strong-secret',
     token: {
