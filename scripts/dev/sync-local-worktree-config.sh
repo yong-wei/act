@@ -20,6 +20,7 @@ ENV_LINKS=()
 TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
 BACKUP_ROOT=""
 MANAGED_HOOK_MARKER="# Managed by sync-local-worktree-config.sh"
+SELF_INSTALL_HOOKS_ONLY=0
 
 usage() {
   cat <<'USAGE'
@@ -189,8 +190,13 @@ TARGET="$(cd "$TARGET" && pwd)"
 BACKUP_ROOT="$TARGET/.tmp/local-config-backups/$TIMESTAMP"
 
 if [[ "$SOURCE" == "$TARGET" ]]; then
-  echo "Source and target are the same path: $SOURCE" >&2
-  exit 2
+  if [[ "$INSTALL_HOOKS" -eq 1 && "$LINK_CONFIG" -eq 0 && "$LINK_ENV" -eq 0 && "$INSTALL_DEPS" -eq 0 && "$INIT_GRAPHS" -eq 0 && "$LINK_OPENWOLF_KNOWLEDGE" -eq 0 ]]; then
+    SELF_INSTALL_HOOKS_ONLY=1
+  else
+    echo "Source and target are the same path: $SOURCE" >&2
+    echo "Only --install-hooks may target the source checkout itself." >&2
+    exit 2
+  fi
 fi
 
 if [[ "$LINK_ENV" -eq 1 && "$LINK_CONFIG" -ne 1 ]]; then
@@ -973,10 +979,12 @@ write_managed_hook() {
 
 install_git_hooks() {
   local pre_commit
+  local pre_push
   local post_commit
   local post_checkout
   local post_merge
   local post_rewrite
+  local typecheck_lib
   local crg_lib
   local codegraph_lib
 
@@ -986,10 +994,22 @@ install_git_hooks() {
   read -r -d '' pre_commit <<'HOOK' || true
 #!/bin/sh
 # Managed by sync-local-worktree-config.sh
+# Block commits that introduce TypeScript errors.
+. "$(git rev-parse --git-path hooks/typecheck-hook-lib.sh)"
+typecheck_run "pre-commit" || exit $?
+
 # Detect graph-relevant changes before commit; graph indexes are updated after commit.
 if command -v code-review-graph >/dev/null 2>&1; then
     code-review-graph detect-changes --brief || true
 fi
+HOOK
+
+  read -r -d '' pre_push <<'HOOK' || true
+#!/bin/sh
+# Managed by sync-local-worktree-config.sh
+# Block pushes that introduce TypeScript errors.
+. "$(git rev-parse --git-path hooks/typecheck-hook-lib.sh)"
+typecheck_run "pre-push" || exit $?
 HOOK
 
   read -r -d '' post_commit <<'HOOK' || true
@@ -1042,6 +1062,35 @@ crg_run build
 
 . "$(git rev-parse --git-path hooks/codegraph-hook-lib.sh)"
 codegraph_run sync
+HOOK
+
+  read -r -d '' typecheck_lib <<'HOOK' || true
+#!/bin/sh
+# Managed by sync-local-worktree-config.sh
+
+typecheck_repo_root() {
+  git rev-parse --show-toplevel 2>/dev/null
+}
+
+typecheck_run() {
+  hook_name="$1"
+  repo="$(typecheck_repo_root)"
+  if [ -z "$repo" ]; then
+    return 0
+  fi
+
+  if [ ! -f "$repo/package.json" ]; then
+    return 0
+  fi
+
+  if ! command -v npm >/dev/null 2>&1; then
+    printf '%s: npm is required to run TypeScript verification.\n' "$hook_name" >&2
+    return 127
+  fi
+
+  printf '%s: running npm run verify:%s\n' "$hook_name" "${hook_name#pre-}" >&2
+  (cd "$repo" && npm run "verify:${hook_name#pre-}")
+}
 HOOK
 
   read -r -d '' crg_lib <<'HOOK' || true
@@ -1174,10 +1223,12 @@ codegraph_run() {
 HOOK
 
   write_managed_hook "pre-commit" "$pre_commit"
+  write_managed_hook "pre-push" "$pre_push"
   write_managed_hook "post-commit" "$post_commit"
   write_managed_hook "post-checkout" "$post_checkout"
   write_managed_hook "post-merge" "$post_merge"
   write_managed_hook "post-rewrite" "$post_rewrite"
+  write_managed_hook "typecheck-hook-lib.sh" "$typecheck_lib"
   write_managed_hook "crg-hook-lib.sh" "$crg_lib"
   write_managed_hook "codegraph-hook-lib.sh" "$codegraph_lib"
 }
@@ -1204,6 +1255,11 @@ install_dependencies() {
 echo "Source: $SOURCE"
 echo "Target: $TARGET"
 print_mode
+
+if [[ "$SELF_INSTALL_HOOKS_ONLY" -eq 1 ]]; then
+  install_git_hooks
+  exit 0
+fi
 
 echo
 echo "Files:"
