@@ -122,6 +122,29 @@ interface RawRelationRecord {
   strength?: number;
 }
 
+interface DatabaseKnowledgeNodeRow {
+  id: string;
+  name: string;
+  nodeType: NodeType;
+  description: string;
+  positionX: number;
+  positionY: number;
+  positionZ: number;
+  bloomLevel: BloomLevel | null;
+  knowledgeDim: KnowledgeDim | null;
+  metadata: unknown;
+  content: unknown;
+  resources: unknown;
+  tags: string[] | null;
+}
+
+interface DatabaseKnowledgeLinkRow {
+  id: string;
+  sourceId: string;
+  targetId: string;
+  relation: string;
+}
+
 const BLOOM_LEVEL_MAP: Record<string, BloomLevel> = {
   REMEMBER: 'REMEMBER',
   UNDERSTAND: 'UNDERSTAND',
@@ -261,6 +284,70 @@ function buildRawFileGraphVersionDigest(rawNodes: string, rawRelations: string):
     .update(rawRelations)
     .digest('hex')
     .slice(0, 16);
+}
+
+function normalizeDatabaseKnowledgeNodes(nodes: DatabaseKnowledgeNodeRow[]): UnifiedKnowledgeNode[] {
+  return nodes.map((node) => {
+    const metadata = (node.metadata ?? {}) as Record<string, unknown>;
+    const chapterValue = metadata.chapter;
+    const chapter = typeof chapterValue === 'number' ? chapterValue : undefined;
+    const chapterNameValue = metadata.chapterName;
+    const chapterName = resolveChapterName(
+      chapter,
+      typeof chapterNameValue === 'string' ? chapterNameValue : null
+    );
+
+    return {
+      ...node,
+      bloomLevel: node.bloomLevel ?? undefined,
+      knowledgeDim: node.knowledgeDim ?? undefined,
+      chapter,
+      chapterName,
+      metadata,
+      content: (node.content ?? {}) as Record<string, unknown>,
+      resources: Array.isArray(node.resources) ? (node.resources as unknown[]) : [],
+      tags: node.tags ?? [],
+    };
+  });
+}
+
+function normalizeDatabaseKnowledgeLinks(links: DatabaseKnowledgeLinkRow[]): UnifiedKnowledgeLink[] {
+  return links.map((link) => {
+    const relationType = normalizeRelationType(link.relation);
+    return {
+      id: link.id,
+      sourceId: link.sourceId,
+      targetId: link.targetId,
+      relation: relationType,
+      relationType,
+      strength: 1,
+    };
+  });
+}
+
+function buildDatabaseKnowledgeGraphPayload(
+  nodes: DatabaseKnowledgeNodeRow[],
+  links: DatabaseKnowledgeLinkRow[],
+  options: { includeLinks: boolean }
+): UnifiedKnowledgeGraphPayload {
+  const normalizedNodes = normalizeDatabaseKnowledgeNodes(nodes);
+  const normalizedLinks = normalizeDatabaseKnowledgeLinks(links);
+  const versionDigest = createHash('sha256')
+    .update(stableKnowledgeGraphVersionInput({
+      nodes: normalizedNodes,
+      links: normalizedLinks,
+      source: 'database',
+    }))
+    .digest('hex')
+    .slice(0, 16);
+
+  return {
+    nodes: normalizedNodes,
+    links: options.includeLinks ? normalizedLinks : [],
+    source: 'database',
+    versionDigest,
+    versionLinkCount: normalizedLinks.length,
+  };
 }
 
 function resolveNodeId(
@@ -454,86 +541,40 @@ async function loadKnowledgeGraphFromDatabase(): Promise<UnifiedKnowledgeGraphPa
     }),
   ]);
 
-  return {
-    nodes: nodes.map((node) => {
-      const metadata = (node.metadata ?? {}) as Record<string, unknown>;
-      const chapterValue = metadata.chapter;
-      const chapter = typeof chapterValue === 'number' ? chapterValue : undefined;
-      const chapterNameValue = metadata.chapterName;
-      const chapterName = resolveChapterName(
-        chapter,
-        typeof chapterNameValue === 'string' ? chapterNameValue : null
-      );
-
-      return {
-        ...node,
-        chapter,
-        chapterName,
-        metadata,
-        content: (node.content ?? {}) as Record<string, unknown>,
-        resources: Array.isArray(node.resources) ? (node.resources as unknown[]) : [],
-        tags: node.tags ?? [],
-      };
-    }),
-    links: links.map((link) => {
-      const relationType = normalizeRelationType(link.relation);
-      return {
-        id: link.id,
-        sourceId: link.sourceId,
-        targetId: link.targetId,
-        relation: relationType,
-        relationType,
-        strength: 1,
-      };
-    }),
-    source: 'database',
-  };
+  return buildDatabaseKnowledgeGraphPayload(nodes, links, { includeLinks: true });
 }
 
 async function loadKnowledgeGraphRootFromDatabase(): Promise<UnifiedKnowledgeGraphPayload> {
-  const nodes = await prisma.knowledgeNode.findMany({
-    where: { isActive: true },
-    select: {
-      id: true,
-      name: true,
-      nodeType: true,
-      description: true,
-      positionX: true,
-      positionY: true,
-      positionZ: true,
-      bloomLevel: true,
-      knowledgeDim: true,
-      metadata: true,
-      content: true,
-      resources: true,
-      tags: true,
-    },
-  });
-
-  return {
-    nodes: nodes.map((node) => {
-      const metadata = (node.metadata ?? {}) as Record<string, unknown>;
-      const chapterValue = metadata.chapter;
-      const chapter = typeof chapterValue === 'number' ? chapterValue : undefined;
-      const chapterNameValue = metadata.chapterName;
-      const chapterName = resolveChapterName(
-        chapter,
-        typeof chapterNameValue === 'string' ? chapterNameValue : null
-      );
-
-      return {
-        ...node,
-        chapter,
-        chapterName,
-        metadata,
-        content: (node.content ?? {}) as Record<string, unknown>,
-        resources: Array.isArray(node.resources) ? (node.resources as unknown[]) : [],
-        tags: node.tags ?? [],
-      };
+  const [nodes, links] = await Promise.all([
+    prisma.knowledgeNode.findMany({
+      where: { isActive: true },
+      select: {
+        id: true,
+        name: true,
+        nodeType: true,
+        description: true,
+        positionX: true,
+        positionY: true,
+        positionZ: true,
+        bloomLevel: true,
+        knowledgeDim: true,
+        metadata: true,
+        content: true,
+        resources: true,
+        tags: true,
+      },
     }),
-    links: [],
-    source: 'database',
-  };
+    prisma.knowledgeLink.findMany({
+      select: {
+        id: true,
+        sourceId: true,
+        targetId: true,
+        relation: true,
+      },
+    }),
+  ]);
+
+  return buildDatabaseKnowledgeGraphPayload(nodes, links, { includeLinks: false });
 }
 
 export async function loadKnowledgeGraphData(): Promise<UnifiedKnowledgeGraphPayload> {

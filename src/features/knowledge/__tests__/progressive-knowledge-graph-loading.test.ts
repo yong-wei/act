@@ -1,6 +1,28 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { describe, expect, it, vi } from 'vitest';
+
+const prismaMock = vi.hoisted(() => ({
+  knowledgeNode: {
+    findMany: vi.fn(),
+  },
+  knowledgeLink: {
+    findMany: vi.fn(),
+  },
+}));
+
+vi.mock('@/lib/prisma', () => ({
+  prisma: prismaMock,
+}));
+
+vi.mock('fs/promises', () => ({
+  default: {
+    readFile: vi.fn(async () => {
+      throw new Error('file graph unavailable in this test');
+    }),
+  },
+}));
+
 import {
   buildKnowledgeGraphActiveFilterPayload,
   buildKnowledgeGraphExpansionPayload,
@@ -8,6 +30,8 @@ import {
   buildKnowledgeGraphRemainingPayload,
   buildKnowledgeGraphRootPayload,
   getKnowledgeGraphVersion,
+  loadKnowledgeGraphData,
+  loadKnowledgeGraphRootData,
   type UnifiedKnowledgeGraphPayload,
 } from '@/lib/knowledge-graph-source';
 import { injectChapterNodes } from '@/features/knowledge/graph/filter-utils';
@@ -202,5 +226,43 @@ describe('progressive knowledge graph loading', () => {
     };
 
     expect(getKnowledgeGraphVersion(changed)).not.toBe(getKnowledgeGraphVersion(graph));
+  });
+
+  it('keeps database root and full graph versions aligned while root omits returned links', async () => {
+    const graph = graphFixture();
+    const databaseNodes = graph.nodes.map((node) => ({
+      id: node.id,
+      name: node.name,
+      nodeType: node.nodeType,
+      description: node.description,
+      positionX: node.positionX,
+      positionY: node.positionY,
+      positionZ: node.positionZ,
+      bloomLevel: node.bloomLevel ?? null,
+      knowledgeDim: node.knowledgeDim ?? null,
+      metadata: node.metadata ?? {},
+      content: node.content ?? {},
+      resources: node.resources ?? [],
+      tags: node.tags ?? [],
+    }));
+    const databaseLinks = graph.links.map((link) => ({
+      id: link.id,
+      sourceId: link.sourceId,
+      targetId: link.targetId,
+      relation: link.relation,
+    }));
+
+    prismaMock.knowledgeNode.findMany.mockResolvedValue(databaseNodes);
+    prismaMock.knowledgeLink.findMany.mockResolvedValue(databaseLinks);
+
+    const root = await loadKnowledgeGraphRootData();
+    const full = await loadKnowledgeGraphData();
+
+    expect(root.source).toBe('database');
+    expect(full.source).toBe('database');
+    expect(root.links).toEqual([]);
+    expect(root.versionLinkCount).toBe(databaseLinks.length);
+    expect(full.links.length).toBe(databaseLinks.length);
+    expect(getKnowledgeGraphVersion(root)).toBe(getKnowledgeGraphVersion(full));
   });
 });
