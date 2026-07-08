@@ -44,6 +44,7 @@ export interface PersistControlCorrectionPathRoundInput {
   plan: AdaptiveLearningPathPlan;
   learnerStateRef?: string | null;
   inputSnapshot?: Record<string, unknown> | null;
+  pathPayloadMetadata?: Record<string, unknown> | null;
   classId?: string | null;
 }
 
@@ -193,6 +194,7 @@ export async function persistLearningPathRound(
     goalId: input.plan.goal.id,
     plannerVersion: input.plan.stage,
     status: record.payload.status,
+    ...(input.pathPayloadMetadata ?? {}),
     artifactVersioning: record.payload.artifactVersioning,
     graphContext: record.payload.graphContext ?? null,
     mainPathNodeIds: input.plan.mainPath.map((node) => node.nodeId),

@@ -373,6 +373,7 @@ export interface AdaptiveLearningPathPlannerInput {
   preferredStyleId?: string;
   sourcePackCandidates?: readonly SourcePackItem[];
   sourcePackLimitations?: readonly SourcePackLimitation[];
+  candidatePoolDiagnostics?: AdaptiveLearningPathCandidatePoolDiagnostics;
   sourcePackRole?: SourcePackCallerRole;
   sarCandidateContext?: AdaptiveLearningPathSarCandidateContext;
   requestedAt?: string;
@@ -500,7 +501,29 @@ export interface AdaptiveLearningPathEvidencePayload {
   teacherPolicy: Array<{ nodeId: string; policy: ResourceNode['planningMetadata']['teacherPolicy'] }>;
   alternatives: AdaptiveLearningPathAlternative[];
   sourcePackEvidence?: AdaptiveLearningPathSourcePackEvidence | null;
+  candidatePoolDiagnostics?: AdaptiveLearningPathCandidatePoolDiagnostics | null;
   associativeRetrieval?: AdaptiveLearningPathAssociativeRetrievalBasis;
+}
+
+export interface AdaptiveLearningPathCandidatePoolDiagnostics {
+  registryVersion: string;
+  projectionVersion: string;
+  totalCandidates: number;
+  pathEligibleCandidates: number;
+  candidateCountsByFamily: Record<string, number>;
+  sourceFamilies: Array<{
+    family: string;
+    status: 'loaded' | 'empty' | 'missing' | 'error';
+    count: number;
+    reason: string | null;
+  }>;
+  excluded: {
+    total: number;
+    byReason: Record<string, number>;
+  };
+  sourceFamilyIssues: Record<string, number>;
+  missingSourceReasons: Record<string, number>;
+  nodeEligibilityMissingReasons: Record<string, number>;
 }
 
 export interface AdaptiveLearningPathAssociativeRetrievalBasis {
@@ -2075,6 +2098,7 @@ function buildAdaptiveLearningPathPlanInternal(
       status,
       hasUsablePath: mainPath.length > 0,
       sourcePackEvidence,
+      candidatePoolDiagnostics: input.candidatePoolDiagnostics,
       associativeRetrieval: explanations.associativeRetrieval,
       generatedAt: now,
     }),
@@ -4595,6 +4619,7 @@ function buildVisualization(input: {
   status: AdaptiveLearningPathStatus;
   hasUsablePath: boolean;
   sourcePackEvidence: AdaptiveLearningPathSourcePackEvidence | null;
+  candidatePoolDiagnostics?: AdaptiveLearningPathCandidatePoolDiagnostics;
   associativeRetrieval?: AdaptiveLearningPathAssociativeRetrievalBasis;
   generatedAt: string;
 }): AdaptiveLearningPathVisualization {
@@ -4628,6 +4653,7 @@ function buildVisualization(input: {
       teacherPolicy: input.mainPath.map((node) => ({ nodeId: node.nodeId, policy: node.teacherPolicy })),
       alternatives: input.alternatives,
       sourcePackEvidence: input.sourcePackEvidence,
+      candidatePoolDiagnostics: input.candidatePoolDiagnostics ?? null,
       associativeRetrieval: input.associativeRetrieval,
     },
   };

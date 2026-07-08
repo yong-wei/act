@@ -6,8 +6,10 @@ const mocks = vi.hoisted(() => ({
   readAdaptiveLearnerState: vi.fn(),
   getLearningGoalAssessmentCoverageForPlanner: vi.fn(),
   getLearningGoalResourceBaselineForPlanner: vi.fn(),
+  loadAllLessonRuntimeResourceCatalogEntries: vi.fn(),
   loadAllTextbookRuntimeResourceCatalogEntries: vi.fn(),
   loadAllTextbookRuntimeSearchDocuments: vi.fn(),
+  loadRuntimeResourceProjectionInputs: vi.fn(),
 }));
 
 vi.mock('@/lib/data-governance/adaptive-learner-state-service', async () => {
@@ -49,6 +51,20 @@ vi.mock('@/lib/textbook-runtime-resources', () => ({
   loadAllTextbookRuntimeSearchDocuments: mocks.loadAllTextbookRuntimeSearchDocuments,
 }));
 
+vi.mock('@/lib/course-runtime', () => ({
+  loadAllLessonRuntimeResourceCatalogEntries: mocks.loadAllLessonRuntimeResourceCatalogEntries,
+}));
+
+vi.mock('@/lib/teacher-resource-node-data', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/teacher-resource-node-data')>(
+    '@/lib/teacher-resource-node-data',
+  );
+  return {
+    ...actual,
+    loadRuntimeResourceProjectionInputs: mocks.loadRuntimeResourceProjectionInputs,
+  };
+});
+
 import { buildKonlingSystemPrompt } from '@/lib/ai-prompt-builder';
 import {
   ADAPTIVE_LEARNER_STATE_FEATURE_FLAG,
@@ -88,7 +104,7 @@ import {
   type KonlingRuntimeContext,
 } from '@/lib/konling-agent-runtime';
 import { clearPendingChanges, getPendingChanges, updateSimulationState } from '@/lib/ai-tools';
-import { buildResourceNodeRegistry } from '@/lib/resource-node-registry';
+import { buildResourceNodeRegistry, type RuntimeResourceProjectionInput } from '@/lib/resource-node-registry';
 
 function expectRecord(value: unknown, label: string): asserts value is Record<string, unknown> {
   expect(typeof value, `${label} should be an object`).toBe('object');
@@ -523,11 +539,98 @@ function textbookRuntimeSearchDocumentFixture() {
   ];
 }
 
+function runtimeResourceProjectionFixture(
+  overrides: Partial<RuntimeResourceProjectionInput> = {},
+): RuntimeResourceProjectionInput {
+  return {
+    id: 'runtime-projection:retrieval-only-caption',
+    resourceNodeId: 'runtime-projection:retrieval-only-caption',
+    title: 'Retrieval-only caption context',
+    resourceType: 'knowledge_card',
+    sourceKind: 'runtime_lesson_step',
+    sourceRef: 'lesson-x:caption-only',
+    sourcePathOrUrl: 'course-content/runtime/lessons/lesson-x/interactive-manifest.json',
+    sourceRecord: 'lesson-x:caption-only',
+    sourceHash: 'sha-runtime-caption',
+    sourceVersionRef: 'interactive-manifest.v2',
+    projectionLevel: 'RetrievalChunk',
+    routeTarget: null,
+    renderTarget: null,
+    graphNodeRefs: {
+      knowledge: ['kn:autocontrol:controller-correction'],
+      capability: ['cap:autocontrol:synthesize-controller-correction'],
+      quality: [],
+    },
+    estimatedTimeMinutes: 4,
+    evidenceInstrumentation: [],
+    privacyScope: 'student-visible',
+    teacherPolicy: 'allowed',
+    evidenceContract: {
+      eventSource: false,
+      eventType: false,
+      clientEventIdPolicy: false,
+      attemptKey: false,
+      sourceLogId: false,
+      dedupeKey: false,
+      timestamps: false,
+      learningFactPolicy: false,
+      learningFactMaterializationPolicy: 'missing',
+      confidencePolicy: false,
+      privacyScope: true,
+      complete: false,
+      missingFields: ['eventSource'],
+    },
+    reviewAudit: {
+      status: 'human-confirmed',
+      reviewerId: 'konling-runtime-test-review',
+      reviewerRole: 'implementing-agent',
+      reviewedAt: '2026-07-08T00:00:00.000Z',
+      reviewBatchId: 'konling-runtime-test',
+      reviewedSourceHash: 'sha-runtime-caption',
+      reviewedVersionRef: 'interactive-manifest.v2',
+      generationToolOrModel: null,
+      promptOrManifestHash: null,
+      confidence: 0.9,
+      staleInvalidationRule: 'source-hash-or-version-change',
+    },
+    readiness: null,
+    ...overrides,
+  };
+}
+
+function reviewedPathPlanningOverride(sourceFamily: string, stableSourceRef: string) {
+  return {
+    abilityImpact: { controlModeling: 0.2, parameterDesign: 0.2 },
+    evidenceInstrumentation: ['answer_submit'],
+    readiness: {
+      minimumCompetency: { controlModeling: 0.1 },
+      minimumEvidenceCount: 0,
+      requiredCompletedNodeIds: [],
+      requiredOutcomeRefs: [],
+      unlockMessage: 'Reviewed fixture is ready for path planning.',
+      fallbackNodeIds: [],
+    },
+    pathDisposition: {
+      kind: 'path-plannable',
+      reviewStatus: 'human-confirmed',
+      rationale: 'Reviewed fixture for Konling path generation.',
+      sourceFamily,
+      stableSourceRef,
+      sourceVersionRef: 'resource-node-registry.v1',
+      parentResourceNodeId: null,
+      reviewedAt: '2026-07-03T00:00:00.000Z',
+      reviewerId: 'konling-runtime-test-review',
+    },
+  };
+}
+
 describe('konling agent runtime', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.loadAllLessonRuntimeResourceCatalogEntries.mockResolvedValue([]);
     mocks.loadAllTextbookRuntimeResourceCatalogEntries.mockResolvedValue(textbookRuntimeCatalogFixture());
     mocks.loadAllTextbookRuntimeSearchDocuments.mockResolvedValue(textbookRuntimeSearchDocumentFixture());
+    mocks.loadRuntimeResourceProjectionInputs.mockResolvedValue([]);
     process.env.ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED = 'true';
     delete process.env.KONLING_SEMANTIC_MEMORY_ENABLED;
     delete process.env.KONLING_STRATEGY_MEMORY_ENABLED;
@@ -6849,6 +6952,9 @@ describe('konling agent runtime', () => {
   });
 
   it('keeps graph-driven adaptive path generation usable when the LearningGoal baseline artifact is limited', async () => {
+    mocks.loadRuntimeResourceProjectionInputs.mockImplementation(async () => [
+      runtimeResourceProjectionFixture(),
+    ]);
     const createdRun = {
       id: 'tool-run-path-1',
       ownerUserId: 'student-1',
@@ -6928,6 +7034,21 @@ describe('konling agent runtime', () => {
       pathOptions: Array<Record<string, unknown>>;
       comparison: { optionCount: number; message: string };
       limitations: string[];
+      diagnostics: {
+        candidatePool: {
+          registryVersion: string;
+          projectionVersion: string;
+          totalCandidates: number;
+          pathEligibleCandidates: number;
+          candidateCountsByFamily: Record<string, number>;
+          sourceFamilies: Array<{ family: string; status: string; count: number; reason: string | null }>;
+          excluded: { total: number; byReason: Record<string, number> };
+          sourceFamilyIssues: Record<string, number>;
+          missingSourceReasons: Record<string, number>;
+          nodeEligibilityMissingReasons: Record<string, number>;
+        };
+      };
+      candidatePoolLimited: boolean;
     };
 
     expect(result).toMatchObject({
@@ -6945,6 +7066,25 @@ describe('konling agent runtime', () => {
       limitations: expect.arrayContaining(['learning-goal-baseline-incomplete']),
     });
     expect(result.pathOptions.length).toBeGreaterThan(0);
+    expect(mocks.loadRuntimeResourceProjectionInputs).toHaveBeenCalled();
+    expect(result.diagnostics.candidatePool).toMatchObject({
+      registryVersion: 'resource-node-registry.v1',
+      projectionVersion: 'resource-semantic-projection.v1',
+      candidateCountsByFamily: expect.objectContaining({
+        runtime_lesson_step: expect.any(Number),
+      }),
+      excluded: expect.objectContaining({
+        byReason: expect.objectContaining({
+          'runtime-projection-not-path-resource': expect.any(Number),
+        }),
+      }),
+    });
+    expect(result.candidatePoolLimited).toBe(false);
+    expect(result.diagnostics.candidatePool.missingSourceReasons).not.toHaveProperty('missing-evidence-instrumentation');
+    expect(result.diagnostics.candidatePool.nodeEligibilityMissingReasons).toMatchObject({
+      'missing-evidence-instrumentation': expect.any(Number),
+    });
+    expect(JSON.stringify(result.pathOptions)).not.toContain('runtime-projection:retrieval-only-caption');
     expect(db.agentToolRun.create).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
         toolName: 'generate_learning_path',
@@ -6956,6 +7096,18 @@ describe('konling agent runtime', () => {
       }),
     }));
     expect(db.learningPath.upsert).toHaveBeenCalled();
+    const createdPath = db.learningPath.upsert.mock.calls[0][0].create;
+    expect(createdPath.inputSnapshot.request.candidatePoolDiagnostics).toMatchObject({
+      registryVersion: 'resource-node-registry.v1',
+      projectionVersion: 'resource-semantic-projection.v1',
+    });
+    expect(createdPath.pathPayload.visualization.evidence.candidatePoolDiagnostics).toMatchObject({
+      excluded: expect.objectContaining({
+        byReason: expect.objectContaining({
+          'runtime-projection-not-path-resource': expect.any(Number),
+        }),
+      }),
+    });
     expect(db.agentToolRun.updateMany).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
         status: 'succeeded',
@@ -6968,6 +7120,193 @@ describe('konling agent runtime', () => {
     expect(JSON.stringify(result)).not.toMatch(/stage-1-rules-graph|policyFamily/);
     expect(JSON.stringify(result)).not.toMatch(/low-confidence-learner-state|adaptive-learner-state|knowledgeMastery/);
     expect(JSON.stringify(db.agentToolRun.create.mock.calls)).not.toContain('我想先补相位裕度');
+  });
+
+  it('marks adaptive path generation limited when governed candidate source loading fails', async () => {
+    mocks.loadRuntimeResourceProjectionInputs.mockRejectedValueOnce(Object.assign(new Error('projection sidecar missing'), { code: 'ENOENT' }));
+    const createdRun = {
+      id: 'tool-run-path-source-limited',
+      ownerUserId: 'student-1',
+      actorUserId: 'student-1',
+      targetUserId: 'student-1',
+      agentSessionId: 'agent-session-1',
+      toolName: 'generate_learning_path',
+      permissionTier: 'write',
+      approvalState: 'not_required',
+      status: 'running',
+      inputSummary: {},
+      outputSummary: null,
+      errorSummary: null,
+      idempotencyKey: 'path-gen-source-limited',
+      correlationId: 'corr-path-source-limited',
+      startedAt: new Date('2026-05-28T00:00:00Z'),
+      completedAt: null,
+      latencyMs: null,
+    };
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['generate_learning_path'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn()
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(createdRun),
+        create: vi.fn().mockResolvedValue(createdRun),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      learningPath: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        upsert: vi.fn().mockImplementation(async ({ create }) => create),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({ resourceId: null, pathNodeId: null, pageId: 'adaptive-path-center' }),
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({ permittedTools: ['generate_learning_path'] }),
+    });
+
+    const result = await runtime.generateLearningPath({
+      idempotencyKey: 'path-gen-source-limited',
+      goalId: 'control-correction',
+      timeBudgetMinutes: 90,
+    }) as {
+      candidatePoolLimited: boolean;
+      limitations: string[];
+      diagnostics: {
+        candidatePool: {
+          sourceFamilies: Array<{ family: string; status: string; reason: string | null }>;
+          sourceFamilyIssues: Record<string, number>;
+          missingSourceReasons: Record<string, number>;
+        };
+      };
+    };
+
+    expect(result.candidatePoolLimited).toBe(true);
+    expect(result.limitations).toContain('missing-source-family:runtime-resource-projections');
+    expect(result.diagnostics.candidatePool.sourceFamilies).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        family: 'runtime-resource-projections',
+        status: 'missing',
+        reason: 'missing-source-family:runtime-resource-projections',
+      }),
+    ]));
+    expect(result.diagnostics.candidatePool.missingSourceReasons).toMatchObject({
+      'missing-source-family:runtime-resource-projections': 1,
+    });
+    expect(result.diagnostics.candidatePool.sourceFamilyIssues).toMatchObject({
+      'missing-source-family:runtime-resource-projections': 1,
+    });
+    const createdPath = db.learningPath.upsert.mock.calls[0][0].create;
+    expect(createdPath.inputSnapshot).toMatchObject({
+      candidatePoolLimited: true,
+      candidatePoolLimitationCodes: ['missing-source-family:runtime-resource-projections'],
+    });
+    expect(createdPath.inputSnapshot.request.candidatePoolDiagnostics.missingSourceReasons).toMatchObject({
+      'missing-source-family:runtime-resource-projections': 1,
+    });
+    expect(createdPath.pathPayload).toMatchObject({
+      candidatePoolLimited: true,
+      candidatePoolLimitationCodes: ['missing-source-family:runtime-resource-projections'],
+      candidatePoolStatus: {
+        limited: true,
+        limitationCodes: ['missing-source-family:runtime-resource-projections'],
+      },
+    });
+    expect(createdPath.pathPayload.visualization.evidence.candidatePoolDiagnostics.sourceFamilies).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        family: 'runtime-resource-projections',
+        status: 'missing',
+      }),
+    ]));
+    expect(db.agentToolRun.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        outputSummary: expect.objectContaining({
+          candidatePoolLimited: true,
+          limitations: expect.arrayContaining(['missing-source-family:runtime-resource-projections']),
+        }),
+      }),
+    }));
+  });
+
+  it('keeps loader errors separate from missing source-family diagnostics', async () => {
+    mocks.loadRuntimeResourceProjectionInputs.mockRejectedValueOnce(new Error('projection sidecar unreadable'));
+    const createdRun = {
+      id: 'tool-run-path-source-error',
+      ownerUserId: 'student-1',
+      actorUserId: 'student-1',
+      targetUserId: 'student-1',
+      agentSessionId: 'agent-session-1',
+      toolName: 'generate_learning_path',
+      permissionTier: 'write',
+      approvalState: 'not_required',
+      status: 'running',
+      inputSummary: {},
+      outputSummary: null,
+      errorSummary: null,
+      idempotencyKey: 'path-gen-source-error',
+      correlationId: 'corr-path-source-error',
+      startedAt: new Date('2026-05-28T00:00:00Z'),
+      completedAt: null,
+      latencyMs: null,
+    };
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['generate_learning_path'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn()
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(createdRun),
+        create: vi.fn().mockResolvedValue(createdRun),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      learningPath: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        upsert: vi.fn().mockImplementation(async ({ create }) => create),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({ resourceId: null, pathNodeId: null, pageId: 'adaptive-path-center' }),
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({ permittedTools: ['generate_learning_path'] }),
+    });
+
+    const result = await runtime.generateLearningPath({
+      idempotencyKey: 'path-gen-source-error',
+      goalId: 'control-correction',
+      timeBudgetMinutes: 90,
+    }) as {
+      candidatePoolLimited: boolean;
+      diagnostics: {
+        candidatePool: {
+          sourceFamilyIssues: Record<string, number>;
+          missingSourceReasons: Record<string, number>;
+        };
+      };
+    };
+
+    expect(result.candidatePoolLimited).toBe(true);
+    expect(result.diagnostics.candidatePool.sourceFamilyIssues).toMatchObject({
+      'loader-error:runtime-resource-projections': 1,
+    });
+    expect(result.diagnostics.candidatePool.missingSourceReasons).not.toHaveProperty(
+      'loader-error:runtime-resource-projections',
+    );
+    const createdPath = db.learningPath.upsert.mock.calls[0][0].create;
+    expect(createdPath.inputSnapshot.request.candidatePoolDiagnostics.sourceFamilyIssues).toMatchObject({
+      'loader-error:runtime-resource-projections': 1,
+    });
+    expect(createdPath.inputSnapshot.request.candidatePoolDiagnostics.missingSourceReasons).not.toHaveProperty(
+      'loader-error:runtime-resource-projections',
+    );
   });
 
   it('preserves an explicitly empty adaptive path resource preference', async () => {
@@ -8658,6 +8997,32 @@ describe('konling agent runtime', () => {
         findFirst: vi.fn().mockResolvedValue(null),
         upsert: vi.fn().mockImplementation(async ({ create }) => create),
       },
+      teachingResource: {
+        findMany: vi.fn().mockResolvedValue([
+          {
+            id: 'frequency-db-quiz',
+            title: '频域 Resource Center 后测',
+            displayName: null,
+            description: '由 Resource Center 管理的频域后测。',
+            type: 'INTERACTIVE_COMP',
+            registryId: null,
+            content: null,
+            category: 'FREQUENCY_DOMAIN',
+            teacherOnly: false,
+            config: {
+              resourceNodePlanning: reviewedPathPlanningOverride('teaching_resource', 'frequency-db-quiz'),
+            },
+            knowledgeNodes: [
+              {
+                id: 'Bode图_1_1',
+                name: 'Bode 图',
+                resources: [],
+                tags: ['frequency'],
+              },
+            ],
+          },
+        ]),
+      },
     };
     const [safeTextbookDocument] = textbookRuntimeSearchDocumentFixture();
     mocks.loadAllTextbookRuntimeSearchDocuments.mockResolvedValue([
@@ -8696,6 +9061,10 @@ describe('konling agent runtime', () => {
     });
     expect((result as { pathOptions: unknown[] }).pathOptions.length).toBeGreaterThanOrEqual(3);
     expect(JSON.stringify(result.pathOptions)).toContain('registry:frequency-precheck');
+    const frequencyCandidateCounts = (result as {
+      diagnostics: { candidatePool: { candidateCountsByFamily: Record<string, number> } };
+    }).diagnostics.candidatePool.candidateCountsByFamily;
+    expect(frequencyCandidateCounts.teaching_resource).toBeGreaterThan(0);
     expect(db.agentToolRun.create).toHaveBeenCalled();
     expect(db.learningPath.upsert).toHaveBeenCalledWith(expect.objectContaining({
       create: expect.objectContaining({
