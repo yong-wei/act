@@ -186,9 +186,9 @@ for migration in \${FAILED_MIGRATIONS}; do
 done
 
 if podman exec -e PGPASSWORD=\"\${DB_PASSWORD_REAL}\" \"\${DB_CONTAINER_REAL}\" \
-  psql -U \"\${DB_USER_REAL}\" -d \"\${DB_NAME_REAL}\" -tA -c \"select 1 from information_schema.tables where table_schema=\$\$public\$\$ and table_name=\$\$PlatformSetting\$\$;\" | grep -qx 1; then
+  psql -U \"\${DB_USER_REAL}\" -d \"\${DB_NAME_REAL}\" -tA -c \"select 1 from information_schema.tables where table_schema=\\\$\\\$public\\\$\\\$ and table_name=\\\$\\\$PlatformSetting\\\$\\\$;\" | grep -qx 1; then
   if ! podman exec -e PGPASSWORD=\"\${DB_PASSWORD_REAL}\" \"\${DB_CONTAINER_REAL}\" \
-    psql -U \"\${DB_USER_REAL}\" -d \"\${DB_NAME_REAL}\" -tA -c \"select 1 from _prisma_migrations where migration_name=\$\$20260303142500_add_platform_settings\$\$ and finished_at is not null limit 1;\" | grep -qx 1; then
+    psql -U \"\${DB_USER_REAL}\" -d \"\${DB_NAME_REAL}\" -tA -c \"select 1 from _prisma_migrations where migration_name=\\\$\\\$20260303142500_add_platform_settings\\\$\\\$ and finished_at is not null limit 1;\" | grep -qx 1; then
     podman run --rm --network \"\${NETWORK_NAME_REAL}\" \
       -e RUN_MIGRATIONS_ON_START=0 \
       -e DATABASE_URL=\"\${DATABASE_URL_REAL}\" \
@@ -389,9 +389,9 @@ log "- 校验 scheduler 已注册 BullMQ 任务"
 remote "podman exec '${REDIS_NAME_HINT}' redis-cli --scan --pattern 'bull:*' | grep -q 'bull:'"
 
 log "- 校验应用本机端口响应"
-if ! wait_for_remote_http 45; then
+if ! wait_for_remote_http 180; then
   recover_prisma_migration_state
-  wait_for_remote_http 120 || fail "应用容器在自愈后仍未就绪"
+  wait_for_remote_http 180 || fail "应用容器在自愈后仍未就绪"
 fi
 
 log "- 校验公网首页"
