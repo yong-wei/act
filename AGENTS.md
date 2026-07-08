@@ -76,6 +76,8 @@
 在仓库根目录运行：
 
 - `rtk npm run dev` / `rtk npm run startup` / `rtk npm run shutdown`
+- `rtk npm run typecheck`（当前零 TypeScript 错误基线）
+- `rtk npm run verify:commit` / `rtk npm run verify:push`（Git hook 使用的 TypeScript 门禁）
 - `rtk npm run lint`
 - `rtk npm run test`（smoke + Arena 路由）
 - `rtk npm run test:unit`（Vitest）
@@ -98,6 +100,8 @@
 ## Git、CI 与发布边界
 
 - 本仓库集成基线为 `integration`，发布分支为 `main`。
+- 当前 `integration` 的 TypeScript 基线为零错误；任何代码提交和推送前都必须通过 `rtk npm run typecheck`，不得以“既有债务”为由引入新的 TypeScript 错误。
+- `scripts/dev/sync-local-worktree-config.sh --apply --install-hooks` 会安装 managed `pre-commit` / `pre-push` hook，并分别执行 `verify:commit` / `verify:push`；新建或同步工作树时必须通过该脚本安装或修复 hooks。本工作树可使用 `--source <repo> --target <repo> --apply --install-hooks` 只安装 hooks。
 - 用户只说“提交”时默认停在本地 commit，不推送；点名路径时按路径限域，明确“当前所有变动”时才按整棵工作树处理。
 - 完成重大功能更新时，根据范围更新 `docs/ProjectDescription.md`，并提交可验证的项目状态。
 - 当前 CI 只在 `main` push 与 `workflow_dispatch` 执行；PR 的 `statusCheckRollup: []` 不是阻塞项，但本地验证、评审线程、mergeability 与元数据门禁仍然有效。
