@@ -1316,6 +1316,7 @@ export interface KonlingSourcePackCitationSummary {
   citationTargetIds: string[];
   retrievalChunkIds: string[];
   limitationCodes: string[];
+  answerRelevanceBases?: string[];
 }
 
 export interface KonlingCitationGuard {
@@ -5585,6 +5586,7 @@ async function buildKonlingSourcePackContentCitations(input: {
   );
   const result = retrieveSourcePack({
     query,
+    answerRelevanceQuery: normalizeSourcePackQueryText(input.currentUserQuery) ?? query,
     profile: 'konling-answer',
     role: sourcePackRoleForKonling(input.scope.role),
     caller: 'konling-agent-runtime',
@@ -5609,6 +5611,8 @@ async function buildKonlingSourcePackContentCitations(input: {
       citationTargetIds: result.pack.audit.citationTargetIds,
       retrievalChunkIds: result.pack.audit.retrievalChunkIds,
       limitationCodes: result.pack.limitations.map((limitation) => limitation.code),
+      answerRelevanceBases: uniqueStrings(result.pack.items
+        .map((item) => metadataString(item, 'answerRelevanceBasis'))),
     },
   };
 }
@@ -5638,13 +5642,11 @@ function normalizeSourcePackQueryText(value: string | null | undefined): string 
 }
 
 function buildKonlingSourcePackGraphRefs(
-  pageContext: PageContext,
+  _pageContext: PageContext,
   knowledgeWorkspace: KonlingKnowledgeWorkspaceContext | null | undefined,
   sarAssociatedGrounding?: KonlingSarAssociatedGroundingContext | null,
 ): string[] {
   return uniqueStrings([
-    pageContext.courseId,
-    pageContext.stepId,
     knowledgeWorkspace?.selected_node?.id,
     ...sarGraphNodeRefs(sarAssociatedGrounding),
   ]);
@@ -5689,13 +5691,17 @@ function buildSourcePackContentCitation(pack: SourcePack, item: SourcePackItem):
   const id = `content:${citationTargetRef}`;
   const title = citation?.displayTitle ?? item.title;
   const href = citation?.href ?? null;
+  const answerRelevanceBasis = metadataString(item, 'answerRelevanceBasis');
   return {
     id,
     sourceType: 'content',
     displayTitle: title,
     href,
     confidence: 'high',
-    evidenceBasis: `source-pack:${pack.profile}:${pack.packId}`,
+    evidenceBasis: [
+      `source-pack:${pack.profile}:${pack.packId}`,
+      answerRelevanceBasis ? `answer-relevance:${answerRelevanceBasis}` : null,
+    ].filter((part): part is string => Boolean(part)).join(':'),
     owner: 'answer',
     citationChip: {
       chunkId: id,
@@ -5709,6 +5715,11 @@ function buildSourcePackContentCitation(pack: SourcePack, item: SourcePackItem):
       limitationState: null,
     },
   };
+}
+
+function metadataString(item: SourcePackItem, key: string): string | null {
+  const value = item.metadata?.[key];
+  return typeof value === 'string' && value.length > 0 ? value : null;
 }
 
 
