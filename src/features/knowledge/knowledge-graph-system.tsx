@@ -1878,11 +1878,6 @@ export function KnowledgeGraphSystem({
                 aria-expanded={selectedNodeExpanded}
                 aria-busy={selectedNodeLoadingExpansion}
                 onClick={handleToggleSelectedExpansion}
-                onKeyDown={(event) => {
-                  if (event.key !== 'Enter' && event.key !== ' ') return;
-                  event.preventDefault();
-                  void handleToggleSelectedExpansion();
-                }}
                 className="shrink-0 rounded-lg border border-platform-border bg-platform-action-subtle px-3 py-1.5 text-[11px] font-medium text-platform-fg-secondary transition hover:bg-platform-action-primary hover:text-platform-fg-inverse disabled:cursor-wait disabled:opacity-60"
                 data-knowledge-expansion-control={selectedNodeExpanded ? 'collapse' : 'expand'}
               >

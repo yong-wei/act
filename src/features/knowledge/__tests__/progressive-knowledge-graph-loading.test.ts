@@ -157,6 +157,7 @@ describe('progressive knowledge graph loading', () => {
     expect(source).toContain('data-knowledge-density-mode');
     expect(source).toContain('data-knowledge-full-graph-first-render="avoided"');
     expect(source).toContain('data-knowledge-expansion-control');
+    expect(source).not.toContain('void handleToggleSelectedExpansion();');
     expect(route).toContain("mode === 'root'");
     expect(route).toContain("mode === 'expansion'");
     expect(route).toContain("mode === 'active-filter'");

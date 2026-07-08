@@ -2,7 +2,7 @@
   "change": "progressive-knowledge-graph-loading",
   "issue": 875,
   "route": "/knowledge",
-  "capturedAt": "2026-07-08T14:14:18.081Z",
+  "capturedAt": "2026-07-08T14:43:16.201Z",
   "baseUrl": "http://127.0.0.1:3002",
   "rootNodeId": "chapter-node:基本概念",
   "noChildrenNodeId": "稳定性_1_7288b4ea",
@@ -23,7 +23,7 @@
     "状态空间"
   ],
   "currentSourceSha256": {
-    "src/features/knowledge/knowledge-graph-system.tsx": "7017037bb286cedca86c5d5693cb7ad1140caca0cc2157ec0c3241c97c85250e",
+    "src/features/knowledge/knowledge-graph-system.tsx": "49e37a02dce55aa282723b05534141e6e5443edf80a549a91c5febaed273d498",
     "src/features/knowledge/sidebar/knowledge-sidebar.tsx": "f8546205bb42cbe30bf52972dccab98db756ae11cd16e2917abe13452236e624",
     "src/features/knowledge/graph/filter-utils.ts": "6cca471bcc7d9d1adc191aade05f169a0349f061c07284689d5d1d12600d0feb",
     "src/lib/knowledge-graph-source.ts": "f048288ba6424e64c19785fa37abf039b2b3fb260ed96eb6a129bc066fd1868b",
@@ -68,7 +68,7 @@
         "height": 960
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/root-first-1440.png",
-      "screenshotSha256": "b60cc7390e45b59766de2f626151cc5a5b5553f59f51f3441e0ed7cbb460e482",
+      "screenshotSha256": "4eab6ef747398fcd75c886073cf84c306e49f968c2ed8d979f90763cd6ae7ad5",
       "networkEvents": [
         {
           "event": "request",
@@ -137,8 +137,8 @@
         "konlingVisible": false,
         "canvasPixelEvidence": {
           "available": true,
-          "paintedPixels": 38664,
-          "nodeColorPixels": 3518,
+          "paintedPixels": 37841,
+          "nodeColorPixels": 3568,
           "width": 1320,
           "height": 847
         },
@@ -178,7 +178,7 @@
         "height": 900
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/root-first-1279.png",
-      "screenshotSha256": "3c234d128e2a5b45d9881300be48d2b8b6877c1b59ed664bb908a41e32813b4a",
+      "screenshotSha256": "5c4f5ba4c8b72dd024208b315f760a5ff533241d3c27416d460c4a03bb8bb71c",
       "networkEvents": [
         {
           "event": "request",
@@ -247,8 +247,8 @@
         "konlingVisible": false,
         "canvasPixelEvidence": {
           "available": true,
-          "paintedPixels": 31142,
-          "nodeColorPixels": 2915,
+          "paintedPixels": 27741,
+          "nodeColorPixels": 3003,
           "width": 1231,
           "height": 732
         },
@@ -288,7 +288,7 @@
         "height": 820
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/root-first-1100.png",
-      "screenshotSha256": "6caf6670381adf864ab5d95ae4e878663e5e8c0bafaf92c7fff84a0e35f06e16",
+      "screenshotSha256": "e703301d471a6d3c314b7a19414b81cd7d7aa1e66fde3b7fee37930e11c8476f",
       "networkEvents": [
         {
           "event": "request",
@@ -357,8 +357,8 @@
         "konlingVisible": false,
         "canvasPixelEvidence": {
           "available": true,
-          "paintedPixels": 19015,
-          "nodeColorPixels": 1887,
+          "paintedPixels": 22350,
+          "nodeColorPixels": 2392,
           "width": 1052,
           "height": 652
         },
@@ -398,7 +398,7 @@
         "height": 820
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/root-first-1024.png",
-      "screenshotSha256": "35a2e305e4dbc348f441418d188647892c41823ccced83b840336ab5a08ac994",
+      "screenshotSha256": "9018bf1e85f443d7f2278733a9423ad8760e586b814517b8f8b28d9a93095459",
       "networkEvents": [
         {
           "event": "request",
@@ -467,8 +467,8 @@
         "konlingVisible": false,
         "canvasPixelEvidence": {
           "available": true,
-          "paintedPixels": 10566,
-          "nodeColorPixels": 1091,
+          "paintedPixels": 12556,
+          "nodeColorPixels": 1227,
           "width": 976,
           "height": 652
         },
@@ -508,7 +508,7 @@
         "height": 800
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/root-first-320.png",
-      "screenshotSha256": "603dbadb85c77e3c13c91cfdb34a385169c451f9c5006a1d878a315ba202fb16",
+      "screenshotSha256": "ec1abba351bff9cab9a7d9e8bc5a479444cb0e5db5c2d51421ff422ac226f83c",
       "networkEvents": [
         {
           "event": "request",
@@ -577,8 +577,8 @@
         "konlingVisible": false,
         "canvasPixelEvidence": {
           "available": true,
-          "paintedPixels": 2886,
-          "nodeColorPixels": 305,
+          "paintedPixels": 8898,
+          "nodeColorPixels": 277,
           "width": 288,
           "height": 502
         },
@@ -1089,7 +1089,7 @@
         "height": 960
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/cache-reuse-1440.png",
-      "screenshotSha256": "c77e8b52450ea40ecd87ad100ca1d50c941f960150b7fef39e665eb870bc050c",
+      "screenshotSha256": "7c5858252653d3f12c2fea9fbb0f5654ff355319694cd6f8fef1917673b21140",
       "networkEvents": [
         {
           "event": "request",
@@ -1103,13 +1103,13 @@
         },
         {
           "event": "request",
-          "mode": "expansion",
-          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=expansion&nodeId=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"
+          "mode": "remaining",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=remaining"
         },
         {
           "event": "request",
-          "mode": "remaining",
-          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=remaining"
+          "mode": "expansion",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=expansion&nodeId=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"
         }
       ],
       "networkResponses": [
@@ -1124,18 +1124,6 @@
           "linkCount": 0,
           "rootSummaryCount": 15,
           "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=root"
-        },
-        {
-          "event": "response",
-          "mode": "expansion",
-          "status": 200,
-          "payloadMode": "expansion",
-          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
-          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:expansion:chapter-node:基本概念",
-          "nodeCount": 62,
-          "linkCount": 1691,
-          "rootSummaryCount": 0,
-          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=expansion&nodeId=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"
         },
         {
           "event": "response",
@@ -1160,6 +1148,18 @@
           "linkCount": 16545,
           "rootSummaryCount": 0,
           "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=remaining"
+        },
+        {
+          "event": "response",
+          "mode": "expansion",
+          "status": 200,
+          "payloadMode": "expansion",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:expansion:chapter-node:基本概念",
+          "nodeCount": 62,
+          "linkCount": 1691,
+          "rootSummaryCount": 0,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=expansion&nodeId=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"
         }
       ],
       "markers": {
@@ -1195,8 +1195,8 @@
         "konlingVisible": false,
         "canvasPixelEvidence": {
           "available": true,
-          "paintedPixels": 68947,
-          "nodeColorPixels": 33692,
+          "paintedPixels": 68932,
+          "nodeColorPixels": 33672,
           "width": 1320,
           "height": 847
         },
@@ -1254,7 +1254,7 @@
         "height": 960
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/filtered-empty-1440.png",
-      "screenshotSha256": "f702fd0d657ba3613ee03935c415b3edf8ae47a363d1c2aa72f7dac0cd386ae8",
+      "screenshotSha256": "605bd6c3a90e1ac6603f3cc15ad33fa4c6f7392e88be7e141219431946235cc7",
       "networkEvents": [
         {
           "event": "request",
@@ -1795,7 +1795,7 @@
         "height": 960
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/selected-inspector-1440.png",
-      "screenshotSha256": "a7bc29b8652d6db1d2025aa0ad1aa61603aa20a905a1dbe7c0a6ced5651a3c7a",
+      "screenshotSha256": "e41375e637c042e5c221cc87a6179eff2c764163ac82475140379d63de57eb68",
       "networkEvents": [
         {
           "event": "request",
@@ -1884,8 +1884,8 @@
         "konlingVisible": false,
         "canvasPixelEvidence": {
           "available": true,
-          "paintedPixels": 40319,
-          "nodeColorPixels": 5514,
+          "paintedPixels": 43198,
+          "nodeColorPixels": 5332,
           "width": 1320,
           "height": 847
         },
