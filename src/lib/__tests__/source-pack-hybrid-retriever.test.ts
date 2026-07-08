@@ -662,6 +662,36 @@ describe('source pack retrieval profiles', () => {
     });
   });
 
+  it.each([
+    'root',
+    'root cause of my error',
+  ])('does not treat a standalone root token as sufficient answer relevance: %s', (query) => {
+    const result = retrieveSourcePack({
+      query,
+      profile: 'konling-answer',
+      role: 'student',
+      candidates: [
+        item({
+          id: 'root-locus-reference',
+          title: 'Root locus',
+          excerpt: 'Root locus explains closed-loop pole movement.',
+          citationTargetId: 'citation:root-locus-reference',
+          retrievalChunkId: 'textbook-search:root-locus-reference',
+          metadata: {
+            reviewStatus: 'canonical',
+          },
+        }),
+      ],
+      now: new Date('2026-07-08T00:00:00Z'),
+    });
+
+    expect(result.pack.items).toEqual([]);
+    expect(result.pack.limitations.map((limitation) => limitation.code)).toEqual(expect.arrayContaining([
+      'answer-citation-insufficient-relevance',
+      'coverage-missing-answer-context',
+    ]));
+  });
+
   it('reports missing answer context when no konling-answer item passes relevance', () => {
     const result = retrieveSourcePack({
       query: 'I have a problem understanding Nyquist stability margin',

@@ -369,6 +369,7 @@ function answerRelevanceQueryMatch(item: SourcePackItem, query: string): AnswerR
 }
 
 function exactQueryMatchAllowed(item: SourcePackItem, normalizedQuery: string): boolean {
+  if (AMBIGUOUS_ANSWER_RELEVANCE_EXACT_QUERIES.has(normalizedQuery)) return false;
   const shortChineseTerm = ANSWER_RELEVANCE_CHINESE_TERMS.find((term) => (
     term === normalizedQuery && term.length < 4
   ));
@@ -434,7 +435,6 @@ const DISTINCTIVE_ANSWER_RELEVANCE_TOKENS = new Set([
   'simc',
   'mpc',
   'rl',
-  'root',
   'locus',
   'routh',
   'hurwitz',
@@ -466,6 +466,10 @@ const SUPPORTING_ANSWER_RELEVANCE_TOKENS = new Set([
   'steady',
   'transfer',
   'zero',
+]);
+
+const AMBIGUOUS_ANSWER_RELEVANCE_EXACT_QUERIES = new Set([
+  'root',
 ]);
 
 const ANSWER_RELEVANCE_CHINESE_TERMS = [
