@@ -34,6 +34,12 @@ if [ "${ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED+x}" = "x" ]; then
   operator_adaptive_learner_state_service_enabled_was_set=1
   operator_adaptive_learner_state_service_enabled="$ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED"
 fi
+operator_app_image_was_set=0
+operator_app_image=""
+if [ "${APP_IMAGE+x}" = "x" ]; then
+  operator_app_image_was_set=1
+  operator_app_image="$APP_IMAGE"
+fi
 
 if [ -f "$RUNTIME_ENV_FILE" ]; then
   set -a
@@ -46,6 +52,11 @@ if [ "$operator_adaptive_learner_state_service_enabled_was_set" = "1" ]; then
   ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED="$operator_adaptive_learner_state_service_enabled"
 else
   unset ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED
+fi
+if [ "$operator_app_image_was_set" = "1" ]; then
+  APP_IMAGE="$operator_app_image"
+else
+  unset APP_IMAGE
 fi
 
 derive_db_password() {

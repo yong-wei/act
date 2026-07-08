@@ -30,6 +30,7 @@ APP_NAME_HINT="${APP_NAME_HINT:-act-obe-app}"
 DB_NAME_HINT="${DB_NAME_HINT:-act-obe-postgres}"
 REDIS_NAME_HINT="${REDIS_NAME_HINT:-act-obe-redis}"
 WORKER_NAME_HINT="${WORKER_NAME_HINT:-act-obe-worker}"
+REMOTE_APP_IMAGE="${REMOTE_APP_IMAGE:-localhost/act-obe-platform:20260301-amd64}"
 
 REMOTE_TMP_TAR="${REMOTE_IMAGE_TAR}.tmp"
 REMOTE_TMP_APP_DEPLOY_SCRIPT="${REMOTE_APP_DEPLOY_SCRIPT}.tmp"
@@ -312,14 +313,16 @@ remote "bash -lc 'set -euo pipefail
   echo \"[remote-deploy] Step 2/7: 装载镜像\"
   \"${REMOTE_LOAD_IMAGES_SCRIPT}\"
   echo \"[remote-deploy] Step 3/7: 启动数据库容器\"
-  \"${REMOTE_APP_DEPLOY_SCRIPT}\" --db-only
+  APP_IMAGE=\"${REMOTE_APP_IMAGE}\" \"${REMOTE_APP_DEPLOY_SCRIPT}\" --db-only
   echo \"[remote-deploy] Step 4/7: 导入最新数据库\"
   \"${REMOTE_IMPORT_DB_SCRIPT}\"
-  echo \"[remote-deploy] Step 5/7: 启动应用容器\"
-  \"${REMOTE_APP_DEPLOY_SCRIPT}\" --app-only
-  echo \"[remote-deploy] Step 6/7: 配置 Nginx 域名反向代理\"
+  echo \"[remote-deploy] Step 5/8: 启动应用容器\"
+  APP_IMAGE=\"${REMOTE_APP_IMAGE}\" \"${REMOTE_APP_DEPLOY_SCRIPT}\" --app-only
+  echo \"[remote-deploy] Step 6/8: 同步 runtime 知识图谱到数据库\"
+  podman exec \"${APP_NAME_HINT}\" npm run seed:knowledge
+  echo \"[remote-deploy] Step 7/8: 配置 Nginx 域名反向代理\"
   \"${REMOTE_NGINX_SCRIPT}\"
-  echo \"[remote-deploy] Step 7/7: 配置 systemd 开机自启\"
+  echo \"[remote-deploy] Step 8/8: 配置 systemd 开机自启\"
   \"${REMOTE_SERVICE_SCRIPT}\"
 } 2>&1 | tee \"${REMOTE_LOG_FILE}\"'"
 
@@ -372,11 +375,28 @@ export PGPASSWORD=\"\${DB_PASSWORD_REAL}\"
 podman exec \"\${DB_CONTAINER_REAL}\" psql -U \"\${DB_USER_REAL}\" -d \"\${DB_NAME_REAL}\" -tAc \"select 1;\" | grep -qx 1
 '"
 
+log "- 校验 runtime 知识图谱已同步到数据库"
+remote "bash -lc '
+set -euo pipefail
+set -a
+[ -f \"${REMOTE_PROJECT_DIR}/.env.server\" ] && . \"${REMOTE_PROJECT_DIR}/.env.server\"
+[ -f \"${REMOTE_PROJECT_DIR}/.env\" ] && . \"${REMOTE_PROJECT_DIR}/.env\"
+. \"${REMOTE_PROJECT_DIR}/data/runtime/act-obe.env\"
+set +a
+DB_CONTAINER_REAL=\${DB_CONTAINER:-${DB_NAME_HINT}}
+DB_USER_REAL=\${DB_USER:-\${POSTGRES_USER:-act_user}}
+DB_NAME_REAL=\${DB_NAME:-\${POSTGRES_DB:-act_obe}}
+DB_PASSWORD_REAL=\${DB_PASSWORD:-\${POSTGRES_PASSWORD:-}}
+export PGPASSWORD=\"\${DB_PASSWORD_REAL}\"
+podman exec \"\${DB_CONTAINER_REAL}\" psql -U \"\${DB_USER_REAL}\" -d \"\${DB_NAME_REAL}\" -tAc \"select count(*) from \\\"KnowledgeNode\\\" where id in ('\\''性能指标_1_1'\\'', '\\''根轨迹_1_1'\\'', '\\''传统设计四联图校正_4_47004'\\'') and \\\"isActive\\\" = true;\" | grep -qx 3
+'"
+
 log "- 校验 Redis 连通性"
 remote "podman exec '${REDIS_NAME_HINT}' redis-cli ping | grep -qx PONG"
 remote "podman exec '${REDIS_NAME_HINT}' redis-cli CONFIG GET maxmemory-policy | tail -n 1 | grep -qx 'noeviction'"
 
 log "- 校验应用与 worker 容器环境变量"
+remote "podman inspect '${APP_NAME_HINT}' --format '{{.Config.Image}}' | grep -qx '${REMOTE_APP_IMAGE}'"
 remote "podman inspect '${APP_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^REDIS_URL=redis://${REDIS_NAME_HINT}\\.dns\\.podman:6379$'"
 remote "podman inspect '${APP_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^DATABASE_URL=.*connection_limit=10&pool_timeout=20'"
 remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^REDIS_URL=redis://${REDIS_NAME_HINT}\\.dns\\.podman:6379$'"

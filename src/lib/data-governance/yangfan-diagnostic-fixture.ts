@@ -207,7 +207,9 @@ export async function buildYangFanDiagnosticFixturePlan(
   });
   const canonical = resolveCanonicalAccount(candidates, options.canonicalEmail, canonicalStudentNumber);
   const duplicates = canonical ? candidates.filter((candidate) => candidate.id !== canonical.id) : candidates;
-  const duplicateSafety = await classifyDuplicateSafety(db, duplicates);
+  const duplicateSafety = canonical
+    ? classifyDuplicateSafety(canonical, duplicates)
+    : { unsafe: [], sameNameOnly: [] };
   const knowledgeNodeIds = canonical ? await loadFixtureKnowledgeNodeIds(db) : [];
   const canonicalSafety = mode !== 'reset' && canonical
     ? await classifyCanonicalWriteSafety(db, canonical.id, knowledgeNodeIds, options)
@@ -234,6 +236,7 @@ export async function buildYangFanDiagnosticFixturePlan(
     blockers,
     warnings: unique([
       ...(duplicateSafety.unsafe.length ? ['duplicate-yangfan-account-manual-review-required'] : []),
+      ...(duplicateSafety.sameNameOnly.length ? ['same-name-yangfan-accounts-treated-as-distinct'] : []),
       ...readinessWarnings,
       ...canonicalSafety.warnings,
     ]),
@@ -886,15 +889,20 @@ function resolveCanonicalAccount(
     ?? null;
 }
 
-async function classifyDuplicateSafety(
-  db: YangFanDiagnosticFixtureDb,
+function classifyDuplicateSafety(
+  canonical: Record<string, any>,
   duplicates: Array<Record<string, any>>,
 ) {
   const unsafe: string[] = [];
+  const sameNameOnly: string[] = [];
   for (const duplicate of duplicates) {
-    unsafe.push(duplicate.id);
+    if (hasConflictingCanonicalIdentifier(canonical, duplicate)) {
+      unsafe.push(duplicate.id);
+    } else {
+      sameNameOnly.push(duplicate.id);
+    }
   }
-  return { unsafe };
+  return { unsafe, sameNameOnly };
 }
 
 async function classifyCanonicalWriteSafety(
@@ -1039,7 +1047,7 @@ async function resolveWritableAccounts(
   const canonical = resolveCanonicalAccount(candidates, options.canonicalEmail, canonicalStudentNumber);
   if (!canonical) throw new Error('Cannot resolve canonical Yang Fan account for fixture write.');
   const duplicates = candidates.filter((candidate) => candidate.id !== canonical.id);
-  const duplicateSafety = await classifyDuplicateSafety(db, duplicates);
+  const duplicateSafety = classifyDuplicateSafety(canonical, duplicates);
   if (duplicateSafety.unsafe.length > 0) {
     throw new Error('Cannot write fixture while unsafe duplicate Yang Fan accounts remain.');
   }
@@ -1065,13 +1073,38 @@ async function resolveResettableAccount(
   const canonical = resolveCanonicalAccount(candidates, options.canonicalEmail, canonicalStudentNumber);
   if (!canonical) throw new Error('Cannot resolve canonical Yang Fan account for fixture reset.');
   const duplicates = candidates.filter((candidate) => candidate.id !== canonical.id);
-  const duplicateSafety = await classifyDuplicateSafety(db, duplicates);
+  const duplicateSafety = classifyDuplicateSafety(canonical, duplicates);
   if (duplicateSafety.unsafe.length > 0) {
     throw new Error('Cannot reset fixture while unsafe duplicate Yang Fan accounts remain.');
   }
   return {
     canonical,
   };
+}
+
+function hasConflictingCanonicalIdentifier(
+  canonical: Record<string, any>,
+  duplicate: Record<string, any>,
+) {
+  const canonicalEmail = normalizeIdentityValue(canonical.email);
+  const duplicateEmail = normalizeIdentityValue(duplicate.email);
+  if (canonicalEmail && duplicateEmail && canonicalEmail === duplicateEmail) {
+    return true;
+  }
+
+  const canonicalStudentNumber = normalizeIdentityValue(canonical.profile?.studentNumber);
+  const duplicateStudentNumber = normalizeIdentityValue(duplicate.profile?.studentNumber);
+  if (canonicalStudentNumber && duplicateStudentNumber && canonicalStudentNumber === duplicateStudentNumber) {
+    return true;
+  }
+
+  return false;
+}
+
+function normalizeIdentityValue(value: unknown) {
+  return typeof value === 'string' && value.trim().length > 0
+    ? value.trim().toLowerCase()
+    : null;
 }
 
 function fixtureProvenance(source: string) {
