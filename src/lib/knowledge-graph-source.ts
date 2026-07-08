@@ -521,8 +521,6 @@ function buildChapterRootNode(chapterName: string, index: number, nodeCount: num
     positionX: 0,
     positionY: 0,
     positionZ: index + 1,
-    bloomLevel: 'UNDERSTAND',
-    knowledgeDim: 'METACOGNITIVE',
     metadata: {
       isVirtualChapter: true,
       isCollapsedRoot: true,

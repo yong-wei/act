@@ -623,6 +623,7 @@ export function KnowledgeGraphSystem({
   const categoryOptions = useMemo(() => {
     const categorySet = new Set<string>();
     nodes.forEach((node) => {
+      if (isCollapsedRootNode(node)) return;
       const metadata = (node.metadata ?? {}) as Record<string, unknown>;
       const category = typeof metadata.category === 'string' ? metadata.category : node.knowledgeDim;
       if (category) categorySet.add(category);
@@ -633,6 +634,7 @@ export function KnowledgeGraphSystem({
   const bloomOptions = useMemo(() => {
     const bloomSet = new Set<string>();
     nodes.forEach((node) => {
+      if (isCollapsedRootNode(node)) return;
       const metadata = (node.metadata ?? {}) as Record<string, unknown>;
       const bloom = typeof metadata.bloom_level === 'string' ? metadata.bloom_level : node.bloomLevel;
       if (bloom) bloomSet.add(bloom);

@@ -106,6 +106,7 @@ function assertEvidenceContracts(evidence: JsonRecord) {
   for (const file of [
     'src/features/knowledge/knowledge-graph-system.tsx',
     'src/features/knowledge/sidebar/knowledge-sidebar.tsx',
+    'src/features/knowledge/graph/filter-utils.ts',
     'src/lib/knowledge-graph-source.ts',
     'src/app/api/knowledge/graph/route.ts',
     'scripts/tests/capture-knowledge-graph-progressive-loading.ts',

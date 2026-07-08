@@ -10,6 +10,7 @@ import {
   getKnowledgeGraphVersion,
   type UnifiedKnowledgeGraphPayload,
 } from '@/lib/knowledge-graph-source';
+import { injectChapterNodes } from '@/features/knowledge/graph/filter-utils';
 
 vi.mock('server-only', () => ({}));
 
@@ -87,7 +88,17 @@ describe('progressive knowledge graph loading', () => {
       expect.objectContaining({ rootId: 'chapter-node:基本概念', nodeCount: 1, hasExpansion: true }),
       expect.objectContaining({ rootId: 'chapter-node:系统模型', nodeCount: 2, hasExpansion: true }),
     ]);
+    expect(root.nodes.every((node) => node.knowledgeDim === undefined && node.bloomLevel === undefined)).toBe(true);
     expect(root.shardKey).toContain(':shard:root:chapters');
+  });
+
+  it('keeps virtual chapter roots out of category and Bloom filtering dimensions', () => {
+    const graph = graphFixture();
+    const injected = injectChapterNodes(graph.nodes, graph.links);
+    const virtualRoots = injected.nodes.filter((node) => node.id.startsWith('chapter-node:'));
+
+    expect(virtualRoots.length).toBeGreaterThan(0);
+    expect(virtualRoots.every((node) => node.knowledgeDim === undefined && node.bloomLevel === undefined)).toBe(true);
   });
 
   it('builds expansion and background shards with stable graph version keys', () => {
