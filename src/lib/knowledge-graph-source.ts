@@ -1,9 +1,10 @@
 import 'server-only';
 
+import { createHash } from 'node:crypto';
 import fs from 'fs/promises';
 import path from 'path';
 import { prisma } from '@/lib/prisma';
-import { getRelationCategory, resolveChapterName } from '@/lib/knowledge-labels';
+import { CHAPTER_DISPLAY_ORDER, getRelationCategory, resolveChapterName } from '@/lib/knowledge-labels';
 
 type NodeType = 'THEORY' | 'SCENARIO' | 'ETHICS';
 type BloomLevel = 'REMEMBER' | 'UNDERSTAND' | 'APPLY' | 'ANALYZE' | 'EVALUATE' | 'CREATE';
@@ -41,6 +42,38 @@ export interface UnifiedKnowledgeGraphPayload {
   nodes: UnifiedKnowledgeNode[];
   links: UnifiedKnowledgeLink[];
   source: 'file' | 'database';
+}
+
+export type KnowledgeGraphProgressiveMode = 'root' | 'expansion' | 'active-filter' | 'remaining';
+
+export interface KnowledgeGraphRootSummary {
+  rootId: string;
+  label: string;
+  chapterName: string;
+  nodeCount: number;
+  linkCount: number;
+  hasExpansion: boolean;
+}
+
+export interface KnowledgeGraphProgressivePayload {
+  mode: KnowledgeGraphProgressiveMode;
+  graphVersion: string;
+  shardKey: string;
+  filterSignature: string;
+  nodes: UnifiedKnowledgeNode[];
+  links: UnifiedKnowledgeLink[];
+  source: 'file' | 'database';
+  rootSummaries?: KnowledgeGraphRootSummary[];
+}
+
+export interface KnowledgeGraphManifestPayload {
+  graphVersion: string;
+  source: 'file' | 'database';
+  nodeCount: number;
+  linkCount: number;
+  rootShardKey: string;
+  activeFilterShardKey: string;
+  remainingShardKey: string;
 }
 
 export interface UnifiedKnowledgeNodeDetail extends UnifiedKnowledgeNode {
@@ -152,6 +185,8 @@ const RELATION_TYPE_MAP: Record<string, string> = {
 };
 
 const FILE_GRAPH_CACHE_TTL_MS = 60_000;
+const CHAPTER_ROOT_NODE_PREFIX = 'chapter-node:';
+const DEFAULT_GRAPH_FILTER_SIGNATURE = 'density=structure;strength=0.8;connected=true;relations=default';
 
 let graphCache: {
   expiresAt: number;
@@ -409,6 +444,265 @@ export async function loadKnowledgeGraphData(): Promise<UnifiedKnowledgeGraphPay
   };
 
   return data;
+}
+
+function knowledgeGraphLinkKey(link: Pick<UnifiedKnowledgeLink, 'id' | 'sourceId' | 'targetId' | 'relation' | 'relationType'>): string {
+  return link.id || `${link.sourceId}->${link.targetId}:${link.relationType || link.relation || 'related'}`;
+}
+
+export function getKnowledgeGraphVersion(graph: UnifiedKnowledgeGraphPayload): string {
+  const digest = createHash('sha256')
+    .update(stableKnowledgeGraphVersionInput(graph))
+    .digest('hex')
+    .slice(0, 16);
+  return [
+    'knowledge-graph',
+    graph.source,
+    graph.nodes.length,
+    graph.links.length,
+    digest,
+  ].join(':');
+}
+
+function stableJson(value: unknown): string {
+  if (value === null || typeof value !== 'object') return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(',')}]`;
+  const record = value as Record<string, unknown>;
+  return `{${Object.keys(record).sort().map((key) => `${JSON.stringify(key)}:${stableJson(record[key])}`).join(',')}}`;
+}
+
+function stableKnowledgeGraphVersionInput(graph: UnifiedKnowledgeGraphPayload): string {
+  return stableJson({
+    source: graph.source,
+    nodes: graph.nodes
+      .map((node) => ({
+        id: node.id,
+        name: node.name,
+        nodeType: node.nodeType,
+        description: node.description,
+        bloomLevel: node.bloomLevel,
+        knowledgeDim: node.knowledgeDim,
+        metadata: node.metadata,
+        content: node.content,
+        resources: node.resources,
+        tags: node.tags,
+        chapter: node.chapter,
+        chapterName: node.chapterName,
+      }))
+      .sort((left, right) => left.id.localeCompare(right.id)),
+    links: graph.links
+      .map((link) => ({
+        id: link.id,
+        sourceId: link.sourceId,
+        targetId: link.targetId,
+        relation: link.relation,
+        relationType: link.relationType,
+        strength: link.strength,
+      }))
+      .sort((left, right) => knowledgeGraphLinkKey(left).localeCompare(knowledgeGraphLinkKey(right))),
+  });
+}
+
+function chapterNameForNode(node: UnifiedKnowledgeNode): string {
+  const metadata = (node.metadata ?? {}) as Record<string, unknown>;
+  return resolveChapterName(
+    node.chapter,
+    (typeof node.chapterName === 'string' ? node.chapterName : null)
+      ?? (typeof metadata.chapterName === 'string' ? metadata.chapterName : null)
+  );
+}
+
+function buildChapterRootNode(chapterName: string, index: number, nodeCount: number): UnifiedKnowledgeNode {
+  return {
+    id: `${CHAPTER_ROOT_NODE_PREFIX}${chapterName}`,
+    name: chapterName,
+    nodeType: 'THEORY',
+    description: `${chapterName}（共 ${nodeCount} 个知识点，选择后可展开）`,
+    positionX: 0,
+    positionY: 0,
+    positionZ: index + 1,
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'METACOGNITIVE',
+    metadata: {
+      isVirtualChapter: true,
+      isCollapsedRoot: true,
+      chapterName,
+      nodeCount,
+    },
+    content: {},
+    resources: [],
+    tags: ['chapter', 'collapsed-root'],
+    chapter: index + 1,
+    chapterName,
+  };
+}
+
+function groupGraphNodesByChapter(nodes: UnifiedKnowledgeNode[]): Array<{ chapterName: string; nodes: UnifiedKnowledgeNode[] }> {
+  const orderIndex = new Map<string, number>(CHAPTER_DISPLAY_ORDER.map((name, index) => [name, index]));
+  const groups = new Map<string, UnifiedKnowledgeNode[]>();
+
+  nodes.forEach((node) => {
+    const chapterName = chapterNameForNode(node);
+    const group = groups.get(chapterName) ?? [];
+    group.push(node);
+    groups.set(chapterName, group);
+  });
+
+  return Array.from(groups.entries())
+    .map(([chapterName, chapterNodes]) => ({
+      chapterName,
+      nodes: chapterNodes.sort((left, right) => left.name.localeCompare(right.name, 'zh-Hans-CN')),
+    }))
+    .sort((left, right) => {
+      const leftIndex = orderIndex.get(left.chapterName);
+      const rightIndex = orderIndex.get(right.chapterName);
+      if (typeof leftIndex === 'number' && typeof rightIndex === 'number') return leftIndex - rightIndex;
+      if (typeof leftIndex === 'number') return -1;
+      if (typeof rightIndex === 'number') return 1;
+      return left.chapterName.localeCompare(right.chapterName, 'zh-Hans-CN');
+    });
+}
+
+function chapterRootLinks(rootId: string, nodes: UnifiedKnowledgeNode[]): UnifiedKnowledgeLink[] {
+  return nodes.map((node) => ({
+    id: `chapter-link:${rootId}->${node.id}`,
+    sourceId: rootId,
+    targetId: node.id,
+    relation: 'contains',
+    relationType: 'contains',
+    strength: 1,
+  }));
+}
+
+function boundedActiveFilterLinks(links: UnifiedKnowledgeLink[]): UnifiedKnowledgeLink[] {
+  const highSignalTypes = new Set([
+    'contains',
+    'prerequisite',
+    'provides_foundation',
+    'follows',
+    'leads_to',
+    'applies_to',
+    'derives',
+    'determines',
+    'generalizes',
+    'instance_of',
+    'cross_domain',
+    'supports',
+    'enables',
+    'uses',
+    'visualized_by',
+    'opposite',
+  ]);
+  return links.filter((link) => {
+    const relationType = link.relationType || link.relation || 'related';
+    return highSignalTypes.has(relationType) && (link.strength ?? 1) >= 0.8;
+  });
+}
+
+function buildProgressiveShardKey(mode: KnowledgeGraphProgressiveMode, graphVersion: string, suffix: string): string {
+  return `${graphVersion}:shard:${mode}:${suffix}`;
+}
+
+export function buildKnowledgeGraphManifestPayload(graph: UnifiedKnowledgeGraphPayload): KnowledgeGraphManifestPayload {
+  const graphVersion = getKnowledgeGraphVersion(graph);
+  return {
+    graphVersion,
+    source: graph.source,
+    nodeCount: graph.nodes.length,
+    linkCount: graph.links.length,
+    rootShardKey: buildProgressiveShardKey('root', graphVersion, 'chapters'),
+    activeFilterShardKey: buildProgressiveShardKey('active-filter', graphVersion, DEFAULT_GRAPH_FILTER_SIGNATURE),
+    remainingShardKey: buildProgressiveShardKey('remaining', graphVersion, 'all'),
+  };
+}
+
+export function buildKnowledgeGraphRootPayload(graph: UnifiedKnowledgeGraphPayload): KnowledgeGraphProgressivePayload {
+  const graphVersion = getKnowledgeGraphVersion(graph);
+  const groups = groupGraphNodesByChapter(graph.nodes);
+  const rootSummaries = groups.map((group, index) => {
+    const rootId = `${CHAPTER_ROOT_NODE_PREFIX}${group.chapterName}`;
+    const groupNodeIds = new Set(group.nodes.map((node) => node.id));
+    const linkCount = graph.links.filter((link) => groupNodeIds.has(link.sourceId) || groupNodeIds.has(link.targetId)).length;
+    return {
+      rootId,
+      label: group.chapterName,
+      chapterName: group.chapterName,
+      nodeCount: group.nodes.length,
+      linkCount,
+      hasExpansion: group.nodes.length > 0,
+    };
+  });
+
+  return {
+    mode: 'root',
+    graphVersion,
+    shardKey: buildProgressiveShardKey('root', graphVersion, 'chapters'),
+    filterSignature: DEFAULT_GRAPH_FILTER_SIGNATURE,
+    nodes: groups.map((group, index) => buildChapterRootNode(group.chapterName, index, group.nodes.length)),
+    links: [],
+    source: graph.source,
+    rootSummaries,
+  };
+}
+
+export function buildKnowledgeGraphExpansionPayload(
+  graph: UnifiedKnowledgeGraphPayload,
+  nodeId: string
+): KnowledgeGraphProgressivePayload {
+  const graphVersion = getKnowledgeGraphVersion(graph);
+  const groups = groupGraphNodesByChapter(graph.nodes);
+  const chapterName = nodeId.startsWith(CHAPTER_ROOT_NODE_PREFIX)
+    ? nodeId.slice(CHAPTER_ROOT_NODE_PREFIX.length)
+    : chapterNameForNode(graph.nodes.find((node) => node.id === nodeId) ?? graph.nodes[0] ?? {
+        id: 'empty',
+        name: '未分类',
+        nodeType: 'THEORY',
+        description: '',
+        positionX: 0,
+        positionY: 0,
+        positionZ: 0,
+      });
+  const groupIndex = groups.findIndex((group) => group.chapterName === chapterName);
+  const group = groups[groupIndex] ?? { chapterName, nodes: [] };
+  const rootNode = buildChapterRootNode(group.chapterName, Math.max(0, groupIndex), group.nodes.length);
+  const groupNodeIds = new Set(group.nodes.map((node) => node.id));
+  const groupLinks = graph.links.filter((link) => groupNodeIds.has(link.sourceId) && groupNodeIds.has(link.targetId));
+
+  return {
+    mode: 'expansion',
+    graphVersion,
+    shardKey: buildProgressiveShardKey('expansion', graphVersion, nodeId),
+    filterSignature: DEFAULT_GRAPH_FILTER_SIGNATURE,
+    nodes: [rootNode, ...group.nodes],
+    links: [...chapterRootLinks(rootNode.id, group.nodes), ...groupLinks],
+    source: graph.source,
+  };
+}
+
+export function buildKnowledgeGraphActiveFilterPayload(graph: UnifiedKnowledgeGraphPayload): KnowledgeGraphProgressivePayload {
+  const graphVersion = getKnowledgeGraphVersion(graph);
+  return {
+    mode: 'active-filter',
+    graphVersion,
+    shardKey: buildProgressiveShardKey('active-filter', graphVersion, DEFAULT_GRAPH_FILTER_SIGNATURE),
+    filterSignature: DEFAULT_GRAPH_FILTER_SIGNATURE,
+    nodes: graph.nodes,
+    links: boundedActiveFilterLinks(graph.links),
+    source: graph.source,
+  };
+}
+
+export function buildKnowledgeGraphRemainingPayload(graph: UnifiedKnowledgeGraphPayload): KnowledgeGraphProgressivePayload {
+  const graphVersion = getKnowledgeGraphVersion(graph);
+  return {
+    mode: 'remaining',
+    graphVersion,
+    shardKey: buildProgressiveShardKey('remaining', graphVersion, 'all'),
+    filterSignature: 'all',
+    nodes: graph.nodes,
+    links: graph.links,
+    source: graph.source,
+  };
 }
 
 function resolveRelatedCategory(

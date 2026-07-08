@@ -1,0 +1,1891 @@
+{
+  "change": "progressive-knowledge-graph-loading",
+  "issue": 875,
+  "route": "/knowledge",
+  "capturedAt": "2026-07-08T12:35:32.080Z",
+  "baseUrl": "http://127.0.0.1:3002",
+  "rootNodeId": "chapter-node:基本概念",
+  "noChildrenNodeId": "稳定性_1_7288b4ea",
+  "currentSourceSha256": {
+    "src/features/knowledge/knowledge-graph-system.tsx": "04ba6cb4dfa0b5a23ac5f9e3b1ad1a2b8c3a7dc3576aff0ee09f0c8898422ab1",
+    "src/lib/knowledge-graph-source.ts": "60e762e1828376a1185ddfc29014413abf4f6c88609365b91731f57d7c49ede8",
+    "src/app/api/knowledge/graph/route.ts": "63bf9110c29b7f79ba4002033383c54d96841514a69b561df2fdfd5857f01ee0",
+    "scripts/tests/capture-knowledge-graph-progressive-loading.ts": "10131f223deaafb43bc58cd902e5b9ce72f2ae92a268f28562a59d529eac2625"
+  },
+  "requiredViewports": [
+    1440,
+    1279,
+    1100,
+    1024,
+    320
+  ],
+  "assertions": {
+    "rootFirstRender": true,
+    "fullGraphFirstRenderAvoided": true,
+    "expansionLoading": true,
+    "expandedState": true,
+    "collapsedState": true,
+    "backgroundLoadingNonBlocking": true,
+    "denseModeUsesRemainingShard": true,
+    "filteredEmptyOrNoChildren": true,
+    "localToolNonOverlap": true,
+    "selectedNodeInspectorRetained": true,
+    "konlingContextRetained": true,
+    "focusReturn": true,
+    "dockAvoidance": true
+  },
+  "konlingEvidenceReference": {
+    "path": "artifacts/knowledge-workspace-product-qa-489/browser-evidence.json",
+    "state": "desktop-konling-selected-expanded-dark",
+    "reason": "Konling expanded sidebar is already covered by the knowledge workspace product QA browser matrix; this capture keeps progressive loading focused on graph shard behavior."
+  },
+  "stateMatrix": [
+    {
+      "name": "root-first-1440",
+      "url": "http://127.0.0.1:3002/knowledge?qa=knowledge-progressive",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/root-first-1440.png",
+      "screenshotSha256": "bbd14dde154865296feee1c503cd0d83eafee9303e2fe0fd644522f3165acb1a",
+      "networkEvents": [
+        {
+          "event": "request",
+          "mode": "root",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=root"
+        },
+        {
+          "event": "request",
+          "mode": "active-filter",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=active-filter"
+        },
+        {
+          "event": "request",
+          "mode": "remaining",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=remaining"
+        }
+      ],
+      "networkResponses": [
+        {
+          "event": "response",
+          "mode": "root",
+          "status": 200,
+          "payloadMode": "root",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:root:chapters",
+          "nodeCount": 15,
+          "linkCount": 0,
+          "rootSummaryCount": 15,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=root"
+        },
+        {
+          "event": "response",
+          "mode": "active-filter",
+          "status": 200,
+          "payloadMode": "active-filter",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:active-filter:density=structure;strength=0.8;connected=true;relations=default",
+          "nodeCount": 820,
+          "linkCount": 5048,
+          "rootSummaryCount": 0,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=active-filter"
+        }
+      ],
+      "markers": {
+        "workspace": "canvas-first",
+        "progressive": {
+          "loadingMode": "root-first",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "graphVersionPresent": true,
+          "loadedShardCount": 2,
+          "loadingShardCount": 0,
+          "expandedNodeCount": 0,
+          "loadingExpansionCount": 0,
+          "backgroundLoading": "true",
+          "fullGraphFirstRender": "avoided",
+          "selectedNodeId": "",
+          "densityMode": "structure"
+        },
+        "expansion": null,
+        "localTool": null,
+        "openLocalTool": null,
+        "inspectorVisible": false,
+        "konlingVisible": false,
+        "canvasPixelEvidence": {
+          "available": true,
+          "paintedPixels": 37950,
+          "nodeColorPixels": 7441,
+          "width": 1320,
+          "height": 847
+        },
+        "rects": {
+          "canvas": {
+            "left": 96,
+            "top": 109,
+            "right": 1416,
+            "bottom": 956,
+            "width": 1320,
+            "height": 847
+          },
+          "expansionPanel": null,
+          "dock": null,
+          "konling": null,
+          "inspector": null,
+          "localTool": null
+        },
+        "scroll": {
+          "viewportWidth": 1440,
+          "viewportHeight": 960,
+          "scrollWidth": 1440,
+          "scrollHeight": 976
+        },
+        "overlaps": {
+          "dockOverlapsExpansion": false,
+          "konlingOverlapsInspector": false,
+          "localToolOverlapsExpansion": false
+        }
+      }
+    },
+    {
+      "name": "root-first-1279",
+      "url": "http://127.0.0.1:3002/knowledge?qa=knowledge-progressive",
+      "viewport": {
+        "width": 1279,
+        "height": 900
+      },
+      "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/root-first-1279.png",
+      "screenshotSha256": "e0051734c5f8851ef81e1f2abf476d31c73318c2aec79339069f6f255443d36f",
+      "networkEvents": [
+        {
+          "event": "request",
+          "mode": "root",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=root"
+        },
+        {
+          "event": "request",
+          "mode": "active-filter",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=active-filter"
+        },
+        {
+          "event": "request",
+          "mode": "remaining",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=remaining"
+        }
+      ],
+      "networkResponses": [
+        {
+          "event": "response",
+          "mode": "root",
+          "status": 200,
+          "payloadMode": "root",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:root:chapters",
+          "nodeCount": 15,
+          "linkCount": 0,
+          "rootSummaryCount": 15,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=root"
+        },
+        {
+          "event": "response",
+          "mode": "active-filter",
+          "status": 200,
+          "payloadMode": "active-filter",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:active-filter:density=structure;strength=0.8;connected=true;relations=default",
+          "nodeCount": 820,
+          "linkCount": 5048,
+          "rootSummaryCount": 0,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=active-filter"
+        }
+      ],
+      "markers": {
+        "workspace": "canvas-first",
+        "progressive": {
+          "loadingMode": "root-first",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "graphVersionPresent": true,
+          "loadedShardCount": 2,
+          "loadingShardCount": 0,
+          "expandedNodeCount": 0,
+          "loadingExpansionCount": 0,
+          "backgroundLoading": "true",
+          "fullGraphFirstRender": "avoided",
+          "selectedNodeId": "",
+          "densityMode": "structure"
+        },
+        "expansion": null,
+        "localTool": null,
+        "openLocalTool": null,
+        "inspectorVisible": false,
+        "konlingVisible": false,
+        "canvasPixelEvidence": {
+          "available": true,
+          "paintedPixels": 28326,
+          "nodeColorPixels": 5207,
+          "width": 1231,
+          "height": 732
+        },
+        "rects": {
+          "canvas": {
+            "left": 24,
+            "top": 166,
+            "right": 1255,
+            "bottom": 898,
+            "width": 1231,
+            "height": 732
+          },
+          "expansionPanel": null,
+          "dock": null,
+          "konling": null,
+          "inspector": null,
+          "localTool": null
+        },
+        "scroll": {
+          "viewportWidth": 1279,
+          "viewportHeight": 900,
+          "scrollWidth": 1279,
+          "scrollHeight": 918
+        },
+        "overlaps": {
+          "dockOverlapsExpansion": false,
+          "konlingOverlapsInspector": false,
+          "localToolOverlapsExpansion": false
+        }
+      }
+    },
+    {
+      "name": "root-first-1100",
+      "url": "http://127.0.0.1:3002/knowledge?qa=knowledge-progressive",
+      "viewport": {
+        "width": 1100,
+        "height": 820
+      },
+      "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/root-first-1100.png",
+      "screenshotSha256": "effdf06dbd017b56ff20a85dea84e3e35883d9f070ac93fcd1cb72b7690df3ea",
+      "networkEvents": [
+        {
+          "event": "request",
+          "mode": "root",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=root"
+        },
+        {
+          "event": "request",
+          "mode": "active-filter",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=active-filter"
+        },
+        {
+          "event": "request",
+          "mode": "remaining",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=remaining"
+        }
+      ],
+      "networkResponses": [
+        {
+          "event": "response",
+          "mode": "root",
+          "status": 200,
+          "payloadMode": "root",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:root:chapters",
+          "nodeCount": 15,
+          "linkCount": 0,
+          "rootSummaryCount": 15,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=root"
+        },
+        {
+          "event": "response",
+          "mode": "active-filter",
+          "status": 200,
+          "payloadMode": "active-filter",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:active-filter:density=structure;strength=0.8;connected=true;relations=default",
+          "nodeCount": 820,
+          "linkCount": 5048,
+          "rootSummaryCount": 0,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=active-filter"
+        }
+      ],
+      "markers": {
+        "workspace": "canvas-first",
+        "progressive": {
+          "loadingMode": "root-first",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "graphVersionPresent": true,
+          "loadedShardCount": 2,
+          "loadingShardCount": 0,
+          "expandedNodeCount": 0,
+          "loadingExpansionCount": 0,
+          "backgroundLoading": "true",
+          "fullGraphFirstRender": "avoided",
+          "selectedNodeId": "",
+          "densityMode": "structure"
+        },
+        "expansion": null,
+        "localTool": null,
+        "openLocalTool": null,
+        "inspectorVisible": false,
+        "konlingVisible": false,
+        "canvasPixelEvidence": {
+          "available": true,
+          "paintedPixels": 22973,
+          "nodeColorPixels": 4016,
+          "width": 1052,
+          "height": 652
+        },
+        "rects": {
+          "canvas": {
+            "left": 24,
+            "top": 166,
+            "right": 1076,
+            "bottom": 818,
+            "width": 1052,
+            "height": 652
+          },
+          "expansionPanel": null,
+          "dock": null,
+          "konling": null,
+          "inspector": null,
+          "localTool": null
+        },
+        "scroll": {
+          "viewportWidth": 1100,
+          "viewportHeight": 820,
+          "scrollWidth": 1100,
+          "scrollHeight": 838
+        },
+        "overlaps": {
+          "dockOverlapsExpansion": false,
+          "konlingOverlapsInspector": false,
+          "localToolOverlapsExpansion": false
+        }
+      }
+    },
+    {
+      "name": "root-first-1024",
+      "url": "http://127.0.0.1:3002/knowledge?qa=knowledge-progressive",
+      "viewport": {
+        "width": 1024,
+        "height": 820
+      },
+      "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/root-first-1024.png",
+      "screenshotSha256": "c4e62351ae39b51331b392a2b59572bdfd8a82fe74a00b98425299139bafa271",
+      "networkEvents": [
+        {
+          "event": "request",
+          "mode": "root",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=root"
+        },
+        {
+          "event": "request",
+          "mode": "active-filter",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=active-filter"
+        },
+        {
+          "event": "request",
+          "mode": "remaining",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=remaining"
+        }
+      ],
+      "networkResponses": [
+        {
+          "event": "response",
+          "mode": "root",
+          "status": 200,
+          "payloadMode": "root",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:root:chapters",
+          "nodeCount": 15,
+          "linkCount": 0,
+          "rootSummaryCount": 15,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=root"
+        },
+        {
+          "event": "response",
+          "mode": "active-filter",
+          "status": 200,
+          "payloadMode": "active-filter",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:active-filter:density=structure;strength=0.8;connected=true;relations=default",
+          "nodeCount": 820,
+          "linkCount": 5048,
+          "rootSummaryCount": 0,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=active-filter"
+        }
+      ],
+      "markers": {
+        "workspace": "canvas-first",
+        "progressive": {
+          "loadingMode": "root-first",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "graphVersionPresent": true,
+          "loadedShardCount": 2,
+          "loadingShardCount": 0,
+          "expandedNodeCount": 0,
+          "loadingExpansionCount": 0,
+          "backgroundLoading": "true",
+          "fullGraphFirstRender": "avoided",
+          "selectedNodeId": "",
+          "densityMode": "structure"
+        },
+        "expansion": null,
+        "localTool": null,
+        "openLocalTool": null,
+        "inspectorVisible": false,
+        "konlingVisible": false,
+        "canvasPixelEvidence": {
+          "available": true,
+          "paintedPixels": 13152,
+          "nodeColorPixels": 2426,
+          "width": 976,
+          "height": 652
+        },
+        "rects": {
+          "canvas": {
+            "left": 24,
+            "top": 166,
+            "right": 1000,
+            "bottom": 818,
+            "width": 976,
+            "height": 652
+          },
+          "expansionPanel": null,
+          "dock": null,
+          "konling": null,
+          "inspector": null,
+          "localTool": null
+        },
+        "scroll": {
+          "viewportWidth": 1024,
+          "viewportHeight": 820,
+          "scrollWidth": 1024,
+          "scrollHeight": 838
+        },
+        "overlaps": {
+          "dockOverlapsExpansion": false,
+          "konlingOverlapsInspector": false,
+          "localToolOverlapsExpansion": false
+        }
+      }
+    },
+    {
+      "name": "root-first-320",
+      "url": "http://127.0.0.1:3002/knowledge?qa=knowledge-progressive",
+      "viewport": {
+        "width": 320,
+        "height": 800
+      },
+      "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/root-first-320.png",
+      "screenshotSha256": "75fbbf155243edd4b8194584c80f4acd77020c85539093bd3696a919a9504809",
+      "networkEvents": [
+        {
+          "event": "request",
+          "mode": "root",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=root"
+        },
+        {
+          "event": "request",
+          "mode": "active-filter",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=active-filter"
+        },
+        {
+          "event": "request",
+          "mode": "remaining",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=remaining"
+        }
+      ],
+      "networkResponses": [
+        {
+          "event": "response",
+          "mode": "root",
+          "status": 200,
+          "payloadMode": "root",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:root:chapters",
+          "nodeCount": 15,
+          "linkCount": 0,
+          "rootSummaryCount": 15,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=root"
+        },
+        {
+          "event": "response",
+          "mode": "active-filter",
+          "status": 200,
+          "payloadMode": "active-filter",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:active-filter:density=structure;strength=0.8;connected=true;relations=default",
+          "nodeCount": 820,
+          "linkCount": 5048,
+          "rootSummaryCount": 0,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=active-filter"
+        }
+      ],
+      "markers": {
+        "workspace": "canvas-first",
+        "progressive": {
+          "loadingMode": "root-first",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "graphVersionPresent": true,
+          "loadedShardCount": 2,
+          "loadingShardCount": 0,
+          "expandedNodeCount": 0,
+          "loadingExpansionCount": 0,
+          "backgroundLoading": "true",
+          "fullGraphFirstRender": "avoided",
+          "selectedNodeId": "",
+          "densityMode": "structure"
+        },
+        "expansion": null,
+        "localTool": null,
+        "openLocalTool": null,
+        "inspectorVisible": false,
+        "konlingVisible": false,
+        "canvasPixelEvidence": {
+          "available": true,
+          "paintedPixels": 9104,
+          "nodeColorPixels": 415,
+          "width": 288,
+          "height": 502
+        },
+        "rects": {
+          "canvas": {
+            "left": 16,
+            "top": 166,
+            "right": 304,
+            "bottom": 668,
+            "width": 288,
+            "height": 502
+          },
+          "expansionPanel": null,
+          "dock": null,
+          "konling": null,
+          "inspector": null,
+          "localTool": null
+        },
+        "scroll": {
+          "viewportWidth": 320,
+          "viewportHeight": 800,
+          "scrollWidth": 320,
+          "scrollHeight": 800
+        },
+        "overlaps": {
+          "dockOverlapsExpansion": false,
+          "konlingOverlapsInspector": false,
+          "localToolOverlapsExpansion": false
+        }
+      }
+    },
+    {
+      "name": "expansion-loading-1440",
+      "url": "http://127.0.0.1:3002/knowledge?node=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5&qa=knowledge-progressive",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/expansion-loading-1440.png",
+      "screenshotSha256": "2af398bf625e17f2bc9d0d9113464b110ed5f3f7bc0a2863af61d980b54f767f",
+      "networkEvents": [
+        {
+          "event": "request",
+          "mode": "root",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=root"
+        },
+        {
+          "event": "request",
+          "mode": "active-filter",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=active-filter"
+        },
+        {
+          "event": "request",
+          "mode": "remaining",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=remaining"
+        },
+        {
+          "event": "request",
+          "mode": "expansion",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=expansion&nodeId=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"
+        }
+      ],
+      "networkResponses": [
+        {
+          "event": "response",
+          "mode": "root",
+          "status": 200,
+          "payloadMode": "root",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:root:chapters",
+          "nodeCount": 15,
+          "linkCount": 0,
+          "rootSummaryCount": 15,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=root"
+        },
+        {
+          "event": "response",
+          "mode": "active-filter",
+          "status": 200,
+          "payloadMode": "active-filter",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:active-filter:density=structure;strength=0.8;connected=true;relations=default",
+          "nodeCount": 820,
+          "linkCount": 5048,
+          "rootSummaryCount": 0,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=active-filter"
+        },
+        {
+          "event": "response",
+          "mode": "remaining",
+          "status": 200,
+          "payloadMode": "remaining",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:remaining:all",
+          "nodeCount": 820,
+          "linkCount": 16545,
+          "rootSummaryCount": 0,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=remaining"
+        }
+      ],
+      "markers": {
+        "workspace": "canvas-first",
+        "progressive": {
+          "loadingMode": "root-first",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "graphVersionPresent": true,
+          "loadedShardCount": 3,
+          "loadingShardCount": 1,
+          "expandedNodeCount": 0,
+          "loadingExpansionCount": 1,
+          "backgroundLoading": "false",
+          "fullGraphFirstRender": "avoided",
+          "selectedNodeId": "chapter-node:基本概念",
+          "densityMode": "structure"
+        },
+        "expansion": {
+          "state": "loading",
+          "filteredEmpty": "false",
+          "control": "expand",
+          "ariaExpanded": "false",
+          "ariaBusy": "true",
+          "loadingMessage": true,
+          "emptyMessage": false
+        },
+        "localTool": null,
+        "openLocalTool": null,
+        "inspectorVisible": true,
+        "konlingVisible": false,
+        "canvasPixelEvidence": {
+          "available": true,
+          "paintedPixels": 38822,
+          "nodeColorPixels": 7287,
+          "width": 1320,
+          "height": 847
+        },
+        "rects": {
+          "canvas": {
+            "left": 96,
+            "top": 109,
+            "right": 1416,
+            "bottom": 956,
+            "width": 1320,
+            "height": 847
+          },
+          "expansionPanel": {
+            "left": 112,
+            "top": 847,
+            "right": 420,
+            "bottom": 940,
+            "width": 308,
+            "height": 93
+          },
+          "dock": null,
+          "konling": null,
+          "inspector": {
+            "left": 992,
+            "top": 88,
+            "right": 1424,
+            "bottom": 880,
+            "width": 432,
+            "height": 792
+          },
+          "localTool": null
+        },
+        "scroll": {
+          "viewportWidth": 1440,
+          "viewportHeight": 960,
+          "scrollWidth": 1440,
+          "scrollHeight": 976
+        },
+        "overlaps": {
+          "dockOverlapsExpansion": false,
+          "konlingOverlapsInspector": false,
+          "localToolOverlapsExpansion": false
+        }
+      }
+    },
+    {
+      "name": "expanded-1440",
+      "url": "http://127.0.0.1:3002/knowledge?node=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5&qa=knowledge-progressive",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/expanded-1440.png",
+      "screenshotSha256": "c47c90348cda657ff3b36188f61b53c599eee887683e3b19ee4573a100718765",
+      "networkEvents": [
+        {
+          "event": "request",
+          "mode": "root",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=root"
+        },
+        {
+          "event": "request",
+          "mode": "active-filter",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=active-filter"
+        },
+        {
+          "event": "request",
+          "mode": "remaining",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=remaining"
+        },
+        {
+          "event": "request",
+          "mode": "expansion",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=expansion&nodeId=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"
+        }
+      ],
+      "networkResponses": [
+        {
+          "event": "response",
+          "mode": "root",
+          "status": 200,
+          "payloadMode": "root",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:root:chapters",
+          "nodeCount": 15,
+          "linkCount": 0,
+          "rootSummaryCount": 15,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=root"
+        },
+        {
+          "event": "response",
+          "mode": "active-filter",
+          "status": 200,
+          "payloadMode": "active-filter",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:active-filter:density=structure;strength=0.8;connected=true;relations=default",
+          "nodeCount": 820,
+          "linkCount": 5048,
+          "rootSummaryCount": 0,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=active-filter"
+        },
+        {
+          "event": "response",
+          "mode": "remaining",
+          "status": 200,
+          "payloadMode": "remaining",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:remaining:all",
+          "nodeCount": 820,
+          "linkCount": 16545,
+          "rootSummaryCount": 0,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=remaining"
+        },
+        {
+          "event": "response",
+          "mode": "expansion",
+          "status": 200,
+          "payloadMode": "expansion",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:expansion:chapter-node:基本概念",
+          "nodeCount": 62,
+          "linkCount": 1691,
+          "rootSummaryCount": 0,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=expansion&nodeId=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"
+        }
+      ],
+      "markers": {
+        "workspace": "canvas-first",
+        "progressive": {
+          "loadingMode": "root-first",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "graphVersionPresent": true,
+          "loadedShardCount": 4,
+          "loadingShardCount": 0,
+          "expandedNodeCount": 1,
+          "loadingExpansionCount": 0,
+          "backgroundLoading": "false",
+          "fullGraphFirstRender": "avoided",
+          "selectedNodeId": "chapter-node:基本概念",
+          "densityMode": "structure"
+        },
+        "expansion": {
+          "state": "expanded",
+          "filteredEmpty": "false",
+          "control": "collapse",
+          "ariaExpanded": "true",
+          "ariaBusy": "false",
+          "loadingMessage": false,
+          "emptyMessage": false
+        },
+        "localTool": null,
+        "openLocalTool": null,
+        "inspectorVisible": true,
+        "konlingVisible": false,
+        "canvasPixelEvidence": {
+          "available": true,
+          "paintedPixels": 69568,
+          "nodeColorPixels": 37189,
+          "width": 1320,
+          "height": 847
+        },
+        "rects": {
+          "canvas": {
+            "left": 96,
+            "top": 109,
+            "right": 1416,
+            "bottom": 956,
+            "width": 1320,
+            "height": 847
+          },
+          "expansionPanel": {
+            "left": 112,
+            "top": 875,
+            "right": 286,
+            "bottom": 940,
+            "width": 174,
+            "height": 65
+          },
+          "dock": null,
+          "konling": null,
+          "inspector": {
+            "left": 992,
+            "top": 88,
+            "right": 1424,
+            "bottom": 880,
+            "width": 432,
+            "height": 792
+          },
+          "localTool": null
+        },
+        "scroll": {
+          "viewportWidth": 1440,
+          "viewportHeight": 960,
+          "scrollWidth": 1440,
+          "scrollHeight": 976
+        },
+        "overlaps": {
+          "dockOverlapsExpansion": false,
+          "konlingOverlapsInspector": false,
+          "localToolOverlapsExpansion": false
+        }
+      }
+    },
+    {
+      "name": "collapsed-1440",
+      "url": "http://127.0.0.1:3002/knowledge?node=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5&qa=knowledge-progressive",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/collapsed-1440.png",
+      "screenshotSha256": "d468206cbb43e922e648cd0e489b90859da11192c1b3af8cf96ff4251e04e36d",
+      "networkEvents": [
+        {
+          "event": "request",
+          "mode": "root",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=root"
+        },
+        {
+          "event": "request",
+          "mode": "active-filter",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=active-filter"
+        },
+        {
+          "event": "request",
+          "mode": "remaining",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=remaining"
+        },
+        {
+          "event": "request",
+          "mode": "expansion",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=expansion&nodeId=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"
+        }
+      ],
+      "networkResponses": [
+        {
+          "event": "response",
+          "mode": "root",
+          "status": 200,
+          "payloadMode": "root",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:root:chapters",
+          "nodeCount": 15,
+          "linkCount": 0,
+          "rootSummaryCount": 15,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=root"
+        },
+        {
+          "event": "response",
+          "mode": "active-filter",
+          "status": 200,
+          "payloadMode": "active-filter",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:active-filter:density=structure;strength=0.8;connected=true;relations=default",
+          "nodeCount": 820,
+          "linkCount": 5048,
+          "rootSummaryCount": 0,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=active-filter"
+        },
+        {
+          "event": "response",
+          "mode": "remaining",
+          "status": 200,
+          "payloadMode": "remaining",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:remaining:all",
+          "nodeCount": 820,
+          "linkCount": 16545,
+          "rootSummaryCount": 0,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=remaining"
+        },
+        {
+          "event": "response",
+          "mode": "expansion",
+          "status": 200,
+          "payloadMode": "expansion",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:expansion:chapter-node:基本概念",
+          "nodeCount": 62,
+          "linkCount": 1691,
+          "rootSummaryCount": 0,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=expansion&nodeId=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"
+        }
+      ],
+      "markers": {
+        "workspace": "canvas-first",
+        "progressive": {
+          "loadingMode": "root-first",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "graphVersionPresent": true,
+          "loadedShardCount": 4,
+          "loadingShardCount": 0,
+          "expandedNodeCount": 0,
+          "loadingExpansionCount": 0,
+          "backgroundLoading": "false",
+          "fullGraphFirstRender": "avoided",
+          "selectedNodeId": "chapter-node:基本概念",
+          "densityMode": "structure"
+        },
+        "expansion": {
+          "state": "collapsed",
+          "filteredEmpty": "false",
+          "control": "expand",
+          "ariaExpanded": "false",
+          "ariaBusy": "false",
+          "loadingMessage": false,
+          "emptyMessage": false
+        },
+        "localTool": null,
+        "openLocalTool": null,
+        "inspectorVisible": true,
+        "konlingVisible": false,
+        "canvasPixelEvidence": {
+          "available": true,
+          "paintedPixels": 38822,
+          "nodeColorPixels": 7287,
+          "width": 1320,
+          "height": 847
+        },
+        "rects": {
+          "canvas": {
+            "left": 96,
+            "top": 109,
+            "right": 1416,
+            "bottom": 956,
+            "width": 1320,
+            "height": 847
+          },
+          "expansionPanel": {
+            "left": 112,
+            "top": 875,
+            "right": 319,
+            "bottom": 940,
+            "width": 207,
+            "height": 65
+          },
+          "dock": null,
+          "konling": null,
+          "inspector": {
+            "left": 992,
+            "top": 88,
+            "right": 1424,
+            "bottom": 880,
+            "width": 432,
+            "height": 792
+          },
+          "localTool": null
+        },
+        "scroll": {
+          "viewportWidth": 1440,
+          "viewportHeight": 960,
+          "scrollWidth": 1440,
+          "scrollHeight": 976
+        },
+        "overlaps": {
+          "dockOverlapsExpansion": false,
+          "konlingOverlapsInspector": false,
+          "localToolOverlapsExpansion": false
+        }
+      }
+    },
+    {
+      "name": "cache-reuse-1440",
+      "url": "http://127.0.0.1:3002/knowledge?node=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5&qa=knowledge-progressive",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/cache-reuse-1440.png",
+      "screenshotSha256": "9deb18db767ca68f7898cdea4b374daaf5c4f28b6d3c76e6ec9d9f84121507c6",
+      "networkEvents": [
+        {
+          "event": "request",
+          "mode": "root",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=root"
+        },
+        {
+          "event": "request",
+          "mode": "active-filter",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=active-filter"
+        },
+        {
+          "event": "request",
+          "mode": "remaining",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=remaining"
+        },
+        {
+          "event": "request",
+          "mode": "expansion",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=expansion&nodeId=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"
+        }
+      ],
+      "networkResponses": [
+        {
+          "event": "response",
+          "mode": "root",
+          "status": 200,
+          "payloadMode": "root",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:root:chapters",
+          "nodeCount": 15,
+          "linkCount": 0,
+          "rootSummaryCount": 15,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=root"
+        },
+        {
+          "event": "response",
+          "mode": "active-filter",
+          "status": 200,
+          "payloadMode": "active-filter",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:active-filter:density=structure;strength=0.8;connected=true;relations=default",
+          "nodeCount": 820,
+          "linkCount": 5048,
+          "rootSummaryCount": 0,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=active-filter"
+        },
+        {
+          "event": "response",
+          "mode": "remaining",
+          "status": 200,
+          "payloadMode": "remaining",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:remaining:all",
+          "nodeCount": 820,
+          "linkCount": 16545,
+          "rootSummaryCount": 0,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=remaining"
+        },
+        {
+          "event": "response",
+          "mode": "expansion",
+          "status": 200,
+          "payloadMode": "expansion",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:expansion:chapter-node:基本概念",
+          "nodeCount": 62,
+          "linkCount": 1691,
+          "rootSummaryCount": 0,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=expansion&nodeId=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"
+        }
+      ],
+      "markers": {
+        "workspace": "canvas-first",
+        "progressive": {
+          "loadingMode": "root-first",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "graphVersionPresent": true,
+          "loadedShardCount": 4,
+          "loadingShardCount": 0,
+          "expandedNodeCount": 1,
+          "loadingExpansionCount": 0,
+          "backgroundLoading": "false",
+          "fullGraphFirstRender": "avoided",
+          "selectedNodeId": "chapter-node:基本概念",
+          "densityMode": "structure"
+        },
+        "expansion": {
+          "state": "expanded",
+          "filteredEmpty": "false",
+          "control": "collapse",
+          "ariaExpanded": "true",
+          "ariaBusy": "false",
+          "loadingMessage": false,
+          "emptyMessage": false
+        },
+        "localTool": null,
+        "openLocalTool": null,
+        "inspectorVisible": true,
+        "konlingVisible": false,
+        "canvasPixelEvidence": {
+          "available": true,
+          "paintedPixels": 69541,
+          "nodeColorPixels": 37165,
+          "width": 1320,
+          "height": 847
+        },
+        "rects": {
+          "canvas": {
+            "left": 96,
+            "top": 109,
+            "right": 1416,
+            "bottom": 956,
+            "width": 1320,
+            "height": 847
+          },
+          "expansionPanel": {
+            "left": 112,
+            "top": 875,
+            "right": 286,
+            "bottom": 940,
+            "width": 174,
+            "height": 65
+          },
+          "dock": null,
+          "konling": null,
+          "inspector": {
+            "left": 992,
+            "top": 88,
+            "right": 1424,
+            "bottom": 880,
+            "width": 432,
+            "height": 792
+          },
+          "localTool": null
+        },
+        "scroll": {
+          "viewportWidth": 1440,
+          "viewportHeight": 960,
+          "scrollWidth": 1440,
+          "scrollHeight": 976
+        },
+        "overlaps": {
+          "dockOverlapsExpansion": false,
+          "konlingOverlapsInspector": false,
+          "localToolOverlapsExpansion": false
+        }
+      },
+      "interactionEvidence": {
+        "focusReturned": true,
+        "activeAriaExpanded": "true"
+      }
+    },
+    {
+      "name": "filtered-empty-1440",
+      "url": "http://127.0.0.1:3002/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-progressive",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/filtered-empty-1440.png",
+      "screenshotSha256": "e0d059535aee62fc19c15dccbbc79cb588120170abe6accd7f302f34a38310a4",
+      "networkEvents": [
+        {
+          "event": "request",
+          "mode": "root",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=root"
+        },
+        {
+          "event": "request",
+          "mode": "active-filter",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=active-filter"
+        },
+        {
+          "event": "request",
+          "mode": "remaining",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=remaining"
+        },
+        {
+          "event": "request",
+          "mode": "expansion",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=expansion&nodeId=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea"
+        }
+      ],
+      "networkResponses": [
+        {
+          "event": "response",
+          "mode": "root",
+          "status": 200,
+          "payloadMode": "root",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:root:chapters",
+          "nodeCount": 15,
+          "linkCount": 0,
+          "rootSummaryCount": 15,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=root"
+        },
+        {
+          "event": "response",
+          "mode": "active-filter",
+          "status": 200,
+          "payloadMode": "active-filter",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:active-filter:density=structure;strength=0.8;connected=true;relations=default",
+          "nodeCount": 820,
+          "linkCount": 5048,
+          "rootSummaryCount": 0,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=active-filter"
+        },
+        {
+          "event": "response",
+          "mode": "remaining",
+          "status": 200,
+          "payloadMode": "remaining",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:remaining:all",
+          "nodeCount": 820,
+          "linkCount": 16545,
+          "rootSummaryCount": 0,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=remaining"
+        },
+        {
+          "event": "response",
+          "mode": "expansion",
+          "status": 200,
+          "payloadMode": "expansion",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:expansion:稳定性_1_7288b4ea",
+          "nodeCount": 62,
+          "linkCount": 1691,
+          "rootSummaryCount": 0,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=expansion&nodeId=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea"
+        }
+      ],
+      "markers": {
+        "workspace": "canvas-first",
+        "progressive": {
+          "loadingMode": "root-first",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "graphVersionPresent": true,
+          "loadedShardCount": 4,
+          "loadingShardCount": 0,
+          "expandedNodeCount": 1,
+          "loadingExpansionCount": 0,
+          "backgroundLoading": "false",
+          "fullGraphFirstRender": "avoided",
+          "selectedNodeId": "稳定性_1_7288b4ea",
+          "densityMode": "structure"
+        },
+        "expansion": {
+          "state": "expanded",
+          "filteredEmpty": "true",
+          "control": "collapse",
+          "ariaExpanded": "true",
+          "ariaBusy": "false",
+          "loadingMessage": false,
+          "emptyMessage": true
+        },
+        "localTool": null,
+        "openLocalTool": null,
+        "inspectorVisible": true,
+        "konlingVisible": false,
+        "canvasPixelEvidence": {
+          "available": true,
+          "paintedPixels": 39491,
+          "nodeColorPixels": 8210,
+          "width": 1320,
+          "height": 847
+        },
+        "rects": {
+          "canvas": {
+            "left": 96,
+            "top": 109,
+            "right": 1416,
+            "bottom": 956,
+            "width": 1320,
+            "height": 847
+          },
+          "expansionPanel": {
+            "left": 112,
+            "top": 847,
+            "right": 431,
+            "bottom": 940,
+            "width": 319,
+            "height": 93
+          },
+          "dock": null,
+          "konling": null,
+          "inspector": {
+            "left": 992,
+            "top": 88,
+            "right": 1424,
+            "bottom": 880,
+            "width": 432,
+            "height": 792
+          },
+          "localTool": null
+        },
+        "scroll": {
+          "viewportWidth": 1440,
+          "viewportHeight": 960,
+          "scrollWidth": 1440,
+          "scrollHeight": 976
+        },
+        "overlaps": {
+          "dockOverlapsExpansion": false,
+          "konlingOverlapsInspector": false,
+          "localToolOverlapsExpansion": false
+        }
+      }
+    },
+    {
+      "name": "dense-all-1440",
+      "url": "http://127.0.0.1:3002/knowledge?qa=knowledge-progressive",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/dense-all-1440.png",
+      "screenshotSha256": "84e2cf6819912a02fc6c0d6f7ff6c639fc76d8ba61f0c2b5609fb64bc970e897",
+      "networkEvents": [
+        {
+          "event": "request",
+          "mode": "root",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=root"
+        },
+        {
+          "event": "request",
+          "mode": "active-filter",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=active-filter"
+        },
+        {
+          "event": "request",
+          "mode": "remaining",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=remaining"
+        }
+      ],
+      "networkResponses": [
+        {
+          "event": "response",
+          "mode": "root",
+          "status": 200,
+          "payloadMode": "root",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:root:chapters",
+          "nodeCount": 15,
+          "linkCount": 0,
+          "rootSummaryCount": 15,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=root"
+        },
+        {
+          "event": "response",
+          "mode": "active-filter",
+          "status": 200,
+          "payloadMode": "active-filter",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:active-filter:density=structure;strength=0.8;connected=true;relations=default",
+          "nodeCount": 820,
+          "linkCount": 5048,
+          "rootSummaryCount": 0,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=active-filter"
+        },
+        {
+          "event": "response",
+          "mode": "remaining",
+          "status": 200,
+          "payloadMode": "remaining",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:remaining:all",
+          "nodeCount": 820,
+          "linkCount": 16545,
+          "rootSummaryCount": 0,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=remaining"
+        }
+      ],
+      "markers": {
+        "workspace": "canvas-first",
+        "progressive": {
+          "loadingMode": "root-first",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "graphVersionPresent": true,
+          "loadedShardCount": 3,
+          "loadingShardCount": 0,
+          "expandedNodeCount": 0,
+          "loadingExpansionCount": 0,
+          "backgroundLoading": "false",
+          "fullGraphFirstRender": "avoided",
+          "selectedNodeId": "",
+          "densityMode": "all"
+        },
+        "expansion": null,
+        "localTool": null,
+        "openLocalTool": "relation-filters",
+        "inspectorVisible": false,
+        "konlingVisible": false,
+        "canvasPixelEvidence": {
+          "available": true,
+          "paintedPixels": 37609,
+          "nodeColorPixels": 7000,
+          "width": 1320,
+          "height": 847
+        },
+        "rects": {
+          "canvas": {
+            "left": 96,
+            "top": 109,
+            "right": 1416,
+            "bottom": 956,
+            "width": 1320,
+            "height": 847
+          },
+          "expansionPanel": null,
+          "dock": null,
+          "konling": null,
+          "inspector": null,
+          "localTool": null
+        },
+        "scroll": {
+          "viewportWidth": 1440,
+          "viewportHeight": 960,
+          "scrollWidth": 1440,
+          "scrollHeight": 976
+        },
+        "overlaps": {
+          "dockOverlapsExpansion": false,
+          "konlingOverlapsInspector": false,
+          "localToolOverlapsExpansion": false
+        }
+      },
+      "interactionEvidence": {
+        "selectedDensityMode": "true"
+      }
+    },
+    {
+      "name": "local-tool-1440",
+      "url": "http://127.0.0.1:3002/knowledge?qa=knowledge-progressive",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/local-tool-1440.png",
+      "screenshotSha256": "fb13b96d4f3b0372c3c7b3a9b3c89f7f13468ba94db3f3bb1a09a7b8bea043fa",
+      "networkEvents": [
+        {
+          "event": "request",
+          "mode": "root",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=root"
+        },
+        {
+          "event": "request",
+          "mode": "active-filter",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=active-filter"
+        },
+        {
+          "event": "request",
+          "mode": "remaining",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=remaining"
+        }
+      ],
+      "networkResponses": [
+        {
+          "event": "response",
+          "mode": "root",
+          "status": 200,
+          "payloadMode": "root",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:root:chapters",
+          "nodeCount": 15,
+          "linkCount": 0,
+          "rootSummaryCount": 15,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=root"
+        },
+        {
+          "event": "response",
+          "mode": "active-filter",
+          "status": 200,
+          "payloadMode": "active-filter",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:active-filter:density=structure;strength=0.8;connected=true;relations=default",
+          "nodeCount": 820,
+          "linkCount": 5048,
+          "rootSummaryCount": 0,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=active-filter"
+        },
+        {
+          "event": "response",
+          "mode": "remaining",
+          "status": 200,
+          "payloadMode": "remaining",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:remaining:all",
+          "nodeCount": 820,
+          "linkCount": 16545,
+          "rootSummaryCount": 0,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=remaining"
+        }
+      ],
+      "markers": {
+        "workspace": "canvas-first",
+        "progressive": {
+          "loadingMode": "root-first",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "graphVersionPresent": true,
+          "loadedShardCount": 3,
+          "loadingShardCount": 0,
+          "expandedNodeCount": 0,
+          "loadingExpansionCount": 0,
+          "backgroundLoading": "false",
+          "fullGraphFirstRender": "avoided",
+          "selectedNodeId": "",
+          "densityMode": "structure"
+        },
+        "expansion": null,
+        "localTool": "open",
+        "openLocalTool": "legend",
+        "inspectorVisible": false,
+        "konlingVisible": false,
+        "canvasPixelEvidence": {
+          "available": true,
+          "paintedPixels": 37609,
+          "nodeColorPixels": 7000,
+          "width": 1320,
+          "height": 847
+        },
+        "rects": {
+          "canvas": {
+            "left": 96,
+            "top": 109,
+            "right": 1416,
+            "bottom": 956,
+            "width": 1320,
+            "height": 847
+          },
+          "expansionPanel": null,
+          "dock": null,
+          "konling": null,
+          "inspector": null,
+          "localTool": {
+            "left": 112,
+            "top": 125,
+            "right": 704,
+            "bottom": 794,
+            "width": 592,
+            "height": 669
+          }
+        },
+        "scroll": {
+          "viewportWidth": 1440,
+          "viewportHeight": 960,
+          "scrollWidth": 1440,
+          "scrollHeight": 976
+        },
+        "overlaps": {
+          "dockOverlapsExpansion": false,
+          "konlingOverlapsInspector": false,
+          "localToolOverlapsExpansion": false
+        }
+      }
+    },
+    {
+      "name": "selected-inspector-1440",
+      "url": "http://127.0.0.1:3002/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-progressive",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/selected-inspector-1440.png",
+      "screenshotSha256": "10a7082cb1cb489a47251806f7b74e2b22d17e91467b740dc8e679d6676c9fa0",
+      "networkEvents": [
+        {
+          "event": "request",
+          "mode": "root",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=root"
+        },
+        {
+          "event": "request",
+          "mode": "active-filter",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=active-filter"
+        },
+        {
+          "event": "request",
+          "mode": "remaining",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=remaining"
+        }
+      ],
+      "networkResponses": [
+        {
+          "event": "response",
+          "mode": "root",
+          "status": 200,
+          "payloadMode": "root",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:root:chapters",
+          "nodeCount": 15,
+          "linkCount": 0,
+          "rootSummaryCount": 15,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=root"
+        },
+        {
+          "event": "response",
+          "mode": "active-filter",
+          "status": 200,
+          "payloadMode": "active-filter",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:active-filter:density=structure;strength=0.8;connected=true;relations=default",
+          "nodeCount": 820,
+          "linkCount": 5048,
+          "rootSummaryCount": 0,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=active-filter"
+        },
+        {
+          "event": "response",
+          "mode": "remaining",
+          "status": 200,
+          "payloadMode": "remaining",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:remaining:all",
+          "nodeCount": 820,
+          "linkCount": 16545,
+          "rootSummaryCount": 0,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=remaining"
+        }
+      ],
+      "markers": {
+        "workspace": "canvas-first",
+        "progressive": {
+          "loadingMode": "root-first",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "graphVersionPresent": true,
+          "loadedShardCount": 3,
+          "loadingShardCount": 0,
+          "expandedNodeCount": 0,
+          "loadingExpansionCount": 0,
+          "backgroundLoading": "false",
+          "fullGraphFirstRender": "avoided",
+          "selectedNodeId": "稳定性_1_7288b4ea",
+          "densityMode": "structure"
+        },
+        "expansion": {
+          "state": "collapsed",
+          "filteredEmpty": "false",
+          "control": "expand",
+          "ariaExpanded": "false",
+          "ariaBusy": "false",
+          "loadingMessage": false,
+          "emptyMessage": false
+        },
+        "localTool": null,
+        "openLocalTool": null,
+        "inspectorVisible": true,
+        "konlingVisible": false,
+        "canvasPixelEvidence": {
+          "available": true,
+          "paintedPixels": 40600,
+          "nodeColorPixels": 9425,
+          "width": 1320,
+          "height": 847
+        },
+        "rects": {
+          "canvas": {
+            "left": 96,
+            "top": 109,
+            "right": 1416,
+            "bottom": 956,
+            "width": 1320,
+            "height": 847
+          },
+          "expansionPanel": {
+            "left": 112,
+            "top": 875,
+            "right": 319,
+            "bottom": 940,
+            "width": 207,
+            "height": 65
+          },
+          "dock": null,
+          "konling": null,
+          "inspector": {
+            "left": 992,
+            "top": 88,
+            "right": 1424,
+            "bottom": 880,
+            "width": 432,
+            "height": 792
+          },
+          "localTool": null
+        },
+        "scroll": {
+          "viewportWidth": 1440,
+          "viewportHeight": 960,
+          "scrollWidth": 1440,
+          "scrollHeight": 976
+        },
+        "overlaps": {
+          "dockOverlapsExpansion": false,
+          "konlingOverlapsInspector": false,
+          "localToolOverlapsExpansion": false
+        }
+      }
+    },
+    {
+      "name": "konling-expanded-1440",
+      "url": "http://127.0.0.1:3002/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-progressive",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/konling-expanded-1440.png",
+      "screenshotSha256": "c063702b00a975f9d2b32b203e0b9f8d8a98e6122aa12411bee7666963f1816d",
+      "networkEvents": [
+        {
+          "event": "request",
+          "mode": "root",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=root"
+        },
+        {
+          "event": "request",
+          "mode": "active-filter",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=active-filter"
+        },
+        {
+          "event": "request",
+          "mode": "remaining",
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=remaining"
+        }
+      ],
+      "networkResponses": [
+        {
+          "event": "response",
+          "mode": "root",
+          "status": 200,
+          "payloadMode": "root",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:root:chapters",
+          "nodeCount": 15,
+          "linkCount": 0,
+          "rootSummaryCount": 15,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=root"
+        },
+        {
+          "event": "response",
+          "mode": "active-filter",
+          "status": 200,
+          "payloadMode": "active-filter",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:active-filter:density=structure;strength=0.8;connected=true;relations=default",
+          "nodeCount": 820,
+          "linkCount": 5048,
+          "rootSummaryCount": 0,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=active-filter"
+        },
+        {
+          "event": "response",
+          "mode": "remaining",
+          "status": 200,
+          "payloadMode": "remaining",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "shardKey": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2:shard:remaining:all",
+          "nodeCount": 820,
+          "linkCount": 16545,
+          "rootSummaryCount": 0,
+          "url": "http://127.0.0.1:3002/api/knowledge/graph?mode=remaining"
+        }
+      ],
+      "markers": {
+        "workspace": "canvas-first",
+        "progressive": {
+          "loadingMode": "root-first",
+          "graphVersion": "knowledge-graph:file:820:16545:aea8f7cf3c8a65f2",
+          "graphVersionPresent": true,
+          "loadedShardCount": 3,
+          "loadingShardCount": 0,
+          "expandedNodeCount": 0,
+          "loadingExpansionCount": 0,
+          "backgroundLoading": "false",
+          "fullGraphFirstRender": "avoided",
+          "selectedNodeId": "稳定性_1_7288b4ea",
+          "densityMode": "structure"
+        },
+        "expansion": {
+          "state": "collapsed",
+          "filteredEmpty": "false",
+          "control": "expand",
+          "ariaExpanded": "false",
+          "ariaBusy": "false",
+          "loadingMessage": false,
+          "emptyMessage": false
+        },
+        "localTool": null,
+        "openLocalTool": null,
+        "inspectorVisible": true,
+        "konlingVisible": false,
+        "canvasPixelEvidence": {
+          "available": true,
+          "paintedPixels": 39294,
+          "nodeColorPixels": 8026,
+          "width": 1320,
+          "height": 847
+        },
+        "rects": {
+          "canvas": {
+            "left": 96,
+            "top": 109,
+            "right": 1416,
+            "bottom": 956,
+            "width": 1320,
+            "height": 847
+          },
+          "expansionPanel": {
+            "left": 112,
+            "top": 875,
+            "right": 319,
+            "bottom": 940,
+            "width": 207,
+            "height": 65
+          },
+          "dock": null,
+          "konling": null,
+          "inspector": {
+            "left": 992,
+            "top": 88,
+            "right": 1424,
+            "bottom": 880,
+            "width": 432,
+            "height": 792
+          },
+          "localTool": null
+        },
+        "scroll": {
+          "viewportWidth": 1440,
+          "viewportHeight": 960,
+          "scrollWidth": 1440,
+          "scrollHeight": 976
+        },
+        "overlaps": {
+          "dockOverlapsExpansion": false,
+          "konlingOverlapsInspector": false,
+          "localToolOverlapsExpansion": false
+        }
+      }
+    }
+  ]
+}

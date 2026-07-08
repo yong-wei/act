@@ -130,6 +130,79 @@ interface GraphApiResponse {
   source?: 'file' | 'database';
 }
 
+interface ProgressiveGraphApiResponse extends GraphApiResponse {
+  mode?: 'root' | 'expansion' | 'active-filter' | 'remaining';
+  graphVersion?: string;
+  shardKey?: string;
+  filterSignature?: string;
+}
+
+interface KnowledgeGraphCacheState {
+  nodesById: Record<string, KnowledgeNodeData>;
+  linksByKey: Record<string, KnowledgeLinkData>;
+  loadedShardKeys: string[];
+  loadingShardKeys: string[];
+  graphVersion: string;
+  filterSignature: string;
+}
+
+function knowledgeLinkCacheKey(link: KnowledgeLinkData): string {
+  return link.id || `${link.sourceId}->${link.targetId}:${link.relationType || link.relation || 'related'}`;
+}
+
+function buildInitialGraphCache(nodes: KnowledgeNodeData[], links: KnowledgeLinkData[]): KnowledgeGraphCacheState {
+  return {
+    nodesById: Object.fromEntries(nodes.map((node) => [node.id, node])),
+    linksByKey: Object.fromEntries(links.map((link) => [knowledgeLinkCacheKey(link), link])),
+    loadedShardKeys: [],
+    loadingShardKeys: [],
+    graphVersion: '',
+    filterSignature: '',
+  };
+}
+
+function mergeProgressiveGraphPayload(
+  current: KnowledgeGraphCacheState,
+  payload: ProgressiveGraphApiResponse
+): KnowledgeGraphCacheState {
+  const graphVersion = payload.graphVersion ?? current.graphVersion;
+  const resetForVersion = current.graphVersion && graphVersion && current.graphVersion !== graphVersion;
+  const nodesById: Record<string, KnowledgeNodeData> = resetForVersion ? {} : { ...current.nodesById };
+  const linksByKey: Record<string, KnowledgeLinkData> = resetForVersion ? {} : { ...current.linksByKey };
+
+  for (const node of payload.nodes ?? []) {
+    nodesById[node.id] = node;
+  }
+  for (const link of payload.links ?? []) {
+    linksByKey[knowledgeLinkCacheKey(link)] = link;
+  }
+
+  const loadedShardKeys = new Set(resetForVersion ? [] : current.loadedShardKeys);
+  const loadingShardKeys = new Set(resetForVersion ? [] : current.loadingShardKeys);
+  if (payload.shardKey) {
+    loadedShardKeys.add(payload.shardKey);
+    loadingShardKeys.delete(payload.shardKey);
+  }
+
+  return {
+    nodesById,
+    linksByKey,
+    loadedShardKeys: [...loadedShardKeys],
+    loadingShardKeys: [...loadingShardKeys],
+    graphVersion,
+    filterSignature: payload.filterSignature ?? current.filterSignature,
+  };
+}
+
+function isCollapsedRootNode(node: KnowledgeNodeData): boolean {
+  const metadata = (node.metadata ?? {}) as Record<string, unknown>;
+  return Boolean(metadata.isVirtualChapter || metadata.isCollapsedRoot || node.id.startsWith('chapter-node:'));
+}
+
+function expansionShardKey(graphVersion: string, nodeId: string): string {
+  return `${graphVersion}:shard:expansion:${nodeId}`;
+}
+
 function RelationLegendSample({ item, isLightTheme }: { item: RelationLegendItem; isLightTheme: boolean }) {
   const dashArray = item.sampleStyle.dash.length > 0 ? item.sampleStyle.dash.join(' ') : undefined;
   const markerId = `knowledge-relation-legend-${item.type}`;
@@ -197,9 +270,14 @@ export function KnowledgeGraphSystem({
   const initialSelectedNode = initialRequestedNodeId
     ? initialNodes.find((node) => node.id === initialRequestedNodeId) ?? null
     : null;
-  const [nodes, setNodes] = useState<KnowledgeNodeData[]>(initialNodes);
-  const [links, setLinks] = useState<KnowledgeLinkData[]>(initialLinks);
-  const [isLoading, setIsLoading] = useState(true);
+  const [graphCache, setGraphCache] = useState<KnowledgeGraphCacheState>(() => buildInitialGraphCache(initialNodes, initialLinks));
+  const nodes = useMemo(() => Object.values(graphCache.nodesById), [graphCache.nodesById]);
+  const links = useMemo(() => Object.values(graphCache.linksByKey), [graphCache.linksByKey]);
+  const [isLoading, setIsLoading] = useState(initialNodes.length === 0);
+  const [isBackgroundLoading, setIsBackgroundLoading] = useState(false);
+  const [expandedNodeIds, setExpandedNodeIds] = useState<string[]>([]);
+  const [loadingExpansionNodeIds, setLoadingExpansionNodeIds] = useState<string[]>([]);
+  const [filteredEmptyExpansionNodeIds, setFilteredEmptyExpansionNodeIds] = useState<string[]>([]);
 
   const [requestedNodeId, setRequestedNodeId] = useState<string | null>(initialRequestedNodeId);
   const [selectedNode, setSelectedNode] = useState<KnowledgeNodeData | null>(initialSelectedNode);
@@ -231,6 +309,8 @@ export function KnowledgeGraphSystem({
   const previousDesktopToolRef = useRef<KnowledgeDesktopTool | null>(null);
   const mobileToolPanelRef = useRef<HTMLDivElement | null>(null);
   const mobileToolToggleRef = useRef<HTMLButtonElement | null>(null);
+  const expansionControlRef = useRef<HTMLButtonElement | null>(null);
+  const rootAutoFitTriggeredRef = useRef(false);
 
   // 视图模式：默认 2D
   const [viewMode, setViewMode] = useState<'2D' | '3D'>('2D');
@@ -293,33 +373,62 @@ export function KnowledgeGraphSystem({
   useEffect(() => {
     let cancelled = false;
     const controller = new AbortController();
+    const mergePayload = (payload: ProgressiveGraphApiResponse) => {
+      setGraphCache((current) => mergeProgressiveGraphPayload(current, payload));
+      setDataSource(payload.source === 'file' ? 'file' : 'database');
+    };
+    const fetchProgressivePayload = async (mode: string) => {
+      const response = await fetch(`/api/knowledge/graph?mode=${mode}`, { signal: controller.signal });
+      if (!response.ok) throw new Error(`Failed to fetch knowledge graph ${mode} payload`);
+      return (await response.json()) as ProgressiveGraphApiResponse;
+    };
+    const resolveRequestedNodeId = () => {
+      const fromRef = initialRequestedNodeIdRef.current;
+      if (fromRef) return fromRef;
+      const params = new URLSearchParams(window.location.search);
+      const fromUrl = params.get('node') ?? params.get('nodeId');
+      initialRequestedNodeIdRef.current = fromUrl;
+      setRequestedNodeId(fromUrl);
+      return fromUrl;
+    };
+    const resolveRequestedNode = (requestedNodeId: string | null, payload: ProgressiveGraphApiResponse) => {
+      if (initialSelectedNodeResolvedRef.current || !requestedNodeId) return;
+      const requestedNode = payload.nodes?.find((item) => item.id === requestedNodeId);
+      if (!requestedNode) return;
+      setSelectedNode(requestedNode);
+      setIsPanelOpen(true);
+      initialSelectedNodeResolvedRef.current = true;
+    };
     const fetchGraphData = async () => {
       try {
-        const response = await fetch('/api/knowledge/graph', { signal: controller.signal });
-        if (response.ok) {
-          const data = (await response.json()) as GraphApiResponse;
-          if (cancelled || controller.signal.aborted) return;
-          const fetchedNodes = Array.isArray(data.nodes) ? data.nodes : [];
-          setNodes(fetchedNodes);
-          setLinks(Array.isArray(data.links) ? data.links : []);
-          setDataSource(data.source === 'file' ? 'file' : 'database');
-          const requestedNodeId = initialRequestedNodeIdRef.current;
-          if (!initialSelectedNodeResolvedRef.current && requestedNodeId) {
-            const requestedNode = fetchedNodes.find((item) => item.id === requestedNodeId);
-            if (requestedNode) {
-              setSelectedNode(requestedNode);
-              setIsPanelOpen(true);
-            }
-          }
-        } else {
-          console.error('Failed to fetch knowledge graph data');
-        }
+        const requestedNodeId = resolveRequestedNodeId();
+        const rootPayload = await fetchProgressivePayload('root');
+        if (cancelled || controller.signal.aborted) return;
+        mergePayload(rootPayload);
+        setIsLoading(false);
+        resolveRequestedNode(requestedNodeId, rootPayload);
+
+        await new Promise<void>((resolve) => {
+          window.requestAnimationFrame(() => resolve());
+        });
+        if (cancelled || controller.signal.aborted) return;
+        setIsBackgroundLoading(true);
+        const activePayload = await fetchProgressivePayload('active-filter');
+        if (cancelled || controller.signal.aborted) return;
+        mergePayload(activePayload);
+        resolveRequestedNode(requestedNodeId, activePayload);
+
+        const remainingPayload = await fetchProgressivePayload('remaining');
+        if (cancelled || controller.signal.aborted) return;
+        mergePayload(remainingPayload);
+        resolveRequestedNode(requestedNodeId, remainingPayload);
       } catch (error) {
         if ((error as Error).name === 'AbortError') return;
         console.error('Error fetching knowledge graph data:', error);
       } finally {
         if (!cancelled && !controller.signal.aborted) {
           setIsLoading(false);
+          setIsBackgroundLoading(false);
         }
       }
     };
@@ -345,6 +454,95 @@ export function KnowledgeGraphSystem({
       setIsPanelOpen(true);
     }
   }, [nodes]);
+
+  const expansionHasVisibleDescendant = useCallback((
+    nodeId: string,
+    candidateNodes: KnowledgeNodeData[],
+    candidateLinks: KnowledgeLinkData[]
+  ) => {
+    const nodeById = new Map(candidateNodes.map((node) => [node.id, node]));
+    return candidateLinks.some((link) => {
+      const relation = link.relationType || link.relation;
+      const isChapterExpansion = nodeId.startsWith('chapter-node:') && link.sourceId === nodeId && relation === 'contains';
+      const isDirectExpansion = !nodeId.startsWith('chapter-node:') && relation !== 'contains' && (link.sourceId === nodeId || link.targetId === nodeId);
+      if (!isChapterExpansion && !isDirectExpansion) return false;
+      const descendantId = link.sourceId === nodeId ? link.targetId : link.sourceId;
+      if (descendantId === nodeId) return false;
+      const descendant = nodeById.get(descendantId);
+      if (!descendant) return false;
+      return matchesNodeFilters(descendant, {
+        searchQuery,
+        selectedChapters,
+        selectedCategories,
+        selectedBloomLevels,
+      });
+    });
+  }, [searchQuery, selectedBloomLevels, selectedCategories, selectedChapters]);
+
+  useEffect(() => {
+    if (!graphCache.graphVersion || expandedNodeIds.length === 0) return;
+    setFilteredEmptyExpansionNodeIds(expandedNodeIds.filter((nodeId) => (
+      graphCache.loadedShardKeys.includes(expansionShardKey(graphCache.graphVersion, nodeId))
+      && !expansionHasVisibleDescendant(nodeId, nodes, links)
+    )));
+  }, [expandedNodeIds, expansionHasVisibleDescendant, graphCache.graphVersion, graphCache.loadedShardKeys, links, nodes]);
+
+  const handleToggleSelectedExpansion = useCallback(async () => {
+    if (!selectedNode) return;
+    const nodeId = selectedNode.id;
+    const isExpanded = expandedNodeIds.includes(nodeId);
+    if (isExpanded) {
+      setExpandedNodeIds((current) => current.filter((id) => id !== nodeId));
+      setFilteredEmptyExpansionNodeIds((current) => current.filter((id) => id !== nodeId));
+      window.requestAnimationFrame(() => expansionControlRef.current?.focus());
+      return;
+    }
+
+    const expectedShardKey = graphCache.graphVersion ? expansionShardKey(graphCache.graphVersion, nodeId) : '';
+    if (expectedShardKey && graphCache.loadedShardKeys.includes(expectedShardKey)) {
+      setExpandedNodeIds((current) => current.includes(nodeId) ? current : [...current, nodeId]);
+      const hasVisibleChildren = expansionHasVisibleDescendant(nodeId, nodes, links);
+      setFilteredEmptyExpansionNodeIds((current) => (
+        hasVisibleChildren
+          ? current.filter((id) => id !== nodeId)
+          : current.includes(nodeId) ? current : [...current, nodeId]
+      ));
+      window.requestAnimationFrame(() => expansionControlRef.current?.focus());
+      return;
+    }
+
+    setLoadingExpansionNodeIds((current) => current.includes(nodeId) ? current : [...current, nodeId]);
+    setGraphCache((current) => ({
+      ...current,
+      loadingShardKeys: expectedShardKey && !current.loadingShardKeys.includes(expectedShardKey)
+        ? [...current.loadingShardKeys, expectedShardKey]
+        : current.loadingShardKeys,
+    }));
+    try {
+      const response = await fetch(`/api/knowledge/graph?mode=expansion&nodeId=${encodeURIComponent(nodeId)}`);
+      if (!response.ok) throw new Error(`Failed to fetch expansion shard for ${nodeId}`);
+      const payload = (await response.json()) as ProgressiveGraphApiResponse;
+      setGraphCache((current) => mergeProgressiveGraphPayload(current, payload));
+      setExpandedNodeIds((current) => current.includes(nodeId) ? current : [...current, nodeId]);
+      const hasVisibleChildren = expansionHasVisibleDescendant(nodeId, payload.nodes ?? [], payload.links ?? []);
+      setFilteredEmptyExpansionNodeIds((current) => (
+        hasVisibleChildren
+          ? current.filter((id) => id !== nodeId)
+          : current.includes(nodeId) ? current : [...current, nodeId]
+      ));
+    } catch (error) {
+      console.error('Error fetching knowledge graph expansion shard:', error);
+    } finally {
+      setLoadingExpansionNodeIds((current) => current.filter((id) => id !== nodeId));
+      setGraphCache((current) => ({
+        ...current,
+        loadingShardKeys: expectedShardKey
+          ? current.loadingShardKeys.filter((key) => key !== expectedShardKey)
+          : current.loadingShardKeys,
+      }));
+      window.requestAnimationFrame(() => expansionControlRef.current?.focus());
+    }
+  }, [expandedNodeIds, expansionHasVisibleDescendant, graphCache.graphVersion, graphCache.loadedShardKeys, links, nodes, selectedNode]);
 
   // 节点悬停处理
   const handleNodeHover = useCallback((node: KnowledgeNodeData | null) => {
@@ -418,10 +616,34 @@ export function KnowledgeGraphSystem({
     return Array.from(bloomSet).sort((a, b) => a.localeCompare(b, 'zh-Hans-CN'));
   }, [nodes]);
 
+  const expandedNodeIdSet = useMemo(() => new Set(expandedNodeIds), [expandedNodeIds]);
+  const expansionVisibleNodeIds = useMemo(() => {
+    const visible = new Set<string>();
+    nodes.forEach((node) => {
+      if (isCollapsedRootNode(node)) visible.add(node.id);
+    });
+    if (selectedNode) visible.add(selectedNode.id);
+
+    expandedNodeIdSet.forEach((nodeId) => {
+      visible.add(nodeId);
+      links.forEach((link) => {
+        const relation = link.relationType || link.relation;
+        const isChapterExpansion = nodeId.startsWith('chapter-node:') && link.sourceId === nodeId && relation === 'contains';
+        const isDirectExpansion = !nodeId.startsWith('chapter-node:') && relation !== 'contains' && (link.sourceId === nodeId || link.targetId === nodeId);
+        if (!isChapterExpansion && !isDirectExpansion) return;
+        visible.add(link.sourceId);
+        visible.add(link.targetId);
+      });
+    });
+
+    return visible;
+  }, [expandedNodeIdSet, links, nodes, selectedNode]);
+
   // 节点筛选（章节 / category / bloom_level / 搜索关键词）
   const nodeFilteredByMeta = useMemo(
     () =>
       nodes.filter((node) =>
+        expansionVisibleNodeIds.has(node.id) &&
         matchesNodeFilters(node, {
           searchQuery,
           selectedChapters,
@@ -429,7 +651,7 @@ export function KnowledgeGraphSystem({
           selectedBloomLevels,
         })
       ),
-    [nodes, searchQuery, selectedChapters, selectedCategories, selectedBloomLevels]
+    [expansionVisibleNodeIds, nodes, searchQuery, selectedChapters, selectedCategories, selectedBloomLevels]
   );
 
   const nodeFilterIdSet = useMemo(
@@ -540,20 +762,27 @@ export function KnowledgeGraphSystem({
     return visibleLinks;
   }, [densityFilteredLinks, filteredNodeIdSet]);
 
-  const graphWithChapterNodes = useMemo(
-    () => injectChapterNodes(
-      filteredNodes.map((node) => ({
-        ...node,
-        graphDegree: graphStatistics.degreeByNodeId.get(node.id) ?? 0,
-        graphImportanceScore: graphStatistics.importanceScoreByNodeId.get(node.id) ?? 0,
-      })),
-      filteredLinks
-    ),
-    [filteredNodes, filteredLinks, graphStatistics]
-  );
+  const graphWithChapterNodes = useMemo(() => {
+    const scoredNodes = filteredNodes.map((node) => ({
+      ...node,
+      graphDegree: graphStatistics.degreeByNodeId.get(node.id) ?? 0,
+      graphImportanceScore: graphStatistics.importanceScoreByNodeId.get(node.id) ?? 0,
+    }));
+    if (scoredNodes.some(isCollapsedRootNode)) {
+      return { nodes: scoredNodes, links: filteredLinks };
+    }
+    return injectChapterNodes(scoredNodes, filteredLinks);
+  }, [filteredNodes, filteredLinks, graphStatistics]);
 
   const displayNodes = graphWithChapterNodes.nodes;
   const displayLinks = graphWithChapterNodes.links;
+  useEffect(() => {
+    if (rootAutoFitTriggeredRef.current || displayNodes.length === 0) return;
+    if (!graphCache.loadedShardKeys.some((key) => key.includes(':shard:root:'))) return;
+    rootAutoFitTriggeredRef.current = true;
+    setFitViewVersion((current) => current + 1);
+  }, [displayNodes.length, graphCache.loadedShardKeys]);
+
   const displaySelectedNode = selectedNode
     ? displayNodes.find((node) => node.id === selectedNode.id) ?? null
     : null;
@@ -593,6 +822,10 @@ export function KnowledgeGraphSystem({
   const selectedNodeRelationCount = visibleSelectedNode
     ? displayLinks.filter((link) => link.sourceId === visibleSelectedNode.id || link.targetId === visibleSelectedNode.id).length
     : 0;
+  const selectedNodeExpanded = Boolean(visibleSelectedNode && expandedNodeIdSet.has(visibleSelectedNode.id));
+  const selectedNodeLoadingExpansion = Boolean(visibleSelectedNode && loadingExpansionNodeIds.includes(visibleSelectedNode.id));
+  const selectedNodeFilteredEmpty = Boolean(visibleSelectedNode && filteredEmptyExpansionNodeIds.includes(visibleSelectedNode.id));
+  const selectedNodeCanToggleExpansion = Boolean(visibleSelectedNode);
   const activeFilterSummary = [
     searchQuery ? `搜索：${searchQuery}` : '',
     selectedChapters.length > 0 ? `章节 ${selectedChapters.length}` : '',
@@ -817,6 +1050,14 @@ export function KnowledgeGraphSystem({
         data-knowledge-visible-link-count={displayLinks.length}
         data-knowledge-pinned-node-count={pinnedNodeCount}
         data-knowledge-pinned-layout-signature={pinnedLayoutSignature}
+        data-knowledge-progressive-loading="root-first"
+        data-knowledge-graph-version={graphCache.graphVersion}
+        data-knowledge-loaded-shard-count={graphCache.loadedShardKeys.length}
+        data-knowledge-loading-shard-count={graphCache.loadingShardKeys.length}
+        data-knowledge-expanded-node-count={expandedNodeIds.length}
+        data-knowledge-loading-expansion-count={loadingExpansionNodeIds.length}
+        data-knowledge-background-loading={isBackgroundLoading ? 'true' : 'false'}
+        data-knowledge-full-graph-first-render="avoided"
         data-knowledge-selected-node-id={visibleSelectedNode?.id ?? ''}
         data-knowledge-konling-selected-node-id={visibleSelectedNode?.id ?? ''}
         data-knowledge-konling-relation-summary={activeFilterSummary}
@@ -1044,6 +1285,7 @@ export function KnowledgeGraphSystem({
                             key={mode}
                             type="button"
                             aria-pressed={relationDensityMode === mode}
+                            data-knowledge-density-mode={mode}
                             onClick={() => setRelationDensityMode(mode)}
                             className={`rounded px-2 py-1 text-[10px] transition-colors ${
                               relationDensityMode === mode
@@ -1343,6 +1585,7 @@ export function KnowledgeGraphSystem({
 	                        key={`mobile-density-${mode}`}
 	                        type="button"
 	                        aria-pressed={relationDensityMode === mode}
+	                        data-knowledge-density-mode={mode}
 	                        onClick={() => setRelationDensityMode(mode)}
 	                        className={`rounded px-2 py-1 text-[10px] transition-colors ${
 	                          relationDensityMode === mode
@@ -1544,6 +1787,61 @@ export function KnowledgeGraphSystem({
             )}
             </div>
           )}
+          </div>
+        )}
+
+        {visibleSelectedNode && (
+          <div
+            className="absolute bottom-4 left-4 z-30 max-w-[min(24rem,calc(100vw-2rem))] rounded-xl border border-platform-border bg-platform-surface/95 p-3 text-xs text-platform-fg-primary shadow-lg backdrop-blur-md"
+            data-knowledge-expansion-panel="selected-node"
+            data-knowledge-selected-expansion-state={
+              selectedNodeLoadingExpansion ? 'loading' : selectedNodeExpanded ? 'expanded' : 'collapsed'
+            }
+            data-knowledge-filtered-empty={selectedNodeFilteredEmpty ? 'true' : 'false'}
+          >
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <div className="truncate font-semibold">{visibleSelectedNode.name}</div>
+                <div className="text-[11px] text-platform-fg-muted">
+                  {selectedNodeExpanded ? '已展开，缓存保留' : '折叠显示，按需加载子图'}
+                </div>
+              </div>
+              <button
+                ref={expansionControlRef}
+                type="button"
+                disabled={!selectedNodeCanToggleExpansion || selectedNodeLoadingExpansion}
+                aria-expanded={selectedNodeExpanded}
+                aria-busy={selectedNodeLoadingExpansion}
+                onClick={handleToggleSelectedExpansion}
+                onKeyDown={(event) => {
+                  if (event.key !== 'Enter' && event.key !== ' ') return;
+                  event.preventDefault();
+                  void handleToggleSelectedExpansion();
+                }}
+                className="shrink-0 rounded-lg border border-platform-border bg-platform-action-subtle px-3 py-1.5 text-[11px] font-medium text-platform-fg-secondary transition hover:bg-platform-action-primary hover:text-platform-fg-inverse disabled:cursor-wait disabled:opacity-60"
+                data-knowledge-expansion-control={selectedNodeExpanded ? 'collapse' : 'expand'}
+              >
+                {selectedNodeLoadingExpansion ? '加载中' : selectedNodeExpanded ? '收起' : '展开'}
+              </button>
+            </div>
+            {selectedNodeLoadingExpansion && (
+              <div
+                role="status"
+                className="rounded-lg border border-platform-border bg-platform-canvas-muted px-2 py-1.5 text-[11px] text-platform-fg-secondary"
+                data-knowledge-expansion-loading="local"
+              >
+                正在加载当前节点的局部子图，画布和工具仍可操作。
+              </div>
+            )}
+            {selectedNodeFilteredEmpty && !selectedNodeLoadingExpansion && (
+              <div
+                role="status"
+                className="rounded-lg border border-platform-border bg-platform-canvas-muted px-2 py-1.5 text-[11px] text-platform-fg-secondary"
+                data-knowledge-expansion-empty="filtered"
+              >
+                当前筛选条件下没有可见子节点，可调整筛选后再查看。
+              </div>
+            )}
           </div>
         )}
 
