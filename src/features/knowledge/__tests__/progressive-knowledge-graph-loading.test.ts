@@ -159,6 +159,16 @@ describe('progressive knowledge graph loading', () => {
     const nodeExpansion = buildKnowledgeGraphExpansionPayload(graph, 'node-a');
     expect(nodeExpansion.nodes.map((node) => node.id)).toEqual(['node-a', 'node-b', 'node-c']);
     expect(nodeExpansion.links.map((link) => link.id)).toEqual(['link-ab', 'link-ac-contains']);
+    const missingExpansion = buildKnowledgeGraphExpansionPayload(graph, '');
+    expect(missingExpansion.nodes).toEqual([]);
+    expect(missingExpansion.links).toEqual([]);
+    expect(missingExpansion.shardKey).toContain(':shard:expansion:missing-node');
+    const unknownNodeExpansion = buildKnowledgeGraphExpansionPayload(graph, 'node-missing');
+    expect(unknownNodeExpansion.nodes).toEqual([]);
+    expect(unknownNodeExpansion.links).toEqual([]);
+    const unknownRootExpansion = buildKnowledgeGraphExpansionPayload(graph, 'chapter-node:不存在的章节');
+    expect(unknownRootExpansion.nodes).toEqual([]);
+    expect(unknownRootExpansion.links).toEqual([]);
     expect(active.links.map((link) => link.id)).toEqual(['link-ab']);
     expect(remaining.links.map((link) => link.id)).toEqual(['link-ab', 'link-bc', 'link-ac-contains']);
   });
@@ -186,7 +196,6 @@ describe('progressive knowledge graph loading', () => {
     expect(source).toContain('expandedNodeIds');
     expect(source).toContain('loadingExpansionNodeIds');
     expect(source).toContain('resetForVersion');
-    expect(source).toContain('Object.values(current.nodesById)');
     expect(source).toContain('isExpansionLinkForNode');
     expect(source).toContain('expandedDirectLinks');
     expect(source).toContain('graphCache.loadedShardKeys.includes(expectedShardKey)');
@@ -208,12 +217,22 @@ describe('progressive knowledge graph loading', () => {
     expect(route.indexOf('const mode = searchParams.get')).toBeLessThan(route.indexOf('const graph = await loadKnowledgeGraphData();'));
     expect(route.indexOf("mode === 'root'")).toBeLessThan(route.indexOf('const graph = await loadKnowledgeGraphData();'));
     expect(route.indexOf("mode === 'manifest'")).toBeGreaterThan(route.indexOf('const graph = await loadKnowledgeGraphData();'));
+    expect(route).toContain("Missing nodeId for expansion shard.");
+    expect(route).toContain('{ status: 400 }');
     const rootFileLoader = payloadSource.slice(
       payloadSource.indexOf('async function loadKnowledgeGraphRootFromFiles'),
       payloadSource.indexOf('async function loadKnowledgeGraphFromDatabase')
     );
     expect(rootFileLoader).toContain('readFileGraphVersionMetadata(relationsPath)');
     expect(rootFileLoader).not.toContain("fs.readFile(relationsPath, 'utf-8')");
+    expect(payloadSource).toContain('sharedGraphCacheExpiresAt');
+    expect(payloadSource).toContain('rootGraphCache = null');
+    expect(payloadSource).toContain('graphCache = null');
+    const mergeProgressivePayload = source.slice(
+      source.indexOf('function mergeProgressiveGraphPayload'),
+      source.indexOf('function isCollapsedRootNode')
+    );
+    expect(mergeProgressivePayload).not.toContain('filter(isCollapsedRootNode)');
   });
 
   it('keeps the chapter sidebar aligned to parent-filtered progressive roots', () => {

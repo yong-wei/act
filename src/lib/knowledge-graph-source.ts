@@ -228,6 +228,8 @@ let rootGraphCache: {
   data: UnifiedKnowledgeGraphPayload;
 } | null = null;
 
+let sharedGraphCacheExpiresAt = 0;
+
 function normalizeBloomLevel(value?: string): BloomLevel {
   if (!value) return 'UNDERSTAND';
   const mapped = BLOOM_LEVEL_MAP[value.trim()];
@@ -595,34 +597,52 @@ async function loadKnowledgeGraphRootFromDatabase(): Promise<UnifiedKnowledgeGra
 
 export async function loadKnowledgeGraphData(): Promise<UnifiedKnowledgeGraphPayload> {
   const now = Date.now();
-  if (graphCache && graphCache.expiresAt > now) {
+  if (graphCache && sharedGraphCacheExpiresAt > now) {
     return graphCache.data;
   }
 
   const fileGraph = await loadKnowledgeGraphFromFiles();
   const data = fileGraph && fileGraph.nodes.length > 0 ? fileGraph : await loadKnowledgeGraphFromDatabase();
+  const expiresAt = now + FILE_GRAPH_CACHE_TTL_MS;
 
   graphCache = {
-    expiresAt: now + FILE_GRAPH_CACHE_TTL_MS,
+    expiresAt,
     data,
   };
+  sharedGraphCacheExpiresAt = expiresAt;
+  if (rootGraphCache) {
+    if (getKnowledgeGraphVersion(rootGraphCache.data) === getKnowledgeGraphVersion(data)) {
+      rootGraphCache = { ...rootGraphCache, expiresAt };
+    } else {
+      rootGraphCache = null;
+    }
+  }
 
   return data;
 }
 
 export async function loadKnowledgeGraphRootData(): Promise<UnifiedKnowledgeGraphPayload> {
   const now = Date.now();
-  if (rootGraphCache && rootGraphCache.expiresAt > now) {
+  if (rootGraphCache && sharedGraphCacheExpiresAt > now) {
     return rootGraphCache.data;
   }
 
   const fileGraph = await loadKnowledgeGraphRootFromFiles();
   const data = fileGraph && fileGraph.nodes.length > 0 ? fileGraph : await loadKnowledgeGraphRootFromDatabase();
+  const expiresAt = now + FILE_GRAPH_CACHE_TTL_MS;
 
   rootGraphCache = {
-    expiresAt: now + FILE_GRAPH_CACHE_TTL_MS,
+    expiresAt,
     data,
   };
+  sharedGraphCacheExpiresAt = expiresAt;
+  if (graphCache) {
+    if (getKnowledgeGraphVersion(graphCache.data) === getKnowledgeGraphVersion(data)) {
+      graphCache = { ...graphCache, expiresAt };
+    } else {
+      graphCache = null;
+    }
+  }
 
   return data;
 }
@@ -782,6 +802,19 @@ function buildProgressiveShardKey(mode: KnowledgeGraphProgressiveMode, graphVers
   return `${graphVersion}:shard:${mode}:${suffix}`;
 }
 
+function buildEmptyExpansionPayload(graph: UnifiedKnowledgeGraphPayload, nodeId: string): KnowledgeGraphProgressivePayload {
+  const graphVersion = getKnowledgeGraphVersion(graph);
+  return {
+    mode: 'expansion',
+    graphVersion,
+    shardKey: buildProgressiveShardKey('expansion', graphVersion, nodeId || 'missing-node'),
+    filterSignature: DEFAULT_GRAPH_FILTER_SIGNATURE,
+    nodes: [],
+    links: [],
+    source: graph.source,
+  };
+}
+
 export function buildKnowledgeGraphManifestPayload(graph: UnifiedKnowledgeGraphPayload): KnowledgeGraphManifestPayload {
   const graphVersion = getKnowledgeGraphVersion(graph);
   return {
@@ -829,6 +862,7 @@ export function buildKnowledgeGraphExpansionPayload(
   nodeId: string
 ): KnowledgeGraphProgressivePayload {
   const graphVersion = getKnowledgeGraphVersion(graph);
+  if (!nodeId) return buildEmptyExpansionPayload(graph, nodeId);
   const targetNode = graph.nodes.find((node) => node.id === nodeId);
   if (targetNode && !nodeId.startsWith(CHAPTER_ROOT_NODE_PREFIX)) {
     const directLinks = graph.links.filter((link) => link.sourceId === nodeId || link.targetId === nodeId);
@@ -850,18 +884,14 @@ export function buildKnowledgeGraphExpansionPayload(
   }
 
   const groups = groupGraphNodesByChapter(graph.nodes);
-  const chapterName = nodeId.startsWith(CHAPTER_ROOT_NODE_PREFIX)
-    ? nodeId.slice(CHAPTER_ROOT_NODE_PREFIX.length)
-    : chapterNameForNode(graph.nodes.find((node) => node.id === nodeId) ?? graph.nodes[0] ?? {
-        id: 'empty',
-        name: '未分类',
-        nodeType: 'THEORY',
-        description: '',
-        positionX: 0,
-        positionY: 0,
-        positionZ: 0,
-      });
+  if (!nodeId.startsWith(CHAPTER_ROOT_NODE_PREFIX)) {
+    return buildEmptyExpansionPayload(graph, nodeId);
+  }
+  const chapterName = nodeId.slice(CHAPTER_ROOT_NODE_PREFIX.length);
   const groupIndex = groups.findIndex((group) => group.chapterName === chapterName);
+  if (groupIndex < 0) {
+    return buildEmptyExpansionPayload(graph, nodeId);
+  }
   const group = groups[groupIndex] ?? { chapterName, nodes: [] };
   const rootNode = buildChapterRootNode(group.chapterName, Math.max(0, groupIndex), group.nodes.length);
   const groupNodeIds = new Set(group.nodes.map((node) => node.id));

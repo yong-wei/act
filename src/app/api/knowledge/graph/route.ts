@@ -22,12 +22,19 @@ export async function GET(request: Request) {
       return NextResponse.json(buildKnowledgeGraphRootPayload(graph));
     }
 
+    if (mode === 'expansion' && !searchParams.get('nodeId')) {
+      return NextResponse.json(
+        { error: 'Missing nodeId for expansion shard.' },
+        { status: 400 }
+      );
+    }
+
     const graph = await loadKnowledgeGraphData();
     if (mode === 'manifest') {
       return NextResponse.json(buildKnowledgeGraphManifestPayload(graph));
     }
     if (mode === 'expansion') {
-      return NextResponse.json(buildKnowledgeGraphExpansionPayload(graph, searchParams.get('nodeId') ?? ''));
+      return NextResponse.json(buildKnowledgeGraphExpansionPayload(graph, searchParams.get('nodeId')!));
     }
     if (mode === 'active-filter') {
       return NextResponse.json(buildKnowledgeGraphActiveFilterPayload(graph));

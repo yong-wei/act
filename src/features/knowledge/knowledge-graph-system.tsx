@@ -169,13 +169,6 @@ function mergeProgressiveGraphPayload(
   const resetForVersion = current.graphVersion && graphVersion && current.graphVersion !== graphVersion;
   const nodesById: Record<string, KnowledgeNodeData> = resetForVersion ? {} : { ...current.nodesById };
   const linksByKey: Record<string, KnowledgeLinkData> = resetForVersion ? {} : { ...current.linksByKey };
-  if (resetForVersion) {
-    Object.values(current.nodesById)
-      .filter(isCollapsedRootNode)
-      .forEach((node) => {
-        nodesById[node.id] = node;
-      });
-  }
 
   for (const node of payload.nodes ?? []) {
     nodesById[node.id] = node;
