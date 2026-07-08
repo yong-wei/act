@@ -486,7 +486,7 @@ describe('Yang Fan diagnostic fixture', () => {
     expect(db.learningPathExecution?.createMany).not.toHaveBeenCalled();
   });
 
-  it('blocks unsafe duplicate accounts before apply', async () => {
+  it('treats same-name accounts with distinct identities as separate students before apply', async () => {
     const db = createDb({
       learningFact: {
         findMany: vi.fn(async (args: Record<string, any>) => (
@@ -506,15 +506,30 @@ describe('Yang Fan diagnostic fixture', () => {
       databaseUrl: 'postgres://localhost/act_test',
     });
 
-    expect(plan.canApply).toBe(false);
-    expect(plan.duplicateDisposition).toBe('blocked-unsafe');
-    expect(plan.blockers).toContain('duplicate-yangfan-account-has-unsafe-records');
+    expect(plan.canApply).toBe(true);
+    expect(plan.duplicateDisposition).toBe('none');
+    expect(plan.blockers).not.toContain('duplicate-yangfan-account-has-unsafe-records');
+    expect(plan.warnings).toContain('same-name-yangfan-accounts-treated-as-distinct');
   });
 
-  it('blocks duplicate deletion when no-email account has real user-scoped rows', async () => {
+  it('blocks identity-conflicting accounts before apply', async () => {
     const db = createDb({
-      userAnswer: {
-        findMany: vi.fn(async () => [{ id: 'answer-1' }]),
+      user: {
+        findMany: vi.fn(async () => [
+          {
+            id: 'user-canonical',
+            name: 'Yang Fan',
+            email: 'yangfan@example.test',
+            profile: { studentNumber: '20230010102605' },
+          },
+          {
+            id: 'user-duplicate',
+            name: 'Yang Fan',
+            email: 'other@example.test',
+            profile: { studentNumber: '20230010102605' },
+          },
+        ]),
+        deleteMany: vi.fn(async () => ({ count: 0 })),
       },
     });
     const plan = await buildYangFanDiagnosticFixturePlan(db, {
@@ -531,7 +546,7 @@ describe('Yang Fan diagnostic fixture', () => {
     expect(db.user.deleteMany).not.toHaveBeenCalled();
   });
 
-  it('blocks duplicate deletion when no-email account has a student profile', async () => {
+  it('does not block same-name accounts when the other account has a different student number', async () => {
     const db = createDb({
       user: {
         findMany: vi.fn(async () => [
@@ -545,7 +560,7 @@ describe('Yang Fan diagnostic fixture', () => {
             id: 'user-duplicate',
             name: 'Yang Fan',
             email: null,
-            profile: { studentNumber: null },
+            profile: { studentNumber: '232210301305' },
           },
         ]),
         deleteMany: vi.fn(async () => ({ count: 1 })),
@@ -559,9 +574,10 @@ describe('Yang Fan diagnostic fixture', () => {
       databaseUrl: 'postgres://localhost/act_test',
     });
 
-    expect(plan.canApply).toBe(false);
-    expect(plan.duplicateDisposition).toBe('blocked-unsafe');
-    expect(plan.blockers).toContain('duplicate-yangfan-account-has-unsafe-records');
+    expect(plan.canApply).toBe(true);
+    expect(plan.duplicateDisposition).toBe('none');
+    expect(plan.blockers).not.toContain('duplicate-yangfan-account-has-unsafe-records');
+    expect(plan.warnings).toContain('same-name-yangfan-accounts-treated-as-distinct');
     expect(db.user.deleteMany).not.toHaveBeenCalled();
   });
 

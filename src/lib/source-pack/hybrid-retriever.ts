@@ -19,6 +19,7 @@ export interface RetrieveSourcePackInput extends SourcePackRankingContext {
   candidates: readonly SourcePackItem[];
   limitations?: readonly SourcePackLimitation[];
   now?: Date;
+  answerRelevanceQuery?: string | readonly string[];
 }
 
 export interface RetrieveSourcePackResult {
@@ -35,20 +36,39 @@ interface FilterResult {
   excludedCount: number;
 }
 
+interface AnswerRelevanceGateResult {
+  ranked: RankedSourcePackCandidate[];
+  limitations: SourcePackLimitation[];
+}
+
+interface AnswerRelevanceEvidence {
+  passed: true;
+  basis: string;
+  match: string;
+  queryHash: string;
+}
+
+interface AnswerRelevanceQueryMatch {
+  basis: 'query-exact' | 'query-lexical';
+  match: string;
+}
+
 export function retrieveSourcePack(input: RetrieveSourcePackInput): RetrieveSourcePackResult {
   const normalizedInput = normalizeRetrievalInput(input);
   const profile = getSourcePackRetrievalProfile(input.profile);
   const role = normalizeCallerRole(input.role ?? profile.defaultRole);
   const filtered = filterCandidates(input.candidates, input, role);
   const ranked = rankSourcePackCandidates(filtered.eligible, normalizedInput, profile);
+  const relevanceGated = gateKonlingAnswerRelevance(ranked, normalizedInput);
   const diversified = diversifyRankedSourcePackItems({
-    ranked,
+    ranked: relevanceGated.ranked,
     profile,
     topK: input.topK,
   });
   const limitations = [
     ...inputLimitationsForPack(input.limitations ?? [], role),
     ...filtered.limitations,
+    ...relevanceGated.limitations,
     ...diversified.limitations,
     ...coverageLimitations(diversified.items, normalizedInput, profile),
   ];
@@ -87,7 +107,7 @@ export function retrieveSourcePack(input: RetrieveSourcePackInput): RetrieveSour
   });
   return {
     pack,
-    ranked,
+    ranked: relevanceGated.ranked,
     eligibleItems: filtered.eligible,
     excludedCount: filtered.excludedCount,
     limitations,
@@ -100,8 +120,13 @@ function itemsForPack(items: readonly SourcePackItem[], role: SourcePackCallerRo
 }
 
 function redactStudentItemMetadata(item: SourcePackItem): SourcePackItem {
-  if (!item.metadata || !Object.hasOwn(item.metadata, 'learnerContextRefs')) return item;
-  const { learnerContextRefs: _learnerContextRefs, ...metadata } = item.metadata;
+  if (!item.metadata) return item;
+  const {
+    learnerContextRefs: _learnerContextRefs,
+    answerRelevanceMatch: _answerRelevanceMatch,
+    answerRelevanceQueryHash: _answerRelevanceQueryHash,
+    ...metadata
+  } = item.metadata;
   return { ...item, metadata };
 }
 
@@ -199,6 +224,316 @@ function hasAnswerLeakage(item: SourcePackItem): boolean {
 function hasCitationReadyIdentifier(item: SourcePackItem): boolean {
   if (item.citation) return Boolean(item.citation.citationTargetId && item.citation.verified);
   return Boolean(item.citationTargetId);
+}
+
+function gateKonlingAnswerRelevance(
+  ranked: readonly RankedSourcePackCandidate[],
+  input: RetrieveSourcePackInput,
+): AnswerRelevanceGateResult {
+  if (input.profile !== 'konling-answer') {
+    return { ranked: [...ranked], limitations: [] };
+  }
+  const relevanceQueries = answerRelevanceQueries(input);
+  const queryHash = hashString(relevanceQueries.join('\n'));
+  const accepted: RankedSourcePackCandidate[] = [];
+  let rejected = 0;
+  for (const candidate of ranked) {
+    const evidence = answerRelevanceEvidence(candidate, input, queryHash);
+    if (!evidence) {
+      rejected += 1;
+      continue;
+    }
+    accepted.push({
+      ...candidate,
+      item: withAnswerRelevanceEvidence(candidate.item, evidence),
+    });
+  }
+  const limitations: SourcePackLimitation[] = [];
+  if (rejected > 0) {
+    limitations.push(buildLimitation(
+      'answer-citation-insufficient-relevance',
+      `${rejected} konling-answer candidate(s) were omitted because authority, review state, graphAlignment score, or stable id ordering did not prove answer relevance.`,
+      'warning',
+    ));
+  }
+  if (ranked.length > 0 && accepted.length === 0) {
+    limitations.push(buildLimitation(
+      'coverage-missing-answer-context',
+      'No selected konling-answer Source Pack item covers the current question or server-owned answer context.',
+      'warning',
+    ));
+  }
+  return { ranked: accepted, limitations };
+}
+
+function answerRelevanceEvidence(
+  candidate: RankedSourcePackCandidate,
+  input: RetrieveSourcePackInput,
+  queryHash: string,
+): AnswerRelevanceEvidence | null {
+  const selectedNodeMatch = firstMatchingMetadataRef(candidate.item, input.graphNodeRefs, 'knowledgeNodeRefs');
+  if (selectedNodeMatch) {
+    return { passed: true, basis: 'selected-node-ref', match: selectedNodeMatch, queryHash };
+  }
+  const capabilityMatch = firstMatchingMetadataRef(candidate.item, input.capabilityTargetRefs, 'capabilityTargetRefs');
+  if (capabilityMatch) {
+    return { passed: true, basis: 'capability-target-ref', match: capabilityMatch, queryHash };
+  }
+  const resourceMatch = firstMatchingResourceRef(candidate.item, input.resourceIds);
+  if (resourceMatch) {
+    return { passed: true, basis: 'resource-ref', match: resourceMatch, queryHash };
+  }
+  const learnerContextMatch = firstMatchingAnyItemRef(candidate.item, input.learnerContextRefs);
+  if (learnerContextMatch) {
+    return { passed: true, basis: 'learner-context-ref', match: learnerContextMatch, queryHash };
+  }
+  const queryMatch = answerRelevanceQueryMatch(candidate.item, answerRelevanceQueries(input));
+  if (queryMatch) {
+    return { passed: true, basis: queryMatch.basis, match: queryMatch.match, queryHash };
+  }
+  const semanticScore = input.semanticScores?.[candidate.item.id] ?? 0;
+  if (semanticScore >= 0.72) {
+    return { passed: true, basis: 'semantic-score', match: scoreBucket('semantic', semanticScore), queryHash };
+  }
+  return null;
+}
+
+function withAnswerRelevanceEvidence(
+  item: SourcePackItem,
+  evidence: AnswerRelevanceEvidence,
+): SourcePackItem {
+  return {
+    ...item,
+    metadata: {
+      ...item.metadata,
+      answerRelevancePassed: true,
+      answerRelevanceBasis: evidence.basis,
+      answerRelevanceMatch: evidence.match,
+      answerRelevanceQueryHash: evidence.queryHash,
+    },
+  };
+}
+
+function firstMatchingMetadataRef(
+  item: SourcePackItem,
+  refs: readonly string[] | undefined,
+  key: string,
+): string | null {
+  return firstMatchingRef(refs, (ref) => metadataIncludes(item, key, ref));
+}
+
+function firstMatchingResourceRef(
+  item: SourcePackItem,
+  refs: readonly string[] | undefined,
+): string | null {
+  return firstMatchingRef(refs, (ref) => coversResourceRef(item, ref));
+}
+
+function firstMatchingAnyItemRef(
+  item: SourcePackItem,
+  refs: readonly string[] | undefined,
+): string | null {
+  return firstMatchingRef(refs, (ref) => (
+    item.id === ref
+    || item.retrievalChunkId === ref
+    || item.citationTargetId === ref
+    || item.resourceNodeId === ref
+    || item.planningUnitId === ref
+    || metadataIncludes(item, 'learnerContextRefs', ref)
+  ));
+}
+
+function firstMatchingRef(refs: readonly string[] | undefined, predicate: (ref: string) => boolean): string | null {
+  for (const ref of refs ?? []) {
+    if (predicate(ref)) return ref;
+  }
+  return null;
+}
+
+function scoreBucket(label: string, value: number): string {
+  return `${label}:${Math.round(Math.max(0, Math.min(1, value)) * 100)}`;
+}
+
+function answerRelevanceQueries(input: RetrieveSourcePackInput): string[] {
+  const rawQueries = Array.isArray(input.answerRelevanceQuery)
+    ? input.answerRelevanceQuery
+    : [input.answerRelevanceQuery ?? input.query];
+  return uniqueStrings(rawQueries.map((query) => normalizeAnswerRelevanceText(query ?? '')).filter(Boolean));
+}
+
+function uniqueStrings(values: readonly string[]): string[] {
+  return Array.from(new Set(values));
+}
+
+function answerRelevanceQueryMatch(item: SourcePackItem, queries: readonly string[]): AnswerRelevanceQueryMatch | null {
+  const searchable = answerRelevanceSearchableText(item);
+  for (const normalizedQuery of queries) {
+    if (searchable.includes(normalizedQuery) && exactQueryMatchAllowed(item, normalizedQuery)) {
+      return { basis: 'query-exact', match: 'query' };
+    }
+    const queryKeywordMatch = firstSignificantQueryTokenMatch(item, searchable, normalizedQuery);
+    if (queryKeywordMatch) {
+      return { basis: 'query-lexical', match: `token:${queryKeywordMatch}` };
+    }
+  }
+  return null;
+}
+
+function exactQueryMatchAllowed(item: SourcePackItem, normalizedQuery: string): boolean {
+  if (AMBIGUOUS_ANSWER_RELEVANCE_EXACT_QUERIES.has(normalizedQuery)) return false;
+  const shortChineseTerm = ANSWER_RELEVANCE_CHINESE_TERMS.find((term) => (
+    term === normalizedQuery && term.length < 4
+  ));
+  if (!shortChineseTerm) return true;
+  return answerRelevanceReferenceText(item).includes(shortChineseTerm);
+}
+
+function firstSignificantQueryTokenMatch(item: SourcePackItem, searchable: string, query: string): string | null {
+  const chineseTermMatch = firstChineseAnswerRelevanceTermMatch(item, searchable, query);
+  if (chineseTermMatch) return chineseTermMatch;
+  const matches = answerRelevanceQueryTokens(query).filter((token) => searchable.includes(token));
+  const distinctiveMatch = matches.find((token) => DISTINCTIVE_ANSWER_RELEVANCE_TOKENS.has(token));
+  if (distinctiveMatch) return distinctiveMatch;
+  if (matches.length >= 2) {
+    return matches.slice(0, 2).join('+');
+  }
+  return null;
+}
+
+function firstChineseAnswerRelevanceTermMatch(item: SourcePackItem, searchable: string, query: string): string | null {
+  const normalizedQuery = normalizeAnswerRelevanceText(query);
+  return ANSWER_RELEVANCE_CHINESE_TERMS.find((term) => (
+    normalizedQuery.includes(term) && searchable.includes(term)
+    && (
+      term.length >= 4
+      || answerRelevanceReferenceText(item).includes(term)
+    )
+  )) ?? null;
+}
+
+function answerRelevanceSearchableText(item: SourcePackItem): string {
+  const searchable = normalizeAnswerRelevanceText([
+    item.id,
+    item.title,
+    item.excerpt,
+    item.inclusionRationale,
+    item.retrievalChunkId,
+    item.citationTargetId,
+    item.resourceNodeId,
+    item.planningUnitId,
+    ...(item.metadata ? Object.values(item.metadata).flatMap(metadataValueToText) : []),
+  ].join(' '));
+  return searchable;
+}
+
+function answerRelevanceReferenceText(item: SourcePackItem): string {
+  return normalizeAnswerRelevanceText([
+    item.id,
+    item.title,
+    item.retrievalChunkId,
+    item.citationTargetId,
+    item.resourceNodeId,
+    item.planningUnitId,
+    ...(item.metadata ? Object.values(item.metadata).flatMap(metadataValueToText) : []),
+  ].join(' '));
+}
+
+const DISTINCTIVE_ANSWER_RELEVANCE_TOKENS = new Set([
+  'bode',
+  'nyquist',
+  'pid',
+  'imc',
+  'simc',
+  'mpc',
+  'rl',
+  'locus',
+  'routh',
+  'hurwitz',
+  'laplace',
+  'mason',
+]);
+
+const SUPPORTING_ANSWER_RELEVANCE_TOKENS = new Set([
+  'bandwidth',
+  'closed',
+  'controller',
+  'damping',
+  'error',
+  'frequency',
+  'function',
+  'gain',
+  'lag',
+  'lead',
+  'loop',
+  'margin',
+  'open',
+  'overshoot',
+  'phase',
+  'pole',
+  'response',
+  'settling',
+  'stability',
+  'state',
+  'steady',
+  'transfer',
+  'zero',
+]);
+
+const AMBIGUOUS_ANSWER_RELEVANCE_EXACT_QUERIES = new Set([
+  'root',
+]);
+
+const ANSWER_RELEVANCE_CHINESE_TERMS = [
+  '伯德图',
+  '闭环传递函数',
+  '闭环',
+  '传递函数',
+  '传函',
+  '超调量',
+  '调节时间',
+  '动态响应',
+  '动态特性',
+  '根轨迹',
+  '渐近稳定性',
+  '胡尔维茨',
+  '极点',
+  '开环传递函数',
+  '开环',
+  '劳斯',
+  '劳斯判据',
+  '奈奎斯特',
+  '频率响应',
+  '扰动响应',
+  '时间响应',
+  '瞬态响应',
+  '稳定判据',
+  '稳定性',
+  '稳定裕度',
+  '稳态误差',
+  '稳态响应',
+  '相位裕度',
+  '状态空间',
+  '增益裕度',
+  '单位阶跃响应',
+  '阶跃响应',
+  '阻尼比',
+  '零点',
+];
+
+function answerRelevanceQueryTokens(query: string): string[] {
+  return Array.from(new Set(normalizeAnswerRelevanceText(query).split(/[^a-z0-9]+/)
+    .filter((token) => (
+      DISTINCTIVE_ANSWER_RELEVANCE_TOKENS.has(token)
+      || SUPPORTING_ANSWER_RELEVANCE_TOKENS.has(token)
+    ))));
+}
+
+function normalizeAnswerRelevanceText(value: string): string {
+  return value.toLowerCase().normalize('NFKC').trim();
+}
+
+function metadataValueToText(value: string | number | boolean | string[]): string[] {
+  return Array.isArray(value) ? value : [String(value)];
 }
 
 function answerLeakageText(item: SourcePackItem): string {

@@ -10,7 +10,7 @@ import { GlobalAIFloatingButton } from '@/components/ai/global-ai-button'
 import { GlobalAISidebar } from '@/components/ai/global-ai-sidebar'
 
 export const metadata: Metadata = {
-  title: '深蓝智控',
+  title: '智控深蓝',
   description: '基于学科垂类大模型的船舶智控教学平台',
 }
 

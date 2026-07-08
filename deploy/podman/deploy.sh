@@ -34,6 +34,12 @@ if [ "${ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED+x}" = "x" ]; then
   operator_adaptive_learner_state_service_enabled_was_set=1
   operator_adaptive_learner_state_service_enabled="$ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED"
 fi
+operator_app_image_was_set=0
+operator_app_image=""
+if [ "${APP_IMAGE+x}" = "x" ]; then
+  operator_app_image_was_set=1
+  operator_app_image="$APP_IMAGE"
+fi
 
 if [ -f "$RUNTIME_ENV_FILE" ]; then
   set -a
@@ -46,6 +52,11 @@ if [ "$operator_adaptive_learner_state_service_enabled_was_set" = "1" ]; then
   ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED="$operator_adaptive_learner_state_service_enabled"
 else
   unset ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED
+fi
+if [ "$operator_app_image_was_set" = "1" ]; then
+  APP_IMAGE="$operator_app_image"
+else
+  unset APP_IMAGE
 fi
 
 derive_db_password() {
@@ -147,6 +158,26 @@ START_WRAPPER_PATH="${START_WRAPPER_PATH:-${PROJECT_DIR}/scripts/container-start
 require_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
     echo "ERROR: 缺少命令: $1" >&2
+    exit 1
+  fi
+}
+
+is_placeholder_mode_context_secret() {
+  case "$1" in
+    ""|konling-mode-context-development-secret|replace-with-strong-konling-context-secret|development-secret|your-secret-key)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+require_konling_mode_context_secret() {
+  KONLING_SERVER_MODE_CONTEXT_SECRET="${KONLING_SERVER_MODE_CONTEXT_SECRET:-${KONLING_MODE_CONTEXT_SECRET:-}}"
+  if is_placeholder_mode_context_secret "$KONLING_SERVER_MODE_CONTEXT_SECRET"; then
+    echo "ERROR: 缺少有效的 KONLING_SERVER_MODE_CONTEXT_SECRET，路径顾问无法签发 modeContextToken。" >&2
+    echo "请在远端环境文件中配置非占位密钥后重新部署应用容器。" >&2
     exit 1
   fi
 }
@@ -520,6 +551,8 @@ if [ "$MODE" = "--db-only" ]; then
   podman ps --format 'table {{.Names}}\t{{.Image}}\t{{.Ports}}\t{{.Status}}' | grep -E "NAMES|${DB_CONTAINER}" || true
   exit 0
 fi
+
+require_konling_mode_context_secret
 
 ensure_db_running
 DATABASE_URL_DEFAULT="postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST_ALIAS}:5432/${DB_NAME}?connection_limit=10&pool_timeout=20"

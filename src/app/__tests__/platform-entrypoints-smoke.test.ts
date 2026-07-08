@@ -88,22 +88,22 @@ describe('platform entrypoint smoke contracts', () => {
     expect(lockupSource).toContain('DEEPBLUE_SMART_CONTROL_LOGO_DARK_PATH');
     expect(lockupSource).toContain('data-platform-brand-dark-asset');
     expect(lockupSource).toContain('data-platform-brand-lockup="deepblue-smart-control"');
-    expect(lockupSource).toContain('alt="深蓝智控"');
+    expect(lockupSource).toContain('alt="智控深蓝"');
     expect(lockupSource).toContain('基于学科垂类大模型的船舶智控教学平台');
-    expect(layoutSource).toContain("title: '深蓝智控'");
+    expect(layoutSource).toContain("title: '智控深蓝'");
     expect(layoutSource).not.toContain('AI-OBE船舶控制平台');
     expect(metadata).toMatchObject({
-      brand: '深蓝智控',
+      brand: '智控深蓝',
       asset: '/assets/platform-brand/deepblue-smart-control-logo.png',
       darkAsset: '/assets/platform-brand/deepblue-smart-control-logo-dark.png',
       sourceAsset: '/assets/platform-brand/deepblue-smart-control-logo-source.png',
       generator: 'image2 via Codex image_gen',
       modelFamily: 'image2',
-      owningChange: 'refresh-home-brand-and-account-entry',
+      owningChange: 'correct-platform-brand-name',
     });
     expect(metadata.lightDarkTreatment?.light).toContain('light');
     expect(metadata.lightDarkTreatment?.dark).toContain('dark');
-    expect(metadata.fallbackBehavior?.textAlternative).toBe('深蓝智控');
+    expect(metadata.fallbackBehavior?.textAlternative).toBe('智控深蓝');
     expect(metadata.fallbackBehavior?.componentFallback).toContain('visible Chinese platform description');
   });
 

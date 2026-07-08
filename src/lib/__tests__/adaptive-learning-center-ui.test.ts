@@ -36,6 +36,7 @@ import {
   defaultPathGenerationPanel,
   pathGenerationPanelFromSearchParams,
 } from '@/lib/adaptive-path-generation-panel';
+import { restoreAdaptiveLearningPathPlanFromRound } from '@/lib/adaptive-path-round-restore';
 import { getAdaptivePracticeGoalOptions } from '@/lib/adaptive-path-goal-options';
 import { PLATFORM_PRIMARY_ROUTE_INVENTORY } from '@/lib/platform-role-navigation';
 import {
@@ -2068,6 +2069,37 @@ describe('adaptive learning center UI contracts', () => {
 
     expect(currentPath?.status.categories.sourceCoverage).toBe('missing');
     expect(currentPath?.status.fallbackReason).toBe('学习证据待补充');
+  });
+
+  it('does not crash when restored diagnostic fixture paths lack plan payload details', () => {
+    const restoredPlan = restoreAdaptiveLearningPathPlanFromRound({
+      id: 'yangfan-fixture-control-correction-path',
+      userId: 'student-yangfan',
+      title: 'Yang Fan diagnostic control-correction path',
+      goalId: 'control-correction',
+      pathStatus: 'diagnostic-fixture',
+      currentNodeId: '根轨迹_1_1',
+      pathPayload: { fixtureScope: 'yangfan-diagnostic-fixture.v1' },
+      explanationPayload: {
+        fixtureScope: 'yangfan-diagnostic-fixture.v1',
+        citationRefs: ['LearningFact:yangfan-diagnostic-fixture:fact-resource'],
+        privacy: 'minimized',
+      },
+      alternativePayload: [],
+    });
+
+    const view = buildControlCorrectionLearningCenterView({
+      featureFlags: [ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG],
+      learnerState: learnerState({ missingEvidence: [] }),
+      pathPlan: restoredPlan,
+      goalId: 'control-correction',
+      questionAvailable: false,
+    });
+
+    const currentPath = view.panels.find((panel) => panel.region === 'current-path');
+    expect(currentPath?.status.categories.sourceCoverage).toBe('missing');
+    expect(currentPath?.status.fallbackReason).toBe('路径待生成');
+    expect(view.nextAction.title).toContain('生成');
   });
 
   it('surfaces low-confidence, stale, privacy, fallback, and partial-coverage limits for adaptive claims', () => {

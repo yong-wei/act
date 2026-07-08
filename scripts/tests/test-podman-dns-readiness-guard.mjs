@@ -10,6 +10,7 @@ function read(file) {
 
 const deployScript = read('deploy/podman/deploy.sh');
 const serviceScript = read('deploy/podman/configure-service.sh');
+const remoteDeployScript = read('scripts/remote-deploy.sh');
 
 assert.match(
   deployScript,
@@ -33,6 +34,30 @@ assert.match(
   deployScript,
   /derive_db_password\(\)/,
   'Podman 部署脚本必须在 DB_PASSWORD 缺失时从 DATABASE_URL 提取数据库密码，避免容器与应用密码来源不一致',
+);
+
+assert.match(
+  deployScript,
+  /require_konling_mode_context_secret\(\)/,
+  'Podman 部署脚本必须定义控灵 mode context 签名密钥门禁，避免路径顾问上线后无法签发上下文',
+);
+
+assert.match(
+  deployScript,
+  /KONLING_SERVER_MODE_CONTEXT_SECRET="\$\{KONLING_SERVER_MODE_CONTEXT_SECRET:-\$\{KONLING_MODE_CONTEXT_SECRET:-\}\}"/,
+  'Podman 部署脚本必须兼容 KONLING_MODE_CONTEXT_SECRET 并归一到 KONLING_SERVER_MODE_CONTEXT_SECRET',
+);
+
+assert.match(
+  deployScript,
+  /replace-with-strong-konling-context-secret/,
+  'Podman 部署脚本必须拒绝占位 KONLING_SERVER_MODE_CONTEXT_SECRET',
+);
+
+assert.match(
+  deployScript,
+  /require_konling_mode_context_secret\n\nensure_db_running/,
+  'Podman 部署脚本必须在启动应用与 worker 前校验控灵 mode context 签名密钥',
 );
 
 assert.match(
@@ -111,6 +136,11 @@ assert.match(
   deployScript,
   /write_runtime_env "\$APP_PORT" "\$REDIS_URL"/,
   'Podman 部署脚本必须在部署阶段写入 runtime env，向后续步骤暴露当前应用端口与运行参数',
+);
+
+assert.ok(
+  remoteDeployScript.split("grep -q '^KONLING_SERVER_MODE_CONTEXT_SECRET='").length - 1 >= 2,
+  '远端一键部署验收必须确认应用与 worker 容器实际注入 KONLING_SERVER_MODE_CONTEXT_SECRET',
 );
 
 assert.match(
