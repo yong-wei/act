@@ -42,6 +42,8 @@ export interface UnifiedKnowledgeGraphPayload {
   nodes: UnifiedKnowledgeNode[];
   links: UnifiedKnowledgeLink[];
   source: 'file' | 'database';
+  versionDigest?: string;
+  versionLinkCount?: number;
 }
 
 export type KnowledgeGraphProgressiveMode = 'root' | 'expansion' | 'active-filter' | 'remaining';
@@ -248,6 +250,19 @@ function parseJsonlLines(content: string): RawRelationRecord[] {
   return records;
 }
 
+function countJsonlRecords(content: string): number {
+  return content.split('\n').filter((line) => line.trim().length > 0).length;
+}
+
+function buildRawFileGraphVersionDigest(rawNodes: string, rawRelations: string): string {
+  return createHash('sha256')
+    .update(rawNodes)
+    .update('\n---relations---\n')
+    .update(rawRelations)
+    .digest('hex')
+    .slice(0, 16);
+}
+
 function resolveNodeId(
   name: string,
   chapter: number | undefined,
@@ -369,15 +384,22 @@ async function loadKnowledgeGraphFromFiles(): Promise<UnifiedKnowledgeGraphPaylo
     nodes,
     links: Array.from(linkMap.values()),
     source: 'file',
+    versionDigest: buildRawFileGraphVersionDigest(rawNodes, rawRelations),
+    versionLinkCount: countJsonlRecords(rawRelations),
   };
 }
 
 async function loadKnowledgeGraphRootFromFiles(): Promise<UnifiedKnowledgeGraphPayload | null> {
   const graphPath = path.join(process.cwd(), 'course-content', 'runtime', 'knowledge', 'graph', 'nodes.json');
+  const relationsPath = path.join(process.cwd(), 'course-content', 'runtime', 'knowledge', 'graph', 'relations.jsonl');
 
   let rawNodes: string;
+  let rawRelations: string;
   try {
-    rawNodes = await fs.readFile(graphPath, 'utf-8');
+    [rawNodes, rawRelations] = await Promise.all([
+      fs.readFile(graphPath, 'utf-8'),
+      fs.readFile(relationsPath, 'utf-8'),
+    ]);
   } catch {
     return null;
   }
@@ -397,6 +419,8 @@ async function loadKnowledgeGraphRootFromFiles(): Promise<UnifiedKnowledgeGraphP
     nodes: normalizeFileKnowledgeNodes(parsedNodes),
     links: [],
     source: 'file',
+    versionDigest: buildRawFileGraphVersionDigest(rawNodes, rawRelations),
+    versionLinkCount: countJsonlRecords(rawRelations),
   };
 }
 
@@ -551,7 +575,7 @@ function knowledgeGraphLinkKey(link: Pick<UnifiedKnowledgeLink, 'id' | 'sourceId
 }
 
 export function getKnowledgeGraphVersion(graph: UnifiedKnowledgeGraphPayload): string {
-  const digest = createHash('sha256')
+  const digest = graph.versionDigest ?? createHash('sha256')
     .update(stableKnowledgeGraphVersionInput(graph))
     .digest('hex')
     .slice(0, 16);
@@ -559,7 +583,7 @@ export function getKnowledgeGraphVersion(graph: UnifiedKnowledgeGraphPayload): s
     'knowledge-graph',
     graph.source,
     graph.nodes.length,
-    graph.links.length,
+    graph.versionLinkCount ?? graph.links.length,
     digest,
   ].join(':');
 }

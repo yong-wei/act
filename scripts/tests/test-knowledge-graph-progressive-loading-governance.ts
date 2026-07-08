@@ -178,8 +178,7 @@ function assertStateContracts(evidence: JsonRecord) {
     const rootResponse = rootResponseFor(state);
     assert.equal(rootResponse.status, 200, `${name} root response did not return 200`);
     assert.equal(rootResponse.payloadMode, 'root', `${name} root response payload mode mismatch`);
-    assert.equal(typeof rootResponse.graphVersion, 'string', `${name} root response graph version is missing`);
-    assert.ok(String(rootResponse.graphVersion).length > 0, `${name} root response graph version is empty`);
+    assert.equal(rootResponse.graphVersion, progressive.graphVersion, `${name} root response graph version does not match DOM marker`);
     assert.ok(String(rootResponse.shardKey ?? '').includes(':shard:root:chapters'), `${name} root response shard key is not the root shard`);
     assert.ok(Number(rootResponse.nodeCount ?? 0) > 0, `${name} root response node count is missing`);
     assert.equal(rootResponse.nodeCount, rootResponse.rootSummaryCount, `${name} root count does not match root summaries`);

@@ -489,8 +489,7 @@ async function main() {
         && progressive(state.name)?.graphVersionPresent === true
         && typeof progressive(state.name)?.graphVersion === 'string'
         && rootResponse(state.name)?.payloadMode === 'root'
-        && typeof rootResponse(state.name)?.graphVersion === 'string'
-        && String(rootResponse(state.name)?.graphVersion ?? '').length > 0
+        && rootResponse(state.name)?.graphVersion === progressive(state.name)?.graphVersion
         && String(rootResponse(state.name)?.shardKey ?? '').includes(':shard:root:chapters')
         && Number(rootResponse(state.name)?.nodeCount ?? 0) > 0
         && rootResponse(state.name)?.nodeCount === rootResponse(state.name)?.rootSummaryCount
