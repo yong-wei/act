@@ -108,7 +108,8 @@ wait_for_remote_http() {
     if remote "bash -lc '
 set -euo pipefail
 . \"${REMOTE_PROJECT_DIR}/data/runtime/act-obe.env\"
-curl -fsS \"http://127.0.0.1:\${APP_PORT}/\" | grep -q \"AI-OBE\"
+curl -fsS \"http://127.0.0.1:\${APP_PORT}/api/readyz\" | grep -q '\"db\":true'
+curl -fsS \"http://127.0.0.1:\${APP_PORT}/api/readyz\" | grep -q '\"redis\":true'
 '"; then
       return 0
     fi
@@ -125,7 +126,7 @@ wait_for_public_http() {
   local elapsed=0
 
   while [[ "${elapsed}" -lt "${max_wait}" ]]; do
-    if curl -fsS "${PUBLIC_URL}" | grep -q 'AI-OBE'; then
+    if curl -fsS "${PUBLIC_URL}" >/dev/null; then
       return 0
     fi
 
@@ -185,9 +186,9 @@ for migration in \${FAILED_MIGRATIONS}; do
 done
 
 if podman exec -e PGPASSWORD=\"\${DB_PASSWORD_REAL}\" \"\${DB_CONTAINER_REAL}\" \
-  psql -U \"\${DB_USER_REAL}\" -d \"\${DB_NAME_REAL}\" -tA -c \"select 1 from information_schema.tables where table_schema='public' and table_name='PlatformSetting';\" | grep -qx 1; then
+  psql -U \"\${DB_USER_REAL}\" -d \"\${DB_NAME_REAL}\" -tA -c \"select 1 from information_schema.tables where table_schema=\$\$public\$\$ and table_name=\$\$PlatformSetting\$\$;\" | grep -qx 1; then
   if ! podman exec -e PGPASSWORD=\"\${DB_PASSWORD_REAL}\" \"\${DB_CONTAINER_REAL}\" \
-    psql -U \"\${DB_USER_REAL}\" -d \"\${DB_NAME_REAL}\" -tA -c \"select 1 from _prisma_migrations where migration_name='20260303142500_add_platform_settings' and finished_at is not null limit 1;\" | grep -qx 1; then
+    psql -U \"\${DB_USER_REAL}\" -d \"\${DB_NAME_REAL}\" -tA -c \"select 1 from _prisma_migrations where migration_name=\$\$20260303142500_add_platform_settings\$\$ and finished_at is not null limit 1;\" | grep -qx 1; then
     podman run --rm --network \"\${NETWORK_NAME_REAL}\" \
       -e RUN_MIGRATIONS_ON_START=0 \
       -e DATABASE_URL=\"\${DATABASE_URL_REAL}\" \
