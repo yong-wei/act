@@ -397,8 +397,10 @@ remote "podman exec '${REDIS_NAME_HINT}' redis-cli CONFIG GET maxmemory-policy |
 
 log "- 校验应用与 worker 容器环境变量"
 remote "podman inspect '${APP_NAME_HINT}' --format '{{.Config.Image}}' | grep -qx '${REMOTE_APP_IMAGE}'"
+remote "podman inspect '${APP_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^KONLING_SERVER_MODE_CONTEXT_SECRET='"
 remote "podman inspect '${APP_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^REDIS_URL=redis://${REDIS_NAME_HINT}\\.dns\\.podman:6379$'"
 remote "podman inspect '${APP_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^DATABASE_URL=.*connection_limit=10&pool_timeout=20'"
+remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^KONLING_SERVER_MODE_CONTEXT_SECRET='"
 remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^REDIS_URL=redis://${REDIS_NAME_HINT}\\.dns\\.podman:6379$'"
 
 log "- 校验 worker 启动日志"

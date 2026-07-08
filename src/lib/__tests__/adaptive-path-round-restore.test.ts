@@ -108,4 +108,44 @@ describe('adaptive path round restore', () => {
     });
     expect(plan?.explanations).not.toHaveProperty('explanations');
   });
+
+  it('normalizes diagnostic fixture rounds with incomplete path payloads', () => {
+    const plan = restoreAdaptiveLearningPathPlanFromRound({
+      id: 'yangfan-fixture-control-correction-path',
+      userId: 'student-yangfan',
+      title: 'Yang Fan diagnostic control-correction path',
+      goalId: 'control-correction',
+      pathStatus: 'diagnostic-fixture',
+      currentNodeId: '根轨迹_1_1',
+      pathPayload: {
+        fixtureScope: 'yangfan-diagnostic-fixture.v1',
+      },
+      explanationPayload: {
+        fixtureScope: 'yangfan-diagnostic-fixture.v1',
+        citationRefs: ['LearningFact:yangfan-diagnostic-fixture:fact-resource'],
+        privacy: 'minimized',
+      },
+      alternativePayload: [],
+    });
+
+    expect(plan).toMatchObject({
+      id: 'yangfan-fixture-control-correction-path',
+      status: 'fallback',
+      confidence: {
+        level: 'low',
+        score: 0,
+        sourceCoverage: 0,
+      },
+      explanations: {
+        selectedReasons: [],
+        rejectedAlternatives: [],
+        fallbackReasons: ['missing-rules-graph-path-payload'],
+      },
+      executionStatus: {
+        adopted: false,
+        completedNodeIds: [],
+        activeNodeId: '根轨迹_1_1',
+      },
+    });
+  });
 });

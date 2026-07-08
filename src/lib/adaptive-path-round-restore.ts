@@ -28,7 +28,11 @@ export function restoreAdaptiveLearningPathPlanFromRound(
     : Array.isArray(round.alternativePayload)
       ? round.alternativePayload
       : [];
-  const explanations = restoreExplanations(round.explanationPayload, payload.explanations);
+  const explanations = restoreExplanations(
+    round.explanationPayload,
+    payload.explanations,
+    planNodes.length === 0,
+  );
 
   return {
     id: round.id,
@@ -49,14 +53,14 @@ export function restoreAdaptiveLearningPathPlanFromRound(
     currentNodeId: round.currentNodeId ?? null,
     mainPath: planNodes as AdaptiveLearningPathPlan['mainPath'],
     alternatives: alternatives as AdaptiveLearningPathPlan['alternatives'],
-    score: payload.score as AdaptiveLearningPathPlan['score'],
+    score: restoreScore(payload.score),
     confidence: payload.confidence as AdaptiveLearningPathPlan['confidence'] ?? {
-      level: 'unknown',
+      level: 'low',
       score: 0,
       sourceCoverage: 0,
     },
     explanations,
-    executionStatus: payload.executionStatus as AdaptiveLearningPathPlan['executionStatus'],
+    executionStatus: restoreExecutionStatus(payload.executionStatus, round.currentNodeId),
     deviations: payload.deviations as AdaptiveLearningPathPlan['deviations'] ?? [],
     corrections: payload.corrections as AdaptiveLearningPathPlan['corrections'] ?? [],
     feedbackEvents: restoreFeedbackEvents(payload),
@@ -67,6 +71,7 @@ export function restoreAdaptiveLearningPathPlanFromRound(
 function restoreExplanations(
   explanationPayload: Record<string, unknown> | null | undefined,
   payloadExplanations: unknown,
+  missingPlanNodes: boolean,
 ): AdaptiveLearningPathPlan['explanations'] {
   const wrapper = getRecord(explanationPayload);
   const nested = getRecord(wrapper.explanations);
@@ -75,13 +80,46 @@ function restoreExplanations(
     : Object.keys(wrapper).length > 0
       ? wrapper
       : getRecord(payloadExplanations);
-  return Object.keys(candidate).length > 0
-    ? candidate as unknown as AdaptiveLearningPathPlan['explanations']
-    : {
-      selectedReasons: [],
-      rejectedAlternatives: [],
-      fallbackReasons: [],
-    };
+  const fallbackReasons = getStringArray(candidate.fallbackReasons);
+  return {
+    ...candidate,
+    selectedReasons: getStringArray(candidate.selectedReasons),
+    rejectedAlternatives: Array.isArray(candidate.rejectedAlternatives)
+      ? candidate.rejectedAlternatives as AdaptiveLearningPathPlan['explanations']['rejectedAlternatives']
+      : [],
+    fallbackReasons: fallbackReasons.length > 0
+      ? fallbackReasons
+      : missingPlanNodes ? ['missing-rules-graph-path-payload'] : [],
+  } as AdaptiveLearningPathPlan['explanations'];
+}
+
+function restoreScore(score: unknown): AdaptiveLearningPathPlan['score'] {
+  const candidate = getRecord(score);
+  const objectives = getRecord(candidate.objectives);
+  return {
+    total: typeof candidate.total === 'number' ? candidate.total : 0,
+    objectives: {
+      learningGain: typeof objectives.learningGain === 'number' ? objectives.learningGain : 0,
+      engagement: typeof objectives.engagement === 'number' ? objectives.engagement : 0,
+      constraintSatisfaction: typeof objectives.constraintSatisfaction === 'number' ? objectives.constraintSatisfaction : 0,
+      diversity: typeof objectives.diversity === 'number' ? objectives.diversity : 0,
+      fatigue: typeof objectives.fatigue === 'number' ? objectives.fatigue : 0,
+      dropoutRisk: typeof objectives.dropoutRisk === 'number' ? objectives.dropoutRisk : 0,
+    },
+  };
+}
+
+function restoreExecutionStatus(
+  executionStatus: unknown,
+  currentNodeId?: string | null,
+): AdaptiveLearningPathPlan['executionStatus'] {
+  const candidate = getRecord(executionStatus);
+  return {
+    adopted: typeof candidate.adopted === 'boolean' ? candidate.adopted : false,
+    completedNodeIds: getStringArray(candidate.completedNodeIds),
+    activeNodeId: typeof candidate.activeNodeId === 'string' ? candidate.activeNodeId : currentNodeId ?? null,
+    updatedAt: typeof candidate.updatedAt === 'string' ? candidate.updatedAt : new Date(0).toISOString(),
+  };
 }
 
 function restoreFeedbackEvents(payload: Record<string, unknown>): AdaptiveLearningPathPlan['feedbackEvents'] {

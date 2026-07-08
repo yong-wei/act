@@ -327,6 +327,7 @@ echo -e "  ${GREEN}✓${NC} .env 已加载到当前启动环境"
 missing_env=()
 [ -z "${DATABASE_URL:-}" ] && missing_env+=("DATABASE_URL")
 [ -z "${NEXTAUTH_SECRET:-}" ] && missing_env+=("NEXTAUTH_SECRET")
+[ -z "${KONLING_SERVER_MODE_CONTEXT_SECRET:-}" ] && missing_env+=("KONLING_SERVER_MODE_CONTEXT_SECRET")
 
 if [ ${#missing_env[@]} -gt 0 ]; then
   echo -e "  ${RED}✗${NC} 缺少必要的环境变量: ${missing_env[*]}"

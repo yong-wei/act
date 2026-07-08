@@ -162,6 +162,26 @@ require_cmd() {
   fi
 }
 
+is_placeholder_mode_context_secret() {
+  case "$1" in
+    ""|konling-mode-context-development-secret|replace-with-strong-konling-context-secret|development-secret|your-secret-key)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+require_konling_mode_context_secret() {
+  KONLING_SERVER_MODE_CONTEXT_SECRET="${KONLING_SERVER_MODE_CONTEXT_SECRET:-${KONLING_MODE_CONTEXT_SECRET:-}}"
+  if is_placeholder_mode_context_secret "$KONLING_SERVER_MODE_CONTEXT_SECRET"; then
+    echo "ERROR: 缺少有效的 KONLING_SERVER_MODE_CONTEXT_SECRET，路径顾问无法签发 modeContextToken。" >&2
+    echo "请在远端环境文件中配置非占位密钥后重新部署应用容器。" >&2
+    exit 1
+  fi
+}
+
 resolve_image() {
   local preferred="$1"
   local pattern="$2"
@@ -478,6 +498,8 @@ if [ "$MODE" = "--db-only" ]; then
   podman ps --format 'table {{.Names}}\t{{.Image}}\t{{.Ports}}\t{{.Status}}' | grep -E "NAMES|${DB_CONTAINER}" || true
   exit 0
 fi
+
+require_konling_mode_context_secret
 
 ensure_db_running
 DATABASE_URL_DEFAULT="postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST_ALIAS}:5432/${DB_NAME}?connection_limit=10&pool_timeout=20"

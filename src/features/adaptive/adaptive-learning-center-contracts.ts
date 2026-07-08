@@ -1524,6 +1524,10 @@ function pathStatus(pathPlan: AdaptiveLearningPathPlan | null): PlatformStatusPa
     });
   }
 
+  const fallbackReasons = Array.isArray(pathPlan.explanations?.fallbackReasons)
+    ? pathPlan.explanations.fallbackReasons
+    : [];
+
   return buildAdaptiveClaimStatus({
     id: 'adaptive-center-path',
     label: '规则图学习路径',
@@ -1536,8 +1540,8 @@ function pathStatus(pathPlan: AdaptiveLearningPathPlan | null): PlatformStatusPa
         : 'partial',
     privacy: 'classroom',
     readiness: pathPlan.status === 'ready' ? 'ready' : 'degraded',
-    fallbackReason: pathPlan.explanations.fallbackReasons[0]
-      ? toStudentPathReason(pathPlan.explanations.fallbackReasons[0])
+    fallbackReason: fallbackReasons[0]
+      ? toStudentPathReason(fallbackReasons[0])
       : null,
   });
 }
@@ -1553,6 +1557,7 @@ function toStudentPathReason(reason: string): string {
     'learner-evidence-low-confidence': '当前证据较少',
     'resource-mapping-insufficient': '可用学习资源不足',
     'feasible-goal-path-missing': '暂未形成完整路径',
+    'missing-rules-graph-path-payload': '路径待生成',
     'time-budget-insufficient': '当前时间预算不足',
     'risk-intervention-resource-missing': '需要补充支持资源',
     'teacher-assignment-resource-missing': '教师指定资源待补充',

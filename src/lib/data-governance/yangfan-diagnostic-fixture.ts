@@ -786,6 +786,10 @@ const REGISTERED_LEARNING_PATH_EVIDENCE_WHERE = {
 } as const;
 
 function pathData(userId: string, entryNodeId: string, terminalNodeId: string, now: Date) {
+  const completedAt = new Date(now.getTime() - 44 * 60_000).toISOString();
+  const updatedAt = new Date(now.getTime() - 40 * 60_000).toISOString();
+  const pathPayload = fixturePathPayload(entryNodeId, terminalNodeId, completedAt, updatedAt);
+
   return {
     id: FIXTURE_PATH_ID,
     userId,
@@ -793,16 +797,17 @@ function pathData(userId: string, entryNodeId: string, terminalNodeId: string, n
     description: 'Diagnostic-only fixture path with governed evidence references.',
     estimatedTime: 35,
     nodeIds: [entryNodeId, terminalNodeId],
-    isAiGenerated: false,
+    isAiGenerated: true,
     isBookmarked: false,
     goalId: 'control-correction',
     plannerVersion: YANGFAN_DIAGNOSTIC_FIXTURE_VERSION,
-    pathStatus: 'diagnostic-fixture',
+    pathStatus: 'active',
     currentNodeId: terminalNodeId,
     learnerStateRef: `${YANGFAN_DIAGNOSTIC_FIXTURE_PREFIX}:learner-state`,
     inputSnapshot: { fixtureScope: YANGFAN_DIAGNOSTIC_FIXTURE_VERSION, privacy: 'minimized' },
-    pathPayload: { fixtureScope: YANGFAN_DIAGNOSTIC_FIXTURE_VERSION },
+    pathPayload,
     explanationPayload: {
+      explanations: pathPayload.explanations,
       fixtureScope: YANGFAN_DIAGNOSTIC_FIXTURE_VERSION,
       citationRefs: [`LearningFact:${FIXTURE_FACT_IDS[1]}`],
       privacy: 'minimized',
@@ -815,7 +820,155 @@ function pathData(userId: string, entryNodeId: string, terminalNodeId: string, n
       fallbackRequired: true,
       lowConfidenceMarkers: ['fixture-terminal-preview'],
     },
-    lastExecutionMetadata: { refreshedAt: now.toISOString(), fixtureScope: YANGFAN_DIAGNOSTIC_FIXTURE_VERSION },
+    lastExecutionMetadata: {
+      refreshedAt: now.toISOString(),
+      fixtureScope: YANGFAN_DIAGNOSTIC_FIXTURE_VERSION,
+      completedNodeIds: [entryNodeId],
+      failedNodeIds: [],
+      lowConfidenceMarkers: ['fixture-terminal-preview'],
+    },
+  };
+}
+
+function fixturePathPayload(entryNodeId: string, terminalNodeId: string, completedAt: string, updatedAt: string) {
+  const planNodes = [
+    {
+      nodeId: entryNodeId,
+      title: '性能指标学习记录复盘',
+      type: 'knowledge_card',
+      pathNodeType: 'knowledge_card',
+      displayName: '知识卡',
+      iconKey: 'knowledge-card',
+      shapeHint: 'card',
+      evidenceBehavior: 'view',
+      evidenceStatus: 'instrumented',
+      externalResource: null,
+      checkpoint: null,
+      sourceKind: 'knowledge_graph',
+      sourceRef: entryNodeId,
+      target: `/knowledge?nodeId=${encodeURIComponent(entryNodeId)}`,
+      estimatedTimeMinutes: 12,
+      prerequisiteNodeIds: [],
+      knowledgeCoverage: [entryNodeId],
+      teacherPolicy: 'allowed',
+      privacyLevel: 'student-visible',
+      terminalConstraints: [],
+      score: 0.72,
+      reasonCodes: ['fixture-learning-record', 'low-confidence-learner-state'],
+      status: 'completed',
+      readiness: {
+        state: 'ready',
+        message: '已有学习记录可用于路径恢复。',
+        unlockMessage: null,
+        reasonCodes: ['fixture-learning-record'],
+        fallbackNodeIds: [],
+        missingCompetencies: [],
+        missingEvidenceCount: 0,
+        missingCompletedNodeIds: [],
+        missingOutcomeRefs: [],
+      },
+    },
+    {
+      nodeId: terminalNodeId,
+      title: '根轨迹终点检查',
+      type: 'arena_task',
+      pathNodeType: 'arena_task',
+      displayName: 'Arena 挑战',
+      iconKey: 'arena',
+      shapeHint: 'challenge',
+      evidenceBehavior: 'judged_submission',
+      evidenceStatus: 'instrumented',
+      externalResource: null,
+      checkpoint: null,
+      sourceKind: 'knowledge_graph',
+      sourceRef: terminalNodeId,
+      target: `/arena?nodeId=${encodeURIComponent(terminalNodeId)}`,
+      estimatedTimeMinutes: 23,
+      prerequisiteNodeIds: [entryNodeId],
+      knowledgeCoverage: [terminalNodeId],
+      teacherPolicy: 'allowed',
+      privacyLevel: 'student-visible',
+      terminalConstraints: ['terminal-validation'],
+      score: 0.64,
+      reasonCodes: ['fixture-terminal-validation', 'learner-evidence-low-confidence'],
+      status: 'current',
+      readiness: {
+        state: 'ready',
+        message: '可继续完成终点检查以更新学习路径。',
+        unlockMessage: null,
+        reasonCodes: ['fixture-terminal-validation'],
+        fallbackNodeIds: [],
+        missingCompetencies: [],
+        missingEvidenceCount: 0,
+        missingCompletedNodeIds: [],
+        missingOutcomeRefs: [],
+      },
+    },
+  ];
+
+  return {
+    fixtureScope: YANGFAN_DIAGNOSTIC_FIXTURE_VERSION,
+    policyFamily: 'rules-plus-graph-search',
+    mainPathNodeIds: [entryNodeId, terminalNodeId],
+    planNodes,
+    alternatives: [],
+    explanations: {
+      selectedReasons: ['LearningFact', 'low-confidence-learner-state'],
+      rejectedAlternatives: [],
+      fallbackReasons: ['learner-evidence-low-confidence'],
+    },
+    score: {
+      total: 0.68,
+      objectives: {
+        learningGain: 0.7,
+        engagement: 0.55,
+        constraintSatisfaction: 0.8,
+        diversity: 0.3,
+        fatigue: 0.2,
+        dropoutRisk: 0.25,
+      },
+    },
+    confidence: {
+      level: 'low',
+      score: 0.42,
+      sourceCoverage: 0.35,
+    },
+    executionStatus: {
+      adopted: true,
+      completedNodeIds: [entryNodeId],
+      activeNodeId: terminalNodeId,
+      updatedAt,
+    },
+    deviations: [],
+    corrections: [],
+    feedbackEvents: [{
+      id: `${YANGFAN_DIAGNOSTIC_FIXTURE_PREFIX}:feedback-restore`,
+      type: 'selection',
+      nodeId: entryNodeId,
+      createdAt: completedAt,
+      context: { selectedStyleId: 'path-option-1', fixtureScope: YANGFAN_DIAGNOSTIC_FIXTURE_VERSION },
+    }],
+    visualization: {
+      map: {
+        mainPathNodeIds: [entryNodeId, terminalNodeId],
+        branchPaths: [],
+        currentNodeId: terminalNodeId,
+        completedNodeIds: [entryNodeId],
+        riskNodeIds: [terminalNodeId],
+        blockedNodes: [],
+        alternatives: [],
+      },
+      timeline: {
+        generatedAt: updatedAt,
+        windows: [{ days: 7, nodeIds: [entryNodeId, terminalNodeId], estimatedMinutes: 35 }],
+      },
+      evidence: {
+        evidenceBasis: 'LearningFact',
+        learnerStateDeficits: [],
+        sourceCoverage: 0.35,
+        limitations: ['fixture-terminal-preview'],
+      },
+    },
   };
 }
 
