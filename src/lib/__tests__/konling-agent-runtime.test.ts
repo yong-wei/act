@@ -3680,6 +3680,42 @@ describe('konling agent runtime', () => {
     expect(runtime.citationContext?.missingCitationClasses).not.toContain('content');
   });
 
+  it('uses trusted page context as fallback answer relevance for generic user questions', async () => {
+    const runtime = await buildKonlingRuntimeContext({}, {
+      authenticatedUserId: 'student-1',
+      authenticatedUserName: '张三',
+      role: 'STUDENT',
+      courseId: 'control-correction',
+      pageId: 'student-path-center',
+      pageContextHint: {
+        pageType: 'practice',
+        courseId: 'control-correction',
+        courseTitle: '控制系统校正设计',
+        stepId: 'student-path-center',
+        topic: 'Bode 图频域响应',
+        learningObjectives: ['解释 Bode 图频域响应'],
+        knowledgeType: 'C',
+      },
+      currentUserQuery: '这里怎么理解？',
+      trustedContentContext: true,
+    });
+
+    const sourcePackCitations = runtime.citationContext?.contentCitations.filter((citation) =>
+      citation.evidenceBasis.startsWith('source-pack:konling-answer:')
+    ) ?? [];
+
+    expect(sourcePackCitations.length).toBeGreaterThan(0);
+    expect(runtime.citationContext?.sourcePacks).toEqual([
+      expect.objectContaining({
+        profile: 'konling-answer',
+        queryText: expect.stringContaining('这里怎么理解？'),
+        retrievalChunkIds: expect.arrayContaining(['textbook-search:ch08-example-0801']),
+        answerRelevanceBases: expect.arrayContaining(['query-lexical']),
+      }),
+    ]);
+    expect(runtime.citationContext?.missingCitationClasses).not.toContain('content');
+  });
+
   it('omits unrelated ADVANCED PROBLEMS chunks from konling-answer content citations', async () => {
     mocks.loadAllTextbookRuntimeSearchDocuments.mockResolvedValue([
       {

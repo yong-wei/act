@@ -5586,7 +5586,10 @@ async function buildKonlingSourcePackContentCitations(input: {
   );
   const result = retrieveSourcePack({
     query,
-    answerRelevanceQuery: normalizeSourcePackQueryText(input.currentUserQuery) ?? query,
+    answerRelevanceQuery: [
+      normalizeSourcePackQueryText(input.currentUserQuery),
+      query,
+    ].filter((value): value is string => Boolean(value)),
     profile: 'konling-answer',
     role: sourcePackRoleForKonling(input.scope.role),
     caller: 'konling-agent-runtime',

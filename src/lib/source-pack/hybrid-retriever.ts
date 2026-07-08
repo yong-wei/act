@@ -19,7 +19,7 @@ export interface RetrieveSourcePackInput extends SourcePackRankingContext {
   candidates: readonly SourcePackItem[];
   limitations?: readonly SourcePackLimitation[];
   now?: Date;
-  answerRelevanceQuery?: string;
+  answerRelevanceQuery?: string | readonly string[];
 }
 
 export interface RetrieveSourcePackResult {
@@ -233,8 +233,8 @@ function gateKonlingAnswerRelevance(
   if (input.profile !== 'konling-answer') {
     return { ranked: [...ranked], limitations: [] };
   }
-  const relevanceQuery = input.answerRelevanceQuery ?? input.query;
-  const queryHash = hashString(relevanceQuery);
+  const relevanceQueries = answerRelevanceQueries(input);
+  const queryHash = hashString(relevanceQueries.join('\n'));
   const accepted: RankedSourcePackCandidate[] = [];
   let rejected = 0;
   for (const candidate of ranked) {
@@ -271,10 +271,6 @@ function answerRelevanceEvidence(
   input: RetrieveSourcePackInput,
   queryHash: string,
 ): AnswerRelevanceEvidence | null {
-  const queryMatch = answerRelevanceQueryMatch(candidate.item, input.answerRelevanceQuery ?? input.query);
-  if (queryMatch) {
-    return { passed: true, basis: queryMatch.basis, match: queryMatch.match, queryHash };
-  }
   const selectedNodeMatch = firstMatchingMetadataRef(candidate.item, input.graphNodeRefs, 'knowledgeNodeRefs');
   if (selectedNodeMatch) {
     return { passed: true, basis: 'selected-node-ref', match: selectedNodeMatch, queryHash };
@@ -290,6 +286,10 @@ function answerRelevanceEvidence(
   const learnerContextMatch = firstMatchingAnyItemRef(candidate.item, input.learnerContextRefs);
   if (learnerContextMatch) {
     return { passed: true, basis: 'learner-context-ref', match: learnerContextMatch, queryHash };
+  }
+  const queryMatch = answerRelevanceQueryMatch(candidate.item, answerRelevanceQueries(input));
+  if (queryMatch) {
+    return { passed: true, basis: queryMatch.basis, match: queryMatch.match, queryHash };
   }
   const semanticScore = input.semanticScores?.[candidate.item.id] ?? 0;
   if (semanticScore >= 0.72) {
@@ -354,16 +354,27 @@ function scoreBucket(label: string, value: number): string {
   return `${label}:${Math.round(Math.max(0, Math.min(1, value)) * 100)}`;
 }
 
-function answerRelevanceQueryMatch(item: SourcePackItem, query: string): AnswerRelevanceQueryMatch | null {
-  const normalizedQuery = normalizeAnswerRelevanceText(query);
-  if (!normalizedQuery) return null;
+function answerRelevanceQueries(input: RetrieveSourcePackInput): string[] {
+  const rawQueries = Array.isArray(input.answerRelevanceQuery)
+    ? input.answerRelevanceQuery
+    : [input.answerRelevanceQuery ?? input.query];
+  return uniqueStrings(rawQueries.map((query) => normalizeAnswerRelevanceText(query ?? '')).filter(Boolean));
+}
+
+function uniqueStrings(values: readonly string[]): string[] {
+  return Array.from(new Set(values));
+}
+
+function answerRelevanceQueryMatch(item: SourcePackItem, queries: readonly string[]): AnswerRelevanceQueryMatch | null {
   const searchable = answerRelevanceSearchableText(item);
-  if (searchable.includes(normalizedQuery) && exactQueryMatchAllowed(item, normalizedQuery)) {
-    return { basis: 'query-exact', match: 'query' };
-  }
-  const queryKeywordMatch = firstSignificantQueryTokenMatch(item, searchable, query);
-  if (queryKeywordMatch) {
-    return { basis: 'query-lexical', match: `token:${queryKeywordMatch}` };
+  for (const normalizedQuery of queries) {
+    if (searchable.includes(normalizedQuery) && exactQueryMatchAllowed(item, normalizedQuery)) {
+      return { basis: 'query-exact', match: 'query' };
+    }
+    const queryKeywordMatch = firstSignificantQueryTokenMatch(item, searchable, normalizedQuery);
+    if (queryKeywordMatch) {
+      return { basis: 'query-lexical', match: `token:${queryKeywordMatch}` };
+    }
   }
   return null;
 }
