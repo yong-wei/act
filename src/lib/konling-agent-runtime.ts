@@ -1316,6 +1316,7 @@ export interface KonlingSourcePackCitationSummary {
   citationTargetIds: string[];
   retrievalChunkIds: string[];
   limitationCodes: string[];
+  answerRelevanceBases?: string[];
 }
 
 export interface KonlingCitationGuard {
@@ -5585,6 +5586,7 @@ async function buildKonlingSourcePackContentCitations(input: {
   );
   const result = retrieveSourcePack({
     query,
+    answerRelevanceQuery: buildKonlingAnswerRelevanceQueries(input.currentUserQuery, query),
     profile: 'konling-answer',
     role: sourcePackRoleForKonling(input.scope.role),
     caller: 'konling-agent-runtime',
@@ -5609,6 +5611,8 @@ async function buildKonlingSourcePackContentCitations(input: {
       citationTargetIds: result.pack.audit.citationTargetIds,
       retrievalChunkIds: result.pack.audit.retrievalChunkIds,
       limitationCodes: result.pack.limitations.map((limitation) => limitation.code),
+      answerRelevanceBases: uniqueStrings(result.pack.items
+        .map((item) => metadataString(item, 'answerRelevanceBasis'))),
     },
   };
 }
@@ -5631,6 +5635,65 @@ function buildKonlingSourcePackQuery(
     .join(' ');
 }
 
+function buildKonlingAnswerRelevanceQueries(currentUserQuery: string | null | undefined, combinedQuery: string): string[] {
+  const userQuery = normalizeAnswerRelevanceUserQuery(currentUserQuery);
+  if (!userQuery) return [combinedQuery];
+  if (hasSpecificAnswerRelevanceSignal(userQuery)) return [userQuery];
+  return uniqueStrings([userQuery, combinedQuery]);
+}
+
+function normalizeAnswerRelevanceUserQuery(value: string | null | undefined): string | null {
+  const normalized = normalizeSourcePackQueryText(value);
+  if (!normalized) return null;
+  const withoutNegatedContinuation = normalized
+    .replace(/(?:^|[，。；,.!?]\s*)不是[^，。；,.!?]*(?=[，。；,.!?]\s*(?:我|现在|想|要|问))/g, ' ')
+    .replace(/(?:而)?不是继续?(?:讨论|问|看|讲|学习)[^，。；,.!?]*[，。；,.!?]?/g, ' ')
+    .replace(/(?:不要|别)继续?(?:讨论|问|看|讲|学习)[^，。；,.!?]*[，。；,.!?]?/g, ' ')
+    .replace(/(?:^|[，。；,.!?]\s*)(?:not|no)\s+[^，。；,.!?]*(?=[，。；,.!?]\s*(?:i|we)\b)/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return withoutNegatedContinuation || normalized;
+}
+
+const SPECIFIC_ANSWER_RELEVANCE_QUERY_TERMS = [
+  'bode',
+  'nyquist',
+  'pid',
+  'root locus',
+  'routh',
+  'hurwitz',
+  'laplace',
+  'mason',
+  '伯德',
+  '闭环',
+  '传递函数',
+  '传函',
+  '超调',
+  '调节时间',
+  '动态响应',
+  '根轨迹',
+  '胡尔维茨',
+  '开环',
+  '劳斯',
+  '奈奎斯特',
+  '频率响应',
+  '稳定',
+  '稳态误差',
+  '相位裕度',
+  '状态空间',
+  '增益裕度',
+  '单位阶跃响应',
+  '阶跃响应',
+  '阻尼比',
+  '零点',
+  '极点',
+];
+
+function hasSpecificAnswerRelevanceSignal(query: string): boolean {
+  const normalized = query.toLowerCase().normalize('NFKC');
+  return SPECIFIC_ANSWER_RELEVANCE_QUERY_TERMS.some((term) => normalized.includes(term));
+}
+
 function normalizeSourcePackQueryText(value: string | null | undefined): string | null {
   const normalized = value?.replace(/\s+/g, ' ').trim();
   if (!normalized) return null;
@@ -5638,13 +5701,11 @@ function normalizeSourcePackQueryText(value: string | null | undefined): string 
 }
 
 function buildKonlingSourcePackGraphRefs(
-  pageContext: PageContext,
+  _pageContext: PageContext,
   knowledgeWorkspace: KonlingKnowledgeWorkspaceContext | null | undefined,
   sarAssociatedGrounding?: KonlingSarAssociatedGroundingContext | null,
 ): string[] {
   return uniqueStrings([
-    pageContext.courseId,
-    pageContext.stepId,
     knowledgeWorkspace?.selected_node?.id,
     ...sarGraphNodeRefs(sarAssociatedGrounding),
   ]);
@@ -5709,6 +5770,11 @@ function buildSourcePackContentCitation(pack: SourcePack, item: SourcePackItem):
       limitationState: null,
     },
   };
+}
+
+function metadataString(item: SourcePackItem, key: string): string | null {
+  const value = item.metadata?.[key];
+  return typeof value === 'string' && value.length > 0 ? value : null;
 }
 
 

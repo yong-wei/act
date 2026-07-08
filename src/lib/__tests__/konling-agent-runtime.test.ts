@@ -1247,6 +1247,7 @@ describe('konling agent runtime', () => {
         learningObjectives: ['解释根轨迹校正'],
         knowledgeType: 'C',
       },
+      currentUserQuery: 'Bode 图频域响应怎么理解？',
       trustedContentContext: true,
     });
 
@@ -1289,6 +1290,7 @@ describe('konling agent runtime', () => {
         learningObjectives: ['解释根轨迹校正'],
         knowledgeType: 'C',
       },
+      currentUserQuery: 'Bode 图频域响应怎么理解？',
       trustedContentContext: true,
     });
 
@@ -1324,6 +1326,7 @@ describe('konling agent runtime', () => {
         learningObjectives: ['解释根轨迹校正'],
         knowledgeType: 'C',
       },
+      currentUserQuery: 'Bode 图频域响应怎么理解？',
       trustedContentContext: true,
     });
 
@@ -1374,6 +1377,7 @@ describe('konling agent runtime', () => {
         learningObjectives: ['解释根轨迹校正'],
         knowledgeType: 'C',
       },
+      currentUserQuery: 'Bode 图频域响应怎么理解？',
       trustedContentContext: true,
     });
 
@@ -3645,6 +3649,7 @@ describe('konling agent runtime', () => {
       role: 'STUDENT',
       courseId: 'control-correction',
       pageId: 'student-path-center',
+      currentUserQuery: 'Bode 图频域响应怎么理解？',
       trustedContentContext: true,
     });
 
@@ -3669,28 +3674,312 @@ describe('konling agent runtime', () => {
         profile: 'konling-answer',
         citationTargetIds: expect.arrayContaining(['textbook-citation:ch08-example-0801']),
         retrievalChunkIds: expect.arrayContaining(['textbook-search:ch08-example-0801']),
+        answerRelevanceBases: expect.arrayContaining(['query-lexical']),
       }),
     ]);
     expect(runtime.citationContext?.missingCitationClasses).not.toContain('content');
   });
 
-  it('uses the current user question in konling-answer Source Pack retrieval', async () => {
+  it('uses trusted page context as fallback answer relevance for generic user questions', async () => {
     const runtime = await buildKonlingRuntimeContext({}, {
       authenticatedUserId: 'student-1',
       authenticatedUserName: '张三',
       role: 'STUDENT',
       courseId: 'control-correction',
       pageId: 'student-path-center',
-      currentUserQuery: '我现在想问 Nyquist 判稳，而不是继续讨论 Bode 图。',
+      pageContextHint: {
+        pageType: 'practice',
+        courseId: 'control-correction',
+        courseTitle: '控制系统校正设计',
+        stepId: 'student-path-center',
+        topic: 'Bode 图频域响应',
+        learningObjectives: ['解释 Bode 图频域响应'],
+        knowledgeType: 'C',
+      },
+      currentUserQuery: '这里怎么理解？',
+      trustedContentContext: true,
+    });
+
+    const sourcePackCitations = runtime.citationContext?.contentCitations.filter((citation) =>
+      citation.evidenceBasis.startsWith('source-pack:konling-answer:')
+    ) ?? [];
+
+    expect(sourcePackCitations.length).toBeGreaterThan(0);
+    expect(runtime.citationContext?.sourcePacks).toEqual([
+      expect.objectContaining({
+        profile: 'konling-answer',
+        queryText: expect.stringContaining('这里怎么理解？'),
+        retrievalChunkIds: expect.arrayContaining(['textbook-search:ch08-example-0801']),
+        answerRelevanceBases: expect.arrayContaining(['query-lexical']),
+      }),
+    ]);
+    expect(runtime.citationContext?.missingCitationClasses).not.toContain('content');
+  });
+
+  it('omits unrelated ADVANCED PROBLEMS chunks from konling-answer content citations', async () => {
+    mocks.loadAllTextbookRuntimeSearchDocuments.mockResolvedValue([
+      {
+        id: 'ch01-advanced-problems-031__chunk-001',
+        kind: 'chunk',
+        title: 'ADVANCED PROBLEMS',
+        href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch01-advanced-problems.md#chunk-001',
+        text: 'Advanced problems and design problems for broad chapter practice.',
+        contentHash: 'sha-advanced-problems',
+        resourceProjection: {
+          resourceId: 'textbook-section:dorf-modern-control-systems:ch01-advanced-problems',
+          segmentRef: 'ch01-advanced-problems-031__chunk-001',
+          citationTargetRef: 'ch01-advanced-problems-031__chunk-001',
+          knowledgeNodeRefs: ['broad-control-system'],
+          capabilityTargetRefs: ['general-problem-solving'],
+        },
+        citationAddress: {
+          kind: 'text',
+          sourceRefId: 'ch01-advanced-problems-031__chunk-001',
+          href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch01-advanced-problems.md#chunk-001',
+          locator: 'chunk-001',
+          contentHash: 'sha-advanced-problems',
+        },
+        metadata: {
+          bookId: 'dorf-modern-control-systems',
+          sectionId: 'ch01-advanced-problems',
+          chapterId: 'ch01',
+          chapterNumber: 1,
+        },
+      },
+      {
+        id: 'ch01-design-problems-032__chunk-001',
+        kind: 'chunk',
+        title: 'DESIGN PROBLEMS',
+        href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch01-design-problems.md#chunk-001',
+        text: 'Design problems for introductory control-system practice.',
+        contentHash: 'sha-design-problems',
+        resourceProjection: {
+          resourceId: 'textbook-section:dorf-modern-control-systems:ch01-design-problems',
+          segmentRef: 'ch01-design-problems-032__chunk-001',
+          citationTargetRef: 'ch01-design-problems-032__chunk-001',
+          knowledgeNodeRefs: ['broad-control-system'],
+          capabilityTargetRefs: ['general-problem-solving'],
+        },
+        citationAddress: {
+          kind: 'text',
+          sourceRefId: 'ch01-design-problems-032__chunk-001',
+          href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch01-design-problems.md#chunk-001',
+          locator: 'chunk-001',
+          contentHash: 'sha-design-problems',
+        },
+        metadata: {
+          bookId: 'dorf-modern-control-systems',
+          sectionId: 'ch01-design-problems',
+          chapterId: 'ch01',
+          chapterNumber: 1,
+        },
+      },
+      {
+        id: 'course-id-only-context__chunk-001',
+        kind: 'chunk',
+        title: 'Course shell context',
+        href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/course-shell.md#chunk-001',
+        text: 'Generic course shell context without the current answer topic.',
+        contentHash: 'sha-course-shell',
+        resourceProjection: {
+          resourceId: 'textbook-section:dorf-modern-control-systems:course-shell',
+          segmentRef: 'course-id-only-context__chunk-001',
+          citationTargetRef: 'course-id-only-context__chunk-001',
+          knowledgeNodeRefs: ['control-correction', '/knowledge'],
+          capabilityTargetRefs: ['generic-course-context'],
+        },
+        citationAddress: {
+          kind: 'text',
+          sourceRefId: 'course-id-only-context__chunk-001',
+          href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/course-shell.md#chunk-001',
+          locator: 'chunk-001',
+          contentHash: 'sha-course-shell',
+        },
+        metadata: {
+          bookId: 'dorf-modern-control-systems',
+          sectionId: 'course-shell',
+          chapterId: 'ch01',
+          chapterNumber: 1,
+        },
+      },
+    ]);
+
+    const runtime = await buildKonlingRuntimeContext({}, {
+      authenticatedUserId: 'student-1',
+      authenticatedUserName: '张三',
+      role: 'STUDENT',
+      courseId: 'control-correction',
+      pageId: '/knowledge',
+      currentUserQuery: 'I have a problem understanding Nyquist stability margin.',
+      trustedContentContext: true,
+    });
+
+    const sourcePackCitations = runtime.citationContext?.contentCitations.filter((citation) =>
+      citation.evidenceBasis.startsWith('source-pack:konling-answer:')
+    ) ?? [];
+    expect(sourcePackCitations).toEqual([]);
+    expect(runtime.citationContext?.sourcePacks).toEqual([
+      expect.objectContaining({
+        profile: 'konling-answer',
+        retrievalChunkIds: [],
+        citationTargetIds: [],
+        limitationCodes: expect.arrayContaining([
+          'answer-citation-insufficient-relevance',
+          'coverage-missing-answer-context',
+        ]),
+      }),
+    ]);
+    expect(runtime.citationContext?.lowConfidenceReasons).not.toEqual(expect.arrayContaining([
+      'source-pack-answer-citation-insufficient-relevance',
+      'source-pack-coverage-missing-answer-context',
+    ]));
+    expect(runtime.citationContext?.lowConfidenceReasons.some((reason) => reason.startsWith('source-pack-'))).toBe(false);
+    const guard = buildKonlingCitationGuard(runtime);
+    const fallback = applyKonlingCitationFallback('请回到 Nyquist 判据的课程内容核对。', guard);
+    expect(fallback).not.toContain('source-pack-answer-citation-insufficient-relevance');
+    expect(fallback).not.toContain('source-pack-coverage-missing-answer-context');
+    expect(fallback).not.toContain('coverage-missing-answer-context');
+    expect(JSON.stringify(runtime.citationContext)).not.toContain('ch01-advanced-problems-031__chunk-001');
+    expect(JSON.stringify(runtime.citationContext)).not.toContain('course-id-only-context__chunk-001');
+  });
+
+  it('keeps selected-node relevant Source Pack citations with bounded relevance metadata', async () => {
+    mocks.loadAllTextbookRuntimeSearchDocuments.mockResolvedValue([
+      {
+        id: 'ch01-advanced-problems-031__chunk-001',
+        kind: 'chunk',
+        title: 'ADVANCED PROBLEMS',
+        href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch01-advanced-problems.md#chunk-001',
+        text: 'Advanced problems and design problems for broad chapter practice.',
+        contentHash: 'sha-advanced-problems',
+        resourceProjection: {
+          resourceId: 'textbook-section:dorf-modern-control-systems:ch01-advanced-problems',
+          segmentRef: 'ch01-advanced-problems-031__chunk-001',
+          citationTargetRef: 'ch01-advanced-problems-031__chunk-001',
+          knowledgeNodeRefs: ['broad-control-system'],
+          capabilityTargetRefs: ['general-problem-solving'],
+        },
+        citationAddress: {
+          kind: 'text',
+          sourceRefId: 'ch01-advanced-problems-031__chunk-001',
+          href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch01-advanced-problems.md#chunk-001',
+          locator: 'chunk-001',
+          contentHash: 'sha-advanced-problems',
+        },
+        metadata: {
+          bookId: 'dorf-modern-control-systems',
+          sectionId: 'ch01-advanced-problems',
+          chapterId: 'ch01',
+          chapterNumber: 1,
+        },
+      },
+      {
+        id: 'root-locus-selected-node__chunk-001',
+        kind: 'chunk',
+        title: '根轨迹设计',
+        href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/root-locus.md#chunk-001',
+        text: '根轨迹设计用于分析闭环极点随增益变化的轨迹。',
+        contentHash: 'sha-root-locus',
+        resourceProjection: {
+          resourceId: 'textbook-section:dorf-modern-control-systems:root-locus',
+          segmentRef: 'root-locus-selected-node__chunk-001',
+          citationTargetRef: 'root-locus-selected-node__chunk-001',
+          knowledgeNodeRefs: ['node-root-locus'],
+          capabilityTargetRefs: ['capability:root-locus-design'],
+        },
+        citationAddress: {
+          kind: 'text',
+          sourceRefId: 'root-locus-selected-node__chunk-001',
+          href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/root-locus.md#chunk-001',
+          locator: 'chunk-001',
+          contentHash: 'sha-root-locus',
+        },
+        metadata: {
+          bookId: 'dorf-modern-control-systems',
+          sectionId: 'root-locus',
+          chapterId: 'ch03',
+          chapterNumber: 3,
+        },
+      },
+    ]);
+    const db = {
+      knowledgeNode: {
+        findMany: vi.fn().mockResolvedValue([{
+          id: 'node-root-locus',
+          name: '根轨迹设计',
+          nodeType: 'THEORY',
+          description: '根轨迹设计用于分析闭环极点随增益变化的轨迹。',
+          knowledgeDim: 'CONCEPTUAL',
+          metadata: {
+            chapterName: '根轨迹法',
+            capabilityTargetRefs: ['capability:root-locus-design'],
+          },
+          tags: ['根轨迹'],
+        }]),
+      },
+    };
+
+    const runtime = await buildKonlingRuntimeContext(db, {
+      authenticatedUserId: 'student-1',
+      authenticatedUserName: '张三',
+      role: 'STUDENT',
+      courseId: 'control-correction',
+      pageId: '/knowledge',
+      knowledgeWorkspaceHint: {
+        status: 'selected-node',
+        selectedNodeId: 'node-root-locus',
+      },
+      currentUserQuery: '这个节点是什么意思？',
       trustedContentContext: true,
     });
 
     expect(runtime.citationContext?.sourcePacks).toEqual([
       expect.objectContaining({
         profile: 'konling-answer',
-        queryText: expect.stringContaining('Nyquist 判稳'),
+        retrievalChunkIds: expect.arrayContaining(['textbook-search:root-locus-selected-node__chunk-001']),
+        answerRelevanceBases: expect.arrayContaining(['selected-node-ref']),
+        limitationCodes: expect.arrayContaining(['answer-citation-insufficient-relevance']),
       }),
     ]);
+    expect(runtime.citationContext?.contentCitations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'content:textbook-citation:root-locus-selected-node__chunk-001',
+        evidenceBasis: expect.stringMatching(/^source-pack:konling-answer:/),
+      }),
+    ]));
+    expect(JSON.stringify(runtime.citationContext?.contentCitations)).not.toContain('answer-relevance:');
+    expect(JSON.stringify(runtime.citationContext?.contentCitations)).not.toContain('ch01-advanced-problems-031__chunk-001');
+  });
+
+  it.each([
+    ['我现在想问 Nyquist 判稳，而不是继续讨论 Bode 图。', 'Nyquist 判稳'],
+    ['不是 Bode 图，我想问 Nyquist 判稳。', 'Nyquist 判稳'],
+    ['不是 Bode 图，我不是很理解 Nyquist 判稳。', 'Nyquist 判稳'],
+    ['not Bode, I want Nyquist stability', 'Nyquist stability'],
+    ['not Bode, I want Nyquist', 'Nyquist'],
+  ])('uses the current user question in konling-answer Source Pack retrieval: %s', async (currentUserQuery, querySnippet) => {
+    const runtime = await buildKonlingRuntimeContext({}, {
+      authenticatedUserId: 'student-1',
+      authenticatedUserName: '张三',
+      role: 'STUDENT',
+      courseId: 'control-correction',
+      pageId: 'student-path-center',
+      currentUserQuery,
+      trustedContentContext: true,
+    });
+
+    expect(runtime.citationContext?.sourcePacks).toEqual([
+      expect.objectContaining({
+        profile: 'konling-answer',
+        queryText: expect.stringContaining(querySnippet),
+        retrievalChunkIds: [],
+        limitationCodes: expect.arrayContaining([
+          'answer-citation-insufficient-relevance',
+          'coverage-missing-answer-context',
+        ]),
+      }),
+    ]);
+    expect(JSON.stringify(runtime.citationContext?.contentCitations)).not.toContain('ch08-example-0801');
   });
 
   it('uses path-advisor SAR candidate refs to guide verified Source Pack retrieval', async () => {
@@ -3842,7 +4131,7 @@ describe('konling agent runtime', () => {
       courseId: 'control-correction',
       pageId: 'student-path-center',
       teachingAssistantModeId: 'path-advisor',
-      currentUserQuery: '我需要路径建议。',
+      currentUserQuery: '我需要 Bode 图频域响应路径建议。',
       trustedContentContext: true,
     });
 
@@ -4023,6 +4312,7 @@ describe('konling agent runtime', () => {
       role: 'STUDENT',
       courseId: 'control-correction',
       pageId: 'step-03',
+      currentUserQuery: 'Bode 图频域响应怎么理解？',
       trustedContentContext: true,
     });
 

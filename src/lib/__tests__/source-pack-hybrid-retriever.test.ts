@@ -476,6 +476,312 @@ describe('source pack retrieval profiles', () => {
     expect(result.pack.limitations.map((limitation) => limitation.code)).not.toContain('profile-filtered-review-state');
   });
 
+  it('rejects high-authority konling-answer chunks without answer relevance', () => {
+    const result = retrieveSourcePack({
+      query: 'I have a problem understanding Nyquist stability margin',
+      profile: 'konling-answer',
+      role: 'student',
+      candidates: [
+        item({
+          id: 'ch01-advanced-problems-031__chunk-001',
+          title: 'ADVANCED PROBLEMS',
+          excerpt: 'Problems for synthesizing introductory examples and design discussion.',
+          citationTargetId: 'citation:advanced-problems-031',
+          retrievalChunkId: 'textbook-search:ch01-advanced-problems-031__chunk-001',
+          scores: {
+            relevance: 0.95,
+            graphAlignment: 0.95,
+            authority: 1,
+            eligibility: 0.95,
+            freshness: 0.9,
+            final: 0.95,
+          },
+          metadata: {
+            reviewStatus: 'canonical',
+            knowledgeNodeRefs: ['broad-control-system'],
+            capabilityTargetRefs: ['general-problem-solving'],
+          },
+        }),
+        item({
+          id: 'nyquist-relevant',
+          title: 'Nyquist stability margin',
+          excerpt: 'Nyquist stability margin and phase crossover evidence.',
+          citationTargetId: 'citation:nyquist-relevant',
+          retrievalChunkId: 'textbook-search:nyquist-relevant',
+          metadata: {
+            reviewStatus: 'canonical',
+            knowledgeNodeRefs: ['kn-nyquist'],
+          },
+        }),
+      ],
+      now: new Date('2026-07-08T00:00:00Z'),
+    });
+
+    expect(result.pack.items.map((packItem) => packItem.id)).toEqual(['nyquist-relevant']);
+    expect(JSON.stringify(result.pack)).not.toContain('ch01-advanced-problems-031__chunk-001');
+    expect(result.pack.items[0].metadata).toMatchObject({
+      answerRelevancePassed: true,
+      answerRelevanceBasis: 'query-lexical',
+    });
+    expect(result.pack.limitations.map((limitation) => limitation.code)).toContain('answer-citation-insufficient-relevance');
+  });
+
+  it('keeps Chinese technical query matches without graph refs', () => {
+    const result = retrieveSourcePack({
+      query: '传递函数怎么理解？',
+      profile: 'konling-answer',
+      role: 'student',
+      candidates: [
+        item({
+          id: 'transfer-function-cn',
+          title: '传递函数',
+          excerpt: '传递函数描述系统输入与输出之间的动态关系。',
+          citationTargetId: 'citation:transfer-function-cn',
+          retrievalChunkId: 'textbook-search:transfer-function-cn',
+          metadata: {
+            reviewStatus: 'canonical',
+          },
+        }),
+        item({
+          id: 'ch01-advanced-problems-031__chunk-001',
+          title: 'ADVANCED PROBLEMS',
+          excerpt: 'Problems for synthesizing introductory examples and design discussion.',
+          citationTargetId: 'citation:advanced-problems-031',
+          retrievalChunkId: 'textbook-search:ch01-advanced-problems-031__chunk-001',
+          scores: { ...item().scores, graphAlignment: 1, authority: 1 },
+          metadata: {
+            reviewStatus: 'canonical',
+          },
+        }),
+      ],
+      now: new Date('2026-07-08T00:00:00Z'),
+    });
+
+    expect(result.pack.items.map((packItem) => packItem.id)).toEqual(['transfer-function-cn']);
+    expect(result.ranked[0].item.metadata).toMatchObject({
+      answerRelevanceBasis: 'query-lexical',
+      answerRelevanceMatch: 'token:传递函数',
+    });
+    expect(result.pack.items[0].metadata).toMatchObject({
+      answerRelevancePassed: true,
+      answerRelevanceBasis: 'query-lexical',
+    });
+    expect(result.pack.items[0].metadata).not.toHaveProperty('answerRelevanceMatch');
+    expect(result.pack.limitations.map((limitation) => limitation.code)).toContain('answer-citation-insufficient-relevance');
+  });
+
+  it.each([
+    ['稳定性怎么判断？', '稳定性'],
+    ['阻尼比如何影响响应？', '阻尼比'],
+    ['单位阶跃响应怎么看？', '单位阶跃响应'],
+  ])('keeps high-frequency Chinese answer terms without graph refs: %s', (query, term) => {
+    const result = retrieveSourcePack({
+      query,
+      profile: 'konling-answer',
+      role: 'student',
+      candidates: [
+        item({
+          id: `cn-${term}`,
+          title: term,
+          excerpt: `${term} 是控制系统分析中的核心概念。`,
+          citationTargetId: `citation:cn-${term}`,
+          retrievalChunkId: `textbook-search:cn-${term}`,
+          metadata: {
+            reviewStatus: 'canonical',
+          },
+        }),
+      ],
+      now: new Date('2026-07-08T00:00:00Z'),
+    });
+
+    expect(result.pack.items.map((packItem) => packItem.id)).toEqual([`cn-${term}`]);
+    expect(result.ranked[0].item.metadata).toMatchObject({
+      answerRelevanceBasis: 'query-lexical',
+      answerRelevanceMatch: `token:${term}`,
+    });
+    expect(result.pack.items[0].metadata).toMatchObject({
+      answerRelevancePassed: true,
+      answerRelevanceBasis: 'query-lexical',
+    });
+    expect(result.pack.items[0].metadata).not.toHaveProperty('answerRelevanceMatch');
+    expect(result.pack.items[0].metadata).not.toHaveProperty('answerRelevanceQueryHash');
+  });
+
+  it('does not treat short Chinese terms in generic problem rows as sufficient answer relevance', () => {
+    const result = retrieveSourcePack({
+      query: '闭环',
+      profile: 'konling-answer',
+      role: 'student',
+      candidates: [
+        item({
+          id: 'ch01-advanced-problems-031__chunk-001',
+          title: 'ADVANCED PROBLEMS',
+          excerpt: '包含若干开环和闭环系统设计综合习题，用于章节复习。',
+          citationTargetId: 'citation:advanced-problems-031',
+          retrievalChunkId: 'textbook-search:ch01-advanced-problems-031__chunk-001',
+          scores: { ...item().scores, graphAlignment: 1, authority: 1 },
+          metadata: {
+            reviewStatus: 'canonical',
+          },
+        }),
+      ],
+      now: new Date('2026-07-08T00:00:00Z'),
+    });
+
+    expect(result.pack.items).toEqual([]);
+    expect(result.pack.limitations.map((limitation) => limitation.code)).toEqual(expect.arrayContaining([
+      'answer-citation-insufficient-relevance',
+      'coverage-missing-answer-context',
+    ]));
+  });
+
+  it('keeps short Chinese terms when they appear in reference text', () => {
+    const result = retrieveSourcePack({
+      query: '闭环',
+      profile: 'konling-answer',
+      role: 'student',
+      candidates: [
+        item({
+          id: 'closed-loop-cn',
+          title: '闭环',
+          excerpt: '系统输出经过反馈后作用于输入端。',
+          citationTargetId: 'citation:closed-loop-cn',
+          retrievalChunkId: 'textbook-search:closed-loop-cn',
+          metadata: {
+            reviewStatus: 'canonical',
+          },
+        }),
+      ],
+      now: new Date('2026-07-08T00:00:00Z'),
+    });
+
+    expect(result.pack.items.map((packItem) => packItem.id)).toEqual(['closed-loop-cn']);
+    expect(result.pack.items[0].metadata).toMatchObject({
+      answerRelevancePassed: true,
+      answerRelevanceBasis: 'query-exact',
+    });
+  });
+
+  it.each([
+    'root',
+    'root cause of my error',
+  ])('does not treat a standalone root token as sufficient answer relevance: %s', (query) => {
+    const result = retrieveSourcePack({
+      query,
+      profile: 'konling-answer',
+      role: 'student',
+      candidates: [
+        item({
+          id: 'root-locus-reference',
+          title: 'Root locus',
+          excerpt: 'Root locus explains closed-loop pole movement.',
+          citationTargetId: 'citation:root-locus-reference',
+          retrievalChunkId: 'textbook-search:root-locus-reference',
+          metadata: {
+            reviewStatus: 'canonical',
+          },
+        }),
+      ],
+      now: new Date('2026-07-08T00:00:00Z'),
+    });
+
+    expect(result.pack.items).toEqual([]);
+    expect(result.pack.limitations.map((limitation) => limitation.code)).toEqual(expect.arrayContaining([
+      'answer-citation-insufficient-relevance',
+      'coverage-missing-answer-context',
+    ]));
+  });
+
+  it('reports missing answer context when no konling-answer item passes relevance', () => {
+    const result = retrieveSourcePack({
+      query: 'I have a problem understanding Nyquist stability margin',
+      profile: 'konling-answer',
+      role: 'student',
+      candidates: [
+        item({
+          id: 'ch01-advanced-problems-031__chunk-001',
+          title: 'ADVANCED PROBLEMS',
+          excerpt: 'Problems for synthesizing introductory examples and design discussion.',
+          citationTargetId: 'citation:advanced-problems-031',
+          retrievalChunkId: 'textbook-search:ch01-advanced-problems-031__chunk-001',
+          scores: { ...item().scores, graphAlignment: 1, authority: 1 },
+          metadata: {
+            reviewStatus: 'canonical',
+            knowledgeNodeRefs: ['broad-control-system'],
+          },
+        }),
+      ],
+      now: new Date('2026-07-08T00:00:00Z'),
+    });
+
+    expect(result.pack.items).toEqual([]);
+    expect(result.pack.limitations.map((limitation) => limitation.code)).toEqual(expect.arrayContaining([
+      'answer-citation-insufficient-relevance',
+      'coverage-missing-answer-context',
+    ]));
+  });
+
+  it('redacts private answer-relevance match details from student-visible packs', () => {
+    const result = retrieveSourcePack({
+      query: 'unrelated prompt',
+      profile: 'konling-answer',
+      role: 'student',
+      learnerContextRefs: ['learner:private-sar-ref'],
+      candidates: [
+        item({
+          id: 'learner-context-only',
+          title: 'Personalized guidance',
+          excerpt: 'Guidance that is selected only through learner context.',
+          citationTargetId: 'citation:learner-context-only',
+          metadata: {
+            reviewStatus: 'canonical',
+            learnerContextRefs: ['learner:private-sar-ref'],
+          },
+        }),
+      ],
+      now: new Date('2026-07-08T00:00:00Z'),
+    });
+
+    expect(result.pack.items).toEqual([
+      expect.objectContaining({
+        id: 'learner-context-only',
+        metadata: expect.objectContaining({
+          answerRelevancePassed: true,
+          answerRelevanceBasis: 'learner-context-ref',
+        }),
+      }),
+    ]);
+    expect(JSON.stringify(result.pack.items[0].metadata)).not.toContain('learner:private-sar-ref');
+    expect(result.pack.items[0].metadata).not.toHaveProperty('answerRelevanceMatch');
+    expect(result.pack.items[0].metadata).not.toHaveProperty('answerRelevanceQueryHash');
+  });
+
+  it('does not apply the answer relevance gate to non-answer profiles', () => {
+    const result = retrieveSourcePack({
+      query: 'Nyquist stability margin',
+      profile: 'handout-authoring',
+      role: 'teacher',
+      candidates: [
+        item({
+          id: 'ch01-advanced-problems-031__chunk-001',
+          title: 'ADVANCED PROBLEMS',
+          excerpt: 'Problems for synthesizing introductory examples and design discussion.',
+          citationTargetId: 'citation:advanced-problems-031',
+          retrievalChunkId: 'textbook-search:ch01-advanced-problems-031__chunk-001',
+          scores: { ...item().scores, graphAlignment: 1, authority: 1 },
+          metadata: {
+            reviewStatus: 'canonical',
+            knowledgeNodeRefs: ['broad-control-system'],
+          },
+        }),
+      ],
+      now: new Date('2026-07-08T00:00:00Z'),
+    });
+
+    expect(result.pack.items.map((packItem) => packItem.id)).toEqual(['ch01-advanced-problems-031__chunk-001']);
+    expect(result.pack.limitations.map((limitation) => limitation.code)).not.toContain('answer-citation-insufficient-relevance');
+  });
+
   it('keeps canonical LearningEvidence adapter output eligible for authoring retrieval', () => {
     const adapted = adaptLearningEvidenceChunk(canonicalChunk(), { role: 'teacher', useCase: 'konling' });
     expect(adapted.item).not.toBeNull();
