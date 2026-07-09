@@ -121,7 +121,10 @@ export function mergeGateResults(results: readonly NewResourceGateResult[]): New
 }
 
 export function parseChangedRegisteredResourceIds(source: string, diff: string): string[] {
-  const ranges = parseDiffCurrentLineRanges(diff);
+  const ranges = [
+    ...parseDiffCurrentLineRanges(diff),
+    ...parseDeletionOnlyCurrentFieldRanges(diff),
+  ];
   if (ranges.length === 0) return [];
   const resources = [
     ...parseRegisteredResourceLineRanges(source),
@@ -242,6 +245,25 @@ export function parseDiffCurrentLineRanges(diff: string): DiffLineRange[] {
       if (count === 0) return [];
       return [{ start, end: start + count - 1 }];
     });
+}
+
+function parseDeletionOnlyCurrentFieldRanges(diff: string): DiffLineRange[] {
+  const lines = diff.split(/\r?\n/);
+  const ranges: DiffLineRange[] = [];
+  for (let index = 0; index < lines.length; index += 1) {
+    const match = /^@@ -\d+(?:,\d+)? \+(\d+),0 @@/.exec(lines[index]);
+    if (!match) continue;
+    const start = Number(match[1]);
+    const hunkLines: string[] = [];
+    for (let inner = index + 1; inner < lines.length && !lines[inner].startsWith('@@ '); inner += 1) {
+      hunkLines.push(lines[inner]);
+    }
+    const deletesResourceObject = hunkLines.some((line) => /^-\s{4}['"][^'"]+['"]:\s*\{/.test(line));
+    if (!deletesResourceObject) {
+      ranges.push({ start, end: start });
+    }
+  }
+  return ranges;
 }
 
 export function parseRegisteredResourceLineRanges(source: string): ChangedRegisteredResourceInput[] {

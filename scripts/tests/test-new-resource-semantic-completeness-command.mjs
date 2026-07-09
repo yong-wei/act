@@ -940,6 +940,26 @@ fs.writeFileSync(
     sourceKind: 'resource_registry',
     sourceRef: 'adaptive-assessment-item:AC-Q-9998',
     sourcePathOrUrl: 'course-content/runtime/resource-governance/adaptive-assessment-item-catalog-items.jsonl',
+    sourceHash: 'sha256:stale-assessment-catalog',
+    sourceVersionRef: 'adaptive-assessment-item-catalog.v1',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const staleAssessmentCatalogProjectionResult = runGate(['--staged']);
+assert.notEqual(staleAssessmentCatalogProjectionResult.status, 0, 'gate must fail when assessment catalog projection row carries a stale source hash');
+assert.match(
+  `${staleAssessmentCatalogProjectionResult.stdout}\n${staleAssessmentCatalogProjectionResult.stderr}`,
+  /adaptive-assessment-item:AC-Q-9998/,
+);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'adaptive-assessment-item:AC-Q-9998',
+    family: 'adaptive-assessment-item',
+    resourceType: 'adaptive_quiz',
+    sourceKind: 'resource_registry',
+    sourceRef: 'adaptive-assessment-item:AC-Q-9998',
+    sourcePathOrUrl: 'course-content/runtime/resource-governance/adaptive-assessment-item-catalog-items.jsonl',
     sourceVersionRef: 'adaptive-assessment-item-catalog.v1',
   }))}\n`,
 );
@@ -1052,6 +1072,7 @@ fs.writeFileSync(
     sourceKind: 'knowledge_graph',
     sourceRef: 'kn-demo',
     sourcePathOrUrl: 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png',
+    sourceHash: 'sha256:stale-infograph-image',
     sourceVersionRef: 'knowledge-infograph-image.v1',
     independentEvidenceRef: 'course-content/runtime/knowledge/infographs/manifest.json#kn-demo',
   }))}\n`,
@@ -1082,8 +1103,51 @@ const syncedInfographImageProjectionResult = runGate(['--staged']);
 assert.equal(syncedInfographImageProjectionResult.status, 0, 'gate must pass when an infograph image change has a matching projection row and source hash');
 
 run('git', ['reset', '--hard', 'HEAD'], repo);
+const metadataWithoutSemanticFields = original.replace(
+  `        knowledgeNodeIds: ['反馈控制系统_1_98dc667a', '自动控制系统_1_9678f418'],
+        planningOverride: {
+            estimatedTimeMinutes: 6,
+            evidenceInstrumentation: ['lesson_bridge_view', 'interaction_complete'],
+            abilityImpact: { controlModeling: 0.12, inquiryReflection: 0.08 }
+        }
+`,
+  '',
+);
+fs.writeFileSync(metadataPath, metadataWithoutSemanticFields);
+run('git', ['add', 'src/lib/resource-registry-metadata.ts'], repo);
+const deletionOnlyMetadataResult = runGate(['--staged']);
+assert.notEqual(deletionOnlyMetadataResult.status, 0, 'gate must fail when deletion-only hunks remove registered resource semantic fields');
+assert.match(
+  `${deletionOnlyMetadataResult.stdout}\n${deletionOnlyMetadataResult.stderr}`,
+  /lesson01-feedback-bridge-v1 missing-path-disposition/,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
 const cardPath = path.join(repo, 'course-content/runtime/knowledge/cards/nodes/kn-demo.md');
 const secondCardPath = path.join(repo, 'course-content/runtime/knowledge/cards/nodes/kn-extra.md');
+fs.writeFileSync(cardPath, '# Demo card\n\nUpdated card body.\n');
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'knowledge-card:kn-demo',
+    family: 'knowledge-card',
+    resourceType: 'knowledge_card',
+    sourceKind: 'knowledge_graph',
+    sourceRef: 'kn-demo',
+    sourcePathOrUrl: 'course-content/runtime/knowledge/cards/nodes/kn-demo.md',
+    sourceHash: 'sha256:stale-knowledge-card',
+    sourceVersionRef: 'runtime-knowledge-card.v1',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/knowledge/cards/nodes/kn-demo.md', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const staleCardProjectionResult = runGate(['--staged']);
+assert.notEqual(staleCardProjectionResult.status, 0, 'gate must fail when a knowledge card projection row carries a stale source hash');
+assert.match(
+  `${staleCardProjectionResult.stdout}\n${staleCardProjectionResult.stderr}`,
+  /runtime-source:course-content\/runtime\/knowledge\/cards\/nodes\/kn-demo\.md/,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
 fs.writeFileSync(cardPath, '# Demo card\n\nUpdated card body.\n');
 fs.writeFileSync(secondCardPath, '# Extra card\n');
 fs.writeFileSync(
@@ -1151,7 +1215,7 @@ function runGate(args) {
 }
 
 function runtimeProjectionRow(overrides) {
-  const sourceHash = overrides.sourceHash ?? 'sha256:runtime-source';
+  const sourceHash = overrides.sourceHash ?? sourceHashForRuntimeProjectionRow(overrides);
   return {
     artifactVersion: 'runtime-resource-projections.v1',
     id: overrides.id,
@@ -1212,4 +1276,9 @@ function runtimeProjectionRow(overrides) {
 
 function sha256File(filePath) {
   return `sha256:${createHash('sha256').update(fs.readFileSync(filePath)).digest('hex')}`;
+}
+
+function sourceHashForRuntimeProjectionRow(overrides) {
+  const sourcePath = path.join(repo, overrides.sourcePathOrUrl ?? '');
+  return fs.existsSync(sourcePath) ? sha256File(sourcePath) : 'sha256:runtime-source';
 }

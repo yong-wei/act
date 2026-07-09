@@ -203,12 +203,14 @@ function runtimeProjectionRowMatchesSourceRequirement(
   if (family === 'runtime-lesson') {
     return runtimeProjectionRowMatchesSourceFamily(row, family) &&
       row.sourcePathOrUrl === requirement.filePath &&
-      runtimeProjectionRowMatchesRecord(row, requirement.recordKey);
+      runtimeProjectionRowMatchesRecord(row, requirement.recordKey) &&
+      runtimeProjectionRowMatchesCurrentSourceHash(row, requirement);
   }
   if (family === 'knowledge-card') {
     return runtimeProjectionRowMatchesSourceFamily(row, family) &&
       row.sourcePathOrUrl === requirement.filePath &&
-      runtimeProjectionRowMatchesRecord(row, requirement.recordKey);
+      runtimeProjectionRowMatchesRecord(row, requirement.recordKey) &&
+      runtimeProjectionRowMatchesCurrentSourceHash(row, requirement);
   }
   if (family === 'runtime-source') {
     const sourceMatches = row.sourcePathOrUrl === requirement.filePath ||
@@ -216,19 +218,28 @@ function runtimeProjectionRowMatchesSourceRequirement(
       row.reviewAudit?.independentEvidenceRef === requirement.filePath ||
       runtimeProjectionRowMatchesRecord(row, requirement.recordKey);
     if (!sourceMatches) return false;
-    if (!requirement.requireSourceHash) return true;
-    return Boolean(requirement.sourceHash) &&
-      row.sourceHash === requirement.sourceHash &&
-      row.reviewAudit?.reviewedSourceHash === requirement.sourceHash;
+    return runtimeProjectionRowMatchesCurrentSourceHash(row, requirement);
   }
   if (family === 'assessment-item') {
     return runtimeProjectionRowMatchesSourceFamily(row, family) &&
-      runtimeProjectionRowMatchesRecord(row, requirement.recordKey);
+      runtimeProjectionRowMatchesRecord(row, requirement.recordKey) &&
+      runtimeProjectionRowMatchesCurrentSourceHash(row, requirement);
   }
   return runtimeProjectionRowMatchesSourceFamily(row, family) &&
     (row.reviewAudit?.independentEvidenceRef === `${requirement.filePath}#${requirement.recordKey}` ||
       row.sourcePathOrUrl === requirement.sourcePathOrUrl ||
-      runtimeProjectionRowMatchesRecord(row, requirement.recordKey));
+      runtimeProjectionRowMatchesRecord(row, requirement.recordKey)) &&
+    runtimeProjectionRowMatchesCurrentSourceHash(row, requirement);
+}
+
+function runtimeProjectionRowMatchesCurrentSourceHash(
+  row: RuntimeProjectionRow,
+  requirement: RuntimeProjectionSourceRequirement,
+): boolean {
+  if (!requirement.requireSourceHash) return true;
+  return Boolean(requirement.sourceHash) &&
+    row.sourceHash === requirement.sourceHash &&
+    row.reviewAudit?.reviewedSourceHash === requirement.sourceHash;
 }
 
 function runtimeProjectionRowMatchesSourceFamily(
@@ -295,25 +306,34 @@ function runtimeProjectionSourceRequirementsForPath(
   if (!family) return [];
   const source = readTextIfExists(filePath);
   if (family === 'runtime-lesson') {
-    return parseRuntimeLessonSourceRequirements(filePath, source, diff);
+    return parseRuntimeLessonSourceRequirements(filePath, source, diff)
+      .map((requirement) => withCurrentSourceHash(requirement));
   }
   if (family === 'knowledge-infograph') {
     return parseInfographManifestSourceRequirements(filePath, source, diff);
   }
   if (family === 'runtime-source') {
-    return [{
+    return [withCurrentSourceHash({
       filePath,
       family,
       recordKey: filePath,
-      sourceHash: runtimeProjectionSourceHash(filePath),
-      requireSourceHash: runtimeProjectionSourceRequiresHash(filePath),
-    }];
+    })];
   }
   if (family === 'assessment-item' && RUNTIME_ASSESSMENT_CATALOG_PATHS.includes(filePath)) {
-    return parseAssessmentCatalogSourceRequirements(filePath, diff);
+    return parseAssessmentCatalogSourceRequirements(filePath, diff)
+      .map((requirement) => withCurrentSourceHash(requirement));
   }
   const recordKey = path.basename(filePath, path.extname(filePath));
-  return [{ filePath, family, recordKey }];
+  return [withCurrentSourceHash({ filePath, family, recordKey })];
+}
+
+function withCurrentSourceHash(
+  requirement: RuntimeProjectionSourceRequirement,
+): RuntimeProjectionSourceRequirement {
+  const sourceHash = runtimeProjectionSourceHash(requirement.filePath);
+  return sourceHash
+    ? { ...requirement, sourceHash, requireSourceHash: true }
+    : requirement;
 }
 
 function parseAssessmentCatalogSourceRequirements(
@@ -723,12 +743,8 @@ function runtimeProjectionSourceFamilyForPath(filePath: string): RuntimeProjecti
   return null;
 }
 
-function runtimeProjectionSourceRequiresHash(filePath: string): boolean {
-  return /^course-content\/runtime\/knowledge\/infographs\/nodes\/.+\.(?:png|jpe?g|webp|svg)$/.test(filePath);
-}
-
 function runtimeProjectionSourceHash(filePath: string): string | undefined {
-  if (!runtimeProjectionSourceRequiresHash(filePath) || !existsSync(filePath)) return undefined;
+  if (!existsSync(filePath)) return undefined;
   const digest = createHash('sha256').update(readFileSync(filePath)).digest('hex');
   return `sha256:${digest}`;
 }

@@ -52,6 +52,23 @@ describe('new resource semantic completeness gate', () => {
     expect(parseChangedRegisteredResourceIds(source, diff)).toEqual([]);
   });
 
+  it('detects deletion-only field hunks inside current registered resource ranges', () => {
+    const source = [
+      'const registeredResourceMetadata = {',
+      "    'existing-resource': {",
+      "        id: 'existing-resource',",
+      "        label: 'Existing',",
+      '    },',
+      '};',
+    ].join('\n');
+    const diff = [
+      '@@ -4,1 +4,0 @@',
+      "-        knowledgeNodeIds: ['kn-old'],",
+    ].join('\n');
+
+    expect(parseChangedRegisteredResourceIds(source, diff)).toEqual(['existing-resource']);
+  });
+
   it('detects registered resource ids changed through progression metadata arrays', () => {
     const source = [
       'const registeredResourceMetadata = {',
