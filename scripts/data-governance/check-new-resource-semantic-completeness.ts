@@ -24,12 +24,21 @@ const RUNTIME_TEXTBOOK_DIR = 'course-content/runtime/resources/textbooks';
 const RUNTIME_KNOWLEDGE_CARD_DIR = 'course-content/runtime/knowledge/cards/nodes';
 const RUNTIME_INFOGRAPH_MANIFEST_PATH = 'course-content/runtime/knowledge/infographs/manifest.json';
 const RUNTIME_INFOGRAPH_NODE_DIR = 'course-content/runtime/knowledge/infographs/nodes';
+const QUESTION_BANK_DIR = 'course-content/questions/questions';
+const RUNTIME_ASSESSMENT_CATALOG_PATHS = [
+  'course-content/runtime/resource-governance/adaptive-assessment-item-catalog-items.jsonl',
+  'course-content/runtime/resource-governance/assessment-item-semantic-review-packets.jsonl',
+  'course-content/runtime/resource-governance/assessment-item-semantic-review-snapshots.jsonl',
+  'course-content/runtime/resource-governance/kaq-quiz-foundation-reviewed-items.jsonl',
+];
 const RUNTIME_PROJECTION_SOURCE_PATHS = [
   RUNTIME_LESSON_MANIFEST_DIR,
   RUNTIME_TEXTBOOK_DIR,
   RUNTIME_KNOWLEDGE_CARD_DIR,
   RUNTIME_INFOGRAPH_MANIFEST_PATH,
   RUNTIME_INFOGRAPH_NODE_DIR,
+  QUESTION_BANK_DIR,
+  ...RUNTIME_ASSESSMENT_CATALOG_PATHS,
 ];
 const TEACHING_RESOURCE_SEED_PATHS = [
   'scripts/db/seed-interactive-resources.ts',
@@ -49,7 +58,12 @@ interface DiffLineRange {
   end: number;
 }
 
-type RuntimeProjectionSourceFamily = 'runtime-lesson' | 'runtime-source' | 'knowledge-card' | 'knowledge-infograph';
+type RuntimeProjectionSourceFamily =
+  | 'runtime-lesson'
+  | 'runtime-source'
+  | 'knowledge-card'
+  | 'knowledge-infograph'
+  | 'assessment-item';
 type RuntimeProjectionRow = ReturnType<typeof parseAddedRuntimeProjectionChanges>['rows'][number] & {
   family?: string;
   sourceHash?: string;
@@ -171,6 +185,7 @@ function runtimeProjectionSourceIssue(requirement: RuntimeProjectionSourceRequir
     'runtime-source': 'runtime source file',
     'knowledge-card': 'runtime knowledge card',
     'knowledge-infograph': 'knowledge infograph manifest',
+    'assessment-item': 'quiz/exercise assessment source',
   };
   return {
     family: 'runtime-resource-projection',
@@ -206,6 +221,10 @@ function runtimeProjectionRowMatchesSourceRequirement(
       row.sourceHash === requirement.sourceHash &&
       row.reviewAudit?.reviewedSourceHash === requirement.sourceHash;
   }
+  if (family === 'assessment-item') {
+    return runtimeProjectionRowMatchesSourceFamily(row, family) &&
+      runtimeProjectionRowMatchesRecord(row, requirement.recordKey);
+  }
   return runtimeProjectionRowMatchesSourceFamily(row, family) &&
     (row.reviewAudit?.independentEvidenceRef === `${requirement.filePath}#${requirement.recordKey}` ||
       row.sourcePathOrUrl === requirement.sourcePathOrUrl ||
@@ -230,6 +249,16 @@ function runtimeProjectionRowMatchesSourceFamily(
   }
   if (family === 'runtime-source') {
     return true;
+  }
+  if (family === 'assessment-item') {
+    return row.family === 'quiz' ||
+      row.family === 'adaptive_quiz' ||
+      row.family === 'adaptive-quiz' ||
+      row.family === 'assessment-item' ||
+      row.family === 'adaptive-assessment-item' ||
+      row.resourceType === 'quiz' ||
+      row.resourceType === 'adaptive_quiz' ||
+      row.sourcePathOrUrl?.includes('/questions/questions/') === true;
   }
   return row.family === 'knowledge-infograph' ||
     row.sourcePathOrUrl?.includes('/knowledge/infographs/') === true;
@@ -280,8 +309,49 @@ function runtimeProjectionSourceRequirementsForPath(
       requireSourceHash: runtimeProjectionSourceRequiresHash(filePath),
     }];
   }
+  if (family === 'assessment-item' && RUNTIME_ASSESSMENT_CATALOG_PATHS.includes(filePath)) {
+    return parseAssessmentCatalogSourceRequirements(filePath, diff);
+  }
   const recordKey = path.basename(filePath, path.extname(filePath));
   return [{ filePath, family, recordKey }];
+}
+
+function parseAssessmentCatalogSourceRequirements(
+  filePath: string,
+  diff: string,
+): RuntimeProjectionSourceRequirement[] {
+  return uniqueSorted(diff
+    .split(/\r?\n/)
+    .filter((line) => line.startsWith('+') && !line.startsWith('+++'))
+    .flatMap((line) => assessmentCatalogRecordKeysForLine(line.slice(1))))
+    .map((recordKey) => ({ filePath, family: 'assessment-item', recordKey }));
+}
+
+function assessmentCatalogRecordKeysForLine(line: string): string[] {
+  const trimmed = line.trim();
+  if (!trimmed.startsWith('{')) return [];
+  try {
+    const row = JSON.parse(trimmed) as {
+      id?: unknown;
+      catalogItemId?: unknown;
+      questionId?: unknown;
+      sourceReference?: {
+        sourceId?: unknown;
+      };
+    };
+    return uniqueSorted([
+      stringValue(row.id),
+      stringValue(row.catalogItemId),
+      stringValue(row.questionId),
+      stringValue(row.sourceReference?.sourceId),
+    ].filter((value): value is string => Boolean(value)));
+  } catch {
+    return [];
+  }
+}
+
+function stringValue(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 ? value : null;
 }
 
 function parseRuntimeLessonSourceRequirements(
@@ -643,6 +713,12 @@ function runtimeProjectionSourceFamilyForPath(filePath: string): RuntimeProjecti
   }
   if (/^course-content\/runtime\/knowledge\/infographs\/nodes\/.+\.(?:png|jpe?g|webp|svg)$/.test(filePath)) {
     return 'runtime-source';
+  }
+  if (/^course-content\/questions\/questions\/.+\.(?:json|md)$/.test(filePath)) {
+    return 'assessment-item';
+  }
+  if (RUNTIME_ASSESSMENT_CATALOG_PATHS.includes(filePath)) {
+    return 'assessment-item';
   }
   return null;
 }

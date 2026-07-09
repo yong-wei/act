@@ -20,6 +20,7 @@ fs.mkdirSync(path.join(repo, 'course-content/runtime/resources/textbooks/book/se
 fs.mkdirSync(path.join(repo, 'course-content/runtime/knowledge/cards/nodes'), { recursive: true });
 fs.mkdirSync(path.join(repo, 'course-content/runtime/knowledge/infographs'), { recursive: true });
 fs.mkdirSync(path.join(repo, 'course-content/runtime/knowledge/infographs/nodes'), { recursive: true });
+fs.mkdirSync(path.join(repo, 'course-content/questions/questions'), { recursive: true });
 fs.cpSync(path.join(root, 'scripts'), path.join(repo, 'scripts'), { recursive: true });
 fs.cpSync(path.join(root, 'src/lib/data-governance'), path.join(repo, 'src/lib/data-governance'), { recursive: true });
 fs.cpSync(path.join(root, 'src/lib/resource-node-registry.ts'), path.join(repo, 'src/lib/resource-node-registry.ts'));
@@ -60,6 +61,10 @@ run('git', ['init'], repo);
 run('git', ['config', 'user.email', 'test@example.invalid'], repo);
 run('git', ['config', 'user.name', 'Gate Test'], repo);
 fs.writeFileSync(path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'), '');
+fs.writeFileSync(path.join(repo, 'course-content/runtime/resource-governance/adaptive-assessment-item-catalog-items.jsonl'), '');
+fs.writeFileSync(path.join(repo, 'course-content/runtime/resource-governance/assessment-item-semantic-review-packets.jsonl'), '');
+fs.writeFileSync(path.join(repo, 'course-content/runtime/resource-governance/assessment-item-semantic-review-snapshots.jsonl'), '');
+fs.writeFileSync(path.join(repo, 'course-content/runtime/resource-governance/kaq-quiz-foundation-reviewed-items.jsonl'), '');
 run('git', ['add', '.'], repo);
 run('git', ['commit', '-m', 'baseline'], repo);
 
@@ -850,6 +855,97 @@ fs.writeFileSync(
 run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
 const syncedTextbookSectionProjectionResult = runGate(['--staged']);
 assert.equal(syncedTextbookSectionProjectionResult.status, 0, 'gate must pass when a runtime textbook section has a matching projection row');
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+const questionJsonPath = path.join(repo, 'course-content/questions/questions/AC-Q-9999.json');
+const questionMarkdownPath = path.join(repo, 'course-content/questions/questions/AC-Q-9999.md');
+fs.writeFileSync(questionJsonPath, JSON.stringify({
+  id: 'AC-Q-9999',
+  stem: 'Gate fixture question',
+}, null, 2));
+fs.writeFileSync(questionMarkdownPath, '# Gate fixture question\n');
+run('git', ['add', 'course-content/questions/questions/AC-Q-9999.json', 'course-content/questions/questions/AC-Q-9999.md'], repo);
+const missingQuestionProjectionResult = runGate(['--staged']);
+assert.notEqual(missingQuestionProjectionResult.status, 0, 'gate must fail when quiz/exercise question sources change without runtime projection rows');
+assert.match(
+  `${missingQuestionProjectionResult.stdout}\n${missingQuestionProjectionResult.stderr}`,
+  /missing-assessment-item-runtime-projection-row/,
+);
+assert.match(
+  `${missingQuestionProjectionResult.stdout}\n${missingQuestionProjectionResult.stderr}`,
+  /runtime-source:course-content\/questions\/questions\/AC-Q-9999\.json#AC-Q-9999/,
+);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'quiz:AC-Q-9999-json',
+    family: 'quiz',
+    resourceType: 'quiz',
+    sourceKind: 'resource_registry',
+    sourceRef: 'AC-Q-9999',
+    sourcePathOrUrl: 'course-content/questions/questions/AC-Q-9999.json',
+    sourceVersionRef: 'question-bank.v1',
+  }))}\n${JSON.stringify(runtimeProjectionRow({
+    id: 'quiz:AC-Q-9999-md',
+    family: 'quiz',
+    resourceType: 'quiz',
+    sourceKind: 'resource_registry',
+    sourceRef: 'AC-Q-9999',
+    sourcePathOrUrl: 'course-content/questions/questions/AC-Q-9999.md',
+    sourceVersionRef: 'question-bank.v1',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const syncedQuestionProjectionResult = runGate(['--staged']);
+assert.equal(syncedQuestionProjectionResult.status, 0, 'gate must pass when quiz/exercise question sources have matching projection rows');
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+const assessmentCatalogPath = path.join(repo, 'course-content/runtime/resource-governance/adaptive-assessment-item-catalog-items.jsonl');
+fs.writeFileSync(assessmentCatalogPath, `${JSON.stringify({
+  id: 'adaptive-assessment-item:AC-Q-9998',
+  sourcePath: 'course-content/questions/questions/AC-Q-9998.json',
+})}\n`);
+run('git', ['add', 'course-content/runtime/resource-governance/adaptive-assessment-item-catalog-items.jsonl'], repo);
+const missingAssessmentCatalogProjectionResult = runGate(['--staged']);
+assert.notEqual(missingAssessmentCatalogProjectionResult.status, 0, 'gate must fail when assessment catalog rows change without runtime projection rows');
+assert.match(
+  `${missingAssessmentCatalogProjectionResult.stdout}\n${missingAssessmentCatalogProjectionResult.stderr}`,
+  /runtime-source:course-content\/runtime\/resource-governance\/adaptive-assessment-item-catalog-items\.jsonl/,
+);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'adaptive-assessment-item:UNRELATED',
+    family: 'adaptive-assessment-item',
+    resourceType: 'adaptive_quiz',
+    sourceKind: 'resource_registry',
+    sourceRef: 'adaptive-assessment-item:UNRELATED',
+    sourcePathOrUrl: 'course-content/runtime/resource-governance/adaptive-assessment-item-catalog-items.jsonl',
+    sourceVersionRef: 'adaptive-assessment-item-catalog.v1',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const unrelatedAssessmentCatalogProjectionResult = runGate(['--staged']);
+assert.notEqual(unrelatedAssessmentCatalogProjectionResult.status, 0, 'gate must fail when assessment catalog projection row targets a different item in the same file');
+assert.match(
+  `${unrelatedAssessmentCatalogProjectionResult.stdout}\n${unrelatedAssessmentCatalogProjectionResult.stderr}`,
+  /adaptive-assessment-item:AC-Q-9998/,
+);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'adaptive-assessment-item:AC-Q-9998',
+    family: 'adaptive-assessment-item',
+    resourceType: 'adaptive_quiz',
+    sourceKind: 'resource_registry',
+    sourceRef: 'adaptive-assessment-item:AC-Q-9998',
+    sourcePathOrUrl: 'course-content/runtime/resource-governance/adaptive-assessment-item-catalog-items.jsonl',
+    sourceVersionRef: 'adaptive-assessment-item-catalog.v1',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const syncedAssessmentCatalogProjectionResult = runGate(['--staged']);
+assert.equal(syncedAssessmentCatalogProjectionResult.status, 0, 'gate must pass when assessment catalog rows have matching projection rows');
 
 run('git', ['reset', '--hard', 'HEAD'], repo);
 const infographManifestPath = path.join(repo, 'course-content/runtime/knowledge/infographs/manifest.json');
