@@ -122,6 +122,59 @@ describe('new resource semantic completeness gate', () => {
     expect(parseChangedRegisteredResourceIds(source, diff)).toEqual(['lesson-a', 'lesson-b']);
   });
 
+  it('maps operational helper edits back to resources that use the helper', () => {
+    const source = [
+      'const registeredResourceMetadata = {',
+      "    'sim-a': { id: 'sim-a', label: 'Sim A' },",
+      "    'ready-a': { id: 'ready-a', label: 'Ready A' },",
+      '};',
+      'const registeredResourceOperationalMetadata: Record<string, RegisteredResourceMetadataPatch> = {',
+      "    'sim-a': simulationReadiness('registry:lesson-a', 'Unlock sim.'),",
+      "    'ready-a': readyResource(),",
+      '};',
+      'function simulationReadiness(): RegisteredResourceMetadataPatch {',
+      '    return {',
+      '        planningOverride: {',
+      '            readiness: {',
+      '                minimumEvidenceCount: 1,',
+      '            },',
+      '        },',
+      '    };',
+      '}',
+      'function readyResource(): RegisteredResourceMetadataPatch {',
+      '    return {',
+      '        planningOverride: {',
+      '            readiness: readyImmediately(),',
+      '        },',
+      '    };',
+      '}',
+      'function readyImmediately(): NonNullable<ResourceNodePlanningOverride[\'readiness\']> {',
+      '    return {',
+      '        minimumEvidenceCount: 0,',
+      '    };',
+      '}',
+    ].join('\n');
+    const simulationLine = source.split('\n').findIndex((line) => line.includes('minimumEvidenceCount: 1')) + 1;
+    const readyLine = source.split('\n').findIndex((line) => line.includes('readiness: readyImmediately()')) + 1;
+    const readyImmediatelyLine = source.split('\n').findIndex((line) => line.includes('minimumEvidenceCount: 0')) + 1;
+
+    expect(parseChangedRegisteredResourceIds(source, [
+      `@@ -${simulationLine},1 +${simulationLine},1 @@`,
+      '-                minimumEvidenceCount: 1,',
+      '+                minimumEvidenceCount: 0,',
+    ].join('\n'))).toEqual(['sim-a']);
+    expect(parseChangedRegisteredResourceIds(source, [
+      `@@ -${readyLine},1 +${readyLine},1 @@`,
+      '-            readiness: readyImmediately(),',
+      '+            readiness: undefined,',
+    ].join('\n'))).toEqual(['ready-a']);
+    expect(parseChangedRegisteredResourceIds(source, [
+      `@@ -${readyImmediatelyLine},1 +${readyImmediatelyLine},1 @@`,
+      '-        minimumEvidenceCount: 0,',
+      '+        minimumEvidenceCount: 1,',
+    ].join('\n'))).toEqual(['ready-a']);
+  });
+
   it('fails incomplete new registered resources', () => {
     const result = validateChangedRegisteredResources([{
       id: 'new-incomplete',

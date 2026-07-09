@@ -74,6 +74,7 @@ export function parseChangedRegisteredResourceIds(source: string, diff: string):
     ...parseRegisteredResourceLineRanges(source),
     ...parseRegisteredResourcePatchLineRanges(source),
     ...parseRegisteredResourceProgressionLineRanges(source),
+    ...parseRegisteredResourceOperationalHelperLineRanges(source),
   ];
   const resourceIds = new Set(resources.map((resource) => resource.id));
   return uniqueSorted(
@@ -192,6 +193,38 @@ export function parseRegisteredResourceProgressionLineRanges(source: string): Ch
     lineStart: range.start,
     lineEnd: range.end,
   })));
+}
+
+export function parseRegisteredResourceOperationalHelperLineRanges(source: string): ChangedRegisteredResourceInput[] {
+  const lines = source.split(/\r?\n/);
+  const helperIds = new Map<string, string[]>();
+  const mapStart = lines.findIndex((line) => line.includes('const registeredResourceOperationalMetadata:'));
+  if (mapStart < 0) return [];
+  let mapEnd = lines.length - 1;
+  for (let index = mapStart + 1; index < lines.length; index += 1) {
+    if (/^};/.test(lines[index])) {
+      mapEnd = index;
+      break;
+    }
+  }
+  for (let index = mapStart + 1; index < mapEnd; index += 1) {
+    const match = /^    ['"]([^'"]+)['"]:\s*(simulationReadiness|readyResource)\(/.exec(lines[index]);
+    if (!match) continue;
+    const ids = helperIds.get(match[2]) ?? [];
+    ids.push(match[1]);
+    helperIds.set(match[2], ids);
+  }
+  return Array.from(helperIds.entries()).flatMap(([helperName, ids]) => {
+    const ranges = [
+      parseFunctionLineRange(lines, helperName),
+      ...(helperName === 'readyResource' ? [parseFunctionLineRange(lines, 'readyImmediately')] : []),
+    ].filter((range): range is DiffLineRange => Boolean(range));
+    return ids.flatMap((id) => ranges.map((range) => ({
+      id,
+      lineStart: range.start,
+      lineEnd: range.end,
+    })));
+  });
 }
 
 function parseProgressionIds(lines: readonly string[], range: DiffLineRange): string[] {

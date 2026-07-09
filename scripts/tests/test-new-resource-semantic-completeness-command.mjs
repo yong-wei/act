@@ -199,6 +199,75 @@ assert.doesNotMatch(
 );
 
 run('git', ['reset', '--hard', 'HEAD'], repo);
+fs.writeFileSync(presetPath, originalPreset.replace(
+  'items: [],',
+  `items: [
+    {
+      registryId: step.kind === 'summary' ? 'classroom-ai-report' : 'same-line-preset-without-metadata',
+      title: 'Same-line preset resource without metadata',
+    },
+  ],`,
+));
+run('git', ['add', 'src/features/teacher/preset-lessons/presets/example.ts'], repo);
+const sameLinePresetResult = spawnSync('npx', ['tsx', './scripts/data-governance/check-new-resource-semantic-completeness.ts', '--staged'], {
+  cwd: repo,
+  encoding: 'utf8',
+});
+assert.notEqual(sameLinePresetResult.status, 0, 'gate must fail when a same-line ternary preset registryId branch has no registered metadata');
+assert.match(
+  `${sameLinePresetResult.stdout}\n${sameLinePresetResult.stderr}`,
+  /same-line-preset-without-metadata missing-registered-resource-metadata/,
+);
+assert.doesNotMatch(
+  `${sameLinePresetResult.stdout}\n${sameLinePresetResult.stderr}`,
+  /summary missing-registered-resource-metadata/,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+fs.writeFileSync(presetPath, originalPreset.replace(
+  'items: [],',
+  `items: [
+    {
+      registryId: step.kind === 'summary' ? 'classroom-ai-report'
+        : 'partial-line-preset-without-metadata',
+      title: 'Partial-line preset resource without metadata',
+    },
+  ],`,
+));
+run('git', ['add', 'src/features/teacher/preset-lessons/presets/example.ts'], repo);
+const partialLinePresetResult = spawnSync('npx', ['tsx', './scripts/data-governance/check-new-resource-semantic-completeness.ts', '--staged'], {
+  cwd: repo,
+  encoding: 'utf8',
+});
+assert.notEqual(partialLinePresetResult.status, 0, 'gate must fail when a partial-line ternary preset registryId branch has no registered metadata');
+assert.match(
+  `${partialLinePresetResult.stdout}\n${partialLinePresetResult.stderr}`,
+  /partial-line-preset-without-metadata missing-registered-resource-metadata/,
+);
+assert.doesNotMatch(
+  `${partialLinePresetResult.stdout}\n${partialLinePresetResult.stderr}`,
+  /summary missing-registered-resource-metadata/,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+fs.writeFileSync(presetPath, originalPreset.replace(
+  '};',
+  `};
+
+export const DECORATIVE_TITLE = step.kind === 'summary' ? 'Decorative title' : 'Fallback title';`,
+));
+run('git', ['add', 'src/features/teacher/preset-lessons/presets/example.ts'], repo);
+const nonRegistryTernaryResult = spawnSync('npx', ['tsx', './scripts/data-governance/check-new-resource-semantic-completeness.ts', '--staged'], {
+  cwd: repo,
+  encoding: 'utf8',
+});
+assert.equal(nonRegistryTernaryResult.status, 0, 'gate must ignore non-registryId ternary strings in preset changes');
+assert.doesNotMatch(
+  `${nonRegistryTernaryResult.stdout}\n${nonRegistryTernaryResult.stderr}`,
+  /Decorative title missing-registered-resource-metadata/,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
 const stagedOnlyPresetPath = path.join(repo, 'src/features/teacher/preset-lessons/presets/staged-only.ts');
 fs.writeFileSync(stagedOnlyPresetPath, `export const STAGED_ONLY_PRESET = {
   items: [

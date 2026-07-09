@@ -100,24 +100,30 @@ function parseChangedTeachingResourceRegistryIds(diff: string): string[] {
   let pendingRegistryExpression = false;
 
   for (const line of addedLines) {
-    const sameLineMatches = Array.from(line.matchAll(/\bregistryId\s*:\s*['"]([^'"]+)['"]/g), (match) => match[1]);
-    if (sameLineMatches.length > 0) {
-      ids.push(...sameLineMatches);
-      pendingRegistryExpression = false;
-      continue;
-    }
     if (/\bregistryId\s*:/.test(line)) {
+      const sameLineMatches = parseRegistryIdExpressionLiteralIds(line);
+      if (sameLineMatches.length > 0) {
+        ids.push(...sameLineMatches);
+        pendingRegistryExpression = !line.includes(',');
+        continue;
+      }
       pendingRegistryExpression = true;
       continue;
     }
     if (!pendingRegistryExpression) continue;
-    ids.push(...Array.from(line.matchAll(/^\s*[?:]\s*['"]([^'"]+)['"]/g), (match) => match[1]));
+    ids.push(...parseRegistryIdExpressionLiteralIds(line));
     if (line.includes(',')) {
       pendingRegistryExpression = false;
     }
   }
 
   return ids;
+}
+
+function parseRegistryIdExpressionLiteralIds(line: string): string[] {
+  const expressionStart = line.match(/\bregistryId\s*:/);
+  const expression = expressionStart ? line.slice(expressionStart.index! + expressionStart[0].length) : line;
+  return Array.from(expression.matchAll(/(?:^|[?:])\s*['"]([^'"]+)['"]/g), (match) => match[1]);
 }
 
 function parseChangedResourceComponentRegistryIds(diff: string): string[] {
