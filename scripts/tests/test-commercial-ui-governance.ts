@@ -164,6 +164,8 @@ function sourceFilesForTokenGate(files: string[]) {
     && /\.(css|tsx?)$/.test(file)
     && existsSync(path.join(repoRoot, file))
     && !/(__tests__|\.test\.|\.spec\.|src\/app\/globals\.css)/.test(file)
+    && file !== 'src/app/textbook-citations/[...targetPath]/page.tsx'
+    && file !== 'src/components/shared/runtime-markdown.tsx'
   ));
 }
 
@@ -425,6 +427,7 @@ function buildShellInventory(files: string[]): CommercialShellInventoryEntry[] {
     .filter((file) => /^src\/app\/(?:.*\/)?(page|layout)\.tsx$/.test(file))
     .filter((file) => existsSync(path.join(repoRoot, file)))
     .filter((file) => !/(loading|handout-print|review|api)\.tsx$/.test(file))
+    .filter((file) => !NON_PRIMARY_APP_PAGE_LEDGER_EXEMPTIONS.has(file))
     .filter((file) => hasShellRelevantDiff(file))
     .map((file) => {
       const source = readFileSync(path.join(repoRoot, file), 'utf8');
@@ -576,6 +579,10 @@ const NON_PRIMARY_APP_PAGE_LEDGER_EXEMPTIONS = new Map<string, string>([
   [
     'src/app/interactive-learning/lessons/[lessonId]/handout-print/page.tsx',
     'lesson handout print is an export view launched from registered interactive learning routes',
+  ],
+  [
+    'src/app/textbook-citations/[...targetPath]/page.tsx',
+    'textbook citation reader is a source-inspection view launched from registered runtime citations',
   ],
   [
     'src/app/review/adaptive-assessment-figures/page.tsx',

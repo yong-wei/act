@@ -51,6 +51,14 @@
       "removalCondition": "Permanent print/export exception."
     },
     {
+      "path": "src/app/textbook-citations/[...targetPath]/page.tsx",
+      "owner": "standardize-sitewide-compact-spacing",
+      "scope": "Textbook citation reader page",
+      "classification": "component-intrinsic-exception",
+      "reason": "Citation reading pages require a measured prose width for source inspection rather than workspace utilization.",
+      "removalCondition": "Permanent citation reader exception."
+    },
+    {
       "path": "src/features/interactive/shared/teacher-classroom-waiting-page.tsx",
       "owner": "standardize-sitewide-compact-spacing",
       "scope": "QR code square preview",
