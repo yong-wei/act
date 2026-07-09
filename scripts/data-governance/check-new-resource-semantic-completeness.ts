@@ -1,6 +1,7 @@
 #!/usr/bin/env tsx
 
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
@@ -22,11 +23,13 @@ const RUNTIME_LESSON_MANIFEST_DIR = 'course-content/runtime/lessons';
 const RUNTIME_TEXTBOOK_DIR = 'course-content/runtime/resources/textbooks';
 const RUNTIME_KNOWLEDGE_CARD_DIR = 'course-content/runtime/knowledge/cards/nodes';
 const RUNTIME_INFOGRAPH_MANIFEST_PATH = 'course-content/runtime/knowledge/infographs/manifest.json';
+const RUNTIME_INFOGRAPH_NODE_DIR = 'course-content/runtime/knowledge/infographs/nodes';
 const RUNTIME_PROJECTION_SOURCE_PATHS = [
   RUNTIME_LESSON_MANIFEST_DIR,
   RUNTIME_TEXTBOOK_DIR,
   RUNTIME_KNOWLEDGE_CARD_DIR,
   RUNTIME_INFOGRAPH_MANIFEST_PATH,
+  RUNTIME_INFOGRAPH_NODE_DIR,
 ];
 const TEACHING_RESOURCE_SEED_PATHS = [
   'scripts/db/seed-interactive-resources.ts',
@@ -49,11 +52,13 @@ interface DiffLineRange {
 type RuntimeProjectionSourceFamily = 'runtime-lesson' | 'runtime-source' | 'knowledge-card' | 'knowledge-infograph';
 type RuntimeProjectionRow = ReturnType<typeof parseAddedRuntimeProjectionChanges>['rows'][number] & {
   family?: string;
+  sourceHash?: string;
   sourceRecord?: string;
   sourcePathOrUrl?: string;
   citationTargets?: string[];
   reviewAudit?: {
     independentEvidenceRef?: string | null;
+    reviewedSourceHash?: string | null;
   };
 };
 interface RuntimeProjectionSourceRequirement {
@@ -61,6 +66,8 @@ interface RuntimeProjectionSourceRequirement {
   family: RuntimeProjectionSourceFamily;
   recordKey: string;
   sourcePathOrUrl?: string;
+  sourceHash?: string;
+  requireSourceHash?: boolean;
 }
 
 function main() {
@@ -189,10 +196,15 @@ function runtimeProjectionRowMatchesSourceRequirement(
       runtimeProjectionRowMatchesRecord(row, requirement.recordKey);
   }
   if (family === 'runtime-source') {
-    return row.sourcePathOrUrl === requirement.filePath ||
+    const sourceMatches = row.sourcePathOrUrl === requirement.filePath ||
       row.citationTargets?.includes(requirement.filePath) === true ||
       row.reviewAudit?.independentEvidenceRef === requirement.filePath ||
       runtimeProjectionRowMatchesRecord(row, requirement.recordKey);
+    if (!sourceMatches) return false;
+    if (!requirement.requireSourceHash) return true;
+    return Boolean(requirement.sourceHash) &&
+      row.sourceHash === requirement.sourceHash &&
+      row.reviewAudit?.reviewedSourceHash === requirement.sourceHash;
   }
   return runtimeProjectionRowMatchesSourceFamily(row, family) &&
     (row.reviewAudit?.independentEvidenceRef === `${requirement.filePath}#${requirement.recordKey}` ||
@@ -260,7 +272,13 @@ function runtimeProjectionSourceRequirementsForPath(
     return parseInfographManifestSourceRequirements(filePath, source, diff);
   }
   if (family === 'runtime-source') {
-    return [{ filePath, family, recordKey: filePath }];
+    return [{
+      filePath,
+      family,
+      recordKey: filePath,
+      sourceHash: runtimeProjectionSourceHash(filePath),
+      requireSourceHash: runtimeProjectionSourceRequiresHash(filePath),
+    }];
   }
   const recordKey = path.basename(filePath, path.extname(filePath));
   return [{ filePath, family, recordKey }];
@@ -623,7 +641,20 @@ function runtimeProjectionSourceFamilyForPath(filePath: string): RuntimeProjecti
   if (filePath === RUNTIME_INFOGRAPH_MANIFEST_PATH) {
     return 'knowledge-infograph';
   }
+  if (/^course-content\/runtime\/knowledge\/infographs\/nodes\/.+\.(?:png|jpe?g|webp|svg)$/.test(filePath)) {
+    return 'runtime-source';
+  }
   return null;
+}
+
+function runtimeProjectionSourceRequiresHash(filePath: string): boolean {
+  return /^course-content\/runtime\/knowledge\/infographs\/nodes\/.+\.(?:png|jpe?g|webp|svg)$/.test(filePath);
+}
+
+function runtimeProjectionSourceHash(filePath: string): string | undefined {
+  if (!runtimeProjectionSourceRequiresHash(filePath) || !existsSync(filePath)) return undefined;
+  const digest = createHash('sha256').update(readFileSync(filePath)).digest('hex');
+  return `sha256:${digest}`;
 }
 
 function assertNoUnstagedTargetChanges(filePaths: readonly string[]) {

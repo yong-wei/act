@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
 import { execFileSync, spawnSync } from 'node:child_process';
 import assert from 'node:assert/strict';
 
@@ -18,6 +19,7 @@ fs.mkdirSync(path.join(repo, 'course-content/runtime/resources/textbooks/book/ch
 fs.mkdirSync(path.join(repo, 'course-content/runtime/resources/textbooks/book/sections'), { recursive: true });
 fs.mkdirSync(path.join(repo, 'course-content/runtime/knowledge/cards/nodes'), { recursive: true });
 fs.mkdirSync(path.join(repo, 'course-content/runtime/knowledge/infographs'), { recursive: true });
+fs.mkdirSync(path.join(repo, 'course-content/runtime/knowledge/infographs/nodes'), { recursive: true });
 fs.cpSync(path.join(root, 'scripts'), path.join(repo, 'scripts'), { recursive: true });
 fs.cpSync(path.join(root, 'src/lib/data-governance'), path.join(repo, 'src/lib/data-governance'), { recursive: true });
 fs.cpSync(path.join(root, 'src/lib/resource-node-registry.ts'), path.join(repo, 'src/lib/resource-node-registry.ts'));
@@ -37,6 +39,7 @@ fs.writeFileSync(path.join(repo, 'course-content/runtime/knowledge/infographs/ma
   schema_version: 1,
   items: [],
 }, null, 2));
+fs.writeFileSync(path.join(repo, 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png'), 'baseline-infograph-image');
 fs.writeFileSync(path.join(repo, 'tsconfig.json'), JSON.stringify({
   compilerOptions: {
     baseUrl: '.',
@@ -935,6 +938,54 @@ assert.match(
 );
 
 run('git', ['reset', '--hard', 'HEAD'], repo);
+const infographImagePath = path.join(repo, 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png');
+fs.writeFileSync(infographImagePath, 'updated-infograph-image');
+run('git', ['add', 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png'], repo);
+const missingInfographImageProjectionResult = runGate(['--staged']);
+assert.notEqual(missingInfographImageProjectionResult.status, 0, 'gate must fail when an infograph image changes without a matching projection row');
+assert.match(
+  `${missingInfographImageProjectionResult.stdout}\n${missingInfographImageProjectionResult.stderr}`,
+  /runtime-source:course-content\/runtime\/knowledge\/infographs\/nodes\/kn-demo\.png/,
+);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'infograph:kn-demo',
+    family: 'knowledge-infograph',
+    resourceType: 'image',
+    sourceKind: 'knowledge_graph',
+    sourceRef: 'kn-demo',
+    sourcePathOrUrl: 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png',
+    sourceVersionRef: 'knowledge-infograph-image.v1',
+    independentEvidenceRef: 'course-content/runtime/knowledge/infographs/manifest.json#kn-demo',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const staleInfographImageHashResult = runGate(['--staged']);
+assert.notEqual(staleInfographImageHashResult.status, 0, 'gate must fail when an infograph image projection row carries a stale source hash');
+assert.match(
+  `${staleInfographImageHashResult.stdout}\n${staleInfographImageHashResult.stderr}`,
+  /runtime-source:course-content\/runtime\/knowledge\/infographs\/nodes\/kn-demo\.png/,
+);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'infograph:kn-demo',
+    family: 'knowledge-infograph',
+    resourceType: 'image',
+    sourceKind: 'knowledge_graph',
+    sourceRef: 'kn-demo',
+    sourcePathOrUrl: 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png',
+    sourceHash: sha256File(infographImagePath),
+    sourceVersionRef: 'knowledge-infograph-image.v1',
+    independentEvidenceRef: 'course-content/runtime/knowledge/infographs/manifest.json#kn-demo',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const syncedInfographImageProjectionResult = runGate(['--staged']);
+assert.equal(syncedInfographImageProjectionResult.status, 0, 'gate must pass when an infograph image change has a matching projection row and source hash');
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
 const cardPath = path.join(repo, 'course-content/runtime/knowledge/cards/nodes/kn-demo.md');
 const secondCardPath = path.join(repo, 'course-content/runtime/knowledge/cards/nodes/kn-extra.md');
 fs.writeFileSync(cardPath, '# Demo card\n\nUpdated card body.\n');
@@ -1004,7 +1055,7 @@ function runGate(args) {
 }
 
 function runtimeProjectionRow(overrides) {
-  const sourceHash = 'sha256:runtime-source';
+  const sourceHash = overrides.sourceHash ?? 'sha256:runtime-source';
   return {
     artifactVersion: 'runtime-resource-projections.v1',
     id: overrides.id,
@@ -1061,4 +1112,8 @@ function runtimeProjectionRow(overrides) {
     },
     citationTargets: [overrides.sourcePathOrUrl],
   };
+}
+
+function sha256File(filePath) {
+  return `sha256:${createHash('sha256').update(fs.readFileSync(filePath)).digest('hex')}`;
 }
