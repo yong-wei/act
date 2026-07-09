@@ -1881,7 +1881,10 @@ function buildAdaptiveLearningPathPlanInternal(
         evaluateLearningGoalObjectiveBoundary(node, learningGoalBoundary, graphContext, registeredGoal, input.constraints),
       ]))
     : null;
-  const eligibleIds = new Set(pathEligible.map((node) => node.id));
+  const candidatePathEligible = pathEligible
+    .filter((node) => goalAllowsResourceNode(node, registeredGoal))
+    .filter((node) => learningGoalBoundaryEvaluations?.get(node.id)?.allowed ?? true);
+  const eligibleIds = new Set(candidatePathEligible.map((node) => node.id));
   const targetGraphNodeIds = graphContext?.targetGraphNodeIds.length
     ? graphContext.targetGraphNodeIds
     : unique([
@@ -1891,14 +1894,14 @@ function buildAdaptiveLearningPathPlanInternal(
     ]);
   const sarCandidates = evaluateSarCandidates({
     input,
-    pathEligible,
+    pathEligible: candidatePathEligible,
     graphContext,
     deficits,
     registeredGoal,
     completedNodeIds: requestedCompletedNodeIds,
   });
   const rankerResult = rankResourceLearnerCandidates({
-    candidates: pathEligible.map((node) => {
+    candidates: candidatePathEligible.map((node) => {
       const planningUnit = planningUnitForNode(node);
       return {
         node,
@@ -1921,9 +1924,7 @@ function buildAdaptiveLearningPathPlanInternal(
     registry: input.registry,
   });
   const rankerByNodeId = new Map(rankerResult.ranked.map((entry) => [entry.node.id, entry.explanation]));
-  const scored = pathEligible
-    .filter((node) => goalAllowsResourceNode(node, registeredGoal))
-    .filter((node) => learningGoalBoundaryEvaluations?.get(node.id)?.allowed ?? true)
+  const scored = candidatePathEligible
     .filter((node) =>
       nodeMatchesGoal(node, input.goal, deficits, graphContext) ||
       (input.constraints.requireRiskIntervention && isRiskInterventionNode(node))
@@ -4026,6 +4027,7 @@ interface LearningGoalObjectiveBoundary {
   graphNodeIds: string[];
   prerequisiteGraphNodeIds: string[];
   policyRequiredRoles: string[];
+  hasPathEligibleCoverage: boolean;
 }
 
 interface LearningGoalObjectiveBoundaryEvaluation {
@@ -4040,9 +4042,6 @@ function buildLearningGoalObjectiveBoundary(
 ): LearningGoalObjectiveBoundary | null {
   const learningGoal = registeredGoal?.learningGoal;
   if (!learningGoal || !graphContext?.targetGraphNodeIds.length) return null;
-  if (!Object.values(graphContext.resourceCoverageStatus).some((coverage) => coverage.pathEligibleResourceCount > 0)) {
-    return null;
-  }
   const knowledgeObjectiveIds = unique([
     ...learningGoal.knowledgeObjectiveIds,
     ...graphContext.objectiveBoundary.knowledgeObjectiveIds,
@@ -4067,6 +4066,8 @@ function buildLearningGoalObjectiveBoundary(
     ...(registeredGoal.checkpointPolicy.minCheckpoints > 0 ? ['checkpoint'] : []),
     ...(registeredGoal.checkpointPolicy.requiresTerminalValidation ? ['terminal-validation'] : []),
   ]);
+  const hasPathEligibleCoverage = Object.values(graphContext.resourceCoverageStatus)
+    .some((coverage) => coverage.pathEligibleResourceCount > 0);
   return {
     knowledgeObjectiveIds,
     capabilityObjectiveIds,
@@ -4079,6 +4080,7 @@ function buildLearningGoalObjectiveBoundary(
     ]),
     prerequisiteGraphNodeIds,
     policyRequiredRoles,
+    hasPathEligibleCoverage,
   };
 }
 
@@ -4117,6 +4119,7 @@ function evaluateLearningGoalObjectiveBoundary(
     }
   }
   if (
+    boundary.hasPathEligibleCoverage &&
     boundary.policyRequiredRoles.includes('terminal-validation') &&
     isTerminalValidationNode(node)
   ) {
@@ -4124,6 +4127,7 @@ function evaluateLearningGoalObjectiveBoundary(
     matchReasons.add('policy-required-terminal-validation');
   }
   if (
+    boundary.hasPathEligibleCoverage &&
     boundary.policyRequiredRoles.includes('checkpoint') &&
     registeredGoal?.checkpointPolicy.checkpointResourceTypes.includes(node.type) &&
     node.type === 'checkpoint'
@@ -4544,10 +4548,15 @@ function selectPolicySupportNodes(
   let remaining = Math.max(0, remainingBudget);
   const deficits = inferDeficits(input.goal, input.learnerState);
   const registeredGoal = getRegisteredAdaptiveLearningPathGoal(input.goal.id);
+  const graphContext = buildAdaptiveLearningPathGraphContext(input.graphContext, input.goal, registeredGoal);
+  const learningGoalBoundary = buildLearningGoalObjectiveBoundary(registeredGoal, graphContext);
   const excludedNodeIds = new Set(input.excludedNodeIds ?? []);
   const eligibleIds = new Set(partitionResourceNodes(input.registry.nodes, input.constraints).eligible
     .filter((node) => !excludedNodeIds.has(node.id))
     .filter((node) => externalResourceAllowed(node, input, registeredGoal))
+    .filter((node) => learningGoalBoundary
+      ? evaluateLearningGoalObjectiveBoundary(node, learningGoalBoundary, graphContext, registeredGoal, input.constraints).allowed
+      : true)
     .map((node) => node.id));
   const picked: ResourceNode[] = [];
   const addCandidates = (candidates: ResourceNode[], limit: number) => {
@@ -4561,7 +4570,7 @@ function selectPolicySupportNodes(
       if (!planningUnit) continue;
       if (planningUnit.prerequisites.length > 0) continue;
       if (!policyAllowsNode(node, policyFamily, input.constraints)) continue;
-      if (!nodeMatchesGoal(node, input.goal, deficits)) continue;
+      if (!nodeMatchesGoal(node, input.goal, deficits, graphContext)) continue;
       const estimatedMinutes = planningUnit.estimatedTimeMinutes;
       if (estimatedMinutes > remaining) continue;
       picked.push(node);
