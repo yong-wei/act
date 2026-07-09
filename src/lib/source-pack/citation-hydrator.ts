@@ -21,6 +21,7 @@ import type {
   SourcePackCitation,
   SourcePackLimitation,
 } from './types';
+import { resolveTextbookCitationHref } from '../textbook-citation-targets';
 
 // Re-export for convenience
 export type {
@@ -257,6 +258,8 @@ export function hydrateCitationFromAddress(
     citationTargetId,
     sourceId,
     displayTitle,
+    canonicalHref: isSerializableCitationHref(rawHref) ? rawHref ?? undefined : undefined,
+    displayHref: resolveTextbookCitationHref(rawHref)?.displayHref,
     href: isSerializableCitationHref(rawHref) ? rawHref ?? undefined : undefined,
     resolver,
     verified,
@@ -359,6 +362,8 @@ export function hydrateCitationFromTarget(
     citationTargetId,
     sourceId,
     displayTitle: target.label ?? target.id,
+    canonicalHref: hrefSafe ? rawHref : undefined,
+    displayHref: resolveTextbookCitationHref(rawHref)?.displayHref,
     href: hrefSafe ? rawHref : undefined,
     resolver,
     verified: externallyVerified && isVerifiedCitationHref(rawHref, resolver) && notBlocked,

@@ -64,6 +64,8 @@ export interface SourcePackCitation {
   citationTargetId: string;
   sourceId: string;
   displayTitle: string;
+  canonicalHref?: string;
+  displayHref?: string;
   href?: string;
   resolver?: string;
   verified: boolean;

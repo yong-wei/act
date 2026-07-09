@@ -97,6 +97,7 @@ import {
   recordKonlingInterventionFeedback,
   resolveKonlingTeachingAssistantMode,
   resumeKonlingAgentSession,
+  serializeKonlingCitationMetadata,
   startKonlingToolRun,
   verifyKonlingRuntimeScope,
   type KonlingCitationContext,
@@ -3764,9 +3765,15 @@ describe('konling agent runtime', () => {
     expect(sourcePackCitations[0]).toMatchObject({
       sourceType: 'content',
       href: expect.stringContaining('/course-runtime/resources/textbooks/dorf-modern-control-systems/'),
+      canonicalHref: expect.stringContaining('/course-runtime/resources/textbooks/dorf-modern-control-systems/'),
+      displayHref: expect.stringContaining('/textbook-citations/resources/textbooks/dorf-modern-control-systems/'),
       confidence: 'high',
       owner: 'answer',
       citationChip: expect.objectContaining({
+        displayHref: expect.stringContaining('/textbook-citations/resources/textbooks/dorf-modern-control-systems/'),
+        citationAddress: expect.objectContaining({
+          href: expect.stringContaining('/course-runtime/resources/textbooks/dorf-modern-control-systems/'),
+        }),
         sourceType: 'course-content',
         authorityLevel: 'canonical',
         privacyVisibility: 'public',
@@ -3781,6 +3788,53 @@ describe('konling agent runtime', () => {
       }),
     ]);
     expect(runtime.citationContext?.missingCitationClasses).not.toContain('content');
+  });
+
+  it('serializes Konling citation metadata without dropping rendered and audit fields', () => {
+    const metadata = serializeKonlingCitationMetadata({
+      id: 'content:textbook:fig-02-37',
+      sourceType: 'content',
+      displayTitle: 'Fluid flow reservoir figure',
+      href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
+      canonicalHref: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
+      displayHref: '/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
+      confidence: 'high',
+      evidenceBasis: 'source-pack:konling-answer:pack-1',
+      owner: 'answer',
+      citationTargetId: 'textbook:fig-02-37',
+      retrievalChunkId: 'textbook-search:ch02-example-0212',
+      answerRelevanceBasis: 'query-lexical',
+      answerRelevanceMatch: 'bode',
+      answerRelevanceQueryHash: 'hash-1',
+      omittedCitationReason: 'not-omitted',
+      citationChip: {
+        chunkId: 'content:textbook:fig-02-37',
+        displayTitle: 'Fluid flow reservoir figure',
+        displayHref: '/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
+        sourceType: 'course-content',
+        authorityLevel: 'canonical',
+        confidence: 'high',
+        freshnessBucket: 'current',
+        privacyVisibility: 'public',
+        limitationState: null,
+      },
+    });
+
+    expect(metadata).toMatchObject({
+      id: 'content:textbook:fig-02-37',
+      href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
+      canonicalHref: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
+      displayHref: '/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
+      citationTargetId: 'textbook:fig-02-37',
+      retrievalChunkId: 'textbook-search:ch02-example-0212',
+      answerRelevanceBasis: 'query-lexical',
+      answerRelevanceMatch: 'bode',
+      answerRelevanceQueryHash: 'hash-1',
+      omittedCitationReason: 'not-omitted',
+      citationChip: expect.objectContaining({
+        displayHref: '/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37',
+      }),
+    });
   });
 
   it('uses trusted page context as fallback answer relevance for generic user questions', async () => {

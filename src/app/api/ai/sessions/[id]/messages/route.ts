@@ -29,6 +29,7 @@ import {
   normalizeKonlingKnowledgeWorkspaceHint,
   persistKonlingSessionMemories,
   resumeKonlingAgentSession,
+  serializeKonlingCitationMetadata,
   verifyKonlingRuntimeScope,
 } from '@/lib/konling-agent-runtime';
 import {
@@ -252,15 +253,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
           personalizationAvailability: citationGuard.personalizationAvailability,
           missingContext: modeContract.groundingContext.missingContext,
           retrievalSources: buildKonlingCitationRetrievalSources(citationGuard),
-          citations: citationGuard.citations.map((citation) => ({
-            id: citation.id,
-            sourceType: citation.sourceType,
-            displayTitle: citation.displayTitle,
-            href: citation.href,
-            confidence: citation.confidence,
-            evidenceBasis: citation.evidenceBasis,
-            citationChip: jsonSafe(citation.citationChip),
-          })),
+          citations: citationGuard.citations.map(serializeKonlingCitationMetadata),
         },
         konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload,
       },
@@ -327,11 +320,6 @@ export async function POST(request: NextRequest, context: RouteContext) {
       { status: 500 }
     );
   }
-}
-
-function jsonSafe(value: unknown): unknown | null {
-  if (value === undefined) return null;
-  return JSON.parse(JSON.stringify(value)) as unknown;
 }
 
 /**

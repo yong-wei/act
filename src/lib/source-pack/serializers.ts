@@ -81,6 +81,7 @@ export function serializeSourcePackMarkdown(pack: SourcePack): string {
       lines.push(`- Citation source: ${item.citation.sourceId}`);
       if (item.citation.resolver) lines.push(`- Citation resolver: ${item.citation.resolver}`);
       if (item.citation.href) lines.push(`- Citation href: ${item.citation.href}`);
+      if (item.citation.displayHref) lines.push(`- Citation display href: ${item.citation.displayHref}`);
       lines.push(`- Citation verified: ${item.citation.verified ? 'yes' : 'no'}`);
     }
     lines.push('', item.excerpt, '', `Rationale: ${item.inclusionRationale}`, '');
