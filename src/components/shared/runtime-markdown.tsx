@@ -60,6 +60,24 @@ function createRuntimeMarkdownComponents(
   const headingColor = citationMode ? 'text-zinc-950 dark:text-zinc-50' : 'text-slate-950';
   const bodyColor = citationMode ? 'text-zinc-800 dark:text-zinc-100' : 'text-slate-800';
   const borderColor = citationMode ? 'border-zinc-200 dark:border-zinc-800' : 'border-slate-200';
+  const blockquoteClassName = citationMode
+    ? 'border-l-4 border-sky-300 bg-sky-50/80 px-4 py-3 text-[15px] leading-7 text-slate-700 dark:bg-sky-950/30 dark:text-sky-100'
+    : 'border-l-4 border-sky-300 bg-sky-50/80 px-4 py-3 text-[15px] leading-7 text-slate-700';
+  const tableHeadClassName = citationMode
+    ? `border ${borderColor} bg-slate-100 px-3 py-2 text-left font-semibold dark:bg-zinc-900`
+    : `border ${borderColor} bg-slate-100 px-3 py-2 text-left font-semibold`;
+  const imageClassName = citationMode
+    ? 'my-5 w-full rounded-2xl border border-slate-200 bg-white object-contain dark:border-zinc-800'
+    : 'my-5 w-full rounded-2xl border border-slate-200 bg-white object-contain';
+  const anchorClassName = citationMode
+    ? 'text-sky-700 underline underline-offset-2 dark:text-sky-300'
+    : 'text-sky-700 underline underline-offset-2';
+  const inlineCodeClassName = citationMode
+    ? 'rounded bg-slate-100 px-1.5 py-0.5 text-[13px] text-slate-900 dark:bg-zinc-800 dark:text-zinc-100'
+    : 'rounded bg-slate-100 px-1.5 py-0.5 text-[13px] text-slate-900';
+  const codeBlockClassName = citationMode
+    ? 'block overflow-x-auto rounded-2xl bg-slate-950 p-4 text-[13px] text-slate-100'
+    : 'block overflow-x-auto rounded-2xl border border-slate-200 bg-slate-100 p-4 text-[13px] text-slate-900';
 
   return {
     h1: ({ node, children, ...props }) => (
@@ -99,7 +117,7 @@ function createRuntimeMarkdownComponents(
     ),
     blockquote: ({ node, children, ...props }) => (
       <blockquote
-        className="border-l-4 border-sky-300 bg-sky-50/80 px-4 py-3 text-[15px] leading-7 text-slate-700 dark:bg-sky-950/30 dark:text-sky-100"
+        className={blockquoteClassName}
         {...props}
       >
         {renderChildrenWithCitationAnchors(children)}
@@ -113,7 +131,7 @@ function createRuntimeMarkdownComponents(
       </div>
     ),
     th: ({ node, children, ...props }) => (
-      <th className={`border ${borderColor} bg-slate-100 px-3 py-2 text-left font-semibold dark:bg-zinc-900`} {...props}>
+      <th className={tableHeadClassName} {...props}>
         {renderChildrenWithCitationAnchors(children)}
       </th>
     ),
@@ -127,14 +145,14 @@ function createRuntimeMarkdownComponents(
       (<img
         src={resolveAssetHref(typeof src === 'string' ? src : '')}
         alt={alt}
-        className="my-5 w-full rounded-2xl border border-slate-200 bg-white object-contain dark:border-zinc-800"
+        className={imageClassName}
         {...props}
       />)
     ),
     a: ({ node, href = '', children, ...props }) => (
       <a
         href={resolveAssetHref(typeof href === 'string' ? href : '')}
-        className="text-sky-700 underline underline-offset-2 dark:text-sky-300"
+        className={anchorClassName}
         {...props}
       >
         {renderChildrenWithCitationAnchors(children)}
@@ -144,14 +162,14 @@ function createRuntimeMarkdownComponents(
     code: ({ node, inline, children, className, ...props }: any) => {
       if (inline) {
         return (
-          <code className="rounded bg-slate-100 px-1.5 py-0.5 text-[13px] text-slate-900 dark:bg-zinc-800 dark:text-zinc-100" {...props}>
+          <code className={inlineCodeClassName} {...props}>
             {children}
           </code>
         );
       }
 
       return (
-        <code className={`${className ?? ''} block overflow-x-auto rounded-2xl bg-slate-950 p-4 text-[13px] text-slate-100`} {...props}>
+        <code className={`${className ?? ''} ${codeBlockClassName}`} {...props}>
           {children}
         </code>
       );

@@ -108,6 +108,52 @@ describe('textbook citation targets', () => {
     expect(html).not.toContain(TEXTBOOK_CITATION_MARKDOWN_ANCHOR_PREFIX);
   });
 
+  it('keeps default handout markdown styles light for print output', () => {
+    const html = renderToStaticMarkup(React.createElement(RuntimeMarkdownContent, {
+      markdown: [
+        '> Quoted note',
+        '',
+        '| Item | Value |',
+        '| --- | --- |',
+        '| `gain` | [reference](./ref.md) |',
+        '',
+        '```ts',
+        'const gain = 1;',
+        '```',
+        '',
+        '![Diagram](./diagram.png)',
+      ].join('\n'),
+      resolveAssetHref: (href: string) => href,
+    }));
+
+    expect(html).not.toContain('dark:');
+    expect(html).not.toContain('bg-slate-950');
+    expect(html).toContain('bg-slate-100');
+    expect(html).toContain('text-slate-900');
+  });
+
+  it('keeps textbook citation markdown styles theme-aware', () => {
+    const html = renderToStaticMarkup(React.createElement(RuntimeMarkdownContent, {
+      markdown: [
+        '> Quoted note',
+        '',
+        '| Item | Value |',
+        '| --- | --- |',
+        '| `gain` | [reference](./ref.md) |',
+        '',
+        '![Diagram](./diagram.png)',
+      ].join('\n'),
+      mode: 'textbook-citation',
+      resolveAssetHref: (href: string) => href,
+    }));
+
+    expect(html).toContain('dark:bg-sky-950/30');
+    expect(html).toContain('dark:bg-zinc-900');
+    expect(html).toContain('dark:border-zinc-800');
+    expect(html).toContain('dark:text-zinc-100');
+    expect(html).toContain('dark:text-sky-300');
+  });
+
   it('resolves relative Markdown images under the same runtime textbook tree', () => {
     expect(resolveRuntimeMarkdownAssetHref(
       '../assets/chapter-01/fig-01-01.png',
