@@ -11,6 +11,9 @@ const repo = path.join(tmp, 'repo');
 fs.mkdirSync(path.join(repo, 'src/lib'), { recursive: true });
 fs.mkdirSync(path.join(repo, 'src/features/teacher/preset-lessons/presets'), { recursive: true });
 fs.mkdirSync(path.join(repo, 'course-content/runtime/resource-governance'), { recursive: true });
+fs.mkdirSync(path.join(repo, 'course-content/runtime/lessons/1-1'), { recursive: true });
+fs.mkdirSync(path.join(repo, 'course-content/runtime/knowledge/cards/nodes'), { recursive: true });
+fs.mkdirSync(path.join(repo, 'course-content/runtime/knowledge/infographs'), { recursive: true });
 fs.cpSync(path.join(root, 'scripts'), path.join(repo, 'scripts'), { recursive: true });
 fs.cpSync(path.join(root, 'src/lib/data-governance'), path.join(repo, 'src/lib/data-governance'), { recursive: true });
 fs.cpSync(path.join(root, 'src/lib/resource-node-registry.ts'), path.join(repo, 'src/lib/resource-node-registry.ts'));
@@ -21,6 +24,15 @@ fs.writeFileSync(path.join(repo, 'src/features/teacher/preset-lessons/presets/ex
   items: [],
 };
 `);
+fs.writeFileSync(path.join(repo, 'course-content/runtime/lessons/1-1/interactive-manifest.json'), JSON.stringify({
+  lesson_id: '1-1',
+  steps: {},
+}, null, 2));
+fs.writeFileSync(path.join(repo, 'course-content/runtime/knowledge/cards/nodes/kn-demo.md'), '# Demo card\n');
+fs.writeFileSync(path.join(repo, 'course-content/runtime/knowledge/infographs/manifest.json'), JSON.stringify({
+  schema_version: 1,
+  items: [],
+}, null, 2));
 fs.writeFileSync(path.join(repo, 'tsconfig.json'), JSON.stringify({
   compilerOptions: {
     baseUrl: '.',
@@ -428,6 +440,330 @@ assert.match(
   /component-resource-without-metadata missing-registered-resource-metadata/,
 );
 
+run('git', ['reset', '--hard', 'HEAD'], repo);
+const lessonManifestPath = path.join(repo, 'course-content/runtime/lessons/1-1/interactive-manifest.json');
+fs.writeFileSync(lessonManifestPath, JSON.stringify({
+  lesson_id: '1-1',
+  steps: {
+    'step-01': {
+      title: 'New runtime lesson step',
+    },
+  },
+}, null, 2));
+run('git', ['add', 'course-content/runtime/lessons/1-1/interactive-manifest.json'], repo);
+const missingLessonProjectionResult = runGate(['--staged']);
+assert.notEqual(missingLessonProjectionResult.status, 0, 'gate must fail when a runtime lesson manifest changes without runtime projection rows');
+assert.match(
+  `${missingLessonProjectionResult.stdout}\n${missingLessonProjectionResult.stderr}`,
+  /missing-runtime-lesson-runtime-projection-row/,
+);
+
+fs.writeFileSync(lessonManifestPath, JSON.stringify({
+  lesson_id: '1-1',
+  steps: {},
+}, null, 2));
+const staleLessonSourceResult = runGate(['--staged']);
+assert.notEqual(staleLessonSourceResult.status, 0, 'gate must fail closed when staged runtime lesson source differs from the worktree source');
+assert.match(
+  `${staleLessonSourceResult.stdout}\n${staleLessonSourceResult.stderr}`,
+  /cannot run with unstaged changes in gated resource files/,
+);
+run('git', ['checkout', '--', 'course-content/runtime/lessons/1-1/interactive-manifest.json'], repo);
+
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'lesson-step:1-1:step-01',
+    family: 'runtime-lesson-step',
+    resourceType: 'lesson_step',
+    sourceKind: 'runtime_lesson_step',
+    sourceRef: '1-1#step-01',
+    sourcePathOrUrl: 'course-content/runtime/lessons/1-1/interactive-manifest.json',
+    sourceVersionRef: 'runtime-lesson-manifest.v1',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const syncedLessonProjectionResult = runGate(['--staged']);
+assert.equal(syncedLessonProjectionResult.status, 0, 'gate must pass when a runtime lesson source change has a matching valid projection row');
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+fs.writeFileSync(lessonManifestPath, JSON.stringify({
+  lesson_id: '1-1',
+  steps: {
+    'step-01': {
+      title: 'Wrong-source projection should not satisfy this source',
+    },
+  },
+}, null, 2));
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'lesson-step:2-1:step-01',
+    family: 'runtime-lesson-step',
+    resourceType: 'lesson_step',
+    sourceKind: 'runtime_lesson_step',
+    sourceRef: '2-1#step-01',
+    sourcePathOrUrl: 'course-content/runtime/lessons/2-1/interactive-manifest.json',
+    sourceVersionRef: 'runtime-lesson-manifest.v1',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/lessons/1-1/interactive-manifest.json', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const mismatchedLessonProjectionResult = runGate(['--staged']);
+assert.notEqual(mismatchedLessonProjectionResult.status, 0, 'gate must reject a same-family projection row for a different runtime source path');
+assert.match(
+  `${mismatchedLessonProjectionResult.stdout}\n${mismatchedLessonProjectionResult.stderr}`,
+  /runtime-source:course-content\/runtime\/lessons\/1-1\/interactive-manifest\.json/,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+fs.writeFileSync(lessonManifestPath, JSON.stringify({
+  lesson_id: '1-1',
+  steps: {
+    'step-01': {
+      title: 'First changed runtime lesson step',
+    },
+    'step-02': {
+      title: 'Second changed runtime lesson step',
+    },
+  },
+}, null, 2));
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'lesson-step:1-1:step-01',
+    family: 'runtime-lesson-step',
+    resourceType: 'lesson_step',
+    sourceKind: 'runtime_lesson_step',
+    sourceRef: '1-1#step-01',
+    sourcePathOrUrl: 'course-content/runtime/lessons/1-1/interactive-manifest.json',
+    sourceVersionRef: 'runtime-lesson-manifest.v1',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/lessons/1-1/interactive-manifest.json', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const partialLessonProjectionResult = runGate(['--staged']);
+assert.notEqual(partialLessonProjectionResult.status, 0, 'gate must fail when a lesson manifest changes multiple steps but only one has a projection row');
+assert.match(
+  `${partialLessonProjectionResult.stdout}\n${partialLessonProjectionResult.stderr}`,
+  /runtime-source:course-content\/runtime\/lessons\/1-1\/interactive-manifest\.json#step-02/,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+fs.writeFileSync(lessonManifestPath, JSON.stringify({
+  lesson_id: '1-1',
+  steps: {
+    'step-01': {
+      title: 'Runtime lesson step with layout regions',
+      modules: [
+        {
+          id: 'module-a',
+          title: 'Runtime lesson module A',
+        },
+      ],
+      layout: {
+        regions: [
+          {
+            id: 'chart',
+            width: 6,
+          },
+          {
+            id: 'questions',
+            width: 6,
+          },
+        ],
+      },
+    },
+  },
+}, null, 2));
+run('git', ['add', 'course-content/runtime/lessons/1-1/interactive-manifest.json'], repo);
+run('git', ['commit', '--no-verify', '-m', 'add baseline lesson layout regions'], repo);
+fs.writeFileSync(lessonManifestPath, JSON.stringify({
+  lesson_id: '1-1',
+  steps: {
+    'step-01': {
+      title: 'Runtime lesson step with layout regions',
+      modules: [
+        {
+          id: 'module-a',
+          title: 'Runtime lesson module A',
+        },
+      ],
+      layout: {
+        regions: [
+          {
+            id: 'chart',
+            width: 5,
+          },
+          {
+            id: 'questions',
+            width: 7,
+          },
+        ],
+      },
+    },
+  },
+}, null, 2));
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'lesson-step:1-1:step-01',
+    family: 'runtime-lesson-step',
+    resourceType: 'lesson_step',
+    sourceKind: 'runtime_lesson_step',
+    sourceRef: '1-1#step-01',
+    sourcePathOrUrl: 'course-content/runtime/lessons/1-1/interactive-manifest.json',
+    sourceVersionRef: 'runtime-lesson-manifest.v1',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/lessons/1-1/interactive-manifest.json', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const layoutRegionLessonProjectionResult = runGate(['--staged']);
+assert.equal(layoutRegionLessonProjectionResult.status, 0, 'gate must not treat lesson layout region ids as runtime module projection records');
+assert.doesNotMatch(
+  `${layoutRegionLessonProjectionResult.stdout}\n${layoutRegionLessonProjectionResult.stderr}`,
+  /runtime-source:course-content\/runtime\/lessons\/1-1\/interactive-manifest\.json#1-1:step-01:chart/,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+const infographManifestPath = path.join(repo, 'course-content/runtime/knowledge/infographs/manifest.json');
+fs.writeFileSync(infographManifestPath, JSON.stringify({
+  schema_version: 1,
+  items: [
+    {
+      type: 'infograph',
+      nodeId: 'kn-demo',
+      path: 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png',
+    },
+  ],
+}, null, 2));
+run('git', ['add', 'course-content/runtime/knowledge/infographs/manifest.json'], repo);
+const missingInfographProjectionResult = runGate(['--staged']);
+assert.notEqual(missingInfographProjectionResult.status, 0, 'gate must fail when an infograph manifest changes without runtime projection rows');
+assert.match(
+  `${missingInfographProjectionResult.stdout}\n${missingInfographProjectionResult.stderr}`,
+  /missing-knowledge-infograph-runtime-projection-row/,
+);
+
+fs.writeFileSync(infographManifestPath, JSON.stringify({
+  schema_version: 1,
+  items: [],
+}, null, 2));
+const staleInfographSourceResult = runGate(['--staged']);
+assert.notEqual(staleInfographSourceResult.status, 0, 'gate must fail closed when staged infograph manifest differs from the worktree manifest');
+assert.match(
+  `${staleInfographSourceResult.stdout}\n${staleInfographSourceResult.stderr}`,
+  /cannot run with unstaged changes in gated resource files/,
+);
+run('git', ['checkout', '--', 'course-content/runtime/knowledge/infographs/manifest.json'], repo);
+
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'infograph:kn-demo',
+    family: 'knowledge-infograph',
+    resourceType: 'image',
+    sourceKind: 'knowledge_graph',
+    sourceRef: 'kn-demo',
+    sourcePathOrUrl: 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png',
+    sourceVersionRef: 'knowledge-infograph-manifest.v1',
+    independentEvidenceRef: 'course-content/runtime/knowledge/infographs/manifest.json#kn-demo',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const syncedInfographProjectionResult = runGate(['--staged']);
+assert.equal(syncedInfographProjectionResult.status, 0, 'gate must pass when an infograph manifest change has a matching valid projection row');
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+fs.writeFileSync(infographManifestPath, JSON.stringify({
+  schema_version: 1,
+  items: [
+    {
+      type: 'infograph',
+      nodeId: 'kn-a',
+      path: 'course-content/runtime/knowledge/infographs/nodes/kn-a.png',
+    },
+    {
+      type: 'infograph',
+      nodeId: 'kn-b',
+      path: 'course-content/runtime/knowledge/infographs/nodes/kn-b.png',
+    },
+  ],
+}, null, 2));
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'infograph:kn-a',
+    family: 'knowledge-infograph',
+    resourceType: 'image',
+    sourceKind: 'knowledge_graph',
+    sourceRef: 'kn-a',
+    sourcePathOrUrl: 'course-content/runtime/knowledge/infographs/nodes/kn-a.png',
+    sourceVersionRef: 'knowledge-infograph-manifest.v1',
+    independentEvidenceRef: 'course-content/runtime/knowledge/infographs/manifest.json#kn-a',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/knowledge/infographs/manifest.json', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const partialInfographProjectionResult = runGate(['--staged']);
+assert.notEqual(partialInfographProjectionResult.status, 0, 'gate must fail when an infograph manifest changes multiple items but only one has a projection row');
+assert.match(
+  `${partialInfographProjectionResult.stdout}\n${partialInfographProjectionResult.stderr}`,
+  /runtime-source:course-content\/runtime\/knowledge\/infographs\/manifest\.json#kn-b/,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+const cardPath = path.join(repo, 'course-content/runtime/knowledge/cards/nodes/kn-demo.md');
+const secondCardPath = path.join(repo, 'course-content/runtime/knowledge/cards/nodes/kn-extra.md');
+fs.writeFileSync(cardPath, '# Demo card\n\nUpdated card body.\n');
+fs.writeFileSync(secondCardPath, '# Extra card\n');
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'knowledge-card:kn-demo',
+    family: 'knowledge-card',
+    resourceType: 'knowledge_card',
+    sourceKind: 'knowledge_graph',
+    sourceRef: 'kn-demo',
+    sourcePathOrUrl: 'course-content/runtime/knowledge/cards/nodes/kn-demo.md',
+    sourceVersionRef: 'runtime-knowledge-card.v1',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/knowledge/cards/nodes/kn-demo.md', 'course-content/runtime/knowledge/cards/nodes/kn-extra.md', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const partialCardProjectionResult = runGate(['--staged']);
+assert.notEqual(partialCardProjectionResult.status, 0, 'gate must fail when multiple runtime sources change but only one has a projection row');
+assert.match(
+  `${partialCardProjectionResult.stdout}\n${partialCardProjectionResult.stderr}`,
+  /runtime-source:course-content\/runtime\/knowledge\/cards\/nodes\/kn-extra\.md/,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+fs.writeFileSync(cardPath, '# Demo card\n\nUpdated card body.\n');
+run('git', ['add', 'course-content/runtime/knowledge/cards/nodes/kn-demo.md'], repo);
+run('git', ['commit', '--no-verify', '-m', 'update runtime card without projection'], repo);
+const missingCardProjectionBaseResult = runGate(['--base', 'HEAD~1']);
+assert.notEqual(missingCardProjectionBaseResult.status, 0, 'gate must fail in base mode when a knowledge card changes without runtime projection rows');
+assert.match(
+  `${missingCardProjectionBaseResult.stdout}\n${missingCardProjectionBaseResult.stderr}`,
+  /missing-knowledge-card-runtime-projection-row/,
+);
+
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'knowledge-card:kn-demo',
+    family: 'knowledge-card',
+    resourceType: 'knowledge_card',
+    sourceKind: 'knowledge_graph',
+    sourceRef: 'kn-demo',
+    sourcePathOrUrl: 'course-content/runtime/knowledge/cards/nodes/kn-demo.md',
+    sourceVersionRef: 'runtime-knowledge-card.v1',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+run('git', ['commit', '--no-verify', '-m', 'add baseline runtime card projection'], repo);
+fs.rmSync(cardPath);
+fs.writeFileSync(path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'), '');
+run('git', ['add', 'course-content/runtime/knowledge/cards/nodes/kn-demo.md', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const deletedCardProjectionResult = runGate(['--staged']);
+assert.equal(deletedCardProjectionResult.status, 0, 'gate must not require added projection rows for deletion-only runtime sources');
+
 console.log('new resource semantic completeness command contract passed');
 
 function run(command, args, cwd) {
@@ -439,4 +775,64 @@ function runGate(args) {
     cwd: repo,
     encoding: 'utf8',
   });
+}
+
+function runtimeProjectionRow(overrides) {
+  const sourceHash = 'sha256:runtime-source';
+  return {
+    artifactVersion: 'runtime-resource-projections.v1',
+    id: overrides.id,
+    resourceNodeId: null,
+    title: 'Runtime projection test row',
+    family: overrides.family,
+    resourceType: overrides.resourceType,
+    sourceKind: overrides.sourceKind,
+    sourceRef: overrides.sourceRef,
+    sourcePathOrUrl: overrides.sourcePathOrUrl,
+    sourceHash,
+    sourceVersionRef: overrides.sourceVersionRef,
+    projectionLevel: 'ResourceSegment',
+    routeTarget: null,
+    renderTarget: null,
+    graphNodeRefs: {
+      knowledge: ['kn-demo'],
+      capability: [],
+      quality: [],
+    },
+    estimatedTimeMinutes: null,
+    evidenceInstrumentation: [],
+    privacyScope: 'student-visible',
+    teacherPolicy: 'allowed',
+    evidenceContract: {
+      complete: false,
+      missingFields: ['eventType'],
+      eventSource: true,
+      eventType: false,
+      clientEventIdPolicy: false,
+      attemptKey: false,
+      sourceLogId: false,
+      dedupeKey: true,
+      timestamps: false,
+      learningFactPolicy: false,
+      learningFactMaterializationPolicy: 'missing',
+      confidencePolicy: true,
+      privacyScope: true,
+    },
+    reviewAudit: {
+      status: 'human-confirmed',
+      reviewerId: 'runtime-source-projection-test-reviewer',
+      reviewerRole: 'data-governance',
+      reviewedAt: '2026-07-09T00:00:00.000Z',
+      reviewBatchId: 'runtime-source-projection-test',
+      reviewedSourceHash: sourceHash,
+      reviewedVersionRef: overrides.sourceVersionRef,
+      generationToolOrModel: 'test-fixture',
+      promptOrManifestHash: null,
+      reviewerVisibleRationale: 'Reviewed runtime source projection test fixture.',
+      independentEvidenceRef: overrides.independentEvidenceRef ?? `${overrides.sourcePathOrUrl}#test`,
+      confidence: 0.9,
+      staleInvalidationRule: 'stale when source hash or version changes',
+    },
+    citationTargets: [overrides.sourcePathOrUrl],
+  };
 }

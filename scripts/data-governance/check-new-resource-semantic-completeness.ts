@@ -11,11 +11,21 @@ import {
   parseChangedRegisteredResourceIds,
   validateChangedRegisteredResources,
   validateChangedRuntimeResourceProjections,
+  type NewResourceGateIssue,
+  type NewResourceGateResult,
 } from '@/lib/data-governance/new-resource-semantic-completeness-gate';
 
 const REGISTERED_RESOURCE_METADATA_PATH = 'src/lib/resource-registry-metadata.ts';
 const RESOURCE_COMPONENT_REGISTRY_PATH = 'src/lib/resource-registry.tsx';
 const RUNTIME_RESOURCE_PROJECTIONS_PATH = 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl';
+const RUNTIME_LESSON_MANIFEST_DIR = 'course-content/runtime/lessons';
+const RUNTIME_KNOWLEDGE_CARD_DIR = 'course-content/runtime/knowledge/cards/nodes';
+const RUNTIME_INFOGRAPH_MANIFEST_PATH = 'course-content/runtime/knowledge/infographs/manifest.json';
+const RUNTIME_PROJECTION_SOURCE_PATHS = [
+  RUNTIME_LESSON_MANIFEST_DIR,
+  RUNTIME_KNOWLEDGE_CARD_DIR,
+  RUNTIME_INFOGRAPH_MANIFEST_PATH,
+];
 const TEACHING_RESOURCE_SEED_PATHS = [
   'scripts/db/seed-interactive-resources.ts',
   'scripts/db/seed-demo-resources.mjs',
@@ -34,6 +44,22 @@ interface DiffLineRange {
   end: number;
 }
 
+type RuntimeProjectionSourceFamily = 'runtime-lesson' | 'knowledge-card' | 'knowledge-infograph';
+type RuntimeProjectionRow = ReturnType<typeof parseAddedRuntimeProjectionChanges>['rows'][number] & {
+  family?: string;
+  sourceRecord?: string;
+  sourcePathOrUrl?: string;
+  reviewAudit?: {
+    independentEvidenceRef?: string | null;
+  };
+};
+interface RuntimeProjectionSourceRequirement {
+  filePath: string;
+  family: RuntimeProjectionSourceFamily;
+  recordKey: string;
+  sourcePathOrUrl?: string;
+}
+
 function main() {
   const options = parseArgs(process.argv.slice(2));
   const presetLessonPaths = listPresetLessonResourcePaths(options);
@@ -44,6 +70,9 @@ function main() {
   const registeredResourceDiff = gitDiff(options, REGISTERED_RESOURCE_METADATA_PATH);
   const resourceComponentRegistryDiff = gitDiff(options, RESOURCE_COMPONENT_REGISTRY_PATH);
   const runtimeProjectionDiff = gitDiff(options, RUNTIME_RESOURCE_PROJECTIONS_PATH);
+  const runtimeProjectionSourcePaths = gitChangedRuntimeProjectionSourcePaths(options);
+  const runtimeProjectionSourceRequirements = runtimeProjectionSourcePaths
+    .flatMap((filePath) => runtimeProjectionSourceRequirementsForPath(filePath, gitDiff(options, filePath)));
   const teachingResourceChanges = teachingResourcePaths.map((filePath) => ({
     filePath,
     diff: gitDiff(options, filePath),
@@ -57,6 +86,10 @@ function main() {
         hasDiff(diff) ? [filePath, REGISTERED_RESOURCE_METADATA_PATH] : []
       )),
       ...(hasDiff(repairDiff) ? [TEACHING_RESOURCE_REPAIR_PATH, REGISTERED_RESOURCE_METADATA_PATH] : []),
+      ...(runtimeProjectionSourcePaths.length > 0 ? [
+        ...runtimeProjectionSourcePaths,
+        RUNTIME_RESOURCE_PROJECTIONS_PATH,
+      ] : []),
     ]);
   }
   const teachingResourceSources = teachingResourceChanges.map(({ filePath, diff }) => ({
@@ -89,6 +122,7 @@ function main() {
     },
     validateChangedRegisteredResources(registeredResources),
     runtimeProjectionChanges.result,
+    validateRuntimeProjectionSourceCoverage(runtimeProjectionSourceRequirements, runtimeProjectionRows),
     validateChangedRuntimeResourceProjections(runtimeProjectionRows),
   ]);
 
@@ -102,6 +136,271 @@ function main() {
     console.error(`- ${item.family}:${item.resourceId} ${item.code}: ${item.message}`);
   }
   process.exit(1);
+}
+
+function validateRuntimeProjectionSourceCoverage(
+  requirementsInput: readonly RuntimeProjectionSourceRequirement[],
+  rows: readonly RuntimeProjectionRow[],
+): NewResourceGateResult {
+  const requirements = uniqueRuntimeProjectionSourceRequirements(requirementsInput);
+  const issues = requirements.flatMap((requirement) => (
+    rows.some((row) => runtimeProjectionRowMatchesSourceRequirement(row, requirement))
+      ? []
+      : [runtimeProjectionSourceIssue(requirement)]
+  ));
+  return {
+    passed: issues.length === 0,
+    checked: requirements.length,
+    issues,
+  };
+}
+
+function runtimeProjectionSourceIssue(requirement: RuntimeProjectionSourceRequirement): NewResourceGateIssue {
+  const labels: Record<RuntimeProjectionSourceFamily, string> = {
+    'runtime-lesson': 'runtime lesson manifest',
+    'knowledge-card': 'runtime knowledge card',
+    'knowledge-infograph': 'knowledge infograph manifest',
+  };
+  return {
+    family: 'runtime-resource-projection',
+    resourceId: `runtime-source:${requirement.filePath}#${requirement.recordKey}`,
+    code: `missing-${requirement.family}-runtime-projection-row`,
+    message: `Changed ${labels[requirement.family]} source ${requirement.filePath}#${requirement.recordKey} requires matching runtime-resource-projections.jsonl added or updated rows in the same diff.`,
+  };
+}
+
+function runtimeProjectionRowMatchesSourceRequirement(
+  row: RuntimeProjectionRow,
+  requirement: RuntimeProjectionSourceRequirement,
+): boolean {
+  const family = requirement.family;
+  if (family === 'runtime-lesson') {
+    return runtimeProjectionRowMatchesSourceFamily(row, family) &&
+      row.sourcePathOrUrl === requirement.filePath &&
+      runtimeProjectionRowMatchesRecord(row, requirement.recordKey);
+  }
+  if (family === 'knowledge-card') {
+    return runtimeProjectionRowMatchesSourceFamily(row, family) &&
+      row.sourcePathOrUrl === requirement.filePath &&
+      runtimeProjectionRowMatchesRecord(row, requirement.recordKey);
+  }
+  return runtimeProjectionRowMatchesSourceFamily(row, family) &&
+    (row.reviewAudit?.independentEvidenceRef === `${requirement.filePath}#${requirement.recordKey}` ||
+      row.sourcePathOrUrl === requirement.sourcePathOrUrl ||
+      runtimeProjectionRowMatchesRecord(row, requirement.recordKey));
+}
+
+function runtimeProjectionRowMatchesSourceFamily(
+  row: RuntimeProjectionRow,
+  family: RuntimeProjectionSourceFamily,
+): boolean {
+  if (family === 'runtime-lesson') {
+    return row.family === 'runtime-lesson-step' ||
+      row.family === 'runtime-lesson-module' ||
+      row.family === 'runtime-lesson-media' ||
+      row.sourceKind === 'runtime_lesson_step' ||
+      row.sourceKind === 'runtime_lesson_media';
+  }
+  if (family === 'knowledge-card') {
+    return row.family === 'knowledge-card' ||
+      row.resourceType === 'knowledge_card' ||
+      row.sourcePathOrUrl?.includes('/knowledge/cards/') === true;
+  }
+  return row.family === 'knowledge-infograph' ||
+    row.sourcePathOrUrl?.includes('/knowledge/infographs/') === true;
+}
+
+function runtimeProjectionRowMatchesRecord(row: RuntimeProjectionRow, recordKey: string): boolean {
+  return row.sourceRecord === recordKey ||
+    row.sourceRef === recordKey ||
+    row.sourceRecord?.endsWith(`:${recordKey}`) === true ||
+    row.sourceRef?.endsWith(`:${recordKey}`) === true ||
+    row.sourceRecord?.endsWith(`#${recordKey}`) === true ||
+    row.sourceRef?.endsWith(`#${recordKey}`) === true;
+}
+
+function uniqueRuntimeProjectionSourceRequirements(
+  requirements: readonly RuntimeProjectionSourceRequirement[],
+): RuntimeProjectionSourceRequirement[] {
+  const seen = new Set<string>();
+  const unique: RuntimeProjectionSourceRequirement[] = [];
+  for (const requirement of requirements) {
+    const key = `${requirement.family}:${requirement.filePath}:${requirement.recordKey}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    unique.push(requirement);
+  }
+  return unique.sort((left, right) => left.filePath.localeCompare(right.filePath));
+}
+
+function runtimeProjectionSourceRequirementsForPath(
+  filePath: string,
+  diff: string,
+): RuntimeProjectionSourceRequirement[] {
+  const family = runtimeProjectionSourceFamilyForPath(filePath);
+  if (!family) return [];
+  const source = readTextIfExists(filePath);
+  if (family === 'runtime-lesson') {
+    return parseRuntimeLessonSourceRequirements(filePath, source, diff);
+  }
+  if (family === 'knowledge-infograph') {
+    return parseInfographManifestSourceRequirements(filePath, source, diff);
+  }
+  const recordKey = path.basename(filePath, path.extname(filePath));
+  return [{ filePath, family, recordKey }];
+}
+
+function parseRuntimeLessonSourceRequirements(
+  filePath: string,
+  source: string,
+  diff: string,
+): RuntimeProjectionSourceRequirement[] {
+  const ranges = parseDiffCurrentLineRanges(diff);
+  if (!source || ranges.length === 0) return [];
+  const lessonId = parseJsonStringField(source, 'lesson_id') ??
+    /^course-content\/runtime\/lessons\/([^/]+)\//.exec(filePath)?.[1] ??
+    '';
+  const lines = source.split(/\r?\n/);
+  const requirements: RuntimeProjectionSourceRequirement[] = [];
+
+  for (const step of parseJsonObjectEntries(lines, /^\s{4}"([^"]+)"\s*:\s*\{/)) {
+    const matchingModules = parseRuntimeLessonModuleRequirements(lines, step, lessonId)
+      .filter((entry) => ranges.some((range) => lineRangesOverlap(entry, range)));
+    for (const moduleRequirement of matchingModules) {
+      requirements.push({
+        filePath,
+        family: 'runtime-lesson',
+        recordKey: moduleRequirement.recordKey,
+      });
+    }
+    if (matchingModules.length > 0 || !ranges.some((range) => lineRangesOverlap(step, range))) {
+      continue;
+    }
+    requirements.push({ filePath, family: 'runtime-lesson', recordKey: step.key });
+  }
+  return requirements;
+}
+
+function parseRuntimeLessonModuleRequirements(
+  lines: readonly string[],
+  step: { key: string; start: number; end: number },
+  lessonId: string,
+): Array<{ start: number; end: number; recordKey: string }> {
+  const moduleArrayIndex = findStepModulesArrayIndex(lines, step);
+  if (moduleArrayIndex === null) return [];
+  const requirements: Array<{ start: number; end: number; recordKey: string }> = [];
+  let arrayDepth = 0;
+  let arrayStarted = false;
+
+  for (let index = moduleArrayIndex; index < step.end; index += 1) {
+    const line = lines[index];
+    if (arrayStarted && arrayDepth === 1 && /^\s*\{\s*$/.test(line)) {
+      const end = findJsonObjectEndLine(lines, index, step.end);
+      if (end !== null) {
+        const objectText = lines.slice(index, end).join('\n');
+        const moduleId = parseJsonStringField(objectText, 'id');
+        if (moduleId) {
+          requirements.push({
+            start: index + 1,
+            end,
+            recordKey: lessonId ? `${lessonId}:${step.key}:${moduleId}` : moduleId,
+          });
+        }
+        index = end - 1;
+        continue;
+      }
+    }
+
+    const nextDepth = arrayDepth + squareBracketDelta(line);
+    arrayStarted = arrayStarted || line.includes('[');
+    arrayDepth = nextDepth;
+    if (arrayStarted && arrayDepth <= 0 && index > moduleArrayIndex) break;
+  }
+
+  return requirements;
+}
+
+function findStepModulesArrayIndex(
+  lines: readonly string[],
+  step: { start: number; end: number },
+): number | null {
+  for (let index = step.start - 1; index < step.end; index += 1) {
+    if (/^\s*"modules"\s*:\s*\[/.test(lines[index])) return index;
+  }
+  return null;
+}
+
+function findJsonObjectEndLine(
+  lines: readonly string[],
+  startIndex: number,
+  maxEndLine: number,
+): number | null {
+  let depth = 0;
+  for (let index = startIndex; index < maxEndLine; index += 1) {
+    depth += braceDelta(lines[index]);
+    if (depth <= 0 && (index > startIndex || /}\s*,?\s*$/.test(lines[index]))) {
+      return index + 1;
+    }
+  }
+  return null;
+}
+
+function parseInfographManifestSourceRequirements(
+  filePath: string,
+  source: string,
+  diff: string,
+): RuntimeProjectionSourceRequirement[] {
+  const ranges = parseDiffCurrentLineRanges(diff);
+  if (!source || ranges.length === 0) return [];
+  const lines = source.split(/\r?\n/);
+  return parseJsonObjectEntries(lines, /^\s{4}\{\s*$/)
+    .filter((entry) => ranges.some((range) => lineRangesOverlap(entry, range)))
+    .flatMap((entry) => {
+      const objectText = lines.slice(entry.start - 1, entry.end).join('\n');
+      const itemPath = parseJsonStringField(objectText, 'path');
+      const recordKey = parseJsonStringField(objectText, 'nodeId') ??
+        parseJsonStringField(objectText, 'sourceNodeId') ??
+        path.basename(itemPath ?? '', path.extname(itemPath ?? ''));
+      if (!recordKey) return [];
+      return [{
+        filePath,
+        family: 'knowledge-infograph' as const,
+        recordKey,
+        sourcePathOrUrl: itemPath ?? undefined,
+      }];
+    });
+}
+
+function parseJsonObjectEntries(
+  lines: readonly string[],
+  startPattern: RegExp,
+): Array<{ key: string; start: number; end: number }> {
+  const entries: Array<{ key: string; start: number; end: number }> = [];
+  for (let index = 0; index < lines.length; index += 1) {
+    const match = startPattern.exec(lines[index]);
+    if (!match) continue;
+    let depth = 0;
+    for (let inner = index; inner < lines.length; inner += 1) {
+      depth += braceDelta(lines[inner]);
+      if (inner > index && depth <= 0) {
+        entries.push({ key: match[1] ?? '', start: index + 1, end: inner + 1 });
+        break;
+      }
+    }
+  }
+  return entries;
+}
+
+function parseJsonStringField(source: string, field: string): string | null {
+  const match = new RegExp(`"${field}"\\s*:\\s*"([^"]+)"`).exec(source);
+  return match?.[1] ?? null;
+}
+
+function lineRangesOverlap(
+  left: { start: number; end: number },
+  right: DiffLineRange,
+): boolean {
+  return right.start <= left.end && right.end >= left.start;
 }
 
 function parseChangedTeachingResourceRegistryIds(source: string, diff: string): string[] {
@@ -264,6 +563,15 @@ function braceDelta(line: string): number {
   return delta;
 }
 
+function squareBracketDelta(line: string): number {
+  let delta = 0;
+  for (const char of line) {
+    if (char === '[') delta += 1;
+    if (char === ']') delta -= 1;
+  }
+  return delta;
+}
+
 function listPresetLessonResourcePaths(options: CliOptions): string[] {
   const dir = path.join(process.cwd(), PRESET_LESSON_RESOURCE_DIR);
   const worktreePaths = existsSync(dir)
@@ -272,6 +580,25 @@ function listPresetLessonResourcePaths(options: CliOptions): string[] {
       .map((fileName) => `${PRESET_LESSON_RESOURCE_DIR}/${fileName}`)
     : [];
   return uniqueSorted([...worktreePaths, ...gitChangedPaths(options, PRESET_LESSON_RESOURCE_DIR)]);
+}
+
+function gitChangedRuntimeProjectionSourcePaths(options: CliOptions): string[] {
+  return gitChangedPathNames(options, RUNTIME_PROJECTION_SOURCE_PATHS, ['--diff-filter=ACMR'])
+    .split(/\r?\n/)
+    .filter((filePath) => runtimeProjectionSourceFamilyForPath(filePath));
+}
+
+function runtimeProjectionSourceFamilyForPath(filePath: string): RuntimeProjectionSourceFamily | null {
+  if (/^course-content\/runtime\/lessons\/[^/]+\/interactive-manifest\.json$/.test(filePath)) {
+    return 'runtime-lesson';
+  }
+  if (/^course-content\/runtime\/knowledge\/cards\/nodes\/.+\.md$/.test(filePath)) {
+    return 'knowledge-card';
+  }
+  if (filePath === RUNTIME_INFOGRAPH_MANIFEST_PATH) {
+    return 'knowledge-infograph';
+  }
+  return null;
 }
 
 function assertNoUnstagedTargetChanges(filePaths: readonly string[]) {
@@ -326,12 +653,20 @@ function gitDiff(options: CliOptions, filePath: string): string {
 }
 
 function gitChangedPaths(options: CliOptions, dirPath: string): string[] {
-  const args = options.staged
-    ? ['diff', '--cached', '--name-only', '--', dirPath]
-    : ['diff', '--name-only', `${options.base}...HEAD`, '--', dirPath];
-  return execFileSync('git', args, { encoding: 'utf8' })
+  return gitChangedPathNames(options, [dirPath])
     .split(/\r?\n/)
     .filter((filePath) => /\.(?:ts|tsx)$/.test(filePath));
+}
+
+function gitChangedPathNames(
+  options: CliOptions,
+  pathspecs: readonly string[],
+  diffOptions: readonly string[] = [],
+): string {
+  const args = options.staged
+    ? ['diff', '--cached', '--name-only', ...diffOptions, '--', ...pathspecs]
+    : ['diff', '--name-only', ...diffOptions, `${options.base}...HEAD`, '--', ...pathspecs];
+  return execFileSync('git', args, { encoding: 'utf8' });
 }
 
 function gitStatus(args: string[]): number {
