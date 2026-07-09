@@ -97,6 +97,11 @@ function main() {
   const runtimeProjectionSourcePaths = gitChangedRuntimeProjectionSourcePaths(options);
   const runtimeProjectionSourceRequirements = runtimeProjectionSourcePaths
     .flatMap((filePath) => runtimeProjectionSourceRequirementsForPath(filePath, gitDiff(options, filePath)));
+  const runtimeProjectionChanges = parseAddedRuntimeProjectionChanges(runtimeProjectionDiff);
+  const runtimeProjectionRows = runtimeProjectionChanges.rows;
+  const deletedRuntimeProjectionRows = runtimeProjectionChanges.deletedRows;
+  const runtimeProjectionRowSourcePaths = runtimeProjectionRows
+    .flatMap((row) => runtimeProjectionRowEvidenceLocalSourcePaths(row));
   const teachingResourceChanges = teachingResourcePaths.map((filePath) => ({
     filePath,
     diff: gitDiff(options, filePath),
@@ -110,6 +115,10 @@ function main() {
         hasDiff(diff) ? [filePath, REGISTERED_RESOURCE_METADATA_PATH] : []
       )),
       ...(hasDiff(repairDiff) ? [TEACHING_RESOURCE_REPAIR_PATH, REGISTERED_RESOURCE_METADATA_PATH] : []),
+      ...(hasDiff(runtimeProjectionDiff) ? [
+        RUNTIME_RESOURCE_PROJECTIONS_PATH,
+        ...runtimeProjectionRowSourcePaths,
+      ] : []),
       ...(runtimeProjectionSourcePaths.length > 0 ? [
         ...runtimeProjectionSourcePaths,
         RUNTIME_RESOURCE_PROJECTIONS_PATH,
@@ -131,9 +140,6 @@ function main() {
   const registeredResources = resourceIds
     .map((id) => registeredResourcesById.get(id))
     .filter((resource): resource is NonNullable<typeof resource> => Boolean(resource));
-  const runtimeProjectionChanges = parseAddedRuntimeProjectionChanges(runtimeProjectionDiff);
-  const runtimeProjectionRows = runtimeProjectionChanges.rows;
-  const deletedRuntimeProjectionRows = runtimeProjectionChanges.deletedRows;
   const result = mergeGateResults([
     {
       passed: missingRegisteredResourceIds.length === 0,
@@ -149,6 +155,7 @@ function main() {
     runtimeProjectionChanges.result,
     validateDeletedRuntimeProjectionRows(deletedRuntimeProjectionRows, runtimeProjectionRows, options),
     validateRuntimeProjectionSourceCoverage(runtimeProjectionSourceRequirements, runtimeProjectionRows),
+    validateRuntimeProjectionRowSourceEvidence(runtimeProjectionRows),
     validateChangedRuntimeResourceProjections(runtimeProjectionRows),
   ]);
 
@@ -177,6 +184,56 @@ function validateRuntimeProjectionSourceCoverage(
   return {
     passed: issues.length === 0,
     checked: requirements.length,
+    issues,
+  };
+}
+
+function validateRuntimeProjectionRowSourceEvidence(
+  rows: readonly RuntimeProjectionRow[],
+): NewResourceGateResult {
+  const issues = rows.flatMap((row) => {
+    const sourcePathOrUrl = row.sourcePathOrUrl?.trim() ?? '';
+    if (!sourcePathOrUrl) {
+      return [{
+        family: 'runtime-resource-projection' as const,
+        resourceId: row.id,
+        code: 'missing-runtime-projection-source-path',
+        message: 'Runtime projection requires sourcePathOrUrl so review evidence can be revalidated.',
+      }];
+    }
+    const sourcePath = runtimeProjectionPrimaryLocalSourcePath(row);
+    const evidencePaths = runtimeProjectionRowEvidenceLocalSourcePaths(row);
+    if (!sourcePath && evidencePaths.length === 0) {
+      return [{
+        family: 'runtime-resource-projection' as const,
+        resourceId: row.id,
+        code: 'missing-runtime-projection-local-review-evidence',
+        message: `Runtime projection sourcePathOrUrl requires a local source or independent review evidence file: ${sourcePathOrUrl}.`,
+      }];
+    }
+    if (sourcePath && !existsSync(sourcePath)) {
+      return [{
+        family: 'runtime-resource-projection' as const,
+        resourceId: row.id,
+        code: 'missing-runtime-projection-source-file',
+        message: `Runtime projection sourcePathOrUrl points to a missing local source file: ${sourcePath}.`,
+      }];
+    }
+    const currentHashes = evidencePaths
+      .filter((filePath) => existsSync(filePath))
+      .map((filePath) => runtimeProjectionSourceHash(filePath));
+    return currentHashes.includes(row.sourceHash)
+      ? []
+      : [{
+        family: 'runtime-resource-projection' as const,
+        resourceId: row.id,
+        code: 'stale-runtime-projection-source-hash',
+        message: `Runtime projection sourceHash must match a current local source or review evidence file hash for ${sourcePathOrUrl}.`,
+      }];
+  });
+  return {
+    passed: issues.length === 0,
+    checked: rows.length,
     issues,
   };
 }
@@ -215,10 +272,37 @@ function runtimeProjectionSourceDeletedInSameDiff(
 
 function runtimeProjectionLocalSourcePaths(row: RuntimeProjectionRow): string[] {
   return uniqueSorted([
-    row.sourcePathOrUrl ?? '',
+    projectFilePathForProjectionSource(row.sourcePathOrUrl),
     ...(row.citationTargets ?? []),
-    row.reviewAudit?.independentEvidenceRef?.split('#')[0] ?? '',
-  ].filter((value) => value && !/^[a-z]+:\/\//i.test(value)));
+    row.reviewAudit?.independentEvidenceRef,
+  ]
+    .map((value) => projectFilePathForProjectionSource(value))
+    .filter((value): value is string => Boolean(value)));
+}
+
+function runtimeProjectionPrimaryLocalSourcePath(row: RuntimeProjectionRow): string | null {
+  return projectFilePathForProjectionSource(row.sourcePathOrUrl);
+}
+
+function runtimeProjectionReviewHashLocalSourcePath(row: RuntimeProjectionRow): string | null {
+  return projectFilePathForProjectionSource(row.reviewAudit?.independentEvidenceRef);
+}
+
+function runtimeProjectionRowEvidenceLocalSourcePaths(row: RuntimeProjectionRow): string[] {
+  return uniqueSorted([
+    runtimeProjectionPrimaryLocalSourcePath(row),
+    runtimeProjectionReviewHashLocalSourcePath(row),
+  ].filter((filePath): filePath is string => Boolean(filePath)));
+}
+
+function projectFilePathForProjectionSource(sourcePathOrUrl: string | null | undefined): string | null {
+  const sourcePath = sourcePathOrUrl?.split('#')[0]?.trim() ?? '';
+  if (!sourcePath || /^https?:\/\//i.test(sourcePath)) return null;
+  if (sourcePath.startsWith('course-content/')) return sourcePath;
+  if (sourcePath.startsWith('/course-runtime/lessons/')) {
+    return sourcePath.replace(/^\/course-runtime\/lessons\//, 'course-content/runtime/lessons/');
+  }
+  return null;
 }
 
 function runtimeProjectionSourceIssue(requirement: RuntimeProjectionSourceRequirement): NewResourceGateIssue {

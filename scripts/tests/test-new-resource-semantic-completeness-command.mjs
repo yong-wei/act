@@ -35,6 +35,7 @@ fs.writeFileSync(path.join(repo, 'course-content/runtime/lessons/1-1/interactive
   lesson_id: '1-1',
   steps: {},
 }, null, 2));
+fs.writeFileSync(path.join(repo, 'course-content/runtime/lessons/1-1/1-1-handout.md'), '# Demo handout\n');
 fs.writeFileSync(path.join(repo, 'course-content/runtime/knowledge/cards/nodes/kn-demo.md'), '# Demo card\n');
 fs.writeFileSync(path.join(repo, 'course-content/runtime/knowledge/infographs/manifest.json'), JSON.stringify({
   schema_version: 1,
@@ -1216,6 +1217,123 @@ fs.writeFileSync(
 );
 run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
 run('git', ['commit', '--no-verify', '-m', 'add baseline runtime card projection'], repo);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'knowledge-card:kn-demo',
+    family: 'knowledge-card',
+    resourceType: 'knowledge_card',
+    sourceKind: 'knowledge_graph',
+    sourceRef: 'kn-demo',
+    sourcePathOrUrl: 'course-content/runtime/knowledge/cards/nodes/kn-demo.md',
+    sourceHash: 'sha256:stale-projection-only-card',
+    sourceVersionRef: 'runtime-knowledge-card.v1',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const staleProjectionOnlySourceHashResult = runGate(['--staged']);
+assert.notEqual(staleProjectionOnlySourceHashResult.status, 0, 'gate must fail when only a runtime projection row changes with a stale source hash');
+assert.match(
+  `${staleProjectionOnlySourceHashResult.stdout}\n${staleProjectionOnlySourceHashResult.stderr}`,
+  /stale-runtime-projection-source-hash/,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'knowledge-card:missing-card',
+    family: 'knowledge-card',
+    resourceType: 'knowledge_card',
+    sourceKind: 'knowledge_graph',
+    sourceRef: 'missing-card',
+    sourcePathOrUrl: 'course-content/runtime/knowledge/cards/nodes/missing-card.md',
+    sourceHash: 'sha256:missing-card',
+    sourceVersionRef: 'runtime-knowledge-card.v1',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const missingProjectionOnlySourceResult = runGate(['--staged']);
+assert.notEqual(missingProjectionOnlySourceResult.status, 0, 'gate must fail when only a runtime projection row points to a missing local source');
+assert.match(
+  `${missingProjectionOnlySourceResult.stdout}\n${missingProjectionOnlySourceResult.stderr}`,
+  /missing-runtime-projection-source-file/,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'knowledge-card:missing-source-path',
+    family: 'knowledge-card',
+    resourceType: 'knowledge_card',
+    sourceKind: 'knowledge_graph',
+    sourceRef: 'missing-source-path',
+    sourceVersionRef: 'runtime-knowledge-card.v1',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const missingProjectionOnlySourcePathResult = runGate(['--staged']);
+assert.notEqual(missingProjectionOnlySourcePathResult.status, 0, 'gate must fail when only a runtime projection row omits sourcePathOrUrl');
+assert.match(
+  `${missingProjectionOnlySourcePathResult.stdout}\n${missingProjectionOnlySourcePathResult.stderr}`,
+  /missing-runtime-projection-source-path/,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+const routeHandoutPath = path.join(repo, 'course-content/runtime/lessons/1-1/1-1-handout.md');
+const baselineCardProjection = JSON.stringify(runtimeProjectionRow({
+  id: 'knowledge-card:kn-demo',
+  family: 'knowledge-card',
+  resourceType: 'knowledge_card',
+  sourceKind: 'knowledge_graph',
+  sourceRef: 'kn-demo',
+  sourcePathOrUrl: 'course-content/runtime/knowledge/cards/nodes/kn-demo.md',
+  sourceVersionRef: 'runtime-knowledge-card.v1',
+}));
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${baselineCardProjection}\n${JSON.stringify(runtimeProjectionRow({
+    id: 'runtime-handout:1-1',
+    family: 'runtime-handout',
+    resourceType: 'handout',
+    sourceKind: 'runtime_handout',
+    sourceRef: '1-1',
+    sourcePathOrUrl: '/course-runtime/lessons/1-1/1-1-handout.md',
+    sourceHash: sha256File(routeHandoutPath),
+    sourceVersionRef: 'runtime-handout.v1',
+    independentEvidenceRef: '/course-runtime/lessons/1-1/1-1-handout.md#1-1',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const routedHandoutProjectionResult = runGate(['--staged']);
+assert.equal(routedHandoutProjectionResult.status, 0, 'gate must map /course-runtime/lessons paths to course-content runtime files');
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${baselineCardProjection}\n${JSON.stringify(runtimeProjectionRow({
+    id: 'runtime-handout:1-1',
+    family: 'runtime-handout',
+    resourceType: 'handout',
+    sourceKind: 'runtime_handout',
+    sourceRef: '1-1',
+    sourcePathOrUrl: '/course-runtime/lessons/1-1/1-1-handout.md',
+    sourceHash: 'sha256:stale-routed-handout',
+    sourceVersionRef: 'runtime-handout.v1',
+    independentEvidenceRef: '/course-runtime/lessons/1-1/1-1-handout.md#1-1',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const staleRoutedHandoutProjectionResult = runGate(['--staged']);
+assert.notEqual(staleRoutedHandoutProjectionResult.status, 0, 'gate must fail when routed source paths carry stale hashes');
+assert.match(
+  `${staleRoutedHandoutProjectionResult.stdout}\n${staleRoutedHandoutProjectionResult.stderr}`,
+  /stale-runtime-projection-source-hash/,
+);
+
 fs.appendFileSync(cardPath, '\nReviewed update.\n');
 fs.writeFileSync(
   path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
@@ -1247,6 +1365,39 @@ fs.writeFileSync(path.join(repo, 'course-content/runtime/resource-governance/run
 run('git', ['add', 'course-content/runtime/knowledge/cards/nodes/kn-demo.md', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
 const deletedCardProjectionResult = runGate(['--staged']);
 assert.equal(deletedCardProjectionResult.status, 0, 'gate must not require added projection rows for deletion-only runtime sources');
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${baselineCardProjection}\n${JSON.stringify(runtimeProjectionRow({
+    id: 'runtime-handout:1-1',
+    family: 'runtime-handout',
+    resourceType: 'handout',
+    sourceKind: 'runtime_handout',
+    sourceRef: '1-1',
+    sourcePathOrUrl: '/course-runtime/lessons/1-1/1-1-handout.md',
+    sourceHash: sha256File(routeHandoutPath),
+    sourceVersionRef: 'runtime-handout.v1',
+    independentEvidenceRef: '/course-runtime/lessons/1-1/1-1-handout.md#1-1',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+run('git', ['commit', '--no-verify', '-m', 'add routed handout projection baseline'], repo);
+fs.writeFileSync(path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'), `${baselineCardProjection}\n`);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const deletedRoutedProjectionOnlyResult = runGate(['--staged']);
+assert.notEqual(deletedRoutedProjectionOnlyResult.status, 0, 'gate must fail without fatal pathspec errors when a routed projection row is deleted while the source still exists');
+assert.match(
+  `${deletedRoutedProjectionOnlyResult.stdout}\n${deletedRoutedProjectionOnlyResult.stderr}`,
+  /deleted-runtime-projection-row/,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+fs.rmSync(routeHandoutPath);
+fs.writeFileSync(path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'), `${baselineCardProjection}\n`);
+run('git', ['add', 'course-content/runtime/lessons/1-1/1-1-handout.md', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const deletedRoutedProjectionWithSourceResult = runGate(['--staged']);
+assert.equal(deletedRoutedProjectionWithSourceResult.status, 0, 'gate must pass when a routed projection row and its mapped runtime source file are deleted together');
 
 console.log('new resource semantic completeness command contract passed');
 
@@ -1326,6 +1477,7 @@ function sha256File(filePath) {
 }
 
 function sourceHashForRuntimeProjectionRow(overrides) {
-  const sourcePath = path.join(repo, overrides.sourcePathOrUrl ?? '');
+  if (!overrides.sourcePathOrUrl) return 'sha256:runtime-source';
+  const sourcePath = path.join(repo, overrides.sourcePathOrUrl);
   return fs.existsSync(sourcePath) ? sha256File(sourcePath) : 'sha256:runtime-source';
 }
