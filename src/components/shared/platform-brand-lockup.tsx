@@ -5,6 +5,8 @@ import { cn } from '@/lib/utils';
 
 export const DEEPBLUE_SMART_CONTROL_LOGO_PATH = '/assets/platform-brand/deepblue-smart-control-logo.png';
 export const DEEPBLUE_SMART_CONTROL_LOGO_DARK_PATH = '/assets/platform-brand/deepblue-smart-control-logo-dark.png';
+export const DEEPBLUE_SMART_CONTROL_LOGO_SMALL_PATH = '/assets/platform-brand/deepblue-smart-control-logo-small.png';
+export const DEEPBLUE_SMART_CONTROL_LOGO_DARK_SMALL_PATH = '/assets/platform-brand/deepblue-smart-control-logo-dark-small.png';
 export const DEEPBLUE_SMART_CONTROL_LOGO_METADATA_PATH = '/assets/platform-brand/deepblue-smart-control-logo-meta.json';
 
 export function PlatformBrandLockup({
@@ -20,15 +22,17 @@ export function PlatformBrandLockup({
       aria-label="智控深蓝首页"
       className={cn('group flex min-w-0 flex-col items-start gap-1', className)}
       data-platform-brand-lockup="deepblue-smart-control"
-      data-platform-brand-asset={DEEPBLUE_SMART_CONTROL_LOGO_PATH}
-      data-platform-brand-dark-asset={DEEPBLUE_SMART_CONTROL_LOGO_DARK_PATH}
+      data-platform-brand-asset={DEEPBLUE_SMART_CONTROL_LOGO_SMALL_PATH}
+      data-platform-brand-dark-asset={DEEPBLUE_SMART_CONTROL_LOGO_DARK_SMALL_PATH}
+      data-platform-brand-original-asset={DEEPBLUE_SMART_CONTROL_LOGO_PATH}
+      data-platform-brand-original-dark-asset={DEEPBLUE_SMART_CONTROL_LOGO_DARK_PATH}
     >
       <span className="relative flex h-10 w-[120px] shrink-0 items-center sm:h-12 sm:w-[182px]">
         <Image
-          src={DEEPBLUE_SMART_CONTROL_LOGO_PATH}
+          src={DEEPBLUE_SMART_CONTROL_LOGO_SMALL_PATH}
           alt="智控深蓝"
-          width={1959}
-          height={803}
+          width={400}
+          height={164}
           priority
           sizes="(max-width: 640px) 120px, 182px"
           className={cn(
@@ -37,11 +41,11 @@ export function PlatformBrandLockup({
           )}
         />
         <Image
-          src={DEEPBLUE_SMART_CONTROL_LOGO_DARK_PATH}
+          src={DEEPBLUE_SMART_CONTROL_LOGO_DARK_SMALL_PATH}
           alt=""
           aria-hidden="true"
-          width={1959}
-          height={803}
+          width={400}
+          height={164}
           sizes="(max-width: 640px) 120px, 182px"
           className={cn(
             'pointer-events-none absolute inset-0 h-full w-full object-contain object-left opacity-0 drop-shadow-[0_12px_30px_rgba(56,189,248,0.46)] transition dark:opacity-100 dark:group-hover:drop-shadow-[0_14px_36px_rgba(56,189,248,0.58)]',
