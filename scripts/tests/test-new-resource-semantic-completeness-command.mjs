@@ -203,6 +203,62 @@ fs.writeFileSync(presetPath, originalPreset.replace(
   'items: [],',
   `items: [
     {
+      registryId: 'modified-item-without-metadata',
+      title: 'Original title',
+      duration: 5,
+    },
+  ],`,
+));
+run('git', ['add', 'src/features/teacher/preset-lessons/presets/example.ts'], repo);
+run('git', ['commit', '--no-verify', '-m', 'add incomplete preset item'], repo);
+fs.writeFileSync(presetPath, fs.readFileSync(presetPath, 'utf8').replace('Original title', 'Changed title'));
+run('git', ['add', 'src/features/teacher/preset-lessons/presets/example.ts'], repo);
+const modifiedPresetItemResult = spawnSync('npx', ['tsx', './scripts/data-governance/check-new-resource-semantic-completeness.ts', '--staged'], {
+  cwd: repo,
+  encoding: 'utf8',
+});
+assert.notEqual(modifiedPresetItemResult.status, 0, 'gate must fail when a changed preset item field belongs to a registryId without metadata');
+assert.match(
+  `${modifiedPresetItemResult.stdout}\n${modifiedPresetItemResult.stderr}`,
+  /modified-item-without-metadata missing-registered-resource-metadata/,
+);
+assert.doesNotMatch(
+  `${modifiedPresetItemResult.stdout}\n${modifiedPresetItemResult.stderr}`,
+  /Changed title missing-registered-resource-metadata/,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+fs.writeFileSync(presetPath, originalPreset.replace(
+  'items: [],',
+  `items: STEPS.map((step, index) => ({
+    registryId: step.interactive ? 'map-item-without-metadata' : 'classroom-ai-report',
+    title: 'Map original title',
+    order: index + 1,
+  })),`,
+));
+run('git', ['add', 'src/features/teacher/preset-lessons/presets/example.ts'], repo);
+run('git', ['commit', '--no-verify', '-m', 'add incomplete map preset item'], repo);
+fs.writeFileSync(presetPath, fs.readFileSync(presetPath, 'utf8').replace('Map original title', 'Map changed title'));
+run('git', ['add', 'src/features/teacher/preset-lessons/presets/example.ts'], repo);
+const modifiedMapPresetItemResult = spawnSync('npx', ['tsx', './scripts/data-governance/check-new-resource-semantic-completeness.ts', '--staged'], {
+  cwd: repo,
+  encoding: 'utf8',
+});
+assert.notEqual(modifiedMapPresetItemResult.status, 0, 'gate must fail when a changed map-generated preset item field belongs to a registryId without metadata');
+assert.match(
+  `${modifiedMapPresetItemResult.stdout}\n${modifiedMapPresetItemResult.stderr}`,
+  /map-item-without-metadata missing-registered-resource-metadata/,
+);
+assert.doesNotMatch(
+  `${modifiedMapPresetItemResult.stdout}\n${modifiedMapPresetItemResult.stderr}`,
+  /Map changed title missing-registered-resource-metadata/,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+fs.writeFileSync(presetPath, originalPreset.replace(
+  'items: [],',
+  `items: [
+    {
       registryId: step.kind === 'summary' ? 'classroom-ai-report' : 'same-line-preset-without-metadata',
       title: 'Same-line preset resource without metadata',
     },

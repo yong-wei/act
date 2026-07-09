@@ -29,6 +29,11 @@ interface CliOptions {
   staged: boolean;
 }
 
+interface DiffLineRange {
+  start: number;
+  end: number;
+}
+
 function main() {
   const options = parseArgs(process.argv.slice(2));
   const presetLessonPaths = listPresetLessonResourcePaths(options);
@@ -48,12 +53,15 @@ function main() {
   const registeredResourceDiff = gitDiff(options, REGISTERED_RESOURCE_METADATA_PATH);
   const resourceComponentRegistryDiff = gitDiff(options, RESOURCE_COMPONENT_REGISTRY_PATH);
   const runtimeProjectionDiff = gitDiff(options, RUNTIME_RESOURCE_PROJECTIONS_PATH);
-  const teachingResourceDiffs = teachingResourcePaths.map((filePath) => gitDiff(options, filePath));
+  const teachingResourceChanges = teachingResourcePaths.map((filePath) => ({
+    source: readTextIfExists(filePath),
+    diff: gitDiff(options, filePath),
+  }));
   const repairDiff = gitDiff(options, TEACHING_RESOURCE_REPAIR_PATH);
   const resourceIds = uniqueSorted([
     ...parseChangedRegisteredResourceIds(readText(REGISTERED_RESOURCE_METADATA_PATH), registeredResourceDiff),
     ...parseChangedResourceComponentRegistryIds(resourceComponentRegistryDiff),
-    ...teachingResourceDiffs.flatMap(parseChangedTeachingResourceRegistryIds),
+    ...teachingResourceChanges.flatMap(({ source, diff }) => parseChangedTeachingResourceRegistryIds(source, diff)),
     ...parseChangedTeachingResourceRepairRegistryIds(repairDiff),
   ]);
   const registeredResourcesById = new Map(getAllRegisteredResourceMetadata().map((resource) => [resource.id, resource]));
@@ -91,7 +99,8 @@ function main() {
   process.exit(1);
 }
 
-function parseChangedTeachingResourceRegistryIds(diff: string): string[] {
+function parseChangedTeachingResourceRegistryIds(source: string, diff: string): string[] {
+  const ranges = parseDiffCurrentLineRanges(diff);
   const addedLines = diff
     .split(/\r?\n/)
     .filter((line) => line.startsWith('+') && !line.startsWith('+++'))
@@ -117,13 +126,59 @@ function parseChangedTeachingResourceRegistryIds(diff: string): string[] {
     }
   }
 
-  return ids;
+  return uniqueSorted([
+    ...ids,
+    ...parseTeachingResourceItemRegistryIds(source, ranges),
+  ]);
 }
 
 function parseRegistryIdExpressionLiteralIds(line: string): string[] {
   const expressionStart = line.match(/\bregistryId\s*:/);
   const expression = expressionStart ? line.slice(expressionStart.index! + expressionStart[0].length) : line;
   return Array.from(expression.matchAll(/(?:^|[?:])\s*['"]([^'"]+)['"]/g), (match) => match[1]);
+}
+
+function parseTeachingResourceItemRegistryIds(source: string, ranges: readonly DiffLineRange[]): string[] {
+  if (!source || ranges.length === 0) return [];
+  const lines = source.split(/\r?\n/);
+  return parseObjectLineRanges(lines)
+    .filter((item) => ranges.some((range) => range.start <= item.end && range.end >= item.start))
+    .flatMap((item) => parseRegistryIdPropertyLiteralIds(lines.slice(item.start - 1, item.end)));
+}
+
+function parseObjectLineRanges(lines: readonly string[]): Array<{ start: number; end: number }> {
+  const ranges: Array<{ start: number; end: number }> = [];
+  for (let index = 0; index < lines.length; index += 1) {
+    const objectStart = lines[index].match(/^\s*(?:\{|.*=>\s*\(\s*\{)/);
+    if (!objectStart) continue;
+    let depth = 0;
+    for (let inner = index; inner < lines.length; inner += 1) {
+      depth += braceDelta(inner === index ? lines[inner].slice(objectStart[0].search(/\{/)) : lines[inner]);
+      if (depth <= 0 && inner > index) {
+        ranges.push({ start: index + 1, end: inner + 1 });
+        break;
+      }
+    }
+  }
+  return ranges;
+}
+
+function parseRegistryIdPropertyLiteralIds(lines: readonly string[]): string[] {
+  const ids: string[] = [];
+  let pendingRegistryExpression = false;
+  for (const line of lines) {
+    if (/\bregistryId\s*:/.test(line)) {
+      ids.push(...parseRegistryIdExpressionLiteralIds(line));
+      pendingRegistryExpression = !line.includes(',');
+      continue;
+    }
+    if (!pendingRegistryExpression) continue;
+    ids.push(...parseRegistryIdExpressionLiteralIds(line));
+    if (line.includes(',')) {
+      pendingRegistryExpression = false;
+    }
+  }
+  return ids;
 }
 
 function parseChangedResourceComponentRegistryIds(diff: string): string[] {
@@ -156,6 +211,27 @@ function parseChangedTeachingResourceRepairRegistryIds(diff: string): string[] {
     .split(/\r?\n/)
     .filter((line) => line.startsWith('+') && !line.startsWith('+++'))
     .flatMap((line) => Array.from(line.matchAll(/^\+\s*(?:['"][^'"]+['"]|[A-Za-z0-9_$]+)\s*:\s*['"]([^'"]+)['"]/g), (match) => match[1]));
+}
+
+function parseDiffCurrentLineRanges(diff: string): DiffLineRange[] {
+  return diff
+    .split(/\r?\n/)
+    .map((line) => /^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@/.exec(line))
+    .filter((match): match is RegExpExecArray => Boolean(match))
+    .map((match) => {
+      const start = Number(match[1]);
+      const count = match[2] ? Number(match[2]) : 1;
+      return { start, end: count === 0 ? start : start + count - 1 };
+    });
+}
+
+function braceDelta(line: string): number {
+  let delta = 0;
+  for (const char of line) {
+    if (char === '{') delta += 1;
+    if (char === '}') delta -= 1;
+  }
+  return delta;
 }
 
 function listPresetLessonResourcePaths(options: CliOptions): string[] {
@@ -238,6 +314,11 @@ function gitStatus(args: string[]): number {
 
 function readText(filePath: string): string {
   return readFileSync(path.join(process.cwd(), filePath), 'utf8');
+}
+
+function readTextIfExists(filePath: string): string {
+  const fullPath = path.join(process.cwd(), filePath);
+  return existsSync(fullPath) ? readFileSync(fullPath, 'utf8') : '';
 }
 
 function uniqueSorted(values: readonly string[]): string[] {
