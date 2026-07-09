@@ -70,7 +70,11 @@ export function mergeGateResults(results: readonly NewResourceGateResult[]): New
 export function parseChangedRegisteredResourceIds(source: string, diff: string): string[] {
   const ranges = parseDiffCurrentLineRanges(diff);
   if (ranges.length === 0) return [];
-  const resources = parseRegisteredResourceLineRanges(source);
+  const resources = [
+    ...parseRegisteredResourceLineRanges(source),
+    ...parseRegisteredResourcePatchLineRanges(source),
+    ...parseRegisteredResourceProgressionLineRanges(source),
+  ];
   const resourceIds = new Set(resources.map((resource) => resource.id));
   return uniqueSorted(
     [
@@ -144,6 +148,99 @@ export function parseRegisteredResourceLineRanges(source: string): ChangedRegist
     resources.push({ id: match[1], lineStart, lineEnd });
   }
   return resources;
+}
+
+export function parseRegisteredResourcePatchLineRanges(source: string): ChangedRegisteredResourceInput[] {
+  const lines = source.split(/\r?\n/);
+  const resources: ChangedRegisteredResourceInput[] = [];
+  for (const mapName of ['registeredResourceOperationalMetadata', 'registeredResourceSemanticMetadata']) {
+    const mapStart = lines.findIndex((line) => line.includes(`const ${mapName}:`));
+    if (mapStart < 0) continue;
+    let mapEnd = lines.length - 1;
+    for (let index = mapStart + 1; index < lines.length; index += 1) {
+      if (/^};/.test(lines[index])) {
+        mapEnd = index;
+        break;
+      }
+    }
+    for (let index = mapStart + 1; index < mapEnd; index += 1) {
+      const match = /^    ['"]([^'"]+)['"]:\s*/.exec(lines[index]);
+      if (!match) continue;
+      resources.push({
+        id: match[1],
+        lineStart: index + 1,
+        lineEnd: parsePatchEntryEndLine(lines, index, mapEnd),
+      });
+    }
+  }
+  return resources;
+}
+
+export function parseRegisteredResourceProgressionLineRanges(source: string): ChangedRegisteredResourceInput[] {
+  const lines = source.split(/\r?\n/);
+  const progressionRange = parseFunctionLineRange(lines, 'buildRegisteredResourceProgressionMetadata');
+  if (!progressionRange) return [];
+  const ids = parseProgressionIds(lines, progressionRange);
+  const sharedRanges = [
+    progressionRange,
+    parseFunctionLineRange(lines, 'resourceReadiness'),
+    parseFunctionLineRange(lines, 'readyImmediately'),
+    parseFunctionLineRange(lines, 'buildUnlockMessage'),
+  ].filter((range): range is DiffLineRange => Boolean(range));
+  return ids.flatMap((id) => sharedRanges.map((range) => ({
+    id,
+    lineStart: range.start,
+    lineEnd: range.end,
+  })));
+}
+
+function parseProgressionIds(lines: readonly string[], range: DiffLineRange): string[] {
+  const ids: string[] = [];
+  let inIdsArray = false;
+  for (const line of lines.slice(range.start - 1, range.end)) {
+    if (/^\s*ids\s*:\s*\[/.test(line)) {
+      inIdsArray = true;
+      continue;
+    }
+    if (!inIdsArray) continue;
+    ids.push(...Array.from(line.matchAll(/^\s*['"]([^'"]+)['"],?$/g), (match) => match[1]));
+    if (/^\s*\]/.test(line)) {
+      inIdsArray = false;
+    }
+  }
+  return uniqueSorted(ids);
+}
+
+function parsePatchEntryEndLine(lines: readonly string[], startIndex: number, mapEnd: number): number {
+  let depth = braceDelta(lines[startIndex]);
+  if (depth <= 0) return startIndex + 1;
+  for (let index = startIndex + 1; index < mapEnd; index += 1) {
+    depth += braceDelta(lines[index]);
+    if (depth <= 0) return index + 1;
+  }
+  return mapEnd + 1;
+}
+
+function parseFunctionLineRange(lines: readonly string[], functionName: string): DiffLineRange | null {
+  const startIndex = lines.findIndex((line) => line.startsWith(`function ${functionName}(`));
+  if (startIndex < 0) return null;
+  let depth = 0;
+  let opened = false;
+  for (let index = startIndex; index < lines.length; index += 1) {
+    const line = lines[index];
+    if (!opened) {
+      const bodyStart = line.indexOf('{');
+      if (bodyStart < 0) continue;
+      opened = true;
+      depth += braceDelta(line.slice(bodyStart));
+    } else {
+      depth += braceDelta(line);
+    }
+    if (opened && depth <= 0) {
+      return { start: startIndex + 1, end: index + 1 };
+    }
+  }
+  return { start: startIndex + 1, end: lines.length };
 }
 
 function validateRegisteredResource(resource: RegisteredResourceMetadata): NewResourceGateIssue[] {

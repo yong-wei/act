@@ -53,6 +53,75 @@ describe('new resource semantic completeness gate', () => {
     expect(parseChangedRegisteredResourceIds(source, diff)).toEqual(['lesson01-feedback-bridge-v1']);
   });
 
+  it('detects semantic patch field edits when the diff omits the resource id', () => {
+    const source = [
+      'const registeredResourceMetadata = {',
+      "    'lesson01-feedback-bridge-v1': {",
+      "        id: 'lesson01-feedback-bridge-v1',",
+      "        label: 'Bridge',",
+      '    },',
+      '};',
+      'const registeredResourceSemanticMetadata: Record<string, Partial<RegisteredResourceMetadata>> = {',
+      "    'lesson01-feedback-bridge-v1': {",
+      "        knowledgeNodeIds: ['反馈控制系统_1_98dc667a'],",
+      '        planningOverride: {',
+      '            abilityImpact: { controlModeling: 0.12 },',
+      "            privacyLevel: 'student-visible',",
+      '        }',
+      '    },',
+      '};',
+    ].join('\n');
+    const diff = [
+      '@@ -11,1 +11,1 @@',
+      '-            abilityImpact: { controlModeling: 0.12 },',
+      '+            abilityImpact: {},',
+    ].join('\n');
+
+    expect(parseChangedRegisteredResourceIds(source, diff)).toEqual(['lesson01-feedback-bridge-v1']);
+  });
+
+  it('fails closed to progression resources when shared readiness helpers change without resource ids', () => {
+    const source = [
+      'const registeredResourceMetadata = {',
+      "    'lesson-a': { id: 'lesson-a', label: 'Lesson A' },",
+      "    'lesson-b': { id: 'lesson-b', label: 'Lesson B' },",
+      '};',
+      'function buildRegisteredResourceProgressionMetadata(): Record<string, RegisteredResourceMetadataPatch> {',
+      '    const progressions: Array<{ ids: string[] }> = [',
+      '        {',
+      '            ids: [',
+      "                'lesson-a',",
+      "                'lesson-b',",
+      '            ],',
+      '        },',
+      '    ];',
+      '    return {};',
+      '}',
+      'function resourceReadiness(): RegisteredResourceMetadataPatch {',
+      '    return {',
+      '        planningOverride: {',
+      '            readiness: {',
+      '                minimumEvidenceCount: 1,',
+      '            },',
+      '        },',
+      '    };',
+      '}',
+      'function readyImmediately(): NonNullable<ResourceNodePlanningOverride[\'readiness\']> {',
+      '    return { minimumEvidenceCount: 0 };',
+      '}',
+      'function buildUnlockMessage(): string {',
+      "    return 'ready';",
+      '}',
+    ].join('\n');
+    const diff = [
+      '@@ -20,1 +20,1 @@',
+      '-                minimumEvidenceCount: 1,',
+      '+                minimumEvidenceCount: 2,',
+    ].join('\n');
+
+    expect(parseChangedRegisteredResourceIds(source, diff)).toEqual(['lesson-a', 'lesson-b']);
+  });
+
   it('fails incomplete new registered resources', () => {
     const result = validateChangedRegisteredResources([{
       id: 'new-incomplete',
