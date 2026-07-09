@@ -98,6 +98,8 @@ export const sourcePackCitationSchema = z.object({
   citationTargetId: governedIdSchema,
   sourceId: governedIdSchema,
   displayTitle: z.string().min(1),
+  canonicalHref: verifiedHrefSchema.optional(),
+  displayHref: verifiedHrefSchema.optional(),
   href: verifiedHrefSchema.optional(),
   resolver: z.string().min(1).optional(),
   verified: z.boolean(),

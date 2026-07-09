@@ -77,6 +77,53 @@ describe('Konling verified citation presentation', () => {
     expect(html).not.toContain('user-content-fn');
   });
 
+  it('uses rendered textbook display hrefs without discarding canonical citation metadata', () => {
+    const presentation = normalizeKonlingCitationPresentation({
+      konlingCitationGuard: {
+        status: 'verified',
+        citations: [{
+          id: 'content:textbook:fig-02-01',
+          sourceType: 'content',
+          displayTitle: 'Root locus figure',
+          href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch02-sec01.md#fig-02-01',
+          canonicalHref: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch02-sec01.md#fig-02-01',
+          displayHref: '/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-sec01.md#fig-02-01',
+          confidence: 'high',
+          evidenceBasis: 'source-pack:konling-answer:pack-1',
+          citationTargetId: 'textbook:fig-02-01',
+          retrievalChunkId: 'textbook-search:ch02-sec01',
+          answerRelevanceBasis: 'query-match',
+          answerRelevanceQueryHash: 'hash-1',
+          citationChip: {
+            chunkId: 'content:textbook:fig-02-01',
+            displayTitle: 'Root locus figure',
+            displayHref: '/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-sec01.md#fig-02-01',
+            sourceType: 'course-content',
+            addressKind: 'image',
+            citationAddress: {
+              kind: 'image',
+              sourceRefId: 'textbook:fig-02-01',
+              href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch02-sec01.md#fig-02-01',
+              locator: 'fig-02-01',
+              contentHash: 'sha256:abc',
+            },
+            authorityLevel: 'canonical',
+            confidence: 'high',
+            freshnessBucket: 'current',
+            privacyVisibility: 'public',
+            limitationState: null,
+          },
+        }],
+        missingCitationClasses: [],
+        lowConfidenceReasons: [],
+      },
+    });
+
+    expect(presentation.summary.status).toBe('verified');
+    expect(presentation.items[0]?.href).toBe('/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-sec01.md#fig-02-01');
+    expect(presentation.items[0]?.confidence).toBe('high');
+  });
+
   it('shows limited and unavailable citation states without fake navigation', () => {
     const presentation = normalizeKonlingCitationPresentation({
       konlingCitationGuard: {

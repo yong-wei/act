@@ -23,6 +23,8 @@ type CitationLike = {
   displayTitle?: string | null;
   title?: string | null;
   href?: string | null;
+  displayHref?: string | null;
+  canonicalHref?: string | null;
   confidence?: CitationConfidence | string | null;
   evidenceBasis?: string | null;
   citationChip?: CitationChipLike | null;
@@ -167,7 +169,7 @@ function dedupePresentationCitations(citations: CitationLike[]): PresentationCit
 
 function normalizePresentationCitation(citation: CitationLike): PresentationCitation {
   const sourceType = normalizeSourceType(citation.sourceType);
-  const href = safeCitationHref(citation.href ?? citation.citationChip?.displayHref);
+  const href = safeCitationHref(citation.displayHref ?? citation.citationChip?.displayHref ?? citation.href);
   const confidence = confidenceValue(citation.confidence ?? citation.citationChip?.confidence);
   return {
     key: buildCitationKey(sourceType, citation, href),

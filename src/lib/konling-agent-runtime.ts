@@ -1293,10 +1293,18 @@ export interface KonlingCitation {
   sourceType: 'content' | 'learner-state' | 'path-execution' | 'simulation' | 'arena' | 'intervention' | 'memory';
   displayTitle: string;
   href: string | null;
+  displayHref?: string | null;
+  canonicalHref?: string | null;
   confidence: 'none' | 'low' | 'medium' | 'high';
   evidenceBasis: string;
   owner: 'answer' | 'recommendation' | 'intervention' | 'report-explanation';
   citationChip?: LearningEvidenceCitationChipPayload;
+  citationTargetId?: string | null;
+  retrievalChunkId?: string | null;
+  answerRelevanceBasis?: string | null;
+  answerRelevanceMatch?: string | null;
+  answerRelevanceQueryHash?: string | null;
+  omittedCitationReason?: string | null;
 }
 
 export interface KonlingCitationContext {
@@ -1341,13 +1349,32 @@ export interface KonlingCitationGuard {
 }
 
 export function buildKonlingCitationRetrievalSources(guard: KonlingCitationGuard) {
-  return guard.citations.map((citation) => ({
+  return guard.citations.map(serializeKonlingCitationMetadata);
+}
+
+export function serializeKonlingCitationMetadata(citation: KonlingCitation) {
+  return {
     sourceType: citation.sourceType,
     displayTitle: citation.displayTitle,
     href: citation.href,
+    displayHref: citation.displayHref ?? citation.citationChip?.displayHref ?? null,
+    canonicalHref: citation.canonicalHref ?? citation.href,
     confidence: citation.confidence,
     evidenceBasis: citation.evidenceBasis,
-  }));
+    id: citation.id,
+    citationTargetId: citation.citationTargetId ?? null,
+    retrievalChunkId: citation.retrievalChunkId ?? null,
+    answerRelevanceBasis: citation.answerRelevanceBasis ?? null,
+    answerRelevanceMatch: citation.answerRelevanceMatch ?? null,
+    answerRelevanceQueryHash: citation.answerRelevanceQueryHash ?? null,
+    omittedCitationReason: citation.omittedCitationReason ?? null,
+    citationChip: jsonSafe(citation.citationChip),
+  };
+}
+
+function jsonSafe(value: unknown): unknown | null {
+  if (value === undefined) return null;
+  return JSON.parse(JSON.stringify(value)) as unknown;
 }
 
 export interface KonlingMemoryView {
@@ -5883,22 +5910,46 @@ function sourcePackRoleForKonling(role: AdaptiveLearnerStateRole): SourcePackCal
 function buildSourcePackContentCitation(pack: SourcePack, item: SourcePackItem): KonlingCitation {
   const citation = item.citation;
   const citationTargetRef = citation?.citationTargetId ?? item.citationTargetId ?? item.id;
+  const retrievalChunkId = item.retrievalChunkId ?? citation?.sourceId ?? item.id;
   const id = `content:${citationTargetRef}`;
   const title = citation?.displayTitle ?? item.title;
-  const href = citation?.href ?? null;
+  const canonicalHref = citation?.canonicalHref ?? citation?.href ?? null;
+  const displayHref = citation?.displayHref ?? canonicalHref;
+  const citationAddressKind = metadataString(item, 'citationAddressKind');
+  const citationAddressKindValue = citationAddressKind
+    ? citationAddressKind as LearningEvidenceCitationChipPayload['addressKind']
+    : undefined;
+  const citationLocator = metadataString(item, 'citationLocator');
+  const contentHash = metadataString(item, 'contentHash');
   return {
     id,
     sourceType: 'content',
     displayTitle: title,
-    href,
+    href: canonicalHref,
+    displayHref,
+    canonicalHref,
     confidence: 'high',
     evidenceBasis: `source-pack:${pack.profile}:${pack.packId}`,
     owner: 'answer',
+    citationTargetId: citationTargetRef,
+    retrievalChunkId,
+    answerRelevanceBasis: metadataString(item, 'answerRelevanceBasis'),
+    answerRelevanceMatch: metadataString(item, 'answerRelevanceMatch'),
+    answerRelevanceQueryHash: metadataString(item, 'answerRelevanceQueryHash'),
+    omittedCitationReason: metadataString(item, 'omittedCitationReason'),
     citationChip: {
       chunkId: id,
       displayTitle: title,
-      displayHref: href,
+      displayHref,
       sourceType: 'course-content',
+      addressKind: citationAddressKindValue,
+      citationAddress: canonicalHref ? {
+        kind: citationAddressKind || 'text',
+        sourceRefId: citationTargetRef,
+        href: canonicalHref,
+        locator: citationLocator,
+        contentHash,
+      } as LearningEvidenceCitationChipPayload['citationAddress'] : undefined,
       authorityLevel: 'canonical',
       confidence: 'high',
       freshnessBucket: 'current',
