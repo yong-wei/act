@@ -205,6 +205,23 @@ describe('new resource semantic completeness gate', () => {
     });
   });
 
+  it('rejects path-plannable registered resources without citation metadata', () => {
+    const resource = completeRegisteredResource({
+      id: 'new-path-missing-citation',
+      planningKind: 'path-plannable',
+    });
+    resource.planningOverride!.pathDisposition!.sourceVersionRef = null;
+    const result = validateChangedRegisteredResources([resource]);
+
+    expect(result.passed).toBe(false);
+    expect(result.issues).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        resourceId: 'new-path-missing-citation',
+        code: 'missing-citation-metadata',
+      }),
+    ]));
+  });
+
   it('passes reviewed non-path registered resources with rationale', () => {
     const result = validateChangedRegisteredResources([
       completeRegisteredResource({

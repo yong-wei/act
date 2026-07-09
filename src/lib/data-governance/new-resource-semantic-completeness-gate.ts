@@ -307,6 +307,9 @@ function validateRegisteredResource(resource: RegisteredResourceMetadata): NewRe
     if (!planning.evidenceInstrumentation?.length) {
       issues.push(issue(resource.id, 'registered-resource', 'missing-evidence-policy', 'Path-plannable resource requires evidence instrumentation policy.'));
     }
+    if (!hasDispositionSourceEvidence(disposition)) {
+      issues.push(issue(resource.id, 'registered-resource', 'missing-citation-metadata', 'Path-plannable resource requires source citation metadata.'));
+    }
   }
 
   if (disposition?.kind === 'embedded-asset' && !disposition.parentResourceNodeId) {
@@ -415,6 +418,10 @@ function hasGraphBinding(refs: Partial<ResourceGraphNodeRefs> | undefined): bool
 
 function hasCapabilityBinding(refs: Partial<ResourceGraphNodeRefs> | undefined): boolean {
   return (refs?.capability?.length ?? 0) > 0;
+}
+
+function hasDispositionSourceEvidence(disposition: ResourcePathPlanningDisposition | null): boolean {
+  return Boolean(disposition?.sourceFamily && disposition.stableSourceRef && disposition.sourceVersionRef);
 }
 
 function parseChangedStringLiteralIds(diff: string): string[] {

@@ -366,6 +366,45 @@ assert.match(
   /component-resource-without-metadata missing-registered-resource-metadata/,
 );
 
+run('git', ['reset', '--hard', 'HEAD'], repo);
+fs.writeFileSync(componentRegistryPath, originalComponentRegistry.replace(
+  'const registry = {};',
+  `const registry = {
+  'modified-component-resource-without-metadata': {
+    id: 'modified-component-resource-without-metadata',
+    label: 'Original component label',
+  },
+};`,
+));
+run('git', ['add', 'src/lib/resource-registry.tsx'], repo);
+run('git', ['commit', '--no-verify', '-m', 'add incomplete component registry entry'], repo);
+fs.writeFileSync(componentRegistryPath, fs.readFileSync(componentRegistryPath, 'utf8').replace('Original component label', 'Changed component label'));
+run('git', ['add', 'src/lib/resource-registry.tsx'], repo);
+const modifiedComponentRegistryResult = spawnSync('npx', ['tsx', './scripts/data-governance/check-new-resource-semantic-completeness.ts', '--staged'], {
+  cwd: repo,
+  encoding: 'utf8',
+});
+assert.notEqual(modifiedComponentRegistryResult.status, 0, 'gate must fail when a changed resource component registry entry field belongs to an id without metadata');
+assert.match(
+  `${modifiedComponentRegistryResult.stdout}\n${modifiedComponentRegistryResult.stderr}`,
+  /modified-component-resource-without-metadata missing-registered-resource-metadata/,
+);
+assert.doesNotMatch(
+  `${modifiedComponentRegistryResult.stdout}\n${modifiedComponentRegistryResult.stderr}`,
+  /Changed component label missing-registered-resource-metadata/,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+fs.writeFileSync(componentRegistryPath, originalComponentRegistry.replace(
+  'const registry = {};',
+  `const registry = {
+  'component-resource-without-metadata': {
+    id: 'component-resource-without-metadata',
+    label: 'Component resource without metadata',
+  },
+};`,
+));
+run('git', ['add', 'src/lib/resource-registry.tsx'], repo);
 run('git', ['commit', '--no-verify', '-m', 'add incomplete component registry'], repo);
 const componentRegistryBaseResult = spawnSync('npx', ['tsx', './scripts/data-governance/check-new-resource-semantic-completeness.ts', '--base', 'HEAD~1'], {
   cwd: repo,

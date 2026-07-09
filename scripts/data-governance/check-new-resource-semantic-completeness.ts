@@ -60,7 +60,7 @@ function main() {
   const repairDiff = gitDiff(options, TEACHING_RESOURCE_REPAIR_PATH);
   const resourceIds = uniqueSorted([
     ...parseChangedRegisteredResourceIds(readText(REGISTERED_RESOURCE_METADATA_PATH), registeredResourceDiff),
-    ...parseChangedResourceComponentRegistryIds(resourceComponentRegistryDiff),
+    ...parseChangedResourceComponentRegistryIds(readTextIfExists(RESOURCE_COMPONENT_REGISTRY_PATH), resourceComponentRegistryDiff),
     ...teachingResourceChanges.flatMap(({ source, diff }) => parseChangedTeachingResourceRegistryIds(source, diff)),
     ...parseChangedTeachingResourceRepairRegistryIds(repairDiff),
   ]);
@@ -181,7 +181,7 @@ function parseRegistryIdPropertyLiteralIds(lines: readonly string[]): string[] {
   return ids;
 }
 
-function parseChangedResourceComponentRegistryIds(diff: string): string[] {
+function parseChangedResourceComponentRegistryIds(source: string, diff: string): string[] {
   const ids: string[] = [];
   let awaitingEntryId = false;
   for (const rawLine of diff.split(/\r?\n/)) {
@@ -203,7 +203,31 @@ function parseChangedResourceComponentRegistryIds(diff: string): string[] {
       awaitingEntryId = false;
     }
   }
-  return ids;
+  return uniqueSorted([
+    ...ids,
+    ...parseResourceComponentRegistryEntryIds(source, parseDiffCurrentLineRanges(diff)),
+  ]);
+}
+
+function parseResourceComponentRegistryEntryIds(source: string, ranges: readonly DiffLineRange[]): string[] {
+  if (!source || ranges.length === 0) return [];
+  const lines = source.split(/\r?\n/);
+  const entries: Array<{ id: string; start: number; end: number }> = [];
+  for (let index = 0; index < lines.length; index += 1) {
+    const match = /^\s*['"]([^'"]+)['"]:\s*\{/.exec(lines[index]);
+    if (!match) continue;
+    let depth = 0;
+    for (let inner = index; inner < lines.length; inner += 1) {
+      depth += braceDelta(lines[inner]);
+      if (inner > index && depth <= 0) {
+        entries.push({ id: match[1], start: index + 1, end: inner + 1 });
+        break;
+      }
+    }
+  }
+  return entries
+    .filter((entry) => ranges.some((range) => range.start <= entry.end && range.end >= entry.start))
+    .map((entry) => entry.id);
 }
 
 function parseChangedTeachingResourceRepairRegistryIds(diff: string): string[] {
