@@ -1,5 +1,8 @@
 import type { RegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 import type {
+  ResourceNodeSourceKind,
+  RuntimeResourceProjectionLevel,
+  RuntimeResourceProjectionResourceType,
   ResourceGraphNodeRefs,
   ResourcePathPlanningDisposition,
   RuntimeResourceProjectionInput,
@@ -35,6 +38,56 @@ export interface RuntimeProjectionParseResult {
 }
 
 const PLACEHOLDER_REVIEWER_PATTERN = /\b(?:placeholder|todo|unknown|generated|synthetic|example|ai-generated|system-governed|template)\b/i;
+const RUNTIME_PROJECTION_LEVELS = new Set<RuntimeResourceProjectionLevel>([
+  'ResourceNode',
+  'ResourceSegment',
+  'CitationTarget',
+  'RetrievalChunk',
+  'PlanningUnit',
+]);
+const RUNTIME_PROJECTION_RESOURCE_TYPES = new Set<RuntimeResourceProjectionResourceType>([
+  'lesson_step',
+  'knowledge_node',
+  'knowledge_card',
+  'textbook',
+  'textbook_section',
+  'video',
+  'audio',
+  'slides',
+  'handout',
+  'quiz',
+  'adaptive_quiz',
+  'control_workbench',
+  'simulation',
+  'arena_task',
+  'external_resource',
+  'reflection',
+  'checkpoint',
+  'ai_intervention',
+  'konling',
+  'project',
+  'image',
+]);
+const RUNTIME_PROJECTION_SOURCE_KINDS = new Set<ResourceNodeSourceKind>([
+  'media_source_manifest',
+  'teaching_resource',
+  'resource_registry',
+  'knowledge_graph',
+  'textbook',
+  'textbook_section',
+  'runtime_lesson_step',
+  'runtime_lesson_media',
+  'runtime_handout',
+  'simulation_resource',
+  'arena_task',
+  'external_resource',
+  'control_workbench',
+  'checkpoint',
+  'reflection_prompt',
+  'ai_intervention',
+  'konling',
+  'project',
+]);
 
 export function validateChangedRegisteredResources(
   resources: readonly RegisteredResourceMetadata[],
@@ -104,6 +157,11 @@ export function parseAddedRuntimeProjectionChanges(diff: string): RuntimeProject
         issues.push(issue(`added-line-${index + 1}`, 'runtime-resource-projection', 'missing-runtime-projection-id', 'Added runtime projection JSONL row requires an id.'));
         continue;
       }
+      const schemaIssues = validateRuntimeProjectionInputSchema(row, `added-line-${index + 1}`);
+      if (schemaIssues.length > 0) {
+        issues.push(...schemaIssues);
+        continue;
+      }
       rows.push(row as RuntimeResourceProjectionInput);
     } catch {
       issues.push(issue(`added-line-${index + 1}`, 'runtime-resource-projection', 'malformed-runtime-projection-json', 'Added runtime projection JSONL row must be valid single-line JSON.'));
@@ -117,6 +175,38 @@ export function parseAddedRuntimeProjectionChanges(diff: string): RuntimeProject
       issues,
     },
   };
+}
+
+function validateRuntimeProjectionInputSchema(
+  row: Partial<RuntimeResourceProjectionInput>,
+  fallbackId: string,
+): NewResourceGateIssue[] {
+  const resourceId = row.id || fallbackId;
+  const issues: NewResourceGateIssue[] = [];
+  pushRequiredStringIssue(issues, resourceId, row.title, 'title');
+  pushRequiredStringIssue(issues, resourceId, row.sourceRef, 'source-ref');
+  pushRequiredEnumIssue(
+    issues,
+    resourceId,
+    row.resourceType,
+    RUNTIME_PROJECTION_RESOURCE_TYPES,
+    'resource-type',
+  );
+  pushRequiredEnumIssue(
+    issues,
+    resourceId,
+    row.sourceKind,
+    RUNTIME_PROJECTION_SOURCE_KINDS,
+    'source-kind',
+  );
+  pushRequiredEnumIssue(
+    issues,
+    resourceId,
+    row.projectionLevel,
+    RUNTIME_PROJECTION_LEVELS,
+    'projection-level',
+  );
+  return issues;
 }
 
 export function parseDiffCurrentLineRanges(diff: string): DiffLineRange[] {
@@ -481,6 +571,47 @@ function issue(
   message: string,
 ): NewResourceGateIssue {
   return { resourceId, family, code, message };
+}
+
+function pushRequiredStringIssue(
+  issues: NewResourceGateIssue[],
+  resourceId: string,
+  value: unknown,
+  fieldCode: string,
+) {
+  if (typeof value === 'string' && value.trim().length > 0) return;
+  issues.push(issue(
+    resourceId,
+    'runtime-resource-projection',
+    `missing-runtime-projection-${fieldCode}`,
+    `Runtime projection requires ${fieldCode.replaceAll('-', ' ')}.`,
+  ));
+}
+
+function pushRequiredEnumIssue<T extends string>(
+  issues: NewResourceGateIssue[],
+  resourceId: string,
+  value: unknown,
+  allowedValues: ReadonlySet<T>,
+  fieldCode: string,
+) {
+  if (typeof value !== 'string' || value.trim().length === 0) {
+    issues.push(issue(
+      resourceId,
+      'runtime-resource-projection',
+      `missing-runtime-projection-${fieldCode}`,
+      `Runtime projection requires ${fieldCode.replaceAll('-', ' ')}.`,
+    ));
+    return;
+  }
+  if (!allowedValues.has(value as T)) {
+    issues.push(issue(
+      resourceId,
+      'runtime-resource-projection',
+      `invalid-runtime-projection-${fieldCode}`,
+      `Runtime projection has unsupported ${fieldCode.replaceAll('-', ' ')}.`,
+    ));
+  }
 }
 
 function rangesOverlap(resource: ChangedRegisteredResourceInput, range: DiffLineRange): boolean {

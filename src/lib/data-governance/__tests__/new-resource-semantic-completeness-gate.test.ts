@@ -484,6 +484,65 @@ describe('new resource semantic completeness gate', () => {
       }),
     ]));
   });
+
+  it('rejects runtime projection rows missing required schema fields before validation', () => {
+    const diff = [
+      '+{"id":"projection-schema-missing"}',
+    ].join('\n');
+    const parsed = parseAddedRuntimeProjectionChanges(diff);
+
+    expect(parsed.rows).toEqual([]);
+    expect(parsed.result.passed).toBe(false);
+    expect(parsed.result.issues).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        resourceId: 'projection-schema-missing',
+        code: 'missing-runtime-projection-title',
+      }),
+      expect.objectContaining({
+        resourceId: 'projection-schema-missing',
+        code: 'missing-runtime-projection-source-ref',
+      }),
+      expect.objectContaining({
+        resourceId: 'projection-schema-missing',
+        code: 'missing-runtime-projection-resource-type',
+      }),
+      expect.objectContaining({
+        resourceId: 'projection-schema-missing',
+        code: 'missing-runtime-projection-source-kind',
+      }),
+      expect.objectContaining({
+        resourceId: 'projection-schema-missing',
+        code: 'missing-runtime-projection-projection-level',
+      }),
+    ]));
+  });
+
+  it('rejects runtime projection rows with unsupported schema enum fields', () => {
+    const invalid = {
+      ...completeRuntimeProjection({ id: 'projection-invalid-schema' }),
+      resourceType: 'unsupported_resource',
+      sourceKind: 'unsupported_source',
+      projectionLevel: 'UnsupportedLevel',
+    };
+    const parsed = parseAddedRuntimeProjectionChanges(`+${JSON.stringify(invalid)}`);
+
+    expect(parsed.rows).toEqual([]);
+    expect(parsed.result.passed).toBe(false);
+    expect(parsed.result.issues).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        resourceId: 'projection-invalid-schema',
+        code: 'invalid-runtime-projection-resource-type',
+      }),
+      expect.objectContaining({
+        resourceId: 'projection-invalid-schema',
+        code: 'invalid-runtime-projection-source-kind',
+      }),
+      expect.objectContaining({
+        resourceId: 'projection-invalid-schema',
+        code: 'invalid-runtime-projection-projection-level',
+      }),
+    ]));
+  });
 });
 
 function completeRegisteredResource(input: {
