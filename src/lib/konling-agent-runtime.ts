@@ -28,6 +28,7 @@ import {
   recordPathChoiceEvidence,
   recordPathIntervention,
 } from '@/lib/control-correction-path-rounds';
+import { loadAllLessonRuntimeResourceCatalogEntries } from '@/lib/course-runtime';
 import {
   loadAllTextbookRuntimeResourceCatalogEntries,
   loadAllTextbookRuntimeSearchDocuments,
@@ -62,12 +63,18 @@ import { getLearningGoalResourceBaselineForPlanner } from '@/lib/learning-goal-r
 import { getLearningGoalAssessmentCoverageForPlanner } from '@/lib/learning-goal-assessment-coverage-runtime';
 import type { GraphCenterClassOverlayInput } from '@/lib/data-governance/graph-center';
 import {
-  applyCoreResourcePathReadinessDispositions,
-  buildResourceNodeRegistry,
   type ResourceNode,
   type ResourceNodeRegistry,
 } from '@/lib/resource-node-registry';
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
+import {
+  buildResourceCandidatePoolDiagnostics,
+  buildResourceNodeRegistryFromTeachingResources,
+  loadRuntimeResourceProjectionInputs,
+  toTextbookSectionNodeInputs,
+  type ResourceCandidatePoolDiagnostics,
+  type ResourceCandidatePoolSourceStatus,
+} from '@/lib/teacher-resource-node-data';
 import { buildFrequencyResponseFoundationsResourceSeedInput } from '@/lib/frequency-response-resource-seed';
 import { expandLearningGoalSubgraph } from '@/lib/graphs/goal-subgraph-expansion-service';
 import type { PageContext, UserProfile, AbilityVector } from '@/types/ai-context';
@@ -2287,7 +2294,7 @@ async function buildAdaptivePathToolOutput(
   if (!registeredGoal) {
     throw new KonlingRuntimeScopeError(404, '当前页面目标没有可生成的学习路径。');
   }
-  const registry = await resolveAdaptivePathGenerationRegistry(goalId);
+  const { registry, diagnostics: candidatePoolDiagnostics } = await resolveAdaptivePathGenerationRegistry(input, goalId);
   const timeBudget = resolveAdaptivePathTimeBudget(registeredGoal, args.timeBudgetMinutes);
   const resourcePreferences = normalizeAdaptivePathResourcePreferences(args.resourcePreference)
     ?? registeredGoal.starterPathPolicy.preferredResourceTypes;
@@ -2315,6 +2322,7 @@ async function buildAdaptivePathToolOutput(
     allowExternalResources: args.allowExternalResources ?? registeredGoal.starterPathPolicy.allowExternalResources,
     sourcePackCandidates: sourcePackInput.items,
     sourcePackLimitations: sourcePackInput.limitations,
+    candidatePoolDiagnostics,
     sourcePackRole: 'student',
     ...plannerRevisionPreference,
     excludedNodeIds: args.excludedNodeIds,
@@ -2335,8 +2343,17 @@ async function buildAdaptivePathToolOutput(
     excludedNodeIds: args.excludedNodeIds ?? [],
     preferredStyleId: args.preferredStyleId ?? null,
     requestedAt: args.requestedAt ?? null,
+    candidatePoolDiagnostics,
   });
   const hasPersistablePath = plan.mainPath.length > 0;
+  const candidatePoolLimitationCodes = candidatePoolDiagnostics.sourceFamilies
+    .map((source) => source.reason)
+    .filter((reason): reason is string => Boolean(reason));
+  const candidatePoolLimited = candidatePoolLimitationCodes.length > 0;
+  const candidatePoolStatus = {
+    limited: candidatePoolLimited,
+    limitationCodes: candidatePoolLimitationCodes,
+  };
   if (hasPersistablePath) {
     await persistLearningPathRound(input.db as any, {
       plan,
@@ -2346,7 +2363,14 @@ async function buildAdaptivePathToolOutput(
         source: 'konling-tool',
         operation,
         toolScope,
+        candidatePoolLimited,
+        candidatePoolLimitationCodes,
         request: requestSnapshot,
+      },
+      pathPayloadMetadata: {
+        candidatePoolLimited,
+        candidatePoolLimitationCodes,
+        candidatePoolStatus,
       },
     });
   }
@@ -2402,7 +2426,11 @@ async function buildAdaptivePathToolOutput(
         ? '已根据你的学习证据生成可比较的路径方案。'
         : buildBlockedAdaptivePathGenerationMessage(fallbackReasons),
     },
-    limitations: fallbackReasons,
+    limitations: uniqueStringList([...fallbackReasons, ...candidatePoolLimitationCodes]),
+    candidatePoolLimited,
+    diagnostics: {
+      candidatePool: candidatePoolDiagnostics,
+    },
     studentSafeRationale: [
       '路径会依据你的当前目标、学习证据和可用时间生成。',
       '证据不足时会先给出可开始的基础路径，并提示需要补充的学习记录。',
@@ -2425,6 +2453,14 @@ function buildBlockedAdaptivePathGenerationMessage(fallbackReasons: readonly str
     return '当前目标缺少可用的路径资源映射，暂不能生成可执行学习路径。';
   }
   return '当前限制条件下暂不能生成可执行学习路径，请调整目标、时间或资源偏好后重试。';
+}
+
+function uniqueStringList(values: readonly string[]): string[] {
+  return Array.from(new Set(values.filter(Boolean)));
+}
+
+function isMissingFileError(error: unknown): boolean {
+  return Boolean(error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT');
 }
 
 function buildAdaptivePathPlannerGraphContext(
@@ -2787,34 +2823,136 @@ function resolveScopedAdaptivePathGoalId(input: KonlingToolRuntimeInput, request
   return goalId;
 }
 
-async function resolveAdaptivePathGenerationRegistry(goalId: string) {
-  const runtimeTextbooks = await loadAllTextbookRuntimeResourceCatalogEntries().catch(() => []);
+async function resolveAdaptivePathGenerationRegistry(input: KonlingToolRuntimeInput, goalId: string): Promise<{
+  registry: ResourceNodeRegistry;
+  diagnostics: ResourceCandidatePoolDiagnostics;
+}> {
+  const [teachingResourcesSource, runtimeLessonsSource, runtimeTextbooksSource, runtimeResourceProjectionsSource] = await Promise.all([
+    loadCandidateSourceFamily('teaching-resources', () => loadAdaptivePathTeachingResources(input.db)),
+    loadCandidateSourceFamily('runtime-lessons', () => loadAllLessonRuntimeResourceCatalogEntries()),
+    loadCandidateSourceFamily('runtime-textbooks', () => loadAllTextbookRuntimeResourceCatalogEntries()),
+    loadCandidateSourceFamily('runtime-resource-projections', () => loadRuntimeResourceProjectionInputs({ allowMissing: false })),
+  ]);
+  const teachingResources = teachingResourcesSource.items;
+  const runtimeLessons = runtimeLessonsSource.items;
+  const runtimeTextbooks = runtimeTextbooksSource.items;
+  const runtimeResourceProjections = runtimeResourceProjectionsSource.items;
+  const sourceFamilies = [
+    teachingResourcesSource.status,
+    runtimeLessonsSource.status,
+    runtimeTextbooksSource.status,
+    runtimeResourceProjectionsSource.status,
+  ];
+  const registeredResources = getAllRegisteredResourceMetadata();
   const runtimeTextbookInput = {
     textbooks: runtimeTextbooks.map((entry) => entry.textbook),
-    textbookSections: runtimeTextbooks.flatMap((entry) =>
-      entry.sections.map((section) => ({
-        ...section,
-        bookId: entry.textbook.bookId,
-      }))
-    ),
+    textbookSections: runtimeTextbooks.flatMap(toTextbookSectionNodeInputs),
   };
-  const buildGenericRegistry = () => applyCoreResourcePathReadinessDispositions(buildResourceNodeRegistry({
-    registeredResources: getAllRegisteredResourceMetadata(),
-    ...runtimeTextbookInput,
-  }));
+  const withDiagnostics = (registry: ResourceNodeRegistry) => ({
+    registry,
+    diagnostics: buildResourceCandidatePoolDiagnostics(registry, sourceFamilies),
+  });
+  const buildGenericRegistry = () => buildResourceNodeRegistryFromTeachingResources(
+    teachingResources,
+    registeredResources,
+    runtimeLessons,
+    runtimeTextbooks,
+    runtimeResourceProjections,
+  );
   if (goalId === CONTROL_CORRECTION_PATH_ROUND_GOAL_ID) {
-    return buildGenericRegistry();
+    return withDiagnostics(buildGenericRegistry());
   }
   if (goalId === 'frequency-response-foundations') {
-    return applyCoreResourcePathReadinessDispositions(buildResourceNodeRegistry({
-      ...buildFrequencyResponseFoundationsResourceSeedInput(),
-      ...runtimeTextbookInput,
-    }));
+    return withDiagnostics(buildResourceNodeRegistryFromTeachingResources(
+      teachingResources,
+      registeredResources,
+      runtimeLessons,
+      runtimeTextbooks,
+      runtimeResourceProjections,
+      buildFrequencyResponseFoundationsResourceSeedInput(),
+    ));
   }
   if (getRegisteredAdaptiveLearningPathGoal(goalId)) {
-    return buildGenericRegistry();
+    return withDiagnostics(buildGenericRegistry());
   }
   throw new KonlingRuntimeScopeError(404, '当前学习目标未注册。');
+}
+
+async function loadCandidateSourceFamily<T>(
+  family: string,
+  loader: () => Promise<readonly T[]>,
+): Promise<{ items: T[]; status: ResourceCandidatePoolSourceStatus }> {
+  try {
+    const items = [...await loader()];
+    return {
+      items,
+      status: {
+        family,
+        status: items.length > 0 ? 'loaded' : 'empty',
+        count: items.length,
+        reason: null,
+      },
+    };
+  } catch (error) {
+    if (isMissingFileError(error)) {
+      return {
+        items: [],
+        status: {
+          family,
+          status: 'missing',
+          count: 0,
+          reason: `missing-source-family:${family}`,
+        },
+      };
+    }
+    return {
+      items: [],
+      status: {
+        family,
+        status: 'error',
+        count: 0,
+        reason: `loader-error:${family}`,
+      },
+    };
+  }
+}
+
+async function loadAdaptivePathTeachingResources(db: unknown): Promise<Array<{
+  id: string;
+  title: string;
+  displayName: string | null;
+  description: string | null;
+  type: string;
+  registryId: string | null;
+  content: string | null;
+  category: string | null;
+  teacherOnly: boolean | null;
+  config: unknown;
+  knowledgeNodes: Array<{
+    id: string;
+    name: string;
+    resources: unknown;
+    tags: string[];
+  }>;
+}>> {
+  const teachingResource = readRecord(db).teachingResource;
+  if (!teachingResource || typeof teachingResource !== 'object') return [];
+  const findMany = readRecord(teachingResource).findMany;
+  if (typeof findMany !== 'function') return [];
+  return await findMany({
+    where: { teacherOnly: false },
+    include: {
+      knowledgeNodes: {
+        select: {
+          id: true,
+          name: true,
+          resources: true,
+          tags: true,
+        },
+      },
+    },
+    orderBy: [{ category: 'asc' }, { displayOrder: 'asc' }, { title: 'asc' }],
+  });
 }
 
 async function buildAdaptivePathSourcePackCandidates(
@@ -3532,14 +3670,12 @@ async function validateKonlingToolPreflight(
   if (toolName === 'generate_learning_path') {
     const parsed = generateLearningPathParameters.parse(toolInput);
     const goalId = resolveScopedAdaptivePathGoalId(runtimeInput, parsed.goalId);
-    await resolveAdaptivePathGenerationRegistry(goalId);
     await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { goalId, requirePath: false, requireExisting: false });
     return;
   }
   if (toolName === 'revise_learning_path_options') {
     const parsed = reviseLearningPathOptionsParameters.parse(toolInput);
     const goalId = resolveScopedAdaptivePathGoalId(runtimeInput, parsed.goalId);
-    await resolveAdaptivePathGenerationRegistry(goalId);
     const path = await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { goalId, requirePath: true, requireExisting: true });
     assertAdaptivePathOptionIds(path, parsed.selectedStyleId, parsed.rejectedStyleIds ?? [], { allowPolicyFallback: true });
     return;

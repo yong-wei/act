@@ -56,11 +56,38 @@ vi.mock('@/lib/resource-registry-metadata', () => ({
       type: 'INTERACTIVE_COMP',
       renderTarget: '/interactive-learning/resources/registered-quiz',
       knowledgeNodeIds: ['kn-bode'],
+      planningOverride: reviewedPathPlanningOverride('resource_registry', 'registered-quiz'),
     },
   ],
 }));
 
 import { GET } from '../route';
+
+function reviewedPathPlanningOverride(sourceFamily: string, stableSourceRef: string) {
+  return {
+    abilityImpact: { controlModeling: 0.2, diagnosticAssessment: 0.2 },
+    evidenceInstrumentation: ['answer_submit'],
+    readiness: {
+      minimumCompetency: { controlModeling: 0.1 },
+      minimumEvidenceCount: 0,
+      requiredCompletedNodeIds: [],
+      requiredOutcomeRefs: [],
+      unlockMessage: 'Reviewed fixture is ready for path planning.',
+      fallbackNodeIds: [],
+    },
+    pathDisposition: {
+      kind: 'path-plannable',
+      reviewStatus: 'human-confirmed',
+      rationale: 'Reviewed ResourceNode API fixture for path planning.',
+      sourceFamily,
+      stableSourceRef,
+      sourceVersionRef: 'resource-node-registry.v1',
+      parentResourceNodeId: null,
+      reviewedAt: '2026-07-03T00:00:00.000Z',
+      reviewerId: 'resource-node-api-test-review',
+    },
+  };
+}
 
 const ownedResource = {
   id: 'owned-quiz',
@@ -76,6 +103,7 @@ const ownedResource = {
     resourceNodePlanning: {
       teacherPolicy: 'teacher-assigned',
       estimatedTimeMinutes: 18,
+      ...reviewedPathPlanningOverride('teaching_resource', 'owned-quiz'),
     },
   },
   knowledgeNodes: [
@@ -341,6 +369,10 @@ describe('GET /api/teacher/resource-nodes', () => {
             knowledgeNodeIds: ['kn-bode'],
             capabilityTargetIds: ['parameterDesign'],
             estimatedTimeMinutes: 18,
+            planningOverride: reviewedPathPlanningOverride(
+              'textbook_section',
+              'dorf-modern-control-systems:ch10-sec01',
+            ),
           },
           {
             bookId: 'dorf-modern-control-systems',
@@ -479,6 +511,7 @@ describe('GET /api/teacher/resource-nodes', () => {
         ...ownedResource,
         config: {
           resourceNodePlanning: {
+            ...reviewedPathPlanningOverride('teaching_resource', 'owned-quiz'),
             abilityImpact: {},
             evidenceInstrumentation: [],
           },
