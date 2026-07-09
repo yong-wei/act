@@ -14,6 +14,7 @@ import {
   type ResourceEvidenceLineageReadinessSummary,
   type ResourceFieldCompletionAuditRow,
   type ResourceFieldCompletionCandidate,
+  type ResourceFieldCompletionFamily,
   type ResourceFieldMissingCode,
   YANGFAN_FIXTURE_READINESS_SCOPE_POLICY_VERSION,
 } from '@/lib/resource-field-completion-audit';
@@ -45,6 +46,14 @@ const DISPOSITION_REVIEW_EVIDENCE_MD_PATH = path.join(OUTPUT_DIR, 'resource-disp
 const KNOWLEDGE_VISUAL_SEMANTIC_REVIEW_ITEMS_JSONL_PATH = path.join(OUTPUT_DIR, 'knowledge-visual-semantic-shard-review-items.jsonl');
 const KNOWLEDGE_VISUAL_SEMANTIC_REVIEW_SUMMARY_JSON_PATH = path.join(OUTPUT_DIR, 'knowledge-visual-semantic-shard-summary.json');
 const KNOWLEDGE_VISUAL_SEMANTIC_REVIEW_EVIDENCE_MD_PATH = path.join(OUTPUT_DIR, 'knowledge-visual-semantic-shard-evidence.md');
+const CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_WORKQUEUE_JSONL_PATH = path.join(OUTPUT_DIR, 'core-registered-knowledge-resource-semantic-workqueue-items.jsonl');
+const CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_REVIEW_JSONL_PATH = path.join(OUTPUT_DIR, 'core-registered-knowledge-resource-semantic-review-items.jsonl');
+const CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_REVIEW_SOURCE_JSONL_PATH = path.join(
+  process.cwd(),
+  'openspec/changes/complete-core-registered-knowledge-resource-semantics/evidence/core-registered-knowledge-resource-semantic-review-source.jsonl',
+);
+const CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_SUMMARY_JSON_PATH = path.join(OUTPUT_DIR, 'core-registered-knowledge-resource-semantic-summary.json');
+const CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_EVIDENCE_MD_PATH = path.join(OUTPUT_DIR, 'core-registered-knowledge-resource-semantic-evidence.md');
 const TEXTBOOK_SEARCH_DOCUMENT_CITATION_REVIEW_ITEMS_JSONL_PATH = path.join(OUTPUT_DIR, 'textbook-search-document-citation-shard-review-items.jsonl');
 const HUMAN_REVIEW_INTEGRITY_JSON_PATH = path.join(OUTPUT_DIR, 'resource-human-review-integrity-diagnostics.json');
 const PROJECTION_JSONL_PATH = path.join(OUTPUT_DIR, 'runtime-resource-projections.jsonl');
@@ -71,6 +80,15 @@ const REVIEWED_GRAPH_RESOURCE_REVIEWER = {
 const RESIDUAL_DISPOSITION_REVIEW_BATCH_ID = 'residual-resource-disposition-review-2026-07-05' as const;
 const RESIDUAL_DISPOSITION_REVIEWER_ID = 'residual-resource-disposition-implementing-agent' as const;
 const RESIDUAL_DISPOSITION_REVIEWED_AT = '2026-07-05T17:45:00.000Z' as const;
+const CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_REVIEW_BATCH_ID = 'core-registered-knowledge-resource-semantics-2026-07-09' as const;
+const CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_REVIEWER_ID = 'core-registered-knowledge-resource-implementing-agent' as const;
+const CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_REVIEWED_AT = '2026-07-09T16:30:00.000Z' as const;
+
+const CORE_SCOPE_FAMILIES = new Set<ResourceFieldCompletionFamily>([
+  'registered-resource',
+  'knowledge-card',
+  'knowledge-infograph',
+]);
 
 type ResidualDispositionClassification =
   | 'path-plannable'
@@ -208,6 +226,106 @@ interface KnowledgeVisualSemanticReviewSummary {
     reviewItemsPath: string;
     auditJsonlPath: string;
     workqueueItemsPath: string;
+  };
+}
+
+type CoreRegisteredKnowledgeResourceFamily =
+  | 'registered-resource'
+  | 'knowledge-card'
+  | 'knowledge-infograph';
+
+interface CoreRegisteredKnowledgeResourceSemanticWorkqueueItem {
+  artifactVersion: 'core-registered-knowledge-resource-semantics.v1';
+  reviewBatchId: string;
+  selectedOrder: number;
+  resourceId: string;
+  sourceFamily: CoreRegisteredKnowledgeResourceFamily;
+  title: string;
+  sourcePathOrUrl: string | null;
+  sourceRecord: string | null;
+  startingBlockerCodes: ResourceFieldMissingCode[];
+  startingBlockerCount: number;
+  sourceHash: string | null;
+  sourceVersionRef: string | null;
+  privacyMinimized: true;
+  rawContentIncluded: false;
+}
+
+interface CoreRegisteredKnowledgeResourceSemanticReviewItem extends CoreRegisteredKnowledgeResourceSemanticWorkqueueItem {
+  reviewerId: string;
+  reviewerRole: string;
+  reviewedAt: string;
+  reviewSourceKind: 'implementing-agent-item-review';
+  disposition: ResidualDispositionClassification;
+  graphNodeIds: string[];
+  learningGoalIds: string[];
+  knowledgeObjectiveIds: string[];
+  capabilityObjectiveIds: string[];
+  qualityObjectiveIds: string[];
+  objectiveMappingRationale: string;
+  pathStageOrSupportRole: string;
+  routeTarget: string | null;
+  citationTargets: string[];
+  evidenceBehavior: 'path-execution-evidence-only' | 'citation-display-only' | 'route-only-source-identity-limited';
+  privacyScope: ResourceFieldCompletionCandidate['privacyScope'];
+  residualLimitationState: string[];
+  currentPathEligible: boolean;
+  reviewerVisibleRationale: string;
+  independentEvidenceRef: string;
+}
+
+interface CoreRegisteredKnowledgeResourceSemanticReviewSource {
+  artifactVersion: 'core-registered-knowledge-resource-semantics.review-source.v1';
+  reviewBatchId: string;
+  reviewerId: string;
+  reviewerRole: string;
+  reviewedAt: string;
+  reviewSourceKind: 'implementing-agent-item-review';
+  resourceId: string;
+  disposition: ResidualDispositionClassification;
+  graphNodeIds: string[];
+  learningGoalIds: string[];
+  knowledgeObjectiveIds: string[];
+  capabilityObjectiveIds: string[];
+  qualityObjectiveIds: string[];
+  objectiveMappingRationale: string;
+  pathStageOrSupportRole: string;
+  routeTarget: string | null;
+  citationTargets: string[];
+  evidenceBehavior: CoreRegisteredKnowledgeResourceSemanticReviewItem['evidenceBehavior'];
+  privacyScope: ResourceFieldCompletionCandidate['privacyScope'];
+  residualLimitationState: string[];
+  currentPathEligible: boolean;
+  reviewerVisibleRationale: string;
+  sourceHash: string | null;
+  sourceVersionRef: string | null;
+  privacyMinimized: true;
+  rawContentIncluded: false;
+}
+
+interface CoreRegisteredKnowledgeResourceSemanticSummary {
+  artifactVersion: 'core-registered-knowledge-resource-semantics.v1';
+  reviewBatchId: string;
+  reviewerId: string;
+  reviewedAt: string;
+  totals: {
+    scopedResources: number;
+    workqueueItems: number;
+    reviewedResources: number;
+    remainingSemanticReviewBlockers: number;
+    unexplainedRemainingItems: number;
+    rawContentIncluded: boolean;
+    privacyMinimized: boolean;
+  };
+  bySourceFamily: Record<string, number>;
+  byDisposition: Record<string, number>;
+  residualLimitations: Record<string, number>;
+  startingBlockers: Record<string, number>;
+  evidence: {
+    workqueueItemsPath: string;
+    reviewSourcePath: string;
+    reviewItemsPath: string;
+    sourceAuditPath: string;
   };
 }
 
@@ -849,6 +967,7 @@ async function main() {
     generatedAt,
     sourceWindow: { from: null, to: generatedAt },
   });
+  const coreRegisteredKnowledgeResourceSemanticArtifacts = await buildCoreRegisteredKnowledgeResourceSemanticArtifacts(result.rows);
   const dispositionReviewItems = await buildResidualDispositionReviewItems(result.rows);
   const dispositionReviewSummary = buildResidualDispositionReviewSummary(dispositionReviewItems, result.workqueues);
   const reviewedEvidenceLineage = buildReviewedEvidenceLineageReadiness(
@@ -939,6 +1058,26 @@ async function main() {
     'utf8',
   );
   await fs.writeFile(
+    CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_WORKQUEUE_JSONL_PATH,
+    `${coreRegisteredKnowledgeResourceSemanticArtifacts.workqueueItems.map((row) => JSON.stringify(row)).join('\n')}\n`,
+    'utf8',
+  );
+  await fs.writeFile(
+    CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_REVIEW_JSONL_PATH,
+    `${coreRegisteredKnowledgeResourceSemanticArtifacts.reviewItems.map((row) => JSON.stringify(row)).join('\n')}\n`,
+    'utf8',
+  );
+  await fs.writeFile(
+    CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_SUMMARY_JSON_PATH,
+    `${JSON.stringify(coreRegisteredKnowledgeResourceSemanticArtifacts.summary, null, 2)}\n`,
+    'utf8',
+  );
+  await fs.writeFile(
+    CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_EVIDENCE_MD_PATH,
+    renderCoreRegisteredKnowledgeResourceSemanticEvidence(coreRegisteredKnowledgeResourceSemanticArtifacts.summary),
+    'utf8',
+  );
+  await fs.writeFile(
     HUMAN_REVIEW_INTEGRITY_JSON_PATH,
     `${JSON.stringify(result.integrityDiagnostics, null, 2)}\n`,
     'utf8',
@@ -991,6 +1130,8 @@ async function main() {
   console.log(`Residual disposition review rows: ${dispositionReviewItems.length}`);
   console.log(`Knowledge visual semantic shard remaining: ${knowledgeVisualSemanticReviewSummary.remainingSelectedSemanticReview}`);
   console.log(`Knowledge visual semantic shard summary: ${path.relative(process.cwd(), KNOWLEDGE_VISUAL_SEMANTIC_REVIEW_SUMMARY_JSON_PATH)}`);
+  console.log(`Core registered/knowledge semantic review rows: ${coreRegisteredKnowledgeResourceSemanticArtifacts.reviewItems.length}`);
+  console.log(`Core registered/knowledge semantic summary: ${path.relative(process.cwd(), CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_SUMMARY_JSON_PATH)}`);
   console.log(`Residual disposition summary: ${path.relative(process.cwd(), DISPOSITION_REVIEW_SUMMARY_JSON_PATH)}`);
   console.log(`Human review integrity issues: ${result.integrityDiagnostics.invalidHumanConfirmedRows}`);
   console.log(`Runtime resource projections: ${projectionArtifacts.rows.length}`);
@@ -1689,6 +1830,10 @@ function countBy<T>(values: T[], keyFor: (value: T) => string): Record<string, n
   }, {});
 }
 
+function arraysEqual(left: string[], right: string[]) {
+  return left.length === right.length && left.every((value, index) => value === right[index]);
+}
+
 async function readJsonlFile<T>(filePath: string): Promise<T[]> {
   try {
     const text = await fs.readFile(filePath, 'utf8');
@@ -1825,6 +1970,271 @@ function renderKnowledgeVisualSemanticReviewEvidence(summary: KnowledgeVisualSem
     `Workqueue JSONL: ${summary.evidence.workqueueItemsPath}`,
     '',
     'The selected shard is bounded. Remaining unselected rows are reported as residual backlog and are not completion blockers for this change.',
+  ];
+  return `${lines.join('\n')}\n`;
+}
+
+async function buildCoreRegisteredKnowledgeResourceSemanticArtifacts(
+  auditRows: ResourceFieldCompletionAuditRow[],
+): Promise<{
+  workqueueItems: CoreRegisteredKnowledgeResourceSemanticWorkqueueItem[];
+  reviewItems: CoreRegisteredKnowledgeResourceSemanticReviewItem[];
+  summary: CoreRegisteredKnowledgeResourceSemanticSummary;
+}> {
+  const reviewSources = await loadCoreRegisteredKnowledgeResourceSemanticReviewMap();
+  const scopedRows = auditRows
+    .filter((row) => CORE_SCOPE_FAMILIES.has(row.family))
+    .sort((left, right) => left.resourceId.localeCompare(right.resourceId));
+  const scopedIds = new Set(scopedRows.map((row) => row.resourceId));
+  for (const resourceId of reviewSources.keys()) {
+    if (!scopedIds.has(resourceId)) {
+      throw new Error(`Core registered/knowledge semantic review source includes out-of-scope resource: ${resourceId}`);
+    }
+  }
+  const workqueueItems = scopedRows.map((row, index): CoreRegisteredKnowledgeResourceSemanticWorkqueueItem => ({
+    artifactVersion: 'core-registered-knowledge-resource-semantics.v1',
+    reviewBatchId: CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_REVIEW_BATCH_ID,
+    selectedOrder: index + 1,
+    resourceId: row.resourceId,
+    sourceFamily: row.family as CoreRegisteredKnowledgeResourceFamily,
+    title: row.title,
+    sourcePathOrUrl: row.sourcePathOrUrl,
+    sourceRecord: row.sourceRecord,
+    startingBlockerCodes: row.missingFieldCodes,
+    startingBlockerCount: row.missingFieldCodes.length,
+    sourceHash: row.sourceHash,
+    sourceVersionRef: row.sourceVersionRef,
+    privacyMinimized: true,
+    rawContentIncluded: false,
+  }));
+  const reviewItems = scopedRows.map((row, index) => {
+    const source = reviewSources.get(row.resourceId);
+    if (!source) {
+      throw new Error(`Missing core registered/knowledge semantic review source for ${row.resourceId}`);
+    }
+    return coreSemanticReviewItemFromSource(row, index + 1, source);
+  });
+  const summary = buildCoreRegisteredKnowledgeResourceSemanticSummary(workqueueItems, reviewItems);
+  return { workqueueItems, reviewItems, summary };
+}
+
+async function loadCoreRegisteredKnowledgeResourceSemanticReviewMap(): Promise<Map<string, CoreRegisteredKnowledgeResourceSemanticReviewSource>> {
+  const sources = await readJsonlFile<CoreRegisteredKnowledgeResourceSemanticReviewSource>(
+    CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_REVIEW_SOURCE_JSONL_PATH,
+  );
+  if (sources.length === 0) {
+    throw new Error(`Core registered/knowledge semantic review source is empty or missing: ${projectPath(CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_REVIEW_SOURCE_JSONL_PATH)}`);
+  }
+  const map = new Map<string, CoreRegisteredKnowledgeResourceSemanticReviewSource>();
+  for (const source of sources) {
+    if (map.has(source.resourceId)) {
+      throw new Error(`Duplicate core registered/knowledge semantic review source for ${source.resourceId}`);
+    }
+    map.set(source.resourceId, source);
+  }
+  return map;
+}
+
+function coreSemanticReviewItemFromSource(
+  row: ResourceFieldCompletionAuditRow,
+  selectedOrder: number,
+  source: CoreRegisteredKnowledgeResourceSemanticReviewSource,
+): CoreRegisteredKnowledgeResourceSemanticReviewItem {
+  assertCoreSemanticReviewSourceMatchesRow(row, source);
+  return {
+    artifactVersion: 'core-registered-knowledge-resource-semantics.v1',
+    reviewBatchId: source.reviewBatchId,
+    reviewerId: source.reviewerId,
+    reviewerRole: source.reviewerRole,
+    reviewedAt: source.reviewedAt,
+    reviewSourceKind: source.reviewSourceKind,
+    selectedOrder,
+    resourceId: row.resourceId,
+    sourceFamily: row.family as CoreRegisteredKnowledgeResourceFamily,
+    title: row.title,
+    sourcePathOrUrl: row.sourcePathOrUrl,
+    sourceRecord: row.sourceRecord,
+    startingBlockerCodes: row.missingFieldCodes,
+    startingBlockerCount: row.missingFieldCodes.length,
+    sourceHash: row.sourceHash,
+    sourceVersionRef: row.sourceVersionRef,
+    disposition: source.disposition,
+    graphNodeIds: uniqueSorted(source.graphNodeIds),
+    learningGoalIds: uniqueSorted(source.learningGoalIds),
+    knowledgeObjectiveIds: uniqueSorted(source.knowledgeObjectiveIds),
+    capabilityObjectiveIds: uniqueSorted(source.capabilityObjectiveIds),
+    qualityObjectiveIds: uniqueSorted(source.qualityObjectiveIds),
+    objectiveMappingRationale: source.objectiveMappingRationale,
+    pathStageOrSupportRole: source.pathStageOrSupportRole,
+    routeTarget: source.routeTarget,
+    citationTargets: uniqueSorted(source.citationTargets),
+    evidenceBehavior: source.evidenceBehavior,
+    privacyScope: source.privacyScope,
+    residualLimitationState: uniqueSorted(source.residualLimitationState),
+    currentPathEligible: source.currentPathEligible,
+    reviewerVisibleRationale: source.reviewerVisibleRationale,
+    independentEvidenceRef: `${projectPath(CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_REVIEW_JSONL_PATH)}#${row.resourceId}`,
+    privacyMinimized: true,
+    rawContentIncluded: false,
+  };
+}
+
+function assertCoreSemanticReviewSourceMatchesRow(
+  row: ResourceFieldCompletionAuditRow,
+  source: CoreRegisteredKnowledgeResourceSemanticReviewSource,
+) {
+  if (source.artifactVersion !== 'core-registered-knowledge-resource-semantics.review-source.v1') {
+    throw new Error(`Invalid core semantic review source artifact version for ${source.resourceId}`);
+  }
+  if (source.reviewSourceKind !== 'implementing-agent-item-review') {
+    throw new Error(`Invalid core semantic review source kind for ${source.resourceId}`);
+  }
+  if (source.reviewerId !== CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_REVIEWER_ID) {
+    throw new Error(`Unexpected core semantic reviewer for ${source.resourceId}`);
+  }
+  if (source.reviewBatchId !== CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_REVIEW_BATCH_ID) {
+    throw new Error(`Unexpected core semantic review batch for ${source.resourceId}`);
+  }
+  if (source.reviewedAt !== CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_REVIEWED_AT) {
+    throw new Error(`Unexpected core semantic reviewedAt for ${source.resourceId}`);
+  }
+  if (!CORE_SCOPE_FAMILIES.has(row.family)) {
+    throw new Error(`Out-of-scope core semantic audit row: ${row.resourceId}`);
+  }
+  if (source.sourceHash !== row.sourceHash) {
+    throw new Error(`Core semantic review source hash mismatch for ${row.resourceId}`);
+  }
+  if (source.sourceVersionRef !== row.sourceVersionRef) {
+    throw new Error(`Core semantic review source version mismatch for ${row.resourceId}`);
+  }
+  if (!source.privacyScope) {
+    throw new Error(`Core semantic review source missing privacyScope for ${row.resourceId}`);
+  }
+  if (source.rawContentIncluded || !source.privacyMinimized) {
+    throw new Error(`Core semantic review source violates privacy minimization for ${row.resourceId}`);
+  }
+  if (source.reviewerVisibleRationale.length < 60 || source.objectiveMappingRationale.length < 60) {
+    throw new Error(`Core semantic review source rationale is too thin for ${row.resourceId}`);
+  }
+  if (source.disposition === 'path-plannable') {
+    if (!row.sourceHash || !source.sourceHash) {
+      throw new Error(`Core semantic path-plannable resource lacks source hash: ${row.resourceId}`);
+    }
+    if (!row.pathEligibility.current || !source.currentPathEligible) {
+      throw new Error(`Core semantic path-plannable resource is not currently path eligible: ${row.resourceId}`);
+    }
+    if (!source.routeTarget || source.routeTarget !== row.pathTarget) {
+      throw new Error(`Core semantic path-plannable route mismatch for ${row.resourceId}`);
+    }
+    if (source.evidenceBehavior !== 'path-execution-evidence-only') {
+      throw new Error(`Core semantic path-plannable evidence behavior mismatch for ${row.resourceId}`);
+    }
+    if (source.learningGoalIds.length === 0 || source.knowledgeObjectiveIds.length === 0 || source.capabilityObjectiveIds.length === 0 || source.qualityObjectiveIds.length === 0) {
+      throw new Error(`Core semantic path-plannable resource lacks K/A/Q mapping: ${row.resourceId}`);
+    }
+  } else if (source.currentPathEligible || source.routeTarget) {
+    throw new Error(`Core semantic non-path resource exposes path eligibility or route: ${row.resourceId}`);
+  }
+  if (row.family === 'knowledge-infograph' && source.disposition !== 'embedded-asset') {
+    throw new Error(`Core semantic infograph must remain embedded: ${row.resourceId}`);
+  }
+  if (row.family === 'registered-resource' && !row.sourceHash && source.disposition === 'path-plannable') {
+    throw new Error(`Core semantic registered resource without source hash cannot be path-plannable: ${row.resourceId}`);
+  }
+  if (!arraysEqual(uniqueSorted(source.citationTargets), uniqueSorted(row.citationTargets))) {
+    throw new Error(`Core semantic citation target mismatch for ${row.resourceId}`);
+  }
+  if (source.residualLimitationState.length === 0 && row.missingFieldCodes.length > 0 && source.disposition !== 'path-plannable') {
+    throw new Error(`Core semantic source leaves blockers unexplained for ${row.resourceId}`);
+  }
+}
+
+function buildCoreRegisteredKnowledgeResourceSemanticSummary(
+  workqueueItems: CoreRegisteredKnowledgeResourceSemanticWorkqueueItem[],
+  reviewItems: CoreRegisteredKnowledgeResourceSemanticReviewItem[],
+): CoreRegisteredKnowledgeResourceSemanticSummary {
+  return {
+    artifactVersion: 'core-registered-knowledge-resource-semantics.v1',
+    reviewBatchId: CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_REVIEW_BATCH_ID,
+    reviewerId: CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_REVIEWER_ID,
+    reviewedAt: CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_REVIEWED_AT,
+    totals: {
+      scopedResources: new Set(workqueueItems.map((item) => item.resourceId)).size,
+      workqueueItems: workqueueItems.length,
+      reviewedResources: reviewItems.length,
+      remainingSemanticReviewBlockers: reviewItems.filter((item) => (
+        !item.reviewerVisibleRationale ||
+        item.rawContentIncluded ||
+        !item.privacyMinimized ||
+        item.residualLimitationState.includes('unexplained-semantic-review-required')
+      )).length,
+      unexplainedRemainingItems: reviewItems.filter((item) => (
+        item.residualLimitationState.length === 0 &&
+        item.startingBlockerCount > 0 &&
+        item.disposition !== 'path-plannable'
+      )).length,
+      rawContentIncluded: reviewItems.some((item) => item.rawContentIncluded),
+      privacyMinimized: reviewItems.every((item) => item.privacyMinimized),
+    },
+    bySourceFamily: countBy(reviewItems, (item) => item.sourceFamily),
+    byDisposition: countBy(reviewItems, (item) => item.disposition),
+    residualLimitations: countBy(reviewItems.flatMap((item) => item.residualLimitationState), (item) => item),
+      startingBlockers: countBy(workqueueItems.flatMap((item) => item.startingBlockerCodes), (item) => item),
+      evidence: {
+        workqueueItemsPath: path.relative(process.cwd(), CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_WORKQUEUE_JSONL_PATH),
+        reviewSourcePath: path.relative(process.cwd(), CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_REVIEW_SOURCE_JSONL_PATH),
+        reviewItemsPath: path.relative(process.cwd(), CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_REVIEW_JSONL_PATH),
+        sourceAuditPath: path.relative(process.cwd(), AUDIT_JSONL_PATH),
+      },
+  };
+}
+
+function renderCoreRegisteredKnowledgeResourceSemanticEvidence(
+  summary: CoreRegisteredKnowledgeResourceSemanticSummary,
+) {
+  const lines = [
+    '# Core Registered And Knowledge Resource Semantic Review',
+    '',
+    `Review batch: ${summary.reviewBatchId}`,
+    `Reviewer: ${summary.reviewerId}`,
+    `Reviewed at: ${summary.reviewedAt}`,
+    '',
+    '## Scope',
+    '',
+    `Scoped resources: ${summary.totals.scopedResources}`,
+    `Workqueue items: ${summary.totals.workqueueItems}`,
+    `Reviewed resources: ${summary.totals.reviewedResources}`,
+    `Remaining semantic review blockers: ${summary.totals.remainingSemanticReviewBlockers}`,
+    `Unexplained remaining items: ${summary.totals.unexplainedRemainingItems}`,
+    `Privacy minimized: ${summary.totals.privacyMinimized}`,
+    `Raw content included: ${summary.totals.rawContentIncluded}`,
+    '',
+    '## Families',
+    '',
+    ...Object.entries(summary.bySourceFamily)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([family, count]) => `- ${family}: ${count}`),
+    '',
+    '## Dispositions',
+    '',
+    ...Object.entries(summary.byDisposition)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([disposition, count]) => `- ${disposition}: ${count}`),
+    '',
+    '## Residual Limitations',
+    '',
+    ...Object.entries(summary.residualLimitations)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([limitation, count]) => `- ${limitation}: ${count}`),
+    '',
+    '## Evidence Files',
+    '',
+    `Workqueue items: ${summary.evidence.workqueueItemsPath}`,
+    `Review source: ${summary.evidence.reviewSourcePath}`,
+    `Review items: ${summary.evidence.reviewItemsPath}`,
+    `Source audit: ${summary.evidence.sourceAuditPath}`,
+    '',
+    'The batch closes semantic-review and provisional-metadata ambiguity for registered resources, knowledge cards, and knowledge infographs. Residual limitations name source identity, dependency, evidence-contract, or non-path-node boundaries explicitly.',
   ];
   return `${lines.join('\n')}\n`;
 }
