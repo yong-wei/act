@@ -4129,8 +4129,7 @@ function evaluateLearningGoalObjectiveBoundary(
   if (
     boundary.hasPathEligibleCoverage &&
     boundary.policyRequiredRoles.includes('checkpoint') &&
-    registeredGoal?.checkpointPolicy.checkpointResourceTypes.includes(node.type) &&
-    node.type === 'checkpoint'
+    registeredGoal?.checkpointPolicy.checkpointResourceTypes.includes(node.type)
   ) {
     matchedRefs.add('policy:checkpoint');
     matchReasons.add('policy-required-checkpoint');

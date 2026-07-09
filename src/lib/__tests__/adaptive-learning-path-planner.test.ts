@@ -4036,6 +4036,100 @@ describe('adaptive learning path planner', () => {
     });
   });
 
+  it('allows registered non-checkpoint resource types through LearningGoal checkpoint boundary', () => {
+    const learningGoal = ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].learningGoal!;
+    const expandedSubgraph = expandLearningGoalSubgraph(learningGoal.id);
+    const graphTargetId = learningGoal.targetGraphNodeIds[0];
+    const registry = buildResourceNodeRegistry({
+      knowledgeCards: [{
+        id: 'policy-checkpoint-boundary-card',
+        title: '边界策略检查知识卡',
+        sourceRef: 'frequency-response:policy-checkpoint-boundary-card',
+        renderTarget: '/knowledge/cards/policy-checkpoint-boundary-card',
+        knowledgeNodeIds: ['legacy-policy-checkpoint'],
+        planningOverride: {
+          estimatedTimeMinutes: 8,
+          evidenceInstrumentation: ['knowledge_card_viewed'],
+        },
+      }],
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: {
+        id: learningGoal.id,
+        title: learningGoal.title,
+        knowledgeTargets: ['legacy-policy-checkpoint'],
+      },
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'legacy-policy-checkpoint': { posteriorMastery: 0.18, confidence: 0.7, evidenceCount: 2 },
+          },
+        },
+        evidence: {
+          confidence: {
+            level: 'medium',
+            score: 0.65,
+            evidenceCount: 3,
+            sourceCompleteness: 0.65,
+          },
+        },
+      },
+      constraints: {
+        timeBudgetMinutes: 30,
+        privacyScopes: ['student-visible'],
+      },
+      graphContext: {
+        learningGoalId: learningGoal.id,
+        learningGoalVersion: learningGoal.version,
+        objectiveBoundary: {
+          knowledgeObjectiveIds: learningGoal.knowledgeObjectiveIds,
+          capabilityObjectiveIds: learningGoal.capabilityObjectiveIds,
+          qualityObjectiveIds: learningGoal.qualityObjectiveIds,
+        },
+        expandedSubgraph,
+        resourceCoverage: {
+          [graphTargetId]: {
+            domain: 'knowledge',
+            nodeId: graphTargetId,
+            linkedResourceCount: 1,
+            pathEligibleResourceCount: 1,
+            ragIndexedCount: 0,
+            citationReadyCount: 0,
+            verifiedCitationCount: 0,
+            assessmentResourceCount: 0,
+            simulationResourceCount: 0,
+            arenaPreviewResourceCount: 0,
+            arenaOfficialResourceCount: 0,
+            terminalValidationCapableResourceCount: 0,
+            coverageState: 'sufficient',
+            missingCoverageTypes: [],
+            linkedResourceIds: [],
+            pathEligibleResourceIds: [],
+            pathEligibleResourceRouteIds: [],
+            filterKnowledgeRefs: [],
+          },
+        },
+      },
+    }));
+
+    expect(plan.status).toBe('ready');
+    expect(plan.mainPath.map((node) => node.nodeId)).toEqual(['knowledge-card:policy-checkpoint-boundary-card']);
+    expect(plan.constraintRepair).toMatchObject({
+      status: 'satisfied',
+      checkpointNodeIds: ['knowledge-card:policy-checkpoint-boundary-card'],
+      infeasibleReasons: [],
+    });
+    expect(plan.graphContext?.objectiveBoundaryDiagnostics).toMatchObject({
+      selectedResourceMatches: [{
+        nodeId: 'knowledge-card:policy-checkpoint-boundary-card',
+        matchRefs: ['policy:checkpoint'],
+        matchReasons: ['policy-required-checkpoint'],
+      }],
+    });
+  });
+
   it('removes extra registered checkpoint resources to satisfy the time budget', () => {
     const registry = buildResourceNodeRegistry({
       knowledgeCards: [{
