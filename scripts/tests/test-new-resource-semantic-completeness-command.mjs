@@ -5,6 +5,7 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import assert from 'node:assert/strict';
 
 const root = process.cwd();
+const tsxBin = path.join(root, 'node_modules', '.bin', process.platform === 'win32' ? 'tsx.cmd' : 'tsx');
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'act-new-resource-gate-'));
 const repo = path.join(tmp, 'repo');
 fs.mkdirSync(path.join(repo, 'src/lib'), { recursive: true });
@@ -89,10 +90,7 @@ const complete = incomplete.replace(
 );
 fs.writeFileSync(metadataPath, complete);
 
-const result = spawnSync('npx', ['tsx', './scripts/data-governance/check-new-resource-semantic-completeness.ts', '--staged'], {
-  cwd: repo,
-  encoding: 'utf8',
-});
+const result = runGate(['--staged']);
 assert.notEqual(result.status, 0, 'gate must fail closed when staged and worktree gated files differ');
 assert.match(
   `${result.stdout}\n${result.stderr}`,
@@ -113,10 +111,7 @@ fs.writeFileSync(unrelatedPresetPath, unrelatedOriginalPreset.replace(
 ));
 fs.writeFileSync(path.join(repo, 'README.md'), 'Unrelated staged documentation change.\n');
 run('git', ['add', 'README.md'], repo);
-const unrelatedStagedResult = spawnSync('npx', ['tsx', './scripts/data-governance/check-new-resource-semantic-completeness.ts', '--staged'], {
-  cwd: repo,
-  encoding: 'utf8',
-});
+const unrelatedStagedResult = runGate(['--staged']);
 assert.equal(unrelatedStagedResult.status, 0, 'gate must not block unrelated staged changes because a gated resource file has unstaged WIP');
 assert.match(
   `${unrelatedStagedResult.stdout}\n${unrelatedStagedResult.stderr}`,
@@ -136,10 +131,7 @@ const mismatch = original.replace(
 );
 fs.writeFileSync(metadataPath, mismatch);
 run('git', ['add', 'src/lib/resource-registry-metadata.ts'], repo);
-const mismatchResult = spawnSync('npx', ['tsx', './scripts/data-governance/check-new-resource-semantic-completeness.ts', '--staged'], {
-  cwd: repo,
-  encoding: 'utf8',
-});
+const mismatchResult = runGate(['--staged']);
 assert.notEqual(mismatchResult.status, 0, 'gate must fail when changed registry object key cannot be loaded as materialized metadata');
 assert.match(
   `${mismatchResult.stdout}\n${mismatchResult.stderr}`,
@@ -163,10 +155,7 @@ fs.writeFileSync(seedPath, originalSeed.replace(
   },`,
 ));
 run('git', ['add', 'scripts/db/seed-interactive-resources.ts'], repo);
-const teachingResourceResult = spawnSync('npx', ['tsx', './scripts/data-governance/check-new-resource-semantic-completeness.ts', '--staged'], {
-  cwd: repo,
-  encoding: 'utf8',
-});
+const teachingResourceResult = runGate(['--staged']);
 assert.notEqual(teachingResourceResult.status, 0, 'gate must fail when a changed TeachingResource registryId has no registered metadata');
 assert.match(
   `${teachingResourceResult.stdout}\n${teachingResourceResult.stderr}`,
@@ -182,10 +171,7 @@ fs.writeFileSync(repairPath, originalRepair.replace(
   cmjreviewresource: 'repair-resource-without-metadata',`,
 ));
 run('git', ['add', 'scripts/db/repair-resource-identity-bindings.ts'], repo);
-const repairResult = spawnSync('npx', ['tsx', './scripts/data-governance/check-new-resource-semantic-completeness.ts', '--staged'], {
-  cwd: repo,
-  encoding: 'utf8',
-});
+const repairResult = runGate(['--staged']);
 assert.notEqual(repairResult.status, 0, 'gate must fail when a TeachingResource repair registryId has no registered metadata');
 assert.match(
   `${repairResult.stdout}\n${repairResult.stderr}`,
@@ -208,10 +194,7 @@ fs.writeFileSync(presetPath, originalPreset.replace(
   ],`,
 ));
 run('git', ['add', 'src/features/teacher/preset-lessons/presets/example.ts'], repo);
-const presetResult = spawnSync('npx', ['tsx', './scripts/data-governance/check-new-resource-semantic-completeness.ts', '--staged'], {
-  cwd: repo,
-  encoding: 'utf8',
-});
+const presetResult = runGate(['--staged']);
 assert.notEqual(presetResult.status, 0, 'gate must fail when a changed preset lesson registryId has no registered metadata');
 assert.match(
   `${presetResult.stdout}\n${presetResult.stderr}`,
@@ -237,10 +220,7 @@ run('git', ['add', 'src/features/teacher/preset-lessons/presets/example.ts'], re
 run('git', ['commit', '--no-verify', '-m', 'add incomplete preset item'], repo);
 fs.writeFileSync(presetPath, fs.readFileSync(presetPath, 'utf8').replace('Original title', 'Changed title'));
 run('git', ['add', 'src/features/teacher/preset-lessons/presets/example.ts'], repo);
-const modifiedPresetItemResult = spawnSync('npx', ['tsx', './scripts/data-governance/check-new-resource-semantic-completeness.ts', '--staged'], {
-  cwd: repo,
-  encoding: 'utf8',
-});
+const modifiedPresetItemResult = runGate(['--staged']);
 assert.notEqual(modifiedPresetItemResult.status, 0, 'gate must fail when a changed preset item field belongs to a registryId without metadata');
 assert.match(
   `${modifiedPresetItemResult.stdout}\n${modifiedPresetItemResult.stderr}`,
@@ -264,10 +244,7 @@ run('git', ['add', 'src/features/teacher/preset-lessons/presets/example.ts'], re
 run('git', ['commit', '--no-verify', '-m', 'add incomplete map preset item'], repo);
 fs.writeFileSync(presetPath, fs.readFileSync(presetPath, 'utf8').replace('Map original title', 'Map changed title'));
 run('git', ['add', 'src/features/teacher/preset-lessons/presets/example.ts'], repo);
-const modifiedMapPresetItemResult = spawnSync('npx', ['tsx', './scripts/data-governance/check-new-resource-semantic-completeness.ts', '--staged'], {
-  cwd: repo,
-  encoding: 'utf8',
-});
+const modifiedMapPresetItemResult = runGate(['--staged']);
 assert.notEqual(modifiedMapPresetItemResult.status, 0, 'gate must fail when a changed map-generated preset item field belongs to a registryId without metadata');
 assert.match(
   `${modifiedMapPresetItemResult.stdout}\n${modifiedMapPresetItemResult.stderr}`,
@@ -289,10 +266,7 @@ fs.writeFileSync(presetPath, originalPreset.replace(
   ],`,
 ));
 run('git', ['add', 'src/features/teacher/preset-lessons/presets/example.ts'], repo);
-const sameLinePresetResult = spawnSync('npx', ['tsx', './scripts/data-governance/check-new-resource-semantic-completeness.ts', '--staged'], {
-  cwd: repo,
-  encoding: 'utf8',
-});
+const sameLinePresetResult = runGate(['--staged']);
 assert.notEqual(sameLinePresetResult.status, 0, 'gate must fail when a same-line ternary preset registryId branch has no registered metadata');
 assert.match(
   `${sameLinePresetResult.stdout}\n${sameLinePresetResult.stderr}`,
@@ -315,10 +289,7 @@ fs.writeFileSync(presetPath, originalPreset.replace(
   ],`,
 ));
 run('git', ['add', 'src/features/teacher/preset-lessons/presets/example.ts'], repo);
-const partialLinePresetResult = spawnSync('npx', ['tsx', './scripts/data-governance/check-new-resource-semantic-completeness.ts', '--staged'], {
-  cwd: repo,
-  encoding: 'utf8',
-});
+const partialLinePresetResult = runGate(['--staged']);
 assert.notEqual(partialLinePresetResult.status, 0, 'gate must fail when a partial-line ternary preset registryId branch has no registered metadata');
 assert.match(
   `${partialLinePresetResult.stdout}\n${partialLinePresetResult.stderr}`,
@@ -337,10 +308,7 @@ fs.writeFileSync(presetPath, originalPreset.replace(
 export const DECORATIVE_TITLE = step.kind === 'summary' ? 'Decorative title' : 'Fallback title';`,
 ));
 run('git', ['add', 'src/features/teacher/preset-lessons/presets/example.ts'], repo);
-const nonRegistryTernaryResult = spawnSync('npx', ['tsx', './scripts/data-governance/check-new-resource-semantic-completeness.ts', '--staged'], {
-  cwd: repo,
-  encoding: 'utf8',
-});
+const nonRegistryTernaryResult = runGate(['--staged']);
 assert.equal(nonRegistryTernaryResult.status, 0, 'gate must ignore non-registryId ternary strings in preset changes');
 assert.doesNotMatch(
   `${nonRegistryTernaryResult.stdout}\n${nonRegistryTernaryResult.stderr}`,
@@ -357,10 +325,7 @@ fs.writeFileSync(stagedOnlyPresetPath, `export const STAGED_ONLY_PRESET = {
 `);
 run('git', ['add', 'src/features/teacher/preset-lessons/presets/staged-only.ts'], repo);
 fs.rmSync(stagedOnlyPresetPath);
-const stagedOnlyPresetResult = spawnSync('npx', ['tsx', './scripts/data-governance/check-new-resource-semantic-completeness.ts', '--staged'], {
-  cwd: repo,
-  encoding: 'utf8',
-});
+const stagedOnlyPresetResult = runGate(['--staged']);
 assert.notEqual(stagedOnlyPresetResult.status, 0, 'gate must fail closed when a staged preset file is missing from the worktree');
 assert.match(
   `${stagedOnlyPresetResult.stdout}\n${stagedOnlyPresetResult.stderr}`,
@@ -380,10 +345,7 @@ fs.writeFileSync(componentRegistryPath, originalComponentRegistry.replace(
 };`,
 ));
 run('git', ['add', 'src/lib/resource-registry.tsx'], repo);
-const componentRegistryResult = spawnSync('npx', ['tsx', './scripts/data-governance/check-new-resource-semantic-completeness.ts', '--staged'], {
-  cwd: repo,
-  encoding: 'utf8',
-});
+const componentRegistryResult = runGate(['--staged']);
 assert.notEqual(componentRegistryResult.status, 0, 'gate must fail when a changed resource component registry id has no registered metadata');
 assert.match(
   `${componentRegistryResult.stdout}\n${componentRegistryResult.stderr}`,
@@ -404,10 +366,7 @@ run('git', ['add', 'src/lib/resource-registry.tsx'], repo);
 run('git', ['commit', '--no-verify', '-m', 'add incomplete component registry entry'], repo);
 fs.writeFileSync(componentRegistryPath, fs.readFileSync(componentRegistryPath, 'utf8').replace('Original component label', 'Changed component label'));
 run('git', ['add', 'src/lib/resource-registry.tsx'], repo);
-const modifiedComponentRegistryResult = spawnSync('npx', ['tsx', './scripts/data-governance/check-new-resource-semantic-completeness.ts', '--staged'], {
-  cwd: repo,
-  encoding: 'utf8',
-});
+const modifiedComponentRegistryResult = runGate(['--staged']);
 assert.notEqual(modifiedComponentRegistryResult.status, 0, 'gate must fail when a changed resource component registry entry field belongs to an id without metadata');
 assert.match(
   `${modifiedComponentRegistryResult.stdout}\n${modifiedComponentRegistryResult.stderr}`,
@@ -443,10 +402,7 @@ fs.writeFileSync(componentRegistryPath, fs.readFileSync(componentRegistryPath, '
   '',
 ));
 run('git', ['add', 'src/lib/resource-registry.tsx'], repo);
-const deleteOnlyComponentRegistryResult = spawnSync('npx', ['tsx', './scripts/data-governance/check-new-resource-semantic-completeness.ts', '--staged'], {
-  cwd: repo,
-  encoding: 'utf8',
-});
+const deleteOnlyComponentRegistryResult = runGate(['--staged']);
 assert.equal(deleteOnlyComponentRegistryResult.status, 0, 'gate must not treat a deletion-only component registry hunk as a change to the adjacent historical entry');
 assert.doesNotMatch(
   `${deleteOnlyComponentRegistryResult.stdout}\n${deleteOnlyComponentRegistryResult.stderr}`,
@@ -465,10 +421,7 @@ fs.writeFileSync(componentRegistryPath, originalComponentRegistry.replace(
 ));
 run('git', ['add', 'src/lib/resource-registry.tsx'], repo);
 run('git', ['commit', '--no-verify', '-m', 'add incomplete component registry'], repo);
-const componentRegistryBaseResult = spawnSync('npx', ['tsx', './scripts/data-governance/check-new-resource-semantic-completeness.ts', '--base', 'HEAD~1'], {
-  cwd: repo,
-  encoding: 'utf8',
-});
+const componentRegistryBaseResult = runGate(['--base', 'HEAD~1']);
 assert.notEqual(componentRegistryBaseResult.status, 0, 'gate must fail for changed resource component registry ids in base mode');
 assert.match(
   `${componentRegistryBaseResult.stdout}\n${componentRegistryBaseResult.stderr}`,
@@ -479,4 +432,11 @@ console.log('new resource semantic completeness command contract passed');
 
 function run(command, args, cwd) {
   execFileSync(command, args, { cwd, stdio: 'pipe' });
+}
+
+function runGate(args) {
+  return spawnSync(tsxBin, ['./scripts/data-governance/check-new-resource-semantic-completeness.ts', ...args], {
+    cwd: repo,
+    encoding: 'utf8',
+  });
 }
