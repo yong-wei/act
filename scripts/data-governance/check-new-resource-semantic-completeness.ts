@@ -133,6 +133,7 @@ function main() {
     .filter((resource): resource is NonNullable<typeof resource> => Boolean(resource));
   const runtimeProjectionChanges = parseAddedRuntimeProjectionChanges(runtimeProjectionDiff);
   const runtimeProjectionRows = runtimeProjectionChanges.rows;
+  const deletedRuntimeProjectionRows = runtimeProjectionChanges.deletedRows;
   const result = mergeGateResults([
     {
       passed: missingRegisteredResourceIds.length === 0,
@@ -146,6 +147,7 @@ function main() {
     },
     validateChangedRegisteredResources(registeredResources),
     runtimeProjectionChanges.result,
+    validateDeletedRuntimeProjectionRows(deletedRuntimeProjectionRows, runtimeProjectionRows, options),
     validateRuntimeProjectionSourceCoverage(runtimeProjectionSourceRequirements, runtimeProjectionRows),
     validateChangedRuntimeResourceProjections(runtimeProjectionRows),
   ]);
@@ -177,6 +179,46 @@ function validateRuntimeProjectionSourceCoverage(
     checked: requirements.length,
     issues,
   };
+}
+
+function validateDeletedRuntimeProjectionRows(
+  rows: readonly RuntimeProjectionRow[],
+  addedRows: readonly RuntimeProjectionRow[],
+  options: CliOptions,
+): NewResourceGateResult {
+  const updatedIds = new Set(addedRows.map((row) => row.id));
+  const issues = rows.flatMap((row) => (
+    updatedIds.has(row.id) || runtimeProjectionSourceDeletedInSameDiff(row, options)
+      ? []
+      : [{
+        family: 'runtime-resource-projection' as const,
+        resourceId: row.id,
+        code: 'deleted-runtime-projection-row',
+        message: 'Deleted runtime projection rows require the corresponding runtime source resource to be deleted in the same diff.',
+      }]
+  ));
+  return {
+    passed: issues.length === 0,
+    checked: rows.length,
+    issues,
+  };
+}
+
+function runtimeProjectionSourceDeletedInSameDiff(
+  row: RuntimeProjectionRow,
+  options: CliOptions,
+): boolean {
+  return runtimeProjectionLocalSourcePaths(row).some((filePath) => (
+    gitChangedPathNames(options, [filePath], ['--diff-filter=D']).split(/\r?\n/).includes(filePath)
+  ));
+}
+
+function runtimeProjectionLocalSourcePaths(row: RuntimeProjectionRow): string[] {
+  return uniqueSorted([
+    row.sourcePathOrUrl ?? '',
+    ...(row.citationTargets ?? []),
+    row.reviewAudit?.independentEvidenceRef?.split('#')[0] ?? '',
+  ].filter((value) => value && !/^[a-z]+:\/\//i.test(value)));
 }
 
 function runtimeProjectionSourceIssue(requirement: RuntimeProjectionSourceRequirement): NewResourceGateIssue {
@@ -310,7 +352,8 @@ function runtimeProjectionSourceRequirementsForPath(
       .map((requirement) => withCurrentSourceHash(requirement));
   }
   if (family === 'knowledge-infograph') {
-    return parseInfographManifestSourceRequirements(filePath, source, diff);
+    return parseInfographManifestSourceRequirements(filePath, source, diff)
+      .map((requirement) => withCurrentSourceHash(requirement));
   }
   if (family === 'runtime-source') {
     return [withCurrentSourceHash({

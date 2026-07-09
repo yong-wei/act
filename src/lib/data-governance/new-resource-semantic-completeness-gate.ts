@@ -34,6 +34,7 @@ export interface DiffLineRange {
 
 export interface RuntimeProjectionParseResult {
   rows: RuntimeResourceProjectionInput[];
+  deletedRows: RuntimeResourceProjectionInput[];
   result: NewResourceGateResult;
 }
 
@@ -149,15 +150,23 @@ export function parseAddedRuntimeProjectionRows(diff: string): RuntimeResourcePr
 
 export function parseAddedRuntimeProjectionChanges(diff: string): RuntimeProjectionParseResult {
   const rows: RuntimeResourceProjectionInput[] = [];
+  const deletedRows: RuntimeResourceProjectionInput[] = [];
   const issues: NewResourceGateIssue[] = [];
   for (const [index, rawLine] of diff.split(/\r?\n/).entries()) {
-    if (!rawLine.startsWith('+') || rawLine.startsWith('+++')) continue;
+    const isAdded = rawLine.startsWith('+') && !rawLine.startsWith('+++');
+    const isDeleted = rawLine.startsWith('-') && !rawLine.startsWith('---');
+    if (!isAdded && !isDeleted) continue;
     const line = rawLine.slice(1).trim();
     if (!line) continue;
     try {
       const row = JSON.parse(line) as Partial<RuntimeResourceProjectionInput>;
       if (!row.id) {
-        issues.push(issue(`added-line-${index + 1}`, 'runtime-resource-projection', 'missing-runtime-projection-id', 'Added runtime projection JSONL row requires an id.'));
+        const prefix = isAdded ? 'Added' : 'Deleted';
+        issues.push(issue(`${isAdded ? 'added' : 'deleted'}-line-${index + 1}`, 'runtime-resource-projection', 'missing-runtime-projection-id', `${prefix} runtime projection JSONL row requires an id.`));
+        continue;
+      }
+      if (isDeleted) {
+        deletedRows.push(row as RuntimeResourceProjectionInput);
         continue;
       }
       const schemaIssues = validateRuntimeProjectionInputSchema(row, `added-line-${index + 1}`);
@@ -167,14 +176,16 @@ export function parseAddedRuntimeProjectionChanges(diff: string): RuntimeProject
       }
       rows.push(row as RuntimeResourceProjectionInput);
     } catch {
-      issues.push(issue(`added-line-${index + 1}`, 'runtime-resource-projection', 'malformed-runtime-projection-json', 'Added runtime projection JSONL row must be valid single-line JSON.'));
+      const prefix = isAdded ? 'Added' : 'Deleted';
+      issues.push(issue(`${isAdded ? 'added' : 'deleted'}-line-${index + 1}`, 'runtime-resource-projection', 'malformed-runtime-projection-json', `${prefix} runtime projection JSONL row must be valid single-line JSON.`));
     }
   }
   return {
     rows,
+    deletedRows,
     result: {
       passed: issues.length === 0,
-      checked: rows.length + issues.length,
+      checked: rows.length + deletedRows.length + issues.length,
       issues,
     },
   };

@@ -1013,6 +1013,27 @@ fs.writeFileSync(
   }))}\n`,
 );
 run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const staleInfographManifestHashResult = runGate(['--staged']);
+assert.notEqual(staleInfographManifestHashResult.status, 0, 'gate must fail when an infograph manifest projection row carries a stale manifest hash');
+assert.match(
+  `${staleInfographManifestHashResult.stdout}\n${staleInfographManifestHashResult.stderr}`,
+  /runtime-source:course-content\/runtime\/knowledge\/infographs\/manifest\.json#kn-demo/,
+);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'infograph:kn-demo',
+    family: 'knowledge-infograph',
+    resourceType: 'image',
+    sourceKind: 'knowledge_graph',
+    sourceRef: 'kn-demo',
+    sourcePathOrUrl: 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png',
+    sourceHash: sha256File(infographManifestPath),
+    sourceVersionRef: 'knowledge-infograph-manifest.v1',
+    independentEvidenceRef: 'course-content/runtime/knowledge/infographs/manifest.json#kn-demo',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
 const syncedInfographProjectionResult = runGate(['--staged']);
 assert.equal(syncedInfographProjectionResult.status, 0, 'gate must pass when an infograph manifest change has a matching valid projection row');
 
@@ -1195,6 +1216,32 @@ fs.writeFileSync(
 );
 run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
 run('git', ['commit', '--no-verify', '-m', 'add baseline runtime card projection'], repo);
+fs.appendFileSync(cardPath, '\nReviewed update.\n');
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'knowledge-card:kn-demo',
+    family: 'knowledge-card',
+    resourceType: 'knowledge_card',
+    sourceKind: 'knowledge_graph',
+    sourceRef: 'kn-demo',
+    sourcePathOrUrl: 'course-content/runtime/knowledge/cards/nodes/kn-demo.md',
+    sourceVersionRef: 'runtime-knowledge-card.v1',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/knowledge/cards/nodes/kn-demo.md', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const replacedCardProjectionResult = runGate(['--staged']);
+assert.equal(replacedCardProjectionResult.status, 0, 'gate must pass when a runtime projection row is replaced by an updated row for the same id');
+run('git', ['reset', '--hard', 'HEAD'], repo);
+fs.writeFileSync(path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'), '');
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const deletedProjectionOnlyResult = runGate(['--staged']);
+assert.notEqual(deletedProjectionOnlyResult.status, 0, 'gate must fail when a runtime projection row is deleted while the source still exists');
+assert.match(
+  `${deletedProjectionOnlyResult.stdout}\n${deletedProjectionOnlyResult.stderr}`,
+  /deleted-runtime-projection-row/,
+);
+run('git', ['reset', '--hard', 'HEAD'], repo);
 fs.rmSync(cardPath);
 fs.writeFileSync(path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'), '');
 run('git', ['add', 'course-content/runtime/knowledge/cards/nodes/kn-demo.md', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
