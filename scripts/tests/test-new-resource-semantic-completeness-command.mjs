@@ -422,6 +422,41 @@ run('git', ['reset', '--hard', 'HEAD'], repo);
 fs.writeFileSync(componentRegistryPath, originalComponentRegistry.replace(
   'const registry = {};',
   `const registry = {
+  'deleted-component-resource-without-metadata': {
+    id: 'deleted-component-resource-without-metadata',
+    label: 'Deleted component resource without metadata',
+  },
+  'historical-component-resource-without-metadata': {
+    id: 'historical-component-resource-without-metadata',
+    label: 'Historical component resource without metadata',
+  },
+};`,
+));
+run('git', ['add', 'src/lib/resource-registry.tsx'], repo);
+run('git', ['commit', '--no-verify', '-m', 'add historical incomplete component registry entries'], repo);
+fs.writeFileSync(componentRegistryPath, fs.readFileSync(componentRegistryPath, 'utf8').replace(
+  `  'deleted-component-resource-without-metadata': {
+    id: 'deleted-component-resource-without-metadata',
+    label: 'Deleted component resource without metadata',
+  },
+`,
+  '',
+));
+run('git', ['add', 'src/lib/resource-registry.tsx'], repo);
+const deleteOnlyComponentRegistryResult = spawnSync('npx', ['tsx', './scripts/data-governance/check-new-resource-semantic-completeness.ts', '--staged'], {
+  cwd: repo,
+  encoding: 'utf8',
+});
+assert.equal(deleteOnlyComponentRegistryResult.status, 0, 'gate must not treat a deletion-only component registry hunk as a change to the adjacent historical entry');
+assert.doesNotMatch(
+  `${deleteOnlyComponentRegistryResult.stdout}\n${deleteOnlyComponentRegistryResult.stderr}`,
+  /historical-component-resource-without-metadata missing-registered-resource-metadata/,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+fs.writeFileSync(componentRegistryPath, originalComponentRegistry.replace(
+  'const registry = {};',
+  `const registry = {
   'component-resource-without-metadata': {
     id: 'component-resource-without-metadata',
     label: 'Component resource without metadata',

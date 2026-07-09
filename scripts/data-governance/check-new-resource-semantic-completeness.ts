@@ -247,10 +247,11 @@ function parseDiffCurrentLineRanges(diff: string): DiffLineRange[] {
     .split(/\r?\n/)
     .map((line) => /^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@/.exec(line))
     .filter((match): match is RegExpExecArray => Boolean(match))
-    .map((match) => {
+    .flatMap((match) => {
       const start = Number(match[1]);
       const count = match[2] ? Number(match[2]) : 1;
-      return { start, end: count === 0 ? start : start + count - 1 };
+      if (count === 0) return [];
+      return [{ start, end: start + count - 1 }];
     });
 }
 

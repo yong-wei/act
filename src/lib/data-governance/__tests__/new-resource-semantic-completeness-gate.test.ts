@@ -32,6 +32,26 @@ describe('new resource semantic completeness gate', () => {
     expect(parseChangedRegisteredResourceIds(source, diff)).toEqual(['new-resource']);
   });
 
+  it('ignores deletion-only hunks when mapping current registered resource ranges', () => {
+    const source = [
+      'const registeredResourceMetadata = {',
+      "    'historical-neighbor': {",
+      "        id: 'historical-neighbor',",
+      "        label: 'Historical neighbor',",
+      '    },',
+      '};',
+    ].join('\n');
+    const diff = [
+      '@@ -2,4 +2,0 @@',
+      "-    'deleted-resource': {",
+      "-        id: 'deleted-resource',",
+      "-        label: 'Deleted resource',",
+      '-    },',
+    ].join('\n');
+
+    expect(parseChangedRegisteredResourceIds(source, diff)).toEqual([]);
+  });
+
   it('detects registered resource ids changed through progression metadata arrays', () => {
     const source = [
       'const registeredResourceMetadata = {',
