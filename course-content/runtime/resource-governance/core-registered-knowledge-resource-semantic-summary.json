@@ -47,7 +47,7 @@
   },
   "evidence": {
     "workqueueItemsPath": "course-content/runtime/resource-governance/core-registered-knowledge-resource-semantic-workqueue-items.jsonl",
-    "reviewSourcePath": "openspec/changes/complete-core-registered-knowledge-resource-semantics/evidence/core-registered-knowledge-resource-semantic-review-source.jsonl",
+    "reviewSourcePath": "course-content/runtime/resource-governance/core-registered-knowledge-resource-semantic-review-source.jsonl",
     "reviewItemsPath": "course-content/runtime/resource-governance/core-registered-knowledge-resource-semantic-review-items.jsonl",
     "sourceAuditPath": "course-content/runtime/resource-governance/resource-field-completion-audit.jsonl"
   }

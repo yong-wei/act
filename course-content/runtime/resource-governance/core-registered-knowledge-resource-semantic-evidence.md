@@ -41,7 +41,7 @@ Raw content included: false
 ## Evidence Files
 
 Workqueue items: course-content/runtime/resource-governance/core-registered-knowledge-resource-semantic-workqueue-items.jsonl
-Review source: openspec/changes/complete-core-registered-knowledge-resource-semantics/evidence/core-registered-knowledge-resource-semantic-review-source.jsonl
+Review source: course-content/runtime/resource-governance/core-registered-knowledge-resource-semantic-review-source.jsonl
 Review items: course-content/runtime/resource-governance/core-registered-knowledge-resource-semantic-review-items.jsonl
 Source audit: course-content/runtime/resource-governance/resource-field-completion-audit.jsonl
 

@@ -21,8 +21,8 @@ function assert(condition: unknown, message: string): asserts condition {
 const auditRows = readJsonl(join(governanceDir, 'resource-field-completion-audit.jsonl'));
 const workqueueItems = readJsonl(join(governanceDir, 'core-registered-knowledge-resource-semantic-workqueue-items.jsonl'));
 const reviewSourceItems = readJsonl(join(
-  repoRoot,
-  'openspec/changes/complete-core-registered-knowledge-resource-semantics/evidence/core-registered-knowledge-resource-semantic-review-source.jsonl',
+  governanceDir,
+  'core-registered-knowledge-resource-semantic-review-source.jsonl',
 ));
 const reviewItems = readJsonl(join(governanceDir, 'core-registered-knowledge-resource-semantic-review-items.jsonl'));
 const summary = JSON.parse(

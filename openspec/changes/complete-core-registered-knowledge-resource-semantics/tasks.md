@@ -9,7 +9,7 @@
 - [x] Task 2: Review each resource item by item.
   Covers: AC-2
   Acceptance: Each in-scope item has reviewed disposition, graph/K/A/Q mapping or rationale, LearningGoal fit, path profile where applicable, citation route, evidence policy, privacy policy, source/version evidence, and review metadata.
-  Evidence: `openspec/changes/complete-core-registered-knowledge-resource-semantics/evidence/core-registered-knowledge-resource-semantic-review-source.jsonl`; generated review items are derived from this tracked review source, not from helper-inferred semantic completion.
+  Evidence: `course-content/runtime/resource-governance/core-registered-knowledge-resource-semantic-review-source.jsonl`; generated review items are derived from this tracked review source, not from helper-inferred semantic completion.
   Reviewer Check: Confirm semantic fields reflect content meaning, not bulk script guesses.
 
 - [x] Task 3: Validate path and citation eligibility.
