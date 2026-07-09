@@ -33,12 +33,23 @@ function main() {
   const runtimeProjectionDiff = gitDiff(options, RUNTIME_RESOURCE_PROJECTIONS_PATH);
   const resourceIds = parseChangedRegisteredResourceIds(readText(REGISTERED_RESOURCE_METADATA_PATH), registeredResourceDiff);
   const registeredResourcesById = new Map(getAllRegisteredResourceMetadata().map((resource) => [resource.id, resource]));
+  const missingRegisteredResourceIds = resourceIds.filter((id) => !registeredResourcesById.has(id));
   const registeredResources = resourceIds
     .map((id) => registeredResourcesById.get(id))
     .filter((resource): resource is NonNullable<typeof resource> => Boolean(resource));
   const runtimeProjectionChanges = parseAddedRuntimeProjectionChanges(runtimeProjectionDiff);
   const runtimeProjectionRows = runtimeProjectionChanges.rows;
   const result = mergeGateResults([
+    {
+      passed: missingRegisteredResourceIds.length === 0,
+      checked: missingRegisteredResourceIds.length,
+      issues: missingRegisteredResourceIds.map((id) => ({
+        family: 'registered-resource',
+        resourceId: id,
+        code: 'missing-registered-resource-metadata',
+        message: 'Changed registered resource id could not be loaded from materialized metadata; check object key and internal id consistency.',
+      })),
+    },
     validateChangedRegisteredResources(registeredResources),
     runtimeProjectionChanges.result,
     validateChangedRuntimeResourceProjections(runtimeProjectionRows),

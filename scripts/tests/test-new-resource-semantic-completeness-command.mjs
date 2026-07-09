@@ -93,6 +93,29 @@ assert.match(
   /cannot run with unstaged changes in gated resource files/,
 );
 
+run('git', ['reset', '--hard', 'HEAD'], repo);
+const mismatch = original.replace(
+  'const registeredResourceMetadata: Record<string, RegisteredResourceMetadata> = {',
+  `const registeredResourceMetadata: Record<string, RegisteredResourceMetadata> = {
+    'gate-key-resource': {
+        id: 'gate-internal-resource',
+        label: 'Gate mismatched resource',
+        type: 'INTERACTIVE_COMP',
+        renderTarget: '/interactive-learning/resources/gate-key-resource'
+    },`,
+);
+fs.writeFileSync(metadataPath, mismatch);
+run('git', ['add', 'src/lib/resource-registry-metadata.ts'], repo);
+const mismatchResult = spawnSync('npx', ['tsx', './scripts/data-governance/check-new-resource-semantic-completeness.ts', '--staged'], {
+  cwd: repo,
+  encoding: 'utf8',
+});
+assert.notEqual(mismatchResult.status, 0, 'gate must fail when changed registry object key cannot be loaded as materialized metadata');
+assert.match(
+  `${mismatchResult.stdout}\n${mismatchResult.stderr}`,
+  /missing-registered-resource-metadata/,
+);
+
 console.log('new resource semantic completeness command contract passed');
 
 function run(command, args, cwd) {
