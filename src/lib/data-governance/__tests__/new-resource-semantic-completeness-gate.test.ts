@@ -543,6 +543,31 @@ describe('new resource semantic completeness gate', () => {
       }),
     ]));
   });
+
+  it('rejects runtime projection graph refs that are not arrays of strings', () => {
+    const invalid = {
+      ...completeRuntimeProjection({ id: 'projection-invalid-graph-refs' }),
+      graphNodeRefs: {
+        knowledge: ['kn-bode'],
+        capability: 'rootLocusSketch',
+        quality: [42],
+      },
+    };
+    const parsed = parseAddedRuntimeProjectionChanges(`+${JSON.stringify(invalid)}`);
+
+    expect(parsed.rows).toEqual([]);
+    expect(parsed.result.passed).toBe(false);
+    expect(parsed.result.issues).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        resourceId: 'projection-invalid-graph-refs',
+        code: 'invalid-runtime-projection-graph-capability',
+      }),
+      expect.objectContaining({
+        resourceId: 'projection-invalid-graph-refs',
+        code: 'invalid-runtime-projection-graph-quality',
+      }),
+    ]));
+  });
 });
 
 function completeRegisteredResource(input: {

@@ -206,6 +206,28 @@ function validateRuntimeProjectionInputSchema(
     RUNTIME_PROJECTION_LEVELS,
     'projection-level',
   );
+  issues.push(...validateRuntimeProjectionGraphRefsSchema(resourceId, row.graphNodeRefs));
+  return issues;
+}
+
+function validateRuntimeProjectionGraphRefsSchema(
+  resourceId: string,
+  refs: Partial<ResourceGraphNodeRefs> | undefined,
+): NewResourceGateIssue[] {
+  if (!refs) return [];
+  const issues: NewResourceGateIssue[] = [];
+  for (const key of ['knowledge', 'capability', 'quality'] as const) {
+    const value = refs[key];
+    if (value === undefined) continue;
+    if (!Array.isArray(value) || value.some((item) => typeof item !== 'string')) {
+      issues.push(issue(
+        resourceId,
+        'runtime-resource-projection',
+        `invalid-runtime-projection-graph-${key}`,
+        `Runtime projection graphNodeRefs.${key} must be an array of strings.`,
+      ));
+    }
+  }
   return issues;
 }
 
