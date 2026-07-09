@@ -556,6 +556,41 @@ fs.writeFileSync(lessonManifestPath, JSON.stringify({
   lesson_id: '1-1',
   steps: {
     'step-01': {
+      title: 'New runtime lesson step with module',
+      modules: [
+        {
+          id: 'module-a',
+          title: 'Runtime lesson module A',
+        },
+      ],
+    },
+  },
+}, null, 2));
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'lesson-module:1-1:step-01:module-a',
+    family: 'runtime-lesson-module',
+    resourceType: 'lesson_step',
+    sourceKind: 'runtime_lesson_step',
+    sourceRef: '1-1:step-01:module-a',
+    sourcePathOrUrl: 'course-content/runtime/lessons/1-1/interactive-manifest.json',
+    sourceVersionRef: 'runtime-lesson-manifest.v1',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/lessons/1-1/interactive-manifest.json', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const moduleOnlyLessonProjectionResult = runGate(['--staged']);
+assert.notEqual(moduleOnlyLessonProjectionResult.status, 0, 'gate must fail when a new lesson step with modules only has module projection rows');
+assert.match(
+  `${moduleOnlyLessonProjectionResult.stdout}\n${moduleOnlyLessonProjectionResult.stderr}`,
+  /runtime-source:course-content\/runtime\/lessons\/1-1\/interactive-manifest\.json#step-01/,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+fs.writeFileSync(lessonManifestPath, JSON.stringify({
+  lesson_id: '1-1',
+  steps: {
+    'step-01': {
       title: 'Runtime lesson step with layout regions',
       modules: [
         {

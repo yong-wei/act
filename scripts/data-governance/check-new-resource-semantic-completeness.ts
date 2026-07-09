@@ -289,7 +289,7 @@ function parseRuntimeLessonSourceRequirements(
         recordKey: moduleRequirement.recordKey,
       });
     }
-    if (matchingModules.length > 0 || !ranges.some((range) => lineRangesOverlap(step, range))) {
+    if (!ranges.some((range) => lineRangesOverlap(step, range))) {
       continue;
     }
     requirements.push({ filePath, family: 'runtime-lesson', recordKey: step.key });
