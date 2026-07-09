@@ -116,6 +116,52 @@ assert.match(
   /missing-registered-resource-metadata/,
 );
 
+run('git', ['reset', '--hard', 'HEAD'], repo);
+const seedPath = path.join(repo, 'scripts/db/seed-interactive-resources.ts');
+const originalSeed = fs.readFileSync(seedPath, 'utf8');
+fs.writeFileSync(seedPath, originalSeed.replace(
+  'const INTERACTIVE_RESOURCES = [',
+  `const INTERACTIVE_RESOURCES = [
+  {
+    registryId: 'teaching-resource-without-metadata',
+    title: 'Teaching resource without metadata',
+    displayName: 'Teaching resource without metadata',
+    description: 'TeachingResource seed should not bypass metadata gate',
+    type: ResourceType.INTERACTIVE_COMP,
+    category: InteractiveCategory.SYSTEM_MODELING,
+    displayOrder: 0,
+  },`,
+));
+run('git', ['add', 'scripts/db/seed-interactive-resources.ts'], repo);
+const teachingResourceResult = spawnSync('npx', ['tsx', './scripts/data-governance/check-new-resource-semantic-completeness.ts', '--staged'], {
+  cwd: repo,
+  encoding: 'utf8',
+});
+assert.notEqual(teachingResourceResult.status, 0, 'gate must fail when a changed TeachingResource registryId has no registered metadata');
+assert.match(
+  `${teachingResourceResult.stdout}\n${teachingResourceResult.stderr}`,
+  /teaching-resource-without-metadata missing-registered-resource-metadata/,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+const repairPath = path.join(repo, 'scripts/db/repair-resource-identity-bindings.ts');
+const originalRepair = fs.readFileSync(repairPath, 'utf8');
+fs.writeFileSync(repairPath, originalRepair.replace(
+  'const RESOURCE_REGISTRY_REPAIRS: Record<string, string> = {',
+  `const RESOURCE_REGISTRY_REPAIRS: Record<string, string> = {
+  cmjreviewresource: 'repair-resource-without-metadata',`,
+));
+run('git', ['add', 'scripts/db/repair-resource-identity-bindings.ts'], repo);
+const repairResult = spawnSync('npx', ['tsx', './scripts/data-governance/check-new-resource-semantic-completeness.ts', '--staged'], {
+  cwd: repo,
+  encoding: 'utf8',
+});
+assert.notEqual(repairResult.status, 0, 'gate must fail when a TeachingResource repair registryId has no registered metadata');
+assert.match(
+  `${repairResult.stdout}\n${repairResult.stderr}`,
+  /repair-resource-without-metadata missing-registered-resource-metadata/,
+);
+
 console.log('new resource semantic completeness command contract passed');
 
 function run(command, args, cwd) {

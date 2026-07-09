@@ -15,6 +15,12 @@ import {
 
 const REGISTERED_RESOURCE_METADATA_PATH = 'src/lib/resource-registry-metadata.ts';
 const RUNTIME_RESOURCE_PROJECTIONS_PATH = 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl';
+const TEACHING_RESOURCE_SEED_PATHS = [
+  'scripts/db/seed-interactive-resources.ts',
+  'scripts/db/seed-demo-resources.mjs',
+  'scripts/db/seed-lesson02-complete.mjs',
+];
+const TEACHING_RESOURCE_REPAIR_PATH = 'scripts/db/repair-resource-identity-bindings.ts';
 
 interface CliOptions {
   base: string | null;
@@ -27,11 +33,19 @@ function main() {
     assertNoUnstagedTargetChanges([
       REGISTERED_RESOURCE_METADATA_PATH,
       RUNTIME_RESOURCE_PROJECTIONS_PATH,
+      ...TEACHING_RESOURCE_SEED_PATHS,
+      TEACHING_RESOURCE_REPAIR_PATH,
     ]);
   }
   const registeredResourceDiff = gitDiff(options, REGISTERED_RESOURCE_METADATA_PATH);
   const runtimeProjectionDiff = gitDiff(options, RUNTIME_RESOURCE_PROJECTIONS_PATH);
-  const resourceIds = parseChangedRegisteredResourceIds(readText(REGISTERED_RESOURCE_METADATA_PATH), registeredResourceDiff);
+  const teachingResourceDiffs = TEACHING_RESOURCE_SEED_PATHS.map((filePath) => gitDiff(options, filePath));
+  const repairDiff = gitDiff(options, TEACHING_RESOURCE_REPAIR_PATH);
+  const resourceIds = uniqueSorted([
+    ...parseChangedRegisteredResourceIds(readText(REGISTERED_RESOURCE_METADATA_PATH), registeredResourceDiff),
+    ...teachingResourceDiffs.flatMap(parseChangedTeachingResourceRegistryIds),
+    ...parseChangedTeachingResourceRepairRegistryIds(repairDiff),
+  ]);
   const registeredResourcesById = new Map(getAllRegisteredResourceMetadata().map((resource) => [resource.id, resource]));
   const missingRegisteredResourceIds = resourceIds.filter((id) => !registeredResourcesById.has(id));
   const registeredResources = resourceIds
@@ -65,6 +79,20 @@ function main() {
     console.error(`- ${item.family}:${item.resourceId} ${item.code}: ${item.message}`);
   }
   process.exit(1);
+}
+
+function parseChangedTeachingResourceRegistryIds(diff: string): string[] {
+  return diff
+    .split(/\r?\n/)
+    .filter((line) => line.startsWith('+') && !line.startsWith('+++'))
+    .flatMap((line) => Array.from(line.matchAll(/\bregistryId\s*:\s*['"]([^'"]+)['"]/g), (match) => match[1]));
+}
+
+function parseChangedTeachingResourceRepairRegistryIds(diff: string): string[] {
+  return diff
+    .split(/\r?\n/)
+    .filter((line) => line.startsWith('+') && !line.startsWith('+++'))
+    .flatMap((line) => Array.from(line.matchAll(/^\+\s*(?:['"][^'"]+['"]|[A-Za-z0-9_$]+)\s*:\s*['"]([^'"]+)['"]/g), (match) => match[1]));
 }
 
 function assertNoUnstagedTargetChanges(filePaths: readonly string[]) {
@@ -129,6 +157,10 @@ function gitStatus(args: string[]): number {
 
 function readText(filePath: string): string {
   return readFileSync(path.join(process.cwd(), filePath), 'utf8');
+}
+
+function uniqueSorted(values: readonly string[]): string[] {
+  return Array.from(new Set(values)).sort((left, right) => left.localeCompare(right));
 }
 
 main();
