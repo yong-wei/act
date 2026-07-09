@@ -2159,12 +2159,7 @@ function buildCoreRegisteredKnowledgeResourceSemanticSummary(
       scopedResources: new Set(workqueueItems.map((item) => item.resourceId)).size,
       workqueueItems: workqueueItems.length,
       reviewedResources: reviewItems.length,
-      remainingSemanticReviewBlockers: reviewItems.filter((item) => (
-        !item.reviewerVisibleRationale ||
-        item.rawContentIncluded ||
-        !item.privacyMinimized ||
-        item.residualLimitationState.includes('unexplained-semantic-review-required')
-      )).length,
+      remainingSemanticReviewBlockers: workqueueItems.filter((item) => item.startingBlockerCount > 0).length,
       unexplainedRemainingItems: reviewItems.filter((item) => (
         item.residualLimitationState.length === 0 &&
         item.startingBlockerCount > 0 &&
@@ -2231,7 +2226,7 @@ function renderCoreRegisteredKnowledgeResourceSemanticEvidence(
     `Review items: ${summary.evidence.reviewItemsPath}`,
     `Source audit: ${summary.evidence.sourceAuditPath}`,
     '',
-    'The batch closes semantic-review and provisional-metadata ambiguity for registered resources, knowledge cards, and knowledge infographs. Residual limitations name source identity, dependency, evidence-contract, or non-path-node boundaries explicitly.',
+    'The batch reviews semantic ambiguity for registered resources, knowledge cards, and knowledge infographs without rewriting the source audit rows. Residual limitations name source identity, dependency, evidence-contract, or non-path-node boundaries explicitly; remaining blockers reflect the original scoped audit rows that still require downstream repair or materialization.',
   ];
   return `${lines.join('\n')}\n`;
 }

@@ -28,8 +28,13 @@ const reviewItems = readJsonl(join(governanceDir, 'core-registered-knowledge-res
 const summary = JSON.parse(
   readFileSync(join(governanceDir, 'core-registered-knowledge-resource-semantic-summary.json'), 'utf8'),
 ) as JsonRecord;
+const evidenceText = readFileSync(
+  join(governanceDir, 'core-registered-knowledge-resource-semantic-evidence.md'),
+  'utf8',
+);
 
 const scopedAuditRows = auditRows.filter((row) => scopeFamilies.has(row.family));
+const scopedRowsWithStartingBlockers = scopedAuditRows.filter((row) => row.missingFieldCodes.length > 0).length;
 const scopedIds = new Set(scopedAuditRows.map((row) => row.resourceId));
 const workqueueIds = new Set(workqueueItems.map((item) => item.resourceId));
 const reviewSourceIds = new Set(reviewSourceItems.map((item) => item.resourceId));
@@ -48,10 +53,12 @@ assert(scopedAuditRows.every((row) => reviewIds.has(row.resourceId)), 'review mi
 
 assert(summary.totals.scopedResources === 608, 'summary scoped resource count mismatch');
 assert(summary.totals.reviewedResources === 608, 'summary reviewed resource count mismatch');
-assert(summary.totals.remainingSemanticReviewBlockers === 0, 'semantic review blockers must be closed');
+assert(summary.totals.remainingSemanticReviewBlockers === scopedRowsWithStartingBlockers, 'remaining semantic review blockers must reflect scoped audit rows');
 assert(summary.totals.unexplainedRemainingItems === 0, 'remaining items must be explained');
 assert(summary.totals.rawContentIncluded === false, 'review artifact must not include raw resource content');
 assert(summary.totals.privacyMinimized === true, 'review artifact must be privacy-minimized');
+assert(!evidenceText.includes('closes semantic-review'), 'evidence must not claim source audit blockers are closed');
+assert(evidenceText.includes('without rewriting the source audit rows'), 'evidence must explain source audit rows are not rewritten');
 assert(summary.bySourceFamily['registered-resource'] === 168, 'registered resource count mismatch');
 assert(summary.bySourceFamily['knowledge-card'] === 279, 'knowledge-card count mismatch');
 assert(summary.bySourceFamily['knowledge-infograph'] === 161, 'knowledge-infograph count mismatch');

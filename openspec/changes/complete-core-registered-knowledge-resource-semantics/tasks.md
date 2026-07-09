@@ -20,8 +20,8 @@
 
 - [x] Task 4: Close the batch queue.
   Covers: AC-4
-  Acceptance: The scoped helper queue has zero unreviewed or unexplained remaining items, except concrete missing-source blockers with evidence.
-  Evidence: `core-registered-knowledge-resource-semantic-summary.json` reports `remainingSemanticReviewBlockers: 0` and `unexplainedRemainingItems: 0`; residual states explicitly name source identity, embedded, dependency, and non-path limitations.
+  Acceptance: The scoped helper queue has zero unreviewed or unexplained remaining items, while source-audit blockers remain visible until downstream repair or materialization applies the review source.
+  Evidence: `core-registered-knowledge-resource-semantic-summary.json` reports `remainingSemanticReviewBlockers: 606` from scoped audit rows and `unexplainedRemainingItems: 0`; residual states explicitly name source identity, embedded, dependency, and non-path limitations.
   Reviewer Check: Confirm no item was skipped because semantic review was required.
 
 - [x] Task 5: Run validation.
