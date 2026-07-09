@@ -12,6 +12,10 @@ fs.mkdirSync(path.join(repo, 'src/lib'), { recursive: true });
 fs.mkdirSync(path.join(repo, 'src/features/teacher/preset-lessons/presets'), { recursive: true });
 fs.mkdirSync(path.join(repo, 'course-content/runtime/resource-governance'), { recursive: true });
 fs.mkdirSync(path.join(repo, 'course-content/runtime/lessons/1-1'), { recursive: true });
+fs.mkdirSync(path.join(repo, 'course-content/runtime/lessons/1-1/media'), { recursive: true });
+fs.mkdirSync(path.join(repo, 'course-content/runtime/lessons/legacy/1-1/media'), { recursive: true });
+fs.mkdirSync(path.join(repo, 'course-content/runtime/resources/textbooks/book/chunks'), { recursive: true });
+fs.mkdirSync(path.join(repo, 'course-content/runtime/resources/textbooks/book/sections'), { recursive: true });
 fs.mkdirSync(path.join(repo, 'course-content/runtime/knowledge/cards/nodes'), { recursive: true });
 fs.mkdirSync(path.join(repo, 'course-content/runtime/knowledge/infographs'), { recursive: true });
 fs.cpSync(path.join(root, 'scripts'), path.join(repo, 'scripts'), { recursive: true });
@@ -621,6 +625,193 @@ assert.doesNotMatch(
   `${layoutRegionLessonProjectionResult.stdout}\n${layoutRegionLessonProjectionResult.stderr}`,
   /runtime-source:course-content\/runtime\/lessons\/1-1\/interactive-manifest\.json#1-1:step-01:chart/,
 );
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+const lessonMediaPath = path.join(repo, 'course-content/runtime/lessons/1-1/media/new-runtime-figure.png');
+fs.writeFileSync(lessonMediaPath, 'runtime figure fixture\n');
+run('git', ['add', 'course-content/runtime/lessons/1-1/media/new-runtime-figure.png'], repo);
+const missingLessonMediaProjectionResult = runGate(['--staged']);
+assert.notEqual(missingLessonMediaProjectionResult.status, 0, 'gate must fail when a runtime lesson media file changes without a runtime projection row');
+assert.match(
+  `${missingLessonMediaProjectionResult.stdout}\n${missingLessonMediaProjectionResult.stderr}`,
+  /runtime-source:course-content\/runtime\/lessons\/1-1\/media\/new-runtime-figure\.png/,
+);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'runtime-media:1-1:new-runtime-figure.png',
+    family: 'runtime-lesson-media',
+    resourceType: 'image',
+    sourceKind: 'runtime_lesson_media',
+    sourceRef: '1-1:new-runtime-figure.png',
+    sourcePathOrUrl: 'course-content/runtime/lessons/1-1/media/new-runtime-figure.png',
+    sourceVersionRef: 'runtime-lesson-media.v1',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const syncedLessonMediaProjectionResult = runGate(['--staged']);
+assert.equal(syncedLessonMediaProjectionResult.status, 0, 'gate must pass when a runtime lesson media source has a matching projection row');
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+const generatedLessonMediaPath = path.join(repo, 'course-content/runtime/lessons/1-1/media/generated-data/1-1-analysis-data.txt');
+fs.mkdirSync(path.dirname(generatedLessonMediaPath), { recursive: true });
+fs.writeFileSync(generatedLessonMediaPath, 'generated runtime data fixture\n');
+run('git', ['add', 'course-content/runtime/lessons/1-1/media/generated-data/1-1-analysis-data.txt'], repo);
+const missingGeneratedLessonMediaProjectionResult = runGate(['--staged']);
+assert.notEqual(missingGeneratedLessonMediaProjectionResult.status, 0, 'gate must fail when nested generated runtime lesson media changes without a projection row');
+assert.match(
+  `${missingGeneratedLessonMediaProjectionResult.stdout}\n${missingGeneratedLessonMediaProjectionResult.stderr}`,
+  /runtime-source:course-content\/runtime\/lessons\/1-1\/media\/generated-data\/1-1-analysis-data\.txt/,
+);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'runtime-media:1-1:generated-data/1-1-analysis-data.txt',
+    family: 'runtime-lesson-media',
+    resourceType: 'handout',
+    sourceKind: 'runtime_lesson_media',
+    sourceRef: '1-1:generated-data/1-1-analysis-data.txt',
+    sourcePathOrUrl: 'course-content/runtime/lessons/1-1/media/generated-data/1-1-analysis-data.txt',
+    sourceVersionRef: 'runtime-lesson-media.v1',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const syncedGeneratedLessonMediaProjectionResult = runGate(['--staged']);
+assert.equal(syncedGeneratedLessonMediaProjectionResult.status, 0, 'gate must pass when nested generated runtime lesson media has a matching projection row');
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+const lessonHandoutPath = path.join(repo, 'course-content/runtime/lessons/1-1/1-1-handout.md');
+fs.writeFileSync(lessonHandoutPath, '# Runtime handout fixture\n');
+run('git', ['add', 'course-content/runtime/lessons/1-1/1-1-handout.md'], repo);
+const missingLessonHandoutProjectionResult = runGate(['--staged']);
+assert.notEqual(missingLessonHandoutProjectionResult.status, 0, 'gate must fail when a runtime handout changes without a runtime projection row');
+assert.match(
+  `${missingLessonHandoutProjectionResult.stdout}\n${missingLessonHandoutProjectionResult.stderr}`,
+  /runtime-source:course-content\/runtime\/lessons\/1-1\/1-1-handout\.md/,
+);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'runtime-handout:1-1:handout',
+    family: 'runtime-handout',
+    resourceType: 'handout',
+    sourceKind: 'runtime_handout',
+    sourceRef: '1-1:handout',
+    sourcePathOrUrl: 'course-content/runtime/lessons/1-1/1-1-handout.md',
+    sourceVersionRef: 'runtime-handout.v1',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const syncedLessonHandoutProjectionResult = runGate(['--staged']);
+assert.equal(syncedLessonHandoutProjectionResult.status, 0, 'gate must pass when a runtime handout source has a matching projection row');
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+const legacyLessonMediaPath = path.join(repo, 'course-content/runtime/lessons/legacy/1-1/media/h-01-spring-mass-damper.svg');
+fs.mkdirSync(path.dirname(legacyLessonMediaPath), { recursive: true });
+fs.writeFileSync(legacyLessonMediaPath, '<svg role="img"></svg>\n');
+run('git', ['add', 'course-content/runtime/lessons/legacy/1-1/media/h-01-spring-mass-damper.svg'], repo);
+const missingLegacyLessonMediaProjectionResult = runGate(['--staged']);
+assert.notEqual(missingLegacyLessonMediaProjectionResult.status, 0, 'gate must fail when a legacy runtime lesson media file changes without a projection row');
+assert.match(
+  `${missingLegacyLessonMediaProjectionResult.stdout}\n${missingLegacyLessonMediaProjectionResult.stderr}`,
+  /runtime-source:course-content\/runtime\/lessons\/legacy\/1-1\/media\/h-01-spring-mass-damper\.svg/,
+);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'runtime-media:legacy:1-1:h-01-spring-mass-damper.svg',
+    family: 'runtime-lesson-media',
+    resourceType: 'image',
+    sourceKind: 'runtime_lesson_media',
+    sourceRef: 'legacy:1-1:h-01-spring-mass-damper.svg',
+    sourcePathOrUrl: 'course-content/runtime/lessons/legacy/1-1/media/h-01-spring-mass-damper.svg',
+    sourceVersionRef: 'runtime-lesson-media.v1',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const syncedLegacyLessonMediaProjectionResult = runGate(['--staged']);
+assert.equal(syncedLegacyLessonMediaProjectionResult.status, 0, 'gate must pass when a legacy runtime lesson media source has a matching projection row');
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+const legacyLessonHandoutPath = path.join(repo, 'course-content/runtime/lessons/legacy/1-1/1-1-handout.md');
+fs.mkdirSync(path.dirname(legacyLessonHandoutPath), { recursive: true });
+fs.writeFileSync(legacyLessonHandoutPath, '# Legacy runtime handout fixture\n');
+run('git', ['add', 'course-content/runtime/lessons/legacy/1-1/1-1-handout.md'], repo);
+const missingLegacyLessonHandoutProjectionResult = runGate(['--staged']);
+assert.notEqual(missingLegacyLessonHandoutProjectionResult.status, 0, 'gate must fail when a legacy runtime handout changes without a runtime projection row');
+assert.match(
+  `${missingLegacyLessonHandoutProjectionResult.stdout}\n${missingLegacyLessonHandoutProjectionResult.stderr}`,
+  /runtime-source:course-content\/runtime\/lessons\/legacy\/1-1\/1-1-handout\.md/,
+);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'runtime-handout:legacy:1-1:handout',
+    family: 'runtime-handout',
+    resourceType: 'handout',
+    sourceKind: 'runtime_handout',
+    sourceRef: 'legacy:1-1:handout',
+    sourcePathOrUrl: 'course-content/runtime/lessons/legacy/1-1/1-1-handout.md',
+    sourceVersionRef: 'runtime-handout.v1',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const syncedLegacyLessonHandoutProjectionResult = runGate(['--staged']);
+assert.equal(syncedLegacyLessonHandoutProjectionResult.status, 0, 'gate must pass when a legacy runtime handout source has a matching projection row');
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+const textbookChunkPath = path.join(repo, 'course-content/runtime/resources/textbooks/book/chunks/ch01__chunk-001.md');
+fs.mkdirSync(path.dirname(textbookChunkPath), { recursive: true });
+fs.writeFileSync(textbookChunkPath, '# Textbook chunk fixture\n');
+run('git', ['add', 'course-content/runtime/resources/textbooks/book/chunks/ch01__chunk-001.md'], repo);
+const missingTextbookChunkProjectionResult = runGate(['--staged']);
+assert.notEqual(missingTextbookChunkProjectionResult.status, 0, 'gate must fail when a runtime textbook chunk changes without a runtime projection row');
+assert.match(
+  `${missingTextbookChunkProjectionResult.stdout}\n${missingTextbookChunkProjectionResult.stderr}`,
+  /runtime-source:course-content\/runtime\/resources\/textbooks\/book\/chunks\/ch01__chunk-001\.md/,
+);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'textbook-section:book:ch01__chunk-001',
+    family: 'textbook-section',
+    resourceType: 'textbook_section',
+    sourceKind: 'textbook_section',
+    sourceRef: 'book:ch01__chunk-001',
+    sourcePathOrUrl: 'course-content/runtime/resources/textbooks/book/chunks/ch01__chunk-001.md',
+    sourceVersionRef: 'runtime-textbook-chunk.v1',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const syncedTextbookChunkProjectionResult = runGate(['--staged']);
+assert.equal(syncedTextbookChunkProjectionResult.status, 0, 'gate must pass when a runtime textbook chunk has a matching projection row');
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+const textbookSectionPath = path.join(repo, 'course-content/runtime/resources/textbooks/book/sections/ch01-sec01.md');
+fs.mkdirSync(path.dirname(textbookSectionPath), { recursive: true });
+fs.writeFileSync(textbookSectionPath, '# Textbook section fixture\n');
+run('git', ['add', 'course-content/runtime/resources/textbooks/book/sections/ch01-sec01.md'], repo);
+const missingTextbookSectionProjectionResult = runGate(['--staged']);
+assert.notEqual(missingTextbookSectionProjectionResult.status, 0, 'gate must fail when a runtime textbook section changes without a runtime projection row');
+assert.match(
+  `${missingTextbookSectionProjectionResult.stdout}\n${missingTextbookSectionProjectionResult.stderr}`,
+  /runtime-source:course-content\/runtime\/resources\/textbooks\/book\/sections\/ch01-sec01\.md/,
+);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'textbook-section:book:ch01-sec01',
+    family: 'textbook-section',
+    resourceType: 'textbook_section',
+    sourceKind: 'textbook_section',
+    sourceRef: 'book:ch01-sec01',
+    sourcePathOrUrl: 'course-content/runtime/resources/textbooks/book/sections/ch01-sec01.md',
+    sourceVersionRef: 'runtime-textbook-section.v1',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const syncedTextbookSectionProjectionResult = runGate(['--staged']);
+assert.equal(syncedTextbookSectionProjectionResult.status, 0, 'gate must pass when a runtime textbook section has a matching projection row');
 
 run('git', ['reset', '--hard', 'HEAD'], repo);
 const infographManifestPath = path.join(repo, 'course-content/runtime/knowledge/infographs/manifest.json');

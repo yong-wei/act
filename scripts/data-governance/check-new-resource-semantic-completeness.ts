@@ -19,10 +19,12 @@ const REGISTERED_RESOURCE_METADATA_PATH = 'src/lib/resource-registry-metadata.ts
 const RESOURCE_COMPONENT_REGISTRY_PATH = 'src/lib/resource-registry.tsx';
 const RUNTIME_RESOURCE_PROJECTIONS_PATH = 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl';
 const RUNTIME_LESSON_MANIFEST_DIR = 'course-content/runtime/lessons';
+const RUNTIME_TEXTBOOK_DIR = 'course-content/runtime/resources/textbooks';
 const RUNTIME_KNOWLEDGE_CARD_DIR = 'course-content/runtime/knowledge/cards/nodes';
 const RUNTIME_INFOGRAPH_MANIFEST_PATH = 'course-content/runtime/knowledge/infographs/manifest.json';
 const RUNTIME_PROJECTION_SOURCE_PATHS = [
   RUNTIME_LESSON_MANIFEST_DIR,
+  RUNTIME_TEXTBOOK_DIR,
   RUNTIME_KNOWLEDGE_CARD_DIR,
   RUNTIME_INFOGRAPH_MANIFEST_PATH,
 ];
@@ -44,11 +46,12 @@ interface DiffLineRange {
   end: number;
 }
 
-type RuntimeProjectionSourceFamily = 'runtime-lesson' | 'knowledge-card' | 'knowledge-infograph';
+type RuntimeProjectionSourceFamily = 'runtime-lesson' | 'runtime-source' | 'knowledge-card' | 'knowledge-infograph';
 type RuntimeProjectionRow = ReturnType<typeof parseAddedRuntimeProjectionChanges>['rows'][number] & {
   family?: string;
   sourceRecord?: string;
   sourcePathOrUrl?: string;
+  citationTargets?: string[];
   reviewAudit?: {
     independentEvidenceRef?: string | null;
   };
@@ -158,6 +161,7 @@ function validateRuntimeProjectionSourceCoverage(
 function runtimeProjectionSourceIssue(requirement: RuntimeProjectionSourceRequirement): NewResourceGateIssue {
   const labels: Record<RuntimeProjectionSourceFamily, string> = {
     'runtime-lesson': 'runtime lesson manifest',
+    'runtime-source': 'runtime source file',
     'knowledge-card': 'runtime knowledge card',
     'knowledge-infograph': 'knowledge infograph manifest',
   };
@@ -184,6 +188,12 @@ function runtimeProjectionRowMatchesSourceRequirement(
       row.sourcePathOrUrl === requirement.filePath &&
       runtimeProjectionRowMatchesRecord(row, requirement.recordKey);
   }
+  if (family === 'runtime-source') {
+    return row.sourcePathOrUrl === requirement.filePath ||
+      row.citationTargets?.includes(requirement.filePath) === true ||
+      row.reviewAudit?.independentEvidenceRef === requirement.filePath ||
+      runtimeProjectionRowMatchesRecord(row, requirement.recordKey);
+  }
   return runtimeProjectionRowMatchesSourceFamily(row, family) &&
     (row.reviewAudit?.independentEvidenceRef === `${requirement.filePath}#${requirement.recordKey}` ||
       row.sourcePathOrUrl === requirement.sourcePathOrUrl ||
@@ -205,6 +215,9 @@ function runtimeProjectionRowMatchesSourceFamily(
     return row.family === 'knowledge-card' ||
       row.resourceType === 'knowledge_card' ||
       row.sourcePathOrUrl?.includes('/knowledge/cards/') === true;
+  }
+  if (family === 'runtime-source') {
+    return true;
   }
   return row.family === 'knowledge-infograph' ||
     row.sourcePathOrUrl?.includes('/knowledge/infographs/') === true;
@@ -245,6 +258,9 @@ function runtimeProjectionSourceRequirementsForPath(
   }
   if (family === 'knowledge-infograph') {
     return parseInfographManifestSourceRequirements(filePath, source, diff);
+  }
+  if (family === 'runtime-source') {
+    return [{ filePath, family, recordKey: filePath }];
   }
   const recordKey = path.basename(filePath, path.extname(filePath));
   return [{ filePath, family, recordKey }];
@@ -591,6 +607,15 @@ function gitChangedRuntimeProjectionSourcePaths(options: CliOptions): string[] {
 function runtimeProjectionSourceFamilyForPath(filePath: string): RuntimeProjectionSourceFamily | null {
   if (/^course-content\/runtime\/lessons\/[^/]+\/interactive-manifest\.json$/.test(filePath)) {
     return 'runtime-lesson';
+  }
+  if (/^course-content\/runtime\/lessons\/.+\/media\/.+$/.test(filePath)) {
+    return 'runtime-source';
+  }
+  if (/^course-content\/runtime\/lessons\/.+\/[^/]+-handout\.md$/.test(filePath)) {
+    return 'runtime-source';
+  }
+  if (/^course-content\/runtime\/resources\/textbooks\/[^/]+\/(?:chunks|sections)\/.+\.md$/.test(filePath)) {
+    return 'runtime-source';
   }
   if (/^course-content\/runtime\/knowledge\/cards\/nodes\/.+\.md$/.test(filePath)) {
     return 'knowledge-card';
