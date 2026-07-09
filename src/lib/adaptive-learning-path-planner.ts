@@ -185,6 +185,7 @@ export interface AdaptiveLearningPathGraphContextSummary {
   learningGoalVersion: string;
   graphVersion: string;
   objectiveBoundary: AdaptiveLearningPathGraphContextInput['objectiveBoundary'];
+  objectiveBoundaryDiagnostics?: AdaptiveLearningPathObjectiveBoundaryDiagnostics;
   targetGraphNodeIds: string[];
   selectedGraphNodeIds: string[];
   prerequisitePolicy: Array<Pick<
@@ -204,6 +205,24 @@ export interface AdaptiveLearningPathGraphContextSummary {
   assessmentCoverage?: NonNullable<AdaptiveLearningPathGraphContextInput['assessmentCoverage']>;
   versionRefs: KaqArtifactVersionRefs;
   limitations: AdaptiveLearningPathGraphLimitation[];
+}
+
+export interface AdaptiveLearningPathObjectiveBoundaryDiagnostics {
+  acceptedBoundaryRefs: {
+    knowledgeObjectiveIds: string[];
+    capabilityObjectiveIds: string[];
+    qualityObjectiveIds: string[];
+    graphNodeIds: string[];
+    prerequisiteGraphNodeIds: string[];
+    policyRequiredRoles: string[];
+  };
+  rejectedMismatchCount: number;
+  selectedResourceMatches: Array<{
+    nodeId: string;
+    matchRefs: string[];
+    matchReasons: string[];
+  }>;
+  lowResourceReasons: string[];
 }
 
 export type AdaptiveLearningPathGraphContextPersistenceSummary = Omit<
@@ -1855,7 +1874,17 @@ function buildAdaptiveLearningPathPlanInternal(
     .filter((node) => !excludedNodeIds.has(node.id))
     .filter((node) => policyAllowsNode(node, policyFamily, input.constraints))
     .filter((node) => externalResourceAllowed(node, input, registeredGoal));
-  const eligibleIds = new Set(pathEligible.map((node) => node.id));
+  const learningGoalBoundary = buildLearningGoalObjectiveBoundary(registeredGoal, graphContext);
+  const learningGoalBoundaryEvaluations = learningGoalBoundary
+    ? new Map(pathEligible.map((node) => [
+        node.id,
+        evaluateLearningGoalObjectiveBoundary(node, learningGoalBoundary, graphContext, registeredGoal, input.constraints),
+      ]))
+    : null;
+  const candidatePathEligible = pathEligible
+    .filter((node) => goalAllowsResourceNode(node, registeredGoal))
+    .filter((node) => learningGoalBoundaryEvaluations?.get(node.id)?.allowed ?? true);
+  const eligibleIds = new Set(candidatePathEligible.map((node) => node.id));
   const targetGraphNodeIds = graphContext?.targetGraphNodeIds.length
     ? graphContext.targetGraphNodeIds
     : unique([
@@ -1865,14 +1894,14 @@ function buildAdaptiveLearningPathPlanInternal(
     ]);
   const sarCandidates = evaluateSarCandidates({
     input,
-    pathEligible,
+    pathEligible: candidatePathEligible,
     graphContext,
     deficits,
     registeredGoal,
     completedNodeIds: requestedCompletedNodeIds,
   });
   const rankerResult = rankResourceLearnerCandidates({
-    candidates: pathEligible.map((node) => {
+    candidates: candidatePathEligible.map((node) => {
       const planningUnit = planningUnitForNode(node);
       return {
         node,
@@ -1895,8 +1924,7 @@ function buildAdaptiveLearningPathPlanInternal(
     registry: input.registry,
   });
   const rankerByNodeId = new Map(rankerResult.ranked.map((entry) => [entry.node.id, entry.explanation]));
-  const scored = pathEligible
-    .filter((node) => goalAllowsResourceNode(node, registeredGoal))
+  const scored = candidatePathEligible
     .filter((node) =>
       nodeMatchesGoal(node, input.goal, deficits, graphContext) ||
       (input.constraints.requireRiskIntervention && isRiskInterventionNode(node))
@@ -1917,6 +1945,9 @@ function buildAdaptiveLearningPathPlanInternal(
           ...(resourceRanker?.featureContributions
             .filter((contribution) => contribution.value > 0)
             .map((contribution) => `ranker:${contribution.feature}`) ?? []),
+          ...(learningGoalBoundaryEvaluations?.get(node.id)?.matchedRefs.length
+            ? ['learning-goal-objective-boundary']
+            : []),
         ]),
       };
     })
@@ -2055,6 +2086,17 @@ function buildAdaptiveLearningPathPlanInternal(
   const capabilityTargets = resolveCapabilityTargets(input.goal, registeredGoal);
   const goal = attachLearningGoal(input.goal, registeredGoal);
   const sourcePackEvidence = buildPathPlanningSourcePackEvidence(input, mainPath, goal);
+  const graphContextWithBoundaryDiagnostics = graphContext && learningGoalBoundary
+    ? {
+        ...graphContext,
+        objectiveBoundaryDiagnostics: buildLearningGoalObjectiveBoundaryDiagnostics({
+          boundary: learningGoalBoundary,
+          evaluations: learningGoalBoundaryEvaluations ?? new Map(),
+          mainPath,
+          fallbackReasons: uniqueFallbackReasons,
+        }),
+      }
+    : graphContext;
 
   return {
     id: `adaptive-path:${input.studentId}:${input.goal.id}`,
@@ -2102,7 +2144,7 @@ function buildAdaptiveLearningPathPlanInternal(
       associativeRetrieval: explanations.associativeRetrieval,
       generatedAt: now,
     }),
-    graphContext,
+    graphContext: graphContextWithBoundaryDiagnostics,
     constraintRepair,
   };
 }
@@ -2317,8 +2359,22 @@ function serializeGraphContextSummary(
   graphContext: AdaptiveLearningPathGraphContextSummary | undefined,
 ): AdaptiveLearningPathPersistenceRecord['payload']['graphContext'] {
   if (!graphContext) return undefined;
-  const { resourceCoveragePathEligibleResourceIds: _internalPathEligibleResourceIds, ...serialized } = graphContext;
-  return serialized;
+  const {
+    resourceCoveragePathEligibleResourceIds: _internalPathEligibleResourceIds,
+    objectiveBoundaryDiagnostics,
+    ...serialized
+  } = graphContext;
+  return {
+    ...serialized,
+    ...(objectiveBoundaryDiagnostics
+      ? {
+          objectiveBoundaryDiagnostics: {
+            ...objectiveBoundaryDiagnostics,
+            selectedResourceMatches: [],
+          },
+        }
+      : {}),
+  };
 }
 
 export function normalizeLearningPathPayloadLearningGoal(
@@ -3964,6 +4020,168 @@ function goalAllowsResourceNode(
   return !registeredGoal || registeredGoal.allowedResourceMix.includes(node.type);
 }
 
+interface LearningGoalObjectiveBoundary {
+  knowledgeObjectiveIds: string[];
+  capabilityObjectiveIds: string[];
+  qualityObjectiveIds: string[];
+  graphNodeIds: string[];
+  prerequisiteGraphNodeIds: string[];
+  policyRequiredRoles: string[];
+  hasPathEligibleCoverage: boolean;
+}
+
+interface LearningGoalObjectiveBoundaryEvaluation {
+  allowed: boolean;
+  matchedRefs: string[];
+  matchReasons: string[];
+}
+
+function buildLearningGoalObjectiveBoundary(
+  registeredGoal: AdaptiveLearningPathRegisteredGoalDefinition | null,
+  graphContext: AdaptiveLearningPathGraphContextSummary | undefined,
+): LearningGoalObjectiveBoundary | null {
+  const learningGoal = registeredGoal?.learningGoal;
+  if (!learningGoal || !graphContext?.targetGraphNodeIds.length) return null;
+  const knowledgeObjectiveIds = unique([
+    ...learningGoal.knowledgeObjectiveIds,
+    ...graphContext.objectiveBoundary.knowledgeObjectiveIds,
+  ]);
+  const capabilityObjectiveIds = unique([
+    ...learningGoal.capabilityObjectiveIds,
+    ...graphContext.objectiveBoundary.capabilityObjectiveIds,
+  ]);
+  const qualityObjectiveIds = unique([
+    ...learningGoal.qualityObjectiveIds,
+    ...graphContext.objectiveBoundary.qualityObjectiveIds,
+  ]);
+  const objectiveGraphNodeIds = unique([
+    ...knowledgeObjectiveIds,
+    ...capabilityObjectiveIds,
+    ...qualityObjectiveIds,
+  ].map(objectiveIdToGraphNodeId));
+  const prerequisiteGraphNodeIds = unique(graphContext.prerequisitePolicy
+    .filter((entry) => entry.required)
+    .flatMap((entry) => [entry.sourceNodeId, entry.targetNodeId]));
+  const policyRequiredRoles = unique([
+    ...(registeredGoal.checkpointPolicy.minCheckpoints > 0 ? ['checkpoint'] : []),
+    ...(registeredGoal.checkpointPolicy.requiresTerminalValidation ? ['terminal-validation'] : []),
+  ]);
+  const hasPathEligibleCoverage = Object.values(graphContext.resourceCoverageStatus)
+    .some((coverage) => coverage.pathEligibleResourceCount > 0);
+  return {
+    knowledgeObjectiveIds,
+    capabilityObjectiveIds,
+    qualityObjectiveIds,
+    graphNodeIds: unique([
+      ...learningGoal.targetGraphNodeIds,
+      ...graphContext.targetGraphNodeIds,
+      ...objectiveGraphNodeIds,
+      ...prerequisiteGraphNodeIds,
+    ]),
+    prerequisiteGraphNodeIds,
+    policyRequiredRoles,
+    hasPathEligibleCoverage,
+  };
+}
+
+function objectiveIdToGraphNodeId(objectiveId: string): string {
+  if (objectiveId.startsWith('knowledge:')) return objectiveId.replace(/^knowledge:/, 'kn:');
+  if (objectiveId.startsWith('capability:')) return objectiveId.replace(/^capability:/, 'cap:');
+  if (objectiveId.startsWith('quality:')) return objectiveId.replace(/^quality:/, 'qual:');
+  return objectiveId;
+}
+
+function evaluateLearningGoalObjectiveBoundary(
+  node: ResourceNode,
+  boundary: LearningGoalObjectiveBoundary,
+  graphContext: AdaptiveLearningPathGraphContextSummary | undefined,
+  registeredGoal: AdaptiveLearningPathRegisteredGoalDefinition | null,
+  constraints: AdaptiveLearningPathConstraints,
+): LearningGoalObjectiveBoundaryEvaluation {
+  const planningUnit = planningUnitForNode(node);
+  if (!planningUnit) return { allowed: false, matchedRefs: [], matchReasons: ['missing-planning-unit'] };
+  const refs = new Set([
+    ...planningUnit.graphNodeRefs.knowledge,
+    ...planningUnit.graphNodeRefs.capability,
+    ...planningUnit.graphNodeRefs.quality,
+    ...planningUnit.knowledgeCoverage,
+    ...Object.keys(planningUnit.abilityImpact),
+  ]);
+  const matchedRefs = new Set<string>();
+  const matchReasons = new Set<string>();
+  for (const graphNodeId of boundary.graphNodeIds) {
+    if (
+      refs.has(graphNodeId) ||
+      graphContext?.resourceCoveragePathEligibleResourceIds[graphNodeId]?.includes(planningUnit.resourceNodeId)
+    ) {
+      matchedRefs.add(graphNodeId);
+      matchReasons.add('graph-boundary');
+    }
+  }
+  if (
+    boundary.hasPathEligibleCoverage &&
+    boundary.policyRequiredRoles.includes('terminal-validation') &&
+    isTerminalValidationNode(node)
+  ) {
+    matchedRefs.add('policy:terminal-validation');
+    matchReasons.add('policy-required-terminal-validation');
+  }
+  if (
+    boundary.hasPathEligibleCoverage &&
+    boundary.policyRequiredRoles.includes('checkpoint') &&
+    registeredGoal?.checkpointPolicy.checkpointResourceTypes.includes(node.type)
+  ) {
+    matchedRefs.add('policy:checkpoint');
+    matchReasons.add('policy-required-checkpoint');
+  }
+  if (constraints.requireRiskIntervention && isRiskInterventionNode(node)) {
+    matchedRefs.add('policy:risk-intervention');
+    matchReasons.add('policy-required-remediation');
+  }
+  return {
+    allowed: matchedRefs.size > 0,
+    matchedRefs: Array.from(matchedRefs).sort((left, right) => left.localeCompare(right)),
+    matchReasons: Array.from(matchReasons).sort((left, right) => left.localeCompare(right)),
+  };
+}
+
+function buildLearningGoalObjectiveBoundaryDiagnostics(input: {
+  boundary: LearningGoalObjectiveBoundary;
+  evaluations: Map<string, LearningGoalObjectiveBoundaryEvaluation>;
+  mainPath: AdaptiveLearningPathPlanNode[];
+  fallbackReasons: string[];
+}): AdaptiveLearningPathObjectiveBoundaryDiagnostics {
+  const lowResourceReasons = input.fallbackReasons.filter((reason) => [
+    'resource-mapping-insufficient',
+    'feasible-goal-path-missing',
+    'graph-target-coverage-partial',
+    'terminal-validation-resource-missing',
+    'checkpoint-resource-missing',
+    'learning-goal-baseline-incomplete',
+  ].includes(reason));
+  return {
+    acceptedBoundaryRefs: {
+      knowledgeObjectiveIds: input.boundary.knowledgeObjectiveIds,
+      capabilityObjectiveIds: input.boundary.capabilityObjectiveIds,
+      qualityObjectiveIds: input.boundary.qualityObjectiveIds,
+      graphNodeIds: input.boundary.graphNodeIds,
+      prerequisiteGraphNodeIds: input.boundary.prerequisiteGraphNodeIds,
+      policyRequiredRoles: input.boundary.policyRequiredRoles,
+    },
+    rejectedMismatchCount: Array.from(input.evaluations.values())
+      .filter((evaluation) => !evaluation.allowed).length,
+    selectedResourceMatches: input.mainPath
+      .map((node) => {
+        const evaluation = input.evaluations.get(node.nodeId);
+        return evaluation?.matchedRefs.length
+          ? { nodeId: node.nodeId, matchRefs: evaluation.matchedRefs, matchReasons: evaluation.matchReasons }
+          : null;
+      })
+      .filter((item): item is NonNullable<typeof item> => Boolean(item)),
+    lowResourceReasons,
+  };
+}
+
 function externalResourceAllowed(
   node: ResourceNode,
   input: AdaptiveLearningPathPlannerInput,
@@ -4329,10 +4547,15 @@ function selectPolicySupportNodes(
   let remaining = Math.max(0, remainingBudget);
   const deficits = inferDeficits(input.goal, input.learnerState);
   const registeredGoal = getRegisteredAdaptiveLearningPathGoal(input.goal.id);
+  const graphContext = buildAdaptiveLearningPathGraphContext(input.graphContext, input.goal, registeredGoal);
+  const learningGoalBoundary = buildLearningGoalObjectiveBoundary(registeredGoal, graphContext);
   const excludedNodeIds = new Set(input.excludedNodeIds ?? []);
   const eligibleIds = new Set(partitionResourceNodes(input.registry.nodes, input.constraints).eligible
     .filter((node) => !excludedNodeIds.has(node.id))
     .filter((node) => externalResourceAllowed(node, input, registeredGoal))
+    .filter((node) => learningGoalBoundary
+      ? evaluateLearningGoalObjectiveBoundary(node, learningGoalBoundary, graphContext, registeredGoal, input.constraints).allowed
+      : true)
     .map((node) => node.id));
   const picked: ResourceNode[] = [];
   const addCandidates = (candidates: ResourceNode[], limit: number) => {
@@ -4346,7 +4569,7 @@ function selectPolicySupportNodes(
       if (!planningUnit) continue;
       if (planningUnit.prerequisites.length > 0) continue;
       if (!policyAllowsNode(node, policyFamily, input.constraints)) continue;
-      if (!nodeMatchesGoal(node, input.goal, deficits)) continue;
+      if (!nodeMatchesGoal(node, input.goal, deficits, graphContext)) continue;
       const estimatedMinutes = planningUnit.estimatedTimeMinutes;
       if (estimatedMinutes > remaining) continue;
       picked.push(node);
