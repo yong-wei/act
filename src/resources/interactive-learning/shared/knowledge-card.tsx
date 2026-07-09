@@ -93,7 +93,7 @@ export function KnowledgeCard({
     <div
       className={`
         ${variantStyles[variant]}
-        bg-slate-900/95
+        bg-white dark:bg-slate-900/95
         transition-all duration-300
         ${className}
       `}
@@ -128,7 +128,7 @@ export function KnowledgeCard({
               >
                 {node.name}
               </h4>
-              <p className="text-xs text-slate-500">{node.lessonId}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">{node.lessonId}</p>
             </div>
           </div>
 
@@ -136,18 +136,18 @@ export function KnowledgeCard({
             {(bloomLabel || knowledgeLabel) && (
               <div className="flex flex-wrap justify-end gap-2">
                 {bloomLabel && (
-                  <span className="rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2 py-0.5 text-[10px] text-emerald-200">
+                  <span className="rounded-full border border-emerald-500/40 bg-emerald-50 px-2 py-0.5 text-[10px] text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-200">
                     认知：{bloomLabel}
                   </span>
                 )}
                 {knowledgeLabel && (
-                  <span className="rounded-full border border-blue-500/40 bg-blue-500/15 px-2 py-0.5 text-[10px] text-blue-200">
+                  <span className="rounded-full border border-blue-500/40 bg-blue-50 px-2 py-0.5 text-[10px] text-blue-700 dark:bg-blue-500/15 dark:text-blue-200">
                     知识：{knowledgeLabel}
                   </span>
                 )}
               </div>
             )}
-            <div className="text-slate-500">
+            <div className="text-slate-500 dark:text-slate-400">
               {isExpanded ? (
                 <ChevronUp className="h-4 w-4" />
               ) : (
@@ -161,7 +161,7 @@ export function KnowledgeCard({
           <button
             type="button"
             onClick={onDismiss}
-            className="rounded p-1 text-slate-500 hover:bg-slate-800 hover:text-slate-300"
+            className="rounded p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-300"
             aria-label="关闭知识卡片"
           >
             <X className="h-4 w-4" />
@@ -170,28 +170,28 @@ export function KnowledgeCard({
       </div>
 
       {/* 定义（始终显示） */}
-      <div className="border-t border-slate-800 px-4 py-3">
+      <div className="border-t border-slate-200 px-4 py-3 dark:border-slate-800">
         <div className="flex items-start gap-2">
           <Lightbulb className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500" />
-          <p className="text-sm text-slate-300">{node.description}</p>
+          <p className="text-sm text-slate-700 dark:text-slate-300">{node.description}</p>
         </div>
       </div>
 
       {/* 展开内容 */}
       {isExpanded && (
-        <div className="border-t border-slate-800 p-4 pt-3">
+        <div className="border-t border-slate-200 p-4 pt-3 dark:border-slate-800">
           {/* 详细解释 */}
           <div className="mb-4">
-            <p className="text-sm leading-relaxed text-slate-400">
+            <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400">
               {node.explanation}
             </p>
           </div>
 
           {/* 公式（如果有） */}
           {node.formulaContinuous && (
-            <div className="mb-4 rounded-lg bg-slate-800/50 p-3">
-              <div className="mb-1 text-xs text-slate-500">核心公式</div>
-              <code className="font-mono text-sm text-emerald-400">
+            <div className="mb-4 rounded-lg bg-slate-100 p-3 dark:bg-slate-800/50">
+              <div className="mb-1 text-xs text-slate-500 dark:text-slate-400">核心公式</div>
+              <code className="font-mono text-sm text-emerald-700 dark:text-emerald-400">
                 {formatLatex(node.formulaContinuous)}
               </code>
             </div>
@@ -200,12 +200,12 @@ export function KnowledgeCard({
           {/* 应用领域 */}
           {node.applications && node.applications.length > 0 && (
             <div>
-              <div className="mb-2 text-xs text-slate-500">应用领域</div>
+              <div className="mb-2 text-xs text-slate-500 dark:text-slate-400">应用领域</div>
               <div className="flex flex-wrap gap-2">
                 {node.applications.map((app, index) => (
                   <span
                     key={index}
-                    className="rounded-full bg-slate-800 px-2.5 py-1 text-xs text-slate-400"
+                    className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600 dark:bg-slate-800 dark:text-slate-400"
                   >
                     {app}
                   </span>
@@ -216,7 +216,7 @@ export function KnowledgeCard({
 
           {markdownPaths.length > 0 && (
             <div className="pt-4">
-              <div className="mb-2 text-xs text-slate-500">扩展内容</div>
+              <div className="mb-2 text-xs text-slate-500 dark:text-slate-400">扩展内容</div>
               <div className="space-y-4">
                 {markdownPaths.map((path) => (
                   <MdxSlide key={path} path={path} />
@@ -294,7 +294,7 @@ export function KnowledgeCardTrigger({
   return (
     <button type="button"
       onClick={onClick}
-      className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-slate-700"
+      className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-slate-100 dark:hover:bg-slate-700"
       style={{
         backgroundColor: `${color}15`,
         color: color,
