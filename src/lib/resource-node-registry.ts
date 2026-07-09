@@ -358,6 +358,8 @@ export interface RuntimeResourceProjectionReviewAudit {
   reviewedVersionRef: string | null;
   generationToolOrModel: string | null;
   promptOrManifestHash: string | null;
+  reviewerVisibleRationale?: string | null;
+  independentEvidenceRef?: string | null;
   confidence: number | null;
   staleInvalidationRule: string;
 }
@@ -384,6 +386,7 @@ export interface RuntimeResourceProjectionInput {
   evidenceContract?: RuntimeResourceProjectionEvidenceContract | null;
   reviewAudit?: RuntimeResourceProjectionReviewAudit | null;
   readiness?: ResourceNodeReadinessMetadata | null;
+  citationTargets?: string[];
 }
 
 export interface RuntimeResourceProjectionMetadata {
