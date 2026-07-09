@@ -100,6 +100,30 @@ assert.match(
 );
 
 run('git', ['reset', '--hard', 'HEAD'], repo);
+const unrelatedPresetPath = path.join(repo, 'src/features/teacher/preset-lessons/presets/example.ts');
+const unrelatedOriginalPreset = fs.readFileSync(unrelatedPresetPath, 'utf8');
+fs.writeFileSync(unrelatedPresetPath, unrelatedOriginalPreset.replace(
+  'items: [],',
+  `items: [
+    {
+      registryId: 'unstaged-wip-resource',
+      title: 'Unstaged WIP resource',
+    },
+  ],`,
+));
+fs.writeFileSync(path.join(repo, 'README.md'), 'Unrelated staged documentation change.\n');
+run('git', ['add', 'README.md'], repo);
+const unrelatedStagedResult = spawnSync('npx', ['tsx', './scripts/data-governance/check-new-resource-semantic-completeness.ts', '--staged'], {
+  cwd: repo,
+  encoding: 'utf8',
+});
+assert.equal(unrelatedStagedResult.status, 0, 'gate must not block unrelated staged changes because a gated resource file has unstaged WIP');
+assert.match(
+  `${unrelatedStagedResult.stdout}\n${unrelatedStagedResult.stderr}`,
+  /new-resource semantic completeness passed \(0 changed resources checked\)/,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
 const mismatch = original.replace(
   'const registeredResourceMetadata: Record<string, RegisteredResourceMetadata> = {',
   `const registeredResourceMetadata: Record<string, RegisteredResourceMetadata> = {

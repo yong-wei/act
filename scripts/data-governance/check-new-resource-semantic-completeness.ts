@@ -41,27 +41,32 @@ function main() {
     ...TEACHING_RESOURCE_SEED_PATHS,
     ...presetLessonPaths,
   ];
-  if (options.staged) {
-    assertNoUnstagedTargetChanges([
-      REGISTERED_RESOURCE_METADATA_PATH,
-      RESOURCE_COMPONENT_REGISTRY_PATH,
-      RUNTIME_RESOURCE_PROJECTIONS_PATH,
-      ...teachingResourcePaths,
-      TEACHING_RESOURCE_REPAIR_PATH,
-    ]);
-  }
   const registeredResourceDiff = gitDiff(options, REGISTERED_RESOURCE_METADATA_PATH);
   const resourceComponentRegistryDiff = gitDiff(options, RESOURCE_COMPONENT_REGISTRY_PATH);
   const runtimeProjectionDiff = gitDiff(options, RUNTIME_RESOURCE_PROJECTIONS_PATH);
   const teachingResourceChanges = teachingResourcePaths.map((filePath) => ({
-    source: readTextIfExists(filePath),
+    filePath,
     diff: gitDiff(options, filePath),
   }));
   const repairDiff = gitDiff(options, TEACHING_RESOURCE_REPAIR_PATH);
+  if (options.staged) {
+    assertNoUnstagedTargetChanges([
+      ...(hasDiff(registeredResourceDiff) ? [REGISTERED_RESOURCE_METADATA_PATH] : []),
+      ...(hasDiff(resourceComponentRegistryDiff) ? [RESOURCE_COMPONENT_REGISTRY_PATH, REGISTERED_RESOURCE_METADATA_PATH] : []),
+      ...teachingResourceChanges.flatMap(({ filePath, diff }) => (
+        hasDiff(diff) ? [filePath, REGISTERED_RESOURCE_METADATA_PATH] : []
+      )),
+      ...(hasDiff(repairDiff) ? [TEACHING_RESOURCE_REPAIR_PATH, REGISTERED_RESOURCE_METADATA_PATH] : []),
+    ]);
+  }
+  const teachingResourceSources = teachingResourceChanges.map(({ filePath, diff }) => ({
+    source: readTextIfExists(filePath),
+    diff,
+  }));
   const resourceIds = uniqueSorted([
     ...parseChangedRegisteredResourceIds(readText(REGISTERED_RESOURCE_METADATA_PATH), registeredResourceDiff),
     ...parseChangedResourceComponentRegistryIds(readTextIfExists(RESOURCE_COMPONENT_REGISTRY_PATH), resourceComponentRegistryDiff),
-    ...teachingResourceChanges.flatMap(({ source, diff }) => parseChangedTeachingResourceRegistryIds(source, diff)),
+    ...teachingResourceSources.flatMap(({ source, diff }) => parseChangedTeachingResourceRegistryIds(source, diff)),
     ...parseChangedTeachingResourceRepairRegistryIds(repairDiff),
   ]);
   const registeredResourcesById = new Map(getAllRegisteredResourceMetadata().map((resource) => [resource.id, resource]));
@@ -269,7 +274,7 @@ function listPresetLessonResourcePaths(options: CliOptions): string[] {
 }
 
 function assertNoUnstagedTargetChanges(filePaths: readonly string[]) {
-  const unstagedFiles = filePaths.filter((filePath) => (
+  const unstagedFiles = uniqueSorted(filePaths).filter((filePath) => (
     gitStatus(['diff', '--quiet', '--', filePath]) !== 0
   ));
   if (unstagedFiles.length === 0) return;
@@ -279,6 +284,10 @@ function assertNoUnstagedTargetChanges(filePaths: readonly string[]) {
   }
   console.error('Stage or discard those changes so the gate checks the exact commit content.');
   process.exit(1);
+}
+
+function hasDiff(diff: string): boolean {
+  return diff.trim().length > 0;
 }
 
 function parseArgs(args: string[]): CliOptions {
