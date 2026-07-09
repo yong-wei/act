@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
@@ -14,6 +14,7 @@ import {
 } from '@/lib/data-governance/new-resource-semantic-completeness-gate';
 
 const REGISTERED_RESOURCE_METADATA_PATH = 'src/lib/resource-registry-metadata.ts';
+const RESOURCE_COMPONENT_REGISTRY_PATH = 'src/lib/resource-registry.tsx';
 const RUNTIME_RESOURCE_PROJECTIONS_PATH = 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl';
 const TEACHING_RESOURCE_SEED_PATHS = [
   'scripts/db/seed-interactive-resources.ts',
@@ -21,6 +22,7 @@ const TEACHING_RESOURCE_SEED_PATHS = [
   'scripts/db/seed-lesson02-complete.mjs',
 ];
 const TEACHING_RESOURCE_REPAIR_PATH = 'scripts/db/repair-resource-identity-bindings.ts';
+const PRESET_LESSON_RESOURCE_DIR = 'src/features/teacher/preset-lessons/presets';
 
 interface CliOptions {
   base: string | null;
@@ -29,20 +31,28 @@ interface CliOptions {
 
 function main() {
   const options = parseArgs(process.argv.slice(2));
+  const presetLessonPaths = listPresetLessonResourcePaths(options);
+  const teachingResourcePaths = [
+    ...TEACHING_RESOURCE_SEED_PATHS,
+    ...presetLessonPaths,
+  ];
   if (options.staged) {
     assertNoUnstagedTargetChanges([
       REGISTERED_RESOURCE_METADATA_PATH,
+      RESOURCE_COMPONENT_REGISTRY_PATH,
       RUNTIME_RESOURCE_PROJECTIONS_PATH,
-      ...TEACHING_RESOURCE_SEED_PATHS,
+      ...teachingResourcePaths,
       TEACHING_RESOURCE_REPAIR_PATH,
     ]);
   }
   const registeredResourceDiff = gitDiff(options, REGISTERED_RESOURCE_METADATA_PATH);
+  const resourceComponentRegistryDiff = gitDiff(options, RESOURCE_COMPONENT_REGISTRY_PATH);
   const runtimeProjectionDiff = gitDiff(options, RUNTIME_RESOURCE_PROJECTIONS_PATH);
-  const teachingResourceDiffs = TEACHING_RESOURCE_SEED_PATHS.map((filePath) => gitDiff(options, filePath));
+  const teachingResourceDiffs = teachingResourcePaths.map((filePath) => gitDiff(options, filePath));
   const repairDiff = gitDiff(options, TEACHING_RESOURCE_REPAIR_PATH);
   const resourceIds = uniqueSorted([
     ...parseChangedRegisteredResourceIds(readText(REGISTERED_RESOURCE_METADATA_PATH), registeredResourceDiff),
+    ...parseChangedResourceComponentRegistryIds(resourceComponentRegistryDiff),
     ...teachingResourceDiffs.flatMap(parseChangedTeachingResourceRegistryIds),
     ...parseChangedTeachingResourceRepairRegistryIds(repairDiff),
   ]);
@@ -82,10 +92,57 @@ function main() {
 }
 
 function parseChangedTeachingResourceRegistryIds(diff: string): string[] {
-  return diff
+  const addedLines = diff
     .split(/\r?\n/)
     .filter((line) => line.startsWith('+') && !line.startsWith('+++'))
-    .flatMap((line) => Array.from(line.matchAll(/\bregistryId\s*:\s*['"]([^'"]+)['"]/g), (match) => match[1]));
+    .map((line) => line.slice(1));
+  const ids: string[] = [];
+  let pendingRegistryExpression = false;
+
+  for (const line of addedLines) {
+    const sameLineMatches = Array.from(line.matchAll(/\bregistryId\s*:\s*['"]([^'"]+)['"]/g), (match) => match[1]);
+    if (sameLineMatches.length > 0) {
+      ids.push(...sameLineMatches);
+      pendingRegistryExpression = false;
+      continue;
+    }
+    if (/\bregistryId\s*:/.test(line)) {
+      pendingRegistryExpression = true;
+      continue;
+    }
+    if (!pendingRegistryExpression) continue;
+    ids.push(...Array.from(line.matchAll(/^\s*[?:]\s*['"]([^'"]+)['"]/g), (match) => match[1]));
+    if (line.includes(',')) {
+      pendingRegistryExpression = false;
+    }
+  }
+
+  return ids;
+}
+
+function parseChangedResourceComponentRegistryIds(diff: string): string[] {
+  const ids: string[] = [];
+  let awaitingEntryId = false;
+  for (const rawLine of diff.split(/\r?\n/)) {
+    if (!rawLine.startsWith('+') || rawLine.startsWith('+++')) continue;
+    const line = rawLine.slice(1);
+    const entryKeyMatch = line.match(/^\s*['"]([^'"]+)['"]\s*:\s*\{/);
+    if (entryKeyMatch) {
+      ids.push(entryKeyMatch[1]);
+      awaitingEntryId = true;
+      continue;
+    }
+    const idMatch = line.match(/^\s{2,8}id\s*:\s*['"]([^'"]+)['"]/);
+    if ((awaitingEntryId || idMatch) && idMatch) {
+      ids.push(idMatch[1]);
+      awaitingEntryId = false;
+      continue;
+    }
+    if (/^\s*(?:component\s*:|\},?)/.test(line)) {
+      awaitingEntryId = false;
+    }
+  }
+  return ids;
 }
 
 function parseChangedTeachingResourceRepairRegistryIds(diff: string): string[] {
@@ -93,6 +150,16 @@ function parseChangedTeachingResourceRepairRegistryIds(diff: string): string[] {
     .split(/\r?\n/)
     .filter((line) => line.startsWith('+') && !line.startsWith('+++'))
     .flatMap((line) => Array.from(line.matchAll(/^\+\s*(?:['"][^'"]+['"]|[A-Za-z0-9_$]+)\s*:\s*['"]([^'"]+)['"]/g), (match) => match[1]));
+}
+
+function listPresetLessonResourcePaths(options: CliOptions): string[] {
+  const dir = path.join(process.cwd(), PRESET_LESSON_RESOURCE_DIR);
+  const worktreePaths = existsSync(dir)
+    ? readdirSync(dir)
+      .filter((fileName) => /\.(?:ts|tsx)$/.test(fileName))
+      .map((fileName) => `${PRESET_LESSON_RESOURCE_DIR}/${fileName}`)
+    : [];
+  return uniqueSorted([...worktreePaths, ...gitChangedPaths(options, PRESET_LESSON_RESOURCE_DIR)]);
 }
 
 function assertNoUnstagedTargetChanges(filePaths: readonly string[]) {
@@ -136,11 +203,19 @@ function parseArgs(args: string[]): CliOptions {
 }
 
 function gitDiff(options: CliOptions, filePath: string): string {
-  if (!existsSync(path.join(process.cwd(), filePath))) return '';
   const args = options.staged
     ? ['diff', '--cached', '--unified=0', '--', filePath]
     : ['diff', '--unified=0', `${options.base}...HEAD`, '--', filePath];
   return execFileSync('git', args, { encoding: 'utf8' });
+}
+
+function gitChangedPaths(options: CliOptions, dirPath: string): string[] {
+  const args = options.staged
+    ? ['diff', '--cached', '--name-only', '--', dirPath]
+    : ['diff', '--name-only', `${options.base}...HEAD`, '--', dirPath];
+  return execFileSync('git', args, { encoding: 'utf8' })
+    .split(/\r?\n/)
+    .filter((filePath) => /\.(?:ts|tsx)$/.test(filePath));
 }
 
 function gitStatus(args: string[]): number {

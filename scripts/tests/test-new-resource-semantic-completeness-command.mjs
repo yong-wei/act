@@ -8,12 +8,18 @@ const root = process.cwd();
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'act-new-resource-gate-'));
 const repo = path.join(tmp, 'repo');
 fs.mkdirSync(path.join(repo, 'src/lib'), { recursive: true });
+fs.mkdirSync(path.join(repo, 'src/features/teacher/preset-lessons/presets'), { recursive: true });
 fs.mkdirSync(path.join(repo, 'course-content/runtime/resource-governance'), { recursive: true });
 fs.cpSync(path.join(root, 'scripts'), path.join(repo, 'scripts'), { recursive: true });
 fs.cpSync(path.join(root, 'src/lib/data-governance'), path.join(repo, 'src/lib/data-governance'), { recursive: true });
 fs.cpSync(path.join(root, 'src/lib/resource-node-registry.ts'), path.join(repo, 'src/lib/resource-node-registry.ts'));
 fs.cpSync(path.join(root, 'src/lib/resource-registry-metadata.ts'), path.join(repo, 'src/lib/resource-registry-metadata.ts'));
 fs.cpSync(path.join(root, 'src/lib/kaq-artifact-versioning.ts'), path.join(repo, 'src/lib/kaq-artifact-versioning.ts'));
+fs.writeFileSync(path.join(repo, 'src/lib/resource-registry.tsx'), 'const registry = {};\n');
+fs.writeFileSync(path.join(repo, 'src/features/teacher/preset-lessons/presets/example.ts'), `export const EXAMPLE_PRESET = {
+  items: [],
+};
+`);
 fs.writeFileSync(path.join(repo, 'tsconfig.json'), JSON.stringify({
   compilerOptions: {
     baseUrl: '.',
@@ -160,6 +166,90 @@ assert.notEqual(repairResult.status, 0, 'gate must fail when a TeachingResource 
 assert.match(
   `${repairResult.stdout}\n${repairResult.stderr}`,
   /repair-resource-without-metadata missing-registered-resource-metadata/,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+const presetPath = path.join(repo, 'src/features/teacher/preset-lessons/presets/example.ts');
+const originalPreset = fs.readFileSync(presetPath, 'utf8');
+fs.writeFileSync(presetPath, originalPreset.replace(
+  'items: [],',
+  `items: [
+    {
+      registryId:
+        step.kind === 'summary'
+          ? 'classroom-ai-report'
+          : 'preset-resource-without-metadata',
+      title: 'Preset resource without metadata',
+    },
+  ],`,
+));
+run('git', ['add', 'src/features/teacher/preset-lessons/presets/example.ts'], repo);
+const presetResult = spawnSync('npx', ['tsx', './scripts/data-governance/check-new-resource-semantic-completeness.ts', '--staged'], {
+  cwd: repo,
+  encoding: 'utf8',
+});
+assert.notEqual(presetResult.status, 0, 'gate must fail when a changed preset lesson registryId has no registered metadata');
+assert.match(
+  `${presetResult.stdout}\n${presetResult.stderr}`,
+  /preset-resource-without-metadata missing-registered-resource-metadata/,
+);
+assert.doesNotMatch(
+  `${presetResult.stdout}\n${presetResult.stderr}`,
+  /summary missing-registered-resource-metadata/,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+const stagedOnlyPresetPath = path.join(repo, 'src/features/teacher/preset-lessons/presets/staged-only.ts');
+fs.writeFileSync(stagedOnlyPresetPath, `export const STAGED_ONLY_PRESET = {
+  items: [
+    { registryId: 'staged-only-preset-resource' },
+  ],
+};
+`);
+run('git', ['add', 'src/features/teacher/preset-lessons/presets/staged-only.ts'], repo);
+fs.rmSync(stagedOnlyPresetPath);
+const stagedOnlyPresetResult = spawnSync('npx', ['tsx', './scripts/data-governance/check-new-resource-semantic-completeness.ts', '--staged'], {
+  cwd: repo,
+  encoding: 'utf8',
+});
+assert.notEqual(stagedOnlyPresetResult.status, 0, 'gate must fail closed when a staged preset file is missing from the worktree');
+assert.match(
+  `${stagedOnlyPresetResult.stdout}\n${stagedOnlyPresetResult.stderr}`,
+  /cannot run with unstaged changes in gated resource files/,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+const componentRegistryPath = path.join(repo, 'src/lib/resource-registry.tsx');
+const originalComponentRegistry = fs.readFileSync(componentRegistryPath, 'utf8');
+fs.writeFileSync(componentRegistryPath, originalComponentRegistry.replace(
+  'const registry = {};',
+  `const registry = {
+  'component-resource-without-metadata': {
+    id: 'component-resource-without-metadata',
+    label: 'Component resource without metadata',
+  },
+};`,
+));
+run('git', ['add', 'src/lib/resource-registry.tsx'], repo);
+const componentRegistryResult = spawnSync('npx', ['tsx', './scripts/data-governance/check-new-resource-semantic-completeness.ts', '--staged'], {
+  cwd: repo,
+  encoding: 'utf8',
+});
+assert.notEqual(componentRegistryResult.status, 0, 'gate must fail when a changed resource component registry id has no registered metadata');
+assert.match(
+  `${componentRegistryResult.stdout}\n${componentRegistryResult.stderr}`,
+  /component-resource-without-metadata missing-registered-resource-metadata/,
+);
+
+run('git', ['commit', '--no-verify', '-m', 'add incomplete component registry'], repo);
+const componentRegistryBaseResult = spawnSync('npx', ['tsx', './scripts/data-governance/check-new-resource-semantic-completeness.ts', '--base', 'HEAD~1'], {
+  cwd: repo,
+  encoding: 'utf8',
+});
+assert.notEqual(componentRegistryBaseResult.status, 0, 'gate must fail for changed resource component registry ids in base mode');
+assert.match(
+  `${componentRegistryBaseResult.stdout}\n${componentRegistryBaseResult.stderr}`,
+  /component-resource-without-metadata missing-registered-resource-metadata/,
 );
 
 console.log('new resource semantic completeness command contract passed');
