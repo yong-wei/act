@@ -16,4 +16,6 @@ Registered resources, knowledge cards, and knowledge infographs SHALL be semanti
 #### Scenario: Core batch is complete
 - **WHEN** the scoped helper queue for registered resources, knowledge cards, and infographs is rerun
 - **THEN** it SHALL report zero unreviewed or unexplained in-scope items
+- **AND** the tracked review source SHALL be applied to formal audit rows before summaries, workqueues, projections, baselines, and path-readiness gates are derived
+- **AND** materialization SHALL use the tracked audit snapshot and summary metadata without replacing the frozen denominator from live candidate enumeration
 - **AND** any residual item SHALL name a concrete missing source artifact or schema blocker.
