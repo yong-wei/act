@@ -329,6 +329,52 @@ describe('AI provider settings', () => {
     )).rejects.toThrow('lacks required capabilities');
   });
 
+  it('honors the active provider before priority fallbacks when runtime capabilities are required', async () => {
+    const settings = normalizeAIProviderSettings({
+      activeProvider: 'siliconflow',
+      providers: [
+        {
+          id: 'siliconflow',
+          name: 'SiliconFlow',
+          providerKind: 'openai-compatible',
+          baseURL: 'https://api.siliconflow.cn/v1',
+          secretRef: 'env:SILICONFLOW_API_KEY',
+          selectedModel: 'deepseek-ai/DeepSeek-V4-Flash',
+          priority: 100,
+          capabilities: { tools: true, reasoning: false, vision: false, jsonSchema: true, streaming: true, citationNormalization: true },
+          models: [{ id: 'deepseek-v4-flash', label: 'DeepSeek V4 Flash', model: 'deepseek-ai/DeepSeek-V4-Flash' }],
+        },
+        {
+          id: 'deepseek-official',
+          name: 'DeepSeek Official',
+          providerKind: 'openai-compatible',
+          baseURL: 'https://api.deepseek.com',
+          secretRef: 'env:AI_API_KEY',
+          selectedModel: 'deepseek-v4-flash',
+          priority: 90,
+          capabilities: { tools: true, reasoning: false, vision: false, jsonSchema: true, streaming: true, citationNormalization: true },
+          models: [{ id: 'deepseek-v4-flash-official', label: 'DeepSeek V4 Flash', model: 'deepseek-v4-flash' }],
+        },
+      ],
+    });
+
+    const config = await resolveConfiguredAIProviderConfig(
+      undefined,
+      undefined,
+      { tools: true, streaming: true, citationNormalization: true },
+      settings,
+      {
+        SILICONFLOW_API_KEY: 'sk-siliconflow',
+        AI_API_KEY: 'sk-deepseek-official',
+      } as unknown as NodeJS.ProcessEnv,
+    );
+
+    expect(config.provider).toBe('siliconflow');
+    expect(config.baseURL).toBe('https://api.siliconflow.cn/v1');
+    expect(config.secretRef).toBe('env:SILICONFLOW_API_KEY');
+    expect(config.apiKey).toBe('sk-siliconflow');
+  });
+
   it('selects another provider when the active provider lacks required capabilities', async () => {
     const settings = normalizeAIProviderSettings({
       activeProvider: 'openai-main',
@@ -514,6 +560,47 @@ describe('AI provider settings', () => {
       undefined,
       undefined,
       { serviceId: 'openai-main', tools: true, streaming: true, citationNormalization: true },
+      settings,
+      {
+        OPENAI_MAIN_API_KEY: 'sk-openai-main',
+        OPENAI_BACKUP_API_KEY: 'sk-openai-backup',
+      } as unknown as NodeJS.ProcessEnv,
+    )).rejects.toThrow('Provider openai-main lacks required capabilities: citationNormalization.');
+  });
+
+  it('preserves explicit providerId selection failures without falling back to backups', async () => {
+    const settings = normalizeAIProviderSettings({
+      activeProvider: 'openai-backup',
+      providers: [
+        {
+          id: 'openai-main',
+          name: 'OpenAI Main',
+          providerKind: 'openai-compatible',
+          baseURL: 'https://openai-main.test/v1',
+          secretRef: 'env:OPENAI_MAIN_API_KEY',
+          selectedModel: 'openai/main-model',
+          priority: 10,
+          capabilities: { tools: true, reasoning: false, vision: false, jsonSchema: true, streaming: true, citationNormalization: false },
+          models: [{ id: 'openai-main-model', label: 'OpenAI Main Model', model: 'openai/main-model' }],
+        },
+        {
+          id: 'openai-backup',
+          name: 'OpenAI Backup',
+          providerKind: 'openai-compatible',
+          baseURL: 'https://openai-backup.test/v1',
+          secretRef: 'env:OPENAI_BACKUP_API_KEY',
+          selectedModel: 'openai/backup-model',
+          priority: 20,
+          capabilities: { tools: true, reasoning: false, vision: false, jsonSchema: true, streaming: true, citationNormalization: true },
+          models: [{ id: 'openai-backup-model', label: 'OpenAI Backup Model', model: 'openai/backup-model' }],
+        },
+      ],
+    });
+
+    await expect(resolveConfiguredAIProviderConfig(
+      'openai-main',
+      undefined,
+      { tools: true, streaming: true, citationNormalization: true },
       settings,
       {
         OPENAI_MAIN_API_KEY: 'sk-openai-main',

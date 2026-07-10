@@ -480,13 +480,19 @@ export async function resolveConfiguredAIProviderConfig(
       hasResolvableProviderSecret(provider, env, envConfig) && hasRuntimeModel(provider, modelId)
     )),
   };
-  const requestedServiceId = providerId ?? requirements?.serviceId ?? (requirements ? undefined : settings.activeProvider);
+  const requestedServiceId = providerId ?? requirements?.serviceId ?? settings.activeProvider;
   let selection = selectModelProvider(runtimeSettings, { ...(requirements ?? {}), serviceId: requestedServiceId });
-  if (
-    selection.status === 'unavailable'
-    && providerId === undefined
+  const canFallbackFromImplicitActiveProvider = (
+    providerId === undefined
     && requirements?.serviceId === undefined
     && requestedServiceId === settings.activeProvider
+  );
+  if (
+    canFallbackFromImplicitActiveProvider
+    && (
+      selection.status === 'unavailable'
+      || (selection.status === 'downgraded' && selection.missingCapabilities.length > 0)
+    )
   ) {
     selection = selectModelProvider(runtimeSettings, requirements ?? {});
   }
