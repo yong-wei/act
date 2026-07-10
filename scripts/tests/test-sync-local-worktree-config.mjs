@@ -647,8 +647,13 @@ assert.match(
 const preCommitHook = fs.readFileSync(gitHookPath(target, 'pre-commit'), 'utf8');
 assert.match(
   preCommitHook,
+  /typecheck_run "pre-commit"/,
+  'pre-commit hook 应执行本地提交门禁',
+);
+assert.match(
+  preCommitHook,
   /detect-changes --brief/,
-  'pre-commit hook 只应做 CRG 变更检测',
+  'pre-commit hook 应保留 CRG 变更检测',
 );
 
 run('sh', [postCommitHookPath], target, {

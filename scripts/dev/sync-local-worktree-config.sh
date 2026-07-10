@@ -1102,7 +1102,7 @@ install_git_hooks() {
   read -r -d '' pre_commit <<'HOOK' || true
 #!/bin/sh
 # Managed by sync-local-worktree-config.sh
-# Block commits that introduce TypeScript errors.
+# Block commits that fail local commit verification.
 . "$(git rev-parse --git-path hooks/typecheck-hook-lib.sh)"
 typecheck_run "pre-commit" || exit $?
 
@@ -1115,7 +1115,7 @@ HOOK
   read -r -d '' pre_push <<'HOOK' || true
 #!/bin/sh
 # Managed by sync-local-worktree-config.sh
-# Block pushes that introduce TypeScript errors.
+# Block pushes that fail local push verification.
 . "$(git rev-parse --git-path hooks/typecheck-hook-lib.sh)"
 typecheck_run "pre-push" || exit $?
 HOOK
@@ -1192,7 +1192,7 @@ typecheck_run() {
   fi
 
   if ! command -v npm >/dev/null 2>&1; then
-    printf '%s: npm is required to run TypeScript verification.\n' "$hook_name" >&2
+    printf '%s: npm is required to run local verification.\n' "$hook_name" >&2
     return 127
   fi
 
