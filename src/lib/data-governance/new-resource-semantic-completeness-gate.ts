@@ -472,6 +472,9 @@ function validateRuntimeResourceProjection(row: RuntimeResourceProjectionInput):
   const audit = row.reviewAudit;
   const evidence = row.evidenceContract;
 
+  if (runtimeProjectionFamilySourceKindMismatch(row)) {
+    issues.push(issue(row.id, 'runtime-resource-projection', 'invalid-runtime-projection-family-source-kind', 'Knowledge projection family and sourceKind must classify the row consistently.'));
+  }
   if (!audit || audit.status !== 'human-confirmed') {
     issues.push(issue(row.id, 'runtime-resource-projection', 'missing-human-review', 'Runtime projection requires human-confirmed review metadata.'));
   }
@@ -610,13 +613,27 @@ function isLearningFactMaterializationPolicySatisfied(evidence: NonNullable<Runt
 
 function runtimeProjectionReviewSourceMatches(row: RuntimeResourceProjectionInput): boolean {
   const audit = row.reviewAudit;
-  if (row.sourceKind === 'knowledge_graph') {
+  if (isKnowledgeRuntimeProjection(row)) {
     return audit?.reviewedSourceHash === row.sourceHash;
   }
   if (audit?.promptOrManifestHash) {
     return audit.reviewedSourceHash === audit.promptOrManifestHash;
   }
   return audit?.reviewedSourceHash === row.sourceHash;
+}
+
+function isKnowledgeRuntimeProjection(row: RuntimeResourceProjectionInput): boolean {
+  const family = (row as RuntimeResourceProjectionInput & { family?: string }).family;
+  return row.sourceKind === 'knowledge_graph' ||
+    family === 'knowledge-card' ||
+    family === 'knowledge-infograph';
+}
+
+function runtimeProjectionFamilySourceKindMismatch(row: RuntimeResourceProjectionInput): boolean {
+  const family = (row as RuntimeResourceProjectionInput & { family?: string }).family;
+  if (typeof family !== 'string') return false;
+  const knowledgeFamily = family === 'knowledge-card' || family === 'knowledge-infograph';
+  return knowledgeFamily !== (row.sourceKind === 'knowledge_graph');
 }
 
 function issue(

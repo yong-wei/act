@@ -96,7 +96,7 @@ function main() {
   const runtimeProjectionDiff = gitDiff(options, RUNTIME_RESOURCE_PROJECTIONS_PATH);
   const runtimeProjectionSourcePaths = gitChangedRuntimeProjectionSourcePaths(options);
   const runtimeProjectionSourceRequirements = runtimeProjectionSourcePaths
-    .flatMap((filePath) => runtimeProjectionSourceRequirementsForPath(filePath, gitDiff(options, filePath)));
+    .flatMap((filePath) => runtimeProjectionSourceRequirementsForPath(filePath, gitDiff(options, filePath), options));
   const runtimeProjectionChanges = parseAddedRuntimeProjectionChanges(runtimeProjectionDiff);
   const runtimeProjectionRows = runtimeProjectionChanges.rows;
   const deletedRuntimeProjectionRows = runtimeProjectionChanges.deletedRows;
@@ -155,7 +155,7 @@ function main() {
     runtimeProjectionChanges.result,
     validateDeletedRuntimeProjectionRows(deletedRuntimeProjectionRows, runtimeProjectionRows, options),
     validateRuntimeProjectionSourceCoverage(runtimeProjectionSourceRequirements, runtimeProjectionRows),
-    validateRuntimeProjectionRowSourceEvidence(runtimeProjectionRows),
+    validateRuntimeProjectionRowSourceEvidence(runtimeProjectionRows, options),
     validateChangedRuntimeResourceProjections(runtimeProjectionRows),
   ]);
 
@@ -190,6 +190,7 @@ function validateRuntimeProjectionSourceCoverage(
 
 function validateRuntimeProjectionRowSourceEvidence(
   rows: readonly RuntimeProjectionRow[],
+  options: CliOptions,
 ): NewResourceGateResult {
   const issues = rows.flatMap((row) => {
     const sourcePathOrUrl = row.sourcePathOrUrl?.trim() ?? '';
@@ -203,6 +204,19 @@ function validateRuntimeProjectionRowSourceEvidence(
     }
     const sourcePath = runtimeProjectionPrimaryLocalSourcePath(row);
     const evidencePaths = runtimeProjectionRowEvidenceLocalSourcePaths(row);
+    const untrackedEvidencePath = options.staged
+      ? evidencePaths.find((filePath) => (
+        existsSync(filePath) && gitStatus(['ls-files', '--error-unmatch', '--', filePath]) !== 0
+      ))
+      : undefined;
+    if (untrackedEvidencePath) {
+      return [{
+        family: 'runtime-resource-projection' as const,
+        resourceId: row.id,
+        code: 'untracked-runtime-projection-source-file',
+        message: `Runtime projection local source or review evidence must be staged before validation: ${untrackedEvidencePath}.`,
+      }];
+    }
     if (!sourcePath && evidencePaths.length === 0) {
       return [{
         family: 'runtime-resource-projection' as const,
@@ -211,7 +225,7 @@ function validateRuntimeProjectionRowSourceEvidence(
         message: `Runtime projection sourcePathOrUrl requires a local source or independent review evidence file: ${sourcePathOrUrl}.`,
       }];
     }
-    if (sourcePath && !existsSync(sourcePath)) {
+    if (sourcePath && !runtimeProjectionSourceContent(sourcePath, options)) {
       return [{
         family: 'runtime-resource-projection' as const,
         resourceId: row.id,
@@ -219,9 +233,9 @@ function validateRuntimeProjectionRowSourceEvidence(
         message: `Runtime projection sourcePathOrUrl points to a missing local source file: ${sourcePath}.`,
       }];
     }
-    const currentHashes = evidencePaths
-      .filter((filePath) => existsSync(filePath))
-      .map((filePath) => runtimeProjectionSourceHash(filePath));
+    const sourceHashPaths = sourcePath ? [sourcePath] : evidencePaths;
+    const currentHashes = sourceHashPaths
+      .map((filePath) => runtimeProjectionSourceHash(filePath, options));
     return currentHashes.includes(row.sourceHash)
       ? []
       : [{
@@ -363,9 +377,23 @@ function runtimeProjectionRowMatchesCurrentSourceHash(
   requirement: RuntimeProjectionSourceRequirement,
 ): boolean {
   if (!requirement.requireSourceHash) return true;
-  return Boolean(requirement.sourceHash) &&
-    row.sourceHash === requirement.sourceHash &&
-    row.reviewAudit?.reviewedSourceHash === requirement.sourceHash;
+  if (!requirement.sourceHash) return false;
+  const audit = row.reviewAudit;
+  const knowledgeProjection = isKnowledgeRuntimeProjection(row);
+  const coverageHashMatches = row.sourceHash === requirement.sourceHash ||
+    (knowledgeProjection && audit?.promptOrManifestHash === requirement.sourceHash);
+  const reviewHashMatches = knowledgeProjection
+    ? audit?.reviewedSourceHash === row.sourceHash
+    : audit?.promptOrManifestHash
+      ? audit.reviewedSourceHash === audit.promptOrManifestHash
+      : audit?.reviewedSourceHash === requirement.sourceHash;
+  return coverageHashMatches && reviewHashMatches;
+}
+
+function isKnowledgeRuntimeProjection(row: RuntimeProjectionRow): boolean {
+  return row.sourceKind === 'knowledge_graph' ||
+    row.family === 'knowledge-card' ||
+    row.family === 'knowledge-infograph';
 }
 
 function runtimeProjectionRowMatchesSourceFamily(
@@ -427,37 +455,39 @@ function uniqueRuntimeProjectionSourceRequirements(
 function runtimeProjectionSourceRequirementsForPath(
   filePath: string,
   diff: string,
+  options: CliOptions,
 ): RuntimeProjectionSourceRequirement[] {
   const family = runtimeProjectionSourceFamilyForPath(filePath);
   if (!family) return [];
-  const source = readTextIfExists(filePath);
+  const source = runtimeProjectionSourceContent(filePath, options)?.toString('utf8') ?? '';
   if (family === 'runtime-lesson') {
     return parseRuntimeLessonSourceRequirements(filePath, source, diff)
-      .map((requirement) => withCurrentSourceHash(requirement));
+      .map((requirement) => withCurrentSourceHash(requirement, options));
   }
   if (family === 'knowledge-infograph') {
     return parseInfographManifestSourceRequirements(filePath, source, diff)
-      .map((requirement) => withCurrentSourceHash(requirement));
+      .map((requirement) => withCurrentSourceHash(requirement, options));
   }
   if (family === 'runtime-source') {
     return [withCurrentSourceHash({
       filePath,
       family,
       recordKey: filePath,
-    })];
+    }, options)];
   }
   if (family === 'assessment-item' && RUNTIME_ASSESSMENT_CATALOG_PATHS.includes(filePath)) {
     return parseAssessmentCatalogSourceRequirements(filePath, diff)
-      .map((requirement) => withCurrentSourceHash(requirement));
+      .map((requirement) => withCurrentSourceHash(requirement, options));
   }
   const recordKey = path.basename(filePath, path.extname(filePath));
-  return [withCurrentSourceHash({ filePath, family, recordKey })];
+  return [withCurrentSourceHash({ filePath, family, recordKey }, options)];
 }
 
 function withCurrentSourceHash(
   requirement: RuntimeProjectionSourceRequirement,
+  options: CliOptions,
 ): RuntimeProjectionSourceRequirement {
-  const sourceHash = runtimeProjectionSourceHash(requirement.filePath);
+  const sourceHash = runtimeProjectionSourceHash(requirement.filePath, options);
   return sourceHash
     ? { ...requirement, sourceHash, requireSourceHash: true }
     : requirement;
@@ -870,10 +900,22 @@ function runtimeProjectionSourceFamilyForPath(filePath: string): RuntimeProjecti
   return null;
 }
 
-function runtimeProjectionSourceHash(filePath: string): string | undefined {
-  if (!existsSync(filePath)) return undefined;
-  const digest = createHash('sha256').update(readFileSync(filePath)).digest('hex');
+function runtimeProjectionSourceHash(filePath: string, options: CliOptions): string | undefined {
+  const content = runtimeProjectionSourceContent(filePath, options);
+  if (!content) return undefined;
+  const digest = createHash('sha256').update(content).digest('hex');
   return `sha256:${digest}`;
+}
+
+function runtimeProjectionSourceContent(filePath: string, options: CliOptions): Buffer | undefined {
+  if (options.staged) {
+    return existsSync(filePath) ? readFileSync(filePath) : undefined;
+  }
+  try {
+    return execFileSync('git', ['show', `HEAD:${filePath}`], { maxBuffer: 64 * 1024 * 1024 });
+  } catch {
+    return undefined;
+  }
 }
 
 function assertNoUnstagedTargetChanges(filePaths: readonly string[]) {

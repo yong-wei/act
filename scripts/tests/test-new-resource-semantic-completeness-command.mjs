@@ -1029,9 +1029,11 @@ fs.writeFileSync(
     sourceKind: 'knowledge_graph',
     sourceRef: 'kn-demo',
     sourcePathOrUrl: 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png',
-    sourceHash: sha256File(infographManifestPath),
+    sourceHash: sha256File(path.join(repo, 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png')),
     sourceVersionRef: 'knowledge-infograph-manifest.v1',
     independentEvidenceRef: 'course-content/runtime/knowledge/infographs/manifest.json#kn-demo',
+    promptOrManifestHash: sha256File(infographManifestPath),
+    reviewedSourceHash: sha256File(path.join(repo, 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png')),
   }))}\n`,
 );
 run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
@@ -1218,6 +1220,84 @@ fs.writeFileSync(
 run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
 run('git', ['commit', '--no-verify', '-m', 'add baseline runtime card projection'], repo);
 
+const baseModeFixtureHead = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repo, encoding: 'utf8' }).trim();
+const baseUntrackedEvidencePath = path.join(repo, 'course-content/runtime/resource-governance/base-untracked-evidence.md');
+fs.writeFileSync(baseUntrackedEvidencePath, '# Evidence only in the worktree\n');
+fs.appendFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'external:base-untracked-evidence',
+    family: 'external-resource',
+    resourceType: 'external_resource',
+    sourceKind: 'external_resource',
+    sourceRef: 'external:base-untracked-evidence',
+    sourcePathOrUrl: 'https://example.invalid/base-untracked-evidence',
+    sourceHash: sha256File(baseUntrackedEvidencePath),
+    sourceVersionRef: 'external-resource.v1',
+    independentEvidenceRef: 'course-content/runtime/resource-governance/base-untracked-evidence.md',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+run('git', ['commit', '--no-verify', '-m', 'add projection with worktree-only evidence'], repo);
+const baseUntrackedEvidenceResult = runGate(['--base', 'HEAD~1']);
+assert.notEqual(baseUntrackedEvidenceResult.status, 0, 'base mode must reject projection evidence that exists only in the worktree');
+assert.match(
+  `${baseUntrackedEvidenceResult.stdout}\n${baseUntrackedEvidenceResult.stderr}`,
+  /external:base-untracked-evidence stale-runtime-projection-source-hash/,
+);
+fs.rmSync(baseUntrackedEvidencePath);
+
+const baseDirtyEvidencePath = path.join(repo, 'course-content/runtime/resource-governance/base-dirty-evidence.md');
+fs.writeFileSync(baseDirtyEvidencePath, '# Evidence committed as content A\n');
+run('git', ['add', 'course-content/runtime/resource-governance/base-dirty-evidence.md'], repo);
+run('git', ['commit', '--no-verify', '-m', 'add base evidence content A'], repo);
+fs.writeFileSync(baseDirtyEvidencePath, '# Evidence changed only in worktree content B\n');
+fs.appendFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'external:base-dirty-evidence',
+    family: 'external-resource',
+    resourceType: 'external_resource',
+    sourceKind: 'external_resource',
+    sourceRef: 'external:base-dirty-evidence',
+    sourcePathOrUrl: 'https://example.invalid/base-dirty-evidence',
+    sourceHash: sha256File(baseDirtyEvidencePath),
+    sourceVersionRef: 'external-resource.v1',
+    independentEvidenceRef: 'course-content/runtime/resource-governance/base-dirty-evidence.md',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+run('git', ['commit', '--no-verify', '-m', 'add projection with dirty worktree evidence hash'], repo);
+const baseDirtyEvidenceResult = runGate(['--base', 'HEAD~1']);
+assert.notEqual(baseDirtyEvidenceResult.status, 0, 'base mode must hash committed evidence instead of dirty worktree content');
+assert.match(
+  `${baseDirtyEvidenceResult.stdout}\n${baseDirtyEvidenceResult.stderr}`,
+  /external:base-dirty-evidence stale-runtime-projection-source-hash/,
+);
+run('git', ['reset', '--hard', 'HEAD'], repo);
+
+const baseTrackedEvidencePath = path.join(repo, 'course-content/runtime/resource-governance/base-tracked-evidence.md');
+fs.writeFileSync(baseTrackedEvidencePath, '# Evidence committed with its projection\n');
+fs.appendFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'external:base-tracked-evidence',
+    family: 'external-resource',
+    resourceType: 'external_resource',
+    sourceKind: 'external_resource',
+    sourceRef: 'external:base-tracked-evidence',
+    sourcePathOrUrl: 'https://example.invalid/base-tracked-evidence',
+    sourceHash: sha256File(baseTrackedEvidencePath),
+    sourceVersionRef: 'external-resource.v1',
+    independentEvidenceRef: 'course-content/runtime/resource-governance/base-tracked-evidence.md',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/base-tracked-evidence.md', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+run('git', ['commit', '--no-verify', '-m', 'add projection with committed evidence'], repo);
+const baseTrackedEvidenceResult = runGate(['--base', 'HEAD~1']);
+assert.equal(baseTrackedEvidenceResult.status, 0, 'base mode must accept evidence whose committed HEAD blob matches the projection hash');
+run('git', ['reset', '--hard', baseModeFixtureHead], repo);
+
 run('git', ['reset', '--hard', 'HEAD'], repo);
 fs.writeFileSync(
   path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
@@ -1237,6 +1317,127 @@ const staleProjectionOnlySourceHashResult = runGate(['--staged']);
 assert.notEqual(staleProjectionOnlySourceHashResult.status, 0, 'gate must fail when only a runtime projection row changes with a stale source hash');
 assert.match(
   `${staleProjectionOnlySourceHashResult.stdout}\n${staleProjectionOnlySourceHashResult.stderr}`,
+  /stale-runtime-projection-source-hash/,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+const routeHandoutPath = path.join(repo, 'course-content/runtime/lessons/1-1/1-1-handout.md');
+fs.writeFileSync(routeHandoutPath, '# Demo handout\n\nPrompt-scoped review update.\n');
+fs.appendFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'runtime-handout:1-1',
+    family: 'runtime-handout',
+    resourceType: 'handout',
+    sourceKind: 'runtime_handout',
+    sourceRef: '1-1',
+    sourcePathOrUrl: 'course-content/runtime/lessons/1-1/1-1-handout.md',
+    sourceHash: sha256File(routeHandoutPath),
+    sourceVersionRef: 'runtime-handout.v1',
+    independentEvidenceRef: 'course-content/runtime/lessons/1-1/1-1-handout.md#1-1',
+    promptOrManifestHash: 'sha256:prompt-scoped-review',
+    reviewedSourceHash: 'sha256:prompt-scoped-review',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/lessons/1-1/1-1-handout.md', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const promptScopedCoverageResult = runGate(['--staged']);
+assert.equal(promptScopedCoverageResult.status, 0, 'gate must accept prompt-scoped reviewedSourceHash when row sourceHash matches the changed source file');
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+fs.writeFileSync(cardPath, '# Demo card\n\nKnowledge review packet update.\n');
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'knowledge-card:kn-demo',
+    family: 'knowledge-card',
+    resourceType: 'knowledge_card',
+    sourceKind: 'knowledge_graph',
+    sourceRef: 'kn-demo',
+    sourcePathOrUrl: 'course-content/runtime/knowledge/cards/nodes/kn-demo.md',
+    sourceHash: sha256File(cardPath),
+    sourceVersionRef: 'runtime-knowledge-card.v1',
+    promptOrManifestHash: 'sha256:knowledge-review-packet',
+    reviewedSourceHash: 'sha256:knowledge-review-packet',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/knowledge/cards/nodes/kn-demo.md', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const knowledgePacketCoverageResult = runGate(['--staged']);
+assert.notEqual(knowledgePacketCoverageResult.status, 0, 'gate must reject knowledge_graph review hashes that only match a prompt or packet hash');
+assert.match(
+  `${knowledgePacketCoverageResult.stdout}\n${knowledgePacketCoverageResult.stderr}`,
+  /stale-review-evidence/,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+fs.writeFileSync(cardPath, '# Demo card\n\nKnowledge family packet update.\n');
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'knowledge-card:kn-demo',
+    family: 'knowledge-card',
+    resourceType: 'knowledge_card',
+    sourceKind: 'external_resource',
+    sourceRef: 'kn-demo',
+    sourcePathOrUrl: 'course-content/runtime/knowledge/cards/nodes/kn-demo.md',
+    sourceHash: sha256File(cardPath),
+    sourceVersionRef: 'runtime-knowledge-card.v1',
+    promptOrManifestHash: 'sha256:knowledge-family-review-packet',
+    reviewedSourceHash: 'sha256:knowledge-family-review-packet',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/knowledge/cards/nodes/kn-demo.md', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const knowledgeFamilyPacketCoverageResult = runGate(['--staged']);
+assert.notEqual(knowledgeFamilyPacketCoverageResult.status, 0, 'gate must reject knowledge family review hashes that only match a prompt or packet hash regardless of sourceKind');
+assert.match(
+  `${knowledgeFamilyPacketCoverageResult.stdout}\n${knowledgeFamilyPacketCoverageResult.stderr}`,
+  /knowledge-card:kn-demo invalid-runtime-projection-family-source-kind/,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+fs.writeFileSync(cardPath, '# Demo card\n\nKnowledge source-kind mismatch update.\n');
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'knowledge-source-kind:kn-demo',
+    family: 'external-resource',
+    resourceType: 'knowledge_card',
+    sourceKind: 'knowledge_graph',
+    sourceRef: 'kn-demo',
+    sourcePathOrUrl: 'course-content/runtime/knowledge/cards/nodes/kn-demo.md',
+    sourceHash: sha256File(cardPath),
+    sourceVersionRef: 'runtime-knowledge-card.v1',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/knowledge/cards/nodes/kn-demo.md', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const knowledgeSourceKindMismatchResult = runGate(['--staged']);
+assert.notEqual(knowledgeSourceKindMismatchResult.status, 0, 'gate must reject knowledge_graph sourceKind when family is explicitly non-knowledge');
+assert.match(
+  `${knowledgeSourceKindMismatchResult.stdout}\n${knowledgeSourceKindMismatchResult.stderr}`,
+  /knowledge-source-kind:kn-demo invalid-runtime-projection-family-source-kind/,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+const mismatchedLocalEvidencePath = path.join(repo, 'course-content/runtime/resource-governance/mismatched-local-source-evidence.md');
+fs.writeFileSync(mismatchedLocalEvidencePath, '# Independent evidence with a different hash\n');
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'knowledge-card:kn-demo',
+    family: 'knowledge-card',
+    resourceType: 'knowledge_card',
+    sourceKind: 'knowledge_graph',
+    sourceRef: 'kn-demo',
+    sourcePathOrUrl: 'course-content/runtime/knowledge/cards/nodes/kn-demo.md',
+    sourceHash: sha256File(mismatchedLocalEvidencePath),
+    sourceVersionRef: 'runtime-knowledge-card.v1',
+    independentEvidenceRef: 'course-content/runtime/resource-governance/mismatched-local-source-evidence.md',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/mismatched-local-source-evidence.md', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const mismatchedLocalSourceHashResult = runGate(['--staged']);
+assert.notEqual(mismatchedLocalSourceHashResult.status, 0, 'gate must reject an independent evidence hash when a different local primary source exists');
+assert.match(
+  `${mismatchedLocalSourceHashResult.stdout}\n${mismatchedLocalSourceHashResult.stderr}`,
   /stale-runtime-projection-source-hash/,
 );
 
@@ -1283,7 +1484,31 @@ assert.match(
 );
 
 run('git', ['reset', '--hard', 'HEAD'], repo);
-const routeHandoutPath = path.join(repo, 'course-content/runtime/lessons/1-1/1-1-handout.md');
+const untrackedEvidencePath = path.join(repo, 'course-content/runtime/resource-governance/untracked-projection-evidence.md');
+fs.writeFileSync(untrackedEvidencePath, '# Untracked projection evidence\n');
+fs.appendFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'external:untracked-evidence',
+    family: 'external-resource',
+    resourceType: 'external_resource',
+    sourceKind: 'external_resource',
+    sourceRef: 'external:untracked-evidence',
+    sourcePathOrUrl: 'https://example.invalid/resource',
+    sourceHash: sha256File(untrackedEvidencePath),
+    sourceVersionRef: 'external-resource.v1',
+    independentEvidenceRef: 'course-content/runtime/resource-governance/untracked-projection-evidence.md',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const untrackedEvidenceResult = runGate(['--staged']);
+assert.notEqual(untrackedEvidenceResult.status, 0, 'gate must fail when projection evidence is only an untracked worktree file');
+assert.match(
+  `${untrackedEvidenceResult.stdout}\n${untrackedEvidenceResult.stderr}`,
+  /untracked-runtime-projection-source-file/,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
 const baselineCardProjection = JSON.stringify(runtimeProjectionRow({
   id: 'knowledge-card:kn-demo',
   family: 'knowledge-card',
@@ -1459,10 +1684,10 @@ function runtimeProjectionRow(overrides) {
       reviewerRole: 'data-governance',
       reviewedAt: '2026-07-09T00:00:00.000Z',
       reviewBatchId: 'runtime-source-projection-test',
-      reviewedSourceHash: sourceHash,
+      reviewedSourceHash: overrides.reviewedSourceHash ?? sourceHash,
       reviewedVersionRef: overrides.sourceVersionRef,
       generationToolOrModel: 'test-fixture',
-      promptOrManifestHash: null,
+      promptOrManifestHash: overrides.promptOrManifestHash ?? null,
       reviewerVisibleRationale: 'Reviewed runtime source projection test fixture.',
       independentEvidenceRef: overrides.independentEvidenceRef ?? `${overrides.sourcePathOrUrl}#test`,
       confidence: 0.9,
