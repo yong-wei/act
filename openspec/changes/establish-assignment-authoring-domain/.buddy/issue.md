@@ -7,9 +7,10 @@ execution_mode: isolated
 base_branch: integration
 required_branch:
 depends_on: []
-parent_issue:
+parent_issue: 900
 blocked_by: []
-blocking: []
+blocking:
+  - integrate-mainline-assignment-mission-center
 openspec_path: openspec/changes/establish-assignment-authoring-domain
 risk: high
 area: assignment-grading

@@ -8,8 +8,9 @@ base_branch: integration
 required_branch:
 depends_on:
   - productionize-math-document-grading-pipeline
-parent_issue:
-blocked_by: []
+parent_issue: 900
+blocked_by:
+  - productionize-math-document-grading-pipeline
 blocking: []
 openspec_path: openspec/changes/close-teacher-review-student-feedback-loop
 risk: high

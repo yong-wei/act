@@ -8,9 +8,11 @@ base_branch: integration
 required_branch:
 depends_on:
   - establish-assignment-authoring-domain
-parent_issue:
-blocked_by: []
-blocking: []
+parent_issue: 900
+blocked_by:
+  - establish-assignment-authoring-domain
+blocking:
+  - productionize-math-document-grading-pipeline
 openspec_path: openspec/changes/integrate-mainline-assignment-mission-center
 risk: high
 area: assignment-grading

@@ -8,9 +8,11 @@ base_branch: integration
 required_branch:
 depends_on:
   - integrate-mainline-assignment-mission-center
-parent_issue:
-blocked_by: []
-blocking: []
+parent_issue: 900
+blocked_by:
+  - integrate-mainline-assignment-mission-center
+blocking:
+  - close-teacher-review-student-feedback-loop
 openspec_path: openspec/changes/productionize-math-document-grading-pipeline
 risk: high
 area: assignment-grading
