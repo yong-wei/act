@@ -2283,6 +2283,29 @@ describe('learning path round API routes', () => {
     }));
   });
 
+  it('accepts slides completion events returned by platform resource surfaces', async () => {
+    configureSingleNodePath(
+      'registry:frequency-response-slides',
+      'slides',
+      '/course-runtime/media/frequency-response-slides.pdf',
+    );
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'registry:frequency-response-slides',
+      resourceType: 'slides',
+      status: 'completed',
+      idempotencyKey: 'frequency-response-slides-complete',
+      liftMetadata: { pathActivityKind: 'initial-completion' },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      nodeId: 'registry:frequency-response-slides',
+      resourceType: 'slides',
+      status: 'completed',
+    }));
+  });
+
   it('does not derive simulation outcome refs from unrelated lesson-step completions', async () => {
     configureSingleNodePath(
       'registry:lesson09-time-domain-synthesis',

@@ -42,6 +42,7 @@ const RESOURCE_TYPES = new Set([
   'textbook_section',
   'video',
   'audio',
+  'slides',
   'handout',
   'quiz',
   'adaptive_quiz',

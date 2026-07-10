@@ -26,6 +26,8 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { AppShell } from '@/components/platform/app-shell';
+import { AdaptivePathJourneyControlFromRoute } from '@/features/adaptive/adaptive-path-journey-control';
+import { resolveAdaptivePathCenterOwnedTargetHref } from '@/features/adaptive/adaptive-path-journey-contracts';
 import { useGlobalAI } from '@/components/providers/global-ai-provider';
 import { StudentFeedbackTaskPanel } from '@/features/assessment/student-feedback-task-panel';
 import { useVerifiedFeedbackTaskContext } from '@/features/assessment/use-verified-feedback-task-context';
@@ -1333,6 +1335,32 @@ function pathNodeContextHref(node: PathExecutionNodeView, options: {
   });
 }
 
+function keepsOwningPathCenterOpen(node: PathExecutionNodeView): boolean {
+  return Boolean(resolveAdaptivePathCenterOwnedTargetHref(node.type, node.target));
+}
+
+function requiresOwningPathCenter(node: PathExecutionNodeView): boolean {
+  return node.type === 'external_resource' ||
+    node.target.startsWith('/course-runtime/') ||
+    node.target.startsWith('course-content/runtime/');
+}
+
+function allowsPathCenterExplicitCompletion(node: PathExecutionNodeView): boolean {
+  return node.type === 'external_resource' ||
+    node.type === 'knowledge_card' ||
+    node.type === 'textbook_section' ||
+    node.type === 'slides' ||
+    node.type === 'handout';
+}
+
+function isSafeExternalBrowserTarget(target: string): boolean {
+  try {
+    return new URL(target).protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 function formatPathHistoryType(type: string): string {
   if (type === 'selection') return '选择';
   if (type === 'rejection') return '拒绝';
@@ -1641,6 +1669,14 @@ export default function AdaptivePracticePage() {
     pathExecutionNodes[0] ??
     null
   ), [pathExecutionNodes, selectedPathNodeId]);
+  const pathCenterOpenedNodeIds = useMemo(() => {
+    const ownedNodeIds = new Set(pathExecutionNodes.filter(keepsOwningPathCenterOpen).map((node) => node.nodeId));
+    return new Set((activePathRound?.executions ?? [])
+      .map(getRecord)
+      .filter((execution) => execution.status === 'started' && typeof execution.nodeId === 'string')
+      .map((execution) => execution.nodeId as string)
+      .filter((nodeId) => ownedNodeIds.has(nodeId)));
+  }, [activePathRound?.executions, pathExecutionNodes]);
   const activeExecutionPathId = activePathRound?.id ?? activePathPlan?.id ?? activePathId;
   const activeExecutionGoalId = activeGoal ?? resolveAdaptivePracticeGoalId(activePathPlan?.goal.id ?? activePathRound?.goalId ?? null);
   const pathExecutionSummary = useMemo(
@@ -2437,6 +2473,16 @@ export default function AdaptivePracticePage() {
 
   const launchPathNodeAction = useCallback(async (action: PostLearningPathNodeAction) => {
     if (!action.body || !action.redirectHref) return;
+    if (!isSafeExternalBrowserTarget(action.redirectHref)) {
+      setError('外部资源地址未通过平台验证，请重新生成路径。');
+      return;
+    }
+    const resourceWindow = window.open('about:blank', '_blank');
+    if (!resourceWindow) {
+      setError('浏览器阻止了新资源窗口，请允许本站打开新窗口后重试。');
+      return;
+    }
+    resourceWindow.opener = null;
     try {
       const response = await fetch(action.href, {
         method: 'POST',
@@ -2447,11 +2493,12 @@ export default function AdaptivePracticePage() {
         const payload = await response.json().catch(() => ({}));
         throw new Error(typeof payload.error === 'string' ? payload.error : '路径节点启动失败');
       }
-      window.location.assign(withFeedbackTaskHref(action.redirectHref));
+      resourceWindow.location.replace(action.redirectHref);
     } catch (launchError) {
+      resourceWindow.close();
       setError(launchError instanceof Error ? launchError.message : '路径节点启动失败');
     }
-  }, [withFeedbackTaskHref]);
+  }, []);
 
   const launchPathNode = useCallback(async (node: PracticeEntryRouteNode) => {
     if (!isPostLearningPathNodeAction(node.action)) return;
@@ -2582,12 +2629,31 @@ export default function AdaptivePracticePage() {
   }, [activePathPlan, activePathRound, reloadActiveLearningPath]);
 
   const launchExecutionNode = useCallback(async (node: PathExecutionNodeView) => {
+    const ownedTarget = resolveAdaptivePathCenterOwnedTargetHref(node.type, node.target);
+    if (requiresOwningPathCenter(node) && !ownedTarget) {
+      setError('路径资源地址未通过平台验证，请返回路径并重新生成。');
+      return;
+    }
+    const keepsPathCenter = keepsOwningPathCenterOpen(node);
+    const resourceWindow = keepsPathCenter ? window.open('about:blank', '_blank') : null;
+    if (keepsPathCenter && !resourceWindow) {
+      setError('浏览器阻止了新资源窗口，请允许本站打开新窗口后重试。');
+      return;
+    }
+    if (resourceWindow) resourceWindow.opener = null;
     const activityWritten = await writePathNodeActivity(
       node,
       node.status === 'skipped' ? 'return-to-skipped' : 'initial-completion',
       'started',
     );
+    if (!activityWritten) {
+      resourceWindow?.close();
+    }
     if (!activityWritten) return;
+    if (resourceWindow && ownedTarget) {
+      resourceWindow.location.replace(ownedTarget);
+      return;
+    }
     window.location.assign(withFeedbackTaskHref(pathNodeContextHref(node, {
       goalId: resolveAdaptivePracticeGoalId(
         activePathPlan?.goal.id ?? activePathRound?.goalId ?? activeGoal,
@@ -2753,6 +2819,7 @@ export default function AdaptivePracticePage() {
         subtitle="生成、比较并继续执行个人学习路径"
         activeHref="/assessment/adaptive-practice"
         sidebarMode="collapsible"
+        journeyControl={<AdaptivePathJourneyControlFromRoute />}
         breadcrumbs={[
           { label: '首页', href: '/' },
           { label: '自适应学习路径中心' },
@@ -3875,15 +3942,39 @@ export default function AdaptivePracticePage() {
                           </>
                         ) : focusedPathNode.status === 'current' || focusedPathNode.status === 'skipped' ? (
                           <>
-                            <button
-                              type="button"
-                              onClick={() => void launchExecutionNode(focusedPathNode)}
-                              disabled={pathActivityPending === `initial-completion:${focusedPathNode.nodeId}` ||
-                                pathActivityPending === `return-to-skipped:${focusedPathNode.nodeId}`}
-                              className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60"
-                            >
-                              {focusedPathNode.status === 'skipped' ? '返回学习' : '开始学习'}
-                            </button>
+                            {focusedPathNode.status !== 'skipped' && pathCenterOpenedNodeIds.has(focusedPathNode.nodeId) && allowsPathCenterExplicitCompletion(focusedPathNode) ? (
+                              <button
+                                type="button"
+                                onClick={() => void writePathNodeActivity(
+                                  focusedPathNode,
+                                  focusedPathNode.type === 'external_resource'
+                                    ? 'external-resource-reference'
+                                    : 'initial-completion',
+                                  'completed',
+                                  { completionIntent: 'learner-confirmed-path-center-owned-resource' },
+                                )}
+                                disabled={pathActivityPending === `external-resource-reference:${focusedPathNode.nodeId}` ||
+                                  pathActivityPending === `initial-completion:${focusedPathNode.nodeId}`}
+                                className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60"
+                                data-adaptive-path-owned-resource-completion="available"
+                              >
+                                已学习该资料，继续路径
+                              </button>
+                            ) : focusedPathNode.status !== 'skipped' && pathCenterOpenedNodeIds.has(focusedPathNode.nodeId) ? (
+                              <span className="rounded-lg border border-border px-3 py-2 text-xs text-subtle">
+                                等待受治理完成证据
+                              </span>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => void launchExecutionNode(focusedPathNode)}
+                                disabled={pathActivityPending === `initial-completion:${focusedPathNode.nodeId}` ||
+                                  pathActivityPending === `return-to-skipped:${focusedPathNode.nodeId}`}
+                                className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60"
+                              >
+                                {focusedPathNode.status === 'skipped' ? '返回学习' : '开始学习'}
+                              </button>
+                            )}
                             {focusedPathNode.status !== 'skipped' ? (
                               <button
                                 type="button"

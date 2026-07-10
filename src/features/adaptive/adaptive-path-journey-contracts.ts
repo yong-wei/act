@@ -42,6 +42,34 @@ export interface AdaptivePathJourneyPathRecord {
   lastExecutionMetadata?: unknown;
 }
 
+export type AdaptivePathJourneyTargetDisposition =
+  | 'destination-control'
+  | 'path-center-explicit'
+  | 'path-center-server-evidence'
+  | 'external-fallback'
+  | 'blocked';
+
+export function resolveAdaptivePathJourneyTargetDisposition(
+  resourceType: string,
+  target: string,
+): AdaptivePathJourneyTargetDisposition {
+  if (resourceType === 'external_resource') {
+    return isSafeExternalTarget(target) ? 'external-fallback' : 'blocked';
+  }
+  if (!isStudentVisiblePathTarget(target)) return 'blocked';
+  if (normalizePathCenterOwnedRawTarget(target)) {
+    return ['knowledge_card', 'textbook_section', 'slides', 'handout'].includes(resourceType)
+      ? 'path-center-explicit'
+      : 'path-center-server-evidence';
+  }
+  return hasIntegratedJourneyDestination(target) ? 'destination-control' : 'blocked';
+}
+
+export function resolveAdaptivePathCenterOwnedTargetHref(resourceType: string, target: string): string | null {
+  if (resourceType === 'external_resource') return isSafeExternalTarget(target) ? target : null;
+  return normalizePathCenterOwnedRawTarget(target);
+}
+
 export function buildAuthorizedAdaptivePathJourney(
   path: AdaptivePathJourneyPathRecord,
   input: { requestedNodeId?: string | null } = {},
@@ -189,13 +217,14 @@ export function buildAuthorizedAdaptivePathJourney(
       nextAction: blockedAction(actionNode, '当前节点缺少可验证的启动目标。', returnHref),
     };
   }
-  if (actionNode.type !== 'external_resource' && !isStudentVisiblePathTarget(target)) {
+  const targetDisposition = resolveAdaptivePathJourneyTargetDisposition(actionNode.type, target);
+  if (targetDisposition === 'blocked') {
     return {
       ...base,
       nextAction: blockedAction(actionNode, '当前节点的启动目标不受平台支持，请重新生成路径。', returnHref),
     };
   }
-  const href = actionNode.type === 'external_resource'
+  const href = targetDisposition !== 'destination-control'
     ? returnHref
     : buildAdaptivePathLaunchHref(target, {
         goalId,
@@ -215,6 +244,55 @@ export function buildAuthorizedAdaptivePathJourney(
       recovery: null,
     },
   };
+}
+
+function normalizePathCenterOwnedRawTarget(target: string): string | null {
+  const normalized = target.startsWith('course-content/runtime/')
+    ? `/${target.replace(/^course-content\/runtime\//, 'course-runtime/')}`
+    : target;
+  if (!normalized.startsWith('/') || normalized.startsWith('//') || /[\s\p{Cc}]/u.test(normalized)) return null;
+  try {
+    const parsed = new URL(normalized, 'https://act.local');
+    if (parsed.origin !== 'https://act.local' || !parsed.pathname.startsWith('/course-runtime/')) return null;
+    if (!parsed.pathname.split('/').filter(Boolean).every((segment) => isSafeEncodedPathSegment(segment))) return null;
+    return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+  } catch {
+    return null;
+  }
+}
+
+function isSafeEncodedPathSegment(segment: string): boolean {
+  let decoded = segment;
+  for (let index = 0; index < 4; index += 1) {
+    try {
+      const next = decodeURIComponent(decoded);
+      if (next === decoded) break;
+      decoded = next;
+    } catch {
+      return false;
+    }
+  }
+  return decoded !== '..' && !decoded.includes('/') && !decoded.includes('\\') && !/[\p{Cc}]/u.test(decoded);
+}
+
+function isSafeExternalTarget(target: string): boolean {
+  try {
+    const url = new URL(target);
+    return url.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+function hasIntegratedJourneyDestination(target: string): boolean {
+  const pathname = target.split(/[?#]/, 1)[0] ?? target;
+  return pathname === '/assessment/adaptive-practice' ||
+    pathname === '/interactive-learning' ||
+    pathname.startsWith('/interactive-learning/') ||
+    pathname === '/knowledge' ||
+    pathname.startsWith('/knowledge/') ||
+    pathname === '/simulations' ||
+    pathname.startsWith('/simulations/');
 }
 
 interface JourneyNodeRecord extends AdaptivePathJourneyNodeView {
