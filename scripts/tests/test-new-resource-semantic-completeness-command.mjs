@@ -705,6 +705,104 @@ assert.doesNotMatch(
   /runtime-source:course-content\/runtime\/lessons\/1-1\/interactive-manifest\.json#1-1:step-01:chart/,
 );
 
+const lessonFieldDeletionTestParent = execFileSync('git', ['rev-parse', 'HEAD'], {
+  cwd: repo,
+  encoding: 'utf8',
+}).trim();
+fs.writeFileSync(lessonManifestPath, JSON.stringify({
+  lesson_id: 'field-delete',
+  steps: {
+    'step-fields': {
+      title: 'Delete this step title',
+      modules: [
+        {
+          id: 'module-fields',
+          title: 'Delete this module title',
+          payload: { prompt: 'Keep this payload' },
+          evidence: ['keep-this-evidence'],
+        },
+      ],
+    },
+  },
+}, null, 2));
+const baselineFieldStepProjection = runtimeLessonStepProjectionRow('field-delete', 'step-fields');
+const baselineFieldModuleProjection = runtimeLessonModuleProjectionRow('field-delete', 'step-fields', 'module-fields');
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${baselineFieldStepProjection}\n${baselineFieldModuleProjection}\n`,
+);
+run('git', ['add', 'course-content/runtime/lessons/1-1/interactive-manifest.json', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+run('git', ['commit', '--no-verify', '-m', 'add lesson field deletion baseline'], repo);
+
+fs.writeFileSync(lessonManifestPath, JSON.stringify({
+  lesson_id: 'field-delete',
+  steps: {
+    'step-fields': {
+      modules: [
+        {
+          id: 'module-fields',
+          title: 'Delete this module title',
+          payload: { prompt: 'Keep this payload' },
+          evidence: ['keep-this-evidence'],
+        },
+      ],
+    },
+  },
+}, null, 2));
+run('git', ['add', 'course-content/runtime/lessons/1-1/interactive-manifest.json'], repo);
+const missingStepFieldProjectionUpdateResult = runGate(['--staged']);
+assert.notEqual(missingStepFieldProjectionUpdateResult.status, 0, 'deleting only a step field must require the surviving step projection to be updated');
+assert.match(
+  `${missingStepFieldProjectionUpdateResult.stdout}\n${missingStepFieldProjectionUpdateResult.stderr}`,
+  /field-delete:step-fields/,
+);
+
+const stepFieldDeletedProjection = runtimeLessonStepProjectionRow('field-delete', 'step-fields');
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${stepFieldDeletedProjection}\n${baselineFieldModuleProjection}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const syncedStepFieldProjectionUpdateResult = runGate(['--staged']);
+assert.equal(syncedStepFieldProjectionUpdateResult.status, 0, 'step field deletion must pass after updating the surviving step projection hash');
+run('git', ['commit', '--no-verify', '-m', 'delete step field and update projection'], repo);
+const baseSyncedStepFieldProjectionUpdateResult = runGate(['--base', 'HEAD~1']);
+assert.equal(baseSyncedStepFieldProjectionUpdateResult.status, 0, 'base mode must map deleted step fields back to the surviving step identity');
+
+fs.writeFileSync(lessonManifestPath, JSON.stringify({
+  lesson_id: 'field-delete',
+  steps: {
+    'step-fields': {
+      modules: [
+        {
+          id: 'module-fields',
+          payload: { prompt: 'Keep this payload' },
+          evidence: ['keep-this-evidence'],
+        },
+      ],
+    },
+  },
+}, null, 2));
+run('git', ['add', 'course-content/runtime/lessons/1-1/interactive-manifest.json'], repo);
+const missingModuleFieldProjectionUpdateResult = runGate(['--staged']);
+assert.notEqual(missingModuleFieldProjectionUpdateResult.status, 0, 'deleting only a module field must require its surviving lesson projections to be updated');
+assert.match(
+  `${missingModuleFieldProjectionUpdateResult.stdout}\n${missingModuleFieldProjectionUpdateResult.stderr}`,
+  /field-delete:step-fields:module-fields/,
+);
+
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  runtimeLessonProjectionRows('field-delete', 'step-fields', 'module-fields'),
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const syncedModuleFieldProjectionUpdateResult = runGate(['--staged']);
+assert.equal(syncedModuleFieldProjectionUpdateResult.status, 0, 'module field deletion must pass after updating the surviving step and module projection hashes');
+run('git', ['commit', '--no-verify', '-m', 'delete module field and update projections'], repo);
+const baseSyncedModuleFieldProjectionUpdateResult = runGate(['--base', 'HEAD~1']);
+assert.equal(baseSyncedModuleFieldProjectionUpdateResult.status, 0, 'base mode must map deleted module fields back to the surviving module identity');
+run('git', ['reset', '--hard', lessonFieldDeletionTestParent], repo);
+
 const lessonDeletionTestParent = execFileSync('git', ['rev-parse', 'HEAD'], {
   cwd: repo,
   encoding: 'utf8',
@@ -1963,7 +2061,11 @@ function runtimeProjectionRow(overrides) {
 }
 
 function runtimeLessonProjectionRows(lessonId, stepId, moduleId) {
-  return `${JSON.stringify(runtimeProjectionRow({
+  return `${runtimeLessonStepProjectionRow(lessonId, stepId)}\n${runtimeLessonModuleProjectionRow(lessonId, stepId, moduleId)}\n`;
+}
+
+function runtimeLessonStepProjectionRow(lessonId, stepId) {
+  return JSON.stringify(runtimeProjectionRow({
     id: `lesson-step:${lessonId}:${stepId}`,
     family: 'runtime-lesson-step',
     resourceType: 'lesson_step',
@@ -1971,7 +2073,11 @@ function runtimeLessonProjectionRows(lessonId, stepId, moduleId) {
     sourceRef: `${lessonId}:${stepId}`,
     sourcePathOrUrl: 'course-content/runtime/lessons/1-1/interactive-manifest.json',
     sourceVersionRef: 'runtime-lesson-manifest.v1',
-  }))}\n${JSON.stringify(runtimeProjectionRow({
+  }));
+}
+
+function runtimeLessonModuleProjectionRow(lessonId, stepId, moduleId) {
+  return JSON.stringify(runtimeProjectionRow({
     id: `lesson-module:${lessonId}:${stepId}:${moduleId}`,
     family: 'runtime-lesson-module',
     resourceType: 'lesson_step',
@@ -1979,7 +2085,7 @@ function runtimeLessonProjectionRows(lessonId, stepId, moduleId) {
     sourceRef: `${lessonId}:${stepId}:${moduleId}`,
     sourcePathOrUrl: 'course-content/runtime/lessons/1-1/interactive-manifest.json',
     sourceVersionRef: 'runtime-lesson-manifest.v1',
-  }))}\n`;
+  }));
 }
 
 function sha256File(filePath) {

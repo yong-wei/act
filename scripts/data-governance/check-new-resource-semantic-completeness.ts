@@ -540,19 +540,33 @@ function runtimeProjectionSourceRequirementsForPath(
       'upsert',
     )
       .map((requirement) => withCurrentSourceHash(requirement, options));
-    const currentRecordIdentities = new Set(parseRuntimeLessonSourceRequirementsInRanges(
+    const currentFullRequirements = parseRuntimeLessonSourceRequirementsInRanges(
       filePath,
       source,
       fullSourceLineRange(source),
       'upsert',
-    ).map((requirement) => runtimeLessonRequirementIdentityKey(requirement)));
-    const deletedRequirements = parseRuntimeLessonSourceRequirementsInRanges(
+    );
+    const currentRequirementsByIdentity = new Map(currentFullRequirements.map((requirement) => [
+      runtimeLessonRequirementIdentityKey(requirement),
+      requirement,
+    ]));
+    const requirementsFromPreviousRanges = parseRuntimeLessonSourceRequirementsInRanges(
       filePath,
       previousSource,
       previousRanges,
       'delete',
-    ).filter((requirement) => !currentRecordIdentities.has(runtimeLessonRequirementIdentityKey(requirement)));
-    return [...currentRequirements, ...deletedRequirements];
+    ).map((previousRequirement) => {
+      const currentRequirement = currentRequirementsByIdentity.get(
+        runtimeLessonRequirementIdentityKey(previousRequirement),
+      );
+      return currentRequirement
+        ? withCurrentSourceHash(currentRequirement, options)
+        : previousRequirement;
+    });
+    return uniqueRuntimeProjectionSourceRequirements([
+      ...currentRequirements,
+      ...requirementsFromPreviousRanges,
+    ]);
   }
   if (family === 'knowledge-infograph') {
     return parseInfographManifestSourceRequirements(filePath, source, diff)
