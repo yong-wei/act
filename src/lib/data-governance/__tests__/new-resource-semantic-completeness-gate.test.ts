@@ -212,6 +212,39 @@ describe('new resource semantic completeness gate', () => {
     ].join('\n'))).toEqual(['ready-a']);
   });
 
+  it.each([
+    ['withDefaultResourceTarget', 'const target = metadata.renderTarget ?? defaultTarget;'],
+    ['mergePlanningOverrides', 'return overrides.reduce((merged, override) => ({ ...merged, ...override }), {});'],
+  ])('fails closed to every registered resource when %s changes', (_helperName, changedLine) => {
+    const source = [
+      'const registeredResourceMetadata = {',
+      "    'resource-a': { id: 'resource-a', label: 'Resource A' },",
+      "    'resource-b': { id: 'resource-b', label: 'Resource B' },",
+      "    'resource-c': { id: 'resource-c', label: 'Resource C' },",
+      '};',
+      'function withDefaultResourceTarget(metadata: RegisteredResourceMetadata) {',
+      '    const target = metadata.renderTarget ?? defaultTarget;',
+      '    return { ...metadata, renderTarget: target };',
+      '}',
+      'function mergePlanningOverrides(...overrides: ResourceNodePlanningOverride[]) {',
+      '    return overrides.reduce((merged, override) => ({ ...merged, ...override }), {});',
+      '}',
+    ].join('\n');
+    const line = source.split('\n').findIndex((entry) => entry === `    ${changedLine}`) + 1;
+    const diff = [
+      `@@ -${line},1 +${line},1 @@`,
+      `-    ${changedLine}`,
+      `+    ${changedLine} // changed`,
+    ].join('\n');
+
+    expect(line).toBeGreaterThan(0);
+    expect(parseChangedRegisteredResourceIds(source, diff)).toEqual([
+      'resource-a',
+      'resource-b',
+      'resource-c',
+    ]);
+  });
+
   it('fails incomplete new registered resources', () => {
     const result = validateChangedRegisteredResources([{
       id: 'new-incomplete',

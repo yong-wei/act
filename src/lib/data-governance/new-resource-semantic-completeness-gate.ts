@@ -134,6 +134,14 @@ export function parseChangedRegisteredResourceIds(source: string, diff: string):
     ...parseRegisteredResourceOperationalHelperLineRanges(source),
   ];
   const resourceIds = new Set(resources.map((resource) => resource.id));
+  const lines = source.split(/\r?\n/);
+  const globalMaterializerChanged = ['withDefaultResourceTarget', 'mergePlanningOverrides']
+    .map((functionName) => parseFunctionLineRange(lines, functionName))
+    .filter((range): range is DiffLineRange => Boolean(range))
+    .some((helperRange) => ranges.some((range) => (
+      range.start <= helperRange.end && range.end >= helperRange.start
+    )));
+  if (globalMaterializerChanged) return uniqueSorted(Array.from(resourceIds));
   return uniqueSorted(
     [
       ...resources

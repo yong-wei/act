@@ -1243,7 +1243,7 @@ const baseUntrackedEvidenceResult = runGate(['--base', 'HEAD~1']);
 assert.notEqual(baseUntrackedEvidenceResult.status, 0, 'base mode must reject projection evidence that exists only in the worktree');
 assert.match(
   `${baseUntrackedEvidenceResult.stdout}\n${baseUntrackedEvidenceResult.stderr}`,
-  /external:base-untracked-evidence stale-runtime-projection-source-hash/,
+  /external:base-untracked-evidence missing-runtime-projection-review-evidence-file/,
 );
 fs.rmSync(baseUntrackedEvidencePath);
 
@@ -1318,6 +1318,29 @@ assert.notEqual(staleProjectionOnlySourceHashResult.status, 0, 'gate must fail w
 assert.match(
   `${staleProjectionOnlySourceHashResult.stdout}\n${staleProjectionOnlySourceHashResult.stderr}`,
   /stale-runtime-projection-source-hash/,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'knowledge-card:kn-demo',
+    family: 'knowledge-card',
+    resourceType: 'knowledge_card',
+    sourceKind: 'knowledge_graph',
+    sourceRef: 'kn-demo',
+    sourcePathOrUrl: 'course-content/runtime/knowledge/cards/nodes/kn-demo.md',
+    sourceHash: sha256File(cardPath),
+    sourceVersionRef: 'runtime-knowledge-card.v1',
+    independentEvidenceRef: 'course-content/runtime/resource-governance/missing-review-evidence.md',
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const missingReviewEvidenceFileResult = runGate(['--staged']);
+assert.notEqual(missingReviewEvidenceFileResult.status, 0, 'gate must fail when a local independent review evidence file is missing');
+assert.match(
+  `${missingReviewEvidenceFileResult.stdout}\n${missingReviewEvidenceFileResult.stderr}`,
+  /knowledge-card:kn-demo missing-runtime-projection-review-evidence-file/,
 );
 
 run('git', ['reset', '--hard', 'HEAD'], repo);

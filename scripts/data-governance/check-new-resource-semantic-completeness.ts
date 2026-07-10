@@ -203,6 +203,7 @@ function validateRuntimeProjectionRowSourceEvidence(
       }];
     }
     const sourcePath = runtimeProjectionPrimaryLocalSourcePath(row);
+    const reviewEvidencePath = runtimeProjectionReviewHashLocalSourcePath(row);
     const evidencePaths = runtimeProjectionRowEvidenceLocalSourcePaths(row);
     const untrackedEvidencePath = options.staged
       ? evidencePaths.find((filePath) => (
@@ -231,6 +232,14 @@ function validateRuntimeProjectionRowSourceEvidence(
         resourceId: row.id,
         code: 'missing-runtime-projection-source-file',
         message: `Runtime projection sourcePathOrUrl points to a missing local source file: ${sourcePath}.`,
+      }];
+    }
+    if (reviewEvidencePath && !runtimeProjectionSourceContent(reviewEvidencePath, options)) {
+      return [{
+        family: 'runtime-resource-projection' as const,
+        resourceId: row.id,
+        code: 'missing-runtime-projection-review-evidence-file',
+        message: `Runtime projection independent review evidence points to a missing local file: ${reviewEvidencePath}.`,
       }];
     }
     const sourceHashPaths = sourcePath ? [sourcePath] : evidencePaths;
