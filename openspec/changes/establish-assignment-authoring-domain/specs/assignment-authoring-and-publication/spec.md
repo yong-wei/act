@@ -1,0 +1,139 @@
+## ADDED Requirements
+
+### Requirement: Assignments have durable identity and immutable publication revisions
+The system SHALL persist assignments as first-class records with stable identity, teacher ownership, mutable drafts, immutable published revisions, timestamps, and lifecycle state.
+
+#### Scenario: Teacher publishes a draft revision
+- **WHEN** an authorized teacher publishes a valid assignment draft
+- **THEN** the system SHALL atomically create or freeze a numbered published revision
+- **AND** subsequent edits SHALL create a different draft revision without mutating the published content.
+
+#### Scenario: Existing submission references an older revision
+- **WHEN** a newer assignment revision is published after a student received or submitted an older revision
+- **THEN** the student's assignment and grading records SHALL continue to reference the originally assigned immutable revision.
+
+### Requirement: Teachers can manage assignments through an assignment workspace
+The system SHALL provide authorized teachers with assignment list, create, edit, preview, save-draft, publish, and lifecycle management surfaces.
+
+#### Scenario: Teacher opens assignment management
+- **WHEN** a teacher opens `/teacher/assignments`
+- **THEN** the page SHALL show assignments with draft, published, review, returned, completed, or closed state as applicable
+- **AND** it SHALL expose class audience, schedule, submission totals when available, and the next valid action.
+
+#### Scenario: Teacher edits an assignment
+- **WHEN** a teacher opens a new or existing draft
+- **THEN** the editor SHALL expose a question outline, assignment settings, preview, draft save, and publish controls
+- **AND** each question SHALL expose `题面`, `参考答案`, `评分标准`, response type, and points as primary fields.
+
+### Requirement: Assignment questions preserve source and content snapshots
+Every assignment question SHALL persist an immutable prompt, reference answer, rubric, point value, response type, source lineage, and content hash within the assignment revision.
+
+#### Scenario: Teacher selects a governed question-bank item
+- **WHEN** a teacher adds an eligible catalog item to an assignment draft
+- **THEN** the system SHALL snapshot the item content, answer, rubric, source family, source identity, source hash, review state, and version references.
+
+#### Scenario: Source question changes later
+- **WHEN** the original question-bank content or metadata changes after publication
+- **THEN** the published assignment question SHALL remain unchanged
+- **AND** audit views SHALL retain the original source hash and snapshot version.
+
+#### Scenario: Teacher creates a question manually
+- **WHEN** a teacher creates a new subjective question in the assignment editor
+- **THEN** the system SHALL store it through the same question snapshot contract with an assignment-authoring source marker.
+
+### Requirement: Every published subjective question has an analytic rubric
+The system SHALL require each published subjective assignment question to include a versioned analytic rubric with stable criterion identifiers, criterion maximums, observable evidence, performance levels, and feedback guidance.
+
+#### Scenario: Teacher defines a rubric
+- **WHEN** a teacher edits a subjective question rubric
+- **THEN** the editor SHALL allow criteria, maximum points, observable evidence, level descriptions or score bands, and feedback guidance to be defined and reordered.
+
+#### Scenario: Rubric lacks gradable evidence
+- **WHEN** a rubric criterion lacks a stable id, positive maximum, or observable evidence description
+- **THEN** the system SHALL block publication and identify the affected question and criterion.
+
+### Requirement: Publication validates all score scales without silent rescaling
+The system MUST block assignment publication unless the assignment total, question totals, and rubric criterion totals are internally consistent.
+
+#### Scenario: Totals agree
+- **WHEN** assignment total equals the sum of question points and every question point value equals the sum of its rubric criterion maximums
+- **THEN** score consistency SHALL pass the publication gate.
+
+#### Scenario: Totals disagree
+- **WHEN** any assignment, question, criterion, or rubric-level score scale conflicts
+- **THEN** publication SHALL fail with a teacher-visible reconciliation result
+- **AND** the system SHALL NOT silently normalize, rescale, or select one source as authoritative.
+
+### Requirement: Publication binds authorized class audiences and policies
+The system SHALL bind published assignment revisions to explicit class audiences, availability dates, due dates, late policy, response policy, and resubmission policy.
+
+#### Scenario: Teacher publishes to managed classes
+- **WHEN** a teacher selects classes they are authorized to manage and supplies a valid schedule
+- **THEN** publication SHALL create audience records that preserve the assigned revision and policy snapshot.
+
+#### Scenario: Teacher selects an unauthorized class
+- **WHEN** a teacher attempts to publish to a class outside their authorized scope
+- **THEN** the system SHALL reject publication before any audience receives the assignment.
+
+### Requirement: Student payloads do not disclose protected grading material
+Assignment delivery contracts SHALL separate student-visible question content from teacher-only reference answers, rubric internals, and publication controls.
+
+#### Scenario: Student reads an active assignment
+- **WHEN** an authorized student requests an assigned revision before grading feedback is approved
+- **THEN** the response SHALL include only student-visible instructions, questions, points, response rules, schedule, and submission state
+- **AND** it SHALL NOT disclose reference answers or teacher-only rubric guidance.
+
+#### Scenario: Grading finishes without a solution release policy
+- **WHEN** feedback is approved but no active versioned solution-release policy permits publication
+- **THEN** reference answers and teacher-only rubric guidance SHALL remain private.
+
+#### Scenario: Teacher releases a solution
+- **WHEN** an authorized teacher activates a solution-release policy for a specific assignment revision, audience, and release time
+- **THEN** only the policy-approved student solution material SHALL become visible
+- **AND** teacher-only rubric guidance SHALL remain protected unless separately declared student-visible.
+
+### Requirement: Assignment history uses explicit current and frozen authorization
+The system SHALL distinguish current class membership used for new delivery from frozen ownership and explicit review grants used for historical assignment access.
+
+#### Scenario: Student leaves a class after submitting
+- **WHEN** a student is removed from the current class after owning a submission
+- **THEN** the student SHALL retain policy-permitted access to their own historical assignment, submission, and approved feedback through the frozen ownership record.
+
+#### Scenario: Class teacher changes
+- **WHEN** a new teacher is assigned to a class with historical submissions
+- **THEN** the teacher SHALL NOT automatically gain document-review access unless an explicit audited assignment-review grant or transfer authorizes it.
+
+#### Scenario: Audience or class is archived
+- **WHEN** an assignment audience is removed or a class is closed
+- **THEN** historical revisions and submissions SHALL remain read-only and SHALL NOT be cascade-deleted.
+
+### Requirement: Assignment mutations are protected and bounded
+Every assignment-authoring mutation SHALL require an authenticated non-GET request, strict Origin or CSRF validation, runtime input schemas, bounded payloads, resource authorization, and applicable idempotency and rate limits.
+
+#### Scenario: Cross-site publication request is attempted
+- **WHEN** an authenticated browser session sends a publication mutation without valid Origin or CSRF proof
+- **THEN** the system SHALL reject the request before changing assignment or audience state.
+
+#### Scenario: Mutation payload is malformed or excessive
+- **WHEN** a request contains unknown fields, invalid enums, over-limit text, excessive questions, or an unauthorized resource id
+- **THEN** the system SHALL reject the request with no partial assignment mutation.
+
+### Requirement: Teacher authoring exposes complete operational states
+The assignment list and editor SHALL provide loading, empty, filtered-empty, recoverable error, stale-context, conflict, and publication-blocked states with keyboard-operable recovery actions.
+
+#### Scenario: Teacher has no assignments or a filter has no matches
+- **WHEN** the list has no assignments or the current filters produce no rows
+- **THEN** the page SHALL distinguish the two states and expose the appropriate create or clear-filter action.
+
+#### Scenario: Draft becomes stale or fails to load
+- **WHEN** the editor detects a stale version, missing draft, authorization change, or recoverable service failure
+- **THEN** it SHALL preserve safe local input where possible, explain the conflict, and expose reload, return, or retry without silent overwrite.
+
+#### Scenario: Teacher uses a narrow viewport
+- **WHEN** assignment management renders below 768px
+- **THEN** assignment status and navigation SHALL remain available with a clear continue-on-tablet-or-desktop message
+- **AND** the system SHALL NOT present an apparently complete but unusable rubric editor.
+
+#### Scenario: Teacher uses keyboard navigation
+- **WHEN** the teacher moves through the question outline, editor regions, validation errors, or publication controls without a pointer
+- **THEN** focus order, error association, focus restoration, and accessible names SHALL preserve the complete authoring workflow at supported editing widths.
