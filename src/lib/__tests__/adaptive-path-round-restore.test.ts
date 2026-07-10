@@ -269,6 +269,20 @@ describe('adaptive path round restore', () => {
           }],
           versionRefs: { repairVersion: 'path-constraint-repair.v1' },
         },
+        visualization: {
+          evidence: {
+            associativeRetrieval: {
+              candidateResourceNodeIds: [legacyNodeId, canonicalNodeId],
+              selectedCandidateNodeIds: [legacyNodeId],
+              rejectedCandidates: [{
+                ref: 'legacy-arena-candidate',
+                kind: 'resourceNode',
+                resourceNodeId: legacyNodeId,
+                reasonCodes: ['not-selected'],
+              }],
+            },
+          },
+        },
       },
     });
 
@@ -315,6 +329,15 @@ describe('adaptive path round restore', () => {
         checkpointNodeIds: [canonicalNodeId],
         terminalValidationNodeIds: [canonicalNodeId],
         infeasibleReasons: [{ nodeIds: [canonicalNodeId] }],
+      },
+      visualization: {
+        evidence: {
+          associativeRetrieval: {
+            candidateResourceNodeIds: [canonicalNodeId],
+            selectedCandidateNodeIds: [canonicalNodeId],
+            rejectedCandidates: [{ resourceNodeId: canonicalNodeId }],
+          },
+        },
       },
     });
   });

@@ -157,6 +157,12 @@ export function remapAdaptivePathPayloadReferences<T>(
   if (Array.isArray(payload.feedbackEvents)) {
     remapped.feedbackEvents = payload.feedbackEvents.map((item) => remapNodeIdRecord(item, aliases));
   }
+  if (Array.isArray(payload.activity)) {
+    remapped.activity = payload.activity.map((item) => remapActivityRecord(item, aliases));
+  }
+  if (Array.isArray(payload.selectionHistory)) {
+    remapped.selectionHistory = payload.selectionHistory.map((item) => remapNodeIdRecord(item, aliases));
+  }
   return remapped as T;
 }
 
@@ -237,13 +243,7 @@ function remapExplanations(value: unknown, aliases: ReadonlyMap<string, string>)
   }
   const retrieval = asRecord(explanations.associativeRetrieval);
   if (retrieval) {
-    const remappedRetrieval = { ...retrieval };
-    remapArrayFields(remappedRetrieval, ['candidateResourceNodeIds', 'selectedCandidateNodeIds'], aliases);
-    if (Array.isArray(retrieval.rejectedCandidates)) {
-      remappedRetrieval.rejectedCandidates = retrieval.rejectedCandidates
-        .map((candidate) => remapResourceNodeIdRecord(candidate, aliases));
-    }
-    remapped.associativeRetrieval = remappedRetrieval;
+    remapped.associativeRetrieval = remapAssociativeRetrieval(retrieval, aliases);
   }
   return remapped;
 }
@@ -299,7 +299,24 @@ function remapVisualization(value: unknown, aliases: ReadonlyMap<string, string>
     if (Array.isArray(evidence.alternatives)) {
       remappedEvidence.alternatives = evidence.alternatives.map((item) => remapAlternative(item, aliases));
     }
+    const retrieval = asRecord(evidence.associativeRetrieval);
+    if (retrieval) {
+      remappedEvidence.associativeRetrieval = remapAssociativeRetrieval(retrieval, aliases);
+    }
     remapped.evidence = remappedEvidence;
+  }
+  return remapped;
+}
+
+function remapAssociativeRetrieval(
+  retrieval: Record<string, unknown>,
+  aliases: ReadonlyMap<string, string>,
+): Record<string, unknown> {
+  const remapped = { ...retrieval };
+  remapArrayFields(remapped, ['candidateResourceNodeIds', 'selectedCandidateNodeIds'], aliases);
+  if (Array.isArray(retrieval.rejectedCandidates)) {
+    remapped.rejectedCandidates = retrieval.rejectedCandidates
+      .map((candidate) => remapResourceNodeIdRecord(candidate, aliases));
   }
   return remapped;
 }
@@ -320,6 +337,15 @@ function remapAlternative(value: unknown, aliases: ReadonlyMap<string, string>):
   const alternative = asRecord(value);
   if (!alternative) return value;
   const remapped = { ...alternative };
+  remapScalarFields(remapped, ['nodeId'], aliases);
+  remapArrayFields(remapped, ['nodeIds'], aliases);
+  return remapped;
+}
+
+function remapActivityRecord(value: unknown, aliases: ReadonlyMap<string, string>): unknown {
+  const activity = asRecord(value);
+  if (!activity) return value;
+  const remapped = { ...activity };
   remapScalarFields(remapped, ['nodeId'], aliases);
   remapArrayFields(remapped, ['nodeIds'], aliases);
   return remapped;

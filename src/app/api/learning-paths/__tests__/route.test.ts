@@ -533,6 +533,15 @@ describe('learning path round API routes', () => {
           activeNodeId: legacyNodeId,
           completedNodeIds: [],
         },
+        activity: [
+          { id: 'activity-node', nodeId: legacyNodeId, type: 'execution' },
+          { id: 'activity-nodes', nodeIds: [legacyNodeId, canonicalNodeId], type: 'correction' },
+        ],
+        selectionHistory: [{
+          id: 'selection-legacy-arena',
+          nodeId: legacyNodeId,
+          selectedStyleId: 'simulation-driven',
+        }],
         graphContext: {
           limitations: [{ nodeId: legacyNodeId, code: 'graph-node-alias-collision' }],
           objectiveBoundaryDiagnostics: {
@@ -4938,6 +4947,11 @@ describe('learning path round API routes', () => {
               }),
             }),
           ]),
+          activity: [
+            expect.objectContaining({ nodeId: canonicalNodeId }),
+            expect.objectContaining({ nodeIds: [canonicalNodeId] }),
+          ],
+          selectionHistory: [expect.objectContaining({ nodeId: canonicalNodeId })],
         },
         deviations: {
           update: [{
