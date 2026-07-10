@@ -189,6 +189,53 @@ describe('adaptive path round restore', () => {
     });
   });
 
+  it.each([
+    ['arena-challenge-workbench', 'task-second-order-lead-pid'],
+    ['arena-cruise-blackbox-workbench', 'task-cruise-roll-blackbox-identification'],
+  ])('restores the verified production registry Arena node %s as canonical', (registryId, taskId) => {
+    const legacyNodeId = `registry:${registryId}`;
+    const canonicalNodeId = `arena-task:${taskId}`;
+    const plan = restoreAdaptiveLearningPathPlanFromRound({
+      id: `legacy-${registryId}-path`,
+      userId: 'student-1',
+      title: 'Legacy production Arena path',
+      goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: legacyNodeId,
+      pathPayload: {
+        mainPathNodeIds: [legacyNodeId],
+        planNodes: [{
+          nodeId: legacyNodeId,
+          title: 'Legacy production Arena node',
+          type: 'arena_task',
+          sourceKind: 'resource_registry',
+          sourceRef: registryId,
+          target: `/arena/challenges/${taskId}`,
+          reasonCodes: [],
+        }],
+        executionStatus: {
+          activeNodeId: legacyNodeId,
+          completedNodeIds: [],
+        },
+      },
+    });
+
+    expect(plan).toMatchObject({
+      status: 'ready',
+      currentNodeId: canonicalNodeId,
+      mainPath: [{
+        nodeId: canonicalNodeId,
+        sourceKind: 'arena_task',
+        sourceRef: taskId,
+        target: `/arena/challenges/${taskId}`,
+        reasonCodes: expect.arrayContaining(['verified-legacy-arena-registry-mapping']),
+      }],
+      executionStatus: {
+        activeNodeId: canonicalNodeId,
+      },
+    });
+  });
+
   it('blocks an unverified generic Arena target without leaving an executable target', () => {
     const plan = restoreAdaptiveLearningPathPlanFromRound({
       id: 'legacy-generic-arena-path',

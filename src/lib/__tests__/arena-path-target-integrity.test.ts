@@ -10,6 +10,17 @@ const canonical = {
   target: '/arena/challenges/task-second-order-lead-pid',
 };
 
+const verifiedLegacyRegistryCases = [
+  {
+    registryId: 'arena-challenge-workbench',
+    taskId: 'task-second-order-lead-pid',
+  },
+  {
+    registryId: 'arena-cruise-blackbox-workbench',
+    taskId: 'task-cruise-roll-blackbox-identification',
+  },
+] as const;
+
 describe('Arena path target integrity', () => {
   it('accepts a canonical task that exists in the governed Arena catalog', () => {
     expect(resolveArenaPathTargetIntegrity(canonical)).toEqual({
@@ -62,6 +73,57 @@ describe('Arena path target integrity', () => {
       reason: 'verified-yangfan-legacy-arena-mapping',
       taskId: 'task-second-order-lead-pid',
       target: canonical,
+    });
+  });
+
+  it.each(verifiedLegacyRegistryCases)(
+    'repairs the exact verified legacy registry mapping $registryId',
+    ({ registryId, taskId }) => {
+      expect(resolveArenaPathTargetIntegrity({
+        nodeId: `registry:${registryId}`,
+        type: 'arena_task',
+        sourceKind: 'resource_registry',
+        sourceRef: registryId,
+        target: `/arena/challenges/${taskId}`,
+      })).toEqual({
+        status: 'repaired',
+        reason: 'verified-legacy-arena-registry-mapping',
+        taskId,
+        target: {
+          nodeId: `arena-task:${taskId}`,
+          type: 'arena_task',
+          sourceKind: 'arena_task',
+          sourceRef: taskId,
+          target: `/arena/challenges/${taskId}`,
+        },
+      });
+    },
+  );
+
+  it.each([
+    ['type mismatch', { type: 'simulation' }],
+    ['source kind mismatch', { sourceKind: 'arena_task' }],
+    ['source ref mismatch', { sourceRef: 'arena-cruise-blackbox-workbench' }],
+    ['node id mismatch', { nodeId: 'registry:arena-cruise-blackbox-workbench' }],
+    ['route mismatch', { target: '/arena/challenges/task-cruise-roll-blackbox-identification' }],
+    ['absolute route', { target: 'https://act.local/arena/challenges/task-second-order-lead-pid' }],
+    ['query route', { target: '/arena/challenges/task-second-order-lead-pid?source=legacy' }],
+    ['hash route', { target: '/arena/challenges/task-second-order-lead-pid#legacy' }],
+    ['unknown registry id', {
+      nodeId: 'registry:arena-unknown-workbench',
+      sourceRef: 'arena-unknown-workbench',
+    }],
+  ])('does not repair a partial legacy registry match: %s', (_label, override) => {
+    expect(resolveArenaPathTargetIntegrity({
+      nodeId: 'registry:arena-challenge-workbench',
+      type: 'arena_task',
+      sourceKind: 'resource_registry',
+      sourceRef: 'arena-challenge-workbench',
+      target: '/arena/challenges/task-second-order-lead-pid',
+      ...override,
+    })).toMatchObject({
+      status: 'blocked',
+      target: null,
     });
   });
 

@@ -4836,6 +4836,62 @@ describe('learning path round API routes', () => {
     expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
   });
 
+  it.each([
+    ['arena-challenge-workbench', 'task-second-order-lead-pid'],
+    ['arena-cruise-blackbox-workbench', 'task-cruise-roll-blackbox-identification'],
+  ])('executes canonical Arena identity through verified legacy registry path %s', async (registryId, taskId) => {
+    const legacyNodeId = `registry:${registryId}`;
+    const canonicalNodeId = `arena-task:${taskId}`;
+    configureSingleNodePath(legacyNodeId, 'arena_task', `/arena/challenges/${taskId}`, {
+      goalId: 'control-correction',
+      planNode: {
+        sourceKind: 'resource_registry',
+        sourceRef: registryId,
+      },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: canonicalNodeId,
+      resourceType: 'arena_task',
+      status: 'started',
+      idempotencyKey: `verified-registry-${registryId}`,
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      nodeId: canonicalNodeId,
+      resourceType: 'arena_task',
+    }));
+  });
+
+  it.each([
+    ['arena-challenge-workbench', 'task-second-order-lead-pid'],
+    ['arena-cruise-blackbox-workbench', 'task-cruise-roll-blackbox-identification'],
+  ])('returns canonicalNodeId for verified legacy registry request %s', async (registryId, taskId) => {
+    const legacyNodeId = `registry:${registryId}`;
+    configureSingleNodePath(legacyNodeId, 'arena_task', `/arena/challenges/${taskId}`, {
+      goalId: 'control-correction',
+      planNode: {
+        sourceKind: 'resource_registry',
+        sourceRef: registryId,
+      },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: legacyNodeId,
+      resourceType: 'arena_task',
+      status: 'started',
+      idempotencyKey: `legacy-registry-${registryId}`,
+    }), params);
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toMatchObject({
+      error: 'Arena 路径节点身份已修复，请使用规范节点重试',
+      canonicalNodeId: `arena-task:${taskId}`,
+    });
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+  });
+
   it('canonically replays an existing legacy-id execution without writing the old identity', async () => {
     mocks.prisma.learningPath.findUnique.mockResolvedValue({
       id: 'path-1', userId: 'student-1', classId: 'class-1', goalId: 'control-correction',

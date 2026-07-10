@@ -2,7 +2,8 @@ import { ARENA_CHALLENGE_TASKS } from '@/features/arena/data/seed-challenges';
 
 export type ArenaPathTargetAcceptedReason =
   | 'canonical-arena-task-target'
-  | 'verified-yangfan-legacy-arena-mapping';
+  | 'verified-yangfan-legacy-arena-mapping'
+  | 'verified-legacy-arena-registry-mapping';
 
 export type ArenaPathTargetBlockedReason =
   | 'generic-arena-target'
@@ -48,12 +49,34 @@ const KNOWN_ARENA_TASK_IDS = new Set(ARENA_CHALLENGE_TASKS.map((task) => task.id
 const YANGFAN_FIXTURE_SCOPE = 'yangfan-diagnostic-fixture.v1';
 const YANGFAN_LEGACY_NODE_ID = '根轨迹_1_1';
 const YANGFAN_ARENA_TASK_ID = 'task-second-order-lead-pid';
+const VERIFIED_LEGACY_ARENA_REGISTRY_MAPPINGS = [
+  {
+    nodeId: 'registry:arena-challenge-workbench',
+    type: 'arena_task',
+    sourceKind: 'resource_registry',
+    sourceRef: 'arena-challenge-workbench',
+    target: '/arena/challenges/task-second-order-lead-pid',
+    taskId: 'task-second-order-lead-pid',
+  },
+  {
+    nodeId: 'registry:arena-cruise-blackbox-workbench',
+    type: 'arena_task',
+    sourceKind: 'resource_registry',
+    sourceRef: 'arena-cruise-blackbox-workbench',
+    target: '/arena/challenges/task-cruise-roll-blackbox-identification',
+    taskId: 'task-cruise-roll-blackbox-identification',
+  },
+] as const;
 
 export function resolveArenaPathTargetIntegrity(
   input: ArenaPathTargetInput,
 ): ArenaPathTargetIntegrityResult {
   if (matchesVerifiedYangFanLegacyMapping(input)) {
     return acceptedResult('repaired', 'verified-yangfan-legacy-arena-mapping', YANGFAN_ARENA_TASK_ID);
+  }
+  const legacyRegistryTaskId = resolveVerifiedLegacyArenaRegistryTaskId(input);
+  if (legacyRegistryTaskId) {
+    return acceptedResult('repaired', 'verified-legacy-arena-registry-mapping', legacyRegistryTaskId);
   }
 
   const nodeId = readString(input.nodeId);
@@ -107,6 +130,17 @@ function matchesVerifiedYangFanLegacyMapping(input: ArenaPathTargetInput): boole
     return false;
   }
   return input.target === `/arena?nodeId=${encodeURIComponent(YANGFAN_LEGACY_NODE_ID)}`;
+}
+
+function resolveVerifiedLegacyArenaRegistryTaskId(input: ArenaPathTargetInput): string | null {
+  const mapping = VERIFIED_LEGACY_ARENA_REGISTRY_MAPPINGS.find((candidate) => (
+    input.nodeId === candidate.nodeId &&
+    input.type === candidate.type &&
+    input.sourceKind === candidate.sourceKind &&
+    input.sourceRef === candidate.sourceRef &&
+    input.target === candidate.target
+  ));
+  return mapping && KNOWN_ARENA_TASK_IDS.has(mapping.taskId) ? mapping.taskId : null;
 }
 
 function acceptedResult(
