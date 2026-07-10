@@ -65,6 +65,29 @@ describe('Arena path target integrity', () => {
     });
   });
 
+  it.each([
+    'https://act.local/arena?nodeId=%E6%A0%B9%E8%BD%A8%E8%BF%B9_1_1',
+    '//act.local/arena?nodeId=%E6%A0%B9%E8%BD%A8%E8%BF%B9_1_1',
+    '/arena/?nodeId=%E6%A0%B9%E8%BD%A8%E8%BF%B9_1_1',
+    '/arena?nodeId=%E6%A0%B9%E8%BD%A8%E8%BF%B9_1_1#legacy',
+    '/arena?nodeId=%E6%A0%B9%E8%BD%A8%E8%BF%B9_1_1&extra=1',
+    '/arena?nodeId=%E6%A0%B9%E8%BD%A8%E8%BF%B9_1_1&nodeId=%E6%A0%B9%E8%BD%A8%E8%BF%B9_1_1',
+    '/arena?nodeId=%25E6%25A0%25B9%25E8%25BD%25A8%25E8%25BF%B9_1_1',
+    '/arena?nodeId=unknown',
+  ])('does not repair non-exact Yang Fan legacy target %s', (target) => {
+    expect(resolveArenaPathTargetIntegrity({
+      nodeId: '根轨迹_1_1',
+      type: 'arena_task',
+      sourceKind: 'knowledge_graph',
+      sourceRef: '根轨迹_1_1',
+      target,
+      fixtureScope: 'yangfan-diagnostic-fixture.v1',
+    })).toMatchObject({
+      status: 'blocked',
+      target: null,
+    });
+  });
+
   it('does not guess a task for an ordinary generic Arena target', () => {
     expect(resolveArenaPathTargetIntegrity({
       nodeId: 'arena-task:legacy',

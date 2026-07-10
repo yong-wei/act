@@ -440,6 +440,29 @@ describe('resource node registry', () => {
     expect(auditResourceNode(placeholder).pathEligible).toBe(false);
   });
 
+  it('blocks a terminal-validation Arena node with a knowledge placeholder even without a path disposition', () => {
+    const canonical = buildControlCorrectionResourceNodeRegistry().nodes.find(
+      (node) => node.id === 'arena-task:task-second-order-lead-pid',
+    ) as ResourceNode;
+    const placeholder: ResourceNode = {
+      ...canonical,
+      id: '根轨迹_1_1',
+      sourceKind: 'knowledge_graph',
+      sourceRef: '根轨迹_1_1',
+      launchTarget: '/arena?nodeId=%E6%A0%B9%E8%BD%A8%E8%BF%B9_1_1',
+      planningMetadata: {
+        ...canonical.planningMetadata,
+        pathDisposition: undefined,
+        terminalConstraints: ['terminal-validation'],
+      },
+    };
+
+    expect(auditResourceNode(placeholder)).toMatchObject({
+      pathEligible: false,
+      reasons: expect.arrayContaining(['knowledge-placeholder-identity']),
+    });
+  });
+
   it('audits empty readiness metadata on high-complexity path nodes as missing', () => {
     const registry = buildResourceNodeRegistry({
       simulations: [
@@ -955,7 +978,16 @@ describe('resource node registry', () => {
       .map((node) => node.id);
 
     expect(activeRegisteredNodes).toHaveLength(139);
-    expect(incompleteActiveNodes).toEqual([]);
+    expect(incompleteActiveNodes).toEqual([
+      {
+        id: 'registry:arena-challenge-workbench',
+        auditIssues: ['arena-node-id-mismatch'],
+      },
+      {
+        id: 'registry:arena-cruise-blackbox-workbench',
+        auditIssues: ['arena-node-id-mismatch'],
+      },
+    ]);
     expect(unlockedSimulations).toEqual([]);
   });
 

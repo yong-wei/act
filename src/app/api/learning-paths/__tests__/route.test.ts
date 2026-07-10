@@ -4729,7 +4729,7 @@ describe('learning path round API routes', () => {
     }));
   });
 
-  it('accepts matching Arena evidence after the verified Yang Fan legacy target is repaired', async () => {
+  it('executes the canonical Arena identity against a verified Yang Fan legacy persisted target', async () => {
     mocks.prisma.learningPath.findUnique.mockResolvedValue({
       id: 'path-1',
       userId: 'student-1',
@@ -4770,7 +4770,7 @@ describe('learning path round API routes', () => {
     });
 
     const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
-      nodeId: '根轨迹_1_1',
+      nodeId: 'arena-task:task-second-order-lead-pid',
       resourceType: 'arena_task',
       status: 'completed',
       idempotencyKey: 'verified-yangfan-legacy-arena',
@@ -4779,11 +4779,99 @@ describe('learning path round API routes', () => {
 
     expect(response.status).toBe(200);
     expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      nodeId: 'arena-task:task-second-order-lead-pid',
       arenaRef: expect.objectContaining({
         id: 'arena-submission-yangfan',
         taskId: 'task-second-order-lead-pid',
         provenance: 'official',
       }),
+    }));
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: 'arena-task:task-second-order-lead-pid',
+        terminalValidation: expect.objectContaining({
+          nodeId: 'arena-task:task-second-order-lead-pid',
+        }),
+      }),
+    }));
+  });
+
+  it('rejects the old Yang Fan Arena node id with an explicit canonical recovery target', async () => {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: '根轨迹_1_1',
+      nodeIds: ['根轨迹_1_1'],
+      pathPayload: {
+        fixtureScope: 'yangfan-diagnostic-fixture.v1',
+        mainPathNodeIds: ['根轨迹_1_1'],
+        planNodes: [{
+          nodeId: '根轨迹_1_1',
+          type: 'arena_task',
+          sourceKind: 'knowledge_graph',
+          sourceRef: '根轨迹_1_1',
+          target: '/arena?nodeId=%E6%A0%B9%E8%BD%A8%E8%BF%B9_1_1',
+        }],
+      },
+      terminalValidation: { nodeId: '根轨迹_1_1', state: 'pending' },
+      lastExecutionMetadata: { completedNodeIds: [] },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: '根轨迹_1_1',
+      resourceType: 'arena_task',
+      status: 'completed',
+      idempotencyKey: 'old-yangfan-arena-id',
+      arenaRef: { id: 'arena-submission-yangfan' },
+    }), params);
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toMatchObject({
+      error: 'Arena 路径节点身份已修复，请使用规范节点重试',
+      canonicalNodeId: 'arena-task:task-second-order-lead-pid',
+    });
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+  });
+
+  it('canonically replays an existing legacy-id execution without writing the old identity', async () => {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue({
+      id: 'path-1', userId: 'student-1', classId: 'class-1', goalId: 'control-correction',
+      pathStatus: 'active', currentNodeId: '根轨迹_1_1', nodeIds: ['根轨迹_1_1'],
+      pathPayload: {
+        fixtureScope: 'yangfan-diagnostic-fixture.v1',
+        mainPathNodeIds: ['根轨迹_1_1'],
+        planNodes: [{
+          nodeId: '根轨迹_1_1', type: 'arena_task', sourceKind: 'knowledge_graph',
+          sourceRef: '根轨迹_1_1', target: '/arena?nodeId=%E6%A0%B9%E8%BD%A8%E8%BF%B9_1_1',
+        }],
+      },
+      terminalValidation: { nodeId: '根轨迹_1_1', state: 'pending' },
+      lastExecutionMetadata: { completedNodeIds: [] },
+    });
+    mocks.prisma.learningPathExecution.findFirst.mockResolvedValue({
+      id: 'legacy-execution', nodeId: '根轨迹_1_1', resourceType: 'arena_task', status: 'completed',
+      evidenceRefs: [], liftMetadata: {}, simulationRef: null,
+      arenaRef: { id: 'arena-submission-yangfan' }, idempotencyKey: 'legacy-replay',
+    });
+    mocks.prisma.arenaSubmission.findFirst.mockResolvedValue({
+      id: 'arena-submission-yangfan', taskId: 'task-second-order-lead-pid', userId: 'student-1',
+      score: 86, valid: true, submittedAt: new Date('2026-07-10T10:00:00.000Z'),
+      evaluationRun: { protocolVersion: 'v1', metrics: {}, metadata: { replayConfidence: 0.9 } },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'arena-task:task-second-order-lead-pid',
+      resourceType: 'arena_task',
+      status: 'completed',
+      idempotencyKey: 'legacy-replay',
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      nodeId: 'arena-task:task-second-order-lead-pid',
     }));
   });
 

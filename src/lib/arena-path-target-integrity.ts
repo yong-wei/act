@@ -106,14 +106,7 @@ function matchesVerifiedYangFanLegacyMapping(input: ArenaPathTargetInput): boole
   ) {
     return false;
   }
-  const target = readString(input.target);
-  if (!target) return false;
-  try {
-    const url = new URL(target, 'https://act.local');
-    return url.pathname === '/arena' && url.searchParams.get('nodeId') === YANGFAN_LEGACY_NODE_ID;
-  } catch {
-    return false;
-  }
+  return input.target === `/arena?nodeId=${encodeURIComponent(YANGFAN_LEGACY_NODE_ID)}`;
 }
 
 function acceptedResult(

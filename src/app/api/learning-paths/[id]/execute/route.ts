@@ -58,14 +58,22 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     const requester = await getLearningPathRequester();
     if (requester instanceof NextResponse) return requester;
     const params = await props.params;
-    const path = await readPathForAccess(params.id);
-    if (path instanceof NextResponse) return path;
+    const persistedPath = await readPathForAccess(params.id);
+    if (persistedPath instanceof NextResponse) return persistedPath;
+    const canonicalPath = canonicalizeVerifiedLegacyArenaPath(persistedPath);
+    const path = canonicalPath.path;
     const denied = assertCanWriteStudentPath(requester, path);
     if (denied) return denied;
 
     const body = await request.json();
     const missingIdempotencyKey = requireIdempotencyKey(body.idempotencyKey);
     if (missingIdempotencyKey) return missingIdempotencyKey;
+    if (typeof body.nodeId === 'string' && canonicalPath.nodeIdReplacements.has(body.nodeId)) {
+      return NextResponse.json({
+        error: 'Arena 路径节点身份已修复，请使用规范节点重试',
+        canonicalNodeId: canonicalPath.nodeIdReplacements.get(body.nodeId),
+      }, { status: 409 });
+    }
     const existingExecution = typeof body.idempotencyKey === 'string' && body.idempotencyKey.length > 0
       ? await prisma.learningPathExecution.findFirst({
           where: {
@@ -74,7 +82,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
           },
         })
       : null;
-    if (existingExecution && !isCanonicalExecutionReplay(existingExecution, body)) {
+    if (existingExecution && !isCanonicalExecutionReplay(existingExecution, body, canonicalPath.nodeIdReplacements)) {
       return NextResponse.json(
         { error: '幂等键已绑定到不同的执行请求' },
         { status: 409 },
@@ -119,7 +127,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
             pathId: params.id,
             userId: path.userId,
             goalId: path.goalId ?? null,
-            nodeId: existingExecution.nodeId,
+            nodeId: canonicalizeArenaNodeId(existingExecution.nodeId, canonicalPath.nodeIdReplacements),
             resourceType: existingExecution.resourceType,
             status: existingStatus,
             startedAt: existingExecution.startedAt ?? null,
@@ -133,7 +141,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
             actorUserId: requester.userId,
             actorRole: requester.role,
           };
-          const existingPathNode = readPathNode(path, existingExecution.nodeId);
+          const existingPathNode = readPathNode(path, executionInput.nodeId);
           const existingActivityKind = readPathActivityKind(executionInput.liftMetadata);
           const existingHistoricalActivity = path.currentNodeId !== executionInput.nodeId;
           const canReplayHistoricalActivity = existingActivityKind
@@ -148,7 +156,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
             : false;
           if (existingHistoricalActivity && !canReplayHistoricalActivity) {
             const cacheRefresh = await refreshPathEvidenceFeatureCache(path.userId);
-            const journey = await readFreshJourney(params.id, existingExecution.nodeId);
+            const journey = await readFreshJourney(params.id, executionInput.nodeId);
             return NextResponse.json({ execution: toExecutionWriteView(existingExecution), cacheRefresh, journey });
           }
           const governedExternalInput = await resolveGovernedExternalResourceEvidence(prisma as any, path, existingPathNode, executionInput);
@@ -175,7 +183,10 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
           }
         }
         const cacheRefresh = await refreshPathEvidenceFeatureCache(path.userId);
-        const journey = await readFreshJourney(params.id, existingExecution.nodeId);
+        const journey = await readFreshJourney(
+          params.id,
+          canonicalizeArenaNodeId(existingExecution.nodeId, canonicalPath.nodeIdReplacements),
+        );
         return NextResponse.json({ execution: toExecutionWriteView(execution), cacheRefresh, journey });
       }
     }
@@ -243,7 +254,10 @@ async function readFreshJourney(pathId: string, requestedNodeId: string) {
   if (freshPath instanceof NextResponse) {
     throw new Error('Learning path disappeared before journey recomputation');
   }
-  return buildAuthorizedAdaptivePathJourney(freshPath, { requestedNodeId });
+  return buildAuthorizedAdaptivePathJourney(
+    canonicalizeVerifiedLegacyArenaPath(freshPath).path,
+    { requestedNodeId },
+  );
 }
 
 export async function GET() {
@@ -259,10 +273,113 @@ function readExecutionStatus(value: unknown): 'started' | 'completed' | 'failed'
     : null;
 }
 
-function isCanonicalExecutionReplay(existingExecution: any, body: any): boolean {
-  return existingExecution.nodeId === body.nodeId &&
+function isCanonicalExecutionReplay(
+  existingExecution: any,
+  body: any,
+  nodeIdReplacements: ReadonlyMap<string, string> = new Map(),
+): boolean {
+  return canonicalizeArenaNodeId(existingExecution.nodeId, nodeIdReplacements) === body.nodeId &&
     existingExecution.resourceType === body.resourceType &&
     existingExecution.status === body.status;
+}
+
+function canonicalizeVerifiedLegacyArenaPath(path: any): {
+  path: any;
+  nodeIdReplacements: ReadonlyMap<string, string>;
+} {
+  const payload = toRecord(path?.pathPayload);
+  const fixtureScope = payload.fixtureScope;
+  const rawPlanNodes = Array.isArray(payload.planNodes) ? payload.planNodes.map(toRecord) : [];
+  const nodeIdReplacements = new Map<string, string>();
+  const canonicalTargets = new Map<string, NonNullable<ReturnType<typeof resolveArenaPathTargetIntegrity>['target']>>();
+  for (const node of rawPlanNodes) {
+    if (node.type !== 'arena_task' || typeof node.nodeId !== 'string') continue;
+    const integrity = resolveArenaPathTargetIntegrity({ ...node, fixtureScope });
+    if (integrity.status !== 'repaired') continue;
+    nodeIdReplacements.set(node.nodeId, integrity.target.nodeId);
+    canonicalTargets.set(node.nodeId, integrity.target);
+  }
+  if (nodeIdReplacements.size === 0) return { path, nodeIdReplacements };
+
+  const replaceIds = (value: unknown): string[] => (
+    Array.isArray(value)
+      ? value.filter((item): item is string => typeof item === 'string')
+        .map((nodeId) => canonicalizeArenaNodeId(nodeId, nodeIdReplacements))
+      : []
+  );
+  const planNodes = rawPlanNodes.map((node) => {
+    const legacyNodeId = typeof node.nodeId === 'string' ? node.nodeId : '';
+    const canonicalTarget = canonicalTargets.get(legacyNodeId);
+    return {
+      ...node,
+      ...(canonicalTarget ?? {}),
+      prerequisiteNodeIds: replaceIds(node.prerequisiteNodeIds),
+    };
+  });
+  const executionStatus = toRecord(payload.executionStatus);
+  const terminalValidation = toRecord(path.terminalValidation);
+  const terminalLegacyNodeId = typeof terminalValidation.nodeId === 'string'
+    ? terminalValidation.nodeId
+    : '';
+  const terminalTarget = canonicalTargets.get(terminalLegacyNodeId);
+
+  return {
+    nodeIdReplacements,
+    path: {
+      ...path,
+      nodeIds: replaceIds(path.nodeIds),
+      currentNodeId: canonicalizeArenaNodeId(path.currentNodeId, nodeIdReplacements),
+      pathPayload: {
+        ...payload,
+        mainPathNodeIds: replaceIds(payload.mainPathNodeIds),
+        planNodes,
+        executionStatus: {
+          ...executionStatus,
+          activeNodeId: canonicalizeArenaNodeId(executionStatus.activeNodeId, nodeIdReplacements),
+          completedNodeIds: replaceIds(executionStatus.completedNodeIds),
+        },
+      },
+      terminalValidation: {
+        ...terminalValidation,
+        ...(terminalTarget ? {
+          nodeId: terminalTarget.nodeId,
+          sourceKind: terminalTarget.sourceKind,
+          sourceRef: terminalTarget.sourceRef,
+          taskId: terminalTarget.sourceRef,
+          target: terminalTarget.target,
+        } : {}),
+      },
+      lastExecutionMetadata: canonicalizeExecutionMetadata(
+        path.lastExecutionMetadata,
+        nodeIdReplacements,
+      ),
+    },
+  };
+}
+
+function canonicalizeExecutionMetadata(
+  value: unknown,
+  replacements: ReadonlyMap<string, string>,
+): Record<string, unknown> {
+  const metadata = toRecord(value);
+  const replace = (items: unknown) => Array.isArray(items)
+    ? items.filter((item): item is string => typeof item === 'string')
+      .map((nodeId) => canonicalizeArenaNodeId(nodeId, replacements))
+    : [];
+  return {
+    ...metadata,
+    completedNodeIds: replace(metadata.completedNodeIds),
+    failedNodeIds: replace(metadata.failedNodeIds),
+    skippedNodeIds: replace(metadata.skippedNodeIds),
+    activeNodeId: canonicalizeArenaNodeId(metadata.activeNodeId, replacements),
+  };
+}
+
+function canonicalizeArenaNodeId(
+  value: unknown,
+  replacements: ReadonlyMap<string, string>,
+): any {
+  return typeof value === 'string' ? replacements.get(value) ?? value : value;
 }
 
 function toRecord(value: unknown): Record<string, unknown> {

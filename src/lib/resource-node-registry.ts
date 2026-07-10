@@ -1255,7 +1255,13 @@ export function auditResourceNode(
 
 function auditArenaTaskNode(node: ResourceNode): ResourceNodeAuditIssue[] {
   const explicitlyPathPlannable = node.planningMetadata.pathDisposition?.kind === 'path-plannable';
-  if (node.type !== 'arena_task' || (node.sourceKind !== 'arena_task' && !explicitlyPathPlannable)) return [];
+  const executableTerminal = node.planningMetadata.terminalConstraints.some((constraint) =>
+    constraint === 'terminal-node' || constraint === 'terminal-validation'
+  );
+  if (
+    node.type !== 'arena_task' ||
+    (node.sourceKind !== 'arena_task' && !explicitlyPathPlannable && !executableTerminal)
+  ) return [];
   const integrity = resolveArenaPathTargetIntegrity({
     nodeId: node.id,
     type: node.type,
