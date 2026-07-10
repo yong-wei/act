@@ -27,3 +27,9 @@ Out of scope:
 - assessment item semantic review
 
 Ambiguous resources should be classified with reviewed limitation or exclusion rationale rather than promoted to path-plannable.
+
+## Formal Audit Projection
+
+The tracked item-review source is applied while formal resource-field-completion rows are constructed, before summaries, workqueues, runtime projections, LearningGoal baselines, and path-readiness gates are derived. The generator also retains the pre-review rows solely for the core sidecar workqueue's `startingBlockerCodes`; semantic review does not erase content-hash, evidence-contract, readiness, or dependency gaps.
+
+Materialization is an explicit frozen-snapshot operation: `npm run db:materialize-core-semantic-review` reads the tracked audit JSONL and summary metadata instead of re-enumerating live candidates. The tracked `core-registered-knowledge-resource-semantic-materialization-manifest.json` pins the HEAD legacy audit bytes, stable summary metadata, 4,683 non-scope rows, invariant fields of the 608 scope rows, review-source bytes, and the 5,291-row denominator. Exact legacy-byte identity is the only condition that permits initial materialization; every other input must already satisfy the complete formal review projection. The core workqueue, review source, review items, and summary remain the immutable before-state; only the formal audit and its downstream artifacts are re-derived.

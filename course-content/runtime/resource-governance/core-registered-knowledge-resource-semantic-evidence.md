@@ -9,7 +9,7 @@ Reviewed at: 2026-07-09T16:30:00.000Z
 Scoped resources: 608
 Workqueue items: 608
 Reviewed resources: 608
-Remaining semantic review blockers: 606
+Starting rows with blockers: 606
 Unexplained remaining items: 0
 Privacy minimized: true
 Raw content included: false
@@ -45,4 +45,4 @@ Review source: course-content/runtime/resource-governance/core-registered-knowle
 Review items: course-content/runtime/resource-governance/core-registered-knowledge-resource-semantic-review-items.jsonl
 Source audit: course-content/runtime/resource-governance/resource-field-completion-audit.jsonl
 
-The batch reviews semantic ambiguity for registered resources, knowledge cards, and knowledge infographs without rewriting the source audit rows. Residual limitations name source identity, dependency, evidence-contract, or non-path-node boundaries explicitly; remaining blockers reflect the original scoped audit rows that still require downstream repair or materialization.
+The tracked review source is applied to formal audit rows before summary, workqueue, projection, baseline, and path-readiness artifacts are derived. The sidecar workqueue preserves the original row blockers as before-state; concrete source identity, dependency, evidence-contract, readiness, and non-path limitations remain visible after semantic review.

@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
@@ -23,6 +24,7 @@ import {
 } from '../full-resource-path-readiness-gate';
 import {
   buildResourceFieldCompletionAudit,
+  buildResourceFieldCompletionAuditFromRows,
   RESOURCE_FIELD_COMPLETION_AUDIT_VERSION,
   YANGFAN_FIXTURE_OWNED_RESOURCE_IDS,
   type ResourceFieldCompletionCoverageSummary,
@@ -31,12 +33,552 @@ import {
 import { buildKaqArtifactVersionRefs } from '../kaq-artifact-versioning';
 import { buildResourceNodeRegistry } from '../resource-node-registry';
 import {
+  atomicWriteFileBatch,
+  assertCoreSemanticMaterializationManifest,
+  assertFrozenCoreRegisteredKnowledgeResourceSemanticArtifacts,
+  parseResourceFieldCompletionAuditCliArgs,
+  refreshFrozenPathGenerationDiagnostics,
   runtimeLessonReviewSourceHash,
   reviewedRuntimeStepCompletionForSource,
   type ReviewedRuntimeStepCompletion,
 } from '../../../scripts/db/generate-resource-field-completion-audit';
 
 describe('resource field completion audit', () => {
+  it('rebuilds derived artifacts from frozen rows without changing non-reviewed rows', () => {
+    const frozen = buildResourceFieldCompletionAudit({
+      registry: buildResourceNodeRegistry({}),
+      candidates: [
+        {
+          id: 'knowledge-card:frozen-review',
+          title: 'Frozen review fixture',
+          family: 'knowledge-card',
+          sourcePathOrUrl: '/runtime/frozen-card.md',
+          contentHash: 'sha256:frozen-card',
+          versionRef: 'runtime-card.v1',
+          generatedBy: 'template',
+          currentPathEligible: false,
+        },
+        {
+          id: 'runtime-handout:untouched',
+          title: 'Untouched frozen fixture',
+          family: 'runtime-handout',
+          sourcePathOrUrl: '/runtime/handout.md',
+          contentHash: 'sha256:handout',
+          versionRef: 'runtime-handout.v1',
+          generatedBy: 'template',
+          currentPathEligible: false,
+        },
+      ],
+      generatedAt: '2026-07-07T10:45:00.000Z',
+      limitations: ['frozen limitation'],
+    });
+    const overlay = {
+      resourceId: 'knowledge-card:frozen-review',
+      expectedSourceHash: 'sha256:frozen-card',
+      expectedSourceVersionRef: 'runtime-card.v1',
+      pathTarget: null,
+      currentPathEligible: false,
+      reviewAudit: {
+        reviewerId: 'reviewer',
+        reviewerRole: 'curriculum-data-governance',
+        reviewedAt: '2026-07-09T16:30:00.000Z',
+        reviewBatchId: 'review-batch',
+        reviewedSourceHash: 'sha256:frozen-card',
+        reviewedVersionRef: 'runtime-card.v1',
+        generationToolOrModel: null,
+        promptOrManifestHash: null,
+        reviewerVisibleRationale: 'The tracked review confirms the frozen resource semantics without changing unrelated rows.',
+        independentEvidenceRef: 'review-source.jsonl#knowledge-card:frozen-review',
+        confidence: 1,
+        staleInvalidationRule: 'stale when source identity changes',
+      },
+    } as const;
+
+    const result = buildResourceFieldCompletionAuditFromRows({
+      sourceRows: frozen.rows,
+      reviewOverlays: [overlay],
+      requiredReviewResourceIds: ['knowledge-card:frozen-review'],
+      generatedAt: frozen.summary.generatedAt,
+      sourceWindow: frozen.summary.sourceWindow,
+      versionRefs: frozen.summary.versionRefs,
+      limitations: frozen.summary.limitations,
+    });
+
+    expect(result.sourceRows).toBe(frozen.rows);
+    expect(result.rows).toHaveLength(2);
+    expect(result.rows[1]).toBe(frozen.rows[1]);
+    expect(result.rows[0].reviewStatus).toBe('human-confirmed');
+    expect(result.summary.generatedAt).toBe(frozen.summary.generatedAt);
+    expect(result.summary.totals.denominator).toBe(2);
+    expect(result.summary.byReviewStatus['human-confirmed']).toBe(1);
+    expect(result.workqueues.auditMissingFieldRows).toBe(2);
+    expect(result.integrityDiagnostics.invalidHumanConfirmedRows).toBe(0);
+
+    expect(() => buildResourceFieldCompletionAuditFromRows({
+      sourceRows: [...frozen.rows, frozen.rows[0]],
+      reviewOverlays: [overlay],
+      requiredReviewResourceIds: ['knowledge-card:frozen-review'],
+      generatedAt: frozen.summary.generatedAt,
+      sourceWindow: frozen.summary.sourceWindow,
+      versionRefs: frozen.summary.versionRefs,
+    })).toThrow('Duplicate frozen resource field completion audit row');
+    expect(() => buildResourceFieldCompletionAuditFromRows({
+      sourceRows: frozen.rows,
+      reviewOverlays: [],
+      requiredReviewResourceIds: ['knowledge-card:frozen-review'],
+      generatedAt: frozen.summary.generatedAt,
+      sourceWindow: frozen.summary.sourceWindow,
+      versionRefs: frozen.summary.versionRefs,
+    })).toThrow('Missing required resource field completion review overlay');
+    expect(() => buildResourceFieldCompletionAuditFromRows({
+      sourceRows: frozen.rows,
+      reviewOverlays: [overlay],
+      requiredReviewResourceIds: [],
+      generatedAt: frozen.summary.generatedAt,
+      sourceWindow: frozen.summary.sourceWindow,
+      versionRefs: frozen.summary.versionRefs,
+    })).toThrow('Unexpected resource field completion review overlay');
+    expect(() => buildResourceFieldCompletionAuditFromRows({
+      sourceRows: frozen.rows,
+      reviewOverlays: [{ ...overlay, expectedSourceHash: 'sha256:changed' }],
+      requiredReviewResourceIds: ['knowledge-card:frozen-review'],
+      generatedAt: frozen.summary.generatedAt,
+      sourceWindow: frozen.summary.sourceWindow,
+      versionRefs: frozen.summary.versionRefs,
+    })).toThrow('Resource field completion review source hash mismatch');
+    expect(() => buildResourceFieldCompletionAuditFromRows({
+      sourceRows: frozen.rows,
+      reviewOverlays: [{
+        ...overlay,
+        reviewAudit: { ...overlay.reviewAudit, reviewedSourceHash: 'sha256:changed' },
+      }],
+      requiredReviewResourceIds: ['knowledge-card:frozen-review'],
+      generatedAt: frozen.summary.generatedAt,
+      sourceWindow: frozen.summary.sourceWindow,
+      versionRefs: frozen.summary.versionRefs,
+    })).toThrow('Resource field completion reviewed source hash mismatch');
+    expect(() => buildResourceFieldCompletionAuditFromRows({
+      sourceRows: frozen.rows,
+      reviewOverlays: [{
+        ...overlay,
+        reviewAudit: { ...overlay.reviewAudit, reviewedVersionRef: 'runtime-card.v2' },
+      }],
+      requiredReviewResourceIds: ['knowledge-card:frozen-review'],
+      generatedAt: frozen.summary.generatedAt,
+      sourceWindow: frozen.summary.sourceWindow,
+      versionRefs: frozen.summary.versionRefs,
+    })).toThrow('Resource field completion reviewed source version mismatch');
+  });
+
+  it('parses only the two supported audit generator command forms', () => {
+    expect(parseResourceFieldCompletionAuditCliArgs([])).toEqual({ materializeCoreSemanticReview: false });
+    expect(parseResourceFieldCompletionAuditCliArgs(['--materialize-core-semantic-review'])).toEqual({
+      materializeCoreSemanticReview: true,
+    });
+    expect(() => parseResourceFieldCompletionAuditCliArgs(['--unknown'])).toThrow('Unsupported arguments');
+    expect(() => parseResourceFieldCompletionAuditCliArgs([
+      '--materialize-core-semantic-review',
+      '--materialize-core-semantic-review',
+    ])).toThrow('Unsupported arguments');
+    expect(() => parseResourceFieldCompletionAuditCliArgs([
+      '--materialize-core-semantic-review',
+      '--unknown',
+    ])).toThrow('Unsupported arguments');
+  });
+
+  it('rejects inconsistent frozen core semantic sidecars before materialization', () => {
+    const governanceDir = join(process.cwd(), 'course-content/runtime/resource-governance');
+    const readJsonl = (filename: string) => readFileSync(join(governanceDir, filename), 'utf8')
+      .trim()
+      .split('\n')
+      .map((line) => JSON.parse(line));
+    const rawAuditText = readFileSync(join(governanceDir, 'resource-field-completion-audit.jsonl'), 'utf8');
+    const frozenRows = readJsonl('resource-field-completion-audit.jsonl');
+    const rawReviewSourceText = readFileSync(
+      join(governanceDir, 'core-registered-knowledge-resource-semantic-review-source.jsonl'),
+      'utf8',
+    );
+    const reviewSources = readJsonl('core-registered-knowledge-resource-semantic-review-source.jsonl');
+    const workqueueItems = readJsonl('core-registered-knowledge-resource-semantic-workqueue-items.jsonl');
+    const reviewItems = readJsonl('core-registered-knowledge-resource-semantic-review-items.jsonl');
+    const firstScopedRowIndex = frozenRows.findIndex((row) => (
+      ['registered-resource', 'knowledge-card', 'knowledge-infograph'].includes(row.family)
+    ));
+    const summary = JSON.parse(readFileSync(
+      join(governanceDir, 'core-registered-knowledge-resource-semantic-summary.json'),
+      'utf8',
+    ));
+    const materializationManifest = JSON.parse(readFileSync(
+      join(governanceDir, 'core-registered-knowledge-resource-semantic-materialization-manifest.json'),
+      'utf8',
+    ));
+    const manifestInput = {
+      manifest: materializationManifest,
+      rawAuditText,
+      rows: frozenRows,
+      summary: JSON.parse(readFileSync(
+        join(governanceDir, 'resource-field-completion-summary.json'),
+        'utf8',
+      )),
+      rawReviewSourceText,
+    };
+    expect(assertCoreSemanticMaterializationManifest(manifestInput)).toBe('materialized');
+    expect(assertCoreSemanticMaterializationManifest({
+      ...manifestInput,
+      manifest: {
+        ...materializationManifest,
+        legacyAuditSha256: `sha256:${createHash('sha256').update(rawAuditText).digest('hex')}`,
+      },
+    })).toBe('legacy');
+    const firstNonScopeRowIndex = frozenRows.findIndex((row) => (
+      !['registered-resource', 'knowledge-card', 'knowledge-infograph'].includes(row.family)
+    ));
+    expect(() => assertCoreSemanticMaterializationManifest({
+      ...manifestInput,
+      rows: frozenRows.map((row, index) => index === firstNonScopeRowIndex
+        ? { ...row, title: 'tampered non-scope title' }
+        : row),
+    })).toThrow('Core semantic materialization non-scope rows mismatch');
+    expect(() => assertCoreSemanticMaterializationManifest({
+      ...manifestInput,
+      rawReviewSourceText: `${rawReviewSourceText} `,
+    })).toThrow('Core semantic materialization review source hash mismatch');
+    const input = {
+      frozenRows,
+      reviewSources: new Map(reviewSources.map((row) => [row.resourceId, row])),
+      materializationPhase: 'materialized' as const,
+      workqueueItems,
+      reviewItems,
+      summary,
+    };
+    expect(() => assertFrozenCoreRegisteredKnowledgeResourceSemanticArtifacts(input)).not.toThrow();
+    const workqueueById = new Map(workqueueItems.map((row) => [row.resourceId, row]));
+    const legacyRows = frozenRows.map((row) => {
+      const workqueue = workqueueById.get(row.resourceId);
+      if (!workqueue) return row;
+      return {
+        ...row,
+        missingFieldCodes: [...workqueue.startingBlockerCodes],
+        reviewAudit: {
+          ...row.reviewAudit,
+          reviewBatchId: null,
+          independentEvidenceRef: null,
+        },
+      };
+    });
+    expect(() => assertFrozenCoreRegisteredKnowledgeResourceSemanticArtifacts({
+      ...input,
+      frozenRows: legacyRows,
+      materializationPhase: 'legacy',
+    })).not.toThrow();
+    expect(() => assertFrozenCoreRegisteredKnowledgeResourceSemanticArtifacts({
+      ...input,
+      frozenRows: legacyRows,
+      materializationPhase: 'materialized',
+    })).toThrow('Frozen core semantic formal row mismatch');
+    expect(() => assertFrozenCoreRegisteredKnowledgeResourceSemanticArtifacts({
+      ...input,
+      reviewItems: [
+        { ...reviewItems[0], sourceHash: 'sha256:tampered' },
+        ...reviewItems.slice(1),
+      ],
+    })).toThrow('Frozen core semantic review item mismatch');
+    expect(() => assertFrozenCoreRegisteredKnowledgeResourceSemanticArtifacts({
+      ...input,
+      reviewItems: [
+        { ...reviewItems[0], startingBlockerCodes: [] },
+        ...reviewItems.slice(1),
+      ],
+    })).toThrow('Frozen core semantic review item mismatch');
+    expect(() => assertFrozenCoreRegisteredKnowledgeResourceSemanticArtifacts({
+      ...input,
+      workqueueItems: [
+        { ...workqueueItems[0], startingBlockerCodes: [], startingBlockerCount: 0 },
+        ...workqueueItems.slice(1),
+      ],
+    })).toThrow('Frozen core semantic formal blocker projection mismatch');
+    expect(() => assertFrozenCoreRegisteredKnowledgeResourceSemanticArtifacts({
+      ...input,
+      reviewItems: [
+        { ...reviewItems[0], disposition: 'excluded-with-rationale' },
+        ...reviewItems.slice(1),
+      ],
+    })).toThrow('Frozen core semantic review item mismatch');
+    expect(() => assertFrozenCoreRegisteredKnowledgeResourceSemanticArtifacts({
+      ...input,
+      reviewItems: [
+        { ...reviewItems[0], reviewerVisibleRationale: 'tampered rationale' },
+        ...reviewItems.slice(1),
+      ],
+    })).toThrow('Frozen core semantic review item mismatch');
+    expect(() => assertFrozenCoreRegisteredKnowledgeResourceSemanticArtifacts({
+      ...input,
+      workqueueItems: [
+        { ...workqueueItems[0], title: 'tampered title' },
+        ...workqueueItems.slice(1),
+      ],
+    })).toThrow('Frozen core semantic workqueue mismatch');
+    expect(() => assertFrozenCoreRegisteredKnowledgeResourceSemanticArtifacts({
+      ...input,
+      summary: {
+        ...summary,
+        byDisposition: { ...summary.byDisposition, 'path-plannable': 999 },
+      },
+    })).toThrow('Frozen core semantic summary mismatch');
+    expect(() => assertFrozenCoreRegisteredKnowledgeResourceSemanticArtifacts({
+      ...input,
+      frozenRows: frozenRows.map((row, index) => index === firstScopedRowIndex
+        ? {
+          ...row,
+          reviewAudit: {
+            ...row.reviewAudit,
+            reviewerVisibleRationale: 'tampered formal review rationale',
+          },
+        }
+        : row),
+    })).toThrow('Frozen core semantic formal row mismatch');
+    expect(() => assertFrozenCoreRegisteredKnowledgeResourceSemanticArtifacts({
+      ...input,
+      frozenRows: frozenRows.map((row, index) => index === firstScopedRowIndex
+        ? {
+          ...row,
+          pathEligibility: {
+            ...row.pathEligibility,
+            blockedBy: [...row.pathEligibility.blockedBy, 'tampered-blocker'],
+          },
+        }
+        : row),
+    })).toThrow('Frozen core semantic formal row mismatch');
+    expect(() => assertFrozenCoreRegisteredKnowledgeResourceSemanticArtifacts({
+      ...input,
+      frozenRows: frozenRows.map((row, index) => index === firstScopedRowIndex
+        ? {
+          ...row,
+          pathEligibility: {
+            ...row.pathEligibility,
+            afterCompletion: !row.pathEligibility.afterCompletion,
+          },
+        }
+        : row),
+    })).toThrow('Frozen core semantic formal row mismatch');
+    expect(() => assertFrozenCoreRegisteredKnowledgeResourceSemanticArtifacts({
+      ...input,
+      frozenRows: frozenRows.map((row, index) => index === firstScopedRowIndex
+        ? {
+          ...row,
+          coverage: {
+            ...row.coverage,
+            limitationReason: 'tampered coverage limitation',
+          },
+        }
+        : row),
+    })).toThrow('Frozen core semantic formal row mismatch');
+    expect(() => assertCoreSemanticMaterializationManifest({
+      ...manifestInput,
+      rows: frozenRows.map((row, index) => index === firstScopedRowIndex
+        ? {
+          ...row,
+          evidenceContract: {
+            ...row.evidenceContract,
+            complete: !row.evidenceContract.complete,
+          },
+        }
+        : row),
+    })).toThrow('Core semantic materialization scope invariant rows mismatch');
+    const reviewOnlyCodes = new Set(['missing-human-review', 'provisional-metadata', 'stale-review']);
+    const realBlockerRowIndex = frozenRows.findIndex((row) => (
+      ['registered-resource', 'knowledge-card', 'knowledge-infograph'].includes(row.family) &&
+      row.missingFieldCodes.some((code: string) => !reviewOnlyCodes.has(code))
+    ));
+    const realBlocker = frozenRows[realBlockerRowIndex].missingFieldCodes.find(
+      (code: string) => !reviewOnlyCodes.has(code),
+    );
+    const blockerToAdd = frozenRows
+      .flatMap((row) => row.missingFieldCodes)
+      .find((code: string) => (
+        !reviewOnlyCodes.has(code) &&
+        !frozenRows[firstScopedRowIndex].missingFieldCodes.includes(code)
+      ));
+    expect(realBlocker).toBeTruthy();
+    expect(blockerToAdd).toBeTruthy();
+    expect(() => assertCoreSemanticMaterializationManifest({
+      ...manifestInput,
+      rows: frozenRows.map((row, index) => index === firstScopedRowIndex
+        ? { ...row, missingFieldCodes: [...row.missingFieldCodes, blockerToAdd] }
+        : row),
+    })).toThrow('Core semantic materialization scope invariant rows mismatch');
+    expect(() => assertCoreSemanticMaterializationManifest({
+      ...manifestInput,
+      rows: frozenRows.map((row, index) => index === realBlockerRowIndex
+        ? { ...row, missingFieldCodes: row.missingFieldCodes.filter((code: string) => code !== realBlocker) }
+        : row),
+    })).toThrow('Core semantic materialization scope invariant rows mismatch');
+    expect(() => assertFrozenCoreRegisteredKnowledgeResourceSemanticArtifacts({
+      ...input,
+      frozenRows: frozenRows.map((row, index) => index === firstScopedRowIndex
+        ? {
+          ...row,
+          reviewAudit: {
+            ...row.reviewAudit,
+            independentEvidenceRef: 'tampered-marker',
+          },
+        }
+        : row),
+    })).toThrow('Frozen core semantic formal row mismatch');
+  });
+
+  it('refreshes only frozen path diagnostic review and citation bindings', () => {
+    const diagnostics = [{
+      learningGoalId: 'goal-a',
+      attempted: true,
+      generationStatus: 'ready' as const,
+      fallbackReasons: [],
+      blockingReasons: [],
+      selectedResourceIds: ['knowledge-card:frozen-review', 'binding-only', 'missing'],
+      selectedResourceTypes: ['knowledge_card'],
+      resourceCount: 3,
+      resourceTypeCount: 1,
+      unreviewedSelectedResourceIds: ['knowledge-card:frozen-review', 'binding-only', 'missing'],
+      missingCitationMetadataResourceIds: ['knowledge-card:frozen-review', 'binding-only', 'missing'],
+    }];
+    const builtReviewedRow = buildResourceFieldCompletionAudit({
+      registry: buildResourceNodeRegistry({}),
+      candidates: [{
+        id: 'knowledge-card:frozen-review',
+        title: 'Reviewed',
+        family: 'knowledge-card',
+        sourcePathOrUrl: '/reviewed.md',
+        contentHash: 'sha256:reviewed',
+        versionRef: 'runtime-card.v1',
+        generatedBy: 'template',
+        humanConfirmed: true,
+        reviewEvidence: {
+          reviewerId: 'reviewer',
+          reviewerRole: 'curriculum-data-governance',
+          reviewedAt: '2026-07-09T00:00:00.000Z',
+          reviewBatchId: 'batch',
+          reviewedSourceHash: 'sha256:reviewed',
+          reviewedVersionRef: 'runtime-card.v1',
+          reviewerVisibleRationale: 'A complete fixture rationale for frozen path diagnostic refresh behavior.',
+          independentEvidenceRef: 'fixture',
+        },
+      }],
+    }).rows[0];
+    const reviewedRow = [{
+      ...builtReviewedRow,
+      reviewStatus: 'human-confirmed' as const,
+      pathEligibility: {
+        ...builtReviewedRow.pathEligibility,
+        afterCompletion: true,
+        blockedBy: [],
+      },
+    }];
+
+    const refreshed = refreshFrozenPathGenerationDiagnostics(diagnostics, reviewedRow, [{
+      resourceId: 'binding-only',
+      sourcePathOrUrl: '/binding.md',
+      sourceHash: 'sha256:binding',
+      sourceVersionRef: 'binding.v1',
+    }]);
+
+    expect(refreshed[0]).toMatchObject({
+      unreviewedSelectedResourceIds: ['missing'],
+      missingCitationMetadataResourceIds: ['missing'],
+    });
+    expect(refreshed[0].selectedResourceIds).toBe(diagnostics[0].selectedResourceIds);
+    expect(diagnostics[0].unreviewedSelectedResourceIds).toHaveLength(3);
+  });
+
+  it('rolls back every output when an atomic batch rename fails', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'resource-audit-batch-'));
+    const first = join(dir, 'first.json');
+    const second = join(dir, 'second.json');
+    writeFileSync(first, 'first-old\n');
+    writeFileSync(second, 'second-old\n');
+    let renameCount = 0;
+    try {
+      await expect(atomicWriteFileBatch([
+        { path: first, content: 'first-new\n' },
+        { path: second, content: 'second-new\n' },
+      ], {
+        beforeRename: () => {
+          renameCount += 1;
+          if (renameCount === 4) throw new Error('injected rename failure');
+        },
+      })).rejects.toThrow('injected rename failure');
+      expect(readFileSync(first, 'utf8')).toBe('first-old\n');
+      expect(readFileSync(second, 'utf8')).toBe('second-old\n');
+      expect(readdirSync(dir).sort()).toEqual(['first.json', 'second.json']);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('applies reviewed overlays before deriving audit artifacts while retaining source rows', () => {
+    const result = buildResourceFieldCompletionAudit({
+      registry: buildResourceNodeRegistry({}),
+      candidates: [{
+        id: 'knowledge-card:review-overlay',
+        title: 'Reviewed overlay fixture',
+        family: 'knowledge-card',
+        sourcePathOrUrl: '/runtime/card.md',
+        contentHash: null,
+        versionRef: 'runtime-card.v1',
+        generatedBy: 'template',
+        currentPathEligible: false,
+      }],
+      reviewOverlays: [{
+        resourceId: 'knowledge-card:review-overlay',
+        expectedSourceHash: null,
+        expectedSourceVersionRef: 'runtime-card.v1',
+        pathTarget: null,
+        currentPathEligible: false,
+        reviewAudit: {
+          reviewerId: 'reviewer',
+          reviewerRole: 'curriculum-data-governance',
+          reviewedAt: '2026-07-09T16:30:00.000Z',
+          reviewBatchId: 'review-batch',
+          reviewedSourceHash: null,
+          reviewedVersionRef: 'runtime-card.v1',
+          generationToolOrModel: null,
+          promptOrManifestHash: null,
+          reviewerVisibleRationale: 'The tracked review confirms graph and citation semantics without inventing source identity.',
+          independentEvidenceRef: 'course-content/runtime/resource-governance/review-source.jsonl#knowledge-card:review-overlay',
+          confidence: 1,
+          staleInvalidationRule: 'stale when source identity changes',
+        },
+      }],
+    });
+
+    expect(result.sourceRows[0].missingFieldCodes).toEqual(expect.arrayContaining([
+      'missing-content-hash',
+      'missing-human-review',
+      'provisional-metadata',
+    ]));
+    expect(result.rows[0]).toMatchObject({
+      reviewStatus: 'human-confirmed',
+      completionMethod: result.sourceRows[0].completionMethod,
+      sourceHash: null,
+      sourceVersionRef: 'runtime-card.v1',
+      pathTarget: null,
+      graphNodeRefs: {
+        knowledge: [],
+        capability: [],
+        quality: [],
+      },
+      citationTargets: [],
+    });
+    expect(result.rows[0].missingFieldCodes).toContain('missing-content-hash');
+    expect(result.rows[0].missingFieldCodes).toContain('missing-evidence-contract');
+    expect(result.rows[0].missingFieldCodes).toContain('missing-knowledge-binding');
+    expect(result.rows[0].missingFieldCodes).toContain('missing-citation-target');
+    expect(result.rows[0].missingFieldCodes).not.toContain('missing-human-review');
+    expect(result.rows[0].missingFieldCodes).not.toContain('provisional-metadata');
+    expect(result.rows[0].missingFieldCodes).not.toContain('stale-review');
+    expect(result.workqueues.auditMissingFieldRows).toBe(1);
+    expect(result.summary.byReviewStatus['human-confirmed']).toBe(1);
+  });
+
   it('requires reviewed runtime step completions to match manifest and graph overlay hashes', () => {
     const reviewedSourceHash = runtimeLessonReviewSourceHash(
       'sha256:reviewed-manifest',

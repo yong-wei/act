@@ -39,6 +39,11 @@ const scopedIds = new Set(scopedAuditRows.map((row) => row.resourceId));
 const workqueueIds = new Set(workqueueItems.map((item) => item.resourceId));
 const reviewSourceIds = new Set(reviewSourceItems.map((item) => item.resourceId));
 const reviewIds = new Set(reviewItems.map((item) => item.resourceId));
+const formalReviewBlockerCodes = new Set([
+  'missing-human-review',
+  'provisional-metadata',
+  'stale-review',
+]);
 
 assert(scopedAuditRows.length === 608, 'scoped denominator must remain 608 resources');
 assert(workqueueItems.length === scopedAuditRows.length, 'workqueue must include every scoped row');
@@ -57,8 +62,8 @@ assert(summary.totals.remainingSemanticReviewBlockers === scopedRowsWithStarting
 assert(summary.totals.unexplainedRemainingItems === 0, 'remaining items must be explained');
 assert(summary.totals.rawContentIncluded === false, 'review artifact must not include raw resource content');
 assert(summary.totals.privacyMinimized === true, 'review artifact must be privacy-minimized');
-assert(!evidenceText.includes('closes semantic-review'), 'evidence must not claim source audit blockers are closed');
-assert(evidenceText.includes('without rewriting the source audit rows'), 'evidence must explain source audit rows are not rewritten');
+assert(evidenceText.includes('applied to formal audit rows before summary'), 'evidence must explain formal review ordering');
+assert(evidenceText.includes('preserves the original row blockers as before-state'), 'evidence must explain sidecar before-state');
 assert(summary.bySourceFamily['registered-resource'] === 168, 'registered resource count mismatch');
 assert(summary.bySourceFamily['knowledge-card'] === 279, 'knowledge-card count mismatch');
 assert(summary.bySourceFamily['knowledge-infograph'] === 161, 'knowledge-infograph count mismatch');
@@ -68,11 +73,42 @@ assert(summary.byDisposition['embedded-asset'] === 161, 'embedded infograph coun
 assert(summary.byDisposition['evidence-producing'] === 168, 'registered resource evidence-producing count mismatch');
 
 const auditById = new Map(scopedAuditRows.map((row) => [row.resourceId, row]));
+const workqueueById = new Map(workqueueItems.map((item) => [item.resourceId, item]));
 const reviewSourceById = new Map(reviewSourceItems.map((item) => [item.resourceId, item]));
+for (const audit of scopedAuditRows) {
+  const source = reviewSourceById.get(audit.resourceId);
+  assert(source, `${audit.resourceId} missing formal review source row`);
+  assert(audit.reviewStatus === 'human-confirmed', `${audit.resourceId} formal audit must be human-confirmed`);
+  assert(
+    audit.missingFieldCodes.every((code: string) => !formalReviewBlockerCodes.has(code)),
+    `${audit.resourceId} formal audit retains review-status blocker`,
+  );
+  assert(audit.reviewAudit.reviewerId === source.reviewerId, `${audit.resourceId} formal reviewer mismatch`);
+  assert(audit.reviewAudit.reviewerRole === source.reviewerRole, `${audit.resourceId} formal reviewer role mismatch`);
+  assert(audit.reviewAudit.reviewedAt === source.reviewedAt, `${audit.resourceId} formal reviewedAt mismatch`);
+  assert(audit.reviewAudit.reviewBatchId === source.reviewBatchId, `${audit.resourceId} formal review batch mismatch`);
+  assert(audit.reviewAudit.reviewedSourceHash === source.sourceHash, `${audit.resourceId} formal reviewed source hash mismatch`);
+  assert(audit.reviewAudit.reviewedVersionRef === source.sourceVersionRef, `${audit.resourceId} formal reviewed version mismatch`);
+  assert(
+    audit.reviewAudit.independentEvidenceRef ===
+      `course-content/runtime/resource-governance/core-registered-knowledge-resource-semantic-review-source.jsonl#${audit.resourceId}`,
+    `${audit.resourceId} formal independent review evidence mismatch`,
+  );
+  assert(audit.sourceHash === source.sourceHash, `${audit.resourceId} formal source hash must remain authoritative`);
+  assert(audit.sourceVersionRef === source.sourceVersionRef, `${audit.resourceId} formal source version must remain authoritative`);
+  assert(audit.pathTarget === source.routeTarget, `${audit.resourceId} formal path target mismatch`);
+  assert(audit.pathEligibility.current === source.currentPathEligible, `${audit.resourceId} formal path eligibility mismatch`);
+}
+assert(
+  scopedAuditRows.filter((row) => row.pathEligibility.current).length === 2,
+  'formal audit must keep exactly two current path resources',
+);
 const rationaleSet = new Set<string>();
 for (const item of reviewItems) {
   const audit = auditById.get(item.resourceId);
   assert(audit, `${item.resourceId} missing audit row`);
+  const workqueueItem = workqueueById.get(item.resourceId);
+  assert(workqueueItem, `${item.resourceId} missing workqueue before-state`);
   const source = reviewSourceById.get(item.resourceId);
   assert(source, `${item.resourceId} missing review source row`);
   assert(item.reviewBatchId === 'core-registered-knowledge-resource-semantics-2026-07-09', `${item.resourceId} batch mismatch`);
@@ -87,7 +123,7 @@ for (const item of reviewItems) {
   assert(item.objectiveMappingRationale?.length > 60, `${item.resourceId} missing objective rationale`);
   rationaleSet.add(item.reviewerVisibleRationale);
   assert(Array.isArray(item.residualLimitationState), `${item.resourceId} residual limitations missing`);
-  assert(JSON.stringify(item.startingBlockerCodes) === JSON.stringify(audit.missingFieldCodes), `${item.resourceId} starting blockers mismatch`);
+  assert(JSON.stringify(item.startingBlockerCodes) === JSON.stringify(workqueueItem.startingBlockerCodes), `${item.resourceId} starting blockers mismatch`);
   assert(item.sourceVersionRef === audit.sourceVersionRef, `${item.resourceId} source version mismatch`);
   assert(item.sourceHash === audit.sourceHash, `${item.resourceId} source hash mismatch`);
   assert(item.citationTargets.length === audit.citationTargets.length, `${item.resourceId} citation target count mismatch`);

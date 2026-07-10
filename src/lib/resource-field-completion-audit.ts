@@ -373,6 +373,7 @@ export interface ResourceFieldCompletionAuditSummary {
 }
 
 export interface ResourceFieldCompletionAuditResult {
+  sourceRows: ResourceFieldCompletionAuditRow[];
   rows: ResourceFieldCompletionAuditRow[];
   summary: ResourceFieldCompletionAuditSummary;
   workqueues: ResourceCompletionWorkqueueSummary;
@@ -383,11 +384,31 @@ export interface ResourceFieldCompletionAuditResult {
   };
 }
 
+export interface ResourceFieldCompletionReviewOverlay {
+  resourceId: string;
+  expectedSourceHash: string | null;
+  expectedSourceVersionRef: string | null;
+  pathTarget: string | null;
+  currentPathEligible: boolean;
+  reviewAudit: ResourceFieldReviewAudit;
+}
+
 export interface ResourceFieldCompletionAuditInput {
   registry: ResourceNodeRegistry;
   candidates?: ResourceFieldCompletionCandidate[];
+  reviewOverlays?: ResourceFieldCompletionReviewOverlay[];
   generatedAt?: string;
   sourceWindow?: ResourceFieldSourceWindow;
+  limitations?: string[];
+}
+
+export interface ResourceFieldCompletionAuditRowsInput {
+  sourceRows: ResourceFieldCompletionAuditRow[];
+  reviewOverlays?: ResourceFieldCompletionReviewOverlay[];
+  requiredReviewResourceIds?: string[];
+  generatedAt: string;
+  sourceWindow: ResourceFieldSourceWindow;
+  versionRefs: KaqArtifactVersionRefs;
   limitations?: string[];
 }
 
@@ -419,19 +440,40 @@ export function buildResourceFieldCompletionAudit(
     resourceRegistryVersion: RESOURCE_NODE_REGISTRY_VERSION,
     resourceProjectionVersion: RESOURCE_SEMANTIC_PROJECTION_VERSION,
   });
-  const rows = [
+  const sourceRows = [
     ...input.registry.nodes.map((node) => rowFromResourceNode(node, sourceWindow, versionRefs, generatedAt)),
     ...(input.candidates ?? []).map((candidate) => rowFromCandidate(candidate, sourceWindow, versionRefs)),
   ].sort((left, right) => left.resourceId.localeCompare(right.resourceId));
 
+  return buildResourceFieldCompletionAuditFromRows({
+    sourceRows,
+    reviewOverlays: input.reviewOverlays,
+    generatedAt,
+    sourceWindow,
+    versionRefs,
+    limitations: input.limitations,
+  });
+}
+
+export function buildResourceFieldCompletionAuditFromRows(
+  input: ResourceFieldCompletionAuditRowsInput,
+): ResourceFieldCompletionAuditResult {
+  assertFrozenResourceFieldCompletionRows(input.sourceRows, input.versionRefs);
+  assertRequiredResourceFieldCompletionReviewOverlays(
+    input.reviewOverlays ?? [],
+    input.requiredReviewResourceIds,
+  );
+  const rows = applyResourceFieldCompletionReviewOverlays(input.sourceRows, input.reviewOverlays ?? []);
+
   const evidenceLineageItems = buildEvidenceLineageReadinessItems(rows);
 
   return {
+    sourceRows: input.sourceRows,
     rows,
     summary: buildResourceFieldCompletionSummary(rows, {
-      generatedAt,
-      sourceWindow,
-      versionRefs,
+      generatedAt: input.generatedAt,
+      sourceWindow: input.sourceWindow,
+      versionRefs: input.versionRefs,
       limitations: input.limitations ?? [],
     }),
     workqueues: buildResourceCompletionWorkqueues(rows),
@@ -441,6 +483,124 @@ export function buildResourceFieldCompletionAudit(
       summary: buildEvidenceLineageReadinessSummary(rows, evidenceLineageItems),
     },
   };
+}
+
+function assertFrozenResourceFieldCompletionRows(
+  rows: ResourceFieldCompletionAuditRow[],
+  versionRefs: KaqArtifactVersionRefs,
+) {
+  const resourceIds = new Set<string>();
+  const expectedVersionRefs = JSON.stringify(versionRefs);
+  for (const row of rows) {
+    if (resourceIds.has(row.resourceId)) {
+      throw new Error(`Duplicate frozen resource field completion audit row: ${row.resourceId}`);
+    }
+    resourceIds.add(row.resourceId);
+    if (row.coverage.artifactVersion !== RESOURCE_FIELD_COMPLETION_AUDIT_VERSION) {
+      throw new Error(`Frozen resource field completion audit version mismatch: ${row.resourceId}`);
+    }
+    if (JSON.stringify(row.versionRefs) !== expectedVersionRefs) {
+      throw new Error(`Frozen resource field completion version refs mismatch: ${row.resourceId}`);
+    }
+  }
+}
+
+function assertRequiredResourceFieldCompletionReviewOverlays(
+  overlays: ResourceFieldCompletionReviewOverlay[],
+  requiredResourceIds: string[] | undefined,
+) {
+  if (!requiredResourceIds) return;
+  const required = new Set<string>();
+  for (const resourceId of requiredResourceIds) {
+    if (required.has(resourceId)) {
+      throw new Error(`Duplicate required resource field completion review overlay id: ${resourceId}`);
+    }
+    required.add(resourceId);
+  }
+  const overlayIds = new Set(overlays.map((overlay) => overlay.resourceId));
+  for (const resourceId of required) {
+    if (!overlayIds.has(resourceId)) {
+      throw new Error(`Missing required resource field completion review overlay: ${resourceId}`);
+    }
+  }
+  for (const resourceId of overlayIds) {
+    if (!required.has(resourceId)) {
+      throw new Error(`Unexpected resource field completion review overlay: ${resourceId}`);
+    }
+  }
+}
+
+export function applyResourceFieldCompletionReviewOverlays(
+  sourceRows: ResourceFieldCompletionAuditRow[],
+  overlays: ResourceFieldCompletionReviewOverlay[],
+): ResourceFieldCompletionAuditRow[] {
+  const overlaysById = new Map<string, ResourceFieldCompletionReviewOverlay>();
+  for (const overlay of overlays) {
+    if (overlaysById.has(overlay.resourceId)) {
+      throw new Error(`Duplicate resource field completion review overlay: ${overlay.resourceId}`);
+    }
+    overlaysById.set(overlay.resourceId, overlay);
+  }
+  const sourceRowIds = new Set(sourceRows.map((row) => row.resourceId));
+  for (const overlay of overlays) {
+    if (!sourceRowIds.has(overlay.resourceId)) {
+      throw new Error(`Resource field completion review overlay has no audit row: ${overlay.resourceId}`);
+    }
+  }
+
+  const rows = sourceRows.map((row) => {
+    const overlay = overlaysById.get(row.resourceId);
+    if (!overlay) return row;
+    if (row.sourceHash !== overlay.expectedSourceHash) {
+      throw new Error(`Resource field completion review source hash mismatch: ${row.resourceId}`);
+    }
+    if (row.sourceVersionRef !== overlay.expectedSourceVersionRef) {
+      throw new Error(`Resource field completion review source version mismatch: ${row.resourceId}`);
+    }
+    if (row.sourceHash !== overlay.reviewAudit.reviewedSourceHash) {
+      throw new Error(`Resource field completion reviewed source hash mismatch: ${row.resourceId}`);
+    }
+    if (row.sourceVersionRef !== overlay.reviewAudit.reviewedVersionRef) {
+      throw new Error(`Resource field completion reviewed source version mismatch: ${row.resourceId}`);
+    }
+
+    const missingFieldCodes = row.missingFieldCodes.filter((code) => {
+      if (code === 'missing-human-review' || code === 'provisional-metadata' || code === 'stale-review') return false;
+      return true;
+    });
+
+    return buildRow({
+      resourceId: row.resourceId,
+      resourceType: row.resourceType,
+      family: row.family,
+      title: row.title,
+      sourcePathOrUrl: row.sourcePathOrUrl,
+      sourceRecord: row.sourceRecord,
+      missingFieldCodes,
+      completionMethod: row.completionMethod,
+      reviewStatus: 'human-confirmed',
+      reviewAudit: overlay.reviewAudit,
+      evidenceContract: row.evidenceContract,
+      currentPathEligible: overlay.currentPathEligible,
+      sourceHash: row.sourceHash,
+      sourceVersionRef: row.sourceVersionRef,
+      pathTarget: overlay.pathTarget,
+      estimatedTimeMinutes: row.estimatedTimeMinutes,
+      citationTargets: row.citationTargets,
+      readiness: row.readiness,
+      graphNodeRefs: row.graphNodeRefs,
+      sourceWindow: row.coverage.sourceWindow,
+      versionRefs: row.versionRefs,
+      coverageKeys: [
+        row.resourceId,
+        ...row.graphNodeRefs.knowledge,
+        ...row.graphNodeRefs.capability,
+        ...row.graphNodeRefs.quality,
+      ],
+    });
+  });
+
+  return rows;
 }
 
 export function summarizeResourceFieldCompletionForCoverage(

@@ -89,6 +89,7 @@
     "db:assessment-item-semantic-review": "tsx ./scripts/db/generate-assessment-item-semantic-review.ts",
     "db:learning-goal-assessment-coverage": "tsx ./scripts/db/generate-learning-goal-assessment-coverage.ts",
     "db:resource-field-completion-audit": "tsx ./scripts/db/generate-resource-field-completion-audit.ts",
+    "db:materialize-core-semantic-review": "tsx ./scripts/db/generate-resource-field-completion-audit.ts --materialize-core-semantic-review",
     "db:seed-yangfan-diagnostic-learning-state": "tsx ./scripts/db/seed-yangfan-diagnostic-learning-state.ts",
     "db:graph-resource-coverage-overlay": "tsx ./scripts/db/generate-graph-resource-coverage-overlay.ts",
     "db:runtime-media-handout-dispositions": "tsx ./scripts/db/generate-runtime-media-handout-disposition-review.ts",

@@ -20,8 +20,8 @@
 
 - [x] Task 4: Close the batch queue.
   Covers: AC-4
-  Acceptance: The scoped helper queue has zero unreviewed or unexplained remaining items, while source-audit blockers remain visible until downstream repair or materialization applies the review source.
-  Evidence: `core-registered-knowledge-resource-semantic-summary.json` reports `remainingSemanticReviewBlockers: 606` from scoped audit rows and `unexplainedRemainingItems: 0`; residual states explicitly name source identity, embedded, dependency, and non-path limitations.
+  Acceptance: All 608 scoped formal audit rows are human-confirmed before downstream artifacts are derived, with no review-status blockers; concrete source identity, evidence-contract, readiness, dependency, and non-path limitations remain visible.
+  Evidence: `resource-field-completion-audit.jsonl` contains the reviewed formal rows; `core-registered-knowledge-resource-semantic-summary.json` preserves the 606 starting rows with blockers as sidecar before-state and reports `unexplainedRemainingItems: 0`; `core-registered-knowledge-resource-semantic-materialization-manifest.json` pins the legacy audit, stable summary, scope/non-scope invariants, review source, and denominator before any output write.
   Reviewer Check: Confirm no item was skipped because semantic review was required.
 
 - [x] Task 5: Run validation.
@@ -33,5 +33,6 @@
 ## Validation
 
 - [x] Run `rtk openspec validate complete-core-registered-knowledge-resource-semantics --strict`.
+- [x] Run `rtk npm run db:materialize-core-semantic-review` twice with the tracked summary timestamp and confirm the second run produces no diff.
 - [x] Run the data completeness helper and ResourceNode audit for the scoped families. The helper generated 608 core review rows and updated the scoped core artifacts; the command still exits non-zero on the existing global full-resource-path readiness gate, so scoped acceptance is covered by `scripts/tests/test-core-registered-knowledge-resource-semantics.ts`.
 - [x] Run issue-body validation against the existing local issue artifact: `rtk /Users/YW/Documents/Project/OpenSpec-buddy/skills/openspec-buddy/scripts/validate-issue-body.mjs openspec/changes/complete-core-registered-knowledge-resource-semantics/.buddy/issue.md`.
