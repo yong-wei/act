@@ -1257,7 +1257,7 @@ describe('graph center payload service', () => {
       status: 'degraded',
       reasonCode: 'missing-evidence-route',
     });
-    expect(studentPayload.selectedNode?.resourceCoverage.pathEligibleResourceIds).toContain('arena-task:full-coverage-arena-official');
+    expect(studentPayload.selectedNode?.resourceCoverage.pathEligibleResourceIds).toContain('arena-task:task-second-order-lead-pid');
     expect(studentPayload.selectedNode?.resourceCoverage.pathEligibleResourceRouteIds[0]).toBe('full-coverage-assessment');
     expect(studentPayload.selectedNode?.resourceCoverage.filterKnowledgeRefs).toContain('PID控制器_6_656b8b52');
     expect(studentPayload.selectedNode?.actions.find((action) => action.id === 'student:inspect-resource')).toMatchObject({
@@ -1277,9 +1277,9 @@ describe('graph center payload service', () => {
       viewerRole: 'STUDENT',
       resourceRegistry: buildResourceNodeRegistry({
         arenaTasks: [{
-          id: 'arena-only',
+          id: 'task-second-order-lead-pid',
           title: 'Arena only resource',
-          launchTarget: '/arena/arena-only',
+          launchTarget: '/arena/challenges/task-second-order-lead-pid',
           knowledgeNodeIds: ['PID控制器_6_656b8b52'],
           official: true,
           planningOverride: {
@@ -1290,7 +1290,7 @@ describe('graph center payload service', () => {
         }],
       }),
     });
-    expect(arenaOnlyPayload.selectedNode?.resourceCoverage.pathEligibleResourceIds).toEqual(['arena-task:arena-only']);
+    expect(arenaOnlyPayload.selectedNode?.resourceCoverage.pathEligibleResourceIds).toEqual(['arena-task:task-second-order-lead-pid']);
     expect(arenaOnlyPayload.selectedNode?.resourceCoverage.pathEligibleResourceRouteIds).toEqual([]);
     const arenaOnlyResourceAction = arenaOnlyPayload.selectedNode?.actions.find((action) => action.id === 'student:inspect-resource');
     expect(arenaOnlyResourceAction).toMatchObject({
@@ -1504,9 +1504,9 @@ describe('graph center payload service', () => {
     const arenaOnlyRegistry = buildResourceNodeRegistry({
       arenaTasks: [
         {
-          id: 'only-arena-official',
+          id: 'task-second-order-lead-pid',
           title: 'Only Arena official',
-          launchTarget: '/arena/only-arena-official',
+          launchTarget: '/arena/challenges/task-second-order-lead-pid',
           knowledgeNodeIds: ['PID控制器_6_656b8b52'],
           official: true,
           planningOverride: {
@@ -1524,7 +1524,7 @@ describe('graph center payload service', () => {
     });
     const inspectAction = payload.selectedNode?.actions.find((action) => action.id === 'student:inspect-resource');
 
-    expect(payload.selectedNode?.resourceCoverage.pathEligibleResourceIds).toEqual(['arena-task:only-arena-official']);
+    expect(payload.selectedNode?.resourceCoverage.pathEligibleResourceIds).toEqual(['arena-task:task-second-order-lead-pid']);
     expect(payload.selectedNode?.resourceCoverage.pathEligibleResourceRouteIds).toEqual([]);
     expect(inspectAction).toMatchObject({
       status: 'degraded',
@@ -2219,9 +2219,9 @@ function fullCoverageRegistry() {
     ],
     arenaTasks: [
       {
-        id: 'full-coverage-arena-preview',
+        id: 'task-ship-roll-comfort',
         title: 'Full coverage Arena preview',
-        launchTarget: '/arena/full-coverage-preview',
+        launchTarget: '/arena/challenges/task-ship-roll-comfort',
         knowledgeNodeIds: ['PID控制器_6_656b8b52'],
         official: false,
         planningOverride: {
@@ -2230,9 +2230,9 @@ function fullCoverageRegistry() {
         },
       },
       {
-        id: 'full-coverage-arena-official',
+        id: 'task-second-order-lead-pid',
         title: 'Full coverage Arena official',
-        launchTarget: '/arena/full-coverage-official',
+        launchTarget: '/arena/challenges/task-second-order-lead-pid',
         knowledgeNodeIds: ['PID控制器_6_656b8b52'],
         official: true,
         planningOverride: {

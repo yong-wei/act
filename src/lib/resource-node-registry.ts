@@ -4,7 +4,10 @@ import {
   coreResourcePathReadinessReviewRef,
   isCoreResourcePathReadinessReviewedNode,
 } from './resource-node-path-readiness-review-batch';
-import { resolveArenaPathTargetIntegrity } from './arena-path-target-integrity';
+import {
+  resolveArenaPathTargetIntegrity,
+  type CanonicalArenaPathTarget,
+} from './arena-path-target-integrity';
 
 export const RESOURCE_NODE_TYPES = [
   'lesson_step',
@@ -875,6 +878,7 @@ export interface RegisteredResourceNodeInput {
   knowledgeNodeIds?: string[];
   prerequisiteNodeIds?: string[];
   planningOverride?: ResourceNodePlanningOverride;
+  defaultConfig?: Record<string, unknown>;
 }
 
 export interface KnowledgeNodeResourceInput {
@@ -1839,28 +1843,101 @@ function buildTeachingResourceNodes(resources: TeachingResourceNodeInput[]): Res
 }
 
 function buildRegisteredResourceNodes(resources: RegisteredResourceNodeInput[]): ResourceNode[] {
-  return resources.map((resource) => createNode({
-    id: `registry:${resource.id}`,
-    title: resource.label,
-    type: resource.type === 'SIMULATION_APP'
-      ? inferRegisteredNodeType(resource.id)
-      : resource.type === 'ADAPTIVE_QUIZ'
-        ? 'adaptive_quiz'
-        : inferRegisteredNodeType(resource.id),
-    sourceKind: 'resource_registry',
-    sourceRef: resource.id,
-    renderTarget: resource.renderTarget ?? null,
-    launchTarget: resource.launchTarget ?? null,
-    knowledgeCoverage: resource.knowledgeNodeIds ?? [],
-    sourceOfRecord: {
-      content: 'resource_registry',
-      catalogMetadata: 'resource_registry',
-      planningMetadata: 'ResourceNode',
-    },
-    prerequisites: resource.prerequisiteNodeIds ?? [],
-    evidenceInstrumentation: ['InteractionLog'],
-    planningOverride: resource.planningOverride,
+  const arenaTargets = new Map(resources.flatMap((resource) => {
+    const target = resolveRegisteredArenaTaskTarget(resource);
+    return target ? [[resource.id, target] as const] : [];
   }));
+  const nodeIdAliases = new Map(Array.from(arenaTargets, ([resourceId, target]) => [
+    `registry:${resourceId}`,
+    target.nodeId,
+  ]));
+
+  return resources.map((resource) => {
+    const arenaTarget = arenaTargets.get(resource.id);
+    const type = arenaTarget
+      ? 'arena_task'
+      : resource.type === 'SIMULATION_APP'
+        ? inferRegisteredNodeType(resource.id)
+        : resource.type === 'ADAPTIVE_QUIZ'
+          ? 'adaptive_quiz'
+          : inferRegisteredNodeType(resource.id);
+    return createNode({
+      id: arenaTarget?.nodeId ?? `registry:${resource.id}`,
+      title: resource.label,
+      type,
+      sourceKind: arenaTarget ? 'arena_task' : 'resource_registry',
+      sourceRef: arenaTarget?.sourceRef ?? resource.id,
+      sourceRefs: arenaTarget
+        ? [
+            { kind: 'arena_task', ref: arenaTarget.sourceRef },
+            { kind: 'resource_registry', ref: resource.id },
+          ]
+        : undefined,
+      renderTarget: resource.renderTarget ?? null,
+      launchTarget: arenaTarget?.target ?? resource.launchTarget ?? null,
+      knowledgeCoverage: resource.knowledgeNodeIds ?? [],
+      sourceOfRecord: {
+        content: 'resource_registry',
+        catalogMetadata: 'resource_registry',
+        planningMetadata: 'ResourceNode',
+      },
+      prerequisites: remapRegisteredNodeIds(resource.prerequisiteNodeIds, nodeIdAliases),
+      evidenceInstrumentation: ['InteractionLog'],
+      planningOverride: remapRegisteredPlanningOverride(resource.planningOverride, nodeIdAliases),
+    });
+  });
+}
+
+function resolveRegisteredArenaTaskTarget(
+  resource: RegisteredResourceNodeInput,
+): CanonicalArenaPathTarget | null {
+  const config = resource.defaultConfig && typeof resource.defaultConfig === 'object' && !Array.isArray(resource.defaultConfig)
+    ? resource.defaultConfig
+    : {};
+  if (resource.type !== 'SIMULATION_APP' || config.resourceKind !== 'arena-workbench') return null;
+  const taskId = normalizeOptionalString(config.arenaTaskId);
+  if (!taskId) return null;
+  const integrity = resolveArenaPathTargetIntegrity({
+    nodeId: `arena-task:${taskId}`,
+    type: 'arena_task',
+    sourceKind: 'arena_task',
+    sourceRef: taskId,
+    target: resource.launchTarget,
+  });
+  return integrity.status === 'valid' ? integrity.target : null;
+}
+
+function remapRegisteredPlanningOverride(
+  planningOverride: ResourceNodePlanningOverride | undefined,
+  aliases: ReadonlyMap<string, string>,
+): ResourceNodePlanningOverride | undefined {
+  if (!planningOverride) return undefined;
+  const readiness = planningOverride.readiness;
+  const pathDisposition = planningOverride.pathDisposition;
+  return {
+    ...planningOverride,
+    ...(planningOverride.prerequisites ? {
+      prerequisites: remapRegisteredNodeIds(planningOverride.prerequisites, aliases),
+    } : {}),
+    readiness: readiness ? {
+      ...readiness,
+      requiredCompletedNodeIds: remapRegisteredNodeIds(readiness.requiredCompletedNodeIds, aliases),
+      fallbackNodeIds: remapRegisteredNodeIds(readiness.fallbackNodeIds, aliases),
+    } : readiness,
+    pathDisposition: pathDisposition ? {
+      ...pathDisposition,
+      parentResourceNodeId: pathDisposition.parentResourceNodeId
+        ? aliases.get(pathDisposition.parentResourceNodeId) ?? pathDisposition.parentResourceNodeId
+        : null,
+    } : pathDisposition,
+  };
+}
+
+function remapRegisteredNodeIds(
+  nodeIds: string[] | undefined,
+  aliases: ReadonlyMap<string, string>,
+): string[] {
+  return (nodeIds ?? []).map((nodeId) => aliases.get(nodeId) ?? nodeId);
 }
 
 function buildKnowledgeResourceNodes(nodes: KnowledgeNodeResourceInput[]): ResourceNode[] {

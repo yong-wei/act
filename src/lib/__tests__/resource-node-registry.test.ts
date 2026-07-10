@@ -939,7 +939,13 @@ describe('resource node registry', () => {
         reasons: expect.arrayContaining(['unavailable-resource']),
       },
     });
-    expect(registry.nodes.find((node) => node.id === 'registry:arena-challenge-workbench')).toMatchObject({
+    expect(registry.nodes.find((node) => node.id === 'arena-task:task-second-order-lead-pid')).toMatchObject({
+      sourceKind: 'arena_task',
+      sourceRef: 'task-second-order-lead-pid',
+      launchTarget: '/arena/challenges/task-second-order-lead-pid',
+      sourceRefs: expect.arrayContaining([
+        { kind: 'resource_registry', ref: 'arena-challenge-workbench' },
+      ]),
       planningMetadata: {
         readiness: {
           requiredCompletedNodeIds: ['registry:lesson09-summary-card'],
@@ -947,6 +953,25 @@ describe('resource node registry', () => {
         },
       },
     });
+    expect(registry.nodes.find((node) => node.id === 'arena-task:task-cruise-roll-blackbox-identification'))
+      .toMatchObject({
+        sourceKind: 'arena_task',
+        sourceRef: 'task-cruise-roll-blackbox-identification',
+        launchTarget: '/arena/challenges/task-cruise-roll-blackbox-identification',
+        planningMetadata: {
+          pathDisposition: {
+            kind: 'path-plannable',
+            reviewStatus: 'human-confirmed',
+            sourceFamily: 'arena_task',
+            stableSourceRef: 'task-cruise-roll-blackbox-identification',
+            sourceVersionRef: 'resource-node-registry.v1',
+          },
+          readiness: {
+            fallbackNodeIds: ['registry:lesson15-series-precheck'],
+          },
+        },
+      });
+    expect(registry.nodes.some((node) => node.id === 'registry:arena-challenge-workbench')).toBe(false);
     expect(registry.nodes.find((node) => node.id === 'registry:lesson09-time-domain-synthesis')).toMatchObject({
       type: 'lesson_step',
       planningMetadata: {
@@ -977,17 +1002,8 @@ describe('resource node registry', () => {
       .filter((node) => node.type === 'simulation' && !node.planningMetadata.readiness)
       .map((node) => node.id);
 
-    expect(activeRegisteredNodes).toHaveLength(139);
-    expect(incompleteActiveNodes).toEqual([
-      {
-        id: 'registry:arena-challenge-workbench',
-        auditIssues: ['arena-node-id-mismatch'],
-      },
-      {
-        id: 'registry:arena-cruise-blackbox-workbench',
-        auditIssues: ['arena-node-id-mismatch'],
-      },
-    ]);
+    expect(activeRegisteredNodes).toHaveLength(137);
+    expect(incompleteActiveNodes).toEqual([]);
     expect(unlockedSimulations).toEqual([]);
   });
 
@@ -1113,9 +1129,9 @@ describe('resource node registry', () => {
         knowledgeNodeIds: ['kn-demo'],
       }],
       arenaTasks: [{
-        id: 'demo-arena',
+        id: 'task-second-order-lead-pid',
         title: 'Arena 挑战',
-        launchTarget: '/arena/challenges/demo',
+        launchTarget: '/arena/challenges/task-second-order-lead-pid',
         knowledgeNodeIds: ['kn-demo'],
       }],
       externalResources: [{

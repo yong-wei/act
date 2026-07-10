@@ -1860,15 +1860,27 @@ const registeredResourceSemanticMetadata: Record<string, Partial<RegisteredResou
         planningOverride: {
             estimatedTimeMinutes: 24,
             cognitiveLoad: 'high',
+            privacyLevel: 'student-visible',
             terminalConstraints: ['terminal-validation'],
             evidenceInstrumentation: ['arena_workspace_start', 'arena_evaluation_complete'],
+            pathDisposition: {
+                kind: 'path-plannable',
+                reviewStatus: 'human-confirmed',
+                rationale: '已核验邮轮黑箱 Arena 的规范任务身份、启动路由、证据契约与有界补救入口。',
+                sourceFamily: 'arena_task',
+                stableSourceRef: 'task-cruise-roll-blackbox-identification',
+                sourceVersionRef: 'resource-node-registry.v1',
+                parentResourceNodeId: null,
+                reviewedAt: '2026-07-03T00:00:00.000Z',
+                reviewerId: 'core-resource-path-readiness-review'
+            },
             readiness: {
                 minimumCompetency: { controlModeling: 0.3, engineeringDecision: 0.3 },
                 minimumEvidenceCount: 2,
                 requiredCompletedNodeIds: [],
                 requiredOutcomeRefs: [],
-                unlockMessage: '先完成对象建模与仿真验证，再进入邮轮黑箱 Arena 终点校验。',
-                fallbackNodeIds: []
+                unlockMessage: '先完成串联校正预检并补充对象建模与仿真证据，再进入邮轮黑箱 Arena 终点校验。',
+                fallbackNodeIds: ['registry:lesson15-series-precheck']
             },
             abilityImpact: { crossDomainTransfer: 0.32, engineeringDecision: 0.24, controlModeling: 0.18 }
         }
