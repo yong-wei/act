@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { buildAuthorizedAdaptivePathJourney } from '@/features/adaptive/adaptive-path-journey-contracts';
+import { resolveArenaPathTargetIntegrity } from '@/lib/arena-path-target-integrity';
 import { prisma } from '@/lib/prisma';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import {
@@ -94,6 +95,18 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     ) {
       return NextResponse.json({ error: '执行事件不符合路径节点或状态契约' }, { status: 400 });
     }
+    const arenaTargetIntegrity = body.resourceType === 'arena_task'
+      ? resolveArenaPathTargetIntegrity({
+          ...pathNode,
+          fixtureScope: toRecord(path.pathPayload).fixtureScope,
+        })
+      : null;
+    if (arenaTargetIntegrity?.status === 'blocked') {
+      return NextResponse.json(
+        { error: 'Arena 路径目标不可执行', reason: arenaTargetIntegrity.reason },
+        { status: 409 },
+      );
+    }
     if (typeof body.idempotencyKey === 'string' && body.idempotencyKey.length > 0) {
       if (existingExecution) {
         const existingStatus = readExecutionStatus(existingExecution.status);
@@ -144,8 +157,18 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
           const governedAdaptiveInput = await resolveGovernedAdaptiveAssessmentOutcomeEvidence(prisma as any, governedInstrumentedInput);
           const governedSimulationInput = await resolveGovernedSimulationOutcomeEvidence(prisma as any, path, governedAdaptiveInput);
           const governedWorkbenchInput = await resolveGovernedControlWorkbenchOutcomeEvidence(prisma as any, path, governedSimulationInput);
-          const governedArenaInput = await resolveGovernedArenaOutcomeEvidence(prisma as any, path, governedWorkbenchInput);
-          const governedExecutionInput = await resolveGovernedTerminalEvidence(prisma as any, path, governedArenaInput);
+          const governedArenaInput = await resolveGovernedArenaOutcomeEvidence(
+            prisma as any,
+            path,
+            governedWorkbenchInput,
+            arenaTargetIntegrity?.taskId,
+          );
+          const governedExecutionInput = await resolveGovernedTerminalEvidence(
+            prisma as any,
+            path,
+            governedArenaInput,
+            arenaTargetIntegrity?.taskId,
+          );
           execution = await recordPathNodeExecution(prisma as any, governedExecutionInput);
           if (shouldUpdatePathAfterExecution(path, existingPathNode, governedExecutionInput, existingActivityKind, existingHistoricalActivity)) {
             await updateControlCorrectionPathRoundAfterExecution(prisma as any, path, governedExecutionInput);
@@ -188,8 +211,18 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     const governedAdaptiveInput = await resolveGovernedAdaptiveAssessmentOutcomeEvidence(prisma as any, governedInstrumentedInput);
     const governedSimulationInput = await resolveGovernedSimulationOutcomeEvidence(prisma as any, path, governedAdaptiveInput);
     const governedWorkbenchInput = await resolveGovernedControlWorkbenchOutcomeEvidence(prisma as any, path, governedSimulationInput);
-    const governedArenaInput = await resolveGovernedArenaOutcomeEvidence(prisma as any, path, governedWorkbenchInput);
-    const executionInput = await resolveGovernedTerminalEvidence(prisma as any, path, governedArenaInput);
+    const governedArenaInput = await resolveGovernedArenaOutcomeEvidence(
+      prisma as any,
+      path,
+      governedWorkbenchInput,
+      arenaTargetIntegrity?.taskId,
+    );
+    const executionInput = await resolveGovernedTerminalEvidence(
+      prisma as any,
+      path,
+      governedArenaInput,
+      arenaTargetIntegrity?.taskId,
+    );
     const execution = await recordPathNodeExecution(prisma as any, executionInput);
     if (shouldUpdatePathAfterExecution(path, pathNode, executionInput, activityKind, isHistoricalActivity)) {
       await updateControlCorrectionPathRoundAfterExecution(prisma as any, path, executionInput);
@@ -513,11 +546,13 @@ async function resolveGovernedTerminalEvidence<T extends {
   db: any,
   path: any,
   input: T,
+  verifiedArenaTaskId?: string | null,
 ): Promise<T> {
   const terminalValidation = toRecord(path.terminalValidation);
   if (terminalValidation.nodeId !== input.nodeId) return input;
 
   const scope = readTerminalEvidenceScope(path, input.nodeId);
+  if (verifiedArenaTaskId) scope.arenaTaskId = verifiedArenaTaskId;
   const simulationRef = await resolveServerSimulationRef(db, input.userId, input.simulationRef, scope);
   const arenaRef = await resolveServerArenaRef(db, input.userId, input.arenaRef, scope);
   return {
@@ -862,9 +897,12 @@ async function resolveGovernedArenaOutcomeEvidence<T extends {
   db: any,
   path: any,
   input: T,
+  verifiedTaskId?: string | null,
 ): Promise<T> {
   if (input.resourceType !== 'arena_task' || input.status !== 'completed') return input;
-  const scope = readArenaOutcomeEvidenceScope(path, input.nodeId);
+  const scope = verifiedTaskId
+    ? { arenaTaskId: verifiedTaskId, simulationRefs: new Set<string>() }
+    : readArenaOutcomeEvidenceScope(path, input.nodeId);
   const arenaRef = await resolveServerArenaRef(db, input.userId, input.arenaRef, scope);
   return {
     ...input,

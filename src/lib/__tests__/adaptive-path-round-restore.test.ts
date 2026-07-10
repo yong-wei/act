@@ -148,4 +148,80 @@ describe('adaptive path round restore', () => {
       },
     });
   });
+
+  it('repairs the uniquely verified Yang Fan legacy Arena target during restore', () => {
+    const plan = restoreAdaptiveLearningPathPlanFromRound({
+      id: 'yangfan-fixture-control-correction-path',
+      userId: 'student-yangfan',
+      title: 'Yang Fan diagnostic control-correction path',
+      goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: '根轨迹_1_1',
+      pathPayload: {
+        fixtureScope: 'yangfan-diagnostic-fixture.v1',
+        mainPathNodeIds: ['性能指标_1_1', '根轨迹_1_1'],
+        planNodes: [{
+          nodeId: '根轨迹_1_1',
+          title: '根轨迹终点检查',
+          type: 'arena_task',
+          sourceKind: 'knowledge_graph',
+          sourceRef: '根轨迹_1_1',
+          target: '/arena?nodeId=%E6%A0%B9%E8%BD%A8%E8%BF%B9_1_1',
+          reasonCodes: [],
+        }],
+        executionStatus: { activeNodeId: '根轨迹_1_1' },
+      },
+    });
+
+    expect(plan).toMatchObject({
+      status: 'ready',
+      currentNodeId: 'arena-task:task-second-order-lead-pid',
+      mainPath: [{
+        nodeId: 'arena-task:task-second-order-lead-pid',
+        sourceKind: 'arena_task',
+        sourceRef: 'task-second-order-lead-pid',
+        target: '/arena/challenges/task-second-order-lead-pid',
+        reasonCodes: expect.arrayContaining(['verified-yangfan-legacy-arena-mapping']),
+      }],
+      executionStatus: {
+        activeNodeId: 'arena-task:task-second-order-lead-pid',
+      },
+    });
+  });
+
+  it('blocks an unverified generic Arena target without leaving an executable target', () => {
+    const plan = restoreAdaptiveLearningPathPlanFromRound({
+      id: 'legacy-generic-arena-path',
+      userId: 'student-1',
+      title: 'Legacy generic Arena path',
+      goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: 'arena-task:legacy',
+      pathPayload: {
+        planNodes: [{
+          nodeId: 'arena-task:legacy',
+          title: 'Legacy Arena',
+          type: 'arena_task',
+          sourceKind: 'arena_task',
+          sourceRef: 'legacy',
+          target: '/arena',
+          reasonCodes: [],
+        }],
+      },
+    });
+
+    expect(plan).toMatchObject({
+      status: 'fallback',
+      mainPath: [{
+        nodeId: 'arena-task:legacy',
+        target: '',
+        status: 'blocked',
+        reasonCodes: expect.arrayContaining(['generic-arena-target']),
+        readiness: expect.objectContaining({
+          state: 'locked',
+          reasonCodes: ['generic-arena-target'],
+        }),
+      }],
+    });
+  });
 });

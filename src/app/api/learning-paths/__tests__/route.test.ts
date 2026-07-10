@@ -131,6 +131,8 @@ function useStructuredTerminalPath() {
         {
           nodeId: 'arena-task:task-second-order-lead-pid',
           type: 'arena_task',
+          sourceKind: 'arena_task',
+          sourceRef: 'task-second-order-lead-pid',
           target: '/arena/challenges/task-second-order-lead-pid',
         },
       ],
@@ -4527,17 +4529,21 @@ describe('learning path round API routes', () => {
   });
 
   it('does not let clients forge official terminal Arena evidence', async () => {
-    configureSingleNodePath('node-1', 'arena_task', '/arena/challenges/task-second-order-lead-pid', {
+    configureSingleNodePath('arena-task:task-second-order-lead-pid', 'arena_task', '/arena/challenges/task-second-order-lead-pid', {
       goalId: 'control-correction',
+      planNode: {
+        sourceKind: 'arena_task',
+        sourceRef: 'task-second-order-lead-pid',
+      },
       terminalValidation: {
-        nodeId: 'node-1',
+        nodeId: 'arena-task:task-second-order-lead-pid',
         state: 'pending',
         target: '/arena/challenges/task-second-order-lead-pid',
       },
     });
 
     const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
-      nodeId: 'node-1',
+      nodeId: 'arena-task:task-second-order-lead-pid',
       resourceType: 'arena_task',
       status: 'completed',
       idempotencyKey: 'forged-terminal',
@@ -4721,6 +4727,100 @@ describe('learning path round API routes', () => {
         }),
       }),
     }));
+  });
+
+  it('accepts matching Arena evidence after the verified Yang Fan legacy target is repaired', async () => {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: '根轨迹_1_1',
+      nodeIds: ['根轨迹_1_1'],
+      pathPayload: {
+        fixtureScope: 'yangfan-diagnostic-fixture.v1',
+        mainPathNodeIds: ['根轨迹_1_1'],
+        planNodes: [{
+          nodeId: '根轨迹_1_1',
+          type: 'arena_task',
+          sourceKind: 'knowledge_graph',
+          sourceRef: '根轨迹_1_1',
+          target: '/arena?nodeId=%E6%A0%B9%E8%BD%A8%E8%BF%B9_1_1',
+        }],
+      },
+      terminalValidation: {
+        nodeId: '根轨迹_1_1',
+        state: 'pending',
+      },
+      lastExecutionMetadata: { completedNodeIds: [] },
+    });
+    mocks.prisma.arenaSubmission.findFirst.mockResolvedValue({
+      id: 'arena-submission-yangfan',
+      taskId: 'task-second-order-lead-pid',
+      userId: 'student-1',
+      score: 86,
+      valid: true,
+      submittedAt: new Date('2026-07-10T10:00:00.000Z'),
+      evaluationRun: {
+        protocolVersion: 'template-whitebox-v1',
+        metrics: { settlingTime: 0.9 },
+        metadata: { replayConfidence: 0.9 },
+      },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: '根轨迹_1_1',
+      resourceType: 'arena_task',
+      status: 'completed',
+      idempotencyKey: 'verified-yangfan-legacy-arena',
+      arenaRef: { id: 'arena-submission-yangfan' },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      arenaRef: expect.objectContaining({
+        id: 'arena-submission-yangfan',
+        taskId: 'task-second-order-lead-pid',
+        provenance: 'official',
+      }),
+    }));
+  });
+
+  it.each([
+    ['generic target', {
+      nodeId: 'arena-task:legacy',
+      sourceKind: 'arena_task',
+      sourceRef: 'legacy',
+      target: '/arena',
+    }, 'generic-arena-target'],
+    ['unknown task', {
+      nodeId: 'arena-task:unknown-task',
+      sourceKind: 'arena_task',
+      sourceRef: 'unknown-task',
+      target: '/arena/challenges/unknown-task',
+    }, 'unknown-arena-task'],
+  ])('blocks persisted Arena execution with a %s', async (_label, planNode, reason) => {
+    configureSingleNodePath(planNode.nodeId, 'arena_task', planNode.target, {
+      goalId: 'control-correction',
+      planNode,
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: planNode.nodeId,
+      resourceType: 'arena_task',
+      status: 'completed',
+      idempotencyKey: `blocked-${reason}`,
+      arenaRef: { id: 'arena-submission-1' },
+    }), params);
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toMatchObject({
+      error: 'Arena 路径目标不可执行',
+      reason,
+    });
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+    expect(mocks.prisma.arenaSubmission.findFirst).not.toHaveBeenCalled();
   });
 
   it('rejects Arena preview records from a different terminal Arena task', async () => {

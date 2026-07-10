@@ -737,6 +737,32 @@ describe('Yang Fan diagnostic fixture', () => {
         }),
       ]),
     }));
+    expect(db.learningPath?.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      create: expect.objectContaining({
+        nodeIds: ['性能指标_1_1', 'arena-task:task-second-order-lead-pid'],
+        currentNodeId: 'arena-task:task-second-order-lead-pid',
+        terminalValidation: expect.objectContaining({
+          nodeId: 'arena-task:task-second-order-lead-pid',
+        }),
+        pathPayload: expect.objectContaining({
+          mainPathNodeIds: ['性能指标_1_1', 'arena-task:task-second-order-lead-pid'],
+          planNodes: expect.arrayContaining([
+            expect.objectContaining({
+              nodeId: '性能指标_1_1',
+              type: 'knowledge_card',
+              sourceKind: 'knowledge_graph',
+            }),
+            expect.objectContaining({
+              nodeId: 'arena-task:task-second-order-lead-pid',
+              type: 'arena_task',
+              sourceKind: 'arena_task',
+              sourceRef: 'task-second-order-lead-pid',
+              target: '/arena/challenges/task-second-order-lead-pid',
+            }),
+          ]),
+        }),
+      }),
+    }));
     expect(db.studentCompetencySnapshot?.create).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
         competencyVector: expect.objectContaining({

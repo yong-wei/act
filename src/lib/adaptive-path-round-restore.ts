@@ -3,6 +3,7 @@ import {
   getAdaptivePracticeGoalOption,
   isAdaptivePracticeGoalId,
 } from '@/lib/adaptive-path-goal-options';
+import { resolveArenaPathTargetIntegrity } from '@/lib/arena-path-target-integrity';
 
 export interface LearningPathRoundForRestore {
   id: string;
@@ -22,17 +23,33 @@ export function restoreAdaptiveLearningPathPlanFromRound(
   if (!round || !isAdaptivePracticeGoalId(round.goalId)) return null;
   const goalOption = getAdaptivePracticeGoalOption(round.goalId);
   const payload = round.pathPayload ?? {};
-  const planNodes = Array.isArray(payload.planNodes) ? payload.planNodes : [];
-  const alternatives = Array.isArray(payload.alternatives)
+  const rawPlanNodes = Array.isArray(payload.planNodes) ? payload.planNodes : [];
+  const restoredArenaTargets = restoreArenaPathTargets(rawPlanNodes, payload.fixtureScope);
+  const planNodes = restoredArenaTargets.planNodes;
+  const rawAlternatives = Array.isArray(payload.alternatives)
     ? payload.alternatives
     : Array.isArray(round.alternativePayload)
       ? round.alternativePayload
       : [];
+  const alternatives = replaceRestoredNodeIdsDeep(
+    rawAlternatives,
+    restoredArenaTargets.nodeIdReplacements,
+  );
   const explanations = restoreExplanations(
     round.explanationPayload,
     payload.explanations,
     planNodes.length === 0,
   );
+
+  const currentNodeId = replaceRestoredNodeId(round.currentNodeId, restoredArenaTargets.nodeIdReplacements);
+  const executionStatus = restoreExecutionStatus(payload.executionStatus, currentNodeId);
+  executionStatus.activeNodeId = replaceRestoredNodeId(
+    executionStatus.activeNodeId,
+    restoredArenaTargets.nodeIdReplacements,
+  );
+  executionStatus.completedNodeIds = executionStatus.completedNodeIds.map((nodeId) => (
+    replaceRestoredNodeId(nodeId, restoredArenaTargets.nodeIdReplacements) ?? nodeId
+  ));
 
   return {
     id: round.id,
@@ -49,8 +66,10 @@ export function restoreAdaptiveLearningPathPlanFromRound(
     policyMetadata: payload.policyMetadata as AdaptiveLearningPathPlan['policyMetadata'],
     policyBundle: payload.policyBundle as AdaptiveLearningPathPlan['policyBundle'],
     excludedPolicyFamilies: ['contextual-bandit', 'reinforcement-learning', 'long-horizon-hybrid'],
-    status: round.pathStatus === 'active' || round.pathStatus === 'completed' ? 'ready' : 'fallback',
-    currentNodeId: round.currentNodeId ?? null,
+    status: restoredArenaTargets.blocked
+      ? 'fallback'
+      : round.pathStatus === 'active' || round.pathStatus === 'completed' ? 'ready' : 'fallback',
+    currentNodeId,
     mainPath: planNodes as AdaptiveLearningPathPlan['mainPath'],
     alternatives: alternatives as AdaptiveLearningPathPlan['alternatives'],
     score: restoreScore(payload.score),
@@ -60,12 +79,101 @@ export function restoreAdaptiveLearningPathPlanFromRound(
       sourceCoverage: 0,
     },
     explanations,
-    executionStatus: restoreExecutionStatus(payload.executionStatus, round.currentNodeId),
-    deviations: payload.deviations as AdaptiveLearningPathPlan['deviations'] ?? [],
-    corrections: payload.corrections as AdaptiveLearningPathPlan['corrections'] ?? [],
-    feedbackEvents: restoreFeedbackEvents(payload),
-    visualization: payload.visualization as AdaptiveLearningPathPlan['visualization'],
+    executionStatus,
+    deviations: replaceRestoredNodeIdsDeep(
+      payload.deviations ?? [],
+      restoredArenaTargets.nodeIdReplacements,
+    ) as AdaptiveLearningPathPlan['deviations'],
+    corrections: replaceRestoredNodeIdsDeep(
+      payload.corrections ?? [],
+      restoredArenaTargets.nodeIdReplacements,
+    ) as AdaptiveLearningPathPlan['corrections'],
+    feedbackEvents: replaceRestoredNodeIdsDeep(
+      restoreFeedbackEvents(payload),
+      restoredArenaTargets.nodeIdReplacements,
+    ) as AdaptiveLearningPathPlan['feedbackEvents'],
+    visualization: replaceRestoredNodeIdsDeep(
+      payload.visualization,
+      restoredArenaTargets.nodeIdReplacements,
+    ) as AdaptiveLearningPathPlan['visualization'],
   };
+}
+
+function restoreArenaPathTargets(
+  planNodes: unknown[],
+  fixtureScope: unknown,
+): {
+  planNodes: AdaptiveLearningPathPlan['mainPath'];
+  nodeIdReplacements: ReadonlyMap<string, string>;
+  blocked: boolean;
+} {
+  const nodeIdReplacements = new Map<string, string>();
+  let blocked = false;
+  const restored = planNodes.map((value) => {
+    const node = getRecord(value);
+    if (node.type !== 'arena_task') return value;
+    const integrity = resolveArenaPathTargetIntegrity({ ...node, fixtureScope });
+    if (integrity.status === 'blocked') {
+      blocked = true;
+      const readiness = getRecord(node.readiness);
+      return {
+        ...node,
+        target: '',
+        status: 'blocked',
+        reasonCodes: uniqueStrings([...getStringArray(node.reasonCodes), integrity.reason]),
+        readiness: {
+          ...readiness,
+          state: 'locked',
+          message: 'Arena 任务目标无法验证，请重新生成学习路径。',
+          unlockMessage: '重新生成路径或使用明确的恢复操作。',
+          reasonCodes: [integrity.reason],
+          fallbackNodeIds: getStringArray(readiness.fallbackNodeIds),
+          missingCompetencies: getStringArray(readiness.missingCompetencies),
+          missingEvidenceCount: typeof readiness.missingEvidenceCount === 'number'
+            ? readiness.missingEvidenceCount
+            : 0,
+          missingCompletedNodeIds: getStringArray(readiness.missingCompletedNodeIds),
+          missingOutcomeRefs: getStringArray(readiness.missingOutcomeRefs),
+        },
+      };
+    }
+    if (integrity.status === 'repaired' && typeof node.nodeId === 'string') {
+      nodeIdReplacements.set(node.nodeId, integrity.target.nodeId);
+    }
+    return {
+      ...node,
+      ...integrity.target,
+      reasonCodes: integrity.status === 'repaired'
+        ? uniqueStrings([...getStringArray(node.reasonCodes), integrity.reason])
+        : getStringArray(node.reasonCodes),
+    };
+  });
+  return {
+    planNodes: restored as AdaptiveLearningPathPlan['mainPath'],
+    nodeIdReplacements,
+    blocked,
+  };
+}
+
+function replaceRestoredNodeId(
+  nodeId: string | null | undefined,
+  replacements: ReadonlyMap<string, string>,
+): string | null {
+  if (!nodeId) return null;
+  return replacements.get(nodeId) ?? nodeId;
+}
+
+function replaceRestoredNodeIdsDeep(
+  value: unknown,
+  replacements: ReadonlyMap<string, string>,
+): unknown {
+  if (typeof value === 'string') return replacements.get(value) ?? value;
+  if (Array.isArray(value)) return value.map((item) => replaceRestoredNodeIdsDeep(item, replacements));
+  if (!value || typeof value !== 'object') return value;
+  return Object.fromEntries(Object.entries(value).map(([key, child]) => [
+    key,
+    replaceRestoredNodeIdsDeep(child, replacements),
+  ]));
 }
 
 function restoreExplanations(
@@ -153,4 +261,8 @@ function getRecord(value: unknown): Record<string, unknown> {
 
 function getStringArray(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+}
+
+function uniqueStrings(values: string[]): string[] {
+  return Array.from(new Set(values));
 }

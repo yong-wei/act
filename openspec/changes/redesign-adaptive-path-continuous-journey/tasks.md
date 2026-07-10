@@ -6,9 +6,9 @@
 
 ## 2. Arena Target Integrity
 
-- [ ] 2.1 Enforce concrete `arena-task:<taskId>` identity and `/arena/challenges/<taskId>` launch targets in ResourceNode, fixture, and restored-path validation.
-- [ ] 2.2 Repair the Yang Fan diagnostic fixture and add deterministic repair-or-block behavior for persisted generic Arena targets.
-- [ ] 2.3 Add registry, fixture, restore, and route tests that reject `/arena` or knowledge-node placeholders as executable Arena path nodes.
+- [x] 2.1 Enforce concrete `arena-task:<taskId>` identity and `/arena/challenges/<taskId>` launch targets in ResourceNode, fixture, and restored-path validation.
+- [x] 2.2 Repair the Yang Fan diagnostic fixture and add deterministic repair-or-block behavior for persisted generic Arena targets.
+- [x] 2.3 Add registry, fixture, restore, and route tests that reject `/arena` or knowledge-node placeholders as executable Arena path nodes.
 
 ## 3. Shared Path Journey Controls
 

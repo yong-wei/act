@@ -4,6 +4,7 @@ import {
   coreResourcePathReadinessReviewRef,
   isCoreResourcePathReadinessReviewedNode,
 } from './resource-node-path-readiness-review-batch';
+import { resolveArenaPathTargetIntegrity } from './arena-path-target-integrity';
 
 export const RESOURCE_NODE_TYPES = [
   'lesson_step',
@@ -291,7 +292,14 @@ export interface ResourceNodeAuditIssue {
     | 'missing-runtime-projection-evidence-contract'
     | 'missing-runtime-projection-review-audit'
     | 'provisional-runtime-projection'
-    | 'stale-runtime-projection';
+    | 'stale-runtime-projection'
+    | 'generic-arena-target'
+    | 'knowledge-placeholder-identity'
+    | 'arena-node-id-mismatch'
+    | 'arena-source-kind-mismatch'
+    | 'arena-source-ref-mismatch'
+    | 'arena-route-mismatch'
+    | 'unknown-arena-task';
   message: string;
   severity: 'blocking' | 'warning';
 }
@@ -1232,6 +1240,7 @@ export function auditResourceNode(
     });
   }
   issues.push(...auditExternalResourceNode(node));
+  issues.push(...auditArenaTaskNode(node));
   issues.push(...auditCheckpointNode(node));
   issues.push(...auditRuntimeProjectionPlanning(node));
   issues.push(...auditPathDispositionPlanningEligibility(node));
@@ -1242,6 +1251,24 @@ export function auditResourceNode(
     reasons: issues.map((issue) => issue.code),
     auditIssues: issues,
   };
+}
+
+function auditArenaTaskNode(node: ResourceNode): ResourceNodeAuditIssue[] {
+  const explicitlyPathPlannable = node.planningMetadata.pathDisposition?.kind === 'path-plannable';
+  if (node.type !== 'arena_task' || (node.sourceKind !== 'arena_task' && !explicitlyPathPlannable)) return [];
+  const integrity = resolveArenaPathTargetIntegrity({
+    nodeId: node.id,
+    type: node.type,
+    sourceKind: node.sourceKind,
+    sourceRef: node.sourceRef,
+    target: node.launchTarget,
+  });
+  if (integrity.status !== 'blocked') return [];
+  return [{
+    code: integrity.reason,
+    severity: 'blocking',
+    message: `Arena ResourceNode target integrity failed: ${integrity.reason}.`,
+  }];
 }
 
 export interface ResourcePathPlanningDispositionAuditContext {
