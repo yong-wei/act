@@ -1948,6 +1948,147 @@ const deletedCardProjectionResult = runGate(['--staged']);
 assert.equal(deletedCardProjectionResult.status, 0, 'gate must not require added projection rows for deletion-only runtime sources');
 
 run('git', ['reset', '--hard', 'HEAD'], repo);
+const sourceRenameTestParent = execFileSync('git', ['rev-parse', 'HEAD'], {
+  cwd: repo,
+  encoding: 'utf8',
+}).trim();
+run('git', ['config', 'diff.renames', 'false'], repo);
+const renamedCardPath = path.join(repo, 'course-content/runtime/knowledge/cards/nodes/kn-demo-renamed.md');
+run('git', [
+  'mv',
+  'course-content/runtime/knowledge/cards/nodes/kn-demo.md',
+  'course-content/runtime/knowledge/cards/nodes/kn-demo-renamed.md',
+], repo);
+const renamedCardWithStaleProjectionResult = runGate(['--staged']);
+assert.notEqual(renamedCardWithStaleProjectionResult.status, 0, 'renaming a runtime source must require the old projection row to be deleted');
+assert.match(
+  `${renamedCardWithStaleProjectionResult.stdout}\n${renamedCardWithStaleProjectionResult.stderr}`,
+  /course-content\/runtime\/knowledge\/cards\/nodes\/kn-demo\.md/,
+);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'knowledge-card:kn-demo',
+    family: 'knowledge-card',
+    resourceType: 'knowledge_card',
+    sourceKind: 'knowledge_graph',
+    sourceRef: 'kn-demo-renamed',
+    sourcePathOrUrl: 'course-content/runtime/knowledge/cards/nodes/kn-demo-renamed.md',
+    sourceVersionRef: 'runtime-knowledge-card.v1',
+  }))}\n`,
+);
+run('git', ['add',
+  'course-content/runtime/knowledge/cards/nodes/kn-demo-renamed.md',
+  'course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
+], repo);
+const syncedRenamedCardProjectionResult = runGate(['--staged']);
+assert.equal(syncedRenamedCardProjectionResult.status, 0, 'source rename must pass after deleting the old projection and adding the new projection');
+run('git', ['commit', '--no-verify', '-m', 'rename knowledge card source and projection'], repo);
+const baseSyncedRenamedCardProjectionResult = runGate(['--base', 'HEAD~1']);
+assert.equal(baseSyncedRenamedCardProjectionResult.status, 0, 'base mode must require projection replacement for renamed runtime sources');
+assert.equal(fs.existsSync(renamedCardPath), true, 'renamed source fixture must exist before restoring the parent');
+run('git', ['reset', '--hard', sourceRenameTestParent], repo);
+
+const unmanagedRenameTargetPath = 'course-content/runtime/knowledge/cards/nodes/kn-demo.txt';
+run('git', [
+  'mv',
+  'course-content/runtime/knowledge/cards/nodes/kn-demo.md',
+  unmanagedRenameTargetPath,
+], repo);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'knowledge-card:kn-demo',
+    family: 'knowledge-card',
+    resourceType: 'knowledge_card',
+    sourceKind: 'knowledge_graph',
+    sourceRef: 'kn-demo',
+    sourcePathOrUrl: unmanagedRenameTargetPath,
+    sourceVersionRef: 'runtime-knowledge-card.v1',
+  }))}\n`,
+);
+run('git', ['add',
+  unmanagedRenameTargetPath,
+  'course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
+], repo);
+const unmanagedRenameReplacementResult = runGate(['--staged']);
+assert.notEqual(unmanagedRenameReplacementResult.status, 0, 'renaming a governed source outside governed paths must require a deleted-only old projection');
+assert.match(
+  `${unmanagedRenameReplacementResult.stdout}\n${unmanagedRenameReplacementResult.stderr}`,
+  /missing-deleted-runtime-projection-row.*course-content\/runtime\/knowledge\/cards\/nodes\/kn-demo\.md/,
+);
+run('git', ['commit', '--no-verify', '-m', 'move knowledge card outside governed paths'], repo);
+const baseUnmanagedRenameReplacementResult = runGate(['--base', 'HEAD~1']);
+assert.notEqual(baseUnmanagedRenameReplacementResult.status, 0, 'base mode must reject stable-id replacement when a governed source moves outside governed paths');
+assert.match(
+  `${baseUnmanagedRenameReplacementResult.stdout}\n${baseUnmanagedRenameReplacementResult.stderr}`,
+  /missing-deleted-runtime-projection-row.*course-content\/runtime\/knowledge\/cards\/nodes\/kn-demo\.md/,
+);
+run('git', ['reset', '--hard', sourceRenameTestParent], repo);
+
+const assessmentCatalogRenameTestParent = execFileSync('git', ['rev-parse', 'HEAD'], {
+  cwd: repo,
+  encoding: 'utf8',
+}).trim();
+const oldAssessmentCatalogRelativePath = 'course-content/runtime/resource-governance/adaptive-assessment-item-catalog-items.jsonl';
+const newAssessmentCatalogRelativePath = 'course-content/runtime/resource-governance/assessment-item-semantic-review-packets.jsonl';
+const oldAssessmentCatalogPath = path.join(repo, oldAssessmentCatalogRelativePath);
+const newAssessmentCatalogPath = path.join(repo, newAssessmentCatalogRelativePath);
+const renamedAssessmentCatalogRow = {
+  id: 'adaptive-assessment-item:AC-Q-RENAME',
+  sourcePath: 'course-content/questions/questions/AC-Q-RENAME.json',
+};
+fs.rmSync(newAssessmentCatalogPath);
+fs.writeFileSync(oldAssessmentCatalogPath, `${JSON.stringify(renamedAssessmentCatalogRow)}\n`);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'adaptive-assessment-item:AC-Q-RENAME',
+    family: 'adaptive-assessment-item',
+    resourceType: 'adaptive_quiz',
+    sourceKind: 'resource_registry',
+    sourceRef: 'adaptive-assessment-item:AC-Q-RENAME',
+    sourcePathOrUrl: oldAssessmentCatalogRelativePath,
+    sourceVersionRef: 'adaptive-assessment-item-catalog.v1',
+  }))}\n`,
+);
+run('git', ['add',
+  oldAssessmentCatalogRelativePath,
+  newAssessmentCatalogRelativePath,
+  'course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
+], repo);
+run('git', ['commit', '--no-verify', '-m', 'add renameable assessment catalog baseline'], repo);
+run('git', ['mv', oldAssessmentCatalogRelativePath, newAssessmentCatalogRelativePath], repo);
+const renamedCatalogWithStaleProjectionResult = runGate(['--staged']);
+assert.notEqual(renamedCatalogWithStaleProjectionResult.status, 0, 'renaming an assessment catalog must require projection replacement');
+assert.match(
+  `${renamedCatalogWithStaleProjectionResult.stdout}\n${renamedCatalogWithStaleProjectionResult.stderr}`,
+  /adaptive-assessment-item-catalog-items\.jsonl/,
+);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'adaptive-assessment-item:AC-Q-RENAME',
+    family: 'adaptive-assessment-item',
+    resourceType: 'adaptive_quiz',
+    sourceKind: 'resource_registry',
+    sourceRef: 'adaptive-assessment-item:AC-Q-RENAME',
+    sourcePathOrUrl: newAssessmentCatalogRelativePath,
+    sourceVersionRef: 'assessment-item-semantic-review-packets.v1',
+  }))}\n`,
+);
+run('git', ['add',
+  newAssessmentCatalogRelativePath,
+  'course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
+], repo);
+const syncedRenamedCatalogProjectionResult = runGate(['--staged']);
+assert.equal(syncedRenamedCatalogProjectionResult.status, 0, 'catalog rename must pass after replacing the source path on the stable projection id');
+run('git', ['commit', '--no-verify', '-m', 'rename assessment catalog and projection'], repo);
+const baseSyncedRenamedCatalogProjectionResult = runGate(['--base', 'HEAD~1']);
+assert.equal(baseSyncedRenamedCatalogProjectionResult.status, 0, 'base mode must enforce projection replacement for renamed assessment catalogs');
+run('git', ['reset', '--hard', assessmentCatalogRenameTestParent], repo);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
 fs.writeFileSync(
   path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
   `${baselineCardProjection}\n${JSON.stringify(runtimeProjectionRow({
