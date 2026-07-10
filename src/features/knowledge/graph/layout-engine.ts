@@ -60,6 +60,17 @@ const FOCUSED_EXPANSION_FIRST_RING_RADIUS = 96;
 const FOCUSED_EXPANSION_RING_GAP = 72;
 const NODE_EXPANSION_CONTROL_EDGE_CLEARANCE = 8;
 const NODE_EXPANSION_CONTROL_OFFSET = -40;
+const NODE_EXPANSION_CONTROL_MAX_ANCHOR_DISTANCE = 64;
+const NODE_EXPANSION_CONTROL_AVOIDANCE_OFFSETS = [
+  { x: NODE_EXPANSION_CONTROL_OFFSET, y: NODE_EXPANSION_CONTROL_OFFSET },
+  { x: -NODE_EXPANSION_CONTROL_OFFSET, y: NODE_EXPANSION_CONTROL_OFFSET },
+  { x: NODE_EXPANSION_CONTROL_OFFSET, y: -NODE_EXPANSION_CONTROL_OFFSET },
+  { x: -NODE_EXPANSION_CONTROL_OFFSET, y: -NODE_EXPANSION_CONTROL_OFFSET },
+  { x: 0, y: -64 },
+  { x: -64, y: 0 },
+  { x: 64, y: 0 },
+  { x: 0, y: 64 },
+] as const;
 const FOCUSED_EXPANSION_REVEAL_MAX_VIEWPORT_RATIO = 0.2;
 
 function compareNodeIds(a: string, b: string): number {
@@ -70,6 +81,44 @@ function compareNodeIds(a: string, b: string): number {
 
 function readFiniteCoordinate(value: unknown): number | null {
   return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+function calculateRectangleUnionArea(
+  rectangles: ReadonlyArray<{ left: number; top: number; right: number; bottom: number }>
+): number {
+  if (rectangles.length === 0) return 0;
+  const xBoundaries = [...new Set(rectangles.flatMap((rect) => [rect.left, rect.right]))]
+    .sort((a, b) => a - b);
+  let area = 0;
+  for (let index = 0; index < xBoundaries.length - 1; index += 1) {
+    const left = xBoundaries[index];
+    const right = xBoundaries[index + 1];
+    if (right <= left) continue;
+    const yIntervals = rectangles
+      .filter((rect) => rect.left < right && rect.right > left)
+      .map((rect) => [rect.top, rect.bottom] as const)
+      .sort((a, b) => a[0] - b[0]);
+    let coveredHeight = 0;
+    let intervalTop: number | null = null;
+    let intervalBottom: number | null = null;
+    yIntervals.forEach(([top, bottom]) => {
+      if (intervalTop === null || intervalBottom === null) {
+        intervalTop = top;
+        intervalBottom = bottom;
+      } else if (top <= intervalBottom) {
+        intervalBottom = Math.max(intervalBottom, bottom);
+      } else {
+        coveredHeight += intervalBottom - intervalTop;
+        intervalTop = top;
+        intervalBottom = bottom;
+      }
+    });
+    if (intervalTop !== null && intervalBottom !== null) {
+      coveredHeight += intervalBottom - intervalTop;
+    }
+    area += (right - left) * coveredHeight;
+  }
+  return area;
 }
 
 function calculateRevealAxisTranslation({
@@ -276,6 +325,7 @@ export function clampNodeExpansionControlPosition(input: {
   viewportHeight: number;
   controlWidth: number;
   controlHeight: number;
+  avoidRects?: ReadonlyArray<{ left: number; top: number; right: number; bottom: number }>;
 }): KnowledgeGraphNodeControlPosition | null {
   const nodeX = readFiniteCoordinate(input.nodeX);
   const nodeY = readFiniteCoordinate(input.nodeY);
@@ -298,22 +348,121 @@ export function clampNodeExpansionControlPosition(input: {
     return null;
   }
 
-  const desiredCenterX = nodeX + NODE_EXPANSION_CONTROL_OFFSET;
-  const desiredCenterY = nodeY + NODE_EXPANSION_CONTROL_OFFSET;
-  const desiredLeft = desiredCenterX - controlWidth / 2;
-  const desiredTop = desiredCenterY - controlHeight / 2;
   const maxLeft = viewportWidth - NODE_EXPANSION_CONTROL_EDGE_CLEARANCE - controlWidth;
   const maxTop = viewportHeight - NODE_EXPANSION_CONTROL_EDGE_CLEARANCE - controlHeight;
-  const left = Math.min(maxLeft, Math.max(NODE_EXPANSION_CONTROL_EDGE_CLEARANCE, desiredLeft));
-  const top = Math.min(maxTop, Math.max(NODE_EXPANSION_CONTROL_EDGE_CLEARANCE, desiredTop));
+  const finiteAvoidRects = (input.avoidRects ?? []).filter((rect) => (
+    [rect.left, rect.top, rect.right, rect.bottom].every(Number.isFinite)
+    && rect.right > rect.left
+    && rect.bottom > rect.top
+  ));
+  const avoidRects = finiteAvoidRects.filter((rect, index, rects) => (
+    index === rects.findIndex((candidate) => (
+      candidate.left === rect.left
+      && candidate.top === rect.top
+      && candidate.right === rect.right
+      && candidate.bottom === rect.bottom
+    ))
+    && !rects.some((candidate, candidateIndex) => (
+      candidateIndex !== index
+      && candidate.left <= rect.left
+      && candidate.top <= rect.top
+      && candidate.right >= rect.right
+      && candidate.bottom >= rect.bottom
+      && (
+        candidate.left < rect.left
+        || candidate.top < rect.top
+        || candidate.right > rect.right
+        || candidate.bottom > rect.bottom
+      )
+    ))
+  ));
+  const desiredCandidates = NODE_EXPANSION_CONTROL_AVOIDANCE_OFFSETS.map((offset, index) => ({
+    desiredLeft: nodeX + offset.x - controlWidth / 2,
+    desiredTop: nodeY + offset.y - controlHeight / 2,
+    index,
+  }));
+  avoidRects.forEach((rect) => {
+    const nextIndex = desiredCandidates.length;
+    desiredCandidates.push(
+      {
+        desiredLeft: nodeX - controlWidth / 2,
+        desiredTop: rect.bottom + NODE_EXPANSION_CONTROL_EDGE_CLEARANCE,
+        index: nextIndex,
+      },
+      {
+        desiredLeft: nodeX - controlWidth / 2,
+        desiredTop: rect.top - controlHeight - NODE_EXPANSION_CONTROL_EDGE_CLEARANCE,
+        index: nextIndex + 1,
+      },
+      {
+        desiredLeft: rect.right + NODE_EXPANSION_CONTROL_EDGE_CLEARANCE,
+        desiredTop: nodeY - controlHeight / 2,
+        index: nextIndex + 2,
+      },
+      {
+        desiredLeft: rect.left - controlWidth - NODE_EXPANSION_CONTROL_EDGE_CLEARANCE,
+        desiredTop: nodeY - controlHeight / 2,
+        index: nextIndex + 3,
+      },
+    );
+  });
+  const positionedCandidates = desiredCandidates.map(({ desiredLeft, desiredTop, index }) => {
+    const left = Math.min(maxLeft, Math.max(NODE_EXPANSION_CONTROL_EDGE_CLEARANCE, desiredLeft));
+    const top = Math.min(maxTop, Math.max(NODE_EXPANSION_CONTROL_EDGE_CLEARANCE, desiredTop));
+    const right = left + controlWidth;
+    const bottom = top + controlHeight;
+    const overlapRects = avoidRects.flatMap((rect) => {
+      const overlapWidth = Math.max(0, Math.min(right, rect.right) - Math.max(left, rect.left));
+      const overlapHeight = Math.max(0, Math.min(bottom, rect.bottom) - Math.max(top, rect.top));
+      return overlapWidth > 0 && overlapHeight > 0
+        ? [{
+            left: Math.max(left, rect.left),
+            top: Math.max(top, rect.top),
+            right: Math.min(right, rect.right),
+            bottom: Math.min(bottom, rect.bottom),
+          }]
+        : [];
+    });
+    const overlapArea = calculateRectangleUnionArea(overlapRects);
+    return {
+      position: {
+        left,
+        top,
+        centerX: left + controlWidth / 2,
+        centerY: top + controlHeight / 2,
+        clamped: index > 0 || left !== desiredLeft || top !== desiredTop,
+      },
+      overlapArea,
+      anchorDistance: Math.hypot(
+        left + controlWidth / 2 - nodeX,
+        top + controlHeight / 2 - nodeY
+      ),
+      index,
+    };
+  });
+  const nodeInsideViewport = nodeX >= 0
+    && nodeX <= viewportWidth
+    && nodeY >= 0
+    && nodeY <= viewportHeight;
+  const nearbyCandidates = positionedCandidates.filter((candidate) => (
+    !nodeInsideViewport
+    || candidate.anchorDistance <= NODE_EXPANSION_CONTROL_MAX_ANCHOR_DISTANCE + Number.EPSILON
+  ));
+  const zeroOverlapNearbyCandidates = nearbyCandidates.filter((candidate) => candidate.overlapArea === 0);
+  zeroOverlapNearbyCandidates.sort((left, right) => left.index - right.index);
+  if (zeroOverlapNearbyCandidates[0]) return zeroOverlapNearbyCandidates[0].position;
 
-  return {
-    left,
-    top,
-    centerX: left + controlWidth / 2,
-    centerY: top + controlHeight / 2,
-    clamped: left !== desiredLeft || top !== desiredTop,
-  };
+  const zeroOverlapCandidates = positionedCandidates.filter((candidate) => candidate.overlapArea === 0);
+  zeroOverlapCandidates.sort((left, right) => (
+    left.anchorDistance - right.anchorDistance || left.index - right.index
+  ));
+  if (zeroOverlapCandidates[0]) return zeroOverlapCandidates[0].position;
+
+  const fallbackCandidates = nearbyCandidates.length > 0 ? nearbyCandidates : positionedCandidates;
+  fallbackCandidates.sort((left, right) => (
+    left.overlapArea - right.overlapArea || left.index - right.index
+  ));
+  return fallbackCandidates[0]?.position ?? null;
 }
 
 function resolveNodeCenter(

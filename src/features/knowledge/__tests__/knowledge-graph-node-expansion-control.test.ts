@@ -11,6 +11,7 @@ type ClampNodeExpansionControlPosition = (input: {
   viewportHeight: number;
   controlWidth: number;
   controlHeight: number;
+  avoidRects?: Array<{ left: number; top: number; right: number; bottom: number }>;
 }) => {
   left: number;
   top: number;
@@ -140,6 +141,78 @@ describe('knowledge graph node-local expansion control', () => {
     })).toBeNull();
   });
 
+  it('moves the node-local control around a visible narrow-screen tool panel', () => {
+    const clampPosition = (
+      layoutEngine as typeof layoutEngine & {
+        clampNodeExpansionControlPosition?: ClampNodeExpansionControlPosition;
+      }
+    ).clampNodeExpansionControlPosition;
+    expect(clampPosition).toBeTypeOf('function');
+    if (!clampPosition) return;
+
+    const positioned = clampPosition({
+      nodeX: 144,
+      nodeY: 393,
+      viewportWidth: 288,
+      viewportHeight: 502,
+      controlWidth: 50,
+      controlHeight: 44,
+      avoidRects: [{ left: 13, top: 13, right: 275, bottom: 429 }],
+    });
+
+    expect(positioned).not.toBeNull();
+    expect(positioned!.top).toBeGreaterThanOrEqual(429);
+    expect(positioned!.top + 44).toBeLessThanOrEqual(494);
+    expect(Math.hypot(positioned!.centerX - 144, positioned!.centerY - 393)).toBeLessThanOrEqual(64);
+    expect(positioned!.clamped).toBe(true);
+
+    const projectedBehindToolbar = clampPosition({
+      nodeX: 144,
+      nodeY: 70,
+      viewportWidth: 288,
+      viewportHeight: 502,
+      controlWidth: 50,
+      controlHeight: 44,
+      avoidRects: [{ left: 12, top: 12, right: 276, bottom: 96 }],
+    });
+    expect(projectedBehindToolbar).not.toBeNull();
+    expect(projectedBehindToolbar!.top).toBeGreaterThanOrEqual(104);
+    expect(Math.hypot(
+      projectedBehindToolbar!.centerX - 144,
+      projectedBehindToolbar!.centerY - 70
+    )).toBeLessThanOrEqual(64);
+    expect(projectedBehindToolbar!.clamped).toBe(true);
+
+    const impossibleNearCorner = clampPosition({
+      nodeX: 0,
+      nodeY: 0,
+      viewportWidth: 288,
+      viewportHeight: 502,
+      controlWidth: 50,
+      controlHeight: 44,
+      avoidRects: [{ left: 0, top: 0, right: 60, bottom: 100 }],
+    });
+    expect(impossibleNearCorner).not.toBeNull();
+    const impossibleControlRect = {
+      left: impossibleNearCorner!.left,
+      top: impossibleNearCorner!.top,
+      right: impossibleNearCorner!.left + 50,
+      bottom: impossibleNearCorner!.top + 44,
+    };
+    const impossibleObstacleRect = { left: 0, top: 0, right: 60, bottom: 100 };
+    expect(
+      impossibleControlRect.right <= impossibleObstacleRect.left
+      || impossibleObstacleRect.right <= impossibleControlRect.left
+      || impossibleControlRect.bottom <= impossibleObstacleRect.top
+      || impossibleObstacleRect.bottom <= impossibleControlRect.top
+    ).toBe(true);
+    expect(Math.hypot(
+      impossibleNearCorner!.centerX,
+      impossibleNearCorner!.centerY
+    )).toBeGreaterThan(64);
+    expect(impossibleNearCorner!.clamped).toBe(true);
+  });
+
   it('keeps per-frame projection work bounded and snapshots all runtime coordinates only on engine events', () => {
     const systemSource = readKnowledgeSource('knowledge-graph-system.tsx');
     const rendererSources = [
@@ -161,6 +234,14 @@ describe('knowledge graph node-local expansion control', () => {
 
     expect(systemSource).toContain('id="knowledge-graph-canvas"');
     expect(systemSource).toContain("expansionControlRef.current.dataset.anchorClamped = controlPosition.clamped ? 'true' : 'false';");
+    expect(systemSource).toContain('visibleSelectedNode && !mobileToolPanelOpen');
+    const projectionHandler = systemSource.slice(
+      systemSource.indexOf('const handleSelectedNodeScreenPosition'),
+      systemSource.indexOf('useEffect(() => {', systemSource.indexOf('const handleSelectedNodeScreenPosition'))
+    );
+    expect(projectionHandler).not.toContain('querySelectorAll');
+    expect(projectionHandler).not.toContain('getBoundingClientRect');
+    expect(projectionHandler).not.toContain('getComputedStyle');
   });
 
   it('uses a bounded local reveal in both renderers without fitting the whole graph', () => {

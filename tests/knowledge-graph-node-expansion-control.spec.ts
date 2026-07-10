@@ -283,3 +283,79 @@ test('node-local control remains the same projected button through 2D and 3D mod
   await expect(control).toBeVisible();
   await expectSameControl(page);
 });
+
+test('mobile keyboard expansion restores focus after the inspector closes', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 800 });
+  const expansion = await installGraphRoutes(page);
+  await page.goto(`/knowledge?node=${encodeURIComponent(nodeA.id)}&qa=knowledge-product`);
+
+  const inspector = page.locator('[data-knowledge-inspector]');
+  const canvas = page.locator('[data-knowledge-canvas-primary="true"]');
+  const control = page.locator('[data-knowledge-node-expansion-control]');
+  await expect(inspector).toBeVisible();
+  await expect(page.getByRole('button', { name: '关闭知识节点检查器' })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(inspector).toBeHidden();
+  await expect(canvas).toBeFocused();
+  await page.evaluate(() => {
+    (window as Window & { __issue894Control?: Element }).__issue894Control =
+      document.querySelector('[data-knowledge-node-expansion-control]') ?? undefined;
+  });
+
+  for (let index = 0; index < 12; index += 1) {
+    if (await control.evaluate((element) => element === document.activeElement)) break;
+    await page.keyboard.press('Tab');
+  }
+  await expect(control).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expansion.requested;
+  await expect(control).toHaveAttribute('aria-busy', 'true');
+  expansion.release();
+  await expect(control).toHaveAttribute('data-state', 'expanded');
+  await expectSameControl(page);
+  await waitForFocusAnimationFrame(page);
+  await expect(control).toBeFocused();
+  await expect.poll(() => control.evaluate((element) => element.matches(':focus-visible'))).toBe(true);
+
+  await page.locator('[data-knowledge-mobile-command-surface] button').filter({ hasText: '筛选' }).click();
+  const mobilePanel = page.locator('[data-knowledge-mobile-tool-panel="relation-filters"]');
+  await expect(mobilePanel).toBeVisible();
+  await expect(page.locator('[data-knowledge-expansion-panel="selected-node"]')).toBeHidden();
+  await expect.poll(async () => {
+    const [controlRect, panelRect] = await Promise.all([
+      control.boundingBox(),
+      mobilePanel.boundingBox(),
+    ]);
+    if (!controlRect || !panelRect) return false;
+    return controlRect.x + controlRect.width <= panelRect.x
+      || panelRect.x + panelRect.width <= controlRect.x
+      || controlRect.y + controlRect.height <= panelRect.y
+      || panelRect.y + panelRect.height <= controlRect.y;
+  }).toBe(true);
+});
+
+test('async expansion does not steal focus after the user tabs away', async ({ page }) => {
+  test.setTimeout(20_000);
+  await page.setViewportSize({ width: 1440, height: 960 });
+  const expansion = await installGraphRoutes(page);
+  await page.goto(`/knowledge?node=${encodeURIComponent(nodeA.id)}&qa=knowledge-product`);
+  const control = page.locator('[data-knowledge-node-expansion-control]');
+  await page.getByRole('button', { name: '关闭知识节点检查器' }).click();
+  await expect(page.locator('[data-knowledge-inspector]')).toBeHidden();
+  await control.focus();
+  await expect(control).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expansion.requested;
+  await expect(control).toHaveAttribute('aria-busy', 'true');
+  await page.keyboard.press('Tab');
+  await page.evaluate(() => {
+    (window as Window & { __issue894UserFocus?: Element }).__issue894UserFocus = document.activeElement ?? undefined;
+  });
+  expansion.release();
+  await expect(control).toHaveAttribute('data-state', 'expanded');
+  await waitForFocusAnimationFrame(page);
+  await expect.poll(() => page.evaluate(() => (
+    document.activeElement === (window as Window & { __issue894UserFocus?: Element }).__issue894UserFocus
+  ))).toBe(true);
+  await expect(control).not.toBeFocused();
+});

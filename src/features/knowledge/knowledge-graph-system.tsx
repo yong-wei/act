@@ -88,6 +88,15 @@ const FOCUSABLE_SELECTOR = [
   'textarea:not([disabled])',
   '[tabindex]:not([tabindex="-1"])',
 ].join(',');
+const EXPANSION_CONTROL_AVOIDANCE_SELECTOR = [
+  '[data-knowledge-desktop-command-system]',
+  '[data-knowledge-local-tool-panel]',
+  '[data-knowledge-inspector]',
+  '[data-knowledge-mobile-command-surface]',
+  '[data-knowledge-mobile-tool-panel]',
+  '[data-global-ai-sidebar="open"]',
+  '[data-page-floating-controls="true"]',
+].join(',');
 
 // 知识节点接口 (Aligned with Prisma Model)
 export interface KnowledgeNodeData {
@@ -349,6 +358,13 @@ export function KnowledgeGraphSystem({
   const mobileToolToggleRef = useRef<HTMLButtonElement | null>(null);
   const expansionControlRef = useRef<HTMLButtonElement | null>(null);
   const expansionControlAnchorRef = useRef<HTMLDivElement | null>(null);
+  const expansionControlSizeRef = useRef<{ width: number; height: number } | null>(null);
+  const expansionControlAvoidRectsRef = useRef<Array<{
+    left: number;
+    top: number;
+    right: number;
+    bottom: number;
+  }>>([]);
   const selectedNodeIdRef = useRef<string | null>(selectedNode?.id ?? null);
   const activeProjectionIdentityRef = useRef<{ nodeId: string | null; viewMode: KnowledgeGraphViewMode }>({
     nodeId: selectedNode?.id ?? null,
@@ -359,6 +375,9 @@ export function KnowledgeGraphSystem({
     top: number;
     clamped: boolean;
   } | null>(null);
+  const expansionFocusRequestRef = useRef(0);
+  const expansionFocusAnimationFrameRef = useRef<number | null>(null);
+  const pendingExpansionFocusRef = useRef<{ nodeId: string; requestId: number } | null>(null);
   const expansionActivationInFlightRef = useRef(new Set<string>());
   const rootAutoFitTriggeredRef = useRef(false);
   selectedNodeIdRef.current = selectedNode?.id ?? null;
@@ -378,6 +397,28 @@ export function KnowledgeGraphSystem({
     const nodeId = params.get('node') ?? params.get('nodeId');
     initialRequestedNodeIdRef.current = nodeId;
     setRequestedNodeId(nodeId);
+  }, []);
+
+  useEffect(() => {
+    const cancelPendingFocusRestore = () => {
+      expansionFocusRequestRef.current += 1;
+      pendingExpansionFocusRef.current = null;
+      if (expansionFocusAnimationFrameRef.current !== null) {
+        window.cancelAnimationFrame(expansionFocusAnimationFrameRef.current);
+        expansionFocusAnimationFrameRef.current = null;
+      }
+    };
+    const handleFocusNavigationKey = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Tab' || event.key === 'Escape') {
+        cancelPendingFocusRestore();
+      }
+    };
+    document.addEventListener('pointerdown', cancelPendingFocusRestore, true);
+    document.addEventListener('keydown', handleFocusNavigationKey, true);
+    return () => {
+      document.removeEventListener('pointerdown', cancelPendingFocusRestore, true);
+      document.removeEventListener('keydown', handleFocusNavigationKey, true);
+    };
   }, []);
 
   // 监听容器大小变化
@@ -535,12 +576,17 @@ export function KnowledgeGraphSystem({
     )));
   }, [expandedNodeIds, expansionHasVisibleDescendant, graphCache.graphVersion, graphCache.loadedShardKeys, links, nodes]);
 
-  const restoreExpansionControlFocus = useCallback((nodeId: string) => {
-    window.requestAnimationFrame(() => {
-      if (selectedNodeIdRef.current === nodeId) {
-        expansionControlRef.current?.focus();
-      }
-    });
+  const restoreExpansionControlFocus = useCallback((
+    nodeId: string,
+    focusRequestId: number | null
+  ) => {
+    if (focusRequestId === null) return;
+    if (
+      expansionFocusRequestRef.current === focusRequestId
+      && selectedNodeIdRef.current === nodeId
+    ) {
+      pendingExpansionFocusRef.current = { nodeId, requestId: focusRequestId };
+    }
   }, []);
 
   const handleToggleSelectedExpansion = useCallback(async () => {
@@ -552,6 +598,10 @@ export function KnowledgeGraphSystem({
     ) {
       return;
     }
+    const focusRequestId = document.activeElement === expansionControlRef.current
+      ? ++expansionFocusRequestRef.current
+      : null;
+    restoreExpansionControlFocus(nodeId, focusRequestId);
     setExpansionErrorByNodeId((current) => {
       if (!current[nodeId]) return current;
       const { [nodeId]: _removed, ...remaining } = current;
@@ -561,7 +611,6 @@ export function KnowledgeGraphSystem({
     if (isExpanded) {
       setExpandedNodeIds((current) => current.filter((id) => id !== nodeId));
       setFilteredEmptyExpansionNodeIds((current) => current.filter((id) => id !== nodeId));
-      restoreExpansionControlFocus(nodeId);
       return;
     }
 
@@ -574,7 +623,6 @@ export function KnowledgeGraphSystem({
           ? current.filter((id) => id !== nodeId)
           : current.includes(nodeId) ? current : [...current, nodeId]
       ));
-      restoreExpansionControlFocus(nodeId);
       return;
     }
 
@@ -613,7 +661,6 @@ export function KnowledgeGraphSystem({
           ? current.loadingShardKeys.filter((key) => key !== expectedShardKey)
           : current.loadingShardKeys,
       }));
-      restoreExpansionControlFocus(nodeId);
     }
   }, [expandedNodeIds, expansionHasVisibleDescendant, graphCache.graphVersion, graphCache.loadedShardKeys, links, loadingExpansionNodeIds, nodes, restoreExpansionControlFocus, selectedNode]);
 
@@ -988,6 +1035,118 @@ export function KnowledgeGraphSystem({
         : selectedNodeExpansionState === 'expanded'
           ? '当前节点的局部子图已展开，缓存继续保留。'
           : '当前节点折叠显示，激活后按需加载局部子图。';
+  const mobileKonlingModalOpen = aiSidebarOpen && dimensions.width < 640;
+
+  useEffect(() => {
+    if (selectedNodeLoadingExpansion) return;
+    let attemptsRemaining = 60;
+    const focusWhenVisible = () => {
+      const pendingFocus = pendingExpansionFocusRef.current;
+      const control = expansionControlRef.current;
+      const anchor = expansionControlAnchorRef.current;
+      if (
+        !pendingFocus
+        || expansionFocusRequestRef.current !== pendingFocus.requestId
+        || visibleSelectedNode?.id !== pendingFocus.nodeId
+      ) {
+        if (pendingFocus) pendingExpansionFocusRef.current = null;
+        expansionFocusAnimationFrameRef.current = null;
+        return;
+      }
+      if (control?.isConnected && anchor?.style.visibility === 'visible') {
+        if (document.activeElement !== control) control.focus();
+      }
+      attemptsRemaining -= 1;
+      if (attemptsRemaining <= 0) {
+        pendingExpansionFocusRef.current = null;
+        expansionFocusAnimationFrameRef.current = null;
+        return;
+      }
+      expansionFocusAnimationFrameRef.current = window.requestAnimationFrame(focusWhenVisible);
+    };
+    focusWhenVisible();
+    return () => {
+      if (expansionFocusAnimationFrameRef.current !== null) {
+        window.cancelAnimationFrame(expansionFocusAnimationFrameRef.current);
+        expansionFocusAnimationFrameRef.current = null;
+      }
+    };
+  }, [selectedNodeExpansionState, selectedNodeLoadingExpansion, visibleSelectedNode?.id]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    const control = expansionControlRef.current;
+    if (!container || !control) {
+      expansionControlSizeRef.current = null;
+      expansionControlAvoidRectsRef.current = [];
+      return;
+    }
+
+    let animationFrame = 0;
+    const refreshGeometry = () => {
+      window.cancelAnimationFrame(animationFrame);
+      animationFrame = window.requestAnimationFrame(() => {
+        const containerBounds = container.getBoundingClientRect();
+        const controlBounds = control.getBoundingClientRect();
+        expansionControlSizeRef.current = {
+          width: controlBounds.width,
+          height: controlBounds.height,
+        };
+        expansionControlAvoidRectsRef.current = Array.from(
+          document.querySelectorAll<HTMLElement>(EXPANSION_CONTROL_AVOIDANCE_SELECTOR)
+        ).flatMap((element) => {
+          const bounds = element.getBoundingClientRect();
+          const style = window.getComputedStyle(element);
+          if (
+            bounds.width <= 0
+            || bounds.height <= 0
+            || style.display === 'none'
+            || style.visibility === 'hidden'
+          ) {
+            return [];
+          }
+          return [{
+            left: bounds.left - containerBounds.left,
+            top: bounds.top - containerBounds.top,
+            right: bounds.right - containerBounds.left,
+            bottom: bounds.bottom - containerBounds.top,
+          }];
+        });
+      });
+    };
+    const observedElements = [
+      container,
+      control,
+      ...Array.from(document.querySelectorAll<HTMLElement>(EXPANSION_CONTROL_AVOIDANCE_SELECTOR)),
+    ];
+    const resizeObserver = new ResizeObserver(refreshGeometry);
+    observedElements.forEach((element) => {
+      resizeObserver.observe(element);
+      element.addEventListener('transitionend', refreshGeometry);
+    });
+    window.addEventListener('resize', refreshGeometry);
+    refreshGeometry();
+
+    return () => {
+      window.cancelAnimationFrame(animationFrame);
+      resizeObserver.disconnect();
+      observedElements.forEach((element) => {
+        element.removeEventListener('transitionend', refreshGeometry);
+      });
+      window.removeEventListener('resize', refreshGeometry);
+    };
+  }, [
+    aiSidebarOpen,
+    desktopActiveTool,
+    dimensions.height,
+    dimensions.width,
+    mobileActiveTool,
+    mobileToolPanelOpen,
+    selectedNodeExpansionState,
+    viewMode,
+    visiblePanelOpen,
+    visibleSelectedNode?.id,
+  ]);
   activeProjectionIdentityRef.current = {
     nodeId: visibleSelectedNode?.id ?? null,
     viewMode,
@@ -1015,24 +1174,24 @@ export function KnowledgeGraphSystem({
       return;
     }
 
-    const container = containerRef.current;
     const anchor = expansionControlAnchorRef.current;
-    if (!container || !anchor) {
+    if (!anchor) {
       clearSelectedNodeProjection();
       return;
     }
-    const controlBounds = expansionControlRef.current?.getBoundingClientRect();
-    if (!controlBounds) {
+    const controlSize = expansionControlSizeRef.current;
+    if (!controlSize) {
       clearSelectedNodeProjection();
       return;
     }
     const controlPosition = clampNodeExpansionControlPosition({
       nodeX: position.x as number,
       nodeY: position.y as number,
-      viewportWidth: container.clientWidth,
-      viewportHeight: container.clientHeight,
-      controlWidth: controlBounds.width,
-      controlHeight: controlBounds.height,
+      viewportWidth: dimensions.width,
+      viewportHeight: dimensions.height,
+      controlWidth: controlSize.width,
+      controlHeight: controlSize.height,
+      avoidRects: expansionControlAvoidRectsRef.current,
     });
     if (!controlPosition) {
       clearSelectedNodeProjection();
@@ -1059,7 +1218,7 @@ export function KnowledgeGraphSystem({
       expansionControlRef.current.dataset.anchorClamped = controlPosition.clamped ? 'true' : 'false';
     }
     lastExpansionControlPositionRef.current = controlPosition;
-  }, [clearSelectedNodeProjection]);
+  }, [clearSelectedNodeProjection, dimensions.height, dimensions.width]);
 
   useEffect(() => {
     clearSelectedNodeProjection();
@@ -2029,7 +2188,7 @@ export function KnowledgeGraphSystem({
           </div>
         )}
 
-        {visibleSelectedNode && (
+        {visibleSelectedNode && !mobileKonlingModalOpen && (
           <div className="pointer-events-none absolute inset-0 z-40">
             <div
               ref={expansionControlAnchorRef}
@@ -2071,7 +2230,7 @@ export function KnowledgeGraphSystem({
           </div>
         )}
 
-        {visibleSelectedNode && (
+        {visibleSelectedNode && !mobileToolPanelOpen && !mobileKonlingModalOpen && (
           <div
             className="absolute bottom-4 left-4 z-30 max-w-[min(24rem,calc(100vw-2rem))] rounded-xl border border-platform-border bg-platform-surface/95 p-3 text-xs text-platform-fg-primary shadow-lg backdrop-blur-md"
             data-knowledge-expansion-panel="selected-node"
