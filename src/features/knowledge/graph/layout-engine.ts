@@ -1,6 +1,148 @@
-import { KnowledgeNodeData, KnowledgeLinkData } from '../knowledge-graph-system';
+import type { KnowledgeNodeData, KnowledgeLinkData } from '../knowledge-graph-system';
 import { CHAPTER_DISPLAY_ORDER } from '@/lib/knowledge-labels';
 import { CHAPTER_NODE_PREFIX } from './filter-utils';
+import type { KnowledgeGraphLayoutState } from './layout-state';
+
+export interface KnowledgeGraphPositionedNode extends KnowledgeNodeData {
+  x?: number;
+  y?: number;
+  z?: number;
+  fx?: number;
+  fy?: number;
+  fz?: number;
+  __knowledgeAutomaticAnchor?: {
+    id: string;
+    x: number;
+    y: number;
+    z?: number;
+  };
+}
+
+export interface KnowledgeGraphFocusedExpansionLayoutInput<T extends KnowledgeGraphPositionedNode> {
+  nodes: T[];
+  expandedNodeIds: readonly string[];
+  directExpansionLinks: readonly KnowledgeLinkData[];
+  layoutState: KnowledgeGraphLayoutState;
+}
+
+const FOCUSED_EXPANSION_RING_CAPACITY = 8;
+const FOCUSED_EXPANSION_FIRST_RING_RADIUS = 96;
+const FOCUSED_EXPANSION_RING_GAP = 72;
+
+function compareNodeIds(a: string, b: string): number {
+  if (a < b) return -1;
+  if (a > b) return 1;
+  return 0;
+}
+
+function readFiniteCoordinate(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+function resolveNodeCenter(
+  node: KnowledgeGraphPositionedNode,
+  layoutState: KnowledgeGraphLayoutState
+): { x: number; y: number } {
+  const pinned = layoutState.positionsByNodeId[node.id];
+  if (pinned?.pinned) {
+    return { x: pinned.x, y: pinned.y };
+  }
+
+  const runtimeX = readFiniteCoordinate(node.x);
+  const runtimeY = readFiniteCoordinate(node.y);
+  if (runtimeX !== null && runtimeY !== null) {
+    return { x: runtimeX, y: runtimeY };
+  }
+
+  return {
+    x: readFiniteCoordinate(node.positionX) ?? 0,
+    y: readFiniteCoordinate(node.positionY) ?? 0,
+  };
+}
+
+export function applyFocusedExpansionLayout<T extends KnowledgeGraphPositionedNode>({
+  nodes,
+  expandedNodeIds,
+  directExpansionLinks,
+  layoutState,
+}: KnowledgeGraphFocusedExpansionLayoutInput<T>): T[] {
+  const nodeById = new Map(nodes.map((node) => [node.id, node]));
+  const expandedIds = [...new Set(expandedNodeIds)]
+    .filter((nodeId) => nodeById.has(nodeId))
+    .sort(compareNodeIds);
+  const expandedIdSet = new Set(expandedIds);
+  const focusedCoordinates = new Map<string, { x: number; y: number }>();
+
+  expandedIds.forEach((centerId) => {
+    const centerNode = nodeById.get(centerId);
+    if (!centerNode) return;
+
+    const directChildIds = new Set<string>();
+    directExpansionLinks.forEach((link) => {
+      if (link.sourceId === centerId && link.targetId !== centerId) {
+        directChildIds.add(link.targetId);
+      } else if (link.targetId === centerId && link.sourceId !== centerId) {
+        directChildIds.add(link.sourceId);
+      }
+    });
+
+    const orderedChildIds = [...directChildIds]
+      .filter((nodeId) => nodeById.has(nodeId) && !expandedIdSet.has(nodeId))
+      .sort(compareNodeIds);
+    const center = resolveNodeCenter(centerNode, layoutState);
+
+    orderedChildIds.forEach((childId, index) => {
+      if (focusedCoordinates.has(childId)) return;
+      const ringIndex = Math.floor(index / FOCUSED_EXPANSION_RING_CAPACITY);
+      const slotIndex = index % FOCUSED_EXPANSION_RING_CAPACITY;
+      const nodesInRing = Math.min(
+        FOCUSED_EXPANSION_RING_CAPACITY,
+        orderedChildIds.length - ringIndex * FOCUSED_EXPANSION_RING_CAPACITY
+      );
+      const angle = -Math.PI / 2 + (slotIndex / nodesInRing) * 2 * Math.PI;
+      const radius = FOCUSED_EXPANSION_FIRST_RING_RADIUS + ringIndex * FOCUSED_EXPANSION_RING_GAP;
+      focusedCoordinates.set(childId, {
+        x: center.x + radius * Math.cos(angle),
+        y: center.y + radius * Math.sin(angle),
+      });
+    });
+  });
+
+  return nodes.map((node) => {
+    const pinned = layoutState.positionsByNodeId[node.id];
+    if (pinned?.pinned) {
+      return {
+        ...node,
+        x: pinned.x,
+        y: pinned.y,
+        positionX: pinned.x,
+        positionY: pinned.y,
+        fx: pinned.x,
+        fy: pinned.y,
+        ...(pinned.z === undefined
+          ? {}
+          : { z: pinned.z, positionZ: pinned.z, fz: pinned.z }),
+      } as T;
+    }
+
+    const focused = focusedCoordinates.get(node.id);
+    if (!focused) return node;
+    return {
+      ...node,
+      x: focused.x,
+      y: focused.y,
+      positionX: focused.x,
+      positionY: focused.y,
+      fx: focused.x,
+      fy: focused.y,
+      __knowledgeAutomaticAnchor: {
+        id: node.id,
+        x: focused.x,
+        y: focused.y,
+      },
+    } as T;
+  });
+}
 
 /**
  * Calculates a Radial Layout for the graph.
