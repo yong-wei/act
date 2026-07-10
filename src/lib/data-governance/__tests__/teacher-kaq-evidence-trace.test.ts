@@ -14,6 +14,10 @@ import {
 } from '../adaptive-learner-state-service';
 import { createEmptyCompetencyVector, type CompetencyDimension, type CompetencyVector } from '../competency-model';
 import {
+  derivePortraitV2Compatibility,
+  projectPortraitV2ForConsumer,
+} from '../portrait-v2-model';
+import {
   createLearningEvidenceCorpusChunk,
   validateLearningEvidenceCorpusChunk,
   type LearningEvidenceCorpusChunk,
@@ -248,7 +252,16 @@ function classOverlayLearnerStates(): AdaptiveLearnerState[] {
         authoritative: false,
         reason: 'client-hints-non-authoritative',
       },
+      primaryPortrait: projectPortraitV2ForConsumer(
+        derivePortraitV2Compatibility({
+          userId: `learner-${index}`,
+          snapshotAt: '2026-06-21T00:00:00.000Z',
+          vector,
+        }),
+        'student',
+      ),
       primaryCompetencies: {
+        authority: 'legacy-compatibility-only',
         source: 'fallback-empty',
         vector,
       },

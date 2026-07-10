@@ -1843,6 +1843,25 @@ model StudentCompetencySnapshot {
   @@index([snapshotAt])
 }
 
+// Canonical seven-dimensional learner portrait. Legacy competency snapshots
+// remain separate compatibility inputs and are never written into this model.
+model StudentPortraitV2Snapshot {
+  id                 String   @id @default(cuid())
+  userId             String
+  snapshotAt         DateTime
+  payloadVersion     String
+  calculationVersion String
+  migrationVersion   String
+  derivationKind     String
+  payload            Json
+  createdAt          DateTime @default(now())
+
+  @@index([userId, snapshotAt])
+  @@index([snapshotAt])
+  @@index([payloadVersion, calculationVersion])
+  @@index([derivationKind, snapshotAt])
+}
+
 model StudentEvidenceFeatureCache {
   id                String    @id @default(cuid())
   userId            String    @unique

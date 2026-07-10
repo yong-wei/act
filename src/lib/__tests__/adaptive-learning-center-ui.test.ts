@@ -25,6 +25,11 @@ import {
 } from '@/features/adaptive/adaptive-learning-center-contracts';
 import { buildPlatformStatusViewModel } from '@/components/platform/platform-ui-contracts';
 import type { AdaptiveLearnerState } from '@/lib/data-governance/adaptive-learner-state-service';
+import { createEmptyCompetencyVector } from '@/lib/data-governance/competency-model';
+import {
+  derivePortraitV2Compatibility,
+  projectPortraitV2ForConsumer,
+} from '@/lib/data-governance/portrait-v2-model';
 import { ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES } from '@/lib/adaptive-learning-path-planner';
 import type { AdaptiveLearningPathPlan } from '@/lib/adaptive-learning-path-planner';
 import {
@@ -81,7 +86,16 @@ function learnerState(overrides: Partial<AdaptiveLearnerState> = {}): AdaptiveLe
       authoritative: false,
       reason: 'client-hints-non-authoritative',
     },
+    primaryPortrait: projectPortraitV2ForConsumer(
+      derivePortraitV2Compatibility({
+        userId: 'student-1',
+        snapshotAt: '2026-05-28T06:00:00.000Z',
+        vector: createEmptyCompetencyVector(),
+      }),
+      'student',
+    ),
     primaryCompetencies: {
+      authority: 'legacy-compatibility-only',
       source: 'latest-snapshot',
       vector: {} as AdaptiveLearnerState['primaryCompetencies']['vector'],
     },

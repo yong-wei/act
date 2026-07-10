@@ -1,6 +1,10 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  derivePortraitV2Compatibility,
+  projectPortraitV2ForConsumer,
+} from '@/lib/data-governance/portrait-v2-model';
 
 const mocks = vi.hoisted(() => ({
   readAdaptiveLearnerState: vi.fn(),
@@ -288,6 +292,14 @@ function createGraphLearnerState(
     evidenceCount: 1,
     source: 'primary-competency-derived',
   };
+  const vector = {
+    controlModeling: competencyScore,
+    parameterDesign: competencyScore,
+    crossDomainTransfer: competencyScore,
+    engineeringDecision: competencyScore,
+    inquiryReflection: competencyScore,
+    selfDirectedLearning: competencyScore,
+  };
 
   return {
     userId,
@@ -309,16 +321,19 @@ function createGraphLearnerState(
       authoritative: false,
       reason: 'client-hints-non-authoritative',
     },
+    primaryPortrait: projectPortraitV2ForConsumer(
+      derivePortraitV2Compatibility({
+        userId,
+        snapshotAt: '2026-06-21T00:00:00.000Z',
+        sourceFamily: 'StudentEvidenceFeatureCache',
+        vector,
+      }),
+      'student',
+    ),
     primaryCompetencies: {
+      authority: 'legacy-compatibility-only',
       source: 'feature-cache',
-      vector: {
-        controlModeling: competencyScore,
-        parameterDesign: competencyScore,
-        crossDomainTransfer: competencyScore,
-        engineeringDecision: competencyScore,
-        inquiryReflection: competencyScore,
-        selfDirectedLearning: competencyScore,
-      },
+      vector,
     },
     secondaryDimensions: {
       conceptMastery: { ...secondaryDimension, primaryDimension: 'controlModeling' },
@@ -1294,6 +1309,7 @@ describe('konling agent runtime', () => {
       role: 'student',
       classId: 'class-1',
       goal: 'control-correction',
+      portraitConsumer: 'konling',
     }));
     const contract = buildKonlingTeachingAssistantRuntimeContract({
       modeId: 'path-advisor',
@@ -1601,6 +1617,7 @@ describe('konling agent runtime', () => {
       role: 'teacher',
       classId: 'class-1',
       goal: 'control-correction',
+      portraitConsumer: 'konling',
     }));
   });
 
