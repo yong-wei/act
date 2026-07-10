@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server';
 
 import { buildAuthorizedAdaptivePathJourney } from '@/features/adaptive/adaptive-path-journey-contracts';
 import { resolveArenaPathTargetIntegrity } from '@/lib/arena-path-target-integrity';
+import {
+  remapPathNodeId,
+  remapPathNodeReferences,
+} from '@/lib/path-node-id-alias-remap';
 import { prisma } from '@/lib/prisma';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import {
@@ -127,7 +131,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
             pathId: params.id,
             userId: path.userId,
             goalId: path.goalId ?? null,
-            nodeId: canonicalizeArenaNodeId(existingExecution.nodeId, canonicalPath.nodeIdReplacements),
+            nodeId: remapPathNodeId(existingExecution.nodeId, canonicalPath.nodeIdReplacements),
             resourceType: existingExecution.resourceType,
             status: existingStatus,
             startedAt: existingExecution.startedAt ?? null,
@@ -185,7 +189,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
         const cacheRefresh = await refreshPathEvidenceFeatureCache(path.userId);
         const journey = await readFreshJourney(
           params.id,
-          canonicalizeArenaNodeId(existingExecution.nodeId, canonicalPath.nodeIdReplacements),
+          remapPathNodeId(existingExecution.nodeId, canonicalPath.nodeIdReplacements),
         );
         return NextResponse.json({ execution: toExecutionWriteView(execution), cacheRefresh, journey });
       }
@@ -278,7 +282,7 @@ function isCanonicalExecutionReplay(
   body: any,
   nodeIdReplacements: ReadonlyMap<string, string> = new Map(),
 ): boolean {
-  return canonicalizeArenaNodeId(existingExecution.nodeId, nodeIdReplacements) === body.nodeId &&
+  return remapPathNodeId(existingExecution.nodeId, nodeIdReplacements) === body.nodeId &&
     existingExecution.resourceType === body.resourceType &&
     existingExecution.status === body.status;
 }
@@ -301,46 +305,33 @@ function canonicalizeVerifiedLegacyArenaPath(path: any): {
   }
   if (nodeIdReplacements.size === 0) return { path, nodeIdReplacements };
 
-  const replaceIds = (value: unknown): string[] => (
-    Array.isArray(value)
-      ? value.filter((item): item is string => typeof item === 'string')
-        .map((nodeId) => canonicalizeArenaNodeId(nodeId, nodeIdReplacements))
-      : []
-  );
-  const planNodes = rawPlanNodes.map((node) => {
+  const canonicalPlanNodes = rawPlanNodes.map((node) => {
     const legacyNodeId = typeof node.nodeId === 'string' ? node.nodeId : '';
     const canonicalTarget = canonicalTargets.get(legacyNodeId);
     return {
       ...node,
       ...(canonicalTarget ?? {}),
-      prerequisiteNodeIds: replaceIds(node.prerequisiteNodeIds),
     };
   });
-  const executionStatus = toRecord(payload.executionStatus);
   const terminalValidation = toRecord(path.terminalValidation);
   const terminalLegacyNodeId = typeof terminalValidation.nodeId === 'string'
     ? terminalValidation.nodeId
     : '';
   const terminalTarget = canonicalTargets.get(terminalLegacyNodeId);
 
+  const canonicalizedPath = remapPathNodeReferences({
+    ...path,
+    pathPayload: {
+      ...payload,
+      planNodes: canonicalPlanNodes,
+    },
+  }, nodeIdReplacements);
   return {
     nodeIdReplacements,
     path: {
-      ...path,
-      nodeIds: replaceIds(path.nodeIds),
-      currentNodeId: canonicalizeArenaNodeId(path.currentNodeId, nodeIdReplacements),
-      pathPayload: {
-        ...payload,
-        mainPathNodeIds: replaceIds(payload.mainPathNodeIds),
-        planNodes,
-        executionStatus: {
-          ...executionStatus,
-          activeNodeId: canonicalizeArenaNodeId(executionStatus.activeNodeId, nodeIdReplacements),
-          completedNodeIds: replaceIds(executionStatus.completedNodeIds),
-        },
-      },
+      ...canonicalizedPath,
       terminalValidation: {
-        ...terminalValidation,
+        ...toRecord(canonicalizedPath.terminalValidation),
         ...(terminalTarget ? {
           nodeId: terminalTarget.nodeId,
           sourceKind: terminalTarget.sourceKind,
@@ -349,37 +340,8 @@ function canonicalizeVerifiedLegacyArenaPath(path: any): {
           target: terminalTarget.target,
         } : {}),
       },
-      lastExecutionMetadata: canonicalizeExecutionMetadata(
-        path.lastExecutionMetadata,
-        nodeIdReplacements,
-      ),
     },
   };
-}
-
-function canonicalizeExecutionMetadata(
-  value: unknown,
-  replacements: ReadonlyMap<string, string>,
-): Record<string, unknown> {
-  const metadata = toRecord(value);
-  const replace = (items: unknown) => Array.isArray(items)
-    ? items.filter((item): item is string => typeof item === 'string')
-      .map((nodeId) => canonicalizeArenaNodeId(nodeId, replacements))
-    : [];
-  return {
-    ...metadata,
-    completedNodeIds: replace(metadata.completedNodeIds),
-    failedNodeIds: replace(metadata.failedNodeIds),
-    skippedNodeIds: replace(metadata.skippedNodeIds),
-    activeNodeId: canonicalizeArenaNodeId(metadata.activeNodeId, replacements),
-  };
-}
-
-function canonicalizeArenaNodeId(
-  value: unknown,
-  replacements: ReadonlyMap<string, string>,
-): any {
-  return typeof value === 'string' ? replacements.get(value) ?? value : value;
 }
 
 function toRecord(value: unknown): Record<string, unknown> {

@@ -4,6 +4,10 @@ import {
   isAdaptivePracticeGoalId,
 } from '@/lib/adaptive-path-goal-options';
 import { resolveArenaPathTargetIntegrity } from '@/lib/arena-path-target-integrity';
+import {
+  remapPathNodeId,
+  remapPathNodeReferences,
+} from '@/lib/path-node-id-alias-remap';
 
 export interface LearningPathRoundForRestore {
   id: string;
@@ -25,31 +29,33 @@ export function restoreAdaptiveLearningPathPlanFromRound(
   const payload = round.pathPayload ?? {};
   const rawPlanNodes = Array.isArray(payload.planNodes) ? payload.planNodes : [];
   const restoredArenaTargets = restoreArenaPathTargets(rawPlanNodes, payload.fixtureScope);
-  const planNodes = restoredArenaTargets.planNodes;
+  const planNodes = remapPathNodeReferences(
+    restoredArenaTargets.planNodes,
+    restoredArenaTargets.nodeIdReplacements,
+  );
   const rawAlternatives = Array.isArray(payload.alternatives)
     ? payload.alternatives
     : Array.isArray(round.alternativePayload)
       ? round.alternativePayload
       : [];
-  const alternatives = replaceRestoredNodeIdsDeep(
+  const alternatives = remapPathNodeReferences(
     rawAlternatives,
     restoredArenaTargets.nodeIdReplacements,
   );
-  const explanations = restoreExplanations(
-    round.explanationPayload,
-    payload.explanations,
-    planNodes.length === 0,
-  );
-
-  const currentNodeId = replaceRestoredNodeId(round.currentNodeId, restoredArenaTargets.nodeIdReplacements);
-  const executionStatus = restoreExecutionStatus(payload.executionStatus, currentNodeId);
-  executionStatus.activeNodeId = replaceRestoredNodeId(
-    executionStatus.activeNodeId,
+  const explanations = remapPathNodeReferences(
+    restoreExplanations(
+      round.explanationPayload,
+      payload.explanations,
+      planNodes.length === 0,
+    ),
     restoredArenaTargets.nodeIdReplacements,
   );
-  executionStatus.completedNodeIds = executionStatus.completedNodeIds.map((nodeId) => (
-    replaceRestoredNodeId(nodeId, restoredArenaTargets.nodeIdReplacements) ?? nodeId
-  ));
+
+  const currentNodeId = remapPathNodeId(round.currentNodeId, restoredArenaTargets.nodeIdReplacements);
+  const executionStatus = remapPathNodeReferences(
+    restoreExecutionStatus(payload.executionStatus, currentNodeId),
+    restoredArenaTargets.nodeIdReplacements,
+  );
 
   return {
     id: round.id,
@@ -80,19 +86,19 @@ export function restoreAdaptiveLearningPathPlanFromRound(
     },
     explanations,
     executionStatus,
-    deviations: replaceRestoredNodeIdsDeep(
+    deviations: remapPathNodeReferences(
       payload.deviations ?? [],
       restoredArenaTargets.nodeIdReplacements,
     ) as AdaptiveLearningPathPlan['deviations'],
-    corrections: replaceRestoredNodeIdsDeep(
+    corrections: remapPathNodeReferences(
       payload.corrections ?? [],
       restoredArenaTargets.nodeIdReplacements,
     ) as AdaptiveLearningPathPlan['corrections'],
-    feedbackEvents: replaceRestoredNodeIdsDeep(
+    feedbackEvents: remapPathNodeReferences(
       restoreFeedbackEvents(payload),
       restoredArenaTargets.nodeIdReplacements,
     ) as AdaptiveLearningPathPlan['feedbackEvents'],
-    visualization: replaceRestoredNodeIdsDeep(
+    visualization: remapPathNodeReferences(
       payload.visualization,
       restoredArenaTargets.nodeIdReplacements,
     ) as AdaptiveLearningPathPlan['visualization'],
@@ -153,27 +159,6 @@ function restoreArenaPathTargets(
     nodeIdReplacements,
     blocked,
   };
-}
-
-function replaceRestoredNodeId(
-  nodeId: string | null | undefined,
-  replacements: ReadonlyMap<string, string>,
-): string | null {
-  if (!nodeId) return null;
-  return replacements.get(nodeId) ?? nodeId;
-}
-
-function replaceRestoredNodeIdsDeep(
-  value: unknown,
-  replacements: ReadonlyMap<string, string>,
-): unknown {
-  if (typeof value === 'string') return replacements.get(value) ?? value;
-  if (Array.isArray(value)) return value.map((item) => replaceRestoredNodeIdsDeep(item, replacements));
-  if (!value || typeof value !== 'object') return value;
-  return Object.fromEntries(Object.entries(value).map(([key, child]) => [
-    key,
-    replaceRestoredNodeIdsDeep(child, replacements),
-  ]));
 }
 
 function restoreExplanations(

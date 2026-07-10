@@ -4842,12 +4842,47 @@ describe('learning path round API routes', () => {
   ])('executes canonical Arena identity through verified legacy registry path %s', async (registryId, taskId) => {
     const legacyNodeId = `registry:${registryId}`;
     const canonicalNodeId = `arena-task:${taskId}`;
-    configureSingleNodePath(legacyNodeId, 'arena_task', `/arena/challenges/${taskId}`, {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      classId: 'class-1',
       goalId: 'control-correction',
-      planNode: {
-        sourceKind: 'resource_registry',
-        sourceRef: registryId,
+      pathStatus: 'active',
+      currentNodeId: legacyNodeId,
+      nodeIds: [legacyNodeId, 'reflection:post-arena-review'],
+      pathPayload: {
+        mainPathNodeIds: [legacyNodeId, 'reflection:post-arena-review'],
+        planNodes: [
+          {
+            nodeId: legacyNodeId,
+            type: 'arena_task',
+            sourceKind: 'resource_registry',
+            sourceRef: registryId,
+            target: `/arena/challenges/${taskId}`,
+          },
+          {
+            nodeId: 'reflection:post-arena-review',
+            type: 'reflection',
+            target: '/profile/growth?prompt=post-arena-review',
+            prerequisiteNodeIds: [legacyNodeId, canonicalNodeId],
+            readiness: {
+              state: 'locked',
+              requiredCompletedNodeIds: [legacyNodeId, canonicalNodeId],
+              fallbackNodeIds: [legacyNodeId, canonicalNodeId],
+              missingCompletedNodeIds: [legacyNodeId, canonicalNodeId],
+              missingCompetencies: [],
+              missingEvidenceCount: 0,
+              missingOutcomeRefs: [],
+            },
+          },
+        ],
+        executionStatus: {
+          activeNodeId: legacyNodeId,
+          completedNodeIds: [],
+        },
       },
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      lastExecutionMetadata: { completedNodeIds: [] },
     });
 
     const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
@@ -4861,6 +4896,96 @@ describe('learning path round API routes', () => {
     expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
       nodeId: canonicalNodeId,
       resourceType: 'arena_task',
+    }));
+    const update = mocks.prisma.learningPath.update.mock.calls[0][0];
+    const serializedUpdate = JSON.stringify(update);
+    expect(serializedUpdate).not.toContain(legacyNodeId);
+    expect(update).toMatchObject({
+      data: {
+        pathPayload: {
+          planNodes: expect.arrayContaining([
+            expect.objectContaining({
+              nodeId: 'reflection:post-arena-review',
+              prerequisiteNodeIds: [canonicalNodeId],
+              readiness: expect.objectContaining({
+                requiredCompletedNodeIds: [canonicalNodeId],
+                fallbackNodeIds: [canonicalNodeId],
+                missingCompletedNodeIds: [canonicalNodeId],
+              }),
+            }),
+          ]),
+        },
+      },
+    });
+  });
+
+  it('unlocks a dependent node after completing a canonicalized legacy registry Arena node', async () => {
+    const legacyNodeId = 'registry:arena-challenge-workbench';
+    const canonicalNodeId = 'arena-task:task-second-order-lead-pid';
+    mocks.prisma.learningPath.findUnique.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: legacyNodeId,
+      nodeIds: [legacyNodeId, 'reflection:post-arena-review'],
+      pathPayload: {
+        mainPathNodeIds: [legacyNodeId, 'reflection:post-arena-review'],
+        planNodes: [
+          {
+            nodeId: legacyNodeId,
+            type: 'arena_task',
+            sourceKind: 'resource_registry',
+            sourceRef: 'arena-challenge-workbench',
+            target: '/arena/challenges/task-second-order-lead-pid',
+          },
+          {
+            nodeId: 'reflection:post-arena-review',
+            type: 'reflection',
+            target: '/profile/growth?prompt=post-arena-review',
+            prerequisiteNodeIds: [legacyNodeId],
+            readiness: {
+              state: 'locked',
+              requiredCompletedNodeIds: [legacyNodeId],
+              fallbackNodeIds: [legacyNodeId],
+              missingCompletedNodeIds: [legacyNodeId],
+              missingCompetencies: [],
+              missingEvidenceCount: 0,
+              missingOutcomeRefs: [],
+            },
+          },
+        ],
+      },
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      lastExecutionMetadata: { completedNodeIds: [] },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: canonicalNodeId,
+      resourceType: 'arena_task',
+      status: 'completed',
+      idempotencyKey: 'complete-verified-registry-arena',
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: 'reflection:post-arena-review',
+        pathPayload: expect.objectContaining({
+          planNodes: expect.arrayContaining([
+            expect.objectContaining({
+              nodeId: 'reflection:post-arena-review',
+              status: 'current',
+              prerequisiteNodeIds: [canonicalNodeId],
+              readiness: expect.objectContaining({
+                state: 'ready',
+                missingCompletedNodeIds: [],
+              }),
+            }),
+          ]),
+        }),
+      }),
     }));
   });
 

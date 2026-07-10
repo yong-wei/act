@@ -203,19 +203,37 @@ describe('adaptive path round restore', () => {
       pathStatus: 'active',
       currentNodeId: legacyNodeId,
       pathPayload: {
-        mainPathNodeIds: [legacyNodeId],
-        planNodes: [{
-          nodeId: legacyNodeId,
-          title: 'Legacy production Arena node',
-          type: 'arena_task',
-          sourceKind: 'resource_registry',
-          sourceRef: registryId,
-          target: `/arena/challenges/${taskId}`,
-          reasonCodes: [],
-        }],
+        mainPathNodeIds: [legacyNodeId, 'reflection:post-arena-review'],
+        planNodes: [
+          {
+            nodeId: legacyNodeId,
+            title: 'Legacy production Arena node',
+            type: 'arena_task',
+            sourceKind: 'resource_registry',
+            sourceRef: registryId,
+            target: `/arena/challenges/${taskId}`,
+            reasonCodes: [],
+          },
+          {
+            nodeId: 'reflection:post-arena-review',
+            title: 'Arena 后续反思',
+            type: 'reflection',
+            prerequisiteNodeIds: [legacyNodeId, canonicalNodeId],
+            prerequisiteBasis: [{ nodeId: legacyNodeId, source: 'PlanningUnit' }],
+            readiness: {
+              state: 'locked',
+              requiredCompletedNodeIds: [legacyNodeId, canonicalNodeId],
+              fallbackNodeIds: [legacyNodeId, canonicalNodeId],
+              missingCompletedNodeIds: [legacyNodeId, canonicalNodeId],
+              missingCompetencies: [],
+              missingEvidenceCount: 0,
+              missingOutcomeRefs: [],
+            },
+          },
+        ],
         executionStatus: {
           activeNodeId: legacyNodeId,
-          completedNodeIds: [],
+          completedNodeIds: [legacyNodeId, canonicalNodeId],
         },
       },
     });
@@ -229,9 +247,19 @@ describe('adaptive path round restore', () => {
         sourceRef: taskId,
         target: `/arena/challenges/${taskId}`,
         reasonCodes: expect.arrayContaining(['verified-legacy-arena-registry-mapping']),
+      }, {
+        nodeId: 'reflection:post-arena-review',
+        prerequisiteNodeIds: [canonicalNodeId],
+        prerequisiteBasis: [{ nodeId: canonicalNodeId, source: 'PlanningUnit' }],
+        readiness: expect.objectContaining({
+          requiredCompletedNodeIds: [canonicalNodeId],
+          fallbackNodeIds: [canonicalNodeId],
+          missingCompletedNodeIds: [canonicalNodeId],
+        }),
       }],
       executionStatus: {
         activeNodeId: canonicalNodeId,
+        completedNodeIds: [canonicalNodeId],
       },
     });
   });
