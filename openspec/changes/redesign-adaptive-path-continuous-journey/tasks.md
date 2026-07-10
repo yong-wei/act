@@ -1,8 +1,8 @@
 ## 1. Journey Contract And Server State
 
-- [ ] 1.1 Define the authorized adaptive-path journey view, next-action states, and shared builders for current progress, return target, ready next node, blocked result, and completed path.
-- [ ] 1.2 Add an owner-validated journey read endpoint and return the recomputed journey view from new and idempotently replayed execution completion writes.
-- [ ] 1.3 Add API and unit coverage for ready, blocked, pending-result, path-complete, unauthorized, and replayed journey states.
+- [x] 1.1 Define the authorized adaptive-path journey view, next-action states, and shared builders for current progress, return target, ready next node, blocked result, and completed path.
+- [x] 1.2 Add an owner-validated journey read endpoint and return the recomputed journey view from new and idempotently replayed execution completion writes.
+- [x] 1.3 Add API and unit coverage for ready, blocked, pending-result, path-complete, unauthorized, and replayed journey states.
 
 ## 2. Arena Target Integrity
 

@@ -32,6 +32,7 @@ export async function readPathForAccess(pathId: string): Promise<any | NextRespo
     where: { id: pathId },
     select: {
       id: true,
+      title: true,
       userId: true,
       classId: true,
       goalId: true,
@@ -167,6 +168,15 @@ export function assertCanWriteStudentPath(
 ): NextResponse | null {
   if (requester.role === 'admin' || requester.userId === path.userId) return null;
   return NextResponse.json({ error: '无权写入该学习路径' }, { status: 403 });
+}
+
+export function assertCanReadOwnedPathJourney(
+  requester: LearningPathRequester,
+  path: { userId: string },
+): NextResponse | null {
+  if (requester.role === 'admin') return null;
+  if (requester.role === 'student' && requester.userId === path.userId) return null;
+  return NextResponse.json({ error: '无权访问该学习路径旅程' }, { status: 403 });
 }
 
 export function assertCanWritePathIntervention(

@@ -620,12 +620,16 @@ export async function updateControlCorrectionPathRoundAfterExecution(
   const terminalFailureReasons = arrayOfStrings(terminalValidation.failureReasons);
   const terminalLowConfidenceMarkers = arrayOfStrings(terminalValidation.lowConfidenceMarkers);
   const terminalFallbackReasons = terminalFailureReasons.concat(terminalLowConfidenceMarkers);
+  const terminalRequired = Boolean(terminalNodeId) && terminalState !== 'not-required';
+  const allNodesComplete = mainPathNodeIds.length > 0 && mainPathNodeIds.every((nodeId) => completedNodeIds.has(nodeId));
   const nextPathStatus = isTerminalExecution
     ? terminalState === 'completed'
       ? 'completed'
       : terminalState === 'failed' || terminalState === 'low-confidence'
         ? 'fallback'
         : path.pathStatus ?? 'active'
+    : allNodesComplete && !terminalRequired
+      ? 'completed'
     : path.pathStatus ?? 'active';
 
   return db.learningPath.update({

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 
+import { buildAuthorizedAdaptivePathJourney } from '@/features/adaptive/adaptive-path-journey-contracts';
 import { prisma } from '@/lib/prisma';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import {
@@ -126,7 +127,8 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
             : false;
           if (existingHistoricalActivity && !canReplayHistoricalActivity) {
             const cacheRefresh = await refreshPathEvidenceFeatureCache(path.userId);
-            return NextResponse.json({ execution: toExecutionWriteView(existingExecution), cacheRefresh });
+            const journey = await readFreshJourney(params.id, existingExecution.nodeId);
+            return NextResponse.json({ execution: toExecutionWriteView(existingExecution), cacheRefresh, journey });
           }
           const governedExternalInput = await resolveGovernedExternalResourceEvidence(prisma as any, path, existingPathNode, executionInput);
           if (governedExternalInput instanceof NextResponse) return governedExternalInput;
@@ -142,7 +144,8 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
           }
         }
         const cacheRefresh = await refreshPathEvidenceFeatureCache(path.userId);
-        return NextResponse.json({ execution: toExecutionWriteView(execution), cacheRefresh });
+        const journey = await readFreshJourney(params.id, existingExecution.nodeId);
+        return NextResponse.json({ execution: toExecutionWriteView(execution), cacheRefresh, journey });
       }
     }
     const activityKind = readPathActivityKind(body.liftMetadata);
@@ -184,13 +187,22 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
       await updateControlCorrectionPathRoundAfterExecution(prisma as any, path, executionInput);
     }
     const cacheRefresh = await refreshPathEvidenceFeatureCache(path.userId);
+    const journey = await readFreshJourney(params.id, body.nodeId);
 
-    return NextResponse.json({ execution: toExecutionWriteView(execution), cacheRefresh });
+    return NextResponse.json({ execution: toExecutionWriteView(execution), cacheRefresh, journey });
   } catch (error) {
     rethrowIfNextDynamicError(error);
     console.error('[LearningPathExecute] Error:', error);
     return NextResponse.json({ error: '记录路径执行失败' }, { status: 500 });
   }
+}
+
+async function readFreshJourney(pathId: string, requestedNodeId: string) {
+  const freshPath = await readPathForAccess(pathId);
+  if (freshPath instanceof NextResponse) {
+    throw new Error('Learning path disappeared before journey recomputation');
+  }
+  return buildAuthorizedAdaptivePathJourney(freshPath, { requestedNodeId });
 }
 
 export async function GET() {

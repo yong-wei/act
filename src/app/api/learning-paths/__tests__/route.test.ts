@@ -88,6 +88,29 @@ function post(url: string, body: unknown) {
   });
 }
 
+function journeyPathRecord(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 'path-1',
+    userId: 'student-1',
+    classId: 'class-1',
+    title: '校正学习路径',
+    goalId: 'control-correction',
+    pathStatus: 'active',
+    currentNodeId: 'node-1',
+    nodeIds: ['node-1', 'node-2'],
+    pathPayload: {
+      mainPathNodeIds: ['node-1', 'node-2'],
+      planNodes: [
+        { nodeId: 'node-1', title: '知识回顾', type: 'knowledge_card', target: '/knowledge/card-1', status: 'current', readiness: { state: 'ready' } },
+        { nodeId: 'node-2', title: '校正练习', type: 'adaptive_quiz', target: '/assessment/adaptive-practice', status: 'next', readiness: { state: 'ready' } },
+      ],
+    },
+    terminalValidation: { nodeId: null, state: 'not-required' },
+    lastExecutionMetadata: { completedNodeIds: [], failedNodeIds: [], skippedNodeIds: [] },
+    ...overrides,
+  };
+}
+
 function useStructuredTerminalPath() {
   mocks.prisma.learningPath.findUnique.mockResolvedValue({
     id: 'path-1',
@@ -5211,6 +5234,146 @@ describe('learning path round API routes', () => {
 
     expect(response.status).toBe(200);
     expect(payload.execution.id).toBe('exec-old-history');
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
+  });
+
+  it('returns a fresh persisted journey after a new completion advances the path', async () => {
+    const before = journeyPathRecord();
+    const after = journeyPathRecord({
+      currentNodeId: 'node-2',
+      lastExecutionMetadata: { completedNodeIds: ['node-1'], failedNodeIds: [], skippedNodeIds: [] },
+    });
+    mocks.prisma.learningPath.findUnique
+      .mockResolvedValueOnce(before)
+      .mockResolvedValueOnce(after);
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'node-1',
+      resourceType: 'knowledge_card',
+      status: 'completed',
+      idempotencyKey: 'journey-new-completion',
+    }), params);
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.journey).toMatchObject({
+      current: { nodeId: 'node-2' },
+      progress: { completed: 1, total: 2 },
+      nextAction: { state: 'ready', nodeId: 'node-2' },
+    });
+    expect(mocks.prisma.learningPath.findUnique).toHaveBeenCalledTimes(2);
+  });
+
+  it('persists path completion when every node is complete and terminal validation is not required', async () => {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue(journeyPathRecord({
+      currentNodeId: 'node-1',
+      nodeIds: ['node-1'],
+      pathPayload: {
+        mainPathNodeIds: ['node-1'],
+        planNodes: [
+          { nodeId: 'node-1', title: '知识回顾', type: 'knowledge_card', target: '/knowledge/card-1', status: 'current', readiness: { state: 'ready' } },
+        ],
+      },
+    }));
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'node-1',
+      resourceType: 'knowledge_card',
+      status: 'completed',
+      idempotencyKey: 'journey-non-terminal-complete',
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ pathStatus: 'completed' }),
+    }));
+  });
+
+  it('does not persist path completion when a remaining node was only skipped', async () => {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue(journeyPathRecord({
+      currentNodeId: 'node-1',
+      lastExecutionMetadata: { completedNodeIds: [], failedNodeIds: [], skippedNodeIds: ['node-2'] },
+    }));
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'node-1',
+      resourceType: 'knowledge_card',
+      status: 'completed',
+      idempotencyKey: 'journey-skipped-not-complete',
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ pathStatus: 'active' }),
+    }));
+  });
+
+  it('repairs the parent path on a current-node replay and returns the fresh journey once', async () => {
+    const before = journeyPathRecord();
+    const after = journeyPathRecord({
+      currentNodeId: 'node-2',
+      lastExecutionMetadata: { completedNodeIds: ['node-1'], failedNodeIds: [], skippedNodeIds: [] },
+    });
+    const existing = {
+      id: 'exec-existing-current',
+      pathId: 'path-1',
+      idempotencyKey: 'journey-parent-repair',
+      nodeId: 'node-1',
+      resourceType: 'knowledge_card',
+      status: 'completed',
+      completedAt: new Date('2026-07-10T10:00:00.000Z'),
+      liftMetadata: { pathActivityKind: 'initial-completion' },
+      evidenceRefs: [],
+    };
+    mocks.prisma.learningPath.findUnique
+      .mockResolvedValueOnce(before)
+      .mockResolvedValueOnce(after);
+    mocks.prisma.learningPathExecution.findFirst.mockResolvedValueOnce(existing);
+    mocks.recordPathNodeExecution.mockResolvedValueOnce(existing);
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'node-1',
+      resourceType: 'knowledge_card',
+      status: 'completed',
+      idempotencyKey: 'journey-parent-repair',
+    }), params);
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.journey.nextAction).toMatchObject({ state: 'ready', nodeId: 'node-2' });
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns the current authoritative journey for a historical replay without advancing again', async () => {
+    const current = journeyPathRecord({
+      currentNodeId: 'node-2',
+      lastExecutionMetadata: { completedNodeIds: ['node-1'], failedNodeIds: [], skippedNodeIds: [] },
+    });
+    mocks.prisma.learningPath.findUnique.mockResolvedValue(current);
+    mocks.prisma.learningPathExecution.findFirst.mockResolvedValueOnce({
+      id: 'exec-existing-history',
+      pathId: 'path-1',
+      idempotencyKey: 'journey-historical-replay',
+      nodeId: 'node-1',
+      resourceType: 'knowledge_card',
+      status: 'completed',
+      liftMetadata: { rawLegacyPayload: true },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'node-1',
+      resourceType: 'knowledge_card',
+      status: 'completed',
+      idempotencyKey: 'journey-historical-replay',
+    }), params);
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.journey).toMatchObject({
+      current: { nodeId: 'node-2' },
+      nextAction: { state: 'ready', nodeId: 'node-2' },
+    });
     expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
     expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
   });
