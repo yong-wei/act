@@ -1404,6 +1404,592 @@ assert.match(
 );
 
 run('git', ['reset', '--hard', 'HEAD'], repo);
+const infographDeletionTestParent = execFileSync('git', ['rev-parse', 'HEAD'], {
+  cwd: repo,
+  encoding: 'utf8',
+}).trim();
+fs.writeFileSync(infographManifestPath, JSON.stringify({
+  schema_version: 1,
+  items: [
+    {
+      type: 'infograph',
+      nodeId: 'kn-demo',
+      path: 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png',
+    },
+  ],
+}, null, 2));
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'infograph:kn-demo',
+    family: 'knowledge-infograph',
+    resourceType: 'image',
+    sourceKind: 'knowledge_graph',
+    sourceRef: 'kn-demo',
+    sourcePathOrUrl: 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png',
+    sourceVersionRef: 'knowledge-infograph-manifest.v1',
+    independentEvidenceRef: 'course-content/runtime/knowledge/infographs/manifest.json#kn-demo',
+    promptOrManifestHash: sha256File(infographManifestPath),
+    reviewedSourceHash: sha256File(path.join(repo, 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png')),
+  }))}\n`,
+);
+run('git', ['add',
+  'course-content/runtime/knowledge/infographs/manifest.json',
+  'course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
+], repo);
+run('git', ['commit', '--no-verify', '-m', 'add deletable infograph manifest item'], repo);
+
+fs.writeFileSync(infographManifestPath, JSON.stringify({ schema_version: 1, items: [] }, null, 2));
+run('git', ['add', 'course-content/runtime/knowledge/infographs/manifest.json'], repo);
+const deletedInfographWithRetainedProjectionResult = runGate(['--staged']);
+assert.notEqual(deletedInfographWithRetainedProjectionResult.status, 0, 'deleting an infograph manifest item must require its projection row to be deleted');
+assert.match(
+  `${deletedInfographWithRetainedProjectionResult.stdout}\n${deletedInfographWithRetainedProjectionResult.stderr}`,
+  /missing-deleted-runtime-projection-row/,
+);
+fs.writeFileSync(path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'), '');
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const deletedInfographProjectionResult = runGate(['--staged']);
+assert.equal(deletedInfographProjectionResult.status, 0, 'infograph item deletion must pass after deleting its projection row');
+run('git', ['commit', '--no-verify', '-m', 'delete infograph manifest item and projection'], repo);
+const baseDeletedInfographProjectionResult = runGate(['--base', 'HEAD~1']);
+assert.equal(baseDeletedInfographProjectionResult.status, 0, 'base mode must enforce deleted infograph projection coverage');
+run('git', ['reset', '--hard', infographDeletionTestParent], repo);
+
+fs.writeFileSync(infographManifestPath, JSON.stringify({
+  schema_version: 1,
+  items: [
+    {
+      type: 'infograph',
+      nodeId: 'kn-demo',
+      path: 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png',
+    },
+  ],
+}, null, 2));
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'infograph:kn-demo',
+    family: 'knowledge-infograph',
+    resourceType: 'image',
+    sourceKind: 'knowledge_graph',
+    sourceRef: 'kn-demo',
+    sourcePathOrUrl: 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png',
+    sourceVersionRef: 'knowledge-infograph-manifest.v1',
+    independentEvidenceRef: 'course-content/runtime/knowledge/infographs/manifest.json#kn-demo',
+    promptOrManifestHash: sha256File(infographManifestPath),
+    reviewedSourceHash: sha256File(path.join(repo, 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png')),
+  }))}\n`,
+);
+run('git', ['add',
+  'course-content/runtime/knowledge/infographs/manifest.json',
+  'course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
+], repo);
+run('git', ['commit', '--no-verify', '-m', 'add infograph field deletion baseline'], repo);
+
+fs.writeFileSync(infographManifestPath, JSON.stringify({
+  schema_version: 1,
+  items: [
+    {
+      nodeId: 'kn-demo',
+      path: 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png',
+    },
+  ],
+}, null, 2));
+run('git', ['add', 'course-content/runtime/knowledge/infographs/manifest.json'], repo);
+const staleInfographFieldDeletionResult = runGate(['--staged']);
+assert.notEqual(staleInfographFieldDeletionResult.status, 0, 'deleting only an infograph item field must require the surviving projection hash to be updated');
+assert.match(
+  `${staleInfographFieldDeletionResult.stdout}\n${staleInfographFieldDeletionResult.stderr}`,
+  /missing-knowledge-infograph-runtime-projection-row/,
+);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'infograph:kn-demo',
+    family: 'knowledge-infograph',
+    resourceType: 'image',
+    sourceKind: 'knowledge_graph',
+    sourceRef: 'kn-demo',
+    sourcePathOrUrl: 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png',
+    sourceVersionRef: 'knowledge-infograph-manifest.v1',
+    independentEvidenceRef: 'course-content/runtime/knowledge/infographs/manifest.json#kn-demo',
+    promptOrManifestHash: sha256File(infographManifestPath),
+    reviewedSourceHash: sha256File(path.join(repo, 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png')),
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const syncedInfographFieldDeletionResult = runGate(['--staged']);
+assert.equal(syncedInfographFieldDeletionResult.status, 0, 'infograph field deletion must pass after updating the surviving projection hash');
+run('git', ['commit', '--no-verify', '-m', 'delete infograph field and update projection'], repo);
+const baseSyncedInfographFieldDeletionResult = runGate(['--base', 'HEAD~1']);
+assert.equal(baseSyncedInfographFieldDeletionResult.status, 0, 'base mode must map deletion-only infograph fields back to the surviving item');
+run('git', ['reset', '--hard', infographDeletionTestParent], repo);
+
+fs.writeFileSync(infographManifestPath, JSON.stringify({
+  schema_version: 1,
+  items: [
+    {
+      nodeId: 'kn-alias',
+      path: 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png',
+    },
+  ],
+}, null, 2));
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'infograph:kn-alias',
+    family: 'knowledge-infograph',
+    resourceType: 'image',
+    sourceKind: 'knowledge_graph',
+    sourceRef: 'kn-alias',
+    sourcePathOrUrl: 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png',
+    sourceVersionRef: 'knowledge-infograph-manifest.v1',
+    independentEvidenceRef: 'course-content/runtime/knowledge/infographs/manifest.json#kn-alias',
+    promptOrManifestHash: sha256File(infographManifestPath),
+    reviewedSourceHash: sha256File(path.join(repo, 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png')),
+  }))}\n`,
+);
+run('git', ['add',
+  'course-content/runtime/knowledge/infographs/manifest.json',
+  'course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
+], repo);
+run('git', ['commit', '--no-verify', '-m', 'add infograph identity deletion baseline'], repo);
+
+fs.writeFileSync(infographManifestPath, JSON.stringify({
+  schema_version: 1,
+  items: [
+    {
+      path: 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png',
+    },
+  ],
+}, null, 2));
+fs.writeFileSync(path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'), '');
+run('git', ['add',
+  'course-content/runtime/knowledge/infographs/manifest.json',
+  'course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
+], repo);
+const deletedIdentityWithDeletedProjectionResult = runGate(['--staged']);
+assert.notEqual(deletedIdentityWithDeletedProjectionResult.status, 0, 'deleting an infograph identity field must require an upsert for the surviving path-backed item');
+assert.match(
+  `${deletedIdentityWithDeletedProjectionResult.stdout}\n${deletedIdentityWithDeletedProjectionResult.stderr}`,
+  /missing-knowledge-infograph-runtime-projection-row/,
+);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'infograph:kn-alias',
+    family: 'knowledge-infograph',
+    resourceType: 'image',
+    sourceKind: 'knowledge_graph',
+    sourceRef: 'kn-demo',
+    sourcePathOrUrl: 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png',
+    sourceVersionRef: 'knowledge-infograph-manifest.v1',
+    independentEvidenceRef: 'course-content/runtime/knowledge/infographs/manifest.json#kn-demo',
+    promptOrManifestHash: sha256File(infographManifestPath),
+    reviewedSourceHash: sha256File(path.join(repo, 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png')),
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const syncedInfographIdentityDeletionResult = runGate(['--staged']);
+assert.equal(syncedInfographIdentityDeletionResult.status, 0, 'identity field deletion must pass after replacing the projection with the surviving path-backed identity');
+run('git', ['commit', '--no-verify', '-m', 'delete infograph identity field and replace projection'], repo);
+const baseSyncedInfographIdentityDeletionResult = runGate(['--base', 'HEAD~1']);
+assert.equal(baseSyncedInfographIdentityDeletionResult.status, 0, 'base mode must map deleted infograph identity fields by stable path');
+run('git', ['reset', '--hard', infographDeletionTestParent], repo);
+
+fs.writeFileSync(infographManifestPath, JSON.stringify({
+  schema_version: 1,
+  items: [
+    {
+      nodeId: 'kn-a',
+      path: 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png',
+    },
+    {
+      nodeId: 'kn-b',
+      path: 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png',
+    },
+  ],
+}, null, 2));
+const sharedPathInfographProjection = (nodeId) => JSON.stringify(runtimeProjectionRow({
+  id: `infograph:${nodeId}`,
+  family: 'knowledge-infograph',
+  resourceType: 'image',
+  sourceKind: 'knowledge_graph',
+  sourceRef: nodeId,
+  sourcePathOrUrl: 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png',
+  sourceVersionRef: 'knowledge-infograph-manifest.v1',
+  independentEvidenceRef: `course-content/runtime/knowledge/infographs/manifest.json#${nodeId}`,
+  promptOrManifestHash: sha256File(infographManifestPath),
+  reviewedSourceHash: sha256File(path.join(repo, 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png')),
+}));
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${sharedPathInfographProjection('kn-a')}\n${sharedPathInfographProjection('kn-b')}\n`,
+);
+run('git', ['add',
+  'course-content/runtime/knowledge/infographs/manifest.json',
+  'course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
+], repo);
+run('git', ['commit', '--no-verify', '-m', 'add shared-path infograph deletion baseline'], repo);
+const sharedPathInfographBaselineHead = execFileSync('git', ['rev-parse', 'HEAD'], {
+  cwd: repo,
+  encoding: 'utf8',
+}).trim();
+const sharedPathBaselineProjectionRows = fs.readFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  'utf8',
+).trim().split('\n');
+
+fs.writeFileSync(infographManifestPath, JSON.stringify({
+  schema_version: 1,
+  items: [
+    {
+      nodeId: 'kn-a',
+      path: 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png',
+    },
+  ],
+}, null, 2));
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${sharedPathInfographProjection('kn-a')}\n${sharedPathBaselineProjectionRows[1]}\n`,
+);
+run('git', ['add',
+  'course-content/runtime/knowledge/infographs/manifest.json',
+  'course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
+], repo);
+const retainedDeletedSharedPathItemProjectionResult = runGate(['--staged']);
+assert.notEqual(retainedDeletedSharedPathItemProjectionResult.status, 0, 'deleting one shared-path manifest item must require that exact item projection to be deleted');
+assert.match(
+  `${retainedDeletedSharedPathItemProjectionResult.stdout}\n${retainedDeletedSharedPathItemProjectionResult.stderr}`,
+  /manifest\.json#kn-b/,
+);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${sharedPathInfographProjection('kn-a')}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const deletedOneSharedPathItemProjectionResult = runGate(['--staged']);
+assert.equal(deletedOneSharedPathItemProjectionResult.status, 0, 'deleting one shared-path item must pass after deleting only its exact projection');
+run('git', ['commit', '--no-verify', '-m', 'delete one shared-path infograph item and projection'], repo);
+const baseDeletedOneSharedPathItemProjectionResult = runGate(['--base', 'HEAD~1']);
+assert.equal(baseDeletedOneSharedPathItemProjectionResult.status, 0, 'base mode must preserve exact identity when one shared-path item is deleted');
+run('git', ['reset', '--hard', sharedPathInfographBaselineHead], repo);
+
+fs.writeFileSync(infographManifestPath, JSON.stringify({ schema_version: 1, items: [] }, null, 2));
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${sharedPathInfographProjection('kn-b')}\n`,
+);
+run('git', ['add',
+  'course-content/runtime/knowledge/infographs/manifest.json',
+  'course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
+], repo);
+const partiallyDeletedSharedPathInfographResult = runGate(['--staged']);
+assert.notEqual(partiallyDeletedSharedPathInfographResult.status, 0, 'one deleted projection row must not satisfy two deleted manifest items that share an image path');
+assert.match(
+  `${partiallyDeletedSharedPathInfographResult.stdout}\n${partiallyDeletedSharedPathInfographResult.stderr}`,
+  /manifest\.json#kn-b/,
+);
+fs.writeFileSync(path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'), '');
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const deletedSharedPathInfographResult = runGate(['--staged']);
+assert.equal(deletedSharedPathInfographResult.status, 0, 'shared-path infograph deletion must pass only after both projection rows are deleted');
+run('git', ['commit', '--no-verify', '-m', 'delete shared-path infograph items and projections'], repo);
+const baseDeletedSharedPathInfographResult = runGate(['--base', 'HEAD~1']);
+assert.equal(baseDeletedSharedPathInfographResult.status, 0, 'base mode must enforce one deleted projection per shared-path infograph item');
+run('git', ['reset', '--hard', infographDeletionTestParent], repo);
+
+const alternateInfographImagePath = path.join(repo, 'course-content/runtime/knowledge/infographs/nodes/kn-alternate.png');
+fs.writeFileSync(alternateInfographImagePath, 'alternate-infograph-image');
+fs.writeFileSync(infographManifestPath, JSON.stringify({
+  schema_version: 1,
+  items: [
+    {
+      nodeId: 'kn-demo',
+      path: 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png',
+    },
+  ],
+}, null, 2));
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'infograph:kn-demo',
+    family: 'knowledge-infograph',
+    resourceType: 'image',
+    sourceKind: 'knowledge_graph',
+    sourceRef: 'kn-demo',
+    sourcePathOrUrl: 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png',
+    sourceVersionRef: 'knowledge-infograph-manifest.v1',
+    independentEvidenceRef: 'course-content/runtime/knowledge/infographs/manifest.json#kn-demo',
+    promptOrManifestHash: sha256File(infographManifestPath),
+    reviewedSourceHash: sha256File(path.join(repo, 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png')),
+  }))}\n`,
+);
+run('git', ['add',
+  'course-content/runtime/knowledge/infographs/manifest.json',
+  'course-content/runtime/knowledge/infographs/nodes/kn-alternate.png',
+  'course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
+], repo);
+run('git', ['commit', '--no-verify', '-m', 'add infograph path change baseline'], repo);
+
+fs.writeFileSync(infographManifestPath, JSON.stringify({
+  schema_version: 1,
+  items: [
+    {
+      nodeId: 'kn-demo',
+      path: 'course-content/runtime/knowledge/infographs/nodes/kn-alternate.png',
+    },
+  ],
+}, null, 2));
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'infograph:kn-demo',
+    family: 'knowledge-infograph',
+    resourceType: 'image',
+    sourceKind: 'knowledge_graph',
+    sourceRef: 'kn-demo',
+    sourcePathOrUrl: 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png',
+    sourceVersionRef: 'knowledge-infograph-manifest.v1',
+    independentEvidenceRef: 'course-content/runtime/knowledge/infographs/manifest.json#kn-demo',
+    promptOrManifestHash: sha256File(infographManifestPath),
+    reviewedSourceHash: sha256File(path.join(repo, 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png')),
+  }))}\n`,
+);
+run('git', ['add',
+  'course-content/runtime/knowledge/infographs/manifest.json',
+  'course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
+], repo);
+const staleInfographPathChangeResult = runGate(['--staged']);
+assert.notEqual(staleInfographPathChangeResult.status, 0, 'changing an infograph item path must require the projection to use the new image path');
+assert.match(
+  `${staleInfographPathChangeResult.stdout}\n${staleInfographPathChangeResult.stderr}`,
+  /missing-knowledge-infograph-runtime-projection-row/,
+);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'infograph:kn-demo',
+    family: 'knowledge-infograph',
+    resourceType: 'image',
+    sourceKind: 'knowledge_graph',
+    sourceRef: 'kn-demo',
+    sourcePathOrUrl: 'course-content/runtime/knowledge/infographs/nodes/kn-alternate.png',
+    sourceVersionRef: 'knowledge-infograph-manifest.v1',
+    independentEvidenceRef: 'course-content/runtime/knowledge/infographs/manifest.json#kn-demo',
+    promptOrManifestHash: sha256File(infographManifestPath),
+    reviewedSourceHash: sha256File(alternateInfographImagePath),
+  }))}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const syncedInfographPathChangeResult = runGate(['--staged']);
+assert.equal(syncedInfographPathChangeResult.status, 0, 'infograph path change must pass after updating identity, path, and hashes together');
+run('git', ['commit', '--no-verify', '-m', 'change infograph item path and projection'], repo);
+const baseSyncedInfographPathChangeResult = runGate(['--base', 'HEAD~1']);
+assert.equal(baseSyncedInfographPathChangeResult.status, 0, 'base mode must enforce the current infograph item path');
+run('git', ['reset', '--hard', infographDeletionTestParent], repo);
+
+fs.writeFileSync(alternateInfographImagePath, 'alternate-infograph-image');
+fs.writeFileSync(infographManifestPath, JSON.stringify({
+  schema_version: 1,
+  items: [
+    {
+      nodeId: 'kn-shared-id',
+      path: 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png',
+    },
+    {
+      nodeId: 'kn-shared-id',
+      path: 'course-content/runtime/knowledge/infographs/nodes/kn-alternate.png',
+    },
+  ],
+}, null, 2));
+const duplicateIdentityInfographProjection = (id, imagePath) => JSON.stringify(runtimeProjectionRow({
+  id,
+  family: 'knowledge-infograph',
+  resourceType: 'image',
+  sourceKind: 'knowledge_graph',
+  sourceRef: 'kn-shared-id',
+  sourcePathOrUrl: imagePath,
+  sourceVersionRef: 'knowledge-infograph-manifest.v1',
+  independentEvidenceRef: 'course-content/runtime/knowledge/infographs/manifest.json#kn-shared-id',
+  promptOrManifestHash: sha256File(infographManifestPath),
+  reviewedSourceHash: sha256File(path.join(repo, imagePath)),
+}));
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${duplicateIdentityInfographProjection('infograph:kn-shared-a', 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png')}\n${duplicateIdentityInfographProjection('infograph:kn-shared-b', 'course-content/runtime/knowledge/infographs/nodes/kn-alternate.png')}\n`,
+);
+run('git', ['add',
+  'course-content/runtime/knowledge/infographs/manifest.json',
+  'course-content/runtime/knowledge/infographs/nodes/kn-alternate.png',
+  'course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
+], repo);
+run('git', ['commit', '--no-verify', '-m', 'add duplicate-identity infograph baseline'], repo);
+const duplicateIdentityBaselineRows = fs.readFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  'utf8',
+).trim().split('\n');
+
+fs.writeFileSync(infographManifestPath, JSON.stringify({
+  schema_version: 1,
+  items: [
+    {
+      nodeId: 'kn-shared-id',
+      path: 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png',
+    },
+  ],
+}, null, 2));
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${duplicateIdentityInfographProjection('infograph:kn-shared-a', 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png')}\n${duplicateIdentityBaselineRows[1]}\n`,
+);
+run('git', ['add',
+  'course-content/runtime/knowledge/infographs/manifest.json',
+  'course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
+], repo);
+const retainedDuplicateIdentityProjectionResult = runGate(['--staged']);
+assert.notEqual(retainedDuplicateIdentityProjectionResult.status, 0, 'duplicate record identities must not map a deleted item onto the surviving item');
+assert.match(
+  `${retainedDuplicateIdentityProjectionResult.stdout}\n${retainedDuplicateIdentityProjectionResult.stderr}`,
+  /missing-deleted-runtime-projection-row/,
+);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${duplicateIdentityInfographProjection('infograph:kn-shared-a', 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png')}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const deletedDuplicateIdentityProjectionResult = runGate(['--staged']);
+assert.equal(deletedDuplicateIdentityProjectionResult.status, 0, 'duplicate record identity deletion must pass after deleting the projection for the removed path');
+run('git', ['commit', '--no-verify', '-m', 'delete duplicate-identity infograph item and projection'], repo);
+const baseDeletedDuplicateIdentityProjectionResult = runGate(['--base', 'HEAD~1']);
+assert.equal(baseDeletedDuplicateIdentityProjectionResult.status, 0, 'base mode must resolve duplicate record identities by exact path');
+run('git', ['reset', '--hard', infographDeletionTestParent], repo);
+
+fs.writeFileSync(infographManifestPath, JSON.stringify({
+  schema_version: 1,
+  items: [
+    {
+      nodeId: 'kn-demo',
+      path: 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png',
+    },
+  ],
+}, null, 2));
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'infograph:kn-demo',
+    family: 'knowledge-infograph',
+    resourceType: 'image',
+    sourceKind: 'knowledge_graph',
+    sourceRef: 'kn-demo',
+    sourcePathOrUrl: 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png',
+    sourceVersionRef: 'knowledge-infograph-manifest.v1',
+    independentEvidenceRef: 'course-content/runtime/knowledge/infographs/manifest.json#kn-demo',
+    promptOrManifestHash: sha256File(infographManifestPath),
+    reviewedSourceHash: sha256File(path.join(repo, 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png')),
+  }))}\n`,
+);
+run('git', ['add',
+  'course-content/runtime/knowledge/infographs/manifest.json',
+  'course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
+], repo);
+run('git', ['commit', '--no-verify', '-m', 'add infograph path deletion baseline'], repo);
+
+fs.writeFileSync(infographManifestPath, JSON.stringify({
+  schema_version: 1,
+  items: [{ nodeId: 'kn-demo' }],
+}, null, 2));
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(runtimeProjectionRow({
+    id: 'infograph:kn-demo',
+    family: 'knowledge-infograph',
+    resourceType: 'image',
+    sourceKind: 'knowledge_graph',
+    sourceRef: 'kn-demo',
+    sourcePathOrUrl: 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png',
+    sourceVersionRef: 'knowledge-infograph-manifest.v1',
+    independentEvidenceRef: 'course-content/runtime/knowledge/infographs/manifest.json#kn-demo',
+    promptOrManifestHash: sha256File(infographManifestPath),
+    reviewedSourceHash: sha256File(path.join(repo, 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png')),
+  }))}\n`,
+);
+run('git', ['add',
+  'course-content/runtime/knowledge/infographs/manifest.json',
+  'course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
+], repo);
+const missingInfographPathResult = runGate(['--staged']);
+assert.notEqual(missingInfographPathResult.status, 0, 'an infograph manifest item without a path must fail closed');
+assert.match(
+  `${missingInfographPathResult.stdout}\n${missingInfographPathResult.stderr}`,
+  /missing-knowledge-infograph-runtime-projection-row/,
+);
+run('git', ['commit', '--no-verify', '-m', 'remove infograph item path without a replacement source'], repo);
+const baseMissingInfographPathResult = runGate(['--base', 'HEAD~1']);
+assert.notEqual(baseMissingInfographPathResult.status, 0, 'base mode must fail closed when a surviving infograph item loses its path');
+run('git', ['reset', '--hard', infographDeletionTestParent], repo);
+
+fs.writeFileSync(infographManifestPath, JSON.stringify({
+  schema_version: 1,
+  items: [
+    {
+      nodeId: 'a',
+      path: 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png',
+    },
+    {
+      nodeId: 'b:a',
+      path: 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png',
+    },
+  ],
+}, null, 2));
+const suffixCollisionInfographProjection = (recordKey) => JSON.stringify(runtimeProjectionRow({
+  id: `infograph:${recordKey}`,
+  family: 'knowledge-infograph',
+  resourceType: 'image',
+  sourceKind: 'knowledge_graph',
+  sourceRef: recordKey,
+  sourcePathOrUrl: 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png',
+  sourceVersionRef: 'knowledge-infograph-manifest.v1',
+  independentEvidenceRef: `course-content/runtime/knowledge/infographs/manifest.json#${recordKey}`,
+  promptOrManifestHash: sha256File(infographManifestPath),
+  reviewedSourceHash: sha256File(path.join(repo, 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png')),
+}));
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${suffixCollisionInfographProjection('a')}\n${suffixCollisionInfographProjection('b:a')}\n`,
+);
+run('git', ['add',
+  'course-content/runtime/knowledge/infographs/manifest.json',
+  'course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
+], repo);
+run('git', ['commit', '--no-verify', '-m', 'add suffix-collision infograph baseline'], repo);
+
+fs.writeFileSync(infographManifestPath, JSON.stringify({ schema_version: 1, items: [] }, null, 2));
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${suffixCollisionInfographProjection('a')}\n`,
+);
+run('git', ['add',
+  'course-content/runtime/knowledge/infographs/manifest.json',
+  'course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
+], repo);
+const suffixCollisionInfographDeletionResult = runGate(['--staged']);
+assert.notEqual(suffixCollisionInfographDeletionResult.status, 0, 'one suffix-colliding deleted projection must not satisfy two exact infograph identities');
+assert.match(
+  `${suffixCollisionInfographDeletionResult.stdout}\n${suffixCollisionInfographDeletionResult.stderr}`,
+  /manifest\.json#a/,
+);
+fs.writeFileSync(path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'), '');
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const deletedSuffixCollisionInfographResult = runGate(['--staged']);
+assert.equal(deletedSuffixCollisionInfographResult.status, 0, 'suffix-colliding infograph identities must pass only after both exact projections are deleted');
+run('git', ['commit', '--no-verify', '-m', 'delete suffix-collision infograph items and projections'], repo);
+const baseDeletedSuffixCollisionInfographResult = runGate(['--base', 'HEAD~1']);
+assert.equal(baseDeletedSuffixCollisionInfographResult.status, 0, 'base mode must use exact infograph identities for suffix collisions');
+run('git', ['reset', '--hard', infographDeletionTestParent], repo);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
 const infographImagePath = path.join(repo, 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png');
 fs.writeFileSync(infographImagePath, 'updated-infograph-image');
 run('git', ['add', 'course-content/runtime/knowledge/infographs/nodes/kn-demo.png'], repo);

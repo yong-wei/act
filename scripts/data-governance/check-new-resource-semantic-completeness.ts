@@ -428,6 +428,17 @@ function runtimeProjectionRowMatchesSourceRequirement(
       runtimeProjectionRowMatchesRecord(row, requirement.recordKey) &&
       runtimeProjectionRowMatchesCurrentSourceHash(row, requirement);
   }
+  if (family === 'knowledge-infograph') {
+    if (!requirement.sourcePathOrUrl) return false;
+    const manifestItemMatches = row.reviewAudit?.independentEvidenceRef ===
+      `${requirement.filePath}#${requirement.recordKey}` ||
+      row.sourceRecord === requirement.recordKey ||
+      row.sourceRef === requirement.recordKey;
+    return runtimeProjectionRowMatchesSourceFamily(row, family) &&
+      manifestItemMatches &&
+      row.sourcePathOrUrl === requirement.sourcePathOrUrl &&
+      runtimeProjectionRowMatchesCurrentSourceHash(row, requirement);
+  }
   return runtimeProjectionRowMatchesSourceFamily(row, family) &&
     (row.reviewAudit?.independentEvidenceRef === `${requirement.filePath}#${requirement.recordKey}` ||
       row.sourcePathOrUrl === requirement.sourcePathOrUrl ||
@@ -592,11 +603,90 @@ function runtimeProjectionSourceRequirementsForPath(
     ]), change);
   }
   if (family === 'knowledge-infograph') {
-    return withRuntimeProjectionSourceChangeMetadata(
-      parseInfographManifestSourceRequirements(filePath, source, diff)
-        .map((requirement) => withCurrentSourceHash(requirement, options)),
-      change,
+    const currentRanges = forceFullSource
+      ? fullSourceLineRange(source)
+      : parseDiffCurrentLineRanges(diff);
+    const previousRanges = sourceDeleted || forceFullSource
+      ? fullSourceLineRange(previousSource)
+      : parseDiffBaseLineRanges(diff);
+    const currentRequirements = parseInfographManifestSourceRequirementsInRanges(
+      filePath,
+      source,
+      currentRanges,
+      'upsert',
+    ).map((requirement) => withCurrentSourceHash(requirement, options));
+    const currentFullRequirements = parseInfographManifestSourceRequirementsInRanges(
+      filePath,
+      source,
+      fullSourceLineRange(source),
+      'upsert',
     );
+    const currentRequirementsByRecord = new Map<string, RuntimeProjectionSourceRequirement[]>();
+    for (const requirement of currentFullRequirements) {
+      currentRequirementsByRecord.set(requirement.recordKey, [
+        ...(currentRequirementsByRecord.get(requirement.recordKey) ?? []),
+        requirement,
+      ]);
+    }
+    const currentRequirementsByPath = new Map<string, RuntimeProjectionSourceRequirement[]>();
+    for (const requirement of currentFullRequirements) {
+      const sourcePath = requirement.sourcePathOrUrl;
+      if (!sourcePath) continue;
+      currentRequirementsByPath.set(sourcePath, [
+        ...(currentRequirementsByPath.get(sourcePath) ?? []),
+        requirement,
+      ]);
+    }
+    const previousFullRequirements = parseInfographManifestSourceRequirementsInRanges(
+      filePath,
+      previousSource,
+      fullSourceLineRange(previousSource),
+      'delete',
+    );
+    const previousRequirementCountByPath = new Map<string, number>();
+    const previousRequirementCountByRecord = new Map<string, number>();
+    for (const requirement of previousFullRequirements) {
+      previousRequirementCountByRecord.set(
+        requirement.recordKey,
+        (previousRequirementCountByRecord.get(requirement.recordKey) ?? 0) + 1,
+      );
+      const sourcePath = requirement.sourcePathOrUrl;
+      if (!sourcePath) continue;
+      previousRequirementCountByPath.set(
+        sourcePath,
+        (previousRequirementCountByPath.get(sourcePath) ?? 0) + 1,
+      );
+    }
+    const requirementsFromPreviousRanges = parseInfographManifestSourceRequirementsInRanges(
+      filePath,
+      previousSource,
+      previousRanges,
+      'delete',
+    ).map((previousRequirement) => {
+      const currentRecordCandidates = currentRequirementsByRecord.get(previousRequirement.recordKey) ?? [];
+      const uniqueStableRecordRequirement = previousRequirementCountByRecord.get(previousRequirement.recordKey) === 1 &&
+        currentRecordCandidates.length === 1
+        ? currentRecordCandidates[0]
+        : undefined;
+      const previousPath = previousRequirement.sourcePathOrUrl;
+      const currentPathCandidates = previousPath
+        ? currentRequirementsByPath.get(previousPath) ?? []
+        : [];
+      const uniqueStablePathRequirement = previousPath &&
+        previousRequirementCountByPath.get(previousPath) === 1 &&
+        currentPathCandidates.length === 1
+        ? currentPathCandidates[0]
+        : undefined;
+      const currentRequirement = uniqueStableRecordRequirement ??
+        uniqueStablePathRequirement;
+      return currentRequirement
+        ? withCurrentSourceHash(currentRequirement, options)
+        : previousRequirement;
+    });
+    return withRuntimeProjectionSourceChangeMetadata(uniqueRuntimeProjectionSourceRequirements([
+      ...currentRequirements,
+      ...requirementsFromPreviousRanges,
+    ]), change);
   }
   if (family === 'runtime-source') {
     const requirement: RuntimeProjectionSourceRequirement = {
@@ -835,12 +925,12 @@ function findJsonObjectEndLine(
   return null;
 }
 
-function parseInfographManifestSourceRequirements(
+function parseInfographManifestSourceRequirementsInRanges(
   filePath: string,
   source: string,
-  diff: string,
+  ranges: readonly DiffLineRange[],
+  changeKind: RuntimeProjectionSourceRequirement['changeKind'],
 ): RuntimeProjectionSourceRequirement[] {
-  const ranges = parseDiffCurrentLineRanges(diff);
   if (!source || ranges.length === 0) return [];
   const lines = source.split(/\r?\n/);
   return parseJsonObjectEntries(lines, /^\s{4}\{\s*$/)
@@ -853,7 +943,7 @@ function parseInfographManifestSourceRequirements(
         path.basename(itemPath ?? '', path.extname(itemPath ?? ''));
       if (!recordKey) return [];
       return [{
-        changeKind: 'upsert' as const,
+        changeKind,
         filePath,
         family: 'knowledge-infograph' as const,
         recordKey,
