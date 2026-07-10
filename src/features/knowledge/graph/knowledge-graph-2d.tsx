@@ -7,7 +7,11 @@ import { KnowledgeNodeData, KnowledgeLinkData } from '../knowledge-graph-system'
 import {
   applyFocusedExpansionLayout,
   applyRadialLayout,
+  calculateFocusedExpansionRevealTranslation,
+  createFocusedExpansionRevealSignature,
   preserveKnowledgeGraphLiveNodeCoordinates,
+  resolveFocusedExpansionRevealTarget,
+  selectFocusedExpansionGraphNodes,
   type KnowledgeGraphNodeScreenPosition,
   type KnowledgeGraphPositionedNode,
 } from './layout-engine';
@@ -292,6 +296,9 @@ export function KnowledgeGraph2D({
   const fgRef = useRef<any>(null);
   const layoutStateRef = useRef(layoutState);
   const runtimePositionsByNodeIdRef = useRef(new Map<string, Partial<RuntimeKnowledgeGraphNode>>());
+  const revealedExpansionSignatureRef = useRef('');
+  const previousExpandedNodeIdsRef = useRef<readonly string[]>([]);
+  const focusedRevealTargetNodeIdRef = useRef<string | null>(null);
   const [isLightTheme, setIsLightTheme] = useState(false);
   layoutStateRef.current = layoutState;
 
@@ -685,6 +692,102 @@ export function KnowledgeGraph2D({
       fgRef.current?.zoomToFit?.(320, 48);
     }, 0);
   }, [fitViewVersion]);
+
+  useEffect(() => {
+    const expandedIds = [...new Set(expandedNodeIds)];
+    const newlyExpandedTarget = resolveFocusedExpansionRevealTarget(
+      previousExpandedNodeIdsRef.current,
+      expandedIds
+    );
+    previousExpandedNodeIdsRef.current = expandedIds;
+    if (newlyExpandedTarget) {
+      focusedRevealTargetNodeIdRef.current = newlyExpandedTarget;
+      revealedExpansionSignatureRef.current = '';
+    }
+    if (expandedIds.length === 0) {
+      focusedRevealTargetNodeIdRef.current = null;
+      revealedExpansionSignatureRef.current = '';
+      return;
+    }
+    const targetNodeId = focusedRevealTargetNodeIdRef.current;
+    if (!targetNodeId || !expandedIds.includes(targetNodeId)) {
+      focusedRevealTargetNodeIdRef.current = null;
+      return;
+    }
+    const targetDirectLinks = expandedDirectLinks.filter((link) => (
+      link.sourceId === targetNodeId || link.targetId === targetNodeId
+    ));
+    if (targetDirectLinks.length === 0) return;
+    const expansionSignature = createFocusedExpansionRevealSignature(
+      [targetNodeId],
+      targetDirectLinks
+    );
+    if (revealedExpansionSignatureRef.current === expansionSignature) return;
+
+    const animationFrame = window.requestAnimationFrame(() => {
+      const viewportWidth = Number(width);
+      const viewportHeight = Number(height);
+      if (
+        !Number.isFinite(viewportWidth)
+        || !Number.isFinite(viewportHeight)
+        || !fgRef.current?.graph2ScreenCoords
+        || !fgRef.current?.screen2GraphCoords
+        || !fgRef.current?.centerAt
+      ) {
+        return;
+      }
+
+      const focusedNodeIds = new Set([targetNodeId]);
+      targetDirectLinks.forEach((link) => {
+        focusedNodeIds.add(link.sourceId === targetNodeId ? link.targetId : link.sourceId);
+      });
+      const refNodes = fgRef.current.graphData?.()?.nodes as RuntimeKnowledgeGraphNode[] | undefined;
+      const graphNodes = selectFocusedExpansionGraphNodes({
+        refNodes,
+        currentNodes: graphData.nodes,
+        requiredNodeIds: [...focusedNodeIds],
+      });
+      const graphNodeById = new Map(graphNodes.map((node) => [node.id, node]));
+      if ([...focusedNodeIds].some((nodeId) => !graphNodeById.has(nodeId))) return;
+      const focusedScreenPoints = [...focusedNodeIds].flatMap((nodeId) => {
+        const node = graphNodeById.get(nodeId);
+        if (!node) return [];
+        const graphX = Number(node.x);
+        const graphY = Number(node.y);
+        if (!Number.isFinite(graphX) || !Number.isFinite(graphY)) return [];
+        const screen = fgRef.current.graph2ScreenCoords(graphX, graphY);
+        const screenX = Number(screen?.x);
+        const screenY = Number(screen?.y);
+        return Number.isFinite(screenX) && Number.isFinite(screenY)
+          ? [{ x: screenX, y: screenY }]
+          : [];
+      });
+      if (focusedScreenPoints.length !== focusedNodeIds.size) return;
+      const reveal = calculateFocusedExpansionRevealTranslation({
+        points: focusedScreenPoints,
+        viewportWidth,
+        viewportHeight,
+        padding: 48,
+      });
+      if (!reveal) return;
+
+      if (reveal.x === 0 && reveal.y === 0) {
+        revealedExpansionSignatureRef.current = expansionSignature;
+        return;
+      }
+      const targetCenter = fgRef.current.screen2GraphCoords(
+        viewportWidth / 2 - reveal.x,
+        viewportHeight / 2 - reveal.y
+      );
+      const targetX = Number(targetCenter?.x);
+      const targetY = Number(targetCenter?.y);
+      if (!Number.isFinite(targetX) || !Number.isFinite(targetY)) return;
+      fgRef.current.centerAt(targetX, targetY, 240);
+      revealedExpansionSignatureRef.current = expansionSignature;
+    });
+
+    return () => window.cancelAnimationFrame(animationFrame);
+  }, [expandedDirectLinks, expandedNodeIds, graphData.nodes, height, width]);
 
   useEffect(() => {
     const currentNodes = fgRef.current?.graphData?.()?.nodes as

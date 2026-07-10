@@ -162,4 +162,17 @@ describe('knowledge graph node-local expansion control', () => {
     expect(systemSource).toContain('id="knowledge-graph-canvas"');
     expect(systemSource).toContain("expansionControlRef.current.dataset.anchorClamped = controlPosition.clamped ? 'true' : 'false';");
   });
+
+  it('uses a bounded local reveal in both renderers without fitting the whole graph', () => {
+    const twoDimensionalSource = readKnowledgeSource('graph/knowledge-graph-2d.tsx');
+    const threeDimensionalSource = readKnowledgeSource('graph/knowledge-graph-canvas.tsx');
+
+    expect(twoDimensionalSource).toContain('calculateFocusedExpansionRevealTranslation');
+    expect(twoDimensionalSource).toContain('screen2GraphCoords');
+    expect(twoDimensionalSource).toContain('centerAt');
+    expect(threeDimensionalSource).toContain('calculateFocusedExpansionRevealTranslation');
+    expect(threeDimensionalSource).toContain('cameraPosition');
+    expect(twoDimensionalSource).not.toContain('expandedNodeIds.length > 0 && fgRef.current?.zoomToFit');
+    expect(threeDimensionalSource).not.toContain('expandedNodeIds.length > 0 && fgRef.current?.zoomToFit');
+  });
 });

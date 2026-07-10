@@ -49,11 +49,18 @@ export interface KnowledgeGraphNodeControlPosition {
   clamped: boolean;
 }
 
+export interface KnowledgeGraphFocusedExpansionRevealTranslation {
+  x: number;
+  y: number;
+  fullyVisible: boolean;
+}
+
 const FOCUSED_EXPANSION_RING_CAPACITY = 8;
 const FOCUSED_EXPANSION_FIRST_RING_RADIUS = 96;
 const FOCUSED_EXPANSION_RING_GAP = 72;
 const NODE_EXPANSION_CONTROL_EDGE_CLEARANCE = 8;
 const NODE_EXPANSION_CONTROL_OFFSET = -40;
+const FOCUSED_EXPANSION_REVEAL_MAX_VIEWPORT_RATIO = 0.2;
 
 function compareNodeIds(a: string, b: string): number {
   if (a < b) return -1;
@@ -63,6 +70,157 @@ function compareNodeIds(a: string, b: string): number {
 
 function readFiniteCoordinate(value: unknown): number | null {
   return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+function calculateRevealAxisTranslation({
+  minimum,
+  maximum,
+  viewportSize,
+  padding,
+  maximumTranslation,
+}: {
+  minimum: number;
+  maximum: number;
+  viewportSize: number;
+  padding: number;
+  maximumTranslation: number;
+}): number {
+  const safeMinimum = padding;
+  const safeMaximum = viewportSize - padding;
+  let desiredTranslation = 0;
+
+  if (minimum < safeMinimum && maximum > safeMaximum) {
+    desiredTranslation = viewportSize / 2 - (minimum + maximum) / 2;
+  } else if (minimum < safeMinimum) {
+    desiredTranslation = safeMinimum - minimum;
+  } else if (maximum > safeMaximum) {
+    desiredTranslation = safeMaximum - maximum;
+  }
+
+  return Math.max(-maximumTranslation, Math.min(maximumTranslation, desiredTranslation));
+}
+
+export function calculateFocusedExpansionRevealTranslation(input: {
+  points: ReadonlyArray<{ x: number; y: number }>;
+  viewportWidth: number;
+  viewportHeight: number;
+  padding: number;
+}): KnowledgeGraphFocusedExpansionRevealTranslation | null {
+  const viewportWidth = readFiniteCoordinate(input.viewportWidth);
+  const viewportHeight = readFiniteCoordinate(input.viewportHeight);
+  const padding = readFiniteCoordinate(input.padding);
+  const points = input.points
+    .map((point) => ({
+      x: readFiniteCoordinate(point.x),
+      y: readFiniteCoordinate(point.y),
+    }))
+    .filter((point): point is { x: number; y: number } => point.x !== null && point.y !== null);
+
+  if (
+    viewportWidth === null
+    || viewportHeight === null
+    || padding === null
+    || viewportWidth <= padding * 2
+    || viewportHeight <= padding * 2
+    || padding < 0
+    || points.length === 0
+  ) {
+    return null;
+  }
+
+  const minimumX = Math.min(...points.map((point) => point.x));
+  const maximumX = Math.max(...points.map((point) => point.x));
+  const minimumY = Math.min(...points.map((point) => point.y));
+  const maximumY = Math.max(...points.map((point) => point.y));
+  const maximumTranslation = Math.min(viewportWidth, viewportHeight)
+    * FOCUSED_EXPANSION_REVEAL_MAX_VIEWPORT_RATIO;
+  let x = calculateRevealAxisTranslation({
+    minimum: minimumX,
+    maximum: maximumX,
+    viewportSize: viewportWidth,
+    padding,
+    maximumTranslation,
+  });
+  let y = calculateRevealAxisTranslation({
+    minimum: minimumY,
+    maximum: maximumY,
+    viewportSize: viewportHeight,
+    padding,
+    maximumTranslation,
+  });
+  const translationMagnitude = Math.hypot(x, y);
+  if (translationMagnitude > maximumTranslation) {
+    const scale = maximumTranslation / translationMagnitude;
+    x *= scale;
+    y *= scale;
+  }
+  const fullyVisible = minimumX + x >= padding
+    && maximumX + x <= viewportWidth - padding
+    && minimumY + y >= padding
+    && maximumY + y <= viewportHeight - padding;
+
+  return { x, y, fullyVisible };
+}
+
+export function createFocusedExpansionRevealSignature(
+  expandedNodeIds: readonly string[],
+  directExpansionLinks: readonly KnowledgeLinkData[]
+): string {
+  const expandedIds = [...new Set(expandedNodeIds)].sort(compareNodeIds);
+  const expandedIdSet = new Set(expandedIds);
+  const directLinkTokens = directExpansionLinks
+    .filter((link) => expandedIdSet.has(link.sourceId) || expandedIdSet.has(link.targetId))
+    .map((link) => {
+      const endpoints = [link.sourceId, link.targetId].sort(compareNodeIds);
+      return `${link.id}:${endpoints[0]}:${endpoints[1]}`;
+    })
+    .sort(compareNodeIds);
+
+  return JSON.stringify([expandedIds, directLinkTokens]);
+}
+
+export function resolveFocusedExpansionRevealTarget(
+  previousExpandedNodeIds: readonly string[],
+  expandedNodeIds: readonly string[]
+): string | null {
+  const previousIdSet = new Set(previousExpandedNodeIds);
+  const newlyExpandedIds = [...new Set(expandedNodeIds)]
+    .filter((nodeId) => !previousIdSet.has(nodeId));
+  return newlyExpandedIds.at(-1) ?? null;
+}
+
+export function selectFocusedExpansionGraphNodes<T extends { id: string }>(input: {
+  refNodes: readonly T[] | undefined;
+  currentNodes: readonly T[];
+  requiredNodeIds: readonly string[];
+}): readonly T[] {
+  if (!input.refNodes) return input.currentNodes;
+  const refNodeIds = new Set(input.refNodes.map((node) => node.id));
+  return input.requiredNodeIds.every((nodeId) => refNodeIds.has(nodeId))
+    ? input.refNodes
+    : input.currentNodes;
+}
+
+export function translateKnowledgeGraphCameraPose(input: {
+  cameraPosition: { x: number; y: number; z: number };
+  target: { x: number; y: number; z: number };
+  translation: { x: number; y: number; z: number };
+}): {
+  cameraPosition: { x: number; y: number; z: number };
+  target: { x: number; y: number; z: number };
+} {
+  return {
+    cameraPosition: {
+      x: input.cameraPosition.x + input.translation.x,
+      y: input.cameraPosition.y + input.translation.y,
+      z: input.cameraPosition.z + input.translation.z,
+    },
+    target: {
+      x: input.target.x + input.translation.x,
+      y: input.target.y + input.translation.y,
+      z: input.target.z + input.translation.z,
+    },
+  };
 }
 
 export function preserveKnowledgeGraphLiveNodeCoordinates<T extends KnowledgeGraphPositionedNode>({

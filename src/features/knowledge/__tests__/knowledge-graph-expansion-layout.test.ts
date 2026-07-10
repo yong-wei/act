@@ -3,6 +3,11 @@ import { describe, expect, it } from 'vitest';
 import type { KnowledgeLinkData } from '../knowledge-graph-system';
 import {
   applyFocusedExpansionLayout,
+  calculateFocusedExpansionRevealTranslation,
+  createFocusedExpansionRevealSignature,
+  resolveFocusedExpansionRevealTarget,
+  selectFocusedExpansionGraphNodes,
+  translateKnowledgeGraphCameraPose,
   type KnowledgeGraphPositionedNode,
 } from '../graph/layout-engine';
 import {
@@ -52,6 +57,112 @@ function distanceFrom(node: KnowledgeGraphPositionedNode, center: { x: number; y
 }
 
 describe('knowledge graph focused expansion layout', () => {
+  it('calculates a bounded viewport translation for an expansion ring near the bottom edge', () => {
+    const reveal = calculateFocusedExpansionRevealTranslation({
+      points: [
+        { x: 660, y: 792 },
+        { x: 660, y: 696 },
+        { x: 756, y: 792 },
+        { x: 660, y: 888 },
+        { x: 564, y: 792 },
+      ],
+      viewportWidth: 1320,
+      viewportHeight: 847,
+      padding: 48,
+    });
+
+    expect(reveal).toEqual({ x: 0, y: -89, fullyVisible: true });
+  });
+
+  it('does not pan an already visible expansion and bounds oversized reveals', () => {
+    expect(calculateFocusedExpansionRevealTranslation({
+      points: [
+        { x: 300, y: 300 },
+        { x: 300, y: 204 },
+        { x: 396, y: 300 },
+        { x: 300, y: 396 },
+        { x: 204, y: 300 },
+      ],
+      viewportWidth: 800,
+      viewportHeight: 600,
+      padding: 48,
+    })).toEqual({ x: 0, y: 0, fullyVisible: true });
+
+    const cornerReveal = calculateFocusedExpansionRevealTranslation({
+      points: [
+        { x: 580, y: 580 },
+        { x: 900, y: 900 },
+      ],
+      viewportWidth: 600,
+      viewportHeight: 600,
+      padding: 48,
+    });
+
+    expect(cornerReveal?.fullyVisible).toBe(false);
+    expect(Math.hypot(cornerReveal?.x ?? 0, cornerReveal?.y ?? 0)).toBeCloseTo(120);
+  });
+
+  it('changes the reveal signature when delayed direct links arrive but ignores link order', () => {
+    const directLinks = [
+      expansionLink('link-b', 'center', 'child-b'),
+      expansionLink('link-a', 'child-a', 'center'),
+    ];
+
+    expect(createFocusedExpansionRevealSignature(['center'], [])).not.toBe(
+      createFocusedExpansionRevealSignature(['center'], directLinks)
+    );
+    expect(createFocusedExpansionRevealSignature(['center'], directLinks)).toBe(
+      createFocusedExpansionRevealSignature(['center'], [...directLinks].reverse())
+    );
+  });
+
+  it('reveals only the latest newly expanded neighborhood and creates a new cached re-expand intent', () => {
+    expect(resolveFocusedExpansionRevealTarget([], ['center-a'])).toBe('center-a');
+    expect(resolveFocusedExpansionRevealTarget(['center-a'], ['center-a', 'center-b'])).toBe('center-b');
+    expect(resolveFocusedExpansionRevealTarget(['center-a', 'center-b'], ['center-b'])).toBeNull();
+    expect(resolveFocusedExpansionRevealTarget([], ['center-b'])).toBe('center-b');
+  });
+
+  it('translates a 3D camera and target without changing their distance or direction', () => {
+    const translated = translateKnowledgeGraphCameraPose({
+      cameraPosition: { x: 10, y: 20, z: 30 },
+      target: { x: 1, y: 2, z: 3 },
+      translation: { x: -4, y: 5, z: 6 },
+    });
+    const originalVector = { x: 9, y: 18, z: 27 };
+    const translatedVector = {
+      x: translated.cameraPosition.x - translated.target.x,
+      y: translated.cameraPosition.y - translated.target.y,
+      z: translated.cameraPosition.z - translated.target.z,
+    };
+
+    expect(translated).toEqual({
+      cameraPosition: { x: 6, y: 25, z: 36 },
+      target: { x: -3, y: 7, z: 9 },
+    });
+    expect(translatedVector).toEqual(originalVector);
+    expect(Math.hypot(translatedVector.x, translatedVector.y, translatedVector.z)).toBeCloseTo(
+      Math.hypot(originalVector.x, originalVector.y, originalVector.z)
+    );
+  });
+
+  it('falls back to current graph data while the renderer ref still lacks a delayed child', () => {
+    const staleRefNodes = [graphNode('center')];
+    const currentNodes = [graphNode('center'), graphNode('child')];
+    const readyRefNodes = [graphNode('center'), graphNode('child', 5, 6)];
+
+    expect(selectFocusedExpansionGraphNodes({
+      refNodes: staleRefNodes,
+      currentNodes,
+      requiredNodeIds: ['center', 'child'],
+    })).toBe(currentNodes);
+    expect(selectFocusedExpansionGraphNodes({
+      refNodes: readyRefNodes,
+      currentNodes,
+      requiredNodeIds: ['center', 'child'],
+    })).toBe(readyRefNodes);
+  });
+
   it('arranges direct children deterministically around the expanded runtime center', () => {
     const nodes = [
       graphNode('center', -500, -600, { x: 100, y: 200 }),
