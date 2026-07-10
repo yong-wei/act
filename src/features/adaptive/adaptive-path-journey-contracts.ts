@@ -1,4 +1,5 @@
 import { buildAdaptivePathLaunchHref } from './adaptive-learning-center-contracts';
+import { isStudentVisiblePathTarget } from '@/lib/control-correction-path-rounds';
 
 export type AdaptivePathJourneyNextActionState = 'ready' | 'blocked' | 'pending-result' | 'path-complete';
 
@@ -50,31 +51,51 @@ export function buildAuthorizedAdaptivePathJourney(
   const payload = readRecord(path.pathPayload);
   const metadata = readRecord(path.lastExecutionMetadata);
   const terminalValidation = readRecord(path.terminalValidation);
-  const mainPathNodeIds = readStringArray(payload.mainPathNodeIds).length > 0
-    ? readStringArray(payload.mainPathNodeIds)
-    : readStringArray(path.nodeIds);
+  const mainPathNodeIds = readStrictStringArray(payload.mainPathNodeIds) ?? [];
   const planNodes = readRecordArray(payload.planNodes);
-  const nodeById = new Map(
-    planNodes
-      .map(readJourneyNode)
-      .filter((node): node is JourneyNodeRecord => Boolean(node))
-      .map((node) => [node.nodeId, node]),
-  );
+  const journeyNodes = planNodes
+    .map(readJourneyNode)
+    .filter((node): node is JourneyNodeRecord => Boolean(node));
+  const nodeById = new Map(journeyNodes.map((node) => [node.nodeId, node]));
   const completedNodeIds = new Set(readStringArray(metadata.completedNodeIds));
   const failedNodeIds = new Set(readStringArray(metadata.failedNodeIds));
   const currentNodeId = readNonEmptyString(path.currentNodeId);
-  const currentNode = currentNodeId ? nodeById.get(currentNodeId) ?? null : null;
+  const persistedCurrentNode = currentNodeId ? nodeById.get(currentNodeId) ?? null : null;
   const requestedNodeId = readNonEmptyString(input.requestedNodeId);
-  const returnHref = buildPathCenterHref({ pathId, goalId, nodeId: currentNodeId });
   const summaryHref = buildPathCenterHref({ pathId, goalId, nodeId: null });
+  const persistedPathStatus = readNonEmptyString(path.pathStatus) ?? 'active';
+  const structureComplete = hasCompleteJourneyStructure(
+    pathId,
+    goalId,
+    mainPathNodeIds,
+    planNodes,
+    journeyNodes,
+    nodeById,
+    currentNodeId,
+    persistedCurrentNode,
+    path.terminalValidation,
+  );
+
   const allComplete = mainPathNodeIds.length > 0 && mainPathNodeIds.every((nodeId) => completedNodeIds.has(nodeId));
   const terminalNodeId = readNonEmptyString(terminalValidation.nodeId);
   const terminalState = readNonEmptyString(terminalValidation.state);
   const terminalRequired = Boolean(terminalNodeId) && terminalState !== 'not-required';
   const terminalComplete = !terminalRequired || terminalState === 'completed' || terminalState === 'passed';
-  const pathComplete = allComplete && terminalComplete;
-  const persistedPathStatus = readNonEmptyString(path.pathStatus) ?? 'active';
+  const pathComplete = structureComplete && allComplete && terminalComplete;
   const normalizedPathStatus = pathComplete ? 'completed' : persistedPathStatus;
+  const actionNode = structureComplete && !pathComplete
+    ? selectJourneyActionNode({
+        mainPathNodeIds,
+        nodeById,
+        completedNodeIds,
+        currentNodeId: currentNodeId as string,
+        terminalNodeId,
+        terminalRequired,
+        terminalComplete,
+        allComplete,
+      })
+    : persistedCurrentNode;
+  const returnHref = buildPathCenterHref({ pathId, goalId, nodeId: actionNode?.nodeId ?? currentNodeId });
   const base = {
     path: {
       id: pathId,
@@ -82,7 +103,7 @@ export function buildAuthorizedAdaptivePathJourney(
     },
     goal: { id: goalId },
     context: { pathId, goalId, requestedNodeId },
-    current: currentNode ? toNodeView(currentNode) : null,
+    current: actionNode ? toNodeView(actionNode) : null,
     progress: {
       completed: mainPathNodeIds.filter((nodeId) => completedNodeIds.has(nodeId)).length,
       total: mainPathNodeIds.length,
@@ -90,6 +111,13 @@ export function buildAuthorizedAdaptivePathJourney(
     return: { label: '返回学习路径', href: returnHref },
     pathStatus: normalizedPathStatus,
   };
+
+  if (!structureComplete) {
+    return {
+      ...base,
+      nextAction: blockedAction(null, '学习路径结构需要重新生成。', returnHref),
+    };
+  }
 
   if (pathComplete) {
     return {
@@ -106,14 +134,13 @@ export function buildAuthorizedAdaptivePathJourney(
     };
   }
 
-  if (!hasCompleteJourneyStructure(pathId, goalId, mainPathNodeIds, nodeById, currentNodeId, currentNode)) {
+  if (!actionNode) {
     return {
       ...base,
       nextAction: blockedAction(null, '学习路径结构需要重新生成。', returnHref),
     };
   }
 
-  const actionNode = currentNode as JourneyNodeRecord;
   if (
     failedNodeIds.has(actionNode.nodeId) ||
     terminalState === 'failed' ||
@@ -160,6 +187,12 @@ export function buildAuthorizedAdaptivePathJourney(
     return {
       ...base,
       nextAction: blockedAction(actionNode, '当前节点缺少可验证的启动目标。', returnHref),
+    };
+  }
+  if (actionNode.type !== 'external_resource' && !isStudentVisiblePathTarget(target)) {
+    return {
+      ...base,
+      nextAction: blockedAction(actionNode, '当前节点的启动目标不受平台支持，请重新生成路径。', returnHref),
     };
   }
   const href = actionNode.type === 'external_resource'
@@ -209,15 +242,57 @@ function hasCompleteJourneyStructure(
   pathId: string,
   goalId: string,
   mainPathNodeIds: string[],
+  planNodes: Record<string, unknown>[],
+  journeyNodes: JourneyNodeRecord[],
   nodeById: Map<string, JourneyNodeRecord>,
   currentNodeId: string | null,
   currentNode: JourneyNodeRecord | null,
+  terminalValidation: unknown,
 ): boolean {
   return pathId !== 'unknown-path' &&
     goalId !== 'unknown-goal' &&
     mainPathNodeIds.length > 0 &&
+    new Set(mainPathNodeIds).size === mainPathNodeIds.length &&
+    planNodes.length > 0 &&
+    journeyNodes.length === planNodes.length &&
+    nodeById.size === journeyNodes.length &&
     mainPathNodeIds.every((nodeId) => nodeById.has(nodeId)) &&
-    Boolean(currentNodeId && mainPathNodeIds.includes(currentNodeId) && currentNode);
+    Boolean(currentNodeId && mainPathNodeIds.includes(currentNodeId) && currentNode) &&
+    hasValidTerminalValidationContract(terminalValidation, mainPathNodeIds);
+}
+
+function selectJourneyActionNode(input: {
+  mainPathNodeIds: string[];
+  nodeById: Map<string, JourneyNodeRecord>;
+  completedNodeIds: Set<string>;
+  currentNodeId: string;
+  terminalNodeId: string | null;
+  terminalRequired: boolean;
+  terminalComplete: boolean;
+  allComplete: boolean;
+}): JourneyNodeRecord | null {
+  if (input.allComplete && input.terminalRequired && !input.terminalComplete && input.terminalNodeId) {
+    return input.nodeById.get(input.terminalNodeId) ?? null;
+  }
+  const currentIndex = input.mainPathNodeIds.indexOf(input.currentNodeId);
+  if (!input.completedNodeIds.has(input.currentNodeId)) {
+    return input.nodeById.get(input.currentNodeId) ?? null;
+  }
+  for (const nodeId of input.mainPathNodeIds.slice(currentIndex + 1)) {
+    if (!input.completedNodeIds.has(nodeId)) return input.nodeById.get(nodeId) ?? null;
+  }
+  return null;
+}
+
+function hasValidTerminalValidationContract(value: unknown, mainPathNodeIds: string[]): boolean {
+  if (!isRecord(value)) return false;
+  if (value.state === 'not-required') return value.nodeId === null;
+  const nodeId = readNonEmptyString(value.nodeId);
+  return Boolean(
+    nodeId &&
+    mainPathNodeIds.includes(nodeId) &&
+    ['pending', 'in-progress', 'completed', 'passed', 'failed', 'low-confidence'].includes(String(value.state)),
+  );
 }
 
 function blockedAction(
@@ -274,6 +349,12 @@ function readRecordArray(value: unknown): Record<string, unknown>[] {
   return Array.isArray(value) ? value.map(readRecord) : [];
 }
 
+function readStrictStringArray(value: unknown): string[] | null {
+  if (!Array.isArray(value) || value.length === 0) return null;
+  const strings = value.map(readNonEmptyString);
+  return strings.every((item): item is string => Boolean(item)) ? strings : null;
+}
+
 function readStringArray(value: unknown): string[] {
   return Array.isArray(value)
     ? value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
@@ -282,4 +363,8 @@ function readStringArray(value: unknown): string[] {
 
 function readNonEmptyString(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value : null;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }

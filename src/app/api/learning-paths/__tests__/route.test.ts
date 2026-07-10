@@ -4986,44 +4986,42 @@ describe('learning path round API routes', () => {
     }));
   });
 
-  it('uses the existing execution payload when an idempotency key is reused with a different status', async () => {
-    const existingExecution = {
+  it.each([
+    {
+      label: 'node identity',
+      existing: { nodeId: 'node-1', resourceType: 'knowledge_card', status: 'completed' },
+      body: { nodeId: 'outside-node', resourceType: 'knowledge_card', status: 'completed' },
+    },
+    {
+      label: 'resource type',
+      existing: { nodeId: 'node-1', resourceType: 'knowledge_card', status: 'completed' },
+      body: { nodeId: 'node-1', resourceType: 'simulation', status: 'completed' },
+    },
+    {
+      label: 'execution status',
+      existing: { nodeId: 'node-1', resourceType: 'knowledge_card', status: 'started' },
+      body: { nodeId: 'node-1', resourceType: 'knowledge_card', status: 'completed' },
+    },
+  ])('rejects an idempotency replay with conflicting $label before repair or advancement', async ({ existing, body }) => {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue(journeyPathRecord());
+    mocks.prisma.learningPathExecution.findFirst.mockResolvedValue({
       id: 'exec-existing',
       pathId: 'path-1',
       idempotencyKey: 'exec-key',
-      nodeId: 'node-1',
-      resourceType: 'simulation',
-      status: 'started',
-      startedAt: new Date('2026-06-04T10:00:00.000Z'),
-    };
-    mocks.prisma.learningPathExecution.findFirst.mockResolvedValue(existingExecution);
-    mocks.recordPathNodeExecution.mockResolvedValueOnce(existingExecution);
+      ...existing,
+    });
 
     const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
-      nodeId: 'node-1',
-      resourceType: 'simulation',
-      status: 'completed',
-      completedAt: '2026-06-04T10:10:00.000Z',
+      ...body,
       idempotencyKey: 'exec-key',
     }), params);
 
-    expect(response.status).toBe(200);
-    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
-      idempotencyKey: 'exec-key',
-      status: 'started',
-      completedAt: null,
-    }));
-    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({
-        pathStatus: 'active',
-        lastExecutionMetadata: expect.objectContaining({
-          lastExecution: expect.objectContaining({
-            status: 'started',
-            completedAt: null,
-          }),
-        }),
-      }),
-    }));
+    expect(response.status).toBe(409);
+    expect(await response.json()).toEqual({ error: '幂等键已绑定到不同的执行请求' });
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
+    expect(mocks.refreshStudentEvidenceFeatureCache).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningPath.findUnique).toHaveBeenCalledTimes(1);
   });
 
   it('returns an idempotent older-node replay without governed activity metadata without re-emitting evidence', async () => {
@@ -5263,6 +5261,47 @@ describe('learning path round API routes', () => {
       nextAction: { state: 'ready', nodeId: 'node-2' },
     });
     expect(mocks.prisma.learningPath.findUnique).toHaveBeenCalledTimes(2);
+  });
+
+  it('returns the immediate pending node when the fresh update keeps the completed current id', async () => {
+    const before = journeyPathRecord();
+    const after = journeyPathRecord({
+      currentNodeId: 'node-1',
+      nodeIds: ['node-1', 'node-2', 'node-3'],
+      pathPayload: {
+        mainPathNodeIds: ['node-1', 'node-2', 'node-3'],
+        planNodes: [
+          { nodeId: 'node-1', title: '知识回顾', type: 'knowledge_card', target: '/knowledge/card-1', status: 'completed' },
+          {
+            nodeId: 'node-2',
+            title: '等待仿真结果',
+            type: 'control_workbench',
+            target: '/interactive-learning/control-workbench',
+            status: 'locked',
+            readiness: { state: 'evidence-needed', missingOutcomeRefs: ['simulation_run:one'] },
+          },
+          { nodeId: 'node-3', title: '后续练习', type: 'adaptive_quiz', target: '/assessment/adaptive-practice', status: 'next', readiness: { state: 'ready' } },
+        ],
+      },
+      lastExecutionMetadata: { completedNodeIds: ['node-1'], failedNodeIds: [], skippedNodeIds: [] },
+    });
+    mocks.prisma.learningPath.findUnique
+      .mockResolvedValueOnce(before)
+      .mockResolvedValueOnce(after);
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'node-1',
+      resourceType: 'knowledge_card',
+      status: 'completed',
+      idempotencyKey: 'journey-pending-after-update',
+    }), params);
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.journey).toMatchObject({
+      current: { nodeId: 'node-2' },
+      nextAction: { state: 'pending-result', nodeId: 'node-2', href: null },
+    });
   });
 
   it('persists path completion when every node is complete and terminal validation is not required', async () => {

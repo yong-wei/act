@@ -65,6 +65,20 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     const body = await request.json();
     const missingIdempotencyKey = requireIdempotencyKey(body.idempotencyKey);
     if (missingIdempotencyKey) return missingIdempotencyKey;
+    const existingExecution = typeof body.idempotencyKey === 'string' && body.idempotencyKey.length > 0
+      ? await prisma.learningPathExecution.findFirst({
+          where: {
+            pathId: params.id,
+            idempotencyKey: body.idempotencyKey,
+          },
+        })
+      : null;
+    if (existingExecution && !isCanonicalExecutionReplay(existingExecution, body)) {
+      return NextResponse.json(
+        { error: '幂等键已绑定到不同的执行请求' },
+        { status: 409 },
+      );
+    }
     const nodeIds = new Set(readPathNodeIds(path));
     const pathNode = readPathNode(path, body.nodeId);
     const expectedResourceType = typeof pathNode?.type === 'string' ? pathNode.type : null;
@@ -81,12 +95,6 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
       return NextResponse.json({ error: '执行事件不符合路径节点或状态契约' }, { status: 400 });
     }
     if (typeof body.idempotencyKey === 'string' && body.idempotencyKey.length > 0) {
-      const existingExecution = await prisma.learningPathExecution.findFirst({
-        where: {
-          pathId: params.id,
-          idempotencyKey: body.idempotencyKey,
-        },
-      });
       if (existingExecution) {
         const existingStatus = readExecutionStatus(existingExecution.status);
         let execution = existingExecution;
@@ -216,6 +224,12 @@ function readExecutionStatus(value: unknown): 'started' | 'completed' | 'failed'
   return typeof value === 'string' && EXECUTION_STATUSES.has(value)
     ? value as 'started' | 'completed' | 'failed' | 'abandoned'
     : null;
+}
+
+function isCanonicalExecutionReplay(existingExecution: any, body: any): boolean {
+  return existingExecution.nodeId === body.nodeId &&
+    existingExecution.resourceType === body.resourceType &&
+    existingExecution.status === body.status;
 }
 
 function toRecord(value: unknown): Record<string, unknown> {

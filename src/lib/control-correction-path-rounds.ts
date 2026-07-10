@@ -425,7 +425,7 @@ function isSafeExternalPathTarget(target: string): boolean {
   }
 }
 
-function isStudentVisiblePathTarget(target: string): boolean {
+export function isStudentVisiblePathTarget(target: string): boolean {
   const normalized = target.trim();
   if (normalized.length === 0 || normalized !== target) return false;
   if (/^(?:[a-z][a-z\d+.-]*:)?\/\//i.test(normalized)) return false;

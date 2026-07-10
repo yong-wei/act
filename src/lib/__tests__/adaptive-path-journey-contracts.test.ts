@@ -83,6 +83,36 @@ describe('adaptive path journey contracts', () => {
     expect(journey.nextAction).toMatchObject({ state: 'blocked', nodeId: 'node-2', href: null });
   });
 
+  it('uses the immediate unfinished node when persistence keeps a completed current node', () => {
+    const journey = buildAuthorizedAdaptivePathJourney(buildPath({
+      currentNodeId: 'node-1',
+      nodeIds: ['node-1', 'node-2', 'node-3'],
+      pathPayload: {
+        mainPathNodeIds: ['node-1', 'node-2', 'node-3'],
+        planNodes: [
+          { nodeId: 'node-1', title: '基础回顾', type: 'knowledge_card', target: '/knowledge/card-1', status: 'completed' },
+          {
+            nodeId: 'node-2',
+            title: '等待仿真结果',
+            type: 'control_workbench',
+            target: '/interactive-learning/control-workbench',
+            status: 'locked',
+            readiness: { state: 'evidence-needed', missingOutcomeRefs: ['simulation_run:one'] },
+          },
+          { nodeId: 'node-3', title: '后续练习', type: 'adaptive_quiz', target: '/assessment/adaptive-practice', status: 'next', readiness: { state: 'ready' } },
+        ],
+      },
+      lastExecutionMetadata: { completedNodeIds: ['node-1'], failedNodeIds: [], skippedNodeIds: [] },
+    }), { requestedNodeId: 'node-1' });
+
+    expect(journey.current).toMatchObject({ nodeId: 'node-2' });
+    expect(journey.nextAction).toMatchObject({
+      state: 'pending-result',
+      nodeId: 'node-2',
+      href: null,
+    });
+  });
+
   it('uses pending-result when readiness is waiting for governed outcome references', () => {
     const journey = buildAuthorizedAdaptivePathJourney(buildPath({
       pathPayload: {
@@ -180,6 +210,37 @@ describe('adaptive path journey contracts', () => {
     expect(journey.nextAction.href).not.toContain('example.com');
   });
 
+  it.each([
+    'https://evil.example/collect',
+    'javascript:alert(1)',
+    '//evil.example/collect',
+    '/api/private-path-state',
+  ])('fails closed for unsupported platform-owned target %s', (target) => {
+    const journey = buildAuthorizedAdaptivePathJourney(buildPath({
+      pathPayload: {
+        mainPathNodeIds: ['node-1', 'node-2'],
+        planNodes: [
+          { nodeId: 'node-1', title: '基础回顾', type: 'knowledge_card', target: '/knowledge/card-1', status: 'completed' },
+          { nodeId: 'node-2', title: '恶意目标', type: 'knowledge_card', target, status: 'current', readiness: { state: 'ready' } },
+        ],
+      },
+    }), { requestedNodeId: 'node-1' });
+
+    expect(journey.nextAction).toMatchObject({
+      state: 'blocked',
+      nodeId: 'node-2',
+      href: null,
+    });
+    expect(JSON.stringify(journey.nextAction)).not.toContain(target);
+  });
+
+  it('keeps a supported platform-owned relative target ready', () => {
+    const journey = buildAuthorizedAdaptivePathJourney(buildPath(), { requestedNodeId: 'node-1' });
+
+    expect(journey.nextAction).toMatchObject({ state: 'ready', nodeId: 'node-2' });
+    expect(journey.nextAction.href).toContain('/assessment/adaptive-practice?');
+  });
+
   it('fails closed for malformed legacy path payloads', () => {
     const journey = buildAuthorizedAdaptivePathJourney(buildPath({
       currentNodeId: 'legacy-node',
@@ -193,6 +254,63 @@ describe('adaptive path journey contracts', () => {
       nodeId: null,
       href: null,
       recovery: { label: '返回学习路径' },
+    });
+  });
+
+  it.each([
+    {
+      label: 'duplicate main-path ids',
+      overrides: {
+        currentNodeId: 'node-1',
+        nodeIds: ['node-1'],
+        pathPayload: {
+          mainPathNodeIds: ['node-1', 'node-1'],
+          planNodes: [
+            { nodeId: 'node-1', title: '基础回顾', type: 'knowledge_card', target: '/knowledge/card-1', status: 'completed' },
+          ],
+        },
+        terminalValidation: { nodeId: null, state: 'not-required' },
+        lastExecutionMetadata: { completedNodeIds: ['node-1'], failedNodeIds: [] },
+      },
+    },
+    {
+      label: 'malformed plan node',
+      overrides: {
+        currentNodeId: 'node-1',
+        nodeIds: ['node-1'],
+        pathPayload: {
+          mainPathNodeIds: ['node-1'],
+          planNodes: [
+            { nodeId: 'node-1', type: 'knowledge_card', target: '/knowledge/card-1', status: 'completed' },
+          ],
+        },
+        terminalValidation: { nodeId: null, state: 'not-required' },
+        lastExecutionMetadata: { completedNodeIds: ['node-1'], failedNodeIds: [] },
+      },
+    },
+    {
+      label: 'missing terminal-validation contract',
+      overrides: {
+        currentNodeId: 'node-1',
+        nodeIds: ['node-1'],
+        pathPayload: {
+          mainPathNodeIds: ['node-1'],
+          planNodes: [
+            { nodeId: 'node-1', title: '基础回顾', type: 'knowledge_card', target: '/knowledge/card-1', status: 'completed' },
+          ],
+        },
+        terminalValidation: undefined,
+        lastExecutionMetadata: { completedNodeIds: ['node-1'], failedNodeIds: [] },
+      },
+    },
+  ])('validates $label before declaring the path complete', ({ overrides }) => {
+    const journey = buildAuthorizedAdaptivePathJourney(buildPath(overrides), { requestedNodeId: 'node-1' });
+
+    expect(journey.pathStatus).toBe('active');
+    expect(journey.nextAction).toMatchObject({
+      state: 'blocked',
+      href: null,
+      reason: '学习路径结构需要重新生成。',
     });
   });
 });
