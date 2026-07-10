@@ -76,9 +76,17 @@ type RuntimeProjectionRow = ReturnType<typeof parseAddedRuntimeProjectionChanges
   };
 };
 interface RuntimeProjectionSourceRequirement {
+  changeKind: 'upsert' | 'delete';
   filePath: string;
   family: RuntimeProjectionSourceFamily;
   recordKey: string;
+  runtimeLessonIdentity?: {
+    subtype: 'step' | 'module';
+    lessonId: string;
+    stepId: string;
+    moduleId?: string;
+    canonicalRecord: string;
+  };
   sourcePathOrUrl?: string;
   sourceHash?: string;
   requireSourceHash?: boolean;
@@ -153,8 +161,17 @@ function main() {
     },
     validateChangedRegisteredResources(registeredResources),
     runtimeProjectionChanges.result,
-    validateDeletedRuntimeProjectionRows(deletedRuntimeProjectionRows, runtimeProjectionRows, options),
-    validateRuntimeProjectionSourceCoverage(runtimeProjectionSourceRequirements, runtimeProjectionRows),
+    validateDeletedRuntimeProjectionRows(
+      deletedRuntimeProjectionRows,
+      runtimeProjectionRows,
+      runtimeProjectionSourceRequirements,
+      options,
+    ),
+    validateRuntimeProjectionSourceCoverage(
+      runtimeProjectionSourceRequirements,
+      runtimeProjectionRows,
+      deletedRuntimeProjectionRows,
+    ),
     validateRuntimeProjectionRowSourceEvidence(runtimeProjectionRows, options),
     validateChangedRuntimeResourceProjections(runtimeProjectionRows),
   ]);
@@ -173,11 +190,15 @@ function main() {
 
 function validateRuntimeProjectionSourceCoverage(
   requirementsInput: readonly RuntimeProjectionSourceRequirement[],
-  rows: readonly RuntimeProjectionRow[],
+  addedRows: readonly RuntimeProjectionRow[],
+  deletedRows: readonly RuntimeProjectionRow[],
 ): NewResourceGateResult {
   const requirements = uniqueRuntimeProjectionSourceRequirements(requirementsInput);
+  const addedIds = new Set(addedRows.map((row) => row.id));
+  const deletedOnlyRows = deletedRows.filter((row) => !addedIds.has(row.id));
   const issues = requirements.flatMap((requirement) => (
-    rows.some((row) => runtimeProjectionRowMatchesSourceRequirement(row, requirement))
+    (requirement.changeKind === 'delete' ? deletedOnlyRows : addedRows)
+      .some((row) => runtimeProjectionRowMatchesSourceRequirement(row, requirement))
       ? []
       : [runtimeProjectionSourceIssue(requirement)]
   ));
@@ -264,11 +285,16 @@ function validateRuntimeProjectionRowSourceEvidence(
 function validateDeletedRuntimeProjectionRows(
   rows: readonly RuntimeProjectionRow[],
   addedRows: readonly RuntimeProjectionRow[],
+  sourceRequirements: readonly RuntimeProjectionSourceRequirement[],
   options: CliOptions,
 ): NewResourceGateResult {
   const updatedIds = new Set(addedRows.map((row) => row.id));
+  const deletedSourceRequirements = sourceRequirements
+    .filter((requirement) => requirement.changeKind === 'delete');
   const issues = rows.flatMap((row) => (
-    updatedIds.has(row.id) || runtimeProjectionSourceDeletedInSameDiff(row, options)
+    updatedIds.has(row.id) ||
+      runtimeProjectionSourceDeletedInSameDiff(row, options) ||
+      deletedSourceRequirements.some((requirement) => runtimeProjectionRowMatchesSourceRequirement(row, requirement))
       ? []
       : [{
         family: 'runtime-resource-projection' as const,
@@ -339,9 +365,17 @@ function runtimeProjectionSourceIssue(requirement: RuntimeProjectionSourceRequir
   return {
     family: 'runtime-resource-projection',
     resourceId: `runtime-source:${requirement.filePath}#${requirement.recordKey}`,
-    code: `missing-${requirement.family}-runtime-projection-row`,
-    message: `Changed ${labels[requirement.family]} source ${requirement.filePath}#${requirement.recordKey} requires matching runtime-resource-projections.jsonl added or updated rows in the same diff.`,
+    code: requirement.changeKind === 'delete'
+      ? 'missing-deleted-runtime-projection-row'
+      : `missing-${requirement.family}-runtime-projection-row`,
+    message: requirement.changeKind === 'delete'
+      ? `Deleted ${labels[requirement.family]} record ${runtimeProjectionRequirementDisplayIdentity(requirement)} requires a matching deleted-only runtime-resource-projections.jsonl row in the same diff.`
+      : `Changed ${labels[requirement.family]} source ${runtimeProjectionRequirementDisplayIdentity(requirement)} requires matching runtime-resource-projections.jsonl added or updated rows in the same diff.`,
   };
+}
+
+function runtimeProjectionRequirementDisplayIdentity(requirement: RuntimeProjectionSourceRequirement): string {
+  return `${requirement.filePath}#${requirement.runtimeLessonIdentity?.canonicalRecord ?? requirement.recordKey}`;
 }
 
 function runtimeProjectionRowMatchesSourceRequirement(
@@ -350,9 +384,7 @@ function runtimeProjectionRowMatchesSourceRequirement(
 ): boolean {
   const family = requirement.family;
   if (family === 'runtime-lesson') {
-    return runtimeProjectionRowMatchesSourceFamily(row, family) &&
-      row.sourcePathOrUrl === requirement.filePath &&
-      runtimeProjectionRowMatchesRecord(row, requirement.recordKey) &&
+    return runtimeProjectionRowMatchesRuntimeLessonIdentity(row, requirement) &&
       runtimeProjectionRowMatchesCurrentSourceHash(row, requirement);
   }
   if (family === 'knowledge-card') {
@@ -362,7 +394,7 @@ function runtimeProjectionRowMatchesSourceRequirement(
       runtimeProjectionRowMatchesCurrentSourceHash(row, requirement);
   }
   if (family === 'runtime-source') {
-    const sourceMatches = row.sourcePathOrUrl === requirement.filePath ||
+    const sourceMatches = runtimeProjectionLocalSourcePaths(row).includes(requirement.filePath) ||
       row.citationTargets?.includes(requirement.filePath) === true ||
       row.reviewAudit?.independentEvidenceRef === requirement.filePath ||
       runtimeProjectionRowMatchesRecord(row, requirement.recordKey);
@@ -379,6 +411,20 @@ function runtimeProjectionRowMatchesSourceRequirement(
       row.sourcePathOrUrl === requirement.sourcePathOrUrl ||
       runtimeProjectionRowMatchesRecord(row, requirement.recordKey)) &&
     runtimeProjectionRowMatchesCurrentSourceHash(row, requirement);
+}
+
+function runtimeProjectionRowMatchesRuntimeLessonIdentity(
+  row: RuntimeProjectionRow,
+  requirement: RuntimeProjectionSourceRequirement,
+): boolean {
+  const identity = requirement.runtimeLessonIdentity;
+  if (!identity || row.sourcePathOrUrl !== requirement.filePath) return false;
+  const expectedFamily = identity.subtype === 'step'
+    ? 'runtime-lesson-step'
+    : 'runtime-lesson-module';
+  if (row.family !== expectedFamily) return false;
+  return row.sourceRecord === identity.canonicalRecord ||
+    row.sourceRef === identity.canonicalRecord;
 }
 
 function runtimeProjectionRowMatchesCurrentSourceHash(
@@ -453,7 +499,11 @@ function uniqueRuntimeProjectionSourceRequirements(
   const seen = new Set<string>();
   const unique: RuntimeProjectionSourceRequirement[] = [];
   for (const requirement of requirements) {
-    const key = `${requirement.family}:${requirement.filePath}:${requirement.recordKey}`;
+    const identity = requirement.runtimeLessonIdentity;
+    const recordIdentity = identity
+      ? `${identity.subtype}:${identity.lessonId}:${identity.stepId}:${identity.moduleId ?? ''}`
+      : requirement.recordKey;
+    const key = `${requirement.changeKind}:${requirement.family}:${requirement.filePath}:${recordIdentity}`;
     if (seen.has(key)) continue;
     seen.add(key);
     unique.push(requirement);
@@ -469,27 +519,77 @@ function runtimeProjectionSourceRequirementsForPath(
   const family = runtimeProjectionSourceFamilyForPath(filePath);
   if (!family) return [];
   const source = runtimeProjectionSourceContent(filePath, options)?.toString('utf8') ?? '';
+  const previousSource = runtimeProjectionSourceBaseContent(filePath, options)?.toString('utf8') ?? '';
+  const sourceDeleted = runtimeProjectionSourceDeleted(filePath, options);
   if (family === 'runtime-lesson') {
-    return parseRuntimeLessonSourceRequirements(filePath, source, diff)
+    const currentLessonId = parseRuntimeLessonId(filePath, source);
+    const previousLessonId = parseRuntimeLessonId(filePath, previousSource);
+    const lessonIdentityChanged = Boolean(
+      currentLessonId && previousLessonId && currentLessonId !== previousLessonId,
+    );
+    const currentRanges = lessonIdentityChanged
+      ? fullSourceLineRange(source)
+      : parseDiffCurrentLineRanges(diff);
+    const previousRanges = sourceDeleted || lessonIdentityChanged
+      ? fullSourceLineRange(previousSource)
+      : parseDiffBaseLineRanges(diff);
+    const currentRequirements = parseRuntimeLessonSourceRequirementsInRanges(
+      filePath,
+      source,
+      currentRanges,
+      'upsert',
+    )
       .map((requirement) => withCurrentSourceHash(requirement, options));
+    const currentRecordIdentities = new Set(parseRuntimeLessonSourceRequirementsInRanges(
+      filePath,
+      source,
+      fullSourceLineRange(source),
+      'upsert',
+    ).map((requirement) => runtimeLessonRequirementIdentityKey(requirement)));
+    const deletedRequirements = parseRuntimeLessonSourceRequirementsInRanges(
+      filePath,
+      previousSource,
+      previousRanges,
+      'delete',
+    ).filter((requirement) => !currentRecordIdentities.has(runtimeLessonRequirementIdentityKey(requirement)));
+    return [...currentRequirements, ...deletedRequirements];
   }
   if (family === 'knowledge-infograph') {
     return parseInfographManifestSourceRequirements(filePath, source, diff)
       .map((requirement) => withCurrentSourceHash(requirement, options));
   }
   if (family === 'runtime-source') {
-    return [withCurrentSourceHash({
+    const requirement: RuntimeProjectionSourceRequirement = {
+      changeKind: sourceDeleted ? 'delete' : 'upsert',
       filePath,
       family,
       recordKey: filePath,
-    }, options)];
+    };
+    return [sourceDeleted ? requirement : withCurrentSourceHash(requirement, options)];
   }
   if (family === 'assessment-item' && RUNTIME_ASSESSMENT_CATALOG_PATHS.includes(filePath)) {
     return parseAssessmentCatalogSourceRequirements(filePath, diff)
       .map((requirement) => withCurrentSourceHash(requirement, options));
   }
   const recordKey = path.basename(filePath, path.extname(filePath));
-  return [withCurrentSourceHash({ filePath, family, recordKey }, options)];
+  const requirement: RuntimeProjectionSourceRequirement = {
+    changeKind: sourceDeleted ? 'delete' : 'upsert',
+    filePath,
+    family,
+    recordKey,
+  };
+  return [sourceDeleted ? requirement : withCurrentSourceHash(requirement, options)];
+}
+
+function fullSourceLineRange(source: string): DiffLineRange[] {
+  return source ? [{ start: 1, end: source.split(/\r?\n/).length }] : [];
+}
+
+function runtimeLessonRequirementIdentityKey(requirement: RuntimeProjectionSourceRequirement): string {
+  const identity = requirement.runtimeLessonIdentity;
+  return identity
+    ? `${identity.subtype}:${identity.lessonId}:${identity.stepId}:${identity.moduleId ?? ''}`
+    : requirement.recordKey;
 }
 
 function withCurrentSourceHash(
@@ -510,7 +610,7 @@ function parseAssessmentCatalogSourceRequirements(
     .split(/\r?\n/)
     .filter((line) => line.startsWith('+') && !line.startsWith('+++'))
     .flatMap((line) => assessmentCatalogRecordKeysForLine(line.slice(1))))
-    .map((recordKey) => ({ filePath, family: 'assessment-item', recordKey }));
+    .map((recordKey) => ({ changeKind: 'upsert', filePath, family: 'assessment-item', recordKey }));
 }
 
 function assessmentCatalogRecordKeysForLine(line: string): string[] {
@@ -540,16 +640,14 @@ function stringValue(value: unknown): string | null {
   return typeof value === 'string' && value.length > 0 ? value : null;
 }
 
-function parseRuntimeLessonSourceRequirements(
+function parseRuntimeLessonSourceRequirementsInRanges(
   filePath: string,
   source: string,
-  diff: string,
+  ranges: readonly DiffLineRange[],
+  changeKind: RuntimeProjectionSourceRequirement['changeKind'],
 ): RuntimeProjectionSourceRequirement[] {
-  const ranges = parseDiffCurrentLineRanges(diff);
   if (!source || ranges.length === 0) return [];
-  const lessonId = parseJsonStringField(source, 'lesson_id') ??
-    /^course-content\/runtime\/lessons\/([^/]+)\//.exec(filePath)?.[1] ??
-    '';
+  const lessonId = parseRuntimeLessonId(filePath, source);
   const lines = source.split(/\r?\n/);
   const requirements: RuntimeProjectionSourceRequirement[] = [];
 
@@ -558,27 +656,52 @@ function parseRuntimeLessonSourceRequirements(
       .filter((entry) => ranges.some((range) => lineRangesOverlap(entry, range)));
     for (const moduleRequirement of matchingModules) {
       requirements.push({
+        changeKind,
         filePath,
         family: 'runtime-lesson',
         recordKey: moduleRequirement.recordKey,
+        runtimeLessonIdentity: {
+          subtype: 'module',
+          lessonId,
+          stepId: step.key,
+          moduleId: moduleRequirement.moduleId,
+          canonicalRecord: moduleRequirement.recordKey,
+        },
       });
     }
     if (!ranges.some((range) => lineRangesOverlap(step, range))) {
       continue;
     }
-    requirements.push({ filePath, family: 'runtime-lesson', recordKey: step.key });
+    requirements.push({
+      changeKind,
+      filePath,
+      family: 'runtime-lesson',
+      recordKey: step.key,
+      runtimeLessonIdentity: {
+        subtype: 'step',
+        lessonId,
+        stepId: step.key,
+        canonicalRecord: `${lessonId}:${step.key}`,
+      },
+    });
   }
   return requirements;
+}
+
+function parseRuntimeLessonId(filePath: string, source: string): string {
+  return parseJsonStringField(source, 'lesson_id') ??
+    /^course-content\/runtime\/lessons\/([^/]+)\//.exec(filePath)?.[1] ??
+    '';
 }
 
 function parseRuntimeLessonModuleRequirements(
   lines: readonly string[],
   step: { key: string; start: number; end: number },
   lessonId: string,
-): Array<{ start: number; end: number; recordKey: string }> {
+): Array<{ start: number; end: number; moduleId: string; recordKey: string }> {
   const moduleArrayIndex = findStepModulesArrayIndex(lines, step);
   if (moduleArrayIndex === null) return [];
-  const requirements: Array<{ start: number; end: number; recordKey: string }> = [];
+  const requirements: Array<{ start: number; end: number; moduleId: string; recordKey: string }> = [];
   let arrayDepth = 0;
   let arrayStarted = false;
 
@@ -593,6 +716,7 @@ function parseRuntimeLessonModuleRequirements(
           requirements.push({
             start: index + 1,
             end,
+            moduleId,
             recordKey: lessonId ? `${lessonId}:${step.key}:${moduleId}` : moduleId,
           });
         }
@@ -653,6 +777,7 @@ function parseInfographManifestSourceRequirements(
         path.basename(itemPath ?? '', path.extname(itemPath ?? ''));
       if (!recordKey) return [];
       return [{
+        changeKind: 'upsert' as const,
         filePath,
         family: 'knowledge-infograph' as const,
         recordKey,
@@ -844,6 +969,19 @@ function parseDiffCurrentLineRanges(diff: string): DiffLineRange[] {
     });
 }
 
+function parseDiffBaseLineRanges(diff: string): DiffLineRange[] {
+  return diff
+    .split(/\r?\n/)
+    .map((line) => /^@@ -(\d+)(?:,(\d+))? \+\d+(?:,\d+)? @@/.exec(line))
+    .filter((match): match is RegExpExecArray => Boolean(match))
+    .flatMap((match) => {
+      const start = Number(match[1]);
+      const count = match[2] ? Number(match[2]) : 1;
+      if (count === 0) return [];
+      return [{ start, end: start + count - 1 }];
+    });
+}
+
 function braceDelta(line: string): number {
   let delta = 0;
   for (const char of line) {
@@ -873,9 +1011,15 @@ function listPresetLessonResourcePaths(options: CliOptions): string[] {
 }
 
 function gitChangedRuntimeProjectionSourcePaths(options: CliOptions): string[] {
-  return gitChangedPathNames(options, RUNTIME_PROJECTION_SOURCE_PATHS, ['--diff-filter=ACMR'])
+  return gitChangedPathNames(options, RUNTIME_PROJECTION_SOURCE_PATHS, ['--diff-filter=ACDMR'])
     .split(/\r?\n/)
     .filter((filePath) => runtimeProjectionSourceFamilyForPath(filePath));
+}
+
+function runtimeProjectionSourceDeleted(filePath: string, options: CliOptions): boolean {
+  return gitChangedPathNames(options, [filePath], ['--diff-filter=D'])
+    .split(/\r?\n/)
+    .includes(filePath);
 }
 
 function runtimeProjectionSourceFamilyForPath(filePath: string): RuntimeProjectionSourceFamily | null {
@@ -922,6 +1066,17 @@ function runtimeProjectionSourceContent(filePath: string, options: CliOptions): 
   }
   try {
     return execFileSync('git', ['show', `HEAD:${filePath}`], { maxBuffer: 64 * 1024 * 1024 });
+  } catch {
+    return undefined;
+  }
+}
+
+function runtimeProjectionSourceBaseContent(filePath: string, options: CliOptions): Buffer | undefined {
+  try {
+    const revision = options.staged
+      ? 'HEAD'
+      : execFileSync('git', ['merge-base', options.base!, 'HEAD'], { encoding: 'utf8' }).trim();
+    return execFileSync('git', ['show', `${revision}:${filePath}`], { maxBuffer: 64 * 1024 * 1024 });
   } catch {
     return undefined;
   }
