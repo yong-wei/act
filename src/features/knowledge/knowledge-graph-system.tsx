@@ -1021,11 +1021,18 @@ export function KnowledgeGraphSystem({
       clearSelectedNodeProjection();
       return;
     }
+    const controlBounds = expansionControlRef.current?.getBoundingClientRect();
+    if (!controlBounds) {
+      clearSelectedNodeProjection();
+      return;
+    }
     const controlPosition = clampNodeExpansionControlPosition({
       nodeX: position.x as number,
       nodeY: position.y as number,
       viewportWidth: container.clientWidth,
       viewportHeight: container.clientHeight,
+      controlWidth: controlBounds.width,
+      controlHeight: controlBounds.height,
     });
     if (!controlPosition) {
       clearSelectedNodeProjection();

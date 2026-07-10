@@ -46,7 +46,6 @@ export interface KnowledgeGraphNodeControlPosition {
 const FOCUSED_EXPANSION_RING_CAPACITY = 8;
 const FOCUSED_EXPANSION_FIRST_RING_RADIUS = 96;
 const FOCUSED_EXPANSION_RING_GAP = 72;
-const NODE_EXPANSION_CONTROL_SIZE = 44;
 const NODE_EXPANSION_CONTROL_EDGE_CLEARANCE = 8;
 const NODE_EXPANSION_CONTROL_OFFSET = -40;
 
@@ -65,36 +64,44 @@ export function clampNodeExpansionControlPosition(input: {
   nodeY: number;
   viewportWidth: number;
   viewportHeight: number;
+  controlWidth: number;
+  controlHeight: number;
 }): KnowledgeGraphNodeControlPosition | null {
   const nodeX = readFiniteCoordinate(input.nodeX);
   const nodeY = readFiniteCoordinate(input.nodeY);
   const viewportWidth = readFiniteCoordinate(input.viewportWidth);
   const viewportHeight = readFiniteCoordinate(input.viewportHeight);
+  const controlWidth = readFiniteCoordinate(input.controlWidth);
+  const controlHeight = readFiniteCoordinate(input.controlHeight);
   if (
     nodeX === null
     || nodeY === null
     || viewportWidth === null
     || viewportHeight === null
-    || viewportWidth < NODE_EXPANSION_CONTROL_SIZE + NODE_EXPANSION_CONTROL_EDGE_CLEARANCE * 2
-    || viewportHeight < NODE_EXPANSION_CONTROL_SIZE + NODE_EXPANSION_CONTROL_EDGE_CLEARANCE * 2
+    || controlWidth === null
+    || controlHeight === null
+    || controlWidth <= 0
+    || controlHeight <= 0
+    || viewportWidth < controlWidth + NODE_EXPANSION_CONTROL_EDGE_CLEARANCE * 2
+    || viewportHeight < controlHeight + NODE_EXPANSION_CONTROL_EDGE_CLEARANCE * 2
   ) {
     return null;
   }
 
   const desiredCenterX = nodeX + NODE_EXPANSION_CONTROL_OFFSET;
   const desiredCenterY = nodeY + NODE_EXPANSION_CONTROL_OFFSET;
-  const desiredLeft = desiredCenterX - NODE_EXPANSION_CONTROL_SIZE / 2;
-  const desiredTop = desiredCenterY - NODE_EXPANSION_CONTROL_SIZE / 2;
-  const maxLeft = viewportWidth - NODE_EXPANSION_CONTROL_EDGE_CLEARANCE - NODE_EXPANSION_CONTROL_SIZE;
-  const maxTop = viewportHeight - NODE_EXPANSION_CONTROL_EDGE_CLEARANCE - NODE_EXPANSION_CONTROL_SIZE;
+  const desiredLeft = desiredCenterX - controlWidth / 2;
+  const desiredTop = desiredCenterY - controlHeight / 2;
+  const maxLeft = viewportWidth - NODE_EXPANSION_CONTROL_EDGE_CLEARANCE - controlWidth;
+  const maxTop = viewportHeight - NODE_EXPANSION_CONTROL_EDGE_CLEARANCE - controlHeight;
   const left = Math.min(maxLeft, Math.max(NODE_EXPANSION_CONTROL_EDGE_CLEARANCE, desiredLeft));
   const top = Math.min(maxTop, Math.max(NODE_EXPANSION_CONTROL_EDGE_CLEARANCE, desiredTop));
 
   return {
     left,
     top,
-    centerX: left + NODE_EXPANSION_CONTROL_SIZE / 2,
-    centerY: top + NODE_EXPANSION_CONTROL_SIZE / 2,
+    centerX: left + controlWidth / 2,
+    centerY: top + controlHeight / 2,
     clamped: left !== desiredLeft || top !== desiredTop,
   };
 }

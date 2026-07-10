@@ -572,7 +572,6 @@ export function KnowledgeGraphCanvas({
         onNodeClick={handleNodeClick}
         onNodeHover={handleNodeHover}
         onNodeDragEnd={handleNodeDragEnd}
-        onEngineTick={snapshotRuntimePositions}
         onEngineStop={snapshotRuntimePositions}
         enableNodeDrag={true}
 

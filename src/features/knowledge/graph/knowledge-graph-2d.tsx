@@ -711,7 +711,6 @@ export function KnowledgeGraph2D({
       onNodeClick={onNodeClick}
       onNodeHover={onNodeHover}
       onNodeDragEnd={handleNodeDragEnd}
-      onEngineTick={snapshotRuntimePositions}
       onEngineStop={snapshotRuntimePositions}
       enableNodeDrag={true}
 
