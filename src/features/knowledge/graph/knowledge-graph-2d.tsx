@@ -4,7 +4,12 @@ import React, { useCallback, useEffect, useRef, useMemo, useState } from 'react'
 import ForceGraph2D from 'react-force-graph-2d';
 import * as d3 from 'd3';
 import { KnowledgeNodeData, KnowledgeLinkData } from '../knowledge-graph-system';
-import { applyRadialLayout } from './layout-engine';
+import {
+  applyFocusedExpansionLayout,
+  applyRadialLayout,
+  type KnowledgeGraphNodeScreenPosition,
+  type KnowledgeGraphPositionedNode,
+} from './layout-engine';
 import {
   getNodeColor,
   getGlowColor,
@@ -41,7 +46,16 @@ interface KnowledgeGraph2DProps {
   layoutState: KnowledgeGraphLayoutState;
   fitViewVersion: number;
   relayoutVersion: number;
+  expandedNodeIds: readonly string[];
+  expandedDirectLinks: readonly KnowledgeLinkData[];
+  onSelectedNodeScreenPosition: (position: KnowledgeGraphNodeScreenPosition) => void;
 }
+
+type RuntimeKnowledgeGraphNode = KnowledgeGraphPositionedNode & {
+  vx?: number;
+  vy?: number;
+  vz?: number;
+};
 
 // ========== 形状绘制函数 ==========
 
@@ -270,9 +284,15 @@ export function KnowledgeGraph2D({
   layoutState,
   fitViewVersion,
   relayoutVersion,
+  expandedNodeIds,
+  expandedDirectLinks,
+  onSelectedNodeScreenPosition,
 }: KnowledgeGraph2DProps) {
   const fgRef = useRef<any>(null);
+  const layoutStateRef = useRef(layoutState);
+  const runtimePositionsByNodeIdRef = useRef(new Map<string, Partial<RuntimeKnowledgeGraphNode>>());
   const [isLightTheme, setIsLightTheme] = useState(false);
+  layoutStateRef.current = layoutState;
 
   useEffect(() => {
     const updateTheme = () => {
@@ -312,14 +332,90 @@ export function KnowledgeGraph2D({
 
     // 应用辐射布局。拖拽后的 pinned 坐标通过下方 effect 同步到现有图节点，
     // 避免 layoutState 变化时重建 graphData 并重新加热力导向布局。
-    const layoutNodes = applyRadialLayout(clonedNodes, links, undefined, layoutRadius);
+    const baseLayoutNodes = applyRadialLayout(clonedNodes, links, undefined, layoutRadius);
+    const layoutNodes = baseLayoutNodes.map((node) => {
+      const runtimePosition = runtimePositionsByNodeIdRef.current.get(node.id);
+      return runtimePosition ? { ...node, ...runtimePosition } : node;
+    }) as RuntimeKnowledgeGraphNode[];
     markKnowledgeGraphAutomaticNodeAnchors(layoutNodes);
+    const focusedLayoutNodes = applyFocusedExpansionLayout({
+      nodes: layoutNodes,
+      expandedNodeIds,
+      directExpansionLinks: expandedDirectLinks,
+      layoutState: layoutStateRef.current,
+    });
 
     return {
-      nodes: layoutNodes,
+      nodes: focusedLayoutNodes,
       links: transformedLinks
     };
-  }, [nodes, links, relayoutVersion]);
+  }, [nodes, links, relayoutVersion, expandedNodeIds, expandedDirectLinks]);
+
+  const rememberRuntimeNodePosition = useCallback((node: RuntimeKnowledgeGraphNode) => {
+    if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) return;
+    runtimePositionsByNodeIdRef.current.set(node.id, {
+      x: node.x,
+      y: node.y,
+      ...(Number.isFinite(node.z) ? { z: node.z } : {}),
+      ...(Number.isFinite(node.vx) ? { vx: node.vx } : {}),
+      ...(Number.isFinite(node.vy) ? { vy: node.vy } : {}),
+      ...(Number.isFinite(node.vz) ? { vz: node.vz } : {}),
+      ...(Number.isFinite(node.fx) ? { fx: node.fx } : {}),
+      ...(Number.isFinite(node.fy) ? { fy: node.fy } : {}),
+      ...(Number.isFinite(node.fz) ? { fz: node.fz } : {}),
+      ...(node.__knowledgeAutomaticAnchor
+        ? { __knowledgeAutomaticAnchor: node.__knowledgeAutomaticAnchor }
+        : {}),
+    });
+  }, []);
+
+  const snapshotRuntimePositions = useCallback(() => {
+    const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
+    graphNodes.forEach(rememberRuntimeNodePosition);
+  }, [graphData.nodes, rememberRuntimeNodePosition]);
+
+  const reportSelectedNodeScreenPosition = useCallback(() => {
+    const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
+
+    if (!selectedNode?.id || !fgRef.current?.graph2ScreenCoords) {
+      onSelectedNodeScreenPosition({ nodeId: null, viewMode: '2D' });
+      return;
+    }
+    const graphNode = graphNodes.find((node) => node.id === selectedNode.id);
+    const graphX = Number(graphNode?.x);
+    const graphY = Number(graphNode?.y);
+    if (!Number.isFinite(graphX) || !Number.isFinite(graphY)) {
+      onSelectedNodeScreenPosition({ nodeId: null, viewMode: '2D' });
+      return;
+    }
+    const screen = fgRef.current.graph2ScreenCoords(graphX, graphY);
+    const screenX = Number(screen?.x);
+    const screenY = Number(screen?.y);
+    if (!Number.isFinite(screenX) || !Number.isFinite(screenY)) {
+      onSelectedNodeScreenPosition({ nodeId: null, viewMode: '2D' });
+      return;
+    }
+    onSelectedNodeScreenPosition({
+      nodeId: selectedNode.id,
+      viewMode: '2D',
+      x: screenX,
+      y: screenY,
+    });
+  }, [graphData.nodes, onSelectedNodeScreenPosition, selectedNode?.id]);
+
+  useEffect(() => {
+    let animationFrame = 0;
+    const reportFrame = () => {
+      reportSelectedNodeScreenPosition();
+      animationFrame = window.requestAnimationFrame(reportFrame);
+    };
+    onSelectedNodeScreenPosition({ nodeId: null, viewMode: '2D' });
+    animationFrame = window.requestAnimationFrame(reportFrame);
+    return () => {
+      window.cancelAnimationFrame(animationFrame);
+      onSelectedNodeScreenPosition({ nodeId: null, viewMode: '2D' });
+    };
+  }, [height, onSelectedNodeScreenPosition, reportSelectedNodeScreenPosition, width]);
 
   useEffect(() => {
     const qaWindow = window as Window & {
@@ -561,8 +657,9 @@ export function KnowledgeGraph2D({
   }, [hoveredNode?.id, isLightTheme, selectedNode?.id]);
 
   const handleNodeDragEnd = useCallback((node: any) => {
+    rememberRuntimeNodePosition(node as RuntimeKnowledgeGraphNode);
     onNodeDragEnd(node as KnowledgeNodeData);
-  }, [onNodeDragEnd]);
+  }, [onNodeDragEnd, rememberRuntimeNodePosition]);
 
   // 4. 物理引擎配置
   useEffect(() => {
@@ -614,6 +711,8 @@ export function KnowledgeGraph2D({
       onNodeClick={onNodeClick}
       onNodeHover={onNodeHover}
       onNodeDragEnd={handleNodeDragEnd}
+      onEngineTick={snapshotRuntimePositions}
+      onEngineStop={snapshotRuntimePositions}
       enableNodeDrag={true}
 
       // 物理引擎配置
