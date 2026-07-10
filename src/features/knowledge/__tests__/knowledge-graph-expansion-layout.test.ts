@@ -40,7 +40,11 @@ function expansionLink(id: string, sourceId: string, targetId: string): Knowledg
 }
 
 function coordinatesById(nodes: KnowledgeGraphPositionedNode[]) {
-  return Object.fromEntries(nodes.map((node) => [node.id, { x: node.x, y: node.y }]));
+  return Object.fromEntries(
+    [...nodes]
+      .sort((a, b) => a.id.localeCompare(b.id))
+      .map((node) => [node.id, { x: node.x, y: node.y }])
+  );
 }
 
 function distanceFrom(node: KnowledgeGraphPositionedNode, center: { x: number; y: number }) {
@@ -88,6 +92,27 @@ describe('knowledge graph focused expansion layout', () => {
     ).toBeCloseTo(200);
   });
 
+  it('uses an existing automatic center anchor before runtime and initial coordinates', () => {
+    const center = {
+      ...graphNode('center', -500, -600, { x: 10, y: 20 }),
+      __knowledgeAutomaticAnchor: {
+        id: 'center',
+        x: 300,
+        y: 400,
+      },
+    };
+
+    const laidOut = applyFocusedExpansionLayout({
+      nodes: [center, graphNode('child')],
+      expandedNodeIds: ['center'],
+      directExpansionLinks: [expansionLink('direct', 'center', 'child')],
+      layoutState: getEmptyKnowledgeGraphLayoutState(),
+    });
+
+    expect(laidOut[0]).toBe(center);
+    expect(laidOut[1]).toMatchObject({ x: 300, y: 304, fx: 300, fy: 304 });
+  });
+
   it('spills large direct-child sets into stable bounded rings', () => {
     const childIds = Array.from(
       { length: 12 },
@@ -102,6 +127,16 @@ describe('knowledge graph focused expansion layout', () => {
       directExpansionLinks: links,
       layoutState: getEmptyKnowledgeGraphLayoutState(),
     });
+    const reversedInput = applyFocusedExpansionLayout({
+      nodes: [nodes[0], ...nodes.slice(1).reverse()],
+      expandedNodeIds: ['center'],
+      directExpansionLinks: [...links].reverse().map((link) => ({
+        ...link,
+        sourceId: link.targetId,
+        targetId: link.sourceId,
+      })),
+      layoutState: getEmptyKnowledgeGraphLayoutState(),
+    });
     const radii = laidOut
       .filter((node) => node.id.startsWith('child-'))
       .map((node) => Number(distanceFrom(node, { x: 0, y: 0 }).toFixed(6)));
@@ -110,16 +145,19 @@ describe('knowledge graph focused expansion layout', () => {
     expect(uniqueRadii).toHaveLength(2);
     expect(uniqueRadii[0]).toBeGreaterThan(0);
     expect(uniqueRadii[1]).toBeLessThan(uniqueRadii[0] * 3);
+    expect(coordinatesById(reversedInput)).toEqual(coordinatesById(laidOut));
   });
 
   it('applies user pins before focused placement and preserves unrelated coordinates', () => {
     const unrelated = graphNode('unrelated', 12, 18, { x: 31, y: 41 });
+    const unrelatedPinned = graphNode('unrelated-pinned', 22, 28, { x: 51, y: 61 });
     const grandchild = graphNode('grandchild', 71, 81, { x: 91, y: 101 });
     const nodes = [
       graphNode('center', -1, -2, { x: 10, y: 20 }),
       graphNode('auto-child', 300, 400, { x: 500, y: 600 }),
       graphNode('pinned-child', 30, 40, { x: 50, y: 60 }),
       unrelated,
+      unrelatedPinned,
       grandchild,
     ];
     const centerPinned = storeKnowledgeGraphNodePosition(undefined, {
@@ -127,10 +165,15 @@ describe('knowledge graph focused expansion layout', () => {
       x: 400,
       y: 500,
     });
-    const layoutState = storeKnowledgeGraphNodePosition(centerPinned, {
+    const childPinned = storeKnowledgeGraphNodePosition(centerPinned, {
       id: 'pinned-child',
       x: 900,
       y: 950,
+    });
+    const layoutState = storeKnowledgeGraphNodePosition(childPinned, {
+      id: 'unrelated-pinned',
+      x: 1000,
+      y: 1050,
     });
 
     const laidOut = applyFocusedExpansionLayout({
@@ -151,6 +194,13 @@ describe('knowledge graph focused expansion layout', () => {
     expect(distanceFrom(byId.get('auto-child')!, { x: 400, y: 500 })).toBeGreaterThan(0);
     expect(byId.get('unrelated')).toBe(unrelated);
     expect(byId.get('unrelated')).toMatchObject({ x: 31, y: 41, positionX: 12, positionY: 18 });
+    expect(byId.get('unrelated-pinned')).toBe(unrelatedPinned);
+    expect(byId.get('unrelated-pinned')).toMatchObject({
+      x: 51,
+      y: 61,
+      positionX: 22,
+      positionY: 28,
+    });
     expect(byId.get('grandchild')).toBe(grandchild);
     expect(byId.get('grandchild')).toMatchObject({ x: 91, y: 101, positionX: 71, positionY: 81 });
   });
@@ -179,5 +229,33 @@ describe('knowledge graph focused expansion layout', () => {
       fx: focusedPosition.x,
       fy: focusedPosition.y,
     });
+  });
+
+  it('records a focused automatic anchor when a direct child was pinned before expansion', () => {
+    const userPinned = storeKnowledgeGraphNodePosition(undefined, {
+      id: 'child',
+      x: 700,
+      y: 800,
+    });
+    const focusedNodes = applyFocusedExpansionLayout({
+      nodes: [graphNode('center'), graphNode('child')],
+      expandedNodeIds: ['center'],
+      directExpansionLinks: [expansionLink('direct', 'center', 'child')],
+      layoutState: userPinned,
+    });
+    const focusedChild = focusedNodes[1];
+
+    expect(focusedChild).toMatchObject({
+      x: 700,
+      y: 800,
+      __knowledgeAutomaticAnchor: { id: 'child', y: -96 },
+    });
+    expect(focusedChild.__knowledgeAutomaticAnchor?.x).toBeCloseTo(0);
+
+    syncKnowledgeGraphMutableNodePositions(focusedNodes, userPinned);
+    syncKnowledgeGraphMutableNodePositions(focusedNodes, clearKnowledgeGraphLayoutPins(userPinned));
+    expect(focusedChild).toMatchObject({ y: -96, fy: -96 });
+    expect(focusedChild.x).toBeCloseTo(0);
+    expect(focusedChild.fx).toBeCloseTo(0);
   });
 });

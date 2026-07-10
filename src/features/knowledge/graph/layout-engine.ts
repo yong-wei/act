@@ -48,6 +48,12 @@ function resolveNodeCenter(
     return { x: pinned.x, y: pinned.y };
   }
 
+  const automaticAnchorX = readFiniteCoordinate(node.__knowledgeAutomaticAnchor?.x);
+  const automaticAnchorY = readFiniteCoordinate(node.__knowledgeAutomaticAnchor?.y);
+  if (automaticAnchorX !== null && automaticAnchorY !== null) {
+    return { x: automaticAnchorX, y: automaticAnchorY };
+  }
+
   const runtimeX = readFiniteCoordinate(node.x);
   const runtimeY = readFiniteCoordinate(node.y);
   if (runtimeX !== null && runtimeY !== null) {
@@ -110,7 +116,9 @@ export function applyFocusedExpansionLayout<T extends KnowledgeGraphPositionedNo
 
   return nodes.map((node) => {
     const pinned = layoutState.positionsByNodeId[node.id];
+    const focused = focusedCoordinates.get(node.id);
     if (pinned?.pinned) {
+      if (!focused && !expandedIdSet.has(node.id)) return node;
       return {
         ...node,
         x: pinned.x,
@@ -122,10 +130,18 @@ export function applyFocusedExpansionLayout<T extends KnowledgeGraphPositionedNo
         ...(pinned.z === undefined
           ? {}
           : { z: pinned.z, positionZ: pinned.z, fz: pinned.z }),
+        ...(focused
+          ? {
+              __knowledgeAutomaticAnchor: {
+                id: node.id,
+                x: focused.x,
+                y: focused.y,
+              },
+            }
+          : {}),
       } as T;
     }
 
-    const focused = focusedCoordinates.get(node.id);
     if (!focused) return node;
     return {
       ...node,
