@@ -235,6 +235,40 @@ describe('adaptive path round restore', () => {
           activeNodeId: legacyNodeId,
           completedNodeIds: [legacyNodeId, canonicalNodeId],
         },
+        policyBundle: {
+          status: 'ready',
+          paths: [{
+            nodeIds: [legacyNodeId, canonicalNodeId],
+            activeNodeIds: [legacyNodeId],
+            lockedNodeIds: [legacyNodeId],
+            readinessSummary: [{ nodeId: legacyNodeId, state: 'locked', message: '等待 Arena 完成' }],
+            unlockMessages: [{ nodeId: legacyNodeId, message: '完成 Arena' }],
+            terminalValidationNodeIds: [legacyNodeId],
+            terminalValidationStrategy: {
+              nodeIds: [legacyNodeId, canonicalNodeId],
+              summary: 'Arena 终点验证',
+            },
+            checkpointNodeIds: [legacyNodeId],
+          }],
+        },
+        constraintRepair: {
+          status: 'repaired',
+          draftNodeIds: [legacyNodeId, canonicalNodeId],
+          repairedNodeIds: [legacyNodeId],
+          insertedNodeIds: [legacyNodeId],
+          removedNodeIds: [legacyNodeId],
+          checkpointNodeIds: [legacyNodeId],
+          terminalValidationNodeIds: [legacyNodeId],
+          repairedConstraints: ['legacy-arena-alias'],
+          tradeoffs: [],
+          limitations: [],
+          infeasibleReasons: [{
+            code: 'locked-node-without-fallback',
+            nodeIds: [legacyNodeId, canonicalNodeId],
+            message: 'legacy alias fixture',
+          }],
+          versionRefs: { repairVersion: 'path-constraint-repair.v1' },
+        },
       },
     });
 
@@ -260,6 +294,27 @@ describe('adaptive path round restore', () => {
       executionStatus: {
         activeNodeId: canonicalNodeId,
         completedNodeIds: [canonicalNodeId],
+      },
+      policyBundle: {
+        paths: [{
+          nodeIds: [canonicalNodeId],
+          activeNodeIds: [canonicalNodeId],
+          lockedNodeIds: [canonicalNodeId],
+          readinessSummary: [{ nodeId: canonicalNodeId }],
+          unlockMessages: [{ nodeId: canonicalNodeId }],
+          terminalValidationNodeIds: [canonicalNodeId],
+          terminalValidationStrategy: { nodeIds: [canonicalNodeId] },
+          checkpointNodeIds: [canonicalNodeId],
+        }],
+      },
+      constraintRepair: {
+        draftNodeIds: [canonicalNodeId],
+        repairedNodeIds: [canonicalNodeId],
+        insertedNodeIds: [canonicalNodeId],
+        removedNodeIds: [canonicalNodeId],
+        checkpointNodeIds: [canonicalNodeId],
+        terminalValidationNodeIds: [canonicalNodeId],
+        infeasibleReasons: [{ nodeIds: [canonicalNodeId] }],
       },
     });
   });

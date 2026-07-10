@@ -631,10 +631,31 @@ export async function updateControlCorrectionPathRoundAfterExecution(
     : allNodesComplete && !terminalRequired
       ? 'completed'
     : path.pathStatus ?? 'active';
+  const deviationNodeReferenceUpdates = Array.isArray(path.deviations)
+    ? path.deviations.flatMap((value: unknown) => {
+        const deviation = toRecord(value);
+        if (typeof deviation.id !== 'string') return [];
+        const data = {
+          ...(typeof deviation.priorNodeId === 'string' || deviation.priorNodeId === null
+            ? { priorNodeId: deviation.priorNodeId }
+            : {}),
+          ...(typeof deviation.targetNodeId === 'string' || deviation.targetNodeId === null
+            ? { targetNodeId: deviation.targetNodeId }
+            : {}),
+        };
+        return Object.keys(data).length > 0
+          ? [{ where: { id: deviation.id }, data }]
+          : [];
+      })
+    : [];
 
   return db.learningPath.update({
     where: { id: input.pathId },
     data: {
+      ...(Array.isArray(path.nodeIds) ? { nodeIds: path.nodeIds } : {}),
+      ...(typeof path.entryNodeId === 'string' || path.entryNodeId === null
+        ? { entryNodeId: path.entryNodeId }
+        : {}),
       currentNodeId: nextNodeId,
       pathStatus: nextPathStatus,
       terminalValidation,
@@ -674,6 +695,9 @@ export async function updateControlCorrectionPathRoundAfterExecution(
         } : {}),
         updatedAt: new Date().toISOString(),
       },
+      ...(deviationNodeReferenceUpdates.length > 0
+        ? { deviations: { update: deviationNodeReferenceUpdates } }
+        : {}),
     },
   });
 }

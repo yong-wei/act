@@ -4,7 +4,7 @@ import { buildAuthorizedAdaptivePathJourney } from '@/features/adaptive/adaptive
 import { resolveArenaPathTargetIntegrity } from '@/lib/arena-path-target-integrity';
 import {
   remapPathNodeId,
-  remapPathNodeReferences,
+  remapPersistedLearningPathReferences,
 } from '@/lib/path-node-id-alias-remap';
 import { prisma } from '@/lib/prisma';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
@@ -319,7 +319,7 @@ function canonicalizeVerifiedLegacyArenaPath(path: any): {
     : '';
   const terminalTarget = canonicalTargets.get(terminalLegacyNodeId);
 
-  const canonicalizedPath = remapPathNodeReferences({
+  const canonicalizedPath = remapPersistedLearningPathReferences({
     ...path,
     pathPayload: {
       ...payload,

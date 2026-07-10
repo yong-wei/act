@@ -5,8 +5,8 @@ import {
 } from '@/lib/adaptive-path-goal-options';
 import { resolveArenaPathTargetIntegrity } from '@/lib/arena-path-target-integrity';
 import {
+  remapAdaptivePathPayloadReferences,
   remapPathNodeId,
-  remapPathNodeReferences,
 } from '@/lib/path-node-id-alias-remap';
 
 export interface LearningPathRoundForRestore {
@@ -29,33 +29,28 @@ export function restoreAdaptiveLearningPathPlanFromRound(
   const payload = round.pathPayload ?? {};
   const rawPlanNodes = Array.isArray(payload.planNodes) ? payload.planNodes : [];
   const restoredArenaTargets = restoreArenaPathTargets(rawPlanNodes, payload.fixtureScope);
-  const planNodes = remapPathNodeReferences(
-    restoredArenaTargets.planNodes,
-    restoredArenaTargets.nodeIdReplacements,
-  );
   const rawAlternatives = Array.isArray(payload.alternatives)
     ? payload.alternatives
     : Array.isArray(round.alternativePayload)
       ? round.alternativePayload
       : [];
-  const alternatives = remapPathNodeReferences(
-    rawAlternatives,
-    restoredArenaTargets.nodeIdReplacements,
-  );
-  const explanations = remapPathNodeReferences(
-    restoreExplanations(
+  const currentNodeId = remapPathNodeId(round.currentNodeId, restoredArenaTargets.nodeIdReplacements);
+  const restoredReferences = remapAdaptivePathPayloadReferences({
+    planNodes: restoredArenaTargets.planNodes,
+    alternatives: rawAlternatives,
+    explanations: restoreExplanations(
       round.explanationPayload,
       payload.explanations,
-      planNodes.length === 0,
+      restoredArenaTargets.planNodes.length === 0,
     ),
-    restoredArenaTargets.nodeIdReplacements,
-  );
-
-  const currentNodeId = remapPathNodeId(round.currentNodeId, restoredArenaTargets.nodeIdReplacements);
-  const executionStatus = remapPathNodeReferences(
-    restoreExecutionStatus(payload.executionStatus, currentNodeId),
-    restoredArenaTargets.nodeIdReplacements,
-  );
+    executionStatus: restoreExecutionStatus(payload.executionStatus, currentNodeId),
+    deviations: payload.deviations ?? [],
+    corrections: payload.corrections ?? [],
+    feedbackEvents: restoreFeedbackEvents(payload),
+    visualization: payload.visualization,
+    policyBundle: payload.policyBundle,
+    constraintRepair: payload.constraintRepair,
+  }, restoredArenaTargets.nodeIdReplacements);
 
   return {
     id: round.id,
@@ -70,38 +65,27 @@ export function restoreAdaptiveLearningPathPlanFromRound(
       ? payload.policyFamily as AdaptiveLearningPathPlan['policyFamily']
       : 'rules-plus-graph-search',
     policyMetadata: payload.policyMetadata as AdaptiveLearningPathPlan['policyMetadata'],
-    policyBundle: payload.policyBundle as AdaptiveLearningPathPlan['policyBundle'],
+    policyBundle: restoredReferences.policyBundle as AdaptiveLearningPathPlan['policyBundle'],
     excludedPolicyFamilies: ['contextual-bandit', 'reinforcement-learning', 'long-horizon-hybrid'],
     status: restoredArenaTargets.blocked
       ? 'fallback'
       : round.pathStatus === 'active' || round.pathStatus === 'completed' ? 'ready' : 'fallback',
     currentNodeId,
-    mainPath: planNodes as AdaptiveLearningPathPlan['mainPath'],
-    alternatives: alternatives as AdaptiveLearningPathPlan['alternatives'],
+    mainPath: restoredReferences.planNodes as AdaptiveLearningPathPlan['mainPath'],
+    alternatives: restoredReferences.alternatives as AdaptiveLearningPathPlan['alternatives'],
     score: restoreScore(payload.score),
     confidence: payload.confidence as AdaptiveLearningPathPlan['confidence'] ?? {
       level: 'low',
       score: 0,
       sourceCoverage: 0,
     },
-    explanations,
-    executionStatus,
-    deviations: remapPathNodeReferences(
-      payload.deviations ?? [],
-      restoredArenaTargets.nodeIdReplacements,
-    ) as AdaptiveLearningPathPlan['deviations'],
-    corrections: remapPathNodeReferences(
-      payload.corrections ?? [],
-      restoredArenaTargets.nodeIdReplacements,
-    ) as AdaptiveLearningPathPlan['corrections'],
-    feedbackEvents: remapPathNodeReferences(
-      restoreFeedbackEvents(payload),
-      restoredArenaTargets.nodeIdReplacements,
-    ) as AdaptiveLearningPathPlan['feedbackEvents'],
-    visualization: remapPathNodeReferences(
-      payload.visualization,
-      restoredArenaTargets.nodeIdReplacements,
-    ) as AdaptiveLearningPathPlan['visualization'],
+    explanations: restoredReferences.explanations as AdaptiveLearningPathPlan['explanations'],
+    executionStatus: restoredReferences.executionStatus as AdaptiveLearningPathPlan['executionStatus'],
+    deviations: restoredReferences.deviations as AdaptiveLearningPathPlan['deviations'],
+    corrections: restoredReferences.corrections as AdaptiveLearningPathPlan['corrections'],
+    feedbackEvents: restoredReferences.feedbackEvents as AdaptiveLearningPathPlan['feedbackEvents'],
+    visualization: restoredReferences.visualization as AdaptiveLearningPathPlan['visualization'],
+    constraintRepair: restoredReferences.constraintRepair as AdaptiveLearningPathPlan['constraintRepair'],
   };
 }
 

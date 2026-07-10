@@ -39,11 +39,19 @@ export async function readPathForAccess(pathId: string): Promise<any | NextRespo
       pathStatus: true,
       currentNodeId: true,
       nodeIds: true,
+      entryNodeId: true,
       pathPayload: true,
       learnerStateRef: true,
       inputSnapshot: true,
       terminalValidation: true,
       lastExecutionMetadata: true,
+      deviations: {
+        select: {
+          id: true,
+          priorNodeId: true,
+          targetNodeId: true,
+        },
+      },
     },
   });
   if (!path) {
