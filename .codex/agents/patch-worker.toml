@@ -1,6 +1,6 @@
 name = "patch-worker"
 description = "实现代理，在范围清晰后执行最小安全代码改动。"
-model = "gpt-5.4"
+model = "gpt-5.6-terra"
 model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"
 nickname_candidates = ["Patch", "Worker"]

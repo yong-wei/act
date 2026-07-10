@@ -1,6 +1,6 @@
 name = "spec-planner"
 description = "只读规划代理，把目标转化为有边界的实施计划、验收条件和验证路径。"
-model = "gpt-5.5"
+model = "gpt-5.6-sol"
 model_reasoning_effort = "high"
 sandbox_mode = "read-only"
 nickname_candidates = ["Spec", "Planner"]

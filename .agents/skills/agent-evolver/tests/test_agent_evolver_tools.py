@@ -1,6 +1,8 @@
 import json
 import subprocess
 import sys
+import tempfile
+import tomllib
 import unittest
 from pathlib import Path
 
@@ -25,7 +27,151 @@ class AgentEvolverToolTests(unittest.TestCase):
         result = self.run_python(VALIDATE_SCRIPT, "--root", str(REPO_ROOT))
         self.assertEqual(result.returncode, 0, msg=result.stderr or result.stdout)
         self.assertIn("validated", result.stdout)
-        self.assertIn("5 agent files", result.stdout)
+        self.assertIn("18 agent files", result.stdout)
+
+    def test_repository_agents_use_approved_gpt_56_assignments(self) -> None:
+        expected_assignments = {
+            "agent-router": ("gpt-5.6-luna", "medium"),
+            "ai-context-reviewer": ("gpt-5.6-sol", "high"),
+            "code-mapper": ("gpt-5.6-luna", "medium"),
+            "course-pedagogy-reviewer": ("gpt-5.6-sol", "high"),
+            "critical-reviewer": ("gpt-5.6-sol", "xhigh"),
+            "data-governance-reviewer": ("gpt-5.6-sol", "high"),
+            "deep-debugger": ("gpt-5.6-terra", "high"),
+            "explorer-librarian": ("gpt-5.6-luna", "medium"),
+            "patch-worker": ("gpt-5.6-terra", "high"),
+            "performance-reviewer": ("gpt-5.6-terra", "high"),
+            "release-sentinel": ("gpt-5.6-sol", "high"),
+            "retro-analyst": ("gpt-5.6-luna", "medium"),
+            "security-reviewer": ("gpt-5.6-sol", "high"),
+            "simulation-domain-reviewer": ("gpt-5.6-sol", "high"),
+            "spark-coder": ("gpt-5.6-luna", "low"),
+            "spec-planner": ("gpt-5.6-sol", "high"),
+            "test-engineer": ("gpt-5.6-terra", "high"),
+            "ui-flow-reviewer": ("gpt-5.6-luna", "medium"),
+        }
+        agent_files = sorted((REPO_ROOT / ".codex" / "agents").glob("*.toml"))
+        actual_assignments = {}
+        for agent_file in agent_files:
+            with agent_file.open("rb") as file_handle:
+                agent_config = tomllib.load(file_handle)
+            actual_assignments[agent_config["name"]] = (
+                agent_config["model"],
+                agent_config["model_reasoning_effort"],
+            )
+
+        self.assertEqual(actual_assignments, expected_assignments)
+
+    def test_reasoning_effort_is_checked_against_model_capabilities(self) -> None:
+        cases = [
+            ("gpt-5.6-sol", "ultra", True),
+            ("gpt-5.6-terra", "ultra", True),
+            ("gpt-5.6-luna", "max", True),
+            ("gpt-5.6-luna", "ultra", False),
+            ("gpt-5.5", "xhigh", True),
+            ("gpt-5.5", "max", False),
+            ("gpt-5.4", "xhigh", True),
+            ("gpt-5.4", "max", False),
+            ("gpt-5.4-mini", "medium", True),
+            ("gpt-5.4-mini", "high", True),
+            ("gpt-5.3-codex-spark", "medium", True),
+            ("gpt-5.3-codex-spark", "high", True),
+            ("gpt-unknown", "medium", False),
+        ]
+
+        for model, effort, should_pass in cases:
+            with self.subTest(model=model, effort=effort), tempfile.TemporaryDirectory() as temporary_directory:
+                root = Path(temporary_directory)
+                agents_dir = root / ".codex" / "agents"
+                agents_dir.mkdir(parents=True)
+                (root / ".codex" / "config.toml").write_text(
+                    f"""# project-agent-catalog:start
+# - sample-agent | .codex/agents/sample-agent.toml | {model} | {effort} | test agent
+# project-agent-catalog:end
+
+[agents]
+max_threads = 1
+max_depth = 1
+""",
+                    encoding="utf-8",
+                )
+                (agents_dir / "sample-agent.toml").write_text(
+                    f"""name = \"sample-agent\"
+description = \"test agent\"
+model = \"{model}\"
+model_reasoning_effort = \"{effort}\"
+developer_instructions = \"test\"
+""",
+                    encoding="utf-8",
+                )
+
+                result = self.run_python(VALIDATE_SCRIPT, "--root", str(root))
+                if should_pass:
+                    self.assertEqual(result.returncode, 0, msg=result.stderr or result.stdout)
+                else:
+                    self.assertNotEqual(result.returncode, 0)
+
+    def test_catalog_must_map_each_agent_exactly_once(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            agents_dir = root / ".codex" / "agents"
+            agents_dir.mkdir(parents=True)
+            (root / ".codex" / "config.toml").write_text(
+                """# project-agent-catalog:start
+# - agent-a | .codex/agents/agent-a.toml | gpt-5.6-luna | medium | test agent
+# - agent-a | .codex/agents/agent-a.toml | gpt-5.6-luna | medium | duplicate agent
+# project-agent-catalog:end
+
+[agents]
+max_threads = 1
+max_depth = 1
+""",
+                encoding="utf-8",
+            )
+            for agent_name in ("agent-a", "agent-b"):
+                (agents_dir / f"{agent_name}.toml").write_text(
+                    f"""name = \"{agent_name}\"
+description = \"test agent\"
+model = \"gpt-5.6-luna\"
+model_reasoning_effort = \"medium\"
+developer_instructions = \"test\"
+""",
+                    encoding="utf-8",
+                )
+
+            result = self.run_python(VALIDATE_SCRIPT, "--root", str(root))
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("duplicate agent id", result.stderr)
+
+    def test_catalog_rejects_nested_agent_path(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            agents_dir = root / ".codex" / "agents"
+            agents_dir.mkdir(parents=True)
+            (root / ".codex" / "config.toml").write_text(
+                """# project-agent-catalog:start
+# - agent-a | .codex/agents/not-real/agent-a.toml | gpt-5.6-luna | medium | test agent
+# project-agent-catalog:end
+
+[agents]
+max_threads = 1
+max_depth = 1
+""",
+                encoding="utf-8",
+            )
+            (agents_dir / "agent-a.toml").write_text(
+                """name = \"agent-a\"
+description = \"test agent\"
+model = \"gpt-5.6-luna\"
+model_reasoning_effort = \"medium\"
+developer_instructions = \"test\"
+""",
+                encoding="utf-8",
+            )
+
+            result = self.run_python(VALIDATE_SCRIPT, "--root", str(root))
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("exactly", result.stderr)
 
     def test_invalid_fixture_is_rejected(self) -> None:
         fixture_root = TESTS_DIR / "fixtures" / "invalid-project"

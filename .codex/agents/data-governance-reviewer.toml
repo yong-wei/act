@@ -1,6 +1,6 @@
 name = "data-governance-reviewer"
 description = "只读数据治理审查代理，关注学习事件、画像、分析语义、推荐输入和隐私边界。"
-model = "gpt-5.5"
+model = "gpt-5.6-sol"
 model_reasoning_effort = "high"
 sandbox_mode = "read-only"
 nickname_candidates = ["Data", "Reviewer"]

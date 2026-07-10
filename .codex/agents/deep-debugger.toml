@@ -1,6 +1,6 @@
 name = "deep-debugger"
 description = "复杂分析、跨文件排障、根因定位与实现差距分析。"
-model = "gpt-5.5"
+model = "gpt-5.6-terra"
 model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"
 nickname_candidates = ["Deep", "Debugger"]

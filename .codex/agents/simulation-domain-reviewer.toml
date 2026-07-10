@@ -1,6 +1,6 @@
 name = "simulation-domain-reviewer"
 description = "只读控制与 Arena 领域审查代理，关注控制语义、数值有效性、仿真、Arena 评分和教学正确性。"
-model = "gpt-5.5"
+model = "gpt-5.6-sol"
 model_reasoning_effort = "high"
 sandbox_mode = "read-only"
 nickname_candidates = ["Simulation", "Reviewer"]

@@ -13,32 +13,39 @@
 
 ## 推理强度命名
 
-当前仓库校验脚本允许的 `model_reasoning_effort` 字段值为：`low`、`medium`、`high`、`xhigh`。
+校验器按模型检查 `model_reasoning_effort`，而不是采用全局强度白名单。当前自由派发运行时能力如下：
 
-中文口径中的“超高”对应 TOML 字段值 `xhigh`，不要写成 `ultra` 或 `超高`，除非同步修改校验脚本。
+| 模型 | 允许的推理强度 |
+| --- | --- |
+| `gpt-5.6-sol`、`gpt-5.6-terra` | `low`、`medium`、`high`、`xhigh`、`max`、`ultra` |
+| `gpt-5.6-luna` | `low`、`medium`、`high`、`xhigh`、`max` |
+| `gpt-5.5`、`gpt-5.4` | `low`、`medium`、`high`、`xhigh` |
+| `gpt-5.4-mini`、`gpt-5.3-codex-spark` | `low`、`medium`、`high`、`xhigh`；仅保留旧配置兼容，当前命名角色不再使用 |
+
+中文口径中的“超高”对应 TOML 字段值 `xhigh`。`max` 与 `ultra` 仅用于有明确风险依据的一次性自由派发，不配置给常设角色。
 
 ## 代理清单
 
 | Agent | 权限 | 模型 / 推理 | 主要用途 |
 | --- | --- | --- | --- |
-| `agent-router` | 只读 | `gpt-5.4` / `medium` | 子代理选择、任务拆分、执行批次建议 |
-| `explorer-librarian` | 只读 | `gpt-5.4-mini` / `medium` | 搜索、读扫、大文件摘要、材料整理 |
-| `code-mapper` | 只读 | `gpt-5.4` / `medium` | 代码路径、模块边界、执行流和数据流映射 |
-| `spec-planner` | 只读 | `gpt-5.5` / `high` | 非平凡功能、重构、迁移的计划、验收和回滚 |
-| `spark-coder` | 可写 | `gpt-5.3-codex-spark` / `medium` | 极低延迟简单编码、小范围修补、样板补全 |
-| `patch-worker` | 可写 | `gpt-5.4` / `high` | 范围清晰后的最小安全实现 |
-| `test-engineer` | 可写 | `gpt-5.4` / `high` | 复现、回归测试、最小充分验证路径 |
-| `deep-debugger` | 可写但不做正式修复 | `gpt-5.5` / `high` | 复杂分析、跨文件排障、根因定位 |
-| `critical-reviewer` | 只读 | `gpt-5.5` / `xhigh` | 正确性、回归、隐藏耦合、可维护性和测试缺口终审 |
-| `security-reviewer` | 只读 | `gpt-5.5` / `high` | 认证、授权、密钥、注入、文件/shell 安全和数据暴露 |
-| `performance-reviewer` | 只读 | `gpt-5.4` / `high` | 热路径、数据库、缓存、并发、渲染和运行稳定性 |
-| `ui-flow-reviewer` | 只读 | `gpt-5.4` / `medium` | UI 路径、状态行为、响应式、可访问性和错误/空状态 |
-| `course-pedagogy-reviewer` | 只读 | `gpt-5.5` / `high` | 讲义、BOPPPS、互动设计、知识图谱、媒体和教学活动有效性 |
-| `simulation-domain-reviewer` | 只读 | `gpt-5.5` / `high` | 自动控制、仿真、Rust/WASM、Arena 评分和教学正确性 |
-| `data-governance-reviewer` | 只读 | `gpt-5.5` / `high` | 学习事件、画像、分析语义、推荐输入和隐私边界 |
-| `ai-context-reviewer` | 只读 | `gpt-5.5` / `high` | AI 上下文、课程 AI、仿真伴学、画像摘要和模型配置 |
-| `release-sentinel` | 只读 | `gpt-5.5` / `high` | 迁移、环境变量、CI、部署、回滚和运维发布门禁 |
-| `retro-analyst` | 只读 | `gpt-5.4` / `medium` | 重复失败复盘，沉淀规则、技能、脚本、测试或流程改进 |
+| `agent-router` | 只读 | `gpt-5.6-luna` / `medium` | 子代理选择、任务拆分、执行批次建议 |
+| `explorer-librarian` | 只读 | `gpt-5.6-luna` / `medium` | 搜索、读扫、大文件摘要、材料整理 |
+| `code-mapper` | 只读 | `gpt-5.6-luna` / `medium` | 代码路径、模块边界、执行流和数据流映射 |
+| `spec-planner` | 只读 | `gpt-5.6-sol` / `high` | 非平凡功能、重构、迁移的计划、验收和回滚 |
+| `spark-coder` | 可写 | `gpt-5.6-luna` / `low` | 极低延迟简单编码、小范围修补、样板补全 |
+| `patch-worker` | 可写 | `gpt-5.6-terra` / `high` | 范围清晰后的最小安全实现 |
+| `test-engineer` | 可写 | `gpt-5.6-terra` / `high` | 复现、回归测试、最小充分验证路径 |
+| `deep-debugger` | 可写但不做正式修复 | `gpt-5.6-terra` / `high` | 复杂分析、跨文件排障、根因定位 |
+| `critical-reviewer` | 只读 | `gpt-5.6-sol` / `xhigh` | 正确性、回归、隐藏耦合、可维护性和测试缺口终审 |
+| `security-reviewer` | 只读 | `gpt-5.6-sol` / `high` | 认证、授权、密钥、注入、文件/shell 安全和数据暴露 |
+| `performance-reviewer` | 只读 | `gpt-5.6-terra` / `high` | 热路径、数据库、缓存、并发、渲染和运行稳定性 |
+| `ui-flow-reviewer` | 只读 | `gpt-5.6-luna` / `medium` | UI 路径、状态行为、响应式、可访问性和错误/空状态 |
+| `course-pedagogy-reviewer` | 只读 | `gpt-5.6-sol` / `high` | 讲义、BOPPPS、互动设计、知识图谱、媒体和教学活动有效性 |
+| `simulation-domain-reviewer` | 只读 | `gpt-5.6-sol` / `high` | 自动控制、仿真、Rust/WASM、Arena 评分和教学正确性 |
+| `data-governance-reviewer` | 只读 | `gpt-5.6-sol` / `high` | 学习事件、画像、分析语义、推荐输入和隐私边界 |
+| `ai-context-reviewer` | 只读 | `gpt-5.6-sol` / `high` | AI 上下文、课程 AI、仿真伴学、画像摘要和模型配置 |
+| `release-sentinel` | 只读 | `gpt-5.6-sol` / `high` | 迁移、环境变量、CI、部署、回滚和运维发布门禁 |
+| `retro-analyst` | 只读 | `gpt-5.6-luna` / `medium` | 重复失败复盘，沉淀规则、技能、脚本、测试或流程改进 |
 
 ## 治理文件
 

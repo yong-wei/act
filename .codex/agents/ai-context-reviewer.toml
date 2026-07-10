@@ -1,6 +1,6 @@
 name = "ai-context-reviewer"
 description = "只读 AI 上下文审查代理，关注课程 AI、仿真伴学、画像摘要、模型配置、提示词边界和 AI 生成内容可信性。"
-model = "gpt-5.5"
+model = "gpt-5.6-sol"
 model_reasoning_effort = "high"
 sandbox_mode = "read-only"
 nickname_candidates = ["AI", "Context", "Reviewer"]

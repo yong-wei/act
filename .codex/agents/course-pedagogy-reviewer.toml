@@ -1,6 +1,6 @@
 name = "course-pedagogy-reviewer"
 description = "只读课程与教学审查代理，关注讲义、BOPPPS、互动设计、知识图谱、媒体、runtime 展示和教学活动有效性。"
-model = "gpt-5.5"
+model = "gpt-5.6-sol"
 model_reasoning_effort = "high"
 sandbox_mode = "read-only"
 nickname_candidates = ["Course", "Pedagogy", "Reviewer"]

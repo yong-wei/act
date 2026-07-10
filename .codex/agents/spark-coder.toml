@@ -1,7 +1,7 @@
 name = "spark-coder"
 description = "极低延迟简单编码、小范围修补、样板补全。"
-model = "gpt-5.3-codex-spark"
-model_reasoning_effort = "medium"
+model = "gpt-5.6-luna"
+model_reasoning_effort = "low"
 sandbox_mode = "workspace-write"
 nickname_candidates = ["Spark", "Coder"]
 

@@ -19,6 +19,7 @@
 ## 项目子代理工作流
 
 - 项目级 Codex custom agents 位于 `.codex/agents/*.toml`，代理清单、路由规则和 harness 契约见 `.codex/agents/README.md`、`.codex/agents/ROUTING.md` 和 `.codex/agents/HARNESS.md`。
+- 所有项目命名子代理统一使用 GPT-5.6 家族：Luna 承担高频低成本任务，Terra 承担日常工程任务，Sol 承担高语义风险与终审；具体映射以 `.codex/agents/README.md` 和 TOML 为准。
 - 不得仅因代理配置存在就启动子代理；只有用户明确授权当前任务、会话、分支或 review 使用子代理后，主线程才可按需自主选择代理。
 - 明确授权包括“按需使用子代理”“本任务允许使用子代理”“本会话允许你自主调度子代理”“spawn appropriate agents”“run the multi-agent workflow”等同义表达；用户明确禁止时不得调用。
 - 用户未授权且任务可以由主线程完成时，保持单代理执行；只有委托本身是完成任务的必要条件时，才简短询问是否授权。

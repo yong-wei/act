@@ -22,7 +22,7 @@ description: Use when project-local Codex custom agents under `.codex/agents/*.t
 - 校验当前配置：
   `python3 .agents/skills/agent-evolver/scripts/validate_agent_configs.py --root /abs/repo`
 - 记录一次运行质量：
-  `python3 .agents/skills/agent-evolver/scripts/record_agent_run.py --ledger .codex/agents/quality-ledger.jsonl --agent starter --model gpt-5.4 --reasoning-effort medium --task-type triage --outcome success --quality good --notes "分流准确"`
+  `python3 .agents/skills/agent-evolver/scripts/record_agent_run.py --ledger .codex/agents/quality-ledger.jsonl --agent agent-router --model gpt-5.6-luna --reasoning-effort medium --task-type triage --outcome success --quality good --notes "分流准确"`
 - 生成调参建议：
   `python3 .agents/skills/agent-evolver/scripts/propose_agent_tuning.py --ledger .codex/agents/quality-ledger.jsonl`
 

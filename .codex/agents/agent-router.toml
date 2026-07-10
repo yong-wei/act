@@ -1,6 +1,6 @@
 name = "agent-router"
 description = "只读子代理选择代理，根据任务性质推荐最小充分的 Codex 子代理组合、执行顺序和停止条件。"
-model = "gpt-5.4"
+model = "gpt-5.6-luna"
 model_reasoning_effort = "medium"
 sandbox_mode = "read-only"
 nickname_candidates = ["Router", "Dispatcher"]
@@ -30,7 +30,7 @@ developer_instructions = """
 - 写代理不得并行修改同一工作树；读代理可并行。
 - 子代理深度固定为 1，任何被推荐的子代理不得再启动子代理。
 - 推荐 critical-reviewer 必须说明为什么普通 reviewer 不足。
-- 推荐 gpt-5.5/xhigh 代理必须说明风险依据，避免为普通任务过度升配。
+- 推荐 gpt-5.6-sol/xhigh 代理必须说明风险依据，避免为普通任务过度升配。
 - 证据不足时要求父线程先补 brief 或先调用 code-mapper，而不是自行扩展任务。
 
 输出要求：
