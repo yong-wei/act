@@ -7,6 +7,7 @@ import { KnowledgeNodeData, KnowledgeLinkData } from '../knowledge-graph-system'
 import {
   applyFocusedExpansionLayout,
   applyRadialLayout,
+  preserveKnowledgeGraphLiveNodeCoordinates,
   type KnowledgeGraphNodeScreenPosition,
   type KnowledgeGraphPositionedNode,
 } from './layout-engine';
@@ -333,7 +334,12 @@ export function KnowledgeGraph2D({
     // 应用辐射布局。拖拽后的 pinned 坐标通过下方 effect 同步到现有图节点，
     // 避免 layoutState 变化时重建 graphData 并重新加热力导向布局。
     const baseLayoutNodes = applyRadialLayout(clonedNodes, links, undefined, layoutRadius);
-    const layoutNodes = baseLayoutNodes.map((node) => {
+    const liveLayoutNodes = preserveKnowledgeGraphLiveNodeCoordinates({
+      nodes: baseLayoutNodes as RuntimeKnowledgeGraphNode[],
+      liveNodes: fgRef.current?.graphData?.()?.nodes as RuntimeKnowledgeGraphNode[] | undefined,
+    });
+    const layoutNodes = liveLayoutNodes.map((node, index) => {
+      if (node !== baseLayoutNodes[index]) return node;
       const runtimePosition = runtimePositionsByNodeIdRef.current.get(node.id);
       return runtimePosition ? { ...node, ...runtimePosition } : node;
     }) as RuntimeKnowledgeGraphNode[];

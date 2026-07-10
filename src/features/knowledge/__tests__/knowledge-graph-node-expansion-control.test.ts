@@ -25,6 +25,58 @@ const readKnowledgeSource = (relativePath: string) => readFileSync(
 );
 
 describe('knowledge graph node-local expansion control', () => {
+  it('preserves live unrelated coordinates when expansion inputs rebuild graphData before engine stop', () => {
+    const preserveLiveCoordinates = (
+      layoutEngine as typeof layoutEngine & {
+        preserveKnowledgeGraphLiveNodeCoordinates?: (input: {
+          nodes: layoutEngine.KnowledgeGraphPositionedNode[];
+          liveNodes: layoutEngine.KnowledgeGraphPositionedNode[];
+        }) => layoutEngine.KnowledgeGraphPositionedNode[];
+      }
+    ).preserveKnowledgeGraphLiveNodeCoordinates;
+    expect(preserveLiveCoordinates).toBeTypeOf('function');
+    if (!preserveLiveCoordinates) return;
+
+    const node = (id: string, x = 0, y = 0): layoutEngine.KnowledgeGraphPositionedNode => ({
+      id,
+      name: id,
+      nodeType: 'THEORY',
+      description: id,
+      positionX: x,
+      positionY: y,
+      positionZ: 0,
+      x,
+      y,
+    });
+    const unrelatedBase = node('unrelated', -10, -20);
+    const newChild = node('new-child', 400, 500);
+    const rebuiltNodes = [node('center'), newChild, unrelatedBase];
+    const liveNodes = [
+      { ...node('center'), x: 12, y: 18 },
+      { ...node('unrelated'), x: 137, y: -42, vx: 3, vy: -2 },
+      { ...node('removed'), x: 999, y: 999 },
+    ];
+
+    const preserved = preserveLiveCoordinates({ nodes: rebuiltNodes, liveNodes });
+    const laidOut = layoutEngine.applyFocusedExpansionLayout({
+      nodes: preserved,
+      expandedNodeIds: ['center'],
+      directExpansionLinks: [{
+        id: 'center-child',
+        sourceId: 'center',
+        targetId: 'new-child',
+        relation: 'contains',
+      }],
+      layoutState: { version: 0, positionsByNodeId: {} },
+    });
+    const byId = new Map(laidOut.map((item) => [item.id, item]));
+
+    expect(byId.get('unrelated')).toMatchObject({ x: 137, y: -42, vx: 3, vy: -2 });
+    expect(byId.get('unrelated')).not.toBe(unrelatedBase);
+    expect(byId.get('new-child')).not.toMatchObject({ x: 400, y: 500 });
+    expect(byId.has('removed')).toBe(false);
+  });
+
   it('keeps the measured control inside all viewport edges while preserving the normal anchor distance', () => {
     const clampPosition = (
       layoutEngine as typeof layoutEngine & {

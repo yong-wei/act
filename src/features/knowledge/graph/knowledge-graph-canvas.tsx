@@ -36,6 +36,7 @@ import {
 } from './layout-state';
 import {
   applyFocusedExpansionLayout,
+  preserveKnowledgeGraphLiveNodeCoordinates,
   type KnowledgeGraphNodeScreenPosition,
   type KnowledgeGraphPositionedNode,
 } from './layout-engine';
@@ -240,7 +241,13 @@ export function KnowledgeGraphCanvas({
       target: l.targetId,
     }));
 
-    const baseLayoutNodes = clonedNodes.map((node) => {
+    const clonedBaseLayoutNodes = clonedNodes as RuntimeKnowledgeGraphNode[];
+    const liveLayoutNodes = preserveKnowledgeGraphLiveNodeCoordinates({
+      nodes: clonedBaseLayoutNodes,
+      liveNodes: fgRef.current?.graphData?.()?.nodes as RuntimeKnowledgeGraphNode[] | undefined,
+    });
+    const baseLayoutNodes = liveLayoutNodes.map((node, index) => {
+      if (node !== clonedBaseLayoutNodes[index]) return node;
       const runtimePosition = runtimePositionsByNodeIdRef.current.get(node.id);
       return runtimePosition ? { ...node, ...runtimePosition } : node;
     }) as RuntimeKnowledgeGraphNode[];

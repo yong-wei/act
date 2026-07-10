@@ -153,18 +153,37 @@ async function expectSameControl(page: Page) {
 async function expectControlSize(page: Page, state: string) {
   const control = page.locator('[data-knowledge-node-expansion-control]');
   await expect(control).toHaveAttribute('data-state', state);
-  const box = await control.boundingBox();
-  expect(box, `${state} control must have a layout box`).not.toBeNull();
-  expect(box!.width, `${state} width`).toBeGreaterThanOrEqual(44);
-  expect(box!.height, `${state} height`).toBeGreaterThanOrEqual(44);
-  const contentFits = await control.evaluate((button) => ({
-    horizontal: button.scrollWidth <= button.clientWidth,
-    vertical: button.scrollHeight <= button.clientHeight,
-  }));
-  expect(contentFits, `${state} label must fit its measured control`).toEqual({
-    horizontal: true,
-    vertical: true,
+  const dimensions = await control.evaluate((element) => {
+    const button = element as HTMLElement;
+    return {
+      width: button.offsetWidth,
+      height: button.offsetHeight,
+      horizontal: button.scrollWidth <= button.clientWidth,
+      vertical: button.scrollHeight <= button.clientHeight,
+    };
   });
+  expect(dimensions.width, `${state} width`).toBeGreaterThanOrEqual(44);
+  expect(dimensions.height, `${state} height`).toBeGreaterThanOrEqual(44);
+  expect(dimensions.horizontal, `${state} horizontal label fit`).toBe(true);
+  expect(dimensions.vertical, `${state} vertical label fit`).toBe(true);
+}
+
+async function waitForFocusAnimationFrame(page: Page) {
+  await page.evaluate(() => new Promise<void>((resolve) => {
+    window.requestAnimationFrame(() => window.requestAnimationFrame(() => resolve()));
+  }));
+}
+
+async function expectControlWithinViewport(page: Page) {
+  const viewport = await page.locator('#knowledge-graph-canvas').boundingBox();
+  const control = await page.locator('[data-knowledge-node-expansion-control]').boundingBox();
+  expect(viewport).not.toBeNull();
+  expect(control).not.toBeNull();
+  const epsilon = 0.5;
+  expect(control!.x).toBeGreaterThanOrEqual(viewport!.x + 8 - epsilon);
+  expect(control!.y).toBeGreaterThanOrEqual(viewport!.y + 8 - epsilon);
+  expect(control!.x + control!.width).toBeLessThanOrEqual(viewport!.x + viewport!.width - 8 + epsilon);
+  expect(control!.y + control!.height).toBeLessThanOrEqual(viewport!.y + viewport!.height - 8 + epsilon);
 }
 
 test('node-local control keeps one real button through async, error, unavailable, and selection states', async ({ page }) => {
@@ -195,14 +214,20 @@ test('node-local control keeps one real button through async, error, unavailable
 
   await control.dispatchEvent('click');
   await control.press('Enter');
-  await page.waitForTimeout(100);
+  await waitForFocusAnimationFrame(page);
   expect(expansionA.requestCount()).toBe(1);
 
   const nodeBButton = await selectNodeFromDirectory(page, '第二章', nodeB.name);
   await expect(control).toHaveAttribute('data-anchor-node-id', nodeB.id);
   await expectSameControl(page);
+  const expansionAResponse = page.waitForResponse((response) => {
+    const url = new URL(response.url());
+    return url.searchParams.get('mode') === 'expansion'
+      && url.searchParams.get('nodeId') === nodeA.id;
+  });
   expansionA.release();
-  await page.waitForTimeout(100);
+  await expansionAResponse;
+  await waitForFocusAnimationFrame(page);
   await expect(nodeBButton).toBeFocused();
   await expect(control).not.toBeFocused();
 
@@ -230,7 +255,7 @@ test('node-local control keeps one real button through async, error, unavailable
 test('node-local control remains the same projected button through 2D and 3D mode switches', async ({ page }) => {
   test.setTimeout(45_000);
   await page.setViewportSize({ width: 1280, height: 820 });
-  await installGraphRoutes(page);
+  const expansionA = await installGraphRoutes(page);
   await page.goto(`/knowledge?node=${encodeURIComponent(nodeA.id)}&qa=knowledge-product`);
   const control = page.locator('[data-knowledge-node-expansion-control]');
   await expect(control).toBeVisible();
@@ -243,9 +268,18 @@ test('node-local control remains the same projected button through 2D and 3D mod
   const viewPanel = page.locator('[data-knowledge-desktop-tool-panel="view-layout"]');
   await viewPanel.getByRole('button', { name: '3D 视图' }).click();
   await expect(control).toHaveAttribute('data-view-mode', '3D');
+  await expect(control).toBeVisible();
+  await expectControlWithinViewport(page);
   await expectSameControl(page);
+  await control.click();
+  await expansionA.requested;
+  expansionA.release();
+  await expect(control).toHaveAttribute('data-state', 'expanded');
+  await expect(control).toHaveAttribute('aria-expanded', 'true');
+  await expectControlWithinViewport(page);
   await viewPanel.getByRole('button', { name: '2D 视图' }).click();
   await expect(control).toHaveAttribute('data-view-mode', '2D');
+  await expect(control).toHaveAttribute('data-state', 'expanded');
   await expect(control).toBeVisible();
   await expectSameControl(page);
 });

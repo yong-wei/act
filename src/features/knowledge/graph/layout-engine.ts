@@ -18,6 +18,12 @@ export interface KnowledgeGraphPositionedNode extends KnowledgeNodeData {
   };
 }
 
+export interface KnowledgeGraphLivePositionedNode extends KnowledgeGraphPositionedNode {
+  vx?: number;
+  vy?: number;
+  vz?: number;
+}
+
 export interface KnowledgeGraphFocusedExpansionLayoutInput<T extends KnowledgeGraphPositionedNode> {
   nodes: T[];
   expandedNodeIds: readonly string[];
@@ -57,6 +63,52 @@ function compareNodeIds(a: string, b: string): number {
 
 function readFiniteCoordinate(value: unknown): number | null {
   return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+export function preserveKnowledgeGraphLiveNodeCoordinates<T extends KnowledgeGraphPositionedNode>({
+  nodes,
+  liveNodes,
+}: {
+  nodes: T[];
+  liveNodes: readonly KnowledgeGraphLivePositionedNode[] | undefined;
+}): T[] {
+  if (!liveNodes || liveNodes.length === 0) return nodes;
+  const visibleNodeIds = new Set(nodes.map((node) => node.id));
+  const livePositionsByNodeId = new Map<string, Partial<KnowledgeGraphLivePositionedNode>>();
+
+  liveNodes.forEach((node) => {
+    if (!visibleNodeIds.has(node.id)) return;
+    const x = readFiniteCoordinate(node.x);
+    const y = readFiniteCoordinate(node.y);
+    if (x === null || y === null) return;
+    const z = readFiniteCoordinate(node.z);
+    const vx = readFiniteCoordinate(node.vx);
+    const vy = readFiniteCoordinate(node.vy);
+    const vz = readFiniteCoordinate(node.vz);
+    const fx = readFiniteCoordinate(node.fx);
+    const fy = readFiniteCoordinate(node.fy);
+    const fz = readFiniteCoordinate(node.fz);
+    livePositionsByNodeId.set(node.id, {
+      x,
+      y,
+      ...(z === null ? {} : { z }),
+      ...(vx === null ? {} : { vx }),
+      ...(vy === null ? {} : { vy }),
+      ...(vz === null ? {} : { vz }),
+      ...(fx === null ? {} : { fx }),
+      ...(fy === null ? {} : { fy }),
+      ...(fz === null ? {} : { fz }),
+      ...(node.__knowledgeAutomaticAnchor
+        ? { __knowledgeAutomaticAnchor: node.__knowledgeAutomaticAnchor }
+        : {}),
+    });
+  });
+
+  if (livePositionsByNodeId.size === 0) return nodes;
+  return nodes.map((node) => {
+    const livePosition = livePositionsByNodeId.get(node.id);
+    return livePosition ? { ...node, ...livePosition } as T : node;
+  });
 }
 
 export function clampNodeExpansionControlPosition(input: {
