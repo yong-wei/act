@@ -18,6 +18,16 @@ import {
   type AdaptiveLearningCapabilityTarget,
 } from '../adaptive-learning-path-planner';
 import { readArenaSubmissionEvidenceWritebacks } from '@/features/arena/evidence-writeback-persistence';
+import {
+  derivePortraitV2Compatibility,
+  PortraitV2SnapshotValidationError,
+  projectPortraitV2ForConsumer,
+  readLatestPortraitV2Snapshot,
+  type PortraitV2CompatibilitySourceFamily,
+  type PortraitV2Consumer,
+  type PortraitV2ProjectedPayload,
+  type PortraitV2SnapshotReadDb,
+} from './portrait-v2-model';
 
 export const ADAPTIVE_LEARNER_STATE_PAYLOAD_VERSION = 'adaptive-learner-state.v1';
 export const ADAPTIVE_LEARNER_STATE_FEATURE_FLAG = 'ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED';
@@ -32,6 +42,7 @@ export type AdaptiveLearnerStatePrivacyScope =
   | 'system-internal';
 
 export type AdaptiveLearnerStateFieldFamily =
+  | 'primaryPortrait'
   | 'primaryCompetencies'
   | 'secondaryDimensions'
   | 'knowledgeMastery'
@@ -151,8 +162,17 @@ export interface AdaptiveGoalSliceDefinition {
 }
 
 export const ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS: Record<AdaptiveLearnerStateFieldFamily, AdaptiveLearnerStateFieldContract> = {
+  primaryPortrait: {
+    valueRange: 'exactly seven canonical portrait v2 dimensions with 0-100 scores',
+    sourceFamilies: ['StudentPortraitV2Snapshot', 'StudentCompetencySnapshot'],
+    algorithmVersion: 'portrait-v2-primary.v1',
+    evidenceThreshold: 'native or migrated portrait v2 snapshot; explicit compatibility projection otherwise',
+    confidencePolicy: 'dimension confidence and freshness are explicit and versioned',
+    fallbackReason: 'legacy-six-dimensional-input-is-non-authoritative',
+    privacyScope: 'student-visible',
+  },
   primaryCompetencies: {
-    valueRange: '0-100 per primary competency',
+    valueRange: 'legacy six-dimensional compatibility values only',
     sourceFamilies: ['StudentCompetencySnapshot', 'StudentEvidenceFeatureCache'],
     algorithmVersion: 'competency-snapshot-versioned',
     evidenceThreshold: 'latest approved snapshot or fallback empty vector',
@@ -241,6 +261,7 @@ export interface AdaptiveLearnerStateInput {
   now?: Date;
   clientHints?: Record<string, unknown>;
   goal?: string | null;
+  portraitConsumer?: 'student' | 'konling' | 'planner';
 }
 
 export interface ControlCorrectionGoalSliceDimension {
@@ -358,7 +379,9 @@ export interface AdaptiveLearnerState {
     authoritative: false;
     reason: 'client-hints-non-authoritative';
   };
+  primaryPortrait: PortraitV2ProjectedPayload;
   primaryCompetencies: {
+    authority: 'legacy-compatibility-only';
     source: 'latest-snapshot' | 'feature-cache' | 'fallback-empty';
     vector: CompetencyVector;
   };
@@ -454,7 +477,7 @@ export interface AdaptiveLearnerState {
   missingEvidence: string[];
 }
 
-interface AdaptiveLearnerStateDb {
+interface AdaptiveLearnerStateDb extends PortraitV2SnapshotReadDb {
   studentEvidenceFeatureCache?: {
     findUnique?: (args: any) => Promise<any | null>;
   };
@@ -658,6 +681,7 @@ export async function readAdaptiveLearnerState(
   const featurePathExecution = getObject(getObject(featureCache.features).pathExecution);
 
   const [
+    persistedPrimaryPortraitRead,
     latestSnapshot,
     profileSummary,
     facts,
@@ -670,6 +694,7 @@ export async function readAdaptiveLearnerState(
     controlCorrectionArenaSubmissions,
     controlCorrectionAgentToolRuns,
   ] = await Promise.all([
+    readPortraitV2WithCompatibilityFallback(db, input.userId, portraitConsumerForInput(input), now),
     db.studentCompetencySnapshot?.findFirst?.({
       where: { userId: input.userId },
       orderBy: [{ snapshotAt: 'desc' }, { id: 'desc' }],
@@ -762,7 +787,22 @@ export async function readAdaptiveLearnerState(
   const controlCorrectionArenaSubmissionsWithWriteback = shouldBuildControlCorrectionGoalSlice
     ? await attachPersistedArenaWritebacks(db, controlCorrectionArenaSubmissions)
     : controlCorrectionArenaSubmissions;
-  const { vector, source } = resolvePrimaryCompetencyVector(latestSnapshot, featureSnapshot);
+  const {
+    vector,
+    source,
+    compatibilitySourceFamily,
+    compatibilitySnapshotId,
+    compatibilitySnapshotAt,
+  } = resolvePrimaryCompetencyVector(latestSnapshot, featureSnapshot, now);
+  const primaryPortrait = persistedPrimaryPortraitRead.payload ?? projectPortraitV2ForConsumer(derivePortraitV2Compatibility({
+    userId: input.userId,
+    snapshotId: compatibilitySnapshotId,
+    snapshotAt: compatibilitySnapshotAt,
+    sourceFamily: compatibilitySourceFamily,
+    vector,
+    limitations: persistedPrimaryPortraitRead.limitations,
+    now,
+  }), portraitConsumerForInput(input), { now });
   const knowledgeMastery = buildKnowledgeMastery(masteryUpdates, now);
   const evidence = buildEvidenceSummary(featureRead, featureCache);
   const masteryTraceability = filterMasteryTraceabilityForRole(buildMasteryTraceability({
@@ -826,7 +866,9 @@ export async function readAdaptiveLearnerState(
       authoritative: false,
       reason: 'client-hints-non-authoritative',
     },
+    primaryPortrait,
     primaryCompetencies: {
+      authority: 'legacy-compatibility-only',
       source,
       vector,
     },
@@ -846,6 +888,37 @@ export async function readAdaptiveLearnerState(
     fieldContracts: ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS,
     missingEvidence,
   };
+}
+
+function portraitConsumerForRole(role: AdaptiveLearnerStateRole): PortraitV2Consumer {
+  if (role === 'admin') return 'admin';
+  if (role === 'teacher') return 'reviewer';
+  if (role === 'system') return 'planner';
+  return 'student';
+}
+
+function portraitConsumerForInput(input: AdaptiveLearnerStateInput): PortraitV2Consumer {
+  return input.portraitConsumer ?? portraitConsumerForRole(input.role);
+}
+
+async function readPortraitV2WithCompatibilityFallback(
+  db: AdaptiveLearnerStateDb,
+  userId: string,
+  consumer: PortraitV2Consumer,
+  now: Date,
+): Promise<{ payload: PortraitV2ProjectedPayload | null; limitations: string[] }> {
+  try {
+    return {
+      payload: await readLatestPortraitV2Snapshot(db, userId, consumer, { now }),
+      limitations: [],
+    };
+  } catch (error) {
+    if (!(error instanceof PortraitV2SnapshotValidationError)) throw error;
+    return {
+      payload: null,
+      limitations: ['persisted-portrait-v2-invalid-or-incompatible'],
+    };
+  }
 }
 
 export async function readPathPlannerLearnerState(
@@ -896,16 +969,41 @@ async function attachPersistedArenaWritebacks(
 function resolvePrimaryCompetencyVector(
   latestSnapshot: Record<string, unknown> | null,
   featureSnapshot: Record<string, unknown>,
-): { vector: CompetencyVector; source: AdaptiveLearnerState['primaryCompetencies']['source'] } {
+  now: Date,
+): {
+  vector: CompetencyVector;
+  source: AdaptiveLearnerState['primaryCompetencies']['source'];
+  compatibilitySourceFamily: PortraitV2CompatibilitySourceFamily | null;
+  compatibilitySnapshotId: string | null;
+  compatibilitySnapshotAt: string;
+} {
   const snapshotVector = latestSnapshot ? toCompetencyVector(latestSnapshot.competencyVector) : null;
   if (snapshotVector) {
-    return { vector: snapshotVector, source: 'latest-snapshot' };
+    return {
+      vector: snapshotVector,
+      source: 'latest-snapshot',
+      compatibilitySourceFamily: 'StudentCompetencySnapshot',
+      compatibilitySnapshotId: readString(latestSnapshot?.id),
+      compatibilitySnapshotAt: dateToIsoOrNull(latestSnapshot?.snapshotAt) ?? now.toISOString(),
+    };
   }
   const cachedVector = toCompetencyVector(featureSnapshot.competencyVector);
   if (cachedVector) {
-    return { vector: cachedVector, source: 'feature-cache' };
+    return {
+      vector: cachedVector,
+      source: 'feature-cache',
+      compatibilitySourceFamily: 'StudentEvidenceFeatureCache',
+      compatibilitySnapshotId: null,
+      compatibilitySnapshotAt: dateToIsoOrNull(featureSnapshot.snapshotAt) ?? now.toISOString(),
+    };
   }
-  return { vector: createEmptyCompetencyVector(), source: 'fallback-empty' };
+  return {
+    vector: createEmptyCompetencyVector(),
+    source: 'fallback-empty',
+    compatibilitySourceFamily: null,
+    compatibilitySnapshotId: null,
+    compatibilitySnapshotAt: now.toISOString(),
+  };
 }
 
 function buildSecondaryDimensions(vector: CompetencyVector): AdaptiveLearnerState['secondaryDimensions'] {

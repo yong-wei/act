@@ -505,6 +505,12 @@ export function getEvidenceSourceCatalog(): EvidenceSourceCatalogEntry[] {
   return CATALOG.map((entry) => ({ ...entry, traceabilityFields: [...entry.traceabilityFields] }));
 }
 
+export function getProfileEligibleEvidenceSourceIds(): EvidenceSourceId[] {
+  return CATALOG
+    .filter((entry) => entry.defaultEligibility === 'eligible' && Boolean(entry.userIdField))
+    .map((entry) => entry.id);
+}
+
 export function resolveInteractionLogEventType(row: Pick<EvidenceCoverageRow, 'eventType' | 'eventData'>): InteractionLogEventTypeResolution {
   const wrapperEventType = readString(row.eventType) ?? 'unknown';
   const payload = readRecord(row.eventData);

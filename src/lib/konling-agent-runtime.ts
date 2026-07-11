@@ -1943,6 +1943,7 @@ async function buildKonlingRuntimeClassOverlayInput(
       role: input.scope.role,
       classId: input.scope.classId,
       goal: input.learnerStateGoal,
+      portraitConsumer: 'konling',
       clientHints: input.pageContextHint ? { pageContext: input.pageContextHint } : undefined,
       now: input.now,
     }).catch(() => null);
@@ -2013,6 +2014,7 @@ export async function buildKonlingRuntimeContext(
         role: scope.role,
         classId: scope.classId,
         goal: learnerStateGoal,
+        portraitConsumer: 'konling',
         clientHints: input.pageContextHint ? { pageContext: input.pageContextHint } : undefined,
         now: input.now,
       }).catch(() => null)

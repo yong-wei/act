@@ -60,6 +60,7 @@ export async function GET(request: NextRequest) {
             : session.user.role === 'TEACHER'
               ? 'teacher'
               : 'student',
+          portraitConsumer: 'konling',
         }).catch((error) => {
           console.error('[KonlingContext] Learner state read failed:', error);
           return null;
