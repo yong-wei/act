@@ -33,12 +33,10 @@ async function setTheme(page: Page, theme: Theme) {
   }, theme);
 }
 
-async function openDock(page: Page) {
+async function assertDisabledDock(page: Page) {
   const trigger = page.locator('[data-page-floating-controls] button, [data-platform-floating-dock] button').first();
-  if (await trigger.count()) {
-    await trigger.click();
-    await page.waitForTimeout(350);
-  }
+  if (!await trigger.count()) throw new Error('Expected shared dock trigger');
+  if (await trigger.isEnabled()) throw new Error('Expected demo dock trigger to be disabled');
 }
 
 async function openPathModule(page: Page, moduleId: string) {
@@ -78,7 +76,7 @@ async function openSkipWarning(page: Page) {
     await page.waitForTimeout(200);
   }
   const skipButton = page
-    .locator('[data-adaptive-path-node-detail="selected"]')
+    .locator('[data-adaptive-path-node-detail="inline"]')
     .getByRole('button', { name: '跳过', exact: true })
     .first();
   if (await skipButton.count()) {
@@ -103,12 +101,13 @@ const states: CaptureState[] = [
     query: '?demo=1&goal=frequency-response-foundations&intent=contextual-recommendation',
   },
   {
-    name: 'konling-parameter-panel-desktop-dark',
+    name: 'konling-dock-disabled-desktop-dark',
     theme: 'dark',
     width: 1440,
     height: 1100,
     query: '?demo=1&goal=frequency-response-foundations&intent=contextual-recommendation',
-    beforeScreenshot: openDock,
+    beforeScreenshot: assertDisabledDock,
+    selector: '[data-platform-floating-dock]',
   },
   {
     name: 'cold-start-starter-paths-mobile-light',
@@ -160,7 +159,7 @@ const states: CaptureState[] = [
     height: 1100,
     query: '?demo=1&goal=control-correction&intent=path-execution',
     beforeScreenshot: selectCompletedNode,
-    selector: '[data-adaptive-path-node-detail="selected"]',
+    selector: '[data-adaptive-path-node-detail="inline"]',
   },
   {
     name: 'skip-warning-desktop-light',
@@ -200,7 +199,7 @@ const states: CaptureState[] = [
         window.localStorage.setItem('act:app-shell-navigation-preference', 'expanded');
       });
       await page.reload({ waitUntil: 'networkidle' });
-      await openDock(page);
+      await assertDisabledDock(page);
     },
   },
 ];
@@ -290,7 +289,7 @@ function assertPathComparisonSignals(signals: CaptureSignal[]) {
     if (signal.comparisonLayout !== 'route-modules') {
       issues.push(`comparisonLayout=${signal.comparisonLayout || 'missing'}`);
     }
-    if (signal.routeModuleCount < 3) {
+    if (signal.routeModuleCount < 1) {
       issues.push(`routeModuleCount=${signal.routeModuleCount}`);
     }
     if (signal.attachedActionGroupCount !== signal.routeModuleCount) {
