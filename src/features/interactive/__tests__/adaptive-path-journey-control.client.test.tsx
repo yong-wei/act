@@ -23,8 +23,10 @@ import {
   AdaptivePathJourneyControlFromRoute,
   AdaptivePathOwnedResourceAction,
   publishAdaptivePathJourneyResponse,
+  requestAdaptivePathJourneyRefresh,
 } from '@/features/adaptive/adaptive-path-journey-control';
 import type { AuthorizedAdaptivePathJourney } from '@/features/adaptive/adaptive-path-journey-contracts';
+import { sendArenaCoreEvent } from '@/features/arena/telemetry';
 
 function routeSearch(pathId: string, nodeId: string) {
   const returnHref = `/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=${pathId}&nodeId=${nodeId}`;
@@ -40,11 +42,16 @@ function routeSearch(pathId: string, nodeId: string) {
   }).toString();
 }
 
-function journey(pathId: string, nodeId: string, nextTitle: string): AuthorizedAdaptivePathJourney {
+function journey(
+  pathId: string,
+  nodeId: string,
+  nextTitle: string,
+  requestedNodeId: string | null = nodeId,
+): AuthorizedAdaptivePathJourney {
   return {
     path: { id: pathId, title: `路径 ${pathId}` },
     goal: { id: 'control-correction' },
-    context: { pathId, goalId: 'control-correction', requestedNodeId: nodeId },
+    context: { pathId, goalId: 'control-correction', requestedNodeId },
     current: { nodeId, title: `节点 ${nodeId}`, type: 'knowledge_card' },
     progress: { completed: 1, total: 2 },
     return: {
@@ -166,7 +173,7 @@ describe('adaptive path journey client behavior', () => {
   it('shows completion without a second start and advances from the published external completion journey', async () => {
     const onStart = vi.fn();
     const onComplete = vi.fn(() => publishAdaptivePathJourneyResponse({
-      journey: journey('path-1', 'node-2', '进入外部资料后的下一节点'),
+      journey: journey('path-1', 'node-2', '进入外部资料后的下一节点', 'node-1'),
     }));
     vi.stubGlobal('fetch', vi.fn(() => response({ journey: journey('path-1', 'node-1', '完成前动作') })));
 
@@ -206,11 +213,87 @@ describe('adaptive path journey client behavior', () => {
 
     await act(async () => {
       expect(publishAdaptivePathJourneyResponse({
-        journey: journey('path-1', 'node-2', '进入完成后的下一节点'),
+        journey: journey('path-1', 'node-2', '进入完成后的下一节点', 'node-1'),
       })).toBe(true);
     });
 
     expect(container.textContent).not.toContain('完成前动作');
     expect(container.textContent).toContain('进入完成后的下一节点');
+  });
+
+  it('does not let a same-path event for an old node abort the current-node read', async () => {
+    navigation.search = routeSearch('path-1', 'node-2');
+    const currentRead = deferredResponse();
+    const fetchMock = vi.fn((_input: string | URL | Request, _init?: RequestInit) => currentRead.promise);
+    vi.stubGlobal('fetch', fetchMock);
+
+    await act(async () => root.render(createElement(AdaptivePathJourneyControlFromRoute)));
+    const currentSignal = fetchMock.mock.calls[0]?.[1]?.signal as AbortSignal;
+    await act(async () => {
+      expect(publishAdaptivePathJourneyResponse({
+        journey: journey('path-1', 'node-1', '旧节点动作'),
+      })).toBe(true);
+      expect(publishAdaptivePathJourneyResponse({
+        journey: journey('path-1', 'node-1', '旧节点空请求动作', null),
+      })).toBe(true);
+    });
+
+    expect(currentSignal.aborted).toBe(false);
+    expect(container.textContent).not.toContain('旧节点动作');
+    expect(container.textContent).not.toContain('旧节点空请求动作');
+    await act(async () => currentRead.resolve(await response({
+      journey: journey('path-1', 'node-2', '当前节点动作'),
+    })));
+    expect(container.textContent).toContain('当前节点动作');
+  });
+
+  it('refreshes authoritative journey after a governed simulation result signal', async () => {
+    const fetchMock = vi.fn()
+      .mockImplementationOnce(() => response({ journey: journey('path-1', 'node-1', '等待受治理结果') }))
+      .mockImplementationOnce(() => response({ journey: journey('path-1', 'node-2', '结果绑定后的下一节点') }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await act(async () => {
+      root.render(createElement(AdaptivePathJourneyControlFromRoute));
+      await Promise.resolve();
+    });
+    await act(async () => window.dispatchEvent(new CustomEvent('simulation:trace-summary')));
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(container.textContent).toContain('结果绑定后的下一节点');
+  });
+
+  it('refreshes authoritative journey after a successful Arena workbench evaluation emitter', async () => {
+    const journeyResponses = [
+      journey('path-1', 'node-1', '等待工作台结果'),
+      journey('path-1', 'node-2', '工作台结果绑定后的下一节点'),
+    ];
+    const fetchMock = vi.fn((input: string | URL | Request) => {
+      if (String(input) === '/api/interactive/events') return response({ accepted: true });
+      return response({ journey: journeyResponses.shift() });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await act(async () => {
+      root.render(createElement(AdaptivePathJourneyControlFromRoute));
+      await Promise.resolve();
+    });
+    await act(async () => {
+      await sendArenaCoreEvent('arena_evaluation_complete', { taskId: 'task-1', valid: true });
+    });
+
+    expect(fetchMock.mock.calls.filter(([input]) => String(input).includes('/journey'))).toHaveLength(2);
+    expect(container.textContent).toContain('工作台结果绑定后的下一节点');
+  });
+
+  it('exposes an explicit refresh bridge for other governed result emitters', async () => {
+    const fetchMock = vi.fn(() => response({ journey: journey('path-1', 'node-1', '权威刷新结果') }));
+    vi.stubGlobal('fetch', fetchMock);
+    await act(async () => {
+      root.render(createElement(AdaptivePathJourneyControlFromRoute));
+      await Promise.resolve();
+    });
+    await act(async () => requestAdaptivePathJourneyRefresh());
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });

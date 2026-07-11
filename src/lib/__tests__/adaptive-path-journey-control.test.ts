@@ -232,7 +232,7 @@ describe('adaptive path journey control', () => {
     expect(resolveAdaptivePathJourneyTargetDisposition(
       'video',
       '/course-runtime/media/lesson.mp4',
-    )).toBe('path-center-server-evidence');
+    )).toBe('blocked');
     expect(resolveAdaptivePathJourneyTargetDisposition(
       'external_resource',
       'https://example.edu/resource',
@@ -247,6 +247,18 @@ describe('adaptive path journey control', () => {
     expect(resolveAdaptivePathJourneyTargetDisposition('arena_task', '/knowledge')).toBe('blocked');
     expect(resolveAdaptivePathJourneyTargetDisposition('unknown', '/knowledge')).toBe('blocked');
     expect(resolveAdaptivePathCenterOwnedTargetHref('project', '/course-runtime/lessons/demo/handout.md')).toBeNull();
+    expect(resolveAdaptivePathJourneyTargetDisposition(
+      'video',
+      '/course-runtime/lessons/demo/video.mp4',
+    )).toBe('blocked');
+    expect(resolveAdaptivePathJourneyTargetDisposition(
+      'audio',
+      '/course-runtime/lessons/demo/audio.mp3',
+    )).toBe('blocked');
+    expect(resolveAdaptivePathJourneyTargetDisposition(
+      'knowledge_node',
+      '/course-runtime/knowledge/demo.md',
+    )).toBe('blocked');
     expect(resolveAdaptivePathJourneyTargetDisposition('knowledge_card', '/assessment/adaptive-practice')).toBe('blocked');
     expect(resolveAdaptivePathJourneyTargetDisposition(
       'control_workbench',

@@ -295,12 +295,9 @@ function isSafeExternalTarget(target: string): boolean {
 
 const PATH_CENTER_RAW_RESOURCE_TYPES = new Set([
   'knowledge_card',
-  'knowledge_node',
   'textbook_section',
   'slides',
   'handout',
-  'video',
-  'audio',
 ]);
 
 function hasIntegratedJourneyDestination(resourceType: string, target: string): boolean {

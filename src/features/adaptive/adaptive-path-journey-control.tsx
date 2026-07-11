@@ -43,6 +43,7 @@ interface AdaptivePathJourneyReadState {
 }
 
 const JOURNEY_UPDATED_EVENT = 'adaptive-path:journey-updated';
+const JOURNEY_REFRESH_REQUESTED_EVENT = 'adaptive-path:journey-refresh-requested';
 
 export function buildAdaptivePathJourneyReadHref(context: AdaptivePathLaunchContext): string {
   const params = new URLSearchParams({
@@ -88,6 +89,11 @@ export function publishAdaptivePathJourneyResponse(value: unknown): boolean {
   if (!journey || typeof window === 'undefined') return false;
   window.dispatchEvent(new CustomEvent(JOURNEY_UPDATED_EVENT, { detail: journey }));
   return true;
+}
+
+export function requestAdaptivePathJourneyRefresh(): void {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new Event(JOURNEY_REFRESH_REQUESTED_EVENT));
 }
 
 export function useAdaptivePathJourney(
@@ -149,7 +155,7 @@ export function useAdaptivePathJourney(
     if (!launchContext) return;
     const handleJourneyUpdate = (event: Event) => {
       const journey = parseAdaptivePathJourneyResponse({ journey: (event as CustomEvent<unknown>).detail });
-      if (!journey || journey.path.id !== launchContext.pathId) return;
+      if (!journey || !matchesJourneyLaunchContext(journey, launchContext)) return;
       requestControllerRef.current?.abort();
       requestIdRef.current += 1;
       setState({ status: 'ready', journey, error: null });
@@ -310,10 +316,16 @@ export function AdaptivePathJourneyControlFromRoute() {
     };
     window.addEventListener('focus', refreshJourney);
     window.addEventListener('pageshow', refreshJourney);
+    window.addEventListener(JOURNEY_REFRESH_REQUESTED_EVENT, refreshJourney);
+    window.addEventListener('arena:evaluation-complete', refreshJourney);
+    window.addEventListener('simulation:trace-summary', refreshJourney);
     document.addEventListener('visibilitychange', refreshWhenVisible);
     return () => {
       window.removeEventListener('focus', refreshJourney);
       window.removeEventListener('pageshow', refreshJourney);
+      window.removeEventListener(JOURNEY_REFRESH_REQUESTED_EVENT, refreshJourney);
+      window.removeEventListener('arena:evaluation-complete', refreshJourney);
+      window.removeEventListener('simulation:trace-summary', refreshJourney);
       document.removeEventListener('visibilitychange', refreshWhenVisible);
     };
   }, [refreshJourney, launchContext]);
@@ -328,6 +340,16 @@ export function AdaptivePathJourneyControlFromRoute() {
       onRefresh={journeyState.refresh}
     />
   );
+}
+
+function matchesJourneyLaunchContext(
+  journey: AuthorizedAdaptivePathJourney,
+  launchContext: AdaptivePathLaunchContext,
+): boolean {
+  if (journey.path.id !== launchContext.pathId || journey.goal.id !== launchContext.goalId) return false;
+  const requestedNodeId = journey.context.requestedNodeId;
+  if (requestedNodeId !== null) return requestedNodeId === launchContext.nodeId;
+  return journey.current === null || journey.current.nodeId === launchContext.nodeId;
 }
 
 function resolveJourneyRouteContext(location: Pick<Location, 'pathname' | 'search'>): AdaptivePathLaunchContext | null {
