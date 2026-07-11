@@ -1,0 +1,410 @@
+import 'dotenv/config';
+
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { expect, test, type BrowserContext, type Page } from '@playwright/test';
+import { encode } from 'next-auth/jwt';
+
+const evidenceDir = join(process.cwd(), 'artifacts/commercial-ui/teacher-assignment-authoring-901/playwright');
+const desktopWidths = [768, 1024, 1440] as const;
+const mobileWidths = [320, 375] as const;
+const evidenceEntries: Array<{ name: string; viewport: number; screenshot: string; widthEvidence: string }> = [];
+
+test.describe.configure({ timeout: 120_000, mode: 'serial' });
+test.afterAll(() => {
+  mkdirSync(evidenceDir, { recursive: true });
+  writeFileSync(join(evidenceDir, 'screenshots.json'), JSON.stringify({ generatedAt: new Date().toISOString(), entries: evidenceEntries }, null, 2));
+});
+
+async function addTeacherSession(context: BrowserContext) {
+  const token = await encode({ secret: process.env.NEXTAUTH_SECRET ?? 'replace-with-strong-secret', token: { id: 'teacher-assignment-901', email: 'teacher-901@example.com', name: '作业验收教师', role: 'TEACHER' } });
+  await context.addCookies([{ name: 'next-auth.session-token', value: token, domain: '127.0.0.1', path: '/', httpOnly: true, sameSite: 'Lax', secure: false, expires: Math.floor(Date.now() / 1000) + 3600 }]);
+  await context.route('**/api/teacher/assignments/managed-classes', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ classes: [{ id: 'class-901', name: '自控 2401', code: 'AC2401', year: '2026', semester: '春' }] }) }));
+}
+
+async function mockList(page: Page, mode: 'ready' | 'empty' | 'error' = 'ready') {
+  await page.route('**/api/teacher/assignments', async (route) => {
+    if (route.request().method() === 'POST') return route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ assignment: { id: 'assignment-created-901', revisions: [{ id: 'revision-created-901', version: 1 }] } }) });
+    if (route.request().method() !== 'GET') return route.fallback();
+    if (mode === 'error') return route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'temporary' }) });
+    return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ assignments: mode === 'empty' ? [] : [{ id: 'assignment-901', state: 'DRAFT', updatedAt: '2026-07-11T00:00:00.000Z', revisions: [{ id: 'revision-901', revisionNumber: 1, version: 3, title: '控制系统分析作业', state: 'DRAFT', audiences: [{ classId: '自控 2401', availableAt: '2026-07-12T00:00:00.000Z', dueAt: '2026-07-19T00:00:00.000Z' }] }] }] }) });
+  });
+}
+
+async function mockCatalog(page: Page) {
+  await page.route('**/api/teacher/assignments/question-catalog', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ items: [{ catalogItemId: 'catalog-1', sourceId: 'source-1', sourceFamily: 'kaq-foundation-reviewed', questionType: 'subjective-text', stemPreview: '请说明二阶系统阻尼比与超调量的关系。', knowledgeTags: ['二阶系统'], difficulty: 0.6, reviewState: 'path-eligible', rubricReadiness: 'needs-authoring', sourceVersion: 'catalog-v1', contentHash: `sha256:${'a'.repeat(64)}` }] }) }));
+}
+
+async function capture(page: Page, name: string) {
+  mkdirSync(evidenceDir, { recursive: true });
+  await page.screenshot({ path: join(evidenceDir, `${name}.png`), fullPage: true });
+  const width = await page.evaluate(() => ({ viewport: window.innerWidth, body: document.body.scrollWidth, document: document.documentElement.scrollWidth }));
+  writeFileSync(join(evidenceDir, `${name}-width.json`), JSON.stringify(width, null, 2));
+  evidenceEntries.push({ name, viewport: width.viewport, screenshot: `${name}.png`, widthEvidence: `${name}-width.json` });
+  expect(width.body).toBeLessThanOrEqual(width.viewport);
+  expect(width.document).toBeLessThanOrEqual(width.viewport);
+}
+
+for (const width of desktopWidths) {
+  test(`desktop editor and list remain complete at ${width}px`, async ({ page, context }) => {
+    await addTeacherSession(context);
+    await mockList(page);
+    await mockCatalog(page);
+    await page.route('**/api/teacher/assignments/assignment-created-901', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ revision: { id: 'revision-created-901', version: 2 } }) }));
+    await page.route('**/api/teacher/assignments/assignment-created-901/publish', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ revision: { id: 'revision-created-901', state: 'PUBLISHED' } }) }));
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/teacher/assignments');
+    await expect(page.getByRole('heading', { name: '作业', exact: true })).toBeVisible();
+    await expect(page.getByText('控制系统分析作业')).toBeVisible();
+    await capture(page, `list-${width}`);
+
+    await page.goto('/teacher/assignments/new');
+    await page.getByRole('button', { name: '新建题目' }).click();
+    await expect(page.getByRole('heading', { name: '题面' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '参考答案' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '评分标准' })).toBeVisible();
+    await page.getByRole('button', { name: '从题库选择' }).click();
+    await expect(page.getByRole('dialog', { name: '从受治理题库选题' })).toBeVisible();
+    await expect(page.getByText('可选，发布前必须补全参考答案与评分标准')).toBeVisible();
+    await page.getByRole('button', { name: '关闭受治理题库' }).click();
+    await expect(page.getByRole('button', { name: '从题库选择' })).toBeFocused();
+    await page.getByRole('button', { name: '发布' }).click();
+    await expect(page.getByText('发布前请解决所有阻断项。')).toBeVisible();
+    await expect(page.locator('[tabindex="-1"]').filter({ hasText: '发布阻断项' })).toBeFocused();
+    if (width === 768) {
+      await page.getByLabel('发布班级').selectOption('class-901');
+      await page.getByLabel('开放时间').fill('2026-07-12T09:00');
+      await page.getByLabel('截止时间').fill('2026-07-19T09:00');
+      await page.getByRole('button', { name: '保存', exact: true }).click();
+      await expect(page.getByText('自动保存：已保存')).toBeVisible();
+      await page.getByRole('button', { name: '发布' }).click();
+      await expect(page.getByText('作业已发布，当前版本已冻结。')).toBeVisible();
+      await expect(page.locator('main[aria-readonly="true"]')).toHaveAttribute('data-operations-status-semantics', 'published-frozen');
+      const frozenTitle = await page.getByLabel('作业标题').inputValue();
+      await page.getByLabel('作业标题').fill('不应写入冻结版本');
+      await expect(page.getByLabel('作业标题')).toHaveValue(frozenTitle);
+    }
+    await capture(page, `editor-${width}`);
+  });
+}
+
+for (const width of mobileWidths) {
+  test(`mobile editor is status-only at ${width}px`, async ({ page, context }) => {
+    await addTeacherSession(context);
+    await page.setViewportSize({ width, height: 760 });
+    await page.goto('/teacher/assignments/new');
+    await expect(page.getByText('请在平板或桌面端继续编辑。')).toBeVisible();
+    await expect(page.getByRole('button', { name: '发布' })).toBeHidden();
+    await expect(page.getByRole('button', { name: '新建题目' })).toBeHidden();
+    await capture(page, `mobile-fallback-${width}`);
+  });
+}
+
+test('list distinguishes empty, filtered-empty, and recoverable error', async ({ page, context }) => {
+  await addTeacherSession(context);
+  await page.setViewportSize({ width: 768, height: 800 });
+  await mockList(page, 'empty');
+  await page.goto('/teacher/assignments');
+  await expect(page.getByRole('heading', { name: '暂无作业' })).toBeVisible();
+
+  await page.unroute('**/api/teacher/assignments');
+  await mockList(page, 'ready');
+  await page.reload();
+  await page.getByPlaceholder('搜索作业').fill('不存在的作业');
+  await expect(page.getByRole('heading', { name: '没有匹配的作业' })).toBeVisible();
+
+  await page.unroute('**/api/teacher/assignments');
+  await mockList(page, 'error');
+  await page.reload();
+  await expect(page.getByRole('alert').filter({ hasText: '作业列表暂时无法加载' })).toContainText('作业列表暂时无法加载');
+  await expect(page.getByRole('button', { name: '重试' })).toBeVisible();
+});
+
+test('409 save conflict restores focus to the recovery alert', async ({ page, context }) => {
+  await addTeacherSession(context);
+  await mockList(page);
+  let publishCount = 0;
+  await page.route('**/api/teacher/assignments/assignment-created-901', (route) => route.fulfill({ status: 409, contentType: 'application/json', body: JSON.stringify({ error: 'version-conflict' }) }));
+  await page.route('**/api/teacher/assignments/assignment-created-901/publish', (route) => { publishCount += 1; return route.fulfill({ status: 200, body: '{}' }); });
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await page.goto('/teacher/assignments/new');
+  await page.getByRole('button', { name: '新建题目' }).click();
+  await fillPublicationSchedule(page);
+  await page.getByRole('button', { name: '保存', exact: true }).click();
+  await expect(page.getByText('自动保存：已保存')).toBeVisible();
+  await page.getByLabel('作业标题').fill('触发并发冲突');
+  await page.getByRole('button', { name: '保存', exact: true }).click();
+  const alert = page.getByRole('alert').filter({ hasText: '检测到新版本' });
+  await expect(alert).toBeVisible();
+  await expect(alert).toBeFocused();
+  await page.getByRole('button', { name: '发布' }).click();
+  await expect(page.getByText('最新草稿保存失败，未执行发布。')).toBeVisible();
+  expect(publishCount).toBe(0);
+});
+
+test('rapid edit immediately before publish saves and publishes the latest draft', async ({ page, context }) => {
+  await addTeacherSession(context);
+  let savedTitle = '';
+  let publishVersion = 0;
+  await page.route('**/api/teacher/assignments', async (route) => {
+    const body = route.request().postDataJSON() as { draft: { title: string } };
+    savedTitle = body.draft.title;
+    await route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ assignment: { id: 'latest-assignment', revisions: [{ id: 'latest-revision', version: 1 }] } }) });
+  });
+  await page.route('**/api/teacher/assignments/latest-assignment/publish', async (route) => {
+    publishVersion = (route.request().postDataJSON() as { expectedVersion: number }).expectedVersion;
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ revision: { id: 'latest-revision', state: 'PUBLISHED' } }) });
+  });
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await page.goto('/teacher/assignments/new');
+  await page.getByRole('button', { name: '新建题目' }).click();
+  await fillPublicationSchedule(page);
+  await page.getByLabel('作业标题').fill('发布前最后一刻的新标题');
+  await page.getByRole('button', { name: '发布' }).click();
+  await expect(page.getByText('作业已发布，当前版本已冻结。')).toBeVisible();
+  expect(savedTitle).toBe('发布前最后一刻的新标题');
+  expect(publishVersion).toBe(1);
+});
+
+test('publish waits for an in-flight autosave then saves the newer draft', async ({ page, context }) => {
+  await addTeacherSession(context);
+  let patchedTitle = '';
+  let publishVersion = 0;
+  await page.route('**/api/teacher/assignments', async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 350));
+    await route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ assignment: { id: 'queued-assignment', revisions: [{ id: 'queued-revision', version: 1 }] } }) });
+  });
+  await page.route('**/api/teacher/assignments/queued-assignment', async (route) => {
+    patchedTitle = (route.request().postDataJSON() as { draft: { title: string } }).draft.title;
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ revision: { id: 'queued-revision', version: 2 } }) });
+  });
+  await page.route('**/api/teacher/assignments/queued-assignment/publish', async (route) => {
+    publishVersion = (route.request().postDataJSON() as { expectedVersion: number }).expectedVersion;
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ revision: { state: 'PUBLISHED' } }) });
+  });
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await page.goto('/teacher/assignments/new');
+  await page.getByRole('button', { name: '新建题目' }).click();
+  await fillPublicationSchedule(page);
+  await expect(page.getByText('自动保存：保存中……')).toBeVisible({ timeout: 5_000 });
+  await page.getByLabel('作业标题').fill('排队期间的新标题');
+  await page.getByRole('button', { name: '发布' }).click();
+  await expect(page.getByText('作业已发布，当前版本已冻结。')).toBeVisible();
+  expect(patchedTitle).toBe('排队期间的新标题');
+  expect(publishVersion).toBe(2);
+});
+
+test('publish repeats save when the draft changes during its PATCH', async ({ page, context }) => {
+  await addTeacherSession(context);
+  let patchCount = 0;
+  let releaseFirstPatch!: () => void;
+  const firstPatchStarted = new Promise<void>((resolve) => { releaseFirstPatch = resolve; });
+  let unblockFirstPatch!: () => void;
+  const firstPatchGate = new Promise<void>((resolve) => { unblockFirstPatch = resolve; });
+  let finalPatchedTitle = '';
+  let publishVersion = 0;
+  await page.route('**/api/teacher/assignments', (route) => route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ assignment: { id: 'stable-assignment', revisions: [{ id: 'stable-revision', version: 1 }] } }) }));
+  await page.route('**/api/teacher/assignments/stable-assignment', async (route) => {
+    patchCount += 1;
+    const title = (route.request().postDataJSON() as { draft: { title: string } }).draft.title;
+    if (patchCount === 1) { releaseFirstPatch(); await firstPatchGate; } else { finalPatchedTitle = title; }
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ revision: { id: 'stable-revision', version: patchCount + 1 } }) });
+  });
+  await page.route('**/api/teacher/assignments/stable-assignment/publish', async (route) => { publishVersion = (route.request().postDataJSON() as { expectedVersion: number }).expectedVersion; await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ revision: { state: 'PUBLISHED' } }) }); });
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await page.goto('/teacher/assignments/new');
+  await page.getByRole('button', { name: '新建题目' }).click();
+  await fillPublicationSchedule(page);
+  await page.getByRole('button', { name: '保存', exact: true }).click();
+  await expect(page.getByText('自动保存：已保存')).toBeVisible();
+  await page.getByLabel('作业标题').fill('发布点击时标题');
+  await page.getByRole('button', { name: '发布' }).click();
+  await firstPatchStarted;
+  await page.getByLabel('作业标题').fill('PATCH 在途编辑后的最终标题');
+  unblockFirstPatch();
+  await expect(page.getByText('作业已发布，当前版本已冻结。')).toBeVisible();
+  expect(patchCount).toBe(2);
+  expect(finalPatchedTitle).toBe('PATCH 在途编辑后的最终标题');
+  expect(publishVersion).toBe(3);
+});
+
+test('schema blockers focus their exact fields', async ({ page, context }) => {
+  await addTeacherSession(context);
+  await page.setViewportSize({ width: 1024, height: 900 });
+  const cases = [
+    { mutate: async () => page.getByLabel('作业标题').fill(''), target: () => page.getByLabel('作业标题') },
+    { mutate: async () => page.getByLabel('最多提交次数').fill('0'), target: () => page.getByLabel('最多提交次数') },
+    { mutate: async () => { await page.getByLabel('迟交策略').selectOption('ALLOW'); await page.getByLabel('每日扣分百分比').fill('101'); }, target: () => page.getByLabel('每日扣分百分比') },
+    { mutate: async () => page.getByLabel('评分项 1 名称').fill(''), target: () => page.getByLabel('评分项 1 名称') },
+    { mutate: async () => page.getByLabel('评分项 1 档位 1 最高分').fill('2.555'), target: () => page.getByLabel('评分项 1 档位 1 最高分') },
+    { mutate: async () => page.getByLabel('允许作答类型').selectOption('SUBJECTIVE_FILE'), target: () => page.getByLabel('允许作答类型') },
+  ];
+  for (const item of cases) {
+    await page.goto('/teacher/assignments/new');
+    await page.getByRole('button', { name: '新建题目' }).click();
+    await fillPublicationSchedule(page);
+    await item.mutate();
+    await page.getByRole('button', { name: '发布' }).click();
+    await expect(item.target()).toBeFocused();
+    await expect(item.target()).toHaveAttribute('aria-describedby', 'assignment-validation-errors');
+  }
+});
+
+test('invalid decimal rubric never reaches save or publish', async ({ page, context }) => {
+  await addTeacherSession(context);
+  let mutationCount = 0;
+  await page.route('**/api/teacher/assignments**', async (route) => { if (route.request().method() === 'GET') return route.fallback(); mutationCount += 1; await route.fulfill({ status: 500, contentType: 'application/json', body: '{}' }); });
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await page.goto('/teacher/assignments/new');
+  await page.getByRole('button', { name: '新建题目' }).click();
+  await fillPublicationSchedule(page);
+  await page.getByLabel('评分项 1 档位 1 最高分').fill('2.555');
+  await page.getByRole('button', { name: '发布' }).click();
+  await expect(page.getByText('发布前请解决所有阻断项。')).toBeVisible();
+  await expect(page.getByLabel('评分项 1 档位 1 最高分')).toBeFocused();
+  expect(mutationCount).toBe(0);
+});
+
+test('rubric band gap never reaches save or publish', async ({ page, context }) => {
+  await addTeacherSession(context);
+  let mutationCount = 0;
+  await page.route('**/api/teacher/assignments**', async (route) => { if (route.request().method() === 'GET') return route.fallback(); mutationCount += 1; await route.fulfill({ status: 500, contentType: 'application/json', body: '{}' }); });
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await page.goto('/teacher/assignments/new');
+  await page.getByRole('button', { name: '新建题目' }).click();
+  await fillPublicationSchedule(page);
+  await page.getByLabel('评分项 1 档位 1 最低分').fill('0.01');
+  await page.getByRole('button', { name: '发布' }).click();
+  await expect(page.getByText('发布前请解决所有阻断项。')).toBeVisible();
+  expect(mutationCount).toBe(0);
+});
+
+test('autosave 400 prevents publish and focuses the blocker', async ({ page, context }) => {
+  await addTeacherSession(context);
+  let publishCount = 0;
+  await page.route('**/api/teacher/assignments', (route) => route.fulfill({ status: 400, contentType: 'application/json', body: JSON.stringify({ error: 'invalid-payload' }) }));
+  await page.route('**/api/teacher/assignments/**/publish', (route) => { publishCount += 1; return route.fulfill({ status: 200, body: '{}' }); });
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await page.goto('/teacher/assignments/new');
+  await page.getByRole('button', { name: '新建题目' }).click();
+  await fillPublicationSchedule(page);
+  await expect(page.getByText('自动保存：保存失败')).toBeVisible({ timeout: 5_000 });
+  await page.getByRole('button', { name: '发布' }).click();
+  await expect(page.getByText('最新草稿保存失败，未执行发布。')).toBeVisible();
+  await expect(page.locator('[tabindex="-1"]').filter({ hasText: '发布阻断项' })).toBeFocused();
+  expect(publishCount).toBe(0);
+});
+
+test('aborted publish is recoverable and retry succeeds', async ({ page, context }) => {
+  await addTeacherSession(context);
+  let publishCount = 0;
+  await page.route('**/api/teacher/assignments', (route) => route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ assignment: { id: 'retry-assignment', revisions: [{ id: 'retry-revision', version: 1 }] } }) }));
+  await page.route('**/api/teacher/assignments/retry-assignment', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ revision: { id: 'retry-revision', version: 2 } }) }));
+  await page.route('**/api/teacher/assignments/retry-assignment/publish', async (route) => {
+    publishCount += 1;
+    if (publishCount === 1) return route.abort('failed');
+    return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ revision: { state: 'PUBLISHED' } }) });
+  });
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await page.goto('/teacher/assignments/new');
+  await page.getByRole('button', { name: '新建题目' }).click();
+  await fillPublicationSchedule(page);
+  await page.getByRole('button', { name: '发布' }).click();
+  const error = page.getByRole('alert').filter({ hasText: '发布请求失败，请检查网络后重试。' });
+  await expect(error).toBeVisible();
+  await expect(error).toBeFocused();
+  await expect(page.getByRole('button', { name: '发布' })).toBeEnabled();
+  await page.getByRole('button', { name: '发布' }).click();
+  await expect(page.getByText('作业已发布，当前版本已冻结。')).toBeVisible();
+  expect(publishCount).toBe(2);
+});
+
+test('successful publication freezes all save and publish entrypoints', async ({ page, context }) => {
+  await addTeacherSession(context);
+  let saveCount = 0;
+  let publishCount = 0;
+  await page.route('**/api/teacher/assignments', (route) => { saveCount += 1; return route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ assignment: { id: 'frozen-assignment', revisions: [{ id: 'frozen-revision', version: 1 }] } }) }); });
+  await page.route('**/api/teacher/assignments/frozen-assignment', (route) => { saveCount += 1; return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ revision: { id: 'frozen-revision', version: 2 } }) }); });
+  await page.route('**/api/teacher/assignments/frozen-assignment/publish', (route) => { publishCount += 1; return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ revision: { state: 'PUBLISHED' } }) }); });
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await page.goto('/teacher/assignments/new');
+  await page.getByRole('button', { name: '新建题目' }).click();
+  await fillPublicationSchedule(page);
+  await page.getByRole('button', { name: '发布' }).click();
+  await expect(page.getByText('作业已发布，当前版本已冻结。')).toBeVisible();
+  const frozenTitle = await page.getByLabel('作业标题').inputValue();
+  await expect(page.getByRole('button', { name: '保存', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: '发布' })).toBeDisabled();
+  await page.getByLabel('作业标题').fill('冻结后不得写入');
+  await expect(page.getByLabel('作业标题')).toHaveValue(frozenTitle);
+  await page.getByRole('button', { name: '保存', exact: true }).dispatchEvent('click');
+  await page.getByRole('button', { name: '发布' }).dispatchEvent('click');
+  await page.waitForTimeout(1_300);
+  expect(saveCount).toBe(1);
+  expect(publishCount).toBe(1);
+});
+
+test('autosave completion preserves the active input focus', async ({ page, context }) => {
+  await addTeacherSession(context);
+  await page.route('**/api/teacher/assignments', (route) => route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ assignment: { id: 'focus-assignment', revisions: [{ id: 'focus-revision', version: 1 }] } }) }));
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await page.goto('/teacher/assignments/new');
+  await page.getByRole('button', { name: '新建题目' }).click();
+  const title = page.getByLabel('作业标题');
+  await title.fill('持续');
+  await expect(title).toBeFocused();
+  await expect(page.getByText('自动保存：已保存')).toBeVisible({ timeout: 5_000 });
+  await expect(title).toBeFocused();
+  await title.pressSequentially('输入');
+  await expect(title).toHaveValue('持续输入');
+});
+
+test('catalog selection abort keeps the picker open and retry succeeds', async ({ page, context }) => {
+  await addTeacherSession(context);
+  let selectionAttempts = 0;
+  await page.route('**/api/teacher/assignments/question-catalog', async (route) => {
+    if (route.request().method() === 'GET') return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ items: [{ catalogItemId: 'retry-catalog', sourceId: 'retry-source', sourceFamily: 'checkpoint-authored-question', questionType: 'subjective-text', stemPreview: '可恢复选择题', knowledgeTags: ['控制'], difficulty: 0.5, reviewState: 'path-eligible', rubricReadiness: 'ready', sourceVersion: 'v1', contentHash: `sha256:${'a'.repeat(64)}` }] }) });
+    selectionAttempts += 1;
+    if (selectionAttempts === 1) return route.abort('failed');
+    return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ question: { stableQuestionId: 'selected-retry-question', responseType: 'SUBJECTIVE_TEXT', points: 10, prompt: '重试成功后的完整题面', referenceAnswer: '完整参考答案', rubric: { schemaVersion: 'assignment-analytic-rubric.v1', criteria: [{ id: 'criterion-1', label: '完成质量', maxPoints: 10, evidenceDescription: '可复核证据', feedbackGuidance: '反馈指导', levels: [{ id: 'level-1', label: '达成', minPoints: 0, maxPoints: 10, description: '完整档位' }] }] }, source: { family: 'MANUAL', authoringMarker: 'assignment-authoring' } } }) });
+  });
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await page.goto('/teacher/assignments/new');
+  await page.getByRole('button', { name: '从题库选择' }).click();
+  await page.getByRole('button', { name: '选择此题' }).click();
+  const error = page.getByRole('alert').filter({ hasText: '题库题目载入失败，请重试。' });
+  await expect(error).toBeVisible();
+  await expect(error).toBeFocused();
+  await expect(page.getByRole('dialog', { name: '从受治理题库选题' })).toBeVisible();
+  await page.getByRole('button', { name: '选择此题' }).click();
+  await expect(page.getByRole('dialog', { name: '从受治理题库选题' })).toBeHidden();
+  await expect(page.getByRole('textbox', { name: '题面' })).toHaveValue('重试成功后的完整题面');
+  expect(selectionAttempts).toBe(2);
+});
+
+test('managed class picker exposes loading, error recovery, empty state, and selection', async ({ page, context }) => {
+  await addTeacherSession(context);
+  let calls = 0;
+  await page.route('**/api/teacher/assignments/managed-classes', async (route) => {
+    calls += 1;
+    if (calls === 1) { await new Promise((resolve) => setTimeout(resolve, 200)); return route.fulfill({ status: 503, body: '{}' }); }
+    if (calls === 2) return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ classes: [] }) });
+    return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ classes: [{ id: 'managed-1', name: '受管班级', code: 'MGD001', year: '2026', semester: '秋' }] }) });
+  });
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await page.goto('/teacher/assignments/new');
+  await expect(page.getByText('正在加载可管理班级……')).toBeVisible();
+  await expect(page.getByRole('alert').filter({ hasText: '可管理班级加载失败' })).toBeVisible();
+  await page.getByRole('button', { name: '重试' }).click();
+  await expect(page.getByText('暂无可发布的活跃班级')).toBeVisible();
+  await page.reload();
+  await expect(page.getByLabel('发布班级')).toBeVisible();
+  await page.getByLabel('发布班级').selectOption('managed-1');
+  await expect(page.getByLabel('发布班级')).toHaveValue('managed-1');
+});
+
+async function fillPublicationSchedule(page: Page) {
+  await page.getByLabel('发布班级').selectOption('class-901');
+  await page.getByLabel('开放时间').fill('2099-01-01T09:00');
+  await page.getByLabel('截止时间').fill('2099-01-02T09:00');
+}

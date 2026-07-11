@@ -62,6 +62,7 @@ export type PlatformNavigationIconKey =
   | 'teacher'
   | 'classes'
   | 'lesson-plans'
+  | 'assignments'
   | 'resources'
   | 'history'
   | 'users'
@@ -145,6 +146,9 @@ export interface PlatformContextualReturnTargetRule {
     | 'teacher-lesson-plans'
     | 'teacher-lesson-plan-create'
     | 'teacher-lesson-plan-edit'
+    | 'teacher-assignments'
+    | 'teacher-assignment-create'
+    | 'teacher-assignment-edit'
     | 'admin-lesson-plans'
     | 'admin-lesson-plan-create'
     | 'admin-lesson-plan-edit';
@@ -1475,6 +1479,51 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     },
   }),
   primaryRoute({
+    href: '/teacher/assignments',
+    routeFile: 'src/app/teacher/assignments/page.tsx',
+    frame: 'operations-console',
+    roleScope: ['teacher'],
+    authState: 'protected-redirect',
+    navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'representative',
+    owningChange: 'establish-assignment-authoring-domain',
+  }),
+  primaryRoute({
+    href: '/teacher/assignments/new',
+    routeFile: 'src/app/teacher/assignments/new/page.tsx',
+    frame: 'operations-console',
+    roleScope: ['teacher'],
+    authState: 'protected-redirect',
+    navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'representative',
+    owningChange: 'establish-assignment-authoring-domain',
+    contextualReturn: {
+      sourceContext: 'teacher-assignment-create',
+      targetHint: 'Return to the teacher assignment list after creating or cancelling an assignment.',
+      fallbackHref: '/teacher/assignments',
+    },
+  }),
+  primaryRoute({
+    href: '/teacher/assignments/[assignmentId]/edit',
+    routeFile: 'src/app/teacher/assignments/[assignmentId]/edit/page.tsx',
+    routePattern: '/teacher/assignments/:assignmentId/edit',
+    coveredRouteGlob: 'src/app/teacher/assignments/*/edit/page.tsx',
+    frame: 'operations-console',
+    roleScope: ['teacher'],
+    authState: 'protected-redirect',
+    navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'representative',
+    owningChange: 'establish-assignment-authoring-domain',
+    contextualReturn: {
+      sourceContext: 'teacher-assignment-edit',
+      targetHint: 'Return to the teacher assignment list after editing an assignment.',
+      fallbackHref: '/teacher/assignments',
+    },
+  }),
+  primaryRoute({
     href: '/teacher/preset-lessons',
     routeFile: 'src/app/teacher/preset-lessons/page.tsx',
     frame: 'operations-console',
@@ -2305,6 +2354,18 @@ const PLATFORM_ROLE_NAVIGATION_ITEMS: readonly PlatformRoleNavigationItem[] = [
     iconKey: 'lesson-plans',
     actionPriority: 30,
     aliasHrefs: ['/teacher/lesson-plans/new'],
+  },
+  {
+    id: 'teacher-assignments',
+    label: '作业',
+    href: '/teacher/assignments',
+    role: 'teacher',
+    order: 115,
+    group: 'teacher-cockpit',
+    description: '编排主观题、评分标准与发布计划。',
+    iconKey: 'assignments',
+    actionPriority: 35,
+    aliasHrefs: ['/teacher/assignments/new'],
   },
   {
     id: 'teacher-preset-lessons',

@@ -30,6 +30,7 @@ describe('teacher dashboard config', () => {
     ).toEqual([
       { title: '新建班级', href: '/teacher/classes/new?returnTo=%2Fteacher' },
       { title: '新建教案', href: '/teacher/lesson-plans/new?returnTo=%2Fteacher' },
+      { title: '新建作业', href: '/teacher/assignments/new?returnTo=%2Fteacher' },
       { title: '预置教案', href: '/teacher/preset-lessons' },
       { title: '教学资源管理', href: '/teacher/resources' },
       { title: '上课历史', href: '/teacher/history' },

@@ -8,6 +8,11 @@ The system SHALL persist assignments as first-class records with stable identity
 - **THEN** the system SHALL atomically create or freeze a numbered published revision
 - **AND** subsequent edits SHALL create a different draft revision without mutating the published content.
 
+#### Scenario: Teacher publishes while a local save is pending
+- **WHEN** the teacher requests publication after changing the draft while an autosave is pending or in flight
+- **THEN** the editor SHALL validate the complete current draft, serialize and await saving its latest values, and publish only the revision and version returned by that successful save
+- **AND** validation failure, save failure, or version conflict SHALL prevent publication and focus the corresponding recovery state.
+
 #### Scenario: Existing submission references an older revision
 - **WHEN** a newer assignment revision is published after a student received or submitted an older revision
 - **THEN** the student's assignment and grading records SHALL continue to reference the originally assigned immutable revision.
@@ -32,6 +37,11 @@ Every assignment question SHALL persist an immutable prompt, reference answer, r
 - **WHEN** a teacher adds an eligible catalog item to an assignment draft
 - **THEN** the system SHALL snapshot the item content, answer, rubric, source family, source identity, source hash, review state, and version references.
 
+#### Scenario: Catalog item is not eligible for assignment authoring
+- **WHEN** an item is not path-eligible, does not allow low-stakes practice, or carries unresolved limitations
+- **THEN** the server SHALL omit or disable it in the assignment catalog projection
+- **AND** SHALL reject direct materialization attempts regardless of client-supplied metadata.
+
 #### Scenario: Source question changes later
 - **WHEN** the original question-bank content or metadata changes after publication
 - **THEN** the published assignment question SHALL remain unchanged
@@ -43,6 +53,7 @@ Every assignment question SHALL persist an immutable prompt, reference answer, r
 
 ### Requirement: Every published subjective question has an analytic rubric
 The system SHALL require each published subjective assignment question to include a versioned analytic rubric with stable criterion identifiers, criterion maximums, observable evidence, performance levels, and feedback guidance.
+All assignment, question, criterion, and performance-level scores SHALL use at most two decimal places. Performance levels SHALL cover each criterion from its maximum to zero on a descending, non-overlapping, gap-free `0.01` score grid.
 
 #### Scenario: Teacher defines a rubric
 - **WHEN** a teacher edits a subjective question rubric
@@ -66,10 +77,12 @@ The system MUST block assignment publication unless the assignment total, questi
 
 ### Requirement: Publication binds authorized class audiences and policies
 The system SHALL bind published assignment revisions to explicit class audiences, availability dates, due dates, late policy, response policy, and resubmission policy.
+Every question response type SHALL be included in the assignment revision's allowed response types; inconsistent drafts SHALL be blocked with a field-specific recovery target.
 
 #### Scenario: Teacher publishes to managed classes
 - **WHEN** a teacher selects classes they are authorized to manage and supplies a valid schedule
 - **THEN** publication SHALL create audience records that preserve the assigned revision and policy snapshot.
+- **AND** the editor SHALL discover active managed classes from an authorized server projection rather than requiring internal class identifiers as free text.
 
 #### Scenario: Teacher selects an unauthorized class
 - **WHEN** a teacher attempts to publish to a class outside their authorized scope
