@@ -117,7 +117,7 @@ export function OdysseyArenaBridgeShell() {
 
   return (
     <>
-      <div className="bg-slate-950 px-4 pt-4 sm:px-6 lg:px-8">
+      <div className="bg-platform-canvas px-4 pt-4 sm:px-6 lg:px-8">
         <AdaptivePathJourneyControlForArenaTask taskId={arenaContext.task.id} />
       </div>
       <section className="border-b border-cyan-400/20 bg-slate-950 px-4 py-4 text-white shadow-lg shadow-cyan-950/20 sm:px-6 lg:px-8">
