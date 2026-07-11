@@ -25,5 +25,7 @@ describe('PathWorkspaceModule', () => {
     expect(html).toContain('min-w-0');
     expect(html).toContain('break-words');
     expect(html).toContain('max-w-full');
+    expect(html).toContain('surface-card min-w-0 w-full');
+    expect(html).toContain('mt-4 min-w-0 w-full');
   });
 });

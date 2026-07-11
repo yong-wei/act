@@ -3672,7 +3672,7 @@ export default function AdaptivePracticePage() {
           ) : null}
 
           {!showPathContextRecovery && (showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0 ? (
-            <section className="order-20 grid gap-4">
+            <section className="order-20 grid min-w-0 w-full gap-4">
               {showExecutionWorkspace || showRecoveredExecutionWorkspace ? (
               <PathWorkspaceModule
                 moduleId="current-path"

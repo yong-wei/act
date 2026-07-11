@@ -44,7 +44,7 @@ export function PathWorkspaceModule({
   return (
     <section
       id={`adaptive-path-module-${moduleId}`}
-      className={`surface-card scroll-mt-24 p-4 sm:p-5 ${className}`}
+      className={`surface-card min-w-0 w-full scroll-mt-24 p-4 sm:p-5 ${className}`}
       data-adaptive-path-module={moduleId}
       data-adaptive-path-module-state={isOpen ? 'expanded' : 'collapsed'}
       {...dataAttributes}
@@ -69,7 +69,7 @@ export function PathWorkspaceModule({
         </span>
       </button>
       {isOpen ? (
-        <div id={bodyId} className="mt-4" data-adaptive-path-module-body={moduleId}>
+        <div id={bodyId} className="mt-4 min-w-0 w-full" data-adaptive-path-module-body={moduleId}>
           {children}
         </div>
       ) : null}

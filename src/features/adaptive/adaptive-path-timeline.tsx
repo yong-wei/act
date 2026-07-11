@@ -188,7 +188,7 @@ export function AdaptivePathTimeline<TNode extends AdaptivePathTimelineNode>({
   renderExpandedContent,
 }: AdaptivePathTimelineProps<TNode>) {
   return (
-    <ol className="grid gap-2" data-adaptive-path-route-flow="connected">
+    <ol className="grid min-w-0 w-full gap-2" data-adaptive-path-route-flow="connected">
       {nodes.map((node, index) => {
         const focused = focusedNodeId === node.nodeId;
         const visual = getAdaptivePathResourceVisual(node.type);
@@ -199,7 +199,7 @@ export function AdaptivePathTimeline<TNode extends AdaptivePathTimelineNode>({
         return (
           <li
             key={node.nodeId}
-            className="relative pl-9"
+            className="relative min-w-0 pl-9"
             data-adaptive-path-node={node.nodeId}
             data-adaptive-path-resource-type={RESOURCE_ALIASES[node.type] ?? node.type}
             data-adaptive-path-node-state={node.status}
@@ -215,7 +215,7 @@ export function AdaptivePathTimeline<TNode extends AdaptivePathTimelineNode>({
               <ResourceIcon className="size-4" aria-hidden="true" />
               <span className="sr-only">{visual.label}</span>
             </span>
-            <article className={`overflow-hidden rounded-lg border border-l-2 border-border ${visual.accentClass} ${visual.surfaceClass} ${focused ? 'ring-2 ring-primary/25' : ''}`}>
+            <article className={`min-w-0 overflow-hidden rounded-lg border border-l-2 border-border ${visual.accentClass} ${visual.surfaceClass} ${focused ? 'ring-2 ring-primary/25' : ''}`}>
               <button
                 type="button"
                 onClick={() => onFocus(node.nodeId)}
