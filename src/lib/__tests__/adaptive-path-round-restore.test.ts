@@ -148,4 +148,233 @@ describe('adaptive path round restore', () => {
       },
     });
   });
+
+  it('repairs the uniquely verified Yang Fan legacy Arena target during restore', () => {
+    const plan = restoreAdaptiveLearningPathPlanFromRound({
+      id: 'yangfan-fixture-control-correction-path',
+      userId: 'student-yangfan',
+      title: 'Yang Fan diagnostic control-correction path',
+      goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: '根轨迹_1_1',
+      pathPayload: {
+        fixtureScope: 'yangfan-diagnostic-fixture.v1',
+        mainPathNodeIds: ['性能指标_1_1', '根轨迹_1_1'],
+        planNodes: [{
+          nodeId: '根轨迹_1_1',
+          title: '根轨迹终点检查',
+          type: 'arena_task',
+          sourceKind: 'knowledge_graph',
+          sourceRef: '根轨迹_1_1',
+          target: '/arena?nodeId=%E6%A0%B9%E8%BD%A8%E8%BF%B9_1_1',
+          reasonCodes: [],
+        }],
+        executionStatus: { activeNodeId: '根轨迹_1_1' },
+      },
+    });
+
+    expect(plan).toMatchObject({
+      status: 'ready',
+      currentNodeId: 'arena-task:task-second-order-lead-pid',
+      mainPath: [{
+        nodeId: 'arena-task:task-second-order-lead-pid',
+        sourceKind: 'arena_task',
+        sourceRef: 'task-second-order-lead-pid',
+        target: '/arena/challenges/task-second-order-lead-pid',
+        reasonCodes: expect.arrayContaining(['verified-yangfan-legacy-arena-mapping']),
+      }],
+      executionStatus: {
+        activeNodeId: 'arena-task:task-second-order-lead-pid',
+      },
+    });
+  });
+
+  it.each([
+    ['arena-challenge-workbench', 'task-second-order-lead-pid'],
+    ['arena-cruise-blackbox-workbench', 'task-cruise-roll-blackbox-identification'],
+  ])('restores the verified production registry Arena node %s as canonical', (registryId, taskId) => {
+    const legacyNodeId = `registry:${registryId}`;
+    const canonicalNodeId = `arena-task:${taskId}`;
+    const plan = restoreAdaptiveLearningPathPlanFromRound({
+      id: `legacy-${registryId}-path`,
+      userId: 'student-1',
+      title: 'Legacy production Arena path',
+      goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: legacyNodeId,
+      pathPayload: {
+        mainPathNodeIds: [legacyNodeId, 'reflection:post-arena-review'],
+        planNodes: [
+          {
+            nodeId: legacyNodeId,
+            title: 'Legacy production Arena node',
+            type: 'arena_task',
+            sourceKind: 'resource_registry',
+            sourceRef: registryId,
+            target: `/arena/challenges/${taskId}`,
+            reasonCodes: [],
+          },
+          {
+            nodeId: 'reflection:post-arena-review',
+            title: 'Arena 后续反思',
+            type: 'reflection',
+            prerequisiteNodeIds: [legacyNodeId, canonicalNodeId],
+            prerequisiteBasis: [{ nodeId: legacyNodeId, source: 'PlanningUnit' }],
+            readiness: {
+              state: 'locked',
+              requiredCompletedNodeIds: [legacyNodeId, canonicalNodeId],
+              fallbackNodeIds: [legacyNodeId, canonicalNodeId],
+              missingCompletedNodeIds: [legacyNodeId, canonicalNodeId],
+              missingCompetencies: [],
+              missingEvidenceCount: 0,
+              missingOutcomeRefs: [],
+            },
+          },
+        ],
+        executionStatus: {
+          activeNodeId: legacyNodeId,
+          completedNodeIds: [legacyNodeId, canonicalNodeId],
+        },
+        policyBundle: {
+          status: 'ready',
+          paths: [{
+            nodeIds: [legacyNodeId, canonicalNodeId],
+            activeNodeIds: [legacyNodeId],
+            lockedNodeIds: [legacyNodeId],
+            readinessSummary: [{ nodeId: legacyNodeId, state: 'locked', message: '等待 Arena 完成' }],
+            unlockMessages: [{ nodeId: legacyNodeId, message: '完成 Arena' }],
+            terminalValidationNodeIds: [legacyNodeId],
+            terminalValidationStrategy: {
+              nodeIds: [legacyNodeId, canonicalNodeId],
+              summary: 'Arena 终点验证',
+            },
+            checkpointNodeIds: [legacyNodeId],
+          }],
+        },
+        constraintRepair: {
+          status: 'repaired',
+          draftNodeIds: [legacyNodeId, canonicalNodeId],
+          repairedNodeIds: [legacyNodeId],
+          insertedNodeIds: [legacyNodeId],
+          removedNodeIds: [legacyNodeId],
+          checkpointNodeIds: [legacyNodeId],
+          terminalValidationNodeIds: [legacyNodeId],
+          repairedConstraints: ['legacy-arena-alias'],
+          tradeoffs: [],
+          limitations: [],
+          infeasibleReasons: [{
+            code: 'locked-node-without-fallback',
+            nodeIds: [legacyNodeId, canonicalNodeId],
+            message: 'legacy alias fixture',
+          }],
+          versionRefs: { repairVersion: 'path-constraint-repair.v1' },
+        },
+        visualization: {
+          evidence: {
+            associativeRetrieval: {
+              candidateResourceNodeIds: [legacyNodeId, canonicalNodeId],
+              selectedCandidateNodeIds: [legacyNodeId],
+              rejectedCandidates: [{
+                ref: 'legacy-arena-candidate',
+                kind: 'resourceNode',
+                resourceNodeId: legacyNodeId,
+                reasonCodes: ['not-selected'],
+              }],
+            },
+          },
+        },
+      },
+    });
+
+    expect(plan).toMatchObject({
+      status: 'ready',
+      currentNodeId: canonicalNodeId,
+      mainPath: [{
+        nodeId: canonicalNodeId,
+        sourceKind: 'arena_task',
+        sourceRef: taskId,
+        target: `/arena/challenges/${taskId}`,
+        reasonCodes: expect.arrayContaining(['verified-legacy-arena-registry-mapping']),
+      }, {
+        nodeId: 'reflection:post-arena-review',
+        prerequisiteNodeIds: [canonicalNodeId],
+        prerequisiteBasis: [{ nodeId: canonicalNodeId, source: 'PlanningUnit' }],
+        readiness: expect.objectContaining({
+          requiredCompletedNodeIds: [canonicalNodeId],
+          fallbackNodeIds: [canonicalNodeId],
+          missingCompletedNodeIds: [canonicalNodeId],
+        }),
+      }],
+      executionStatus: {
+        activeNodeId: canonicalNodeId,
+        completedNodeIds: [canonicalNodeId],
+      },
+      policyBundle: {
+        paths: [{
+          nodeIds: [canonicalNodeId],
+          activeNodeIds: [canonicalNodeId],
+          lockedNodeIds: [canonicalNodeId],
+          readinessSummary: [{ nodeId: canonicalNodeId }],
+          unlockMessages: [{ nodeId: canonicalNodeId }],
+          terminalValidationNodeIds: [canonicalNodeId],
+          terminalValidationStrategy: { nodeIds: [canonicalNodeId] },
+          checkpointNodeIds: [canonicalNodeId],
+        }],
+      },
+      constraintRepair: {
+        draftNodeIds: [canonicalNodeId],
+        repairedNodeIds: [canonicalNodeId],
+        insertedNodeIds: [canonicalNodeId],
+        removedNodeIds: [canonicalNodeId],
+        checkpointNodeIds: [canonicalNodeId],
+        terminalValidationNodeIds: [canonicalNodeId],
+        infeasibleReasons: [{ nodeIds: [canonicalNodeId] }],
+      },
+      visualization: {
+        evidence: {
+          associativeRetrieval: {
+            candidateResourceNodeIds: [canonicalNodeId],
+            selectedCandidateNodeIds: [canonicalNodeId],
+            rejectedCandidates: [{ resourceNodeId: canonicalNodeId }],
+          },
+        },
+      },
+    });
+  });
+
+  it('blocks an unverified generic Arena target without leaving an executable target', () => {
+    const plan = restoreAdaptiveLearningPathPlanFromRound({
+      id: 'legacy-generic-arena-path',
+      userId: 'student-1',
+      title: 'Legacy generic Arena path',
+      goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: 'arena-task:legacy',
+      pathPayload: {
+        planNodes: [{
+          nodeId: 'arena-task:legacy',
+          title: 'Legacy Arena',
+          type: 'arena_task',
+          sourceKind: 'arena_task',
+          sourceRef: 'legacy',
+          target: '/arena',
+          reasonCodes: [],
+        }],
+      },
+    });
+
+    expect(plan).toMatchObject({
+      status: 'fallback',
+      mainPath: [{
+        nodeId: 'arena-task:legacy',
+        target: '',
+        status: 'blocked',
+        reasonCodes: expect.arrayContaining(['generic-arena-target']),
+        readiness: expect.objectContaining({
+          state: 'locked',
+          reasonCodes: ['generic-arena-target'],
+        }),
+      }],
+    });
+  });
 });

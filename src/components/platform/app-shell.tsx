@@ -65,6 +65,7 @@ export interface AppShellProps {
   sidebarMode?: 'fixed' | 'collapsible' | 'hidden';
   routeMetadata?: AppShellRouteMetadata;
   workspaceSlots?: AppShellWorkspaceSlots;
+  journeyControl?: ReactNode;
   dockControls?: readonly AppShellDockControl[];
   children: ReactNode;
   className?: string;
@@ -585,6 +586,7 @@ function AppShellDesktopLayout({
   accountHref,
   effectiveBreadcrumbs,
   workspaceSlots,
+  journeyControl,
   dockControls,
   floatingDockBehavior,
   children,
@@ -604,6 +606,7 @@ function AppShellDesktopLayout({
   accountHref?: string;
   effectiveBreadcrumbs?: readonly AppBreadcrumbItem[];
   workspaceSlots?: AppShellWorkspaceSlots;
+  journeyControl?: ReactNode;
   dockControls: readonly AppShellDockControl[];
   floatingDockBehavior: PlatformFloatingDockRouteBehavior;
   children: ReactNode;
@@ -699,6 +702,7 @@ function AppShellDesktopLayout({
           )}
           data-platform-compact-page-edge="true"
         >
+          {journeyControl}
           {AppShellWorkspace({ slots: workspaceSlots, children })}
         </div>
         <AppShellFloatingDockRegistration controls={floatingDockControls} behavior={floatingDockBehavior} />
@@ -1047,6 +1051,7 @@ export function AppShell({
   sidebarMode,
   routeMetadata,
   workspaceSlots,
+  journeyControl,
   dockControls = [],
   children,
   className,
@@ -1117,6 +1122,7 @@ export function AppShell({
         accountHref={accountHref}
         effectiveBreadcrumbs={effectiveBreadcrumbs}
         workspaceSlots={workspaceSlots}
+        journeyControl={journeyControl}
         dockControls={dockControls}
         floatingDockBehavior={floatingDockBehavior}
       >

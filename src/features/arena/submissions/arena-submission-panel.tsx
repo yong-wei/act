@@ -18,6 +18,7 @@ import {
 } from './workbench-preview';
 import { sendArenaCoreEvent } from '../telemetry';
 import { ArenaPersonalFeedback } from '../student/arena-personal-feedback';
+import { useArenaPathSubmissionCompletion } from '../arena-path-journey-control';
 
 type PreviewLeaderboardType = Exclude<LeaderboardType, 'class' | 'season'>;
 
@@ -97,6 +98,7 @@ export function ArenaSubmissionPanel({
   evaluationModeLabel?: string;
   preferredControllerMethod?: EvaluableControllerMethod;
 }) {
+  const completeArenaPath = useArenaPathSubmissionCompletion(task.id);
   const [submissions, setSubmissions] = useState<ArenaSubmissionRecord[]>(initialSubmissions);
   const [kp, setKp] = useState('2.4');
   const [ki, setKi] = useState('0.8');
@@ -256,6 +258,7 @@ export function ArenaSubmissionPanel({
 
     setSubmissions((current) => [...current, payload.submission as ArenaSubmissionRecord]);
     setStatus(payload.submission.reusedEvaluation ? '重复控制器已复用官方评测结果。' : '官方评测已完成。');
+    await completeArenaPath(payload.submission.id);
     void sendArenaCoreEvent('arena_evaluation_complete', {
       taskId: task.id,
       method: payload.submission.artifact.method,

@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 
 import { AppShell, type AppBreadcrumbItem } from '@/components/platform/app-shell';
+import { AdaptivePathJourneyControlFromRoute } from '@/features/adaptive/adaptive-path-journey-control';
 
 const INTERACTIVE_LEARNING_BREADCRUMBS: Record<string, readonly AppBreadcrumbItem[]> = {
   '/interactive-learning': [
@@ -50,6 +51,7 @@ export function InteractiveLearningShell({
       actions={actions}
       activeHref={activeHref}
       sidebarMode="collapsible"
+      journeyControl={<AdaptivePathJourneyControlFromRoute />}
       className="surface-page"
     >
       <div data-platform-learning-atlas-shell="student-secondary-route">

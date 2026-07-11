@@ -13,8 +13,9 @@ import { ChallengeLeaderboardBrowser } from './challenge-leaderboard-browser';
 import { ARENA_VISUAL_ASSETS } from '@/components/platform/visual-world-assets';
 import { getChallengeLeaderboardBrowserData } from './leaderboards/leaderboard-service';
 import { buildArenaLeaderboardHonors, buildArenaShowcaseSummaries } from './leaderboards/honors-showcase';
+import { AdaptivePathJourneyControlForArenaTask } from './arena-path-journey-control';
+import type { AdaptivePathLaunchContext } from '@/features/adaptive/adaptive-learning-center-contracts';
 import {
-  ARENA_HIDDEN_TEST_SIGNAL_LABELS,
   ARENA_TRAINING_CAPABILITY_LABELS,
   ARENA_TRAINING_STAGE_LABELS,
 } from './data/seed-challenges';
@@ -40,6 +41,7 @@ interface ChallengeDetailProps {
   publicationId?: string;
   classId?: string;
   seasonId?: string;
+  pathContext?: AdaptivePathLaunchContext;
   publicationContext?: {
     assignmentTitle: string;
     classTitle: string;
@@ -60,6 +62,7 @@ export function ChallengeDetail({
   publicationId,
   classId,
   seasonId,
+  pathContext,
   publicationContext,
 }: ChallengeDetailProps) {
   const stats = buildArenaTaskStats(submissions, [task.id])[task.id] ?? {
@@ -67,7 +70,19 @@ export function ChallengeDetail({
     submissionCount: 0,
     topScore: null,
   };
-  const workspaceContext = publicationId ? { publicationId, classId, seasonId } : undefined;
+  const workspaceContext = {
+    ...(publicationId ? { publicationId, classId, seasonId } : {}),
+    ...(pathContext ? {
+      source: pathContext.source,
+      goal: pathContext.goalId,
+      goalId: pathContext.goalId,
+      pathId: pathContext.pathId,
+      nodeId: pathContext.nodeId,
+      intent: pathContext.routeIntent,
+      returnHref: pathContext.returnHref,
+      resourceType: pathContext.resourceType,
+    } : {}),
+  };
   const workspaceHref = getArenaWorkspaceHref(task, object, workspaceContext);
   const leaderboardBrowser = getChallengeLeaderboardBrowserData({
     taskId: task.id,
@@ -96,6 +111,9 @@ export function ChallengeDetail({
       ]}
     >
       <ArenaChallengeTelemetry task={task} object={object} hasLeaderboard={submissions.length > 0} />
+      <div className="px-4 pt-4 sm:px-6 lg:px-8">
+        <AdaptivePathJourneyControlForArenaTask taskId={task.id} />
+      </div>
       <section
         className="w-full px-4 pb-32 pt-8 sm:px-6 lg:px-8"
         data-commercial-workspace="arena-challenge-detail"
@@ -197,8 +215,9 @@ export function ChallengeDetail({
               <div className="mt-4 grid gap-3 md:grid-cols-3">
                 <DetailItem label="训练阶段" value={ARENA_TRAINING_STAGE_LABELS[task.training.stage]} />
                 <DetailItem label="预计用时" value={`${task.training.estimatedEffortMinutes} 分钟`} />
-                <DetailItem label="隐藏评测信号" value={ARENA_HIDDEN_TEST_SIGNAL_LABELS[task.training.hiddenTestSignal]} />
+                <DetailItem label="评测边界" value="官方结果由服务端评测并仅返回学生可见结论" />
               </div>
+              <p className="mt-3 text-xs leading-5 text-subtle">详情页不会完成当前路径节点；完成工作台内的受治理评测并同步结果后才能继续。</p>
               <div className="mt-5 grid gap-4 lg:grid-cols-2">
                 <section className="rounded-lg border border-border/70 bg-background/60 p-4">
                   <div className="text-sm font-semibold text-foreground">训练能力</div>

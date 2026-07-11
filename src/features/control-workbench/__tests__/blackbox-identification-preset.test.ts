@@ -56,6 +56,15 @@ describe('black-box identification control workbench preset', () => {
     expect(legacyPanelSource).toContain('BlackBoxIdentificationPanel');
   });
 
+  it('keeps an official black-box submission while path synchronization is retryable', () => {
+    const presetSource = readRepoFile('src/features/control-workbench/presets/blackbox-identification-preset.tsx');
+
+    expect(presetSource).toContain('useArenaOfficialSubmissionPathSync');
+    expect(presetSource).toContain('await pathSync.synchronize(payload.submission.id)');
+    expect(presetSource).toContain('pathSync.retry()');
+    expect(presetSource).toContain('重试同步路径');
+  });
+
   it('records nominal model state from owned datasets without labeling it as the official target', () => {
     const presetSource = readRepoFile('src/features/control-workbench/presets/blackbox-identification-preset.tsx');
 

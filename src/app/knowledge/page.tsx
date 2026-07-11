@@ -1,5 +1,6 @@
 import { AppShell } from '@/components/platform/app-shell';
 import { KnowledgeGraphSystem } from '@/features/knowledge/knowledge-graph-system';
+import { AdaptivePathJourneyControlFromRoute } from '@/features/adaptive/adaptive-path-journey-control';
 import { getServerAuthSession } from '@/lib/auth';
 import type { PlatformRole } from '@/components/platform/platform-ui-contracts';
 
@@ -38,6 +39,7 @@ export default async function KnowledgePage() {
       subtitle="知识关系、证据来源与学习路径入口"
       activeHref="/knowledge"
       sidebarMode="collapsible"
+      journeyControl={<AdaptivePathJourneyControlFromRoute />}
       breadcrumbs={[
         { label: '首页', href: '/' },
         { label: '知识资源' },

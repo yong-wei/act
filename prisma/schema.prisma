@@ -683,6 +683,13 @@ model SimulationLog {
   isEthicalViolation Boolean  @default(false) // 是否触发伦理违规
   score              Float? // 得分
   duration           Float? // 实际仿真时长（秒）
+  odysseyRunId       String? // 控制奥德赛提交幂等键；历史非奥德赛日志保持为空
+  odysseyCompletedAt DateTime? // 该 run 的积分与 Arena 桥接副作用已结束
+  odysseyCreditAppliedAt DateTime?
+  odysseyOfficialMetrics Json?
+  odysseySubmissionId String?
+  odysseyLeaseToken String?
+  odysseyLeaseExpiresAt DateTime?
   createdAt          DateTime @default(now())
 
   user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -691,6 +698,7 @@ model SimulationLog {
 
   @@index([userId])
   @@index([missionId])
+  @@unique([userId, odysseyRunId])
 }
 
 // 伦理违规记录

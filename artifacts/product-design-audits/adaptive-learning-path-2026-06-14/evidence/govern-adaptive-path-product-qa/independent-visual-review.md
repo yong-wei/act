@@ -8,6 +8,10 @@ Reviewer session: `019eccd3-4a79-71d1-be53-df4f89c4f334`
 
 Final verdict: PASS
 
+## 2026-07-11 Source Refresh
+
+The official 13-state capture matrix was rerun against the current worktree on a fresh local server. The matrix now records the normalized one-route comparison, inline node detail, skip confirmation, and the explicitly disabled demo-mode dock state instead of claiming an unavailable Konling parameter panel. Desktop light and mobile dark active-path states were inspected directly: route progress, current-node emphasis, checkpoint evidence, actions, responsive stacking, and the right-bottom shared dock remain legible and collision-free. No new BLOCK finding was observed.
+
 ## Source Inputs
 
 - `artifacts/product-design-audits/adaptive-learning-path-2026-06-14/design-handoff.md`

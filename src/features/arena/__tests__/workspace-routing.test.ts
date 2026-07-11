@@ -4,6 +4,17 @@ import { readFileSync } from 'node:fs';
 import { ARENA_CHALLENGE_TASKS, getArenaChallengeObject, getArenaChallengeTask } from '../data/seed-challenges';
 import { getArenaWorkspaceHref } from '../workspace-routing';
 
+const validPathContext = {
+  source: 'adaptive-path-center',
+  goal: 'control-correction',
+  goalId: 'control-correction',
+  pathId: 'path-arena',
+  nodeId: 'arena-task:task-second-order-lead-pid',
+  intent: 'path-execution',
+  returnHref: '/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=path-arena&nodeId=arena-task%3Atask-second-order-lead-pid',
+  resourceType: 'arena_task',
+};
+
 function routeFor(taskId: string, params?: Record<string, string | undefined>) {
   const task = getArenaChallengeTask(taskId);
   expect(task).toBeDefined();
@@ -56,6 +67,45 @@ describe('Arena workspace routing', () => {
     expect(url.searchParams.get('classId')).toBe('class-a');
     expect(url.searchParams.get('seasonId')).toBe('season-a');
     expect(url.searchParams.get('preset')).toBe('multi-representation-linkage');
+  });
+
+  it('preserves normalized adaptive path context alongside publication context', () => {
+    const url = routeFor('task-second-order-lead-pid', {
+      publicationId: 'publication-a',
+      classId: 'class-a',
+      seasonId: 'season-a',
+      ...validPathContext,
+    });
+
+    expect(Object.fromEntries(url.searchParams)).toMatchObject({
+      publicationId: 'publication-a',
+      classId: 'class-a',
+      seasonId: 'season-a',
+      ...validPathContext,
+      arenaTask: 'task-second-order-lead-pid',
+      preset: 'multi-representation-linkage',
+    });
+  });
+
+  it('drops the complete adaptive path context when task identity or return context is invalid', () => {
+    const wrongTask = routeFor('task-second-order-lead-pid', {
+      publicationId: 'publication-a',
+      ...validPathContext,
+      nodeId: 'arena-task:task-cruise-roll-blackbox-identification',
+    });
+    const externalReturn = routeFor('task-second-order-lead-pid', {
+      publicationId: 'publication-a',
+      ...validPathContext,
+      returnHref: 'https://attacker.example/path',
+    });
+
+    for (const url of [wrongTask, externalReturn]) {
+      expect(url.searchParams.get('publicationId')).toBe('publication-a');
+      expect(url.searchParams.has('source')).toBe(false);
+      expect(url.searchParams.has('pathId')).toBe(false);
+      expect(url.searchParams.has('nodeId')).toBe(false);
+      expect(url.searchParams.has('returnHref')).toBe(false);
+    }
   });
 
   it('omits optional publication context values that are absent', () => {
