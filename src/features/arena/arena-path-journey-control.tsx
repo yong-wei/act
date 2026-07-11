@@ -17,6 +17,11 @@ export function AdaptivePathJourneyControlForArenaTask({ taskId }: { taskId: str
   return <AdaptivePathJourneyControlFromRoute />;
 }
 
+export function useArenaPathLaunchContext(taskId: string) {
+  const searchParams = useSearchParams();
+  return Boolean(searchParams && resolveArenaPathLaunchParams(searchParams, taskId));
+}
+
 export function useArenaPathSubmissionCompletion(taskId: string) {
   const searchParams = useSearchParams();
   return useCallback(async (submissionId: string): Promise<boolean> => {

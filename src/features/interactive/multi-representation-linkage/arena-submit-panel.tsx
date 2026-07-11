@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Loader2, Send, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 
 import type { ArenaWorkbenchContext, ArenaWorkbenchPreviewSummary } from '@/features/arena/domain';
@@ -14,7 +14,7 @@ import {
   formatArenaHardConstraint,
   formatArenaMetric,
 } from '@/features/arena/display-labels';
-import { useArenaPathSubmissionCompletion } from '@/features/arena/arena-path-journey-control';
+import { useArenaOfficialSubmissionPathSync } from '@/features/arena/arena-official-submission-sync';
 
 interface ArenaSubmitPanelProps {
   arenaContext: ArenaWorkbenchContext;
@@ -246,10 +246,21 @@ export function ArenaSubmitPanel({
   gain,
   publicationId,
 }: ArenaSubmitPanelProps) {
-  const completeArenaPath = useArenaPathSubmissionCompletion(arenaContext.task.id);
+  const pathSync = useArenaOfficialSubmissionPathSync(arenaContext.task.id);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<OfficialSubmissionResultState | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const submitInFlightRef = useRef(false);
+  const submitAbortRef = useRef<AbortController | null>(null);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      submitAbortRef.current?.abort();
+    };
+  }, []);
 
   const buildResult = buildArenaArtifactFromMultiRepresentationState({
     task: arenaContext.task,
@@ -282,7 +293,10 @@ export function ArenaSubmitPanel({
     : [];
 
   const handleSubmit = useCallback(async () => {
-    if (!buildResult.artifact) return;
+    if (!buildResult.artifact || submitInFlightRef.current) return;
+    submitInFlightRef.current = true;
+    const abortController = new AbortController();
+    submitAbortRef.current = abortController;
     setSubmitting(true);
     setError(null);
     setResult(null);
@@ -291,6 +305,7 @@ export function ArenaSubmitPanel({
       const response = await fetch('/api/arena/evaluate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: abortController.signal,
         body: publicationId
           ? JSON.stringify({
               taskId: arenaContext.task.id,
@@ -305,24 +320,29 @@ export function ArenaSubmitPanel({
 
       const data = await response.json();
       if (!response.ok) {
-        setError(data.error ?? '提交失败');
+        if (mountedRef.current) setError(data.error ?? '提交失败');
         return;
       }
-      setResult(data.submission?.evaluation
-        ? {
-          evaluation: data.submission.evaluation,
-          isLate: Boolean(data.submission.isLate),
-        }
-        : null);
-      if (data.submission?.id) {
-        await completeArenaPath(data.submission.id);
+      if (mountedRef.current) {
+        setResult(data.submission?.evaluation
+          ? {
+            evaluation: data.submission.evaluation,
+            isLate: Boolean(data.submission.isLate),
+          }
+          : null);
       }
-    } catch {
-      setError('网络请求失败，请检查连接后重试。');
+      if (data.submission?.id) {
+        await pathSync.synchronize(data.submission.id);
+      }
+    } catch (caught) {
+      if (caught instanceof DOMException && caught.name === 'AbortError') return;
+      if (mountedRef.current) setError('网络请求失败，请检查连接后重试。');
     } finally {
-      setSubmitting(false);
+      submitInFlightRef.current = false;
+      if (submitAbortRef.current === abortController) submitAbortRef.current = null;
+      if (mountedRef.current) setSubmitting(false);
     }
-  }, [arenaContext.task.id, buildResult.artifact, completeArenaPath, publicationId]);
+  }, [arenaContext.task.id, buildResult.artifact, pathSync, publicationId]);
 
   return (
     <div className="premium-lesson-panel px-5 py-4 mt-4">
@@ -356,6 +376,26 @@ export function ArenaSubmitPanel({
           <span>{error}</span>
         </div>
       )}
+
+      {pathSync.hasArenaPathContext && pathSync.state !== 'idle' ? (
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-sm" aria-live="polite">
+          <span className={pathSync.state === 'failed' ? 'text-destructive' : 'text-muted-foreground'}>
+            {pathSync.state === 'pending' ? '官方提交已创建，正在同步学习路径…' : null}
+            {pathSync.state === 'succeeded' ? '官方提交已创建，学习路径已同步。' : null}
+            {pathSync.state === 'failed' ? '官方提交已创建，但学习路径尚未同步，请重试。' : null}
+          </span>
+          {pathSync.state === 'failed' ? (
+            <button
+              type="button"
+              onClick={() => void pathSync.retry()}
+              disabled={pathSync.isSynchronizing}
+              className="text-xs font-medium text-sky-600 underline disabled:opacity-50 dark:text-sky-400"
+            >
+              重试同步路径
+            </button>
+          ) : null}
+        </div>
+      ) : null}
 
       {previewMetricRows.length > 0 && (
         <section className="mt-3 space-y-2" aria-label="当前预评测指标">
@@ -457,7 +497,7 @@ export function ArenaSubmitPanel({
       <div className="mt-3">
         <button
           type="button"
-          disabled={!canSubmit}
+          disabled={!canSubmit || pathSync.isSynchronizing}
           onClick={handleSubmit}
           className="premium-lesson-action-tone premium-tone-cyan inline-flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-50"
         >

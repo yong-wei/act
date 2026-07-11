@@ -71,11 +71,13 @@ describe('Arena adaptive path journey', () => {
     const whitebox = readFileSync(join(process.cwd(), 'src/features/arena/submissions/arena-submission-panel.tsx'), 'utf8');
     const blackbox = readFileSync(join(process.cwd(), 'src/features/control-workbench/presets/blackbox-identification-preset.tsx'), 'utf8');
 
-    for (const source of [whitebox, blackbox]) {
-      expect(source).toContain('useArenaPathSubmissionCompletion');
-      expect(source).toContain('completeArenaPath(payload.submission.id)');
-      expect(source).not.toMatch(/completeArenaPath\([^)]*(score|valid|metrics)/);
-    }
+    expect(whitebox).toContain('useArenaPathSubmissionCompletion');
+    expect(whitebox).toContain('completeArenaPath(payload.submission.id)');
+    expect(whitebox).not.toMatch(/completeArenaPath\([^)]*(score|valid|metrics)/);
+
+    expect(blackbox).toContain('useArenaOfficialSubmissionPathSync');
+    expect(blackbox).toContain('pathSync.synchronize(payload.submission.id)');
+    expect(blackbox).not.toMatch(/pathSync\.synchronize\([^)]*(score|valid|metrics)/);
   });
 
   it('binds Odyssey continuation only from the server-created bridge submission id', () => {

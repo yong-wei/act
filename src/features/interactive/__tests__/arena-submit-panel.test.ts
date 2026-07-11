@@ -1,8 +1,23 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { describe, expect, it } from 'vitest';
 
 import { sanitizeOfficialEvaluationExplanation } from '../multi-representation-linkage/arena-submit-panel';
 
 describe('arena submit panel official evaluation copy', () => {
+  it('keeps official submission separate from retryable path synchronization', () => {
+    const source = readFileSync(join(
+      process.cwd(),
+      'src/features/interactive/multi-representation-linkage/arena-submit-panel.tsx',
+    ), 'utf8');
+
+    expect(source).toContain('useArenaOfficialSubmissionPathSync');
+    expect(source).toContain('await pathSync.synchronize(data.submission.id)');
+    expect(source).toContain('pathSync.retry()');
+    expect(source).toContain('重试同步路径');
+  });
+
   it('does not describe late invalid submissions as hard-constraint passing', () => {
     const lines = sanitizeOfficialEvaluationExplanation(
       {
