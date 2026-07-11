@@ -1,13 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import {
   BookOpenCheck,
   BrainCircuit,
-  ChevronDown,
   CheckCircle2,
   Clock3,
   Compass,
@@ -32,6 +31,14 @@ import {
   publishAdaptivePathJourneyResponse,
 } from '@/features/adaptive/adaptive-path-journey-control';
 import { resolveAdaptivePathCenterOwnedTargetHref } from '@/features/adaptive/adaptive-path-journey-contracts';
+import {
+  AdaptivePathTimeline,
+  getAdaptivePathResourceVisual,
+} from '@/features/adaptive/adaptive-path-timeline';
+import {
+  PathWorkspaceModule,
+  type PathWorkspaceModuleId,
+} from '@/features/adaptive/path-workspace-module';
 import { useGlobalAI } from '@/components/providers/global-ai-provider';
 import { StudentFeedbackTaskPanel } from '@/features/assessment/student-feedback-task-panel';
 import { useVerifiedFeedbackTaskContext } from '@/features/assessment/use-verified-feedback-task-context';
@@ -185,79 +192,6 @@ type LearningPathRoundView = NonNullable<LearningPathRoundResponse['path']>;
 
 type PathOptionView = AdaptivePathOptionWriteOption;
 type PathGenerationOperation = 'generate' | 'revise' | 'explain';
-type PathWorkspaceModuleId =
-  | 'learning-overview'
-  | 'current-path'
-  | 'goal-selection'
-  | 'path-selection'
-  | 'learning-record'
-  | 'path-resource';
-
-interface PathWorkspaceModuleProps {
-  moduleId: PathWorkspaceModuleId;
-  openModuleId: PathWorkspaceModuleId | null;
-  onToggle: (moduleId: PathWorkspaceModuleId) => void;
-  eyebrow: string;
-  title: string;
-  summary?: string;
-  icon?: LucideIcon;
-  trailing?: ReactNode;
-  children: ReactNode;
-  className?: string;
-  [key: `data-${string}`]: string | undefined;
-}
-
-function PathWorkspaceModule({
-  moduleId,
-  openModuleId,
-  onToggle,
-  eyebrow,
-  title,
-  summary,
-  icon: Icon,
-  trailing,
-  children,
-  className = '',
-  ...dataAttributes
-}: PathWorkspaceModuleProps) {
-  const isOpen = openModuleId === moduleId;
-  const bodyId = `adaptive-path-module-body-${moduleId}`;
-
-  return (
-    <section
-      id={`adaptive-path-module-${moduleId}`}
-      className={`surface-card scroll-mt-24 p-5 ${className}`}
-      data-adaptive-path-module={moduleId}
-      data-adaptive-path-module-state={isOpen ? 'expanded' : 'collapsed'}
-      {...dataAttributes}
-    >
-      <button
-        type="button"
-        onClick={() => onToggle(moduleId)}
-        aria-expanded={isOpen}
-        aria-controls={bodyId}
-        className="flex w-full items-start justify-between gap-4 text-left"
-      >
-        <span className="min-w-0">
-          <span className="text-xs font-medium uppercase tracking-normal text-primary">{eyebrow}</span>
-          <span className="mt-1 block text-xl font-semibold text-foreground">{title}</span>
-          {summary ? <span className="mt-2 block text-sm leading-6 text-subtle">{summary}</span> : null}
-        </span>
-        <span className="flex shrink-0 items-center gap-3">
-          {trailing}
-          {Icon ? <Icon className="size-5 text-primary" aria-hidden="true" /> : null}
-          <ChevronDown className={`size-4 text-subtle transition-transform ${isOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
-        </span>
-      </button>
-      {isOpen ? (
-        <div id={bodyId} className="mt-4" data-adaptive-path-module-body={moduleId}>
-          {children}
-        </div>
-      ) : null}
-    </section>
-  );
-}
-
 function readAdaptiveGenerationReadiness(payload: unknown): AdaptiveGenerationReadiness | null {
   const record = getRecord(payload);
   const readiness = getRecord(record.readiness);
@@ -939,29 +873,7 @@ function getPathOptionFallback(view: ControlCorrectionLearningCenterView | null)
 const SKIP_WARNING_TEXT = '跳过后该资源不会计入完成进度，但会记录为路径偏离，可稍后返回。';
 
 function formatResourceType(type: string): string {
-  if (type === 'interactive_lesson' || type === 'interactive-lesson') return '互动课程';
-  if (type === 'knowledge_card' || type === 'knowledge-node') return '知识卡';
-  if (type === 'adaptive_quiz' || type === 'quiz') return '自适应练习';
-  if (type === 'control_workbench') return '控制工作台';
-  if (type === 'simulation') return '虚拟仿真';
-  if (type === 'arena_task') return 'Arena';
-  if (type === 'external_resource') return '外部资源';
-  if (type === 'konling' || type === 'ai_intervention' || type === 'intervention') return '控灵建议';
-  if (type === 'checkpoint') return '检查点';
-  return '学习资源';
-}
-
-function resourceGlyph(type: string): string {
-  if (type === 'interactive_lesson' || type === 'interactive-lesson') return '互';
-  if (type === 'knowledge_card' || type === 'knowledge-node') return '知';
-  if (type === 'adaptive_quiz' || type === 'quiz') return '练';
-  if (type === 'control_workbench') return '控';
-  if (type === 'simulation') return '仿';
-  if (type === 'arena_task') return '赛';
-  if (type === 'external_resource') return '外';
-  if (type === 'konling' || type === 'ai_intervention' || type === 'intervention') return '灵';
-  if (type === 'checkpoint') return '检';
-  return '学';
+  return getAdaptivePathResourceVisual(type).label;
 }
 
 function formatPathNodeReason(reasonCodes: string[]): string {
@@ -2873,6 +2785,7 @@ export default function AdaptivePracticePage() {
               data-control-correction-alternative-count={controlCorrectionAlternativeCount(adaptivePathCenter)}
             />
           ) : null}
+          {showExecutionWorkspace || showRecoveredExecutionWorkspace ? null : (
           <header className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.6fr)]">
             <div className="surface-card p-5">
               <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-primary">
@@ -2960,6 +2873,7 @@ export default function AdaptivePracticePage() {
               </div>
             </aside>
           </header>
+          )}
 
           {showLandingWorkspace || showGenerationWorkspace ? (
           <section className={`order-10 grid gap-4 ${showLandingWorkspace && showGenerationWorkspace ? 'xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]' : ''}`}>
@@ -3765,8 +3679,8 @@ export default function AdaptivePracticePage() {
                 openModuleId={openPathModuleId}
                 onToggle={togglePathModule}
                 eyebrow="Active route"
-                title="当前学习路径"
-                summary="完整路线、当前节点、预计时间和检查点状态保持可见。"
+                title={activePathRound?.title ?? activePathPlan?.goal.title ?? '当前学习路径'}
+                summary="按顺序完成节点；当前展开节点的详情和操作保持在原位。"
                 trailing={(
                   <span className="rounded-lg border border-border bg-muted px-3 py-1.5 text-xs text-subtle">
                     当前节点：{currentPathNode?.title ?? '待定位'}
@@ -3775,14 +3689,11 @@ export default function AdaptivePracticePage() {
                 data-adaptive-path-execution-surface="active-route"
               >
 
-                <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-6">
+                <div className="mt-4 grid gap-2 sm:grid-cols-3" data-adaptive-path-progress-summary="essential">
                   {[
-                    ['已耗时', pathExecutionSummary.elapsed],
-                    ['预计剩余', pathExecutionSummary.remaining],
-                    ['预计总时长', pathExecutionSummary.total],
                     ['完成节点', pathExecutionSummary.completed],
+                    ['预计剩余', pathExecutionSummary.remaining],
                     ['检查点通过', pathExecutionSummary.checkpointPass],
-                    ['本周学习', pathExecutionSummary.weekly],
                   ].map(([label, value]) => (
                     <div key={label} className="rounded-lg border border-border bg-muted/30 p-3">
                       <p className="text-xs text-subtle">{label}</p>
@@ -3791,210 +3702,153 @@ export default function AdaptivePracticePage() {
                   ))}
                 </div>
 
-                <div className="mt-4 grid gap-3">
-                  <div className="rounded-lg border border-border bg-background/55 p-3" data-adaptive-path-route-map="complete">
-                    <span className="sr-only" data-adaptive-path-route-connector="true" />
-                    <ol className="grid gap-3" data-adaptive-path-route-flow="connected">
-                      {pathExecutionNodes.map((node, index) => (
-                        <li key={node.nodeId} className="relative sm:pl-8">
-                          {index < pathExecutionNodes.length - 1 ? (
-                            <span
-                              aria-hidden="true"
-                              className="absolute left-4 top-12 hidden h-[calc(100%+0.75rem)] w-px bg-border sm:block"
-                            />
-                          ) : null}
-                          <button
-                            type="button"
-                            onClick={() => setSelectedPathNodeId(node.nodeId)}
-                            aria-pressed={focusedPathNode?.nodeId === node.nodeId}
-                            data-adaptive-path-node={node.nodeId}
-                            data-adaptive-path-node-state={node.status}
-                            data-adaptive-path-node-selectable="true"
-                            className={`relative z-10 min-h-36 w-full rounded-lg border p-3 text-left transition hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                              node.status === 'current'
-                                ? 'border-primary bg-primary/10'
-                                : node.status === 'completed'
-                                  ? 'border-platform-evidence-eligible/40 bg-platform-evidence-eligible/10'
-                                  : node.status === 'skipped' || node.status === 'blocked'
-                                    ? 'border-platform-evidence-context/40 bg-platform-evidence-context/10'
-                                    : node.status === 'locked'
-                                      ? 'border-border bg-muted/45'
-                                      : 'border-border bg-muted/25'
-                            } ${focusedPathNode?.nodeId === node.nodeId ? 'ring-2 ring-primary/30' : ''}`}
-                          >
-                            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-3">
-                              <span className="grid size-10 shrink-0 place-items-center rounded-full border border-border bg-background text-sm font-semibold text-foreground">
-                                {resourceGlyph(node.type)}
-                              </span>
-                              <span className="min-w-0">
-                                <span className="block text-xs text-subtle">第 {index + 1} 步 · {node.resourceLabel}</span>
-                                <span className="mt-1 block text-sm font-semibold text-foreground">{node.title}</span>
-                              </span>
-                            </div>
-                            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-subtle">
-                              <span className="rounded-md border border-border bg-background/70 px-2 py-1">
-                                {node.status === 'current'
-                                  ? '当前节点'
-                                  : node.status === 'completed'
-                                    ? '已完成'
-                                    : node.status === 'skipped'
-                                      ? '已跳过'
-                                      : node.status === 'blocked'
-                                        ? '待复核'
-                                        : node.status === 'locked'
-                                          ? '稍后解锁'
-                                          : '等待前置节点'}
-                              </span>
-                              <span>预计 {formatMinutes(node.estimatedMinutes)}</span>
-                            </div>
-                          </button>
-                        </li>
-                      ))}
-                    </ol>
-                  </div>
-
-                  {focusedPathNode ? (
-                    <div className="rounded-lg border border-border bg-background/55 p-4" data-adaptive-path-node-detail="selected">
-                      <p className="text-xs text-primary">{focusedPathNode.resourceLabel}</p>
-                      <h3 className="mt-1 text-base font-semibold text-foreground">{focusedPathNode.title}</h3>
-                      <dl className="mt-4 space-y-3 text-sm">
-                        <div>
-                          <dt className="text-xs text-subtle">推荐理由</dt>
-                          <dd className="mt-1 text-foreground">{focusedPathNode.reason}</dd>
-                        </div>
-                        <div>
-                          <dt className="text-xs text-subtle">将收集的学习证据</dt>
-                          <dd className="mt-1 text-foreground">{focusedPathNode.evidence}</dd>
-                        </div>
-                        <div>
-                          <dt className="text-xs text-subtle">检查标准</dt>
-                          <dd className="mt-1 text-foreground">{focusedPathNode.checkpoint}</dd>
-                        </div>
-                      </dl>
-                      {focusedPathNode.result ? (
-                        <div
-                          className={`mt-4 rounded-lg border p-3 text-sm ${
-                            focusedPathNode.result.state === 'available'
-                              ? 'border-platform-evidence-eligible/45 bg-platform-evidence-eligible/10'
-                              : 'border-platform-evidence-context/45 bg-platform-evidence-context/10'
-                          }`}
-                          data-adaptive-path-result-card={focusedPathNode.result.state}
-                        >
-                          <div className="flex flex-wrap items-start justify-between gap-2">
-                            <div>
-                              <p className="text-xs text-subtle">节点结果</p>
-                              <h4 className="mt-1 text-sm font-semibold text-foreground">
-                                {focusedPathNode.result.state === 'available' ? focusedPathNode.result.label : '结果待同步'}
-                              </h4>
-                            </div>
-                            <span className="rounded-md border border-border bg-background/70 px-2 py-1 text-xs text-subtle">
-                              {focusedPathNode.result.reviewState === 'ready' ? '可复核' : '等待绑定'}
-                            </span>
+                <div className="mt-4" data-adaptive-path-route-map="compact">
+                  <AdaptivePathTimeline
+                    nodes={pathExecutionNodes}
+                    focusedNodeId={focusedPathNode?.nodeId ?? null}
+                    onFocus={setSelectedPathNodeId}
+                    renderExpandedContent={(node) => (
+                      <>
+                        <p className="text-xs text-primary">{node.resourceLabel}</p>
+                        <h3 className="mt-1 text-base font-semibold text-foreground">{node.title}</h3>
+                        <dl className="mt-4 space-y-3 text-sm">
+                          <div>
+                            <dt className="text-xs text-subtle">推荐理由</dt>
+                            <dd className="mt-1 text-foreground">{node.reason}</dd>
                           </div>
-                          <dl className="mt-3 grid gap-2 sm:grid-cols-2">
-                            <div>
-                              <dt className="text-xs text-subtle">证据来源</dt>
-                              <dd className="mt-1 text-foreground">{focusedPathNode.result.evidenceSource}</dd>
+                          <div>
+                            <dt className="text-xs text-subtle">将收集的学习证据</dt>
+                            <dd className="mt-1 text-foreground">{node.evidence}</dd>
+                          </div>
+                          <div>
+                            <dt className="text-xs text-subtle">检查标准</dt>
+                            <dd className="mt-1 text-foreground">{node.checkpoint}</dd>
+                          </div>
+                        </dl>
+                        {node.result ? (
+                          <div
+                            className={`mt-4 rounded-lg border p-3 text-sm ${
+                              node.result.state === 'available'
+                                ? 'border-platform-evidence-eligible/45 bg-platform-evidence-eligible/10'
+                                : 'border-platform-evidence-context/45 bg-platform-evidence-context/10'
+                            }`}
+                            data-adaptive-path-result-card={node.result.state}
+                          >
+                            <div className="flex flex-wrap items-start justify-between gap-2">
+                              <div>
+                                <p className="text-xs text-subtle">节点结果</p>
+                                <h4 className="mt-1 text-sm font-semibold text-foreground">
+                                  {node.result.state === 'available' ? node.result.label : '结果待同步'}
+                                </h4>
+                              </div>
+                              <span className="rounded-md border border-border bg-background/70 px-2 py-1 text-xs text-subtle">
+                                {node.result.reviewState === 'ready' ? '可复核' : '等待绑定'}
+                              </span>
                             </div>
-                            <div>
-                              <dt className="text-xs text-subtle">关键指标</dt>
-                              <dd className="mt-1 text-foreground">{focusedPathNode.result.primaryMetric ?? '等待结果写入'}</dd>
-                            </div>
-                          </dl>
-                          {focusedPathNode.result.state === 'pending' ? (
-                            <div className="mt-3 flex flex-wrap gap-2">
+                            <dl className="mt-3 grid gap-2 sm:grid-cols-2">
+                              <div>
+                                <dt className="text-xs text-subtle">证据来源</dt>
+                                <dd className="mt-1 text-foreground">{node.result.evidenceSource}</dd>
+                              </div>
+                              <div>
+                                <dt className="text-xs text-subtle">关键指标</dt>
+                                <dd className="mt-1 text-foreground">{node.result.primaryMetric ?? '等待结果写入'}</dd>
+                              </div>
+                            </dl>
+                            {node.result.state === 'pending' ? (
+                              <div className="mt-3 flex flex-wrap gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => void reloadActiveLearningPath()}
+                                  className="rounded-lg border border-border px-3 py-2 text-xs text-foreground"
+                                >
+                                  刷新结果
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedPathNodeId(currentPathNode?.nodeId ?? node.nodeId)}
+                                  className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground"
+                                >
+                                  返回当前节点
+                                </button>
+                              </div>
+                            ) : null}
+                          </div>
+                        ) : null}
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          {node.status === 'completed' ? (
+                            <>
                               <button
                                 type="button"
-                                onClick={() => void reloadActiveLearningPath()}
-                                className="rounded-lg border border-border px-3 py-2 text-xs text-foreground"
+                                onClick={() => void writePathNodeActivity(node, 'review', 'started')}
+                                disabled={pathActivityPending === `review:${node.nodeId}`}
+                                className="rounded-lg border border-border px-3 py-2 text-xs text-foreground disabled:opacity-60"
                               >
-                                刷新结果
+                                回顾
                               </button>
                               <button
                                 type="button"
-                                onClick={() => setSelectedPathNodeId(currentPathNode?.nodeId ?? focusedPathNode.nodeId)}
-                                className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground"
-                              >
-                                返回当前节点
-                              </button>
-                            </div>
-                          ) : null}
-                        </div>
-                      ) : null}
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        {focusedPathNode.status === 'completed' ? (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() => void writePathNodeActivity(focusedPathNode, 'review', 'started')}
-                              disabled={pathActivityPending === `review:${focusedPathNode.nodeId}`}
-                              className="rounded-lg border border-border px-3 py-2 text-xs text-foreground disabled:opacity-60"
-                            >
-                              回顾
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => void writePathNodeActivity(focusedPathNode, 'continued-interaction', 'started')}
-                              disabled={pathActivityPending === `continued-interaction:${focusedPathNode.nodeId}`}
-                              className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60"
-                            >
-                              继续互动
-                            </button>
-                            <Link
-                              href={`/profile/evidence?goal=${encodeURIComponent(activeExecutionGoalId)}&pathId=${encodeURIComponent(activePathPlan?.id ?? '')}&nodeId=${encodeURIComponent(focusedPathNode.nodeId)}`}
-                              className="rounded-lg border border-border px-3 py-2 text-xs text-foreground"
-                            >
-                              查看证据
-                            </Link>
-                          </>
-                        ) : focusedPathNode.status === 'current' || focusedPathNode.status === 'skipped' ? (
-                          <>
-                            {focusedPathNode.status !== 'skipped' ? (
-                              <AdaptivePathOwnedResourceAction
-                                opened={pathCenterOpenedNodeIds.has(focusedPathNode.nodeId)}
-                                completionAllowed={allowsPathCenterExplicitCompletion(focusedPathNode)}
-                                pending={pathActivityPending === `initial-completion:${focusedPathNode.nodeId}`}
-                                onStart={() => void launchExecutionNode(focusedPathNode)}
-                                onComplete={() => void writePathNodeActivity(
-                                  focusedPathNode,
-                                  'initial-completion',
-                                  'completed',
-                                  { completionIntent: 'learner-confirmed-path-center-owned-resource' },
-                                )}
-                              />
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={() => void launchExecutionNode(focusedPathNode)}
-                                disabled={pathActivityPending === `initial-completion:${focusedPathNode.nodeId}` ||
-                                  pathActivityPending === `return-to-skipped:${focusedPathNode.nodeId}`}
+                                onClick={() => void writePathNodeActivity(node, 'continued-interaction', 'started')}
+                                disabled={pathActivityPending === `continued-interaction:${node.nodeId}`}
                                 className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60"
                               >
-                                返回学习
+                                继续互动
                               </button>
-                            )}
-                            {focusedPathNode.status !== 'skipped' ? (
-                              <button
-                                type="button"
-                                onClick={() => setSkipCandidateNode(focusedPathNode)}
+                              <Link
+                                href={`/profile/evidence?goal=${encodeURIComponent(activeExecutionGoalId)}&pathId=${encodeURIComponent(activePathPlan?.id ?? '')}&nodeId=${encodeURIComponent(node.nodeId)}`}
                                 className="rounded-lg border border-border px-3 py-2 text-xs text-foreground"
                               >
-                                跳过
-                              </button>
-                            ) : null}
-                          </>
-                        ) : focusedPathNode.status === 'locked' ? (
-                          <span className="rounded-lg border border-border px-3 py-2 text-xs text-subtle">
-                            {focusedPathNode.unlockMessage ?? '稍后解锁'}
-                          </span>
-                        ) : (
-                          <span className="rounded-lg border border-border px-3 py-2 text-xs text-subtle">等待前置节点</span>
-                        )}
-                      </div>
-                    </div>
-                  ) : null}
+                                查看证据
+                              </Link>
+                            </>
+                          ) : node.status === 'current' || node.status === 'skipped' ? (
+                            <>
+                              {node.status !== 'skipped' ? (
+                                <AdaptivePathOwnedResourceAction
+                                  opened={pathCenterOpenedNodeIds.has(node.nodeId)}
+                                  completionAllowed={allowsPathCenterExplicitCompletion(node)}
+                                  pending={pathActivityPending === `initial-completion:${node.nodeId}`}
+                                  onStart={() => void launchExecutionNode(node)}
+                                  onComplete={() => void writePathNodeActivity(
+                                    node,
+                                    'initial-completion',
+                                    'completed',
+                                    { completionIntent: 'learner-confirmed-path-center-owned-resource' },
+                                  )}
+                                />
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => void launchExecutionNode(node)}
+                                  disabled={pathActivityPending === `initial-completion:${node.nodeId}` ||
+                                    pathActivityPending === `return-to-skipped:${node.nodeId}`}
+                                  className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60"
+                                >
+                                  返回学习
+                                </button>
+                              )}
+                              {node.status !== 'skipped' ? (
+                                <button
+                                  type="button"
+                                  onClick={() => setSkipCandidateNode(node)}
+                                  className="rounded-lg border border-border px-3 py-2 text-xs text-foreground"
+                                >
+                                  跳过
+                                </button>
+                              ) : null}
+                            </>
+                          ) : node.status === 'locked' ? (
+                            <span className="rounded-lg border border-border px-3 py-2 text-xs text-subtle">
+                              {node.unlockMessage ?? '稍后解锁'}
+                            </span>
+                          ) : (
+                            <span className="rounded-lg border border-border px-3 py-2 text-xs text-subtle">等待前置节点</span>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  />
                 </div>
-
                 {skipCandidateNode ? (
                   <div className="mt-4 rounded-lg border border-platform-evidence-context/60 bg-platform-evidence-context/10 p-4" data-adaptive-path-skip-warning="visible">
                     <h3 className="text-sm font-semibold text-foreground">确认跳过 {skipCandidateNode.title}</h3>
