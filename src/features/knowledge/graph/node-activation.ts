@@ -71,6 +71,14 @@ export function shouldCommitKnowledgeExpansionPayload(input: {
     && input.currentGeneration === input.expectedGeneration;
 }
 
+export function selectNewlyMaterializedKnowledgeNodeIds(input: {
+  payloadNodeIds: readonly string[];
+  visibleNodeIdsAtActivation: ReadonlySet<string>;
+}): string[] {
+  return [...new Set(input.payloadNodeIds)]
+    .filter((nodeId) => !input.visibleNodeIdsAtActivation.has(nodeId));
+}
+
 export function isExpansionFilteredEmpty(input: {
   shardLoaded: boolean;
   nodeId: string;

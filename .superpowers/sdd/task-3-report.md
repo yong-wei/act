@@ -48,3 +48,11 @@ Review verification:
 - `npm run typecheck`: passed.
 - Touched-file ESLint: zero issues.
 - OpenSpec strict validation: passed.
+
+## Fresh Review Remediation
+
+Status: DONE
+
+- Activation sequence state now records every expansion attempt rather than retaining a center's first attempt. Failed or cancelled attempts only settle the commit queue; a later retry receives its later sequence and cannot reclaim provenance from an intervening successful center.
+- Network expansion materialization now compares payload node ids against the visible-node snapshot captured at activation time. Nodes already present in background cache but hidden from the canvas are therefore materialized and sector-anchored consistently with cached-shard expansion.
+- Added failure → intervening success → retry shared-neighbor provenance coverage and hidden-background-cache materialization coverage.

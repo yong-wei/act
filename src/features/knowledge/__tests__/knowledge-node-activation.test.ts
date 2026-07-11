@@ -5,6 +5,7 @@ import {
   resolveKnowledgeNodeActivation,
   shouldCommitKnowledgeExpansionPayload,
   shouldCommitKnowledgeNodeActivation,
+  selectNewlyMaterializedKnowledgeNodeIds,
 } from '../graph/node-activation';
 
 describe('knowledge node direct activation resolver', () => {
@@ -51,6 +52,13 @@ describe('activation async and filter guards', () => {
       expectedGeneration: 2,
       currentGeneration: 2,
     })).toBe(true);
+  });
+
+  it('materializes payload neighbors hidden at activation even when background cache already contains them', () => {
+    expect(selectNewlyMaterializedKnowledgeNodeIds({
+      payloadNodeIds: ['center', 'hidden-cached-neighbor', 'new-neighbor'],
+      visibleNodeIdsAtActivation: new Set(['center', 'already-visible']),
+    })).toEqual(['hidden-cached-neighbor', 'new-neighbor']);
   });
   it('recovers a cached filtered-empty expansion without another request', () => {
     expect(isExpansionFilteredEmpty({ shardLoaded: true, nodeId: 'a', visibleLinks: [] })).toBe(true);

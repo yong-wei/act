@@ -307,6 +307,8 @@ describe('knowledge graph interaction state stability', () => {
     expect(systemSource).toContain('setRelayoutVersion((current) => current + 1);');
     expect(systemSource).toContain('expansionCommitQueueRef.current.clear();');
     expect(systemSource).toContain('setActivationSequenceByCenterId({});');
+    expect(systemSource).toContain('setActivationSequenceByCenterId((current) => ({ ...current, [nodeId]: activationSequence }));');
+    expect(systemSource).not.toContain('current[nodeId] === undefined');
     expect(systemSource).toContain('setMaterializedNodeIds([]);');
     expect(systemSource).toContain('selectedNodePinUnavailable');
     expect(systemSource).not.toContain('__knowledgeGraphProductQaDragSelectedNode');

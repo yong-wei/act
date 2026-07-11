@@ -140,6 +140,33 @@ describe('knowledge graph focused expansion layout', () => {
     expect(later.find((node) => node.id === 'shared')).toMatchObject({ x: shared.x, y: shared.y });
   });
 
+  it('does not let a failed earlier center retry reclaim provenance from an intervening success', () => {
+    const afterInterveningSuccess = applyFocusedExpansionLayout({
+      nodes: [graphNode('center-a', -100, 0), graphNode('center-b', 100, 0), graphNode('shared')],
+      expandedNodeIds: ['center-b'],
+      directExpansionLinks: [expansionLink('b-shared', 'center-b', 'shared')],
+      layoutState: getEmptyKnowledgeGraphLayoutState(),
+      activationSequenceByCenterId: { 'center-a': 1, 'center-b': 2 },
+      materializedNodeIds: ['shared'],
+    });
+    const afterRetry = applyFocusedExpansionLayout({
+      nodes: afterInterveningSuccess,
+      expandedNodeIds: ['center-b', 'center-a'],
+      directExpansionLinks: [
+        expansionLink('a-shared', 'center-a', 'shared'),
+        expansionLink('b-shared', 'center-b', 'shared'),
+      ],
+      layoutState: getEmptyKnowledgeGraphLayoutState(),
+      activationSequenceByCenterId: { 'center-a': 3, 'center-b': 2 },
+      materializedNodeIds: ['shared'],
+    });
+
+    expect(afterRetry.find((node) => node.id === 'shared')?.__knowledgeAutomaticAnchor).toMatchObject({
+      activationSequence: 2,
+      provenanceCenterId: 'center-b',
+    });
+  });
+
   it('materializes overlapping deferred responses in intent order when response order is reversed', async () => {
     const queue = createKnowledgeExpansionCommitQueue();
     const base = [graphNode('center-a', -100, 0), graphNode('center-b', 100, 0), graphNode('shared')];

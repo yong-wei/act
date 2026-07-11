@@ -56,6 +56,7 @@ import {
   createKnowledgeExpansionCommitQueue,
   isExpansionFilteredEmpty,
   resolveKnowledgeNodeActivation,
+  selectNewlyMaterializedKnowledgeNodeIds,
   shouldCommitKnowledgeExpansionPayload,
 } from './graph/node-activation';
 import {
@@ -476,9 +477,7 @@ export function KnowledgeGraphSystem({
     const activationSequence = ++activationSequenceRef.current;
     expansionCommitQueueRef.current.register(activationSequence);
     if (action === 'expand' || action === 'resolve') {
-      setActivationSequenceByCenterId((current) => current[nodeId] === undefined
-        ? { ...current, [nodeId]: activationSequence }
-        : current);
+      setActivationSequenceByCenterId((current) => ({ ...current, [nodeId]: activationSequence }));
     }
     setSelectedNode(node);
     if (action === 'inspect') {
@@ -507,12 +506,12 @@ export function KnowledgeGraphSystem({
     }
 
     const expectedShardKey = graphCache.graphVersion ? expansionShardKey(graphCache.graphVersion, nodeId) : '';
+    const visibleNodeIdsAtActivation = new Set(visibleNodeIdsRef.current);
     if (action !== 'resolve' && expectedShardKey && graphCache.loadedShardKeys.includes(expectedShardKey)) {
-      const visibleIds = visibleNodeIdsRef.current;
       const newlyVisibleIds = links.flatMap((link) => {
         if (!isExpansionLinkForNode(nodeId, link)) return [];
         const neighborId = link.sourceId === nodeId ? link.targetId : link.sourceId;
-        return visibleIds.has(neighborId) ? [] : [neighborId];
+        return visibleNodeIdsAtActivation.has(neighborId) ? [] : [neighborId];
       });
       const hasVisibleChildren = expansionHasVisibleDescendant(nodeId, nodes, links);
       expansionCommitQueueRef.current.settle(activationSequence, () => {
@@ -556,7 +555,10 @@ export function KnowledgeGraphSystem({
       if (canonicalState !== 'expandable' && canonicalState !== 'leaf') {
         throw new Error(`Expansion response did not resolve node ${nodeId}`);
       }
-      const existingNodeIds = new Set(nodes.map((candidate) => candidate.id));
+      const newlyMaterializedNodeIds = selectNewlyMaterializedKnowledgeNodeIds({
+        payloadNodeIds: (payload.nodes ?? []).map((candidate) => candidate.id),
+        visibleNodeIdsAtActivation,
+      });
       const hasVisibleChildren = expansionHasVisibleDescendant(nodeId, payload.nodes ?? [], payload.links ?? []);
       expansionCommitQueueRef.current.settle(activationSequence, () => {
         setGraphCache((current) => mergeProgressiveGraphPayload(current, payload));
@@ -569,7 +571,7 @@ export function KnowledgeGraphSystem({
         }
         setMaterializedNodeIds((current) => [...new Set([
           ...current,
-          ...(payload.nodes ?? []).filter((candidate) => !existingNodeIds.has(candidate.id)).map((candidate) => candidate.id),
+          ...newlyMaterializedNodeIds,
         ])]);
         setExpandedNodeIds((current) => current.includes(nodeId) ? current : [...current, nodeId]);
         setFilteredEmptyExpansionNodeIds((current) => (
