@@ -167,6 +167,8 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
   const [syncRetryToken, setSyncRetryToken] = useState(0);
   const hasSubmittedRef = useRef(false);
   const bestScoreSnapshotRef = useRef<number | null>(null);
+  const personalBestScoresRef = useRef(personalBestScores);
+  personalBestScoresRef.current = personalBestScores;
   const currentAiStatus = aiStatusByLevel[selectedLevelId] ?? {
     configError: null,
     resultError: null,
@@ -241,7 +243,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
         const scoreMultiplier = Math.max(0.7, Math.min(1.4, 1 / difficultyScale));
         const finalScore = Math.max(0, Math.floor(baseScore * scoreMultiplier));
         if (bestScoreSnapshotRef.current === null) {
-          bestScoreSnapshotRef.current = personalBestScores[selectedLevelId]?.tiers?.[currentTier] ?? 0;
+          bestScoreSnapshotRef.current = personalBestScoresRef.current[selectedLevelId]?.tiers?.[currentTier] ?? 0;
         }
         const submit = () => submitGameScore(
           selectedLevelId,
@@ -330,7 +332,6 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     completeArenaPath,
     hasArenaPathContext,
     syncRetryToken,
-    personalBestScores,
     setControlCredits,
     setUnlockedControllers,
     setControllerLevels,
