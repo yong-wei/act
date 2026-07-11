@@ -12,11 +12,11 @@
 
 ## 3. Shared Path Journey Controls
 
-- [ ] 3.1 Implement the shared path journey hook and accessible journey control for return, current progress, next-node, pending-result, blocked, and path-complete states.
-- [ ] 3.2 Integrate the control with generic interactive resources, interactive lessons, knowledge cards, textbook sections, slides, and other governed platform-owned course/media targets without changing non-path navigation.
-- [ ] 3.3 Keep adaptive assessments, checkpoints, reflections, Konling, and equivalent AI-intervention nodes inside the owning path-center journey or integrate the control on any platform-owned route they launch.
-- [ ] 3.4 Implement the external-resource fallback that keeps the path center available, refreshes authoritative state on return, and advances only from governed explicit-access/completion evidence without a second start action.
-- [ ] 3.5 Integrate the control with simulation and control-workbench shells while keeping completion evidence resource-owned and server-validated.
+- [x] 3.1 Implement the shared path journey hook and accessible journey control for return, current progress, next-node, pending-result, blocked, and path-complete states.
+- [x] 3.2 Integrate the control with generic interactive resources, interactive lessons, knowledge cards, textbook sections, slides, and other governed platform-owned course/media targets without changing non-path navigation.
+- [x] 3.3 Keep adaptive assessments, checkpoints, reflections, Konling, and equivalent AI-intervention nodes inside the owning path-center journey or integrate the control on any platform-owned route they launch.
+- [x] 3.4 Implement the external-resource fallback that keeps the path center available, refreshes authoritative state on return, and advances only from governed explicit-access/completion evidence without a second start action.
+- [x] 3.5 Integrate the control with simulation and control-workbench shells while keeping completion evidence resource-owned and server-validated.
 
 ## 4. Compact Path Execution Workspace
 
