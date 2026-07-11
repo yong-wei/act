@@ -350,25 +350,22 @@ function normalizeDatabaseKnowledgeLinks(links: DatabaseKnowledgeLinkRow[]): Uni
 function buildDatabaseKnowledgeGraphPayload(
   nodes: DatabaseKnowledgeNodeRow[],
   links: DatabaseKnowledgeLinkRow[],
-  options: { includeLinks: boolean }
+  options: { includeLinks: boolean; linkCount?: number }
 ): UnifiedKnowledgeGraphPayload {
   const normalizedNodes = normalizeDatabaseKnowledgeNodes(nodes);
-  const normalizedLinks = normalizeDatabaseKnowledgeLinks(links);
+  const normalizedLinks = options.includeLinks ? normalizeDatabaseKnowledgeLinks(links) : [];
+  const versionLinkCount = options.linkCount ?? links.length;
   const versionDigest = createHash('sha256')
-    .update(stableKnowledgeGraphVersionInput({
-      nodes: normalizedNodes,
-      links: normalizedLinks,
-      source: 'database',
-    }))
+    .update(stableJson({ source: 'database', nodes: normalizedNodes, versionLinkCount }))
     .digest('hex')
     .slice(0, 16);
 
   return {
     nodes: normalizedNodes,
-    links: options.includeLinks ? normalizedLinks : [],
+    links: normalizedLinks,
     source: 'database',
     versionDigest,
-    versionLinkCount: normalizedLinks.length,
+    versionLinkCount,
   };
 }
 
@@ -569,7 +566,7 @@ async function loadKnowledgeGraphFromDatabase(): Promise<UnifiedKnowledgeGraphPa
 }
 
 async function loadKnowledgeGraphRootFromDatabase(): Promise<UnifiedKnowledgeGraphPayload> {
-  const [nodes, links] = await Promise.all([
+  const [nodes, linkCount] = await Promise.all([
     prisma.knowledgeNode.findMany({
       where: { isActive: true },
       select: {
@@ -588,17 +585,10 @@ async function loadKnowledgeGraphRootFromDatabase(): Promise<UnifiedKnowledgeGra
         tags: true,
       },
     }),
-    prisma.knowledgeLink.findMany({
-      select: {
-        id: true,
-        sourceId: true,
-        targetId: true,
-        relation: true,
-      },
-    }),
+    prisma.knowledgeLink.count(),
   ]);
 
-  return buildDatabaseKnowledgeGraphPayload(nodes, links, { includeLinks: false });
+  return buildDatabaseKnowledgeGraphPayload(nodes, [], { includeLinks: false, linkCount });
 }
 
 export async function loadKnowledgeGraphData(): Promise<UnifiedKnowledgeGraphPayload> {

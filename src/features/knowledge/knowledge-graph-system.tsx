@@ -55,6 +55,13 @@ import {
   type KnowledgeGraphNodeScreenPosition,
   type KnowledgeGraphViewMode,
 } from './graph/layout-engine';
+import {
+  buildInitialGraphCache,
+  knowledgeLinkCacheKey,
+  mergeProgressiveGraphPayload,
+  type KnowledgeGraphCacheState,
+  type ProgressiveGraphApiResponse,
+} from './progressive-graph-cache';
 // import { getAllLessonCards, getAllLessonCardLinks } from './data/lesson-knowledge-cards'; // Removed static import
 
 // 动态导入 3D 图谱组件（客户端专用）
@@ -140,79 +147,6 @@ interface KnowledgeGraphSystemProps {
   initialLinks?: KnowledgeLinkData[];
   initialSelectedNodeId?: string | null;
   viewerRole?: PlatformRole;
-}
-
-interface GraphApiResponse {
-  nodes?: KnowledgeNodeData[];
-  links?: KnowledgeLinkData[];
-  source?: 'file' | 'database';
-}
-
-interface ProgressiveGraphApiResponse extends GraphApiResponse {
-  mode?: 'root' | 'expansion' | 'active-filter' | 'remaining';
-  graphVersion?: string;
-  shardKey?: string;
-  filterSignature?: string;
-}
-
-interface KnowledgeGraphCacheState {
-  nodesById: Record<string, KnowledgeNodeData>;
-  linksByKey: Record<string, KnowledgeLinkData>;
-  loadedShardKeys: string[];
-  loadingShardKeys: string[];
-  graphVersion: string;
-  filterSignature: string;
-}
-
-function knowledgeLinkCacheKey(link: KnowledgeLinkData): string {
-  return link.id || `${link.sourceId}->${link.targetId}:${link.relationType || link.relation || 'related'}`;
-}
-
-function buildInitialGraphCache(nodes: KnowledgeNodeData[], links: KnowledgeLinkData[]): KnowledgeGraphCacheState {
-  return {
-    nodesById: Object.fromEntries(nodes.map((node) => [node.id, node])),
-    linksByKey: Object.fromEntries(links.map((link) => [knowledgeLinkCacheKey(link), link])),
-    loadedShardKeys: [],
-    loadingShardKeys: [],
-    graphVersion: '',
-    filterSignature: '',
-  };
-}
-
-function mergeProgressiveGraphPayload(
-  current: KnowledgeGraphCacheState,
-  payload: ProgressiveGraphApiResponse
-): KnowledgeGraphCacheState {
-  const graphVersion = payload.graphVersion ?? current.graphVersion;
-  const resetForVersion = current.graphVersion && graphVersion && current.graphVersion !== graphVersion;
-  const nodesById: Record<string, KnowledgeNodeData> = resetForVersion ? {} : { ...current.nodesById };
-  const linksByKey: Record<string, KnowledgeLinkData> = resetForVersion ? {} : { ...current.linksByKey };
-
-  for (const node of payload.nodes ?? []) {
-    nodesById[node.id] = {
-      ...node,
-      expansion: node.expansion ?? { state: 'unknown' },
-    };
-  }
-  for (const link of payload.links ?? []) {
-    linksByKey[knowledgeLinkCacheKey(link)] = link;
-  }
-
-  const loadedShardKeys = new Set(resetForVersion ? [] : current.loadedShardKeys);
-  const loadingShardKeys = new Set(resetForVersion ? [] : current.loadingShardKeys);
-  if (payload.shardKey) {
-    loadedShardKeys.add(payload.shardKey);
-    loadingShardKeys.delete(payload.shardKey);
-  }
-
-  return {
-    nodesById,
-    linksByKey,
-    loadedShardKeys: [...loadedShardKeys],
-    loadingShardKeys: [...loadingShardKeys],
-    graphVersion,
-    filterSignature: payload.filterSignature ?? current.filterSignature,
-  };
 }
 
 function isCollapsedRootNode(node: KnowledgeNodeData): boolean {

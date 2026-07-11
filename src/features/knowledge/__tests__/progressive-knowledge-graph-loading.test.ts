@@ -8,6 +8,7 @@ const prismaMock = vi.hoisted(() => ({
   },
   knowledgeLink: {
     findMany: vi.fn(),
+    count: vi.fn(),
   },
 }));
 
@@ -35,6 +36,10 @@ import {
   type UnifiedKnowledgeGraphPayload,
 } from '@/lib/knowledge-graph-source';
 import { injectChapterNodes } from '@/features/knowledge/graph/filter-utils';
+import {
+  buildInitialGraphCache,
+  mergeProgressiveGraphPayload,
+} from '@/features/knowledge/progressive-graph-cache';
 
 vi.mock('server-only', () => ({}));
 
@@ -161,18 +166,32 @@ describe('progressive knowledge graph loading', () => {
   });
 
   it('normalizes compatibility nodes to unknown and discards descriptors across graph versions', () => {
-    const source = readFileSync(
-      join(process.cwd(), 'src/features/knowledge/knowledge-graph-system.tsx'),
-      'utf8'
-    );
-    const mergeSource = source.slice(
-      source.indexOf('function mergeProgressiveGraphPayload'),
-      source.indexOf('function isCollapsedRootNode')
-    );
+    const graph = graphFixture();
+    const initial = buildInitialGraphCache([graph.nodes[0]], []);
+    expect(initial.nodesById['node-a']?.expansion).toEqual({ state: 'unknown' });
 
-    expect(mergeSource).toContain("expansion: node.expansion ?? { state: 'unknown' }");
-    expect(mergeSource).toContain('resetForVersion ? {} : { ...current.nodesById }');
-    expect(mergeSource).toContain('resetForVersion ? [] : current.loadedShardKeys');
+    const versionOne = mergeProgressiveGraphPayload(initial, {
+      graphVersion: 'graph-v1',
+      shardKey: 'graph-v1:root',
+      nodes: [{
+        ...graph.nodes[1],
+        expansion: { state: 'expandable', revealableNeighborCount: 2 },
+      }],
+    });
+    expect(versionOne.nodesById['node-a']?.expansion).toEqual({ state: 'unknown' });
+    expect(versionOne.nodesById['node-b']?.expansion).toEqual({
+      state: 'expandable',
+      revealableNeighborCount: 2,
+    });
+
+    const versionTwo = mergeProgressiveGraphPayload(versionOne, {
+      graphVersion: 'graph-v2',
+      shardKey: 'graph-v2:root',
+      nodes: [graph.nodes[2]],
+    });
+    expect(Object.keys(versionTwo.nodesById)).toEqual(['node-c']);
+    expect(versionTwo.nodesById['node-c']?.expansion).toEqual({ state: 'unknown' });
+    expect(versionTwo.loadedShardKeys).toEqual(['graph-v2:root']);
   });
 
   it('keeps virtual chapter roots out of category and Bloom filtering dimensions', () => {
@@ -246,7 +265,6 @@ describe('progressive knowledge graph loading', () => {
     expect(source).toContain('loadingShardKeys');
     expect(source).toContain('expandedNodeIds');
     expect(source).toContain('loadingExpansionNodeIds');
-    expect(source).toContain('resetForVersion');
     expect(source).toContain('isExpansionLinkForNode');
     expect(source).toContain('expandedDirectLinks');
     expect(source).toContain('graphCache.loadedShardKeys.includes(expectedShardKey)');
@@ -279,11 +297,7 @@ describe('progressive knowledge graph loading', () => {
     expect(payloadSource).toContain('sharedGraphCacheExpiresAt');
     expect(payloadSource).toContain('rootGraphCache = null');
     expect(payloadSource).toContain('graphCache = null');
-    const mergeProgressivePayload = source.slice(
-      source.indexOf('function mergeProgressiveGraphPayload'),
-      source.indexOf('function isCollapsedRootNode')
-    );
-    expect(mergeProgressivePayload).not.toContain('filter(isCollapsedRootNode)');
+    expect(source).toContain('mergeProgressiveGraphPayload');
   });
 
   it('keeps the chapter sidebar aligned to parent-filtered progressive roots', () => {
@@ -334,14 +348,20 @@ describe('progressive knowledge graph loading', () => {
 
     prismaMock.knowledgeNode.findMany.mockResolvedValue(databaseNodes);
     prismaMock.knowledgeLink.findMany.mockResolvedValue(databaseLinks);
+    prismaMock.knowledgeLink.count.mockResolvedValue(databaseLinks.length);
 
     const root = await loadKnowledgeGraphRootData();
+
+    expect(prismaMock.knowledgeLink.count).toHaveBeenCalledOnce();
+    expect(prismaMock.knowledgeLink.findMany).not.toHaveBeenCalled();
+    expect(root.links).toEqual([]);
+    expect(root.versionLinkCount).toBe(databaseLinks.length);
+
     const full = await loadKnowledgeGraphData();
 
     expect(root.source).toBe('database');
     expect(full.source).toBe('database');
-    expect(root.links).toEqual([]);
-    expect(root.versionLinkCount).toBe(databaseLinks.length);
+    expect(prismaMock.knowledgeLink.findMany).toHaveBeenCalledOnce();
     expect(full.links.length).toBe(databaseLinks.length);
     expect(getKnowledgeGraphVersion(root)).toBe(getKnowledgeGraphVersion(full));
   });
