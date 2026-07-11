@@ -185,6 +185,8 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",
+    "@testing-library/dom": "10.4.0",
+    "@testing-library/user-event": "14.6.1",
     "@types/bcryptjs": "^2.4.6",
     "@types/katex": "^0.16.8",
     "@vitest/coverage-v8": "^4.1.8",

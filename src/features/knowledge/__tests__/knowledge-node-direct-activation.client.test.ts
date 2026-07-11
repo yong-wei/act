@@ -3,19 +3,25 @@
 import { StrictMode, act, createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import userEvent from '@testing-library/user-event';
+
+const rendererRegistry = vi.hoisted(() => ({ count: 0 }));
 
 vi.mock('@/components/providers/global-ai-provider', () => ({
   useGlobalAI: () => ({ updatePageContext: vi.fn(), isOpen: false }),
 }));
 
 vi.mock('next/dynamic', () => ({
-  default: () => function GraphSurface(props: { nodes: Array<{ id: string; name: string }>; onNodeClick: (node: unknown) => void }) {
-    return createElement('div', { 'data-testid': 'graph-surface' }, props.nodes.map((node) => createElement('button', {
+  default: () => {
+    const renderer = rendererRegistry.count++ === 0 ? '3D' : '2D';
+    return function GraphSurface(props: { nodes: Array<{ id: string; name: string }>; onNodeClick: (node: unknown) => void }) {
+      return createElement('div', { 'data-testid': `graph-surface-${renderer}` }, props.nodes.map((node) => createElement('button', {
       key: node.id,
       type: 'button',
-      'data-testid': `canvas-${node.id}`,
+      'data-testid': `canvas-${renderer}-${node.id}`,
       onClick: () => props.onNodeClick(node),
-    }, node.name)));
+      }, node.name)));
+    };
   },
 }));
 
@@ -76,31 +82,42 @@ describe('KnowledgeGraphSystem direct activation behavior', () => {
     await act(async () => new Promise((resolve) => setTimeout(resolve, 80)));
     expect(container.querySelector('[data-testid="resource-panel"]')?.getAttribute('data-open')).toBe('true');
 
-    const canvas = container.querySelector<HTMLButtonElement>('[data-knowledge-node-control="expandable"]')!;
+    const canvas = container.querySelector<HTMLButtonElement>('[data-testid="canvas-2D-expandable"]')!;
     await act(async () => canvas.click());
     expect(fetchMock.mock.calls.filter(([url]) => String(url).includes('mode=expansion'))).toHaveLength(1);
     await act(async () => container.querySelector<HTMLButtonElement>('[data-knowledge-command-trigger="relation-filters"]')!.click());
-    const strength = container.querySelector<HTMLInputElement>('input[type="range"]')!;
-    await act(async () => {
-      strength.value = '1';
-      strength.dispatchEvent(new Event('input', { bubbles: true }));
-    });
-    await act(async () => {
-      strength.value = '0';
-      strength.dispatchEvent(new Event('input', { bubbles: true }));
-    });
+    const relationPanel = container.querySelector('[data-knowledge-local-panel="relation-filters"]')!;
+    const activeRelationButtons = Array.from(relationPanel.querySelectorAll<HTMLButtonElement>('button[aria-pressed="true"]'));
+    await act(async () => activeRelationButtons.forEach((button) => button.click()));
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 10)));
+    await act(async () => activeRelationButtons.forEach((button) => button.click()));
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 10)));
     expect(fetchMock.mock.calls.filter(([url]) => String(url).includes('mode=expansion'))).toHaveLength(1);
+    await act(async () => container.querySelector<HTMLButtonElement>('[data-testid="canvas-2D-expandable"]')!.click());
+    expect(container.querySelector('#knowledge-node-activation-status')?.textContent).toContain('折叠显示');
     await act(async () => container.querySelector<HTMLButtonElement>('[data-testid="related-expandable"]')!.click());
 
+    await act(async () => container.querySelector<HTMLButtonElement>('[data-knowledge-command-trigger="view-layout"]')!.click());
+    await act(async () => Array.from(container.querySelectorAll<HTMLButtonElement>('button')).find((button) => button.textContent === '3D 视图')!.click());
+    await act(async () => container.querySelector<HTMLButtonElement>('[data-testid="canvas-3D-leaf"]')!.click());
+
+    await act(async () => container.querySelector<HTMLButtonElement>('[data-knowledge-command-trigger="chapter-directory"]')!.click());
+    const directory = container.querySelector('[data-knowledge-local-panel="chapter-directory"]')!;
+    await act(async () => directory.querySelector<HTMLButtonElement>('button')!.click());
+    await act(async () => Array.from(directory.querySelectorAll<HTMLButtonElement>('button')).find((button) => button.textContent?.includes('Leaf'))!.click());
+    const search = directory.querySelector<HTMLInputElement>('input[aria-label="搜索知识点..."]')!;
+    const directoryUser = userEvent.setup();
+    await directoryUser.type(search, 'Leaf');
+    await act(async () => Array.from(directory.querySelectorAll<HTMLButtonElement>('button')).find((button) => button.textContent?.includes('Leaf'))!.click());
+
     const semanticLeaf = container.querySelector<HTMLButtonElement>('[data-knowledge-node-control="leaf"]')!;
+    const user = userEvent.setup();
     semanticLeaf.focus();
-    expect(document.activeElement).toBe(semanticLeaf);
-    await act(async () => {
-      semanticLeaf.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
-      semanticLeaf.click();
-      semanticLeaf.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
-      semanticLeaf.click();
-    });
+    const requestsBeforeKeyboard = fetchMock.mock.calls.filter(([url]) => String(url).includes('mode=expansion')).length;
+    await act(async () => user.keyboard('{Enter}'));
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).includes('mode=expansion'))).toHaveLength(requestsBeforeKeyboard);
+    await act(async () => user.keyboard(' '));
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).includes('mode=expansion'))).toHaveLength(requestsBeforeKeyboard);
     expect(container.querySelector('[data-testid="resource-panel"]')?.textContent).toContain('leaf');
   });
 
@@ -138,5 +155,25 @@ describe('KnowledgeGraphSystem direct activation behavior', () => {
     expect(fetchMock.mock.calls.filter(([url]) => String(url).includes('mode=expansion'))).toHaveLength(2);
     expect(container.querySelector('[data-testid="resource-panel"]')?.getAttribute('data-open')).toBe('true');
     expect(container.querySelector('[data-testid="resource-panel"]')?.textContent).toContain('unknown');
+  });
+
+  it.each(['success', 'network', 'http', 'json'] as const)('ignores stale %s completion after switching targets', async (kind) => {
+    let settle: (() => void) | undefined;
+    const late = new Promise<Response>((resolve, reject) => {
+      settle = () => {
+        if (kind === 'network') reject(new Error('late network'));
+        else if (kind === 'http') resolve(new Response('{}', { status: 500 }));
+        else if (kind === 'json') resolve(new Response('{', { status: 200 }));
+        else resolve(new Response(JSON.stringify(payload([{ ...nodes[2], expansion: { state: 'leaf' } }], [], 'expansion')), { status: 200 }));
+      };
+    });
+    vi.stubGlobal('fetch', vi.fn((url: string) => url.includes('mode=expansion') ? late : json(payload())));
+    await act(async () => root.render(createElement(StrictMode, null, createElement(KnowledgeGraphSystem, { initialNodes: nodes }))));
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 80)));
+    await act(async () => container.querySelector<HTMLButtonElement>('[data-knowledge-node-control="unknown"]')!.click());
+    await act(async () => container.querySelector<HTMLButtonElement>('[data-knowledge-node-control="leaf"]')!.click());
+    await act(async () => settle?.());
+    expect(container.querySelector('[data-testid="resource-panel"]')?.textContent).toContain('leaf');
+    expect(container.querySelector('[data-knowledge-node-control="unknown"]')?.getAttribute('data-error')).toBe('false');
   });
 });

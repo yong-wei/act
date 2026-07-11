@@ -62,3 +62,11 @@ Recorded by the final local commit for this report; no push performed.
 - Added `knowledge-node-direct-activation.client.test.ts`, which mounts the production `KnowledgeGraphSystem` under React StrictMode with controlled graph and ResourcePanel boundaries.
 - The mounted suite triggers canvas/semantic pointer activation, native-button Enter/Space activation, deep-link resolution, Related Knowledge Points activation, duplicate clicks during loading, HTTP failure and retry, canonical unknown-to-leaf branching, filter changes with shard-cache reuse, and unmount with a late network rejection.
 - Source-string checks remain only as narrow structural guards; the new mounted tests are the primary component/integration behavior evidence.
+
+## Final Interaction Gate Follow-up
+
+- Added exact test dependencies for `@testing-library/user-event` and DOM event support.
+- Mounted tests now click the separately mocked production 2D and 3D renderer boundaries, open and activate the real chapter directory and search input, resolve a deep link, and activate the controlled Related Knowledge Points boundary.
+- Native semantic buttons are focused and activated with `userEvent.keyboard('{Enter}')` and `userEvent.keyboard(' ')`; request counts prove each leaf outcome is singular and does not dispatch expansion.
+- Added mounted target-switch cases for late success, network rejection, HTTP error, and JSON error, all proving the current leaf inspector and unknown-node error state remain untouched.
+- The mounted suite continues to cover StrictMode success/error paths, duplicate suppression, retry, canonical unknown branching, filter-control/cache reuse interaction, collapse, unmount, and Abort cleanup.
