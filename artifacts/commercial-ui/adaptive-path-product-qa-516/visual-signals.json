@@ -60,10 +60,10 @@
     "forbidden": []
   },
   {
-    "name": "konling-dock-disabled-desktop-dark",
+    "name": "konling-parameter-panel-desktop-dark",
     "theme": "dark",
     "width": 1440,
-    "screenshotPath": "artifacts/commercial-ui/adaptive-path-product-qa-516/konling-dock-disabled-desktop-dark.png",
+    "screenshotPath": "artifacts/commercial-ui/adaptive-path-product-qa-516/konling-parameter-panel-desktop-dark.png",
     "title": "自适应学习路径中心",
     "htmlClass": "dark",
     "colorScheme": "dark",

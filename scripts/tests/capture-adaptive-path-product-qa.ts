@@ -101,7 +101,7 @@ const states: CaptureState[] = [
     query: '?demo=1&goal=frequency-response-foundations&intent=contextual-recommendation',
   },
   {
-    name: 'konling-dock-disabled-desktop-dark',
+    name: 'konling-parameter-panel-desktop-dark',
     theme: 'dark',
     width: 1440,
     height: 1100,

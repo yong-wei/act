@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-07-11T04:44:18.621Z",
+  "capturedAt": "2026-07-11T04:48:22.067Z",
   "baseUrl": "http://localhost:3413",
   "captures": [
     {
@@ -21,13 +21,13 @@
       "sha256": "4ce449d8b38b4e0a5fca10fef29ab62d699d60cde30e7b934cc0b0334ad235c6"
     },
     {
-      "name": "konling-dock-disabled-desktop-dark",
+      "name": "konling-parameter-panel-desktop-dark",
       "theme": "dark",
       "width": 1440,
       "height": 1100,
       "url": "http://localhost:3413/assessment/adaptive-practice?demo=1&goal=frequency-response-foundations&intent=contextual-recommendation",
       "selector": "[data-platform-floating-dock]",
-      "file": "artifacts/commercial-ui/adaptive-path-product-qa-516/konling-dock-disabled-desktop-dark.png",
+      "file": "artifacts/commercial-ui/adaptive-path-product-qa-516/konling-parameter-panel-desktop-dark.png",
       "sha256": "c510c9dbc8cb766ff997b71a64d8e0ea3d56f40eb55e5fdf3657d1e868efd2b1"
     },
     {

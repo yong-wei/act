@@ -1,15 +1,15 @@
 {
   "change": "govern-adaptive-path-product-qa",
-  "generatedAt": "2026-07-11T04:45:53.016Z",
-  "sourceCommit": "worktree:f2fbd9a42897188c04565818",
+  "generatedAt": "2026-07-11T04:48:36.866Z",
+  "sourceCommit": "worktree:c57961886f658e700b5dabde",
   "designHandoff": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/design-handoff.md",
   "designHandoffSha256": "9fab1b0d68434d2d025fa170daaabbb22852126995759c24ab145dfee57c30af",
   "handoffMatrix": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/evidence/govern-adaptive-path-product-qa/handoff-to-implementation-matrix.md",
   "handoffMatrixSha256": "e1f27e07a86a8b9c1699b7d9ec9b6a10ecc04c6d656fabae94177d8e01bc44bd",
   "captureManifest": "artifacts/commercial-ui/adaptive-path-product-qa-516/capture-manifest.json",
-  "captureManifestSha256": "d83fc8f6a4ec6c8ab2a961030ec9123bed83d43a5bfd4b748bfa5819199f0857",
+  "captureManifestSha256": "dbf85a21062570051924c4b6c95bb1667c28ee869eb4d31ad3e7c78671310594",
   "visualSignals": "artifacts/commercial-ui/adaptive-path-product-qa-516/visual-signals.json",
-  "visualSignalsSha256": "5c3ebe3df720798e14bb576f16175afee421763ffede4951be3f1cb8b7d3049c",
+  "visualSignalsSha256": "e493334ad5620680cf7364500cfd4321521ad2ac9221a3ee86012fcdf0b8e087",
   "conceptImages": [
     "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/01-path-generation-main.png",
     "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/02-path-selection-comparison.png",
@@ -88,7 +88,7 @@
       "result": "passed"
     },
     {
-      "id": "konling-dock-disabled-desktop-dark",
+      "id": "konling-parameter-panel-desktop-dark",
       "route": "/assessment/adaptive-practice",
       "goal": "frequency-response-foundations",
       "role": "student",
@@ -99,7 +99,7 @@
       "dockState": "collapsed",
       "pageState": "disabled shared Konling dock in demo mode",
       "sourceConcept": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/01-path-generation-main.png",
-      "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/konling-dock-disabled-desktop-dark.png",
+      "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/konling-parameter-panel-desktop-dark.png",
       "screenshotSha256": "c510c9dbc8cb766ff997b71a64d8e0ea3d56f40eb55e5fdf3657d1e868efd2b1",
       "result": "passed"
     },
@@ -286,11 +286,11 @@
       "screenshotSha256": "4ce449d8b38b4e0a5fca10fef29ab62d699d60cde30e7b934cc0b0334ad235c6"
     },
     {
-      "id": "konling-dock-disabled-desktop-dark",
+      "id": "konling-parameter-panel-desktop-dark",
       "goal": "frequency-response-foundations",
       "theme": "dark",
       "viewport": "desktop",
-      "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/konling-dock-disabled-desktop-dark.png",
+      "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/konling-parameter-panel-desktop-dark.png",
       "screenshotSha256": "c510c9dbc8cb766ff997b71a64d8e0ea3d56f40eb55e5fdf3657d1e868efd2b1"
     },
     {
