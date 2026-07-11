@@ -56,6 +56,17 @@ function native(userId: string, generatedAt: Date) {
 }
 
 describe('portrait v2 legacy migration', () => {
+  it('does not report fixture blockers when fixture auditing is not requested', () => {
+    const report = auditPortraitMigrationCompleteness({
+      now,
+      legacySnapshots: [],
+      portraitSnapshots: [],
+    });
+
+    expect(report.counts.fixtureBlocked).toBe(0);
+    expect(report.fixtureBlockers).toEqual([]);
+  });
+
   it('reports every dry-run bucket with privacy-minimized ids and explicit mappings', async () => {
     const skipped = legacy('skipped');
     Object.values(skipped.competencyVector).forEach((score) => { score.evidenceCount = 0; });

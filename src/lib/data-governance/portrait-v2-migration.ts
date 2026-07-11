@@ -217,14 +217,14 @@ export function auditPortraitMigrationCompleteness(input: {
   });
   const represented = new Set(latestByUser.keys());
   records.push(...input.legacySnapshots.filter((row) => !represented.has(row.userId)).map((row) => ({ state: 'unmigrated' as const, learnerRef: mask('learner', row.userId) })));
-  const fixtureBlockers = [
-    ...(!input.fixture?.canonicalUserId ? ['canonical-fixture-account-missing'] : []),
-    ...(input.fixture?.canonicalUserId && !hasAllPortraitDimensions(input.fixture.portrait?.payload)
+  const fixtureBlockers = input.fixture ? [
+    ...(!input.fixture.canonicalUserId ? ['canonical-fixture-account-missing'] : []),
+    ...(input.fixture.canonicalUserId && !hasAllPortraitDimensions(input.fixture.portrait?.payload)
       ? ['canonical-fixture-seven-dimension-coverage-missing'] : []),
-    ...(input.fixture?.canonicalUserId && !hasPortraitEvidenceLineage(input.fixture.portrait?.payload)
+    ...(input.fixture.canonicalUserId && !hasPortraitEvidenceLineage(input.fixture.portrait?.payload)
       ? ['canonical-fixture-evidence-lineage-missing'] : []),
-    ...(input.fixture && !input.fixture.workerStable ? ['worker-recomputation-not-verified'] : []),
-  ];
+    ...(!input.fixture.workerStable ? ['worker-recomputation-not-verified'] : []),
+  ] : [];
   return {
     contractVersion: 'portrait-v2-migration-completeness.v1' as const,
     privacy: { minimized: true, rawIdentifiersIncluded: false },
