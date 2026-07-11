@@ -1,6 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
 
 const executionHref = '/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-execution';
+const expectedDemoPathTitle = '控制系统校正设计学习路径';
+const expectedDemoNodeIds = ['demo-foundation-card', 'demo-current-quiz', 'demo-simulation'] as const;
 
 async function openModule(page: Page, moduleId: 'current-path' | 'learning-record') {
   const moduleElement = page.locator(`[data-adaptive-path-module="${moduleId}"]`);
@@ -86,7 +88,14 @@ test('compact path execution modules remain inside 320px, 375px, and desktop vie
   for (const width of [320, 375, 1440]) {
     await page.setViewportSize({ width, height: 1000 });
     await page.goto(executionHref, { waitUntil: 'networkidle' });
-    await expect(page.locator('[data-adaptive-path-execution-surface="active-route"]')).toBeVisible();
+    const executionSurface = page.locator('[data-adaptive-path-execution-surface="active-route"]');
+    await expect(executionSurface).toBeVisible();
+    await expect(executionSurface).toContainText(expectedDemoPathTitle);
+    await expect(executionSurface.locator('[data-adaptive-path-node]')).toHaveCount(expectedDemoNodeIds.length);
+    for (const nodeId of expectedDemoNodeIds) {
+      await expect(executionSurface.locator(`[data-adaptive-path-node="${nodeId}"]`)).toBeVisible();
+    }
+    await expect(page.locator('[data-adaptive-practice-resource="path-node"]')).toHaveCount(1);
     await expect(page.locator('[data-adaptive-path-dock-collision-policy="avoid-learning-record"]')).toBeVisible();
 
     await expectNoHorizontalOverflow(page, 'current-path');
