@@ -4,7 +4,18 @@ import React, { useCallback, useEffect, useRef, useMemo, useState } from 'react'
 import ForceGraph2D from 'react-force-graph-2d';
 import * as d3 from 'd3';
 import { KnowledgeNodeData, KnowledgeLinkData } from '../knowledge-graph-system';
-import { applyRadialLayout } from './layout-engine';
+import {
+  applyFocusedExpansionLayout,
+  applyRadialLayout,
+  calculateFocusedExpansionRevealTranslation,
+  commitKnowledgeGraphRelayoutVersion,
+  createFocusedExpansionRevealSignature,
+  resolveKnowledgeGraphRuntimeNodeCoordinates,
+  resolveFocusedExpansionRevealTarget,
+  selectFocusedExpansionGraphNodes,
+  type KnowledgeGraphNodeScreenPosition,
+  type KnowledgeGraphPositionedNode,
+} from './layout-engine';
 import {
   getNodeColor,
   getGlowColor,
@@ -41,7 +52,16 @@ interface KnowledgeGraph2DProps {
   layoutState: KnowledgeGraphLayoutState;
   fitViewVersion: number;
   relayoutVersion: number;
+  expandedNodeIds: readonly string[];
+  expandedDirectLinks: readonly KnowledgeLinkData[];
+  onSelectedNodeScreenPosition: (position: KnowledgeGraphNodeScreenPosition) => void;
 }
+
+type RuntimeKnowledgeGraphNode = KnowledgeGraphPositionedNode & {
+  vx?: number;
+  vy?: number;
+  vz?: number;
+};
 
 // ========== 形状绘制函数 ==========
 
@@ -270,9 +290,19 @@ export function KnowledgeGraph2D({
   layoutState,
   fitViewVersion,
   relayoutVersion,
+  expandedNodeIds,
+  expandedDirectLinks,
+  onSelectedNodeScreenPosition,
 }: KnowledgeGraph2DProps) {
   const fgRef = useRef<any>(null);
+  const layoutStateRef = useRef(layoutState);
+  const runtimePositionsByNodeIdRef = useRef(new Map<string, Partial<RuntimeKnowledgeGraphNode>>());
+  const committedRelayoutVersionRef = useRef(relayoutVersion);
+  const revealedExpansionSignatureRef = useRef('');
+  const previousExpandedNodeIdsRef = useRef<readonly string[]>([]);
+  const focusedRevealTargetNodeIdRef = useRef<string | null>(null);
   const [isLightTheme, setIsLightTheme] = useState(false);
+  layoutStateRef.current = layoutState;
 
   useEffect(() => {
     const updateTheme = () => {
@@ -288,6 +318,14 @@ export function KnowledgeGraph2D({
 
     return () => observer.disconnect();
   }, []);
+
+  useEffect(() => {
+    committedRelayoutVersionRef.current = commitKnowledgeGraphRelayoutVersion({
+      committedVersion: committedRelayoutVersionRef.current,
+      nextVersion: relayoutVersion,
+      runtimePositions: runtimePositionsByNodeIdRef.current,
+    });
+  }, [relayoutVersion]);
 
   // 1. 处理数据并应用布局
   const graphData = useMemo(() => {
@@ -309,17 +347,96 @@ export function KnowledgeGraph2D({
     }));
 
     const layoutRadius = 180 + relayoutVersion * 0;
+    const preserveRuntimeCoordinates = committedRelayoutVersionRef.current === relayoutVersion;
 
-    // 应用辐射布局。拖拽后的 pinned 坐标通过下方 effect 同步到现有图节点，
-    // 避免 layoutState 变化时重建 graphData 并重新加热力导向布局。
-    const layoutNodes = applyRadialLayout(clonedNodes, links, undefined, layoutRadius);
+    // 应用辐射布局。layoutState.version 变化时重算已展开邻域，确保直接子节点
+    // 随固定中心同步移动；普通运行时坐标仍由下方 preserve gate 保留。
+    const baseLayoutNodes = applyRadialLayout(clonedNodes, links, undefined, layoutRadius);
+    const layoutNodes = resolveKnowledgeGraphRuntimeNodeCoordinates({
+      nodes: baseLayoutNodes as RuntimeKnowledgeGraphNode[],
+      liveNodes: fgRef.current?.graphData?.()?.nodes as RuntimeKnowledgeGraphNode[] | undefined,
+      runtimePositionsByNodeId: runtimePositionsByNodeIdRef.current,
+      preserve: preserveRuntimeCoordinates,
+    }) as RuntimeKnowledgeGraphNode[];
     markKnowledgeGraphAutomaticNodeAnchors(layoutNodes);
+    const focusedLayoutNodes = applyFocusedExpansionLayout({
+      nodes: layoutNodes,
+      expandedNodeIds,
+      directExpansionLinks: expandedDirectLinks,
+      layoutState: layoutStateRef.current,
+    });
 
     return {
-      nodes: layoutNodes,
+      nodes: focusedLayoutNodes,
       links: transformedLinks
     };
-  }, [nodes, links, relayoutVersion]);
+  }, [nodes, links, relayoutVersion, layoutState.version, expandedNodeIds, expandedDirectLinks]);
+
+  const rememberRuntimeNodePosition = useCallback((node: RuntimeKnowledgeGraphNode) => {
+    if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) return;
+    runtimePositionsByNodeIdRef.current.set(node.id, {
+      x: node.x,
+      y: node.y,
+      ...(Number.isFinite(node.z) ? { z: node.z } : {}),
+      ...(Number.isFinite(node.vx) ? { vx: node.vx } : {}),
+      ...(Number.isFinite(node.vy) ? { vy: node.vy } : {}),
+      ...(Number.isFinite(node.vz) ? { vz: node.vz } : {}),
+      ...(Number.isFinite(node.fx) ? { fx: node.fx } : {}),
+      ...(Number.isFinite(node.fy) ? { fy: node.fy } : {}),
+      ...(Number.isFinite(node.fz) ? { fz: node.fz } : {}),
+      ...(node.__knowledgeAutomaticAnchor
+        ? { __knowledgeAutomaticAnchor: node.__knowledgeAutomaticAnchor }
+        : {}),
+    });
+  }, []);
+
+  const snapshotRuntimePositions = useCallback(() => {
+    const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
+    graphNodes.forEach(rememberRuntimeNodePosition);
+  }, [graphData.nodes, rememberRuntimeNodePosition]);
+
+  const reportSelectedNodeScreenPosition = useCallback(() => {
+    const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
+
+    if (!selectedNode?.id || !fgRef.current?.graph2ScreenCoords) {
+      onSelectedNodeScreenPosition({ nodeId: null, viewMode: '2D' });
+      return;
+    }
+    const graphNode = graphNodes.find((node) => node.id === selectedNode.id);
+    const graphX = Number(graphNode?.x);
+    const graphY = Number(graphNode?.y);
+    if (!Number.isFinite(graphX) || !Number.isFinite(graphY)) {
+      onSelectedNodeScreenPosition({ nodeId: null, viewMode: '2D' });
+      return;
+    }
+    const screen = fgRef.current.graph2ScreenCoords(graphX, graphY);
+    const screenX = Number(screen?.x);
+    const screenY = Number(screen?.y);
+    if (!Number.isFinite(screenX) || !Number.isFinite(screenY)) {
+      onSelectedNodeScreenPosition({ nodeId: null, viewMode: '2D' });
+      return;
+    }
+    onSelectedNodeScreenPosition({
+      nodeId: selectedNode.id,
+      viewMode: '2D',
+      x: screenX,
+      y: screenY,
+    });
+  }, [graphData.nodes, onSelectedNodeScreenPosition, selectedNode?.id]);
+
+  useEffect(() => {
+    let animationFrame = 0;
+    const reportFrame = () => {
+      reportSelectedNodeScreenPosition();
+      animationFrame = window.requestAnimationFrame(reportFrame);
+    };
+    onSelectedNodeScreenPosition({ nodeId: null, viewMode: '2D' });
+    animationFrame = window.requestAnimationFrame(reportFrame);
+    return () => {
+      window.cancelAnimationFrame(animationFrame);
+      onSelectedNodeScreenPosition({ nodeId: null, viewMode: '2D' });
+    };
+  }, [height, onSelectedNodeScreenPosition, reportSelectedNodeScreenPosition, width]);
 
   useEffect(() => {
     const qaWindow = window as Window & {
@@ -561,8 +678,9 @@ export function KnowledgeGraph2D({
   }, [hoveredNode?.id, isLightTheme, selectedNode?.id]);
 
   const handleNodeDragEnd = useCallback((node: any) => {
+    rememberRuntimeNodePosition(node as RuntimeKnowledgeGraphNode);
     onNodeDragEnd(node as KnowledgeNodeData);
-  }, [onNodeDragEnd]);
+  }, [onNodeDragEnd, rememberRuntimeNodePosition]);
 
   // 4. 物理引擎配置
   useEffect(() => {
@@ -582,6 +700,102 @@ export function KnowledgeGraph2D({
       fgRef.current?.zoomToFit?.(320, 48);
     }, 0);
   }, [fitViewVersion]);
+
+  useEffect(() => {
+    const expandedIds = [...new Set(expandedNodeIds)];
+    const newlyExpandedTarget = resolveFocusedExpansionRevealTarget(
+      previousExpandedNodeIdsRef.current,
+      expandedIds
+    );
+    previousExpandedNodeIdsRef.current = expandedIds;
+    if (newlyExpandedTarget) {
+      focusedRevealTargetNodeIdRef.current = newlyExpandedTarget;
+      revealedExpansionSignatureRef.current = '';
+    }
+    if (expandedIds.length === 0) {
+      focusedRevealTargetNodeIdRef.current = null;
+      revealedExpansionSignatureRef.current = '';
+      return;
+    }
+    const targetNodeId = focusedRevealTargetNodeIdRef.current;
+    if (!targetNodeId || !expandedIds.includes(targetNodeId)) {
+      focusedRevealTargetNodeIdRef.current = null;
+      return;
+    }
+    const targetDirectLinks = expandedDirectLinks.filter((link) => (
+      link.sourceId === targetNodeId || link.targetId === targetNodeId
+    ));
+    if (targetDirectLinks.length === 0) return;
+    const expansionSignature = createFocusedExpansionRevealSignature(
+      [targetNodeId],
+      targetDirectLinks
+    );
+    if (revealedExpansionSignatureRef.current === expansionSignature) return;
+
+    const animationFrame = window.requestAnimationFrame(() => {
+      const viewportWidth = Number(width);
+      const viewportHeight = Number(height);
+      if (
+        !Number.isFinite(viewportWidth)
+        || !Number.isFinite(viewportHeight)
+        || !fgRef.current?.graph2ScreenCoords
+        || !fgRef.current?.screen2GraphCoords
+        || !fgRef.current?.centerAt
+      ) {
+        return;
+      }
+
+      const focusedNodeIds = new Set([targetNodeId]);
+      targetDirectLinks.forEach((link) => {
+        focusedNodeIds.add(link.sourceId === targetNodeId ? link.targetId : link.sourceId);
+      });
+      const refNodes = fgRef.current.graphData?.()?.nodes as RuntimeKnowledgeGraphNode[] | undefined;
+      const graphNodes = selectFocusedExpansionGraphNodes({
+        refNodes,
+        currentNodes: graphData.nodes,
+        requiredNodeIds: [...focusedNodeIds],
+      });
+      const graphNodeById = new Map(graphNodes.map((node) => [node.id, node]));
+      if ([...focusedNodeIds].some((nodeId) => !graphNodeById.has(nodeId))) return;
+      const focusedScreenPoints = [...focusedNodeIds].flatMap((nodeId) => {
+        const node = graphNodeById.get(nodeId);
+        if (!node) return [];
+        const graphX = Number(node.x);
+        const graphY = Number(node.y);
+        if (!Number.isFinite(graphX) || !Number.isFinite(graphY)) return [];
+        const screen = fgRef.current.graph2ScreenCoords(graphX, graphY);
+        const screenX = Number(screen?.x);
+        const screenY = Number(screen?.y);
+        return Number.isFinite(screenX) && Number.isFinite(screenY)
+          ? [{ x: screenX, y: screenY }]
+          : [];
+      });
+      if (focusedScreenPoints.length !== focusedNodeIds.size) return;
+      const reveal = calculateFocusedExpansionRevealTranslation({
+        points: focusedScreenPoints,
+        viewportWidth,
+        viewportHeight,
+        padding: 48,
+      });
+      if (!reveal) return;
+
+      if (reveal.x === 0 && reveal.y === 0) {
+        revealedExpansionSignatureRef.current = expansionSignature;
+        return;
+      }
+      const targetCenter = fgRef.current.screen2GraphCoords(
+        viewportWidth / 2 - reveal.x,
+        viewportHeight / 2 - reveal.y
+      );
+      const targetX = Number(targetCenter?.x);
+      const targetY = Number(targetCenter?.y);
+      if (!Number.isFinite(targetX) || !Number.isFinite(targetY)) return;
+      fgRef.current.centerAt(targetX, targetY, 240);
+      revealedExpansionSignatureRef.current = expansionSignature;
+    });
+
+    return () => window.cancelAnimationFrame(animationFrame);
+  }, [expandedDirectLinks, expandedNodeIds, graphData.nodes, height, width]);
 
   useEffect(() => {
     const currentNodes = fgRef.current?.graphData?.()?.nodes as
@@ -614,6 +828,7 @@ export function KnowledgeGraph2D({
       onNodeClick={onNodeClick}
       onNodeHover={onNodeHover}
       onNodeDragEnd={handleNodeDragEnd}
+      onEngineStop={snapshotRuntimePositions}
       enableNodeDrag={true}
 
       // 物理引擎配置

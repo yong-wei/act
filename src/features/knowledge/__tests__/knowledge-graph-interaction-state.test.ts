@@ -318,12 +318,12 @@ describe('knowledge graph interaction state stability', () => {
     expect(rendererSource).toContain('onNodeDragEnd={handleNodeDragEnd}');
     expect(rendererSource).not.toContain('applyKnowledgeGraphStoredPositions(');
     expect(rendererSource).toContain('syncKnowledgeGraphMutableNodePositions(currentNodes, layoutState);');
-    expect(rendererSource).toContain('}, [nodes, links, relayoutVersion]);');
+    expect(rendererSource).toContain('}, [nodes, links, relayoutVersion, layoutState.version, expandedNodeIds, expandedDirectLinks]);');
     expect(rendererSource).toContain('}, [graphData, layoutState]);');
     expect(rendererSource).not.toContain('}, [layoutState, nodes, links]);');
     expect(canvasSource).not.toContain('applyKnowledgeGraphStoredPositions(');
     expect(canvasSource).toContain('syncKnowledgeGraphMutableNodePositions(currentNodes, layoutState);');
-    expect(canvasSource).toContain('}, [nodes, links, relayoutVersion]);');
+    expect(canvasSource).toContain('}, [nodes, links, relayoutVersion, layoutState.version, expandedNodeIds, expandedDirectLinks]);');
     expect(canvasSource).toContain('}, [graphData, layoutState]);');
     expect(canvasSource).not.toContain('}, [layoutState, nodes, links]);');
   });

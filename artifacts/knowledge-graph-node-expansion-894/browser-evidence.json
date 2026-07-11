@@ -1,0 +1,1114 @@
+{
+  "change": "improve-knowledge-graph-node-expansion-interaction",
+  "issue": 894,
+  "captureScope": "representative",
+  "capturedAt": "2026-07-10T12:04:18.817Z",
+  "sourceCwd": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn",
+  "sourceGitSha": "ed025d5d1ea1db1af0c8d8622df80c2e4e080cdb",
+  "sourceTreeSha256": "0a5a083233a9ec9dabb8675a9ca0484c30f5e4411bb5d9d4d76f0a1c84777f4f",
+  "baseUrl": "http://localhost:3101",
+  "route": "/knowledge",
+  "browser": "chromium-headed",
+  "currentSourceSha256": {
+    "src/features/knowledge/knowledge-graph-system.tsx": "6a848f0017d3d8a7a0826aaf058af3ea2b15ad625728830871e32fa0091457ae",
+    "src/features/knowledge/graph/knowledge-graph-2d.tsx": "47db5d7d24242a9384754996a5c6529cd33b09b57176ff5daae7dfa7c37e0b97",
+    "src/features/knowledge/graph/knowledge-graph-canvas.tsx": "2194ab224087198b54f742218513ae879c25fbe24c24ce49ef664db4224bc36a",
+    "src/features/knowledge/graph/layout-engine.ts": "84c3de1cf5cdcfccb31eed3d2934b955e9752b76bdcfc950bf31462cff9ddab7",
+    "scripts/tests/capture-knowledge-graph-node-expansion-894.ts": "ab5a314621817963af19bdd69d2d9962f5b11720ebef08d1d659f2931eb0daac"
+  },
+  "representative": {
+    "states": [
+      {
+        "name": "collapsed-focus",
+        "theme": "dark",
+        "mode": "2D",
+        "viewport": {
+          "width": 1440,
+          "height": 960
+        },
+        "screenshotPath": "artifacts/knowledge-graph-node-expansion-894/1440x960-dark-2d-collapsed-focus.png",
+        "screenshotSha256": "0089a1854a6e70fa03bd1e32fcf91a2eb689ca97125d7c457435ff0735f2f66c",
+        "geometry": {
+          "title": "智控深蓝",
+          "url": "http://localhost:3101/knowledge?node=chapter-node%3A%E7%AC%AC%E4%B8%80%E7%AB%A0&qa=knowledge-product",
+          "htmlClass": "dark",
+          "controlRect": {
+            "left": 691,
+            "top": 839.2946166992188,
+            "right": 741,
+            "bottom": 883.2946166992188,
+            "width": 50,
+            "height": 44
+          },
+          "canvasRect": {
+            "left": 96,
+            "top": 109,
+            "right": 1401,
+            "bottom": 956,
+            "width": 1305,
+            "height": 847
+          },
+          "surfaces": {
+            "desktopTools": {
+              "left": 112,
+              "top": 125,
+              "right": 653.3125,
+              "bottom": 209.5,
+              "width": 541.3125,
+              "height": 84.5
+            },
+            "activeLocalPanel": null,
+            "desktopDirectory": null,
+            "inspector": {
+              "left": 977,
+              "top": 88,
+              "right": 1409,
+              "bottom": 880,
+              "width": 432,
+              "height": 792
+            },
+            "dock": {
+              "left": 879,
+              "top": 904,
+              "right": 969,
+              "bottom": 944,
+              "width": 90,
+              "height": 40
+            },
+            "pageFloatingControls": {
+              "left": 879,
+              "top": 904,
+              "right": 969,
+              "bottom": 944,
+              "width": 90,
+              "height": 40
+            },
+            "konling": null,
+            "mobileTools": null,
+            "mobilePanel": null
+          },
+          "control": {
+            "state": "collapsed",
+            "viewMode": "2D",
+            "anchorNodeId": "chapter-node:第一章",
+            "anchorClamped": "false",
+            "ariaExpanded": "false",
+            "ariaBusy": "false",
+            "ariaDisabled": "false",
+            "activeElement": true,
+            "focusVisible": true,
+            "outlineStyle": "none",
+            "outlineWidth": "1px",
+            "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(255, 255, 255) 0px 0px 0px 2px, rgb(51, 186, 235) 0px 0px 0px 4px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.1) 0px 4px 6px -4px",
+            "offsetWidth": 50,
+            "offsetHeight": 44
+          },
+          "canvas": {
+            "selectedNodeId": "chapter-node:第一章",
+            "expandedNodeCount": 0,
+            "pinnedNodeCount": 0,
+            "pinnedSignature": "",
+            "visibleNodeCount": 2,
+            "visibleLinkCount": 0
+          },
+          "scroll": {
+            "viewportWidth": 1440,
+            "scrollWidth": 1425,
+            "bodyScrollWidth": 1425
+          },
+          "frameworkOverlay": false
+        },
+        "measurements": {
+          "edgeClearances": {
+            "left": 595,
+            "top": 730.295,
+            "right": 660,
+            "bottom": 72.705
+          },
+          "controlSurfaceOverlaps": {
+            "desktopTools": false,
+            "activeLocalPanel": false,
+            "desktopDirectory": false,
+            "inspector": false,
+            "dock": false,
+            "pageFloatingControls": false,
+            "konling": false,
+            "mobileTools": false,
+            "mobilePanel": false
+          },
+          "routeFitsViewport": true,
+          "hitTargetAtLeast44": true,
+          "visibleFocusRing": true
+        }
+      },
+      {
+        "name": "loading-focus",
+        "theme": "dark",
+        "mode": "2D",
+        "viewport": {
+          "width": 1440,
+          "height": 960
+        },
+        "screenshotPath": "artifacts/knowledge-graph-node-expansion-894/1440x960-dark-2d-loading-focus.png",
+        "screenshotSha256": "3094df8e8a08b71907da0c74f70f42c88fa605010c7e3076ad9c68a6340878be",
+        "geometry": {
+          "title": "智控深蓝",
+          "url": "http://localhost:3101/knowledge?node=chapter-node%3A%E7%AC%AC%E4%B8%80%E7%AB%A0&qa=knowledge-product",
+          "htmlClass": "dark",
+          "controlRect": {
+            "left": 685,
+            "top": 839.2946166992188,
+            "right": 747,
+            "bottom": 883.2946166992188,
+            "width": 62,
+            "height": 44
+          },
+          "canvasRect": {
+            "left": 96,
+            "top": 109,
+            "right": 1401,
+            "bottom": 956,
+            "width": 1305,
+            "height": 847
+          },
+          "surfaces": {
+            "desktopTools": {
+              "left": 112,
+              "top": 125,
+              "right": 653.3125,
+              "bottom": 209.5,
+              "width": 541.3125,
+              "height": 84.5
+            },
+            "activeLocalPanel": null,
+            "desktopDirectory": null,
+            "inspector": {
+              "left": 977,
+              "top": 88,
+              "right": 1409,
+              "bottom": 880,
+              "width": 432,
+              "height": 792
+            },
+            "dock": {
+              "left": 879,
+              "top": 904,
+              "right": 969,
+              "bottom": 944,
+              "width": 90,
+              "height": 40
+            },
+            "pageFloatingControls": {
+              "left": 879,
+              "top": 904,
+              "right": 969,
+              "bottom": 944,
+              "width": 90,
+              "height": 40
+            },
+            "konling": null,
+            "mobileTools": null,
+            "mobilePanel": null
+          },
+          "control": {
+            "state": "loading",
+            "viewMode": "2D",
+            "anchorNodeId": "chapter-node:第一章",
+            "anchorClamped": "false",
+            "ariaExpanded": "false",
+            "ariaBusy": "true",
+            "ariaDisabled": "true",
+            "activeElement": true,
+            "focusVisible": true,
+            "outlineStyle": "none",
+            "outlineWidth": "1px",
+            "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(255, 255, 255) 0px 0px 0px 2px, rgb(51, 186, 235) 0px 0px 0px 4px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.1) 0px 4px 6px -4px",
+            "offsetWidth": 62,
+            "offsetHeight": 44
+          },
+          "canvas": {
+            "selectedNodeId": "chapter-node:第一章",
+            "expandedNodeCount": 0,
+            "pinnedNodeCount": 0,
+            "pinnedSignature": "",
+            "visibleNodeCount": 2,
+            "visibleLinkCount": 0
+          },
+          "scroll": {
+            "viewportWidth": 1440,
+            "scrollWidth": 1425,
+            "bodyScrollWidth": 1425
+          },
+          "frameworkOverlay": false
+        },
+        "measurements": {
+          "edgeClearances": {
+            "left": 589,
+            "top": 730.295,
+            "right": 654,
+            "bottom": 72.705
+          },
+          "controlSurfaceOverlaps": {
+            "desktopTools": false,
+            "activeLocalPanel": false,
+            "desktopDirectory": false,
+            "inspector": false,
+            "dock": false,
+            "pageFloatingControls": false,
+            "konling": false,
+            "mobileTools": false,
+            "mobilePanel": false
+          },
+          "routeFitsViewport": true,
+          "hitTargetAtLeast44": true,
+          "visibleFocusRing": true
+        }
+      },
+      {
+        "name": "expanded",
+        "theme": "dark",
+        "mode": "2D",
+        "viewport": {
+          "width": 1440,
+          "height": 960
+        },
+        "screenshotPath": "artifacts/knowledge-graph-node-expansion-894/1440x960-dark-2d-expanded.png",
+        "screenshotSha256": "e63b4fc06056628eeeadb01801f52ef5b7602c78ca6c903869782918302e50c8",
+        "geometry": {
+          "title": "智控深蓝",
+          "url": "http://localhost:3101/knowledge?node=chapter-node%3A%E7%AC%AC%E4%B8%80%E7%AB%A0&qa=knowledge-product",
+          "htmlClass": "dark",
+          "controlRect": {
+            "left": 691,
+            "top": 685.0714111328125,
+            "right": 741,
+            "bottom": 729.0714111328125,
+            "width": 50,
+            "height": 44
+          },
+          "canvasRect": {
+            "left": 96,
+            "top": 109,
+            "right": 1401,
+            "bottom": 956,
+            "width": 1305,
+            "height": 847
+          },
+          "surfaces": {
+            "desktopTools": {
+              "left": 112,
+              "top": 125,
+              "right": 650.3203125,
+              "bottom": 209.5,
+              "width": 538.3203125,
+              "height": 84.5
+            },
+            "activeLocalPanel": null,
+            "desktopDirectory": null,
+            "inspector": {
+              "left": 977,
+              "top": 88,
+              "right": 1409,
+              "bottom": 880,
+              "width": 432,
+              "height": 792
+            },
+            "dock": {
+              "left": 879,
+              "top": 904,
+              "right": 969,
+              "bottom": 944,
+              "width": 90,
+              "height": 40
+            },
+            "pageFloatingControls": {
+              "left": 879,
+              "top": 904,
+              "right": 969,
+              "bottom": 944,
+              "width": 90,
+              "height": 40
+            },
+            "konling": null,
+            "mobileTools": null,
+            "mobilePanel": null
+          },
+          "control": {
+            "state": "expanded",
+            "viewMode": "2D",
+            "anchorNodeId": "chapter-node:第一章",
+            "anchorClamped": "false",
+            "ariaExpanded": "true",
+            "ariaBusy": "false",
+            "ariaDisabled": "false",
+            "activeElement": true,
+            "focusVisible": true,
+            "outlineStyle": "none",
+            "outlineWidth": "1px",
+            "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(255, 255, 255) 0px 0px 0px 2px, rgb(51, 186, 235) 0px 0px 0px 4px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.1) 0px 4px 6px -4px",
+            "offsetWidth": 50,
+            "offsetHeight": 44
+          },
+          "canvas": {
+            "selectedNodeId": "chapter-node:第一章",
+            "expandedNodeCount": 1,
+            "pinnedNodeCount": 0,
+            "pinnedSignature": "",
+            "visibleNodeCount": 6,
+            "visibleLinkCount": 4
+          },
+          "scroll": {
+            "viewportWidth": 1440,
+            "scrollWidth": 1425,
+            "bodyScrollWidth": 1425
+          },
+          "frameworkOverlay": false
+        },
+        "measurements": {
+          "edgeClearances": {
+            "left": 595,
+            "top": 576.071,
+            "right": 660,
+            "bottom": 226.929
+          },
+          "controlSurfaceOverlaps": {
+            "desktopTools": false,
+            "activeLocalPanel": false,
+            "desktopDirectory": false,
+            "inspector": false,
+            "dock": false,
+            "pageFloatingControls": false,
+            "konling": false,
+            "mobileTools": false,
+            "mobilePanel": false
+          },
+          "routeFitsViewport": true,
+          "hitTargetAtLeast44": true,
+          "visibleFocusRing": true
+        }
+      },
+      {
+        "name": "expanded-pinned-child",
+        "theme": "dark",
+        "mode": "2D",
+        "viewport": {
+          "width": 1440,
+          "height": 960
+        },
+        "screenshotPath": "artifacts/knowledge-graph-node-expansion-894/1440x960-dark-2d-expanded-pinned-child.png",
+        "screenshotSha256": "904af04edf07faf9ed890418232f063be1877380ecf2420dcd996e6bd70a9279",
+        "geometry": {
+          "title": "智控深蓝",
+          "url": "http://localhost:3101/knowledge?node=chapter-node%3A%E7%AC%AC%E4%B8%80%E7%AB%A0&qa=knowledge-product",
+          "htmlClass": "dark",
+          "controlRect": {
+            "left": 683.5,
+            "top": 685.0714111328125,
+            "right": 733.5,
+            "bottom": 729.0714111328125,
+            "width": 50,
+            "height": 44
+          },
+          "canvasRect": {
+            "left": 96,
+            "top": 109,
+            "right": 1401,
+            "bottom": 956,
+            "width": 1305,
+            "height": 847
+          },
+          "surfaces": {
+            "desktopTools": {
+              "left": 112,
+              "top": 125,
+              "right": 648.6640625,
+              "bottom": 209.5,
+              "width": 536.6640625,
+              "height": 84.5
+            },
+            "activeLocalPanel": null,
+            "desktopDirectory": null,
+            "inspector": {
+              "left": 977,
+              "top": 88,
+              "right": 1409,
+              "bottom": 880,
+              "width": 432,
+              "height": 792
+            },
+            "dock": {
+              "left": 879,
+              "top": 904,
+              "right": 969,
+              "bottom": 944,
+              "width": 90,
+              "height": 40
+            },
+            "pageFloatingControls": {
+              "left": 879,
+              "top": 904,
+              "right": 969,
+              "bottom": 944,
+              "width": 90,
+              "height": 40
+            },
+            "konling": null,
+            "mobileTools": null,
+            "mobilePanel": null
+          },
+          "control": {
+            "state": "expanded",
+            "viewMode": "2D",
+            "anchorNodeId": "chapter-node:第一章",
+            "anchorClamped": "false",
+            "ariaExpanded": "true",
+            "ariaBusy": "false",
+            "ariaDisabled": "false",
+            "activeElement": false,
+            "focusVisible": false,
+            "outlineStyle": "none",
+            "outlineWidth": "1.5px",
+            "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.1) 0px 4px 6px -4px",
+            "offsetWidth": 50,
+            "offsetHeight": 44
+          },
+          "canvas": {
+            "selectedNodeId": "chapter-node:第一章",
+            "expandedNodeCount": 1,
+            "pinnedNodeCount": 1,
+            "pinnedSignature": "issue-894-child-1:0.0,155.0,0.0",
+            "visibleNodeCount": 6,
+            "visibleLinkCount": 4
+          },
+          "scroll": {
+            "viewportWidth": 1440,
+            "scrollWidth": 1425,
+            "bodyScrollWidth": 1425
+          },
+          "frameworkOverlay": false
+        },
+        "measurements": {
+          "edgeClearances": {
+            "left": 587.5,
+            "top": 576.071,
+            "right": 667.5,
+            "bottom": 226.929
+          },
+          "controlSurfaceOverlaps": {
+            "desktopTools": false,
+            "activeLocalPanel": false,
+            "desktopDirectory": false,
+            "inspector": false,
+            "dock": false,
+            "pageFloatingControls": false,
+            "konling": false,
+            "mobileTools": false,
+            "mobilePanel": false
+          },
+          "routeFitsViewport": true,
+          "hitTargetAtLeast44": true,
+          "visibleFocusRing": false
+        }
+      },
+      {
+        "name": "collapsed-again",
+        "theme": "dark",
+        "mode": "2D",
+        "viewport": {
+          "width": 1440,
+          "height": 960
+        },
+        "screenshotPath": "artifacts/knowledge-graph-node-expansion-894/1440x960-dark-2d-collapsed-again.png",
+        "screenshotSha256": "7006d456d616ba03f4c7065ed630b606eb7204730ea9183c0ccb6d7a2e69543b",
+        "geometry": {
+          "title": "智控深蓝",
+          "url": "http://localhost:3101/knowledge?node=chapter-node%3A%E7%AC%AC%E4%B8%80%E7%AB%A0&qa=knowledge-product",
+          "htmlClass": "dark",
+          "controlRect": {
+            "left": 691,
+            "top": 685.0714111328125,
+            "right": 741,
+            "bottom": 729.0714111328125,
+            "width": 50,
+            "height": 44
+          },
+          "canvasRect": {
+            "left": 96,
+            "top": 109,
+            "right": 1401,
+            "bottom": 956,
+            "width": 1305,
+            "height": 847
+          },
+          "surfaces": {
+            "desktopTools": {
+              "left": 112,
+              "top": 125,
+              "right": 651.65625,
+              "bottom": 209.5,
+              "width": 539.65625,
+              "height": 84.5
+            },
+            "activeLocalPanel": null,
+            "desktopDirectory": null,
+            "inspector": {
+              "left": 977,
+              "top": 88,
+              "right": 1409,
+              "bottom": 880,
+              "width": 432,
+              "height": 792
+            },
+            "dock": {
+              "left": 879,
+              "top": 904,
+              "right": 969,
+              "bottom": 944,
+              "width": 90,
+              "height": 40
+            },
+            "pageFloatingControls": {
+              "left": 879,
+              "top": 904,
+              "right": 969,
+              "bottom": 944,
+              "width": 90,
+              "height": 40
+            },
+            "konling": null,
+            "mobileTools": null,
+            "mobilePanel": null
+          },
+          "control": {
+            "state": "collapsed",
+            "viewMode": "2D",
+            "anchorNodeId": "chapter-node:第一章",
+            "anchorClamped": "false",
+            "ariaExpanded": "false",
+            "ariaBusy": "false",
+            "ariaDisabled": "false",
+            "activeElement": true,
+            "focusVisible": false,
+            "outlineStyle": "none",
+            "outlineWidth": "1.5px",
+            "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.1) 0px 4px 6px -4px",
+            "offsetWidth": 50,
+            "offsetHeight": 44
+          },
+          "canvas": {
+            "selectedNodeId": "chapter-node:第一章",
+            "expandedNodeCount": 0,
+            "pinnedNodeCount": 1,
+            "pinnedSignature": "issue-894-child-1:0.0,155.0,0.0",
+            "visibleNodeCount": 2,
+            "visibleLinkCount": 0
+          },
+          "scroll": {
+            "viewportWidth": 1440,
+            "scrollWidth": 1425,
+            "bodyScrollWidth": 1425
+          },
+          "frameworkOverlay": false
+        },
+        "measurements": {
+          "edgeClearances": {
+            "left": 595,
+            "top": 576.071,
+            "right": 660,
+            "bottom": 226.929
+          },
+          "controlSurfaceOverlaps": {
+            "desktopTools": false,
+            "activeLocalPanel": false,
+            "desktopDirectory": false,
+            "inspector": false,
+            "dock": false,
+            "pageFloatingControls": false,
+            "konling": false,
+            "mobileTools": false,
+            "mobilePanel": false
+          },
+          "routeFitsViewport": true,
+          "hitTargetAtLeast44": true,
+          "visibleFocusRing": false
+        }
+      },
+      {
+        "name": "expanded-again",
+        "theme": "dark",
+        "mode": "2D",
+        "viewport": {
+          "width": 1440,
+          "height": 960
+        },
+        "screenshotPath": "artifacts/knowledge-graph-node-expansion-894/1440x960-dark-2d-expanded-again.png",
+        "screenshotSha256": "5b3457f1a473ddac137477254435a8e96d295ec96af9c16228ceabe5c6425055",
+        "geometry": {
+          "title": "智控深蓝",
+          "url": "http://localhost:3101/knowledge?node=chapter-node%3A%E7%AC%AC%E4%B8%80%E7%AB%A0&qa=knowledge-product",
+          "htmlClass": "dark",
+          "controlRect": {
+            "left": 691,
+            "top": 685.0714111328125,
+            "right": 741,
+            "bottom": 729.0714111328125,
+            "width": 50,
+            "height": 44
+          },
+          "canvasRect": {
+            "left": 96,
+            "top": 109,
+            "right": 1401,
+            "bottom": 956,
+            "width": 1305,
+            "height": 847
+          },
+          "surfaces": {
+            "desktopTools": {
+              "left": 112,
+              "top": 125,
+              "right": 648.6640625,
+              "bottom": 209.5,
+              "width": 536.6640625,
+              "height": 84.5
+            },
+            "activeLocalPanel": null,
+            "desktopDirectory": null,
+            "inspector": {
+              "left": 977,
+              "top": 88,
+              "right": 1409,
+              "bottom": 880,
+              "width": 432,
+              "height": 792
+            },
+            "dock": {
+              "left": 879,
+              "top": 904,
+              "right": 969,
+              "bottom": 944,
+              "width": 90,
+              "height": 40
+            },
+            "pageFloatingControls": {
+              "left": 879,
+              "top": 904,
+              "right": 969,
+              "bottom": 944,
+              "width": 90,
+              "height": 40
+            },
+            "konling": null,
+            "mobileTools": null,
+            "mobilePanel": null
+          },
+          "control": {
+            "state": "expanded",
+            "viewMode": "2D",
+            "anchorNodeId": "chapter-node:第一章",
+            "anchorClamped": "false",
+            "ariaExpanded": "true",
+            "ariaBusy": "false",
+            "ariaDisabled": "false",
+            "activeElement": false,
+            "focusVisible": false,
+            "outlineStyle": "none",
+            "outlineWidth": "1.5px",
+            "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.1) 0px 4px 6px -4px",
+            "offsetWidth": 50,
+            "offsetHeight": 44
+          },
+          "canvas": {
+            "selectedNodeId": "chapter-node:第一章",
+            "expandedNodeCount": 1,
+            "pinnedNodeCount": 1,
+            "pinnedSignature": "issue-894-child-1:0.0,155.0,0.0",
+            "visibleNodeCount": 6,
+            "visibleLinkCount": 4
+          },
+          "scroll": {
+            "viewportWidth": 1440,
+            "scrollWidth": 1425,
+            "bodyScrollWidth": 1425
+          },
+          "frameworkOverlay": false
+        },
+        "measurements": {
+          "edgeClearances": {
+            "left": 595,
+            "top": 576.071,
+            "right": 660,
+            "bottom": 226.929
+          },
+          "controlSurfaceOverlaps": {
+            "desktopTools": false,
+            "activeLocalPanel": false,
+            "desktopDirectory": false,
+            "inspector": false,
+            "dock": false,
+            "pageFloatingControls": false,
+            "konling": false,
+            "mobileTools": false,
+            "mobilePanel": false
+          },
+          "routeFitsViewport": true,
+          "hitTargetAtLeast44": true,
+          "visibleFocusRing": false
+        }
+      }
+    ],
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "failedResponses": [
+      {
+        "status": 404,
+        "url": "http://localhost:3101/api/knowledge/nodes/issue-894-child-1"
+      },
+      {
+        "status": 404,
+        "url": "http://localhost:3101/api/knowledge/nodes/issue-894-child-2"
+      },
+      {
+        "status": 404,
+        "url": "http://localhost:3101/api/knowledge/nodes/issue-894-child-2"
+      },
+      {
+        "status": 404,
+        "url": "http://localhost:3101/api/knowledge/nodes/issue-894-child-3"
+      },
+      {
+        "status": 404,
+        "url": "http://localhost:3101/api/knowledge/nodes/issue-894-child-3"
+      },
+      {
+        "status": 404,
+        "url": "http://localhost:3101/api/knowledge/nodes/issue-894-child-4"
+      },
+      {
+        "status": 404,
+        "url": "http://localhost:3101/api/knowledge/nodes/issue-894-child-4"
+      },
+      {
+        "status": 404,
+        "url": "http://localhost:3101/api/knowledge/nodes/issue-894-child-1"
+      },
+      {
+        "status": 404,
+        "url": "http://localhost:3101/api/knowledge/nodes/issue-894-child-1"
+      },
+      {
+        "status": 404,
+        "url": "http://localhost:3101/api/knowledge/nodes/issue-894-child-1"
+      },
+      {
+        "status": 404,
+        "url": "http://localhost:3101/api/knowledge/nodes/issue-894-child-1"
+      },
+      {
+        "status": 404,
+        "url": "http://localhost:3101/api/knowledge/nodes/issue-894-child-2"
+      },
+      {
+        "status": 404,
+        "url": "http://localhost:3101/api/knowledge/nodes/issue-894-child-2"
+      },
+      {
+        "status": 404,
+        "url": "http://localhost:3101/api/knowledge/nodes/issue-894-child-3"
+      },
+      {
+        "status": 404,
+        "url": "http://localhost:3101/api/knowledge/nodes/issue-894-child-3"
+      },
+      {
+        "status": 404,
+        "url": "http://localhost:3101/api/knowledge/nodes/issue-894-child-4"
+      },
+      {
+        "status": 404,
+        "url": "http://localhost:3101/api/knowledge/nodes/issue-894-child-4"
+      },
+      {
+        "status": 404,
+        "url": "http://localhost:3101/api/knowledge/nodes/issue-894-child-1"
+      },
+      {
+        "status": 404,
+        "url": "http://localhost:3101/api/knowledge/nodes/issue-894-child-1"
+      },
+      {
+        "status": 404,
+        "url": "http://localhost:3101/api/knowledge/nodes/issue-894-child-2"
+      },
+      {
+        "status": 404,
+        "url": "http://localhost:3101/api/knowledge/nodes/issue-894-child-2"
+      },
+      {
+        "status": 404,
+        "url": "http://localhost:3101/api/knowledge/nodes/issue-894-child-3"
+      },
+      {
+        "status": 404,
+        "url": "http://localhost:3101/api/knowledge/nodes/issue-894-child-3"
+      },
+      {
+        "status": 404,
+        "url": "http://localhost:3101/api/knowledge/nodes/issue-894-child-4"
+      },
+      {
+        "status": 404,
+        "url": "http://localhost:3101/api/knowledge/nodes/issue-894-child-4"
+      }
+    ],
+    "interactionMetrics": {
+      "expansionRequestCount": 1,
+      "radial": {
+        "status": "measurement-invalid",
+        "reason": "Real-page child projections are selected serially rather than captured as one atomic graph snapshot.",
+        "preliminary": {
+          "angularCoverageDegrees": 270,
+          "centroidRatio": 0,
+          "radiusCoefficientOfVariation": 0,
+          "childRadiiGraphUnits": [
+            96,
+            96,
+            96,
+            96
+          ]
+        }
+      },
+      "childViewport": {
+        "canvasRect": {
+          "left": 96,
+          "top": 109,
+          "right": 1401,
+          "bottom": 956,
+          "width": 1305,
+          "height": 847
+        },
+        "children": [
+          {
+            "nodeId": "issue-894-child-1",
+            "name": "直接子节点甲",
+            "screenPoint": {
+              "x": 748.5,
+              "y": 586.143
+            },
+            "pointClearances": {
+              "left": 652.5,
+              "top": 477.143,
+              "right": 652.5,
+              "bottom": 369.857
+            },
+            "anchorClamped": true,
+            "controlDistancePixels": 56.569,
+            "nodeInsideCanvas": true,
+            "conservativeLabelRect": {
+              "left": 708.5,
+              "right": 788.5,
+              "top": 570.143,
+              "bottom": 622.143
+            },
+            "labelEnvelopeInsideCanvas": true
+          },
+          {
+            "nodeId": "issue-894-child-2",
+            "name": "直接子节点乙",
+            "screenPoint": {
+              "x": 909.429,
+              "y": 747.071
+            },
+            "pointClearances": {
+              "left": 813.429,
+              "top": 638.071,
+              "right": 491.571,
+              "bottom": 208.929
+            },
+            "anchorClamped": false,
+            "controlDistancePixels": 56.569,
+            "nodeInsideCanvas": true,
+            "conservativeLabelRect": {
+              "left": 869.429,
+              "right": 949.429,
+              "top": 731.071,
+              "bottom": 783.071
+            },
+            "labelEnvelopeInsideCanvas": true
+          },
+          {
+            "nodeId": "issue-894-child-3",
+            "name": "直接子节点丙",
+            "screenPoint": {
+              "x": 748.5,
+              "y": 908
+            },
+            "pointClearances": {
+              "left": 652.5,
+              "top": 799,
+              "right": 652.5,
+              "bottom": 48
+            },
+            "anchorClamped": false,
+            "controlDistancePixels": 56.569,
+            "nodeInsideCanvas": true,
+            "conservativeLabelRect": {
+              "left": 708.5,
+              "right": 788.5,
+              "top": 892,
+              "bottom": 944
+            },
+            "labelEnvelopeInsideCanvas": true
+          },
+          {
+            "nodeId": "issue-894-child-4",
+            "name": "直接子节点丁",
+            "screenPoint": {
+              "x": 587.571,
+              "y": 747.071
+            },
+            "pointClearances": {
+              "left": 491.571,
+              "top": 638.071,
+              "right": 813.429,
+              "bottom": 208.929
+            },
+            "anchorClamped": false,
+            "controlDistancePixels": 56.569,
+            "nodeInsideCanvas": true,
+            "conservativeLabelRect": {
+              "left": 547.571,
+              "right": 627.571,
+              "top": 731.071,
+              "bottom": 783.071
+            },
+            "labelEnvelopeInsideCanvas": true
+          }
+        ],
+        "allDirectChildrenAndLabelsInsideCanvas": true
+      },
+      "repeatedAutomaticChildDisplacements": [
+        {
+          "nodeId": "issue-894-child-2",
+          "displacementGraphUnits": 0
+        },
+        {
+          "nodeId": "issue-894-child-3",
+          "displacementGraphUnits": 0
+        },
+        {
+          "nodeId": "issue-894-child-4",
+          "displacementGraphUnits": 0
+        }
+      ],
+      "maxRepeatedAutomaticChildDisplacement": 0,
+      "automaticRepeatWithinHalfGraphUnit": true,
+      "pinnedNodeDisplacementGraphUnits": 0,
+      "pinnedNodeWithinHalfGraphUnit": true,
+      "pinnedBaselineSignature": "issue-894-child-1:0.0,155.0,0.0",
+      "pinnedPostSamplingSignature": "issue-894-child-1:0.0,155.0,0.0",
+      "pinnedFinalSignature": "issue-894-child-1:0.0,155.0,0.0",
+      "pinnedBaselineCoordinate": {
+        "x": 0,
+        "y": 155,
+        "z": 0
+      },
+      "pinnedFinalCoordinate": {
+        "x": 0,
+        "y": 155,
+        "z": 0
+      },
+      "pinnedCoordinateSource": "data-knowledge-pinned-layout-signature",
+      "pinnedPostPinProjection": {
+        "x": 0,
+        "y": 155.00000000000003,
+        "screenX": 748.5,
+        "screenY": 638.109375,
+        "zoomScale": 1.6763392857142858,
+        "controlDistancePixels": 56.569,
+        "anchorClamped": false
+      },
+      "pinnedSignatureStable": true,
+      "unrelatedNodeDisplacementsGraphUnits": [
+        0
+      ],
+      "unrelatedNodeP95GraphUnits": 0,
+      "unrelatedNodeMaxGraphUnits": 0,
+      "controlNodeCenterDistancePixels": 51.539,
+      "controlAnchorNearSelectedNode": true,
+      "initialToFinalSelectedNodeDisplacementGraphUnits": 0,
+      "zoomTransforms": {
+        "collapsedZoom": {
+          "x": 652.5,
+          "y": 423.5,
+          "k": 1.6763392857142858,
+          "measurable": true
+        },
+        "expandedZoom": {
+          "x": 652.5,
+          "y": 269.27678571428567,
+          "k": 1.6763392857142858,
+          "measurable": true
+        },
+        "collapsedAgainZoom": {
+          "x": 652.5,
+          "y": 269.27678571428567,
+          "k": 1.6763392857142858,
+          "measurable": true
+        },
+        "expandedAgainZoom": {
+          "x": 652.5,
+          "y": 269.27678571428567,
+          "k": 1.6763392857142858,
+          "measurable": true
+        }
+      },
+      "viewTranslation": {
+        "x": 0,
+        "y": -154.223,
+        "magnitude": 154.223,
+        "limit": 169.4
+      },
+      "viewTranslationWithinBound": true,
+      "zoomKStable": true,
+      "directLinksVisible": true,
+      "selectedProjectionControlDistances": {
+        "chapter-node:第一章": 56.569,
+        "issue-894-child-1": 56.569,
+        "issue-894-child-2": 56.569,
+        "issue-894-child-3": 56.569,
+        "issue-894-child-4": 56.569,
+        "chapter-node:第二章": 135.554
+      }
+    }
+  },
+  "unverified": [
+    "3D camera vector is not exposed by an existing production or QA hook.",
+    "Full desktop/narrow light/dark 2D/3D matrix has not run in representative mode."
+  ]
+}
