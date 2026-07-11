@@ -14,6 +14,7 @@ export const PORTRAIT_V2_MIGRATION_VERSION = 'portrait-v2-migration.v1';
 export const PORTRAIT_V2_FRESHNESS_CURRENT_MAX_AGE_DAYS = 30;
 export const PORTRAIT_V2_FRESHNESS_PARTIAL_MAX_AGE_DAYS = 90;
 export const PORTRAIT_V2_MAX_FUTURE_SKEW_MS = 0;
+export const PORTRAIT_V2_LEGACY_SNAPSHOT_CLOCK_SKEW_MS = 5 * 60 * 1000;
 export const PORTRAIT_V2_EVIDENCE_FAMILIES: readonly EvidenceSourceId[] =
   getProfileEligibleEvidenceSourceIds();
 
@@ -447,9 +448,13 @@ export function derivePortraitV2Compatibility(input: {
         throw new Error('Legacy compatibility evidence requires an explicit source family.');
       }
       const evidenceTimestamps = legacyScores.map((item) => normalizedIsoTimestamp(item.lastUpdated));
+      const compatibilityEvidenceUpperBound = Math.min(
+        Date.parse(snapshotAt) + PORTRAIT_V2_LEGACY_SNAPSHOT_CLOCK_SKEW_MS,
+        Date.parse(generatedAt),
+      );
       if (hasMapping && evidenceTimestamps.some((timestamp) =>
-        timestamp === null || Date.parse(timestamp) > Date.parse(snapshotAt))) {
-        throw new Error('Legacy compatibility evidence requires lastUpdated at or before snapshotAt.');
+        timestamp === null || Date.parse(timestamp) > compatibilityEvidenceUpperBound)) {
+        throw new Error('Legacy compatibility evidence lastUpdated exceeds the bounded snapshot clock skew or portrait generation time.');
       }
       const asOf = hasMapping
         ? latestTimestamp(evidenceTimestamps.filter((timestamp): timestamp is string => timestamp !== null))

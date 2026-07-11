@@ -615,7 +615,7 @@ describe('portrait v2 primary model', () => {
     expect(payload.dimensions[6].confidence).toBeCloseTo(0.28);
   });
 
-  it('rejects compatibility evidence outside lastUpdated <= snapshotAt <= now', () => {
+  it('tolerates legacy snapshot clock skew while rejecting future compatibility evidence', () => {
     const now = new Date(generatedAt);
     const vector = legacyVectorAt({
       up: generatedAt,
@@ -631,14 +631,37 @@ describe('portrait v2 primary model', () => {
       now,
     })).toThrow('snapshotAt');
 
+    const skewedNow = new Date('2026-07-10T00:00:00.002Z');
     vector.controlModeling.lastUpdated = '2026-07-10T00:00:00.001Z';
     expect(() => derivePortraitV2Compatibility({
       userId: 'student-1',
       snapshotAt: '2026-07-10T00:00:00.000Z',
       sourceFamily: 'StudentCompetencySnapshot',
       vector,
-      now,
+      now: skewedNow,
+    })).not.toThrow();
+
+    vector.controlModeling.lastUpdated = '2026-07-10T00:00:00.003Z';
+    expect(() => derivePortraitV2Compatibility({
+      userId: 'student-1',
+      snapshotAt: '2026-07-10T00:00:00.000Z',
+      sourceFamily: 'StudentCompetencySnapshot',
+      vector,
+      now: skewedNow,
     })).toThrow('lastUpdated');
+
+    const delayedVector = legacyVectorAt({
+      up: '2026-07-01T00:05:00.001Z',
+      stable: '2026-07-01T00:00:00.000Z',
+      down: '2026-07-01T00:00:00.000Z',
+    });
+    expect(() => derivePortraitV2Compatibility({
+      userId: 'student-1',
+      snapshotAt: '2026-07-01T00:00:00.000Z',
+      sourceFamily: 'StudentCompetencySnapshot',
+      vector: delayedVector,
+      now,
+    })).toThrow('clock skew');
   });
 
   it('requires derivation metadata to distinguish native, migrated, and compatibility records', () => {
