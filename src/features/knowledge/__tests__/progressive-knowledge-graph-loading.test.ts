@@ -122,6 +122,57 @@ describe('progressive knowledge graph loading', () => {
     ]);
     expect(root.nodes.every((node) => node.knowledgeDim === undefined && node.bloomLevel === undefined)).toBe(true);
     expect(root.shardKey).toContain(':shard:root:chapters');
+    expect(root.nodes.map((node) => node.expansion)).toEqual([
+      { state: 'expandable', revealableNeighborCount: 1 },
+      { state: 'expandable', revealableNeighborCount: 2 },
+    ]);
+  });
+
+  it('describes canonical expandable and leaf nodes in every progressive payload', () => {
+    const graph = graphFixture();
+    graph.nodes.push({
+      id: 'node-leaf',
+      name: '孤立知识点',
+      nodeType: 'THEORY',
+      description: '没有可揭示邻居',
+      positionX: 3,
+      positionY: 0,
+      positionZ: 0,
+      chapter: 2,
+      chapterName: '系统模型',
+    });
+
+    const expansion = buildKnowledgeGraphExpansionPayload(graph, 'chapter-node:系统模型');
+    const active = buildKnowledgeGraphActiveFilterPayload(graph);
+    const remaining = buildKnowledgeGraphRemainingPayload(graph);
+
+    expect(expansion.nodes.find((node) => node.id === 'node-b')?.expansion).toEqual({
+      state: 'expandable',
+      revealableNeighborCount: 2,
+    });
+    expect(expansion.nodes.find((node) => node.id === 'node-leaf')?.expansion).toEqual({ state: 'leaf' });
+    expect(active.nodes.find((node) => node.id === 'node-c')?.expansion).toEqual({
+      state: 'expandable',
+      revealableNeighborCount: 2,
+    });
+    expect(remaining.nodes.find((node) => node.id === 'node-leaf')?.expansion).toEqual({ state: 'leaf' });
+    expect(expansion.graphVersion).toBe(active.graphVersion);
+    expect(active.graphVersion).toBe(remaining.graphVersion);
+  });
+
+  it('normalizes compatibility nodes to unknown and discards descriptors across graph versions', () => {
+    const source = readFileSync(
+      join(process.cwd(), 'src/features/knowledge/knowledge-graph-system.tsx'),
+      'utf8'
+    );
+    const mergeSource = source.slice(
+      source.indexOf('function mergeProgressiveGraphPayload'),
+      source.indexOf('function isCollapsedRootNode')
+    );
+
+    expect(mergeSource).toContain("expansion: node.expansion ?? { state: 'unknown' }");
+    expect(mergeSource).toContain('resetForVersion ? {} : { ...current.nodesById }');
+    expect(mergeSource).toContain('resetForVersion ? [] : current.loadedShardKeys');
   });
 
   it('keeps virtual chapter roots out of category and Bloom filtering dimensions', () => {

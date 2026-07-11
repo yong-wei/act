@@ -118,6 +118,10 @@ export interface KnowledgeNodeData {
   ethicsContent?: Record<string, unknown>;
   graphDegree?: number;
   graphImportanceScore?: number;
+  expansion?: {
+    state: 'expandable' | 'leaf' | 'unknown';
+    revealableNeighborCount?: number;
+  };
 }
 
 // 知识连接接口
@@ -185,7 +189,10 @@ function mergeProgressiveGraphPayload(
   const linksByKey: Record<string, KnowledgeLinkData> = resetForVersion ? {} : { ...current.linksByKey };
 
   for (const node of payload.nodes ?? []) {
-    nodesById[node.id] = node;
+    nodesById[node.id] = {
+      ...node,
+      expansion: node.expansion ?? { state: 'unknown' },
+    };
   }
   for (const link of payload.links ?? []) {
     linksByKey[knowledgeLinkCacheKey(link)] = link;

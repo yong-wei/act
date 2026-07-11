@@ -11,6 +11,11 @@ type BloomLevel = 'REMEMBER' | 'UNDERSTAND' | 'APPLY' | 'ANALYZE' | 'EVALUATE' |
 type KnowledgeDim = 'FACTUAL' | 'CONCEPTUAL' | 'PROCEDURAL' | 'METACOGNITIVE';
 type RelatedCategory = 'prerequisite' | 'follows' | 'related';
 
+export interface KnowledgeNodeExpansion {
+  state: 'expandable' | 'leaf' | 'unknown';
+  revealableNeighborCount?: number;
+}
+
 export interface UnifiedKnowledgeNode {
   id: string;
   name: string;
@@ -27,6 +32,7 @@ export interface UnifiedKnowledgeNode {
   tags?: string[];
   chapter?: number;
   chapterName?: string;
+  expansion?: KnowledgeNodeExpansion;
 }
 
 export interface UnifiedKnowledgeLink {
@@ -733,7 +739,47 @@ function buildChapterRootNode(chapterName: string, index: number, nodeCount: num
     tags: ['chapter', 'collapsed-root'],
     chapter: index + 1,
     chapterName,
+    expansion: nodeCount > 0
+      ? { state: 'expandable', revealableNeighborCount: nodeCount }
+      : { state: 'leaf' },
   };
+}
+
+function buildCanonicalExpansionDescriptors(
+  graph: UnifiedKnowledgeGraphPayload
+): Map<string, KnowledgeNodeExpansion> {
+  const neighborIdsByNodeId = new Map<string, Set<string>>();
+  graph.links.forEach((link) => {
+    if (link.sourceId === link.targetId) return;
+    const sourceNeighbors = neighborIdsByNodeId.get(link.sourceId) ?? new Set<string>();
+    sourceNeighbors.add(link.targetId);
+    neighborIdsByNodeId.set(link.sourceId, sourceNeighbors);
+    const targetNeighbors = neighborIdsByNodeId.get(link.targetId) ?? new Set<string>();
+    targetNeighbors.add(link.sourceId);
+    neighborIdsByNodeId.set(link.targetId, targetNeighbors);
+  });
+  return new Map(graph.nodes.map((node) => {
+    const neighborCount = neighborIdsByNodeId.get(node.id)?.size ?? 0;
+    return [
+      node.id,
+      neighborCount > 0
+        ? { state: 'expandable', revealableNeighborCount: neighborCount }
+        : { state: 'leaf' },
+    ];
+  }));
+}
+
+function withCanonicalExpansionDescriptors(
+  graph: UnifiedKnowledgeGraphPayload,
+  nodes: UnifiedKnowledgeNode[]
+): UnifiedKnowledgeNode[] {
+  const descriptors = buildCanonicalExpansionDescriptors(graph);
+  return nodes.map((node) => ({
+    ...node,
+    expansion: node.id.startsWith(CHAPTER_ROOT_NODE_PREFIX)
+      ? node.expansion ?? { state: 'unknown' }
+      : descriptors.get(node.id) ?? { state: 'unknown' },
+  }));
 }
 
 function groupGraphNodesByChapter(nodes: UnifiedKnowledgeNode[]): Array<{ chapterName: string; nodes: UnifiedKnowledgeNode[] }> {
@@ -877,7 +923,10 @@ export function buildKnowledgeGraphExpansionPayload(
       graphVersion,
       shardKey: buildProgressiveShardKey('expansion', graphVersion, nodeId),
       filterSignature: DEFAULT_GRAPH_FILTER_SIGNATURE,
-      nodes: graph.nodes.filter((node) => nodeIds.has(node.id)),
+      nodes: withCanonicalExpansionDescriptors(
+        graph,
+        graph.nodes.filter((node) => nodeIds.has(node.id))
+      ),
       links: directLinks,
       source: graph.source,
     };
@@ -902,7 +951,7 @@ export function buildKnowledgeGraphExpansionPayload(
     graphVersion,
     shardKey: buildProgressiveShardKey('expansion', graphVersion, nodeId),
     filterSignature: DEFAULT_GRAPH_FILTER_SIGNATURE,
-    nodes: [rootNode, ...group.nodes],
+    nodes: [rootNode, ...withCanonicalExpansionDescriptors(graph, group.nodes)],
     links: [...chapterRootLinks(rootNode.id, group.nodes), ...groupLinks],
     source: graph.source,
   };
@@ -915,7 +964,7 @@ export function buildKnowledgeGraphActiveFilterPayload(graph: UnifiedKnowledgeGr
     graphVersion,
     shardKey: buildProgressiveShardKey('active-filter', graphVersion, DEFAULT_GRAPH_FILTER_SIGNATURE),
     filterSignature: DEFAULT_GRAPH_FILTER_SIGNATURE,
-    nodes: graph.nodes,
+    nodes: withCanonicalExpansionDescriptors(graph, graph.nodes),
     links: boundedActiveFilterLinks(graph.links),
     source: graph.source,
   };
@@ -928,7 +977,7 @@ export function buildKnowledgeGraphRemainingPayload(graph: UnifiedKnowledgeGraph
     graphVersion,
     shardKey: buildProgressiveShardKey('remaining', graphVersion, 'all'),
     filterSignature: 'all',
-    nodes: graph.nodes,
+    nodes: withCanonicalExpansionDescriptors(graph, graph.nodes),
     links: graph.links,
     source: graph.source,
   };

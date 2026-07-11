@@ -1,8 +1,8 @@
 ## 1. Expandability Contract
 
-- [ ] 1.1 Add a versioned expandable, leaf, or unknown descriptor and optional revealable-neighbor count to progressive knowledge-node payload types.
-- [ ] 1.2 Compute expansion descriptors from canonical graph relations for root, expansion, active-filter, and remaining payload builders without exposing or loading the full graph in the browser.
-- [ ] 1.3 Update graph fixtures, cache merge behavior, and unit tests for version changes, missing compatibility metadata, leaf nodes, and expandable nodes.
+- [x] 1.1 Add a versioned expandable, leaf, or unknown descriptor and optional revealable-neighbor count to progressive knowledge-node payload types.
+- [x] 1.2 Compute expansion descriptors from canonical graph relations for root, expansion, active-filter, and remaining payload builders without exposing or loading the full graph in the browser.
+- [x] 1.3 Update graph fixtures, cache merge behavior, and unit tests for version changes, missing compatibility metadata, leaf nodes, and expandable nodes.
 
 ## 2. Direct Node Activation
 
