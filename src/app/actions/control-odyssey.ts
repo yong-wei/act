@@ -60,6 +60,12 @@ export interface ControlAiHistory {
   updatedAt: string;
 }
 
+const scoreSubmissionFailure = (errorCode: string, message: string) => ({
+  status: 'failed' as const,
+  errorCode,
+  message,
+});
+
 const AI_ASSIST_COST = 20;
 const ODYSSEY_REPLAY_SNAPSHOT_VERSION = 1;
 const ODYSSEY_CLAIM_LEASE_MS = 30_000;
@@ -625,7 +631,7 @@ export async function submitGameScore(
     // 未登录用户不记录（或可以记录匿名？）
     // 这里简单处理：仅记录登录用户
     console.log('User not logged in, score not saved.');
-    return null;
+    return scoreSubmissionFailure('AUTH_REQUIRED', '登录状态已失效，请重新登录后重试。');
   }
 
   try {
@@ -1007,7 +1013,7 @@ export async function submitGameScore(
     return { ...log, arenaSubmissionId };
   } catch (error) {
     console.error('Failed to submit score:', error);
-    return null;
+    return scoreSubmissionFailure('SCORE_SUBMISSION_FAILED', '成绩同步失败，请稍后重试。');
   }
 }
 

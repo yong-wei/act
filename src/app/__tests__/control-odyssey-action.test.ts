@@ -140,7 +140,7 @@ describe('submitGameScore Arena publication bridge', () => {
 
     const result = await submitGameScore('level-1', 820, { settlingTime: 2.8 });
 
-    expect(result).toBeNull();
+    expect(result).toMatchObject({ status: 'failed', errorCode: 'AUTH_REQUIRED' });
     expect(mocks.prisma.mission.findUnique).not.toHaveBeenCalled();
     expect(mocks.prisma.simulationLog.create).not.toHaveBeenCalled();
   });
@@ -454,7 +454,7 @@ describe('submitGameScore Arena publication bridge', () => {
       controllerId: 'PID' as const,
     };
 
-    expect(await submitGameScore('level-1', 820, {}, context)).toBeNull();
+    expect(await submitGameScore('level-1', 820, {}, context)).toMatchObject({ status: 'failed' });
     store.expireLease();
     const recovered = await submitGameScore('level-1', 820, {}, context);
 
@@ -477,7 +477,7 @@ describe('submitGameScore Arena publication bridge', () => {
       controllerId: 'PID' as const,
     };
 
-    expect(await submitGameScore('level-1', 100, {}, context)).toBeNull();
+    expect(await submitGameScore('level-1', 100, {}, context)).toMatchObject({ status: 'failed' });
     store.expireLease();
     await submitGameScore('level-1', 99_900, {}, context);
 
@@ -503,7 +503,7 @@ describe('submitGameScore Arena publication bridge', () => {
       controllerId: 'PID' as const,
     };
 
-    expect(await submitGameScore('level-1', 820, {}, context)).toBeNull();
+    expect(await submitGameScore('level-1', 820, {}, context)).toMatchObject({ status: 'failed' });
     store.expireLease();
     await submitGameScore('level-1', 820, {}, context);
 
@@ -535,7 +535,7 @@ describe('submitGameScore Arena publication bridge', () => {
       controllerId: 'PID' as const,
     };
 
-    expect(await submitGameScore('level-1', 820, {}, context)).toBeNull();
+    expect(await submitGameScore('level-1', 820, {}, context)).toMatchObject({ status: 'failed' });
     store.expireLease();
     await submitGameScore('level-1', 820, {}, context);
 

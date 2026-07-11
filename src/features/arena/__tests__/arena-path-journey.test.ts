@@ -80,10 +80,12 @@ describe('Arena adaptive path journey', () => {
 
   it('binds Odyssey continuation only from the server-created bridge submission id', () => {
     const game = readFileSync(join(process.cwd(), 'src/resources/interactive-learning/control-odyssey/index.tsx'), 'utf8');
+    const recovery = readFileSync(join(process.cwd(), 'src/resources/interactive-learning/control-odyssey/submission-recovery.ts'), 'utf8');
     const action = readFileSync(join(process.cwd(), 'src/app/actions/control-odyssey.ts'), 'utf8');
 
     expect(action).toContain('arenaSubmissionId = bridgeResult.submission.id');
-    expect(game).toContain('completeArenaPath(result.arenaSubmissionId)');
-    expect(game).not.toMatch(/completeArenaPath\([^)]*(finalScore|metrics|gameState)/);
+    expect(game).toContain('completeArenaPath,');
+    expect(recovery).toContain('completeArenaPath(submissionResult.arenaSubmissionId)');
+    expect(`${game}\n${recovery}`).not.toMatch(/completeArenaPath\([^)]*(finalScore|metrics|gameState)/);
   });
 });
