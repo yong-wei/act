@@ -374,6 +374,10 @@ describe('submitGameScore Arena publication bridge', () => {
       storedLog = { ...storedLog, ...data };
       return storedLog;
     });
+    mocks.prisma.simulationLog.updateMany.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => {
+      storedLog = { ...storedLog, ...data };
+      return { count: 1 };
+    });
 
     const context = {
       runId: 'run-concurrent',
@@ -403,6 +407,7 @@ describe('submitGameScore Arena publication bridge', () => {
     mocks.prisma.simulationLog.findUnique.mockImplementation(async () => storedLog);
     mocks.prisma.simulationLog.findFirst.mockResolvedValue(null);
     mocks.prisma.simulationLog.create.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => {
+      if (storedLog) throw Object.assign(new Error('unique constraint'), { code: 'P2002' });
       storedLog = {
         ...data,
         id: `log-${runId}`,
@@ -458,6 +463,27 @@ describe('submitGameScore Arena publication bridge', () => {
     expect(mocks.prisma.simulationLog.create).toHaveBeenCalledTimes(1);
     expect(mocks.prisma.studentProfile.upsert).toHaveBeenCalledTimes(1);
     expect(mocks.bridgeOdysseyRunToArenaSubmission).toHaveBeenCalledTimes(1);
+  });
+
+  it('credits an expired takeover from the first persisted score instead of a forged retry score', async () => {
+    const store = installDurableRunStore('run-score-stable');
+    mocks.prisma.$transaction
+      .mockRejectedValueOnce(new Error('process crashed before credit'))
+      .mockImplementation(async (callback: (tx: typeof mocks.prisma) => unknown) => callback(mocks.prisma));
+    const context = {
+      runId: 'run-score-stable',
+      arenaTaskId: 'task-odyssey-level-one-growth',
+      publicationId: 'publication-1',
+      controllerId: 'PID' as const,
+    };
+
+    expect(await submitGameScore('level-1', 100, {}, context)).toBeNull();
+    store.expireLease();
+    await submitGameScore('level-1', 99_900, {}, context);
+
+    expect(mocks.prisma.studentProfile.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      update: expect.objectContaining({ controlCredits: { increment: 1 } }),
+    }));
   });
 
   it('resumes after a crash following the atomic credit stage without crediting twice', async () => {
@@ -553,6 +579,42 @@ describe('submitGameScore Arena publication bridge', () => {
     expect(second).toMatchObject({ id: 'log-run-takeover' });
     expect(mocks.prisma.studentProfile.upsert).toHaveBeenCalledTimes(1);
     expect(mocks.computeOfficialOdysseyTelemetry).toHaveBeenCalledTimes(1);
+    expect(mocks.bridgeOdysseyRunToArenaSubmission).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns pending for a slow active winner and binds the same submission on retry', async () => {
+    installDurableRunStore('run-slow-winner');
+    mocks.bridgeOdysseyRunToArenaSubmission.mockImplementationOnce(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 700));
+      return {
+        ok: true,
+        duplicate: false,
+        gameScorePreserved: true,
+        submission: { id: 'submission-slow-winner' },
+      };
+    });
+    const context = {
+      runId: 'run-slow-winner',
+      arenaTaskId: 'task-odyssey-level-one-growth',
+      publicationId: 'publication-1',
+      controllerId: 'PID' as const,
+    };
+
+    const results = await Promise.all([
+      submitGameScore('level-1', 820, {}, context),
+      submitGameScore('level-1', 99_900, {}, context),
+    ]);
+    const pending = results.find((result) => result && 'status' in result && result.status === 'pending');
+    const winner = results.find((result) => result && 'arenaSubmissionId' in result && result.arenaSubmissionId);
+
+    expect(pending).toMatchObject({ status: 'pending', runId: 'run-slow-winner' });
+    expect(winner).toMatchObject({ id: 'log-run-slow-winner', arenaSubmissionId: 'submission-slow-winner' });
+    const recovered = await submitGameScore('level-1', 99_900, {}, context);
+    expect(recovered).toMatchObject({
+      id: 'log-run-slow-winner',
+      arenaSubmissionId: 'submission-slow-winner',
+    });
+    expect(mocks.prisma.studentProfile.upsert).toHaveBeenCalledTimes(1);
     expect(mocks.bridgeOdysseyRunToArenaSubmission).toHaveBeenCalledTimes(1);
   });
 

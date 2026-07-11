@@ -687,6 +687,9 @@ export async function submitGameScore(
                 where: { userId_odysseyRunId: { userId: actionUser.id, odysseyRunId: runId } }
               }) ?? existingLog;
             }
+            if (!existingLog.odysseyCompletedAt) {
+              return { status: 'pending' as const, runId, retryAfterMs: 1_000 };
+            }
             return { ...existingLog, arenaSubmissionId: existingLog.odysseySubmissionId ?? undefined };
           }
         }
@@ -771,6 +774,9 @@ export async function submitGameScore(
           where: { userId_odysseyRunId: { userId: actionUser.id, odysseyRunId: runId as string } }
         }) ?? log;
       }
+      if (!log.odysseyCompletedAt) {
+        return { status: 'pending' as const, runId: runId as string, retryAfterMs: 1_000 };
+      }
       const expectedArenaTaskId = getArenaTaskForOdysseyLevel(levelId);
       if (expectedArenaTaskId && context?.arenaTaskId === expectedArenaTaskId) {
         const submissions = await prismaArenaSubmissionStore.listSubmissions({
@@ -796,7 +802,8 @@ export async function submitGameScore(
     const nextTier = resolveTierUnlock(tierProgress[creditLevelId], completedTier);
     const nextProgress = { ...tierProgress, [creditLevelId]: nextTier };
     const nextUnlocks = unlocks.includes('P') ? unlocks : [...unlocks, 'P'];
-    const creditsEarned = Math.floor(score / 100);
+    const persistedScore = typeof log.score === 'number' && Number.isFinite(log.score) ? log.score : 0;
+    const creditsEarned = Math.floor(persistedScore / 100);
 
     if (ownsRunClaim && !log.odysseyCreditAppliedAt) {
       const creditAppliedAt = new Date();

@@ -17,6 +17,7 @@ import {
   type ControllerId,
   type LevelTier
 } from './level-data';
+import { submitWithPendingRecovery } from './submission-recovery';
 import { TuningPanel } from './components/TuningPanel';
 import { useGameStore } from './store/game-store';
 import { Bot, Play, RotateCcw, Settings2, Trophy, Info, ArrowLeft, Rocket, Gamepad2, Layers, ShoppingBag, Lock } from 'lucide-react';
@@ -232,17 +233,17 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
         if (bestScoreSnapshotRef.current === null) {
           bestScoreSnapshotRef.current = personalBestScores[selectedLevelId]?.tiers?.[currentTier] ?? 0;
         }
-        const result = await submitGameScore(
+        const submit = () => submitGameScore(
           selectedLevelId,
           finalScore,
           {
-          maxOvershoot: metrics.maxOvershoot,
-          settlingTime: metrics.settlingTime,
-          steadyError: metrics.steadyError,
-          avgRelativeError: metrics.avgRelativeError,
-          controlEnergy: metrics.controlEnergy,
-          controlSmoothness: metrics.controlSmoothness,
-          scoreMultiplier
+            maxOvershoot: metrics.maxOvershoot,
+            settlingTime: metrics.settlingTime,
+            steadyError: metrics.steadyError,
+            avgRelativeError: metrics.avgRelativeError,
+            controlEnergy: metrics.controlEnergy,
+            controlSmoothness: metrics.controlSmoothness,
+            scoreMultiplier
           },
           {
             runId,
@@ -259,6 +260,11 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
             publicationId
           }
         );
+        const result = await submitWithPendingRecovery(submit);
+        if (result && 'status' in result && result.status === 'pending') {
+          hasSubmittedRef.current = false;
+          return;
+        }
         if (result && 'arenaSubmissionId' in result && result.arenaSubmissionId) {
           await completeArenaPath(result.arenaSubmissionId);
         }
@@ -276,6 +282,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
         const configs = await getTopControlConfigs(selectedLevelId);
         setTopConfigs(configs);
       } catch (e) {
+        hasSubmittedRef.current = false;
         console.error('Failed to submit score', e);
       } finally {
         setIsSubmitting(false);
