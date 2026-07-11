@@ -608,7 +608,7 @@ const DEMO_ARENA_JOURNEY_NODE = {
   evidenceBehavior: 'judged-submission',
   sourceKind: 'arena_task',
   sourceRef: 'task-second-order-lead-pid',
-  target: '/arena/challenges/task-second-order-lead-pid?journeyFixture=1',
+  target: '/arena/challenges/task-second-order-lead-pid?journeyFixture=1&publicationId=publication-path-e2e&publicationId=publication-forged&classId=class-path-e2e&classId=class-forged&seasonId=season-path-e2e&seasonId=season-forged',
   prerequisiteNodeIds: [],
   status: 'current',
 } as unknown as AdaptiveLearningPathPlan['mainPath'][number];

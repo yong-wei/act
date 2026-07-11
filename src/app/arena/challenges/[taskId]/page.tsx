@@ -90,13 +90,13 @@ export default async function ArenaChallengePage(
       />
     );
   }
-  const publicationId = typeof searchParams?.publicationId === 'string' && searchParams.publicationId.trim().length > 0
-    ? searchParams.publicationId
-    : undefined;
+  const publicationId = normalizedSearchParams.get('publicationId')?.trim() || undefined;
   let publicationContext: ArenaResolvedSubmissionContext | null = null;
   let viewerUserId: string | undefined;
   if (publicationId) {
-    const session = await getServerAuthSession();
+    const session = usePlaywrightPathFixture
+      ? { user: { id: 'student-path-e2e', role: 'STUDENT' } }
+      : await getServerAuthSession();
     const publicationPath = `/arena/challenges/${encodeURIComponent(params.taskId)}?${new URLSearchParams({ publicationId }).toString()}`;
     if (!session?.user?.id || session.user.role !== 'STUDENT') {
       return (
@@ -115,13 +115,32 @@ export default async function ArenaChallengePage(
     }
     viewerUserId = session.user.id;
     try {
-      publicationContext = await resolveAccessibleArenaPublicationForStudent(prisma as any, {
-        publicationId,
-        studentId: session.user.id,
-        taskId: task.id,
-        now: new Date(),
-        allowAfterDeadline: true,
-      });
+      publicationContext = usePlaywrightPathFixture
+        ? {
+            id: publicationId,
+            taskId: task.id,
+            visibility: 'class',
+            studentVisibility: 'class',
+            classId: normalizedSearchParams.get('classId')?.trim() || undefined,
+            seasonId: normalizedSearchParams.get('seasonId')?.trim() || undefined,
+            isLate: false,
+            deadline: '2099-07-11T00:00:00.000Z',
+            leaderboardPolicyId: task.leaderboardPolicyId,
+            gradingPolicy: { hideFullLeaderboardBeforeDeadline: false },
+            displayContext: {
+              assignmentTitle: '路径 Arena 验收发布',
+              classTitle: '路径验收班级',
+              teacherName: '验收教师',
+              sourceLabel: '受控 Playwright fixture',
+            },
+          }
+        : await resolveAccessibleArenaPublicationForStudent(prisma as any, {
+            publicationId,
+            studentId: session.user.id,
+            taskId: task.id,
+            now: new Date(),
+            allowAfterDeadline: true,
+          });
     } catch (error) {
       if (error instanceof ArenaPublicationAccessError) {
         return (

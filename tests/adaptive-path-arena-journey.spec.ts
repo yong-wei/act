@@ -3,23 +3,50 @@ import { expect, test, type Page } from '@playwright/test';
 const taskId = 'task-second-order-lead-pid';
 const pathId = 'path-arena-e2e';
 const nodeId = `arena-task:${taskId}`;
+const nextNodeId = 'knowledge-card:arena-review';
+const publicationContext = {
+  publicationId: 'publication-path-e2e',
+  classId: 'class-path-e2e',
+  seasonId: 'season-path-e2e',
+};
 const returnHref = `/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=${pathId}&nodeId=${encodeURIComponent(nodeId)}`;
+const nextReturnHref = `/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=${pathId}&nodeId=${encodeURIComponent(nextNodeId)}`;
 
-function pathQuery() {
-  return new URLSearchParams({
+function nextNodeHref() {
+  return `/knowledge?${new URLSearchParams({
+    ...publicationContext,
     source: 'adaptive-path-center',
     goal: 'control-correction',
     goalId: 'control-correction',
     pathId,
-    nodeId,
+    nodeId: nextNodeId,
     intent: 'path-execution',
-    returnHref,
-    resourceType: 'arena_task',
-    journeyFixture: '1',
-  });
+    returnHref: nextReturnHref,
+    resourceType: 'knowledge_card',
+  }).toString()}`;
 }
 
-function journey(state: 'pending-result' | 'ready') {
+function journey(state: 'pending-result' | 'ready' | 'next-surface') {
+  if (state === 'next-surface') {
+    return {
+      path: { id: pathId, title: 'Arena 连续学习路径' },
+      goal: { id: 'control-correction' },
+      context: { pathId, goalId: 'control-correction', requestedNodeId: nextNodeId },
+      current: { nodeId: nextNodeId, title: '复盘 Arena 评测证据', type: 'knowledge_card' },
+      progress: { completed: 1, total: 2 },
+      return: { label: '返回学习路径', href: nextReturnHref },
+      pathStatus: 'active',
+      nextAction: {
+        state: 'pending-result' as const,
+        nodeId: nextNodeId,
+        title: '复盘 Arena 评测证据',
+        type: 'knowledge_card',
+        href: null,
+        reason: '完成证据复盘后结束路径。',
+        recovery: { label: '刷新结果状态', href: nextReturnHref },
+      },
+    };
+  }
   return {
     path: { id: pathId, title: 'Arena 连续学习路径' },
     goal: { id: 'control-correction' },
@@ -31,10 +58,10 @@ function journey(state: 'pending-result' | 'ready') {
     nextAction: state === 'ready'
       ? {
           state: 'ready',
-          nodeId: 'reflection:arena-review',
+          nodeId: nextNodeId,
           title: '复盘 Arena 评测证据',
-          type: 'reflection',
-          href: `${returnHref}&next=reflection%3Aarena-review`,
+          type: 'knowledge_card',
+          href: nextNodeHref(),
           reason: null,
           recovery: null,
         }
@@ -89,7 +116,10 @@ async function installArenaFixture(page: Page) {
   let startRequests = 0;
   let executeRequests = 0;
   await page.route('**/api/learning-paths/**/journey?**', async (route) => {
-    await route.fulfill({ json: { journey: currentJourney } });
+    const requestedNodeId = new URL(route.request().url()).searchParams.get('nodeId');
+    await route.fulfill({
+      json: { journey: requestedNodeId === nextNodeId ? journey('next-surface') : currentJourney },
+    });
   });
   await page.route('**/api/arena/submissions?**', async (route) => {
     await route.fulfill({ json: { submissions: [], viewerUserId: 'student-e2e' } });
@@ -137,6 +167,17 @@ test('Arena path node keeps context through challenge, workbench, submission, an
   await pathNode.getByRole('button', { name: '开始学习' }).click();
   await expect(page).toHaveURL(new RegExp(`/arena/challenges/${taskId}`));
   expect(fixture.startRequests()).toBe(1);
+  const challengeUrl = new URL(page.url());
+  expect(Object.fromEntries(challengeUrl.searchParams)).toMatchObject({
+    pathId,
+    nodeId,
+    returnHref,
+  });
+  for (const key of ['publicationId', 'classId', 'seasonId']) {
+    expect(challengeUrl.searchParams.get(key)).toBe(publicationContext[key as keyof typeof publicationContext]);
+    expect(challengeUrl.searchParams.getAll(key)).toHaveLength(2);
+    expect(challengeUrl.searchParams.getAll(key)[1]).toContain('forged');
+  }
 
   await expect(page.locator('[data-commercial-workspace="arena-challenge-detail"]')).toBeVisible();
   await expect(page.locator('[data-adaptive-path-journey-control="pending-result"]')).toContainText('完成工作台官方评测后继续');
@@ -147,15 +188,26 @@ test('Arena path node keeps context through challenge, workbench, submission, an
   expect(workbenchHref).toBeTruthy();
   const propagated = new URL(workbenchHref!, 'http://act.local');
   expect(Object.fromEntries(propagated.searchParams)).toMatchObject({
+    ...publicationContext,
     arenaTask: taskId,
     pathId,
     nodeId,
     returnHref,
     resourceType: 'arena_task',
   });
+  for (const key of ['publicationId', 'classId', 'seasonId']) {
+    expect(propagated.searchParams.getAll(key)).toEqual([publicationContext[key as keyof typeof publicationContext]]);
+  }
 
   await workbenchLink.click();
   await expect(page).toHaveURL(/\/interactive-learning\/control-workbench/);
+  const workbenchUrl = new URL(page.url());
+  expect(Object.fromEntries(workbenchUrl.searchParams)).toMatchObject({
+    ...publicationContext,
+    pathId,
+    nodeId,
+    returnHref,
+  });
   await expect(page.locator('[data-commercial-workspace="control-workbench"]')).toBeVisible();
   await expect(page.locator('[data-adaptive-path-journey-control="pending-result"]')).toBeVisible();
 
@@ -163,5 +215,18 @@ test('Arena path node keeps context through challenge, workbench, submission, an
   await expect(page.getByText(/官方评测完成/).first()).toBeVisible();
   await expect(page.locator('[data-adaptive-path-journey-control="ready"]')).toContainText('复盘 Arena 评测证据');
   expect(fixture.executeRequests()).toBe(1);
-  await expect(page.getByRole('link', { name: '复盘 Arena 评测证据' })).toHaveAttribute('href', /next=reflection/);
+  const nextLink = page.getByRole('link', { name: '复盘 Arena 评测证据' });
+  await expect(nextLink).toHaveAttribute('href', new RegExp(`/knowledge\\?`));
+  await nextLink.click();
+  await expect(page).toHaveURL(/\/knowledge\?/);
+  const nextUrl = new URL(page.url());
+  expect(Object.fromEntries(nextUrl.searchParams)).toMatchObject({
+    ...publicationContext,
+    pathId,
+    nodeId: nextNodeId,
+    returnHref: nextReturnHref,
+    resourceType: 'knowledge_card',
+  });
+  await expect(page.locator('[data-adaptive-path-journey-control="pending-result"]')).toContainText('复盘 Arena 评测证据');
+  await expect(page.getByRole('main')).toContainText('知识');
 });
