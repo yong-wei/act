@@ -43,6 +43,42 @@ function request(nodeId = 'node-1', goalId = 'control-correction') {
   return new Request(`http://localhost/api/learning-paths/path-1/journey?nodeId=${encodeURIComponent(nodeId)}&goalId=${encodeURIComponent(goalId)}`);
 }
 
+function legacyArenaPathRecord(kind: 'registry' | 'yangfan') {
+  const isRegistry = kind === 'registry';
+  const legacyNodeId = isRegistry ? 'registry:arena-challenge-workbench' : '根轨迹_1_1';
+  const taskId = 'task-second-order-lead-pid';
+  return pathRecord({
+    currentNodeId: legacyNodeId,
+    nodeIds: [legacyNodeId],
+    pathPayload: {
+      ...(isRegistry ? {} : { fixtureScope: 'yangfan-diagnostic-fixture.v1' }),
+      mainPathNodeIds: [legacyNodeId],
+      planNodes: [{
+        nodeId: legacyNodeId,
+        title: isRegistry ? 'Arena 挑战工作台' : '杨帆根轨迹诊断',
+        type: 'arena_task',
+        sourceKind: isRegistry ? 'resource_registry' : 'knowledge_graph',
+        sourceRef: isRegistry ? 'arena-challenge-workbench' : legacyNodeId,
+        target: isRegistry
+          ? `/arena/challenges/${taskId}`
+          : `/arena?nodeId=${encodeURIComponent(legacyNodeId)}`,
+        status: 'current',
+        readiness: { state: 'ready' },
+      }],
+    },
+    terminalValidation: {
+      nodeId: legacyNodeId,
+      state: 'pending',
+      sourceKind: isRegistry ? 'resource_registry' : 'knowledge_graph',
+      sourceRef: isRegistry ? 'arena-challenge-workbench' : legacyNodeId,
+      target: isRegistry
+        ? `/arena/challenges/${taskId}`
+        : `/arena?nodeId=${encodeURIComponent(legacyNodeId)}`,
+    },
+    lastExecutionMetadata: { completedNodeIds: [], failedNodeIds: [] },
+  });
+}
+
 describe('GET /api/learning-paths/[id]/journey', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -91,6 +127,46 @@ describe('GET /api/learning-paths/[id]/journey', () => {
       progress: { completed: 1, total: 2 },
       nextAction: { state: 'ready', nodeId: 'node-2' },
     });
+  });
+
+  it.each([
+    ['legacy registry', 'registry' as const],
+    ['Yang Fan fixture', 'yangfan' as const],
+  ])('returns a canonical journey for the verified %s persisted Arena path', async (_label, kind) => {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue(legacyArenaPathRecord(kind));
+
+    const response = await GET(request('arena-task:task-second-order-lead-pid'), params);
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.journey).toMatchObject({
+      current: {
+        nodeId: 'arena-task:task-second-order-lead-pid',
+        type: 'arena_task',
+      },
+      nextAction: {
+        nodeId: 'arena-task:task-second-order-lead-pid',
+      },
+    });
+    expect(JSON.stringify(payload.journey)).not.toContain(
+      kind === 'registry' ? 'registry:arena-challenge-workbench' : '根轨迹_1_1',
+    );
+  });
+
+  it('does not authorize raw legacy, wrong canonical, or unknown Arena node ids', async () => {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue(legacyArenaPathRecord('registry'));
+
+    for (const nodeId of [
+      'registry:arena-challenge-workbench',
+      'arena-task:task-cruise-roll-blackbox-identification',
+      'arena-task:unknown-task',
+    ]) {
+      const response = await GET(request(nodeId), params);
+      const payload = await response.json();
+      expect(response.status).toBe(403);
+      expect(payload).toEqual({ error: '无权访问该学习路径旅程' });
+      expect(payload).not.toHaveProperty('journey');
+    }
   });
 
   it('returns pending-result without a next href', async () => {

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 
 import { buildAuthorizedAdaptivePathJourney } from '@/features/adaptive/adaptive-path-journey-contracts';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import { canonicalizeVerifiedLegacyArenaPath } from '@/lib/verified-legacy-arena-path-canonicalization';
 import {
   assertCanReadOwnedPathJourney,
   getLearningPathRequester,
@@ -16,14 +17,15 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
     const requester = await getLearningPathRequester();
     if (requester instanceof NextResponse) return requester;
     const params = await props.params;
-    const path = await readPathForAccess(params.id);
-    if (path instanceof NextResponse) {
-      return path.status === 404
+    const persistedPath = await readPathForAccess(params.id);
+    if (persistedPath instanceof NextResponse) {
+      return persistedPath.status === 404
         ? NextResponse.json({ error: '无权访问该学习路径旅程' }, { status: 403 })
-        : path;
+        : persistedPath;
     }
-    const denied = assertCanReadOwnedPathJourney(requester, path);
+    const denied = assertCanReadOwnedPathJourney(requester, persistedPath);
     if (denied) return denied;
+    const path = canonicalizeVerifiedLegacyArenaPath(persistedPath).path;
 
     const url = new URL(request.url);
     const nodeId = url.searchParams.get('nodeId');

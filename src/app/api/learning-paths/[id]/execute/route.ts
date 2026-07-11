@@ -2,10 +2,8 @@ import { NextResponse } from 'next/server';
 
 import { buildAuthorizedAdaptivePathJourney } from '@/features/adaptive/adaptive-path-journey-contracts';
 import { resolveArenaPathTargetIntegrity } from '@/lib/arena-path-target-integrity';
-import {
-  remapPathNodeId,
-  remapPersistedLearningPathReferences,
-} from '@/lib/path-node-id-alias-remap';
+import { remapPathNodeId } from '@/lib/path-node-id-alias-remap';
+import { canonicalizeVerifiedLegacyArenaPath } from '@/lib/verified-legacy-arena-path-canonicalization';
 import { prisma } from '@/lib/prisma';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import {
@@ -305,63 +303,6 @@ function isCanonicalExecutionReplay(
   return remapPathNodeId(existingExecution.nodeId, nodeIdReplacements) === body.nodeId &&
     existingExecution.resourceType === body.resourceType &&
     existingExecution.status === body.status;
-}
-
-function canonicalizeVerifiedLegacyArenaPath(path: any): {
-  path: any;
-  nodeIdReplacements: ReadonlyMap<string, string>;
-} {
-  const payload = toRecord(path?.pathPayload);
-  const fixtureScope = payload.fixtureScope;
-  const rawPlanNodes = Array.isArray(payload.planNodes) ? payload.planNodes.map(toRecord) : [];
-  const nodeIdReplacements = new Map<string, string>();
-  const canonicalTargets = new Map<string, NonNullable<ReturnType<typeof resolveArenaPathTargetIntegrity>['target']>>();
-  for (const node of rawPlanNodes) {
-    if (node.type !== 'arena_task' || typeof node.nodeId !== 'string') continue;
-    const integrity = resolveArenaPathTargetIntegrity({ ...node, fixtureScope });
-    if (integrity.status !== 'repaired') continue;
-    nodeIdReplacements.set(node.nodeId, integrity.target.nodeId);
-    canonicalTargets.set(node.nodeId, integrity.target);
-  }
-  if (nodeIdReplacements.size === 0) return { path, nodeIdReplacements };
-
-  const canonicalPlanNodes = rawPlanNodes.map((node) => {
-    const legacyNodeId = typeof node.nodeId === 'string' ? node.nodeId : '';
-    const canonicalTarget = canonicalTargets.get(legacyNodeId);
-    return {
-      ...node,
-      ...(canonicalTarget ?? {}),
-    };
-  });
-  const terminalValidation = toRecord(path.terminalValidation);
-  const terminalLegacyNodeId = typeof terminalValidation.nodeId === 'string'
-    ? terminalValidation.nodeId
-    : '';
-  const terminalTarget = canonicalTargets.get(terminalLegacyNodeId);
-
-  const canonicalizedPath = remapPersistedLearningPathReferences({
-    ...path,
-    pathPayload: {
-      ...payload,
-      planNodes: canonicalPlanNodes,
-    },
-  }, nodeIdReplacements);
-  return {
-    nodeIdReplacements,
-    path: {
-      ...canonicalizedPath,
-      terminalValidation: {
-        ...toRecord(canonicalizedPath.terminalValidation),
-        ...(terminalTarget ? {
-          nodeId: terminalTarget.nodeId,
-          sourceKind: terminalTarget.sourceKind,
-          sourceRef: terminalTarget.sourceRef,
-          taskId: terminalTarget.sourceRef,
-          target: terminalTarget.target,
-        } : {}),
-      },
-    },
-  };
 }
 
 function toRecord(value: unknown): Record<string, unknown> {
