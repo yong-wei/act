@@ -13,7 +13,6 @@ import {
   resolveKnowledgeGraphRuntimeNodeCoordinates,
   resolveFocusedExpansionRevealTarget,
   selectFocusedExpansionGraphNodes,
-  type KnowledgeGraphNodeScreenPosition,
   type KnowledgeGraphPositionedNode,
 } from './layout-engine';
 import {
@@ -54,7 +53,6 @@ interface KnowledgeGraph2DProps {
   relayoutVersion: number;
   expandedNodeIds: readonly string[];
   expandedDirectLinks: readonly KnowledgeLinkData[];
-  onSelectedNodeScreenPosition: (position: KnowledgeGraphNodeScreenPosition) => void;
 }
 
 type RuntimeKnowledgeGraphNode = KnowledgeGraphPositionedNode & {
@@ -292,7 +290,6 @@ export function KnowledgeGraph2D({
   relayoutVersion,
   expandedNodeIds,
   expandedDirectLinks,
-  onSelectedNodeScreenPosition,
 }: KnowledgeGraph2DProps) {
   const fgRef = useRef<any>(null);
   const layoutStateRef = useRef(layoutState);
@@ -394,49 +391,6 @@ export function KnowledgeGraph2D({
     const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
     graphNodes.forEach(rememberRuntimeNodePosition);
   }, [graphData.nodes, rememberRuntimeNodePosition]);
-
-  const reportSelectedNodeScreenPosition = useCallback(() => {
-    const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
-
-    if (!selectedNode?.id || !fgRef.current?.graph2ScreenCoords) {
-      onSelectedNodeScreenPosition({ nodeId: null, viewMode: '2D' });
-      return;
-    }
-    const graphNode = graphNodes.find((node) => node.id === selectedNode.id);
-    const graphX = Number(graphNode?.x);
-    const graphY = Number(graphNode?.y);
-    if (!Number.isFinite(graphX) || !Number.isFinite(graphY)) {
-      onSelectedNodeScreenPosition({ nodeId: null, viewMode: '2D' });
-      return;
-    }
-    const screen = fgRef.current.graph2ScreenCoords(graphX, graphY);
-    const screenX = Number(screen?.x);
-    const screenY = Number(screen?.y);
-    if (!Number.isFinite(screenX) || !Number.isFinite(screenY)) {
-      onSelectedNodeScreenPosition({ nodeId: null, viewMode: '2D' });
-      return;
-    }
-    onSelectedNodeScreenPosition({
-      nodeId: selectedNode.id,
-      viewMode: '2D',
-      x: screenX,
-      y: screenY,
-    });
-  }, [graphData.nodes, onSelectedNodeScreenPosition, selectedNode?.id]);
-
-  useEffect(() => {
-    let animationFrame = 0;
-    const reportFrame = () => {
-      reportSelectedNodeScreenPosition();
-      animationFrame = window.requestAnimationFrame(reportFrame);
-    };
-    onSelectedNodeScreenPosition({ nodeId: null, viewMode: '2D' });
-    animationFrame = window.requestAnimationFrame(reportFrame);
-    return () => {
-      window.cancelAnimationFrame(animationFrame);
-      onSelectedNodeScreenPosition({ nodeId: null, viewMode: '2D' });
-    };
-  }, [height, onSelectedNodeScreenPosition, reportSelectedNodeScreenPosition, width]);
 
   useEffect(() => {
     const qaWindow = window as Window & {

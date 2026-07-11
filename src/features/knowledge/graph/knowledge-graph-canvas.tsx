@@ -43,7 +43,6 @@ import {
   resolveFocusedExpansionRevealTarget,
   selectFocusedExpansionGraphNodes,
   translateKnowledgeGraphCameraPose,
-  type KnowledgeGraphNodeScreenPosition,
   type KnowledgeGraphPositionedNode,
 } from './layout-engine';
 
@@ -63,7 +62,6 @@ interface KnowledgeGraphCanvasProps {
   height?: number;
   expandedNodeIds: readonly string[];
   expandedDirectLinks: readonly KnowledgeLinkData[];
-  onSelectedNodeScreenPosition: (position: KnowledgeGraphNodeScreenPosition) => void;
 }
 
 type RuntimeKnowledgeGraphNode = KnowledgeGraphPositionedNode & {
@@ -155,7 +153,6 @@ export function KnowledgeGraphCanvas({
   height,
   expandedNodeIds,
   expandedDirectLinks,
-  onSelectedNodeScreenPosition,
 }: KnowledgeGraphCanvasProps) {
   const fgRef = useRef<any>(null);
   const layoutStateRef = useRef(layoutState);
@@ -331,51 +328,6 @@ export function KnowledgeGraphCanvas({
     const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
     graphNodes.forEach(rememberRuntimeNodePosition);
   }, [graphData.nodes, rememberRuntimeNodePosition]);
-
-  const reportSelectedNodeScreenPosition = useCallback(() => {
-    const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
-
-    if (!selectedNode?.id || !fgRef.current?.graph2ScreenCoords) {
-      onSelectedNodeScreenPosition({ nodeId: null, viewMode: '3D' });
-      return;
-    }
-    const graphNode = graphNodes.find((node) => node.id === selectedNode.id);
-    const graphX = Number(graphNode?.x);
-    const graphY = Number(graphNode?.y);
-    const graphZ = Number(graphNode?.z ?? 0);
-    if (!Number.isFinite(graphX) || !Number.isFinite(graphY) || !Number.isFinite(graphZ)) {
-      onSelectedNodeScreenPosition({ nodeId: null, viewMode: '3D' });
-      return;
-    }
-    const screen = fgRef.current.graph2ScreenCoords(graphX, graphY, graphZ);
-    const screenX = Number(screen?.x);
-    const screenY = Number(screen?.y);
-    if (!Number.isFinite(screenX) || !Number.isFinite(screenY)) {
-      onSelectedNodeScreenPosition({ nodeId: null, viewMode: '3D' });
-      return;
-    }
-    onSelectedNodeScreenPosition({
-      nodeId: selectedNode.id,
-      viewMode: '3D',
-      x: screenX,
-      y: screenY,
-      z: graphZ,
-    });
-  }, [graphData.nodes, onSelectedNodeScreenPosition, selectedNode?.id]);
-
-  useEffect(() => {
-    let animationFrame = 0;
-    const reportFrame = () => {
-      reportSelectedNodeScreenPosition();
-      animationFrame = window.requestAnimationFrame(reportFrame);
-    };
-    onSelectedNodeScreenPosition({ nodeId: null, viewMode: '3D' });
-    animationFrame = window.requestAnimationFrame(reportFrame);
-    return () => {
-      window.cancelAnimationFrame(animationFrame);
-      onSelectedNodeScreenPosition({ nodeId: null, viewMode: '3D' });
-    };
-  }, [height, onSelectedNodeScreenPosition, reportSelectedNodeScreenPosition, width]);
 
   // 2. 创建自定义节点 3D 对象
   const createNodeObject = useCallback((node: any) => {

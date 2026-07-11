@@ -6,10 +6,10 @@
 
 ## 2. Direct Node Activation
 
-- [ ] 2.1 Replace the selected-node toggle closure with a node-id activation resolver covering collapsed, expanded, filtered-empty, leaf, unknown, loading, error, retry, and filter-recovery states.
-- [ ] 2.2 Route 2D/3D nodes, directory, search, deep links, and inspector Related Knowledge Points through the resolver, closing the inspector for expandable nodes and opening or replacing it only for canonically resolved leaf nodes.
-- [ ] 2.3 Add a synchronized semantic node-control path so keyboard Enter and Space produce the same activation outcomes with accessible focus, busy, expanded, leaf, and error states.
-- [ ] 2.4 Remove the node-following expansion button, positioning/focus machinery, and bottom-left expansion instruction panel after direct activation parity is verified.
+- [x] 2.1 Replace the selected-node toggle closure with a node-id activation resolver covering collapsed, expanded, filtered-empty, leaf, unknown, loading, error, retry, and filter-recovery states.
+- [x] 2.2 Route 2D/3D nodes, directory, search, deep links, and inspector Related Knowledge Points through the resolver, closing the inspector for expandable nodes and opening or replacing it only for canonically resolved leaf nodes.
+- [x] 2.3 Add a synchronized semantic node-control path so keyboard Enter and Space produce the same activation outcomes with accessible focus, busy, expanded, leaf, and error states.
+- [x] 2.4 Remove the node-following expansion button, positioning/focus machinery, and bottom-left expansion instruction panel after direct activation parity is verified.
 
 ## 3. Stable Sector Layout
 

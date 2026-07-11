@@ -370,15 +370,11 @@ describe('knowledge graph node-local expansion control', () => {
     });
 
     expect(systemSource).toContain('id="knowledge-graph-canvas"');
-    expect(systemSource).toContain("expansionControlRef.current.dataset.anchorClamped = controlPosition.clamped ? 'true' : 'false';");
-    expect(systemSource).toContain('visibleSelectedNode && !mobileToolPanelOpen');
-    const projectionHandler = systemSource.slice(
-      systemSource.indexOf('const handleSelectedNodeScreenPosition'),
-      systemSource.indexOf('useEffect(() => {', systemSource.indexOf('const handleSelectedNodeScreenPosition'))
-    );
-    expect(projectionHandler).not.toContain('querySelectorAll');
-    expect(projectionHandler).not.toContain('getBoundingClientRect');
-    expect(projectionHandler).not.toContain('getComputedStyle');
+    expect(systemSource).not.toContain('expansionControlRef');
+    expect(systemSource).not.toContain('handleSelectedNodeScreenPosition');
+    rendererSources.forEach((rendererSource) => {
+      expect(rendererSource).not.toContain('reportSelectedNodeScreenPosition');
+    });
   });
 
   it('uses a bounded local reveal in both renderers without fitting the whole graph', () => {
