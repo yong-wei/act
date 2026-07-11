@@ -307,7 +307,7 @@ export function KnowledgeGraphCanvas({
       nodes: focusedThreeDimensionalNodes,
       links: transformedLinks
     };
-  }, [nodes, links, relayoutVersion, expandedNodeIds, expandedDirectLinks]);
+  }, [nodes, links, relayoutVersion, layoutState.version, expandedNodeIds, expandedDirectLinks]);
 
   const rememberRuntimeNodePosition = useCallback((node: RuntimeKnowledgeGraphNode) => {
     if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) return;

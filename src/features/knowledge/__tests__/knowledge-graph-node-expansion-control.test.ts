@@ -154,6 +154,67 @@ describe('knowledge graph node-local expansion control', () => {
     expect(threeDimensionalSource).toContain('preserve: preserveRuntimeCoordinates');
   });
 
+  it('re-centers an expanded neighborhood when the pinned center version changes', () => {
+    const nodes: layoutEngine.KnowledgeGraphPositionedNode[] = [
+      {
+        id: 'center',
+        name: 'center',
+        nodeType: 'THEORY',
+        description: 'center',
+        positionX: 0,
+        positionY: 0,
+        positionZ: 0,
+      },
+      {
+        id: 'child',
+        name: 'child',
+        nodeType: 'THEORY',
+        description: 'child',
+        positionX: 0,
+        positionY: 0,
+        positionZ: 0,
+      },
+    ];
+    const input = {
+      nodes,
+      expandedNodeIds: ['center'],
+      directExpansionLinks: [{
+        id: 'center-child',
+        sourceId: 'center',
+        targetId: 'child',
+        relation: 'contains',
+      }],
+    };
+    const first = layoutEngine.applyFocusedExpansionLayout({
+      ...input,
+      layoutState: {
+        version: 1,
+        positionsByNodeId: { center: { x: 0, y: 0, pinned: true } },
+      },
+    });
+    const moved = layoutEngine.applyFocusedExpansionLayout({
+      ...input,
+      layoutState: {
+        version: 2,
+        positionsByNodeId: { center: { x: 120, y: 40, pinned: true } },
+      },
+    });
+    const firstChild = first.find((node) => node.id === 'child')!;
+    const movedChild = moved.find((node) => node.id === 'child')!;
+
+    expect(movedChild.x! - firstChild.x!).toBe(120);
+    expect(movedChild.y! - firstChild.y!).toBe(40);
+
+    const twoDimensionalSource = readKnowledgeSource('graph/knowledge-graph-2d.tsx');
+    const threeDimensionalSource = readKnowledgeSource('graph/knowledge-graph-canvas.tsx');
+    expect(twoDimensionalSource).toContain(
+      '[nodes, links, relayoutVersion, layoutState.version, expandedNodeIds, expandedDirectLinks]'
+    );
+    expect(threeDimensionalSource).toContain(
+      '[nodes, links, relayoutVersion, layoutState.version, expandedNodeIds, expandedDirectLinks]'
+    );
+  });
+
   it('keeps the measured control inside all viewport edges while preserving the normal anchor distance', () => {
     const clampPosition = (
       layoutEngine as typeof layoutEngine & {

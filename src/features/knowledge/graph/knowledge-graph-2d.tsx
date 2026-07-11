@@ -349,8 +349,8 @@ export function KnowledgeGraph2D({
     const layoutRadius = 180 + relayoutVersion * 0;
     const preserveRuntimeCoordinates = committedRelayoutVersionRef.current === relayoutVersion;
 
-    // 应用辐射布局。拖拽后的 pinned 坐标通过下方 effect 同步到现有图节点，
-    // 避免 layoutState 变化时重建 graphData 并重新加热力导向布局。
+    // 应用辐射布局。layoutState.version 变化时重算已展开邻域，确保直接子节点
+    // 随固定中心同步移动；普通运行时坐标仍由下方 preserve gate 保留。
     const baseLayoutNodes = applyRadialLayout(clonedNodes, links, undefined, layoutRadius);
     const layoutNodes = resolveKnowledgeGraphRuntimeNodeCoordinates({
       nodes: baseLayoutNodes as RuntimeKnowledgeGraphNode[],
@@ -370,7 +370,7 @@ export function KnowledgeGraph2D({
       nodes: focusedLayoutNodes,
       links: transformedLinks
     };
-  }, [nodes, links, relayoutVersion, expandedNodeIds, expandedDirectLinks]);
+  }, [nodes, links, relayoutVersion, layoutState.version, expandedNodeIds, expandedDirectLinks]);
 
   const rememberRuntimeNodePosition = useCallback((node: RuntimeKnowledgeGraphNode) => {
     if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) return;
