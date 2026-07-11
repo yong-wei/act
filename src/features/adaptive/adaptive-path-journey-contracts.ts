@@ -1,5 +1,6 @@
 import { buildAdaptivePathLaunchHref } from './adaptive-learning-center-contracts';
 import { isStudentVisiblePathTarget } from '@/lib/control-correction-path-rounds';
+import { ARENA_CHALLENGE_TASKS } from '@/features/arena/data/seed-challenges';
 
 export type AdaptivePathJourneyNextActionState = 'ready' | 'blocked' | 'pending-result' | 'path-complete';
 
@@ -299,6 +300,7 @@ const PATH_CENTER_RAW_RESOURCE_TYPES = new Set([
   'slides',
   'handout',
 ]);
+const INTEGRATED_ARENA_TASK_IDS = new Set(ARENA_CHALLENGE_TASKS.map((task) => task.id));
 
 function hasIntegratedJourneyDestination(resourceType: string, target: string): boolean {
   const pathname = new URL(target, 'https://act.local').pathname;
@@ -319,6 +321,10 @@ function hasIntegratedJourneyDestination(resourceType: string, target: string): 
   }
   if (resourceType === 'simulation') {
     return pathname.startsWith('/simulations/');
+  }
+  if (resourceType === 'arena_task') {
+    const match = /^\/arena\/challenges\/([^/?#]+)$/.exec(pathname);
+    return Boolean(match?.[1] && INTEGRATED_ARENA_TASK_IDS.has(match[1]));
   }
   return false;
 }

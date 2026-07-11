@@ -187,6 +187,8 @@ describe('arena student entry UI boundaries', () => {
     expect(detailSource).toContain('AdaptivePathJourneyControlForArenaTask');
     expect(detailSource).not.toContain('ARENA_HIDDEN_TEST_SIGNAL_LABELS');
     expect(detailSource).not.toContain('task.training.hiddenTestSignal');
+    expect(hallSource).not.toContain('ARENA_HIDDEN_TEST_SIGNAL_LABELS');
+    expect(hallSource).not.toContain('challenge.training.hiddenTestSignal');
     expect(detailSource).toContain('评测边界');
     expect(detailSource).toContain('详情页不会完成当前路径节点');
     expect(detailSource).toContain('getChallengeLeaderboardBrowserData');

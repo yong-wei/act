@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   getArenaTaskForOdysseyLevel: vi.fn(),
   resolveAccessibleArenaPublicationForStudent: vi.fn(),
   computeOfficialOdysseyTelemetry: vi.fn(),
+  listSubmissions: vi.fn(),
   prisma: {
     mission: {
       findUnique: vi.fn(),
@@ -48,7 +49,7 @@ vi.mock('@/features/arena/odyssey/bridge', () => ({
 
 vi.mock('@/features/arena/submissions/prisma-store', () => ({
   prismaArenaSubmissionStore: {
-    listSubmissions: vi.fn(),
+    listSubmissions: mocks.listSubmissions,
   },
 }));
 
@@ -70,6 +71,7 @@ describe('submitGameScore Arena publication bridge', () => {
     mocks.prisma.mission.findUnique.mockResolvedValue({ id: 'level-1' });
     mocks.prisma.simulationLog.findFirst.mockResolvedValue(null);
     mocks.prisma.simulationLog.findMany.mockResolvedValue([]);
+    mocks.listSubmissions.mockResolvedValue([]);
     mocks.prisma.simulationLog.create.mockResolvedValue({
       id: 'log-1',
       createdAt: new Date('2026-05-15T10:00:00.000Z'),
@@ -114,6 +116,31 @@ describe('submitGameScore Arena publication bridge', () => {
 
     expect(result).toBeNull();
     expect(mocks.prisma.mission.findUnique).not.toHaveBeenCalled();
+    expect(mocks.prisma.simulationLog.create).not.toHaveBeenCalled();
+  });
+
+  it('returns the deterministic existing Arena submission id when an Odyssey run is replayed', async () => {
+    mocks.prisma.simulationLog.findFirst.mockResolvedValueOnce({
+      id: 'existing-log',
+      createdAt: new Date('2026-05-15T10:00:00.000Z'),
+    });
+    mocks.listSubmissions.mockResolvedValueOnce([{
+      id: 'existing-submission',
+      artifact: { params: { odysseyRunId: 'run-replay' } },
+    }]);
+
+    const result = await submitGameScore('level-1', 820, {}, {
+      runId: 'run-replay',
+      arenaTaskId: 'task-odyssey-level-one-growth',
+      publicationId: 'publication-1',
+    });
+
+    expect(result).toMatchObject({ id: 'existing-log', arenaSubmissionId: 'existing-submission' });
+    expect(mocks.listSubmissions).toHaveBeenCalledWith({
+      taskId: 'task-odyssey-level-one-growth',
+      userId: 'student-1',
+      publicationId: 'publication-1',
+    });
     expect(mocks.prisma.simulationLog.create).not.toHaveBeenCalled();
   });
 

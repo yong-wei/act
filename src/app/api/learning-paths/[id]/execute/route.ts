@@ -176,6 +176,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
             governedWorkbenchInput,
             arenaTargetIntegrity?.taskId,
           );
+          if ('arenaCompletionRejection' in governedArenaInput) return governedArenaInput.arenaCompletionRejection;
           const governedExecutionInput = await resolveGovernedTerminalEvidence(
             prisma as any,
             path,
@@ -233,6 +234,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
       governedWorkbenchInput,
       arenaTargetIntegrity?.taskId,
     );
+    if ('arenaCompletionRejection' in governedArenaInput) return governedArenaInput.arenaCompletionRejection;
     const executionInput = await resolveGovernedTerminalEvidence(
       prisma as any,
       path,
@@ -643,6 +645,40 @@ async function resolveGovernedTerminalEvidence<T extends {
   };
 }
 
+function isArenaPathCompletionEvidenceAccepted(
+  path: any,
+  arenaRef: Record<string, unknown> | null,
+): boolean {
+  const ref = toRecord(arenaRef);
+  const kind = firstString(ref.kind, ref.sourceType);
+  const provenance = firstString(ref.provenance);
+  if (
+    kind === 'ArenaSubmission' &&
+    provenance === 'official' &&
+    ref.official === true &&
+    ref.valid === true &&
+    firstString(ref.id) !== null &&
+    firstString(ref.mismatchReason) === null
+  ) {
+    return true;
+  }
+  if (kind !== 'ArenaVirtualSimulationRun' || provenance !== 'preview') return false;
+  if (firstString(ref.id) === null || firstString(ref.simulationRunId) === null) return false;
+  if (firstString(ref.mismatchReason) !== null) return false;
+  const policyRecord = toRecord(toRecord(path.terminalValidation).policy);
+  const allowPreviewValidation = policyRecord.allowPreviewValidation === true;
+  const requireOfficialArenaEvidence = policyRecord.requireOfficialArenaEvidence !== false;
+  const minimumReplayConfidence = typeof policyRecord.minimumReplayConfidence === 'number' &&
+    Number.isFinite(policyRecord.minimumReplayConfidence)
+    ? policyRecord.minimumReplayConfidence
+    : 0.7;
+  const confidence = readFinite(ref.replayConfidence);
+  return allowPreviewValidation &&
+    !requireOfficialArenaEvidence &&
+    confidence !== undefined &&
+    confidence >= minimumReplayConfidence;
+}
+
 async function resolveGovernedAdaptiveAssessmentOutcomeEvidence<T extends {
   pathId: string;
   nodeId: string;
@@ -978,12 +1014,20 @@ async function resolveGovernedArenaOutcomeEvidence<T extends {
   path: any,
   input: T,
   verifiedTaskId?: string | null,
-): Promise<T> {
+): Promise<T | { arenaCompletionRejection: NextResponse }> {
   if (input.resourceType !== 'arena_task' || input.status !== 'completed') return input;
   const scope = verifiedTaskId
     ? { arenaTaskId: verifiedTaskId, simulationRefs: new Set<string>() }
     : readArenaOutcomeEvidenceScope(path, input.nodeId);
   const arenaRef = await resolveServerArenaRef(db, input.userId, input.arenaRef, scope);
+  if (!isArenaPathCompletionEvidenceAccepted(path, arenaRef)) {
+    return {
+      arenaCompletionRejection: NextResponse.json({
+        error: 'Arena 结果尚未满足路径完成条件',
+        state: 'pending-result',
+      }, { status: 409 }),
+    };
+  }
   return {
     ...input,
     arenaRef,

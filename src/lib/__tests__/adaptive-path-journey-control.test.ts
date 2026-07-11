@@ -242,7 +242,12 @@ describe('adaptive path journey control', () => {
       'https://example.edu/slides',
     )).toBe('blocked');
     expect(resolveAdaptivePathJourneyTargetDisposition('project', '/profile/evidence')).toBe('blocked');
-    expect(resolveAdaptivePathJourneyTargetDisposition('arena_task', '/arena/challenges/task-1')).toBe('blocked');
+    expect(resolveAdaptivePathJourneyTargetDisposition(
+      'arena_task',
+      '/arena/challenges/task-second-order-lead-pid',
+    )).toBe('destination-control');
+    expect(resolveAdaptivePathJourneyTargetDisposition('arena_task', '/arena/challenges/task-unknown')).toBe('blocked');
+    expect(resolveAdaptivePathJourneyTargetDisposition('arena_task', '/arena')).toBe('blocked');
     expect(resolveAdaptivePathJourneyTargetDisposition('project', '/knowledge')).toBe('blocked');
     expect(resolveAdaptivePathJourneyTargetDisposition('arena_task', '/knowledge')).toBe('blocked');
     expect(resolveAdaptivePathJourneyTargetDisposition('unknown', '/knowledge')).toBe('blocked');

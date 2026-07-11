@@ -4724,7 +4724,7 @@ describe('learning path round API routes', () => {
     expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
   });
 
-  it('does not let clients forge official terminal Arena evidence', async () => {
+  it('rejects missing server-owned Arena evidence without recording completion', async () => {
     configureSingleNodePath('arena-task:task-second-order-lead-pid', 'arena_task', '/arena/challenges/task-second-order-lead-pid', {
       goalId: 'control-correction',
       planNode: {
@@ -4761,39 +4761,85 @@ describe('learning path round API routes', () => {
       },
     }), params);
 
-    expect(response.status).toBe(200);
+    expect(response.status).toBe(409);
     expect(mocks.prisma.arenaSubmission.findFirst).toHaveBeenCalledWith(expect.objectContaining({
       where: expect.objectContaining({
         id: 'missing-arena-submission',
         userId: 'student-1',
       }),
     }));
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
+    expect(JSON.stringify(await response.json())).not.toMatch(/hidden|score|valid/i);
+  });
+
+  it('rejects an invalid official ArenaSubmission before any path node advances', async () => {
+    configureSingleNodePath('arena-task:task-second-order-lead-pid', 'arena_task', '/arena/challenges/task-second-order-lead-pid', {
+      goalId: 'control-correction',
+      planNode: { sourceKind: 'arena_task', sourceRef: 'task-second-order-lead-pid' },
+    });
+    mocks.prisma.arenaSubmission.findFirst.mockResolvedValue({
+      id: 'arena-invalid',
+      taskId: 'task-second-order-lead-pid',
+      userId: 'student-1',
+      score: 0,
+      valid: false,
+      submittedAt: new Date('2026-07-11T01:00:00.000Z'),
+      evaluationRun: { protocolVersion: 'v1', metrics: {}, metadata: {}, completedAt: new Date('2026-07-11T01:00:00.000Z') },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'arena-task:task-second-order-lead-pid',
+      resourceType: 'arena_task',
+      status: 'completed',
+      idempotencyKey: 'invalid-arena-result',
+      arenaRef: { id: 'arena-invalid' },
+    }), params);
+
+    expect(response.status).toBe(409);
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
+  });
+
+  it('accepts a server-owned Arena preview only when terminal policy explicitly allows it', async () => {
+    configureSingleNodePath('arena-task:task-second-order-lead-pid', 'arena_task', '/arena/challenges/task-second-order-lead-pid', {
+      goalId: 'control-correction',
+      planNode: { sourceKind: 'arena_task', sourceRef: 'task-second-order-lead-pid' },
+      terminalValidation: {
+        nodeId: 'arena-task:task-second-order-lead-pid',
+        state: 'pending',
+        policy: {
+          allowPreviewValidation: true,
+          requireOfficialArenaEvidence: false,
+          minimumReplayConfidence: 0.7,
+        },
+      },
+    });
+    mocks.prisma.arenaSubmission.findFirst.mockResolvedValue(null);
+    mocks.prisma.arenaVirtualSimulationRun.findFirst.mockResolvedValue({
+      id: 'arena-preview-allowed',
+      taskId: 'task-second-order-lead-pid',
+      simulationRunId: 'simulation-run-preview',
+      payload: { replay: { confidence: 0.91 }, summary: { settlingTime: 0.8 } },
+      createdAt: new Date('2026-07-11T01:00:00.000Z'),
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'arena-task:task-second-order-lead-pid',
+      resourceType: 'arena_task',
+      status: 'completed',
+      idempotencyKey: 'allowed-arena-preview',
+      arenaRef: { id: 'arena-preview-allowed' },
+    }), params);
+
+    expect(response.status).toBe(200);
     expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      status: 'completed',
       arenaRef: expect.objectContaining({
-        id: 'missing-arena-submission',
-        provenance: 'unknown',
-      }),
-      simulationRef: expect.objectContaining({
-        id: 'client-sim',
-        provenance: 'unknown',
+        id: 'arena-preview-allowed',
+        provenance: 'preview',
       }),
     }));
-    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({
-        pathStatus: 'fallback',
-        terminalValidation: expect.objectContaining({
-          state: 'low-confidence',
-          lowConfidenceMarkers: expect.arrayContaining([
-            'arena-official-evidence-missing',
-            'arena-replay-confidence-missing',
-          ]),
-        }),
-      }),
-    }));
-    const executionCalls = JSON.stringify(mocks.recordPathNodeExecution.mock.calls);
-    expect(executionCalls).not.toContain('hiddenEvaluation');
-    expect(executionCalls).not.toContain('"score":100');
-    expect(executionCalls).not.toContain('"valid":true');
   });
 
   it('completes terminal validation from server-owned SimulationRun and ArenaSubmission records', async () => {
@@ -4905,24 +4951,9 @@ describe('learning path round API routes', () => {
       arenaRef: { id: 'arena-submission-other-task' },
     }), params);
 
-    expect(response.status).toBe(200);
-    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
-      arenaRef: expect.objectContaining({
-        id: 'arena-submission-other-task',
-        provenance: 'unknown',
-        official: false,
-        mismatchReason: 'arena-task-mismatch',
-      }),
-    }));
-    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({
-        pathStatus: 'fallback',
-        terminalValidation: expect.objectContaining({
-          state: 'low-confidence',
-          lowConfidenceMarkers: expect.arrayContaining(['arena-official-evidence-missing']),
-        }),
-      }),
-    }));
+    expect(response.status).toBe(409);
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
   });
 
   it('executes the canonical Arena identity against a verified Yang Fan legacy persisted target', async () => {
@@ -5162,12 +5193,22 @@ describe('learning path round API routes', () => {
     mocks.prisma.learningPath.findUnique.mockResolvedValue(
       legacyRegistryDependentPath('arena-challenge-workbench', 'task-second-order-lead-pid'),
     );
+    mocks.prisma.arenaSubmission.findFirst.mockResolvedValue({
+      id: 'arena-registry-completion',
+      taskId: 'task-second-order-lead-pid',
+      userId: 'student-1',
+      score: 86,
+      valid: true,
+      submittedAt: new Date('2026-07-11T01:00:00.000Z'),
+      evaluationRun: { protocolVersion: 'v1', metrics: {}, metadata: {}, completedAt: new Date('2026-07-11T01:00:00.000Z') },
+    });
 
     const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
       nodeId: canonicalNodeId,
       resourceType: 'arena_task',
       status: 'completed',
       idempotencyKey: 'complete-verified-registry-arena',
+      arenaRef: { id: 'arena-registry-completion' },
     }), params);
 
     expect(response.status).toBe(200);
@@ -5327,20 +5368,9 @@ describe('learning path round API routes', () => {
       arenaRef: { id: 'arena-preview-other-task' },
     }), params);
 
-    expect(response.status).toBe(200);
-    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
-      arenaRef: expect.objectContaining({
-        id: 'arena-preview-other-task',
-        provenance: 'unknown',
-        official: false,
-        mismatchReason: 'arena-task-mismatch',
-      }),
-    }));
-    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({
-        pathStatus: 'fallback',
-      }),
-    }));
+    expect(response.status).toBe(409);
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
   });
 
   it('rejects SimulationRun records from outside the path simulation source', async () => {

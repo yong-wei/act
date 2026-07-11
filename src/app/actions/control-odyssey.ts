@@ -585,6 +585,19 @@ export async function submitGameScore(
         }
       });
       if (existingLog) {
+        const expectedArenaTaskId = getArenaTaskForOdysseyLevel(levelId);
+        const requestedArenaTaskId = context?.arenaTaskId?.trim();
+        if (expectedArenaTaskId && requestedArenaTaskId === expectedArenaTaskId) {
+          const submissions = await prismaArenaSubmissionStore.listSubmissions({
+            taskId: expectedArenaTaskId,
+            userId: actionUser.id,
+            publicationId: context?.publicationId,
+          });
+          const existingSubmission = submissions.find((submission) =>
+            (submission.artifact.params as Record<string, unknown>).odysseyRunId === runId
+          );
+          return { ...existingLog, arenaSubmissionId: existingSubmission?.id };
+        }
         return existingLog;
       }
     }
