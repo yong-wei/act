@@ -20,9 +20,9 @@
 
 ## 4. Compact Path Execution Workspace
 
-- [ ] 4.1 Extract a compact path timeline and node component with adaptive connectors, single-node inline expansion, and node-attached start/skip/review/continue/evidence actions.
-- [ ] 4.2 Add a centralized accessible resource-type visual map and keep execution-state cues independent from type color.
-- [ ] 4.3 Reorder the `path-execution` workspace around a compact progress summary and journey, demote repeated secondary modules, and repair the shared module header at 320px and above.
+- [x] 4.1 Extract a compact path timeline and node component with adaptive connectors, single-node inline expansion, and node-attached start/skip/review/continue/evidence actions.
+- [x] 4.2 Add a centralized accessible resource-type visual map and keep execution-state cues independent from type color.
+- [x] 4.3 Reorder the `path-execution` workspace around a compact progress summary and journey, demote repeated secondary modules, and repair the shared module header at 320px and above.
 
 ## 5. Arena Path Journey
 
