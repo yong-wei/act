@@ -32,6 +32,6 @@
 
 ## 6. Verification And Visual Acceptance
 
-- [ ] 6.1 Add a node-type support-matrix test plus interaction coverage for node focus, inline actions, completion-to-next navigation, blocked results, final-node completion, external fallback, and non-path compatibility.
-- [ ] 6.2 Add Arena end-to-end coverage from a path node through concrete challenge and workbench while retaining return and next-step context.
-- [ ] 6.3 Capture and inspect 1440px, 375px, and 320px execution states in light and dark themes, then run typecheck, targeted unit/API tests, Playwright, and strict OpenSpec validation.
+- [x] 6.1 Add a node-type support-matrix test plus interaction coverage for node focus, inline actions, completion-to-next navigation, blocked results, final-node completion, external fallback, and non-path compatibility.
+- [x] 6.2 Add Arena end-to-end coverage from a path node through concrete challenge and workbench while retaining return and next-step context.
+- [x] 6.3 Capture and inspect 1440px, 375px, and 320px execution states in light and dark themes, then run typecheck, targeted unit/API tests, Playwright, and strict OpenSpec validation.
