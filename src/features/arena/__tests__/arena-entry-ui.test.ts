@@ -184,6 +184,11 @@ describe('arena student entry UI boundaries', () => {
 
     expect(detailSource).not.toContain('ArenaSubmissionPanel');
     expect(detailSource).not.toContain('ArenaBlackBoxSubmissionPanel');
+    expect(detailSource).toContain('AdaptivePathJourneyControlForArenaTask');
+    expect(detailSource).not.toContain('ARENA_HIDDEN_TEST_SIGNAL_LABELS');
+    expect(detailSource).not.toContain('task.training.hiddenTestSignal');
+    expect(detailSource).toContain('评测边界');
+    expect(detailSource).toContain('详情页不会完成当前路径节点');
     expect(detailSource).toContain('getChallengeLeaderboardBrowserData');
     expect(detailSource).toContain('browser={leaderboardBrowser}');
     expect(detailSource).not.toContain('submissions={submissions}');

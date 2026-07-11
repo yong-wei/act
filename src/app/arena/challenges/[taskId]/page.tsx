@@ -17,6 +17,10 @@ import {
   resolveAccessibleArenaPublicationForStudent,
   type ArenaResolvedSubmissionContext,
 } from '@/features/arena/teacher/publication-store';
+import {
+  buildArenaChallengeSearchParams,
+  resolveArenaPathLaunchParams,
+} from '@/features/arena/arena-path-journey';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,7 +44,7 @@ function buildStudentLeaderboardBoundary(publication: ArenaResolvedSubmissionCon
 export default async function ArenaChallengePage(
   props: {
     params: Promise<{ taskId: string }>;
-    searchParams?: Promise<{ publicationId?: string }>;
+    searchParams?: Promise<Record<string, string | string[] | undefined>>;
   }
 ) {
   const searchParams = await props.searchParams;
@@ -61,6 +65,8 @@ export default async function ArenaChallengePage(
       />
     );
   }
+  const normalizedSearchParams = buildArenaChallengeSearchParams(searchParams ?? {});
+  const pathContext = resolveArenaPathLaunchParams(normalizedSearchParams, task.id);
 
   const object = getArenaChallengeObject(task.objectId);
   const metricProfile = getArenaMetricProfile(task.metricProfileId);
@@ -176,6 +182,7 @@ export default async function ArenaChallengePage(
       publicationId={publicationId}
       classId={publicationContext?.classId}
       seasonId={publicationContext?.seasonId}
+      pathContext={pathContext ?? undefined}
       publicationContext={publicationContext ? {
         assignmentTitle: publicationContext.displayContext?.assignmentTitle ?? (
           publicationContext.visibility === 'public' ? '公开 Arena 挑战' : 'Arena 发布挑战'

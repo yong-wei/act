@@ -19,6 +19,7 @@ import {
 import { buildBlackBoxControlArtifactFromParams } from '@/features/arena/submissions/blackbox-artifact-builder';
 import type { ArenaSubmissionRecord } from '@/features/arena/submissions/submission-service';
 import type { ChallengeTask } from '@/features/arena/types';
+import { useArenaPathSubmissionCompletion } from '@/features/arena/arena-path-journey-control';
 import type {
   NominalModelArtifact,
   WorkbenchSessionContext,
@@ -175,6 +176,7 @@ export function BlackBoxIdentificationPanel({
   officialTargetHidden = true,
   panelInstances,
 }: BlackBoxIdentificationPanelProps) {
+  const completeArenaPath = useArenaPathSubmissionCompletion(task.id);
   const [submissions, setSubmissions] = useState<ArenaSubmissionRecord[]>(initialSubmissions);
   const [signalType, setSignalType] = useState<ArenaBlackBoxSignalType>('step');
   const [amplitude, setAmplitude] = useState('0.8');
@@ -403,6 +405,7 @@ export function BlackBoxIdentificationPanel({
     }
 
     setSubmissions((current) => [...current, payload.submission as ArenaSubmissionRecord]);
+    await completeArenaPath(payload.submission.id);
     setStatus(payload.submission.reusedEvaluation
       ? '重复黑箱控制器已复用官方隐藏评测聚合结果。'
       : '黑箱官方隐藏评测已完成，仅展示聚合指标。');

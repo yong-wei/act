@@ -7,6 +7,8 @@ import { ArrowLeft, CheckCircle2, Trophy } from 'lucide-react';
 import { arenaMethodLabels, formatArenaMetricGoal } from '../display-labels';
 import type { ArenaSubmissionRecord } from '../submissions/submission-service';
 import { resolveArenaWorkbenchContext } from '../workbench/context';
+import { appendArenaPathLaunchParams, resolveArenaPathLaunchParams } from '../arena-path-journey';
+import { AdaptivePathJourneyControlForArenaTask } from '../arena-path-journey-control';
 
 function formatScore(value: number | null | undefined): string {
   return typeof value === 'number' && Number.isFinite(value) ? value.toFixed(1) : '暂无';
@@ -25,6 +27,9 @@ export function buildOdysseyArenaReturnHref(
       preservedParams.set(key, value);
     }
   }
+  const taskId = searchParams.get('arenaTask')?.trim();
+  const pathContext = taskId ? resolveArenaPathLaunchParams(searchParams, taskId) : null;
+  if (pathContext) appendArenaPathLaunchParams(preservedParams, pathContext);
 
   const query = preservedParams.toString();
   if (!query) return baseHref;
@@ -111,7 +116,11 @@ export function OdysseyArenaBridgeShell() {
     .join('；');
 
   return (
-    <section className="border-b border-cyan-400/20 bg-slate-950 px-4 py-4 text-white shadow-lg shadow-cyan-950/20 sm:px-6 lg:px-8">
+    <>
+      <div className="bg-slate-950 px-4 pt-4 sm:px-6 lg:px-8">
+        <AdaptivePathJourneyControlForArenaTask taskId={arenaContext.task.id} />
+      </div>
+      <section className="border-b border-cyan-400/20 bg-slate-950 px-4 py-4 text-white shadow-lg shadow-cyan-950/20 sm:px-6 lg:px-8">
       <div className="mx-auto flex max-w-7xl flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="space-y-2">
           <a
@@ -149,6 +158,7 @@ export function OdysseyArenaBridgeShell() {
           </div>
         </div>
       </div>
-    </section>
+      </section>
+    </>
   );
 }

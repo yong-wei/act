@@ -37,6 +37,7 @@ import {
 import { cn } from '@/lib/utils';
 import { readAITextStream } from '@/lib/ai-stream-compat';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useArenaPathSubmissionCompletion } from '@/features/arena/arena-path-journey-control';
 
 interface ControlOdysseyProps {
   initialLevelId?: string;
@@ -97,6 +98,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
   const searchParams = useSearchParams();
   const arenaTaskId = searchParams.get('arenaTask') ?? undefined;
   const publicationId = searchParams.get('publicationId') ?? undefined;
+  const completeArenaPath = useArenaPathSubmissionCompletion(arenaTaskId ?? '');
   const {
     gameState,
     setGameState,
@@ -230,7 +232,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
         if (bestScoreSnapshotRef.current === null) {
           bestScoreSnapshotRef.current = personalBestScores[selectedLevelId]?.tiers?.[currentTier] ?? 0;
         }
-        await submitGameScore(
+        const result = await submitGameScore(
           selectedLevelId,
           finalScore,
           {
@@ -257,6 +259,9 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
             publicationId
           }
         );
+        if (result && 'arenaSubmissionId' in result && result.arenaSubmissionId) {
+          await completeArenaPath(result.arenaSubmissionId);
+        }
 
         const profile = await getControlProfile();
         if (profile) {
@@ -294,6 +299,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     difficultyScale,
     arenaTaskId,
     publicationId,
+    completeArenaPath,
     personalBestScores,
     setControlCredits,
     setUnlockedControllers,

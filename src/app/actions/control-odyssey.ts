@@ -651,6 +651,7 @@ export async function submitGameScore(
       }
     });
 
+    let arenaSubmissionId: string | undefined;
     const expectedArenaTaskId = runId ? getArenaTaskForOdysseyLevel(levelId) : undefined;
     const requestedArenaTaskId = context?.arenaTaskId?.trim();
     const shouldSubmitArenaBridge = Boolean(
@@ -760,11 +761,13 @@ export async function submitGameScore(
             },
           },
         });
+      } else {
+        arenaSubmissionId = bridgeResult.submission.id;
       }
     }
 
     revalidatePath('/interactive-learning/control-odyssey');
-    return log;
+    return { ...log, arenaSubmissionId };
   } catch (error) {
     console.error('Failed to submit score:', error);
     return null;
