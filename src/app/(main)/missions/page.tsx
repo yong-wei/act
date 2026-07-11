@@ -16,6 +16,8 @@ import { StudentFeedbackTaskPanel } from '@/features/assessment/student-feedback
 import { useVerifiedFeedbackTaskContext } from '@/features/assessment/use-verified-feedback-task-context';
 import { MissionCard, MissionCardSkeleton, type MissionData } from '@/features/mission/mission-card';
 import { buildFeedbackTaskContext, buildFeedbackTaskHref } from '@/lib/student-feedback-task-contract';
+import { StudentAssignmentList, type AssignmentFilter } from '@/features/assignments/student-assignment-list';
+import type { StudentAssignmentSummary } from '@/features/assignments/student-assignment-types';
 
 interface MissionsResponse {
   missions: MissionData[];
@@ -27,6 +29,69 @@ interface MissionsResponse {
 }
 
 export default function MissionsPage() {
+  const searchParams = useSearchParams();
+  return searchParams.get('view') === 'progression' ? <ProgressionMissionsPage /> : <MainlineAssignmentsPage />;
+}
+
+function MainlineAssignmentsPage() {
+  const sessionData = useSession();
+  const status = sessionData?.status ?? 'loading';
+  const [assignments, setAssignments] = useState<StudentAssignmentSummary[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<AssignmentFilter>('all');
+
+  const loadAssignments = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch('/api/student/assignments', { cache: 'no-store' });
+      const payload = await response.json().catch(() => ({})) as { assignments?: StudentAssignmentSummary[]; error?: string };
+      if (!response.ok) throw new Error(payload.error || '主线作业暂时无法加载');
+      setAssignments(payload.assignments ?? []);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : '主线作业暂时无法加载');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (status === 'authenticated') void loadAssignments();
+    if (status === 'unauthenticated') setLoading(false);
+  }, [loadAssignments, status]);
+
+  return (
+    <MissionAppShell>
+      <TaskCenterTabs active="mainline" />
+      {status === 'loading' || loading ? (
+        <div className="space-y-3" aria-busy="true" aria-label="正在加载主线作业" data-assignment-state="loading">
+          {[1, 2, 3].map((item) => <div key={item} className="surface-card h-32 animate-pulse" />)}
+        </div>
+      ) : status === 'unauthenticated' ? (
+        <TaskCenterMessage title="请先登录" description="登录后可查看教师发布的主线作业。" action={<Link href="/login" className="cta-primary rounded-lg px-5 py-2.5 text-sm">前往登录</Link>} />
+      ) : error ? (
+        <TaskCenterMessage
+          title="主线作业加载失败"
+          description={error}
+          state="error"
+          action={<button type="button" onClick={() => void loadAssignments()} className="btn-ghost-themed rounded-lg px-5 py-2.5 text-sm">重试</button>}
+        />
+      ) : assignments.length === 0 ? (
+        <TaskCenterMessage
+          title="暂无主线作业"
+          description="教师发布并开放作业后，会在这里显示截止时间和逐题进度。"
+          state="empty"
+          action={<Link href="/missions?view=progression" className="btn-ghost-themed rounded-lg px-5 py-2.5 text-sm">前往任务进阶</Link>}
+        />
+      ) : (
+        <StudentAssignmentList assignments={assignments} filter={filter} onFilterChange={setFilter} />
+      )}
+    </MissionAppShell>
+  );
+}
+
+function ProgressionMissionsPage() {
   const sessionData = useSession();
   const status = sessionData?.status ?? 'loading';
   const router = useRouter();
@@ -170,6 +235,7 @@ export default function MissionsPage() {
   return (
     <MissionAppShell>
       <section data-commercial-workspace="mission-workspace">
+        <TaskCenterTabs active="progression" />
         <StudentFeedbackTaskPanel context={feedbackContext} surface="missions" className="mb-6" />
         {/* 统计卡片 */}
         <div className="mb-8 grid gap-4 md:grid-cols-4">
@@ -308,12 +374,51 @@ function MissionAppShell({ children }: { children: ReactNode }) {
       viewerRole="student"
       activeHref="/missions"
       activeNavigationHref="/assessment/adaptive-practice"
-      title="任务大厅"
-      subtitle="查看学习任务、筛选挑战并进入仿真练习。"
-      breadcrumbs={[{ label: '首页', href: '/' }, { label: '任务大厅' }]}
+      title="任务中心"
+      subtitle="完成教师发布的主线作业，或继续个性化任务进阶。"
+      breadcrumbs={[{ label: '首页', href: '/' }, { label: '任务中心' }]}
     >
       {children}
     </AppShell>
+  );
+}
+
+function TaskCenterTabs({ active }: { active: 'mainline' | 'progression' }) {
+  return (
+    <div className="mb-7 border-b border-border/70" role="navigation" aria-label="任务中心视图">
+      <div className="flex gap-1">
+        <Link
+          href="/missions"
+          aria-current={active === 'mainline' ? 'page' : undefined}
+          className={active === 'mainline' ? 'border-b-2 border-primary px-4 py-3 text-sm font-semibold text-foreground' : 'px-4 py-3 text-sm text-subtle hover:text-foreground'}
+        >主线作业</Link>
+        <Link
+          href="/missions?view=progression"
+          aria-current={active === 'progression' ? 'page' : undefined}
+          className={active === 'progression' ? 'border-b-2 border-primary px-4 py-3 text-sm font-semibold text-foreground' : 'px-4 py-3 text-sm text-subtle hover:text-foreground'}
+        >任务进阶</Link>
+      </div>
+    </div>
+  );
+}
+
+function TaskCenterMessage({
+  title,
+  description,
+  action,
+  state = 'notice',
+}: {
+  title: string;
+  description: string;
+  action: ReactNode;
+  state?: 'notice' | 'empty' | 'error';
+}) {
+  return (
+    <div className="surface-card px-6 py-16 text-center" role={state === 'error' ? 'alert' : undefined} data-assignment-state={state}>
+      <h2 className="text-lg font-semibold text-foreground">{title}</h2>
+      <p className="mx-auto mt-2 max-w-lg text-sm text-subtle">{description}</p>
+      <div className="mt-6">{action}</div>
+    </div>
   );
 }
 

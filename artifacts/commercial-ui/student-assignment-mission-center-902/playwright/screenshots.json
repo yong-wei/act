@@ -1,0 +1,60 @@
+{
+  "generatedAt": "2026-07-11T10:29:01.365Z",
+  "evidenceBoundary": "Authenticated UI with deterministic route mocks; production database and object store are not exercised.",
+  "entries": [
+    {
+      "name": "task-center-320",
+      "viewport": 320,
+      "screenshot": "task-center-320.png",
+      "metrics": "task-center-320-metrics.json"
+    },
+    {
+      "name": "assignment-detail-320",
+      "viewport": 320,
+      "screenshot": "assignment-detail-320.png",
+      "metrics": "assignment-detail-320-metrics.json"
+    },
+    {
+      "name": "task-center-375",
+      "viewport": 375,
+      "screenshot": "task-center-375.png",
+      "metrics": "task-center-375-metrics.json"
+    },
+    {
+      "name": "assignment-detail-375",
+      "viewport": 375,
+      "screenshot": "assignment-detail-375.png",
+      "metrics": "assignment-detail-375-metrics.json"
+    },
+    {
+      "name": "task-center-1024",
+      "viewport": 1024,
+      "screenshot": "task-center-1024.png",
+      "metrics": "task-center-1024-metrics.json"
+    },
+    {
+      "name": "assignment-detail-1024",
+      "viewport": 1024,
+      "screenshot": "assignment-detail-1024.png",
+      "metrics": "assignment-detail-1024-metrics.json"
+    },
+    {
+      "name": "task-center-1440",
+      "viewport": 1440,
+      "screenshot": "task-center-1440.png",
+      "metrics": "task-center-1440-metrics.json"
+    },
+    {
+      "name": "assignment-detail-1440",
+      "viewport": 1440,
+      "screenshot": "assignment-detail-1440.png",
+      "metrics": "assignment-detail-1440-metrics.json"
+    },
+    {
+      "name": "profile-task-center-pending",
+      "viewport": 1280,
+      "screenshot": "profile-task-center-pending.png",
+      "metrics": "profile-task-center-pending-metrics.json"
+    }
+  ]
+}
