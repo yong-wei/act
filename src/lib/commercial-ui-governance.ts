@@ -3662,7 +3662,7 @@ const REQUIRED_ADAPTIVE_PATH_PRODUCT_QA_MATRIX_METADATA = {
     viewport: 'desktop',
     authState: 'authenticated',
     navigationState: 'desktop-collapsed',
-    dockState: 'expanded',
+    dockState: 'collapsed',
     sourceConcept: REQUIRED_ADAPTIVE_PATH_PRODUCT_QA_CONCEPT_IMAGES[0],
   },
   'cold-start-starter-paths-mobile-light': {
