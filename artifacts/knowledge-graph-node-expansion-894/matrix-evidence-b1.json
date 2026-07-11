@@ -3,10 +3,10 @@
   "issue": 894,
   "captureScope": "matrix-b1",
   "status": "passed",
-  "capturedAt": "2026-07-10T12:01:38.998Z",
+  "capturedAt": "2026-07-11T00:33:21.291Z",
   "sourceCwd": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn",
-  "sourceGitSha": "ed025d5d1ea1db1af0c8d8622df80c2e4e080cdb",
-  "sourceTreeSha256": "4d2e6218aad6354e2bc37871bc6da5dfaf96cee2551e9ff96bccba2da1e9064d",
+  "sourceGitSha": "076b009aa7b0706aa581519ecb25032518e21007",
+  "sourceTreeSha256": "a34b85c89b531194b3f19690b98ef6d0b3687683d0cf9e6bb974e4204f672304",
   "baseUrl": "http://localhost:3101",
   "browser": "chromium-headed",
   "screenshotMode": "hybrid",
@@ -23,7 +23,7 @@
             "height": 800
           },
           "screenshotPath": "artifacts/knowledge-graph-node-expansion-894/320x800-dark-2d-narrow-dark-collapsed-focus.png",
-          "screenshotSha256": "996230e00f9917ef10532186cc09feb57bbf1b6d088c092ae34d8cd291ef13fa",
+          "screenshotSha256": "fc1cc0023b19483dde403454e00c0e2f1edecbcd879056775fdbfeb4eacd68c3",
           "geometry": {
             "title": "智控深蓝",
             "url": "http://localhost:3101/knowledge?node=chapter-node%3A%E7%AC%AC%E4%B8%80%E7%AB%A0&qa=knowledge-product",
@@ -70,9 +70,9 @@
                 "left": 28,
                 "top": 178,
                 "right": 292,
-                "bottom": 262.6640625,
+                "bottom": 262.65625,
                 "width": 264,
-                "height": 84.6640625
+                "height": 84.65625
               },
               "mobilePanel": null
             },
@@ -139,7 +139,7 @@
             "height": 800
           },
           "screenshotPath": "artifacts/knowledge-graph-node-expansion-894/320x800-dark-2d-narrow-dark-loading-focus.png",
-          "screenshotSha256": "dfb9ef2c193dd33a73e231051e35cf83a35f605b50c810d63ebaab6e5941e785",
+          "screenshotSha256": "af4c8df6207796da624f003afd55d2f0bd9816f3b70e2e7f2c15ef7e13a609a0",
           "geometry": {
             "title": "智控深蓝",
             "url": "http://localhost:3101/knowledge?node=chapter-node%3A%E7%AC%AC%E4%B8%80%E7%AB%A0&qa=knowledge-product",
@@ -186,9 +186,9 @@
                 "left": 28,
                 "top": 178,
                 "right": 292,
-                "bottom": 262.6640625,
+                "bottom": 262.65625,
                 "width": 264,
-                "height": 84.6640625
+                "height": 84.65625
               },
               "mobilePanel": null
             },
@@ -255,16 +255,16 @@
             "height": 800
           },
           "screenshotPath": "artifacts/knowledge-graph-node-expansion-894/320x800-dark-2d-narrow-dark-expanded-focus.png",
-          "screenshotSha256": "007580724212ad8b8b83f70c2030ab99ae70b7edf8b1de22a3cb94096fd67033",
+          "screenshotSha256": "e053a39cdb6beef37b6fea5956ce852c0f19ac928220e403b396bc821629e446",
           "geometry": {
             "title": "智控深蓝",
             "url": "http://localhost:3101/knowledge?node=chapter-node%3A%E7%AC%AC%E4%B8%80%E7%AB%A0&qa=knowledge-product",
             "htmlClass": "dark",
             "controlRect": {
               "left": 95,
-              "top": 496.82830810546875,
+              "top": 496.875,
               "right": 145,
-              "bottom": 540.8283081054688,
+              "bottom": 540.875,
               "width": 50,
               "height": 44
             },
@@ -302,9 +302,9 @@
                 "left": 28,
                 "top": 178,
                 "right": 292,
-                "bottom": 262.6640625,
+                "bottom": 262.65625,
                 "width": 264,
-                "height": 84.6640625
+                "height": 84.65625
               },
               "mobilePanel": null
             },
@@ -342,9 +342,9 @@
           "measurements": {
             "edgeClearances": {
               "left": 79,
-              "top": 330.828,
+              "top": 330.875,
               "right": 159,
-              "bottom": 127.172
+              "bottom": 127.125
             },
             "controlSurfaceOverlaps": {
               "desktopTools": false,
@@ -371,7 +371,7 @@
             "height": 800
           },
           "screenshotPath": "artifacts/knowledge-graph-node-expansion-894/320x800-dark-2d-narrow-dark-mobile-tool-dock-stress.png",
-          "screenshotSha256": "6963bdc07dcd3da25ceaf3cb2f866e9950271fcc93384f0b1038a69bc7493dba",
+          "screenshotSha256": "f8c26a4522de74c0b36238592baaccd66c58a7f6edfcfa79e0ea478f9023a998",
           "geometry": {
             "title": "智控深蓝",
             "url": "http://localhost:3101/knowledge?node=chapter-node%3A%E7%AC%AC%E4%B8%80%E7%AB%A0&qa=knowledge-product",
@@ -418,17 +418,17 @@
                 "left": 28,
                 "top": 178,
                 "right": 292,
-                "bottom": 262.6640625,
+                "bottom": 262.65625,
                 "width": 264,
-                "height": 84.6640625
+                "height": 84.65625
               },
               "mobilePanel": {
                 "left": 28,
-                "top": 270.6640625,
+                "top": 270.65625,
                 "right": 292,
-                "bottom": 593.3125,
+                "bottom": 593.25,
                 "width": 264,
-                "height": 322.6484375
+                "height": 322.59375
               }
             },
             "control": {
@@ -442,7 +442,7 @@
               "activeElement": false,
               "focusVisible": false,
               "outlineStyle": "none",
-              "outlineWidth": "1.5px",
+              "outlineWidth": "3px",
               "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.1) 0px 4px 6px -4px",
               "offsetWidth": 50,
               "offsetHeight": 44
@@ -494,7 +494,7 @@
             "height": 800
           },
           "screenshotPath": "artifacts/knowledge-graph-node-expansion-894/320x800-dark-2d-narrow-dark-konling-modal-stress.png",
-          "screenshotSha256": "3cec6a67180b0cd33769e0708f97d93fac3d22533bbace2cb5ce4f4355d4da66",
+          "screenshotSha256": "7f8e6fe36529456355ae785f391a06509ca1de93ba51bff94fb80079956882fb",
           "geometry": {
             "title": "智控深蓝",
             "url": "http://localhost:3101/knowledge?node=chapter-node%3A%E7%AC%AC%E4%B8%80%E7%AB%A0&qa=knowledge-product",
@@ -857,9 +857,9 @@
           "anchorClamped": false,
           "edgeClearances": {
             "left": 79,
-            "top": 330.828,
+            "top": 330.875,
             "right": 159,
-            "bottom": 127.172
+            "bottom": 127.125
           },
           "controlSurfaceOverlaps": {
             "desktopTools": false,
@@ -878,7 +878,7 @@
           "expandedNodeCount": 1,
           "visibleLinkCount": 4,
           "ariaExpanded": "true",
-          "controlDistancePixels": 56.531,
+          "controlDistancePixels": 56.498,
           "controlDistanceWithinPolicy": true,
           "ariaBusy": "false",
           "surfacesPresent": {
@@ -931,7 +931,7 @@
           "expandedNodeCount": 1,
           "visibleLinkCount": 4,
           "ariaExpanded": "true",
-          "controlDistancePixels": 56.569,
+          "controlDistancePixels": 64,
           "controlDistanceWithinPolicy": true,
           "ariaBusy": "false",
           "surfacesPresent": {
@@ -961,17 +961,17 @@
               "left": 28,
               "top": 178,
               "right": 292,
-              "bottom": 262.6640625,
+              "bottom": 262.65625,
               "width": 264,
-              "height": 84.6640625
+              "height": 84.65625
             },
             "mobilePanel": {
               "left": 28,
-              "top": 270.6640625,
+              "top": 270.65625,
               "right": 292,
-              "bottom": 593.3125,
+              "bottom": 593.25,
               "width": 264,
-              "height": 322.6484375
+              "height": 322.59375
             },
             "dock": {
               "left": 206,
@@ -1039,8 +1039,8 @@
                   "right": 57,
                   "bottom": 109.225
                 },
-                "anchorClamped": false,
-                "controlDistancePixels": 56.569,
+                "anchorClamped": true,
+                "controlDistancePixels": 46.648,
                 "nodeInsideCanvas": true,
                 "conservativeLabelRect": {
                   "left": 207,
@@ -1150,18 +1150,18 @@
             "height": 800
           },
           "screenshotPath": "artifacts/knowledge-graph-node-expansion-894/320x800-light-2d-narrow-light-expanded-focus.png",
-          "screenshotSha256": "1ff46d32aa86c19ba809e1452efd7532be2944dac2dfb551f0984b44121efc4e",
+          "screenshotSha256": "913b94fc97d0aa91beba73345c91902702177409e5af3d1ded8dc14378f553a1",
           "geometry": {
             "title": "智控深蓝",
             "url": "http://localhost:3101/knowledge?node=chapter-node%3A%E7%AC%AC%E4%B8%80%E7%AB%A0&qa=knowledge-product",
             "htmlClass": "light",
             "controlRect": {
               "left": 95,
-              "top": 496.8614807128906,
+              "top": 496.9654541015625,
               "right": 145,
-              "bottom": 540.8614501953125,
+              "bottom": 540.9654541015625,
               "width": 50,
-              "height": 43.999969482421875
+              "height": 44
             },
             "canvasRect": {
               "left": 16,
@@ -1197,9 +1197,9 @@
                 "left": 28,
                 "top": 178,
                 "right": 292,
-                "bottom": 262.6640625,
+                "bottom": 262.65625,
                 "width": 264,
-                "height": 84.6640625
+                "height": 84.65625
               },
               "mobilePanel": null
             },
@@ -1237,9 +1237,9 @@
           "measurements": {
             "edgeClearances": {
               "left": 79,
-              "top": 330.861,
+              "top": 330.965,
               "right": 159,
-              "bottom": 127.139
+              "bottom": 127.035
             },
             "controlSurfaceOverlaps": {
               "desktopTools": false,
@@ -1453,9 +1453,9 @@
           "anchorClamped": false,
           "edgeClearances": {
             "left": 79,
-            "top": 330.861,
+            "top": 330.965,
             "right": 159,
-            "bottom": 127.139
+            "bottom": 127.035
           },
           "controlSurfaceOverlaps": {
             "desktopTools": false,
@@ -1474,7 +1474,7 @@
           "expandedNodeCount": 1,
           "visibleLinkCount": 4,
           "ariaExpanded": "true",
-          "controlDistancePixels": 56.507,
+          "controlDistancePixels": 56.434,
           "controlDistanceWithinPolicy": true,
           "ariaBusy": "false",
           "surfacesPresent": {
@@ -1504,5 +1504,5 @@
       }
     }
   },
-  "completedAt": "2026-07-10T12:01:47.868Z"
+  "completedAt": "2026-07-11T00:33:29.407Z"
 }
