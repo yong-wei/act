@@ -26,9 +26,9 @@
 
 ## 5. Arena Path Journey
 
-- [ ] 5.1 Parse and validate adaptive path context on concrete Arena challenge routes, render journey controls, and avoid treating detail views as completion.
-- [ ] 5.2 Preserve normalized path and publication parameters through `getArenaWorkspaceHref` into Control Odyssey or the unified control workbench.
-- [ ] 5.3 Bind Arena next-step enablement to the server-owned Arena result and terminal-validation state without exposing hidden evaluation details.
+- [x] 5.1 Parse and validate adaptive path context on concrete Arena challenge routes, render journey controls, and avoid treating detail views as completion.
+- [x] 5.2 Preserve normalized path and publication parameters through `getArenaWorkspaceHref` into Control Odyssey or the unified control workbench.
+- [x] 5.3 Bind Arena next-step enablement to the server-owned Arena result and terminal-validation state without exposing hidden evaluation details.
 
 ## 6. Verification And Visual Acceptance
 
