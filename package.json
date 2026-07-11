@@ -21,7 +21,7 @@
     "test:theme-coverage": "npx --yes tsx ./scripts/tests/test-theme-coverage.ts",
     "test:cruise-sensitivity": "npx --yes tsx ./scripts/tests/test-cruise-control-sensitivity.ts",
     "test:cruise-teaching": "npx --yes tsx ./scripts/tests/test-cruise-teaching-evaluation.ts",
-    "test:integration": "PLAYWRIGHT_PORT=3200 node ./scripts/tests/integration-test.mjs && playwright test",
+    "test:integration": "PLAYWRIGHT_PORT=3200 ACT_E2E_FIXTURE_TOKEN=adaptive-path-continuous-journey-v1 sh -c 'node ./scripts/tests/integration-test.mjs && playwright test \"$@\"' --",
     "test:data-governance": "npm run test:runtime-knowledge && npx tsx ./scripts/tests/data-governance-integration-test.ts",
     "verify:new-resource-semantics": "tsx ./scripts/data-governance/check-new-resource-semantic-completeness.ts",
     "test:runtime-media-handout-dispositions": "npx tsx ./scripts/tests/test-runtime-media-handout-disposition-review.ts",
@@ -185,6 +185,7 @@
     "@vitest/coverage-v8": "^4.1.8",
     "eslint": "^9.39.4",
     "eslint-config-next": "^16.2.7",
+    "jsdom": "^26.1.0",
     "tailwindcss-animate": "^1.0.7",
     "vitest": "^4.1.8"
   },

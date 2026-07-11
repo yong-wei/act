@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { BarChart3, Database, EyeOff, Radar, Save, Send } from 'lucide-react';
 
 import { buildArenaLeaderboard } from '@/features/arena/leaderboards/leaderboard';
@@ -19,6 +19,7 @@ import {
 import { buildBlackBoxControlArtifactFromParams } from '@/features/arena/submissions/blackbox-artifact-builder';
 import type { ArenaSubmissionRecord } from '@/features/arena/submissions/submission-service';
 import type { ChallengeTask } from '@/features/arena/types';
+import { useArenaOfficialSubmissionPathSync } from '@/features/arena/arena-official-submission-sync';
 import type {
   NominalModelArtifact,
   WorkbenchSessionContext,
@@ -175,6 +176,7 @@ export function BlackBoxIdentificationPanel({
   officialTargetHidden = true,
   panelInstances,
 }: BlackBoxIdentificationPanelProps) {
+  const pathSync = useArenaOfficialSubmissionPathSync(task.id);
   const [submissions, setSubmissions] = useState<ArenaSubmissionRecord[]>(initialSubmissions);
   const [signalType, setSignalType] = useState<ArenaBlackBoxSignalType>('step');
   const [amplitude, setAmplitude] = useState('0.8');
@@ -190,6 +192,18 @@ export function BlackBoxIdentificationPanel({
   const [nominalModel, setNominalModel] = useState<NominalModelArtifact | null>(null);
   const [previewRun, setPreviewRun] = useState<(ArenaVirtualSimulationPreviewRun & { id: string }) | null>(null);
   const [status, setStatus] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const submitInFlightRef = useRef(false);
+  const submitAbortRef = useRef<AbortController | null>(null);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      submitAbortRef.current?.abort();
+    };
+  }, []);
   const personalSubmissions = viewerUserId
     ? submissions.filter((submission) => submission.userId === viewerUserId)
     : [];
@@ -363,6 +377,7 @@ export function BlackBoxIdentificationPanel({
   };
 
   const submitController = async () => {
+    if (submitInFlightRef.current) return;
     setStatus('正在提交黑箱官方评测...');
     let artifact;
     try {
@@ -371,6 +386,11 @@ export function BlackBoxIdentificationPanel({
       setStatus(error instanceof Error ? error.message : '黑箱控制参数无效');
       return;
     }
+
+    submitInFlightRef.current = true;
+    setSubmitting(true);
+    const abortController = new AbortController();
+    submitAbortRef.current = abortController;
 
     void sendArenaCoreEvent('arena_identification_model_save', {
       taskId: task.id,
@@ -388,45 +408,58 @@ export function BlackBoxIdentificationPanel({
       method: 'black-box-control',
     });
 
-    const response = await fetch('/api/arena/evaluate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: publicationId
-        ? JSON.stringify({ taskId: task.id, artifact, publicationId })
-        : JSON.stringify({ taskId: task.id, artifact }),
-    });
-    const payload = await response.json() as { submission?: ArenaSubmissionRecord; error?: string };
+    try {
+      const response = await fetch('/api/arena/evaluate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: abortController.signal,
+        body: publicationId
+          ? JSON.stringify({ taskId: task.id, artifact, publicationId })
+          : JSON.stringify({ taskId: task.id, artifact }),
+      });
+      const payload = await response.json() as { submission?: ArenaSubmissionRecord; error?: string };
 
-    if (!response.ok || !payload.submission) {
-      setStatus(payload.error ?? '提交失败');
-      return;
+      if (!response.ok || !payload.submission) {
+        if (mountedRef.current) setStatus(payload.error ?? '提交失败');
+        return;
+      }
+
+      if (mountedRef.current) {
+        setSubmissions((current) => [...current, payload.submission as ArenaSubmissionRecord]);
+        setStatus(payload.submission.reusedEvaluation
+          ? '重复黑箱控制器已复用官方隐藏评测聚合结果。'
+          : '黑箱官方隐藏评测已完成，仅展示聚合指标。');
+      }
+      await pathSync.synchronize(payload.submission.id);
+      void sendArenaCoreEvent('arena_evaluation_complete', {
+        taskId: task.id,
+        method: payload.submission.artifact.method,
+        publicationId: publicationId ?? null,
+        score: payload.submission.evaluation.score,
+        valid: payload.submission.evaluation.valid,
+        artifactHash: payload.submission.artifactHash,
+        classId: payload.submission.classId ?? null,
+        metricProfileId: task.metricProfileId,
+        leaderboardPolicyId: task.leaderboardPolicyId,
+        metricsJson: JSON.stringify(payload.submission.evaluation.metrics),
+      });
+      void sendArenaCoreEvent('arena_result_view', {
+        taskId: task.id,
+        score: payload.submission.evaluation.score,
+        valid: payload.submission.evaluation.valid,
+      });
+      void sendArenaCoreEvent('arena_feedback_view', {
+        taskId: task.id,
+        valid: payload.submission.evaluation.valid,
+      });
+    } catch (caught) {
+      if (caught instanceof DOMException && caught.name === 'AbortError') return;
+      if (mountedRef.current) setStatus('网络请求失败，请检查连接后重试。');
+    } finally {
+      submitInFlightRef.current = false;
+      if (submitAbortRef.current === abortController) submitAbortRef.current = null;
+      if (mountedRef.current) setSubmitting(false);
     }
-
-    setSubmissions((current) => [...current, payload.submission as ArenaSubmissionRecord]);
-    setStatus(payload.submission.reusedEvaluation
-      ? '重复黑箱控制器已复用官方隐藏评测聚合结果。'
-      : '黑箱官方隐藏评测已完成，仅展示聚合指标。');
-    void sendArenaCoreEvent('arena_evaluation_complete', {
-      taskId: task.id,
-      method: payload.submission.artifact.method,
-      publicationId: publicationId ?? null,
-      score: payload.submission.evaluation.score,
-      valid: payload.submission.evaluation.valid,
-      artifactHash: payload.submission.artifactHash,
-      classId: payload.submission.classId ?? null,
-      metricProfileId: task.metricProfileId,
-      leaderboardPolicyId: task.leaderboardPolicyId,
-      metricsJson: JSON.stringify(payload.submission.evaluation.metrics),
-    });
-    void sendArenaCoreEvent('arena_result_view', {
-      taskId: task.id,
-      score: payload.submission.evaluation.score,
-      valid: payload.submission.evaluation.valid,
-    });
-    void sendArenaCoreEvent('arena_feedback_view', {
-      taskId: task.id,
-      valid: payload.submission.evaluation.valid,
-    });
   };
 
   return (
@@ -562,13 +595,33 @@ export function BlackBoxIdentificationPanel({
               <button
                 type="button"
                 onClick={submitController}
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-cyan-300 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-cyan-200"
+                disabled={submitting || pathSync.isSynchronizing}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-cyan-300 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Send className="h-4 w-4" />
-                提交黑箱评测
+                {submitting ? '提交中…' : '提交黑箱评测'}
               </button>
             </div>
             {status ? <div className="mt-3 text-xs text-slate-300">{status}</div> : null}
+            {pathSync.hasArenaPathContext && pathSync.state !== 'idle' ? (
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs" aria-live="polite">
+                <span className={pathSync.state === 'failed' ? 'text-rose-200' : 'text-slate-300'}>
+                  {pathSync.state === 'pending' ? '官方提交已创建，正在同步学习路径…' : null}
+                  {pathSync.state === 'succeeded' ? '官方提交已创建，学习路径已同步。' : null}
+                  {pathSync.state === 'failed' ? '官方提交已创建，但学习路径尚未同步，请重试。' : null}
+                </span>
+                {pathSync.state === 'failed' ? (
+                  <button
+                    type="button"
+                    onClick={() => void pathSync.retry()}
+                    disabled={pathSync.isSynchronizing}
+                    className="font-medium text-cyan-200 underline disabled:opacity-50"
+                  >
+                    重试同步路径
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
           </section>
 
           {previewRun && showPreviewResponse ? (

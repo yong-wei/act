@@ -312,7 +312,7 @@ const GOAL_REVIEW_TARGETS: GoalReviewTarget[] = [
       'cap:autocontrol:transfer-to-ship-ocean-mission',
       'qual:autocontrol:ship-ocean-mission',
     ],
-    remediationResourceNodeIds: ['registry:arena-challenge-workbench'],
+    remediationResourceNodeIds: ['arena-task:task-second-order-lead-pid'],
     seeds: [
       seed('practice', '把课堂模型迁移到船海任务时，首先应练习识别什么？', '任务环境、被控对象差异和安全约束。', ['只复制原控制器参数。', '只更换变量名称。'], '迁移应用必须先确认场景边界。', 0.54, 'analyze', 'copies-controller-without-context'),
       seed('practice', '船舶航向控制中扰动增强时，应练习哪项判断？', '控制方案对环境扰动和执行器限制的适应性。', ['只看无扰动标称响应。', '只比较题目分数。'], '船海任务强调环境扰动下的可用性。', 0.62, 'evaluate', 'ignores-ocean-disturbance'),

@@ -178,6 +178,9 @@ const FIXTURE_FACT_IDS = [
   'yangfan-fixture-fact-arena-preview',
 ] as const;
 const FIXTURE_PATH_ID = 'yangfan-fixture-control-correction-path';
+const FIXTURE_ARENA_TASK_ID = 'task-second-order-lead-pid';
+const FIXTURE_ARENA_NODE_ID = `arena-task:${FIXTURE_ARENA_TASK_ID}`;
+const FIXTURE_ARENA_TARGET = `/arena/challenges/${FIXTURE_ARENA_TASK_ID}`;
 const FIXTURE_ALGORITHM_VERSION = 'yangfan-diagnostic-fixture-algorithm-v1';
 const FIXTURE_SESSION_ID = 'yangfan-diagnostic-fixture-session';
 const FIXTURE_SESSION_KEY = 'yangfan-diagnostic-fixture-session';
@@ -517,7 +520,7 @@ async function upsertPathEvidence(
   now: Date,
 ) {
   const entryNodeId = nodeIds[0] ?? 'yangfan-fixture-entry-node';
-  const terminalNodeId = nodeIds[1] ?? entryNodeId;
+  const terminalNodeId = FIXTURE_ARENA_NODE_ID;
   await db.learningPath?.upsert({
     where: { id: FIXTURE_PATH_ID },
     create: pathData(userId, entryNodeId, terminalNodeId, now),
@@ -816,6 +819,10 @@ function pathData(userId: string, entryNodeId: string, terminalNodeId: string, n
     entryNodeId,
     terminalValidation: {
       nodeId: terminalNodeId,
+      sourceKind: 'arena_task',
+      sourceRef: FIXTURE_ARENA_TASK_ID,
+      taskId: FIXTURE_ARENA_TASK_ID,
+      target: FIXTURE_ARENA_TARGET,
       state: 'low-confidence',
       fallbackRequired: true,
       lowConfidenceMarkers: ['fixture-terminal-preview'],
@@ -870,7 +877,7 @@ function fixturePathPayload(entryNodeId: string, terminalNodeId: string, complet
     },
     {
       nodeId: terminalNodeId,
-      title: '根轨迹终点检查',
+      title: '二阶对象快速稳定挑战',
       type: 'arena_task',
       pathNodeType: 'arena_task',
       displayName: 'Arena 挑战',
@@ -880,12 +887,12 @@ function fixturePathPayload(entryNodeId: string, terminalNodeId: string, complet
       evidenceStatus: 'instrumented',
       externalResource: null,
       checkpoint: null,
-      sourceKind: 'knowledge_graph',
-      sourceRef: terminalNodeId,
-      target: `/arena?nodeId=${encodeURIComponent(terminalNodeId)}`,
+      sourceKind: 'arena_task',
+      sourceRef: FIXTURE_ARENA_TASK_ID,
+      target: FIXTURE_ARENA_TARGET,
       estimatedTimeMinutes: 23,
       prerequisiteNodeIds: [entryNodeId],
-      knowledgeCoverage: [terminalNodeId],
+      knowledgeCoverage: ['根轨迹_1_1'],
       teacherPolicy: 'allowed',
       privacyLevel: 'student-visible',
       terminalConstraints: ['terminal-validation'],

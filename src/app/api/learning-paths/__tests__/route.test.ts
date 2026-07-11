@@ -88,6 +88,29 @@ function post(url: string, body: unknown) {
   });
 }
 
+function journeyPathRecord(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 'path-1',
+    userId: 'student-1',
+    classId: 'class-1',
+    title: '校正学习路径',
+    goalId: 'control-correction',
+    pathStatus: 'active',
+    currentNodeId: 'node-1',
+    nodeIds: ['node-1', 'node-2'],
+    pathPayload: {
+      mainPathNodeIds: ['node-1', 'node-2'],
+      planNodes: [
+        { nodeId: 'node-1', title: '知识回顾', type: 'knowledge_card', target: '/knowledge/card-1', status: 'current', readiness: { state: 'ready' } },
+        { nodeId: 'node-2', title: '校正练习', type: 'adaptive_quiz', target: '/assessment/adaptive-practice', status: 'next', readiness: { state: 'ready' } },
+      ],
+    },
+    terminalValidation: { nodeId: null, state: 'not-required' },
+    lastExecutionMetadata: { completedNodeIds: [], failedNodeIds: [], skippedNodeIds: [] },
+    ...overrides,
+  };
+}
+
 function useStructuredTerminalPath() {
   mocks.prisma.learningPath.findUnique.mockResolvedValue({
     id: 'path-1',
@@ -108,6 +131,8 @@ function useStructuredTerminalPath() {
         {
           nodeId: 'arena-task:task-second-order-lead-pid',
           type: 'arena_task',
+          sourceKind: 'arena_task',
+          sourceRef: 'task-second-order-lead-pid',
           target: '/arena/challenges/task-second-order-lead-pid',
         },
       ],
@@ -464,6 +489,74 @@ describe('learning path round API routes', () => {
       terminalValidation: options.terminalValidation ?? { nodeId: null, state: 'not-required' },
       lastExecutionMetadata: { completedNodeIds: [] },
     });
+  }
+
+  function legacyRegistryDependentPath(registryId: string, taskId: string) {
+    const legacyNodeId = `registry:${registryId}`;
+    const canonicalNodeId = `arena-task:${taskId}`;
+    return {
+      id: 'path-1',
+      userId: 'student-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: legacyNodeId,
+      entryNodeId: legacyNodeId,
+      nodeIds: [legacyNodeId, canonicalNodeId, 'reflection:post-arena-review'],
+      pathPayload: {
+        mainPathNodeIds: [legacyNodeId, canonicalNodeId, 'reflection:post-arena-review'],
+        planNodes: [
+          {
+            nodeId: legacyNodeId,
+            type: 'arena_task',
+            sourceKind: 'resource_registry',
+            sourceRef: registryId,
+            target: `/arena/challenges/${taskId}`,
+          },
+          {
+            nodeId: 'reflection:post-arena-review',
+            type: 'reflection',
+            target: '/profile/growth?prompt=post-arena-review',
+            prerequisiteNodeIds: [legacyNodeId, canonicalNodeId],
+            readiness: {
+              state: 'locked',
+              requiredCompletedNodeIds: [legacyNodeId, canonicalNodeId],
+              fallbackNodeIds: [legacyNodeId, canonicalNodeId],
+              missingCompletedNodeIds: [legacyNodeId, canonicalNodeId],
+              missingCompetencies: [],
+              missingEvidenceCount: 0,
+              missingOutcomeRefs: [],
+            },
+          },
+        ],
+        executionStatus: {
+          activeNodeId: legacyNodeId,
+          completedNodeIds: [],
+        },
+        activity: [
+          { id: 'activity-node', nodeId: legacyNodeId, type: 'execution' },
+          { id: 'activity-nodes', nodeIds: [legacyNodeId, canonicalNodeId], type: 'correction' },
+        ],
+        selectionHistory: [{
+          id: 'selection-legacy-arena',
+          nodeId: legacyNodeId,
+          selectedStyleId: 'simulation-driven',
+        }],
+        graphContext: {
+          limitations: [{ nodeId: legacyNodeId, code: 'graph-node-alias-collision' }],
+          objectiveBoundaryDiagnostics: {
+            selectedResourceMatches: [{ nodeId: legacyNodeId, matchedRefs: ['graph:legacy'] }],
+          },
+        },
+      },
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      lastExecutionMetadata: { completedNodeIds: [] },
+      deviations: [{
+        id: 'legacy-deviation-1',
+        priorNodeId: legacyNodeId,
+        targetNodeId: legacyNodeId,
+      }],
+    };
   }
 
   it('requires authentication before creating a path round', async () => {
@@ -2187,6 +2280,29 @@ describe('learning path round API routes', () => {
       liftMetadata: expect.objectContaining({
         pathActivityKind: 'continued-interaction',
       }),
+    }));
+  });
+
+  it('accepts slides completion events returned by platform resource surfaces', async () => {
+    configureSingleNodePath(
+      'registry:frequency-response-slides',
+      'slides',
+      '/course-runtime/media/frequency-response-slides.pdf',
+    );
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'registry:frequency-response-slides',
+      resourceType: 'slides',
+      status: 'completed',
+      idempotencyKey: 'frequency-response-slides-complete',
+      liftMetadata: { pathActivityKind: 'initial-completion' },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      nodeId: 'registry:frequency-response-slides',
+      resourceType: 'slides',
+      status: 'completed',
     }));
   });
 
@@ -4368,6 +4484,111 @@ describe('learning path round API routes', () => {
     }));
   });
 
+  it('advances an external node only after started access and returns the ready next journey', async () => {
+    const externalNode = {
+      nodeId: 'external-resource:ocw-bode',
+      title: '外部伯德图资料',
+      type: 'external_resource',
+      target: 'https://ocw.mit.edu/control/bode',
+      status: 'current',
+      readiness: { state: 'ready' },
+      pathNodeType: 'external_resource',
+      externalResource: {
+        source: 'MIT OCW',
+        url: 'https://ocw.mit.edu/control/bode',
+        estimatedTimeMinutes: 15,
+        knowledgeCoverage: ['kn-bode'],
+        applicableGoalId: 'frequency-response-foundations',
+        evidenceUseStatus: 'explicit-access-required',
+        privacyPolicy: 'student-visible',
+      },
+    };
+    const nextNode = {
+      nodeId: 'node-2',
+      title: '回到平台练习',
+      type: 'adaptive_quiz',
+      target: '/assessment/adaptive-practice',
+      status: 'next',
+      readiness: { state: 'ready' },
+    };
+    const before = journeyPathRecord({
+      goalId: 'frequency-response-foundations',
+      currentNodeId: externalNode.nodeId,
+      nodeIds: [externalNode.nodeId, nextNode.nodeId],
+      pathPayload: {
+        mainPathNodeIds: [externalNode.nodeId, nextNode.nodeId],
+        planNodes: [externalNode, nextNode],
+      },
+      lastExecutionMetadata: { completedNodeIds: [], failedNodeIds: [], skippedNodeIds: [] },
+    });
+    const after = journeyPathRecord({
+      goalId: 'frequency-response-foundations',
+      currentNodeId: nextNode.nodeId,
+      nodeIds: [externalNode.nodeId, nextNode.nodeId],
+      pathPayload: {
+        mainPathNodeIds: [externalNode.nodeId, nextNode.nodeId],
+        planNodes: [{ ...externalNode, status: 'completed' }, { ...nextNode, status: 'current' }],
+      },
+      lastExecutionMetadata: { completedNodeIds: [externalNode.nodeId], failedNodeIds: [], skippedNodeIds: [] },
+    });
+    mocks.prisma.learningPath.findUnique
+      .mockResolvedValueOnce(before)
+      .mockResolvedValueOnce(before)
+      .mockResolvedValueOnce(before)
+      .mockResolvedValueOnce(after);
+    const startedExecution = {
+      id: 'exec-external-started',
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: externalNode.nodeId,
+      resourceType: 'external_resource',
+      status: 'started',
+      evidenceRefs: [{
+        kind: 'LearningPathExternalResourceAccess',
+        pathId: 'path-1',
+        nodeId: externalNode.nodeId,
+        userId: 'student-1',
+        url: externalNode.target,
+      }],
+      liftMetadata: { pathActivityKind: 'initial-completion' },
+    };
+    mocks.prisma.learningPathExecution.findFirst
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(startedExecution);
+    mocks.recordPathNodeExecution
+      .mockResolvedValueOnce(startedExecution)
+      .mockResolvedValueOnce({ ...startedExecution, id: 'exec-external-completed', status: 'completed' });
+
+    const startedResponse = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: externalNode.nodeId,
+      resourceType: 'external_resource',
+      status: 'started',
+      idempotencyKey: 'external-journey-started',
+      liftMetadata: { pathActivityKind: 'initial-completion' },
+    }), params);
+    const startedPayload = await startedResponse.json();
+
+    expect(startedResponse.status).toBe(200);
+    expect(startedPayload.journey.nextAction).toMatchObject({ state: 'blocked', nodeId: externalNode.nodeId });
+
+    const completedResponse = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: externalNode.nodeId,
+      resourceType: 'external_resource',
+      status: 'completed',
+      idempotencyKey: 'external-journey-completed',
+      liftMetadata: { pathActivityKind: 'initial-completion' },
+    }), params);
+    const completedPayload = await completedResponse.json();
+
+    expect(completedResponse.status).toBe(200);
+    expect(completedPayload.journey).toMatchObject({
+      current: { nodeId: 'node-2' },
+      progress: { completed: 1, total: 2 },
+      nextAction: { state: 'ready', nodeId: 'node-2' },
+    });
+  });
+
   it('returns existing external-resource completion on idempotent replay after the path advances', async () => {
     mocks.prisma.learningPath.findUnique.mockResolvedValue({
       id: 'path-1',
@@ -4503,18 +4724,22 @@ describe('learning path round API routes', () => {
     expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
   });
 
-  it('does not let clients forge official terminal Arena evidence', async () => {
-    configureSingleNodePath('node-1', 'arena_task', '/arena/challenges/task-second-order-lead-pid', {
+  it('rejects missing server-owned Arena evidence without recording completion', async () => {
+    configureSingleNodePath('arena-task:task-second-order-lead-pid', 'arena_task', '/arena/challenges/task-second-order-lead-pid', {
       goalId: 'control-correction',
+      planNode: {
+        sourceKind: 'arena_task',
+        sourceRef: 'task-second-order-lead-pid',
+      },
       terminalValidation: {
-        nodeId: 'node-1',
+        nodeId: 'arena-task:task-second-order-lead-pid',
         state: 'pending',
         target: '/arena/challenges/task-second-order-lead-pid',
       },
     });
 
     const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
-      nodeId: 'node-1',
+      nodeId: 'arena-task:task-second-order-lead-pid',
       resourceType: 'arena_task',
       status: 'completed',
       idempotencyKey: 'forged-terminal',
@@ -4536,39 +4761,136 @@ describe('learning path round API routes', () => {
       },
     }), params);
 
-    expect(response.status).toBe(200);
+    expect(response.status).toBe(409);
     expect(mocks.prisma.arenaSubmission.findFirst).toHaveBeenCalledWith(expect.objectContaining({
       where: expect.objectContaining({
         id: 'missing-arena-submission',
         userId: 'student-1',
       }),
     }));
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
+    const payload = await response.json();
+    expect(payload).toMatchObject({
+      state: 'pending-result',
+      journey: {
+        nextAction: {
+          state: expect.stringMatching(/^(blocked|pending-result)$/),
+          href: null,
+          reason: expect.any(String),
+          recovery: { label: expect.any(String), href: expect.stringContaining('/assessment/adaptive-practice') },
+        },
+      },
+    });
+    expect(mocks.prisma.learningPath.findUnique).toHaveBeenCalledTimes(2);
+    expect(JSON.stringify(payload)).not.toMatch(/hidden|score|valid/i);
+  });
+
+  it('rejects an invalid official ArenaSubmission before any path node advances', async () => {
+    configureSingleNodePath('arena-task:task-second-order-lead-pid', 'arena_task', '/arena/challenges/task-second-order-lead-pid', {
+      goalId: 'control-correction',
+      planNode: { sourceKind: 'arena_task', sourceRef: 'task-second-order-lead-pid' },
+    });
+    mocks.prisma.arenaSubmission.findFirst.mockResolvedValue({
+      id: 'arena-invalid',
+      taskId: 'task-second-order-lead-pid',
+      userId: 'student-1',
+      score: 0,
+      valid: false,
+      submittedAt: new Date('2026-07-11T01:00:00.000Z'),
+      evaluationRun: { protocolVersion: 'v1', metrics: {}, metadata: {}, completedAt: new Date('2026-07-11T01:00:00.000Z') },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'arena-task:task-second-order-lead-pid',
+      resourceType: 'arena_task',
+      status: 'completed',
+      idempotencyKey: 'invalid-arena-result',
+      arenaRef: { id: 'arena-invalid' },
+    }), params);
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toMatchObject({
+      state: 'pending-result',
+      journey: { nextAction: { state: expect.stringMatching(/^(blocked|pending-result)$/), href: null } },
+    });
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
+  });
+
+  it('returns a fresh pending journey when an Arena completion arrives before any result ref', async () => {
+    configureSingleNodePath('arena-task:task-second-order-lead-pid', 'arena_task', '/arena/challenges/task-second-order-lead-pid', {
+      goalId: 'control-correction',
+      planNode: { sourceKind: 'arena_task', sourceRef: 'task-second-order-lead-pid' },
+      terminalValidation: {
+        nodeId: 'arena-task:task-second-order-lead-pid',
+        state: 'pending',
+      },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'arena-task:task-second-order-lead-pid',
+      resourceType: 'arena_task',
+      status: 'completed',
+      idempotencyKey: 'arena-result-pending',
+    }), params);
+    const payload = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(payload).toMatchObject({
+      state: 'pending-result',
+      journey: {
+        nextAction: {
+          state: expect.stringMatching(/^(blocked|pending-result)$/),
+          href: null,
+          reason: expect.any(String),
+          recovery: { label: expect.any(String), href: expect.any(String) },
+        },
+      },
+    });
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+    expect(JSON.stringify(payload)).not.toMatch(/hidden|score|valid/i);
+  });
+
+  it('accepts a server-owned Arena preview only when terminal policy explicitly allows it', async () => {
+    configureSingleNodePath('arena-task:task-second-order-lead-pid', 'arena_task', '/arena/challenges/task-second-order-lead-pid', {
+      goalId: 'control-correction',
+      planNode: { sourceKind: 'arena_task', sourceRef: 'task-second-order-lead-pid' },
+      terminalValidation: {
+        nodeId: 'arena-task:task-second-order-lead-pid',
+        state: 'pending',
+        policy: {
+          allowPreviewValidation: true,
+          requireOfficialArenaEvidence: false,
+          minimumReplayConfidence: 0.7,
+        },
+      },
+    });
+    mocks.prisma.arenaSubmission.findFirst.mockResolvedValue(null);
+    mocks.prisma.arenaVirtualSimulationRun.findFirst.mockResolvedValue({
+      id: 'arena-preview-allowed',
+      taskId: 'task-second-order-lead-pid',
+      simulationRunId: 'simulation-run-preview',
+      payload: { replay: { confidence: 0.91 }, summary: { settlingTime: 0.8 } },
+      createdAt: new Date('2026-07-11T01:00:00.000Z'),
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'arena-task:task-second-order-lead-pid',
+      resourceType: 'arena_task',
+      status: 'completed',
+      idempotencyKey: 'allowed-arena-preview',
+      arenaRef: { id: 'arena-preview-allowed' },
+    }), params);
+
+    expect(response.status).toBe(200);
     expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      status: 'completed',
       arenaRef: expect.objectContaining({
-        id: 'missing-arena-submission',
-        provenance: 'unknown',
-      }),
-      simulationRef: expect.objectContaining({
-        id: 'client-sim',
-        provenance: 'unknown',
+        id: 'arena-preview-allowed',
+        provenance: 'preview',
       }),
     }));
-    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({
-        pathStatus: 'fallback',
-        terminalValidation: expect.objectContaining({
-          state: 'low-confidence',
-          lowConfidenceMarkers: expect.arrayContaining([
-            'arena-official-evidence-missing',
-            'arena-replay-confidence-missing',
-          ]),
-        }),
-      }),
-    }));
-    const executionCalls = JSON.stringify(mocks.recordPathNodeExecution.mock.calls);
-    expect(executionCalls).not.toContain('hiddenEvaluation');
-    expect(executionCalls).not.toContain('"score":100');
-    expect(executionCalls).not.toContain('"valid":true');
   });
 
   it('completes terminal validation from server-owned SimulationRun and ArenaSubmission records', async () => {
@@ -4680,24 +5002,392 @@ describe('learning path round API routes', () => {
       arenaRef: { id: 'arena-submission-other-task' },
     }), params);
 
+    expect(response.status).toBe(409);
+    expect(await response.json()).toMatchObject({
+      state: 'pending-result',
+      journey: { nextAction: { state: expect.stringMatching(/^(blocked|pending-result)$/), href: null } },
+    });
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
+  });
+
+  it('executes the canonical Arena identity against a verified Yang Fan legacy persisted target', async () => {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: '根轨迹_1_1',
+      nodeIds: ['根轨迹_1_1'],
+      pathPayload: {
+        fixtureScope: 'yangfan-diagnostic-fixture.v1',
+        mainPathNodeIds: ['根轨迹_1_1'],
+        planNodes: [{
+          nodeId: '根轨迹_1_1',
+          type: 'arena_task',
+          sourceKind: 'knowledge_graph',
+          sourceRef: '根轨迹_1_1',
+          target: '/arena?nodeId=%E6%A0%B9%E8%BD%A8%E8%BF%B9_1_1',
+        }],
+      },
+      terminalValidation: {
+        nodeId: '根轨迹_1_1',
+        state: 'pending',
+      },
+      lastExecutionMetadata: { completedNodeIds: [] },
+    });
+    mocks.prisma.arenaSubmission.findFirst.mockResolvedValue({
+      id: 'arena-submission-yangfan',
+      taskId: 'task-second-order-lead-pid',
+      userId: 'student-1',
+      score: 86,
+      valid: true,
+      submittedAt: new Date('2026-07-10T10:00:00.000Z'),
+      evaluationRun: {
+        protocolVersion: 'template-whitebox-v1',
+        metrics: { settlingTime: 0.9 },
+        metadata: { replayConfidence: 0.9 },
+      },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'arena-task:task-second-order-lead-pid',
+      resourceType: 'arena_task',
+      status: 'completed',
+      idempotencyKey: 'verified-yangfan-legacy-arena',
+      arenaRef: { id: 'arena-submission-yangfan' },
+    }), params);
+
     expect(response.status).toBe(200);
     expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      nodeId: 'arena-task:task-second-order-lead-pid',
       arenaRef: expect.objectContaining({
-        id: 'arena-submission-other-task',
-        provenance: 'unknown',
-        official: false,
-        mismatchReason: 'arena-task-mismatch',
+        id: 'arena-submission-yangfan',
+        taskId: 'task-second-order-lead-pid',
+        provenance: 'official',
       }),
     }));
     expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
-        pathStatus: 'fallback',
+        currentNodeId: 'arena-task:task-second-order-lead-pid',
         terminalValidation: expect.objectContaining({
-          state: 'low-confidence',
-          lowConfidenceMarkers: expect.arrayContaining(['arena-official-evidence-missing']),
+          nodeId: 'arena-task:task-second-order-lead-pid',
         }),
       }),
     }));
+  });
+
+  it('rejects the old Yang Fan Arena node id with an explicit canonical recovery target', async () => {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: '根轨迹_1_1',
+      nodeIds: ['根轨迹_1_1'],
+      pathPayload: {
+        fixtureScope: 'yangfan-diagnostic-fixture.v1',
+        mainPathNodeIds: ['根轨迹_1_1'],
+        planNodes: [{
+          nodeId: '根轨迹_1_1',
+          type: 'arena_task',
+          sourceKind: 'knowledge_graph',
+          sourceRef: '根轨迹_1_1',
+          target: '/arena?nodeId=%E6%A0%B9%E8%BD%A8%E8%BF%B9_1_1',
+        }],
+      },
+      terminalValidation: { nodeId: '根轨迹_1_1', state: 'pending' },
+      lastExecutionMetadata: { completedNodeIds: [] },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: '根轨迹_1_1',
+      resourceType: 'arena_task',
+      status: 'completed',
+      idempotencyKey: 'old-yangfan-arena-id',
+      arenaRef: { id: 'arena-submission-yangfan' },
+    }), params);
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toMatchObject({
+      error: 'Arena 路径节点身份已修复，请使用规范节点重试',
+      canonicalNodeId: 'arena-task:task-second-order-lead-pid',
+    });
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['arena-challenge-workbench', 'task-second-order-lead-pid'],
+    ['arena-cruise-blackbox-workbench', 'task-cruise-roll-blackbox-identification'],
+  ])('executes canonical Arena identity through verified legacy registry path %s', async (registryId, taskId) => {
+    const legacyNodeId = `registry:${registryId}`;
+    const canonicalNodeId = `arena-task:${taskId}`;
+    mocks.prisma.learningPath.findUnique.mockResolvedValue(legacyRegistryDependentPath(registryId, taskId));
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: canonicalNodeId,
+      resourceType: 'arena_task',
+      status: 'started',
+      idempotencyKey: `verified-registry-${registryId}`,
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      nodeId: canonicalNodeId,
+      resourceType: 'arena_task',
+    }));
+    const update = mocks.prisma.learningPath.update.mock.calls[0][0];
+    expect(update).toMatchObject({
+      data: {
+        nodeIds: [canonicalNodeId, 'reflection:post-arena-review'],
+        entryNodeId: canonicalNodeId,
+        pathPayload: {
+          graphContext: {
+            limitations: [{ nodeId: legacyNodeId }],
+            objectiveBoundaryDiagnostics: {
+              selectedResourceMatches: [{ nodeId: legacyNodeId }],
+            },
+          },
+          planNodes: expect.arrayContaining([
+            expect.objectContaining({
+              nodeId: 'reflection:post-arena-review',
+              prerequisiteNodeIds: [canonicalNodeId],
+              readiness: expect.objectContaining({
+                requiredCompletedNodeIds: [canonicalNodeId],
+                fallbackNodeIds: [canonicalNodeId],
+                missingCompletedNodeIds: [canonicalNodeId],
+              }),
+            }),
+          ]),
+          activity: [
+            expect.objectContaining({ nodeId: canonicalNodeId }),
+            expect.objectContaining({ nodeIds: [canonicalNodeId] }),
+          ],
+          selectionHistory: [expect.objectContaining({ nodeId: canonicalNodeId })],
+        },
+        deviations: {
+          update: [{
+            where: { id: 'legacy-deviation-1' },
+            data: {
+              priorNodeId: canonicalNodeId,
+              targetNodeId: canonicalNodeId,
+            },
+          }],
+        },
+      },
+    });
+  });
+
+  it('persists legacy Arena aliases so a second read remains canonical', async () => {
+    const legacyNodeId = 'registry:arena-challenge-workbench';
+    const canonicalNodeId = 'arena-task:task-second-order-lead-pid';
+    const initialPath = legacyRegistryDependentPath(
+      'arena-challenge-workbench',
+      'task-second-order-lead-pid',
+    );
+    mocks.prisma.learningPath.findUnique.mockResolvedValue(initialPath);
+
+    const firstResponse = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: canonicalNodeId,
+      resourceType: 'arena_task',
+      status: 'started',
+      idempotencyKey: 'legacy-registry-first-read',
+    }), params);
+
+    expect(firstResponse.status).toBe(200);
+    const firstData = mocks.prisma.learningPath.update.mock.calls[0][0].data;
+    expect(firstData).toMatchObject({
+      nodeIds: [canonicalNodeId, 'reflection:post-arena-review'],
+      entryNodeId: canonicalNodeId,
+    });
+    const deviationUpdates = firstData.deviations.update as Array<{
+      where: { id: string };
+      data: { priorNodeId: string; targetNodeId: string };
+    }>;
+    const persistedPath = {
+      ...initialPath,
+      ...firstData,
+      deviations: initialPath.deviations.map((deviation) => ({
+        ...deviation,
+        ...deviationUpdates.find((update) => update.where.id === deviation.id)?.data,
+      })),
+    };
+
+    mocks.prisma.learningPath.update.mockClear();
+    mocks.prisma.learningPath.findUnique.mockResolvedValue(persistedPath);
+    const secondResponse = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: canonicalNodeId,
+      resourceType: 'arena_task',
+      status: 'started',
+      idempotencyKey: 'legacy-registry-second-read',
+    }), params);
+
+    expect(secondResponse.status).toBe(200);
+    const secondData = mocks.prisma.learningPath.update.mock.calls[0][0].data;
+    const { graphContext, ...pathPayloadWithoutGraphContext } = secondData.pathPayload;
+    expect(JSON.stringify({
+      nodeIds: secondData.nodeIds,
+      entryNodeId: secondData.entryNodeId,
+      currentNodeId: secondData.currentNodeId,
+      pathPayload: pathPayloadWithoutGraphContext,
+      deviationUpdates: secondData.deviations,
+    })).not.toContain(legacyNodeId);
+    expect(graphContext).toMatchObject({
+      limitations: [{ nodeId: legacyNodeId }],
+      objectiveBoundaryDiagnostics: {
+        selectedResourceMatches: [{ nodeId: legacyNodeId }],
+      },
+    });
+  });
+
+  it('unlocks a dependent node after completing a canonicalized legacy registry Arena node', async () => {
+    const legacyNodeId = 'registry:arena-challenge-workbench';
+    const canonicalNodeId = 'arena-task:task-second-order-lead-pid';
+    mocks.prisma.learningPath.findUnique.mockResolvedValue(
+      legacyRegistryDependentPath('arena-challenge-workbench', 'task-second-order-lead-pid'),
+    );
+    mocks.prisma.arenaSubmission.findFirst.mockResolvedValue({
+      id: 'arena-registry-completion',
+      taskId: 'task-second-order-lead-pid',
+      userId: 'student-1',
+      score: 86,
+      valid: true,
+      submittedAt: new Date('2026-07-11T01:00:00.000Z'),
+      evaluationRun: { protocolVersion: 'v1', metrics: {}, metadata: {}, completedAt: new Date('2026-07-11T01:00:00.000Z') },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: canonicalNodeId,
+      resourceType: 'arena_task',
+      status: 'completed',
+      idempotencyKey: 'complete-verified-registry-arena',
+      arenaRef: { id: 'arena-registry-completion' },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: 'reflection:post-arena-review',
+        pathPayload: expect.objectContaining({
+          planNodes: expect.arrayContaining([
+            expect.objectContaining({
+              nodeId: 'reflection:post-arena-review',
+              status: 'current',
+              prerequisiteNodeIds: [canonicalNodeId],
+              readiness: expect.objectContaining({
+                state: 'ready',
+                missingCompletedNodeIds: [],
+              }),
+            }),
+          ]),
+        }),
+      }),
+    }));
+  });
+
+  it.each([
+    ['arena-challenge-workbench', 'task-second-order-lead-pid'],
+    ['arena-cruise-blackbox-workbench', 'task-cruise-roll-blackbox-identification'],
+  ])('returns canonicalNodeId for verified legacy registry request %s', async (registryId, taskId) => {
+    const legacyNodeId = `registry:${registryId}`;
+    configureSingleNodePath(legacyNodeId, 'arena_task', `/arena/challenges/${taskId}`, {
+      goalId: 'control-correction',
+      planNode: {
+        sourceKind: 'resource_registry',
+        sourceRef: registryId,
+      },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: legacyNodeId,
+      resourceType: 'arena_task',
+      status: 'started',
+      idempotencyKey: `legacy-registry-${registryId}`,
+    }), params);
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toMatchObject({
+      error: 'Arena 路径节点身份已修复，请使用规范节点重试',
+      canonicalNodeId: `arena-task:${taskId}`,
+    });
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+  });
+
+  it('canonically replays an existing legacy-id execution without writing the old identity', async () => {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue({
+      id: 'path-1', userId: 'student-1', classId: 'class-1', goalId: 'control-correction',
+      pathStatus: 'active', currentNodeId: '根轨迹_1_1', nodeIds: ['根轨迹_1_1'],
+      pathPayload: {
+        fixtureScope: 'yangfan-diagnostic-fixture.v1',
+        mainPathNodeIds: ['根轨迹_1_1'],
+        planNodes: [{
+          nodeId: '根轨迹_1_1', type: 'arena_task', sourceKind: 'knowledge_graph',
+          sourceRef: '根轨迹_1_1', target: '/arena?nodeId=%E6%A0%B9%E8%BD%A8%E8%BF%B9_1_1',
+        }],
+      },
+      terminalValidation: { nodeId: '根轨迹_1_1', state: 'pending' },
+      lastExecutionMetadata: { completedNodeIds: [] },
+    });
+    mocks.prisma.learningPathExecution.findFirst.mockResolvedValue({
+      id: 'legacy-execution', nodeId: '根轨迹_1_1', resourceType: 'arena_task', status: 'completed',
+      evidenceRefs: [], liftMetadata: {}, simulationRef: null,
+      arenaRef: { id: 'arena-submission-yangfan' }, idempotencyKey: 'legacy-replay',
+    });
+    mocks.prisma.arenaSubmission.findFirst.mockResolvedValue({
+      id: 'arena-submission-yangfan', taskId: 'task-second-order-lead-pid', userId: 'student-1',
+      score: 86, valid: true, submittedAt: new Date('2026-07-10T10:00:00.000Z'),
+      evaluationRun: { protocolVersion: 'v1', metrics: {}, metadata: { replayConfidence: 0.9 } },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'arena-task:task-second-order-lead-pid',
+      resourceType: 'arena_task',
+      status: 'completed',
+      idempotencyKey: 'legacy-replay',
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      nodeId: 'arena-task:task-second-order-lead-pid',
+    }));
+  });
+
+  it.each([
+    ['generic target', {
+      nodeId: 'arena-task:legacy',
+      sourceKind: 'arena_task',
+      sourceRef: 'legacy',
+      target: '/arena',
+    }, 'generic-arena-target'],
+    ['unknown task', {
+      nodeId: 'arena-task:unknown-task',
+      sourceKind: 'arena_task',
+      sourceRef: 'unknown-task',
+      target: '/arena/challenges/unknown-task',
+    }, 'unknown-arena-task'],
+  ])('blocks persisted Arena execution with a %s', async (_label, planNode, reason) => {
+    configureSingleNodePath(planNode.nodeId, 'arena_task', planNode.target, {
+      goalId: 'control-correction',
+      planNode,
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: planNode.nodeId,
+      resourceType: 'arena_task',
+      status: 'completed',
+      idempotencyKey: `blocked-${reason}`,
+      arenaRef: { id: 'arena-submission-1' },
+    }), params);
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toMatchObject({
+      error: 'Arena 路径目标不可执行',
+      reason,
+    });
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+    expect(mocks.prisma.arenaSubmission.findFirst).not.toHaveBeenCalled();
   });
 
   it('rejects Arena preview records from a different terminal Arena task', async () => {
@@ -4733,20 +5423,9 @@ describe('learning path round API routes', () => {
       arenaRef: { id: 'arena-preview-other-task' },
     }), params);
 
-    expect(response.status).toBe(200);
-    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
-      arenaRef: expect.objectContaining({
-        id: 'arena-preview-other-task',
-        provenance: 'unknown',
-        official: false,
-        mismatchReason: 'arena-task-mismatch',
-      }),
-    }));
-    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({
-        pathStatus: 'fallback',
-      }),
-    }));
+    expect(response.status).toBe(409);
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
   });
 
   it('rejects SimulationRun records from outside the path simulation source', async () => {
@@ -4963,44 +5642,42 @@ describe('learning path round API routes', () => {
     }));
   });
 
-  it('uses the existing execution payload when an idempotency key is reused with a different status', async () => {
-    const existingExecution = {
+  it.each([
+    {
+      label: 'node identity',
+      existing: { nodeId: 'node-1', resourceType: 'knowledge_card', status: 'completed' },
+      body: { nodeId: 'outside-node', resourceType: 'knowledge_card', status: 'completed' },
+    },
+    {
+      label: 'resource type',
+      existing: { nodeId: 'node-1', resourceType: 'knowledge_card', status: 'completed' },
+      body: { nodeId: 'node-1', resourceType: 'simulation', status: 'completed' },
+    },
+    {
+      label: 'execution status',
+      existing: { nodeId: 'node-1', resourceType: 'knowledge_card', status: 'started' },
+      body: { nodeId: 'node-1', resourceType: 'knowledge_card', status: 'completed' },
+    },
+  ])('rejects an idempotency replay with conflicting $label before repair or advancement', async ({ existing, body }) => {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue(journeyPathRecord());
+    mocks.prisma.learningPathExecution.findFirst.mockResolvedValue({
       id: 'exec-existing',
       pathId: 'path-1',
       idempotencyKey: 'exec-key',
-      nodeId: 'node-1',
-      resourceType: 'simulation',
-      status: 'started',
-      startedAt: new Date('2026-06-04T10:00:00.000Z'),
-    };
-    mocks.prisma.learningPathExecution.findFirst.mockResolvedValue(existingExecution);
-    mocks.recordPathNodeExecution.mockResolvedValueOnce(existingExecution);
+      ...existing,
+    });
 
     const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
-      nodeId: 'node-1',
-      resourceType: 'simulation',
-      status: 'completed',
-      completedAt: '2026-06-04T10:10:00.000Z',
+      ...body,
       idempotencyKey: 'exec-key',
     }), params);
 
-    expect(response.status).toBe(200);
-    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
-      idempotencyKey: 'exec-key',
-      status: 'started',
-      completedAt: null,
-    }));
-    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({
-        pathStatus: 'active',
-        lastExecutionMetadata: expect.objectContaining({
-          lastExecution: expect.objectContaining({
-            status: 'started',
-            completedAt: null,
-          }),
-        }),
-      }),
-    }));
+    expect(response.status).toBe(409);
+    expect(await response.json()).toEqual({ error: '幂等键已绑定到不同的执行请求' });
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
+    expect(mocks.refreshStudentEvidenceFeatureCache).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningPath.findUnique).toHaveBeenCalledTimes(1);
   });
 
   it('returns an idempotent older-node replay without governed activity metadata without re-emitting evidence', async () => {
@@ -5211,6 +5888,187 @@ describe('learning path round API routes', () => {
 
     expect(response.status).toBe(200);
     expect(payload.execution.id).toBe('exec-old-history');
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
+  });
+
+  it('returns a fresh persisted journey after a new completion advances the path', async () => {
+    const before = journeyPathRecord();
+    const after = journeyPathRecord({
+      currentNodeId: 'node-2',
+      lastExecutionMetadata: { completedNodeIds: ['node-1'], failedNodeIds: [], skippedNodeIds: [] },
+    });
+    mocks.prisma.learningPath.findUnique
+      .mockResolvedValueOnce(before)
+      .mockResolvedValueOnce(after);
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'node-1',
+      resourceType: 'knowledge_card',
+      status: 'completed',
+      idempotencyKey: 'journey-new-completion',
+    }), params);
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.journey).toMatchObject({
+      current: { nodeId: 'node-2' },
+      progress: { completed: 1, total: 2 },
+      nextAction: { state: 'ready', nodeId: 'node-2' },
+    });
+    expect(mocks.prisma.learningPath.findUnique).toHaveBeenCalledTimes(2);
+  });
+
+  it('returns the immediate pending node when the fresh update keeps the completed current id', async () => {
+    const before = journeyPathRecord();
+    const after = journeyPathRecord({
+      currentNodeId: 'node-1',
+      nodeIds: ['node-1', 'node-2', 'node-3'],
+      pathPayload: {
+        mainPathNodeIds: ['node-1', 'node-2', 'node-3'],
+        planNodes: [
+          { nodeId: 'node-1', title: '知识回顾', type: 'knowledge_card', target: '/knowledge/card-1', status: 'completed' },
+          {
+            nodeId: 'node-2',
+            title: '等待仿真结果',
+            type: 'control_workbench',
+            target: '/interactive-learning/control-workbench',
+            status: 'locked',
+            readiness: { state: 'evidence-needed', missingOutcomeRefs: ['simulation_run:one'] },
+          },
+          { nodeId: 'node-3', title: '后续练习', type: 'adaptive_quiz', target: '/assessment/adaptive-practice', status: 'next', readiness: { state: 'ready' } },
+        ],
+      },
+      lastExecutionMetadata: { completedNodeIds: ['node-1'], failedNodeIds: [], skippedNodeIds: [] },
+    });
+    mocks.prisma.learningPath.findUnique
+      .mockResolvedValueOnce(before)
+      .mockResolvedValueOnce(after);
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'node-1',
+      resourceType: 'knowledge_card',
+      status: 'completed',
+      idempotencyKey: 'journey-pending-after-update',
+    }), params);
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.journey).toMatchObject({
+      current: { nodeId: 'node-2' },
+      nextAction: { state: 'pending-result', nodeId: 'node-2', href: null },
+    });
+  });
+
+  it('persists path completion when every node is complete and terminal validation is not required', async () => {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue(journeyPathRecord({
+      currentNodeId: 'node-1',
+      nodeIds: ['node-1'],
+      pathPayload: {
+        mainPathNodeIds: ['node-1'],
+        planNodes: [
+          { nodeId: 'node-1', title: '知识回顾', type: 'knowledge_card', target: '/knowledge/card-1', status: 'current', readiness: { state: 'ready' } },
+        ],
+      },
+    }));
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'node-1',
+      resourceType: 'knowledge_card',
+      status: 'completed',
+      idempotencyKey: 'journey-non-terminal-complete',
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ pathStatus: 'completed' }),
+    }));
+  });
+
+  it('does not persist path completion when a remaining node was only skipped', async () => {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue(journeyPathRecord({
+      currentNodeId: 'node-1',
+      lastExecutionMetadata: { completedNodeIds: [], failedNodeIds: [], skippedNodeIds: ['node-2'] },
+    }));
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'node-1',
+      resourceType: 'knowledge_card',
+      status: 'completed',
+      idempotencyKey: 'journey-skipped-not-complete',
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ pathStatus: 'active' }),
+    }));
+  });
+
+  it('repairs the parent path on a current-node replay and returns the fresh journey once', async () => {
+    const before = journeyPathRecord();
+    const after = journeyPathRecord({
+      currentNodeId: 'node-2',
+      lastExecutionMetadata: { completedNodeIds: ['node-1'], failedNodeIds: [], skippedNodeIds: [] },
+    });
+    const existing = {
+      id: 'exec-existing-current',
+      pathId: 'path-1',
+      idempotencyKey: 'journey-parent-repair',
+      nodeId: 'node-1',
+      resourceType: 'knowledge_card',
+      status: 'completed',
+      completedAt: new Date('2026-07-10T10:00:00.000Z'),
+      liftMetadata: { pathActivityKind: 'initial-completion' },
+      evidenceRefs: [],
+    };
+    mocks.prisma.learningPath.findUnique
+      .mockResolvedValueOnce(before)
+      .mockResolvedValueOnce(after);
+    mocks.prisma.learningPathExecution.findFirst.mockResolvedValueOnce(existing);
+    mocks.recordPathNodeExecution.mockResolvedValueOnce(existing);
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'node-1',
+      resourceType: 'knowledge_card',
+      status: 'completed',
+      idempotencyKey: 'journey-parent-repair',
+    }), params);
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.journey.nextAction).toMatchObject({ state: 'ready', nodeId: 'node-2' });
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns the current authoritative journey for a historical replay without advancing again', async () => {
+    const current = journeyPathRecord({
+      currentNodeId: 'node-2',
+      lastExecutionMetadata: { completedNodeIds: ['node-1'], failedNodeIds: [], skippedNodeIds: [] },
+    });
+    mocks.prisma.learningPath.findUnique.mockResolvedValue(current);
+    mocks.prisma.learningPathExecution.findFirst.mockResolvedValueOnce({
+      id: 'exec-existing-history',
+      pathId: 'path-1',
+      idempotencyKey: 'journey-historical-replay',
+      nodeId: 'node-1',
+      resourceType: 'knowledge_card',
+      status: 'completed',
+      liftMetadata: { rawLegacyPayload: true },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'node-1',
+      resourceType: 'knowledge_card',
+      status: 'completed',
+      idempotencyKey: 'journey-historical-replay',
+    }), params);
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.journey).toMatchObject({
+      current: { nodeId: 'node-2' },
+      nextAction: { state: 'ready', nodeId: 'node-2' },
+    });
     expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
     expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
   });

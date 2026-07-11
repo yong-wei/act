@@ -17,6 +17,12 @@ import {
   type ControllerId,
   type LevelTier
 } from './level-data';
+import {
+  ODYSSEY_SYNC_STATE,
+  shouldOfferOdysseySyncRetry,
+  synchronizeOdysseySubmission,
+  type OdysseySyncState,
+} from './submission-recovery';
 import { TuningPanel } from './components/TuningPanel';
 import { useGameStore } from './store/game-store';
 import { Bot, Play, RotateCcw, Settings2, Trophy, Info, ArrowLeft, Rocket, Gamepad2, Layers, ShoppingBag, Lock } from 'lucide-react';
@@ -37,6 +43,8 @@ import {
 import { cn } from '@/lib/utils';
 import { readAITextStream } from '@/lib/ai-stream-compat';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useArenaPathSubmissionCompletion } from '@/features/arena/arena-path-journey-control';
+import { resolveArenaPathLaunchParams } from '@/features/arena/arena-path-journey';
 
 interface ControlOdysseyProps {
   initialLevelId?: string;
@@ -97,6 +105,8 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
   const searchParams = useSearchParams();
   const arenaTaskId = searchParams.get('arenaTask') ?? undefined;
   const publicationId = searchParams.get('publicationId') ?? undefined;
+  const hasArenaPathContext = Boolean(arenaTaskId && resolveArenaPathLaunchParams(searchParams, arenaTaskId));
+  const completeArenaPath = useArenaPathSubmissionCompletion(arenaTaskId ?? '');
   const {
     gameState,
     setGameState,
@@ -153,9 +163,12 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
 
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
   const [isLoadingLeaderboard, setIsLoadingLeaderboard] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [syncState, setSyncState] = useState<OdysseySyncState>(ODYSSEY_SYNC_STATE.idle);
+  const [syncRetryToken, setSyncRetryToken] = useState(0);
   const hasSubmittedRef = useRef(false);
   const bestScoreSnapshotRef = useRef<number | null>(null);
+  const personalBestScoresRef = useRef(personalBestScores);
+  personalBestScoresRef.current = personalBestScores;
   const currentAiStatus = aiStatusByLevel[selectedLevelId] ?? {
     configError: null,
     resultError: null,
@@ -206,14 +219,16 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     if (gameState !== 'VICTORY') {
       hasSubmittedRef.current = false;
       bestScoreSnapshotRef.current = null;
+      setSyncState(ODYSSEY_SYNC_STATE.idle);
       return;
     }
 
     if (hasSubmittedRef.current) return;
     hasSubmittedRef.current = true;
+    let cancelled = false;
 
     const saveScore = async () => {
-      setIsSubmitting(true);
+      if (!cancelled) setSyncState(ODYSSEY_SYNC_STATE.pending);
       try {
         const tierBase = currentTier === 'gold' ? 15000 : currentTier === 'silver' ? 12000 : 10000;
         const baseScore = Math.max(
@@ -228,19 +243,19 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
         const scoreMultiplier = Math.max(0.7, Math.min(1.4, 1 / difficultyScale));
         const finalScore = Math.max(0, Math.floor(baseScore * scoreMultiplier));
         if (bestScoreSnapshotRef.current === null) {
-          bestScoreSnapshotRef.current = personalBestScores[selectedLevelId]?.tiers?.[currentTier] ?? 0;
+          bestScoreSnapshotRef.current = personalBestScoresRef.current[selectedLevelId]?.tiers?.[currentTier] ?? 0;
         }
-        await submitGameScore(
+        const submit = () => submitGameScore(
           selectedLevelId,
           finalScore,
           {
-          maxOvershoot: metrics.maxOvershoot,
-          settlingTime: metrics.settlingTime,
-          steadyError: metrics.steadyError,
-          avgRelativeError: metrics.avgRelativeError,
-          controlEnergy: metrics.controlEnergy,
-          controlSmoothness: metrics.controlSmoothness,
-          scoreMultiplier
+            maxOvershoot: metrics.maxOvershoot,
+            settlingTime: metrics.settlingTime,
+            steadyError: metrics.steadyError,
+            avgRelativeError: metrics.avgRelativeError,
+            controlEnergy: metrics.controlEnergy,
+            controlSmoothness: metrics.controlSmoothness,
+            scoreMultiplier
           },
           {
             runId,
@@ -257,9 +272,18 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
             publicationId
           }
         );
+        const synchronization = await synchronizeOdysseySubmission({
+          submit,
+          arenaTaskId,
+          hasArenaPathContext,
+          completeArenaPath,
+        });
+        if (synchronization.state.status === 'failed') {
+          throw new Error(synchronization.state.message);
+        }
 
         const profile = await getControlProfile();
-        if (profile) {
+        if (profile && !cancelled) {
           setControlCredits(profile.credits);
           setUnlockedControllers(profile.unlocks);
           setTierProgress(profile.tierProgress ?? {});
@@ -269,15 +293,26 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
           }
         }
         const configs = await getTopControlConfigs(selectedLevelId);
-        setTopConfigs(configs);
+        if (!cancelled) {
+          setTopConfigs(configs);
+          setSyncState(ODYSSEY_SYNC_STATE.succeeded);
+        }
       } catch (e) {
+        hasSubmittedRef.current = false;
+        if (!cancelled) {
+          setSyncState({
+            status: 'failed',
+            message: e instanceof Error ? e.message : ODYSSEY_SYNC_STATE.failed.message,
+          });
+        }
         console.error('Failed to submit score', e);
-      } finally {
-        setIsSubmitting(false);
       }
     };
 
     saveScore();
+    return () => {
+      cancelled = true;
+    };
   }, [
     gameState,
     metrics,
@@ -294,7 +329,9 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     difficultyScale,
     arenaTaskId,
     publicationId,
-    personalBestScores,
+    completeArenaPath,
+    hasArenaPathContext,
+    syncRetryToken,
     setControlCredits,
     setUnlockedControllers,
     setControllerLevels,
@@ -1528,7 +1565,33 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
                         <Trophy className="w-12 h-12 text-yellow-400" />
                      </div>
                      <h2 className="text-4xl font-black text-white mb-2">航行成功!</h2>
-                     <p className="text-slate-400 mb-8">表现优异，数据已同步。{isSubmitting && '上传中...'}</p>
+                     <div className="mb-8 space-y-3">
+                       <p
+                         className={cn(
+                           'text-sm',
+                           syncState.status === 'succeeded' && 'text-emerald-300',
+                           syncState.status === 'pending' && 'text-amber-300',
+                           syncState.status === 'failed' && 'text-rose-300',
+                           syncState.status === 'idle' && 'text-slate-400',
+                         )}
+                         role="status"
+                       >
+                         {syncState.message}
+                       </p>
+                       {shouldOfferOdysseySyncRetry(syncState) && (
+                         <Button
+                           type="button"
+                           variant="outline"
+                           onClick={() => {
+                             hasSubmittedRef.current = false;
+                             setSyncState(ODYSSEY_SYNC_STATE.pending);
+                             setSyncRetryToken((value) => value + 1);
+                           }}
+                         >
+                           重试同步
+                         </Button>
+                       )}
+                     </div>
 
                      <div className="bg-slate-950/50 rounded-2xl p-6 mb-8 border border-slate-800 text-left space-y-4">
                         <div className="flex items-center justify-between gap-6">

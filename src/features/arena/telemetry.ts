@@ -59,6 +59,10 @@ export function sendArenaCoreEvent(
     originPath: payload.originPath ?? window.location.pathname,
   });
 
+  if (type === 'arena_evaluation_complete') {
+    window.dispatchEvent(new CustomEvent('arena:evaluation-complete', { detail: payload }));
+  }
+
   return fetch('/api/interactive/events', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

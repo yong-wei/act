@@ -7,6 +7,7 @@ import { InlineMath } from 'react-katex';
 import { Plus, Settings2, X } from 'lucide-react';
 
 import { AppShell } from '@/components/platform/app-shell';
+import { AdaptivePathJourneyControlFromRoute } from '@/features/adaptive/adaptive-path-journey-control';
 import {
   arenaMethodLabels,
   arenaWorkspaceLabels,
@@ -473,6 +474,7 @@ function ResolvedControlWorkbenchShell({
       subtitle={taskTitle}
       activeHref="/interactive-learning/control-workbench"
       sidebarMode="collapsible"
+      journeyControl={<AdaptivePathJourneyControlFromRoute />}
       breadcrumbs={[
         { label: '首页', href: '/' },
         { label: '竞技场', href: returnHref.startsWith('/arena') ? '/arena' : undefined },

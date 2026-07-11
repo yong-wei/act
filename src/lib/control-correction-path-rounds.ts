@@ -425,7 +425,7 @@ function isSafeExternalPathTarget(target: string): boolean {
   }
 }
 
-function isStudentVisiblePathTarget(target: string): boolean {
+export function isStudentVisiblePathTarget(target: string): boolean {
   const normalized = target.trim();
   if (normalized.length === 0 || normalized !== target) return false;
   if (/^(?:[a-z][a-z\d+.-]*:)?\/\//i.test(normalized)) return false;
@@ -620,17 +620,42 @@ export async function updateControlCorrectionPathRoundAfterExecution(
   const terminalFailureReasons = arrayOfStrings(terminalValidation.failureReasons);
   const terminalLowConfidenceMarkers = arrayOfStrings(terminalValidation.lowConfidenceMarkers);
   const terminalFallbackReasons = terminalFailureReasons.concat(terminalLowConfidenceMarkers);
+  const terminalRequired = Boolean(terminalNodeId) && terminalState !== 'not-required';
+  const allNodesComplete = mainPathNodeIds.length > 0 && mainPathNodeIds.every((nodeId) => completedNodeIds.has(nodeId));
   const nextPathStatus = isTerminalExecution
     ? terminalState === 'completed'
       ? 'completed'
       : terminalState === 'failed' || terminalState === 'low-confidence'
         ? 'fallback'
         : path.pathStatus ?? 'active'
+    : allNodesComplete && !terminalRequired
+      ? 'completed'
     : path.pathStatus ?? 'active';
+  const deviationNodeReferenceUpdates = Array.isArray(path.deviations)
+    ? path.deviations.flatMap((value: unknown) => {
+        const deviation = toRecord(value);
+        if (typeof deviation.id !== 'string') return [];
+        const data = {
+          ...(typeof deviation.priorNodeId === 'string' || deviation.priorNodeId === null
+            ? { priorNodeId: deviation.priorNodeId }
+            : {}),
+          ...(typeof deviation.targetNodeId === 'string' || deviation.targetNodeId === null
+            ? { targetNodeId: deviation.targetNodeId }
+            : {}),
+        };
+        return Object.keys(data).length > 0
+          ? [{ where: { id: deviation.id }, data }]
+          : [];
+      })
+    : [];
 
   return db.learningPath.update({
     where: { id: input.pathId },
     data: {
+      ...(Array.isArray(path.nodeIds) ? { nodeIds: path.nodeIds } : {}),
+      ...(typeof path.entryNodeId === 'string' || path.entryNodeId === null
+        ? { entryNodeId: path.entryNodeId }
+        : {}),
       currentNodeId: nextNodeId,
       pathStatus: nextPathStatus,
       terminalValidation,
@@ -670,6 +695,9 @@ export async function updateControlCorrectionPathRoundAfterExecution(
         } : {}),
         updatedAt: new Date().toISOString(),
       },
+      ...(deviationNodeReferenceUpdates.length > 0
+        ? { deviations: { update: deviationNodeReferenceUpdates } }
+        : {}),
     },
   });
 }

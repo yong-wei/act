@@ -12,6 +12,7 @@ import {
   buildAdaptivePathCompletionRequest,
   resolveAdaptivePathLaunchReturnContext,
 } from '@/features/adaptive/adaptive-learning-center-contracts';
+import { publishAdaptivePathJourneyResponse } from '@/features/adaptive/adaptive-path-journey-control';
 import { StudentFeedbackTaskPanel } from '@/features/assessment/student-feedback-task-panel';
 import { useVerifiedFeedbackTaskContext } from '@/features/assessment/use-verified-feedback-task-context';
 import { buildFeedbackTaskContext, buildFeedbackTaskHref } from '@/lib/student-feedback-task-contract';
@@ -122,11 +123,7 @@ export default function InteractiveResourcePage() {
       if (!response.ok) {
         throw new Error(`Path resource completion rejected with status ${response.status}`);
       }
-      if (feedbackContext) {
-        window.location.assign(buildFeedbackTaskHref(feedbackContext.returnHref, feedbackContext, {
-          status: 'completed',
-        }));
-      }
+      publishAdaptivePathJourneyResponse(await response.json().catch(() => null));
     } catch (completionError) {
       console.error('Failed to write path resource completion', completionError);
     }

@@ -57,6 +57,28 @@ describe('Odyssey Arena bridge shell helpers', () => {
     expect(href).toBe('/arena/challenges/task-odyssey-level-one-growth?publicationId=publication-1&classId=class-a');
   });
 
+  it('preserves normalized adaptive path context on the challenge return link', () => {
+    const href = buildOdysseyArenaReturnHref(
+      '/arena/challenges/task-odyssey-level-one-growth',
+      new URLSearchParams({
+        arenaTask: 'task-odyssey-level-one-growth',
+        source: 'adaptive-path-center',
+        goal: 'control-correction',
+        goalId: 'control-correction',
+        pathId: 'path-odyssey',
+        nodeId: 'arena-task:task-odyssey-level-one-growth',
+        intent: 'path-execution',
+        returnHref: '/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=path-odyssey&nodeId=arena-task%3Atask-odyssey-level-one-growth',
+        resourceType: 'arena_task',
+      }),
+    );
+
+    const url = new URL(href, 'https://example.edu');
+    expect(url.searchParams.get('pathId')).toBe('path-odyssey');
+    expect(url.searchParams.get('nodeId')).toBe('arena-task:task-odyssey-level-one-growth');
+    expect(url.searchParams.get('returnHref')).toContain('/assessment/adaptive-practice?');
+  });
+
   it('does not treat public submissions as current viewer status when viewer is unknown', () => {
     const best = pickViewerBestSubmission([
       submission({ id: 'other-high', userId: 'student-other', score: 98 }),

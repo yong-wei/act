@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server';
 
+import { buildAuthorizedAdaptivePathJourney } from '@/features/adaptive/adaptive-path-journey-contracts';
+import { resolveArenaPathTargetIntegrity } from '@/lib/arena-path-target-integrity';
+import { remapPathNodeId } from '@/lib/path-node-id-alias-remap';
+import { canonicalizeVerifiedLegacyArenaPath } from '@/lib/verified-legacy-arena-path-canonicalization';
 import { prisma } from '@/lib/prisma';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import {
@@ -36,6 +40,7 @@ const RESOURCE_TYPES = new Set([
   'textbook_section',
   'video',
   'audio',
+  'slides',
   'handout',
   'quiz',
   'adaptive_quiz',
@@ -56,14 +61,36 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     const requester = await getLearningPathRequester();
     if (requester instanceof NextResponse) return requester;
     const params = await props.params;
-    const path = await readPathForAccess(params.id);
-    if (path instanceof NextResponse) return path;
+    const persistedPath = await readPathForAccess(params.id);
+    if (persistedPath instanceof NextResponse) return persistedPath;
+    const canonicalPath = canonicalizeVerifiedLegacyArenaPath(persistedPath);
+    const path = canonicalPath.path;
     const denied = assertCanWriteStudentPath(requester, path);
     if (denied) return denied;
 
     const body = await request.json();
     const missingIdempotencyKey = requireIdempotencyKey(body.idempotencyKey);
     if (missingIdempotencyKey) return missingIdempotencyKey;
+    if (typeof body.nodeId === 'string' && canonicalPath.nodeIdReplacements.has(body.nodeId)) {
+      return NextResponse.json({
+        error: 'Arena 路径节点身份已修复，请使用规范节点重试',
+        canonicalNodeId: canonicalPath.nodeIdReplacements.get(body.nodeId),
+      }, { status: 409 });
+    }
+    const existingExecution = typeof body.idempotencyKey === 'string' && body.idempotencyKey.length > 0
+      ? await prisma.learningPathExecution.findFirst({
+          where: {
+            pathId: params.id,
+            idempotencyKey: body.idempotencyKey,
+          },
+        })
+      : null;
+    if (existingExecution && !isCanonicalExecutionReplay(existingExecution, body, canonicalPath.nodeIdReplacements)) {
+      return NextResponse.json(
+        { error: '幂等键已绑定到不同的执行请求' },
+        { status: 409 },
+      );
+    }
     const nodeIds = new Set(readPathNodeIds(path));
     const pathNode = readPathNode(path, body.nodeId);
     const expectedResourceType = typeof pathNode?.type === 'string' ? pathNode.type : null;
@@ -79,13 +106,19 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     ) {
       return NextResponse.json({ error: '执行事件不符合路径节点或状态契约' }, { status: 400 });
     }
+    const arenaTargetIntegrity = body.resourceType === 'arena_task'
+      ? resolveArenaPathTargetIntegrity({
+          ...pathNode,
+          fixtureScope: toRecord(path.pathPayload).fixtureScope,
+        })
+      : null;
+    if (arenaTargetIntegrity?.status === 'blocked') {
+      return NextResponse.json(
+        { error: 'Arena 路径目标不可执行', reason: arenaTargetIntegrity.reason },
+        { status: 409 },
+      );
+    }
     if (typeof body.idempotencyKey === 'string' && body.idempotencyKey.length > 0) {
-      const existingExecution = await prisma.learningPathExecution.findFirst({
-        where: {
-          pathId: params.id,
-          idempotencyKey: body.idempotencyKey,
-        },
-      });
       if (existingExecution) {
         const existingStatus = readExecutionStatus(existingExecution.status);
         let execution = existingExecution;
@@ -97,7 +130,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
             pathId: params.id,
             userId: path.userId,
             goalId: path.goalId ?? null,
-            nodeId: existingExecution.nodeId,
+            nodeId: remapPathNodeId(existingExecution.nodeId, canonicalPath.nodeIdReplacements),
             resourceType: existingExecution.resourceType,
             status: existingStatus,
             startedAt: existingExecution.startedAt ?? null,
@@ -111,7 +144,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
             actorUserId: requester.userId,
             actorRole: requester.role,
           };
-          const existingPathNode = readPathNode(path, existingExecution.nodeId);
+          const existingPathNode = readPathNode(path, executionInput.nodeId);
           const existingActivityKind = readPathActivityKind(executionInput.liftMetadata);
           const existingHistoricalActivity = path.currentNodeId !== executionInput.nodeId;
           const canReplayHistoricalActivity = existingActivityKind
@@ -126,7 +159,8 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
             : false;
           if (existingHistoricalActivity && !canReplayHistoricalActivity) {
             const cacheRefresh = await refreshPathEvidenceFeatureCache(path.userId);
-            return NextResponse.json({ execution: toExecutionWriteView(existingExecution), cacheRefresh });
+            const journey = await readFreshJourney(params.id, executionInput.nodeId);
+            return NextResponse.json({ execution: toExecutionWriteView(existingExecution), cacheRefresh, journey });
           }
           const governedExternalInput = await resolveGovernedExternalResourceEvidence(prisma as any, path, existingPathNode, executionInput);
           if (governedExternalInput instanceof NextResponse) return governedExternalInput;
@@ -134,15 +168,35 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
           const governedAdaptiveInput = await resolveGovernedAdaptiveAssessmentOutcomeEvidence(prisma as any, governedInstrumentedInput);
           const governedSimulationInput = await resolveGovernedSimulationOutcomeEvidence(prisma as any, path, governedAdaptiveInput);
           const governedWorkbenchInput = await resolveGovernedControlWorkbenchOutcomeEvidence(prisma as any, path, governedSimulationInput);
-          const governedArenaInput = await resolveGovernedArenaOutcomeEvidence(prisma as any, path, governedWorkbenchInput);
-          const governedExecutionInput = await resolveGovernedTerminalEvidence(prisma as any, path, governedArenaInput);
+          const governedArenaInput = await resolveGovernedArenaOutcomeEvidence(
+            prisma as any,
+            path,
+            governedWorkbenchInput,
+            arenaTargetIntegrity?.taskId,
+          );
+          if ('arenaCompletionRejection' in governedArenaInput) {
+            return arenaCompletionRejectionWithJourney(
+              governedArenaInput.arenaCompletionRejection,
+              await readFreshJourney(params.id, executionInput.nodeId),
+            );
+          }
+          const governedExecutionInput = await resolveGovernedTerminalEvidence(
+            prisma as any,
+            path,
+            governedArenaInput,
+            arenaTargetIntegrity?.taskId,
+          );
           execution = await recordPathNodeExecution(prisma as any, governedExecutionInput);
           if (shouldUpdatePathAfterExecution(path, existingPathNode, governedExecutionInput, existingActivityKind, existingHistoricalActivity)) {
             await updateControlCorrectionPathRoundAfterExecution(prisma as any, path, governedExecutionInput);
           }
         }
         const cacheRefresh = await refreshPathEvidenceFeatureCache(path.userId);
-        return NextResponse.json({ execution: toExecutionWriteView(execution), cacheRefresh });
+        const journey = await readFreshJourney(
+          params.id,
+          remapPathNodeId(existingExecution.nodeId, canonicalPath.nodeIdReplacements),
+        );
+        return NextResponse.json({ execution: toExecutionWriteView(execution), cacheRefresh, journey });
       }
     }
     const activityKind = readPathActivityKind(body.liftMetadata);
@@ -177,20 +231,55 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     const governedAdaptiveInput = await resolveGovernedAdaptiveAssessmentOutcomeEvidence(prisma as any, governedInstrumentedInput);
     const governedSimulationInput = await resolveGovernedSimulationOutcomeEvidence(prisma as any, path, governedAdaptiveInput);
     const governedWorkbenchInput = await resolveGovernedControlWorkbenchOutcomeEvidence(prisma as any, path, governedSimulationInput);
-    const governedArenaInput = await resolveGovernedArenaOutcomeEvidence(prisma as any, path, governedWorkbenchInput);
-    const executionInput = await resolveGovernedTerminalEvidence(prisma as any, path, governedArenaInput);
+    const governedArenaInput = await resolveGovernedArenaOutcomeEvidence(
+      prisma as any,
+      path,
+      governedWorkbenchInput,
+      arenaTargetIntegrity?.taskId,
+    );
+    if ('arenaCompletionRejection' in governedArenaInput) {
+      return arenaCompletionRejectionWithJourney(
+        governedArenaInput.arenaCompletionRejection,
+        await readFreshJourney(params.id, body.nodeId),
+      );
+    }
+    const executionInput = await resolveGovernedTerminalEvidence(
+      prisma as any,
+      path,
+      governedArenaInput,
+      arenaTargetIntegrity?.taskId,
+    );
     const execution = await recordPathNodeExecution(prisma as any, executionInput);
     if (shouldUpdatePathAfterExecution(path, pathNode, executionInput, activityKind, isHistoricalActivity)) {
       await updateControlCorrectionPathRoundAfterExecution(prisma as any, path, executionInput);
     }
     const cacheRefresh = await refreshPathEvidenceFeatureCache(path.userId);
+    const journey = await readFreshJourney(params.id, body.nodeId);
 
-    return NextResponse.json({ execution: toExecutionWriteView(execution), cacheRefresh });
+    return NextResponse.json({ execution: toExecutionWriteView(execution), cacheRefresh, journey });
   } catch (error) {
     rethrowIfNextDynamicError(error);
     console.error('[LearningPathExecute] Error:', error);
     return NextResponse.json({ error: '记录路径执行失败' }, { status: 500 });
   }
+}
+
+async function readFreshJourney(pathId: string, requestedNodeId: string) {
+  const freshPath = await readPathForAccess(pathId);
+  if (freshPath instanceof NextResponse) {
+    throw new Error('Learning path disappeared before journey recomputation');
+  }
+  return buildAuthorizedAdaptivePathJourney(
+    canonicalizeVerifiedLegacyArenaPath(freshPath).path,
+    { requestedNodeId },
+  );
+}
+
+function arenaCompletionRejectionWithJourney(
+  rejection: { error: string; state: 'pending-result' },
+  journey: ReturnType<typeof buildAuthorizedAdaptivePathJourney>,
+) {
+  return NextResponse.json({ ...rejection, journey }, { status: 409 });
 }
 
 export async function GET() {
@@ -204,6 +293,16 @@ function readExecutionStatus(value: unknown): 'started' | 'completed' | 'failed'
   return typeof value === 'string' && EXECUTION_STATUSES.has(value)
     ? value as 'started' | 'completed' | 'failed' | 'abandoned'
     : null;
+}
+
+function isCanonicalExecutionReplay(
+  existingExecution: any,
+  body: any,
+  nodeIdReplacements: ReadonlyMap<string, string> = new Map(),
+): boolean {
+  return remapPathNodeId(existingExecution.nodeId, nodeIdReplacements) === body.nodeId &&
+    existingExecution.resourceType === body.resourceType &&
+    existingExecution.status === body.status;
 }
 
 function toRecord(value: unknown): Record<string, unknown> {
@@ -487,11 +586,13 @@ async function resolveGovernedTerminalEvidence<T extends {
   db: any,
   path: any,
   input: T,
+  verifiedArenaTaskId?: string | null,
 ): Promise<T> {
   const terminalValidation = toRecord(path.terminalValidation);
   if (terminalValidation.nodeId !== input.nodeId) return input;
 
   const scope = readTerminalEvidenceScope(path, input.nodeId);
+  if (verifiedArenaTaskId) scope.arenaTaskId = verifiedArenaTaskId;
   const simulationRef = await resolveServerSimulationRef(db, input.userId, input.simulationRef, scope);
   const arenaRef = await resolveServerArenaRef(db, input.userId, input.arenaRef, scope);
   return {
@@ -500,6 +601,40 @@ async function resolveGovernedTerminalEvidence<T extends {
     arenaRef,
     evidenceRefs: sanitizeTerminalEvidenceRefs(input.evidenceRefs, simulationRef, arenaRef),
   };
+}
+
+function isArenaPathCompletionEvidenceAccepted(
+  path: any,
+  arenaRef: Record<string, unknown> | null,
+): boolean {
+  const ref = toRecord(arenaRef);
+  const kind = firstString(ref.kind, ref.sourceType);
+  const provenance = firstString(ref.provenance);
+  if (
+    kind === 'ArenaSubmission' &&
+    provenance === 'official' &&
+    ref.official === true &&
+    ref.valid === true &&
+    firstString(ref.id) !== null &&
+    firstString(ref.mismatchReason) === null
+  ) {
+    return true;
+  }
+  if (kind !== 'ArenaVirtualSimulationRun' || provenance !== 'preview') return false;
+  if (firstString(ref.id) === null || firstString(ref.simulationRunId) === null) return false;
+  if (firstString(ref.mismatchReason) !== null) return false;
+  const policyRecord = toRecord(toRecord(path.terminalValidation).policy);
+  const allowPreviewValidation = policyRecord.allowPreviewValidation === true;
+  const requireOfficialArenaEvidence = policyRecord.requireOfficialArenaEvidence !== false;
+  const minimumReplayConfidence = typeof policyRecord.minimumReplayConfidence === 'number' &&
+    Number.isFinite(policyRecord.minimumReplayConfidence)
+    ? policyRecord.minimumReplayConfidence
+    : 0.7;
+  const confidence = readFinite(ref.replayConfidence);
+  return allowPreviewValidation &&
+    !requireOfficialArenaEvidence &&
+    confidence !== undefined &&
+    confidence >= minimumReplayConfidence;
 }
 
 async function resolveGovernedAdaptiveAssessmentOutcomeEvidence<T extends {
@@ -836,10 +971,21 @@ async function resolveGovernedArenaOutcomeEvidence<T extends {
   db: any,
   path: any,
   input: T,
-): Promise<T> {
+  verifiedTaskId?: string | null,
+): Promise<T | { arenaCompletionRejection: { error: string; state: 'pending-result' } }> {
   if (input.resourceType !== 'arena_task' || input.status !== 'completed') return input;
-  const scope = readArenaOutcomeEvidenceScope(path, input.nodeId);
+  const scope = verifiedTaskId
+    ? { arenaTaskId: verifiedTaskId, simulationRefs: new Set<string>() }
+    : readArenaOutcomeEvidenceScope(path, input.nodeId);
   const arenaRef = await resolveServerArenaRef(db, input.userId, input.arenaRef, scope);
+  if (!isArenaPathCompletionEvidenceAccepted(path, arenaRef)) {
+    return {
+      arenaCompletionRejection: {
+        error: 'Arena 结果尚未满足路径完成条件',
+        state: 'pending-result',
+      },
+    };
+  }
   return {
     ...input,
     arenaRef,

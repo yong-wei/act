@@ -146,14 +146,17 @@ describe('adaptive learning optimization experiments', () => {
     }));
 
     expect(plan.currentNodeId).toBeNull();
-    expect(plan.mainPath.map((node) => [node.nodeId, node.status])).toContainEqual([
-      'registry:locked-prep',
-      'locked',
-    ]);
-    expect(plan.mainPath.map((node) => [node.nodeId, node.status])).not.toContainEqual([
-      'registry:dependent-ready',
-      'current',
-    ]);
+    expect(plan.mainPath).toEqual([]);
+    expect(plan.explanations.fallbackReasons).toContain('locked-node-without-fallback');
+    expect(plan.constraintRepair).toMatchObject({
+      status: 'infeasible',
+      infeasibleReasons: expect.arrayContaining([
+        expect.objectContaining({
+          code: 'locked-node-without-fallback',
+          nodeIds: ['registry:locked-prep'],
+        }),
+      ]),
+    });
   });
 
   it('keeps Arena locked for a zero-competency learner until preparation evidence is available', () => {

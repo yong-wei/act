@@ -88,9 +88,9 @@ function plannerInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {})
     ],
     arenaTasks: [
       {
-        id: 'roll-control',
+        id: 'task-second-order-lead-pid',
         title: '横摇控制 Arena',
-        launchTarget: '/arena/challenges/roll-control',
+        launchTarget: '/arena/challenges/task-second-order-lead-pid',
         knowledgeNodeIds: ['kn-cruise'],
         prerequisiteNodeIds: ['simulation:cruise'],
         official: true,
@@ -332,9 +332,9 @@ function policyFixtureInput(overrides: Partial<AdaptiveLearningPathPlannerInput>
     ],
     arenaTasks: [
       {
-        id: 'arena',
+        id: 'task-ship-roll-comfort',
         title: '策略 Arena',
-        launchTarget: '/arena/challenges/policy',
+        launchTarget: '/arena/challenges/task-ship-roll-comfort',
         knowledgeNodeIds: ['kn-c'],
         prerequisiteNodeIds: ['simulation:sim'],
         official: true,
@@ -915,7 +915,7 @@ describe('adaptive learning path planner', () => {
     const candidateNodes = input.registry.nodes.filter((node) => [
       'registry:bode-card',
       'simulation:cruise',
-      'arena-task:roll-control',
+      'arena-task:task-second-order-lead-pid',
     ].includes(node.id));
     const candidates = candidateNodes.map((node) => ({
       node,
@@ -2941,7 +2941,7 @@ describe('adaptive learning path planner', () => {
           'registry:bode-card',
           'registry:bode-sim',
           'simulation:cruise',
-          'arena-task:roll-control',
+          'arena-task:task-second-order-lead-pid',
         ],
       },
       policyFamily: 'teacher-assigned',
@@ -3707,7 +3707,7 @@ describe('adaptive learning path planner', () => {
     expect(plan.mainPath.map((node) => node.nodeId)).toEqual(expect.arrayContaining([
       'registry:lesson09-correction-precheck',
       'registry:lesson09-summary-card',
-      'registry:arena-challenge-workbench',
+      'arena-task:task-second-order-lead-pid',
     ]));
     expect(plan.mainPath.length).toBeGreaterThanOrEqual(3);
     expect(plan.mainPath.slice(0, -1).some((node) =>
@@ -3772,7 +3772,7 @@ describe('adaptive learning path planner', () => {
       readiness: { state: 'ready' },
     });
     expect(unlockedPlan.mainPath.at(-1)).toMatchObject({
-      nodeId: 'registry:arena-challenge-workbench',
+      nodeId: 'arena-task:task-second-order-lead-pid',
       readiness: {
         state: 'ready',
         missingOutcomeRefs: [],
@@ -3845,7 +3845,7 @@ describe('adaptive learning path planner', () => {
     expect(policyNodeIds).toEqual(expect.arrayContaining([
       'registry:lesson09-correction-precheck',
       'registry:lesson09-summary-card',
-      'registry:arena-challenge-workbench',
+      'arena-task:task-second-order-lead-pid',
     ]));
     for (const nodeId of policyNodeIds) {
       const node = registry.nodes.find((item) => item.id === nodeId);
@@ -5376,8 +5376,8 @@ describe('adaptive learning path planner', () => {
     expect(plan.excludedPolicyFamilies).toEqual(['contextual-bandit', 'reinforcement-learning', 'long-horizon-hybrid']);
     expect(plan.status).toBe('ready');
     expect(plan.mainPath.map((node) => node.nodeId)).toContain('simulation:cruise');
-    expect(plan.mainPath.map((node) => node.nodeId)).toContain('arena-task:roll-control');
-    expect(plan.mainPath.find((node) => node.nodeId === 'arena-task:roll-control')?.prerequisiteNodeIds)
+    expect(plan.mainPath.map((node) => node.nodeId)).toContain('arena-task:task-second-order-lead-pid');
+    expect(plan.mainPath.find((node) => node.nodeId === 'arena-task:task-second-order-lead-pid')?.prerequisiteNodeIds)
       .toEqual(['simulation:cruise']);
     expect(plan.score.objectives.learningGain).toBeGreaterThan(0);
     expect(plan.explanations.selectedReasons.length).toBeGreaterThan(0);
