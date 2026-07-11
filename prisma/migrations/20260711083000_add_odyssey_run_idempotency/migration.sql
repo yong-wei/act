@@ -1,6 +1,11 @@
 ALTER TABLE "SimulationLog"
 ADD COLUMN "odysseyRunId" TEXT,
-ADD COLUMN "odysseyCompletedAt" TIMESTAMP(3);
+ADD COLUMN "odysseyCompletedAt" TIMESTAMP(3),
+ADD COLUMN "odysseyCreditAppliedAt" TIMESTAMP(3),
+ADD COLUMN "odysseyOfficialMetrics" JSONB,
+ADD COLUMN "odysseySubmissionId" TEXT,
+ADD COLUMN "odysseyLeaseToken" TEXT,
+ADD COLUMN "odysseyLeaseExpiresAt" TIMESTAMP(3);
 
 -- Historical JSON logs may contain duplicate run ids. Claim only the earliest
 -- row so the uniqueness constraint is deployable without deleting evidence.
@@ -19,7 +24,8 @@ WITH ranked_runs AS (
 )
 UPDATE "SimulationLog" AS log
 SET "odysseyRunId" = ranked_runs."runId",
-    "odysseyCompletedAt" = log."createdAt"
+    "odysseyCompletedAt" = log."createdAt",
+    "odysseyCreditAppliedAt" = log."createdAt"
 FROM ranked_runs
 WHERE log."id" = ranked_runs."id"
   AND ranked_runs."runRank" = 1;

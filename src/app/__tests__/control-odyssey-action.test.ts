@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
   computeOfficialOdysseyTelemetry: vi.fn(),
   listSubmissions: vi.fn(),
   prisma: {
+    $transaction: vi.fn(),
     mission: {
       findUnique: vi.fn(),
     },
@@ -16,6 +17,7 @@ const mocks = vi.hoisted(() => ({
       findFirst: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn(),
       findMany: vi.fn(),
     },
     studentProfile: {
@@ -91,6 +93,8 @@ describe('submitGameScore Arena publication bridge', () => {
     mocks.prisma.mission.findUnique.mockResolvedValue({ id: 'level-1' });
     mocks.prisma.simulationLog.findFirst.mockResolvedValue(null);
     mocks.prisma.simulationLog.findUnique.mockResolvedValue(null);
+    mocks.prisma.simulationLog.updateMany.mockResolvedValue({ count: 1 });
+    mocks.prisma.$transaction.mockImplementation(async (callback: (tx: typeof mocks.prisma) => unknown) => callback(mocks.prisma));
     mocks.prisma.simulationLog.findMany.mockResolvedValue([]);
     mocks.listSubmissions.mockResolvedValue([]);
     mocks.prisma.simulationLog.create.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({
@@ -393,6 +397,165 @@ describe('submitGameScore Arena publication bridge', () => {
     expect(mocks.bridgeOdysseyRunToArenaSubmission).toHaveBeenCalledTimes(1);
   });
 
+  const installDurableRunStore = (runId: string) => {
+    let storedLog: Record<string, any> | null = null;
+    const submissions = new Map<string, { id: string; artifact: { params: { odysseyRunId: string } } }>();
+    mocks.prisma.simulationLog.findUnique.mockImplementation(async () => storedLog);
+    mocks.prisma.simulationLog.findFirst.mockResolvedValue(null);
+    mocks.prisma.simulationLog.create.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => {
+      storedLog = {
+        ...data,
+        id: `log-${runId}`,
+        createdAt: new Date('2026-05-15T10:00:00.000Z'),
+        odysseyCompletedAt: null,
+        odysseyCreditAppliedAt: null,
+        odysseyOfficialMetrics: null,
+        odysseySubmissionId: null,
+      };
+      return storedLog;
+    });
+    mocks.prisma.simulationLog.updateMany.mockImplementation(async ({ where, data }: { where: Record<string, any>; data: Record<string, unknown> }) => {
+      const ownsLease = where.odysseyLeaseToken && where.odysseyLeaseToken === storedLog?.odysseyLeaseToken;
+      if (!storedLog || (!ownsLease && storedLog.odysseyLeaseExpiresAt && storedLog.odysseyLeaseExpiresAt > new Date())) {
+        return { count: 0 };
+      }
+      storedLog = { ...storedLog, ...data };
+      return { count: 1 };
+    });
+    mocks.prisma.simulationLog.update.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => {
+      storedLog = { ...storedLog, ...data };
+      return storedLog;
+    });
+    mocks.listSubmissions.mockImplementation(async () => [...submissions.values()]);
+    return {
+      get log() { return storedLog; },
+      seed(log: Record<string, any>) { storedLog = log; },
+      expireLease() {
+        if (storedLog) storedLog.odysseyLeaseExpiresAt = new Date(0);
+      },
+      submissions,
+    };
+  };
+
+  it('takes over an expired claim after a crash immediately after log creation', async () => {
+    const store = installDurableRunStore('run-crash-create');
+    mocks.prisma.$transaction
+      .mockRejectedValueOnce(new Error('process crashed after create'))
+      .mockImplementation(async (callback: (tx: typeof mocks.prisma) => unknown) => callback(mocks.prisma));
+    const context = {
+      runId: 'run-crash-create',
+      arenaTaskId: 'task-odyssey-level-one-growth',
+      publicationId: 'publication-1',
+      controllerId: 'PID' as const,
+    };
+
+    expect(await submitGameScore('level-1', 820, {}, context)).toBeNull();
+    store.expireLease();
+    const recovered = await submitGameScore('level-1', 820, {}, context);
+
+    expect(recovered).toMatchObject({ id: 'log-run-crash-create' });
+    expect(store.log).toMatchObject({ odysseyCompletedAt: expect.any(Date) });
+    expect(mocks.prisma.simulationLog.create).toHaveBeenCalledTimes(1);
+    expect(mocks.prisma.studentProfile.upsert).toHaveBeenCalledTimes(1);
+    expect(mocks.bridgeOdysseyRunToArenaSubmission).toHaveBeenCalledTimes(1);
+  });
+
+  it('resumes after a crash following the atomic credit stage without crediting twice', async () => {
+    const store = installDurableRunStore('run-crash-credit');
+    mocks.bridgeOdysseyRunToArenaSubmission
+      .mockRejectedValueOnce(new Error('process crashed after credit'))
+      .mockResolvedValueOnce({
+        ok: true,
+        duplicate: false,
+        gameScorePreserved: true,
+        submission: { id: 'submission-credit-recovery' },
+      });
+    const context = {
+      runId: 'run-crash-credit',
+      arenaTaskId: 'task-odyssey-level-one-growth',
+      publicationId: 'publication-1',
+      controllerId: 'PID' as const,
+    };
+
+    expect(await submitGameScore('level-1', 820, {}, context)).toBeNull();
+    store.expireLease();
+    await submitGameScore('level-1', 820, {}, context);
+
+    expect(mocks.prisma.studentProfile.upsert).toHaveBeenCalledTimes(1);
+    expect(mocks.computeOfficialOdysseyTelemetry).toHaveBeenCalledTimes(1);
+    expect(store.log).toMatchObject({
+      odysseyCreditAppliedAt: expect.any(Date),
+      odysseyOfficialMetrics: expect.any(Object),
+      odysseySubmissionId: 'submission-credit-recovery',
+      odysseyCompletedAt: expect.any(Date),
+    });
+  });
+
+  it('recovers a persisted Arena submission after crashing before its stage marker', async () => {
+    const store = installDurableRunStore('run-crash-submission');
+    mocks.bridgeOdysseyRunToArenaSubmission.mockImplementation(async ({ runId }: { runId: string }) => {
+      const existing = store.submissions.get(runId);
+      if (existing) {
+        return { ok: true, duplicate: true, gameScorePreserved: true, submission: existing };
+      }
+      const submission = { id: 'submission-crash-recovery', artifact: { params: { odysseyRunId: runId } } };
+      store.submissions.set(runId, submission);
+      throw new Error('process crashed after submission persistence');
+    });
+    const context = {
+      runId: 'run-crash-submission',
+      arenaTaskId: 'task-odyssey-level-one-growth',
+      publicationId: 'publication-1',
+      controllerId: 'PID' as const,
+    };
+
+    expect(await submitGameScore('level-1', 820, {}, context)).toBeNull();
+    store.expireLease();
+    await submitGameScore('level-1', 820, {}, context);
+
+    expect(store.submissions.size).toBe(1);
+    expect(mocks.prisma.studentProfile.upsert).toHaveBeenCalledTimes(1);
+    expect(mocks.computeOfficialOdysseyTelemetry).toHaveBeenCalledTimes(1);
+    expect(store.log).toMatchObject({
+      odysseySubmissionId: 'submission-crash-recovery',
+      odysseyCompletedAt: expect.any(Date),
+    });
+  });
+
+  it('allows only one concurrent caller to take over an expired durable claim', async () => {
+    const store = installDurableRunStore('run-takeover');
+    store.seed({
+      id: 'log-run-takeover',
+      userId: 'student-1',
+      inputParams: officialSnapshot('run-takeover'),
+      odysseyRunId: 'run-takeover',
+      odysseyLeaseToken: 'dead-owner',
+      odysseyLeaseExpiresAt: new Date(0),
+      odysseyCreditAppliedAt: null,
+      odysseyOfficialMetrics: null,
+      odysseySubmissionId: null,
+      odysseyCompletedAt: null,
+      createdAt: new Date('2026-05-15T10:00:00.000Z'),
+    });
+    const context = {
+      runId: 'run-takeover',
+      arenaTaskId: 'task-odyssey-level-one-growth',
+      publicationId: 'publication-1',
+      controllerId: 'PID' as const,
+    };
+
+    const [first, second] = await Promise.all([
+      submitGameScore('level-1', 820, {}, context),
+      submitGameScore('level-1', 820, {}, context),
+    ]);
+
+    expect(first).toMatchObject({ id: 'log-run-takeover' });
+    expect(second).toMatchObject({ id: 'log-run-takeover' });
+    expect(mocks.prisma.studentProfile.upsert).toHaveBeenCalledTimes(1);
+    expect(mocks.computeOfficialOdysseyTelemetry).toHaveBeenCalledTimes(1);
+    expect(mocks.bridgeOdysseyRunToArenaSubmission).toHaveBeenCalledTimes(1);
+  });
+
   it('creates fresh default controller state for a missing authenticated profile', async () => {
     mocks.prisma.studentProfile.findUnique.mockResolvedValueOnce(null);
 
@@ -529,8 +692,8 @@ describe('submitGameScore Arena publication bridge', () => {
     });
 
     expect(mocks.bridgeOdysseyRunToArenaSubmission).not.toHaveBeenCalled();
-    expect(mocks.prisma.simulationLog.update).toHaveBeenCalledWith(expect.objectContaining({
-      where: { id: 'log-1' },
+    expect(mocks.prisma.simulationLog.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ id: 'log-1' }),
       data: expect.objectContaining({
         metrics: expect.objectContaining({
           arenaBridge: expect.objectContaining({
@@ -557,8 +720,8 @@ describe('submitGameScore Arena publication bridge', () => {
     });
 
     expect(mocks.bridgeOdysseyRunToArenaSubmission).not.toHaveBeenCalled();
-    expect(mocks.prisma.simulationLog.update).toHaveBeenCalledWith(expect.objectContaining({
-      where: { id: 'log-1' },
+    expect(mocks.prisma.simulationLog.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ id: 'log-1' }),
       data: expect.objectContaining({
         metrics: expect.objectContaining({
           arenaBridge: expect.objectContaining({
@@ -587,8 +750,8 @@ describe('submitGameScore Arena publication bridge', () => {
     });
 
     expect(mocks.bridgeOdysseyRunToArenaSubmission).not.toHaveBeenCalled();
-    expect(mocks.prisma.simulationLog.update).toHaveBeenCalledWith(expect.objectContaining({
-      where: { id: 'log-1' },
+    expect(mocks.prisma.simulationLog.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ id: 'log-1' }),
       data: expect.objectContaining({
         metrics: expect.objectContaining({
           arenaBridge: expect.objectContaining({
