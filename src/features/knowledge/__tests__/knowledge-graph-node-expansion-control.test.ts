@@ -78,6 +78,82 @@ describe('knowledge graph node-local expansion control', () => {
     expect(byId.has('removed')).toBe(false);
   });
 
+  it('drops both live and cached coordinates only for explicit relayout rebuilds', () => {
+    const baseNodes: layoutEngine.KnowledgeGraphPositionedNode[] = [{
+      id: 'node-1',
+      name: 'node-1',
+      nodeType: 'THEORY',
+      description: 'node-1',
+      positionX: 10,
+      positionY: 20,
+      positionZ: 0,
+      x: 10,
+      y: 20,
+    }];
+    const liveNodes = [{ ...baseNodes[0], x: 300, y: 400, vx: 5, vy: -3 }];
+
+    const runtimePositions = new Map<string, Partial<layoutEngine.KnowledgeGraphLivePositionedNode>>([
+      ['node-1', { x: 500, y: 600, vx: 7, vy: -4 }],
+    ]);
+
+    expect(layoutEngine.resolveKnowledgeGraphRuntimeNodeCoordinates({
+      nodes: baseNodes,
+      liveNodes,
+      runtimePositionsByNodeId: runtimePositions,
+      preserve: false,
+    })).toBe(baseNodes);
+
+    expect(layoutEngine.resolveKnowledgeGraphRuntimeNodeCoordinates({
+      nodes: baseNodes,
+      liveNodes,
+      runtimePositionsByNodeId: runtimePositions,
+      preserve: true,
+    })[0]).toMatchObject({ x: 300, y: 400, vx: 5, vy: -3 });
+    expect(layoutEngine.resolveKnowledgeGraphRuntimeNodeCoordinates({
+      nodes: baseNodes,
+      liveNodes: undefined,
+      runtimePositionsByNodeId: runtimePositions,
+      preserve: true,
+    })[0]).toMatchObject({ x: 500, y: 600, vx: 7, vy: -4 });
+
+    expect(layoutEngine.commitKnowledgeGraphRelayoutVersion({
+      committedVersion: 0,
+      nextVersion: 0,
+      runtimePositions,
+    })).toBe(0);
+    expect(runtimePositions.size).toBe(1);
+
+    expect(layoutEngine.commitKnowledgeGraphRelayoutVersion({
+      committedVersion: 0,
+      nextVersion: 1,
+      runtimePositions,
+    })).toBe(1);
+    expect(runtimePositions.size).toBe(0);
+
+    runtimePositions.set('node-1', { x: 700, y: 800 });
+    expect(layoutEngine.commitKnowledgeGraphRelayoutVersion({
+      committedVersion: 1,
+      nextVersion: 2,
+      runtimePositions,
+    })).toBe(2);
+    expect(runtimePositions.size).toBe(0);
+
+    const twoDimensionalSource = readKnowledgeSource('graph/knowledge-graph-2d.tsx');
+    const threeDimensionalSource = readKnowledgeSource('graph/knowledge-graph-canvas.tsx');
+    expect(twoDimensionalSource).toContain('resolveKnowledgeGraphRuntimeNodeCoordinates');
+    expect(twoDimensionalSource).toContain('commitKnowledgeGraphRelayoutVersion');
+    expect(twoDimensionalSource).toContain(
+      'const preserveRuntimeCoordinates = committedRelayoutVersionRef.current === relayoutVersion;'
+    );
+    expect(twoDimensionalSource).toContain('preserve: preserveRuntimeCoordinates');
+    expect(threeDimensionalSource).toContain('resolveKnowledgeGraphRuntimeNodeCoordinates');
+    expect(threeDimensionalSource).toContain('commitKnowledgeGraphRelayoutVersion');
+    expect(threeDimensionalSource).toContain(
+      'const preserveRuntimeCoordinates = committedRelayoutVersionRef.current === relayoutVersion;'
+    );
+    expect(threeDimensionalSource).toContain('preserve: preserveRuntimeCoordinates');
+  });
+
   it('keeps the measured control inside all viewport edges while preserving the normal anchor distance', () => {
     const clampPosition = (
       layoutEngine as typeof layoutEngine & {

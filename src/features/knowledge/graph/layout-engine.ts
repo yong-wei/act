@@ -275,10 +275,13 @@ export function translateKnowledgeGraphCameraPose(input: {
 export function preserveKnowledgeGraphLiveNodeCoordinates<T extends KnowledgeGraphPositionedNode>({
   nodes,
   liveNodes,
+  preserve = true,
 }: {
   nodes: T[];
   liveNodes: readonly KnowledgeGraphLivePositionedNode[] | undefined;
+  preserve?: boolean;
 }): T[] {
+  if (!preserve) return nodes;
   if (!liveNodes || liveNodes.length === 0) return nodes;
   const visibleNodeIds = new Set(nodes.map((node) => node.id));
   const livePositionsByNodeId = new Map<string, Partial<KnowledgeGraphLivePositionedNode>>();
@@ -316,6 +319,39 @@ export function preserveKnowledgeGraphLiveNodeCoordinates<T extends KnowledgeGra
     const livePosition = livePositionsByNodeId.get(node.id);
     return livePosition ? { ...node, ...livePosition } as T : node;
   });
+}
+
+export function resolveKnowledgeGraphRuntimeNodeCoordinates<T extends KnowledgeGraphPositionedNode>({
+  nodes,
+  liveNodes,
+  runtimePositionsByNodeId,
+  preserve,
+}: {
+  nodes: T[];
+  liveNodes: readonly KnowledgeGraphLivePositionedNode[] | undefined;
+  runtimePositionsByNodeId: ReadonlyMap<string, Partial<KnowledgeGraphLivePositionedNode>>;
+  preserve: boolean;
+}): T[] {
+  const liveLayoutNodes = preserveKnowledgeGraphLiveNodeCoordinates({ nodes, liveNodes, preserve });
+  if (!preserve) return liveLayoutNodes;
+  return liveLayoutNodes.map((node, index) => {
+    if (node !== nodes[index]) return node;
+    const runtimePosition = runtimePositionsByNodeId.get(node.id);
+    return runtimePosition ? { ...node, ...runtimePosition } as T : node;
+  });
+}
+
+export function commitKnowledgeGraphRelayoutVersion({
+  committedVersion,
+  nextVersion,
+  runtimePositions,
+}: {
+  committedVersion: number;
+  nextVersion: number;
+  runtimePositions: { clear: () => void };
+}): number {
+  if (committedVersion !== nextVersion) runtimePositions.clear();
+  return nextVersion;
 }
 
 export function clampNodeExpansionControlPosition(input: {

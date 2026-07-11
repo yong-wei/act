@@ -8,8 +8,9 @@ import {
   applyFocusedExpansionLayout,
   applyRadialLayout,
   calculateFocusedExpansionRevealTranslation,
+  commitKnowledgeGraphRelayoutVersion,
   createFocusedExpansionRevealSignature,
-  preserveKnowledgeGraphLiveNodeCoordinates,
+  resolveKnowledgeGraphRuntimeNodeCoordinates,
   resolveFocusedExpansionRevealTarget,
   selectFocusedExpansionGraphNodes,
   type KnowledgeGraphNodeScreenPosition,
@@ -296,6 +297,7 @@ export function KnowledgeGraph2D({
   const fgRef = useRef<any>(null);
   const layoutStateRef = useRef(layoutState);
   const runtimePositionsByNodeIdRef = useRef(new Map<string, Partial<RuntimeKnowledgeGraphNode>>());
+  const committedRelayoutVersionRef = useRef(relayoutVersion);
   const revealedExpansionSignatureRef = useRef('');
   const previousExpandedNodeIdsRef = useRef<readonly string[]>([]);
   const focusedRevealTargetNodeIdRef = useRef<string | null>(null);
@@ -317,6 +319,14 @@ export function KnowledgeGraph2D({
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    committedRelayoutVersionRef.current = commitKnowledgeGraphRelayoutVersion({
+      committedVersion: committedRelayoutVersionRef.current,
+      nextVersion: relayoutVersion,
+      runtimePositions: runtimePositionsByNodeIdRef.current,
+    });
+  }, [relayoutVersion]);
+
   // 1. 处理数据并应用布局
   const graphData = useMemo(() => {
     const degreeById = new Map<string, number>();
@@ -337,18 +347,16 @@ export function KnowledgeGraph2D({
     }));
 
     const layoutRadius = 180 + relayoutVersion * 0;
+    const preserveRuntimeCoordinates = committedRelayoutVersionRef.current === relayoutVersion;
 
     // 应用辐射布局。拖拽后的 pinned 坐标通过下方 effect 同步到现有图节点，
     // 避免 layoutState 变化时重建 graphData 并重新加热力导向布局。
     const baseLayoutNodes = applyRadialLayout(clonedNodes, links, undefined, layoutRadius);
-    const liveLayoutNodes = preserveKnowledgeGraphLiveNodeCoordinates({
+    const layoutNodes = resolveKnowledgeGraphRuntimeNodeCoordinates({
       nodes: baseLayoutNodes as RuntimeKnowledgeGraphNode[],
       liveNodes: fgRef.current?.graphData?.()?.nodes as RuntimeKnowledgeGraphNode[] | undefined,
-    });
-    const layoutNodes = liveLayoutNodes.map((node, index) => {
-      if (node !== baseLayoutNodes[index]) return node;
-      const runtimePosition = runtimePositionsByNodeIdRef.current.get(node.id);
-      return runtimePosition ? { ...node, ...runtimePosition } : node;
+      runtimePositionsByNodeId: runtimePositionsByNodeIdRef.current,
+      preserve: preserveRuntimeCoordinates,
     }) as RuntimeKnowledgeGraphNode[];
     markKnowledgeGraphAutomaticNodeAnchors(layoutNodes);
     const focusedLayoutNodes = applyFocusedExpansionLayout({

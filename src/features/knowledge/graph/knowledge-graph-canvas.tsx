@@ -37,8 +37,9 @@ import {
 import {
   applyFocusedExpansionLayout,
   calculateFocusedExpansionRevealTranslation,
+  commitKnowledgeGraphRelayoutVersion,
   createFocusedExpansionRevealSignature,
-  preserveKnowledgeGraphLiveNodeCoordinates,
+  resolveKnowledgeGraphRuntimeNodeCoordinates,
   resolveFocusedExpansionRevealTarget,
   selectFocusedExpansionGraphNodes,
   translateKnowledgeGraphCameraPose,
@@ -159,6 +160,7 @@ export function KnowledgeGraphCanvas({
   const fgRef = useRef<any>(null);
   const layoutStateRef = useRef(layoutState);
   const runtimePositionsByNodeIdRef = useRef(new Map<string, Partial<RuntimeKnowledgeGraphNode>>());
+  const committedRelayoutVersionRef = useRef(relayoutVersion);
   const revealedExpansionSignatureRef = useRef('');
   const previousExpandedNodeIdsRef = useRef<readonly string[]>([]);
   const focusedRevealTargetNodeIdRef = useRef<string | null>(null);
@@ -179,6 +181,14 @@ export function KnowledgeGraphCanvas({
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    committedRelayoutVersionRef.current = commitKnowledgeGraphRelayoutVersion({
+      committedVersion: committedRelayoutVersionRef.current,
+      nextVersion: relayoutVersion,
+      runtimePositions: runtimePositionsByNodeIdRef.current,
+    });
+  }, [relayoutVersion]);
+
   // 1. 处理数据并转换 links 格式
   const graphData = useMemo(() => {
     const degreeById = new Map<string, number>();
@@ -192,6 +202,7 @@ export function KnowledgeGraphCanvas({
     } as any));
     const nodeById = new Map(clonedNodes.map((node) => [node.id, node]));
     const relayoutRadiusOffset = relayoutVersion * 0;
+    const preserveRuntimeCoordinates = committedRelayoutVersionRef.current === relayoutVersion;
 
     const chapterNodes = clonedNodes.filter((node) => node.id.startsWith(CHAPTER_NODE_PREFIX));
     if (chapterNodes.length > 0) {
@@ -250,14 +261,11 @@ export function KnowledgeGraphCanvas({
     }));
 
     const clonedBaseLayoutNodes = clonedNodes as RuntimeKnowledgeGraphNode[];
-    const liveLayoutNodes = preserveKnowledgeGraphLiveNodeCoordinates({
+    const baseLayoutNodes = resolveKnowledgeGraphRuntimeNodeCoordinates({
       nodes: clonedBaseLayoutNodes,
       liveNodes: fgRef.current?.graphData?.()?.nodes as RuntimeKnowledgeGraphNode[] | undefined,
-    });
-    const baseLayoutNodes = liveLayoutNodes.map((node, index) => {
-      if (node !== clonedBaseLayoutNodes[index]) return node;
-      const runtimePosition = runtimePositionsByNodeIdRef.current.get(node.id);
-      return runtimePosition ? { ...node, ...runtimePosition } : node;
+      runtimePositionsByNodeId: runtimePositionsByNodeIdRef.current,
+      preserve: preserveRuntimeCoordinates,
     }) as RuntimeKnowledgeGraphNode[];
     markKnowledgeGraphAutomaticNodeAnchors(baseLayoutNodes);
     const focusedLayoutNodes = applyFocusedExpansionLayout({
