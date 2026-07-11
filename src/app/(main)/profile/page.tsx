@@ -176,6 +176,7 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [pendingAssignmentCount, setPendingAssignmentCount] = useState<number | null>(null);
   const [showAllActivities, setShowAllActivities] = useState(false);
   const entryIntents = getCommercialStudentEntryIntentGroups();
   const studentEntryByHref = new Map(
@@ -196,12 +197,25 @@ export default function ProfilePage() {
   const fetchProfile = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/user/profile');
+      const [response, assignmentResponse] = await Promise.all([
+        fetch('/api/user/profile'),
+        fetch('/api/student/assignments', { cache: 'no-store' }).catch(() => null),
+      ]);
       if (!response.ok) {
         throw new Error('获取用户画像失败');
       }
       const data = await response.json();
       setProfile(data);
+      if (assignmentResponse?.ok) {
+        const assignmentData = await assignmentResponse.json() as {
+          assignments?: Array<{ canMutate?: boolean; nextAction?: string }>;
+        };
+        setPendingAssignmentCount((assignmentData.assignments ?? []).filter(
+          (assignment) => assignment.canMutate !== false && ['start-answering', 'continue-answering', 'resubmit-question'].includes(assignment.nextAction ?? ''),
+        ).length);
+      } else {
+        setPendingAssignmentCount(null);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : '未知错误');
     } finally {
@@ -332,8 +346,17 @@ export default function ProfilePage() {
             <Link href="/profile/evidence" className="btn-ghost-themed rounded-lg px-4 py-2 text-sm">
               查看学习记录
             </Link>
-            <Link href="/classroom/join" className="btn-ghost-themed rounded-lg px-4 py-2 text-sm">
-              加入课堂 / 班级
+            <Link
+              href="/missions"
+              className="btn-ghost-themed rounded-lg px-4 py-2 text-sm"
+              aria-label={pendingAssignmentCount === null ? '任务中心' : `任务中心，${pendingAssignmentCount} 项待完成`}
+            >
+              任务中心
+              {pendingAssignmentCount !== null && (
+                <span className="ml-2 rounded-full bg-primary/15 px-2 py-0.5 text-xs text-primary" role="status">
+                  {pendingAssignmentCount} 项待完成
+                </span>
+              )}
             </Link>
           </div>
         </div>
@@ -775,8 +798,8 @@ export default function ProfilePage() {
             />
             <QuickAction
               href="/missions"
-              title="任务大厅"
-              description="查看学习任务进度"
+              title="任务中心"
+              description="查看主线作业与任务进阶"
               iconPath="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
             />
           </div>

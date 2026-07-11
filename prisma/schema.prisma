@@ -35,6 +35,26 @@ enum AssignmentSolutionReleaseMode {
   AT_TIME
 }
 
+enum AssignmentSubmissionState {
+  NOT_STARTED
+  IN_PROGRESS
+  SUBMITTED
+}
+
+enum SubmissionAnswerState {
+  DRAFT
+  READY
+  SUBMITTED
+}
+
+enum SubmissionAssetState {
+  QUARANTINED
+  DELETING
+  FINALIZED
+  REVOKED
+  DELETED
+}
+
 // 任务难度等级
 enum MissionDifficulty {
   EASY
@@ -106,44 +126,45 @@ model User {
   teacherClasses Class[] @relation("TeacherClasses")
 
   // 互动埋点日志
-  interactionLogs InteractionLog[]
+  interactionLogs      InteractionLog[]
   studentStepResponses StudentStepResponse[]
 
   // 课堂固化报告
   studentSessionReports StudentSessionReport[]
 
   // DevelopmentPlan 扩展模块
-  linkageSessions    LinkageSession[]
-  userAnswers        UserAnswer[]
-  abilityAssessments AbilityAssessment[]
-  aiInterventions    AIIntervention[]
-  konlingMemories    KonlingMemory[]
-  ownedAgentSessions AgentSession[] @relation("AgentSessionOwner")
-  actedAgentSessions AgentSession[] @relation("AgentSessionActor")
-  ownedAgentToolRuns AgentToolRun[] @relation("AgentToolRunOwner")
-  actorAgentToolRuns AgentToolRun[] @relation("AgentToolRunActor")
-  targetAgentToolRuns AgentToolRun[] @relation("AgentToolRunTarget")
-  promptAssessments  PromptAssessment[]
-  designSessions     DesignSession[]
+  linkageSessions     LinkageSession[]
+  userAnswers         UserAnswer[]
+  abilityAssessments  AbilityAssessment[]
+  aiInterventions     AIIntervention[]
+  konlingMemories     KonlingMemory[]
+  ownedAgentSessions  AgentSession[]      @relation("AgentSessionOwner")
+  actedAgentSessions  AgentSession[]      @relation("AgentSessionActor")
+  ownedAgentToolRuns  AgentToolRun[]      @relation("AgentToolRunOwner")
+  actorAgentToolRuns  AgentToolRun[]      @relation("AgentToolRunActor")
+  targetAgentToolRuns AgentToolRun[]      @relation("AgentToolRunTarget")
+  promptAssessments   PromptAssessment[]
+  designSessions      DesignSession[]
 
   // 控灵AI助手会话
-  konlingSessions    KonlingSession[]
+  konlingSessions KonlingSession[]
 
   // Data governance
-  riskFlags          StudentRiskFlag[]
+  riskFlags StudentRiskFlag[]
 
   // Arena mode
-  arenaControllerArtifacts ArenaControllerArtifact[]
-  arenaSubmissions         ArenaSubmission[]
-  arenaBlackBoxExperiments ArenaBlackBoxExperiment[]
-  arenaIdentificationModels ArenaIdentificationModel[]
-  arenaVirtualSimulationRuns ArenaVirtualSimulationRun[]
-  simulationRuns SimulationRun[]
-  arenaChallengePublications ArenaChallengePublication[] @relation("ArenaChallengePublications")
-  authoredAssignments Assignment[] @relation("AssignmentAuthor")
-  assignmentReviewGrants AssignmentReviewGrant[] @relation("AssignmentReviewGrantee")
-  issuedAssignmentReviewGrants AssignmentReviewGrant[] @relation("AssignmentReviewGrantIssuer")
+  arenaControllerArtifacts       ArenaControllerArtifact[]
+  arenaSubmissions               ArenaSubmission[]
+  arenaBlackBoxExperiments       ArenaBlackBoxExperiment[]
+  arenaIdentificationModels      ArenaIdentificationModel[]
+  arenaVirtualSimulationRuns     ArenaVirtualSimulationRun[]
+  simulationRuns                 SimulationRun[]
+  arenaChallengePublications     ArenaChallengePublication[]     @relation("ArenaChallengePublications")
+  authoredAssignments            Assignment[]                    @relation("AssignmentAuthor")
+  assignmentReviewGrants         AssignmentReviewGrant[]         @relation("AssignmentReviewGrantee")
+  issuedAssignmentReviewGrants   AssignmentReviewGrant[]         @relation("AssignmentReviewGrantIssuer")
   assignmentHistoricalOwnerships AssignmentHistoricalOwnership[]
+  assignmentSubmissions          AssignmentSubmission[]
 }
 
 model StudentProfile {
@@ -194,10 +215,10 @@ model Class {
   semester    String? // 学期
   isActive    Boolean @default(true)
 
-  students StudentProfile[]
-  sessions ClassSession[] // 班级的课堂会话
+  students                   StudentProfile[]
+  sessions                   ClassSession[] // 班级的课堂会话
   arenaChallengePublications ArenaChallengePublication[]
-  assignmentAudiences AssignmentAudience[]
+  assignmentAudiences        AssignmentAudience[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -215,9 +236,9 @@ model Assignment {
   createdAt     DateTime                 @default(now())
   updatedAt     DateTime                 @updatedAt
 
-  author       User                    @relation("AssignmentAuthor", fields: [authorId], references: [id], onDelete: Restrict)
-  revisions    AssignmentRevision[]
-  reviewGrants AssignmentReviewGrant[]
+  author                User                             @relation("AssignmentAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  revisions             AssignmentRevision[]
+  reviewGrants          AssignmentReviewGrant[]
   publicationOperations AssignmentPublicationOperation[]
 
   @@index([authorId, state, updatedAt])
@@ -245,11 +266,12 @@ model AssignmentRevision {
   createdAt             DateTime                @default(now())
   updatedAt             DateTime                @updatedAt
 
-  assignment           Assignment                      @relation(fields: [assignmentId], references: [id], onDelete: Restrict)
-  audiences            AssignmentAudience[]
-  questions            AssignmentQuestion[]
-  historicalOwnerships AssignmentHistoricalOwnership[]
+  assignment            Assignment                       @relation(fields: [assignmentId], references: [id], onDelete: Restrict)
+  audiences             AssignmentAudience[]
+  questions             AssignmentQuestion[]
+  historicalOwnerships  AssignmentHistoricalOwnership[]
   publicationOperations AssignmentPublicationOperation[]
+  submissions           AssignmentSubmission[]
 
   @@unique([assignmentId, revisionNumber])
   @@index([assignmentId, state, updatedAt])
@@ -257,17 +279,18 @@ model AssignmentRevision {
 }
 
 model AssignmentAudience {
-  id                   String   @id @default(cuid())
+  id                   String    @id @default(cuid())
   assignmentRevisionId String
   classId              String
   availableAt          DateTime
   dueAt                DateTime
-  policySnapshot       Json     @default("{}")
+  policySnapshot       Json      @default("{}")
   archivedAt           DateTime?
-  createdAt            DateTime @default(now())
+  createdAt            DateTime  @default(now())
 
-  revision AssignmentRevision @relation(fields: [assignmentRevisionId], references: [id], onDelete: Restrict)
-  class    Class              @relation(fields: [classId], references: [id], onDelete: Restrict)
+  revision    AssignmentRevision     @relation(fields: [assignmentRevisionId], references: [id], onDelete: Restrict)
+  class       Class                  @relation(fields: [classId], references: [id], onDelete: Restrict)
+  submissions AssignmentSubmission[]
 
   @@unique([assignmentRevisionId, classId])
   @@index([classId, availableAt, dueAt])
@@ -295,7 +318,8 @@ model AssignmentQuestion {
   contentHash          String
   createdAt            DateTime                       @default(now())
 
-  revision AssignmentRevision @relation(fields: [assignmentRevisionId], references: [id], onDelete: Restrict)
+  revision          AssignmentRevision @relation(fields: [assignmentRevisionId], references: [id], onDelete: Restrict)
+  submissionAnswers SubmissionAnswer[]
 
   @@unique([assignmentRevisionId, stableQuestionId])
   @@unique([assignmentRevisionId, orderIndex])
@@ -303,13 +327,153 @@ model AssignmentQuestion {
   @@index([contentHash])
 }
 
+model AssignmentSubmission {
+  id                     String                    @id @default(cuid())
+  assignmentRevisionId   String
+  audienceId             String
+  studentId              String
+  state                  AssignmentSubmissionState @default(NOT_STARTED)
+  submittedRequiredCount Int                       @default(0)
+  requiredQuestionCount  Int
+  frozenStudentId        String
+  frozenAudienceClassId  String
+  createdAt              DateTime                  @default(now())
+  updatedAt              DateTime                  @updatedAt
+
+  revision AssignmentRevision @relation(fields: [assignmentRevisionId], references: [id], onDelete: Restrict)
+  audience AssignmentAudience @relation(fields: [audienceId], references: [id], onDelete: Restrict)
+  student  User               @relation(fields: [studentId], references: [id], onDelete: Restrict)
+  answers  SubmissionAnswer[]
+
+  @@unique([assignmentRevisionId, studentId])
+  @@index([studentId, state, updatedAt])
+  @@index([audienceId])
+}
+
+model SubmissionAnswer {
+  id                   String                @id @default(cuid())
+  submissionId         String
+  assignmentQuestionId String
+  state                SubmissionAnswerState @default(DRAFT)
+  version              Int                   @default(1)
+  responseType         String
+  textDraft            String?
+  currentAttemptNumber Int                   @default(0)
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+
+  submission AssignmentSubmission @relation(fields: [submissionId], references: [id], onDelete: Restrict)
+  question   AssignmentQuestion   @relation(fields: [assignmentQuestionId], references: [id], onDelete: Restrict)
+  attempts   SubmissionAttempt[]
+  assets     SubmissionAsset[]
+
+  @@unique([submissionId, assignmentQuestionId])
+  @@index([assignmentQuestionId, state])
+}
+
+model SubmissionAttempt {
+  id            String   @id @default(cuid())
+  answerId      String
+  attemptNumber Int
+  answerVersion Int
+  textSnapshot  String?
+  submittedAt   DateTime @default(now())
+
+  answer      SubmissionAnswer        @relation(fields: [answerId], references: [id], onDelete: Restrict)
+  assets      SubmissionAsset[]
+  idempotency SubmissionIdempotency[]
+
+  @@unique([answerId, attemptNumber])
+  @@index([submittedAt])
+}
+
+model SubmissionAsset {
+  id                  String               @id @default(cuid())
+  answerId            String
+  attemptId           String?
+  version             Int
+  objectKey           String               @unique
+  originalName        String
+  mimeType            String
+  sizeBytes           Int
+  checksum            String
+  state               SubmissionAssetState @default(QUARANTINED)
+  scanState           String               @default("PENDING")
+  scanRetryCount      Int                  @default(0)
+  lastScanErrorCode   String?
+  nextScanAt          DateTime?
+  quarantineExpiresAt DateTime?
+  finalizationKey     String?              @unique
+  finalizedAt         DateTime?
+  createdAt           DateTime             @default(now())
+
+  answer       SubmissionAnswer             @relation(fields: [answerId], references: [id], onDelete: Restrict)
+  attempt      SubmissionAttempt?           @relation(fields: [attemptId], references: [id], onDelete: Restrict)
+  accessTokens SubmissionAssetAccessToken[]
+
+  @@unique([answerId, version])
+  @@index([state, createdAt])
+}
+
+model SubmissionAssetAccessToken {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  assetId   String
+  studentId String
+  purpose   String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  asset SubmissionAsset @relation(fields: [assetId], references: [id], onDelete: Restrict)
+
+  @@index([assetId, studentId, expiresAt])
+  @@index([expiresAt, usedAt])
+}
+
+model SubmissionIdempotency {
+  id             String   @id @default(cuid())
+  studentId      String
+  scope          String
+  idempotencyKey String
+  requestHash    String
+  attemptId      String?
+  createdAt      DateTime @default(now())
+
+  attempt SubmissionAttempt? @relation(fields: [attemptId], references: [id], onDelete: Restrict)
+
+  @@unique([studentId, scope, idempotencyKey])
+  @@index([attemptId])
+}
+
+model SubmissionObjectTombstone {
+  id        String   @id @default(cuid())
+  objectKey String   @unique
+  reason    String
+  checksum  String?
+  deletedAt DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  @@index([deletedAt])
+}
+
+model SubmissionMutationQuota {
+  key          String    @id
+  windowStart  DateTime
+  requestCount Int
+  blockedUntil DateTime?
+  updatedAt    DateTime  @updatedAt
+
+  @@index([blockedUntil])
+}
+
 model AssignmentReviewGrant {
-  id           String   @id @default(cuid())
+  id           String    @id @default(cuid())
   assignmentId String
   teacherId    String
   grantedById  String
   reason       String
-  grantedAt    DateTime @default(now())
+  grantedAt    DateTime  @default(now())
   expiresAt    DateTime?
   revokedAt    DateTime?
 
@@ -336,13 +500,13 @@ model AssignmentPublicationOperation {
 }
 
 model AssignmentHistoricalOwnership {
-  id                   String   @id @default(cuid())
+  id                   String    @id @default(cuid())
   assignmentRevisionId String
   studentId            String
   audienceClassId      String
   assignedAt           DateTime
   anonymizedAt         DateTime?
-  createdAt            DateTime @default(now())
+  createdAt            DateTime  @default(now())
 
   revision AssignmentRevision @relation(fields: [assignmentRevisionId], references: [id], onDelete: Restrict)
   student  User               @relation(fields: [studentId], references: [id], onDelete: Restrict)
@@ -381,8 +545,8 @@ model LlmSession {
 }
 
 model AdminOperationLedger {
-  id              String   @id @default(cuid())
-  operationId     String   @unique
+  id              String    @id @default(cuid())
+  operationId     String    @unique
   kind            String
   actorId         String
   actorRole       String
@@ -390,15 +554,15 @@ model AdminOperationLedger {
   startedAt       DateTime
   completedAt     DateTime?
   outcome         String
-  idempotencyKey  String   @unique
+  idempotencyKey  String    @unique
   sourceFileHash  String?
-  artifactRefs    Json     @default("[]")
-  retentionPolicy Json     @default("{}")
-  rollback        Json     @default("{}")
+  artifactRefs    Json      @default("[]")
+  retentionPolicy Json      @default("{}")
+  rollback        Json      @default("{}")
   auditSummary    String
-  recoveryState   Json     @default("{}")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  recoveryState   Json      @default("{}")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   @@index([actorId, createdAt])
   @@index([kind, createdAt])
@@ -406,19 +570,19 @@ model AdminOperationLedger {
 }
 
 model AdminOperationArtifact {
-  id              String   @id @default(cuid())
-  artifactId      String   @unique
+  id              String    @id @default(cuid())
+  artifactId      String    @unique
   operationId     String
   kind            String
   label           String
-  authorizedRoles Json     @default("[]")
-  piiMinimized    Boolean  @default(true)
+  authorizedRoles Json      @default("[]")
+  piiMinimized    Boolean   @default(true)
   rowCount        Int?
   expiresAt       DateTime?
   revokedAt       DateTime?
-  payload         Json     @default("{}")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  payload         Json      @default("{}")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   @@index([operationId])
   @@index([expiresAt])
@@ -956,23 +1120,23 @@ model ClassSession {
 
 // 教师审核后的课程运行时增强包
 model CourseEnhancementPack {
-  id                  String   @id
+  id                  String    @id
   teacherId           String
   classId             String
   goalId              String
   lessonId            String
-  sourcePrepPackId    String   @unique
+  sourcePrepPackId    String    @unique
   diagnosisSnapshotId String?
   status              String
-  source              Json     @default("{}")
-  items               Json     @default("[]")
-  auditLog            Json     @default("[]")
-  teacherFeedback     Json     @default("[]")
+  source              Json      @default("{}")
+  items               Json      @default("[]")
+  auditLog            Json      @default("[]")
+  teacherFeedback     Json      @default("[]")
   activatedAt         DateTime?
   rolledBackAt        DateTime?
   archivedAt          DateTime?
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   @@index([teacherId, status, updatedAt])
   @@index([classId, lessonId, status])
@@ -1012,25 +1176,25 @@ model StudentState {
 
 // 互动事件日志（埋点追踪）
 model InteractionLog {
-  id            String    @id @default(cuid())
-  userId        String
-  resourceId    String?
-  resourceKey   String?
-  sessionId     String? // 课堂会话ID（可选）
-  lessonKey     String?
-  stepId        String?
-  actorRole     String?
-  attemptKey    String?
-  eventType     String // view, interact, param_change, submit, ai_query, complete, error
-  clientEventId String?
-  learningContext String?
+  id                   String    @id @default(cuid())
+  userId               String
+  resourceId           String?
+  resourceKey          String?
+  sessionId            String? // 课堂会话ID（可选）
+  lessonKey            String?
+  stepId               String?
+  actorRole            String?
+  attemptKey           String?
+  eventType            String // view, interact, param_change, submit, ai_query, complete, error
+  clientEventId        String?
+  learningContext      String?
   invalidContextReason String?
-  eventData     Json      @default("{}")
-  clientEventAt DateTime?
-  createdAt     DateTime  @default(now())
+  eventData            Json      @default("{}")
+  clientEventAt        DateTime?
+  createdAt            DateTime  @default(now())
 
-  user     User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  resource TeachingResource? @relation(fields: [resourceId], references: [id], onDelete: SetNull)
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resource            TeachingResource?    @relation(fields: [resourceId], references: [id], onDelete: SetNull)
   studentStepResponse StudentStepResponse?
 
   @@index([userId, resourceId])
@@ -1045,17 +1209,17 @@ model InteractionLog {
 }
 
 model StudentStepResponse {
-  id            String       @id @default(cuid())
+  id            String   @id @default(cuid())
   userId        String
   sessionId     String
   lessonKey     String?
   stepId        String
   attemptKey    String?
-  sourceLogId   String?      @unique
+  sourceLogId   String?  @unique
   clientEventId String?
   submittedAt   DateTime
   responseData  Json
-  createdAt     DateTime     @default(now())
+  createdAt     DateTime @default(now())
 
   user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   session   ClassSession    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
@@ -1135,29 +1299,29 @@ model LearningPath {
   description   String?
   estimatedTime Int // 预计时长（分钟）
 
-  nodeIds       Json    @default("[]") // 节点 ID 有序数组
-  isAiGenerated Boolean @default(false)
-  isBookmarked  Boolean @default(false)
-  goalId        String?
-  plannerVersion String?
-  pathStatus   String  @default("legacy")
-  currentNodeId String?
-  learnerStateRef String?
-  classId      String?
-  inputSnapshot Json?
-  pathPayload  Json    @default("{}")
-  explanationPayload Json @default("{}")
-  alternativePayload Json @default("[]")
-  entryNodeId  String?
-  terminalValidation Json?
+  nodeIds               Json    @default("[]") // 节点 ID 有序数组
+  isAiGenerated         Boolean @default(false)
+  isBookmarked          Boolean @default(false)
+  goalId                String?
+  plannerVersion        String?
+  pathStatus            String  @default("legacy")
+  currentNodeId         String?
+  learnerStateRef       String?
+  classId               String?
+  inputSnapshot         Json?
+  pathPayload           Json    @default("{}")
+  explanationPayload    Json    @default("{}")
+  alternativePayload    Json    @default("[]")
+  entryNodeId           String?
+  terminalValidation    Json?
   lastExecutionMetadata Json?
-  legacySummaryPayload Json?
+  legacySummaryPayload  Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  executions LearningPathExecution[]
-  deviations LearningPathDeviation[]
+  executions    LearningPathExecution[]
+  deviations    LearningPathDeviation[]
   interventions LearningPathIntervention[]
 
   @@index([userId])
@@ -1166,7 +1330,7 @@ model LearningPath {
 }
 
 model LearningPathExecution {
-  id             String   @id @default(cuid())
+  id             String    @id @default(cuid())
   pathId         String
   userId         String
   nodeId         String
@@ -1175,12 +1339,12 @@ model LearningPathExecution {
   startedAt      DateTime?
   completedAt    DateTime?
   failedAt       DateTime?
-  evidenceRefs   Json     @default("[]")
-  liftMetadata   Json     @default("{}")
+  evidenceRefs   Json      @default("[]")
+  liftMetadata   Json      @default("{}")
   simulationRef  Json?
   arenaRef       Json?
   idempotencyKey String?
-  createdAt      DateTime @default(now())
+  createdAt      DateTime  @default(now())
 
   path LearningPath @relation(fields: [pathId], references: [id], onDelete: Cascade)
 
@@ -1325,17 +1489,17 @@ model AdaptiveAssessmentAlgorithmVersion {
 }
 
 model AdaptiveAssessmentSession {
-  id               String    @id @default(cuid())
-  userId           String
-  sessionKey       String
+  id                  String    @id @default(cuid())
+  userId              String
+  sessionKey          String
   selectedQuestionIds String[]  @default([])
-  algorithmVersion String
-  startedAt        DateTime  @default(now())
-  lastAnsweredAt   DateTime?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  algorithmVersion    String
+  startedAt           DateTime  @default(now())
+  lastAnsweredAt      DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
-  algorithm        AdaptiveAssessmentAlgorithmVersion @relation(fields: [algorithmVersion], references: [version], onDelete: Restrict)
+  algorithm        AdaptiveAssessmentAlgorithmVersion  @relation(fields: [algorithmVersion], references: [version], onDelete: Restrict)
   answers          AdaptiveAssessmentAnswer[]
   abilityEstimates AdaptiveAssessmentAbilityEstimate[]
   masteryUpdates   AdaptiveMasteryUpdate[]
@@ -1385,14 +1549,14 @@ model AdaptiveAssessmentAnswer {
   createdAt           DateTime @default(now())
 
   session                 AdaptiveAssessmentSession          @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  questionRef             AdaptiveAssessmentItemRef           @relation(fields: [questionRefId], references: [id], onDelete: Restrict)
-  algorithm               AdaptiveAssessmentAlgorithmVersion  @relation(fields: [algorithmVersion], references: [version], onDelete: Restrict)
+  questionRef             AdaptiveAssessmentItemRef          @relation(fields: [questionRefId], references: [id], onDelete: Restrict)
+  algorithm               AdaptiveAssessmentAlgorithmVersion @relation(fields: [algorithmVersion], references: [version], onDelete: Restrict)
   abilityEstimateSnapshot AdaptiveAssessmentAbilityEstimate?
   masteryUpdates          AdaptiveMasteryUpdate[]
 
+  @@unique([sessionId, questionId])
   @@index([userId, answeredAt])
   @@index([sessionId, answeredAt])
-  @@unique([sessionId, questionId])
   @@index([questionId])
   @@index([questionRefId])
   @@index([algorithmVersion])
@@ -1411,8 +1575,8 @@ model AdaptiveAssessmentAbilityEstimate {
   estimatedAt      DateTime @default(now())
   createdAt        DateTime @default(now())
 
-  session   AdaptiveAssessmentSession         @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  answer    AdaptiveAssessmentAnswer          @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  session   AdaptiveAssessmentSession          @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  answer    AdaptiveAssessmentAnswer           @relation(fields: [answerId], references: [id], onDelete: Cascade)
   algorithm AdaptiveAssessmentAlgorithmVersion @relation(fields: [algorithmVersion], references: [version], onDelete: Restrict)
 
   @@index([userId, estimatedAt])
@@ -1436,8 +1600,8 @@ model AdaptiveMasteryUpdate {
   prerequisiteState Json     @default("{}")
   createdAt         DateTime @default(now())
 
-  session   AdaptiveAssessmentSession         @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  answer    AdaptiveAssessmentAnswer          @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  session   AdaptiveAssessmentSession          @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  answer    AdaptiveAssessmentAnswer           @relation(fields: [answerId], references: [id], onDelete: Cascade)
   algorithm AdaptiveAssessmentAlgorithmVersion @relation(fields: [algorithmVersion], references: [version], onDelete: Restrict)
 
   @@unique([answerId, knowledgeTag, algorithmVersion])
@@ -1448,7 +1612,7 @@ model AdaptiveMasteryUpdate {
 }
 
 model AIIntervention {
-  id               String   @id @default(cuid())
+  id               String    @id @default(cuid())
   userId           String
   sessionId        String
   classId          String?
@@ -1456,17 +1620,17 @@ model AIIntervention {
   pathNodeId       String?
   triggerType      String
   interventionType String
-  content          String   @db.Text
-  whyNow           String?  @db.Text
-  evidence         Json     @default("[]")
-  alternatives     Json     @default("[]")
-  privacyScope     String   @default("student-visible")
-  teacherPolicy    String   @default("allowed")
+  content          String    @db.Text
+  whyNow           String?   @db.Text
+  evidence         Json      @default("[]")
+  alternatives     Json      @default("[]")
+  privacyScope     String    @default("student-visible")
+  teacherPolicy    String    @default("allowed")
   cooldownUntil    DateTime?
   outcome          Json?
-  studentResponse  String?  @db.Text
+  studentResponse  String?   @db.Text
   wasHelpful       Boolean?
-  createdAt        DateTime @default(now())
+  createdAt        DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -1525,8 +1689,8 @@ model AgentSession {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  ownerUser User @relation("AgentSessionOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
-  actorUser User? @relation("AgentSessionActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  ownerUser User           @relation("AgentSessionOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  actorUser User?          @relation("AgentSessionActor", fields: [actorUserId], references: [id], onDelete: SetNull)
   toolRuns  AgentToolRun[]
 
   @@index([ownerUserId, status, updatedAt])
@@ -1630,13 +1794,13 @@ model PlatformSetting {
 // ========== 控灵AI助手会话模型 ==========
 
 model KonlingSession {
-  id        String   @id @default(cuid())
-  userId    String
-  courseId  String   // 课程ID (L-2d, L-sum等)
-  pageId    String   // 页面/步骤ID
-  title     String   // 会话标题
+  id       String @id @default(cuid())
+  userId   String
+  courseId String // 课程ID (L-2d, L-sum等)
+  pageId   String // 页面/步骤ID
+  title    String // 会话标题
 
-  messages  Json     // 消息历史数组
+  messages Json // 消息历史数组
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1655,7 +1819,7 @@ model KonlingSession {
 model LearningEventBatch {
   id          String    @id @default(cuid())
   batchDate   DateTime  @db.Date
-  events      Json      // Compressed array of LearningEvent
+  events      Json // Compressed array of LearningEvent
   eventCount  Int
   processedAt DateTime?
   createdAt   DateTime  @default(now())
@@ -1670,39 +1834,39 @@ model EventDictionary {
   category          String
   priority          String
   description       String?
-  schema            Json?    // JSON Schema for payload
-  competencyMapping Json?    // Which competencies this event contributes to
+  schema            Json? // JSON Schema for payload
+  competencyMapping Json? // Which competencies this event contributes to
   createdAt         DateTime @default(now())
 }
 
 // Unified learning facts (derived from events)
 model LearningFact {
-  id              String   @id @default(cuid())
-  userId          String
-  factType        String   // simulation, question, ai_intervention, prompt_design, ethical
-  moduleId        String?
-  sessionId       String?
+  id        String  @id @default(cuid())
+  userId    String
+  factType  String // simulation, question, ai_intervention, prompt_design, ethical
+  moduleId  String?
+  sessionId String?
 
-  startedAt       DateTime
-  finishedAt      DateTime?
+  startedAt  DateTime
+  finishedAt DateTime?
 
-  outcome         String   // success, partial, failure, abandoned
-  score           Float?
-  timeSpent       Int?     // Seconds
+  outcome   String // success, partial, failure, abandoned
+  score     Float?
+  timeSpent Int? // Seconds
 
   // Competency contribution (-1 to 1 per dimension)
   competencyContribution Json
 
   // Source references
-  sourceEventId   String?  @unique
-  sourceLogId     String?
+  sourceEventId String? @unique
+  sourceLogId   String?
 
   // Context
-  courseId        String?
-  lessonId        String?
-  contextJson     Json     @default("{}")
+  courseId    String?
+  lessonId    String?
+  contextJson Json    @default("{}")
 
-  createdAt       DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@index([userId, factType])
   @@index([userId, startedAt])
@@ -1843,9 +2007,9 @@ model ArenaSubmission {
   controllerArtifactId String
   evaluationRunId      String
 
-  user               User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  controllerArtifact ArenaControllerArtifact @relation(fields: [controllerArtifactId], references: [id], onDelete: Cascade)
-  evaluationRun      ArenaEvaluationRun      @relation(fields: [evaluationRunId], references: [id], onDelete: Cascade)
+  user               User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  controllerArtifact ArenaControllerArtifact    @relation(fields: [controllerArtifactId], references: [id], onDelete: Cascade)
+  evaluationRun      ArenaEvaluationRun         @relation(fields: [evaluationRunId], references: [id], onDelete: Cascade)
   publication        ArenaChallengePublication? @relation(fields: [publicationId], references: [id], onDelete: SetNull)
 
   @@index([taskId, score])
@@ -1869,7 +2033,7 @@ model ArenaBlackBoxExperiment {
   budgetCost  Int
   createdAt   DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                 User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
   identificationModels ArenaIdentificationModel[]
 
   @@index([userId, taskId, createdAt])
@@ -1887,7 +2051,7 @@ model ArenaIdentificationModel {
   protocolVersion    String
   createdAt          DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user             User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
   sourceExperiment ArenaBlackBoxExperiment @relation(fields: [sourceExperimentId], references: [id], onDelete: Cascade)
 
   @@unique([userId, taskId, sourceExperimentId])
@@ -1907,7 +2071,7 @@ model ArenaVirtualSimulationRun {
   payload         Json
   createdAt       DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   simulationRun SimulationRun? @relation(fields: [simulationRunId], references: [id], onDelete: SetNull)
 
   @@index([userId, taskId, createdAt])
@@ -1959,9 +2123,9 @@ model SimulationRun {
   completedAt           DateTime?
   updatedAt             DateTime  @updatedAt
 
-  owner    User?               @relation(fields: [ownerUserId], references: [id], onDelete: SetNull)
-  taskSpec SimulationTaskSpec? @relation(fields: [taskSpecId], references: [id], onDelete: SetNull)
-  traces   SimulationTrace[]
+  owner               User?                      @relation(fields: [ownerUserId], references: [id], onDelete: SetNull)
+  taskSpec            SimulationTaskSpec?        @relation(fields: [taskSpecId], references: [id], onDelete: SetNull)
+  traces              SimulationTrace[]
   arenaVirtualPreview ArenaVirtualSimulationRun?
 
   @@unique([sourceDomain, sourceRefId])
@@ -1993,25 +2157,25 @@ model SimulationTrace {
 
 // Student competency snapshot
 model StudentCompetencySnapshot {
-  id                  String   @id @default(cuid())
-  userId              String
-  snapshotAt          DateTime
+  id         String   @id @default(cuid())
+  userId     String
+  snapshotAt DateTime
 
   // Six-dimensional competency vector
-  competencyVector    Json
+  competencyVector Json
 
   // Evidence summary
-  evidenceSummary     Json
+  evidenceSummary Json
 
   // Risk flags
-  riskFlags           Json
+  riskFlags Json
 
   // Learning trajectory
-  trajectoryVector    Json?
+  trajectoryVector Json?
 
   // Metadata
-  calculationVersion  String   @default("v1")
-  factCount           Int
+  calculationVersion String @default("v1")
+  factCount          Int
 
   @@index([userId, snapshotAt])
   @@index([snapshotAt])
@@ -2080,26 +2244,26 @@ model DiagnosisReportSnapshot {
 
 // Optimized profile summary for AI assistant
 model StudentProfileSummary {
-  userId                 String   @id
-  updatedAt              DateTime @updatedAt
+  userId    String   @id
+  updatedAt DateTime @updatedAt
 
-  overallLevel           String   // 优秀/良好/中等偏上/需关注
-  overallScore           Float
+  overallLevel String // 优秀/良好/中等偏上/需关注
+  overallScore Float
 
-  strengthsJson          Json     // ['动态响应分析', '仿真调参']
-  weaknessesJson         Json     // ['跨域解释一致性']
+  strengthsJson  Json // ['动态响应分析', '仿真调参']
+  weaknessesJson Json // ['跨域解释一致性']
 
-  recentTrend            String   // 近两周稳步提升/波动/停滞
-  trendDirection         String   // up/down/stable
+  recentTrend    String // 近两周稳步提升/波动/停滞
+  trendDirection String // up/down/stable
 
-  riskFlagsJson          Json     // ['遇到复杂任务倾向直接请求AI']
-  riskLevel              String   // none/low/medium/high
+  riskFlagsJson Json // ['遇到复杂任务倾向直接请求AI']
+  riskLevel     String // none/low/medium/high
 
   recommendedScaffolding String
 
-  recentActivityJson     Json
+  recentActivityJson Json
 
-  cacheExpiresAt         DateTime
+  cacheExpiresAt DateTime
 
   @@index([updatedAt])
   @@index([riskLevel])
@@ -2107,16 +2271,16 @@ model StudentProfileSummary {
 
 // Class-level competency aggregation
 model ClassCompetencySnapshot {
-  id                String   @id @default(cuid())
-  classId           String
-  snapshotAt        DateTime
+  id         String   @id @default(cuid())
+  classId    String
+  snapshotAt DateTime
 
-  aggregateJson     Json     // Mean/stdev per dimension
-  distributionJson  Json     // Score distribution
-  trendJson         Json     // Change from previous
-  riskSummaryJson   Json
+  aggregateJson    Json // Mean/stdev per dimension
+  distributionJson Json // Score distribution
+  trendJson        Json // Change from previous
+  riskSummaryJson  Json
 
-  levelDistribution Json     // { excellent: 5, good: 10, ... }
+  levelDistribution Json // { excellent: 5, good: 10, ... }
 
   activeStudentCount Int
   totalStudentCount  Int
@@ -2126,20 +2290,20 @@ model ClassCompetencySnapshot {
 
 // Student risk flags
 model StudentRiskFlag {
-  id            String    @id @default(cuid())
-  userId        String
-  flagType      String    // participation, stagnation, ai_misuse, constraint, cross_domain
-  severity      String    // low, medium, high
-  description   String
+  id          String @id @default(cuid())
+  userId      String
+  flagType    String // participation, stagnation, ai_misuse, constraint, cross_domain
+  severity    String // low, medium, high
+  description String
 
-  evidenceJson  Json
-  triggeredAt   DateTime
+  evidenceJson Json
+  triggeredAt  DateTime
 
-  isResolved    Boolean   @default(false)
-  resolvedAt    DateTime?
+  isResolved     Boolean   @default(false)
+  resolvedAt     DateTime?
   resolutionNote String?
 
-  createdAt     DateTime  @default(now())
+  createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -2150,21 +2314,21 @@ model StudentRiskFlag {
 
 // Growth records for portfolio
 model GrowthRecord {
-  id          String   @id @default(cuid())
-  userId      String
+  id     String @id @default(cuid())
+  userId String
 
-  recordType  String   // milestone, breakthrough, remediation, reflection, portfolio
+  recordType  String // milestone, breakthrough, remediation, reflection, portfolio
   title       String
   description String
 
   evidenceJson Json
   mediaUrls    String[]
 
-  occurredAt  DateTime
-  courseId    String?
-  isPublic    Boolean  @default(false)
+  occurredAt DateTime
+  courseId   String?
+  isPublic   Boolean  @default(false)
 
-  createdAt   DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@index([userId, recordType])
   @@index([userId, occurredAt])
@@ -2172,24 +2336,24 @@ model GrowthRecord {
 
 // Learning recommendations
 model LearningRecommendation {
-  id          String   @id @default(cuid())
-  userId      String
+  id     String @id @default(cuid())
+  userId String
 
-  recType     String   // immediate, weekly, challenge
+  recType     String // immediate, weekly, challenge
   title       String
   description String
   reasoning   String
 
-  actionType   String
-  targetModule String?
+  actionType    String
+  targetModule  String?
   estimatedTime Int
 
   isCompleted Boolean   @default(false)
   completedAt DateTime?
   wasHelpful  Boolean?
 
-  createdAt   DateTime  @default(now())
-  expiresAt   DateTime
+  createdAt DateTime @default(now())
+  expiresAt DateTime
 
   @@index([userId, recType])
   @@index([userId, isCompleted])

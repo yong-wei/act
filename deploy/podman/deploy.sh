@@ -119,6 +119,8 @@ APP_CONTAINER="${APP_CONTAINER:-${APP_NAME:-act-obe-app}}"
 DB_CONTAINER="${DB_CONTAINER:-${POSTGRES_NAME:-act-obe-postgres}}"
 REDIS_CONTAINER="${REDIS_CONTAINER:-${REDIS_NAME:-act-obe-redis}}"
 WORKER_CONTAINER="${WORKER_CONTAINER:-${WORKER_NAME:-act-obe-worker}}"
+SUBMISSION_SCANNER_CONTAINER="${SUBMISSION_SCANNER_CONTAINER:-act-obe-submission-scanner}"
+SUBMISSION_GC_CONTAINER="${SUBMISSION_GC_CONTAINER:-act-obe-submission-gc}"
 NETWORK_NAME="${NETWORK_NAME:-${PODMAN_NETWORK:-act-obe-network}}"
 DB_HOST_ALIAS="${DB_HOST_ALIAS:-${DB_CONTAINER}.dns.podman}"
 REDIS_HOST_ALIAS="${REDIS_HOST_ALIAS:-${REDIS_CONTAINER}.dns.podman}"
@@ -146,6 +148,8 @@ NODE_ENV="${NODE_ENV:-production}"
 NEXT_TELEMETRY_DISABLED="${NEXT_TELEMETRY_DISABLED:-1}"
 WORKER_CONCURRENCY="${WORKER_CONCURRENCY:-2}"
 ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED="${ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED:-true}"
+SUBMISSION_SCAN_INTERVAL_SECONDS="${SUBMISSION_SCAN_INTERVAL_SECONDS:-15}"
+SUBMISSION_GC_INTERVAL_SECONDS="${SUBMISSION_GC_INTERVAL_SECONDS:-3600}"
 REDIS_MAXMEMORY="${REDIS_MAXMEMORY:-512mb}"
 REDIS_MAXMEMORY_POLICY="${REDIS_MAXMEMORY_POLICY:-noeviction}"
 RUN_MIGRATIONS_ON_START="${RUN_MIGRATIONS_ON_START:-}"
@@ -180,6 +184,19 @@ require_konling_mode_context_secret() {
     echo "请在远端环境文件中配置非占位密钥后重新部署应用容器。" >&2
     exit 1
   fi
+}
+
+require_submission_security_pipeline() {
+  local required=(SUBMISSION_S3_ENDPOINT SUBMISSION_S3_BUCKET SUBMISSION_S3_ACCESS_KEY SUBMISSION_S3_SECRET_KEY SUBMISSION_SCANNER_ACCESS_KEY SUBMISSION_SCANNER_SECRET_KEY SUBMISSION_SCANNER_PROBE_KEY SUBMISSION_GC_ACCESS_KEY SUBMISSION_GC_SECRET_KEY)
+  if [ "${SUBMISSION_OBJECT_STORE:-}" != "s3" ] || [ "${SUBMISSION_SCANNER_MODE:-}" != "s3-object-tag" ]; then
+    echo "ERROR: 生产部署必须配置 SUBMISSION_OBJECT_STORE=s3 与 SUBMISSION_SCANNER_MODE=s3-object-tag。" >&2; exit 1
+  fi
+  for name in "${required[@]}"; do if [ -z "${!name:-}" ]; then echo "ERROR: 缺少学生作业安全配置: $name" >&2; exit 1; fi; done
+  case "${SUBMISSION_CONTENT_SCANNER:-}" in
+    clamav-tcp) if [ -z "${SUBMISSION_CLAMAV_HOST:-}" ] || [ -z "${SUBMISSION_CLAMAV_PORT:-}" ]; then echo "ERROR: clamav-tcp 需要外部 SUBMISSION_CLAMAV_HOST/PORT。" >&2; exit 1; fi ;;
+    https) if [ -z "${SUBMISSION_SCANNER_URL:-}" ] || [ -z "${SUBMISSION_SCANNER_TOKEN:-}" ]; then echo "ERROR: https scanner 需要外部 URL/TOKEN。" >&2; exit 1; fi ;;
+    *) echo "ERROR: SUBMISSION_CONTENT_SCANNER 必须为 clamav-tcp 或 https。" >&2; exit 1 ;;
+  esac
 }
 
 resolve_image() {
@@ -455,11 +472,15 @@ if [ ! -f "$START_WRAPPER_PATH" ]; then
 fi
 
 if [ "$MODE" = "--all" ] || [ "$MODE" = "--db-only" ]; then
+  remove_if_exists "$SUBMISSION_SCANNER_CONTAINER"
+  remove_if_exists "$SUBMISSION_GC_CONTAINER"
   remove_if_exists "$WORKER_CONTAINER"
   remove_if_exists "$APP_CONTAINER"
   remove_if_exists "$REDIS_CONTAINER"
   remove_if_exists "$DB_CONTAINER"
 else
+  remove_if_exists "$SUBMISSION_SCANNER_CONTAINER"
+  remove_if_exists "$SUBMISSION_GC_CONTAINER"
   remove_if_exists "$WORKER_CONTAINER"
   remove_if_exists "$APP_CONTAINER"
   remove_if_exists "$REDIS_CONTAINER"
@@ -502,6 +523,7 @@ fi
 require_konling_mode_context_secret
 
 ensure_db_running
+if [ "$MODE" != "--db-only" ]; then require_submission_security_pipeline; fi
 DATABASE_URL_DEFAULT="postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST_ALIAS}:5432/${DB_NAME}?connection_limit=10&pool_timeout=20"
 DATABASE_URL="${DATABASE_URL:-$DATABASE_URL_DEFAULT}"
 DATABASE_URL="$(printf '%s' "$DATABASE_URL" | sed "s#@${DB_CONTAINER}:#@${DB_HOST_ALIAS}:#")"
@@ -557,12 +579,17 @@ SHARED_ENV_ARGS=(
   -e REDIS_URL="$REDIS_URL"
   -e ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED="$ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED"
 )
+APP_STORAGE_ENV_ARGS=(-e SUBMISSION_OBJECT_STORE="$SUBMISSION_OBJECT_STORE" -e SUBMISSION_S3_ENDPOINT="$SUBMISSION_S3_ENDPOINT" -e SUBMISSION_S3_BUCKET="$SUBMISSION_S3_BUCKET" -e SUBMISSION_S3_REGION="${SUBMISSION_S3_REGION:-us-east-1}" -e SUBMISSION_S3_ACCESS_KEY="$SUBMISSION_S3_ACCESS_KEY" -e SUBMISSION_S3_SECRET_KEY="$SUBMISSION_S3_SECRET_KEY" -e SUBMISSION_SCANNER_MODE="$SUBMISSION_SCANNER_MODE" -e SUBMISSION_CONTENT_SCANNER="$SUBMISSION_CONTENT_SCANNER")
+SCANNER_ENV_ARGS=("${SHARED_ENV_ARGS[@]}" -e SUBMISSION_S3_ENDPOINT="$SUBMISSION_S3_ENDPOINT" -e SUBMISSION_S3_BUCKET="$SUBMISSION_S3_BUCKET" -e SUBMISSION_S3_REGION="${SUBMISSION_S3_REGION:-us-east-1}" -e SUBMISSION_SCANNER_MODE="$SUBMISSION_SCANNER_MODE" -e SUBMISSION_SCANNER_ACCESS_KEY="$SUBMISSION_SCANNER_ACCESS_KEY" -e SUBMISSION_SCANNER_SECRET_KEY="$SUBMISSION_SCANNER_SECRET_KEY" -e SUBMISSION_SCANNER_PROBE_KEY="$SUBMISSION_SCANNER_PROBE_KEY" -e SUBMISSION_CONTENT_SCANNER="$SUBMISSION_CONTENT_SCANNER" -e SUBMISSION_SCAN_BATCH_SIZE="${SUBMISSION_SCAN_BATCH_SIZE:-25}")
+if [ "$SUBMISSION_CONTENT_SCANNER" = "clamav-tcp" ]; then SCANNER_ENV_ARGS+=(-e SUBMISSION_CLAMAV_HOST="$SUBMISSION_CLAMAV_HOST" -e SUBMISSION_CLAMAV_PORT="$SUBMISSION_CLAMAV_PORT"); else SCANNER_ENV_ARGS+=(-e SUBMISSION_SCANNER_URL="$SUBMISSION_SCANNER_URL" -e SUBMISSION_SCANNER_TOKEN="$SUBMISSION_SCANNER_TOKEN"); fi
+GC_ENV_ARGS=("${SHARED_ENV_ARGS[@]}" -e SUBMISSION_S3_ENDPOINT="$SUBMISSION_S3_ENDPOINT" -e SUBMISSION_S3_BUCKET="$SUBMISSION_S3_BUCKET" -e SUBMISSION_S3_REGION="${SUBMISSION_S3_REGION:-us-east-1}" -e SUBMISSION_GC_ACCESS_KEY="$SUBMISSION_GC_ACCESS_KEY" -e SUBMISSION_GC_SECRET_KEY="$SUBMISSION_GC_SECRET_KEY" -e SUBMISSION_QUARANTINE_RETENTION_HOURS="${SUBMISSION_QUARANTINE_RETENTION_HOURS:-24}")
 if [ -n "${KONLING_SERVER_MODE_CONTEXT_SECRET:-}" ]; then
   SHARED_ENV_ARGS+=(-e KONLING_SERVER_MODE_CONTEXT_SECRET="$KONLING_SERVER_MODE_CONTEXT_SECRET")
 fi
 
 APP_ENV_ARGS=(
   "${SHARED_ENV_ARGS[@]}"
+  "${APP_STORAGE_ENV_ARGS[@]}"
   -e RUN_MIGRATIONS_ON_START="$RUN_MIGRATIONS_ON_START"
   -e PORT="$APP_CONTAINER_PORT"
   -e HOSTNAME=0.0.0.0
@@ -602,6 +629,11 @@ if [ -n "${LLM_SERVICE_URL:-}" ]; then
   APP_ENV_ARGS+=(-e LLM_SERVICE_URL="$LLM_SERVICE_URL")
 fi
 
+echo "- 验证学生作业对象存储与扫描服务健康"
+podman run --rm --network "$NETWORK_NAME" --entrypoint ./node_modules/.bin/tsx "${DB_HOST_ARGS[@]}" "${SHARED_ENV_ARGS[@]}" "${APP_STORAGE_ENV_ARGS[@]}" -e SUBMISSION_HEALTH_ROLE=app "$APP_IMAGE" scripts/assignments/check-submission-object-health.ts >/dev/null
+podman run --rm --network "$NETWORK_NAME" --entrypoint ./node_modules/.bin/tsx "${DB_HOST_ARGS[@]}" "${SCANNER_ENV_ARGS[@]}" -e SUBMISSION_HEALTH_ROLE=scanner "$APP_IMAGE" scripts/assignments/check-submission-object-health.ts >/dev/null
+podman run --rm --network "$NETWORK_NAME" --entrypoint ./node_modules/.bin/tsx "${DB_HOST_ARGS[@]}" "${GC_ENV_ARGS[@]}" -e SUBMISSION_HEALTH_ROLE=gc "$APP_IMAGE" scripts/assignments/check-submission-object-health.ts >/dev/null
+
 echo "- 启动应用容器: $APP_CONTAINER"
 podman run -d \
   --name "$APP_CONTAINER" \
@@ -638,9 +670,15 @@ podman run -d \
 
 run_scheduler_once
 
+echo "- 启动学生作业扫描 worker 容器: $SUBMISSION_SCANNER_CONTAINER"
+podman run -d --name "$SUBMISSION_SCANNER_CONTAINER" --restart unless-stopped --network "$NETWORK_NAME" --entrypoint /bin/sh -v "${START_WRAPPER_PATH}:/app-container-start-wrapper.sh:ro" "${DB_HOST_ARGS[@]}" "${SCANNER_ENV_ARGS[@]}" -e SUBMISSION_SCAN_INTERVAL_SECONDS="$SUBMISSION_SCAN_INTERVAL_SECONDS" "$APP_IMAGE" /app-container-start-wrapper.sh submission-scanner >/dev/null
+
+echo "- 启动学生作业 GC worker 容器: $SUBMISSION_GC_CONTAINER"
+podman run -d --name "$SUBMISSION_GC_CONTAINER" --restart unless-stopped --network "$NETWORK_NAME" --entrypoint /bin/sh -v "${START_WRAPPER_PATH}:/app-container-start-wrapper.sh:ro" "${DB_HOST_ARGS[@]}" "${GC_ENV_ARGS[@]}" -e SUBMISSION_GC_INTERVAL_SECONDS="$SUBMISSION_GC_INTERVAL_SECONDS" "$APP_IMAGE" /app-container-start-wrapper.sh submission-gc >/dev/null
+
 echo "[4-deploy] 部署完成。"
 echo "- 公网访问: http://121.40.124.135:${APP_PORT}"
 echo "- 目标域名: http://${APP_DOMAIN} (需在 Nginx 配置反向代理到 127.0.0.1:${APP_PORT})"
 echo "- 运行时资源目录: ${RUNTIME_CONTENT_DIR} -> /app/course-content/runtime"
 echo
-podman ps --format 'table {{.Names}}\t{{.Image}}\t{{.Ports}}\t{{.Status}}' | grep -E "NAMES|${APP_CONTAINER}|${DB_CONTAINER}|${REDIS_CONTAINER}|${WORKER_CONTAINER}" || true
+podman ps --format 'table {{.Names}}\t{{.Image}}\t{{.Ports}}\t{{.Status}}' | grep -E "NAMES|${APP_CONTAINER}|${DB_CONTAINER}|${REDIS_CONTAINER}|${WORKER_CONTAINER}|${SUBMISSION_SCANNER_CONTAINER}|${SUBMISSION_GC_CONTAINER}" || true
