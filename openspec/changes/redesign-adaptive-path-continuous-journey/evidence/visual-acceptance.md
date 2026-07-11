@@ -20,4 +20,6 @@ Captured from the controlled `demo=1` path-execution route on 2026-07-11 with Pl
 - Automated geometry checks confirm document, execution surface, timeline, focused node, and attached actions remain within the viewport with no internal horizontal overflow.
 - The floating assistant launcher stays outside the focused action area. No inspected screenshot showed clipped actions, overlapping text, or unreachable journey controls.
 
-Command: `PLAYWRIGHT_PORT=3413 npx playwright test tests/adaptive-path-visual-acceptance.spec.ts --workers=1` (6 passed).
+Evidence update: `UPDATE_VISUAL_EVIDENCE=1 npm run test:integration -- tests/adaptive-path-compact-workspace.spec.ts tests/adaptive-path-arena-journey.spec.ts tests/adaptive-path-visual-acceptance.spec.ts` (8 passed).
+
+Default verification uses the same command without `UPDATE_VISUAL_EVIDENCE`; it writes current captures under `test-results/`, compares them with these tracked images using geometry and bounded pixel-difference gates, and leaves tracked evidence unchanged.
