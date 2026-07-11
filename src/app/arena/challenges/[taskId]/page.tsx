@@ -69,6 +69,7 @@ export default async function ArenaChallengePage(
   const pathContext = resolveArenaPathLaunchParams(normalizedSearchParams, task.id);
   const usePlaywrightPathFixture = process.env.NODE_ENV !== 'production' &&
     Boolean(process.env.PLAYWRIGHT_PORT) &&
+    process.env.ACT_E2E_FIXTURE_TOKEN === 'adaptive-path-continuous-journey-v1' &&
     normalizedSearchParams.get('journeyFixture') === '1';
 
   const object = getArenaChallengeObject(task.objectId);

@@ -4,12 +4,12 @@ Captured from the controlled `demo=1` path-execution route on 2026-07-11 with Pl
 
 | Theme | Width | Screenshot | SHA-256 |
 | --- | ---: | --- | --- |
-| light | 1440 | `visual-acceptance/light-1440.png` | `36a28307513e7de0d4eef18ea4d5b7eb3ca70c8d5150a1f1ad659868107ccd9b` |
-| light | 375 | `visual-acceptance/light-375.png` | `36be88735c7488a3052aa47de53b8a0bd718b1a822cb543c9823648b57aa5642` |
-| light | 320 | `visual-acceptance/light-320.png` | `cca33dde20de7eb8dd01e123ada3c4dbb7d5763f028cdc3de6740e3aa3e4d458` |
-| dark | 1440 | `visual-acceptance/dark-1440.png` | `f7d6ed7a9d48220c92176658cca4888342ad7648430d1c97811aea1f41664103` |
-| dark | 375 | `visual-acceptance/dark-375.png` | `0965278adeed7e91d878ad443418d1091f914f6f1b1aa176700a81a60dd940ea` |
-| dark | 320 | `visual-acceptance/dark-320.png` | `780dd652967bb3c15c7b4f608ca6779a434a6be7b955881338fa40a21b4ed686` |
+| light | 1440 | `visual-acceptance/light-1440.png` | `f87d2e35c354b4a0faae04435cda2a9df39a561327daa8c088f36340825c5bd4` |
+| light | 375 | `visual-acceptance/light-375.png` | `edc1303273ebe9f0232fe873695389ffaa361e423abb39724478472ddf854fd5` |
+| light | 320 | `visual-acceptance/light-320.png` | `ede21cfeff9e24c2d4178b803f1f946afb2095de93322b05c26014637f148cde` |
+| dark | 1440 | `visual-acceptance/dark-1440.png` | `394be6b05ea851c9bd96b716e13b82b1f8589b9331be53df7b81994ab3e716de` |
+| dark | 375 | `visual-acceptance/dark-375.png` | `43a9aa71a864623328a62f53e7f53679fce44b7bc9dd591f825df465fba2bde8` |
+| dark | 320 | `visual-acceptance/dark-320.png` | `b0b41e5eb24e3a96b9089c26c5c8406c871def9192e6fdb25a5af7a9cdd13290` |
 
 ## Inspection
 
