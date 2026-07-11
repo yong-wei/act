@@ -359,8 +359,12 @@ describe('progressive knowledge graph loading', () => {
 
     expect(prismaMock.$queryRaw).toHaveBeenCalledOnce();
     const relationVersionQuery = (prismaMock.$queryRaw.mock.calls[0]?.[0] as TemplateStringsArray).join('?');
-    expect(relationVersionQuery).toContain('"id", "sourceId", "targetId", "relation"');
-    expect(relationVersionQuery).toContain('ORDER BY "id", "sourceId", "targetId", "relation"');
+    expect(relationVersionQuery).toContain('link."id", link."sourceId", link."targetId", link."relation"');
+    expect(relationVersionQuery).toContain('ORDER BY link."id", link."sourceId", link."targetId", link."relation"');
+    expect(relationVersionQuery).toContain('JOIN "KnowledgeNode" AS source_node');
+    expect(relationVersionQuery).toContain('JOIN "KnowledgeNode" AS target_node');
+    expect(relationVersionQuery).toContain('source_node."isActive" = true');
+    expect(relationVersionQuery).toContain('target_node."isActive" = true');
     expect(prismaMock.knowledgeLink.findMany).not.toHaveBeenCalled();
     expect(root.links).toEqual([]);
     expect(root.versionLinkCount).toBe(databaseLinks.length);
@@ -414,5 +418,54 @@ describe('progressive knowledge graph loading', () => {
     expect(firstModule.getKnowledgeGraphVersion(firstRoot)).not.toBe(
       secondModule.getKnowledgeGraphVersion(secondRoot)
     );
+  });
+
+  it('excludes relations with an inactive endpoint from payloads and expansion descriptors', async () => {
+    const activeNode = graphFixture().nodes[0];
+    const databaseNodes = [{
+      id: activeNode.id,
+      name: activeNode.name,
+      nodeType: activeNode.nodeType,
+      description: activeNode.description,
+      positionX: activeNode.positionX,
+      positionY: activeNode.positionY,
+      positionZ: activeNode.positionZ,
+      bloomLevel: activeNode.bloomLevel ?? null,
+      knowledgeDim: activeNode.knowledgeDim ?? null,
+      metadata: activeNode.metadata ?? {},
+      content: activeNode.content ?? {},
+      resources: activeNode.resources ?? [],
+      tags: activeNode.tags ?? [],
+    }];
+    const danglingLinks = [
+      { id: 'active-inactive', sourceId: activeNode.id, targetId: 'inactive-target', relation: 'related' },
+      { id: 'inactive-active', sourceId: 'inactive-source', targetId: activeNode.id, relation: 'related' },
+    ];
+    prismaMock.knowledgeNode.findMany.mockResolvedValue(databaseNodes);
+    prismaMock.knowledgeLink.findMany.mockImplementation(async (args?: Record<string, unknown>) => {
+      const where = args?.where as Record<string, unknown> | undefined;
+      return where ? [] : danglingLinks;
+    });
+    prismaMock.$queryRaw.mockResolvedValue([{
+      linkCount: BigInt(0),
+      fingerprint: 'active-endpoints-only-empty',
+    }]);
+    vi.resetModules();
+    const graphModule = await import('@/lib/knowledge-graph-source');
+
+    const root = await graphModule.loadKnowledgeGraphRootData();
+    const full = await graphModule.loadKnowledgeGraphData();
+    const remaining = graphModule.buildKnowledgeGraphRemainingPayload(full);
+
+    expect(prismaMock.knowledgeLink.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        sourceNode: { isActive: true },
+        targetNode: { isActive: true },
+      },
+    }));
+    expect(full.links).toEqual([]);
+    expect(remaining.links).toEqual([]);
+    expect(remaining.nodes[0]?.expansion).toEqual({ state: 'leaf' });
+    expect(graphModule.getKnowledgeGraphVersion(root)).toBe(graphModule.getKnowledgeGraphVersion(full));
   });
 });

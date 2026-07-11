@@ -386,14 +386,17 @@ async function loadDatabaseRelationVersionEvidence(): Promise<DatabaseRelationVe
       md5(
         COALESCE(
           string_agg(
-            concat_ws(chr(31), "id", "sourceId", "targetId", "relation"),
+            concat_ws(chr(31), link."id", link."sourceId", link."targetId", link."relation"),
             chr(30)
-            ORDER BY "id", "sourceId", "targetId", "relation"
+            ORDER BY link."id", link."sourceId", link."targetId", link."relation"
           ),
           ''
         )
       ) AS "fingerprint"
-    FROM "KnowledgeLink"
+    FROM "KnowledgeLink" AS link
+    JOIN "KnowledgeNode" AS source_node ON source_node."id" = link."sourceId"
+    JOIN "KnowledgeNode" AS target_node ON target_node."id" = link."targetId"
+    WHERE source_node."isActive" = true AND target_node."isActive" = true
   `;
   const evidence = rows[0];
   if (!evidence) throw new Error('Knowledge graph relation version evidence is unavailable.');
@@ -587,6 +590,10 @@ async function loadKnowledgeGraphFromDatabase(): Promise<UnifiedKnowledgeGraphPa
       },
     }),
     prisma.knowledgeLink.findMany({
+      where: {
+        sourceNode: { isActive: true },
+        targetNode: { isActive: true },
+      },
       select: {
         id: true,
         sourceId: true,
