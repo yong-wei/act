@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { resolveKnowledgeNodeActivation } from '../graph/node-activation';
+import {
+  isExpansionFilteredEmpty,
+  resolveKnowledgeNodeActivation,
+  shouldCommitKnowledgeNodeActivation,
+} from '../graph/node-activation';
 
 describe('knowledge node direct activation resolver', () => {
   it.each([
@@ -13,5 +17,30 @@ describe('knowledge node direct activation resolver', () => {
     [{ expansionState: 'expandable', expanded: false, loading: true }, 'ignore'],
   ] as const)('maps %o to %s', (input, expected) => {
     expect(resolveKnowledgeNodeActivation(input)).toBe(expected);
+  });
+});
+
+describe('activation async and filter guards', () => {
+  it('recovers a cached filtered-empty expansion without another request', () => {
+    expect(isExpansionFilteredEmpty({ shardLoaded: true, nodeId: 'a', visibleLinks: [] })).toBe(true);
+    expect(isExpansionFilteredEmpty({
+      shardLoaded: true,
+      nodeId: 'a',
+      visibleLinks: [{ sourceId: 'a', targetId: 'b' }],
+    })).toBe(false);
+    expect(resolveKnowledgeNodeActivation({ expansionState: 'expandable', expanded: true, filteredEmpty: true })).toBe('collapse');
+  });
+
+  it.each([
+    { mounted: false, aborted: false, currentGeneration: 2, currentSequence: 3 },
+    { mounted: true, aborted: true, currentGeneration: 2, currentSequence: 3 },
+    { mounted: true, aborted: false, currentGeneration: 1, currentSequence: 3 },
+    { mounted: true, aborted: false, currentGeneration: 2, currentSequence: 4 },
+  ])('rejects stale failure/result state: %o', (state) => {
+    expect(shouldCommitKnowledgeNodeActivation({
+      ...state,
+      expectedGeneration: 2,
+      expectedSequence: 3,
+    })).toBe(false);
   });
 });

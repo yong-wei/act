@@ -52,7 +52,11 @@ import {
 import {
   applyRadialLayout,
 } from './graph/layout-engine';
-import { resolveKnowledgeNodeActivation } from './graph/node-activation';
+import {
+  isExpansionFilteredEmpty,
+  resolveKnowledgeNodeActivation,
+  shouldCommitKnowledgeNodeActivation,
+} from './graph/node-activation';
 import {
   buildInitialGraphCache,
   knowledgeLinkCacheKey,
@@ -285,6 +289,8 @@ export function KnowledgeGraphSystem({
   const expansionActivationInFlightRef = useRef(new Set<string>());
   const expansionGenerationRef = useRef(new Map<string, number>());
   const activationSequenceRef = useRef(0);
+  const mountedRef = useRef(true);
+  const expansionRequestControllersRef = useRef(new Map<string, AbortController>());
   const rootAutoFitTriggeredRef = useRef(false);
 
   // 视图模式：默认 2D
@@ -296,6 +302,13 @@ export function KnowledgeGraphSystem({
   const initialRequestedNodeIdRef = useRef(initialRequestedNodeId);
   const initialSelectedNodeResolvedRef = useRef(false);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
+
+  useEffect(() => () => {
+    mountedRef.current = false;
+    activationSequenceRef.current += 1;
+    expansionRequestControllersRef.current.forEach((controller) => controller.abort());
+    expansionRequestControllersRef.current.clear();
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -425,14 +438,6 @@ export function KnowledgeGraphSystem({
     });
   }, [searchQuery, selectedBloomLevels, selectedCategories, selectedChapters]);
 
-  useEffect(() => {
-    if (!graphCache.graphVersion || expandedNodeIds.length === 0) return;
-    setFilteredEmptyExpansionNodeIds(expandedNodeIds.filter((nodeId) => (
-      graphCache.loadedShardKeys.includes(expansionShardKey(graphCache.graphVersion, nodeId))
-      && !expansionHasVisibleDescendant(nodeId, nodes, links)
-    )));
-  }, [expandedNodeIds, expansionHasVisibleDescendant, graphCache.graphVersion, graphCache.loadedShardKeys, links, nodes]);
-
   const activateNodeById = useCallback(async (nodeId: string) => {
     const node = nodes.find((candidate) => candidate.id === nodeId);
     if (!node) return;
@@ -483,6 +488,8 @@ export function KnowledgeGraphSystem({
     }
 
     expansionActivationInFlightRef.current.add(nodeId);
+    const requestController = new AbortController();
+    expansionRequestControllersRef.current.set(nodeId, requestController);
     const generation = (expansionGenerationRef.current.get(nodeId) ?? 0) + 1;
     expansionGenerationRef.current.set(nodeId, generation);
     setLoadingExpansionNodeIds((current) => current.includes(nodeId) ? current : [...current, nodeId]);
@@ -493,13 +500,19 @@ export function KnowledgeGraphSystem({
         : current.loadingShardKeys,
     }));
     try {
-      const response = await fetch(`/api/knowledge/graph?mode=expansion&nodeId=${encodeURIComponent(nodeId)}`);
+      const response = await fetch(`/api/knowledge/graph?mode=expansion&nodeId=${encodeURIComponent(nodeId)}`, {
+        signal: requestController.signal,
+      });
       if (!response.ok) throw new Error(`Failed to fetch expansion shard for ${nodeId}`);
       const payload = (await response.json()) as ProgressiveGraphApiResponse;
-      if (
-        expansionGenerationRef.current.get(nodeId) !== generation
-        || activationSequenceRef.current !== activationSequence
-      ) return;
+      if (!shouldCommitKnowledgeNodeActivation({
+        mounted: mountedRef.current,
+        aborted: requestController.signal.aborted,
+        expectedGeneration: generation,
+        currentGeneration: expansionGenerationRef.current.get(nodeId),
+        expectedSequence: activationSequence,
+        currentSequence: activationSequenceRef.current,
+      })) return;
       const canonicalNode = payload.nodes?.find((candidate) => candidate.id === nodeId);
       const canonicalState = canonicalNode?.expansion?.state ?? 'unknown';
       setGraphCache((current) => mergeProgressiveGraphPayload(current, payload));
@@ -519,6 +532,14 @@ export function KnowledgeGraphSystem({
           : current.includes(nodeId) ? current : [...current, nodeId]
       ));
     } catch (error) {
+      if ((error as Error).name === 'AbortError' || !shouldCommitKnowledgeNodeActivation({
+        mounted: mountedRef.current,
+        aborted: requestController.signal.aborted,
+        expectedGeneration: generation,
+        currentGeneration: expansionGenerationRef.current.get(nodeId),
+        expectedSequence: activationSequence,
+        currentSequence: activationSequenceRef.current,
+      })) return;
       console.error('Error fetching knowledge graph expansion shard:', error);
       setExpansionErrorByNodeId((current) => ({
         ...current,
@@ -526,6 +547,10 @@ export function KnowledgeGraphSystem({
       }));
     } finally {
       expansionActivationInFlightRef.current.delete(nodeId);
+      if (expansionRequestControllersRef.current.get(nodeId) === requestController) {
+        expansionRequestControllersRef.current.delete(nodeId);
+      }
+      if (!mountedRef.current) return;
       setLoadingExpansionNodeIds((current) => current.filter((id) => id !== nodeId));
       setGraphCache((current) => ({
         ...current,
@@ -761,7 +786,6 @@ export function KnowledgeGraphSystem({
 
   const filteredLinksByRelation = useMemo(() => {
     return eligibleLinks.filter((link) =>
-      expandedDirectLinks.includes(link) ||
       relationPassesActiveFilters(link, {
         densityMode: relationDensityMode,
         selectedRelationTypes,
@@ -770,7 +794,7 @@ export function KnowledgeGraphSystem({
         focusNeighborhood,
       })
     );
-  }, [eligibleLinks, expandedDirectLinks, focusNeighborhood, graphFilterFocusNodeId, minRelationStrength, relationDensityMode, selectedRelationTypes]);
+  }, [eligibleLinks, focusNeighborhood, graphFilterFocusNodeId, minRelationStrength, relationDensityMode, selectedRelationTypes]);
 
   const densityFilteredLinks = useMemo(
     () => {
@@ -779,11 +803,9 @@ export function KnowledgeGraphSystem({
             focusNodeId: graphFilterFocusNodeId,
           })
         : filteredLinksByRelation;
-      const linkKeys = new Set(linksAfterDensity.map(knowledgeLinkCacheKey));
-      const retainedExpandedLinks = expandedDirectLinks.filter((link) => !linkKeys.has(knowledgeLinkCacheKey(link)));
-      return [...linksAfterDensity, ...retainedExpandedLinks];
+      return linksAfterDensity;
     },
-    [expandedDirectLinks, filteredLinksByRelation, graphFilterFocusNodeId, relationDensityMode]
+    [filteredLinksByRelation, graphFilterFocusNodeId, relationDensityMode]
   );
 
   const filteredNodes = useMemo(() => {
@@ -837,6 +859,14 @@ export function KnowledgeGraphSystem({
 
   const displayNodes = graphWithChapterNodes.nodes;
   const displayLinks = graphWithChapterNodes.links;
+  useEffect(() => {
+    if (!graphCache.graphVersion || expandedNodeIds.length === 0) return;
+    setFilteredEmptyExpansionNodeIds(expandedNodeIds.filter((nodeId) => isExpansionFilteredEmpty({
+      shardLoaded: graphCache.loadedShardKeys.includes(expansionShardKey(graphCache.graphVersion, nodeId)),
+      nodeId,
+      visibleLinks: displayLinks,
+    })));
+  }, [displayLinks, expandedNodeIds, graphCache.graphVersion, graphCache.loadedShardKeys]);
   useEffect(() => {
     if (rootAutoFitTriggeredRef.current || displayNodes.length === 0) return;
     if (!graphCache.loadedShardKeys.some((key) => key.includes(':shard:root:'))) return;
@@ -1873,7 +1903,10 @@ export function KnowledgeGraphSystem({
           </div>
         )}
 
-        <div className="sr-only" aria-label="知识图谱节点控制">
+        <div
+          className="pointer-events-none absolute bottom-4 left-1/2 z-40 flex -translate-x-1/2 gap-2"
+          aria-label="知识图谱节点控制"
+        >
           {displayNodes.map((node) => (
             <button
               key={`semantic-node-${node.id}`}
@@ -1882,14 +1915,16 @@ export function KnowledgeGraphSystem({
               aria-label={`${node.name}，${node.expansion?.state === 'leaf' ? '叶节点' : node.expansion?.state === 'expandable' ? '可展开节点' : '状态待解析'}`}
               aria-busy={loadingExpansionNodeIds.includes(node.id)}
               aria-expanded={node.expansion?.state === 'expandable' ? expandedNodeIdSet.has(node.id) : undefined}
+              aria-describedby="knowledge-node-activation-status"
               data-error={expansionErrorByNodeId[node.id] ? 'true' : 'false'}
               onClick={() => void activateNodeById(node.id)}
+              className="pointer-events-auto h-px w-px overflow-hidden opacity-0 focus:h-auto focus:w-auto focus:overflow-visible focus:rounded-md focus:border focus:border-platform-action-primary focus:bg-platform-surface focus:px-3 focus:py-2 focus:opacity-100 focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-platform-action-primary"
             >
               {node.name}
             </button>
           ))}
         </div>
-        <span role="status" aria-live="polite" className="sr-only">
+        <span id="knowledge-node-activation-status" role="status" aria-live="polite" className="sr-only">
           {selectedNodeExpansionStatusText}
         </span>
 

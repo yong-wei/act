@@ -18,6 +18,9 @@ describe('knowledge graph direct activation contract', () => {
     expect(source).toContain('data-knowledge-node-control={node.id}');
     expect(source).toContain('aria-busy={loadingExpansionNodeIds.includes(node.id)}');
     expect(source).toContain('aria-expanded={node.expansion?.state === \'expandable\' ? expandedNodeIdSet.has(node.id) : undefined}');
+    expect(source).toContain('focus:opacity-100');
+    expect(source).toContain('aria-describedby="knowledge-node-activation-status"');
+    expect(source).not.toContain('className="sr-only" aria-label="知识图谱节点控制"');
     expect(source).not.toContain('onKeyDown={(event) =>');
   });
 

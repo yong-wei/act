@@ -44,3 +44,10 @@ Recorded by the final local commit for this report; no push performed.
 
 - The semantic node controls are visually hidden and provide reliable native keyboard semantics, but browser-level focus-order and screen-reader behavior should receive the Task 5 Playwright/accessibility evidence required by the wider change.
 - Two renderer ESLint warnings about deliberate `layoutState.version` memo invalidation predate this task and remain unchanged.
+
+## Review Fix Follow-up
+
+- Filtered-empty is now derived from final `displayLinks`, after node metadata, relation type, strength, density, focus-neighborhood, and connected-node filtering. Cached shards remain loaded, so filter recovery reveals relations without a second request.
+- The semantic native-button layer is no longer permanently `sr-only`: each control becomes visibly positioned on keyboard focus, retains native Enter/Space behavior, and references the shared live activation status through `aria-describedby`.
+- Expansion requests now carry per-request abort controllers. Unmount aborts all active requests, while success and failure commits both require a matching per-node generation and global activation sequence; stale HTTP, JSON, network, abort, and target-switch outcomes cannot write state.
+- Added focused guard tests for hidden/recovered relations and stale generation, sequence, abort, and unmount outcomes; direct activation contract tests now require visible focus and status association.
