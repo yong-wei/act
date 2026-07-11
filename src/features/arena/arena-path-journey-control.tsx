@@ -6,6 +6,7 @@ import { useCallback } from 'react';
 import {
   AdaptivePathJourneyControlFromRoute,
   publishAdaptivePathJourneyResponse,
+  requestAdaptivePathJourneyRefresh,
 } from '@/features/adaptive/adaptive-path-journey-control';
 import { buildArenaPathCompletionRequest, resolveArenaPathLaunchParams } from './arena-path-journey';
 
@@ -28,8 +29,9 @@ export function useArenaPathSubmissionCompletion(taskId: string) {
         body: JSON.stringify(request.body),
       });
       const payload = await response.json().catch(() => null);
+      const published = publishAdaptivePathJourneyResponse(payload);
+      if (!published) requestAdaptivePathJourneyRefresh();
       if (!response.ok) return false;
-      publishAdaptivePathJourneyResponse(payload);
       return true;
     } catch {
       return false;

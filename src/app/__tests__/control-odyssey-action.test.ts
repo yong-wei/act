@@ -144,6 +144,107 @@ describe('submitGameScore Arena publication bridge', () => {
     expect(mocks.prisma.simulationLog.create).not.toHaveBeenCalled();
   });
 
+  it('recovers a missing Arena submission from an existing Odyssey log without duplicating gameplay credit', async () => {
+    mocks.prisma.simulationLog.findFirst.mockResolvedValueOnce({
+      id: 'existing-log',
+      createdAt: new Date('2026-05-15T10:00:00.000Z'),
+      inputParams: { runId: 'run-recover' },
+      metrics: { settlingTime: 2.8 },
+    });
+    mocks.listSubmissions.mockResolvedValueOnce([]);
+
+    const result = await submitGameScore('level-1', 820, { settlingTime: 2.8 }, {
+      runId: 'run-recover',
+      arenaTaskId: 'task-odyssey-level-one-growth',
+      publicationId: 'publication-1',
+      tier: 'gold',
+      controllerId: 'PID',
+      pidParams: { kp: 2.1, ki: 0.4, kd: 0.12 },
+    });
+
+    expect(result).toMatchObject({ id: 'existing-log', arenaSubmissionId: 'submission-1' });
+    expect(mocks.bridgeOdysseyRunToArenaSubmission).toHaveBeenCalledTimes(1);
+    expect(mocks.prisma.simulationLog.create).not.toHaveBeenCalled();
+    expect(mocks.prisma.studentProfile.upsert).not.toHaveBeenCalled();
+  });
+
+  it('retries the same existing Odyssey log after the first Arena bridge failure', async () => {
+    const existingLog = {
+      id: 'existing-log',
+      createdAt: new Date('2026-05-15T10:00:00.000Z'),
+      inputParams: { runId: 'run-retry' },
+      metrics: { settlingTime: 2.8 },
+    };
+    mocks.prisma.simulationLog.findFirst.mockResolvedValue(existingLog);
+    mocks.listSubmissions.mockResolvedValue([]);
+    mocks.bridgeOdysseyRunToArenaSubmission
+      .mockResolvedValueOnce({ ok: false, reason: 'temporary failure', gameScorePreserved: true })
+      .mockResolvedValueOnce({
+        ok: true,
+        duplicate: false,
+        gameScorePreserved: true,
+        submission: { id: 'submission-after-retry' },
+      });
+    const context = {
+      runId: 'run-retry',
+      arenaTaskId: 'task-odyssey-level-one-growth',
+      publicationId: 'publication-1',
+      tier: 'gold',
+      controllerId: 'PID' as const,
+      pidParams: { kp: 2.1, ki: 0.4, kd: 0.12 },
+    };
+
+    const first = await submitGameScore('level-1', 820, { settlingTime: 2.8 }, context);
+    const second = await submitGameScore('level-1', 820, { settlingTime: 2.8 }, context);
+
+    expect(first).toMatchObject({ id: 'existing-log' });
+    expect(first).toMatchObject({ arenaSubmissionId: undefined });
+    expect(second).toMatchObject({ id: 'existing-log', arenaSubmissionId: 'submission-after-retry' });
+    expect(mocks.bridgeOdysseyRunToArenaSubmission).toHaveBeenCalledTimes(2);
+    expect(mocks.prisma.simulationLog.create).not.toHaveBeenCalled();
+  });
+
+  it('replays an existing Odyssey bridge from persisted run inputs instead of altered retry payloads', async () => {
+    mocks.prisma.simulationLog.findFirst.mockResolvedValueOnce({
+      id: 'existing-log',
+      createdAt: new Date('2026-05-15T10:00:00.000Z'),
+      inputParams: {
+        runId: 'run-stable',
+        tier: 'silver',
+        controllerId: 'PID',
+        controlMode: 'AUTO',
+        pidParams: { kp: 1.8, ki: 0.3, kd: 0.08 },
+        arenaTaskId: 'task-odyssey-level-one-growth',
+        publicationId: 'publication-1',
+      },
+      metrics: { settlingTime: 3.1 },
+    });
+    mocks.listSubmissions.mockResolvedValueOnce([]);
+
+    await submitGameScore('level-1', 1, { settlingTime: 99 }, {
+      runId: 'run-stable',
+      arenaTaskId: 'task-odyssey-level-one-growth',
+      publicationId: 'publication-forged-retry',
+      tier: 'gold',
+      controllerId: 'P',
+      pidParams: { kp: 99, ki: 99, kd: 99 },
+    });
+
+    expect(mocks.resolveAccessibleArenaPublicationForStudent).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      publicationId: 'publication-1',
+    }));
+    expect(mocks.computeOfficialOdysseyTelemetry).toHaveBeenCalledWith(expect.objectContaining({
+      tier: 'silver',
+      controllerId: 'PID',
+      pidParams: { kp: 1.8, ki: 0.3, kd: 0.08 },
+    }));
+    expect(mocks.bridgeOdysseyRunToArenaSubmission).toHaveBeenCalledWith(expect.objectContaining({
+      runId: 'run-stable',
+      tier: 'silver',
+      publicationId: 'publication-1',
+    }));
+  });
+
   it('creates fresh default controller state for a missing authenticated profile', async () => {
     mocks.prisma.studentProfile.findUnique.mockResolvedValueOnce(null);
 

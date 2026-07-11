@@ -574,8 +574,10 @@ export async function submitGameScore(
     });
 
     const runId = context?.runId;
+    let bridgeContext = context;
+    let existingLog: Awaited<ReturnType<typeof prisma.simulationLog.findFirst>> = null;
     if (runId) {
-      const existingLog = await prisma.simulationLog.findFirst({
+      existingLog = await prisma.simulationLog.findFirst({
         where: {
           userId: actionUser.id,
           inputParams: {
@@ -585,24 +587,37 @@ export async function submitGameScore(
         }
       });
       if (existingLog) {
+        const persistedInput = existingLog.inputParams && typeof existingLog.inputParams === 'object' && !Array.isArray(existingLog.inputParams)
+          ? existingLog.inputParams as Record<string, unknown>
+          : {};
+        bridgeContext = {
+          ...context,
+          ...persistedInput,
+          runId,
+        } as typeof context;
         const expectedArenaTaskId = getArenaTaskForOdysseyLevel(levelId);
-        const requestedArenaTaskId = context?.arenaTaskId?.trim();
+        const requestedArenaTaskId = typeof bridgeContext?.arenaTaskId === 'string'
+          ? bridgeContext.arenaTaskId.trim()
+          : undefined;
         if (expectedArenaTaskId && requestedArenaTaskId === expectedArenaTaskId) {
           const submissions = await prismaArenaSubmissionStore.listSubmissions({
             taskId: expectedArenaTaskId,
             userId: actionUser.id,
-            publicationId: context?.publicationId,
+            publicationId: bridgeContext?.publicationId,
           });
           const existingSubmission = submissions.find((submission) =>
             (submission.artifact.params as Record<string, unknown>).odysseyRunId === runId
           );
-          return { ...existingLog, arenaSubmissionId: existingSubmission?.id };
+          if (existingSubmission) {
+            return { ...existingLog, arenaSubmissionId: existingSubmission.id };
+          }
+        } else {
+          return existingLog;
         }
-        return existingLog;
       }
     }
 
-    const log = await prisma.simulationLog.create({
+    const log = existingLog ?? await prisma.simulationLog.create({
       data: {
         userId: actionUser.id,
         missionId: mission?.id ?? null,
@@ -618,7 +633,9 @@ export async function submitGameScore(
           enableSpeedFeedback: context?.enableSpeedFeedback,
           enableFeedforward: context?.enableFeedforward,
           enableSmithPredictor: context?.enableSmithPredictor,
-          difficultyScale: context?.difficultyScale
+          difficultyScale: context?.difficultyScale,
+          arenaTaskId: context?.arenaTaskId,
+          publicationId: context?.publicationId,
         }, // 记录关卡与运行信息，避免重复提交
         metrics: metrics,
         score: score,
@@ -647,26 +664,30 @@ export async function submitGameScore(
     const nextUnlocks = unlocks.includes('P') ? unlocks : [...unlocks, 'P'];
     const creditsEarned = Math.floor(score / 100);
 
-    await prisma.studentProfile.upsert({
-      where: { userId: actionUser.id },
-      update: {
-        controlCredits: { increment: creditsEarned },
-        controlUnlocks: nextUnlocks,
-        controlOdysseyProgress: nextProgress,
-        controlControllerLevels: controllerLevels
-      },
-      create: {
-        userId: actionUser.id,
-        controlCredits: credits + creditsEarned,
-        controlUnlocks: nextUnlocks,
-        controlOdysseyProgress: nextProgress,
-        controlControllerLevels: controllerLevels
-      }
-    });
+    if (!existingLog) {
+      await prisma.studentProfile.upsert({
+        where: { userId: actionUser.id },
+        update: {
+          controlCredits: { increment: creditsEarned },
+          controlUnlocks: nextUnlocks,
+          controlOdysseyProgress: nextProgress,
+          controlControllerLevels: controllerLevels
+        },
+        create: {
+          userId: actionUser.id,
+          controlCredits: credits + creditsEarned,
+          controlUnlocks: nextUnlocks,
+          controlOdysseyProgress: nextProgress,
+          controlControllerLevels: controllerLevels
+        }
+      });
+    }
 
     let arenaSubmissionId: string | undefined;
     const expectedArenaTaskId = runId ? getArenaTaskForOdysseyLevel(levelId) : undefined;
-    const requestedArenaTaskId = context?.arenaTaskId?.trim();
+    const requestedArenaTaskId = typeof bridgeContext?.arenaTaskId === 'string'
+      ? bridgeContext.arenaTaskId.trim()
+      : undefined;
     const shouldSubmitArenaBridge = Boolean(
       runId
       && expectedArenaTaskId
@@ -678,15 +699,15 @@ export async function submitGameScore(
       try {
         officialMetrics = computeOfficialOdysseyTelemetry({
           levelId,
-          tier: context?.tier,
-          controllerId: context?.controllerId,
-          controlMode: context?.controlMode,
-          pidParams: context?.pidParams,
-          extraParams: context?.extraParams,
-          enableSpeedFeedback: context?.enableSpeedFeedback,
-          enableFeedforward: context?.enableFeedforward,
-          enableSmithPredictor: context?.enableSmithPredictor,
-          difficultyScale: context?.difficultyScale,
+          tier: bridgeContext?.tier,
+          controllerId: bridgeContext?.controllerId,
+          controlMode: bridgeContext?.controlMode,
+          pidParams: bridgeContext?.pidParams,
+          extraParams: bridgeContext?.extraParams,
+          enableSpeedFeedback: bridgeContext?.enableSpeedFeedback,
+          enableFeedforward: bridgeContext?.enableFeedforward,
+          enableSmithPredictor: bridgeContext?.enableSmithPredictor,
+          difficultyScale: bridgeContext?.difficultyScale,
           controllerLevels,
         });
       } catch (error) {
@@ -707,10 +728,10 @@ export async function submitGameScore(
         return log;
       }
       let publicationContext: ArenaResolvedSubmissionContext | null = null;
-      if (context?.publicationId) {
+      if (bridgeContext?.publicationId) {
         try {
           publicationContext = await resolveAccessibleArenaPublicationForStudent(prisma as any, {
-            publicationId: context.publicationId,
+            publicationId: bridgeContext.publicationId,
             studentId: actionUser.id,
             taskId: arenaTaskId,
             now: log.createdAt,
@@ -738,9 +759,9 @@ export async function submitGameScore(
         studentLabel: actionUser.name ?? '匿名学生',
         runId: runId as string,
         levelId,
-        tier: context?.tier ?? 'bronze',
-        controllerId: context?.controllerId,
-        pidParams: context?.pidParams,
+        tier: bridgeContext?.tier ?? 'bronze',
+        controllerId: bridgeContext?.controllerId,
+        pidParams: bridgeContext?.pidParams,
         metrics: officialMetrics,
         publicationId: publicationContext?.id,
         classId: publicationContext?.classId,

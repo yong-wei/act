@@ -176,7 +176,12 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
             governedWorkbenchInput,
             arenaTargetIntegrity?.taskId,
           );
-          if ('arenaCompletionRejection' in governedArenaInput) return governedArenaInput.arenaCompletionRejection;
+          if ('arenaCompletionRejection' in governedArenaInput) {
+            return arenaCompletionRejectionWithJourney(
+              governedArenaInput.arenaCompletionRejection,
+              await readFreshJourney(params.id, executionInput.nodeId),
+            );
+          }
           const governedExecutionInput = await resolveGovernedTerminalEvidence(
             prisma as any,
             path,
@@ -234,7 +239,12 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
       governedWorkbenchInput,
       arenaTargetIntegrity?.taskId,
     );
-    if ('arenaCompletionRejection' in governedArenaInput) return governedArenaInput.arenaCompletionRejection;
+    if ('arenaCompletionRejection' in governedArenaInput) {
+      return arenaCompletionRejectionWithJourney(
+        governedArenaInput.arenaCompletionRejection,
+        await readFreshJourney(params.id, body.nodeId),
+      );
+    }
     const executionInput = await resolveGovernedTerminalEvidence(
       prisma as any,
       path,
@@ -265,6 +275,13 @@ async function readFreshJourney(pathId: string, requestedNodeId: string) {
     canonicalizeVerifiedLegacyArenaPath(freshPath).path,
     { requestedNodeId },
   );
+}
+
+function arenaCompletionRejectionWithJourney(
+  rejection: { error: string; state: 'pending-result' },
+  journey: ReturnType<typeof buildAuthorizedAdaptivePathJourney>,
+) {
+  return NextResponse.json({ ...rejection, journey }, { status: 409 });
 }
 
 export async function GET() {
@@ -1014,7 +1031,7 @@ async function resolveGovernedArenaOutcomeEvidence<T extends {
   path: any,
   input: T,
   verifiedTaskId?: string | null,
-): Promise<T | { arenaCompletionRejection: NextResponse }> {
+): Promise<T | { arenaCompletionRejection: { error: string; state: 'pending-result' } }> {
   if (input.resourceType !== 'arena_task' || input.status !== 'completed') return input;
   const scope = verifiedTaskId
     ? { arenaTaskId: verifiedTaskId, simulationRefs: new Set<string>() }
@@ -1022,10 +1039,10 @@ async function resolveGovernedArenaOutcomeEvidence<T extends {
   const arenaRef = await resolveServerArenaRef(db, input.userId, input.arenaRef, scope);
   if (!isArenaPathCompletionEvidenceAccepted(path, arenaRef)) {
     return {
-      arenaCompletionRejection: NextResponse.json({
+      arenaCompletionRejection: {
         error: 'Arena 结果尚未满足路径完成条件',
         state: 'pending-result',
-      }, { status: 409 }),
+      },
     };
   }
   return {

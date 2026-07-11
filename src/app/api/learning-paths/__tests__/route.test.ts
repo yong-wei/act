@@ -4770,7 +4770,20 @@ describe('learning path round API routes', () => {
     }));
     expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
     expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
-    expect(JSON.stringify(await response.json())).not.toMatch(/hidden|score|valid/i);
+    const payload = await response.json();
+    expect(payload).toMatchObject({
+      state: 'pending-result',
+      journey: {
+        nextAction: {
+          state: expect.stringMatching(/^(blocked|pending-result)$/),
+          href: null,
+          reason: expect.any(String),
+          recovery: { label: expect.any(String), href: expect.stringContaining('/assessment/adaptive-practice') },
+        },
+      },
+    });
+    expect(mocks.prisma.learningPath.findUnique).toHaveBeenCalledTimes(2);
+    expect(JSON.stringify(payload)).not.toMatch(/hidden|score|valid/i);
   });
 
   it('rejects an invalid official ArenaSubmission before any path node advances', async () => {
@@ -4797,8 +4810,46 @@ describe('learning path round API routes', () => {
     }), params);
 
     expect(response.status).toBe(409);
+    expect(await response.json()).toMatchObject({
+      state: 'pending-result',
+      journey: { nextAction: { state: expect.stringMatching(/^(blocked|pending-result)$/), href: null } },
+    });
     expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
     expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
+  });
+
+  it('returns a fresh pending journey when an Arena completion arrives before any result ref', async () => {
+    configureSingleNodePath('arena-task:task-second-order-lead-pid', 'arena_task', '/arena/challenges/task-second-order-lead-pid', {
+      goalId: 'control-correction',
+      planNode: { sourceKind: 'arena_task', sourceRef: 'task-second-order-lead-pid' },
+      terminalValidation: {
+        nodeId: 'arena-task:task-second-order-lead-pid',
+        state: 'pending',
+      },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'arena-task:task-second-order-lead-pid',
+      resourceType: 'arena_task',
+      status: 'completed',
+      idempotencyKey: 'arena-result-pending',
+    }), params);
+    const payload = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(payload).toMatchObject({
+      state: 'pending-result',
+      journey: {
+        nextAction: {
+          state: expect.stringMatching(/^(blocked|pending-result)$/),
+          href: null,
+          reason: expect.any(String),
+          recovery: { label: expect.any(String), href: expect.any(String) },
+        },
+      },
+    });
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+    expect(JSON.stringify(payload)).not.toMatch(/hidden|score|valid/i);
   });
 
   it('accepts a server-owned Arena preview only when terminal policy explicitly allows it', async () => {
@@ -4952,6 +5003,10 @@ describe('learning path round API routes', () => {
     }), params);
 
     expect(response.status).toBe(409);
+    expect(await response.json()).toMatchObject({
+      state: 'pending-result',
+      journey: { nextAction: { state: expect.stringMatching(/^(blocked|pending-result)$/), href: null } },
+    });
     expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
     expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
   });
