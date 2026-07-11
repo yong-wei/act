@@ -4484,6 +4484,111 @@ describe('learning path round API routes', () => {
     }));
   });
 
+  it('advances an external node only after started access and returns the ready next journey', async () => {
+    const externalNode = {
+      nodeId: 'external-resource:ocw-bode',
+      title: '外部伯德图资料',
+      type: 'external_resource',
+      target: 'https://ocw.mit.edu/control/bode',
+      status: 'current',
+      readiness: { state: 'ready' },
+      pathNodeType: 'external_resource',
+      externalResource: {
+        source: 'MIT OCW',
+        url: 'https://ocw.mit.edu/control/bode',
+        estimatedTimeMinutes: 15,
+        knowledgeCoverage: ['kn-bode'],
+        applicableGoalId: 'frequency-response-foundations',
+        evidenceUseStatus: 'explicit-access-required',
+        privacyPolicy: 'student-visible',
+      },
+    };
+    const nextNode = {
+      nodeId: 'node-2',
+      title: '回到平台练习',
+      type: 'adaptive_quiz',
+      target: '/assessment/adaptive-practice',
+      status: 'next',
+      readiness: { state: 'ready' },
+    };
+    const before = journeyPathRecord({
+      goalId: 'frequency-response-foundations',
+      currentNodeId: externalNode.nodeId,
+      nodeIds: [externalNode.nodeId, nextNode.nodeId],
+      pathPayload: {
+        mainPathNodeIds: [externalNode.nodeId, nextNode.nodeId],
+        planNodes: [externalNode, nextNode],
+      },
+      lastExecutionMetadata: { completedNodeIds: [], failedNodeIds: [], skippedNodeIds: [] },
+    });
+    const after = journeyPathRecord({
+      goalId: 'frequency-response-foundations',
+      currentNodeId: nextNode.nodeId,
+      nodeIds: [externalNode.nodeId, nextNode.nodeId],
+      pathPayload: {
+        mainPathNodeIds: [externalNode.nodeId, nextNode.nodeId],
+        planNodes: [{ ...externalNode, status: 'completed' }, { ...nextNode, status: 'current' }],
+      },
+      lastExecutionMetadata: { completedNodeIds: [externalNode.nodeId], failedNodeIds: [], skippedNodeIds: [] },
+    });
+    mocks.prisma.learningPath.findUnique
+      .mockResolvedValueOnce(before)
+      .mockResolvedValueOnce(before)
+      .mockResolvedValueOnce(before)
+      .mockResolvedValueOnce(after);
+    const startedExecution = {
+      id: 'exec-external-started',
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: externalNode.nodeId,
+      resourceType: 'external_resource',
+      status: 'started',
+      evidenceRefs: [{
+        kind: 'LearningPathExternalResourceAccess',
+        pathId: 'path-1',
+        nodeId: externalNode.nodeId,
+        userId: 'student-1',
+        url: externalNode.target,
+      }],
+      liftMetadata: { pathActivityKind: 'initial-completion' },
+    };
+    mocks.prisma.learningPathExecution.findFirst
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(startedExecution);
+    mocks.recordPathNodeExecution
+      .mockResolvedValueOnce(startedExecution)
+      .mockResolvedValueOnce({ ...startedExecution, id: 'exec-external-completed', status: 'completed' });
+
+    const startedResponse = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: externalNode.nodeId,
+      resourceType: 'external_resource',
+      status: 'started',
+      idempotencyKey: 'external-journey-started',
+      liftMetadata: { pathActivityKind: 'initial-completion' },
+    }), params);
+    const startedPayload = await startedResponse.json();
+
+    expect(startedResponse.status).toBe(200);
+    expect(startedPayload.journey.nextAction).toMatchObject({ state: 'blocked', nodeId: externalNode.nodeId });
+
+    const completedResponse = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: externalNode.nodeId,
+      resourceType: 'external_resource',
+      status: 'completed',
+      idempotencyKey: 'external-journey-completed',
+      liftMetadata: { pathActivityKind: 'initial-completion' },
+    }), params);
+    const completedPayload = await completedResponse.json();
+
+    expect(completedResponse.status).toBe(200);
+    expect(completedPayload.journey).toMatchObject({
+      current: { nodeId: 'node-2' },
+      progress: { completed: 1, total: 2 },
+      nextAction: { state: 'ready', nodeId: 'node-2' },
+    });
+  });
+
   it('returns existing external-resource completion on idempotent replay after the path advances', async () => {
     mocks.prisma.learningPath.findUnique.mockResolvedValue({
       id: 'path-1',

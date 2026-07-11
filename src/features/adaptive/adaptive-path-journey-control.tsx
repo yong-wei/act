@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { ArrowLeft, ArrowRight, CheckCircle2, Loader2, RefreshCw, Route } from 'lucide-react';
 
 import {
@@ -13,6 +14,7 @@ import type {
   AdaptivePathJourneyNextActionState,
   AuthorizedAdaptivePathJourney,
 } from './adaptive-path-journey-contracts';
+import { canonicalizeAdaptivePathInternalHref } from './adaptive-path-journey-contracts';
 import { cn } from '@/lib/utils';
 
 export type AdaptivePathJourneyReadStatus = 'idle' | 'loading' | 'ready' | 'error';
@@ -24,6 +26,14 @@ export interface AdaptivePathJourneyControlProps {
   error: string | null;
   onRefresh: () => void;
   className?: string;
+}
+
+export interface AdaptivePathOwnedResourceActionProps {
+  opened: boolean;
+  completionAllowed: boolean;
+  pending: boolean;
+  onStart: () => void;
+  onComplete: () => void;
 }
 
 interface AdaptivePathJourneyReadState {
@@ -62,21 +72,13 @@ export function parseAdaptivePathJourneyResponse(value: unknown): AuthorizedAdap
   if (context.requestedNodeId !== null && !isNonEmptyString(context.requestedNodeId)) return null;
   if (!Number.isInteger(progress.completed) || !Number.isInteger(progress.total)) return null;
   if ((progress.completed as number) < 0 || (progress.total as number) < (progress.completed as number)) return null;
-  if (!isNonEmptyString(returnAction.label) || !isSafeInternalHref(returnAction.href)) return null;
+  if (!isNonEmptyString(returnAction.label) || !canonicalizeAdaptivePathInternalHref(String(returnAction.href ?? ''))) return null;
   if (!isNonEmptyString(journey.pathStatus) || !isJourneyState(state)) return null;
   if (current && (!isNonEmptyString(current.nodeId) || !isNonEmptyString(current.title) || !isNonEmptyString(current.type))) {
     return null;
   }
-  if (nextAction.nodeId !== null && !isNonEmptyString(nextAction.nodeId)) return null;
   if (!isNonEmptyString(nextAction.title)) return null;
-  if (nextAction.type !== null && !isNonEmptyString(nextAction.type)) return null;
-  if (nextAction.reason !== null && !isNonEmptyString(nextAction.reason)) return null;
-  if (state === 'ready' || state === 'path-complete') {
-    if (!isSafeInternalHref(nextAction.href)) return null;
-  } else if (nextAction.href !== null) {
-    return null;
-  }
-  if (recovery && (!isNonEmptyString(recovery.label) || !isSafeInternalHref(recovery.href))) return null;
+  if (!hasValidNextActionShape(state, nextAction, recovery)) return null;
 
   return journey as unknown as AuthorizedAdaptivePathJourney;
 }
@@ -109,7 +111,7 @@ export function useAdaptivePathJourney(
     }
     const controller = new AbortController();
     requestControllerRef.current = controller;
-    setState((current) => ({ ...current, status: 'loading', error: null }));
+    setState({ status: 'loading', journey: null, error: null });
     void fetch(buildAdaptivePathJourneyReadHref(launchContext), {
       method: 'GET',
       signal: controller.signal,
@@ -126,11 +128,11 @@ export function useAdaptivePathJourney(
       .catch((error: unknown) => {
         if (error instanceof DOMException && error.name === 'AbortError') return;
         if (requestId !== requestIdRef.current) return;
-        setState((current) => ({
+        setState({
           status: 'error',
-          journey: current.journey,
+          journey: null,
           error: '路径进度暂时无法读取，请稍后刷新。',
-        }));
+        });
       });
   }, [launchContext]);
 
@@ -251,17 +253,55 @@ export function AdaptivePathJourneyControl({
   );
 }
 
+export function AdaptivePathOwnedResourceAction({
+  opened,
+  completionAllowed,
+  pending,
+  onStart,
+  onComplete,
+}: AdaptivePathOwnedResourceActionProps) {
+  if (!opened) {
+    return (
+      <button
+        type="button"
+        onClick={onStart}
+        disabled={pending}
+        className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60"
+      >
+        开始学习
+      </button>
+    );
+  }
+  if (!completionAllowed) {
+    return (
+      <span className="rounded-lg border border-border px-3 py-2 text-xs text-subtle">
+        等待受治理完成证据
+      </span>
+    );
+  }
+  return (
+    <button
+      type="button"
+      onClick={onComplete}
+      disabled={pending}
+      className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60"
+      data-adaptive-path-owned-resource-completion="available"
+    >
+      已学习该资料，继续路径
+    </button>
+  );
+}
+
 export function AdaptivePathJourneyControlFromRoute() {
-  const [launchContext, setLaunchContext] = useState<AdaptivePathLaunchContext | null>(null);
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const search = searchParams.toString();
+  const launchContext = useMemo(() => resolveJourneyRouteContext({
+    pathname,
+    search,
+  }), [pathname, search]);
   const journeyState = useAdaptivePathJourney(launchContext);
   const refreshJourney = journeyState.refresh;
-
-  useEffect(() => {
-    const resolveLocation = () => setLaunchContext(resolveJourneyRouteContext(window.location));
-    resolveLocation();
-    window.addEventListener('popstate', resolveLocation);
-    return () => window.removeEventListener('popstate', resolveLocation);
-  }, []);
 
   useEffect(() => {
     if (!launchContext) return;
@@ -312,12 +352,37 @@ function isJourneyState(value: unknown): value is AdaptivePathJourneyNextActionS
   return value === 'ready' || value === 'blocked' || value === 'pending-result' || value === 'path-complete';
 }
 
-function isSafeInternalHref(value: unknown): value is string {
-  return isNonEmptyString(value) && value.startsWith('/') && !value.startsWith('//');
-}
-
 function isNonEmptyString(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0;
+}
+
+function hasValidNextActionShape(
+  state: AdaptivePathJourneyNextActionState,
+  nextAction: Record<string, unknown>,
+  recovery: Record<string, unknown> | null,
+): boolean {
+  if (state === 'ready') {
+    return isNonEmptyString(nextAction.nodeId) &&
+      isNonEmptyString(nextAction.type) &&
+      Boolean(canonicalizeAdaptivePathInternalHref(String(nextAction.href ?? ''))) &&
+      nextAction.reason === null &&
+      nextAction.recovery === null;
+  }
+  if (state === 'path-complete') {
+    return nextAction.nodeId === null &&
+      nextAction.type === null &&
+      Boolean(canonicalizeAdaptivePathInternalHref(String(nextAction.href ?? ''))) &&
+      nextAction.reason === null &&
+      nextAction.recovery === null;
+  }
+  const hasNodeIdentity = nextAction.nodeId === null && nextAction.type === null ||
+    isNonEmptyString(nextAction.nodeId) && isNonEmptyString(nextAction.type);
+  return hasNodeIdentity &&
+    nextAction.href === null &&
+    isNonEmptyString(nextAction.reason) &&
+    Boolean(recovery) &&
+    isNonEmptyString(recovery?.label) &&
+    Boolean(canonicalizeAdaptivePathInternalHref(String(recovery?.href ?? '')));
 }
 
 function readRecord(value: unknown): Record<string, unknown> {

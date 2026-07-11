@@ -56,17 +56,21 @@ export function resolveAdaptivePathJourneyTargetDisposition(
   if (resourceType === 'external_resource') {
     return isSafeExternalTarget(target) ? 'external-fallback' : 'blocked';
   }
-  if (!isStudentVisiblePathTarget(target)) return 'blocked';
-  if (normalizePathCenterOwnedRawTarget(target)) {
+  const rawTarget = normalizePathCenterOwnedRawTarget(target);
+  if (rawTarget) {
+    if (!PATH_CENTER_RAW_RESOURCE_TYPES.has(resourceType)) return 'blocked';
     return ['knowledge_card', 'textbook_section', 'slides', 'handout'].includes(resourceType)
       ? 'path-center-explicit'
       : 'path-center-server-evidence';
   }
-  return hasIntegratedJourneyDestination(target) ? 'destination-control' : 'blocked';
+  const canonicalTarget = canonicalizeAdaptivePathInternalHref(target);
+  if (!canonicalTarget || !isStudentVisiblePathTarget(canonicalTarget)) return 'blocked';
+  return hasIntegratedJourneyDestination(resourceType, canonicalTarget) ? 'destination-control' : 'blocked';
 }
 
 export function resolveAdaptivePathCenterOwnedTargetHref(resourceType: string, target: string): string | null {
   if (resourceType === 'external_resource') return isSafeExternalTarget(target) ? target : null;
+  if (!PATH_CENTER_RAW_RESOURCE_TYPES.has(resourceType)) return null;
   return normalizePathCenterOwnedRawTarget(target);
 }
 
@@ -263,7 +267,7 @@ function normalizePathCenterOwnedRawTarget(target: string): string | null {
 
 function isSafeEncodedPathSegment(segment: string): boolean {
   let decoded = segment;
-  for (let index = 0; index < 4; index += 1) {
+  for (let index = 0; index < 8; index += 1) {
     try {
       const next = decodeURIComponent(decoded);
       if (next === decoded) break;
@@ -271,6 +275,11 @@ function isSafeEncodedPathSegment(segment: string): boolean {
     } catch {
       return false;
     }
+  }
+  try {
+    if (decodeURIComponent(decoded) !== decoded) return false;
+  } catch {
+    return false;
   }
   return decoded !== '..' && !decoded.includes('/') && !decoded.includes('\\') && !/[\p{Cc}]/u.test(decoded);
 }
@@ -284,15 +293,53 @@ function isSafeExternalTarget(target: string): boolean {
   }
 }
 
-function hasIntegratedJourneyDestination(target: string): boolean {
-  const pathname = target.split(/[?#]/, 1)[0] ?? target;
-  return pathname === '/assessment/adaptive-practice' ||
-    pathname === '/interactive-learning' ||
-    pathname.startsWith('/interactive-learning/') ||
-    pathname === '/knowledge' ||
-    pathname.startsWith('/knowledge/') ||
-    pathname === '/simulations' ||
-    pathname.startsWith('/simulations/');
+const PATH_CENTER_RAW_RESOURCE_TYPES = new Set([
+  'knowledge_card',
+  'knowledge_node',
+  'textbook_section',
+  'slides',
+  'handout',
+  'video',
+  'audio',
+]);
+
+function hasIntegratedJourneyDestination(resourceType: string, target: string): boolean {
+  const pathname = new URL(target, 'https://act.local').pathname;
+  if (resourceType === 'knowledge_card' || resourceType === 'knowledge_node') {
+    return pathname === '/knowledge' || pathname.startsWith('/knowledge/');
+  }
+  if (resourceType === 'interactive_lesson') {
+    return pathname.startsWith('/interactive-learning/courses/');
+  }
+  if (['lesson_step', 'video', 'audio', 'slides', 'handout', 'quiz', 'textbook_section'].includes(resourceType)) {
+    return pathname.startsWith('/interactive-learning/resources/');
+  }
+  if (['adaptive_quiz', 'checkpoint', 'reflection', 'konling', 'ai_intervention', 'intervention'].includes(resourceType)) {
+    return pathname === '/assessment/adaptive-practice';
+  }
+  if (resourceType === 'control_workbench') {
+    return pathname === '/interactive-learning/control-workbench';
+  }
+  if (resourceType === 'simulation') {
+    return pathname.startsWith('/simulations/');
+  }
+  return false;
+}
+
+export function canonicalizeAdaptivePathInternalHref(target: string): string | null {
+  if (!target.startsWith('/') || target.startsWith('//') || target.includes('\\') || /[\s\p{Cc}]/u.test(target)) {
+    return null;
+  }
+  const rawPathname = target.split(/[?#]/, 1)[0] ?? target;
+  if (!rawPathname.split('/').filter(Boolean).every((segment) => isSafeEncodedPathSegment(segment))) return null;
+  try {
+    const parsed = new URL(target, 'https://act.local');
+    if (parsed.origin !== 'https://act.local') return null;
+    if (!parsed.pathname.split('/').filter(Boolean).every((segment) => isSafeEncodedPathSegment(segment))) return null;
+    return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+  } catch {
+    return null;
+  }
 }
 
 interface JourneyNodeRecord extends AdaptivePathJourneyNodeView {

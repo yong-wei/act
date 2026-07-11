@@ -17,6 +17,7 @@ import {
 import type { AuthorizedAdaptivePathJourney } from '@/features/adaptive/adaptive-path-journey-contracts';
 import {
   buildAuthorizedAdaptivePathJourney,
+  resolveAdaptivePathCenterOwnedTargetHref,
   resolveAdaptivePathJourneyTargetDisposition,
 } from '@/features/adaptive/adaptive-path-journey-contracts';
 
@@ -144,6 +145,30 @@ describe('adaptive path journey control', () => {
     }) })).toMatchObject({ path: { id: 'path-1' }, nextAction: { state: 'ready' } });
     expect(parseAdaptivePathJourneyResponse({ journey: { path: { id: 'path-1' } } })).toBeNull();
     expect(parseAdaptivePathJourneyResponse({ error: 'forbidden' })).toBeNull();
+    expect(parseAdaptivePathJourneyResponse({ journey: journey({
+      state: 'ready', nodeId: null, title: '下一节点', type: null, href: '/knowledge', reason: null, recovery: null,
+    }) })).toBeNull();
+    expect(parseAdaptivePathJourneyResponse({ journey: journey({
+      state: 'path-complete', nodeId: 'node-2', title: '总结', type: 'quiz', href: '/assessment/adaptive-practice', reason: null, recovery: null,
+    }) })).toBeNull();
+    expect(parseAdaptivePathJourneyResponse({ journey: journey({
+      state: 'blocked', nodeId: 'node-1', title: '阻塞', type: 'knowledge_card', href: '/knowledge', reason: '阻塞', recovery: null,
+    }) })).toBeNull();
+    expect(parseAdaptivePathJourneyResponse({ journey: journey({
+      state: 'ready', nodeId: 'node-2', title: '下一节点', type: 'knowledge_card', href: '/knowledge/%2e%2e/api/private', reason: null, recovery: null,
+    }) })).toBeNull();
+    expect(parseAdaptivePathJourneyResponse({ journey: journey({
+      state: 'ready', nodeId: 'node-2', title: '下一节点', type: 'knowledge_card', href: '/knowledge\\..\\api', reason: null, recovery: null,
+    }) })).toBeNull();
+    expect(parseAdaptivePathJourneyResponse({ journey: journey({
+      state: 'ready',
+      nodeId: 'node-2',
+      title: '下一节点',
+      type: 'knowledge_card',
+      href: '/knowledge/%2525252525252525252e%2525252525252525252e/api/private',
+      reason: null,
+      recovery: null,
+    }) })).toBeNull();
   });
 
   it('integrates route-aware controls through AppShell without changing non-path shells', () => {
@@ -218,6 +243,15 @@ describe('adaptive path journey control', () => {
     )).toBe('blocked');
     expect(resolveAdaptivePathJourneyTargetDisposition('project', '/profile/evidence')).toBe('blocked');
     expect(resolveAdaptivePathJourneyTargetDisposition('arena_task', '/arena/challenges/task-1')).toBe('blocked');
+    expect(resolveAdaptivePathJourneyTargetDisposition('project', '/knowledge')).toBe('blocked');
+    expect(resolveAdaptivePathJourneyTargetDisposition('arena_task', '/knowledge')).toBe('blocked');
+    expect(resolveAdaptivePathJourneyTargetDisposition('unknown', '/knowledge')).toBe('blocked');
+    expect(resolveAdaptivePathCenterOwnedTargetHref('project', '/course-runtime/lessons/demo/handout.md')).toBeNull();
+    expect(resolveAdaptivePathJourneyTargetDisposition('knowledge_card', '/assessment/adaptive-practice')).toBe('blocked');
+    expect(resolveAdaptivePathJourneyTargetDisposition(
+      'control_workbench',
+      '/interactive-learning/control-workbench',
+    )).toBe('destination-control');
     expect(resolveAdaptivePathJourneyTargetDisposition(
       'textbook_section',
       '/course-runtime/%2e%2e/api/private',

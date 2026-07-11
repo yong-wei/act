@@ -26,7 +26,11 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { AppShell } from '@/components/platform/app-shell';
-import { AdaptivePathJourneyControlFromRoute } from '@/features/adaptive/adaptive-path-journey-control';
+import {
+  AdaptivePathJourneyControlFromRoute,
+  AdaptivePathOwnedResourceAction,
+  publishAdaptivePathJourneyResponse,
+} from '@/features/adaptive/adaptive-path-journey-control';
 import { resolveAdaptivePathCenterOwnedTargetHref } from '@/features/adaptive/adaptive-path-journey-contracts';
 import { useGlobalAI } from '@/components/providers/global-ai-provider';
 import { StudentFeedbackTaskPanel } from '@/features/assessment/student-feedback-task-panel';
@@ -2489,10 +2493,11 @@ export default function AdaptivePracticePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(action.body),
       });
+      const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        const payload = await response.json().catch(() => ({}));
         throw new Error(typeof payload.error === 'string' ? payload.error : '路径节点启动失败');
       }
+      publishAdaptivePathJourneyResponse(payload);
       resourceWindow.location.replace(action.redirectHref);
     } catch (launchError) {
       resourceWindow.close();
@@ -2523,10 +2528,11 @@ export default function AdaptivePracticePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(completionAction.body),
       });
+      const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        const payload = await response.json().catch(() => ({}));
         throw new Error(typeof payload.error === 'string' ? payload.error : '路径节点完成确认失败');
       }
+      publishAdaptivePathJourneyResponse(payload);
       await reloadActiveLearningPath();
       setError(null);
     } catch (completionError) {
@@ -2570,10 +2576,11 @@ export default function AdaptivePracticePage() {
           liftMetadata: { pathActivityKind: activityKind, ...(outcomeMetadata ?? {}) },
         }),
       });
+      const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        const payload = await response.json().catch(() => ({}));
         throw new Error(typeof payload.error === 'string' ? payload.error : '路径活动写入失败');
       }
+      publishAdaptivePathJourneyResponse(payload);
       await reloadActiveLearningPath();
       setError(null);
       return true;
@@ -3942,28 +3949,19 @@ export default function AdaptivePracticePage() {
                           </>
                         ) : focusedPathNode.status === 'current' || focusedPathNode.status === 'skipped' ? (
                           <>
-                            {focusedPathNode.status !== 'skipped' && pathCenterOpenedNodeIds.has(focusedPathNode.nodeId) && allowsPathCenterExplicitCompletion(focusedPathNode) ? (
-                              <button
-                                type="button"
-                                onClick={() => void writePathNodeActivity(
+                            {focusedPathNode.status !== 'skipped' ? (
+                              <AdaptivePathOwnedResourceAction
+                                opened={pathCenterOpenedNodeIds.has(focusedPathNode.nodeId)}
+                                completionAllowed={allowsPathCenterExplicitCompletion(focusedPathNode)}
+                                pending={pathActivityPending === `initial-completion:${focusedPathNode.nodeId}`}
+                                onStart={() => void launchExecutionNode(focusedPathNode)}
+                                onComplete={() => void writePathNodeActivity(
                                   focusedPathNode,
-                                  focusedPathNode.type === 'external_resource'
-                                    ? 'external-resource-reference'
-                                    : 'initial-completion',
+                                  'initial-completion',
                                   'completed',
                                   { completionIntent: 'learner-confirmed-path-center-owned-resource' },
                                 )}
-                                disabled={pathActivityPending === `external-resource-reference:${focusedPathNode.nodeId}` ||
-                                  pathActivityPending === `initial-completion:${focusedPathNode.nodeId}`}
-                                className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60"
-                                data-adaptive-path-owned-resource-completion="available"
-                              >
-                                已学习该资料，继续路径
-                              </button>
-                            ) : focusedPathNode.status !== 'skipped' && pathCenterOpenedNodeIds.has(focusedPathNode.nodeId) ? (
-                              <span className="rounded-lg border border-border px-3 py-2 text-xs text-subtle">
-                                等待受治理完成证据
-                              </span>
+                              />
                             ) : (
                               <button
                                 type="button"
@@ -3972,7 +3970,7 @@ export default function AdaptivePracticePage() {
                                   pathActivityPending === `return-to-skipped:${focusedPathNode.nodeId}`}
                                 className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60"
                               >
-                                {focusedPathNode.status === 'skipped' ? '返回学习' : '开始学习'}
+                                返回学习
                               </button>
                             )}
                             {focusedPathNode.status !== 'skipped' ? (
