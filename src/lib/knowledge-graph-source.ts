@@ -151,6 +151,11 @@ interface DatabaseKnowledgeLinkRow {
   relation: string;
 }
 
+interface DatabaseRelationVersionEvidence {
+  linkCount: number;
+  fingerprint: string;
+}
+
 interface FileGraphVersionMetadata {
   digestInput: string;
   relationFingerprintCount: number;
@@ -350,13 +355,18 @@ function normalizeDatabaseKnowledgeLinks(links: DatabaseKnowledgeLinkRow[]): Uni
 function buildDatabaseKnowledgeGraphPayload(
   nodes: DatabaseKnowledgeNodeRow[],
   links: DatabaseKnowledgeLinkRow[],
-  options: { includeLinks: boolean; linkCount?: number }
+  options: { includeLinks: boolean; relationVersion: DatabaseRelationVersionEvidence }
 ): UnifiedKnowledgeGraphPayload {
   const normalizedNodes = normalizeDatabaseKnowledgeNodes(nodes);
   const normalizedLinks = options.includeLinks ? normalizeDatabaseKnowledgeLinks(links) : [];
-  const versionLinkCount = options.linkCount ?? links.length;
+  const versionLinkCount = options.relationVersion.linkCount;
   const versionDigest = createHash('sha256')
-    .update(stableJson({ source: 'database', nodes: normalizedNodes, versionLinkCount }))
+    .update(stableJson({
+      source: 'database',
+      nodes: normalizedNodes,
+      relationFingerprint: options.relationVersion.fingerprint,
+      versionLinkCount,
+    }))
     .digest('hex')
     .slice(0, 16);
 
@@ -366,6 +376,30 @@ function buildDatabaseKnowledgeGraphPayload(
     source: 'database',
     versionDigest,
     versionLinkCount,
+  };
+}
+
+async function loadDatabaseRelationVersionEvidence(): Promise<DatabaseRelationVersionEvidence> {
+  const rows = await prisma.$queryRaw<Array<{ linkCount: bigint; fingerprint: string }>>`
+    SELECT
+      COUNT(*)::bigint AS "linkCount",
+      md5(
+        COALESCE(
+          string_agg(
+            concat_ws(chr(31), "id", "sourceId", "targetId", "relation"),
+            chr(30)
+            ORDER BY "id", "sourceId", "targetId", "relation"
+          ),
+          ''
+        )
+      ) AS "fingerprint"
+    FROM "KnowledgeLink"
+  `;
+  const evidence = rows[0];
+  if (!evidence) throw new Error('Knowledge graph relation version evidence is unavailable.');
+  return {
+    linkCount: Number(evidence.linkCount),
+    fingerprint: evidence.fingerprint,
   };
 }
 
@@ -533,7 +567,7 @@ async function loadKnowledgeGraphRootFromFiles(): Promise<UnifiedKnowledgeGraphP
 }
 
 async function loadKnowledgeGraphFromDatabase(): Promise<UnifiedKnowledgeGraphPayload> {
-  const [nodes, links] = await Promise.all([
+  const [nodes, links, relationVersion] = await Promise.all([
     prisma.knowledgeNode.findMany({
       where: { isActive: true },
       select: {
@@ -560,13 +594,14 @@ async function loadKnowledgeGraphFromDatabase(): Promise<UnifiedKnowledgeGraphPa
         relation: true,
       },
     }),
+    loadDatabaseRelationVersionEvidence(),
   ]);
 
-  return buildDatabaseKnowledgeGraphPayload(nodes, links, { includeLinks: true });
+  return buildDatabaseKnowledgeGraphPayload(nodes, links, { includeLinks: true, relationVersion });
 }
 
 async function loadKnowledgeGraphRootFromDatabase(): Promise<UnifiedKnowledgeGraphPayload> {
-  const [nodes, linkCount] = await Promise.all([
+  const [nodes, relationVersion] = await Promise.all([
     prisma.knowledgeNode.findMany({
       where: { isActive: true },
       select: {
@@ -585,10 +620,10 @@ async function loadKnowledgeGraphRootFromDatabase(): Promise<UnifiedKnowledgeGra
         tags: true,
       },
     }),
-    prisma.knowledgeLink.count(),
+    loadDatabaseRelationVersionEvidence(),
   ]);
 
-  return buildDatabaseKnowledgeGraphPayload(nodes, [], { includeLinks: false, linkCount });
+  return buildDatabaseKnowledgeGraphPayload(nodes, [], { includeLinks: false, relationVersion });
 }
 
 export async function loadKnowledgeGraphData(): Promise<UnifiedKnowledgeGraphPayload> {

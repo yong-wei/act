@@ -3,6 +3,7 @@ import { join } from 'path';
 import { describe, expect, it, vi } from 'vitest';
 
 const prismaMock = vi.hoisted(() => ({
+  $queryRaw: vi.fn(),
   knowledgeNode: {
     findMany: vi.fn(),
   },
@@ -348,11 +349,18 @@ describe('progressive knowledge graph loading', () => {
 
     prismaMock.knowledgeNode.findMany.mockResolvedValue(databaseNodes);
     prismaMock.knowledgeLink.findMany.mockResolvedValue(databaseLinks);
+    prismaMock.$queryRaw.mockResolvedValue([{
+      linkCount: BigInt(databaseLinks.length),
+      fingerprint: 'stable-relation-fingerprint',
+    }]);
     prismaMock.knowledgeLink.count.mockResolvedValue(databaseLinks.length);
 
     const root = await loadKnowledgeGraphRootData();
 
-    expect(prismaMock.knowledgeLink.count).toHaveBeenCalledOnce();
+    expect(prismaMock.$queryRaw).toHaveBeenCalledOnce();
+    const relationVersionQuery = (prismaMock.$queryRaw.mock.calls[0]?.[0] as TemplateStringsArray).join('?');
+    expect(relationVersionQuery).toContain('"id", "sourceId", "targetId", "relation"');
+    expect(relationVersionQuery).toContain('ORDER BY "id", "sourceId", "targetId", "relation"');
     expect(prismaMock.knowledgeLink.findMany).not.toHaveBeenCalled();
     expect(root.links).toEqual([]);
     expect(root.versionLinkCount).toBe(databaseLinks.length);
@@ -362,7 +370,49 @@ describe('progressive knowledge graph loading', () => {
     expect(root.source).toBe('database');
     expect(full.source).toBe('database');
     expect(prismaMock.knowledgeLink.findMany).toHaveBeenCalledOnce();
+    expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(2);
     expect(full.links.length).toBe(databaseLinks.length);
     expect(getKnowledgeGraphVersion(root)).toBe(getKnowledgeGraphVersion(full));
+  });
+
+  it('changes database graph version when relation content changes at the same count', async () => {
+    const graph = graphFixture();
+    const databaseNodes = graph.nodes.map((node) => ({
+      id: node.id,
+      name: node.name,
+      nodeType: node.nodeType,
+      description: node.description,
+      positionX: node.positionX,
+      positionY: node.positionY,
+      positionZ: node.positionZ,
+      bloomLevel: node.bloomLevel ?? null,
+      knowledgeDim: node.knowledgeDim ?? null,
+      metadata: node.metadata ?? {},
+      content: node.content ?? {},
+      resources: node.resources ?? [],
+      tags: node.tags ?? [],
+    }));
+    prismaMock.knowledgeNode.findMany.mockResolvedValue(databaseNodes);
+    prismaMock.knowledgeLink.count.mockResolvedValue(graph.links.length);
+    prismaMock.$queryRaw.mockResolvedValueOnce([{
+      linkCount: BigInt(graph.links.length),
+      fingerprint: 'endpoints-and-types-v1',
+    }]);
+    vi.resetModules();
+    const firstModule = await import('@/lib/knowledge-graph-source');
+    const firstRoot = await firstModule.loadKnowledgeGraphRootData();
+
+    prismaMock.$queryRaw.mockResolvedValueOnce([{
+      linkCount: BigInt(graph.links.length),
+      fingerprint: 'endpoints-and-types-v2',
+    }]);
+    vi.resetModules();
+    const secondModule = await import('@/lib/knowledge-graph-source');
+    const secondRoot = await secondModule.loadKnowledgeGraphRootData();
+
+    expect(firstRoot.versionLinkCount).toBe(secondRoot.versionLinkCount);
+    expect(firstModule.getKnowledgeGraphVersion(firstRoot)).not.toBe(
+      secondModule.getKnowledgeGraphVersion(secondRoot)
+    );
   });
 });
