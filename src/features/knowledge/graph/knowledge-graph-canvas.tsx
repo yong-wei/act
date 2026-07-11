@@ -42,6 +42,7 @@ import {
   resolveKnowledgeGraphRuntimeNodeCoordinates,
   resolveFocusedExpansionRevealTarget,
   selectFocusedExpansionGraphNodes,
+  freezeKnowledgeGraphDragFrame,
   translateKnowledgeGraphCameraPose,
   type KnowledgeGraphPositionedNode,
 } from './layout-engine';
@@ -64,6 +65,7 @@ interface KnowledgeGraphCanvasProps {
   expandedDirectLinks: readonly KnowledgeLinkData[];
   activationSequenceByCenterId: Readonly<Record<string, number>>;
   materializedNodeIds: readonly string[];
+  graphVersion: string | null;
 }
 
 type RuntimeKnowledgeGraphNode = KnowledgeGraphPositionedNode & {
@@ -157,11 +159,13 @@ export function KnowledgeGraphCanvas({
   expandedDirectLinks,
   activationSequenceByCenterId,
   materializedNodeIds,
+  graphVersion,
 }: KnowledgeGraphCanvasProps) {
   const fgRef = useRef<any>(null);
   const layoutStateRef = useRef(layoutState);
   const runtimePositionsByNodeIdRef = useRef(new Map<string, Partial<RuntimeKnowledgeGraphNode>>());
   const committedRelayoutVersionRef = useRef(relayoutVersion);
+  const committedGraphVersionRef = useRef(graphVersion);
   const revealedExpansionSignatureRef = useRef('');
   const previousExpandedNodeIdsRef = useRef<readonly string[]>([]);
   const focusedRevealTargetNodeIdRef = useRef<string | null>(null);
@@ -190,8 +194,18 @@ export function KnowledgeGraphCanvas({
     });
   }, [relayoutVersion]);
 
+  useEffect(() => {
+    runtimePositionsByNodeIdRef.current.clear();
+    revealedExpansionSignatureRef.current = '';
+    previousExpandedNodeIdsRef.current = [];
+    focusedRevealTargetNodeIdRef.current = null;
+  }, [graphVersion]);
+
   // 1. 处理数据并转换 links 格式
   const graphData = useMemo(() => {
+    const graphVersionChanged = committedGraphVersionRef.current !== graphVersion;
+    if (graphVersionChanged) runtimePositionsByNodeIdRef.current.clear();
+    committedGraphVersionRef.current = graphVersion;
     const degreeById = new Map<string, number>();
     links.forEach((link) => {
       degreeById.set(link.sourceId, (degreeById.get(link.sourceId) ?? 0) + 1);
@@ -203,7 +217,8 @@ export function KnowledgeGraphCanvas({
     } as any));
     const nodeById = new Map(clonedNodes.map((node) => [node.id, node]));
     const relayoutRadiusOffset = relayoutVersion * 0;
-    const preserveRuntimeCoordinates = committedRelayoutVersionRef.current === relayoutVersion;
+    const preserveRuntimeCoordinates = !graphVersionChanged
+      && committedRelayoutVersionRef.current === relayoutVersion;
 
     const chapterNodes = clonedNodes.filter((node) => node.id.startsWith(CHAPTER_NODE_PREFIX));
     if (chapterNodes.length > 0) {
@@ -310,7 +325,7 @@ export function KnowledgeGraphCanvas({
       nodes: focusedThreeDimensionalNodes,
       links: transformedLinks
     };
-  }, [nodes, links, relayoutVersion, layoutState, expandedNodeIds, expandedDirectLinks, activationSequenceByCenterId, materializedNodeIds]);
+  }, [nodes, links, relayoutVersion, layoutState, expandedNodeIds, expandedDirectLinks, activationSequenceByCenterId, materializedNodeIds, graphVersion]);
 
   const rememberRuntimeNodePosition = useCallback((node: RuntimeKnowledgeGraphNode) => {
     if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) return;
@@ -649,6 +664,11 @@ export function KnowledgeGraphCanvas({
     onNodeDragEnd(node as KnowledgeNodeData);
   }, [onNodeDragEnd, rememberRuntimeNodePosition]);
 
+  const handleNodeDrag = useCallback((node: any) => {
+    const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
+    freezeKnowledgeGraphDragFrame(graphNodes, node as RuntimeKnowledgeGraphNode);
+  }, [graphData.nodes]);
+
   return (
     <div className="relative h-full w-full">
       <ForceGraph3D
@@ -674,6 +694,7 @@ export function KnowledgeGraphCanvas({
         // 交互
         onNodeClick={handleNodeClick}
         onNodeHover={handleNodeHover}
+        onNodeDrag={handleNodeDrag}
         onNodeDragEnd={handleNodeDragEnd}
         onEngineStop={snapshotRuntimePositions}
         enableNodeDrag={true}

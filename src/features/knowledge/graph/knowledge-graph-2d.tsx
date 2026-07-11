@@ -13,6 +13,7 @@ import {
   resolveKnowledgeGraphRuntimeNodeCoordinates,
   resolveFocusedExpansionRevealTarget,
   selectFocusedExpansionGraphNodes,
+  freezeKnowledgeGraphDragFrame,
   type KnowledgeGraphPositionedNode,
 } from './layout-engine';
 import {
@@ -55,6 +56,7 @@ interface KnowledgeGraph2DProps {
   expandedDirectLinks: readonly KnowledgeLinkData[];
   activationSequenceByCenterId: Readonly<Record<string, number>>;
   materializedNodeIds: readonly string[];
+  graphVersion: string | null;
 }
 
 type RuntimeKnowledgeGraphNode = KnowledgeGraphPositionedNode & {
@@ -294,11 +296,13 @@ export function KnowledgeGraph2D({
   expandedDirectLinks,
   activationSequenceByCenterId,
   materializedNodeIds,
+  graphVersion,
 }: KnowledgeGraph2DProps) {
   const fgRef = useRef<any>(null);
   const layoutStateRef = useRef(layoutState);
   const runtimePositionsByNodeIdRef = useRef(new Map<string, Partial<RuntimeKnowledgeGraphNode>>());
   const committedRelayoutVersionRef = useRef(relayoutVersion);
+  const committedGraphVersionRef = useRef(graphVersion);
   const revealedExpansionSignatureRef = useRef('');
   const previousExpandedNodeIdsRef = useRef<readonly string[]>([]);
   const focusedRevealTargetNodeIdRef = useRef<string | null>(null);
@@ -328,8 +332,18 @@ export function KnowledgeGraph2D({
     });
   }, [relayoutVersion]);
 
+  useEffect(() => {
+    runtimePositionsByNodeIdRef.current.clear();
+    revealedExpansionSignatureRef.current = '';
+    previousExpandedNodeIdsRef.current = [];
+    focusedRevealTargetNodeIdRef.current = null;
+  }, [graphVersion]);
+
   // 1. 处理数据并应用布局
   const graphData = useMemo(() => {
+    const graphVersionChanged = committedGraphVersionRef.current !== graphVersion;
+    if (graphVersionChanged) runtimePositionsByNodeIdRef.current.clear();
+    committedGraphVersionRef.current = graphVersion;
     const degreeById = new Map<string, number>();
     links.forEach((link) => {
       degreeById.set(link.sourceId, (degreeById.get(link.sourceId) ?? 0) + 1);
@@ -348,7 +362,8 @@ export function KnowledgeGraph2D({
     }));
 
     const layoutRadius = 180 + relayoutVersion * 0;
-    const preserveRuntimeCoordinates = committedRelayoutVersionRef.current === relayoutVersion;
+    const preserveRuntimeCoordinates = !graphVersionChanged
+      && committedRelayoutVersionRef.current === relayoutVersion;
 
     // 应用辐射布局。layoutState.version 变化时重算已展开邻域，确保直接子节点
     // 随固定中心同步移动；普通运行时坐标仍由下方 preserve gate 保留。
@@ -373,7 +388,7 @@ export function KnowledgeGraph2D({
       nodes: focusedLayoutNodes,
       links: transformedLinks
     };
-  }, [nodes, links, relayoutVersion, layoutState, expandedNodeIds, expandedDirectLinks, activationSequenceByCenterId, materializedNodeIds]);
+  }, [nodes, links, relayoutVersion, layoutState, expandedNodeIds, expandedDirectLinks, activationSequenceByCenterId, materializedNodeIds, graphVersion]);
 
   const rememberRuntimeNodePosition = useCallback((node: RuntimeKnowledgeGraphNode) => {
     if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) return;
@@ -642,6 +657,11 @@ export function KnowledgeGraph2D({
     onNodeDragEnd(node as KnowledgeNodeData);
   }, [onNodeDragEnd, rememberRuntimeNodePosition]);
 
+  const handleNodeDrag = useCallback((node: any) => {
+    const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
+    freezeKnowledgeGraphDragFrame(graphNodes, node as RuntimeKnowledgeGraphNode);
+  }, [graphData.nodes]);
+
   // 4. 物理引擎配置
   useEffect(() => {
     if (fgRef.current) {
@@ -787,6 +807,7 @@ export function KnowledgeGraph2D({
       // 交互
       onNodeClick={onNodeClick}
       onNodeHover={onNodeHover}
+      onNodeDrag={handleNodeDrag}
       onNodeDragEnd={handleNodeDragEnd}
       onEngineStop={snapshotRuntimePositions}
       enableNodeDrag={true}

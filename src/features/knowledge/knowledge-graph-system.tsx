@@ -53,10 +53,10 @@ import {
   applyRadialLayout,
 } from './graph/layout-engine';
 import {
+  createKnowledgeExpansionCommitQueue,
   isExpansionFilteredEmpty,
   resolveKnowledgeNodeActivation,
   shouldCommitKnowledgeExpansionPayload,
-  shouldCommitKnowledgeNodeActivation,
 } from './graph/node-activation';
 import {
   buildInitialGraphCache,
@@ -292,6 +292,7 @@ export function KnowledgeGraphSystem({
   const expansionActivationInFlightRef = useRef(new Set<string>());
   const expansionGenerationRef = useRef(new Map<string, number>());
   const activationSequenceRef = useRef(0);
+  const expansionCommitQueueRef = useRef(createKnowledgeExpansionCommitQueue());
   const mountedRef = useRef(true);
   const expansionRequestControllersRef = useRef(new Map<string, AbortController>());
   const rootAutoFitTriggeredRef = useRef(false);
@@ -311,8 +312,14 @@ export function KnowledgeGraphSystem({
   useEffect(() => {
     if (!graphCache.graphVersion || layoutGraphVersionRef.current === graphCache.graphVersion) return;
     layoutGraphVersionRef.current = graphCache.graphVersion;
+    activationSequenceRef.current = 0;
     setActivationSequenceByCenterId({});
     setMaterializedNodeIds([]);
+    expansionCommitQueueRef.current.clear();
+    expansionRequestControllersRef.current.forEach((controller) => controller.abort());
+    expansionRequestControllersRef.current.clear();
+    expansionActivationInFlightRef.current.clear();
+    expansionGenerationRef.current.clear();
   }, [graphCache.graphVersion]);
 
   useEffect(() => {
@@ -467,6 +474,7 @@ export function KnowledgeGraphSystem({
     });
     if (action === 'ignore') return;
     const activationSequence = ++activationSequenceRef.current;
+    expansionCommitQueueRef.current.register(activationSequence);
     if (action === 'expand' || action === 'resolve') {
       setActivationSequenceByCenterId((current) => current[nodeId] === undefined
         ? { ...current, [nodeId]: activationSequence }
@@ -474,6 +482,7 @@ export function KnowledgeGraphSystem({
     }
     setSelectedNode(node);
     if (action === 'inspect') {
+      expansionCommitQueueRef.current.settle(activationSequence);
       setIsPanelOpen(true);
       return;
     }
@@ -490,6 +499,7 @@ export function KnowledgeGraphSystem({
       return remaining;
     });
     if (action === 'collapse') {
+      expansionCommitQueueRef.current.settle(activationSequence);
       expansionGenerationRef.current.set(nodeId, (expansionGenerationRef.current.get(nodeId) ?? 0) + 1);
       setExpandedNodeIds((current) => current.filter((id) => id !== nodeId));
       setFilteredEmptyExpansionNodeIds((current) => current.filter((id) => id !== nodeId));
@@ -504,14 +514,16 @@ export function KnowledgeGraphSystem({
         const neighborId = link.sourceId === nodeId ? link.targetId : link.sourceId;
         return visibleIds.has(neighborId) ? [] : [neighborId];
       });
-      setMaterializedNodeIds((current) => [...new Set([...current, ...newlyVisibleIds])]);
-      setExpandedNodeIds((current) => current.includes(nodeId) ? current : [...current, nodeId]);
       const hasVisibleChildren = expansionHasVisibleDescendant(nodeId, nodes, links);
-      setFilteredEmptyExpansionNodeIds((current) => (
-        hasVisibleChildren
-          ? current.filter((id) => id !== nodeId)
-          : current.includes(nodeId) ? current : [...current, nodeId]
-      ));
+      expansionCommitQueueRef.current.settle(activationSequence, () => {
+        setMaterializedNodeIds((current) => [...new Set([...current, ...newlyVisibleIds])]);
+        setExpandedNodeIds((current) => current.includes(nodeId) ? current : [...current, nodeId]);
+        setFilteredEmptyExpansionNodeIds((current) => (
+          hasVisibleChildren
+            ? current.filter((id) => id !== nodeId)
+            : current.includes(nodeId) ? current : [...current, nodeId]
+        ));
+      });
       return;
     }
 
@@ -541,50 +553,45 @@ export function KnowledgeGraphSystem({
       })) return;
       const canonicalNode = payload.nodes?.find((candidate) => candidate.id === nodeId);
       const canonicalState = canonicalNode?.expansion?.state ?? 'unknown';
-      setGraphCache((current) => mergeProgressiveGraphPayload(current, payload));
-      if (canonicalState === 'leaf') {
-        if (!shouldCommitKnowledgeNodeActivation({
-          mounted: mountedRef.current,
-          aborted: requestController.signal.aborted,
-          expectedGeneration: generation,
-          currentGeneration: expansionGenerationRef.current.get(nodeId),
-          expectedSequence: activationSequence,
-          currentSequence: activationSequenceRef.current,
-        })) return;
-        setSelectedNode(canonicalNode ?? node);
-        setIsPanelOpen(true);
-        return;
-      }
-      if (canonicalState !== 'expandable') {
+      if (canonicalState !== 'expandable' && canonicalState !== 'leaf') {
         throw new Error(`Expansion response did not resolve node ${nodeId}`);
       }
       const existingNodeIds = new Set(nodes.map((candidate) => candidate.id));
-      setMaterializedNodeIds((current) => [...new Set([
-        ...current,
-        ...(payload.nodes ?? []).filter((candidate) => !existingNodeIds.has(candidate.id)).map((candidate) => candidate.id),
-      ])]);
-      setExpandedNodeIds((current) => current.includes(nodeId) ? current : [...current, nodeId]);
       const hasVisibleChildren = expansionHasVisibleDescendant(nodeId, payload.nodes ?? [], payload.links ?? []);
-      setFilteredEmptyExpansionNodeIds((current) => (
-        hasVisibleChildren
-          ? current.filter((id) => id !== nodeId)
-          : current.includes(nodeId) ? current : [...current, nodeId]
-      ));
+      expansionCommitQueueRef.current.settle(activationSequence, () => {
+        setGraphCache((current) => mergeProgressiveGraphPayload(current, payload));
+        if (canonicalState === 'leaf') {
+          if (activationSequence === activationSequenceRef.current) {
+            setSelectedNode(canonicalNode ?? node);
+            setIsPanelOpen(true);
+          }
+          return;
+        }
+        setMaterializedNodeIds((current) => [...new Set([
+          ...current,
+          ...(payload.nodes ?? []).filter((candidate) => !existingNodeIds.has(candidate.id)).map((candidate) => candidate.id),
+        ])]);
+        setExpandedNodeIds((current) => current.includes(nodeId) ? current : [...current, nodeId]);
+        setFilteredEmptyExpansionNodeIds((current) => (
+          hasVisibleChildren
+            ? current.filter((id) => id !== nodeId)
+            : current.includes(nodeId) ? current : [...current, nodeId]
+        ));
+      });
     } catch (error) {
-      if ((error as Error).name === 'AbortError' || !shouldCommitKnowledgeNodeActivation({
-        mounted: mountedRef.current,
-        aborted: requestController.signal.aborted,
-        expectedGeneration: generation,
-        currentGeneration: expansionGenerationRef.current.get(nodeId),
-        expectedSequence: activationSequence,
-        currentSequence: activationSequenceRef.current,
-      })) return;
+      if ((error as Error).name === 'AbortError') {
+        expansionCommitQueueRef.current.settle(activationSequence);
+        return;
+      }
       console.error('Error fetching knowledge graph expansion shard:', error);
-      setExpansionErrorByNodeId((current) => ({
-        ...current,
-        [nodeId]: '局部子图加载失败，可重试。',
-      }));
+      expansionCommitQueueRef.current.settle(activationSequence, () => {
+        setExpansionErrorByNodeId((current) => ({
+          ...current,
+          [nodeId]: '局部子图加载失败，可重试。',
+        }));
+      });
     } finally {
+      expansionCommitQueueRef.current.settle(activationSequence);
       expansionActivationInFlightRef.current.delete(nodeId);
       if (expansionRequestControllersRef.current.get(nodeId) === requestController) {
         expansionRequestControllersRef.current.delete(nodeId);
@@ -2020,6 +2027,7 @@ export function KnowledgeGraphSystem({
                 expandedDirectLinks={expandedDirectLinks}
                 activationSequenceByCenterId={activationSequenceByCenterId}
                 materializedNodeIds={materializedNodeIds}
+                graphVersion={graphCache.graphVersion}
               />
             ) : (
               <KnowledgeGraphCanvas
@@ -2040,6 +2048,7 @@ export function KnowledgeGraphSystem({
                 expandedDirectLinks={expandedDirectLinks}
                 activationSequenceByCenterId={activationSequenceByCenterId}
                 materializedNodeIds={materializedNodeIds}
+                graphVersion={graphCache.graphVersion}
               />
             )}
             </Suspense>

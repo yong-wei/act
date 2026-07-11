@@ -143,13 +143,13 @@ describe('knowledge graph node-local expansion control', () => {
     expect(twoDimensionalSource).toContain('resolveKnowledgeGraphRuntimeNodeCoordinates');
     expect(twoDimensionalSource).toContain('commitKnowledgeGraphRelayoutVersion');
     expect(twoDimensionalSource).toContain(
-      'const preserveRuntimeCoordinates = committedRelayoutVersionRef.current === relayoutVersion;'
+      'const preserveRuntimeCoordinates = !graphVersionChanged'
     );
     expect(twoDimensionalSource).toContain('preserve: preserveRuntimeCoordinates');
     expect(threeDimensionalSource).toContain('resolveKnowledgeGraphRuntimeNodeCoordinates');
     expect(threeDimensionalSource).toContain('commitKnowledgeGraphRelayoutVersion');
     expect(threeDimensionalSource).toContain(
-      'const preserveRuntimeCoordinates = committedRelayoutVersionRef.current === relayoutVersion;'
+      'const preserveRuntimeCoordinates = !graphVersionChanged'
     );
     expect(threeDimensionalSource).toContain('preserve: preserveRuntimeCoordinates');
   });
@@ -208,10 +208,10 @@ describe('knowledge graph node-local expansion control', () => {
     const twoDimensionalSource = readKnowledgeSource('graph/knowledge-graph-2d.tsx');
     const threeDimensionalSource = readKnowledgeSource('graph/knowledge-graph-canvas.tsx');
     expect(twoDimensionalSource).toContain(
-      '[nodes, links, relayoutVersion, layoutState, expandedNodeIds, expandedDirectLinks, activationSequenceByCenterId, materializedNodeIds]'
+      '[nodes, links, relayoutVersion, layoutState, expandedNodeIds, expandedDirectLinks, activationSequenceByCenterId, materializedNodeIds, graphVersion]'
     );
     expect(threeDimensionalSource).toContain(
-      '[nodes, links, relayoutVersion, layoutState, expandedNodeIds, expandedDirectLinks, activationSequenceByCenterId, materializedNodeIds]'
+      '[nodes, links, relayoutVersion, layoutState, expandedNodeIds, expandedDirectLinks, activationSequenceByCenterId, materializedNodeIds, graphVersion]'
     );
   });
 

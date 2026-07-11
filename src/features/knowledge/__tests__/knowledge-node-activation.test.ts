@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  createKnowledgeExpansionCommitQueue,
   isExpansionFilteredEmpty,
   resolveKnowledgeNodeActivation,
   shouldCommitKnowledgeExpansionPayload,
@@ -22,6 +23,27 @@ describe('knowledge node direct activation resolver', () => {
 });
 
 describe('activation async and filter guards', () => {
+  it('commits deferred expansion responses in activation-intent order', async () => {
+    const queue = createKnowledgeExpansionCommitQueue();
+    const committed: string[] = [];
+    queue.register(1);
+    queue.register(2);
+    const second = Promise.resolve().then(() => queue.settle(2, () => committed.push('second')));
+    await second;
+    expect(committed).toEqual([]);
+    await Promise.resolve().then(() => queue.settle(1, () => committed.push('first')));
+    expect(committed).toEqual(['first', 'second']);
+  });
+
+  it('unblocks later responses when an earlier activation fails or is cancelled', () => {
+    const queue = createKnowledgeExpansionCommitQueue();
+    const committed: string[] = [];
+    queue.register(1);
+    queue.register(2);
+    queue.settle(2, () => committed.push('second'));
+    queue.settle(1);
+    expect(committed).toEqual(['second']);
+  });
   it('accepts a valid earlier expansion payload after a later node activation', () => {
     expect(shouldCommitKnowledgeExpansionPayload({
       mounted: true,

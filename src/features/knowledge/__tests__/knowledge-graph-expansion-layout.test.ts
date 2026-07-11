@@ -4,11 +4,12 @@ import type { KnowledgeLinkData } from '../knowledge-graph-system';
 import {
   applyFocusedExpansionLayout,
   calculateFocusedExpansionRevealTranslation,
+  commitKnowledgeGraphRelayoutVersion,
   createFocusedExpansionRevealSignature,
   resolveFocusedExpansionRevealTarget,
   selectFocusedExpansionGraphNodes,
   translateKnowledgeGraphCameraPose,
-  updateKnowledgeGraphDraggedNode,
+  freezeKnowledgeGraphDragFrame,
   type KnowledgeGraphPositionedNode,
 } from '../graph/layout-engine';
 import {
@@ -17,6 +18,7 @@ import {
   storeKnowledgeGraphNodePosition,
   syncKnowledgeGraphMutableNodePositions,
 } from '../graph/layout-state';
+import { createKnowledgeExpansionCommitQueue } from '../graph/node-activation';
 
 function graphNode(
   id: string,
@@ -114,6 +116,119 @@ describe('knowledge graph focused expansion layout', () => {
     });
   });
 
+  it('keeps first-reveal coordinates when a later overlapping payload merges', () => {
+    const first = applyFocusedExpansionLayout({
+      nodes: [graphNode('center-a', -100, 0), graphNode('center-b', 100, 0), graphNode('shared')],
+      expandedNodeIds: ['center-a'],
+      directExpansionLinks: [expansionLink('a-shared', 'center-a', 'shared')],
+      layoutState: getEmptyKnowledgeGraphLayoutState(),
+      activationSequenceByCenterId: { 'center-a': 1 },
+      materializedNodeIds: ['shared'],
+    });
+    const shared = first.find((node) => node.id === 'shared')!;
+    const later = applyFocusedExpansionLayout({
+      nodes: first,
+      expandedNodeIds: ['center-a', 'center-b'],
+      directExpansionLinks: [
+        expansionLink('b-shared', 'center-b', 'shared'),
+        expansionLink('a-shared', 'center-a', 'shared'),
+      ],
+      layoutState: getEmptyKnowledgeGraphLayoutState(),
+      activationSequenceByCenterId: { 'center-a': 1, 'center-b': 2 },
+      materializedNodeIds: ['shared'],
+    });
+    expect(later.find((node) => node.id === 'shared')).toMatchObject({ x: shared.x, y: shared.y });
+  });
+
+  it('materializes overlapping deferred responses in intent order when response order is reversed', async () => {
+    const queue = createKnowledgeExpansionCommitQueue();
+    const base = [graphNode('center-a', -100, 0), graphNode('center-b', 100, 0), graphNode('shared')];
+    let current = base;
+    queue.register(1);
+    queue.register(2);
+    let resolveFirst!: () => void;
+    let resolveSecond!: () => void;
+    const firstResponse = new Promise<void>((resolve) => { resolveFirst = resolve; }).then(() => {
+      queue.settle(1, () => {
+        current = applyFocusedExpansionLayout({
+          nodes: current,
+          expandedNodeIds: ['center-a'],
+          directExpansionLinks: [expansionLink('a-shared', 'center-a', 'shared')],
+          layoutState: getEmptyKnowledgeGraphLayoutState(),
+          activationSequenceByCenterId: { 'center-a': 1, 'center-b': 2 },
+          materializedNodeIds: ['shared'],
+        });
+      });
+    });
+    const secondResponse = new Promise<void>((resolve) => { resolveSecond = resolve; }).then(() => {
+      queue.settle(2, () => {
+        current = applyFocusedExpansionLayout({
+          nodes: current,
+          expandedNodeIds: ['center-a', 'center-b'],
+          directExpansionLinks: [
+            expansionLink('b-shared', 'center-b', 'shared'),
+            expansionLink('a-shared', 'center-a', 'shared'),
+          ],
+          layoutState: getEmptyKnowledgeGraphLayoutState(),
+          activationSequenceByCenterId: { 'center-a': 1, 'center-b': 2 },
+          materializedNodeIds: ['shared'],
+        });
+      });
+    });
+    resolveSecond();
+    await secondResponse;
+    expect(current).toBe(base);
+    resolveFirst();
+    await firstResponse;
+    expect(current.find((node) => node.id === 'shared')?.__knowledgeAutomaticAnchor).toMatchObject({
+      activationSequence: 1,
+      provenanceCenterId: 'center-a',
+    });
+  });
+
+  it('uses historical anchored sectors as occupied space for later expansion', () => {
+    const historical = {
+      ...graphNode('historical', 96, 0, { x: 96, y: 0 }),
+      __knowledgeAutomaticAnchor: {
+        id: 'historical', x: 96, y: 0, activationSequence: 1, provenanceCenterId: 'older-center',
+      },
+    };
+    const laidOut = applyFocusedExpansionLayout({
+      nodes: [graphNode('center'), historical, graphNode('new-child')],
+      expandedNodeIds: ['center'],
+      directExpansionLinks: [expansionLink('new', 'center', 'new-child')],
+      layoutState: getEmptyKnowledgeGraphLayoutState(),
+      activationSequenceByCenterId: { center: 2 },
+      materializedNodeIds: ['historical', 'new-child'],
+    });
+    expect(laidOut.find((node) => node.id === 'new-child')?.x).not.toBeCloseTo(96);
+  });
+
+  it('chooses the same canonical multi-edge relation for every payload permutation', () => {
+    const nodes = [graphNode('center'), graphNode('a'), graphNode('b')];
+    const links = [
+      { ...expansionLink('weak-a', 'center', 'a'), relation: 'related', density: 'weak' },
+      { ...expansionLink('structure-a', 'a', 'center'), relation: 'contains', density: 'structure' },
+      { ...expansionLink('context-b', 'center', 'b'), relation: 'prerequisite', density: 'context' },
+    ] as unknown as KnowledgeLinkData[];
+    const input = {
+      nodes,
+      expandedNodeIds: ['center'],
+      layoutState: getEmptyKnowledgeGraphLayoutState(),
+      activationSequenceByCenterId: { center: 1 },
+    };
+    expect(coordinatesById(applyFocusedExpansionLayout({ ...input, directExpansionLinks: links })))
+      .toEqual(coordinatesById(applyFocusedExpansionLayout({ ...input, directExpansionLinks: [...links].reverse() })));
+  });
+
+  it('clears stale runtime provenance on graph-version invalidation', () => {
+    const runtime = new Map([['node', { x: 1, y: 2, __knowledgeAutomaticAnchor: { id: 'node', x: 1, y: 2, provenanceCenterId: 'old' } }]]);
+    expect(commitKnowledgeGraphRelayoutVersion({
+      committedVersion: 'graph-v1', nextVersion: 'graph-v2', runtimePositions: runtime,
+    })).toBe('graph-v2');
+    expect(runtime.size).toBe(0);
+  });
+
   it('keeps an already established neighbor coordinate and only reveals its additional arc', () => {
     const existing = graphNode('existing', 30, 40, { x: 130, y: 140 });
     const laidOut = applyFocusedExpansionLayout({
@@ -139,7 +254,8 @@ describe('knowledge graph focused expansion layout', () => {
       activationSequenceByCenterId: { center: 1 },
     });
     const radii = new Set(laidOut.slice(1).map((node) => Math.round(distanceFrom(node, { x: 0, y: 0 }))));
-    const dragged = updateKnowledgeGraphDraggedNode(laidOut, { id: 'child-0', x: 700, y: 800, z: 4 });
+    const dragged = [...laidOut];
+    freezeKnowledgeGraphDragFrame(dragged, { id: 'child-0', x: 700, y: 800, z: 4 });
 
     expect(radii.size).toBeGreaterThan(1);
     expect(dragged.find((node) => node.id === 'child-0')).toMatchObject({
@@ -148,6 +264,15 @@ describe('knowledge graph focused expansion layout', () => {
     laidOut.filter((node) => node.id !== 'child-0').forEach((node) => {
       expect(dragged.find((candidate) => candidate.id === node.id)).toBe(node);
     });
+  });
+
+  it('freezes every non-dragged runtime node during a drag frame', () => {
+    const nodes = [graphNode('dragged', 0, 0, { x: 10, y: 20 }), graphNode('stable', 0, 0, { x: 30, y: 40 })];
+    const stable = nodes[1];
+    freezeKnowledgeGraphDragFrame(nodes, { id: 'dragged', x: 70, y: 80 });
+    expect(nodes[0]).toMatchObject({ x: 70, y: 80, fx: 70, fy: 80 });
+    expect(nodes[1]).toBe(stable);
+    expect(nodes[1]).toMatchObject({ x: 30, y: 40, fx: 30, fy: 40 });
   });
   it('calculates a bounded viewport translation for an expansion ring near the bottom edge', () => {
     const reveal = calculateFocusedExpansionRevealTranslation({

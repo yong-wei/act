@@ -1,5 +1,38 @@
 export type KnowledgeNodeActivationAction = 'expand' | 'collapse' | 'inspect' | 'resolve' | 'ignore';
 
+export interface KnowledgeExpansionCommitQueue {
+  register: (sequence: number) => void;
+  settle: (sequence: number, commit?: () => void) => void;
+  clear: () => void;
+}
+
+export function createKnowledgeExpansionCommitQueue(): KnowledgeExpansionCommitQueue {
+  const entries = new Map<number, { ready: boolean; commit?: () => void }>();
+  const flush = () => {
+    while (entries.size > 0) {
+      const sequence = Math.min(...entries.keys());
+      const entry = entries.get(sequence);
+      if (!entry?.ready) return;
+      entries.delete(sequence);
+      entry.commit?.();
+    }
+  };
+  return {
+    register(sequence) {
+      entries.set(sequence, { ready: false });
+    },
+    settle(sequence, commit) {
+      const current = entries.get(sequence);
+      if (!current || current.ready) return;
+      entries.set(sequence, { ready: true, commit });
+      flush();
+    },
+    clear() {
+      entries.clear();
+    },
+  };
+}
+
 export function resolveKnowledgeNodeActivation(input: {
   expansionState: 'expandable' | 'leaf' | 'unknown';
   expanded: boolean;

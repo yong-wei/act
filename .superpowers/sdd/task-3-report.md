@@ -30,3 +30,21 @@ GREEN:
 ## Concerns
 
 None. Task 4 motion, camera behavior changes, inspector behavior, and Task 5 browser evidence remain intentionally untouched.
+
+## Review Remediation
+
+Status: DONE
+
+- Added an activation-intent commit queue. Expansion responses may arrive in reverse order, but cache merge, materialization, and provenance commit only after every earlier activation has settled, failed, or been cancelled.
+- Added deferred asynchronous coverage for reversed response order and overlapping shared-neighbor provenance; later payloads preserve the winning first-reveal coordinate.
+- Graph-version changes now reset system activation/materialization state, abort stale expansion requests, clear the commit queue, and synchronously invalidate 2D/3D runtime coordinate/provenance caches before rebuilding same-id nodes.
+- Occupied-space scoring now excludes only pending unanchored materializations; historical materialized anchors participate in later collision scoring.
+- Multi-edge neighbors now select a canonical relation by density, relation, endpoint role, and stable link id before neighbor ordering.
+- Connected drag isolation to actual 2D and 3D `onNodeDrag` callbacks. A mounted controlled-renderer test verifies only the dragged coordinates change and cooldown remains disabled.
+
+Review verification:
+
+- Focused tests: 5 files, 62 tests passed.
+- `npm run typecheck`: passed.
+- Touched-file ESLint: zero issues.
+- OpenSpec strict validation: passed.

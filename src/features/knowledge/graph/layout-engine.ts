@@ -350,15 +350,15 @@ export function resolveKnowledgeGraphRuntimeNodeCoordinates<T extends KnowledgeG
   });
 }
 
-export function commitKnowledgeGraphRelayoutVersion({
+export function commitKnowledgeGraphRelayoutVersion<T extends number | string>({
   committedVersion,
   nextVersion,
   runtimePositions,
 }: {
-  committedVersion: number;
-  nextVersion: number;
+  committedVersion: T;
+  nextVersion: T;
   runtimePositions: { clear: () => void };
-}): number {
+}): T {
   if (committedVersion !== nextVersion) runtimePositions.clear();
   return nextVersion;
 }
@@ -562,7 +562,7 @@ export function applyFocusedExpansionLayout<T extends KnowledgeGraphPositionedNo
     provenanceCenterId: string;
   }>();
   const occupied = nodes.flatMap((node) => {
-    if (materializedIdSet?.has(node.id)) return [];
+    if (materializedIdSet?.has(node.id) && !node.__knowledgeAutomaticAnchor?.provenanceCenterId) return [];
     const center = resolveNodeCenter(node, layoutState);
     return [{ id: node.id, ...center }];
   });
@@ -583,24 +583,36 @@ export function applyFocusedExpansionLayout<T extends KnowledgeGraphPositionedNo
       }
     });
 
+    const densityPriority = (link?: KnowledgeLinkData) => {
+      const density = String((link as KnowledgeLinkData & { density?: string })?.density ?? 'optional');
+      const index = ['structure', 'context', 'optional', 'weak'].indexOf(density);
+      return index < 0 ? 2 : index;
+    };
+    const compareLinksForNeighbor = (left: KnowledgeLinkData, right: KnowledgeLinkData) => (
+      densityPriority(left) - densityPriority(right)
+      || String(left.relationType || left.relation).localeCompare(String(right.relationType || right.relation))
+      || Number(left.sourceId !== centerId) - Number(right.sourceId !== centerId)
+      || compareNodeIds(left.id, right.id)
+    );
+    const canonicalLinkByChildId = new Map<string, KnowledgeLinkData>();
+    directExpansionLinks.forEach((link) => {
+      const childId = link.sourceId === centerId
+        ? link.targetId
+        : link.targetId === centerId ? link.sourceId : null;
+      if (!childId || !directChildIds.has(childId)) return;
+      const current = canonicalLinkByChildId.get(childId);
+      if (!current || compareLinksForNeighbor(link, current) < 0) {
+        canonicalLinkByChildId.set(childId, link);
+      }
+    });
     const orderedChildIds = [...directChildIds]
       .filter((nodeId) => nodeById.has(nodeId) && !expandedIdSet.has(nodeId))
       .sort((left, right) => {
         const leftNode = nodeById.get(left)!;
         const rightNode = nodeById.get(right)!;
-        const leftLink = directExpansionLinks.find((link) => (
-          (link.sourceId === centerId && link.targetId === left)
-          || (link.targetId === centerId && link.sourceId === left)
-        ));
-        const rightLink = directExpansionLinks.find((link) => (
-          (link.sourceId === centerId && link.targetId === right)
-          || (link.targetId === centerId && link.sourceId === right)
-        ));
-        const priority = (link?: KnowledgeLinkData) => {
-          const density = String((link as KnowledgeLinkData & { density?: string })?.density ?? 'optional');
-          return ['structure', 'context', 'optional', 'weak'].indexOf(density);
-        };
-        return priority(leftLink) - priority(rightLink)
+        const leftLink = canonicalLinkByChildId.get(left);
+        const rightLink = canonicalLinkByChildId.get(right);
+        return densityPriority(leftLink) - densityPriority(rightLink)
           || String(leftLink?.relationType || leftLink?.relation).localeCompare(String(rightLink?.relationType || rightLink?.relation))
           || Number(leftLink?.sourceId !== centerId) - Number(rightLink?.sourceId !== centerId)
           || Number((rightNode.metadata as Record<string, unknown> | undefined)?.importance ?? 0)
@@ -722,24 +734,36 @@ export function applyFocusedExpansionLayout<T extends KnowledgeGraphPositionedNo
   });
 }
 
-export function updateKnowledgeGraphDraggedNode<T extends KnowledgeGraphPositionedNode>(
-  nodes: readonly T[],
-  dragged: { id: string; x: number; y: number; z?: number }
-): T[] {
-  return nodes.map((node) => node.id !== dragged.id ? node : ({
-    ...node,
-    x: dragged.x,
-    y: dragged.y,
-    positionX: dragged.x,
-    positionY: dragged.y,
-    fx: dragged.x,
-    fy: dragged.y,
-    ...(dragged.z === undefined ? {} : {
-      z: dragged.z,
-      positionZ: dragged.z,
-      fz: dragged.z,
-    }),
-  } as T));
+export function freezeKnowledgeGraphDragFrame<T extends KnowledgeGraphPositionedNode>(
+  nodes: T[],
+  dragged: { id: string; x?: number; y?: number; z?: number }
+): void {
+  const draggedX = readFiniteCoordinate(dragged.x);
+  const draggedY = readFiniteCoordinate(dragged.y);
+  if (draggedX === null || draggedY === null) return;
+  nodes.forEach((node) => {
+    if (node.id === dragged.id) {
+      node.x = draggedX;
+      node.y = draggedY;
+      node.positionX = draggedX;
+      node.positionY = draggedY;
+      node.fx = draggedX;
+      node.fy = draggedY;
+      if (dragged.z !== undefined) {
+        node.z = dragged.z;
+        node.positionZ = dragged.z;
+        node.fz = dragged.z;
+      }
+      return;
+    }
+    const x = readFiniteCoordinate(node.fx ?? node.x ?? node.positionX);
+    const y = readFiniteCoordinate(node.fy ?? node.y ?? node.positionY);
+    if (x === null || y === null) return;
+    node.fx = x;
+    node.fy = y;
+    const z = readFiniteCoordinate(node.fz ?? node.z ?? node.positionZ);
+    if (z !== null) node.fz = z;
+  });
 }
 
 /**
