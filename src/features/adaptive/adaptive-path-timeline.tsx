@@ -215,7 +215,7 @@ export function AdaptivePathTimeline<TNode extends AdaptivePathTimelineNode>({
               <ResourceIcon className="size-4" aria-hidden="true" />
               <span className="sr-only">{visual.label}</span>
             </span>
-            <article className={`min-w-0 overflow-hidden rounded-lg border border-l-2 border-border ${visual.accentClass} ${visual.surfaceClass} ${focused ? 'ring-2 ring-primary/25' : ''}`}>
+            <article className={`min-w-0 rounded-lg border border-l-2 border-border ${visual.accentClass} ${visual.surfaceClass} ${focused ? 'ring-2 ring-primary/25' : ''}`}>
               <button
                 type="button"
                 onClick={() => onFocus(node.nodeId)}
@@ -223,13 +223,16 @@ export function AdaptivePathTimeline<TNode extends AdaptivePathTimelineNode>({
                 aria-controls={focused ? detailId : undefined}
                 aria-pressed={focused}
                 data-adaptive-path-node-selectable="true"
-                className="flex min-h-16 w-full items-start gap-3 p-3 text-left transition hover:bg-background/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
+                className="flex min-h-16 w-full flex-col items-start gap-2 p-3 text-left transition hover:bg-background/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary sm:flex-row sm:gap-3"
               >
                 <span className="min-w-0 flex-1">
                   <span className="block text-xs text-subtle">第 {index + 1} 步 · {visual.label}</span>
-                  <span className="mt-1 block break-words text-sm font-semibold text-foreground">{node.title}</span>
+                  <span className="mt-1 block break-words text-sm font-semibold text-foreground" data-adaptive-path-node-title>{node.title}</span>
                 </span>
-                <span className={`inline-flex shrink-0 items-center gap-1 rounded-md border bg-background/75 px-2 py-1 text-xs ${status.className}`}>
+                <span
+                  className={`inline-flex shrink-0 self-start items-center gap-1 rounded-md border bg-background/75 px-2 py-1 text-xs ${status.className}`}
+                  data-adaptive-path-node-status-badge={node.status}
+                >
                   <StatusIcon className="size-3" aria-hidden="true" />
                   {status.label}
                 </span>

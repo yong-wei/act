@@ -2767,6 +2767,9 @@ export default function AdaptivePracticePage() {
           data-adaptive-path-comparison-state="information-grid"
           data-konling-dock-placement="shared-right-bottom"
           data-route-family={learnerDataShell.routeFamily}
+          data-adaptive-path-dock-collision-policy={
+            showExecutionWorkspace || showRecoveredExecutionWorkspace ? 'avoid-learning-record' : undefined
+          }
           data-route-identity={learnerDataShell.routeIdentity}
           data-learner-record-surface={learnerDataShell.archetype}
           data-learner-record-priority="current-path"
@@ -3727,7 +3730,7 @@ export default function AdaptivePracticePage() {
                         </dl>
                         {node.result ? (
                           <div
-                            className={`mt-4 rounded-lg border p-3 text-sm ${
+                            className={`mt-4 min-w-0 rounded-lg border p-3 text-sm ${
                               node.result.state === 'available'
                                 ? 'border-platform-evidence-eligible/45 bg-platform-evidence-eligible/10'
                                 : 'border-platform-evidence-context/45 bg-platform-evidence-context/10'
@@ -3745,14 +3748,14 @@ export default function AdaptivePracticePage() {
                                 {node.result.reviewState === 'ready' ? '可复核' : '等待绑定'}
                               </span>
                             </div>
-                            <dl className="mt-3 grid gap-2 sm:grid-cols-2">
-                              <div>
+                            <dl className="mt-3 grid min-w-0 gap-2 sm:grid-cols-2">
+                              <div className="min-w-0">
                                 <dt className="text-xs text-subtle">证据来源</dt>
-                                <dd className="mt-1 text-foreground">{node.result.evidenceSource}</dd>
+                                <dd className="mt-1 break-words text-foreground">{node.result.evidenceSource}</dd>
                               </div>
-                              <div>
+                              <div className="min-w-0">
                                 <dt className="text-xs text-subtle">关键指标</dt>
-                                <dd className="mt-1 text-foreground">{node.result.primaryMetric ?? '等待结果写入'}</dd>
+                                <dd className="mt-1 break-words text-foreground">{node.result.primaryMetric ?? '等待结果写入'}</dd>
                               </div>
                             </dl>
                             {node.result.state === 'pending' ? (
@@ -3775,7 +3778,7 @@ export default function AdaptivePracticePage() {
                             ) : null}
                           </div>
                         ) : null}
-                        <div className="mt-4 flex flex-wrap gap-2">
+                        <div className="mt-4 flex min-w-0 flex-wrap gap-2" data-adaptive-path-node-actions="attached">
                           {node.status === 'completed' ? (
                             <>
                               <button

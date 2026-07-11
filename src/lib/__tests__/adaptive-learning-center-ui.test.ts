@@ -788,6 +788,7 @@ describe('adaptive learning center UI contracts', () => {
     const journeyControlSource = readFileSync(join(repoRoot, 'src/features/adaptive/adaptive-path-journey-control.tsx'), 'utf8');
 
     expect(source).toContain('data-adaptive-path-execution-surface="active-route"');
+    expect(source).toContain("? 'avoid-learning-record' : undefined");
     expect(source).toContain('{showExecutionWorkspace || showRecoveredExecutionWorkspace ? null : (');
     expect(source).toContain('data-adaptive-path-route-map="compact"');
     expect(source).toContain('data-adaptive-path-progress-summary="essential"');
