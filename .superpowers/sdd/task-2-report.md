@@ -56,3 +56,9 @@ Recorded by the final local commit for this report; no push performed.
 
 - The mounted activation guard is now explicitly restored to `true` in every effect setup before cleanup returns. React Strict Effects setup→cleanup→setup replay therefore leaves the live component mounted, while cleanup still aborts requests, invalidates sequences, and prevents stale state commits.
 - Added a regression contract covering setup restoration, cleanup invalidation, and loading-state cleanup presence.
+
+## Behavior-test Gate Follow-up
+
+- Added `knowledge-node-direct-activation.client.test.ts`, which mounts the production `KnowledgeGraphSystem` under React StrictMode with controlled graph and ResourcePanel boundaries.
+- The mounted suite triggers canvas/semantic pointer activation, native-button Enter/Space activation, deep-link resolution, Related Knowledge Points activation, duplicate clicks during loading, HTTP failure and retry, canonical unknown-to-leaf branching, filter changes with shard-cache reuse, and unmount with a late network rejection.
+- Source-string checks remain only as narrow structural guards; the new mounted tests are the primary component/integration behavior evidence.
