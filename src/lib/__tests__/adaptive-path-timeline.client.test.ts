@@ -8,6 +8,7 @@ import {
   getAdaptivePathResourceVisual,
   type AdaptivePathTimelineNode,
 } from '@/features/adaptive/adaptive-path-timeline';
+import { GOVERNED_PATH_NODE_TYPES } from '@/lib/resource-node-registry';
 
 const nodes: AdaptivePathTimelineNode[] = [
   {
@@ -77,6 +78,30 @@ describe('AdaptivePathTimeline', () => {
     expect(container.querySelectorAll('[data-adaptive-path-node-detail="inline"]')).toHaveLength(1);
   });
 
+  it('keeps start, skip, review, continue, and evidence actions attached to the focused node', async () => {
+    const action = vi.fn();
+    await act(async () => root.render(createElement(AdaptivePathTimeline, {
+      nodes,
+      focusedNodeId: nodes[1].nodeId,
+      onFocus: vi.fn(),
+      renderExpandedContent: () => createElement('div', {
+        'data-adaptive-path-node-actions': 'attached',
+      }, ['开始学习', '跳过', '回顾', '继续互动', '查看证据'].map((label) => createElement(
+        'button',
+        { key: label, type: 'button', onClick: () => action(label) },
+        label,
+      ))),
+    })));
+
+    const attachedActions = container.querySelector('[data-adaptive-path-node="simulation:two"] [data-adaptive-path-node-actions="attached"]');
+    expect(attachedActions?.querySelectorAll('button')).toHaveLength(5);
+    for (const button of attachedActions?.querySelectorAll('button') ?? []) {
+      await act(async () => button.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    }
+    expect(action.mock.calls.map(([label]) => label)).toEqual(['开始学习', '跳过', '回顾', '继续互动', '查看证据']);
+    expect(container.querySelector('[data-adaptive-path-node="knowledge-card:one"] [data-adaptive-path-node-actions]')).toBeNull();
+  });
+
   it('renders adaptive connectors and independent resource-type and execution-state cues', async () => {
     await act(async () => root.render(createElement(AdaptivePathTimeline, {
       nodes,
@@ -118,5 +143,15 @@ describe('adaptive path resource visual map', () => {
   it('normalizes aliases without changing the execution state dimension', () => {
     expect(getAdaptivePathResourceVisual('interactive-lesson')).toBe(getAdaptivePathResourceVisual('interactive_lesson'));
     expect(getAdaptivePathResourceVisual('quiz')).toBe(getAdaptivePathResourceVisual('adaptive_quiz'));
+  });
+
+  it('covers every governed path node type with a named non-fallback visual', () => {
+    const visuals = GOVERNED_PATH_NODE_TYPES.map((type) => [type, getAdaptivePathResourceVisual(type)] as const);
+
+    expect(visuals.map(([type]) => type)).toEqual([...GOVERNED_PATH_NODE_TYPES]);
+    for (const [type, visual] of visuals) {
+      expect(visual.label, `${type} must have a named support-matrix label`).not.toBe('学习资源');
+      expect(visual.markerClass, `${type} must have an accessible visual cue`).toContain('platform-');
+    }
   });
 });

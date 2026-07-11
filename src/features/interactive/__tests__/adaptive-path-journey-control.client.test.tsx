@@ -221,6 +221,54 @@ describe('adaptive path journey client behavior', () => {
     expect(container.textContent).toContain('进入完成后的下一节点');
   });
 
+  it.each([
+    ['blocked', '当前结果未通过路径验证'],
+    ['path-complete', '查看路径总结'],
+  ] as const)('replaces the current action with an authoritative %s state', async (state, title) => {
+    vi.stubGlobal('fetch', vi.fn(() => response({ journey: journey('path-1', 'node-1', '完成前动作') })));
+    await act(async () => {
+      root.render(createElement(AdaptivePathJourneyControlFromRoute));
+      await Promise.resolve();
+    });
+
+    const updated = journey('path-1', 'node-1', title);
+    updated.nextAction = state === 'blocked'
+      ? {
+          state,
+          nodeId: 'node-1',
+          title,
+          type: 'knowledge_card',
+          href: null,
+          reason: title,
+          recovery: { label: '恢复学习路径', href: updated.return.href },
+        }
+      : {
+          state,
+          nodeId: null,
+          title,
+          type: null,
+          href: updated.return.href,
+          reason: null,
+          recovery: null,
+        };
+    await act(async () => expect(publishAdaptivePathJourneyResponse({ journey: updated })).toBe(true));
+
+    expect(container.textContent).not.toContain('完成前动作');
+    expect(container.textContent).toContain(title);
+    expect(container.querySelector(`[data-adaptive-path-journey-control="${state}"]`)).not.toBeNull();
+  });
+
+  it('does not mount journey behavior for a non-path route', async () => {
+    navigation.search = 'goal=control-correction';
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+
+    await act(async () => root.render(createElement(AdaptivePathJourneyControlFromRoute)));
+
+    expect(container.innerHTML).toBe('');
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it('does not let a same-path event for an old node abort the current-node read', async () => {
     navigation.search = routeSearch('path-1', 'node-2');
     const currentRead = deferredResponse();

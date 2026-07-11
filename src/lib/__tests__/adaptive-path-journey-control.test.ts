@@ -20,6 +20,7 @@ import {
   resolveAdaptivePathCenterOwnedTargetHref,
   resolveAdaptivePathJourneyTargetDisposition,
 } from '@/features/adaptive/adaptive-path-journey-contracts';
+import { GOVERNED_PATH_NODE_TYPES } from '@/lib/resource-node-registry';
 
 const rootDir = path.resolve(__dirname, '../../..');
 
@@ -273,6 +274,31 @@ describe('adaptive path journey control', () => {
       'textbook_section',
       '/course-runtime/%2e%2e/api/private',
     )).toBe('blocked');
+  });
+
+  it('keeps every governed path node type in the destination support matrix', () => {
+    const targets: Record<(typeof GOVERNED_PATH_NODE_TYPES)[number], {
+      target: string;
+      disposition: ReturnType<typeof resolveAdaptivePathJourneyTargetDisposition>;
+    }> = {
+      interactive_lesson: { target: '/interactive-learning/courses/control-foundations', disposition: 'destination-control' },
+      knowledge_card: { target: '/course-runtime/knowledge/cards/control-foundations.md', disposition: 'path-center-explicit' },
+      textbook_section: { target: '/course-runtime/resources/textbooks/control/sections/ch01.md', disposition: 'path-center-explicit' },
+      slides: { target: '/course-runtime/lessons/control/slides.pdf', disposition: 'path-center-explicit' },
+      adaptive_quiz: { target: '/assessment/adaptive-practice', disposition: 'destination-control' },
+      control_workbench: { target: '/interactive-learning/control-workbench', disposition: 'destination-control' },
+      simulation: { target: '/simulations/step-response', disposition: 'destination-control' },
+      arena_task: { target: '/arena/challenges/task-second-order-lead-pid', disposition: 'destination-control' },
+      external_resource: { target: 'https://example.edu/control-resource', disposition: 'external-fallback' },
+      reflection: { target: '/assessment/adaptive-practice', disposition: 'destination-control' },
+      checkpoint: { target: '/assessment/adaptive-practice', disposition: 'destination-control' },
+      konling: { target: '/assessment/adaptive-practice', disposition: 'destination-control' },
+    };
+
+    expect(Object.keys(targets)).toEqual([...GOVERNED_PATH_NODE_TYPES]);
+    for (const type of GOVERNED_PATH_NODE_TYPES) {
+      expect(resolveAdaptivePathJourneyTargetDisposition(type, targets[type].target), type).toBe(targets[type].disposition);
+    }
   });
 
   it.each(['textbook_section', 'slides'])(

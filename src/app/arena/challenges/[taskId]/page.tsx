@@ -67,6 +67,9 @@ export default async function ArenaChallengePage(
   }
   const normalizedSearchParams = buildArenaChallengeSearchParams(searchParams ?? {});
   const pathContext = resolveArenaPathLaunchParams(normalizedSearchParams, task.id);
+  const usePlaywrightPathFixture = process.env.NODE_ENV !== 'production' &&
+    Boolean(process.env.PLAYWRIGHT_PORT) &&
+    normalizedSearchParams.get('journeyFixture') === '1';
 
   const object = getArenaChallengeObject(task.objectId);
   const metricProfile = getArenaMetricProfile(task.metricProfileId);
@@ -138,11 +141,13 @@ export default async function ArenaChallengePage(
     }
   }
 
-  const submissions = await prismaArenaSubmissionStore.listSubmissions({
-    taskId: task.id,
-    publicationId,
-    ...(publicationContext?.visibility === 'class' && publicationContext.classId ? { classId: publicationContext.classId } : {}),
-  });
+  const submissions = usePlaywrightPathFixture
+    ? []
+    : await prismaArenaSubmissionStore.listSubmissions({
+        taskId: task.id,
+        publicationId,
+        ...(publicationContext?.visibility === 'class' && publicationContext.classId ? { classId: publicationContext.classId } : {}),
+      });
   const submissionPublicationIds = publicationId
     ? []
     : Array.from(

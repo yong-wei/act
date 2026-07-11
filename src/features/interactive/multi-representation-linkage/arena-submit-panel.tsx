@@ -14,6 +14,7 @@ import {
   formatArenaHardConstraint,
   formatArenaMetric,
 } from '@/features/arena/display-labels';
+import { useArenaPathSubmissionCompletion } from '@/features/arena/arena-path-journey-control';
 
 interface ArenaSubmitPanelProps {
   arenaContext: ArenaWorkbenchContext;
@@ -245,6 +246,7 @@ export function ArenaSubmitPanel({
   gain,
   publicationId,
 }: ArenaSubmitPanelProps) {
+  const completeArenaPath = useArenaPathSubmissionCompletion(arenaContext.task.id);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<OfficialSubmissionResultState | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -312,12 +314,15 @@ export function ArenaSubmitPanel({
           isLate: Boolean(data.submission.isLate),
         }
         : null);
+      if (data.submission?.id) {
+        await completeArenaPath(data.submission.id);
+      }
     } catch {
       setError('网络请求失败，请检查连接后重试。');
     } finally {
       setSubmitting(false);
     }
-  }, [arenaContext.task.id, buildResult.artifact, publicationId]);
+  }, [arenaContext.task.id, buildResult.artifact, completeArenaPath, publicationId]);
 
   return (
     <div className="premium-lesson-panel px-5 py-4 mt-4">

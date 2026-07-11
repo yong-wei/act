@@ -597,6 +597,45 @@ const DEMO_CONTROL_CORRECTION_PATH_ROUND = {
   ],
 } satisfies LearningPathRoundView;
 
+const DEMO_ARENA_JOURNEY_NODE = {
+  ...DEMO_CONTROL_CORRECTION_PATH_NODES[1],
+  nodeId: 'arena-task:task-second-order-lead-pid',
+  title: '完成二阶系统校正 Arena 挑战',
+  type: 'arena_task',
+  pathNodeType: 'challenge',
+  displayName: 'Arena',
+  iconKey: 'arena-task',
+  evidenceBehavior: 'judged-submission',
+  sourceKind: 'arena_task',
+  sourceRef: 'task-second-order-lead-pid',
+  target: '/arena/challenges/task-second-order-lead-pid?journeyFixture=1',
+  prerequisiteNodeIds: [],
+  status: 'current',
+} as unknown as AdaptiveLearningPathPlan['mainPath'][number];
+
+const DEMO_ARENA_JOURNEY_PATH_PLAN = {
+  ...DEMO_CONTROL_CORRECTION_PATH_PLAN,
+  id: 'path-arena-e2e',
+  currentNodeId: DEMO_ARENA_JOURNEY_NODE.nodeId,
+  mainPath: [DEMO_ARENA_JOURNEY_NODE],
+  executionStatus: {
+    ...DEMO_CONTROL_CORRECTION_PATH_PLAN.executionStatus,
+    completedNodeIds: [],
+    activeNodeId: DEMO_ARENA_JOURNEY_NODE.nodeId,
+  },
+} as unknown as AdaptiveLearningPathPlan;
+
+const DEMO_ARENA_JOURNEY_PATH_ROUND = {
+  ...DEMO_CONTROL_CORRECTION_PATH_ROUND,
+  id: 'path-arena-e2e',
+  title: 'Arena 连续学习路径',
+  currentNodeId: DEMO_ARENA_JOURNEY_NODE.nodeId,
+  lastExecutionMetadata: { completedNodeIds: [], failedNodeIds: [] },
+  executions: [],
+  deviations: [],
+  interventions: [],
+} satisfies LearningPathRoundView;
+
 const learnerDataShell = buildLearnerDataRouteShell('/assessment/adaptive-practice');
 
 const adaptivePathResourceIcons: Record<AdaptivePathResourceKind, LucideIcon> = {
@@ -1319,6 +1358,7 @@ export default function AdaptivePracticePage() {
   const searchParams = useSearchParams();
   const { status: authStatus } = useSession();
   const isDemoMode = searchParams.get('demo') === '1';
+  const isArenaJourneyDemo = isDemoMode && searchParams.get('arenaJourneyFixture') === '1';
   const demoScene = resolveDemoScene(searchParams.get('scene'));
   const activePracticeFocus = searchParams.get('focus');
   const localFeedbackContext = buildFeedbackTaskContext({
@@ -1790,12 +1830,16 @@ export default function AdaptivePracticePage() {
     setQuestionState(demoData.questionState);
     setSelectedOption(demoData.defaultSelectedOption);
     setFeedback(demoData.feedback);
-    setActivePathPlan(activeGoal === 'control-correction' ? DEMO_CONTROL_CORRECTION_PATH_PLAN : null);
-    setActivePathRound(activeGoal === 'control-correction' ? DEMO_CONTROL_CORRECTION_PATH_ROUND : null);
+    setActivePathPlan(activeGoal === 'control-correction'
+      ? (isArenaJourneyDemo ? DEMO_ARENA_JOURNEY_PATH_PLAN : DEMO_CONTROL_CORRECTION_PATH_PLAN)
+      : null);
+    setActivePathRound(activeGoal === 'control-correction'
+      ? (isArenaJourneyDemo ? DEMO_ARENA_JOURNEY_PATH_ROUND : DEMO_CONTROL_CORRECTION_PATH_ROUND)
+      : null);
     setQuestionStartAt(Date.now());
     setLoading(false);
     setError(null);
-  }, [activeGoal]);
+  }, [activeGoal, isArenaJourneyDemo]);
 
   const loadDiagnostic = useCallback(async () => {
     const response = await fetch('/api/assessment/diagnostic');
@@ -2038,6 +2082,7 @@ export default function AdaptivePracticePage() {
   }, [activeGoal, authStatus, isDemoMode, pathAdvisorContextGoal, showGenerationWorkspace]);
 
   const reloadActiveLearningPath = useCallback(async () => {
+    if (isDemoMode) return;
     const pathIdToLoad = activePathRound?.id ??
       activePathId ??
       (activeGoal === 'control-correction' ? activeLearnerState?.pathContext.activeControlCorrectionPath.pathId : null) ??
@@ -2051,7 +2096,7 @@ export default function AdaptivePracticePage() {
     setActivePathRound(payload.path ?? null);
     setActivePathPlan(restoreAdaptiveLearningPathPlanFromRound(payload.path ?? null));
     setLoadedPathContextKey(payload.path ? requestedPathContextKey : null);
-  }, [activeGoal, activePathId, activeLearnerState, activePathRound, requestedPathContextKey]);
+  }, [activeGoal, activePathId, activeLearnerState, activePathRound, isDemoMode, requestedPathContextKey]);
 
   const refreshLatestLearningPathAfterKonling = useCallback(async () => {
     if (!activeGoal || isDemoMode || authStatus !== 'authenticated') return;
