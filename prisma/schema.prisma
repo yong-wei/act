@@ -2199,6 +2199,7 @@ model StudentPortraitV2Snapshot {
   calculationVersion String
   migrationVersion   String
   derivationKind     String
+  sourceLegacySnapshotId String?
   payload            Json
   createdAt          DateTime @default(now())
 
@@ -2206,6 +2207,7 @@ model StudentPortraitV2Snapshot {
   @@index([snapshotAt])
   @@index([payloadVersion, calculationVersion])
   @@index([derivationKind, snapshotAt])
+  @@unique([userId, sourceLegacySnapshotId])
 }
 
 model StudentEvidenceFeatureCache {

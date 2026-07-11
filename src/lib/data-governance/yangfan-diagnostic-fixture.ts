@@ -9,6 +9,7 @@ import {
 
 export const YANGFAN_DIAGNOSTIC_FIXTURE_VERSION = 'yangfan-diagnostic-fixture.v1';
 export const YANGFAN_DIAGNOSTIC_FIXTURE_STUDENT_NUMBER = '20230010102605';
+export const YANGFAN_DIAGNOSTIC_FIXTURE_EMAIL = 'yangfan@example.test';
 export const YANGFAN_DIAGNOSTIC_FIXTURE_PREFIX = 'yangfan-diagnostic-fixture';
 
 export type YangFanDiagnosticFixtureMode = 'dry-run' | 'apply' | 'reset' | 'audit';
@@ -204,11 +205,12 @@ export async function buildYangFanDiagnosticFixturePlan(
   const mode = options.mode ?? 'dry-run';
   const now = options.now ?? new Date();
   const canonicalStudentNumber = options.canonicalStudentNumber ?? YANGFAN_DIAGNOSTIC_FIXTURE_STUDENT_NUMBER;
+  const canonicalEmail = options.canonicalEmail ?? YANGFAN_DIAGNOSTIC_FIXTURE_EMAIL;
   const candidates = await loadYangFanCandidates(db, {
-    canonicalEmail: options.canonicalEmail,
+    canonicalEmail,
     canonicalStudentNumber,
   });
-  const canonical = resolveCanonicalAccount(candidates, options.canonicalEmail, canonicalStudentNumber);
+  const canonical = resolveCanonicalYangFanAccount(candidates, canonicalEmail, canonicalStudentNumber);
   const duplicates = canonical ? candidates.filter((candidate) => candidate.id !== canonical.id) : candidates;
   const duplicateSafety = canonical
     ? classifyDuplicateSafety(canonical, duplicates)
@@ -307,7 +309,7 @@ export async function applyYangFanDiagnosticFixture(
     await resetFixtureRows(tx, canonicalUserId);
 
     const startedAt = new Date(now.getTime() - 60 * 60 * 1000);
-    const facts = fixtureLearningFacts(canonicalUserId, startedAt);
+    const facts = buildYangFanPortraitV2FixtureFacts(canonicalUserId, startedAt);
     await tx.learningFact.createMany({ data: facts, skipDuplicates: true });
 
     await tx.knowledgeProgress?.createMany({
@@ -417,18 +419,21 @@ export async function resetYangFanDiagnosticFixture(
   };
 }
 
-function fixtureLearningFacts(userId: string, startedAt: Date) {
+export function buildYangFanPortraitV2FixtureFacts(userId: string, startedAt: Date) {
   const base = {
     userId,
     courseId: 'control-correction',
     lessonId: 'yangfan-diagnostic-fixture',
     sessionId: FIXTURE_SESSION_KEY,
-    competencyContribution: { controlModeling: 0.35, diagnosticAssessment: 0.4 },
     createdAt: startedAt,
   };
   return [
     {
       ...base,
+      competencyContribution: {
+        controlModelingRepresentation: 0.35,
+        systemAnalysisInterpretation: 0.35,
+      },
       id: FIXTURE_FACT_IDS[0],
       factType: 'question',
       moduleId: 'adaptive-assessment',
@@ -450,6 +455,10 @@ function fixtureLearningFacts(userId: string, startedAt: Date) {
     },
     {
       ...base,
+      competencyContribution: {
+        transferIntegratedApplication: 0.32,
+        reflectionImprovementAiCollab: 0.28,
+      },
       id: FIXTURE_FACT_IDS[1],
       factType: 'resource',
       moduleId: 'path-planning',
@@ -470,6 +479,10 @@ function fixtureLearningFacts(userId: string, startedAt: Date) {
     },
     {
       ...base,
+      competencyContribution: {
+        reflectionImprovementAiCollab: 0.36,
+        engineeringConstraintSafety: 0.24,
+      },
       id: FIXTURE_FACT_IDS[2],
       factType: 'ai_intervention',
       moduleId: 'konling',
@@ -490,6 +503,11 @@ function fixtureLearningFacts(userId: string, startedAt: Date) {
     },
     {
       ...base,
+      competencyContribution: {
+        controllerDesignSynthesis: 0.34,
+        simulationValidationEvidence: 0.4,
+        engineeringConstraintSafety: 0.22,
+      },
       id: FIXTURE_FACT_IDS[3],
       factType: 'simulation',
       moduleId: 'arena-preview',
@@ -1039,14 +1057,16 @@ async function loadYangFanCandidates(
   });
 }
 
-function resolveCanonicalAccount(
+export function resolveCanonicalYangFanAccount(
   candidates: Array<Record<string, any>>,
   canonicalEmail?: string | null,
   canonicalStudentNumber?: string | null,
 ) {
-  return candidates.find((candidate) => canonicalEmail && candidate.email === canonicalEmail)
-    ?? candidates.find((candidate) => canonicalStudentNumber && candidate.profile?.studentNumber === canonicalStudentNumber)
-    ?? null;
+  if (!canonicalEmail || !canonicalStudentNumber) return null;
+  const exact = candidates.filter((candidate) =>
+    candidate.email === canonicalEmail && candidate.profile?.studentNumber === canonicalStudentNumber
+  );
+  return exact.length === 1 ? exact[0] : null;
 }
 
 function classifyDuplicateSafety(
@@ -1200,11 +1220,12 @@ async function resolveWritableAccounts(
   options: YangFanDiagnosticFixtureOptions,
 ) {
   const canonicalStudentNumber = options.canonicalStudentNumber ?? YANGFAN_DIAGNOSTIC_FIXTURE_STUDENT_NUMBER;
+  const canonicalEmail = options.canonicalEmail ?? YANGFAN_DIAGNOSTIC_FIXTURE_EMAIL;
   const candidates = await loadYangFanCandidates(db, {
-    canonicalEmail: options.canonicalEmail,
+    canonicalEmail,
     canonicalStudentNumber,
   });
-  const canonical = resolveCanonicalAccount(candidates, options.canonicalEmail, canonicalStudentNumber);
+  const canonical = resolveCanonicalYangFanAccount(candidates, canonicalEmail, canonicalStudentNumber);
   if (!canonical) throw new Error('Cannot resolve canonical Yang Fan account for fixture write.');
   const duplicates = candidates.filter((candidate) => candidate.id !== canonical.id);
   const duplicateSafety = classifyDuplicateSafety(canonical, duplicates);
@@ -1226,11 +1247,12 @@ async function resolveResettableAccount(
   options: YangFanDiagnosticFixtureOptions,
 ) {
   const canonicalStudentNumber = options.canonicalStudentNumber ?? YANGFAN_DIAGNOSTIC_FIXTURE_STUDENT_NUMBER;
+  const canonicalEmail = options.canonicalEmail ?? YANGFAN_DIAGNOSTIC_FIXTURE_EMAIL;
   const candidates = await loadYangFanCandidates(db, {
-    canonicalEmail: options.canonicalEmail,
+    canonicalEmail,
     canonicalStudentNumber,
   });
-  const canonical = resolveCanonicalAccount(candidates, options.canonicalEmail, canonicalStudentNumber);
+  const canonical = resolveCanonicalYangFanAccount(candidates, canonicalEmail, canonicalStudentNumber);
   if (!canonical) throw new Error('Cannot resolve canonical Yang Fan account for fixture reset.');
   const duplicates = candidates.filter((candidate) => candidate.id !== canonical.id);
   const duplicateSafety = classifyDuplicateSafety(canonical, duplicates);

@@ -82,6 +82,9 @@ export interface PortraitV2PayloadShape {
   derivation: {
     kind: PortraitV2DerivationKind;
     sourceLegacySnapshotId?: string;
+    sourceLegacySnapshotAt?: string;
+    mappingVersion?: string;
+    mappingConfidence?: Partial<Record<PortraitV2DimensionId, 'high' | 'medium' | 'low' | 'none'>>;
     limitations: string[];
   };
   updateCursor?: {
@@ -138,6 +141,10 @@ const COMPATIBILITY_EVIDENCE_FAMILIES = new Set<PortraitV2CompatibilitySourceFam
   'StudentCompetencySnapshot',
   'StudentEvidenceFeatureCache',
 ]);
+const MIGRATED_EVIDENCE_FAMILIES = new Set<string>([
+  ...EVIDENCE_FAMILIES,
+  ...COMPATIBILITY_EVIDENCE_FAMILIES,
+]);
 const MISSING_EVIDENCE_RATIONALE = 'No safe legacy mapping exists.';
 const MISSING_EVIDENCE_LIMITATION = 'missing-native-portrait-v2-evidence';
 const NO_SAFE_LEGACY_MAPPING_LIMITATION = 'no-safe-legacy-mapping';
@@ -158,6 +165,8 @@ const GOVERNED_SAFE_LIMITATIONS = new Set([
   MISSING_EVIDENCE_LIMITATION,
   NO_SAFE_LEGACY_MAPPING_LIMITATION,
   'bounded-negative-evidence-correction',
+  'legacy-control-modeling-combines-representation-and-analysis',
+  'legacy-self-directed-learning-partially-represents-reflection-ai-collaboration',
 ]);
 const STUDENT_SAFE_LINEAGE_KINDS = new Set<PortraitV2LineageKind>([
   'evidence-family',
@@ -181,6 +190,9 @@ export function createPortraitV2Payload(input: {
   updateCursor?: PortraitV2PayloadShape['updateCursor'];
   now?: Date | string;
 }): PortraitV2Payload {
+  if (input.derivation?.kind === 'migrated' && !hasCompleteMigrationMetadata(input.derivation)) {
+    throw new Error('New migrated portrait writes require complete migration metadata.');
+  }
   const payload: PortraitV2PayloadShape = {
     userId: input.userId,
     payloadVersion: PORTRAIT_V2_PAYLOAD_VERSION,
@@ -190,6 +202,13 @@ export function createPortraitV2Payload(input: {
       kind: input.derivation?.kind ?? 'native',
       ...(input.derivation?.sourceLegacySnapshotId
         ? { sourceLegacySnapshotId: input.derivation.sourceLegacySnapshotId }
+        : {}),
+      ...(input.derivation?.sourceLegacySnapshotAt
+        ? { sourceLegacySnapshotAt: input.derivation.sourceLegacySnapshotAt }
+        : {}),
+      ...(input.derivation?.mappingVersion ? { mappingVersion: input.derivation.mappingVersion } : {}),
+      ...(input.derivation?.mappingConfidence
+        ? { mappingConfidence: { ...input.derivation.mappingConfidence } }
         : {}),
       limitations: [...(input.derivation?.limitations ?? [])],
     },
@@ -243,11 +262,14 @@ function validatePortraitV2Contract(
     throw new Error('Expected a canonical portrait v2 payload with version metadata and no future timestamp.');
   }
   const derivation = asRecord(payload.derivation);
-  assertExactKeys(derivation, ['kind', 'sourceLegacySnapshotId', 'limitations'], 'Portrait v2 derivation');
+  assertExactKeys(derivation, ['kind', 'sourceLegacySnapshotId', 'sourceLegacySnapshotAt', 'mappingVersion', 'mappingConfidence', 'limitations'], 'Portrait v2 derivation');
   if (
     !isDerivationKind(derivation.kind) ||
     !isStringArray(derivation.limitations) ||
     (derivation.sourceLegacySnapshotId !== undefined && !isSafeIdentifier(derivation.sourceLegacySnapshotId)) ||
+    (derivation.sourceLegacySnapshotAt !== undefined && (!isIsoTimestamp(derivation.sourceLegacySnapshotAt) || Date.parse(derivation.sourceLegacySnapshotAt) > Date.parse(payload.generatedAt))) ||
+    (derivation.mappingVersion !== undefined && !isSafeIdentifier(derivation.mappingVersion)) ||
+    (derivation.mappingConfidence !== undefined && !isValidMappingConfidence(derivation.mappingConfidence)) ||
     !hasConsistentDerivation(derivation, projectionConsumer)
   ) {
     throw new Error('Expected a canonical portrait v2 payload with derivation metadata.');
@@ -322,6 +344,9 @@ export async function writePortraitV2Snapshot(
       calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
       migrationVersion: payload.migrationVersion,
       derivationKind: payload.derivation.kind,
+      sourceLegacySnapshotId: payload.derivation.kind === 'migrated'
+        ? payload.derivation.sourceLegacySnapshotId
+        : null,
       payload,
     },
   }));
@@ -425,6 +450,9 @@ export function projectPortraitV2ForConsumer(
       ...(!canReadAuditOnly || !payload.derivation.sourceLegacySnapshotId
         ? {}
         : { sourceLegacySnapshotId: payload.derivation.sourceLegacySnapshotId }),
+      ...(!canReadAuditOnly || !payload.derivation.sourceLegacySnapshotAt ? {} : { sourceLegacySnapshotAt: payload.derivation.sourceLegacySnapshotAt }),
+      ...(!canReadAuditOnly || !payload.derivation.mappingVersion ? {} : { mappingVersion: payload.derivation.mappingVersion }),
+      ...(!canReadAuditOnly || !payload.derivation.mappingConfidence ? {} : { mappingConfidence: { ...payload.derivation.mappingConfidence } }),
       limitations: [...payload.derivation.limitations],
     },
     dimensions: payload.dimensions.map((dimension) => ({
@@ -618,7 +646,9 @@ function validateDimension(
   const sourceFamilyCounts = asRecord(evidenceSummary.sourceFamilyCounts);
   const allowedEvidenceFamilies = derivation.kind === 'compatibility-derived'
     ? COMPATIBILITY_EVIDENCE_FAMILIES
-    : EVIDENCE_FAMILIES;
+    : derivation.kind === 'migrated'
+      ? MIGRATED_EVIDENCE_FAMILIES
+      : EVIDENCE_FAMILIES;
   if (
     !isNonNegativeInteger(evidenceSummary.totalCount) ||
     !isRecord(evidenceSummary.sourceFamilyCounts) ||
@@ -800,18 +830,48 @@ function hasConsistentDerivation(
 ): boolean {
   const limitations = derivation.limitations as string[];
   if (!limitations.every(isNonEmptyString)) return false;
-  if (derivation.kind === 'native') return derivation.sourceLegacySnapshotId === undefined;
+  const hasMigrationMetadata = derivation.sourceLegacySnapshotAt !== undefined || derivation.mappingVersion !== undefined || derivation.mappingConfidence !== undefined;
+  if (derivation.kind === 'native') return derivation.sourceLegacySnapshotId === undefined && !hasMigrationMetadata;
   if (derivation.kind === 'migrated') {
     const sourceIdentityIsValid = projectionConsumer === undefined ||
       CONSUMER_PRIVACY_SCOPES[projectionConsumer].has('audit-only')
       ? isSafeIdentifier(derivation.sourceLegacySnapshotId)
       : derivation.sourceLegacySnapshotId === undefined;
-    return sourceIdentityIsValid && limitations.length > 0;
+    const canReadAuditOnly = projectionConsumer === undefined || CONSUMER_PRIVACY_SCOPES[projectionConsumer].has('audit-only');
+    const metadataIsValid = canReadAuditOnly
+      ? !hasMigrationMetadata || (
+          derivation.sourceLegacySnapshotAt !== undefined &&
+          derivation.mappingVersion !== undefined &&
+          hasCompleteMappingConfidence(derivation.mappingConfidence)
+        )
+      : !hasMigrationMetadata;
+    return sourceIdentityIsValid && metadataIsValid && limitations.length > 0;
   }
   if (derivation.kind !== 'compatibility-derived' || limitations.length === 0) return false;
-  return projectionConsumer === undefined ||
+  return !hasMigrationMetadata && (projectionConsumer === undefined ||
     CONSUMER_PRIVACY_SCOPES[projectionConsumer].has('audit-only') ||
-    derivation.sourceLegacySnapshotId === undefined;
+    derivation.sourceLegacySnapshotId === undefined);
+}
+
+function isValidMappingConfidence(value: unknown): boolean {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  return Object.entries(value).every(([id, confidence]) =>
+    PORTRAIT_V2_DIMENSION_IDS.includes(id as PortraitV2DimensionId) &&
+    ['high', 'medium', 'low', 'none'].includes(String(confidence))
+  );
+}
+
+function hasCompleteMappingConfidence(value: unknown): boolean {
+  if (!isValidMappingConfidence(value)) return false;
+  const keys = Object.keys(value as Record<string, unknown>);
+  return keys.length === PORTRAIT_V2_DIMENSION_IDS.length &&
+    PORTRAIT_V2_DIMENSION_IDS.every((id) => keys.includes(id));
+}
+
+function hasCompleteMigrationMetadata(value: Partial<PortraitV2PayloadShape['derivation']>): boolean {
+  return isSafeIdentifier(value.sourceLegacySnapshotId) &&
+    typeof value.sourceLegacySnapshotAt === 'string' && isIsoTimestamp(value.sourceLegacySnapshotAt) &&
+    isSafeIdentifier(value.mappingVersion) && hasCompleteMappingConfidence(value.mappingConfidence);
 }
 
 function hasConsistentDimensionSummary(
@@ -839,7 +899,11 @@ function hasConsistentDimensionSummary(
     : expectedRationale === GOVERNED_NEGATIVE_EVIDENCE_RATIONALE
       ? ['bounded-negative-evidence-correction']
       : [];
-  return dimension.rationale === expectedRationale && sameOrderedStrings(limitations, expectedLimitations);
+  return dimension.rationale === expectedRationale && (
+    derivationKind === 'migrated'
+      ? limitations.every((item) => GOVERNED_SAFE_LIMITATIONS.has(item))
+      : sameOrderedStrings(limitations, expectedLimitations)
+  );
 }
 
 function sameOrderedStrings(actual: string[], expected: string[]): boolean {
@@ -897,10 +961,7 @@ function hasValidLineageForDerivation(
     const hasExpectedMigrationLineage = canReadAuditOnly
       ? expectedMigrationRef !== null && migrationLineage.length === 1 && migrationLineage[0].ref === expectedMigrationRef
       : expectedMigrationRef === null && migrationLineage.length === 0;
-    return hasExpectedMigrationLineage &&
-      lineageFamilies.every((family) => !COMPATIBILITY_EVIDENCE_FAMILIES.has(
-        family as PortraitV2CompatibilitySourceFamily,
-      ));
+    return hasExpectedMigrationLineage && lineageFamilies.every((family) => MIGRATED_EVIDENCE_FAMILIES.has(family));
   }
 
   return lineage.every((ref) => ref.kind === 'evidence-family' || ref.kind === 'migration-snapshot') &&

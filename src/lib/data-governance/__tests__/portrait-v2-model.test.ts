@@ -91,6 +91,9 @@ function migratedPayload(): PortraitV2Payload {
   payload.derivation = {
     kind: 'migrated',
     sourceLegacySnapshotId: 'legacy-1',
+    sourceLegacySnapshotAt: generatedAt,
+    mappingVersion: 'legacy-six-to-portrait-v2.v1',
+    mappingConfidence: Object.fromEntries(PORTRAIT_V2_DIMENSION_IDS.map((id) => [id, 'high'])),
     limitations: ['legacy-six-dimensional-input-is-non-authoritative'],
   };
   payload.dimensions.forEach((dimension) => {
