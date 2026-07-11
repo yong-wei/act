@@ -13,6 +13,28 @@ enum UserRole {
   ADMIN
 }
 
+enum AssignmentLifecycleState {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum AssignmentRevisionState {
+  DRAFT
+  PUBLISHED
+}
+
+enum AssignmentQuestionSourceFamily {
+  MANUAL
+  ADAPTIVE_ASSESSMENT_CATALOG
+  ASSIGNMENT_DERIVATIVE
+}
+
+enum AssignmentSolutionReleaseMode {
+  PRIVATE
+  AT_TIME
+}
+
 // 任务难度等级
 enum MissionDifficulty {
   EASY
@@ -118,6 +140,10 @@ model User {
   arenaVirtualSimulationRuns ArenaVirtualSimulationRun[]
   simulationRuns SimulationRun[]
   arenaChallengePublications ArenaChallengePublication[] @relation("ArenaChallengePublications")
+  authoredAssignments Assignment[] @relation("AssignmentAuthor")
+  assignmentReviewGrants AssignmentReviewGrant[] @relation("AssignmentReviewGrantee")
+  issuedAssignmentReviewGrants AssignmentReviewGrant[] @relation("AssignmentReviewGrantIssuer")
+  assignmentHistoricalOwnerships AssignmentHistoricalOwnership[]
 }
 
 model StudentProfile {
@@ -171,11 +197,159 @@ model Class {
   students StudentProfile[]
   sessions ClassSession[] // 班级的课堂会话
   arenaChallengePublications ArenaChallengePublication[]
+  assignmentAudiences AssignmentAudience[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([teacherId])
+}
+
+model Assignment {
+  id            String                   @id @default(cuid())
+  authorId      String
+  courseContext String?
+  state         AssignmentLifecycleState @default(DRAFT)
+  archivedAt    DateTime?
+  anonymizedAt  DateTime?
+  createdAt     DateTime                 @default(now())
+  updatedAt     DateTime                 @updatedAt
+
+  author       User                    @relation("AssignmentAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  revisions    AssignmentRevision[]
+  reviewGrants AssignmentReviewGrant[]
+  publicationOperations AssignmentPublicationOperation[]
+
+  @@index([authorId, state, updatedAt])
+  @@index([courseContext])
+}
+
+model AssignmentRevision {
+  id                    String                  @id @default(cuid())
+  assignmentId          String
+  revisionNumber        Int
+  state                 AssignmentRevisionState @default(DRAFT)
+  version               Int                     @default(1)
+  title                 String
+  instructions          String
+  totalPoints           Decimal                 @db.Decimal(8, 2)
+  availabilityStartsAt  DateTime?
+  dueAt                 DateTime?
+  latePolicy            Json                    @default("{}")
+  responsePolicy        Json                    @default("{}")
+  resubmissionPolicy    Json                    @default("{}")
+  solutionReleasePolicy Json                    @default("{}")
+  contentHash           String?
+  publishedAt           DateTime?
+  frozenAt              DateTime?
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+
+  assignment           Assignment                      @relation(fields: [assignmentId], references: [id], onDelete: Restrict)
+  audiences            AssignmentAudience[]
+  questions            AssignmentQuestion[]
+  historicalOwnerships AssignmentHistoricalOwnership[]
+  publicationOperations AssignmentPublicationOperation[]
+
+  @@unique([assignmentId, revisionNumber])
+  @@index([assignmentId, state, updatedAt])
+  @@index([publishedAt])
+}
+
+model AssignmentAudience {
+  id                   String   @id @default(cuid())
+  assignmentRevisionId String
+  classId              String
+  availableAt          DateTime
+  dueAt                DateTime
+  policySnapshot       Json     @default("{}")
+  archivedAt           DateTime?
+  createdAt            DateTime @default(now())
+
+  revision AssignmentRevision @relation(fields: [assignmentRevisionId], references: [id], onDelete: Restrict)
+  class    Class              @relation(fields: [classId], references: [id], onDelete: Restrict)
+
+  @@unique([assignmentRevisionId, classId])
+  @@index([classId, availableAt, dueAt])
+}
+
+model AssignmentQuestion {
+  id                   String                         @id @default(cuid())
+  assignmentRevisionId String
+  stableQuestionId     String
+  orderIndex           Int
+  responseType         String
+  points               Decimal                        @db.Decimal(8, 2)
+  promptSnapshot       Json
+  answerSnapshot       Json
+  rubricSnapshot       Json
+  sourceFamily         AssignmentQuestionSourceFamily
+  sourceId             String?
+  sourceVersion        String?
+  sourceHash           String
+  sourceReviewState    String
+  sourceCatalogItemId  String?
+  sourceOriginalFamily String?
+  sourceSelectionProof String?
+  sourceLineage        Json
+  contentHash          String
+  createdAt            DateTime                       @default(now())
+
+  revision AssignmentRevision @relation(fields: [assignmentRevisionId], references: [id], onDelete: Restrict)
+
+  @@unique([assignmentRevisionId, stableQuestionId])
+  @@unique([assignmentRevisionId, orderIndex])
+  @@index([sourceFamily, sourceId])
+  @@index([contentHash])
+}
+
+model AssignmentReviewGrant {
+  id           String   @id @default(cuid())
+  assignmentId String
+  teacherId    String
+  grantedById  String
+  reason       String
+  grantedAt    DateTime @default(now())
+  expiresAt    DateTime?
+  revokedAt    DateTime?
+
+  assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Restrict)
+  teacher    User       @relation("AssignmentReviewGrantee", fields: [teacherId], references: [id], onDelete: Restrict)
+  grantedBy  User       @relation("AssignmentReviewGrantIssuer", fields: [grantedById], references: [id], onDelete: Restrict)
+
+  @@index([assignmentId, teacherId, revokedAt, expiresAt])
+}
+
+model AssignmentPublicationOperation {
+  id             String   @id @default(cuid())
+  assignmentId   String
+  idempotencyKey String
+  requestHash    String
+  revisionId     String
+  createdAt      DateTime @default(now())
+
+  assignment Assignment         @relation(fields: [assignmentId], references: [id], onDelete: Restrict)
+  revision   AssignmentRevision @relation(fields: [revisionId], references: [id], onDelete: Restrict)
+
+  @@unique([assignmentId, idempotencyKey])
+  @@index([revisionId])
+}
+
+model AssignmentHistoricalOwnership {
+  id                   String   @id @default(cuid())
+  assignmentRevisionId String
+  studentId            String
+  audienceClassId      String
+  assignedAt           DateTime
+  anonymizedAt         DateTime?
+  createdAt            DateTime @default(now())
+
+  revision AssignmentRevision @relation(fields: [assignmentRevisionId], references: [id], onDelete: Restrict)
+  student  User               @relation(fields: [studentId], references: [id], onDelete: Restrict)
+
+  @@unique([assignmentRevisionId, studentId])
+  @@index([studentId, assignedAt])
+  @@index([audienceClassId])
 }
 
 model SimulationSession {

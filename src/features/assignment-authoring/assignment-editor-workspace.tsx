@@ -1,0 +1,1755 @@
+'use client';
+
+import Link from 'next/link';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Eye,
+  Library,
+  Plus,
+  Save,
+  Send,
+  Trash2,
+} from 'lucide-react';
+
+import {
+  assignmentDraftSchema,
+  validatePublicationScores,
+  type AssignmentDraftInput,
+} from '@/lib/assignments/assignment-domain';
+import {
+  EMPTY_ASSIGNMENT_DRAFT,
+  type AssignmentEditorDocument,
+  type GovernedQuestionSummary,
+} from './assignment-ui-contracts';
+import { GovernedQuestionPicker } from './governed-question-picker';
+
+type SaveState = 'idle' | 'dirty' | 'saving' | 'saved' | 'error' | 'conflict';
+type SaveResult = {
+  document: AssignmentEditorDocument;
+  draftFingerprint: string;
+};
+type ManagedClassOption = {
+  id: string;
+  name: string;
+  code: string;
+  year: string | null;
+  semester: string | null;
+};
+
+export function AssignmentEditorWorkspace({
+  assignmentId,
+}: {
+  assignmentId?: string;
+}) {
+  const [document, setDocument] = useState<AssignmentEditorDocument>({
+    assignmentId,
+    version: 1,
+    draft: structuredClone(EMPTY_ASSIGNMENT_DRAFT),
+  });
+  const [loadState, setLoadState] = useState(
+    assignmentId ? 'loading' : 'ready',
+  );
+  const [saveState, setSaveState] = useState<SaveState>('idle');
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [classId, setClassId] = useState('');
+  const [managedClasses, setManagedClasses] = useState<ManagedClassOption[]>(
+    [],
+  );
+  const [managedClassesState, setManagedClassesState] = useState<
+    'loading' | 'ready' | 'error'
+  >('loading');
+  const [availableAt, setAvailableAt] = useState('');
+  const [dueAt, setDueAt] = useState('');
+  const [publishMessage, setPublishMessage] = useState('');
+  const [published, setPublished] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const openerRef = useRef<HTMLButtonElement>(null);
+  const promptRef = useRef<HTMLTextAreaElement>(null);
+  const conflictRef = useRef<HTMLDivElement>(null);
+  const blockerRef = useRef<HTMLDivElement>(null);
+  const saveStatusRef = useRef<HTMLParagraphElement>(null);
+  const publishMessageRef = useRef<HTMLParagraphElement>(null);
+  const documentRef = useRef(document);
+  const debounceRef = useRef<number | null>(null);
+  const saveQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const validationFieldRefs = useRef(new Map<string, HTMLElement>());
+
+  const loadManagedClasses = useCallback(async () => {
+    setManagedClassesState('loading');
+    try {
+      const response = await fetch('/api/teacher/assignments/managed-classes', {
+        cache: 'no-store',
+      });
+      if (!response.ok) throw new Error('managed-classes');
+      const payload = (await response.json()) as {
+        classes?: ManagedClassOption[];
+      };
+      if (!Array.isArray(payload.classes)) throw new Error('managed-classes');
+      setManagedClasses(payload.classes);
+      setManagedClassesState('ready');
+    } catch {
+      setManagedClassesState('error');
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadManagedClasses();
+  }, [loadManagedClasses]);
+
+  useEffect(() => {
+    if (!assignmentId) return;
+    void fetch(`/api/teacher/assignments/${assignmentId}`, {
+      cache: 'no-store',
+    })
+      .then(async (response) => {
+        if (!response.ok) throw new Error('load');
+        const payload = (await response.json()) as {
+          assignment: Record<string, unknown>;
+        };
+        const revisions = payload.assignment.revisions as Array<
+          Record<string, unknown>
+        >;
+        if (!revisions.some((revision) => revision.state === 'DRAFT')) {
+          const next = await fetch(
+            `/api/teacher/assignments/${assignmentId}/next-draft`,
+            { method: 'POST' },
+          );
+          if (!next.ok) throw new Error('next-draft');
+          const nextPayload = (await next.json()) as {
+            revision: Record<string, unknown>;
+          };
+          const loaded = fromApiRevision(assignmentId, nextPayload.revision);
+          documentRef.current = loaded;
+          setDocument(loaded);
+        } else {
+          const loaded = fromApiAssignment(payload.assignment);
+          documentRef.current = loaded;
+          setDocument(loaded);
+        }
+        setLoadState('ready');
+      })
+      .catch(() => setLoadState('error'));
+  }, [assignmentId]);
+
+  const updateDraft = useCallback(
+    (updater: (draft: AssignmentDraftInput) => AssignmentDraftInput) => {
+      if (published) return;
+      setDocument((current) => {
+        const next = { ...current, draft: updater(current.draft) };
+        documentRef.current = next;
+        return next;
+      });
+      setSaveState('dirty');
+    },
+    [published],
+  );
+
+  const save = useCallback((): Promise<SaveResult | null> => {
+    if (published) return Promise.resolve(null);
+    if (debounceRef.current !== null) {
+      window.clearTimeout(debounceRef.current);
+      debounceRef.current = null;
+    }
+    const operation = saveQueueRef.current.then(async () => {
+      const snapshot = documentRef.current;
+      const draftFingerprint = canonicalFingerprint(snapshot.draft);
+      setSaveState('saving');
+      try {
+        const existing = snapshot.assignmentId && snapshot.revisionId;
+        const response = await fetch(
+          existing
+            ? `/api/teacher/assignments/${snapshot.assignmentId}`
+            : '/api/teacher/assignments',
+          {
+            method: existing ? 'PATCH' : 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(
+              existing
+                ? {
+                    revisionId: snapshot.revisionId,
+                    expectedVersion: snapshot.version,
+                    draft: snapshot.draft,
+                  }
+                : { draft: snapshot.draft },
+            ),
+          },
+        );
+        if (response.status === 409) {
+          setSaveState('conflict');
+          window.setTimeout(() => conflictRef.current?.focus(), 0);
+          return null;
+        }
+        if (!response.ok) {
+          setSaveState('error');
+          window.setTimeout(() => blockerRef.current?.focus(), 0);
+          return null;
+        }
+        const payload = (await response.json()) as Record<string, unknown>;
+        const saved = mergeSaveResponse(snapshot, payload);
+        documentRef.current = mergeSaveResponse(documentRef.current, payload);
+        setDocument((current) => {
+          const next = mergeSaveResponse(current, payload);
+          return next;
+        });
+        setSaveState('saved');
+        return { document: saved, draftFingerprint };
+      } catch {
+        setSaveState('error');
+        window.setTimeout(() => blockerRef.current?.focus(), 0);
+        return null;
+      }
+    });
+    saveQueueRef.current = operation.then(
+      () => undefined,
+      () => undefined,
+    );
+    return operation;
+  }, [published]);
+
+  useEffect(() => {
+    if (published || saveState !== 'dirty') return;
+    debounceRef.current = window.setTimeout(() => {
+      debounceRef.current = null;
+      void save();
+    }, 1200);
+    return () => {
+      if (debounceRef.current !== null)
+        window.clearTimeout(debounceRef.current);
+      debounceRef.current = null;
+    };
+  }, [published, save, saveState]);
+
+  useEffect(() => {
+    if (saveState === 'conflict') conflictRef.current?.focus();
+  }, [saveState]);
+
+  const blockers = useMemo(() => {
+    const parsed = assignmentDraftSchema.safeParse(document.draft);
+    const issues = parsed.success
+      ? validatePublicationScores(parsed.data)
+      : parsed.error.issues.map(
+          (issue) => `validation:${issue.path.join('.')}:${issue.message}`,
+        );
+    if (!document.draft.questions.length)
+      issues.push('assignment-has-no-questions');
+    if (!classId || !availableAt || !dueAt)
+      issues.push('publication-schedule-incomplete');
+    return issues;
+  }, [availableAt, classId, document.draft, dueAt]);
+
+  const registerValidationField =
+    (path: string) => (element: HTMLElement | null) => {
+      if (element) validationFieldRefs.current.set(path, element);
+      else validationFieldRefs.current.delete(path);
+    };
+  const focusBlocker = (blocker: string) => {
+    const path = validationPath(blocker);
+    const questionIndex = path?.match(/^questions\.(\d+)\./)?.[1];
+    if (questionIndex !== undefined) setActiveIndex(Number(questionIndex));
+    window.setTimeout(() => {
+      const exact = path ? validationFieldRefs.current.get(path) : null;
+      const nested = path
+        ? [...validationFieldRefs.current.entries()].find(([key]) =>
+            key.startsWith(`${path}.`),
+          )?.[1]
+        : null;
+      (exact ?? nested ?? blockerRef.current)?.focus();
+    }, 0);
+  };
+
+  const publish = async () => {
+    if (published || publishing) return;
+    setPublishing(true);
+    setPublishMessage('');
+    if (debounceRef.current !== null) {
+      window.clearTimeout(debounceRef.current);
+      debounceRef.current = null;
+    }
+    if (
+      !assignmentDraftSchema.safeParse(documentRef.current.draft).success ||
+      blockers.length
+    ) {
+      setPublishMessage('发布前请解决所有阻断项。');
+      focusBlocker(blockers[0]);
+      setPublishing(false);
+      return;
+    }
+    let saved: AssignmentEditorDocument | null = null;
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      const result = await save();
+      if (!result) {
+        setPublishMessage('最新草稿保存失败，未执行发布。');
+        setPublishing(false);
+        return;
+      }
+      if (
+        result.draftFingerprint ===
+        canonicalFingerprint(documentRef.current.draft)
+      ) {
+        saved = result.document;
+        break;
+      }
+    }
+    if (!saved?.assignmentId || !saved.revisionId) {
+      setPublishMessage('草稿持续变化，请停止编辑后重试发布。');
+      setPublishing(false);
+      return;
+    }
+    try {
+      const response = await fetch(
+        `/api/teacher/assignments/${saved.assignmentId}/publish`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            revisionId: saved.revisionId,
+            expectedVersion: saved.version,
+            idempotencyKey: `assignment-ui:${saved.assignmentId}:${saved.revisionId}:${saved.version}`,
+            audiences: [
+              {
+                classId,
+                availableAt: new Date(availableAt).toISOString(),
+                dueAt: new Date(dueAt).toISOString(),
+              },
+            ],
+          }),
+        },
+      );
+      if (response.ok) {
+        setPublished(true);
+        setPublishMessage('作业已发布，当前版本已冻结。');
+      } else {
+        const payload = (await response.json().catch(() => ({}))) as {
+          details?: string[];
+        };
+        setPublishMessage(
+          payload.details?.join('；') ?? '发布失败，请核对发布计划。',
+        );
+        window.setTimeout(() => publishMessageRef.current?.focus(), 0);
+      }
+    } catch {
+      setPublishMessage('发布请求失败，请检查网络后重试。');
+      window.setTimeout(() => publishMessageRef.current?.focus(), 0);
+    } finally {
+      setPublishing(false);
+    }
+  };
+
+  const selectQuestion = async (
+    item: GovernedQuestionSummary,
+  ): Promise<boolean> => {
+    try {
+      const response = await fetch(
+        '/api/teacher/assignments/question-catalog',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sourceId: item.sourceId }),
+        },
+      );
+      if (!response.ok) return false;
+      const payload = (await response.json()) as {
+        question?: EditableQuestion;
+      };
+      if (!payload.question) return false;
+      const nextIndex = documentRef.current.draft.questions.length;
+      updateDraft((draft) => ({
+        ...draft,
+        questions: [...draft.questions, payload.question!],
+      }));
+      setActiveIndex(nextIndex);
+      window.setTimeout(() => promptRef.current?.focus(), 0);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  if (loadState === 'loading')
+    return (
+      <main className="p-8" data-operations-status-semantics="loading">
+        <p role="status">正在加载作业编辑器……</p>
+      </main>
+    );
+  if (loadState === 'error')
+    return (
+      <main className="p-8" data-operations-status-semantics="error">
+        <p role="alert">作业暂时无法加载。</p>
+        <Link href="/teacher/assignments">返回作业列表</Link>
+      </main>
+    );
+
+  const question = document.draft.questions[activeIndex];
+  return (
+    <main
+      className="surface-page min-h-screen px-4 py-6 md:px-6"
+      data-commercial-operations-workspace="teacher-operations"
+      data-commercial-workspace-zone="instrument-area"
+      data-operations-status-semantics={
+        published
+          ? 'published-frozen'
+          : saveState === 'conflict'
+            ? 'conflict'
+            : 'draft'
+      }
+      aria-readonly={published}
+    >
+      <section className="md:hidden" aria-label="移动端作业状态">
+        <Link
+          href="/teacher/assignments"
+          className="inline-flex items-center gap-1 text-sm text-cyan-300"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          返回作业
+        </Link>
+        <div className="mt-6 rounded-2xl border border-slate-700 bg-slate-900 p-5">
+          <p className="text-xs text-cyan-300">版本 v{document.version}</p>
+          <h1 className="mt-2 break-words text-2xl font-semibold text-white">
+            {document.draft.title}
+          </h1>
+          <dl className="mt-5 space-y-3 text-sm">
+            <div>
+              <dt className="text-slate-500">保存状态</dt>
+              <dd className="text-slate-100">{saveLabel(saveState)}</dd>
+            </div>
+            <div>
+              <dt className="text-slate-500">发布阻断</dt>
+              <dd className="break-words text-slate-100">
+                {blockers.length ? `${blockers.length} 项待处理` : '无'}
+              </dd>
+            </div>
+          </dl>
+          <p className="mt-6 rounded-lg bg-amber-950/40 p-4 text-sm text-amber-200">
+            请在平板或桌面端继续编辑。
+          </p>
+        </div>
+      </section>
+
+      <section className="hidden md:block">
+        <header className="mb-5 flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-5">
+          <div>
+            <Link
+              href="/teacher/assignments"
+              className="inline-flex items-center gap-1 text-sm text-slate-400 hover:text-cyan-300"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              返回作业
+            </Link>
+            <input
+              ref={
+                registerValidationField('title') as React.Ref<HTMLInputElement>
+              }
+              aria-label="作业标题"
+              aria-describedby="assignment-validation-errors"
+              value={document.draft.title}
+              onChange={(event) =>
+                updateDraft((draft) => ({
+                  ...draft,
+                  title: event.target.value,
+                }))
+              }
+              className="mt-2 block w-full max-w-xl bg-transparent text-2xl font-semibold text-white outline-none focus:ring-2 focus:ring-cyan-500"
+            />
+            <p className="mt-1 text-xs text-slate-500">
+              版本 v{document.version}·解答发布策略{' '}
+              {document.draft.solutionReleasePolicy.mode === 'PRIVATE'
+                ? '仅教师可见'
+                : '按时发布'}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setPreviewOpen((value) => !value)}
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-700 px-4"
+            >
+              <Eye className="h-4 w-4" />
+              预览
+            </button>
+            <button
+              type="button"
+              onClick={() => void save()}
+              disabled={published}
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-700 px-4 disabled:opacity-60"
+            >
+              <Save className="h-4 w-4" />
+              保存
+            </button>
+            <button
+              type="button"
+              onClick={() => void publish()}
+              disabled={published || publishing}
+              aria-busy={publishing}
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-cyan-600 px-4 font-medium text-white disabled:opacity-60"
+            >
+              <Send className="h-4 w-4" />
+              发布
+            </button>
+          </div>
+        </header>
+        <p
+          ref={saveStatusRef}
+          tabIndex={-1}
+          role="status"
+          aria-live="polite"
+          className="mb-4 text-sm text-slate-400"
+        >
+          自动保存：{saveLabel(saveState)}
+        </p>
+        {saveState === 'conflict' && (
+          <div
+            ref={conflictRef}
+            tabIndex={-1}
+            role="alert"
+            className="mb-4 rounded-xl border border-amber-500/50 bg-amber-950/30 p-4"
+          >
+            <h2 className="font-semibold text-amber-200">检测到新版本</h2>
+            <p className="mt-1 text-sm text-amber-100">
+              服务器上的草稿已变更。重新加载后再合并本地内容。
+            </p>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="mt-3 min-h-11 rounded-lg border border-amber-400 px-4"
+            >
+              重新加载
+            </button>
+          </div>
+        )}
+        <div className="grid min-h-[62vh] grid-cols-[13rem_minmax(0,1fr)_18rem] gap-4">
+          <aside
+            aria-label="题目大纲"
+            className="rounded-xl border border-slate-800 bg-slate-900/60 p-3"
+          >
+            <h2 className="px-2 text-sm font-semibold text-white">题目大纲</h2>
+            <div className="mt-3 space-y-2">
+              {document.draft.questions.map((entry, index) => (
+                <div
+                  key={entry.stableQuestionId}
+                  className={`rounded-lg border p-2 ${index === activeIndex ? 'border-cyan-500 bg-cyan-950/30' : 'border-slate-700'}`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveIndex(index);
+                      window.setTimeout(() => promptRef.current?.focus(), 0);
+                    }}
+                    className="min-h-11 w-full text-left text-sm"
+                  >
+                    第 {index + 1} 题·{entry.points} 分
+                  </button>
+                  <div className="flex gap-1">
+                    <button
+                      type="button"
+                      aria-label={`上移第 ${index + 1} 题`}
+                      disabled={index === 0}
+                      onClick={() =>
+                        moveQuestion(
+                          index,
+                          -1,
+                          document.draft,
+                          updateDraft,
+                          setActiveIndex,
+                        )
+                      }
+                      className="grid h-10 w-10 place-items-center disabled:opacity-30"
+                    >
+                      <ChevronUp className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`下移第 ${index + 1} 题`}
+                      disabled={index === document.draft.questions.length - 1}
+                      onClick={() =>
+                        moveQuestion(
+                          index,
+                          1,
+                          document.draft,
+                          updateDraft,
+                          setActiveIndex,
+                        )
+                      }
+                      className="grid h-10 w-10 place-items-center disabled:opacity-30"
+                    >
+                      <ChevronDown className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`删除第 ${index + 1} 题`}
+                      onClick={() => {
+                        updateDraft((draft) => ({
+                          ...draft,
+                          questions: draft.questions.filter(
+                            (_, itemIndex) => itemIndex !== index,
+                          ),
+                        }));
+                        setActiveIndex(Math.max(0, index - 1));
+                      }}
+                      className="grid h-10 w-10 place-items-center text-rose-300"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                updateDraft((draft) => ({
+                  ...draft,
+                  questions: [
+                    ...draft.questions,
+                    manualQuestion(draft.questions.length),
+                  ],
+                }));
+                setActiveIndex(document.draft.questions.length);
+                window.setTimeout(() => promptRef.current?.focus(), 0);
+              }}
+              className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-slate-700"
+            >
+              <Plus className="h-4 w-4" />
+              新建题目
+            </button>
+            <button
+              ref={openerRef}
+              type="button"
+              onClick={() => setPickerOpen(true)}
+              className="mt-2 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-cyan-700 text-cyan-200"
+            >
+              <Library className="h-4 w-4" />
+              从题库选择
+            </button>
+          </aside>
+          <section
+            aria-label="作业题目编辑"
+            className="space-y-4 overflow-y-auto rounded-xl border border-slate-800 bg-slate-900/60 p-5"
+          >
+            <label className="block text-xs text-slate-400">
+              作业说明
+              <textarea
+                aria-label="作业说明"
+                value={document.draft.instructions}
+                onChange={(event) =>
+                  updateDraft((draft) => ({
+                    ...draft,
+                    instructions: event.target.value,
+                  }))
+                }
+                className="mt-1 min-h-24 w-full rounded-lg border border-slate-700 bg-slate-950 p-3"
+              />
+            </label>
+            {question ? (
+              <QuestionEditor
+                question={question}
+                questionIndex={activeIndex}
+                registerValidationField={registerValidationField}
+                promptRef={promptRef}
+                onChange={(next) =>
+                  updateDraft((draft) => ({
+                    ...draft,
+                    questions: draft.questions.map((item, index) =>
+                      index === activeIndex ? next : item,
+                    ),
+                  }))
+                }
+              />
+            ) : (
+              <div className="grid min-h-80 place-items-center text-center">
+                <div>
+                  <h2 className="text-lg font-semibold text-white">
+                    尚未添加题目
+                  </h2>
+                  <p className="mt-2 text-sm text-slate-400">
+                    新建题目或从受治理题库中选择。
+                  </p>
+                </div>
+              </div>
+            )}
+          </section>
+          <aside
+            aria-label="发布设置"
+            className="space-y-4 rounded-xl border border-slate-800 bg-slate-900/60 p-4"
+          >
+            <h2 className="font-semibold text-white">发布设置</h2>
+            <label className="block text-xs text-slate-400">
+              作业总分
+              <input
+                type="number"
+                step="0.01"
+                min="0.01"
+                max="10000"
+                value={document.draft.totalPoints}
+                onChange={(event) =>
+                  updateDraft((draft) => ({
+                    ...draft,
+                    totalPoints: Number(event.target.value),
+                  }))
+                }
+                className="mt-1 min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3"
+              />
+            </label>
+            {managedClassesState === 'loading' && (
+              <p role="status" className="text-xs text-slate-400">
+                正在加载可管理班级……
+              </p>
+            )}
+            {managedClassesState === 'error' && (
+              <div
+                role="alert"
+                className="rounded-lg border border-rose-800 p-3 text-xs text-rose-200"
+              >
+                可管理班级加载失败。
+                <button
+                  type="button"
+                  onClick={() => void loadManagedClasses()}
+                  className="ml-2 underline"
+                >
+                  重试
+                </button>
+              </div>
+            )}
+            {managedClassesState === 'ready' && managedClasses.length === 0 && (
+              <p className="rounded-lg border border-slate-700 p-3 text-xs text-slate-400">
+                暂无可发布的活跃班级，请先创建或启用班级。
+              </p>
+            )}
+            {managedClassesState === 'ready' && managedClasses.length > 0 && (
+              <label className="block text-xs text-slate-400">
+                发布班级
+                <select
+                  aria-label="发布班级"
+                  value={classId}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    setClassId(value);
+                    updateDraft((draft) =>
+                      draft.solutionReleasePolicy.mode === 'AT_TIME'
+                        ? {
+                            ...draft,
+                            solutionReleasePolicy: {
+                              ...draft.solutionReleasePolicy,
+                              audienceClassIds: value ? [value] : [],
+                            },
+                          }
+                        : draft,
+                    );
+                  }}
+                  className="mt-1 min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3"
+                >
+                  <option value="">请选择可管理班级</option>
+                  {managedClasses.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.name}（{item.code}）
+                      {[item.year, item.semester].filter(Boolean).length
+                        ? ` · ${[item.year, item.semester].filter(Boolean).join(' ')}`
+                        : ''}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+            <label className="block text-xs text-slate-400">
+              开放时间
+              <input
+                type="datetime-local"
+                value={availableAt}
+                onChange={(event) => setAvailableAt(event.target.value)}
+                className="mt-1 min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3"
+              />
+            </label>
+            <label className="block text-xs text-slate-400">
+              截止时间
+              <input
+                type="datetime-local"
+                value={dueAt}
+                onChange={(event) => setDueAt(event.target.value)}
+                className="mt-1 min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3"
+              />
+            </label>
+            <label className="block text-xs text-slate-400">
+              迟交策略
+              <select
+                ref={
+                  registerValidationField(
+                    'latePolicy.mode',
+                  ) as React.Ref<HTMLSelectElement>
+                }
+                aria-label="迟交策略"
+                aria-describedby="assignment-validation-errors"
+                value={document.draft.latePolicy.mode}
+                onChange={(event) =>
+                  updateDraft((draft) => ({
+                    ...draft,
+                    latePolicy:
+                      event.target.value === 'CLOSED'
+                        ? { version: 1, mode: 'CLOSED' }
+                        : {
+                            version: 1,
+                            mode: 'ALLOW',
+                            penaltyPercentPerDay: 0,
+                          },
+                  }))
+                }
+                className="mt-1 min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3"
+              >
+                <option value="CLOSED">截止后关闭</option>
+                <option value="ALLOW">允许迟交</option>
+              </select>
+            </label>
+            {document.draft.latePolicy.mode === 'ALLOW' && (
+              <label className="block text-xs text-slate-400">
+                每日扣分百分比
+                <input
+                  ref={
+                    registerValidationField(
+                      'latePolicy.penaltyPercentPerDay',
+                    ) as React.Ref<HTMLInputElement>
+                  }
+                  aria-label="每日扣分百分比"
+                  aria-describedby="assignment-validation-errors"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="100"
+                  value={document.draft.latePolicy.penaltyPercentPerDay}
+                  onChange={(event) =>
+                    updateDraft((draft) => ({
+                      ...draft,
+                      latePolicy: {
+                        version: 1,
+                        mode: 'ALLOW',
+                        penaltyPercentPerDay: Number(event.target.value),
+                      },
+                    }))
+                  }
+                />
+              </label>
+            )}
+            <label className="block text-xs text-slate-400">
+              允许作答类型
+              <select
+                ref={
+                  registerValidationField(
+                    'responsePolicy.allowedResponseTypes',
+                  ) as React.Ref<HTMLSelectElement>
+                }
+                aria-label="允许作答类型"
+                aria-describedby="assignment-validation-errors"
+                value={
+                  document.draft.responsePolicy.allowedResponseTypes.length ===
+                  2
+                    ? 'BOTH'
+                    : document.draft.responsePolicy.allowedResponseTypes[0]
+                }
+                onChange={(event) =>
+                  updateDraft((draft) => ({
+                    ...draft,
+                    responsePolicy: {
+                      version: 1,
+                      allowedResponseTypes:
+                        event.target.value === 'BOTH'
+                          ? ['SUBJECTIVE_TEXT', 'SUBJECTIVE_FILE']
+                          : [
+                              event.target.value as
+                                'SUBJECTIVE_TEXT' | 'SUBJECTIVE_FILE',
+                            ],
+                    },
+                  }))
+                }
+              >
+                <option value="SUBJECTIVE_TEXT">文本</option>
+                <option value="SUBJECTIVE_FILE">文件</option>
+                <option value="BOTH">文本与文件</option>
+              </select>
+            </label>
+            <label className="block text-xs text-slate-400">
+              最多提交次数
+              <input
+                ref={
+                  registerValidationField(
+                    'resubmissionPolicy.maxAttempts',
+                  ) as React.Ref<HTMLInputElement>
+                }
+                aria-label="最多提交次数"
+                aria-describedby="assignment-validation-errors"
+                type="number"
+                step="1"
+                min="1"
+                max="20"
+                value={document.draft.resubmissionPolicy.maxAttempts}
+                onChange={(event) =>
+                  updateDraft((draft) => ({
+                    ...draft,
+                    resubmissionPolicy: {
+                      ...draft.resubmissionPolicy,
+                      maxAttempts: Number(event.target.value),
+                    },
+                  }))
+                }
+              />
+            </label>
+            <label className="flex items-center gap-2 text-xs text-slate-400">
+              <input
+                aria-label="仅截止前允许重交"
+                type="checkbox"
+                checked={document.draft.resubmissionPolicy.untilDueAt}
+                onChange={(event) =>
+                  updateDraft((draft) => ({
+                    ...draft,
+                    resubmissionPolicy: {
+                      ...draft.resubmissionPolicy,
+                      untilDueAt: event.target.checked,
+                    },
+                  }))
+                }
+              />
+              仅截止前允许重交
+            </label>
+            <label className="block text-xs text-slate-400">
+              参考答案发布
+              <select
+                value={document.draft.solutionReleasePolicy.mode}
+                onChange={(event) =>
+                  updateDraft((draft) => ({
+                    ...draft,
+                    solutionReleasePolicy:
+                      event.target.value === 'PRIVATE'
+                        ? { version: 1, mode: 'PRIVATE' }
+                        : {
+                            version: 1,
+                            mode: 'AT_TIME',
+                            releaseAt: new Date(
+                              Date.now() + 86_400_000,
+                            ).toISOString(),
+                            audienceClassIds: classId ? [classId] : [],
+                            includeReferenceAnswer: true,
+                            includeStudentVisibleGuidance: true,
+                          },
+                  }))
+                }
+                className="mt-1 min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3"
+              >
+                <option value="PRIVATE">仅教师可见</option>
+                <option value="AT_TIME">按时发布</option>
+              </select>
+            </label>
+            {document.draft.solutionReleasePolicy.mode === 'AT_TIME' && (
+              <>
+                <label className="block text-xs text-slate-400">
+                  解答发布时间
+                  <input
+                    aria-label="解答发布时间"
+                    type="datetime-local"
+                    value={toLocalDateTime(
+                      document.draft.solutionReleasePolicy.releaseAt,
+                    )}
+                    onChange={(event) =>
+                      updateDraft((draft) =>
+                        draft.solutionReleasePolicy.mode === 'AT_TIME'
+                          ? {
+                              ...draft,
+                              solutionReleasePolicy: {
+                                ...draft.solutionReleasePolicy,
+                                releaseAt: new Date(
+                                  event.target.value,
+                                ).toISOString(),
+                              },
+                            }
+                          : draft,
+                      )
+                    }
+                  />
+                </label>
+                <label className="flex items-center gap-2 text-xs">
+                  <input
+                    aria-label="发布参考答案"
+                    type="checkbox"
+                    checked={
+                      document.draft.solutionReleasePolicy
+                        .includeReferenceAnswer
+                    }
+                    onChange={(event) =>
+                      updateDraft((draft) =>
+                        draft.solutionReleasePolicy.mode === 'AT_TIME'
+                          ? {
+                              ...draft,
+                              solutionReleasePolicy: {
+                                ...draft.solutionReleasePolicy,
+                                includeReferenceAnswer: event.target.checked,
+                              },
+                            }
+                          : draft,
+                      )
+                    }
+                  />
+                  发布参考答案
+                </label>
+                <label className="flex items-center gap-2 text-xs">
+                  <input
+                    aria-label="发布学生指导"
+                    type="checkbox"
+                    checked={
+                      document.draft.solutionReleasePolicy
+                        .includeStudentVisibleGuidance
+                    }
+                    onChange={(event) =>
+                      updateDraft((draft) =>
+                        draft.solutionReleasePolicy.mode === 'AT_TIME'
+                          ? {
+                              ...draft,
+                              solutionReleasePolicy: {
+                                ...draft.solutionReleasePolicy,
+                                includeStudentVisibleGuidance:
+                                  event.target.checked,
+                              },
+                            }
+                          : draft,
+                      )
+                    }
+                  />
+                  发布学生指导
+                </label>
+              </>
+            )}
+            <div
+              id="assignment-validation-errors"
+              ref={blockerRef}
+              tabIndex={-1}
+              className="rounded-lg border border-amber-700/50 bg-amber-950/30 p-3"
+            >
+              <h3 className="flex items-center gap-2 text-sm font-medium text-amber-200">
+                <AlertTriangle className="h-4 w-4" />
+                发布阻断项
+              </h3>
+              {blockers.length ? (
+                <ul className="mt-2 space-y-1 text-xs text-amber-100">
+                  {blockers.map((entry) => (
+                    <li key={entry}>
+                      <button
+                        type="button"
+                        onClick={() => focusBlocker(entry)}
+                        className="text-left underline"
+                      >
+                        {blockerLabel(entry)}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-2 flex items-center gap-1 text-xs text-emerald-300">
+                  <Check className="h-4 w-4" />
+                  已通过本地检查
+                </p>
+              )}
+            </div>
+            {publishMessage && (
+              <p
+                ref={publishMessageRef}
+                tabIndex={-1}
+                role="alert"
+                className="text-sm text-amber-200"
+              >
+                {publishMessage}
+              </p>
+            )}
+          </aside>
+        </div>
+        {previewOpen && (
+          <section
+            aria-label="作业预览"
+            className="mt-4 rounded-xl border border-cyan-700 bg-slate-900 p-5"
+          >
+            <h2 className="text-lg font-semibold text-white">学生视图预览</h2>
+            <p className="mt-2 text-slate-300">
+              {document.draft.instructions || '暂无作业说明'}
+            </p>
+            <ol className="mt-4 list-decimal space-y-3 pl-5">
+              {document.draft.questions.map((entry) => (
+                <li key={entry.stableQuestionId}>
+                  {entry.prompt}（{entry.points} 分）
+                </li>
+              ))}
+            </ol>
+          </section>
+        )}
+      </section>
+      <GovernedQuestionPicker
+        open={pickerOpen}
+        onClose={() => {
+          setPickerOpen(false);
+          window.setTimeout(() => openerRef.current?.focus(), 0);
+        }}
+        onSelect={selectQuestion}
+      />
+    </main>
+  );
+}
+
+type EditableQuestion = AssignmentDraftInput['questions'][number];
+
+function QuestionEditor({
+  question,
+  questionIndex,
+  registerValidationField,
+  promptRef,
+  onChange,
+}: {
+  question: EditableQuestion;
+  questionIndex: number;
+  registerValidationField: (
+    path: string,
+  ) => (element: HTMLElement | null) => void;
+  promptRef: React.RefObject<HTMLTextAreaElement | null>;
+  onChange: (question: EditableQuestion) => void;
+}) {
+  const updateCriterion = (
+    index: number,
+    update: (
+      criterion: EditableQuestion['rubric']['criteria'][number],
+    ) => EditableQuestion['rubric']['criteria'][number],
+  ) =>
+    onChange({
+      ...question,
+      rubric: {
+        ...question.rubric,
+        criteria: question.rubric.criteria.map((criterion, itemIndex) =>
+          itemIndex === index ? update(criterion) : criterion,
+        ),
+      },
+    });
+  return (
+    <>
+      <section aria-labelledby="prompt-title">
+        <h2 id="prompt-title" className="text-lg font-semibold text-white">
+          题面
+        </h2>
+        <label className="mt-2 block text-xs text-slate-400">
+          作答类型
+          <select
+            ref={
+              registerValidationField(
+                `questions.${questionIndex}.responseType`,
+              ) as React.Ref<HTMLSelectElement>
+            }
+            aria-label="作答类型"
+            aria-describedby="assignment-validation-errors"
+            value={question.responseType}
+            onChange={(event) =>
+              onChange({
+                ...question,
+                responseType: event.target
+                  .value as EditableQuestion['responseType'],
+              })
+            }
+            className="mt-1 min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3"
+          >
+            <option value="SUBJECTIVE_TEXT">文本作答</option>
+            <option value="SUBJECTIVE_FILE">文件作答</option>
+          </select>
+        </label>
+        <textarea
+          ref={promptRef}
+          aria-label="题面"
+          value={question.prompt}
+          onChange={(event) =>
+            onChange({ ...question, prompt: event.target.value })
+          }
+          className="mt-2 min-h-36 w-full rounded-xl border border-slate-700 bg-slate-950 p-3"
+        />
+      </section>
+      <section aria-labelledby="answer-title">
+        <h2 id="answer-title" className="text-lg font-semibold text-white">
+          参考答案
+        </h2>
+        <textarea
+          aria-label="参考答案"
+          value={question.referenceAnswer}
+          onChange={(event) =>
+            onChange({ ...question, referenceAnswer: event.target.value })
+          }
+          className="mt-2 min-h-28 w-full rounded-xl border border-slate-700 bg-slate-950 p-3"
+        />
+      </section>
+      <section aria-labelledby="rubric-title">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 id="rubric-title" className="text-lg font-semibold text-white">
+              评分标准
+            </h2>
+            <p className="mt-1 text-xs text-slate-400">
+              分值最多保留两位小数；档位按 0.01 分连续覆盖最高分至 0 分。
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() =>
+              onChange({
+                ...question,
+                rubric: {
+                  ...question.rubric,
+                  criteria: [...question.rubric.criteria, newCriterion()],
+                },
+              })
+            }
+            className="min-h-11 rounded-lg border border-slate-700 px-3"
+          >
+            添加评分项
+          </button>
+        </div>
+        <label className="mt-2 block text-xs text-slate-400">
+          题目分值
+          <input
+            type="number"
+            step="0.01"
+            min="0.01"
+            max="10000"
+            value={question.points}
+            onChange={(event) =>
+              onChange({ ...question, points: Number(event.target.value) })
+            }
+            className="mt-1 min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3"
+          />
+        </label>
+        {question.rubric.criteria.map((criterion, index) => (
+          <article
+            key={criterion.id}
+            className="mt-3 rounded-xl border border-slate-700 p-3"
+          >
+            <div className="flex gap-2">
+              <input
+                ref={
+                  registerValidationField(
+                    `questions.${questionIndex}.rubric.criteria.${index}.label`,
+                  ) as React.Ref<HTMLInputElement>
+                }
+                aria-label={`评分项 ${index + 1} 名称`}
+                aria-describedby="assignment-validation-errors"
+                value={criterion.label}
+                onChange={(event) =>
+                  updateCriterion(index, (item) => ({
+                    ...item,
+                    label: event.target.value,
+                  }))
+                }
+                className="min-h-11 flex-1 rounded-lg border border-slate-700 bg-slate-950 px-3"
+              />
+              <button
+                type="button"
+                aria-label={`上移评分项 ${index + 1}`}
+                disabled={index === 0}
+                onClick={() =>
+                  onChange({
+                    ...question,
+                    rubric: {
+                      ...question.rubric,
+                      criteria: moveItem(question.rubric.criteria, index, -1),
+                    },
+                  })
+                }
+              >
+                ↑
+              </button>
+              <button
+                type="button"
+                aria-label={`下移评分项 ${index + 1}`}
+                disabled={index === question.rubric.criteria.length - 1}
+                onClick={() =>
+                  onChange({
+                    ...question,
+                    rubric: {
+                      ...question.rubric,
+                      criteria: moveItem(question.rubric.criteria, index, 1),
+                    },
+                  })
+                }
+              >
+                ↓
+              </button>
+              <button
+                type="button"
+                aria-label={`删除评分项 ${index + 1}`}
+                disabled={question.rubric.criteria.length === 1}
+                onClick={() =>
+                  onChange({
+                    ...question,
+                    rubric: {
+                      ...question.rubric,
+                      criteria: question.rubric.criteria.filter(
+                        (_, itemIndex) => itemIndex !== index,
+                      ),
+                    },
+                  })
+                }
+              >
+                删除
+              </button>
+            </div>
+            <div className="mt-2 grid gap-2 md:grid-cols-2">
+              <label className="text-xs text-slate-400">
+                最高分
+                <input
+                  ref={
+                    registerValidationField(
+                      `questions.${questionIndex}.rubric.criteria.${index}.maxPoints`,
+                    ) as React.Ref<HTMLInputElement>
+                  }
+                  type="number"
+                  aria-describedby="assignment-validation-errors"
+                  step="0.01"
+                  min="0.01"
+                  max="10000"
+                  value={criterion.maxPoints}
+                  onChange={(event) =>
+                    updateCriterion(index, (item) => ({
+                      ...item,
+                      maxPoints: Number(event.target.value),
+                    }))
+                  }
+                  className="mt-1 min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3"
+                />
+              </label>
+              <label className="text-xs text-slate-400">
+                学生可见指导
+                <input
+                  value={criterion.studentVisibleGuidance ?? ''}
+                  onChange={(event) =>
+                    updateCriterion(index, (item) => ({
+                      ...item,
+                      studentVisibleGuidance: event.target.value,
+                    }))
+                  }
+                  className="mt-1 min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3"
+                />
+              </label>
+            </div>
+            <label className="mt-2 block text-xs text-slate-400">
+              证据描述
+              <textarea
+                value={criterion.evidenceDescription}
+                onChange={(event) =>
+                  updateCriterion(index, (item) => ({
+                    ...item,
+                    evidenceDescription: event.target.value,
+                  }))
+                }
+                className="mt-1 min-h-20 w-full rounded-lg border border-slate-700 bg-slate-950 p-3"
+              />
+            </label>
+            <label className="mt-2 block text-xs text-slate-400">
+              反馈指导
+              <textarea
+                value={criterion.feedbackGuidance}
+                onChange={(event) =>
+                  updateCriterion(index, (item) => ({
+                    ...item,
+                    feedbackGuidance: event.target.value,
+                  }))
+                }
+                className="mt-1 min-h-20 w-full rounded-lg border border-slate-700 bg-slate-950 p-3"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={() =>
+                updateCriterion(index, (item) => ({
+                  ...item,
+                  levels: [...item.levels, newLevel()],
+                }))
+              }
+              className="mt-2 min-h-10 rounded-lg border border-slate-700 px-3 text-xs"
+            >
+              添加分数档位
+            </button>
+            {criterion.levels.map((level, levelIndex) => (
+              <div
+                key={level.id}
+                className="mt-2 grid gap-2 rounded-lg bg-slate-950/60 p-2 md:grid-cols-4"
+              >
+                <input
+                  ref={
+                    registerValidationField(
+                      `questions.${questionIndex}.rubric.criteria.${index}.levels.${levelIndex}.label`,
+                    ) as React.Ref<HTMLInputElement>
+                  }
+                  aria-label={`评分项 ${index + 1} 档位 ${levelIndex + 1} 名称`}
+                  aria-describedby="assignment-validation-errors"
+                  value={level.label}
+                  onChange={(event) =>
+                    updateCriterion(index, (item) => ({
+                      ...item,
+                      levels: item.levels.map((entry, itemIndex) =>
+                        itemIndex === levelIndex
+                          ? { ...entry, label: event.target.value }
+                          : entry,
+                      ),
+                    }))
+                  }
+                />
+                <input
+                  ref={
+                    registerValidationField(
+                      `questions.${questionIndex}.rubric.criteria.${index}.levels.${levelIndex}.minPoints`,
+                    ) as React.Ref<HTMLInputElement>
+                  }
+                  aria-label={`评分项 ${index + 1} 档位 ${levelIndex + 1} 最低分`}
+                  aria-describedby="assignment-validation-errors"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max={criterion.maxPoints}
+                  value={level.minPoints}
+                  onChange={(event) =>
+                    updateCriterion(index, (item) => ({
+                      ...item,
+                      levels: item.levels.map((entry, itemIndex) =>
+                        itemIndex === levelIndex
+                          ? { ...entry, minPoints: Number(event.target.value) }
+                          : entry,
+                      ),
+                    }))
+                  }
+                />
+                <input
+                  ref={
+                    registerValidationField(
+                      `questions.${questionIndex}.rubric.criteria.${index}.levels.${levelIndex}.maxPoints`,
+                    ) as React.Ref<HTMLInputElement>
+                  }
+                  aria-label={`评分项 ${index + 1} 档位 ${levelIndex + 1} 最高分`}
+                  aria-describedby="assignment-validation-errors"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max={criterion.maxPoints}
+                  value={level.maxPoints}
+                  onChange={(event) =>
+                    updateCriterion(index, (item) => ({
+                      ...item,
+                      levels: item.levels.map((entry, itemIndex) =>
+                        itemIndex === levelIndex
+                          ? { ...entry, maxPoints: Number(event.target.value) }
+                          : entry,
+                      ),
+                    }))
+                  }
+                />
+                <div>
+                  <input
+                    aria-label={`评分项 ${index + 1} 档位 ${levelIndex + 1} 描述`}
+                    value={level.description}
+                    onChange={(event) =>
+                      updateCriterion(index, (item) => ({
+                        ...item,
+                        levels: item.levels.map((entry, itemIndex) =>
+                          itemIndex === levelIndex
+                            ? { ...entry, description: event.target.value }
+                            : entry,
+                        ),
+                      }))
+                    }
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      aria-label={`上移档位 ${levelIndex + 1}`}
+                      disabled={levelIndex === 0}
+                      onClick={() =>
+                        updateCriterion(index, (item) => ({
+                          ...item,
+                          levels: moveItem(item.levels, levelIndex, -1),
+                        }))
+                      }
+                    >
+                      ↑
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`下移档位 ${levelIndex + 1}`}
+                      disabled={levelIndex === criterion.levels.length - 1}
+                      onClick={() =>
+                        updateCriterion(index, (item) => ({
+                          ...item,
+                          levels: moveItem(item.levels, levelIndex, 1),
+                        }))
+                      }
+                    >
+                      ↓
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`删除档位 ${levelIndex + 1}`}
+                      disabled={criterion.levels.length === 1}
+                      onClick={() =>
+                        updateCriterion(index, (item) => ({
+                          ...item,
+                          levels: item.levels.filter(
+                            (_, itemIndex) => itemIndex !== levelIndex,
+                          ),
+                        }))
+                      }
+                    >
+                      删除
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </article>
+        ))}
+      </section>
+    </>
+  );
+}
+
+function manualQuestion(index: number): EditableQuestion {
+  return {
+    stableQuestionId: `manual-${Date.now()}-${index}`,
+    responseType: 'SUBJECTIVE_TEXT',
+    points: 10,
+    prompt: '请输入题面',
+    referenceAnswer: '请输入参考答案',
+    rubric: {
+      schemaVersion: 'assignment-analytic-rubric.v1',
+      criteria: [
+        {
+          id: 'criterion-1',
+          label: '完成质量',
+          maxPoints: 10,
+          evidenceDescription: '根据作答证据评分',
+          feedbackGuidance: '指出关键得分点与改进建议',
+          levels: [
+            {
+              id: 'level-1',
+              label: '达成',
+              minPoints: 0,
+              maxPoints: 10,
+              description: '按证据判定',
+            },
+          ],
+        },
+      ],
+    },
+    source: { family: 'MANUAL', authoringMarker: 'assignment-authoring' },
+  };
+}
+function newCriterion(): EditableQuestion['rubric']['criteria'][number] {
+  const id = `criterion-${Date.now()}`;
+  return {
+    id,
+    label: '新评分项',
+    maxPoints: 1,
+    evidenceDescription: '说明可复核证据。',
+    feedbackGuidance: '说明反馈重点。',
+    levels: [
+      {
+        id: `${id}-level`,
+        label: '达成程度',
+        minPoints: 0,
+        maxPoints: 1,
+        description: '依据证据评分。',
+      },
+    ],
+  };
+}
+function newLevel(): EditableQuestion['rubric']['criteria'][number]['levels'][number] {
+  return {
+    id: `level-${Date.now()}`,
+    label: '新档位',
+    minPoints: 0,
+    maxPoints: 0,
+    description: '说明该档位的证据要求。',
+  };
+}
+function moveItem<T>(items: T[], index: number, delta: number): T[] {
+  const next = [...items];
+  const target = index + delta;
+  [next[index], next[target]] = [next[target], next[index]];
+  return next;
+}
+function moveQuestion(
+  index: number,
+  delta: number,
+  draft: AssignmentDraftInput,
+  update: (
+    updater: (draft: AssignmentDraftInput) => AssignmentDraftInput,
+  ) => void,
+  setActive: (index: number) => void,
+) {
+  const nextIndex = index + delta;
+  const questions = [...draft.questions];
+  [questions[index], questions[nextIndex]] = [
+    questions[nextIndex],
+    questions[index],
+  ];
+  update((current) => ({ ...current, questions }));
+  setActive(nextIndex);
+}
+function saveLabel(state: SaveState) {
+  return (
+    {
+      idle: '尚未修改',
+      dirty: '待保存',
+      saving: '保存中……',
+      saved: '已保存',
+      error: '保存失败',
+      conflict: '版本冲突',
+    } as const
+  )[state];
+}
+function toLocalDateTime(value: string) {
+  const date = new Date(value);
+  const offset = date.getTimezoneOffset() * 60_000;
+  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+}
+function blockerLabel(value: string) {
+  if (value.startsWith('validation:')) {
+    const path = validationPath(value) ?? '';
+    const message = value.slice(value.lastIndexOf(':') + 1);
+    if (path === 'title') return '补全作业标题';
+    if (path === 'responsePolicy.allowedResponseTypes')
+      return '题目作答类型必须包含在作业允许类型中';
+    if (path === 'resubmissionPolicy.maxAttempts')
+      return '提交次数必须在 1 至 20 次之间';
+    if (path === 'latePolicy.penaltyPercentPerDay')
+      return '迟交扣分比例必须在 0% 至 100% 之间';
+    if (path.includes('.rubric.criteria.') && path.includes('.levels.'))
+      return message.includes('0.01') || message.includes('score-bands')
+        ? '评分档位须按 0.01 分连续覆盖且不得重叠'
+        : '补全评分档位字段';
+    if (path.includes('.rubric.criteria.'))
+      return '补全评分项名称、分值、证据与反馈指导';
+    return `修正字段：${path || '作业草稿'}`;
+  }
+  if (value.startsWith('assignment-total-mismatch'))
+    return '作业总分与题目合计不一致';
+  if (value.startsWith('question-rubric-total-mismatch'))
+    return '题目分值与评分标准合计不一致';
+  if (value === 'assignment-has-no-questions') return '至少添加一道题';
+  return '补全班级与开放、截止时间';
+}
+function validationPath(value: string): string | null {
+  if (!value.startsWith('validation:')) return null;
+  const withoutPrefix = value.slice('validation:'.length);
+  return withoutPrefix.slice(0, withoutPrefix.indexOf(':'));
+}
+function mergeSaveResponse(
+  current: AssignmentEditorDocument,
+  payload: Record<string, unknown>,
+): AssignmentEditorDocument {
+  const assignment = payload.assignment as Record<string, unknown> | undefined;
+  const revision = payload.revision as Record<string, unknown> | undefined;
+  if (assignment) {
+    const revisions = assignment.revisions as Array<Record<string, unknown>>;
+    const created = revisions[0];
+    return {
+      ...current,
+      assignmentId: String(assignment.id),
+      revisionId: String(created.id),
+      version: Number(created.version),
+    };
+  }
+  return revision ? { ...current, version: Number(revision.version) } : current;
+}
+function fromApiAssignment(
+  assignment: Record<string, unknown>,
+): AssignmentEditorDocument {
+  const revisions = assignment.revisions as Array<Record<string, unknown>>;
+  const revision =
+    revisions.find((entry) => entry.state === 'DRAFT') ?? revisions[0];
+  const questions = (revision.questions as Array<Record<string, unknown>>).map(
+    (row) => {
+      const prompt = row.promptSnapshot as { text: string };
+      const answer = row.answerSnapshot as { text: string };
+      return {
+        stableQuestionId: String(row.stableQuestionId),
+        responseType: row.responseType as 'SUBJECTIVE_TEXT' | 'SUBJECTIVE_FILE',
+        points: Number(row.points),
+        prompt: prompt.text,
+        referenceAnswer: answer.text,
+        rubric: row.rubricSnapshot,
+        source: questionSourceFromRow(row),
+      } as EditableQuestion;
+    },
+  );
+  return {
+    assignmentId: String(assignment.id),
+    revisionId: String(revision.id),
+    version: Number(revision.version),
+    draft: {
+      title: String(revision.title),
+      instructions: String(revision.instructions),
+      totalPoints: Number(revision.totalPoints),
+      questions,
+      latePolicy: revision.latePolicy as AssignmentDraftInput['latePolicy'],
+      responsePolicy:
+        revision.responsePolicy as AssignmentDraftInput['responsePolicy'],
+      resubmissionPolicy:
+        revision.resubmissionPolicy as AssignmentDraftInput['resubmissionPolicy'],
+      solutionReleasePolicy:
+        revision.solutionReleasePolicy as AssignmentDraftInput['solutionReleasePolicy'],
+    },
+  };
+}
+function questionSourceFromRow(
+  row: Record<string, unknown>,
+): EditableQuestion['source'] {
+  const lineage = row.sourceLineage as Record<string, unknown>;
+  if (row.sourceFamily === 'ADAPTIVE_ASSESSMENT_CATALOG')
+    return {
+      family: 'ADAPTIVE_ASSESSMENT_CATALOG',
+      sourceId: String(row.sourceId),
+      sourceVersion: String(row.sourceVersion),
+      sourceHash: String(row.sourceHash),
+      reviewState:
+        row.sourceReviewState === 'approved' ? 'approved' : 'reviewed',
+      lineage: lineage as Record<string, string | number | boolean | null>,
+    };
+  if (row.sourceFamily === 'ASSIGNMENT_DERIVATIVE')
+    return {
+      family: 'ASSIGNMENT_DERIVATIVE',
+      parentSourceId: String(lineage.parentSourceId),
+      parentSourceVersion: String(lineage.parentSourceVersion),
+      parentSourceHash: String(lineage.parentSourceHash),
+      catalogItemId: String(row.sourceCatalogItemId),
+      originalSourceFamily: String(row.sourceOriginalFamily),
+      reviewState: String(row.sourceReviewState),
+      eligibilityState: String(lineage.eligibilityState),
+      allowedStages: Array.isArray(lineage.allowedStages)
+        ? lineage.allowedStages.map(String)
+        : [],
+      limitations: Array.isArray(lineage.limitations)
+        ? lineage.limitations.map(String)
+        : [],
+      selectionProof: String(row.sourceSelectionProof),
+      contentHash: String(row.sourceHash),
+      authoringMarker: 'assignment-authoring',
+    };
+  return { family: 'MANUAL', authoringMarker: 'assignment-authoring' };
+}
+function fromApiRevision(
+  assignmentId: string,
+  revision: Record<string, unknown>,
+): AssignmentEditorDocument {
+  return fromApiAssignment({ id: assignmentId, revisions: [revision] });
+}
+
+function canonicalFingerprint(value: unknown): string {
+  if (Array.isArray(value))
+    return `[${value.map(canonicalFingerprint).join(',')}]`;
+  if (value && typeof value === 'object')
+    return `{${Object.entries(value as Record<string, unknown>)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(
+        ([key, item]) => `${JSON.stringify(key)}:${canonicalFingerprint(item)}`,
+      )
+      .join(',')}}`;
+  return JSON.stringify(value);
+}

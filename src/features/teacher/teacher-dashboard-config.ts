@@ -87,6 +87,13 @@ export const TEACHER_DASHBOARD_QUICK_ACTIONS: TeacherDashboardQuickAction[] = [
     tone: 'amber',
   },
   {
+    title: '新建作业',
+    description: '编排题目、评分标准与发布时间',
+    href: withReturnTo('/teacher/assignments/new', '/teacher'),
+    icon: 'file-text',
+    tone: 'cyan',
+  },
+  {
     title: '预置教案',
     description: '浏览系统预置的教学模板',
     href: teacherHref('teacher-preset-lessons', '/teacher/preset-lessons'),

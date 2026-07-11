@@ -64,6 +64,7 @@ describe('platform role navigation', () => {
         '/teacher',
         '/teacher/classes',
         '/teacher/lesson-plans',
+        '/teacher/assignments',
         '/teacher/preset-lessons',
         '/teacher/resources',
         '/teacher/resources/resource-nodes',
@@ -86,6 +87,18 @@ describe('platform role navigation', () => {
       expect.arrayContaining(['/', '/login', '/simulations', '/knowledge', '/arena']),
     );
     expect(getPlatformRoleNavigation('guest').map((entry) => entry.href)).not.toContain('/virtual-lab');
+  });
+
+  it('registers assignment list, create, and edit routes in the teacher operations ledger', () => {
+    const routes = PLATFORM_PRIMARY_ROUTE_INVENTORY.filter((entry) => entry.href.startsWith('/teacher/assignments'));
+    expect(routes.map((entry) => entry.href)).toEqual([
+      '/teacher/assignments',
+      '/teacher/assignments/new',
+      '/teacher/assignments/[assignmentId]/edit',
+    ]);
+    expect(routes.every((entry) => entry.frame === 'operations-console' && entry.roleScope.join(',') === 'teacher')).toBe(true);
+    expect(routes.every((entry) => entry.navigationLayers.join(',') === 'role-cockpit,contextual-workspace,local-tool')).toBe(true);
+    expect(resolvePlatformRouteInventory('/teacher/assignments/assignment-1/edit')?.href).toBe('/teacher/assignments/[assignmentId]/edit');
   });
 
   it('keeps role cockpit destinations compatible with auth roles', () => {
@@ -383,6 +396,9 @@ describe('platform role navigation', () => {
       '/teacher/lesson-plans',
       '/teacher/lesson-plans/new',
       '/teacher/lesson-plans/[id]/edit',
+      '/teacher/assignments',
+      '/teacher/assignments/new',
+      '/teacher/assignments/[assignmentId]/edit',
       '/teacher/preset-lessons',
       '/teacher/resources',
       '/teacher/resources/resource-nodes',
