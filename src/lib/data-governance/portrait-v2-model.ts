@@ -23,6 +23,7 @@ const PORTRAIT_V2_PROJECTED_BRAND: unique symbol = Symbol('portrait-v2-projected
 const PERSISTABLE_PORTRAIT_V2_PAYLOADS = new WeakSet<object>();
 
 export type PortraitV2FreshnessState = 'current' | 'partial' | 'stale' | 'missing';
+export type PortraitV2Trend = 'up' | 'stable' | 'down';
 export type PortraitV2DerivationKind = 'native' | 'migrated' | 'compatibility-derived';
 export type PortraitV2Consumer = 'student' | 'konling' | 'planner' | 'reviewer' | 'admin';
 export type PortraitV2CompatibilitySourceFamily =
@@ -55,6 +56,7 @@ export interface PortraitV2DimensionState {
   label: string;
   score: number;
   confidence: number;
+  trend?: PortraitV2Trend;
   freshness: {
     state: PortraitV2FreshnessState;
     asOf: string | null;
@@ -81,6 +83,10 @@ export interface PortraitV2PayloadShape {
     kind: PortraitV2DerivationKind;
     sourceLegacySnapshotId?: string;
     limitations: string[];
+  };
+  updateCursor?: {
+    lastFactCreatedAt: string;
+    lastFactId: string;
   };
   dimensions: PortraitV2DimensionState[];
 }
@@ -136,10 +142,12 @@ const MISSING_EVIDENCE_RATIONALE = 'No safe legacy mapping exists.';
 const MISSING_EVIDENCE_LIMITATION = 'missing-native-portrait-v2-evidence';
 const NO_SAFE_LEGACY_MAPPING_LIMITATION = 'no-safe-legacy-mapping';
 const GOVERNED_EVIDENCE_RATIONALE = 'Governed evidence supports the current score.';
+const GOVERNED_NEGATIVE_EVIDENCE_RATIONALE = 'Governed negative evidence applied a bounded score correction.';
 const COMPATIBILITY_RATIONALE = 'Compatibility projection from a legacy learner snapshot.';
 const COMPATIBILITY_LIMITATION = 'compatibility-derived-not-native-portrait-v2-evidence';
 const GOVERNED_SAFE_RATIONALES = new Set([
   GOVERNED_EVIDENCE_RATIONALE,
+  GOVERNED_NEGATIVE_EVIDENCE_RATIONALE,
   COMPATIBILITY_RATIONALE,
   MISSING_EVIDENCE_RATIONALE,
 ]);
@@ -149,6 +157,7 @@ const GOVERNED_SAFE_LIMITATIONS = new Set([
   COMPATIBILITY_LIMITATION,
   MISSING_EVIDENCE_LIMITATION,
   NO_SAFE_LEGACY_MAPPING_LIMITATION,
+  'bounded-negative-evidence-correction',
 ]);
 const STUDENT_SAFE_LINEAGE_KINDS = new Set<PortraitV2LineageKind>([
   'evidence-family',
@@ -169,6 +178,7 @@ export function createPortraitV2Payload(input: {
   generatedAt: string;
   dimensions: PortraitV2DimensionInput[];
   derivation?: Partial<PortraitV2PayloadShape['derivation']>;
+  updateCursor?: PortraitV2PayloadShape['updateCursor'];
   now?: Date | string;
 }): PortraitV2Payload {
   const payload: PortraitV2PayloadShape = {
@@ -183,8 +193,10 @@ export function createPortraitV2Payload(input: {
         : {}),
       limitations: [...(input.derivation?.limitations ?? [])],
     },
+    ...(input.updateCursor ? { updateCursor: { ...input.updateCursor } } : {}),
     dimensions: input.dimensions.map((dimension) => ({
       ...dimension,
+      trend: dimension.trend ?? 'stable',
       label: LABELS.get(dimension.id) ?? dimension.label ?? '',
       evidenceSummary: {
         ...dimension.evidenceSummary,
@@ -218,6 +230,7 @@ function validatePortraitV2Contract(
     'migrationVersion',
     'generatedAt',
     'derivation',
+    'updateCursor',
     'dimensions',
   ], 'Portrait v2 payload');
   if (
@@ -241,6 +254,17 @@ function validatePortraitV2Contract(
   }
   if (!hasGovernedSafeLimitations(derivation.limitations)) {
     throw new Error('Portrait v2 derivation must use a governed learner-safe summary.');
+  }
+  if (payload.updateCursor !== undefined) {
+    const updateCursor = asRecord(payload.updateCursor);
+    assertExactKeys(updateCursor, ['lastFactCreatedAt', 'lastFactId'], 'Portrait v2 update cursor');
+    if (
+      !isIsoTimestamp(updateCursor.lastFactCreatedAt) ||
+      Date.parse(updateCursor.lastFactCreatedAt) > Date.parse(payload.generatedAt) ||
+      !isSafeIdentifier(updateCursor.lastFactId)
+    ) {
+      throw new Error('Expected a valid portrait v2 incremental update cursor.');
+    }
   }
   const dimensions = Array.isArray(payload.dimensions) ? payload.dimensions : [];
   const ids = dimensions.map((dimension) => asRecord(dimension).id);
@@ -345,6 +369,43 @@ export async function readLatestPortraitV2Snapshot(
   }
 }
 
+export async function readLatestPortraitV2SnapshotForUpdate(
+  db: PortraitV2SnapshotReadDb,
+  userId: string,
+  options: PortraitV2ClockOptions = {},
+): Promise<PortraitV2Payload | null> {
+  const findFirst = db.studentPortraitV2Snapshot?.findFirst;
+  if (!findFirst) return null;
+  const rawRow = await findFirst({
+    where: { userId },
+    orderBy: [{ snapshotAt: 'desc' }, { id: 'desc' }],
+  });
+  if (rawRow === null || rawRow === undefined) return null;
+  try {
+    const row = asRecord(rawRow);
+    validatePortraitV2Payload(row.payload, options);
+    const payload = markPersistable(row.payload);
+    const normalizedSnapshotAt = normalizedIsoTimestamp(row.snapshotAt);
+    const normalizedGeneratedAt = normalizedIsoTimestamp(payload.generatedAt);
+    if (
+      row.userId !== userId ||
+      payload.userId !== userId ||
+      normalizedSnapshotAt === null ||
+      !isWithinFutureBoundary(normalizedSnapshotAt, options.now) ||
+      normalizedSnapshotAt !== normalizedGeneratedAt ||
+      row.payloadVersion !== payload.payloadVersion ||
+      row.calculationVersion !== PORTRAIT_V2_CALCULATION_VERSION ||
+      row.migrationVersion !== payload.migrationVersion ||
+      row.derivationKind !== payload.derivation.kind
+    ) {
+      throw new Error('Persisted portrait metadata does not match the requested learner or payload.');
+    }
+    return clonePayload(payload);
+  } catch (error) {
+    throw new PortraitV2SnapshotValidationError('Invalid persisted portrait v2 snapshot.', { cause: error });
+  }
+}
+
 export function projectPortraitV2ForConsumer(
   payload: PortraitV2Payload,
   consumer: PortraitV2Consumer,
@@ -371,6 +432,7 @@ export function projectPortraitV2ForConsumer(
       label: dimension.label,
       score: dimension.score,
       confidence: dimension.confidence,
+      trend: dimension.trend,
       freshness: {
         state: dimension.freshness.state,
         asOf: dimension.freshness.asOf,
@@ -521,6 +583,7 @@ function validateDimension(
     'label',
     'score',
     'confidence',
+    'trend',
     'freshness',
     'evidenceSummary',
     'lastPositiveEvidenceAt',
@@ -536,6 +599,9 @@ function validateDimension(
   }
   if (!inRange(dimension.score, 0, 100) || !inRange(dimension.confidence, 0, 1)) {
     throw new Error(`Portrait v2 dimension ${id} has an invalid score or confidence.`);
+  }
+  if (dimension.trend !== undefined && !isPortraitTrend(dimension.trend)) {
+    throw new Error(`Portrait v2 dimension ${id} has an invalid trend.`);
   }
   const freshness = asRecord(dimension.freshness);
   assertExactKeys(freshness, ['state', 'asOf', 'evidenceAgeDays'], `Portrait v2 dimension ${id} freshness`);
@@ -765,10 +831,14 @@ function hasConsistentDimensionSummary(
   }
   const expectedRationale = derivationKind === 'compatibility-derived'
     ? COMPATIBILITY_RATIONALE
-    : GOVERNED_EVIDENCE_RATIONALE;
+    : dimension.rationale === GOVERNED_NEGATIVE_EVIDENCE_RATIONALE
+      ? GOVERNED_NEGATIVE_EVIDENCE_RATIONALE
+      : GOVERNED_EVIDENCE_RATIONALE;
   const expectedLimitations = derivationKind === 'compatibility-derived'
     ? [COMPATIBILITY_LIMITATION]
-    : [];
+    : expectedRationale === GOVERNED_NEGATIVE_EVIDENCE_RATIONALE
+      ? ['bounded-negative-evidence-correction']
+      : [];
   return dimension.rationale === expectedRationale && sameOrderedStrings(limitations, expectedLimitations);
 }
 
@@ -914,6 +984,10 @@ function isDerivationKind(value: unknown): value is PortraitV2DerivationKind {
 
 function isFreshnessState(value: unknown): value is PortraitV2FreshnessState {
   return value === 'current' || value === 'partial' || value === 'stale' || value === 'missing';
+}
+
+function isPortraitTrend(value: unknown): value is PortraitV2Trend {
+  return value === 'up' || value === 'stable' || value === 'down';
 }
 
 function isPrivacyScope(value: unknown): value is PortraitV2LineagePrivacyScope {

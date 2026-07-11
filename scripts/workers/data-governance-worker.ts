@@ -33,6 +33,7 @@ import {
   rebuildStudentEvidenceFeatureCache,
   refreshStudentEvidenceFeatureCache,
 } from '@/lib/data-governance/student-evidence-feature-cache';
+import { materializeIncrementalPortraitV2 } from '@/lib/data-governance/portrait-v2-materialization';
 import type { CompetencyVector } from '@/lib/data-governance/competency-model';
 import type { LearningEvent } from '@/lib/data-governance/event-protocol';
 import {
@@ -558,6 +559,15 @@ async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
   const { userId } = job.data;
   const snapshotAt = new Date();
 
+  const portraitV2 = await materializeIncrementalPortraitV2(db, userId, { now: snapshotAt });
+  if (portraitV2.mappingIssues.length > 0) {
+    logWithThrottle(
+      `student-snapshot:${userId}:portrait-v2-mapping`,
+      'warn',
+      `[StudentSnapshot] Portrait v2 mapping issues for ${userId}: ${portraitV2.mappingIssues.join(', ')}`,
+    );
+  }
+
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
   const facts = await db.learningFact.findMany({
     where: {
@@ -581,7 +591,7 @@ async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
   if (facts.length === 0) {
     await refreshStudentEvidenceFeatureCache(db, userId, { now: snapshotAt });
     logWithThrottle(`student-snapshot:${userId}:no-facts`, 'info', `[StudentSnapshot] Skip ${userId}: no learning facts in current window`);
-    return { skipped: true, reason: 'no_facts', userId, featureCacheRefreshed: true };
+    return { skipped: true, reason: 'no_facts', userId, featureCacheRefreshed: true, portraitV2 };
   }
 
   if (
@@ -592,7 +602,7 @@ async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
   ) {
     await refreshStudentEvidenceFeatureCache(db, userId, { now: snapshotAt });
     logWithThrottle(`student-snapshot:${userId}:unchanged`, 'info', `[StudentSnapshot] Skip ${userId}: no new facts since latest snapshot`);
-    return { skipped: true, reason: 'unchanged_facts', userId, featureCacheRefreshed: true };
+    return { skipped: true, reason: 'unchanged_facts', userId, featureCacheRefreshed: true, portraitV2 };
   }
 
   const evidenceDetails = await loadEvidenceDetails(db, facts);
@@ -670,6 +680,7 @@ async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
     factCount: facts.length,
     riskCount: risks.length,
     featureCacheRefreshed: true,
+    portraitV2,
   };
 }
 
