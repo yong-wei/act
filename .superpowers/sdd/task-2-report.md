@@ -51,3 +51,8 @@ Recorded by the final local commit for this report; no push performed.
 - The semantic native-button layer is no longer permanently `sr-only`: each control becomes visibly positioned on keyboard focus, retains native Enter/Space behavior, and references the shared live activation status through `aria-describedby`.
 - Expansion requests now carry per-request abort controllers. Unmount aborts all active requests, while success and failure commits both require a matching per-node generation and global activation sequence; stale HTTP, JSON, network, abort, and target-switch outcomes cannot write state.
 - Added focused guard tests for hidden/recovered relations and stale generation, sequence, abort, and unmount outcomes; direct activation contract tests now require visible focus and status association.
+
+## Strict Effects Follow-up
+
+- The mounted activation guard is now explicitly restored to `true` in every effect setup before cleanup returns. React Strict Effects setup→cleanup→setup replay therefore leaves the live component mounted, while cleanup still aborts requests, invalidates sequences, and prevents stale state commits.
+- Added a regression contract covering setup restoration, cleanup invalidation, and loading-state cleanup presence.

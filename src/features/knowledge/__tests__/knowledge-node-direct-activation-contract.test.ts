@@ -6,6 +6,13 @@ const root = path.resolve(process.cwd(), 'src/features/knowledge');
 const source = fs.readFileSync(path.join(root, 'knowledge-graph-system.tsx'), 'utf8');
 
 describe('knowledge graph direct activation contract', () => {
+  it('restores the mounted guard during StrictMode effect replay', () => {
+    expect(source).toContain('mountedRef.current = true;');
+    expect(source).toContain('const requestControllers = expansionRequestControllersRef.current;\n    return () => {');
+    expect(source).toContain('mountedRef.current = false;');
+    expect(source).toContain('setLoadingExpansionNodeIds((current) => current.filter((id) => id !== nodeId))');
+  });
+
   it('routes every node entry surface through one id-based resolver', () => {
     expect(source).toContain('const activateNodeById = useCallback(async (nodeId: string) =>');
     expect(source).toContain('onNodeClick={activateNode}');

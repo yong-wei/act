@@ -303,11 +303,15 @@ export function KnowledgeGraphSystem({
   const initialSelectedNodeResolvedRef = useRef(false);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
 
-  useEffect(() => () => {
-    mountedRef.current = false;
-    activationSequenceRef.current += 1;
-    expansionRequestControllersRef.current.forEach((controller) => controller.abort());
-    expansionRequestControllersRef.current.clear();
+  useEffect(() => {
+    mountedRef.current = true;
+    const requestControllers = expansionRequestControllersRef.current;
+    return () => {
+      mountedRef.current = false;
+      activationSequenceRef.current += 1;
+      requestControllers.forEach((controller) => controller.abort());
+      requestControllers.clear();
+    };
   }, []);
 
   useEffect(() => {
