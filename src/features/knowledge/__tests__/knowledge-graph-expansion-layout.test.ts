@@ -8,6 +8,7 @@ import {
   resolveFocusedExpansionRevealTarget,
   selectFocusedExpansionGraphNodes,
   translateKnowledgeGraphCameraPose,
+  updateKnowledgeGraphDraggedNode,
   type KnowledgeGraphPositionedNode,
 } from '../graph/layout-engine';
 import {
@@ -57,6 +58,97 @@ function distanceFrom(node: KnowledgeGraphPositionedNode, center: { x: number; y
 }
 
 describe('knowledge graph focused expansion layout', () => {
+  it('places newly revealed neighbors in a deterministic bounded sector instead of a complete ring', () => {
+    const childIds = ['child-d', 'child-b', 'child-a', 'child-c'];
+    const nodes = [graphNode('center'), ...childIds.map((id) => graphNode(id))];
+    const directExpansionLinks = childIds.map((id) => expansionLink(`link-${id}`, 'center', id));
+
+    const laidOut = applyFocusedExpansionLayout({
+      nodes,
+      expandedNodeIds: ['center'],
+      directExpansionLinks,
+      layoutState: getEmptyKnowledgeGraphLayoutState(),
+      activationSequenceByCenterId: { center: 1 },
+    });
+    const angles = laidOut.slice(1).map((node) => Math.atan2(node.y ?? 0, node.x ?? 0));
+
+    expect(Math.max(...angles) - Math.min(...angles)).toBeLessThanOrEqual(Math.PI);
+    expect(coordinatesById(applyFocusedExpansionLayout({
+      nodes: [...nodes].reverse(),
+      expandedNodeIds: ['center'],
+      directExpansionLinks: [...directExpansionLinks].reverse(),
+      layoutState: getEmptyKnowledgeGraphLayoutState(),
+      activationSequenceByCenterId: { center: 1 },
+    }))).toEqual(coordinatesById(laidOut));
+  });
+
+  it('uses activation intent order and stable center ids for overlapping provenance claims', () => {
+    const nodes = [
+      graphNode('center-a', -100, 0, { x: -100, y: 0 }),
+      graphNode('center-b', 100, 0, { x: 100, y: 0 }),
+      graphNode('shared'),
+    ];
+    const links = [
+      expansionLink('b-shared', 'center-b', 'shared'),
+      expansionLink('a-shared', 'center-a', 'shared'),
+    ];
+    const first = applyFocusedExpansionLayout({
+      nodes,
+      expandedNodeIds: ['center-b', 'center-a'],
+      directExpansionLinks: links,
+      layoutState: getEmptyKnowledgeGraphLayoutState(),
+      activationSequenceByCenterId: { 'center-a': 1, 'center-b': 2 },
+    });
+    const reversedResponse = applyFocusedExpansionLayout({
+      nodes,
+      expandedNodeIds: ['center-b', 'center-a'],
+      directExpansionLinks: [...links].reverse(),
+      layoutState: getEmptyKnowledgeGraphLayoutState(),
+      activationSequenceByCenterId: { 'center-a': 1, 'center-b': 2 },
+    });
+
+    expect(coordinatesById(reversedResponse)).toEqual(coordinatesById(first));
+    expect(first.find((node) => node.id === 'shared')?.__knowledgeAutomaticAnchor).toMatchObject({
+      provenanceCenterId: 'center-a',
+      activationSequence: 1,
+    });
+  });
+
+  it('keeps an already established neighbor coordinate and only reveals its additional arc', () => {
+    const existing = graphNode('existing', 30, 40, { x: 130, y: 140 });
+    const laidOut = applyFocusedExpansionLayout({
+      nodes: [graphNode('center'), existing],
+      expandedNodeIds: ['center'],
+      directExpansionLinks: [expansionLink('additional-arc', 'center', 'existing')],
+      layoutState: getEmptyKnowledgeGraphLayoutState(),
+      activationSequenceByCenterId: { center: 1 },
+      materializedNodeIds: [],
+    });
+
+    expect(laidOut[1]).toBe(existing);
+    expect(laidOut[1]).toMatchObject({ x: 130, y: 140, positionX: 30, positionY: 40 });
+  });
+
+  it('uses additional arcs for dense sectors and changes only the dragged node', () => {
+    const childIds = Array.from({ length: 14 }, (_, index) => `child-${index}`);
+    const laidOut = applyFocusedExpansionLayout({
+      nodes: [graphNode('center'), ...childIds.map((id) => graphNode(id))],
+      expandedNodeIds: ['center'],
+      directExpansionLinks: childIds.map((id) => expansionLink(`link-${id}`, 'center', id)),
+      layoutState: getEmptyKnowledgeGraphLayoutState(),
+      activationSequenceByCenterId: { center: 1 },
+    });
+    const radii = new Set(laidOut.slice(1).map((node) => Math.round(distanceFrom(node, { x: 0, y: 0 }))));
+    const dragged = updateKnowledgeGraphDraggedNode(laidOut, { id: 'child-0', x: 700, y: 800, z: 4 });
+
+    expect(radii.size).toBeGreaterThan(1);
+    expect(dragged.find((node) => node.id === 'child-0')).toMatchObject({
+      x: 700, y: 800, z: 4, fx: 700, fy: 800, fz: 4,
+    });
+    laidOut.filter((node) => node.id !== 'child-0').forEach((node) => {
+      expect(dragged.find((candidate) => candidate.id === node.id)).toBe(node);
+    });
+  });
   it('calculates a bounded viewport translation for an expansion ring near the bottom edge', () => {
     const reveal = calculateFocusedExpansionRevealTranslation({
       points: [
@@ -195,12 +287,13 @@ describe('knowledge graph focused expansion layout', () => {
     expect(
       new Set(children.map((node) => distanceFrom(node, { x: 100, y: 200 }).toFixed(6))).size
     ).toBe(1);
-    expect(
-      children.reduce((sum, node) => sum + (node.x ?? 0), 0) / children.length
-    ).toBeCloseTo(100);
-    expect(
-      children.reduce((sum, node) => sum + (node.y ?? 0), 0) / children.length
-    ).toBeCloseTo(200);
+    const angles = children
+      .map((node) => (Math.atan2((node.y ?? 0) - 200, (node.x ?? 0) - 100) + Math.PI * 2) % (Math.PI * 2))
+      .sort((left, right) => left - right);
+    const gaps = angles.map((angle, index) => (
+      (angles[(index + 1) % angles.length] - angle + Math.PI * 2) % (Math.PI * 2)
+    ));
+    expect(Math.PI * 2 - Math.max(...gaps)).toBeLessThanOrEqual(Math.PI);
   });
 
   it('uses an existing automatic center anchor before runtime and initial coordinates', () => {
@@ -221,7 +314,8 @@ describe('knowledge graph focused expansion layout', () => {
     });
 
     expect(laidOut[0]).toBe(center);
-    expect(laidOut[1]).toMatchObject({ x: 300, y: 304, fx: 300, fy: 304 });
+    expect(distanceFrom(laidOut[1], { x: 300, y: 400 })).toBeCloseTo(96);
+    expect(laidOut[1]).toMatchObject({ x: 396, y: 400, fx: 396, fy: 400 });
   });
 
   it('spills large direct-child sets into stable bounded rings', () => {
@@ -359,14 +453,12 @@ describe('knowledge graph focused expansion layout', () => {
     expect(focusedChild).toMatchObject({
       x: 700,
       y: 800,
-      __knowledgeAutomaticAnchor: { id: 'child', y: -96 },
+      __knowledgeAutomaticAnchor: { id: 'child', y: 0 },
     });
-    expect(focusedChild.__knowledgeAutomaticAnchor?.x).toBeCloseTo(0);
+    expect(focusedChild.__knowledgeAutomaticAnchor?.x).toBeCloseTo(96);
 
     syncKnowledgeGraphMutableNodePositions(focusedNodes, userPinned);
     syncKnowledgeGraphMutableNodePositions(focusedNodes, clearKnowledgeGraphLayoutPins(userPinned));
-    expect(focusedChild).toMatchObject({ y: -96, fy: -96 });
-    expect(focusedChild.x).toBeCloseTo(0);
-    expect(focusedChild.fx).toBeCloseTo(0);
+    expect(focusedChild).toMatchObject({ x: 96, y: 0, fx: 96, fy: 0 });
   });
 });

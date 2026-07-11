@@ -27,6 +27,17 @@ export function shouldCommitKnowledgeNodeActivation(input: {
     && input.currentSequence === input.expectedSequence;
 }
 
+export function shouldCommitKnowledgeExpansionPayload(input: {
+  mounted: boolean;
+  aborted: boolean;
+  expectedGeneration: number;
+  currentGeneration: number | undefined;
+}): boolean {
+  return input.mounted
+    && !input.aborted
+    && input.currentGeneration === input.expectedGeneration;
+}
+
 export function isExpansionFilteredEmpty(input: {
   shardLoaded: boolean;
   nodeId: string;

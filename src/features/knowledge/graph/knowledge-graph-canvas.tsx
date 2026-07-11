@@ -62,6 +62,8 @@ interface KnowledgeGraphCanvasProps {
   height?: number;
   expandedNodeIds: readonly string[];
   expandedDirectLinks: readonly KnowledgeLinkData[];
+  activationSequenceByCenterId: Readonly<Record<string, number>>;
+  materializedNodeIds: readonly string[];
 }
 
 type RuntimeKnowledgeGraphNode = KnowledgeGraphPositionedNode & {
@@ -153,6 +155,8 @@ export function KnowledgeGraphCanvas({
   height,
   expandedNodeIds,
   expandedDirectLinks,
+  activationSequenceByCenterId,
+  materializedNodeIds,
 }: KnowledgeGraphCanvasProps) {
   const fgRef = useRef<any>(null);
   const layoutStateRef = useRef(layoutState);
@@ -269,7 +273,9 @@ export function KnowledgeGraphCanvas({
       nodes: baseLayoutNodes,
       expandedNodeIds,
       directExpansionLinks: expandedDirectLinks,
-      layoutState: layoutStateRef.current,
+      layoutState,
+      activationSequenceByCenterId,
+      materializedNodeIds,
     });
     const expandedIdSet = new Set(expandedNodeIds);
     const focusedDepthByNodeId = new Map<string, number>();
@@ -304,7 +310,7 @@ export function KnowledgeGraphCanvas({
       nodes: focusedThreeDimensionalNodes,
       links: transformedLinks
     };
-  }, [nodes, links, relayoutVersion, layoutState.version, expandedNodeIds, expandedDirectLinks]);
+  }, [nodes, links, relayoutVersion, layoutState, expandedNodeIds, expandedDirectLinks, activationSequenceByCenterId, materializedNodeIds]);
 
   const rememberRuntimeNodePosition = useCallback((node: RuntimeKnowledgeGraphNode) => {
     if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) return;
@@ -675,7 +681,7 @@ export function KnowledgeGraphCanvas({
         // 物理引擎
         d3VelocityDecay={0.3}
         warmupTicks={50}
-        cooldownTicks={100}
+        cooldownTicks={0}
 
         // 背景透明（使用CSS渐变背景）
         backgroundColor="rgba(0,0,0,0)"

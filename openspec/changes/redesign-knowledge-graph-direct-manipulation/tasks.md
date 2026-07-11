@@ -13,10 +13,10 @@
 
 ## 3. Stable Sector Layout
 
-- [ ] 3.1 Replace complete-ring focused placement with deterministic outward-sector selection using activation-sequence-ordered first-reveal provenance, canonical revealable-neighbor rules, bounded occupied-space scoring, stable center-id tie-breaks, and additional arcs for large neighborhoods.
-- [ ] 3.2 Preserve all already visible, user-positioned, and unrelated coordinates; assign automatic fixed coordinates only to newly materialized nodes and reveal relations to existing children without relocating them.
-- [ ] 3.3 Freeze established 2D and 3D coordinates after the initial layout pass and prevent node dragging from reheating the graph or modifying any node except the dragged node.
-- [ ] 3.4 Keep explicit reset and relayout commands functional and add unit tests for deterministic sectors, reversed network-response order, overlapping provenance claims, dense fallback sectors, multiple arcs, existing-neighbor preservation, pins, and drag isolation.
+- [x] 3.1 Replace complete-ring focused placement with deterministic outward-sector selection using activation-sequence-ordered first-reveal provenance, canonical revealable-neighbor rules, bounded occupied-space scoring, stable center-id tie-breaks, and additional arcs for large neighborhoods.
+- [x] 3.2 Preserve all already visible, user-positioned, and unrelated coordinates; assign automatic fixed coordinates only to newly materialized nodes and reveal relations to existing children without relocating them.
+- [x] 3.3 Freeze established 2D and 3D coordinates after the initial layout pass and prevent node dragging from reheating the graph or modifying any node except the dragged node.
+- [x] 3.4 Keep explicit reset and relayout commands functional and add unit tests for deterministic sectors, reversed network-response order, overlapping provenance claims, dense fallback sectors, multiple arcs, existing-neighbor preservation, pins, and drag isolation.
 
 ## 4. Motion And Inspector Behavior
 

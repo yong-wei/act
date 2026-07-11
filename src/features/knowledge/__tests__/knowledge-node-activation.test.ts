@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   isExpansionFilteredEmpty,
   resolveKnowledgeNodeActivation,
+  shouldCommitKnowledgeExpansionPayload,
   shouldCommitKnowledgeNodeActivation,
 } from '../graph/node-activation';
 
@@ -21,6 +22,14 @@ describe('knowledge node direct activation resolver', () => {
 });
 
 describe('activation async and filter guards', () => {
+  it('accepts a valid earlier expansion payload after a later node activation', () => {
+    expect(shouldCommitKnowledgeExpansionPayload({
+      mounted: true,
+      aborted: false,
+      expectedGeneration: 2,
+      currentGeneration: 2,
+    })).toBe(true);
+  });
   it('recovers a cached filtered-empty expansion without another request', () => {
     expect(isExpansionFilteredEmpty({ shardLoaded: true, nodeId: 'a', visibleLinks: [] })).toBe(true);
     expect(isExpansionFilteredEmpty({

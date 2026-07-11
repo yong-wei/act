@@ -53,6 +53,8 @@ interface KnowledgeGraph2DProps {
   relayoutVersion: number;
   expandedNodeIds: readonly string[];
   expandedDirectLinks: readonly KnowledgeLinkData[];
+  activationSequenceByCenterId: Readonly<Record<string, number>>;
+  materializedNodeIds: readonly string[];
 }
 
 type RuntimeKnowledgeGraphNode = KnowledgeGraphPositionedNode & {
@@ -290,6 +292,8 @@ export function KnowledgeGraph2D({
   relayoutVersion,
   expandedNodeIds,
   expandedDirectLinks,
+  activationSequenceByCenterId,
+  materializedNodeIds,
 }: KnowledgeGraph2DProps) {
   const fgRef = useRef<any>(null);
   const layoutStateRef = useRef(layoutState);
@@ -360,14 +364,16 @@ export function KnowledgeGraph2D({
       nodes: layoutNodes,
       expandedNodeIds,
       directExpansionLinks: expandedDirectLinks,
-      layoutState: layoutStateRef.current,
+      layoutState,
+      activationSequenceByCenterId,
+      materializedNodeIds,
     });
 
     return {
       nodes: focusedLayoutNodes,
       links: transformedLinks
     };
-  }, [nodes, links, relayoutVersion, layoutState.version, expandedNodeIds, expandedDirectLinks]);
+  }, [nodes, links, relayoutVersion, layoutState, expandedNodeIds, expandedDirectLinks, activationSequenceByCenterId, materializedNodeIds]);
 
   const rememberRuntimeNodePosition = useCallback((node: RuntimeKnowledgeGraphNode) => {
     if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) return;
@@ -788,7 +794,7 @@ export function KnowledgeGraph2D({
       // 物理引擎配置
       d3VelocityDecay={0.3}
       warmupTicks={20}
-      cooldownTicks={50}
+      cooldownTicks={0}
     />
   );
 }

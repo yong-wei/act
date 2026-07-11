@@ -55,6 +55,7 @@ import {
 import {
   isExpansionFilteredEmpty,
   resolveKnowledgeNodeActivation,
+  shouldCommitKnowledgeExpansionPayload,
   shouldCommitKnowledgeNodeActivation,
 } from './graph/node-activation';
 import {
@@ -277,6 +278,8 @@ export function KnowledgeGraphSystem({
   const [layoutState, setLayoutState] = useState(getEmptyKnowledgeGraphLayoutState);
   const [fitViewVersion, setFitViewVersion] = useState(0);
   const [relayoutVersion, setRelayoutVersion] = useState(0);
+  const [activationSequenceByCenterId, setActivationSequenceByCenterId] = useState<Record<string, number>>({});
+  const [materializedNodeIds, setMaterializedNodeIds] = useState<string[]>([]);
   const [explicitFocusNodeId, setExplicitFocusNodeId] = useState<string | null>(null);
   const hoverAnimationFrameRef = useRef<number | null>(null);
   const pendingHoveredNodeRef = useRef<KnowledgeNodeData | null>(null);
@@ -292,6 +295,8 @@ export function KnowledgeGraphSystem({
   const mountedRef = useRef(true);
   const expansionRequestControllersRef = useRef(new Map<string, AbortController>());
   const rootAutoFitTriggeredRef = useRef(false);
+  const layoutGraphVersionRef = useRef<string | null>(null);
+  const visibleNodeIdsRef = useRef(new Set<string>());
 
   // 视图模式：默认 2D
   const [viewMode, setViewMode] = useState<'2D' | '3D'>('2D');
@@ -302,6 +307,13 @@ export function KnowledgeGraphSystem({
   const initialRequestedNodeIdRef = useRef(initialRequestedNodeId);
   const initialSelectedNodeResolvedRef = useRef(false);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
+
+  useEffect(() => {
+    if (!graphCache.graphVersion || layoutGraphVersionRef.current === graphCache.graphVersion) return;
+    layoutGraphVersionRef.current = graphCache.graphVersion;
+    setActivationSequenceByCenterId({});
+    setMaterializedNodeIds([]);
+  }, [graphCache.graphVersion]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -455,6 +467,11 @@ export function KnowledgeGraphSystem({
     });
     if (action === 'ignore') return;
     const activationSequence = ++activationSequenceRef.current;
+    if (action === 'expand' || action === 'resolve') {
+      setActivationSequenceByCenterId((current) => current[nodeId] === undefined
+        ? { ...current, [nodeId]: activationSequence }
+        : current);
+    }
     setSelectedNode(node);
     if (action === 'inspect') {
       setIsPanelOpen(true);
@@ -481,6 +498,13 @@ export function KnowledgeGraphSystem({
 
     const expectedShardKey = graphCache.graphVersion ? expansionShardKey(graphCache.graphVersion, nodeId) : '';
     if (action !== 'resolve' && expectedShardKey && graphCache.loadedShardKeys.includes(expectedShardKey)) {
+      const visibleIds = visibleNodeIdsRef.current;
+      const newlyVisibleIds = links.flatMap((link) => {
+        if (!isExpansionLinkForNode(nodeId, link)) return [];
+        const neighborId = link.sourceId === nodeId ? link.targetId : link.sourceId;
+        return visibleIds.has(neighborId) ? [] : [neighborId];
+      });
+      setMaterializedNodeIds((current) => [...new Set([...current, ...newlyVisibleIds])]);
       setExpandedNodeIds((current) => current.includes(nodeId) ? current : [...current, nodeId]);
       const hasVisibleChildren = expansionHasVisibleDescendant(nodeId, nodes, links);
       setFilteredEmptyExpansionNodeIds((current) => (
@@ -509,18 +533,24 @@ export function KnowledgeGraphSystem({
       });
       if (!response.ok) throw new Error(`Failed to fetch expansion shard for ${nodeId}`);
       const payload = (await response.json()) as ProgressiveGraphApiResponse;
-      if (!shouldCommitKnowledgeNodeActivation({
+      if (!shouldCommitKnowledgeExpansionPayload({
         mounted: mountedRef.current,
         aborted: requestController.signal.aborted,
         expectedGeneration: generation,
         currentGeneration: expansionGenerationRef.current.get(nodeId),
-        expectedSequence: activationSequence,
-        currentSequence: activationSequenceRef.current,
       })) return;
       const canonicalNode = payload.nodes?.find((candidate) => candidate.id === nodeId);
       const canonicalState = canonicalNode?.expansion?.state ?? 'unknown';
       setGraphCache((current) => mergeProgressiveGraphPayload(current, payload));
       if (canonicalState === 'leaf') {
+        if (!shouldCommitKnowledgeNodeActivation({
+          mounted: mountedRef.current,
+          aborted: requestController.signal.aborted,
+          expectedGeneration: generation,
+          currentGeneration: expansionGenerationRef.current.get(nodeId),
+          expectedSequence: activationSequence,
+          currentSequence: activationSequenceRef.current,
+        })) return;
         setSelectedNode(canonicalNode ?? node);
         setIsPanelOpen(true);
         return;
@@ -528,6 +558,11 @@ export function KnowledgeGraphSystem({
       if (canonicalState !== 'expandable') {
         throw new Error(`Expansion response did not resolve node ${nodeId}`);
       }
+      const existingNodeIds = new Set(nodes.map((candidate) => candidate.id));
+      setMaterializedNodeIds((current) => [...new Set([
+        ...current,
+        ...(payload.nodes ?? []).filter((candidate) => !existingNodeIds.has(candidate.id)).map((candidate) => candidate.id),
+      ])]);
       setExpandedNodeIds((current) => current.includes(nodeId) ? current : [...current, nodeId]);
       const hasVisibleChildren = expansionHasVisibleDescendant(nodeId, payload.nodes ?? [], payload.links ?? []);
       setFilteredEmptyExpansionNodeIds((current) => (
@@ -862,6 +897,9 @@ export function KnowledgeGraphSystem({
   }, [filteredNodes, filteredLinks, graphStatistics]);
 
   const displayNodes = graphWithChapterNodes.nodes;
+  useEffect(() => {
+    visibleNodeIdsRef.current = new Set(displayNodes.map((node) => node.id));
+  }, [displayNodes]);
   const displayLinks = graphWithChapterNodes.links;
   useEffect(() => {
     if (!graphCache.graphVersion || expandedNodeIds.length === 0) return;
@@ -986,6 +1024,8 @@ export function KnowledgeGraphSystem({
       positionsByNodeId: {},
     }));
     setRelayoutVersion((current) => current + 1);
+    setActivationSequenceByCenterId({});
+    setMaterializedNodeIds([]);
     setFitViewVersion((current) => current + 1);
   }, []);
 
@@ -1978,6 +2018,8 @@ export function KnowledgeGraphSystem({
                 relayoutVersion={relayoutVersion}
                 expandedNodeIds={expandedNodeIds}
                 expandedDirectLinks={expandedDirectLinks}
+                activationSequenceByCenterId={activationSequenceByCenterId}
+                materializedNodeIds={materializedNodeIds}
               />
             ) : (
               <KnowledgeGraphCanvas
@@ -1996,6 +2038,8 @@ export function KnowledgeGraphSystem({
                 height={dimensions.height}
                 expandedNodeIds={expandedNodeIds}
                 expandedDirectLinks={expandedDirectLinks}
+                activationSequenceByCenterId={activationSequenceByCenterId}
+                materializedNodeIds={materializedNodeIds}
               />
             )}
             </Suspense>

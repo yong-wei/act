@@ -208,10 +208,10 @@ describe('knowledge graph node-local expansion control', () => {
     const twoDimensionalSource = readKnowledgeSource('graph/knowledge-graph-2d.tsx');
     const threeDimensionalSource = readKnowledgeSource('graph/knowledge-graph-canvas.tsx');
     expect(twoDimensionalSource).toContain(
-      '[nodes, links, relayoutVersion, layoutState.version, expandedNodeIds, expandedDirectLinks]'
+      '[nodes, links, relayoutVersion, layoutState, expandedNodeIds, expandedDirectLinks, activationSequenceByCenterId, materializedNodeIds]'
     );
     expect(threeDimensionalSource).toContain(
-      '[nodes, links, relayoutVersion, layoutState.version, expandedNodeIds, expandedDirectLinks]'
+      '[nodes, links, relayoutVersion, layoutState, expandedNodeIds, expandedDirectLinks, activationSequenceByCenterId, materializedNodeIds]'
     );
   });
 
