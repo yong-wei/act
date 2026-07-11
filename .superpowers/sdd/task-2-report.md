@@ -70,3 +70,11 @@ Recorded by the final local commit for this report; no push performed.
 - Native semantic buttons are focused and activated with `userEvent.keyboard('{Enter}')` and `userEvent.keyboard(' ')`; request counts prove each leaf outcome is singular and does not dispatch expansion.
 - Added mounted target-switch cases for late success, network rejection, HTTP error, and JSON error, all proving the current leaf inspector and unknown-node error state remain untouched.
 - The mounted suite continues to cover StrictMode success/error paths, duplicate suppression, retry, canonical unknown branching, filter-control/cache reuse interaction, collapse, unmount, and Abort cleanup.
+
+## Acceptance Evidence Follow-up
+
+- Mounted filtered-empty coverage now asserts the final renderer neighbor disappears, the semantic center remains `aria-expanded=true`, `data-filtered-empty=true`, and `data-shard-cached=true`, and a visible cached-filter explanation appears. Restoring the strength filter rematerializes the neighbor with no request increase; the next center activation collapses.
+- Fixed the exposed production defect: relation-filtered expansion children were retained by `expandedDirectNodeIds` even after their final visible relation disappeared. Only expanded centers are now force-retained; filtered children follow final visible relations.
+- Added native Space activation for a collapsed expandable and native Enter activation for unknown, with real focus, focus-visible class contract, exact request deltas, expanded/busy outcomes, and no manual click.
+- Every 2D, 3D, directory, search, deep-link, and Related activation now has an immediate result/request assertion.
+- Unmount coverage captures the production request signal and asserts both `signal.aborted` and the abort event before settling the late rejection.

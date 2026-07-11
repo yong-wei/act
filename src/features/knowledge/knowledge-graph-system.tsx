@@ -831,14 +831,14 @@ export function KnowledgeGraphSystem({
     });
 
     return nodeFilteredByMeta.filter((node) => {
-      if (expandedDirectNodeIds.has(node.id)) return true;
+      if (expandedNodeIdSet.has(node.id)) return true;
       if (relationDensityMode === 'focused' && focusNeighborhood.focusNodeId) {
         return isNodeVisibleInFocusedGraph(node.id, focusNeighborhood, connectedByVisibleLinks);
       }
       if (!connectedInSearch.has(node.id)) return true;
       return connectedByVisibleLinks.has(node.id);
     });
-  }, [densityFilteredLinks, expandedDirectNodeIds, focusNeighborhood, links, nodeFilterIdSet, nodeFilteredByMeta, relationDensityMode, showOnlyConnectedNodes]);
+  }, [densityFilteredLinks, expandedNodeIdSet, focusNeighborhood, links, nodeFilterIdSet, nodeFilteredByMeta, relationDensityMode, showOnlyConnectedNodes]);
 
   const filteredNodeIdSet = useMemo(() => new Set(filteredNodes.map((item) => item.id)), [filteredNodes]);
 
@@ -1921,6 +1921,8 @@ export function KnowledgeGraphSystem({
               aria-expanded={node.expansion?.state === 'expandable' ? expandedNodeIdSet.has(node.id) : undefined}
               aria-describedby="knowledge-node-activation-status"
               data-error={expansionErrorByNodeId[node.id] ? 'true' : 'false'}
+              data-filtered-empty={filteredEmptyExpansionNodeIds.includes(node.id) ? 'true' : 'false'}
+              data-shard-cached={graphCache.graphVersion && graphCache.loadedShardKeys.includes(expansionShardKey(graphCache.graphVersion, node.id)) ? 'true' : 'false'}
               onClick={() => void activateNodeById(node.id)}
               className="pointer-events-auto h-px w-px overflow-hidden opacity-0 focus:h-auto focus:w-auto focus:overflow-visible focus:rounded-md focus:border focus:border-platform-action-primary focus:bg-platform-surface focus:px-3 focus:py-2 focus:opacity-100 focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-platform-action-primary"
             >
@@ -1931,6 +1933,15 @@ export function KnowledgeGraphSystem({
         <span id="knowledge-node-activation-status" role="status" aria-live="polite" className="sr-only">
           {selectedNodeExpansionStatusText}
         </span>
+        {selectedNodeFilteredEmpty && (
+          <div
+            role="status"
+            className="absolute bottom-16 left-1/2 z-30 -translate-x-1/2 rounded-md border border-platform-border bg-platform-surface px-3 py-2 text-xs text-platform-fg-secondary shadow-lg"
+            data-knowledge-filtered-empty-explanation="visible"
+          >
+            当前筛选条件隐藏了此节点的邻居；恢复筛选后将从缓存重新显示。
+          </div>
+        )}
 
         {isLoading ? (
             <div className="flex h-full w-full items-center justify-center">

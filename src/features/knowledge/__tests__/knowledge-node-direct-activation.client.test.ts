@@ -4,6 +4,7 @@ import { StrictMode, act, createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
+import { fireEvent } from '@testing-library/dom';
 
 const rendererRegistry = vi.hoisted(() => ({ count: 0 }));
 
@@ -43,7 +44,8 @@ const nodes: KnowledgeNodeData[] = [
 ];
 
 function payload(payloadNodes = nodes, links: unknown[] = [], mode = 'root') {
-  return { graphVersion: 'v1', mode, source: 'database', nodes: payloadNodes, links, loadedShardKeys: [`v1:shard:${mode}`] };
+  const shardKey = mode === 'expansion' ? 'v1:shard:expansion:expandable' : `v1:shard:${mode}`;
+  return { graphVersion: 'v1', mode, source: 'database', nodes: payloadNodes, links, shardKey };
 }
 
 function json(value: unknown, status = 200) {
@@ -87,28 +89,41 @@ describe('KnowledgeGraphSystem direct activation behavior', () => {
     expect(fetchMock.mock.calls.filter(([url]) => String(url).includes('mode=expansion'))).toHaveLength(1);
     await act(async () => container.querySelector<HTMLButtonElement>('[data-knowledge-command-trigger="relation-filters"]')!.click());
     const relationPanel = container.querySelector('[data-knowledge-local-panel="relation-filters"]')!;
-    const activeRelationButtons = Array.from(relationPanel.querySelectorAll<HTMLButtonElement>('button[aria-pressed="true"]'));
-    await act(async () => activeRelationButtons.forEach((button) => button.click()));
+    const strength = relationPanel.querySelector<HTMLInputElement>('input[type="range"]')!;
+    await act(async () => fireEvent.change(strength, { target: { value: '1' } }));
     await act(async () => new Promise((resolve) => setTimeout(resolve, 10)));
-    await act(async () => activeRelationButtons.forEach((button) => button.click()));
+    const expandableControl = container.querySelector<HTMLButtonElement>('[data-knowledge-node-control="expandable"]')!;
+    expect(expandableControl.getAttribute('aria-expanded')).toBe('true');
+    expect(expandableControl.getAttribute('data-filtered-empty')).toBe('true');
+    expect(expandableControl.getAttribute('data-shard-cached')).toBe('true');
+    expect(container.querySelector('[data-knowledge-filtered-empty-explanation="visible"]')?.textContent).toContain('缓存');
+    expect(container.querySelector('[data-testid="canvas-2D-leaf"]')).toBeNull();
+    await act(async () => fireEvent.change(strength, { target: { value: '0' } }));
     await act(async () => new Promise((resolve) => setTimeout(resolve, 10)));
+    expect(container.querySelector('[data-testid="canvas-2D-leaf"]')).not.toBeNull();
     expect(fetchMock.mock.calls.filter(([url]) => String(url).includes('mode=expansion'))).toHaveLength(1);
     await act(async () => container.querySelector<HTMLButtonElement>('[data-testid="canvas-2D-expandable"]')!.click());
     expect(container.querySelector('#knowledge-node-activation-status')?.textContent).toContain('折叠显示');
+    const requestsBeforeRelated = fetchMock.mock.calls.filter(([url]) => String(url).includes('mode=expansion')).length;
     await act(async () => container.querySelector<HTMLButtonElement>('[data-testid="related-expandable"]')!.click());
+    expect(container.querySelector('[data-knowledge-node-control="expandable"]')?.getAttribute('aria-expanded')).toBe('true');
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).includes('mode=expansion'))).toHaveLength(requestsBeforeRelated);
 
     await act(async () => container.querySelector<HTMLButtonElement>('[data-knowledge-command-trigger="view-layout"]')!.click());
     await act(async () => Array.from(container.querySelectorAll<HTMLButtonElement>('button')).find((button) => button.textContent === '3D 视图')!.click());
     await act(async () => container.querySelector<HTMLButtonElement>('[data-testid="canvas-3D-leaf"]')!.click());
+    expect(container.querySelector('[data-testid="resource-panel"]')?.textContent).toContain('leaf');
 
     await act(async () => container.querySelector<HTMLButtonElement>('[data-knowledge-command-trigger="chapter-directory"]')!.click());
     const directory = container.querySelector('[data-knowledge-local-panel="chapter-directory"]')!;
     await act(async () => directory.querySelector<HTMLButtonElement>('button')!.click());
     await act(async () => Array.from(directory.querySelectorAll<HTMLButtonElement>('button')).find((button) => button.textContent?.includes('Leaf'))!.click());
+    expect(container.querySelector('[data-testid="resource-panel"]')?.textContent).toContain('leaf');
     const search = directory.querySelector<HTMLInputElement>('input[aria-label="搜索知识点..."]')!;
     const directoryUser = userEvent.setup();
     await directoryUser.type(search, 'Leaf');
     await act(async () => Array.from(directory.querySelectorAll<HTMLButtonElement>('button')).find((button) => button.textContent?.includes('Leaf'))!.click());
+    expect(container.querySelector('[data-testid="resource-panel"]')?.textContent).toContain('leaf');
 
     const semanticLeaf = container.querySelector<HTMLButtonElement>('[data-knowledge-node-control="leaf"]')!;
     const user = userEvent.setup();
@@ -123,8 +138,15 @@ describe('KnowledgeGraphSystem direct activation behavior', () => {
 
   it('suppresses duplicate loading, retries errors, branches unknown canonically, and ignores stale/unmounted results', async () => {
     let rejectExpansion: ((reason: Error) => void) | undefined;
+    let expansionSignal: AbortSignal | undefined;
+    let abortObserved = false;
     const pending = new Promise<Response>((_resolve, reject) => { rejectExpansion = reject; });
-    const fetchMock = vi.fn((url: string) => url.includes('mode=expansion') ? pending : json(payload()));
+    const fetchMock = vi.fn((url: string, init?: RequestInit) => {
+      if (!url.includes('mode=expansion')) return json(payload());
+      expansionSignal = init?.signal ?? undefined;
+      expansionSignal?.addEventListener('abort', () => { abortObserved = true; });
+      return pending;
+    });
     vi.stubGlobal('fetch', fetchMock);
     await act(async () => root.render(createElement(StrictMode, null, createElement(KnowledgeGraphSystem, { initialNodes: nodes }))));
     await act(async () => new Promise((resolve) => setTimeout(resolve, 80)));
@@ -132,8 +154,34 @@ describe('KnowledgeGraphSystem direct activation behavior', () => {
     await act(async () => { unknown.click(); unknown.click(); });
     expect(fetchMock.mock.calls.filter(([url]) => String(url).includes('mode=expansion'))).toHaveLength(1);
     await act(async () => root.unmount());
+    expect(expansionSignal?.aborted).toBe(true);
+    expect(abortObserved).toBe(true);
     await act(async () => rejectExpansion?.(new Error('late network failure')));
     expect(container.textContent).toBe('');
+  });
+
+  it('uses native Space for collapsed expandable and Enter for unknown with one outcome each', async () => {
+    const fetchMock = vi.fn((url: string) => url.includes('mode=expansion')
+      ? json(payload(nodes, [{ id: 'l', sourceId: 'expandable', targetId: 'leaf', relation: 'related', strength: 1 }], 'expansion'))
+      : json(payload()));
+    vi.stubGlobal('fetch', fetchMock);
+    await act(async () => root.render(createElement(StrictMode, null, createElement(KnowledgeGraphSystem, { initialNodes: nodes }))));
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 80)));
+    const user = userEvent.setup();
+    const expandable = container.querySelector<HTMLButtonElement>('[data-knowledge-node-control="expandable"]')!;
+    expandable.focus();
+    expect(document.activeElement).toBe(expandable);
+    expect(expandable.className).toContain('focus:opacity-100');
+    await act(async () => user.keyboard(' '));
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).includes('mode=expansion'))).toHaveLength(1);
+    expect(expandable.getAttribute('aria-expanded')).toBe('true');
+
+    const unknown = container.querySelector<HTMLButtonElement>('[data-knowledge-node-control="unknown"]')!;
+    unknown.focus();
+    expect(document.activeElement).toBe(unknown);
+    await act(async () => user.keyboard('{Enter}'));
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).includes('mode=expansion'))).toHaveLength(2);
+    expect(unknown.getAttribute('aria-busy')).toBe('false');
   });
 
   it('retries HTTP errors and opens the inspector only after canonical unknown resolves to leaf', async () => {
