@@ -309,6 +309,57 @@ describe('portrait v2 incremental updates', () => {
     expect(payload.dimensions).toHaveLength(7);
     expect(payload.dimensions.every((item) => item.score === 0)).toBe(true);
   });
+
+  it('serializes per-student materialization behind a transaction-scoped advisory lock', async () => {
+    const executeRaw = vi.fn(async () => 1);
+    const create = vi.fn(async ({ data }: { data: Record<string, unknown> }) => ({ id: 'portrait-locked', ...data }));
+    const callOrder: string[] = [];
+    const db: any = {
+      $executeRaw: vi.fn(async () => {
+        callOrder.push('lock');
+        return executeRaw();
+      }),
+      $transaction: vi.fn(async (callback: (tx: unknown) => Promise<unknown>) => callback(db)),
+      studentPortraitV2Snapshot: { findFirst: vi.fn(async () => { callOrder.push('read'); return null; }), create },
+      learningFact: { findMany: vi.fn(async () => []) },
+    };
+
+    await materializeIncrementalPortraitV2(db, 'student-locked', { now: new Date('2026-05-02T00:00:00.000Z') });
+
+    expect(db.$transaction).toHaveBeenCalledTimes(1);
+    expect(db.$transaction).toHaveBeenCalledWith(expect.any(Function), { timeout: 120_000 });
+    expect(executeRaw).toHaveBeenCalledTimes(1);
+    expect(callOrder).toEqual(['lock', 'read']);
+    expect(db.$executeRaw).toHaveBeenCalledWith(expect.anything());
+  });
+
+  it('fails closed when a transaction cannot acquire the portrait advisory lock', async () => {
+    const db: any = {
+      $transaction: vi.fn(async (callback: (tx: unknown) => Promise<unknown>) => callback({
+        studentPortraitV2Snapshot: { findFirst: vi.fn(async () => null), create: vi.fn() },
+        learningFact: { findMany: vi.fn(async () => []) },
+      })),
+    };
+
+    await expect(materializeIncrementalPortraitV2(db, 'student-without-lock'))
+      .rejects.toThrow('transaction advisory-lock support');
+  });
+
+  it('does not read or write a snapshot when advisory-lock acquisition fails', async () => {
+    const findFirst = vi.fn(async () => null);
+    const create = vi.fn();
+    const db: any = {
+      $transaction: vi.fn(async (callback: (tx: unknown) => Promise<unknown>) => callback({
+        $executeRaw: vi.fn(async () => { throw new Error('lock unavailable'); }),
+        studentPortraitV2Snapshot: { findFirst, create },
+        learningFact: { findMany: vi.fn(async () => []) },
+      })),
+    };
+
+    await expect(materializeIncrementalPortraitV2(db, 'student-lock-error')).rejects.toThrow('lock unavailable');
+    expect(findFirst).not.toHaveBeenCalled();
+    expect(create).not.toHaveBeenCalled();
+  });
 });
 
 function fact(id: string, contribution: Record<string, number>, contextJson: unknown) {

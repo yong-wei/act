@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { assertDeliveryWindow, deriveAggregate, finalizeSchema, mayReadSubmission, SubmissionError, uploadIntentSchema } from '@/lib/assignments/submission-domain';
+import { createHash } from 'node:crypto';
+import { assertDeliveryWindow, assertSubmissionObjectIntegrity, deriveAggregate, finalizeSchema, mayReadSubmission, SubmissionError, uploadIntentSchema } from '@/lib/assignments/submission-domain';
 import { deriveStudentAssignmentPresentation, safePromptText } from '@/lib/assignments/submission-dto';
 import { getLocalTestSubmissionObjectStore, MemorySubmissionObjectStore, S3CompatibleSubmissionObjectStore } from '@/lib/assignments/submission-object-store';
 
@@ -28,6 +29,20 @@ describe('assignment submission domain', () => {
   it('uses strict response and checksum contracts', () => {
     expect(uploadIntentSchema.safeParse({ fileName: 'all.docx', mimeType: 'application/msword', sizeBytes: 12, checksum: 'abc' }).success).toBe(false);
     expect(uploadIntentSchema.safeParse({ fileName: 'q1.pdf', mimeType: 'application/pdf', sizeBytes: 12, checksum: `sha256:${'a'.repeat(64)}` }).success).toBe(true);
+  });
+  it('rejects same-size object tampering during download', () => {
+    expect(() => assertSubmissionObjectIntegrity(new Uint8Array([1]), 1, `sha256:${'a'.repeat(64)}`)).toThrowError(new SubmissionError('asset-integrity-mismatch', 502));
+  });
+  it('accepts an object whose size and SHA-256 match persisted metadata', () => {
+    const bytes = new Uint8Array([1, 2, 3]);
+    const checksum = `sha256:${createHash('sha256').update(bytes).digest('hex')}`;
+    expect(() => assertSubmissionObjectIntegrity(bytes, bytes.byteLength, checksum)).not.toThrow();
+  });
+  it('rejects an object whose size differs from persisted metadata', () => {
+    const bytes = new Uint8Array([1, 2, 3]);
+    const checksum = `sha256:${createHash('sha256').update(bytes).digest('hex')}`;
+    expect(() => assertSubmissionObjectIntegrity(bytes, bytes.byteLength + 1, checksum))
+      .toThrowError(new SubmissionError('asset-integrity-mismatch', 502));
   });
   it('whitelists prompt text and never serializes teacher-only snapshots', () => {
     expect(safePromptText({ prompt: 'student prompt', referenceAnswer: 'secret', rubric: { hidden: true } })).toBe('student prompt');
