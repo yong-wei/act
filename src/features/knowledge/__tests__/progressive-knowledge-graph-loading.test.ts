@@ -347,7 +347,9 @@ describe('progressive knowledge graph loading', () => {
       relation: link.relation,
     }));
 
-    prismaMock.knowledgeNode.findMany.mockResolvedValue(databaseNodes);
+    prismaMock.knowledgeNode.findMany
+      .mockResolvedValueOnce(databaseNodes)
+      .mockResolvedValueOnce([...databaseNodes].reverse());
     prismaMock.knowledgeLink.findMany.mockResolvedValue(databaseLinks);
     prismaMock.$queryRaw.mockResolvedValue([{
       linkCount: BigInt(databaseLinks.length),

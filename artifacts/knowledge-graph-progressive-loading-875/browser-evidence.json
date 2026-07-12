@@ -2,8 +2,8 @@
   "change": "progressive-knowledge-graph-loading",
   "issue": 875,
   "route": "/knowledge",
-  "capturedAt": "2026-07-12T10:36:03.759Z",
-  "baseUrl": "http://localhost:3101",
+  "capturedAt": "2026-07-12T17:59:40.889Z",
+  "baseUrl": "http://127.0.0.1:3001",
   "rootNodeId": "chapter-node:基本概念",
   "noChildrenNodeId": "稳定性_1_7288b4ea",
   "noChildrenNodeName": "稳定性",
@@ -23,10 +23,10 @@
     "状态空间"
   ],
   "currentSourceSha256": {
-    "src/features/knowledge/knowledge-graph-system.tsx": "f847fb6244a9b62182d3937acd9184e9786910ddcdf9f777b0c193ece7ca6a6d",
+    "src/features/knowledge/knowledge-graph-system.tsx": "ccad9069af2a0f93448c656e7b17058cc0c84bb1ca734101aa0e21a13c9f19d3",
     "src/features/knowledge/sidebar/knowledge-sidebar.tsx": "f8546205bb42cbe30bf52972dccab98db756ae11cd16e2917abe13452236e624",
     "src/features/knowledge/graph/filter-utils.ts": "6cca471bcc7d9d1adc191aade05f169a0349f061c07284689d5d1d12600d0feb",
-    "src/lib/knowledge-graph-source.ts": "0916104a437dc1d0dbc18079689b7de1f119af51f7f51d514788a74f89b329c0",
+    "src/lib/knowledge-graph-source.ts": "88750f56ef9285a17ac4246a59f908a3ac97816bb1466f78ac0992f8e0d6147b",
     "src/app/api/knowledge/graph/route.ts": "0e89c115a8b62e47cc971b4a891e81cf0b0938919ae3bd938c968e1d06ecdd86",
     "scripts/tests/capture-knowledge-graph-progressive-loading.ts": "f124e367880a678ba50a508c39d9df718497b1dac784551f9f13c1f78c598878",
     "scripts/tests/test-knowledge-graph-progressive-loading-governance.ts": "2d03e8526926c7b4a1ff022ea5248049a63d49dd627d2174565f7686652a7579"
@@ -62,28 +62,28 @@
   "stateMatrix": [
     {
       "name": "root-first-1440",
-      "url": "http://localhost:3101/knowledge?qa=knowledge-progressive",
+      "url": "http://127.0.0.1:3001/knowledge?qa=knowledge-progressive",
       "viewport": {
         "width": 1440,
         "height": 960
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/root-first-1440.png",
-      "screenshotSha256": "e197cb6cfa34e1ca7629d496a05ef442f72fd9ad69f61e6655e3ec5856665e5e",
+      "screenshotSha256": "bbea6bdf0ec4e5395f847e026dbe6e17440ba458610fce3602eda13e10044878",
       "networkEvents": [
         {
           "event": "request",
           "mode": "root",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=root"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=root"
         },
         {
           "event": "request",
           "mode": "active-filter",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=active-filter"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=active-filter"
         },
         {
           "event": "request",
           "mode": "remaining",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=remaining"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=remaining"
         }
       ],
       "networkResponses": [
@@ -97,7 +97,7 @@
           "nodeCount": 15,
           "linkCount": 0,
           "rootSummaryCount": 15,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=root"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=root"
         },
         {
           "event": "response",
@@ -109,7 +109,7 @@
           "nodeCount": 820,
           "linkCount": 5048,
           "rootSummaryCount": 0,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=active-filter"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=active-filter"
         }
       ],
       "markers": {
@@ -137,8 +137,8 @@
         "konlingVisible": false,
         "canvasPixelEvidence": {
           "available": true,
-          "paintedPixels": 37227,
-          "nodeColorPixels": 3408,
+          "paintedPixels": 36619,
+          "nodeColorPixels": 3347,
           "width": 1320,
           "height": 831
         },
@@ -172,28 +172,28 @@
     },
     {
       "name": "root-first-1279",
-      "url": "http://localhost:3101/knowledge?qa=knowledge-progressive",
+      "url": "http://127.0.0.1:3001/knowledge?qa=knowledge-progressive",
       "viewport": {
         "width": 1279,
         "height": 900
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/root-first-1279.png",
-      "screenshotSha256": "5b15739f9a90e4662c74e2eb7d24586050519afa99cb36b13e89aac8aa0f9606",
+      "screenshotSha256": "9057dc256930913f3e06a859e5577c88fc2179052083665a17064ff8410e3190",
       "networkEvents": [
         {
           "event": "request",
           "mode": "root",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=root"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=root"
         },
         {
           "event": "request",
           "mode": "active-filter",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=active-filter"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=active-filter"
         },
         {
           "event": "request",
           "mode": "remaining",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=remaining"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=remaining"
         }
       ],
       "networkResponses": [
@@ -207,7 +207,7 @@
           "nodeCount": 15,
           "linkCount": 0,
           "rootSummaryCount": 15,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=root"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=root"
         },
         {
           "event": "response",
@@ -219,7 +219,7 @@
           "nodeCount": 820,
           "linkCount": 5048,
           "rootSummaryCount": 0,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=active-filter"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=active-filter"
         }
       ],
       "markers": {
@@ -247,8 +247,8 @@
         "konlingVisible": false,
         "canvasPixelEvidence": {
           "available": true,
-          "paintedPixels": 29675,
-          "nodeColorPixels": 2801,
+          "paintedPixels": 29627,
+          "nodeColorPixels": 2882,
           "width": 1231,
           "height": 714
         },
@@ -282,28 +282,28 @@
     },
     {
       "name": "root-first-1100",
-      "url": "http://localhost:3101/knowledge?qa=knowledge-progressive",
+      "url": "http://127.0.0.1:3001/knowledge?qa=knowledge-progressive",
       "viewport": {
         "width": 1100,
         "height": 820
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/root-first-1100.png",
-      "screenshotSha256": "185a3968317fb21148bb40b2ca82054151e9a431db8094c46d44e95d0978bd8c",
+      "screenshotSha256": "8bfbe331111eb65d0f58c68f747ee49e55ba8eae88498513fdd49f3bec66c1ee",
       "networkEvents": [
         {
           "event": "request",
           "mode": "root",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=root"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=root"
         },
         {
           "event": "request",
           "mode": "active-filter",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=active-filter"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=active-filter"
         },
         {
           "event": "request",
           "mode": "remaining",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=remaining"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=remaining"
         }
       ],
       "networkResponses": [
@@ -317,7 +317,7 @@
           "nodeCount": 15,
           "linkCount": 0,
           "rootSummaryCount": 15,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=root"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=root"
         },
         {
           "event": "response",
@@ -329,7 +329,7 @@
           "nodeCount": 820,
           "linkCount": 5048,
           "rootSummaryCount": 0,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=active-filter"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=active-filter"
         }
       ],
       "markers": {
@@ -357,8 +357,8 @@
         "konlingVisible": false,
         "canvasPixelEvidence": {
           "available": true,
-          "paintedPixels": 20913,
-          "nodeColorPixels": 2161,
+          "paintedPixels": 21525,
+          "nodeColorPixels": 2213,
           "width": 1052,
           "height": 634
         },
@@ -392,28 +392,28 @@
     },
     {
       "name": "root-first-1024",
-      "url": "http://localhost:3101/knowledge?qa=knowledge-progressive",
+      "url": "http://127.0.0.1:3001/knowledge?qa=knowledge-progressive",
       "viewport": {
         "width": 1024,
         "height": 820
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/root-first-1024.png",
-      "screenshotSha256": "e2080b006cd7d47a4b569df6f664e5acd766c8d18b5503089862310f3acf1451",
+      "screenshotSha256": "28be80216418391f3a3e4bebb62061d98811c0ae0e41bad2533644751d2d304e",
       "networkEvents": [
         {
           "event": "request",
           "mode": "root",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=root"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=root"
         },
         {
           "event": "request",
           "mode": "active-filter",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=active-filter"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=active-filter"
         },
         {
           "event": "request",
           "mode": "remaining",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=remaining"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=remaining"
         }
       ],
       "networkResponses": [
@@ -427,7 +427,7 @@
           "nodeCount": 15,
           "linkCount": 0,
           "rootSummaryCount": 15,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=root"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=root"
         },
         {
           "event": "response",
@@ -439,7 +439,7 @@
           "nodeCount": 820,
           "linkCount": 5048,
           "rootSummaryCount": 0,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=active-filter"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=active-filter"
         }
       ],
       "markers": {
@@ -467,8 +467,8 @@
         "konlingVisible": false,
         "canvasPixelEvidence": {
           "available": true,
-          "paintedPixels": 12846,
-          "nodeColorPixels": 1363,
+          "paintedPixels": 18949,
+          "nodeColorPixels": 1842,
           "width": 976,
           "height": 634
         },
@@ -502,28 +502,28 @@
     },
     {
       "name": "root-first-320",
-      "url": "http://localhost:3101/knowledge?qa=knowledge-progressive",
+      "url": "http://127.0.0.1:3001/knowledge?qa=knowledge-progressive",
       "viewport": {
         "width": 320,
         "height": 800
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/root-first-320.png",
-      "screenshotSha256": "f37d1011036b5a2b25b5bdc0cac037c4afc265023cb37d4a2ea99cf49b03f4d5",
+      "screenshotSha256": "b76d1b79cdfe568626fd709733e77ec2f01b87aa2a599fe798867a4ca25f6173",
       "networkEvents": [
         {
           "event": "request",
           "mode": "root",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=root"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=root"
         },
         {
           "event": "request",
           "mode": "active-filter",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=active-filter"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=active-filter"
         },
         {
           "event": "request",
           "mode": "remaining",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=remaining"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=remaining"
         }
       ],
       "networkResponses": [
@@ -537,7 +537,7 @@
           "nodeCount": 15,
           "linkCount": 0,
           "rootSummaryCount": 15,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=root"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=root"
         },
         {
           "event": "response",
@@ -549,7 +549,7 @@
           "nodeCount": 820,
           "linkCount": 5048,
           "rootSummaryCount": 0,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=active-filter"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=active-filter"
         }
       ],
       "markers": {
@@ -577,8 +577,8 @@
         "konlingVisible": false,
         "canvasPixelEvidence": {
           "available": true,
-          "paintedPixels": 1222,
-          "nodeColorPixels": 86,
+          "paintedPixels": 5626,
+          "nodeColorPixels": 535,
           "width": 288,
           "height": 502
         },
@@ -612,38 +612,38 @@
     },
     {
       "name": "expansion-loading-1440",
-      "url": "http://localhost:3101/knowledge?node=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5&qa=knowledge-progressive",
+      "url": "http://127.0.0.1:3001/knowledge?node=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5&qa=knowledge-progressive",
       "viewport": {
         "width": 1440,
         "height": 960
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/expansion-loading-1440.png",
-      "screenshotSha256": "e63e77d7754eed7175c888f45d50035d8d454b44f2f45e894d74a6d23dab7409",
+      "screenshotSha256": "36e9392bb0fea94942bb2b08f0c509f5d872bf07a2fd2167cc9b83ef3b04def9",
       "networkEvents": [
         {
           "event": "request",
           "mode": "root",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=root"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=root"
         },
         {
           "event": "request",
           "mode": "active-filter",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=active-filter"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=active-filter"
         },
         {
           "event": "request",
           "mode": "expansion",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=expansion&nodeId=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=expansion&nodeId=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"
         },
         {
           "event": "request",
           "mode": "remaining",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=remaining"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=remaining"
         },
         {
           "event": "request",
           "mode": "expansion",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=expansion&nodeId=chapter-node%3A%E7%B3%BB%E7%BB%9F%E6%A8%A1%E5%9E%8B"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=expansion&nodeId=chapter-node%3A%E7%B3%BB%E7%BB%9F%E6%A8%A1%E5%9E%8B"
         }
       ],
       "networkResponses": [
@@ -657,19 +657,7 @@
           "nodeCount": 15,
           "linkCount": 0,
           "rootSummaryCount": 15,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=root"
-        },
-        {
-          "event": "response",
-          "mode": "active-filter",
-          "status": 200,
-          "payloadMode": "active-filter",
-          "graphVersion": "knowledge-graph:file:820:5680375:e628b90aa7a4b369",
-          "shardKey": "knowledge-graph:file:820:5680375:e628b90aa7a4b369:shard:active-filter:density=structure;strength=0.8;connected=true;relations=default",
-          "nodeCount": 820,
-          "linkCount": 5048,
-          "rootSummaryCount": 0,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=active-filter"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=root"
         },
         {
           "event": "response",
@@ -681,7 +669,19 @@
           "nodeCount": 62,
           "linkCount": 1691,
           "rootSummaryCount": 0,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=expansion&nodeId=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=expansion&nodeId=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"
+        },
+        {
+          "event": "response",
+          "mode": "active-filter",
+          "status": 200,
+          "payloadMode": "active-filter",
+          "graphVersion": "knowledge-graph:file:820:5680375:e628b90aa7a4b369",
+          "shardKey": "knowledge-graph:file:820:5680375:e628b90aa7a4b369:shard:active-filter:density=structure;strength=0.8;connected=true;relations=default",
+          "nodeCount": 820,
+          "linkCount": 5048,
+          "rootSummaryCount": 0,
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=active-filter"
         },
         {
           "event": "response",
@@ -693,7 +693,7 @@
           "nodeCount": 820,
           "linkCount": 16545,
           "rootSummaryCount": 0,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=remaining"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=remaining"
         }
       ],
       "markers": {
@@ -711,7 +711,7 @@
           "selectedNodeId": "chapter-node:系统模型",
           "densityMode": "structure",
           "activeFilterSummary": "关系 3/6 · 强度 >= 0.8 · 仅连通节点",
-          "visibleNodeCount": 67
+          "visibleNodeCount": 76
         },
         "expansion": {
           "state": "loading",
@@ -731,8 +731,8 @@
         "konlingVisible": false,
         "canvasPixelEvidence": {
           "available": true,
-          "paintedPixels": 31361,
-          "nodeColorPixels": 14222,
+          "paintedPixels": 31965,
+          "nodeColorPixels": 15807,
           "width": 1320,
           "height": 831
         },
@@ -746,11 +746,11 @@
             "height": 831
           },
           "expansionPanel": {
-            "left": 435,
+            "left": 406,
             "top": 858,
-            "right": 513,
+            "right": 474,
             "bottom": 924,
-            "width": 78,
+            "width": 68,
             "height": 66
           },
           "dock": null,
@@ -773,33 +773,33 @@
     },
     {
       "name": "expanded-1440",
-      "url": "http://localhost:3101/knowledge?node=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5&qa=knowledge-progressive",
+      "url": "http://127.0.0.1:3001/knowledge?node=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5&qa=knowledge-progressive",
       "viewport": {
         "width": 1440,
         "height": 960
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/expanded-1440.png",
-      "screenshotSha256": "8372c0ed612bb189b1497dd302c9d79fda3dd661c602ef98e21efb6cc0642059",
+      "screenshotSha256": "8173201721f0c57d9fab7f635abf592f6fa2c6e7f023d4c672e1742111b57ba6",
       "networkEvents": [
         {
           "event": "request",
           "mode": "root",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=root"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=root"
         },
         {
           "event": "request",
           "mode": "active-filter",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=active-filter"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=active-filter"
         },
         {
           "event": "request",
           "mode": "expansion",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=expansion&nodeId=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=expansion&nodeId=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"
         },
         {
           "event": "request",
           "mode": "remaining",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=remaining"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=remaining"
         }
       ],
       "networkResponses": [
@@ -813,19 +813,7 @@
           "nodeCount": 15,
           "linkCount": 0,
           "rootSummaryCount": 15,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=root"
-        },
-        {
-          "event": "response",
-          "mode": "active-filter",
-          "status": 200,
-          "payloadMode": "active-filter",
-          "graphVersion": "knowledge-graph:file:820:5680375:e628b90aa7a4b369",
-          "shardKey": "knowledge-graph:file:820:5680375:e628b90aa7a4b369:shard:active-filter:density=structure;strength=0.8;connected=true;relations=default",
-          "nodeCount": 820,
-          "linkCount": 5048,
-          "rootSummaryCount": 0,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=active-filter"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=root"
         },
         {
           "event": "response",
@@ -837,7 +825,19 @@
           "nodeCount": 62,
           "linkCount": 1691,
           "rootSummaryCount": 0,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=expansion&nodeId=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=expansion&nodeId=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"
+        },
+        {
+          "event": "response",
+          "mode": "active-filter",
+          "status": 200,
+          "payloadMode": "active-filter",
+          "graphVersion": "knowledge-graph:file:820:5680375:e628b90aa7a4b369",
+          "shardKey": "knowledge-graph:file:820:5680375:e628b90aa7a4b369:shard:active-filter:density=structure;strength=0.8;connected=true;relations=default",
+          "nodeCount": 820,
+          "linkCount": 5048,
+          "rootSummaryCount": 0,
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=active-filter"
         },
         {
           "event": "response",
@@ -849,7 +849,7 @@
           "nodeCount": 820,
           "linkCount": 16545,
           "rootSummaryCount": 0,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=remaining"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=remaining"
         }
       ],
       "markers": {
@@ -867,7 +867,7 @@
           "selectedNodeId": "chapter-node:基本概念",
           "densityMode": "structure",
           "activeFilterSummary": "关系 3/6 · 强度 >= 0.8 · 仅连通节点",
-          "visibleNodeCount": 67
+          "visibleNodeCount": 76
         },
         "expansion": {
           "state": "expanded",
@@ -887,8 +887,8 @@
         "konlingVisible": false,
         "canvasPixelEvidence": {
           "available": true,
-          "paintedPixels": 31766,
-          "nodeColorPixels": 14637,
+          "paintedPixels": 33572,
+          "nodeColorPixels": 17521,
           "width": 1320,
           "height": 831
         },
@@ -902,9 +902,9 @@
             "height": 831
           },
           "expansionPanel": {
-            "left": 459,
+            "left": 418,
             "top": 923,
-            "right": 460,
+            "right": 419,
             "bottom": 924,
             "width": 1,
             "height": 1
@@ -929,33 +929,33 @@
     },
     {
       "name": "collapsed-1440",
-      "url": "http://localhost:3101/knowledge?node=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5&qa=knowledge-progressive",
+      "url": "http://127.0.0.1:3001/knowledge?node=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5&qa=knowledge-progressive",
       "viewport": {
         "width": 1440,
         "height": 960
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/collapsed-1440.png",
-      "screenshotSha256": "264317068cd21929acf240fb9796c75ca005bf52d588def2edac2a52a0bebac6",
+      "screenshotSha256": "e6d2323bc1edcb959a9883097ab8ac0e78df1ddd3000867e9bb16b6d4320af67",
       "networkEvents": [
         {
           "event": "request",
           "mode": "root",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=root"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=root"
         },
         {
           "event": "request",
           "mode": "active-filter",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=active-filter"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=active-filter"
         },
         {
           "event": "request",
           "mode": "expansion",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=expansion&nodeId=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=expansion&nodeId=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"
         },
         {
           "event": "request",
           "mode": "remaining",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=remaining"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=remaining"
         }
       ],
       "networkResponses": [
@@ -969,7 +969,7 @@
           "nodeCount": 15,
           "linkCount": 0,
           "rootSummaryCount": 15,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=root"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=root"
         },
         {
           "event": "response",
@@ -981,7 +981,7 @@
           "nodeCount": 62,
           "linkCount": 1691,
           "rootSummaryCount": 0,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=expansion&nodeId=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=expansion&nodeId=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"
         },
         {
           "event": "response",
@@ -993,7 +993,7 @@
           "nodeCount": 820,
           "linkCount": 5048,
           "rootSummaryCount": 0,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=active-filter"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=active-filter"
         },
         {
           "event": "response",
@@ -1005,7 +1005,7 @@
           "nodeCount": 820,
           "linkCount": 16545,
           "rootSummaryCount": 0,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=remaining"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=remaining"
         }
       ],
       "markers": {
@@ -1043,8 +1043,8 @@
         "konlingVisible": false,
         "canvasPixelEvidence": {
           "available": true,
-          "paintedPixels": 18636,
-          "nodeColorPixels": 1822,
+          "paintedPixels": 17720,
+          "nodeColorPixels": 1748,
           "width": 1320,
           "height": 831
         },
@@ -1085,33 +1085,33 @@
     },
     {
       "name": "cache-reuse-1440",
-      "url": "http://localhost:3101/knowledge?node=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5&qa=knowledge-progressive",
+      "url": "http://127.0.0.1:3001/knowledge?node=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5&qa=knowledge-progressive",
       "viewport": {
         "width": 1440,
         "height": 960
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/cache-reuse-1440.png",
-      "screenshotSha256": "2c6278f138b3241178bf69e8e670343659620a3c3f91ff234c95a7533b5003b4",
+      "screenshotSha256": "41d6e2276e207d6ba1d8d554e8e9cc3584921fd210e3e59879f474f4b9105f81",
       "networkEvents": [
         {
           "event": "request",
           "mode": "root",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=root"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=root"
         },
         {
           "event": "request",
           "mode": "active-filter",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=active-filter"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=active-filter"
         },
         {
           "event": "request",
           "mode": "expansion",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=expansion&nodeId=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=expansion&nodeId=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"
         },
         {
           "event": "request",
           "mode": "remaining",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=remaining"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=remaining"
         }
       ],
       "networkResponses": [
@@ -1125,19 +1125,7 @@
           "nodeCount": 15,
           "linkCount": 0,
           "rootSummaryCount": 15,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=root"
-        },
-        {
-          "event": "response",
-          "mode": "expansion",
-          "status": 200,
-          "payloadMode": "expansion",
-          "graphVersion": "knowledge-graph:file:820:5680375:e628b90aa7a4b369",
-          "shardKey": "knowledge-graph:file:820:5680375:e628b90aa7a4b369:shard:expansion:chapter-node:基本概念",
-          "nodeCount": 62,
-          "linkCount": 1691,
-          "rootSummaryCount": 0,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=expansion&nodeId=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=root"
         },
         {
           "event": "response",
@@ -1149,7 +1137,19 @@
           "nodeCount": 820,
           "linkCount": 5048,
           "rootSummaryCount": 0,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=active-filter"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=active-filter"
+        },
+        {
+          "event": "response",
+          "mode": "expansion",
+          "status": 200,
+          "payloadMode": "expansion",
+          "graphVersion": "knowledge-graph:file:820:5680375:e628b90aa7a4b369",
+          "shardKey": "knowledge-graph:file:820:5680375:e628b90aa7a4b369:shard:expansion:chapter-node:基本概念",
+          "nodeCount": 62,
+          "linkCount": 1691,
+          "rootSummaryCount": 0,
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=expansion&nodeId=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"
         },
         {
           "event": "response",
@@ -1161,7 +1161,7 @@
           "nodeCount": 820,
           "linkCount": 16545,
           "rootSummaryCount": 0,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=remaining"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=remaining"
         }
       ],
       "markers": {
@@ -1179,7 +1179,7 @@
           "selectedNodeId": "chapter-node:基本概念",
           "densityMode": "structure",
           "activeFilterSummary": "关系 3/6 · 强度 >= 0.8 · 仅连通节点",
-          "visibleNodeCount": 67
+          "visibleNodeCount": 76
         },
         "expansion": {
           "state": "expanded",
@@ -1199,8 +1199,8 @@
         "konlingVisible": false,
         "canvasPixelEvidence": {
           "available": true,
-          "paintedPixels": 31766,
-          "nodeColorPixels": 14637,
+          "paintedPixels": 33572,
+          "nodeColorPixels": 17521,
           "width": 1320,
           "height": 831
         },
@@ -1214,11 +1214,11 @@
             "height": 831
           },
           "expansionPanel": {
-            "left": 426,
+            "left": 398,
             "top": 858,
-            "right": 504,
+            "right": 465,
             "bottom": 924,
-            "width": 78,
+            "width": 68,
             "height": 66
           },
           "dock": null,
@@ -1245,7 +1245,7 @@
     },
     {
       "name": "filtered-empty-1440",
-      "url": "http://localhost:3101/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-progressive",
+      "url": "http://127.0.0.1:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-progressive",
       "viewport": {
         "width": 1440,
         "height": 960
@@ -1256,17 +1256,17 @@
         {
           "event": "request",
           "mode": "root",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=root"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=root"
         },
         {
           "event": "request",
           "mode": "active-filter",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=active-filter"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=active-filter"
         },
         {
           "event": "request",
           "mode": "remaining",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=remaining"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=remaining"
         }
       ],
       "networkResponses": [
@@ -1280,7 +1280,7 @@
           "nodeCount": 15,
           "linkCount": 0,
           "rootSummaryCount": 15,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=root"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=root"
         },
         {
           "event": "response",
@@ -1292,7 +1292,7 @@
           "nodeCount": 820,
           "linkCount": 5048,
           "rootSummaryCount": 0,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=active-filter"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=active-filter"
         },
         {
           "event": "response",
@@ -1304,7 +1304,7 @@
           "nodeCount": 820,
           "linkCount": 16545,
           "rootSummaryCount": 0,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=remaining"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=remaining"
         }
       ],
       "markers": {
@@ -1391,7 +1391,7 @@
     },
     {
       "name": "root-filtered-match-1440",
-      "url": "http://localhost:3101/knowledge?qa=knowledge-progressive",
+      "url": "http://127.0.0.1:3001/knowledge?qa=knowledge-progressive",
       "viewport": {
         "width": 1440,
         "height": 960
@@ -1402,17 +1402,17 @@
         {
           "event": "request",
           "mode": "root",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=root"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=root"
         },
         {
           "event": "request",
           "mode": "active-filter",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=active-filter"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=active-filter"
         },
         {
           "event": "request",
           "mode": "remaining",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=remaining"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=remaining"
         }
       ],
       "networkResponses": [
@@ -1426,7 +1426,7 @@
           "nodeCount": 15,
           "linkCount": 0,
           "rootSummaryCount": 15,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=root"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=root"
         },
         {
           "event": "response",
@@ -1438,7 +1438,7 @@
           "nodeCount": 820,
           "linkCount": 5048,
           "rootSummaryCount": 0,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=active-filter"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=active-filter"
         },
         {
           "event": "response",
@@ -1450,7 +1450,7 @@
           "nodeCount": 820,
           "linkCount": 16545,
           "rootSummaryCount": 0,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=remaining"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=remaining"
         }
       ],
       "markers": {
@@ -1517,7 +1517,7 @@
     },
     {
       "name": "dense-all-1440",
-      "url": "http://localhost:3101/knowledge?qa=knowledge-progressive",
+      "url": "http://127.0.0.1:3001/knowledge?qa=knowledge-progressive",
       "viewport": {
         "width": 1440,
         "height": 960
@@ -1528,17 +1528,17 @@
         {
           "event": "request",
           "mode": "root",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=root"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=root"
         },
         {
           "event": "request",
           "mode": "active-filter",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=active-filter"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=active-filter"
         },
         {
           "event": "request",
           "mode": "remaining",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=remaining"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=remaining"
         }
       ],
       "networkResponses": [
@@ -1552,7 +1552,7 @@
           "nodeCount": 15,
           "linkCount": 0,
           "rootSummaryCount": 15,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=root"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=root"
         },
         {
           "event": "response",
@@ -1564,7 +1564,7 @@
           "nodeCount": 820,
           "linkCount": 5048,
           "rootSummaryCount": 0,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=active-filter"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=active-filter"
         },
         {
           "event": "response",
@@ -1576,7 +1576,7 @@
           "nodeCount": 820,
           "linkCount": 16545,
           "rootSummaryCount": 0,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=remaining"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=remaining"
         }
       ],
       "markers": {
@@ -1642,7 +1642,7 @@
     },
     {
       "name": "local-tool-1440",
-      "url": "http://localhost:3101/knowledge?qa=knowledge-progressive",
+      "url": "http://127.0.0.1:3001/knowledge?qa=knowledge-progressive",
       "viewport": {
         "width": 1440,
         "height": 960
@@ -1653,17 +1653,17 @@
         {
           "event": "request",
           "mode": "root",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=root"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=root"
         },
         {
           "event": "request",
           "mode": "active-filter",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=active-filter"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=active-filter"
         },
         {
           "event": "request",
           "mode": "remaining",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=remaining"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=remaining"
         }
       ],
       "networkResponses": [
@@ -1677,7 +1677,7 @@
           "nodeCount": 15,
           "linkCount": 0,
           "rootSummaryCount": 15,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=root"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=root"
         },
         {
           "event": "response",
@@ -1689,7 +1689,7 @@
           "nodeCount": 820,
           "linkCount": 5048,
           "rootSummaryCount": 0,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=active-filter"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=active-filter"
         },
         {
           "event": "response",
@@ -1701,7 +1701,7 @@
           "nodeCount": 820,
           "linkCount": 16545,
           "rootSummaryCount": 0,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=remaining"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=remaining"
         }
       ],
       "markers": {
@@ -1771,7 +1771,7 @@
     },
     {
       "name": "selected-inspector-1440",
-      "url": "http://localhost:3101/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-progressive",
+      "url": "http://127.0.0.1:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-progressive",
       "viewport": {
         "width": 1440,
         "height": 960
@@ -1782,17 +1782,17 @@
         {
           "event": "request",
           "mode": "root",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=root"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=root"
         },
         {
           "event": "request",
           "mode": "active-filter",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=active-filter"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=active-filter"
         },
         {
           "event": "request",
           "mode": "remaining",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=remaining"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=remaining"
         }
       ],
       "networkResponses": [
@@ -1806,7 +1806,7 @@
           "nodeCount": 15,
           "linkCount": 0,
           "rootSummaryCount": 15,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=root"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=root"
         },
         {
           "event": "response",
@@ -1818,7 +1818,7 @@
           "nodeCount": 820,
           "linkCount": 5048,
           "rootSummaryCount": 0,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=active-filter"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=active-filter"
         },
         {
           "event": "response",
@@ -1830,7 +1830,7 @@
           "nodeCount": 820,
           "linkCount": 16545,
           "rootSummaryCount": 0,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=remaining"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=remaining"
         }
       ],
       "markers": {
@@ -1917,7 +1917,7 @@
     },
     {
       "name": "konling-expanded-1440",
-      "url": "http://localhost:3101/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-progressive",
+      "url": "http://127.0.0.1:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-progressive",
       "viewport": {
         "width": 1440,
         "height": 960
@@ -1928,17 +1928,17 @@
         {
           "event": "request",
           "mode": "root",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=root"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=root"
         },
         {
           "event": "request",
           "mode": "active-filter",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=active-filter"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=active-filter"
         },
         {
           "event": "request",
           "mode": "remaining",
-          "url": "http://localhost:3101/api/knowledge/graph?mode=remaining"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=remaining"
         }
       ],
       "networkResponses": [
@@ -1952,7 +1952,7 @@
           "nodeCount": 15,
           "linkCount": 0,
           "rootSummaryCount": 15,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=root"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=root"
         },
         {
           "event": "response",
@@ -1964,7 +1964,7 @@
           "nodeCount": 820,
           "linkCount": 5048,
           "rootSummaryCount": 0,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=active-filter"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=active-filter"
         },
         {
           "event": "response",
@@ -1976,7 +1976,7 @@
           "nodeCount": 820,
           "linkCount": 16545,
           "rootSummaryCount": 0,
-          "url": "http://localhost:3101/api/knowledge/graph?mode=remaining"
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=remaining"
         }
       ],
       "markers": {

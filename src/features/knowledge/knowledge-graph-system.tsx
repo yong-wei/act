@@ -922,6 +922,7 @@ export function KnowledgeGraphSystem({
 
   const filteredLinksByRelation = useMemo(() => {
     return eligibleLinks.filter((link) =>
+      expandedDirectLinks.includes(link) ||
       relationPassesActiveFilters(link, {
         densityMode: relationDensityMode,
         selectedRelationTypes,
@@ -930,7 +931,7 @@ export function KnowledgeGraphSystem({
         focusNeighborhood,
       })
     );
-  }, [eligibleLinks, focusNeighborhood, graphFilterFocusNodeId, minRelationStrength, relationDensityMode, selectedRelationTypes]);
+  }, [eligibleLinks, expandedDirectLinks, focusNeighborhood, graphFilterFocusNodeId, minRelationStrength, relationDensityMode, selectedRelationTypes]);
 
   const densityFilteredLinks = useMemo(
     () => {
@@ -939,9 +940,11 @@ export function KnowledgeGraphSystem({
             focusNodeId: graphFilterFocusNodeId,
           })
         : filteredLinksByRelation;
-      return linksAfterDensity;
+      const linkKeys = new Set(linksAfterDensity.map(knowledgeLinkCacheKey));
+      const retainedExpandedLinks = expandedDirectLinks.filter((link) => !linkKeys.has(knowledgeLinkCacheKey(link)));
+      return [...linksAfterDensity, ...retainedExpandedLinks];
     },
-    [filteredLinksByRelation, graphFilterFocusNodeId, relationDensityMode]
+    [expandedDirectLinks, filteredLinksByRelation, graphFilterFocusNodeId, relationDensityMode]
   );
 
   const filteredNodes = useMemo(() => {
@@ -963,6 +966,7 @@ export function KnowledgeGraphSystem({
     });
 
     return nodeFilteredByMeta.filter((node) => {
+      if (expandedDirectNodeIds.has(node.id)) return true;
       if (expandedNodeIdSet.has(node.id)) return true;
       if (relationDensityMode === 'focused' && focusNeighborhood.focusNodeId) {
         return isNodeVisibleInFocusedGraph(node.id, focusNeighborhood, connectedByVisibleLinks);
@@ -970,7 +974,7 @@ export function KnowledgeGraphSystem({
       if (!connectedInSearch.has(node.id)) return true;
       return connectedByVisibleLinks.has(node.id);
     });
-  }, [densityFilteredLinks, expandedNodeIdSet, focusNeighborhood, links, nodeFilterIdSet, nodeFilteredByMeta, relationDensityMode, showOnlyConnectedNodes]);
+  }, [densityFilteredLinks, expandedDirectNodeIds, expandedNodeIdSet, focusNeighborhood, links, nodeFilterIdSet, nodeFilteredByMeta, relationDensityMode, showOnlyConnectedNodes]);
 
   const filteredNodeIdSet = useMemo(() => new Set(filteredNodes.map((item) => item.id)), [filteredNodes]);
 

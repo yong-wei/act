@@ -358,12 +358,15 @@ function buildDatabaseKnowledgeGraphPayload(
   options: { includeLinks: boolean; relationVersion: DatabaseRelationVersionEvidence }
 ): UnifiedKnowledgeGraphPayload {
   const normalizedNodes = normalizeDatabaseKnowledgeNodes(nodes);
+  const stableNodes = [...normalizedNodes].sort((left, right) => (
+    left.id < right.id ? -1 : left.id > right.id ? 1 : 0
+  ));
   const normalizedLinks = options.includeLinks ? normalizeDatabaseKnowledgeLinks(links) : [];
   const versionLinkCount = options.relationVersion.linkCount;
   const versionDigest = createHash('sha256')
     .update(stableJson({
       source: 'database',
-      nodes: normalizedNodes,
+      nodes: stableNodes,
       relationFingerprint: options.relationVersion.fingerprint,
       versionLinkCount,
     }))

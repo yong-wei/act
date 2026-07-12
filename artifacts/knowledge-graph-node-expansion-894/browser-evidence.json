@@ -1,8 +1,8 @@
 {
   "change": "redesign-knowledge-graph-direct-manipulation",
-  "capturedAt": "2026-07-12T14:12:09.959Z",
+  "capturedAt": "2026-07-12T18:00:29.662Z",
   "sourceSha256": {
-    "src/features/knowledge/knowledge-graph-system.tsx": "f847fb6244a9b62182d3937acd9184e9786910ddcdf9f777b0c193ece7ca6a6d",
+    "src/features/knowledge/knowledge-graph-system.tsx": "ccad9069af2a0f93448c656e7b17058cc0c84bb1ca734101aa0e21a13c9f19d3",
     "src/features/knowledge/resource-panel/resource-panel.tsx": "22cfce0a17d8c797adfd8debdd1a43d5b2d485946134dcf1272ed80cd9f1484c",
     "src/features/knowledge/graph/knowledge-graph-2d.tsx": "e9606875131bc899322b14354d9c51962d1924ad8901ba296690d841ce2c2bb4",
     "src/features/knowledge/graph/knowledge-graph-canvas.tsx": "7a171cfaad846acfb1554411296c67d28960311141386baf45cfd4a168f5e110",
@@ -27,14 +27,14 @@
       },
       "presentationHistory": [
         {
-          "at": 530.8999998569489,
+          "at": 531.9000000953674,
           "phase": "idle",
           "elapsedMs": 0,
           "animatedNodeCount": 0,
           "animatedRelationCount": 0
         },
         {
-          "at": 2974.899999856949,
+          "at": 2944.4000000953674,
           "phase": "revealing",
           "elapsedMs": 0,
           "animatedNodeCount": 1,
@@ -57,7 +57,7 @@
         "viewMode": "2D",
         "presentation": {
           "phase": "revealing",
-          "elapsedMs": 14.100000190735045,
+          "elapsedMs": 19.599999952316466,
           "animatedNodeCount": 1,
           "animatedRelationCount": 1
         },
@@ -182,14 +182,14 @@
       },
       "presentationHistory": [
         {
-          "at": 1966.5999999046326,
+          "at": 1947.4000000953674,
           "phase": "idle",
           "elapsedMs": 0,
           "animatedNodeCount": 0,
           "animatedRelationCount": 0
         },
         {
-          "at": 4566.799999952316,
+          "at": 4832.200000047684,
           "phase": "revealing",
           "elapsedMs": 0,
           "animatedNodeCount": 1,
@@ -202,7 +202,7 @@
       },
       "canvasPixelEvidence": {
         "available": true,
-        "nodeColorPixels": 937
+        "nodeColorPixels": 5695
       },
       "expanded": {
         "selectedNodeId": "chapter-node:第一章",
@@ -287,7 +287,7 @@
           "y": 684.6540199249463
         },
         "leafClickStable": true,
-        "leafDetailRequests": 3
+        "leafDetailRequests": 5
       },
       "dismissal": {
         "trigger": "canvas-blank-pointerdown",
@@ -337,7 +337,7 @@
       },
       "presentationHistory": [
         {
-          "at": 302.59999990463257,
+          "at": 586.5,
           "phase": "idle",
           "elapsedMs": 0,
           "animatedNodeCount": 0,
@@ -350,7 +350,7 @@
       },
       "canvasPixelEvidence": {
         "available": true,
-        "nodeColorPixels": 37210
+        "nodeColorPixels": 37211
       },
       "expanded": {
         "selectedNodeId": "chapter-node:第一章",

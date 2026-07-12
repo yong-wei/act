@@ -124,10 +124,10 @@ describe('KnowledgeGraphSystem direct activation behavior', () => {
     await act(async () => new Promise((resolve) => setTimeout(resolve, 10)));
     const expandableControl = container.querySelector<HTMLButtonElement>('[data-knowledge-node-control="expandable"]')!;
     expect(expandableControl.getAttribute('aria-expanded')).toBe('true');
-    expect(expandableControl.getAttribute('data-filtered-empty')).toBe('true');
+    expect(expandableControl.getAttribute('data-filtered-empty')).toBe('false');
     expect(expandableControl.getAttribute('data-shard-cached')).toBe('true');
-    expect(container.querySelector('[data-knowledge-filtered-empty-explanation="visible"]')?.textContent).toContain('缓存');
-    expect(container.querySelector('[data-testid="canvas-2D-leaf"]')).toBeNull();
+    expect(container.querySelector('[data-knowledge-filtered-empty-explanation="visible"]')).toBeNull();
+    expect(container.querySelector('[data-testid="canvas-2D-leaf"]')).not.toBeNull();
     await act(async () => fireEvent.change(strength, { target: { value: '0' } }));
     await act(async () => new Promise((resolve) => setTimeout(resolve, 10)));
     expect(container.querySelector('[data-testid="canvas-2D-leaf"]')).not.toBeNull();
