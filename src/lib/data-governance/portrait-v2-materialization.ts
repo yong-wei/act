@@ -18,9 +18,14 @@ interface PortraitV2MaterializationDb {
   learningFact: {
     findMany: (args: Record<string, unknown>) => Promise<PortraitLearningFactDelta[]>;
   };
-  $transaction?: (fn: (tx: unknown) => Promise<unknown>) => Promise<unknown>;
+  $transaction?: (
+    fn: (tx: unknown) => Promise<unknown>,
+    options?: { timeout?: number },
+  ) => Promise<unknown>;
   $executeRaw?: (...args: unknown[]) => Promise<unknown>;
 }
+
+const PORTRAIT_V2_MATERIALIZATION_TRANSACTION_TIMEOUT_MS = 120_000;
 
 export async function materializeIncrementalPortraitV2(
   db: PortraitV2MaterializationDb,
@@ -90,16 +95,19 @@ export async function materializeIncrementalPortraitV2(
   };
 
   if (!db.$transaction) return materialize(db);
-  return db.$transaction(async (tx) => {
-    const transactionDb = tx as PortraitV2MaterializationDb;
-    if (typeof transactionDb.$executeRaw !== 'function') {
-      throw new Error('Portrait v2 materialization requires transaction advisory-lock support.');
-    }
-    await transactionDb.$executeRaw(
-      Prisma.sql`SELECT pg_advisory_xact_lock(hashtext(${'portrait-v2:' + userId}))`,
-    );
-    return materialize(transactionDb);
-  }) as Promise<{
+  return db.$transaction(
+    async (tx) => {
+      const transactionDb = tx as PortraitV2MaterializationDb;
+      if (typeof transactionDb.$executeRaw !== 'function') {
+        throw new Error('Portrait v2 materialization requires transaction advisory-lock support.');
+      }
+      await transactionDb.$executeRaw(
+        Prisma.sql`SELECT pg_advisory_xact_lock(hashtext(${'portrait-v2:' + userId}))`,
+      );
+      return materialize(transactionDb);
+    },
+    { timeout: PORTRAIT_V2_MATERIALIZATION_TRANSACTION_TIMEOUT_MS },
+  ) as Promise<{
     written: boolean;
     snapshotId?: string;
     evidenceCount: number;

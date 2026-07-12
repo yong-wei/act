@@ -327,6 +327,7 @@ describe('portrait v2 incremental updates', () => {
     await materializeIncrementalPortraitV2(db, 'student-locked', { now: new Date('2026-05-02T00:00:00.000Z') });
 
     expect(db.$transaction).toHaveBeenCalledTimes(1);
+    expect(db.$transaction).toHaveBeenCalledWith(expect.any(Function), { timeout: 120_000 });
     expect(executeRaw).toHaveBeenCalledTimes(1);
     expect(callOrder).toEqual(['lock', 'read']);
     expect(db.$executeRaw).toHaveBeenCalledWith(expect.anything());
