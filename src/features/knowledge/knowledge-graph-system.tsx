@@ -585,6 +585,15 @@ export function KnowledgeGraphSystem({
         expansionCommitQueueRef.current.settle(activationSequence);
         return;
       }
+      if (!shouldCommitKnowledgeExpansionPayload({
+        mounted: mountedRef.current,
+        aborted: requestController.signal.aborted,
+        expectedGeneration: generation,
+        currentGeneration: expansionGenerationRef.current.get(nodeId),
+      }) || activationSequence !== activationSequenceRef.current) {
+        expansionCommitQueueRef.current.settle(activationSequence);
+        return;
+      }
       console.error('Error fetching knowledge graph expansion shard:', error);
       expansionCommitQueueRef.current.settle(activationSequence, () => {
         setExpansionErrorByNodeId((current) => ({
@@ -1052,6 +1061,10 @@ export function KnowledgeGraphSystem({
 
   const handleClearLayoutPins = useCallback(() => {
     setLayoutState((current) => clearKnowledgeGraphLayoutPins(current));
+  }, []);
+
+  const handleGraphManipulationStart = useCallback(() => {
+    setIsPanelOpen(false);
   }, []);
 
   const handleToggleSelectedFocus = useCallback(() => {
@@ -2019,6 +2032,7 @@ export function KnowledgeGraphSystem({
                 onNodeClick={activateNode}
                 onNodeHover={handleNodeHover}
                 onNodeDragEnd={handleNodeDragEnd}
+                onManipulationStart={handleGraphManipulationStart}
                 width={dimensions.width}
                 height={dimensions.height}
                 labelMode={labelMode}
@@ -2040,6 +2054,7 @@ export function KnowledgeGraphSystem({
                 onNodeClick={activateNode}
                 onNodeHover={handleNodeHover}
                 onNodeDragEnd={handleNodeDragEnd}
+                onManipulationStart={handleGraphManipulationStart}
                 labelMode={labelMode}
                 layoutState={layoutState}
                 fitViewVersion={fitViewVersion}

@@ -20,10 +20,10 @@
 
 ## 4. Motion And Inspector Behavior
 
-- [ ] 4.1 Add bounded focus dimming, center-to-neighbor relation reveal, staged node appearance capped at 24 individually staggered nodes, batched large-shard fallback, collapse transition, safe local viewport translation, and stale-transition cancellation without new continuous motion or full-graph fit-to-view.
-- [ ] 4.2 Implement `prefers-reduced-motion` behavior that reaches the same final focus, loading, expanded, collapsed, and error states without required spatial interpolation, stagger, or animated semantic particles while retaining static direction grammar.
-- [ ] 4.3 Close the inspector on blank-canvas activation, canvas drag start, node drag start, and expandable-node activation while preserving expanded neighborhoods, cache, viewport, and coordinates.
-- [ ] 4.4 Reorder desktop and mobile inspector content so Knowledge Card precedes Related Knowledge Points, with learning-path and evidence actions following both sections.
+- [x] 4.1 Add bounded focus dimming, center-to-neighbor relation reveal, staged node appearance capped at 24 individually staggered nodes, batched large-shard fallback, collapse transition, safe local viewport translation, and stale-transition cancellation without new continuous motion or full-graph fit-to-view.
+- [x] 4.2 Implement `prefers-reduced-motion` behavior that reaches the same final focus, loading, expanded, collapsed, and error states without required spatial interpolation, stagger, or animated semantic particles while retaining static direction grammar.
+- [x] 4.3 Close the inspector on blank-canvas activation, canvas drag start, node drag start, and expandable-node activation while preserving expanded neighborhoods, cache, viewport, and coordinates.
+- [x] 4.4 Reorder desktop and mobile inspector content so Knowledge Card precedes Related Knowledge Points, with learning-path and evidence actions following both sections.
 
 ## 5. Verification And Governance
 

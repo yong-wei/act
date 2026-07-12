@@ -15,8 +15,12 @@ vi.mock('@/components/providers/global-ai-provider', () => ({
 vi.mock('next/dynamic', () => ({
   default: () => {
     const renderer = rendererRegistry.count++ === 0 ? '3D' : '2D';
-    return function GraphSurface(props: { nodes: Array<{ id: string; name: string }>; onNodeClick: (node: unknown) => void }) {
-      return createElement('div', { 'data-testid': `graph-surface-${renderer}` }, props.nodes.map((node) => createElement('button', {
+    return function GraphSurface(props: { nodes: Array<{ id: string; name: string }>; onNodeClick: (node: unknown) => void; onManipulationStart: () => void }) {
+      return createElement('div', { 'data-testid': `graph-surface-${renderer}` }, createElement('button', {
+        type: 'button', 'data-testid': `background-${renderer}`, onClick: props.onManipulationStart,
+      }, 'background'), createElement('button', {
+        type: 'button', 'data-testid': `drag-${renderer}`, onClick: props.onManipulationStart,
+      }, 'drag'), props.nodes.map((node) => createElement('button', {
       key: node.id,
       type: 'button',
       'data-testid': `canvas-${renderer}-${node.id}`,
@@ -57,6 +61,7 @@ describe('KnowledgeGraphSystem direct activation behavior', () => {
   let root: Root;
 
   beforeEach(() => {
+    rendererRegistry.count = 0;
     (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
     history.replaceState({}, '', '/knowledge');
     container = document.createElement('div');
@@ -182,6 +187,24 @@ describe('KnowledgeGraphSystem direct activation behavior', () => {
     await act(async () => user.keyboard('{Enter}'));
     expect(fetchMock.mock.calls.filter(([url]) => String(url).includes('mode=expansion'))).toHaveLength(2);
     expect(unknown.getAttribute('aria-busy')).toBe('false');
+  });
+
+  it('dismisses the inspector on blank canvas and drag start without collapsing cached expansion', async () => {
+    vi.stubGlobal('fetch', vi.fn((url: string) => url.includes('mode=expansion')
+      ? json(payload(nodes, [{ id: 'l', sourceId: 'expandable', targetId: 'leaf', relation: 'related', strength: 1 }], 'expansion'))
+      : json(payload())));
+    await act(async () => root.render(createElement(KnowledgeGraphSystem, { initialNodes: nodes })));
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 40)));
+    await act(async () => container.querySelector<HTMLButtonElement>('[data-testid="canvas-2D-expandable"]')!.click());
+    await act(async () => container.querySelector<HTMLButtonElement>('[data-testid="canvas-2D-leaf"]')!.click());
+    expect(container.querySelector('[data-testid="resource-panel"]')?.getAttribute('data-open')).toBe('true');
+    await act(async () => container.querySelector<HTMLButtonElement>('[data-testid="background-2D"]')!.click());
+    expect(container.querySelector('[data-testid="resource-panel"]')?.getAttribute('data-open')).toBe('false');
+    expect(container.querySelector('[data-knowledge-node-control="expandable"]')?.getAttribute('aria-expanded')).toBe('true');
+    await act(async () => container.querySelector<HTMLButtonElement>('[data-testid="canvas-2D-leaf"]')!.click());
+    await act(async () => container.querySelector<HTMLButtonElement>('[data-testid="drag-2D"]')!.click());
+    expect(container.querySelector('[data-testid="resource-panel"]')?.getAttribute('data-open')).toBe('false');
+    expect(container.querySelector('[data-knowledge-node-control="expandable"]')?.getAttribute('data-shard-cached')).toBe('true');
   });
 
   it('retries HTTP errors and opens the inspector only after canonical unknown resolves to leaf', async () => {

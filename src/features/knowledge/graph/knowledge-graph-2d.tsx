@@ -32,6 +32,7 @@ import {
   type KnowledgeGraphLabelMode,
 } from './label-policy';
 import { getRelationFocusState } from './filter-utils';
+import { KNOWLEDGE_GRAPH_MOTION, prefersReducedKnowledgeGraphMotion } from './motion';
 import {
   markKnowledgeGraphAutomaticNodeAnchors,
   syncKnowledgeGraphMutableNodePositions,
@@ -46,6 +47,7 @@ interface KnowledgeGraph2DProps {
   onNodeClick: (node: KnowledgeNodeData) => void;
   onNodeHover: (node: KnowledgeNodeData | null) => void;
   onNodeDragEnd: (node: KnowledgeNodeData) => void;
+  onManipulationStart?: () => void;
   width?: number;
   height?: number;
   labelMode: KnowledgeGraphLabelMode;
@@ -286,6 +288,7 @@ export function KnowledgeGraph2D({
   onNodeClick,
   onNodeHover,
   onNodeDragEnd,
+  onManipulationStart,
   width,
   height,
   labelMode,
@@ -658,9 +661,10 @@ export function KnowledgeGraph2D({
   }, [onNodeDragEnd, rememberRuntimeNodePosition]);
 
   const handleNodeDrag = useCallback((node: any) => {
+    onManipulationStart?.();
     const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
     freezeKnowledgeGraphDragFrame(graphNodes, node as RuntimeKnowledgeGraphNode);
-  }, [graphData.nodes]);
+  }, [graphData.nodes, onManipulationStart]);
 
   // 4. 物理引擎配置
   useEffect(() => {
@@ -770,7 +774,11 @@ export function KnowledgeGraph2D({
       const targetX = Number(targetCenter?.x);
       const targetY = Number(targetCenter?.y);
       if (!Number.isFinite(targetX) || !Number.isFinite(targetY)) return;
-      fgRef.current.centerAt(targetX, targetY, 240);
+      fgRef.current.centerAt(
+        targetX,
+        targetY,
+        prefersReducedKnowledgeGraphMotion() ? 0 : KNOWLEDGE_GRAPH_MOTION.cameraDurationMs
+      );
       revealedExpansionSignatureRef.current = expansionSignature;
     });
 
@@ -809,6 +817,7 @@ export function KnowledgeGraph2D({
       onNodeHover={onNodeHover}
       onNodeDrag={handleNodeDrag}
       onNodeDragEnd={handleNodeDragEnd}
+      onBackgroundClick={onManipulationStart}
       onEngineStop={snapshotRuntimePositions}
       enableNodeDrag={true}
 

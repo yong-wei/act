@@ -538,83 +538,6 @@ function ResourcePanelContent({
             </section>
           )}
 
-          {!isVirtualChapter && relationGroups.length > 0 && (
-            <section className={`rounded-lg border p-3 ${panelTheme.block}`} data-knowledge-inspector-section="relation-overview">
-              <div className="mb-3 flex items-center gap-2">
-                <Link2 className="h-4 w-4 text-platform-action-primary" />
-                <h3 className={`text-sm font-medium ${panelTheme.blockTitle}`}>关联知识点</h3>
-              </div>
-              <div className="space-y-2">
-                {relationGroups.map((group) => {
-                  const isExpanded =
-                    expandedRelationGroups[group.category] ??
-                    group.category === RELATION_GROUP_ORDER[0];
-                  return (
-                    <div
-                      key={`relation-group-${group.category}`}
-                      className={`rounded-md border ${
-                        isLightTheme ? 'border-slate-300 bg-white' : 'border-slate-700 bg-slate-900/35'
-                      }`}
-                    >
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setExpandedRelationGroups((prev) => ({
-                            ...prev,
-                            [group.category]: !isExpanded,
-                          }))
-                        }
-                        className={`flex w-full items-center justify-between px-2 py-1.5 text-xs font-medium ${
-                          isLightTheme ? 'text-slate-700' : 'text-slate-200'
-                        }`}
-                      >
-                        <span>{group.label}</span>
-                        <span className="flex items-center gap-1">
-                          <span className={panelTheme.muted}>{group.nodes.length}</span>
-                          {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-                        </span>
-                      </button>
-
-                      {isExpanded && (
-                        <ul className="space-y-1 px-2 pb-2">
-                          {group.nodes.map((node) => (
-                            <li key={node.id}>
-                              <button type="button"
-                                onClick={() => onNodeClick?.(node.id)}
-                                className={`group flex w-full items-center gap-2 rounded-md p-2 text-left transition-colors ${
-                                  isLightTheme ? 'bg-slate-50 hover:bg-slate-100' : 'bg-slate-800/50 hover:bg-slate-700/50'
-                                }`}
-                              >
-                                <span
-                                  className={`shrink-0 rounded border px-1.5 py-0.5 text-xs ${
-                                    node.category === 'prerequisite'
-                                      ? (isLightTheme ? 'border-amber-300 bg-amber-50 text-amber-700' : 'border-amber-500/30 bg-amber-500/10 text-amber-400')
-                                      : node.category === 'follows'
-                                        ? (isLightTheme ? 'border-emerald-300 bg-emerald-50 text-emerald-700' : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400')
-                                        : (isLightTheme ? 'border-sky-300 bg-sky-50 text-sky-700' : 'border-blue-500/30 bg-blue-500/10 text-blue-400')
-                                  }`}
-                                >
-                                  {getRelationLabel(node.relation)}
-                                </span>
-                                <span className={`flex-1 truncate text-sm ${isLightTheme ? 'text-slate-700 group-hover:text-slate-900' : 'text-slate-200 group-hover:text-white'}`}>
-                                  {node.name}
-                                </span>
-                                {typeof node.strength === 'number' && (
-                                  <span className={`shrink-0 text-[10px] ${panelTheme.muted}`}>{node.strength.toFixed(1)}</span>
-                                )}
-                                <ArrowRight className={`h-3 w-3 shrink-0 ${panelTheme.muted}`} />
-                              </button>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-          )}
-
           {!isVirtualChapter && (
             <section className={`rounded-lg border p-3 ${panelTheme.block}`} data-knowledge-inspector-section="evidence-sources">
               <div className="flex items-center justify-between">
@@ -636,6 +559,42 @@ function ResourcePanelContent({
                 ) : (
                   <span className={`text-xs ${panelTheme.muted}`}>未关联</span>
                 )}
+              </div>
+            </section>
+          )}
+
+          {!isVirtualChapter && relationGroups.length > 0 && (
+            <section className={`rounded-lg border p-3 ${panelTheme.block}`} data-knowledge-inspector-section="relation-overview">
+              <div className="mb-3 flex items-center gap-2">
+                <Link2 className="h-4 w-4 text-platform-action-primary" />
+                <h3 className={`text-sm font-medium ${panelTheme.blockTitle}`}>关联知识点</h3>
+              </div>
+              <div className="space-y-2">
+                {relationGroups.map((group) => {
+                  const isExpanded = expandedRelationGroups[group.category] ?? group.category === RELATION_GROUP_ORDER[0];
+                  return (
+                    <div key={`relation-group-${group.category}`} className={`rounded-md border ${isLightTheme ? 'border-slate-300 bg-white' : 'border-slate-700 bg-slate-900/35'}`}>
+                      <button type="button" onClick={() => setExpandedRelationGroups((prev) => ({ ...prev, [group.category]: !isExpanded }))} className={`flex w-full items-center justify-between px-2 py-1.5 text-xs font-medium ${isLightTheme ? 'text-slate-700' : 'text-slate-200'}`}>
+                        <span>{group.label}</span>
+                        <span className="flex items-center gap-1"><span className={panelTheme.muted}>{group.nodes.length}</span>{isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}</span>
+                      </button>
+                      {isExpanded && (
+                        <ul className="space-y-1 px-2 pb-2">
+                          {group.nodes.map((node) => (
+                            <li key={node.id}>
+                              <button type="button" onClick={() => onNodeClick?.(node.id)} className={`group flex w-full items-center gap-2 rounded-md p-2 text-left transition-colors ${isLightTheme ? 'bg-slate-50 hover:bg-slate-100' : 'bg-slate-800/50 hover:bg-slate-700/50'}`}>
+                                <span className={`shrink-0 rounded border px-1.5 py-0.5 text-xs ${node.category === 'prerequisite' ? (isLightTheme ? 'border-amber-300 bg-amber-50 text-amber-700' : 'border-amber-500/30 bg-amber-500/10 text-amber-400') : node.category === 'follows' ? (isLightTheme ? 'border-emerald-300 bg-emerald-50 text-emerald-700' : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400') : (isLightTheme ? 'border-sky-300 bg-sky-50 text-sky-700' : 'border-blue-500/30 bg-blue-500/10 text-blue-400')}`}>{getRelationLabel(node.relation)}</span>
+                                <span className={`flex-1 truncate text-sm ${isLightTheme ? 'text-slate-700 group-hover:text-slate-900' : 'text-slate-200 group-hover:text-white'}`}>{node.name}</span>
+                                {typeof node.strength === 'number' && <span className={`shrink-0 text-[10px] ${panelTheme.muted}`}>{node.strength.toFixed(1)}</span>}
+                                <ArrowRight className={`h-3 w-3 shrink-0 ${panelTheme.muted}`} />
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </section>
           )}

@@ -46,6 +46,7 @@ import {
   translateKnowledgeGraphCameraPose,
   type KnowledgeGraphPositionedNode,
 } from './layout-engine';
+import { KNOWLEDGE_GRAPH_MOTION, prefersReducedKnowledgeGraphMotion } from './motion';
 
 interface KnowledgeGraphCanvasProps {
   nodes: KnowledgeNodeData[];
@@ -55,6 +56,7 @@ interface KnowledgeGraphCanvasProps {
   onNodeClick: (node: KnowledgeNodeData) => void;
   onNodeHover: (node: KnowledgeNodeData | null) => void;
   onNodeDragEnd: (node: KnowledgeNodeData) => void;
+  onManipulationStart?: () => void;
   labelMode: KnowledgeGraphLabelMode;
   layoutState: KnowledgeGraphLayoutState;
   fitViewVersion: number;
@@ -149,6 +151,7 @@ export function KnowledgeGraphCanvas({
   onNodeClick,
   onNodeHover,
   onNodeDragEnd,
+  onManipulationStart,
   labelMode,
   layoutState,
   fitViewVersion,
@@ -488,6 +491,7 @@ export function KnowledgeGraphCanvas({
   }, []);
 
   const getLinkDirectionalParticles = useCallback((link: any) => {
+    if (prefersReducedKnowledgeGraphMotion()) return 0;
     return getRelationThreeDimensionalEncoding(link.relationType || link.relation).directionalParticles;
   }, []);
 
@@ -633,7 +637,7 @@ export function KnowledgeGraphCanvas({
       fgRef.current.cameraPosition(
         translatedPose.cameraPosition,
         translatedPose.target,
-        240
+        prefersReducedKnowledgeGraphMotion() ? 0 : KNOWLEDGE_GRAPH_MOTION.cameraDurationMs
       );
       revealedExpansionSignatureRef.current = expansionSignature;
     });
@@ -665,9 +669,10 @@ export function KnowledgeGraphCanvas({
   }, [onNodeDragEnd, rememberRuntimeNodePosition]);
 
   const handleNodeDrag = useCallback((node: any) => {
+    onManipulationStart?.();
     const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
     freezeKnowledgeGraphDragFrame(graphNodes, node as RuntimeKnowledgeGraphNode);
-  }, [graphData.nodes]);
+  }, [graphData.nodes, onManipulationStart]);
 
   return (
     <div className="relative h-full w-full">
@@ -696,6 +701,7 @@ export function KnowledgeGraphCanvas({
         onNodeHover={handleNodeHover}
         onNodeDrag={handleNodeDrag}
         onNodeDragEnd={handleNodeDragEnd}
+        onBackgroundClick={onManipulationStart}
         onEngineStop={snapshotRuntimePositions}
         enableNodeDrag={true}
 
