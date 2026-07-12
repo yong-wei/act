@@ -354,7 +354,7 @@ export function KnowledgeGraphSystem({
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const nodeId = params.get('node') ?? params.get('nodeId');
+    const nodeId = params.get('node') ?? params.get('nodeId') ?? initialRequestedNodeIdRef.current;
     initialRequestedNodeIdRef.current = nodeId;
     setRequestedNodeId(nodeId);
   }, []);
@@ -703,10 +703,16 @@ export function KnowledgeGraphSystem({
 
   useEffect(() => {
     if (!requestedNodeId || initialSelectedNodeResolvedRef.current) return;
-    if (!nodes.some((node) => node.id === requestedNodeId)) return;
+    const requestedNode = nodes.find((node) => node.id === requestedNodeId);
+    if (!requestedNode) return;
     initialSelectedNodeResolvedRef.current = true;
+    if (initialSelectedNodeId === requestedNodeId) {
+      setSelectedNode(requestedNode);
+      setIsPanelOpen(true);
+      return;
+    }
     void activateNodeById(requestedNodeId);
-  }, [activateNodeById, nodes, requestedNodeId]);
+  }, [activateNodeById, initialSelectedNodeId, nodes, requestedNodeId]);
 
   // 节点悬停处理
   const handleNodeHover = useCallback((node: KnowledgeNodeData | null) => {

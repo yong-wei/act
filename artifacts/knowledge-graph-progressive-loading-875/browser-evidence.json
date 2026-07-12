@@ -2,7 +2,7 @@
   "change": "progressive-knowledge-graph-loading",
   "issue": 875,
   "route": "/knowledge",
-  "capturedAt": "2026-07-12T17:59:40.889Z",
+  "capturedAt": "2026-07-12T18:25:22.653Z",
   "baseUrl": "http://127.0.0.1:3001",
   "rootNodeId": "chapter-node:基本概念",
   "noChildrenNodeId": "稳定性_1_7288b4ea",
@@ -23,7 +23,7 @@
     "状态空间"
   ],
   "currentSourceSha256": {
-    "src/features/knowledge/knowledge-graph-system.tsx": "ccad9069af2a0f93448c656e7b17058cc0c84bb1ca734101aa0e21a13c9f19d3",
+    "src/features/knowledge/knowledge-graph-system.tsx": "53b2a9c4038bd2f90b4f4fd0e7b4bb520874db4d9293906ebdcc3fd8bb611d26",
     "src/features/knowledge/sidebar/knowledge-sidebar.tsx": "f8546205bb42cbe30bf52972dccab98db756ae11cd16e2917abe13452236e624",
     "src/features/knowledge/graph/filter-utils.ts": "6cca471bcc7d9d1adc191aade05f169a0349f061c07284689d5d1d12600d0feb",
     "src/lib/knowledge-graph-source.ts": "88750f56ef9285a17ac4246a59f908a3ac97816bb1466f78ac0992f8e0d6147b",
@@ -68,7 +68,7 @@
         "height": 960
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/root-first-1440.png",
-      "screenshotSha256": "bbea6bdf0ec4e5395f847e026dbe6e17440ba458610fce3602eda13e10044878",
+      "screenshotSha256": "977e5b1b96e62b467694b51200071c564e8e6597b2936c81bbab7c42a29d4b2d",
       "networkEvents": [
         {
           "event": "request",
@@ -137,8 +137,8 @@
         "konlingVisible": false,
         "canvasPixelEvidence": {
           "available": true,
-          "paintedPixels": 36619,
-          "nodeColorPixels": 3347,
+          "paintedPixels": 37157,
+          "nodeColorPixels": 3379,
           "width": 1320,
           "height": 831
         },
@@ -178,7 +178,7 @@
         "height": 900
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/root-first-1279.png",
-      "screenshotSha256": "9057dc256930913f3e06a859e5577c88fc2179052083665a17064ff8410e3190",
+      "screenshotSha256": "aae769c15d7d91140eb9756d7c4efdf3894db517a1625c1a3b0eb94ba1cdc0af",
       "networkEvents": [
         {
           "event": "request",
@@ -247,8 +247,8 @@
         "konlingVisible": false,
         "canvasPixelEvidence": {
           "available": true,
-          "paintedPixels": 29627,
-          "nodeColorPixels": 2882,
+          "paintedPixels": 29632,
+          "nodeColorPixels": 2832,
           "width": 1231,
           "height": 714
         },
@@ -288,7 +288,7 @@
         "height": 820
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/root-first-1100.png",
-      "screenshotSha256": "8bfbe331111eb65d0f58c68f747ee49e55ba8eae88498513fdd49f3bec66c1ee",
+      "screenshotSha256": "abd414c5a5b0370c443d09c791f0724e3fa3cb9b71370daecc71d7383011d4f4",
       "networkEvents": [
         {
           "event": "request",
@@ -357,8 +357,8 @@
         "konlingVisible": false,
         "canvasPixelEvidence": {
           "available": true,
-          "paintedPixels": 21525,
-          "nodeColorPixels": 2213,
+          "paintedPixels": 19743,
+          "nodeColorPixels": 2110,
           "width": 1052,
           "height": 634
         },
@@ -398,7 +398,7 @@
         "height": 820
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/root-first-1024.png",
-      "screenshotSha256": "28be80216418391f3a3e4bebb62061d98811c0ae0e41bad2533644751d2d304e",
+      "screenshotSha256": "ba4459df11928a967b5c23e555d7e3c39b428fe2960acee46d1ceaf8e97aad7f",
       "networkEvents": [
         {
           "event": "request",
@@ -467,8 +467,8 @@
         "konlingVisible": false,
         "canvasPixelEvidence": {
           "available": true,
-          "paintedPixels": 18949,
-          "nodeColorPixels": 1842,
+          "paintedPixels": 11685,
+          "nodeColorPixels": 1213,
           "width": 976,
           "height": 634
         },
@@ -508,7 +508,7 @@
         "height": 800
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/root-first-320.png",
-      "screenshotSha256": "b76d1b79cdfe568626fd709733e77ec2f01b87aa2a599fe798867a4ca25f6173",
+      "screenshotSha256": "4f98497473b229381fb5e127aafbff31b663b07d7a891dcb77af14d397ab09d3",
       "networkEvents": [
         {
           "event": "request",
@@ -577,8 +577,8 @@
         "konlingVisible": false,
         "canvasPixelEvidence": {
           "available": true,
-          "paintedPixels": 5626,
-          "nodeColorPixels": 535,
+          "paintedPixels": 3045,
+          "nodeColorPixels": 335,
           "width": 288,
           "height": 502
         },
@@ -618,7 +618,7 @@
         "height": 960
       },
       "screenshotPath": "artifacts/knowledge-graph-progressive-loading-875/expansion-loading-1440.png",
-      "screenshotSha256": "36e9392bb0fea94942bb2b08f0c509f5d872bf07a2fd2167cc9b83ef3b04def9",
+      "screenshotSha256": "c259b14bb9f7d34932684e26cd888a49accbeecb8fb1963f20843935193cc12b",
       "networkEvents": [
         {
           "event": "request",
@@ -661,18 +661,6 @@
         },
         {
           "event": "response",
-          "mode": "expansion",
-          "status": 200,
-          "payloadMode": "expansion",
-          "graphVersion": "knowledge-graph:file:820:5680375:e628b90aa7a4b369",
-          "shardKey": "knowledge-graph:file:820:5680375:e628b90aa7a4b369:shard:expansion:chapter-node:基本概念",
-          "nodeCount": 62,
-          "linkCount": 1691,
-          "rootSummaryCount": 0,
-          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=expansion&nodeId=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"
-        },
-        {
-          "event": "response",
           "mode": "active-filter",
           "status": 200,
           "payloadMode": "active-filter",
@@ -682,6 +670,18 @@
           "linkCount": 5048,
           "rootSummaryCount": 0,
           "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=active-filter"
+        },
+        {
+          "event": "response",
+          "mode": "expansion",
+          "status": 200,
+          "payloadMode": "expansion",
+          "graphVersion": "knowledge-graph:file:820:5680375:e628b90aa7a4b369",
+          "shardKey": "knowledge-graph:file:820:5680375:e628b90aa7a4b369:shard:expansion:chapter-node:基本概念",
+          "nodeCount": 62,
+          "linkCount": 1691,
+          "rootSummaryCount": 0,
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=expansion&nodeId=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"
         },
         {
           "event": "response",
@@ -973,18 +973,6 @@
         },
         {
           "event": "response",
-          "mode": "expansion",
-          "status": 200,
-          "payloadMode": "expansion",
-          "graphVersion": "knowledge-graph:file:820:5680375:e628b90aa7a4b369",
-          "shardKey": "knowledge-graph:file:820:5680375:e628b90aa7a4b369:shard:expansion:chapter-node:基本概念",
-          "nodeCount": 62,
-          "linkCount": 1691,
-          "rootSummaryCount": 0,
-          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=expansion&nodeId=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"
-        },
-        {
-          "event": "response",
           "mode": "active-filter",
           "status": 200,
           "payloadMode": "active-filter",
@@ -994,6 +982,18 @@
           "linkCount": 5048,
           "rootSummaryCount": 0,
           "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=active-filter"
+        },
+        {
+          "event": "response",
+          "mode": "expansion",
+          "status": 200,
+          "payloadMode": "expansion",
+          "graphVersion": "knowledge-graph:file:820:5680375:e628b90aa7a4b369",
+          "shardKey": "knowledge-graph:file:820:5680375:e628b90aa7a4b369:shard:expansion:chapter-node:基本概念",
+          "nodeCount": 62,
+          "linkCount": 1691,
+          "rootSummaryCount": 0,
+          "url": "http://127.0.0.1:3001/api/knowledge/graph?mode=expansion&nodeId=chapter-node%3A%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"
         },
         {
           "event": "response",

@@ -166,6 +166,17 @@ describe('KnowledgeGraphSystem direct activation behavior', () => {
     expect(container.querySelector('[data-testid="resource-panel"]')?.textContent).toContain('leaf');
   });
 
+  it('preserves an initial selected node when the URL has no node query', async () => {
+    vi.stubGlobal('fetch', vi.fn(() => json(payload())));
+    await act(async () => root.render(createElement(KnowledgeGraphSystem, {
+      initialNodes: nodes,
+      initialSelectedNodeId: 'leaf',
+    })));
+
+    expect(container.querySelector('[data-testid="resource-panel"]')?.getAttribute('data-open')).toBe('true');
+    expect(container.querySelector('[data-testid="resource-panel"]')?.textContent).toContain('leaf');
+  });
+
   it('suppresses duplicate loading, retries errors, branches unknown canonically, and ignores stale/unmounted results', async () => {
     let rejectExpansion: ((reason: Error) => void) | undefined;
     let expansionSignal: AbortSignal | undefined;
