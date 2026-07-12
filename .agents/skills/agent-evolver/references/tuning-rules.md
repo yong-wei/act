@@ -14,6 +14,10 @@
 ## 本项目特有约束
 - 课程任务必须服从 `lesson / interactive-design / interactive-lesson / lesson-content-review` 的边界
 - 要求真实子代理审查的流程，不得通过收紧提示词来伪装成主代理可替代
-- `spark-coder` 只能承担局部、可验证、易回滚的简单编码
+- 获得子代理授权后，存在匹配命名角色时不得退化为自由派发；必须核对 `agent_role`、模型和推理强度
+- 写任务优先交给命名写代理，避免实现细节长期污染主线程上下文
+- `spark-coder` 使用 Luna `high`，只能承担局部、可验证、易回滚的简单编码
+- `patch-worker` 使用 Luna `max` 承担常规实现；Terra 只处理 Luna 不足的长上下文场景
+- 普通独立审查使用 Sol `medium`，只有风险证据充分时才升级 `high` 或 `xhigh`
 - `explorer-librarian` 默认只读，只提供材料与路径，不给最终裁决
 - 常设角色必须使用 GPT-5.6 家族；历史模型仅保留在质量台账和兼容性校验中

@@ -18,22 +18,13 @@
 
 ## 项目子代理工作流
 
-- 项目级 Codex custom agents 位于 `.codex/agents/*.toml`，代理清单、路由规则和 harness 契约见 `.codex/agents/README.md`、`.codex/agents/ROUTING.md` 和 `.codex/agents/HARNESS.md`。
-- 所有项目命名子代理统一使用 GPT-5.6 家族：Luna 承担高频低成本任务，Terra 承担日常工程任务，Sol 承担高语义风险与终审；具体映射以 `.codex/agents/README.md` 和 TOML 为准。
-- 不得仅因代理配置存在就启动子代理；只有用户明确授权当前任务、会话、分支或 review 使用子代理后，主线程才可按需自主选择代理。
-- 明确授权包括“按需使用子代理”“本任务允许使用子代理”“本会话允许你自主调度子代理”“spawn appropriate agents”“run the multi-agent workflow”等同义表达；用户明确禁止时不得调用。
-- 用户未授权且任务可以由主线程完成时，保持单代理执行；只有委托本身是完成任务的必要条件时，才简短询问是否授权。
-- 主线程是唯一调度者和最终裁决者。`agent-router` 只能提出子代理组合、执行批次和停止条件建议，不得直接派发代理，也不得代替主线程做最终判断。
-- 主线程始终负责最终判断、补丁范围、验证结果和合并准备度。子代理输出是证据，不是最终裁决。
-- 子代理深度固定为 1；子代理不得再启动子代理。普通任务使用 0-2 个代理，非平凡功能、重构或 bug 修复使用 2-4 个代理，完整分支、PR、发布或架构 review 才使用 4-6 个代理。
-- 读代理可以并行，写代理原则上串行。不得让两个 `workspace-write` 代理同时修改同一工作树；实现、测试、文档改动都视为写操作。
-- 派发子代理前，主线程必须提供 brief：目标、范围内/外、已知文件、允许权限、禁止事项、输出格式、验证命令或停止条件。
-- 只读代理不得编辑文件；实现代理必须保持改动最小，并报告所有修改文件。
-- `deep-debugger` 虽具备 `workspace-write`，但只用于诊断命令、临时产物或父任务明确授权的诊断性改动；正式修复交给 `patch-worker`。
-- 代码类任务完成后，如用户已授权子代理且变更有实际风险，应使用 `critical-reviewer` 或对应专门审查代理复核；修复后再次复核，直到无重大问题。
-- `critical-reviewer` 的 `xhigh` 只用于高风险终审、发布门禁、架构回归和用户明确要求的严格审查；不得把它当作普通 review 默认值。
-- 涉及课程作者态/runtime、AI 上下文、数据治理、Arena、Rust/WASM、Prisma、课堂同步或生产部署的变更，必须触发对应领域 reviewer，或由主线程说明跳过理由。
-- 声称完成前必须运行或说明未能运行的验证；不得把多个子代理意见机械平均，冲突结论必须由主线程明确取舍。
+- 项目命名子代理位于 `.codex/agents/*.toml`；角色、权限和路由真源见 `.codex/agents/README.md`、`.codex/agents/ROUTING.md` 与 `.codex/agents/HARNESS.md`。
+- 用户已授权子代理时，只要存在匹配的项目命名角色，就必须使用该角色；不得以自由派发替代命名角色。自由派发仅用于没有匹配角色且运行时能够显式控制模型与推理强度的情况。
+- 写任务优先交给 `spark-coder`、`patch-worker` 或 `test-engineer`，以隔离实现上下文；写代理必须串行，并报告全部修改文件和验证结果。
+- `long-context-investigator` 只处理 Luna 已不足以承载的仓库级探索、大文件审阅和长上下文证据汇集，不承担日常实现。
+- 普通代码产出由 `independent-reviewer` 独立审查；`critical-reviewer` 仅用于高风险、架构回归、安全敏感或发布关键终审。
+- 课程作者态/runtime、AI 上下文、数据治理、Arena、Rust/WASM、Prisma、课堂同步与生产部署按 `.codex/agents/ROUTING.md` 追加对应领域 reviewer；领域事实优先于通用审查意见。
+- 派发时必须确认子线程元数据中的 `agent_role` 非空且模型、推理强度符合对应 TOML；若运行时无法调用命名角色，应停止派发并报告，不得静默退化为继承主线程配置的自由代理。
 
 ## OpenSpec 工作流
 

@@ -27,28 +27,30 @@ class AgentEvolverToolTests(unittest.TestCase):
         result = self.run_python(VALIDATE_SCRIPT, "--root", str(REPO_ROOT))
         self.assertEqual(result.returncode, 0, msg=result.stderr or result.stdout)
         self.assertIn("validated", result.stdout)
-        self.assertIn("18 agent files", result.stdout)
+        self.assertIn("20 agent files", result.stdout)
 
     def test_repository_agents_use_approved_gpt_56_assignments(self) -> None:
         expected_assignments = {
-            "agent-router": ("gpt-5.6-luna", "medium"),
+            "agent-router": ("gpt-5.6-luna", "high"),
             "ai-context-reviewer": ("gpt-5.6-sol", "high"),
-            "code-mapper": ("gpt-5.6-luna", "medium"),
-            "course-pedagogy-reviewer": ("gpt-5.6-sol", "high"),
+            "code-mapper": ("gpt-5.6-luna", "xhigh"),
+            "course-pedagogy-reviewer": ("gpt-5.6-sol", "medium"),
             "critical-reviewer": ("gpt-5.6-sol", "xhigh"),
             "data-governance-reviewer": ("gpt-5.6-sol", "high"),
-            "deep-debugger": ("gpt-5.6-terra", "high"),
-            "explorer-librarian": ("gpt-5.6-luna", "medium"),
-            "patch-worker": ("gpt-5.6-terra", "high"),
-            "performance-reviewer": ("gpt-5.6-terra", "high"),
+            "deep-debugger": ("gpt-5.6-luna", "xhigh"),
+            "explorer-librarian": ("gpt-5.6-luna", "xhigh"),
+            "independent-reviewer": ("gpt-5.6-sol", "medium"),
+            "long-context-investigator": ("gpt-5.6-terra", "high"),
+            "patch-worker": ("gpt-5.6-luna", "max"),
+            "performance-reviewer": ("gpt-5.6-sol", "medium"),
             "release-sentinel": ("gpt-5.6-sol", "high"),
-            "retro-analyst": ("gpt-5.6-luna", "medium"),
+            "retro-analyst": ("gpt-5.6-luna", "high"),
             "security-reviewer": ("gpt-5.6-sol", "high"),
             "simulation-domain-reviewer": ("gpt-5.6-sol", "high"),
-            "spark-coder": ("gpt-5.6-luna", "low"),
-            "spec-planner": ("gpt-5.6-sol", "high"),
-            "test-engineer": ("gpt-5.6-terra", "high"),
-            "ui-flow-reviewer": ("gpt-5.6-luna", "medium"),
+            "spark-coder": ("gpt-5.6-luna", "high"),
+            "spec-planner": ("gpt-5.6-sol", "medium"),
+            "test-engineer": ("gpt-5.6-luna", "xhigh"),
+            "ui-flow-reviewer": ("gpt-5.6-luna", "high"),
         }
         agent_files = sorted((REPO_ROOT / ".codex" / "agents").glob("*.toml"))
         actual_assignments = {}

@@ -1,7 +1,7 @@
 name = "performance-reviewer"
 description = "只读性能与可靠性审查代理，关注热路径、数据库、缓存、并发、渲染和运行稳定性。"
-model = "gpt-5.6-terra"
-model_reasoning_effort = "high"
+model = "gpt-5.6-sol"
+model_reasoning_effort = "medium"
 sandbox_mode = "read-only"
 nickname_candidates = ["Performance", "Reviewer"]
 

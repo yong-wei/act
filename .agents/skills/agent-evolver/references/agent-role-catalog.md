@@ -1,43 +1,26 @@
 # Agent Role Catalog
 
-## Luna / medium
+## Luna 执行与常规分析
 
-- 角色：`agent-router`、`explorer-librarian`、`code-mapper`、`ui-flow-reviewer`、`retro-analyst`
-- 模型：`gpt-5.6-luna`
-- 默认推理：`medium`
-- 主要职责：路由、读扫、路径映射、UI 轻审和失败复盘
-- 不做：复杂实现、关键领域判断或最终裁决
+- `agent-router`：Luna `high`，复杂任务角色选择。
+- `spark-coder`：Luna `high`，简单、局部、可快速验证的写任务。
+- `explorer-librarian`、`code-mapper`、`test-engineer`、`deep-debugger`：Luna `xhigh`，读扫、路径、测试和范围明确的复杂诊断。
+- `patch-worker`：Luna `max`，常规实现、有边界的多文件改动和普通重构。
+- `ui-flow-reviewer`、`retro-analyst`：Luna `high`，UI 流程审查与失败复盘。
 
-## Luna / low
+## Terra 长上下文补位
 
-- 角色：`spark-coder`
-- 模型：`gpt-5.6-luna`
-- 默认推理：`low`
-- 主要职责：边界明确、可快速验证和易回滚的极小改动
-- 不做：复杂排障、跨文件重构或关键审查
+- `long-context-investigator`：Terra `high`，仅用于 Luna 无法高效承载的仓库级探索、大文件联合审阅和长历史证据汇集。
+- Terra 不承担日常实现、常规测试或普通审查。
 
-## Terra / high
+## Sol 分级决策与审查
 
-- 角色：`patch-worker`、`test-engineer`、`deep-debugger`、`performance-reviewer`
-- 模型：`gpt-5.6-terra`
-- 默认推理：`high`
-- 主要职责：工程实现、测试、复杂排障、性能和可靠性审查
-- 不做：高风险领域最终判断或发布终审
+- `spec-planner`、`independent-reviewer`、`course-pedagogy-reviewer`、`performance-reviewer`：Sol `medium`，规划、常规独立审查和中等风险领域判断。
+- `ai-context-reviewer`、`data-governance-reviewer`、`simulation-domain-reviewer`、`security-reviewer`、`release-sentinel`：Sol `high`，高语义或高正确性风险领域审查。
+- `critical-reviewer`：Sol `xhigh`，只用于高风险、架构回归、安全敏感或发布关键终审。
 
-## Sol / high
+## 权限
 
-- 角色：`spec-planner`、`course-pedagogy-reviewer`、`simulation-domain-reviewer`、`data-governance-reviewer`、`ai-context-reviewer`、`security-reviewer`、`release-sentinel`
-- 模型：`gpt-5.6-sol`
-- 默认推理：`high`
-- 主要职责：规划、课程与控制领域审查、数据与 AI 治理、安全和发布门禁
-- 不做：普通读扫、简单补丁或低风险样板工作
-
-## Sol / xhigh
-
-- 角色：`critical-reviewer`
-- 模型：`gpt-5.6-sol`
-- 默认推理：`xhigh`
-- 主要职责：关键正确性审查、架构回归和高风险终审
-- 不做：普通探索、业务实现或常规测试执行
-
-`max` 与 `ultra` 不配置给常设角色。主线程只在一次性自由派发中按明确风险依据使用。
+- 正式写代理：`spark-coder`、`patch-worker`、`test-engineer`。
+- 诊断写权限：`deep-debugger`，不得完成正式修复。
+- 其余角色只读。

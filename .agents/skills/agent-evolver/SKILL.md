@@ -51,7 +51,8 @@ description: Use when project-local Codex custom agents under `.codex/agents/*.t
 |------|----------|
 | 看到一次超时就直接换模型 | 先看是否是任务分派错误或推理强度过重 |
 | 把 custom agents 与 skill 内 `agents/openai.yaml` 混为一谈 | 项目级 custom agents 只管 Codex 子代理，skill agent prompt 只是技能入口提示 |
-| 为了“更智能”让低时延代理处理复杂 debug | `spark-coder` 必须保持窄任务边界 |
+| 因 Luna 成本较低就扩大简单编码任务 | `spark-coder` 虽为 Luna high，仍必须保持窄任务边界 |
+| 只看子代理昵称就认为命名角色生效 | 核对运行元数据中的 `agent_role`、模型和推理强度 |
 | 没看台账就改 `developer_instructions` | 先记录症状，再改约束 |
 
 ## Red Flags
@@ -59,5 +60,6 @@ description: Use when project-local Codex custom agents under `.codex/agents/*.t
 - 一次同时改模型、推理强度和行为边界
 - 把项目 custom agents 的问题归因到 repo-local skill 本身
 - 让 `critical-reviewer` 或 `deep-debugger` 去承担普通读扫任务
+- 存在匹配命名角色时仍使用继承主线程配置的自由派发
 
 这些都意味着应先停下，回到台账与校验结果。

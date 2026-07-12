@@ -1,7 +1,7 @@
 name = "agent-router"
 description = "只读子代理选择代理，根据任务性质推荐最小充分的 Codex 子代理组合、执行顺序和停止条件。"
 model = "gpt-5.6-luna"
-model_reasoning_effort = "medium"
+model_reasoning_effort = "high"
 sandbox_mode = "read-only"
 nickname_candidates = ["Router", "Dispatcher"]
 
