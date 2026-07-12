@@ -46,7 +46,7 @@
     "src/app/globals.css": "a9d12ebf1937a6c1cb582b7a928c6ec2a8ea93ee34df61acbe66572fb53ab70b",
     "src/lib/konling-agent-runtime.ts": "c29e2b63cf64c7bd635e1ba3f964b8b43938120ccec0a0c3fddbb82c3e9e8be0",
     "scripts/tests/capture-knowledge-workspace-product-qa.ts": "819d7c894f3f88328a8d3457c83599e72ce832b356397bcc1ca9c708f7f56b07",
-    "scripts/tests/test-commercial-ui-governance.ts": "bc4b3c018599db23155ed73917e689e406b8e84d29952cec963dd06afa1b7390"
+    "scripts/tests/test-commercial-ui-governance.ts": "cbf08a87af9daf95aaa822b3f2ddf4839886429c224748786b07d91f5483246e"
   },
   "stateMatrix": [
     {
@@ -3052,7 +3052,7 @@
       "src/app/globals.css": "a9d12ebf1937a6c1cb582b7a928c6ec2a8ea93ee34df61acbe66572fb53ab70b",
       "src/lib/konling-agent-runtime.ts": "c29e2b63cf64c7bd635e1ba3f964b8b43938120ccec0a0c3fddbb82c3e9e8be0",
       "scripts/tests/capture-knowledge-workspace-product-qa.ts": "819d7c894f3f88328a8d3457c83599e72ce832b356397bcc1ca9c708f7f56b07",
-      "scripts/tests/test-commercial-ui-governance.ts": "bc4b3c018599db23155ed73917e689e406b8e84d29952cec963dd06afa1b7390"
+      "scripts/tests/test-commercial-ui-governance.ts": "cbf08a87af9daf95aaa822b3f2ddf4839886429c224748786b07d91f5483246e"
     }
   },
   "temporaryExceptions": []
