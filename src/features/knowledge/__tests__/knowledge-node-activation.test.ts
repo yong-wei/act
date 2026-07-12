@@ -55,6 +55,18 @@ describe('activation async and filter guards', () => {
     queue.settle(2, () => committed.push('second'));
     expect(committed).toEqual(['second']);
   });
+
+  it('runs cancellation cleanup for a deferred expansion commit', () => {
+    const queue = createKnowledgeExpansionCommitQueue();
+    const events: string[] = [];
+    queue.register(1);
+    queue.register(2);
+    queue.settle(2, () => events.push('committed'), () => events.push('cancelled'));
+    queue.cancel(2);
+    queue.settle(1);
+    expect(events).toEqual(['cancelled']);
+  });
+
   it('accepts a valid earlier expansion payload after a later node activation', () => {
     expect(shouldCommitKnowledgeExpansionPayload({
       mounted: true,

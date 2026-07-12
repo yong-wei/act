@@ -504,8 +504,13 @@ export function KnowledgeGraphSystem({
       expansionIntentNodeBySequenceRef.current.delete(activationSequence);
       cancelledExpansionSequencesRef.current.delete(activationSequence);
     };
+    let finalizeExpansionIntent: (() => void) | null = null;
+    const completeExpansionIntent = () => {
+      releaseExpansionIntent();
+      finalizeExpansionIntent?.();
+    };
     expansionCommitQueueRef.current.register(activationSequence, () => {
-      expansionIntentNodeBySequenceRef.current.delete(activationSequence);
+      completeExpansionIntent();
     });
     if (action === 'expand' || action === 'resolve') {
       setActivationSequenceByCenterId((current) => ({ ...current, [nodeId]: activationSequence }));
@@ -553,9 +558,9 @@ export function KnowledgeGraphSystem({
         try {
           commit();
         } finally {
-          releaseExpansionIntent();
+          completeExpansionIntent();
         }
-      }, releaseExpansionIntent);
+      }, completeExpansionIntent);
     };
     if (action !== 'resolve' && expectedShardKey && graphCache.loadedShardKeys.includes(expectedShardKey)) {
       const newlyVisibleIds = links.flatMap((link) => {
@@ -583,9 +588,25 @@ export function KnowledgeGraphSystem({
       return;
     }
 
-    expansionActivationInFlightRef.current.add(nodeId);
     const requestController = new AbortController();
     expansionRequestControllersRef.current.set(nodeId, requestController);
+    finalizeExpansionIntent = () => {
+      const currentRequestController = expansionRequestControllersRef.current.get(nodeId);
+      if (currentRequestController && currentRequestController !== requestController) return;
+      expansionActivationInFlightRef.current.delete(nodeId);
+      if (currentRequestController === requestController) {
+        expansionRequestControllersRef.current.delete(nodeId);
+      }
+      if (!mountedRef.current) return;
+      setLoadingExpansionNodeIds((current) => current.filter((id) => id !== nodeId));
+      setGraphCache((current) => ({
+        ...current,
+        loadingShardKeys: expectedShardKey
+          ? current.loadingShardKeys.filter((key) => key !== expectedShardKey)
+          : current.loadingShardKeys,
+      }));
+    };
+    expansionActivationInFlightRef.current.add(nodeId);
     const generation = (expansionGenerationRef.current.get(nodeId) ?? 0) + 1;
     expansionGenerationRef.current.set(nodeId, generation);
     setLoadingExpansionNodeIds((current) => current.includes(nodeId) ? current : [...current, nodeId]);
@@ -672,19 +693,7 @@ export function KnowledgeGraphSystem({
         }));
       });
     } finally {
-      if (!commitEnqueued) releaseExpansionIntent();
-      expansionActivationInFlightRef.current.delete(nodeId);
-      if (expansionRequestControllersRef.current.get(nodeId) === requestController) {
-        expansionRequestControllersRef.current.delete(nodeId);
-      }
-      if (!mountedRef.current) return;
-      setLoadingExpansionNodeIds((current) => current.filter((id) => id !== nodeId));
-      setGraphCache((current) => ({
-        ...current,
-        loadingShardKeys: expectedShardKey
-          ? current.loadingShardKeys.filter((key) => key !== expectedShardKey)
-          : current.loadingShardKeys,
-      }));
+      if (!commitEnqueued) completeExpansionIntent();
     }
   }, [cancelPendingExpansionIntents, collapsingNodeId, expandedNodeIds, expansionErrorByNodeId, expansionHasVisibleDescendant, filteredEmptyExpansionNodeIds, finishCollapsePresentation, graphCache.graphVersion, graphCache.loadedShardKeys, links, loadingExpansionNodeIds, nodes]);
 
