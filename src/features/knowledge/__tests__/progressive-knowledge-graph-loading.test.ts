@@ -3,11 +3,13 @@ import { join } from 'path';
 import { describe, expect, it, vi } from 'vitest';
 
 const prismaMock = vi.hoisted(() => ({
+  $queryRaw: vi.fn(),
   knowledgeNode: {
     findMany: vi.fn(),
   },
   knowledgeLink: {
     findMany: vi.fn(),
+    count: vi.fn(),
   },
 }));
 
@@ -35,6 +37,10 @@ import {
   type UnifiedKnowledgeGraphPayload,
 } from '@/lib/knowledge-graph-source';
 import { injectChapterNodes } from '@/features/knowledge/graph/filter-utils';
+import {
+  buildInitialGraphCache,
+  mergeProgressiveGraphPayload,
+} from '@/features/knowledge/progressive-graph-cache';
 
 vi.mock('server-only', () => ({}));
 
@@ -122,6 +128,71 @@ describe('progressive knowledge graph loading', () => {
     ]);
     expect(root.nodes.every((node) => node.knowledgeDim === undefined && node.bloomLevel === undefined)).toBe(true);
     expect(root.shardKey).toContain(':shard:root:chapters');
+    expect(root.nodes.map((node) => node.expansion)).toEqual([
+      { state: 'expandable', revealableNeighborCount: 1 },
+      { state: 'expandable', revealableNeighborCount: 2 },
+    ]);
+  });
+
+  it('describes canonical expandable and leaf nodes in every progressive payload', () => {
+    const graph = graphFixture();
+    graph.nodes.push({
+      id: 'node-leaf',
+      name: '孤立知识点',
+      nodeType: 'THEORY',
+      description: '没有可揭示邻居',
+      positionX: 3,
+      positionY: 0,
+      positionZ: 0,
+      chapter: 2,
+      chapterName: '系统模型',
+    });
+
+    const expansion = buildKnowledgeGraphExpansionPayload(graph, 'chapter-node:系统模型');
+    const active = buildKnowledgeGraphActiveFilterPayload(graph);
+    const remaining = buildKnowledgeGraphRemainingPayload(graph);
+
+    expect(expansion.nodes.find((node) => node.id === 'node-b')?.expansion).toEqual({
+      state: 'expandable',
+      revealableNeighborCount: 2,
+    });
+    expect(expansion.nodes.find((node) => node.id === 'node-leaf')?.expansion).toEqual({ state: 'leaf' });
+    expect(active.nodes.find((node) => node.id === 'node-c')?.expansion).toEqual({
+      state: 'expandable',
+      revealableNeighborCount: 2,
+    });
+    expect(remaining.nodes.find((node) => node.id === 'node-leaf')?.expansion).toEqual({ state: 'leaf' });
+    expect(expansion.graphVersion).toBe(active.graphVersion);
+    expect(active.graphVersion).toBe(remaining.graphVersion);
+  });
+
+  it('normalizes compatibility nodes to unknown and discards descriptors across graph versions', () => {
+    const graph = graphFixture();
+    const initial = buildInitialGraphCache([graph.nodes[0]], []);
+    expect(initial.nodesById['node-a']?.expansion).toEqual({ state: 'unknown' });
+
+    const versionOne = mergeProgressiveGraphPayload(initial, {
+      graphVersion: 'graph-v1',
+      shardKey: 'graph-v1:root',
+      nodes: [{
+        ...graph.nodes[1],
+        expansion: { state: 'expandable', revealableNeighborCount: 2 },
+      }],
+    });
+    expect(versionOne.nodesById['node-a']?.expansion).toEqual({ state: 'unknown' });
+    expect(versionOne.nodesById['node-b']?.expansion).toEqual({
+      state: 'expandable',
+      revealableNeighborCount: 2,
+    });
+
+    const versionTwo = mergeProgressiveGraphPayload(versionOne, {
+      graphVersion: 'graph-v2',
+      shardKey: 'graph-v2:root',
+      nodes: [graph.nodes[2]],
+    });
+    expect(Object.keys(versionTwo.nodesById)).toEqual(['node-c']);
+    expect(versionTwo.nodesById['node-c']?.expansion).toEqual({ state: 'unknown' });
+    expect(versionTwo.loadedShardKeys).toEqual(['graph-v2:root']);
   });
 
   it('keeps virtual chapter roots out of category and Bloom filtering dimensions', () => {
@@ -195,7 +266,6 @@ describe('progressive knowledge graph loading', () => {
     expect(source).toContain('loadingShardKeys');
     expect(source).toContain('expandedNodeIds');
     expect(source).toContain('loadingExpansionNodeIds');
-    expect(source).toContain('resetForVersion');
     expect(source).toContain('isExpansionLinkForNode');
     expect(source).toContain('expandedDirectLinks');
     expect(source).toContain('graphCache.loadedShardKeys.includes(expectedShardKey)');
@@ -207,7 +277,7 @@ describe('progressive knowledge graph loading', () => {
     expect(source).toContain("relation !== 'contains'");
     expect(source).toContain('data-knowledge-density-mode');
     expect(source).toContain('data-knowledge-full-graph-first-render="avoided"');
-    expect(source).toContain('data-knowledge-expansion-control');
+    expect(source).toContain('data-knowledge-node-control');
     expect(source).not.toContain('void handleToggleSelectedExpansion();');
     expect(route).toContain("mode === 'root'");
     expect(route).toContain("mode === 'expansion'");
@@ -228,11 +298,7 @@ describe('progressive knowledge graph loading', () => {
     expect(payloadSource).toContain('sharedGraphCacheExpiresAt');
     expect(payloadSource).toContain('rootGraphCache = null');
     expect(payloadSource).toContain('graphCache = null');
-    const mergeProgressivePayload = source.slice(
-      source.indexOf('function mergeProgressiveGraphPayload'),
-      source.indexOf('function isCollapsedRootNode')
-    );
-    expect(mergeProgressivePayload).not.toContain('filter(isCollapsedRootNode)');
+    expect(source).toContain('mergeProgressiveGraphPayload');
   });
 
   it('keeps the chapter sidebar aligned to parent-filtered progressive roots', () => {
@@ -281,17 +347,127 @@ describe('progressive knowledge graph loading', () => {
       relation: link.relation,
     }));
 
-    prismaMock.knowledgeNode.findMany.mockResolvedValue(databaseNodes);
+    prismaMock.knowledgeNode.findMany
+      .mockResolvedValueOnce(databaseNodes)
+      .mockResolvedValueOnce([...databaseNodes].reverse());
     prismaMock.knowledgeLink.findMany.mockResolvedValue(databaseLinks);
+    prismaMock.$queryRaw.mockResolvedValue([{
+      linkCount: BigInt(databaseLinks.length),
+      fingerprint: 'stable-relation-fingerprint',
+    }]);
+    prismaMock.knowledgeLink.count.mockResolvedValue(databaseLinks.length);
 
     const root = await loadKnowledgeGraphRootData();
+
+    expect(prismaMock.$queryRaw).toHaveBeenCalledOnce();
+    const relationVersionQuery = (prismaMock.$queryRaw.mock.calls[0]?.[0] as TemplateStringsArray).join('?');
+    expect(relationVersionQuery).toContain('link."id", link."sourceId", link."targetId", link."relation"');
+    expect(relationVersionQuery).toContain('ORDER BY link."id", link."sourceId", link."targetId", link."relation"');
+    expect(relationVersionQuery).toContain('JOIN "KnowledgeNode" AS source_node');
+    expect(relationVersionQuery).toContain('JOIN "KnowledgeNode" AS target_node');
+    expect(relationVersionQuery).toContain('source_node."isActive" = true');
+    expect(relationVersionQuery).toContain('target_node."isActive" = true');
+    expect(prismaMock.knowledgeLink.findMany).not.toHaveBeenCalled();
+    expect(root.links).toEqual([]);
+    expect(root.versionLinkCount).toBe(databaseLinks.length);
+
     const full = await loadKnowledgeGraphData();
 
     expect(root.source).toBe('database');
     expect(full.source).toBe('database');
-    expect(root.links).toEqual([]);
-    expect(root.versionLinkCount).toBe(databaseLinks.length);
+    expect(prismaMock.knowledgeLink.findMany).toHaveBeenCalledOnce();
+    expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(2);
     expect(full.links.length).toBe(databaseLinks.length);
     expect(getKnowledgeGraphVersion(root)).toBe(getKnowledgeGraphVersion(full));
+  });
+
+  it('changes database graph version when relation content changes at the same count', async () => {
+    const graph = graphFixture();
+    const databaseNodes = graph.nodes.map((node) => ({
+      id: node.id,
+      name: node.name,
+      nodeType: node.nodeType,
+      description: node.description,
+      positionX: node.positionX,
+      positionY: node.positionY,
+      positionZ: node.positionZ,
+      bloomLevel: node.bloomLevel ?? null,
+      knowledgeDim: node.knowledgeDim ?? null,
+      metadata: node.metadata ?? {},
+      content: node.content ?? {},
+      resources: node.resources ?? [],
+      tags: node.tags ?? [],
+    }));
+    prismaMock.knowledgeNode.findMany.mockResolvedValue(databaseNodes);
+    prismaMock.knowledgeLink.count.mockResolvedValue(graph.links.length);
+    prismaMock.$queryRaw.mockResolvedValueOnce([{
+      linkCount: BigInt(graph.links.length),
+      fingerprint: 'endpoints-and-types-v1',
+    }]);
+    vi.resetModules();
+    const firstModule = await import('@/lib/knowledge-graph-source');
+    const firstRoot = await firstModule.loadKnowledgeGraphRootData();
+
+    prismaMock.$queryRaw.mockResolvedValueOnce([{
+      linkCount: BigInt(graph.links.length),
+      fingerprint: 'endpoints-and-types-v2',
+    }]);
+    vi.resetModules();
+    const secondModule = await import('@/lib/knowledge-graph-source');
+    const secondRoot = await secondModule.loadKnowledgeGraphRootData();
+
+    expect(firstRoot.versionLinkCount).toBe(secondRoot.versionLinkCount);
+    expect(firstModule.getKnowledgeGraphVersion(firstRoot)).not.toBe(
+      secondModule.getKnowledgeGraphVersion(secondRoot)
+    );
+  });
+
+  it('excludes relations with an inactive endpoint from payloads and expansion descriptors', async () => {
+    const activeNode = graphFixture().nodes[0];
+    const databaseNodes = [{
+      id: activeNode.id,
+      name: activeNode.name,
+      nodeType: activeNode.nodeType,
+      description: activeNode.description,
+      positionX: activeNode.positionX,
+      positionY: activeNode.positionY,
+      positionZ: activeNode.positionZ,
+      bloomLevel: activeNode.bloomLevel ?? null,
+      knowledgeDim: activeNode.knowledgeDim ?? null,
+      metadata: activeNode.metadata ?? {},
+      content: activeNode.content ?? {},
+      resources: activeNode.resources ?? [],
+      tags: activeNode.tags ?? [],
+    }];
+    const danglingLinks = [
+      { id: 'active-inactive', sourceId: activeNode.id, targetId: 'inactive-target', relation: 'related' },
+      { id: 'inactive-active', sourceId: 'inactive-source', targetId: activeNode.id, relation: 'related' },
+    ];
+    prismaMock.knowledgeNode.findMany.mockResolvedValue(databaseNodes);
+    prismaMock.knowledgeLink.findMany.mockImplementation(async (args?: Record<string, unknown>) => {
+      const where = args?.where as Record<string, unknown> | undefined;
+      return where ? [] : danglingLinks;
+    });
+    prismaMock.$queryRaw.mockResolvedValue([{
+      linkCount: BigInt(0),
+      fingerprint: 'active-endpoints-only-empty',
+    }]);
+    vi.resetModules();
+    const graphModule = await import('@/lib/knowledge-graph-source');
+
+    const root = await graphModule.loadKnowledgeGraphRootData();
+    const full = await graphModule.loadKnowledgeGraphData();
+    const remaining = graphModule.buildKnowledgeGraphRemainingPayload(full);
+
+    expect(prismaMock.knowledgeLink.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        sourceNode: { isActive: true },
+        targetNode: { isActive: true },
+      },
+    }));
+    expect(full.links).toEqual([]);
+    expect(remaining.links).toEqual([]);
+    expect(remaining.nodes[0]?.expansion).toEqual({ state: 'leaf' });
+    expect(graphModule.getKnowledgeGraphVersion(root)).toBe(graphModule.getKnowledgeGraphVersion(full));
   });
 });

@@ -11,6 +11,11 @@ type BloomLevel = 'REMEMBER' | 'UNDERSTAND' | 'APPLY' | 'ANALYZE' | 'EVALUATE' |
 type KnowledgeDim = 'FACTUAL' | 'CONCEPTUAL' | 'PROCEDURAL' | 'METACOGNITIVE';
 type RelatedCategory = 'prerequisite' | 'follows' | 'related';
 
+export interface KnowledgeNodeExpansion {
+  state: 'expandable' | 'leaf' | 'unknown';
+  revealableNeighborCount?: number;
+}
+
 export interface UnifiedKnowledgeNode {
   id: string;
   name: string;
@@ -27,6 +32,7 @@ export interface UnifiedKnowledgeNode {
   tags?: string[];
   chapter?: number;
   chapterName?: string;
+  expansion?: KnowledgeNodeExpansion;
 }
 
 export interface UnifiedKnowledgeLink {
@@ -143,6 +149,11 @@ interface DatabaseKnowledgeLinkRow {
   sourceId: string;
   targetId: string;
   relation: string;
+}
+
+interface DatabaseRelationVersionEvidence {
+  linkCount: number;
+  fingerprint: string;
 }
 
 interface FileGraphVersionMetadata {
@@ -344,25 +355,57 @@ function normalizeDatabaseKnowledgeLinks(links: DatabaseKnowledgeLinkRow[]): Uni
 function buildDatabaseKnowledgeGraphPayload(
   nodes: DatabaseKnowledgeNodeRow[],
   links: DatabaseKnowledgeLinkRow[],
-  options: { includeLinks: boolean }
+  options: { includeLinks: boolean; relationVersion: DatabaseRelationVersionEvidence }
 ): UnifiedKnowledgeGraphPayload {
   const normalizedNodes = normalizeDatabaseKnowledgeNodes(nodes);
-  const normalizedLinks = normalizeDatabaseKnowledgeLinks(links);
+  const stableNodes = [...normalizedNodes].sort((left, right) => (
+    left.id < right.id ? -1 : left.id > right.id ? 1 : 0
+  ));
+  const normalizedLinks = options.includeLinks ? normalizeDatabaseKnowledgeLinks(links) : [];
+  const versionLinkCount = options.relationVersion.linkCount;
   const versionDigest = createHash('sha256')
-    .update(stableKnowledgeGraphVersionInput({
-      nodes: normalizedNodes,
-      links: normalizedLinks,
+    .update(stableJson({
       source: 'database',
+      nodes: stableNodes,
+      relationFingerprint: options.relationVersion.fingerprint,
+      versionLinkCount,
     }))
     .digest('hex')
     .slice(0, 16);
 
   return {
     nodes: normalizedNodes,
-    links: options.includeLinks ? normalizedLinks : [],
+    links: normalizedLinks,
     source: 'database',
     versionDigest,
-    versionLinkCount: normalizedLinks.length,
+    versionLinkCount,
+  };
+}
+
+async function loadDatabaseRelationVersionEvidence(): Promise<DatabaseRelationVersionEvidence> {
+  const rows = await prisma.$queryRaw<Array<{ linkCount: bigint; fingerprint: string }>>`
+    SELECT
+      COUNT(*)::bigint AS "linkCount",
+      md5(
+        COALESCE(
+          string_agg(
+            concat_ws(chr(31), link."id", link."sourceId", link."targetId", link."relation"),
+            chr(30)
+            ORDER BY link."id", link."sourceId", link."targetId", link."relation"
+          ),
+          ''
+        )
+      ) AS "fingerprint"
+    FROM "KnowledgeLink" AS link
+    JOIN "KnowledgeNode" AS source_node ON source_node."id" = link."sourceId"
+    JOIN "KnowledgeNode" AS target_node ON target_node."id" = link."targetId"
+    WHERE source_node."isActive" = true AND target_node."isActive" = true
+  `;
+  const evidence = rows[0];
+  if (!evidence) throw new Error('Knowledge graph relation version evidence is unavailable.');
+  return {
+    linkCount: Number(evidence.linkCount),
+    fingerprint: evidence.fingerprint,
   };
 }
 
@@ -530,7 +573,7 @@ async function loadKnowledgeGraphRootFromFiles(): Promise<UnifiedKnowledgeGraphP
 }
 
 async function loadKnowledgeGraphFromDatabase(): Promise<UnifiedKnowledgeGraphPayload> {
-  const [nodes, links] = await Promise.all([
+  const [nodes, links, relationVersion] = await Promise.all([
     prisma.knowledgeNode.findMany({
       where: { isActive: true },
       select: {
@@ -550,6 +593,10 @@ async function loadKnowledgeGraphFromDatabase(): Promise<UnifiedKnowledgeGraphPa
       },
     }),
     prisma.knowledgeLink.findMany({
+      where: {
+        sourceNode: { isActive: true },
+        targetNode: { isActive: true },
+      },
       select: {
         id: true,
         sourceId: true,
@@ -557,13 +604,14 @@ async function loadKnowledgeGraphFromDatabase(): Promise<UnifiedKnowledgeGraphPa
         relation: true,
       },
     }),
+    loadDatabaseRelationVersionEvidence(),
   ]);
 
-  return buildDatabaseKnowledgeGraphPayload(nodes, links, { includeLinks: true });
+  return buildDatabaseKnowledgeGraphPayload(nodes, links, { includeLinks: true, relationVersion });
 }
 
 async function loadKnowledgeGraphRootFromDatabase(): Promise<UnifiedKnowledgeGraphPayload> {
-  const [nodes, links] = await Promise.all([
+  const [nodes, relationVersion] = await Promise.all([
     prisma.knowledgeNode.findMany({
       where: { isActive: true },
       select: {
@@ -582,17 +630,10 @@ async function loadKnowledgeGraphRootFromDatabase(): Promise<UnifiedKnowledgeGra
         tags: true,
       },
     }),
-    prisma.knowledgeLink.findMany({
-      select: {
-        id: true,
-        sourceId: true,
-        targetId: true,
-        relation: true,
-      },
-    }),
+    loadDatabaseRelationVersionEvidence(),
   ]);
 
-  return buildDatabaseKnowledgeGraphPayload(nodes, links, { includeLinks: false });
+  return buildDatabaseKnowledgeGraphPayload(nodes, [], { includeLinks: false, relationVersion });
 }
 
 export async function loadKnowledgeGraphData(): Promise<UnifiedKnowledgeGraphPayload> {
@@ -733,7 +774,47 @@ function buildChapterRootNode(chapterName: string, index: number, nodeCount: num
     tags: ['chapter', 'collapsed-root'],
     chapter: index + 1,
     chapterName,
+    expansion: nodeCount > 0
+      ? { state: 'expandable', revealableNeighborCount: nodeCount }
+      : { state: 'leaf' },
   };
+}
+
+function buildCanonicalExpansionDescriptors(
+  graph: UnifiedKnowledgeGraphPayload
+): Map<string, KnowledgeNodeExpansion> {
+  const neighborIdsByNodeId = new Map<string, Set<string>>();
+  graph.links.forEach((link) => {
+    if (link.sourceId === link.targetId) return;
+    const sourceNeighbors = neighborIdsByNodeId.get(link.sourceId) ?? new Set<string>();
+    sourceNeighbors.add(link.targetId);
+    neighborIdsByNodeId.set(link.sourceId, sourceNeighbors);
+    const targetNeighbors = neighborIdsByNodeId.get(link.targetId) ?? new Set<string>();
+    targetNeighbors.add(link.sourceId);
+    neighborIdsByNodeId.set(link.targetId, targetNeighbors);
+  });
+  return new Map(graph.nodes.map((node) => {
+    const neighborCount = neighborIdsByNodeId.get(node.id)?.size ?? 0;
+    return [
+      node.id,
+      neighborCount > 0
+        ? { state: 'expandable', revealableNeighborCount: neighborCount }
+        : { state: 'leaf' },
+    ];
+  }));
+}
+
+function withCanonicalExpansionDescriptors(
+  graph: UnifiedKnowledgeGraphPayload,
+  nodes: UnifiedKnowledgeNode[]
+): UnifiedKnowledgeNode[] {
+  const descriptors = buildCanonicalExpansionDescriptors(graph);
+  return nodes.map((node) => ({
+    ...node,
+    expansion: node.id.startsWith(CHAPTER_ROOT_NODE_PREFIX)
+      ? node.expansion ?? { state: 'unknown' }
+      : descriptors.get(node.id) ?? { state: 'unknown' },
+  }));
 }
 
 function groupGraphNodesByChapter(nodes: UnifiedKnowledgeNode[]): Array<{ chapterName: string; nodes: UnifiedKnowledgeNode[] }> {
@@ -877,7 +958,10 @@ export function buildKnowledgeGraphExpansionPayload(
       graphVersion,
       shardKey: buildProgressiveShardKey('expansion', graphVersion, nodeId),
       filterSignature: DEFAULT_GRAPH_FILTER_SIGNATURE,
-      nodes: graph.nodes.filter((node) => nodeIds.has(node.id)),
+      nodes: withCanonicalExpansionDescriptors(
+        graph,
+        graph.nodes.filter((node) => nodeIds.has(node.id))
+      ),
       links: directLinks,
       source: graph.source,
     };
@@ -902,7 +986,7 @@ export function buildKnowledgeGraphExpansionPayload(
     graphVersion,
     shardKey: buildProgressiveShardKey('expansion', graphVersion, nodeId),
     filterSignature: DEFAULT_GRAPH_FILTER_SIGNATURE,
-    nodes: [rootNode, ...group.nodes],
+    nodes: [rootNode, ...withCanonicalExpansionDescriptors(graph, group.nodes)],
     links: [...chapterRootLinks(rootNode.id, group.nodes), ...groupLinks],
     source: graph.source,
   };
@@ -915,7 +999,7 @@ export function buildKnowledgeGraphActiveFilterPayload(graph: UnifiedKnowledgeGr
     graphVersion,
     shardKey: buildProgressiveShardKey('active-filter', graphVersion, DEFAULT_GRAPH_FILTER_SIGNATURE),
     filterSignature: DEFAULT_GRAPH_FILTER_SIGNATURE,
-    nodes: graph.nodes,
+    nodes: withCanonicalExpansionDescriptors(graph, graph.nodes),
     links: boundedActiveFilterLinks(graph.links),
     source: graph.source,
   };
@@ -928,7 +1012,7 @@ export function buildKnowledgeGraphRemainingPayload(graph: UnifiedKnowledgeGraph
     graphVersion,
     shardKey: buildProgressiveShardKey('remaining', graphVersion, 'all'),
     filterSignature: 'all',
-    nodes: graph.nodes,
+    nodes: withCanonicalExpansionDescriptors(graph, graph.nodes),
     links: graph.links,
     source: graph.source,
   };

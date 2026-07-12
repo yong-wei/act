@@ -7,7 +7,7 @@ import { chromium, type Browser, type Page } from 'playwright';
 const repoRoot = process.cwd();
 const outputDir = path.join(repoRoot, process.env.KNOWLEDGE_QA_OUTPUT_DIR ?? 'artifacts/knowledge-workspace-product-qa-489');
 const baseUrl = process.env.KNOWLEDGE_QA_BASE_URL ?? 'http://localhost:3002';
-const selectedNodeId = process.env.KNOWLEDGE_QA_SELECTED_NODE_ID ?? '积分环节_2_11005';
+const selectedNodeId = process.env.KNOWLEDGE_QA_SELECTED_NODE_ID ?? '稳定性_1_7288b4ea';
 const dragNodeId = process.env.KNOWLEDGE_QA_DRAG_NODE_ID ?? 'z反变换_7_7959c077';
 
 const sourceFiles = [
@@ -317,6 +317,7 @@ async function openMobileTool(page: Page, tool: string) {
 async function expandDock(page: Page) {
   await clickIfPresent(page, '[data-platform-floating-dock] button[data-platform-floating-dock-trigger-label]');
   await page.waitForSelector('[data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]', { timeout: 8000 });
+  await page.waitForTimeout(250);
 }
 
 async function openPageToolMenu(page: Page) {
@@ -330,6 +331,25 @@ async function closeInspectorIfPresent(page: Page) {
     state: 'detached',
     timeout: 5000,
   }).catch(() => undefined);
+}
+
+async function openSelectedNodeInspector(page: Page, nodeId = selectedNodeId) {
+  const inspector = page.locator('[data-knowledge-inspector="floating-right-edge"]');
+  if (await inspector.isVisible().catch(() => false)) return;
+  await page.waitForFunction((expectedNodeId) => {
+    const canvas = document.querySelector<HTMLElement>('[data-knowledge-canvas-primary="true"]');
+    const selectedNodeId = canvas?.dataset.knowledgeSelectedNodeId;
+    const control = selectedNodeId
+      ? document.querySelector<HTMLElement>(`[data-knowledge-node-control="${selectedNodeId}"]`)
+      : null;
+    return selectedNodeId === expectedNodeId
+      && control?.getAttribute('aria-busy') === 'false'
+      && control?.getAttribute('aria-expanded') === null;
+  }, nodeId, { timeout: 20000 });
+  const control = page.locator(`[data-knowledge-node-control="${nodeId}"]`);
+  await control.focus();
+  await control.evaluate((element) => (element as HTMLButtonElement).click());
+  await page.waitForSelector('[data-knowledge-inspector="floating-right-edge"]', { timeout: 15000 });
 }
 
 async function activeElementWithin(page: Page, selector: string) {
@@ -360,7 +380,16 @@ async function probeFocusTarget(
   try {
     await open(page);
     await page.waitForSelector(panelSelector, { timeout: 8000 });
-    const openedFocusManaged = await activeElementWithin(page, panelSelector);
+    let openedFocusManaged = false;
+    try {
+      await page.waitForFunction((selector) => {
+        const panel = document.querySelector<HTMLElement>(selector);
+        return Boolean(panel && panel.contains(document.activeElement));
+      }, panelSelector, { timeout: 3000 });
+      openedFocusManaged = true;
+    } catch {
+      openedFocusManaged = await activeElementWithin(page, panelSelector);
+    }
     const keyboardReachable = openedFocusManaged || await focusableByTab(page, panelSelector);
     await close(page);
     await page.waitForTimeout(250);
@@ -456,7 +485,7 @@ async function captureFocusEvidence(browser: Browser) {
         interactionState: 'focus mobile inspector',
         query: `?node=${encodeURIComponent(selectedNodeId)}`,
       },
-      async () => undefined,
+      (page) => openSelectedNodeInspector(page),
       '[data-knowledge-inspector="floating-right-edge"]',
       (page) => page.keyboard.press('Escape'),
       '[data-knowledge-canvas-primary="true"]',
@@ -617,7 +646,7 @@ async function captureState(browser: Browser, state: CaptureState) {
       url,
       theme: state.theme,
       viewport: { width: state.width, height: state.height },
-      navigationState: state.navigationState,
+      navigationState: state.navigationState === 'mobile' ? 'mobile-drawer' : state.navigationState,
       dockState: state.dockState,
       localToolState: state.localToolState,
       selectedNode: state.selectedNode,
@@ -647,7 +676,7 @@ function writeToolsInspectorCompatibilityEvidence(
   const stateMappings = [
     ['desktop-default-compact-dark', 'desktop-default-collapsed-dark', 'desktop default compact tools'],
     ['desktop-open-filters-dark', 'desktop-local-tools-filter-dark', 'desktop opened relation filters'],
-    ['desktop-selected-inspector-light', 'desktop-selected-inspector-light', 'desktop selected node inspector with infograph preview'],
+    ['desktop-selected-inspector-light', 'desktop-selected-inspector-light', 'desktop selected direct leaf inspector'],
     ['mobile-320-selected-sheet-dark', 'mobile-320-selected-inspector-dark', 'mobile selected node sheet with graph reachable above collapsed tools'],
     ['mobile-320-view-layout-dark', 'mobile-320-local-tools-dark', 'mobile view and layout tool opened with graph controls available'],
   ] as const;
@@ -841,6 +870,7 @@ async function main() {
       selectedNode: selectedNodeId,
       interactionState: 'selected inspector',
       query: `?node=${encodeURIComponent(selectedNodeId)}`,
+      beforeShot: (page) => openSelectedNodeInspector(page),
     },
     {
       name: 'desktop-hover-click-drag-dark',
@@ -959,6 +989,7 @@ async function main() {
       interactionState: 'expanded shell local tool inspector konling stress state',
       query: `?node=${encodeURIComponent(selectedNodeId)}`,
       beforeShot: async (page) => {
+        await openSelectedNodeInspector(page);
         await openDesktopTool(page, 'relation-filters');
         await page.waitForSelector('[data-knowledge-inspector="floating-right-edge"]', { timeout: 8000 });
         await expandDock(page);
@@ -988,7 +1019,10 @@ async function main() {
       selectedNode: selectedNodeId,
       interactionState: 'wide desktop floating local tool and inspector',
       query: `?node=${encodeURIComponent(selectedNodeId)}`,
-      beforeShot: (page) => openDesktopTool(page, 'relation-filters'),
+      beforeShot: async (page) => {
+        await openSelectedNodeInspector(page);
+        await openDesktopTool(page, 'relation-filters');
+      },
     },
     {
       name: 'tablet-1100-default-dark',
@@ -1027,6 +1061,7 @@ async function main() {
       selectedNode: selectedNodeId,
       interactionState: 'tablet breakpoint selected inspector below mobile navigation',
       query: `?node=${encodeURIComponent(selectedNodeId)}`,
+      beforeShot: (page) => openSelectedNodeInspector(page),
     },
     {
       name: 'tablet-1024-inspector-tools-konling-dark',
@@ -1041,6 +1076,7 @@ async function main() {
       interactionState: 'tablet lower boundary inspector konling local tool suspension',
       query: `?node=${encodeURIComponent(selectedNodeId)}`,
       beforeShot: async (page) => {
+        await openSelectedNodeInspector(page);
         await openDesktopTool(page, 'relation-filters');
         await page.waitForSelector('[data-knowledge-inspector="floating-right-edge"]', { timeout: 8000 });
         await expandDock(page);
@@ -1059,6 +1095,7 @@ async function main() {
       interactionState: 'tablet breakpoint inspector konling local tool suspension',
       query: `?node=${encodeURIComponent(selectedNodeId)}`,
       beforeShot: async (page) => {
+        await openSelectedNodeInspector(page);
         await openDesktopTool(page, 'relation-filters');
         await page.waitForSelector('[data-knowledge-inspector="floating-right-edge"]', { timeout: 8000 });
         await expandDock(page);
@@ -1077,6 +1114,7 @@ async function main() {
       interactionState: 'tablet upper boundary inspector konling local tool suspension',
       query: `?node=${encodeURIComponent(selectedNodeId)}`,
       beforeShot: async (page) => {
+        await openSelectedNodeInspector(page);
         await openDesktopTool(page, 'relation-filters');
         await page.waitForSelector('[data-knowledge-inspector="floating-right-edge"]', { timeout: 8000 });
         await expandDock(page);
@@ -1107,6 +1145,7 @@ async function main() {
       selectedNode: selectedNodeId,
       interactionState: 'mobile selected inspector sheet',
       query: `?node=${encodeURIComponent(selectedNodeId)}`,
+      beforeShot: (page) => openSelectedNodeInspector(page),
     },
     {
       name: 'mobile-320-konling-expanded-dark',
@@ -1138,6 +1177,7 @@ async function main() {
       interactionState: 'mobile inspector suspended while konling is expanded',
       query: `?node=${encodeURIComponent(selectedNodeId)}`,
       beforeShot: async (page) => {
+        await openSelectedNodeInspector(page);
         await page.waitForSelector('[data-knowledge-inspector="floating-right-edge"]', { timeout: 8000 });
         await expandDock(page);
       },

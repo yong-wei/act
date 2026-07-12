@@ -15,6 +15,8 @@ export interface KnowledgeGraphPositionedNode extends KnowledgeNodeData {
     x: number;
     y: number;
     z?: number;
+    activationSequence?: number;
+    provenanceCenterId?: string;
   };
 }
 
@@ -29,6 +31,8 @@ export interface KnowledgeGraphFocusedExpansionLayoutInput<T extends KnowledgeGr
   expandedNodeIds: readonly string[];
   directExpansionLinks: readonly KnowledgeLinkData[];
   layoutState: KnowledgeGraphLayoutState;
+  activationSequenceByCenterId?: Readonly<Record<string, number>>;
+  materializedNodeIds?: readonly string[];
 }
 
 export type KnowledgeGraphViewMode = '2D' | '3D';
@@ -55,9 +59,14 @@ export interface KnowledgeGraphFocusedExpansionRevealTranslation {
   fullyVisible: boolean;
 }
 
-const FOCUSED_EXPANSION_RING_CAPACITY = 8;
+const FOCUSED_EXPANSION_ARC_CAPACITY = 7;
 const FOCUSED_EXPANSION_FIRST_RING_RADIUS = 96;
 const FOCUSED_EXPANSION_RING_GAP = 72;
+const FOCUSED_EXPANSION_SECTOR_ANGLE = Math.PI * 0.8;
+const FOCUSED_EXPANSION_CANDIDATE_ANGLES = Array.from(
+  { length: 8 },
+  (_, index) => index * Math.PI / 4
+);
 const NODE_EXPANSION_CONTROL_EDGE_CLEARANCE = 8;
 const NODE_EXPANSION_CONTROL_OFFSET = -40;
 const NODE_EXPANSION_CONTROL_MAX_ANCHOR_DISTANCE = 64;
@@ -341,15 +350,15 @@ export function resolveKnowledgeGraphRuntimeNodeCoordinates<T extends KnowledgeG
   });
 }
 
-export function commitKnowledgeGraphRelayoutVersion({
+export function commitKnowledgeGraphRelayoutVersion<T extends number | string>({
   committedVersion,
   nextVersion,
   runtimePositions,
 }: {
-  committedVersion: number;
-  nextVersion: number;
+  committedVersion: T;
+  nextVersion: T;
   runtimePositions: { clear: () => void };
-}): number {
+}): T {
   if (committedVersion !== nextVersion) runtimePositions.clear();
   return nextVersion;
 }
@@ -528,18 +537,144 @@ function resolveNodeCenter(
   };
 }
 
+function resolveNodeDepth(
+  node: KnowledgeGraphPositionedNode,
+  layoutState: KnowledgeGraphLayoutState
+): number {
+  return readFiniteCoordinate(layoutState.positionsByNodeId[node.id]?.z)
+    ?? readFiniteCoordinate(node.z)
+    ?? readFiniteCoordinate(node.positionZ)
+    ?? 0;
+}
+
+function estimateKnowledgeGraphNodeLabelBounds(
+  node: KnowledgeGraphPositionedNode,
+  center: { x: number; y: number }
+) {
+  const labelLength = [...(node.name || node.id)].length;
+  const width = Math.min(176, Math.max(72, 24 + labelLength * 12));
+  const height = 24;
+  return {
+    left: center.x - width / 2,
+    right: center.x + width / 2,
+    top: center.y - height / 2,
+    bottom: center.y + height / 2,
+  };
+}
+
+function calculateLabelBoundsOverlapArea(
+  left: { left: number; right: number; top: number; bottom: number },
+  right: { left: number; right: number; top: number; bottom: number }
+): number {
+  const width = Math.max(0, Math.min(left.right, right.right) - Math.max(left.left, right.left));
+  const height = Math.max(0, Math.min(left.bottom, right.bottom) - Math.max(left.top, right.top));
+  return width * height;
+}
+
+export function resolveFocusedExpansionDepthByNodeId({
+  nodes,
+  expandedNodeIds,
+  directExpansionLinks,
+  layoutState,
+  activationSequenceByCenterId = {},
+  materializedNodeIds,
+}: KnowledgeGraphFocusedExpansionLayoutInput<KnowledgeGraphPositionedNode>): Map<string, number> {
+  const nodeById = new Map(nodes.map((node) => [node.id, node]));
+  const expandedIdSet = new Set(
+    expandedNodeIds.filter((nodeId) => nodeById.has(nodeId))
+  );
+  const centerIdsByChildId = new Map<string, string[]>();
+
+  expandedIdSet.forEach((centerId) => {
+    directExpansionLinks.forEach((link) => {
+      const childId = link.sourceId === centerId
+        ? link.targetId
+        : link.targetId === centerId ? link.sourceId : null;
+      if (!childId || expandedIdSet.has(childId) || !nodeById.has(childId)) return;
+      const centerIds = centerIdsByChildId.get(childId) ?? [];
+      if (!centerIds.includes(centerId)) centerIds.push(centerId);
+      centerIdsByChildId.set(childId, centerIds);
+    });
+  });
+
+  const materializedIdSet = new Set(materializedNodeIds ?? []);
+  const depthByNodeId = new Map<string, number>();
+  centerIdsByChildId.forEach((centerIds, childId) => {
+    const child = nodeById.get(childId)!;
+    const storedDepth = layoutState.positionsByNodeId[childId];
+    if (storedDepth?.pinned && readFiniteCoordinate(storedDepth.z) !== null) {
+      depthByNodeId.set(childId, storedDepth.z!);
+      return;
+    }
+
+    const provenanceCenterId = child.__knowledgeAutomaticAnchor?.provenanceCenterId;
+    const isNewlyMaterialized = materializedIdSet.has(childId);
+    const establishedDepth = !isNewlyMaterialized || provenanceCenterId
+      ? readFiniteCoordinate(child.__knowledgeAutomaticAnchor?.z)
+        ?? readFiniteCoordinate(child.fz)
+        ?? readFiniteCoordinate(child.z)
+        ?? readFiniteCoordinate(child.positionZ)
+      : null;
+    if (establishedDepth !== null) {
+      depthByNodeId.set(childId, establishedDepth);
+      return;
+    }
+
+    if (provenanceCenterId) {
+      const provenanceCenter = nodeById.get(provenanceCenterId);
+      if (provenanceCenter) {
+        depthByNodeId.set(childId, resolveNodeDepth(provenanceCenter, layoutState));
+      }
+      return;
+    }
+
+    if (!isNewlyMaterialized) return;
+
+    const provenanceSequence = child.__knowledgeAutomaticAnchor?.activationSequence;
+    const ownerCenterId = centerIds.includes(provenanceCenterId ?? '')
+      ? provenanceCenterId!
+      : centerIds.find((centerId) => activationSequenceByCenterId[centerId] === provenanceSequence)
+        ?? [...centerIds].sort((left, right) => (
+          (activationSequenceByCenterId[left] ?? Number.MAX_SAFE_INTEGER)
+          - (activationSequenceByCenterId[right] ?? Number.MAX_SAFE_INTEGER)
+          || compareNodeIds(left, right)
+        ))[0];
+    const ownerCenter = ownerCenterId ? nodeById.get(ownerCenterId) : undefined;
+    if (ownerCenter) depthByNodeId.set(childId, resolveNodeDepth(ownerCenter, layoutState));
+  });
+
+  return depthByNodeId;
+}
+
 export function applyFocusedExpansionLayout<T extends KnowledgeGraphPositionedNode>({
   nodes,
   expandedNodeIds,
   directExpansionLinks,
   layoutState,
+  activationSequenceByCenterId = {},
+  materializedNodeIds,
 }: KnowledgeGraphFocusedExpansionLayoutInput<T>): T[] {
   const nodeById = new Map(nodes.map((node) => [node.id, node]));
   const expandedIds = [...new Set(expandedNodeIds)]
     .filter((nodeId) => nodeById.has(nodeId))
-    .sort(compareNodeIds);
+    .sort((left, right) => (
+      (activationSequenceByCenterId[left] ?? Number.MAX_SAFE_INTEGER)
+      - (activationSequenceByCenterId[right] ?? Number.MAX_SAFE_INTEGER)
+      || compareNodeIds(left, right)
+    ));
   const expandedIdSet = new Set(expandedIds);
-  const focusedCoordinates = new Map<string, { x: number; y: number }>();
+  const materializedIdSet = materializedNodeIds ? new Set(materializedNodeIds) : null;
+  const focusedCoordinates = new Map<string, {
+    x: number;
+    y: number;
+    activationSequence: number;
+    provenanceCenterId: string;
+  }>();
+  const occupied = nodes.flatMap((node) => {
+    if (materializedIdSet?.has(node.id) && !node.__knowledgeAutomaticAnchor?.provenanceCenterId) return [];
+    const center = resolveNodeCenter(node, layoutState);
+    return [{ id: node.id, ...center, labelBounds: estimateKnowledgeGraphNodeLabelBounds(node, center) }];
+  });
 
   expandedIds.forEach((centerId) => {
     const centerNode = nodeById.get(centerId);
@@ -547,6 +682,9 @@ export function applyFocusedExpansionLayout<T extends KnowledgeGraphPositionedNo
 
     const directChildIds = new Set<string>();
     directExpansionLinks.forEach((link) => {
+      const relation = link.relationType || link.relation;
+      const chapterRoot = centerId.startsWith(CHAPTER_NODE_PREFIX);
+      if (chapterRoot && (relation !== 'contains' || link.sourceId !== centerId)) return;
       if (link.sourceId === centerId && link.targetId !== centerId) {
         directChildIds.add(link.targetId);
       } else if (link.targetId === centerId && link.sourceId !== centerId) {
@@ -554,24 +692,117 @@ export function applyFocusedExpansionLayout<T extends KnowledgeGraphPositionedNo
       }
     });
 
+    const densityPriority = (link?: KnowledgeLinkData) => {
+      const density = String((link as KnowledgeLinkData & { density?: string })?.density ?? 'optional');
+      const index = ['structure', 'context', 'optional', 'weak'].indexOf(density);
+      return index < 0 ? 2 : index;
+    };
+    const compareLinksForNeighbor = (left: KnowledgeLinkData, right: KnowledgeLinkData) => (
+      densityPriority(left) - densityPriority(right)
+      || String(left.relationType || left.relation).localeCompare(String(right.relationType || right.relation))
+      || Number(left.sourceId !== centerId) - Number(right.sourceId !== centerId)
+      || compareNodeIds(left.id, right.id)
+    );
+    const canonicalLinkByChildId = new Map<string, KnowledgeLinkData>();
+    directExpansionLinks.forEach((link) => {
+      const childId = link.sourceId === centerId
+        ? link.targetId
+        : link.targetId === centerId ? link.sourceId : null;
+      if (!childId || !directChildIds.has(childId)) return;
+      const current = canonicalLinkByChildId.get(childId);
+      if (!current || compareLinksForNeighbor(link, current) < 0) {
+        canonicalLinkByChildId.set(childId, link);
+      }
+    });
     const orderedChildIds = [...directChildIds]
       .filter((nodeId) => nodeById.has(nodeId) && !expandedIdSet.has(nodeId))
-      .sort(compareNodeIds);
+      .sort((left, right) => {
+        const leftNode = nodeById.get(left)!;
+        const rightNode = nodeById.get(right)!;
+        const leftLink = canonicalLinkByChildId.get(left);
+        const rightLink = canonicalLinkByChildId.get(right);
+        return densityPriority(leftLink) - densityPriority(rightLink)
+          || String(leftLink?.relationType || leftLink?.relation).localeCompare(String(rightLink?.relationType || rightLink?.relation))
+          || Number(leftLink?.sourceId !== centerId) - Number(rightLink?.sourceId !== centerId)
+          || Number((rightNode.metadata as Record<string, unknown> | undefined)?.importance ?? 0)
+            - Number((leftNode.metadata as Record<string, unknown> | undefined)?.importance ?? 0)
+          || leftNode.name.localeCompare(rightNode.name, 'zh-Hans-CN')
+          || compareNodeIds(left, right);
+      });
     const center = resolveNodeCenter(centerNode, layoutState);
+    const provenanceCenterId = centerNode.__knowledgeAutomaticAnchor?.provenanceCenterId;
+    const provenanceNode = provenanceCenterId ? nodeById.get(provenanceCenterId) : undefined;
+    const provenanceCenter = provenanceNode ? resolveNodeCenter(provenanceNode, layoutState) : null;
+    const inheritedAngle = provenanceCenter
+      ? Math.atan2(center.y - provenanceCenter.y, center.x - provenanceCenter.x)
+      : null;
+    const candidateAngles = inheritedAngle === null ? FOCUSED_EXPANSION_CANDIDATE_ANGLES : [inheritedAngle];
+    const direction = candidateAngles
+      .map((angle, index) => {
+        const candidateLabelBounds = orderedChildIds.map((childId, childIndex) => {
+          const arcIndex = Math.floor(childIndex / FOCUSED_EXPANSION_ARC_CAPACITY);
+          const slotIndex = childIndex % FOCUSED_EXPANSION_ARC_CAPACITY;
+          const nodesInArc = Math.min(
+            FOCUSED_EXPANSION_ARC_CAPACITY,
+            orderedChildIds.length - arcIndex * FOCUSED_EXPANSION_ARC_CAPACITY
+          );
+          const offset = nodesInArc === 1 ? 0 : (slotIndex / (nodesInArc - 1) - 0.5) * FOCUSED_EXPANSION_SECTOR_ANGLE;
+          const radius = FOCUSED_EXPANSION_FIRST_RING_RADIUS + arcIndex * FOCUSED_EXPANSION_RING_GAP;
+          const x = center.x + radius * Math.cos(angle + offset);
+          const y = center.y + radius * Math.sin(angle + offset);
+          const child = nodeById.get(childId)!;
+          return { x, y, labelBounds: estimateKnowledgeGraphNodeLabelBounds(child, { x, y }) };
+        });
+        const occupiedSpaceScore = candidateLabelBounds.reduce((sum, candidate) => (
+          sum + occupied.reduce((collision, point) => {
+            const distance = Math.hypot(candidate.x - point.x, candidate.y - point.y);
+            return collision + Math.max(0, 64 - distance) ** 2;
+          }, 0)
+        ), 0);
+        const labelOverlapScore = candidateLabelBounds.reduce((sum, candidate, candidateIndex) => (
+          sum
+          + occupied.reduce((overlap, point) => (
+            overlap + calculateLabelBoundsOverlapArea(candidate.labelBounds, point.labelBounds)
+          ), 0)
+          + candidateLabelBounds.slice(candidateIndex + 1).reduce((overlap, other) => (
+            overlap + calculateLabelBoundsOverlapArea(candidate.labelBounds, other.labelBounds)
+          ), 0)
+        ), 0);
+        const score = occupiedSpaceScore + labelOverlapScore;
+        return { angle, score, index };
+      })
+      .sort((left, right) => left.score - right.score || left.index - right.index)[0].angle;
 
     orderedChildIds.forEach((childId, index) => {
       if (focusedCoordinates.has(childId)) return;
-      const ringIndex = Math.floor(index / FOCUSED_EXPANSION_RING_CAPACITY);
-      const slotIndex = index % FOCUSED_EXPANSION_RING_CAPACITY;
+      if (materializedIdSet && !materializedIdSet.has(childId)) return;
+      const existingProvenance = nodeById.get(childId)?.__knowledgeAutomaticAnchor;
+      const nextSequence = activationSequenceByCenterId[centerId] ?? Number.MAX_SAFE_INTEGER;
+      if (
+        existingProvenance?.provenanceCenterId
+        && (
+          (existingProvenance.activationSequence ?? Number.MAX_SAFE_INTEGER) < nextSequence
+          || (
+            existingProvenance.activationSequence === nextSequence
+            && compareNodeIds(existingProvenance.provenanceCenterId, centerId) <= 0
+          )
+        )
+      ) return;
+      const ringIndex = Math.floor(index / FOCUSED_EXPANSION_ARC_CAPACITY);
+      const slotIndex = index % FOCUSED_EXPANSION_ARC_CAPACITY;
       const nodesInRing = Math.min(
-        FOCUSED_EXPANSION_RING_CAPACITY,
-        orderedChildIds.length - ringIndex * FOCUSED_EXPANSION_RING_CAPACITY
+        FOCUSED_EXPANSION_ARC_CAPACITY,
+        orderedChildIds.length - ringIndex * FOCUSED_EXPANSION_ARC_CAPACITY
       );
-      const angle = -Math.PI / 2 + (slotIndex / nodesInRing) * 2 * Math.PI;
+      const angle = direction + (nodesInRing === 1
+        ? 0
+        : (slotIndex / (nodesInRing - 1) - 0.5) * FOCUSED_EXPANSION_SECTOR_ANGLE);
       const radius = FOCUSED_EXPANSION_FIRST_RING_RADIUS + ringIndex * FOCUSED_EXPANSION_RING_GAP;
       focusedCoordinates.set(childId, {
         x: center.x + radius * Math.cos(angle),
         y: center.y + radius * Math.sin(angle),
+        activationSequence: nextSequence,
+        provenanceCenterId: centerId,
       });
     });
   });
@@ -598,6 +829,8 @@ export function applyFocusedExpansionLayout<T extends KnowledgeGraphPositionedNo
                 id: node.id,
                 x: focused.x,
                 y: focused.y,
+                activationSequence: focused.activationSequence,
+                provenanceCenterId: focused.provenanceCenterId,
               },
             }
           : {}),
@@ -617,8 +850,42 @@ export function applyFocusedExpansionLayout<T extends KnowledgeGraphPositionedNo
         id: node.id,
         x: focused.x,
         y: focused.y,
+        activationSequence: focused.activationSequence,
+        provenanceCenterId: focused.provenanceCenterId,
       },
     } as T;
+  });
+}
+
+export function freezeKnowledgeGraphDragFrame<T extends KnowledgeGraphPositionedNode>(
+  nodes: T[],
+  dragged: { id: string; x?: number; y?: number; z?: number }
+): void {
+  const draggedX = readFiniteCoordinate(dragged.x);
+  const draggedY = readFiniteCoordinate(dragged.y);
+  if (draggedX === null || draggedY === null) return;
+  nodes.forEach((node) => {
+    if (node.id === dragged.id) {
+      node.x = draggedX;
+      node.y = draggedY;
+      node.positionX = draggedX;
+      node.positionY = draggedY;
+      node.fx = draggedX;
+      node.fy = draggedY;
+      if (dragged.z !== undefined) {
+        node.z = dragged.z;
+        node.positionZ = dragged.z;
+        node.fz = dragged.z;
+      }
+      return;
+    }
+    const x = readFiniteCoordinate(node.fx ?? node.x ?? node.positionX);
+    const y = readFiniteCoordinate(node.fy ?? node.y ?? node.positionY);
+    if (x === null || y === null) return;
+    node.fx = x;
+    node.fy = y;
+    const z = readFiniteCoordinate(node.fz ?? node.z ?? node.positionZ);
+    if (z !== null) node.fz = z;
   });
 }
 

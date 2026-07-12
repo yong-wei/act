@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "node ./scripts/ops/clear-logs.mjs && next dev",
-    "build": "export PRISMA_GENERATE_SKIP_AUTOINSTALL=1; export NODE_OPTIONS=\"${NODE_OPTIONS:-} --disable-warning=DEP0205\"; node ./scripts/wasm/build-control-engine.mjs && npm run db:export-textbook-resources && prisma generate && node ./scripts/build-next-with-trace-check.mjs",
+    "build": "export PRISMA_GENERATE_SKIP_AUTOINSTALL=1; export NODE_OPTIONS=\"${NODE_OPTIONS:-} --disable-warning=DEP0205 --max-old-space-size=4096\"; node ./scripts/wasm/build-control-engine.mjs && npm run db:export-textbook-resources && prisma generate && node ./scripts/build-next-with-trace-check.mjs",
     "start": "node ./scripts/ops/clear-logs.mjs && next start -p 3001",
     "typecheck": "tsc --noEmit --pretty false",
     "verify:commit": "npm run typecheck && npm run verify:new-resource-semantics -- --staged",
@@ -54,6 +54,7 @@
     "test:knowledge-theme": "npx --yes tsx ./scripts/tests/test-knowledge-graph-theme.ts",
     "test:knowledge-filters": "npx --yes tsx ./scripts/tests/test-knowledge-graph-filters.ts",
     "test:knowledge-panel": "npx --yes tsx ./scripts/tests/test-knowledge-resource-panel-format.ts",
+    "test:knowledge-graph-direct-manipulation-governance": "npx --yes tsx ./scripts/tests/test-knowledge-graph-direct-manipulation-governance.ts",
     "test:user-menu-theme": "node ./scripts/tests/test-user-menu-theme.mjs",
     "test:cruise-class-code": "node ./scripts/tests/test-cruise-class-code-display.mjs",
     "test:account-passwords": "node ./scripts/tests/test-account-password-overrides.mjs",
@@ -186,6 +187,8 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",
+    "@testing-library/dom": "10.4.0",
+    "@testing-library/user-event": "14.6.1",
     "@types/bcryptjs": "^2.4.6",
     "@types/katex": "^0.16.8",
     "@vitest/coverage-v8": "^4.1.8",

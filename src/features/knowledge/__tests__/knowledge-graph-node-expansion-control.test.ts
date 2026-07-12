@@ -143,13 +143,13 @@ describe('knowledge graph node-local expansion control', () => {
     expect(twoDimensionalSource).toContain('resolveKnowledgeGraphRuntimeNodeCoordinates');
     expect(twoDimensionalSource).toContain('commitKnowledgeGraphRelayoutVersion');
     expect(twoDimensionalSource).toContain(
-      'const preserveRuntimeCoordinates = committedRelayoutVersionRef.current === relayoutVersion;'
+      'const preserveRuntimeCoordinates = !graphVersionChanged'
     );
     expect(twoDimensionalSource).toContain('preserve: preserveRuntimeCoordinates');
     expect(threeDimensionalSource).toContain('resolveKnowledgeGraphRuntimeNodeCoordinates');
     expect(threeDimensionalSource).toContain('commitKnowledgeGraphRelayoutVersion');
     expect(threeDimensionalSource).toContain(
-      'const preserveRuntimeCoordinates = committedRelayoutVersionRef.current === relayoutVersion;'
+      'const preserveRuntimeCoordinates = !graphVersionChanged'
     );
     expect(threeDimensionalSource).toContain('preserve: preserveRuntimeCoordinates');
   });
@@ -208,10 +208,10 @@ describe('knowledge graph node-local expansion control', () => {
     const twoDimensionalSource = readKnowledgeSource('graph/knowledge-graph-2d.tsx');
     const threeDimensionalSource = readKnowledgeSource('graph/knowledge-graph-canvas.tsx');
     expect(twoDimensionalSource).toContain(
-      '[nodes, links, relayoutVersion, layoutState.version, expandedNodeIds, expandedDirectLinks]'
+      '[nodes, links, relayoutVersion, layoutState, expandedNodeIds, expandedDirectLinks, activationSequenceByCenterId, materializedNodeIds, graphVersion]'
     );
     expect(threeDimensionalSource).toContain(
-      '[nodes, links, relayoutVersion, layoutState.version, expandedNodeIds, expandedDirectLinks]'
+      '[nodes, links, relayoutVersion, layoutState, expandedNodeIds, expandedDirectLinks, activationSequenceByCenterId, materializedNodeIds, graphVersion]'
     );
   });
 
@@ -370,15 +370,11 @@ describe('knowledge graph node-local expansion control', () => {
     });
 
     expect(systemSource).toContain('id="knowledge-graph-canvas"');
-    expect(systemSource).toContain("expansionControlRef.current.dataset.anchorClamped = controlPosition.clamped ? 'true' : 'false';");
-    expect(systemSource).toContain('visibleSelectedNode && !mobileToolPanelOpen');
-    const projectionHandler = systemSource.slice(
-      systemSource.indexOf('const handleSelectedNodeScreenPosition'),
-      systemSource.indexOf('useEffect(() => {', systemSource.indexOf('const handleSelectedNodeScreenPosition'))
-    );
-    expect(projectionHandler).not.toContain('querySelectorAll');
-    expect(projectionHandler).not.toContain('getBoundingClientRect');
-    expect(projectionHandler).not.toContain('getComputedStyle');
+    expect(systemSource).not.toContain('expansionControlRef');
+    expect(systemSource).not.toContain('handleSelectedNodeScreenPosition');
+    rendererSources.forEach((rendererSource) => {
+      expect(rendererSource).not.toContain('reportSelectedNodeScreenPosition');
+    });
   });
 
   it('uses a bounded local reveal in both renderers without fitting the whole graph', () => {

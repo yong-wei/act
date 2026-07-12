@@ -7,7 +7,7 @@
  * 支持自动布局、手动拖拽、节点标签始终显示
  */
 
-import { useRef, useCallback, useMemo, useEffect, useState } from 'react';
+import { useRef, useCallback, useMemo, useEffect, useState, type PointerEvent } from 'react';
 import ForceGraph3D from 'react-force-graph-3d';
 import * as THREE from 'three';
 import type { KnowledgeNodeData, KnowledgeLinkData } from '../knowledge-graph-system';
@@ -40,12 +40,26 @@ import {
   commitKnowledgeGraphRelayoutVersion,
   createFocusedExpansionRevealSignature,
   resolveKnowledgeGraphRuntimeNodeCoordinates,
+  resolveFocusedExpansionDepthByNodeId,
   resolveFocusedExpansionRevealTarget,
   selectFocusedExpansionGraphNodes,
+  freezeKnowledgeGraphDragFrame,
   translateKnowledgeGraphCameraPose,
-  type KnowledgeGraphNodeScreenPosition,
   type KnowledgeGraphPositionedNode,
 } from './layout-engine';
+import {
+  createKnowledgeGraphRevealPlan,
+  getKnowledgeGraphPresentationLinkOpacity,
+  getKnowledgeGraphPresentationLinkProgress,
+  getKnowledgeGraphPresentationNodeScale,
+  getKnowledgeGraphPresentationNodeOpacity,
+  IDLE_KNOWLEDGE_GRAPH_PRESENTATION,
+  KnowledgeGraphTransitionGate,
+  type KnowledgeGraphPresentationState,
+  KNOWLEDGE_GRAPH_MOTION,
+  prefersReducedKnowledgeGraphMotion,
+} from './motion';
+import { KnowledgeGraphCameraTransition } from './camera-transition';
 
 interface KnowledgeGraphCanvasProps {
   nodes: KnowledgeNodeData[];
@@ -55,6 +69,7 @@ interface KnowledgeGraphCanvasProps {
   onNodeClick: (node: KnowledgeNodeData) => void;
   onNodeHover: (node: KnowledgeNodeData | null) => void;
   onNodeDragEnd: (node: KnowledgeNodeData) => void;
+  onManipulationStart?: () => void;
   labelMode: KnowledgeGraphLabelMode;
   layoutState: KnowledgeGraphLayoutState;
   fitViewVersion: number;
@@ -63,7 +78,11 @@ interface KnowledgeGraphCanvasProps {
   height?: number;
   expandedNodeIds: readonly string[];
   expandedDirectLinks: readonly KnowledgeLinkData[];
-  onSelectedNodeScreenPosition: (position: KnowledgeGraphNodeScreenPosition) => void;
+  activationSequenceByCenterId: Readonly<Record<string, number>>;
+  materializedNodeIds: readonly string[];
+  graphVersion: string | null;
+  collapsingNodeId?: string | null;
+  onCollapsePresentationComplete?: (nodeId: string) => void;
 }
 
 type RuntimeKnowledgeGraphNode = KnowledgeGraphPositionedNode & {
@@ -147,6 +166,7 @@ export function KnowledgeGraphCanvas({
   onNodeClick,
   onNodeHover,
   onNodeDragEnd,
+  onManipulationStart,
   labelMode,
   layoutState,
   fitViewVersion,
@@ -155,15 +175,29 @@ export function KnowledgeGraphCanvas({
   height,
   expandedNodeIds,
   expandedDirectLinks,
-  onSelectedNodeScreenPosition,
+  activationSequenceByCenterId,
+  materializedNodeIds,
+  graphVersion,
+  collapsingNodeId = null,
+  onCollapsePresentationComplete,
 }: KnowledgeGraphCanvasProps) {
   const fgRef = useRef<any>(null);
   const layoutStateRef = useRef(layoutState);
   const runtimePositionsByNodeIdRef = useRef(new Map<string, Partial<RuntimeKnowledgeGraphNode>>());
   const committedRelayoutVersionRef = useRef(relayoutVersion);
+  const committedGraphVersionRef = useRef(graphVersion);
   const revealedExpansionSignatureRef = useRef('');
   const previousExpandedNodeIdsRef = useRef<readonly string[]>([]);
   const focusedRevealTargetNodeIdRef = useRef<string | null>(null);
+  const presentationExpandedNodeIdsRef = useRef<readonly string[]>([]);
+  const presentationGenerationRef = useRef(0);
+  const presentationGateRef = useRef(new KnowledgeGraphTransitionGate());
+  const cameraTransitionRef = useRef(new KnowledgeGraphCameraTransition());
+  const [presentation, setPresentation] = useState<KnowledgeGraphPresentationState>(
+    IDLE_KNOWLEDGE_GRAPH_PRESENTATION
+  );
+  const presentationRef = useRef(IDLE_KNOWLEDGE_GRAPH_PRESENTATION);
+  presentationRef.current = presentation;
   const [isLightTheme, setIsLightTheme] = useState(false);
   layoutStateRef.current = layoutState;
 
@@ -189,8 +223,27 @@ export function KnowledgeGraphCanvas({
     });
   }, [relayoutVersion]);
 
+  useEffect(() => {
+    runtimePositionsByNodeIdRef.current.clear();
+    revealedExpansionSignatureRef.current = '';
+    previousExpandedNodeIdsRef.current = [];
+    focusedRevealTargetNodeIdRef.current = null;
+    presentationExpandedNodeIdsRef.current = [];
+    presentationGateRef.current.cancel();
+    presentationRef.current = IDLE_KNOWLEDGE_GRAPH_PRESENTATION;
+    setPresentation(IDLE_KNOWLEDGE_GRAPH_PRESENTATION);
+  }, [graphVersion]);
+
+  useEffect(() => () => {
+    presentationGateRef.current.dispose();
+    cameraTransitionRef.current.dispose();
+  }, []);
+
   // 1. 处理数据并转换 links 格式
   const graphData = useMemo(() => {
+    const graphVersionChanged = committedGraphVersionRef.current !== graphVersion;
+    if (graphVersionChanged) runtimePositionsByNodeIdRef.current.clear();
+    committedGraphVersionRef.current = graphVersion;
     const degreeById = new Map<string, number>();
     links.forEach((link) => {
       degreeById.set(link.sourceId, (degreeById.get(link.sourceId) ?? 0) + 1);
@@ -202,7 +255,8 @@ export function KnowledgeGraphCanvas({
     } as any));
     const nodeById = new Map(clonedNodes.map((node) => [node.id, node]));
     const relayoutRadiusOffset = relayoutVersion * 0;
-    const preserveRuntimeCoordinates = committedRelayoutVersionRef.current === relayoutVersion;
+    const preserveRuntimeCoordinates = !graphVersionChanged
+      && committedRelayoutVersionRef.current === relayoutVersion;
 
     const chapterNodes = clonedNodes.filter((node) => node.id.startsWith(CHAPTER_NODE_PREFIX));
     if (chapterNodes.length > 0) {
@@ -272,26 +326,21 @@ export function KnowledgeGraphCanvas({
       nodes: baseLayoutNodes,
       expandedNodeIds,
       directExpansionLinks: expandedDirectLinks,
-      layoutState: layoutStateRef.current,
+      layoutState,
+      activationSequenceByCenterId,
+      materializedNodeIds,
     });
-    const expandedIdSet = new Set(expandedNodeIds);
-    const focusedDepthByNodeId = new Map<string, number>();
-    [...expandedIdSet].sort().forEach((centerId) => {
-      const centerNode = focusedLayoutNodes.find((node) => node.id === centerId);
-      const centerPinned = layoutStateRef.current.positionsByNodeId[centerId];
-      const centerZ = centerPinned?.z ?? centerNode?.z ?? centerNode?.positionZ ?? 0;
-      expandedDirectLinks.forEach((link) => {
-        const childId = link.sourceId === centerId
-          ? link.targetId
-          : link.targetId === centerId ? link.sourceId : null;
-        if (!childId || expandedIdSet.has(childId) || focusedDepthByNodeId.has(childId)) return;
-        focusedDepthByNodeId.set(childId, centerZ);
-      });
+    const focusedDepthByNodeId = resolveFocusedExpansionDepthByNodeId({
+      nodes: focusedLayoutNodes,
+      expandedNodeIds,
+      directExpansionLinks: expandedDirectLinks,
+      layoutState,
+      activationSequenceByCenterId,
+      materializedNodeIds,
     });
     const focusedThreeDimensionalNodes = focusedLayoutNodes.map((node) => {
       const focusedZ = focusedDepthByNodeId.get(node.id);
-      const pinnedZ = layoutStateRef.current.positionsByNodeId[node.id]?.z;
-      if (focusedZ === undefined || pinnedZ !== undefined) return node;
+      if (focusedZ === undefined) return node;
       return {
         ...node,
         z: focusedZ,
@@ -307,7 +356,152 @@ export function KnowledgeGraphCanvas({
       nodes: focusedThreeDimensionalNodes,
       links: transformedLinks
     };
-  }, [nodes, links, relayoutVersion, layoutState.version, expandedNodeIds, expandedDirectLinks]);
+  }, [nodes, links, relayoutVersion, layoutState, expandedNodeIds, expandedDirectLinks, activationSequenceByCenterId, materializedNodeIds, graphVersion]);
+
+  useEffect(() => {
+    cameraTransitionRef.current.cancel();
+    const expandedIds = [...new Set(expandedNodeIds)];
+    const previousExpandedIds = presentationExpandedNodeIdsRef.current;
+    const targetNodeId = collapsingNodeId ?? resolveFocusedExpansionRevealTarget(previousExpandedIds, expandedIds);
+    if (!targetNodeId) {
+      presentationExpandedNodeIdsRef.current = expandedIds;
+      const activePresentation = presentationRef.current;
+      if (
+        expandedIds.length > 0
+        && activePresentation.phase !== 'idle'
+        && activePresentation.targetNodeId
+        && expandedIds.includes(activePresentation.targetNodeId)
+      ) return;
+      presentationGateRef.current.cancel();
+      presentationRef.current = IDLE_KNOWLEDGE_GRAPH_PRESENTATION;
+      setPresentation((current) => current.phase === 'idle'
+        ? current
+        : IDLE_KNOWLEDGE_GRAPH_PRESENTATION);
+      return;
+    }
+    const targetDirectLinks = expandedDirectLinks.filter((link) => (
+      link.sourceId === targetNodeId || link.targetId === targetNodeId
+    ));
+    const directNodeIds = [...new Set(targetDirectLinks.map((link) => (
+      link.sourceId === targetNodeId ? link.targetId : link.sourceId
+    )))];
+    const relationIds = targetDirectLinks.map((link) => `${link.sourceId}:${link.targetId}`);
+    const phase = collapsingNodeId ? 'collapsing' : 'revealing';
+    const nodeById = new Map(graphData.nodes.map((node) => [node.id, node as KnowledgeNodeData & {
+      __knowledgeAutomaticAnchor?: { activationSequence?: number; provenanceCenterId?: string };
+    }]));
+    const activationSequence = activationSequenceByCenterId[targetNodeId];
+    const newlyMaterializedNodeIds = directNodeIds.filter((nodeId) => {
+      const anchor = nodeById.get(nodeId)?.__knowledgeAutomaticAnchor;
+      return materializedNodeIds.includes(nodeId)
+        && anchor?.provenanceCenterId === targetNodeId
+        && (activationSequence === undefined || anchor.activationSequence === activationSequence);
+    });
+    if (phase === 'revealing' && newlyMaterializedNodeIds.length === 0) {
+      presentationGateRef.current.cancel();
+      presentationRef.current = IDLE_KNOWLEDGE_GRAPH_PRESENTATION;
+      setPresentation((current) => current.phase === 'idle'
+        ? current
+        : IDLE_KNOWLEDGE_GRAPH_PRESENTATION);
+      return;
+    }
+    presentationExpandedNodeIdsRef.current = expandedIds;
+    const animatedRelationIds = phase === 'collapsing'
+      ? relationIds
+      : targetDirectLinks
+        .filter((link) => newlyMaterializedNodeIds.includes(
+          link.sourceId === targetNodeId ? link.targetId : link.sourceId
+        ))
+        .map((link) => `${link.sourceId}:${link.targetId}`);
+    const plan = createKnowledgeGraphRevealPlan({
+      graphVersion: graphVersion ?? 'pending',
+      targetNodeId,
+      generation: ++presentationGenerationRef.current,
+      nodeIds: phase === 'collapsing' ? directNodeIds : newlyMaterializedNodeIds,
+      reducedMotion: prefersReducedKnowledgeGraphMotion(),
+    });
+    presentationGateRef.current.cancel(plan.key);
+    if (plan.focusDurationMs === 0) {
+      presentationRef.current = IDLE_KNOWLEDGE_GRAPH_PRESENTATION;
+      setPresentation(IDLE_KNOWLEDGE_GRAPH_PRESENTATION);
+      if (collapsingNodeId) onCollapsePresentationComplete?.(collapsingNodeId);
+      return;
+    }
+    const nodeTimings = Object.fromEntries(plan.nodes.map((node) => [node.nodeId, {
+      delayMs: node.delayMs,
+      durationMs: node.durationMs,
+    }]));
+    const durationMs = phase === 'collapsing'
+      ? plan.collapseDurationMs
+      : Math.max(plan.focusDurationMs, plan.relationDurationMs, ...plan.nodes.map((node) => node.delayMs + node.durationMs));
+    const nextPresentation: KnowledgeGraphPresentationState = {
+      key: plan.key,
+      phase,
+      targetNodeId,
+      directNodeIds,
+      animatedNodeIds: phase === 'collapsing' ? directNodeIds : newlyMaterializedNodeIds,
+      revealedNodeIds: phase === 'collapsing' ? directNodeIds : [],
+      revealedRelationIds: phase === 'collapsing' ? relationIds : [],
+      animatedRelationIds,
+      elapsedMs: 0,
+      durationMs,
+      relationDurationMs: plan.relationDurationMs,
+      collapseDurationMs: plan.collapseDurationMs,
+      animateParticles: plan.animateParticles,
+      nodeTimings,
+    };
+    presentationRef.current = nextPresentation;
+    setPresentation(nextPresentation);
+    if (phase === 'collapsing') {
+      presentationGateRef.current.schedule(plan.key, () => {
+        presentationRef.current = IDLE_KNOWLEDGE_GRAPH_PRESENTATION;
+        setPresentation(IDLE_KNOWLEDGE_GRAPH_PRESENTATION);
+        onCollapsePresentationComplete?.(targetNodeId);
+      }, plan.collapseDurationMs);
+      return;
+    }
+    presentationGateRef.current.schedule(plan.key, () => {
+      setPresentation((current) => current.key === plan.key
+        ? { ...current, revealedRelationIds: animatedRelationIds }
+        : current);
+    }, plan.relationDurationMs);
+    plan.nodes.forEach((node) => {
+      presentationGateRef.current.schedule(plan.key, () => {
+        setPresentation((current) => current.key === plan.key
+          ? { ...current, revealedNodeIds: [...new Set([...current.revealedNodeIds, node.nodeId])] }
+          : current);
+      }, node.delayMs);
+    });
+    presentationGateRef.current.schedule(plan.key, () => {
+      presentationRef.current = IDLE_KNOWLEDGE_GRAPH_PRESENTATION;
+      setPresentation(IDLE_KNOWLEDGE_GRAPH_PRESENTATION);
+    }, durationMs);
+  }, [activationSequenceByCenterId, collapsingNodeId, expandedDirectLinks, expandedNodeIds, graphData.nodes, graphVersion, materializedNodeIds, nodes, onCollapsePresentationComplete]);
+
+  const presentationKey = presentation.key;
+  const presentationPhase = presentation.phase;
+  const presentationDurationMs = presentation.durationMs ?? 0;
+
+  useEffect(() => {
+    if (presentationPhase === 'idle' || !presentationKey || presentationDurationMs <= 0) return;
+    const startedAtMs = performance.now();
+    const requestFrame = typeof window.requestAnimationFrame === 'function'
+      ? window.requestAnimationFrame.bind(window)
+      : (callback: FrameRequestCallback) => window.setTimeout(() => callback(performance.now()), 16);
+    const cancelFrame = typeof window.cancelAnimationFrame === 'function'
+      ? window.cancelAnimationFrame.bind(window)
+      : (frame: number) => window.clearTimeout(frame);
+    let frame = 0;
+    const tick = (now: number) => {
+      const elapsedMs = Math.min(presentationDurationMs, Math.max(0, now - startedAtMs));
+      setPresentation((current) => current.key === presentationKey
+        ? { ...current, elapsedMs }
+        : current);
+      if (elapsedMs < presentationDurationMs) frame = requestFrame(tick);
+    };
+    frame = requestFrame(tick);
+    return () => cancelFrame(frame);
+  }, [presentationDurationMs, presentationKey, presentationPhase]);
 
   const rememberRuntimeNodePosition = useCallback((node: RuntimeKnowledgeGraphNode) => {
     if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) return;
@@ -332,54 +526,167 @@ export function KnowledgeGraphCanvas({
     graphNodes.forEach(rememberRuntimeNodePosition);
   }, [graphData.nodes, rememberRuntimeNodePosition]);
 
-  const reportSelectedNodeScreenPosition = useCallback(() => {
-    const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
-
-    if (!selectedNode?.id || !fgRef.current?.graph2ScreenCoords) {
-      onSelectedNodeScreenPosition({ nodeId: null, viewMode: '3D' });
-      return;
-    }
-    const graphNode = graphNodes.find((node) => node.id === selectedNode.id);
-    const graphX = Number(graphNode?.x);
-    const graphY = Number(graphNode?.y);
-    const graphZ = Number(graphNode?.z ?? 0);
-    if (!Number.isFinite(graphX) || !Number.isFinite(graphY) || !Number.isFinite(graphZ)) {
-      onSelectedNodeScreenPosition({ nodeId: null, viewMode: '3D' });
-      return;
-    }
-    const screen = fgRef.current.graph2ScreenCoords(graphX, graphY, graphZ);
-    const screenX = Number(screen?.x);
-    const screenY = Number(screen?.y);
-    if (!Number.isFinite(screenX) || !Number.isFinite(screenY)) {
-      onSelectedNodeScreenPosition({ nodeId: null, viewMode: '3D' });
-      return;
-    }
-    onSelectedNodeScreenPosition({
-      nodeId: selectedNode.id,
-      viewMode: '3D',
-      x: screenX,
-      y: screenY,
-      z: graphZ,
-    });
-  }, [graphData.nodes, onSelectedNodeScreenPosition, selectedNode?.id]);
-
   useEffect(() => {
-    let animationFrame = 0;
-    const reportFrame = () => {
-      reportSelectedNodeScreenPosition();
-      animationFrame = window.requestAnimationFrame(reportFrame);
+    const qaWindow = window as Window & {
+      __knowledgeGraphQaNodePoints?: (nodeId?: string) => Array<{ x: number; y: number }>;
+      __knowledgeGraphQaNodeDebug?: (nodeId?: string) => Array<Record<string, number | string | null>>;
+      __knowledgeGraphQaPresentationDebug?: () => Record<string, unknown>;
+      __knowledgeGraphQaResetViewport?: () => void;
+      __knowledgeGraphQaCenterNode?: (nodeId: string) => void;
     };
-    onSelectedNodeScreenPosition({ nodeId: null, viewMode: '3D' });
-    animationFrame = window.requestAnimationFrame(reportFrame);
+    const qaMode = new URLSearchParams(window.location.search).get('qa');
+    const qaEnabled = qaMode === 'knowledge-product' || qaMode === 'issue-894-direct-activation';
+    if (!qaEnabled) {
+      delete qaWindow.__knowledgeGraphQaNodePoints;
+      delete qaWindow.__knowledgeGraphQaNodeDebug;
+      delete qaWindow.__knowledgeGraphQaPresentationDebug;
+      delete qaWindow.__knowledgeGraphQaResetViewport;
+      delete qaWindow.__knowledgeGraphQaCenterNode;
+      return;
+    }
+    const getNodePoints = (requestedNodeId = selectedNode?.id) => {
+      if (!requestedNodeId || !fgRef.current?.graph2ScreenCoords) return [];
+      const graphNodes = [
+        ...((fgRef.current.graphData?.()?.nodes ?? []) as Array<KnowledgeNodeData & { x?: number; y?: number; z?: number }>),
+        ...(graphData.nodes as Array<KnowledgeNodeData & { x?: number; y?: number; z?: number }>),
+      ];
+      const canvas = document.querySelector<HTMLCanvasElement>('[data-knowledge-canvas-primary="true"] canvas');
+      const rect = canvas?.getBoundingClientRect();
+      const candidates: Array<{ x: number; y: number }> = [];
+      for (const graphNode of graphNodes) {
+        if (graphNode.id !== requestedNodeId) continue;
+        const graphX = Number(graphNode.x);
+        const graphY = Number(graphNode.y);
+        const graphZ = Number(graphNode.z ?? 0);
+        if (![graphX, graphY, graphZ].every(Number.isFinite)) continue;
+        const screen = fgRef.current.graph2ScreenCoords(graphX, graphY, graphZ);
+        const screenX = Number(screen?.x);
+        const screenY = Number(screen?.y);
+        if (![screenX, screenY].every(Number.isFinite)) continue;
+        if (!rect) continue;
+        candidates.push({ x: rect.left + screenX, y: rect.top + screenY });
+      }
+      return candidates.flatMap((point) => [
+        point,
+        { x: point.x - 8, y: point.y },
+        { x: point.x + 8, y: point.y },
+        { x: point.x, y: point.y - 8 },
+        { x: point.x, y: point.y + 8 },
+      ]).filter((point, index, points) => (
+        index === points.findIndex((candidate) => (
+          Math.round(candidate.x) === Math.round(point.x)
+          && Math.round(candidate.y) === Math.round(point.y)
+        ))
+      ));
+    };
+    qaWindow.__knowledgeGraphQaNodePoints = getNodePoints;
+    qaWindow.__knowledgeGraphQaNodeDebug = (requestedNodeId = selectedNode?.id) => {
+      const camera = fgRef.current?.camera?.() as { position?: { x?: number; y?: number; z?: number } } | undefined;
+      const controls = fgRef.current?.controls?.() as { target?: { x?: number; y?: number; z?: number } } | undefined;
+      const renderer = fgRef.current?.renderer?.() as {
+        info?: { render?: { calls?: number; triangles?: number } };
+        domElement?: { width?: number; height?: number };
+      } | undefined;
+      const scene = fgRef.current?.scene?.() as { children?: unknown[] } | undefined;
+      const renderCalls = renderer?.info?.render?.calls;
+      const renderTriangles = renderer?.info?.render?.triangles;
+      const rendererWidth = renderer?.domElement?.width;
+      const rendererHeight = renderer?.domElement?.height;
+      const graphNodes = [
+        ...((fgRef.current?.graphData?.()?.nodes ?? []) as Array<KnowledgeNodeData & { x?: number; y?: number; z?: number }>),
+        ...(graphData.nodes as Array<KnowledgeNodeData & { x?: number; y?: number; z?: number }>),
+      ];
+      return graphNodes
+        .filter((node) => node.id === requestedNodeId)
+        .map((node) => {
+          const point = fgRef.current?.graph2ScreenCoords && [node.x, node.y, node.z ?? 0].every(Number.isFinite)
+            ? fgRef.current.graph2ScreenCoords(node.x!, node.y!, node.z ?? 0)
+            : null;
+          return {
+            id: node.id,
+            x: Number.isFinite(node.x) ? node.x! : null,
+            y: Number.isFinite(node.y) ? node.y! : null,
+            z: Number.isFinite(node.z) ? node.z! : null,
+            screenX: Number.isFinite(Number(point?.x)) ? Number(point?.x) : null,
+            screenY: Number.isFinite(Number(point?.y)) ? Number(point?.y) : null,
+            cameraX: Number.isFinite(camera?.position?.x) ? Number(camera?.position?.x) : null,
+            cameraY: Number.isFinite(camera?.position?.y) ? Number(camera?.position?.y) : null,
+            cameraZ: Number.isFinite(camera?.position?.z) ? Number(camera?.position?.z) : null,
+            targetX: Number.isFinite(controls?.target?.x) ? Number(controls?.target?.x) : null,
+            targetY: Number.isFinite(controls?.target?.y) ? Number(controls?.target?.y) : null,
+            targetZ: Number.isFinite(controls?.target?.z) ? Number(controls?.target?.z) : null,
+            sceneChildren: Array.isArray(scene?.children) ? scene.children.length : null,
+            renderCalls: Number.isFinite(renderCalls) ? Number(renderCalls) : null,
+            renderTriangles: Number.isFinite(renderTriangles) ? Number(renderTriangles) : null,
+            rendererWidth: Number.isFinite(rendererWidth) ? Number(rendererWidth) : null,
+            rendererHeight: Number.isFinite(rendererHeight) ? Number(rendererHeight) : null,
+          };
+        });
+    };
+    qaWindow.__knowledgeGraphQaPresentationDebug = () => ({
+      phase: presentation.phase,
+      elapsedMs: presentation.elapsedMs ?? 0,
+      animatedNodeIds: presentation.animatedNodeIds ?? [],
+      animatedRelationIds: presentation.animatedRelationIds ?? [],
+      expandedNodeIds,
+      materializedNodeIds,
+      graphNodes: (graphData.nodes as Array<KnowledgeNodeData & { __knowledgeAutomaticAnchor?: unknown }>).map((node) => ({
+        id: node.id,
+        anchor: node.__knowledgeAutomaticAnchor ?? null,
+      })),
+    });
+    qaWindow.__knowledgeGraphQaResetViewport = () => {
+      fgRef.current?.cameraPosition?.({ x: 0, y: 0, z: 350 }, { x: 0, y: 0, z: 0 }, 0);
+      const controls = fgRef.current?.controls?.() as { update?: () => void } | undefined;
+      const camera = fgRef.current?.camera?.() as {
+        updateMatrixWorld?: (force?: boolean) => void;
+        updateProjectionMatrix?: () => void;
+      } | undefined;
+      controls?.update?.();
+      camera?.updateProjectionMatrix?.();
+      camera?.updateMatrixWorld?.(true);
+    };
+    qaWindow.__knowledgeGraphQaCenterNode = (nodeId: string) => {
+      const node = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes)
+        .find((candidate: KnowledgeNodeData & { x?: number; y?: number; z?: number }) => candidate.id === nodeId) as
+        | (KnowledgeNodeData & { x?: number; y?: number; z?: number })
+        | undefined;
+      const x = Number(node?.x ?? node?.positionX);
+      const y = Number(node?.y ?? node?.positionY);
+      const z = Number(node?.z ?? node?.positionZ ?? 0);
+      if (![x, y, z].every(Number.isFinite)) return;
+      fgRef.current?.cameraPosition?.({ x, y, z: z + 350 }, { x, y, z }, 0);
+      const controls = fgRef.current?.controls?.() as { update?: () => void } | undefined;
+      const camera = fgRef.current?.camera?.() as {
+        updateMatrixWorld?: (force?: boolean) => void;
+        updateProjectionMatrix?: () => void;
+      } | undefined;
+      controls?.update?.();
+      camera?.updateProjectionMatrix?.();
+      camera?.updateMatrixWorld?.(true);
+    };
     return () => {
-      window.cancelAnimationFrame(animationFrame);
-      onSelectedNodeScreenPosition({ nodeId: null, viewMode: '3D' });
+      delete qaWindow.__knowledgeGraphQaNodePoints;
+      delete qaWindow.__knowledgeGraphQaNodeDebug;
+      delete qaWindow.__knowledgeGraphQaPresentationDebug;
+      delete qaWindow.__knowledgeGraphQaResetViewport;
+      delete qaWindow.__knowledgeGraphQaCenterNode;
     };
-  }, [height, onSelectedNodeScreenPosition, reportSelectedNodeScreenPosition, width]);
+  }, [
+    expandedNodeIds,
+    graphData,
+    materializedNodeIds,
+    presentation.animatedNodeIds,
+    presentation.animatedRelationIds,
+    presentation.elapsedMs,
+    presentation.phase,
+    selectedNode?.id,
+  ]);
 
   // 2. 创建自定义节点 3D 对象
   const createNodeObject = useCallback((node: any) => {
     const group = new THREE.Group();
+    const presentationOpacity = getKnowledgeGraphPresentationNodeOpacity({ ...presentation, nodeId: node.id });
 
     // 获取颜色配置
     const fillColor = getNodeColor(node.knowledgeDim);
@@ -392,12 +699,15 @@ export function KnowledgeGraphCanvas({
       degree: node.graphDegree,
       focused: isActive,
     });
+    const presentationScale = getKnowledgeGraphPresentationNodeScale({ ...presentation, nodeId: node.id });
+    const presentationRadius = nodeScale.radius * presentationScale;
+    const presentationGlowRadius = nodeScale.glowRadius * presentationScale;
     const semanticRegionStyle = getKnowledgeSemanticRegionStyle(node, isLightTheme);
 
     if (semanticRegionStyle.enabled) {
       const regionRadius = Math.min(
         semanticRegionStyle.maxRadius,
-        nodeScale.radius * semanticRegionStyle.radiusMultiplier
+        presentationRadius * semanticRegionStyle.radiusMultiplier
       );
       const territoryGeometry = new THREE.RingGeometry(
         regionRadius * 0.82,
@@ -407,7 +717,7 @@ export function KnowledgeGraphCanvas({
       const territoryMaterial = new THREE.MeshBasicMaterial({
         color: new THREE.Color(hexToRgba(semanticRegionStyle.strokeColor, 1)),
         transparent: true,
-        opacity: semanticRegionStyle.strokeOpacity,
+        opacity: semanticRegionStyle.strokeOpacity * presentationOpacity,
         side: THREE.DoubleSide,
         depthWrite: false,
       });
@@ -425,21 +735,21 @@ export function KnowledgeGraphCanvas({
       emissive: glowColor ? new THREE.Color(hexToRgba(glowColor, 1)) : new THREE.Color(hexToRgba(fillColor, 1)),
       emissiveIntensity: glowColor ? (isActive ? 0.8 : 0.5) : (isActive ? 0.4 : 0.2),
       transparent: true,
-      opacity: isActive ? 1 : 0.9,
+      opacity: (isActive ? 1 : 0.9) * presentationOpacity,
       shininess: 100,
     });
 
     const mesh = new THREE.Mesh(geometry, material);
-    mesh.scale.setScalar(nodeScale.radius / 5);
+    mesh.scale.setScalar(presentationRadius / 5);
     group.add(mesh);
 
     // 3. 创建辉光层（如果有 bloomLevel）
     if (glowColor) {
-      const glowGeometry = new THREE.SphereGeometry(nodeScale.glowRadius / 1.7, 16, 16);
+      const glowGeometry = new THREE.SphereGeometry(presentationGlowRadius / 1.7, 16, 16);
       const glowMaterial = new THREE.MeshBasicMaterial({
         color: new THREE.Color(hexToRgba(glowColor, 1)),
         transparent: true,
-        opacity: isActive ? 0.3 : 0.15,
+        opacity: (isActive ? 0.3 : 0.15) * presentationOpacity,
       });
       const glowMesh = new THREE.Mesh(glowGeometry, glowMaterial);
       group.add(glowMesh);
@@ -447,13 +757,13 @@ export function KnowledgeGraphCanvas({
 
     // 4. 创建选中环
     if (isSelected) {
-      const ringInnerRadius = nodeScale.radius + 0.6;
-      const ringOuterRadius = ringInnerRadius + Math.max(0.8, nodeScale.radius * 0.12);
+      const ringInnerRadius = presentationRadius + 0.6;
+      const ringOuterRadius = ringInnerRadius + Math.max(0.8, presentationRadius * 0.12);
       const ringGeometry = new THREE.RingGeometry(ringInnerRadius, ringOuterRadius, 32);
       const ringMaterial = new THREE.MeshBasicMaterial({
         color: 0xffffff,
         transparent: true,
-        opacity: 0.8,
+        opacity: 0.8 * presentationOpacity,
         side: THREE.DoubleSide,
       });
       const ring = new THREE.Mesh(ringGeometry, ringMaterial);
@@ -468,12 +778,13 @@ export function KnowledgeGraphCanvas({
       hoveredNodeId: hoveredNode?.id,
     })) {
       const sprite = createTextSprite(node.name, isLightTheme);
+      sprite.material.opacity = presentationOpacity;
       sprite.position.set(0, 10, 0);
       group.add(sprite);
     }
 
     return group;
-  }, [selectedNode, hoveredNode, isLightTheme, labelMode]);
+  }, [selectedNode, hoveredNode, isLightTheme, labelMode, presentation]);
 
   // 3. 获取连线颜色
   const getLinkColor = useCallback((link: any) => {
@@ -492,10 +803,60 @@ export function KnowledgeGraphCanvas({
         ? KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.activeNeighborhoodWidthGain
         : 0.9;
     const semanticGain = 0.4 + style.opacity * 0.6;
-    const gain = (0.55 + strength * 0.45) * focusGain * semanticGain;
+    const gain = (0.55 + strength * 0.45) * focusGain * semanticGain
+      * getKnowledgeGraphPresentationLinkOpacity({
+        ...presentation,
+        sourceId,
+        targetId,
+      });
     color.multiplyScalar(gain);
     return color.getStyle();
-  }, [hoveredNode?.id, isLightTheme, selectedNode?.id]);
+  }, [hoveredNode?.id, isLightTheme, presentation, selectedNode?.id]);
+
+  const createPresentationLinkObject = useCallback(() => {
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(6), 3));
+    const material = new THREE.LineBasicMaterial({
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+    });
+    return new THREE.Line(geometry, material);
+  }, []);
+
+  const updatePresentationLinkObject = useCallback((
+    linkObject: THREE.Object3D,
+    coordinates: {
+      start: { x: number; y: number; z: number };
+      end: { x: number; y: number; z: number };
+    },
+    link: any,
+  ) => {
+    const line = linkObject as THREE.Line;
+    const sourceId = typeof link.source === 'object' ? link.source.id : link.sourceId;
+    const targetId = typeof link.target === 'object' ? link.target.id : link.targetId;
+    const progress = getKnowledgeGraphPresentationLinkProgress({
+      ...presentation,
+      sourceId,
+      targetId,
+    });
+    const position = line.geometry.getAttribute('position') as THREE.BufferAttribute;
+    const start = coordinates.start;
+    const end = coordinates.end;
+    position.setXYZ(0, start.x, start.y, start.z);
+    position.setXYZ(
+      1,
+      start.x + (end.x - start.x) * progress,
+      start.y + (end.y - start.y) * progress,
+      start.z + (end.z - start.z) * progress,
+    );
+    position.needsUpdate = true;
+    const material = line.material as THREE.LineBasicMaterial;
+    material.color.set(getLinkColor(link));
+    material.opacity = presentation.phase === 'idle' ? 0 : 0.5;
+    return true;
+  }, [getLinkColor, presentation]);
 
   // 4. 获取连线宽度
   const getLinkWidth = useCallback((link: any) => {
@@ -515,8 +876,19 @@ export function KnowledgeGraphCanvas({
   }, []);
 
   const getLinkDirectionalParticles = useCallback((link: any) => {
+    if (prefersReducedKnowledgeGraphMotion() || (presentation.phase !== 'idle' && presentation.animateParticles === false)) return 0;
+    if (presentation.phase !== 'idle') {
+      const sourceId = typeof link.source === 'object' ? link.source.id : link.sourceId;
+      const targetId = typeof link.target === 'object' ? link.target.id : link.targetId;
+      const progress = getKnowledgeGraphPresentationLinkProgress({
+        ...presentation,
+        sourceId,
+        targetId,
+      });
+      if (progress < 0.35) return 0;
+    }
     return getRelationThreeDimensionalEncoding(link.relationType || link.relation).directionalParticles;
-  }, []);
+  }, [presentation]);
 
   const getLinkDirectionalParticleWidth = useCallback((link: any) => {
     return getRelationThreeDimensionalEncoding(link.relationType || link.relation).particleWidth;
@@ -547,6 +919,7 @@ export function KnowledgeGraphCanvas({
   }, [fitViewVersion]);
 
   useEffect(() => {
+    const cameraTransition = cameraTransitionRef.current;
     const expandedIds = [...new Set(expandedNodeIds)];
     const newlyExpandedTarget = resolveFocusedExpansionRevealTarget(
       previousExpandedNodeIdsRef.current,
@@ -657,15 +1030,37 @@ export function KnowledgeGraphCanvas({
         target: controls.target,
         translation: cameraTranslation,
       });
-      fgRef.current.cameraPosition(
-        translatedPose.cameraPosition,
-        translatedPose.target,
-        240
+      const currentCameraPosition = {
+        x: camera.position.x,
+        y: camera.position.y,
+        z: camera.position.z,
+      };
+      const currentTarget = {
+        x: controls.target.x,
+        y: controls.target.y,
+        z: controls.target.z,
+      };
+      cameraTransitionRef.current.start(
+        prefersReducedKnowledgeGraphMotion() ? 0 : KNOWLEDGE_GRAPH_MOTION.cameraDurationMs,
+        (progress) => {
+          fgRef.current?.cameraPosition?.({
+            x: currentCameraPosition.x + (translatedPose.cameraPosition.x - currentCameraPosition.x) * progress,
+            y: currentCameraPosition.y + (translatedPose.cameraPosition.y - currentCameraPosition.y) * progress,
+            z: currentCameraPosition.z + (translatedPose.cameraPosition.z - currentCameraPosition.z) * progress,
+          }, {
+            x: currentTarget.x + (translatedPose.target.x - currentTarget.x) * progress,
+            y: currentTarget.y + (translatedPose.target.y - currentTarget.y) * progress,
+            z: currentTarget.z + (translatedPose.target.z - currentTarget.z) * progress,
+          }, 0);
+        }
       );
       revealedExpansionSignatureRef.current = expansionSignature;
     });
 
-    return () => window.cancelAnimationFrame(animationFrame);
+    return () => {
+      window.cancelAnimationFrame(animationFrame);
+      cameraTransition.cancel();
+    };
   }, [expandedDirectLinks, expandedNodeIds, graphData.nodes, height, width]);
 
   useEffect(() => {
@@ -691,8 +1086,43 @@ export function KnowledgeGraphCanvas({
     onNodeDragEnd(node as KnowledgeNodeData);
   }, [onNodeDragEnd, rememberRuntimeNodePosition]);
 
+  const handleNodeDrag = useCallback((node: any) => {
+    onManipulationStart?.();
+    const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
+    freezeKnowledgeGraphDragFrame(graphNodes, node as RuntimeKnowledgeGraphNode);
+  }, [graphData.nodes, onManipulationStart]);
+
+  const handleCanvasPointerDown = useCallback((event: PointerEvent<HTMLDivElement>) => {
+    const canvas = event.currentTarget.querySelector<HTMLCanvasElement>('canvas');
+    const rect = canvas?.getBoundingClientRect();
+    const graph2ScreenCoords = fgRef.current?.graph2ScreenCoords;
+    if (!rect || !graph2ScreenCoords) return;
+    const localX = event.clientX - rect.left;
+    const localY = event.clientY - rect.top;
+    const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
+    const hitNode = graphNodes.some((node) => {
+      if (![node.x, node.y, node.z ?? 0].every(Number.isFinite)) return false;
+      const point = graph2ScreenCoords(node.x, node.y, node.z ?? 0);
+      const nodeScale = getKnowledgeNodeScale({
+        metadata: node.metadata,
+        degree: node.graphDegree,
+        focused: selectedNode?.id === node.id || hoveredNode?.id === node.id,
+      });
+      return Math.hypot(Number(point?.x) - localX, Number(point?.y) - localY) <= nodeScale.radius + 14;
+    });
+    if (!hitNode) onManipulationStart?.();
+  }, [graphData.nodes, hoveredNode?.id, onManipulationStart, selectedNode?.id]);
+
   return (
-    <div className="relative h-full w-full">
+    <div
+      className="relative h-full w-full"
+      data-knowledge-graph-renderer="3D"
+      data-knowledge-graph-presentation-phase={presentation.phase}
+      data-knowledge-graph-presentation-elapsed-ms={String(presentation.elapsedMs ?? 0)}
+      data-knowledge-graph-animated-node-count={String(presentation.animatedNodeIds?.length ?? 0)}
+      data-knowledge-graph-animated-relation-count={String(presentation.animatedRelationIds?.length ?? 0)}
+      onPointerDownCapture={handleCanvasPointerDown}
+    >
       <ForceGraph3D
         ref={fgRef}
         width={width}
@@ -707,6 +1137,9 @@ export function KnowledgeGraphCanvas({
         linkColor={getLinkColor}
         linkWidth={getLinkWidth}
         linkOpacity={0.62}
+        linkThreeObject={createPresentationLinkObject}
+        linkThreeObjectExtend={true}
+        linkPositionUpdate={updatePresentationLinkObject}
         linkDirectionalArrowLength={getLinkArrowLength}
         linkDirectionalArrowRelPos={1}
         linkDirectionalParticles={getLinkDirectionalParticles}
@@ -716,14 +1149,16 @@ export function KnowledgeGraphCanvas({
         // 交互
         onNodeClick={handleNodeClick}
         onNodeHover={handleNodeHover}
+        onNodeDrag={handleNodeDrag}
         onNodeDragEnd={handleNodeDragEnd}
+        onBackgroundClick={onManipulationStart}
         onEngineStop={snapshotRuntimePositions}
         enableNodeDrag={true}
 
         // 物理引擎
         d3VelocityDecay={0.3}
         warmupTicks={50}
-        cooldownTicks={100}
+        cooldownTicks={0}
 
         // 背景透明（使用CSS渐变背景）
         backgroundColor="rgba(0,0,0,0)"

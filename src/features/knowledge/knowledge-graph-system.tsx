@@ -51,10 +51,22 @@ import {
 } from './graph/layout-state';
 import {
   applyRadialLayout,
-  clampNodeExpansionControlPosition,
-  type KnowledgeGraphNodeScreenPosition,
-  type KnowledgeGraphViewMode,
 } from './graph/layout-engine';
+import {
+  createKnowledgeExpansionCommitQueue,
+  isExpansionFilteredEmpty,
+  resolveKnowledgeNodeActivation,
+  selectNewlyMaterializedKnowledgeNodeIds,
+  shouldCommitKnowledgeExpansionPayload,
+  shouldCommitKnowledgeNodeActivation,
+} from './graph/node-activation';
+import {
+  buildInitialGraphCache,
+  knowledgeLinkCacheKey,
+  mergeProgressiveGraphPayload,
+  type KnowledgeGraphCacheState,
+  type ProgressiveGraphApiResponse,
+} from './progressive-graph-cache';
 // import { getAllLessonCards, getAllLessonCardLinks } from './data/lesson-knowledge-cards'; // Removed static import
 
 // 动态导入 3D 图谱组件（客户端专用）
@@ -88,16 +100,6 @@ const FOCUSABLE_SELECTOR = [
   'textarea:not([disabled])',
   '[tabindex]:not([tabindex="-1"])',
 ].join(',');
-const EXPANSION_CONTROL_AVOIDANCE_SELECTOR = [
-  '[data-knowledge-desktop-command-system]',
-  '[data-knowledge-local-tool-panel]',
-  '[data-knowledge-inspector]',
-  '[data-knowledge-mobile-command-surface]',
-  '[data-knowledge-mobile-tool-panel]',
-  '[data-global-ai-sidebar="open"]',
-  '[data-page-floating-controls="true"]',
-].join(',');
-
 // 知识节点接口 (Aligned with Prisma Model)
 export interface KnowledgeNodeData {
   id: string;
@@ -118,6 +120,10 @@ export interface KnowledgeNodeData {
   ethicsContent?: Record<string, unknown>;
   graphDegree?: number;
   graphImportanceScore?: number;
+  expansion?: {
+    state: 'expandable' | 'leaf' | 'unknown';
+    revealableNeighborCount?: number;
+  };
 }
 
 // 知识连接接口
@@ -136,76 +142,6 @@ interface KnowledgeGraphSystemProps {
   initialLinks?: KnowledgeLinkData[];
   initialSelectedNodeId?: string | null;
   viewerRole?: PlatformRole;
-}
-
-interface GraphApiResponse {
-  nodes?: KnowledgeNodeData[];
-  links?: KnowledgeLinkData[];
-  source?: 'file' | 'database';
-}
-
-interface ProgressiveGraphApiResponse extends GraphApiResponse {
-  mode?: 'root' | 'expansion' | 'active-filter' | 'remaining';
-  graphVersion?: string;
-  shardKey?: string;
-  filterSignature?: string;
-}
-
-interface KnowledgeGraphCacheState {
-  nodesById: Record<string, KnowledgeNodeData>;
-  linksByKey: Record<string, KnowledgeLinkData>;
-  loadedShardKeys: string[];
-  loadingShardKeys: string[];
-  graphVersion: string;
-  filterSignature: string;
-}
-
-function knowledgeLinkCacheKey(link: KnowledgeLinkData): string {
-  return link.id || `${link.sourceId}->${link.targetId}:${link.relationType || link.relation || 'related'}`;
-}
-
-function buildInitialGraphCache(nodes: KnowledgeNodeData[], links: KnowledgeLinkData[]): KnowledgeGraphCacheState {
-  return {
-    nodesById: Object.fromEntries(nodes.map((node) => [node.id, node])),
-    linksByKey: Object.fromEntries(links.map((link) => [knowledgeLinkCacheKey(link), link])),
-    loadedShardKeys: [],
-    loadingShardKeys: [],
-    graphVersion: '',
-    filterSignature: '',
-  };
-}
-
-function mergeProgressiveGraphPayload(
-  current: KnowledgeGraphCacheState,
-  payload: ProgressiveGraphApiResponse
-): KnowledgeGraphCacheState {
-  const graphVersion = payload.graphVersion ?? current.graphVersion;
-  const resetForVersion = current.graphVersion && graphVersion && current.graphVersion !== graphVersion;
-  const nodesById: Record<string, KnowledgeNodeData> = resetForVersion ? {} : { ...current.nodesById };
-  const linksByKey: Record<string, KnowledgeLinkData> = resetForVersion ? {} : { ...current.linksByKey };
-
-  for (const node of payload.nodes ?? []) {
-    nodesById[node.id] = node;
-  }
-  for (const link of payload.links ?? []) {
-    linksByKey[knowledgeLinkCacheKey(link)] = link;
-  }
-
-  const loadedShardKeys = new Set(resetForVersion ? [] : current.loadedShardKeys);
-  const loadingShardKeys = new Set(resetForVersion ? [] : current.loadingShardKeys);
-  if (payload.shardKey) {
-    loadedShardKeys.add(payload.shardKey);
-    loadingShardKeys.delete(payload.shardKey);
-  }
-
-  return {
-    nodesById,
-    linksByKey,
-    loadedShardKeys: [...loadedShardKeys],
-    loadingShardKeys: [...loadingShardKeys],
-    graphVersion,
-    filterSignature: payload.filterSignature ?? current.filterSignature,
-  };
 }
 
 function isCollapsedRootNode(node: KnowledgeNodeData): boolean {
@@ -313,23 +249,21 @@ export function KnowledgeGraphSystem({
 }: KnowledgeGraphSystemProps) {
   const { updatePageContext, isOpen: aiSidebarOpen } = useGlobalAI();
   const initialRequestedNodeId = initialSelectedNodeId;
-  const initialSelectedNode = initialRequestedNodeId
-    ? initialNodes.find((node) => node.id === initialRequestedNodeId) ?? null
-    : null;
   const [graphCache, setGraphCache] = useState<KnowledgeGraphCacheState>(() => buildInitialGraphCache(initialNodes, initialLinks));
   const nodes = useMemo(() => Object.values(graphCache.nodesById), [graphCache.nodesById]);
   const links = useMemo(() => Object.values(graphCache.linksByKey), [graphCache.linksByKey]);
   const [isLoading, setIsLoading] = useState(initialNodes.length === 0);
   const [isBackgroundLoading, setIsBackgroundLoading] = useState(false);
   const [expandedNodeIds, setExpandedNodeIds] = useState<string[]>([]);
+  const [collapsingNodeId, setCollapsingNodeId] = useState<string | null>(null);
   const [loadingExpansionNodeIds, setLoadingExpansionNodeIds] = useState<string[]>([]);
   const [filteredEmptyExpansionNodeIds, setFilteredEmptyExpansionNodeIds] = useState<string[]>([]);
   const [expansionErrorByNodeId, setExpansionErrorByNodeId] = useState<Record<string, string>>({});
 
   const [requestedNodeId, setRequestedNodeId] = useState<string | null>(initialRequestedNodeId);
-  const [selectedNode, setSelectedNode] = useState<KnowledgeNodeData | null>(initialSelectedNode);
+  const [selectedNode, setSelectedNode] = useState<KnowledgeNodeData | null>(null);
   const [hoveredNode, setHoveredNode] = useState<KnowledgeNodeData | null>(null);
-  const [isPanelOpen, setIsPanelOpen] = useState(Boolean(initialSelectedNode));
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [dataSource, setDataSource] = useState<'file' | 'database'>('database');
   const [minRelationStrength, setMinRelationStrength] = useState(0.8);
@@ -347,6 +281,8 @@ export function KnowledgeGraphSystem({
   const [layoutState, setLayoutState] = useState(getEmptyKnowledgeGraphLayoutState);
   const [fitViewVersion, setFitViewVersion] = useState(0);
   const [relayoutVersion, setRelayoutVersion] = useState(0);
+  const [activationSequenceByCenterId, setActivationSequenceByCenterId] = useState<Record<string, number>>({});
+  const [materializedNodeIds, setMaterializedNodeIds] = useState<string[]>([]);
   const [explicitFocusNodeId, setExplicitFocusNodeId] = useState<string | null>(null);
   const hoverAnimationFrameRef = useRef<number | null>(null);
   const pendingHoveredNodeRef = useRef<KnowledgeNodeData | null>(null);
@@ -356,31 +292,29 @@ export function KnowledgeGraphSystem({
   const previousDesktopToolRef = useRef<KnowledgeDesktopTool | null>(null);
   const mobileToolPanelRef = useRef<HTMLDivElement | null>(null);
   const mobileToolToggleRef = useRef<HTMLButtonElement | null>(null);
-  const expansionControlRef = useRef<HTMLButtonElement | null>(null);
-  const expansionControlAnchorRef = useRef<HTMLDivElement | null>(null);
-  const expansionControlSizeRef = useRef<{ width: number; height: number } | null>(null);
-  const expansionControlAvoidRectsRef = useRef<Array<{
-    left: number;
-    top: number;
-    right: number;
-    bottom: number;
-  }>>([]);
-  const selectedNodeIdRef = useRef<string | null>(selectedNode?.id ?? null);
-  const activeProjectionIdentityRef = useRef<{ nodeId: string | null; viewMode: KnowledgeGraphViewMode }>({
-    nodeId: selectedNode?.id ?? null,
-    viewMode: '2D',
-  });
-  const lastExpansionControlPositionRef = useRef<{
-    left: number;
-    top: number;
-    clamped: boolean;
-  } | null>(null);
-  const expansionFocusRequestRef = useRef(0);
-  const expansionFocusAnimationFrameRef = useRef<number | null>(null);
-  const pendingExpansionFocusRef = useRef<{ nodeId: string; requestId: number } | null>(null);
   const expansionActivationInFlightRef = useRef(new Set<string>());
+  const expansionGenerationRef = useRef(new Map<string, number>());
+  const activationSequenceRef = useRef(0);
+  const expansionCommitQueueRef = useRef(createKnowledgeExpansionCommitQueue());
+  const expansionIntentNodeBySequenceRef = useRef(new Map<number, string>());
+  const cancelledExpansionSequencesRef = useRef(new Set<number>());
+  const mountedRef = useRef(true);
+  const expansionRequestControllersRef = useRef(new Map<string, AbortController>());
   const rootAutoFitTriggeredRef = useRef(false);
-  selectedNodeIdRef.current = selectedNode?.id ?? null;
+  const layoutGraphVersionRef = useRef<string | null>(null);
+  const visibleNodeIdsRef = useRef(new Set<string>());
+
+  const cancelPendingExpansionIntents = useCallback((centerId?: string) => {
+    const candidates = [...expansionIntentNodeBySequenceRef.current.entries()]
+      .filter(([, intentCenterId]) => centerId === undefined || intentCenterId === centerId);
+    candidates.forEach(([sequence, intentCenterId]) => {
+      cancelledExpansionSequencesRef.current.add(sequence);
+      expansionRequestControllersRef.current.get(intentCenterId)?.abort();
+    });
+    candidates.forEach(([sequence]) => {
+      expansionCommitQueueRef.current.cancel(sequence);
+    });
+  }, []);
 
   // 视图模式：默认 2D
   const [viewMode, setViewMode] = useState<'2D' | '3D'>('2D');
@@ -389,36 +323,40 @@ export function KnowledgeGraphSystem({
   const containerRef = useRef<HTMLDivElement>(null);
   const relationTypesInitialized = useRef(false);
   const initialRequestedNodeIdRef = useRef(initialRequestedNodeId);
-  const initialSelectedNodeResolvedRef = useRef(Boolean(initialSelectedNode));
+  const initialSelectedNodeResolvedRef = useRef(false);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const nodeId = params.get('node') ?? params.get('nodeId');
-    initialRequestedNodeIdRef.current = nodeId;
-    setRequestedNodeId(nodeId);
+    if (!graphCache.graphVersion || layoutGraphVersionRef.current === graphCache.graphVersion) return;
+    layoutGraphVersionRef.current = graphCache.graphVersion;
+    activationSequenceRef.current = 0;
+    setActivationSequenceByCenterId({});
+    setMaterializedNodeIds([]);
+    expansionCommitQueueRef.current.clear();
+    expansionIntentNodeBySequenceRef.current.clear();
+    cancelledExpansionSequencesRef.current.clear();
+    expansionRequestControllersRef.current.forEach((controller) => controller.abort());
+    expansionRequestControllersRef.current.clear();
+    expansionActivationInFlightRef.current.clear();
+    expansionGenerationRef.current.clear();
+  }, [graphCache.graphVersion]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    const requestControllers = expansionRequestControllersRef.current;
+    return () => {
+      mountedRef.current = false;
+      activationSequenceRef.current += 1;
+      requestControllers.forEach((controller) => controller.abort());
+      requestControllers.clear();
+    };
   }, []);
 
   useEffect(() => {
-    const cancelPendingFocusRestore = () => {
-      expansionFocusRequestRef.current += 1;
-      pendingExpansionFocusRef.current = null;
-      if (expansionFocusAnimationFrameRef.current !== null) {
-        window.cancelAnimationFrame(expansionFocusAnimationFrameRef.current);
-        expansionFocusAnimationFrameRef.current = null;
-      }
-    };
-    const handleFocusNavigationKey = (event: globalThis.KeyboardEvent) => {
-      if (event.key === 'Tab' || event.key === 'Escape') {
-        cancelPendingFocusRestore();
-      }
-    };
-    document.addEventListener('pointerdown', cancelPendingFocusRestore, true);
-    document.addEventListener('keydown', handleFocusNavigationKey, true);
-    return () => {
-      document.removeEventListener('pointerdown', cancelPendingFocusRestore, true);
-      document.removeEventListener('keydown', handleFocusNavigationKey, true);
-    };
+    const params = new URLSearchParams(window.location.search);
+    const nodeId = params.get('node') ?? params.get('nodeId') ?? initialRequestedNodeIdRef.current;
+    initialRequestedNodeIdRef.current = nodeId;
+    setRequestedNodeId(nodeId);
   }, []);
 
   // 监听容器大小变化
@@ -483,14 +421,6 @@ export function KnowledgeGraphSystem({
       setRequestedNodeId(fromUrl);
       return fromUrl;
     };
-    const resolveRequestedNode = (requestedNodeId: string | null, payload: ProgressiveGraphApiResponse) => {
-      if (initialSelectedNodeResolvedRef.current || !requestedNodeId) return;
-      const requestedNode = payload.nodes?.find((item) => item.id === requestedNodeId);
-      if (!requestedNode) return;
-      setSelectedNode(requestedNode);
-      setIsPanelOpen(true);
-      initialSelectedNodeResolvedRef.current = true;
-    };
     const fetchGraphData = async () => {
       try {
         const requestedNodeId = resolveRequestedNodeId();
@@ -498,7 +428,6 @@ export function KnowledgeGraphSystem({
         if (cancelled || controller.signal.aborted) return;
         mergePayload(rootPayload);
         setIsLoading(false);
-        resolveRequestedNode(requestedNodeId, rootPayload);
 
         await new Promise<void>((resolve) => {
           window.requestAnimationFrame(() => resolve());
@@ -508,12 +437,10 @@ export function KnowledgeGraphSystem({
         const activePayload = await fetchProgressivePayload('active-filter');
         if (cancelled || controller.signal.aborted) return;
         mergePayload(activePayload);
-        resolveRequestedNode(requestedNodeId, activePayload);
 
         const remainingPayload = await fetchProgressivePayload('remaining');
         if (cancelled || controller.signal.aborted) return;
         mergePayload(remainingPayload);
-        resolveRequestedNode(requestedNodeId, remainingPayload);
       } catch (error) {
         if ((error as Error).name === 'AbortError') return;
         console.error('Error fetching knowledge graph data:', error);
@@ -531,21 +458,6 @@ export function KnowledgeGraphSystem({
       controller.abort();
     };
   }, []);
-
-  // 节点点击处理
-  const handleNodeClick = useCallback((node: KnowledgeNodeData) => {
-    setSelectedNode(node);
-    setIsPanelOpen(true);
-  }, []);
-
-  // 通过 ID 选择节点（用于关联知识点跳转）
-  const handleNodeSelectById = useCallback((nodeId: string) => {
-    const node = nodes.find(n => n.id === nodeId);
-    if (node) {
-      setSelectedNode(node);
-      setIsPanelOpen(true);
-    }
-  }, [nodes]);
 
   const expansionHasVisibleDescendant = useCallback((
     nodeId: string,
@@ -568,65 +480,135 @@ export function KnowledgeGraphSystem({
     });
   }, [searchQuery, selectedBloomLevels, selectedCategories, selectedChapters]);
 
-  useEffect(() => {
-    if (!graphCache.graphVersion || expandedNodeIds.length === 0) return;
-    setFilteredEmptyExpansionNodeIds(expandedNodeIds.filter((nodeId) => (
-      graphCache.loadedShardKeys.includes(expansionShardKey(graphCache.graphVersion, nodeId))
-      && !expansionHasVisibleDescendant(nodeId, nodes, links)
-    )));
-  }, [expandedNodeIds, expansionHasVisibleDescendant, graphCache.graphVersion, graphCache.loadedShardKeys, links, nodes]);
-
-  const restoreExpansionControlFocus = useCallback((
-    nodeId: string,
-    focusRequestId: number | null
-  ) => {
-    if (focusRequestId === null) return;
-    if (
-      expansionFocusRequestRef.current === focusRequestId
-      && selectedNodeIdRef.current === nodeId
-    ) {
-      pendingExpansionFocusRef.current = { nodeId, requestId: focusRequestId };
-    }
+  const finishCollapsePresentation = useCallback((nodeId: string) => {
+    setExpandedNodeIds((current) => current.filter((id) => id !== nodeId));
+    setFilteredEmptyExpansionNodeIds((current) => current.filter((id) => id !== nodeId));
+    setCollapsingNodeId((current) => current === nodeId ? null : current);
   }, []);
 
-  const handleToggleSelectedExpansion = useCallback(async () => {
-    if (!selectedNode) return;
-    const nodeId = selectedNode.id;
+  const activateNodeById = useCallback(async (nodeId: string) => {
+    const node = nodes.find((candidate) => candidate.id === nodeId);
+    if (collapsingNodeId === nodeId) return;
+    if (collapsingNodeId) finishCollapsePresentation(collapsingNodeId);
+    const expansionState = node?.expansion?.state ?? 'unknown';
+    const action = resolveKnowledgeNodeActivation({
+      expansionState,
+      expanded: expandedNodeIds.includes(nodeId),
+      filteredEmpty: filteredEmptyExpansionNodeIds.includes(nodeId),
+      loading: loadingExpansionNodeIds.includes(nodeId) || expansionActivationInFlightRef.current.has(nodeId),
+      error: Boolean(expansionErrorByNodeId[nodeId]),
+    });
+    if (action === 'ignore') return;
+    const activationSequence = ++activationSequenceRef.current;
+    const releaseExpansionIntent = () => {
+      expansionIntentNodeBySequenceRef.current.delete(activationSequence);
+      cancelledExpansionSequencesRef.current.delete(activationSequence);
+    };
+    let finalizeExpansionIntent: (() => void) | null = null;
+    const completeExpansionIntent = () => {
+      releaseExpansionIntent();
+      finalizeExpansionIntent?.();
+    };
+    expansionCommitQueueRef.current.register(activationSequence, () => {
+      completeExpansionIntent();
+    });
+    if (action === 'expand' || action === 'resolve') {
+      setActivationSequenceByCenterId((current) => ({ ...current, [nodeId]: activationSequence }));
+      expansionIntentNodeBySequenceRef.current.set(activationSequence, nodeId);
+    }
+    if (action === 'inspect') {
+      cancelPendingExpansionIntents();
+      expansionCommitQueueRef.current.settle(activationSequence);
+      if (node) {
+        setSelectedNode(node);
+        setIsPanelOpen(true);
+      }
+      return;
+    }
+    if (node) setSelectedNode(node);
+    setIsPanelOpen(false);
     if (
       loadingExpansionNodeIds.includes(nodeId)
       || expansionActivationInFlightRef.current.has(nodeId)
     ) {
       return;
     }
-    const focusRequestId = document.activeElement === expansionControlRef.current
-      ? ++expansionFocusRequestRef.current
-      : null;
-    restoreExpansionControlFocus(nodeId, focusRequestId);
     setExpansionErrorByNodeId((current) => {
       if (!current[nodeId]) return current;
       const { [nodeId]: _removed, ...remaining } = current;
       return remaining;
     });
-    const isExpanded = expandedNodeIds.includes(nodeId);
-    if (isExpanded) {
-      setExpandedNodeIds((current) => current.filter((id) => id !== nodeId));
-      setFilteredEmptyExpansionNodeIds((current) => current.filter((id) => id !== nodeId));
+    if (action === 'collapse') {
+      cancelPendingExpansionIntents(nodeId);
+      expansionCommitQueueRef.current.settle(activationSequence);
+      expansionGenerationRef.current.set(nodeId, (expansionGenerationRef.current.get(nodeId) ?? 0) + 1);
+      setCollapsingNodeId(nodeId);
       return;
     }
 
     const expectedShardKey = graphCache.graphVersion ? expansionShardKey(graphCache.graphVersion, nodeId) : '';
-    if (expectedShardKey && graphCache.loadedShardKeys.includes(expectedShardKey)) {
-      setExpandedNodeIds((current) => current.includes(nodeId) ? current : [...current, nodeId]);
+    const visibleNodeIdsAtActivation = new Set(visibleNodeIdsRef.current);
+    let commitEnqueued = false;
+    const settleExpansionCommit = (commit?: () => void) => {
+      if (!commit) {
+        expansionCommitQueueRef.current.settle(activationSequence);
+        return;
+      }
+      commitEnqueued = expansionCommitQueueRef.current.settle(activationSequence, () => {
+        try {
+          commit();
+        } finally {
+          completeExpansionIntent();
+        }
+      }, completeExpansionIntent);
+    };
+    if (action !== 'resolve' && expectedShardKey && graphCache.loadedShardKeys.includes(expectedShardKey)) {
+      const newlyVisibleIds = links.flatMap((link) => {
+        if (!isExpansionLinkForNode(nodeId, link)) return [];
+        const neighborId = link.sourceId === nodeId ? link.targetId : link.sourceId;
+        return visibleNodeIdsAtActivation.has(neighborId) ? [] : [neighborId];
+      });
       const hasVisibleChildren = expansionHasVisibleDescendant(nodeId, nodes, links);
-      setFilteredEmptyExpansionNodeIds((current) => (
-        hasVisibleChildren
-          ? current.filter((id) => id !== nodeId)
-          : current.includes(nodeId) ? current : [...current, nodeId]
-      ));
+      settleExpansionCommit(() => {
+        if (!shouldCommitKnowledgeNodeActivation({
+          mounted: mountedRef.current,
+          aborted: false,
+          expectedGeneration: expansionGenerationRef.current.get(nodeId) ?? 0,
+          currentGeneration: expansionGenerationRef.current.get(nodeId),
+          cancelled: cancelledExpansionSequencesRef.current.has(activationSequence),
+        })) return;
+        setMaterializedNodeIds((current) => [...new Set([...current, ...newlyVisibleIds])]);
+        setExpandedNodeIds((current) => current.includes(nodeId) ? current : [...current, nodeId]);
+        setFilteredEmptyExpansionNodeIds((current) => (
+          hasVisibleChildren
+            ? current.filter((id) => id !== nodeId)
+            : current.includes(nodeId) ? current : [...current, nodeId]
+        ));
+      });
       return;
     }
 
+    const requestController = new AbortController();
+    expansionRequestControllersRef.current.set(nodeId, requestController);
+    finalizeExpansionIntent = () => {
+      const currentRequestController = expansionRequestControllersRef.current.get(nodeId);
+      if (currentRequestController && currentRequestController !== requestController) return;
+      expansionActivationInFlightRef.current.delete(nodeId);
+      if (currentRequestController === requestController) {
+        expansionRequestControllersRef.current.delete(nodeId);
+      }
+      if (!mountedRef.current) return;
+      setLoadingExpansionNodeIds((current) => current.filter((id) => id !== nodeId));
+      setGraphCache((current) => ({
+        ...current,
+        loadingShardKeys: expectedShardKey
+          ? current.loadingShardKeys.filter((key) => key !== expectedShardKey)
+          : current.loadingShardKeys,
+      }));
+    };
     expansionActivationInFlightRef.current.add(nodeId);
+    const generation = (expansionGenerationRef.current.get(nodeId) ?? 0) + 1;
+    expansionGenerationRef.current.set(nodeId, generation);
     setLoadingExpansionNodeIds((current) => current.includes(nodeId) ? current : [...current, nodeId]);
     setGraphCache((current) => ({
       ...current,
@@ -635,34 +617,102 @@ export function KnowledgeGraphSystem({
         : current.loadingShardKeys,
     }));
     try {
-      const response = await fetch(`/api/knowledge/graph?mode=expansion&nodeId=${encodeURIComponent(nodeId)}`);
+      const response = await fetch(`/api/knowledge/graph?mode=expansion&nodeId=${encodeURIComponent(nodeId)}`, {
+        signal: requestController.signal,
+      });
       if (!response.ok) throw new Error(`Failed to fetch expansion shard for ${nodeId}`);
       const payload = (await response.json()) as ProgressiveGraphApiResponse;
-      setGraphCache((current) => mergeProgressiveGraphPayload(current, payload));
-      setExpandedNodeIds((current) => current.includes(nodeId) ? current : [...current, nodeId]);
+      if (!shouldCommitKnowledgeExpansionPayload({
+        mounted: mountedRef.current,
+        aborted: requestController.signal.aborted,
+        expectedGeneration: generation,
+        currentGeneration: expansionGenerationRef.current.get(nodeId),
+      })) return;
+      const canonicalNode = payload.nodes?.find((candidate) => candidate.id === nodeId);
+      const canonicalState = canonicalNode?.expansion?.state ?? 'unknown';
+      if (canonicalState !== 'expandable' && canonicalState !== 'leaf') {
+        throw new Error(`Expansion response did not resolve node ${nodeId}`);
+      }
+      const newlyMaterializedNodeIds = selectNewlyMaterializedKnowledgeNodeIds({
+        payloadNodeIds: (payload.nodes ?? []).map((candidate) => candidate.id),
+        visibleNodeIdsAtActivation,
+      });
       const hasVisibleChildren = expansionHasVisibleDescendant(nodeId, payload.nodes ?? [], payload.links ?? []);
-      setFilteredEmptyExpansionNodeIds((current) => (
-        hasVisibleChildren
-          ? current.filter((id) => id !== nodeId)
-          : current.includes(nodeId) ? current : [...current, nodeId]
-      ));
+      settleExpansionCommit(() => {
+        setGraphCache((current) => mergeProgressiveGraphPayload(current, payload));
+        if (!shouldCommitKnowledgeNodeActivation({
+          mounted: mountedRef.current,
+          aborted: requestController.signal.aborted,
+          expectedGeneration: generation,
+          currentGeneration: expansionGenerationRef.current.get(nodeId),
+          cancelled: cancelledExpansionSequencesRef.current.has(activationSequence),
+        })) return;
+        if (canonicalState === 'leaf') {
+          setSelectedNode(canonicalNode ?? node ?? null);
+          setIsPanelOpen(true);
+          return;
+        }
+        setSelectedNode(canonicalNode ?? null);
+        setMaterializedNodeIds((current) => [...new Set([
+          ...current,
+          ...newlyMaterializedNodeIds,
+        ])]);
+        setExpandedNodeIds((current) => current.includes(nodeId) ? current : [...current, nodeId]);
+        setFilteredEmptyExpansionNodeIds((current) => (
+          hasVisibleChildren
+            ? current.filter((id) => id !== nodeId)
+            : current.includes(nodeId) ? current : [...current, nodeId]
+        ));
+      });
     } catch (error) {
-      console.error('Error fetching knowledge graph expansion shard:', error);
-      setExpansionErrorByNodeId((current) => ({
-        ...current,
-        [nodeId]: '局部子图加载失败，可重试。',
-      }));
+      if ((error as Error).name === 'AbortError') {
+        settleExpansionCommit();
+        return;
+      }
+      if (!shouldCommitKnowledgeExpansionPayload({
+        mounted: mountedRef.current,
+        aborted: requestController.signal.aborted,
+        expectedGeneration: generation,
+        currentGeneration: expansionGenerationRef.current.get(nodeId),
+      }) || cancelledExpansionSequencesRef.current.has(activationSequence)) {
+        settleExpansionCommit();
+        return;
+      }
+      settleExpansionCommit(() => {
+        if (!shouldCommitKnowledgeNodeActivation({
+          mounted: mountedRef.current,
+          aborted: requestController.signal.aborted,
+          expectedGeneration: generation,
+          currentGeneration: expansionGenerationRef.current.get(nodeId),
+          cancelled: cancelledExpansionSequencesRef.current.has(activationSequence),
+        })) return;
+        console.error('Error fetching knowledge graph expansion shard:', error);
+        setExpansionErrorByNodeId((current) => ({
+          ...current,
+          [nodeId]: '局部子图加载失败，可重试。',
+        }));
+      });
     } finally {
-      expansionActivationInFlightRef.current.delete(nodeId);
-      setLoadingExpansionNodeIds((current) => current.filter((id) => id !== nodeId));
-      setGraphCache((current) => ({
-        ...current,
-        loadingShardKeys: expectedShardKey
-          ? current.loadingShardKeys.filter((key) => key !== expectedShardKey)
-          : current.loadingShardKeys,
-      }));
+      if (!commitEnqueued) completeExpansionIntent();
     }
-  }, [expandedNodeIds, expansionHasVisibleDescendant, graphCache.graphVersion, graphCache.loadedShardKeys, links, loadingExpansionNodeIds, nodes, restoreExpansionControlFocus, selectedNode]);
+  }, [cancelPendingExpansionIntents, collapsingNodeId, expandedNodeIds, expansionErrorByNodeId, expansionHasVisibleDescendant, filteredEmptyExpansionNodeIds, finishCollapsePresentation, graphCache.graphVersion, graphCache.loadedShardKeys, links, loadingExpansionNodeIds, nodes]);
+
+  const activateNode = useCallback((node: KnowledgeNodeData) => {
+    void activateNodeById(node.id);
+  }, [activateNodeById]);
+
+  useEffect(() => {
+    if (!requestedNodeId || initialSelectedNodeResolvedRef.current) return;
+    const requestedNode = nodes.find((node) => node.id === requestedNodeId);
+    if (!requestedNode) return;
+    initialSelectedNodeResolvedRef.current = true;
+    if (initialSelectedNodeId === requestedNodeId) {
+      setSelectedNode(requestedNode);
+      setIsPanelOpen(true);
+      return;
+    }
+    void activateNodeById(requestedNodeId);
+  }, [activateNodeById, initialSelectedNodeId, nodes, requestedNodeId]);
 
   // 节点悬停处理
   const handleNodeHover = useCallback((node: KnowledgeNodeData | null) => {
@@ -923,13 +973,14 @@ export function KnowledgeGraphSystem({
 
     return nodeFilteredByMeta.filter((node) => {
       if (expandedDirectNodeIds.has(node.id)) return true;
+      if (expandedNodeIdSet.has(node.id)) return true;
       if (relationDensityMode === 'focused' && focusNeighborhood.focusNodeId) {
         return isNodeVisibleInFocusedGraph(node.id, focusNeighborhood, connectedByVisibleLinks);
       }
       if (!connectedInSearch.has(node.id)) return true;
       return connectedByVisibleLinks.has(node.id);
     });
-  }, [densityFilteredLinks, expandedDirectNodeIds, focusNeighborhood, links, nodeFilterIdSet, nodeFilteredByMeta, relationDensityMode, showOnlyConnectedNodes]);
+  }, [densityFilteredLinks, expandedDirectNodeIds, expandedNodeIdSet, focusNeighborhood, links, nodeFilterIdSet, nodeFilteredByMeta, relationDensityMode, showOnlyConnectedNodes]);
 
   const filteredNodeIdSet = useMemo(() => new Set(filteredNodes.map((item) => item.id)), [filteredNodes]);
 
@@ -953,7 +1004,18 @@ export function KnowledgeGraphSystem({
   }, [filteredNodes, filteredLinks, graphStatistics]);
 
   const displayNodes = graphWithChapterNodes.nodes;
+  useEffect(() => {
+    visibleNodeIdsRef.current = new Set(displayNodes.map((node) => node.id));
+  }, [displayNodes]);
   const displayLinks = graphWithChapterNodes.links;
+  useEffect(() => {
+    if (!graphCache.graphVersion || expandedNodeIds.length === 0) return;
+    setFilteredEmptyExpansionNodeIds(expandedNodeIds.filter((nodeId) => isExpansionFilteredEmpty({
+      shardLoaded: graphCache.loadedShardKeys.includes(expansionShardKey(graphCache.graphVersion, nodeId)),
+      nodeId,
+      visibleLinks: displayLinks,
+    })));
+  }, [displayLinks, expandedNodeIds, graphCache.graphVersion, graphCache.loadedShardKeys]);
   useEffect(() => {
     if (rootAutoFitTriggeredRef.current || displayNodes.length === 0) return;
     if (!graphCache.loadedShardKeys.some((key) => key.includes(':shard:root:'))) return;
@@ -1006,7 +1068,6 @@ export function KnowledgeGraphSystem({
   const selectedNodeExpansionError = visibleSelectedNode
     ? expansionErrorByNodeId[visibleSelectedNode.id] ?? null
     : null;
-  const selectedNodeCanToggleExpansion = Boolean(visibleSelectedNode);
   const selectedNodeExpansionState = selectedNodeLoadingExpansion
     ? 'loading'
     : selectedNodeExpansionError
@@ -1016,16 +1077,6 @@ export function KnowledgeGraphSystem({
         : selectedNodeExpanded
           ? 'expanded'
           : 'collapsed';
-  const selectedNodeExpansionActionDisabled = !selectedNodeCanToggleExpansion
-    || selectedNodeLoadingExpansion
-    || selectedNodeFilteredEmpty;
-  const selectedNodeExpansionActionLabel = selectedNodeExpansionState === 'loading'
-    ? '加载中'
-    : selectedNodeExpansionState === 'error'
-      ? '重试'
-      : selectedNodeExpansionState === 'unavailable'
-        ? '暂不可用'
-        : selectedNodeExpanded ? '收起' : '展开';
   const selectedNodeExpansionStatusText = selectedNodeExpansionState === 'loading'
     ? '正在加载当前节点的局部子图，画布和工具仍可操作。'
     : selectedNodeExpansionState === 'error'
@@ -1036,193 +1087,6 @@ export function KnowledgeGraphSystem({
           ? '当前节点的局部子图已展开，缓存继续保留。'
           : '当前节点折叠显示，激活后按需加载局部子图。';
   const mobileKonlingModalOpen = aiSidebarOpen && dimensions.width < 640;
-
-  useEffect(() => {
-    if (selectedNodeLoadingExpansion) return;
-    let attemptsRemaining = 60;
-    const focusWhenVisible = () => {
-      const pendingFocus = pendingExpansionFocusRef.current;
-      const control = expansionControlRef.current;
-      const anchor = expansionControlAnchorRef.current;
-      if (
-        !pendingFocus
-        || expansionFocusRequestRef.current !== pendingFocus.requestId
-        || visibleSelectedNode?.id !== pendingFocus.nodeId
-      ) {
-        if (pendingFocus) pendingExpansionFocusRef.current = null;
-        expansionFocusAnimationFrameRef.current = null;
-        return;
-      }
-      if (control?.isConnected && anchor?.style.visibility === 'visible') {
-        if (document.activeElement !== control) control.focus();
-      }
-      attemptsRemaining -= 1;
-      if (attemptsRemaining <= 0) {
-        pendingExpansionFocusRef.current = null;
-        expansionFocusAnimationFrameRef.current = null;
-        return;
-      }
-      expansionFocusAnimationFrameRef.current = window.requestAnimationFrame(focusWhenVisible);
-    };
-    focusWhenVisible();
-    return () => {
-      if (expansionFocusAnimationFrameRef.current !== null) {
-        window.cancelAnimationFrame(expansionFocusAnimationFrameRef.current);
-        expansionFocusAnimationFrameRef.current = null;
-      }
-    };
-  }, [selectedNodeExpansionState, selectedNodeLoadingExpansion, visibleSelectedNode?.id]);
-
-  useEffect(() => {
-    const container = containerRef.current;
-    const control = expansionControlRef.current;
-    if (!container || !control) {
-      expansionControlSizeRef.current = null;
-      expansionControlAvoidRectsRef.current = [];
-      return;
-    }
-
-    let animationFrame = 0;
-    const refreshGeometry = () => {
-      window.cancelAnimationFrame(animationFrame);
-      animationFrame = window.requestAnimationFrame(() => {
-        const containerBounds = container.getBoundingClientRect();
-        const controlBounds = control.getBoundingClientRect();
-        expansionControlSizeRef.current = {
-          width: controlBounds.width,
-          height: controlBounds.height,
-        };
-        expansionControlAvoidRectsRef.current = Array.from(
-          document.querySelectorAll<HTMLElement>(EXPANSION_CONTROL_AVOIDANCE_SELECTOR)
-        ).flatMap((element) => {
-          const bounds = element.getBoundingClientRect();
-          const style = window.getComputedStyle(element);
-          if (
-            bounds.width <= 0
-            || bounds.height <= 0
-            || style.display === 'none'
-            || style.visibility === 'hidden'
-          ) {
-            return [];
-          }
-          return [{
-            left: bounds.left - containerBounds.left,
-            top: bounds.top - containerBounds.top,
-            right: bounds.right - containerBounds.left,
-            bottom: bounds.bottom - containerBounds.top,
-          }];
-        });
-      });
-    };
-    const observedElements = [
-      container,
-      control,
-      ...Array.from(document.querySelectorAll<HTMLElement>(EXPANSION_CONTROL_AVOIDANCE_SELECTOR)),
-    ];
-    const resizeObserver = new ResizeObserver(refreshGeometry);
-    observedElements.forEach((element) => {
-      resizeObserver.observe(element);
-      element.addEventListener('transitionend', refreshGeometry);
-    });
-    window.addEventListener('resize', refreshGeometry);
-    refreshGeometry();
-
-    return () => {
-      window.cancelAnimationFrame(animationFrame);
-      resizeObserver.disconnect();
-      observedElements.forEach((element) => {
-        element.removeEventListener('transitionend', refreshGeometry);
-      });
-      window.removeEventListener('resize', refreshGeometry);
-    };
-  }, [
-    aiSidebarOpen,
-    desktopActiveTool,
-    dimensions.height,
-    dimensions.width,
-    mobileActiveTool,
-    mobileToolPanelOpen,
-    selectedNodeExpansionState,
-    viewMode,
-    visiblePanelOpen,
-    visibleSelectedNode?.id,
-  ]);
-  activeProjectionIdentityRef.current = {
-    nodeId: visibleSelectedNode?.id ?? null,
-    viewMode,
-  };
-
-  const clearSelectedNodeProjection = useCallback(() => {
-    const anchor = expansionControlAnchorRef.current;
-    if (anchor) anchor.style.visibility = 'hidden';
-    if (expansionControlRef.current) {
-      expansionControlRef.current.dataset.anchorClamped = 'false';
-    }
-    lastExpansionControlPositionRef.current = null;
-  }, []);
-
-  const handleSelectedNodeScreenPosition = useCallback((position: KnowledgeGraphNodeScreenPosition) => {
-    const activeIdentity = activeProjectionIdentityRef.current;
-    if (position.viewMode !== activeIdentity.viewMode) return;
-    if (
-      !position.nodeId
-      || position.nodeId !== activeIdentity.nodeId
-      || !Number.isFinite(position.x)
-      || !Number.isFinite(position.y)
-    ) {
-      clearSelectedNodeProjection();
-      return;
-    }
-
-    const anchor = expansionControlAnchorRef.current;
-    if (!anchor) {
-      clearSelectedNodeProjection();
-      return;
-    }
-    const controlSize = expansionControlSizeRef.current;
-    if (!controlSize) {
-      clearSelectedNodeProjection();
-      return;
-    }
-    const controlPosition = clampNodeExpansionControlPosition({
-      nodeX: position.x as number,
-      nodeY: position.y as number,
-      viewportWidth: dimensions.width,
-      viewportHeight: dimensions.height,
-      controlWidth: controlSize.width,
-      controlHeight: controlSize.height,
-      avoidRects: expansionControlAvoidRectsRef.current,
-    });
-    if (!controlPosition) {
-      clearSelectedNodeProjection();
-      return;
-    }
-
-    const previous = lastExpansionControlPositionRef.current;
-    if (
-      previous
-      && Math.abs(previous.left - controlPosition.left) < 0.5
-      && Math.abs(previous.top - controlPosition.top) < 0.5
-      && previous.clamped === controlPosition.clamped
-    ) {
-      anchor.style.visibility = 'visible';
-      if (expansionControlRef.current) {
-        expansionControlRef.current.dataset.anchorClamped = controlPosition.clamped ? 'true' : 'false';
-      }
-      return;
-    }
-
-    anchor.style.transform = `translate3d(${controlPosition.left}px, ${controlPosition.top}px, 0)`;
-    anchor.style.visibility = 'visible';
-    if (expansionControlRef.current) {
-      expansionControlRef.current.dataset.anchorClamped = controlPosition.clamped ? 'true' : 'false';
-    }
-    lastExpansionControlPositionRef.current = controlPosition;
-  }, [clearSelectedNodeProjection, dimensions.height, dimensions.width]);
-
-  useEffect(() => {
-    clearSelectedNodeProjection();
-  }, [clearSelectedNodeProjection, dimensions.height, dimensions.width, viewMode, visibleSelectedNode?.id]);
   const activeFilterSummary = [
     searchQuery ? `搜索：${searchQuery}` : '',
     selectedChapters.length > 0 ? `章节 ${selectedChapters.length}` : '',
@@ -1267,6 +1131,8 @@ export function KnowledgeGraphSystem({
       positionsByNodeId: {},
     }));
     setRelayoutVersion((current) => current + 1);
+    setActivationSequenceByCenterId({});
+    setMaterializedNodeIds([]);
     setFitViewVersion((current) => current + 1);
   }, []);
 
@@ -1284,6 +1150,10 @@ export function KnowledgeGraphSystem({
 
   const handleClearLayoutPins = useCallback(() => {
     setLayoutState((current) => clearKnowledgeGraphLayoutPins(current));
+  }, []);
+
+  const handleGraphManipulationStart = useCallback(() => {
+    setIsPanelOpen(false);
   }, []);
 
   const handleToggleSelectedFocus = useCallback(() => {
@@ -1553,7 +1423,7 @@ export function KnowledgeGraphSystem({
                     selectedNodeId={visibleSelectedNode?.id}
                     searchQuery={searchQuery}
                     onSearchChange={setSearchQuery}
-                    onNodeSelect={handleNodeClick}
+                    onNodeSelect={activateNode}
                     onNodeHover={handleNodeHover}
                   />
                 )}
@@ -1952,7 +1822,7 @@ export function KnowledgeGraphSystem({
                   selectedNodeId={visibleSelectedNode?.id}
                   searchQuery={searchQuery}
                   onSearchChange={setSearchQuery}
-                  onNodeSelect={handleNodeClick}
+                  onNodeSelect={activateNode}
                   onNodeHover={handleNodeHover}
                 />
               </div>
@@ -2188,90 +2058,39 @@ export function KnowledgeGraphSystem({
           </div>
         )}
 
-        {visibleSelectedNode && !mobileKonlingModalOpen && (
-          <div className="pointer-events-none absolute inset-0 z-40">
-            <div
-              ref={expansionControlAnchorRef}
-              className="pointer-events-none absolute left-0 top-0"
-              style={{ visibility: 'hidden' }}
+        <div
+          className="pointer-events-none absolute bottom-4 left-1/2 z-40 flex -translate-x-1/2 gap-2"
+          aria-label="知识图谱节点控制"
+        >
+          {displayNodes.map((node) => (
+            <button
+              key={`semantic-node-${node.id}`}
+              type="button"
+              data-knowledge-node-control={node.id}
+              aria-label={`${node.name}，${node.expansion?.state === 'leaf' ? '叶节点' : node.expansion?.state === 'expandable' ? '可展开节点' : '状态待解析'}`}
+              aria-busy={loadingExpansionNodeIds.includes(node.id)}
+              aria-expanded={node.expansion?.state === 'expandable' ? expandedNodeIdSet.has(node.id) : undefined}
+              aria-describedby="knowledge-node-activation-status"
+              data-error={expansionErrorByNodeId[node.id] ? 'true' : 'false'}
+              data-filtered-empty={filteredEmptyExpansionNodeIds.includes(node.id) ? 'true' : 'false'}
+              data-shard-cached={graphCache.graphVersion && graphCache.loadedShardKeys.includes(expansionShardKey(graphCache.graphVersion, node.id)) ? 'true' : 'false'}
+              onClick={() => void activateNodeById(node.id)}
+              className="pointer-events-auto h-px w-px overflow-hidden opacity-0 focus:h-auto focus:w-auto focus:overflow-visible focus:rounded-md focus:border focus:border-platform-action-primary focus:bg-platform-surface focus:px-3 focus:py-2 focus:opacity-100 focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-platform-action-primary"
             >
-              <button
-                ref={expansionControlRef}
-                type="button"
-                aria-label={`${selectedNodeExpansionActionLabel} ${visibleSelectedNode.name}`}
-                aria-expanded={selectedNodeExpanded}
-                aria-busy={selectedNodeLoadingExpansion}
-                aria-disabled={selectedNodeExpansionActionDisabled}
-                aria-controls="knowledge-graph-canvas"
-                aria-describedby="knowledge-node-expansion-local-status"
-                onClick={() => {
-                  if (selectedNodeExpansionActionDisabled) return;
-                  handleToggleSelectedExpansion();
-                }}
-                className="pointer-events-auto min-h-11 min-w-11 rounded-full border border-platform-border bg-platform-surface px-3 text-xs font-semibold text-platform-fg-primary shadow-lg backdrop-blur-md transition hover:bg-platform-action-primary hover:text-platform-fg-inverse focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-platform-action-primary focus-visible:ring-offset-2 focus-visible:ring-offset-platform-page aria-disabled:cursor-wait aria-disabled:opacity-70"
-                data-knowledge-node-expansion-control="true"
-                data-knowledge-expansion-control={selectedNodeExpanded ? 'collapse' : 'expand'}
-                data-anchor-node-id={visibleSelectedNode.id}
-                data-view-mode={viewMode}
-                data-state={selectedNodeExpansionState}
-                data-anchor-clamped="false"
-              >
-                {selectedNodeExpansionActionLabel}
-              </button>
-              <span
-                id="knowledge-node-expansion-local-status"
-                role="status"
-                aria-live="polite"
-                className="sr-only"
-              >
-                {selectedNodeExpansionStatusText}
-              </span>
-            </div>
-          </div>
-        )}
-
-        {visibleSelectedNode && !mobileToolPanelOpen && !mobileKonlingModalOpen && (
+              {node.name}
+            </button>
+          ))}
+        </div>
+        <span id="knowledge-node-activation-status" role="status" aria-live="polite" className="sr-only">
+          {selectedNodeExpansionStatusText}
+        </span>
+        {selectedNodeFilteredEmpty && (
           <div
-            className="absolute bottom-4 left-4 z-30 max-w-[min(24rem,calc(100vw-2rem))] rounded-xl border border-platform-border bg-platform-surface/95 p-3 text-xs text-platform-fg-primary shadow-lg backdrop-blur-md"
-            data-knowledge-expansion-panel="selected-node"
-            data-knowledge-selected-expansion-state={selectedNodeExpansionState}
-            data-knowledge-filtered-empty={selectedNodeFilteredEmpty ? 'true' : 'false'}
+            role="status"
+            className="absolute bottom-16 left-1/2 z-30 -translate-x-1/2 rounded-md border border-platform-border bg-platform-surface px-3 py-2 text-xs text-platform-fg-secondary shadow-lg"
+            data-knowledge-filtered-empty-explanation="visible"
           >
-            <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <div className="truncate font-semibold">{visibleSelectedNode.name}</div>
-                <div className="text-[11px] text-platform-fg-muted">
-                  {selectedNodeExpansionStatusText}
-                </div>
-              </div>
-            </div>
-            {selectedNodeLoadingExpansion && (
-              <div
-                role="status"
-                className="rounded-lg border border-platform-border bg-platform-canvas-muted px-2 py-1.5 text-[11px] text-platform-fg-secondary"
-                data-knowledge-expansion-loading="local"
-              >
-                正在加载当前节点的局部子图，画布和工具仍可操作。
-              </div>
-            )}
-            {selectedNodeFilteredEmpty && !selectedNodeLoadingExpansion && (
-              <div
-                role="status"
-                className="rounded-lg border border-platform-border bg-platform-canvas-muted px-2 py-1.5 text-[11px] text-platform-fg-secondary"
-                data-knowledge-expansion-empty="filtered"
-              >
-                当前筛选条件下没有可见子节点，可调整筛选后再查看。
-              </div>
-            )}
-            {selectedNodeExpansionError && !selectedNodeLoadingExpansion && (
-              <div
-                role="alert"
-                className="mt-2 rounded-lg border border-platform-border bg-platform-canvas-muted px-2 py-1.5 text-[11px] text-platform-fg-secondary"
-                data-knowledge-expansion-error="network"
-              >
-                {selectedNodeExpansionError} 可使用节点旁的“重试”按钮重新加载。
-              </div>
-            )}
+            当前筛选条件隐藏了此节点的邻居；恢复筛选后将从缓存重新显示。
           </div>
         )}
 
@@ -2299,9 +2118,10 @@ export function KnowledgeGraphSystem({
                 links={displayLinks}
                 selectedNode={visibleSelectedNode}
                 hoveredNode={hoveredNode}
-                onNodeClick={handleNodeClick}
+                onNodeClick={activateNode}
                 onNodeHover={handleNodeHover}
                 onNodeDragEnd={handleNodeDragEnd}
+                onManipulationStart={handleGraphManipulationStart}
                 width={dimensions.width}
                 height={dimensions.height}
                 labelMode={labelMode}
@@ -2310,7 +2130,11 @@ export function KnowledgeGraphSystem({
                 relayoutVersion={relayoutVersion}
                 expandedNodeIds={expandedNodeIds}
                 expandedDirectLinks={expandedDirectLinks}
-                onSelectedNodeScreenPosition={handleSelectedNodeScreenPosition}
+                activationSequenceByCenterId={activationSequenceByCenterId}
+                materializedNodeIds={materializedNodeIds}
+                graphVersion={graphCache.graphVersion}
+                collapsingNodeId={collapsingNodeId}
+                onCollapsePresentationComplete={finishCollapsePresentation}
               />
             ) : (
               <KnowledgeGraphCanvas
@@ -2318,9 +2142,10 @@ export function KnowledgeGraphSystem({
                 links={displayLinks}
                 selectedNode={visibleSelectedNode}
                 hoveredNode={hoveredNode}
-                onNodeClick={handleNodeClick}
+                onNodeClick={activateNode}
                 onNodeHover={handleNodeHover}
                 onNodeDragEnd={handleNodeDragEnd}
+                onManipulationStart={handleGraphManipulationStart}
                 labelMode={labelMode}
                 layoutState={layoutState}
                 fitViewVersion={fitViewVersion}
@@ -2329,7 +2154,11 @@ export function KnowledgeGraphSystem({
                 height={dimensions.height}
                 expandedNodeIds={expandedNodeIds}
                 expandedDirectLinks={expandedDirectLinks}
-                onSelectedNodeScreenPosition={handleSelectedNodeScreenPosition}
+                activationSequenceByCenterId={activationSequenceByCenterId}
+                materializedNodeIds={materializedNodeIds}
+                graphVersion={graphCache.graphVersion}
+                collapsingNodeId={collapsingNodeId}
+                onCollapsePresentationComplete={finishCollapsePresentation}
               />
             )}
             </Suspense>
@@ -2385,7 +2214,7 @@ export function KnowledgeGraphSystem({
         isOpen={visiblePanelOpen}
         selectedNode={visibleSelectedNode}
         onClose={handleClosePanel}
-        onNodeClick={handleNodeSelectById}
+        onNodeClick={activateNodeById}
         viewerRole={viewerRole}
       />
     </div>

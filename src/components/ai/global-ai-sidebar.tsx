@@ -154,12 +154,17 @@ export function GlobalAISidebar() {
         openerElementRef.current = activeElement;
       }
       wasOpenRef.current = true;
-      window.requestAnimationFrame(() => {
+      const focusPanel = () => {
         const panel = panelRef.current;
         if (!panel) return;
         getFocusableElements(panel)[0]?.focus() ?? panel.focus();
-      });
-      return;
+      };
+      const focusFrame = window.requestAnimationFrame(focusPanel);
+      const focusRetry = window.setTimeout(focusPanel, 120);
+      return () => {
+        window.cancelAnimationFrame(focusFrame);
+        window.clearTimeout(focusRetry);
+      };
     }
 
     if (!wasOpenRef.current) return;
