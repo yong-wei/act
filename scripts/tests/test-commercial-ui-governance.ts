@@ -1854,8 +1854,19 @@ function validateKnowledgeWorkspaceToolsInspectorEvidence(): CommercialUiGoverna
     'evidence-sources',
     'learning-actions',
   ];
+  const directLeafInspectorSections = [
+    'header',
+    'semantic-metadata',
+    'summary',
+    'evidence-sources',
+    'learning-actions',
+  ];
   const desktopSections = stringArray(desktopInspectorMarkers.inspectorSections);
   const mobileSections = stringArray(mobileInspectorMarkers.inspectorSections);
+  const hasInspectorSections = (sections: string[]) => (
+    requiredInspectorSections.every((section) => sections.includes(section))
+    || directLeafInspectorSections.every((section) => sections.includes(section))
+  );
   const markerProblems = [
     defaultMarkers.commandSystemState === 'closed' ? null : 'default:command-system-not-closed',
     defaultMarkers.activeDesktopTool === 'closed' ? null : 'default:active-tool-not-closed',
@@ -1872,12 +1883,8 @@ function validateKnowledgeWorkspaceToolsInspectorEvidence(): CommercialUiGoverna
     ...['fit-view', 'relayout', 'pin-selected', 'set-focus-node', 'clear-pins']
       .filter((control) => !mobileViewLayoutControls.includes(control))
       .map((control) => `mobile-view-layout:missing-${control}`),
-    ...requiredInspectorSections
-      .filter((section) => !desktopSections.includes(section))
-      .map((section) => `desktop-inspector:missing-${section}`),
-    ...requiredInspectorSections
-      .filter((section) => !mobileSections.includes(section))
-      .map((section) => `mobile-inspector:missing-${section}`),
+    hasInspectorSections(desktopSections) ? null : 'desktop-inspector:missing-direct-leaf-section-contract',
+    hasInspectorSections(mobileSections) ? null : 'mobile-inspector:missing-direct-leaf-section-contract',
   ].filter((entry): entry is string => Boolean(entry));
 
   const keyboardVerification = objectRecord(evidence.keyboardVerification);
@@ -2538,7 +2545,7 @@ function validateKnowledgeGraphGovernanceEvidence(): CommercialUiGovernanceViola
     graphSource.includes('data-knowledge-desktop-command-system="compact"')
       ? null
       : 'desktopCommandSystem:missing',
-    graphSource.includes('const [isPanelOpen, setIsPanelOpen] = useState(Boolean(initialSelectedNode));')
+    graphSource.includes('const [isPanelOpen, setIsPanelOpen] = useState(false);')
       ? null
       : 'resourcePanel:not-closed-until-node-selection',
     graphSource.includes("data-state={desktopActiveTool ? 'open' : 'closed'}")
@@ -2547,6 +2554,20 @@ function validateKnowledgeGraphGovernanceEvidence(): CommercialUiGovernanceViola
     graphSource.includes("desktopActiveTool === 'relation-filters'")
       ? null
       : 'relationFilters:command-panel-missing',
+    graphSource.includes('data-knowledge-node-control={node.id}')
+      && graphSource.includes('resolveKnowledgeNodeActivation')
+      && !graphSource.includes('data-knowledge-node-expansion-control')
+      ? null
+      : 'direct-node-activation:source-contract-missing',
+    graphSource.includes('aria-busy={loadingExpansionNodeIds.includes(node.id)}')
+      && graphSource.includes("data-error={expansionErrorByNodeId[node.id] ? 'true' : 'false'}")
+      && graphSource.includes("data-filtered-empty={filteredEmptyExpansionNodeIds.includes(node.id) ? 'true' : 'false'}")
+      ? null
+      : 'direct-node-activation:node-state-contract-missing',
+    resourcePanelSource.indexOf('data-knowledge-inspector-section="evidence-sources"')
+      < resourcePanelSource.indexOf('data-knowledge-inspector-section="relation-overview"')
+      ? null
+      : 'inspector:knowledge-card-before-related-missing',
   ].filter((entry): entry is string => Boolean(entry));
   const missingOpenCloseEvidence = [
     'chapterDirectoryOpenClosed',

@@ -54,6 +54,7 @@
     "test:knowledge-theme": "npx --yes tsx ./scripts/tests/test-knowledge-graph-theme.ts",
     "test:knowledge-filters": "npx --yes tsx ./scripts/tests/test-knowledge-graph-filters.ts",
     "test:knowledge-panel": "npx --yes tsx ./scripts/tests/test-knowledge-resource-panel-format.ts",
+    "test:knowledge-graph-direct-manipulation-governance": "npx --yes tsx ./scripts/tests/test-knowledge-graph-direct-manipulation-governance.ts",
     "test:user-menu-theme": "node ./scripts/tests/test-user-menu-theme.mjs",
     "test:cruise-class-code": "node ./scripts/tests/test-cruise-class-code-display.mjs",
     "test:account-passwords": "node ./scripts/tests/test-account-password-overrides.mjs",

@@ -1,13 +1,14 @@
 export type KnowledgeNodeActivationAction = 'expand' | 'collapse' | 'inspect' | 'resolve' | 'ignore';
 
 export interface KnowledgeExpansionCommitQueue {
-  register: (sequence: number) => void;
-  settle: (sequence: number, commit?: () => void) => void;
+  register: (sequence: number, onCancel?: () => void) => void;
+  settle: (sequence: number, commit?: () => void, onCancel?: () => void) => boolean;
+  cancel: (sequence: number) => boolean;
   clear: () => void;
 }
 
 export function createKnowledgeExpansionCommitQueue(): KnowledgeExpansionCommitQueue {
-  const entries = new Map<number, { ready: boolean; commit?: () => void }>();
+  const entries = new Map<number, { ready: boolean; commit?: () => void; onCancel?: () => void }>();
   const flush = () => {
     while (entries.size > 0) {
       const sequence = Math.min(...entries.keys());
@@ -18,14 +19,23 @@ export function createKnowledgeExpansionCommitQueue(): KnowledgeExpansionCommitQ
     }
   };
   return {
-    register(sequence) {
-      entries.set(sequence, { ready: false });
+    register(sequence, onCancel) {
+      entries.set(sequence, { ready: false, onCancel });
     },
-    settle(sequence, commit) {
+    settle(sequence, commit, onCancel) {
       const current = entries.get(sequence);
-      if (!current || current.ready) return;
-      entries.set(sequence, { ready: true, commit });
+      if (!current || current.ready) return false;
+      entries.set(sequence, { ready: true, commit, onCancel });
       flush();
+      return true;
+    },
+    cancel(sequence) {
+      const current = entries.get(sequence);
+      if (!current) return false;
+      current.onCancel?.();
+      entries.set(sequence, { ready: true });
+      flush();
+      return true;
     },
     clear() {
       entries.clear();
@@ -51,13 +61,12 @@ export function shouldCommitKnowledgeNodeActivation(input: {
   aborted: boolean;
   expectedGeneration: number;
   currentGeneration: number | undefined;
-  expectedSequence: number;
-  currentSequence: number;
+  cancelled?: boolean;
 }): boolean {
   return input.mounted
     && !input.aborted
+    && !input.cancelled
     && input.currentGeneration === input.expectedGeneration
-    && input.currentSequence === input.expectedSequence;
 }
 
 export function shouldCommitKnowledgeExpansionPayload(input: {

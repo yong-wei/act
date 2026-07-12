@@ -16,7 +16,7 @@ function resolveKnowledgeShellRole(role: string | undefined): PlatformRole | nul
 function KnowledgeMapSurface({ viewerRole }: { viewerRole: PlatformRole }) {
   return (
     <section
-      className="h-[calc(100dvh-7rem-1px)] min-h-0 overflow-hidden max-lg:h-[calc(100dvh-18.625rem)] lg:max-xl:h-[calc(100dvh-10.5rem)]"
+      className="h-[calc(100dvh-8rem-1px)] min-h-0 overflow-hidden max-lg:h-[calc(100dvh-18.625rem)] lg:max-xl:h-[calc(100dvh-11.625rem)]"
       data-commercial-student-entry-route="/knowledge"
       data-commercial-workspace="knowledge-data-map"
       data-commercial-workspace-zone="instrument-area"
@@ -44,7 +44,7 @@ export default async function KnowledgePage() {
         { label: '首页', href: '/' },
         { label: '知识资源' },
       ]}
-      className="surface-page"
+      className="surface-page overflow-hidden"
     >
       <KnowledgeMapSurface viewerRole={shellRole} />
     </AppShell>

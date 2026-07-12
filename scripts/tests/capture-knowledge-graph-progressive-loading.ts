@@ -181,10 +181,43 @@ async function clickIfPresent(page: Page, selector: string) {
   }
 }
 
-async function toggleSelectedExpansion(page: Page) {
-  const control = page.locator('[data-knowledge-expansion-control]').first();
-  await control.waitFor({ state: 'visible', timeout: 15000 });
-  await control.click({ timeout: 5000 });
+async function selectedNodeControl(page: Page) {
+  const nodeId = await page.locator('[data-knowledge-canvas-primary="true"]')
+    .getAttribute('data-knowledge-selected-node-id');
+  if (!nodeId) throw new Error('Direct node activation requires a selected graph node.');
+  const control = page.locator(`[data-knowledge-node-control="${nodeId}"]`);
+  await control.waitFor({ state: 'attached', timeout: 15000 });
+  return control;
+}
+
+async function activateSelectedNode(page: Page) {
+  const control = await selectedNodeControl(page);
+  await control.focus();
+  await control.evaluate((element) => (element as HTMLButtonElement).click());
+}
+
+async function waitForSelectedNodeReady(page: Page) {
+  await page.waitForFunction(() => {
+    const canvas = document.querySelector<HTMLElement>('[data-knowledge-canvas-primary="true"]');
+    const nodeId = canvas?.dataset.knowledgeSelectedNodeId;
+    const control = nodeId
+      ? document.querySelector<HTMLElement>(`[data-knowledge-node-control="${nodeId}"]`)
+      : null;
+    return Boolean(control && control.getAttribute('aria-busy') !== 'true');
+  }, undefined, { timeout: 20000 });
+}
+
+async function waitForSelectedNodeState(page: Page, state: 'loading' | 'expanded' | 'collapsed') {
+  await page.waitForFunction((expectedState) => {
+    const canvas = document.querySelector<HTMLElement>('[data-knowledge-canvas-primary="true"]');
+    const nodeId = canvas?.dataset.knowledgeSelectedNodeId;
+    const control = nodeId
+      ? document.querySelector<HTMLElement>(`[data-knowledge-node-control="${nodeId}"]`)
+      : null;
+    if (!control) return false;
+    if (expectedState === 'loading') return control.getAttribute('aria-busy') === 'true';
+    return control.getAttribute('aria-expanded') === String(expectedState === 'expanded');
+  }, state, { timeout: 15000 });
 }
 
 async function captureExpansionLoading(page: Page) {
@@ -192,36 +225,57 @@ async function captureExpansionLoading(page: Page) {
     await new Promise((resolve) => setTimeout(resolve, 1200));
     await route.continue();
   });
-  await toggleSelectedExpansion(page);
-  await page.waitForSelector('[data-knowledge-expansion-panel][data-knowledge-selected-expansion-state="loading"]', { timeout: 8000 });
+  const control = page.locator('[data-knowledge-node-control][aria-expanded="false"][aria-busy="false"]').first();
+  await control.waitFor({ state: 'attached', timeout: 15000 });
+  const nodeId = await control.getAttribute('data-knowledge-node-control');
+  if (!nodeId) throw new Error('Expansion-loading capture requires a node control id.');
+  await control.focus();
+  await control.evaluate((element) => (element as HTMLButtonElement).click());
+  await page.waitForFunction((expectedNodeId) => {
+    const nodeControl = [...document.querySelectorAll<HTMLElement>('[data-knowledge-node-control]')]
+      .find((element) => element.dataset.knowledgeNodeControl === expectedNodeId);
+    return nodeControl?.getAttribute('aria-busy') === 'true';
+  }, nodeId, { timeout: 15000 });
 }
 
 async function expandSelectedNode(page: Page) {
-  await toggleSelectedExpansion(page);
-  await page.waitForSelector('[data-knowledge-expansion-panel][data-knowledge-selected-expansion-state="expanded"]', { timeout: 15000 });
+  await waitForSelectedNodeReady(page);
+  const control = await selectedNodeControl(page);
+  if (await control.getAttribute('aria-expanded') !== 'true') {
+    await activateSelectedNode(page);
+    await waitForSelectedNodeState(page, 'expanded');
+  }
 }
 
-async function expandSelectedEmptyNode(page: Page) {
-  await expandSelectedNode(page);
-  await page.waitForSelector('[data-knowledge-expansion-panel][data-knowledge-filtered-empty="true"]', { timeout: 8000 });
+async function inspectSelectedNoChildrenNode(page: Page) {
+  await page.waitForFunction(() => {
+    const canvas = document.querySelector<HTMLElement>('[data-knowledge-canvas-primary="true"]');
+    const nodeId = canvas?.dataset.knowledgeSelectedNodeId;
+    const control = nodeId
+      ? document.querySelector<HTMLElement>(`[data-knowledge-node-control="${nodeId}"]`)
+      : null;
+    return Boolean(nodeId && control && control.getAttribute('aria-expanded') === null);
+  }, undefined, { timeout: 15000 });
+  await activateSelectedNode(page);
+  await page.waitForSelector('[data-knowledge-inspector="floating-right-edge"]', { timeout: 15000 });
 }
 
 async function collapseSelectedNode(page: Page) {
   await expandSelectedNode(page);
-  await toggleSelectedExpansion(page);
-  await page.waitForSelector('[data-knowledge-expansion-panel][data-knowledge-selected-expansion-state="collapsed"]', { timeout: 15000 });
+  await activateSelectedNode(page);
+  await waitForSelectedNodeState(page, 'collapsed');
 }
 
 async function expandCollapseExpandFromCache(page: Page) {
   await expandSelectedNode(page);
-  await toggleSelectedExpansion(page);
-  await page.waitForSelector('[data-knowledge-expansion-panel][data-knowledge-selected-expansion-state="collapsed"]', { timeout: 15000 });
-  await toggleSelectedExpansion(page);
-  await page.waitForSelector('[data-knowledge-expansion-panel][data-knowledge-selected-expansion-state="expanded"]', { timeout: 15000 });
+  await activateSelectedNode(page);
+  await waitForSelectedNodeState(page, 'collapsed');
+  await activateSelectedNode(page);
+  await waitForSelectedNodeState(page, 'expanded');
   return await page.evaluate(() => {
     const active = document.activeElement;
     return {
-      focusReturned: Boolean(active?.hasAttribute('data-knowledge-expansion-control')),
+      focusReturned: Boolean(active?.hasAttribute('data-knowledge-node-control')),
       activeAriaExpanded: active?.getAttribute('aria-expanded') ?? null,
     };
   });
@@ -280,14 +334,18 @@ async function captureMarkers(page: Page) {
   const markers = await page.evaluate(`(() => {
     const canvas = document.querySelector('[data-knowledge-canvas-primary="true"]');
     const workspace = document.querySelector('[data-knowledge-workspace]');
-    const expansionPanel = document.querySelector('[data-knowledge-expansion-panel]');
-    const expansionControl = document.querySelector('[data-knowledge-expansion-control]');
+    const selectedNodeId = canvas?.getAttribute('data-knowledge-selected-node-id') ?? '';
+    const nodeControl = selectedNodeId
+      ? document.querySelector('[data-knowledge-node-control="' + selectedNodeId + '"]')
+      : null;
     const dock = document.querySelector('[data-platform-floating-dock]');
     const konling = document.querySelector('[data-global-ai-sidebar="open"]');
     const inspector = document.querySelector('[data-knowledge-inspector]');
     const localTool = document.querySelector('[data-knowledge-local-tool="legend"]');
     const openLocalTool = document.querySelector('[data-knowledge-local-tool][data-state="open"]');
     const chapterDirectory = document.querySelector('[data-knowledge-local-panel="chapter-directory"]');
+    const ariaExpanded = nodeControl?.getAttribute('aria-expanded');
+    const inspectorVisible = Boolean(inspector);
     const rectFor = (element) => {
       if (!element) return null;
       const rect = element.getBoundingClientRect();
@@ -343,24 +401,32 @@ async function captureMarkers(page: Page) {
         activeFilterSummary: canvas.dataset.knowledgeKonlingRelationSummary ?? '',
         visibleNodeCount: Number(canvas.dataset.knowledgeVisibleNodeCount ?? 0),
       } : null,
-      expansion: expansionPanel ? {
-        state: expansionPanel.getAttribute('data-knowledge-selected-expansion-state'),
-        filteredEmpty: expansionPanel.getAttribute('data-knowledge-filtered-empty'),
-        control: expansionControl?.getAttribute('data-knowledge-expansion-control') ?? null,
-        ariaExpanded: expansionControl?.getAttribute('aria-expanded') ?? null,
-        ariaBusy: expansionControl?.getAttribute('aria-busy') ?? null,
-        loadingMessage: Boolean(document.querySelector('[data-knowledge-expansion-loading="local"]')),
-        emptyMessage: Boolean(document.querySelector('[data-knowledge-expansion-empty="filtered"]')),
+      expansion: nodeControl ? {
+        state: nodeControl.getAttribute('aria-busy') === 'true'
+          ? 'loading'
+          : ariaExpanded === null
+            ? 'inspectable'
+            : ariaExpanded === 'true'
+              ? 'expanded'
+              : 'collapsed',
+        filteredEmpty: nodeControl.getAttribute('data-filtered-empty'),
+        control: nodeControl.getAttribute('data-knowledge-node-control'),
+        ariaExpanded,
+        ariaBusy: nodeControl.getAttribute('aria-busy'),
+        error: nodeControl.getAttribute('data-error'),
+        loadingMessage: document.querySelector('#knowledge-node-activation-status')?.textContent?.includes('正在加载') ?? false,
+        emptyMessage: Boolean(document.querySelector('[data-knowledge-filtered-empty-explanation="visible"]')),
+        noChildrenInspector: ariaExpanded === null && inspectorVisible,
       } : null,
       localTool: localTool?.getAttribute('data-state') ?? null,
       openLocalTool: openLocalTool?.getAttribute('data-knowledge-local-tool') ?? null,
       chapterDirectoryText: chapterDirectory?.textContent ?? '',
-      inspectorVisible: Boolean(inspector),
+      inspectorVisible,
       konlingVisible: Boolean(konling),
       canvasPixelEvidence,
       rects: {
         canvas: rectFor(canvas),
-        expansionPanel: rectFor(expansionPanel),
+        expansionPanel: rectFor(nodeControl),
         dock: rectFor(dock),
         konling: rectFor(konling),
         inspector: rectFor(inspector),
@@ -428,11 +494,11 @@ async function main() {
     { name: 'expanded-1440', width: 1440, height: 960, query: selectedQuery, beforeShot: expandSelectedNode },
     { name: 'collapsed-1440', width: 1440, height: 960, query: selectedQuery, beforeShot: collapseSelectedNode },
     { name: 'cache-reuse-1440', width: 1440, height: 960, query: selectedQuery, beforeShot: expandCollapseExpandFromCache },
-    { name: 'filtered-empty-1440', width: 1440, height: 960, query: emptyQuery, beforeShot: expandSelectedEmptyNode },
+    { name: 'filtered-empty-1440', width: 1440, height: 960, query: emptyQuery, beforeShot: inspectSelectedNoChildrenNode },
     { name: 'root-filtered-match-1440', width: 1440, height: 960, beforeShot: filterCollapsedRootsBySearch(noChildrenNodeName) },
     { name: 'dense-all-1440', width: 1440, height: 960, beforeShot: selectDenseAllMode },
     { name: 'local-tool-1440', width: 1440, height: 960, beforeShot: openLegendTool },
-    { name: 'selected-inspector-1440', width: 1440, height: 960, query: emptyQuery },
+    { name: 'selected-inspector-1440', width: 1440, height: 960, query: emptyQuery, beforeShot: inspectSelectedNoChildrenNode },
     { name: 'konling-expanded-1440', width: 1440, height: 960, query: emptyQuery, beforeShot: expandKonlingDock },
   ];
 
@@ -511,8 +577,10 @@ async function main() {
         && modes('dense-all-1440').includes('remaining')
         && !modes('dense-all-1440').includes('full')
         && (byName.get('dense-all-1440')?.interactionEvidence as Record<string, unknown> | undefined)?.selectedDensityMode === 'true',
-      filteredEmptyOrNoChildren: expansion('filtered-empty-1440')?.filteredEmpty === 'true'
-        && expansion('filtered-empty-1440')?.emptyMessage === true,
+      filteredEmptyOrNoChildren: (
+        expansion('filtered-empty-1440')?.filteredEmpty === 'true'
+        && expansion('filtered-empty-1440')?.emptyMessage === true
+      ) || expansion('filtered-empty-1440')?.noChildrenInspector === true,
       collapsedRootFilterRetained: Number(progressive('root-filtered-match-1440')?.visibleNodeCount ?? 0) === expectedFilteredRootCount
         && String(progressive('root-filtered-match-1440')?.activeFilterSummary ?? '').includes(noChildrenNodeName)
         && expectedFilteredRootNames.every((name) => String(stateMarkers('root-filtered-match-1440')?.chapterDirectoryText ?? '').includes(name))

@@ -27,8 +27,8 @@
 
 ## 5. Verification And Governance
 
-- [ ] 5.1 Add component and integration tests for all activation entry points, duplicate suppression, canonical unknown resolution, filtered-empty recovery, retry, cache reuse, rapid expand/collapse and target switching, stale async cancellation, inspector dismissal, and inspector content order.
-- [ ] 5.2 Add coordinate assertions proving initial-layout freeze, deterministic provenance and sector coordinates, bounded and cancellable local camera movement, and that only the dragged node changes throughout and after drag.
-- [ ] 5.3 Capture timestamped browser evidence for expandable click, collapse, leaf inspector, blank and drag dismissal, sector expansion, multiple arcs, motion, and reduced motion in 2D/3D, light/dark, desktop/narrow, local-tool, inspector, and Konling collision states.
-- [ ] 5.4 Run independent visual and accessibility review; reject complete-ring cross/star topology, global layout movement, perpetual motion, inaccessible node activation, incorrect inspector order, overlap, or canvas resizing as blocking issues.
-- [ ] 5.5 Run focused unit and Playwright suites, `rtk npm run typecheck`, `rtk openspec validate redesign-knowledge-graph-direct-manipulation --type change --strict`, and the applicable knowledge-graph governance checks.
+- [x] 5.1 Add component and integration tests for all activation entry points, duplicate suppression, canonical unknown resolution, filtered-empty recovery, retry, cache reuse, rapid expand/collapse and target switching, stale async cancellation, inspector dismissal, and inspector content order.
+- [x] 5.2 Add coordinate assertions proving initial-layout freeze, deterministic provenance and sector coordinates, bounded and cancellable local camera movement, and that only the dragged node changes throughout and after drag.
+- [x] 5.3 Capture timestamped browser evidence for expandable click, collapse, leaf inspector, blank and drag dismissal, sector expansion, multiple arcs, motion, and reduced motion in 2D/3D, light/dark, desktop/narrow, local-tool, inspector, and Konling collision states.
+- [x] 5.4 Run independent visual and accessibility review; reject complete-ring cross/star topology, global layout movement, perpetual motion, inaccessible node activation, incorrect inspector order, overlap, or canvas resizing as blocking issues.
+- [x] 5.5 Run focused unit and Playwright suites, `rtk npm run typecheck`, `rtk openspec validate redesign-knowledge-graph-direct-manipulation --type change --strict`, and the applicable knowledge-graph governance checks.

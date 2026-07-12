@@ -537,6 +537,115 @@ function resolveNodeCenter(
   };
 }
 
+function resolveNodeDepth(
+  node: KnowledgeGraphPositionedNode,
+  layoutState: KnowledgeGraphLayoutState
+): number {
+  return readFiniteCoordinate(layoutState.positionsByNodeId[node.id]?.z)
+    ?? readFiniteCoordinate(node.z)
+    ?? readFiniteCoordinate(node.positionZ)
+    ?? 0;
+}
+
+function estimateKnowledgeGraphNodeLabelBounds(
+  node: KnowledgeGraphPositionedNode,
+  center: { x: number; y: number }
+) {
+  const labelLength = [...(node.name || node.id)].length;
+  const width = Math.min(176, Math.max(72, 24 + labelLength * 12));
+  const height = 24;
+  return {
+    left: center.x - width / 2,
+    right: center.x + width / 2,
+    top: center.y - height / 2,
+    bottom: center.y + height / 2,
+  };
+}
+
+function calculateLabelBoundsOverlapArea(
+  left: { left: number; right: number; top: number; bottom: number },
+  right: { left: number; right: number; top: number; bottom: number }
+): number {
+  const width = Math.max(0, Math.min(left.right, right.right) - Math.max(left.left, right.left));
+  const height = Math.max(0, Math.min(left.bottom, right.bottom) - Math.max(left.top, right.top));
+  return width * height;
+}
+
+export function resolveFocusedExpansionDepthByNodeId({
+  nodes,
+  expandedNodeIds,
+  directExpansionLinks,
+  layoutState,
+  activationSequenceByCenterId = {},
+  materializedNodeIds,
+}: KnowledgeGraphFocusedExpansionLayoutInput<KnowledgeGraphPositionedNode>): Map<string, number> {
+  const nodeById = new Map(nodes.map((node) => [node.id, node]));
+  const expandedIdSet = new Set(
+    expandedNodeIds.filter((nodeId) => nodeById.has(nodeId))
+  );
+  const centerIdsByChildId = new Map<string, string[]>();
+
+  expandedIdSet.forEach((centerId) => {
+    directExpansionLinks.forEach((link) => {
+      const childId = link.sourceId === centerId
+        ? link.targetId
+        : link.targetId === centerId ? link.sourceId : null;
+      if (!childId || expandedIdSet.has(childId) || !nodeById.has(childId)) return;
+      const centerIds = centerIdsByChildId.get(childId) ?? [];
+      if (!centerIds.includes(centerId)) centerIds.push(centerId);
+      centerIdsByChildId.set(childId, centerIds);
+    });
+  });
+
+  const materializedIdSet = new Set(materializedNodeIds ?? []);
+  const depthByNodeId = new Map<string, number>();
+  centerIdsByChildId.forEach((centerIds, childId) => {
+    const child = nodeById.get(childId)!;
+    const storedDepth = layoutState.positionsByNodeId[childId];
+    if (storedDepth?.pinned && readFiniteCoordinate(storedDepth.z) !== null) {
+      depthByNodeId.set(childId, storedDepth.z!);
+      return;
+    }
+
+    const provenanceCenterId = child.__knowledgeAutomaticAnchor?.provenanceCenterId;
+    const isNewlyMaterialized = materializedIdSet.has(childId);
+    const establishedDepth = !isNewlyMaterialized || provenanceCenterId
+      ? readFiniteCoordinate(child.__knowledgeAutomaticAnchor?.z)
+        ?? readFiniteCoordinate(child.fz)
+        ?? readFiniteCoordinate(child.z)
+        ?? readFiniteCoordinate(child.positionZ)
+      : null;
+    if (establishedDepth !== null) {
+      depthByNodeId.set(childId, establishedDepth);
+      return;
+    }
+
+    if (provenanceCenterId) {
+      const provenanceCenter = nodeById.get(provenanceCenterId);
+      if (provenanceCenter) {
+        depthByNodeId.set(childId, resolveNodeDepth(provenanceCenter, layoutState));
+      }
+      return;
+    }
+
+    if (!isNewlyMaterialized) return;
+
+    const provenanceSequence = child.__knowledgeAutomaticAnchor?.activationSequence;
+    const ownerCenterId = centerIds.includes(provenanceCenterId ?? '')
+      ? provenanceCenterId!
+      : centerIds.find((centerId) => activationSequenceByCenterId[centerId] === provenanceSequence)
+        ?? [...centerIds].sort((left, right) => (
+          (activationSequenceByCenterId[left] ?? Number.MAX_SAFE_INTEGER)
+          - (activationSequenceByCenterId[right] ?? Number.MAX_SAFE_INTEGER)
+          || compareNodeIds(left, right)
+        ))[0];
+    const ownerCenter = ownerCenterId ? nodeById.get(ownerCenterId) : undefined;
+    if (ownerCenter) depthByNodeId.set(childId, resolveNodeDepth(ownerCenter, layoutState));
+  });
+
+  return depthByNodeId;
+}
+
 export function applyFocusedExpansionLayout<T extends KnowledgeGraphPositionedNode>({
   nodes,
   expandedNodeIds,
@@ -564,7 +673,7 @@ export function applyFocusedExpansionLayout<T extends KnowledgeGraphPositionedNo
   const occupied = nodes.flatMap((node) => {
     if (materializedIdSet?.has(node.id) && !node.__knowledgeAutomaticAnchor?.provenanceCenterId) return [];
     const center = resolveNodeCenter(node, layoutState);
-    return [{ id: node.id, ...center }];
+    return [{ id: node.id, ...center, labelBounds: estimateKnowledgeGraphNodeLabelBounds(node, center) }];
   });
 
   expandedIds.forEach((centerId) => {
@@ -630,7 +739,7 @@ export function applyFocusedExpansionLayout<T extends KnowledgeGraphPositionedNo
     const candidateAngles = inheritedAngle === null ? FOCUSED_EXPANSION_CANDIDATE_ANGLES : [inheritedAngle];
     const direction = candidateAngles
       .map((angle, index) => {
-        const score = orderedChildIds.reduce((sum, _childId, childIndex) => {
+        const candidateLabelBounds = orderedChildIds.map((childId, childIndex) => {
           const arcIndex = Math.floor(childIndex / FOCUSED_EXPANSION_ARC_CAPACITY);
           const slotIndex = childIndex % FOCUSED_EXPANSION_ARC_CAPACITY;
           const nodesInArc = Math.min(
@@ -641,11 +750,25 @@ export function applyFocusedExpansionLayout<T extends KnowledgeGraphPositionedNo
           const radius = FOCUSED_EXPANSION_FIRST_RING_RADIUS + arcIndex * FOCUSED_EXPANSION_RING_GAP;
           const x = center.x + radius * Math.cos(angle + offset);
           const y = center.y + radius * Math.sin(angle + offset);
-          return sum + occupied.reduce((collision, point) => {
-            const distance = Math.hypot(x - point.x, y - point.y);
+          const child = nodeById.get(childId)!;
+          return { x, y, labelBounds: estimateKnowledgeGraphNodeLabelBounds(child, { x, y }) };
+        });
+        const occupiedSpaceScore = candidateLabelBounds.reduce((sum, candidate) => (
+          sum + occupied.reduce((collision, point) => {
+            const distance = Math.hypot(candidate.x - point.x, candidate.y - point.y);
             return collision + Math.max(0, 64 - distance) ** 2;
-          }, 0);
-        }, 0);
+          }, 0)
+        ), 0);
+        const labelOverlapScore = candidateLabelBounds.reduce((sum, candidate, candidateIndex) => (
+          sum
+          + occupied.reduce((overlap, point) => (
+            overlap + calculateLabelBoundsOverlapArea(candidate.labelBounds, point.labelBounds)
+          ), 0)
+          + candidateLabelBounds.slice(candidateIndex + 1).reduce((overlap, other) => (
+            overlap + calculateLabelBoundsOverlapArea(candidate.labelBounds, other.labelBounds)
+          ), 0)
+        ), 0);
+        const score = occupiedSpaceScore + labelOverlapScore;
         return { angle, score, index };
       })
       .sort((left, right) => left.score - right.score || left.index - right.index)[0].angle;

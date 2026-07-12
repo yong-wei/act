@@ -313,7 +313,9 @@ describe('knowledge graph interaction state stability', () => {
     expect(systemSource).toContain('selectedNodePinUnavailable');
     expect(systemSource).not.toContain('__knowledgeGraphProductQaDragSelectedNode');
     expect(rendererSource).toContain('__knowledgeGraphProductQaSelectedNodeDragPoints');
-    expect(rendererSource).toContain("new URLSearchParams(window.location.search).get('qa') === 'knowledge-product'");
+    expect(rendererSource).toContain("const qaMode = new URLSearchParams(window.location.search).get('qa');");
+    expect(rendererSource).toContain("qaMode === 'knowledge-product'");
+    expect(rendererSource).toContain("qaMode === 'issue-894-direct-activation'");
     expect(rendererSource).toContain('fgRef.current.graph2ScreenCoords(graphX, graphY)');
     expect(rendererSource).toContain('nodePointerAreaPaint={paintNodePointerArea}');
     expect(systemSource).toContain('mobileToolPanelRef.current?.focus()');
@@ -334,6 +336,17 @@ describe('knowledge graph interaction state stability', () => {
     expect(canvasSource).not.toContain('applyKnowledgeGraphStoredPositions(');
     expect(canvasSource).toContain('syncKnowledgeGraphMutableNodePositions(currentNodes, layoutState);');
     expect(canvasSource).toContain('onNodeDrag={handleNodeDrag}');
+    expect(rendererSource).toContain('onBackgroundClick={onManipulationStart}');
+    expect(rendererSource).toContain('onNodeDrag={handleNodeDrag}');
+    expect(rendererSource).not.toContain('onPointerDown={onManipulationStart}');
+    expect(rendererSource).not.toContain('onWheel={onManipulationStart}');
+    expect(rendererSource).not.toContain('onZoom={onManipulationStart}');
+    expect(canvasSource).toContain('onBackgroundClick={onManipulationStart}');
+    expect(canvasSource).toContain('onNodeDrag={handleNodeDrag}');
+    expect(canvasSource).not.toContain('onPointerDown={onManipulationStart}');
+    expect(canvasSource).not.toContain('onWheel={onManipulationStart}');
+    expect(canvasSource).not.toContain("controls.addEventListener('start', handleOrbitControlsStart)");
+    expect(canvasSource).not.toContain("controls.removeEventListener('start', handleOrbitControlsStart)");
     expect(canvasSource).toContain('freezeKnowledgeGraphDragFrame(graphNodes, node as RuntimeKnowledgeGraphNode)');
     expect(canvasSource).toContain('cooldownTicks={0}');
     expect(canvasSource).toContain('committedGraphVersionRef.current !== graphVersion');

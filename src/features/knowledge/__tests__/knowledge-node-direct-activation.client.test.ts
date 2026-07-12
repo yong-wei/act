@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { StrictMode, act, createElement } from 'react';
+import { StrictMode, act, createElement, useEffect } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
@@ -15,16 +15,40 @@ vi.mock('@/components/providers/global-ai-provider', () => ({
 vi.mock('next/dynamic', () => ({
   default: () => {
     const renderer = rendererRegistry.count++ === 0 ? '3D' : '2D';
-    return function GraphSurface(props: { nodes: Array<{ id: string; name: string }>; onNodeClick: (node: unknown) => void; onManipulationStart: () => void }) {
-      return createElement('div', { 'data-testid': `graph-surface-${renderer}` }, createElement('button', {
-        type: 'button', 'data-testid': `background-${renderer}`, onClick: props.onManipulationStart,
+    return function GraphSurface(props: {
+      nodes: Array<{ id: string; name: string }>;
+      selectedNode?: { id: string } | null;
+      expandedNodeIds?: string[];
+      onNodeClick: (node: unknown) => void;
+      onManipulationStart: () => void;
+      collapsingNodeId?: string | null;
+      onCollapsePresentationComplete?: (nodeId: string) => void;
+    }) {
+      const {
+        collapsingNodeId,
+        onCollapsePresentationComplete,
+        nodes,
+        onManipulationStart,
+        onNodeClick,
+        selectedNode,
+        expandedNodeIds,
+      } = props;
+      useEffect(() => {
+        if (collapsingNodeId) onCollapsePresentationComplete?.(collapsingNodeId);
+      }, [collapsingNodeId, onCollapsePresentationComplete]);
+      return createElement('div', {
+        'data-testid': `graph-surface-${renderer}`,
+        'data-selected-node-id': selectedNode?.id ?? '',
+        'data-expanded-node-ids': expandedNodeIds?.join(',') ?? '',
+      }, createElement('button', {
+        type: 'button', 'data-testid': `background-${renderer}`, onClick: onManipulationStart,
       }, 'background'), createElement('button', {
-        type: 'button', 'data-testid': `drag-${renderer}`, onClick: props.onManipulationStart,
-      }, 'drag'), props.nodes.map((node) => createElement('button', {
+        type: 'button', 'data-testid': `drag-${renderer}`, onClick: onManipulationStart,
+      }, 'drag'), nodes.map((node) => createElement('button', {
       key: node.id,
       type: 'button',
       'data-testid': `canvas-${renderer}-${node.id}`,
-      onClick: () => props.onNodeClick(node),
+      onClick: () => onNodeClick(node),
       }, node.name)));
     };
   },
@@ -32,11 +56,12 @@ vi.mock('next/dynamic', () => ({
 
 vi.mock('../resource-panel/resource-panel', () => ({
   ResourcePanel: (props: { isOpen: boolean; selectedNode: { id: string } | null; onNodeClick: (id: string) => void }) => createElement(
-    'div',
-    { 'data-testid': 'resource-panel', 'data-open': String(props.isOpen) },
-    createElement('button', { type: 'button', 'data-testid': 'related-expandable', onClick: () => props.onNodeClick('expandable') }, 'related'),
-    props.selectedNode?.id ?? '',
-  ),
+  'div',
+  { 'data-testid': 'resource-panel', 'data-open': String(props.isOpen) },
+  createElement('button', { type: 'button', 'data-testid': 'related-expandable', onClick: () => props.onNodeClick('expandable') }, 'related'),
+  createElement('button', { type: 'button', 'data-testid': 'related-missing', onClick: () => props.onNodeClick('related-missing') }, 'related missing'),
+  props.selectedNode?.id ?? '',
+ ),
 }));
 
 import { KnowledgeGraphSystem, type KnowledgeNodeData } from '../knowledge-graph-system';
@@ -226,6 +251,166 @@ describe('KnowledgeGraphSystem direct activation behavior', () => {
     expect(fetchMock.mock.calls.filter(([url]) => String(url).includes('mode=expansion'))).toHaveLength(2);
     expect(container.querySelector('[data-testid="resource-panel"]')?.getAttribute('data-open')).toBe('true');
     expect(container.querySelector('[data-testid="resource-panel"]')?.textContent).toContain('unknown');
+  });
+
+  it('resolves a Related target absent from the current cache through the canonical expansion contract', async () => {
+    const relatedExpandable: KnowledgeNodeData = {
+      id: 'related-missing',
+      name: 'Related missing',
+      nodeType: 'THEORY',
+      description: '',
+      positionX: 24,
+      positionY: 0,
+      positionZ: 0,
+      metadata: { isCollapsedRoot: true },
+      expansion: { state: 'expandable' },
+    };
+    const fetchMock = vi.fn((url: string) => url.includes('nodeId=related-missing')
+      ? json(payload([relatedExpandable, nodes[1]], [{
+        id: 'related-link', sourceId: 'related-missing', targetId: 'leaf', relation: 'related', strength: 1,
+      }], 'expansion'))
+      : json(payload()));
+    vi.stubGlobal('fetch', fetchMock);
+    await act(async () => root.render(createElement(StrictMode, null, createElement(KnowledgeGraphSystem, { initialNodes: nodes }))));
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 80)));
+    await act(async () => container.querySelector<HTMLButtonElement>('[data-testid="canvas-2D-leaf"]')!.click());
+    expect(container.querySelector('[data-testid="resource-panel"]')?.getAttribute('data-open')).toBe('true');
+
+    await act(async () => container.querySelector<HTMLButtonElement>('[data-testid="related-missing"]')!.click());
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('mode=expansion') && String(url).includes('nodeId=related-missing'))).toBe(true);
+    expect(container.querySelector('[data-testid="resource-panel"]')?.getAttribute('data-open')).toBe('false');
+    expect(container.querySelector('[data-knowledge-node-control="related-missing"]')?.getAttribute('aria-expanded')).toBe('true');
+  });
+
+  it('keeps a newer leaf target selected when an older expandable success resolves late', async () => {
+    let resolveExpansion: ((response: Response) => void) | undefined;
+    const deferredExpansion = new Promise<Response>((resolve) => { resolveExpansion = resolve; });
+    vi.stubGlobal('fetch', vi.fn((url: string) => url.includes('mode=expansion')
+      ? deferredExpansion
+      : json(payload())));
+    await act(async () => root.render(createElement(StrictMode, null, createElement(KnowledgeGraphSystem, { initialNodes: nodes }))));
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 80)));
+
+    await act(async () => container.querySelector<HTMLButtonElement>('[data-testid="canvas-2D-expandable"]')!.click());
+    await act(async () => container.querySelector<HTMLButtonElement>('[data-testid="canvas-2D-leaf"]')!.click());
+    expect(container.querySelector('[data-testid="resource-panel"]')?.getAttribute('data-open')).toBe('true');
+    expect(container.querySelector('[data-testid="resource-panel"]')?.textContent).toContain('leaf');
+
+    await act(async () => resolveExpansion?.(new Response(JSON.stringify(payload(nodes, [{
+      id: 'expandable-leaf', sourceId: 'expandable', targetId: 'leaf', relation: 'related', strength: 1,
+    }], 'expansion')), { status: 200 })));
+
+    expect(container.querySelector('[data-testid="resource-panel"]')?.getAttribute('data-open')).toBe('true');
+    expect(container.querySelector('[data-testid="resource-panel"]')?.textContent).toContain('leaf');
+    expect(container.querySelector('[data-testid="graph-surface-2D"]')?.getAttribute('data-selected-node-id')).toBe('leaf');
+    expect(container.querySelector('[data-testid="graph-surface-2D"]')?.getAttribute('data-expanded-node-ids')).not.toContain('expandable');
+    expect(container.querySelector('[data-knowledge-node-control="expandable"]')?.getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('commits two legitimate expandable intents in activation order even when responses return in reverse order', async () => {
+    const pending = new Map<string, (response: Response) => void>();
+    const fetchMock = vi.fn((url: string) => {
+      if (!url.includes('mode=expansion')) return json(payload());
+      const nodeId = new URL(`http://localhost${url}`).searchParams.get('nodeId') ?? '';
+      return new Promise<Response>((resolve) => pending.set(nodeId, resolve));
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    await act(async () => root.render(createElement(StrictMode, null, createElement(KnowledgeGraphSystem, { initialNodes: nodes }))));
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 80)));
+
+    await act(async () => container.querySelector<HTMLButtonElement>('[data-knowledge-node-control="expandable"]')!.click());
+    await act(async () => container.querySelector<HTMLButtonElement>('[data-knowledge-node-control="unknown"]')!.click());
+    expect(pending.has('expandable')).toBe(true);
+    expect(pending.has('unknown')).toBe(true);
+
+    await act(async () => pending.get('unknown')?.(new Response(JSON.stringify(payload([
+      { ...nodes[2], expansion: { state: 'expandable' as const } },
+    ], [], 'expansion')), { status: 200 })));
+    await act(async () => pending.get('expandable')?.(new Response(JSON.stringify(payload(nodes, [{
+      id: 'expandable-leaf', sourceId: 'expandable', targetId: 'leaf', relation: 'related', strength: 1,
+    }], 'expansion')), { status: 200 })));
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 20)));
+
+    expect(container.querySelector('[data-knowledge-node-control="expandable"]')?.getAttribute('aria-expanded')).toBe('true');
+    expect(container.querySelector('[data-knowledge-node-control="unknown"]')?.getAttribute('aria-expanded')).toBe('true');
+    expect(container.querySelector('[data-testid="graph-surface-2D"]')?.getAttribute('data-expanded-node-ids')).toContain('expandable');
+    expect(container.querySelector('[data-testid="graph-surface-2D"]')?.getAttribute('data-expanded-node-ids')).toContain('unknown');
+  });
+
+  it('unblocks a later expansion when an earlier request is cancelled by a leaf selection', async () => {
+    let resolveExpandable: ((response: Response) => void) | undefined;
+    const fetchMock = vi.fn((url: string) => {
+      if (!url.includes('mode=expansion')) return json(payload());
+      const nodeId = new URL(`http://localhost${url}`).searchParams.get('nodeId');
+      if (nodeId === 'expandable') {
+        return new Promise<Response>((resolve) => { resolveExpandable = resolve; });
+      }
+      return json(payload([
+        { ...nodes[2], expansion: { state: 'expandable' as const } },
+      ], [], 'expansion'));
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    await act(async () => root.render(createElement(StrictMode, null, createElement(KnowledgeGraphSystem, { initialNodes: nodes }))));
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 80)));
+
+    await act(async () => container.querySelector<HTMLButtonElement>('[data-knowledge-node-control="expandable"]')!.click());
+    await act(async () => container.querySelector<HTMLButtonElement>('[data-knowledge-node-control="leaf"]')!.click());
+    expect(container.querySelector('[data-testid="resource-panel"]')?.textContent).toContain('leaf');
+
+    await act(async () => container.querySelector<HTMLButtonElement>('[data-knowledge-node-control="unknown"]')!.click());
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 20)));
+    expect(container.querySelector('[data-knowledge-node-control="unknown"]')?.getAttribute('aria-expanded')).toBe('true');
+    expect(container.querySelector('[data-knowledge-node-control="expandable"]')?.getAttribute('aria-expanded')).toBe('false');
+
+    await act(async () => resolveExpandable?.(new Response(JSON.stringify(payload(nodes, [{
+      id: 'late-expandable-leaf', sourceId: 'expandable', targetId: 'leaf', relation: 'related', strength: 1,
+    }], 'expansion')), { status: 200 })));
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 20)));
+    expect(container.querySelector('[data-knowledge-node-control="unknown"]')?.getAttribute('aria-expanded')).toBe('true');
+    expect(container.querySelector('[data-knowledge-node-control="expandable"]')?.getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it.each(['success', 'error'] as const)('does not commit a queued cache expansion after a newer leaf selection (%s)', async (outcome) => {
+    let settleBlocking: ((response?: Response) => void) | undefined;
+    const fetchMock = vi.fn((url: string) => {
+      if (!url.includes('mode=expansion')) return json(payload());
+      const nodeId = new URL(`http://localhost${url}`).searchParams.get('nodeId');
+      if (nodeId === 'expandable') {
+        return json(payload(nodes, [{ id: 'expandable-leaf', sourceId: 'expandable', targetId: 'leaf', relation: 'related', strength: 1 }], 'expansion'));
+      }
+      return new Promise<Response>((resolve, reject) => {
+        settleBlocking = (response) => {
+          if (response) resolve(response);
+          else reject(new Error('queued expansion failure'));
+        };
+      });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    await act(async () => root.render(createElement(StrictMode, null, createElement(KnowledgeGraphSystem, { initialNodes: nodes }))));
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 80)));
+
+    const expandable = container.querySelector<HTMLButtonElement>('[data-knowledge-node-control="expandable"]')!;
+    await act(async () => expandable.click());
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 20)));
+    await act(async () => expandable.click());
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 20)));
+    expect(expandable.getAttribute('aria-expanded')).toBe('false');
+    expect(expandable.getAttribute('data-shard-cached')).toBe('true');
+
+    await act(async () => container.querySelector<HTMLButtonElement>('[data-knowledge-node-control="unknown"]')!.click());
+    await act(async () => expandable.click());
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).includes('nodeId=expandable'))).toHaveLength(1);
+    await act(async () => container.querySelector<HTMLButtonElement>('[data-knowledge-node-control="leaf"]')!.click());
+    expect(container.querySelector('[data-testid="resource-panel"]')?.textContent).toContain('leaf');
+
+    await act(async () => settleBlocking?.(outcome === 'success'
+      ? new Response(JSON.stringify(payload([{ ...nodes[2], expansion: { state: 'expandable' as const } }], [], 'expansion')), { status: 200 })
+      : undefined));
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 20)));
+
+    expect(container.querySelector('[data-testid="resource-panel"]')?.textContent).toContain('leaf');
+    expect(container.querySelector('[data-knowledge-node-control="expandable"]')?.getAttribute('aria-expanded')).toBe('false');
+    expect(container.querySelector('[data-knowledge-node-control="unknown"]')?.getAttribute('data-error')).toBe('false');
   });
 
   it.each(['success', 'network', 'http', 'json'] as const)('ignores stale %s completion after switching targets', async (kind) => {

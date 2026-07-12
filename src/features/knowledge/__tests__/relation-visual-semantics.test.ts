@@ -203,18 +203,18 @@ describe('knowledge graph relation visual semantics', () => {
     expect(getRelationSemantic('visualized_by').label).toBe('图形呈现');
     expect(source).toContain('getRelationLegendItems');
     expect(source).toContain('data-knowledge-relation-legend-sample');
-    expect(source).toContain('max-h-[min(36rem,calc(100vh-10rem))]');
+    expect(source).toContain('max-h-[min(36rem,calc(100dvh-9rem))]');
     expect(source).toContain('grid max-h-48 grid-cols-2 gap-1.5 overflow-y-auto pr-1');
     expect(source).toContain('item.sampleStyle.lightColor');
     expect(source).toContain('item.sampleStyle.darkColor');
     expect(source).not.toContain('实线箭头：前置/基础');
-    expect(twoDimensionalRendererSource).toContain('ctx.quadraticCurveTo(controlX, controlY, target.x, target.y)');
+    expect(twoDimensionalRendererSource).toContain('ctx.quadraticCurveTo(drawControl!.x, drawControl!.y, drawTarget.x, drawTarget.y)');
     expect(twoDimensionalRendererSource).toContain('drawEndpointMarker(ctx, style.endpoint');
-    expect(twoDimensionalRendererSource).toContain('getQuadraticTangentAngle(source.x, source.y, controlX, controlY, target.x, target.y, 0.65)');
-    expect(twoDimensionalRendererSource).toContain('* focusOpacity * style.opacity');
+    expect(twoDimensionalRendererSource).toContain('getQuadraticTangentAngle(source.x, source.y, drawControl!.x, drawControl!.y, drawTarget.x, drawTarget.y, 1)');
+    expect(twoDimensionalRendererSource).toContain('const alpha = (0.16 + strength * 0.44) * focusOpacity * style.opacity');
     expect(threeDimensionalRendererSource).toContain('const semanticGain = 0.4 + style.opacity * 0.6');
     expect(threeDimensionalRendererSource).toContain('const gain = (0.55 + strength * 0.45) * focusGain * semanticGain');
-    expect(threeDimensionalRendererSource).toContain('const ringInnerRadius = nodeScale.radius + 0.6');
+    expect(threeDimensionalRendererSource).toContain('const ringInnerRadius = presentationRadius + 0.6');
     expect(threeDimensionalRendererSource).toContain('new THREE.RingGeometry(ringInnerRadius, ringOuterRadius, 32)');
 
     expect(getRelationStyle('prerequisite').dash).toEqual([]);

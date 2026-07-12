@@ -4,6 +4,8 @@ import { describe, expect, it } from 'vitest';
 
 const root = path.resolve(process.cwd(), 'src/features/knowledge');
 const source = fs.readFileSync(path.join(root, 'knowledge-graph-system.tsx'), 'utf8');
+const resourcePanelSource = fs.readFileSync(path.join(root, 'resource-panel/resource-panel.tsx'), 'utf8');
+const canvasSource = fs.readFileSync(path.join(root, 'graph/knowledge-graph-canvas.tsx'), 'utf8');
 
 describe('knowledge graph direct activation contract', () => {
   it('restores the mounted guard during StrictMode effect replay', () => {
@@ -19,6 +21,18 @@ describe('knowledge graph direct activation contract', () => {
     expect(source).toContain('onNodeSelect={activateNode}');
     expect(source).toContain('onNodeClick={activateNodeById}');
     expect(source).toContain('const [isPanelOpen, setIsPanelOpen] = useState(false)');
+  });
+
+  it('keeps Related navigation id-only and lets absent cache targets resolve through the canonical activation path', () => {
+    expect(resourcePanelSource).toContain('onClick={() => onNodeClick?.(node.id)}');
+    expect(source).toContain("const expansionState = node?.expansion?.state ?? 'unknown';");
+    expect(source).not.toContain('if (!node) return;');
+  });
+
+  it('makes 3D depth consume the same first-reveal provenance helper as the 2D layout', () => {
+    expect(canvasSource).toContain('resolveFocusedExpansionDepthByNodeId({');
+    expect(canvasSource).toContain('activationSequenceByCenterId,');
+    expect(canvasSource).not.toContain('[...expandedIdSet].sort()');
   });
 
   it('uses semantic native buttons for synchronized pointer and keyboard activation', () => {

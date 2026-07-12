@@ -77,9 +77,12 @@ function assertSourceContracts() {
   assert.equal(graphSource.includes("fetchProgressivePayload('remaining')"), true, 'client must fetch remaining shard');
   assert.equal(graphSource.includes('data-knowledge-progressive-loading="root-first"'), true, 'progressive root marker is missing');
   assert.equal(graphSource.includes('data-knowledge-full-graph-first-render="avoided"'), true, 'full graph avoidance marker is missing');
-  assert.equal(graphSource.includes('data-knowledge-expansion-control'), true, 'expansion control marker is missing');
-  assert.equal(graphSource.includes('aria-expanded={selectedNodeExpanded}'), true, 'expansion control must expose aria-expanded');
-  assert.equal(graphSource.includes('aria-busy={selectedNodeLoadingExpansion}'), true, 'expansion control must expose aria-busy');
+  assert.equal(graphSource.includes('data-knowledge-node-control={node.id}'), true, 'direct node control marker is missing');
+  assert.equal(graphSource.includes("aria-expanded={node.expansion?.state === 'expandable' ? expandedNodeIdSet.has(node.id) : undefined}"), true, 'direct node control must expose aria-expanded');
+  assert.equal(graphSource.includes('aria-busy={loadingExpansionNodeIds.includes(node.id)}'), true, 'direct node control must expose aria-busy');
+  assert.equal(graphSource.includes("data-error={expansionErrorByNodeId[node.id] ? 'true' : 'false'}"), true, 'direct node control must expose retryable error state');
+  assert.equal(graphSource.includes("data-filtered-empty={filteredEmptyExpansionNodeIds.includes(node.id) ? 'true' : 'false'}"), true, 'direct node control must expose filtered-empty state');
+  assert.equal(graphSource.includes('resolveKnowledgeNodeActivation'), true, 'direct node activation resolver is missing');
   assert.equal(graphSource.includes('expansionHasVisibleDescendant'), true, 'filtered-empty must be computed against active filters');
 
   for (const symbol of [
@@ -194,8 +197,18 @@ function assertStateContracts(evidence: JsonRecord) {
   assert.equal(markerFor(states.get('collapsed-1440')!, 'expansion').state, 'collapsed');
   assert.equal(markerFor(states.get('cache-reuse-1440')!, 'expansion').state, 'expanded');
   assert.equal(networkModesFor(states.get('cache-reuse-1440')!).filter((mode) => mode === 'expansion').length, 1);
-  assert.equal(markerFor(states.get('filtered-empty-1440')!, 'expansion').filteredEmpty, 'true');
-  assert.equal(markerFor(states.get('filtered-empty-1440')!, 'expansion').emptyMessage, true);
+  const filteredEmptyOrNoChildren = markerFor(states.get('filtered-empty-1440')!, 'expansion');
+  assert.equal(
+    (
+      filteredEmptyOrNoChildren.filteredEmpty === 'true'
+      && filteredEmptyOrNoChildren.emptyMessage === true
+    ) || (
+      filteredEmptyOrNoChildren.state === 'inspectable'
+      && filteredEmptyOrNoChildren.noChildrenInspector === true
+    ),
+    true,
+    'filtered-empty evidence must show either hidden neighbors or direct no-children inspection',
+  );
   const filteredRootMarkers = objectRecord(states.get('root-filtered-match-1440')!.markers);
   const filteredRootProgressive = objectRecord(filteredRootMarkers.progressive);
   assert.equal(

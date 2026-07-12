@@ -45,6 +45,16 @@ describe('activation async and filter guards', () => {
     queue.settle(1);
     expect(committed).toEqual(['second']);
   });
+
+  it('flushes later responses when an unresolved queue head is explicitly cancelled', () => {
+    const queue = createKnowledgeExpansionCommitQueue();
+    const committed: string[] = [];
+    queue.register(1);
+    queue.register(2);
+    queue.cancel(1);
+    queue.settle(2, () => committed.push('second'));
+    expect(committed).toEqual(['second']);
+  });
   it('accepts a valid earlier expansion payload after a later node activation', () => {
     expect(shouldCommitKnowledgeExpansionPayload({
       mounted: true,
@@ -70,16 +80,25 @@ describe('activation async and filter guards', () => {
     expect(resolveKnowledgeNodeActivation({ expansionState: 'expandable', expanded: true, filteredEmpty: true })).toBe('collapse');
   });
 
+  it('allows an active earlier expansion intent after a later parallel activation', () => {
+    expect(shouldCommitKnowledgeNodeActivation({
+      mounted: true,
+      aborted: false,
+      expectedGeneration: 2,
+      currentGeneration: 2,
+      cancelled: false,
+    })).toBe(true);
+  });
+
   it.each([
-    { mounted: false, aborted: false, currentGeneration: 2, currentSequence: 3 },
-    { mounted: true, aborted: true, currentGeneration: 2, currentSequence: 3 },
-    { mounted: true, aborted: false, currentGeneration: 1, currentSequence: 3 },
-    { mounted: true, aborted: false, currentGeneration: 2, currentSequence: 4 },
-  ])('rejects stale failure/result state: %o', (state) => {
+    { mounted: false, aborted: false, currentGeneration: 2, cancelled: false },
+    { mounted: true, aborted: true, currentGeneration: 2, cancelled: false },
+    { mounted: true, aborted: false, currentGeneration: 1, cancelled: false },
+    { mounted: true, aborted: false, currentGeneration: 2, cancelled: true },
+  ])('rejects stale or explicitly cancelled result state: %o', (state) => {
     expect(shouldCommitKnowledgeNodeActivation({
       ...state,
       expectedGeneration: 2,
-      expectedSequence: 3,
     })).toBe(false);
   });
 });
