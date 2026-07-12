@@ -15,21 +15,21 @@ args = [
 
 # project-agent-catalog:start
 # - agent-router | .codex/agents/agent-router.toml | gpt-5.6-luna | high | 只读代理选择与任务拆分
-# - ai-context-reviewer | .codex/agents/ai-context-reviewer.toml | gpt-5.6-sol | high | 只读 AI 上下文审查
+# - ai-context-reviewer | .codex/agents/ai-context-reviewer.toml | gpt-5.6-sol | medium | 只读 AI 上下文审查
 # - code-mapper | .codex/agents/code-mapper.toml | gpt-5.6-luna | xhigh | 只读代码路径映射
 # - course-pedagogy-reviewer | .codex/agents/course-pedagogy-reviewer.toml | gpt-5.6-sol | medium | 只读课程与教学审查
-# - critical-reviewer | .codex/agents/critical-reviewer.toml | gpt-5.6-sol | xhigh | 只读关键审查与终审
-# - data-governance-reviewer | .codex/agents/data-governance-reviewer.toml | gpt-5.6-sol | high | 只读学习数据治理审查
+# - critical-reviewer | .codex/agents/critical-reviewer.toml | gpt-5.6-sol | high | 只读关键审查与终审
+# - data-governance-reviewer | .codex/agents/data-governance-reviewer.toml | gpt-5.6-sol | medium | 只读学习数据治理审查
 # - deep-debugger | .codex/agents/deep-debugger.toml | gpt-5.6-luna | xhigh | 复杂分析与跨文件排障
 # - explorer-librarian | .codex/agents/explorer-librarian.toml | gpt-5.6-luna | xhigh | 只读探索与材料整理
 # - independent-reviewer | .codex/agents/independent-reviewer.toml | gpt-5.6-sol | medium | 只读常规独立审查
 # - long-context-investigator | .codex/agents/long-context-investigator.toml | gpt-5.6-terra | high | 只读长上下文调查
 # - patch-worker | .codex/agents/patch-worker.toml | gpt-5.6-luna | max | 常规实现与普通重构
 # - performance-reviewer | .codex/agents/performance-reviewer.toml | gpt-5.6-sol | medium | 只读性能与可靠性审查
-# - release-sentinel | .codex/agents/release-sentinel.toml | gpt-5.6-sol | high | 只读发布门禁
+# - release-sentinel | .codex/agents/release-sentinel.toml | gpt-5.6-sol | medium | 只读发布门禁
 # - retro-analyst | .codex/agents/retro-analyst.toml | gpt-5.6-luna | high | 只读失败复盘
-# - security-reviewer | .codex/agents/security-reviewer.toml | gpt-5.6-sol | high | 只读安全审查
-# - simulation-domain-reviewer | .codex/agents/simulation-domain-reviewer.toml | gpt-5.6-sol | high | 只读控制、仿真与 Arena 审查
+# - security-reviewer | .codex/agents/security-reviewer.toml | gpt-5.6-sol | medium | 只读安全审查
+# - simulation-domain-reviewer | .codex/agents/simulation-domain-reviewer.toml | gpt-5.6-sol | medium | 只读控制、仿真与 Arena 审查
 # - spark-coder | .codex/agents/spark-coder.toml | gpt-5.6-luna | high | 简单编码与局部修补
 # - spec-planner | .codex/agents/spec-planner.toml | gpt-5.6-sol | medium | 只读规格与实施规划
 # - test-engineer | .codex/agents/test-engineer.toml | gpt-5.6-luna | xhigh | 测试与验证

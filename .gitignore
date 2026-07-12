@@ -91,3 +91,6 @@ unit41-step*.png
 /octave-workspace
 # Added by code-review-graph
 .code-review-graph/
+
+# SkillOpt-Sleep local runtime
+/.skillopt-sleep/

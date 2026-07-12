@@ -2,6 +2,8 @@
 
 本文只补充 ACT 项目角色路由；通用授权、模型层级和审查循环服从全局 `AGENTS.md`。
 
+Sol 命名 reviewer 默认使用 `medium`；只有 `critical-reviewer` 在高风险终审时使用 `high`，常设 Sol 角色不使用 `xhigh`。
+
 ## 派发入口
 
 1. 用户已授权子代理后，先选择最小充分命名角色。

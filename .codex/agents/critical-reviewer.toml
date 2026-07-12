@@ -1,7 +1,7 @@
 name = "critical-reviewer"
 description = "只读关键审查代理，关注正确性、回归、隐藏耦合、可维护性和测试缺口。"
 model = "gpt-5.6-sol"
-model_reasoning_effort = "xhigh"
+model_reasoning_effort = "high"
 sandbox_mode = "read-only"
 nickname_candidates = ["Critical", "Reviewer"]
 

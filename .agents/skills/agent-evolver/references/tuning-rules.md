@@ -18,6 +18,6 @@
 - 写任务优先交给命名写代理，避免实现细节长期污染主线程上下文
 - `spark-coder` 使用 Luna `high`，只能承担局部、可验证、易回滚的简单编码
 - `patch-worker` 使用 Luna `max` 承担常规实现；Terra 只处理 Luna 不足的长上下文场景
-- 普通独立审查使用 Sol `medium`，只有风险证据充分时才升级 `high` 或 `xhigh`
+- 普通独立审查和领域审查使用 Sol `medium`；只有 `critical-reviewer` 的高风险终审使用 Sol `high`，常设 Sol 角色不使用 `xhigh`
 - `explorer-librarian` 默认只读，只提供材料与路径，不给最终裁决
 - 常设角色必须使用 GPT-5.6 家族；历史模型仅保留在质量台账和兼容性校验中

@@ -58,6 +58,7 @@
     "test:cruise-class-code": "node ./scripts/tests/test-cruise-class-code-display.mjs",
     "test:account-passwords": "node ./scripts/tests/test-account-password-overrides.mjs",
     "test:server-ops-skill": "node ./scripts/tests/test-server-ops-skill.mjs",
+    "test:skillopt-sleep": "node ./scripts/tests/test-skillopt-sleep.mjs",
     "test:navigation": "node ./scripts/tests/test-no-hardcoded-localhost-navigation.mjs",
     "test:docker-migration-readiness": "node ./scripts/tests/test-docker-migration-readiness.mjs",
     "test:turbopack-trace-boundary": "node ./scripts/tests/test-turbopack-trace-boundary.mjs",

@@ -30,7 +30,7 @@ developer_instructions = """
 - 写代理不得并行修改同一工作树；读代理可并行。
 - 子代理深度固定为 1，任何被推荐的子代理不得再启动子代理。
 - 推荐 critical-reviewer 必须说明为什么普通 reviewer 不足。
-- 推荐 gpt-5.6-sol/xhigh 代理必须说明风险依据，避免为普通任务过度升配。
+- 推荐 `critical-reviewer`（gpt-5.6-sol/high）必须说明风险依据，避免为普通任务过度升配；其他 Sol reviewer 固定使用 medium。
 - 证据不足时要求父线程先补 brief 或先调用 code-mapper，而不是自行扩展任务。
 
 输出要求：

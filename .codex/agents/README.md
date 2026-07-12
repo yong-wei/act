@@ -28,12 +28,12 @@
 | `independent-reviewer` | 只读 | Sol / `medium` | 代码产出后的常规独立审查 |
 | `course-pedagogy-reviewer` | 只读 | Sol / `medium` | 课程、教学活动和 runtime 语义审查 |
 | `performance-reviewer` | 只读 | Sol / `medium` | 性能、可靠性与运行成本审查 |
-| `ai-context-reviewer` | 只读 | Sol / `high` | AI 上下文、模型配置与可信性审查 |
-| `data-governance-reviewer` | 只读 | Sol / `high` | 学习事件、画像、指标与隐私审查 |
-| `simulation-domain-reviewer` | 只读 | Sol / `high` | 控制、仿真、Rust/WASM 与 Arena 审查 |
-| `security-reviewer` | 只读 | Sol / `high` | 认证、授权、注入与数据暴露审查 |
-| `release-sentinel` | 只读 | Sol / `high` | 迁移、CI、部署、回滚与发布门禁 |
-| `critical-reviewer` | 只读 | Sol / `xhigh` | 高风险、架构回归与发布关键终审 |
+| `ai-context-reviewer` | 只读 | Sol / `medium` | AI 上下文、模型配置与可信性审查 |
+| `data-governance-reviewer` | 只读 | Sol / `medium` | 学习事件、画像、指标与隐私审查 |
+| `simulation-domain-reviewer` | 只读 | Sol / `medium` | 控制、仿真、Rust/WASM 与 Arena 审查 |
+| `security-reviewer` | 只读 | Sol / `medium` | 认证、授权、注入与数据暴露审查 |
+| `release-sentinel` | 只读 | Sol / `medium` | 迁移、CI、部署、回滚与发布门禁 |
+| `critical-reviewer` | 只读 | Sol / `high` | 高风险、架构回归与发布关键终审 |
 
 ## 权限说明
 

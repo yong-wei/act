@@ -16,8 +16,8 @@
 ## Sol 分级决策与审查
 
 - `spec-planner`、`independent-reviewer`、`course-pedagogy-reviewer`、`performance-reviewer`：Sol `medium`，规划、常规独立审查和中等风险领域判断。
-- `ai-context-reviewer`、`data-governance-reviewer`、`simulation-domain-reviewer`、`security-reviewer`、`release-sentinel`：Sol `high`，高语义或高正确性风险领域审查。
-- `critical-reviewer`：Sol `xhigh`，只用于高风险、架构回归、安全敏感或发布关键终审。
+- `ai-context-reviewer`、`data-governance-reviewer`、`simulation-domain-reviewer`、`security-reviewer`、`release-sentinel`：Sol `medium`，高语义或高正确性风险领域审查。
+- `critical-reviewer`：Sol `high`，只用于高风险、架构回归、安全敏感或发布关键终审。
 
 ## 权限
 

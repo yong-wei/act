@@ -1,7 +1,7 @@
 name = "security-reviewer"
 description = "只读安全审查代理，关注认证、授权、密钥、注入、文件和 shell 安全、数据暴露。"
 model = "gpt-5.6-sol"
-model_reasoning_effort = "high"
+model_reasoning_effort = "medium"
 sandbox_mode = "read-only"
 nickname_candidates = ["Security", "Reviewer"]
 

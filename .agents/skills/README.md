@@ -72,6 +72,12 @@
 | `full-output-enforcement` | `full-output-enforcement/SKILL.md` | 要求完整、无省略、无占位符的大段输出。 |
 | `server-ops` | `server-ops/SKILL.md` | 服务器运维、在线故障调查、远端部署、数据库同步。 |
 
+### 代理技能优化
+
+| 技能 | 入口 | 适用场景 |
+| --- | --- | --- |
+| `skillopt-sleep` | `skillopt-sleep/SKILL.md` | 从 Codex 历史会话中提取 Buddy Auto 任务，生成验证门控的技能优化候选。 |
+
 ## 当前技能清单
 
 - `agent-evolver`
@@ -105,5 +111,6 @@
 - `refine`
 - `review-changes`
 - `server-ops`
+- `skillopt-sleep`
 - `stitch-design-taste`
 - `syllabus-refactor`

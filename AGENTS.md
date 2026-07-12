@@ -24,6 +24,7 @@
 - 写任务优先交给 `spark-coder`、`patch-worker` 或 `test-engineer`，以隔离实现上下文；写代理必须串行，并报告全部修改文件和验证结果。
 - `long-context-investigator` 只处理 Luna 已不足以承载的仓库级探索、大文件审阅和长上下文证据汇集，不承担日常实现。
 - 普通代码产出由 `independent-reviewer` 独立审查；`critical-reviewer` 仅用于高风险、架构回归、安全敏感或发布关键终审。
+- Sol 命名 reviewer 的常规规划、独立审查和领域审查使用 `medium`；仅 `critical-reviewer` 的高风险终审使用 `high`。
 - 课程作者态/runtime、AI 上下文、数据治理、Arena、Rust/WASM、Prisma、课堂同步与生产部署按 `.codex/agents/ROUTING.md` 追加对应领域 reviewer；领域事实优先于通用审查意见。
 - 派发时必须确认子线程元数据中的 `agent_role` 非空且模型、推理强度符合对应 TOML；若运行时无法调用命名角色，应停止派发并报告，不得静默退化为继承主线程配置的自由代理。
 
