@@ -230,7 +230,7 @@ The knowledge workspace SHALL expose chapter directory, relation filters, relati
 - **AND** the layout SHALL NOT create a third state where permanent panels squeeze the graph canvas.
 
 ### Requirement: Knowledge graph interactions preserve layout stability
-The knowledge graph SHALL keep layout state stable when users hover, select, or inspect nodes.
+The knowledge graph SHALL keep layout state stable when users hover, activate, expand, collapse, inspect, or dismiss nodes.
 
 #### Scenario: User hovers over a node
 - **WHEN** the pointer hovers over a graph node
@@ -242,23 +242,33 @@ The knowledge graph SHALL keep layout state stable when users hover, select, or 
 - **THEN** hover preview updates SHALL be throttled, debounced, or renderer-local enough to avoid visible jitter
 - **AND** high-frequency hover SHALL NOT change layout version, filtered graph membership, or assistant durable context.
 
-#### Scenario: User selects a node
-- **WHEN** the user clicks or otherwise selects a graph node
-- **THEN** the graph SHALL update selected styling and inspector context
-- **AND** selection SHALL NOT recreate graph node objects, rerun radial or force layout, reset user-positioned nodes, or call fit-to-view without an explicit user action.
+#### Scenario: User activates a node
+- **WHEN** the user clicks, taps, or keyboard-activates a graph node
+- **THEN** the graph SHALL resolve direct expansion, collapse, or leaf inspection from that node's current state
+- **AND** activation SHALL NOT recreate unrelated graph node objects, rerun global radial or force layout, reset user-positioned nodes, or call fit-to-view.
 
 #### Scenario: User opens or closes the node inspector
-- **WHEN** the selected-node inspector opens, closes, or updates content for another node
-- **THEN** graph layout coordinates SHALL remain stable
+- **WHEN** the selected-node inspector opens, closes, updates content, or is dismissed by blank-space activation or drag start
+- **THEN** graph layout coordinates, expanded neighborhoods, viewport scale, and loaded shard state SHALL remain stable
 - **AND** the inspector transition SHALL NOT redistribute unrelated graph nodes.
 
 ### Requirement: Knowledge graph drag state is explicit and recoverable
-The knowledge graph SHALL preserve user-dragged node positions until the user or a real graph data change requests a new layout.
+The knowledge graph SHALL freeze established node coordinates after initial automatic layout and SHALL preserve user-dragged positions until the user or a real graph data change requests a new layout.
 
-#### Scenario: User drags a node
+#### Scenario: Initial automatic layout completes
+- **WHEN** the root graph finishes its bounded initial automatic layout
+- **THEN** visible node coordinates SHALL become stable canonical positions
+- **AND** subsequent ordinary interaction SHALL NOT reheat a free-running force simulation.
+
+#### Scenario: User starts dragging a node
+- **WHEN** the user begins dragging a graph node
+- **THEN** any open inspector SHALL close
+- **AND** all other visible nodes SHALL retain their current coordinates throughout the drag.
+
+#### Scenario: User releases a dragged node
 - **WHEN** the user drags a node and releases it
-- **THEN** the final coordinates SHALL be stored by node id as user-positioned or pinned layout state
-- **AND** subsequent hover, selection, and inspector updates SHALL preserve those coordinates.
+- **THEN** only that node's final coordinates SHALL be stored by node id as user-positioned or pinned layout state
+- **AND** no unrelated node position SHALL be overwritten as a drag side effect.
 
 #### Scenario: User requests layout reset
 - **WHEN** the user activates an explicit relayout, reset, or clear-pins command
@@ -267,7 +277,7 @@ The knowledge graph SHALL preserve user-dragged node positions until the user or
 
 #### Scenario: Filters change the visible graph
 - **WHEN** relation filters, chapter filters, or density mode changes hide or show graph nodes
-- **THEN** visible user-positioned nodes SHALL retain their stored coordinates where possible
+- **THEN** visible user-positioned and established nodes SHALL retain their stored coordinates where possible
 - **AND** the layout system SHALL not erase pinned positions unless the node is no longer part of the current graph data or the user resets layout.
 
 ### Requirement: Knowledge graph renders as a semantic map
@@ -321,27 +331,37 @@ The knowledge workspace SHALL expose graph-specific directory, filter, legend, v
 - **AND** keyboard focus SHALL enter and leave the opened tool predictably, Escape or an equivalent close action SHALL close the tool where appropriate, and focus SHALL return to the invoking control.
 
 ### Requirement: Selected knowledge nodes render in a stable inspector
-The knowledge workspace SHALL present selected-node content through a stable inspector hierarchy rather than a cramped content overlay.
+The knowledge workspace SHALL present leaf-node content through a dismissible stable inspector whose learning-object content precedes graph-adjacency navigation.
 
-#### Scenario: User selects a knowledge node on desktop
-- **WHEN** a selected knowledge node has details, infograph, relations, learning actions, or evidence sources
-- **THEN** the UI SHALL render a stable inspector with clear hierarchy for those sections
+#### Scenario: User selects a leaf knowledge node on desktop
+- **WHEN** a leaf knowledge node has details, Knowledge Card content, relations, learning actions, or evidence sources
+- **THEN** the UI SHALL render a stable inspector with identity and explanatory content first, Knowledge Card before Related Knowledge Points, and learning-path or evidence actions afterward
 - **AND** the inspector SHALL use predictable desktop width or overlay rules that do not cause graph layout jitter.
 
-#### Scenario: User changes selected node
-- **WHEN** the selected node changes
+#### Scenario: User changes selected leaf node
+- **WHEN** the selected leaf node changes through the inspector or another semantic navigation surface
 - **THEN** inspector content SHALL update without remounting the whole panel or losing stable scroll and layout context unnecessarily
 - **AND** stale async detail responses SHALL NOT overwrite the current selected-node content.
 
 #### Scenario: Inspector content updates asynchronously
-- **WHEN** details, infograph metadata, relations, or evidence sources load for the current selected node
+- **WHEN** details, Knowledge Card metadata, relations, or evidence sources load for the current leaf node
 - **THEN** async updates SHALL preserve the user's active inspector section and scroll context where possible
 - **AND** they SHALL NOT reset reading position solely because data returned after the panel opened.
 
-#### Scenario: Mobile knowledge graph opens a node
-- **WHEN** a selected node is opened on a mobile viewport
-- **THEN** node details SHALL render through a drawer or sheet pattern
-- **AND** graph pan, zoom, and local tool access SHALL remain reachable when the sheet is collapsed.
+#### Scenario: User activates blank canvas space
+- **WHEN** the user activates graph canvas space that is not a node, edge control, local tool, or inspector surface
+- **THEN** the selected-node inspector SHALL close
+- **AND** expanded neighborhoods, filters, zoom, pan, cached shards, and node coordinates SHALL remain unchanged.
+
+#### Scenario: User starts dragging the canvas or a node
+- **WHEN** the user begins a canvas pan or node drag while the inspector is open
+- **THEN** the inspector SHALL close before the manipulation continues
+- **AND** the dismissal SHALL NOT trigger relayout or collapse expanded neighborhoods.
+
+#### Scenario: Mobile knowledge graph opens a leaf node
+- **WHEN** a leaf node is opened on a mobile viewport
+- **THEN** node details SHALL render through a drawer or sheet with Knowledge Card before Related Knowledge Points
+- **AND** graph pan, zoom, and local tool access SHALL remain reachable when the sheet is collapsed
 - **AND** keyboard and screen-reader focus SHALL remain inside the opened sheet while active and return to the invoking graph context when closed.
 
 ### Requirement: Knowledge workspace publishes selected context to the shared assistant
@@ -371,31 +391,34 @@ The knowledge graph SHALL render a useful collapsed root graph before requesting
 - **AND** concept roots inferred from `contains` edges SHALL NOT replace stable chapter roots without a deterministic review contract.
 
 ### Requirement: Knowledge graph nodes expand and collapse on demand
-The knowledge graph SHALL reveal child nodes and relations through explicit node expansion instead of showing all filtered nodes by default.
+The knowledge graph SHALL reveal neighbors and relations through direct node activation instead of showing all filtered nodes by default or requiring a secondary expansion control.
 
-#### Scenario: User selects a collapsed node
-- **WHEN** a user selects a collapsed graph node
-- **THEN** the node detail or local affordance SHALL expose an expand action
-- **AND** activating the expand action SHALL reveal the node's children and visible relations under the active filter.
-- **AND** the expand action SHALL be keyboard reachable and activatable with Enter and Space.
-- **AND** the expand action SHALL expose accessible expanded or pending state through `aria-expanded`, `aria-busy`, status text, or an equivalent accessibility contract.
+#### Scenario: User activates a collapsed expandable node
+- **WHEN** a user clicks, taps, or keyboard-activates a collapsed node declared expandable
+- **THEN** the node activation SHALL reveal its filter-visible neighbors and relations
+- **AND** the same node SHALL expose accessible expanded or pending state through the synchronized semantic node surface and live status.
 
-#### Scenario: User selects an expanded node
-- **WHEN** a user selects an expanded graph node
-- **THEN** the node detail or local affordance SHALL expose a collapse action
-- **AND** activating the collapse action SHALL hide that expansion's descendants without evicting already loaded graph data from the client cache.
-- **AND** the collapse action SHALL preserve selected-node context and focus continuity.
+#### Scenario: User activates an expanded node
+- **WHEN** a user activates an expanded graph node
+- **THEN** the same node activation SHALL hide that expansion's revealed neighbors without evicting version-valid graph data from the client cache
+- **AND** focus SHALL remain associated with the node activation context.
 
 #### Scenario: Expansion data is not cached
-- **WHEN** a user expands a node whose required shard is not yet loaded
-- **THEN** the graph SHALL show a local loading state for that node or expansion path
-- **AND** the rest of the graph, local tools, inspector, and floating dock SHALL remain interactive.
-- **AND** background shard loading SHALL NOT move focus away from the initiating control, inspector, local tool, or Konling surface.
+- **WHEN** a user activates an expandable node whose required shard is not yet loaded
+- **THEN** the graph SHALL show a local loading state for that node or expansion path and suppress duplicate activation
+- **AND** the rest of the graph, local tools, inspector, and floating dock SHALL remain interactive
+- **AND** background shard loading SHALL NOT move focus away from the initiating node context, local tool, or Konling surface.
 
-#### Scenario: Expansion has no visible children
-- **WHEN** a user expands a node and the active filter hides all children or relations in that expansion
-- **THEN** the graph SHALL show a local empty or filtered-out explanation
-- **AND** the UI SHALL distinguish filtered-empty from network failure.
+#### Scenario: Expansion has no filter-visible neighbors
+- **WHEN** canonical graph metadata identifies the node as expandable but the active filter hides all neighbors or relations in that expansion
+- **THEN** the graph SHALL keep the expansion cached and logically expanded while showing a local empty or filtered-out explanation
+- **AND** the UI SHALL distinguish filtered-empty from canonical leaf, loading, and network failure
+- **AND** a filter change SHALL reveal matching cached neighbors without a duplicate request.
+
+#### Scenario: Expansion request fails
+- **WHEN** an uncached expansion request fails
+- **THEN** the node SHALL expose an accessible local error and allow the next activation to retry
+- **AND** stale or failed responses SHALL NOT open the inspector, move unrelated nodes, or overwrite a newer activation state.
 
 ### Requirement: Knowledge graph loads matching and remaining graph data progressively
 The knowledge graph SHALL load graph data in ordered batches instead of treating the full graph as the first required payload.
@@ -447,44 +470,107 @@ The knowledge graph SHALL preserve full graph access only as a diagnostics or ma
 - **AND** the UI SHALL identify the denser mode as explicit and reversible.
 - **AND** any full graph endpoint retained for diagnostics SHALL NOT be used by the normal `/knowledge` user interaction path.
 
-### Requirement: Knowledge graph expansion controls follow selected nodes
-The knowledge graph SHALL expose the primary expand/collapse control near the
-selected graph node instead of relying on a distant fixed panel as the only
-expansion entry.
+### Requirement: Knowledge graph nodes use direct activation semantics
+The knowledge graph SHALL make the node itself the primary expansion or inspection control and SHALL resolve the outcome from versioned expandability metadata.
 
-#### Scenario: User selects an expandable top-level node
-- **WHEN** a user selects a top-level or collapsed root graph node that can load or reveal a local subgraph
-- **THEN** the graph SHALL show an accessible expand/collapse control near that selected node
-- **AND** the control SHALL remain within the graph viewport bounds
-- **AND** the control SHALL expose collapsed, loading, expanded, disabled, and focus states through visible text or accessible labels.
+#### Scenario: User activates a collapsed expandable node
+- **WHEN** a user clicks, taps, or keyboard-activates a node declared expandable and currently collapsed
+- **THEN** the graph SHALL load or reveal that node's local neighborhood immediately without requiring a second expansion control
+- **AND** any open node inspector SHALL close without collapsing other expanded neighborhoods.
 
-#### Scenario: User expands a node
-- **WHEN** the user activates the node-local expansion control
-- **THEN** the selected node's local subgraph SHALL load or reveal without requiring the user to find a separate bottom-screen control
-- **AND** the selected-node status panel MAY show context or loading status but SHALL NOT be the only available expansion control.
+#### Scenario: User activates an expanded node
+- **WHEN** a user activates a node whose local neighborhood is expanded
+- **THEN** the graph SHALL collapse that neighborhood while retaining its version-valid shard cache and stable stored coordinates
+- **AND** the action SHALL NOT open the node inspector.
 
-#### Scenario: User navigates with keyboard
-- **WHEN** a selected node has an expansion control
-- **THEN** the control SHALL be reachable by keyboard focus
-- **AND** activating it SHALL produce the same expand/collapse behavior as pointer activation.
+#### Scenario: User activates a leaf node
+- **WHEN** a user activates a node declared as a leaf
+- **THEN** the graph SHALL open the selected-node inspector
+- **AND** it SHALL NOT request an expansion shard or show an expansion control.
 
-### Requirement: Expanded graph neighborhoods are centered on the expanded node
-The knowledge graph SHALL arrange direct expansion children around the node that
-was expanded so the result reads as a local concept map rather than a distant
-edge fan.
+#### Scenario: User activates a node with unknown expandability
+- **WHEN** a compatibility or stale payload leaves a node's expandability unknown
+- **THEN** the graph SHALL show an honest node-local busy state and resolve the existing expansion endpoint once
+- **AND** only a canonical leaf descriptor SHALL open the inspector
+- **AND** a canonical expandable descriptor with no filter-visible neighbor SHALL enter a cached filtered-empty state instead of being treated as a leaf.
 
-#### Scenario: Top-level unit node is expanded
-- **WHEN** a top-level unit or collapsed root node is expanded
-- **THEN** its direct child nodes SHALL be placed around the expanded node using deterministic radial, ring, or equivalent centered placement
-- **AND** the expanded node SHALL remain visually central to the child cluster
-- **AND** direct child links SHALL remain visible enough to explain membership or local relationship.
+#### Scenario: Active filters hide every neighbor of an expandable node
+- **WHEN** a canonically expandable node is activated while the active filters hide all revealable neighbors or relations
+- **THEN** the node SHALL remain logically expanded with a local filtered-out explanation and cached expansion data
+- **AND** changing filters SHALL reveal newly matching neighbors without a duplicate shard request
+- **AND** activating the filtered-empty node again SHALL collapse it.
 
-#### Scenario: Expanded node has many children
-- **WHEN** an expanded node has more direct children than fit in one readable ring
-- **THEN** children SHALL spill into stable additional rings or equivalent bounded groups
-- **AND** labels and hit targets SHALL remain recoverable without severe overlap.
+#### Scenario: User activates a related knowledge item
+- **WHEN** a user activates a Related Knowledge Points entry, directory item, search result, or deep link that resolves to a graph node
+- **THEN** that entry SHALL invoke the same activation resolver as the 2D and 3D graph node
+- **AND** an expandable target SHALL close the inspector, focus the canvas target, and expand or collapse it while a leaf target SHALL open or replace inspector content.
 
-#### Scenario: User has pinned graph positions
-- **WHEN** a user has dragged or pinned graph nodes
-- **THEN** focused expansion layout SHALL preserve user-pinned coordinates
-- **AND** it SHALL NOT reset unrelated graph layout state during selection, expansion, collapse, hover, or inspector updates.
+#### Scenario: Progressive graph payload identifies node behavior
+- **WHEN** root, expansion, active-filter, or remaining graph payloads return nodes
+- **THEN** each node SHALL carry a graph-version-consistent expansion state of expandable, leaf, or unknown
+- **AND** the client SHALL NOT infer leaf status solely from currently loaded links or node type.
+
+#### Scenario: User activates a node with keyboard
+- **WHEN** keyboard focus reaches a visible graph node through the graph or an equivalent synchronized semantic node surface
+- **THEN** Enter or Space SHALL invoke the same activation resolver as pointer activation
+- **AND** focus, busy, expanded, leaf, and error states SHALL be exposed without relying on color alone.
+
+### Requirement: Knowledge graph expansion motion explains local topology
+The knowledge graph SHALL use short, bounded motion to explain focus and neighborhood revelation while preserving stable canonical coordinates and a complete reduced-motion path.
+
+#### Scenario: Local neighborhood is revealed
+- **WHEN** an expandable node successfully reveals new neighbors and relations
+- **THEN** the graph SHALL use bounded focus emphasis, center-to-neighbor relation reveal, and staged node appearance to communicate origin and direction
+- **AND** the complete reveal SHALL finish promptly without adding expansion-specific continuous orbit, pulse, particle, or force-driven motion
+- **AND** existing relation-semantic direction encoding MAY remain active outside reduced-motion mode.
+
+#### Scenario: Expanded content falls outside the safe viewport
+- **WHEN** newly revealed nodes would be clipped by the graph viewport or inspector-safe area
+- **THEN** the graph MAY perform a bounded local camera translation
+- **AND** it SHALL NOT run full-graph zoom-to-fit, reset zoom, or change canonical node coordinates.
+
+#### Scenario: User prefers reduced motion
+- **WHEN** `prefers-reduced-motion: reduce` is active
+- **THEN** spatial interpolation, relation drawing, and reveal staggering SHALL be disabled or reduced to an immediate state transition
+- **AND** animated semantic particles SHALL stop while static relation lines, endpoints, and arrowheads preserve direction
+- **AND** focus, expandability, loading, success, and error states SHALL remain perceivable.
+
+### Requirement: Expanded graph neighborhoods use outward sectors
+The knowledge graph SHALL arrange newly revealed neighbors in a deterministic outward sector anchored to the expanded node so the result communicates reveal provenance without forming a complete-ring cross or moving existing graph content.
+
+#### Scenario: Node with reveal provenance is expanded
+- **WHEN** an expandable node that was first materialized by another expansion reveals new neighbors
+- **THEN** the graph SHALL orient the new-neighbor sector along the provenance-node→center vector and continue away from the provenance node
+- **AND** later relations to that center SHALL NOT rewrite its layout provenance before graph-version invalidation or explicit relayout.
+
+#### Scenario: Concurrent expansions reveal the same new neighbor
+- **WHEN** multiple expansion activations are in flight and their payloads can first materialize the same neighbor
+- **THEN** layout materialization and provenance claims SHALL commit in client activation-intent sequence rather than network response order
+- **AND** stable center id SHALL break any same-sequence batch tie
+- **AND** the winning provenance and resulting coordinate SHALL remain unchanged when later responses merge.
+
+#### Scenario: Node without reveal provenance is expanded
+- **WHEN** an expandable root or initially visible node has no layout provenance
+- **THEN** the graph SHALL choose from a fixed deterministic set of candidate sectors using occupied-space and label-overlap scoring
+- **AND** score ties SHALL resolve by stable candidate index so identical inputs produce identical placement.
+
+#### Scenario: Expansion identifies revealable neighbors
+- **WHEN** a chapter root or ordinary node is expanded
+- **THEN** a chapter root SHALL reveal outgoing `contains` neighbors and an ordinary node SHALL use canonical incident expansion relations
+- **AND** neighbor ordering SHALL use stable semantic-density, relation-type, directed-endpoint, importance, name, and id tie-breaks.
+
+#### Scenario: Expanded node has many new neighbors
+- **WHEN** newly materialized neighbors cannot fit on one readable arc within the chosen sector
+- **THEN** neighbors SHALL spill into stable additional arcs inside that sector
+- **AND** labels, semantic color, hit targets, and relation direction SHALL remain recoverable without using a complete 360-degree ring.
+
+#### Scenario: Revealable neighbor is already visible
+- **WHEN** an expanded node is related to a neighbor that already has a visible established or user-positioned coordinate
+- **THEN** the neighbor SHALL keep that coordinate and the graph SHALL reveal only the relevant relation
+- **AND** the layout SHALL NOT duplicate or relocate the neighbor to complete the local fan.
+
+#### Scenario: User has positioned graph nodes
+- **WHEN** a user has dragged or pinned graph nodes before another node is expanded
+- **THEN** sector expansion SHALL preserve all user-positioned coordinates and all unrelated established coordinates
+- **AND** it SHALL compute automatic coordinates only for newly materialized nodes.
+
