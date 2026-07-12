@@ -140,11 +140,9 @@ function changedFiles() {
     )) candidates.add(file);
   }
   if (candidates.size === 0) {
-    if (!hasGitRef('HEAD^')) {
-      throw new Error(
-        'commercial UI governance requires changed files, origin/integration, or enough git history for HEAD^ fallback.',
-      );
-    }
+    for (const file of lines(git(['show', '--format=', '--name-only', 'HEAD']))) candidates.add(file);
+  }
+  if (candidates.size === 0 && hasGitRef('HEAD^')) {
     for (const file of diffNameStatusRequired(
       ['HEAD^', 'HEAD'],
       'commercial UI governance failed to diff HEAD^ HEAD fallback',
