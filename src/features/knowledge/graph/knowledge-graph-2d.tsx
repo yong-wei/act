@@ -545,7 +545,7 @@ export function KnowledgeGraph2D({
       presentationRef.current = IDLE_KNOWLEDGE_GRAPH_PRESENTATION;
       setPresentation(IDLE_KNOWLEDGE_GRAPH_PRESENTATION);
     }, durationMs);
-  }, [activationSequenceByCenterId, collapsingNodeId, expandedDirectLinks, expandedNodeIds, graphVersion, materializedNodeIds, nodes, onCollapsePresentationComplete]);
+  }, [activationSequenceByCenterId, collapsingNodeId, expandedDirectLinks, expandedNodeIds, graphData.nodes, graphVersion, materializedNodeIds, nodes, onCollapsePresentationComplete]);
 
   const presentationKey = presentation.key;
   const presentationPhase = presentation.phase;
@@ -706,7 +706,16 @@ export function KnowledgeGraph2D({
       delete qaWindow.__knowledgeGraphQaCenterNode;
       delete qaWindow.__knowledgeGraphProductQaSelectedNodeDragPoints;
     };
-  }, [graphData, selectedNode?.id]);
+  }, [
+    expandedNodeIds,
+    graphData,
+    materializedNodeIds,
+    presentation.animatedNodeIds,
+    presentation.animatedRelationIds,
+    presentation.elapsedMs,
+    presentation.phase,
+    selectedNode?.id,
+  ]);
 
   // 2. 自定义节点渲染
   const paintNode = useCallback((node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
@@ -974,6 +983,7 @@ export function KnowledgeGraph2D({
   }, [fitViewVersion]);
 
   useEffect(() => {
+    const cameraTransition = cameraTransitionRef.current;
     const expandedIds = [...new Set(expandedNodeIds)];
     const newlyExpandedTarget = resolveFocusedExpansionRevealTarget(
       previousExpandedNodeIdsRef.current,
@@ -1079,7 +1089,7 @@ export function KnowledgeGraph2D({
 
     return () => {
       window.cancelAnimationFrame(animationFrame);
-      cameraTransitionRef.current.cancel();
+      cameraTransition.cancel();
     };
   }, [expandedDirectLinks, expandedNodeIds, graphData.nodes, height, width]);
 

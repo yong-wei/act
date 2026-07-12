@@ -476,7 +476,7 @@ export function KnowledgeGraphCanvas({
       presentationRef.current = IDLE_KNOWLEDGE_GRAPH_PRESENTATION;
       setPresentation(IDLE_KNOWLEDGE_GRAPH_PRESENTATION);
     }, durationMs);
-  }, [activationSequenceByCenterId, collapsingNodeId, expandedDirectLinks, expandedNodeIds, graphVersion, materializedNodeIds, nodes, onCollapsePresentationComplete]);
+  }, [activationSequenceByCenterId, collapsingNodeId, expandedDirectLinks, expandedNodeIds, graphData.nodes, graphVersion, materializedNodeIds, nodes, onCollapsePresentationComplete]);
 
   const presentationKey = presentation.key;
   const presentationPhase = presentation.phase;
@@ -672,7 +672,16 @@ export function KnowledgeGraphCanvas({
       delete qaWindow.__knowledgeGraphQaResetViewport;
       delete qaWindow.__knowledgeGraphQaCenterNode;
     };
-  }, [graphData, selectedNode?.id]);
+  }, [
+    expandedNodeIds,
+    graphData,
+    materializedNodeIds,
+    presentation.animatedNodeIds,
+    presentation.animatedRelationIds,
+    presentation.elapsedMs,
+    presentation.phase,
+    selectedNode?.id,
+  ]);
 
   // 2. 创建自定义节点 3D 对象
   const createNodeObject = useCallback((node: any) => {
@@ -879,7 +888,7 @@ export function KnowledgeGraphCanvas({
       if (progress < 0.35) return 0;
     }
     return getRelationThreeDimensionalEncoding(link.relationType || link.relation).directionalParticles;
-  }, [presentation.animateParticles, presentation.phase]);
+  }, [presentation]);
 
   const getLinkDirectionalParticleWidth = useCallback((link: any) => {
     return getRelationThreeDimensionalEncoding(link.relationType || link.relation).particleWidth;
@@ -910,6 +919,7 @@ export function KnowledgeGraphCanvas({
   }, [fitViewVersion]);
 
   useEffect(() => {
+    const cameraTransition = cameraTransitionRef.current;
     const expandedIds = [...new Set(expandedNodeIds)];
     const newlyExpandedTarget = resolveFocusedExpansionRevealTarget(
       previousExpandedNodeIdsRef.current,
@@ -1049,7 +1059,7 @@ export function KnowledgeGraphCanvas({
 
     return () => {
       window.cancelAnimationFrame(animationFrame);
-      cameraTransitionRef.current.cancel();
+      cameraTransition.cancel();
     };
   }, [expandedDirectLinks, expandedNodeIds, graphData.nodes, height, width]);
 

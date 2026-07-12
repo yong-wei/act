@@ -1,11 +1,11 @@
 {
   "change": "redesign-knowledge-graph-direct-manipulation",
-  "capturedAt": "2026-07-12T10:35:37.702Z",
+  "capturedAt": "2026-07-12T14:12:09.959Z",
   "sourceSha256": {
     "src/features/knowledge/knowledge-graph-system.tsx": "f847fb6244a9b62182d3937acd9184e9786910ddcdf9f777b0c193ece7ca6a6d",
     "src/features/knowledge/resource-panel/resource-panel.tsx": "22cfce0a17d8c797adfd8debdd1a43d5b2d485946134dcf1272ed80cd9f1484c",
-    "src/features/knowledge/graph/knowledge-graph-2d.tsx": "624ce9f315fe6f270d5021335393fa6845ab5fd1f51cb53ba61c25b0dc64203c",
-    "src/features/knowledge/graph/knowledge-graph-canvas.tsx": "0ff6993e1145d436a7af0b9ee59b920530067925e6ee2876bd9b683c0c740790",
+    "src/features/knowledge/graph/knowledge-graph-2d.tsx": "e9606875131bc899322b14354d9c51962d1924ad8901ba296690d841ce2c2bb4",
+    "src/features/knowledge/graph/knowledge-graph-canvas.tsx": "7a171cfaad846acfb1554411296c67d28960311141386baf45cfd4a168f5e110",
     "src/features/knowledge/graph/motion.ts": "c8ece885a41eaaad8788c9a60a7f39fef603ca1bdad2cc06c8eb996690f32cef",
     "src/features/knowledge/graph/camera-transition.ts": "1c316f56e23a63a6cc6fb8c6e78e2fea618a86a595660b0b6231d4b78890d746",
     "src/features/knowledge/graph/layout-engine.ts": "ddae2dfe69d2a257db5cadfca71c957a2b0779726b32e5b4cc81a8f792b77b4a",
@@ -27,14 +27,14 @@
       },
       "presentationHistory": [
         {
-          "at": 529.1000001430511,
+          "at": 530.8999998569489,
           "phase": "idle",
           "elapsedMs": 0,
           "animatedNodeCount": 0,
           "animatedRelationCount": 0
         },
         {
-          "at": 2965.4000000953674,
+          "at": 2974.899999856949,
           "phase": "revealing",
           "elapsedMs": 0,
           "animatedNodeCount": 1,
@@ -43,7 +43,7 @@
       ],
       "transitionPixelEvidence": {
         "available": true,
-        "nodeColorPixels": 527765
+        "nodeColorPixels": 528887
       },
       "canvasPixelEvidence": {
         "available": true,
@@ -57,7 +57,7 @@
         "viewMode": "2D",
         "presentation": {
           "phase": "revealing",
-          "elapsedMs": 15.099999999999909,
+          "elapsedMs": 14.100000190735045,
           "animatedNodeCount": 1,
           "animatedRelationCount": 1
         },
@@ -182,14 +182,14 @@
       },
       "presentationHistory": [
         {
-          "at": 1961.5,
+          "at": 1966.5999999046326,
           "phase": "idle",
           "elapsedMs": 0,
           "animatedNodeCount": 0,
           "animatedRelationCount": 0
         },
         {
-          "at": 4534.599999904633,
+          "at": 4566.799999952316,
           "phase": "revealing",
           "elapsedMs": 0,
           "animatedNodeCount": 1,
@@ -337,7 +337,7 @@
       },
       "presentationHistory": [
         {
-          "at": 307.7999999523163,
+          "at": 302.59999990463257,
           "phase": "idle",
           "elapsedMs": 0,
           "animatedNodeCount": 0,
@@ -350,7 +350,7 @@
       },
       "canvasPixelEvidence": {
         "available": true,
-        "nodeColorPixels": 37211
+        "nodeColorPixels": 37210
       },
       "expanded": {
         "selectedNodeId": "chapter-node:第一章",
