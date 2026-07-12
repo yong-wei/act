@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "node ./scripts/ops/clear-logs.mjs && next dev",
-    "build": "export PRISMA_GENERATE_SKIP_AUTOINSTALL=1; export NODE_OPTIONS=\"${NODE_OPTIONS:-} --disable-warning=DEP0205\"; node ./scripts/wasm/build-control-engine.mjs && npm run db:export-textbook-resources && prisma generate && node ./scripts/build-next-with-trace-check.mjs",
+    "build": "export PRISMA_GENERATE_SKIP_AUTOINSTALL=1; export NODE_OPTIONS=\"${NODE_OPTIONS:-} --disable-warning=DEP0205 --max-old-space-size=4096\"; node ./scripts/wasm/build-control-engine.mjs && npm run db:export-textbook-resources && prisma generate && node ./scripts/build-next-with-trace-check.mjs",
     "start": "node ./scripts/ops/clear-logs.mjs && next start -p 3001",
     "typecheck": "tsc --noEmit --pretty false",
     "verify:commit": "npm run typecheck && npm run verify:new-resource-semantics -- --staged",
