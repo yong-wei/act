@@ -2315,7 +2315,6 @@ function findVisualRouteInventoryEntry(
 ) {
   const resolvedRoute = resolvePlatformRouteInventory(href);
   return routeInventory.find((route) => route.href === resolvedRoute?.href)
-    ?? resolvedRoute
     ?? routeInventory.find((route) => route.href === href || route.aliases?.includes(href));
 }
 

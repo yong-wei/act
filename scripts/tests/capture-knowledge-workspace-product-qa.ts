@@ -380,7 +380,16 @@ async function probeFocusTarget(
   try {
     await open(page);
     await page.waitForSelector(panelSelector, { timeout: 8000 });
-    const openedFocusManaged = await activeElementWithin(page, panelSelector);
+    let openedFocusManaged = false;
+    try {
+      await page.waitForFunction((selector) => {
+        const panel = document.querySelector<HTMLElement>(selector);
+        return Boolean(panel && panel.contains(document.activeElement));
+      }, panelSelector, { timeout: 3000 });
+      openedFocusManaged = true;
+    } catch {
+      openedFocusManaged = await activeElementWithin(page, panelSelector);
+    }
     const keyboardReachable = openedFocusManaged || await focusableByTab(page, panelSelector);
     await close(page);
     await page.waitForTimeout(250);
@@ -637,7 +646,7 @@ async function captureState(browser: Browser, state: CaptureState) {
       url,
       theme: state.theme,
       viewport: { width: state.width, height: state.height },
-      navigationState: state.navigationState,
+      navigationState: state.navigationState === 'mobile' ? 'mobile-drawer' : state.navigationState,
       dockState: state.dockState,
       localToolState: state.localToolState,
       selectedNode: state.selectedNode,

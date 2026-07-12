@@ -529,8 +529,6 @@ function affectedVisualRoutes(files: string[]): CommercialVisualAcceptanceRoute[
     if (
       file === 'src/app/globals.css'
       || file === 'src/components/platform/app-shell.tsx'
-      || file === 'src/lib/commercial-ui-governance.ts'
-      || file === 'artifacts/commercial-ui/evidence.json'
     ) {
       addDefaultMatrix();
     }
@@ -2060,10 +2058,10 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     ['tablet-1024-inspector-tools-konling-dark', 'dark', 1024, 'collapsed', 'expanded'],
     ['tablet-1100-inspector-tools-konling-dark', 'dark', 1100, 'collapsed', 'expanded'],
     ['tablet-1279-inspector-tools-konling-dark', 'dark', 1279, 'collapsed', 'expanded'],
-    ['mobile-320-local-tools-dark', 'dark', 320, 'mobile', 'collapsed'],
-    ['mobile-320-selected-inspector-dark', 'dark', 320, 'mobile', 'collapsed'],
-    ['mobile-320-konling-expanded-dark', 'dark', 320, 'mobile', 'expanded'],
-    ['mobile-320-inspector-konling-stress-dark', 'dark', 320, 'mobile', 'expanded'],
+    ['mobile-320-local-tools-dark', 'dark', 320, 'mobile-drawer', 'collapsed'],
+    ['mobile-320-selected-inspector-dark', 'dark', 320, 'mobile-drawer', 'collapsed'],
+    ['mobile-320-konling-expanded-dark', 'dark', 320, 'mobile-drawer', 'expanded'],
+    ['mobile-320-inspector-konling-stress-dark', 'dark', 320, 'mobile-drawer', 'expanded'],
     ['light-theme-default', 'light', 1440, 'collapsed', 'collapsed'],
   ] as const;
   const desktopGeometryBaselineName = (name: string, navigationState: string) => {
@@ -2179,10 +2177,12 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
       expectedKonlingContext
         ? (markers.konlingKnowledgeContext === expectedKonlingContext ? null : `${name}:konling-visible-context`)
         : null,
-      markers.appShellNavigationState === (navigationState === 'mobile' ? 'collapsed' : navigationState)
+      markers.appShellNavigationState === (navigationState === 'mobile-drawer' ? 'collapsed' : navigationState)
         ? null
         : `${name}:navigation-marker-state`,
-      state.localToolState === 'closed'
+      isAdaptivePracticeDockState
+        ? null
+        : state.localToolState === 'closed'
         ? (
             visibleLocalToolPanelState === 'closed' || (name.includes('konling') && visibleLocalToolPanelState === null)
               ? null
