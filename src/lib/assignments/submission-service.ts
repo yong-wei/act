@@ -138,7 +138,7 @@ export async function consumeSubmissionAssetRead(prisma: PrismaClient, input: { 
   if (claimed.count !== 1) throw new SubmissionError('asset-access-token-invalid', 403);
   const asset = await prisma.submissionAsset.findUnique({ where: { id: input.assetId }, include: { answer: { include: { attempts: true, submission: { include: { student: { include: { profile: true } } } }, question: { include: { revision: { select: { assignmentId: true } } } } } } } });
   if (!asset || asset.state !== 'FINALIZED' || asset.answer.assignmentQuestionId !== input.questionId || asset.answer.question.revision.assignmentId !== input.assignmentId || asset.answer.submission.studentId !== input.studentId || !mayReadSubmission({ currentClassId: asset.answer.submission.student.profile?.classId, audienceClassId: asset.answer.submission.frozenAudienceClassId, studentId: input.studentId, ownerStudentId: asset.answer.submission.frozenStudentId, hasSubmittedAttempt: asset.answer.attempts.length > 0 })) throw new SubmissionError('asset-read-forbidden', 403);
-  return { objectKey: asset.objectKey, displayName: asset.originalName, mimeType: asset.mimeType, sizeBytes: asset.sizeBytes };
+  return { objectKey: asset.objectKey, displayName: asset.originalName, mimeType: asset.mimeType, sizeBytes: asset.sizeBytes, checksum: asset.checksum };
 }
 
 export async function submitQuestionAnswer(prisma: PrismaClient, input: { studentId: string; assignmentId: string; questionId: string; answerVersion: number; idempotencyKey: string; now?: Date }) {

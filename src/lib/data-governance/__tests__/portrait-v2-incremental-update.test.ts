@@ -309,6 +309,23 @@ describe('portrait v2 incremental updates', () => {
     expect(payload.dimensions).toHaveLength(7);
     expect(payload.dimensions.every((item) => item.score === 0)).toBe(true);
   });
+
+  it('serializes per-student materialization behind a transaction-scoped advisory lock', async () => {
+    const executeRaw = vi.fn(async () => 1);
+    const create = vi.fn(async ({ data }: { data: Record<string, unknown> }) => ({ id: 'portrait-locked', ...data }));
+    const db: any = {
+      $executeRaw: executeRaw,
+      $transaction: vi.fn(async (callback: (tx: unknown) => Promise<unknown>) => callback(db)),
+      studentPortraitV2Snapshot: { findFirst: vi.fn(async () => null), create },
+      learningFact: { findMany: vi.fn(async () => []) },
+    };
+
+    await materializeIncrementalPortraitV2(db, 'student-locked', { now: new Date('2026-05-02T00:00:00.000Z') });
+
+    expect(db.$transaction).toHaveBeenCalledTimes(1);
+    expect(executeRaw).toHaveBeenCalledTimes(1);
+    expect(executeRaw).toHaveBeenCalledWith(expect.anything());
+  });
 });
 
 function fact(id: string, contribution: Record<string, number>, contextJson: unknown) {

@@ -92,6 +92,23 @@ describe('assignment authoring persistence service', () => {
     expect(tx.assignmentAudience.createMany).not.toHaveBeenCalled();
   });
 
+  it('blocks administrators from publishing to inactive classes', async () => {
+    const tx = publicationTx({ totalPoints: 20, questionPoints: 20, rubricPoints: 20 });
+    tx.class.findMany.mockResolvedValueOnce([]);
+    await expect(publishAssignmentRevision(dbWithTransaction(tx), {
+      ...publicationInput(),
+      actor: { id: 'admin-1', role: 'ADMIN' },
+    })).rejects.toMatchObject({
+      code: 'publication-blocked',
+      details: ['unauthorized-audience:class-1'],
+    });
+    expect(tx.class.findMany).toHaveBeenCalledWith({
+      where: { id: { in: ['class-1'] }, isActive: true },
+      select: { id: true },
+    });
+    expect(tx.assignmentAudience.createMany).not.toHaveBeenCalled();
+  });
+
   it('freezes a valid revision transactionally and replays the same idempotency key without duplicate writes', async () => {
     const tx = publicationTx({ totalPoints: 20, questionPoints: 20, rubricPoints: 20 });
     await publishAssignmentRevision(dbWithTransaction(tx), publicationInput());

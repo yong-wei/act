@@ -215,7 +215,7 @@ export async function publishAssignmentRevision(db: AssignmentDb, input: {
     }
     if (draft.questions.length === 0) issues.push('assignment-has-no-questions');
     const managedClasses = await tx.class.findMany({
-      where: input.actor.role === 'ADMIN' ? { id: { in: input.audiences.map((item) => item.classId) } } : {
+      where: input.actor.role === 'ADMIN' ? { id: { in: input.audiences.map((item) => item.classId) }, isActive: true } : {
         id: { in: input.audiences.map((item) => item.classId) }, teacherId: input.actor.id, isActive: true,
       },
       select: { id: true },
