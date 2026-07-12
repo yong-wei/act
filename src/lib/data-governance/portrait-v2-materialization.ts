@@ -92,7 +92,12 @@ export async function materializeIncrementalPortraitV2(
   if (!db.$transaction) return materialize(db);
   return db.$transaction(async (tx) => {
     const transactionDb = tx as PortraitV2MaterializationDb;
-    await transactionDb.$executeRaw?.(Prisma.sql`SELECT pg_advisory_xact_lock(hashtext(${userId}))`);
+    if (typeof transactionDb.$executeRaw !== 'function') {
+      throw new Error('Portrait v2 materialization requires transaction advisory-lock support.');
+    }
+    await transactionDb.$executeRaw(
+      Prisma.sql`SELECT pg_advisory_xact_lock(hashtext(${'portrait-v2:' + userId}))`,
+    );
     return materialize(transactionDb);
   }) as Promise<{
     written: boolean;
