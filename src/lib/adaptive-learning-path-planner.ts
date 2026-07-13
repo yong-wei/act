@@ -3920,9 +3920,16 @@ function learnerEvidenceCount(
 ): number {
   const competencyEvidence = Object.keys(readiness.minimumCompetency)
     .map((dimension) => learnerState?.primaryCompetencies?.vector?.[dimension]?.evidenceCount ?? 0);
+  const portraitCompetencyEvidence = Object.keys(readiness.minimumCompetency)
+    .flatMap((dimension) => portraitDimensionIdsForTarget(dimension))
+    .map((portraitDimensionId) =>
+      learnerState?.primaryPortrait?.dimensions.find((dimension) => dimension.id === portraitDimensionId)
+        ?.evidenceSummary.totalCount ?? 0,
+    );
   return Math.max(
     learnerState?.evidence?.confidence?.evidenceCount ?? 0,
     ...competencyEvidence,
+    ...portraitCompetencyEvidence,
     0,
   );
 }

@@ -24,7 +24,13 @@ import {
   AUTOCONTROL_KAQ_OBJECTIVES,
 } from '../data-governance/autocontrol-kaq-graph-catalog';
 import { expandLearningGoalSubgraph } from '../graphs/goal-subgraph-expansion-service';
-import { derivePortraitV2Compatibility, projectPortraitV2ForConsumer } from '../data-governance/portrait-v2-model';
+import {
+  PORTRAIT_V2_CALCULATION_VERSION,
+  PORTRAIT_V2_DIMENSION_IDS,
+  createPortraitV2Payload,
+  derivePortraitV2Compatibility,
+  projectPortraitV2ForConsumer,
+} from '../data-governance/portrait-v2-model';
 import { buildKaqArtifactVersionRefs, GRAPH_CENTER_OVERLAY_VERSION } from '../kaq-artifact-versioning';
 import {
   applyCoreResourcePathReadinessDispositions,
@@ -4809,6 +4815,88 @@ describe('adaptive learning path planner', () => {
       'knowledge-card:low-risk-prep-card',
       'simulation:locked-validation-lab',
     ]);
+  });
+
+  it('uses native portrait v2 evidence for readiness gates without legacy learner state', () => {
+    const portraitNow = new Date('2026-05-27T08:00:00.000Z');
+    const generatedAt = portraitNow.toISOString();
+    const primaryPortrait = projectPortraitV2ForConsumer(createPortraitV2Payload({
+      userId: 'student-1',
+      generatedAt,
+      now: portraitNow,
+      dimensions: PORTRAIT_V2_DIMENSION_IDS.map((id, index) => ({
+        id,
+        score: 80,
+        confidence: 0.8,
+        freshness: {
+          state: 'current' as const,
+          asOf: generatedAt,
+          evidenceAgeDays: 0,
+        },
+        evidenceSummary: {
+          totalCount: 1,
+          sourceFamilyCounts: { LearningFact: 1 },
+        },
+        lastPositiveEvidenceAt: generatedAt,
+        lastNegativeEvidenceAt: null,
+        rationale: 'Governed evidence supports the current score.',
+        limitations: [],
+        sourceLineage: [
+          { kind: 'evidence-family' as const, ref: 'LearningFact', privacyScope: 'student-visible' as const },
+          {
+            kind: 'citation' as const,
+            ref: `citation-target:sha256:${index.toString(16).padStart(64, '0')}`,
+            privacyScope: 'student-visible' as const,
+          },
+        ],
+        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+      })),
+    }), 'planner', { now: portraitNow });
+    const registry = buildResourceNodeRegistry({
+      simulations: [{
+        id: 'native-portrait-evidence-gated-sim',
+        title: '原生肖像证据门槛仿真',
+        launchTarget: '/simulations/native-portrait-evidence-gated',
+        knowledgeNodeIds: ['kn-native-portrait-evidence'],
+        planningOverride: {
+          estimatedTimeMinutes: 10,
+          abilityImpact: { parameterDesign: 0.4 },
+          evidenceInstrumentation: ['simulation_run'],
+          readiness: {
+            minimumCompetency: { parameterDesign: 0.7 },
+            minimumEvidenceCount: 1,
+            requiredCompletedNodeIds: [],
+            requiredOutcomeRefs: [],
+            fallbackNodeIds: [],
+            unlockMessage: '原生肖像证据满足后解锁。',
+          },
+        },
+      }],
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: {
+        id: 'native-portrait-evidence-gate-goal',
+        title: '原生肖像证据门槛目标',
+        knowledgeTargets: ['kn-native-portrait-evidence'],
+        competencyTargets: ['parameterDesign'],
+      },
+      learnerState: { primaryPortrait },
+      constraints: {
+        timeBudgetMinutes: 30,
+        privacyScopes: ['student-visible'],
+      },
+    }));
+    const node = plan.mainPath.find((item) => item.nodeId === 'simulation:native-portrait-evidence-gated-sim');
+
+    expect(node).toEqual(expect.objectContaining({
+      readiness: expect.objectContaining({
+        state: 'ready',
+        missingCompetencies: [],
+        missingEvidenceCount: 0,
+      }),
+    }));
   });
 
   it('keeps repaired path nodes when only non-blocking checkpoint infeasibility remains', () => {
