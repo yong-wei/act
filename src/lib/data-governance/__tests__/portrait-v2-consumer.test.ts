@@ -182,7 +182,15 @@ describe('portrait v2 consumer adapters', () => {
       featureCache: null,
     });
     const summary = summarizePortraitV2(resolution.primaryPortrait);
-    const aggregate = aggregatePortraitV2([resolution.primaryPortrait]);
+    const payloadWithMissingDimensionScore = {
+      ...resolution.primaryPortrait,
+      dimensions: resolution.primaryPortrait.dimensions.map((dimension) =>
+        dimension.id === 'simulationValidationEvidence'
+          ? { ...dimension, score: 88 }
+          : dimension
+      ),
+    } as typeof resolution.primaryPortrait;
+    const aggregate = aggregatePortraitV2([payloadWithMissingDimensionScore]);
 
     expect(resolution.primaryPortrait.derivation.kind).toBe('compatibility-derived');
     expect(resolution.legacyCompatibility.source).toBe('StudentCompetencySnapshot');
@@ -190,6 +198,11 @@ describe('portrait v2 consumer adapters', () => {
     expect(summary.limitations).toContain('legacy-six-dimensional-input-is-non-authoritative');
     expect(aggregate.dimensionIds).toHaveLength(7);
     expect(aggregate.sourceCoverage.compatibilityLearners).toBe(1);
+    expect(aggregate.dimensions.simulationValidationEvidence).toMatchObject({
+      mean: 0,
+      evidenceCount: 0,
+      freshness: 'missing',
+    });
   });
 
   it('does not query unprovided legacy sources when a caller explicitly supplies null', async () => {

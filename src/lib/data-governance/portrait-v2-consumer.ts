@@ -282,7 +282,8 @@ export function aggregatePortraitV2(
         payload,
         dimension: payload.dimensions.find((item) => item.id === id),
       }))
-      .filter((item): item is { payload: PortraitV2PayloadShape; dimension: NonNullable<typeof item.dimension> } => Boolean(item.dimension));
+      .filter((item): item is { payload: PortraitV2PayloadShape; dimension: NonNullable<typeof item.dimension> } => Boolean(item.dimension))
+      .filter((item) => item.dimension.evidenceSummary.totalCount > 0);
     const scores = entries.map((item) => item.dimension.score);
     const mean = scores.length > 0 ? scores.reduce((sum, score) => sum + score, 0) / scores.length : 0;
     const variance = scores.length > 0

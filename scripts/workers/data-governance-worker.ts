@@ -875,8 +875,11 @@ function calculatePortraitLevelDistribution(payloads: PortraitV2PayloadShape[]) 
   const levels = { excellent: 0, good: 0, average: 0, needsImprovement: 0, atRisk: 0 };
 
   for (const payload of payloads) {
-    const scores = payload.dimensions.map((dimension) => dimension.score);
-    const avg = scores.length > 0 ? scores.reduce((sum, score) => sum + score, 0) / scores.length : 0;
+    const scores = payload.dimensions
+      .filter((dimension) => dimension.evidenceSummary.totalCount > 0)
+      .map((dimension) => dimension.score);
+    if (scores.length === 0) continue;
+    const avg = scores.reduce((sum, score) => sum + score, 0) / scores.length;
     if (avg >= 85) levels.excellent += 1;
     else if (avg >= 70) levels.good += 1;
     else if (avg >= 55) levels.average += 1;
