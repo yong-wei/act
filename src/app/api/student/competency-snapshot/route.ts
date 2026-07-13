@@ -116,8 +116,9 @@ export async function GET(_request: NextRequest) {
         const currentVector = portraitResolution.legacyCompatibility.vector;
         const snapshotAt = portrait.generatedAt;
         const portraitFactCount = portrait.dimensions.reduce((sum, dimension) => sum + dimension.evidenceCount, 0);
+        const riskFlags = await readActiveRiskFlags(userId);
         const recommendations = withPortraitRecommendationRationale(
-          generateSnapshotRecommendations(currentVector, [], {}, portraitFactCount, portrait),
+          generateSnapshotRecommendations(currentVector, riskFlags, {}, portraitFactCount, portrait),
           portrait,
         );
         return NextResponse.json({
@@ -136,7 +137,7 @@ export async function GET(_request: NextRequest) {
             Object.keys(currentVector).map((key) => [key, 'stable']),
           ) as unknown as TrendVector,
           evidenceSummary: mapEvidenceSummaryToPortrait({}),
-          riskFlags: [],
+          riskFlags,
           recommendations,
           diagnosis: materializeRoleBasedLearningDiagnosis({
             view: 'student',
@@ -199,25 +200,7 @@ export async function GET(_request: NextRequest) {
     );
     const portraitEvidenceSummary = mapEvidenceSummaryToPortrait(evidenceSummary);
 
-    // Get risk flags
-    const rawRiskFlags = await prisma.studentRiskFlag.findMany({
-      where: {
-        userId,
-        isResolved: false,
-      },
-      orderBy: { triggeredAt: 'desc' },
-      take: 10,
-    });
-
-    const riskFlags = dedupeRiskFlags(
-      rawRiskFlags.map((rf) => ({
-        type: rf.flagType as RiskFlag['type'],
-        severity: rf.severity as RiskFlag['severity'],
-        description: rf.description,
-        evidence: rf.evidenceJson as Record<string, unknown>,
-        triggeredAt: rf.triggeredAt,
-      }))
-    );
+    const riskFlags = await readActiveRiskFlags(userId);
 
     // Calculate trend vector
     // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: vector remains for trend and deprecated response compatibility only.
@@ -283,6 +266,27 @@ export async function GET(_request: NextRequest) {
     console.error('[StudentSnapshot] Error:', error);
     return NextResponse.json({ error: '服务器错误' }, { status: 500 });
   }
+}
+
+async function readActiveRiskFlags(userId: string): Promise<RiskFlag[]> {
+  const rawRiskFlags = await prisma.studentRiskFlag.findMany({
+    where: {
+      userId,
+      isResolved: false,
+    },
+    orderBy: { triggeredAt: 'desc' },
+    take: 10,
+  });
+
+  return dedupeRiskFlags(
+    rawRiskFlags.map((rf) => ({
+      type: rf.flagType as RiskFlag['type'],
+      severity: rf.severity as RiskFlag['severity'],
+      description: rf.description,
+      evidence: rf.evidenceJson as Record<string, unknown>,
+      triggeredAt: rf.triggeredAt,
+    }))
+  );
 }
 
 function sanitizeEvidenceSummary(

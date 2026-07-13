@@ -248,6 +248,11 @@ describe('GET /api/student/competency-snapshot', () => {
     expect(body.currentSnapshot.factCount).toBeGreaterThan(0);
     expect(body.currentSnapshot.portrait.dimensions).toHaveLength(7);
     expect(body.currentSnapshot.portrait.derivationKind).toBe('compatibility-derived');
+    expect(body.riskFlags).toEqual(expect.arrayContaining([
+      expect.objectContaining({ type: 'participation', severity: 'high' }),
+      expect.objectContaining({ type: 'cross_domain', severity: 'medium' }),
+    ]));
+    expect(body.recommendations.map((item: { title: string }) => item.title)).toContain('增加学习活跃度');
   });
 
   it('keeps an evidence-free native portrait in the empty response branch', async () => {
