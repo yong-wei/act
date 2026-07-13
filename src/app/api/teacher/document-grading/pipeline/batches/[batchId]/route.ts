@@ -23,7 +23,8 @@ export async function POST(request: Request, context: { params: Promise<{ batchI
     if ('response' in actorResult) return actorResult.response;
     const { batchId } = await context.params;
     const body = mutationSchema.parse(await readGradingJson(request));
-    const mutation = validatePipelineMutation({ request, body, requiresRerunReason: body.action === 'retry-item' });
+    const mutationBody = body.action === 'retry-item' ? { ...body, rerunReason: body.reason } : body;
+    const mutation = validatePipelineMutation({ request, body: mutationBody, requiresRerunReason: body.action === 'retry-item' });
     const quota = await enforceGradingQuota({ db: prisma, subjectType: 'user', subjectId: actorResult.actor.id, scope: 'batch-control', maxRequests: 50 });
     if (!quota.allowed) return NextResponse.json({ error: 'grading-quota-exceeded' }, { status: 429, headers: { 'Retry-After': String(quota.retryAfterSeconds ?? 60) } });
     if (body.action === 'cancel') {

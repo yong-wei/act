@@ -32,6 +32,7 @@ REDIS_NAME_HINT="${REDIS_NAME_HINT:-act-obe-redis}"
 WORKER_NAME_HINT="${WORKER_NAME_HINT:-act-obe-worker}"
 GC_NAME_HINT="${GC_NAME_HINT:-act-obe-submission-gc}"
 REMOTE_APP_IMAGE="${REMOTE_APP_IMAGE:-localhost/act-obe-platform:20260301-amd64}"
+MATH_DOCUMENT_GRADING_WORKER_REQUIRED="${MATH_DOCUMENT_GRADING_WORKER_REQUIRED:-true}"
 
 REMOTE_TMP_TAR="${REMOTE_IMAGE_TAR}.tmp"
 REMOTE_TMP_APP_DEPLOY_SCRIPT="${REMOTE_APP_DEPLOY_SCRIPT}.tmp"
@@ -398,13 +399,19 @@ remote "podman inspect '${APP_NAME_HINT}' --format '{{range .Config.Env}}{{print
 remote "podman inspect '${APP_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^DATABASE_URL=.*connection_limit=10&pool_timeout=20'"
 remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^KONLING_SERVER_MODE_CONTEXT_SECRET='"
 remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^REDIS_URL=redis://${REDIS_NAME_HINT}\\.dns\\.podman:6379$'"
-remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^MATH_DOCUMENT_GRADING_WORKER_REQUIRED=true$'"
+if [[ "${MATH_DOCUMENT_GRADING_WORKER_REQUIRED}" =~ ^(1|true|yes)$ ]]; then
+  remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -Eq '^MATH_DOCUMENT_GRADING_WORKER_REQUIRED=(1|true|yes)$'"
+else
+  remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -Eq '^MATH_DOCUMENT_GRADING_WORKER_REQUIRED=(0|false|no)$'"
+fi
 remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^SUBMISSION_S3_ENDPOINT='"
 remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^SUBMISSION_SCANNER_MODE=s3-object-tag$'"
 remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^SUBMISSION_SCANNER_ACCESS_KEY='"
-remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^MATHPIX_APP_ID='"
-remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^MATHPIX_APP_KEY='"
-remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -Eq '^(AI_API_KEY|SILICONFLOW_API_KEY)='"
+if [[ "${MATH_DOCUMENT_GRADING_WORKER_REQUIRED}" =~ ^(1|true|yes)$ ]]; then
+  remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^MATHPIX_APP_ID='"
+  remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^MATHPIX_APP_KEY='"
+  remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -Eq '^(AI_API_KEY|SILICONFLOW_API_KEY)='"
+fi
 remote "podman inspect '${APP_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -Eq '^GRADING_AUDIT_SECRET=.+$'"
 remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -Eq '^GRADING_AUDIT_SECRET=.+$'"
 remote "podman inspect '${GC_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -Eq '^GRADING_AUDIT_SECRET=.+$'"
@@ -414,10 +421,14 @@ remote "podman inspect '${GC_NAME_HINT}' --format '{{range .Config.Env}}{{printl
 
 log "- 校验 worker 启动日志"
 remote "podman logs --tail 120 '${WORKER_NAME_HINT}' | grep -q '\\[Worker\\] Data governance worker started'"
-remote "podman logs --tail 120 '${WORKER_NAME_HINT}' | grep -q '\\[MathDocumentGrading\\] worker started'"
-remote "podman exec '${REDIS_NAME_HINT}' redis-cli get math-document-grading:worker:heartbeat | grep -qx ready"
-remote "podman exec '${REDIS_NAME_HINT}' redis-cli get math-document-grading:worker:capability | grep -q '\"configReady\":true'"
-remote "podman exec '${REDIS_NAME_HINT}' redis-cli get math-document-grading:worker:capability | grep -q '\"auditSecret\":true'"
+if [[ "${MATH_DOCUMENT_GRADING_WORKER_REQUIRED}" =~ ^(1|true|yes)$ ]]; then
+  remote "podman logs --tail 120 '${WORKER_NAME_HINT}' | grep -q '\\[MathDocumentGrading\\] worker started'"
+  remote "podman exec '${REDIS_NAME_HINT}' redis-cli get math-document-grading:worker:heartbeat | grep -qx ready"
+  remote "podman exec '${REDIS_NAME_HINT}' redis-cli get math-document-grading:worker:capability | grep -q '\"configReady\":true'"
+  remote "podman exec '${REDIS_NAME_HINT}' redis-cli get math-document-grading:worker:capability | grep -q '\"auditSecret\":true'"
+else
+  log "- 数学文档批改 worker 已禁用，跳过其专用健康检查"
+fi
 
 log "- 校验 scheduler 已注册 BullMQ 任务"
 remote "podman exec '${REDIS_NAME_HINT}' redis-cli --scan --pattern 'bull:*' | grep -q 'bull:'"

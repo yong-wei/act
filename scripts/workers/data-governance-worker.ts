@@ -962,11 +962,15 @@ async function startWorkers() {
 
   redis = new Redis(REDIS_URL, { maxRetriesPerRequest: null });
   prisma = createPrismaClient();
-  mathDocumentGradingController = await createMathDocumentGradingWorker({
-    db: prisma,
-    redis,
-    concurrency: Number(process.env.MATH_DOCUMENT_GRADING_WORKER_CONCURRENCY ?? WORKER_CONCURRENCY),
-  });
+  if (isMathDocumentGradingWorkerRequired()) {
+    mathDocumentGradingController = await createMathDocumentGradingWorker({
+      db: prisma,
+      redis,
+      concurrency: Number(process.env.MATH_DOCUMENT_GRADING_WORKER_CONCURRENCY ?? WORKER_CONCURRENCY),
+    });
+  } else {
+    console.log('[Worker] Math document grading worker disabled by MATH_DOCUMENT_GRADING_WORKER_REQUIRED');
+  }
 
   redis.on('error', (error) => {
     if (isInfrastructureError(error)) {
@@ -1031,6 +1035,10 @@ async function startWorkers() {
 
   console.log('[Worker] Data governance worker started');
   console.log(`[Worker] Concurrency: ${WORKER_CONCURRENCY}`);
+}
+
+function isMathDocumentGradingWorkerRequired(): boolean {
+  return ['1', 'true', 'yes'].includes((process.env.MATH_DOCUMENT_GRADING_WORKER_REQUIRED ?? 'true').toLowerCase());
 }
 
 async function shutdown(exitCode: number) {

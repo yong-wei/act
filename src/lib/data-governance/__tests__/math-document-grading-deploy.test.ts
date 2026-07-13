@@ -138,6 +138,22 @@ describe('math-document grading production entrypoint contract', () => {
     }
   });
 
+  it('maps batch retry reason into the shared rerun-reason validation contract', () => {
+    const route = read('src/app/api/teacher/document-grading/pipeline/batches/[batchId]/route.ts');
+    expect(route).toContain('rerunReason: body.reason');
+  });
+
+  it('keeps the optional math worker disabled across startup and health checks', () => {
+    const worker = read('scripts/workers/data-governance-worker.ts');
+    const deploy = read('deploy/podman/deploy.sh');
+    const remoteDeploy = read('scripts/remote-deploy.sh');
+    expect(worker).toContain('isMathDocumentGradingWorkerRequired()');
+    expect(worker).toContain('Math document grading worker disabled by MATH_DOCUMENT_GRADING_WORKER_REQUIRED');
+    expect(deploy).toContain('process.env.MATH_DOCUMENT_GRADING_WORKER_REQUIRED || \\\"true\\\"');
+    expect(remoteDeploy).toContain('MATH_DOCUMENT_GRADING_WORKER_REQUIRED="${MATH_DOCUMENT_GRADING_WORKER_REQUIRED:-true}"');
+    expect(remoteDeploy).toContain('数学文档批改 worker 已禁用，跳过其专用健康检查');
+  });
+
   it('does not accept client evaluator identity on the provider-backed API surface', () => {
     for (const route of [
       'src/app/api/teacher/document-grading/pipeline/grading/route.ts',
