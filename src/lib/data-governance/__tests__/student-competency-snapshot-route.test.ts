@@ -242,9 +242,9 @@ describe('GET /api/student/competency-snapshot', () => {
 
     expect(response.status).toBe(200);
     expect(body.currentSnapshot).toMatchObject({
-      factCount: 0,
       snapshotAt: now.toISOString(),
     });
+    expect(body.currentSnapshot.factCount).toBeGreaterThan(0);
     expect(body.currentSnapshot.portrait.dimensions).toHaveLength(7);
     expect(body.currentSnapshot.portrait.derivationKind).toBe('compatibility-derived');
   });

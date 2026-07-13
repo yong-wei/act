@@ -116,8 +116,9 @@ export async function GET(_request: NextRequest) {
       if (hasPortraitV2Data) {
         const currentVector = portraitResolution.legacyCompatibility.vector;
         const snapshotAt = portrait.generatedAt;
+        const portraitFactCount = portrait.dimensions.reduce((sum, dimension) => sum + dimension.evidenceCount, 0);
         const recommendations = withPortraitRecommendationRationale(
-          generateSnapshotRecommendations(currentVector, [], {}, 0, portrait),
+          generateSnapshotRecommendations(currentVector, [], {}, portraitFactCount, portrait),
           portrait,
         );
         return NextResponse.json({
@@ -129,7 +130,7 @@ export async function GET(_request: NextRequest) {
             },
             vector: currentVector,
             snapshotAt,
-            factCount: 0,
+            factCount: portraitFactCount,
           },
           previousSnapshot: null,
           trendVector: Object.fromEntries(

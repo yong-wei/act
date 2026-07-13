@@ -258,7 +258,7 @@ export async function GET(
 
     // Build response
     const response: HeatmapData = {
-      students: classStudents.filter((student) => studentIdsWithPortraitEvidence.has(student.userId)).map(cs => ({
+      students: classStudents.map(cs => ({
         id: cs.user.id,
         name: cs.user.name,
         avatar: cs.user.image,
