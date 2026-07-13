@@ -4,11 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, ChevronRight, Filter, RefreshCw } from 'lucide-react';
 
-import {
-  COMPETENCY_DIMENSIONS,
-  getCompetencyLabel,
-  type CompetencyDimension,
-} from '@/lib/data-governance/competency-model';
+import { PORTRAIT_V2_DIMENSIONS } from '@/lib/data-governance/kaq-objective-taxonomy';
 import type { EvidenceTimelineItem } from '@/lib/data-governance/evidence-timeline';
 
 interface EvidenceTimelineBrowserPayload {
@@ -228,8 +224,8 @@ export function EvidenceTimelineBrowser({
                 className="input-themed mt-2 w-full rounded-lg px-3 py-2"
               >
                 <option value="">全部维度</option>
-                {COMPETENCY_DIMENSIONS.map((item) => (
-                  <option key={item} value={item}>{getCompetencyLabel(item)}</option>
+                {PORTRAIT_V2_DIMENSIONS.map((item) => (
+                  <option key={item.id} value={item.id}>{item.label}</option>
                 ))}
               </select>
             </label>

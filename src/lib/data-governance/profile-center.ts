@@ -18,6 +18,11 @@ import type {
   StudentEvidenceStatusMarker,
   StudentEvidenceWindow,
 } from '@/lib/data-governance/student-evidence-feature-cache';
+import {
+  summarizePortraitV2,
+  type PortraitV2ConsumerSummary,
+} from '@/lib/data-governance/portrait-v2-consumer';
+import type { PortraitV2PayloadShape } from '@/lib/data-governance/portrait-v2-model';
 
 export type ProfileActivityCategory = 'classroom' | 'interactive' | 'simulation' | 'assessment';
 
@@ -147,6 +152,26 @@ export function buildCompetencyDimensions(vector: CompetencyVector) {
     confidence: Number(vector[key].confidence.toFixed(2)),
     evidenceCount: vector[key].evidenceCount,
   }));
+}
+
+export function buildPortraitV2Dimensions(payload: PortraitV2PayloadShape) {
+  const summary = summarizePortraitV2(payload);
+  return summary.dimensions.map((dimension) => ({
+    key: dimension.id,
+    label: dimension.label,
+    description: dimension.description,
+    score: Math.round(dimension.score),
+    trend: dimension.trend,
+    confidence: Number(dimension.confidence.toFixed(2)),
+    evidenceCount: dimension.evidenceCount,
+    freshness: dimension.freshness,
+    limitations: dimension.limitations,
+    calculationVersion: dimension.calculationVersion,
+  }));
+}
+
+export function summarizePortraitForProfile(payload: PortraitV2PayloadShape): PortraitV2ConsumerSummary {
+  return summarizePortraitV2(payload);
 }
 
 export function getCompetencyLevelLabel(level: keyof typeof COMPETENCY_LEVELS) {

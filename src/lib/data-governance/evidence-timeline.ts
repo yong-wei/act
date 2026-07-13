@@ -2,18 +2,21 @@ import type { LearningFact, Prisma } from '@prisma/client';
 
 import type { EvidenceQuestionSummary } from './competency-engine';
 import {
-  COMPETENCY_DIMENSIONS,
-  type CompetencyDimension,
-} from './competency-model';
+  mapLegacyCompetencyDimensionToPortraitV2,
+  PORTRAIT_V2_DIMENSION_IDS,
+  type PortraitV2DimensionId,
+} from './kaq-objective-taxonomy';
+import { COMPETENCY_DIMENSIONS, type CompetencyDimension } from './competency-model';
 import {
   summarizeSubmissionEvidencePayload,
   type SubmissionEvidenceQuality,
 } from './submission-evidence-quality';
+// PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy dimension filters remain accepted for historical evidence queries.
 
 export interface EvidenceTimelineFilters {
   cursor?: string;
   limit?: number;
-  dimension?: CompetencyDimension;
+  dimension?: PortraitV2DimensionId | CompetencyDimension;
   lessonId?: string;
   factType?: string;
   outcome?: string;
@@ -696,17 +699,28 @@ function resolveQuality(
 
 function matchesDimension(
   fact: LearningFactTimelineRecord,
-  dimension?: CompetencyDimension
+  dimension?: PortraitV2DimensionId | CompetencyDimension
 ): boolean {
   if (!dimension) return true;
   const contribution = readNumericRecord(fact.competencyContribution);
-  return Number.isFinite(contribution[dimension]) && contribution[dimension] !== 0;
+  if (COMPETENCY_DIMENSIONS.includes(dimension as CompetencyDimension)) {
+    return Number.isFinite(contribution[dimension as CompetencyDimension]) &&
+      contribution[dimension as CompetencyDimension] !== 0;
+  }
+  const portraitDimension = dimension as PortraitV2DimensionId;
+  return COMPETENCY_DIMENSIONS.some((legacyDimension) =>
+    mapLegacyCompetencyDimensionToPortraitV2(legacyDimension).targetDimensions.includes(portraitDimension) &&
+    Number.isFinite(contribution[legacyDimension]) && contribution[legacyDimension] !== 0
+  );
 }
 
-function parseDimension(value: string | null): CompetencyDimension | undefined {
+function parseDimension(value: string | null): PortraitV2DimensionId | CompetencyDimension | undefined {
   const dimension = readSearchString(value);
-  return COMPETENCY_DIMENSIONS.includes(dimension as CompetencyDimension)
-    ? dimension as CompetencyDimension
+  if (COMPETENCY_DIMENSIONS.includes(dimension as CompetencyDimension)) {
+    return dimension as CompetencyDimension;
+  }
+  return PORTRAIT_V2_DIMENSION_IDS.includes(dimension as PortraitV2DimensionId)
+    ? dimension as PortraitV2DimensionId
     : undefined;
 }
 

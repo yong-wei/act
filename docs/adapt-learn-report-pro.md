@@ -63,14 +63,14 @@ flowchart LR
 | 船舶仿真 | `SimulationLog`、`workspace_param_change`、`simulation_finish` | `score`、`duration`、`avgError`、`maxRudderRate` 等 | 任务级 | 高 | 在能力映射中占权重大，是参数设计与工程约束的重要来源。fileciteturn41file0 fileciteturn93file0 fileciteturn97file0 |
 | 竞技场与综合控制仿真 | `ArenaSubmission`、`ArenaEvaluationRun`、Arena evidence summary | `taskId`、`score`、`valid`、硬约束结果、满意度分布、方法偏好 | 提交级 | 中高 | 竞技场已开始沉淀班级/个人证据摘要，但更多是评测层，不是路径层。fileciteturn100file0 fileciteturn92file0 |
 | 自适应习题 | `/api/assessment/next-question`、`submit-answer`、`diagnostic`、`adaptive-engine.ts` | `questionId`、`selectedOption`、`timeSpent`、`estimatedAbility` | 题目级 | 低 | 当前为原型：内存态、无持久化、无治理接入。fileciteturn64file0 fileciteturn65file0 fileciteturn67file0 |
-| 画像聚合 | `StudentCompetencySnapshot`、`StudentProfileSummary`、`StudentEvidenceFeatureCache` | 六维能力、overallScore、trend、riskFlags、evidenceWindow、sourceCoverage、confidence | 批处理/刷新 | 高 | 这是当前平台最成熟的画像资产。fileciteturn37file0 fileciteturn41file0 fileciteturn43file0 |
+| 画像聚合 | `StudentPortraitV2Snapshot`、`StudentProfileSummary`、`StudentEvidenceFeatureCache` | 七维 portrait v2、overallScore、trend、riskFlags、evidenceWindow、sourceCoverage、confidence；旧 `StudentCompetencySnapshot` 仅作兼容输入 | 批处理/刷新 | 高 | 这是当前平台最成熟的画像资产。fileciteturn37file0 fileciteturn41file0 fileciteturn43file0 |
 | 教师洞察 | `/api/teacher/classes/[classId]/insights` | 班级能力统计、风险、evidenceStatus、session quality | 页面读取时 | 中高 | 已可看到“可信度/覆盖度”，但还缺 drill-down 到路径干预。fileciteturn44file0 fileciteturn45file0 fileciteturn46file0 |
 | 管理治理 | `/api/admin/data-governance/status` | 证据源覆盖、cache 健康、队列、session 质量 | 页面读取时 | 高 | 适合继续扩展为数据质量控制台。fileciteturn91file0 fileciteturn49file0 fileciteturn92file0 |
 | 控灵 | `GlobalAIProvider`、`/api/ai/chat`、`/api/ai/sessions/*`、`/api/ai/konling-context` | `pageContext`、`userProfile`、session messages、simulation tools | 会话级 | 低到中 | 框架完整，但画像接入和记忆层明显不足。fileciteturn84file0 fileciteturn79file0 fileciteturn78file0 fileciteturn75file0 |
 
 ### 学生画像当前能力维度与控灵现状
 
-当前正式进入画像聚合与推荐体系的能力维度是六维：**控制建模与分析、参数设计与调优、跨域迁移与联动、工程决策与约束、探究反思与提示词、自主学习进展**。这六维本身并不差，问题不在命名，而在粒度：它们更像**上层教学能力维**，尚未下钻为知识节点掌握、资源偏好、媒体理解、实验严谨性、AI 协作策略等可用于在线路径规划的中间表征。fileciteturn93file0
+当前正式进入画像聚合与推荐体系的主能力维度是七维 portrait v2：**控制建模与表征、系统分析与解释、控制器设计与综合、仿真验证与证据、工程约束与安全、迁移整合与应用、反思改进与 AI 协作**。历史六维 `competencyVector` 仍保留在迁移和审计边界内，但只能通过显式兼容映射参与回退，不能作为在线路径、推荐或页面的主画像。fileciteturn93file0
 
 控灵则处于“**界面层比状态层成熟**”的阶段：页面上下文类型定义较完整，课程 AI 上下文注册表也相当庞大，说明作者已经为不同课程和步骤准备了上下文脚手架；但全局 Provider 里画像仍是默认值，Prompt Builder 依赖静态学习风格和简化能力向量，会话 API 也没有真正的 learner-state 检索，因此控灵当前更像“带课程语气的聊天助手”，还不是“以学习轨迹为核心的教学协作智能体”。fileciteturn72file0 fileciteturn73file0 fileciteturn74file0 fileciteturn84file0 fileciteturn85file0
 
@@ -153,7 +153,7 @@ flowchart TD
 
 ### 学生画像数据源与能力维度扩展
 
-当前仓库的六维能力模型适合作为**一级能力维**继续保留；但为了支撑真正的路径规划，需要在其下增设二级状态维。建议结构如下：
+当前仓库的历史六维能力模型适合作为**兼容输入**继续保留；七维 portrait v2 负责主画像展示和决策。为了支撑真正的路径规划，还需要在 portrait v2 下增设二级状态维。建议结构如下：
 
 | 一级维度 | 建议二级维度 | 量化方式 |
 |---|---|---|

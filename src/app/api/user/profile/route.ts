@@ -1,7 +1,7 @@
 /**
  * 用户画像 API
  *
- * 统一返回学生个人中心所需的六维能力画像、最近活动和个性化补强信息。
+ * 统一返回学生个人中心所需的七维 portrait v2 画像、最近活动和个性化补强信息。
  */
 
 import { NextResponse } from 'next/server';
@@ -10,32 +10,27 @@ import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import {
   buildAdaptivePracticeSummary,
-  buildCompetencyDimensions,
+  buildPortraitV2Dimensions,
   buildProfileActivityFeed,
   buildStudentProfileEvidenceStatus,
   dedupeRecommendations,
   getCompetencyLevelLabel,
   mapRecommendationsToResourceCards,
+  summarizePortraitForProfile,
   type AdaptivePracticeSummary,
   type PersonalizedResourceCard,
   type ProfileActivityGroup,
   type ProfileActivityItem,
   type StudentProfileEvidenceStatus,
 } from '@/lib/data-governance/profile-center';
-import {
-  calculateOverallScore,
-  createEmptyCompetencyVector,
-  getCompetencyLevel,
-  type CompetencyDimension,
-  type CompetencyVector,
-} from '@/lib/data-governance/competency-model';
+import { getCompetencyLevel } from '@/lib/data-governance/competency-model';
 import { generateRecommendations } from '@/lib/data-governance/recommendation-engine';
 import { readStudentEvidenceFeatures } from '@/lib/data-governance/student-evidence-feature-cache';
 import {
-  isAdaptiveLearnerStateServiceEnabled,
   readAdaptiveLearnerState,
   type AdaptiveLearnerState,
 } from '@/lib/data-governance/adaptive-learner-state-service';
+import { resolvePrimaryPortraitV2 } from '@/lib/data-governance/portrait-v2-consumer';
 import {
   getAbilityReportWithPersistenceFallback,
   getDiagnosticWithPersistenceFallback,
@@ -72,19 +67,25 @@ export interface UserProfileResponse {
     averageScore: number;
   };
   competency: {
+    model: 'portrait-v2';
+    derivationKind: 'native' | 'migrated' | 'compatibility-derived';
+    limitations: string[];
     overallScore: number;
     level: string;
     trend: string;
     strengths: string[];
     weaknesses: string[];
     dimensions: Array<{
-      key: CompetencyDimension;
+      key: string;
       label: string;
       description: string;
       score: number;
       trend: 'up' | 'stable' | 'down';
       confidence: number;
       evidenceCount: number;
+      freshness: { state: string; asOf: string | null; evidenceAgeDays: number | null };
+      limitations: string[];
+      calculationVersion: string;
     }>;
   };
   recentActivity: {
@@ -377,15 +378,14 @@ export async function GET() {
         },
       }),
       readStudentEvidenceFeatures(prisma, userId),
-      isAdaptiveLearnerStateServiceEnabled()
-        ? readAdaptiveLearnerState(prisma, {
-            userId,
-            role: 'student',
-          }).catch((error) => {
-            console.error('[UserProfile] Learner state read failed:', error);
-            return null;
-          })
-        : Promise.resolve(null),
+      readAdaptiveLearnerState(prisma, {
+        userId,
+        role: 'student',
+        portraitConsumer: 'student',
+      }).catch((error) => {
+        console.error('[UserProfile] Learner state read failed:', error);
+        return null;
+      }),
       prisma.studentState.findMany({
         where: { userId },
         orderBy: { submittedAt: 'desc' },
@@ -430,15 +430,24 @@ export async function GET() {
         : [];
 
     const sessionMap = new Map(classSessions.map((item) => [item.id, item]));
-    const competencyVector =
-      (latestSnapshot?.competencyVector as CompetencyVector | null) ?? createEmptyCompetencyVector();
-    const competencyDimensions = buildCompetencyDimensions(competencyVector);
-    const overallScore = Math.round(
-      (profileSummary?.overallScore ?? calculateOverallScore(competencyVector)) * 10
-    ) / 10;
-    const level =
-      profileSummary?.overallLevel ??
-      getCompetencyLevelLabel(getCompetencyLevel(overallScore));
+    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: direct snapshot/cache reads only feed explicit v2 fallback resolution.
+    const portraitPayload = Array.isArray(adaptiveLearnerState?.primaryPortrait?.dimensions)
+      ? adaptiveLearnerState.primaryPortrait
+      : (await resolvePrimaryPortraitV2(prisma, userId, 'student', {
+          legacySnapshot: latestSnapshot as Record<string, unknown> | null,
+          featureCache: studentEvidenceFeatureRead.cache as Record<string, unknown> | null,
+        }).catch(() => null))?.primaryPortrait;
+    const portraitSummary = portraitPayload
+      ? summarizePortraitForProfile(portraitPayload)
+      : null;
+    const competencyDimensions = portraitPayload
+      ? buildPortraitV2Dimensions(portraitPayload)
+      : [];
+    const overallScore = portraitSummary?.overallScore ?? 0;
+    const level = getCompetencyLevelLabel(getCompetencyLevel(overallScore));
+    const portraitLabels = new Map(
+      portraitSummary?.dimensions.map((dimension) => [dimension.id, dimension.label]) ?? []
+    );
 
     const totalSimulations = simulationStats._count._all;
     const completedMissions = missionProgress.filter((item) => item.status === 'COMPLETED').length;
@@ -567,11 +576,14 @@ export async function GET() {
         averageScore,
       },
       competency: {
+        model: 'portrait-v2',
+        derivationKind: portraitSummary?.derivationKind ?? 'compatibility-derived',
+        limitations: portraitSummary?.limitations ?? ['missing-native-portrait-v2-evidence'],
         overallScore,
         level,
         trend: profileSummary?.recentTrend ?? '近期表现平稳',
-        strengths: parseStringList(profileSummary?.strengthsJson),
-        weaknesses: parseStringList(profileSummary?.weaknessesJson),
+        strengths: portraitSummary?.strengths.map((id) => portraitLabels.get(id) ?? id) ?? [],
+        weaknesses: portraitSummary?.weaknesses.map((id) => portraitLabels.get(id) ?? id) ?? [],
         dimensions: competencyDimensions,
       },
       recentActivity,

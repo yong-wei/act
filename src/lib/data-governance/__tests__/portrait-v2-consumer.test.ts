@@ -1,0 +1,131 @@
+import { describe, expect, it, vi } from 'vitest';
+
+import { createEmptyCompetencyVector } from '../competency-model';
+import { PORTRAIT_V2_DIMENSIONS } from '../kaq-objective-taxonomy';
+import {
+  aggregatePortraitV2,
+  resolvePrimaryPortraitV2,
+  summarizePortraitV2,
+} from '../portrait-v2-consumer';
+import {
+  createPortraitV2Payload,
+  derivePortraitV2Compatibility,
+} from '../portrait-v2-model';
+
+const now = new Date('2026-05-20T12:00:00.000Z');
+
+function legacySnapshot() {
+  const vector = createEmptyCompetencyVector();
+  for (const [index, entry] of Object.values(vector).entries()) {
+    entry.score = 60 + index;
+    entry.confidence = 0.8;
+    entry.evidenceCount = 3;
+    entry.lastUpdated = now.toISOString();
+  }
+  return {
+    id: 'legacy-1',
+    snapshotAt: now,
+    competencyVector: vector,
+  };
+}
+
+function nativePortrait() {
+  return createPortraitV2Payload({
+    userId: 'student-1',
+    generatedAt: now.toISOString(),
+    now,
+    dimensions: PORTRAIT_V2_DIMENSIONS.map(({ id }) => ({
+      id,
+      score: 0,
+      confidence: 0,
+      trend: 'stable' as const,
+      freshness: { state: 'missing' as const, asOf: null, evidenceAgeDays: null },
+      evidenceSummary: { totalCount: 0, sourceFamilyCounts: {} },
+      lastPositiveEvidenceAt: null,
+      lastNegativeEvidenceAt: null,
+      rationale: 'No safe legacy mapping exists.',
+      limitations: ['missing-native-portrait-v2-evidence'],
+      sourceLineage: [],
+      calculationVersion: 'portrait-v2-primary.v1',
+    })),
+    derivation: { kind: 'native', limitations: ['missing-native-portrait-v2-evidence'] },
+  });
+}
+
+describe('portrait v2 consumer adapters', () => {
+  it('uses a persisted portrait v2 row as the primary contract', async () => {
+    const payload = nativePortrait();
+    const resolution = await resolvePrimaryPortraitV2({
+      studentPortraitV2Snapshot: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'portrait-1',
+          userId: 'student-1',
+          snapshotAt: now,
+          payloadVersion: payload.payloadVersion,
+          calculationVersion: 'portrait-v2-primary.v1',
+          migrationVersion: payload.migrationVersion,
+          derivationKind: 'native',
+          payload,
+        }),
+      },
+    }, 'student-1', 'student', { now });
+
+    expect(resolution.primaryPortrait.derivation.kind).toBe('native');
+    expect(resolution.primaryPortrait.dimensions).toHaveLength(7);
+    expect(resolution.legacyCompatibility.authority).toBe('legacy-compatibility-only');
+  });
+
+  it('prefers the cache primary marker over a legacy snapshot', async () => {
+    const payload = nativePortrait();
+    const resolution = await resolvePrimaryPortraitV2({
+      studentCompetencySnapshot: { findFirst: vi.fn() },
+    }, 'student-1', 'student', {
+      now,
+      legacySnapshot: legacySnapshot(),
+      featureCache: {
+        features: {
+          approvedAggregates: {
+            primaryPortrait: {
+              authority: 'portrait-v2-primary',
+              payloadVersion: payload.payloadVersion,
+              derivationKind: 'native',
+              payload,
+            },
+          },
+        },
+      },
+    });
+
+    expect(resolution.primaryPortrait.derivation.kind).toBe('native');
+    expect(resolution.legacyCompatibility.source).toBe('fallback-empty');
+  });
+
+  it('projects legacy input only through the explicit compatibility path', async () => {
+    const snapshot = legacySnapshot();
+    const resolution = await resolvePrimaryPortraitV2({}, 'student-1', 'reviewer', {
+      now,
+      legacySnapshot: snapshot,
+      featureCache: null,
+    });
+    const summary = summarizePortraitV2(resolution.primaryPortrait);
+    const aggregate = aggregatePortraitV2([resolution.primaryPortrait]);
+
+    expect(resolution.primaryPortrait.derivation.kind).toBe('compatibility-derived');
+    expect(resolution.legacyCompatibility.source).toBe('StudentCompetencySnapshot');
+    expect(summary.dimensions).toHaveLength(7);
+    expect(summary.limitations).toContain('legacy-six-dimensional-input-is-non-authoritative');
+    expect(aggregate.dimensionIds).toHaveLength(7);
+    expect(aggregate.sourceCoverage.compatibilityLearners).toBe(1);
+  });
+
+  it('does not query unprovided legacy sources when a caller explicitly supplies null', async () => {
+    const findFirst = vi.fn();
+    const resolution = await resolvePrimaryPortraitV2({
+      studentCompetencySnapshot: { findFirst },
+    }, 'student-1', 'student', { now, legacySnapshot: null, featureCache: null });
+
+    expect(findFirst).not.toHaveBeenCalled();
+    expect(resolution.legacyCompatibility.source).toBe('fallback-empty');
+    expect(resolution.primaryPortrait.derivation.limitations).toContain('missing-native-portrait-v2-evidence');
+  });
+});

@@ -166,12 +166,13 @@ Arena 是统一评测与排行榜层，不是单一控制方法工作台。基�
 - `LearningEventBatch`：二级事件批处理存储。
 - `EventDictionary`：核心事件词典和能力映射。
 - `LearningFact`：从事件中物化的统一学习事实。
-- `StudentCompetencySnapshot`：学生六维能力画像快照。
+- `StudentPortraitV2Snapshot`：学生七维 portrait v2 主画像快照；`StudentCompetencySnapshot` 仅作为历史兼容输入。
+- `StudentEvidenceFeatureCache`：受治理证据缓存，包含带 authority 标记的 portrait v2 主画像和兼容快照。
 - `StudentProfileSummary`：面向 AI 和页面展示的学生画像摘要。
-- `ClassCompetencySnapshot`：班级能力画像。
+- `ClassCompetencySnapshot`：班级七维 portrait v2 聚合画像。
 - `StudentRiskFlag`、`GrowthRecord`、`LearningRecommendation`：风险、成长和推荐链路。
 
-学生能力模型是六维结构：控制建模与分析、参数设计与调优、跨域迁移与联动、工程决策与约束、探究反思与提示词、自主学习进展。
+学生画像当前以七维 portrait v2 为主模型：控制建模与表征、系统分析与解释、控制器设计与综合、仿真验证与证据、工程约束与安全、迁移整合与应用、反思改进与 AI 协作。历史六维 `competencyVector` 仅通过显式兼容适配器参与迁移、回退和审计，不得作为页面、路径或推荐的主画像。
 
 控制校正学习路径与全课程智能助教已经从提案推进到多项实现和归档 specs。当前稳定能力包括 goal slice 注册、角色化诊断、学习证据 RAG 语料、文档 rubric 批改工作台、教师备课增强包、智能助教 demo 包、控制校正诊断画像、教师报告和评估 demo。近期 Prisma 模型已经包含 `DiagnosisReportSnapshot`、`CourseEnhancementPack` 以及与路径执行、偏差、干预、证据缓存相关的表。
 

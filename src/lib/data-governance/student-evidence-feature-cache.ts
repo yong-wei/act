@@ -7,6 +7,11 @@ import {
   COMPETENCY_DIMENSIONS,
   type CompetencyDimension,
 } from './competency-model';
+import {
+  PORTRAIT_V2_PAYLOAD_VERSION,
+  validatePortraitV2Payload,
+  type PortraitV2PayloadShape,
+} from './portrait-v2-model';
 
 export const STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION = 'student-evidence-features.v4';
 export const STUDENT_EVIDENCE_ADAPTIVE_LEARNER_STATE_PAYLOAD_VERSION = 'adaptive-learner-state.v1';
@@ -244,11 +249,13 @@ export interface StudentEvidenceFeaturePayload {
     } | null;
     approvedAggregates: {
       latestSnapshot: {
+        authority: 'legacy-compatibility-only';
         snapshotAt: string;
         factCount: number;
         calculationVersion: string;
         competencyVector: unknown;
       } | null;
+      primaryPortrait: StudentEvidencePrimaryPortraitFeature | null;
       profileSummary: {
         updatedAt: string;
         overallScore: number;
@@ -257,6 +264,13 @@ export interface StudentEvidenceFeaturePayload {
       } | null;
     };
   };
+}
+
+export interface StudentEvidencePrimaryPortraitFeature {
+  authority: 'portrait-v2-primary';
+  payloadVersion: typeof PORTRAIT_V2_PAYLOAD_VERSION;
+  derivationKind: PortraitV2PayloadShape['derivation']['kind'];
+  payload: PortraitV2PayloadShape;
 }
 
 export interface StudentEvidenceAdaptiveLearnerStateFeature {
@@ -294,6 +308,10 @@ interface StudentCompetencySnapshotAggregate {
   competencyVector: unknown;
 }
 
+interface StudentPortraitV2SnapshotAggregate {
+  payload: unknown;
+}
+
 interface StudentProfileSummaryAggregate {
   updatedAt: Date;
   overallScore: number;
@@ -306,6 +324,7 @@ interface BuildStudentEvidenceFeaturePayloadInput {
   facts: StudentEvidenceFeatureLearningFact[];
   pathEvidence?: StudentPathEvidenceInput;
   latestSnapshot?: StudentCompetencySnapshotAggregate | null;
+  latestPortraitV2?: StudentPortraitV2SnapshotAggregate | null;
   profileSummary?: StudentProfileSummaryAggregate | null;
   now?: Date;
   staleAfterDays?: number;
@@ -325,6 +344,10 @@ export interface StudentEvidenceFeatureCacheDb {
   studentCompetencySnapshot?: {
     findMany?: (args?: Record<string, unknown>) => Promise<Array<{ userId: string }>>;
     findFirst: (args?: Record<string, unknown>) => Promise<StudentCompetencySnapshotAggregate | null>;
+  };
+  studentPortraitV2Snapshot?: {
+    findFirst?: (args?: Record<string, unknown>) => Promise<StudentPortraitV2SnapshotAggregate | null>;
+    findMany?: (args?: Record<string, unknown>) => Promise<Array<{ userId: string }>>;
   };
   studentProfileSummary?: {
     findMany?: (args?: Record<string, unknown>) => Promise<Array<{ userId: string }>>;
@@ -475,12 +498,14 @@ export function buildStudentEvidenceFeaturePayload(
       approvedAggregates: {
         latestSnapshot: input.latestSnapshot
           ? {
+              authority: 'legacy-compatibility-only',
               snapshotAt: input.latestSnapshot.snapshotAt.toISOString(),
               factCount: input.latestSnapshot.factCount,
               calculationVersion: input.latestSnapshot.calculationVersion,
               competencyVector: input.latestSnapshot.competencyVector,
             }
           : null,
+        primaryPortrait: buildPrimaryPortraitFeature(input.latestPortraitV2, input.now ?? new Date()),
         profileSummary: input.profileSummary
           ? {
               updatedAt: input.profileSummary.updatedAt.toISOString(),
@@ -494,6 +519,25 @@ export function buildStudentEvidenceFeaturePayload(
   };
 }
 
+function buildPrimaryPortraitFeature(
+  snapshot: StudentPortraitV2SnapshotAggregate | null | undefined,
+  now: Date,
+): StudentEvidencePrimaryPortraitFeature | null {
+  if (!snapshot?.payload) return null;
+  try {
+    validatePortraitV2Payload(snapshot.payload, { now });
+    const payload = snapshot.payload as PortraitV2PayloadShape;
+    return {
+      authority: 'portrait-v2-primary',
+      payloadVersion: PORTRAIT_V2_PAYLOAD_VERSION,
+      derivationKind: payload.derivation.kind,
+      payload,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function refreshStudentEvidenceFeatureCache(
   db: StudentEvidenceFeatureCacheDb,
   userId: string,
@@ -504,7 +548,7 @@ export async function refreshStudentEvidenceFeatureCache(
   }
 
   const now = options.now ?? new Date();
-  const [facts, latestSnapshot, profileSummary] = await Promise.all([
+  const [facts, latestSnapshot, latestPortraitV2, profileSummary] = await Promise.all([
     db.learningFact.findMany({
       where: { userId },
       orderBy: [{ startedAt: 'asc' }, { id: 'asc' }],
@@ -523,6 +567,11 @@ export async function refreshStudentEvidenceFeatureCache(
         competencyVector: true,
       },
     }) ?? Promise.resolve(null),
+    db.studentPortraitV2Snapshot?.findFirst?.({
+      where: { userId },
+      orderBy: [{ snapshotAt: 'desc' }, { id: 'desc' }],
+      select: { payload: true },
+    }) ?? Promise.resolve(null),
     db.studentProfileSummary?.findUnique({
       where: { userId },
       select: {
@@ -539,6 +588,7 @@ export async function refreshStudentEvidenceFeatureCache(
     facts,
     pathEvidence,
     latestSnapshot,
+    latestPortraitV2,
     profileSummary,
     now,
     staleAfterDays: options.staleAfterDays,
@@ -587,13 +637,18 @@ export async function rebuildStudentEvidenceFeatureCache(
     throw new Error('student evidence feature cache rebuild requires learningFact delegate');
   }
 
-  const [factRows, snapshotRows, profileRows] = await Promise.all([
+  const [factRows, snapshotRows, portraitRows, profileRows] = await Promise.all([
     db.learningFact.findMany({
       select: { userId: true },
       distinct: ['userId'],
       orderBy: { userId: 'asc' },
     }),
     db.studentCompetencySnapshot?.findMany?.({
+      select: { userId: true },
+      distinct: ['userId'],
+      orderBy: { userId: 'asc' },
+    }) ?? Promise.resolve([]),
+    db.studentPortraitV2Snapshot?.findMany?.({
       select: { userId: true },
       distinct: ['userId'],
       orderBy: { userId: 'asc' },
@@ -624,7 +679,7 @@ export async function rebuildStudentEvidenceFeatureCache(
     }) ?? Promise.resolve([]),
   ]);
   const userIds = uniqueSorted(
-    [...factRows, ...snapshotRows, ...profileRows, ...executionRows, ...deviationRows, ...interventionRows]
+    [...factRows, ...snapshotRows, ...portraitRows, ...profileRows, ...executionRows, ...deviationRows, ...interventionRows]
       .map((row) => row.userId)
       .filter(isPresent)
   );

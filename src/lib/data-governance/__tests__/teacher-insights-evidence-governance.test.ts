@@ -1301,14 +1301,14 @@ describe('teacher evidence governance insights', () => {
     expect(JSON.stringify(body)).not.toContain('official-secret');
     expect(JSON.stringify(body)).not.toContain('official-run-1');
     expect(JSON.stringify(body)).not.toContain('rawTracePayload');
-    expect(body.evidenceSummary[3].items[0].questionSummaries[0]).not.toHaveProperty('studentAnswer');
-    expect(body.evidenceSummary[3].items[0].questionSummaries[0]).toEqual(expect.objectContaining({
+    expect(body.evidenceSummary[4].items[0].questionSummaries[0]).not.toHaveProperty('studentAnswer');
+    expect(body.evidenceSummary[4].items[0].questionSummaries[0]).toEqual(expect.objectContaining({
       questionId: 'q-1',
       studentAnswerRedacted: true,
     }));
-    expect(body.evidenceSummary[3].items[0].questionSummaries[0].referenceAnswer.length).toBeLessThanOrEqual(120);
-    expect(body.evidenceSummary[3].items[0]).not.toHaveProperty('studentAnswer');
-    expect(body.evidenceSummary[3].items[0]).not.toHaveProperty('privateKonlingMemory');
+    expect(body.evidenceSummary[4].items[0].questionSummaries[0].referenceAnswer.length).toBeLessThanOrEqual(120);
+    expect(body.evidenceSummary[4].items[0]).not.toHaveProperty('studentAnswer');
+    expect(body.evidenceSummary[4].items[0]).not.toHaveProperty('privateKonlingMemory');
   });
 
   it('denies student insights outside teacher class ownership', async () => {

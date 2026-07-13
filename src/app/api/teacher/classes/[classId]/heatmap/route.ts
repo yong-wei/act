@@ -8,7 +8,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
-import { COMPETENCY_DIMENSIONS, type CompetencyDimension } from '@/lib/data-governance/competency-model';
+import { PORTRAIT_V2_DIMENSIONS, type PortraitV2DimensionId } from '@/lib/data-governance/kaq-objective-taxonomy';
+import { resolvePrimaryPortraitV2 } from '@/lib/data-governance/portrait-v2-consumer';
 import { createDatabaseUnavailableResponse, isDatabaseConnectivityError } from '@/lib/service-availability';
 
 export const dynamic = 'force-dynamic';
@@ -51,7 +52,10 @@ export async function GET(
 
     const { classId } = await params;
     const { searchParams } = new URL(request.url);
-    const dimensionFilter = searchParams.get('dimension') as CompetencyDimension | null;
+    const requestedDimension = searchParams.get('dimension');
+    const dimensionFilter = PORTRAIT_V2_DIMENSIONS.some((dimension) => dimension.id === requestedDimension)
+      ? requestedDimension as PortraitV2DimensionId
+      : null;
 
     // Verify class ownership
     const classInfo = await prisma.class.findUnique({
@@ -86,7 +90,7 @@ export async function GET(
     if (studentIds.length === 0) {
       return NextResponse.json({
         students: [],
-        dimensions: COMPETENCY_DIMENSIONS,
+        dimensions: PORTRAIT_V2_DIMENSIONS.map((dimension) => dimension.id),
         matrix: [],
         lastUpdated: new Date().toISOString(),
       } as HeatmapData);
@@ -97,6 +101,12 @@ export async function GET(
       where: {
         userId: { in: studentIds },
       },
+      orderBy: { snapshotAt: 'desc' },
+      distinct: ['userId'],
+    });
+
+    const latestPortraitSnapshots = await prisma.studentPortraitV2Snapshot.findMany({
+      where: { userId: { in: studentIds } },
       orderBy: { snapshotAt: 'desc' },
       distinct: ['userId'],
     });
@@ -122,6 +132,49 @@ export async function GET(
       {},
     );
 
+    const previousPortraitSnapshots = await prisma.studentPortraitV2Snapshot.findMany({
+      where: {
+        userId: { in: studentIds },
+        snapshotAt: { lte: thirtyDaysAgo },
+      },
+      orderBy: [{ userId: 'asc' }, { snapshotAt: 'desc' }],
+    });
+    const previousPortraitSnapshotByUserId = previousPortraitSnapshots.reduce<Record<string, (typeof previousPortraitSnapshots)[number]>>(
+      (accumulator, snapshot) => {
+        if (!accumulator[snapshot.userId]) {
+          accumulator[snapshot.userId] = snapshot;
+        }
+        return accumulator;
+      },
+      {},
+    );
+
+    const latestSnapshotByUserId = new Map(latestSnapshots.map((snapshot) => [snapshot.userId, snapshot]));
+    const latestPortraitSnapshotByUserId = new Map(latestPortraitSnapshots.map((snapshot) => [snapshot.userId, snapshot]));
+    const featureCaches = await prisma.studentEvidenceFeatureCache.findMany({
+      where: { userId: { in: studentIds } },
+      select: { userId: true, features: true },
+    });
+    const featureCacheByUserId = new Map(featureCaches.map((cache) => [cache.userId, cache]));
+    const resolvedPortraitByUserId = new Map(
+      await Promise.all(studentIds.map(async (studentId) => {
+        const resolution = await resolvePrimaryPortraitV2(
+          {
+            studentPortraitV2Snapshot: {
+              findFirst: async () => latestPortraitSnapshotByUserId.get(studentId) ?? null,
+            },
+          },
+          studentId,
+          'reviewer',
+          {
+            legacySnapshot: latestSnapshotByUserId.get(studentId) as Record<string, unknown> | null,
+            featureCache: featureCacheByUserId.get(studentId) as Record<string, unknown> | null,
+          },
+        );
+        return [studentId, resolution] as const;
+      })),
+    );
+
     // Get active risk flags for all students
     const riskFlags = await prisma.studentRiskFlag.findMany({
       where: {
@@ -131,21 +184,35 @@ export async function GET(
     });
 
     // Build heatmap matrix
-    const dimensions = dimensionFilter
+    const dimensions: PortraitV2DimensionId[] = dimensionFilter
       ? [dimensionFilter]
-      : COMPETENCY_DIMENSIONS;
+      : PORTRAIT_V2_DIMENSIONS.map((dimension) => dimension.id);
 
     const matrix: HeatmapData['matrix'] = [];
 
-    for (const snapshot of latestSnapshots) {
-      const vector = snapshot.competencyVector as Record<string, { score: number }>;
-      const prevSnapshot = previousSnapshotByUserId[snapshot.userId];
-      const prevVector = prevSnapshot
-        ? (prevSnapshot.competencyVector as Record<string, { score: number }>)
+    for (const studentId of studentIds) {
+      const resolution = resolvedPortraitByUserId.get(studentId);
+      if (!resolution) continue;
+      const currentPortrait = resolution.primaryPortrait;
+      const previousPortraitSnapshot = previousPortraitSnapshotByUserId[studentId];
+      const previousLegacySnapshot = previousSnapshotByUserId[studentId];
+      const previousResolution = previousPortraitSnapshot || previousLegacySnapshot
+        ? await resolvePrimaryPortraitV2(
+            {
+              studentPortraitV2Snapshot: {
+                findFirst: async () => previousPortraitSnapshot,
+              },
+            },
+            studentId,
+            'reviewer',
+            {
+              legacySnapshot: previousLegacySnapshot as Record<string, unknown> | null,
+            },
+          )
         : null;
 
       // Calculate risk level for this student
-      const studentRisks = riskFlags.filter(rf => rf.userId === snapshot.userId);
+      const studentRisks = riskFlags.filter(rf => rf.userId === studentId);
       const hasHighRisk = studentRisks.some(r => r.severity === 'high');
       const hasMediumRisk = studentRisks.some(r => r.severity === 'medium');
       const riskLevel: HeatmapData['matrix'][0]['riskLevel'] = hasHighRisk
@@ -157,8 +224,8 @@ export async function GET(
             : 'none';
 
       for (const dimension of dimensions) {
-        const currentScore = vector[dimension]?.score ?? 0;
-        const previousScore = prevVector?.[dimension]?.score ?? currentScore;
+        const currentScore = currentPortrait.dimensions.find((item) => item.id === dimension)?.score ?? 0;
+        const previousScore = previousResolution?.primaryPortrait.dimensions.find((item) => item.id === dimension)?.score ?? currentScore;
         const change = Math.round((currentScore - previousScore) * 10) / 10;
 
         // Adjust risk level based on dimension-specific scores
@@ -170,7 +237,7 @@ export async function GET(
         }
 
         matrix.push({
-          studentId: snapshot.userId,
+          studentId,
           dimension,
           score: Math.round(currentScore),
           change,

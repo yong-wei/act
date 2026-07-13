@@ -608,14 +608,15 @@ describe('GET /api/user/profile', () => {
       totalSimulationTime: 72000,
       averageScore: 84,
     });
-    expect(body.competency.dimensions).toHaveLength(6);
+    expect(body.competency.dimensions).toHaveLength(7);
     expect(body.competency.dimensions.map((item: { key: string }) => item.key)).toEqual([
-      'controlModeling',
-      'parameterDesign',
-      'crossDomainTransfer',
-      'engineeringDecision',
-      'inquiryReflection',
-      'selfDirectedLearning',
+      'controlModelingRepresentation',
+      'systemAnalysisInterpretation',
+      'controllerDesignSynthesis',
+      'simulationValidationEvidence',
+      'engineeringConstraintSafety',
+      'transferIntegratedApplication',
+      'reflectionImprovementAiCollab',
     ]);
     expect(body.recentActivity.preview).toHaveLength(3);
     expect(body.recentActivity.grouped.map((group: { category: string }) => group.category)).toEqual(
@@ -691,7 +692,17 @@ describe('GET /api/user/profile', () => {
       improvementCount: 1,
       learningFactContextCount: 1,
     });
-    expect(body.adaptiveLearnerState).toBeNull();
+    expect(body.adaptiveLearnerState).toMatchObject({
+      primaryPortrait: {
+        derivation: {
+          kind: 'compatibility-derived',
+        },
+        dimensions: expect.any(Array),
+      },
+      primaryCompetencies: {
+        authority: 'legacy-compatibility-only',
+      },
+    });
   });
 
   it('includes server-owned adaptive learner state when the feature flag is enabled', async () => {
@@ -783,6 +794,7 @@ describe('GET /api/user/profile', () => {
     mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(null);
     mocks.prisma.learningFact.findMany
       .mockResolvedValueOnce(recentFacts)
+      .mockResolvedValueOnce([])
       .mockResolvedValueOnce(fullFactHistory);
 
     const response = await GET();

@@ -358,8 +358,8 @@ describe('generateRecommendations', () => {
     expect(mocks.prisma.studentEvidenceFeatureCache.findUnique).toHaveBeenCalledWith({
       where: { userId: 'student-1' },
     });
-    expect(recommendations.map((item) => item.title)).toContain('提升跨域迁移与联动能力');
-    const weakDimension = recommendations.find((item) => item.title === '提升跨域迁移与联动能力');
+    expect(recommendations.map((item) => item.title)).toContain('提升迁移整合与应用能力');
+    const weakDimension = recommendations.find((item) => item.title === '提升迁移整合与应用能力');
     expect(weakDimension?.rationale).toMatchObject({
       reasonCode: 'weak-dimension-practice',
       evidenceBasis: 'student-evidence-feature-cache',
@@ -431,7 +431,7 @@ describe('generateRecommendations', () => {
     mocks.prisma.userProgress.count.mockResolvedValue(0);
 
     const recommendations = await generateRecommendations('student-1');
-    const weakDimension = recommendations.find((item) => item.title === '提升跨域迁移与联动能力');
+    const weakDimension = recommendations.find((item) => item.title === '提升迁移整合与应用能力');
     const contextOnly = recommendations.find((item) => item.title === '探索知识图谱');
 
     expect((weakDimension?.rationale as any).simulationArena).toMatchObject({
@@ -519,7 +519,7 @@ describe('generateRecommendations', () => {
     }));
 
     const recommendations = await generateRecommendations('student-1');
-    const weakDimension = recommendations.find((item) => item.title === '提升跨域迁移与联动能力');
+    const weakDimension = recommendations.find((item) => item.title === '提升迁移整合与应用能力');
 
     expect(mocks.prisma.studentEvidenceFeatureCache.findUnique).toHaveBeenCalledWith({
       where: { userId: 'student-1' },
@@ -586,7 +586,7 @@ describe('generateRecommendations', () => {
     }));
 
     const recommendations = await generateRecommendations('student-1');
-    const weakDimension = recommendations.find((item) => item.title === '提升跨域迁移与联动能力');
+    const weakDimension = recommendations.find((item) => item.title === '提升迁移整合与应用能力');
 
     expect(weakDimension?.rationale.confidence).toMatchObject({
       state: 'stale',
@@ -661,7 +661,7 @@ describe('generateRecommendations', () => {
     }));
 
     const recommendations = await generateRecommendations('student-1');
-    const weakDimension = recommendations.find((item) => item.title === '提升跨域迁移与联动能力');
+    const weakDimension = recommendations.find((item) => item.title === '提升迁移整合与应用能力');
 
     expect(weakDimension?.rationale.confidence).toMatchObject({
       state: 'partial',
@@ -678,7 +678,7 @@ describe('generateRecommendations', () => {
 
     const recommendations = await generateRecommendations('student-1');
 
-    expect(recommendations.map((item) => item.title)).not.toContain('提升跨域迁移与联动能力');
+    expect(recommendations.map((item) => item.title)).not.toContain('提升迁移整合与应用能力');
     expect(recommendations.map((item) => item.title)).toContain('挑战专家级任务');
   });
 
@@ -696,7 +696,7 @@ describe('generateRecommendations', () => {
 
     const recommendations = await generateRecommendations('student-1');
 
-    expect(recommendations.map((item) => item.title)).toContain('提升跨域迁移与联动能力');
+    expect(recommendations.map((item) => item.title)).toContain('提升迁移整合与应用能力');
     expect(recommendations.map((item) => item.title)).not.toContain('挑战专家级任务');
   });
 });

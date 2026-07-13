@@ -3,7 +3,7 @@
 /**
  * 学生个人中心页面
  *
- * 展示学生六维能力画像、学习统计、最近活动与个性化补强路径。
+ * 展示学生七维 portrait v2 画像、学习统计、最近活动与个性化补强路径。
  */
 
 import { useEffect, useState, type ReactNode } from 'react';
@@ -101,6 +101,9 @@ interface UserProfile {
     averageScore: number;
   };
   competency: {
+    model: 'portrait-v2';
+    derivationKind: 'native' | 'migrated' | 'compatibility-derived';
+    limitations: string[];
     overallScore: number;
     level: string;
     trend: string;
@@ -114,6 +117,9 @@ interface UserProfile {
       trend: 'up' | 'stable' | 'down';
       confidence: number;
       evidenceCount: number;
+      freshness: { state: string; asOf: string | null; evidenceAgeDays: number | null };
+      limitations: string[];
+      calculationVersion: string;
     }>;
   };
   recentActivity: {
@@ -325,7 +331,14 @@ export default function ProfilePage() {
             <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 px-6 py-4 text-center md:text-right">
               <div className="text-5xl font-bold text-amber-500">{profile.competency.overallScore}</div>
               <p className="text-lg font-medium text-foreground">{profile.competency.level}</p>
-              <p className="text-sm text-subtle">六维能力综合得分</p>
+              <p className="text-sm text-subtle">七维 portrait v2 综合得分</p>
+              {profile.competency.derivationKind !== 'native' || profile.competency.limitations.length > 0 ? (
+                <p className="mt-1 max-w-xs text-xs text-amber-700 dark:text-amber-300">
+                  {profile.competency.derivationKind === 'native'
+                    ? '画像数据存在覆盖限制。'
+                    : '当前画像由迁移兼容数据推导，不能视为原生 portrait v2 证据。'}
+                </p>
+              ) : null}
               <div className={`mt-3 rounded-lg border px-3 py-2 text-left text-xs ${evidenceStatusMeta.className}`}>
                 <div className="flex items-center justify-between gap-3">
                   <span>证据状态</span>
@@ -428,7 +441,7 @@ export default function ProfilePage() {
               <div>
                 <h3 className="text-lg font-semibold text-foreground">能力画像</h3>
                 <p className="mt-1 text-sm text-subtle">
-                  已对齐当前实际能力维度，聚焦控制建模、参数设计、跨域迁移、工程决策、探究反思与自主学习。
+                  当前主画像包含七个 portrait v2 维度；迁移数据会保留置信度、新鲜度和限制说明。
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -468,6 +481,9 @@ export default function ProfilePage() {
                     <span>置信度 {Math.round(dimension.confidence * 100)}%</span>
                     <span>{dimension.evidenceCount} 条证据</span>
                   </div>
+                  {dimension.limitations.length > 0 ? (
+                    <p className="mt-2 text-xs text-amber-700 dark:text-amber-300">限制：{dimension.limitations.join('；')}</p>
+                  ) : null}
                 </div>
               ))}
             </div>

@@ -116,9 +116,14 @@ describe('GET /api/student/competency-snapshot', () => {
     expect(body.recommendations.map((item: { title: string }) => item.title)).toEqual([
       '增加学习活跃度',
       '加强跨域知识联系',
-      '提升自主学习能力',
+      '提升迁移整合与应用能力',
       '巩固基础能力',
     ]);
+    expect(body.currentSnapshot.portrait.dimensions).toHaveLength(7);
+    expect(Object.keys(body.evidenceSummary)).toEqual(expect.arrayContaining([
+      'controlModelingRepresentation',
+      'transferIntegratedApplication',
+    ]));
     expect(body.recommendations[0].rationale).toMatchObject({
       reasonCode: 'snapshot-risk-participation',
       evidenceBasis: 'approved-snapshot',
@@ -134,8 +139,8 @@ describe('GET /api/student/competency-snapshot', () => {
     });
     expect(JSON.stringify(body)).not.toContain('raw student answer should not leave snapshot API');
     expect(JSON.stringify(body)).not.toContain('raw answer body should not leave snapshot API');
-    expect(body.evidenceSummary.crossDomainTransfer[0]).not.toHaveProperty('studentAnswer');
-    expect(body.evidenceSummary.crossDomainTransfer[0]).not.toHaveProperty('rawAnswer');
+    expect(body.evidenceSummary.transferIntegratedApplication[0]).not.toHaveProperty('studentAnswer');
+    expect(body.evidenceSummary.transferIntegratedApplication[0]).not.toHaveProperty('rawAnswer');
   });
 
   it('reads a persisted diagnosis snapshot with the student class id when the table exists', async () => {

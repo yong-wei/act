@@ -24,6 +24,11 @@ import {
   readPathPlannerLearnerState,
   type AdaptiveLearnerState,
 } from './adaptive-learner-state-service';
+import {
+  resolvePrimaryPortraitV2,
+  summarizePortraitV2,
+} from './portrait-v2-consumer';
+import type { PortraitV2ProjectedPayload } from './portrait-v2-model';
 
 export type RecommendationType = 'immediate' | 'weekly' | 'challenge';
 export type RecommendationEvidenceBasis =
@@ -47,6 +52,18 @@ export interface RecommendationRationale {
     level: 'none' | 'low' | 'medium' | 'high';
     score: number;
     markers: StudentEvidenceStatusMarker[];
+  };
+  portraitV2?: {
+    dimensionIds: string[];
+    weakDimensionId: string | null;
+    derivationKind: PortraitV2ProjectedPayload['derivation']['kind'];
+    confidence: number;
+    freshness: {
+      state: string;
+      asOf: string | null;
+      evidenceAgeDays: number | null;
+    };
+    limitations: string[];
   };
   simulationArena?: RecommendationSimulationArenaRationale;
   pathExecution?: RecommendationPathExecutionRationale;
@@ -101,6 +118,7 @@ export interface RecommendationContext {
     score?: number;
   }>;
   learnerState: AdaptiveLearnerState | null;
+  portraitV2: PortraitV2ProjectedPayload;
   evidence: RecommendationEvidenceContext;
   learningHistory: {
     totalMissions: number;
@@ -235,16 +253,11 @@ const RECOMMENDATION_RULES: RecommendationRule[] = [
     id: 'weak-dimension-practice',
     type: 'weekly',
     evidenceRole: 'direct',
-    condition: (ctx) => {
-      const weakestScore = Math.min(...COMPETENCY_DIMENSIONS.map(d => ctx.competencyVector[d].score));
-      return weakestScore < 60;
-    },
+    condition: (ctx) => weakPortraitDimension(ctx).score < 60,
     generate: (ctx) => {
-      const weakest = COMPETENCY_DIMENSIONS.reduce((min, d) =>
-        ctx.competencyVector[d].score < ctx.competencyVector[min].score ? d : min
-      );
-      const label = getCompetencyLabel(weakest);
-      const score = Math.round(ctx.competencyVector[weakest].score);
+      const weakest = weakPortraitDimension(ctx);
+      const label = weakest.label;
+      const score = Math.round(weakest.score);
 
       return {
         title: `提升${label}能力`,
@@ -500,9 +513,22 @@ async function buildRecommendationContext(userId: string): Promise<Recommendatio
   ]);
 
   const streakDays = calculateStreak(recentFacts.map(f => f.startedAt));
-  const learnerStateVector = isLearnerStateUsableForDirectPersonalization(learnerState)
+  const learnerStateUsable = isLearnerStateUsableForDirectPersonalization(learnerState);
+  const learnerStateVector = learnerStateUsable
     ? learnerState.primaryCompetencies.vector
     : null;
+  const portraitV2 = learnerStateUsable && Array.isArray(learnerState.primaryPortrait?.dimensions)
+    ? learnerState.primaryPortrait
+    : (await resolvePrimaryPortraitV2(
+    prisma,
+    userId,
+    'student',
+    {
+      legacySnapshot: snapshot,
+      featureCache,
+    },
+  )).primaryPortrait;
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy vector remains only for rules and metadata not yet v2-shaped.
   const competencyVector =
     learnerStateVector ??
     cachedVector ??
@@ -524,6 +550,7 @@ async function buildRecommendationContext(userId: string): Promise<Recommendatio
       score: f.score ?? undefined,
     })),
     learnerState,
+    portraitV2,
     evidence: buildRecommendationEvidenceContext({
       featureReadState: featureRead.state,
       featureCache,
@@ -572,6 +599,8 @@ function buildRecommendationRationale(
     simulationArena,
     pathExecution,
   );
+  const portrait = summarizePortraitV2(context.portraitV2);
+  const weakestPortrait = weakPortraitDimension(context);
 
   return {
     reasonCode: rule.id,
@@ -587,8 +616,29 @@ function buildRecommendationRationale(
       score: context.evidence.confidence.score,
       markers: context.evidence.statusMarkers,
     },
+    portraitV2: {
+      dimensionIds: portrait.dimensions.map((dimension) => dimension.id),
+      weakDimensionId: weakestPortrait.id,
+      derivationKind: portrait.derivationKind,
+      confidence: weakestPortrait.confidence,
+      freshness: weakestPortrait.freshness,
+      limitations: portrait.limitations,
+    },
     ...(simulationArena ? { simulationArena } : {}),
     ...(pathExecution ? { pathExecution } : {}),
+  };
+}
+
+function weakPortraitDimension(context: RecommendationContext) {
+  const summary = summarizePortraitV2(context.portraitV2);
+  const covered = summary.dimensions.filter((dimension) => dimension.evidenceCount > 0);
+  const pool = covered.length > 0 ? covered : summary.dimensions;
+  return [...pool].sort((left, right) => left.score - right.score)[0] ?? {
+    id: 'simulationValidationEvidence' as const,
+    label: '仿真验证与证据',
+    score: 0,
+    confidence: 0,
+    freshness: { state: 'missing', asOf: null, evidenceAgeDays: null },
   };
 }
 

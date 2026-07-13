@@ -2,12 +2,21 @@ import { NextResponse } from 'next/server';
 
 import {
   COMPETENCY_DIMENSIONS,
-  calculateOverallScore,
   calculateTrendDirection,
-  getCompetencyLabel,
   type CompetencyVector,
   type TrendVector,
 } from '@/lib/data-governance/competency-model';
+// PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy vector is retained only for trend and evidence compatibility.
+import {
+  mapLegacyCompetencyDimensionToPortraitV2,
+  PORTRAIT_V2_DIMENSIONS,
+  type PortraitV2DimensionId,
+} from '@/lib/data-governance/kaq-objective-taxonomy';
+import {
+  resolvePrimaryPortraitV2,
+  summarizePortraitV2,
+  type PortraitV2ConsumerSummary,
+} from '@/lib/data-governance/portrait-v2-consumer';
 import {
   generateRecommendations,
   type RecommendationRationale,
@@ -157,6 +166,7 @@ export interface TeacherStudentInsightsPayload {
   };
   overview: {
     overallScore: number;
+    portraitV2: PortraitV2ConsumerSummary;
     riskLevel: 'none' | 'low' | 'medium' | 'high';
     riskLabel: string;
     latestSnapshotAt: string | null;
@@ -165,12 +175,20 @@ export interface TeacherStudentInsightsPayload {
   };
   snapshot: {
     current: {
+      portrait: PortraitV2ConsumerSummary;
       vector: CompetencyVector;
+      legacyCompatibility: {
+        authority: 'legacy-compatibility-only';
+        source: 'StudentCompetencySnapshot' | 'StudentEvidenceFeatureCache' | 'fallback-empty';
+      };
       snapshotAt: string;
       factCount: number;
     } | null;
     previous: {
       vector: CompetencyVector;
+      legacyCompatibility: {
+        authority: 'legacy-compatibility-only';
+      };
       snapshotAt: string;
     } | null;
     trendVector: TrendVector | null;
@@ -371,16 +389,22 @@ export async function GET(
     const trendVector = currentVector
       ? buildTrendVector(currentVector, previousVector)
       : null;
-    const overallScore = currentVector ? roundTo(calculateOverallScore(currentVector), 1) : 0;
+    const portraitResolution = await resolvePrimaryPortraitV2(prisma, studentId, 'reviewer', {
+      legacySnapshot: currentSnapshot as Record<string, unknown> | null,
+      featureCache: studentEvidenceFeatureRead.cache as Record<string, unknown> | null,
+    });
+    const portraitV2 = summarizePortraitV2(portraitResolution.primaryPortrait);
+    const overallScore = roundTo(portraitV2.overallScore, 1);
     const riskLevel = normalizeInsightRiskLevel(
       profileSummary?.riskLevel ??
         riskFlags.find((flag) => flag.severity)?.severity ??
         null
     );
-    const classAggregate = (classSnapshot?.aggregateJson ?? {}) as Record<string, { mean?: number }>;
+    const classAggregate = (classSnapshot?.aggregateJson ?? {}) as Record<string, unknown>;
     const evidenceSummary = sanitizeEvidenceSummary(
       (currentSnapshot?.evidenceSummary ?? {}) as Record<string, TeacherStudentEvidenceItem[]>
     );
+    const portraitEvidenceSummary = buildPortraitEvidenceSummary(evidenceSummary);
     const recentFacts = scopedFeatureFacts.slice(0, 8);
     const drawerSessionIds = Array.from(new Set([
       ...recentFacts.map((fact) => fact.sessionId).filter(isNonEmptyString),
@@ -464,6 +488,7 @@ export async function GET(
       },
       overview: {
         overallScore,
+        portraitV2,
         riskLevel,
         riskLabel: getRiskLabel(riskLevel),
         latestSnapshotAt: currentSnapshot?.snapshotAt.toISOString() ?? null,
@@ -474,7 +499,12 @@ export async function GET(
       snapshot: {
         current: currentSnapshot
           ? {
+              portrait: portraitV2,
               vector: currentVector!,
+              legacyCompatibility: {
+                authority: 'legacy-compatibility-only',
+                source: portraitResolution.legacyCompatibility.source,
+              },
               snapshotAt: currentSnapshot.snapshotAt.toISOString(),
               factCount: currentSnapshot.factCount,
             }
@@ -482,6 +512,9 @@ export async function GET(
         previous: previousSnapshot
           ? {
               vector: previousVector!,
+              legacyCompatibility: {
+                authority: 'legacy-compatibility-only',
+              },
               snapshotAt: previousSnapshot.snapshotAt.toISOString(),
             }
           : null,
@@ -497,12 +530,12 @@ export async function GET(
             recentActivities: parseRecentActivities(profileSummary.recentActivityJson),
           }
         : null,
-      classComparison: COMPETENCY_DIMENSIONS.map((dimension) => {
-        const studentScore = currentVector?.[dimension]?.score ?? 0;
-        const classAverage = roundTo(classAggregate[dimension]?.mean ?? 0, 1);
+      classComparison: PORTRAIT_V2_DIMENSIONS.map(({ id: dimension, label }) => {
+        const studentScore = portraitV2.dimensions.find((item) => item.id === dimension)?.score ?? 0;
+        const classAverage = roundTo(extractClassMean(classAggregate, dimension) ?? 0, 1);
         return {
           dimension,
-          label: getCompetencyLabel(dimension),
+          label,
           studentScore: roundTo(studentScore, 1),
           classAverage,
           gap: roundTo(studentScore - classAverage, 1),
@@ -529,10 +562,10 @@ export async function GET(
         tags: recommendation.tags,
         rationale: recommendation.rationale,
       })),
-      evidenceSummary: COMPETENCY_DIMENSIONS.map((dimension) => ({
+      evidenceSummary: PORTRAIT_V2_DIMENSIONS.map(({ id: dimension, label }) => ({
         dimension,
-        label: getCompetencyLabel(dimension),
-        items: evidenceSummary[dimension] ?? [],
+        label,
+        items: portraitEvidenceSummary[dimension] ?? [],
       })),
       evidenceDrawer,
       diagnosis,
@@ -556,6 +589,26 @@ function buildTrendVector(current: CompetencyVector, previous: CompetencyVector 
     accumulator[dimension] = calculateTrendDirection(currentScore, previousScore, 3);
     return accumulator;
   }, {} as TrendVector);
+}
+
+function buildPortraitEvidenceSummary(
+  legacySummary: Record<string, TeacherStudentEvidenceItem[]>,
+): Record<string, TeacherStudentEvidenceItem[]> {
+  return Object.fromEntries(PORTRAIT_V2_DIMENSIONS.map(({ id }) => [
+    id,
+    COMPETENCY_DIMENSIONS.flatMap((legacyDimension) =>
+      mapLegacyCompetencyDimensionToPortraitV2(legacyDimension).targetDimensions.includes(id)
+        ? legacySummary[legacyDimension] ?? []
+        : []
+    ).slice(0, 6),
+  ]));
+}
+
+function extractClassMean(aggregate: Record<string, unknown>, dimension: PortraitV2DimensionId): number | null {
+  const nested = readObject(aggregate.dimensions)[dimension];
+  const legacy = aggregate[dimension];
+  const entry = readObject(nested ?? legacy);
+  return typeof entry.mean === 'number' && Number.isFinite(entry.mean) ? entry.mean : null;
 }
 
 function parseRecentActivities(value: unknown) {
