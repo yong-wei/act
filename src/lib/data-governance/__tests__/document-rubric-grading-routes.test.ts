@@ -1118,18 +1118,25 @@ describe('document rubric grading routes', () => {
     })).resolves.toEqual({});
   });
 
-  it('renders evidence capsules and makes the legacy approval action explicitly unavailable', () => {
+  it('renders evidence capsules and wires teacher approval to the guarded route', () => {
     const ui = source('src/features/assessment/document-rubric-grading-ui.tsx');
     const action = source('src/features/assessment/document-rubric-grading-actions.tsx');
     const teacherPage = source('src/app/(teacher-report-ledger)/teacher/grading-workbench/page.tsx');
 
     expect(ui).toContain('view.evidenceCapsules.map');
     expect(ui).toContain('entryPoint={view.konlingEntryPoint}');
-    expect(action).toContain('data-legacy-document-grading-approval-disabled="true"');
-    expect(action).toContain('disabled');
-    expect(action).toContain('当前草稿不会被自动审批或写回');
-    expect(action).not.toContain('/api/teacher/document-grading/approve');
-    expect(action).not.toContain('JSON.stringify({ gradingRunId');
+    expect(ui).toContain('gradingRunId={view.gradingRunId}');
+    expect(action).toContain("fetch('/api/teacher/document-grading/approve'");
+    expect(action).toContain("JSON.stringify({ gradingRunId, decision: 'approved' })");
+    expect(action).toContain('提交中');
+    expect(action).toContain('审批成功');
+    expect(action).toContain('审批文档评分失败');
+    expect(action).toContain('disabled={state === \'submitting\' || state === \'success\'}');
+    expect(action).toContain("payload?.status !== 'approved'");
+    expect(action).toContain('payload?.gradingRunId !== gradingRunId');
+    expect(action).toContain('router.refresh()');
+    expect(ui).toContain('key={`approve:${view.gradingRunId}`}');
+    expect(action).not.toContain('data-legacy-document-grading-approval-disabled="true"');
     expect(teacherPage).toContain('validateDocumentRubricGradingDraftInvariants');
     expect(teacherPage).toContain('if (!invariants.valid)');
     expect(teacherPage).toContain('prisma.studentProfile.findFirst');
@@ -1823,6 +1830,34 @@ describe('document rubric grading routes', () => {
     await expect(response.json()).resolves.toEqual({ error: '已批准评分不能直接编辑' });
     expect(mocks.prisma.learningFact.createMany).not.toHaveBeenCalled();
     expect(mocks.prisma.learningEvidenceDraft.updateMany).not.toHaveBeenCalled();
+  });
+
+  it('rejects approval replay for already approved grading runs before transaction or fact write', async () => {
+    const draft = await gradingDraft();
+    const approved = approveGradingRun(draft.summary.run, {
+      reviewerId: 'teacher-1',
+      decision: 'approved',
+      now,
+    });
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValue({
+      ...draft,
+      summary: {
+        ...draft.summary,
+        run: approved,
+      },
+      reviewerState: 'approved',
+    });
+    mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
+    mocks.prisma.studentProfile.findFirst.mockResolvedValue({ id: 'student-profile-1' });
+
+    const response = await postJson({ gradingRunId: draft.id });
+
+    expect(response.status).toBe(409);
+    await expect(response.json()).resolves.toEqual({ error: 'grading-review-already-approved' });
+    expect(mocks.prisma.$transaction).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningEvidenceDraft.updateMany).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningFact.createMany).not.toHaveBeenCalled();
   });
 
   it('previews approved writeback effects without creating learning facts', async () => {

@@ -953,7 +953,9 @@ export function buildTeacherGradingWorkbenchView(input: {
     },
     actions: input.run.status === 'blocked'
       ? ['retry-conversion']
-      : ['edit-criterion', 'add-annotation', 'approve', 'return-feedback', 'retry-conversion'],
+      : input.run.status === 'approved'
+        ? ['edit-criterion', 'add-annotation', 'return-feedback', 'retry-conversion']
+        : ['edit-criterion', 'add-annotation', 'approve', 'return-feedback', 'retry-conversion'],
     konlingEntryPoint: {
       mode: 'grading-assistant',
       promptContext: `rubric:${input.rubric.id}@${input.rubric.version};asset:${input.asset.id}`,

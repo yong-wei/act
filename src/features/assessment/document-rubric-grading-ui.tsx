@@ -221,7 +221,7 @@ export function TeacherDocumentGradingWorkbench({
               <div className="mt-4 flex flex-wrap gap-2">
                 {view.actions.map((action) => (
                   action === 'approve' && view.gradingRunId ? (
-                    <DocumentGradingApprovalButton key={action} />
+                    <DocumentGradingApprovalButton key={`approve:${view.gradingRunId}`} gradingRunId={view.gradingRunId} />
                   ) : (
                     <button key={action} type="button" className="rounded border border-border px-3 py-2 text-sm text-foreground transition hover:border-primary hover:text-primary">
                       {runActionLabel(action)}

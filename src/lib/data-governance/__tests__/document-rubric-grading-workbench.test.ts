@@ -947,6 +947,13 @@ describe('document rubric grading workbench', () => {
       reference: expect.objectContaining({ precision: 'block' }),
     }));
     expect(teacherView.actions).toEqual(expect.arrayContaining(['edit-criterion', 'approve', 'retry-conversion']));
+    const approvedTeacherView = buildTeacherGradingWorkbenchView({
+      asset: submission,
+      convertedDocument: converted,
+      rubric: rubric(),
+      run: approved,
+    });
+    expect(approvedTeacherView.actions).not.toContain('approve');
     expect(teacherView.konlingEntryPoint.mode).toBe('grading-assistant');
     expect(teacherView.konlingEntryPoint.serverContext).toEqual(expect.objectContaining({
       gradingRunId: draft.id,
