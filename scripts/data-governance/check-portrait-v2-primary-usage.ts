@@ -27,19 +27,47 @@ function parseArgs(args: string[]) {
   const baseIndex = args.indexOf('--base');
   return {
     staged,
-    base: baseIndex >= 0 ? args[baseIndex + 1] ?? 'origin/integration' : 'origin/integration',
+    base: baseIndex >= 0 ? args[baseIndex + 1] ?? null : null,
   };
 }
 
-function readGitDiff(input: { staged: boolean; base: string }): string {
+function readGitDiff(input: { staged: boolean; base: string | null }): string {
   const args = input.staged
     ? ['diff', '--cached', '--unified=0', '--no-ext-diff']
-    : ['diff', '--unified=0', '--no-ext-diff', `${input.base}...HEAD`];
+    : buildUnstagedDiffArgs(input.base);
   try {
     return execFileSync('git', args, { encoding: 'utf8' });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`无法读取 portrait-v2 门禁差异：${message}`);
+  }
+}
+
+function buildUnstagedDiffArgs(requestedBase: string | null): string[] {
+  const base = resolveDiffBase(requestedBase);
+  return base
+    ? ['diff', '--unified=0', '--no-ext-diff', `${base}...HEAD`]
+    : ['diff-tree', '--root', '--unified=0', '--no-commit-id', '-r', 'HEAD'];
+}
+
+function resolveDiffBase(requestedBase: string | null): string | null {
+  const candidates = requestedBase
+    ? [requestedBase, 'origin/integration', '@{upstream}', 'HEAD^']
+    : ['origin/integration', '@{upstream}', 'HEAD^'];
+  for (const candidate of candidates) {
+    const resolved = resolveGitRef(candidate);
+    if (resolved) return resolved;
+  }
+  return null;
+}
+
+function resolveGitRef(ref: string): string | null {
+  try {
+    return execFileSync('git', ['rev-parse', '--verify', '--quiet', `${ref}^{commit}`], {
+      encoding: 'utf8',
+    }).trim() || null;
+  } catch {
+    return null;
   }
 }
 

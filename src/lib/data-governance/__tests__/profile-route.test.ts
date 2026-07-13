@@ -575,6 +575,8 @@ describe('GET /api/user/profile', () => {
   });
 
   it('returns six-dimension competency, preview activities, and adaptive reinforcement summary', async () => {
+    process.env.ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED = 'true';
+
     const response = await GET();
     const body = await response.json();
 
@@ -724,6 +726,17 @@ describe('GET /api/user/profile', () => {
     });
   });
 
+  it('keeps the legacy profile fallback when the learner state feature is disabled', async () => {
+    process.env.ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED = 'false';
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.adaptiveLearnerState).toBeNull();
+    expect(body.competency.dimensions).toHaveLength(7);
+  });
+
   it('does not initialize profile data for a stale student session when the database user is no longer a student', async () => {
     mocks.getServerAuthSession.mockResolvedValue({
       user: { id: 'student-1', role: 'STUDENT' },
@@ -779,6 +792,8 @@ describe('GET /api/user/profile', () => {
   });
 
   it('uses full governed fact history for missing cache evidence status', async () => {
+    process.env.ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED = 'true';
+
     const dayMs = 24 * 60 * 60 * 1000;
     const recentStart = Date.UTC(2026, 4, 1);
     const fullHistoryStart = Date.UTC(2026, 3, 1);

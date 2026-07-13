@@ -27,6 +27,7 @@ import { getCompetencyLevel } from '@/lib/data-governance/competency-model';
 import { generateRecommendations } from '@/lib/data-governance/recommendation-engine';
 import { readStudentEvidenceFeatures } from '@/lib/data-governance/student-evidence-feature-cache';
 import {
+  isAdaptiveLearnerStateServiceEnabled,
   readAdaptiveLearnerState,
   type AdaptiveLearnerState,
 } from '@/lib/data-governance/adaptive-learner-state-service';
@@ -275,6 +276,8 @@ export async function GET() {
       ]);
     }
 
+    const adaptiveLearnerStateEnabled = isAdaptiveLearnerStateServiceEnabled();
+
     const [
       profile,
       latestSnapshot,
@@ -378,14 +381,16 @@ export async function GET() {
         },
       }),
       readStudentEvidenceFeatures(prisma, userId),
-      readAdaptiveLearnerState(prisma, {
-        userId,
-        role: 'student',
-        portraitConsumer: 'student',
-      }).catch((error) => {
-        console.error('[UserProfile] Learner state read failed:', error);
-        return null;
-      }),
+      adaptiveLearnerStateEnabled
+        ? readAdaptiveLearnerState(prisma, {
+            userId,
+            role: 'student',
+            portraitConsumer: 'student',
+          }).catch((error) => {
+            console.error('[UserProfile] Learner state read failed:', error);
+            return null;
+          })
+        : Promise.resolve(null),
       prisma.studentState.findMany({
         where: { userId },
         orderBy: { submittedAt: 'desc' },

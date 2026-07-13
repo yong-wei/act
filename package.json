@@ -13,7 +13,7 @@
     "start": "node ./scripts/ops/clear-logs.mjs && next start -p 3001",
     "typecheck": "tsc --noEmit --pretty false",
     "verify:commit": "npm run typecheck && npm run verify:new-resource-semantics -- --staged && npm run verify:portrait-v2-primary -- --staged",
-    "verify:push": "npm run typecheck && npm run verify:portrait-v2-primary -- --base origin/integration",
+    "verify:push": "npm run typecheck && npm run verify:portrait-v2-primary",
     "lint": "eslint . --max-warnings=0",
     "test": "node ./scripts/tests/smoke-test.mjs && node ./scripts/tests/test-arena-home-entry.mjs && node ./scripts/tests/test-arena-routes.mjs && npx --yes tsx ./scripts/tests/test-commercial-ui-governance.ts",
     "test:theme": "npx --yes tsx ./scripts/tests/test-theme-toggle.ts",
