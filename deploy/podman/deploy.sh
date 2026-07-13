@@ -258,7 +258,7 @@ require_math_document_grading_worker_config() {
     endpoint="${endpoint:-https://api.siliconflow.cn/v1}"
     model="${model:-Qwen/Qwen3.6-35B-A3B}"
   fi
-  if [ "${AI_PROVIDER_ENABLED:-true}" = "false" ] || [[ "$endpoint" != https://* ]] || [ -z "$model" ] || [ -z "$api_key" ]; then
+  if ! [[ "${GRADING_AI_PROVIDER_ENABLED:-false}" =~ ^(1|true|yes)$ ]] || [[ "$endpoint" != https://* ]] || [ -z "$model" ] || [ -z "$api_key" ]; then
     echo "ERROR: 数学文档批改 worker 缺少可用的 AI provider 配置。" >&2
     exit 1
   fi
@@ -731,7 +731,7 @@ if [ -n "${LLM_SERVICE_URL:-}" ]; then
 fi
 
 AI_PROVIDER_ENV_ARGS=()
-for env_name in AI_PROVIDER LLM_PROVIDER AI_PROVIDER_KIND LLM_PROVIDER_KIND AI_BASE_URL AI_API_KEY AI_SECRET_REF AI_MODEL AI_PROVIDER_ENABLED AI_PROVIDER_PRIORITY SILICONFLOW_API_URL SILICONFLOW_API_KEY SILICONFLOW_SECRET_REF SILICONFLOW_MODEL LLM_SERVICE_URL; do
+for env_name in AI_PROVIDER LLM_PROVIDER AI_PROVIDER_KIND LLM_PROVIDER_KIND AI_BASE_URL AI_API_KEY AI_SECRET_REF AI_MODEL AI_PROVIDER_ENABLED GRADING_AI_PROVIDER_ENABLED AI_PROVIDER_PRIORITY SILICONFLOW_API_URL SILICONFLOW_API_KEY SILICONFLOW_SECRET_REF SILICONFLOW_MODEL LLM_SERVICE_URL; do
   if [ -n "${!env_name:-}" ]; then
     AI_PROVIDER_ENV_ARGS+=(-e "${env_name}=${!env_name}")
   fi

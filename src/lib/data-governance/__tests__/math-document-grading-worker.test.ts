@@ -62,6 +62,7 @@ describe('math-document grading worker recovery dispatch', () => {
       SUBMISSION_CLAMAV_HOST: 'clamav',
       SUBMISSION_CLAMAV_PORT: '3310',
       SILICONFLOW_API_KEY: 'ai-key',
+      GRADING_AI_PROVIDER_ENABLED: 'true',
       MATHPIX_APP_ID: 'mathpix-id',
       MATHPIX_APP_KEY: 'mathpix-key',
       GRADING_AUDIT_SECRET: 'audit-secret',
@@ -81,6 +82,20 @@ describe('math-document grading worker recovery dispatch', () => {
       },
       missing: [],
     });
+  });
+
+  it('uses the grading-specific provider flag for worker readiness', () => {
+    const status = getMathDocumentGradingWorkerCapabilityStatus({
+      NODE_ENV: 'production',
+      AI_PROVIDER_ENABLED: 'true',
+      GRADING_AI_PROVIDER_ENABLED: 'false',
+      AI_BASE_URL: 'https://api.example.com/v1',
+      AI_MODEL: 'grading-model',
+      AI_API_KEY: 'ai-key',
+    });
+
+    expect(status.capabilities.aiProvider).toBe(false);
+    expect(status.missing).toContain('GRADING_AI_PROVIDER_ENABLED');
   });
 
   it('rejects capability records with non-boolean or drifting capability keys', async () => {

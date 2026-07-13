@@ -94,6 +94,7 @@ describe('math-document grading production entrypoint contract', () => {
   it('uses the explicit seven-capability contract in the worker healthcheck and policy seed', () => {
     const readiness = read('src/lib/data-governance/math-document-grading-worker-readiness.ts');
     const deploy = read('deploy/podman/deploy.sh');
+    const envExample = read('deploy/podman/.env.server.example');
     const policySeed = read('scripts/assignments/ensure-grading-policies.ts');
     for (const key of ['database', 'redis', 'objectStore', 'scanner', 'aiProvider', 'mathpix', 'auditSecret']) {
       expect(readiness).toContain(`'${key}'`);
@@ -105,6 +106,9 @@ describe('math-document grading production entrypoint contract', () => {
     expect(policySeed).toContain('.upsert(');
     expect(policySeed).toContain('credentialRef');
     expect(policySeed).not.toMatch(/process\.env\.(?:AI_API_KEY|SILICONFLOW_API_KEY|MATHPIX_APP_KEY)/);
+    expect(readiness).toContain('GRADING_AI_PROVIDER_ENABLED');
+    expect(deploy).toContain('GRADING_AI_PROVIDER_ENABLED');
+    expect(envExample).toContain('GRADING_AI_PROVIDER_ENABLED=false');
   });
 
   it('blocks production policy seeding when positive provider retention has no deletion adapter', () => {

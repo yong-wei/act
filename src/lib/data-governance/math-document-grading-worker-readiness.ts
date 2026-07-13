@@ -122,9 +122,9 @@ export function getMathDocumentGradingWorkerCapabilityStatus(
   const aiKey = provider === 'siliconflow'
     ? nonEmpty(env.AI_API_KEY) || nonEmpty(env.SILICONFLOW_API_KEY)
     : nonEmpty(env.AI_API_KEY);
-  const aiEnabled = env.AI_PROVIDER_ENABLED !== 'false';
+  const aiEnabled = ['1', 'true', 'yes'].includes((env.GRADING_AI_PROVIDER_ENABLED ?? '').trim().toLowerCase());
   const aiProvider = aiEnabled && isHttpsUrl(aiEndpoint) && Boolean(aiModel) && Boolean(aiKey);
-  if (!aiEnabled) missing.add('AI_PROVIDER_ENABLED');
+  if (!aiEnabled) missing.add('GRADING_AI_PROVIDER_ENABLED');
   if (!isHttpsUrl(aiEndpoint)) missing.add('AI_BASE_URL');
   if (!aiModel) missing.add('AI_MODEL');
   if (!aiKey) missing.add(provider === 'siliconflow' ? 'SILICONFLOW_API_KEY' : 'AI_API_KEY');
