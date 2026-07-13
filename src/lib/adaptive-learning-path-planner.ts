@@ -2419,12 +2419,13 @@ function inferDeficits(
       .map((targetId) => {
         const competency = competencies[targetId];
         const portraitDimensionIds = portraitDimensionIdsForTarget(targetId);
-        const portraitScores = portraitDimensionIds
-          .map((id) => learnerState?.primaryPortrait?.dimensions.find((dimension) => dimension.id === id))
-          .filter((dimension): dimension is NonNullable<typeof dimension> => Boolean(dimension));
-        const value = portraitScores.length > 0
-          ? portraitScores.reduce((sum, dimension) => sum + dimension.score, 0) / portraitScores.length / 100
-          : (competency?.score ?? 0) / 100;
+      const portraitScores = portraitDimensionIds
+        .map((id) => learnerState?.primaryPortrait?.dimensions.find((dimension) => dimension.id === id))
+        .filter((dimension): dimension is NonNullable<typeof dimension> => Boolean(dimension));
+      const legacyScore = competency?.score ?? 0;
+      const value = portraitScores.length > 0
+        ? portraitScores.reduce((sum, dimension) => sum + dimension.score, 0) / portraitScores.length / 100
+        : legacyScore > 1 ? legacyScore / 100 : legacyScore;
         const confidence = portraitScores.length > 0
           ? portraitScores.reduce((sum, dimension) => sum + dimension.confidence, 0) / portraitScores.length
           : competency?.confidence ?? 0;

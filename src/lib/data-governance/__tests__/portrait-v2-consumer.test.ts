@@ -127,6 +127,29 @@ describe('portrait v2 consumer adapters', () => {
     expect(resolution.legacyCompatibility.vector.controlModeling.score).toBe(60);
   });
 
+  it('loads a DB feature cache before resolving its primary portrait marker', async () => {
+    const payload = nativePortrait();
+    const findUnique = vi.fn().mockResolvedValue({
+      features: {
+        approvedAggregates: {
+          primaryPortrait: {
+            authority: 'portrait-v2-primary',
+            payloadVersion: payload.payloadVersion,
+            derivationKind: 'native',
+            payload,
+          },
+        },
+      },
+    });
+    const resolution = await resolvePrimaryPortraitV2({
+      studentCompetencySnapshot: { findFirst: vi.fn() },
+      studentEvidenceFeatureCache: { findUnique },
+    }, 'student-1', 'student', { now, legacySnapshot: null });
+
+    expect(findUnique).toHaveBeenCalledWith({ where: { userId: 'student-1' } });
+    expect(resolution.primaryPortrait.derivation.kind).toBe('native');
+  });
+
   it('projects legacy input only through the explicit compatibility path', async () => {
     const snapshot = legacySnapshot();
     const resolution = await resolvePrimaryPortraitV2({}, 'student-1', 'reviewer', {

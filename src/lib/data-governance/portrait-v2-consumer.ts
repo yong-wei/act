@@ -130,8 +130,13 @@ export async function resolvePrimaryPortraitV2(
     }
   }
 
+  const featureCache = Object.prototype.hasOwnProperty.call(options, 'featureCache')
+    ? options.featureCache ?? null
+    : await db.studentEvidenceFeatureCache?.findUnique?.({
+        where: { userId },
+      }) ?? null;
   if (!primaryPortrait) {
-    const cachedPortrait = readCachedPortrait(options.featureCache, consumer, now);
+    const cachedPortrait = readCachedPortrait(featureCache, consumer, now);
     if (cachedPortrait.payload) {
       primaryPortrait = cachedPortrait.payload;
     }
@@ -168,11 +173,6 @@ export async function resolvePrimaryPortraitV2(
     return compatibilityResult;
   }
 
-  const featureCache = Object.prototype.hasOwnProperty.call(options, 'featureCache')
-    ? options.featureCache ?? null
-    : await db.studentEvidenceFeatureCache?.findUnique?.({
-        where: { userId },
-      }) ?? null;
   const featureSnapshot = readLegacyFeatureSnapshot(featureCache);
   const cachedVector = toCompetencyVector(featureSnapshot?.competencyVector);
   if (cachedVector) {

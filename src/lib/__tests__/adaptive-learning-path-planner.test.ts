@@ -397,6 +397,18 @@ function policyFixtureInput(overrides: Partial<AdaptiveLearningPathPlannerInput>
 }
 
 describe('adaptive learning path planner', () => {
+  it('preserves legacy competency scores already normalized to 0-1', () => {
+    const plan = buildAdaptiveLearningPathPlan(plannerInput());
+    const parameterDeficit = plan.visualization.evidence.learnerStateDeficits.find(
+      (deficit) => deficit.targetId === 'parameterDesign',
+    );
+
+    expect(parameterDeficit).toMatchObject({
+      value: 0.35,
+      reasonCode: 'competency-deficit',
+    });
+  });
+
   it('uses explicit policy families to produce different path emphasis', () => {
     const base = plannerInput({
       constraints: {
