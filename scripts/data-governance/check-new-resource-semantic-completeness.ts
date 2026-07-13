@@ -244,7 +244,9 @@ function validateRuntimeProjectionRowSourceEvidence(
         message: 'Runtime projection requires sourcePathOrUrl so review evidence can be revalidated.',
       }];
     }
-    const sourcePath = runtimeProjectionPrimaryLocalSourcePath(row);
+    const sourcePath = runtimeProjectionUsesAssetEvidence(row)
+      ? null
+      : runtimeProjectionPrimaryLocalSourcePath(row);
     const reviewEvidencePath = runtimeProjectionReviewHashLocalSourcePath(row);
     const evidencePaths = runtimeProjectionRowEvidenceLocalSourcePaths(row);
     const untrackedEvidencePath = options.staged
@@ -285,6 +287,20 @@ function validateRuntimeProjectionRowSourceEvidence(
       }];
     }
     const sourceHashPaths = sourcePath ? [sourcePath] : evidencePaths;
+    if (runtimeProjectionUsesAssetEvidence(row)) {
+      const evidenceHash = reviewEvidencePath
+        ? runtimeProjectionSourceHash(reviewEvidencePath, options)
+        : undefined;
+      if (evidenceHash !== row.runtimeSemanticEvidence?.evidenceFileHash) {
+        return [{
+          family: 'runtime-resource-projection' as const,
+          resourceId: row.id,
+          code: 'stale-runtime-projection-source-hash',
+          message: `Runtime projection semantic evidence hash must match the staged evidence file for ${sourcePathOrUrl}.`,
+        }];
+      }
+      return [];
+    }
     const currentHashes = sourceHashPaths
       .map((filePath) => runtimeProjectionSourceHash(filePath, options));
     return currentHashes.includes(row.sourceHash)
@@ -359,10 +375,18 @@ function runtimeProjectionReviewHashLocalSourcePath(row: RuntimeProjectionRow): 
 }
 
 function runtimeProjectionRowEvidenceLocalSourcePaths(row: RuntimeProjectionRow): string[] {
+  const primarySourcePath = runtimeProjectionUsesAssetEvidence(row)
+    ? null
+    : runtimeProjectionPrimaryLocalSourcePath(row);
   return uniqueSorted([
-    runtimeProjectionPrimaryLocalSourcePath(row),
+    primarySourcePath,
     runtimeProjectionReviewHashLocalSourcePath(row),
   ].filter((filePath): filePath is string => Boolean(filePath)));
+}
+
+function runtimeProjectionUsesAssetEvidence(row: RuntimeProjectionRow): boolean {
+  return row.runtimeSemanticEvidence?.assetStatus === 'missing-local-runtime-asset' ||
+    row.runtimeSemanticEvidence?.assetStatus === 'external-http-runtime-asset';
 }
 
 function projectFilePathForProjectionSource(sourcePathOrUrl: string | null | undefined): string | null {
@@ -1250,7 +1274,11 @@ function runtimeProjectionSourceHash(filePath: string, options: CliOptions): str
 
 function runtimeProjectionSourceContent(filePath: string, options: CliOptions): Buffer | undefined {
   if (options.staged) {
-    return existsSync(filePath) ? readFileSync(filePath) : undefined;
+    try {
+      return execFileSync('git', ['show', `:${filePath}`], { maxBuffer: 64 * 1024 * 1024 });
+    } catch {
+      return undefined;
+    }
   }
   try {
     return execFileSync('git', ['show', `HEAD:${filePath}`], { maxBuffer: 64 * 1024 * 1024 });
@@ -1321,7 +1349,7 @@ function gitDiff(options: CliOptions, filePath: string): string {
   const args = options.staged
     ? ['diff', '--cached', '--unified=0', '--', filePath]
     : ['diff', '--unified=0', `${options.base}...HEAD`, '--', filePath];
-  return execFileSync('git', args, { encoding: 'utf8' });
+  return execFileSync('git', args, { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
 }
 
 function gitChangedPaths(options: CliOptions, dirPath: string): string[] {

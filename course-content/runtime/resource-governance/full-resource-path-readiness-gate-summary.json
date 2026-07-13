@@ -35,8 +35,8 @@
       "excluded-with-rationale": 1746
     },
     "unaccountedCount": 0,
-    "invalidPromotionCount": 154,
-    "unreviewedSemanticCount": 4616,
+    "invalidPromotionCount": 5,
+    "unreviewedSemanticCount": 2070,
     "unresolvedGraphNodeResourceMissingCount": 3938,
     "downstreamBlockers": {
       "dependency": 60,
@@ -54,13 +54,13 @@
       "complete-foundation-graph-resource-bindings": 436,
       "repair-resource-identity-bindings": 333,
       "review-runtime-lesson-planning-units": 8317,
-      "review-runtime-media-handout-dispositions": 7953
+      "review-runtime-media-handout-dispositions": 3159
     },
     "yangFanFixtureBlockers": {
       "blocked": true,
       "blockerCount": 22,
       "scopedBlockerCount": 22,
-      "globalLimitationCount": 2948,
+      "globalLimitationCount": 2301,
       "blockerFamilies": {
         "external-resource": 22
       },
@@ -497,7 +497,7 @@
     {
       "id": "invalid-path-promotion",
       "severity": "blocking",
-      "count": 154,
+      "count": 5,
       "message": "Resources are marked path-current without complete human-reviewed governance.",
       "evidenceRefs": [
         "resource-field-completion-audit.jsonl"
@@ -506,7 +506,7 @@
     {
       "id": "unreviewed-resource-semantics",
       "severity": "blocking",
-      "count": 4616,
+      "count": 2070,
       "message": "Resources still require reviewed semantic fields or reviewed limitations.",
       "evidenceRefs": [
         "resource-field-completion-summary.json"
@@ -542,7 +542,7 @@
     {
       "id": "yang-fan-fixture-limited-coverage",
       "severity": "warning",
-      "count": 2948,
+      "count": 2301,
       "message": "Yang Fan fixture-owned resources are scoped separately; unrelated global resource backlog remains visible as limited coverage.",
       "evidenceRefs": [
         "resource-evidence-lineage-readiness-summary.json"

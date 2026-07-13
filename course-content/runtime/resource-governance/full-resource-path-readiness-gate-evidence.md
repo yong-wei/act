@@ -7,13 +7,13 @@ Status: failed
 
 Total resources: 5291
 Unaccounted resources: 0
-Invalid path promotions: 154
-Unreviewed semantic rows: 4616
+Invalid path promotions: 5
+Unreviewed semantic rows: 2070
 Unresolved graph-node resource gaps: 3938
 Unresolved downstream path blockers: 17707
 Evidence-lineage blockers: 22
 Yang Fan fixture blockers: 22
-Yang Fan fixture global limitations: 2948
+Yang Fan fixture global limitations: 2301
 
 ## LearningGoal Diagnostics
 
@@ -67,12 +67,12 @@ Missing audited resource types: adaptive_quiz, checkpoint, control_workbench, ex
 ## Findings
 
 - [blocking] unresolved-downstream-path-blockers: 17707 - Reviewed disposition output still carries downstream path-readiness, runtime-identity, or dependency blockers.
-- [blocking] invalid-path-promotion: 154 - Resources are marked path-current without complete human-reviewed governance.
-- [blocking] unreviewed-resource-semantics: 4616 - Resources still require reviewed semantic fields or reviewed limitations.
+- [blocking] invalid-path-promotion: 5 - Resources are marked path-current without complete human-reviewed governance.
+- [blocking] unreviewed-resource-semantics: 2070 - Resources still require reviewed semantic fields or reviewed limitations.
 - [blocking] unresolved-graph-node-resource-missing: 3938 - Resources still lack reviewed graph knowledge or capability bindings.
 - [blocking] evidence-lineage-blockers: 22 - Evidence-producing path resources still have hard evidence-lineage blockers.
 - [blocking] yang-fan-fixture-blockers: 22 - Yang Fan fixture generation remains blocked by fixture-owned lineage limitations.
-- [warning] yang-fan-fixture-limited-coverage: 2948 - Yang Fan fixture-owned resources are scoped separately; unrelated global resource backlog remains visible as limited coverage.
+- [warning] yang-fan-fixture-limited-coverage: 2301 - Yang Fan fixture-owned resources are scoped separately; unrelated global resource backlog remains visible as limited coverage.
 - [blocking] learning-goal-path-generation-blocked: 9 - Registered LearningGoals attempted path generation but reported blocking planner reasons.
 - [warning] learning-goal-baseline-limited: 9 - LearningGoals have precise resource-gap diagnostics instead of production path-ready baselines.
 - [blocking] resource-type-audit-missing: 7 - Required future import resource types are not currently represented in helper output; future imports must not bypass this audit.

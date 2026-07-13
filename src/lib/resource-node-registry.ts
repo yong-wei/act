@@ -375,6 +375,31 @@ export interface RuntimeResourceProjectionReviewAudit {
   staleInvalidationRule: string;
 }
 
+export type RuntimeResourceProjectionAssetStatus =
+  | 'not-applicable'
+  | 'tracked-local-runtime-asset'
+  | 'missing-local-runtime-asset'
+  | 'external-http-runtime-asset';
+
+export type RuntimeResourceProjectionAssetAvailability =
+  | 'not-applicable'
+  | 'tracked-in-git-index'
+  | 'not-tracked-in-git-index'
+  | 'external-media-index-url';
+
+export interface RuntimeResourceProjectionSemanticEvidence {
+  schemaVersion: 'runtime-lesson-semantic-evidence.v1';
+  sourceFilePath: string;
+  sourceFileKind: string;
+  sourceFileHash: string | null;
+  evidenceFilePath: string;
+  evidenceFileHash: string;
+  evidenceSelector: string;
+  assetStatus: RuntimeResourceProjectionAssetStatus;
+  assetAvailability: RuntimeResourceProjectionAssetAvailability;
+  externalIdentitySha256: string | null;
+}
+
 export interface RuntimeResourceProjectionInput {
   id: string;
   resourceNodeId?: string | null;
@@ -398,6 +423,13 @@ export interface RuntimeResourceProjectionInput {
   reviewAudit?: RuntimeResourceProjectionReviewAudit | null;
   readiness?: ResourceNodeReadinessMetadata | null;
   citationTargets?: string[];
+  runtimeSemanticEvidence?: RuntimeResourceProjectionSemanticEvidence;
+  pathEligibility?: {
+    current: boolean;
+    afterCompletion: boolean;
+    masteryAffecting: boolean;
+    blockedBy: string[];
+  };
 }
 
 export interface RuntimeResourceProjectionMetadata {

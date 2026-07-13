@@ -39,7 +39,16 @@ import {
 import { ADAPTIVE_LEARNING_GOAL_DEFINITIONS } from '@/lib/adaptive-learning-path-planner';
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 import { buildResourceNodeRegistryFromTeachingResources } from '@/lib/teacher-resource-node-data';
-import { buildRuntimeResourceProjectionArtifacts } from '@/lib/runtime-resource-projections';
+import {
+  buildRuntimeResourceProjectionArtifacts,
+} from '@/lib/runtime-resource-projections';
+import type { RuntimeResourceProjectionSemanticEvidence } from '@/lib/resource-node-registry';
+import {
+  assertRuntimeLessonSemanticReviewEvidence,
+  assertRuntimeSemanticEvidenceReference,
+  type RuntimeLessonSemanticDecisionFacts,
+  type RuntimeLessonSemanticReviewEvidence,
+} from './runtime-lesson-semantic-evidence';
 
 const OUTPUT_DIR = path.join(process.cwd(), 'course-content/runtime/resource-governance');
 const AUDIT_JSONL_PATH = path.join(OUTPUT_DIR, 'resource-field-completion-audit.jsonl');
@@ -65,6 +74,7 @@ const CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_MATERIALIZATION_MANIFEST_PATH 
 const TEXTBOOK_SEARCH_DOCUMENT_CITATION_REVIEW_ITEMS_JSONL_PATH = path.join(OUTPUT_DIR, 'textbook-search-document-citation-shard-review-items.jsonl');
 const HUMAN_REVIEW_INTEGRITY_JSON_PATH = path.join(OUTPUT_DIR, 'resource-human-review-integrity-diagnostics.json');
 const PROJECTION_JSONL_PATH = path.join(OUTPUT_DIR, 'runtime-resource-projections.jsonl');
+const RUNTIME_LESSON_MEDIA_SEMANTIC_REVIEW_SOURCE_JSONL_PATH = path.join(OUTPUT_DIR, 'runtime-lesson-media-resource-semantics-review-source.jsonl');
 const PROJECTION_LIMITATIONS_PATH = path.join(OUTPUT_DIR, 'runtime-resource-projection-limitations.json');
 const BASELINE_MATRIX_JSON_PATH = path.join(OUTPUT_DIR, 'learning-goal-resource-baseline-matrix.json');
 const BASELINE_LIMITATIONS_JSON_PATH = path.join(OUTPUT_DIR, 'learning-goal-resource-baseline-limitations.json');
@@ -183,6 +193,12 @@ const CORE_REVIEW_ONLY_BLOCKER_CODES = new Set<ResourceFieldMissingCode>([
   'missing-human-review',
   'provisional-metadata',
   'stale-review',
+]);
+const RUNTIME_LESSON_MEDIA_SEMANTIC_SCOPE_FAMILIES = new Set<ResourceFieldCompletionFamily>([
+  'runtime-lesson-step',
+  'runtime-lesson-module',
+  'runtime-lesson-media',
+  'runtime-handout',
 ]);
 
 type ResidualDispositionClassification =
@@ -398,6 +414,51 @@ export interface CoreRegisteredKnowledgeResourceSemanticReviewSource {
   rawContentIncluded: false;
 }
 
+interface RuntimeLessonMediaSemanticReviewSource {
+  artifactVersion: 'runtime-lesson-media-resource-semantics.review-source.v1';
+  reviewSourceKind: 'explicit-item-review';
+  reviewBatchId: string;
+  reviewerId: string;
+  reviewerRole: string;
+  reviewedAt: string;
+  resourceId: string;
+  sourceFamily: ResourceFieldCompletionFamily;
+  expectedSourceHash: string | null;
+  expectedSourceVersionRef: string | null;
+  sourceEvidenceHash: string | null;
+  disposition: ResidualDispositionClassification | 'planning-unit';
+  promotedAsPlanningUnit: boolean;
+  currentPathEligible: boolean;
+  pathTarget: string | null;
+  parentLessonRef: string;
+  parentResourceRef: string | null;
+  parentPlanningUnitRef: string | null;
+  graphNodeRefs: ResourceFieldCompletionAuditRow['graphNodeRefs'];
+  learningGoalIds: string[];
+  knowledgeObjectiveIds: string[];
+  capabilityObjectiveIds: string[];
+  qualityObjectiveIds: string[];
+  evidenceDecision: 'independent-path-evidence' | 'parent-evidence' | 'citation-only' | 'embedded' | 'excluded';
+  evidenceContractComplete: boolean;
+  evidenceMissingFields: string[];
+  evidenceInstrumentation: string[];
+  independentEvidenceRef: string;
+  reviewerVisibleRationale: string;
+  confidence: number | null;
+  readinessPresent: boolean;
+  estimatedTimeMinutes: number | null;
+  citationTargets: string[];
+  rawContentIncluded: false;
+  privacyMinimized: true;
+  reasonCodes: string[];
+  decisionFacts: RuntimeLessonSemanticDecisionFacts;
+  runtimeEvidence: RuntimeLessonSemanticReviewEvidence;
+}
+
+function assertRuntimeLessonMediaSemanticEvidenceReference(source: RuntimeLessonMediaSemanticReviewSource) {
+  assertRuntimeSemanticEvidenceReference(source.independentEvidenceRef);
+}
+
 export interface CoreRegisteredKnowledgeResourceSemanticSummary {
   artifactVersion: 'core-registered-knowledge-resource-semantics.v1';
   reviewBatchId: string;
@@ -430,9 +491,11 @@ export interface CoreRegisteredKnowledgeResourceSemanticMaterializationManifest 
   legacySummaryMetadataSha256: string;
   nonScopeRowsCanonicalSha256: string;
   scopeRowsInvariantCanonicalSha256: string;
+  runtimeScopeRowsInvariantCanonicalSha256: string;
   reviewSourceFileSha256: string;
   denominator: number;
   scopeRows: number;
+  runtimeScopeRows: number;
   nonScopeRows: number;
 }
 
@@ -1056,6 +1119,7 @@ async function main() {
   const coreSemanticReviewSources = await loadCoreRegisteredKnowledgeResourceSemanticReviewMap(
     rawCoreSemanticReviewSourceText ?? undefined,
   );
+  const runtimeLessonMediaSemanticReviewSources = await loadRuntimeLessonMediaSemanticReviewMap();
   const materializationPhase = frozenInput && materializationManifest && rawCoreSemanticReviewSourceText
     ? assertCoreSemanticMaterializationManifest({
         manifest: materializationManifest,
@@ -1069,11 +1133,22 @@ async function main() {
   let result;
   if (frozenInput) {
     result = buildResourceFieldCompletionAuditFromRows({
-        sourceRows: frozenInput.rows,
-        reviewOverlays: coreSemanticFormalReviewOverlaysForRows(frozenInput.rows, coreSemanticReviewSources),
-        requiredReviewResourceIds: frozenInput.rows
+      sourceRows: frozenInput.rows,
+      reviewOverlays: [
+        ...coreSemanticFormalReviewOverlaysForRows(frozenInput.rows, coreSemanticReviewSources),
+        ...runtimeLessonMediaSemanticFormalReviewOverlaysForRows(
+          frozenInput.rows,
+          runtimeLessonMediaSemanticReviewSources,
+        ),
+      ],
+      requiredReviewResourceIds: [
+        ...frozenInput.rows
           .filter((row) => CORE_SCOPE_FAMILIES.has(row.family))
           .map((row) => row.resourceId),
+        ...frozenInput.rows
+          .filter((row) => RUNTIME_LESSON_MEDIA_SEMANTIC_SCOPE_FAMILIES.has(row.family))
+          .map((row) => row.resourceId),
+      ],
         generatedAt: frozenInput.summary.generatedAt,
         sourceWindow: frozenInput.summary.sourceWindow,
         versionRefs: frozenInput.summary.versionRefs,
@@ -1095,6 +1170,7 @@ async function main() {
       registry,
       textbookDocuments,
       coreSemanticReviewSources,
+      runtimeLessonMediaSemanticReviewSources,
       generatedAt,
     );
   }
@@ -1107,9 +1183,30 @@ async function main() {
         await fs.readFile(KNOWLEDGE_VISUAL_SEMANTIC_REVIEW_SUMMARY_JSON_PATH, 'utf8'),
       ) as KnowledgeVisualSemanticReviewSummary
     : buildKnowledgeVisualSemanticReviewSummary(knowledgeVisualSemanticReviewItems, result.rows);
+  const resultRowById = new Map(result.rows.map((row) => [row.resourceId, row]));
+  const runtimeSemanticEvidenceById = new Map<string, RuntimeResourceProjectionSemanticEvidence>(
+    Array.from(runtimeLessonMediaSemanticReviewSources.values()).map((source) => {
+      const row = resultRowById.get(source.resourceId);
+      if (!row) throw new Error(`Runtime semantic source has no derived audit row: ${source.resourceId}`);
+      const facts = assertRuntimeLessonSemanticReviewEvidence(row, source);
+      return [source.resourceId, {
+        schemaVersion: facts.schemaVersion,
+        sourceFilePath: facts.sourceFilePath,
+        sourceFileKind: facts.sourceFileKind,
+        sourceFileHash: facts.sourceFileHash,
+        evidenceFilePath: facts.evidenceFilePath,
+        evidenceFileHash: facts.evidenceFileHash,
+        evidenceSelector: facts.evidenceSelector,
+        assetStatus: facts.assetStatus,
+        assetAvailability: facts.assetAvailability,
+        externalIdentitySha256: facts.externalIdentitySha256,
+      }] as const;
+    }),
+  );
   const projectionArtifacts = buildRuntimeResourceProjectionArtifacts({
     auditRows: result.rows,
     generatedAt,
+    runtimeSemanticEvidenceById,
   });
   const baselineArtifacts = buildLearningGoalResourceBaselineArtifacts({
     registeredGoals: ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
@@ -2085,15 +2182,18 @@ function coreSemanticSummaryMetadataSha256(summary: ResourceFieldCompletionAudit
 
 function coreSemanticNonScopeRowsCanonicalSha256(rows: readonly ResourceFieldCompletionAuditRow[]) {
   const nonScopeRows = rows
-    .filter((row) => !CORE_SCOPE_FAMILIES.has(row.family))
+    .filter((row) => !CORE_SCOPE_FAMILIES.has(row.family) && !RUNTIME_LESSON_MEDIA_SEMANTIC_SCOPE_FAMILIES.has(row.family))
     .slice()
     .sort((left, right) => left.resourceId.localeCompare(right.resourceId));
   return `sha256:${sha256(JSON.stringify(nonScopeRows))}`;
 }
 
-function coreSemanticScopeRowsInvariantCanonicalSha256(rows: readonly ResourceFieldCompletionAuditRow[]) {
+function semanticScopeRowsInvariantCanonicalSha256(
+  rows: readonly ResourceFieldCompletionAuditRow[],
+  scopeFamilies: ReadonlySet<ResourceFieldCompletionFamily>,
+) {
   const invariantRows = rows
-    .filter((row) => CORE_SCOPE_FAMILIES.has(row.family))
+    .filter((row) => scopeFamilies.has(row.family))
     .slice()
     .sort((left, right) => left.resourceId.localeCompare(right.resourceId))
     .map(({
@@ -2119,6 +2219,14 @@ function coreSemanticScopeRowsInvariantCanonicalSha256(rows: readonly ResourceFi
   return `sha256:${sha256(JSON.stringify(invariantRows))}`;
 }
 
+function coreSemanticScopeRowsInvariantCanonicalSha256(rows: readonly ResourceFieldCompletionAuditRow[]) {
+  return semanticScopeRowsInvariantCanonicalSha256(rows, CORE_SCOPE_FAMILIES);
+}
+
+function runtimeSemanticScopeRowsInvariantCanonicalSha256(rows: readonly ResourceFieldCompletionAuditRow[]) {
+  return semanticScopeRowsInvariantCanonicalSha256(rows, RUNTIME_LESSON_MEDIA_SEMANTIC_SCOPE_FAMILIES);
+}
+
 export function assertCoreSemanticMaterializationManifest(input: {
   manifest: CoreRegisteredKnowledgeResourceSemanticMaterializationManifest;
   rawAuditText: string;
@@ -2131,15 +2239,18 @@ export function assertCoreSemanticMaterializationManifest(input: {
     manifest.artifactVersion !== 'core-registered-knowledge-resource-semantic-materialization-manifest.v1' ||
     manifest.denominator !== 5291 ||
     manifest.scopeRows !== 608 ||
-    manifest.nonScopeRows !== 4683
+    manifest.nonScopeRows !== 2085 ||
+    manifest.runtimeScopeRows !== 2598
   ) {
     throw new Error('Invalid core semantic materialization manifest contract');
   }
   const scopeRows = input.rows.filter((row) => CORE_SCOPE_FAMILIES.has(row.family)).length;
+  const runtimeScopeRows = input.rows.filter((row) => RUNTIME_LESSON_MEDIA_SEMANTIC_SCOPE_FAMILIES.has(row.family)).length;
   if (
     input.rows.length !== manifest.denominator ||
     scopeRows !== manifest.scopeRows ||
-    input.rows.length - scopeRows !== manifest.nonScopeRows
+    runtimeScopeRows !== manifest.runtimeScopeRows ||
+    input.rows.length - scopeRows - runtimeScopeRows !== manifest.nonScopeRows
   ) {
     throw new Error('Core semantic materialization manifest denominator mismatch');
   }
@@ -2151,6 +2262,9 @@ export function assertCoreSemanticMaterializationManifest(input: {
   }
   if (coreSemanticScopeRowsInvariantCanonicalSha256(input.rows) !== manifest.scopeRowsInvariantCanonicalSha256) {
     throw new Error('Core semantic materialization scope invariant rows mismatch');
+  }
+  if (runtimeSemanticScopeRowsInvariantCanonicalSha256(input.rows) !== manifest.runtimeScopeRowsInvariantCanonicalSha256) {
+    throw new Error('Runtime semantic materialization scope invariant rows mismatch');
   }
   if (`sha256:${sha256(input.rawReviewSourceText)}` !== manifest.reviewSourceFileSha256) {
     throw new Error('Core semantic materialization review source hash mismatch');
@@ -2227,15 +2341,34 @@ async function buildFullResourceFieldCompletionAudit(
   registry: Parameters<typeof buildResourceFieldCompletionAudit>[0]['registry'],
   textbookDocuments: Awaited<ReturnType<typeof loadAllTextbookRuntimeSearchDocuments>>,
   coreSemanticReviewSources: Map<string, CoreRegisteredKnowledgeResourceSemanticReviewSource>,
+  runtimeLessonMediaSemanticReviewSources: Map<string, RuntimeLessonMediaSemanticReviewSource>,
   generatedAt: string,
 ) {
   const { candidates, limitations } = await collectAuditOnlyCandidates(textbookDocuments);
-  return buildResourceFieldCompletionAudit({
+  const sourceResult = buildResourceFieldCompletionAudit({
     registry,
     candidates,
-    reviewOverlays: Array.from(coreSemanticReviewSources.values()).map(coreSemanticFormalReviewOverlayFromSource),
     generatedAt,
     sourceWindow: { from: null, to: generatedAt },
+    limitations,
+  });
+  const coreOverlays = Array.from(coreSemanticReviewSources.values()).map(coreSemanticFormalReviewOverlayFromSource);
+  const runtimeOverlays = runtimeLessonMediaSemanticFormalReviewOverlaysForRows(
+    sourceResult.sourceRows,
+    runtimeLessonMediaSemanticReviewSources,
+  );
+  const versionRefs = sourceResult.sourceRows[0]?.versionRefs;
+  if (!versionRefs) throw new Error('Runtime resource semantic source audit produced no version refs');
+  return buildResourceFieldCompletionAuditFromRows({
+    sourceRows: sourceResult.sourceRows,
+    reviewOverlays: [...coreOverlays, ...runtimeOverlays],
+    requiredReviewResourceIds: [
+      ...coreSemanticReviewSources.keys(),
+      ...runtimeLessonMediaSemanticReviewSources.keys(),
+    ],
+    generatedAt,
+    sourceWindow: { from: null, to: generatedAt },
+    versionRefs,
     limitations,
   });
 }
@@ -2442,6 +2575,56 @@ async function loadCoreRegisteredKnowledgeResourceSemanticReviewMap(
   return map;
 }
 
+export async function loadRuntimeLessonMediaSemanticReviewMap(): Promise<Map<string, RuntimeLessonMediaSemanticReviewSource>> {
+  const sources = await readJsonlFile<RuntimeLessonMediaSemanticReviewSource>(
+    RUNTIME_LESSON_MEDIA_SEMANTIC_REVIEW_SOURCE_JSONL_PATH,
+  );
+  if (sources.length === 0) {
+    throw new Error(`Runtime lesson/media semantic review source is empty or missing: ${projectPath(RUNTIME_LESSON_MEDIA_SEMANTIC_REVIEW_SOURCE_JSONL_PATH)}`);
+  }
+  const map = new Map<string, RuntimeLessonMediaSemanticReviewSource>();
+  for (const source of sources) {
+    if (source.artifactVersion !== 'runtime-lesson-media-resource-semantics.review-source.v1') {
+      throw new Error(`Invalid runtime lesson/media semantic review source version: ${source.resourceId}`);
+    }
+    if (source.reviewSourceKind !== 'explicit-item-review') {
+      throw new Error(`Runtime lesson/media semantic review source is not an explicit item review: ${source.resourceId}`);
+    }
+    if (!RUNTIME_LESSON_MEDIA_SEMANTIC_SCOPE_FAMILIES.has(source.sourceFamily)) {
+      throw new Error(`Out-of-scope runtime lesson/media semantic review source: ${source.resourceId}`);
+    }
+    if (map.has(source.resourceId)) {
+      throw new Error(`Duplicate runtime lesson/media semantic review source: ${source.resourceId}`);
+    }
+    if (source.rawContentIncluded || !source.privacyMinimized) {
+      throw new Error(`Runtime lesson/media semantic review source violates privacy minimization: ${source.resourceId}`);
+    }
+    if (!source.reviewerId || !source.reviewerRole || !source.reviewBatchId || !source.reviewedAt) {
+      throw new Error(`Runtime lesson/media semantic review source lacks per-item review metadata: ${source.resourceId}`);
+    }
+    if (!source.reviewerVisibleRationale || source.reviewerVisibleRationale.trim().length < 20) {
+      throw new Error(`Runtime lesson/media semantic review source lacks item rationale: ${source.resourceId}`);
+    }
+    if (!source.independentEvidenceRef || /runtime-lesson-media-resource-semantics-(?:review|workqueue|summary|evidence)/i.test(source.independentEvidenceRef)) {
+      throw new Error(`Runtime lesson/media semantic review source has non-independent evidence: ${source.resourceId}`);
+    }
+    assertRuntimeLessonMediaSemanticEvidenceReference(source);
+    if (!Array.isArray(source.learningGoalIds) || !Array.isArray(source.knowledgeObjectiveIds) ||
+        !Array.isArray(source.capabilityObjectiveIds) || !Array.isArray(source.qualityObjectiveIds) ||
+        !Array.isArray(source.evidenceInstrumentation)) {
+      throw new Error(`Runtime lesson/media semantic review source lacks explicit decision fields: ${source.resourceId}`);
+    }
+    if (source.parentPlanningUnitRef?.startsWith('runtime-lesson:')) {
+      throw new Error(`Runtime lesson/media semantic review source uses a lesson placeholder as parent PlanningUnit: ${source.resourceId}`);
+    }
+    if (!source.runtimeEvidence || typeof source.runtimeEvidence !== 'object') {
+      throw new Error(`Runtime lesson/media semantic review source lacks runtime evidence facts: ${source.resourceId}`);
+    }
+    map.set(source.resourceId, source);
+  }
+  return map;
+}
+
 function coreSemanticFormalReviewOverlayFromSource(
   source: CoreRegisteredKnowledgeResourceSemanticReviewSource,
 ): ResourceFieldCompletionReviewOverlay {
@@ -2466,6 +2649,152 @@ function coreSemanticFormalReviewOverlayFromSource(
       staleInvalidationRule: 'stale when source hash, version ref, prompt hash, or generation tool version changes',
     },
   };
+}
+
+export function runtimeLessonMediaSemanticFormalReviewOverlaysForRows(
+  rows: readonly ResourceFieldCompletionAuditRow[],
+  reviewSources: ReadonlyMap<string, RuntimeLessonMediaSemanticReviewSource>,
+): ResourceFieldCompletionReviewOverlay[] {
+  const scopedRows = rows.filter((row) => RUNTIME_LESSON_MEDIA_SEMANTIC_SCOPE_FAMILIES.has(row.family));
+  if (scopedRows.length === 0) throw new Error('Runtime lesson/media semantic frozen scope is empty');
+  if (reviewSources.size !== scopedRows.length) {
+    throw new Error(`Runtime lesson/media semantic review denominator mismatch: sources=${reviewSources.size}, rows=${scopedRows.length}`);
+  }
+  const scopedIds = new Set(scopedRows.map((row) => row.resourceId));
+  for (const resourceId of reviewSources.keys()) {
+    if (!scopedIds.has(resourceId)) {
+      throw new Error(`Runtime lesson/media semantic review source has no audit row: ${resourceId}`);
+    }
+  }
+  const promotedIds = new Set<string>();
+  for (const row of scopedRows) {
+    const source = reviewSources.get(row.resourceId);
+    if (!source) throw new Error(`Missing runtime lesson/media semantic review source: ${row.resourceId}`);
+    if (source.sourceFamily !== row.family) {
+      throw new Error(`Runtime lesson/media semantic source family mismatch: ${row.resourceId}`);
+    }
+    if (source.expectedSourceHash !== row.sourceHash) {
+      throw new Error(`Runtime lesson/media semantic source hash mismatch: ${row.resourceId}`);
+    }
+    if (source.expectedSourceVersionRef !== row.sourceVersionRef) {
+      throw new Error(`Runtime lesson/media semantic source version mismatch: ${row.resourceId}`);
+    }
+    const lessonKey = row.resourceId.split(':')[1] ?? 'unknown';
+    if (source.parentLessonRef !== `runtime-lesson:${lessonKey}`) {
+      throw new Error(`Runtime lesson/media semantic parent lesson mismatch: ${row.resourceId}`);
+    }
+    if (source.promotedAsPlanningUnit !== (source.disposition === 'planning-unit')) {
+      throw new Error(`Runtime lesson/media semantic promotion/disposition mismatch: ${row.resourceId}`);
+    }
+    assertRuntimeLessonMediaSemanticEvidenceReference(source);
+    assertRuntimeLessonSemanticReviewEvidence(row, source);
+    if (source.parentResourceRef) {
+      if (source.parentResourceRef.startsWith('runtime-lesson:') || !scopedIds.has(source.parentResourceRef)) {
+        throw new Error(`Runtime lesson/media semantic source has an unresolved resource parent: ${row.resourceId}`);
+      }
+      if (!source.runtimeEvidence.parent.resourceCandidates.includes(source.parentResourceRef)) {
+        throw new Error(`Runtime lesson/media semantic source parent is not present in the runtime manifest relationship: ${row.resourceId}`);
+      }
+    }
+    if (source.promotedAsPlanningUnit) promotedIds.add(row.resourceId);
+  }
+  return scopedRows.map((row) => {
+    const source = reviewSources.get(row.resourceId);
+    if (!source) throw new Error(`Missing runtime lesson/media semantic review source: ${row.resourceId}`);
+    if (source.parentPlanningUnitRef && !promotedIds.has(source.parentPlanningUnitRef)) {
+      throw new Error(`Runtime lesson/media semantic parent PlanningUnit is not promoted: ${row.resourceId}`);
+    }
+    if (JSON.stringify(source.graphNodeRefs) !== JSON.stringify(row.graphNodeRefs)) {
+      throw new Error(`Runtime lesson/media semantic graph decision mismatch: ${row.resourceId}`);
+    }
+    if (source.estimatedTimeMinutes !== row.estimatedTimeMinutes) {
+      throw new Error(`Runtime lesson/media semantic time decision mismatch: ${row.resourceId}`);
+    }
+    if (source.readinessPresent !== (row.readiness !== null)) {
+      throw new Error(`Runtime lesson/media semantic readiness decision mismatch: ${row.resourceId}`);
+    }
+    if (source.evidenceContractComplete !== row.evidenceContract.complete ||
+        JSON.stringify(source.evidenceMissingFields) !== JSON.stringify(row.evidenceContract.missingFields)) {
+      throw new Error(`Runtime lesson/media semantic evidence decision mismatch: ${row.resourceId}`);
+    }
+    const citationTargets = row.citationTargets.filter((target) => !/^https?:\/\//i.test(target)).sort();
+    if (JSON.stringify(source.citationTargets) !== JSON.stringify(citationTargets)) {
+      throw new Error(`Runtime lesson/media semantic citation decision mismatch: ${row.resourceId}`);
+    }
+    if (source.promotedAsPlanningUnit && (
+      row.family !== 'runtime-lesson-step' ||
+      !source.currentPathEligible ||
+      !source.pathTarget ||
+      source.pathTarget !== row.pathTarget ||
+      row.missingFieldCodes.length > 0 ||
+      !row.pathEligibility.current ||
+      !row.pathEligibility.afterCompletion ||
+      row.pathEligibility.blockedBy.length > 0 ||
+      !row.evidenceContract.complete ||
+      !row.readiness ||
+      !source.readinessPresent ||
+      source.estimatedTimeMinutes === null ||
+      source.estimatedTimeMinutes <= 0 ||
+      source.citationTargets.length === 0 ||
+      row.graphNodeRefs.knowledge.length === 0 ||
+      source.graphNodeRefs.knowledge.length === 0 ||
+      source.evidenceDecision !== 'independent-path-evidence' ||
+      source.evidenceInstrumentation.length === 0 ||
+      !source.evidenceContractComplete ||
+      source.evidenceMissingFields.length > 0 ||
+      source.learningGoalIds.length === 0 ||
+      source.knowledgeObjectiveIds.length === 0 ||
+      source.capabilityObjectiveIds.length === 0 ||
+      source.qualityObjectiveIds.length === 0
+    )) {
+      throw new Error(`Runtime lesson/media semantic promotion violates independent PlanningUnit scope: ${row.resourceId}`);
+    }
+    if (!source.promotedAsPlanningUnit && (source.currentPathEligible || source.pathTarget)) {
+      throw new Error(`Runtime lesson/media semantic supporting row exposes path eligibility: ${row.resourceId}`);
+    }
+    const selectedGoals = source.learningGoalIds.map((learningGoalId) => {
+      const definition = ADAPTIVE_LEARNING_GOAL_DEFINITIONS[learningGoalId];
+      if (!definition?.learningGoal) {
+        throw new Error(`Runtime lesson/media semantic source has unknown LearningGoal: ${row.resourceId}:${learningGoalId}`);
+      }
+      return definition.learningGoal;
+    });
+    const objectiveSets = {
+      knowledge: new Set(selectedGoals.flatMap((goal) => goal.knowledgeObjectiveIds)),
+      capability: new Set(selectedGoals.flatMap((goal) => goal.capabilityObjectiveIds)),
+      quality: new Set(selectedGoals.flatMap((goal) => goal.qualityObjectiveIds)),
+    };
+    for (const [domain, objectiveIds] of Object.entries({
+      knowledge: source.knowledgeObjectiveIds,
+      capability: source.capabilityObjectiveIds,
+      quality: source.qualityObjectiveIds,
+    }) as Array<[keyof typeof objectiveSets, string[]]>) {
+      if (objectiveIds.some((objectiveId) => !objectiveSets[domain].has(objectiveId))) {
+        throw new Error(`Runtime lesson/media semantic source has an objective outside its LearningGoal boundary: ${row.resourceId}:${domain}`);
+      }
+    }
+    return {
+      resourceId: row.resourceId,
+      expectedSourceHash: source.expectedSourceHash,
+      expectedSourceVersionRef: source.expectedSourceVersionRef,
+      pathTarget: source.pathTarget,
+      currentPathEligible: source.currentPathEligible,
+      reviewAudit: {
+        reviewerId: source.reviewerId,
+        reviewerRole: source.reviewerRole,
+        reviewedAt: source.reviewedAt,
+        reviewBatchId: source.reviewBatchId,
+        reviewedSourceHash: source.expectedSourceHash,
+        reviewedVersionRef: source.expectedSourceVersionRef,
+        generationToolOrModel: null,
+        promptOrManifestHash: null,
+        reviewerVisibleRationale: source.reviewerVisibleRationale,
+        independentEvidenceRef: source.independentEvidenceRef,
+        confidence: source.confidence,
+        staleInvalidationRule: 'stale when source hash, version ref, prompt hash, or generation tool version changes',
+      },
+    };
+  });
 }
 
 function coreSemanticFormalReviewOverlaysForRows(

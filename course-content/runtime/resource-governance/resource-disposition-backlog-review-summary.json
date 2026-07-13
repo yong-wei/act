@@ -42,7 +42,7 @@
     "beforeResidualDispositionReview": {
       "queuedResources": 5237,
       "primaryQueueItems": 5237,
-      "dependentQueueItems": 27902
+      "dependentQueueItems": 23108
     },
     "afterResidualDispositionReview": {
       "reviewedResources": 5237,
