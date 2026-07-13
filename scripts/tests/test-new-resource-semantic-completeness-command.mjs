@@ -68,6 +68,10 @@ fs.writeFileSync(path.join(repo, 'course-content/runtime/resource-governance/ass
 fs.writeFileSync(path.join(repo, 'course-content/runtime/resource-governance/kaq-quiz-foundation-reviewed-items.jsonl'), '');
 run('git', ['add', '.'], repo);
 run('git', ['commit', '-m', 'baseline'], repo);
+const testBaselineCommit = execFileSync('git', ['rev-parse', 'HEAD'], {
+  cwd: repo,
+  encoding: 'utf8',
+}).trim();
 
 const metadataPath = path.join(repo, 'src/lib/resource-registry-metadata.ts');
 const original = fs.readFileSync(metadataPath, 'utf8');
@@ -1033,11 +1037,12 @@ const externalAssetProjection = runtimeProjectionRow({
   family: 'runtime-lesson-media',
   resourceType: 'video',
   sourceKind: 'runtime_lesson_media',
-  sourceRef: '1-1:external-media.mp4',
+  sourceRef: '1-1:external-media',
   sourcePathOrUrl: 'https://example.invalid/external-media.mp4',
   sourceVersionRef: 'runtime-lesson-media.v1',
-  independentEvidenceRef: `${externalMediaIndexRelativePath}#markdown-line:3`,
+  independentEvidenceRef: `${externalMediaIndexRelativePath}#markdown-line:1`,
 });
+externalAssetProjection.sourceRecord = '1-1:external-media';
 externalAssetProjection.sourceHash = null;
 externalAssetProjection.reviewAudit.reviewedSourceHash = null;
 externalAssetProjection.runtimeSemanticEvidence = {
@@ -1045,7 +1050,7 @@ externalAssetProjection.runtimeSemanticEvidence = {
   assetStatus: 'external-http-runtime-asset',
   evidenceFilePath: externalMediaIndexRelativePath,
   evidenceFileHash: sha256File(externalMediaIndexPath),
-  evidenceSelector: 'markdown-line:3',
+  evidenceSelector: 'markdown-line:1',
   externalIdentitySha256: createHash('sha256').update('https://example.invalid/external-media.mp4').digest('hex'),
   sourceFileKind: 'external-media',
   sourceFilePath: 'external-media:external-media.mp4',
@@ -1074,11 +1079,12 @@ const missingLocalAssetProjection = runtimeProjectionRow({
   family: 'runtime-lesson-media',
   resourceType: 'video',
   sourceKind: 'runtime_lesson_media',
-  sourceRef: '1-1:missing-local-media.mp4',
+  sourceRef: '1-1:missing-local-media',
   sourcePathOrUrl: 'course-content/runtime/lessons/1-1/media/missing-local-media.mp4',
   sourceVersionRef: 'runtime-lesson-media.v1',
   independentEvidenceRef: `${missingLocalMediaIndexRelativePath}#markdown-line:1`,
 });
+missingLocalAssetProjection.sourceRecord = '1-1:missing-local-media';
 missingLocalAssetProjection.sourceHash = null;
 missingLocalAssetProjection.reviewAudit.reviewedSourceHash = null;
 missingLocalAssetProjection.runtimeSemanticEvidence = {
@@ -1103,6 +1109,591 @@ assert.equal(
   0,
   'gate must accept missing-local runtime media when sourceHash/reviewedSourceHash are null but evidenceFileHash matches the staged media-index',
 );
+
+run('git', ['reset', '--hard', testBaselineCommit], repo);
+const projectionOnlyExternalMediaIndexPath = path.join(repo, 'course-content/runtime/lessons/1-1/media/projection-only-media.md');
+const projectionOnlyExternalMediaIndexRelativePath = 'course-content/runtime/lessons/1-1/media/projection-only-media.md';
+const projectionOnlyExternalMediaUrl = 'https://example.invalid/projection-only-external.mp4';
+fs.mkdirSync(path.dirname(projectionOnlyExternalMediaIndexPath), { recursive: true });
+fs.writeFileSync(
+  projectionOnlyExternalMediaIndexPath,
+  `# projection-only-external.mp4\n\n${projectionOnlyExternalMediaUrl}\n`,
+);
+const projectionOnlyExternalBaseline = withRuntimeMediaEvidenceAlias(
+  runtimeExternalMediaProjection({
+    id: 'runtime-media:1-1:projection-only-external',
+    filename: 'projection-only-external.mp4',
+    url: projectionOnlyExternalMediaUrl,
+    evidenceFilePath: projectionOnlyExternalMediaIndexRelativePath,
+    headingLine: 1,
+  }),
+  projectionOnlyExternalMediaIndexRelativePath,
+  1,
+);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(projectionOnlyExternalBaseline)}\n`,
+);
+run('git', ['add', projectionOnlyExternalMediaIndexRelativePath, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+run('git', ['commit', '--no-verify', '-m', 'projection-only media baseline'], repo);
+const projectionOnlyExternalBaselineCommit = execFileSync('git', ['rev-parse', 'HEAD'], {
+  cwd: repo,
+  encoding: 'utf8',
+}).trim();
+
+const runtimeHandoutEvidenceRelativePath = 'course-content/runtime/lessons/1-1/1-1-handout.md';
+const projectionOnlyExternalHandoutEvidence = runtimeExternalMediaProjection({
+  id: projectionOnlyExternalBaseline.id,
+  filename: 'projection-only-external.mp4',
+  url: projectionOnlyExternalMediaUrl,
+  evidenceFilePath: runtimeHandoutEvidenceRelativePath,
+  headingLine: 1,
+});
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(projectionOnlyExternalHandoutEvidence)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const projectionOnlyExternalHandoutEvidenceResult = runGate(['--staged']);
+assert.notEqual(
+  projectionOnlyExternalHandoutEvidenceResult.status,
+  0,
+  'projection-only external media must reject an ordinary handout as semantic evidence',
+);
+assert.match(
+  `${projectionOnlyExternalHandoutEvidenceResult.stdout}\n${projectionOnlyExternalHandoutEvidenceResult.stderr}`,
+  /runtime-media:1-1:projection-only-external.*unbound-runtime-media-index-record/s,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+const projectionOnlyExternalHandoutReviewRef = runtimeExternalMediaProjection({
+  id: projectionOnlyExternalBaseline.id,
+  filename: 'projection-only-external.mp4',
+  url: projectionOnlyExternalMediaUrl,
+  evidenceFilePath: projectionOnlyExternalMediaIndexRelativePath,
+  headingLine: 1,
+});
+projectionOnlyExternalHandoutReviewRef.reviewAudit.independentEvidenceRef =
+  `${runtimeHandoutEvidenceRelativePath}#markdown-line:1`;
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(projectionOnlyExternalHandoutReviewRef)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const projectionOnlyExternalHandoutReviewRefResult = runGate(['--staged']);
+assert.notEqual(
+  projectionOnlyExternalHandoutReviewRefResult.status,
+  0,
+  'projection-only external media must reject an ordinary handout independentEvidenceRef',
+);
+assert.match(
+  `${projectionOnlyExternalHandoutReviewRefResult.stdout}\n${projectionOnlyExternalHandoutReviewRefResult.stderr}`,
+  /runtime-media:1-1:projection-only-external.*unbound-runtime-media-index-record/s,
+);
+
+run('git', ['reset', '--hard', projectionOnlyExternalBaselineCommit], repo);
+
+const projectionOnlyExternalWrongSelector = withRuntimeMediaEvidenceAlias(
+  runtimeExternalMediaProjection({
+    id: projectionOnlyExternalBaseline.id,
+    filename: 'projection-only-external.mp4',
+    url: projectionOnlyExternalMediaUrl,
+    evidenceFilePath: projectionOnlyExternalMediaIndexRelativePath,
+    headingLine: 9999,
+  }),
+  projectionOnlyExternalMediaIndexRelativePath,
+  9999,
+);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(projectionOnlyExternalWrongSelector)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const projectionOnlyExternalWrongSelectorResult = runGate(['--staged']);
+assert.notEqual(
+  projectionOnlyExternalWrongSelectorResult.status,
+  0,
+  'projection-only staged external media update must reject a wrong media-index selector even when evidenceFileHash is current',
+);
+assert.match(
+  `${projectionOnlyExternalWrongSelectorResult.stdout}\n${projectionOnlyExternalWrongSelectorResult.stderr}`,
+  /runtime-media:1-1:projection-only-external.*stale-runtime-media-index-evidence/s,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+const projectionOnlyExternalWrongReviewRef = withRuntimeMediaEvidenceAlias(
+  runtimeExternalMediaProjection({
+    id: projectionOnlyExternalBaseline.id,
+    filename: 'projection-only-external.mp4',
+    url: projectionOnlyExternalMediaUrl,
+    evidenceFilePath: projectionOnlyExternalMediaIndexRelativePath,
+    headingLine: 1,
+  }),
+  projectionOnlyExternalMediaIndexRelativePath,
+  1,
+);
+projectionOnlyExternalWrongReviewRef.reviewAudit.independentEvidenceRef =
+  `${projectionOnlyExternalWrongReviewRef.runtimeSemanticEvidence.evidenceFilePath}#markdown-line:9999`;
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(projectionOnlyExternalWrongReviewRef)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const projectionOnlyExternalWrongReviewRefResult = runGate(['--staged']);
+assert.notEqual(
+  projectionOnlyExternalWrongReviewRefResult.status,
+  0,
+  'projection-only staged external media update must reject a wrong independentEvidenceRef fragment even when the semantic selector and evidence hash are current',
+);
+assert.match(
+  `${projectionOnlyExternalWrongReviewRefResult.stdout}\n${projectionOnlyExternalWrongReviewRefResult.stderr}`,
+  /runtime-media:1-1:projection-only-external.*stale-runtime-media-index-evidence/s,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+const projectionOnlyExternalCorrect = withRuntimeMediaEvidenceAlias(
+  runtimeExternalMediaProjection({
+    id: projectionOnlyExternalBaseline.id,
+    filename: 'projection-only-external.mp4',
+    url: projectionOnlyExternalMediaUrl,
+    evidenceFilePath: projectionOnlyExternalMediaIndexRelativePath,
+    headingLine: 1,
+  }),
+  projectionOnlyExternalMediaIndexRelativePath,
+  1,
+);
+projectionOnlyExternalCorrect.title = 'Projection-only external media update';
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(projectionOnlyExternalCorrect)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const projectionOnlyExternalCorrectResult = runGate(['--staged']);
+assert.equal(
+  projectionOnlyExternalCorrectResult.status,
+  0,
+  `projection-only staged external media update must accept the current selector, alias-compatible evidence path, and exact review ref\n${projectionOnlyExternalCorrectResult.stdout}\n${projectionOnlyExternalCorrectResult.stderr}`,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+const projectionOnlyExternalBaseWrongSelector = withRuntimeMediaEvidenceAlias(
+  runtimeExternalMediaProjection({
+    id: projectionOnlyExternalBaseline.id,
+    filename: 'projection-only-external.mp4',
+    url: projectionOnlyExternalMediaUrl,
+    evidenceFilePath: projectionOnlyExternalMediaIndexRelativePath,
+    headingLine: 9999,
+  }),
+  projectionOnlyExternalMediaIndexRelativePath,
+  9999,
+);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(projectionOnlyExternalBaseWrongSelector)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+run('git', ['commit', '--no-verify', '-m', 'projection-only media wrong selector'], repo);
+const projectionOnlyExternalBaseWrongSelectorResult = runGate(['--base', 'HEAD~1']);
+assert.notEqual(
+  projectionOnlyExternalBaseWrongSelectorResult.status,
+  0,
+  'projection-only base external media update must reject a wrong media-index selector',
+);
+assert.match(
+  `${projectionOnlyExternalBaseWrongSelectorResult.stdout}\n${projectionOnlyExternalBaseWrongSelectorResult.stderr}`,
+  /runtime-media:1-1:projection-only-external.*stale-runtime-media-index-evidence/s,
+);
+
+run('git', ['reset', '--hard', 'HEAD~1'], repo);
+const projectionOnlyExternalBaseCorrect = withRuntimeMediaEvidenceAlias(
+  runtimeExternalMediaProjection({
+    id: projectionOnlyExternalBaseline.id,
+    filename: 'projection-only-external.mp4',
+    url: projectionOnlyExternalMediaUrl,
+    evidenceFilePath: projectionOnlyExternalMediaIndexRelativePath,
+    headingLine: 1,
+  }),
+  projectionOnlyExternalMediaIndexRelativePath,
+  1,
+);
+projectionOnlyExternalBaseCorrect.title = 'Projection-only base external media update';
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(projectionOnlyExternalBaseCorrect)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+run('git', ['commit', '--no-verify', '-m', 'projection-only media correct selector'], repo);
+const projectionOnlyExternalBaseCorrectResult = runGate(['--base', 'HEAD~1']);
+assert.equal(
+  projectionOnlyExternalBaseCorrectResult.status,
+  0,
+  `projection-only base external media update must accept the current selector and exact review ref\n${projectionOnlyExternalBaseCorrectResult.stdout}\n${projectionOnlyExternalBaseCorrectResult.stderr}`,
+);
+
+run('git', ['reset', '--hard', testBaselineCommit], repo);
+const projectionOnlyMissingMediaIndexPath = path.join(repo, 'course-content/runtime/lessons/1-1/media/projection-only-missing-media.md');
+const projectionOnlyMissingMediaIndexRelativePath = 'course-content/runtime/lessons/1-1/media/projection-only-missing-media.md';
+fs.mkdirSync(path.dirname(projectionOnlyMissingMediaIndexPath), { recursive: true });
+fs.writeFileSync(
+  projectionOnlyMissingMediaIndexPath,
+  '# projection-only-missing.mp4\n\nprojection-only-missing.mp4\n',
+);
+const projectionOnlyMissingBaseline = withRuntimeMediaEvidenceAlias(
+  runtimeMissingLocalMediaProjection({
+    id: 'runtime-media:1-1:projection-only-missing',
+    filename: 'projection-only-missing.mp4',
+    evidenceFilePath: projectionOnlyMissingMediaIndexRelativePath,
+    headingLine: 1,
+  }),
+  projectionOnlyMissingMediaIndexRelativePath,
+  1,
+);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(projectionOnlyMissingBaseline)}\n`,
+);
+run('git', ['add', projectionOnlyMissingMediaIndexRelativePath, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+run('git', ['commit', '--no-verify', '-m', 'projection-only missing media baseline'], repo);
+
+const projectionOnlyMissingWrongSelector = withRuntimeMediaEvidenceAlias(
+  runtimeMissingLocalMediaProjection({
+    id: projectionOnlyMissingBaseline.id,
+    filename: 'projection-only-missing.mp4',
+    evidenceFilePath: projectionOnlyMissingMediaIndexRelativePath,
+    headingLine: 9999,
+  }),
+  projectionOnlyMissingMediaIndexRelativePath,
+  9999,
+);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(projectionOnlyMissingWrongSelector)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const projectionOnlyMissingWrongSelectorResult = runGate(['--staged']);
+assert.notEqual(
+  projectionOnlyMissingWrongSelectorResult.status,
+  0,
+  'projection-only staged missing-local media update must reject a wrong media-index selector even when evidenceFileHash is current',
+);
+assert.match(
+  `${projectionOnlyMissingWrongSelectorResult.stdout}\n${projectionOnlyMissingWrongSelectorResult.stderr}`,
+  /runtime-media:1-1:projection-only-missing.*stale-runtime-media-index-evidence/s,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+const projectionOnlyMissingCorrect = withRuntimeMediaEvidenceAlias(
+  runtimeMissingLocalMediaProjection({
+    id: projectionOnlyMissingBaseline.id,
+    filename: 'projection-only-missing.mp4',
+    evidenceFilePath: projectionOnlyMissingMediaIndexRelativePath,
+    headingLine: 1,
+  }),
+  projectionOnlyMissingMediaIndexRelativePath,
+  1,
+);
+projectionOnlyMissingCorrect.title = 'Projection-only missing media update';
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(projectionOnlyMissingCorrect)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const projectionOnlyMissingCorrectResult = runGate(['--staged']);
+assert.equal(
+  projectionOnlyMissingCorrectResult.status,
+  0,
+  `projection-only staged missing-local media update must accept the current selector, alias-compatible evidence path, and exact review ref\n${projectionOnlyMissingCorrectResult.stdout}\n${projectionOnlyMissingCorrectResult.stderr}`,
+);
+
+run('git', ['commit', '--no-verify', '-m', 'projection-only missing media correct selector'], repo);
+const projectionOnlyMissingBaseCorrectResult = runGate(['--base', 'HEAD~1']);
+assert.equal(
+  projectionOnlyMissingBaseCorrectResult.status,
+  0,
+  `projection-only base missing-local media update must accept the current selector and exact review ref\n${projectionOnlyMissingBaseCorrectResult.stdout}\n${projectionOnlyMissingBaseCorrectResult.stderr}`,
+);
+
+run('git', ['reset', '--hard', testBaselineCommit], repo);
+const duplicateMediaIndexAPath = path.join(repo, 'course-content/runtime/lessons/1-1/media/duplicate-a-media.md');
+const duplicateMediaIndexARelativePath = 'course-content/runtime/lessons/1-1/media/duplicate-a-media.md';
+const duplicateMediaIndexBPath = path.join(repo, 'course-content/runtime/lessons/1-1/media/duplicate-b-media.md');
+const duplicateMediaIndexBRelativePath = 'course-content/runtime/lessons/1-1/media/duplicate-b-media.md';
+const duplicateMediaUrl = 'https://example.invalid/duplicate-owner.mp4';
+const duplicateMediaIndexSource = `# duplicate-owner.mp4\n\n${duplicateMediaUrl}\n`;
+fs.mkdirSync(path.dirname(duplicateMediaIndexAPath), { recursive: true });
+fs.writeFileSync(duplicateMediaIndexAPath, duplicateMediaIndexSource);
+fs.writeFileSync(duplicateMediaIndexBPath, duplicateMediaIndexSource);
+const duplicateMediaProjectionA = runtimeExternalMediaProjection({
+  id: 'runtime-media:1-1:duplicate-owner-a',
+  filename: 'duplicate-owner.mp4',
+  url: duplicateMediaUrl,
+  evidenceFilePath: duplicateMediaIndexARelativePath,
+  headingLine: 1,
+});
+const duplicateMediaProjectionB = runtimeExternalMediaProjection({
+  id: 'runtime-media:1-1:duplicate-owner-b',
+  filename: 'duplicate-owner.mp4',
+  url: duplicateMediaUrl,
+  evidenceFilePath: duplicateMediaIndexBRelativePath,
+  headingLine: 1,
+});
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(duplicateMediaProjectionA)}\n${JSON.stringify(duplicateMediaProjectionB)}\n`,
+);
+run('git', ['add', duplicateMediaIndexARelativePath, duplicateMediaIndexBRelativePath, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+run('git', ['commit', '--no-verify', '-m', 'duplicate media index ownership baseline'], repo);
+
+const duplicateMediaProjectionUpdateA = { ...duplicateMediaProjectionA, title: 'Duplicate media owner A updated' };
+const duplicateMediaProjectionUpdateB = { ...duplicateMediaProjectionB, title: 'Duplicate media owner B updated' };
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(duplicateMediaProjectionUpdateA)}\n${JSON.stringify(duplicateMediaProjectionUpdateB)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const duplicateMediaOwnershipResult = runGate(['--staged']);
+assert.notEqual(
+  duplicateMediaOwnershipResult.status,
+  0,
+  'projection-only external media rows must reject duplicate canonical ownership across same-lesson media indexes',
+);
+assert.match(
+  `${duplicateMediaOwnershipResult.stdout}\n${duplicateMediaOwnershipResult.stderr}`,
+  /runtime-media:1-1:duplicate-owner-[ab].*unbound-runtime-media-index-record/s,
+);
+
+run('git', ['commit', '--no-verify', '-m', 'duplicate media index ownership update'], repo);
+const duplicateMediaOwnershipBaseResult = runGate(['--base', 'HEAD~1']);
+assert.notEqual(
+  duplicateMediaOwnershipBaseResult.status,
+  0,
+  'base mode must reject duplicate canonical ownership across same-lesson media indexes',
+);
+assert.match(
+  `${duplicateMediaOwnershipBaseResult.stdout}\n${duplicateMediaOwnershipBaseResult.stderr}`,
+  /runtime-media:1-1:duplicate-owner-[ab].*unbound-runtime-media-index-record/s,
+);
+
+run('git', ['reset', '--hard', 'HEAD~1'], repo);
+fs.rmSync(duplicateMediaIndexBPath);
+run('git', ['add', '-u', duplicateMediaIndexBRelativePath], repo);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(duplicateMediaProjectionUpdateA)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const uniqueMediaOwnershipResult = runGate(['--staged']);
+assert.equal(
+  uniqueMediaOwnershipResult.status,
+  0,
+  `a single canonical media-index owner must pass\n${uniqueMediaOwnershipResult.stdout}\n${uniqueMediaOwnershipResult.stderr}`,
+);
+
+run('git', ['reset', '--hard', testBaselineCommit], repo);
+const trackedLocalMediaIndexPath = path.join(repo, 'course-content/runtime/lessons/1-1/media/tracked-local-media.md');
+const trackedLocalMediaIndexRelativePath = 'course-content/runtime/lessons/1-1/media/tracked-local-media.md';
+const trackedLocalMediaRelativePath = 'course-content/runtime/lessons/1-1/media/tracked-local-media.mp4';
+const trackedLocalMediaPath = path.join(repo, trackedLocalMediaRelativePath);
+const trackedLocalMediaUrl = 'https://example.invalid/opaque-preview?id=tracked-local-media';
+fs.mkdirSync(path.dirname(trackedLocalMediaIndexPath), { recursive: true });
+fs.writeFileSync(
+  trackedLocalMediaIndexPath,
+  `# tracked-local-media.mp4\n\n${trackedLocalMediaUrl}\n`,
+);
+fs.writeFileSync(trackedLocalMediaPath, 'tracked local media fixture\n');
+run('git', ['add', trackedLocalMediaIndexRelativePath, trackedLocalMediaRelativePath], repo);
+const trackedLocalAssetProjection = runtimeTrackedLocalMediaProjection({
+  id: 'runtime-media:1-1:tracked-local-media',
+  filename: 'tracked-local-media.mp4',
+  sourcePath: trackedLocalMediaRelativePath,
+  sourceIdentity: '1-1:tracked-local-media',
+});
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(trackedLocalAssetProjection)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const syncedTrackedLocalAssetProjectionResult = runGate(['--staged']);
+assert.equal(
+  syncedTrackedLocalAssetProjectionResult.status,
+  0,
+  `gate must accept staged media index plus staged local media and tracked-local projection even when the heading also has a URL\n${syncedTrackedLocalAssetProjectionResult.stdout}\n${syncedTrackedLocalAssetProjectionResult.stderr}`,
+);
+
+const incorrectlyExternalTrackedLocalProjection = runtimeExternalMediaProjection({
+  id: trackedLocalAssetProjection.id,
+  filename: 'tracked-local-media.mp4',
+  url: trackedLocalMediaUrl,
+  evidenceFilePath: trackedLocalMediaIndexRelativePath,
+  headingLine: 1,
+  sourceIdentity: '1-1:tracked-local-media',
+});
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(incorrectlyExternalTrackedLocalProjection)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const incorrectlyExternalTrackedLocalProjectionResult = runGate(['--staged']);
+assert.notEqual(
+  incorrectlyExternalTrackedLocalProjectionResult.status,
+  0,
+  'gate must reject an external projection when the corresponding local media asset is tracked in the validation index',
+);
+assert.match(
+  `${incorrectlyExternalTrackedLocalProjectionResult.stdout}\n${incorrectlyExternalTrackedLocalProjectionResult.stderr}`,
+  /tracked-local-media\.mp4/,
+);
+
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(trackedLocalAssetProjection)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const trackedLocalMediaMigrationParent = execFileSync('git', ['rev-parse', 'HEAD'], {
+  cwd: repo,
+  encoding: 'utf8',
+}).trim();
+run('git', ['commit', '--no-verify', '-m', 'add tracked-local media migration baseline'], repo);
+const trackedLocalMediaMigrationBaseline = execFileSync('git', ['rev-parse', 'HEAD'], {
+  cwd: repo,
+  encoding: 'utf8',
+}).trim();
+
+fs.rmSync(trackedLocalMediaPath);
+run('git', ['add', '-u', trackedLocalMediaRelativePath], repo);
+const stagedExternalAfterTrackedLocalDelete = runtimeExternalMediaProjection({
+  id: trackedLocalAssetProjection.id,
+  filename: 'tracked-local-media.mp4',
+  url: trackedLocalMediaUrl,
+  evidenceFilePath: trackedLocalMediaIndexRelativePath,
+  headingLine: 1,
+  sourceIdentity: '1-1:tracked-local-media',
+});
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(stagedExternalAfterTrackedLocalDelete)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const stagedTrackedLocalToExternalResult = runGate(['--staged']);
+assert.equal(
+  stagedTrackedLocalToExternalResult.status,
+  0,
+  `staged tracked-local to external media replacement must pass\n${stagedTrackedLocalToExternalResult.stdout}\n${stagedTrackedLocalToExternalResult.stderr}`,
+);
+run('git', ['commit', '--no-verify', '-m', 'migrate tracked-local media to external'], repo);
+const baseTrackedLocalToExternalResult = runGate(['--base', 'HEAD~1']);
+assert.equal(
+  baseTrackedLocalToExternalResult.status,
+  0,
+  `base mode must accept tracked-local to external media replacement\n${baseTrackedLocalToExternalResult.stdout}\n${baseTrackedLocalToExternalResult.stderr}`,
+);
+run('git', ['reset', '--hard', trackedLocalMediaMigrationBaseline], repo);
+
+fs.rmSync(trackedLocalMediaPath);
+run('git', ['add', '-u', trackedLocalMediaRelativePath], repo);
+const staleExternalEvidenceHashReplacement = runtimeExternalMediaProjection({
+  id: trackedLocalAssetProjection.id,
+  filename: 'tracked-local-media.mp4',
+  url: trackedLocalMediaUrl,
+  evidenceFilePath: trackedLocalMediaIndexRelativePath,
+  headingLine: 1,
+  sourceIdentity: '1-1:tracked-local-media',
+});
+staleExternalEvidenceHashReplacement.runtimeSemanticEvidence.evidenceFileHash = `sha256:${'0'.repeat(64)}`;
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(staleExternalEvidenceHashReplacement)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const stagedStaleExternalEvidenceHashResult = runGate(['--staged']);
+assert.notEqual(
+  stagedStaleExternalEvidenceHashResult.status,
+  0,
+  'staged tracked-local deletion must reject an external replacement with a stale media-index evidence hash',
+);
+assert.match(
+  `${stagedStaleExternalEvidenceHashResult.stdout}\n${stagedStaleExternalEvidenceHashResult.stderr}`,
+  /missing-deleted-runtime-projection-row/,
+);
+run('git', ['commit', '--no-verify', '-m', 'reject stale tracked-local media evidence hash'], repo);
+const baseStaleExternalEvidenceHashResult = runGate(['--base', 'HEAD~1']);
+assert.notEqual(
+  baseStaleExternalEvidenceHashResult.status,
+  0,
+  'base mode must reject an external replacement with a stale media-index evidence hash',
+);
+assert.match(
+  `${baseStaleExternalEvidenceHashResult.stdout}\n${baseStaleExternalEvidenceHashResult.stderr}`,
+  /missing-deleted-runtime-projection-row/,
+);
+run('git', ['reset', '--hard', trackedLocalMediaMigrationBaseline], repo);
+
+fs.writeFileSync(trackedLocalMediaIndexPath, '# tracked-local-media.mp4\n\n');
+fs.rmSync(trackedLocalMediaPath);
+run('git', ['add', '-u', trackedLocalMediaIndexRelativePath, trackedLocalMediaRelativePath], repo);
+const stagedMissingAfterTrackedLocalDelete = runtimeMissingLocalMediaProjection({
+  id: trackedLocalAssetProjection.id,
+  filename: 'tracked-local-media.mp4',
+  evidenceFilePath: trackedLocalMediaIndexRelativePath,
+  headingLine: 1,
+});
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(stagedMissingAfterTrackedLocalDelete)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const stagedTrackedLocalToMissingResult = runGate(['--staged']);
+assert.equal(
+  stagedTrackedLocalToMissingResult.status,
+  0,
+  `staged tracked-local to missing-local media replacement must pass\n${stagedTrackedLocalToMissingResult.stdout}\n${stagedTrackedLocalToMissingResult.stderr}`,
+);
+run('git', ['commit', '--no-verify', '-m', 'migrate tracked-local media to missing-local'], repo);
+const baseTrackedLocalToMissingResult = runGate(['--base', 'HEAD~1']);
+assert.equal(
+  baseTrackedLocalToMissingResult.status,
+  0,
+  `base mode must accept tracked-local to missing-local media replacement\n${baseTrackedLocalToMissingResult.stdout}\n${baseTrackedLocalToMissingResult.stderr}`,
+);
+run('git', ['reset', '--hard', trackedLocalMediaMigrationBaseline], repo);
+
+fs.rmSync(trackedLocalMediaPath);
+run('git', ['add', '-u', trackedLocalMediaRelativePath], repo);
+const stagedUnrelatedIdentityReplacement = runtimeExternalMediaProjection({
+  id: trackedLocalAssetProjection.id,
+  filename: 'tracked-local-media.mp4',
+  url: trackedLocalMediaUrl,
+  evidenceFilePath: trackedLocalMediaIndexRelativePath,
+  headingLine: 1,
+  sourceIdentity: '1-1:unrelated-media',
+});
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(stagedUnrelatedIdentityReplacement)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const stagedUnrelatedIdentityReplacementResult = runGate(['--staged']);
+assert.notEqual(
+  stagedUnrelatedIdentityReplacementResult.status,
+  0,
+  'staged tracked-local deletion must reject a same-id replacement with an unrelated canonical media identity',
+);
+assert.match(
+  `${stagedUnrelatedIdentityReplacementResult.stdout}\n${stagedUnrelatedIdentityReplacementResult.stderr}`,
+  /missing-deleted-runtime-projection-row/,
+);
+run('git', ['commit', '--no-verify', '-m', 'reject unrelated tracked-local media replacement'], repo);
+const baseUnrelatedIdentityReplacementResult = runGate(['--base', 'HEAD~1']);
+assert.notEqual(
+  baseUnrelatedIdentityReplacementResult.status,
+  0,
+  'base mode must reject a same-id replacement with an unrelated canonical media identity',
+);
+assert.match(
+  `${baseUnrelatedIdentityReplacementResult.stdout}\n${baseUnrelatedIdentityReplacementResult.stderr}`,
+  /missing-deleted-runtime-projection-row/,
+);
+run('git', ['reset', '--hard', trackedLocalMediaMigrationParent], repo);
 
 run('git', ['reset', '--hard', 'HEAD'], repo);
 fs.mkdirSync(path.dirname(externalMediaIndexPath), { recursive: true });
@@ -1201,6 +1792,377 @@ assert.match(
 );
 
 run('git', ['reset', '--hard', 'HEAD'], repo);
+const sharedMediaIndexPath = path.join(repo, 'course-content/runtime/lessons/1-1/media/shared-media.md');
+const sharedMediaIndexRelativePath = 'course-content/runtime/lessons/1-1/media/shared-media.md';
+const firstSharedMediaUrl = 'https://example.invalid/first-shared-media-v1.mp4';
+const secondSharedMediaUrl = 'https://example.invalid/second-shared-media-v1.mp4';
+const sharedMediaIndexV1 = [
+  '# first-shared-media.mp4',
+  '- First shared media',
+  firstSharedMediaUrl,
+  '# second-shared-media.mp4',
+  '- Second shared media',
+  secondSharedMediaUrl,
+  '',
+].join('\n');
+fs.mkdirSync(path.dirname(sharedMediaIndexPath), { recursive: true });
+fs.writeFileSync(sharedMediaIndexPath, sharedMediaIndexV1);
+const firstSharedMediaProjection = runtimeExternalMediaProjection({
+  id: 'runtime-media:1-1:first-shared-media',
+  filename: 'first-shared-media.mp4',
+  url: firstSharedMediaUrl,
+  evidenceFilePath: sharedMediaIndexRelativePath,
+  headingLine: 1,
+});
+const secondSharedMediaProjection = runtimeExternalMediaProjection({
+  id: 'runtime-media:1-1:second-shared-media',
+  filename: 'second-shared-media.mp4',
+  url: secondSharedMediaUrl,
+  evidenceFilePath: sharedMediaIndexRelativePath,
+  headingLine: 4,
+});
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(firstSharedMediaProjection)}\n${JSON.stringify(secondSharedMediaProjection)}\n`,
+);
+run('git', ['add', sharedMediaIndexRelativePath, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+run('git', ['commit', '--no-verify', '-m', 'shared media index baseline'], repo);
+
+const sharedMediaIndexV2 = sharedMediaIndexV1.replace(
+  firstSharedMediaUrl,
+  'https://example.invalid/first-shared-media-v2.mp4',
+).replace('- First shared media', '- First shared media updated\n- First shared media evidence moved');
+fs.writeFileSync(sharedMediaIndexPath, sharedMediaIndexV2);
+run('git', ['add', sharedMediaIndexRelativePath], repo);
+const unrelatedSharedMediaProjection = runtimeExternalMediaProjection({
+  id: secondSharedMediaProjection.id,
+  filename: 'second-shared-media.mp4',
+  url: secondSharedMediaUrl,
+  evidenceFilePath: sharedMediaIndexRelativePath,
+  headingLine: 4,
+});
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(firstSharedMediaProjection)}\n${JSON.stringify(unrelatedSharedMediaProjection)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const unrelatedSharedMediaProjectionResult = runGate(['--staged']);
+assert.notEqual(
+  unrelatedSharedMediaProjectionResult.status,
+  0,
+  'gate must reject an unrelated shared media-index projection row when a different media record changed',
+);
+assert.match(
+  `${unrelatedSharedMediaProjectionResult.stdout}\n${unrelatedSharedMediaProjectionResult.stderr}`,
+  /runtime-source:course-content\/runtime\/lessons\/1-1\/media\/shared-media\.md#first-shared-media\.mp4/,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+fs.writeFileSync(sharedMediaIndexPath, sharedMediaIndexV2);
+run('git', ['add', sharedMediaIndexRelativePath], repo);
+const staleSelectorUpdatedHashSecondSharedMediaProjection = runtimeExternalMediaProjection({
+  id: secondSharedMediaProjection.id,
+  filename: 'second-shared-media.mp4',
+  url: secondSharedMediaUrl,
+  evidenceFilePath: sharedMediaIndexRelativePath,
+  headingLine: 4,
+});
+const changedFirstSharedMediaProjection = runtimeExternalMediaProjection({
+  id: firstSharedMediaProjection.id,
+  filename: 'first-shared-media.mp4',
+  url: 'https://example.invalid/first-shared-media-v2.mp4',
+  evidenceFilePath: sharedMediaIndexRelativePath,
+  headingLine: 1,
+});
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(changedFirstSharedMediaProjection)}\n${JSON.stringify(staleSelectorUpdatedHashSecondSharedMediaProjection)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const changedFirstSharedMediaProjectionResult = runGate(['--staged']);
+assert.notEqual(
+  changedFirstSharedMediaProjectionResult.status,
+  0,
+  'gate must reject a final runtime projection file that retains a sibling media row with the old media-index selector even when its evidence hash is current',
+);
+assert.match(
+  `${changedFirstSharedMediaProjectionResult.stdout}\n${changedFirstSharedMediaProjectionResult.stderr}`,
+  /runtime-media:1-1:second-shared-media/,
+);
+assert.match(
+  `${changedFirstSharedMediaProjectionResult.stdout}\n${changedFirstSharedMediaProjectionResult.stderr}`,
+  /stale-runtime-media-index-evidence/,
+);
+
+const updatedSecondSharedMediaProjection = runtimeExternalMediaProjection({
+  id: secondSharedMediaProjection.id,
+  filename: 'second-shared-media.mp4',
+  url: secondSharedMediaUrl,
+  evidenceFilePath: sharedMediaIndexRelativePath,
+  headingLine: 5,
+});
+updatedSecondSharedMediaProjection.runtimeSemanticEvidence.evidenceFilePath =
+  `/course-runtime/lessons/1-1/media/shared-media.md`;
+updatedSecondSharedMediaProjection.reviewAudit.independentEvidenceRef =
+  `/course-runtime/lessons/1-1/media/shared-media.md#markdown-line:5`;
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(changedFirstSharedMediaProjection)}\n${JSON.stringify(updatedSecondSharedMediaProjection)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const synchronizedSharedMediaProjectionResult = runGate(['--staged']);
+assert.equal(
+  synchronizedSharedMediaProjectionResult.status,
+  0,
+  `gate must accept all final runtime media rows after synchronizing the shared media-index evidence hash\n${synchronizedSharedMediaProjectionResult.stdout}\n${synchronizedSharedMediaProjectionResult.stderr}`,
+);
+
+run('git', ['reset', '--hard', 'HEAD~1'], repo);
+
+const deletionMediaIndexPath = path.join(repo, 'course-content/runtime/lessons/1-1/media/deletion-media.md');
+const deletionMediaIndexRelativePath = 'course-content/runtime/lessons/1-1/media/deletion-media.md';
+const descriptionDeleteUrl = 'https://example.invalid/description-delete.mp4';
+const urlDeleteUrl = 'https://example.invalid/url-delete.mp4';
+const deletionMediaIndexV1 = [
+  '# description-delete.mp4',
+  '- Description to delete',
+  descriptionDeleteUrl,
+  '# url-delete.mp4',
+  '- URL to delete',
+  urlDeleteUrl,
+  '',
+].join('\n');
+fs.mkdirSync(path.dirname(deletionMediaIndexPath), { recursive: true });
+fs.writeFileSync(deletionMediaIndexPath, deletionMediaIndexV1);
+const descriptionDeleteProjection = runtimeExternalMediaProjection({
+  id: 'runtime-media:1-1:description-delete.mp4',
+  filename: 'description-delete.mp4',
+  url: descriptionDeleteUrl,
+  evidenceFilePath: deletionMediaIndexRelativePath,
+  headingLine: 1,
+});
+const urlDeleteProjection = runtimeExternalMediaProjection({
+  id: 'runtime-media:1-1:url-delete.mp4',
+  filename: 'url-delete.mp4',
+  url: urlDeleteUrl,
+  evidenceFilePath: deletionMediaIndexRelativePath,
+  headingLine: 4,
+});
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(descriptionDeleteProjection)}\n${JSON.stringify(urlDeleteProjection)}\n`,
+);
+run('git', ['add', deletionMediaIndexRelativePath, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+run('git', ['commit', '--no-verify', '-m', 'media index deletion baseline'], repo);
+
+const descriptionDeletedMediaIndex = deletionMediaIndexV1.replace('- Description to delete\n', '');
+fs.writeFileSync(deletionMediaIndexPath, descriptionDeletedMediaIndex);
+run('git', ['add', deletionMediaIndexRelativePath], repo);
+const updatedDescriptionDeleteProjection = runtimeExternalMediaProjection({
+  id: descriptionDeleteProjection.id,
+  filename: 'description-delete.mp4',
+  url: descriptionDeleteUrl,
+  evidenceFilePath: deletionMediaIndexRelativePath,
+  headingLine: 1,
+});
+const currentUrlDeleteProjection = runtimeExternalMediaProjection({
+  id: urlDeleteProjection.id,
+  filename: 'url-delete.mp4',
+  url: urlDeleteUrl,
+  evidenceFilePath: deletionMediaIndexRelativePath,
+  headingLine: 3,
+});
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(updatedDescriptionDeleteProjection)}\n${JSON.stringify(currentUrlDeleteProjection)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const deletedDescriptionWithRetainedHeadingResult = runGate(['--staged']);
+assert.equal(
+  deletedDescriptionWithRetainedHeadingResult.status,
+  0,
+  `gate must accept a same-id projection update when only a retained media-index record description is deleted\n${deletedDescriptionWithRetainedHeadingResult.stdout}\n${deletedDescriptionWithRetainedHeadingResult.stderr}`,
+);
+assert.doesNotMatch(
+  `${deletedDescriptionWithRetainedHeadingResult.stdout}\n${deletedDescriptionWithRetainedHeadingResult.stderr}`,
+  /missing-deleted-runtime-projection-row/,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+const urlDeletedMediaIndex = deletionMediaIndexV1.replace(`${urlDeleteUrl}\n`, '');
+fs.writeFileSync(deletionMediaIndexPath, urlDeletedMediaIndex);
+run('git', ['add', deletionMediaIndexRelativePath], repo);
+const updatedUrlDeleteProjection = runtimeMissingLocalMediaProjection({
+  id: urlDeleteProjection.id,
+  filename: 'url-delete.mp4',
+  evidenceFilePath: deletionMediaIndexRelativePath,
+  headingLine: 4,
+});
+const staleExternalUrlDeleteProjection = runtimeExternalMediaProjection({
+  id: urlDeleteProjection.id,
+  filename: 'url-delete.mp4',
+  url: urlDeleteUrl,
+  evidenceFilePath: deletionMediaIndexRelativePath,
+  headingLine: 4,
+});
+const currentDescriptionDeleteProjection = runtimeExternalMediaProjection({
+  id: descriptionDeleteProjection.id,
+  filename: 'description-delete.mp4',
+  url: descriptionDeleteUrl,
+  evidenceFilePath: deletionMediaIndexRelativePath,
+  headingLine: 1,
+});
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(currentDescriptionDeleteProjection)}\n${JSON.stringify(staleExternalUrlDeleteProjection)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const deletedUrlWithStaleExternalIdentityResult = runGate(['--staged']);
+assert.notEqual(
+  deletedUrlWithStaleExternalIdentityResult.status,
+  0,
+  'gate must reject a stale external media identity after the media-index URL is deleted even when the evidence hash is current',
+);
+assert.match(
+  `${deletedUrlWithStaleExternalIdentityResult.stdout}\n${deletedUrlWithStaleExternalIdentityResult.stderr}`,
+  /runtime-source:course-content\/runtime\/lessons\/1-1\/media\/deletion-media\.md#url-delete\.mp4/,
+);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(currentDescriptionDeleteProjection)}\n${JSON.stringify(updatedUrlDeleteProjection)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const deletedUrlWithRetainedHeadingResult = runGate(['--staged']);
+assert.equal(
+  deletedUrlWithRetainedHeadingResult.status,
+  0,
+  `gate must accept a same-id projection update when only a retained media-index record URL is deleted\n${deletedUrlWithRetainedHeadingResult.stdout}\n${deletedUrlWithRetainedHeadingResult.stderr}`,
+);
+assert.doesNotMatch(
+  `${deletedUrlWithRetainedHeadingResult.stdout}\n${deletedUrlWithRetainedHeadingResult.stderr}`,
+  /missing-deleted-runtime-projection-row/,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+const headingDeletedMediaIndex = deletionMediaIndexV1.replace(
+  '# description-delete.mp4\n- Description to delete\nhttps://example.invalid/description-delete.mp4\n',
+  '',
+);
+fs.writeFileSync(deletionMediaIndexPath, headingDeletedMediaIndex);
+run('git', ['add', deletionMediaIndexRelativePath], repo);
+const retainedHeadingAfterDeleteProjection = runtimeExternalMediaProjection({
+  id: urlDeleteProjection.id,
+  filename: 'url-delete.mp4',
+  url: urlDeleteUrl,
+  evidenceFilePath: deletionMediaIndexRelativePath,
+  headingLine: 1,
+});
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(retainedHeadingAfterDeleteProjection)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const deletedHeadingRecordResult = runGate(['--staged']);
+assert.equal(
+  deletedHeadingRecordResult.status,
+  0,
+  `gate must treat a removed media-index heading record as delete coverage when its projection row is removed
+${deletedHeadingRecordResult.stdout}
+${deletedHeadingRecordResult.stderr}`,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+fs.rmSync(deletionMediaIndexPath);
+run('git', ['add', '-u', deletionMediaIndexRelativePath], repo);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  '',
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const deletedMediaIndexFileResult = runGate(['--staged']);
+assert.equal(
+  deletedMediaIndexFileResult.status,
+  0,
+  `gate must preserve full-source delete semantics for a deleted media index file
+${deletedMediaIndexFileResult.stdout}
+${deletedMediaIndexFileResult.stderr}`,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+const handoutMediaIndexPath = path.join(repo, 'course-content/runtime/lessons/1-1/media/1-1-media.md');
+const handoutMediaIndexRelativePath = 'course-content/runtime/lessons/1-1/media/1-1-media.md';
+const handoutMediaIndexV1 = [
+  '# 1-1-handout.md',
+  '- Original handout summary',
+  '',
+].join('\n');
+fs.mkdirSync(path.dirname(handoutMediaIndexPath), { recursive: true });
+fs.writeFileSync(handoutMediaIndexPath, handoutMediaIndexV1);
+const handoutSourcePath = path.join(repo, 'course-content/runtime/lessons/1-1/1-1-handout.md');
+const handoutProjection = runtimeProjectionRow({
+  id: 'runtime-handout:1-1',
+  family: 'runtime-handout',
+  resourceType: 'handout',
+  sourceKind: 'runtime_handout',
+  sourceRef: '1-1',
+  sourcePathOrUrl: '/course-runtime/lessons/1-1/1-1-handout.md',
+  sourceVersionRef: 'runtime-handout.v1',
+  sourceHash: sha256File(handoutSourcePath),
+  independentEvidenceRef: '/course-runtime/lessons/1-1/1-1-handout.md#markdown-line:1',
+});
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(handoutProjection)}\n`,
+);
+run('git', ['add', handoutMediaIndexRelativePath, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+run('git', ['commit', '--no-verify', '-m', 'handout media index baseline'], repo);
+
+const handoutMediaIndexV2 = handoutMediaIndexV1
+  .replace('# 1-1-handout.md', '## 1-1-handout.md')
+  .replace('- Original handout summary', '- Updated handout summary');
+fs.writeFileSync(handoutMediaIndexPath, handoutMediaIndexV2);
+run('git', ['add', handoutMediaIndexRelativePath], repo);
+const unrelatedHandoutProjection = {
+  ...handoutProjection,
+  id: 'runtime-handout:unrelated',
+  sourceRef: 'unrelated',
+};
+const updatedHandoutProjection = {
+  ...handoutProjection,
+  title: 'Updated handout projection',
+};
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(unrelatedHandoutProjection)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const unrelatedHandoutProjectionResult = runGate(['--staged']);
+assert.notEqual(
+  unrelatedHandoutProjectionResult.status,
+  0,
+  'gate must reject an unrelated non-asset handout projection even when it shares the handout source hash',
+);
+assert.match(
+  `${unrelatedHandoutProjectionResult.stdout}\n${unrelatedHandoutProjectionResult.stderr}`,
+  /runtime-source:course-content\/runtime\/lessons\/1-1\/media\/1-1-media\.md#1-1-handout\.md/,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+fs.writeFileSync(handoutMediaIndexPath, handoutMediaIndexV2);
+run('git', ['add', handoutMediaIndexRelativePath], repo);
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(updatedHandoutProjection)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const updatedHandoutProjectionResult = runGate(['--staged']);
+assert.equal(
+  updatedHandoutProjectionResult.status,
+  0,
+  `gate must match a runtime-handout projection by the non-asset media-index record identity\n${updatedHandoutProjectionResult.stdout}\n${updatedHandoutProjectionResult.stderr}`,
+);
+
+run('git', ['reset', '--hard', 'HEAD~2'], repo);
 const generatedLessonMediaPath = path.join(repo, 'course-content/runtime/lessons/1-1/media/generated-data/1-1-analysis-data.txt');
 fs.mkdirSync(path.dirname(generatedLessonMediaPath), { recursive: true });
 fs.writeFileSync(generatedLessonMediaPath, 'generated runtime data fixture\n');
@@ -2972,6 +3934,96 @@ function runtimeSourceCoverageProjectionRow(overrides) {
     resourceType: 'lesson_step',
     sourceKind: 'runtime_lesson_step',
   });
+}
+
+function runtimeTrackedLocalMediaProjection({ id, filename, sourcePath, sourceIdentity }) {
+  const sourceHash = sha256File(path.join(repo, sourcePath));
+  const projection = runtimeProjectionRow({
+    id,
+    family: 'runtime-lesson-media',
+    resourceType: 'video',
+    sourceKind: 'runtime_lesson_media',
+    sourceRef: sourceIdentity,
+    sourcePathOrUrl: sourcePath,
+    sourceVersionRef: 'runtime-lesson-media.v1',
+    independentEvidenceRef: `${sourcePath}#file-sha256:${sourceHash.slice('sha256:'.length)}`,
+  });
+  projection.sourceRecord = sourceIdentity;
+  projection.title = filename;
+  projection.runtimeSemanticEvidence = {
+    schemaVersion: 'runtime-lesson-semantic-evidence.v1',
+    assetStatus: 'tracked-local-runtime-asset',
+    assetAvailability: 'tracked-in-git-index',
+    evidenceFilePath: sourcePath,
+    evidenceFileHash: sourceHash,
+    evidenceSelector: `file-sha256:${sourceHash.slice('sha256:'.length)}`,
+    externalIdentitySha256: null,
+    sourceFileKind: 'binary-media',
+    sourceFilePath: sourcePath,
+    sourceFileHash: sourceHash,
+  };
+  return projection;
+}
+
+function runtimeExternalMediaProjection({ id, filename, url, evidenceFilePath, headingLine, sourceIdentity }) {
+  const canonicalSourceIdentity = sourceIdentity ?? `1-1:${filename.replace(/\.[^.]+$/, '')}`;
+  const projection = runtimeProjectionRow({
+    id,
+    family: 'runtime-lesson-media',
+    resourceType: 'video',
+    sourceKind: 'runtime_lesson_media',
+    sourceRef: canonicalSourceIdentity,
+    sourcePathOrUrl: url,
+    sourceVersionRef: 'runtime-lesson-media.v1',
+    independentEvidenceRef: `${evidenceFilePath}#markdown-line:${headingLine}`,
+  });
+  projection.sourceRecord = canonicalSourceIdentity;
+  projection.sourceHash = null;
+  projection.reviewAudit.reviewedSourceHash = null;
+  const externalIdentitySha256 = createHash('sha256').update(url).digest('hex');
+  projection.runtimeSemanticEvidence = {
+    schemaVersion: 'runtime-lesson-semantic-evidence.v1',
+    assetStatus: 'external-http-runtime-asset',
+    evidenceFilePath,
+    evidenceFileHash: sha256File(path.join(repo, evidenceFilePath)),
+    evidenceSelector: `markdown-line:${headingLine}`,
+    externalIdentitySha256,
+    sourceFileKind: 'external-media',
+    sourceFilePath: `external-media:${externalIdentitySha256}`,
+    sourceFileHash: null,
+  };
+  return projection;
+}
+
+function runtimeMissingLocalMediaProjection({ id, filename, evidenceFilePath, headingLine }) {
+  const projection = runtimeExternalMediaProjection({
+    id,
+    filename,
+    url: `course-content/runtime/lessons/1-1/media/${filename}`,
+    evidenceFilePath,
+    headingLine,
+  });
+  projection.runtimeSemanticEvidence = {
+    ...projection.runtimeSemanticEvidence,
+    assetStatus: 'missing-local-runtime-asset',
+    externalIdentitySha256: null,
+    sourceFileKind: 'missing-local-runtime-asset',
+    sourceFilePath: `missing-local-runtime-asset:${filename}`,
+    sourceFileHash: null,
+  };
+  return projection;
+}
+
+function withRuntimeMediaEvidenceAlias(projection, relativeEvidencePath, headingLine) {
+  const aliasEvidencePath = relativeEvidencePath.replace(
+    /^course-content\/runtime\//,
+    '/course-runtime/',
+  );
+  projection.runtimeSemanticEvidence.evidenceFilePath = aliasEvidencePath;
+  projection.runtimeSemanticEvidence.evidenceSelector = `markdown-line:${headingLine}`;
+  projection.reviewAudit.independentEvidenceRef =
+    `${aliasEvidencePath}#markdown-line:${headingLine}`;
+  return projection;
 }
 
 function runtimeLessonProjectionRows(lessonId, stepId, moduleId) {

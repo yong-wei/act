@@ -291,7 +291,7 @@ export function assertRuntimeSemanticEvidenceReference(reference: string): {
   return { evidenceFilePath, evidenceFileHash, selector, selectorKind: parsed.kind };
 }
 
-function normalizeMediaId(filename: string): string {
+export function normalizeMediaId(filename: string): string {
   return filename.replace(/\.[^.]+$/, '');
 }
 
