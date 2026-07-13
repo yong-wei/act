@@ -35,6 +35,33 @@ describe('portrait v2 primary usage gate', () => {
     expect(issues).toEqual([]);
   });
 
+  it('does not let a distant compatibility marker exempt unrelated additions', () => {
+    const issues = inspectPortraitV2PrimaryUsage({
+      filePath: 'src/lib/data-governance/consumer.ts',
+      addedLines: ['const vector = state.primaryCompetencies.vector;'],
+      addedLineNumbers: [12],
+      source: `// ${PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER}\n${'\n'.repeat(9)}const vector = state.primaryCompetencies.vector;`,
+    });
+
+    expect(issues).toMatchObject([{
+      filePath: 'src/lib/data-governance/consumer.ts',
+      line: 12,
+      code: 'legacy-primary-competencies',
+    }]);
+  });
+
+  it('accepts a compatibility marker within the changed hunk', () => {
+    const issues = inspectPortraitV2PrimaryUsage({
+      filePath: 'src/lib/data-governance/consumer.ts',
+      addedLines: ['const vector = state.primaryCompetencies.vector;'],
+      addedLineNumbers: [12],
+      compatibilityRanges: [{ start: 1, end: 12 }],
+      source: `// ${PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER}\n${'\n'.repeat(10)}const vector = state.primaryCompetencies.vector;`,
+    });
+
+    expect(issues).toEqual([]);
+  });
+
   it('does not police legacy fixtures or documentation paths', () => {
     expect(inspectPortraitV2PrimaryUsage({
       filePath: 'src/lib/data-governance/__tests__/fixture.test.ts',

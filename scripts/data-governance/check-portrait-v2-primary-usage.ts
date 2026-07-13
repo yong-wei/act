@@ -48,6 +48,7 @@ function inspectDiff(diff: string): PortraitV2PrimaryGateIssue[] {
   let filePath: string | null = null;
   let addedLines: string[] = [];
   let addedLineNumbers: number[] = [];
+  let compatibilityRanges: Array<{ start: number; end: number }> = [];
   let newLine = 0;
 
   const flush = () => {
@@ -57,11 +58,13 @@ function inspectDiff(diff: string): PortraitV2PrimaryGateIssue[] {
       filePath,
       addedLines,
       addedLineNumbers,
+      compatibilityRanges,
       source,
     }));
     filePath = null;
     addedLines = [];
     addedLineNumbers = [];
+    compatibilityRanges = [];
     newLine = 0;
   };
 
@@ -72,9 +75,11 @@ function inspectDiff(diff: string): PortraitV2PrimaryGateIssue[] {
       filePath = fileMatch[2];
       continue;
     }
-    const hunkMatch = /^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@/.exec(line);
+    const hunkMatch = /^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@/.exec(line);
     if (hunkMatch) {
       newLine = Number(hunkMatch[1]);
+      const lineCount = Number(hunkMatch[2] ?? 1);
+      compatibilityRanges.push({ start: newLine, end: newLine + lineCount - 1 });
       continue;
     }
     if (!filePath || line.startsWith('+++')) continue;

@@ -788,6 +788,7 @@ export async function readAdaptiveLearnerState(
     snapshotId: compatibilitySnapshotId,
     snapshotAt: compatibilitySnapshotAt,
   } = portraitResolution.legacyCompatibility;
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: expose legacy provenance only for compatibility consumers.
   const source: AdaptiveLearnerState['primaryCompetencies']['source'] =
     compatibilitySource === 'StudentCompetencySnapshot'
       ? 'latest-snapshot'

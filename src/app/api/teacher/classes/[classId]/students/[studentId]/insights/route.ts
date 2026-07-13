@@ -178,6 +178,7 @@ export interface TeacherStudentInsightsPayload {
     current: {
       portrait: PortraitV2ConsumerSummary;
       vector: CompetencyVector;
+      // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: source identifies compatibility metadata only.
       legacyCompatibility: {
         authority: 'legacy-compatibility-only';
         source: 'StudentCompetencySnapshot' | 'StudentEvidenceFeatureCache' | 'fallback-empty';
@@ -604,6 +605,7 @@ function buildPortraitEvidenceSummary(
 ): Record<string, TeacherStudentEvidenceItem[]> {
   return Object.fromEntries(PORTRAIT_V2_DIMENSIONS.map(({ id }) => [
     id,
+    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: map historical evidence into v2 dimensions only.
     COMPETENCY_DIMENSIONS.flatMap((legacyDimension) =>
       mapLegacyCompetencyDimensionToPortraitV2(legacyDimension).targetDimensions.includes(id)
         ? legacySummary[legacyDimension] ?? []

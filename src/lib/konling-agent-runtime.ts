@@ -6691,7 +6691,7 @@ function inferCognitiveLevel(state: AdaptiveLearnerState | null): 1 | 2 | 3 | 4 
     : [];
   const values = portraitValues && portraitValues.length > 0
     ? portraitValues
-    : Object.values(state?.primaryCompetencies.vector ?? {})
+    : Object.values(state?.primaryCompetencies.vector ?? {}) // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: cold-start fallback only.
       .map((entry) => typeof entry?.score === 'number' ? entry.score : null)
       .filter((value): value is number => value !== null);
   if (values.length === 0) return 3;
