@@ -234,8 +234,14 @@ export async function GET(
             : 'none';
 
       for (const dimension of dimensions) {
-        const currentScore = currentPortrait.dimensions.find((item) => item.id === dimension)?.score ?? 0;
-        const previousScore = previousPortrait?.dimensions.find((item) => item.id === dimension)?.score ?? currentScore;
+        const currentDimension = currentPortrait.dimensions.find((item) => item.id === dimension);
+        if (!currentDimension || currentDimension.evidenceSummary.totalCount <= 0) continue;
+
+        const currentScore = currentDimension.score;
+        const previousDimension = previousPortrait?.dimensions.find((item) => item.id === dimension);
+        const previousScore = previousDimension && previousDimension.evidenceSummary.totalCount > 0
+          ? previousDimension.score
+          : currentScore;
         const change = Math.round((currentScore - previousScore) * 10) / 10;
 
         // Adjust risk level based on dimension-specific scores

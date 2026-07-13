@@ -13,6 +13,7 @@ import {
   type PortraitV2DimensionId,
 } from '@/lib/data-governance/kaq-objective-taxonomy';
 import {
+  hasPortraitV2Evidence,
   resolvePrimaryPortraitV2,
   summarizePortraitV2,
   type PortraitV2ConsumerSummary,
@@ -394,7 +395,14 @@ export async function GET(
       featureCache: studentEvidenceFeatureRead.cache as Record<string, unknown> | null,
     });
     const portraitV2 = summarizePortraitV2(portraitResolution.primaryPortrait);
+    const hasPortraitV2Data = hasPortraitV2Evidence(portraitResolution.primaryPortrait);
+    const portraitFactCount = portraitV2.dimensions.reduce((sum, dimension) => sum + dimension.evidenceCount, 0);
     const overallScore = roundTo(portraitV2.overallScore, 1);
+    const snapshotVector = currentVector ?? portraitResolution.legacyCompatibility.vector;
+    const snapshotAt = currentSnapshot?.snapshotAt.toISOString() ?? (
+      hasPortraitV2Data ? portraitV2.generatedAt : null
+    );
+    const factCount = currentSnapshot?.factCount ?? (hasPortraitV2Data ? portraitFactCount : 0);
     const riskLevel = normalizeInsightRiskLevel(
       profileSummary?.riskLevel ??
         riskFlags.find((flag) => flag.severity)?.severity ??
@@ -463,8 +471,8 @@ export async function GET(
       targetUserId: studentId,
       classId,
       teacherClassIds: [classId],
-      learnerState: currentSnapshot
-        ? { generatedAt: currentSnapshot.snapshotAt.toISOString() }
+      learnerState: snapshotAt
+        ? { generatedAt: snapshotAt }
         : null,
       featureCache: studentEvidenceFeatureRead.cache,
       teacherReport: {
@@ -491,22 +499,22 @@ export async function GET(
         portraitV2,
         riskLevel,
         riskLabel: getRiskLabel(riskLevel),
-        latestSnapshotAt: currentSnapshot?.snapshotAt.toISOString() ?? null,
-        factCount: currentSnapshot?.factCount ?? 0,
+        latestSnapshotAt: snapshotAt,
+        factCount,
         recommendedScaffolding:
           profileSummary?.recommendedScaffolding || '当前暂无自动脚手架建议，可结合课堂观察补充判断。',
       },
       snapshot: {
-        current: currentSnapshot
+        current: currentSnapshot || hasPortraitV2Data
           ? {
               portrait: portraitV2,
-              vector: currentVector!,
+              vector: snapshotVector,
               legacyCompatibility: {
                 authority: 'legacy-compatibility-only',
                 source: portraitResolution.legacyCompatibility.source,
               },
-              snapshotAt: currentSnapshot.snapshotAt.toISOString(),
-              factCount: currentSnapshot.factCount,
+              snapshotAt: snapshotAt!,
+              factCount,
             }
           : null,
         previous: previousSnapshot
