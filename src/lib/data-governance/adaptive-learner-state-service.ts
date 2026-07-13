@@ -791,6 +791,7 @@ export async function readAdaptiveLearnerState(
   // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: expose legacy provenance only for compatibility consumers.
   // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: map the compatibility source to the legacy output label.
   const source: AdaptiveLearnerState['primaryCompetencies']['source'] =
+    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: retain the legacy source label only for compatibility output.
     compatibilitySource === 'StudentCompetencySnapshot'
       ? 'latest-snapshot'
       : compatibilitySource === 'StudentEvidenceFeatureCache'

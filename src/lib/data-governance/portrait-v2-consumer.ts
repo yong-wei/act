@@ -2,6 +2,7 @@
 import {
   createEmptyCompetencyVector,
   type CompetencyDimension,
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: retain the legacy vector type only at the compatibility boundary.
   type CompetencyVector,
 } from './competency-model';
 import {
@@ -45,6 +46,7 @@ export interface PortraitV2ConsumerDb extends PortraitV2SnapshotReadDb {
 export interface PortraitV2LegacyCompatibility {
   authority: 'legacy-compatibility-only';
   source: 'StudentCompetencySnapshot' | 'StudentEvidenceFeatureCache' | 'fallback-empty';
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: this vector is never the primary portrait.
   vector: CompetencyVector;
   snapshotId: string | null;
   snapshotAt: string;
