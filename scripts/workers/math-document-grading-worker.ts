@@ -69,7 +69,6 @@ export async function processMathDocumentGradingJob(job: Job<MathDocumentGrading
   }
   if (job.data.kind === 'grading') {
     const result = await processGradingRunJob({ db, jobId: job.data.jobId, workerClaimToken });
-    if (result.draft.state === 'retryable') throw new Error('grading-provider-retryable');
     return result;
   }
   if (job.data.kind === 'batch' || job.data.kind === 'retry') {

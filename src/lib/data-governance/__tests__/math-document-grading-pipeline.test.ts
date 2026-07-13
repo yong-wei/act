@@ -174,6 +174,9 @@ describe('production math-document grading contracts', () => {
     ['provider mismatch', policy('other-provider', 'answer-conversion'), 'provider-mismatch'],
     ['HTTP endpoint', policy('mathpix', 'answer-conversion', { endpoint: 'http://api.mathpix.com/v3/text' }), 'endpoint-https-required'],
     ['private endpoint', policy('mathpix', 'answer-conversion', { endpoint: 'https://127.0.0.1/v3/text' }), 'endpoint-private-network'],
+    ['RFC4193 IPv6 private endpoint', policy('mathpix', 'answer-conversion', { endpoint: 'https://[fd00::1]/v3/text' }), 'endpoint-private-network'],
+    ['IPv6 link-local endpoint', policy('mathpix', 'answer-conversion', { endpoint: 'https://[fe80::1]/v3/text' }), 'endpoint-private-network'],
+    ['IPv4-mapped private endpoint', policy('mathpix', 'answer-conversion', { endpoint: 'https://[::ffff:192.168.1.10]/v3/text' }), 'endpoint-private-network'],
     ['disabled policy', policy('mathpix', 'answer-conversion', { enabled: false }), 'provider-disabled'],
     ['credential reference mismatch', policy('mathpix', 'answer-conversion', { credentialRef: 'env:APPROVED_KEY' }), 'credential-ref-mismatch'],
   ])('blocks Mathpix before sending student content for %s', async (_label, blockedPolicy, reason) => {

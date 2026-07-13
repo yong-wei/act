@@ -1,4 +1,5 @@
 import { createHash, createHmac } from 'node:crypto';
+import { isIP } from 'node:net';
 
 import { z } from 'zod';
 
@@ -526,9 +527,49 @@ function normalizeExternalEndpoint(value: string): string {
 function isPrivateExternalEndpoint(hostname: string): boolean {
   const host = hostname.toLowerCase().replace(/^\[|\]$/g, '');
   if (host === 'localhost' || host.endsWith('.localhost') || host.endsWith('.local') || host === '::1') return true;
-  if (/^(?:10|127)\.(?:\d{1,3}\.){2}\d{1,3}$/.test(host)) return true;
-  if (/^192\.168\.(?:\d{1,3}\.)?\d{1,3}$/.test(host)) return true;
-  return /^172\.(?:1[6-9]|2\d|3[01])\.(?:\d{1,3}\.)\d{1,3}$/.test(host) || /^169\.254\.(?:\d{1,3}\.)\d{1,3}$/.test(host);
+  if (isIP(host) === 4) return isPrivateIpv4(host);
+  if (isIP(host) !== 6) return false;
+  const groups = expandIpv6(host);
+  if (!groups) return false;
+  const first = groups[0];
+  if (host === '::' || (first & 0xfe00) === 0xfc00 || (first & 0xffc0) === 0xfe80 || (first & 0xffc0) === 0xfec0) return true;
+  const mapped = groups.slice(0, 6).every((group) => group === 0) || groups.slice(0, 5).every((group) => group === 0) && groups[5] === 0xffff;
+  if (!mapped) return false;
+  return isPrivateIpv4(`${groups[6] >> 8}.${groups[6] & 0xff}.${groups[7] >> 8}.${groups[7] & 0xff}`);
+}
+
+function isPrivateIpv4(host: string): boolean {
+  const octets = host.split('.').map(Number);
+  if (octets.length !== 4 || octets.some((octet) => !Number.isInteger(octet) || octet < 0 || octet > 255)) return false;
+  const [first, second] = octets;
+  return first === 10
+    || first === 127
+    || (first === 192 && second === 168)
+    || (first === 172 && second >= 16 && second <= 31)
+    || (first === 169 && second === 254);
+}
+
+function expandIpv6(host: string): number[] | null {
+  let normalized = host;
+  if (host.includes('.')) {
+    const separator = host.lastIndexOf(':');
+    if (separator < 0) return null;
+    const octets = host.slice(separator + 1).split('.').map(Number);
+    if (octets.length !== 4 || octets.some((octet) => !Number.isInteger(octet) || octet < 0 || octet > 255)) return null;
+    const prefix = host.slice(0, separator);
+    normalized = `${prefix}${prefix.endsWith(':') ? '' : ':'}${((octets[0] << 8) | octets[1]).toString(16)}:${((octets[2] << 8) | octets[3]).toString(16)}`;
+  }
+  const halves = normalized.split('::');
+  if (halves.length > 2) return null;
+  const parseGroups = (value: string): number[] => value
+    ? value.split(':').map((group) => Number.parseInt(group, 16))
+    : [];
+  const left = parseGroups(halves[0]);
+  const right = halves.length === 2 ? parseGroups(halves[1]) : [];
+  if ([...left, ...right].some((group) => !Number.isInteger(group) || group < 0 || group > 0xffff)) return null;
+  const missing = 8 - left.length - right.length;
+  if (missing < (halves.length === 2 ? 1 : 0)) return null;
+  return [...left, ...Array.from({ length: missing }, () => 0), ...right];
 }
 
 function isPrecisionAllowed(block: EvidenceBlockInput, requested: EvidencePrecision): boolean {

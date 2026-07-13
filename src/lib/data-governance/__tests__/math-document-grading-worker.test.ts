@@ -108,6 +108,11 @@ describe('math-document grading worker recovery dispatch', () => {
     expect(mocks.conversion).toHaveBeenCalledWith(expect.objectContaining({ jobId: 'job-1' }));
   });
 
+  it('does not re-settle a grading run after durable retryable persistence', async () => {
+    mocks.grading.mockResolvedValueOnce({ run: { state: 'RETRYABLE' }, draft: { state: 'retryable' } });
+    await expect(processMathDocumentGradingJob({ data: { kind: 'grading', jobId: 'job-retryable', gradingRunId: 'run-retryable' } } as any, {})).resolves.toEqual(expect.objectContaining({ run: { state: 'RETRYABLE' } }));
+  });
+
   it('completes successful conversion and preserves retry-item isolation', async () => {
     mocks.conversion.mockResolvedValueOnce({ conversion: { state: 'SUCCEEDED' }, evidence: { id: 'evidence-1' } });
     await expect(processMathDocumentGradingJob({ data: { kind: 'conversion', jobId: 'job-2', conversionId: 'conversion-2' } } as any, {})).resolves.toEqual(expect.objectContaining({ evidence: { id: 'evidence-1' } }));
