@@ -3,6 +3,8 @@ import { join } from 'node:path';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+vi.mock('server-only', () => ({}));
+
 import {
   approveGradingRun,
   buildDocumentRubricDraftDedupeKey,
@@ -1091,15 +1093,18 @@ describe('document rubric grading routes', () => {
     })).resolves.toEqual({});
   });
 
-  it('renders evidence capsules, Konling entry points, and a real approval action in UI surfaces', () => {
+  it('renders evidence capsules and makes the legacy approval action explicitly unavailable', () => {
     const ui = source('src/features/assessment/document-rubric-grading-ui.tsx');
     const action = source('src/features/assessment/document-rubric-grading-actions.tsx');
     const teacherPage = source('src/app/(teacher-report-ledger)/teacher/grading-workbench/page.tsx');
 
     expect(ui).toContain('view.evidenceCapsules.map');
-    expect(ui).toContain('view.konlingEntryPoint.promptContext');
-    expect(action).toContain('/api/teacher/document-grading/approve');
-    expect(action).toContain('JSON.stringify({ gradingRunId');
+    expect(ui).toContain('entryPoint={view.konlingEntryPoint}');
+    expect(action).toContain('data-legacy-document-grading-approval-disabled="true"');
+    expect(action).toContain('disabled');
+    expect(action).toContain('当前草稿不会被自动审批或写回');
+    expect(action).not.toContain('/api/teacher/document-grading/approve');
+    expect(action).not.toContain('JSON.stringify({ gradingRunId');
     expect(teacherPage).toContain('validateDocumentRubricGradingDraftInvariants');
     expect(teacherPage).toContain('if (!invariants.valid)');
     expect(teacherPage).toContain('prisma.studentProfile.findFirst');

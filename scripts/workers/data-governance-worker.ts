@@ -48,6 +48,7 @@ import type {
   SessionReportJob,
   StudentSnapshotJob,
 } from './types';
+import { createMathDocumentGradingWorker } from './math-document-grading-worker';
 
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
 const WORKER_CONCURRENCY = parseInt(process.env.WORKER_CONCURRENCY || '2', 10);
@@ -84,6 +85,7 @@ let studentSnapshotWorker: Worker<StudentSnapshotJob> | null = null;
 let classSnapshotWorker: Worker<ClassSnapshotJob> | null = null;
 let sessionReportWorker: Worker<SessionReportJob> | null = null;
 let evidenceFeatureCacheWorker: Worker<EvidenceFeatureCacheJob> | null = null;
+let mathDocumentGradingController: Awaited<ReturnType<typeof createMathDocumentGradingWorker>> | null = null;
 let isShuttingDown = false;
 let infrastructureFailureHandled = false;
 
@@ -960,6 +962,11 @@ async function startWorkers() {
 
   redis = new Redis(REDIS_URL, { maxRetriesPerRequest: null });
   prisma = createPrismaClient();
+  mathDocumentGradingController = await createMathDocumentGradingWorker({
+    db: prisma,
+    redis,
+    concurrency: Number(process.env.MATH_DOCUMENT_GRADING_WORKER_CONCURRENCY ?? WORKER_CONCURRENCY),
+  });
 
   redis.on('error', (error) => {
     if (isInfrastructureError(error)) {
@@ -1041,6 +1048,7 @@ async function shutdown(exitCode: number) {
   if (classSnapshotWorker) cleanupTasks.push(classSnapshotWorker.close());
   if (sessionReportWorker) cleanupTasks.push(sessionReportWorker.close());
   if (evidenceFeatureCacheWorker) cleanupTasks.push(evidenceFeatureCacheWorker.close());
+  if (mathDocumentGradingController) cleanupTasks.push(mathDocumentGradingController.close());
   if (eventQueue) cleanupTasks.push(eventQueue.close());
   if (studentQueue) cleanupTasks.push(studentQueue.close());
   if (classQueue) cleanupTasks.push(classQueue.close());

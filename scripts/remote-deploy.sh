@@ -30,6 +30,7 @@ APP_NAME_HINT="${APP_NAME_HINT:-act-obe-app}"
 DB_NAME_HINT="${DB_NAME_HINT:-act-obe-postgres}"
 REDIS_NAME_HINT="${REDIS_NAME_HINT:-act-obe-redis}"
 WORKER_NAME_HINT="${WORKER_NAME_HINT:-act-obe-worker}"
+GC_NAME_HINT="${GC_NAME_HINT:-act-obe-submission-gc}"
 REMOTE_APP_IMAGE="${REMOTE_APP_IMAGE:-localhost/act-obe-platform:20260301-amd64}"
 
 REMOTE_TMP_TAR="${REMOTE_IMAGE_TAR}.tmp"
@@ -154,7 +155,7 @@ wait_for_public_session_api() {
 }
 
 recover_prisma_migration_state() {
-  log "- 检测到应用可能卡在 Prisma 迁移阶段，尝试修复迁移元数据"
+  log "- 检测到应用可能卡在 Prisma 迁移阶段，检查失败记录并停止服务"
 
   remote "bash -lc '
 set -euo pipefail
@@ -174,26 +175,21 @@ APP_IMAGE_REAL=\$(podman inspect \"\${APP_CONTAINER_REAL}\" --format \"{{.ImageN
 DATABASE_URL_REAL=\$(podman inspect \"\${APP_CONTAINER_REAL}\" --format \"{{range .Config.Env}}{{println .}}{{end}}\" | grep \"^DATABASE_URL=\" | head -n 1 | cut -d= -f2-)
 
 FAILED_MIGRATIONS=\$(podman exec -e PGPASSWORD=\"\${DB_PASSWORD_REAL}\" \"\${DB_CONTAINER_REAL}\" \
-  psql -U \"\${DB_USER_REAL}\" -d \"\${DB_NAME_REAL}\" -tA -c \"select migration_name from _prisma_migrations where finished_at is null and rolled_back_at is null order by started_at;\" || true)
+  psql -U \"\${DB_USER_REAL}\" -d \"\${DB_NAME_REAL}\" -tA -c \"select migration_name from _prisma_migrations where finished_at is null and rolled_back_at is null order by started_at;\")
 
-for migration in \${FAILED_MIGRATIONS}; do
-  [ -z \"\${migration}\" ] && continue
-  podman run --rm --network \"\${NETWORK_NAME_REAL}\" \
-    -e RUN_MIGRATIONS_ON_START=0 \
-    -e DATABASE_URL=\"\${DATABASE_URL_REAL}\" \
-    \"\${APP_IMAGE_REAL}\" \
-    node ./node_modules/prisma/build/index.js migrate resolve --rolled-back \"\${migration}\" --schema ./prisma/schema.prisma
-done
+if [ -n \"\${FAILED_MIGRATIONS}\" ]; then
+  podman stop \"\${APP_CONTAINER_REAL}\" >/dev/null 2>&1 || true
+  echo "ERROR: Prisma migration failed; application stopped. Manual migration repair is required:" >&2
+  printf '%s\n' \"\${FAILED_MIGRATIONS}\" >&2
+  exit 1
+fi
 
 if podman exec -e PGPASSWORD=\"\${DB_PASSWORD_REAL}\" \"\${DB_CONTAINER_REAL}\" \
   psql -U \"\${DB_USER_REAL}\" -d \"\${DB_NAME_REAL}\" -tA -c \"select 1 from information_schema.tables where table_schema=\\\$\\\$public\\\$\\\$ and table_name=\\\$\\\$PlatformSetting\\\$\\\$;\" | grep -qx 1; then
   if ! podman exec -e PGPASSWORD=\"\${DB_PASSWORD_REAL}\" \"\${DB_CONTAINER_REAL}\" \
     psql -U \"\${DB_USER_REAL}\" -d \"\${DB_NAME_REAL}\" -tA -c \"select 1 from _prisma_migrations where migration_name=\\\$\\\$20260303142500_add_platform_settings\\\$\\\$ and finished_at is not null limit 1;\" | grep -qx 1; then
-    podman run --rm --network \"\${NETWORK_NAME_REAL}\" \
-      -e RUN_MIGRATIONS_ON_START=0 \
-      -e DATABASE_URL=\"\${DATABASE_URL_REAL}\" \
-      \"\${APP_IMAGE_REAL}\" \
-      node ./node_modules/prisma/build/index.js migrate resolve --applied 20260303142500_add_platform_settings --schema ./prisma/schema.prisma
+    echo "ERROR: PlatformSetting 表已存在但 Prisma 迁移记录缺失；停止自动修复，请人工核对 schema 与 _prisma_migrations 后再部署。" >&2
+    exit 1
   fi
 fi
 
@@ -309,7 +305,7 @@ log "[4/5] 远端部署"
 remote "bash -lc 'set -euo pipefail
 {
   echo \"[remote-deploy] Step 1/7: 导出现有数据库\"
-  \"${REMOTE_EXPORT_DB_SCRIPT}\" || true
+  \"${REMOTE_EXPORT_DB_SCRIPT}\"
   echo \"[remote-deploy] Step 2/7: 装载镜像\"
   \"${REMOTE_LOAD_IMAGES_SCRIPT}\"
   echo \"[remote-deploy] Step 3/7: 启动数据库容器\"
@@ -402,9 +398,26 @@ remote "podman inspect '${APP_NAME_HINT}' --format '{{range .Config.Env}}{{print
 remote "podman inspect '${APP_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^DATABASE_URL=.*connection_limit=10&pool_timeout=20'"
 remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^KONLING_SERVER_MODE_CONTEXT_SECRET='"
 remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^REDIS_URL=redis://${REDIS_NAME_HINT}\\.dns\\.podman:6379$'"
+remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^MATH_DOCUMENT_GRADING_WORKER_REQUIRED=true$'"
+remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^SUBMISSION_S3_ENDPOINT='"
+remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^SUBMISSION_SCANNER_MODE=s3-object-tag$'"
+remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^SUBMISSION_SCANNER_ACCESS_KEY='"
+remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^MATHPIX_APP_ID='"
+remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^MATHPIX_APP_KEY='"
+remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -Eq '^(AI_API_KEY|SILICONFLOW_API_KEY)='"
+remote "podman inspect '${APP_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -Eq '^GRADING_AUDIT_SECRET=.+$'"
+remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -Eq '^GRADING_AUDIT_SECRET=.+$'"
+remote "podman inspect '${GC_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -Eq '^GRADING_AUDIT_SECRET=.+$'"
+remote "podman inspect '${APP_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -Eq '^GRADING_LIFECYCLE_LOOKUP_SECRET=.+$'"
+remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -Eq '^GRADING_LIFECYCLE_LOOKUP_SECRET=.+$'"
+remote "podman inspect '${GC_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -Eq '^GRADING_LIFECYCLE_LOOKUP_SECRET=.+$'"
 
 log "- 校验 worker 启动日志"
 remote "podman logs --tail 120 '${WORKER_NAME_HINT}' | grep -q '\\[Worker\\] Data governance worker started'"
+remote "podman logs --tail 120 '${WORKER_NAME_HINT}' | grep -q '\\[MathDocumentGrading\\] worker started'"
+remote "podman exec '${REDIS_NAME_HINT}' redis-cli get math-document-grading:worker:heartbeat | grep -qx ready"
+remote "podman exec '${REDIS_NAME_HINT}' redis-cli get math-document-grading:worker:capability | grep -q '\"configReady\":true'"
+remote "podman exec '${REDIS_NAME_HINT}' redis-cli get math-document-grading:worker:capability | grep -q '\"auditSecret\":true'"
 
 log "- 校验 scheduler 已注册 BullMQ 任务"
 remote "podman exec '${REDIS_NAME_HINT}' redis-cli --scan --pattern 'bull:*' | grep -q 'bull:'"
@@ -424,6 +437,9 @@ wait_for_public_session_api 120 || fail "公网认证会话接口未在预期时
 log "- 校验公网 readyz 健康接口"
 curl -fsS "${PUBLIC_URL%/}/api/readyz" | grep -q '"db":true'
 curl -fsS "${PUBLIC_URL%/}/api/readyz" | grep -q '"redis":true'
+curl -fsS "${PUBLIC_URL%/}/api/readyz" | grep -q '"mathDocumentGradingWorker":{"required":true,"ready":true}'
+curl -fsS "${PUBLIC_URL%/}/api/readyz" | grep -q '"configReady":true'
+curl -fsS "${PUBLIC_URL%/}/api/readyz" | grep -q '"auditSecret":true'
 
 log
 log "远端部署完成并验证通过"

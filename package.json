@@ -62,6 +62,7 @@
     "test:skillopt-sleep": "node ./scripts/tests/test-skillopt-sleep.mjs",
     "test:navigation": "node ./scripts/tests/test-no-hardcoded-localhost-navigation.mjs",
     "test:docker-migration-readiness": "node ./scripts/tests/test-docker-migration-readiness.mjs",
+    "test:math-document-grading-migration": "node ./scripts/tests/test-math-document-grading-migration.mjs",
     "test:turbopack-trace-boundary": "node ./scripts/tests/test-turbopack-trace-boundary.mjs",
     "test:model-render-policy": "npx --yes tsx ./scripts/tests/test-model-render-policy.ts",
     "test:runtime-log-delta": "node ./scripts/tests/test-runtime-log-delta.mjs",
@@ -115,6 +116,7 @@
     "migrate:facts": "npx tsx scripts/migrations/002-migrate-to-learning-facts.ts",
     "migrate:snapshots": "npx tsx scripts/migrations/003-backfill-snapshots.ts",
     "worker:dev": "npx tsx scripts/workers/data-governance-worker.ts",
+    "worker:math-document-grading": "npx tsx scripts/workers/math-document-grading-worker.ts",
     "worker:scheduler": "npx tsx scripts/workers/scheduler.ts",
     "wasm:build:control-engine": "node ./scripts/wasm/build-control-engine.mjs"
   },

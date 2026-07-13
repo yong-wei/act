@@ -1,28 +1,17 @@
 'use client';
 
-import { useState } from 'react';
-
-export function DocumentGradingApprovalButton({ gradingRunId }: { gradingRunId: string }) {
-  const [status, setStatus] = useState<'idle' | 'submitting' | 'approved' | 'failed'>('idle');
-
-  async function approve() {
-    setStatus('submitting');
-    const response = await fetch('/api/teacher/document-grading/approve', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ gradingRunId, decision: 'approved' }),
-    });
-    setStatus(response.ok ? 'approved' : 'failed');
-  }
-
+export function DocumentGradingApprovalButton() {
   return (
-    <button
-      type="button"
-      onClick={approve}
-      disabled={status === 'submitting' || status === 'approved'}
-      className="rounded border border-border px-3 py-2 text-sm text-foreground transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
-    >
-      {status === 'submitting' ? 'approving' : status === 'approved' ? 'approved' : 'approve'}
-    </button>
+    <span data-legacy-document-grading-approval-disabled="true">
+      <button
+        type="button"
+        disabled
+        title="旧审批接口已停用"
+        className="rounded border border-border px-3 py-2 text-sm text-muted-foreground disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        审批不可用
+      </button>
+      <span className="ml-2 text-xs text-muted-foreground">旧审批接口已停用；当前草稿不会被自动审批或写回。</span>
+    </span>
   );
 }

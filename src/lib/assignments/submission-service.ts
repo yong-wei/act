@@ -4,6 +4,46 @@ import { createHash, randomBytes } from 'node:crypto';
 import { assertDeliveryWindow, deriveAggregate, mayReadSubmission, opaqueObjectKey, SubmissionError, submissionHash } from './submission-domain';
 import type { SubmissionObjectStore } from './submission-object-store';
 import { deriveStudentAssignmentPresentation, safePromptText, type StudentAssignmentDto } from './submission-dto';
+import {
+  buildSourceAssetLifecycleFields,
+  blockLifecycleAssociationsForResource,
+  freezeLifecyclePolicy,
+  gradingTombstoneLookupKey,
+  hasActiveGradingHold,
+  pseudonymizeGradingLineage,
+  requireConfiguredLifecyclePolicies,
+  requireSourceAssetLifecyclePolicy,
+  resolveGradingLineage,
+  writeLifecycleAudit,
+} from '@/lib/data-governance/math-document-grading-lifecycle';
+
+const SUBMISSION_DELETE_LEASE_MS = 5 * 60_000;
+const SUBMISSION_DELETE_HEARTBEAT_MS = 60_000;
+
+function submissionObjectTombstoneLookupKey(objectKey: string): string {
+  return gradingTombstoneLookupKey(`submission-object:${objectKey}`);
+}
+
+function legacySubmissionObjectTombstoneLookupKey(objectKey: string): string {
+  return `redacted:submission-lookup:${createHash('md5').update(objectKey).digest('hex')}`;
+}
+
+async function findSubmissionObjectTombstone(db: any, objectKey: string): Promise<any | null> {
+  const model = db.submissionObjectTombstone;
+  if (!model?.findUnique) return null;
+  const raw = await model.findUnique({ where: { objectKey } });
+  if (raw) return raw;
+  try {
+    const current = await model.findUnique({ where: { lookupKey: submissionObjectTombstoneLookupKey(objectKey) } });
+    if (current) return current;
+    return await model.findUnique({ where: { lookupKey: legacySubmissionObjectTombstoneLookupKey(objectKey) } });
+  } catch (error) {
+    const code = error && typeof error === 'object' && 'code' in error ? String((error as { code?: unknown }).code) : '';
+    const message = error instanceof Error ? error.message : String(error);
+    if (['P2021', 'P2022'].includes(code) || /(?:unknown argument|column|field|property).*lookupKey|lookupKey.*(?:does not exist|unknown)/i.test(message)) return null;
+    throw error;
+  }
+}
 
 export async function listStudentAssignments(prisma: PrismaClient, studentId: string, now = new Date()) {
   const profile = await prisma.studentProfile.findUnique({ where: { userId: studentId }, select: { classId: true } });
@@ -48,12 +88,15 @@ export async function saveQuestionDraft(prisma: PrismaClient, input: { studentId
 
 export async function signQuestionUpload(prisma: PrismaClient, store: SubmissionObjectStore, input: { studentId: string; assignmentId: string; questionId: string; fileName: string; mimeType: string; sizeBytes: number; checksum: string; now?: Date }) {
   const key = opaqueObjectKey();
+  const now = input.now ?? new Date();
+  const sourceAssetPolicy = await requireSourceAssetLifecyclePolicy(prisma as never);
+  const sourceAssetLifecycle = buildSourceAssetLifecycleFields(sourceAssetPolicy, now);
   const { answer } = await withSerializableRetry(() => prisma.$transaction(async (tx) => {
-    const context = await requireMutableQuestion(tx as never, input, input.now ?? new Date());
+    const context = await requireMutableQuestion(tx as never, input, now);
     if (context.question.responseType !== 'SUBJECTIVE_FILE') throw new SubmissionError('question-does-not-accept-file');
     const answer = await tx.submissionAnswer.upsert({ where: { submissionId_assignmentQuestionId: { submissionId: context.submission.id, assignmentQuestionId: context.question.id } }, create: { submissionId: context.submission.id, assignmentQuestionId: context.question.id, responseType: context.question.responseType, state: 'DRAFT' }, update: {} });
     const version = (await tx.submissionAsset.aggregate({ where: { answerId: answer.id }, _max: { version: true } }))._max.version ?? 0;
-    await tx.submissionAsset.create({ data: { answerId: answer.id, version: version + 1, objectKey: key, originalName: input.fileName, mimeType: input.mimeType, sizeBytes: input.sizeBytes, checksum: input.checksum, state: 'QUARANTINED', scanState: 'PENDING', quarantineExpiresAt: new Date(Date.now() + 600_000) } });
+    await tx.submissionAsset.create({ data: { answerId: answer.id, version: version + 1, objectKey: key, originalName: input.fileName, mimeType: input.mimeType, sizeBytes: input.sizeBytes, checksum: input.checksum, state: 'QUARANTINED', scanState: 'PENDING', quarantineExpiresAt: new Date(now.getTime() + 600_000), ...sourceAssetLifecycle } });
     return { answer };
   }, { isolationLevel: 'Serializable' }));
   await store.healthCheck();
@@ -101,31 +144,590 @@ export async function getQuestionUploadStatus(prisma: PrismaClient, input: { stu
   return { status: 'SCANNING' as const, intentId: asset.id };
 }
 
+const SUBMISSION_ASSET_REDACTION_COUNT = 5;
+
+function redactedSubmissionAssetData(assetId: string, state: 'DELETED' | 'CONTENT_UNAVAILABLE' = 'DELETED') {
+  const lineage = pseudonymizeGradingLineage(assetId, 'submission-asset');
+  return {
+    state,
+    answerId: null,
+    attemptId: null,
+    objectKey: `redacted:submission-asset:${lineage}`,
+    originalName: '[redacted-submission-asset]',
+    checksum: null,
+    finalizationKey: null,
+    tombstonedAt: new Date(),
+    deletionClaimToken: null,
+    deletionClaimedAt: null,
+    deletionLeaseExpiresAt: null,
+    lastDeletionErrorCode: null,
+    redactionCount: { increment: SUBMISSION_ASSET_REDACTION_COUNT },
+  };
+}
+
+async function removeSubmissionAssetAccessTokens(tx: any, assetId: string): Promise<void> {
+  await tx.submissionAssetAccessToken?.deleteMany?.({ where: { assetId } });
+}
+
+function isSubmissionObjectAlreadyGone(error: unknown): boolean {
+  if (error && typeof error === 'object') {
+    const candidate = error as { status?: unknown; statusCode?: unknown; code?: unknown; name?: unknown; $metadata?: { httpStatusCode?: unknown } };
+    const objectMissingCodes = new Set(['NoSuchKey', 'NoSuchObject', 'NotFound', 'ObjectNotFound', 'object-store-read-missing', 'object-store-delete-missing']);
+    if ([candidate.code, candidate.name].some((value) => objectMissingCodes.has(String(value)))) return true;
+    if (Number(candidate.status) === 404 || Number(candidate.statusCode) === 404 || Number(candidate.$metadata?.httpStatusCode) === 404) {
+      return [candidate.code, candidate.name].some((value) => objectMissingCodes.has(String(value)));
+    }
+  }
+  return false;
+}
+
+export function sourceAssetLifecycleDecision(asset: any): { eligible: boolean; strategy?: string; governed: boolean; reason?: string } {
+  const missingFrozenFields = ['retentionPolicyId', 'retentionPolicyVersion', 'retentionDeleteStrategy'].filter((field) => !String(asset?.[field] ?? '').trim());
+  if (missingFrozenFields.length > 0) return { eligible: false, governed: false, reason: `frozen-retention-field-missing:${missingFrozenFields.join(',')}` };
+  const strategy = String(asset.retentionDeleteStrategy);
+  if (!['delete-content', 'pseudonymize-lineage', 'retain-governed-record'].includes(strategy)) return { eligible: false, governed: false, reason: 'frozen-delete-strategy-invalid' };
+  const hasFiniteExpiry = asset.retentionExpiresAt !== null && asset.retentionExpiresAt !== undefined;
+  const finiteRetentionValid = strategy !== 'retain-governed-record'
+    && hasFiniteExpiry
+    && Number.isInteger(asset.retentionSeconds)
+    && asset.retentionSeconds > 0
+    && !String(asset.governedRecordRule ?? '').trim();
+  const governed = strategy === 'retain-governed-record' && !hasFiniteExpiry && asset.retentionSeconds === null && Boolean(String(asset.governedRecordRule ?? '').trim());
+  if (!finiteRetentionValid && !governed) return { eligible: false, governed: false, reason: 'frozen-retention-fields-incomplete' };
+  return { eligible: true, strategy, governed };
+}
+
+function sameFrozenSourceAssetLifecycle(left: any, right: any): boolean {
+  const leftExpiry = left?.retentionExpiresAt ? new Date(left.retentionExpiresAt).getTime() : null;
+  const rightExpiry = right?.retentionExpiresAt ? new Date(right.retentionExpiresAt).getTime() : null;
+  return left?.retentionPolicyId === right?.retentionPolicyId
+    && left?.retentionPolicyVersion === right?.retentionPolicyVersion
+    && left?.retentionDeleteStrategy === right?.retentionDeleteStrategy
+    && (left?.retentionSeconds ?? null) === (right?.retentionSeconds ?? null)
+    && leftExpiry === rightExpiry
+    && (left?.governedRecordRule ?? null) === (right?.governedRecordRule ?? null);
+}
+
+function sourceAssetClaimDecision(scanned: any, current: any, now: Date): { eligible: boolean; reason?: string } {
+  if (!sameFrozenSourceAssetLifecycle(scanned, current)) return { eligible: false, reason: 'frozen-retention-policy-changed-after-scan' };
+  const lifecycle = sourceAssetLifecycleDecision(current);
+  if (!lifecycle.eligible) return { eligible: false, reason: lifecycle.reason ?? 'frozen-retention-fields-incomplete' };
+  const finiteExpiryReached = Boolean(current.retentionExpiresAt && new Date(current.retentionExpiresAt).getTime() <= now.getTime());
+  if (!finiteExpiryReached && !lifecycle.governed) return { eligible: false, reason: 'retention-expiry-not-reached-at-claim' };
+  return { eligible: true };
+}
+
+function sourceAssetClaimWhere(current: any, now: Date, state: string): Record<string, unknown> {
+  const retentionEligibility = current.retentionExpiresAt
+    ? { retentionExpiresAt: { lte: now } }
+    : { retentionExpiresAt: null, retentionDeleteStrategy: 'retain-governed-record' };
+  const claimFence = { OR: [{ deletionClaimToken: null }, { deletionLeaseExpiresAt: { lt: now } }] };
+  return {
+    id: current.id,
+    state: { in: state === 'quarantine' ? ['QUARANTINED', 'REVOKED', 'DELETING'] : ['FINALIZED', 'DELETING'] },
+    retentionPolicyId: current.retentionPolicyId ?? null,
+    retentionPolicyVersion: current.retentionPolicyVersion ?? null,
+    retentionDeleteStrategy: current.retentionDeleteStrategy ?? null,
+    retentionSeconds: current.retentionSeconds ?? null,
+    retentionExpiresAt: current.retentionExpiresAt ?? null,
+    governedRecordRule: current.governedRecordRule ?? null,
+    AND: [retentionEligibility, claimFence],
+  };
+}
+
+function quarantineAssetClaimWhere(current: any, now: Date, olderThan: Date): Record<string, unknown> {
+  return {
+    id: current.id,
+    state: { in: ['QUARANTINED', 'REVOKED', 'DELETING'] },
+    OR: [
+      { quarantineExpiresAt: { lte: now } },
+      { createdAt: { lt: olderThan } },
+    ],
+    AND: [{ OR: [{ deletionClaimToken: null }, { deletionLeaseExpiresAt: { lt: now } }] }],
+  };
+}
+
+async function markSourceAssetLifecycleBlocked(db: any, asset: any, reason: string, now: Date, restoreState?: string): Promise<void> {
+  const execute = async (tx: any) => {
+    await persistSourceAssetLifecycleBlocked(tx, asset, reason, now, restoreState);
+    await blockLifecycleAssociationsForResource({ db: tx as never, resourceType: 'SubmissionAsset', resourceId: asset.id, reason, now });
+    await writeLifecycleAudit(tx as never, { action: 'source-asset.lifecycle-metadata-blocked', resourceType: 'SubmissionAsset', resourceId: asset.id, actorId: 'grading-gc', actorRole: 'SERVICE', metadata: { reason } });
+  };
+  if (typeof db.$transaction === 'function') await db.$transaction(execute);
+  else await execute(db);
+}
+
+async function persistSourceAssetLifecycleBlocked(db: any, asset: any, reason: string, now: Date, restoreState?: string): Promise<void> {
+  if (db.submissionObjectTombstone?.upsert && asset.objectKey) {
+    await db.submissionObjectTombstone.upsert({
+      where: { objectKey: asset.objectKey },
+      create: {
+        objectKey: asset.objectKey,
+        lookupKey: submissionObjectTombstoneLookupKey(asset.objectKey),
+        reason: 'source-asset-lifecycle-metadata-missing',
+        checksum: null,
+        status: 'BLOCKED',
+        deletionIntentAt: now,
+        retryCount: 0,
+        lastErrorCode: reason,
+        lifecyclePolicyId: asset.retentionPolicyId ?? null,
+        lifecyclePolicyVersion: asset.retentionPolicyVersion ?? null,
+        lifecycleDeleteStrategy: asset.retentionDeleteStrategy ?? null,
+        lifecycleRetentionSeconds: asset.retentionSeconds ?? null,
+        lifecycleGovernedRecordRule: asset.governedRecordRule ?? null,
+      },
+      update: {
+        status: 'BLOCKED',
+        lastErrorCode: reason,
+        lifecyclePolicyId: asset.retentionPolicyId ?? null,
+        lifecyclePolicyVersion: asset.retentionPolicyVersion ?? null,
+        lifecycleDeleteStrategy: asset.retentionDeleteStrategy ?? null,
+        lifecycleRetentionSeconds: asset.retentionSeconds ?? null,
+        lifecycleGovernedRecordRule: asset.governedRecordRule ?? null,
+        deletionClaimToken: null,
+        deletionClaimedAt: null,
+        deletionLeaseExpiresAt: null,
+        retryCount: { increment: 1 },
+      },
+    });
+  }
+  await db.submissionAsset?.updateMany?.({
+    where: { id: asset.id, ...(asset.deletionClaimToken ? { deletionClaimToken: asset.deletionClaimToken } : {}) },
+    data: { ...(restoreState ? { state: restoreState } : {}), lifecycleBlockedAt: now, lifecycleBlockReason: reason, lastDeletionErrorCode: reason, deletionClaimToken: null, deletionClaimedAt: null, deletionLeaseExpiresAt: null },
+  });
+}
+
+function buildSubmissionObjectTombstoneCompletion(objectKey: string, strategy: string, now: Date, outcome: 'DELETED' | 'DELETED_WITH_HOLD' = 'DELETED'): Record<string, unknown> {
+  return {
+    status: outcome,
+    physicalDeletedAt: now,
+    deletedAt: now,
+    pseudonymizedAt: strategy === 'pseudonymize-lineage' ? now : null,
+    objectKey: `redacted:submission-object:${submissionObjectTombstoneLookupKey(objectKey)}`,
+    checksum: null,
+    lineageReference: pseudonymizeGradingLineage(objectKey, 'lineage'),
+    deletionClaimToken: null,
+    deletionClaimedAt: null,
+    deletionLeaseExpiresAt: null,
+    lastErrorCode: outcome === 'DELETED_WITH_HOLD' ? 'deleted-with-hold' : null,
+    redactionCount: { increment: SUBMISSION_ASSET_REDACTION_COUNT },
+  };
+}
+
+async function settleSubmissionDeletionWithHold(tx: any, claim: { objectKey: string; assetId: string; strategy: string; reason: string }, claimToken: string, now: Date, barrierReason = 'hold-or-owner-fence-after-delete'): Promise<boolean> {
+  const holdData = buildSubmissionObjectTombstoneCompletion(claim.objectKey, claim.strategy, now, 'DELETED_WITH_HOLD');
+  const tombstone = tx.submissionObjectTombstone?.updateMany
+    ? await tx.submissionObjectTombstone.updateMany({ where: { objectKey: claim.objectKey, status: { not: 'RETAINED' }, deletionClaimToken: claimToken }, data: holdData })
+    : null;
+  if (tombstone?.count === 0) {
+    // The physical delete is already true. A new owner may have replaced the
+    // lease, so reconcile by the immutable object key instead of ignoring the
+    // old owner's failed CAS. Never turn this fact back into RETRYABLE/DELETED.
+    const reconciled = tx.submissionObjectTombstone?.updateMany
+      ? await tx.submissionObjectTombstone.updateMany({ where: { objectKey: claim.objectKey, status: { not: 'RETAINED' } }, data: holdData })
+      : null;
+    if (reconciled?.count === 0) {
+      const current = await findSubmissionObjectTombstone(tx, claim.objectKey);
+      if (!current || current.status === 'RETAINED') throw new SubmissionError('submission-delete-hold-reconciliation-failed', 409);
+    }
+  } else if (tombstone?.count === undefined && !tx.submissionObjectTombstone?.update) {
+    throw new SubmissionError('submission-delete-hold-reconciliation-failed', 409);
+  }
+  await removeSubmissionAssetAccessTokens(tx, claim.assetId);
+  const completed = await tx.submissionAsset.updateMany?.({
+    where: { id: claim.assetId, state: { not: 'CONTENT_UNAVAILABLE' } },
+    data: { ...redactedSubmissionAssetData(claim.assetId, 'CONTENT_UNAVAILABLE'), tombstonedAt: now, lastDeletionErrorCode: 'deleted-with-hold' },
+  });
+  if (completed?.count === 0) {
+    const current = await tx.submissionAsset?.findUnique?.({ where: { id: claim.assetId } });
+    if (!current || current.state !== 'CONTENT_UNAVAILABLE') throw new SubmissionError('submission-delete-hold-reconciliation-failed', 409);
+  }
+  await writeLifecycleAudit(tx as never, { action: 'submission-asset.deleted-with-hold', resourceType: 'SubmissionAsset', resourceId: claim.assetId, actorId: 'grading-gc', actorRole: 'SERVICE', metadata: { reason: claim.reason, barrierReason, outcome: 'DELETED_WITH_HOLD', physicalDeletedAt: now.toISOString() } });
+  return true;
+}
+
 export async function garbageCollectQuarantine(prisma: PrismaClient, store: SubmissionObjectStore, olderThan: Date) {
-  const abandoned = await prisma.submissionAsset.findMany({ where: { state: { in: ['QUARANTINED', 'REVOKED'] }, createdAt: { lt: olderThan } } });
+  const abandoned = await prisma.submissionAsset.findMany({ where: { state: { in: ['QUARANTINED', 'REVOKED', 'DELETING'] }, OR: [{ quarantineExpiresAt: { lte: new Date() } }, { createdAt: { lt: olderThan } }] } });
   let deleted = 0; let failed = 0;
   for (const asset of abandoned) {
-    const claim = await prisma.submissionAsset.updateMany({ where: { id: asset.id, state: asset.state, createdAt: { lt: olderThan } }, data: { state: 'DELETING' } });
-    if (claim.count !== 1) continue;
+    const now = new Date();
+    const quarantineExpiryReached = Boolean(asset.quarantineExpiresAt && new Date(asset.quarantineExpiresAt).getTime() <= now.getTime());
+    const quarantineAbandoned = Boolean(asset.createdAt && new Date(asset.createdAt).getTime() < olderThan.getTime());
+    if (!quarantineExpiryReached && !quarantineAbandoned) continue;
+    const claimToken = randomBytes(24).toString('hex');
+    const leaseExpiresAt = new Date(now.getTime() + 5 * 60_000);
+    const claim = await prisma.$transaction(async (tx) => {
+      await lockSubmissionAsset(tx as any, asset.id);
+      const current: any = tx.submissionAsset.findUnique ? await tx.submissionAsset.findUnique({ where: { id: asset.id } }) : asset;
+      if (!current || current.state === 'DELETED') return { kind: 'skip' as const };
+      if (current.state === 'DELETING' && current.deletionClaimToken && current.deletionLeaseExpiresAt && current.deletionLeaseExpiresAt > now) return { kind: 'skip' as const };
+      const existing = await findSubmissionObjectTombstone(tx, current.objectKey);
+      if (existing?.status === 'DELETED' || existing?.status === 'DELETED_WITH_HOLD') {
+        await removeSubmissionAssetAccessTokens(tx, current.id);
+        await tx.submissionAsset.updateMany({ where: { id: current.id, state: { in: ['QUARANTINED', 'REVOKED', 'DELETING', 'CONTENT_UNAVAILABLE'] } }, data: { ...redactedSubmissionAssetData(current.id, existing.status === 'DELETED_WITH_HOLD' ? 'CONTENT_UNAVAILABLE' : 'DELETED'), tombstonedAt: existing.physicalDeletedAt ?? now } });
+        return { kind: 'already-deleted' as const };
+      }
+      const claimed = await tx.submissionAsset.updateMany({
+        where: quarantineAssetClaimWhere(current, now, olderThan),
+        data: { state: 'DELETING', deletionIntentAt: now, deletionAttemptCount: { increment: 1 }, deletionClaimToken: claimToken, deletionClaimedAt: now, deletionLeaseExpiresAt: leaseExpiresAt, lastDeletionErrorCode: null },
+      });
+      if (claimed.count !== 1) return { kind: 'skip' as const };
+      const reason = current.state === 'REVOKED' ? 'draft-replaced' : 'quarantine-expired';
+      const lineage = await resolveGradingLineage({ db: tx as never, resourceType: 'SubmissionAsset', resource: current });
+      const holdScopes = lineage.scopes;
+      if (await hasActiveGradingHold(tx as never, holdScopes, now)) {
+        await tx.submissionAsset.updateMany({ where: { id: current.id, state: 'DELETING', deletionClaimToken: claimToken }, data: { state: current.state, deletionClaimToken: null, deletionClaimedAt: null, deletionLeaseExpiresAt: null } });
+        return { kind: 'held' as const };
+      }
+      await tx.submissionObjectTombstone.upsert({
+        where: { objectKey: current.objectKey },
+        create: { objectKey: current.objectKey, lookupKey: submissionObjectTombstoneLookupKey(current.objectKey), reason, checksum: current.checksum, status: 'PENDING', deletionIntentAt: now, retryCount: 0, lastErrorCode: null, lifecyclePolicyId: null, lifecyclePolicyVersion: null, lifecycleDeleteStrategy: 'delete-content', lifecycleRetentionSeconds: null, lifecycleGovernedRecordRule: null, deletionClaimToken: claimToken, deletionClaimedAt: now, deletionLeaseExpiresAt: leaseExpiresAt },
+        update: { reason, checksum: current.checksum, status: 'PENDING', lifecyclePolicyId: null, lifecyclePolicyVersion: null, lifecycleDeleteStrategy: 'delete-content', lifecycleRetentionSeconds: null, lifecycleGovernedRecordRule: null, deletionIntentAt: now, deletionClaimToken: claimToken, deletionClaimedAt: now, deletionLeaseExpiresAt: leaseExpiresAt, lastErrorCode: null },
+      });
+      await writeLifecycleAudit(tx as never, { action: 'quarantine-asset.delete-intent', resourceType: 'SubmissionAsset', resourceId: current.id, actorId: 'grading-gc', actorRole: 'SERVICE', metadata: { reason } });
+      return { kind: 'claimed' as const, objectKey: current.objectKey, assetId: current.id, reason, strategy: 'delete-content', holdScopes, restoreState: current.state };
+    });
+    if (claim.kind === 'held') continue;
+    if (claim.kind === 'skip') continue;
+    if (claim.kind === 'already-deleted') { deleted += 1; continue; }
+    const leaseHeartbeat = startSubmissionAssetDeletionLeaseHeartbeat(prisma, claim.assetId, claimToken, claim.holdScopes);
+    let physicalDeleteConfirmed = false;
+    const assertDeletionOwnership = async () => {
+      if (await leaseHeartbeat.assertOwnership(claim.holdScopes)) return;
+      throw new SubmissionError(leaseHeartbeat.lossReason() === 'hold' ? 'quarantine-gc-hold' : 'quarantine-gc-claim-lost', 409);
+    };
     try {
-      await store.delete(asset.objectKey);
+      await assertDeletionOwnership();
+      await store.delete(claim.objectKey, leaseHeartbeat.signal);
+      physicalDeleteConfirmed = true;
+      await assertDeletionOwnership();
       await prisma.$transaction(async (tx) => {
-        await tx.submissionObjectTombstone.upsert({ where: { objectKey: asset.objectKey }, create: { objectKey: asset.objectKey, reason: asset.state === 'REVOKED' ? 'draft-replaced' : 'quarantine-expired', checksum: asset.checksum }, update: {} });
-        const completed = await tx.submissionAsset.updateMany({ where: { id: asset.id, state: 'DELETING' }, data: { state: 'DELETED' } });
+        if (await hasActiveGradingHold(tx as never, claim.holdScopes, new Date())) throw new SubmissionError('quarantine-gc-hold', 409);
+        await removeSubmissionAssetAccessTokens(tx, claim.assetId);
+        const tombstone = await tx.submissionObjectTombstone.updateMany({ where: { objectKey: claim.objectKey, status: { not: 'DELETED' }, deletionClaimToken: claimToken }, data: buildSubmissionObjectTombstoneCompletion(claim.objectKey, claim.strategy, now) });
+        if (tombstone.count !== 1) {
+          throw new SubmissionError('gc-claim-lost', 409);
+        }
+        const completed = await tx.submissionAsset.updateMany({ where: { id: claim.assetId, state: 'DELETING', deletionClaimToken: claimToken }, data: { ...redactedSubmissionAssetData(claim.assetId), tombstonedAt: now } });
         if (completed.count !== 1) throw new SubmissionError('gc-claim-lost', 409);
+        await writeLifecycleAudit(tx as never, { action: 'quarantine-asset.deleted', resourceType: 'SubmissionAsset', resourceId: claim.assetId, actorId: 'grading-gc', actorRole: 'SERVICE', metadata: { reason: claim.reason } });
       });
       deleted += 1;
-    } catch {
+    } catch (error) {
+      let effectiveError: unknown = error;
+      if (isSubmissionObjectAlreadyGone(error)) {
+        physicalDeleteConfirmed = true;
+        try {
+          await assertDeletionOwnership();
+          await prisma.$transaction(async (tx) => {
+            if (await hasActiveGradingHold(tx as never, claim.holdScopes, new Date())) throw new SubmissionError('quarantine-gc-hold', 409);
+            await removeSubmissionAssetAccessTokens(tx, claim.assetId);
+            const tombstone = await tx.submissionObjectTombstone.updateMany({ where: { objectKey: claim.objectKey, status: { not: 'DELETED' }, deletionClaimToken: claimToken }, data: buildSubmissionObjectTombstoneCompletion(claim.objectKey, claim.strategy, now) });
+            if (tombstone.count !== 1) throw new SubmissionError('gc-claim-lost', 409);
+            const completed = await tx.submissionAsset.updateMany({ where: { id: claim.assetId, state: 'DELETING', deletionClaimToken: claimToken }, data: { ...redactedSubmissionAssetData(claim.assetId), tombstonedAt: now } });
+            if (completed.count !== 1) throw new SubmissionError('gc-claim-lost', 409);
+          });
+          deleted += 1;
+          continue;
+        } catch (completionError) {
+          effectiveError = completionError;
+          // Fall through to the fenced retry path.
+        }
+      }
+      if (physicalDeleteConfirmed && (effectiveError instanceof SubmissionError && (effectiveError.code === 'quarantine-gc-hold' || effectiveError.code === 'quarantine-gc-claim-lost' || effectiveError.code === 'gc-claim-lost'))) {
+        await prisma.$transaction(async (tx) => {
+          await settleSubmissionDeletionWithHold(tx, claim, claimToken, new Date(), effectiveError.code);
+        });
+        failed += 1;
+        continue;
+      }
+      if (effectiveError instanceof SubmissionError && effectiveError.code === 'quarantine-gc-hold') {
+        await prisma.$transaction(async (tx) => {
+          await tx.submissionObjectTombstone.updateMany({ where: { objectKey: claim.objectKey, deletionClaimToken: claimToken, status: { not: 'DELETED' } }, data: { status: 'RETRYABLE', deletionClaimToken: null, deletionClaimedAt: null, deletionLeaseExpiresAt: null, lastErrorCode: 'legal-hold-observed' } });
+          await tx.submissionAsset.updateMany({ where: { id: claim.assetId, state: 'DELETING', deletionClaimToken: claimToken }, data: { state: claim.restoreState, deletionClaimToken: null, deletionClaimedAt: null, deletionLeaseExpiresAt: null, lastDeletionErrorCode: 'legal-hold-observed' } });
+          await writeLifecycleAudit(tx as never, { action: 'quarantine-asset.hold-observed', resourceType: 'SubmissionAsset', resourceId: claim.assetId, actorId: 'grading-gc', actorRole: 'SERVICE', metadata: { reason: claim.reason, physicalDeleted: false } });
+        });
+        continue;
+      }
       failed += 1;
-      await prisma.submissionAsset.updateMany({ where: { id: asset.id, state: 'DELETING' }, data: { state: asset.state } });
+      await prisma.$transaction(async (tx) => {
+        const tombstone = await tx.submissionObjectTombstone.updateMany({ where: { objectKey: claim.objectKey, status: { not: 'DELETED' }, deletionClaimToken: claimToken }, data: { status: 'RETRYABLE', deletionClaimToken: null, deletionClaimedAt: null, deletionLeaseExpiresAt: null, lastErrorCode: 'object-store-delete-failed', retryCount: { increment: 1 } } });
+        if (tombstone.count === 0) {
+          const existing = await findSubmissionObjectTombstone(tx, claim.objectKey);
+          if (existing?.status === 'DELETED') return;
+          throw new SubmissionError('gc-claim-lost', 409);
+        }
+        await tx.submissionAsset.updateMany({ where: { id: claim.assetId, state: 'DELETING', deletionClaimToken: claimToken }, data: { lastDeletionErrorCode: 'object-store-delete-failed', deletionClaimToken: null, deletionClaimedAt: null, deletionLeaseExpiresAt: null } });
+        await writeLifecycleAudit(tx as never, { action: 'quarantine-asset.delete-failed', resourceType: 'SubmissionAsset', resourceId: claim.assetId, actorId: 'grading-gc', actorRole: 'SERVICE', metadata: { reason: claim.reason, error: 'object-store-delete-failed' } });
+      });
+    } finally {
+      leaseHeartbeat.stop();
     }
   }
   return { claimed: deleted + failed, deleted, failed };
 }
 
+export async function garbageCollectSourceAssets(prisma: PrismaClient, store: SubmissionObjectStore, now = new Date()) {
+  const assets = await prisma.submissionAsset.findMany({
+    where: {
+      state: { in: ['FINALIZED', 'DELETING'] },
+      OR: [
+        { retentionExpiresAt: { lte: now } },
+        { retentionExpiresAt: null },
+      ],
+    },
+    include: {
+      answer: { include: { submission: { include: { revision: { select: { id: true, assignmentId: true } }, audience: { select: { classId: true } } } } } },
+      attempt: true,
+      documentConversions: { select: { id: true, state: true } },
+      answerEvidence: { select: { id: true, readiness: true, tombstonedAt: true } },
+    },
+  });
+  let deleted = 0; let held = 0; let blocked = 0; let retained = 0;
+  for (const asset of assets) {
+    const lifecycle = sourceAssetLifecycleDecision(asset);
+    const finiteExpiryReached = Boolean(asset.retentionExpiresAt && new Date(asset.retentionExpiresAt).getTime() <= now.getTime());
+    if (!lifecycle.eligible || (!finiteExpiryReached && !lifecycle.governed)) {
+      blocked += 1;
+      await markSourceAssetLifecycleBlocked(prisma, asset, lifecycle.reason ?? 'finite-retention-or-governed-record-rule-required', now);
+      continue;
+    }
+    const claimToken = randomBytes(24).toString('hex');
+    const claimLeaseExpiresAt = new Date(now.getTime() + 5 * 60_000);
+    const claim = await prisma.$transaction(async (tx) => {
+      await lockSubmissionAsset(tx as any, asset.id);
+      const current: any = tx.submissionAsset.findUnique
+        ? await tx.submissionAsset.findUnique({ where: { id: asset.id }, include: { answer: { include: { submission: true } } } })
+        : asset;
+      if (!current || current.state === 'DELETED') return { kind: 'skip' as const };
+      if (current.state === 'DELETING' && current.deletionClaimToken && current.deletionLeaseExpiresAt && current.deletionLeaseExpiresAt > now) return { kind: 'skip' as const };
+      const currentLifecycle = sourceAssetClaimDecision(asset, current, now);
+      if (!currentLifecycle.eligible) return { kind: 'skip' as const };
+      const existing = await findSubmissionObjectTombstone(tx, current.objectKey);
+      if (existing?.status === 'RETAINED') {
+        await tx.submissionAsset.updateMany({ where: { id: current.id, state: { in: ['FINALIZED', 'DELETING'] } }, data: { state: 'FINALIZED', deletionClaimToken: null, deletionClaimedAt: null, deletionLeaseExpiresAt: null } });
+        return { kind: 'retained-policy' as const };
+      }
+      if (existing?.status === 'DELETED') {
+        await removeSubmissionAssetAccessTokens(tx, current.id);
+        await tx.submissionAsset.updateMany({ where: { id: current.id, state: { in: ['FINALIZED', 'DELETING'] } }, data: { ...redactedSubmissionAssetData(current.id), tombstonedAt: existing.physicalDeletedAt ?? now } });
+        return { kind: 'already-deleted' as const };
+      }
+      const claimed = await tx.submissionAsset.updateMany({
+        where: sourceAssetClaimWhere(current, now, 'source'),
+        data: { state: 'DELETING', deletionIntentAt: now, deletionAttemptCount: { increment: 1 }, deletionClaimToken: claimToken, deletionClaimedAt: now, deletionLeaseExpiresAt: claimLeaseExpiresAt, lastDeletionErrorCode: null },
+      });
+      if (claimed.count !== 1) return { kind: 'skip' as const };
+      const lineage = await resolveGradingLineage({ db: tx as never, resourceType: 'SubmissionAsset', resource: current });
+      if (await hasActiveGradingHold(tx as never, lineage.scopes, now)) {
+        await tx.submissionAsset.updateMany({ where: { id: current.id, state: 'DELETING', deletionClaimToken: claimToken }, data: { state: 'FINALIZED', deletionClaimToken: null, deletionClaimedAt: null, deletionLeaseExpiresAt: null } });
+        return { kind: 'held' as const };
+      }
+      const conversions = tx.documentConversion?.findMany
+        ? await tx.documentConversion.findMany({ where: { assetId: current.id }, select: { id: true, state: true } })
+        : current.documentConversions ?? [];
+      const evidence = tx.answerEvidence?.findMany
+        ? await tx.answerEvidence.findMany({ where: { sourceAssetId: current.id }, select: { id: true, readiness: true, tombstonedAt: true } })
+        : current.answerEvidence ?? [];
+      const runs = tx.gradingRun?.findMany
+        ? await tx.gradingRun.findMany({ where: { answerEvidence: { sourceAssetId: current.id } }, select: { id: true, tombstonedAt: true } })
+        : [];
+      const activeConversion = conversions.some((row: any) => row.state !== 'DELETED');
+      const activeEvidence = evidence.some((row: any) => !row.tombstonedAt && row.readiness !== 'DELETED');
+      const activeRun = runs.some((row: any) => !row.tombstonedAt);
+      if (activeConversion || activeEvidence || activeRun) {
+        await tx.submissionAsset.updateMany({ where: { id: current.id, state: 'DELETING', deletionClaimToken: claimToken }, data: { state: 'FINALIZED', deletionClaimToken: null, deletionClaimedAt: null, deletionLeaseExpiresAt: null } });
+        return { kind: 'retained' as const };
+      }
+      const strategy = sourceAssetLifecycleDecision(current).strategy!;
+      const existingObjectTombstone = await findSubmissionObjectTombstone(tx, current.objectKey);
+      if (existingObjectTombstone?.status === 'DELETED' || existingObjectTombstone?.status === 'DELETED_WITH_HOLD') {
+        await tx.submissionAsset.updateMany({ where: { id: current.id, state: 'DELETING', deletionClaimToken: claimToken }, data: { ...redactedSubmissionAssetData(current.id, existingObjectTombstone.status === 'DELETED_WITH_HOLD' ? 'CONTENT_UNAVAILABLE' : 'DELETED'), tombstonedAt: existingObjectTombstone.physicalDeletedAt ?? now } });
+        return { kind: 'already-deleted' as const };
+      }
+      const lifecycleTombstoneFields = {
+        lifecyclePolicyId: current.retentionPolicyId ?? null,
+        lifecyclePolicyVersion: current.retentionPolicyVersion ?? null,
+        lifecycleDeleteStrategy: current.retentionDeleteStrategy,
+        lifecycleRetentionSeconds: current.retentionSeconds ?? null,
+        lifecycleGovernedRecordRule: current.governedRecordRule ?? null,
+      };
+      await tx.submissionObjectTombstone.upsert({
+        where: { objectKey: current.objectKey },
+        create: { objectKey: current.objectKey, lookupKey: submissionObjectTombstoneLookupKey(current.objectKey), reason: 'source-asset-retention-expired', checksum: current.checksum, status: 'PENDING', deletionIntentAt: now, retryCount: 0, lastErrorCode: null, ...lifecycleTombstoneFields, deletionClaimToken: claimToken, deletionClaimedAt: now, deletionLeaseExpiresAt: claimLeaseExpiresAt },
+        update: { reason: 'source-asset-retention-expired', ...lifecycleTombstoneFields, status: 'PENDING', deletionIntentAt: now, deletionClaimToken: claimToken, deletionClaimedAt: now, deletionLeaseExpiresAt: claimLeaseExpiresAt, lastErrorCode: null },
+      });
+      if (strategy === 'retain-governed-record') {
+        await tx.submissionObjectTombstone.update({ where: { objectKey: current.objectKey }, data: { status: 'RETAINED', physicalDeletedAt: null, deletedAt: null, deletionClaimToken: null, deletionClaimedAt: null, deletionLeaseExpiresAt: null, lastErrorCode: null } });
+        await tx.submissionAsset.updateMany({ where: { id: current.id, state: 'DELETING', deletionClaimToken: claimToken }, data: { state: 'FINALIZED', deletionClaimToken: null, deletionClaimedAt: null, deletionLeaseExpiresAt: null } });
+        await writeLifecycleAudit(tx as never, { action: 'source-asset.retained', resourceType: 'SubmissionAsset', resourceId: current.id, actorId: 'grading-gc', actorRole: 'SERVICE', metadata: { reason: 'source-asset-retention-expired', deleteStrategy: strategy, lifecyclePolicyVersion: current.retentionPolicyVersion } });
+        return { kind: 'retained-policy' as const };
+      }
+      await writeLifecycleAudit(tx as never, { action: 'source-asset.delete-intent', resourceType: 'SubmissionAsset', resourceId: current.id, actorId: 'grading-gc', actorRole: 'SERVICE', metadata: { reason: 'source-asset-retention-expired', deleteStrategy: strategy } });
+      return { kind: 'claimed' as const, objectKey: current.objectKey, assetId: current.id, strategy, reason: 'source-asset-retention-expired', holdScopes: lineage.scopes };
+    });
+    if (claim.kind === 'held') { held += 1; continue; }
+    if (claim.kind === 'retained' || claim.kind === 'retained-policy') { retained += 1; continue; }
+    if (claim.kind === 'already-deleted') { deleted += 1; continue; }
+    if (claim.kind !== 'claimed') continue;
+    const leaseHeartbeat = startSubmissionAssetDeletionLeaseHeartbeat(prisma, claim.assetId, claimToken, claim.holdScopes);
+    let physicalDeleteConfirmed = false;
+    const assertDeletionOwnership = async () => {
+      if (await leaseHeartbeat.assertOwnership(claim.holdScopes)) return;
+      throw new SubmissionError(leaseHeartbeat.lossReason() === 'hold' ? 'source-asset-gc-hold' : 'source-asset-gc-claim-lost', 409);
+    };
+    try {
+      await assertDeletionOwnership();
+      await store.delete(claim.objectKey, leaseHeartbeat.signal);
+      physicalDeleteConfirmed = true;
+      await assertDeletionOwnership();
+      await prisma.$transaction(async (tx) => {
+        if (await hasActiveGradingHold(tx as never, claim.holdScopes, new Date())) throw new SubmissionError('source-asset-gc-hold', 409);
+        await removeSubmissionAssetAccessTokens(tx, claim.assetId);
+        const tombstoneData = buildSubmissionObjectTombstoneCompletion(claim.objectKey, claim.strategy, now);
+        if (tx.submissionObjectTombstone.updateMany) {
+          const tombstone = await tx.submissionObjectTombstone.updateMany({ where: { objectKey: claim.objectKey, status: { not: 'DELETED' }, deletionClaimToken: claimToken }, data: tombstoneData });
+          if (tombstone.count !== undefined && tombstone.count !== 1) throw new SubmissionError('source-asset-gc-claim-lost', 409);
+        } else {
+          await tx.submissionObjectTombstone.update({ where: { objectKey: claim.objectKey }, data: tombstoneData });
+        }
+        const completed = await tx.submissionAsset.updateMany({ where: { id: claim.assetId, state: 'DELETING', deletionClaimToken: claimToken }, data: { ...redactedSubmissionAssetData(claim.assetId), tombstonedAt: now } });
+        if (completed.count !== 1) throw new SubmissionError('source-asset-gc-claim-lost', 409);
+        await writeLifecycleAudit(tx as never, { action: 'source-asset.deleted', resourceType: 'SubmissionAsset', resourceId: claim.assetId, actorId: 'grading-gc', actorRole: 'SERVICE', metadata: { reason: 'source-asset-retention-expired' } });
+      });
+      deleted += 1;
+    } catch (error) {
+      let effectiveError: unknown = error;
+      if (isSubmissionObjectAlreadyGone(error)) {
+        physicalDeleteConfirmed = true;
+        try {
+          await assertDeletionOwnership();
+          await prisma.$transaction(async (tx) => {
+            if (await hasActiveGradingHold(tx as never, claim.holdScopes, new Date())) throw new SubmissionError('source-asset-gc-hold', 409);
+            await removeSubmissionAssetAccessTokens(tx, claim.assetId);
+            const tombstone = await tx.submissionObjectTombstone.updateMany({ where: { objectKey: claim.objectKey, status: { not: 'DELETED' }, deletionClaimToken: claimToken }, data: buildSubmissionObjectTombstoneCompletion(claim.objectKey, claim.strategy, now) });
+            if (tombstone.count !== 1) throw new SubmissionError('source-asset-gc-claim-lost', 409);
+            const completed = await tx.submissionAsset.updateMany({ where: { id: claim.assetId, state: 'DELETING', deletionClaimToken: claimToken }, data: { ...redactedSubmissionAssetData(claim.assetId), tombstonedAt: now } });
+            if (completed.count !== 1) throw new SubmissionError('source-asset-gc-claim-lost', 409);
+          });
+          deleted += 1;
+          continue;
+        } catch (completionError) {
+          effectiveError = completionError;
+          // Fall through to the fenced retry path.
+        }
+      }
+      if (physicalDeleteConfirmed && (effectiveError instanceof SubmissionError && (effectiveError.code === 'source-asset-gc-hold' || effectiveError.code === 'source-asset-gc-claim-lost'))) {
+        await prisma.$transaction(async (tx) => {
+          await settleSubmissionDeletionWithHold(tx, claim, claimToken, new Date(), effectiveError.code);
+        });
+        blocked += 1;
+        continue;
+      }
+      if (effectiveError instanceof SubmissionError && effectiveError.code === 'source-asset-gc-hold') {
+        await prisma.$transaction(async (tx) => {
+          await tx.submissionObjectTombstone.updateMany({ where: { objectKey: claim.objectKey, deletionClaimToken: claimToken, status: { not: 'DELETED' } }, data: { status: 'RETRYABLE', deletionClaimToken: null, deletionClaimedAt: null, deletionLeaseExpiresAt: null, lastErrorCode: 'legal-hold-observed' } });
+          await tx.submissionAsset.updateMany({ where: { id: claim.assetId, state: 'DELETING', deletionClaimToken: claimToken }, data: { state: 'FINALIZED', deletionClaimToken: null, deletionClaimedAt: null, deletionLeaseExpiresAt: null, lastDeletionErrorCode: 'legal-hold-observed' } });
+          await writeLifecycleAudit(tx as never, { action: 'source-asset.hold-observed', resourceType: 'SubmissionAsset', resourceId: claim.assetId, actorId: 'grading-gc', actorRole: 'SERVICE', metadata: { reason: 'source-asset-retention-expired', physicalDeleted: false } });
+        });
+        held += 1;
+        continue;
+      }
+      blocked += 1;
+      await prisma.$transaction(async (tx) => {
+        if (tx.submissionObjectTombstone.updateMany) {
+          const result = await tx.submissionObjectTombstone.updateMany({ where: { objectKey: claim.objectKey, status: { not: 'DELETED' }, deletionClaimToken: claimToken }, data: { status: 'RETRYABLE', deletionClaimToken: null, deletionClaimedAt: null, deletionLeaseExpiresAt: null, lastErrorCode: 'object-store-delete-failed', retryCount: { increment: 1 } } });
+          if (result?.count === 0) {
+            const existing = await findSubmissionObjectTombstone(tx, claim.objectKey);
+            if (existing?.status !== 'DELETED') throw new SubmissionError('source-asset-gc-claim-lost', 409);
+            return;
+          }
+        } else {
+          await tx.submissionObjectTombstone.update?.({ where: { objectKey: claim.objectKey }, data: { status: 'RETRYABLE', deletionClaimToken: null, deletionClaimedAt: null, deletionLeaseExpiresAt: null, lastErrorCode: 'object-store-delete-failed', retryCount: { increment: 1 } } });
+        }
+        await tx.submissionAsset.updateMany({ where: { id: claim.assetId, state: 'DELETING', deletionClaimToken: claimToken }, data: { deletionClaimToken: null, deletionClaimedAt: null, deletionLeaseExpiresAt: null, lastDeletionErrorCode: 'object-store-delete-failed' } });
+        await writeLifecycleAudit(tx as never, { action: 'source-asset.delete-failed', resourceType: 'SubmissionAsset', resourceId: claim.assetId, actorId: 'grading-gc', actorRole: 'SERVICE', metadata: { reason: 'source-asset-retention-expired', error: 'object-store-delete-failed' } });
+      });
+    } finally {
+      leaseHeartbeat.stop();
+    }
+  }
+  return { scanned: assets.length, deleted, held, blocked, retained };
+}
+
+async function lockSubmissionAsset(tx: any, assetId: string): Promise<void> {
+  if (typeof tx.$queryRawUnsafe === 'function') {
+    await tx.$queryRawUnsafe('SELECT "id" FROM "SubmissionAsset" WHERE "id" = $1 FOR UPDATE', assetId);
+  }
+}
+
+export async function renewSubmissionAssetDeletionLease(input: { db: any; assetId: string; claimToken: string; now?: Date; holdScopes?: Array<[string, string]> }): Promise<boolean> {
+  const model = input.db.submissionAsset;
+  if (!model?.updateMany) return false;
+  const requestedNow = input.now ?? new Date();
+  if (input.holdScopes && await hasActiveGradingHold(input.db as never, input.holdScopes, requestedNow)) return false;
+  let current: any = null;
+  try {
+    current = model.findUnique ? await model.findUnique({ where: { id: input.assetId } }) : null;
+  } catch {
+    return false;
+  }
+  if (current && (current.state !== 'DELETING' || current.deletionClaimToken !== input.claimToken)) return false;
+  const currentExpiry = current?.deletionLeaseExpiresAt ? new Date(current.deletionLeaseExpiresAt) : null;
+  if (currentExpiry && currentExpiry <= requestedNow) return false;
+  const currentClaimedAt = current?.deletionClaimedAt ? new Date(current.deletionClaimedAt) : null;
+  const proposedClaimedAt = currentClaimedAt && currentClaimedAt > requestedNow ? currentClaimedAt : requestedNow;
+  const proposedExpiry = new Date(Math.max(currentExpiry?.getTime() ?? 0, proposedClaimedAt.getTime() + SUBMISSION_DELETE_LEASE_MS));
+  const result = await model.updateMany({
+    where: {
+      id: input.assetId,
+      state: 'DELETING',
+      deletionClaimToken: input.claimToken,
+      OR: [{ deletionLeaseExpiresAt: null }, { deletionLeaseExpiresAt: { gt: requestedNow } }],
+      AND: [
+        { OR: [{ deletionLeaseExpiresAt: null }, { deletionLeaseExpiresAt: { lt: proposedExpiry } }] },
+        { OR: [{ deletionClaimedAt: null }, { deletionClaimedAt: { lt: proposedClaimedAt } }] },
+      ],
+    },
+    data: { deletionClaimedAt: proposedClaimedAt, deletionLeaseExpiresAt: proposedExpiry },
+  });
+  const renewed = result?.count === undefined ? Boolean(result) : result.count === 1;
+  if (!renewed) {
+    try {
+      const latest = model.findUnique ? await model.findUnique({ where: { id: input.assetId } }) : null;
+      if (!latest || latest.state !== 'DELETING' || latest.deletionClaimToken !== input.claimToken || !latest.deletionLeaseExpiresAt || new Date(latest.deletionLeaseExpiresAt) < proposedExpiry || (latest.deletionClaimedAt && new Date(latest.deletionClaimedAt) < proposedClaimedAt)) return false;
+    } catch {
+      return false;
+    }
+  }
+  return !(input.holdScopes && await hasActiveGradingHold(input.db as never, input.holdScopes, new Date()));
+}
+
+function startSubmissionAssetDeletionLeaseHeartbeat(prisma: PrismaClient, assetId: string, claimToken: string, defaultHoldScopes: Array<[string, string]> = [['asset', assetId]]) {
+  let lost = false;
+  let lossReason: 'hold' | 'claim' | 'unknown' = 'unknown';
+  const abortController = new AbortController();
+  const renew = async (holdScopes: Array<[string, string]>): Promise<boolean> => {
+    if (lost) return false;
+    const renewed = await renewSubmissionAssetDeletionLease({ db: prisma, assetId, claimToken, holdScopes });
+    if (!renewed) {
+      lossReason = await hasActiveGradingHold(prisma as never, holdScopes, new Date()) ? 'hold' : 'claim';
+      lost = true;
+      abortController.abort();
+    }
+    return renewed;
+  };
+  const assertOwnership = async (holdScopes: Array<[string, string]> = defaultHoldScopes): Promise<boolean> => renew(holdScopes);
+  const timer = setInterval(() => {
+    void renew(defaultHoldScopes).catch(() => { lossReason = 'unknown'; lost = true; abortController.abort(); });
+  }, SUBMISSION_DELETE_HEARTBEAT_MS);
+  return { stop: () => clearInterval(timer), isLost: () => lost, lossReason: () => lossReason, signal: abortController.signal, assertOwnership };
+}
+
 export async function signSubmissionAssetRead(prisma: PrismaClient, input: { studentId: string; assignmentId: string; questionId: string; assetId: string }) {
   const asset = await prisma.submissionAsset.findUnique({ where: { id: input.assetId }, include: { answer: { include: { attempts: true, submission: { include: { student: { include: { profile: true } } } }, question: { include: { revision: { select: { assignmentId: true } } } } } } } });
-  if (!asset || asset.state !== 'FINALIZED' || asset.answer.assignmentQuestionId !== input.questionId || asset.answer.question.assignmentRevisionId !== asset.answer.submission.assignmentRevisionId || asset.answer.question.revision?.assignmentId !== input.assignmentId || asset.answer.submission.studentId !== input.studentId || !mayReadSubmission({ currentClassId: asset.answer.submission.student.profile?.classId, audienceClassId: asset.answer.submission.frozenAudienceClassId, studentId: input.studentId, ownerStudentId: asset.answer.submission.frozenStudentId, hasSubmittedAttempt: asset.answer.attempts.length > 0 })) throw new SubmissionError('asset-read-forbidden', 403);
+  const answer = asset?.answer;
+  if (!asset || !answer || asset.state !== 'FINALIZED' || answer.assignmentQuestionId !== input.questionId || answer.question.assignmentRevisionId !== answer.submission.assignmentRevisionId || answer.question.revision?.assignmentId !== input.assignmentId || answer.submission.studentId !== input.studentId || !mayReadSubmission({ currentClassId: answer.submission.student.profile?.classId, audienceClassId: answer.submission.frozenAudienceClassId, studentId: input.studentId, ownerStudentId: answer.submission.frozenStudentId, hasSubmittedAttempt: answer.attempts.length > 0 })) throw new SubmissionError('asset-read-forbidden', 403);
   const token = randomBytes(32).toString('base64url'); const expiresAt = new Date(Date.now() + 5 * 60_000);
   await prisma.submissionAssetAccessToken.create({ data: { tokenHash: createHash('sha256').update(token).digest('hex'), assetId: asset.id, studentId: input.studentId, purpose: 'submission-source-download', expiresAt } });
   const origin = process.env.NEXTAUTH_URL ?? 'http://localhost:3000';
@@ -137,7 +739,8 @@ export async function consumeSubmissionAssetRead(prisma: PrismaClient, input: { 
   const claimed = await prisma.submissionAssetAccessToken.updateMany({ where: { tokenHash, assetId: input.assetId, studentId: input.studentId, purpose: 'submission-source-download', expiresAt: { gt: now }, usedAt: null }, data: { usedAt: now } });
   if (claimed.count !== 1) throw new SubmissionError('asset-access-token-invalid', 403);
   const asset = await prisma.submissionAsset.findUnique({ where: { id: input.assetId }, include: { answer: { include: { attempts: true, submission: { include: { student: { include: { profile: true } } } }, question: { include: { revision: { select: { assignmentId: true } } } } } } } });
-  if (!asset || asset.state !== 'FINALIZED' || asset.answer.assignmentQuestionId !== input.questionId || asset.answer.question.revision.assignmentId !== input.assignmentId || asset.answer.submission.studentId !== input.studentId || !mayReadSubmission({ currentClassId: asset.answer.submission.student.profile?.classId, audienceClassId: asset.answer.submission.frozenAudienceClassId, studentId: input.studentId, ownerStudentId: asset.answer.submission.frozenStudentId, hasSubmittedAttempt: asset.answer.attempts.length > 0 })) throw new SubmissionError('asset-read-forbidden', 403);
+  const answer = asset?.answer;
+  if (!asset || !answer || asset.state !== 'FINALIZED' || answer.assignmentQuestionId !== input.questionId || answer.question.revision.assignmentId !== input.assignmentId || answer.submission.studentId !== input.studentId || !mayReadSubmission({ currentClassId: answer.submission.student.profile?.classId, audienceClassId: answer.submission.frozenAudienceClassId, studentId: input.studentId, ownerStudentId: answer.submission.frozenStudentId, hasSubmittedAttempt: answer.attempts.length > 0 })) throw new SubmissionError('asset-read-forbidden', 403);
   return { objectKey: asset.objectKey, displayName: asset.originalName, mimeType: asset.mimeType, sizeBytes: asset.sizeBytes, checksum: asset.checksum };
 }
 
@@ -150,10 +753,27 @@ export async function submitQuestionAnswer(prisma: PrismaClient, input: { studen
     if (replay) { if (replay.requestHash !== requestHash) throw new SubmissionError('idempotency-key-conflict', 409); return { attempt: replay.attempt, aggregate: await aggregateAndUpdate(tx as never, context.submission.id) }; }
     if (context.answer.state === 'SUBMITTED' || context.answer.version !== input.answerVersion) throw new SubmissionError('answer-version-conflict', 409);
     if (context.question.responseType === 'SUBJECTIVE_TEXT' && !context.answer.textDraft?.trim()) throw new SubmissionError('text-answer-required', 409);
+    const textSnapshotLifecycle = context.question.responseType === 'SUBJECTIVE_TEXT'
+      ? freezeLifecyclePolicy((await requireConfiguredLifecyclePolicies(tx as never, ['answer-evidence']))[0], now)
+      : null;
     const assets = await tx.submissionAsset.findMany({ where: { answerId: context.answer.id, state: 'FINALIZED', attemptId: null }, orderBy: { version: 'desc' }, take: 1 });
     if (context.question.responseType === 'SUBJECTIVE_FILE' && assets.length === 0) throw new SubmissionError('finalized-asset-required', 409);
     const attemptNumber = context.answer.currentAttemptNumber + 1;
-    const attempt = await tx.submissionAttempt.create({ data: { answerId: context.answer.id, attemptNumber, answerVersion: context.answer.version, textSnapshot: context.answer.textDraft } });
+    const attempt = await tx.submissionAttempt.create({ data: {
+      answerId: context.answer.id,
+      attemptNumber,
+      answerVersion: context.answer.version,
+      textSnapshot: context.question.responseType === 'SUBJECTIVE_TEXT' ? context.answer.textDraft : null,
+      ...(textSnapshotLifecycle ? {
+        textSnapshotPolicyId: textSnapshotLifecycle.lifecyclePolicyId,
+        textSnapshotPolicyVersion: textSnapshotLifecycle.lifecyclePolicyVersion,
+        textSnapshotDeleteStrategy: textSnapshotLifecycle.lifecycleDeleteStrategy,
+        textSnapshotRetentionSeconds: textSnapshotLifecycle.lifecycleRetentionSeconds,
+        textSnapshotGovernedRecordRule: textSnapshotLifecycle.lifecycleGovernedRecordRule,
+        textSnapshotProviderRetentionSeconds: textSnapshotLifecycle.lifecycleProviderRetentionSeconds,
+        textSnapshotExpiresAt: textSnapshotLifecycle.retentionExpiresAt,
+      } : {}),
+    } });
     await tx.submissionAsset.updateMany({ where: { id: { in: assets.map((asset) => asset.id) } }, data: { attemptId: attempt.id } });
     await tx.submissionAnswer.update({ where: { id: context.answer.id }, data: { state: 'SUBMITTED', currentAttemptNumber: attemptNumber } });
     await tx.submissionIdempotency.create({ data: { studentId: input.studentId, scope, idempotencyKey: input.idempotencyKey, requestHash, attemptId: attempt.id } });
