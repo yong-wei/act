@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('server-only', () => ({}));
 
@@ -28,11 +28,13 @@ import type { KonlingRuntimeContext, KonlingRuntimeScope } from '@/lib/konling-a
 const mocks = vi.hoisted(() => ({
   getServerAuthSession: vi.fn(),
   prisma: {
+    $transaction: vi.fn(),
     learningEvidenceDraft: {
       findFirst: vi.fn(),
       findUnique: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn(),
     },
     class: {
       findUnique: vi.fn(),
@@ -72,10 +74,12 @@ function source(path: string) {
   return readFileSync(join(root, path), 'utf8');
 }
 
-function postJson(body: unknown) {
+function postJson(body: unknown, origin: string | null = 'http://localhost') {
+  const headers = new Headers({ 'Content-Type': 'application/json' });
+  if (origin !== null) headers.set('Origin', origin);
   return approvePOST(new Request('http://localhost/api/teacher/document-grading/approve', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify(body),
   }));
 }
@@ -259,6 +263,8 @@ function runtimeScope(overrides: Partial<KonlingRuntimeScope> = {}): KonlingRunt
 describe('document rubric grading routes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubEnv('NEXTAUTH_URL', 'http://localhost');
+    mocks.prisma.$transaction.mockImplementation(async (callback) => callback(mocks.prisma));
     mocks.prisma.learningEvidenceDraft.findUnique.mockResolvedValue(null);
     mocks.prisma.learningEvidenceDraft.create.mockImplementation(async (input) => ({
       id: input.data.id,
@@ -270,9 +276,28 @@ describe('document rubric grading routes', () => {
       dedupeKey: 'document-rubric:updated',
       reviewerState: input.data.reviewerState,
     }));
+    mocks.prisma.learningEvidenceDraft.updateMany.mockResolvedValue({ count: 1 });
     mocks.prisma.learningFact.createMany.mockResolvedValue({ count: 1 });
     mocks.prisma.studentEvidenceFeatureCache.deleteMany.mockResolvedValue({ count: 1 });
     mocks.prisma.teachingResource.findFirst.mockResolvedValue(null);
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it.each([
+    ['cross-origin', 'https://attacker.example'],
+    ['missing-origin', null],
+  ])('rejects authenticated approval requests with %s Origin', async (_case, origin) => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+
+    const response = await postJson({ gradingRunId: 'grading-run-1' }, origin);
+
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toEqual({ error: 'invalid-origin' });
+    expect(mocks.prisma.learningEvidenceDraft.findFirst).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningFact.createMany).not.toHaveBeenCalled();
   });
 
   it('creates persisted document grading submissions with conversion artifacts and draft assessment state', async () => {
@@ -1556,8 +1581,9 @@ describe('document rubric grading routes', () => {
     expect(mocks.prisma.studentEvidenceFeatureCache.deleteMany).toHaveBeenCalledWith({
       where: { userId: 'student-1' },
     });
-    expect(mocks.prisma.learningEvidenceDraft.update).toHaveBeenCalledWith(expect.objectContaining({
-      where: { id: draft.id },
+    expect(mocks.prisma.$transaction).toHaveBeenCalledTimes(1);
+    expect(mocks.prisma.learningEvidenceDraft.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ id: draft.id, reviewerState: 'pending' }),
       data: expect.objectContaining({ reviewerState: 'approved' }),
     }));
   });
@@ -1600,7 +1626,7 @@ describe('document rubric grading routes', () => {
       reasons: expect.arrayContaining(['criterion-assessment-missing']),
     }));
     expect(mocks.prisma.learningFact.createMany).not.toHaveBeenCalled();
-    expect(mocks.prisma.learningEvidenceDraft.update).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningEvidenceDraft.updateMany).not.toHaveBeenCalled();
   });
 
   it('reports skipped facts for idempotent approval writeback duplicates', async () => {
@@ -1650,7 +1676,7 @@ describe('document rubric grading routes', () => {
       evidenceSourceEventIds: [],
     }));
     expect(mocks.prisma.learningFact.createMany).not.toHaveBeenCalled();
-    expect(mocks.prisma.learningEvidenceDraft.update).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mocks.prisma.learningEvidenceDraft.updateMany).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({ reviewerState: 'returned' }),
     }));
   });
@@ -1672,7 +1698,7 @@ describe('document rubric grading routes', () => {
         comment: '教师修订：模型表达达标，但需要补充稳定裕度解释。',
       }],
     });
-    const updateInput = mocks.prisma.learningEvidenceDraft.update.mock.calls[0][0];
+    const updateInput = mocks.prisma.learningEvidenceDraft.updateMany.mock.calls[0][0];
 
     expect(response.status).toBe(200);
     expect(mocks.prisma.learningFact.createMany).toHaveBeenCalledWith(expect.objectContaining({
@@ -1700,6 +1726,45 @@ describe('document rubric grading routes', () => {
     }));
   });
 
+  it('fences concurrent approvals so the losing edit returns 409 without writing facts', async () => {
+    const draft = await gradingDraft();
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValue(draft);
+    mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
+    mocks.prisma.studentProfile.findFirst.mockResolvedValue({ id: 'student-profile-1' });
+
+    let reviewerState = 'pending';
+    let committedScore: number | null = null;
+    mocks.prisma.learningEvidenceDraft.updateMany.mockImplementation(async (input: any) => {
+      if (input.where.reviewerState !== reviewerState) return { count: 0 };
+      reviewerState = input.data.reviewerState;
+      committedScore = input.data.summary.run.approvedGrades[0].score;
+      return { count: 1 };
+    });
+
+    const responses = await Promise.all([
+      postJson({
+        gradingRunId: draft.id,
+        decision: 'approved',
+        edits: [{ criterionId: 'modeling', levelId: 'novice', score: 1, comment: '并发审批版本一。' }],
+      }),
+      postJson({
+        gradingRunId: draft.id,
+        decision: 'approved',
+        edits: [{ criterionId: 'modeling', levelId: 'advanced', score: 4, comment: '并发审批版本二。' }],
+      }),
+    ]);
+
+    const statuses = responses.map((response) => response.status).sort((left, right) => left - right);
+    expect(statuses).toEqual([200, 409]);
+    const conflictResponse = responses.find((response) => response.status === 409);
+    expect(conflictResponse).toBeDefined();
+    await expect(conflictResponse!.json()).resolves.toEqual({ error: 'grading-review-conflict' });
+    expect(mocks.prisma.learningFact.createMany).toHaveBeenCalledTimes(1);
+    expect(mocks.prisma.learningFact.createMany.mock.calls[0][0].data[0].score).toBe(committedScore);
+    expect(mocks.prisma.learningEvidenceDraft.updateMany).toHaveBeenCalledTimes(2);
+  });
+
   it('rejects teacher edits with rubric-out-of-range scores before writeback', async () => {
     const draft = await gradingDraft();
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
@@ -1721,7 +1786,7 @@ describe('document rubric grading routes', () => {
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toEqual({ error: '评分编辑分数超出量规范围' });
     expect(mocks.prisma.learningFact.createMany).not.toHaveBeenCalled();
-    expect(mocks.prisma.learningEvidenceDraft.update).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningEvidenceDraft.updateMany).not.toHaveBeenCalled();
   });
 
   it('rejects edits against already approved grading runs without repeating writeback', async () => {
@@ -1757,7 +1822,7 @@ describe('document rubric grading routes', () => {
     expect(response.status).toBe(409);
     await expect(response.json()).resolves.toEqual({ error: '已批准评分不能直接编辑' });
     expect(mocks.prisma.learningFact.createMany).not.toHaveBeenCalled();
-    expect(mocks.prisma.learningEvidenceDraft.update).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningEvidenceDraft.updateMany).not.toHaveBeenCalled();
   });
 
   it('previews approved writeback effects without creating learning facts', async () => {

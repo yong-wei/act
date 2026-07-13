@@ -186,4 +186,11 @@ describe('math-document grading production entrypoint contract', () => {
       expect(read(route)).not.toContain('body.evaluatorVersion');
     }
   });
+
+  it('requires a provider policy before the grading queue is created', () => {
+    const route = read('src/app/api/teacher/document-grading/pipeline/grading/route.ts');
+    expect(route).toContain('policyId: z.string().trim().min(1).max(160),');
+    expect(route).toContain('policyId: body.policyId,');
+    expect(route).not.toContain('policyId: body.policyId ?? null');
+  });
 });

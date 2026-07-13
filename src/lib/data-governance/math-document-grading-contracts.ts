@@ -207,6 +207,15 @@ export function buildRerunIdentity(input: {
   return buildPipelineDedupeKey(`rerun:${input.kind}`, input);
 }
 
+export function validateGradingMutationOrigin(input: {
+  request: Request;
+  expectedOrigin?: string;
+}): void {
+  const origin = input.request.headers.get('origin');
+  const expectedOrigin = input.expectedOrigin ?? new URL(process.env.NEXTAUTH_URL ?? input.request.url).origin;
+  if (!origin || origin !== expectedOrigin) throw new GradingMutationError('invalid-origin', 403);
+}
+
 export function pseudonymousAuditId(value: string, purpose: GradingAuditPurpose = 'general', secret?: string): string {
   const resolvedSecret = secret ?? process.env.GRADING_AUDIT_SECRET ?? (process.env.NODE_ENV === 'production' ? '' : 'test-grading-audit-secret');
   if (!resolvedSecret) throw new GradingPolicyError('grading-audit-secret-missing');
@@ -473,9 +482,7 @@ export function validatePipelineMutation(input: {
   requiresRerunReason?: boolean;
 }): { idempotencyKey: string; rerunReason?: string } {
   if (input.request.method === 'GET' || input.request.method === 'HEAD') throw new GradingMutationError('mutation-method-required', 405);
-  const origin = input.request.headers.get('origin');
-  const expectedOrigin = input.expectedOrigin ?? new URL(process.env.NEXTAUTH_URL ?? input.request.url).origin;
-  if (!origin || origin !== expectedOrigin) throw new GradingMutationError('invalid-origin', 403);
+  validateGradingMutationOrigin(input);
   const contentLength = Number(input.request.headers.get('content-length') ?? 0);
   if (contentLength > (input.maxBytes ?? MATH_DOCUMENT_GRADING_LIMITS.bodyBytes)) throw new GradingMutationError('payload-too-large', 413);
   const parsed = pipelineMutationBodySchema.safeParse(input.body);

@@ -11,15 +11,11 @@ import {
 } from '@/lib/data-governance/document-rubric-grading-workbench';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
-import { legacyDocumentGradingRouteDisabled } from '@/lib/data-governance/math-document-grading-api';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
-    if (legacyDocumentGradingRouteDisabled()) {
-      return NextResponse.json({ error: 'legacy-document-grading-route-disabled', replacement: '/api/teacher/document-grading/pipeline' }, { status: 410, headers: { Deprecation: 'true' } });
-    }
     const session = await getServerAuthSession();
     if (!session?.user?.id) {
       return NextResponse.json({ error: '未授权' }, { status: 401 });

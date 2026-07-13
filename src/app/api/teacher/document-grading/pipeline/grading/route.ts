@@ -13,7 +13,7 @@ export const dynamic = 'force-dynamic';
 const gradingRequestSchema = z.object({
   attemptId: z.string().trim().min(1).max(160),
   evidenceId: z.string().trim().min(1).max(160),
-  policyId: z.string().trim().min(1).max(160).nullable().optional(),
+  policyId: z.string().trim().min(1).max(160),
   idempotencyKey: z.string().trim().min(8).max(160),
   rerunReason: z.string().trim().min(8).max(500).optional(),
 }).strict();
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     const mutation = validatePipelineMutation({ request, body, requiresRerunReason: Boolean(body.rerunReason) });
     const quota = await enforceGradingQuota({ db: prisma, subjectType: 'user', subjectId: actorResult.actor.id, scope: 'grading', maxRequests: 40 });
     if (!quota.allowed) return NextResponse.json({ error: 'grading-quota-exceeded' }, { status: 429, headers: { 'Retry-After': String(quota.retryAfterSeconds ?? 60) } });
-    const result = await enqueueGradingRun({ db: prisma, attemptId: body.attemptId, evidenceId: body.evidenceId, actor: actorResult.actor, idempotencyKey: mutation.idempotencyKey, policyId: body.policyId ?? null, rerunReason: mutation.rerunReason });
+    const result = await enqueueGradingRun({ db: prisma, attemptId: body.attemptId, evidenceId: body.evidenceId, actor: actorResult.actor, idempotencyKey: mutation.idempotencyKey, policyId: body.policyId, rerunReason: mutation.rerunReason });
     const queueResult = result.job ? await enqueueMathDocumentGradingJob({ kind: 'grading', jobId: result.job.id, gradingRunId: result.run.id }, prisma) : { queued: true, queueJobId: null, state: 'QUEUED' as const, retryable: false };
     return NextResponse.json({ status: queueResult.queued ? result.run.state : queueResult.state, gradingRunId: result.run.id, jobId: result.job?.id ?? null, queue: queueResult, replay: result.replay, draftOnly: true }, { status: queueResult.queued ? (result.replay ? 200 : 202) : 503 });
   } catch (error) {

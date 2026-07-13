@@ -11,15 +11,15 @@ import {
   writeApprovedGradingEvidence,
 } from '@/lib/data-governance/document-rubric-grading-workbench';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
-import { legacyDocumentGradingRouteDisabled } from '@/lib/data-governance/math-document-grading-api';
+import {
+  GradingMutationError,
+  validateGradingMutationOrigin,
+} from '@/lib/data-governance/math-document-grading-contracts';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
-    if (legacyDocumentGradingRouteDisabled()) {
-      return NextResponse.json({ error: 'legacy-document-grading-route-disabled', replacement: '/api/teacher/document-grading/pipeline' }, { status: 410, headers: { Deprecation: 'true' } });
-    }
     const session = await getServerAuthSession();
     if (!session?.user?.id) {
       return NextResponse.json({ error: '未授权' }, { status: 401 });
@@ -27,6 +27,7 @@ export async function POST(request: Request) {
     if (session.user.role !== UserRole.TEACHER && session.user.role !== UserRole.ADMIN) {
       return NextResponse.json({ error: '无权审批文档评分' }, { status: 403 });
     }
+    validateGradingMutationOrigin({ request });
 
     const body = await request.json() as {
       gradingRunId?: string;
@@ -123,32 +124,6 @@ export async function POST(request: Request) {
       decision,
       notes: body.notes,
     });
-    const writeback = decision === 'approved'
-      ? await writeApprovedGradingEvidence({
-          db: {
-            learningFact: {
-              createMany: async (input) => prisma.learningFact.createMany({
-                data: input.data as NonNullable<Parameters<typeof prisma.learningFact.createMany>[0]>['data'],
-                skipDuplicates: input.skipDuplicates,
-              }),
-            },
-            studentEvidenceFeatureCache: {
-              deleteMany: async (input) => prisma.studentEvidenceFeatureCache.deleteMany(input),
-            },
-          },
-          run: approved,
-          rubric: parsed.rubric,
-          studentId: draft.ownerUserId,
-          goalContext: parsed.goalContext,
-        })
-      : {
-          status: 'blocked-unapproved' as const,
-          created: 0,
-          skipped: 0,
-          blocked: approved.draftGrades.length,
-          facts: [],
-        };
-
     const existingSummary = typeof draft.summary === 'object' && draft.summary !== null && !Array.isArray(draft.summary)
       ? draft.summary as Record<string, unknown>
       : {};
@@ -167,13 +142,49 @@ export async function POST(request: Request) {
       decision,
     });
 
-    await prisma.learningEvidenceDraft.update({
-      where: { id: draft.id },
-      data: {
-        reviewerState: decision,
-        summary: updatedSummary,
-        provenance: updatedProvenance,
-      },
+    const writeback = await prisma.$transaction(async (tx) => {
+      const reviewUpdate = await tx.learningEvidenceDraft.updateMany({
+        where: {
+          id: draft.id,
+          reviewerState: draft.reviewerState,
+        },
+        data: {
+          reviewerState: decision,
+          summary: updatedSummary,
+          provenance: updatedProvenance,
+        },
+      });
+      if (reviewUpdate.count !== 1) {
+        throw new GradingMutationError('grading-review-conflict', 409);
+      }
+
+      if (decision !== 'approved') {
+        return {
+          status: 'blocked-unapproved' as const,
+          created: 0,
+          skipped: 0,
+          blocked: approved.draftGrades.length,
+          facts: [],
+        };
+      }
+
+      return writeApprovedGradingEvidence({
+        db: {
+          learningFact: {
+            createMany: async (input) => tx.learningFact.createMany({
+              data: input.data as NonNullable<Parameters<typeof prisma.learningFact.createMany>[0]>['data'],
+              skipDuplicates: input.skipDuplicates,
+            }),
+          },
+          studentEvidenceFeatureCache: {
+            deleteMany: async (input) => tx.studentEvidenceFeatureCache.deleteMany(input),
+          },
+        },
+        run: approved,
+        rubric: parsed.rubric,
+        studentId: draft.ownerUserId,
+        goalContext: parsed.goalContext,
+      });
     });
 
     return NextResponse.json({
@@ -186,6 +197,9 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     rethrowIfNextDynamicError(error);
+    if (error instanceof GradingMutationError) {
+      return NextResponse.json({ error: error.code }, { status: error.status });
+    }
     console.error('[DocumentRubricGrading] approve failed', error);
     return NextResponse.json({ error: '审批文档评分失败' }, { status: 500 });
   }
