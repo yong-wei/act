@@ -150,10 +150,10 @@ export async function resolvePrimaryPortraitV2(
     : await db.studentCompetencySnapshot?.findFirst?.({
         where: { userId },
         orderBy: [{ snapshotAt: 'desc' }, { id: 'desc' }],
-      }) ?? null;
+    }) ?? null;
   const legacyVector = toCompetencyVector(legacySnapshot?.competencyVector);
   if (legacyVector) {
-    const compatibilityResult = buildCompatibilityResult({
+    const compatibilityInput = {
       userId,
       vector: legacyVector,
       snapshotId: readString(legacySnapshot?.id),
@@ -162,21 +162,22 @@ export async function resolvePrimaryPortraitV2(
       consumer,
       now,
       limitations,
-    });
+    } as const;
     if (primaryPortrait) {
-      return {
+      return buildPrimaryPortraitCompatibilityResult({
         primaryPortrait,
-        legacyCompatibility: compatibilityResult.legacyCompatibility,
-        limitations: compatibilityResult.limitations,
-      };
+        now,
+        limitations,
+        buildCompatibility: () => buildCompatibilityResult(compatibilityInput),
+      });
     }
-    return compatibilityResult;
+    return buildCompatibilityResult(compatibilityInput);
   }
 
   const featureSnapshot = readLegacyFeatureSnapshot(featureCache);
   const cachedVector = toCompetencyVector(featureSnapshot?.competencyVector);
   if (cachedVector) {
-    const compatibilityResult = buildCompatibilityResult({
+    const compatibilityInput = {
       userId,
       vector: cachedVector,
       snapshotId: null,
@@ -185,15 +186,16 @@ export async function resolvePrimaryPortraitV2(
       consumer,
       now,
       limitations,
-    });
+    } as const;
     if (primaryPortrait) {
-      return {
+      return buildPrimaryPortraitCompatibilityResult({
         primaryPortrait,
-        legacyCompatibility: compatibilityResult.legacyCompatibility,
-        limitations: compatibilityResult.limitations,
-      };
+        now,
+        limitations,
+        buildCompatibility: () => buildCompatibilityResult(compatibilityInput),
+      });
     }
-    return compatibilityResult;
+    return buildCompatibilityResult(compatibilityInput);
   }
 
   if (primaryPortrait) {
@@ -349,6 +351,31 @@ function buildCompatibilityResult(input: {
     },
     limitations: [...input.limitations],
   };
+}
+
+function buildPrimaryPortraitCompatibilityResult(input: {
+  primaryPortrait: PortraitV2ProjectedPayload;
+  now: Date;
+  limitations: string[];
+  buildCompatibility: () => ResolvedPortraitV2Consumer;
+}): ResolvedPortraitV2Consumer {
+  try {
+    const compatibilityResult = input.buildCompatibility();
+    return {
+      primaryPortrait: input.primaryPortrait,
+      legacyCompatibility: compatibilityResult.legacyCompatibility,
+      limitations: compatibilityResult.limitations,
+    };
+  } catch {
+    return {
+      primaryPortrait: input.primaryPortrait,
+      legacyCompatibility: emptyLegacyCompatibility(input.now),
+      limitations: uniqueStrings([
+        ...input.limitations,
+        'legacy-compatibility-projection-failed',
+      ]),
+    };
+  }
 }
 
 function readCachedPortrait(

@@ -101,6 +101,30 @@ describe('portrait v2 consumer adapters', () => {
     expect(resolution.legacyCompatibility.authority).toBe('legacy-compatibility-only');
   });
 
+  it('keeps the primary portrait when legacy compatibility projection fails', async () => {
+    const payload = nativePortrait();
+    const snapshot = legacySnapshot();
+    snapshot.competencyVector.controlModeling.lastUpdated = '2026-05-20T13:00:00.000Z';
+    const resolution = await resolvePrimaryPortraitV2({
+      studentPortraitV2Snapshot: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'portrait-1',
+          userId: 'student-1',
+          snapshotAt: now,
+          payloadVersion: payload.payloadVersion,
+          calculationVersion: 'portrait-v2-primary.v1',
+          migrationVersion: payload.migrationVersion,
+          derivationKind: 'native',
+          payload,
+        }),
+      },
+    }, 'student-1', 'student', { now, legacySnapshot: snapshot });
+
+    expect(resolution.primaryPortrait.derivation.kind).toBe('native');
+    expect(resolution.legacyCompatibility.source).toBe('fallback-empty');
+    expect(resolution.limitations).toContain('legacy-compatibility-projection-failed');
+  });
+
   it('prefers the cache primary marker over a legacy snapshot', async () => {
     const payload = nativePortrait();
     const resolution = await resolvePrimaryPortraitV2({
