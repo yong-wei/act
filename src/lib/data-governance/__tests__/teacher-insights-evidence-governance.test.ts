@@ -360,8 +360,10 @@ function competencyVector(score: number) {
   };
 }
 
-function nativePortraitSnapshot(userId = 'student-v2-only') {
-  const generatedAt = '2026-05-20T08:00:00.000Z';
+function nativePortraitSnapshot(
+  userId = 'student-v2-only',
+  generatedAt = '2026-05-20T08:00:00.000Z',
+) {
   const payload = createPortraitV2Payload({
     userId,
     generatedAt,
@@ -854,6 +856,50 @@ describe('teacher evidence governance insights', () => {
       factCount: 7,
       lastSnapshotAt: '2026-05-20T08:00:00.000Z',
     });
+    expect(body.governance.latestStudentSnapshotAt).toBe('2026-05-20T08:00:00.000Z');
+  });
+
+  it('uses the newer portrait v2 timestamp when it is later than the legacy snapshot', async () => {
+    mocks.prisma.class.findUnique.mockResolvedValue({
+      id: 'class-1',
+      name: '自动控制 1 班',
+      code: 'AC101',
+      description: '数据治理试点班',
+      semester: '春季',
+      year: '2026',
+      teacherId: 'teacher-1',
+      students: [enrolledStudent('student-v2-newer', '原生画像较新学生')],
+    });
+    mocks.prisma.classCompetencySnapshot.findFirst.mockResolvedValue(null);
+    mocks.prisma.studentCompetencySnapshot.findMany.mockResolvedValue([
+      {
+        userId: 'student-v2-newer',
+        snapshotAt: new Date('2026-05-20T08:00:00.000Z'),
+        competencyVector: competencyVector(72),
+        factCount: 6,
+      },
+    ]);
+    mocks.prisma.studentProfileSummary.findMany.mockResolvedValue([]);
+    mocks.prisma.studentRiskFlag.findMany.mockResolvedValue([]);
+    mocks.prisma.growthRecord.groupBy.mockResolvedValue([]);
+    mocks.prisma.learningRecommendation.groupBy.mockResolvedValue([]);
+    mocks.prisma.classSession.findMany.mockResolvedValue([]);
+    mocks.prisma.learningFact.findMany.mockResolvedValue([]);
+    mocks.prisma.learningFact.groupBy.mockResolvedValue([]);
+    mocks.prisma.classSessionReport.findMany.mockResolvedValue([]);
+    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue(
+      nativePortraitSnapshot('student-v2-newer', '2026-05-20T09:00:00.000Z'),
+    );
+
+    const response = await getClassInsights(
+      new Request('http://localhost/api/teacher/classes/class-1/insights'),
+      { params: Promise.resolve({ classId: 'class-1' }) },
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.students[0].lastSnapshotAt).toBe('2026-05-20T09:00:00.000Z');
+    expect(body.governance.latestStudentSnapshotAt).toBe('2026-05-20T09:00:00.000Z');
   });
 
   it('does not count global simulation Arena cache entries outside the current class scope', async () => {

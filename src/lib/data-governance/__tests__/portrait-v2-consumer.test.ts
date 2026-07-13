@@ -54,6 +54,30 @@ function nativePortrait() {
 }
 
 describe('portrait v2 consumer adapters', () => {
+  it('includes all seven dimensions in overall score when evidence is missing', () => {
+    const payload = nativePortrait();
+    payload.dimensions = payload.dimensions.map(
+      (dimension, index): (typeof payload.dimensions)[number] => ({
+        ...dimension,
+        score: index === 0 ? 90 : 0,
+        confidence: index === 0 ? 1 : 0,
+        freshness: index === 0
+          ? { state: 'current' as const, asOf: now.toISOString(), evidenceAgeDays: 0 }
+          : { state: 'missing' as const, asOf: null, evidenceAgeDays: null },
+        evidenceSummary: index === 0
+          ? { totalCount: 1, sourceFamilyCounts: { LearningFact: 1 } }
+          : { totalCount: 0, sourceFamilyCounts: {} },
+        lastPositiveEvidenceAt: index === 0 ? now.toISOString() : null,
+        limitations: index === 0 ? [] : ['missing-native-portrait-v2-evidence'],
+      }),
+    );
+
+    const summary = summarizePortraitV2(payload);
+
+    expect(summary.overallScore).toBe(12.9);
+    expect(summary.overallScore).toBeLessThan(85);
+  });
+
   it('uses a persisted portrait v2 row as the primary contract', async () => {
     const payload = nativePortrait();
     const resolution = await resolvePrimaryPortraitV2({

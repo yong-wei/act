@@ -72,6 +72,14 @@ interface TeacherClassInsightStudent {
   evidenceStatus: TeacherStudentEvidenceStatus;
 }
 
+function latestSnapshotTimestamp(...timestamps: Array<string | null | undefined>) {
+  return timestamps.reduce<string | null>((latest, timestamp) => {
+    if (!timestamp) return latest;
+    if (!latest || Date.parse(timestamp) > Date.parse(latest)) return timestamp;
+    return latest;
+  }, null);
+}
+
 export interface TeacherClassInsightsPayload {
   classInfo: {
     id: string;
@@ -410,7 +418,10 @@ export async function GET(
         growthRecordCount: growthMap.get(studentProfile.userId) ?? 0,
         recommendationCount: recommendationMap.get(studentProfile.userId) ?? 0,
         factCount: hasPortraitEvidence ? portraitFactCount : snapshot?.factCount ?? 0,
-        lastSnapshotAt: hasPortraitEvidence ? portraitV2.generatedAt : snapshot?.snapshotAt.toISOString() ?? null,
+        lastSnapshotAt: latestSnapshotTimestamp(
+          hasPortraitEvidence ? portraitV2.generatedAt : null,
+          snapshot?.snapshotAt.toISOString() ?? null,
+        ),
         portraitV2,
         evidenceStatus: evidenceStatusMap.get(studentProfile.userId)!,
       };
@@ -419,8 +430,9 @@ export async function GET(
     const coverageStudents = students.filter(
       (student) => student.lastSnapshotAt || student.overallScore > 0 || student.riskBadges.length > 0
     ).length;
-    const latestStudentSnapshotAt =
-      latestSnapshots[0]?.snapshotAt.toISOString() ?? null;
+    const latestStudentSnapshotAt = latestSnapshotTimestamp(
+      ...students.map((student) => student.lastSnapshotAt),
+    );
     const governanceBase = summarizeGovernanceState({
       totalStudents,
       coveredStudents: coverageStudents,
