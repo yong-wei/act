@@ -6,7 +6,9 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
+import type { RuntimeResourceProjectionFamily } from '@/lib/runtime-resource-projections';
 import {
+  isRuntimeLessonMediaProjection,
   mergeGateResults,
   parseAddedRuntimeProjectionChanges,
   parseChangedRegisteredResourceIds,
@@ -72,7 +74,7 @@ type RuntimeProjectionSourceFamily =
   | 'knowledge-infograph'
   | 'assessment-item';
 type RuntimeProjectionRow = ReturnType<typeof parseAddedRuntimeProjectionChanges>['rows'][number] & {
-  family?: string;
+  family?: RuntimeResourceProjectionFamily;
   sourceHash?: string;
   sourceRecord?: string;
   sourcePathOrUrl?: string;
@@ -385,8 +387,10 @@ function runtimeProjectionRowEvidenceLocalSourcePaths(row: RuntimeProjectionRow)
 }
 
 function runtimeProjectionUsesAssetEvidence(row: RuntimeProjectionRow): boolean {
-  return row.runtimeSemanticEvidence?.assetStatus === 'missing-local-runtime-asset' ||
-    row.runtimeSemanticEvidence?.assetStatus === 'external-http-runtime-asset';
+  return isRuntimeLessonMediaProjection(row) && (
+    row.runtimeSemanticEvidence?.assetStatus === 'missing-local-runtime-asset' ||
+    row.runtimeSemanticEvidence?.assetStatus === 'external-http-runtime-asset'
+  );
 }
 
 function projectFilePathForProjectionSource(sourcePathOrUrl: string | null | undefined): string | null {
@@ -492,13 +496,16 @@ function runtimeProjectionRowMatchesCurrentSourceHash(
   if (!requirement.sourceHash) return false;
   const audit = row.reviewAudit;
   const knowledgeProjection = isKnowledgeRuntimeProjection(row);
+  const runtimeSemanticEvidenceHashMatches = runtimeProjectionUsesAssetEvidence(row) &&
+    row.runtimeSemanticEvidence?.evidenceFileHash === requirement.sourceHash;
   const coverageHashMatches = row.sourceHash === requirement.sourceHash ||
+    runtimeSemanticEvidenceHashMatches ||
     (knowledgeProjection && audit?.promptOrManifestHash === requirement.sourceHash);
   const reviewHashMatches = knowledgeProjection
     ? audit?.reviewedSourceHash === row.sourceHash
     : audit?.promptOrManifestHash
       ? audit.reviewedSourceHash === audit.promptOrManifestHash
-      : audit?.reviewedSourceHash === requirement.sourceHash;
+      : audit?.reviewedSourceHash === requirement.sourceHash || runtimeSemanticEvidenceHashMatches;
   return coverageHashMatches && reviewHashMatches;
 }
 
@@ -528,14 +535,13 @@ function runtimeProjectionRowMatchesSourceFamily(
     return true;
   }
   if (family === 'assessment-item') {
-    return row.family === 'quiz' ||
-      row.family === 'adaptive_quiz' ||
-      row.family === 'adaptive-quiz' ||
-      row.family === 'assessment-item' ||
-      row.family === 'adaptive-assessment-item' ||
-      row.resourceType === 'quiz' ||
+    return row.resourceType === 'quiz' ||
       row.resourceType === 'adaptive_quiz' ||
-      row.sourcePathOrUrl?.includes('/questions/questions/') === true;
+      row.sourcePathOrUrl?.includes('/questions/questions/') === true ||
+      RUNTIME_ASSESSMENT_CATALOG_PATHS.some((catalogPath) => (
+        row.sourcePathOrUrl === catalogPath ||
+        row.sourcePathOrUrl?.endsWith(`/${catalogPath}`) === true
+      ));
   }
   return row.family === 'knowledge-infograph' ||
     row.sourcePathOrUrl?.includes('/knowledge/infographs/') === true;

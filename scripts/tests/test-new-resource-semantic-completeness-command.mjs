@@ -1023,6 +1023,184 @@ const syncedLessonMediaProjectionResult = runGate(['--staged']);
 assert.equal(syncedLessonMediaProjectionResult.status, 0, 'gate must pass when a runtime lesson media source has a matching projection row');
 
 run('git', ['reset', '--hard', 'HEAD'], repo);
+const externalMediaIndexPath = path.join(repo, 'course-content/runtime/lessons/1-1/media/external-media.md');
+const externalMediaIndexRelativePath = 'course-content/runtime/lessons/1-1/media/external-media.md';
+fs.mkdirSync(path.dirname(externalMediaIndexPath), { recursive: true });
+fs.writeFileSync(externalMediaIndexPath, '# external-media.mp4\n\nhttps://example.invalid/external-media.mp4\n');
+run('git', ['add', externalMediaIndexRelativePath], repo);
+const externalAssetProjection = runtimeProjectionRow({
+  id: 'runtime-media:1-1:external-media.mp4',
+  family: 'runtime-lesson-media',
+  resourceType: 'video',
+  sourceKind: 'runtime_lesson_media',
+  sourceRef: '1-1:external-media.mp4',
+  sourcePathOrUrl: 'https://example.invalid/external-media.mp4',
+  sourceVersionRef: 'runtime-lesson-media.v1',
+  independentEvidenceRef: `${externalMediaIndexRelativePath}#markdown-line:3`,
+});
+externalAssetProjection.sourceHash = null;
+externalAssetProjection.reviewAudit.reviewedSourceHash = null;
+externalAssetProjection.runtimeSemanticEvidence = {
+  schemaVersion: 'runtime-lesson-semantic-evidence.v1',
+  assetStatus: 'external-http-runtime-asset',
+  evidenceFilePath: externalMediaIndexRelativePath,
+  evidenceFileHash: sha256File(externalMediaIndexPath),
+  evidenceSelector: 'markdown-line:3',
+  externalIdentitySha256: createHash('sha256').update('https://example.invalid/external-media.mp4').digest('hex'),
+  sourceFileKind: 'external-media',
+  sourceFilePath: 'external-media:external-media.mp4',
+  sourceFileHash: null,
+};
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(externalAssetProjection)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const syncedExternalAssetProjectionResult = runGate(['--staged']);
+assert.equal(
+  syncedExternalAssetProjectionResult.status,
+  0,
+  'gate must accept non-local runtime media when sourceHash/reviewedSourceHash are null but evidenceFileHash matches the staged media-index',
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+const missingLocalMediaIndexPath = path.join(repo, 'course-content/runtime/lessons/1-1/media/missing-local-media.md');
+const missingLocalMediaIndexRelativePath = 'course-content/runtime/lessons/1-1/media/missing-local-media.md';
+fs.mkdirSync(path.dirname(missingLocalMediaIndexPath), { recursive: true });
+fs.writeFileSync(missingLocalMediaIndexPath, '# missing-local-media.mp4\n\nmissing-local-media.mp4\n');
+run('git', ['add', missingLocalMediaIndexRelativePath], repo);
+const missingLocalAssetProjection = runtimeProjectionRow({
+  id: 'runtime-media:1-1:missing-local-media.mp4',
+  family: 'runtime-lesson-media',
+  resourceType: 'video',
+  sourceKind: 'runtime_lesson_media',
+  sourceRef: '1-1:missing-local-media.mp4',
+  sourcePathOrUrl: 'course-content/runtime/lessons/1-1/media/missing-local-media.mp4',
+  sourceVersionRef: 'runtime-lesson-media.v1',
+  independentEvidenceRef: `${missingLocalMediaIndexRelativePath}#markdown-line:1`,
+});
+missingLocalAssetProjection.sourceHash = null;
+missingLocalAssetProjection.reviewAudit.reviewedSourceHash = null;
+missingLocalAssetProjection.runtimeSemanticEvidence = {
+  schemaVersion: 'runtime-lesson-semantic-evidence.v1',
+  assetStatus: 'missing-local-runtime-asset',
+  evidenceFilePath: missingLocalMediaIndexRelativePath,
+  evidenceFileHash: sha256File(missingLocalMediaIndexPath),
+  evidenceSelector: 'markdown-line:1',
+  externalIdentitySha256: null,
+  sourceFileKind: 'missing-local-runtime-asset',
+  sourceFilePath: 'missing-local-runtime-asset:missing-local-media.mp4',
+  sourceFileHash: null,
+};
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(missingLocalAssetProjection)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const syncedMissingLocalAssetProjectionResult = runGate(['--staged']);
+assert.equal(
+  syncedMissingLocalAssetProjectionResult.status,
+  0,
+  'gate must accept missing-local runtime media when sourceHash/reviewedSourceHash are null but evidenceFileHash matches the staged media-index',
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+fs.mkdirSync(path.dirname(externalMediaIndexPath), { recursive: true });
+fs.writeFileSync(externalMediaIndexPath, '# external-media.mp4\n\nhttps://example.invalid/external-media.mp4\n');
+const forgedHandoutPath = path.join(repo, 'course-content/runtime/lessons/1-1/forged-handout.md');
+fs.mkdirSync(path.dirname(forgedHandoutPath), { recursive: true });
+fs.writeFileSync(forgedHandoutPath, '# forged handout\n');
+run('git', ['add', externalMediaIndexRelativePath, 'course-content/runtime/lessons/1-1/forged-handout.md'], repo);
+const forgedNonMediaAssetProjection = runtimeProjectionRow({
+  id: 'runtime-handout:1-1:forged-asset-status',
+  family: 'runtime-handout',
+  resourceType: 'handout',
+  sourceKind: 'runtime_handout',
+  sourceRef: '1-1:forged-asset-status',
+  sourcePathOrUrl: 'course-content/runtime/lessons/1-1/forged-handout.md',
+  sourceVersionRef: 'runtime-handout.v1',
+  independentEvidenceRef: `${externalMediaIndexRelativePath}#markdown-line:3`,
+});
+forgedNonMediaAssetProjection.sourceHash = null;
+forgedNonMediaAssetProjection.reviewAudit.reviewedSourceHash = null;
+forgedNonMediaAssetProjection.runtimeSemanticEvidence = {
+  schemaVersion: 'runtime-lesson-semantic-evidence.v1',
+  assetStatus: 'external-http-runtime-asset',
+  evidenceFilePath: externalMediaIndexRelativePath,
+  evidenceFileHash: sha256File(externalMediaIndexPath),
+  evidenceSelector: 'markdown-line:3',
+  externalIdentitySha256: createHash('sha256').update('https://example.invalid/external-media.mp4').digest('hex'),
+  sourceFileKind: 'external-media',
+  sourceFilePath: 'external-media:external-media.mp4',
+  sourceFileHash: null,
+};
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(forgedNonMediaAssetProjection)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const forgedNonMediaAssetProjectionResult = runGate(['--staged']);
+assert.notEqual(
+  forgedNonMediaAssetProjectionResult.status,
+  0,
+  'gate must reject non-media projections that forge an asset status to replace source hashes',
+);
+assert.match(
+  `${forgedNonMediaAssetProjectionResult.stdout}\n${forgedNonMediaAssetProjectionResult.stderr}`,
+  /missing-reviewed-source-evidence/,
+  'shared gate must fail closed when a non-media row forges runtime asset evidence',
+);
+
+const forgedFamilySourceMismatchProjection = {
+  ...forgedNonMediaAssetProjection,
+  id: 'runtime-media:1-1:forged-handout-family',
+  family: 'runtime-lesson-media',
+};
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(forgedFamilySourceMismatchProjection)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const forgedFamilySourceMismatchResult = runGate(['--staged']);
+assert.notEqual(
+  forgedFamilySourceMismatchResult.status,
+  0,
+  'gate must reject runtime lesson media family rows that use handout sourceKind/resourceType semantics',
+);
+assert.match(
+  `${forgedFamilySourceMismatchResult.stdout}\n${forgedFamilySourceMismatchResult.stderr}`,
+  /runtime-media:1-1:forged-handout-family invalid-runtime-projection-family-source-kind/,
+  'shared gate must reject inconsistent runtime media family/sourceKind/resourceType rows',
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+fs.mkdirSync(path.dirname(externalMediaIndexPath), { recursive: true });
+fs.writeFileSync(externalMediaIndexPath, '# external-media.mp4\n\nhttps://example.invalid/external-media.mp4\n');
+run('git', ['add', externalMediaIndexRelativePath], repo);
+const mismatchedExternalAssetProjection = {
+  ...externalAssetProjection,
+  runtimeSemanticEvidence: {
+    ...externalAssetProjection.runtimeSemanticEvidence,
+    evidenceFileHash: 'sha256:mismatched-evidence-file',
+  },
+};
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(mismatchedExternalAssetProjection)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const mismatchedExternalAssetProjectionResult = runGate(['--staged']);
+assert.notEqual(
+  mismatchedExternalAssetProjectionResult.status,
+  0,
+  'gate must reject runtime media when evidenceFileHash does not match the staged evidence file',
+);
+assert.match(
+  `${mismatchedExternalAssetProjectionResult.stdout}\n${mismatchedExternalAssetProjectionResult.stderr}`,
+  /stale-runtime-projection-source-hash/,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
 const generatedLessonMediaPath = path.join(repo, 'course-content/runtime/lessons/1-1/media/generated-data/1-1-analysis-data.txt');
 fs.mkdirSync(path.dirname(generatedLessonMediaPath), { recursive: true });
 fs.writeFileSync(generatedLessonMediaPath, 'generated runtime data fixture\n');
@@ -1142,11 +1320,8 @@ assert.match(
 );
 fs.writeFileSync(
   path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
-  `${JSON.stringify(runtimeProjectionRow({
+  `${JSON.stringify(runtimeSourceCoverageProjectionRow({
     id: 'textbook-section:book:ch01__chunk-001',
-    family: 'textbook-section',
-    resourceType: 'textbook_section',
-    sourceKind: 'textbook_section',
     sourceRef: 'book:ch01__chunk-001',
     sourcePathOrUrl: 'course-content/runtime/resources/textbooks/book/chunks/ch01__chunk-001.md',
     sourceVersionRef: 'runtime-textbook-chunk.v1',
@@ -1169,11 +1344,8 @@ assert.match(
 );
 fs.writeFileSync(
   path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
-  `${JSON.stringify(runtimeProjectionRow({
+  `${JSON.stringify(runtimeSourceCoverageProjectionRow({
     id: 'textbook-section:book:ch01-sec01',
-    family: 'textbook-section',
-    resourceType: 'textbook_section',
-    sourceKind: 'textbook_section',
     sourceRef: 'book:ch01-sec01',
     sourcePathOrUrl: 'course-content/runtime/resources/textbooks/book/sections/ch01-sec01.md',
     sourceVersionRef: 'runtime-textbook-section.v1',
@@ -1204,19 +1376,13 @@ assert.match(
 );
 fs.writeFileSync(
   path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
-  `${JSON.stringify(runtimeProjectionRow({
+  `${JSON.stringify(runtimeSourceCoverageProjectionRow({
     id: 'quiz:AC-Q-9999-json',
-    family: 'quiz',
-    resourceType: 'quiz',
-    sourceKind: 'resource_registry',
     sourceRef: 'AC-Q-9999',
     sourcePathOrUrl: 'course-content/questions/questions/AC-Q-9999.json',
     sourceVersionRef: 'question-bank.v1',
-  }))}\n${JSON.stringify(runtimeProjectionRow({
+  }))}\n${JSON.stringify(runtimeSourceCoverageProjectionRow({
     id: 'quiz:AC-Q-9999-md',
-    family: 'quiz',
-    resourceType: 'quiz',
-    sourceKind: 'resource_registry',
     sourceRef: 'AC-Q-9999',
     sourcePathOrUrl: 'course-content/questions/questions/AC-Q-9999.md',
     sourceVersionRef: 'question-bank.v1',
@@ -1241,11 +1407,8 @@ assert.match(
 );
 fs.writeFileSync(
   path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
-  `${JSON.stringify(runtimeProjectionRow({
+  `${JSON.stringify(runtimeSourceCoverageProjectionRow({
     id: 'adaptive-assessment-item:UNRELATED',
-    family: 'adaptive-assessment-item',
-    resourceType: 'adaptive_quiz',
-    sourceKind: 'resource_registry',
     sourceRef: 'adaptive-assessment-item:UNRELATED',
     sourcePathOrUrl: 'course-content/runtime/resource-governance/adaptive-assessment-item-catalog-items.jsonl',
     sourceVersionRef: 'adaptive-assessment-item-catalog.v1',
@@ -1260,11 +1423,8 @@ assert.match(
 );
 fs.writeFileSync(
   path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
-  `${JSON.stringify(runtimeProjectionRow({
+  `${JSON.stringify(runtimeSourceCoverageProjectionRow({
     id: 'adaptive-assessment-item:AC-Q-9998',
-    family: 'adaptive-assessment-item',
-    resourceType: 'adaptive_quiz',
-    sourceKind: 'resource_registry',
     sourceRef: 'adaptive-assessment-item:AC-Q-9998',
     sourcePathOrUrl: 'course-content/runtime/resource-governance/adaptive-assessment-item-catalog-items.jsonl',
     sourceHash: 'sha256:stale-assessment-catalog',
@@ -1280,11 +1440,8 @@ assert.match(
 );
 fs.writeFileSync(
   path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
-  `${JSON.stringify(runtimeProjectionRow({
+  `${JSON.stringify(runtimeSourceCoverageProjectionRow({
     id: 'adaptive-assessment-item:AC-Q-9998',
-    family: 'adaptive-assessment-item',
-    resourceType: 'adaptive_quiz',
-    sourceKind: 'resource_registry',
     sourceRef: 'adaptive-assessment-item:AC-Q-9998',
     sourcePathOrUrl: 'course-content/runtime/resource-governance/adaptive-assessment-item-catalog-items.jsonl',
     sourceVersionRef: 'adaptive-assessment-item-catalog.v1',
@@ -2137,11 +2294,8 @@ const baseUntrackedEvidencePath = path.join(repo, 'course-content/runtime/resour
 fs.writeFileSync(baseUntrackedEvidencePath, '# Evidence only in the worktree\n');
 fs.appendFileSync(
   path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
-  `${JSON.stringify(runtimeProjectionRow({
+  `${JSON.stringify(runtimeSourceCoverageProjectionRow({
     id: 'external:base-untracked-evidence',
-    family: 'external-resource',
-    resourceType: 'external_resource',
-    sourceKind: 'external_resource',
     sourceRef: 'external:base-untracked-evidence',
     sourcePathOrUrl: 'https://example.invalid/base-untracked-evidence',
     sourceHash: sha256File(baseUntrackedEvidencePath),
@@ -2166,11 +2320,8 @@ run('git', ['commit', '--no-verify', '-m', 'add base evidence content A'], repo)
 fs.writeFileSync(baseDirtyEvidencePath, '# Evidence changed only in worktree content B\n');
 fs.appendFileSync(
   path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
-  `${JSON.stringify(runtimeProjectionRow({
+  `${JSON.stringify(runtimeSourceCoverageProjectionRow({
     id: 'external:base-dirty-evidence',
-    family: 'external-resource',
-    resourceType: 'external_resource',
-    sourceKind: 'external_resource',
     sourceRef: 'external:base-dirty-evidence',
     sourcePathOrUrl: 'https://example.invalid/base-dirty-evidence',
     sourceHash: sha256File(baseDirtyEvidencePath),
@@ -2192,11 +2343,8 @@ const baseTrackedEvidencePath = path.join(repo, 'course-content/runtime/resource
 fs.writeFileSync(baseTrackedEvidencePath, '# Evidence committed with its projection\n');
 fs.appendFileSync(
   path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
-  `${JSON.stringify(runtimeProjectionRow({
+  `${JSON.stringify(runtimeSourceCoverageProjectionRow({
     id: 'external:base-tracked-evidence',
-    family: 'external-resource',
-    resourceType: 'external_resource',
-    sourceKind: 'external_resource',
     sourceRef: 'external:base-tracked-evidence',
     sourcePathOrUrl: 'https://example.invalid/base-tracked-evidence',
     sourceHash: sha256File(baseTrackedEvidencePath),
@@ -2278,6 +2426,45 @@ run('git', ['add', 'course-content/runtime/lessons/1-1/1-1-handout.md', 'course-
 const promptScopedCoverageResult = runGate(['--staged']);
 assert.equal(promptScopedCoverageResult.status, 0, 'gate must accept prompt-scoped reviewedSourceHash when row sourceHash matches the changed source file');
 
+const validRuntimeHandoutProjection = runtimeProjectionRow({
+  id: 'runtime-handout:1-1:family-contract',
+  family: 'runtime-handout',
+  resourceType: 'handout',
+  sourceKind: 'runtime_handout',
+  sourceRef: '1-1:family-contract',
+  sourcePathOrUrl: 'course-content/runtime/lessons/1-1/1-1-handout.md',
+  sourceVersionRef: 'runtime-handout.v1',
+});
+const missingRuntimeHandoutFamilyProjection = { ...validRuntimeHandoutProjection };
+delete missingRuntimeHandoutFamilyProjection.family;
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(missingRuntimeHandoutFamilyProjection)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const missingRuntimeHandoutFamilyResult = runGate(['--staged']);
+assert.notEqual(missingRuntimeHandoutFamilyResult.status, 0, 'gate must reject a runtime-handout row with a missing family');
+assert.match(
+  `${missingRuntimeHandoutFamilyResult.stdout}\n${missingRuntimeHandoutFamilyResult.stderr}`,
+  /runtime-handout:1-1:family-contract missing-runtime-projection-family/,
+);
+
+const unknownRuntimeHandoutFamilyProjection = {
+  ...validRuntimeHandoutProjection,
+  family: 'forged-family',
+};
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(unknownRuntimeHandoutFamilyProjection)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const unknownRuntimeHandoutFamilyResult = runGate(['--staged']);
+assert.notEqual(unknownRuntimeHandoutFamilyResult.status, 0, 'gate must reject a runtime-handout row with an unknown family');
+assert.match(
+  `${unknownRuntimeHandoutFamilyResult.stdout}\n${unknownRuntimeHandoutFamilyResult.stderr}`,
+  /runtime-handout:1-1:family-contract invalid-runtime-projection-family/,
+);
+
 run('git', ['reset', '--hard', 'HEAD'], repo);
 fs.writeFileSync(cardPath, '# Demo card\n\nKnowledge review packet update.\n');
 fs.writeFileSync(
@@ -2334,7 +2521,7 @@ fs.writeFileSync(
   path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
   `${JSON.stringify(runtimeProjectionRow({
     id: 'knowledge-source-kind:kn-demo',
-    family: 'external-resource',
+    family: 'runtime-lesson-step',
     resourceType: 'knowledge_card',
     sourceKind: 'knowledge_graph',
     sourceRef: 'kn-demo',
@@ -2423,11 +2610,8 @@ const untrackedEvidencePath = path.join(repo, 'course-content/runtime/resource-g
 fs.writeFileSync(untrackedEvidencePath, '# Untracked projection evidence\n');
 fs.appendFileSync(
   path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
-  `${JSON.stringify(runtimeProjectionRow({
+  `${JSON.stringify(runtimeSourceCoverageProjectionRow({
     id: 'external:untracked-evidence',
-    family: 'external-resource',
-    resourceType: 'external_resource',
-    sourceKind: 'external_resource',
     sourceRef: 'external:untracked-evidence',
     sourcePathOrUrl: 'https://example.invalid/resource',
     sourceHash: sha256File(untrackedEvidencePath),
@@ -2628,11 +2812,8 @@ fs.rmSync(newAssessmentCatalogPath);
 fs.writeFileSync(oldAssessmentCatalogPath, `${JSON.stringify(renamedAssessmentCatalogRow)}\n`);
 fs.writeFileSync(
   path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
-  `${JSON.stringify(runtimeProjectionRow({
+  `${JSON.stringify(runtimeSourceCoverageProjectionRow({
     id: 'adaptive-assessment-item:AC-Q-RENAME',
-    family: 'adaptive-assessment-item',
-    resourceType: 'adaptive_quiz',
-    sourceKind: 'resource_registry',
     sourceRef: 'adaptive-assessment-item:AC-Q-RENAME',
     sourcePathOrUrl: oldAssessmentCatalogRelativePath,
     sourceVersionRef: 'adaptive-assessment-item-catalog.v1',
@@ -2653,11 +2834,8 @@ assert.match(
 );
 fs.writeFileSync(
   path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
-  `${JSON.stringify(runtimeProjectionRow({
+  `${JSON.stringify(runtimeSourceCoverageProjectionRow({
     id: 'adaptive-assessment-item:AC-Q-RENAME',
-    family: 'adaptive-assessment-item',
-    resourceType: 'adaptive_quiz',
-    sourceKind: 'resource_registry',
     sourceRef: 'adaptive-assessment-item:AC-Q-RENAME',
     sourcePathOrUrl: newAssessmentCatalogRelativePath,
     sourceVersionRef: 'assessment-item-semantic-review-packets.v1',
@@ -2785,6 +2963,15 @@ function runtimeProjectionRow(overrides) {
     },
     citationTargets: [overrides.sourcePathOrUrl],
   };
+}
+
+function runtimeSourceCoverageProjectionRow(overrides) {
+  return runtimeProjectionRow({
+    ...overrides,
+    family: 'runtime-lesson-step',
+    resourceType: 'lesson_step',
+    sourceKind: 'runtime_lesson_step',
+  });
 }
 
 function runtimeLessonProjectionRows(lessonId, stepId, moduleId) {

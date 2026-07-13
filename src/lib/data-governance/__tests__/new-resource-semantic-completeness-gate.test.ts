@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { RegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
+import type { RuntimeResourceProjectionFamily } from '@/lib/runtime-resource-projections';
 import type { RuntimeResourceProjectionInput } from '@/lib/resource-node-registry';
 import {
   parseAddedRuntimeProjectionChanges,
@@ -564,6 +565,63 @@ describe('new resource semantic completeness gate', () => {
         resourceId: 'projection-schema-missing',
         code: 'missing-runtime-projection-projection-level',
       }),
+      expect.objectContaining({
+        resourceId: 'projection-schema-missing',
+        code: 'missing-runtime-projection-family',
+      }),
+    ]));
+  });
+
+  it('rejects runtime projection rows with missing or unknown family at the shared gate boundary', () => {
+    const complete = completeRuntimeProjection({ id: 'projection-family-baseline' });
+    const { family: _missingFamily, ...missingFamily } = complete;
+    const unknownFamily = {
+      ...complete,
+      id: 'projection-family-unknown',
+      family: 'forged-family',
+    };
+    const result = validateChangedRuntimeResourceProjections([
+      missingFamily,
+      unknownFamily,
+    ]);
+
+    expect(result.passed).toBe(false);
+    expect(result.issues).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        resourceId: 'projection-family-baseline',
+        code: 'missing-runtime-projection-family',
+      }),
+      expect.objectContaining({
+        resourceId: 'projection-family-unknown',
+        code: 'invalid-runtime-projection-family',
+      }),
+    ]));
+  });
+
+  it('rejects missing or unknown family values at the JSONL diff parsing boundary', () => {
+    const complete = completeRuntimeProjection({ id: 'projection-jsonl-family-baseline' });
+    const { family: _missingFamily, ...missingFamily } = complete;
+    const unknownFamily = {
+      ...complete,
+      id: 'projection-jsonl-family-unknown',
+      family: 'forged-family',
+    };
+    const parsed = parseAddedRuntimeProjectionChanges([
+      `+${JSON.stringify(missingFamily)}`,
+      `+${JSON.stringify(unknownFamily)}`,
+    ].join('\n'));
+
+    expect(parsed.rows).toEqual([]);
+    expect(parsed.result.passed).toBe(false);
+    expect(parsed.result.issues).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        resourceId: 'projection-jsonl-family-baseline',
+        code: 'missing-runtime-projection-family',
+      }),
+      expect.objectContaining({
+        resourceId: 'projection-jsonl-family-unknown',
+        code: 'invalid-runtime-projection-family',
+      }),
     ]));
   });
 
@@ -659,12 +717,15 @@ function completeRegisteredResource(input: {
   };
 }
 
-function completeRuntimeProjection(input: { id: string }): RuntimeResourceProjectionInput {
+function completeRuntimeProjection(
+  input: { id: string },
+): RuntimeResourceProjectionInput & { family: RuntimeResourceProjectionFamily } {
   return {
     id: input.id,
     resourceNodeId: input.id,
     title: input.id,
-    resourceType: 'knowledge_card',
+    family: 'runtime-lesson-step',
+    resourceType: 'lesson_step',
     sourceKind: 'runtime_lesson_step',
     sourceRef: `${input.id}:source`,
     sourcePathOrUrl: 'course-content/runtime/lessons/example.json',
