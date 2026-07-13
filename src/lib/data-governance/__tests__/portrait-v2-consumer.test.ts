@@ -4,6 +4,7 @@ import { createEmptyCompetencyVector } from '../competency-model';
 import { PORTRAIT_V2_DIMENSIONS } from '../kaq-objective-taxonomy';
 import {
   aggregatePortraitV2,
+  hasPortraitV2Evidence,
   resolvePrimaryPortraitV2,
   summarizePortraitV2,
 } from '../portrait-v2-consumer';
@@ -153,5 +154,17 @@ describe('portrait v2 consumer adapters', () => {
     expect(findFirst).not.toHaveBeenCalled();
     expect(resolution.legacyCompatibility.source).toBe('fallback-empty');
     expect(resolution.primaryPortrait.derivation.limitations).toContain('missing-native-portrait-v2-evidence');
+  });
+
+  it('only treats a portrait with dimension evidence as usable consumer data', async () => {
+    const empty = await resolvePrimaryPortraitV2({}, 'student-1', 'reviewer', { now, legacySnapshot: null, featureCache: null });
+    const compatible = await resolvePrimaryPortraitV2({}, 'student-1', 'reviewer', {
+      now,
+      legacySnapshot: legacySnapshot(),
+      featureCache: null,
+    });
+
+    expect(hasPortraitV2Evidence(empty.primaryPortrait)).toBe(false);
+    expect(hasPortraitV2Evidence(compatible.primaryPortrait)).toBe(true);
   });
 });

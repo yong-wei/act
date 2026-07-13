@@ -5,6 +5,7 @@ import {
 } from '@/lib/data-governance/competency-model';
 import { PORTRAIT_V2_DIMENSIONS, type PortraitV2DimensionId } from '@/lib/data-governance/kaq-objective-taxonomy';
 import {
+  hasPortraitV2Evidence,
   resolvePrimaryPortraitV2,
   summarizePortraitV2,
   type PortraitV2ConsumerSummary,
@@ -314,14 +315,17 @@ export async function GET(
     const cacheHealthByUserId = new Map(
       studentEvidenceFeatureCaches.map((cache) => [cache.userId, cache])
     );
-    const portraitByUserId = new Map(
-      await Promise.all(studentIds.map(async (studentId) => {
+    const resolvedPortraits = await Promise.all(studentIds.map(async (studentId) => {
         const resolution = await resolvePrimaryPortraitV2(prisma, studentId, 'reviewer', {
           legacySnapshot: snapshotMap.get(studentId) as Record<string, unknown> | null,
           featureCache: cacheHealthByUserId.get(studentId) as Record<string, unknown> | null,
         });
-        return [studentId, summarizePortraitV2(resolution.primaryPortrait)] as const;
-      }))
+        return [studentId, resolution] as const;
+      }));
+    const portraitByUserId = new Map(
+      resolvedPortraits
+        .filter(([, resolution]) => hasPortraitV2Evidence(resolution.primaryPortrait))
+        .map(([studentId, resolution]) => [studentId, summarizePortraitV2(resolution.primaryPortrait)] as const),
     );
     const now = new Date();
     const scopedSimulationArenaByUserId = buildTeacherScopedSimulationArenaFeatureMap(
@@ -423,9 +427,12 @@ export async function GET(
     const dimensionStats = PORTRAIT_V2_DIMENSIONS.map(({ id: dimension, label }) => {
       const classMean = extractClassMean(classSnapshot?.aggregateJson, dimension);
       const classStdDev = extractClassStdDev(classSnapshot?.aggregateJson, dimension);
-      const fallbackScores = [...portraitByUserId.values()]
-        .map((portrait) => portrait.dimensions.find((item) => item.id === dimension)?.score ?? 0)
-        .filter((score) => Number.isFinite(score));
+      const fallbackScores = [...portraitByUserId.values()].flatMap((portrait) => {
+        const portraitDimension = portrait.dimensions.find((item) => item.id === dimension);
+        return portraitDimension && portraitDimension.evidenceCount > 0 && Number.isFinite(portraitDimension.score)
+          ? [portraitDimension.score]
+          : [];
+      });
       const fallbackMean = fallbackScores.length
         ? roundTo(fallbackScores.reduce((sum, score) => sum + score, 0) / fallbackScores.length, 1)
         : 0;

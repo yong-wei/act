@@ -99,6 +99,10 @@ export interface PortraitV2ClassAggregate {
   };
 }
 
+export function hasPortraitV2Evidence(payload: PortraitV2ProjectedPayload): boolean {
+  return payload.dimensions.some((dimension) => dimension.evidenceSummary.totalCount > 0);
+}
+
 export async function resolvePrimaryPortraitV2(
   db: PortraitV2ConsumerDb,
   userId: string,

@@ -9,7 +9,7 @@ import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import { PORTRAIT_V2_DIMENSIONS, type PortraitV2DimensionId } from '@/lib/data-governance/kaq-objective-taxonomy';
-import { resolvePrimaryPortraitV2 } from '@/lib/data-governance/portrait-v2-consumer';
+import { hasPortraitV2Evidence, resolvePrimaryPortraitV2 } from '@/lib/data-governance/portrait-v2-consumer';
 import { createDatabaseUnavailableResponse, isDatabaseConnectivityError } from '@/lib/service-availability';
 
 export const dynamic = 'force-dynamic';
@@ -174,6 +174,12 @@ export async function GET(
         return [studentId, resolution] as const;
       })),
     );
+    const studentIdsWithPortraitEvidence = new Set(
+      studentIds.filter((studentId) => {
+        const resolution = resolvedPortraitByUserId.get(studentId);
+        return resolution ? hasPortraitV2Evidence(resolution.primaryPortrait) : false;
+      }),
+    );
 
     // Get active risk flags for all students
     const riskFlags = await prisma.studentRiskFlag.findMany({
@@ -191,6 +197,7 @@ export async function GET(
     const matrix: HeatmapData['matrix'] = [];
 
     for (const studentId of studentIds) {
+      if (!studentIdsWithPortraitEvidence.has(studentId)) continue;
       const resolution = resolvedPortraitByUserId.get(studentId);
       if (!resolution) continue;
       const currentPortrait = resolution.primaryPortrait;
@@ -210,6 +217,9 @@ export async function GET(
             },
           )
         : null;
+      const previousPortrait = previousResolution && hasPortraitV2Evidence(previousResolution.primaryPortrait)
+        ? previousResolution.primaryPortrait
+        : null;
 
       // Calculate risk level for this student
       const studentRisks = riskFlags.filter(rf => rf.userId === studentId);
@@ -225,7 +235,7 @@ export async function GET(
 
       for (const dimension of dimensions) {
         const currentScore = currentPortrait.dimensions.find((item) => item.id === dimension)?.score ?? 0;
-        const previousScore = previousResolution?.primaryPortrait.dimensions.find((item) => item.id === dimension)?.score ?? currentScore;
+        const previousScore = previousPortrait?.dimensions.find((item) => item.id === dimension)?.score ?? currentScore;
         const change = Math.round((currentScore - previousScore) * 10) / 10;
 
         // Adjust risk level based on dimension-specific scores
@@ -248,7 +258,7 @@ export async function GET(
 
     // Build response
     const response: HeatmapData = {
-      students: classStudents.map(cs => ({
+      students: classStudents.filter((student) => studentIdsWithPortraitEvidence.has(student.userId)).map(cs => ({
         id: cs.user.id,
         name: cs.user.name,
         avatar: cs.user.image,

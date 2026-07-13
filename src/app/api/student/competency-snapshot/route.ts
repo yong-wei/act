@@ -20,6 +20,7 @@ import {
   type PortraitV2DimensionId,
 } from '@/lib/data-governance/kaq-objective-taxonomy';
 import {
+  hasPortraitV2Evidence,
   resolvePrimaryPortraitV2,
   summarizePortraitV2,
 } from '@/lib/data-governance/portrait-v2-consumer';
@@ -104,7 +105,48 @@ export async function GET(_request: NextRequest) {
       orderBy: { snapshotAt: 'desc' },
     });
 
+    const portraitResolution = await resolvePrimaryPortraitV2(prisma, userId, 'student', {
+      legacySnapshot: currentSnapshot,
+    });
+    const portrait = summarizePortraitV2(portraitResolution.primaryPortrait);
+
     if (!currentSnapshot) {
+      const hasPortraitV2Data = !portraitResolution.primaryPortrait.derivation.limitations.includes('missing-native-portrait-v2-evidence')
+        && (portraitResolution.primaryPortrait.derivation.kind !== 'compatibility-derived' || hasPortraitV2Evidence(portraitResolution.primaryPortrait));
+      if (hasPortraitV2Data) {
+        const currentVector = portraitResolution.legacyCompatibility.vector;
+        const snapshotAt = portrait.generatedAt;
+        const recommendations = withPortraitRecommendationRationale(
+          generateSnapshotRecommendations(currentVector, [], {}, 0, portrait),
+          portrait,
+        );
+        return NextResponse.json({
+          currentSnapshot: {
+            portrait,
+            legacyCompatibility: {
+              authority: 'legacy-compatibility-only',
+              source: portraitResolution.legacyCompatibility.source,
+            },
+            vector: currentVector,
+            snapshotAt,
+            factCount: 0,
+          },
+          previousSnapshot: null,
+          trendVector: Object.fromEntries(
+            Object.keys(currentVector).map((key) => [key, 'stable']),
+          ) as unknown as TrendVector,
+          evidenceSummary: mapEvidenceSummaryToPortrait({}),
+          riskFlags: [],
+          recommendations,
+          diagnosis: materializeRoleBasedLearningDiagnosis({
+            view: 'student',
+            goalId: 'control-correction',
+            userId,
+            targetUserId: userId,
+            diagnosisReportSnapshot: null,
+          }),
+        } satisfies StudentSnapshotResponse);
+      }
       return NextResponse.json({
         currentSnapshot: null,
         previousSnapshot: null,
@@ -188,35 +230,16 @@ export async function GET(_request: NextRequest) {
         ) as unknown as TrendVector);
 
     // Generate basic recommendations based on snapshot data
-    const portraitResolution = await resolvePrimaryPortraitV2(prisma, userId, 'student', {
-      legacySnapshot: currentSnapshot,
-    });
-    const portrait = summarizePortraitV2(portraitResolution.primaryPortrait);
-
-    const weakPortrait = [...portrait.dimensions]
-      .filter((dimension) => dimension.evidenceCount > 0)
-      .sort((left, right) => left.score - right.score)[0]
-      ?? [...portrait.dimensions].sort((left, right) => left.score - right.score)[0];
-    const recommendations = generateSnapshotRecommendations(
-      currentVector,
-      riskFlags,
-      evidenceSummary,
-      currentSnapshot.factCount,
+    const recommendations = withPortraitRecommendationRationale(
+      generateSnapshotRecommendations(
+        currentVector,
+        riskFlags,
+        evidenceSummary,
+        currentSnapshot.factCount,
+        portrait,
+      ),
       portrait,
-    ).map((recommendation) => ({
-      ...recommendation,
-      rationale: {
-        ...recommendation.rationale,
-        portraitV2: {
-          dimensionIds: portrait.dimensions.map((dimension) => dimension.id),
-          weakDimensionId: weakPortrait?.id ?? null,
-          derivationKind: portrait.derivationKind,
-          confidence: weakPortrait?.confidence ?? 0,
-          freshness: weakPortrait?.freshness ?? { state: 'missing', asOf: null, evidenceAgeDays: null },
-          limitations: portrait.limitations,
-        },
-      },
-    }));
+    );
 
     const response: StudentSnapshotResponse = {
       currentSnapshot: {
@@ -325,6 +348,31 @@ function mapEvidenceSummaryToPortrait(
 function truncateOptionalText(value: string | undefined, maxLength: number = 96) {
   if (typeof value !== 'string') return undefined;
   return value.length > maxLength ? `${value.slice(0, maxLength)}...` : value;
+}
+
+function withPortraitRecommendationRationale(
+  recommendations: StudentSnapshotResponse['recommendations'],
+  portrait: PortraitV2ConsumerSummary,
+): StudentSnapshotResponse['recommendations'] {
+  const weakPortrait = [...portrait.dimensions]
+    .filter((dimension) => dimension.evidenceCount > 0)
+    .sort((left, right) => left.score - right.score)[0]
+    ?? [...portrait.dimensions].sort((left, right) => left.score - right.score)[0];
+
+  return recommendations.map((recommendation) => ({
+    ...recommendation,
+    rationale: {
+      ...recommendation.rationale,
+      portraitV2: {
+        dimensionIds: portrait.dimensions.map((dimension) => dimension.id),
+        weakDimensionId: weakPortrait?.id ?? null,
+        derivationKind: portrait.derivationKind,
+        confidence: weakPortrait?.confidence ?? 0,
+        freshness: weakPortrait?.freshness ?? { state: 'missing', asOf: null, evidenceAgeDays: null },
+        limitations: portrait.limitations,
+      },
+    },
+  }));
 }
 
 /**

@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 
+import { createEmptyCompetencyVector } from '@/lib/data-governance/competency-model';
+import { derivePortraitV2Compatibility } from '@/lib/data-governance/portrait-v2-model';
+
 const mocks = vi.hoisted(() => {
   const getServerAuthSession = vi.fn();
 
@@ -15,6 +18,9 @@ const mocks = vi.hoisted(() => {
         findUnique: vi.fn(),
       },
       studentCompetencySnapshot: {
+        findFirst: vi.fn(),
+      },
+      studentPortraitV2Snapshot: {
         findFirst: vi.fn(),
       },
       studentRiskFlag: {
@@ -44,6 +50,7 @@ describe('GET /api/student/competency-snapshot', () => {
     mocks.prisma.$queryRaw.mockResolvedValue([{ exists: false }]);
     mocks.prisma.diagnosisReportSnapshot.findMany.mockResolvedValue([]);
     mocks.prisma.studentProfile.findUnique.mockResolvedValue({ classId: 'class-1' });
+    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue(null);
 
     mocks.prisma.studentCompetencySnapshot.findFirst
       .mockResolvedValueOnce({
@@ -198,5 +205,47 @@ describe('GET /api/student/competency-snapshot', () => {
         growthPercentile: { percentile: 65 },
       },
     });
+  });
+
+  it('returns a persisted portrait v2 when the legacy competency snapshot is absent', async () => {
+    const now = new Date('2026-03-19T09:00:00.000Z');
+    const vector = createEmptyCompetencyVector();
+    for (const entry of Object.values(vector)) {
+      entry.score = 70;
+      entry.confidence = 0.8;
+      entry.evidenceCount = 3;
+      entry.lastUpdated = now.toISOString();
+    }
+    const payload = derivePortraitV2Compatibility({
+      userId: 'student-1',
+      snapshotId: 'legacy-source-1',
+      snapshotAt: now.toISOString(),
+      sourceFamily: 'StudentCompetencySnapshot',
+      vector,
+      now,
+    });
+
+    mocks.prisma.studentCompetencySnapshot.findFirst.mockReset().mockResolvedValue(null);
+    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue({
+      id: 'portrait-1',
+      userId: 'student-1',
+      snapshotAt: now,
+      payloadVersion: payload.payloadVersion,
+      calculationVersion: 'portrait-v2-primary.v1',
+      migrationVersion: payload.migrationVersion,
+      derivationKind: 'compatibility-derived',
+      payload,
+    });
+
+    const response = await GET(new NextRequest('http://localhost/api/student/competency-snapshot?timeRange=30d'));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.currentSnapshot).toMatchObject({
+      factCount: 0,
+      snapshotAt: now.toISOString(),
+    });
+    expect(body.currentSnapshot.portrait.dimensions).toHaveLength(7);
+    expect(body.currentSnapshot.portrait.derivationKind).toBe('compatibility-derived');
   });
 });
