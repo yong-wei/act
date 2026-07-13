@@ -1,7 +1,6 @@
 #!/usr/bin/env tsx
 
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
 
 import {
   inspectPortraitV2PrimaryUsage,
@@ -81,7 +80,11 @@ function inspectDiff(diff: string): PortraitV2PrimaryGateIssue[] {
 
   const flush = () => {
     if (!filePath) return;
-    const source = existsSync(filePath) ? readFileSync(filePath, 'utf8') : addedLines.join('\n');
+    const source = readVersionedSource(
+      filePath,
+      options.staged ? 'index' : 'HEAD',
+      addedLines.join('\n'),
+    );
     issues.push(...inspectPortraitV2PrimaryUsage({
       filePath,
       addedLines,
@@ -121,6 +124,22 @@ function inspectDiff(diff: string): PortraitV2PrimaryGateIssue[] {
   }
   flush();
   return issues;
+}
+
+function readVersionedSource(
+  filePath: string,
+  version: 'index' | 'HEAD',
+  fallback: string,
+): string {
+  try {
+    return execFileSync('git', ['show', version === 'index' ? `:${filePath}` : `HEAD:${filePath}`], {
+      encoding: 'utf8',
+      maxBuffer: 64 * 1024 * 1024,
+      stdio: ['ignore', 'pipe', 'ignore'],
+    });
+  } catch {
+    return fallback;
+  }
 }
 
 function countChangedFiles(diff: string): number {
