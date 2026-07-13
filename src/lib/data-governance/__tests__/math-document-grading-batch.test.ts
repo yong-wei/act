@@ -843,9 +843,10 @@ describe('question-scoped grading batch orchestration', () => {
       rubricSnapshot: {}, referenceAnswer: 'Cite the margin.', policyId: null, policy: null, rerunReason: null, items: [item],
     };
     const evidence = { id: item.evidenceId, version: 1, sourceHash: item.evidenceHash, readiness: 'READY', blocks: [] };
+    const retryJobUpdates: any[] = [];
     const db: any = {
       gradingBatch: { findUnique: async () => batch, updateMany: async ({ data }: any) => { Object.assign(batch, data); return { count: 1 }; } },
-      gradingJob: { findUnique: async () => ({ id: 'retry-job-identity', kind: 'RETRY', state: 'QUEUED', batchId: batch.id, batchItemId: item.id, rerunIdentity: 'rerun:retry:job-identity', reason: 'provider timeout' }), updateMany: async () => ({ count: 1 }) },
+      gradingJob: { findUnique: async () => ({ id: 'retry-job-identity', kind: 'RETRY', state: 'QUEUED', batchId: batch.id, batchItemId: item.id, rerunIdentity: 'rerun:retry:job-identity', reason: 'provider timeout' }), updateMany: async ({ data }: any) => { retryJobUpdates.push(data); return { count: 1 }; } },
       gradingBatchItem: { updateMany: async ({ data }: any) => { Object.assign(item, data); return { count: 1 }; }, update: async ({ data }: any) => { Object.assign(item, data); return item; }, groupBy: async () => [{ state: item.state, _count: { _all: 1 } }] },
       submissionAttempt: { findUnique: async () => ({ id: item.attemptId, answerVersion: 1, textSnapshot: 'stability evidence', answer: { question: { contentHash: 'sha256:question' }, assets: [] } }) },
       answerEvidence: { findUnique: async () => evidence },
@@ -858,5 +859,9 @@ describe('question-scoped grading batch orchestration', () => {
       idempotencyKey: expect.stringContaining('rerun:retry:job-identity'),
       rerunReason: expect.stringContaining('provider timeout'),
     }));
+    expect(item.state).toBe('FAILED');
+    expect(retryJobUpdates).toEqual(expect.arrayContaining([
+      expect.objectContaining({ state: 'FAILED', workerClaimToken: null, completedAt: expect.any(Date) }),
+    ]));
   });
 });

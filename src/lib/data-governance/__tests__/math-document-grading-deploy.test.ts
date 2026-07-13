@@ -154,6 +154,13 @@ describe('math-document grading production entrypoint contract', () => {
     expect(remoteDeploy).toContain('数学文档批改 worker 已禁用，跳过其专用健康检查');
   });
 
+  it('keeps the example grading-run retention policy internally consistent', () => {
+    const example = read('deploy/podman/.env.server.example');
+    expect(example).toContain('GRADING_RUN_RETENTION_SECONDS=\n');
+    expect(example).toContain('GRADING_RUN_GOVERNED_RECORD_RULE=grading-run-governed-record.v1');
+    expect(example).toContain('GRADING_RUN_DELETE_STRATEGY=retain-governed-record');
+  });
+
   it('does not accept client evaluator identity on the provider-backed API surface', () => {
     for (const route of [
       'src/app/api/teacher/document-grading/pipeline/grading/route.ts',

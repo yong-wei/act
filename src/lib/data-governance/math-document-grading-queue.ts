@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto';
+
 import { Queue } from 'bullmq';
 
 import { redisClient } from '@/lib/redis-client';
@@ -47,7 +49,7 @@ export async function enqueueMathDocumentGradingJob(input: MathDocumentGradingJo
     return { queued: false, queueJobId: null, state: 'RETRYABLE', retryable: true, errorCode: 'queue-unavailable' };
   }
   try {
-    const job = await activeQueue.add(input.kind, input, { jobId: input.jobId });
+    const job = await activeQueue.add(input.kind, input, { jobId: `delivery-${input.kind}-${randomUUID()}` });
     await markQueueQueued(db, input);
     return { queued: true, queueJobId: job.id ?? null, state: 'QUEUED', retryable: false };
   } catch {

@@ -103,7 +103,17 @@ describe('math-document grading queue durability', () => {
     const result = await recoverMathDocumentGradingQueue({ db, limit: 10 });
 
     expect(result).toEqual(expect.objectContaining({ scanned: 1, queued: 1, failed: 0 }));
-    expect(mocks.queue.add).toHaveBeenCalledWith('batch', expect.objectContaining({ jobId: 'job-recover-1', batchId: 'batch-1' }), expect.objectContaining({ jobId: 'job-recover-1' }));
+    expect(mocks.queue.add).toHaveBeenCalledWith('batch', expect.objectContaining({ jobId: 'job-recover-1', batchId: 'batch-1' }), expect.objectContaining({ jobId: expect.stringMatching(/^delivery-batch-/) }));
+  });
+
+  it('uses a fresh BullMQ delivery id when a durable retryable job is re-enqueued', async () => {
+    const input = { kind: 'grading' as const, jobId: 'job-delivery-identity', gradingRunId: 'run-delivery-identity' };
+    await enqueueMathDocumentGradingJob(input);
+    await enqueueMathDocumentGradingJob(input);
+
+    const deliveryIds = mocks.queue.add.mock.calls.map((call: any[]) => call[2].jobId);
+    expect(new Set(deliveryIds).size).toBe(2);
+    expect(deliveryIds.every((id: string) => id.startsWith('delivery-grading-'))).toBe(true);
   });
 
   it('recovers an expired conversion lease with a CAS before re-enqueueing', async () => {

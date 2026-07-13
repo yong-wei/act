@@ -375,8 +375,43 @@ export async function processQuestionGradingBatch(input: {
   const aggregate = await updateBatchAggregate(input.db, batch.id, batch.totalItems, now);
   const { updated, state, progress, retryable, terminal } = aggregate;
   if (input.jobId) {
-    const jobState = state === 'RETRYABLE' ? 'RETRYABLE' : state === 'FAILED' ? 'FAILED' : state === 'BLOCKED' ? 'BLOCKED' : state === 'CANCELLED' ? 'CANCELLED' : terminal ? 'SUCCEEDED' : 'RUNNING';
-    await updateBatchJobWorkerRecord(input.db.gradingJob, input.jobId, { state: jobState, progress, completedAt: terminal ? now : null, ...(terminal || jobState === 'RETRYABLE' ? { workerClaimToken: null, workerClaimedAt: null, workerLeaseExpiresAt: null } : {}), lastErrorCode: state === 'PARTIAL' ? 'batch-partial' : retryable > 0 ? 'batch-item-retryable' : null, updatedAt: now }, input.workerClaimToken);
+    const retryItemResult = input.itemId ? itemResults.find((result) => result.itemId === input.itemId) : null;
+    const retryJobState = retryItemResult?.state === 'RETRYABLE'
+      ? 'RETRYABLE'
+      : retryItemResult?.state === 'BLOCKED'
+        ? 'BLOCKED'
+        : retryItemResult?.state === 'CANCELLED'
+          ? 'CANCELLED'
+          : retryItemResult?.state === 'FAILED'
+            ? 'FAILED'
+            : 'SUCCEEDED';
+    const jobState = input.itemId
+      ? retryJobState
+      : state === 'RETRYABLE'
+        ? 'RETRYABLE'
+        : state === 'FAILED'
+          ? 'FAILED'
+          : state === 'BLOCKED'
+            ? 'BLOCKED'
+            : state === 'CANCELLED'
+              ? 'CANCELLED'
+              : terminal
+                ? 'SUCCEEDED'
+                : 'RUNNING';
+    const jobIsRetryItem = Boolean(input.itemId);
+    const jobTerminal = jobIsRetryItem ? jobState !== 'RETRYABLE' : terminal;
+    const jobProgress = jobIsRetryItem ? (jobState === 'RETRYABLE' ? 60 : 100) : progress;
+    const jobData = {
+      state: jobState,
+      progress: jobProgress,
+      completedAt: jobTerminal ? now : null,
+      ...(jobIsRetryItem
+        ? { nextRunAt: jobState === 'RETRYABLE' ? new Date(now.getTime() + 5_000) : null, workerClaimToken: null, workerClaimedAt: null, workerLeaseExpiresAt: null }
+        : (terminal || jobState === 'RETRYABLE' ? { workerClaimToken: null, workerClaimedAt: null, workerLeaseExpiresAt: null } : {})),
+      lastErrorCode: jobIsRetryItem ? retryItemResult?.error ?? null : state === 'PARTIAL' ? 'batch-partial' : retryable > 0 ? 'batch-item-retryable' : null,
+      updatedAt: now,
+    };
+    await updateBatchJobWorkerRecord(input.db.gradingJob, input.jobId, jobData, input.workerClaimToken);
   }
   return { batch: updated, itemResults };
 }
