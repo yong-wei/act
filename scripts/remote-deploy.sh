@@ -446,11 +446,16 @@ log "- 校验公网认证会话接口"
 wait_for_public_session_api 120 || fail "公网认证会话接口未在预期时间内恢复"
 
 log "- 校验公网 readyz 健康接口"
-curl -fsS "${PUBLIC_URL%/}/api/readyz" | grep -q '"db":true'
-curl -fsS "${PUBLIC_URL%/}/api/readyz" | grep -q '"redis":true'
-curl -fsS "${PUBLIC_URL%/}/api/readyz" | grep -q '"mathDocumentGradingWorker":{"required":true,"ready":true}'
-curl -fsS "${PUBLIC_URL%/}/api/readyz" | grep -q '"configReady":true'
-curl -fsS "${PUBLIC_URL%/}/api/readyz" | grep -q '"auditSecret":true'
+readyz_response="$(curl -fsS "${PUBLIC_URL%/}/api/readyz")"
+printf '%s\n' "$readyz_response" | grep -q '"db":true'
+printf '%s\n' "$readyz_response" | grep -q '"redis":true'
+if [[ "${MATH_DOCUMENT_GRADING_WORKER_REQUIRED}" =~ ^(1|true|yes)$ ]]; then
+  printf '%s\n' "$readyz_response" | grep -q '"mathDocumentGradingWorker":{"required":true,"ready":true}'
+  printf '%s\n' "$readyz_response" | grep -q '"configReady":true'
+  printf '%s\n' "$readyz_response" | grep -q '"auditSecret":true'
+else
+  printf '%s\n' "$readyz_response" | grep -q '"mathDocumentGradingWorker":{"required":false,"ready":true}'
+fi
 
 log
 log "远端部署完成并验证通过"

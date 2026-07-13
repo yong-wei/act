@@ -154,6 +154,18 @@ describe('math-document grading production entrypoint contract', () => {
     expect(remoteDeploy).toContain('数学文档批改 worker 已禁用，跳过其专用健康检查');
   });
 
+  it('validates public readyz according to the optional math worker requirement', () => {
+    const remoteDeploy = read('scripts/remote-deploy.sh');
+    const readyzStart = remoteDeploy.indexOf('log "- 校验公网 readyz 健康接口"');
+    const readyzEnd = remoteDeploy.indexOf('\nlog\nlog "远端部署完成并验证通过"', readyzStart);
+    const readyzBlock = remoteDeploy.slice(readyzStart, readyzEnd);
+
+    expect(readyzBlock).toContain('readyz_response=');
+    expect(readyzBlock).toContain('"mathDocumentGradingWorker":{"required":true,"ready":true}');
+    expect(readyzBlock).toContain('"mathDocumentGradingWorker":{"required":false,"ready":true}');
+    expect(readyzBlock).toContain('if [[ "${MATH_DOCUMENT_GRADING_WORKER_REQUIRED}" =~ ^(1|true|yes)$ ]]; then');
+  });
+
   it('keeps the example grading-run retention policy internally consistent', () => {
     const example = read('deploy/podman/.env.server.example');
     expect(example).toContain('GRADING_RUN_RETENTION_SECONDS=\n');
