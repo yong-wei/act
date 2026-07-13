@@ -378,6 +378,10 @@ export async function GET(
           studentRiskFlags.find((flag) => flag.severity)?.severity ??
           null
       );
+      const portraitFactCount = portraitV2.dimensions.reduce(
+        (count, dimension) => count + dimension.evidenceCount,
+        0,
+      );
 
       return {
         id: studentProfile.user.id,
@@ -405,8 +409,8 @@ export async function GET(
             : studentRiskFlags.map((flag) => flag.description),
         growthRecordCount: growthMap.get(studentProfile.userId) ?? 0,
         recommendationCount: recommendationMap.get(studentProfile.userId) ?? 0,
-        factCount: snapshot?.factCount ?? 0,
-        lastSnapshotAt: snapshot?.snapshotAt.toISOString() ?? null,
+        factCount: hasPortraitEvidence ? portraitFactCount : snapshot?.factCount ?? 0,
+        lastSnapshotAt: hasPortraitEvidence ? portraitV2.generatedAt : snapshot?.snapshotAt.toISOString() ?? null,
         portraitV2,
         evidenceStatus: evidenceStatusMap.get(studentProfile.userId)!,
       };

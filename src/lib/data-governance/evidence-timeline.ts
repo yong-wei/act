@@ -708,6 +708,9 @@ function matchesDimension(
       contribution[dimension as CompetencyDimension] !== 0;
   }
   const portraitDimension = dimension as PortraitV2DimensionId;
+  if (Number.isFinite(contribution[portraitDimension]) && contribution[portraitDimension] !== 0) {
+    return true;
+  }
   // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: map legacy evidence contributions into portrait dimensions.
   return COMPETENCY_DIMENSIONS.some((legacyDimension) =>
     mapLegacyCompetencyDimensionToPortraitV2(legacyDimension).targetDimensions.includes(portraitDimension) &&

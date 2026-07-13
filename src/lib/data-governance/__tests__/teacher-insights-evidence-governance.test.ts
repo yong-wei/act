@@ -52,6 +52,9 @@ const mocks = vi.hoisted(() => {
         findMany: vi.fn(),
         findUnique: vi.fn(),
       },
+      studentPortraitV2Snapshot: {
+        findFirst: vi.fn(),
+      },
       classSessionReport: {
         findMany: vi.fn(),
       },
@@ -99,6 +102,11 @@ import {
   STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
   type StudentSimulationArenaFeatureSummary,
 } from '../student-evidence-feature-cache';
+import {
+  PORTRAIT_V2_CALCULATION_VERSION,
+  PORTRAIT_V2_DIMENSION_IDS,
+  createPortraitV2Payload,
+} from '../portrait-v2-model';
 
 function enrolledStudent(userId: string, name: string) {
   return {
@@ -352,6 +360,50 @@ function competencyVector(score: number) {
   };
 }
 
+function nativePortraitSnapshot(userId = 'student-v2-only') {
+  const generatedAt = '2026-05-20T08:00:00.000Z';
+  const payload = createPortraitV2Payload({
+    userId,
+    generatedAt,
+    now: new Date(generatedAt),
+    dimensions: PORTRAIT_V2_DIMENSION_IDS.map((id) => ({
+      id,
+      score: 72,
+      confidence: 0.8,
+      freshness: {
+        state: 'current' as const,
+        asOf: generatedAt,
+        evidenceAgeDays: 0,
+      },
+      evidenceSummary: {
+        totalCount: 1,
+        sourceFamilyCounts: { LearningFact: 1 },
+      },
+      lastPositiveEvidenceAt: generatedAt,
+      lastNegativeEvidenceAt: null,
+      rationale: 'Governed evidence supports the current score.',
+      limitations: [],
+      sourceLineage: [{
+        kind: 'evidence-family' as const,
+        ref: 'LearningFact',
+        privacyScope: 'student-visible' as const,
+      }],
+      calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+    })),
+  });
+
+  return {
+    id: `portrait:${userId}`,
+    userId,
+    snapshotAt: new Date(generatedAt),
+    payloadVersion: payload.payloadVersion,
+    calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+    migrationVersion: payload.migrationVersion,
+    derivationKind: payload.derivation.kind,
+    payload,
+  };
+}
+
 describe('teacher evidence governance insights', () => {
   beforeEach(() => {
     vi.useFakeTimers({ toFake: ['Date'] });
@@ -366,6 +418,7 @@ describe('teacher evidence governance insights', () => {
     mocks.prisma.$queryRaw.mockResolvedValue([{ exists: false }]);
     mocks.prisma.diagnosisReportSnapshot.findMany.mockResolvedValue([]);
     mocks.prisma.studentEvidenceFeatureCache.findMany.mockResolvedValue([]);
+    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue(null);
   });
 
   afterEach(() => {
@@ -762,6 +815,44 @@ describe('teacher evidence governance insights', () => {
       state: 'missing',
       confidence: { level: 'none', evidenceCount: 0 },
       lastEvidenceAt: null,
+    });
+  });
+
+  it('uses native portrait evidence metadata for a v2-only class student', async () => {
+    mocks.prisma.class.findUnique.mockResolvedValue({
+      id: 'class-1',
+      name: '自动控制 1 班',
+      code: 'AC101',
+      description: '数据治理试点班',
+      semester: '春季',
+      year: '2026',
+      teacherId: 'teacher-1',
+      students: [enrolledStudent('student-v2-only', '原生画像学生')],
+    });
+    mocks.prisma.classCompetencySnapshot.findFirst.mockResolvedValue(null);
+    mocks.prisma.studentCompetencySnapshot.findMany.mockResolvedValue([]);
+    mocks.prisma.studentProfileSummary.findMany.mockResolvedValue([]);
+    mocks.prisma.studentRiskFlag.findMany.mockResolvedValue([]);
+    mocks.prisma.growthRecord.groupBy.mockResolvedValue([]);
+    mocks.prisma.learningRecommendation.groupBy.mockResolvedValue([]);
+    mocks.prisma.classSession.findMany.mockResolvedValue([]);
+    mocks.prisma.learningFact.findMany.mockResolvedValue([]);
+    mocks.prisma.learningFact.groupBy.mockResolvedValue([]);
+    mocks.prisma.classSessionReport.findMany.mockResolvedValue([]);
+    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue(nativePortraitSnapshot());
+
+    const response = await getClassInsights(
+      new Request('http://localhost/api/teacher/classes/class-1/insights'),
+      { params: Promise.resolve({ classId: 'class-1' }) },
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.students[0]).toMatchObject({
+      id: 'student-v2-only',
+      overallScoreSource: 'portrait-v2',
+      factCount: 7,
+      lastSnapshotAt: '2026-05-20T08:00:00.000Z',
     });
   });
 

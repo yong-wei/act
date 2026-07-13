@@ -75,7 +75,10 @@ function hasNearbyCompatibilityMarker(
     lineNumber >= range.start && lineNumber <= range.end
   );
   if (compatibilityRange && sourceLines
-    .slice(compatibilityRange.start - 1, compatibilityRange.end)
+    .slice(
+      Math.max(compatibilityRange.start - 1, lineNumber - COMPATIBILITY_CONTEXT_RADIUS - 1),
+      Math.min(compatibilityRange.end, lineNumber + COMPATIBILITY_CONTEXT_RADIUS),
+    )
     .some((sourceLine) => PORTRAIT_V2_COMPATIBILITY_MARKERS.some((marker) => sourceLine.includes(marker)))) {
     return true;
   }

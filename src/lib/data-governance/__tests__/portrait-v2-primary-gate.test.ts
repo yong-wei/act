@@ -40,6 +40,7 @@ describe('portrait v2 primary usage gate', () => {
       filePath: 'src/lib/data-governance/consumer.ts',
       addedLines: ['const vector = state.primaryCompetencies.vector;'],
       addedLineNumbers: [12],
+      compatibilityRanges: [{ start: 1, end: 12 }],
       source: `// ${PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER}\n${'\n'.repeat(9)}const vector = state.primaryCompetencies.vector;`,
     });
 
@@ -56,7 +57,7 @@ describe('portrait v2 primary usage gate', () => {
       addedLines: ['const vector = state.primaryCompetencies.vector;'],
       addedLineNumbers: [12],
       compatibilityRanges: [{ start: 1, end: 12 }],
-      source: `// ${PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER}\n${'\n'.repeat(10)}const vector = state.primaryCompetencies.vector;`,
+      source: `${'\n'.repeat(8)}// ${PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER}\n${'\n'.repeat(2)}const vector = state.primaryCompetencies.vector;`,
     });
 
     expect(issues).toEqual([]);
