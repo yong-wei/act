@@ -73,6 +73,31 @@ describe('portrait v2 consumer adapters', () => {
     expect(resolution.primaryPortrait.derivation.kind).toBe('native');
     expect(resolution.primaryPortrait.dimensions).toHaveLength(7);
     expect(resolution.legacyCompatibility.authority).toBe('legacy-compatibility-only');
+    expect(resolution.legacyCompatibility.source).toBe('fallback-empty');
+  });
+
+  it('preserves the legacy vector as compatibility data alongside a native portrait', async () => {
+    const payload = nativePortrait();
+    const snapshot = legacySnapshot();
+    const resolution = await resolvePrimaryPortraitV2({
+      studentPortraitV2Snapshot: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'portrait-1',
+          userId: 'student-1',
+          snapshotAt: now,
+          payloadVersion: payload.payloadVersion,
+          calculationVersion: 'portrait-v2-primary.v1',
+          migrationVersion: payload.migrationVersion,
+          derivationKind: 'native',
+          payload,
+        }),
+      },
+    }, 'student-1', 'student', { now, legacySnapshot: snapshot });
+
+    expect(resolution.primaryPortrait.derivation.kind).toBe('native');
+    expect(resolution.legacyCompatibility.source).toBe('StudentCompetencySnapshot');
+    expect(resolution.legacyCompatibility.vector.controlModeling.score).toBe(60);
+    expect(resolution.legacyCompatibility.authority).toBe('legacy-compatibility-only');
   });
 
   it('prefers the cache primary marker over a legacy snapshot', async () => {
@@ -97,7 +122,8 @@ describe('portrait v2 consumer adapters', () => {
     });
 
     expect(resolution.primaryPortrait.derivation.kind).toBe('native');
-    expect(resolution.legacyCompatibility.source).toBe('fallback-empty');
+    expect(resolution.legacyCompatibility.source).toBe('StudentCompetencySnapshot');
+    expect(resolution.legacyCompatibility.vector.controlModeling.score).toBe(60);
   });
 
   it('projects legacy input only through the explicit compatibility path', async () => {

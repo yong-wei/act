@@ -111,15 +111,12 @@ export async function resolvePrimaryPortraitV2(
 ): Promise<ResolvedPortraitV2Consumer> {
   const now = options.now ?? new Date();
   const limitations: string[] = [];
+  let primaryPortrait: PortraitV2ProjectedPayload | null = null;
 
   try {
     const persisted = await readLatestPortraitV2Snapshot(db, userId, consumer, { now });
     if (persisted) {
-      return {
-        primaryPortrait: persisted,
-        legacyCompatibility: emptyLegacyCompatibility(now),
-        limitations: [],
-      };
+      primaryPortrait = persisted;
     }
   } catch (error) {
     if (error instanceof PortraitV2SnapshotValidationError) {
@@ -129,16 +126,14 @@ export async function resolvePrimaryPortraitV2(
     }
   }
 
-  const cachedPortrait = readCachedPortrait(options.featureCache, consumer, now);
-  if (cachedPortrait.payload) {
-    return {
-      primaryPortrait: cachedPortrait.payload,
-      legacyCompatibility: emptyLegacyCompatibility(now),
-      limitations,
-    };
-  }
-  if (cachedPortrait.invalid) {
-    limitations.push('persisted-portrait-v2-invalid-or-incompatible');
+  if (!primaryPortrait) {
+    const cachedPortrait = readCachedPortrait(options.featureCache, consumer, now);
+    if (cachedPortrait.payload) {
+      primaryPortrait = cachedPortrait.payload;
+    }
+    if (cachedPortrait.invalid) {
+      limitations.push('persisted-portrait-v2-invalid-or-incompatible');
+    }
   }
 
   const legacySnapshot = Object.prototype.hasOwnProperty.call(options, 'legacySnapshot')
@@ -149,7 +144,7 @@ export async function resolvePrimaryPortraitV2(
       }) ?? null;
   const legacyVector = toCompetencyVector(legacySnapshot?.competencyVector);
   if (legacyVector) {
-    return buildCompatibilityResult({
+    const compatibilityResult = buildCompatibilityResult({
       userId,
       vector: legacyVector,
       snapshotId: readString(legacySnapshot?.id),
@@ -159,6 +154,14 @@ export async function resolvePrimaryPortraitV2(
       now,
       limitations,
     });
+    if (primaryPortrait) {
+      return {
+        primaryPortrait,
+        legacyCompatibility: compatibilityResult.legacyCompatibility,
+        limitations: compatibilityResult.limitations,
+      };
+    }
+    return compatibilityResult;
   }
 
   const featureCache = Object.prototype.hasOwnProperty.call(options, 'featureCache')
@@ -169,7 +172,7 @@ export async function resolvePrimaryPortraitV2(
   const featureSnapshot = readLegacyFeatureSnapshot(featureCache);
   const cachedVector = toCompetencyVector(featureSnapshot?.competencyVector);
   if (cachedVector) {
-    return buildCompatibilityResult({
+    const compatibilityResult = buildCompatibilityResult({
       userId,
       vector: cachedVector,
       snapshotId: null,
@@ -179,6 +182,22 @@ export async function resolvePrimaryPortraitV2(
       now,
       limitations,
     });
+    if (primaryPortrait) {
+      return {
+        primaryPortrait,
+        legacyCompatibility: compatibilityResult.legacyCompatibility,
+        limitations: compatibilityResult.limitations,
+      };
+    }
+    return compatibilityResult;
+  }
+
+  if (primaryPortrait) {
+    return {
+      primaryPortrait,
+      legacyCompatibility: emptyLegacyCompatibility(now),
+      limitations,
+    };
   }
 
   return buildCompatibilityResult({
