@@ -1,3 +1,4 @@
+// PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy vector types are compatibility-only.
 import {
   createEmptyCompetencyVector,
   type CompetencyDimension,
@@ -40,6 +41,7 @@ export interface PortraitV2ConsumerDb extends PortraitV2SnapshotReadDb {
   };
 }
 
+// PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: preserve legacy provenance outside the primary portrait.
 export interface PortraitV2LegacyCompatibility {
   authority: 'legacy-compatibility-only';
   source: 'StudentCompetencySnapshot' | 'StudentEvidenceFeatureCache' | 'fallback-empty';
@@ -151,6 +153,7 @@ export async function resolvePrimaryPortraitV2(
         where: { userId },
         orderBy: [{ snapshotAt: 'desc' }, { id: 'desc' }],
     }) ?? null;
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: read the legacy snapshot only as a compatibility projection.
   const legacyVector = toCompetencyVector(legacySnapshot?.competencyVector);
   if (legacyVector) {
     const compatibilityInput = {
@@ -158,6 +161,7 @@ export async function resolvePrimaryPortraitV2(
       vector: legacyVector,
       snapshotId: readString(legacySnapshot?.id),
       snapshotAt: dateToIso(legacySnapshot?.snapshotAt) ?? now.toISOString(),
+      // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: identify the legacy source for compatibility metadata.
       source: 'StudentCompetencySnapshot',
       consumer,
       now,
@@ -175,6 +179,7 @@ export async function resolvePrimaryPortraitV2(
   }
 
   const featureSnapshot = readLegacyFeatureSnapshot(featureCache);
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: read the feature-cache vector only as a compatibility projection.
   const cachedVector = toCompetencyVector(featureSnapshot?.competencyVector);
   if (cachedVector) {
     const compatibilityInput = {
@@ -182,6 +187,7 @@ export async function resolvePrimaryPortraitV2(
       vector: cachedVector,
       snapshotId: null,
       snapshotAt: dateToIso(featureSnapshot?.snapshotAt) ?? now.toISOString(),
+      // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: identify the cached legacy source for compatibility metadata.
       source: 'StudentEvidenceFeatureCache',
       consumer,
       now,
@@ -324,6 +330,7 @@ export function aggregatePortraitV2(
 
 function buildCompatibilityResult(input: {
   userId: string;
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: this vector is not primary portrait truth.
   vector: CompetencyVector;
   snapshotId: string | null;
   snapshotAt: string;
@@ -401,6 +408,7 @@ function readLegacyFeatureSnapshot(cache: Record<string, unknown> | null | undef
   return asRecord(asRecord(asRecord(cache?.features).approvedAggregates).latestSnapshot);
 }
 
+// PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: validate the legacy six-dimensional compatibility shape.
 function toCompetencyVector(value: unknown): CompetencyVector | null {
   const record = asRecord(value);
   if (!COMPETENCY_DIMENSIONS.every((dimension) => {
@@ -409,9 +417,11 @@ function toCompetencyVector(value: unknown): CompetencyVector | null {
   })) {
     return null;
   }
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: return only the validated compatibility vector.
   return record as unknown as CompetencyVector;
 }
 
+// PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy dimensions are accepted only for compatibility reads.
 const COMPETENCY_DIMENSIONS: CompetencyDimension[] = [
   'controlModeling',
   'parameterDesign',
