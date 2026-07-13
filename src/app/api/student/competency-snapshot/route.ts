@@ -111,8 +111,7 @@ export async function GET(_request: NextRequest) {
     const portrait = summarizePortraitV2(portraitResolution.primaryPortrait);
 
     if (!currentSnapshot) {
-      const hasPortraitV2Data = !portraitResolution.primaryPortrait.derivation.limitations.includes('missing-native-portrait-v2-evidence')
-        && (portraitResolution.primaryPortrait.derivation.kind !== 'compatibility-derived' || hasPortraitV2Evidence(portraitResolution.primaryPortrait));
+      const hasPortraitV2Data = hasPortraitV2Evidence(portraitResolution.primaryPortrait);
       if (hasPortraitV2Data) {
         const currentVector = portraitResolution.legacyCompatibility.vector;
         const snapshotAt = portrait.generatedAt;

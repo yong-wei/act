@@ -2,7 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 
 import { createEmptyCompetencyVector } from '@/lib/data-governance/competency-model';
-import { derivePortraitV2Compatibility } from '@/lib/data-governance/portrait-v2-model';
+import { PORTRAIT_V2_DIMENSIONS } from '@/lib/data-governance/kaq-objective-taxonomy';
+import { createPortraitV2Payload, derivePortraitV2Compatibility } from '@/lib/data-governance/portrait-v2-model';
 
 const mocks = vi.hoisted(() => {
   const getServerAuthSession = vi.fn();
@@ -247,5 +248,47 @@ describe('GET /api/student/competency-snapshot', () => {
     expect(body.currentSnapshot.factCount).toBeGreaterThan(0);
     expect(body.currentSnapshot.portrait.dimensions).toHaveLength(7);
     expect(body.currentSnapshot.portrait.derivationKind).toBe('compatibility-derived');
+  });
+
+  it('keeps an evidence-free native portrait in the empty response branch', async () => {
+    const now = new Date('2026-03-19T09:00:00.000Z');
+    const payload = createPortraitV2Payload({
+      userId: 'student-1',
+      generatedAt: now.toISOString(),
+      now,
+      derivation: { kind: 'native', limitations: [] },
+      dimensions: PORTRAIT_V2_DIMENSIONS.map(({ id }) => ({
+        id,
+        score: 0,
+        confidence: 0,
+        trend: 'stable' as const,
+        freshness: { state: 'missing' as const, asOf: null, evidenceAgeDays: null },
+        evidenceSummary: { totalCount: 0, sourceFamilyCounts: {} },
+        lastPositiveEvidenceAt: null,
+        lastNegativeEvidenceAt: null,
+        rationale: 'No safe legacy mapping exists.',
+        limitations: ['missing-native-portrait-v2-evidence'],
+        sourceLineage: [],
+        calculationVersion: 'portrait-v2-primary.v1',
+      })),
+    });
+
+    mocks.prisma.studentCompetencySnapshot.findFirst.mockReset().mockResolvedValue(null);
+    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue({
+      id: 'portrait-empty-1',
+      userId: 'student-1',
+      snapshotAt: now,
+      payloadVersion: payload.payloadVersion,
+      calculationVersion: 'portrait-v2-primary.v1',
+      migrationVersion: payload.migrationVersion,
+      derivationKind: 'native',
+      payload,
+    });
+
+    const response = await GET(new NextRequest('http://localhost/api/student/competency-snapshot?timeRange=30d'));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.currentSnapshot).toBeNull();
   });
 });
