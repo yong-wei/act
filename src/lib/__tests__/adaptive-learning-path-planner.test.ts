@@ -17,12 +17,14 @@ import {
 import { deterministicPathConstraintRepairAdapter } from '../adaptive-planning/path-constraint-repair';
 import { rankResourceLearnerCandidates } from '../adaptive-planning/resource-ranker';
 import { buildControlCorrectionResourceNodeRegistry } from '../control-correction-resource-seed';
+import { createEmptyCompetencyVector } from '../data-governance/competency-model';
 import {
   AUTOCONTROL_KAQ_GRAPH_CATALOG,
   AUTOCONTROL_KAQ_GRAPH_VERSION,
   AUTOCONTROL_KAQ_OBJECTIVES,
 } from '../data-governance/autocontrol-kaq-graph-catalog';
 import { expandLearningGoalSubgraph } from '../graphs/goal-subgraph-expansion-service';
+import { derivePortraitV2Compatibility, projectPortraitV2ForConsumer } from '../data-governance/portrait-v2-model';
 import { buildKaqArtifactVersionRefs, GRAPH_CENTER_OVERLAY_VERSION } from '../kaq-artifact-versioning';
 import {
   applyCoreResourcePathReadinessDispositions,
@@ -4744,6 +4746,22 @@ describe('adaptive learning path planner', () => {
         },
       }],
     });
+    const portraitVector = createEmptyCompetencyVector();
+    portraitVector.parameterDesign = {
+      score: 20,
+      trend: 'stable',
+      confidence: 0.6,
+      evidenceCount: 2,
+      lastUpdated: '2026-05-27T08:00:00.000Z',
+    };
+    const portraitNow = new Date('2026-05-27T08:00:00.000Z');
+    const primaryPortrait = projectPortraitV2ForConsumer(derivePortraitV2Compatibility({
+      userId: 'student-1',
+      snapshotAt: portraitNow.toISOString(),
+      sourceFamily: 'StudentCompetencySnapshot',
+      vector: portraitVector,
+      now: portraitNow,
+    }), 'reviewer', { now: portraitNow });
 
     const plan = buildAdaptiveLearningPathPlan(plannerInput({
       registry,
@@ -4764,6 +4782,7 @@ describe('adaptive learning path planner', () => {
             parameterDesign: { score: 0.2, confidence: 0.6, evidenceCount: 1 },
           },
         },
+        primaryPortrait,
         evidence: {
           confidence: {
             level: 'medium',

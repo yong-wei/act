@@ -2419,13 +2419,12 @@ function inferDeficits(
       .map((targetId) => {
         const competency = competencies[targetId];
         const portraitDimensionIds = portraitDimensionIdsForTarget(targetId);
-      const portraitScores = portraitDimensionIds
-        .map((id) => learnerState?.primaryPortrait?.dimensions.find((dimension) => dimension.id === id))
-        .filter((dimension): dimension is NonNullable<typeof dimension> => Boolean(dimension));
-      const legacyScore = competency?.score ?? 0;
-      const value = portraitScores.length > 0
-        ? portraitScores.reduce((sum, dimension) => sum + dimension.score, 0) / portraitScores.length / 100
-        : legacyScore > 1 ? legacyScore / 100 : legacyScore;
+        const portraitScores = portraitDimensionIds
+          .map((id) => learnerState?.primaryPortrait?.dimensions.find((dimension) => dimension.id === id))
+          .filter((dimension): dimension is NonNullable<typeof dimension> => Boolean(dimension));
+        const value = portraitScores.length > 0
+          ? normalizeCompetencyScore(portraitScores.reduce((sum, dimension) => sum + dimension.score, 0) / portraitScores.length)
+          : normalizeCompetencyScore(competency?.score ?? 0);
         const confidence = portraitScores.length > 0
           ? portraitScores.reduce((sum, dimension) => sum + dimension.confidence, 0) / portraitScores.length
           : competency?.confidence ?? 0;
@@ -3897,9 +3896,13 @@ function learnerCompetencyScore(
     .map((id) => learnerState?.primaryPortrait?.dimensions.find((item) => item.id === id)?.score)
     .filter((score): score is number => typeof score === 'number' && Number.isFinite(score));
   if (portraitScores.length > 0) {
-    return portraitScores.reduce((sum, score) => sum + score, 0) / portraitScores.length;
+    return normalizeCompetencyScore(portraitScores.reduce((sum, score) => sum + score, 0) / portraitScores.length);
   }
-  return learnerState?.primaryCompetencies?.vector?.[dimension]?.score ?? 0;
+  return normalizeCompetencyScore(learnerState?.primaryCompetencies?.vector?.[dimension]?.score ?? 0);
+}
+
+function normalizeCompetencyScore(score: number): number {
+  return score > 1 ? score / 100 : score;
 }
 
 function portraitDimensionIdsForTarget(targetId: string): PortraitV2DimensionId[] {
