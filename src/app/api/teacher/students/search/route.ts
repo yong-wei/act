@@ -70,6 +70,7 @@ export async function GET(request: Request) {
       andConditions.push({
         OR: [
           { profile: { is: null } },
+          { profile: { is: { classId: null } } },
           {
             profile: {
               is: {

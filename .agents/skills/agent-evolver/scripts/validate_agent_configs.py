@@ -7,13 +7,7 @@ from pathlib import Path
 
 
 MODEL_REASONING_EFFORTS = {
-    "gpt-5.6-sol": {"low", "medium", "high", "xhigh", "max", "ultra"},
-    "gpt-5.6-terra": {"low", "medium", "high", "xhigh", "max", "ultra"},
-    "gpt-5.6-luna": {"low", "medium", "high", "xhigh", "max"},
-    "gpt-5.5": {"low", "medium", "high", "xhigh"},
-    "gpt-5.4": {"low", "medium", "high", "xhigh"},
-    "gpt-5.4-mini": {"low", "medium", "high", "xhigh"},
-    "gpt-5.3-codex-spark": {"low", "medium", "high", "xhigh"},
+    "gpt-5.6-sol": {"low", "medium", "high"},
 }
 ALLOWED_SANDBOX = {"read-only", "workspace-write", "danger-full-access"}
 CATALOG_START = "# project-agent-catalog:start"
