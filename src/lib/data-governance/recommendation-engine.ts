@@ -28,7 +28,12 @@ import {
   resolvePrimaryPortraitV2,
   summarizePortraitV2,
 } from './portrait-v2-consumer';
-import type { PortraitV2ProjectedPayload } from './portrait-v2-model';
+import {
+  PORTRAIT_V2_FRESHNESS_CURRENT_MAX_AGE_DAYS,
+  PORTRAIT_V2_FRESHNESS_PARTIAL_MAX_AGE_DAYS,
+  type PortraitV2ProjectedPayload,
+} from './portrait-v2-model';
+import { mapLegacyCompetencyDimensionToPortraitV2 } from './kaq-objective-taxonomy';
 
 export type RecommendationType = 'immediate' | 'weekly' | 'challenge';
 export type RecommendationEvidenceBasis =
@@ -111,6 +116,7 @@ export interface Recommendation {
 export interface RecommendationContext {
   userId: string;
   competencyVector: CompetencyVector;
+  competencyVectorBasis: 'learner-state' | 'portrait-v2' | 'legacy' | 'none';
   riskFlags: RiskFlag[];
   recentFacts: Array<{
     factType: string;
@@ -120,6 +126,8 @@ export interface RecommendationContext {
   }>;
   learnerState: AdaptiveLearnerState | null;
   portraitV2: PortraitV2ProjectedPayload;
+  portraitEvidence: RecommendationEvidenceContext | null;
+  now: Date;
   evidence: RecommendationEvidenceContext;
   learningHistory: {
     totalMissions: number;
@@ -215,6 +223,7 @@ const RECOMMENDATION_RULES: RecommendationRule[] = [
     type: 'immediate',
     evidenceRole: 'direct',
     condition: (ctx) => {
+      if (!hasVectorEvidenceFor(ctx, ['crossDomainTransfer', 'controlModeling'])) return false;
       const crossScore = ctx.competencyVector.crossDomainTransfer.score;
       const controlScore = ctx.competencyVector.controlModeling.score;
       return controlScore > 70 && crossScore < 50;
@@ -254,7 +263,19 @@ const RECOMMENDATION_RULES: RecommendationRule[] = [
     id: 'weak-dimension-practice',
     type: 'weekly',
     evidenceRole: 'direct',
-    condition: (ctx) => weakPortraitDimension(ctx).score < 60,
+    condition: (ctx) => {
+      const weakest = weakPortraitDimension(ctx);
+      // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy dimensions are non-authoritative contributor gates.
+      const legacyContributors = COMPETENCY_DIMENSIONS.filter((dimension) =>
+        mapLegacyCompetencyDimensionToPortraitV2(dimension).targetDimensions.includes(weakest.id)
+      );
+      return weakest.evidenceCount > 0
+        && ctx.portraitV2.derivation.kind !== 'migrated'
+        && (ctx.portraitEvidence
+          ? weakest.freshness.state === 'current' && weakest.confidence >= 0.45
+          : hasVectorEvidenceFor(ctx, legacyContributors))
+        && weakest.score < 60;
+    },
     generate: (ctx) => {
       const weakest = weakPortraitDimension(ctx);
       const label = weakest.label;
@@ -279,6 +300,7 @@ const RECOMMENDATION_RULES: RecommendationRule[] = [
     type: 'weekly',
     evidenceRole: 'direct',
     condition: (ctx) => {
+      if (!hasVectorEvidenceFor(ctx, ['inquiryReflection'])) return false;
       const reflectionScore = ctx.competencyVector.inquiryReflection.score;
       return reflectionScore < 65 && reflectionScore > 40;
     },
@@ -299,7 +321,9 @@ const RECOMMENDATION_RULES: RecommendationRule[] = [
     id: 'engineering-decision-practice',
     type: 'weekly',
     evidenceRole: 'direct',
-    condition: (ctx) => ctx.competencyVector.engineeringDecision.score < 60,
+    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy vector scores remain compatibility-only.
+    condition: (ctx) => hasVectorEvidenceFor(ctx, ['engineeringDecision'])
+      && ctx.competencyVector.engineeringDecision.score < 60,
     generate: () => ({
       title: '工程决策训练',
       description: '通过仿真实验强化工程约束意识，学习在多目标间做出权衡决策。',
@@ -336,6 +360,8 @@ const RECOMMENDATION_RULES: RecommendationRule[] = [
     type: 'challenge',
     evidenceRole: 'direct',
     condition: (ctx) => {
+      // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy dimensions remain compatibility-only rule inputs.
+      if (!hasVectorEvidenceFor(ctx, COMPETENCY_DIMENSIONS)) return false;
       const avgScore = COMPETENCY_DIMENSIONS.reduce((sum, d) => sum + ctx.competencyVector[d].score, 0)
         / COMPETENCY_DIMENSIONS.length;
       return avgScore > 75;
@@ -358,7 +384,9 @@ const RECOMMENDATION_RULES: RecommendationRule[] = [
     type: 'challenge',
     evidenceRole: 'direct',
     condition: (ctx) => {
-      return ctx.competencyVector.engineeringDecision.score > 70;
+      // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy vector scores remain compatibility-only.
+      return hasVectorEvidenceFor(ctx, ['engineeringDecision'])
+        && ctx.competencyVector.engineeringDecision.score > 70;
     },
     generate: () => ({
       title: '伦理决策挑战',
@@ -378,7 +406,9 @@ const RECOMMENDATION_RULES: RecommendationRule[] = [
     type: 'challenge',
     evidenceRole: 'direct',
     condition: (ctx) => {
-      return ctx.competencyVector.parameterDesign.score > 70
+      // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy vector scores remain compatibility-only.
+      return hasVectorEvidenceFor(ctx, ['parameterDesign', 'controlModeling'])
+        && ctx.competencyVector.parameterDesign.score > 70
         && ctx.competencyVector.controlModeling.score > 65;
     },
     generate: () => ({
@@ -399,7 +429,9 @@ const RECOMMENDATION_RULES: RecommendationRule[] = [
     type: 'challenge',
     evidenceRole: 'context',
     condition: (ctx) => {
-      return ctx.competencyVector.selfDirectedLearning.score > 70
+      // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy vector scores remain compatibility-only.
+      return hasVectorEvidenceFor(ctx, ['selfDirectedLearning'])
+        && ctx.competencyVector.selfDirectedLearning.score > 70
         && ctx.learningHistory.streakDays >= 7;
     },
     generate: () => ({
@@ -414,6 +446,28 @@ const RECOMMENDATION_RULES: RecommendationRule[] = [
     }),
   },
 ];
+
+const VECTOR_COMPATIBILITY_RULE_IDS = new Set([
+  'cross-domain-boost',
+  'prompt-design-improvement',
+  'engineering-decision-practice',
+  'expert-mission-challenge',
+  'ethics-sandbox-challenge',
+  'design-optimization-challenge',
+  'self-directed-project',
+]);
+
+// PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy dimensions only map compatibility rules to portrait v2.
+const VECTOR_RULE_DIMENSIONS: Partial<Record<string, readonly CompetencyDimension[]>> = {
+  'cross-domain-boost': ['crossDomainTransfer', 'controlModeling'],
+  'prompt-design-improvement': ['inquiryReflection'],
+  'engineering-decision-practice': ['engineeringDecision'],
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: all legacy dimensions remain non-authoritative.
+  'expert-mission-challenge': COMPETENCY_DIMENSIONS,
+  'ethics-sandbox-challenge': ['engineeringDecision'],
+  'design-optimization-challenge': ['parameterDesign', 'controlModeling'],
+  'self-directed-project': ['selfDirectedLearning'],
+};
 
 /**
  * Generate recommendations for a user
@@ -453,6 +507,7 @@ export async function generateRecommendations(userId: string): Promise<Recommend
  * Build recommendation context from database
  */
 async function buildRecommendationContext(userId: string): Promise<RecommendationContext> {
+  const now = new Date();
   const featureRead = await readStudentEvidenceFeatures(prisma, userId);
   const featureCache = normalizeFeatureCache(featureRead.cache);
   const cachedVector = getCachedCompetencyVector(featureCache);
@@ -525,20 +580,40 @@ async function buildRecommendationContext(userId: string): Promise<Recommendatio
     userId,
     'student',
     {
+      now,
       legacySnapshot: snapshot,
       featureCache,
     },
   )).primaryPortrait;
+  const hasAuthoritativePortrait = ['native', 'migrated'].includes(portraitV2.derivation.kind);
+  const portraitCompatibilityVector = hasAuthoritativePortrait
+    ? deriveLegacyCompatibilityVectorFromPortrait(portraitV2, now)
+    : null;
   // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy vector remains only for rules and metadata not yet v2-shaped.
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: all fallback vector sources are non-authoritative.
   const competencyVector =
-    learnerStateVector ??
-    cachedVector ??
-    (snapshot?.competencyVector as unknown as CompetencyVector | null) ??
+    portraitCompatibilityVector ??
+    (!hasAuthoritativePortrait ? learnerStateVector : null) ??
+    (!hasAuthoritativePortrait ? cachedVector : null) ??
+    (!hasAuthoritativePortrait ? snapshot?.competencyVector as unknown as CompetencyVector | null : null) ??
     createEmptyVector();
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: this source vector is compatibility provenance only.
+  const legacyVector = cachedVector ?? (snapshot?.competencyVector as unknown as CompetencyVector | null);
+  const competencyVectorBasis = portraitCompatibilityVector
+      ? 'portrait-v2'
+      : !hasAuthoritativePortrait && learnerStateVector
+        ? 'learner-state'
+        : !hasAuthoritativePortrait && legacyVector
+          ? 'legacy'
+          : 'none';
+  const portraitEvidence = hasAuthoritativePortrait
+    ? buildPortraitRecommendationEvidenceContext(portraitV2, now)
+    : null;
 
   return {
     userId,
     competencyVector,
+    competencyVectorBasis,
     riskFlags: riskFlags.map(rf => ({
       type: rf.flagType as RiskFlag['type'],
       severity: rf.severity as RiskFlag['severity'],
@@ -552,6 +627,8 @@ async function buildRecommendationContext(userId: string): Promise<Recommendatio
     })),
     learnerState,
     portraitV2,
+    portraitEvidence,
+    now,
     evidence: buildRecommendationEvidenceContext({
       featureReadState: featureRead.state,
       featureCache,
@@ -565,6 +642,71 @@ async function buildRecommendationContext(userId: string): Promise<Recommendatio
       streakDays,
     },
   };
+}
+
+function deriveLegacyCompatibilityVectorFromPortrait(
+  portrait: PortraitV2ProjectedPayload,
+  now: Date
+): CompetencyVector | null {
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: this non-authoritative vector serves unmigrated rules only.
+  if (portrait.dimensions.some((dimension) =>
+    dimension.evidenceSummary.totalCount === 0
+      || effectivePortraitFreshness(dimension, now) !== 'current'
+      || dimension.confidence < 0.45
+  )) {
+    return null;
+  }
+
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy vector entries are compatibility-only projections.
+  const entries: Array<[CompetencyDimension, CompetencyVector[CompetencyDimension]]> = [];
+  for (const dimension of COMPETENCY_DIMENSIONS) {
+    const targetDimensions = mapLegacyCompetencyDimensionToPortraitV2(dimension).targetDimensions;
+    const mapped = targetDimensions
+      .map((id) => portrait.dimensions.find((item) => item.id === id))
+      .filter((item): item is PortraitV2ProjectedPayload['dimensions'][number] =>
+        Boolean(item
+          && item.evidenceSummary.totalCount > 0
+          && effectivePortraitFreshness(item, now) === 'current'
+          && item.confidence >= 0.45)
+      );
+    if (mapped.length !== targetDimensions.length) return null;
+
+    const trends = new Set(mapped.map((item) => item.trend ?? 'stable'));
+    entries.push([dimension, {
+      score: mapped.reduce((sum, item) => sum + item.score, 0) / mapped.length,
+      confidence: Math.min(...mapped.map((item) => item.confidence)),
+      evidenceCount: mapped.reduce((sum, item) => sum + item.evidenceSummary.totalCount, 0),
+      trend: trends.size === 1 ? [...trends][0] : 'stable',
+      lastUpdated: mapped
+        .map((item) => item.freshness.asOf ?? portrait.generatedAt)
+        .sort()
+        .at(-1) ?? portrait.generatedAt,
+    }]);
+  }
+
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: the returned legacy vector is non-authoritative.
+  return Object.fromEntries(entries) as unknown as CompetencyVector;
+}
+
+function hasVectorEvidenceFor(
+  context: RecommendationContext,
+  dimensions: readonly CompetencyDimension[]
+): boolean {
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy vector evidence is never a primary portrait.
+  if (context.competencyVectorBasis === 'portrait-v2') {
+    return true;
+  }
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: validate non-authoritative vector evidence per dimension.
+  return (context.competencyVectorBasis === 'legacy' || context.competencyVectorBasis === 'learner-state')
+    && dimensions.every((dimension) =>
+    Number.isFinite(context.competencyVector[dimension].evidenceCount)
+      && context.competencyVector[dimension].evidenceCount > 0
+      && Number.isFinite(Date.parse(context.competencyVector[dimension].lastUpdated))
+      && context.now.getTime() - Date.parse(context.competencyVector[dimension].lastUpdated) >= 0
+      // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: bound compatibility evidence freshness.
+      && context.now.getTime() - Date.parse(context.competencyVector[dimension].lastUpdated)
+          <= PORTRAIT_V2_FRESHNESS_PARTIAL_MAX_AGE_DAYS * 86_400_000
+  );
 }
 
 function isLearnerStateUsableForDirectPersonalization(
@@ -593,52 +735,86 @@ function buildRecommendationRationale(
   rule: RecommendationRule,
   context: RecommendationContext
 ): RecommendationRationale {
-  const simulationArena = buildRecommendationSimulationArenaRationale(context.evidence.simulationArena);
-  const pathExecution = buildRecommendationPathExecutionRationale(context.evidence.pathExecution);
+  const weakestPortrait = weakPortraitDimension(context);
+  const portraitDriven = context.portraitEvidence && (
+    rule.id === 'weak-dimension-practice'
+    || (context.competencyVectorBasis === 'portrait-v2' && VECTOR_COMPATIBILITY_RULE_IDS.has(rule.id))
+  );
+  const ruleScopedPortrait = rule.id === 'weak-dimension-practice'
+    || VECTOR_COMPATIBILITY_RULE_IDS.has(rule.id);
+  const portraitDimensionIds = rule.id === 'weak-dimension-practice'
+    ? weakestPortrait.id ? [weakestPortrait.id] : []
+    : [...new Set((VECTOR_RULE_DIMENSIONS[rule.id] ?? []).flatMap((dimension) =>
+      mapLegacyCompetencyDimensionToPortraitV2(dimension).targetDimensions
+    ))];
+  const rationalePortraitDimensionIds = ruleScopedPortrait
+    ? portraitDimensionIds
+    : summarizePortraitV2(context.portraitV2).dimensions.map((dimension) => dimension.id);
+  const rationalePortraitDimension = ruleScopedPortrait
+    ? weakPortraitDimension(context, portraitDimensionIds)
+    : weakestPortrait;
+  const evidence = portraitDriven
+    ? buildPortraitRecommendationEvidenceContext(context.portraitV2, context.now, portraitDimensionIds)
+    : context.evidence;
+  const simulationArena = buildRecommendationSimulationArenaRationale(evidence.simulationArena);
+  const pathExecution = buildRecommendationPathExecutionRationale(evidence.pathExecution);
   const confidenceState = resolveRationaleConfidenceState(
-    resolveConfidenceState(context.evidence),
+    resolveConfidenceState(evidence),
     simulationArena,
     pathExecution,
   );
   const portrait = summarizePortraitV2(context.portraitV2);
-  const weakestPortrait = weakPortraitDimension(context);
 
   return {
     reasonCode: rule.id,
-    evidenceBasis: context.evidence.basis,
+    evidenceBasis: evidence.basis,
     evidenceRole: rule.evidenceRole,
     contextOnly: rule.evidenceRole === 'context',
-    evidenceWindow: context.evidence.evidenceWindow,
-    evidenceCount: context.evidence.evidenceCount,
-    sourceCoverage: context.evidence.sourceCoverage,
+    evidenceWindow: evidence.evidenceWindow,
+    evidenceCount: evidence.evidenceCount,
+    sourceCoverage: evidence.sourceCoverage,
     confidence: {
       state: confidenceState,
-      level: capContextOnlyConfidence(rule.evidenceRole, context.evidence.confidence.level),
-      score: context.evidence.confidence.score,
-      markers: context.evidence.statusMarkers,
+      level: capContextOnlyConfidence(rule.evidenceRole, evidence.confidence.level),
+      score: evidence.confidence.score,
+      markers: evidence.statusMarkers,
     },
-    portraitV2: {
-      dimensionIds: portrait.dimensions.map((dimension) => dimension.id),
-      weakDimensionId: weakestPortrait.id,
-      derivationKind: portrait.derivationKind,
-      confidence: weakestPortrait.confidence,
-      freshness: weakestPortrait.freshness,
-      limitations: portrait.limitations,
-    },
+    ...(ruleScopedPortrait ? {
+      portraitV2: {
+        dimensionIds: rationalePortraitDimensionIds,
+        weakDimensionId: rationalePortraitDimension.id,
+        derivationKind: portrait.derivationKind,
+        confidence: rationalePortraitDimension.confidence,
+        freshness: rationalePortraitDimension.freshness,
+        limitations: portrait.limitations,
+      },
+    } : {}),
     ...(simulationArena ? { simulationArena } : {}),
     ...(pathExecution ? { pathExecution } : {}),
   };
 }
 
-function weakPortraitDimension(context: RecommendationContext) {
+function weakPortraitDimension(
+  context: RecommendationContext,
+  dimensionIds?: readonly string[]
+) {
   const summary = summarizePortraitV2(context.portraitV2);
-  const covered = summary.dimensions.filter((dimension) => dimension.evidenceCount > 0);
-  const pool = covered.length > 0 ? covered : summary.dimensions;
-  return [...pool].sort((left, right) => left.score - right.score)[0] ?? {
+  const selectedIds = dimensionIds ? new Set(dimensionIds) : null;
+  const covered = summary.dimensions.flatMap((dimension) => {
+    if (selectedIds && !selectedIds.has(dimension.id)) return [];
+    const source = context.portraitV2.dimensions.find((item) => item.id === dimension.id);
+    if (!source || dimension.evidenceCount === 0) return [];
+    const freshness = effectivePortraitFreshnessDetail(source, context.now);
+    if (freshness.state === 'stale') return [];
+    if (context.portraitEvidence && (freshness.state !== 'current' || dimension.confidence < 0.45)) return [];
+    return [{ ...dimension, freshness }];
+  });
+  return [...covered].sort((left, right) => left.score - right.score)[0] ?? {
     id: 'simulationValidationEvidence' as const,
     label: '仿真验证与证据',
     score: 0,
     confidence: 0,
+    evidenceCount: 0,
     freshness: { state: 'missing', asOf: null, evidenceAgeDays: null },
   };
 }
@@ -689,6 +865,95 @@ function buildRecommendationEvidenceContext(input: {
     },
     statusMarkers: ['missing-source'],
   };
+}
+
+function buildPortraitRecommendationEvidenceContext(
+  portrait: PortraitV2ProjectedPayload,
+  now: Date,
+  dimensionIds?: readonly string[]
+): RecommendationEvidenceContext {
+  const selectedIds = dimensionIds ? new Set(dimensionIds) : null;
+  const covered = portrait.dimensions.filter((dimension) =>
+    dimension.evidenceSummary.totalCount > 0 && (!selectedIds || selectedIds.has(dimension.id))
+  );
+  const timestamps = covered
+    .map((dimension) => dimension.freshness.asOf)
+    .filter((value): value is string => Boolean(value))
+    .sort();
+  const lastStartedAt = timestamps.at(-1) ?? portrait.generatedAt;
+  const sourceFamilies = new Set(covered.flatMap((dimension) =>
+    Object.keys(dimension.evidenceSummary.sourceFamilyCounts)
+  ));
+  const familyCounts = Object.fromEntries([...sourceFamilies].map((family) => [
+    family,
+    Math.max(...covered.map((dimension) => dimension.evidenceSummary.sourceFamilyCounts[family] ?? 0)),
+  ]));
+  const evidenceCount = Object.values(familyCounts).reduce((sum, count) => sum + count, 0);
+  const learningFactCount = familyCounts.LearningFact ?? 0;
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy snapshot counts are compatibility provenance only.
+  const legacySnapshotCount = familyCounts.StudentCompetencySnapshot ?? 0;
+  const confidenceScore = covered.length > 0
+    ? Math.min(...covered.map((dimension) => dimension.confidence))
+    : 0;
+  const confidenceLevel = confidenceScore >= 0.75
+    ? 'high'
+    : confidenceScore >= 0.45
+      ? 'medium'
+      : confidenceScore > 0
+        ? 'low'
+        : 'none';
+
+  const freshnessStates = covered.map((dimension) => effectivePortraitFreshness(dimension, now));
+  const hasStale = freshnessStates.includes('stale');
+  const hasPartial = freshnessStates.includes('partial');
+  const statusMarkers: StudentEvidenceStatusMarker[] = [
+    ...(hasPartial ? ['partial' as const] : []),
+    ...(hasStale ? ['stale' as const] : []),
+    ...(confidenceScore > 0 && confidenceScore < 0.45 ? ['low-confidence' as const] : []),
+  ];
+  return {
+    basis: 'portrait-v2',
+    readState: evidenceCount === 0 ? 'missing' : hasStale ? 'stale' : 'ready',
+    evidenceWindow: {
+      firstStartedAt: null,
+      lastStartedAt,
+      daysCovered: 0,
+    },
+    evidenceCount,
+    sourceCoverage: {
+      LearningFact: learningFactCount > 0 ? 'available' : 'missing',
+      // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy snapshot coverage is non-authoritative provenance.
+      StudentCompetencySnapshot: legacySnapshotCount > 0 ? 'available' : 'missing',
+      StudentProfileSummary: 'missing',
+    },
+    confidence: { level: confidenceLevel, score: confidenceScore },
+    statusMarkers: evidenceCount > 0 ? statusMarkers : ['missing-source'],
+  };
+}
+
+function effectivePortraitFreshness(
+  dimension: PortraitV2ProjectedPayload['dimensions'][number],
+  now: Date
+): 'current' | 'partial' | 'stale' | 'missing' {
+  return effectivePortraitFreshnessDetail(dimension, now).state;
+}
+
+function effectivePortraitFreshnessDetail(
+  dimension: PortraitV2ProjectedPayload['dimensions'][number],
+  now: Date
+): PortraitV2ProjectedPayload['dimensions'][number]['freshness'] {
+  if (!dimension.freshness.asOf || dimension.evidenceSummary.totalCount === 0) {
+    return { state: 'missing', asOf: null, evidenceAgeDays: null };
+  }
+  const ageDays = Math.floor((now.getTime() - Date.parse(dimension.freshness.asOf)) / 86_400_000);
+  const state = ageDays < 0
+    ? 'stale'
+    : ageDays <= PORTRAIT_V2_FRESHNESS_CURRENT_MAX_AGE_DAYS
+    ? 'current'
+    : ageDays <= PORTRAIT_V2_FRESHNESS_PARTIAL_MAX_AGE_DAYS
+      ? 'partial'
+      : 'stale';
+  return { state, asOf: dimension.freshness.asOf, evidenceAgeDays: ageDays };
 }
 
 function normalizeFeatureCache(cache: Record<string, unknown> | null): Record<string, unknown> | null {
