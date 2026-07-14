@@ -23,34 +23,40 @@ class AgentEvolverToolTests(unittest.TestCase):
             text=True,
         )
 
+    def require_local_agent_configuration(self) -> None:
+        if not (REPO_ROOT / ".codex" / "config.toml").exists():
+            self.skipTest("project-local .codex configuration is intentionally untracked")
+
     def test_repository_agent_configuration_validates(self) -> None:
+        self.require_local_agent_configuration()
         result = self.run_python(VALIDATE_SCRIPT, "--root", str(REPO_ROOT))
         self.assertEqual(result.returncode, 0, msg=result.stderr or result.stdout)
         self.assertIn("validated", result.stdout)
         self.assertIn("20 agent files", result.stdout)
 
     def test_repository_agents_use_approved_gpt_56_assignments(self) -> None:
+        self.require_local_agent_configuration()
         expected_assignments = {
-            "agent-router": ("gpt-5.6-luna", "high"),
+            "agent-router": ("gpt-5.6-sol", "medium"),
             "ai-context-reviewer": ("gpt-5.6-sol", "medium"),
-            "code-mapper": ("gpt-5.6-luna", "xhigh"),
+            "code-mapper": ("gpt-5.6-sol", "low"),
             "course-pedagogy-reviewer": ("gpt-5.6-sol", "medium"),
             "critical-reviewer": ("gpt-5.6-sol", "high"),
             "data-governance-reviewer": ("gpt-5.6-sol", "medium"),
-            "deep-debugger": ("gpt-5.6-luna", "xhigh"),
-            "explorer-librarian": ("gpt-5.6-luna", "xhigh"),
+            "deep-debugger": ("gpt-5.6-sol", "medium"),
+            "explorer-librarian": ("gpt-5.6-sol", "low"),
             "independent-reviewer": ("gpt-5.6-sol", "medium"),
-            "long-context-investigator": ("gpt-5.6-terra", "high"),
-            "patch-worker": ("gpt-5.6-luna", "max"),
+            "long-context-investigator": ("gpt-5.6-sol", "medium"),
+            "patch-worker": ("gpt-5.6-sol", "medium"),
             "performance-reviewer": ("gpt-5.6-sol", "medium"),
-            "release-sentinel": ("gpt-5.6-sol", "medium"),
-            "retro-analyst": ("gpt-5.6-luna", "high"),
-            "security-reviewer": ("gpt-5.6-sol", "medium"),
+            "release-sentinel": ("gpt-5.6-sol", "high"),
+            "retro-analyst": ("gpt-5.6-sol", "medium"),
+            "security-reviewer": ("gpt-5.6-sol", "high"),
             "simulation-domain-reviewer": ("gpt-5.6-sol", "medium"),
-            "spark-coder": ("gpt-5.6-luna", "high"),
+            "spark-coder": ("gpt-5.6-sol", "low"),
             "spec-planner": ("gpt-5.6-sol", "medium"),
-            "test-engineer": ("gpt-5.6-luna", "xhigh"),
-            "ui-flow-reviewer": ("gpt-5.6-luna", "high"),
+            "test-engineer": ("gpt-5.6-sol", "low"),
+            "ui-flow-reviewer": ("gpt-5.6-sol", "medium"),
         }
         agent_files = sorted((REPO_ROOT / ".codex" / "agents").glob("*.toml"))
         actual_assignments = {}
@@ -66,18 +72,15 @@ class AgentEvolverToolTests(unittest.TestCase):
 
     def test_reasoning_effort_is_checked_against_model_capabilities(self) -> None:
         cases = [
-            ("gpt-5.6-sol", "ultra", True),
-            ("gpt-5.6-terra", "ultra", True),
-            ("gpt-5.6-luna", "max", True),
-            ("gpt-5.6-luna", "ultra", False),
-            ("gpt-5.5", "xhigh", True),
-            ("gpt-5.5", "max", False),
-            ("gpt-5.4", "xhigh", True),
-            ("gpt-5.4", "max", False),
-            ("gpt-5.4-mini", "medium", True),
-            ("gpt-5.4-mini", "high", True),
-            ("gpt-5.3-codex-spark", "medium", True),
-            ("gpt-5.3-codex-spark", "high", True),
+            ("gpt-5.6-sol", "low", True),
+            ("gpt-5.6-sol", "medium", True),
+            ("gpt-5.6-sol", "high", True),
+            ("gpt-5.6-sol", "xhigh", False),
+            ("gpt-5.6-sol", "max", False),
+            ("gpt-5.6-sol", "ultra", False),
+            ("gpt-5.6-luna", "low", False),
+            ("gpt-5.6-terra", "medium", False),
+            ("gpt-5.5", "medium", False),
             ("gpt-unknown", "medium", False),
         ]
 
@@ -120,8 +123,8 @@ developer_instructions = \"test\"
             agents_dir.mkdir(parents=True)
             (root / ".codex" / "config.toml").write_text(
                 """# project-agent-catalog:start
-# - agent-a | .codex/agents/agent-a.toml | gpt-5.6-luna | medium | test agent
-# - agent-a | .codex/agents/agent-a.toml | gpt-5.6-luna | medium | duplicate agent
+# - agent-a | .codex/agents/agent-a.toml | gpt-5.6-sol | medium | test agent
+# - agent-a | .codex/agents/agent-a.toml | gpt-5.6-sol | medium | duplicate agent
 # project-agent-catalog:end
 
 [agents]
@@ -134,7 +137,7 @@ max_depth = 1
                 (agents_dir / f"{agent_name}.toml").write_text(
                     f"""name = \"{agent_name}\"
 description = \"test agent\"
-model = \"gpt-5.6-luna\"
+model = \"gpt-5.6-sol\"
 model_reasoning_effort = \"medium\"
 developer_instructions = \"test\"
 """,
@@ -152,7 +155,7 @@ developer_instructions = \"test\"
             agents_dir.mkdir(parents=True)
             (root / ".codex" / "config.toml").write_text(
                 """# project-agent-catalog:start
-# - agent-a | .codex/agents/not-real/agent-a.toml | gpt-5.6-luna | medium | test agent
+# - agent-a | .codex/agents/not-real/agent-a.toml | gpt-5.6-sol | medium | test agent
 # project-agent-catalog:end
 
 [agents]
@@ -164,7 +167,7 @@ max_depth = 1
             (agents_dir / "agent-a.toml").write_text(
                 """name = \"agent-a\"
 description = \"test agent\"
-model = \"gpt-5.6-luna\"
+model = \"gpt-5.6-sol\"
 model_reasoning_effort = \"medium\"
 developer_instructions = \"test\"
 """,

@@ -1,4 +1,4 @@
 name = "bad-agent"
 description = "Broken fixture missing required developer instructions."
-model = "gpt-5.4-mini"
+model = "gpt-5.6-sol"
 model_reasoning_effort = "medium"

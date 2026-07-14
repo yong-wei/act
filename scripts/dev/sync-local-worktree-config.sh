@@ -43,7 +43,7 @@ Options:
   --include-codex-plans      Compatibility flag; .codex is now synced by default.
   --link-config              Symlink shared local config from source instead of copying it.
   --link-env                 Implies --link-config; also symlink .env, .env.*, .envrc,
-                             and .codex/config.toml from source when present.
+                             from source when present.
   --replace-existing         When linking, backup and replace existing target paths.
   --init-graphs              Initialize and build codegraph and code-review-graph for target.
   --install-hooks            Install or repair managed Git hooks for codegraph and CRG.
@@ -78,6 +78,7 @@ Linked with --link-config:
   .claude/commands/
   .claude/skills/
   .codex/agents/
+  .codex/config.toml
   .codex/environments/
   .agents/skills/
   .github/
@@ -261,11 +262,17 @@ CONFIG_LINKS=(
   ".claude/commands"
   ".claude/skills"
   ".codex/agents"
+  ".codex/config.toml"
   ".codex/environments"
   ".agents/skills"
   ".github"
   ".serena/project.yml"
   ".serena/memories"
+)
+
+LOCAL_CONFIG_EXCLUDES=(
+  "AGENTS.md"
+  ".codex/"
 )
 
 OPENWOLF_KNOWLEDGE_LINKS=(
@@ -975,7 +982,7 @@ collect_env_links() {
   local rel
 
   ENV_LINKS=()
-  for rel in ".env" ".envrc" ".codex/config.toml"; do
+  for rel in ".env" ".envrc"; do
     if [[ -e "$SOURCE/$rel" ]]; then
       ENV_LINKS+=("$rel")
     fi
@@ -1379,6 +1386,12 @@ echo
 echo "Directories:"
 for rel in "${DIRS[@]}"; do
   copy_dir "$rel"
+done
+
+echo
+echo "Local config excludes:"
+for rel in "${LOCAL_CONFIG_EXCLUDES[@]}"; do
+  ensure_local_exclude "$rel"
 done
 
 if [[ "$LINK_CONFIG" -eq 1 ]]; then

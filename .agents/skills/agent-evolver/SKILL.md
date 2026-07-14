@@ -22,7 +22,7 @@ description: Use when project-local Codex custom agents under `.codex/agents/*.t
 - 校验当前配置：
   `python3 .agents/skills/agent-evolver/scripts/validate_agent_configs.py --root /abs/repo`
 - 记录一次运行质量：
-  `python3 .agents/skills/agent-evolver/scripts/record_agent_run.py --ledger .codex/agents/quality-ledger.jsonl --agent agent-router --model gpt-5.6-luna --reasoning-effort medium --task-type triage --outcome success --quality good --notes "分流准确"`
+  `python3 .agents/skills/agent-evolver/scripts/record_agent_run.py --ledger .codex/agents/quality-ledger.jsonl --agent agent-router --model gpt-5.6-sol --reasoning-effort medium --task-type triage --outcome success --quality good --notes "分流准确"`
 - 生成调参建议：
   `python3 .agents/skills/agent-evolver/scripts/propose_agent_tuning.py --ledger .codex/agents/quality-ledger.jsonl`
 
@@ -33,7 +33,7 @@ description: Use when project-local Codex custom agents under `.codex/agents/*.t
    - 推理强度过重或过轻
    - 角色边界不清
    - 说明词缺少项目特定硬约束
-3. 只做最小必要修改，不一次改多个代理的多个维度。
+3. 单次故障调参只做最小必要修改；用户明确要求整体策略迁移时，按统一矩阵同步全部角色、目录和文档。
 4. 修改后再校验配置，并补一条台账说明本次调整原因。
 
 ## Implementation
@@ -51,7 +51,7 @@ description: Use when project-local Codex custom agents under `.codex/agents/*.t
 |------|----------|
 | 看到一次超时就直接换模型 | 先看是否是任务分派错误或推理强度过重 |
 | 把 custom agents 与 skill 内 `agents/openai.yaml` 混为一谈 | 项目级 custom agents 只管 Codex 子代理，skill agent prompt 只是技能入口提示 |
-| 因 Luna 成本较低就扩大简单编码任务 | `spark-coder` 虽为 Luna high，仍必须保持窄任务边界 |
+| 因模型统一就扩大简单编码任务 | `spark-coder` 虽使用 Sol low，仍必须保持窄任务边界 |
 | 只看子代理昵称就认为命名角色生效 | 核对运行元数据中的 `agent_role`、模型和推理强度 |
 | 没看台账就改 `developer_instructions` | 先记录症状，再改约束 |
 
@@ -60,6 +60,7 @@ description: Use when project-local Codex custom agents under `.codex/agents/*.t
 - 一次同时改模型、推理强度和行为边界
 - 把项目 custom agents 的问题归因到 repo-local skill 本身
 - 让 `critical-reviewer` 或 `deep-debugger` 去承担普通读扫任务
+- 使用 Sol 之外的模型，或使用 `xhigh`、`max`、`ultra`
 - 存在匹配命名角色时仍使用继承主线程配置的自由派发
 
 这些都意味着应先停下，回到台账与校验结果。
