@@ -42,12 +42,23 @@ describe('math-document grading production entrypoint contract', () => {
   it('completes deployment preflight before removing existing containers', () => {
     const deploy = read('deploy/podman/deploy.sh');
     const removal = deploy.indexOf('if [ "$MODE" = "--all" ] || [ "$MODE" = "--db-only" ]; then\n  remove_if_exists');
+    const preflight = deploy.indexOf('# Complete all configuration validation before removing any existing');
+    const preflightBlock = deploy.slice(preflight, removal);
     expect(removal).toBeGreaterThan(-1);
     expect(deploy.lastIndexOf('require_konling_mode_context_secret', removal)).toBeGreaterThan(-1);
     expect(deploy.lastIndexOf('require_grading_audit_secret', removal)).toBeGreaterThan(-1);
     expect(deploy.lastIndexOf('require_grading_lifecycle_lookup_secret', removal)).toBeGreaterThan(-1);
     expect(deploy.lastIndexOf('require_math_document_grading_worker_config', removal)).toBeGreaterThan(-1);
     expect(deploy.lastIndexOf('require_math_document_grading_worker_config', removal)).toBeLessThan(removal);
+    expect(preflight).toBeGreaterThan(-1);
+    expect(preflightBlock).toContain('\n  validate_grading_policy_seed_config\n');
+    expect(deploy.slice(0, preflight)).toContain('ensure-grading-policies.ts --dry-run');
+    expect(preflightBlock).toContain('require_math_document_grading_worker_config');
+    expect(deploy).toContain('AI_PROVIDER_ENABLED=false 与数学文档批改 worker 不兼容');
+    for (const prefix of ['SOURCE_ASSET', 'ANSWER_EVIDENCE', 'DOCUMENT_CONVERSION', 'AI_DRAFT', 'RUN']) {
+      expect(deploy).toContain(`GRADING_${prefix}_ENABLED`);
+      expect(deploy).toContain(`GRADING_${prefix}_PROVIDER_RETENTION_SECONDS`);
+    }
   });
 
   it('exposes math worker readiness and validates its durable heartbeat in deployment', () => {

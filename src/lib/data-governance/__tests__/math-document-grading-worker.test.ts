@@ -98,6 +98,20 @@ describe('math-document grading worker recovery dispatch', () => {
     expect(status.missing).toContain('GRADING_AI_PROVIDER_ENABLED');
   });
 
+  it('rejects grading readiness when the shared AI provider is explicitly disabled', () => {
+    const status = getMathDocumentGradingWorkerCapabilityStatus({
+      NODE_ENV: 'production',
+      AI_PROVIDER_ENABLED: 'false',
+      GRADING_AI_PROVIDER_ENABLED: 'true',
+      AI_BASE_URL: 'https://api.example.com/v1',
+      AI_MODEL: 'grading-model',
+      AI_API_KEY: 'ai-key',
+    });
+
+    expect(status.capabilities.aiProvider).toBe(false);
+    expect(status.missing).toContain('AI_PROVIDER_ENABLED');
+  });
+
   it('rejects capability records with non-boolean or drifting capability keys', async () => {
     const { parseMathDocumentGradingWorkerCapability } = await import('../math-document-grading-worker-readiness');
     expect(parseMathDocumentGradingWorkerCapability(JSON.stringify({
