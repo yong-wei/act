@@ -120,6 +120,11 @@ describe('question-scoped grading batch orchestration', () => {
     expect(first.batch.questionId).toBe('question-1');
     expect(first.batch.classId).toBe('class-1');
     expect(first.items).toHaveLength(2);
+    expect(findManyCalls[0]).toMatchObject({
+      distinct: ['answerId'],
+      take: 2,
+      orderBy: { submittedAt: 'desc' },
+    });
     expect(findManyCalls[0].where).toEqual({
       answer: {
         assignmentQuestionId: 'question-1',
@@ -321,6 +326,7 @@ describe('question-scoped grading batch orchestration', () => {
     expect(conversion).toHaveBeenCalledWith(expect.objectContaining({ policyId: 'policy-conversion', policySnapshotHash: batch.conversionPolicySnapshotHash }));
     expect(conversion).not.toHaveBeenCalledWith(expect.objectContaining({ policyId: 'policy-ai' }));
     expect(conversionWorker).toHaveBeenCalledWith(expect.objectContaining({ mathpix: expect.anything() }));
+    expect(conversionWorker).toHaveBeenCalledWith(expect.objectContaining({ writeRendered: expect.any(Function) }));
     expect(grading).toHaveBeenCalledWith(expect.objectContaining({ policyId: 'policy-ai', policySnapshotHash: batch.policySnapshotHash }));
   });
 

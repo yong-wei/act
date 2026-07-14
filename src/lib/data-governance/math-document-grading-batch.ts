@@ -16,6 +16,7 @@ import {
   materializeTextAnswerEvidence,
   processDocumentConversionJob,
   processGradingRunJob,
+  writeRenderedObjectToSubmissionStore,
   renewGradingJobLease,
   assertPipelineActorScope,
   GRADING_PROVIDER_POLICY_SELECT,
@@ -602,7 +603,7 @@ async function processBatchItem(input: {
       const conversion = await enqueueDocumentConversion({ db: input.db, assetId: asset.id, attemptId: attempt.id, actor: { id: 'grading-worker', role: 'SERVICE' }, adapterVersion: 'router.v1', policyId: conversionPolicyId, policySnapshot: input.batch.conversionPolicySnapshot ?? null, policySnapshotHash: input.batch.conversionPolicySnapshotHash ?? null, idempotencyKey: `batch:${input.batch.id}:${input.item.id}:conversion${executionSuffix}`, rerunIdentity: input.rerunIdentity ?? null, reason: input.rerunReason ? `conversion-rerun:${input.rerunReason}` : 'batch-item-conversion', now: input.now });
       await updateClaimedBatchItem(input.db.gradingBatchItem, input.item.id, input.workerClaimToken, { conversionId: conversion.conversion.id, updatedAt: input.now });
       if (conversion.job) {
-        const processedConversion = await processDocumentConversionJob({ db: input.db, jobId: conversion.job.id, workerClaimToken: input.workerClaimToken, store: input.store, mathpix: conversionPolicyId ? input.mathpix : undefined, local: input.local, parentLeaseLost: input.parentLeaseLost, signal: input.signal, now: input.now });
+        const processedConversion = await processDocumentConversionJob({ db: input.db, jobId: conversion.job.id, workerClaimToken: input.workerClaimToken, store: input.store, writeRendered: input.store ? (rendered) => writeRenderedObjectToSubmissionStore({ store: input.store!, ...rendered }) : undefined, mathpix: conversionPolicyId ? input.mathpix : undefined, local: input.local, parentLeaseLost: input.parentLeaseLost, signal: input.signal, now: input.now });
         if (processedConversion.conversion.state === 'CANCELLED') throw new Error('batch-cancelled');
         if (processedConversion.conversion.state === 'RETRYABLE') throw new Error('batch-conversion-retryable');
         if (processedConversion.conversion.state === 'BLOCKED') throw new Error('batch-conversion-blocked');
@@ -641,11 +642,11 @@ async function findEligibleQuestionAttempts(db: MathGradingDb, input: { assignme
   const attempts = await db.submissionAttempt.findMany({
     where: { answer: { assignmentQuestionId: input.questionId, state: 'SUBMITTED', submission: { assignmentRevisionId: input.assignmentRevisionId, frozenAudienceClassId: input.classId, state: 'SUBMITTED' } } },
     orderBy: { submittedAt: 'desc' },
+    distinct: ['answerId'],
     take: input.maxItems,
     select: { id: true, answerId: true, answerVersion: true },
   });
-  const seen = new Set<string>();
-  return attempts.filter((attempt: any) => !seen.has(attempt.answerId) && seen.add(attempt.answerId));
+  return attempts;
 }
 
 function batchTerminalJobState(state: string): 'SUCCEEDED' | 'FAILED' | 'CANCELLED' | 'BLOCKED' | 'CONTENT_UNAVAILABLE' {
