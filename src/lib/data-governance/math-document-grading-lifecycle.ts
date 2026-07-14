@@ -224,6 +224,11 @@ function legacyGradingTombstoneLookupKey(resourceKey: string): string | null {
   }
 }
 
+function legacyPhaseFourGradingTombstoneLookupKey(resourceKey: string): string {
+  const phaseFourResourceKey = `redacted:grading-resource:${createHash('md5').update(resourceKey).digest('hex')}`;
+  return `redacted:grading-lookup:${createHash('md5').update(phaseFourResourceKey).digest('hex')}`;
+}
+
 function gradingTombstoneOperationKey(resourceKey: string): string {
   return `redacted:grading-operation:${pseudonymizeGradingLineage(resourceKey, 'operation-key')}`;
 }
@@ -1582,6 +1587,7 @@ async function findGradingTombstone(db: MathGradingDb, resourceKey: string): Pro
   const lookupKey = gradingTombstoneLookupKey(resourceKey);
   const previousLookupKey = previousGradingTombstoneLookupKey(resourceKey);
   const legacyLookupKey = legacyGradingTombstoneLookupKey(resourceKey);
+  const legacyPhaseFourLookupKey = legacyPhaseFourGradingTombstoneLookupKey(resourceKey);
   if (db.gradingTombstone?.findUnique) {
     const raw = await db.gradingTombstone.findUnique({ where: { resourceKey } });
     if (raw) return raw;
@@ -1594,13 +1600,17 @@ async function findGradingTombstone(db: MathGradingDb, resourceKey: string): Pro
         const previous = await db.gradingTombstone.findUnique({ where: { lookupKey: previousLookupKey } });
         if (previous) return previous;
       }
-      return legacyLookupKey ? await db.gradingTombstone.findUnique({ where: { lookupKey: legacyLookupKey } }) : null;
+      if (legacyLookupKey) {
+        const legacy = await db.gradingTombstone.findUnique({ where: { lookupKey: legacyLookupKey } });
+        if (legacy) return legacy;
+      }
+      return db.gradingTombstone.findUnique({ where: { lookupKey: legacyPhaseFourLookupKey } });
     } catch (error) {
       if (isOptionalTombstoneLookupError(error)) return null;
       throw error;
     }
   }
-  if (db.gradingTombstone?.findFirst) return db.gradingTombstone.findFirst({ where: { OR: [{ resourceKey }, { resourceKey: pseudonymousKey }, { lookupKey }, ...(previousLookupKey ? [{ lookupKey: previousLookupKey }] : []), ...(legacyLookupKey ? [{ lookupKey: legacyLookupKey }] : []), { lineageReference: pseudonymizeGradingLineage(resourceKey, 'lineage') }] } });
+  if (db.gradingTombstone?.findFirst) return db.gradingTombstone.findFirst({ where: { OR: [{ resourceKey }, { resourceKey: pseudonymousKey }, { lookupKey }, ...(previousLookupKey ? [{ lookupKey: previousLookupKey }] : []), ...(legacyLookupKey ? [{ lookupKey: legacyLookupKey }] : []), { lookupKey: legacyPhaseFourLookupKey }, { lineageReference: pseudonymizeGradingLineage(resourceKey, 'lineage') }] } });
   return null;
 }
 

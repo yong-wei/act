@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+
 import { describe, expect, it, vi } from 'vitest';
 
 import { MemorySubmissionObjectStore } from '@/lib/assignments/submission-object-store';
@@ -46,6 +48,46 @@ describe('math-document grading retention lifecycle', () => {
     vi.stubEnv('GRADING_AUDIT_SECRET', 'audit-secret-after-rotation');
     expect(gradingTombstoneLookupKey('conversion:rotation-proof')).toBe(before);
     vi.unstubAllEnvs();
+  });
+
+  it('reuses a grading tombstone whose lookup was backfilled after phase-four redaction', async () => {
+    const rawResourceKey = 'run:run-phase-four-lookup-compat';
+    const md5 = (value: string) => createHash('md5').update(value).digest('hex');
+    const phaseFourResourceKey = `redacted:grading-resource:${md5(rawResourceKey)}`;
+    const staleMigrationLookupKey = `redacted:grading-lookup:${md5(phaseFourResourceKey)}`;
+    const tombstone: any = {
+      id: 'tombstone-phase-four-lookup-compat',
+      resourceKey: `redacted:grading-operation:${md5(phaseFourResourceKey)}`,
+      lookupKey: staleMigrationLookupKey,
+      status: 'DELETED',
+      contentDeletedAt: now,
+      physicalDeletedAt: now,
+    };
+    const run: any = frozen('grading-run', {
+      id: 'run-phase-four-lookup-compat',
+      answerAttemptId: null,
+      answerEvidenceId: null,
+      modelInputObjectKey: null,
+      modelOutputObjectKey: null,
+      limitations: [],
+      tombstonedAt: null,
+    });
+    const db: any = {
+      answerEvidence: { findMany: async () => [] },
+      documentConversion: { findMany: async () => [] },
+      gradingRun: { findMany: async () => [run] },
+      gradingTombstone: {
+        findUnique: async ({ where }: any) => {
+          if (where.resourceKey) return where.resourceKey === tombstone.resourceKey ? tombstone : null;
+          return where.lookupKey === tombstone.lookupKey ? tombstone : null;
+        },
+        create: async () => { throw new Error('duplicate-grading-tombstone'); },
+      },
+      gradingLegalHold: { findFirst: async () => null },
+    };
+
+    await expect(runGradingRetentionGc({ db, store: new MemorySubmissionObjectStore(), policies: gcPolicies, now })).resolves.toEqual({ scanned: 1, deleted: 0, held: 0, blocked: 0, tombstones: 0 });
+    expect(run.tombstonedAt).toBeNull();
   });
 
   it('keeps a bounded lifecycle error code while redacting the raw error field', async () => {

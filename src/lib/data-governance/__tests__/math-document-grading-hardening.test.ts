@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+
 import { describe, expect, it, vi } from 'vitest';
 
 import { MemorySubmissionObjectStore } from '@/lib/assignments/submission-object-store';
@@ -570,6 +572,61 @@ describe('issue #916 phase-one governance hardening', () => {
     await expect(garbageCollectSourceAssets(db, store, now)).resolves.toEqual({ scanned: 1, deleted: 0, held: 0, blocked: 0, retained: 1 });
     expect(tombstone.status).toBe('RETAINED');
     await expect(store.head(asset.objectKey)).resolves.toEqual(expect.objectContaining({ key: asset.objectKey }));
+  });
+
+  it('reuses a submission tombstone whose lookup was backfilled after phase-four redaction', async () => {
+    const rawObjectKey = 'quarantine:phase-four-lookup-compat';
+    const md5 = (value: string) => createHash('md5').update(value).digest('hex');
+    const phaseFourObjectKey = `redacted:submission-object:${md5(rawObjectKey)}`;
+    const staleMigrationLookupKey = `redacted:submission-lookup:${md5(phaseFourObjectKey)}`;
+    const asset: any = {
+      id: 'asset-phase-four-lookup-compat',
+      objectKey: rawObjectKey,
+      checksum: 'sha256:phase-four-lookup-compat',
+      state: 'FINALIZED',
+      retentionExpiresAt: new Date(now.getTime() - 1),
+      retentionPolicyId: 'source-policy-v1',
+      retentionPolicyVersion: 'v1',
+      retentionDeleteStrategy: 'delete-content',
+      retentionSeconds: 60,
+      governedRecordRule: null,
+      deletionClaimToken: null,
+      deletionClaimedAt: null,
+      deletionLeaseExpiresAt: null,
+      answer: { submission: { assignmentRevisionId: 'revision-phase-four-lookup-compat', frozenAudienceClassId: 'class-phase-four-lookup-compat' } },
+      documentConversions: [],
+      answerEvidence: [],
+    };
+    const tombstone: any = {
+      objectKey: phaseFourObjectKey,
+      lookupKey: staleMigrationLookupKey,
+      status: 'DELETED',
+      physicalDeletedAt: now,
+    };
+    let upsertCalls = 0;
+    let deleteCalls = 0;
+    const db: any = {
+      submissionAsset: {
+        findMany: async () => [asset],
+        findUnique: async () => asset,
+        updateMany: async ({ data }: any) => { Object.assign(asset, data); return { count: 1 }; },
+      },
+      submissionObjectTombstone: {
+        findUnique: async ({ where }: any) => {
+          if (where.objectKey) return where.objectKey === tombstone.objectKey ? tombstone : null;
+          return where.lookupKey === tombstone.lookupKey ? tombstone : null;
+        },
+        upsert: async () => { upsertCalls += 1; throw new Error('duplicate-submission-tombstone'); },
+      },
+      $transaction: async (callback: (tx: any) => Promise<unknown>) => callback(db),
+    };
+    const store = new MemorySubmissionObjectStore();
+    store.delete = async () => { deleteCalls += 1; };
+
+    await expect(garbageCollectSourceAssets(db, store, now)).resolves.toEqual({ scanned: 1, deleted: 1, held: 0, blocked: 0, retained: 0 });
+    expect(upsertCalls).toBe(0);
+    expect(deleteCalls).toBe(0);
+    expect(asset.state).toBe('DELETED');
   });
 
   it('interprets a source asset with frozen v1 retention fields even when the current policy is v2', async () => {

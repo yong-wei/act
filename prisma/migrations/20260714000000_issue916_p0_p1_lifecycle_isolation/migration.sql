@@ -7,7 +7,13 @@ ALTER TABLE "GradingTombstone"
   ADD COLUMN "lookupKey" TEXT;
 
 UPDATE "GradingTombstone"
-SET "lookupKey" = 'redacted:grading-lookup:' || md5("resourceKey")
+SET "lookupKey" = CASE
+  -- Phase four already replaced the raw key with its deterministic md5
+  -- marker, so use that suffix directly instead of hashing the marker again.
+  WHEN "resourceKey" LIKE 'redacted:grading-resource:%'
+    THEN 'redacted:grading-lookup:' || substring("resourceKey" FROM char_length('redacted:grading-resource:') + 1)
+  ELSE 'redacted:grading-lookup:' || md5("resourceKey")
+END
 WHERE "lookupKey" IS NULL;
 
 ALTER TABLE "GradingTombstone"

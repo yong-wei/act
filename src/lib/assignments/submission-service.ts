@@ -28,6 +28,11 @@ function legacySubmissionObjectTombstoneLookupKey(objectKey: string): string {
   return `redacted:submission-lookup:${createHash('md5').update(objectKey).digest('hex')}`;
 }
 
+function legacyPhaseFourSubmissionObjectTombstoneLookupKey(objectKey: string): string {
+  const phaseFourObjectKey = `redacted:submission-object:${createHash('md5').update(objectKey).digest('hex')}`;
+  return `redacted:submission-lookup:${createHash('md5').update(phaseFourObjectKey).digest('hex')}`;
+}
+
 async function findSubmissionObjectTombstone(db: any, objectKey: string): Promise<any | null> {
   const model = db.submissionObjectTombstone;
   if (!model?.findUnique) return null;
@@ -36,7 +41,9 @@ async function findSubmissionObjectTombstone(db: any, objectKey: string): Promis
   try {
     const current = await model.findUnique({ where: { lookupKey: submissionObjectTombstoneLookupKey(objectKey) } });
     if (current) return current;
-    return await model.findUnique({ where: { lookupKey: legacySubmissionObjectTombstoneLookupKey(objectKey) } });
+    const legacy = await model.findUnique({ where: { lookupKey: legacySubmissionObjectTombstoneLookupKey(objectKey) } });
+    if (legacy) return legacy;
+    return await model.findUnique({ where: { lookupKey: legacyPhaseFourSubmissionObjectTombstoneLookupKey(objectKey) } });
   } catch (error) {
     const code = error && typeof error === 'object' && 'code' in error ? String((error as { code?: unknown }).code) : '';
     const message = error instanceof Error ? error.message : String(error);

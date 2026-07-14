@@ -7,7 +7,13 @@ ALTER TABLE "SubmissionObjectTombstone"
   ADD COLUMN "lookupKey" TEXT;
 
 UPDATE "SubmissionObjectTombstone"
-SET "lookupKey" = 'redacted:submission-lookup:' || md5("objectKey")
+SET "lookupKey" = CASE
+  -- Phase four already replaced the raw key with its deterministic md5
+  -- marker, so use that suffix directly instead of hashing the marker again.
+  WHEN "objectKey" LIKE 'redacted:submission-object:%'
+    THEN 'redacted:submission-lookup:' || substring("objectKey" FROM char_length('redacted:submission-object:') + 1)
+  ELSE 'redacted:submission-lookup:' || md5("objectKey")
+END
 WHERE "lookupKey" IS NULL;
 
 ALTER TABLE "SubmissionObjectTombstone"
