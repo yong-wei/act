@@ -59,6 +59,7 @@ describe('GET /api/teacher/students/search', () => {
           {
             OR: [
               { profile: { is: null } },
+              { profile: { is: { classId: null } } },
               { profile: { is: { classId: { not: 'class-1' } } } },
             ],
           },
