@@ -647,17 +647,9 @@ function deriveLegacyCompatibilityVectorFromPortrait(
   portrait: PortraitV2ProjectedPayload,
   now: Date
 ): CompetencyVector | null {
-  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: this non-authoritative vector serves unmigrated rules only.
-  if (portrait.dimensions.some((dimension) =>
-    dimension.evidenceSummary.totalCount === 0
-      || effectivePortraitFreshness(dimension, now) !== 'current'
-      || dimension.confidence < 0.45
-  )) {
-    return null;
-  }
-
   // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy vector entries are compatibility-only projections.
   const entries: Array<[CompetencyDimension, CompetencyVector[CompetencyDimension]]> = [];
+  const empty = createEmptyVector();
   for (const dimension of COMPETENCY_DIMENSIONS) {
     const targetDimensions = mapLegacyCompetencyDimensionToPortraitV2(dimension).targetDimensions;
     const mapped = targetDimensions
@@ -668,18 +660,21 @@ function deriveLegacyCompatibilityVectorFromPortrait(
           && effectivePortraitFreshness(item, now) === 'current'
           && item.confidence >= 0.45)
       );
-    if (mapped.length !== targetDimensions.length) return null;
+    if (mapped.length !== targetDimensions.length) {
+      entries.push([dimension, empty[dimension]]);
+      continue;
+    }
 
     const trends = new Set(mapped.map((item) => item.trend ?? 'stable'));
     entries.push([dimension, {
       score: mapped.reduce((sum, item) => sum + item.score, 0) / mapped.length,
       confidence: Math.min(...mapped.map((item) => item.confidence)),
-      evidenceCount: mapped.reduce((sum, item) => sum + item.evidenceSummary.totalCount, 0),
+      evidenceCount: Math.max(...mapped.map((item) => item.evidenceSummary.totalCount)),
       trend: trends.size === 1 ? [...trends][0] : 'stable',
       lastUpdated: mapped
         .map((item) => item.freshness.asOf ?? portrait.generatedAt)
-        .sort()
-        .at(-1) ?? portrait.generatedAt,
+        .sort((left, right) => Date.parse(left) - Date.parse(right))
+        .at(0) ?? portrait.generatedAt,
     }]);
   }
 
@@ -693,7 +688,14 @@ function hasVectorEvidenceFor(
 ): boolean {
   // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy vector evidence is never a primary portrait.
   if (context.competencyVectorBasis === 'portrait-v2') {
-    return true;
+    return dimensions.every((dimension) =>
+      mapLegacyCompetencyDimensionToPortraitV2(dimension).targetDimensions.every((id) => {
+        const portraitDimension = context.portraitV2.dimensions.find((item) => item.id === id);
+        return Boolean(portraitDimension
+          && portraitDimension.evidenceSummary.totalCount > 0
+          && effectivePortraitFreshness(portraitDimension, context.now) === 'current'
+          && portraitDimension.confidence >= 0.45);
+      }));
   }
   // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: validate non-authoritative vector evidence per dimension.
   return (context.competencyVectorBasis === 'legacy' || context.competencyVectorBasis === 'learner-state')

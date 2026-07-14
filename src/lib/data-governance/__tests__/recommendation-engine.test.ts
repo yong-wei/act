@@ -757,9 +757,7 @@ describe('generateRecommendations', () => {
 
     const titles = (await generateRecommendations('student-1')).map((item) => item.title);
 
-    expect(titles).not.toContain('挑战专家级任务');
-    expect(titles).not.toContain('伦理决策挑战');
-    expect(titles).not.toContain('参数优化大师');
+    expect(titles).toEqual(expect.arrayContaining(['挑战专家级任务', '伦理决策挑战', '参数优化大师']));
   });
 
   it('uses a current migrated portrait dimension for weak-dimension practice', async () => {
@@ -822,7 +820,7 @@ describe('generateRecommendations', () => {
   it.each([
     'simulationValidationEvidence',
     'systemAnalysisInterpretation',
-  ] as const)('does not derive a complete vector when %s is missing', async (missingId) => {
+  ] as const)('only suppresses rules that depend on missing %s evidence', async (missingId) => {
     const evidencedIds = new Set(PORTRAIT_V2_DIMENSIONS
       .map(({ id }) => id)
       .filter((id) => id !== missingId));
@@ -841,8 +839,12 @@ describe('generateRecommendations', () => {
 
     const titles = (await generateRecommendations('student-1')).map((item) => item.title);
 
-    expect(titles).not.toContain('挑战专家级任务');
-    expect(titles).not.toContain('参数优化大师');
+    if (missingId === 'simulationValidationEvidence') {
+      expect(titles).toEqual(expect.arrayContaining(['挑战专家级任务', '参数优化大师']));
+    } else {
+      expect(titles).not.toContain('挑战专家级任务');
+      expect(titles).not.toContain('参数优化大师');
+    }
   });
 
   it('keeps the source legacy vector ahead of its compatibility-derived portrait', async () => {

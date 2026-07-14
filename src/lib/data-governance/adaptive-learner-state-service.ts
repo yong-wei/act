@@ -1,4 +1,4 @@
-import { type CompetencyDimension, type CompetencyVector } from './competency-model';
+import { COMPETENCY_DIMENSIONS, type CompetencyDimension, type CompetencyVector } from './competency-model';
 // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: primaryCompetencies remains a non-authoritative compatibility field.
 import { getArenaEvaluationProtocolVersion } from '@/features/arena/evaluation/protocol';
 import {
@@ -19,7 +19,14 @@ import {
   type PortraitV2ConsumerDb,
   type PortraitV2Consumer,
 } from './portrait-v2-consumer';
-import type { PortraitV2ProjectedPayload } from './portrait-v2-model';
+import {
+  mapAdaptiveGoalSliceDimensionToPortraitV2,
+  mapLegacyCompetencyDimensionToPortraitV2,
+} from './kaq-objective-taxonomy';
+import {
+  PORTRAIT_V2_FRESHNESS_CURRENT_MAX_AGE_DAYS,
+  type PortraitV2ProjectedPayload,
+} from './portrait-v2-model';
 
 export const ADAPTIVE_LEARNER_STATE_PAYLOAD_VERSION = 'adaptive-learner-state.v1';
 export const ADAPTIVE_LEARNER_STATE_FEATURE_FLAG = 'ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED';
@@ -164,17 +171,19 @@ export const ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS: Record<AdaptiveLearnerState
     privacyScope: 'student-visible',
   },
   primaryCompetencies: {
+    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy snapshots and feature caches remain per-dimension fallbacks.
     valueRange: 'legacy six-dimensional compatibility values only',
-    sourceFamilies: ['StudentCompetencySnapshot', 'StudentEvidenceFeatureCache'],
-    algorithmVersion: 'competency-snapshot-versioned',
-    evidenceThreshold: 'latest approved snapshot or fallback empty vector',
-    confidencePolicy: 'snapshot-confidence-per-dimension',
-    fallbackReason: 'missing-competency-snapshot',
+    sourceFamilies: ['StudentPortraitV2Snapshot', 'StudentCompetencySnapshot', 'StudentEvidenceFeatureCache'],
+    algorithmVersion: 'portrait-v2-primary.v1-or-legacy-compatibility',
+    evidenceThreshold: 'per-dimension current portrait v2 projection with explicit mixed legacy fallback, latest approved legacy snapshot, or fallback empty vector',
+    confidencePolicy: 'portrait projection preserves minimum mapped confidence; legacy snapshot confidence remains per dimension',
+    fallbackReason: 'missing-current-portrait-or-legacy-compatibility-evidence',
     privacyScope: 'student-visible',
   },
   secondaryDimensions: {
+    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: secondary legacy fields consume the compatibility projection.
     valueRange: '0-100 derived second-level dimension score',
-    sourceFamilies: ['StudentCompetencySnapshot', 'LearningFact', 'StudentEvidenceFeatureCache'],
+    sourceFamilies: ['StudentPortraitV2Snapshot', 'StudentCompetencySnapshot', 'LearningFact', 'StudentEvidenceFeatureCache'],
     algorithmVersion: ADAPTIVE_LEARNER_STATE_ALGORITHM_VERSION,
     evidenceThreshold: 'primary dimension evidence plus matching governed facts where present',
     confidencePolicy: 'inherits-primary-confidence-capped-by-evidence',
@@ -236,8 +245,9 @@ export const ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS: Record<AdaptiveLearnerState
     privacyScope: 'student-visible',
   },
   controlCorrectionGoalSlice: {
+    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy goal sources remain explicit compatibility fallbacks.
     valueRange: 'stable governed dimensions for the control-correction goal',
-    sourceFamilies: ['StudentCompetencySnapshot', 'LearningFact', 'AdaptiveMasteryUpdate', 'StudentEvidenceFeatureCache', 'ArenaSubmission', 'AgentToolRun'],
+    sourceFamilies: ['StudentPortraitV2Snapshot', 'StudentCompetencySnapshot', 'LearningFact', 'AdaptiveMasteryUpdate', 'StudentEvidenceFeatureCache', 'ArenaSubmission', 'AgentToolRun'],
     algorithmVersion: CONTROL_CORRECTION_GOAL_SLICE_PAYLOAD_VERSION,
     evidenceThreshold: 'each dimension declares sufficient, partial, stale, or missing governed evidence',
     confidencePolicy: 'dimension confidence is capped by source coverage and fallback markers',
@@ -374,7 +384,7 @@ export interface AdaptiveLearnerState {
   primaryPortrait: PortraitV2ProjectedPayload;
   primaryCompetencies: {
     authority: 'legacy-compatibility-only';
-    source: 'latest-snapshot' | 'feature-cache' | 'fallback-empty';
+    source: 'latest-snapshot' | 'feature-cache' | 'portrait-v2-derived' | 'portrait-v2-mixed' | 'fallback-empty';
     vector: CompetencyVector;
   };
   secondaryDimensions: Record<AdaptiveLearnerSecondaryDimension, {
@@ -783,16 +793,28 @@ export async function readAdaptiveLearnerState(
     { now, legacySnapshot: latestSnapshot, featureCache },
   );
   const {
-    vector,
+    vector: legacyCompatibilityVector,
     source: compatibilitySource,
     snapshotId: compatibilitySnapshotId,
     snapshotAt: compatibilitySnapshotAt,
   } = portraitResolution.legacyCompatibility;
+  const portraitCompatibility = deriveLearnerStateCompatibilityVector(
+    portraitResolution.primaryPortrait,
+    now,
+    legacyCompatibilityVector,
+  );
+  const portraitCompatibilityVector = portraitCompatibility?.vector ?? null;
+  const vector = portraitCompatibilityVector ?? legacyCompatibilityVector;
   // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: expose legacy provenance only for compatibility consumers.
   // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: map the compatibility source to the legacy output label.
   const source: AdaptiveLearnerState['primaryCompetencies']['source'] =
     // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: retain the legacy source label only for compatibility output.
-    compatibilitySource === 'StudentCompetencySnapshot'
+    portraitCompatibility?.derivedDimensionCount === COMPETENCY_DIMENSIONS.length
+      ? 'portrait-v2-derived'
+      : portraitCompatibility && portraitCompatibility.derivedDimensionCount > 0
+        ? 'portrait-v2-mixed'
+      // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: expose legacy source names only when their fallback supplied the result.
+      : compatibilitySource === 'StudentCompetencySnapshot'
       ? 'latest-snapshot'
       : compatibilitySource === 'StudentEvidenceFeatureCache'
         ? 'feature-cache'
@@ -824,6 +846,8 @@ export async function readAdaptiveLearnerState(
     profileSummary,
     featureRead,
     masteryUpdates,
+    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: suppress legacy-source gaps only for a complete v2 projection.
+    hasPortraitCompatibility: portraitCompatibility?.derivedDimensionCount === COMPETENCY_DIMENSIONS.length,
   });
   const goalSlices = buildAdaptiveGoalSlices({
     requestedGoal,
@@ -831,6 +855,8 @@ export async function readAdaptiveLearnerState(
     shouldBuildControlCorrectionGoalSlice,
     now,
     vector,
+    primaryPortrait,
+    usePrimaryPortrait: ['native', 'migrated'].includes(primaryPortrait.derivation.kind),
     evidence,
     knowledgeMastery,
     masteryTraceability,
@@ -956,12 +982,100 @@ function buildSecondaryDimensions(vector: CompetencyVector): AdaptiveLearnerStat
   ) as AdaptiveLearnerState['secondaryDimensions'];
 }
 
+function deriveLearnerStateCompatibilityVector(
+  portrait: PortraitV2ProjectedPayload,
+  now: Date,
+  fallback: CompetencyVector,
+): { vector: CompetencyVector; derivedDimensionCount: number } | null {
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: project v2 dimensions into the legacy competency vector shape.
+  if (!['native', 'migrated'].includes(portrait.derivation.kind)) return null;
+
+  const entries: Array<[CompetencyDimension, CompetencyVector[CompetencyDimension]]> = [];
+  let derivedDimensionCount = 0;
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: iterate non-authoritative legacy fields solely to build compatibility output.
+  for (const dimension of COMPETENCY_DIMENSIONS) {
+    const targetDimensions = mapLegacyCompetencyDimensionToPortraitV2(dimension).targetDimensions;
+    const mapped = targetDimensions
+      .map((id) => portrait.dimensions.find((item) => item.id === id))
+      .filter((item): item is PortraitV2ProjectedPayload['dimensions'][number] => Boolean(
+        item
+          && item.evidenceSummary.totalCount > 0
+          && isCurrentPortraitDimension(item, now),
+      ));
+    if (mapped.length !== targetDimensions.length) {
+      entries.push([dimension, fallback[dimension]]);
+      continue;
+    }
+
+    const trends = new Set(mapped.map((item) => item.trend ?? 'stable'));
+    derivedDimensionCount += 1;
+    entries.push([dimension, {
+      score: mapped.reduce((sum, item) => sum + item.score, 0) / mapped.length,
+      confidence: Math.min(...mapped.map((item) => item.confidence)),
+      evidenceCount: Math.max(...mapped.map((item) => item.evidenceSummary.totalCount)),
+      trend: trends.size === 1 ? [...trends][0] : 'stable',
+      lastUpdated: oldestPortraitAsOf(mapped, portrait.generatedAt),
+    }]);
+  }
+
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: downstream legacy-shaped fields use a validated v2 projection.
+  return {
+    vector: Object.fromEntries(entries) as unknown as CompetencyVector,
+    derivedDimensionCount,
+  };
+}
+
+function deriveControlCorrectionDimensionFromPortrait(
+  portrait: PortraitV2ProjectedPayload,
+  dimensionId: ControlCorrectionDimensionId,
+  now: Date,
+): CompetencyVector[CompetencyDimension] | null {
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: project each v2 goal dimension into its legacy vector field.
+  const targetDimensions = mapAdaptiveGoalSliceDimensionToPortraitV2(dimensionId).targetDimensions;
+  const mapped = targetDimensions
+    .map((id) => portrait.dimensions.find((item) => item.id === id))
+    .filter((item): item is PortraitV2ProjectedPayload['dimensions'][number] => Boolean(
+      item && item.evidenceSummary.totalCount > 0 && isCurrentPortraitDimension(item, now),
+    ));
+  if (mapped.length !== targetDimensions.length) return null;
+  const trends = new Set(mapped.map((item) => item.trend ?? 'stable'));
+  return {
+    score: mapped.reduce((sum, item) => sum + item.score, 0) / mapped.length,
+    confidence: Math.min(...mapped.map((item) => item.confidence)),
+    evidenceCount: Math.max(...mapped.map((item) => item.evidenceSummary.totalCount)),
+    trend: trends.size === 1 ? [...trends][0] : 'stable',
+    lastUpdated: oldestPortraitAsOf(mapped, portrait.generatedAt),
+  };
+}
+
+function oldestPortraitAsOf(
+  dimensions: PortraitV2ProjectedPayload['dimensions'],
+  fallback: string,
+): string {
+  return dimensions
+    .map((item) => item.freshness.asOf ?? fallback)
+    .sort((left, right) => Date.parse(left) - Date.parse(right))[0] ?? fallback;
+}
+
+function isCurrentPortraitDimension(
+  dimension: PortraitV2ProjectedPayload['dimensions'][number],
+  now: Date,
+): boolean {
+  const asOf = dimension.freshness.asOf ? Date.parse(dimension.freshness.asOf) : Number.NaN;
+  if (!Number.isFinite(asOf)) return false;
+  const ageMs = now.getTime() - asOf;
+  return ageMs >= 0
+    && Math.floor(ageMs / 86_400_000) <= PORTRAIT_V2_FRESHNESS_CURRENT_MAX_AGE_DAYS;
+}
+
 function buildAdaptiveGoalSlices(input: {
   requestedGoal: string | null;
   requestedGoalDefinition: AdaptiveGoalSliceDefinition | null;
   shouldBuildControlCorrectionGoalSlice: boolean;
   now: Date;
   vector: CompetencyVector;
+  primaryPortrait: PortraitV2ProjectedPayload;
+  usePrimaryPortrait: boolean;
   evidence: AdaptiveLearnerState['evidence'];
   knowledgeMastery: AdaptiveLearnerState['knowledgeMastery'];
   masteryTraceability: AdaptiveLearnerState['masteryTraceability'];
@@ -991,6 +1105,8 @@ function buildAdaptiveGoalSlices(input: {
       controlCorrection: buildControlCorrectionGoalSlice({
         now: input.now,
         vector: input.vector,
+        primaryPortrait: input.primaryPortrait,
+        usePrimaryPortrait: input.usePrimaryPortrait,
         evidence: input.evidence,
         knowledgeMastery: input.knowledgeMastery,
         masteryTraceability: input.masteryTraceability,
@@ -1009,6 +1125,8 @@ function buildAdaptiveGoalSlices(input: {
 function buildControlCorrectionGoalSlice(input: {
   now: Date;
   vector: CompetencyVector;
+  primaryPortrait: PortraitV2ProjectedPayload;
+  usePrimaryPortrait: boolean;
   evidence: AdaptiveLearnerState['evidence'];
   knowledgeMastery: AdaptiveLearnerState['knowledgeMastery'];
   masteryTraceability: AdaptiveLearnerState['masteryTraceability'];
@@ -1026,7 +1144,10 @@ function buildControlCorrectionGoalSlice(input: {
     simulationArena,
   });
   const dimensions = CONTROL_CORRECTION_GOAL_DIMENSIONS.map((id) => {
-    const primary = input.vector[CONTROL_CORRECTION_DIMENSION_PRIMARY[id]];
+    const primary = input.usePrimaryPortrait
+      ? deriveControlCorrectionDimensionFromPortrait(input.primaryPortrait, id, input.now)
+        ?? input.vector[CONTROL_CORRECTION_DIMENSION_PRIMARY[id]]
+      : input.vector[CONTROL_CORRECTION_DIMENSION_PRIMARY[id]];
     const sourceCoverage = buildControlCorrectionDimensionSourceCoverage(id, sourceEvidence);
     const evidenceCount = buildControlCorrectionDimensionEvidenceCount(id, primary.evidenceCount, sourceEvidence);
     const evidenceProvenance = buildControlCorrectionEvidenceProvenance(sourceEvidence);
@@ -1367,7 +1488,7 @@ function buildMasteryTraceability(input: {
       : null;
     const confidence = refs.length === 0
       ? 0
-      : round(Math.max(...competencies.map((competency) => competency.confidence), 0.45), 2);
+      : round(Math.min(...competencies.map((competency) => competency.confidence)), 2);
   const sourceCoverage = sourceCoverageForRefs(refs);
     const limitations = buildMasteryLimitations({
       target,
@@ -2029,11 +2150,13 @@ function buildMissingEvidence(input: {
   profileSummary: Record<string, unknown> | null;
   featureRead: StudentEvidenceFeatureReadResult;
   masteryUpdates: Array<Record<string, unknown>>;
+  hasPortraitCompatibility: boolean;
 }): string[] {
   const missing: string[] = [];
-  if (!input.latestSnapshot) missing.push('StudentCompetencySnapshot');
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: complete v2 evidence replaces only legacy compatibility-source gaps.
+  if (!input.latestSnapshot && !input.hasPortraitCompatibility) missing.push('StudentCompetencySnapshot');
   if (!input.profileSummary) missing.push('StudentProfileSummary');
-  if (!input.featureRead.cache) missing.push('StudentEvidenceFeatureCache');
+  if (!input.featureRead.cache && !input.hasPortraitCompatibility) missing.push('StudentEvidenceFeatureCache');
   if (input.masteryUpdates.length === 0) missing.push('AdaptiveMasteryUpdate');
   return missing;
 }
