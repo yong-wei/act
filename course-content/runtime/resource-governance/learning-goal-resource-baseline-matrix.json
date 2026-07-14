@@ -137,8 +137,8 @@
       "categories": {
         "concept": {
           "linked": 157,
-          "humanConfirmed": 61,
-          "pathEligible": 21,
+          "humanConfirmed": 99,
+          "pathEligible": 8,
           "citationReady": 119,
           "assessment": 0,
           "checkpoint": 0,
@@ -307,64 +307,13 @@
             "knowledge-card:Bode首轮骨架_5_1e07d9da",
             "runtime-step:2-2:step-09",
             "runtime-step:2-2:step-10",
-            "runtime-step:2-2:step-11",
-            "runtime-step:2-2:step-12",
-            "runtime-step:2-2:step-13",
             "runtime-step:3-5:step-01",
             "runtime-step:3-5:step-02",
-            "runtime-step:3-5:step-04",
-            "runtime-step:3-5:step-05",
-            "runtime-step:3-6:step-06",
-            "runtime-step:3-9:step-01",
-            "runtime-step:4-2:step-11",
-            "runtime-step:4-2:step-12",
-            "runtime-step:4-2:step-13",
             "runtime-step:4-7:step-03",
-            "runtime-step:4-7:step-04",
-            "runtime-step:4-7:step-05",
-            "runtime-step:4-7:step-06",
-            "runtime-step:4-7:step-07"
+            "runtime-step:4-7:step-04"
           ],
           "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [
-            "runtime-step:1-1:step-04",
-            "runtime-step:1-1:step-05",
-            "runtime-step:1-1:step-06",
-            "runtime-step:1-1:step-07",
-            "runtime-step:1-1:step-08",
-            "runtime-step:3-5:step-03",
-            "runtime-step:3-5:step-06",
-            "runtime-step:3-6:step-01",
-            "runtime-step:3-6:step-02",
-            "runtime-step:3-6:step-03",
-            "runtime-step:3-6:step-04",
-            "runtime-step:3-6:step-05",
-            "runtime-step:3-7:step-01",
-            "runtime-step:3-7:step-02",
-            "runtime-step:3-7:step-03",
-            "runtime-step:3-7:step-04",
-            "runtime-step:3-7:step-05",
-            "runtime-step:3-7:step-06",
-            "runtime-step:3-7:step-07",
-            "runtime-step:3-7:step-08",
-            "runtime-step:3-9:step-02",
-            "runtime-step:3-9:step-03",
-            "runtime-step:4-2:step-04",
-            "runtime-step:4-2:step-05",
-            "runtime-step:4-2:step-06",
-            "runtime-step:4-2:step-07",
-            "runtime-step:4-2:step-08",
-            "runtime-step:4-2:step-09",
-            "runtime-step:4-2:step-10",
-            "runtime-step:4-2:step-14",
-            "runtime-step:4-2:step-15",
-            "runtime-step:4-5:step-09",
-            "runtime-step:4-5:step-10",
-            "runtime-step:4-6:step-01",
-            "runtime-step:4-6:step-02",
-            "runtime-step:5-1:step-12",
-            "runtime-step:5-1:step-13",
-            "runtime-step:5-1:step-14",
             "textbook-section:hu-shousong-exercise-analysis-3rd:ch01-overview-001",
             "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
             "textbook-section:hu-shousong-exercise-analysis-3rd:ch05-overview-001",
@@ -472,7 +421,7 @@
         "citation": {
           "linked": 134,
           "humanConfirmed": 75,
-          "pathEligible": 21,
+          "pathEligible": 8,
           "citationReady": 134,
           "assessment": 5,
           "checkpoint": 0,
@@ -618,23 +567,10 @@
             "knowledge-card:Bode首轮骨架_5_1e07d9da",
             "runtime-step:2-2:step-09",
             "runtime-step:2-2:step-10",
-            "runtime-step:2-2:step-11",
-            "runtime-step:2-2:step-12",
-            "runtime-step:2-2:step-13",
             "runtime-step:3-5:step-01",
             "runtime-step:3-5:step-02",
-            "runtime-step:3-5:step-04",
-            "runtime-step:3-5:step-05",
-            "runtime-step:3-6:step-06",
-            "runtime-step:3-9:step-01",
-            "runtime-step:4-2:step-11",
-            "runtime-step:4-2:step-12",
-            "runtime-step:4-2:step-13",
             "runtime-step:4-7:step-03",
-            "runtime-step:4-7:step-04",
-            "runtime-step:4-7:step-05",
-            "runtime-step:4-7:step-06",
-            "runtime-step:4-7:step-07"
+            "runtime-step:4-7:step-04"
           ],
           "highComplexityLockedResourceIds": [
             "registry:arena-challenge-workbench",
@@ -798,7 +734,7 @@
       "categories": {
         "concept": {
           "linked": 41,
-          "humanConfirmed": 15,
+          "humanConfirmed": 40,
           "pathEligible": 4,
           "citationReady": 23,
           "assessment": 0,
@@ -855,31 +791,6 @@
           ],
           "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [
-            "runtime-handout:1-1",
-            "runtime-handout:2-3",
-            "runtime-handout:2-4",
-            "runtime-handout:legacy/L-2c",
-            "runtime-media:1-1:1-1-slides",
-            "runtime-media:2-3:2-3-slides",
-            "runtime-media:2-4:2-4-slides",
-            "runtime-step:1-1:step-04",
-            "runtime-step:1-1:step-05",
-            "runtime-step:1-1:step-06",
-            "runtime-step:1-1:step-07",
-            "runtime-step:1-1:step-08",
-            "runtime-step:2-3:step-01",
-            "runtime-step:2-3:step-02",
-            "runtime-step:2-3:step-03",
-            "runtime-step:2-3:step-04",
-            "runtime-step:2-3:step-05",
-            "runtime-step:2-3:step-06",
-            "runtime-step:2-3:step-07",
-            "runtime-step:2-3:step-08",
-            "runtime-step:2-3:step-11",
-            "runtime-step:2-3:step-12",
-            "runtime-step:2-3:step-13",
-            "runtime-step:2-3:step-14",
-            "runtime-step:2-3:step-15",
             "textbook-section:hu-shousong-exercise-analysis-3rd:ch08-overview-001"
           ],
           "missing": false
@@ -950,7 +861,7 @@
         },
         "citation": {
           "linked": 26,
-          "humanConfirmed": 18,
+          "humanConfirmed": 25,
           "pathEligible": 4,
           "citationReady": 26,
           "assessment": 3,
@@ -992,13 +903,6 @@
           ],
           "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [
-            "runtime-handout:1-1",
-            "runtime-handout:2-3",
-            "runtime-handout:2-4",
-            "runtime-handout:legacy/L-2c",
-            "runtime-media:1-1:1-1-slides",
-            "runtime-media:2-3:2-3-slides",
-            "runtime-media:2-4:2-4-slides",
             "textbook-section:hu-shousong-exercise-analysis-3rd:ch08-overview-001"
           ],
           "missing": false
@@ -1712,7 +1616,7 @@
       "categories": {
         "concept": {
           "linked": 143,
-          "humanConfirmed": 10,
+          "humanConfirmed": 17,
           "pathEligible": 2,
           "citationReady": 136,
           "assessment": 0,
@@ -1869,13 +1773,6 @@
           ],
           "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [
-            "runtime-step:1-2:step-01",
-            "runtime-step:1-2:step-02",
-            "runtime-step:1-2:step-03",
-            "runtime-step:1-2:step-14",
-            "runtime-step:2-1:step-06",
-            "runtime-step:2-1:step-07",
-            "runtime-step:2-1:step-08",
             "textbook-section:hu-shousong-exercise-analysis-3rd:ch02-overview-001",
             "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-overview-001",
             "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-sec11",
@@ -2331,8 +2228,8 @@
       "categories": {
         "concept": {
           "linked": 168,
-          "humanConfirmed": 14,
-          "pathEligible": 5,
+          "humanConfirmed": 18,
+          "pathEligible": 2,
           "citationReady": 164,
           "assessment": 0,
           "checkpoint": 0,
@@ -2509,17 +2406,10 @@
           ],
           "pathEligibleResourceIds": [
             "runtime-step:2-2:step-09",
-            "runtime-step:2-2:step-10",
-            "runtime-step:2-2:step-11",
-            "runtime-step:2-2:step-12",
-            "runtime-step:2-2:step-13"
+            "runtime-step:2-2:step-10"
           ],
           "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [
-            "runtime-step:3-7:step-05",
-            "runtime-step:3-7:step-06",
-            "runtime-step:3-7:step-07",
-            "runtime-step:3-7:step-08",
             "textbook-section:hu-shousong-exercise-analysis-3rd:ch01-overview-001",
             "textbook-section:hu-shousong-exercise-analysis-3rd:ch02-overview-001",
             "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-overview-001",
@@ -2672,7 +2562,7 @@
         "citation": {
           "linked": 200,
           "humanConfirmed": 14,
-          "pathEligible": 5,
+          "pathEligible": 2,
           "citationReady": 200,
           "assessment": 26,
           "checkpoint": 0,
@@ -2881,10 +2771,7 @@
           ],
           "pathEligibleResourceIds": [
             "runtime-step:2-2:step-09",
-            "runtime-step:2-2:step-10",
-            "runtime-step:2-2:step-11",
-            "runtime-step:2-2:step-12",
-            "runtime-step:2-2:step-13"
+            "runtime-step:2-2:step-10"
           ],
           "highComplexityLockedResourceIds": [
             "registry:arena-challenge-workbench",
@@ -3021,8 +2908,8 @@
       "categories": {
         "concept": {
           "linked": 161,
-          "humanConfirmed": 12,
-          "pathEligible": 5,
+          "humanConfirmed": 18,
+          "pathEligible": 4,
           "citationReady": 155,
           "assessment": 0,
           "checkpoint": 0,
@@ -3194,17 +3081,10 @@
             "knowledge-card:Bode图_1_1",
             "knowledge-card:Bode首轮骨架_5_1e07d9da",
             "runtime-step:3-5:step-01",
-            "runtime-step:3-5:step-02",
-            "runtime-step:3-6:step-06"
+            "runtime-step:3-5:step-02"
           ],
           "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [
-            "runtime-step:3-5:step-03",
-            "runtime-step:3-6:step-01",
-            "runtime-step:3-6:step-02",
-            "runtime-step:3-6:step-03",
-            "runtime-step:3-6:step-04",
-            "runtime-step:3-6:step-05",
             "textbook-section:hu-shousong-exercise-analysis-3rd:ch02-overview-001",
             "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-overview-001",
             "textbook-section:hu-shousong-exercise-analysis-3rd:ch03-sec11",
@@ -3362,7 +3242,7 @@
         "citation": {
           "linked": 194,
           "humanConfirmed": 13,
-          "pathEligible": 5,
+          "pathEligible": 4,
           "citationReady": 194,
           "assessment": 29,
           "checkpoint": 0,
@@ -3567,8 +3447,7 @@
             "knowledge-card:Bode图_1_1",
             "knowledge-card:Bode首轮骨架_5_1e07d9da",
             "runtime-step:3-5:step-01",
-            "runtime-step:3-5:step-02",
-            "runtime-step:3-6:step-06"
+            "runtime-step:3-5:step-02"
           ],
           "highComplexityLockedResourceIds": [
             "registry:arena-challenge-workbench",
@@ -3711,8 +3590,8 @@
       "categories": {
         "concept": {
           "linked": 108,
-          "humanConfirmed": 26,
-          "pathEligible": 19,
+          "humanConfirmed": 53,
+          "pathEligible": 4,
           "citationReady": 81,
           "assessment": 0,
           "checkpoint": 0,
@@ -3831,52 +3710,10 @@
             "knowledge-card:Bode图_1_1",
             "knowledge-card:Bode首轮骨架_5_1e07d9da",
             "runtime-step:2-4:step-09",
-            "runtime-step:2-4:step-10",
-            "runtime-step:3-5:step-10",
-            "runtime-step:3-5:step-11",
-            "runtime-step:3-5:step-12",
-            "runtime-step:3-6:step-06",
-            "runtime-step:3-6:step-10",
-            "runtime-step:3-6:step-11",
-            "runtime-step:3-6:step-12",
-            "runtime-step:3-6:step-13",
-            "runtime-step:3-8:step-06",
-            "runtime-step:3-8:step-07",
-            "runtime-step:3-8:step-09",
-            "runtime-step:3-8:step-10",
-            "runtime-step:3-9:step-08",
-            "runtime-step:4-1:step-01",
-            "runtime-step:4-1:step-07"
+            "runtime-step:2-4:step-10"
           ],
           "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [
-            "runtime-step:2-3:step-09",
-            "runtime-step:2-3:step-10",
-            "runtime-step:2-4:step-01",
-            "runtime-step:2-4:step-02",
-            "runtime-step:2-4:step-03",
-            "runtime-step:2-4:step-13",
-            "runtime-step:3-6:step-01",
-            "runtime-step:3-6:step-02",
-            "runtime-step:3-6:step-03",
-            "runtime-step:3-6:step-04",
-            "runtime-step:3-6:step-05",
-            "runtime-step:3-7:step-13",
-            "runtime-step:3-7:step-14",
-            "runtime-step:3-7:step-15",
-            "runtime-step:3-7:step-16",
-            "runtime-step:3-7:step-17",
-            "runtime-step:3-8:step-08",
-            "runtime-step:3-8:step-11",
-            "runtime-step:3-9:step-09",
-            "runtime-step:3-9:step-10",
-            "runtime-step:4-1:step-02",
-            "runtime-step:4-1:step-03",
-            "runtime-step:4-1:step-04",
-            "runtime-step:4-1:step-08",
-            "runtime-step:4-1:step-09",
-            "runtime-step:4-5:step-01",
-            "runtime-step:4-5:step-02",
             "textbook-section:hu-shousong-exercise-analysis-3rd:ch01-overview-001",
             "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
             "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
@@ -3976,7 +3813,7 @@
         "citation": {
           "linked": 94,
           "humanConfirmed": 28,
-          "pathEligible": 19,
+          "pathEligible": 4,
           "citationReady": 94,
           "assessment": 4,
           "checkpoint": 0,
@@ -4081,22 +3918,7 @@
             "knowledge-card:Bode图_1_1",
             "knowledge-card:Bode首轮骨架_5_1e07d9da",
             "runtime-step:2-4:step-09",
-            "runtime-step:2-4:step-10",
-            "runtime-step:3-5:step-10",
-            "runtime-step:3-5:step-11",
-            "runtime-step:3-5:step-12",
-            "runtime-step:3-6:step-06",
-            "runtime-step:3-6:step-10",
-            "runtime-step:3-6:step-11",
-            "runtime-step:3-6:step-12",
-            "runtime-step:3-6:step-13",
-            "runtime-step:3-8:step-06",
-            "runtime-step:3-8:step-07",
-            "runtime-step:3-8:step-09",
-            "runtime-step:3-8:step-10",
-            "runtime-step:3-9:step-08",
-            "runtime-step:4-1:step-01",
-            "runtime-step:4-1:step-07"
+            "runtime-step:2-4:step-10"
           ],
           "highComplexityLockedResourceIds": [
             "registry:arena-challenge-workbench",
@@ -4230,8 +4052,8 @@
       "categories": {
         "concept": {
           "linked": 73,
-          "humanConfirmed": 19,
-          "pathEligible": 8,
+          "humanConfirmed": 29,
+          "pathEligible": 2,
           "citationReady": 63,
           "assessment": 0,
           "checkpoint": 0,
@@ -4313,26 +4135,10 @@
           ],
           "pathEligibleResourceIds": [
             "runtime-step:4-7:step-03",
-            "runtime-step:4-7:step-04",
-            "runtime-step:4-7:step-05",
-            "runtime-step:4-7:step-06",
-            "runtime-step:4-7:step-07",
-            "runtime-step:4-7:step-08",
-            "runtime-step:4-7:step-09",
-            "runtime-step:4-7:step-10"
+            "runtime-step:4-7:step-04"
           ],
           "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [
-            "runtime-step:4-6:step-05",
-            "runtime-step:4-6:step-06",
-            "runtime-step:5-1:step-01",
-            "runtime-step:5-1:step-12",
-            "runtime-step:5-1:step-13",
-            "runtime-step:5-1:step-14",
-            "runtime-step:5-4:step-09",
-            "runtime-step:5-4:step-10",
-            "runtime-step:5-4:step-11",
-            "runtime-step:5-4:step-12",
             "textbook-section:hu-shousong-exercise-analysis-3rd:ch01-overview-001",
             "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
             "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
@@ -4427,7 +4233,7 @@
         "citation": {
           "linked": 74,
           "humanConfirmed": 19,
-          "pathEligible": 8,
+          "pathEligible": 2,
           "citationReady": 74,
           "assessment": 2,
           "checkpoint": 0,
@@ -4510,13 +4316,7 @@
           ],
           "pathEligibleResourceIds": [
             "runtime-step:4-7:step-03",
-            "runtime-step:4-7:step-04",
-            "runtime-step:4-7:step-05",
-            "runtime-step:4-7:step-06",
-            "runtime-step:4-7:step-07",
-            "runtime-step:4-7:step-08",
-            "runtime-step:4-7:step-09",
-            "runtime-step:4-7:step-10"
+            "runtime-step:4-7:step-04"
           ],
           "highComplexityLockedResourceIds": [
             "registry:arena-challenge-workbench",
@@ -4683,8 +4483,8 @@
       "categories": {
         "concept": {
           "linked": 79,
-          "humanConfirmed": 17,
-          "pathEligible": 6,
+          "humanConfirmed": 28,
+          "pathEligible": 2,
           "citationReady": 68,
           "assessment": 0,
           "checkpoint": 0,
@@ -4772,25 +4572,10 @@
           ],
           "pathEligibleResourceIds": [
             "runtime-step:5-3:step-09",
-            "runtime-step:5-3:step-10",
-            "runtime-step:5-3:step-11",
-            "runtime-step:5-3:step-12",
-            "runtime-step:5-3:step-13",
-            "runtime-step:5-3:step-15"
+            "runtime-step:5-3:step-10"
           ],
           "highComplexityLockedResourceIds": [],
           "provisionalResourceIds": [
-            "runtime-step:2-1:step-01",
-            "runtime-step:2-1:step-02",
-            "runtime-step:2-1:step-03",
-            "runtime-step:2-1:step-04",
-            "runtime-step:2-1:step-05",
-            "runtime-step:5-3:step-04",
-            "runtime-step:5-3:step-05",
-            "runtime-step:5-3:step-06",
-            "runtime-step:5-3:step-07",
-            "runtime-step:5-3:step-08",
-            "runtime-step:5-3:step-14",
             "textbook-section:hu-shousong-exercise-analysis-3rd:ch01-overview-001",
             "textbook-section:hu-shousong-exercise-analysis-3rd:ch04-overview-001",
             "textbook-section:hu-shousong-exercise-analysis-3rd:ch06-overview-001",
@@ -4887,7 +4672,7 @@
         "citation": {
           "linked": 80,
           "humanConfirmed": 21,
-          "pathEligible": 6,
+          "pathEligible": 2,
           "citationReady": 80,
           "assessment": 2,
           "checkpoint": 0,
@@ -4976,11 +4761,7 @@
           ],
           "pathEligibleResourceIds": [
             "runtime-step:5-3:step-09",
-            "runtime-step:5-3:step-10",
-            "runtime-step:5-3:step-11",
-            "runtime-step:5-3:step-12",
-            "runtime-step:5-3:step-13",
-            "runtime-step:5-3:step-15"
+            "runtime-step:5-3:step-10"
           ],
           "highComplexityLockedResourceIds": [
             "registry:arena-challenge-workbench",
@@ -5096,6 +4877,6 @@
     "complete": 0,
     "limited": 9,
     "reviewedBindings": 27,
-    "provisionalLinkedResources": 120
+    "provisionalLinkedResources": 15
   }
 }

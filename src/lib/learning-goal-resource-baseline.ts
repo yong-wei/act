@@ -165,13 +165,14 @@ export function buildLearningGoalResourceBaselineArtifacts(input: {
   const registeredGoals = Object.values(input.registeredGoals)
     .filter((registeredGoal) => Boolean(registeredGoal.learningGoal));
   const registeredLearningGoalIds = registeredGoals.map((registeredGoal) => registeredGoal.learningGoal!.id);
-  const rows = registeredGoals.map((registeredGoal) => buildMatrixRow({
+  const generatedRows = registeredGoals.map((registeredGoal) => buildMatrixRow({
     registeredGoal,
     auditRows: input.auditRows,
     generatedAt,
     sourceWindow,
     versionRefs,
   }));
+  const rows = generatedRows;
   const reviewedBindings = rows.flatMap((row) => row.selectedReviewedBindingIds)
     .map((bindingId) => reviewedBindingById.get(bindingId))
     .filter((binding): binding is LearningGoalResourceBaselineReviewedBinding => Boolean(binding))

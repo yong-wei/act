@@ -231,7 +231,15 @@ describe('resource field completion audit', () => {
       },
     })).toBe('legacy');
     const firstNonScopeRowIndex = frozenRows.findIndex((row) => (
-      !['registered-resource', 'knowledge-card', 'knowledge-infograph'].includes(row.family)
+      ![
+        'registered-resource',
+        'knowledge-card',
+        'knowledge-infograph',
+        'runtime-lesson-step',
+        'runtime-lesson-module',
+        'runtime-lesson-media',
+        'runtime-handout',
+      ].includes(row.family)
     ));
     expect(() => assertCoreSemanticMaterializationManifest({
       ...manifestInput,
@@ -2590,14 +2598,18 @@ describe('resource field completion audit', () => {
       ]);
     }
     const simulationValidationRow = baselineRowFor('simulation-validation-practice');
-    expect(simulationValidationRow.categories.concept.pathEligible).toBe(8);
-    expect(simulationValidationRow.categories.concept.pathEligibleResourceIds.every((id) =>
-      id.startsWith('runtime-step:4-7:')
-    )).toBe(true);
-    expect(simulationValidationRow.categories.citation.pathEligible).toBe(8);
-    expect(simulationValidationRow.categories.citation.pathEligibleResourceIds.every((id) =>
-      id.startsWith('runtime-step:4-7:')
-    )).toBe(true);
+    const simulationValidationBaselineResourceIds = [
+      'runtime-step:4-7:step-03',
+      'runtime-step:4-7:step-04',
+    ];
+    expect(simulationValidationRow.categories.concept.pathEligible).toBe(2);
+    expect(simulationValidationRow.categories.concept.pathEligibleResourceIds).toEqual(
+      simulationValidationBaselineResourceIds,
+    );
+    expect(simulationValidationRow.categories.citation.pathEligible).toBe(2);
+    expect(simulationValidationRow.categories.citation.pathEligibleResourceIds).toEqual(
+      simulationValidationBaselineResourceIds,
+    );
     expect(simulationValidationRow.categories.practice.pathEligible).toBe(0);
     expect(simulationValidationRow.categories.practice.highComplexityLocked).toBeGreaterThan(0);
     expect(simulationValidationRow.categories['terminal-validation'].pathEligible).toBe(0);
@@ -2610,14 +2622,16 @@ describe('resource field completion audit', () => {
       'terminal-validation',
     ]);
     const shipOceanTransferRow = baselineRowFor('ship-ocean-transfer-application');
-    expect(shipOceanTransferRow.categories.concept.pathEligible).toBe(6);
-    expect(shipOceanTransferRow.categories.concept.pathEligibleResourceIds.every((id) =>
-      id.startsWith('runtime-step:5-3:')
-    )).toBe(true);
-    expect(shipOceanTransferRow.categories.citation.pathEligible).toBe(6);
-    expect(shipOceanTransferRow.categories.citation.pathEligibleResourceIds.every((id) =>
-      id.startsWith('runtime-step:5-3:')
-    )).toBe(true);
+    expect(shipOceanTransferRow.categories.concept.pathEligible).toBe(2);
+    expect(shipOceanTransferRow.categories.concept.pathEligibleResourceIds).toEqual([
+      'runtime-step:5-3:step-09',
+      'runtime-step:5-3:step-10',
+    ]);
+    expect(shipOceanTransferRow.categories.citation.pathEligible).toBe(2);
+    expect(shipOceanTransferRow.categories.citation.pathEligibleResourceIds).toEqual([
+      'runtime-step:5-3:step-09',
+      'runtime-step:5-3:step-10',
+    ]);
     expect(shipOceanTransferRow.categories.practice.pathEligible).toBe(0);
     expect(shipOceanTransferRow.categories.practice.highComplexityLocked).toBeGreaterThan(0);
     expect(shipOceanTransferRow.categories['terminal-validation'].pathEligible).toBe(0);
@@ -2672,6 +2686,38 @@ describe('resource field completion audit', () => {
         reviewedSourceHash: auditRow.reviewAudit.reviewedSourceHash,
         reviewedVersionRef: auditRow.reviewAudit.reviewedVersionRef,
       });
+    }
+    const regeneratedFromCurrentAudit = buildLearningGoalResourceBaselineArtifacts({
+      registeredGoals: ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
+      auditRows,
+      generatedAt: matrix.generatedAt,
+      sourceWindow: matrix.sourceWindow,
+    });
+    const regeneratedSimulationValidationRow = regeneratedFromCurrentAudit.matrix.rows.find((row) => (
+      row.learningGoalId === 'simulation-validation-practice'
+    ));
+    expect(regeneratedSimulationValidationRow?.categories.concept.pathEligibleResourceIds).toEqual([
+      'runtime-step:4-7:step-03',
+      'runtime-step:4-7:step-04',
+    ]);
+    expect(regeneratedSimulationValidationRow?.categories.concept.pathEligible).toBe(2);
+    expect(regeneratedSimulationValidationRow?.categories.citation.pathEligibleResourceIds).toEqual([
+      'runtime-step:4-7:step-03',
+      'runtime-step:4-7:step-04',
+    ]);
+    expect(regeneratedSimulationValidationRow?.categories.citation.pathEligible).toBe(2);
+    const explicitlyNonPromotedRuntimeSteps = [
+      'runtime-step:4-7:step-05',
+      'runtime-step:4-7:step-06',
+      'runtime-step:4-7:step-07',
+      'runtime-step:4-7:step-08',
+      'runtime-step:4-7:step-09',
+      'runtime-step:4-7:step-10',
+    ];
+    for (const resourceId of explicitlyNonPromotedRuntimeSteps) {
+      expect(auditRowById.get(resourceId)?.pathEligibility.current).toBe(false);
+      expect(regeneratedSimulationValidationRow?.categories.concept.pathEligibleResourceIds).not.toContain(resourceId);
+      expect(regeneratedSimulationValidationRow?.categories.citation.pathEligibleResourceIds).not.toContain(resourceId);
     }
     expect(limitations.artifactVersion).toBe(LEARNING_GOAL_RESOURCE_BASELINE_VERSION);
     expect(limitations.totals.learningGoals).toBe(expectedLearningGoalIds.length);

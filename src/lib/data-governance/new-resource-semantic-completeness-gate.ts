@@ -1,4 +1,5 @@
 import type { RegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
+import type { RuntimeResourceProjectionFamily } from '@/lib/runtime-resource-projections';
 import type {
   ResourceNodeSourceKind,
   RuntimeResourceProjectionLevel,
@@ -38,7 +39,19 @@ export interface RuntimeProjectionParseResult {
   result: NewResourceGateResult;
 }
 
+type RuntimeResourceProjectionInputWithFamily = RuntimeResourceProjectionInput & {
+  family?: RuntimeResourceProjectionFamily;
+};
+
 const PLACEHOLDER_REVIEWER_PATTERN = /\b(?:placeholder|todo|unknown|generated|synthetic|example|ai-generated|system-governed|template)\b/i;
+const RUNTIME_PROJECTION_FAMILIES = new Set<RuntimeResourceProjectionFamily>([
+  'runtime-lesson-step',
+  'runtime-lesson-module',
+  'runtime-lesson-media',
+  'runtime-handout',
+  'knowledge-card',
+  'knowledge-infograph',
+]);
 const RUNTIME_PROJECTION_LEVELS = new Set<RuntimeResourceProjectionLevel>([
   'ResourceNode',
   'ResourceSegment',
@@ -68,6 +81,13 @@ const RUNTIME_PROJECTION_RESOURCE_TYPES = new Set<RuntimeResourceProjectionResou
   'konling',
   'project',
   'image',
+]);
+const RUNTIME_LESSON_MEDIA_RESOURCE_TYPES = new Set<RuntimeResourceProjectionResourceType>([
+  'audio',
+  'video',
+  'slides',
+  'image',
+  'handout',
 ]);
 const RUNTIME_PROJECTION_SOURCE_KINDS = new Set<ResourceNodeSourceKind>([
   'media_source_manifest',
@@ -167,7 +187,7 @@ export function parseAddedRuntimeProjectionChanges(diff: string): RuntimeProject
     const line = rawLine.slice(1).trim();
     if (!line) continue;
     try {
-      const row = JSON.parse(line) as Partial<RuntimeResourceProjectionInput>;
+      const row = JSON.parse(line) as Partial<RuntimeResourceProjectionInputWithFamily>;
       if (!row.id) {
         const prefix = isAdded ? 'Added' : 'Deleted';
         issues.push(issue(`${isAdded ? 'added' : 'deleted'}-line-${index + 1}`, 'runtime-resource-projection', 'missing-runtime-projection-id', `${prefix} runtime projection JSONL row requires an id.`));
@@ -200,11 +220,18 @@ export function parseAddedRuntimeProjectionChanges(diff: string): RuntimeProject
 }
 
 function validateRuntimeProjectionInputSchema(
-  row: Partial<RuntimeResourceProjectionInput>,
+  row: Partial<RuntimeResourceProjectionInputWithFamily>,
   fallbackId: string,
 ): NewResourceGateIssue[] {
   const resourceId = row.id || fallbackId;
   const issues: NewResourceGateIssue[] = [];
+  pushRequiredEnumIssue(
+    issues,
+    resourceId,
+    row.family,
+    RUNTIME_PROJECTION_FAMILIES,
+    'family',
+  );
   pushRequiredStringIssue(issues, resourceId, row.title, 'title');
   pushRequiredStringIssue(issues, resourceId, row.sourceRef, 'source-ref');
   pushRequiredEnumIssue(
@@ -477,11 +504,21 @@ function validateRegisteredResource(resource: RegisteredResourceMetadata): NewRe
 
 function validateRuntimeResourceProjection(row: RuntimeResourceProjectionInput): NewResourceGateIssue[] {
   const issues: NewResourceGateIssue[] = [];
+  const projection = row as RuntimeResourceProjectionInputWithFamily;
   const audit = row.reviewAudit;
   const evidence = row.evidenceContract;
+  const pathEligible = runtimeProjectionIsPathEligible(row);
+  const semanticEvidence = row.runtimeSemanticEvidence;
 
+  pushRequiredEnumIssue(
+    issues,
+    row.id,
+    projection.family,
+    RUNTIME_PROJECTION_FAMILIES,
+    'family',
+  );
   if (runtimeProjectionFamilySourceKindMismatch(row)) {
-    issues.push(issue(row.id, 'runtime-resource-projection', 'invalid-runtime-projection-family-source-kind', 'Knowledge projection family and sourceKind must classify the row consistently.'));
+    issues.push(issue(row.id, 'runtime-resource-projection', 'invalid-runtime-projection-family-source-kind', 'Runtime projection family, sourceKind, and resourceType must classify the row consistently.'));
   }
   if (!audit || audit.status !== 'human-confirmed') {
     issues.push(issue(row.id, 'runtime-resource-projection', 'missing-human-review', 'Runtime projection requires human-confirmed review metadata.'));
@@ -492,9 +529,12 @@ function validateRuntimeResourceProjection(row: RuntimeResourceProjectionInput):
   if (!audit?.reviewedAt) {
     issues.push(issue(row.id, 'runtime-resource-projection', 'missing-reviewed-at', 'Runtime projection requires review timestamp.'));
   }
-  if (!audit?.reviewedSourceHash || !audit.reviewedVersionRef) {
+  if (!runtimeProjectionHasReviewSourceEvidence(row)) {
     issues.push(issue(row.id, 'runtime-resource-projection', 'missing-reviewed-source-evidence', 'Runtime projection requires reviewed source hash and version evidence.'));
-  } else if (!runtimeProjectionReviewSourceMatches(row) || audit.reviewedVersionRef !== row.sourceVersionRef) {
+  } else if (
+    (audit?.reviewedSourceHash && !runtimeProjectionReviewSourceMatches(row)) ||
+    audit?.reviewedVersionRef !== row.sourceVersionRef
+  ) {
     issues.push(issue(row.id, 'runtime-resource-projection', 'stale-review-evidence', 'Runtime projection review evidence must match the current source hash and version.'));
   }
   if (!audit?.reviewerRole) {
@@ -509,35 +549,68 @@ function validateRuntimeResourceProjection(row: RuntimeResourceProjectionInput):
   if (!audit?.independentEvidenceRef) {
     issues.push(issue(row.id, 'runtime-resource-projection', 'missing-independent-review-evidence', 'Runtime projection requires independent review evidence reference.'));
   }
-  if (typeof audit?.confidence !== 'number' || !Number.isFinite(audit.confidence)) {
+  if (pathEligible && (typeof audit?.confidence !== 'number' || !Number.isFinite(audit.confidence))) {
     issues.push(issue(row.id, 'runtime-resource-projection', 'missing-review-confidence', 'Runtime projection requires reviewer confidence metadata.'));
   }
   if (!audit?.staleInvalidationRule) {
     issues.push(issue(row.id, 'runtime-resource-projection', 'missing-stale-invalidation-rule', 'Runtime projection requires stale invalidation rule.'));
   }
-  if (!row.sourceHash || !row.sourceVersionRef) {
+  if (!row.sourceVersionRef || (!row.sourceHash && !runtimeProjectionAllowsMissingAssetHash(row))) {
     issues.push(issue(row.id, 'runtime-resource-projection', 'missing-source-version-evidence', 'Runtime projection requires source hash and version reference.'));
   }
   if (!row.privacyScope) {
     issues.push(issue(row.id, 'runtime-resource-projection', 'missing-privacy-policy', 'Runtime projection requires privacy scope.'));
   }
-  if (!hasGraphBinding(row.graphNodeRefs)) {
+  if (pathEligible && !hasGraphBinding(row.graphNodeRefs)) {
     issues.push(issue(row.id, 'runtime-resource-projection', 'missing-graph-binding', 'Runtime projection requires graph bindings.'));
   }
-  if ((row.projectionLevel === 'ResourceNode' || row.projectionLevel === 'PlanningUnit') && !hasCapabilityBinding(row.graphNodeRefs)) {
+  if (pathEligible && !hasCapabilityBinding(row.graphNodeRefs)) {
     issues.push(issue(row.id, 'runtime-resource-projection', 'missing-capability-mapping', 'Path-capable runtime projection requires capability graph bindings.'));
   }
-  if (!row.citationTargets?.length) {
+  if (pathEligible && !row.citationTargets?.length) {
     issues.push(issue(row.id, 'runtime-resource-projection', 'missing-citation-target', 'Runtime projection requires citation metadata.'));
   }
   if (requiresCompleteEvidenceContract(row) && !isEvidenceContractComplete(evidence)) {
     issues.push(issue(row.id, 'runtime-resource-projection', 'missing-evidence-contract', 'Runtime projection requires a complete evidence contract.'));
   }
-  if ((row.projectionLevel === 'ResourceNode' || row.projectionLevel === 'PlanningUnit') && !row.routeTarget && !row.renderTarget) {
+  if (pathEligible && !row.routeTarget && !row.renderTarget) {
     issues.push(issue(row.id, 'runtime-resource-projection', 'missing-route-or-render-target', 'Path-capable runtime projection requires route or render target.'));
   }
 
   return issues;
+}
+
+function runtimeProjectionIsPathEligible(row: RuntimeResourceProjectionInput): boolean {
+  return row.pathEligibility?.current === true || row.projectionLevel === 'PlanningUnit';
+}
+
+export function isRuntimeLessonMediaProjection(
+  row: RuntimeResourceProjectionInputWithFamily,
+): boolean {
+  return row.family === 'runtime-lesson-media' &&
+    row.sourceKind === 'runtime_lesson_media' &&
+    RUNTIME_LESSON_MEDIA_RESOURCE_TYPES.has(row.resourceType);
+}
+
+function runtimeProjectionAllowsMissingAssetHash(
+  row: RuntimeResourceProjectionInputWithFamily,
+): boolean {
+  const semanticEvidence = row.runtimeSemanticEvidence;
+  if (!isRuntimeLessonMediaProjection(row)) return false;
+  if (!semanticEvidence || !semanticEvidence.evidenceFilePath || !semanticEvidence.evidenceFileHash) return false;
+  if (semanticEvidence.assetStatus === 'missing-local-runtime-asset') return true;
+  return semanticEvidence.assetStatus === 'external-http-runtime-asset' &&
+    Boolean(semanticEvidence.externalIdentitySha256);
+}
+
+function runtimeProjectionHasReviewSourceEvidence(row: RuntimeResourceProjectionInput): boolean {
+  const audit = row.reviewAudit;
+  if (audit?.reviewedSourceHash && audit.reviewedVersionRef) return true;
+  return Boolean(
+    row.runtimeSemanticEvidence &&
+    runtimeProjectionAllowsMissingAssetHash(row) &&
+    audit?.reviewedVersionRef,
+  );
 }
 
 function pushDispositionIssues(
@@ -631,17 +704,30 @@ function runtimeProjectionReviewSourceMatches(row: RuntimeResourceProjectionInpu
 }
 
 function isKnowledgeRuntimeProjection(row: RuntimeResourceProjectionInput): boolean {
-  const family = (row as RuntimeResourceProjectionInput & { family?: string }).family;
+  const family = (row as RuntimeResourceProjectionInputWithFamily).family;
   return row.sourceKind === 'knowledge_graph' ||
     family === 'knowledge-card' ||
     family === 'knowledge-infograph';
 }
 
 function runtimeProjectionFamilySourceKindMismatch(row: RuntimeResourceProjectionInput): boolean {
-  const family = (row as RuntimeResourceProjectionInput & { family?: string }).family;
+  const projection = row as RuntimeResourceProjectionInputWithFamily;
+  const family = projection.family;
   if (typeof family !== 'string') return false;
-  const knowledgeFamily = family === 'knowledge-card' || family === 'knowledge-infograph';
-  return knowledgeFamily !== (row.sourceKind === 'knowledge_graph');
+  if (family === 'runtime-lesson-step' || family === 'runtime-lesson-module') {
+    return projection.sourceKind !== 'runtime_lesson_step' || projection.resourceType !== 'lesson_step';
+  }
+  if (family === 'runtime-lesson-media') return !isRuntimeLessonMediaProjection(projection);
+  if (family === 'runtime-handout') {
+    return projection.sourceKind !== 'runtime_handout' || projection.resourceType !== 'handout';
+  }
+  if (family === 'knowledge-card') {
+    return projection.sourceKind !== 'knowledge_graph' || projection.resourceType !== 'knowledge_card';
+  }
+  if (family === 'knowledge-infograph') {
+    return projection.sourceKind !== 'knowledge_graph' || projection.resourceType !== 'image';
+  }
+  return projection.sourceKind === 'knowledge_graph';
 }
 
 function issue(
