@@ -63,6 +63,7 @@ const STUDENT_CITATION_SOURCE_KINDS: SourcePackSourceKind[] = [
 
 const REVIEWED_STATUSES = [
   'human-confirmed',
+  'model-cleared',
   'teacher-approved',
   'verified',
   'canonical',

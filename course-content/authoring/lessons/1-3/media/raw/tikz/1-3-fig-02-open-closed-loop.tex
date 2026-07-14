@@ -1,0 +1,74 @@
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage{amsmath}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{PT Serif}
+\setCJKmainfont{Noto Sans CJK SC}
+\usetikzlibrary{arrows.meta,positioning,calc}
+
+\definecolor{blockblue}{HTML}{4A90D9}
+\definecolor{sumgreen}{HTML}{5CB85C}
+\definecolor{taporange}{HTML}{F0AD4E}
+\definecolor{linegray}{HTML}{333333}
+
+\tikzset{
+  block/.style={rectangle, draw=blockblue, fill=none, line width=1.2pt,
+    minimum height=0.75cm, minimum width=1.4cm, inner sep=2pt,
+    font=\footnotesize\bfseries, align=center},
+  wideblock/.style={block, minimum width=2.1cm},
+  sum/.style={circle, draw=sumgreen, fill=none, line width=1.2pt,
+    minimum size=0.34cm, inner sep=0pt,
+    path picture={
+      \draw[line width=0.8pt, linegray]
+        (path picture bounding box.south west) -- (path picture bounding box.north east);
+      \draw[line width=0.8pt, linegray]
+        (path picture bounding box.north west) -- (path picture bounding box.south east);
+    }},
+  tap/.style={circle, draw=taporange, fill=none, line width=1.2pt,
+    minimum size=4pt, inner sep=0pt},
+  signal/.style={-{Latex[length=2.2mm]}, draw=linegray, line width=1.2pt},
+  plain/.style={draw=linegray, line width=1.2pt},
+  signal label above/.style={fill=none, above=4pt},
+  neg sign/.style={fill=none, font=\footnotesize, very near end},
+  note/.style={align=center}
+}
+
+\begin{document}
+\begin{tikzpicture}[x=1cm,y=1cm]
+  % 开环：增益只缩放输入输出关系，不进入对象分母。
+  \node[note, font=\small\bfseries, align=right] (openlabel) at (0,1.55) {开环};
+  \node (r1) at (1.0,1.55) {$r(t)$};
+  \node[block] (k1) at (2.55,1.55) {$K$};
+  \node[wideblock] (g1) at (4.95,1.55) {$G_0(s)=\dfrac{1}{s(s+4)}$};
+  \node (y1) at (7.1,1.55) {$y(t)$};
+  \node[note, font=\footnotesize, align=left] at (9.45,1.55)
+    {开环传递函数：\\[2pt]
+     $G_{\mathrm{OL}}(s)=\dfrac{K}{s(s+4)}$\\[2pt]
+     极点固定为 $0,-4$};
+
+  \draw[signal] (r1) -- (k1);
+  \draw[signal] (k1) -- (g1);
+  \draw[signal] (g1) -- (y1);
+
+  % 闭环：单位负反馈使 K 进入闭环特征方程。
+  \node[note, font=\small\bfseries, align=right] (closedlabel) at (0,-1.15) {闭环};
+  \node (r2) at (1.0,-1.15) {$r(t)$};
+  \node[sum] (sum) at (2.05,-1.15) {};
+  \node[block] (k2) at (3.55,-1.15) {$K$};
+  \node[wideblock] (g2) at (5.95,-1.15) {$G_0(s)=\dfrac{1}{s(s+4)}$};
+  \node[tap] (tap) at (7.55,-1.15) {};
+  \node (y2) at (8.5,-1.15) {$y(t)$};
+  \node[note, font=\footnotesize, align=left] at (10.75,-1.15)
+    {$\Phi(s)=\dfrac{K}{s^2+4s+K}$\\[2pt]
+     特征方程：$s^2+4s+K=0$};
+
+  \draw[signal] (r2) -- (sum);
+  \draw[signal] (sum) -- node[signal label above, font=\footnotesize] {$e(t)$} (k2);
+  \draw[signal] (k2) -- (g2);
+  \draw[signal] (g2) -- (tap) -- (y2);
+  \draw[plain] (tap) -- ++(0,-1.15) coordinate (returnright)
+    -- coordinate[pos=0.52] (returnmid) ($(sum)+(0,-1.15)$);
+  \draw[signal] ($(sum)+(0,-1.15)$) -- node[neg sign, left] {$-$} (sum.south);
+  \node[note, font=\footnotesize, below=3pt of returnmid] {单位反馈 $H(s)=1$};
+\end{tikzpicture}
+\end{document}

@@ -1,0 +1,43 @@
+{
+  "lesson_id": "1-4",
+  "title": "时域与频域：同一个系统的两种观察视角",
+  "layer": "层0",
+  "unit_type": "理论",
+  "hours": 2,
+  "knowledge_type": "C+X",
+  "graph_version": "1-4-v1",
+  "focus_node_ids": [
+    "时域频域通道区分_1_4",
+    "闭环带宽与环路穿越频率_1_4",
+    "Bode与Nyquist同源表征_1_4",
+    "多表征一致性读图_1_4"
+  ],
+  "reuse_node_ids": [
+    "时域响应_1_1",
+    "频域分析_2_2e257d89",
+    "开环幅相特性曲线_5_fd86e289"
+  ],
+  "entry_nodes": [
+    "时域频域通道区分_1_4"
+  ],
+  "summary_nodes": [
+    "Bode与Nyquist同源表征_1_4",
+    "多表征一致性读图_1_4"
+  ],
+  "card_order": [
+    "时域响应_1_1",
+    "时域频域通道区分_1_4",
+    "闭环带宽与环路穿越频率_1_4",
+    "频域分析_2_2e257d89",
+    "Bode与Nyquist同源表征_1_4",
+    "开环幅相特性曲线_5_fd86e289",
+    "多表征一致性读图_1_4"
+  ],
+  "preceding_lesson": "1-3",
+  "following_lesson": "1-5",
+  "refinement_units": [
+    "2-2",
+    "2-3",
+    "2-4"
+  ]
+}

@@ -92,6 +92,20 @@ def read_jsonl(path: Path) -> list[dict[str, Any]]:
     return records
 
 
+def normalize_authoring_node(node: dict[str, Any]) -> dict[str, Any]:
+    normalized = dict(node)
+    if not normalized.get('name') and normalized.get('label'):
+        normalized['name'] = normalized['label']
+    if not normalized.get('definition') and normalized.get('summary'):
+        normalized['definition'] = normalized['summary']
+    chapter = normalized.get('chapter')
+    if isinstance(chapter, str):
+        stripped = chapter.strip()
+        if stripped.isdigit():
+            normalized['chapter'] = int(stripped)
+    return normalized
+
+
 def write_json(path: Path, data: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
@@ -859,15 +873,6 @@ def export_lesson_runtime(
 
 def load_combined_authoring_graph() -> tuple[dict[str, dict[str, Any]], list[dict[str, Any]]]:
     canonical_index = load_canonical_index()
-
-    def normalize_authoring_node(node: dict[str, Any]) -> dict[str, Any]:
-        normalized = dict(node)
-        chapter = normalized.get('chapter')
-        if isinstance(chapter, str):
-            stripped = chapter.strip()
-            if stripped.isdigit():
-                normalized['chapter'] = int(stripped)
-        return normalized
 
     def parse_markdown_frontmatter(markdown: str) -> dict[str, Any]:
         if not markdown.startswith('---\n'):

@@ -227,6 +227,7 @@ function isRuntimeProjectionFamily(family: ResourceFieldCompletionFamily): famil
 }
 
 function projectionLevelForRow(row: ResourceFieldCompletionAuditRow): RuntimeResourceProjectionLevel {
+  if (row.reviewStatus === 'model-cleared') return 'ResourceSegment';
   if (row.pathEligibility.current && row.pathEligibility.masteryAffecting) return 'PlanningUnit';
   if (row.family === 'runtime-lesson-step') return 'ResourceNode';
   if (row.family === 'knowledge-card' && row.reviewStatus === 'human-confirmed') return 'ResourceNode';
@@ -329,7 +330,7 @@ function normalizeGraphNodeRefs(refs: ResourceGraphNodeRefs): ResourceGraphNodeR
 }
 
 function isStaleProjection(row: RuntimeResourceProjectionArtifactRow): boolean {
-  return row.reviewAudit.status === 'human-confirmed' &&
+  return (row.reviewAudit.status === 'human-confirmed' || row.reviewAudit.status === 'model-cleared') &&
     (!reviewedSourceMatchesProjection(row) ||
       row.reviewAudit.reviewedVersionRef !== row.sourceVersionRef);
 }

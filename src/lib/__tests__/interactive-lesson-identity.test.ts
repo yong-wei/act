@@ -98,6 +98,28 @@ describe('interactive lesson identity resolver', () => {
     }
   });
 
+  it('registers content-ready lessons without claiming interactive surfaces', () => {
+    const recordsById = new Map(
+      listInteractiveLessonIdentityRecords().map((record) => [record.canonicalId, record]),
+    );
+
+    for (const canonicalId of ['1-4', '1-5']) {
+      expect(recordsById.get(canonicalId)).toEqual({
+        canonicalId,
+        routeSegments: [],
+        runtimeLessonDir: canonicalId,
+        lessonKeys: [],
+        presetKeys: [],
+        planTitleAliases: [],
+        evidenceAliases: [],
+      });
+      expect(resolveInteractiveLessonIdentity({ kind: 'canonicalId', value: canonicalId }).status)
+        .toBe('resolved');
+      expect(resolveInteractiveLessonIdentity({ kind: 'runtimeLessonDir', value: canonicalId }).status)
+        .toBe('resolved');
+    }
+  });
+
   it('keeps the registry aligned with gate inventory, AI context, and lesson-id map surfaces', () => {
     const records = listInteractiveLessonIdentityRecords();
     const recordsById = new Map(records.map((record) => [record.canonicalId, record]));

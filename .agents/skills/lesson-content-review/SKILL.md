@@ -317,6 +317,10 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
 python3 course-content/scripts/review_lesson_content.py --lesson <lesson>
 ```
 
+注册新主线课次时，应先用 `--skip-export` 隔离验证 lesson map、manifest、图谱、卡片和审查报告，再运行不带该参数的完整命令验证 runtime 导出。完整导出会汇总全局作者态图谱；若它在其他草案课次的旧字段上失败，应沿全局图谱加载链定位兼容问题，不能把 `--skip-export` 成功误报为正式注册已完成。导出器当前兼容旧节点的 `label` / `summary` 字段，但新建图谱仍必须使用 `name` / `definition`。
+
+审查报告必须按实际文件和结构化检查结果陈述状态：缺少 BOPPPS 或互动页时应明确写为“未提供/缺少”，不得使用固定成功文案。正式注册与互动实现是不同门禁；课次可以完成 mainline 注册和内容审查，同时保留互动页待实现状态。
+
 若课次已存在本地互动实现，收工前还必须再运行：
 
 ```bash

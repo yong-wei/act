@@ -262,6 +262,7 @@ description: 面向"自动控制原理"课程创作讲义、知识图谱节点�
 4. 若仅有可安全合并项，可先运行 `python3 .agents/skills/lesson/scripts/sync_runtime_knowledge.py --apply`，再重新运行 `--check` 确认无冲突。
    - 若报告的是 base 节点缺少 `knowledge_type`，且作者态课次图谱或节点卡片 frontmatter 能唯一证明该字段，可使用 `--apply --node-field-backfills-only` 只回填安全字段。
    - 新增知识节点必须显式提供 `knowledge_type`；不得依赖运行态导出后再反推补齐。
+   - 课次自有 `authoring/lessons/<lesson>/graph/` 与全局 `authoring/knowledge/base/` 都是合法作者态真源；同步检查必须识别课次所有权，不得用 `--apply` 把课次节点或关系重复复制到全局 base。
 5. 再检查当前课次作者态内容、运行态导出和知识卡片是否存在明显冲突；可使用 `course-content/scripts/review_lesson_content.py --review-only <lesson>` 与 `course-content/scripts/export-runtime.sh <lesson>` 验证当前课次。
 6. 若当前课次仍存在冲突，立即停止并展示冲突清单。
 7. 若仅有可安全合并项，应先在作者态真源中完成合并，再重新运行 review/export 链路。

@@ -2368,7 +2368,15 @@ def build_review_report(
     multimedia_check = multimedia_check or {}
     reviewed_paths = [format_repo_path(path) for path in primary_sources]
     design_dir = get_authoring_lesson_dir(lesson_id) / 'design'
-    reviewed_paths.append(format_repo_path(resolve_lesson_artifact_path(design_dir, lesson_id, 'boppps.md')))
+    boppps_path = resolve_lesson_artifact_path(design_dir, lesson_id, 'boppps.md')
+    if boppps_path.exists():
+        reviewed_paths.append(format_repo_path(boppps_path))
+        boppps_summary = (
+            f'- 已将 `design/{with_lesson_prefix(lesson_id, "boppps.md")}` '
+            '作为 runtime/review 产物导出，供课程制作技能直接读取。'
+        )
+    else:
+        boppps_summary = f'- 未提供 `design/{with_lesson_prefix(lesson_id, "boppps.md")}`；本次仅审查现有正式来源。'
 
     issue_lines: list[str] = []
     for item in text_review['files']:
@@ -2425,6 +2433,8 @@ def build_review_report(
         )
 
     interactive_page_lines = []
+    for issue in interactive_page_check.get('blocking_issues', []):
+        interactive_page_lines.append(f'- {issue}')
     for summary in interactive_page_check.get('summary', []):
         interactive_page_lines.append(f'- {summary}')
     for warning in interactive_page_check.get('warnings', []):
@@ -2446,7 +2456,7 @@ def build_review_report(
         *issue_lines,
         '',
         '## BOPPPS 对照',
-        f'- 已将 `design/{with_lesson_prefix(lesson_id, "boppps.md")}` 作为 runtime/review 产物导出，供课程制作技能直接读取。',
+        boppps_summary,
         '',
         '## 互动页覆盖审查',
         interactive_page_summary,

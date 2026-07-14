@@ -101,6 +101,18 @@ function unitRecord(
   };
 }
 
+function registeredRuntimeContentRecord(canonicalId: string): InteractiveLessonIdentityRecord {
+  return {
+    canonicalId,
+    routeSegments: [],
+    runtimeLessonDir: canonicalId,
+    lessonKeys: [],
+    presetKeys: [],
+    planTitleAliases: [],
+    evidenceAliases: [],
+  };
+}
+
 export const INTERACTIVE_LESSON_IDENTITY_REGISTRY: readonly InteractiveLessonIdentityRecord[] = [
   {
     canonicalId: 'cruise-comfort-boppps',
@@ -132,6 +144,8 @@ export const INTERACTIVE_LESSON_IDENTITY_REGISTRY: readonly InteractiveLessonIde
     '建模：从真实对象到可分析的系统',
     '建模——从真实对象到可分析的系统',
   ]),
+  registeredRuntimeContentRecord('1-4'),
+  registeredRuntimeContentRecord('1-5'),
   unitRecord('2-1', UNIT_2_1_ROUTE_SEGMENT, UNIT_2_1_PRESET_KEY, UNIT_2_1_COURSE_TITLE, [
     '2-1：建模与变换语言——从真实对象到统一分析对象',
     '建模与变换语言——从真实对象到统一分析对象',

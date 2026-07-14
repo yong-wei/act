@@ -333,6 +333,7 @@ export type RuntimeResourceProjectionReviewStatus =
   | 'generated-provisional'
   | 'model-assisted-provisional'
   | 'external-tool-provisional'
+  | 'model-cleared'
   | 'human-confirmed'
   | 'blocked'
   | 'stale';
@@ -424,6 +425,11 @@ export interface RuntimeResourceProjectionInput {
   readiness?: ResourceNodeReadinessMetadata | null;
   citationTargets?: string[];
   runtimeSemanticEvidence?: RuntimeResourceProjectionSemanticEvidence;
+  retrievalChunk?: {
+    id: string;
+    pathEligible: boolean;
+    reason: string;
+  };
   pathEligibility?: {
     current: boolean;
     afterCompletion: boolean;
@@ -945,6 +951,9 @@ export interface RuntimeLessonNodeInput {
   }>;
   handoutPath?: string | null;
   handoutPdfPath?: string | null;
+  handoutSourcePath?: string | null;
+  handoutSourceHash?: string | null;
+  handoutSourceVersionRef?: string | null;
 }
 
 export interface TextbookResourceNodeInput {
@@ -2069,6 +2078,24 @@ function buildRuntimeLessonNodes(lessons: RuntimeLessonNodeInput[]): ResourceNod
           planningMetadata: 'ResourceNode',
         },
         evidenceInstrumentation: ['runtime_handout_open'],
+        runtimeProjection: lesson.handoutSourcePath && lesson.handoutSourceHash && lesson.handoutSourceVersionRef
+          ? {
+              id: `runtime-handout:${lesson.lessonId}`,
+              projectionLevel: 'ResourceNode',
+              sourceKind: 'runtime_handout',
+              sourcePathOrUrl: lesson.handoutSourcePath,
+              sourceRecord: lesson.lessonId,
+              sourceHash: lesson.handoutSourceHash ?? null,
+              sourceVersionRef: lesson.handoutSourceVersionRef ?? null,
+              graphNodeRefs: {
+                knowledge: collectLessonKnowledgeCoverage(lesson),
+                capability: [],
+                quality: [],
+              },
+              evidenceContract: null,
+              reviewAudit: null,
+            }
+          : null,
       }));
     }
     for (const media of lesson.mediaResources ?? []) {

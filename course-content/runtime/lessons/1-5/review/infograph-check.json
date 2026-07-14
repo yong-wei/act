@@ -1,0 +1,62 @@
+{
+  "lesson_id": "1-5",
+  "sequence_path": "course-content/authoring/knowledge/cards/lessons/1-5/sequence.json",
+  "infograph_root": "course-content/authoring/knowledge/infographs/lessons/1-5/nodes",
+  "card_order": [
+    "极点_1_2",
+    "时域响应_1_1",
+    "三域证据链_1_5",
+    "增益扫描稳定区间_1_5",
+    "临界增益与虚轴极点_1_5",
+    "速度指标分辨_1_5"
+  ],
+  "accepted_infographs": [],
+  "missing_infographs": [
+    "极点_1_2",
+    "时域响应_1_1",
+    "三域证据链_1_5",
+    "增益扫描稳定区间_1_5",
+    "临界增益与虚轴极点_1_5",
+    "速度指标分辨_1_5"
+  ],
+  "missing_source_files": {
+    "极点_1_2": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "时域响应_1_1": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "三域证据链_1_5": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "增益扫描稳定区间_1_5": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "临界增益与虚轴极点_1_5": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "速度指标分辨_1_5": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ]
+  },
+  "pending_review": [],
+  "broken_review_files": {}
+}

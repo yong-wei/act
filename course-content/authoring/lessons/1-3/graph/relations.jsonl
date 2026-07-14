@@ -1,0 +1,14 @@
+{"source_id":"开环增益_1_3","source":"开环增益","target_id":"闭环特征方程_1_3","target":"闭环特征方程","relation_type":"contrasts_with","strength":0.95,"description":"开环中 K 只缩放输出，闭环中 K 进入特征方程并改变极点。"}
+{"source_id":"闭环特征方程_1_3","source":"闭环特征方程","target_id":"极点迁移_1_3","target":"极点迁移","relation_type":"causes","strength":0.98,"description":"K 进入特征方程系数，使闭环极点随参数连续变化。"}
+{"source_id":"极点迁移_1_3","source":"极点迁移","target_id":"实极点_1_3","target":"实极点","relation_type":"has_stage","strength":0.9,"description":"0<K<4 时两个负实极点沿实轴相向移动。"}
+{"source_id":"极点迁移_1_3","source":"极点迁移","target_id":"重实极点_1_3","target":"重实极点","relation_type":"has_stage","strength":0.95,"description":"K=4 时两个极点在 s=-2 会合。"}
+{"source_id":"极点迁移_1_3","source":"极点迁移","target_id":"共轭复极点_1_3","target":"共轭复极点","relation_type":"has_stage","strength":0.95,"description":"K>4 时极点成为共轭复数，实部固定为 -2。"}
+{"source_id":"实极点_1_3","source":"实极点","target_id":"参数连续性_1_3","target":"参数变化连续性","relation_type":"exemplifies","strength":0.8,"description":"两个负实极点沿实轴连续滑行。"}
+{"source_id":"重实极点_1_3","source":"重实极点","target_id":"临界阻尼_1_3","target":"临界阻尼","relation_type":"equivalent_to","strength":0.98,"description":"本例的重实极点对应临界阻尼状态。"}
+{"source_id":"共轭复极点_1_3","source":"共轭复极点","target_id":"衰减振荡_1_3","target":"衰减振荡","relation_type":"produces","strength":0.98,"description":"共轭复极点产生指数包络内的衰减振荡。"}
+{"source_id":"极点迁移_1_3","source":"极点迁移","target_id":"根轨迹雏形_1_3","target":"根轨迹雏形","relation_type":"visualized_by","strength":0.98,"description":"把参数扫描下的全部极点位置连成曲线即可得到根轨迹雏形。"}
+{"source_id":"根轨迹雏形_1_3","source":"根轨迹雏形","target_id":"参数连续性_1_3","target":"参数变化连续性","relation_type":"demonstrates","strength":0.9,"description":"根轨迹的连续曲线直观展示极点迁移没有跳跃。"}
+{"source_id":"临界阻尼_1_3","source":"临界阻尼","target_id":"衰减振荡_1_3","target":"衰减振荡","relation_type":"precedes","strength":0.85,"description":"K 越过 4 后，响应由临界阻尼连续进入衰减振荡区。"}
+{"source_id":"极点_1_2","source":"极点","target_id":"极点迁移_1_3","target":"极点迁移","relation_type":"extends","strength":0.9,"description":"1-2 建立静态极点与行为的联系，1-3 引入参数并考察极点迁移。"}
+{"source_id":"复平面_1_2","source":"复平面","target_id":"根轨迹雏形_1_3","target":"根轨迹雏形","relation_type":"provides_context","strength":0.85,"description":"复平面为根轨迹路径及虚轴位置提供坐标背景。"}
+{"source_id":"闭环控制_1_1","source":"闭环控制","target_id":"闭环特征方程_1_3","target":"闭环特征方程","relation_type":"refines","strength":0.9,"description":"已有反馈结构知识是推导闭环特征方程的基础。"}

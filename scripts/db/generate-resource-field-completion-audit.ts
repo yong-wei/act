@@ -1,7 +1,9 @@
 import { createHash, randomUUID } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 import { promises as fs } from 'node:fs';
+import { createRequire } from 'node:module';
 import path from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 import { isDeepStrictEqual } from 'node:util';
 
 import {
@@ -82,6 +84,7 @@ const BASELINE_REVIEWED_BINDINGS_JSONL_PATH = path.join(OUTPUT_DIR, 'learning-go
 const FULL_RESOURCE_PATH_READINESS_GATE_JSON_PATH = path.join(OUTPUT_DIR, 'full-resource-path-readiness-gate-summary.json');
 const FULL_RESOURCE_PATH_READINESS_GATE_EVIDENCE_MD_PATH = path.join(OUTPUT_DIR, 'full-resource-path-readiness-gate-evidence.md');
 const RUNTIME_LESSONS_DIR = path.join(process.cwd(), 'course-content/runtime/lessons');
+const COURSE_CONTENT_CLEARANCE_LESSON_IDS = new Set(['1-3', '1-4', '1-5']);
 const RUNTIME_KNOWLEDGE_CARDS_DIR = path.join(process.cwd(), 'course-content/runtime/knowledge/cards/nodes');
 const INFOGRAPH_MANIFEST_PATH = path.join(process.cwd(), 'course-content/runtime/knowledge/infographs/manifest.json');
 const AUTHORING_TEXTBOOK_ROOT = path.join(process.cwd(), 'course-content/authoring/resources/textbooks');
@@ -497,6 +500,33 @@ export interface CoreRegisteredKnowledgeResourceSemanticMaterializationManifest 
   scopeRows: number;
   runtimeScopeRows: number;
   nonScopeRows: number;
+}
+
+export interface CourseContentClearanceReviewedResource {
+  resourceId: string;
+  sourcePath: string;
+  sourceHash: string;
+  sourceVersionRef: string;
+  graphNodeRefs: {
+    knowledge: string[];
+    capability: string[];
+    quality: string[];
+  };
+  pathTarget: string | null;
+  currentPathEligible: boolean;
+  rationale: string;
+}
+
+export interface CourseContentClearanceRecord {
+  lesson_id: string;
+  reviewer: string;
+  batch: string;
+  time: string;
+  model: string;
+  status: 'cleared';
+  review_status: 'model-cleared';
+  independent_evidence_ref: string;
+  reviewed_resources: CourseContentClearanceReviewedResource[];
 }
 
 export type CoreSemanticMaterializationPhase = 'legacy' | 'materialized';
@@ -1026,6 +1056,8 @@ interface RuntimeLessonCatalogEntry {
   };
   handoutPath: string;
   handoutSourcePath: string;
+  handoutSourceHash: string | null;
+  handoutSourceVersionRef: string | null;
   handoutPdfPath: string | null;
   mediaResources: Array<{
     id: string;
@@ -2352,19 +2384,25 @@ async function buildFullResourceFieldCompletionAudit(
     sourceWindow: { from: null, to: generatedAt },
     limitations,
   });
+  const courseContentClearanceRecords = await loadCourseContentClearanceRecords();
   const coreOverlays = Array.from(coreSemanticReviewSources.values()).map(coreSemanticFormalReviewOverlayFromSource);
   const runtimeOverlays = runtimeLessonMediaSemanticFormalReviewOverlaysForRows(
     sourceResult.sourceRows,
     runtimeLessonMediaSemanticReviewSources,
   );
+  const courseOverlays = buildCourseContentClearanceReviewOverlays(
+    courseContentClearanceRecords,
+    sourceResult.sourceRows,
+  );
   const versionRefs = sourceResult.sourceRows[0]?.versionRefs;
   if (!versionRefs) throw new Error('Runtime resource semantic source audit produced no version refs');
   return buildResourceFieldCompletionAuditFromRows({
     sourceRows: sourceResult.sourceRows,
-    reviewOverlays: [...coreOverlays, ...runtimeOverlays],
+    reviewOverlays: [...coreOverlays, ...runtimeOverlays, ...courseOverlays],
     requiredReviewResourceIds: [
       ...coreSemanticReviewSources.keys(),
       ...runtimeLessonMediaSemanticReviewSources.keys(),
+      ...courseOverlays.map((overlay) => overlay.resourceId),
     ],
     generatedAt,
     sourceWindow: { from: null, to: generatedAt },
@@ -2625,6 +2663,252 @@ export async function loadRuntimeLessonMediaSemanticReviewMap(): Promise<Map<str
   return map;
 }
 
+export async function loadCourseContentClearanceRecords(
+  runtimeLessonsDir = RUNTIME_LESSONS_DIR,
+): Promise<CourseContentClearanceRecord[]> {
+  const clearancePaths = (await collectFiles(runtimeLessonsDir))
+    .filter((filePath) => filePath.endsWith(`${path.sep}review${path.sep}content-clearance.json`))
+    .filter((filePath) => COURSE_CONTENT_CLEARANCE_LESSON_IDS.has(
+      path.relative(runtimeLessonsDir, filePath).split(path.sep)[0],
+    ));
+  const records: CourseContentClearanceRecord[] = [];
+  const lessonIds = new Set<string>();
+  for (const clearancePath of clearancePaths) {
+    const relativeLessonDir = path.relative(
+      runtimeLessonsDir,
+      path.dirname(path.dirname(clearancePath)),
+    ).split(path.sep).join('/');
+    let raw: unknown;
+    try {
+      raw = JSON.parse(await fs.readFile(clearancePath, 'utf8')) as unknown;
+    } catch (error) {
+      throw new Error(`Invalid lesson content clearance JSON: ${clearancePath}`, { cause: error });
+    }
+    const record = parseCourseContentClearanceRecord(raw, clearancePath);
+    if (record.lesson_id !== relativeLessonDir) {
+      throw new Error(
+        `Lesson content clearance lesson_id mismatch: ${record.lesson_id} is stored under ${relativeLessonDir}`,
+      );
+    }
+    if (lessonIds.has(record.lesson_id)) {
+      throw new Error(`Duplicate lesson content clearance record: ${record.lesson_id}`);
+    }
+    const expectedEvidenceRef = `course-content/runtime/lessons/${record.lesson_id}/review/review-report.md`;
+    if (record.independent_evidence_ref !== expectedEvidenceRef) {
+      throw new Error(`Invalid lesson content clearance independent evidence ref: ${clearancePath}`);
+    }
+    if (!await fileExists(path.join(path.dirname(clearancePath), 'review-report.md'))) {
+      throw new Error(`Missing lesson content clearance independent evidence: ${expectedEvidenceRef}`);
+    }
+    lessonIds.add(record.lesson_id);
+    records.push(record);
+  }
+  return records.sort((left, right) => left.lesson_id.localeCompare(right.lesson_id));
+}
+
+export function buildCourseContentClearanceReviewOverlays(
+  records: readonly CourseContentClearanceRecord[],
+  sourceRows: readonly ResourceFieldCompletionAuditRow[],
+): ResourceFieldCompletionReviewOverlay[] {
+  const sourceRowById = new Map<string, ResourceFieldCompletionAuditRow>();
+  for (const row of sourceRows) {
+    if (sourceRowById.has(row.resourceId)) {
+      throw new Error(`Duplicate resource field completion source row: ${row.resourceId}`);
+    }
+    sourceRowById.set(row.resourceId, row);
+  }
+
+  const lessonIds = new Set<string>();
+  const reviewedResourceIds = new Set<string>();
+  const overlays: ResourceFieldCompletionReviewOverlay[] = [];
+  for (const record of records) {
+    if (lessonIds.has(record.lesson_id)) {
+      throw new Error(`Duplicate lesson content clearance record: ${record.lesson_id}`);
+    }
+    lessonIds.add(record.lesson_id);
+    const lessonSourcePrefix = `course-content/runtime/lessons/${record.lesson_id}/`;
+    const reviewedInLesson = new Set<string>();
+    for (const reviewed of record.reviewed_resources) {
+      if (reviewedResourceIds.has(reviewed.resourceId)) {
+        throw new Error(`Duplicate lesson content clearance resource: ${reviewed.resourceId}`);
+      }
+      reviewedResourceIds.add(reviewed.resourceId);
+      reviewedInLesson.add(reviewed.resourceId);
+      const sourceRow = sourceRowById.get(reviewed.resourceId);
+      if (!sourceRow) {
+        throw new Error(`Lesson content clearance resource has no audit source row: ${reviewed.resourceId}`);
+      }
+      assertCourseContentClearanceResourceMatchesSourceRow(record, reviewed, sourceRow, lessonSourcePrefix);
+      overlays.push({
+        resourceId: reviewed.resourceId,
+        reviewStatus: record.review_status,
+        expectedSourceHash: reviewed.sourceHash,
+        expectedSourceVersionRef: reviewed.sourceVersionRef,
+        graphNodeRefs: reviewed.graphNodeRefs,
+        pathTarget: reviewed.pathTarget,
+        currentPathEligible: reviewed.currentPathEligible,
+        reviewAudit: {
+          reviewerId: record.reviewer,
+          reviewerRole: 'course-content-reviewer',
+          reviewedAt: record.time,
+          reviewBatchId: record.batch,
+          reviewedSourceHash: reviewed.sourceHash,
+          reviewedVersionRef: reviewed.sourceVersionRef,
+          generationToolOrModel: record.model,
+          promptOrManifestHash: reviewed.sourceHash,
+          reviewerVisibleRationale: reviewed.rationale,
+          independentEvidenceRef: record.independent_evidence_ref,
+          confidence: 1,
+          staleInvalidationRule: 'stale when source hash, version ref, graph binding, path target, or path eligibility changes',
+        },
+      });
+    }
+    for (const row of sourceRows) {
+      if (
+        (row.family === 'runtime-handout' || row.family === 'runtime-lesson-media') &&
+        row.sourcePathOrUrl?.startsWith(lessonSourcePrefix) &&
+        !reviewedInLesson.has(row.resourceId)
+      ) {
+        throw new Error(`Missing lesson content clearance resource: ${row.resourceId}`);
+      }
+    }
+  }
+  return overlays.sort((left, right) => left.resourceId.localeCompare(right.resourceId));
+}
+
+function parseCourseContentClearanceRecord(
+  raw: unknown,
+  sourcePath: string,
+): CourseContentClearanceRecord {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+    throw new Error(`Invalid lesson content clearance record: ${sourcePath}`);
+  }
+  const value = raw as Record<string, unknown>;
+  const lessonId = requiredString(value.lesson_id, 'lesson_id', sourcePath);
+  const reviewer = requiredString(value.reviewer, 'reviewer', sourcePath);
+  const batch = requiredString(value.batch, 'batch', sourcePath);
+  const time = requiredString(value.time, 'time', sourcePath);
+  const model = requiredString(value.model, 'model', sourcePath);
+  if (model !== 'gpt-5.6-sol') {
+    throw new Error(`Invalid lesson content clearance model: ${sourcePath}`);
+  }
+  if (!Number.isFinite(Date.parse(time))) {
+    throw new Error(`Invalid lesson content clearance time: ${sourcePath}`);
+  }
+  if (value.status !== 'cleared') {
+    throw new Error(`Invalid lesson content clearance status: ${sourcePath}`);
+  }
+  if (value.review_status !== 'model-cleared') {
+    throw new Error(`Invalid lesson content clearance review_status: ${sourcePath}`);
+  }
+  const independentEvidenceRef = requiredString(
+    value.independent_evidence_ref,
+    'independent_evidence_ref',
+    sourcePath,
+  );
+  if (independentEvidenceRef.includes('content-clearance.json')) {
+    throw new Error(`Lesson content clearance evidence must not self-reference: ${sourcePath}`);
+  }
+  if (!Array.isArray(value.reviewed_resources)) {
+    throw new Error(`Invalid lesson content clearance reviewed_resources: ${sourcePath}`);
+  }
+  const reviewedResources = value.reviewed_resources.map((item, index) => (
+    parseCourseContentClearanceReviewedResource(item, `${sourcePath}#reviewed_resources[${index}]`)
+  ));
+  return {
+    lesson_id: lessonId,
+    reviewer,
+    batch,
+    time,
+    model,
+    status: 'cleared',
+    review_status: 'model-cleared',
+    independent_evidence_ref: independentEvidenceRef,
+    reviewed_resources: reviewedResources,
+  };
+}
+
+function parseCourseContentClearanceReviewedResource(
+  raw: unknown,
+  sourcePath: string,
+): CourseContentClearanceReviewedResource {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+    throw new Error(`Invalid lesson content clearance reviewed resource: ${sourcePath}`);
+  }
+  const value = raw as Record<string, unknown>;
+  if (!value.graphNodeRefs || typeof value.graphNodeRefs !== 'object' || Array.isArray(value.graphNodeRefs)) {
+    throw new Error(`Invalid lesson content clearance graphNodeRefs: ${sourcePath}`);
+  }
+  const graphNodeRefs = value.graphNodeRefs as Record<string, unknown>;
+  if (value.pathTarget !== null && typeof value.pathTarget !== 'string') {
+    throw new Error(`Invalid lesson content clearance pathTarget: ${sourcePath}`);
+  }
+  if (typeof value.currentPathEligible !== 'boolean') {
+    throw new Error(`Invalid lesson content clearance currentPathEligible: ${sourcePath}`);
+  }
+  return {
+    resourceId: requiredString(value.resourceId, 'resourceId', sourcePath),
+    sourcePath: requiredString(value.sourcePath, 'sourcePath', sourcePath),
+    sourceHash: requiredString(value.sourceHash, 'sourceHash', sourcePath),
+    sourceVersionRef: requiredString(value.sourceVersionRef, 'sourceVersionRef', sourcePath),
+    graphNodeRefs: {
+      knowledge: requiredStringArray(graphNodeRefs.knowledge, 'graphNodeRefs.knowledge', sourcePath),
+      capability: requiredStringArray(graphNodeRefs.capability, 'graphNodeRefs.capability', sourcePath),
+      quality: requiredStringArray(graphNodeRefs.quality, 'graphNodeRefs.quality', sourcePath),
+    },
+    pathTarget: value.pathTarget,
+    currentPathEligible: value.currentPathEligible,
+    rationale: requiredString(value.rationale, 'rationale', sourcePath),
+  };
+}
+
+function assertCourseContentClearanceResourceMatchesSourceRow(
+  record: CourseContentClearanceRecord,
+  reviewed: CourseContentClearanceReviewedResource,
+  sourceRow: ResourceFieldCompletionAuditRow,
+  lessonSourcePrefix: string,
+) {
+  const lessonCardSuffix = `_${record.lesson_id.replace('-', '_')}`;
+  const isLessonKnowledgeCard = sourceRow.family === 'knowledge-card' &&
+    reviewed.sourcePath.startsWith('course-content/runtime/knowledge/cards/nodes/') &&
+    sourceRow.sourceRecord?.endsWith(lessonCardSuffix);
+  if (!reviewed.sourcePath.startsWith(lessonSourcePrefix) && !isLessonKnowledgeCard) {
+    throw new Error(`Lesson content clearance source path is outside lesson ${record.lesson_id}: ${reviewed.resourceId}`);
+  }
+  if (sourceRow.sourcePathOrUrl !== reviewed.sourcePath) {
+    throw new Error(`Lesson content clearance source path mismatch: ${reviewed.resourceId}`);
+  }
+  if (sourceRow.sourceHash !== reviewed.sourceHash) {
+    throw new Error(`Lesson content clearance source hash mismatch: ${reviewed.resourceId}`);
+  }
+  if (sourceRow.sourceVersionRef !== reviewed.sourceVersionRef) {
+    throw new Error(`Lesson content clearance source version mismatch: ${reviewed.resourceId}`);
+  }
+  if (reviewed.pathTarget !== null && sourceRow.pathTarget !== reviewed.pathTarget) {
+    throw new Error(`Lesson content clearance path target mismatch: ${reviewed.resourceId}`);
+  }
+  if (sourceRow.pathEligibility.current !== reviewed.currentPathEligible) {
+    throw new Error(`Lesson content clearance path eligibility mismatch: ${reviewed.resourceId}`);
+  }
+}
+
+function requiredString(value: unknown, field: string, sourcePath: string) {
+  if (typeof value !== 'string' || value.trim().length === 0) {
+    throw new Error(`Invalid lesson content clearance ${field}: ${sourcePath}`);
+  }
+  return value;
+}
+
+function requiredStringArray(value: unknown, field: string, sourcePath: string) {
+  if (!Array.isArray(value) || value.some((item) => typeof item !== 'string' || item.length === 0)) {
+    throw new Error(`Invalid lesson content clearance ${field}: ${sourcePath}`);
+  }
+  if (new Set(value).size !== value.length) {
+    throw new Error(`Duplicate lesson content clearance ${field}: ${sourcePath}`);
+  }
+  return value as string[];
+}
+
 function coreSemanticFormalReviewOverlayFromSource(
   source: CoreRegisteredKnowledgeResourceSemanticReviewSource,
 ): ResourceFieldCompletionReviewOverlay {
@@ -2655,7 +2939,7 @@ export function runtimeLessonMediaSemanticFormalReviewOverlaysForRows(
   rows: readonly ResourceFieldCompletionAuditRow[],
   reviewSources: ReadonlyMap<string, RuntimeLessonMediaSemanticReviewSource>,
 ): ResourceFieldCompletionReviewOverlay[] {
-  const scopedRows = rows.filter((row) => RUNTIME_LESSON_MEDIA_SEMANTIC_SCOPE_FAMILIES.has(row.family));
+  const scopedRows = rows.filter((row) => reviewSources.has(row.resourceId));
   if (scopedRows.length === 0) throw new Error('Runtime lesson/media semantic frozen scope is empty');
   if (reviewSources.size !== scopedRows.length) {
     throw new Error(`Runtime lesson/media semantic review denominator mismatch: sources=${reviewSources.size}, rows=${scopedRows.length}`);
@@ -3037,7 +3321,11 @@ async function collectAuditOnlyCandidates(textbookDocuments: Awaited<ReturnType<
     collectAuthoringTextbookCandidates(),
     loadTextbookSearchDocumentCitationReviews(),
   ]);
-  const textbookDocumentCandidates = textbookDocuments.map<ResourceFieldCompletionCandidate>((document) => {
+  const reviewedTextbookDocuments = filterTextbookSearchDocumentsForCitationReviewScope(
+    textbookDocuments,
+    textbookSearchDocumentReviews,
+  );
+  const textbookDocumentCandidates = reviewedTextbookDocuments.map<ResourceFieldCompletionCandidate>((document) => {
     const resourceId = `textbook-search-document:${document.id}`;
     const review = textbookSearchDocumentReviews.get(resourceId);
     if (review) assertTextbookSearchDocumentCitationReviewIsFresh(review, document.contentHash);
@@ -3098,6 +3386,23 @@ async function collectAuditOnlyCandidates(textbookDocuments: Awaited<ReturnType<
     ],
     limitations,
   };
+}
+
+export function filterTextbookSearchDocumentsForCitationReviewScope<
+  T extends { id: string; metadata: { bookId: string } },
+>(
+  documents: readonly T[],
+  reviews: ReadonlyMap<string, TextbookSearchDocumentCitationReviewItem>,
+): T[] {
+  const reviewedBookIds = new Set(Array.from(reviews.values()).flatMap((review) => {
+    const match = review.citationAddress?.href?.match(/\/textbooks\/([^/]+)\//);
+    return match?.[1] ? [match[1]] : [];
+  }));
+  if (reviewedBookIds.size === 0) return [];
+  return documents.filter((document) => (
+    reviewedBookIds.has(document.metadata.bookId) &&
+    reviews.has(`textbook-search-document:${document.id}`)
+  ));
 }
 
 function assertTextbookSearchDocumentCitationReviewIsFresh(
@@ -3291,7 +3596,7 @@ async function collectRuntimeMediaCandidates() {
   for (const { lessonDir, lessonKey } of lessonDirs) {
     const mediaDir = path.join(lessonDir, 'media');
     const files = await collectFiles(mediaDir);
-    for (const absolutePath of files.filter((file) => !file.endsWith('.md'))) {
+    for (const absolutePath of files.filter(isRuntimeLessonMediaSourceFile)) {
       const relativePath = projectPath(absolutePath);
       const basename = path.basename(absolutePath);
       const mediaRelativePath = path.relative(mediaDir, absolutePath).split(path.sep).join('/');
@@ -3322,6 +3627,11 @@ async function collectRuntimeMediaCandidates() {
   };
 }
 
+export function isRuntimeLessonMediaSourceFile(filePath: string) {
+  const extension = path.extname(filePath).toLowerCase();
+  return extension !== '.md' && extension !== '.pdf';
+}
+
 async function collectRuntimeLessonCatalogEntries(): Promise<RuntimeLessonCatalogEntry[]> {
   const entries: RuntimeLessonCatalogEntry[] = [];
   const lessonDirs = await discoverRuntimeLessonDirs();
@@ -3336,8 +3646,13 @@ async function collectRuntimeLessonCatalogEntries(): Promise<RuntimeLessonCatalo
     const registryLessonId = lessonKey.includes('/') ? lessonKey : sourceLessonId;
     const handoutSourcePath = path.join('course-content/runtime/lessons', lessonKey, `${sourceLessonId}-handout.md`);
     const fallbackHandoutSourcePath = path.join('course-content/runtime/lessons', lessonKey, 'handout.md');
+    const resolvedHandoutSourcePath = await fileExists(path.join(process.cwd(), handoutSourcePath))
+      ? handoutSourcePath
+      : fallbackHandoutSourcePath;
+    const hasContentClearance = await fileExists(path.join(lessonDir, 'review', 'content-clearance.json'));
     const handoutPath = lesson.handout_path ?? `/course-runtime/lessons/${lessonKey}/${sourceLessonId}-handout.md`;
-    const handoutPdfPath = await fileExists(path.join(lessonDir, `${sourceLessonId}-handout.pdf`))
+    const handoutPdfSourcePath = path.join('course-content/runtime/lessons', lessonKey, `${sourceLessonId}-handout.pdf`);
+    const handoutPdfPath = await fileExists(path.join(process.cwd(), handoutPdfSourcePath)) && isGitTrackedFile(handoutPdfSourcePath)
       ? lesson.handout_pdf_path ?? `/course-runtime/lessons/${lessonKey}/${sourceLessonId}-handout.pdf`
       : null;
     entries.push({
@@ -3355,14 +3670,26 @@ async function collectRuntimeLessonCatalogEntries(): Promise<RuntimeLessonCatalo
         nodes: graphOverlay.nodes ?? [],
       },
       handoutPath,
-      handoutSourcePath: await fileExists(path.join(process.cwd(), handoutSourcePath))
-        ? handoutSourcePath
-        : fallbackHandoutSourcePath,
+      handoutSourcePath: resolvedHandoutSourcePath,
+      handoutSourceHash: hasContentClearance ? await readLocalFileHash(resolvedHandoutSourcePath) : null,
+      handoutSourceVersionRef: hasContentClearance ? 'runtime-handout.v1' : null,
       handoutPdfPath,
       mediaResources,
     });
   }
   return entries.sort((left, right) => left.lesson.lesson_id.localeCompare(right.lesson.lesson_id));
+}
+
+function isGitTrackedFile(relativePath: string) {
+  try {
+    execFileSync('git', ['ls-files', '--error-unmatch', '--', relativePath], {
+      cwd: process.cwd(),
+      stdio: 'ignore',
+    });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 async function collectRuntimeLessonMediaResources(lessonDirName: string, lessonDir: string): Promise<RuntimeLessonCatalogEntry['mediaResources']> {
@@ -3796,7 +4123,14 @@ function sha256(value: string | Buffer) {
   return createHash('sha256').update(value).digest('hex');
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+function isResourceFieldCompletionAuditCliEntrypoint(
+  moduleUrl = import.meta.url,
+  mainFilename = createRequire(moduleUrl).main?.filename,
+) {
+  return mainFilename !== undefined && fileURLToPath(moduleUrl) === mainFilename;
+}
+
+if (isResourceFieldCompletionAuditCliEntrypoint()) {
   main().catch((error) => {
     console.error(error);
     process.exitCode = 1;

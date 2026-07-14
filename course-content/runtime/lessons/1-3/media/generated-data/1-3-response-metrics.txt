@@ -1,0 +1,31 @@
+G0(s) = 1/[s(s+4)], unit negative feedback
+settling-time band = +/-5% of unit final value
+
+K=1
+  pole_1 = -3.73205081 +0.00000000j
+  pole_2 = -0.26794919 +0.00000000j
+  overshoot = 0.000000%
+  ts_5pct = 11.459000s
+
+K=4
+  pole_1 = -2.00000000 +0.00000000j
+  pole_2 = -2.00000000 +0.00000000j
+  overshoot = 0.000000%
+  ts_5pct = 2.372000s
+
+K=8
+  pole_1 = -2.00000000 +2.00000000j
+  pole_2 = -2.00000000 -2.00000000j
+  overshoot = 4.321391%
+  ts_5pct = 1.036000s
+
+best 5pct settling time under overshoot <= 10% (K step 0.02):
+  K = 8.38
+  overshoot = 4.967640%
+  ts_5pct = 0.990000s
+
+exercise 5 candidate s^2 + 3s + 4.7 = 0:
+  pole_1 = -1.50000000 +1.56524758j
+  pole_2 = -1.50000000 -1.56524758j
+  oscillation_period = 4.014180s
+  standard_second_order_overshoot = 4.926039%

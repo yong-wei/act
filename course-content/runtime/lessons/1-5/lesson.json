@@ -1,0 +1,91 @@
+{
+  "lesson_id": "1-5",
+  "title": "三域联动：一个增益如何改变稳定性",
+  "layer": "层0",
+  "unit_type": "实践",
+  "hours": 2,
+  "knowledge_type": "C+X",
+  "graph_version": "1-5-v1",
+  "focus_node_ids": [
+    "三域证据链_1_5",
+    "增益扫描稳定区间_1_5",
+    "临界增益与虚轴极点_1_5",
+    "速度指标分辨_1_5"
+  ],
+  "reuse_node_ids": [
+    "极点_1_2",
+    "时域响应_1_1"
+  ],
+  "entry_nodes": [
+    "三域证据链_1_5"
+  ],
+  "summary_nodes": [
+    "临界增益与虚轴极点_1_5",
+    "速度指标分辨_1_5"
+  ],
+  "card_order": [
+    "极点_1_2",
+    "时域响应_1_1",
+    "三域证据链_1_5",
+    "增益扫描稳定区间_1_5",
+    "临界增益与虚轴极点_1_5",
+    "速度指标分辨_1_5"
+  ],
+  "preceding_lesson": "1-4",
+  "following_lesson": "2-1",
+  "refinement_units": [
+    "3-4",
+    "3-8"
+  ],
+  "sequence": {
+    "lesson_id": "1-5",
+    "status": "pre_interactive_design_draft",
+    "groups": [
+      {
+        "group_name": "建立三域共同对象",
+        "node_ids": [
+          "极点_1_2",
+          "时域响应_1_1",
+          "三域证据链_1_5"
+        ]
+      },
+      {
+        "group_name": "扫描增益并定位稳定边界",
+        "node_ids": [
+          "增益扫描稳定区间_1_5",
+          "临界增益与虚轴极点_1_5"
+        ]
+      },
+      {
+        "group_name": "区分三种速度语言",
+        "node_ids": [
+          "速度指标分辨_1_5"
+        ]
+      }
+    ],
+    "card_order": [
+      "极点_1_2",
+      "时域响应_1_1",
+      "三域证据链_1_5",
+      "增益扫描稳定区间_1_5",
+      "临界增益与虚轴极点_1_5",
+      "速度指标分辨_1_5"
+    ]
+  },
+  "handout_path": "/course-runtime/lessons/1-5/1-5-handout.md",
+  "handout_source_path": "course-content/runtime/lessons/1-5/1-5-handout.md",
+  "handout_pdf_path": "/course-runtime/lessons/1-5/1-5-handout.pdf",
+  "handout_pdf_source_path": "course-content/runtime/lessons/1-5/1-5-handout.pdf",
+  "graph_overlay_path": "/course-runtime/lessons/1-5/graph-overlay.json",
+  "media_base_path": "/course-runtime/lessons/1-5/media",
+  "media_index_path": "/course-runtime/lessons/1-5/media/1-5-media.md",
+  "media_index_source_path": "course-content/runtime/lessons/1-5/media/1-5-media.md",
+  "review": {
+    "status": "reviewed",
+    "report_path": "/course-runtime/lessons/1-5/review/review-report.md",
+    "knowledge_card_check_path": "/course-runtime/lessons/1-5/review/knowledge-card-check.json",
+    "interactive_page_check_path": "/course-runtime/lessons/1-5/review/interactive-page-check.json",
+    "multimedia_check_path": "/course-runtime/lessons/1-5/review/multimedia-check.json",
+    "source_manifest_path": "/course-runtime/lessons/1-5/review/source-manifest.json"
+  }
+}

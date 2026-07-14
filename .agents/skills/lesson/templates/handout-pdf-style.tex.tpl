@@ -41,7 +41,7 @@
   BoldFont=Songti SC Bold,
   ItalicFont=Kaiti SC
 ]
-\setCJKsansfont{Hiragino Sans GB}
+\setCJKsansfont{Noto Sans CJK SC}
 \setCJKmonofont{Noto Sans CJK SC}[Scale=0.88]
 
 \setstretch{1.22}

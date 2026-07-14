@@ -578,6 +578,67 @@ describe('new resource semantic completeness gate', () => {
     });
   });
 
+  it('accepts model-cleared projections only as retrieval-only resource segments', () => {
+    const projection = completeRuntimeProjection({ id: 'projection-model-cleared' });
+    const result = validateChangedRuntimeResourceProjections([{
+      ...projection,
+      projectionLevel: 'ResourceSegment',
+      routeTarget: null,
+      renderTarget: '/course-runtime/resources/projection-model-cleared',
+      evidenceInstrumentation: [],
+      evidenceContract: null,
+      reviewAudit: {
+        ...projection.reviewAudit!,
+        status: 'model-cleared',
+        generationToolOrModel: 'gpt-5.6-sol',
+        promptOrManifestHash: 'sha-projection-model-cleared',
+      },
+      retrievalChunk: {
+        id: 'retrieval-chunk:projection-model-cleared:primary',
+        pathEligible: false,
+        reason: 'resource-node-planning-audit-required',
+      },
+      pathEligibility: {
+        current: false,
+        afterCompletion: false,
+        masteryAffecting: false,
+        blockedBy: ['missing-human-review'],
+      },
+    }]);
+
+    expect(result).toMatchObject({
+      passed: true,
+      checked: 1,
+      issues: [],
+    });
+  });
+
+  it('rejects model-cleared projections that claim path or mastery capability', () => {
+    const projection = completeRuntimeProjection({ id: 'projection-model-cleared-path' });
+    const result = validateChangedRuntimeResourceProjections([{
+      ...projection,
+      reviewAudit: {
+        ...projection.reviewAudit!,
+        status: 'model-cleared',
+        generationToolOrModel: 'gpt-5.6-sol',
+        promptOrManifestHash: 'sha-projection-model-cleared-path',
+      },
+      retrievalChunk: {
+        id: 'retrieval-chunk:projection-model-cleared-path:primary',
+        pathEligible: true,
+        reason: 'reviewed-path-eligible',
+      },
+    }]);
+
+    expect(result.passed).toBe(false);
+    expect(result.issues).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        resourceId: 'projection-model-cleared-path',
+        code: 'invalid-model-cleared-retrieval-projection',
+      }),
+    ]));
+  });
+
   it('reports malformed added runtime projection JSONL rows', () => {
     const diff = [
       `+${JSON.stringify(completeRuntimeProjection({ id: 'projection-complete' }))}`,

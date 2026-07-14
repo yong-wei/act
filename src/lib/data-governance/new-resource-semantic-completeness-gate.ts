@@ -520,8 +520,12 @@ function validateRuntimeResourceProjection(row: RuntimeResourceProjectionInput):
   if (runtimeProjectionFamilySourceKindMismatch(row)) {
     issues.push(issue(row.id, 'runtime-resource-projection', 'invalid-runtime-projection-family-source-kind', 'Runtime projection family, sourceKind, and resourceType must classify the row consistently.'));
   }
-  if (!audit || audit.status !== 'human-confirmed') {
+  const modelCleared = audit?.status === 'model-cleared';
+  if (!audit || (audit.status !== 'human-confirmed' && !modelCleared)) {
     issues.push(issue(row.id, 'runtime-resource-projection', 'missing-human-review', 'Runtime projection requires human-confirmed review metadata.'));
+  }
+  if (modelCleared && !isModelClearedRetrievalProjection(row)) {
+    issues.push(issue(row.id, 'runtime-resource-projection', 'invalid-model-cleared-retrieval-projection', 'Model-cleared runtime projections must remain retrieval-only ResourceSegments without path or mastery eligibility.'));
   }
   if (!audit?.reviewerId || PLACEHOLDER_REVIEWER_PATTERN.test(audit.reviewerId)) {
     issues.push(issue(row.id, 'runtime-resource-projection', 'missing-reviewer-id', 'Runtime projection requires a non-placeholder reviewer identity.'));
@@ -578,6 +582,26 @@ function validateRuntimeResourceProjection(row: RuntimeResourceProjectionInput):
   }
 
   return issues;
+}
+
+function isModelClearedRetrievalProjection(row: RuntimeResourceProjectionInput): boolean {
+  const audit = row.reviewAudit;
+  return audit?.status === 'model-cleared' &&
+    Boolean(audit.generationToolOrModel) &&
+    Boolean(audit.promptOrManifestHash) &&
+    typeof audit.confidence === 'number' &&
+    Number.isFinite(audit.confidence) &&
+    row.projectionLevel === 'ResourceSegment' &&
+    row.routeTarget == null &&
+    Boolean(row.renderTarget) &&
+    Boolean(row.sourcePathOrUrl) &&
+    hasGraphBinding(row.graphNodeRefs) &&
+    Boolean(row.citationTargets?.length) &&
+    row.pathEligibility?.current === false &&
+    row.pathEligibility.afterCompletion === false &&
+    row.pathEligibility.masteryAffecting === false &&
+    row.retrievalChunk?.pathEligible === false &&
+    row.evidenceContract?.learningFactMaterializationPolicy !== 'materialized-learning-fact';
 }
 
 function runtimeProjectionIsPathEligible(row: RuntimeResourceProjectionInput): boolean {
