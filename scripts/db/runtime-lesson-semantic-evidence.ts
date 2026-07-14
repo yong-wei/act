@@ -709,8 +709,8 @@ export function buildRuntimeLessonSemanticEvidence(
     assert(separator > 0, `Runtime module id lacks step key: ${row.resourceId}`);
     const stepId = rest.slice(0, separator);
     const moduleId = rest.slice(separator + 1);
-    const module = context.modules.get(`${stepId}:${moduleId}`);
-    assert(module && module.stepId === stepId, `Runtime module is absent from manifest: ${row.resourceId}`);
+    const moduleRecord = context.modules.get(`${stepId}:${moduleId}`);
+    assert(moduleRecord && moduleRecord.stepId === stepId, `Runtime module is absent from manifest: ${row.resourceId}`);
     const step = context.steps.get(stepId);
     assert(step, `Runtime module parent step is absent from manifest: ${row.resourceId}`);
     return {
@@ -723,16 +723,16 @@ export function buildRuntimeLessonSemanticEvidence(
       sourceFileHash: context.manifestHash,
       evidenceFilePath: context.manifestPath,
       evidenceFileHash: context.manifestHash,
-      evidenceSelector: `json-pointer:${module.pointer}`,
-      evidenceMatch: module.id,
+      evidenceSelector: `json-pointer:${moduleRecord.pointer}`,
+      evidenceMatch: moduleRecord.id,
       manifestPath: context.manifestPath,
-      manifestPointer: module.pointer,
+      manifestPointer: moduleRecord.pointer,
       mediaIndexPath: context.mediaIndexPath,
       mediaIndexLine: null,
-      recordKey: module.id,
+      recordKey: moduleRecord.id,
       mediaKind: null,
-      moduleKind: typeof module.value.kind === 'string' ? module.value.kind : null,
-      childStructure: moduleStructure(module.value),
+      moduleKind: typeof moduleRecord.value.kind === 'string' ? moduleRecord.value.kind : null,
+      childStructure: moduleStructure(moduleRecord.value),
       interactionKind: firstString(step.value.interaction_spec, ['interaction_kind', 'interactionKind']),
       telemetryFields: Array.isArray(step.value.telemetry_spec?.summary_fields) ? [...step.value.telemetry_spec.summary_fields] : [],
       evidenceSequence: Array.isArray(step.value.evidence_sequence) ? [...step.value.evidence_sequence] : [],
