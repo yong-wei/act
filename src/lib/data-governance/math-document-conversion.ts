@@ -403,17 +403,22 @@ async function extractDocxText(bytes: Uint8Array, run: typeof execFileAsync, sig
       .map((text) => text.replace(/\s+/g, ' ').trim())
       .filter(Boolean);
     const markdown = paragraphs.join('\n\n');
-    const blocks = paragraphs.map((text, index) => ({
-      id: `docx-block-${index + 1}`,
-      blockIndex: index,
-      pageNumber: null,
-      text,
-      markdown: text,
-      spanStart: markdown.indexOf(text),
-      spanEnd: markdown.indexOf(text) + text.length,
-      confidence: 0.82,
-      precision: 'span' as const,
-    }));
+    let spanStart = 0;
+    const blocks = paragraphs.map((text, index) => {
+      const block = {
+        id: `docx-block-${index + 1}`,
+        blockIndex: index,
+        pageNumber: null,
+        text,
+        markdown: text,
+        spanStart,
+        spanEnd: spanStart + text.length,
+        confidence: 0.82,
+        precision: 'span' as const,
+      };
+      spanStart = block.spanEnd + 2;
+      return block;
+    });
     const limitations = /<m:oMath|<w:drawing|<pic:pic/.test(xml) ? ['ooxml-formula-or-image-geometry-not-proven'] : [];
     return { markdown, blocks, warnings: limitations.length > 0 ? ['formula-or-image-region-coordinates-unavailable'] : [], limitations };
   } catch (error) {

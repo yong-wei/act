@@ -304,6 +304,48 @@ describe('production math-document grading contracts', () => {
     }
   });
 
+  it('preserves distinct spans for repeated DOCX paragraphs', async () => {
+    const bytes = new Uint8Array([1, 2, 3]);
+    const checksum = sha256(bytes);
+    const store = new MemorySubmissionObjectStore();
+    const objectKey = 'quarantine/fixture/repeated.docx';
+    store.put({
+      key: objectKey,
+      ownerId: 'student-1',
+      answerId: 'answer-1',
+      sizeBytes: bytes.byteLength,
+      mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      checksum,
+      scanState: 'CLEAN',
+    });
+    store.payloads.set(objectKey, bytes);
+    const exec = vi.fn(async (command: string) => {
+      if (command === 'unzip') {
+        return { stdout: '<w:document><w:p><w:r><w:t>duplicate</w:t></w:r></w:p><w:p><w:r><w:t>unique</w:t></w:r></w:p><w:p><w:r><w:t>duplicate</w:t></w:r></w:p></w:document>', stderr: '' };
+      }
+      throw new Error('rendering-unavailable');
+    }) as unknown as NonNullable<Parameters<typeof createLocalDocumentConverter>[0]>['exec'];
+
+    const result = await convertProtectedSubmission({
+      source: source({
+        objectKey,
+        originalName: 'repeated.docx',
+        mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        sizeBytes: bytes.byteLength,
+        checksum,
+      }),
+      store,
+      local: createLocalDocumentConverter({ exec }),
+    });
+
+    expect(result.markdown).toBe('duplicate\n\nunique\n\nduplicate');
+    expect(result.blocks.map((block) => [block.spanStart, block.spanEnd])).toEqual([
+      [0, 9],
+      [11, 17],
+      [19, 28],
+    ]);
+  });
+
   it('validates provider output against frozen criteria, levels, score bounds, and anchors', () => {
     const evidence = normalizeTextAnswerEvidence('The stability margin is positive.');
     const valid = buildValidatedDraft({ question: question(), evidence, output: {
