@@ -270,7 +270,6 @@ const RECOMMENDATION_RULES: RecommendationRule[] = [
         mapLegacyCompetencyDimensionToPortraitV2(dimension).targetDimensions.includes(weakest.id)
       );
       return weakest.evidenceCount > 0
-        && ctx.portraitV2.derivation.kind !== 'migrated'
         && (ctx.portraitEvidence
           ? weakest.freshness.state === 'current' && weakest.confidence >= 0.45
           : hasVectorEvidenceFor(ctx, legacyContributors))

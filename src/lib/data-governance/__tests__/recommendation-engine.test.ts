@@ -762,6 +762,34 @@ describe('generateRecommendations', () => {
     expect(titles).not.toContain('参数优化大师');
   });
 
+  it('uses a current migrated portrait dimension for weak-dimension practice', async () => {
+    const weakVector: CompetencyVector = {
+      ...strongSnapshotVector,
+      engineeringDecision: { ...strongSnapshotVector.engineeringDecision, score: 40 },
+    };
+    const portrait = buildMigratedPortraitPayload({
+      id: 'legacy-portrait-weak-source',
+      userId: 'student-1',
+      snapshotAt: new Date('2026-05-18T00:00:00.000Z'),
+      competencyVector: weakVector,
+    }, new Date('2026-05-20T12:00:00.000Z'));
+    mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(null);
+    mocks.prisma.studentCompetencySnapshot.findFirst.mockResolvedValue(null);
+    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue({
+      id: 'portrait-v2-migrated-weak', userId: 'student-1', snapshotAt: new Date(portrait.generatedAt),
+      payloadVersion: portrait.payloadVersion, calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+      migrationVersion: portrait.migrationVersion, derivationKind: portrait.derivation.kind, payload: portrait,
+    });
+
+    const weak = (await generateRecommendations('student-1'))
+      .find((item) => item.rationale.reasonCode === 'weak-dimension-practice');
+
+    expect(weak?.rationale.portraitV2).toMatchObject({
+      weakDimensionId: 'engineeringConstraintSafety',
+      derivationKind: 'migrated',
+    });
+  });
+
   it('does not interpret missing portrait v2 dimensions as low competency scores', async () => {
     const portrait = strongNativePortrait(
       new Set(['controlModelingRepresentation']),
