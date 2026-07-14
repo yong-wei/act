@@ -9,24 +9,34 @@ function read(relPath) {
   return fs.readFileSync(path.join(root, relPath), 'utf8');
 }
 
-const agents = read('AGENTS.md');
+const agentsPath = path.join(root, 'AGENTS.md');
+const agents = fs.existsSync(agentsPath) ? fs.readFileSync(agentsPath, 'utf8') : null;
 const memoryReadme = read('docs/memory/README.md');
+const worktreeSyncScript = read('scripts/dev/sync-local-worktree-config.sh');
 const memorySkill = fs.readFileSync(
   path.join(codexHome, 'skills/memory-maintenance/SKILL.md'),
   'utf8',
 );
 
-assert.match(
-  agents,
-  /初始化|刚进入仓库|最近记忆/,
-  'AGENTS.md 应指导智能体在初始化时快速读取最近记忆',
-);
+if (agents !== null) {
+  assert.match(
+    agents,
+    /初始化|刚进入仓库|最近记忆/,
+    'AGENTS.md 应指导智能体在初始化时快速读取最近记忆',
+  );
 
-assert.match(
-  agents,
-  /docs\/memory\/02-recent-summary\.md/,
-  'AGENTS.md 应明确指向 recent summary 入口文件',
-);
+  assert.match(
+    agents,
+    /docs\/memory\/02-recent-summary\.md/,
+    'AGENTS.md 应明确指向 recent summary 入口文件',
+  );
+} else {
+  assert.match(
+    worktreeSyncScript,
+    /FILES=\([\s\S]*"AGENTS\.md"/,
+    '未跟踪本地 AGENTS.md 时，同步脚本必须保留其工作树同步入口',
+  );
+}
 
 assert.match(
   memoryReadme,
