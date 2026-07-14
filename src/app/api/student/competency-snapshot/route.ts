@@ -116,9 +116,21 @@ export async function GET(_request: NextRequest) {
         const currentVector = portraitResolution.legacyCompatibility.vector;
         const snapshotAt = portrait.generatedAt;
         const portraitFactCount = portrait.dimensions.reduce((sum, dimension) => sum + dimension.evidenceCount, 0);
+        const portraitLearningFactCount = portraitResolution.primaryPortrait.dimensions.reduce(
+          (sum, dimension) => sum + (dimension.evidenceSummary.sourceFamilyCounts.LearningFact ?? 0),
+          0,
+        );
         const riskFlags = await readActiveRiskFlags(userId);
         const recommendations = withPortraitRecommendationRationale(
-          generateSnapshotRecommendations(currentVector, riskFlags, {}, portraitFactCount, portrait),
+          generateSnapshotRecommendations(
+            currentVector,
+            riskFlags,
+            {},
+            portraitFactCount,
+            portrait,
+            'portrait-v2',
+            portraitLearningFactCount > 0 ? 'available' : 'missing',
+          ),
           portrait,
         );
         return NextResponse.json({
@@ -388,6 +400,10 @@ function generateSnapshotRecommendations(
   _evidenceSummary: Record<string, EvidenceSummaryItem[]>,
   factCount: number,
   portrait?: PortraitV2ConsumerSummary,
+  evidenceBasis: 'approved-snapshot' | 'portrait-v2' = 'approved-snapshot',
+  learningFactCoverage: RecommendationRationale['sourceCoverage']['LearningFact'] = (
+    factCount > 0 ? 'available' : 'missing'
+  ),
 ): StudentSnapshotResponse['recommendations'] {
   const recommendations: StudentSnapshotResponse['recommendations'] = [];
 
@@ -416,7 +432,7 @@ function generateSnapshotRecommendations(
           description: '你近期频繁使用AI助手但问题解决率较低。建议先独立思考，再针对性地提问。',
           actionUrl: '/ai/copilot',
           priority: 90,
-          rationale: buildSnapshotRecommendationRationale('snapshot-risk-ai_misuse', 'risk', vector, factCount, portrait),
+          rationale: buildSnapshotRecommendationRationale('snapshot-risk-ai_misuse', 'risk', vector, factCount, portrait, evidenceBasis, learningFactCoverage),
         });
         break;
       case 'constraint':
@@ -426,7 +442,7 @@ function generateSnapshotRecommendations(
           description: '仿真中多次忽视工程约束。建议在调整参数前明确安全边界。',
           actionUrl: '/simulations/destroyer',
           priority: 85,
-          rationale: buildSnapshotRecommendationRationale('snapshot-risk-constraint', 'risk', vector, factCount, portrait),
+          rationale: buildSnapshotRecommendationRationale('snapshot-risk-constraint', 'risk', vector, factCount, portrait, evidenceBasis, learningFactCoverage),
         });
         break;
       case 'participation':
@@ -436,7 +452,7 @@ function generateSnapshotRecommendations(
           description: '近一周学习活跃度较低，建议每天保持至少30分钟的学习时间。',
           actionUrl: '/missions',
           priority: 95,
-          rationale: buildSnapshotRecommendationRationale('snapshot-risk-participation', 'risk', vector, factCount, portrait),
+          rationale: buildSnapshotRecommendationRationale('snapshot-risk-participation', 'risk', vector, factCount, portrait, evidenceBasis, learningFactCoverage),
         });
         break;
       case 'cross_domain':
@@ -446,7 +462,7 @@ function generateSnapshotRecommendations(
           description: '单点知识掌握较好，但跨域迁移能力需要提升。',
           actionUrl: '/interactive-learning',
           priority: 80,
-          rationale: buildSnapshotRecommendationRationale('snapshot-risk-cross_domain', 'risk', vector, factCount, portrait),
+          rationale: buildSnapshotRecommendationRationale('snapshot-risk-cross_domain', 'risk', vector, factCount, portrait, evidenceBasis, learningFactCoverage),
         });
         break;
     }
@@ -460,7 +476,7 @@ function generateSnapshotRecommendations(
       description: `这是你的薄弱领域（${Math.round(weakestDimension.score)}分），建议本周重点练习相关任务。`,
       actionUrl: '/missions',
       priority: 70,
-      rationale: buildSnapshotRecommendationRationale('snapshot-weak-dimension', 'direct', vector, factCount, portrait),
+      rationale: buildSnapshotRecommendationRationale('snapshot-weak-dimension', 'direct', vector, factCount, portrait, evidenceBasis, learningFactCoverage),
     });
   }
 
@@ -471,7 +487,7 @@ function generateSnapshotRecommendations(
       description: '多维度能力有待提升，建议系统复习基础知识。',
       actionUrl: '/knowledge',
       priority: 60,
-      rationale: buildSnapshotRecommendationRationale('snapshot-foundation-review', 'direct', vector, factCount, portrait),
+      rationale: buildSnapshotRecommendationRationale('snapshot-foundation-review', 'direct', vector, factCount, portrait, evidenceBasis, learningFactCoverage),
     });
   }
 
@@ -484,7 +500,7 @@ function generateSnapshotRecommendations(
       description: `你在${strongDimensions.map((d) => d.label).join('、')}方面表现优秀，可以尝试专家级任务。`,
       actionUrl: '/missions',
       priority: 50,
-      rationale: buildSnapshotRecommendationRationale('snapshot-strong-dimension-challenge', 'direct', vector, factCount, portrait),
+      rationale: buildSnapshotRecommendationRationale('snapshot-strong-dimension-challenge', 'direct', vector, factCount, portrait, evidenceBasis, learningFactCoverage),
     });
   }
 
@@ -500,6 +516,10 @@ function buildSnapshotRecommendationRationale(
   vector: CompetencyVector,
   factCount: number,
   portrait?: PortraitV2ConsumerSummary,
+  evidenceBasis: 'approved-snapshot' | 'portrait-v2' = 'approved-snapshot',
+  learningFactCoverage: RecommendationRationale['sourceCoverage']['LearningFact'] = (
+    factCount > 0 ? 'available' : 'missing'
+  ),
 ): RecommendationRationale {
   const confidenceValues = portrait
     ? portrait.dimensions.map((dimension) => dimension.confidence)
@@ -517,7 +537,7 @@ function buildSnapshotRecommendationRationale(
 
   return {
     reasonCode,
-    evidenceBasis: 'approved-snapshot',
+    evidenceBasis,
     evidenceRole,
     contextOnly: evidenceRole === 'context',
     evidenceWindow: {
@@ -527,8 +547,9 @@ function buildSnapshotRecommendationRationale(
     },
     evidenceCount: factCount,
     sourceCoverage: {
-      LearningFact: factCount > 0 ? 'available' : 'missing',
-      StudentCompetencySnapshot: 'available',
+      LearningFact: learningFactCoverage,
+      // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy snapshot provenance is non-authoritative.
+      StudentCompetencySnapshot: evidenceBasis === 'approved-snapshot' ? 'available' : 'missing',
       StudentProfileSummary: 'missing',
     },
     confidence: {

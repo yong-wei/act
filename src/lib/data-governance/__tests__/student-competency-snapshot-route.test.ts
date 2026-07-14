@@ -248,6 +248,16 @@ describe('GET /api/student/competency-snapshot', () => {
     expect(body.currentSnapshot.factCount).toBeGreaterThan(0);
     expect(body.currentSnapshot.portrait.dimensions).toHaveLength(7);
     expect(body.currentSnapshot.portrait.derivationKind).toBe('compatibility-derived');
+    expect(body.recommendations).not.toHaveLength(0);
+    expect(body.recommendations.every((item: { rationale: { evidenceBasis: string } }) => (
+      item.rationale.evidenceBasis === 'portrait-v2'
+    ))).toBe(true);
+    expect(body.recommendations.every((item: { rationale: { sourceCoverage: { StudentCompetencySnapshot: string } } }) => (
+      item.rationale.sourceCoverage.StudentCompetencySnapshot === 'missing'
+    ))).toBe(true);
+    expect(body.recommendations.every((item: { rationale: { sourceCoverage: { LearningFact: string } } }) => (
+      item.rationale.sourceCoverage.LearningFact === 'missing'
+    ))).toBe(true);
     expect(body.riskFlags).toEqual(expect.arrayContaining([
       expect.objectContaining({ type: 'participation', severity: 'high' }),
       expect.objectContaining({ type: 'cross_domain', severity: 'medium' }),

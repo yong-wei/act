@@ -34,6 +34,7 @@ export type RecommendationType = 'immediate' | 'weekly' | 'challenge';
 export type RecommendationEvidenceBasis =
   | 'student-evidence-feature-cache'
   | 'approved-snapshot'
+  | 'portrait-v2'
   | 'governed-facts'
   | 'fallback';
 export type RecommendationEvidenceRole = 'direct' | 'risk' | 'aggregate' | 'context';

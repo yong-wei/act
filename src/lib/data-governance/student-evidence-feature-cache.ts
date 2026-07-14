@@ -217,11 +217,16 @@ export interface StudentEvidenceFeaturePayload {
   sourceWindows: Record<StudentEvidenceSourceWindowKey, StudentEvidenceWindow>;
   sourceCounts: {
     LearningFact: number;
+    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy snapshot counts remain compatibility metadata.
     StudentCompetencySnapshot: number;
+    StudentPortraitV2Snapshot: number;
     StudentProfileSummary: number;
     byFactType: Record<string, number>;
   };
-  sourceCoverage: Record<'LearningFact' | 'StudentCompetencySnapshot' | 'StudentProfileSummary', StudentEvidenceCoverageState>;
+  sourceCoverage: Record<
+    'LearningFact' | 'StudentCompetencySnapshot' | 'StudentPortraitV2Snapshot' | 'StudentProfileSummary',
+    StudentEvidenceCoverageState
+  >;
   confidence: {
     level: 'none' | 'low' | 'medium' | 'high';
     score: number;
@@ -434,9 +439,16 @@ export function buildStudentEvidenceFeaturePayload(
     pathExecutionAll: pathExecution.allTime.window,
   } satisfies StudentEvidenceFeaturePayload['sourceWindows'];
   const byFactType = countByFactType(facts);
+  const primaryPortrait = buildPrimaryPortraitFeature(input.latestPortraitV2, now);
+  const hasPrimaryPortraitEvidence = Boolean(
+    primaryPortrait?.payload.dimensions.some(
+      (dimension) => dimension.evidenceSummary.totalCount > 0
+    )
+  );
   const sourceCoverage = {
     LearningFact: resolveLearningFactCoverage(facts.length, factsWithSource.length),
     StudentCompetencySnapshot: input.latestSnapshot ? 'available' : 'missing',
+    StudentPortraitV2Snapshot: hasPrimaryPortraitEvidence ? 'available' : 'missing',
     StudentProfileSummary: input.profileSummary ? 'available' : 'missing',
   } satisfies StudentEvidenceFeaturePayload['sourceCoverage'];
   const confidence = buildConfidence(facts, factsWithSource.length);
@@ -454,6 +466,7 @@ export function buildStudentEvidenceFeaturePayload(
     facts,
     recentFacts,
     latestSnapshot: input.latestSnapshot,
+    hasPrimaryPortraitEvidence,
     profileSummary: input.profileSummary,
     confidence,
     statusMarkers,
@@ -469,6 +482,7 @@ export function buildStudentEvidenceFeaturePayload(
     sourceCounts: {
       LearningFact: facts.length,
       StudentCompetencySnapshot: input.latestSnapshot ? 1 : 0,
+      StudentPortraitV2Snapshot: hasPrimaryPortraitEvidence ? 1 : 0,
       StudentProfileSummary: input.profileSummary ? 1 : 0,
       byFactType,
     },
@@ -505,7 +519,7 @@ export function buildStudentEvidenceFeaturePayload(
               competencyVector: input.latestSnapshot.competencyVector,
             }
           : null,
-        primaryPortrait: buildPrimaryPortraitFeature(input.latestPortraitV2, input.now ?? new Date()),
+        primaryPortrait,
         profileSummary: input.profileSummary
           ? {
               updatedAt: input.profileSummary.updatedAt.toISOString(),
@@ -1326,6 +1340,7 @@ function buildAdaptiveLearnerStateFeature(input: {
   facts: StudentEvidenceFeatureLearningFact[];
   recentFacts: StudentEvidenceFeatureLearningFact[];
   latestSnapshot?: StudentCompetencySnapshotAggregate | null;
+  hasPrimaryPortraitEvidence: boolean;
   profileSummary?: StudentProfileSummaryAggregate | null;
   confidence: StudentEvidenceFeaturePayload['confidence'];
   statusMarkers: StudentEvidenceStatusMarker[];
@@ -1347,7 +1362,8 @@ function buildAdaptiveLearnerStateFeature(input: {
       AdaptiveMasteryEvidence: masteryEvidenceCount,
     },
     sourceCoverage: {
-      primaryCompetencies: input.latestSnapshot ? 'available' : 'missing',
+      // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy primaryCompetencies is non-authoritative coverage.
+      primaryCompetencies: input.latestSnapshot || input.hasPrimaryPortraitEvidence ? 'available' : 'missing',
       knowledgeMastery: resolveCoverageCount(masteryEvidenceCount),
       resourcePreference: resolveCoverageCount(resourceEvidenceCount),
       mediaAbsorption: resolveCoverageCount(mediaEvidenceCount),
@@ -1845,7 +1861,16 @@ function buildStatusMarkers(input: {
   if (['none', 'low'].includes(input.confidenceLevel)) {
     markers.add('low-confidence');
   }
-  if (Object.values(input.sourceCoverage).some((state) => state !== 'available')) {
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: either primary portrait or legacy compatibility may satisfy coverage.
+  const primaryCompetenciesMissing = (
+    input.sourceCoverage.StudentCompetencySnapshot !== 'available' &&
+    input.sourceCoverage.StudentPortraitV2Snapshot !== 'available'
+  );
+  if (
+    input.sourceCoverage.LearningFact !== 'available' ||
+    primaryCompetenciesMissing ||
+    input.sourceCoverage.StudentProfileSummary !== 'available'
+  ) {
     markers.add('missing-source');
   }
 
@@ -1946,10 +1971,14 @@ function hasCurrentFeaturePayloadSchema(cache: Record<string, unknown>): boolean
     return false;
   }
   const features = isObject(cache.features) ? cache.features : {};
+  const sourceCounts = isObject(cache.sourceCounts) ? cache.sourceCounts : {};
+  const sourceCoverage = isObject(cache.sourceCoverage) ? cache.sourceCoverage : {};
   const simulationArena = isObject(features.simulationArena) ? features.simulationArena : {};
   const pathExecution = isObject(features.pathExecution) ? features.pathExecution : {};
   const adaptiveLearnerState = isObject(features.adaptiveLearnerState) ? features.adaptiveLearnerState : {};
-  return hasSimulationArenaFeatureWindowSchema(simulationArena.recent30d) &&
+  return hasFiniteNumber(sourceCounts.StudentPortraitV2Snapshot) &&
+    isCoverageState(sourceCoverage.StudentPortraitV2Snapshot) &&
+    hasSimulationArenaFeatureWindowSchema(simulationArena.recent30d) &&
     hasSimulationArenaFeatureWindowSchema(simulationArena.allTime) &&
     hasPathEvidenceFeatureWindowSchema(pathExecution.recent30d) &&
     hasPathEvidenceFeatureWindowSchema(pathExecution.allTime) &&
