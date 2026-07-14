@@ -436,6 +436,59 @@ describe('new resource semantic completeness gate', () => {
     ]));
   });
 
+  it('uses explicit path eligibility for ResourceNode projections', () => {
+    const blockedProjection = completeRuntimeProjection({ id: 'projection-resource-node-blocked' });
+    const blockedResult = validateChangedRuntimeResourceProjections([{
+      ...blockedProjection,
+      graphNodeRefs: {
+        knowledge: ['kn-bode'],
+        capability: [],
+        quality: [],
+      },
+      citationTargets: [],
+      routeTarget: null,
+      renderTarget: null,
+      pathEligibility: {
+        current: false,
+        afterCompletion: false,
+        masteryAffecting: false,
+        blockedBy: ['missing-capability-target', 'missing-path-profile'],
+      },
+    }]);
+
+    expect(blockedResult).toMatchObject({
+      passed: true,
+      checked: 1,
+      issues: [],
+    });
+
+    const eligibleProjection = completeRuntimeProjection({ id: 'projection-resource-node-eligible' });
+    const eligibleResult = validateChangedRuntimeResourceProjections([{
+      ...eligibleProjection,
+      graphNodeRefs: {
+        knowledge: ['kn-bode'],
+        capability: [],
+        quality: [],
+      },
+      citationTargets: [],
+      routeTarget: null,
+      renderTarget: null,
+      pathEligibility: {
+        current: true,
+        afterCompletion: true,
+        masteryAffecting: true,
+        blockedBy: [],
+      },
+    }]);
+
+    expect(eligibleResult.passed).toBe(false);
+    expect(eligibleResult.issues.map((item) => item.code)).toEqual(expect.arrayContaining([
+      'missing-capability-mapping',
+      'missing-citation-target',
+      'missing-route-or-render-target',
+    ]));
+  });
+
   it('rejects runtime projections missing citation and review evidence metadata', () => {
     const projection = completeRuntimeProjection({ id: 'projection-missing-review-evidence' });
     const result = validateChangedRuntimeResourceProjections([{
@@ -509,6 +562,12 @@ describe('new resource semantic completeness gate', () => {
         knowledge: ['kn-bode'],
         capability: [],
         quality: [],
+      },
+      pathEligibility: {
+        current: false,
+        afterCompletion: false,
+        masteryAffecting: false,
+        blockedBy: ['missing-capability-target', 'missing-path-profile'],
       },
     }]);
 
@@ -782,6 +841,12 @@ function completeRuntimeProjection(
       requiredOutcomeRefs: [],
       unlockMessage: 'Reviewed projection is ready.',
       fallbackNodeIds: [],
+    },
+    pathEligibility: {
+      current: true,
+      afterCompletion: true,
+      masteryAffecting: true,
+      blockedBy: [],
     },
   };
 }

@@ -90,6 +90,11 @@ interface RuntimeMediaIndexAssetState {
   sourcePathOrUrl: string;
   externalIdentitySha256: string | null;
 }
+interface RuntimeLessonMediaIdentity {
+  lessonPath: string;
+  mediaId: string;
+  canonicalRecord: string;
+}
 interface RuntimeMediaAssetReplacement {
   mediaIndexPath: string;
   mediaRecordKey: string;
@@ -208,6 +213,7 @@ function main() {
       deletedRuntimeProjectionRows,
     ),
     finalRuntimeProjectionRowsResult.result,
+    validateRuntimeLessonMediaStableIdentity(finalRuntimeProjectionRowsResult.rows),
     validateRuntimeMediaIndexEvidenceBindings(finalRuntimeProjectionRowsResult.rows),
     validateRuntimeMediaIndexEvidenceHashClosure(
       runtimeProjectionSourceChanges,
@@ -277,50 +283,79 @@ function validateRuntimeMediaIndexEvidenceHashClosure(
   finalRows: readonly RuntimeProjectionRow[],
   options: CliOptions,
 ): NewResourceGateResult {
-  const evidenceClosurePaths = uniqueSorted([
+  const lessonPaths = uniqueSorted([
     ...sourceChanges
       .filter((change) => isRuntimeMediaIndexPath(change.filePath) && !change.sourceDeleted)
-      .map((change) => change.filePath),
+      .map((change) => runtimeMediaIndexLessonPath(change.filePath)),
     ...changedRows
-      .filter(runtimeProjectionUsesAssetEvidence)
-      .flatMap(runtimeProjectionMediaIndexEvidencePaths)
-      .filter(isRuntimeMediaIndexPath),
-  ]);
-  const lessonPaths = uniqueSorted(evidenceClosurePaths
-    .map(runtimeMediaIndexLessonPath)
-    .filter((value): value is string => Boolean(value)));
+      .filter(isRuntimeLessonMediaProjection)
+      .flatMap((row) => runtimeProjectionMediaIndexLessonPaths(row, options, 'current')),
+  ]
+    .filter((value): value is string => Boolean(value))
+    .sort());
   const issues: NewResourceGateIssue[] = [];
   let checked = 0;
   for (const lessonPath of lessonPaths) {
     const currentMediaIndexPaths = runtimeMediaIndexPathsForLesson(lessonPath, options, 'current');
     const currentRecords = currentMediaIndexPaths.flatMap((filePath) => {
-      const source = runtimeProjectionSourceContent(filePath, options)?.toString('utf8') ?? '';
-      return parseRuntimeMediaIndexRecords(source).map((record) => ({ filePath, record }));
+      const source = runtimeProjectionTreeSourceContent(filePath, options, 'current')?.toString('utf8') ?? '';
+      return parseRuntimeMediaIndexRecords(source)
+        .filter((record) => isRuntimeMediaIndexAssetRecordFilename(record.recordKey))
+        .map((record) => ({
+          filePath,
+          record,
+          canonicalRecord: runtimeMediaIndexCanonicalMediaRecord(filePath, record.recordKey),
+        }));
     });
+    const ownership = new Map<string, Array<{ filePath: string; recordKey: string }>>();
+    for (const currentRecord of currentRecords) {
+      if (!currentRecord.canonicalRecord) continue;
+      ownership.set(currentRecord.canonicalRecord, [
+        ...(ownership.get(currentRecord.canonicalRecord) ?? []),
+        { filePath: currentRecord.filePath, recordKey: currentRecord.record.recordKey },
+      ]);
+    }
+    for (const [canonicalRecord, owners] of ownership) {
+      if (owners.length < 2) continue;
+      issues.push({
+        family: 'runtime-resource-projection',
+        resourceId: `runtime-media:${canonicalRecord}`,
+        code: 'duplicate-runtime-media-index-owner',
+        message: `Runtime media-index record ${canonicalRecord} has multiple current owners: ${owners
+          .map((owner) => `${owner.filePath}#${owner.recordKey}`)
+          .join(', ')}.`,
+      });
+    }
     const affectedRows = finalRows.filter((row) => (
-      runtimeProjectionUsesAssetEvidence(row) &&
-      runtimeProjectionMediaIndexEvidencePaths(row)
-        .some((filePath) => runtimeMediaIndexLessonPath(filePath) === lessonPath)
+      isRuntimeLessonMediaProjection(row) &&
+      runtimeProjectionMediaIndexLessonPaths(row, options, 'current').includes(lessonPath)
     ));
     checked += affectedRows.length;
     for (const row of affectedRows) {
       const rowCanonicalIdentities = [row.sourceRecord, row.sourceRef]
-        .filter((value): value is string => typeof value === 'string' && value.length > 0);
-      const matchingRecords = currentRecords.filter(({ filePath, record }) => {
-        const canonicalRecord = runtimeMediaIndexCanonicalMediaRecord(filePath, record.recordKey);
-        return Boolean(
+        .map((value) => runtimeLessonMediaRecordIdentity(value)?.canonicalRecord)
+        .filter((value): value is string => Boolean(value));
+      const stableIdentity = runtimeProjectionRowMediaIdentity(row);
+      const matchingRecords = currentRecords.filter(({ canonicalRecord }) => (
+        Boolean(
           canonicalRecord &&
+          stableIdentity?.canonicalRecord === canonicalRecord &&
           rowCanonicalIdentities.length > 0 &&
           rowCanonicalIdentities.every((identity) => identity === canonicalRecord)
-        );
-      });
+        )
+      ));
       const matchingRecord = matchingRecords.length === 1 ? matchingRecords[0] : null;
-      const sourceHash = matchingRecord
-        ? runtimeProjectionSourceHash(matchingRecord.filePath, options)
-        : undefined;
       const mediaAssetState = matchingRecord
         ? runtimeMediaIndexAssetState(matchingRecord.filePath, matchingRecord.record, options, 'current')
         : null;
+      const sourceHash = matchingRecord && mediaAssetState
+        ? runtimeProjectionSourceHash(
+          mediaAssetState.assetStatus === 'tracked-local-runtime-asset'
+            ? mediaAssetState.sourcePathOrUrl
+            : matchingRecord.filePath,
+          options,
+        )
+        : undefined;
       const requirement = matchingRecord && mediaAssetState
         ? {
           changeKind: 'upsert' as const,
@@ -364,6 +399,55 @@ function validateRuntimeMediaIndexEvidenceHashClosure(
     checked,
     issues,
   };
+}
+
+function validateRuntimeLessonMediaStableIdentity(
+  rows: readonly RuntimeProjectionRow[],
+): NewResourceGateResult {
+  const mediaRows = rows.filter(isRuntimeLessonMediaProjection);
+  const issues = mediaRows.flatMap((row) => (
+    runtimeProjectionRowMediaIdentity(row)
+      ? []
+      : [{
+        family: 'runtime-resource-projection' as const,
+        resourceId: row.id,
+        code: 'invalid-runtime-media-stable-identity' as const,
+        message: 'Runtime lesson media projection row.id must use runtime-media:<lesson>:<media> and resourceNodeId, when present, must resolve to the same canonical lesson/media identity.',
+      }]
+  ));
+  return {
+    passed: issues.length === 0,
+    checked: mediaRows.length,
+    issues,
+  };
+}
+
+function runtimeProjectionMediaIndexLessonPaths(
+  row: RuntimeProjectionRow,
+  options: CliOptions,
+  tree: 'current' | 'base',
+): string[] {
+  const evidencePaths = runtimeProjectionUsesAssetEvidence(row)
+    ? runtimeProjectionMediaIndexEvidencePaths(row)
+    : [];
+  const sourcePath = runtimeProjectionPrimaryLocalSourcePath(row);
+  const sourceIdentity = sourcePath && isRuntimeLessonMediaAssetPath(sourcePath)
+    ? runtimeLessonMediaIdentityFromAssetPath(sourcePath)
+    : null;
+  const assetIndexPaths = sourceIdentity
+    ? runtimeMediaIndexPathsForCanonicalRecord(sourceIdentity.canonicalRecord, options, tree)
+    : [];
+  const stableIdentity = runtimeProjectionRowMediaIdentity(row);
+  const stableIdentityIndexPaths = stableIdentity
+    ? runtimeMediaIndexPathsForCanonicalRecord(stableIdentity.canonicalRecord, options, tree)
+    : [];
+  return uniqueSorted([
+    ...evidencePaths,
+    ...assetIndexPaths,
+    ...stableIdentityIndexPaths,
+  ]
+    .map(runtimeMediaIndexLessonPath)
+    .filter((value): value is string => Boolean(value)));
 }
 
 function validateRuntimeMediaIndexEvidenceBindings(
@@ -602,6 +686,65 @@ function runtimeProjectionUsesAssetEvidence(row: RuntimeProjectionRow): boolean 
   );
 }
 
+function runtimeLessonMediaIdentityFromStableId(
+  value: string | null | undefined,
+): RuntimeLessonMediaIdentity | null {
+  const match = /^runtime-media:(.+):([^:]+)$/i.exec(value?.trim() ?? '');
+  if (!match) return null;
+  const lessonPath = match[1].trim();
+  const mediaId = normalizeMediaId(match[2].trim());
+  if (!lessonPath || !mediaId || lessonPath.endsWith('/media')) return null;
+  return {
+    lessonPath,
+    mediaId,
+    canonicalRecord: `${lessonPath}:${mediaId}`,
+  };
+}
+
+function runtimeLessonMediaRecordIdentity(
+  value: string | null | undefined,
+): RuntimeLessonMediaIdentity | null {
+  const stableIdentity = runtimeLessonMediaIdentityFromStableId(value);
+  if (stableIdentity) return stableIdentity;
+  const match = /^(.+):([^:]+)$/i.exec(value?.trim() ?? '');
+  if (!match) return null;
+  const lessonPath = match[1].trim();
+  const mediaId = normalizeMediaId(match[2].trim());
+  if (!lessonPath || !mediaId || lessonPath.endsWith('/media')) return null;
+  return {
+    lessonPath,
+    mediaId,
+    canonicalRecord: `${lessonPath}:${mediaId}`,
+  };
+}
+
+function runtimeProjectionRowMediaIdentity(
+  row: RuntimeProjectionRow,
+): RuntimeLessonMediaIdentity | null {
+  const identity = runtimeLessonMediaIdentityFromStableId(row.id);
+  if (!identity) return null;
+  if (row.resourceNodeId !== null && row.resourceNodeId !== undefined && row.resourceNodeId !== '') {
+    const resourceNodeIdentity = runtimeLessonMediaIdentityFromStableId(row.resourceNodeId);
+    if (!resourceNodeIdentity || resourceNodeIdentity.canonicalRecord !== identity.canonicalRecord) return null;
+  }
+  return identity;
+}
+
+function runtimeLessonMediaIdentityFromAssetPath(
+  filePath: string | null | undefined,
+): RuntimeLessonMediaIdentity | null {
+  const match = /^course-content\/runtime\/lessons\/(.+)\/media\/([^/]+)$/i.exec(filePath?.trim() ?? '');
+  if (!match) return null;
+  const lessonPath = match[1].trim();
+  const mediaId = normalizeMediaId(match[2].trim());
+  if (!lessonPath || !mediaId) return null;
+  return {
+    lessonPath,
+    mediaId,
+    canonicalRecord: `${lessonPath}:${mediaId}`,
+  };
+}
+
 function projectFilePathForProjectionSource(sourcePathOrUrl: string | null | undefined): string | null {
   const sourcePath = sourcePathOrUrl?.split('#')[0]?.trim() ?? '';
   if (!sourcePath || /^https?:\/\//i.test(sourcePath)) return null;
@@ -729,6 +872,19 @@ function runtimeProjectionRowMatchesRuntimeMediaIndexRecord(
   if (!mediaAssetState) return false;
   const rowSourcePathOrUrl = row.sourcePathOrUrl?.trim() ?? '';
   const isTrackedLocal = mediaAssetState.assetStatus === 'tracked-local-runtime-asset';
+  const stableIdentity = runtimeProjectionRowMediaIdentity(row);
+  const sourceIdentities = [row.sourceRecord, row.sourceRef]
+    .map((value) => runtimeLessonMediaRecordIdentity(value))
+    .filter((value): value is RuntimeLessonMediaIdentity => Boolean(value));
+  const sourceIdentityMatches = sourceIdentities.length === 2 && sourceIdentities.every(
+    (identity) => identity.canonicalRecord === canonicalMediaRecord,
+  );
+  const sourcePathIdentity = runtimeLessonMediaIdentityFromAssetPath(
+    projectFilePathForProjectionSource(rowSourcePathOrUrl),
+  );
+  const sourcePathIdentityMatches = sourcePathIdentity
+    ? sourcePathIdentity.canonicalRecord === canonicalMediaRecord
+    : true;
   const sourcePathOrUrlMatches = mediaAssetState.assetStatus === 'external-http-runtime-asset'
     ? rowSourcePathOrUrl === mediaAssetState.sourcePathOrUrl
     : projectFilePathForProjectionSource(rowSourcePathOrUrl) === mediaAssetState.sourcePathOrUrl;
@@ -750,7 +906,9 @@ function runtimeProjectionRowMatchesRuntimeMediaIndexRecord(
     semanticEvidence?.externalIdentitySha256 === mediaAssetState.externalIdentitySha256;
   return Boolean(
     canonicalMediaRecord &&
-    (row.sourceRecord === canonicalMediaRecord || row.sourceRef === canonicalMediaRecord) &&
+    stableIdentity?.canonicalRecord === canonicalMediaRecord &&
+    sourceIdentityMatches &&
+    sourcePathIdentityMatches &&
     (trackedLocalSourceEvidenceMatches || mediaIndexSourceEvidenceMatches) &&
     sourcePathOrUrlMatches
   );
@@ -848,6 +1006,21 @@ function runtimeMediaIndexPathsForLesson(
   return runtimeProjectionTreePaths(options, tree, mediaDirectory)
     .filter(isRuntimeMediaIndexPath)
     .filter((filePath) => Boolean(runtimeProjectionTreeSourceContent(filePath, options, tree)));
+}
+
+function runtimeMediaIndexPathsForCanonicalRecord(
+  canonicalRecord: string,
+  options: CliOptions,
+  tree: 'current' | 'base',
+): string[] {
+  const identity = runtimeLessonMediaRecordIdentity(canonicalRecord);
+  if (!identity) return [];
+  return runtimeMediaIndexPathsForLesson(identity.lessonPath, options, tree).filter((filePath) => {
+    const source = runtimeProjectionTreeSourceContent(filePath, options, tree)?.toString('utf8') ?? '';
+    return parseRuntimeMediaIndexRecords(source)
+      .filter((record) => isRuntimeMediaIndexAssetRecordFilename(record.recordKey))
+      .some((record) => runtimeMediaIndexCanonicalMediaRecord(filePath, record.recordKey) === canonicalRecord);
+  });
 }
 
 function runtimeMediaIndexHandoutSourcePath(filePath: string, recordKey: string): string | null {
@@ -1288,17 +1461,10 @@ function runtimeMediaIndexPathsForAssetPath(
   options: CliOptions,
   tree: 'current' | 'base',
 ): string[] {
-  const mediaDirectory = path.posix.dirname(filePath);
-  const lessonPath = /^course-content\/runtime\/lessons\/(.+)\/media\/[^/]+$/i.exec(filePath)?.[1];
-  if (!lessonPath) return [];
-  const candidatePaths = [
-    `${mediaDirectory}/${path.posix.basename(lessonPath)}-media.md`,
-    `${mediaDirectory}/${normalizeMediaId(path.posix.basename(filePath))}.md`,
-  ];
-  const treePaths = runtimeProjectionTreePaths(options, tree, mediaDirectory);
-  return uniqueSorted([...candidatePaths, ...treePaths])
-    .filter((candidatePath) => isRuntimeMediaIndexPath(candidatePath))
-    .filter((candidatePath) => Boolean(runtimeProjectionTreeSourceContent(candidatePath, options, tree)));
+  const identity = runtimeLessonMediaIdentityFromAssetPath(filePath);
+  return identity
+    ? runtimeMediaIndexPathsForCanonicalRecord(identity.canonicalRecord, options, tree)
+    : [];
 }
 
 type RuntimeMediaIndexRecord = {
@@ -1310,7 +1476,7 @@ type RuntimeMediaIndexRecord = {
 };
 
 function isRuntimeMediaIndexPath(filePath: string): boolean {
-  return /^course-content\/runtime\/lessons\/[^/]+\/media\/[^/]+-media\.md$/i.test(filePath);
+  return /^course-content\/runtime\/lessons\/.+\/media\/[^/]+-media\.md$/i.test(filePath);
 }
 
 function parseRuntimeMediaIndexSourceRequirements(

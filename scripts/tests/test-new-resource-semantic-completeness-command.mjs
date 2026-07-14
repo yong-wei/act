@@ -1424,31 +1424,23 @@ fs.mkdirSync(path.dirname(duplicateMediaIndexAPath), { recursive: true });
 fs.writeFileSync(duplicateMediaIndexAPath, duplicateMediaIndexSource);
 fs.writeFileSync(duplicateMediaIndexBPath, duplicateMediaIndexSource);
 const duplicateMediaProjectionA = runtimeExternalMediaProjection({
-  id: 'runtime-media:1-1:duplicate-owner-a',
+  id: 'runtime-media:1-1:duplicate-owner',
   filename: 'duplicate-owner.mp4',
   url: duplicateMediaUrl,
   evidenceFilePath: duplicateMediaIndexARelativePath,
   headingLine: 1,
 });
-const duplicateMediaProjectionB = runtimeExternalMediaProjection({
-  id: 'runtime-media:1-1:duplicate-owner-b',
-  filename: 'duplicate-owner.mp4',
-  url: duplicateMediaUrl,
-  evidenceFilePath: duplicateMediaIndexBRelativePath,
-  headingLine: 1,
-});
 fs.writeFileSync(
   path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
-  `${JSON.stringify(duplicateMediaProjectionA)}\n${JSON.stringify(duplicateMediaProjectionB)}\n`,
+  `${JSON.stringify(duplicateMediaProjectionA)}\n`,
 );
 run('git', ['add', duplicateMediaIndexARelativePath, duplicateMediaIndexBRelativePath, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
 run('git', ['commit', '--no-verify', '-m', 'duplicate media index ownership baseline'], repo);
 
 const duplicateMediaProjectionUpdateA = { ...duplicateMediaProjectionA, title: 'Duplicate media owner A updated' };
-const duplicateMediaProjectionUpdateB = { ...duplicateMediaProjectionB, title: 'Duplicate media owner B updated' };
 fs.writeFileSync(
   path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
-  `${JSON.stringify(duplicateMediaProjectionUpdateA)}\n${JSON.stringify(duplicateMediaProjectionUpdateB)}\n`,
+  `${JSON.stringify(duplicateMediaProjectionUpdateA)}\n`,
 );
 run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
 const duplicateMediaOwnershipResult = runGate(['--staged']);
@@ -1459,7 +1451,7 @@ assert.notEqual(
 );
 assert.match(
   `${duplicateMediaOwnershipResult.stdout}\n${duplicateMediaOwnershipResult.stderr}`,
-  /runtime-media:1-1:duplicate-owner-[ab].*unbound-runtime-media-index-record/s,
+  /runtime-media:1-1:duplicate-owner.*duplicate-runtime-media-index-owner/s,
 );
 
 run('git', ['commit', '--no-verify', '-m', 'duplicate media index ownership update'], repo);
@@ -1471,22 +1463,262 @@ assert.notEqual(
 );
 assert.match(
   `${duplicateMediaOwnershipBaseResult.stdout}\n${duplicateMediaOwnershipBaseResult.stderr}`,
-  /runtime-media:1-1:duplicate-owner-[ab].*unbound-runtime-media-index-record/s,
+  /runtime-media:1-1:duplicate-owner.*duplicate-runtime-media-index-owner/s,
 );
 
-run('git', ['reset', '--hard', 'HEAD~1'], repo);
-fs.rmSync(duplicateMediaIndexBPath);
-run('git', ['add', '-u', duplicateMediaIndexBRelativePath], repo);
+run('git', ['reset', '--hard', testBaselineCommit], repo);
+const duplicateTrackedLocalIndexAPath = path.join(repo, 'course-content/runtime/lessons/1-1/media/duplicate-tracked-local-a-media.md');
+const duplicateTrackedLocalIndexARelativePath = 'course-content/runtime/lessons/1-1/media/duplicate-tracked-local-a-media.md';
+const duplicateTrackedLocalIndexBPath = path.join(repo, 'course-content/runtime/lessons/1-1/media/duplicate-tracked-local-b-media.md');
+const duplicateTrackedLocalIndexBRelativePath = 'course-content/runtime/lessons/1-1/media/duplicate-tracked-local-b-media.md';
+const duplicateTrackedLocalAssetPath = path.join(repo, 'course-content/runtime/lessons/1-1/media/duplicate-tracked-local.mp4');
+const duplicateTrackedLocalAssetRelativePath = 'course-content/runtime/lessons/1-1/media/duplicate-tracked-local.mp4';
+const duplicateTrackedLocalIndexSource = '# duplicate-tracked-local.mp4\n\n';
+fs.mkdirSync(path.dirname(duplicateTrackedLocalIndexAPath), { recursive: true });
+fs.writeFileSync(duplicateTrackedLocalIndexAPath, duplicateTrackedLocalIndexSource);
+fs.writeFileSync(duplicateTrackedLocalIndexBPath, duplicateTrackedLocalIndexSource);
+fs.writeFileSync(duplicateTrackedLocalAssetPath, 'duplicate tracked-local media fixture\n');
+run('git', ['add', duplicateTrackedLocalIndexARelativePath, duplicateTrackedLocalIndexBRelativePath, duplicateTrackedLocalAssetRelativePath], repo);
+const duplicateTrackedLocalProjection = runtimeTrackedLocalMediaProjection({
+  id: 'runtime-media:1-1:duplicate-tracked-local',
+  filename: 'duplicate-tracked-local.mp4',
+  sourcePath: duplicateTrackedLocalAssetRelativePath,
+  sourceIdentity: '1-1:duplicate-tracked-local',
+});
 fs.writeFileSync(
   path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
-  `${JSON.stringify(duplicateMediaProjectionUpdateA)}\n`,
+  `${JSON.stringify(duplicateTrackedLocalProjection)}\n`,
 );
 run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
-const uniqueMediaOwnershipResult = runGate(['--staged']);
-assert.equal(
-  uniqueMediaOwnershipResult.status,
+run('git', ['commit', '--no-verify', '-m', 'duplicate tracked-local media index ownership baseline'], repo);
+
+const duplicateTrackedLocalProjectionUpdate = {
+  ...duplicateTrackedLocalProjection,
+  title: 'Duplicate tracked-local media owner updated',
+};
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(duplicateTrackedLocalProjectionUpdate)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const duplicateTrackedLocalProjectionOnlyResult = runGate(['--staged']);
+assert.notEqual(
+  duplicateTrackedLocalProjectionOnlyResult.status,
   0,
-  `a single canonical media-index owner must pass\n${uniqueMediaOwnershipResult.stdout}\n${uniqueMediaOwnershipResult.stderr}`,
+  'projection-only tracked-local media update must reject duplicate canonical ownership across same-lesson media indexes',
+);
+assert.match(
+  `${duplicateTrackedLocalProjectionOnlyResult.stdout}\n${duplicateTrackedLocalProjectionOnlyResult.stderr}`,
+  /runtime-media:1-1:duplicate-tracked-local.*duplicate-runtime-media-index-owner/s,
+);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
+fs.writeFileSync(duplicateTrackedLocalIndexAPath, `${duplicateTrackedLocalIndexSource}updated\n`);
+run('git', ['add', duplicateTrackedLocalIndexARelativePath], repo);
+const duplicateTrackedLocalMediaIndexResult = runGate(['--staged']);
+assert.notEqual(
+  duplicateTrackedLocalMediaIndexResult.status,
+  0,
+  'media-index staged tracked-local update must reject duplicate canonical ownership across same-lesson media indexes',
+);
+assert.match(
+  `${duplicateTrackedLocalMediaIndexResult.stdout}\n${duplicateTrackedLocalMediaIndexResult.stderr}`,
+  /runtime-media:1-1:duplicate-tracked-local.*duplicate-runtime-media-index-owner/s,
+);
+
+run('git', ['commit', '--no-verify', '-m', 'duplicate tracked-local media index ownership update'], repo);
+const duplicateTrackedLocalBaseResult = runGate(['--base', 'HEAD~1']);
+assert.notEqual(
+  duplicateTrackedLocalBaseResult.status,
+  0,
+  'base mode must reject duplicate canonical ownership across same-lesson media indexes for tracked-local media',
+);
+assert.match(
+  `${duplicateTrackedLocalBaseResult.stdout}\n${duplicateTrackedLocalBaseResult.stderr}`,
+  /runtime-media:1-1:duplicate-tracked-local.*duplicate-runtime-media-index-owner/s,
+);
+
+run('git', ['reset', '--hard', testBaselineCommit], repo);
+const uniqueTrackedLocalIndexPath = path.join(repo, 'course-content/runtime/lessons/1-1/media/unique-tracked-local-media.md');
+const uniqueTrackedLocalIndexRelativePath = 'course-content/runtime/lessons/1-1/media/unique-tracked-local-media.md';
+const uniqueTrackedLocalAssetPath = path.join(repo, 'course-content/runtime/lessons/1-1/media/unique-tracked-local.mp4');
+const uniqueTrackedLocalAssetRelativePath = 'course-content/runtime/lessons/1-1/media/unique-tracked-local.mp4';
+fs.mkdirSync(path.dirname(uniqueTrackedLocalIndexPath), { recursive: true });
+fs.writeFileSync(uniqueTrackedLocalIndexPath, '# unique-tracked-local.mp4\n\n');
+fs.writeFileSync(uniqueTrackedLocalAssetPath, 'unique tracked-local media fixture\n');
+run('git', ['add', uniqueTrackedLocalIndexRelativePath, uniqueTrackedLocalAssetRelativePath], repo);
+const uniqueTrackedLocalProjection = runtimeTrackedLocalMediaProjection({
+  id: 'runtime-media:1-1:unique-tracked-local',
+  filename: 'unique-tracked-local.mp4',
+  sourcePath: uniqueTrackedLocalAssetRelativePath,
+  sourceIdentity: '1-1:unique-tracked-local',
+});
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(uniqueTrackedLocalProjection)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const uniqueTrackedLocalOwnerResult = runGate(['--staged']);
+assert.equal(
+  uniqueTrackedLocalOwnerResult.status,
+  0,
+  `a single tracked-local canonical media-index owner must pass\n${uniqueTrackedLocalOwnerResult.stdout}\n${uniqueTrackedLocalOwnerResult.stderr}`,
+);
+
+run('git', ['reset', '--hard', testBaselineCommit], repo);
+const unownedTrackedLocalIndexPath = path.join(repo, 'course-content/runtime/lessons/1-1/media/unowned-tracked-local-media.md');
+const unownedTrackedLocalIndexRelativePath = 'course-content/runtime/lessons/1-1/media/unowned-tracked-local-media.md';
+const unownedTrackedLocalAssetPath = path.join(repo, 'course-content/runtime/lessons/1-1/media/unowned-tracked-local.mp4');
+const unownedTrackedLocalAssetRelativePath = 'course-content/runtime/lessons/1-1/media/unowned-tracked-local.mp4';
+const indexedTrackedLocalAssetPath = path.join(repo, 'course-content/runtime/lessons/1-1/media/unrelated-tracked-local.mp4');
+const indexedTrackedLocalAssetRelativePath = 'course-content/runtime/lessons/1-1/media/unrelated-tracked-local.mp4';
+fs.mkdirSync(path.dirname(unownedTrackedLocalIndexPath), { recursive: true });
+fs.writeFileSync(unownedTrackedLocalIndexPath, '# unrelated-tracked-local.mp4\n\n');
+fs.writeFileSync(unownedTrackedLocalAssetPath, 'unowned tracked-local media fixture\n');
+fs.writeFileSync(indexedTrackedLocalAssetPath, 'indexed tracked-local media fixture\n');
+run('git', ['add', unownedTrackedLocalIndexRelativePath, unownedTrackedLocalAssetRelativePath, indexedTrackedLocalAssetRelativePath], repo);
+const unownedTrackedLocalProjection = runtimeTrackedLocalMediaProjection({
+  id: 'runtime-media:1-1:unowned-tracked-local',
+  filename: 'unowned-tracked-local.mp4',
+  sourcePath: unownedTrackedLocalAssetRelativePath,
+  sourceIdentity: '1-1:unowned-tracked-local',
+});
+const indexedTrackedLocalProjection = runtimeTrackedLocalMediaProjection({
+  id: 'runtime-media:1-1:unrelated-tracked-local',
+  filename: 'unrelated-tracked-local.mp4',
+  sourcePath: indexedTrackedLocalAssetRelativePath,
+  sourceIdentity: '1-1:unrelated-tracked-local',
+});
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(unownedTrackedLocalProjection)}\n${JSON.stringify(indexedTrackedLocalProjection)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const unownedTrackedLocalResult = runGate(['--staged']);
+assert.equal(
+  unownedTrackedLocalResult.status,
+  0,
+  `a tracked-local asset without a media-index heading owner must remain outside ownership closure\n${unownedTrackedLocalResult.stdout}\n${unownedTrackedLocalResult.stderr}`,
+);
+
+run('git', ['reset', '--hard', testBaselineCommit], repo);
+const identityLessonAIndexPath = path.join(repo, 'course-content/runtime/lessons/identity-a/media/identity-a-media.md');
+const identityLessonAIndexRelativePath = 'course-content/runtime/lessons/identity-a/media/identity-a-media.md';
+const identityLessonBIndexPath = path.join(repo, 'course-content/runtime/lessons/identity-b/media/identity-b-media.md');
+const identityLessonBIndexRelativePath = 'course-content/runtime/lessons/identity-b/media/identity-b-media.md';
+const identityLessonAUrl = 'https://example.invalid/identity-a.mp4';
+const identityLessonBUrl = 'https://example.invalid/identity-b.mp4';
+const identityLessonBUpdatedUrl = 'https://example.invalid/identity-b-updated.mp4';
+fs.mkdirSync(path.dirname(identityLessonAIndexPath), { recursive: true });
+fs.mkdirSync(path.dirname(identityLessonBIndexPath), { recursive: true });
+fs.writeFileSync(identityLessonAIndexPath, `# identity-shared.mp4\n\n${identityLessonAUrl}\n`);
+fs.writeFileSync(identityLessonBIndexPath, `# identity-shared.mp4\n\n${identityLessonBUrl}\n`);
+run('git', ['add', identityLessonAIndexRelativePath, identityLessonBIndexRelativePath], repo);
+const identityLessonAProjection = runtimeExternalMediaProjection({
+  id: 'runtime-media:identity-a:identity-shared',
+  resourceNodeId: 'runtime-media:identity-a:identity-shared',
+  filename: 'identity-shared.mp4',
+  url: identityLessonAUrl,
+  evidenceFilePath: identityLessonAIndexRelativePath,
+  headingLine: 1,
+  sourceIdentity: 'identity-a:identity-shared',
+});
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(identityLessonAProjection)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+run('git', ['commit', '--no-verify', '-m', 'stable runtime media identity baseline'], repo);
+const identityBaselineCommit = execFileSync('git', ['rev-parse', 'HEAD'], {
+  cwd: repo,
+  encoding: 'utf8',
+}).trim();
+
+const crossLessonProjectionOnly = runtimeExternalMediaProjection({
+  id: identityLessonAProjection.id,
+  resourceNodeId: identityLessonAProjection.resourceNodeId,
+  filename: 'identity-shared.mp4',
+  url: identityLessonBUrl,
+  evidenceFilePath: identityLessonBIndexRelativePath,
+  headingLine: 1,
+  sourceIdentity: 'identity-b:identity-shared',
+});
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(crossLessonProjectionOnly)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const crossLessonProjectionOnlyResult = runGate(['--staged']);
+assert.notEqual(
+  crossLessonProjectionOnlyResult.status,
+  0,
+  'projection-only cross-lesson runtime media rebind must fail closed when row.id remains bound to the original lesson',
+);
+assert.match(
+  `${crossLessonProjectionOnlyResult.stdout}\n${crossLessonProjectionOnlyResult.stderr}`,
+  /runtime-media:identity-a:identity-shared.*(?:stale-runtime-media-index-evidence|unbound-runtime-media-index-record|invalid-runtime-media-stable-identity)/s,
+);
+
+run('git', ['reset', '--hard', identityBaselineCommit], repo);
+const sameLessonUpdatedUrl = 'https://example.invalid/identity-a-updated.mp4';
+fs.writeFileSync(identityLessonAIndexPath, `# identity-shared.mp4\n\n${sameLessonUpdatedUrl}\n`);
+const sameLessonProjectionUpdate = runtimeExternalMediaProjection({
+  id: identityLessonAProjection.id,
+  resourceNodeId: identityLessonAProjection.resourceNodeId,
+  filename: 'identity-shared.mp4',
+  url: sameLessonUpdatedUrl,
+  evidenceFilePath: identityLessonAIndexRelativePath,
+  headingLine: 1,
+  sourceIdentity: 'identity-a:identity-shared',
+});
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(sameLessonProjectionUpdate)}\n`,
+);
+run('git', ['add', identityLessonAIndexRelativePath, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const sameLessonProjectionUpdateResult = runGate(['--staged']);
+assert.equal(
+  sameLessonProjectionUpdateResult.status,
+  0,
+  `correct same-lesson runtime media update must pass\n${sameLessonProjectionUpdateResult.stdout}\n${sameLessonProjectionUpdateResult.stderr}`,
+);
+
+run('git', ['reset', '--hard', identityBaselineCommit], repo);
+fs.writeFileSync(identityLessonBIndexPath, `# identity-shared.mp4\n\n${identityLessonBUpdatedUrl}\n`);
+const crossLessonStaged = runtimeExternalMediaProjection({
+  id: identityLessonAProjection.id,
+  resourceNodeId: identityLessonAProjection.resourceNodeId,
+  filename: 'identity-shared.mp4',
+  url: identityLessonBUpdatedUrl,
+  evidenceFilePath: identityLessonBIndexRelativePath,
+  headingLine: 1,
+  sourceIdentity: 'identity-b:identity-shared',
+});
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(crossLessonStaged)}\n`,
+);
+run('git', ['add', identityLessonBIndexRelativePath, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const crossLessonStagedResult = runGate(['--staged']);
+assert.notEqual(
+  crossLessonStagedResult.status,
+  0,
+  'media-index staged cross-lesson runtime media rebind must fail closed when row.id remains bound to the original lesson',
+);
+assert.match(
+  `${crossLessonStagedResult.stdout}\n${crossLessonStagedResult.stderr}`,
+  /runtime-media:identity-a:identity-shared.*(?:stale-runtime-media-index-evidence|unbound-runtime-media-index-record|invalid-runtime-media-stable-identity)/s,
+);
+run('git', ['commit', '--no-verify', '-m', 'cross-lesson runtime media rebind fixture'], repo);
+const crossLessonBaseResult = runGate(['--base', 'HEAD~1']);
+assert.notEqual(
+  crossLessonBaseResult.status,
+  0,
+  'base mode must reject the cross-lesson runtime media rebind even when mutable source fields are internally consistent',
+);
+assert.match(
+  `${crossLessonBaseResult.stdout}\n${crossLessonBaseResult.stderr}`,
+  /runtime-media:identity-a:identity-shared.*(?:stale-runtime-media-index-evidence|unbound-runtime-media-index-record|invalid-runtime-media-stable-identity)/s,
 );
 
 run('git', ['reset', '--hard', testBaselineCommit], repo);
@@ -3872,7 +4104,7 @@ function runtimeProjectionRow(overrides) {
   return {
     artifactVersion: 'runtime-resource-projections.v1',
     id: overrides.id,
-    resourceNodeId: null,
+    resourceNodeId: overrides.resourceNodeId ?? overrides.id,
     title: 'Runtime projection test row',
     family: overrides.family,
     resourceType: overrides.resourceType,
