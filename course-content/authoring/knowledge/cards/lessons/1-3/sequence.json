@@ -1,9 +1,10 @@
 {
   "lesson_id": "1-3",
-  "status": "pre_interactive_design_draft",
+  "note": "本顺序按 1-3 interactive-page 与 interactive-contract 的 11 步互动设计定稿；groups[].step_ids 对应作者态互动步骤归属。",
   "groups": [
     {
       "group_name": "区分增益在开环与闭环中的作用",
+      "step_ids": ["step-01", "step-02", "step-03", "step-04"],
       "node_ids": [
         "开环增益_1_3",
         "闭环特征方程_1_3"
@@ -11,6 +12,7 @@
     },
     {
       "group_name": "追踪极点随参数连续迁移",
+      "step_ids": ["step-05", "step-07", "step-08", "step-09", "step-11"],
       "node_ids": [
         "极点迁移_1_3",
         "实极点_1_3",
@@ -21,6 +23,7 @@
     },
     {
       "group_name": "联读极点路径与时域行为",
+      "step_ids": ["step-06", "step-10"],
       "node_ids": [
         "临界阻尼_1_3",
         "衰减振荡_1_3",

@@ -19,6 +19,11 @@ import {
   UNIT_1_2_COURSE_META,
 } from './unit-1-2-ai-contexts';
 import {
+  getUnit13StepAIContextLocal,
+  getUnit13StepQuickQuestionsLocal,
+  UNIT_1_3_COURSE_META,
+} from './unit-1-3-ai-contexts';
+import {
   getUnit21StepAIContext as getUnit21StepAIContextLocal,
   getUnit21StepQuickQuestions as getUnit21StepQuickQuestionsLocal,
 } from './unit-2-1-ai-contexts';
@@ -390,6 +395,18 @@ export {
   getUnit12StepQuickQuestionsLocal,
 } from './unit-1-2-ai-contexts';
 
+// 1-3 课程 AI 上下文
+export {
+  UNIT_1_3_COURSE_META,
+  UNIT_1_3_STEP_AI_CONTEXTS,
+  getUNIT_1_3StepAIContext,
+  getUNIT_1_3StepQuickQuestions,
+  getUnit13StepAIContext,
+  getUnit13StepQuickQuestions,
+  getUnit13StepAIContextLocal,
+  getUnit13StepQuickQuestionsLocal,
+} from './unit-1-3-ai-contexts';
+
 /**
  * 课程AI上下文注册表
  * key: courseId, value: 步骤配置映射
@@ -430,6 +447,11 @@ export const COURSE_AI_CONTEXT_REGISTRY: Record<
     getStepContext: (stepId: string) => getUnit12StepAIContextLocal(stepId),
     getQuickQuestions: (stepId: string) => getUnit12StepQuickQuestionsLocal(stepId),
     courseMeta: UNIT_1_2_COURSE_META,
+  },
+  'unit-1-3-parameter-pole-migration-v1': {
+    getStepContext: (stepId: string) => getUnit13StepAIContextLocal(stepId),
+    getQuickQuestions: (stepId: string) => getUnit13StepQuickQuestionsLocal(stepId),
+    courseMeta: UNIT_1_3_COURSE_META,
   },
 
   'unit-2-1-modeling-language-v1': {

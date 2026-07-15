@@ -13,8 +13,10 @@
 - 已将 `design/1-3-boppps.md` 作为 runtime/review 产物导出，供课程制作技能直接读取。
 
 ## 互动页覆盖审查
-- 缺少 互动设计接受文件：course-content/authoring/lessons/1-3/design/1-3-interactive-design-acceptance.json
-- 缺少 互动设计接受文件：course-content/authoring/lessons/1-3/design/1-3-interactive-design-acceptance.json
+- 已覆盖讲义中的核心公式与静态承载内容。
+- 已检测到 `1-3` 的 V2 互动契约，步骤字段完整。
+- 互动设计接受文件已通过校验。
+- 互动实现接受文件已通过校验。
 
 ## knowledge-card-check
 - 知识卡片已全部存在，且均包含 `## 首页` / `## 详情` 基本结构。
