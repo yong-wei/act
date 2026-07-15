@@ -1085,6 +1085,31 @@ describe('stale and provisional limitations', () => {
     expect(isProvisionalReview('human-confirmed')).toBe(false);
   });
 
+  it('treats model-cleared projections as retrieval-reviewed without promoting path authority', () => {
+    expect(isProvisionalReview('model-cleared')).toBe(false);
+    const row = makeProjectionRow({
+      projectionLevel: 'ResourceSegment',
+      resourceNodeId: 'runtime-media:1-3:diagram.png',
+      pathEligibility: {
+        current: false,
+        afterCompletion: false,
+        masteryAffecting: false,
+        blockedBy: ['missing-human-review'],
+      },
+      reviewAudit: {
+        ...makeProjectionRow().reviewAudit,
+        status: 'model-cleared',
+      },
+    } as Partial<RuntimeResourceProjectionArtifactRow> as RuntimeResourceProjectionArtifactRow);
+
+    const { item, limitations } = adaptResourceProjectionRow(row);
+
+    expect(item.metadata?.reviewStatus).toBe('model-cleared');
+    expect(item.resourceNodeId).toBeUndefined();
+    expect(item.planningUnitId).toBeUndefined();
+    expect(limitations.some((limitation) => limitation.code === 'projection-provisional')).toBe(false);
+  });
+
   it('flags provisional projection rows', () => {
     const row = makeProjectionRow({
       reviewAudit: {

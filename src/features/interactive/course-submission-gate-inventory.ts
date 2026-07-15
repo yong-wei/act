@@ -33,6 +33,14 @@ export const COURSE_RESPONSE_PRODUCING_LESSON_INVENTORY: readonly ManifestSubmis
     minimumResponseSteps: 8,
   },
   {
+    lessonId: '1-3',
+    routeSegment: 'unit-1-3-parameter-pole-migration',
+    manifestPath: 'course-content/runtime/lessons/1-3/interactive-manifest.json',
+    studentPagePath: 'src/features/interactive/unit-1-3-parameter-pole-migration/student-page.tsx',
+    manifestGetterName: 'getUNIT_1_3ManifestStepFromManifest',
+    minimumResponseSteps: 7,
+  },
+  {
     lessonId: '2-1',
     routeSegment: 'unit-2-1-modeling-language',
     manifestPath: 'course-content/runtime/lessons/2-1/interactive-manifest.json',

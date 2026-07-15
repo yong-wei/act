@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { RegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
+import type { RuntimeResourceProjectionFamily } from '@/lib/runtime-resource-projections';
 import type { RuntimeResourceProjectionInput } from '@/lib/resource-node-registry';
 import {
   parseAddedRuntimeProjectionChanges,
@@ -435,6 +436,59 @@ describe('new resource semantic completeness gate', () => {
     ]));
   });
 
+  it('uses explicit path eligibility for ResourceNode projections', () => {
+    const blockedProjection = completeRuntimeProjection({ id: 'projection-resource-node-blocked' });
+    const blockedResult = validateChangedRuntimeResourceProjections([{
+      ...blockedProjection,
+      graphNodeRefs: {
+        knowledge: ['kn-bode'],
+        capability: [],
+        quality: [],
+      },
+      citationTargets: [],
+      routeTarget: null,
+      renderTarget: null,
+      pathEligibility: {
+        current: false,
+        afterCompletion: false,
+        masteryAffecting: false,
+        blockedBy: ['missing-capability-target', 'missing-path-profile'],
+      },
+    }]);
+
+    expect(blockedResult).toMatchObject({
+      passed: true,
+      checked: 1,
+      issues: [],
+    });
+
+    const eligibleProjection = completeRuntimeProjection({ id: 'projection-resource-node-eligible' });
+    const eligibleResult = validateChangedRuntimeResourceProjections([{
+      ...eligibleProjection,
+      graphNodeRefs: {
+        knowledge: ['kn-bode'],
+        capability: [],
+        quality: [],
+      },
+      citationTargets: [],
+      routeTarget: null,
+      renderTarget: null,
+      pathEligibility: {
+        current: true,
+        afterCompletion: true,
+        masteryAffecting: true,
+        blockedBy: [],
+      },
+    }]);
+
+    expect(eligibleResult.passed).toBe(false);
+    expect(eligibleResult.issues.map((item) => item.code)).toEqual(expect.arrayContaining([
+      'missing-capability-mapping',
+      'missing-citation-target',
+      'missing-route-or-render-target',
+    ]));
+  });
+
   it('rejects runtime projections missing citation and review evidence metadata', () => {
     const projection = completeRuntimeProjection({ id: 'projection-missing-review-evidence' });
     const result = validateChangedRuntimeResourceProjections([{
@@ -509,6 +563,12 @@ describe('new resource semantic completeness gate', () => {
         capability: [],
         quality: [],
       },
+      pathEligibility: {
+        current: false,
+        afterCompletion: false,
+        masteryAffecting: false,
+        blockedBy: ['missing-capability-target', 'missing-path-profile'],
+      },
     }]);
 
     expect(result).toMatchObject({
@@ -516,6 +576,67 @@ describe('new resource semantic completeness gate', () => {
       checked: 1,
       issues: [],
     });
+  });
+
+  it('accepts model-cleared projections only as retrieval-only resource segments', () => {
+    const projection = completeRuntimeProjection({ id: 'projection-model-cleared' });
+    const result = validateChangedRuntimeResourceProjections([{
+      ...projection,
+      projectionLevel: 'ResourceSegment',
+      routeTarget: null,
+      renderTarget: '/course-runtime/resources/projection-model-cleared',
+      evidenceInstrumentation: [],
+      evidenceContract: null,
+      reviewAudit: {
+        ...projection.reviewAudit!,
+        status: 'model-cleared',
+        generationToolOrModel: 'gpt-5.6-sol',
+        promptOrManifestHash: 'sha-projection-model-cleared',
+      },
+      retrievalChunk: {
+        id: 'retrieval-chunk:projection-model-cleared:primary',
+        pathEligible: false,
+        reason: 'resource-node-planning-audit-required',
+      },
+      pathEligibility: {
+        current: false,
+        afterCompletion: false,
+        masteryAffecting: false,
+        blockedBy: ['missing-human-review'],
+      },
+    }]);
+
+    expect(result).toMatchObject({
+      passed: true,
+      checked: 1,
+      issues: [],
+    });
+  });
+
+  it('rejects model-cleared projections that claim path or mastery capability', () => {
+    const projection = completeRuntimeProjection({ id: 'projection-model-cleared-path' });
+    const result = validateChangedRuntimeResourceProjections([{
+      ...projection,
+      reviewAudit: {
+        ...projection.reviewAudit!,
+        status: 'model-cleared',
+        generationToolOrModel: 'gpt-5.6-sol',
+        promptOrManifestHash: 'sha-projection-model-cleared-path',
+      },
+      retrievalChunk: {
+        id: 'retrieval-chunk:projection-model-cleared-path:primary',
+        pathEligible: true,
+        reason: 'reviewed-path-eligible',
+      },
+    }]);
+
+    expect(result.passed).toBe(false);
+    expect(result.issues).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        resourceId: 'projection-model-cleared-path',
+        code: 'invalid-model-cleared-retrieval-projection',
+      }),
+    ]));
   });
 
   it('reports malformed added runtime projection JSONL rows', () => {
@@ -563,6 +684,63 @@ describe('new resource semantic completeness gate', () => {
       expect.objectContaining({
         resourceId: 'projection-schema-missing',
         code: 'missing-runtime-projection-projection-level',
+      }),
+      expect.objectContaining({
+        resourceId: 'projection-schema-missing',
+        code: 'missing-runtime-projection-family',
+      }),
+    ]));
+  });
+
+  it('rejects runtime projection rows with missing or unknown family at the shared gate boundary', () => {
+    const complete = completeRuntimeProjection({ id: 'projection-family-baseline' });
+    const { family: _missingFamily, ...missingFamily } = complete;
+    const unknownFamily = {
+      ...complete,
+      id: 'projection-family-unknown',
+      family: 'forged-family',
+    };
+    const result = validateChangedRuntimeResourceProjections([
+      missingFamily,
+      unknownFamily,
+    ]);
+
+    expect(result.passed).toBe(false);
+    expect(result.issues).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        resourceId: 'projection-family-baseline',
+        code: 'missing-runtime-projection-family',
+      }),
+      expect.objectContaining({
+        resourceId: 'projection-family-unknown',
+        code: 'invalid-runtime-projection-family',
+      }),
+    ]));
+  });
+
+  it('rejects missing or unknown family values at the JSONL diff parsing boundary', () => {
+    const complete = completeRuntimeProjection({ id: 'projection-jsonl-family-baseline' });
+    const { family: _missingFamily, ...missingFamily } = complete;
+    const unknownFamily = {
+      ...complete,
+      id: 'projection-jsonl-family-unknown',
+      family: 'forged-family',
+    };
+    const parsed = parseAddedRuntimeProjectionChanges([
+      `+${JSON.stringify(missingFamily)}`,
+      `+${JSON.stringify(unknownFamily)}`,
+    ].join('\n'));
+
+    expect(parsed.rows).toEqual([]);
+    expect(parsed.result.passed).toBe(false);
+    expect(parsed.result.issues).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        resourceId: 'projection-jsonl-family-baseline',
+        code: 'missing-runtime-projection-family',
+      }),
+      expect.objectContaining({
+        resourceId: 'projection-jsonl-family-unknown',
+        code: 'invalid-runtime-projection-family',
       }),
     ]));
   });
@@ -659,12 +837,15 @@ function completeRegisteredResource(input: {
   };
 }
 
-function completeRuntimeProjection(input: { id: string }): RuntimeResourceProjectionInput {
+function completeRuntimeProjection(
+  input: { id: string },
+): RuntimeResourceProjectionInput & { family: RuntimeResourceProjectionFamily } {
   return {
     id: input.id,
     resourceNodeId: input.id,
     title: input.id,
-    resourceType: 'knowledge_card',
+    family: 'runtime-lesson-step',
+    resourceType: 'lesson_step',
     sourceKind: 'runtime_lesson_step',
     sourceRef: `${input.id}:source`,
     sourcePathOrUrl: 'course-content/runtime/lessons/example.json',
@@ -721,6 +902,12 @@ function completeRuntimeProjection(input: { id: string }): RuntimeResourceProjec
       requiredOutcomeRefs: [],
       unlockMessage: 'Reviewed projection is ready.',
       fallbackNodeIds: [],
+    },
+    pathEligibility: {
+      current: true,
+      afterCompletion: true,
+      masteryAffecting: true,
+      blockedBy: [],
     },
   };
 }

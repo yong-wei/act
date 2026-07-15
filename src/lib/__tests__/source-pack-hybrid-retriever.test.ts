@@ -241,6 +241,7 @@ describe('source pack retrieval profiles', () => {
     expect(getSourcePackRetrievalProfile('lesson-design').allowedSourceKinds).toContain('runtime-lesson');
     expect(getSourcePackRetrievalProfile('lesson-authoring').name).toBe('lesson-authoring');
     expect(getSourcePackRetrievalProfile('konling').name).toBe('konling');
+    expect(getSourcePackRetrievalProfile('konling-answer').allowedReviewStatuses).toContain('model-cleared');
   });
 
   it('filters Konling candidates before ranking by role, AI use, and citation readiness', () => {

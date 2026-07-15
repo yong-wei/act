@@ -1,0 +1,58 @@
+{
+  "lesson_id": "1-4",
+  "source_path": null,
+  "contract_path": "course-content/authoring/lessons/1-4/design/1-4-interactive-contract.yaml",
+  "design_acceptance_path": "course-content/authoring/lessons/1-4/design/1-4-interactive-design-acceptance.json",
+  "implementation_acceptance_path": "course-content/authoring/lessons/1-4/notes/interactive-implementation-acceptance.json",
+  "implementation_contract_source": null,
+  "contract_required_fields": [
+    "layout",
+    "modules",
+    "content_blocks",
+    "interaction_spec",
+    "teacher_controls",
+    "telemetry_spec",
+    "teacher_insight_spec",
+    "ai_context_spec",
+    "preview_contract",
+    "acceptance_checks"
+  ],
+  "included_in_primary_sources": false,
+  "mapping_contract_mode": "core_items",
+  "has_core_mapping_section": false,
+  "mapping_columns_present": [],
+  "missing_mapping_columns": [],
+  "invalid_handout_anchors": [],
+  "missing_target_steps": [],
+  "formula_mapping_issues": [],
+  "step_static_blocks_missing": [],
+  "step_upgrade_blocks_missing": [],
+  "step_reading_order_missing": [],
+  "curve_figure_steps_missing_mirror": [],
+  "curve_figure_steps_missing_contract": [],
+  "missing_contract_fields": [],
+  "step_contract_issues": [],
+  "design_acceptance_summary": [],
+  "design_acceptance_issues": [],
+  "implementation_acceptance_summary": [],
+  "implementation_acceptance_issues": [],
+  "manifest_audit_summary": [],
+  "manifest_audit_issues": [],
+  "manifest_audit": null,
+  "runtime_review_stale_issues": [],
+  "hard_gate_issues": [],
+  "hard_gate_issue_codes": [],
+  "blocking_issues": [
+    "缺少 design/1-4-interactive-page.md"
+  ],
+  "implementation_contract_summary": [],
+  "implementation_contract_issues": [],
+  "summary": [],
+  "warnings": [],
+  "missing": [
+    "缺少 design/1-4-interactive-page.md"
+  ],
+  "issues": [
+    "缺少 design/1-4-interactive-page.md"
+  ]
+}

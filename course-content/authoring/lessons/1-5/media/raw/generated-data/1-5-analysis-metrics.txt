@@ -1,0 +1,117 @@
+Unit 1-5 deterministic checks
+
+Plant G0(s)=1/[s(s+1)(s+6)], unity negative feedback
+Stable range from Routh: 0 < K < 42
+
+K=3
+  poles = -6.09655184 +0.00000000j -0.45172408 +0.53668128j -0.45172408 -0.53668128j
+  overshoot = 7.053998%
+  rise_time_10_90 = 2.825000s
+  settling_time_5pct = 7.384400s
+  phase_margin = 61.255835 deg
+  gain_crossover = 0.453982 rad/s
+  gain_margin = 14.00000000 (22.922561 dB)
+
+K=5
+  poles = -6.15744705 +0.00000000j -0.42127647 +0.79658708j -0.42127647 -0.79658708j
+  overshoot = 18.766581%
+  rise_time_10_90 = 1.777600s
+  settling_time_5pct = 6.009400s
+  phase_margin = 49.146179 deg
+  gain_crossover = 0.683547 rad/s
+  gain_margin = 8.40000000 (18.485586 dB)
+
+K=6
+  poles = -6.18696498 +0.00000000j -0.40651751 +0.89695281j -0.40651751 -0.89695281j
+  overshoot = 23.751200%
+  rise_time_10_90 = 1.536000s
+  settling_time_5pct = 7.730800s
+  phase_margin = 44.576884 deg
+  gain_crossover = 0.781378 rad/s
+  gain_margin = 7.00000000 (16.901961 dB)
+
+K=12
+  poles = -6.35287713 +0.00000000j -0.32356143 +1.33574546j -0.32356143 -1.33574546j
+  overshoot = 45.589554%
+  rise_time_10_90 = 0.938771s
+  settling_time_5pct = 8.053494s
+  phase_margin = 27.410647 deg
+  gain_crossover = 1.233622 rad/s
+  gain_margin = 3.50000000 (10.881361 dB)
+
+K=18
+  poles = -6.50299133 +0.00000000j -0.24850433 +1.64505396j -0.24850433 -1.64505396j
+  overshoot = 60.175272%
+  rise_time_10_90 = 0.728257s
+  settling_time_5pct = 11.904420s
+  phase_margin = 17.987104 deg
+  gain_crossover = 1.563890 rad/s
+  gain_margin = 2.33333333 (7.359536 dB)
+
+K=20
+  poles = -6.55014241 +0.00000000j -0.22492879 +1.73285192j -0.22492879 -1.73285192j
+  overshoot = 64.163301%
+  rise_time_10_90 = 0.684217s
+  settling_time_5pct = 13.108482s
+  phase_margin = 15.630066 deg
+  gain_crossover = 1.658761 rad/s
+  gain_margin = 2.10000000 (6.444386 dB)
+
+K=24
+  poles = -6.64071177 +0.00000000j -0.17964411 +1.89256398j -0.17964411 -1.89256398j
+  overshoot = 71.249257%
+  rise_time_10_90 = 0.615383s
+  settling_time_5pct = 15.469335s
+  phase_margin = 11.637667 deg
+  gain_crossover = 1.832509 rad/s
+  gain_margin = 1.75000000 (4.860761 dB)
+
+K=30
+  poles = -6.76838938 +0.00000000j -0.11580531 +2.10213183j -0.11580531 -2.10213183j
+  overshoot = 80.231073%
+  rise_time_10_90 = 0.542721s
+  settling_time_5pct = 25.605691s
+  phase_margin = 6.891989 deg
+  gain_crossover = 2.062704 rad/s
+  gain_margin = 1.40000000 (2.922561 dB)
+
+K=36
+  poles = -6.88772617 +0.00000000j -0.05613691 +2.28550591j -0.05613691 -2.28550591j
+  overshoot = 87.813043%
+  rise_time_10_90 = 0.491655s
+  settling_time_5pct = 52.440093s
+  phase_margin = 3.120430 deg
+  gain_crossover = 2.266105 rad/s
+  gain_margin = 1.16666667 (1.338936 dB)
+
+K=38
+  poles = -6.92588178 +0.00000000j -0.03705911 +2.34207015j -0.03705911 -2.34207015j
+  overshoot = 90.102247%
+  rise_time_10_90 = 0.477615s
+  settling_time_5pct = 79.336770s
+  phase_margin = 2.019076 deg
+  gain_crossover = 2.329206 rad/s
+  gain_margin = 1.10526316 (0.869314 dB)
+
+K=40
+  poles = -6.96329431 +0.00000000j -0.01835284 +2.39667909j -0.01835284 -2.39667909j
+  overshoot = 92.290335%
+  rise_time_10_90 = 0.465868s
+  settling_time_5pct = 160.099164s
+  phase_margin = 0.981153 deg
+  gain_crossover = 2.390282 rad/s
+  gain_margin = 1.05000000 (0.423786 dB)
+
+Critical state K=42
+  poles = -7.00000000 +0.00000000j -0.00000000 +2.44948974j -0.00000000 -2.44948974j
+  asymptotic oscillation range after transient = [0.05612019, 1.94387980]
+  phase_margin = 0 deg, gain_margin = 0 dB
+
+Exercise 6 added zero: K(s+2)/[s(s+1)(s+6)]
+  characteristic polynomial = s^3 + 7s^2 + (6+K)s + 2K
+  Routh first-column condition: 7(6+K)-2K = 42+5K > 0 for K>0
+  no finite positive critical gain; closed loop remains stable for every K>0
+
+Exercise 7 suggested plant G1(s)=1/[s(s+2)(s+5)]
+  critical gain = 70
+  critical poles = -7.00000000 +0.00000000j 0.00000000 +3.16227766j 0.00000000 -3.16227766j

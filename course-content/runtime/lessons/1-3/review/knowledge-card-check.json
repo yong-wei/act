@@ -1,0 +1,19 @@
+{
+  "lesson_id": "1-3",
+  "sequence_path": "course-content/authoring/knowledge/cards/lessons/1-3/sequence.json",
+  "card_order": [
+    "开环增益_1_3",
+    "闭环特征方程_1_3",
+    "极点迁移_1_3",
+    "实极点_1_3",
+    "重实极点_1_3",
+    "共轭复极点_1_3",
+    "临界阻尼_1_3",
+    "衰减振荡_1_3",
+    "根轨迹雏形_1_3",
+    "参数连续性_1_3"
+  ],
+  "missing_cards": [],
+  "missing_frontmatter_keys": {},
+  "missing_sections": {}
+}

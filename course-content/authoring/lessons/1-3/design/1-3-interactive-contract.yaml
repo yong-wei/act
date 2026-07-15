@@ -1,0 +1,2043 @@
+{
+  "contract_version": "2.0",
+  "lesson_id": "1-3",
+  "course_title": "1-3：参数变化与极点迁移",
+  "course_route_segment": "unit-1-3-parameter-pole-migration",
+  "preview_mode": {
+    "default_entry": "student_demo",
+    "student_demo_base_path": "/interactive-learning/courses/unit-1-3-parameter-pole-migration/student/demo"
+  },
+  "telemetry_strategy": "lightweight_high_value",
+  "teacher_insight_strategy": "step_level_aggregation_only",
+  "required_step_fields": [
+    "layout",
+    "modules",
+    "content_blocks",
+    "interaction_spec",
+    "teacher_controls",
+    "telemetry_spec",
+    "teacher_insight_spec",
+    "ai_context_spec",
+    "preview_contract",
+    "acceptance_checks"
+  ],
+  "layout": {
+    "source": "steps[].layout"
+  },
+  "modules": {
+    "source": "steps[].modules"
+  },
+  "content_blocks": {
+    "source": "steps[].content_blocks"
+  },
+  "evidence_sequence": {
+    "source": "steps[].evidence_sequence"
+  },
+  "interaction_spec": {
+    "source": "steps[].interaction_spec"
+  },
+  "teacher_controls": {
+    "source": "steps[].teacher_controls"
+  },
+  "preview_contract": {
+    "source": "steps[].preview_contract"
+  },
+  "steps": {
+    "step-01": {
+      "title": "导入——自动舵增益旋钮与极点迁移现象",
+      "layout": {
+        "template": "cover_top_dual_column",
+        "regions": [
+          {
+            "id": "lead",
+            "width": "half",
+            "order": 1
+          },
+          {
+            "id": "media",
+            "width": "half",
+            "order": 2
+          },
+          {
+            "id": "closing",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "scenario",
+          "region": "lead",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "scenario",
+            "title": "拧一个旋钮，整条曲线就变了"
+          }
+        },
+        {
+          "id": "cover-comic",
+          "region": "media",
+          "kind": "content.figure",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "cover-comic",
+            "title": "自动舵增益旋钮"
+          }
+        },
+        {
+          "id": "bridge-question",
+          "region": "closing",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "bridge-question",
+            "title": "本课追问"
+          }
+        }
+      ],
+      "content_blocks": [
+        {
+          "id": "scenario",
+          "type": "plain_text",
+          "body": "船和反馈结构没有改变，只把增益 K 调大，航向修正便从缓慢单调过渡到快速、超调和摆动。电机、温控箱和机器人关节也会出现类似现象。"
+        },
+        {
+          "id": "cover-comic",
+          "type": "media",
+          "asset": "1-3-cover-comic.png",
+          "caption": "同一个旋钮同时牵动复平面、时域曲线与根轨迹。"
+        },
+        {
+          "id": "bridge-question",
+          "type": "plain_text",
+          "body": "参数并非直接改变曲线，而是在推动闭环极点。极点怎样移动，响应又怎样随之改变？"
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "阅读情境并形成问题意识。"
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep"
+        ],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "从自动舵调参现象引出参数推动极点迁移。",
+        "allowed_scope": [
+          "自动舵增益",
+          "极点迁移现象"
+        ],
+        "forbidden_scope": [
+          "根轨迹完整法则"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-3-parameter-pole-migration/student/demo?step=step-01"
+      },
+      "acceptance_checks": [
+        "导入漫画与问题句常显",
+        "不要求学生提交"
+      ],
+      "evidence_sequence": [
+        "scenario",
+        "cover-comic",
+        "bridge-question"
+      ],
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false
+      }
+    },
+    "step-02": {
+      "title": "课程目标",
+      "layout": {
+        "template": "goal_focus_slide",
+        "regions": [
+          {
+            "id": "goals",
+            "width": "full",
+            "order": 1
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "lesson-goals",
+          "region": "goals",
+          "kind": "content.cardSet",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "lesson-goals",
+            "title": "完成本课后你应能做到"
+          }
+        }
+      ],
+      "content_blocks": [
+        {
+          "id": "lesson-goals",
+          "type": "bullet_list",
+          "title": "五项目标",
+          "items": [
+            "区分开环增益与闭环增益对系统极点的不同作用。",
+            "从闭环特征方程写出极点关于 K 的表达式。",
+            "解释 0<K<4、K=4、K>4 三个区段的极点形态。",
+            "联读极点位置、阶跃响应和动态性能指标。",
+            "把根轨迹理解为闭环极点随参数连续变化形成的路径。"
+          ]
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "阅读课程目标。"
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep"
+        ],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "明确参数、极点、响应和根轨迹之间的学习链。",
+        "allowed_scope": [
+          "本课学习目标"
+        ],
+        "forbidden_scope": [
+          "提前给出后测答案"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-3-parameter-pole-migration/student/demo?step=step-02"
+      },
+      "acceptance_checks": [
+        "五项目标完整可见"
+      ],
+      "evidence_sequence": [
+        "lesson-goals"
+      ],
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false
+      }
+    },
+    "step-03": {
+      "title": "前测——进入根轨迹前的准备",
+      "layout": {
+        "template": "quiz_battery",
+        "regions": [
+          {
+            "id": "quiz",
+            "width": "full",
+            "order": 1
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "pre-test",
+          "region": "quiz",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "payload": {
+            "interaction_kind": "quiz_group",
+            "response_kind": "choice.single",
+            "title": "前测题组"
+          }
+        }
+      ],
+      "content_blocks": [],
+      "interaction_spec": {
+        "interaction_kind": "quiz_group",
+        "student_task": "独立完成三道准备度检查题。",
+        "activity_cards": [
+          {
+            "id": "pre-pole",
+            "prompt": "极点 -1±2j 位于复平面的哪个区域？",
+            "response_kind": "choice.single",
+            "options": [
+              {
+                "key": "A",
+                "text": "左半平面"
+              },
+              {
+                "key": "B",
+                "text": "右半平面"
+              },
+              {
+                "key": "C",
+                "text": "虚轴上"
+              }
+            ],
+            "reference_answer": "A",
+            "submit_scope": "per_card"
+          },
+          {
+            "id": "pre-roots",
+            "prompt": "二次方程的判别式等于 0 时，两个根是什么关系？",
+            "response_kind": "choice.single",
+            "options": [
+              {
+                "key": "A",
+                "text": "两个不等实根"
+              },
+              {
+                "key": "B",
+                "text": "一对共轭复根"
+              },
+              {
+                "key": "C",
+                "text": "两个相等实根"
+              }
+            ],
+            "reference_answer": "C",
+            "submit_scope": "per_card"
+          },
+          {
+            "id": "pre-feedback",
+            "prompt": "单位负反馈闭环系统的特征方程来自哪一项？",
+            "response_kind": "choice.single",
+            "options": [
+              {
+                "key": "A",
+                "text": "1+G(s)=0"
+              },
+              {
+                "key": "B",
+                "text": "G(s)=0"
+              },
+              {
+                "key": "C",
+                "text": "R(s)=0"
+              }
+            ],
+            "reference_answer": "A",
+            "submit_scope": "per_card"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "selectedOptions",
+          "resultStates",
+          "timeOnStep"
+        ],
+        "result_policy": "submission_required",
+        "misconception_tags": [
+          "pole_region_gap",
+          "root_type_gap",
+          "feedback_equation_gap"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "option_distribution",
+          "correct_rate_per_question"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "检查极点读图、二次方程根类型和闭环结构基础。",
+        "allowed_scope": [
+          "1-2 极点基础",
+          "二次方程",
+          "单位负反馈"
+        ],
+        "forbidden_scope": [
+          "根轨迹定义",
+          "极点迁移结论"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-3-parameter-pole-migration/student/demo?step=step-03"
+      },
+      "acceptance_checks": [
+        "三题不提前考根轨迹新结论",
+        "每题独立提交",
+        "教师可查看选项统计并揭示答案"
+      ],
+      "evidence_sequence": [],
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false
+      }
+    },
+    "step-04": {
+      "title": "开环与闭环——同一个增益，两种命运",
+      "layout": {
+        "template": "diagram_derivation_activity",
+        "regions": [
+          {
+            "id": "diagram",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "derivation",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "gain-role-diagram",
+          "region": "diagram",
+          "kind": "visual.blockDiagram",
+          "must_be_visible": true,
+          "title": "开环通路与反馈闭合",
+          "payload": {
+            "graphId": "unit-1-3-gain-role",
+            "layout": {
+              "mode": "relative",
+              "origin": {
+                "x": 0.05,
+                "y": 0.34
+              },
+              "spacing": {
+                "x": 0.18,
+                "y": 0.18
+              }
+            },
+            "interactions": {
+              "mode": "highlight"
+            },
+            "activeRevealState": "all",
+            "nodes": [
+              {
+                "id": "input",
+                "type": "input",
+                "display": "anchor",
+                "labelLatex": "R(s)",
+                "grid": {
+                  "column": 0,
+                  "row": 0
+                }
+              },
+              {
+                "id": "sum",
+                "type": "sum",
+                "label": "Σ",
+                "relativeTo": "input",
+                "placement": "right"
+              },
+              {
+                "id": "gain",
+                "type": "block",
+                "labelLatex": "K",
+                "relativeTo": "sum",
+                "placement": "right"
+              },
+              {
+                "id": "plant",
+                "type": "block",
+                "labelLatex": "G_0(s)",
+                "relativeTo": "gain",
+                "placement": "right"
+              },
+              {
+                "id": "output",
+                "type": "output",
+                "display": "anchor",
+                "labelLatex": "Y(s)",
+                "relativeTo": "plant",
+                "placement": "right"
+              },
+              {
+                "id": "feedback",
+                "type": "sensor",
+                "labelLatex": "H(s)=1",
+                "relativeTo": "gain",
+                "placement": "below"
+              }
+            ],
+            "edges": [
+              {
+                "id": "e-input",
+                "from": "input.E",
+                "to": "sum.W",
+                "route": "--",
+                "labelLatex": "R(s)"
+              },
+              {
+                "id": "e-gain",
+                "from": "sum.E",
+                "to": "gain.W",
+                "route": "--",
+                "labelLatex": "E(s)"
+              },
+              {
+                "id": "e-plant",
+                "from": "gain.E",
+                "to": "plant.W",
+                "route": "--",
+                "labelLatex": "K"
+              },
+              {
+                "id": "e-output",
+                "from": "plant.E",
+                "to": "output.W",
+                "route": "--",
+                "labelLatex": "Y(s)"
+              },
+              {
+                "id": "e-feedback-down",
+                "from": "output.S",
+                "to": "feedback.E",
+                "route": "|-",
+                "display": "unlabeled",
+                "label": ""
+              },
+              {
+                "id": "e-feedback-return",
+                "from": "feedback.W",
+                "to": "sum.S",
+                "route": "-|",
+                "labelLatex": "Y(s)",
+                "terminalSign": "−"
+              }
+            ],
+            "revealPlan": [
+              {
+                "id": "open-loop",
+                "label": "开环前向通路",
+                "targetIds": [
+                  "e-input",
+                  "e-gain",
+                  "e-plant",
+                  "e-output"
+                ]
+              },
+              {
+                "id": "closed-loop",
+                "label": "闭环反馈通路",
+                "targetIds": [
+                  "e-feedback-down",
+                  "feedback",
+                  "e-feedback-return"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "closed-loop-derivation",
+          "region": "derivation",
+          "kind": "content.reveal",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "closed-loop-derivation",
+            "title": "K 怎样进入闭环特征方程"
+          }
+        },
+        {
+          "id": "gain-role-check",
+          "region": "activity",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "payload": {
+            "interaction_kind": "single_choice",
+            "response_kind": "choice.single",
+            "title": "增益角色判断"
+          }
+        }
+      ],
+      "content_blocks": [
+        {
+          "id": "closed-loop-derivation",
+          "type": "reveal_chain",
+          "title": "闭环推导",
+          "layers": [
+            {
+              "layer": 1,
+              "label": "开环",
+              "content": "$Y(s)=KG_0(s)R(s)$，K 只缩放输出，不改变 $G_0(s)$ 的极点。"
+            },
+            {
+              "layer": 2,
+              "label": "闭环",
+              "content": "$\\Phi(s)=\\frac{KG_0(s)}{1+KG_0(s)}$。"
+            },
+            {
+              "layer": 3,
+              "label": "特征方程",
+              "content": "$1+KG_0(s)=0$，K 进入分母并推动闭环极点迁移。"
+            }
+          ]
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "single_choice",
+        "student_task": "判断为什么闭环增益会改变极点。",
+        "activity_cards": [
+          {
+            "id": "gain-role",
+            "prompt": "闭环中增益 K 为什么会改变系统极点？",
+            "response_kind": "choice.single",
+            "options": [
+              {
+                "key": "A",
+                "text": "K 进入闭环特征方程"
+              },
+              {
+                "key": "B",
+                "text": "K 只改变输入幅值"
+              },
+              {
+                "key": "C",
+                "text": "K 改变了时间变量"
+              }
+            ],
+            "reference_answer": "A",
+            "submit_scope": "per_card"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "teacher_only",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "selectedOption",
+          "resultState",
+          "revealProgress",
+          "timeOnStep"
+        ],
+        "result_policy": "submission_required",
+        "misconception_tags": [
+          "gain_only_scales_output"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "option_distribution",
+          "reveal_progress"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "用结构图与代数推导区分开环和闭环增益角色。",
+        "allowed_scope": [
+          "开环比例缩放",
+          "闭环特征方程"
+        ],
+        "forbidden_scope": [
+          "完整根轨迹法则"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-3-parameter-pole-migration/student/demo?step=step-04"
+      },
+      "acceptance_checks": [
+        "原生方框图可高亮前向与反馈通路",
+        "三层推导完整",
+        "K 进入特征方程的证据可追踪"
+      ],
+      "evidence_sequence": [
+        "gain-role-diagram",
+        "closed-loop-derivation",
+        "gain-role-check"
+      ],
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false
+      },
+      "visual_state_contract": {
+        "theme_modes": [
+          "light",
+          "dark",
+          "projection"
+        ],
+        "responsive_modes": [
+          "desktop",
+          "tablet",
+          "mobile"
+        ],
+        "requirements": [
+          "节点、求和点与反馈边使用平台语义色",
+          "移动端保持结构图而非退化为图片"
+        ],
+        "unavailable_state": {
+          "student_copy": "方框图暂时无法加载，请根据闭环推导判断 K 的作用位置。",
+          "teacher_copy": "方框图未完整加载，请先使用代数推导讲解。",
+          "evidence_policy": "fallback viewing is diagnostic only"
+        }
+      }
+    },
+    "step-05": {
+      "title": "极点移动有连续性，响应变化也有连续性",
+      "layout": {
+        "template": "derivation_table",
+        "regions": [
+          {
+            "id": "derivation",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "table",
+            "width": "full",
+            "order": 2
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "pole-expression",
+          "region": "derivation",
+          "kind": "content.reveal",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "pole-expression",
+            "title": "从特征方程到三个区段"
+          }
+        },
+        {
+          "id": "pole-regions",
+          "region": "table",
+          "kind": "content.table",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "pole-regions",
+            "title": "K 值与极点形态"
+          }
+        }
+      ],
+      "content_blocks": [
+        {
+          "id": "pole-expression",
+          "type": "reveal_chain",
+          "title": "$s^2+4s+K=0$",
+          "layers": [
+            {
+              "layer": 1,
+              "label": "极点表达式",
+              "content": "$s_{1,2}=-2\\pm\\sqrt{4-K}$。"
+            },
+            {
+              "layer": 2,
+              "label": "$0<K<4$",
+              "content": "两个负实极点沿实轴相向移动，响应保持单调。"
+            },
+            {
+              "layer": 3,
+              "label": "$K=4$",
+              "content": "两个极点在 $s=-2$ 会合为重实极点，对应临界阻尼。"
+            },
+            {
+              "layer": 4,
+              "label": "$K>4$",
+              "content": "极点从 $s=-2$ 垂直分开为共轭复极点，响应出现衰减振荡。"
+            }
+          ]
+        },
+        {
+          "id": "pole-regions",
+          "type": "table",
+          "headers": [
+            "K 区间",
+            "极点形态",
+            "复平面运动",
+            "响应特征"
+          ],
+          "rows": [
+            [
+              "0<K<4",
+              "两个负实极点",
+              "沿实轴相向",
+              "单调收敛"
+            ],
+            [
+              "K=4",
+              "重实极点 -2",
+              "会合",
+              "临界阻尼"
+            ],
+            [
+              "K>4",
+              "共轭复极点",
+              "沿 Re(s)=-2 上下分离",
+              "衰减振荡"
+            ]
+          ]
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "跟随显影联读三个区段。"
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "teacher_only",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "revealProgress",
+          "timeOnStep"
+        ],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count",
+          "reveal_progress"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "从极点公式建立 K 的三个连续区段。",
+        "allowed_scope": [
+          "极点表达式",
+          "三种极点形态"
+        ],
+        "forbidden_scope": [
+          "把 K>4 后调节时间说成恒定"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-3-parameter-pole-migration/student/demo?step=step-05"
+      },
+      "acceptance_checks": [
+        "极点表达式正确",
+        "K=4 会合点明确为 s=-2",
+        "虚轴与 Re(s)=-2 不混淆"
+      ],
+      "evidence_sequence": [
+        "pole-expression",
+        "pole-regions"
+      ],
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false
+      }
+    },
+    "step-06": {
+      "title": "从极点到曲线——三组 K 值的时域全貌",
+      "layout": {
+        "template": "compute_derivation_table",
+        "regions": [
+          {
+            "id": "compute",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "support",
+            "width": "full",
+            "order": 2
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "gain-response-workbench",
+          "region": "compute",
+          "kind": "compute.panel",
+          "must_be_visible": true,
+          "title": "增益、极点与响应联动工作台",
+          "payload": {
+            "capabilityRef": "control-linked-comparison",
+            "panel_id": "unit-1-3-gain-response-workbench",
+            "spec_key": "control_linked_comparison",
+            "visiblePanelIds": [
+              "step-response",
+              "root-locus",
+              "performance"
+            ],
+            "responseContractId": "gain-observation",
+            "releaseState": "released",
+            "fallbackState": "supported",
+            "title": "增益、极点与响应联动工作台",
+            "request": {
+              "runtimeMode": "analysis",
+              "caseId": "unit-1-3-gain-response",
+              "plant": {
+                "numerator": [
+                  1
+                ],
+                "denominator": [
+                  1,
+                  4,
+                  0
+                ],
+                "coefficientOrder": "descending",
+                "label": "G_0(s)=1/[s(s+4)]"
+              },
+              "structures": [
+                {
+                  "kind": "gain",
+                  "enabled": true,
+                  "params": {
+                    "k": 1
+                  },
+                  "label": "K"
+                }
+              ],
+              "outputs": [
+                "step_response",
+                "root_locus"
+              ],
+              "responseType": "step",
+              "timeRange": {
+                "start": 0,
+                "end": 15,
+                "samples": 160
+              },
+              "frequencyRange": {
+                "min": 0.1,
+                "max": 20,
+                "samples": 96
+              },
+              "rootLocus": {
+                "minGain": 0,
+                "maxGain": 12,
+                "samples": 160,
+                "currentGain": 1
+              }
+            },
+            "studentTask": "依次选择 K=1、4、8，记录极点形态、超调量和 5% 调节时间。",
+            "fallbackUi": {
+              "loadingCopy": "正在准备增益与响应工作台。",
+              "unavailableCopy": "联动工作台暂时无法计算，请使用三组响应静态图完成比较。",
+              "errorCopy": "本次计算未完成，请保留当前 K 值并改用静态对照图。",
+              "studentActionCopy": "提交当前观察",
+              "teacherActionCopy": "切换到静态证据"
+            },
+            "fallbackMedia": {
+              "src": "/course-runtime/lessons/1-3/media/1-3-fig-03-closed-loop-responses.png",
+              "alt": "K=1、4、8 三组闭环阶跃响应后备图"
+            },
+            "submissionFields": [
+              {
+                "key": "gain_k",
+                "label": "增益 K",
+                "input": "select",
+                "options": [
+                  "1",
+                  "4",
+                  "8"
+                ],
+                "defaultValue": "1"
+              },
+              {
+                "key": "pole_observation",
+                "label": "极点与响应观察",
+                "input": "text",
+                "defaultValue": "记录当前极点形态与响应特征。"
+              }
+            ],
+            "submissionDefaults": {
+              "gain_k": "1",
+              "pole_observation": "记录当前极点形态与响应特征。"
+            }
+          }
+        },
+        {
+          "id": "three-gain-table",
+          "region": "support",
+          "kind": "content.table",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "three-gain-table",
+            "title": "三组 K 值联读"
+          }
+        },
+        {
+          "id": "response-formulas",
+          "region": "support",
+          "kind": "content.reveal",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "response-formulas",
+            "title": "从 Φ(s) 到 y(t)"
+          }
+        }
+      ],
+      "content_blocks": [
+        {
+          "id": "three-gain-table",
+          "type": "table",
+          "headers": [
+            "K",
+            "闭环极点",
+            "响应形态",
+            "判断"
+          ],
+          "rows": [
+            [
+              "1",
+              "$-2\\pm\\sqrt{3}$",
+              "缓慢单调",
+              "主导极点靠近原点"
+            ],
+            [
+              "4",
+              "$-2,-2$",
+              "最快无超调基准",
+              "临界阻尼"
+            ],
+            [
+              "8",
+              "$-2\\pm2j$",
+              "衰减振荡",
+              "实部固定不等于实际调节时间恒定"
+            ]
+          ]
+        },
+        {
+          "id": "response-formulas",
+          "type": "reveal_chain",
+          "title": "闭环响应",
+          "layers": [
+            {
+              "layer": 1,
+              "label": "闭环传递函数",
+              "content": "$\\Phi(s)=\\frac{K}{s^2+4s+K}$。"
+            },
+            {
+              "layer": 2,
+              "label": "K=1",
+              "content": "两个实极点给出两个衰减指数项，响应单调。"
+            },
+            {
+              "layer": 3,
+              "label": "K=4",
+              "content": "重极点给出 $(1+2t)e^{-2t}$ 形式。"
+            },
+            {
+              "layer": 4,
+              "label": "K=8",
+              "content": "共轭复极点给出 $e^{-2t}$ 包络下的正弦余弦项。"
+            }
+          ]
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "interactive_figure_submit",
+        "student_task": "选择一组 K 值并提交极点与响应观察。",
+        "submit_fields": [
+          "gain_k",
+          "pole_observation"
+        ],
+        "activity_cards": [
+          {
+            "id": "gain-observation",
+            "prompt": "提交当前 K 值及你观察到的极点与响应特征。",
+            "response_kind": "parameter.set",
+            "parameter_fields": [
+              {
+                "key": "gain_k",
+                "label": "增益 K"
+              },
+              {
+                "key": "pole_observation",
+                "label": "观察"
+              }
+            ],
+            "reference_answer": "K 从 1 增至 4 时实极点相向移动；超过 4 后成为共轭复极点并出现衰减振荡。",
+            "submit_scope": "per_card"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "teacher_only",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "gainK",
+          "poleObservation",
+          "timeOnStep"
+        ],
+        "result_policy": "submission_required"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "gain_distribution",
+          "observation_wordcloud"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "联动读取 K、闭环极点、阶跃响应和性能指标。",
+        "allowed_scope": [
+          "K=1,4,8",
+          "极点与时域响应"
+        ],
+        "forbidden_scope": [
+          "仅凭实部断言 5% 调节时间恒定"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-3-parameter-pole-migration/student/demo?step=step-06"
+      },
+      "acceptance_checks": [
+        "K 控件驱动同页原生曲线",
+        "K=1、4、8 可达",
+        "静态图仅作后备",
+        "提交进入 canonical response contract"
+      ],
+      "evidence_sequence": [
+        "gain-response-workbench",
+        "three-gain-table",
+        "response-formulas"
+      ],
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false
+      },
+      "visual_state_contract": {
+        "theme_modes": [
+          "light",
+          "dark",
+          "projection"
+        ],
+        "responsive_modes": [
+          "desktop",
+          "tablet",
+          "mobile"
+        ],
+        "requirements": [
+          "曲线、极点和指标使用标签与线型共同编码",
+          "移动端可纵向堆叠但 K 控件和提交始终可达"
+        ],
+        "unavailable_state": {
+          "student_copy": "联动工作台暂时无法计算，请使用三组响应静态图完成观察。",
+          "teacher_copy": "联动工作台未完整加载，请暂缓把参数操作计为学习证据。",
+          "evidence_policy": "only explicit gain observation submission becomes learning evidence"
+        }
+      }
+    },
+    "step-07": {
+      "title": "根轨迹雏形——把极点路径画在同一张图上",
+      "layout": {
+        "template": "compute_code_reading",
+        "regions": [
+          {
+            "id": "compute",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "code",
+            "width": "half",
+            "order": 2
+          },
+          {
+            "id": "reading",
+            "width": "half",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "root-locus-workbench",
+          "region": "compute",
+          "kind": "compute.panel",
+          "must_be_visible": true,
+          "title": "闭环极点迁移地图",
+          "payload": {
+            "capabilityRef": "control-root-locus-design-map",
+            "panel_id": "unit-1-3-root-locus-workbench",
+            "spec_key": "control_root_locus_design_map",
+            "visiblePanelIds": [
+              "root-locus",
+              "step-response",
+              "performance"
+            ],
+            "responseContractId": "root-locus-observation",
+            "releaseState": "released",
+            "fallbackState": "supported",
+            "title": "闭环极点迁移地图",
+            "request": {
+              "runtimeMode": "analysis",
+              "caseId": "unit-1-3-root-locus",
+              "plant": {
+                "numerator": [
+                  1
+                ],
+                "denominator": [
+                  1,
+                  4,
+                  0
+                ],
+                "coefficientOrder": "descending",
+                "label": "G_0(s)=1/[s(s+4)]"
+              },
+              "structures": [
+                {
+                  "kind": "gain",
+                  "enabled": true,
+                  "params": {
+                    "k": 1
+                  },
+                  "label": "K"
+                }
+              ],
+              "outputs": [
+                "step_response",
+                "root_locus"
+              ],
+              "responseType": "step",
+              "timeRange": {
+                "start": 0,
+                "end": 15,
+                "samples": 160
+              },
+              "frequencyRange": {
+                "min": 0.1,
+                "max": 20,
+                "samples": 96
+              },
+              "rootLocus": {
+                "minGain": 0,
+                "maxGain": 12,
+                "samples": 180,
+                "currentGain": 1
+              }
+            },
+            "studentTask": "拖动 K，观察两支闭环极点从 0 与 -4 出发，在 -2 会合后沿 Re(s)=-2 上下分离。",
+            "fallbackUi": {
+              "loadingCopy": "正在准备根轨迹地图。",
+              "unavailableCopy": "根轨迹地图暂时无法计算，请使用根轨迹静态图完成观察。",
+              "errorCopy": "本次参数扫描未完成，请保留当前 K 值并改用静态图判断。",
+              "studentActionCopy": "提交轨迹观察",
+              "teacherActionCopy": "切换到静态轨迹"
+            },
+            "fallbackMedia": {
+              "src": "/course-runtime/lessons/1-3/media/1-3-fig-04-root-locus.png",
+              "alt": "从 0 和 -4 出发并在 -2 会合的根轨迹后备图"
+            },
+            "submissionFields": [
+              {
+                "key": "gain_k",
+                "label": "增益 K",
+                "input": "slider",
+                "min": 0,
+                "max": 12,
+                "step": 0.1,
+                "defaultValue": 1
+              },
+              {
+                "key": "pole_path_observation",
+                "label": "极点路径观察",
+                "input": "text",
+                "defaultValue": "两支极点沿实轴相向移动。"
+              }
+            ],
+            "submissionDefaults": {
+              "gain_k": 1,
+              "pole_path_observation": "两支极点沿实轴相向移动。"
+            }
+          }
+        },
+        {
+          "id": "rlocus-code",
+          "region": "code",
+          "kind": "content.code",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "rlocus-code-source",
+            "language": "matlab",
+            "code": "s = tf('s');\nG0 = 1/(s*(s+4));\nrlocus(G0); grid on;",
+            "title": "MATLAB / Octave 根轨迹命令"
+          }
+        },
+        {
+          "id": "root-locus-reading",
+          "region": "reading",
+          "kind": "content.cardSet",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "root-locus-reading",
+            "title": "从图中读取五类信息"
+          }
+        }
+      ],
+      "content_blocks": [
+        {
+          "id": "rlocus-code-source",
+          "type": "code",
+          "language": "matlab",
+          "code": "s = tf('s');\nG0 = 1/(s*(s+4));\nrlocus(G0); grid on;"
+        },
+        {
+          "id": "root-locus-reading",
+          "type": "bullet_list",
+          "title": "根轨迹雏形",
+          "items": [
+            "起点：开环极点 0 与 -4。",
+            "运动方向：K 增大时沿实轴相向。",
+            "会合点：K=4 时在 s=-2。",
+            "分离方向：K>4 后沿 Re(s)=-2 垂直上下。",
+            "虚轴：位于 Re(s)=0，与垂直根轨迹分支不同。"
+          ]
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "interactive_figure_submit",
+        "student_task": "拖动 K 并提交当前极点路径观察。",
+        "submit_fields": [
+          "gain_k",
+          "pole_path_observation"
+        ],
+        "activity_cards": [
+          {
+            "id": "root-locus-observation",
+            "prompt": "提交当前 K 值和闭环极点所处路径。",
+            "response_kind": "parameter.set",
+            "parameter_fields": [
+              {
+                "key": "gain_k",
+                "label": "增益 K"
+              },
+              {
+                "key": "pole_path_observation",
+                "label": "路径观察"
+              }
+            ],
+            "reference_answer": "K<4 时两支极点沿实轴相向；K=4 在 -2 会合；K>4 沿 Re(s)=-2 上下分离。",
+            "submit_scope": "per_card"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "gainK",
+          "polePathObservation",
+          "timeOnStep"
+        ],
+        "result_policy": "submission_required"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "gain_distribution",
+          "observation_wordcloud"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把离散极点位置提升为随 K 连续变化的根轨迹。",
+        "allowed_scope": [
+          "根轨迹定义",
+          "本二阶对象的轨迹"
+        ],
+        "forbidden_scope": [
+          "完整九项根轨迹法则"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-3-parameter-pole-migration/student/demo?step=step-07"
+      },
+      "acceptance_checks": [
+        "K 滑块驱动原生根轨迹和当前极点",
+        "会合点为 -2",
+        "虚轴 Re(s)=0 单独可见",
+        "MATLAB 代码使用 content.code"
+      ],
+      "evidence_sequence": [
+        "root-locus-workbench",
+        "rlocus-code",
+        "root-locus-reading"
+      ],
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false
+      },
+      "visual_state_contract": {
+        "theme_modes": [
+          "light",
+          "dark",
+          "projection"
+        ],
+        "responsive_modes": [
+          "desktop",
+          "tablet",
+          "mobile"
+        ],
+        "requirements": [
+          "虚轴与 Re(s)=-2 根轨迹分支视觉分离",
+          "当前极点、起点和 K 方向使用标签与标记共同表达"
+        ],
+        "unavailable_state": {
+          "student_copy": "根轨迹地图暂时无法计算，请使用静态轨迹图完成观察。",
+          "teacher_copy": "根轨迹地图未完整加载，请暂缓把参数操作计为学习证据。",
+          "evidence_policy": "only explicit path observation submission becomes learning evidence"
+        }
+      }
+    },
+    "step-08": {
+      "title": "例题——追踪极点迁移，预判行为变化",
+      "layout": {
+        "template": "worked_example_activity",
+        "regions": [
+          {
+            "id": "example",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 2
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "worked-example",
+          "region": "example",
+          "kind": "content.reveal",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "worked-example",
+            "title": "例题 1-3-1"
+          }
+        },
+        {
+          "id": "meeting-point-check",
+          "region": "activity",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "payload": {
+            "interaction_kind": "single_choice",
+            "response_kind": "choice.single",
+            "title": "会合点判断"
+          }
+        }
+      ],
+      "content_blocks": [
+        {
+          "id": "worked-example",
+          "type": "reveal_chain",
+          "title": "换对象，方法不变",
+          "layers": [
+            {
+              "layer": 1,
+              "label": "闭环模型",
+              "content": "$\\Phi(s)=\\frac{K}{s^2+6s+K}$。"
+            },
+            {
+              "layer": 2,
+              "label": "极点表达式",
+              "content": "$s_{1,2}=-3\\pm\\sqrt{9-K}$。"
+            },
+            {
+              "layer": 3,
+              "label": "三组 K",
+              "content": "$K<9$ 为实极点，$K=9$ 在 -3 会合，$K>9$ 为共轭复极点。"
+            },
+            {
+              "layer": 4,
+              "label": "轨迹形状",
+              "content": "两支极点沿实轴相向，在 -3 会合后沿 Re(s)=-3 上下分离。"
+            }
+          ]
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "single_choice",
+        "student_task": "判断新对象的极点会合点。",
+        "activity_cards": [
+          {
+            "id": "meeting-point",
+            "prompt": "$s^2+6s+K=0$ 的两支实轴根轨迹在哪里会合？",
+            "response_kind": "choice.single",
+            "options": [
+              {
+                "key": "A",
+                "text": "s=-6"
+              },
+              {
+                "key": "B",
+                "text": "s=-3"
+              },
+              {
+                "key": "C",
+                "text": "s=0"
+              }
+            ],
+            "reference_answer": "B",
+            "submit_scope": "per_card"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "teacher_only",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "selectedOption",
+          "resultState",
+          "revealProgress",
+          "timeOnStep"
+        ],
+        "result_policy": "submission_required",
+        "misconception_tags": [
+          "meeting_point_not_midpoint"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "option_distribution",
+          "reveal_progress"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "迁移使用特征方程、极点公式和区段判断方法。",
+        "allowed_scope": [
+          "二阶闭环极点迁移"
+        ],
+        "forbidden_scope": [
+          "直接代答未显影步骤"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-3-parameter-pole-migration/student/demo?step=step-08"
+      },
+      "acceptance_checks": [
+        "四层求解链完整",
+        "会合点判断可提交并统计"
+      ],
+      "evidence_sequence": [
+        "worked-example",
+        "meeting-point-check"
+      ],
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false
+      }
+    },
+    "step-09": {
+      "title": "案例——自动舵增益调节的三次记录",
+      "layout": {
+        "template": "case_table_reveal_activity",
+        "regions": [
+          {
+            "id": "table",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "reading",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "rudder-records",
+          "region": "table",
+          "kind": "content.table",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "rudder-records",
+            "title": "三次自动舵试验"
+          }
+        },
+        {
+          "id": "diminishing-return",
+          "region": "reading",
+          "kind": "content.reveal",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "diminishing-return",
+            "title": "为什么继续增大 K 不一定更好"
+          }
+        },
+        {
+          "id": "rudder-decision",
+          "region": "activity",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "payload": {
+            "interaction_kind": "single_choice",
+            "response_kind": "choice.single",
+            "title": "自动舵参数判断"
+          }
+        }
+      ],
+      "content_blocks": [
+        {
+          "id": "rudder-records",
+          "type": "table",
+          "headers": [
+            "试验",
+            "K",
+            "极点",
+            "响应观察"
+          ],
+          "rows": [
+            [
+              "A",
+              "1",
+              "$-2\\pm\\sqrt{3}$",
+              "缓慢、无超调"
+            ],
+            [
+              "B",
+              "4",
+              "$-2,-2$",
+              "快速、无超调"
+            ],
+            [
+              "C",
+              "8",
+              "$-2\\pm2j$",
+              "出现超调与摆动"
+            ]
+          ]
+        },
+        {
+          "id": "diminishing-return",
+          "type": "reveal_chain",
+          "title": "回报递减",
+          "layers": [
+            {
+              "layer": 1,
+              "label": "从 1 到 4",
+              "content": "主导实极点明显左移，单调响应加快。"
+            },
+            {
+              "layer": 2,
+              "label": "超过 4",
+              "content": "实部固定在 -2，振荡频率随 K 增大，不能只凭实部断言实际调节时间不变。"
+            },
+            {
+              "layer": 3,
+              "label": "工程取舍",
+              "content": "是否允许超调、执行器约束和模型不确定性共同决定可用 K。"
+            }
+          ]
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "single_choice",
+        "student_task": "判断在不允许明显超调时是否应继续增大 K。",
+        "activity_cards": [
+          {
+            "id": "rudder-choice",
+            "prompt": "若航向控制不允许明显超调，达到 K=4 后继续大幅增大 K 是否合理？",
+            "response_kind": "choice.single",
+            "options": [
+              {
+                "key": "A",
+                "text": "合理，K 越大一定越快且越稳"
+              },
+              {
+                "key": "B",
+                "text": "不一定合理，应结合超调、恢复时间和约束判断"
+              }
+            ],
+            "reference_answer": "B",
+            "submit_scope": "per_card"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "teacher_only",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "selectedOption",
+          "resultState",
+          "revealProgress",
+          "timeOnStep"
+        ],
+        "result_policy": "submission_required",
+        "misconception_tags": [
+          "larger_gain_always_better"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "option_distribution",
+          "reveal_progress"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把极点迁移结论用于自动舵增益取舍。",
+        "allowed_scope": [
+          "超调",
+          "恢复时间",
+          "工程约束"
+        ],
+        "forbidden_scope": [
+          "宣称存在脱离约束的唯一最佳 K"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-3-parameter-pole-migration/student/demo?step=step-09"
+      },
+      "acceptance_checks": [
+        "三次记录常显",
+        "回报递减逐层显影",
+        "工程判断可提交并统计"
+      ],
+      "evidence_sequence": [
+        "rudder-records",
+        "diminishing-return",
+        "rudder-decision"
+      ],
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false
+      }
+    },
+    "step-10": {
+      "title": "后测",
+      "layout": {
+        "template": "quiz_battery",
+        "regions": [
+          {
+            "id": "quiz",
+            "width": "full",
+            "order": 1
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "post-test",
+          "region": "quiz",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "payload": {
+            "interaction_kind": "quiz_group",
+            "response_kind": "choice.single",
+            "title": "出口题组"
+          }
+        }
+      ],
+      "content_blocks": [],
+      "interaction_spec": {
+        "interaction_kind": "quiz_group",
+        "student_task": "完成两道客观题和一道简答题。",
+        "activity_cards": [
+          {
+            "id": "post-gain",
+            "prompt": "闭环增益 K 改变极点的直接原因是什么？",
+            "response_kind": "choice.single",
+            "options": [
+              {
+                "key": "A",
+                "text": "K 进入闭环特征方程"
+              },
+              {
+                "key": "B",
+                "text": "K 改变时间单位"
+              },
+              {
+                "key": "C",
+                "text": "K 只放大输入"
+              }
+            ],
+            "reference_answer": "A",
+            "submit_scope": "per_card"
+          },
+          {
+            "id": "post-stage",
+            "prompt": "对 $s^2+4s+K=0$，K>4 时闭环极点是什么形态？",
+            "response_kind": "choice.single",
+            "options": [
+              {
+                "key": "A",
+                "text": "两个不等负实极点"
+              },
+              {
+                "key": "B",
+                "text": "位于 Re(s)=-2 的共轭复极点"
+              },
+              {
+                "key": "C",
+                "text": "位于虚轴上的共轭复极点"
+              }
+            ],
+            "reference_answer": "B",
+            "submit_scope": "per_card"
+          },
+          {
+            "id": "post-definition",
+            "prompt": "用一句话说明什么是根轨迹。",
+            "response_kind": "text.short",
+            "reference_answer": "根轨迹是闭环系统极点随某个参数连续变化而在复平面上形成的路径。",
+            "submit_scope": "per_card"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "selectedOptions",
+          "shortAnswer",
+          "resultStates",
+          "timeOnStep"
+        ],
+        "result_policy": "submission_required",
+        "misconception_tags": [
+          "gain_role_gap",
+          "pole_stage_gap",
+          "root_locus_definition_gap"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "option_distribution",
+          "short_answer_wordcloud",
+          "correct_rate_per_question"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "检验增益角色、极点迁移阶段和根轨迹定义。",
+        "allowed_scope": [
+          "本课全部内容"
+        ],
+        "forbidden_scope": [
+          "直接生成学生简答"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-3-parameter-pole-migration/student/demo?step=step-10"
+      },
+      "acceptance_checks": [
+        "两客观一主观",
+        "教师可查看统计与词云",
+        "教师揭示答案后学生可见"
+      ],
+      "evidence_sequence": [],
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false
+      }
+    },
+    "step-11": {
+      "title": "总结——三个可带走的判断",
+      "layout": {
+        "template": "summary_media_analytics",
+        "regions": [
+          {
+            "id": "summary",
+            "width": "half",
+            "order": 1
+          },
+          {
+            "id": "media",
+            "width": "half",
+            "order": 2
+          },
+          {
+            "id": "analytics",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "takeaways",
+          "region": "summary",
+          "kind": "content.cardSet",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "takeaways",
+            "title": "三个判断"
+          }
+        },
+        {
+          "id": "summary-info",
+          "region": "media",
+          "kind": "content.figure",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "summary-info",
+            "title": "参数、极点与响应信息图"
+          }
+        },
+        {
+          "id": "lesson-summary",
+          "region": "analytics",
+          "kind": "analytics.summary",
+          "must_be_visible": true,
+          "payload": {
+            "title": "课堂表现回看",
+            "metrics": [
+              "submission_count",
+              "objective_accuracy",
+              "pre_post_delta"
+            ],
+            "items": [
+              "提交次数",
+              "客观题正确率",
+              "前后测变化"
+            ]
+          }
+        }
+      ],
+      "content_blocks": [
+        {
+          "id": "takeaways",
+          "type": "bullet_list",
+          "title": "带走的三个判断",
+          "items": [
+            "开环增益通常只缩放输出；闭环增益进入特征方程并推动闭环极点。",
+            "极点随参数连续移动，响应形态也随之连续变化。",
+            "根轨迹把所有可能的闭环极点路径画在同一张复平面图上。"
+          ]
+        },
+        {
+          "id": "summary-info",
+          "type": "media",
+          "asset": "1-3-info.png",
+          "caption": "开环与闭环增益角色、K 的三个区段和根轨迹雏形。"
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "回看本课判断链与课堂统计。"
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep"
+        ],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "class_accuracy",
+          "pre_post_delta"
+        ],
+        "aggregation": "lesson_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "收束开环结构、闭环特征方程、极点迁移、响应与根轨迹证据链。",
+        "allowed_scope": [
+          "本课全部内容",
+          "3-3 根轨迹法则预告"
+        ],
+        "forbidden_scope": [
+          "提前展开完整根轨迹法则"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-3-parameter-pole-migration/student/demo?step=step-11"
+      },
+      "acceptance_checks": [
+        "三个判断完整",
+        "信息图可读",
+        "课堂统计可回看"
+      ],
+      "evidence_sequence": [
+        "takeaways",
+        "summary-info",
+        "lesson-summary"
+      ],
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false
+      }
+    }
+  }
+}

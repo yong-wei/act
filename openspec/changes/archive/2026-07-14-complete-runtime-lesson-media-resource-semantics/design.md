@@ -21,3 +21,5 @@ Out of scope:
 - planner loader changes
 
 Each resource must end with a reviewed disposition. If a module or asset is not independently launchable, it should be linked to a parent PlanningUnit or classified with a reviewed support/exclusion rationale.
+
+LearningGoal baseline artifacts are regenerated from the current audit and promotion contract on every run. Existing baseline artifacts may be compared for stable resource identity, but their historical `pathEligible` or `pathEligibleResourceIds` values are never restored. A resource whose current audit row has `pathEligibility.current=false` remains outside the baseline PathNode set until its explicit promotion gate passes.

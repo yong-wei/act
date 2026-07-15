@@ -1,0 +1,450 @@
+{
+  "lesson_id": "1-3",
+  "reviewer": "course-pedagogy-reviewer",
+  "batch": "unit-1-3-content-clearance-2026-07-14",
+  "time": "2026-07-14T04:30:00.000Z",
+  "model": "gpt-5.6-sol",
+  "status": "cleared",
+  "review_status": "model-cleared",
+  "independent_evidence_ref": "course-content/runtime/lessons/1-3/review/review-report.md",
+  "reviewed_resources": [
+    {
+      "resourceId": "runtime-handout:1-3",
+      "sourcePath": "course-content/runtime/lessons/1-3/1-3-handout.md",
+      "sourceHash": "sha256:b27576c9a1d1d95a35d24467e07a2c9566076984abe90be1c13761691dc7ce58",
+      "sourceVersionRef": "runtime-handout.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "临界阻尼_1_3",
+          "传递函数_1_1",
+          "共轭复极点_1_3",
+          "参数连续性_1_3",
+          "反馈_1_1",
+          "复平面_1_2",
+          "实极点_1_3",
+          "开环增益_1_3",
+          "极点_1_2",
+          "极点迁移_1_3",
+          "根轨迹雏形_1_3",
+          "稳定区_1_2",
+          "稳定边界_1_2",
+          "衰减振荡_1_3",
+          "重实极点_1_3",
+          "闭环控制_1_1",
+          "闭环特征方程_1_3"
+        ],
+        "capability": [
+          "controlModeling"
+        ],
+        "quality": []
+      },
+      "pathTarget": "/course-runtime/lessons/1-3/1-3-handout.pdf",
+      "currentPathEligible": false,
+      "rationale": "课程领域复审确认单元 1-3 讲义的数学推导、习题答案、术语、图谱引用与媒体链接正确；作者态、PDF 与 runtime 内容一致。"
+    },
+    {
+      "resourceId": "runtime-media:1-3:1-3-cover-comic.png",
+      "sourcePath": "course-content/runtime/lessons/1-3/media/1-3-cover-comic.png",
+      "sourceHash": "sha256:2eb781b1e3c9a079aa815c5f8196c9b1af61b4c7382884b7f8d37fb18b25a0bc",
+      "sourceVersionRef": "runtime-lesson-media.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "临界阻尼_1_3",
+          "传递函数_1_1",
+          "共轭复极点_1_3",
+          "参数连续性_1_3",
+          "反馈_1_1",
+          "复平面_1_2",
+          "实极点_1_3",
+          "开环增益_1_3",
+          "极点_1_2",
+          "极点迁移_1_3",
+          "根轨迹雏形_1_3",
+          "稳定区_1_2",
+          "稳定边界_1_2",
+          "衰减振荡_1_3",
+          "重实极点_1_3",
+          "闭环控制_1_1",
+          "闭环特征方程_1_3"
+        ],
+        "capability": [],
+        "quality": []
+      },
+      "pathTarget": "/course-runtime/lessons/1-3/media/1-3-cover-comic.png",
+      "currentPathEligible": false,
+      "rationale": "课程领域复审确认单元 1-3 图像 1-3-cover-comic.png 的曲线、坐标、公式与文字标注符合讲义结论，未发现误导性表达。"
+    },
+    {
+      "resourceId": "runtime-media:1-3:1-3-fig-01-open-loop-scaling.png",
+      "sourcePath": "course-content/runtime/lessons/1-3/media/1-3-fig-01-open-loop-scaling.png",
+      "sourceHash": "sha256:1ef06df3c60ab541a7b125aaeb02fe78f2b42abdccdff5bc4dd12c73415c22b9",
+      "sourceVersionRef": "runtime-lesson-media.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "临界阻尼_1_3",
+          "传递函数_1_1",
+          "共轭复极点_1_3",
+          "参数连续性_1_3",
+          "反馈_1_1",
+          "复平面_1_2",
+          "实极点_1_3",
+          "开环增益_1_3",
+          "极点_1_2",
+          "极点迁移_1_3",
+          "根轨迹雏形_1_3",
+          "稳定区_1_2",
+          "稳定边界_1_2",
+          "衰减振荡_1_3",
+          "重实极点_1_3",
+          "闭环控制_1_1",
+          "闭环特征方程_1_3"
+        ],
+        "capability": [],
+        "quality": []
+      },
+      "pathTarget": "/course-runtime/lessons/1-3/media/1-3-fig-01-open-loop-scaling.png",
+      "currentPathEligible": false,
+      "rationale": "课程领域复审确认单元 1-3 图像 1-3-fig-01-open-loop-scaling.png 的曲线、坐标、公式与文字标注符合讲义结论，未发现误导性表达。"
+    },
+    {
+      "resourceId": "runtime-media:1-3:1-3-fig-02-open-closed-loop.png",
+      "sourcePath": "course-content/runtime/lessons/1-3/media/1-3-fig-02-open-closed-loop.png",
+      "sourceHash": "sha256:248713ed7b44f39e6bfe66125782467a76ce42c5514b00e9089aee3a74b33afb",
+      "sourceVersionRef": "runtime-lesson-media.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "临界阻尼_1_3",
+          "传递函数_1_1",
+          "共轭复极点_1_3",
+          "参数连续性_1_3",
+          "反馈_1_1",
+          "复平面_1_2",
+          "实极点_1_3",
+          "开环增益_1_3",
+          "极点_1_2",
+          "极点迁移_1_3",
+          "根轨迹雏形_1_3",
+          "稳定区_1_2",
+          "稳定边界_1_2",
+          "衰减振荡_1_3",
+          "重实极点_1_3",
+          "闭环控制_1_1",
+          "闭环特征方程_1_3"
+        ],
+        "capability": [],
+        "quality": []
+      },
+      "pathTarget": "/course-runtime/lessons/1-3/media/1-3-fig-02-open-closed-loop.png",
+      "currentPathEligible": false,
+      "rationale": "课程领域复审确认单元 1-3 图像 1-3-fig-02-open-closed-loop.png 的曲线、坐标、公式与文字标注符合讲义结论，未发现误导性表达。"
+    },
+    {
+      "resourceId": "runtime-media:1-3:1-3-fig-03-closed-loop-responses.png",
+      "sourcePath": "course-content/runtime/lessons/1-3/media/1-3-fig-03-closed-loop-responses.png",
+      "sourceHash": "sha256:9700f0c8126a0a8f51ab1b18cad86b8be2a43173cba3727a34a08da7b3ec8741",
+      "sourceVersionRef": "runtime-lesson-media.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "临界阻尼_1_3",
+          "传递函数_1_1",
+          "共轭复极点_1_3",
+          "参数连续性_1_3",
+          "反馈_1_1",
+          "复平面_1_2",
+          "实极点_1_3",
+          "开环增益_1_3",
+          "极点_1_2",
+          "极点迁移_1_3",
+          "根轨迹雏形_1_3",
+          "稳定区_1_2",
+          "稳定边界_1_2",
+          "衰减振荡_1_3",
+          "重实极点_1_3",
+          "闭环控制_1_1",
+          "闭环特征方程_1_3"
+        ],
+        "capability": [],
+        "quality": []
+      },
+      "pathTarget": "/course-runtime/lessons/1-3/media/1-3-fig-03-closed-loop-responses.png",
+      "currentPathEligible": false,
+      "rationale": "课程领域复审确认单元 1-3 图像 1-3-fig-03-closed-loop-responses.png 的曲线、坐标、公式与文字标注符合讲义结论，未发现误导性表达。"
+    },
+    {
+      "resourceId": "runtime-media:1-3:1-3-fig-04-root-locus.png",
+      "sourcePath": "course-content/runtime/lessons/1-3/media/1-3-fig-04-root-locus.png",
+      "sourceHash": "sha256:a3cca30be2a1401215eea9c222876d2c94633f11105dce0125d49054202f9085",
+      "sourceVersionRef": "runtime-lesson-media.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "临界阻尼_1_3",
+          "传递函数_1_1",
+          "共轭复极点_1_3",
+          "参数连续性_1_3",
+          "反馈_1_1",
+          "复平面_1_2",
+          "实极点_1_3",
+          "开环增益_1_3",
+          "极点_1_2",
+          "极点迁移_1_3",
+          "根轨迹雏形_1_3",
+          "稳定区_1_2",
+          "稳定边界_1_2",
+          "衰减振荡_1_3",
+          "重实极点_1_3",
+          "闭环控制_1_1",
+          "闭环特征方程_1_3"
+        ],
+        "capability": [],
+        "quality": []
+      },
+      "pathTarget": "/course-runtime/lessons/1-3/media/1-3-fig-04-root-locus.png",
+      "currentPathEligible": false,
+      "rationale": "课程领域复审确认单元 1-3 图像 1-3-fig-04-root-locus.png 的曲线、坐标、公式与文字标注符合讲义结论，未发现误导性表达。"
+    },
+    {
+      "resourceId": "runtime-media:1-3:1-3-info.png",
+      "sourcePath": "course-content/runtime/lessons/1-3/media/1-3-info.png",
+      "sourceHash": "sha256:d9d080b181115156c97b998427de69d1b0ee4b6c5119ab513dce0b38990fcbff",
+      "sourceVersionRef": "runtime-lesson-media.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "临界阻尼_1_3",
+          "传递函数_1_1",
+          "共轭复极点_1_3",
+          "参数连续性_1_3",
+          "反馈_1_1",
+          "复平面_1_2",
+          "实极点_1_3",
+          "开环增益_1_3",
+          "极点_1_2",
+          "极点迁移_1_3",
+          "根轨迹雏形_1_3",
+          "稳定区_1_2",
+          "稳定边界_1_2",
+          "衰减振荡_1_3",
+          "重实极点_1_3",
+          "闭环控制_1_1",
+          "闭环特征方程_1_3"
+        ],
+        "capability": [],
+        "quality": []
+      },
+      "pathTarget": "/course-runtime/lessons/1-3/media/1-3-info.png",
+      "currentPathEligible": false,
+      "rationale": "课程领域复审确认单元 1-3 图像 1-3-info.png 的曲线、坐标、公式与文字标注符合讲义结论，未发现误导性表达。"
+    },
+    {
+      "resourceId": "runtime-media:1-3:generated-data/1-3-response-metrics.txt",
+      "sourcePath": "course-content/runtime/lessons/1-3/media/generated-data/1-3-response-metrics.txt",
+      "sourceHash": "sha256:3d8313ca08b715d422ec569fb12db99d0a10ca69fa3550760fd332f7ac65bfda",
+      "sourceVersionRef": "runtime-lesson-media.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "临界阻尼_1_3",
+          "传递函数_1_1",
+          "共轭复极点_1_3",
+          "参数连续性_1_3",
+          "反馈_1_1",
+          "复平面_1_2",
+          "实极点_1_3",
+          "开环增益_1_3",
+          "极点_1_2",
+          "极点迁移_1_3",
+          "根轨迹雏形_1_3",
+          "稳定区_1_2",
+          "稳定边界_1_2",
+          "衰减振荡_1_3",
+          "重实极点_1_3",
+          "闭环控制_1_1",
+          "闭环特征方程_1_3"
+        ],
+        "capability": [],
+        "quality": []
+      },
+      "pathTarget": "/course-runtime/lessons/1-3/media/generated-data/1-3-response-metrics.txt",
+      "currentPathEligible": false,
+      "rationale": "课程领域复审确认单元 1-3 计算数据 1-3-response-metrics.txt 与 Octave 图形及讲义中的确定性数值一致。"
+    },
+    {
+      "resourceId": "knowledge-card:临界阻尼_1_3",
+      "sourcePath": "course-content/runtime/knowledge/cards/nodes/临界阻尼_1_3.md",
+      "sourceHash": "sha256:a0b01a41046cf88135684e14ff361d28dd79ed5d322ff19db2d2f37bf1d25bba",
+      "sourceVersionRef": "runtime-knowledge-card.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "临界阻尼_1_3"
+        ],
+        "capability": [
+          "controlModeling"
+        ],
+        "quality": []
+      },
+      "pathTarget": null,
+      "currentPathEligible": false,
+      "rationale": "已核对知识卡“临界阻尼 | Critical Damping”的定义、公式、误区说明及其与单元 1-3 知识图谱节点的一致性；该卡作为知识查阅入口，不直接提升为当前学习路径节点。"
+    },
+    {
+      "resourceId": "knowledge-card:共轭复极点_1_3",
+      "sourcePath": "course-content/runtime/knowledge/cards/nodes/共轭复极点_1_3.md",
+      "sourceHash": "sha256:3daceb70c7e6e211f48315561a1171c231a9830a0dbda73ac96b509ac207a76e",
+      "sourceVersionRef": "runtime-knowledge-card.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "共轭复极点_1_3"
+        ],
+        "capability": [
+          "controlModeling"
+        ],
+        "quality": []
+      },
+      "pathTarget": null,
+      "currentPathEligible": false,
+      "rationale": "已核对知识卡“共轭复极点 | Complex Conjugate Poles”的定义、公式、误区说明及其与单元 1-3 知识图谱节点的一致性；该卡作为知识查阅入口，不直接提升为当前学习路径节点。"
+    },
+    {
+      "resourceId": "knowledge-card:参数连续性_1_3",
+      "sourcePath": "course-content/runtime/knowledge/cards/nodes/参数连续性_1_3.md",
+      "sourceHash": "sha256:3000375ab31fb67ecbb2fcd9b90933fb71b4f31d1d94cca6dc64b57da6d42fe7",
+      "sourceVersionRef": "runtime-knowledge-card.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "参数连续性_1_3"
+        ],
+        "capability": [
+          "controlModeling"
+        ],
+        "quality": []
+      },
+      "pathTarget": null,
+      "currentPathEligible": false,
+      "rationale": "已核对知识卡“参数变化连续性 | Parameter Continuity”的定义、公式、误区说明及其与单元 1-3 知识图谱节点的一致性；该卡作为知识查阅入口，不直接提升为当前学习路径节点。"
+    },
+    {
+      "resourceId": "knowledge-card:实极点_1_3",
+      "sourcePath": "course-content/runtime/knowledge/cards/nodes/实极点_1_3.md",
+      "sourceHash": "sha256:9f3e9f02e7d996db630e574649c180f2b95c9232d3c7722fb9f8dd9c1edcf004",
+      "sourceVersionRef": "runtime-knowledge-card.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "实极点_1_3"
+        ],
+        "capability": [
+          "controlModeling"
+        ],
+        "quality": []
+      },
+      "pathTarget": null,
+      "currentPathEligible": false,
+      "rationale": "已核对知识卡“实极点 | Real Pole”的定义、公式、误区说明及其与单元 1-3 知识图谱节点的一致性；该卡作为知识查阅入口，不直接提升为当前学习路径节点。"
+    },
+    {
+      "resourceId": "knowledge-card:开环增益_1_3",
+      "sourcePath": "course-content/runtime/knowledge/cards/nodes/开环增益_1_3.md",
+      "sourceHash": "sha256:3a9caa7e07a091c5001b6b1018ad22c6fc21acbab6e9ee42359cc46726656675",
+      "sourceVersionRef": "runtime-knowledge-card.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "开环增益_1_3"
+        ],
+        "capability": [
+          "controlModeling"
+        ],
+        "quality": []
+      },
+      "pathTarget": null,
+      "currentPathEligible": false,
+      "rationale": "已核对知识卡“开环增益 | Open-Loop Gain”的定义、公式、误区说明及其与单元 1-3 知识图谱节点的一致性；该卡作为知识查阅入口，不直接提升为当前学习路径节点。"
+    },
+    {
+      "resourceId": "knowledge-card:极点迁移_1_3",
+      "sourcePath": "course-content/runtime/knowledge/cards/nodes/极点迁移_1_3.md",
+      "sourceHash": "sha256:bae7ab687d57e048fa652a10386a68203456ff208fc3e0c98b3a8fa8d5dfc0cf",
+      "sourceVersionRef": "runtime-knowledge-card.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "极点迁移_1_3"
+        ],
+        "capability": [
+          "controlModeling"
+        ],
+        "quality": []
+      },
+      "pathTarget": null,
+      "currentPathEligible": false,
+      "rationale": "已核对知识卡“极点迁移 | Pole Migration”的定义、公式、误区说明及其与单元 1-3 知识图谱节点的一致性；该卡作为知识查阅入口，不直接提升为当前学习路径节点。"
+    },
+    {
+      "resourceId": "knowledge-card:根轨迹雏形_1_3",
+      "sourcePath": "course-content/runtime/knowledge/cards/nodes/根轨迹雏形_1_3.md",
+      "sourceHash": "sha256:258cdbdb2068748bc5f3528155822e01cfde8e96e5d0a395d00c614715255281",
+      "sourceVersionRef": "runtime-knowledge-card.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "根轨迹雏形_1_3"
+        ],
+        "capability": [
+          "controlModeling"
+        ],
+        "quality": []
+      },
+      "pathTarget": null,
+      "currentPathEligible": false,
+      "rationale": "已核对知识卡“根轨迹雏形 | Introductory Root Locus”的定义、公式、误区说明及其与单元 1-3 知识图谱节点的一致性；该卡作为知识查阅入口，不直接提升为当前学习路径节点。"
+    },
+    {
+      "resourceId": "knowledge-card:衰减振荡_1_3",
+      "sourcePath": "course-content/runtime/knowledge/cards/nodes/衰减振荡_1_3.md",
+      "sourceHash": "sha256:c02ae898fcb4b0d0d2a1f10397f94148c7c6a4ddfd73d997ef46ab127992ff53",
+      "sourceVersionRef": "runtime-knowledge-card.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "衰减振荡_1_3"
+        ],
+        "capability": [
+          "controlModeling"
+        ],
+        "quality": []
+      },
+      "pathTarget": null,
+      "currentPathEligible": false,
+      "rationale": "已核对知识卡“衰减振荡 | Damped Oscillation”的定义、公式、误区说明及其与单元 1-3 知识图谱节点的一致性；该卡作为知识查阅入口，不直接提升为当前学习路径节点。"
+    },
+    {
+      "resourceId": "knowledge-card:重实极点_1_3",
+      "sourcePath": "course-content/runtime/knowledge/cards/nodes/重实极点_1_3.md",
+      "sourceHash": "sha256:b83875d10d801e8c1a34531f5128f7bd663e5c4f93e716a53666e2e4479a1439",
+      "sourceVersionRef": "runtime-knowledge-card.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "重实极点_1_3"
+        ],
+        "capability": [
+          "controlModeling"
+        ],
+        "quality": []
+      },
+      "pathTarget": null,
+      "currentPathEligible": false,
+      "rationale": "已核对知识卡“重实极点 | Repeated Real Pole”的定义、公式、误区说明及其与单元 1-3 知识图谱节点的一致性；该卡作为知识查阅入口，不直接提升为当前学习路径节点。"
+    },
+    {
+      "resourceId": "knowledge-card:闭环特征方程_1_3",
+      "sourcePath": "course-content/runtime/knowledge/cards/nodes/闭环特征方程_1_3.md",
+      "sourceHash": "sha256:8d7de1bc1552f1f2dc6620244f277fdffadafbfe86a94e7760f9711353df01d0",
+      "sourceVersionRef": "runtime-knowledge-card.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "闭环特征方程_1_3"
+        ],
+        "capability": [
+          "controlModeling"
+        ],
+        "quality": []
+      },
+      "pathTarget": null,
+      "currentPathEligible": false,
+      "rationale": "已核对知识卡“闭环特征方程 | Closed-Loop Characteristic Equation”的定义、公式、误区说明及其与单元 1-3 知识图谱节点的一致性；该卡作为知识查阅入口，不直接提升为当前学习路径节点。"
+    }
+  ]
+}

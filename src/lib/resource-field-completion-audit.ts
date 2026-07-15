@@ -79,6 +79,7 @@ export type ResourceFieldReviewStatus =
   | 'generated-provisional'
   | 'model-assisted-provisional'
   | 'external-tool-provisional'
+  | 'model-cleared'
   | 'human-confirmed'
   | 'blocked'
   | 'stale';
@@ -386,8 +387,10 @@ export interface ResourceFieldCompletionAuditResult {
 
 export interface ResourceFieldCompletionReviewOverlay {
   resourceId: string;
+  reviewStatus?: Extract<ResourceFieldReviewStatus, 'model-cleared' | 'human-confirmed'>;
   expectedSourceHash: string | null;
   expectedSourceVersionRef: string | null;
+  graphNodeRefs?: ResourceGraphNodeRefs;
   pathTarget: string | null;
   currentPathEligible: boolean;
   reviewAudit: ResourceFieldReviewAudit;
@@ -426,6 +429,7 @@ const EMPTY_REVIEW_COUNTS: Record<ResourceFieldReviewStatus, number> = {
   'generated-provisional': 0,
   'model-assisted-provisional': 0,
   'external-tool-provisional': 0,
+  'model-cleared': 0,
   'human-confirmed': 0,
   blocked: 0,
   stale: 0,
@@ -564,8 +568,13 @@ export function applyResourceFieldCompletionReviewOverlays(
       throw new Error(`Resource field completion reviewed source version mismatch: ${row.resourceId}`);
     }
 
+    const reviewedGraphNodeRefs = overlay.graphNodeRefs ?? row.graphNodeRefs;
+    const reviewStatus = overlay.reviewStatus ?? 'human-confirmed';
     const missingFieldCodes = row.missingFieldCodes.filter((code) => {
-      if (code === 'missing-human-review' || code === 'provisional-metadata' || code === 'stale-review') return false;
+      if (code === 'missing-human-review') return reviewStatus !== 'human-confirmed';
+      if (code === 'provisional-metadata' || code === 'stale-review') return false;
+      if (code === 'missing-capability-target' && reviewedGraphNodeRefs.capability.length > 0) return false;
+      if (code === 'missing-quality-target' && reviewedGraphNodeRefs.quality.length > 0) return false;
       return true;
     });
 
@@ -578,24 +587,24 @@ export function applyResourceFieldCompletionReviewOverlays(
       sourceRecord: row.sourceRecord,
       missingFieldCodes,
       completionMethod: row.completionMethod,
-      reviewStatus: 'human-confirmed',
+      reviewStatus,
       reviewAudit: overlay.reviewAudit,
       evidenceContract: row.evidenceContract,
-      currentPathEligible: overlay.currentPathEligible,
+      currentPathEligible: reviewStatus === 'human-confirmed' && overlay.currentPathEligible,
       sourceHash: row.sourceHash,
       sourceVersionRef: row.sourceVersionRef,
       pathTarget: overlay.pathTarget,
       estimatedTimeMinutes: row.estimatedTimeMinutes,
       citationTargets: row.citationTargets,
       readiness: row.readiness,
-      graphNodeRefs: row.graphNodeRefs,
+      graphNodeRefs: reviewedGraphNodeRefs,
       sourceWindow: row.coverage.sourceWindow,
       versionRefs: row.versionRefs,
       coverageKeys: [
         row.resourceId,
-        ...row.graphNodeRefs.knowledge,
-        ...row.graphNodeRefs.capability,
-        ...row.graphNodeRefs.quality,
+        ...reviewedGraphNodeRefs.knowledge,
+        ...reviewedGraphNodeRefs.capability,
+        ...reviewedGraphNodeRefs.quality,
       ],
     });
   });
@@ -650,6 +659,7 @@ function rowFromResourceNode(
   const projection = buildResourceSemanticProjection(node);
   const highConfidenceAudit = buildResourceNodeHighConfidencePlanningAudit(node);
   const sourceHash = projection.resource.contentHash ?? null;
+  const sourceVersionRef = node.runtimeProjection?.sourceVersionRef ?? RESOURCE_NODE_REGISTRY_VERSION;
   const learningFactMaterializationPolicy = learningFactMaterializationPolicyForResourceNode(node);
   const evidenceContract = buildEvidenceContract({
     eventSource: Boolean(node.sourceKind),
@@ -685,7 +695,7 @@ function rowFromResourceNode(
     resourceType: node.type,
     family: familyForResourceNode(node),
     title: node.title,
-    sourcePathOrUrl: node.launchTarget ?? node.renderTarget ?? node.sourceRef,
+    sourcePathOrUrl: node.runtimeProjection?.sourcePathOrUrl ?? node.launchTarget ?? node.renderTarget ?? node.sourceRef,
     sourceRecord: node.sourceRef,
     missingFieldCodes,
     evidenceContract,
@@ -694,7 +704,7 @@ function rowFromResourceNode(
     reviewAudit: humanConfirmed
       ? confirmedReviewAudit({
         sourceHash,
-        versionRef: RESOURCE_NODE_REGISTRY_VERSION,
+        versionRef: sourceVersionRef,
         reviewBatchId: RESOURCE_NODE_REGISTRY_VERSION,
         generationToolOrModel: null,
         reviewedAt: generatedAt,
@@ -703,7 +713,7 @@ function rowFromResourceNode(
     currentPathEligible: highConfidenceAudit.pathEligible,
     versionRefs,
     sourceHash,
-    sourceVersionRef: RESOURCE_NODE_REGISTRY_VERSION,
+    sourceVersionRef,
     pathTarget: node.launchTarget ?? node.renderTarget,
     estimatedTimeMinutes: node.planningMetadata.estimatedTimeMinutes,
     citationTargets: projection.citationTargets.map((target) => target.target).filter((value): value is string => Boolean(value)),
@@ -1549,7 +1559,9 @@ function buildEvidenceContract(fields: Omit<ResourceEvidenceContractCompleteness
 function learningFactMaterializationPolicyForResourceNode(
   node: ResourceNode,
 ): ResourceEvidenceContractCompleteness['learningFactMaterializationPolicy'] {
-  if (node.type === 'knowledge_card') return 'path-execution-evidence-only';
+  if (node.type === 'knowledge_card' || node.sourceKind === 'runtime_handout') {
+    return 'path-execution-evidence-only';
+  }
   if (node.planningMetadata.evidenceInstrumentation.length > 0) return 'materialized-learning-fact';
   return 'missing';
 }
@@ -1558,7 +1570,9 @@ function learningFactMaterializationPolicyForCandidate(
   candidate: ResourceFieldCompletionCandidate,
   evidenceInstrumentation: string[],
 ): ResourceEvidenceContractCompleteness['learningFactMaterializationPolicy'] {
-  if (candidate.family === 'knowledge-card') return 'path-execution-evidence-only';
+  if (candidate.family === 'knowledge-card' || candidate.family === 'runtime-handout') {
+    return 'path-execution-evidence-only';
+  }
   if (evidenceInstrumentation.length > 0) return 'materialized-learning-fact';
   return 'missing';
 }

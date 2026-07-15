@@ -314,6 +314,43 @@ def test_build_review_report_includes_interactive_page_coverage_section(tmp_path
     assert '已覆盖讲义中的核心公式与静态承载内容。' in report
 
 
+def test_build_review_report_does_not_claim_missing_design_sources_passed(tmp_path):
+    handout_path = tmp_path / 'handout.md'
+    handout_path.write_text('$$G(s)$$', encoding='utf-8')
+
+    report = review_lesson_content.build_review_report(
+        '1-4',
+        '理论',
+        [handout_path],
+        {'files': [{'path': 'handout.md', 'issues': []}]},
+        {
+            'missing_cards': [],
+            'missing_frontmatter_keys': {},
+            'missing_sections': {},
+        },
+        {
+            'accepted_infographs': [],
+            'missing_infographs': [],
+            'pending_review': [],
+            'broken_review_files': {},
+        },
+        {
+            'generated_assets': [],
+            'missing_assets': [],
+            'formula_contract_issues': [],
+        },
+        {
+            'summary': [],
+            'warnings': [],
+            'blocking_issues': ['缺少 design/1-4-interactive-page.md'],
+        },
+    )
+
+    assert '未提供 `design/1-4-boppps.md`' in report
+    assert '缺少 design/1-4-interactive-page.md' in report
+    assert '已纳入审查，并满足' not in report
+
+
 def test_2_2_interactive_page_contract_passes_review():
     primary_sources = review_lesson_content.build_primary_sources('2-2', '理论')
 

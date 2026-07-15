@@ -18,6 +18,21 @@ def load_export_module():
 export_runtime = load_export_module()
 
 
+def test_normalize_authoring_node_accepts_legacy_label_and_summary_fields():
+    node = {
+        'id': 'legacy-node',
+        'label': '旧版节点名称',
+        'summary': '旧版节点定义',
+        'chapter': '1',
+    }
+
+    normalized = export_runtime.normalize_authoring_node(node)
+
+    assert normalized['name'] == '旧版节点名称'
+    assert normalized['definition'] == '旧版节点定义'
+    assert normalized['chapter'] == 1
+
+
 def test_copy_media_assets_includes_m4a_audio(tmp_path):
     source_dir = tmp_path / 'source'
     destination_dir = tmp_path / 'dest'

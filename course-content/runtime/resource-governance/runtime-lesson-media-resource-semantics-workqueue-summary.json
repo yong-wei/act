@@ -1,0 +1,90 @@
+{
+  "artifactVersion": "runtime-lesson-media-resource-semantics.v1",
+  "reviewBatchIds": [
+    "analysis-design-graph-resource-bindings-2026-07-04",
+    "foundation-graph-resource-bindings-2026-07-04",
+    "residual-runtime-handout-disposition-review-2026-07-05",
+    "residual-runtime-lesson-media-disposition-review-2026-07-05",
+    "residual-runtime-lesson-module-disposition-review-2026-07-05",
+    "residual-runtime-lesson-step-disposition-review-2026-07-05",
+    "runtime-lesson-media-asset-canonical-re-review-2026-07-13",
+    "runtime-lesson-planning-unit-review-2026-07-05",
+    "runtime-media-handout-disposition-review-2026-07-05",
+    "simulation-transfer-graph-resource-bindings-2026-07-04"
+  ],
+  "reviewerIds": [
+    "graph-resource-governance-review",
+    "patch-worker:runtime-lesson-media-asset-canonical-re-review",
+    "residual-runtime-handout-implementing-agent",
+    "residual-runtime-lesson-media-implementing-agent",
+    "residual-runtime-lesson-module-implementing-agent",
+    "residual-runtime-lesson-step-implementing-agent",
+    "runtime-lesson-planning-unit-implementing-agent",
+    "runtime-media-handout-disposition-implementing-agent"
+  ],
+  "reviewerRoles": [
+    "curriculum-data-governance",
+    "runtime-asset-provenance-review",
+    "runtime-resource-governance"
+  ],
+  "reviewedAtRange": {
+    "from": "2026-07-04T00:00:00.000Z",
+    "to": "2026-07-13T06:42:08.000Z"
+  },
+  "totals": {
+    "scopedRows": 2598,
+    "workqueueItems": 2598,
+    "reviewedRows": 2598,
+    "remaining": 0,
+    "unexplainedUnreviewed": 0,
+    "promotedPlanningUnits": 16,
+    "residualFormalBlockers": 14078
+  },
+  "bySourceFamily": {
+    "runtime-handout": 37,
+    "runtime-lesson-media": 759,
+    "runtime-lesson-module": 1352,
+    "runtime-lesson-step": 450
+  },
+  "byDisposition": {
+    "embedded-asset": 647,
+    "evidence-producing": 2,
+    "excluded-with-rationale": 1769,
+    "planning-unit": 16,
+    "supporting-citation": 164
+  },
+  "byAssetStatus": {
+    "external-http-runtime-asset": 89,
+    "missing-local-runtime-asset": 23,
+    "not-applicable": 1839,
+    "tracked-local-runtime-asset": 647
+  },
+  "startingBlockers": {
+    "missing-capability-target": 2397,
+    "missing-citation-target": 1698,
+    "missing-content-hash": 149,
+    "missing-evidence-contract": 1999,
+    "missing-evidence-instrumentation": 1999,
+    "missing-knowledge-binding": 2097,
+    "missing-path-profile": 2387,
+    "missing-path-target": 1352
+  },
+  "guardrails": {
+    "onlyRuntimeLessonStepModuleMediaHandoutFamilies": true,
+    "excludesTextbookReferenceAndAssessmentFamilies": true,
+    "exactAuditProjectionDenominator": true,
+    "allScopedRowsItemReviewed": true,
+    "unexplainedUnreviewedRows": 0,
+    "onlyIndependentLaunchAndEvidenceRowsPromoted": true,
+    "mediaAndHandoutPathNodePromotion": false,
+    "rawContentIncluded": false,
+    "privacyMinimized": true
+  },
+  "evidence": {
+    "workqueueItemsPath": "course-content/runtime/resource-governance/runtime-lesson-media-resource-semantics-workqueue-items.jsonl",
+    "reviewSourcePath": "course-content/runtime/resource-governance/runtime-lesson-media-resource-semantics-review-source.jsonl",
+    "reviewItemsPath": "course-content/runtime/resource-governance/runtime-lesson-media-resource-semantics-review-items.jsonl",
+    "auditPath": "course-content/runtime/resource-governance/resource-field-completion-audit.jsonl",
+    "projectionPath": "course-content/runtime/resource-governance/runtime-resource-projections.jsonl"
+  }
+}
