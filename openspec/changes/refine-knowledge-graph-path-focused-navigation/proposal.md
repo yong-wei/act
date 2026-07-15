@@ -25,7 +25,9 @@ None.
 
 ## Impact
 
-- Affects `/knowledge` progressive graph navigation and presentation without changing canonical graph storage or the K/A/Q schema.
+- Affects `/knowledge` progressive graph navigation and presentation without changing canonical graph files or the K/A/Q schema. It does change the PostgreSQL `KnowledgeLink` projection schema so one canonical relation ID is retained per row, including multiple semantics for the same endpoint pair.
+- Makes the canonical runtime relation source a fail-closed prerequisite for root, progressive, and detail responses, and gives runtime-owned database rows an explicit `metadata.runtimeSource` boundary.
+- Makes canonical file presence, source fingerprints, canonical DB node ownership, and public node-list sanitization part of that same fail-closed boundary, so cached or external data cannot bypass strict validation.
 - Primary implementation areas are `src/features/knowledge/knowledge-graph-system.tsx`, the 2D/3D graph renderers, layout, motion, filtering and visual configuration, the resource inspector, and knowledge graph source projection helpers.
 - Existing progressive root, expansion, shard cache, ResourceNode launch, and raw relation metadata contracts remain available but are presented through the new two-level navigation and three-family visual projection.
 - Persisted personalized `LearningPath`/ResourceNode path projection is intentionally deferred to a separate governance change; this proposal derives visible learning routes only from canonical post-requisite relations.

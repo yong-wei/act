@@ -12,6 +12,8 @@ import {
   getResourceNodeWorkspaceMigrationContracts,
 } from '@/features/knowledge/resource-node-workspace-contracts';
 import { resolveKnowledgeResourceLaunch } from '@/features/knowledge/resource-panel/resource-panel';
+import { resolveInitialKnowledgeNodeId } from '@/features/knowledge/graph/node-activation';
+import { resolveRelationFamilyControlPlacement } from '@/features/knowledge/graph/relation-family-control';
 import { buildPlatformStatusViewModel } from '@/components/platform/platform-ui-contracts';
 import {
   getPathNodeSemanticsForResourceType,
@@ -300,8 +302,34 @@ describe('resource node knowledge workspace UI contracts', () => {
     expect(source).toContain('data-knowledge-canvas-primary="true"');
     expect(source).toContain('data-knowledge-squeeze-down-rejected="permanent-panels-hidden-at-320"');
     expect(source).toContain('data-knowledge-mobile-drawer="chapter-directory"');
-    expect(source).toContain('data-knowledge-mobile-drawer="relation-filters"');
-    expect(source).toContain('data-knowledge-mobile-drawer="legend"');
+    expect(source).toContain('data-knowledge-mobile-drawer="node-filters"');
+    expect(resolveRelationFamilyControlPlacement({
+      isMobile: true,
+      inspectorVisible: false,
+      toolPanelVisible: false,
+    })).toBe('canvas');
+    expect(resolveRelationFamilyControlPlacement({
+      isMobile: true,
+      inspectorVisible: true,
+      toolPanelVisible: true,
+    })).toBe('inspector');
+    expect(resolveRelationFamilyControlPlacement({
+      isMobile: true,
+      inspectorVisible: false,
+      toolPanelVisible: true,
+    })).toBe('tool-panel');
+    expect(resolveRelationFamilyControlPlacement({
+      isMobile: false,
+      inspectorVisible: true,
+      toolPanelVisible: true,
+    })).toBe('canvas');
+    expect(source).not.toContain('data-knowledge-mobile-drawer="relation-filters"');
+    expect(source).not.toContain('data-knowledge-mobile-drawer="legend"');
+    expect(source).not.toContain('data-knowledge-density-mode=');
+    expect(source).not.toContain('密度模式');
+    expect(source).not.toContain('关系类型');
+    expect(source).not.toContain('关系强度阈值');
+    expect(source).not.toContain('仅显示存在可见关系的节点');
     expect(source).toContain('lg:block');
     expect(source).not.toContain('w-[360px]');
   });
@@ -318,7 +346,11 @@ describe('resource node knowledge workspace UI contracts', () => {
     expect(source).toContain('evidenceHref = launchAction.lessonId');
     expect(source).toContain('/profile/evidence');
     expect(graphSource).toContain('initialSelectedNodeId');
-    expect(graphSource).toContain('new URLSearchParams(window.location.search).get(\'node\')');
+    expect(resolveInitialKnowledgeNodeId('?node=kn-bode', 'kn-initial')).toBe('kn-bode');
+    expect(resolveInitialKnowledgeNodeId('?nodeId=kn-legacy', 'kn-initial')).toBe('kn-legacy');
+    expect(resolveInitialKnowledgeNodeId('?node=kn-preferred&nodeId=kn-legacy', 'kn-initial')).toBe('kn-preferred');
+    expect(resolveInitialKnowledgeNodeId('', 'kn-initial')).toBe('kn-initial');
+    expect(resolveInitialKnowledgeNodeId('')).toBeNull();
   });
 
   it('derives ResourcePanel launch targets without turning knowledge card files into raw markdown routes', () => {

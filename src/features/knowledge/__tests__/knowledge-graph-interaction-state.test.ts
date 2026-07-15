@@ -256,7 +256,7 @@ describe('knowledge graph interaction state stability', () => {
       'utf8'
     );
 
-    expect(systemSource).toContain('const [explicitFocusNodeId, setExplicitFocusNodeId] = useState<string | null>(null);');
+    expect(systemSource).toContain('const explicitFocusNodeId = inspection.explicitFocusNodeId;');
     expect(systemSource).toContain('hoverAnimationFrameRef');
     expect(systemSource).toContain('window.requestAnimationFrame');
     expect(systemSource).toContain('const graphFilterFocusNodeId = explicitFocusNodeId && nodeFilterIdSet.has(explicitFocusNodeId)');
@@ -302,14 +302,14 @@ describe('knowledge graph interaction state stability', () => {
     expect(systemSource).toContain('data-knowledge-layout-control="relayout"');
     expect(systemSource).toContain('data-knowledge-layout-control="clear-pins"');
     expect(systemSource).toContain("data-knowledge-layout-control={selectedNodeFocused ? 'clear-focus-node' : 'set-focus-node'}");
-    expect(systemSource).toContain('setExplicitFocusNodeId((current) => current === visibleSelectedNode.id ? null : visibleSelectedNode.id)');
+    expect(systemSource).toContain("dispatchInspection({ type: 'toggle-explicit-focus', nodeId: visibleSelectedNode.id })");
     expect(systemSource).toContain('const [relayoutVersion, setRelayoutVersion] = useState(0);');
     expect(systemSource).toContain('setRelayoutVersion((current) => current + 1);');
-    expect(systemSource).toContain('expansionCommitQueueRef.current.clear();');
-    expect(systemSource).toContain('setActivationSequenceByCenterId({});');
-    expect(systemSource).toContain('setActivationSequenceByCenterId((current) => ({ ...current, [nodeId]: activationSequence }));');
-    expect(systemSource).not.toContain('current[nodeId] === undefined');
-    expect(systemSource).toContain('setMaterializedNodeIds([]);');
+    expect(systemSource).toContain('selectKnowledgeNavigationSnapshot(graphCache, navigation.view)');
+    expect(systemSource).toContain('const expandedDirectLinks = useMemo<KnowledgeLinkData[]>(() => [], []);');
+    expect(systemSource).not.toContain('expansionCommitQueueRef');
+    expect(systemSource).not.toContain('setActivationSequenceByCenterId');
+    expect(systemSource).not.toContain('setMaterializedNodeIds');
     expect(systemSource).toContain('selectedNodePinUnavailable');
     expect(systemSource).not.toContain('__knowledgeGraphProductQaDragSelectedNode');
     expect(rendererSource).toContain('__knowledgeGraphProductQaSelectedNodeDragPoints');
@@ -324,24 +324,35 @@ describe('knowledge graph interaction state stability', () => {
     expect(systemSource).not.toContain('y: graphNode.y ?? visibleSelectedNode.positionY');
     expect(rendererSource).toContain('onNodeDragEnd={handleNodeDragEnd}');
     expect(rendererSource).toContain('onNodeDrag={handleNodeDrag}');
+    expect(rendererSource).toContain('onBackgroundClick={handleBackgroundClick}');
+    expect(rendererSource).toContain('shouldDismissKnowledgeCanvasBlankGesture(completedBlankGestureRef.current)');
+    expect(rendererSource).toContain('blankGesturesByPointerIdRef = useRef(new Map<number, KnowledgeCanvasBlankGesture>())');
+    expect(rendererSource).toContain('onPointerUpCapture={handleCanvasPointerUp}');
+    expect(rendererSource).toContain('if (event.target !== canvas) return;');
+    expect(rendererSource).toContain('if (!hitNode && !hitLink)');
     expect(rendererSource).toContain('freezeKnowledgeGraphDragFrame(graphNodes, node as RuntimeKnowledgeGraphNode)');
     expect(rendererSource).toContain('cooldownTicks={0}');
     expect(rendererSource).toContain('committedGraphVersionRef.current !== graphVersion');
     expect(rendererSource).toContain('runtimePositionsByNodeIdRef.current.clear();');
     expect(rendererSource).not.toContain('applyKnowledgeGraphStoredPositions(');
     expect(rendererSource).toContain('syncKnowledgeGraphMutableNodePositions(currentNodes, layoutState);');
-    expect(rendererSource).toContain('}, [nodes, links, relayoutVersion, layoutState, expandedNodeIds, expandedDirectLinks, activationSequenceByCenterId, materializedNodeIds, graphVersion]);');
+    expect(rendererSource).toContain('}, [nodes, links, relayoutVersion, layoutState, expandedNodeIds, expandedDirectLinks, activationSequenceByCenterId, materializedNodeIds, graphVersion, width, height, lessonOrderNodeIds, teachingOrderLinks]);');
     expect(rendererSource).toContain('}, [graphData, layoutState]);');
     expect(rendererSource).not.toContain('}, [layoutState, nodes, links]);');
     expect(canvasSource).not.toContain('applyKnowledgeGraphStoredPositions(');
     expect(canvasSource).toContain('syncKnowledgeGraphMutableNodePositions(currentNodes, layoutState);');
     expect(canvasSource).toContain('onNodeDrag={handleNodeDrag}');
-    expect(rendererSource).toContain('onBackgroundClick={onManipulationStart}');
+    expect(rendererSource).toContain('onBackgroundClick={handleBackgroundClick}');
     expect(rendererSource).toContain('onNodeDrag={handleNodeDrag}');
     expect(rendererSource).not.toContain('onPointerDown={onManipulationStart}');
     expect(rendererSource).not.toContain('onWheel={onManipulationStart}');
     expect(rendererSource).not.toContain('onZoom={onManipulationStart}');
-    expect(canvasSource).toContain('onBackgroundClick={onManipulationStart}');
+    expect(canvasSource).toContain('onBackgroundClick={handleBackgroundClick}');
+    expect(canvasSource).toContain('onPointerUpCapture={handleCanvasPointerUp}');
+    expect(canvasSource).toContain('finishKnowledgeCanvasBlankGesture(gesture, event)');
+    expect(canvasSource).toContain('blankGesturesByPointerIdRef = useRef(new Map<number, KnowledgeCanvasBlankGesture>())');
+    expect(canvasSource).toContain('if (event.target !== canvas) return;');
+    expect(canvasSource).toContain('if (!hitNode && !hitLink)');
     expect(canvasSource).toContain('onNodeDrag={handleNodeDrag}');
     expect(canvasSource).not.toContain('onPointerDown={onManipulationStart}');
     expect(canvasSource).not.toContain('onWheel={onManipulationStart}');
@@ -351,7 +362,7 @@ describe('knowledge graph interaction state stability', () => {
     expect(canvasSource).toContain('cooldownTicks={0}');
     expect(canvasSource).toContain('committedGraphVersionRef.current !== graphVersion');
     expect(canvasSource).toContain('runtimePositionsByNodeIdRef.current.clear();');
-    expect(canvasSource).toContain('}, [nodes, links, relayoutVersion, layoutState, expandedNodeIds, expandedDirectLinks, activationSequenceByCenterId, materializedNodeIds, graphVersion]);');
+    expect(canvasSource).toContain('}, [nodes, links, relayoutVersion, layoutState, expandedNodeIds, expandedDirectLinks, activationSequenceByCenterId, materializedNodeIds, graphVersion, width, height, lessonOrderNodeIds, teachingOrderLinks]);');
     expect(canvasSource).toContain('}, [graphData, layoutState]);');
     expect(canvasSource).not.toContain('}, [layoutState, nodes, links]);');
   });
@@ -379,7 +390,7 @@ describe('knowledge graph interaction state stability', () => {
       'utf8'
     );
 
-    expect(systemSource).toContain("type KnowledgeMobileTool = 'chapter-directory' | 'relation-filters' | 'legend' | 'view-layout';");
+    expect(systemSource).toContain("type KnowledgeMobileTool = 'chapter-directory' | 'node-filters' | 'view-layout';");
     expect(systemSource).toContain('type KnowledgeDesktopTool = KnowledgeMobileTool;');
     expect(systemSource).toContain('const [desktopActiveTool, setDesktopActiveTool] = useState<KnowledgeDesktopTool | null>(null);');
     expect(systemSource).toContain('data-knowledge-desktop-command-system="compact"');
@@ -395,18 +406,25 @@ describe('knowledge graph interaction state stability', () => {
     expect(systemSource).toContain("if (event.key !== 'Escape') return;");
     expect(systemSource).toContain('desktopToolTriggerRefs.current[previousTool]?.focus();');
     expect(systemSource).toContain("desktopActiveTool === 'chapter-directory'");
-    expect(systemSource).toContain("desktopActiveTool === 'relation-filters'");
-    expect(systemSource).toContain("desktopActiveTool === 'legend'");
+    expect(systemSource).toContain("desktopActiveTool === 'node-filters'");
     expect(systemSource).toContain("desktopActiveTool === 'view-layout'");
-    expect(systemSource).toContain('data-knowledge-local-panel="relation-filters"');
-    expect(systemSource).not.toContain("desktopActiveTool && desktopActiveTool !== 'relation-filters'");
-    expect(systemSource).not.toContain('data-knowledge-desktop-panel="relation-filters"');
+    expect(systemSource).toContain('data-knowledge-local-panel="node-filters"');
+    expect(systemSource).not.toContain("desktopActiveTool === 'relation-filters'");
+    expect(systemSource).not.toContain("desktopActiveTool === 'legend'");
     expect(systemSource).not.toContain('top-[8.5rem]');
     expect(systemSource).toContain("['view-layout', '视图']");
     expect(systemSource).toContain("mobileActiveTool === 'view-layout'");
     expect(systemSource).toContain('data-knowledge-mobile-drawer="view-layout"');
     expect(systemSource).toContain('data-knowledge-local-panel="view-layout-controls"');
     expect(systemSource).toContain('data-knowledge-active-filter-summary={activeFilterSummary}');
+    const familyControlSource = readFileSync(
+      path.join(process.cwd(), 'src/features/knowledge/graph/relation-family-control.tsx'),
+      'utf8'
+    );
+    expect(familyControlSource).toContain("placement === 'canvas' ? 'compact-bottom-left' : `${placement}-header`");
+    expect(familyControlSource).toContain('data-knowledge-mobile-equivalent="same-state-same-control"');
+    expect(systemSource).toContain('mobileHeaderControl={mobileInspectorControlVisible');
+    expect(systemSource).toContain("relationFamilyControlPlacement === 'tool-panel'");
     expect(systemSource).not.toContain('desktopChapterDirectoryOpen');
     expect(systemSource).not.toContain('desktopRelationFiltersOpen');
     expect(systemSource).not.toContain('data-knowledge-local-panel="view-mode-switch"');
@@ -462,9 +480,12 @@ describe('knowledge graph interaction state stability', () => {
     expect(resourcePanelSource).toContain('role="dialog"');
     expect(resourcePanelSource).toContain('handleInspectorKeyDown');
     expect(resourcePanelSource).toContain("if (event.key === 'Escape')");
-    expect(resourcePanelSource).toContain("window.matchMedia(MOBILE_INSPECTOR_QUERY).matches");
+    expect(resourcePanelSource).toContain("const MOBILE_INSPECTOR_QUERY = '(max-width: 1023px)';");
+    expect(resourcePanelSource).toContain("media.addEventListener('change', update);");
+    expect(resourcePanelSource).toContain("media.removeEventListener('change', update);");
+    expect(resourcePanelSource).toContain('const mobilePortalActive = mobileToolPanelOpen && isMobileInspector;');
     expect(resourcePanelSource).toContain('closeButtonRef.current?.focus();');
-    expect(resourcePanelSource).toContain('}, [selectedNode.id]);');
+    expect(resourcePanelSource).toContain('}, [isMobileInspector, mobileToolPanelOpen, selectedNode.id]);');
     expect(resourcePanelSource).toContain("document.querySelector<HTMLElement>('[data-knowledge-canvas-primary=\"true\"]')?.focus();");
     expect(resourcePanelSource).toContain('lg:w-[var(--knowledge-inspector-width,clamp(22.5rem,30vw,28.75rem))]');
     expect(resourcePanelSource).toContain('lg:fixed');

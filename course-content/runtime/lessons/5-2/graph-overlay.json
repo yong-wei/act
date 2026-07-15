@@ -29,8 +29,8 @@
   ],
   "card_order": [
     "非线性边界工具选择_5_52001",
-    "非线性微分方程的线性化_2_caa86ba6",
     "局部线性化工作点_5_52002",
+    "非线性微分方程的线性化_2_caa86ba6",
     "相平面图_8_bd606f51",
     "描述函数法_8_849fa8a1",
     "描述函数适用条件_5_52003",
@@ -111,8 +111,8 @@
       "name": "非线性控制系统",
       "nodeType": "THEORY",
       "description": "系统中至少有一个元部件的输入-输出特性是非线性的控制系统，需用非线性微分或差分方程描述。",
-      "positionX": -25.1,
-      "positionY": 6.7,
+      "positionX": -0.0,
+      "positionY": -32.0,
       "positionZ": 1,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "CONCEPTUAL",
@@ -122,6 +122,7 @@
         "chapter": 1,
         "chapterName": "基本概念",
         "category": "概念性",
+        "knowledge_type": null,
         "bloom_level": "理解",
         "definition": "系统中至少有一个元部件的输入-输出特性是非线性的控制系统，需用非线性微分或差分方程描述。",
         "examples": [
@@ -170,8 +171,8 @@
       "name": "非线性微分方程的线性化",
       "nodeType": "THEORY",
       "description": "在平衡点附近，用泰勒级数展开并忽略高次项，将非线性方程近似为线性方程的方法。",
-      "positionX": -41.0,
-      "positionY": -41.0,
+      "positionX": 61.8,
+      "positionY": -16.6,
       "positionZ": 2,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -181,6 +182,7 @@
         "chapter": 2,
         "chapterName": "系统模型",
         "category": "程序性",
+        "knowledge_type": null,
         "bloom_level": "应用",
         "definition": "在平衡点附近，用泰勒级数展开并忽略高次项，将非线性方程近似为线性方程的方法。",
         "examples": [
@@ -204,7 +206,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/非线性微分方程的线性化_2_caa86ba6.png",
           "title": "非线性微分方程的线性化 信息图",
           "lessonId": "5-2",
-          "nodeId": "非线性微分方程的线性化_2_caa86ba6"
+          "nodeId": "非线性微分方程的线性化_2_caa86ba6",
+          "sourceNodeId": "非线性微分方程的线性化_2_caa86ba6"
         },
         "createdAt": "2026-02-04T17:54:16.627496",
         "updatedAt": "2026-02-04T17:54:16.627496",
@@ -219,7 +222,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/非线性微分方程的线性化_2_caa86ba6.png",
           "title": "非线性微分方程的线性化 信息图",
           "lessonId": "5-2",
-          "nodeId": "非线性微分方程的线性化_2_caa86ba6"
+          "nodeId": "非线性微分方程的线性化_2_caa86ba6",
+          "sourceNodeId": "非线性微分方程的线性化_2_caa86ba6"
         }
       ],
       "tags": [
@@ -234,8 +238,8 @@
       "name": "局部线性化工作点",
       "nodeType": "THEORY",
       "description": "局部线性化必须围绕指定工作点建立增量模型，所得小信号增益只解释该工作点附近的小扰动。",
-      "positionX": 80.0,
-      "positionY": -138.6,
+      "positionX": 121.6,
+      "positionY": -121.6,
       "positionZ": 5,
       "bloomLevel": "APPLY",
       "knowledgeDim": "CONCEPTUAL",
@@ -245,6 +249,7 @@
         "chapter": 5,
         "chapterName": "知识边界与方法迁移层",
         "category": "概念性",
+        "knowledge_type": "X",
         "bloom_level": "应用",
         "definition": "局部线性化必须围绕指定工作点建立增量模型，所得小信号增益只解释该工作点附近的小扰动。",
         "examples": [
@@ -274,7 +279,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/局部线性化工作点_5_52002.png",
           "title": "局部线性化工作点 信息图",
           "lessonId": "5-2",
-          "nodeId": "局部线性化工作点_5_52002"
+          "nodeId": "局部线性化工作点_5_52002",
+          "sourceNodeId": "局部线性化工作点_5_52002"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -289,7 +295,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/局部线性化工作点_5_52002.png",
           "title": "局部线性化工作点 信息图",
           "lessonId": "5-2",
-          "nodeId": "局部线性化工作点_5_52002"
+          "nodeId": "局部线性化工作点_5_52002",
+          "sourceNodeId": "局部线性化工作点_5_52002"
         }
       ],
       "tags": [
@@ -305,8 +312,8 @@
       "name": "描述函数适用条件",
       "nodeType": "THEORY",
       "description": "描述函数法要求主要非线性可集中为一个环节，非线性输出的基波能代表主要成分，且线性部分具有较好的低通滤波特性。",
-      "positionX": -83.0,
-      "positionY": -143.8,
+      "positionX": -0.0,
+      "positionY": -178.0,
       "positionZ": 5,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -316,6 +323,7 @@
         "chapter": 5,
         "chapterName": "知识边界与方法迁移层",
         "category": "概念性",
+        "knowledge_type": "X",
         "bloom_level": "分析",
         "definition": "描述函数法要求主要非线性可集中为一个环节，非线性输出的基波能代表主要成分，且线性部分具有较好的低通滤波特性。",
         "examples": [
@@ -345,7 +353,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/描述函数适用条件_5_52003.png",
           "title": "描述函数适用条件 信息图",
           "lessonId": "5-2",
-          "nodeId": "描述函数适用条件_5_52003"
+          "nodeId": "描述函数适用条件_5_52003",
+          "sourceNodeId": "描述函数适用条件_5_52003"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -360,7 +369,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/描述函数适用条件_5_52003.png",
           "title": "描述函数适用条件 信息图",
           "lessonId": "5-2",
-          "nodeId": "描述函数适用条件_5_52003"
+          "nodeId": "描述函数适用条件_5_52003",
+          "sourceNodeId": "描述函数适用条件_5_52003"
         }
       ],
       "tags": [
@@ -376,8 +386,8 @@
       "name": "自振微小扰动判断",
       "nodeType": "THEORY",
       "description": "在负倒描述函数与线性频率曲线相交后，通过交点两侧微小振幅变化的包围关系判断候选周期运动是否能恢复到交点。",
-      "positionX": -0.0,
-      "positionY": -172.0,
+      "positionX": 164.5,
+      "positionY": 95.0,
       "positionZ": 5,
       "bloomLevel": "EVALUATE",
       "knowledgeDim": "PROCEDURAL",
@@ -387,6 +397,7 @@
         "chapter": 5,
         "chapterName": "知识边界与方法迁移层",
         "category": "程序性",
+        "knowledge_type": "X",
         "bloom_level": "评价",
         "definition": "在负倒描述函数与线性频率曲线相交后，通过交点两侧微小振幅变化的包围关系判断候选周期运动是否能恢复到交点。",
         "examples": [
@@ -417,7 +428,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/自振微小扰动判断_5_52004.png",
           "title": "自振微小扰动判断 信息图",
           "lessonId": "5-2",
-          "nodeId": "自振微小扰动判断_5_52004"
+          "nodeId": "自振微小扰动判断_5_52004",
+          "sourceNodeId": "自振微小扰动判断_5_52004"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -432,7 +444,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/自振微小扰动判断_5_52004.png",
           "title": "自振微小扰动判断 信息图",
           "lessonId": "5-2",
-          "nodeId": "自振微小扰动判断_5_52004"
+          "nodeId": "自振微小扰动判断_5_52004",
+          "sourceNodeId": "自振微小扰动判断_5_52004"
         }
       ],
       "tags": [
@@ -448,8 +461,8 @@
       "name": "舵机死区饱和自振风险",
       "nodeType": "THEORY",
       "description": "船舶航向舵机中的阀口死区、驱动限幅和机械间隙可能与线性航向回路共同形成自持振荡，带来能耗、磨损和航向安全裕度问题。",
-      "positionX": 44.5,
-      "positionY": -166.1,
+      "positionX": 95.0,
+      "positionY": 164.5,
       "positionZ": 5,
       "bloomLevel": "EVALUATE",
       "knowledgeDim": "FACTUAL",
@@ -459,6 +472,7 @@
         "chapter": 5,
         "chapterName": "知识边界与方法迁移层",
         "category": "事实性",
+        "knowledge_type": "X",
         "bloom_level": "评价",
         "definition": "船舶航向舵机中的阀口死区、驱动限幅和机械间隙可能与线性航向回路共同形成自持振荡，带来能耗、磨损和航向安全裕度问题。",
         "examples": [
@@ -490,7 +504,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/舵机死区饱和自振风险_5_52005.png",
           "title": "舵机死区饱和自振风险 信息图",
           "lessonId": "5-2",
-          "nodeId": "舵机死区饱和自振风险_5_52005"
+          "nodeId": "舵机死区饱和自振风险_5_52005",
+          "sourceNodeId": "舵机死区饱和自振风险_5_52005"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -505,7 +520,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/舵机死区饱和自振风险_5_52005.png",
           "title": "舵机死区饱和自振风险 信息图",
           "lessonId": "5-2",
-          "nodeId": "舵机死区饱和自振风险_5_52005"
+          "nodeId": "舵机死区饱和自振风险_5_52005",
+          "sourceNodeId": "舵机死区饱和自振风险_5_52005"
         }
       ],
       "tags": [
@@ -522,8 +538,8 @@
       "name": "非线性边界工具选择",
       "nodeType": "THEORY",
       "description": "当线性主干无法完整解释现象时，需要根据证据对象选择局部线性化、相平面或描述函数，而不是把一种工具当成非线性万能方法。",
-      "positionX": -89.0,
-      "positionY": 154.2,
+      "positionX": 49.2,
+      "positionY": -183.5,
       "positionZ": 5,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -533,6 +549,7 @@
         "chapter": 5,
         "chapterName": "知识边界与方法迁移层",
         "category": "概念性",
+        "knowledge_type": "X",
         "bloom_level": "分析",
         "definition": "当线性主干无法完整解释现象时，需要根据证据对象选择局部线性化、相平面或描述函数，而不是把一种工具当成非线性万能方法。",
         "examples": [
@@ -564,7 +581,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/非线性边界工具选择_5_52001.png",
           "title": "非线性边界工具选择 信息图",
           "lessonId": "5-2",
-          "nodeId": "非线性边界工具选择_5_52001"
+          "nodeId": "非线性边界工具选择_5_52001",
+          "sourceNodeId": "非线性边界工具选择_5_52001"
         },
         "createdAt": null,
         "updatedAt": null,
@@ -579,7 +597,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/非线性边界工具选择_5_52001.png",
           "title": "非线性边界工具选择 信息图",
           "lessonId": "5-2",
-          "nodeId": "非线性边界工具选择_5_52001"
+          "nodeId": "非线性边界工具选择_5_52001",
+          "sourceNodeId": "非线性边界工具选择_5_52001"
         }
       ],
       "tags": [
@@ -596,8 +615,8 @@
       "name": "描述函数法",
       "nodeType": "THEORY",
       "description": "一种分析非线性系统的频域近似方法，用非线性环节在正弦输入下输出的一次谐波分量来定义其等效频率特性。",
-      "positionX": -66.3,
-      "positionY": 247.3,
+      "positionX": -0.0,
+      "positionY": -268.0,
       "positionZ": 8,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -607,6 +626,7 @@
         "chapter": 8,
         "chapterName": "非线性系统",
         "category": "程序性",
+        "knowledge_type": null,
         "bloom_level": "应用",
         "definition": "一种分析非线性系统的频域近似方法，用非线性环节在正弦输入下输出的一次谐波分量来定义其等效频率特性。",
         "examples": [
@@ -656,7 +676,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/描述函数法_8_849fa8a1.png",
           "title": "描述函数法 信息图",
           "lessonId": "5-2",
-          "nodeId": "描述函数法_8_849fa8a1"
+          "nodeId": "描述函数法_8_849fa8a1",
+          "sourceNodeId": "描述函数法_8_849fa8a1"
         },
         "createdAt": "2026-02-04T17:54:16.629345",
         "updatedAt": "2026-02-04T17:54:16.629345",
@@ -671,7 +692,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/描述函数法_8_849fa8a1.png",
           "title": "描述函数法 信息图",
           "lessonId": "5-2",
-          "nodeId": "描述函数法_8_849fa8a1"
+          "nodeId": "描述函数法_8_849fa8a1",
+          "sourceNodeId": "描述函数法_8_849fa8a1"
         }
       ],
       "tags": [
@@ -699,8 +721,8 @@
       "name": "死区饱和非线性",
       "nodeType": "THEORY",
       "description": "一种分段线性非线性特性，包含输入信号低于某阈值无输出（死区）和高于某阈值输出饱和的区域。",
-      "positionX": -247.3,
-      "positionY": -66.3,
+      "positionX": 274.0,
+      "positionY": 0.0,
       "positionZ": 8,
       "bloomLevel": "APPLY",
       "knowledgeDim": "CONCEPTUAL",
@@ -710,6 +732,7 @@
         "chapter": 8,
         "chapterName": "非线性系统",
         "category": "概念性",
+        "knowledge_type": null,
         "bloom_level": "应用",
         "definition": "一种分段线性非线性特性，包含输入信号低于某阈值无输出（死区）和高于某阈值输出饱和的区域。",
         "examples": [
@@ -750,8 +773,8 @@
       "name": "相平面图",
       "nodeType": "THEORY",
       "description": "用于分析非线性系统动态特性的图形工具，在相平面上绘制系统状态变量及其导数的轨迹。",
-      "positionX": -66.3,
-      "positionY": -247.3,
+      "positionX": 137.0,
+      "positionY": 237.3,
       "positionZ": 8,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -761,6 +784,7 @@
         "chapter": 8,
         "chapterName": "非线性系统",
         "category": "概念性",
+        "knowledge_type": null,
         "bloom_level": "分析",
         "definition": "用于分析非线性系统动态特性的图形工具，在相平面上绘制系统状态变量及其导数的轨迹。",
         "examples": [
@@ -784,7 +808,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/相平面图_8_bd606f51.png",
           "title": "相平面图 信息图",
           "lessonId": "5-2",
-          "nodeId": "相平面图_8_bd606f51"
+          "nodeId": "相平面图_8_bd606f51",
+          "sourceNodeId": "相平面图_8_bd606f51"
         },
         "createdAt": "2026-02-04T17:54:16.629493",
         "updatedAt": "2026-02-04T17:54:16.629493",
@@ -799,7 +824,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/相平面图_8_bd606f51.png",
           "title": "相平面图 信息图",
           "lessonId": "5-2",
-          "nodeId": "相平面图_8_bd606f51"
+          "nodeId": "相平面图_8_bd606f51",
+          "sourceNodeId": "相平面图_8_bd606f51"
         }
       ],
       "tags": [
@@ -815,8 +841,8 @@
       "name": "自振",
       "nodeType": "THEORY",
       "description": "非线性系统在没有外部周期输入时，自身产生并维持的稳定周期振荡。",
-      "positionX": 67.8,
-      "positionY": 253.1,
+      "positionX": -137.0,
+      "positionY": -237.3,
       "positionZ": 8,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -826,6 +852,7 @@
         "chapter": 8,
         "chapterName": "非线性系统",
         "category": "概念性",
+        "knowledge_type": null,
         "bloom_level": "分析",
         "definition": "非线性系统在没有外部周期输入时，自身产生并维持的稳定周期振荡。",
         "examples": [
@@ -871,8 +898,8 @@
       "name": "负倒描述函数",
       "nodeType": "THEORY",
       "description": "描述函数的负倒数，在复平面上绘制其曲线，用于与线性部分频率特性曲线比较以分析稳定性。",
-      "positionX": -226.9,
-      "positionY": 131.0,
+      "positionX": 193.7,
+      "positionY": -193.7,
       "positionZ": 8,
       "bloomLevel": "APPLY",
       "knowledgeDim": "CONCEPTUAL",
@@ -882,6 +909,7 @@
         "chapter": 8,
         "chapterName": "非线性系统",
         "category": "概念性",
+        "knowledge_type": null,
         "bloom_level": "应用",
         "definition": "描述函数的负倒数，在复平面上绘制其曲线，用于与线性部分频率特性曲线比较以分析稳定性。",
         "examples": [
@@ -909,7 +937,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/负倒描述函数_8_159ff256.png",
           "title": "负倒描述函数 信息图",
           "lessonId": "5-2",
-          "nodeId": "负倒描述函数_8_159ff256"
+          "nodeId": "负倒描述函数_8_159ff256",
+          "sourceNodeId": "负倒描述函数_8_159ff256"
         },
         "createdAt": "2026-02-04T17:54:16.629536",
         "updatedAt": "2026-02-04T17:54:16.629537",
@@ -924,7 +953,8 @@
           "url": "/course-runtime/knowledge/infographs/nodes/负倒描述函数_8_159ff256.png",
           "title": "负倒描述函数 信息图",
           "lessonId": "5-2",
-          "nodeId": "负倒描述函数_8_159ff256"
+          "nodeId": "负倒描述函数_8_159ff256",
+          "sourceNodeId": "负倒描述函数_8_159ff256"
         }
       ],
       "tags": [
@@ -942,8 +972,8 @@
       "name": "饱和非线性",
       "nodeType": "THEORY",
       "description": "一种常见的非线性特性，当输入超过一定范围后，输出保持为常值。",
-      "positionX": 268.0,
-      "positionY": 0.0,
+      "positionX": -270.5,
+      "positionY": 72.5,
       "positionZ": 8,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "CONCEPTUAL",
@@ -953,6 +983,7 @@
         "chapter": 8,
         "chapterName": "非线性系统",
         "category": "概念性",
+        "knowledge_type": null,
         "bloom_level": "理解",
         "definition": "一种常见的非线性特性，当输入超过一定范围后，输出保持为常值。",
         "examples": [

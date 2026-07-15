@@ -3,6 +3,7 @@ import path from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 
 import { getRelationLabel } from '@/lib/knowledge-labels';
+import { KNOWLEDGE_GRAPH_RELATION_CONTRACTS } from '../graph/relation-contract';
 import {
   buildFocusNeighborhood,
   buildGraphStatistics,
@@ -28,6 +29,7 @@ import {
   getRelationStyle,
   getRelationThreeDimensionalEncoding,
   hexToRgba,
+  KNOWLEDGE_GRAPH_FAMILY_PRESENTATION_CONFIG,
   KNOWLEDGE_NODE_SCALE_CONTRACT,
 } from '../graph/visual-config';
 import * as visualConfig from '../graph/visual-config';
@@ -86,25 +88,29 @@ describe('knowledge graph relation visual semantics', () => {
       path.join(process.cwd(), 'src/lib/knowledge-graph-source.ts'),
       'utf8'
     );
+    const contractByInputType = new Map(
+      KNOWLEDGE_GRAPH_RELATION_CONTRACTS.flatMap((contract) => (
+        [contract.canonicalType, ...contract.aliases].map((inputType) => [inputType, contract.canonicalType] as const)
+      ))
+    );
 
-    runtimeRelationTypes.forEach((relationType) => {
-      expect(source).toContain(`${relationType}: '${relationType}'`);
-    });
-    expect(source).toContain("explains: 'informs'");
-    expect(source).toContain("example: 'instance_of'");
-    expect(source).toContain("引出机械建模: 'leads_to'");
-    expect(source).toContain("引出电路建模: 'leads_to'");
-    expect(source).toContain("机电类比: 'cross_domain'");
-    expect(source).toContain("非线性扩展: 'generalizes'");
-    expect(source).toContain("建模基础: 'provides_foundation'");
-    expect(source).toContain("电路应用: 'applies_to'");
-    expect(source).not.toContain("return RELATION_TYPE_MAP[key] ?? 'related';");
+    expect(runtimeRelationTypes.filter((relationType) => !contractByInputType.has(relationType))).toEqual([]);
+    expect(contractByInputType.get('explains')).toBe('informs');
+    expect(contractByInputType.get('example')).toBe('instance_of');
+    expect(contractByInputType.get('引出机械建模')).toBe('leads_to');
+    expect(contractByInputType.get('引出电路建模')).toBe('leads_to');
+    expect(contractByInputType.get('机电类比')).toBe('cross_domain');
+    expect(contractByInputType.get('非线性扩展')).toBe('generalizes');
+    expect(contractByInputType.get('建模基础')).toBe('provides_foundation');
+    expect(contractByInputType.get('电路应用')).toBe('applies_to');
+    expect(source).toContain('assertRuntimeKnowledgeRelationCoverage(rawRelations');
+    expect(source).not.toContain('RELATION_TYPE_MAP');
   });
 
   it('loads file graph links without flattening specialized relation types', async () => {
     const { loadKnowledgeGraphData } = await import('@/lib/knowledge-graph-source');
     const graph = await loadKnowledgeGraphData();
-    const loadedRelationTypes = new Set(graph.links.map((link) => link.relationType));
+    const loadedRelationTypes = new Set((graph.inspectionLinks ?? []).map((link) => link.relationType));
     const missing = runtimeRelationTypes.filter((relationType) => !loadedRelationTypes.has(relationType));
 
     expect(graph.source).toBe('file');
@@ -173,9 +179,13 @@ describe('knowledge graph relation visual semantics', () => {
     expect(isHighSignalRelation('contains')).toBe(true);
   });
 
-  it('keeps relation legend wording aligned with actual non-color encodings', () => {
+  it('keeps compact family samples aligned with the shared presentation config', () => {
     const source = readFileSync(
       path.join(process.cwd(), 'src/features/knowledge/knowledge-graph-system.tsx'),
+      'utf8'
+    );
+    const familyControlSource = readFileSync(
+      path.join(process.cwd(), 'src/features/knowledge/graph/relation-family-control.tsx'),
       'utf8'
     );
     const twoDimensionalRendererSource = readFileSync(
@@ -201,19 +211,26 @@ describe('knowledge graph relation visual semantics', () => {
     expect(getRelationSemantic('uses').label).toBe('使用工具');
     expect(getRelationSemantic('complements').label).toBe('互补说明');
     expect(getRelationSemantic('visualized_by').label).toBe('图形呈现');
-    expect(source).toContain('getRelationLegendItems');
-    expect(source).toContain('data-knowledge-relation-legend-sample');
+    expect(Object.keys(KNOWLEDGE_GRAPH_FAMILY_PRESENTATION_CONFIG)).toEqual([
+      'child',
+      'post-requisite',
+      'association',
+    ]);
+    expect(familyControlSource).toContain('KNOWLEDGE_GRAPH_FAMILY_PRESENTATION_CONFIG[family]');
+    expect(familyControlSource).toContain('data-knowledge-relation-family-sample={family}');
+    expect(twoDimensionalRendererSource).toContain('getKnowledgeGraphEdgePresentation');
+    expect(threeDimensionalRendererSource).toContain('getKnowledgeGraphEdgePresentation');
     expect(source).toContain('max-h-[min(36rem,calc(100dvh-9rem))]');
-    expect(source).toContain('grid max-h-48 grid-cols-2 gap-1.5 overflow-y-auto pr-1');
-    expect(source).toContain('item.sampleStyle.lightColor');
-    expect(source).toContain('item.sampleStyle.darkColor');
+    expect(familyControlSource).toContain('item.sampleStyle.lightColor');
+    expect(familyControlSource).toContain('item.sampleStyle.darkColor');
+    expect(source).not.toContain('data-knowledge-relation-legend-sample');
     expect(source).not.toContain('实线箭头：前置/基础');
-    expect(twoDimensionalRendererSource).toContain('ctx.quadraticCurveTo(drawControl!.x, drawControl!.y, drawTarget.x, drawTarget.y)');
-    expect(twoDimensionalRendererSource).toContain('drawEndpointMarker(ctx, style.endpoint');
-    expect(twoDimensionalRendererSource).toContain('getQuadraticTangentAngle(source.x, source.y, drawControl!.x, drawControl!.y, drawTarget.x, drawTarget.y, 1)');
-    expect(twoDimensionalRendererSource).toContain('const alpha = (0.16 + strength * 0.44) * focusOpacity * style.opacity');
-    expect(threeDimensionalRendererSource).toContain('const semanticGain = 0.4 + style.opacity * 0.6');
-    expect(threeDimensionalRendererSource).toContain('const gain = (0.55 + strength * 0.45) * focusGain * semanticGain');
+    expect(twoDimensionalRendererSource).toContain('ctx.quadraticCurveTo(drawPath.control.x, drawPath.control.y, drawPath.end.x, drawPath.end.y)');
+    expect(twoDimensionalRendererSource).toContain('getKnowledgeGraphEndpointArrow(fullPath');
+    expect(twoDimensionalRendererSource).toContain('createKnowledgeGraphRendererEdgePath');
+    expect(twoDimensionalRendererSource).toContain('getKnowledgeGraphEffectiveEdgeOpacity(style, strength, focusState)');
+    expect(threeDimensionalRendererSource).toContain('getKnowledgeGraphEffectiveEdgeOpacity(style, strength, focusState)');
+    expect(threeDimensionalRendererSource).toContain('sampleKnowledgeGraphEdgePath(drawPath)');
     expect(threeDimensionalRendererSource).toContain('const ringInnerRadius = presentationRadius + 0.6');
     expect(threeDimensionalRendererSource).toContain('new THREE.RingGeometry(ringInnerRadius, ringOuterRadius, 32)');
 
@@ -283,29 +300,23 @@ describe('knowledge graph relation visual semantics', () => {
     expect(source).not.toContain('bloom_level 筛选');
   });
 
-  it('derives connected visible nodes from capped density links', () => {
+  it('derives learner-visible edges from family state and current domain scope', () => {
     const source = readFileSync(
       path.join(process.cwd(), 'src/features/knowledge/knowledge-graph-system.tsx'),
       'utf8'
     );
 
-    expect(source).toContain('const densityFilteredLinks = useMemo');
     expect(source).toContain('const graphStatistics = useMemo');
-    expect(source).toContain('relationPassesFocusNeighborhoodSeedFilters(link');
     expect(source).toContain('const graphFilterFocusNodeId = explicitFocusNodeId && nodeFilterIdSet.has(explicitFocusNodeId)');
-    expect(source).toContain('const [explicitFocusNodeId, setExplicitFocusNodeId] = useState<string | null>(null);');
-    expect(source).toContain('buildFocusNeighborhood(focusNeighborhoodSeedLinks, graphFilterFocusNodeId, nodeFilterIdSet)');
+    expect(source).toContain('const explicitFocusNodeId = inspection.explicitFocusNodeId;');
+    expect(source).toContain('buildFocusNeighborhood(displayLinks, graphFilterFocusNodeId, filteredNodeIdSet)');
     expect(source).toContain('data-knowledge-clarity-summary="desktop"');
-    expect(source).toContain('focusNodeId: graphFilterFocusNodeId');
-    expect(source).not.toContain('focusNodeId: hoveredNode?.id ?? selectedNode?.id ?? null');
-    expect(source).toContain('relationPassesActiveFilters(link');
-    expect(source).toContain("if (relationDensityMode === 'focused' && focusNeighborhood.focusNodeId)");
-    expect(source).toContain('isNodeVisibleInFocusedGraph(node.id, focusNeighborhood, connectedByVisibleLinks)');
-    expect(source).toContain('焦点邻域会保留直连弱关系，关系类型筛选仍然生效。');
-    expect(source).toContain('densityFilteredLinks.forEach((link) => {');
+    expect(source).toContain('selectLearnerVisibleRelationEdges({');
+    expect(source).toContain('activeDomainNodeIds: filteredNodeIdSet');
+    expect(source).toContain('selectedNodeId: selectedNode?.id ?? null');
     expect(source).toContain('graphDegree: graphStatistics.degreeByNodeId.get(node.id) ?? 0');
-    expect(source).not.toContain('filteredLinksByRelation.forEach((link) => {');
-    expect(source).not.toContain('&& !densityFocused');
+    expect(source).not.toContain('relationPassesActiveFilters(link');
+    expect(source).not.toContain('densityFilteredLinks');
   });
 
   it('keeps weak edges hidden in structure mode but reveals focused-neighborhood weak edges', () => {
@@ -549,7 +560,8 @@ describe('knowledge graph relation visual semantics', () => {
     expect(statistics.degreeByNodeId.get('root')).toBe(1);
     expect(statistics.maxDegree).toBe(2);
     expect(statistics.relationFamilyCounts.structure).toBe(1);
-    expect(statistics.relationFamilyCounts.context).toBe(1);
+    expect(statistics.relationFamilyCounts.context).toBe(0);
+    expect(statistics.relationFamilyCounts.optional).toBe(1);
     expect(statistics.relationFamilyCounts.weak).toBe(1);
     expect(statistics.importanceScoreByNodeId.get('root')).toBe(1);
     expect(getBoundedKnowledgeNodeImportanceScore({ importance: 4 })).toBe(0.8);
@@ -662,8 +674,8 @@ describe('knowledge graph relation visual semantics', () => {
 
     expect(contract).toBeDefined();
     expect(contract.maxDefaultEdgeWidth).toBeLessThanOrEqual(1.42);
-    expect(contract.maxDefaultEdgeOpacity).toBeLessThanOrEqual(0.68);
-    expect(contract.dimmedNeighborhoodOpacity).toBeLessThanOrEqual(0.2);
+    expect(contract.maxDefaultEdgeOpacity).toBeGreaterThanOrEqual(0.86);
+    expect(contract.dimmedNeighborhoodOpacity).toBeGreaterThanOrEqual(0.8);
     expect(contract.activeNeighborhoodWidthGain).toBeLessThanOrEqual(1.2);
     expect(contract.semanticRegionKinds).toContain('chapter-territory');
     expect(contract.conceptReferences).toEqual([
@@ -760,11 +772,12 @@ describe('knowledge graph relation visual semantics', () => {
 
     expect(visualConfigSource).toContain('KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT');
     expect(twoDimensionalRendererSource).toContain('getKnowledgeSemanticRegionStyle');
-    expect(twoDimensionalRendererSource).toContain('KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.dimmedNeighborhoodOpacity');
+    expect(twoDimensionalRendererSource).toContain('getKnowledgeGraphEffectiveEdgeOpacity');
     expect(twoDimensionalRendererSource).toContain('getKnowledgeGraphEffectiveEdgeWidth');
     expect(threeDimensionalRendererSource).toContain('getKnowledgeSemanticRegionStyle');
-    expect(threeDimensionalRendererSource).toContain('KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.dimmedNeighborhoodOpacity');
-    expect(threeDimensionalRendererSource).toContain('getKnowledgeGraphEffectiveEdgeWidth');
+    expect(threeDimensionalRendererSource).toContain('getKnowledgeGraphEffectiveEdgeOpacity');
+    expect(threeDimensionalRendererSource).toContain('getKnowledgeGraphEdgeEmphasisState');
+    expect(threeDimensionalRendererSource).toContain('THREE.LineDashedMaterial');
     expect(governanceSource).toContain('validateKnowledgeGraphSemanticMapEvidence');
     expect(governanceSource).toContain('knowledge-graph-semantic-map-486/browser-evidence.json');
     expect(governanceSource).toContain('legendSharedContract');

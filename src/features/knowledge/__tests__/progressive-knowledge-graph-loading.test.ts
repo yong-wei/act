@@ -2,16 +2,17 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import { describe, expect, it, vi } from 'vitest';
 
-const prismaMock = vi.hoisted(() => ({
-  $queryRaw: vi.fn(),
-  knowledgeNode: {
-    findMany: vi.fn(),
-  },
-  knowledgeLink: {
-    findMany: vi.fn(),
-    count: vi.fn(),
-  },
-}));
+const prismaMock = vi.hoisted(() => {
+  const knowledgeNode = { findMany: vi.fn() };
+  const knowledgeLink = { findMany: vi.fn(), count: vi.fn() };
+  const $queryRaw = vi.fn();
+  const $transaction = vi.fn(async (callback: (tx: unknown) => Promise<unknown>) => callback({
+    knowledgeNode,
+    knowledgeLink,
+    $queryRaw,
+  }));
+  return { $queryRaw, $transaction, knowledgeNode, knowledgeLink };
+});
 
 vi.mock('@/lib/prisma', () => ({
   prisma: prismaMock,
@@ -19,6 +20,11 @@ vi.mock('@/lib/prisma', () => ({
 
 vi.mock('fs/promises', () => ({
   default: {
+    stat: vi.fn(async () => {
+      const error = new Error('file graph unavailable in this test') as NodeJS.ErrnoException;
+      error.code = 'ENOENT';
+      throw error;
+    }),
     readFile: vi.fn(async () => {
       throw new Error('file graph unavailable in this test');
     }),
@@ -112,6 +118,29 @@ const graphFixture = (): UnifiedKnowledgeGraphPayload => ({
   ],
 });
 
+describe('truncated progressive shard cache behavior', () => {
+  it('records incomplete shards without marking them permanently loaded and accepts a later complete retry', () => {
+    const initial = mergeProgressiveGraphPayload(buildInitialGraphCache([], []), {
+      mode: 'root', graphVersion: 'v1', shardKey: 'v1:shard:root:chapters', nodes: [], links: [],
+    });
+    const truncated = mergeProgressiveGraphPayload(initial, {
+      mode: 'remaining',
+      shardKey: 'v1:shard:remaining:all', graphVersion: 'v1', nodes: [], links: [],
+      truncated: { nodes: true, links: false, membershipLinks: false },
+    });
+    expect(truncated.loadedShardKeys).not.toContain('v1:shard:remaining:all');
+    expect(truncated.incompleteShardKeys).toContain('v1:shard:remaining:all');
+
+    const complete = mergeProgressiveGraphPayload(truncated, {
+      mode: 'remaining',
+      shardKey: 'v1:shard:remaining:all', graphVersion: 'v1', nodes: [], links: [],
+      truncated: { nodes: false, links: false, membershipLinks: false },
+    });
+    expect(complete.loadedShardKeys).toContain('v1:shard:remaining:all');
+    expect(complete.incompleteShardKeys).not.toContain('v1:shard:remaining:all');
+  });
+});
+
 describe('progressive knowledge graph loading', () => {
   it('builds a bounded chapter-root payload before full graph data is needed', () => {
     const root = buildKnowledgeGraphRootPayload(graphFixture());
@@ -125,6 +154,11 @@ describe('progressive knowledge graph loading', () => {
     expect(root.rootSummaries).toEqual([
       expect.objectContaining({ rootId: 'chapter-node:基本概念', nodeCount: 1, hasExpansion: true }),
       expect.objectContaining({ rootId: 'chapter-node:系统模型', nodeCount: 2, hasExpansion: true }),
+    ]);
+    expect(root.rootCatalog).toEqual([
+      expect.objectContaining({ nodeId: 'node-a', nodeName: '一阶系统', domainId: 'chapter-node:基本概念' }),
+      expect.objectContaining({ nodeId: 'node-b', nodeName: '传递函数', domainId: 'chapter-node:系统模型' }),
+      expect.objectContaining({ nodeId: 'node-c', nodeName: '状态空间', domainId: 'chapter-node:系统模型' }),
     ]);
     expect(root.nodes.every((node) => node.knowledgeDim === undefined && node.bloomLevel === undefined)).toBe(true);
     expect(root.shardKey).toContain(':shard:root:chapters');
@@ -172,8 +206,9 @@ describe('progressive knowledge graph loading', () => {
     expect(initial.nodesById['node-a']?.expansion).toEqual({ state: 'unknown' });
 
     const versionOne = mergeProgressiveGraphPayload(initial, {
+      mode: 'root',
       graphVersion: 'graph-v1',
-      shardKey: 'graph-v1:root',
+      shardKey: 'graph-v1:shard:root:chapters',
       nodes: [{
         ...graph.nodes[1],
         expansion: { state: 'expandable', revealableNeighborCount: 2 },
@@ -186,13 +221,14 @@ describe('progressive knowledge graph loading', () => {
     });
 
     const versionTwo = mergeProgressiveGraphPayload(versionOne, {
+      mode: 'root',
       graphVersion: 'graph-v2',
-      shardKey: 'graph-v2:root',
+      shardKey: 'graph-v2:shard:root:chapters',
       nodes: [graph.nodes[2]],
     });
     expect(Object.keys(versionTwo.nodesById)).toEqual(['node-c']);
     expect(versionTwo.nodesById['node-c']?.expansion).toEqual({ state: 'unknown' });
-    expect(versionTwo.loadedShardKeys).toEqual(['graph-v2:root']);
+    expect(versionTwo.loadedShardKeys).toEqual(['graph-v2:shard:root:chapters']);
   });
 
   it('keeps virtual chapter roots out of category and Bloom filtering dimensions', () => {
@@ -215,6 +251,7 @@ describe('progressive knowledge graph loading', () => {
     expect(active.graphVersion).toBe(manifest.graphVersion);
     expect(remaining.graphVersion).toBe(manifest.graphVersion);
     expect(expansion.shardKey).toContain(':shard:expansion:chapter-node:系统模型');
+    expect(expansion.domainId).toBe('chapter-node:系统模型');
     expect(active.shardKey).toBe(manifest.activeFilterShardKey);
     expect(remaining.shardKey).toBe(manifest.remainingShardKey);
     expect(expansion.nodes.map((node) => node.id)).toEqual([
@@ -222,11 +259,11 @@ describe('progressive knowledge graph loading', () => {
       'node-b',
       'node-c',
     ]);
-    expect(expansion.links.map((link) => link.id)).toEqual([
+    expect(expansion.membershipLinks?.map((link) => link.id)).toEqual([
       'chapter-link:chapter-node:系统模型->node-b',
       'chapter-link:chapter-node:系统模型->node-c',
-      'link-bc',
     ]);
+    expect(expansion.links.map((link) => link.id)).toEqual(['link-bc']);
     const nodeExpansion = buildKnowledgeGraphExpansionPayload(graph, 'node-a');
     expect(nodeExpansion.nodes.map((node) => node.id)).toEqual(['node-a', 'node-b', 'node-c']);
     expect(nodeExpansion.links.map((link) => link.id)).toEqual(['link-ab', 'link-ac-contains']);
@@ -241,12 +278,16 @@ describe('progressive knowledge graph loading', () => {
     expect(unknownRootExpansion.nodes).toEqual([]);
     expect(unknownRootExpansion.links).toEqual([]);
     expect(active.links.map((link) => link.id)).toEqual(['link-ab']);
-    expect(remaining.links.map((link) => link.id)).toEqual(['link-ab', 'link-bc', 'link-ac-contains']);
+    expect(remaining.links.map((link) => link.id)).toEqual(['link-ab', 'link-ac-contains', 'link-bc']);
   });
 
-  it('keeps /knowledge first render on progressive endpoints and explicit cache state', () => {
+  it('keeps /knowledge learner flow on root and domain shards with explicit navigation cache state', () => {
     const source = readFileSync(
       join(process.cwd(), 'src/features/knowledge/knowledge-graph-system.tsx'),
+      'utf8'
+    );
+    const familyControlSource = readFileSync(
+      join(process.cwd(), 'src/features/knowledge/graph/relation-family-control.tsx'),
       'utf8'
     );
     const route = readFileSync(
@@ -257,26 +298,33 @@ describe('progressive knowledge graph loading', () => {
       join(process.cwd(), 'src/lib/knowledge-graph-source.ts'),
       'utf8'
     );
+    const returnActionSource = readFileSync(
+      join(process.cwd(), 'src/features/knowledge/graph/domain-return-action.tsx'),
+      'utf8'
+    );
 
-    expect(source).toContain("fetchProgressivePayload('root')");
+    expect(source).toContain("fetchGraphPayload('/api/knowledge/graph?mode=root'");
     expect(source).not.toContain("fetch('/api/knowledge/graph'");
-    expect(source).toContain('nodesById');
-    expect(source).toContain('linksByKey');
     expect(source).toContain('loadedShardKeys');
     expect(source).toContain('loadingShardKeys');
-    expect(source).toContain('expandedNodeIds');
-    expect(source).toContain('loadingExpansionNodeIds');
-    expect(source).toContain('isExpansionLinkForNode');
-    expect(source).toContain('expandedDirectLinks');
-    expect(source).toContain('graphCache.loadedShardKeys.includes(expectedShardKey)');
-    expect(source).toContain("fetchProgressivePayload('active-filter')");
-    expect(source).toContain("fetchProgressivePayload('remaining')");
-    expect(source).toContain('expansionHasVisibleDescendant');
+    expect(source).toContain('knowledgeGraphNavigationReducer');
+    expect(source).toContain('selectKnowledgeNavigationSnapshot');
+    expect(source).toContain('domainShardKeysByDomainId');
+    expect(source).toContain('mode=expansion&domainId=');
+    expect(source).not.toContain('mode=expansion&nodeId=');
+    expect(source).not.toContain("fetchProgressivePayload('active-filter')");
+    expect(source).not.toContain("fetchProgressivePayload('remaining')");
+    expect(source).not.toContain('createKnowledgeExpansionCommitQueue');
+    expect(source).not.toContain('setExpandedNodeIds');
     expect(source).toContain('collapsedRootChildNodesByRootId');
     expect(source).toContain('collapsedRootMatchesNodeFilters');
     expect(source).toContain("relation !== 'contains'");
-    expect(source).toContain('data-knowledge-density-mode');
+    expect(familyControlSource).toContain('data-knowledge-relation-family-state');
+    expect(source).not.toContain('data-knowledge-density-mode');
     expect(source).toContain('data-knowledge-full-graph-first-render="avoided"');
+    expect(source).toContain('KnowledgeDomainReturnAction');
+    expect(returnActionSource).toContain('data-knowledge-return-root');
+    expect(source).toContain('data-knowledge-domain-state');
     expect(source).toContain('data-knowledge-node-control');
     expect(source).not.toContain('void handleToggleSelectedExpansion();');
     expect(route).toContain("mode === 'root'");
@@ -287,14 +335,14 @@ describe('progressive knowledge graph loading', () => {
     expect(route.indexOf('const mode = searchParams.get')).toBeLessThan(route.indexOf('const graph = await loadKnowledgeGraphData();'));
     expect(route.indexOf("mode === 'root'")).toBeLessThan(route.indexOf('const graph = await loadKnowledgeGraphData();'));
     expect(route.indexOf("mode === 'manifest'")).toBeGreaterThan(route.indexOf('const graph = await loadKnowledgeGraphData();'));
-    expect(route).toContain("Missing nodeId for expansion shard.");
+    expect(route).toContain("Missing domainId for domain expansion shard.");
+    expect(route).toContain("Invalid domainId for domain expansion shard.");
     expect(route).toContain('{ status: 400 }');
-    const rootFileLoader = payloadSource.slice(
-      payloadSource.indexOf('async function loadKnowledgeGraphRootFromFiles'),
-      payloadSource.indexOf('async function loadKnowledgeGraphFromDatabase')
+    const rootLoader = payloadSource.slice(
+      payloadSource.indexOf('export async function loadKnowledgeGraphRootData'),
+      payloadSource.indexOf('export function resetKnowledgeGraphSourceCacheForTests')
     );
-    expect(rootFileLoader).toContain('readFileGraphVersionMetadata(relationsPath)');
-    expect(rootFileLoader).not.toContain("fs.readFile(relationsPath, 'utf-8')");
+    expect(rootLoader).toContain('const data = await loadKnowledgeGraphData()');
     expect(payloadSource).toContain('sharedGraphCacheExpiresAt');
     expect(payloadSource).toContain('rootGraphCache = null');
     expect(payloadSource).toContain('graphCache = null');
@@ -323,7 +371,7 @@ describe('progressive knowledge graph loading', () => {
     expect(getKnowledgeGraphVersion(changed)).not.toBe(getKnowledgeGraphVersion(graph));
   });
 
-  it('keeps database root and full graph versions aligned while root omits returned links', async () => {
+  it('keeps database root and full graph versions aligned through one strict relation load', async () => {
     const graph = graphFixture();
     const databaseNodes = graph.nodes.map((node) => ({
       id: node.id,
@@ -359,23 +407,26 @@ describe('progressive knowledge graph loading', () => {
 
     const root = await loadKnowledgeGraphRootData();
 
+    expect(prismaMock.$transaction).toHaveBeenLastCalledWith(expect.any(Function), {
+      isolationLevel: 'RepeatableRead',
+      maxWait: 5_000,
+      timeout: 15_000,
+    });
     expect(prismaMock.$queryRaw).toHaveBeenCalledOnce();
     const relationVersionQuery = (prismaMock.$queryRaw.mock.calls[0]?.[0] as TemplateStringsArray).join('?');
     expect(relationVersionQuery).toContain('link."id", link."sourceId", link."targetId", link."relation"');
     expect(relationVersionQuery).toContain('ORDER BY link."id", link."sourceId", link."targetId", link."relation"');
-    expect(relationVersionQuery).toContain('JOIN "KnowledgeNode" AS source_node');
-    expect(relationVersionQuery).toContain('JOIN "KnowledgeNode" AS target_node');
-    expect(relationVersionQuery).toContain('source_node."isActive" = true');
-    expect(relationVersionQuery).toContain('target_node."isActive" = true');
-    expect(prismaMock.knowledgeLink.findMany).not.toHaveBeenCalled();
-    expect(root.links).toEqual([]);
+    expect(relationVersionQuery).not.toContain('JOIN "KnowledgeNode"');
+    expect(relationVersionQuery).toContain('link."metadata"->>\'runtimeSource\'');
+    expect(prismaMock.knowledgeLink.findMany).toHaveBeenCalledOnce();
+    expect(root.links.length).toBe(databaseLinks.length);
     expect(root.versionLinkCount).toBe(databaseLinks.length);
 
     const full = await loadKnowledgeGraphData();
 
     expect(root.source).toBe('database');
     expect(full.source).toBe('database');
-    expect(prismaMock.knowledgeLink.findMany).toHaveBeenCalledOnce();
+    expect(prismaMock.knowledgeLink.findMany).toHaveBeenCalledTimes(2);
     expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(2);
     expect(full.links.length).toBe(databaseLinks.length);
     expect(getKnowledgeGraphVersion(root)).toBe(getKnowledgeGraphVersion(full));
@@ -455,19 +506,29 @@ describe('progressive knowledge graph loading', () => {
     vi.resetModules();
     const graphModule = await import('@/lib/knowledge-graph-source');
 
-    const root = await graphModule.loadKnowledgeGraphRootData();
-    const full = await graphModule.loadKnowledgeGraphData();
-    const remaining = graphModule.buildKnowledgeGraphRemainingPayload(full);
+    await expect(graphModule.loadKnowledgeGraphRootData()).rejects.toEqual(expect.objectContaining({
+      name: 'RuntimeKnowledgeRelationCoverageError',
+      report: expect.objectContaining({
+        diagnostics: expect.arrayContaining([expect.objectContaining({ code: 'EMPTY_RUNTIME_RELATIONS' })]),
+      }),
+    }));
 
     expect(prismaMock.knowledgeLink.findMany).toHaveBeenCalledWith(expect.objectContaining({
       where: {
-        sourceNode: { isActive: true },
-        targetNode: { isActive: true },
+        metadata: {
+          path: ['runtimeSource'],
+          equals: 'course-content/runtime/knowledge/graph/relations.jsonl',
+        },
       },
     }));
-    expect(full.links).toEqual([]);
-    expect(remaining.links).toEqual([]);
-    expect(remaining.nodes[0]?.expansion).toEqual({ state: 'leaf' });
-    expect(graphModule.getKnowledgeGraphVersion(root)).toBe(graphModule.getKnowledgeGraphVersion(full));
+  });
+
+  it('propagates a non-retryable repeatable-read transaction error unchanged', async () => {
+    const transactionError = Object.assign(new Error('snapshot read failed'), { code: 'P2028' });
+    prismaMock.$transaction.mockRejectedValueOnce(transactionError);
+    vi.resetModules();
+    const graphModule = await import('@/lib/knowledge-graph-source');
+
+    await expect(graphModule.loadKnowledgeGraphData()).rejects.toBe(transactionError);
   });
 });

@@ -1,3 +1,9 @@
+import {
+  getKnowledgeGraphPathPoint,
+  getKnowledgeGraphPathTangent,
+  type KnowledgeGraphEdgePath,
+} from './edge-geometry';
+
 export const KNOWLEDGE_GRAPH_MOTION = {
   focusDurationMs: 160,
   relationDurationMs: 220,
@@ -6,6 +12,16 @@ export const KNOWLEDGE_GRAPH_MOTION = {
   totalRevealDurationMs: 360,
   individualStaggerLimit: 24,
 } as const;
+
+export function getKnowledgeGraphMotionMarkerPose(
+  path: KnowledgeGraphEdgePath,
+  progress: number,
+) {
+  return {
+    point: getKnowledgeGraphPathPoint(path, progress),
+    tangent: getKnowledgeGraphPathTangent(path, progress),
+  };
+}
 
 interface RevealPlanInput {
   graphVersion: string;

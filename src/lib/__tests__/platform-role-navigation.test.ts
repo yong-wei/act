@@ -1328,14 +1328,14 @@ describe('platform role navigation', () => {
     expect(knowledgeGraphSource).toContain('data-knowledge-command-trigger={item.id}');
     expect(knowledgeGraphSource).toContain('data-knowledge-local-tool-summary="desktop"');
     expect(knowledgeGraphSource).toContain('data-knowledge-local-tool="chapter-directory"');
-    expect(knowledgeGraphSource).toContain('data-knowledge-local-tool="relation-filters"');
+    expect(knowledgeGraphSource).toContain('data-knowledge-local-tool="node-filters"');
     expect(knowledgeGraphSource).toContain('data-knowledge-active-filter-summary={activeFilterSummary}');
     expect(knowledgeGraphSource).toContain('data-knowledge-mobile-command-surface="single-tool-panel"');
     expect(knowledgeGraphSource).toContain("data-state={mobileToolPanelOpen ? 'open' : 'closed'}");
     expect(knowledgeGraphSource).toContain('data-knowledge-mobile-panel-toggle="true"');
     expect(knowledgeGraphSource).toContain('{mobileToolPanelOpen && (');
     expect(knowledgeGraphSource).toContain('data-knowledge-mobile-tool-panel={mobileActiveTool}');
-    expect(knowledgeGraphSource).toContain('data-knowledge-local-tool="legend"');
+    expect(knowledgeGraphSource).toContain('data-knowledge-relation-family-control="compact-bottom-left"');
     expect(knowledgeGraphSource).toContain('data-knowledge-local-tool="view-layout"');
     expect(knowledgeGraphSource).toContain('data-knowledge-local-panel="view-layout-controls"');
   });

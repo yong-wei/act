@@ -317,6 +317,20 @@ The knowledge workspace SHALL present selected domain and knowledge-node content
 ### Requirement: Knowledge graph first render is collapsed and root-first
 The knowledge graph SHALL render a compact top-level domain chooser before requesting or parsing domain members or the full graph.
 
+The root-first presentation SHALL NOT weaken canonical validation. Before root, progressive, full, or detail output returns any node, the loader SHALL parse the complete canonical relation source and execute the shared strict relation contract. Malformed JSONL, an empty relation source, missing/empty/unknown type, duplicate relation ID, reverse child membership, or unresolved endpoint SHALL return bounded machine-readable HTTP 422 diagnostics and SHALL NOT expose a partial graph.
+
+Database fallback, graph version fingerprints, progressive shards, and detail inspection SHALL consume only relation rows whose `metadata.runtimeSource` exactly identifies the current canonical runtime relation source. External or unowned rows SHALL remain stored but SHALL NOT enter canonical graph output, counts, fingerprints, projection, or inspection.
+
+DB strict validation SHALL read every relation carrying that current runtime source marker before endpoint validation, including relations whose endpoints are inactive or external. It SHALL validate them against active canonical nodes whose `metadata.source` equals the canonical runtime node marker; no active-node join or external-node inclusion may silently remove an invalid relation. Runtime-owned relations to inactive, external, or otherwise absent canonical endpoints SHALL block root, full, progressive, list, and detail output with unresolved-endpoint HTTP 422 diagnostics.
+
+Canonical file absence SHALL be distinguished from invalid content. Only a genuinely absent canonical node or relation file may select DB fallback. A present malformed or empty node file, duplicate node ID, or blank/whitespace/overlong canonical node ID SHALL fail closed with machine-readable HTTP 422 diagnostics. Cached file output SHALL be reused only after a fresh stable size, modification-time, and SHA-256 fingerprint confirms both canonical files are unchanged; an empty, malformed, or unknown-type mutation SHALL invalidate cached output within the same TTL.
+
+DB canonical node loading and every public node list SHALL include only active nodes carrying the exact canonical node source marker. External/unowned nodes and their raw metadata, content, and resources SHALL NOT enter root, full, remaining, list, or detail DTOs. The legacy `source=db` query SHALL use the same runtime-only sanitized loader contract and SHALL NOT bypass it with a direct raw Prisma response.
+
+Canonical DB nodes, every current runtime-owned relation, and relation count/fingerprint version evidence SHALL be read inside one Prisma `RepeatableRead` transaction with bounded wait, timeout, and transient-conflict retry. The payload and `versionDigest` SHALL be constructed from that one snapshot. Root, full, progressive, list, and detail paths SHALL reuse the snapshot result and SHALL NOT independently re-query fingerprint evidence. If a same-count canonical seed or update commits between the node and relation reads, one request SHALL be entirely old or entirely new; a subsequent request SHALL expose the new digest and shard version without mixing node, relation, provenance, or version evidence.
+
+The database projection SHALL preserve multiple canonical relation IDs for one endpoint pair. Migration SHALL NOT infer historical ownership from endpoint ownership. Canonical seed SHALL claim rows only by exact canonical relation ID, validate all nodes and relations before its single synchronization transaction, and delete stale rows only inside the explicit runtime ownership boundary.
+
 #### Scenario: Learner opens the knowledge graph
 - **WHEN** a learner opens `/knowledge`
 - **THEN** the first visible payload SHALL contain only stable chapter/domain roots and root summaries arranged in a compact collision-safe cluster near the canvas center

@@ -1,28 +1,28 @@
 ## 0. Preflight Baseline
 
-- [ ] 0.1 Record the proposal-time baseline `npm run test:unit -- src/lib/__tests__/resource-node-knowledge-workspace-ui.test.ts` as 11/12 with the known source-string URL assertion failure; before any feature edit, replace that assertion with a directly callable URL/deep-link behavior contract, rerun the exact command to establish 12/12, and retain it as a final regression gate.
+- [x] 0.1 Record the proposal-time baseline `npm run test:unit -- src/lib/__tests__/resource-node-knowledge-workspace-ui.test.ts` as 11/12 with the known source-string URL assertion failure; before any feature edit, replace that assertion with a directly callable URL/deep-link behavior contract, rerun the exact command to establish 12/12, and retain it as a final regression gate.
 
 ## 1. Relation Projection And Geometry
 
-- [ ] 1.1 Implement the normative supported-type, English/Chinese alias, and zero-instance `follows` grammar table; lossless family projection; directed/unordered keys; reverse-child blocking; post-requisite cycle handling; cross-family coexistence; directional inspector sentences; unavailable-evidence state; exclusion of synthetic `chapter-link:*` membership from relation projection; and an end-to-end blocking checker for malformed JSONL, missing/empty/unknown type, duplicate relation id, loading, labeling, projection, and inspection.
-- [ ] 1.2 Implement shared node-boundary intersection, straight/reciprocal curve, endpoint-arrow, path-point, and tangent helpers used by static and animated rendering.
+- [x] 1.1 Implement the normative supported-type, English/Chinese alias, and zero-instance `follows` grammar table; lossless family projection; directed/unordered keys; reverse-child blocking; post-requisite cycle handling; cross-family coexistence; directional inspector sentences; unavailable-evidence state; exclusion of synthetic `chapter-link:*` membership from relation projection; and an end-to-end blocking checker for malformed JSONL, missing/empty/unknown type, duplicate relation id, loading, labeling, projection, and inspection.
+- [x] 1.2 Implement shared node-boundary intersection, straight/reciprocal curve, endpoint-arrow, path-point, and tangent helpers used by static and animated rendering.
 
 ## 2. Navigation And Progressive State
 
-- [ ] 2.1 Replace recursive expansion state with explicit compact root and single-domain navigation while reusing versioned root and domain expansion shards, including loading, failure, retry, filtered-empty, and cache-reuse states.
-- [ ] 2.2 Route canvas, semantic node, directory, search, deep-link, inspector, and cross-domain activation through one navigation-aware resolver with pointer and keyboard parity; normalize trusted launch/deep-link lesson context to `/knowledge?lessonId=` and clear invalid, deleted, switched, or removed lesson state.
-- [ ] 2.3 Decouple selected node, inspector visibility, domain navigation, loading, and blank-canvas dismissal so inspection never drives relayout or unintended domain exit.
+- [x] 2.1 Replace recursive expansion state with explicit compact root and single-domain navigation while reusing versioned root and domain expansion shards, including loading, failure, retry, filtered-empty, and cache-reuse states.
+- [x] 2.2 Route canvas, semantic node, directory, search, deep-link, inspector, and cross-domain activation through one navigation-aware resolver with pointer and keyboard parity; normalize trusted launch/deep-link lesson context to `/knowledge?lessonId=` and clear invalid, deleted, switched, or removed lesson state.
+- [x] 2.3 Decouple selected node, inspector visibility, domain navigation, loading, and blank-canvas dismissal so inspection never drives relayout or unintended domain exit.
 
 ## 3. Layout And Labels
 
-- [ ] 3.1 Implement deterministic collision-safe compact packing for large top-level domain nodes and a visible accessible return-to-domains action.
-- [ ] 3.2 Add a server-only exact runtime-lesson lookup and sanitized graph `lessonContext`; implement a reviewed authoring-order resolver where sequence order is authoritative when present, manifest matches exactly, and manifest-only requires exact `graph_order_policy: "manifest-reviewed-no-sequence"`; make `1-1`/`4-2`/`5-2` exactly equal before review/export and allow no waiver. Export runtime order only from this resolver. Implement the exact normalized-link schema, null-aware stable sort, RFC 8785/UTF-8/SHA-256 `overlayRevision`, and shared canonical-byte/digest vectors across Python/TypeScript. Preserve lesson order ahead of path layout for covered nodes, diagnose conflicts, forbid other fallbacks, clear invalid context, require canonical edge triples, and implement bounded layout.
-- [ ] 3.3 Implement shared larger centered wrapped-label layout with bounded line count, accessible full names, and collision bounds for 2D and 3D nodes.
+- [x] 3.1 Implement deterministic collision-safe compact packing for large top-level domain nodes and a visible accessible return-to-domains action.
+- [x] 3.2 Add a server-only exact runtime-lesson lookup and sanitized graph `lessonContext`; implement a reviewed authoring-order resolver where sequence order is authoritative when present, manifest matches exactly, and manifest-only requires exact `graph_order_policy: "manifest-reviewed-no-sequence"`; make `1-1`/`4-2`/`5-2` exactly equal before review/export and allow no waiver. Export runtime order only from this resolver. Implement the exact normalized-link schema, null-aware stable sort, RFC 8785/UTF-8/SHA-256 `overlayRevision`, and shared canonical-byte/digest vectors across Python/TypeScript. Preserve lesson order ahead of path layout for covered nodes, diagnose conflicts, forbid other fallbacks, clear invalid context, require canonical edge triples, and implement bounded layout.
+- [x] 3.3 Implement shared larger centered wrapped-label layout with bounded line count, accessible full names, and collision bounds for 2D and 3D nodes.
 
 ## 4. Relation Controls And Rendering
 
-- [ ] 4.1 Remove learner-facing raw-type/density/strength/connected-node/dense-mode controls and replace them with the compact bottom-left `全部`/`子级`/`后置`/`关联` control and mobile equivalent, including shared state, child-off default, zero-before-selection and 24-edge one-hop association density, select-all/default restoration, mixed state, keyboard semantics, and domain-scoped shard behavior.
-- [ ] 4.2 Update 2D and 3D renderers to use the same visible domain subset, three-family styles, boundary-clipped edges, reciprocal curves, target arrowheads, label layering, and selected-corridor emphasis.
+- [x] 4.1 Remove learner-facing raw-type/density/strength/connected-node/dense-mode controls and replace them with the compact bottom-left `全部`/`子级`/`后置`/`关联` control and mobile equivalent, including shared state, child-off default, zero-before-selection and 24-edge one-hop association density, select-all/default restoration, mixed state, keyboard semantics, and domain-scoped shard behavior.
+- [x] 4.2 Update 2D and 3D renderers to use the same visible domain subset, three-family styles, boundary-clipped edges, reciprocal curves, target arrowheads, label layering, and selected-corridor emphasis.
 
 ## 5. Learning-Path Focus And Motion
 

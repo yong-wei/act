@@ -39,6 +39,11 @@ from lesson_artifacts import (  # noqa: E402
 )
 from canonical_nodes import load_canonical_index  # noqa: E402
 from runtime_media_index import ensure_runtime_media_index  # noqa: E402
+from lesson_graph_order import (  # noqa: E402
+    build_lesson_overlay_payload,
+    build_lesson_overlay_revision,
+    resolve_authoring_card_order,
+)
 
 CHAPTER_NAME_BY_NUMBER = {
     1: '基本概念',
@@ -564,7 +569,8 @@ def load_manifest(lesson_id: str) -> dict[str, Any]:
 
 
 def load_sequence(lesson_id: str) -> dict[str, Any]:
-    return read_json(get_authoring_cards_dir(lesson_id) / 'sequence.json')
+    sequence_path = get_authoring_cards_dir(lesson_id) / 'sequence.json'
+    return read_json(sequence_path) if sequence_path.exists() else {}
 
 
 def load_interactive_contract(lesson_id: str) -> dict[str, Any] | None:
@@ -633,8 +639,10 @@ def build_interactive_runtime_manifest(lesson_id: str) -> dict[str, Any] | None:
     def pick_block_key(module: dict[str, Any], blocks: dict[str, Any], used: set[str]) -> str | None:
         module_id = str(module.get('id', ''))
         kind = str(module.get('kind', ''))
+        region = str(module.get('region', ''))
         normalized = module_id.replace('-', '_')
         candidates = [
+            region,
             module_id,
             normalized,
             module_id.removesuffix('-card'),
@@ -667,6 +675,14 @@ def build_interactive_runtime_manifest(lesson_id: str) -> dict[str, Any] | None:
             candidates.extend(['example', 'fields'])
         if 'next' in kind:
             candidates.extend(['next-step', 'next'])
+        if kind == 'content.reveal':
+            candidates.extend(['reveal_steps', 'reveal'])
+        if kind == 'content.cardSet':
+            candidates.extend(['consequences', 'entries', 'limits'])
+        if kind == 'content.formula':
+            candidates.extend(['calculation', 'formula'])
+        if kind == 'content.rich':
+            candidates.extend(['problem', 'content'])
         candidates.extend(list(blocks.keys()))
         for candidate in dict.fromkeys(candidates):
             if candidate in blocks and candidate not in used:
@@ -691,11 +707,12 @@ def build_interactive_runtime_manifest(lesson_id: str) -> dict[str, Any] | None:
             kind = str(module.get('kind', ''))
             if not payload and kind in {'graphic', 'interactive-figure'}:
                 payload = {'resolver': f'{lesson_id}:{module.get("id", "")}'}
-            if not payload:
+            has_owned_media = kind == 'content.figure' and isinstance(payload.get('src'), str)
+            if kind.startswith('content.') and 'block_key' not in payload and not has_owned_media:
                 block_key = pick_block_key(module, blocks, used)
                 if block_key:
                     used.add(block_key)
-                    payload = block_to_payload(block_key, blocks[block_key])
+                    payload = {**block_to_payload(block_key, blocks[block_key]), **payload}
             if payload:
                 module['payload'] = payload
             normalized_modules.append(module)
@@ -727,7 +744,7 @@ def build_interactive_runtime_manifest(lesson_id: str) -> dict[str, Any] | None:
         if not activity_modules:
             activity_modules = [{'id': f'{step_id}-activity', 'kind': interaction_kind}]
         student_task = str(interaction_spec.get('student_task') or '完成本页判断并提交。')
-        response_kind = 'text'
+        response_kind = 'text.short'
         if interaction_kind in {'single_choice', 'binary_choice', 'quiz_group'}:
             response_kind = 'single_choice'
         if interaction_kind in {'card_sort', 'triple_match', 'task_card_workspace'}:
@@ -780,44 +797,21 @@ def build_graph_overlay(
     sequence: dict[str, Any],
     runtime_nodes: list[dict[str, Any]],
     runtime_relations: list[dict[str, Any]],
+    reviewed_card_order: list[str],
 ) -> dict[str, Any]:
     canonical_index = load_canonical_index()
     manifest = canonical_index.canonicalize_manifest(manifest)
     sequence = canonical_index.canonicalize_sequence(sequence)
-    node_ids = list(
-        dict.fromkeys(
-            list(manifest.get('focus_node_ids', []))
-            + list(manifest.get('reuse_node_ids', []))
-            + list(manifest.get('entry_nodes', []))
-            + list(manifest.get('summary_nodes', []))
-            + list(manifest.get('card_order', []))
-        )
+    overlay = build_lesson_overlay_payload(
+        graph_lesson_id=graph_lesson_id,
+        manifest=manifest,
+        sequence=sequence,
+        runtime_nodes=runtime_nodes,
+        runtime_relations=runtime_relations,
+        reviewed_card_order=reviewed_card_order,
     )
-    node_set = set(node_ids)
-
-    return {
-        'lesson_id': graph_lesson_id,
-        'title': manifest.get('title'),
-        'focus_node_ids': manifest.get('focus_node_ids', []),
-        'reuse_node_ids': manifest.get('reuse_node_ids', []),
-        'entry_nodes': manifest.get('entry_nodes', []),
-        'summary_nodes': manifest.get('summary_nodes', []),
-        'card_order': manifest.get('card_order', []),
-        'groups': sequence.get('groups', []),
-        'nodes': [node for node in runtime_nodes if node['id'] in node_set],
-        'links': [
-            {
-                'id': relation['id'],
-                'sourceId': relation['source_id'],
-                'targetId': relation['target_id'],
-                'relation': relation['relation_type'],
-                'relationType': relation['relation_type'],
-                'strength': relation['strength'],
-            }
-            for relation in runtime_relations
-            if relation['source_id'] in node_set and relation['target_id'] in node_set
-        ],
-    }
+    build_lesson_overlay_revision(overlay)
+    return overlay
 
 
 def export_lesson_runtime(
@@ -826,8 +820,15 @@ def export_lesson_runtime(
     runtime_relations: list[dict[str, Any]],
 ) -> None:
     canonical_index = load_canonical_index()
+    manifest_path = get_authoring_lesson_dir(lesson_id) / 'manifest.json'
+    sequence_path = get_authoring_cards_dir(lesson_id) / 'sequence.json'
+    reviewed_card_order = resolve_authoring_card_order(sequence_path, manifest_path)
     manifest = canonical_index.canonicalize_manifest(load_manifest(lesson_id))
-    sequence = canonical_index.canonicalize_sequence(load_sequence(lesson_id))
+    sequence = canonical_index.canonicalize_sequence({
+        **load_sequence(lesson_id),
+        'card_order': reviewed_card_order,
+    })
+    reviewed_card_order = sequence['card_order']
     runtime_dir = get_runtime_lesson_dir(lesson_id)
     runtime_fragment = str(runtime_dir.relative_to(RUNTIME_ROOT / 'lessons')).replace('\\', '/')
     graph_lesson_id = get_mapped_target_id(lesson_id) or str(manifest.get('lesson_id') or lesson_id)
@@ -837,13 +838,21 @@ def export_lesson_runtime(
     }
     export_handout(lesson_id)
     generate_runtime_media(lesson_id)
-    review_paths = export_review_bundle(lesson_id)
     interactive_manifest = build_interactive_runtime_manifest(lesson_id)
 
-    graph_overlay = build_graph_overlay(lesson_id, graph_lesson_id, manifest, runtime_sequence, runtime_nodes, runtime_relations)
+    graph_overlay = build_graph_overlay(
+        lesson_id,
+        graph_lesson_id,
+        manifest,
+        runtime_sequence,
+        runtime_nodes,
+        runtime_relations,
+        reviewed_card_order,
+    )
     write_json(runtime_dir / 'graph-overlay.json', graph_overlay)
     if interactive_manifest is not None:
         write_json(runtime_dir / 'interactive-manifest.json', interactive_manifest)
+    review_paths = export_review_bundle(lesson_id)
 
     lesson_json = {
         **manifest,

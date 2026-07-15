@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { shouldRenderKnowledgeNodeLabel } from '../graph/label-policy';
+import { getKnowledgeNodeLabelPresentation, shouldRenderKnowledgeNodeLabel } from '../graph/label-policy';
 
 describe('shouldRenderKnowledgeNodeLabel', () => {
   it('shows only focus labels until the graph is zoomed in', () => {
@@ -47,13 +47,40 @@ describe('shouldRenderKnowledgeNodeLabel', () => {
     ).toBe(true);
   });
 
-  it('shows every label in all-label mode', () => {
+  it('defers labels below the readable projected font size in all-label mode', () => {
     expect(
       shouldRenderKnowledgeNodeLabel({
         labelMode: 'all',
         nodeId: 'ordinary-node',
         globalScale: 0.6,
       })
-    ).toBe(true);
+    ).toBe(false);
+    expect(
+      shouldRenderKnowledgeNodeLabel({
+        labelMode: 'all',
+        nodeId: 'ordinary-node',
+        globalScale: 0.7,
+      })
+    ).toBe(false);
+    expect(shouldRenderKnowledgeNodeLabel({
+      labelMode: 'all', nodeId: 'ordinary-node', globalScale: 1,
+    })).toBe(true);
+  });
+
+  it('makes visibility imply at least 12px on both sides of the projection threshold', () => {
+    const below = getKnowledgeNodeLabelPresentation({
+      labelMode: 'all', nodeId: 'ordinary', globalScale: 12 / 13 - 0.001,
+    });
+    const above = getKnowledgeNodeLabelPresentation({
+      labelMode: 'all', nodeId: 'ordinary', globalScale: 12 / 13 + 0.001,
+    });
+    expect(below.visible).toBe(false);
+    expect(above.visible).toBe(true);
+    expect(above.fontSize).toBeGreaterThanOrEqual(12);
+    const selected = getKnowledgeNodeLabelPresentation({
+      labelMode: 'all', nodeId: 'selected', selectedNodeId: 'selected', globalScale: 0.01,
+    });
+    expect(selected.visible).toBe(true);
+    expect(selected.fontSize).toBe(12);
   });
 });

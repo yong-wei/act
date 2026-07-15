@@ -142,14 +142,16 @@ describe('knowledge graph node-local expansion control', () => {
     const threeDimensionalSource = readKnowledgeSource('graph/knowledge-graph-canvas.tsx');
     expect(twoDimensionalSource).toContain('resolveKnowledgeGraphRuntimeNodeCoordinates');
     expect(twoDimensionalSource).toContain('commitKnowledgeGraphRelayoutVersion');
+    expect(twoDimensionalSource).toContain('const useCompactRootPacking = isCompactKnowledgeRootSet(clonedNodes);');
     expect(twoDimensionalSource).toContain(
-      'const preserveRuntimeCoordinates = !graphVersionChanged'
+      'const preserveRuntimeCoordinates = !useCompactRootPacking\n      && !graphVersionChanged'
     );
     expect(twoDimensionalSource).toContain('preserve: preserveRuntimeCoordinates');
     expect(threeDimensionalSource).toContain('resolveKnowledgeGraphRuntimeNodeCoordinates');
     expect(threeDimensionalSource).toContain('commitKnowledgeGraphRelayoutVersion');
+    expect(threeDimensionalSource).toContain('const useCompactRootPacking = isCompactKnowledgeRootSet(clonedNodes);');
     expect(threeDimensionalSource).toContain(
-      'const preserveRuntimeCoordinates = !graphVersionChanged'
+      'const preserveRuntimeCoordinates = !useCompactRootPacking\n      && !graphVersionChanged'
     );
     expect(threeDimensionalSource).toContain('preserve: preserveRuntimeCoordinates');
   });
@@ -208,10 +210,10 @@ describe('knowledge graph node-local expansion control', () => {
     const twoDimensionalSource = readKnowledgeSource('graph/knowledge-graph-2d.tsx');
     const threeDimensionalSource = readKnowledgeSource('graph/knowledge-graph-canvas.tsx');
     expect(twoDimensionalSource).toContain(
-      '[nodes, links, relayoutVersion, layoutState, expandedNodeIds, expandedDirectLinks, activationSequenceByCenterId, materializedNodeIds, graphVersion]'
+      '[nodes, links, relayoutVersion, layoutState, expandedNodeIds, expandedDirectLinks, activationSequenceByCenterId, materializedNodeIds, graphVersion, width, height, lessonOrderNodeIds, teachingOrderLinks]'
     );
     expect(threeDimensionalSource).toContain(
-      '[nodes, links, relayoutVersion, layoutState, expandedNodeIds, expandedDirectLinks, activationSequenceByCenterId, materializedNodeIds, graphVersion]'
+      '[nodes, links, relayoutVersion, layoutState, expandedNodeIds, expandedDirectLinks, activationSequenceByCenterId, materializedNodeIds, graphVersion, width, height, lessonOrderNodeIds, teachingOrderLinks]'
     );
   });
 

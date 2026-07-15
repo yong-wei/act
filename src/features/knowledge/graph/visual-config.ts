@@ -3,6 +3,8 @@
  * 供 2D、3D 图谱组件和图例共用。
  */
 
+import { getKnowledgeGraphRelationContract } from './relation-contract';
+
 // ========== 知识维度颜色 (按 knowledgeDim) ==========
 export const KNOWLEDGE_DIM_COLORS: Record<string, string> = {
   FACTUAL: platformToken('platform-chart-2'),
@@ -58,6 +60,14 @@ export interface RelationLegendItem extends RelationSemantic {
   sampleStyle: RelationStyle;
 }
 
+export type KnowledgeGraphPresentationFamily = 'child' | 'post-requisite' | 'association';
+
+export interface KnowledgeGraphFamilyPresentationConfig {
+  family: KnowledgeGraphPresentationFamily;
+  label: string;
+  sampleStyle: RelationStyle;
+}
+
 export interface NodeTypeConfig {
   shape: 'circle' | 'square' | 'hexagon';
   label: string;
@@ -77,6 +87,7 @@ export interface KnowledgeNodeScaleInput {
   metadata?: Record<string, unknown> | null;
   degree?: number | null;
   focused?: boolean;
+  importanceScore?: number | null;
 }
 
 export interface KnowledgeNodeScale {
@@ -110,10 +121,10 @@ export const KNOWLEDGE_GRAPH_FILTER_LABELS: Record<string, string> = {
 
 export const KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT = {
   maxDefaultEdgeWidth: 1.1,
-  maxDefaultEdgeOpacity: 0.46,
-  neutralEdgeOpacity: 0.38,
-  activeEdgeOpacity: 0.82,
-  dimmedNeighborhoodOpacity: 0.12,
+  maxDefaultEdgeOpacity: 0.9,
+  neutralEdgeOpacity: 0.86,
+  activeEdgeOpacity: 1,
+  dimmedNeighborhoodOpacity: 0.8,
   activeNeighborhoodWidthGain: 1.18,
   semanticRegionKinds: ['chapter-territory'],
   conceptReferences: [
@@ -212,6 +223,43 @@ export function getKnowledgeGraphEffectiveEdgeWidth(
   return Math.min(style.width * rendererGain * activeGain, maxWidth);
 }
 
+export function getKnowledgeGraphEffectiveEdgeOpacity(
+  style: Pick<RelationStyle, 'opacity'>,
+  strength: number,
+  focusState: KnowledgeGraphEdgeFocusState,
+): number {
+  if (focusState === 'dimmed') return KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.dimmedNeighborhoodOpacity;
+  if (focusState === 'active') return KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.activeEdgeOpacity;
+  const strengthGain = 0.96 + Math.min(1, Math.max(0, strength)) * 0.04;
+  return Math.max(
+    KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.neutralEdgeOpacity,
+    Math.min(0.92, Math.max(style.opacity, KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.neutralEdgeOpacity) * strengthGain),
+  );
+}
+
+function relativeLuminance(color: string): number {
+  const channels = [1, 3, 5].map((offset) => parseInt(color.slice(offset, offset + 2), 16) / 255)
+    .map((channel) => channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4);
+  return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+}
+
+export function getKnowledgeGraphCompositeContrastRatio(
+  foreground: string,
+  background: string,
+  opacity: number,
+): number {
+  const alpha = Math.min(1, Math.max(0, opacity));
+  const blend = [1, 3, 5].map((offset) => {
+    const foregroundChannel = parseInt(foreground.slice(offset, offset + 2), 16);
+    const backgroundChannel = parseInt(background.slice(offset, offset + 2), 16);
+    return Math.round(foregroundChannel * alpha + backgroundChannel * (1 - alpha));
+  });
+  const composite = `#${blend.map((channel) => channel.toString(16).padStart(2, '0')).join('')}`;
+  const lighter = Math.max(relativeLuminance(composite), relativeLuminance(background));
+  const darker = Math.min(relativeLuminance(composite), relativeLuminance(background));
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
 // ========== 关系类型样式与语义 ==========
 export const RELATION_STYLES: Record<string, RelationStyle> = {
   prerequisite: relationStyle({ color: platformToken('platform-chart-4'), lightColor: platformToken('platform-chart-4'), darkColor: platformToken('platform-chart-4'), dash: [], width: 1.6, hasArrow: true, endpoint: 'arrow', curvature: 0.04, opacity: 0.78 }),
@@ -239,10 +287,71 @@ export const RELATION_STYLES: Record<string, RelationStyle> = {
   visualized_by: relationStyle({ color: platformToken('platform-chart-2'), lightColor: platformToken('platform-chart-2'), darkColor: platformToken('platform-chart-2'), dash: [1, 4, 5, 4], width: 1.2, hasArrow: true, endpoint: 'diamond', curvature: -0.1, opacity: 0.62 }),
 };
 
+export const KNOWLEDGE_GRAPH_FAMILY_PRESENTATION_CONFIG: Record<
+  KnowledgeGraphPresentationFamily,
+  KnowledgeGraphFamilyPresentationConfig
+> = {
+  child: {
+    family: 'child',
+    label: '子级',
+    sampleStyle: relationStyle({
+      color: '#64748b',
+      lightColor: '#334155',
+      darkColor: '#cbd5e1',
+      dash: [10, 3],
+      width: 1.1,
+      hasArrow: true,
+      endpoint: 'arrow',
+      curvature: 0,
+      opacity: 0.86,
+    }),
+  },
+  'post-requisite': {
+    family: 'post-requisite',
+    label: '后置',
+    sampleStyle: relationStyle({
+      color: '#64748b',
+      lightColor: '#334155',
+      darkColor: '#cbd5e1',
+      dash: [],
+      width: 1.1,
+      hasArrow: true,
+      endpoint: 'arrow',
+      curvature: 0,
+      opacity: 0.86,
+    }),
+  },
+  association: {
+    family: 'association',
+    label: '关联',
+    sampleStyle: relationStyle({
+      color: '#64748b',
+      lightColor: '#475569',
+      darkColor: '#94a3b8',
+      dash: [2, 4],
+      width: 1,
+      hasArrow: false,
+      endpoint: 'none',
+      curvature: 0.12,
+      opacity: 0.82,
+    }),
+  },
+};
+
+export function getKnowledgeGraphFamilyPresentationStyle(
+  relation?: string | null
+): RelationStyle {
+  const family = getKnowledgeGraphRelationContract(relation ?? 'related')?.family;
+  if (!family) {
+    throw new Error(`Unknown knowledge graph relation type: ${relation}`);
+  }
+  return KNOWLEDGE_GRAPH_FAMILY_PRESENTATION_CONFIG[family].sampleStyle;
+}
+
 export const RELATION_SEMANTICS: Record<string, RelationSemantic> = {
   prerequisite: { type: 'prerequisite', label: '前置基础', visualFamily: 'foundation-solid-arrow', direction: 'directed', density: 'structure', legendExplanation: '学习前需要先掌握的基础关系。' },
   provides_foundation: { type: 'provides_foundation', label: '提供基础', visualFamily: 'foundation-solid-arrow', direction: 'directed', density: 'structure', legendExplanation: '为后续概念提供理论或方法基础。' },
-  contains: { type: 'contains', label: '章节包含', visualFamily: 'structural-solid-dot', direction: 'undirected', density: 'structure', legendExplanation: '章节、主题或概念簇的结构归属。' },
+  contains: { type: 'contains', label: '包含/隶属', visualFamily: 'structural-solid-dot', direction: 'undirected', density: 'structure', legendExplanation: '父级包含子级，子级隶属于父级。' },
   follows: { type: 'follows', label: '学习后续', visualFamily: 'sequence-long-dash-arrow', direction: 'directed', density: 'structure', legendExplanation: '建议沿着课程顺序继续学习。' },
   leads_to: { type: 'leads_to', label: '引出问题', visualFamily: 'sequence-long-dash-arrow', direction: 'directed', density: 'structure', legendExplanation: '由当前概念自然引出新的分析对象。' },
   applies_to: { type: 'applies_to', label: '方法应用', visualFamily: 'application-short-dash-arrow', direction: 'directed', density: 'context', legendExplanation: '方法、公式或概念可应用到目标对象。' },
@@ -334,12 +443,15 @@ export function getKnowledgeNodeScale({
   metadata,
   degree,
   focused,
+  importanceScore,
 }: KnowledgeNodeScaleInput): KnowledgeNodeScale {
   const safeMetadata = metadata ?? {};
-  const importanceScore = getTeachingImportanceScore(safeMetadata);
+  const boundedImportanceScore = typeof importanceScore === 'number' && Number.isFinite(importanceScore)
+    ? Math.max(0, Math.min(1, importanceScore))
+    : getTeachingImportanceScore(safeMetadata);
   const degreeScore = Math.min(Math.max(degree ?? 0, 0), KNOWLEDGE_NODE_SCALE_CONTRACT.degreeCap)
     / KNOWLEDGE_NODE_SCALE_CONTRACT.degreeCap;
-  const score = Math.min(1, importanceScore * 0.82 + degreeScore * 0.18);
+  const score = Math.min(1, boundedImportanceScore * 0.82 + degreeScore * 0.18);
   const baseRadius = KNOWLEDGE_NODE_SCALE_CONTRACT.minRadius
     + (KNOWLEDGE_NODE_SCALE_CONTRACT.maxRadius - KNOWLEDGE_NODE_SCALE_CONTRACT.minRadius) * score;
   const radius = focused
@@ -389,6 +501,22 @@ export function getKnowledgeSemanticRegionStyle(
     maxRadius: 92,
     label: 'chapter-territory',
   };
+}
+
+export function getKnowledgeNodeMaximumPresentationRadius(
+  node: { id?: string; metadata?: Record<string, unknown> | null; graphDegree?: number | null; graphImportanceScore?: number | null }
+): number {
+  const scale = getKnowledgeNodeScale({
+    metadata: node.metadata,
+    degree: node.graphDegree ?? 0,
+    focused: true,
+    importanceScore: node.graphImportanceScore,
+  });
+  const semantic = getKnowledgeSemanticRegionStyle(node);
+  const territoryRadius = semantic.enabled
+    ? Math.min(semantic.maxRadius, scale.radius * semantic.radiusMultiplier)
+    : 0;
+  return Math.max(scale.radius, scale.glowRadius, territoryRadius);
 }
 
 export function getRelationThreeDimensionalEncoding(

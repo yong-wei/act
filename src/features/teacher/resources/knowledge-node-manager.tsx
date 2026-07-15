@@ -187,7 +187,7 @@ export function KnowledgeNodeManager({
   ) => {
     setNodeSaveState((current) => ({ ...current, [id]: 'saving' }));
     try {
-      const res = await fetch(`/api/knowledge/nodes/${id}`, {
+      const res = await fetch(`/api/knowledge/nodes/${encodeURIComponent(id)}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
