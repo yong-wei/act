@@ -279,6 +279,10 @@ require_math_document_grading_worker_config() {
     exit 1
   fi
 
+  if ! [[ "${GRADING_MATHPIX_ENABLED:-false}" =~ ^(1|true|yes)$ ]]; then
+    echo "ERROR: GRADING_MATHPIX_ENABLED=false 与数学文档批改 worker 不兼容。" >&2
+    exit 1
+  fi
   if [[ "$MATHPIX_ENDPOINT" != https://* ]] || [[ ! "$MATHPIX_CREDENTIAL_REF" =~ ^env:[A-Z][A-Z0-9_]*$ ]]; then
     echo "ERROR: Mathpix endpoint/credential reference 配置无效。" >&2
     exit 1
@@ -772,6 +776,7 @@ for env_name in AI_PROVIDER LLM_PROVIDER AI_PROVIDER_KIND LLM_PROVIDER_KIND AI_B
   fi
 done
 MATHPIX_ENV_ARGS=(
+  -e GRADING_MATHPIX_ENABLED="${GRADING_MATHPIX_ENABLED:-false}"
   -e MATHPIX_ENDPOINT="$MATHPIX_ENDPOINT"
   -e MATHPIX_CREDENTIAL_REF="$MATHPIX_CREDENTIAL_REF"
   -e MATHPIX_APP_ID="${MATHPIX_APP_ID:-}"

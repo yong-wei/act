@@ -63,6 +63,7 @@ describe('math-document grading worker recovery dispatch', () => {
       SUBMISSION_CLAMAV_PORT: '3310',
       SILICONFLOW_API_KEY: 'ai-key',
       GRADING_AI_PROVIDER_ENABLED: 'true',
+      GRADING_MATHPIX_ENABLED: 'true',
       MATHPIX_APP_ID: 'mathpix-id',
       MATHPIX_APP_KEY: 'mathpix-key',
       GRADING_AUDIT_SECRET: 'audit-secret',
@@ -82,6 +83,18 @@ describe('math-document grading worker recovery dispatch', () => {
       },
       missing: [],
     });
+  });
+
+  it('does not report Mathpix ready when the grading provider is disabled', () => {
+    const status = getMathDocumentGradingWorkerCapabilityStatus({
+      NODE_ENV: 'production',
+      GRADING_MATHPIX_ENABLED: 'false',
+      MATHPIX_APP_ID: 'mathpix-id',
+      MATHPIX_APP_KEY: 'mathpix-key',
+    });
+
+    expect(status.capabilities.mathpix).toBe(false);
+    expect(status.missing).toContain('GRADING_MATHPIX_ENABLED');
   });
 
   it('uses the grading-specific provider flag for worker readiness', () => {

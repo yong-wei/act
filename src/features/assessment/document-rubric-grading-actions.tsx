@@ -5,7 +5,24 @@ import { useRouter } from 'next/navigation';
 
 type ApprovalState = 'idle' | 'submitting' | 'success' | 'error';
 
-export function DocumentGradingApprovalButton({ gradingRunId, criteria = [] }: { gradingRunId: string; criteria?: Array<{ criterionId: string; label: string; selectedLevelId: string | null; editableScore: number | null; aiLevelId?: string | null; aiScore?: number | null; teacherComment?: string | null; levels?: Array<{ id: string; label: string; minPoints: number; maxPoints: number }> }> }) {
+type DocumentGradingCriterion = { criterionId: string; label: string; selectedLevelId: string | null; editableScore: number | null; aiLevelId?: string | null; aiScore?: number | null; teacherComment?: string | null; levels?: Array<{ id: string; label: string; minPoints: number; maxPoints: number }> };
+type DocumentGradingEdit = { criterionId: string; levelId: string; score: number; comment: string };
+
+export function selectModifiedDocumentGradingEdits(
+  criteria: DocumentGradingCriterion[],
+  edits: DocumentGradingEdit[],
+): DocumentGradingEdit[] {
+  const originalByCriterionId = new Map(criteria.map((criterion) => [criterion.criterionId, criterion]));
+  return edits.filter((edit) => {
+    const original = originalByCriterionId.get(edit.criterionId);
+    return !original
+      || edit.levelId !== (original.selectedLevelId ?? '')
+      || edit.score !== (original.editableScore ?? 0)
+      || edit.comment !== (original.teacherComment ?? '');
+  });
+}
+
+export function DocumentGradingApprovalButton({ gradingRunId, criteria = [] }: { gradingRunId: string; criteria?: DocumentGradingCriterion[] }) {
   const router = useRouter();
   const [state, setState] = useState<ApprovalState>('idle');
   const [message, setMessage] = useState<string | null>(null);
@@ -21,7 +38,11 @@ export function DocumentGradingApprovalButton({ gradingRunId, criteria = [] }: {
       const response = await fetch('/api/teacher/document-grading/approve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ gradingRunId, decision: 'approved', edits }),
+        body: JSON.stringify({
+          gradingRunId,
+          decision: 'approved',
+          edits: selectModifiedDocumentGradingEdits(criteria, edits),
+        }),
       });
       const payload = await response.json().catch(() => null) as {
         error?: unknown;

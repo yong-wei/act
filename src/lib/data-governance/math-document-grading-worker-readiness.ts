@@ -134,10 +134,13 @@ export function getMathDocumentGradingWorkerCapabilityStatus(
 
   const mathpixEndpoint = nonEmpty(env.MATHPIX_ENDPOINT) || DEFAULT_MATHPIX_ENDPOINT;
   const mathpixCredentialRef = nonEmpty(env.MATHPIX_CREDENTIAL_REF) || 'env:MATHPIX_APP_KEY';
-  const mathpix = isHttpsUrl(mathpixEndpoint)
+  const mathpixEnabled = ['1', 'true', 'yes'].includes((env.GRADING_MATHPIX_ENABLED ?? '').trim().toLowerCase());
+  const mathpix = mathpixEnabled
+    && isHttpsUrl(mathpixEndpoint)
     && Boolean(nonEmpty(env.MATHPIX_APP_ID))
     && Boolean(nonEmpty(env.MATHPIX_APP_KEY))
     && /^env:[A-Z][A-Z0-9_]*$/.test(mathpixCredentialRef);
+  if (!mathpixEnabled) missing.add('GRADING_MATHPIX_ENABLED');
   requireHttpsUrl('MATHPIX_ENDPOINT', mathpixEndpoint);
   requireValue('MATHPIX_APP_ID', env.MATHPIX_APP_ID ?? '');
   requireValue('MATHPIX_APP_KEY', env.MATHPIX_APP_KEY ?? '');

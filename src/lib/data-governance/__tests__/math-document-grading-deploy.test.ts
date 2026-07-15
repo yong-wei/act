@@ -27,6 +27,8 @@ describe('math-document grading production entrypoint contract', () => {
     expect(gc).toContain('runGradingRetentionGc');
     expect(gc).toContain('gradingLifecyclePolicy.findMany');
     expect(deploy).toContain('MATH_DOCUMENT_GRADING_WORKER_REQUIRED');
+    expect(deploy).toContain('GRADING_MATHPIX_ENABLED=false 与数学文档批改 worker 不兼容');
+    expect(deploy).toContain('-e GRADING_MATHPIX_ENABLED="${GRADING_MATHPIX_ENABLED:-false}"');
     expect(deploy).toContain('WORKER_STORAGE_ENV_ARGS');
     expect(deploy).toContain('"${WORKER_STORAGE_ENV_ARGS[@]}"');
     expect(deploy).toContain('"${AI_PROVIDER_ENV_ARGS[@]}"');
