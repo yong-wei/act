@@ -122,6 +122,7 @@ describe('math-document grading production entrypoint contract', () => {
     expect(policySeed).not.toMatch(/process\.env\.(?:AI_API_KEY|SILICONFLOW_API_KEY|MATHPIX_APP_KEY)/);
     expect(readiness).toContain('GRADING_AI_PROVIDER_ENABLED');
     expect(deploy).toContain('GRADING_AI_PROVIDER_ENABLED');
+    expect(envExample).toContain('MATH_DOCUMENT_GRADING_WORKER_REQUIRED=false');
     expect(envExample).toContain('GRADING_AI_PROVIDER_ENABLED=false');
   });
 
