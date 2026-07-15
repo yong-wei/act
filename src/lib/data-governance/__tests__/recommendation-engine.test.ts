@@ -382,6 +382,17 @@ describe('generateRecommendations', () => {
     });
   });
 
+  it.each(['no-recent-evidence', 'no-evidence-after-revocation'])('does not generate current recommendations for %s', async (state) => {
+    mocks.prisma.studentCompetencySnapshot.findFirst.mockResolvedValue({
+      competencyVector: strongSnapshotVector,
+      snapshotAt: new Date('2026-05-20T00:00:00.000Z'),
+      factCount: 0,
+      evidenceSummary: { _derivation: { state } },
+    });
+    expect(await generateRecommendations('student-1')).toEqual([]);
+    expect(mocks.prisma.studentEvidenceFeatureCache.findUnique).not.toHaveBeenCalled();
+  });
+
   it('marks recommendation rationale as missing when the feature cache is absent', async () => {
     mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(null);
     mocks.prisma.userProgress.count.mockResolvedValue(0);

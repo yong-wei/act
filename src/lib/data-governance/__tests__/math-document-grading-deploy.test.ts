@@ -1,4 +1,6 @@
-import { readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
@@ -80,6 +82,7 @@ describe('math-document grading production entrypoint contract', () => {
     const envExample = read('deploy/podman/.env.server.example');
     const deploy = read('deploy/podman/deploy.sh');
     const remoteDeploy = read('scripts/remote-deploy.sh');
+    const readyzValidator = read('scripts/lib/validate-readyz.py');
     const sharedStart = deploy.indexOf('SHARED_ENV_ARGS=(');
     const sharedEnd = deploy.indexOf(')\nGRADING_AUDIT_ENV_ARGS=', sharedStart);
 
@@ -99,7 +102,7 @@ describe('math-document grading production entrypoint contract', () => {
     expect(remoteDeploy).toMatch(/podman inspect '\$\{APP_NAME_HINT\}'[\s\S]*GRADING_LIFECYCLE_LOOKUP_SECRET/);
     expect(remoteDeploy).toMatch(/podman inspect '\$\{WORKER_NAME_HINT\}'[\s\S]*GRADING_LIFECYCLE_LOOKUP_SECRET/);
     expect(remoteDeploy).toMatch(/podman inspect '\$\{GC_NAME_HINT\}'[\s\S]*GRADING_LIFECYCLE_LOOKUP_SECRET/);
-    expect(remoteDeploy).toContain('"auditSecret":true');
+    expect(readyzValidator).toContain('get("auditSecret") is True');
   });
 
   it('uses the explicit seven-capability contract in the worker healthcheck and policy seed', () => {
@@ -171,14 +174,25 @@ describe('math-document grading production entrypoint contract', () => {
 
   it('validates public readyz according to the optional math worker requirement', () => {
     const remoteDeploy = read('scripts/remote-deploy.sh');
+    const readyzValidator = read('scripts/lib/validate-readyz.py');
+    const packageJson = JSON.parse(read('package.json')) as { scripts: Record<string, string> };
     const readyzStart = remoteDeploy.indexOf('log "- 校验公网 readyz 健康接口"');
     const readyzEnd = remoteDeploy.indexOf('\nlog\nlog "远端部署完成并验证通过"', readyzStart);
     const readyzBlock = remoteDeploy.slice(readyzStart, readyzEnd);
 
     expect(readyzBlock).toContain('readyz_response=');
-    expect(readyzBlock).toContain('"mathDocumentGradingWorker":{"required":true,"ready":true}');
-    expect(readyzBlock).toContain('"mathDocumentGradingWorker":{"required":false,"ready":true}');
+    expect(readyzBlock).toContain('python3 "${ROOT_DIR}/scripts/lib/validate-readyz.py" true');
+    expect(readyzBlock).toContain('python3 "${ROOT_DIR}/scripts/lib/validate-readyz.py" false');
     expect(readyzBlock).toContain('if [[ "${MATH_DOCUMENT_GRADING_WORKER_REQUIRED}" =~ ^(1|true|yes)$ ]]; then');
+    expect(readyzValidator).toContain('worker.get("required") is expected_required');
+    expect(readyzValidator).toContain('worker.get("ready") is True');
+    expect(remoteDeploy.indexOf('require_cmd python3')).toBeLessThan(remoteDeploy.indexOf('remote "mkdir -p'));
+    expect(packageJson.scripts['test:math-document-grading-migration']).toContain('test:math-document-grading-readyz');
+    const checker = join(process.cwd(), 'scripts/lib/validate-readyz.py');
+    expect(() => execFileSync('python3', [checker, 'false'], {
+      cwd: mkdtempSync(join(tmpdir(), 'readyz-non-repo-')),
+      input: JSON.stringify({ db: true, redis: true, mathDocumentGradingWorker: { required: false, ready: true } }),
+    })).not.toThrow();
   });
 
   it('keeps the example grading-run retention policy internally consistent', () => {

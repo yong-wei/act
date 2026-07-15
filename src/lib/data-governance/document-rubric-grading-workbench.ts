@@ -309,7 +309,13 @@ export interface DocumentRubricGradingDraftInvariantResult {
 
 export interface TeacherGradingWorkbenchView {
   gradingRunId: string | null;
-  asset: Pick<DocumentSubmissionAsset, 'id' | 'studentId' | 'fileName' | 'checksum' | 'uploadedAt'>;
+  asset: {
+    id: string | null;
+    studentId: string;
+    fileName: string;
+    checksum: string;
+    uploadedAt: string;
+  };
   conversion: Pick<ConvertedDocument, 'status' | 'adapter' | 'confidence' | 'referencePrecision' | 'warnings'>;
   preview: {
     markdown: string;
@@ -323,6 +329,10 @@ export interface TeacherGradingWorkbenchView {
     editableScore: number | null;
     limitationState: DraftCriterionLimitationState | null;
     evidenceCount: number;
+    aiLevelId?: string | null;
+    aiScore?: number | null;
+    teacherComment?: string | null;
+    levels?: Array<{ id: string; label: string; minPoints: number; maxPoints: number }>;
   }>;
   annotations: Array<{
     id: string;
@@ -1651,7 +1661,7 @@ function asRubricDefinition(value: unknown): RubricDefinition | null {
   const criteria = Array.isArray(record.criteria)
     ? record.criteria.map(asRubricCriterion).filter((criterion): criterion is RubricCriterion => Boolean(criterion))
     : null;
-  if (!id || !title || !version || maxScore === null || !criteria) {
+  if (!id || !title || !version || maxScore === null || !Number.isFinite(maxScore) || maxScore <= 0 || !criteria) {
     return null;
   }
   return { id, title, version, maxScore, criteria };

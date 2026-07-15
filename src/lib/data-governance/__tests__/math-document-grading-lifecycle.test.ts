@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { MemorySubmissionObjectStore } from '@/lib/assignments/submission-object-store';
 import { garbageCollectSourceAssets } from '@/lib/assignments/submission-service';
-import { clearReverseGradingLineage, completeGradingTombstone, deleteGradingObjectsIndependently, gradingTombstoneLookupKey, hasActiveGradingHold, pseudonymizeGradingLineage, reconcileGradingPhysicalDelete, resolveGradingLineage, runGradingRetentionGc, validateLifecyclePolicy, writeLifecycleAudit } from '../math-document-grading-lifecycle';
+import { assertRetentionCleanupClaim, claimGradingTombstone, clearReverseGradingLineage, completeGradingTombstone, deleteGradingObjectsIndependently, gradingTombstoneLookupKey, hasActiveGradingHold, hasActiveGradingHoldAtDatabaseNow, isExpectedRetentionRace, pseudonymizeGradingLineage, reconcileGradingPhysicalDelete, redactTextNativeEvidenceForAttempt, resolveGradingLineage, runGradingRetentionGc, runRetentionControlTransaction, transitionParentRunsContentUnavailable, validateLifecyclePolicy, writeLifecycleAudit } from '../math-document-grading-lifecycle';
 
 const now = new Date();
 
@@ -41,6 +41,162 @@ function tombstoneUpdateMany(rows: any[]) {
 }
 
 describe('math-document grading retention lifecycle', () => {
+  it('uses database clock for a post-delete legal-hold reconciliation despite application clock skew', async () => {
+    const databaseNow = new Date('2026-07-15T12:00:00.000Z');
+    const applicationNow = new Date('2036-07-15T12:00:00.000Z');
+    const findFirst = vi.fn(async () => ({ id: 'active-by-database-clock' }));
+    const db: any = {
+      $queryRaw: vi.fn(async () => [{ now: databaseNow }]),
+      gradingLegalHold: { findFirst },
+    };
+
+    await expect(hasActiveGradingHoldAtDatabaseNow(db, [['GradingRun', 'run-1']], applicationNow)).resolves.toBe(true);
+    expect(findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        AND: [expect.objectContaining({ OR: expect.arrayContaining([{ expiresAt: { gt: databaseNow } }]) })],
+      }),
+    }));
+  });
+
+  it('passes the database clock through the real object deletion callback despite application clock skew', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2040-01-01T00:00:00.000Z'));
+    const databaseNow = new Date('2026-07-15T12:34:56.000Z');
+    const store = new MemorySubmissionObjectStore();
+    store.put({ key: 'grading-model/db-clock-delete', ownerId: 'worker', answerId: 'answer-1', sizeBytes: 1, mimeType: 'application/json', checksum: 'sha256:clock', scanState: 'CLEAN' });
+    const onObjectDeleted = vi.fn();
+    await deleteGradingObjectsIndependently({
+      store,
+      objectKeys: ['grading-model/db-clock-delete'],
+      readDeletedAt: async () => databaseNow,
+      onObjectDeleted,
+    });
+    expect(onObjectDeleted).toHaveBeenCalledWith({ objectKey: 'grading-model/db-clock-delete', physicalDeletedAt: databaseNow });
+    vi.useRealTimers();
+  });
+
+  it.each([
+    ['ahead', '2026-07-16T00:00:00Z'],
+    ['behind', '2026-07-14T00:00:00Z'],
+  ])('uses database clock for GC candidate and idempotency expiry when application clock is %s', async (_label, applicationNow) => {
+    const databaseNow = new Date('2026-07-15T00:00:00Z');
+    const answerFindMany = vi.fn(async () => []);
+    const idempotencyDeleteMany = vi.fn(async () => ({ count: 0 }));
+    const db: any = {
+      $queryRaw: vi.fn(async () => [{ now: databaseNow }]),
+      gradingRequestIdempotency: { deleteMany: idempotencyDeleteMany },
+      answerEvidence: { findMany: answerFindMany },
+      documentConversion: { findMany: vi.fn(async () => []) },
+      gradingRun: { findMany: vi.fn(async () => []) },
+      gradingBatch: { findMany: vi.fn(async () => []) },
+      submissionAttempt: { findMany: vi.fn(async () => []) },
+    };
+    await runGradingRetentionGc({ db, store: new MemorySubmissionObjectStore(), policies: gcPolicies, now: new Date(applicationNow) });
+    expect((answerFindMany.mock.calls as any)[0][0].where.OR[0].retentionExpiresAt.lte).toEqual(databaseNow);
+    expect(idempotencyDeleteMany).toHaveBeenCalledWith({ where: { expiresAt: { lte: databaseNow } } });
+  });
+  it('classifies post-scan hold and lease loss as per-object races', () => {
+    expect(isExpectedRetentionRace(new Error('grading-tombstone-hold'))).toBe(true);
+    expect(isExpectedRetentionRace(new Error('grading-tombstone-claim-lost'))).toBe(true);
+    expect(isExpectedRetentionRace(new Error('unexpected'))).toBe(false);
+  });
+
+  it('retries one P2034 retention control transaction and then stops', async () => {
+    const callback = vi.fn(async () => 'ok');
+    const db: any = { $transaction: vi.fn().mockRejectedValueOnce({ code: 'P2034' }).mockImplementation(async (fn: any) => fn(db)) };
+    await expect(runRetentionControlTransaction(db, callback)).resolves.toBe('ok');
+    expect(db.$transaction).toHaveBeenCalledTimes(2);
+
+    const blocked: any = { $transaction: vi.fn().mockRejectedValue({ code: 'P2034' }) };
+    await expect(runRetentionControlTransaction(blocked, callback)).rejects.toMatchObject({ code: 'P2034' });
+    expect(blocked.$transaction).toHaveBeenCalledTimes(2);
+  });
+  it.each(['evidence:e-1', 'conversion:c-1', 'run:r-1', 'text-snapshot:a-1'])('uses transaction database time to reject an expired %s cleanup lease', async (resourceKey) => {
+    const tombstone = { resourceKey, lookupKey: gradingTombstoneLookupKey(resourceKey), status: 'PENDING', deletionClaimToken: 'owner-1', deletionLeaseExpiresAt: new Date('2026-07-15T00:10:00Z') };
+    const db: any = {
+      $queryRaw: vi.fn(async () => [{ now: new Date('2026-07-15T00:11:00Z') }]),
+      gradingLegalHold: { findFirst: vi.fn(async () => null) },
+      gradingTombstone: { findUnique: vi.fn(async () => tombstone), updateMany: vi.fn() },
+    };
+    await expect(assertRetentionCleanupClaim(db, resourceKey, 'owner-1', [], new Date('2026-07-15T00:00:00Z'))).rejects.toThrow('grading-tombstone-claim-lost');
+    expect(db.gradingTombstone.updateMany).not.toHaveBeenCalled();
+  });
+  it('rejects destructive cleanup when transaction work outlives the renewed lease', async () => {
+    const resourceKey = 'run:slow-cleanup';
+    const tombstone: any = { resourceKey, lookupKey: gradingTombstoneLookupKey(resourceKey), status: 'PENDING', deletionClaimToken: 'owner-1', deletionClaimedAt: new Date('2026-07-15T00:00:00Z'), deletionLeaseExpiresAt: new Date('2026-07-15T00:05:00Z') };
+    const clocks = [new Date('2026-07-15T00:00:00Z'), new Date('2026-07-15T00:06:00Z')];
+    const db: any = {
+      $queryRaw: vi.fn(async () => [{ now: clocks.shift() }]),
+      gradingLegalHold: { findFirst: vi.fn(async () => null) },
+      gradingTombstone: {
+        findUnique: vi.fn(async () => tombstone),
+        updateMany: vi.fn(async ({ data }: any) => { Object.assign(tombstone, data); return { count: 1 }; }),
+      },
+    };
+    await expect(assertRetentionCleanupClaim(db, resourceKey, 'owner-1', [], new Date('2026-07-15T00:00:00Z'))).rejects.toThrow('grading-tombstone-claim-lost');
+  });
+  it('rejects destructive cleanup when the locked resource is no longer expired at database time', async () => {
+    const tombstone = { resourceKey: 'run:not-expired', status: 'PENDING', deletionClaimToken: 'owner-1', deletionLeaseExpiresAt: new Date('2026-07-15T00:10:00Z') };
+    const db: any = {
+      $queryRaw: vi.fn(async () => [{ now: new Date('2026-07-15T00:01:00Z') }]),
+      gradingLegalHold: { findFirst: vi.fn(async () => null) },
+      gradingTombstone: { findUnique: vi.fn(async () => tombstone), updateMany: vi.fn(async () => ({ count: 1 })) },
+      gradingRun: { findUnique: vi.fn(async () => ({ id: 'not-expired', retentionExpiresAt: new Date('2026-07-15T00:02:00Z') })) },
+    };
+    await expect(assertRetentionCleanupClaim(db, 'run:not-expired', 'owner-1', [], new Date('2026-07-14T00:00:00Z'), { model: 'gradingRun', id: 'not-expired', expiresAtField: 'retentionExpiresAt' })).rejects.toThrow('grading-retention-not-expired');
+  });
+  it('does not claim a tombstone when a legal hold appears after the caller precheck', async () => {
+    const updateMany = vi.fn();
+    const tombstone = { id: 'tombstone-hold-race', resourceKey: 'run:hold-race', resourceType: 'GradingRun', resourceId: 'run-hold-race', status: 'PENDING', deletionClaimToken: null };
+    const claimed = await claimGradingTombstone({
+      db: { gradingTombstone: { findUnique: vi.fn(async () => tombstone), updateMany }, gradingLegalHold: { findFirst: vi.fn(async () => ({ id: 'late-hold' })) } } as any,
+      resourceKey: tombstone.resourceKey,
+      claimToken: 'claim-after-precheck',
+      now,
+      holdScopes: [['run', tombstone.resourceId]],
+    });
+    expect(claimed).toBe(false);
+    expect(updateMany).not.toHaveBeenCalled();
+  });
+  it('redacts all TEXT_NATIVE evidence content when its source snapshot expires', async () => {
+    const evidence: any = { id: 'evidence-text', attemptId: 'attempt-text', sourceKind: 'TEXT_NATIVE', canonicalMarkdown: '学生原始答案', readiness: 'READY', limitations: [] };
+    const blocks: any[] = [{ evidenceId: evidence.id, text: '学生原始答案', markdown: '**学生原始答案**' }];
+    const db: any = {
+      answerEvidence: {
+        findMany: async () => [evidence],
+        updateMany: async ({ data }: any) => { Object.assign(evidence, data); return { count: 1 }; },
+      },
+      answerEvidenceBlock: { updateMany: async ({ data }: any) => { blocks.forEach((block) => Object.assign(block, data)); return { count: blocks.length }; } },
+    };
+    await redactTextNativeEvidenceForAttempt(db, evidence.attemptId, now);
+    expect(evidence).toEqual(expect.objectContaining({ canonicalMarkdown: '[deleted-by-retention-policy]', readiness: 'BLOCKED', lifecycleBlockReason: 'text-snapshot-content-unavailable', limitations: ['content-deleted'] }));
+    expect(blocks[0]).toEqual(expect.objectContaining({ text: '[deleted-by-retention-policy]', markdown: '[deleted-by-retention-policy]' }));
+    expect(JSON.stringify({ evidence, blocks })).not.toContain('学生原始答案');
+  });
+  it('stops parent cleanup when the run state CAS loses', async () => {
+    const assessment = vi.fn();
+    const facts = vi.fn();
+    const db: any = {
+      gradingRun: { findMany: async () => [{ id: 'run-cas-lost', state: 'AWAITING_REVIEW' }], updateMany: async () => ({ count: 0 }) },
+      gradingCriterionAssessment: { updateMany: assessment },
+      gradingAnnotation: { updateMany: vi.fn() },
+      learningFact: { findMany: vi.fn(), deleteMany: facts },
+    };
+    await transitionParentRunsContentUnavailable(db, { answerEvidenceId: 'evidence-1' }, 'evidence-content-unavailable', now);
+    expect(assessment).not.toHaveBeenCalled();
+    expect(facts).not.toHaveBeenCalled();
+  });
+  it('removes approval idempotency records when a run becomes content unavailable', async () => {
+    const deleteMany = vi.fn(async () => ({ count: 1 }));
+    const db: any = {
+      gradingRun: { findMany: async () => [{ id: 'run-idempotency-expired', state: 'AWAITING_REVIEW', answerEvidenceId: null }], updateMany: async () => ({ count: 1 }) },
+      gradingCriterionAssessment: { updateMany: vi.fn() }, gradingAnnotation: { updateMany: vi.fn() },
+      learningFact: { findMany: async () => [], deleteMany: vi.fn() },
+      gradingRequestIdempotency: { deleteMany },
+    };
+    await transitionParentRunsContentUnavailable(db, { id: 'run-idempotency-expired' }, 'retention-expired', now);
+    expect(deleteMany).toHaveBeenCalledWith({ where: { resourceType: 'GradingRun', resourceId: { in: ['run-idempotency-expired'] } } });
+  });
   it('keeps tombstone lookup stable when the audit secret rotates', () => {
     vi.stubEnv('GRADING_LIFECYCLE_LOOKUP_SECRET', 'stable-lifecycle-lookup-secret');
     vi.stubEnv('GRADING_AUDIT_SECRET', 'audit-secret-before-rotation');
@@ -136,7 +292,7 @@ describe('math-document grading retention lifecycle', () => {
     const db: any = {
       answerEvidence: {
         findMany: async () => [frozen('answer-evidence', { id: 'evidence-1', attemptId: 'attempt-1', sourceAssetId: null, sourceHash: 'sha256:evidence', limitations: [], blocks: [{ id: 'block-1' }] })],
-        update: async ({ data }: any) => { updates.push(data); return data; },
+        updateMany: async ({ data }: any) => { updates.push(data); return { count: 1 }; },
       },
       answerEvidenceBlock: { updateMany: async ({ data }: any) => { updates.push(data); return { count: 1 }; } },
       documentConversion: {
@@ -280,7 +436,6 @@ describe('math-document grading retention lifecycle', () => {
           if (where.conversionId) return evidence.conversionId === where.conversionId ? [evidence] : [];
           return evidence.tombstonedAt ? [] : [evidence];
         },
-        update: async ({ data }: any) => { Object.assign(evidence, data); return evidence; },
         updateMany: async ({ data }: any) => { Object.assign(evidence, data); return { count: 1 }; },
       },
       answerEvidenceBlock: { updateMany: async () => ({ count: 1 }) },
@@ -337,7 +492,7 @@ describe('math-document grading retention lifecycle', () => {
       },
       gradingTombstoneObject: {
         findMany: async ({ where }: any = {}) => objectRows.filter((row) => (!where.tombstoneId || row.tombstoneId === where.tombstoneId) && (!where.objectKey || row.objectKey === where.objectKey || where.objectKey.in?.includes(row.objectKey))),
-        create: async ({ data }: any) => { const row = { ...data }; objectRows.push(row); return row; },
+        create: async ({ data }: any) => { const row = { id: `object-${objectRows.length + 1}`, ...data }; objectRows.push(row); return row; },
         upsert: async ({ create, update }: any) => {
           const existing = objectRows.find((row) => row.tombstoneId === create.tombstoneId && row.objectKey === create.objectKey);
           if (existing) { Object.assign(existing, update); return existing; }
@@ -357,12 +512,13 @@ describe('math-document grading retention lifecycle', () => {
 
     const first = await runGradingRetentionGc({ db, store, policies: gcPolicies, now: firstNow });
     expect(first).toEqual({ scanned: 3, deleted: 3, held: 0, blocked: 0, tombstones: 3 });
-    expect(run).toEqual(expect.objectContaining({ state: 'CONTENT_UNAVAILABLE', modelInputObjectKey: 'grading-model/run-retained-input', modelOutputObjectKey: 'grading-model/run-retained-output', providerDeletionHandle: 'provider-delete-retained', tombstonedAt: null }));
+    expect(run).toEqual(expect.objectContaining({ state: 'CONTENT_UNAVAILABLE', modelInputObjectKey: 'grading-model/run-retained-input', modelOutputObjectKey: 'grading-model/run-retained-output', providerRequestId: 'provider-request-retained', providerDeletionHandle: 'provider-delete-retained', tombstonedAt: null }));
     expect(batchItem).toEqual(expect.objectContaining({ state: 'BLOCKED', gradingRunId: run.id, inputHash: 'sha256:item-input-parent-first', questionSnapshotHash: 'sha256:item-question-parent-first' }));
     expect(job).toEqual(expect.objectContaining({ state: 'CONTENT_UNAVAILABLE', dedupeKey: 'grading-job-parent-first-dedupe', idempotencyKey: 'grading-job-parent-first-idempotency', rerunIdentity: 'grading-job-parent-first-rerun' }));
     expect(rerun).toEqual(expect.objectContaining({ batchId: null, gradingRunId: null, gradingJobId: null, rerunIdentity: 'grading-rerun-parent-first-identity', idempotencyKey: 'grading-rerun-parent-first-idempotency' }));
-    expect(await store.head(run.modelInputObjectKey)).not.toBeNull();
-    expect(await store.head(run.modelOutputObjectKey)).not.toBeNull();
+    expect(await store.head('grading-model/run-retained-input')).not.toBeNull();
+    expect(await store.head('grading-model/run-retained-output')).not.toBeNull();
+    expect(objectRows.filter((row) => row.objectKey?.startsWith('grading-model/'))).toHaveLength(0);
 
     const second = await runGradingRetentionGc({ db, store, policies: gcPolicies, now: secondNow });
     expect(second).toEqual({ scanned: 1, deleted: 1, held: 0, blocked: 0, tombstones: 1 });
@@ -380,7 +536,11 @@ describe('math-document grading retention lifecycle', () => {
     const db: any = {
       answerEvidence: {
         findMany: async () => evidence.tombstonedAt ? [] : [frozen('answer-evidence', evidence)],
-        update: async ({ data }: any) => { Object.assign(evidence, data); return evidence; },
+        updateMany: async ({ where, data }: any) => {
+          if (where.id !== evidence.id) return { count: 0 };
+          Object.assign(evidence, data);
+          return { count: 1 };
+        },
       },
       answerEvidenceBlock: { updateMany: async ({ data }: any) => { Object.assign(evidence.blocks[0], data); return { count: 1 }; } },
       documentConversion: { findMany: async () => [] },
@@ -442,7 +602,7 @@ describe('math-document grading retention lifecycle', () => {
     const db: any = {
       answerEvidence: {
         findMany: async () => evidence.tombstonedAt ? [] : [frozen('answer-evidence', evidence)],
-        update: async ({ data }: any) => { Object.assign(evidence, data); return evidence; },
+        updateMany: async ({ data }: any) => { Object.assign(evidence, data); return { count: 1 }; },
       },
       answerEvidenceBlock: { updateMany: async () => ({ count: 0 }) },
       documentConversion: { findMany: async () => [] },
@@ -894,6 +1054,8 @@ describe('math-document grading retention lifecycle', () => {
     const deleteRun: any = { id: 'run-delete-lineage', answerAttemptId: 'attempt-delete-lineage', answerEvidenceId: 'evidence-delete-lineage', questionId: 'question-delete-lineage', inputHash: 'sha256:delete', modelInputObjectKey: null, modelOutputObjectKey: null, limitations: [], state: 'AWAITING_REVIEW', tombstonedAt: null };
     const pseudoRun: any = { id: 'run-pseudo-lineage', answerAttemptId: 'attempt-pseudo-lineage', answerEvidenceId: 'evidence-pseudo-lineage', questionId: 'question-pseudo-lineage', inputHash: 'sha256:pseudo', modelInputObjectKey: null, modelOutputObjectKey: null, limitations: [], state: 'AWAITING_REVIEW', tombstonedAt: null };
     const updates: any[] = [];
+    const deletedFactPrefixes: string[] = [];
+    const invalidatedUsers: string[][] = [];
     const tombstones: any[] = [];
     const db: any = {
       answerEvidence: { findMany: async () => [], findUnique: async () => null },
@@ -905,8 +1067,19 @@ describe('math-document grading retention lifecycle', () => {
       gradingBatch: { findMany: async () => [] },
       gradingJob: { updateMany: async () => ({ count: 1 }) },
       gradingBatchItem: { updateMany: async ({ data }: any) => { updates.push({ batchItem: true, data }); return { count: 1 }; } },
-      gradingCriterionAssessment: { updateMany: async () => ({ count: 1 }) },
+      gradingCriterionAssessment: { updateMany: async ({ data }: any) => { updates.push({ assessment: true, data }); return { count: 1 }; } },
       gradingAnnotation: { updateMany: async () => ({ count: 1 }) },
+      learningFact: {
+        findMany: async () => [{ userId: 'student-derived', contextJson: { classId: 'class-derived' } }],
+        deleteMany: async ({ where }: any) => { deletedFactPrefixes.push(where.sourceEventId.startsWith); return { count: 1 }; },
+      },
+      studentEvidenceFeatureCache: { deleteMany: async ({ where }: any) => { invalidatedUsers.push(where.userId.in); return { count: 1 }; } },
+      studentCompetencySnapshot: { deleteMany: vi.fn().mockResolvedValue({ count: 1 }) },
+      studentProfileSummary: { deleteMany: vi.fn().mockResolvedValue({ count: 1 }) },
+      studentRiskFlag: { deleteMany: vi.fn().mockResolvedValue({ count: 1 }) },
+      growthRecord: { deleteMany: vi.fn().mockResolvedValue({ count: 1 }) },
+      learningRecommendation: { deleteMany: vi.fn().mockResolvedValue({ count: 1 }) },
+      classCompetencySnapshot: { deleteMany: vi.fn().mockResolvedValue({ count: 1 }) },
       gradingTombstone: {
         findUnique: async ({ where }: any) => tombstones.find((row) => row.resourceKey === where.resourceKey) ?? null,
         create: async ({ data }: any) => { tombstones.push(data); return data; },
@@ -933,6 +1106,17 @@ describe('math-document grading retention lifecycle', () => {
     expect(result).toEqual(expect.objectContaining({ scanned: 2, deleted: 2, blocked: 0 }));
     expect(deleteRun).toEqual(expect.objectContaining({ questionSnapshot: null, rubricSnapshot: null, referenceAnswer: null, policySnapshot: null, answerAttemptId: null, answerEvidenceId: null, questionId: null, rubricId: null, batchId: null }));
     expect(pseudoRun).toEqual(expect.objectContaining({ questionSnapshot: null, rubricSnapshot: null, referenceAnswer: null, policySnapshot: null, answerAttemptId: null, answerEvidenceId: null, questionId: null, rubricId: null, batchId: null }));
+    expect(updates).toEqual(expect.arrayContaining([expect.objectContaining({ assessment: true, data: expect.objectContaining({ teacherComment: null, teacherLevelId: null, teacherScore: null, teacherReviewedAt: null }) })]));
+    expect(deletedFactPrefixes).toEqual(expect.arrayContaining([`adaptive-assessment:document-rubric-grading:${encodeURIComponent(deleteRun.id)}:`, `adaptive-assessment:document-rubric-grading:${encodeURIComponent(pseudoRun.id)}:`]));
+    expect(invalidatedUsers).toEqual([['student-derived'], ['student-derived']]);
+    expect(db.studentCompetencySnapshot.deleteMany).not.toHaveBeenCalled();
+    expect(db.studentProfileSummary.deleteMany).toHaveBeenCalledWith({ where: { userId: { in: ['student-derived'] } } });
+    expect(db.studentRiskFlag.deleteMany).not.toHaveBeenCalled();
+    expect(db.growthRecord.deleteMany).toHaveBeenCalledWith({ where: {
+      userId: { in: ['student-derived'] }, recordType: 'competency_evaluation', courseId: 'profile:growth-evaluation',
+    } });
+    expect(db.learningRecommendation.deleteMany).not.toHaveBeenCalled();
+    expect(db.classCompetencySnapshot.deleteMany).not.toHaveBeenCalled();
     const deleteTombstone = tombstones.find((row) => row.resourceType === 'GradingRun' && row.lineageRetained === false);
     expect(deleteTombstone).toEqual(expect.objectContaining({ status: 'DELETED', lineageRetained: false, lineageReference: expect.any(String) }));
     expect(deleteTombstone.resourceId).not.toBe(deleteRun.id);
@@ -1239,12 +1423,13 @@ describe('math-document grading retention lifecycle', () => {
     expect(tombstones[0].contentDeletedAt).toEqual(now);
   });
 
-  it('keeps grading-run content intact after a failed object delete and completes it on rerun', async () => {
+  it('redacts grading-run content after claim and completes a failed object delete on rerun', async () => {
     const store = new MemorySubmissionObjectStore();
     store.put({ key: 'grading-model/run-delete-fails', ownerId: 'worker', answerId: 'answer-1', sizeBytes: 3, mimeType: 'application/json', checksum: 'sha256:model', scanState: 'CLEAN' });
     store.put({ key: 'grading-model/run-delete-output', ownerId: 'worker', answerId: 'answer-1', sizeBytes: 3, mimeType: 'application/json', checksum: 'sha256:model-output', scanState: 'CLEAN' });
     const run: any = { id: 'run-delete-fails', answerAttemptId: 'attempt-1', answerEvidenceId: 'evidence-1', inputHash: 'sha256:input', modelInputObjectKey: 'grading-model/run-delete-fails', modelOutputObjectKey: 'grading-model/run-delete-output', limitations: [], state: 'AWAITING_REVIEW', tombstonedAt: null };
     const tombstones: any[] = [];
+    const objectRows: any[] = [];
     let failDelete = true;
     const db: any = {
       answerEvidence: { findMany: async () => [], findUnique: async () => null },
@@ -1262,6 +1447,11 @@ describe('math-document grading retention lifecycle', () => {
         updateMany: tombstoneUpdateMany(tombstones),
         update: async ({ where, data }: any) => { const row = tombstones.find((candidate) => candidate.resourceKey === where.resourceKey); Object.assign(row, data); return row; },
       },
+      gradingTombstoneObject: {
+        findMany: async ({ where }: any) => objectRows.filter((row) => row.tombstoneId === where.tombstoneId && (!where.objectKey || (where.objectKey.in ? where.objectKey.in.includes(row.objectKey) : row.objectKey === where.objectKey))),
+        create: async ({ data }: any) => { const row = { ...data }; objectRows.push(row); return row; },
+        updateMany: async ({ where, data }: any) => { const row = objectRows.find((item) => item.tombstoneId === where.tombstoneId && item.objectKey === where.objectKey); if (!row) return { count: 0 }; Object.assign(row, data); return { count: 1 }; },
+      },
       gradingLegalHold: { findFirst: async () => null },
       gradingAuditEvent: { create: async () => undefined },
       $transaction: async (callback: (tx: any) => Promise<unknown>) => callback(db),
@@ -1274,6 +1464,7 @@ describe('math-document grading retention lifecycle', () => {
     const first = await runGradingRetentionGc({ db, store, policies: gcPolicies, now });
     expect(first).toEqual({ scanned: 1, deleted: 0, held: 0, blocked: 1, tombstones: 1 });
     expect(run.state).toBe('CONTENT_UNAVAILABLE');
+    expect(run).toEqual(expect.objectContaining({ overallComment: '[deleted-by-retention-policy]', questionSnapshot: null, rubricSnapshot: null, referenceAnswer: null, modelInputObjectKey: null, modelOutputObjectKey: null }));
     expect(tombstones[0]).toEqual(expect.objectContaining({ status: 'RETRYABLE', contentDeletedAt: null }));
     expect(await store.head('grading-model/run-delete-fails')).toBeNull();
     expect(await store.head('grading-model/run-delete-output')).not.toBeNull();
@@ -1298,11 +1489,14 @@ describe('math-document grading retention lifecycle', () => {
       documentConversion: { findMany: async () => [] },
       gradingRun: {
         findMany: async () => [frozen('grading-run', { id: 'run-1', answerAttemptId: 'attempt-1', inputHash: 'sha256:input', modelInputObjectKey: 'grading-model/run-1', modelOutputObjectKey: null, limitations: [] })],
+        updateMany: async ({ where }: any) => { events.push(`run-cas:${where.state.in.join(',')}`); return { count: 1 }; },
         update: async ({ data }: any) => { events.push(`run:${data.tombstonedAt ? 'final' : data.state}`); return data; },
       },
       gradingJob: { updateMany: async () => { events.push('job-fenced'); return { count: 1 }; } },
       gradingCriterionAssessment: { updateMany: async () => { events.push('assessment-redacted'); return { count: 1 }; } },
       gradingAnnotation: { updateMany: async () => { events.push('annotation-redacted'); return { count: 1 }; } },
+      learningFact: { findMany: async () => [{ userId: 'student-1' }], deleteMany: async () => { events.push('facts-deleted'); return { count: 1 }; } },
+      studentEvidenceFeatureCache: { deleteMany: async () => { events.push('cache-invalidated'); return { count: 1 }; } },
       gradingTombstone: {
         findUnique: async ({ where }: any) => tombstones.find((row) => row.resourceKey === where.resourceKey) ?? null,
         create: async ({ data }: any) => { events.push('tombstone-created'); tombstones.push(data); return data; },
@@ -1316,6 +1510,9 @@ describe('math-document grading retention lifecycle', () => {
     const result = await runGradingRetentionGc({ db, store, policies: gcPolicies, now });
     expect(result).toEqual({ scanned: 1, deleted: 1, held: 0, blocked: 0, tombstones: 1 });
     expect(events.indexOf('tombstone-created')).toBeLessThan(events.findIndex((event) => event.startsWith('delete:')));
+    expect(events.findIndex((event) => event.startsWith('run-cas:'))).toBeLessThan(events.indexOf('assessment-redacted'));
+    expect(events.indexOf('annotation-redacted')).toBeLessThan(events.indexOf('facts-deleted'));
+    expect(events.indexOf('facts-deleted')).toBeLessThan(events.indexOf('cache-invalidated'));
     expect(tombstones[0]).toEqual(expect.objectContaining({ resourceType: 'GradingRun', contentDeletedAt: now }));
     expect(await store.head('grading-model/run-1')).toBeNull();
   });

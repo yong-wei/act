@@ -28,9 +28,18 @@ const p0P1Migration = readFileSync(join(root, `prisma/migrations/${p0P1Migration
 const submissionLookupMigrationName = '20260714013000_issue916_submission_tombstone_lookup';
 assert.ok(Buffer.byteLength(submissionLookupMigrationName, 'utf8') <= 63, 'submission lookup migration directory must fit PostgreSQL identifier limit');
 const submissionLookupMigration = readFileSync(join(root, `prisma/migrations/${submissionLookupMigrationName}/migration.sql`), 'utf8');
+const migrationDirectories = readdirSync(join(root, 'prisma/migrations'));
+const nativeReviewMigrationName = '20260714170000_add_grading_run_review_states';
+const governanceHardeningMigrationName = '20260714210000_harden_grading_gc_governance';
+for (const migrationName of [nativeReviewMigrationName, governanceHardeningMigrationName]) {
+  assert.ok(migrationDirectories.includes(migrationName), `missing declared migration ${migrationName}`);
+  assert.ok(Buffer.byteLength(migrationName, 'utf8') <= 63, `${migrationName} must fit the identifier gate`);
+}
+const nativeReviewMigration = readFileSync(join(root, `prisma/migrations/${nativeReviewMigrationName}/migration.sql`), 'utf8');
+const governanceHardeningMigration = readFileSync(join(root, `prisma/migrations/${governanceHardeningMigrationName}/migration.sql`), 'utf8');
 const retentionPgScript = readFileSync(join(root, 'scripts/tests/test-math-document-grading-retention-pg.mjs'), 'utf8');
 const batch = readFileSync(join(root, 'src/lib/data-governance/math-document-grading-batch.ts'), 'utf8');
-const allMathMigrations = `${migration}\n${issue916Migration}\n${lifecycleLeaseMigration}\n${reviewHardeningMigration}\n${phaseThreeMigration}\n${phaseFourMigration}\n${phaseFiveMigration}\n${phaseSixMigration}\n${reconciliationMigration}\n${p0P1Migration}\n${submissionLookupMigration}`;
+const allMathMigrations = `${migration}\n${issue916Migration}\n${lifecycleLeaseMigration}\n${reviewHardeningMigration}\n${phaseThreeMigration}\n${phaseFourMigration}\n${phaseFiveMigration}\n${phaseSixMigration}\n${reconciliationMigration}\n${p0P1Migration}\n${submissionLookupMigration}\n${nativeReviewMigration}\n${governanceHardeningMigration}`;
 
 function createTableSegment(sql, tableName) {
   const marker = `CREATE TABLE "${tableName}" (`;
@@ -53,6 +62,33 @@ for (const column of [
 }
 
 assert.match(schema, /@@unique\(\[answerAttemptId, rubricId, rubricVersion, evaluatorVersion, inputHash, rerunIdentity\], map: "GradingRun_attempt_rubric_input_rerun_key"\)/);
+assert.match(schema, /enum GradingRunState[\s\S]*AWAITING_REVIEW[\s\S]*APPROVED/);
+assert.doesNotMatch(schema, /enum GradingRunState[\s\S]*RETURNED|enum GradingRunState[\s\S]*REJECTED/);
+assert.match(schema, /model GradingCriterionAssessment[\s\S]*teacherLevelId\s+String\?[\s\S]*teacherScore\s+Float\?[\s\S]*teacherComment\s+String\?[\s\S]*teacherReviewedAt\s+DateTime\?/);
+assert.match(nativeReviewMigration, /ALTER TYPE "GradingRunState" ADD VALUE IF NOT EXISTS 'APPROVED'/);
+assert.match(nativeReviewMigration, /ALTER TABLE "GradingCriterionAssessment"[\s\S]*"teacherReviewedAt" TIMESTAMP\(3\)/);
+assert.match(nativeReviewMigration, /review-contract-rerun-required/);
+assert.match(nativeReviewMigration, /WHERE "state" = 'AWAITING_REVIEW'/);
+assert.doesNotMatch(nativeReviewMigration, /WHERE "state" = 'AWAITING_REVIEW'\s+AND\s*\(/, 'all legacy review rows must be conservatively rerun');
+assert.match(schema, /model LearningMaterializationRebuildRequest[\s\S]*generation\s+Int\s+@default\(1\)[\s\S]*claimedGeneration\s+Int\?[\s\S]*claimToken\s+String\?[\s\S]*claimExpiresAt\s+DateTime\?[\s\S]*attemptCount\s+Int\s+@default\(0\)[\s\S]*completedAt\s+DateTime\?/);
+assert.match(schema, /@@index\(\[status, claimExpiresAt, updatedAt\], map: "LMRebuild_status_claim_exp_updated_idx"\)/);
+assert.match(governanceHardeningMigration, /CREATE TABLE "LearningMaterializationRebuildRequest"/);
+for (const column of ['generation', 'claimedGeneration', 'claimToken', 'claimExpiresAt', 'attemptCount', 'lastErrorCode', 'completedAt']) {
+  assert.match(governanceHardeningMigration, new RegExp(`"${column}"`), `rebuild request migration must include ${column}`);
+}
+assert.match(governanceHardeningMigration, /LMRebuild_status_claim_exp_updated_idx/);
+assert.doesNotMatch(governanceHardeningMigration, /DELETE FROM "GradingRequestIdempotency"/, 'migration must preserve existing idempotency resource identities');
+assert.match(governanceHardeningMigration, /UPDATE "GradingRequestIdempotency"[\s\S]*'legacy-md5:' \|\| md5\("operation" \|\| ':' \|\| "idempotencyKey"\)/, 'legacy plaintext keys must be deterministically protected for bounded dual read');
+assert.match(governanceHardeningMigration, /ALTER TABLE "GrowthRecord"[\s\S]*ADD COLUMN "expiresAt"[\s\S]*GrowthRecord_recordType_expiresAt_idx/, 'Growth evaluation retention must be structured and indexed');
+assert.match(governanceHardeningMigration, /row_number\(\) OVER \(PARTITION BY "userId" ORDER BY "occurredAt" DESC[\s\S]*CASE WHEN ranked\.rank = 1 THEN 'competency-evaluation:' \|\| growth\."userId" ELSE NULL END[\s\S]*CREATE UNIQUE INDEX "GrowthRecord_businessKey_key"/, 'Growth current rows must be safely deduplicated before the non-null business key is made unique');
+assert.match(schema, /businessKey\s+String\?\s+@unique\(map: "GrowthRecord_businessKey_key"\)[\s\S]*sourceSnapshotAt\s+DateTime\?[\s\S]*sourceInputDigest\s+String\?/, 'Growth CAS fields and unique business identity must be declared in Prisma');
+assert.match(governanceHardeningMigration, /"recordType" = 'competency_evaluation' AND \("courseId" = 'profile:growth-evaluation' OR "courseId" IS NULL\)[\s\S]*"courseId" = 'profile:growth-evaluation'[\s\S]*CREATE UNIQUE INDEX "GrowthRecord_businessKey_key"/, 'nullable legacy Growth evaluations must be normalized before unique current identity');
+assert.match(governanceHardeningMigration, /ALTER TABLE "ClassCompetencySnapshot" ADD COLUMN "materializationVersion"[\s\S]*legacy-unscoped-materialization[\s\S]*ClassCompetency_class_version_snapshot_idx/, 'legacy unscoped class snapshots must be marked stale and excluded from v2 reads');
+assert.ok('LMRebuild_status_claim_exp_updated_idx'.length <= 63);
+assert.match(schema, /expiresAt\s+DateTime @default\(dbgenerated\("\(CURRENT_TIMESTAMP \+ INTERVAL '24 hours'\)"\)\)/);
+assert.match(governanceHardeningMigration, /LearningMaterializationRebuildRequest_userId_fkey[\s\S]*ON DELETE CASCADE/);
+assert.match(governanceHardeningMigration, /CREATE TABLE "LearningMaterializationGeneration"/);
+assert.match(governanceHardeningMigration, /LearningMaterializationGeneration_userId_fkey[\s\S]*ON DELETE CASCADE/);
 assert.match(schema, /@@unique\(\[conversionId, code\]\)/);
 assert.match(batch, /id: `grading-batch-item:\$\{batchId\}:\$\{attempt\.id\}`/s);
 assert.match(migration, /GradingRun_attempt_rubric_input_rerun_key/);
@@ -321,7 +357,7 @@ function indexName(modelName, fields) {
   return `${modelName}_${fields.map((field) => field.trim()).join('_')}_idx`;
 }
 
-const createdModels = new Set([...migration.matchAll(/CREATE TABLE "([^"]+)"/g)].map((match) => match[1]));
+const createdModels = new Set([...allMathMigrations.matchAll(/CREATE TABLE "([^"]+)"/g)].map((match) => match[1]));
 const migrationModels = new Set([
   ...createdModels,
   ...[...issue916Migration.matchAll(/ALTER TABLE "([^"]+)"/g)].map((match) => match[1]),
@@ -334,10 +370,16 @@ const migrationModels = new Set([
   ...[...reconciliationMigration.matchAll(/ALTER TABLE "([^"]+)"/g)].map((match) => match[1]),
   ...[...p0P1Migration.matchAll(/ALTER TABLE "([^"]+)"/g)].map((match) => match[1]),
   ...[...submissionLookupMigration.matchAll(/ALTER TABLE "([^"]+)"/g)].map((match) => match[1]),
+  ...[...governanceHardeningMigration.matchAll(/ALTER TABLE "([^"]+)"/g)].map((match) => match[1]),
 ]);
 const migrationIndexNames = new Set(
   [...allMathMigrations.matchAll(/CREATE INDEX(?: IF NOT EXISTS)?\s+"([^"]+)"\s+ON\s+"([^"]+)"/g)].map((match) => `${match[2]}:${match[1]}`),
 );
+
+assert.match(governanceHardeningMigration, /ALTER TABLE "GradingRun" ADD COLUMN "authorizationSnapshot" JSONB;/);
+assert.match(modelSegment(schema, 'GradingRun'), /authorizationSnapshot\s+Json\?/);
+assert.match(governanceHardeningMigration, /CREATE TABLE "LearningMaterializationOutbox"[\s\S]*"kind" TEXT NOT NULL DEFAULT 'CLASS_SNAPSHOT'[\s\S]*"classId" TEXT,[\s\S]*"snapshotId" TEXT/);
+assert.match(modelSegment(schema, 'LearningMaterializationOutbox'), /kind\s+String\s+@default\("CLASS_SNAPSHOT"\)[\s\S]*classId\s+String\?[\s\S]*snapshotId\s+String\?/);
 
 for (const modelName of migrationModels) {
   const segment = modelSegment(schema, modelName);

@@ -133,37 +133,8 @@ function calculateClassTrend(
 }
 
 async function refreshClassSnapshot(classId: string) {
-  const students = await prisma.studentProfile.findMany({
-    where: { classId },
-    select: { userId: true },
-  });
-  const snapshots = await Promise.all(students.map((student) =>
-    prisma.studentCompetencySnapshot.findFirst({
-      where: { userId: student.userId },
-      orderBy: { snapshotAt: 'desc' },
-    }),
-  ));
-  const validSnapshots = snapshots.filter((snapshot) => Boolean(snapshot) && snapshot!.factCount > 0) as Array<{ competencyVector: unknown; riskFlags: unknown }>;
-  const aggregate = calculateClassAggregate(validSnapshots);
-  const distribution = calculateLevelDistribution(validSnapshots);
-  const previousSnapshot = await prisma.classCompetencySnapshot.findFirst({
-    where: { classId },
-    orderBy: { snapshotAt: 'desc' },
-  });
-  const snapshot = await prisma.classCompetencySnapshot.create({
-    data: {
-      classId,
-      snapshotAt: new Date(),
-      aggregateJson: aggregate as unknown as Prisma.InputJsonValue,
-      distributionJson: distribution as unknown as Prisma.InputJsonValue,
-      trendJson: calculateClassTrend(aggregate, previousSnapshot?.aggregateJson) as Prisma.InputJsonValue,
-      riskSummaryJson: {} as Prisma.InputJsonValue,
-      levelDistribution: distribution as unknown as Prisma.InputJsonValue,
-      activeStudentCount: validSnapshots.length,
-      totalStudentCount: students.length,
-    },
-  });
-  return { snapshotId: snapshot.id, studentCount: validSnapshots.length };
+  console.warn(`[repair-unit-4-4] Class snapshot write disabled for ${classId}; run the data-governance-worker class materialization to create class-competency.v2.`);
+  return { snapshotId: null, studentCount: 0, skipped: 'class_snapshot_requires_v2_worker' };
 }
 
 async function main() {

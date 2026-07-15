@@ -21,6 +21,23 @@ import { renewBatchItemLease, retryQuestionGradingBatchItem } from '../math-docu
 
 const now = new Date();
 
+function matchesTombstoneCas(row: Record<string, any>, where: Record<string, any>): boolean {
+  if (where.OR && !where.OR.some((part: any) => matchesTombstoneCas(row, part))) return false;
+  if (where.AND && !where.AND.every((part: any) => matchesTombstoneCas(row, part))) return false;
+  for (const [field, expected] of Object.entries(where)) {
+    if (field === 'OR' || field === 'AND') continue;
+    const actual = row[field];
+    if (expected && typeof expected === 'object' && !Array.isArray(expected)) {
+      if ('in' in expected && !(expected as any).in.includes(actual)) return false;
+      if ('lt' in expected && !(actual && actual < (expected as any).lt)) return false;
+      if ('gt' in expected && !(actual && actual > (expected as any).gt)) return false;
+      continue;
+    }
+    if (actual !== expected) return false;
+  }
+  return true;
+}
+
 function lifecycleRow(dataClass: string, overrides: Record<string, unknown> = {}) {
   return {
     id: `lifecycle:${dataClass}:v2`,
@@ -356,7 +373,17 @@ describe('issue #916 phase-one governance hardening', () => {
       },
       gradingTombstone: {
         findUnique: async ({ where }: any) => tombstones.find((row) => row.resourceKey === where.resourceKey) ?? null,
-        create: async ({ data }: any) => { tombstones.push(data); return data; },
+        create: async ({ data }: any) => {
+          const row = { deletionClaimToken: null, deletionLeaseExpiresAt: null, ...data };
+          tombstones.push(row);
+          return row;
+        },
+        updateMany: async ({ where, data }: any) => {
+          const row = tombstones.find((candidate) => candidate.resourceKey === where.resourceKey);
+          if (!row || !matchesTombstoneCas(row, where)) return { count: 0 };
+          Object.assign(row, data);
+          return { count: 1 };
+        },
         update: async ({ where, data }: any) => { const row = tombstones.find((candidate) => candidate.resourceKey === where.resourceKey); Object.assign(row, data); return row; },
       },
       gradingLegalHold: { findFirst: async () => null },
@@ -737,6 +764,7 @@ describe('issue #916 phase-one governance hardening', () => {
   });
 
   it('pseudonymizes source object and submission lineage fields after physical deletion', async () => {
+    const databaseNow = new Date(now.getTime() + 4 * 60_000);
     const rawObjectKey = 'quarantine/pseudonymized-source';
     const rawFinalizationKey = 'finalize:pseudonymized-source';
     const asset: any = {
@@ -756,6 +784,7 @@ describe('issue #916 phase-one governance hardening', () => {
         updateMany: async ({ data }: any) => { Object.assign(tombstone, data); return { count: 1 }; },
       },
       gradingAuditEvent: { create: async () => undefined },
+      $queryRaw: async () => [{ now: databaseNow }],
       $transaction: async (callback: (tx: any) => Promise<unknown>) => callback(db),
     };
     const store = new MemorySubmissionObjectStore();
@@ -771,6 +800,8 @@ describe('issue #916 phase-one governance hardening', () => {
     expect(asset.originalName).not.toBe('student-answer.docx');
     expect(asset.finalizationKey).toBeNull();
     expect(asset.checksum).toBeNull();
+    expect(asset.tombstonedAt).toEqual(databaseNow);
+    expect(tombstone.physicalDeletedAt).toEqual(databaseNow);
     expect(accessTokenDeletes).toEqual([{ where: { assetId: 'asset-pseudonymized-source' } }]);
   });
 
@@ -1033,6 +1064,7 @@ describe('issue #916 phase-one governance hardening', () => {
   });
 
   it('records physical deletion as unavailable when a parent hold appears after the delete barrier', async () => {
+    const databaseNow = new Date(now.getTime() + 4 * 60_000);
     const asset: any = {
       id: 'asset-hold-barrier',
       objectKey: 'quarantine/hold-barrier',
@@ -1071,6 +1103,7 @@ describe('issue #916 phase-one governance hardening', () => {
       },
       gradingLegalHold: { findFirst: async () => holdVisible ? { id: 'hold-parent' } : null },
       gradingAuditEvent: { create: async () => undefined },
+      $queryRaw: async () => [{ now: databaseNow }],
       $transaction: async (callback: (tx: any) => Promise<unknown>) => callback(db),
     };
     const store = new MemorySubmissionObjectStore();
@@ -1084,7 +1117,8 @@ describe('issue #916 phase-one governance hardening', () => {
     await expect(garbageCollectQuarantine(db, store, now)).resolves.toEqual(expect.objectContaining({ claimed: 1, deleted: 0, failed: 1 }));
     expect(await store.head(asset.objectKey)).toBeNull();
     expect(asset.state).toBe('CONTENT_UNAVAILABLE');
-    expect(tombstone).toEqual(expect.objectContaining({ status: 'DELETED_WITH_HOLD', physicalDeletedAt: expect.any(Date), lastErrorCode: 'deleted-with-hold', deletionClaimToken: null }));
+    expect(tombstone).toEqual(expect.objectContaining({ status: 'DELETED_WITH_HOLD', physicalDeletedAt: databaseNow, deletedAt: databaseNow, lastErrorCode: 'deleted-with-hold', deletionClaimToken: null }));
+    expect(asset.tombstonedAt).toEqual(databaseNow);
   });
 
   it('reconciles a physical delete when the old owner loses its CAS to a new owner', async () => {
@@ -1137,8 +1171,8 @@ describe('issue #916 phase-one governance hardening', () => {
     };
 
     await expect(garbageCollectQuarantine(db, store, now)).resolves.toEqual(expect.objectContaining({ claimed: 1, deleted: 0, failed: 1 }));
-    expect(asset.state).toBe('CONTENT_UNAVAILABLE');
-    expect(tombstone).toEqual(expect.objectContaining({ status: 'DELETED_WITH_HOLD', physicalDeletedAt: expect.any(Date), lastErrorCode: 'deleted-with-hold', deletionClaimToken: null }));
+    expect(asset.state).toBe('DELETED');
+    expect(tombstone).toEqual(expect.objectContaining({ status: 'DELETED', physicalDeletedAt: expect.any(Date), lastErrorCode: null, deletionClaimToken: null }));
   });
 
   it('abandons a source-asset claim when the frozen policy tuple changes after scan', async () => {

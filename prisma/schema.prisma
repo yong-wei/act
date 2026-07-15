@@ -160,6 +160,7 @@ enum GradingRunState {
   RUNNING
   FAILED
   AWAITING_REVIEW
+  APPROVED
   BLOCKED
   RETRYABLE
   CANCELLED
@@ -267,6 +268,9 @@ model User {
 
   // Data governance
   riskFlags StudentRiskFlag[]
+  learningMaterializationRebuildRequest LearningMaterializationRebuildRequest?
+  learningMaterializationGeneration LearningMaterializationGeneration?
+  learningMaterializationOutbox LearningMaterializationOutbox[]
 
   // Arena mode
   arenaControllerArtifacts       ArenaControllerArtifact[]
@@ -658,9 +662,62 @@ model GradingRequestIdempotency {
   resourceId     String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+  expiresAt      DateTime @default(dbgenerated("(CURRENT_TIMESTAMP + INTERVAL '24 hours')"))
 
   @@unique([operation, scope, actorPseudoId, idempotencyKey], map: "GradingRequestIdempotency_operation_scope_actor_key")
   @@index([resourceType, resourceId])
+  @@index([expiresAt], map: "GradingRequestIdempotency_expiresAt_idx")
+}
+
+model LearningMaterializationRebuildRequest {
+  userId            String    @id
+  classIds           Json
+  reason             String
+  status             String    @default("PENDING")
+  generation         Int       @default(1)
+  claimedGeneration  Int?
+  claimToken         String?
+  claimExpiresAt     DateTime?
+  attemptCount       Int       @default(0)
+  lastErrorCode      String?
+  completedAt        DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status, claimExpiresAt, updatedAt], map: "LMRebuild_status_claim_exp_updated_idx")
+}
+
+model LearningMaterializationGeneration {
+  userId      String   @id
+  generation  Int      @default(0)
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model LearningMaterializationOutbox {
+  id             String   @id @default(cuid())
+  dedupeKey      String   @unique
+  userId         String
+  kind           String   @default("CLASS_SNAPSHOT")
+  classId        String?
+  generation     Int
+  snapshotId     String?
+  status         String   @default("PENDING")
+  attemptCount   Int      @default(0)
+  claimToken     String?
+  claimExpiresAt DateTime?
+  availableAt    DateTime @default(now())
+  deliveredAt    DateTime?
+  expiresAt      DateTime
+  lastErrorCode  String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status, availableAt, claimExpiresAt], map: "LMOutbox_status_available_claim_idx")
+  @@index([expiresAt], map: "LMOutbox_expiresAt_idx")
 }
 
 model GradingProviderPolicy {
@@ -1122,6 +1179,7 @@ model GradingRun {
   policyId                          String?
   policySnapshot                    Json?
   policySnapshotHash                String?
+  authorizationSnapshot            Json?
   provider                          String?
   providerRequestId                 String?
   providerRequestedAt               DateTime?
@@ -1190,6 +1248,10 @@ model GradingCriterionAssessment {
   rationale       String   @db.Text
   confidence      Float
   limitationState String   @default("none")
+  teacherLevelId  String?
+  teacherScore    Float?
+  teacherComment  String?  @db.Text
+  teacherReviewedAt DateTime?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -3084,6 +3146,7 @@ model ClassCompetencySnapshot {
   id         String   @id @default(cuid())
   classId    String
   snapshotAt DateTime
+  materializationVersion String?
 
   aggregateJson    Json // Mean/stdev per dimension
   distributionJson Json // Score distribution
@@ -3095,7 +3158,7 @@ model ClassCompetencySnapshot {
   activeStudentCount Int
   totalStudentCount  Int
 
-  @@index([classId, snapshotAt])
+  @@index([classId, materializationVersion, snapshotAt], map: "ClassCompetency_class_version_snapshot_idx")
 }
 
 // Student risk flags
@@ -3126,6 +3189,7 @@ model StudentRiskFlag {
 model GrowthRecord {
   id     String @id @default(cuid())
   userId String
+  businessKey String? @unique(map: "GrowthRecord_businessKey_key")
 
   recordType  String // milestone, breakthrough, remediation, reflection, portfolio
   title       String
@@ -3139,9 +3203,13 @@ model GrowthRecord {
   isPublic   Boolean  @default(false)
 
   createdAt DateTime @default(now())
+  sourceSnapshotAt DateTime?
+  sourceInputDigest String?
+  expiresAt DateTime?
 
   @@index([userId, recordType])
   @@index([userId, occurredAt])
+  @@index([recordType, expiresAt], map: "GrowthRecord_recordType_expiresAt_idx")
 }
 
 // Learning recommendations

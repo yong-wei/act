@@ -47,6 +47,8 @@ interface EvidenceSummaryItem {
 }
 
 export interface StudentSnapshotResponse {
+  derivationState: 'current' | 'no-recent-evidence' | 'no-evidence-after-revocation';
+  evidenceState: 'current' | 'empty';
   currentSnapshot: {
     vector: CompetencyVector;
     snapshotAt: string;
@@ -56,7 +58,7 @@ export interface StudentSnapshotResponse {
     vector: CompetencyVector;
     snapshotAt: string;
   } | null;
-  trendVector: TrendVector;
+  trendVector: TrendVector | null;
   evidenceSummary: Record<string, EvidenceSummaryItem[]>;
   riskFlags: RiskFlag[];
   recommendations: Array<{
@@ -133,6 +135,13 @@ export async function GET(_request: NextRequest) {
     });
 
     // Get evidence summary from current snapshot
+    const rawEvidenceSummary = (currentSnapshot.evidenceSummary as unknown as Record<string, unknown>) || {};
+    const derivation = rawEvidenceSummary._derivation && typeof rawEvidenceSummary._derivation === 'object' ? rawEvidenceSummary._derivation as Record<string, unknown> : null;
+    const noEvidenceAfterRevocation = derivation?.state === 'no-evidence-after-revocation'
+      || derivation?.state === 'no-recent-evidence';
+    const derivationState = derivation?.state === 'no-recent-evidence' || derivation?.state === 'no-evidence-after-revocation'
+      ? derivation.state
+      : 'current';
     const evidenceSummary = sanitizeEvidenceSummary(
       (currentSnapshot.evidenceSummary as unknown as Record<string, EvidenceSummaryItem[]>) || {}
     );
@@ -160,14 +169,14 @@ export async function GET(_request: NextRequest) {
     // Calculate trend vector
     const currentVector = currentSnapshot.competencyVector as unknown as CompetencyVector;
     const previousVector = previousSnapshot?.competencyVector as unknown as CompetencyVector | undefined;
-    const trendVector = previousVector
+    const trendVector = noEvidenceAfterRevocation ? null : previousVector
       ? calculateTrendVector(currentVector, previousVector)
       : (Object.fromEntries(
           Object.keys(currentVector).map((k) => [k, 'stable'])
         ) as unknown as TrendVector);
 
     // Generate basic recommendations based on snapshot data
-    const recommendations = generateSnapshotRecommendations(
+    const recommendations = noEvidenceAfterRevocation ? [] : generateSnapshotRecommendations(
       currentVector,
       riskFlags,
       evidenceSummary,
@@ -175,6 +184,8 @@ export async function GET(_request: NextRequest) {
     );
 
     const response: StudentSnapshotResponse = {
+      derivationState,
+      evidenceState: noEvidenceAfterRevocation ? 'empty' : 'current',
       currentSnapshot: {
         vector: currentVector,
         snapshotAt: currentSnapshot.snapshotAt.toISOString(),

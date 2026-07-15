@@ -231,6 +231,7 @@ require_cmd ssh
 require_cmd scp
 require_cmd curl
 require_cmd rsync
+require_cmd python3
 
 log "[1/5] 本地构建"
 if [[ "${SKIP_BUILD}" == "1" ]]; then
@@ -447,14 +448,10 @@ wait_for_public_session_api 120 || fail "公网认证会话接口未在预期时
 
 log "- 校验公网 readyz 健康接口"
 readyz_response="$(curl -fsS "${PUBLIC_URL%/}/api/readyz")"
-printf '%s\n' "$readyz_response" | grep -q '"db":true'
-printf '%s\n' "$readyz_response" | grep -q '"redis":true'
 if [[ "${MATH_DOCUMENT_GRADING_WORKER_REQUIRED}" =~ ^(1|true|yes)$ ]]; then
-  printf '%s\n' "$readyz_response" | grep -q '"mathDocumentGradingWorker":{"required":true,"ready":true}'
-  printf '%s\n' "$readyz_response" | grep -q '"configReady":true'
-  printf '%s\n' "$readyz_response" | grep -q '"auditSecret":true'
+  printf '%s\n' "$readyz_response" | python3 "${ROOT_DIR}/scripts/lib/validate-readyz.py" true
 else
-  printf '%s\n' "$readyz_response" | grep -q '"mathDocumentGradingWorker":{"required":false,"ready":true}'
+  printf '%s\n' "$readyz_response" | python3 "${ROOT_DIR}/scripts/lib/validate-readyz.py" false
 fi
 
 log

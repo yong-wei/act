@@ -138,6 +138,38 @@ describe('GET /api/student/competency-snapshot', () => {
     expect(body.evidenceSummary.crossDomainTransfer[0]).not.toHaveProperty('rawAnswer');
   });
 
+  it('returns the current empty rebuild snapshot instead of the revoked historical score', async () => {
+    const emptyVector = Object.fromEntries(['controlModeling', 'parameterDesign', 'crossDomainTransfer', 'engineeringDecision', 'inquiryReflection', 'selfDirectedLearning'].map((dimension) => [dimension, { score: 0, trend: 'stable', confidence: 0, evidenceCount: 0, lastUpdated: '2026-07-15T03:00:00.000Z' }]));
+    mocks.prisma.studentCompetencySnapshot.findFirst
+      .mockReset()
+      .mockResolvedValueOnce({ userId: 'student-1', competencyVector: emptyVector, snapshotAt: new Date('2026-07-15T03:00:00Z'), factCount: 0, evidenceSummary: { _derivation: { state: 'no-evidence-after-revocation', reason: 'governed-facts-revoked' } }, riskFlags: [] })
+      .mockResolvedValueOnce({ userId: 'student-1', competencyVector: Object.fromEntries(Object.keys(emptyVector).map((dimension) => [dimension, { score: dimension === 'controlModeling' ? 100 : 0, trend: 'stable', confidence: 1, evidenceCount: 1, lastUpdated: '2026-07-14T03:00:00.000Z' }])), snapshotAt: new Date('2026-07-14T03:00:00Z'), factCount: 1 });
+    mocks.prisma.studentRiskFlag.findMany.mockResolvedValue([]);
+
+    const response = await GET(new NextRequest('http://localhost/api/student/competency-snapshot'));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.currentSnapshot.factCount).toBe(0);
+    expect(body.currentSnapshot.vector.controlModeling.score).toBe(0);
+    expect(body.previousSnapshot.vector.controlModeling.score).toBe(100);
+    expect(body.trendVector).toBeNull();
+    expect(body.recommendations).toEqual([]);
+  });
+
+  it('does not infer decline or weaknesses from a no-recent-evidence boundary', async () => {
+    const vector = Object.fromEntries(['controlModeling', 'parameterDesign', 'crossDomainTransfer', 'engineeringDecision', 'inquiryReflection', 'selfDirectedLearning'].map((dimension) => [dimension, { score: dimension === 'controlModeling' ? 72 : 0, trend: 'stable', confidence: 0.5, evidenceCount: dimension === 'controlModeling' ? 3 : 0, lastUpdated: '2026-06-01T00:00:00.000Z' }]));
+    mocks.prisma.studentCompetencySnapshot.findFirst.mockReset()
+      .mockResolvedValueOnce({ userId: 'student-1', competencyVector: vector, snapshotAt: new Date('2026-07-15T03:00:00Z'), factCount: 0, evidenceSummary: { _derivation: { state: 'no-recent-evidence', reason: 'no-governed-facts-in-30-day-window' } }, riskFlags: [] })
+      .mockResolvedValueOnce({ userId: 'student-1', competencyVector: vector, snapshotAt: new Date('2026-06-01T00:00:00Z'), factCount: 3 });
+    mocks.prisma.studentRiskFlag.findMany.mockResolvedValue([]);
+    const body = await (await GET(new NextRequest('http://localhost/api/student/competency-snapshot'))).json();
+    expect(body.currentSnapshot.vector.controlModeling.score).toBe(72);
+    expect(body).toMatchObject({ derivationState: 'no-recent-evidence', evidenceState: 'empty' });
+    expect(body.trendVector).toBeNull();
+    expect(body.recommendations).toEqual([]);
+  });
+
   it('reads a persisted diagnosis snapshot with the student class id when the table exists', async () => {
     const diagnosisSnapshot = {
       id: 'diagnosis-report-1',

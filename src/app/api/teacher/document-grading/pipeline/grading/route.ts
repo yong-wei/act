@@ -2,11 +2,13 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { validatePipelineMutation } from '@/lib/data-governance/math-document-grading-contracts';
+import { GradingMutationError } from '@/lib/data-governance/math-document-grading-contracts';
 import { gradingApiError, readGradingJson, requireGradingTeacherActor } from '@/lib/data-governance/math-document-grading-api';
 import { enforceGradingQuota } from '@/lib/data-governance/math-document-grading-lifecycle';
 import { enqueueMathDocumentGradingJob } from '@/lib/data-governance/math-document-grading-queue';
 import { enqueueGradingRun } from '@/lib/data-governance/math-document-grading-persistence';
 import { prisma } from '@/lib/prisma';
+import { assertPipelineReviewActor, buildPipelineReviewListItem, PIPELINE_GRADING_REVIEW_INCLUDE, validatePipelineReviewContract, validatePipelineUnavailableListLineage } from '@/lib/data-governance/math-document-grading-review';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,6 +19,45 @@ const gradingRequestSchema = z.object({
   idempotencyKey: z.string().trim().min(8).max(160),
   rerunReason: z.string().trim().min(8).max(500).optional(),
 }).strict();
+
+export async function GET() {
+  try {
+    const actorResult = await requireGradingTeacherActor();
+    if ('response' in actorResult) return actorResult.response;
+    const now = new Date();
+    const rows = await prisma.gradingRun.findMany({
+      where: {
+        state: { in: ['AWAITING_REVIEW', 'CONTENT_UNAVAILABLE'] },
+        ...(actorResult.actor.role === 'ADMIN' ? {} : { OR: [
+          { state: 'CONTENT_UNAVAILABLE' },
+          { answerAttempt: { answer: { submission: { audience: { class: { teacherId: actorResult.actor.id } } } } } },
+          { question: { revision: { assignment: { authorId: actorResult.actor.id } } } },
+          { question: { revision: { assignment: { reviewGrants: { some: { teacherId: actorResult.actor.id, revokedAt: null, OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] } } } } } },
+        ] }),
+      },
+      include: PIPELINE_GRADING_REVIEW_INCLUDE,
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
+    const visible = [];
+    for (const run of rows) {
+      try {
+        const lineageReasons = run.state === 'CONTENT_UNAVAILABLE'
+          ? validatePipelineUnavailableListLineage(run)
+          : validatePipelineReviewContract(run, now);
+        if (lineageReasons.length > 0) continue;
+        await assertPipelineReviewActor({ db: prisma, run, actor: actorResult.actor, now });
+        visible.push(buildPipelineReviewListItem(run));
+      } catch (error) {
+        if (error instanceof GradingMutationError) continue;
+        if (!(error instanceof Error) || !['grading-forbidden', 'grading-review-class-drift'].includes(error.message)) throw error;
+      }
+    }
+    return NextResponse.json({ items: visible });
+  } catch (error) {
+    return gradingApiError(error);
+  }
+}
 
 export async function POST(request: Request) {
   try {

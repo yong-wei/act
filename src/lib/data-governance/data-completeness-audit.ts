@@ -106,6 +106,14 @@ export interface DataCompletenessLearningFactInput {
   contextJson?: unknown;
 }
 
+export interface DataCompletenessDocumentGradingRunInput {
+  id: string;
+  state: string;
+  rubricVersion: string;
+  studentId: string;
+  assessments: Array<{ criterionId: string }>;
+}
+
 export interface DataCompletenessDerivedEvidenceInput {
   userId: string;
 }
@@ -162,6 +170,7 @@ export interface DataCompletenessAuditInput {
   eventDictionaryTypes?: string[];
   learningEventBatches?: DataCompletenessLearningEventBatchInput[];
   learningFacts?: DataCompletenessLearningFactInput[];
+  documentGradingRuns?: DataCompletenessDocumentGradingRunInput[];
   historicalSourceLogIds?: DataCompletenessHistoricalSourceLogInput[];
   studentCompetencySnapshots?: DataCompletenessDerivedEvidenceInput[];
   studentProfileSummaries?: DataCompletenessDerivedEvidenceInput[];
@@ -849,7 +858,7 @@ function buildEvidenceLineageLayer(input: DataCompletenessAuditInput): DataCompl
     .map((log) => clientEventDedupeKey(log))
     .filter((value): value is string => Boolean(value));
   const clientEventIdCounts = countValues(clientEventIds);
-  const sourceEventIndex = buildValidSourceEventIndex(logs);
+  const sourceEventIndex = buildValidSourceEventIndex(logs, input.documentGradingRuns ?? []);
   const findings = [
     ...logs.filter((log) => !log.clientEventId).map((log) => finding('interaction-log-client-event-id-missing', 'partial', `InteractionLog:${log.id}`, 'InteractionLog lacks clientEventId.', 'repair-source-event-lineage')),
     ...logs.filter((log) => !log.attemptKey).map((log) => finding('interaction-log-attempt-key-missing', 'advisory', `InteractionLog:${log.id}`, 'InteractionLog lacks attemptKey for dedupe grouping.', 'repair-source-event-lineage')),
@@ -1046,10 +1055,11 @@ function clientEventDedupeKey(log: DataCompletenessInteractionLogInput): string 
   return `${userId}:${clientEventId}`;
 }
 
-function buildValidSourceEventIndex(logs: DataCompletenessInteractionLogInput[]): {
+function buildValidSourceEventIndex(logs: DataCompletenessInteractionLogInput[], documentGradingRuns: DataCompletenessDocumentGradingRunInput[] = []): {
   logDerivedIds: Set<string>;
   logIdsByUser: Map<string, Set<string>>;
   clientEventIdsByUser: Map<string, Set<string>>;
+  documentGradingRuns: Map<string, DataCompletenessDocumentGradingRunInput>;
 } {
   const logDerivedIds = new Set<string>();
   const logIdsByUser = new Map<string, Set<string>>();
@@ -1082,7 +1092,7 @@ function buildValidSourceEventIndex(logs: DataCompletenessInteractionLogInput[])
       clientEventIdsByUser.set(userId, ids);
     }
   }
-  return { logDerivedIds, logIdsByUser, clientEventIdsByUser };
+  return { logDerivedIds, logIdsByUser, clientEventIdsByUser, documentGradingRuns: new Map(documentGradingRuns.map((run) => [run.id, run])) };
 }
 
 function buildHistoricalSourceLogIndex(logs: DataCompletenessHistoricalSourceLogInput[]): HistoricalSourceLogIndex {
@@ -1163,6 +1173,24 @@ function classifyLearningFactSource(
   }
   if (sourceEventId.startsWith('yangfan-diagnostic-fixture:')) {
     return 'unknown';
+  }
+  const documentRubricPrefix = 'adaptive-assessment:document-rubric-grading:';
+  if (sourceEventId.startsWith(documentRubricPrefix)) {
+    const encodedParts = sourceEventId.slice(documentRubricPrefix.length).split(':');
+    let parts: string[] = [];
+    try {
+      if (encodedParts.length === 3 && encodedParts.every(Boolean)) parts = encodedParts.map((part) => decodeURIComponent(part));
+    } catch { /* malformed governed identity remains unknown */ }
+    const [runId, criterionId, rubricVersion] = parts;
+    const run = (sourceEventIndex as any).documentGradingRuns?.get(runId);
+    const context = fact.contextJson && typeof fact.contextJson === 'object' && !Array.isArray(fact.contextJson) ? fact.contextJson as Record<string, unknown> : {};
+    return fact.factType === 'document_rubric_grading'
+      && context.gradingRunId === runId && context.criterionId === criterionId && context.rubricVersion === rubricVersion
+      && run?.state === 'APPROVED'
+      && run.rubricVersion === rubricVersion
+      && run.studentId === fact.userId
+      && run.assessments.some((assessment: any) => assessment.criterionId === criterionId)
+      ? 'governed-external' : 'unknown';
   }
   if (
     sourceEventId.startsWith('arena-official:') ||

@@ -1,7 +1,9 @@
 import { createHash, randomUUID } from 'node:crypto';
+import { Prisma } from '@prisma/client';
 
 import { buildPipelineDedupeKey, pseudonymousAuditId } from './math-document-grading-contracts';
 import type { SubmissionObjectStore } from '@/lib/assignments/submission-object-store';
+import { revokeDerivedLearningMaterializations } from './derived-learning-materialization';
 
 type MathGradingDb = Record<string, any>;
 
@@ -364,7 +366,8 @@ export async function runGradingRetentionGc(input: {
   providerRetentionAdapter?: ProviderRetentionAdapter;
   now?: Date;
 }): Promise<{ scanned: number; deleted: number; held: number; blocked: number; tombstones: number }> {
-  const now = input.now ?? new Date();
+  const now = await readRetentionDatabaseNow(input.db, input.now ?? new Date());
+  await input.db.gradingRequestIdempotency?.deleteMany?.({ where: { expiresAt: { lte: now } } });
   for (const policy of input.policies) assertLifecyclePolicy(policy);
   if (!input.policies.some((policy) => policy.dataClass === 'document-conversion')) throw new Error('lifecycle-policy-blocked:missing:document-conversion');
   const evidence = await input.db.answerEvidence.findMany({ where: { tombstonedAt: null, OR: [{ retentionExpiresAt: { lte: now } }, { retentionExpiresAt: null }] }, include: { attempt: true, sourceAsset: true, conversion: { select: { renderedObjectKey: true, providerRequestId: true, providerRequestedAt: true, providerProcessedAt: true, policy: { select: { provider: true } } } }, blocks: true } });
@@ -373,6 +376,7 @@ export async function runGradingRetentionGc(input: {
   let blocked = 0;
   let tombstones = 0;
   for (const row of evidence) {
+    try {
     const lineage = await resolveGradingLineage({ db: input.db, resourceType: 'AnswerEvidence', resource: row });
     const hold = await findActiveHold(input.db, lineage.scopes, now);
     if (hold) {
@@ -426,19 +430,31 @@ export async function runGradingRetentionGc(input: {
       continue;
     }
     await input.db.$transaction(async (tx: any) => {
+      await ensureGradingTombstone(tx, { ...frozenLifecycleTombstoneFields(policy), id: `grading-tombstone:${resourceKey}`, resourceType: 'AnswerEvidence', resourceId: row.id, resourceKey, reason: 'retention-expired', checksum: row.sourceHash, lifecyclePolicyId: policy.id, lifecyclePolicyVersion: policy.version, lifecycleDeleteStrategy: policy.deleteStrategy, lifecycleRetentionSeconds: policy.retentionSeconds ?? null, providerRetentionSeconds: policy.providerRetentionSeconds ?? 0, provider: row.conversion?.policy?.provider ?? null, providerRequestId: row.conversion?.providerRequestId ?? null, providerRetentionStartedAt: row.conversion?.providerProcessedAt ?? row.conversion?.providerRequestedAt ?? null, contentDeletedAt: existingTombstone?.contentDeletedAt ?? null, lineageRetained: policy.deleteStrategy !== 'delete-content', createdAt: now });
+    });
+    const claimToken = await claimRetentionTombstone({ db: input.db, resourceKey, resourceType: 'AnswerEvidence', resourceId: row.id, scopes: lineage.scopes, now });
+    if (!claimToken) { blocked += 1; continue; }
+    await ensureGradingTombstoneObjects({ db: input.db, resourceKey, objectKeys, claimToken, now });
+    try { await runRetentionControlTransaction(input.db, async (tx: any) => {
+      await assertRetentionCleanupClaim(tx, resourceKey, claimToken, lineage.scopes, now, { model: 'answerEvidence', id: row.id, expiresAtField: 'retentionExpiresAt' });
+      await transitionParentRunsContentUnavailable(tx, { answerEvidenceId: row.id }, 'evidence-content-unavailable', now);
+      await blockActiveBatchAssociations({ db: tx, where: { evidenceId: row.id }, jobWhere: row.attemptId ? { attemptId: row.attemptId, state: { in: ['QUEUED', 'RUNNING', 'RETRYABLE'] } } : undefined, reason: 'evidence-content-unavailable', now });
       await tx.gradingJob.updateMany({ where: { attemptId: row.attemptId, state: { in: ['QUEUED', 'RUNNING', 'RETRYABLE'] } }, data: { state: 'CONTENT_UNAVAILABLE', lastErrorCode: 'retention-expired', updatedAt: now } });
       await ensureGradingTombstone(tx, { ...frozenLifecycleTombstoneFields(policy), id: `grading-tombstone:${resourceKey}`, resourceType: 'AnswerEvidence', resourceId: row.id, resourceKey, reason: 'retention-expired', checksum: row.sourceHash, lifecyclePolicyId: policy.id, lifecyclePolicyVersion: policy.version, lifecycleDeleteStrategy: policy.deleteStrategy, lifecycleRetentionSeconds: policy.retentionSeconds ?? null, providerRetentionSeconds: policy.providerRetentionSeconds ?? 0, provider: row.conversion?.policy?.provider ?? null, providerRequestId: row.conversion?.providerRequestId ?? null, providerRetentionStartedAt: row.conversion?.providerProcessedAt ?? row.conversion?.providerRequestedAt ?? null, contentDeletedAt: existingTombstone?.contentDeletedAt ?? null, lineageRetained: policy.deleteStrategy !== 'delete-content', createdAt: now });
       await writeLifecycleAudit(tx as never, { action: 'grading-retention.evidence-delete-intent', resourceType: 'AnswerEvidence', resourceId: row.id, actorId: 'grading-gc', actorRole: 'SERVICE', metadata: { reason: 'retention-expired', tombstonePending: !existingTombstone?.contentDeletedAt } });
-    });
+    }); } catch (error) {
+      if (isExpectedRetentionRace(error)) { if ((error as Error).message === 'grading-tombstone-hold') held += 1; else blocked += 1; continue; }
+      if (error && typeof error === 'object' && (error as { code?: unknown }).code === 'P2034') { blocked += 1; continue; }
+      throw error;
+    }
     if (!existingTombstone) tombstones += 1;
-    const claimToken = await claimRetentionTombstone({ db: input.db, resourceKey, resourceType: 'AnswerEvidence', resourceId: row.id, scopes: lineage.scopes, now });
-    if (!claimToken) { blocked += 1; continue; }
     const providerRetention = await handleProviderRetention({ db: input.db, adapter: input.providerRetentionAdapter, resourceKey, resourceType: 'AnswerEvidence', resourceId: row.id, claimToken, policy, holdScopes: lineage.scopes, now, preserveClaimOnFailure: true });
     const providerRetentionReady = providerRetention === 'ready';
     if (!providerRetentionReady) blocked += 1;
+    let finalizationNow = await readRetentionDatabaseNow(input.db, now);
     if (!existingTombstone?.contentDeletedAt) {
       try {
-        await deleteGradingObjectsWithLease({ db: input.db, store: input.store, resourceKey, resourceType: 'AnswerEvidence', resourceId: row.id, reason: 'evidence-content-unavailable', claimToken, objectKeys, holdScopes: lineage.scopes, now });
+        finalizationNow = await deleteGradingObjectsWithLease({ db: input.db, store: input.store, resourceKey, resourceType: 'AnswerEvidence', resourceId: row.id, reason: 'evidence-content-unavailable', claimToken, objectKeys, holdScopes: lineage.scopes, now });
       } catch (error) {
         if (isGradingPhysicalDeleteReconciledError(error)) { blocked += 1; continue; }
         if (!isObjectAlreadyGone(error)) {
@@ -453,13 +469,13 @@ export async function runGradingRetentionGc(input: {
     }
     try {
       await input.db.$transaction(async (tx: any) => {
-        await blockActiveBatchAssociations({ db: tx, where: { evidenceId: row.id }, jobWhere: row.attemptId ? { attemptId: row.attemptId, state: { in: ['QUEUED', 'RUNNING', 'RETRYABLE'] } } : undefined, reason: 'evidence-content-unavailable', now });
-        await clearReverseGradingLineage({ db: tx, resourceType: 'AnswerEvidence', resourceId: row.id, reason: 'evidence-content-unavailable', now });
-        await completeGradingTombstone(tx, resourceKey, now, { pseudonymized: policy.deleteStrategy === 'pseudonymize-lineage', providerRetentionReady, workerClaimToken: claimToken, holdScopes: lineage.scopes });
+        await completeGradingTombstone(tx, resourceKey, finalizationNow, { pseudonymized: policy.deleteStrategy === 'pseudonymize-lineage', providerRetentionReady, workerClaimToken: claimToken, holdScopes: lineage.scopes });
+        await clearReverseGradingLineage({ db: tx, resourceType: 'AnswerEvidence', resourceId: row.id, reason: 'evidence-content-unavailable', now: finalizationNow });
         await tx.answerEvidenceBlock.updateMany({ where: { evidenceId: row.id }, data: { text: '[deleted-by-retention-policy]', markdown: '[deleted-by-retention-policy]', spanStart: null, spanEnd: null, bbox: null, precision: 'PAGE', confidence: 0 } });
-        await tx.answerEvidence.update({ where: { id: row.id }, data: { readiness: 'DELETED', canonicalMarkdown: '[deleted-by-retention-policy]', sourceHash: `redacted:grading-evidence:${pseudonymizeGradingLineage(row.id, 'source-hash')}`, limitations: [...(row.limitations ?? []), 'content-deleted'], attemptId: null, sourceAssetId: null, conversionId: null, tombstonedAt: now, updatedAt: now } });
+        const redacted = await tx.answerEvidence.updateMany({ where: { id: row.id, tombstonedAt: null }, data: { readiness: 'DELETED', canonicalMarkdown: '[deleted-by-retention-policy]', sourceHash: `redacted:grading-evidence:${pseudonymizeGradingLineage(row.id, 'source-hash')}`, limitations: [...(row.limitations ?? []), 'content-deleted'], attemptId: null, sourceAssetId: null, conversionId: null, tombstonedAt: finalizationNow, updatedAt: finalizationNow } });
+        if (redacted.count !== 1) throw new Error('answer-evidence-redaction-fenced');
         if (tx.submissionAttempt?.updateMany) {
-          await tx.submissionAttempt.updateMany({ where: { id: row.attemptId, textSnapshot: { not: null }, textSnapshotExpiresAt: { lte: now }, textSnapshotPolicyId: { not: null }, textSnapshotPolicyVersion: { not: null }, textSnapshotDeleteStrategy: { in: ['delete-content', 'pseudonymize-lineage'] }, textSnapshotRetentionSeconds: { not: null }, OR: [{ textSnapshotGovernedRecordRule: null }, { textSnapshotGovernedRecordRule: '' }] }, data: { textSnapshot: null } });
+          await tx.submissionAttempt.updateMany({ where: { id: row.attemptId, textSnapshot: { not: null }, textSnapshotExpiresAt: { lte: finalizationNow }, textSnapshotPolicyId: { not: null }, textSnapshotPolicyVersion: { not: null }, textSnapshotDeleteStrategy: { in: ['delete-content', 'pseudonymize-lineage'] }, textSnapshotRetentionSeconds: { not: null }, OR: [{ textSnapshotGovernedRecordRule: null }, { textSnapshotGovernedRecordRule: '' }] }, data: { textSnapshot: null } });
         } else if (row.attemptId) {
           await tx.submissionAttempt?.update?.({ where: { id: row.attemptId }, data: { textSnapshot: null } });
         }
@@ -474,9 +490,15 @@ export async function runGradingRetentionGc(input: {
       continue;
     }
     deleted += 1;
+    } catch (error) {
+      if (isExpectedRetentionRace(error)) { if ((error as Error).message === 'grading-tombstone-hold') held += 1; else blocked += 1; continue; }
+      if (error && typeof error === 'object' && (error as { code?: unknown }).code === 'P2034') { blocked += 1; continue; }
+      throw error;
+    }
   }
   const conversions = await input.db.documentConversion.findMany({ where: { state: { not: 'DELETED' }, OR: [{ retentionExpiresAt: { lte: now } }, { retentionExpiresAt: null }] }, select: { id: true, renderedObjectKey: true, providerRequestId: true, providerRequestedAt: true, providerProcessedAt: true, assetId: true, attemptId: true, lifecyclePolicyId: true, lifecyclePolicyVersion: true, lifecycleDeleteStrategy: true, lifecycleRetentionSeconds: true, lifecycleGovernedRecordRule: true, lifecycleProviderRetentionSeconds: true, retentionExpiresAt: true, policy: { select: { provider: true } }, asset: { select: { objectKey: true, checksum: true } } } });
   for (const conversion of conversions) {
+    try {
     const lineage = await resolveGradingLineage({ db: input.db, resourceType: 'DocumentConversion', resource: conversion });
     const hold = await findActiveHold(input.db, lineage.scopes, now);
     if (hold) {
@@ -512,6 +534,16 @@ export async function runGradingRetentionGc(input: {
       continue;
     }
     await input.db.$transaction(async (tx: any) => {
+      await ensureGradingTombstone(tx, { ...frozenLifecycleTombstoneFields(policy), id: `grading-tombstone:${resourceKey}`, resourceType: 'DocumentConversion', resourceId: conversion.id, resourceKey, reason: 'retention-expired', checksum: null, lifecyclePolicyId: policy.id, lifecyclePolicyVersion: policy.version, lifecycleDeleteStrategy: policy.deleteStrategy, lifecycleRetentionSeconds: policy.retentionSeconds ?? null, providerRetentionSeconds: policy.providerRetentionSeconds ?? 0, provider: conversion.policy?.provider ?? null, providerRequestId: conversion.providerRequestId ?? null, providerRetentionStartedAt: conversion.providerProcessedAt ?? conversion.providerRequestedAt ?? null, contentDeletedAt: existingTombstone?.contentDeletedAt ?? null, lineageRetained: policy.deleteStrategy !== 'delete-content', createdAt: now });
+    });
+    const claimToken = await claimRetentionTombstone({ db: input.db, resourceKey, resourceType: 'DocumentConversion', resourceId: conversion.id, scopes: lineage.scopes, now });
+    if (!claimToken) { blocked += 1; continue; }
+    await ensureGradingTombstoneObjects({ db: input.db, resourceKey, objectKeys, claimToken, now });
+    try { await runRetentionControlTransaction(input.db, async (tx: any) => {
+      await assertRetentionCleanupClaim(tx, resourceKey, claimToken, lineage.scopes, now, { model: 'documentConversion', id: conversion.id, expiresAtField: 'retentionExpiresAt' });
+      await transitionParentRunsContentUnavailable(tx, { answerEvidence: { conversionId: conversion.id } }, 'conversion-content-unavailable', now);
+      await blockActiveBatchAssociations({ db: tx, where: { conversionId: conversion.id }, jobWhere: { conversionId: conversion.id, state: { in: ['QUEUED', 'RUNNING', 'RETRYABLE'] } }, reason: 'conversion-content-unavailable', now });
+      await clearReverseGradingLineage({ db: tx, resourceType: 'DocumentConversion', resourceId: conversion.id, reason: 'conversion-content-unavailable', now });
       await tx.gradingJob.updateMany({ where: { conversionId: conversion.id, state: { in: ['QUEUED', 'RUNNING', 'RETRYABLE'] } }, data: { state: 'CONTENT_UNAVAILABLE', lastErrorCode: 'retention-expired', updatedAt: now } });
       if (tx.documentConversion?.updateMany) {
         await tx.documentConversion.updateMany({ where: { id: conversion.id, state: { not: 'DELETED' } }, data: { state: 'CONTENT_UNAVAILABLE', failureCode: 'retention-delete-pending', updatedAt: now } });
@@ -520,16 +552,19 @@ export async function runGradingRetentionGc(input: {
       }
       await ensureGradingTombstone(tx, { ...frozenLifecycleTombstoneFields(policy), id: `grading-tombstone:${resourceKey}`, resourceType: 'DocumentConversion', resourceId: conversion.id, resourceKey, reason: 'retention-expired', checksum: null, lifecyclePolicyId: policy.id, lifecyclePolicyVersion: policy.version, lifecycleDeleteStrategy: policy.deleteStrategy, lifecycleRetentionSeconds: policy.retentionSeconds ?? null, providerRetentionSeconds: policy.providerRetentionSeconds ?? 0, provider: conversion.policy?.provider ?? null, providerRequestId: conversion.providerRequestId ?? null, providerRetentionStartedAt: conversion.providerProcessedAt ?? conversion.providerRequestedAt ?? null, contentDeletedAt: existingTombstone?.contentDeletedAt ?? null, lineageRetained: policy.deleteStrategy !== 'delete-content', createdAt: now });
       await writeLifecycleAudit(tx as never, { action: 'grading-retention.conversion-delete-intent', resourceType: 'DocumentConversion', resourceId: conversion.id, actorId: 'grading-gc', actorRole: 'SERVICE', metadata: { reason: 'retention-expired', tombstonePending: !existingTombstone?.contentDeletedAt } });
-    });
+    }); } catch (error) {
+      if (isExpectedRetentionRace(error)) { if ((error as Error).message === 'grading-tombstone-hold') held += 1; else blocked += 1; continue; }
+      if (error && typeof error === 'object' && (error as { code?: unknown }).code === 'P2034') { blocked += 1; continue; }
+      throw error;
+    }
     if (!existingTombstone) tombstones += 1;
-    const claimToken = await claimRetentionTombstone({ db: input.db, resourceKey, resourceType: 'DocumentConversion', resourceId: conversion.id, scopes: lineage.scopes, now });
-    if (!claimToken) { blocked += 1; continue; }
     const providerRetention = await handleProviderRetention({ db: input.db, adapter: input.providerRetentionAdapter, resourceKey, resourceType: 'DocumentConversion', resourceId: conversion.id, claimToken, policy, holdScopes: lineage.scopes, now, preserveClaimOnFailure: true });
     const providerRetentionReady = providerRetention === 'ready';
     if (!providerRetentionReady) blocked += 1;
+    let conversionFinalizationNow = await readRetentionDatabaseNow(input.db, now);
     if (!existingTombstone?.contentDeletedAt) {
       try {
-        await deleteGradingObjectsWithLease({ db: input.db, store: input.store, resourceKey, resourceType: 'DocumentConversion', resourceId: conversion.id, reason: 'conversion-content-unavailable', claimToken, objectKeys, holdScopes: lineage.scopes, now });
+        conversionFinalizationNow = await deleteGradingObjectsWithLease({ db: input.db, store: input.store, resourceKey, resourceType: 'DocumentConversion', resourceId: conversion.id, reason: 'conversion-content-unavailable', claimToken, objectKeys, holdScopes: lineage.scopes, now });
       } catch (error) {
         if (isGradingPhysicalDeleteReconciledError(error)) { blocked += 1; continue; }
         if (!isObjectAlreadyGone(error)) {
@@ -544,10 +579,8 @@ export async function runGradingRetentionGc(input: {
     }
     try {
       await input.db.$transaction(async (tx: any) => {
-        await blockActiveBatchAssociations({ db: tx, where: { conversionId: conversion.id }, jobWhere: { conversionId: conversion.id, state: { in: ['QUEUED', 'RUNNING', 'RETRYABLE'] } }, reason: 'conversion-content-unavailable', now });
-        await clearReverseGradingLineage({ db: tx, resourceType: 'DocumentConversion', resourceId: conversion.id, reason: 'conversion-content-unavailable', now });
-        await completeGradingTombstone(tx, resourceKey, now, { pseudonymized: policy.deleteStrategy === 'pseudonymize-lineage', providerRetentionReady, workerClaimToken: claimToken, holdScopes: lineage.scopes });
-        await tx.documentConversion.update({ where: { id: conversion.id }, data: { state: 'DELETED', canonicalMarkdown: null, sourceChecksum: `redacted:conversion-source:${pseudonymizeGradingLineage(conversion.id, 'source-checksum')}`, outputChecksum: null, renderedObjectKey: null, renderedChecksum: null, dedupeKey: `redacted:conversion:${pseudonymizeGradingLineage(conversion.id, 'dedupe-key')}`, policySnapshot: null, policySnapshotHash: null, providerRequestId: null, assetId: null, attemptId: null, updatedAt: now } });
+        await completeGradingTombstone(tx, resourceKey, conversionFinalizationNow, { pseudonymized: policy.deleteStrategy === 'pseudonymize-lineage', providerRetentionReady, workerClaimToken: claimToken, holdScopes: lineage.scopes });
+        await tx.documentConversion.update({ where: { id: conversion.id }, data: { state: 'DELETED', canonicalMarkdown: null, sourceChecksum: `redacted:conversion-source:${pseudonymizeGradingLineage(conversion.id, 'source-checksum')}`, outputChecksum: null, renderedObjectKey: null, renderedChecksum: null, dedupeKey: `redacted:conversion:${pseudonymizeGradingLineage(conversion.id, 'dedupe-key')}`, policySnapshot: null, policySnapshotHash: null, providerRequestId: null, assetId: null, attemptId: null, updatedAt: conversionFinalizationNow } });
         await writeLifecycleAudit(tx as never, { action: 'grading-retention.conversion-deleted', resourceType: 'DocumentConversion', resourceId: conversion.id, actorId: 'grading-gc', actorRole: 'SERVICE', metadata: { reason: 'retention-expired' } });
       });
     } catch (error) {
@@ -559,9 +592,15 @@ export async function runGradingRetentionGc(input: {
       continue;
     }
     deleted += 1;
+    } catch (error) {
+      if (isExpectedRetentionRace(error)) { if ((error as Error).message === 'grading-tombstone-hold') held += 1; else blocked += 1; continue; }
+      if (error && typeof error === 'object' && (error as { code?: unknown }).code === 'P2034') { blocked += 1; continue; }
+      throw error;
+    }
   }
-  const runs = await input.db.gradingRun.findMany({ where: { tombstonedAt: null, state: { in: ['QUEUED', 'RUNNING', 'AWAITING_REVIEW', 'BLOCKED', 'RETRYABLE', 'CONTENT_UNAVAILABLE'] }, OR: [{ retentionExpiresAt: { lte: now } }, { retentionExpiresAt: null }] }, select: { id: true, batchId: true, answerAttemptId: true, answerEvidenceId: true, inputHash: true, modelInputObjectKey: true, modelOutputObjectKey: true, limitations: true, provider: true, providerRequestId: true, providerRequestedAt: true, providerProcessedAt: true, providerDeletionHandle: true, lifecyclePolicyId: true, lifecyclePolicyVersion: true, lifecycleDeleteStrategy: true, lifecycleRetentionSeconds: true, lifecycleGovernedRecordRule: true, lifecycleProviderRetentionSeconds: true, retentionExpiresAt: true, policy: { select: { provider: true } } } });
+  const runs = await input.db.gradingRun.findMany({ where: { tombstonedAt: null, state: { in: ['QUEUED', 'RUNNING', 'AWAITING_REVIEW', 'APPROVED', 'BLOCKED', 'RETRYABLE', 'CONTENT_UNAVAILABLE'] }, OR: [{ retentionExpiresAt: { lte: now } }, { retentionExpiresAt: null }] }, select: { id: true, batchId: true, answerAttemptId: true, answerEvidenceId: true, inputHash: true, modelInputObjectKey: true, modelOutputObjectKey: true, limitations: true, provider: true, providerRequestId: true, providerRequestedAt: true, providerProcessedAt: true, providerDeletionHandle: true, lifecyclePolicyId: true, lifecyclePolicyVersion: true, lifecycleDeleteStrategy: true, lifecycleRetentionSeconds: true, lifecycleGovernedRecordRule: true, lifecycleProviderRetentionSeconds: true, retentionExpiresAt: true, policy: { select: { provider: true } } } });
   for (const run of runs) {
+    try {
     const lineage = await resolveGradingLineage({ db: input.db, resourceType: 'GradingRun', resource: run });
     const hold = await findActiveHold(input.db, lineage.scopes, now);
     if (hold) {
@@ -597,20 +636,33 @@ export async function runGradingRetentionGc(input: {
       continue;
     }
     await input.db.$transaction(async (tx: any) => {
-      await tx.gradingJob.updateMany({ where: { gradingRunId: run.id, state: { in: ['QUEUED', 'RUNNING', 'RETRYABLE'] } }, data: { state: 'CONTENT_UNAVAILABLE', lastErrorCode: 'retention-expired', updatedAt: now } });
-      await tx.gradingRun.update({ where: { id: run.id }, data: { state: 'CONTENT_UNAVAILABLE', updatedAt: now } });
       await ensureGradingTombstone(tx, { ...frozenLifecycleTombstoneFields(policy), id: `grading-tombstone:${resourceKey}`, resourceType: 'GradingRun', resourceId: run.id, resourceKey, reason: 'retention-expired', checksum: run.inputHash, lifecyclePolicyId: policy.id, lifecyclePolicyVersion: policy.version, lifecycleDeleteStrategy: policy.deleteStrategy, lifecycleRetentionSeconds: policy.retentionSeconds ?? null, providerRetentionSeconds: policy.providerRetentionSeconds ?? 0, provider: run.provider ?? run.policy?.provider ?? null, providerRequestId: run.providerRequestId ?? null, providerDeletionHandle: run.providerDeletionHandle ?? null, providerRetentionStartedAt: run.providerProcessedAt ?? run.providerRequestedAt ?? null, contentDeletedAt: existingTombstone?.contentDeletedAt ?? null, lineageRetained: policy.deleteStrategy !== 'delete-content', createdAt: now });
-      await writeLifecycleAudit(tx as never, { action: 'grading-retention.run-delete-intent', resourceType: 'GradingRun', resourceId: run.id, actorId: 'grading-gc', actorRole: 'SERVICE', metadata: { reason: 'retention-expired', tombstonePending: !existingTombstone?.contentDeletedAt } });
     });
-    if (!existingTombstone) tombstones += 1;
     const claimToken = await claimRetentionTombstone({ db: input.db, resourceKey, resourceType: 'GradingRun', resourceId: run.id, scopes: lineage.scopes, now });
     if (!claimToken) { blocked += 1; continue; }
+    await ensureGradingTombstoneObjects({ db: input.db, resourceKey, objectKeys: modelObjectKeys, claimToken, now });
+    try { await runRetentionControlTransaction(input.db, async (tx: any) => {
+      await assertRetentionCleanupClaim(tx, resourceKey, claimToken, lineage.scopes, now, { model: 'gradingRun', id: run.id, expiresAtField: 'retentionExpiresAt' });
+      if (!(await casGradingRunContentUnavailable(tx, run.id, 'run-content-unavailable', now, run.state))) throw new Error('grading-run-content-unavailable-cas-lost');
+      await tx.gradingCriterionAssessment.updateMany({ where: { gradingRunId: run.id }, data: { rationale: '[deleted-by-retention-policy]', teacherComment: null, teacherLevelId: null, teacherScore: null, teacherReviewedAt: null, confidence: 0, limitationState: 'content-deleted', updatedAt: now } });
+      await tx.gradingAnnotation.updateMany({ where: { gradingRunId: run.id }, data: { excerpt: '[deleted-by-retention-policy]', comment: '[deleted-by-retention-policy]', pageNumber: null, spanStart: null, spanEnd: null, bbox: null } });
+      await deleteDocumentRubricFactsForRuns(tx, [run.id]);
+      await tx.gradingJob.updateMany({ where: { gradingRunId: run.id, state: { in: ['QUEUED', 'RUNNING', 'RETRYABLE'] } }, data: { state: 'CONTENT_UNAVAILABLE', lastErrorCode: 'retention-expired', updatedAt: now } });
+      await ensureGradingTombstone(tx, { ...frozenLifecycleTombstoneFields(policy), id: `grading-tombstone:${resourceKey}`, resourceType: 'GradingRun', resourceId: run.id, resourceKey, reason: 'retention-expired', checksum: run.inputHash, lifecyclePolicyId: policy.id, lifecyclePolicyVersion: policy.version, lifecycleDeleteStrategy: policy.deleteStrategy, lifecycleRetentionSeconds: policy.retentionSeconds ?? null, providerRetentionSeconds: policy.providerRetentionSeconds ?? 0, provider: run.provider ?? run.policy?.provider ?? null, providerRequestId: run.providerRequestId ?? null, providerDeletionHandle: run.providerDeletionHandle ?? null, providerRetentionStartedAt: run.providerProcessedAt ?? run.providerRequestedAt ?? null, contentDeletedAt: existingTombstone?.contentDeletedAt ?? null, lineageRetained: policy.deleteStrategy !== 'delete-content', createdAt: now });
+      await writeLifecycleAudit(tx as never, { action: 'grading-retention.run-delete-intent', resourceType: 'GradingRun', resourceId: run.id, actorId: 'grading-gc', actorRole: 'SERVICE', metadata: { reason: 'retention-expired', tombstonePending: !existingTombstone?.contentDeletedAt } });
+    }); } catch (error) {
+      if (isExpectedRetentionRace(error)) { if ((error as Error).message === 'grading-tombstone-hold') held += 1; else blocked += 1; continue; }
+      if (error && typeof error === 'object' && (error as { code?: unknown }).code === 'P2034') { blocked += 1; continue; }
+      throw error;
+    }
+    if (!existingTombstone) tombstones += 1;
     const providerRetention = await handleProviderRetention({ db: input.db, adapter: input.providerRetentionAdapter, resourceKey, resourceType: 'GradingRun', resourceId: run.id, claimToken, policy, holdScopes: lineage.scopes, now, preserveClaimOnFailure: true });
     const providerRetentionReady = providerRetention === 'ready';
     if (!providerRetentionReady) blocked += 1;
+    let runFinalizationNow = await readRetentionDatabaseNow(input.db, now);
     if (!existingTombstone?.contentDeletedAt) {
       try {
-        await deleteGradingObjectsWithLease({ db: input.db, store: input.store, resourceKey, resourceType: 'GradingRun', resourceId: run.id, reason: 'run-content-unavailable', claimToken, objectKeys: modelObjectKeys, holdScopes: lineage.scopes, now });
+        runFinalizationNow = await deleteGradingObjectsWithLease({ db: input.db, store: input.store, resourceKey, resourceType: 'GradingRun', resourceId: run.id, reason: 'run-content-unavailable', claimToken, objectKeys: modelObjectKeys, holdScopes: lineage.scopes, now });
       } catch (error) {
         if (isGradingPhysicalDeleteReconciledError(error)) { blocked += 1; continue; }
         if (!isObjectAlreadyGone(error)) {
@@ -625,13 +677,11 @@ export async function runGradingRetentionGc(input: {
     }
     try {
       await input.db.$transaction(async (tx: any) => {
-        await blockActiveBatchAssociations({ db: tx, where: { gradingRunId: run.id }, jobWhere: { gradingRunId: run.id, state: { in: ['QUEUED', 'RUNNING', 'RETRYABLE'] } }, reason: 'run-content-unavailable', now });
-        await clearReverseGradingLineage({ db: tx, resourceType: 'GradingRun', resourceId: run.id, reason: 'run-content-unavailable', now });
-        await completeGradingTombstone(tx, resourceKey, now, { pseudonymized: policy.deleteStrategy === 'pseudonymize-lineage', providerRetentionReady, workerClaimToken: claimToken, holdScopes: lineage.scopes });
-        await tx.gradingCriterionAssessment.updateMany({ where: { gradingRunId: run.id }, data: { rationale: '[deleted-by-retention-policy]', confidence: 0, limitationState: 'content-deleted', updatedAt: now } });
-        await tx.gradingAnnotation.updateMany({ where: { gradingRunId: run.id }, data: { excerpt: '[deleted-by-retention-policy]', comment: '[deleted-by-retention-policy]', pageNumber: null, spanStart: null, spanEnd: null, bbox: null } });
-        await tx.gradingRun.update({ where: { id: run.id }, data: { state: 'CONTENT_UNAVAILABLE', overallComment: '[deleted-by-retention-policy]', questionSnapshot: null, rubricSnapshot: null, referenceAnswer: null, policySnapshot: null, policySnapshotHash: null, answerAttemptId: null, answerEvidenceId: null, questionId: null, rubricId: null, batchId: null, limitations: [...new Set([...(run.limitations ?? []), 'content-deleted'])], modelInputObjectKey: null, modelOutputObjectKey: null, tombstonedAt: now, updatedAt: now } });
-        await tx.gradingBatchItem?.updateMany?.({ where: { gradingRunId: run.id }, data: { answerId: null, attemptId: null, evidenceId: null, conversionId: null, gradingRunId: null, updatedAt: now } });
+        await blockActiveBatchAssociations({ db: tx, where: { gradingRunId: run.id }, jobWhere: { gradingRunId: run.id, state: { in: ['QUEUED', 'RUNNING', 'RETRYABLE'] } }, reason: 'run-content-unavailable', now: runFinalizationNow });
+        await clearReverseGradingLineage({ db: tx, resourceType: 'GradingRun', resourceId: run.id, reason: 'run-content-unavailable', now: runFinalizationNow });
+        await completeGradingTombstone(tx, resourceKey, runFinalizationNow, { pseudonymized: policy.deleteStrategy === 'pseudonymize-lineage', providerRetentionReady, workerClaimToken: claimToken, holdScopes: lineage.scopes });
+        await tx.gradingRun.update({ where: { id: run.id }, data: { authorizationSnapshot: { version: 'grading-authorization.v1', classId: lineage.classId, assignmentId: lineage.assignmentId, assignmentRevisionId: lineage.assignmentRevisionId }, overallComment: '[deleted-by-retention-policy]', questionSnapshot: null, rubricSnapshot: null, referenceAnswer: null, policySnapshot: null, policySnapshotHash: null, answerAttemptId: null, answerEvidenceId: null, questionId: null, rubricId: null, batchId: null, limitations: [...new Set([...(run.limitations ?? []), 'content-deleted'])], modelInputObjectKey: null, modelOutputObjectKey: null, tombstonedAt: runFinalizationNow, updatedAt: runFinalizationNow } });
+        await tx.gradingBatchItem?.updateMany?.({ where: { gradingRunId: run.id }, data: { answerId: null, attemptId: null, evidenceId: null, conversionId: null, gradingRunId: null, updatedAt: runFinalizationNow } });
         await writeLifecycleAudit(tx as never, { action: 'grading-retention.run-redacted', resourceType: 'GradingRun', resourceId: run.id, actorId: 'grading-gc', actorRole: 'SERVICE', metadata: { reason: 'retention-expired' } });
       });
     } catch (error) {
@@ -643,11 +693,17 @@ export async function runGradingRetentionGc(input: {
       continue;
     }
     deleted += 1;
+    } catch (error) {
+      if (isExpectedRetentionRace(error)) { if ((error as Error).message === 'grading-tombstone-hold') held += 1; else blocked += 1; continue; }
+      if (error && typeof error === 'object' && (error as { code?: unknown }).code === 'P2034') { blocked += 1; continue; }
+      throw error;
+    }
   }
   let batches: any[] = [];
   if (input.db.gradingBatch?.findMany) {
     batches = await input.db.gradingBatch.findMany({ where: { tombstonedAt: null, OR: [{ retentionExpiresAt: { lte: now } }, { retentionExpiresAt: null }] }, select: { id: true, classId: true, assignmentRevisionId: true, questionId: true, lifecyclePolicyId: true, lifecyclePolicyVersion: true, lifecycleDeleteStrategy: true, lifecycleRetentionSeconds: true, lifecycleGovernedRecordRule: true, lifecycleProviderRetentionSeconds: true, retentionExpiresAt: true, policy: { select: { provider: true } } } });
     for (const batch of batches) {
+      try {
       const lineage = await resolveGradingLineage({ db: input.db, resourceType: 'GradingBatch', resource: batch });
       const hold = await findActiveHold(input.db, lineage.scopes, now);
       if (hold) {
@@ -696,11 +752,13 @@ export async function runGradingRetentionGc(input: {
       const providerRetention = await handleProviderRetention({ db: input.db, adapter: input.providerRetentionAdapter, resourceKey: batchResourceKey, resourceType: 'GradingBatch', resourceId: batch.id, claimToken, policy, holdScopes: lineage.scopes, now, preserveClaimOnFailure: true });
       const providerRetentionReady = providerRetention === 'ready';
       if (!providerRetentionReady) blocked += 1;
+      const batchFinalizationNow = await readRetentionDatabaseNow(input.db, now);
       try {
         await input.db.$transaction(async (tx: any) => {
-          await completeGradingTombstone(tx, batchResourceKey, now, { pseudonymized: policy.deleteStrategy === 'pseudonymize-lineage', providerRetentionReady, workerClaimToken: claimToken, holdScopes: lineage.scopes });
-          await clearReverseGradingLineage({ db: tx, resourceType: 'GradingBatch', resourceId: batch.id, reason: 'batch-content-unavailable', now });
-          await tx.gradingBatch.update({ where: { id: batch.id }, data: { assignmentRevisionId: null, classId: null, questionSnapshot: null, rubricSnapshot: null, referenceAnswer: null, policySnapshot: null, conversionPolicySnapshot: null, policyId: null, conversionPolicyId: null, questionId: null, requesterUserId: null, state: 'CONTENT_UNAVAILABLE', lastErrorCode: 'batch-content-unavailable', tombstonedAt: now, updatedAt: now, questionSnapshotHash: `redacted:grading-question:${pseudonymizeGradingLineage(batch.id, 'question-hash')}`, dedupeKey: `redacted:grading-batch:${pseudonymizeGradingLineage(batch.id, 'dedupe-key')}`, idempotencyKey: `redacted:grading-request:${pseudonymizeGradingLineage(batch.id, 'request-key')}` } });
+        await completeGradingTombstone(tx, batchResourceKey, batchFinalizationNow, { pseudonymized: policy.deleteStrategy === 'pseudonymize-lineage', providerRetentionReady, workerClaimToken: claimToken, holdScopes: lineage.scopes });
+          await transitionParentRunsContentUnavailable(tx, { batchId: batch.id }, 'batch-content-unavailable', batchFinalizationNow);
+          await clearReverseGradingLineage({ db: tx, resourceType: 'GradingBatch', resourceId: batch.id, reason: 'batch-content-unavailable', now: batchFinalizationNow });
+          await tx.gradingBatch.update({ where: { id: batch.id }, data: { assignmentRevisionId: null, classId: null, questionSnapshot: null, rubricSnapshot: null, referenceAnswer: null, policySnapshot: null, conversionPolicySnapshot: null, policyId: null, conversionPolicyId: null, questionId: null, requesterUserId: null, state: 'CONTENT_UNAVAILABLE', lastErrorCode: 'batch-content-unavailable', tombstonedAt: batchFinalizationNow, updatedAt: batchFinalizationNow, questionSnapshotHash: `redacted:grading-question:${pseudonymizeGradingLineage(batch.id, 'question-hash')}`, dedupeKey: `redacted:grading-batch:${pseudonymizeGradingLineage(batch.id, 'dedupe-key')}`, idempotencyKey: `redacted:grading-request:${pseudonymizeGradingLineage(batch.id, 'request-key')}` } });
         });
       } catch (error) {
         blocked += 1;
@@ -708,6 +766,11 @@ export async function runGradingRetentionGc(input: {
         continue;
       }
       deleted += 1;
+      } catch (error) {
+        if (isExpectedRetentionRace(error)) { if ((error as Error).message === 'grading-tombstone-hold') held += 1; else blocked += 1; continue; }
+        if (error && typeof error === 'object' && (error as { code?: unknown }).code === 'P2034') { blocked += 1; continue; }
+        throw error;
+      }
     }
   }
   let textSnapshots: any[] = [];
@@ -717,6 +780,7 @@ export async function runGradingRetentionGc(input: {
       select: { id: true, answerId: true, textSnapshot: true, textSnapshotPolicyId: true, textSnapshotPolicyVersion: true, textSnapshotDeleteStrategy: true, textSnapshotRetentionSeconds: true, textSnapshotGovernedRecordRule: true, textSnapshotProviderRetentionSeconds: true, textSnapshotExpiresAt: true },
     });
     for (const snapshot of textSnapshots) {
+      try {
       const policy = frozenLifecyclePolicyFromRecord({
         lifecyclePolicyId: snapshot.textSnapshotPolicyId,
         lifecyclePolicyVersion: snapshot.textSnapshotPolicyVersion,
@@ -743,19 +807,22 @@ export async function runGradingRetentionGc(input: {
       const resourceKey = `text-snapshot:${snapshot.id}`;
       const existingTombstone = await findGradingTombstone(input.db, resourceKey);
       if (isGradingTombstoneTerminal(existingTombstone)) continue;
-      await input.db.$transaction(async (tx: any) => {
+      await runRetentionControlTransaction(input.db, async (tx: any) => {
         await ensureGradingTombstone(tx, { ...frozenLifecycleTombstoneFields(policy), id: `grading-tombstone:${resourceKey}`, resourceType: 'SubmissionAttempt', resourceId: snapshot.id, resourceKey, reason: 'text-snapshot-retention-expired', checksum: null, lifecyclePolicyId: policy.id, lifecyclePolicyVersion: policy.version, lifecycleDeleteStrategy: policy.deleteStrategy, lifecycleRetentionSeconds: policy.retentionSeconds ?? null, providerRetentionSeconds: policy.providerRetentionSeconds ?? 0, contentDeletedAt: null, lineageRetained: policy.deleteStrategy !== 'delete-content', createdAt: now });
       });
       const claimToken = await claimRetentionTombstone({ db: input.db, resourceKey, resourceType: 'SubmissionAttempt', resourceId: snapshot.id, scopes: lineage.scopes, now });
       if (!claimToken) { blocked += 1; continue; }
       if (policy.deleteStrategy === 'retain-governed-record') {
-        await input.db.$transaction(async (tx: any) => {
+        await runRetentionControlTransaction(input.db, async (tx: any) => {
           await completeGradingTombstone(tx, resourceKey, now, { contentDeleted: false, workerClaimToken: claimToken, holdScopes: lineage.scopes });
           await writeLifecycleAudit(tx as never, { action: 'grading-retention.text-snapshot-retained', resourceType: 'SubmissionAttempt', resourceId: snapshot.id, actorId: 'grading-gc', actorRole: 'SERVICE', metadata: { reason: 'text-snapshot-retention-expired', deleteStrategy: policy.deleteStrategy, lifecyclePolicyVersion: policy.version } });
         });
       } else {
-        await input.db.$transaction(async (tx: any) => {
+        try { await runRetentionControlTransaction(input.db, async (tx: any) => {
+          await assertRetentionCleanupClaim(tx, resourceKey, claimToken, lineage.scopes, now, { model: 'submissionAttempt', id: snapshot.id, expiresAtField: 'textSnapshotExpiresAt' });
+          await transitionParentRunsContentUnavailable(tx, { answerAttemptId: snapshot.id }, 'text-snapshot-content-unavailable', now);
           await blockActiveBatchAssociations({ db: tx, where: { attemptId: snapshot.id }, jobWhere: { attemptId: snapshot.id, state: { in: ['QUEUED', 'RUNNING', 'RETRYABLE'] } }, reason: 'text-snapshot-content-unavailable', now });
+          await redactTextNativeEvidenceForAttempt(tx, snapshot.id, now);
           if (tx.submissionAttempt?.updateMany) {
             await tx.submissionAttempt.updateMany({ where: { id: snapshot.id, textSnapshot: { not: null }, textSnapshotExpiresAt: { lte: now }, textSnapshotPolicyId: { not: null }, textSnapshotPolicyVersion: { not: null }, textSnapshotDeleteStrategy: { in: ['delete-content', 'pseudonymize-lineage'] }, textSnapshotRetentionSeconds: { not: null }, OR: [{ textSnapshotGovernedRecordRule: null }, { textSnapshotGovernedRecordRule: '' }] }, data: { textSnapshot: null } });
           } else {
@@ -763,13 +830,90 @@ export async function runGradingRetentionGc(input: {
           }
           await completeGradingTombstone(tx, resourceKey, now, { pseudonymized: policy.deleteStrategy === 'pseudonymize-lineage', workerClaimToken: claimToken, holdScopes: lineage.scopes });
           await writeLifecycleAudit(tx as never, { action: 'grading-retention.text-snapshot-deleted', resourceType: 'SubmissionAttempt', resourceId: snapshot.id, actorId: 'grading-gc', actorRole: 'SERVICE', metadata: { reason: 'text-snapshot-retention-expired', deleteStrategy: policy.deleteStrategy, lifecyclePolicyVersion: policy.version } });
-        });
+        }); } catch (error) {
+          if (isExpectedRetentionRace(error)) { if ((error as Error).message === 'grading-tombstone-hold') held += 1; else blocked += 1; continue; }
+          if (error && typeof error === 'object' && (error as { code?: unknown }).code === 'P2034') { blocked += 1; continue; }
+          throw error;
+        }
       }
       if (!existingTombstone) tombstones += 1;
       if (policy.deleteStrategy !== 'retain-governed-record') deleted += 1;
+      } catch (error) {
+        if (isExpectedRetentionRace(error)) {
+          if ((error as Error).message === 'grading-tombstone-hold') held += 1;
+          else blocked += 1;
+          continue;
+        }
+        if (error && typeof error === 'object' && (error as { code?: unknown }).code === 'P2034') {
+          blocked += 1;
+          continue;
+        }
+        throw error;
+      }
     }
   }
   return { scanned: evidence.length + conversions.length + runs.length + batches.length + textSnapshots.length, deleted, held, blocked, tombstones };
+}
+
+export async function redactTextNativeEvidenceForAttempt(db: any, attemptId: string, now: Date): Promise<void> {
+  const evidence = await db.answerEvidence?.findMany?.({ where: { attemptId, sourceKind: 'TEXT_NATIVE' }, select: { id: true, limitations: true } }) ?? [];
+  const evidenceIds = evidence.map((row: any) => row.id);
+  if (evidenceIds.length === 0) return;
+  await db.answerEvidenceBlock?.updateMany?.({ where: { evidenceId: { in: evidenceIds } }, data: { text: '[deleted-by-retention-policy]', markdown: '[deleted-by-retention-policy]', spanStart: null, spanEnd: null, bbox: null, precision: 'PAGE', confidence: 0 } });
+  for (const row of evidence) {
+    await db.answerEvidence?.updateMany?.({ where: { id: row.id, attemptId, sourceKind: 'TEXT_NATIVE' }, data: { readiness: 'BLOCKED', lifecycleBlockedAt: now, lifecycleBlockReason: 'text-snapshot-content-unavailable', canonicalMarkdown: '[deleted-by-retention-policy]', sourceHash: `redacted:grading-evidence:${pseudonymizeGradingLineage(row.id, 'source-hash')}`, limitations: [...new Set([...(row.limitations ?? []), 'content-deleted'])], updatedAt: now } });
+  }
+}
+
+async function deleteDocumentRubricFactsForRuns(db: any, runIds: string[]): Promise<void> {
+  for (const runId of [...new Set(runIds.filter(Boolean))]) {
+    const prefix = `adaptive-assessment:document-rubric-grading:${encodeURIComponent(runId)}:`;
+    const facts = await db.learningFact?.findMany?.({ where: { factType: 'document_rubric_grading', sourceEventId: { startsWith: prefix } }, select: { userId: true, contextJson: true } }) ?? [];
+    await db.learningFact?.deleteMany?.({ where: { factType: 'document_rubric_grading', sourceEventId: { startsWith: prefix } } });
+    const users = [...new Set<string>(facts.map((fact: any) => fact.userId).filter((value: unknown): value is string => typeof value === 'string' && value.length > 0))];
+    const classIds = [...new Set(facts.map((fact: any) => fact.contextJson?.classId).filter(Boolean))] as string[];
+    await revokeDerivedLearningMaterializations(db, { userIds: users, classIds });
+  }
+}
+
+export async function transitionParentRunsContentUnavailable(db: any, where: any, reason: string, now: Date): Promise<void> {
+  const runs = await db.gradingRun?.findMany?.({ where, select: { id: true, state: true, answerEvidenceId: true, modelInputObjectKey: true, modelOutputObjectKey: true, lifecyclePolicyId: true, lifecyclePolicyVersion: true, lifecycleDeleteStrategy: true, lifecycleRetentionSeconds: true, lifecycleGovernedRecordRule: true, lifecycleProviderRetentionSeconds: true } }) ?? [];
+  const runIds: string[] = [];
+  for (const run of runs) {
+    if (await casGradingRunContentUnavailable(db, run.id, reason, now, run.state, true)) runIds.push(run.id);
+  }
+  if (runIds.length === 0) return;
+  await db.gradingRequestIdempotency?.deleteMany?.({ where: { resourceType: 'GradingRun', resourceId: { in: runIds } } });
+}
+
+const GRADING_RUN_CONTENT_STATES = ['AWAITING_REVIEW', 'APPROVED', 'QUEUED', 'RUNNING', 'BLOCKED', 'RETRYABLE'];
+async function casGradingRunContentUnavailable(db: any, runId: string, reason: string, now: Date, knownState?: string, preserveContent = false): Promise<boolean> {
+  if (knownState === 'CONTENT_UNAVAILABLE') {
+    const current = db.gradingRun?.findUnique ? await db.gradingRun.findUnique({ where: { id: runId }, select: { state: true } }) : { state: knownState };
+    return current?.state === 'CONTENT_UNAVAILABLE';
+  }
+  if (knownState && !GRADING_RUN_CONTENT_STATES.includes(knownState)) return false;
+  if (!db.gradingRun?.updateMany) {
+    if (!db.gradingRun?.update) return false;
+    await db.gradingRun.update({ where: { id: runId }, data: contentUnavailableRunData(reason, now, preserveContent) });
+    return true;
+  }
+  const result = await db.gradingRun.updateMany({ where: { id: runId, state: { in: GRADING_RUN_CONTENT_STATES } }, data: contentUnavailableRunData(reason, now, preserveContent) });
+  return result.count === 1;
+}
+
+function contentUnavailableRunData(reason: string, now: Date, preserveContent: boolean) {
+  if (preserveContent) {
+    return {
+      state: 'CONTENT_UNAVAILABLE',
+      lifecycleBlockedAt: now,
+      lifecycleBlockReason: reason,
+      ...(reason.includes('evidence') || reason.includes('conversion') ? { answerEvidenceId: null } : {}),
+      ...(reason.includes('batch') ? { batchId: null } : {}),
+      updatedAt: now,
+    };
+  }
+  return { state: 'CONTENT_UNAVAILABLE', lifecycleBlockedAt: now, lifecycleBlockReason: reason, overallComment: '[deleted-by-retention-policy]', questionSnapshot: null, rubricSnapshot: null, referenceAnswer: null, policySnapshot: null, modelInputObjectKey: null, modelOutputObjectKey: null, updatedAt: now };
 }
 
 async function blockActiveBatchAssociations(input: {
@@ -1098,11 +1242,10 @@ export async function clearReverseGradingLineage(input: { db: MathGradingDb; res
   }
 
   if (runIds.size > 0 && runModel?.findMany) {
-    const runs = await runModel.findMany({ where: { id: { in: [...runIds] } }, select: { id: true, inputHash: true, questionSnapshotHash: true, limitations: true } });
+    const runs = await runModel.findMany({ where: { id: { in: [...runIds] } }, select: { id: true, state: true, inputHash: true, questionSnapshotHash: true, limitations: true } });
     for (const run of runs) {
       const runData = parentCascade
         ? {
-          state: 'CONTENT_UNAVAILABLE',
           answerAttemptId: null,
           answerEvidenceId: null,
           batchId: null,
@@ -1111,7 +1254,6 @@ export async function clearReverseGradingLineage(input: { db: MathGradingDb; res
           updatedAt: input.now,
         }
         : {
-          state: 'CONTENT_UNAVAILABLE',
           answerAttemptId: null,
           answerEvidenceId: null,
           batchId: null,
@@ -1236,8 +1378,15 @@ async function ensureGradingTombstoneObjects(input: { db: MathGradingDb; resourc
   const tombstone = await findGradingTombstone(input.db, input.resourceKey);
   if (!tombstone?.id) throw new Error('grading-tombstone-object-parent-missing');
   const objectKeys = [...new Set(input.objectKeys)];
-  if (objectKeys.length === 0) return;
-  const existingRows = await model.findMany({ where: { tombstoneId: tombstone.id, objectKey: { in: objectKeys } } });
+  const existingRows = objectKeys.length === 0
+    ? await model.findMany({ where: { tombstoneId: tombstone.id } })
+    : await model.findMany({ where: { tombstoneId: tombstone.id, objectKey: { in: objectKeys } } });
+  if (objectKeys.length === 0) {
+    for (const existing of existingRows) {
+      if (!['DELETED', 'DELETED_WITH_HOLD'].includes(String(existing.status))) await model.updateMany?.({ where: { tombstoneId: tombstone.id, objectKey: existing.objectKey, status: { in: ['PENDING', 'RETRYABLE'] } }, data: { status: 'PENDING', deletionClaimToken: input.claimToken, lastErrorCode: null, updatedAt: input.now } });
+    }
+    return;
+  }
   for (const objectKey of objectKeys) {
     const existing = existingRows.find((row: any) => row.objectKey === objectKey);
     if (!existing) {
@@ -1254,6 +1403,7 @@ async function ensureGradingTombstoneObjects(input: { db: MathGradingDb; resourc
 async function pendingGradingTombstoneObjectKeys(input: { db: MathGradingDb; resourceKey: string; objectKeys: string[] }): Promise<string[]> {
   const rows = await listGradingTombstoneObjects(input.db, input.resourceKey);
   if (rows.length === 0) return [...new Set(input.objectKeys)];
+  if (input.objectKeys.length === 0) return rows.filter((row) => !['DELETED', 'DELETED_WITH_HOLD'].includes(String(row.status))).map((row) => row.objectKey);
   const completed = new Set(rows.filter((row) => ['DELETED', 'DELETED_WITH_HOLD'].includes(String(row.status))).map((row) => row.objectKey));
   return [...new Set(input.objectKeys)].filter((objectKey) => !completed.has(objectKey));
 }
@@ -1395,21 +1545,74 @@ async function claimRetentionTombstone(input: {
   return claimToken;
 }
 
-async function deleteGradingObjectsWithLease(input: { db: MathGradingDb; store: SubmissionObjectStore; resourceKey: string; resourceType: string; resourceId: string; reason: string; claimToken: string; objectKeys: string[]; holdScopes?: Array<[string, string]>; now: Date }): Promise<void> {
+export async function assertRetentionCleanupClaim(db: MathGradingDb, resourceKey: string, claimToken: string, scopes: Array<[string, string]>, now: Date, eligibility?: { model: string; id: string; expiresAtField: string }): Promise<void> {
+  const transactionNow = await readRetentionDatabaseNow(db, now);
+  if (eligibility) {
+    const model = (db as any)[eligibility.model];
+    if (typeof model?.findUnique === 'function') {
+      const current = await model.findUnique({ where: { id: eligibility.id }, select: { [eligibility.expiresAtField]: true } });
+      const expiresAt = current?.[eligibility.expiresAtField];
+      if (!current || !expiresAt || new Date(expiresAt) > transactionNow) throw new Error('grading-retention-not-expired');
+    }
+  }
+  if (await findActiveHold(db, scopes, transactionNow)) throw new Error('grading-tombstone-hold');
+  if (!(await renewGradingTombstoneLease({ db, resourceKey, claimToken, now: transactionNow, holdScopes: scopes }))) throw new Error('grading-tombstone-claim-lost');
+  const postRenewNow = await readRetentionDatabaseNow(db, transactionNow);
+  if (!(await renewGradingTombstoneLease({ db, resourceKey, claimToken, now: postRenewNow, holdScopes: scopes }))) throw new Error('grading-tombstone-claim-lost');
+  if (await findActiveHold(db, scopes, postRenewNow)) throw new Error('grading-tombstone-hold');
+}
+
+async function readRetentionDatabaseNow(db: MathGradingDb, fallback: Date): Promise<Date> {
+  if (typeof (db as any).$queryRaw !== 'function') return fallback;
+  const rows = await (db as any).$queryRaw(Prisma.sql`SELECT clock_timestamp() AS "now"`);
+  const value = Array.isArray(rows) ? rows[0]?.now : null;
+  const parsed = value instanceof Date ? value : new Date(value ?? fallback);
+  return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+}
+
+export async function hasActiveGradingHoldAtDatabaseNow(
+  db: MathGradingDb,
+  scopes: Array<[string, string]>,
+  fallback: Date,
+): Promise<boolean> {
+  const databaseNow = await readRetentionDatabaseNow(db, fallback);
+  return hasActiveGradingHold(db, scopes, databaseNow);
+}
+
+export function isExpectedRetentionRace(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : '';
+  return message === 'grading-tombstone-hold' || message === 'grading-tombstone-claim-lost' || message === 'grading-retention-not-expired';
+}
+
+export async function runRetentionControlTransaction<T>(db: MathGradingDb, callback: (tx: MathGradingDb) => Promise<T>): Promise<T> {
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      return await db.$transaction(callback, { isolationLevel: 'Serializable' });
+    } catch (error) {
+      if (!(error && typeof error === 'object' && (error as { code?: unknown }).code === 'P2034') || attempt === 1) throw error;
+    }
+  }
+  throw new Error('retention-control-transaction-unreachable');
+}
+
+async function deleteGradingObjectsWithLease(input: { db: MathGradingDb; store: SubmissionObjectStore; resourceKey: string; resourceType: string; resourceId: string; reason: string; claimToken: string; objectKeys: string[]; holdScopes?: Array<[string, string]>; now: Date }): Promise<Date> {
   await ensureGradingTombstoneObjects({ db: input.db, resourceKey: input.resourceKey, objectKeys: input.objectKeys, claimToken: input.claimToken, now: input.now });
   const objectKeys = await pendingGradingTombstoneObjectKeys({ db: input.db, resourceKey: input.resourceKey, objectKeys: input.objectKeys });
-  if (objectKeys.length === 0) return;
+  if (objectKeys.length === 0) return readRetentionDatabaseNow(input.db, input.now);
   const heartbeat = startGradingTombstoneLeaseHeartbeat({ db: input.db, resourceKey: input.resourceKey, claimToken: input.claimToken, holdScopes: input.holdScopes });
   let reconciled = false;
+  let completedAt: Date | null = null;
   try {
     await deleteGradingObjectsIndependently({
       store: input.store,
       objectKeys,
+      readDeletedAt: () => readRetentionDatabaseNow(input.db, input.now),
       assertOwnership: async () => !heartbeat.isLost() && await renewGradingTombstoneLease({ db: input.db, resourceKey: input.resourceKey, claimToken: input.claimToken, holdScopes: input.holdScopes }),
       onObjectDeleted: async ({ objectKey, physicalDeletedAt }) => {
+        completedAt = physicalDeletedAt;
         const recorded = await markGradingTombstoneObjectDeleted({ db: input.db, resourceKey: input.resourceKey, objectKey, claimToken: input.claimToken, now: physicalDeletedAt });
         if (!recorded) {
-          await reconcileGradingPhysicalDelete({ db: input.db, resourceKey: input.resourceKey, resourceType: input.resourceType, resourceId: input.resourceId, objectKey, physicalDeletedAt, reason: 'claim-lost-after-physical-delete', now: input.now });
+          await reconcileGradingPhysicalDelete({ db: input.db, resourceKey: input.resourceKey, resourceType: input.resourceType, resourceId: input.resourceId, objectKey, physicalDeletedAt, reason: 'claim-lost-after-physical-delete', now: physicalDeletedAt });
           reconciled = true;
           throw new GradingPhysicalDeleteReconciledError();
         }
@@ -1421,12 +1624,12 @@ async function deleteGradingObjectsWithLease(input: { db: MathGradingDb; store: 
         let hold = false;
         if (input.holdScopes) {
           try {
-            hold = Boolean(await hasActiveGradingHold(input.db, input.holdScopes, new Date()));
+            hold = await hasActiveGradingHoldAtDatabaseNow(input.db, input.holdScopes, input.now);
           } catch {
             hold = false;
           }
         }
-        await reconcileGradingPhysicalDelete({ db: input.db, resourceKey: input.resourceKey, resourceType: input.resourceType, resourceId: input.resourceId, objectKey, physicalDeletedAt, reason: hold ? 'legal-hold-observed-after-physical-delete' : 'claim-lost-after-physical-delete', now: input.now });
+        await reconcileGradingPhysicalDelete({ db: input.db, resourceKey: input.resourceKey, resourceType: input.resourceType, resourceId: input.resourceId, objectKey, physicalDeletedAt, reason: hold ? 'legal-hold-observed-after-physical-delete' : 'claim-lost-after-physical-delete', now: physicalDeletedAt });
         reconciled = true;
       },
     });
@@ -1436,6 +1639,7 @@ async function deleteGradingObjectsWithLease(input: { db: MathGradingDb; store: 
   } finally {
     heartbeat.stop();
   }
+  return completedAt ?? readRetentionDatabaseNow(input.db, input.now);
 }
 
 function frozenLifecycleTombstoneFields(policy: LifecyclePolicyInput): Record<string, unknown> {
@@ -1622,7 +1826,7 @@ export async function claimGradingTombstone(input: {
   leaseMs?: number;
   holdScopes?: Array<[string, string]>;
 }): Promise<boolean> {
-  const now = input.now ?? new Date();
+  const now = await readRetentionDatabaseNow(input.db, input.now ?? new Date());
   const tombstone = await findGradingTombstone(input.db, input.resourceKey);
   const hasReadRepository = Boolean(input.db.gradingTombstone?.findUnique || input.db.gradingTombstone?.findFirst);
   if ((hasReadRepository && !tombstone) || isGradingTombstoneTerminal(tombstone)) return false;
@@ -1660,7 +1864,7 @@ export async function claimGradingTombstone(input: {
 }
 
 export async function renewGradingTombstoneLease(input: { db: MathGradingDb; resourceKey: string; claimToken: string; now?: Date; leaseMs?: number; holdScopes?: Array<[string, string]> }): Promise<boolean> {
-  const requestedNow = input.now ?? new Date();
+  const requestedNow = await readRetentionDatabaseNow(input.db, input.now ?? new Date());
   const model = input.db.gradingTombstone;
   if (!model) return false;
   if (input.holdScopes && await hasActiveGradingHold(input.db, input.holdScopes, requestedNow)) return false;
@@ -1689,7 +1893,10 @@ export async function renewGradingTombstoneLease(input: { db: MathGradingDb; res
         return false;
       }
     }
-    return !(input.holdScopes && await hasActiveGradingHold(input.db, input.holdScopes, new Date()));
+    const verifiedNow = await readRetentionDatabaseNow(input.db, requestedNow);
+    const latest = await findGradingTombstone(input.db, input.resourceKey);
+    if (!latest || latest.status !== 'PENDING' || latest.deletionClaimToken !== input.claimToken || !latest.deletionLeaseExpiresAt || new Date(latest.deletionLeaseExpiresAt) <= verifiedNow) return false;
+    return !(input.holdScopes && await hasActiveGradingHold(input.db, input.holdScopes, verifiedNow));
   }
   return false;
 }
@@ -1708,6 +1915,7 @@ export async function deleteGradingObjectsIndependently(input: {
   store: SubmissionObjectStore;
   objectKeys: string[];
   assertOwnership?: () => Promise<boolean> | boolean;
+  readDeletedAt?: () => Promise<Date> | Date;
   onObjectDeleted?: (input: { objectKey: string; physicalDeletedAt: Date }) => Promise<void> | void;
   onObjectError?: (input: { objectKey: string; error: unknown }) => Promise<void> | void;
   onOwnershipLost?: (input: { objectKey: string; physicalDeletedAt: Date; deletedObjectKeys: string[] }) => Promise<void> | void;
@@ -1719,14 +1927,14 @@ export async function deleteGradingObjectsIndependently(input: {
     let physicalDeletedAt: Date;
     try {
       await input.store.delete(objectKey);
-      physicalDeletedAt = new Date();
+      physicalDeletedAt = input.readDeletedAt ? await input.readDeletedAt() : new Date();
     } catch (error) {
       if (!isObjectAlreadyGone(error)) {
         firstError ??= error;
         await input.onObjectError?.({ objectKey, error });
         continue;
       }
-      physicalDeletedAt = new Date();
+      physicalDeletedAt = input.readDeletedAt ? await input.readDeletedAt() : new Date();
     }
     deletedObjectKeys.push(objectKey);
     await input.onObjectDeleted?.({ objectKey, physicalDeletedAt });
@@ -1808,9 +2016,11 @@ async function ensureGradingTombstone(db: MathGradingDb, data: Record<string, un
 }
 
 export async function completeGradingTombstone(db: MathGradingDb, resourceKey: string, now: Date, options: { contentDeleted?: boolean; pseudonymized?: boolean; providerRetentionReady?: boolean; workerClaimToken?: string; holdScopes?: Array<[string, string]> } = {}): Promise<void> {
+  now = await readRetentionDatabaseNow(db, now);
   const contentDeleted = options.contentDeleted !== false;
-  if (options.holdScopes && await hasActiveGradingHold(db, options.holdScopes, new Date())) throw new Error('grading-tombstone-hold');
+  if (options.holdScopes && await hasActiveGradingHold(db, options.holdScopes, now)) throw new Error('grading-tombstone-hold');
   const current = await findGradingTombstone(db, resourceKey);
+  if (options.workerClaimToken && current?.deletionLeaseExpiresAt && new Date(current.deletionLeaseExpiresAt) <= now) throw new Error('grading-tombstone-complete-fenced');
   const storageResourceKey = typeof current?.resourceKey === 'string' ? current.resourceKey : resourceKey;
   const objectRows = contentDeleted ? await listGradingTombstoneObjects(db, resourceKey) : [];
   if (contentDeleted && objectRows.some((row) => !['DELETED', 'DELETED_WITH_HOLD'].includes(String(row.status)))) throw new Error('grading-tombstone-objects-incomplete');
@@ -1838,7 +2048,7 @@ export async function completeGradingTombstone(db: MathGradingDb, resourceKey: s
     lastErrorCode: holdOutcome ? 'deleted-with-hold' : null,
     ...(contentDeleted ? { redactionCount: { increment: 1 } } : {}),
   };
-  const claimWhere = options.workerClaimToken ? { deletionClaimToken: options.workerClaimToken } : {};
+  const claimWhere = options.workerClaimToken ? { deletionClaimToken: options.workerClaimToken, deletionLeaseExpiresAt: { gt: now } } : {};
   if (db.gradingTombstone?.updateMany) {
     const result = await db.gradingTombstone.updateMany({ where: { resourceKey: storageResourceKey, status: { in: ['PENDING', 'RETRYABLE', 'BLOCKED', 'DELETED_WITH_HOLD'] }, ...claimWhere }, data });
     if (result?.count === 0) {

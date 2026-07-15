@@ -1,4 +1,4 @@
-import type { PrismaClient } from '@prisma/client';
+import { Prisma, type PrismaClient } from '@prisma/client';
 import { createHash, randomBytes } from 'node:crypto';
 
 import { assertDeliveryWindow, deriveAggregate, mayReadSubmission, opaqueObjectKey, SubmissionError, submissionHash } from './submission-domain';
@@ -19,6 +19,14 @@ import {
 
 const SUBMISSION_DELETE_LEASE_MS = 5 * 60_000;
 const SUBMISSION_DELETE_HEARTBEAT_MS = 60_000;
+
+async function readSubmissionDatabaseNow(db: any, fallback: Date): Promise<Date> {
+  if (typeof db.$queryRaw !== 'function') return fallback;
+  const rows = await db.$queryRaw(Prisma.sql`SELECT clock_timestamp() AS "now"`);
+  const value = Array.isArray(rows) ? rows[0]?.now : null;
+  const parsed = value instanceof Date ? value : new Date(value ?? fallback);
+  return Number.isNaN(parsed.getTime()) ? fallback : parsed;
+}
 
 function submissionObjectTombstoneLookupKey(objectKey: string): string {
   return gradingTombstoneLookupKey(`submission-object:${objectKey}`);
@@ -321,8 +329,9 @@ function buildSubmissionObjectTombstoneCompletion(objectKey: string, strategy: s
   };
 }
 
-async function settleSubmissionDeletionWithHold(tx: any, claim: { objectKey: string; assetId: string; strategy: string; reason: string }, claimToken: string, now: Date, barrierReason = 'hold-or-owner-fence-after-delete'): Promise<boolean> {
-  const holdData = buildSubmissionObjectTombstoneCompletion(claim.objectKey, claim.strategy, now, 'DELETED_WITH_HOLD');
+async function settleSubmissionDeletionWithHold(tx: any, claim: { objectKey: string; assetId: string; strategy: string; reason: string }, claimToken: string, now: Date, barrierReason = 'hold-or-owner-fence-after-delete', holdObserved = true): Promise<boolean> {
+  const outcome = holdObserved ? 'DELETED_WITH_HOLD' : 'DELETED';
+  const holdData = buildSubmissionObjectTombstoneCompletion(claim.objectKey, claim.strategy, now, outcome);
   const tombstone = tx.submissionObjectTombstone?.updateMany
     ? await tx.submissionObjectTombstone.updateMany({ where: { objectKey: claim.objectKey, status: { not: 'RETAINED' }, deletionClaimToken: claimToken }, data: holdData })
     : null;
@@ -341,15 +350,16 @@ async function settleSubmissionDeletionWithHold(tx: any, claim: { objectKey: str
     throw new SubmissionError('submission-delete-hold-reconciliation-failed', 409);
   }
   await removeSubmissionAssetAccessTokens(tx, claim.assetId);
+  const finalAssetState = holdObserved ? 'CONTENT_UNAVAILABLE' : 'DELETED';
   const completed = await tx.submissionAsset.updateMany?.({
-    where: { id: claim.assetId, state: { not: 'CONTENT_UNAVAILABLE' } },
-    data: { ...redactedSubmissionAssetData(claim.assetId, 'CONTENT_UNAVAILABLE'), tombstonedAt: now, lastDeletionErrorCode: 'deleted-with-hold' },
+    where: { id: claim.assetId, state: { not: finalAssetState } },
+    data: { ...redactedSubmissionAssetData(claim.assetId, finalAssetState), tombstonedAt: now, lastDeletionErrorCode: holdObserved ? 'deleted-with-hold' : null },
   });
   if (completed?.count === 0) {
     const current = await tx.submissionAsset?.findUnique?.({ where: { id: claim.assetId } });
-    if (!current || current.state !== 'CONTENT_UNAVAILABLE') throw new SubmissionError('submission-delete-hold-reconciliation-failed', 409);
+    if (!current || current.state !== finalAssetState) throw new SubmissionError('submission-delete-hold-reconciliation-failed', 409);
   }
-  await writeLifecycleAudit(tx as never, { action: 'submission-asset.deleted-with-hold', resourceType: 'SubmissionAsset', resourceId: claim.assetId, actorId: 'grading-gc', actorRole: 'SERVICE', metadata: { reason: claim.reason, barrierReason, outcome: 'DELETED_WITH_HOLD', physicalDeletedAt: now.toISOString() } });
+  await writeLifecycleAudit(tx as never, { action: holdObserved ? 'submission-asset.deleted-with-hold' : 'submission-asset.deleted-after-claim-loss', resourceType: 'SubmissionAsset', resourceId: claim.assetId, actorId: 'grading-gc', actorRole: 'SERVICE', metadata: { reason: claim.reason, barrierReason, outcome, physicalDeletedAt: now.toISOString() } });
   return true;
 }
 
@@ -409,13 +419,14 @@ export async function garbageCollectQuarantine(prisma: PrismaClient, store: Subm
       physicalDeleteConfirmed = true;
       await assertDeletionOwnership();
       await prisma.$transaction(async (tx) => {
-        if (await hasActiveGradingHold(tx as never, claim.holdScopes, new Date())) throw new SubmissionError('quarantine-gc-hold', 409);
+        const completionNow = await readSubmissionDatabaseNow(tx, now);
+        if (await hasActiveGradingHold(tx as never, claim.holdScopes, completionNow)) throw new SubmissionError('quarantine-gc-hold', 409);
         await removeSubmissionAssetAccessTokens(tx, claim.assetId);
-        const tombstone = await tx.submissionObjectTombstone.updateMany({ where: { objectKey: claim.objectKey, status: { not: 'DELETED' }, deletionClaimToken: claimToken }, data: buildSubmissionObjectTombstoneCompletion(claim.objectKey, claim.strategy, now) });
+        const tombstone = await tx.submissionObjectTombstone.updateMany({ where: { objectKey: claim.objectKey, status: { not: 'DELETED' }, deletionClaimToken: claimToken }, data: buildSubmissionObjectTombstoneCompletion(claim.objectKey, claim.strategy, completionNow) });
         if (tombstone.count !== 1) {
           throw new SubmissionError('gc-claim-lost', 409);
         }
-        const completed = await tx.submissionAsset.updateMany({ where: { id: claim.assetId, state: 'DELETING', deletionClaimToken: claimToken }, data: { ...redactedSubmissionAssetData(claim.assetId), tombstonedAt: now } });
+        const completed = await tx.submissionAsset.updateMany({ where: { id: claim.assetId, state: 'DELETING', deletionClaimToken: claimToken }, data: { ...redactedSubmissionAssetData(claim.assetId), tombstonedAt: completionNow } });
         if (completed.count !== 1) throw new SubmissionError('gc-claim-lost', 409);
         await writeLifecycleAudit(tx as never, { action: 'quarantine-asset.deleted', resourceType: 'SubmissionAsset', resourceId: claim.assetId, actorId: 'grading-gc', actorRole: 'SERVICE', metadata: { reason: claim.reason } });
       });
@@ -427,11 +438,12 @@ export async function garbageCollectQuarantine(prisma: PrismaClient, store: Subm
         try {
           await assertDeletionOwnership();
           await prisma.$transaction(async (tx) => {
-            if (await hasActiveGradingHold(tx as never, claim.holdScopes, new Date())) throw new SubmissionError('quarantine-gc-hold', 409);
+            const completionNow = await readSubmissionDatabaseNow(tx, now);
+            if (await hasActiveGradingHold(tx as never, claim.holdScopes, completionNow)) throw new SubmissionError('quarantine-gc-hold', 409);
             await removeSubmissionAssetAccessTokens(tx, claim.assetId);
-            const tombstone = await tx.submissionObjectTombstone.updateMany({ where: { objectKey: claim.objectKey, status: { not: 'DELETED' }, deletionClaimToken: claimToken }, data: buildSubmissionObjectTombstoneCompletion(claim.objectKey, claim.strategy, now) });
+            const tombstone = await tx.submissionObjectTombstone.updateMany({ where: { objectKey: claim.objectKey, status: { not: 'DELETED' }, deletionClaimToken: claimToken }, data: buildSubmissionObjectTombstoneCompletion(claim.objectKey, claim.strategy, completionNow) });
             if (tombstone.count !== 1) throw new SubmissionError('gc-claim-lost', 409);
-            const completed = await tx.submissionAsset.updateMany({ where: { id: claim.assetId, state: 'DELETING', deletionClaimToken: claimToken }, data: { ...redactedSubmissionAssetData(claim.assetId), tombstonedAt: now } });
+            const completed = await tx.submissionAsset.updateMany({ where: { id: claim.assetId, state: 'DELETING', deletionClaimToken: claimToken }, data: { ...redactedSubmissionAssetData(claim.assetId), tombstonedAt: completionNow } });
             if (completed.count !== 1) throw new SubmissionError('gc-claim-lost', 409);
           });
           deleted += 1;
@@ -443,7 +455,9 @@ export async function garbageCollectQuarantine(prisma: PrismaClient, store: Subm
       }
       if (physicalDeleteConfirmed && (effectiveError instanceof SubmissionError && (effectiveError.code === 'quarantine-gc-hold' || effectiveError.code === 'quarantine-gc-claim-lost' || effectiveError.code === 'gc-claim-lost'))) {
         await prisma.$transaction(async (tx) => {
-          await settleSubmissionDeletionWithHold(tx, claim, claimToken, new Date(), effectiveError.code);
+          const reconciliationNow = await readSubmissionDatabaseNow(tx, now);
+          const holdObserved = await hasActiveGradingHold(tx as never, claim.holdScopes, reconciliationNow);
+          await settleSubmissionDeletionWithHold(tx, claim, claimToken, reconciliationNow, effectiveError.code, holdObserved);
         });
         failed += 1;
         continue;
@@ -589,16 +603,17 @@ export async function garbageCollectSourceAssets(prisma: PrismaClient, store: Su
       physicalDeleteConfirmed = true;
       await assertDeletionOwnership();
       await prisma.$transaction(async (tx) => {
-        if (await hasActiveGradingHold(tx as never, claim.holdScopes, new Date())) throw new SubmissionError('source-asset-gc-hold', 409);
+        const completionNow = await readSubmissionDatabaseNow(tx, now);
+        if (await hasActiveGradingHold(tx as never, claim.holdScopes, completionNow)) throw new SubmissionError('source-asset-gc-hold', 409);
         await removeSubmissionAssetAccessTokens(tx, claim.assetId);
-        const tombstoneData = buildSubmissionObjectTombstoneCompletion(claim.objectKey, claim.strategy, now);
+        const tombstoneData = buildSubmissionObjectTombstoneCompletion(claim.objectKey, claim.strategy, completionNow);
         if (tx.submissionObjectTombstone.updateMany) {
           const tombstone = await tx.submissionObjectTombstone.updateMany({ where: { objectKey: claim.objectKey, status: { not: 'DELETED' }, deletionClaimToken: claimToken }, data: tombstoneData });
           if (tombstone.count !== undefined && tombstone.count !== 1) throw new SubmissionError('source-asset-gc-claim-lost', 409);
         } else {
           await tx.submissionObjectTombstone.update({ where: { objectKey: claim.objectKey }, data: tombstoneData });
         }
-        const completed = await tx.submissionAsset.updateMany({ where: { id: claim.assetId, state: 'DELETING', deletionClaimToken: claimToken }, data: { ...redactedSubmissionAssetData(claim.assetId), tombstonedAt: now } });
+        const completed = await tx.submissionAsset.updateMany({ where: { id: claim.assetId, state: 'DELETING', deletionClaimToken: claimToken }, data: { ...redactedSubmissionAssetData(claim.assetId), tombstonedAt: completionNow } });
         if (completed.count !== 1) throw new SubmissionError('source-asset-gc-claim-lost', 409);
         await writeLifecycleAudit(tx as never, { action: 'source-asset.deleted', resourceType: 'SubmissionAsset', resourceId: claim.assetId, actorId: 'grading-gc', actorRole: 'SERVICE', metadata: { reason: 'source-asset-retention-expired' } });
       });
@@ -610,11 +625,12 @@ export async function garbageCollectSourceAssets(prisma: PrismaClient, store: Su
         try {
           await assertDeletionOwnership();
           await prisma.$transaction(async (tx) => {
-            if (await hasActiveGradingHold(tx as never, claim.holdScopes, new Date())) throw new SubmissionError('source-asset-gc-hold', 409);
+            const completionNow = await readSubmissionDatabaseNow(tx, now);
+            if (await hasActiveGradingHold(tx as never, claim.holdScopes, completionNow)) throw new SubmissionError('source-asset-gc-hold', 409);
             await removeSubmissionAssetAccessTokens(tx, claim.assetId);
-            const tombstone = await tx.submissionObjectTombstone.updateMany({ where: { objectKey: claim.objectKey, status: { not: 'DELETED' }, deletionClaimToken: claimToken }, data: buildSubmissionObjectTombstoneCompletion(claim.objectKey, claim.strategy, now) });
+            const tombstone = await tx.submissionObjectTombstone.updateMany({ where: { objectKey: claim.objectKey, status: { not: 'DELETED' }, deletionClaimToken: claimToken }, data: buildSubmissionObjectTombstoneCompletion(claim.objectKey, claim.strategy, completionNow) });
             if (tombstone.count !== 1) throw new SubmissionError('source-asset-gc-claim-lost', 409);
-            const completed = await tx.submissionAsset.updateMany({ where: { id: claim.assetId, state: 'DELETING', deletionClaimToken: claimToken }, data: { ...redactedSubmissionAssetData(claim.assetId), tombstonedAt: now } });
+            const completed = await tx.submissionAsset.updateMany({ where: { id: claim.assetId, state: 'DELETING', deletionClaimToken: claimToken }, data: { ...redactedSubmissionAssetData(claim.assetId), tombstonedAt: completionNow } });
             if (completed.count !== 1) throw new SubmissionError('source-asset-gc-claim-lost', 409);
           });
           deleted += 1;
@@ -626,7 +642,9 @@ export async function garbageCollectSourceAssets(prisma: PrismaClient, store: Su
       }
       if (physicalDeleteConfirmed && (effectiveError instanceof SubmissionError && (effectiveError.code === 'source-asset-gc-hold' || effectiveError.code === 'source-asset-gc-claim-lost'))) {
         await prisma.$transaction(async (tx) => {
-          await settleSubmissionDeletionWithHold(tx, claim, claimToken, new Date(), effectiveError.code);
+          const reconciliationNow = await readSubmissionDatabaseNow(tx, now);
+          const holdObserved = await hasActiveGradingHold(tx as never, claim.holdScopes, reconciliationNow);
+          await settleSubmissionDeletionWithHold(tx, claim, claimToken, reconciliationNow, effectiveError.code, holdObserved);
         });
         blocked += 1;
         continue;
@@ -671,7 +689,7 @@ async function lockSubmissionAsset(tx: any, assetId: string): Promise<void> {
 export async function renewSubmissionAssetDeletionLease(input: { db: any; assetId: string; claimToken: string; now?: Date; holdScopes?: Array<[string, string]> }): Promise<boolean> {
   const model = input.db.submissionAsset;
   if (!model?.updateMany) return false;
-  const requestedNow = input.now ?? new Date();
+  const requestedNow = input.now ?? await readSubmissionDatabaseNow(input.db, new Date());
   if (input.holdScopes && await hasActiveGradingHold(input.db as never, input.holdScopes, requestedNow)) return false;
   let current: any = null;
   try {
@@ -707,7 +725,8 @@ export async function renewSubmissionAssetDeletionLease(input: { db: any; assetI
       return false;
     }
   }
-  return !(input.holdScopes && await hasActiveGradingHold(input.db as never, input.holdScopes, new Date()));
+  const postRenewNow = input.now ?? await readSubmissionDatabaseNow(input.db, requestedNow);
+  return !(input.holdScopes && await hasActiveGradingHold(input.db as never, input.holdScopes, postRenewNow));
 }
 
 function startSubmissionAssetDeletionLeaseHeartbeat(prisma: PrismaClient, assetId: string, claimToken: string, defaultHoldScopes: Array<[string, string]> = [['asset', assetId]]) {
@@ -718,7 +737,8 @@ function startSubmissionAssetDeletionLeaseHeartbeat(prisma: PrismaClient, assetI
     if (lost) return false;
     const renewed = await renewSubmissionAssetDeletionLease({ db: prisma, assetId, claimToken, holdScopes });
     if (!renewed) {
-      lossReason = await hasActiveGradingHold(prisma as never, holdScopes, new Date()) ? 'hold' : 'claim';
+      const lossNow = await readSubmissionDatabaseNow(prisma, new Date());
+      lossReason = await hasActiveGradingHold(prisma as never, holdScopes, lossNow) ? 'hold' : 'claim';
       lost = true;
       abortController.abort();
     }

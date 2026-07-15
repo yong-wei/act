@@ -10,6 +10,8 @@ import { authOptions } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import { createDatabaseUnavailableResponse, isDatabaseConnectivityError } from '@/lib/service-availability';
+import { buildTeacherScopedLearningFactScopeFilters } from '@/lib/data-governance/teacher-evidence-governance';
+import { CLASS_COMPETENCY_MATERIALIZATION_VERSION } from '@/lib/data-governance/class-scoped-learning-materialization';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,9 +42,15 @@ export async function GET(request: NextRequest, props: { params: Promise<{ class
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    const classSessionIds = (await prisma.classSession.findMany({ where: { classId }, select: { id: true } })).map((row) => row.id);
+    const currentEvidenceSince = new Date(Date.now() - 30 * 24 * 60 * 60_000);
+    const classEvidence = await prisma.learningFact.findFirst({
+      where: { startedAt: { gte: currentEvidenceSince }, OR: buildTeacherScopedLearningFactScopeFilters(classId, classSessionIds) },
+      select: { id: true },
+    });
     // Get latest class snapshot
     const snapshot = await prisma.classCompetencySnapshot.findFirst({
-      where: { classId },
+      where: { classId, materializationVersion: CLASS_COMPETENCY_MATERIALIZATION_VERSION },
       orderBy: { snapshotAt: 'desc' },
     });
 
@@ -62,25 +70,18 @@ export async function GET(request: NextRequest, props: { params: Promise<{ class
             .then(profiles => profiles.map(p => p.userId)),
         },
         startedAt: { gte: sevenDaysAgo },
+        OR: buildTeacherScopedLearningFactScopeFilters(classId, classSessionIds),
       },
     });
 
     // Get risk summary
-    const riskFlags = await prisma.studentRiskFlag.findMany({
-      where: {
-        userId: {
-          in: await prisma.studentProfile
-            .findMany({ where: { classId }, select: { userId: true } })
-            .then(profiles => profiles.map(p => p.userId)),
-        },
-        isResolved: false,
-      },
-    });
+    const riskFlags: Array<{ flagType: string; severity: string }> = [];
 
     const riskSummary = riskFlags.reduce((acc, flag) => {
       acc[flag.flagType] = (acc[flag.flagType] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
+    const snapshotState = !classEvidence || (snapshot?.trendJson as any)?._derivation?.state === 'no-evidence' ? 'no-evidence' : 'ready';
 
     return NextResponse.json({
       class: {
@@ -91,16 +92,18 @@ export async function GET(request: NextRequest, props: { params: Promise<{ class
       },
       competency: snapshot
         ? {
-            aggregate: snapshot.aggregateJson,
+            state: snapshotState,
+            activeStudentCount: snapshot.activeStudentCount,
+            aggregate: snapshotState === 'no-evidence' ? null : snapshot.aggregateJson,
             distribution: snapshot.distributionJson,
             levelDistribution: snapshot.levelDistribution,
             lastUpdated: snapshot.snapshotAt,
           }
         : null,
       riskSummary: {
-        totalFlags: riskFlags.length,
-        byType: riskSummary,
-        highPriorityCount: riskFlags.filter(f => f.severity === 'high').length,
+        totalFlags: snapshotState === 'no-evidence' ? 0 : riskFlags.length,
+        byType: snapshotState === 'no-evidence' ? {} : riskSummary,
+        highPriorityCount: snapshotState === 'no-evidence' ? 0 : riskFlags.filter(f => f.severity === 'high').length,
       },
     });
   } catch (error) {

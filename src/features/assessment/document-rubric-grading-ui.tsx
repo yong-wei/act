@@ -136,7 +136,7 @@ export function TeacherDocumentGradingWorkbench({
           <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
             <span className="rounded border border-border px-2 py-1">来源质量：{conversionStatusLabel(view.conversion.status)}</span>
             <span className="rounded border border-border px-2 py-1">隐私范围：教师复核</span>
-            <span className="rounded border border-border px-2 py-1">状态图例：草稿需人工审批</span>
+            <span className="rounded border border-border px-2 py-1">状态：{view.draftSummary.requiresTeacherApproval ? 'AI 评分待教师审批' : 'AI 证据已完成教师决策'}</span>
             <span className="rounded border border-border px-2 py-1">导出：受限脱敏</span>
           </div>
           {routeState ? <ActionStatusPanel state={routeState} /> : null}
@@ -221,7 +221,7 @@ export function TeacherDocumentGradingWorkbench({
               <div className="mt-4 flex flex-wrap gap-2">
                 {view.actions.map((action) => (
                   action === 'approve' && view.gradingRunId ? (
-                    <DocumentGradingApprovalButton key={`approve:${view.gradingRunId}`} gradingRunId={view.gradingRunId} />
+                    <DocumentGradingApprovalButton key={`approve:${view.gradingRunId}`} gradingRunId={view.gradingRunId} criteria={view.rubricTree} />
                   ) : (
                     <button key={action} type="button" className="rounded border border-border px-3 py-2 text-sm text-foreground transition hover:border-primary hover:text-primary">
                       {runActionLabel(action)}
@@ -231,7 +231,7 @@ export function TeacherDocumentGradingWorkbench({
               </div>
               <div className="mt-4 flex flex-col gap-3 rounded border border-border bg-background px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
                 <p className="min-w-0 break-words text-sm text-muted-foreground">
-                  已绑定当前评分草稿、学生报告与量规版本，可继续请求批改建议。
+                  {view.draftSummary.requiresTeacherApproval ? '已绑定当前 AI 评分、学生报告与量规版本。' : '当前展示 AI 评分证据与已完成的教师决策。'}
                 </p>
                 <KonlingEntryPointButton entryPoint={view.konlingEntryPoint} label="打开批改助手" />
               </div>
@@ -277,6 +277,10 @@ export function TeacherDocumentGradingEmptyState({
       </div>
     </main>
   );
+}
+
+export function TeacherDocumentGradingUnavailableState({ reasons }: { reasons: string[] }) {
+  return <main className="surface-page" data-document-grading-content="unavailable"><div className="px-6 py-8"><h1 className="text-3xl font-semibold">报告内容不可用</h1><p className="mt-3 text-sm text-muted-foreground">该评分材料已到期、删除、阻断，或冻结契约不再有效，正文与证据不会显示。</p><ul className="mt-4 list-disc space-y-1 pl-5 text-sm text-destructive">{reasons.map((reason) => <li key={reason}>{approvalBlockReasonLabel(reason)}</li>)}</ul></div></main>;
 }
 
 export function StudentDocumentGradingFeedback({

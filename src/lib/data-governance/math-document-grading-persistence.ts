@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 
 import type { PrismaClient } from '@prisma/client';
 
@@ -249,9 +249,13 @@ export async function withGradingRequestIdempotency<T>(input: {
     return { value: created.value, replay: Boolean(created.replay) };
   }
   const actorPseudoId = pseudonymousAuditId(input.actor.id, 'idempotency');
+  const protectedKey = pseudonymousAuditId(input.idempotencyKey, `idempotency-key:${input.operation}`);
+  await repository.deleteMany?.({ where: { expiresAt: { lte: input.now } } });
   const scope = gradingRequestScope(input.actor.role);
-  const where = { operation: input.operation, scope, actorPseudoId, idempotencyKey: input.idempotencyKey };
-  const read = async (db: MathGradingDb) => (db as any).gradingRequestIdempotency.findFirst({ where });
+  const where = { operation: input.operation, scope, actorPseudoId, idempotencyKey: protectedKey };
+  const legacyWhere = { ...where, idempotencyKey: `legacy-md5:${createHash('md5').update(`${input.operation}:${input.idempotencyKey}`).digest('hex')}` };
+  const read = async (db: MathGradingDb) => await (db as any).gradingRequestIdempotency.findFirst({ where })
+    ?? (db as any).gradingRequestIdempotency.findFirst({ where: legacyWhere });
   const resolve = async (row: any): Promise<{ value: T; replay: true }> => {
     if (row.requestHash !== input.requestHash) throw new GradingMutationError('idempotency-key-conflict', 409);
     if (!row.resourceId) throw new GradingMutationError('idempotency-request-in-progress', 409);
@@ -275,6 +279,7 @@ export async function withGradingRequestIdempotency<T>(input: {
           requestHash: input.requestHash,
           resourceType: input.resourceType,
           resourceId: null,
+          expiresAt: new Date(input.now.getTime() + 24 * 60 * 60 * 1000),
           createdAt: input.now,
           updatedAt: input.now,
         },
@@ -1371,6 +1376,7 @@ export function questionContractFromRow(row: any): FrozenQuestionContract {
   const criteria = rawCriteria.map((criterion: any) => ({
     id: String(criterion.id),
     label: String(criterion.label ?? criterion.id),
+    goalDimension: String(criterion.goalDimension ?? ''),
     maxPoints: Number(criterion.maxPoints ?? 0),
     evidenceDescription: String(criterion.evidenceDescription ?? ''),
     feedbackGuidance: String(criterion.feedbackGuidance ?? ''),
@@ -1648,7 +1654,7 @@ function auditPseudoId(value: string, purpose: string, field: string): string {
   return pseudonymousAuditId(`${field}:${value}`, `${purpose}:${field}`);
 }
 
-function validateFrozenRunInput(run: any, question: FrozenQuestionContract, evidence: any): string | null {
+export function validateFrozenRunInput(run: any, question: FrozenQuestionContract, evidence: any): string | null {
   if (!run.questionSnapshot || !run.questionSnapshotHash) return 'frozen-question-snapshot-missing';
   if (question.contentHash !== run.questionSnapshotHash) return 'frozen-question-hash-mismatch';
   const snapshotReferenceAnswer = typeof run.questionSnapshot.referenceAnswer === 'string'

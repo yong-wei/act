@@ -685,6 +685,7 @@ describe('teacher evidence governance insights', () => {
       by: ['userId', 'factType'],
       where: {
         userId: { in: ['student-ready', 'student-stale', 'student-low', 'student-missing'] },
+        startedAt: { gte: expect.any(Date) },
         OR: expect.arrayContaining([
           { sessionId: { in: ['session-current'] } },
           { contextJson: { path: ['arena', 'classId'], equals: 'class-1' } },
@@ -695,6 +696,7 @@ describe('teacher evidence governance insights', () => {
     expect(mocks.prisma.learningFact.findMany).toHaveBeenNthCalledWith(2, expect.objectContaining({
       where: {
         userId: { in: ['student-ready', 'student-stale', 'student-low', 'student-missing'] },
+        startedAt: { gte: expect.any(Date) },
         OR: expect.arrayContaining([
           { sessionId: { in: ['session-current'] } },
           { contextJson: { path: ['arena', 'classId'], equals: 'class-1' } },
@@ -974,7 +976,7 @@ describe('teacher evidence governance insights', () => {
     });
   });
 
-  it('keeps existing profile summaries when a class has no sessions yet', async () => {
+  it('does not expose historical diagnostic projections as current when a class has no evidence', async () => {
     mocks.prisma.class.findUnique.mockResolvedValue({
       id: 'class-1',
       name: '自动控制 1 班',
@@ -1017,17 +1019,55 @@ describe('teacher evidence governance insights', () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(mocks.prisma.studentProfileSummary.findMany).toHaveBeenCalledWith({
-      where: { userId: { in: ['student-onboarding'] } },
-    });
+    expect(mocks.prisma.studentProfileSummary.findMany).not.toHaveBeenCalled();
+    expect(mocks.prisma.studentRiskFlag.findMany).not.toHaveBeenCalled();
+    expect(mocks.prisma.growthRecord.groupBy).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningRecommendation.groupBy).not.toHaveBeenCalled();
     expect(body.students[0]).toMatchObject({
       id: 'student-onboarding',
-      overallScore: 88.4,
-      overallLevel: '优秀',
-      riskLevel: 'low',
-      trendDirection: 'up',
-      recentTrend: '近期表现稳定提升',
+      overallScore: null,
+      overallLevel: null,
+      riskLevel: 'none',
+      recentTrend: '暂无当前证据',
+      strengths: [],
+      weaknesses: [],
+      riskBadges: [],
+      growthRecordCount: 0,
+      recommendationCount: 0,
+      factCount: 0,
     });
+    expect(body.governance).toMatchObject({ coveredStudents: 0, pendingStudents: 1 });
+    expect(body.overview).toMatchObject({ overallIndex: null, attentionStudents: 0 });
+    expect(body.ability.state).toBe('no-evidence');
+    expect(body.spotlightStudents).toEqual([]);
+  });
+
+  it('does not let another class facts or an old ready class snapshot make this class current', async () => {
+    mocks.prisma.class.findUnique.mockResolvedValue({
+      id: 'class-a', name: 'A班', code: 'CLASSA', description: null, semester: null, year: '2026', teacherId: 'teacher-1',
+      students: [enrolledStudent('student-cross-class', '跨班学生')],
+    });
+    mocks.prisma.classCompetencySnapshot.findFirst.mockResolvedValue({
+      id: 'old-ready-a', classId: 'class-a', snapshotAt: new Date('2026-06-01T00:00:00Z'),
+      aggregateJson: { controlModeling: { mean: 91, stdDev: 0 } }, levelDistribution: { excellent: 1 }, trendJson: {},
+    });
+    mocks.prisma.studentCompetencySnapshot.findMany.mockResolvedValue([{ userId: 'student-cross-class', snapshotAt: new Date('2026-07-15T00:00:00Z'), factCount: 3, competencyVector: competencyVector(91), evidenceSummary: {} }]);
+    mocks.prisma.studentProfileSummary.findMany.mockResolvedValue([{ userId: 'student-cross-class', overallScore: 91, overallLevel: '优秀', riskLevel: 'low', trendDirection: 'up', recentTrend: '提升', strengthsJson: ['建模'], weaknessesJson: [], riskFlagsJson: [] }]);
+    mocks.prisma.studentRiskFlag.findMany.mockResolvedValue([]);
+    mocks.prisma.growthRecord.groupBy.mockResolvedValue([{ userId: 'student-cross-class', _count: { _all: 2 } }]);
+    mocks.prisma.learningRecommendation.groupBy.mockResolvedValue([{ userId: 'student-cross-class', _count: { _all: 1 } }]);
+    mocks.prisma.classSession.findMany.mockResolvedValue([]);
+    mocks.prisma.learningFact.findMany.mockImplementation(async ({ where }: any) => where.OR ? [] : [{ userId: 'student-cross-class', factType: 'design', moduleId: 'class-b', outcome: 'success', score: 1, contextJson: { classId: 'class-b' } }]);
+    mocks.prisma.learningFact.groupBy.mockResolvedValue([]);
+    mocks.prisma.classSessionReport.findMany.mockResolvedValue([]);
+
+    const response = await getClassInsights(new Request('http://localhost/api/teacher/classes/class-a/insights'), { params: Promise.resolve({ classId: 'class-a' }) });
+    const body = await response.json();
+    expect(body.ability.state).toBe('no-evidence');
+    expect(body.overview.overallIndex).toBeNull();
+    expect(body.governance.coveredStudents).toBe(0);
+    expect(body.students[0]).toMatchObject({ overallScore: null, overallLevel: null, growthRecordCount: 0, recommendationCount: 0 });
+    expect(body.spotlightStudents).toEqual([]);
   });
 
   it('returns scoped student drawer evidence without raw answers or full logs', async () => {
@@ -1337,6 +1377,10 @@ describe('teacher evidence governance insights', () => {
       join(process.cwd(), 'src/app/teacher/classes/[classId]/students/[studentId]/page.tsx'),
       'utf8',
     );
+    const analyticsPage = readFileSync(
+      join(process.cwd(), 'src/app/teacher/classes/[classId]/analytics-v2/page.tsx'),
+      'utf8',
+    );
 
     expect(classPage).toContain('evidenceCoverage');
     expect(classPage).toContain('证据状态');
@@ -1345,5 +1389,6 @@ describe('teacher evidence governance insights', () => {
     expect(studentPage).toContain('证据治理');
     expect(studentPage).toContain('近期会话质量');
     expect(studentPage).toContain('持久提交');
+    expect(analyticsPage).toContain("student.overallScore ?? '暂无证据'");
   });
 });

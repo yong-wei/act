@@ -77,6 +77,7 @@ function question(): FrozenQuestionContract {
       criteria: [{
         id: 'criterion-1',
         label: 'Evidence',
+        goalDimension: 'controlModeling',
         maxPoints: 5,
         evidenceDescription: 'stability margin',
         feedbackGuidance: 'Explain the evidence.',

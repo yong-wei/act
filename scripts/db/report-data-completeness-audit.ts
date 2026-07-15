@@ -53,6 +53,7 @@ async function main() {
     eventDictionary,
     learningEventBatches,
     learningFacts,
+    documentGradingRuns,
     historicalSimulationLogs,
     historicalUserAnswers,
     historicalAiInterventions,
@@ -132,6 +133,10 @@ async function main() {
         contextJson: true,
       },
     }),
+    prisma.gradingRun.findMany({
+      where: { state: 'APPROVED' },
+      select: { id: true, state: true, rubricVersion: true, assessments: { select: { criterionId: true } }, answerAttempt: { select: { answer: { select: { submission: { select: { frozenStudentId: true } } } } } } },
+    }),
     prisma.simulationLog.findMany({ select: { id: true, userId: true } }),
     prisma.userAnswer.findMany({ select: { id: true, userId: true } }),
     prisma.aIIntervention.findMany({ select: { id: true, userId: true } }),
@@ -185,6 +190,7 @@ async function main() {
     eventDictionaryTypes: eventDictionary.map((event) => event.eventType),
     learningEventBatches,
     learningFacts,
+    documentGradingRuns: documentGradingRuns.map((run) => ({ id: run.id, state: run.state, rubricVersion: run.rubricVersion, studentId: run.answerAttempt.answer.submission.frozenStudentId, assessments: run.assessments })),
     historicalSourceLogIds: [
       ...historicalSimulationLogs,
       ...historicalUserAnswers,

@@ -74,6 +74,7 @@ export interface FrozenRubricLevel {
 export interface FrozenRubricCriterion {
   id: string;
   label: string;
+  goalDimension: string;
   maxPoints: number;
   evidenceDescription: string;
   feedbackGuidance: string;

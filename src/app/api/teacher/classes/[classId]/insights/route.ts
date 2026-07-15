@@ -18,6 +18,7 @@ import {
   summarizeGovernanceState,
 } from '@/features/teacher/teacher-insights';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import { buildClassScopedStudentProjections, CLASS_COMPETENCY_MATERIALIZATION_VERSION } from '@/lib/data-governance/class-scoped-learning-materialization';
 import {
   buildArenaClassEvidenceSummary,
   type ArenaClassEvidenceSummary,
@@ -52,8 +53,8 @@ interface TeacherClassInsightStudent {
   name: string;
   email: string | null;
   studentNumber: string | null;
-  overallScore: number;
-  overallLevel: string;
+  overallScore: number | null;
+  overallLevel: string | null;
   riskLevel: 'none' | 'low' | 'medium' | 'high';
   riskLabel: string;
   trendDirection: 'up' | 'stable' | 'down';
@@ -88,17 +89,18 @@ export interface TeacherClassInsightsPayload {
     recentSessionQuality: TeacherRecentSessionQualitySummary;
   };
   overview: {
-    overallIndex: number;
+    overallIndex: number | null;
     highRiskStudents: number;
     mediumRiskStudents: number;
     attentionStudents: number;
     averageFactCount: number;
   };
   ability: {
+    state: 'ready' | 'no-evidence';
     dimensions: Array<{
       dimension: CompetencyDimension;
       label: string;
-      mean: number;
+      mean: number | null;
       stdDev: number;
     }>;
     levelDistribution: LevelDistribution;
@@ -149,6 +151,8 @@ export async function GET(
 
     const studentIds = classData.students.map((student) => student.userId);
     const totalStudents = studentIds.length;
+    const now = new Date();
+    const currentEvidenceSince = new Date(now.getTime() - 30 * 24 * 60 * 60_000);
     const classSessionIds = studentIds.length
       ? (await prisma.classSession.findMany({
           where: { classId },
@@ -158,11 +162,6 @@ export async function GET(
 
     const [
       classSnapshot,
-      latestSnapshots,
-      profileSummaries,
-      riskFlags,
-      growthCounts,
-      recommendationCounts,
       arenaSubmissions,
       arenaLearningFacts,
       studentEvidenceFeatureCaches,
@@ -171,53 +170,16 @@ export async function GET(
       recentSessionQualityReports,
     ] = await Promise.all([
       prisma.classCompetencySnapshot.findFirst({
-        where: { classId },
+        where: { classId, materializationVersion: CLASS_COMPETENCY_MATERIALIZATION_VERSION },
         orderBy: { snapshotAt: 'desc' },
       }),
-      studentIds.length
-        ? prisma.studentCompetencySnapshot.findMany({
-            where: { userId: { in: studentIds } },
-            orderBy: { snapshotAt: 'desc' },
-            distinct: ['userId'],
-          })
-        : Promise.resolve([]),
-      studentIds.length
-        ? prisma.studentProfileSummary.findMany({
-            where: { userId: { in: studentIds } },
-          })
-        : Promise.resolve([]),
-      studentIds.length
-        ? prisma.studentRiskFlag.findMany({
-            where: {
-              userId: { in: studentIds },
-              isResolved: false,
-            },
-            orderBy: { triggeredAt: 'desc' },
-          })
-        : Promise.resolve([]),
-      studentIds.length
-        ? prisma.growthRecord.groupBy({
-            by: ['userId'],
-            where: { userId: { in: studentIds } },
-            _count: { _all: true },
-          })
-        : Promise.resolve([]),
-      studentIds.length
-        ? prisma.learningRecommendation.groupBy({
-            by: ['userId'],
-            where: {
-              userId: { in: studentIds },
-              isCompleted: false,
-            },
-            _count: { _all: true },
-          })
-        : Promise.resolve([]),
       prismaArenaSubmissionStore.listSubmissions({ classId }),
       studentIds.length
         ? prisma.learningFact.findMany({
             where: {
               userId: { in: studentIds },
               factType: 'design',
+              OR: buildTeacherScopedLearningFactScopeFilters(classId, classSessionIds),
             },
             orderBy: { startedAt: 'desc' },
             take: 200,
@@ -247,6 +209,7 @@ export async function GET(
             by: ['userId', 'factType'],
             where: {
               userId: { in: studentIds },
+              startedAt: { gte: currentEvidenceSince },
               OR: buildTeacherScopedLearningFactScopeFilters(classId, classSessionIds),
             },
             _count: { _all: true },
@@ -258,6 +221,7 @@ export async function GET(
         ? prisma.learningFact.findMany({
             where: {
               userId: { in: studentIds },
+              startedAt: { gte: currentEvidenceSince },
               OR: buildTeacherScopedLearningFactScopeFilters(classId, classSessionIds),
             },
             orderBy: { startedAt: 'desc' },
@@ -292,26 +256,9 @@ export async function GET(
       }),
     ]);
 
-    const snapshotMap = new Map(latestSnapshots.map((snapshot) => [snapshot.userId, snapshot]));
-    const summaryMap = new Map(profileSummaries.map((summary) => [summary.userId, summary]));
-    const growthMap = new Map(growthCounts.map((entry) => [entry.userId, entry._count._all]));
-    const recommendationMap = new Map(
-      recommendationCounts.map((entry) => [entry.userId, entry._count._all])
-    );
-    const riskByUserId = riskFlags.reduce<Record<string, typeof riskFlags>>(
-      (accumulator, flag) => {
-        accumulator[flag.userId] = [
-          ...(accumulator[flag.userId] ?? []),
-          flag,
-        ];
-        return accumulator;
-      },
-      {},
-    );
     const cacheHealthByUserId = new Map(
       studentEvidenceFeatureCaches.map((cache) => [cache.userId, cache])
     );
-    const now = new Date();
     const scopedSimulationArenaByUserId = buildTeacherScopedSimulationArenaFeatureMap(
       studentIds,
       classScopedSimulationArenaFacts,
@@ -326,6 +273,7 @@ export async function GET(
       cacheHealthByUserId,
       scopedSimulationArenaByUserId,
     });
+    const classScopedProjectionMap = buildClassScopedStudentProjections(studentIds, classScopedSimulationArenaFacts as any);
     const evidenceCoverage = summarizeTeacherEvidenceCoverage(evidenceStatusMap.values());
     const recentSessionQuality = summarizeTeacherSessionQualityReports(recentSessionQualityReports);
     const diagnosisReportSnapshot = await hasDiagnosisReportSnapshotPersistenceTable(prisma)
@@ -341,18 +289,20 @@ export async function GET(
       )
       : null;
 
+    const hasCurrentClassEvidence = classScopedEvidenceFactGroups.some((group) => group._count._all > 0)
+      || classScopedSimulationArenaFacts.length > 0;
+    const noClassEvidence = !hasCurrentClassEvidence;
     const students: TeacherClassInsightStudent[] = classData.students.map((studentProfile) => {
-      const snapshot = snapshotMap.get(studentProfile.userId);
-      const summary = summaryMap.get(studentProfile.userId);
-      const studentRiskFlags = riskByUserId[studentProfile.userId] ?? [];
-      const vector = snapshot?.competencyVector as CompetencyVector | undefined;
-      const fallbackScore = vector ? calculateOverallScore(vector) : 0;
-      const overallScore = Math.round((summary?.overallScore ?? fallbackScore) * 10) / 10;
-      const riskLevel = normalizeInsightRiskLevel(
-        summary?.riskLevel ??
-          studentRiskFlags.find((flag) => flag.severity)?.severity ??
-          null
+      const scopedProjection = classScopedProjectionMap.get(studentProfile.userId);
+      const hasCurrentEvidence = evidenceStatusMap.get(studentProfile.userId)?.state === 'ready' && Boolean(
+        scopedProjection && scopedProjection.factCount > 0
       );
+      const vector = scopedProjection?.competencyVector;
+      const fallbackScore = vector ? calculateOverallScore(vector) : 0;
+      const overallScore = hasCurrentEvidence
+        ? Math.round(fallbackScore * 10) / 10
+        : null;
+      const riskLevel = normalizeInsightRiskLevel(null);
 
       return {
         id: studentProfile.user.id,
@@ -361,34 +311,29 @@ export async function GET(
         studentNumber: studentProfile.studentNumber,
         overallScore,
         overallLevel:
-          summary?.overallLevel ||
-          COMPETENCY_LEVELS[getCompetencyLevelKey(overallScore)].label,
+          hasCurrentEvidence && overallScore !== null
+            ? COMPETENCY_LEVELS[getCompetencyLevelKey(overallScore)].label
+            : null,
         riskLevel,
         riskLabel: getRiskLabel(riskLevel),
         trendDirection:
-          summary?.trendDirection === 'up' || summary?.trendDirection === 'down'
-            ? summary.trendDirection
-            : 'stable',
-        recentTrend: summary?.recentTrend || '近期暂无治理趋势',
-        strengths: parseStringList(summary?.strengthsJson),
-        weaknesses: parseStringList(summary?.weaknessesJson),
-        riskBadges:
-          parseStringList(summary?.riskFlagsJson).length > 0
-            ? parseStringList(summary?.riskFlagsJson)
-            : studentRiskFlags.map((flag) => flag.description),
-        growthRecordCount: growthMap.get(studentProfile.userId) ?? 0,
-        recommendationCount: recommendationMap.get(studentProfile.userId) ?? 0,
-        factCount: snapshot?.factCount ?? 0,
-        lastSnapshotAt: snapshot?.snapshotAt.toISOString() ?? null,
+          'stable',
+        recentTrend: hasCurrentEvidence ? '班级范围内暂无可比趋势' : '暂无当前证据',
+        strengths: [],
+        weaknesses: [],
+        riskBadges: [],
+        growthRecordCount: 0,
+        recommendationCount: 0,
+        factCount: hasCurrentEvidence ? scopedProjection?.factCount ?? 0 : 0,
+        lastSnapshotAt: hasCurrentEvidence ? classSnapshot?.snapshotAt.toISOString() ?? null : null,
         evidenceStatus: evidenceStatusMap.get(studentProfile.userId)!,
       };
     });
 
     const coverageStudents = students.filter(
-      (student) => student.lastSnapshotAt || student.overallScore > 0 || student.riskBadges.length > 0
+      (student) => student.factCount > 0
     ).length;
-    const latestStudentSnapshotAt =
-      latestSnapshots[0]?.snapshotAt.toISOString() ?? null;
+    const latestStudentSnapshotAt = classSnapshot?.snapshotAt.toISOString() ?? null;
     const governanceBase = summarizeGovernanceState({
       totalStudents,
       coveredStudents: coverageStudents,
@@ -397,11 +342,11 @@ export async function GET(
     });
 
     const dimensionStats = COMPETENCY_DIMENSIONS.map((dimension) => {
-      const classMean = extractClassMean(classSnapshot?.aggregateJson, dimension);
+      const classMean = noClassEvidence ? null : extractClassMean(classSnapshot?.aggregateJson, dimension);
       const classStdDev = extractClassStdDev(classSnapshot?.aggregateJson, dimension);
-      const fallbackScores = latestSnapshots
-        .map((snapshot) => {
-          const vector = snapshot.competencyVector as unknown as CompetencyVector;
+      const fallbackScores = [...classScopedProjectionMap.values()]
+        .map((projection) => {
+          const vector = projection.competencyVector;
           return vector?.[dimension]?.score ?? 0;
         })
         .filter((score) => Number.isFinite(score));
@@ -411,7 +356,7 @@ export async function GET(
       return {
         dimension,
         label: getCompetencyLabel(dimension),
-        mean: classMean ?? fallbackMean,
+        mean: noClassEvidence ? null : classMean ?? fallbackMean,
         stdDev: classStdDev ?? 0,
       };
     });
@@ -420,7 +365,7 @@ export async function GET(
       normalizeLevelDistribution(classSnapshot?.levelDistribution) ||
       students.reduce<LevelDistribution>(
         (accumulator, student) => {
-          accumulator[getCompetencyLevelKey(student.overallScore)] += 1;
+          if (student.overallScore !== null) accumulator[getCompetencyLevelKey(student.overallScore)] += 1;
           return accumulator;
         },
         createEmptyLevelDistribution()
@@ -451,6 +396,23 @@ export async function GET(
       },
       diagnosisReportSnapshot,
     });
+    const spotlightStudents = noClassEvidence ? [] : rankStudentsByAttention(
+      students
+        .filter((student): student is TeacherClassInsightStudent & { overallScore: number } => student.overallScore !== null)
+        .map((student) => ({
+          id: student.id,
+          name: student.name,
+          overallScore: student.overallScore,
+          overallLevel: student.overallLevel ?? COMPETENCY_LEVELS[getCompetencyLevelKey(student.overallScore)].label,
+          riskLevel: student.riskLevel,
+          trendDirection: student.trendDirection,
+          recentTrend: student.recentTrend,
+          strengths: student.strengths,
+          weaknesses: student.weaknesses,
+          growthRecordCount: student.growthRecordCount,
+          recommendationCount: student.recommendationCount,
+        }))
+    ).slice(0, 5).map((ranked) => students.find((student) => student.id === ranked.id)!);
 
     const payload: TeacherClassInsightsPayload = {
       classInfo: {
@@ -473,16 +435,16 @@ export async function GET(
         recentSessionQuality,
       },
       overview: {
-        overallIndex: roundTo(
-          dimensionStats.reduce((sum, item) => sum + item.mean, 0) / dimensionStats.length,
+        overallIndex: noClassEvidence ? null : roundTo(
+          dimensionStats.reduce((sum, item) => sum + (item.mean ?? 0), 0) / dimensionStats.length,
           1
         ),
-        highRiskStudents: students.filter((student) => student.riskLevel === 'high').length,
-        mediumRiskStudents: students.filter((student) => student.riskLevel === 'medium').length,
-        attentionStudents: students.filter((student) =>
+        highRiskStudents: noClassEvidence ? 0 : students.filter((student) => student.riskLevel === 'high').length,
+        mediumRiskStudents: noClassEvidence ? 0 : students.filter((student) => student.riskLevel === 'medium').length,
+        attentionStudents: noClassEvidence ? 0 : students.filter((student) =>
           student.riskLevel === 'high' ||
           student.riskLevel === 'medium' ||
-          student.overallScore < COMPETENCY_LEVELS.average.min
+          (student.overallScore ?? Number.POSITIVE_INFINITY) < COMPETENCY_LEVELS.average.min
         ).length,
         averageFactCount: roundTo(
           students.reduce((sum, student) => sum + student.factCount, 0) / (students.length || 1),
@@ -490,6 +452,7 @@ export async function GET(
         ),
       },
       ability: {
+        state: noClassEvidence ? 'no-evidence' : 'ready',
         dimensions: dimensionStats,
         levelDistribution,
       },
@@ -500,7 +463,7 @@ export async function GET(
         learningFacts: arenaLearningFacts,
       }),
       diagnosis,
-      spotlightStudents: rankStudentsByAttention(students).slice(0, 5),
+      spotlightStudents,
       students,
     };
 

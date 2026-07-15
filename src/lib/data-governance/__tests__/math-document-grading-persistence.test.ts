@@ -92,7 +92,7 @@ function submittedAttempt() {
         answerSnapshot: { text: 'Cite the margin.' },
         rubricSnapshot: {
           schemaVersion: 'assignment-analytic-rubric.v1',
-          criteria: [{ id: 'criterion-1', label: 'Evidence', maxPoints: 5, levels: [] }],
+          criteria: [{ id: 'criterion-1', label: 'Evidence', goalDimension: 'controlModeling', maxPoints: 5, levels: [] }],
         },
         contentHash: 'sha256:question',
       },
