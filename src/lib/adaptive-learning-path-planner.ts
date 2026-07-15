@@ -3893,7 +3893,11 @@ function learnerCompetencyScore(
 ): number {
   const portraitDimensionIds = portraitDimensionIdsForTarget(dimension);
   const portraitScores = portraitDimensionIds
-    .map((id) => learnerState?.primaryPortrait?.dimensions.find((item) => item.id === id)?.score)
+    .map((id) => learnerState?.primaryPortrait?.dimensions.find((item) => item.id === id))
+    .filter((item): item is PortraitV2ProjectedPayload['dimensions'][number] => Boolean(item
+      && item.evidenceSummary.totalCount > 0
+      && (item.freshness.state === 'current' || item.freshness.state === 'partial')))
+    .map((item) => item.score)
     .filter((score): score is number => typeof score === 'number' && Number.isFinite(score));
   if (portraitScores.length > 0) {
     return normalizeCompetencyScore(portraitScores.reduce((sum, score) => sum + score, 0) / portraitScores.length);

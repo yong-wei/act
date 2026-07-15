@@ -4899,6 +4899,66 @@ describe('adaptive learning path planner', () => {
     }));
   });
 
+  it('falls back to the compatibility vector when the portrait dimension has no usable evidence', () => {
+    const portraitNow = new Date('2026-05-27T08:00:00.000Z');
+    const primaryPortrait = projectPortraitV2ForConsumer(derivePortraitV2Compatibility({
+      userId: 'student-1',
+      snapshotAt: portraitNow.toISOString(),
+      sourceFamily: 'StudentCompetencySnapshot',
+      vector: createEmptyCompetencyVector(),
+      now: portraitNow,
+    }), 'planner', { now: portraitNow });
+    const registry = buildResourceNodeRegistry({
+      simulations: [{
+        id: 'compatibility-readiness-fallback',
+        title: '兼容能力门槛仿真',
+        launchTarget: '/simulations/compatibility-readiness-fallback',
+        knowledgeNodeIds: ['kn-compatibility-readiness'],
+        planningOverride: {
+          estimatedTimeMinutes: 10,
+          abilityImpact: { parameterDesign: 0.4 },
+          evidenceInstrumentation: ['simulation_run'],
+          readiness: {
+            minimumCompetency: { parameterDesign: 0.7 },
+            minimumEvidenceCount: 0,
+            requiredCompletedNodeIds: [],
+            requiredOutcomeRefs: [],
+            fallbackNodeIds: [],
+            unlockMessage: '兼容能力值满足后解锁。',
+          },
+        },
+      }],
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: {
+        id: 'compatibility-readiness-goal',
+        title: '兼容能力门槛目标',
+        knowledgeTargets: ['kn-compatibility-readiness'],
+        competencyTargets: ['parameterDesign'],
+      },
+      learnerState: {
+        primaryPortrait,
+        primaryCompetencies: {
+          vector: {
+            parameterDesign: { score: 0.8, confidence: 0.8, evidenceCount: 4 },
+          },
+        },
+      },
+      constraints: {
+        timeBudgetMinutes: 30,
+        privacyScopes: ['student-visible'],
+      },
+    }));
+    const node = plan.mainPath.find((item) => item.nodeId === 'simulation:compatibility-readiness-fallback');
+
+    expect(node?.readiness).toMatchObject({
+      state: 'ready',
+      missingCompetencies: [],
+    });
+  });
+
   it('keeps repaired path nodes when only non-blocking checkpoint infeasibility remains', () => {
     const registry = buildResourceNodeRegistry({
       textbookSections: [{
