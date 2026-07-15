@@ -169,7 +169,10 @@ describe('math-document grading production entrypoint contract', () => {
     expect(worker).toContain('isMathDocumentGradingWorkerRequired()');
     expect(worker).toContain('Math document grading worker disabled by MATH_DOCUMENT_GRADING_WORKER_REQUIRED');
     expect(deploy).toContain('process.env.MATH_DOCUMENT_GRADING_WORKER_REQUIRED || \\\"true\\\"');
-    expect(remoteDeploy).toContain('MATH_DOCUMENT_GRADING_WORKER_REQUIRED="${MATH_DOCUMENT_GRADING_WORKER_REQUIRED:-true}"');
+    expect(remoteDeploy).toContain('MATH_DOCUMENT_GRADING_WORKER_REQUIRED="$(remote "podman inspect');
+    expect(remoteDeploy).toContain("sed -n 's/^MATH_DOCUMENT_GRADING_WORKER_REQUIRED=//p'");
+    expect(remoteDeploy).toContain('fail "远端应用容器的 MATH_DOCUMENT_GRADING_WORKER_REQUIRED 缺失或无效"');
+    expect(remoteDeploy).not.toContain('MATH_DOCUMENT_GRADING_WORKER_REQUIRED="${MATH_DOCUMENT_GRADING_WORKER_REQUIRED:-true}"');
     expect(remoteDeploy).toContain('数学文档批改 worker 已禁用，跳过其专用健康检查');
   });
 

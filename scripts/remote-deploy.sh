@@ -32,7 +32,6 @@ REDIS_NAME_HINT="${REDIS_NAME_HINT:-act-obe-redis}"
 WORKER_NAME_HINT="${WORKER_NAME_HINT:-act-obe-worker}"
 GC_NAME_HINT="${GC_NAME_HINT:-act-obe-submission-gc}"
 REMOTE_APP_IMAGE="${REMOTE_APP_IMAGE:-localhost/act-obe-platform:20260301-amd64}"
-MATH_DOCUMENT_GRADING_WORKER_REQUIRED="${MATH_DOCUMENT_GRADING_WORKER_REQUIRED:-true}"
 
 REMOTE_TMP_TAR="${REMOTE_IMAGE_TAR}.tmp"
 REMOTE_TMP_APP_DEPLOY_SCRIPT="${REMOTE_APP_DEPLOY_SCRIPT}.tmp"
@@ -400,6 +399,18 @@ remote "podman inspect '${APP_NAME_HINT}' --format '{{range .Config.Env}}{{print
 remote "podman inspect '${APP_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^DATABASE_URL=.*connection_limit=10&pool_timeout=20'"
 remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^KONLING_SERVER_MODE_CONTEXT_SECRET='"
 remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^REDIS_URL=redis://${REDIS_NAME_HINT}\\.dns\\.podman:6379$'"
+MATH_DOCUMENT_GRADING_WORKER_REQUIRED="$(remote "podman inspect '${APP_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | sed -n 's/^MATH_DOCUMENT_GRADING_WORKER_REQUIRED=//p' | tail -n 1")"
+case "${MATH_DOCUMENT_GRADING_WORKER_REQUIRED}" in
+  1|true|yes)
+    MATH_DOCUMENT_GRADING_WORKER_REQUIRED=true
+    ;;
+  0|false|no)
+    MATH_DOCUMENT_GRADING_WORKER_REQUIRED=false
+    ;;
+  *)
+    fail "远端应用容器的 MATH_DOCUMENT_GRADING_WORKER_REQUIRED 缺失或无效"
+    ;;
+esac
 if [[ "${MATH_DOCUMENT_GRADING_WORKER_REQUIRED}" =~ ^(1|true|yes)$ ]]; then
   remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -Eq '^MATH_DOCUMENT_GRADING_WORKER_REQUIRED=(1|true|yes)$'"
 else
