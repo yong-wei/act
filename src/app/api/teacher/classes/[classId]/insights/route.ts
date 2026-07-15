@@ -361,15 +361,16 @@ export async function GET(
       };
     });
 
-    const levelDistribution =
-      normalizeLevelDistribution(classSnapshot?.levelDistribution) ||
-      students.reduce<LevelDistribution>(
-        (accumulator, student) => {
-          if (student.overallScore !== null) accumulator[getCompetencyLevelKey(student.overallScore)] += 1;
-          return accumulator;
-        },
-        createEmptyLevelDistribution()
-      );
+    const levelDistribution = noClassEvidence
+      ? createEmptyLevelDistribution()
+      : normalizeLevelDistribution(classSnapshot?.levelDistribution) ||
+        students.reduce<LevelDistribution>(
+          (accumulator, student) => {
+            if (student.overallScore !== null) accumulator[getCompetencyLevelKey(student.overallScore)] += 1;
+            return accumulator;
+          },
+          createEmptyLevelDistribution()
+        );
     const diagnosis = materializeRoleBasedLearningDiagnosis({
       view: 'teacher-class',
       goalId: 'control-correction',

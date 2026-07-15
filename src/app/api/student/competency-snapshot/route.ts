@@ -47,7 +47,7 @@ interface EvidenceSummaryItem {
 }
 
 export interface StudentSnapshotResponse {
-  derivationState: 'current' | 'no-recent-evidence' | 'no-evidence-after-revocation';
+  derivationState: 'current' | 'no-evidence' | 'no-recent-evidence' | 'no-evidence-after-revocation';
   evidenceState: 'current' | 'empty';
   currentSnapshot: {
     vector: CompetencyVector;
@@ -89,6 +89,8 @@ export async function GET(_request: NextRequest) {
 
     if (!currentSnapshot) {
       return NextResponse.json({
+        derivationState: 'no-evidence',
+        evidenceState: 'empty',
         currentSnapshot: null,
         previousSnapshot: null,
         trendVector: null,
@@ -102,7 +104,7 @@ export async function GET(_request: NextRequest) {
           targetUserId: userId,
           diagnosisReportSnapshot: null,
         }),
-      } as unknown as StudentSnapshotResponse);
+      } satisfies Omit<StudentSnapshotResponse, 'currentSnapshot'> & { currentSnapshot: null });
     }
 
     const studentProfile = await prisma.studentProfile.findUnique({

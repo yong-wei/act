@@ -106,6 +106,25 @@ describe('GET /api/student/competency-snapshot', () => {
     ]);
   });
 
+  it('returns explicit empty evidence states when no snapshot exists', async () => {
+    mocks.prisma.studentCompetencySnapshot.findFirst.mockReset().mockResolvedValue(null);
+
+    const response = await GET(new NextRequest('http://localhost/api/student/competency-snapshot'));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toMatchObject({
+      derivationState: 'no-evidence',
+      evidenceState: 'empty',
+      currentSnapshot: null,
+      previousSnapshot: null,
+      trendVector: null,
+      evidenceSummary: {},
+      riskFlags: [],
+      recommendations: [],
+    });
+  });
+
   it('deduplicates repeated risk flags and recommendations before responding', async () => {
     const response = await GET(new NextRequest('http://localhost/api/student/competency-snapshot?timeRange=30d'));
     const body = await response.json();

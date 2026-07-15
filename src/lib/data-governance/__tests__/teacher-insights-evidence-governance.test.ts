@@ -1064,6 +1064,13 @@ describe('teacher evidence governance insights', () => {
     const response = await getClassInsights(new Request('http://localhost/api/teacher/classes/class-a/insights'), { params: Promise.resolve({ classId: 'class-a' }) });
     const body = await response.json();
     expect(body.ability.state).toBe('no-evidence');
+    expect(body.ability.levelDistribution).toEqual({
+      excellent: 0,
+      good: 0,
+      average: 0,
+      needsImprovement: 0,
+      atRisk: 0,
+    });
     expect(body.overview.overallIndex).toBeNull();
     expect(body.governance.coveredStudents).toBe(0);
     expect(body.students[0]).toMatchObject({ overallScore: null, overallLevel: null, growthRecordCount: 0, recommendationCount: 0 });
