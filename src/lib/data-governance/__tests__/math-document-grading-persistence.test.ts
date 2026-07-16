@@ -5,6 +5,8 @@ import {
   buildPipelineDedupeKey,
   buildRerunIdentity,
   externalProcessingPolicyHash,
+  gradingRequestScope,
+  pseudonymousAuditId,
   sha256,
   stableStringify,
 } from '../math-document-grading-contracts';
@@ -18,6 +20,7 @@ import {
   processDocumentConversionJob,
   processGradingRunJob,
   retryDocumentConversion,
+  withGradingRequestIdempotency,
   writeRenderedObjectToSubmissionStore,
 } from '../math-document-grading-persistence';
 import type { ExternalProcessingPolicy } from '../math-document-grading-contracts';
@@ -205,6 +208,60 @@ describe('production math-document grading persistence contracts', () => {
     expect(race.replay).toBe(true);
     expect(race.evidence.id).toBe(first.evidence.id);
     expect(initialReads).toBeGreaterThanOrEqual(3);
+  });
+
+  it('recovers a dedupe winner created under a different idempotency key and preserves loser-key conflicts', async () => {
+    const resource = { id: 'conversion-winner', dedupeKey: 'document-conversion:same-resource' };
+    const requestRows: any[] = [{
+      id: 'request:winner',
+      operation: 'document-conversion',
+      scope: gradingRequestScope('TEACHER'),
+      actorPseudoId: pseudonymousAuditId('teacher-1', 'idempotency'),
+      idempotencyKey: 'winner-protected-key',
+      requestHash: 'sha256:winner-request',
+      resourceType: 'DocumentConversion',
+      resourceId: resource.id,
+    }];
+    const repository = requestIdempotencyRepository(requestRows);
+    const db: any = {
+      gradingRequestIdempotency: repository,
+    };
+    db.$transaction = async (callback: (tx: any) => Promise<unknown>) => {
+      const requestRowCount = requestRows.length;
+      try {
+        return await callback(db);
+      } catch (error) {
+        requestRows.splice(requestRowCount);
+        throw error;
+      }
+    };
+    const execute = (requestHash: string) => withGradingRequestIdempotency({
+      db,
+      actor: { id: 'teacher-1', role: 'TEACHER' },
+      operation: 'document-conversion',
+      idempotencyKey: 'loser-idempotency-key',
+      requestHash,
+      resourceType: 'DocumentConversion',
+      now,
+      load: async (_db, resourceId) => resourceId === resource.id ? resource : null,
+      create: async () => {
+        throw Object.assign(new Error('duplicate dedupe key'), { code: 'P2002' });
+      },
+      recoverUniqueConstraint: async () => ({ resourceId: resource.id, value: resource, replay: true }),
+    });
+
+    const recovered = await execute('sha256:loser-request');
+
+    expect(recovered).toEqual({ value: resource, replay: true });
+    expect(requestRows).toHaveLength(2);
+    expect(requestRows[1]).toMatchObject({
+      requestHash: 'sha256:loser-request',
+      resourceId: resource.id,
+    });
+    await expect(execute('sha256:changed-request')).rejects.toMatchObject({
+      code: 'idempotency-key-conflict',
+      status: 409,
+    });
   });
 
   it('converges a stale retryable delivery when the persisted grading run is already terminal', async () => {

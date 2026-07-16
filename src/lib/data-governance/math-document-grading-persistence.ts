@@ -236,6 +236,7 @@ export async function withGradingRequestIdempotency<T>(input: {
   now: Date;
   load: (db: MathGradingDb, resourceId: string) => Promise<T | null>;
   create: (db: MathGradingDb) => Promise<RequestIdempotencyCreation<T>>;
+  recoverUniqueConstraint?: (db: MathGradingDb) => Promise<RequestIdempotencyCreation<T> | null>;
 }): Promise<{ value: T; replay: boolean }> {
   const repository = (input.db as any).gradingRequestIdempotency;
   if (!repository?.findFirst || !repository?.create) {
@@ -293,8 +294,29 @@ export async function withGradingRequestIdempotency<T>(input: {
   } catch (error) {
     if (!isUniqueConstraintError(error)) throw error;
     const winner = await read(input.db);
-    if (!winner) throw error;
-    return resolve(winner);
+    if (winner) return resolve(winner);
+    const recovered = await input.recoverUniqueConstraint?.(input.db);
+    if (!recovered) throw error;
+    try {
+      await repository.create({
+        data: {
+          id: `grading-request:${sha256(stableStringify(where)).slice(-32)}`,
+          ...where,
+          requestHash: input.requestHash,
+          resourceType: input.resourceType,
+          resourceId: recovered.resourceId,
+          expiresAt: new Date(input.now.getTime() + 24 * 60 * 60 * 1000),
+          createdAt: input.now,
+          updatedAt: input.now,
+        },
+      });
+    } catch (reservationError) {
+      if (!isUniqueConstraintError(reservationError)) throw reservationError;
+      const concurrent = await read(input.db);
+      if (!concurrent) throw reservationError;
+      return resolve(concurrent);
+    }
+    return { value: recovered.value, replay: true };
   }
 }
 
@@ -483,6 +505,10 @@ export async function materializeTextAnswerEvidence(input: {
         if (db.answerEvidence.findUnique) return db.answerEvidence.findUnique({ where: { id: resourceId }, include: { blocks: true } });
         return db.answerEvidence.findFirst({ where: { id: resourceId }, include: { blocks: true } });
       },
+      recoverUniqueConstraint: async (db) => {
+        const evidence = await db.answerEvidence.findFirst({ where: { attemptId: input.attemptId, version }, include: { blocks: true } });
+        return evidence ? { resourceId: evidence.id, value: evidence, replay: true } : null;
+      },
       create: async (db) => {
         const created = await createEvidence(db);
         if (!created.replay) {
@@ -606,6 +632,10 @@ export async function enqueueDocumentConversion(input: {
     load: async (db, resourceId) => {
       const row = await db.documentConversion.findUnique({ where: { id: resourceId }, include: { jobs: true } });
       return row ? { conversion: row, job: row.jobs?.[0] ?? null } : null;
+    },
+    recoverUniqueConstraint: async (db) => {
+      const row = await db.documentConversion.findUnique({ where: { dedupeKey }, include: { jobs: true } });
+      return row ? { resourceId: row.id, value: { conversion: row, job: row.jobs?.[0] ?? null }, replay: true } : null;
     },
     create: async (db) => {
       const existing = await db.documentConversion.findUnique({ where: { dedupeKey }, include: { jobs: true } });
@@ -1153,6 +1183,10 @@ export async function enqueueGradingRun(input: {
     load: async (db, resourceId) => {
       const loaded = await db.gradingRun.findUnique({ where: { id: resourceId }, include: { jobs: true } });
       return loaded ? { run: loaded, job: loaded.jobs?.[0] ?? null } : null;
+    },
+    recoverUniqueConstraint: async (db) => {
+      const loaded = await db.gradingRun.findUnique({ where: { dedupeKey }, include: { jobs: true } });
+      return loaded ? { resourceId: loaded.id, value: { run: loaded, job: loaded.jobs?.[0] ?? null }, replay: true } : null;
     },
     create: async (db) => {
       const existing = await db.gradingRun.findUnique({ where: { dedupeKey }, include: { jobs: true } });
