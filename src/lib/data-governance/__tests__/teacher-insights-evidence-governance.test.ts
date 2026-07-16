@@ -871,7 +871,14 @@ describe('teacher evidence governance insights', () => {
     mocks.prisma.studentRiskFlag.findMany.mockResolvedValue([]);
     mocks.prisma.growthRecord.groupBy.mockResolvedValue([]);
     mocks.prisma.learningRecommendation.groupBy.mockResolvedValue([]);
-    mocks.prisma.learningFact.findMany.mockResolvedValue([]);
+    mocks.prisma.learningFact.findMany
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([
+        scopedSimulationArenaFact('student-stale-cache', {
+          id: 'stale-cache-current-fact',
+          score: 76,
+        }),
+      ]);
     mocks.prisma.classSession.findMany.mockResolvedValue([
       { id: 'session-current' },
     ]);
@@ -914,6 +921,12 @@ describe('teacher evidence governance insights', () => {
       staleStudents: 1,
       missingStudents: 0,
     });
+    expect(body.students[0]).toMatchObject({
+      overallScore: expect.any(Number),
+      overallLevel: expect.any(String),
+      factCount: 1,
+    });
+    expect(body.governance).toMatchObject({ coveredStudents: 1, pendingStudents: 0 });
   });
 
   it('treats outdated class cache-health payloads as stale even when recently refreshed', async () => {
@@ -1392,6 +1405,8 @@ describe('teacher evidence governance insights', () => {
     expect(classPage).toContain('evidenceCoverage');
     expect(classPage).toContain('证据状态');
     expect(classPage).toContain('formatTeacherEvidenceState');
+    expect(classPage).toContain("insights.overview.overallIndex ?? '暂无证据'");
+    expect(classPage).toContain("insight.overallScore ?? '暂无证据'");
     expect(studentPage).toContain('evidenceDrawer');
     expect(studentPage).toContain('证据治理');
     expect(studentPage).toContain('近期会话质量');

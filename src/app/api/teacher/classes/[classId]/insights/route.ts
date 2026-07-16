@@ -294,9 +294,7 @@ export async function GET(
     const noClassEvidence = !hasCurrentClassEvidence;
     const students: TeacherClassInsightStudent[] = classData.students.map((studentProfile) => {
       const scopedProjection = classScopedProjectionMap.get(studentProfile.userId);
-      const hasCurrentEvidence = evidenceStatusMap.get(studentProfile.userId)?.state === 'ready' && Boolean(
-        scopedProjection && scopedProjection.factCount > 0
-      );
+      const hasCurrentEvidence = Boolean(scopedProjection && scopedProjection.factCount > 0);
       const vector = scopedProjection?.competencyVector;
       const fallbackScore = vector ? calculateOverallScore(vector) : 0;
       const overallScore = hasCurrentEvidence
