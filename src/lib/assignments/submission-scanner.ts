@@ -4,6 +4,7 @@ import type { PrismaClient } from '@prisma/client';
 
 import { SUBMISSION_LIMITS, SubmissionError } from './submission-domain';
 import type { MemorySubmissionObjectStore, SubmissionObjectScanner } from './submission-object-store';
+import { gradingTombstoneLookupKey } from '@/lib/data-governance/math-document-grading-lifecycle';
 
 export interface SubmissionContentScanner { healthCheck(): Promise<void>; scan(bytes: Uint8Array): Promise<'CLEAN' | 'UNSAFE'> }
 
@@ -35,7 +36,7 @@ export async function runSubmissionScanBatch(prisma: PrismaClient, objectScanner
     try {
       const bytes = await objectScanner.readForScan(asset.objectKey);
       const actualChecksum = `sha256:${createHash('sha256').update(bytes).digest('hex')}`;
-      if (bytes.byteLength > SUBMISSION_LIMITS.file || bytes.byteLength !== asset.sizeBytes || actualChecksum !== asset.checksum) {
+      if (!asset.checksum || bytes.byteLength > SUBMISSION_LIMITS.file || bytes.byteLength !== asset.sizeBytes || actualChecksum !== asset.checksum) {
         await markIntegrityFailure(prisma, objectScanner, asset);
         unsafe += 1; continue;
       }
@@ -47,7 +48,7 @@ export async function runSubmissionScanBatch(prisma: PrismaClient, objectScanner
       if (error instanceof SubmissionError && error.code === 'scanner-object-disappeared') {
         await prisma.$transaction([
           prisma.submissionAsset.updateMany({ where: { id: asset.id, state: 'QUARANTINED', scanState: 'PENDING' }, data: { state: 'REVOKED', scanState: 'MISSING', scanRetryCount: 0, lastScanErrorCode: 'object-disappeared', nextScanAt: null } }),
-          prisma.submissionObjectTombstone.upsert({ where: { objectKey: asset.objectKey }, create: { objectKey: asset.objectKey, reason: 'scanner-object-disappeared', checksum: asset.checksum }, update: {} }),
+          prisma.submissionObjectTombstone.upsert({ where: { objectKey: asset.objectKey }, create: { objectKey: asset.objectKey, lookupKey: gradingTombstoneLookupKey(`submission-object:${asset.objectKey}`), reason: 'scanner-object-disappeared', checksum: asset.checksum }, update: {} }),
         ]);
         failed += 1; continue;
       }
@@ -56,7 +57,7 @@ export async function runSubmissionScanBatch(prisma: PrismaClient, objectScanner
       if (missing) {
         const expired = !asset.quarantineExpiresAt || asset.quarantineExpiresAt <= now;
         await prisma.submissionAsset.updateMany({ where: { id: asset.id, state: 'QUARANTINED', scanState: 'PENDING' }, data: { scanRetryCount: retryCount, lastScanErrorCode: 'object-not-ready', nextScanAt: expired ? null : new Date(Math.min(asset.quarantineExpiresAt!.getTime(), now.getTime() + Math.min(60, 5 * 2 ** Math.min(retryCount - 1, 6)) * 1000)), ...(expired ? { state: 'REVOKED' as const, scanState: 'EXPIRED' } : {}) } });
-        if (expired) { await prisma.submissionObjectTombstone.upsert({ where: { objectKey: asset.objectKey }, create: { objectKey: asset.objectKey, reason: 'upload-intent-expired', checksum: asset.checksum }, update: {} }); failed += 1; } else retrying += 1;
+        if (expired) { await prisma.submissionObjectTombstone.upsert({ where: { objectKey: asset.objectKey }, create: { objectKey: asset.objectKey, lookupKey: gradingTombstoneLookupKey(`submission-object:${asset.objectKey}`), reason: 'upload-intent-expired', checksum: asset.checksum }, update: {} }); failed += 1; } else retrying += 1;
         continue;
       }
       const exhausted = retryCount >= 3;
@@ -67,10 +68,10 @@ export async function runSubmissionScanBatch(prisma: PrismaClient, objectScanner
   return { processed: assets.length, clean, unsafe, retrying, failed };
 }
 
-async function markIntegrityFailure(prisma: PrismaClient, objectScanner: SubmissionObjectScanner, asset: { id: string; objectKey: string; checksum: string }) {
+async function markIntegrityFailure(prisma: PrismaClient, objectScanner: SubmissionObjectScanner, asset: { id: string; objectKey: string; checksum: string | null }) {
   await prisma.$transaction([
     prisma.submissionAsset.updateMany({ where: { id: asset.id, state: 'QUARANTINED', scanState: 'PENDING' }, data: { state: 'REVOKED', scanState: 'UNSAFE', scanRetryCount: 0, lastScanErrorCode: 'integrity-mismatch', nextScanAt: null } }),
-    prisma.submissionObjectTombstone.upsert({ where: { objectKey: asset.objectKey }, create: { objectKey: asset.objectKey, reason: 'scanner-integrity-mismatch', checksum: asset.checksum }, update: {} }),
+    prisma.submissionObjectTombstone.upsert({ where: { objectKey: asset.objectKey }, create: { objectKey: asset.objectKey, lookupKey: gradingTombstoneLookupKey(`submission-object:${asset.objectKey}`), reason: 'scanner-integrity-mismatch', checksum: asset.checksum }, update: {} }),
   ]);
   await objectScanner.recordTrustedResult(asset.objectKey, 'UNSAFE');
 }

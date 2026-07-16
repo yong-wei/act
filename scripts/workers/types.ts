@@ -6,6 +6,9 @@ export interface EventIngestionJob {
 export interface StudentSnapshotJob {
   userId?: string;
   coordinator?: boolean;
+  fullRebuild?: boolean;
+  rebuildGeneration?: number;
+  growthRecomputeForSnapshot?: string;
 }
 
 export interface ClassSnapshotJob {

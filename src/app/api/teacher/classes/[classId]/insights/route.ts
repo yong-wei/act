@@ -2,26 +2,27 @@ import { NextResponse } from 'next/server';
 
 import {
   COMPETENCY_LEVELS,
+  calculateOverallScore,
 } from '@/lib/data-governance/competency-model';
 import { PORTRAIT_V2_DIMENSIONS, type PortraitV2DimensionId } from '@/lib/data-governance/kaq-objective-taxonomy';
 import {
-  hasAuthoritativePortraitV2Evidence,
-  hasPortraitV2Evidence,
-  resolvePrimaryPortraitV2,
-  selectPortraitV2WithCompatibilityFallback,
   summarizePortraitV2,
   type PortraitV2ConsumerSummary,
 } from '@/lib/data-governance/portrait-v2-consumer';
+import {
+  derivePortraitV2Compatibility,
+  projectPortraitV2ForConsumer,
+} from '@/lib/data-governance/portrait-v2-model';
 import { getServerAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { createDatabaseUnavailableResponse, isDatabaseConnectivityError } from '@/lib/service-availability';
 import {
   normalizeInsightRiskLevel,
-  parseStringList,
   rankStudentsByAttention,
   summarizeGovernanceState,
 } from '@/features/teacher/teacher-insights';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import { buildClassScopedStudentProjections, CLASS_COMPETENCY_MATERIALIZATION_VERSION } from '@/lib/data-governance/class-scoped-learning-materialization';
 import {
   buildArenaClassEvidenceSummary,
   type ArenaClassEvidenceSummary,
@@ -49,6 +50,20 @@ import {
 
 export const dynamic = 'force-dynamic';
 
+type LifecycleBoundary = 'no-recent-evidence' | 'no-evidence-after-revocation';
+
+function readLifecycleBoundary(snapshot: unknown): LifecycleBoundary | null {
+  if (!snapshot || typeof snapshot !== 'object' || Array.isArray(snapshot)) return null;
+  const evidenceSummary = (snapshot as { evidenceSummary?: unknown }).evidenceSummary;
+  if (!evidenceSummary || typeof evidenceSummary !== 'object' || Array.isArray(evidenceSummary)) return null;
+  const derivation = (evidenceSummary as { _derivation?: unknown })._derivation;
+  if (!derivation || typeof derivation !== 'object' || Array.isArray(derivation)) return null;
+  const state = (derivation as { state?: unknown }).state;
+  return state === 'no-recent-evidence' || state === 'no-evidence-after-revocation'
+    ? state
+    : null;
+}
+
 type LevelDistribution = Record<keyof typeof COMPETENCY_LEVELS, number>;
 
 interface TeacherClassInsightStudent {
@@ -56,9 +71,9 @@ interface TeacherClassInsightStudent {
   name: string;
   email: string | null;
   studentNumber: string | null;
-  overallScore: number;
-  overallScoreSource: 'portrait-v2' | 'profile-summary-compatibility';
-  overallLevel: string;
+  overallScore: number | null;
+  overallLevel: string | null;
+  overallScoreSource: 'class-scoped-compatibility' | null;
   riskLevel: 'none' | 'low' | 'medium' | 'high';
   riskLabel: string;
   trendDirection: 'up' | 'stable' | 'down';
@@ -72,14 +87,6 @@ interface TeacherClassInsightStudent {
   lastSnapshotAt: string | null;
   portraitV2: PortraitV2ConsumerSummary;
   evidenceStatus: TeacherStudentEvidenceStatus;
-}
-
-function latestSnapshotTimestamp(...timestamps: Array<string | null | undefined>) {
-  return timestamps.reduce<string | null>((latest, timestamp) => {
-    if (!timestamp) return latest;
-    if (!latest || Date.parse(timestamp) > Date.parse(latest)) return timestamp;
-    return latest;
-  }, null);
 }
 
 export interface TeacherClassInsightsPayload {
@@ -102,17 +109,18 @@ export interface TeacherClassInsightsPayload {
     recentSessionQuality: TeacherRecentSessionQualitySummary;
   };
   overview: {
-    overallIndex: number;
+    overallIndex: number | null;
     highRiskStudents: number;
     mediumRiskStudents: number;
     attentionStudents: number;
     averageFactCount: number;
   };
   ability: {
+    state: 'ready' | 'no-evidence';
     dimensions: Array<{
       dimension: PortraitV2DimensionId;
       label: string;
-      mean: number;
+      mean: number | null;
       stdDev: number;
     }>;
     levelDistribution: LevelDistribution;
@@ -163,6 +171,8 @@ export async function GET(
 
     const studentIds = classData.students.map((student) => student.userId);
     const totalStudents = studentIds.length;
+    const now = new Date();
+    const currentEvidenceSince = new Date(now.getTime() - 30 * 24 * 60 * 60_000);
     const classSessionIds = studentIds.length
       ? (await prisma.classSession.findMany({
           where: { classId },
@@ -173,10 +183,6 @@ export async function GET(
     const [
       classSnapshot,
       latestSnapshots,
-      profileSummaries,
-      riskFlags,
-      growthCounts,
-      recommendationCounts,
       arenaSubmissions,
       arenaLearningFacts,
       studentEvidenceFeatureCaches,
@@ -185,7 +191,7 @@ export async function GET(
       recentSessionQualityReports,
     ] = await Promise.all([
       prisma.classCompetencySnapshot.findFirst({
-        where: { classId },
+        where: { classId, materializationVersion: CLASS_COMPETENCY_MATERIALIZATION_VERSION },
         orderBy: { snapshotAt: 'desc' },
       }),
       studentIds.length
@@ -195,43 +201,13 @@ export async function GET(
             distinct: ['userId'],
           })
         : Promise.resolve([]),
-      studentIds.length
-        ? prisma.studentProfileSummary.findMany({
-            where: { userId: { in: studentIds } },
-          })
-        : Promise.resolve([]),
-      studentIds.length
-        ? prisma.studentRiskFlag.findMany({
-            where: {
-              userId: { in: studentIds },
-              isResolved: false,
-            },
-            orderBy: { triggeredAt: 'desc' },
-          })
-        : Promise.resolve([]),
-      studentIds.length
-        ? prisma.growthRecord.groupBy({
-            by: ['userId'],
-            where: { userId: { in: studentIds } },
-            _count: { _all: true },
-          })
-        : Promise.resolve([]),
-      studentIds.length
-        ? prisma.learningRecommendation.groupBy({
-            by: ['userId'],
-            where: {
-              userId: { in: studentIds },
-              isCompleted: false,
-            },
-            _count: { _all: true },
-          })
-        : Promise.resolve([]),
       prismaArenaSubmissionStore.listSubmissions({ classId }),
       studentIds.length
         ? prisma.learningFact.findMany({
             where: {
               userId: { in: studentIds },
               factType: 'design',
+              OR: buildTeacherScopedLearningFactScopeFilters(classId, classSessionIds),
             },
             orderBy: { startedAt: 'desc' },
             take: 200,
@@ -261,6 +237,7 @@ export async function GET(
             by: ['userId', 'factType'],
             where: {
               userId: { in: studentIds },
+              startedAt: { gte: currentEvidenceSince },
               OR: buildTeacherScopedLearningFactScopeFilters(classId, classSessionIds),
             },
             _count: { _all: true },
@@ -272,6 +249,7 @@ export async function GET(
         ? prisma.learningFact.findMany({
             where: {
               userId: { in: studentIds },
+              startedAt: { gte: currentEvidenceSince },
               OR: buildTeacherScopedLearningFactScopeFilters(classId, classSessionIds),
             },
             orderBy: { startedAt: 'desc' },
@@ -306,47 +284,32 @@ export async function GET(
       }),
     ]);
 
-    const snapshotMap = new Map(latestSnapshots.map((snapshot) => [snapshot.userId, snapshot]));
-    const summaryMap = new Map(profileSummaries.map((summary) => [summary.userId, summary]));
-    const growthMap = new Map(growthCounts.map((entry) => [entry.userId, entry._count._all]));
-    const recommendationMap = new Map(
-      recommendationCounts.map((entry) => [entry.userId, entry._count._all])
-    );
-    const riskByUserId = riskFlags.reduce<Record<string, typeof riskFlags>>(
-      (accumulator, flag) => {
-        accumulator[flag.userId] = [
-          ...(accumulator[flag.userId] ?? []),
-          flag,
-        ];
-        return accumulator;
-      },
-      {},
-    );
     const cacheHealthByUserId = new Map(
       studentEvidenceFeatureCaches.map((cache) => [cache.userId, cache])
     );
-    const resolvedPortraits = await Promise.all(studentIds.map(async (studentId) => {
-        const resolution = await resolvePrimaryPortraitV2(prisma, studentId, 'reviewer', {
-          legacySnapshot: snapshotMap.get(studentId) as Record<string, unknown> | null,
-          featureCache: cacheHealthByUserId.get(studentId) as Record<string, unknown> | null,
-        });
-        return [studentId, resolution] as const;
-      }));
-    const portraitByUserId = new Map(
-      resolvedPortraits
-        .map(([studentId, resolution]) => [
-          studentId,
-          selectPortraitV2WithCompatibilityFallback(resolution, 'reviewer'),
-        ] as const)
-        .filter(([, portrait]) => hasPortraitV2Evidence(portrait))
-        .map(([studentId, portrait]) => [studentId, summarizePortraitV2(portrait)] as const),
+    const snapshotMap = new Map(latestSnapshots.map((snapshot) => [snapshot.userId, snapshot]));
+    const classScopedProjectionMap = buildClassScopedStudentProjections(
+      studentIds,
+      classScopedSimulationArenaFacts as any,
     );
-    const studentIdsWithPrimaryPortraitEvidence = new Set(
-      resolvedPortraits
-        .filter(([, resolution]) => hasAuthoritativePortraitV2Evidence(resolution.primaryPortrait))
-        .map(([studentId]) => studentId),
-    );
-    const now = new Date();
+    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: class-scoped legacy vectors are non-authoritative v2 projections.
+    const scopedPortraitByUserId = new Map([...classScopedProjectionMap].map(([studentId, projection]) => {
+      const projected = projectPortraitV2ForConsumer(derivePortraitV2Compatibility({
+        userId: studentId,
+        snapshotAt: now.toISOString(),
+        // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: source and vector are compatibility-only.
+        sourceFamily: 'StudentCompetencySnapshot',
+        vector: projection.competencyVector,
+        now,
+      }), 'reviewer');
+      return [studentId, summarizePortraitV2(projected)] as const;
+    }));
+    const lifecycleBoundaryByUserId = new Map(studentIds.map((studentId) => [
+      studentId,
+      classScopedProjectionMap.has(studentId)
+        ? null
+        : readLifecycleBoundary(snapshotMap.get(studentId)),
+    ] as const));
     const scopedSimulationArenaByUserId = buildTeacherScopedSimulationArenaFeatureMap(
       studentIds,
       classScopedSimulationArenaFacts,
@@ -376,31 +339,37 @@ export async function GET(
       )
       : null;
 
+    const hasCurrentClassEvidence = classScopedEvidenceFactGroups.some((group) => group._count._all > 0)
+      || classScopedSimulationArenaFacts.length > 0;
+    const noClassEvidence = !hasCurrentClassEvidence;
     const students: TeacherClassInsightStudent[] = classData.students.map((studentProfile) => {
-      const snapshot = snapshotMap.get(studentProfile.userId);
-      const summary = summaryMap.get(studentProfile.userId);
-      const portraitV2 = portraitByUserId.get(studentProfile.userId) ?? summarizePortraitV2({
+      const scopedProjection = classScopedProjectionMap.get(studentProfile.userId);
+      const resolvedPortrait = scopedPortraitByUserId.get(studentProfile.userId);
+      const lifecycleBoundary = lifecycleBoundaryByUserId.get(studentProfile.userId) ?? null;
+      const hasCurrentEvidence = Boolean(scopedProjection && scopedProjection.factCount > 0);
+      // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: this vector only supplies class-scoped compatibility scoring.
+      const vector = scopedProjection?.competencyVector;
+      const emptyPortrait = summarizePortraitV2({
         userId: studentProfile.userId,
         payloadVersion: 'learner-portrait.v2',
         migrationVersion: 'portrait-v2-migration.v1',
-        generatedAt: new Date().toISOString(),
-        derivation: { kind: 'compatibility-derived', limitations: ['missing-native-portrait-v2-evidence'] },
+        generatedAt: now.toISOString(),
+        derivation: {
+          kind: 'compatibility-derived',
+          limitations: lifecycleBoundary
+            ? [`lifecycle-boundary:${lifecycleBoundary}`]
+            : ['missing-native-portrait-v2-evidence'],
+        },
         dimensions: [],
       });
-      const studentRiskFlags = riskByUserId[studentProfile.userId] ?? [];
-      const hasPrimaryPortraitEvidence = studentIdsWithPrimaryPortraitEvidence.has(studentProfile.userId);
-      const overallScore = Math.round(
-        (hasPrimaryPortraitEvidence ? portraitV2.overallScore : summary?.overallScore ?? 0) * 10
-      ) / 10;
-      const riskLevel = normalizeInsightRiskLevel(
-        summary?.riskLevel ??
-          studentRiskFlags.find((flag) => flag.severity)?.severity ??
-          null
-      );
-      const portraitFactCount = portraitV2.dimensions.reduce(
-        (count, dimension) => count + dimension.evidenceCount,
-        0,
-      );
+      const portraitV2 = hasCurrentEvidence
+        ? resolvedPortrait ?? emptyPortrait
+        : emptyPortrait;
+      const fallbackScore = vector ? calculateOverallScore(vector) : 0;
+      const overallScore = hasCurrentEvidence
+        ? Math.round(fallbackScore * 10) / 10
+        : null;
+      const riskLevel = normalizeInsightRiskLevel(null);
 
       return {
         id: studentProfile.user.id,
@@ -408,42 +377,34 @@ export async function GET(
         email: studentProfile.user.email,
         studentNumber: studentProfile.studentNumber,
         overallScore,
-        overallScoreSource: hasPrimaryPortraitEvidence ? 'portrait-v2' : 'profile-summary-compatibility',
+        overallScoreSource: hasCurrentEvidence ? 'class-scoped-compatibility' : null,
         overallLevel:
-          hasPrimaryPortraitEvidence
+          hasCurrentEvidence && overallScore !== null
             ? COMPETENCY_LEVELS[getCompetencyLevelKey(overallScore)].label
-            : summary?.overallLevel || COMPETENCY_LEVELS[getCompetencyLevelKey(overallScore)].label,
+            : null,
         riskLevel,
         riskLabel: getRiskLabel(riskLevel),
         trendDirection:
-          summary?.trendDirection === 'up' || summary?.trendDirection === 'down'
-            ? summary.trendDirection
-            : 'stable',
-        recentTrend: summary?.recentTrend || '近期暂无治理趋势',
-        strengths: portraitV2.strengths.map((id) => portraitV2.dimensions.find((dimension) => dimension.id === id)?.label ?? id),
-        weaknesses: portraitV2.weaknesses.map((id) => portraitV2.dimensions.find((dimension) => dimension.id === id)?.label ?? id),
-        riskBadges:
-          parseStringList(summary?.riskFlagsJson).length > 0
-            ? parseStringList(summary?.riskFlagsJson)
-            : studentRiskFlags.map((flag) => flag.description),
-        growthRecordCount: growthMap.get(studentProfile.userId) ?? 0,
-        recommendationCount: recommendationMap.get(studentProfile.userId) ?? 0,
-        factCount: hasPrimaryPortraitEvidence ? portraitFactCount : snapshot?.factCount ?? 0,
-        lastSnapshotAt: latestSnapshotTimestamp(
-          hasPrimaryPortraitEvidence ? portraitV2.generatedAt : null,
-          snapshot?.snapshotAt.toISOString() ?? null,
-        ),
+          'stable',
+        recentTrend: hasCurrentEvidence ? '班级范围内暂无可比趋势' : '暂无当前证据',
+        strengths: [],
+        weaknesses: [],
+        riskBadges: [],
+        growthRecordCount: 0,
+        recommendationCount: 0,
+        factCount: hasCurrentEvidence ? scopedProjection?.factCount ?? 0 : 0,
+        lastSnapshotAt: hasCurrentEvidence ? classSnapshot?.snapshotAt.toISOString() ?? null : null,
         portraitV2,
         evidenceStatus: evidenceStatusMap.get(studentProfile.userId)!,
       };
     });
 
-    const coverageStudents = students.filter(
-      (student) => student.lastSnapshotAt || student.overallScore > 0 || student.riskBadges.length > 0
+    const coverageStudents = [...classScopedProjectionMap.values()].filter(
+      (projection) => projection.factCount > 0,
     ).length;
-    const latestStudentSnapshotAt = latestSnapshotTimestamp(
-      ...students.map((student) => student.lastSnapshotAt),
-    );
+    const latestStudentSnapshotAt = hasCurrentClassEvidence
+      ? classSnapshot?.snapshotAt.toISOString() ?? null
+      : null;
     const governanceBase = summarizeGovernanceState({
       totalStudents,
       coveredStudents: coverageStudents,
@@ -452,9 +413,9 @@ export async function GET(
     });
 
     const dimensionStats = PORTRAIT_V2_DIMENSIONS.map(({ id: dimension, label }) => {
-      const classMean = extractClassMean(classSnapshot?.aggregateJson, dimension);
+      const classMean = noClassEvidence ? null : extractClassMean(classSnapshot?.aggregateJson, dimension);
       const classStdDev = extractClassStdDev(classSnapshot?.aggregateJson, dimension);
-      const fallbackScores = [...portraitByUserId.values()].flatMap((portrait) => {
+      const fallbackScores = [...scopedPortraitByUserId.values()].flatMap((portrait) => {
         const portraitDimension = portrait.dimensions.find((item) => item.id === dimension);
         return portraitDimension && portraitDimension.evidenceCount > 0 && Number.isFinite(portraitDimension.score)
           ? [portraitDimension.score]
@@ -466,20 +427,21 @@ export async function GET(
       return {
         dimension,
         label,
-        mean: classMean ?? fallbackMean,
+        mean: noClassEvidence ? null : classMean ?? (fallbackScores.length > 0 ? fallbackMean : null),
         stdDev: classStdDev ?? 0,
       };
     });
 
-    const levelDistribution =
-      normalizeLevelDistribution(classSnapshot?.levelDistribution) ||
-      students.reduce<LevelDistribution>(
-        (accumulator, student) => {
-          accumulator[getCompetencyLevelKey(student.overallScore)] += 1;
-          return accumulator;
-        },
-        createEmptyLevelDistribution()
-      );
+    const levelDistribution = noClassEvidence
+      ? createEmptyLevelDistribution()
+      : normalizeLevelDistribution(classSnapshot?.levelDistribution) ||
+        students.reduce<LevelDistribution>(
+          (accumulator, student) => {
+            if (student.overallScore !== null) accumulator[getCompetencyLevelKey(student.overallScore)] += 1;
+            return accumulator;
+          },
+          createEmptyLevelDistribution()
+        );
     const diagnosis = materializeRoleBasedLearningDiagnosis({
       view: 'teacher-class',
       goalId: 'control-correction',
@@ -506,6 +468,26 @@ export async function GET(
       },
       diagnosisReportSnapshot,
     });
+    const spotlightStudents = noClassEvidence ? [] : rankStudentsByAttention(
+      students
+        .filter((student): student is TeacherClassInsightStudent & { overallScore: number } => student.overallScore !== null)
+        .map((student) => ({
+          id: student.id,
+          name: student.name,
+          overallScore: student.overallScore,
+          overallLevel: student.overallLevel ?? COMPETENCY_LEVELS[getCompetencyLevelKey(student.overallScore)].label,
+          riskLevel: student.riskLevel,
+          trendDirection: student.trendDirection,
+          recentTrend: student.recentTrend,
+          strengths: student.strengths,
+          weaknesses: student.weaknesses,
+          growthRecordCount: student.growthRecordCount,
+          recommendationCount: student.recommendationCount,
+      }))
+    ).slice(0, 5).map((ranked) => students.find((student) => student.id === ranked.id)!);
+    const coveredDimensionMeans = dimensionStats.flatMap((dimension) =>
+      dimension.mean === null ? [] : [dimension.mean]
+    );
 
     const payload: TeacherClassInsightsPayload = {
       classInfo: {
@@ -528,16 +510,18 @@ export async function GET(
         recentSessionQuality,
       },
       overview: {
-        overallIndex: roundTo(
-          dimensionStats.reduce((sum, item) => sum + item.mean, 0) / dimensionStats.length,
-          1
-        ),
-        highRiskStudents: students.filter((student) => student.riskLevel === 'high').length,
-        mediumRiskStudents: students.filter((student) => student.riskLevel === 'medium').length,
-        attentionStudents: students.filter((student) =>
+        overallIndex: noClassEvidence || coveredDimensionMeans.length === 0
+          ? null
+          : roundTo(
+              coveredDimensionMeans.reduce((sum, mean) => sum + mean, 0) / coveredDimensionMeans.length,
+              1,
+            ),
+        highRiskStudents: noClassEvidence ? 0 : students.filter((student) => student.riskLevel === 'high').length,
+        mediumRiskStudents: noClassEvidence ? 0 : students.filter((student) => student.riskLevel === 'medium').length,
+        attentionStudents: noClassEvidence ? 0 : students.filter((student) =>
           student.riskLevel === 'high' ||
           student.riskLevel === 'medium' ||
-          student.overallScore < COMPETENCY_LEVELS.average.min
+          (student.overallScore ?? Number.POSITIVE_INFINITY) < COMPETENCY_LEVELS.average.min
         ).length,
         averageFactCount: roundTo(
           students.reduce((sum, student) => sum + student.factCount, 0) / (students.length || 1),
@@ -545,6 +529,7 @@ export async function GET(
         ),
       },
       ability: {
+        state: noClassEvidence ? 'no-evidence' : 'ready',
         dimensions: dimensionStats,
         levelDistribution,
       },
@@ -555,7 +540,7 @@ export async function GET(
         learningFacts: arenaLearningFacts,
       }),
       diagnosis,
-      spotlightStudents: rankStudentsByAttention(students).slice(0, 5),
+      spotlightStudents,
       students,
     };
 

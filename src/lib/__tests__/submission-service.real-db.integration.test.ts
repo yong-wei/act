@@ -68,11 +68,13 @@ describe.runIf(enabled)('student assignment isolated PostgreSQL integration', ()
     for (let retry = 0; retry < 2; retry += 1) { await prisma.submissionAsset.update({ where: { id: missing.id }, data: { nextScanAt: new Date(Date.now() - 1) } }); await runSubmissionScanBatch(prisma, new LocalSubmissionObjectScanner(store), { async healthCheck() {}, async scan() { return 'CLEAN' as const; } }, 1); }
     missing = await prisma.submissionAsset.findUniqueOrThrow({ where: { id: missing.id } });
     expect(missing).toMatchObject({ state: 'QUARANTINED', scanState: 'PENDING', scanRetryCount: 3, lastScanErrorCode: 'object-not-ready' }); expect(missing.nextScanAt!.getTime() - Date.now()).toBeLessThanOrEqual(60_000);
+    if (!missing.answerId) throw new Error('real-db-fixture-answer-missing');
     store.put({ key: missingSigned.key, ownerId: studentId, answerId: missing.answerId, sizeBytes: 12, mimeType: 'application/pdf', checksum, scanState: 'PENDING' }); store.payloads.set(missingSigned.key, uploadedBytes);
     await prisma.submissionAsset.update({ where: { id: missing.id }, data: { nextScanAt: new Date(Date.now() - 1) } }); await runSubmissionScanBatch(prisma, new LocalSubmissionObjectScanner(store), { async healthCheck() {}, async scan() { return 'CLEAN' as const; } }, 1);
     await expect(prisma.submissionAsset.findUniqueOrThrow({ where: { id: missing.id } })).resolves.toMatchObject({ state: 'QUARANTINED', scanState: 'CLEAN', scanRetryCount: 0, lastScanErrorCode: null, nextScanAt: null });
     const mismatchSigned = await signQuestionUpload(prisma, store, { studentId, assignmentId, questionId: fileQuestionId, fileName: 'mismatch.pdf', mimeType: 'application/pdf', sizeBytes: 12, checksum });
     const mismatchIntent = await prisma.submissionAsset.findUniqueOrThrow({ where: { id: mismatchSigned.intentId } }); const wrongBytes = new Uint8Array(12).fill(9);
+    if (!mismatchIntent.answerId) throw new Error('real-db-fixture-answer-missing');
     store.put({ key: mismatchSigned.key, ownerId: studentId, answerId: mismatchIntent.answerId, sizeBytes: 12, mimeType: 'application/pdf', checksum, scanState: 'PENDING' }); store.payloads.set(mismatchSigned.key, wrongBytes);
     const mismatchResult = await runSubmissionScanBatch(prisma, new LocalSubmissionObjectScanner(store), { async healthCheck() {}, async scan() { return 'CLEAN' as const; } }); expect(mismatchResult.unsafe).toBe(1);
     await expect(prisma.submissionAsset.findUniqueOrThrow({ where: { id: mismatchIntent.id } })).resolves.toMatchObject({ state: 'REVOKED', scanState: 'UNSAFE', lastScanErrorCode: 'integrity-mismatch' });

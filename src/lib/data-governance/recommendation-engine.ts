@@ -473,6 +473,12 @@ const VECTOR_RULE_DIMENSIONS: Partial<Record<string, readonly CompetencyDimensio
  * Generate recommendations for a user
  */
 export async function generateRecommendations(userId: string): Promise<Recommendation[]> {
+  const latestSnapshot = await prisma.studentCompetencySnapshot.findFirst({
+    where: { userId },
+    orderBy: [{ snapshotAt: 'desc' }, { id: 'desc' }],
+  });
+  const derivationState = (latestSnapshot?.evidenceSummary as any)?._derivation?.state;
+  if (derivationState === 'no-recent-evidence' || derivationState === 'no-evidence-after-revocation') return [];
   // Get context data
   const context = await buildRecommendationContext(userId);
 

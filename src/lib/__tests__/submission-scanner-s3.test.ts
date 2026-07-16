@@ -24,6 +24,11 @@ describe('S3 scanner error normalization', () => {
     expect(fixture.asset.lastScanErrorCode).toBeNull();
   });
 
+  it('does not classify a bucket-level 404 as a missing object', async () => {
+    const scanner = new S3ObjectTagSubmissionScanner(config, clientThrowing({ name: 'NoSuchBucket', message: 'bucket detail', $metadata: { httpStatusCode: 404 } }));
+    await expect(scanner.readForScan('quarantine/missing-bucket')).rejects.toMatchObject({ code: 'scanner-object-read-transient', status: 502 });
+  });
+
   it('keeps PutObjectTagging 403 fatal and does not persist a false FAILED state', async () => {
     const bytes = new Uint8Array(12).fill(3); const scanner = new S3ObjectTagSubmissionScanner(config, clientWithTagFailure(bytes, { name: 'AccessDenied', message: 'tag policy secret', $metadata: { httpStatusCode: 403 } }));
     const fixture = prismaFixture(); fixture.asset.checksum = `sha256:${createHash('sha256').update(bytes).digest('hex')}`;

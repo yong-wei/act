@@ -52,3 +52,11 @@ export * from './structured-associative-retrieval';
 export * from './sar-association-expansion';
 export * from './sar-persistence';
 export * from './sar-refresh';
+
+// Production math-document grading pipeline
+export * from './math-document-grading-contracts';
+export * from './math-document-conversion';
+export * from './math-document-grading-evaluator';
+export * from './math-document-grading-persistence';
+export * from './math-document-grading-batch';
+export * from './math-document-grading-lifecycle';

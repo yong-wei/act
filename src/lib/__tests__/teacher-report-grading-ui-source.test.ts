@@ -55,6 +55,17 @@ describe('teacher report and grading UI source contracts', () => {
     expect(source).toContain('return <TeacherDocumentGradingEmptyState routeState={buildTeacherGradingMissingRunState(routeQuery)} />;');
   });
 
+  it('shows authorized content-unavailable grading runs before requiring live student membership', () => {
+    const source = readSource('src/app/(teacher-report-ledger)/teacher/grading-workbench/page.tsx');
+    const authorization = source.indexOf('await assertPipelineReviewActor');
+    const unavailable = source.indexOf("pipelineRun.state === 'CONTENT_UNAVAILABLE'");
+    const membership = source.indexOf('const studentProfile = await prisma.studentProfile.findFirst');
+
+    expect(authorization).toBeGreaterThan(-1);
+    expect(unavailable).toBeGreaterThan(authorization);
+    expect(membership).toBeGreaterThan(unavailable);
+  });
+
   it('keeps teacher student evidence actions on the shared intervention contract', () => {
     const source = readSource('src/app/teacher/classes/[classId]/students/[studentId]/evidence/page.tsx');
 

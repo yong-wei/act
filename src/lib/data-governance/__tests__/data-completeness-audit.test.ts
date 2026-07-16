@@ -11,6 +11,27 @@ import {
 import type { LearningEvidenceCorpusChunk } from '../learning-evidence-rag-corpus';
 
 describe('data completeness audit', () => {
+  it('accepts governed document-rubric grading source events without dangling lineage', () => {
+    const report = buildDataCompletenessAuditReport({
+      generatedAt: '2026-07-14T00:00:00.000Z',
+      learningFacts: [{ id: 'fact-document-grading-1', userId: 'student-1', factType: 'document_rubric_grading', sourceEventId: 'adaptive-assessment:document-rubric-grading:run-1:criterion-1:sha256%3Aquestion', sourceLogId: null, contextJson: { gradingRunId: 'run-1', criterionId: 'criterion-1', rubricVersion: 'sha256:question' } }],
+      documentGradingRuns: [{ id: 'run-1', state: 'APPROVED', rubricVersion: 'sha256:question', studentId: 'student-1', assessments: [{ criterionId: 'criterion-1' }] }],
+    });
+    const lineage = report.layers.find((layer) => layer.id === 'evidenceLineage');
+    expect(lineage?.totals.danglingLearningFactSourceEvents).toBe(0);
+    expect(lineage?.findings).not.toEqual(expect.arrayContaining([expect.objectContaining({ id: 'learning-fact-source-event-dangling' })]));
+  });
+
+  it('rejects forged or missing document-rubric grading lineage', () => {
+    for (const documentGradingRuns of [[], [{ id: 'run-1', state: 'AWAITING_REVIEW', rubricVersion: 'rubric-v1', studentId: 'other-student', assessments: [{ criterionId: 'other-criterion' }] }]]) {
+      const report = buildDataCompletenessAuditReport({
+        learningFacts: [{ id: 'forged-fact', userId: 'student-1', factType: 'document_rubric_grading', sourceEventId: 'adaptive-assessment:document-rubric-grading:run-1:criterion-1:sha256%3Aquestion' }],
+        documentGradingRuns,
+      });
+      expect(report.layers.find((layer) => layer.id === 'evidenceLineage')?.totals.danglingLearningFactSourceEvents).toBe(1);
+    }
+  });
+
   it('reports graph, resource, citation, path, lineage, and learner readiness separately', () => {
     const registry = buildResourceNodeRegistry({
       registeredResources: [{

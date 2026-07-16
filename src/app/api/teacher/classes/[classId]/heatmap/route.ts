@@ -11,9 +11,15 @@ import { prisma } from '@/lib/prisma';
 import { PORTRAIT_V2_DIMENSIONS, type PortraitV2DimensionId } from '@/lib/data-governance/kaq-objective-taxonomy';
 import {
   hasPortraitV2Evidence,
-  resolvePrimaryPortraitV2,
-  selectPortraitV2WithCompatibilityFallback,
 } from '@/lib/data-governance/portrait-v2-consumer';
+import { buildClassScopedStudentProjections } from '@/lib/data-governance/class-scoped-learning-materialization';
+import { buildTeacherScopedLearningFactScopeFilters } from '@/lib/data-governance/teacher-evidence-governance';
+// PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: the scoped legacy vector is a non-authoritative v2 projection input.
+import type { CompetencyVector } from '@/lib/data-governance/competency-model';
+import {
+  derivePortraitV2Compatibility,
+  projectPortraitV2ForConsumer,
+} from '@/lib/data-governance/portrait-v2-model';
 import { createDatabaseUnavailableResponse, isDatabaseConnectivityError } from '@/lib/service-availability';
 
 export const dynamic = 'force-dynamic';
@@ -38,6 +44,46 @@ export interface HeatmapData {
 
 // Cache TTL: 15 minutes
 const CACHE_TTL = 15 * 60;
+
+type ScopedFactClock = {
+  startedAt: Date;
+  finishedAt: Date | null;
+};
+
+// PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: this helper exposes only a v2 compatibility projection.
+function buildScopedPortrait(
+  userId: string,
+  vector: CompetencyVector,
+  facts: ScopedFactClock[],
+  now: Date,
+) {
+  const snapshotTime = Math.max(...facts.map((fact) => (fact.finishedAt ?? fact.startedAt).getTime()));
+  const snapshotAt = new Date(snapshotTime);
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: normalize the non-authoritative vector to scoped fact time.
+  const compatibilityVector = Object.fromEntries(Object.entries(vector).map(([dimension, value]) => [
+    dimension,
+    {
+      ...value,
+      // The projection calculator stamps its execution time. A compatibility
+      // portrait must instead carry the latest timestamp of its scoped facts.
+      lastUpdated: snapshotAt.toISOString(),
+    },
+  ])) as CompetencyVector;
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy sourceFamily is compatibility provenance, not authority.
+  return projectPortraitV2ForConsumer(derivePortraitV2Compatibility({
+    userId,
+    snapshotAt: snapshotAt.toISOString(),
+    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: source and vector are compatibility-only.
+    sourceFamily: 'StudentCompetencySnapshot',
+    vector: compatibilityVector,
+    now,
+  }), 'reviewer');
+}
+
+function latestFactTimestamp(facts: ScopedFactClock[]) {
+  if (facts.length === 0) return null;
+  return new Date(Math.max(...facts.map((fact) => (fact.finishedAt ?? fact.startedAt).getTime()))).toISOString();
+}
 
 export async function GET(
   request: NextRequest,
@@ -100,91 +146,37 @@ export async function GET(
       } as HeatmapData);
     }
 
-    // Get latest competency snapshots for all students
-    const latestSnapshots = await prisma.studentCompetencySnapshot.findMany({
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60_000);
+    const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60_000);
+    const classSessionIds = (await prisma.classSession.findMany({
+      where: { classId },
+      select: { id: true },
+    })).map((classSession) => classSession.id);
+    const scopedFacts = await prisma.learningFact.findMany({
       where: {
         userId: { in: studentIds },
+        startedAt: { gte: sixtyDaysAgo },
+        OR: buildTeacherScopedLearningFactScopeFilters(classId, classSessionIds),
       },
-      orderBy: { snapshotAt: 'desc' },
-      distinct: ['userId'],
+      orderBy: { startedAt: 'desc' },
     });
-
-    const latestPortraitSnapshots = await prisma.studentPortraitV2Snapshot.findMany({
-      where: { userId: { in: studentIds } },
-      orderBy: { snapshotAt: 'desc' },
-      distinct: ['userId'],
-    });
-
-    // Get previous snapshots for change calculation (30 days ago)
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-    const previousSnapshots = await prisma.studentCompetencySnapshot.findMany({
-      where: {
-        userId: { in: studentIds },
-        snapshotAt: { lte: thirtyDaysAgo },
-      },
-      orderBy: [{ userId: 'asc' }, { snapshotAt: 'desc' }],
-    });
-    const previousSnapshotByUserId = previousSnapshots.reduce<Record<string, (typeof previousSnapshots)[number]>>(
-      (accumulator, snapshot) => {
-        if (!accumulator[snapshot.userId]) {
-          accumulator[snapshot.userId] = snapshot;
-        }
-        return accumulator;
-      },
-      {},
-    );
-
-    const previousPortraitSnapshots = await prisma.studentPortraitV2Snapshot.findMany({
-      where: {
-        userId: { in: studentIds },
-        snapshotAt: { lte: thirtyDaysAgo },
-      },
-      orderBy: [{ userId: 'asc' }, { snapshotAt: 'desc' }],
-    });
-    const previousPortraitSnapshotByUserId = previousPortraitSnapshots.reduce<Record<string, (typeof previousPortraitSnapshots)[number]>>(
-      (accumulator, snapshot) => {
-        if (!accumulator[snapshot.userId]) {
-          accumulator[snapshot.userId] = snapshot;
-        }
-        return accumulator;
-      },
-      {},
-    );
-
-    const latestSnapshotByUserId = new Map(latestSnapshots.map((snapshot) => [snapshot.userId, snapshot]));
-    const latestPortraitSnapshotByUserId = new Map(latestPortraitSnapshots.map((snapshot) => [snapshot.userId, snapshot]));
-    const featureCaches = await prisma.studentEvidenceFeatureCache.findMany({
-      where: { userId: { in: studentIds } },
-      select: { userId: true, features: true },
-    });
-    const featureCacheByUserId = new Map(featureCaches.map((cache) => [cache.userId, cache]));
-    const resolvedPortraitByUserId = new Map(
-      await Promise.all(studentIds.map(async (studentId) => {
-        const resolution = await resolvePrimaryPortraitV2(
-          {
-            studentPortraitV2Snapshot: {
-              findFirst: async () => latestPortraitSnapshotByUserId.get(studentId) ?? null,
-            },
-          },
-          studentId,
-          'reviewer',
-          {
-            legacySnapshot: latestSnapshotByUserId.get(studentId) as Record<string, unknown> | null,
-            featureCache: featureCacheByUserId.get(studentId) as Record<string, unknown> | null,
-          },
-        );
-        return [studentId, resolution] as const;
-      })),
-    );
-    // Get active risk flags for all students
-    const riskFlags = await prisma.studentRiskFlag.findMany({
-      where: {
-        userId: { in: studentIds },
-        isResolved: false,
-      },
-    });
+    const currentFacts = scopedFacts.filter((fact) => fact.startedAt >= thirtyDaysAgo);
+    const previousFacts = scopedFacts.filter((fact) => fact.startedAt < thirtyDaysAgo);
+    // The buckets are already bounded here; do not apply the calculator's
+    // moving 30-day cutoff again to the 30-60 day comparison bucket.
+    const currentProjectionByUserId = buildClassScopedStudentProjections(studentIds, currentFacts, 'all');
+    const previousProjectionByUserId = buildClassScopedStudentProjections(studentIds, previousFacts, 'all');
+    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: scoped vectors are projected before heatmap consumption.
+    const currentPortraitByUserId = new Map([...currentProjectionByUserId].map(([studentId, projection]) => [
+      studentId,
+      buildScopedPortrait(studentId, projection.competencyVector, currentFacts.filter((fact) => fact.userId === studentId), now),
+    ] as const));
+    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: previous scoped vectors remain comparison-only compatibility data.
+    const previousPortraitByUserId = new Map([...previousProjectionByUserId].map(([studentId, projection]) => [
+      studentId,
+      buildScopedPortrait(studentId, projection.competencyVector, previousFacts.filter((fact) => fact.userId === studentId), now),
+    ] as const));
 
     // Build heatmap matrix
     const dimensions: PortraitV2DimensionId[] = dimensionFilter
@@ -194,41 +186,10 @@ export async function GET(
     const matrix: HeatmapData['matrix'] = [];
 
     for (const studentId of studentIds) {
-      const resolution = resolvedPortraitByUserId.get(studentId);
-      if (!resolution) continue;
-      const currentPortrait = selectPortraitV2WithCompatibilityFallback(resolution, 'reviewer');
+      const currentPortrait = currentPortraitByUserId.get(studentId);
+      if (!currentPortrait) continue;
       if (!hasPortraitV2Evidence(currentPortrait)) continue;
-      const previousPortraitSnapshot = previousPortraitSnapshotByUserId[studentId];
-      const previousLegacySnapshot = previousSnapshotByUserId[studentId];
-      const previousResolution = previousPortraitSnapshot || previousLegacySnapshot
-        ? await resolvePrimaryPortraitV2(
-            {
-              studentPortraitV2Snapshot: {
-                findFirst: async () => previousPortraitSnapshot,
-              },
-            },
-            studentId,
-            'reviewer',
-            {
-              legacySnapshot: previousLegacySnapshot as Record<string, unknown> | null,
-            },
-          )
-        : null;
-      const previousPortrait = previousResolution
-        ? selectPortraitV2WithCompatibilityFallback(previousResolution, 'reviewer')
-        : null;
-
-      // Calculate risk level for this student
-      const studentRisks = riskFlags.filter(rf => rf.userId === studentId);
-      const hasHighRisk = studentRisks.some(r => r.severity === 'high');
-      const hasMediumRisk = studentRisks.some(r => r.severity === 'medium');
-      const riskLevel: HeatmapData['matrix'][0]['riskLevel'] = hasHighRisk
-        ? 'high'
-        : hasMediumRisk
-          ? 'medium'
-          : studentRisks.length > 0
-            ? 'low'
-            : 'none';
+      const previousPortrait = previousPortraitByUserId.get(studentId) ?? null;
 
       for (const dimension of dimensions) {
         const currentDimension = currentPortrait.dimensions.find((item) => item.id === dimension);
@@ -242,7 +203,7 @@ export async function GET(
         const change = Math.round((currentScore - previousScore) * 10) / 10;
 
         // Adjust risk level based on dimension-specific scores
-        let dimensionRiskLevel = riskLevel;
+        let dimensionRiskLevel: HeatmapData['matrix'][0]['riskLevel'] = 'none';
         if (currentScore < 40) {
           dimensionRiskLevel = 'high';
         } else if (currentScore < 55 && dimensionRiskLevel === 'none') {
@@ -269,7 +230,7 @@ export async function GET(
       })),
       dimensions,
       matrix,
-      lastUpdated: new Date().toISOString(),
+      lastUpdated: latestFactTimestamp(currentFacts) ?? now.toISOString(),
     };
 
     // Set cache headers
