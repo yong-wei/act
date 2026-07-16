@@ -6,9 +6,6 @@ import {
 } from '@/lib/data-governance/competency-model';
 import { PORTRAIT_V2_DIMENSIONS, type PortraitV2DimensionId } from '@/lib/data-governance/kaq-objective-taxonomy';
 import {
-  hasPortraitV2Evidence,
-  resolvePrimaryPortraitV2,
-  selectPortraitV2WithCompatibilityFallback,
   summarizePortraitV2,
   type PortraitV2ConsumerSummary,
 } from '@/lib/data-governance/portrait-v2-consumer';
@@ -313,34 +310,6 @@ export async function GET(
         ? null
         : readLifecycleBoundary(snapshotMap.get(studentId)),
     ] as const));
-    const resolvedPortraits = await Promise.all(studentIds.map(async (studentId) => {
-        const projection = classScopedProjectionMap.get(studentId);
-        if (lifecycleBoundaryByUserId.get(studentId)) {
-          return [studentId, null] as const;
-        }
-        // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy snapshots remain fallback metadata only.
-        const resolution = await resolvePrimaryPortraitV2(prisma, studentId, 'reviewer', {
-          // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy vector is non-authoritative fallback input.
-          legacySnapshot: projection ? {
-            userId: studentId,
-            competencyVector: projection.competencyVector,
-            factCount: projection.factCount,
-            snapshotAt: classSnapshot?.snapshotAt ?? now,
-          } : snapshotMap.get(studentId) as Record<string, unknown> | null,
-          featureCache: projection
-            ? null
-            : cacheHealthByUserId.get(studentId) as Record<string, unknown> | null,
-        });
-        return [studentId, resolution] as const;
-      }));
-    const portraitByUserId = new Map<string, PortraitV2ConsumerSummary>();
-    for (const [studentId, resolution] of resolvedPortraits) {
-      if (!resolution) continue;
-      const portrait = selectPortraitV2WithCompatibilityFallback(resolution, 'reviewer');
-      if (hasPortraitV2Evidence(portrait)) {
-        portraitByUserId.set(studentId, summarizePortraitV2(portrait));
-      }
-    }
     const scopedSimulationArenaByUserId = buildTeacherScopedSimulationArenaFeatureMap(
       studentIds,
       classScopedSimulationArenaFacts,
@@ -375,10 +344,9 @@ export async function GET(
     const noClassEvidence = !hasCurrentClassEvidence;
     const students: TeacherClassInsightStudent[] = classData.students.map((studentProfile) => {
       const scopedProjection = classScopedProjectionMap.get(studentProfile.userId);
-      const resolvedPortrait = portraitByUserId.get(studentProfile.userId);
+      const resolvedPortrait = scopedPortraitByUserId.get(studentProfile.userId);
       const lifecycleBoundary = lifecycleBoundaryByUserId.get(studentProfile.userId) ?? null;
       const hasCurrentEvidence = Boolean(scopedProjection && scopedProjection.factCount > 0);
-      const hasDisplayPortrait = Boolean(resolvedPortrait);
       // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: this vector only supplies class-scoped compatibility scoring.
       const vector = scopedProjection?.competencyVector;
       const emptyPortrait = summarizePortraitV2({
@@ -394,7 +362,7 @@ export async function GET(
         },
         dimensions: [],
       });
-      const portraitV2 = hasDisplayPortrait || hasCurrentEvidence
+      const portraitV2 = hasCurrentEvidence
         ? resolvedPortrait ?? emptyPortrait
         : emptyPortrait;
       const fallbackScore = vector ? calculateOverallScore(vector) : 0;

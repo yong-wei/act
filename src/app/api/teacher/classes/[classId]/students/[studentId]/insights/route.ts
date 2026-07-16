@@ -14,9 +14,6 @@ import {
   type PortraitV2DimensionId,
 } from '@/lib/data-governance/kaq-objective-taxonomy';
 import {
-  hasPortraitV2Evidence,
-  resolvePrimaryPortraitV2,
-  selectPortraitV2WithCompatibilityFallback,
   summarizePortraitV2,
   type PortraitV2ConsumerSummary,
 } from '@/lib/data-governance/portrait-v2-consumer';
@@ -394,12 +391,6 @@ export async function GET(
           (fact.finishedAt ?? fact.startedAt).getTime()
         )))
       : null;
-    const globalPortraitResolution = scopedProjection
-      ? null
-      : await resolvePrimaryPortraitV2(prisma, studentId, 'reviewer', {
-          legacySnapshot: currentSnapshot as Record<string, unknown> | null,
-          featureCache: studentEvidenceFeatureRead.cache as Record<string, unknown> | null,
-        });
     // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: scoped vectors are non-authoritative inputs to the v2 projection.
     const selectedPortrait = scopedProjection && scopedSnapshotAt
       ? projectPortraitV2ForConsumer(derivePortraitV2Compatibility({
@@ -410,10 +401,7 @@ export async function GET(
           vector: scopedProjection.competencyVector,
           now: new Date(),
         }), 'reviewer')
-      : globalPortraitResolution
-        ? selectPortraitV2WithCompatibilityFallback(globalPortraitResolution, 'reviewer')
-        : null;
-    const hasPortraitV2Data = Boolean(selectedPortrait && hasPortraitV2Evidence(selectedPortrait));
+      : null;
     const hasCurrentEvidence = !lifecycleBoundary && Boolean(scopedProjection);
     const derivationState = lifecycleBoundary ?? (hasCurrentEvidence ? 'current' : 'no-evidence');
     const trendVector = null;
@@ -431,7 +419,7 @@ export async function GET(
           },
           dimensions: [],
         })
-      : selectedPortrait && (hasCurrentEvidence || hasPortraitV2Data)
+      : selectedPortrait && hasCurrentEvidence
       ? summarizePortraitV2(selectedPortrait)
       : summarizePortraitV2({
           userId: studentId,

@@ -899,7 +899,7 @@ describe('teacher evidence governance insights', () => {
     });
   });
 
-  it('uses native portrait evidence metadata for a v2-only class student', async () => {
+  it('does not expose a global native portrait for a class student without scoped facts', async () => {
     mocks.prisma.class.findUnique.mockResolvedValue({
       id: 'class-1',
       name: '自动控制 1 班',
@@ -936,14 +936,19 @@ describe('teacher evidence governance insights', () => {
       factCount: 0,
       lastSnapshotAt: null,
       portraitV2: {
-        derivationKind: 'native',
-        generatedAt: '2026-05-20T08:00:00.000Z',
+        derivationKind: 'compatibility-derived',
+        generatedAt: '2026-05-21T00:00:00.000Z',
+        overallScore: 0,
       },
     });
+    expect(body.students[0].portraitV2.dimensions.every(
+      (dimension: { evidenceCount: number }) => dimension.evidenceCount === 0,
+    )).toBe(true);
+    expect(mocks.prisma.studentPortraitV2Snapshot.findFirst).not.toHaveBeenCalled();
     expect(body.governance.latestStudentSnapshotAt).toBeNull();
   });
 
-  it('uses the newer portrait v2 timestamp when it is later than the legacy snapshot', async () => {
+  it('does not use global portrait or legacy snapshot timestamps without class-scoped facts', async () => {
     mocks.prisma.class.findUnique.mockResolvedValue({
       id: 'class-1',
       name: '自动控制 1 班',
@@ -983,11 +988,15 @@ describe('teacher evidence governance insights', () => {
 
     expect(response.status).toBe(200);
     expect(body.students[0].lastSnapshotAt).toBeNull();
-    expect(body.students[0].portraitV2.generatedAt).toBe('2026-05-20T09:00:00.000Z');
+    expect(body.students[0].portraitV2).toMatchObject({
+      generatedAt: '2026-05-21T00:00:00.000Z',
+      overallScore: 0,
+    });
+    expect(mocks.prisma.studentPortraitV2Snapshot.findFirst).not.toHaveBeenCalled();
     expect(body.governance.latestStudentSnapshotAt).toBeNull();
   });
 
-  it('keeps legacy-backed students in class portrait summaries when the native portrait is empty', async () => {
+  it('does not use a legacy-backed global portrait without class-scoped facts', async () => {
     mocks.prisma.class.findUnique.mockResolvedValue({
       id: 'class-1',
       name: '自动控制 1 班',
@@ -1025,8 +1034,8 @@ describe('teacher evidence governance insights', () => {
     expect(body.students[0].portraitV2).toMatchObject({
       derivationKind: 'compatibility-derived',
     });
-    expect(body.students[0].portraitV2.dimensions.some(
-      (dimension: { evidenceCount: number }) => dimension.evidenceCount > 0,
+    expect(body.students[0].portraitV2.dimensions.every(
+      (dimension: { evidenceCount: number }) => dimension.evidenceCount === 0,
     )).toBe(true);
     expect(body.ability.state).toBe('no-evidence');
     expect(body.ability.dimensions.every((dimension: { mean: number | null }) => dimension.mean === null)).toBe(true);
@@ -1748,8 +1757,12 @@ describe('teacher evidence governance insights', () => {
       overallScore: null,
       latestSnapshotAt: null,
       factCount: 0,
-      portraitV2: { derivationKind: 'compatibility-derived' },
+      portraitV2: { derivationKind: 'compatibility-derived', overallScore: 0 },
     });
+    expect(body.overview.portraitV2.dimensions.every(
+      (dimension: { evidenceCount: number }) => dimension.evidenceCount === 0,
+    )).toBe(true);
+    expect(mocks.prisma.studentPortraitV2Snapshot.findFirst).not.toHaveBeenCalled();
     expect(body.snapshot.current).toBeNull();
   });
 
