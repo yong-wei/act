@@ -37,6 +37,7 @@ import { materializeIncrementalPortraitV2 } from '@/lib/data-governance/portrait
 import {
   aggregatePortraitV2,
   hasPortraitV2Evidence,
+  isSamePortraitV2ClassSnapshot,
   resolvePrimaryPortraitV2,
   selectPortraitV2WithCompatibilityFallback,
   summarizePortraitV2,
@@ -843,7 +844,12 @@ async function processClassSnapshotJob(job: Job<ClassSnapshotJob>) {
     where: { classId },
     orderBy: { snapshotAt: 'desc' },
   });
-  if (previousClassSnapshot && isSameClassAggregate(aggregate, previousClassSnapshot.aggregateJson)) {
+  if (previousClassSnapshot && isSamePortraitV2ClassSnapshot(
+    aggregate,
+    distribution,
+    previousClassSnapshot.aggregateJson,
+    previousClassSnapshot.distributionJson,
+  )) {
     return {
       snapshotId: previousClassSnapshot.id,
       studentCount: portraitRows.length,
@@ -918,20 +924,6 @@ function calculateClassTrend(
       direction: delta > 3 ? 'up' : delta < -3 ? 'down' : 'stable',
     }];
   }));
-}
-
-function isSameClassAggregate(
-  current: PortraitV2ClassAggregate,
-  previous: unknown,
-) {
-  const previousAggregate = readRecord(previous);
-  const previousDimensions = Object.keys(readRecord(previousAggregate.dimensions)).length > 0
-    ? readRecord(previousAggregate.dimensions)
-    : previousAggregate;
-  return Object.entries(current.dimensions).every(([dimension, value]) => {
-    const previousValue = readRecord(previousDimensions[dimension]);
-    return previousValue.mean === value.mean && previousValue.stdDev === value.stdDev;
-  });
 }
 
 async function processSessionReportJob(job: Job<SessionReportJob>) {

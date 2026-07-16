@@ -6,6 +6,8 @@ import {
   aggregatePortraitV2,
   hasAuthoritativePortraitV2Evidence,
   hasPortraitV2Evidence,
+  isSamePortraitV2ClassAggregate,
+  isSamePortraitV2ClassSnapshot,
   resolvePrimaryPortraitV2,
   selectPortraitV2WithCompatibilityFallback,
   summarizePortraitV2,
@@ -86,6 +88,59 @@ describe('portrait v2 consumer adapters', () => {
 
     expect(summary.strengths).toEqual([]);
     expect(summary.weaknesses).toEqual([]);
+  });
+
+  it('compares all class aggregate evidence and provenance metadata', async () => {
+    const compatible = await resolvePrimaryPortraitV2({}, 'student-1', 'reviewer', {
+      now,
+      legacySnapshot: legacySnapshot(),
+      featureCache: null,
+    });
+    const aggregate = aggregatePortraitV2([compatible.primaryPortrait]);
+    const identical = structuredClone(aggregate);
+
+    expect(isSamePortraitV2ClassAggregate(aggregate, identical)).toBe(true);
+
+    for (const mutate of [
+      (candidate: typeof identical) => { candidate.sourceCoverage.compatibilityLearners += 1; },
+      (candidate: typeof identical) => { candidate.dimensions.controlModelingRepresentation.evidenceCount += 1; },
+      (candidate: typeof identical) => { candidate.dimensions.controlModelingRepresentation.freshness = 'stale'; },
+      (candidate: typeof identical) => { candidate.dimensions.controlModelingRepresentation.derivationKinds = ['native']; },
+      (candidate: typeof identical) => { candidate.limitations.push('additional-limitation'); },
+    ]) {
+      const changed = structuredClone(aggregate);
+      mutate(changed);
+      expect(isSamePortraitV2ClassAggregate(aggregate, changed)).toBe(false);
+    }
+  });
+
+  it('does not skip a class snapshot when only the level distribution changed', async () => {
+    const compatible = await resolvePrimaryPortraitV2({}, 'student-1', 'reviewer', {
+      now,
+      legacySnapshot: legacySnapshot(),
+      featureCache: null,
+    });
+    const aggregate = aggregatePortraitV2([compatible.primaryPortrait]);
+    const currentDistribution = {
+      excellent: 1,
+      good: 0,
+      average: 0,
+      needsImprovement: 0,
+      atRisk: 0,
+    };
+
+    expect(isSamePortraitV2ClassSnapshot(
+      aggregate,
+      currentDistribution,
+      structuredClone(aggregate),
+      { ...currentDistribution },
+    )).toBe(true);
+    expect(isSamePortraitV2ClassSnapshot(
+      aggregate,
+      currentDistribution,
+      structuredClone(aggregate),
+      { ...currentDistribution, excellent: 0, atRisk: 1 },
+    )).toBe(false);
   });
 
   it.each([

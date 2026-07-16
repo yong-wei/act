@@ -103,6 +103,11 @@ export interface PortraitV2ClassAggregate {
   };
 }
 
+export type PortraitV2ClassLevelDistribution = Record<
+  'excellent' | 'good' | 'average' | 'needsImprovement' | 'atRisk',
+  number
+>;
+
 export function hasPortraitV2Evidence(payload: PortraitV2ProjectedPayload): boolean {
   return payload.dimensions.some((dimension) => dimension.evidenceSummary.totalCount > 0);
 }
@@ -370,6 +375,56 @@ export function aggregatePortraitV2(
   };
 }
 
+export function isSamePortraitV2ClassAggregate(
+  current: PortraitV2ClassAggregate,
+  previous: unknown,
+): boolean {
+  return JSON.stringify(normalizeClassAggregateForComparison(current)) ===
+    JSON.stringify(normalizeClassAggregateForComparison(previous));
+}
+
+export function isSamePortraitV2ClassSnapshot(
+  currentAggregate: PortraitV2ClassAggregate,
+  currentDistribution: PortraitV2ClassLevelDistribution,
+  previousAggregate: unknown,
+  previousDistribution: unknown,
+): boolean {
+  if (!isSamePortraitV2ClassAggregate(currentAggregate, previousAggregate)) return false;
+  const previous = asRecord(previousDistribution);
+  return (Object.keys(currentDistribution) as Array<keyof PortraitV2ClassLevelDistribution>)
+    .every((level) => previous[level] === currentDistribution[level]);
+}
+
+function normalizeClassAggregateForComparison(value: unknown) {
+  const aggregate = asRecord(value);
+  const dimensions = asRecord(aggregate.dimensions);
+  const sourceCoverage = asRecord(aggregate.sourceCoverage);
+  return {
+    model: aggregate.model,
+    dimensionIds: Array.isArray(aggregate.dimensionIds) ? [...aggregate.dimensionIds] : [],
+    dimensions: Object.fromEntries(PORTRAIT_V2_DIMENSION_IDS.map((id) => {
+      const dimension = asRecord(dimensions[id]);
+      return [id, {
+        label: dimension.label,
+        mean: dimension.mean,
+        stdDev: dimension.stdDev,
+        confidence: dimension.confidence,
+        evidenceCount: dimension.evidenceCount,
+        freshness: dimension.freshness,
+        derivationKinds: sortedStrings(dimension.derivationKinds),
+        limitationCount: dimension.limitationCount,
+      }];
+    })),
+    limitations: sortedStrings(aggregate.limitations),
+    sourceCoverage: {
+      nativeLearners: sourceCoverage.nativeLearners,
+      migratedLearners: sourceCoverage.migratedLearners,
+      compatibilityLearners: sourceCoverage.compatibilityLearners,
+      missingLearners: sourceCoverage.missingLearners,
+    },
+  };
+}
+
 function buildCompatibilityResult(input: {
   userId: string;
   // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: this vector is not primary portrait truth.
@@ -530,6 +585,12 @@ function compatibilitySnapshotAt(value: unknown, now: Date): string {
 
 function uniqueStrings(values: string[]): string[] {
   return [...new Set(values.filter((value) => value.trim().length > 0))];
+}
+
+function sortedStrings(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === 'string').sort()
+    : [];
 }
 
 function round(value: number, digits = 1): number {
