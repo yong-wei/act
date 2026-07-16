@@ -76,16 +76,16 @@ export default async function TeacherGradingWorkbenchPage({
     include: PIPELINE_GRADING_REVIEW_INCLUDE,
   });
   if (pipelineRun) {
-    const scope = pipelineReviewScope(pipelineRun);
     try {
       await assertPipelineReviewActor({ db: prisma, run: pipelineRun, actor: { id: session.user.id, role: session.user.role } });
     } catch { redirect('/dashboard'); }
+    if (pipelineRun.state === 'CONTENT_UNAVAILABLE') return <TeacherDocumentGradingUnavailableState reasons={[...(pipelineRun.blockedReasons ?? []), ...(pipelineRun.limitations ?? []), 'rerun-required']} />;
+    const scope = pipelineReviewScope(pipelineRun);
     const studentProfile = await prisma.studentProfile.findFirst({
       where: { classId: scope.classId, userId: scope.studentId },
       select: { id: true },
     });
     if (!studentProfile) return <TeacherDocumentGradingEmptyState routeState={routeState} />;
-    if (pipelineRun.state === 'CONTENT_UNAVAILABLE') return <TeacherDocumentGradingUnavailableState reasons={[...(pipelineRun.blockedReasons ?? []), ...(pipelineRun.limitations ?? []), 'rerun-required']} />;
     if (!isPipelineRunReviewable(pipelineRun)) return <TeacherDocumentGradingUnavailableState reasons={['grading-run-not-reviewable']} />;
     try {
       const reasons = [...validatePipelineReviewContract(pipelineRun), ...await validatePipelineRuntimeSource(pipelineRun, createSubmissionObjectStore())];
