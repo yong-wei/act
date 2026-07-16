@@ -850,6 +850,44 @@ describe('issue #916 phase-one governance hardening', () => {
     expect(tombstone).toEqual(expect.objectContaining({ status: 'DELETED', deletionClaimToken: null }));
   });
 
+  it('does not let quarantine GC take over a source-retention deletion lease', async () => {
+    const asset: any = {
+      id: 'asset-source-retention-deleting',
+      objectKey: 'final/source-retention-deleting',
+      checksum: 'sha256:source-retention-deleting',
+      state: 'DELETING',
+      createdAt: new Date(now.getTime() - 86_400_000),
+      quarantineExpiresAt: null,
+      deletionClaimToken: null,
+      deletionLeaseExpiresAt: new Date(now.getTime() - 1),
+    };
+    const tombstone: any = {
+      objectKey: asset.objectKey,
+      status: 'RETRYABLE',
+      lifecyclePolicyId: 'source-policy-v1',
+      lifecyclePolicyVersion: 'v1',
+      deletionClaimToken: null,
+    };
+    let deleteCalls = 0;
+    let claimCalls = 0;
+    const db: any = {
+      submissionAsset: {
+        findMany: async () => [asset],
+        findUnique: async () => asset,
+        updateMany: async () => { claimCalls += 1; return { count: 1 }; },
+      },
+      submissionObjectTombstone: { findUnique: async () => tombstone },
+      $transaction: async (callback: (tx: any) => Promise<unknown>) => callback(db),
+    };
+    const store = new MemorySubmissionObjectStore();
+    store.delete = async () => { deleteCalls += 1; };
+
+    await expect(garbageCollectQuarantine(db, store, now)).resolves.toEqual({ claimed: 0, deleted: 0, failed: 0 });
+    expect(claimCalls).toBe(0);
+    expect(deleteCalls).toBe(0);
+    expect(tombstone).toMatchObject({ status: 'RETRYABLE', lifecyclePolicyId: 'source-policy-v1' });
+  });
+
   it('fences two concurrent quarantine GC claims before either can delete twice', async () => {
     const asset: any = { id: 'asset-quarantine-concurrent', objectKey: 'quarantine/concurrent', checksum: 'sha256:concurrent', state: 'DELETING', createdAt: new Date(now.getTime() - 86_400_000), retentionExpiresAt: new Date(now.getTime() - 1), retentionPolicyId: 'source-policy-v1', retentionPolicyVersion: 'v1', retentionDeleteStrategy: 'delete-content', retentionSeconds: 60, governedRecordRule: null, deletionClaimToken: null, deletionLeaseExpiresAt: null };
     const tombstone: any = { objectKey: asset.objectKey, status: 'PENDING', deletionClaimToken: null };

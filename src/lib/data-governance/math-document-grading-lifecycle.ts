@@ -369,7 +369,8 @@ export async function runGradingRetentionGc(input: {
   const now = await readRetentionDatabaseNow(input.db, input.now ?? new Date());
   await input.db.gradingRequestIdempotency?.deleteMany?.({ where: { expiresAt: { lte: now } } });
   for (const policy of input.policies) assertLifecyclePolicy(policy);
-  if (!input.policies.some((policy) => policy.dataClass === 'document-conversion')) throw new Error('lifecycle-policy-blocked:missing:document-conversion');
+  const conversions = await input.db.documentConversion.findMany({ where: { state: { not: 'DELETED' }, OR: [{ retentionExpiresAt: { lte: now } }, { retentionExpiresAt: null }] }, select: { id: true, renderedObjectKey: true, providerRequestId: true, providerRequestedAt: true, providerProcessedAt: true, assetId: true, attemptId: true, lifecyclePolicyId: true, lifecyclePolicyVersion: true, lifecycleDeleteStrategy: true, lifecycleRetentionSeconds: true, lifecycleGovernedRecordRule: true, lifecycleProviderRetentionSeconds: true, retentionExpiresAt: true, policy: { select: { provider: true } }, asset: { select: { objectKey: true, checksum: true } } } });
+  if (conversions.length > 0 && !input.policies.some((policy) => policy.dataClass === 'document-conversion')) throw new Error('lifecycle-policy-blocked:missing:document-conversion');
   const evidence = await input.db.answerEvidence.findMany({ where: { tombstonedAt: null, OR: [{ retentionExpiresAt: { lte: now } }, { retentionExpiresAt: null }] }, include: { attempt: true, sourceAsset: true, conversion: { select: { renderedObjectKey: true, providerRequestId: true, providerRequestedAt: true, providerProcessedAt: true, policy: { select: { provider: true } } } }, blocks: true } });
   let deleted = 0;
   let held = 0;
@@ -496,7 +497,6 @@ export async function runGradingRetentionGc(input: {
       throw error;
     }
   }
-  const conversions = await input.db.documentConversion.findMany({ where: { state: { not: 'DELETED' }, OR: [{ retentionExpiresAt: { lte: now } }, { retentionExpiresAt: null }] }, select: { id: true, renderedObjectKey: true, providerRequestId: true, providerRequestedAt: true, providerProcessedAt: true, assetId: true, attemptId: true, lifecyclePolicyId: true, lifecyclePolicyVersion: true, lifecycleDeleteStrategy: true, lifecycleRetentionSeconds: true, lifecycleGovernedRecordRule: true, lifecycleProviderRetentionSeconds: true, retentionExpiresAt: true, policy: { select: { provider: true } }, asset: { select: { objectKey: true, checksum: true } } } });
   for (const conversion of conversions) {
     try {
     const lineage = await resolveGradingLineage({ db: input.db, resourceType: 'DocumentConversion', resource: conversion });

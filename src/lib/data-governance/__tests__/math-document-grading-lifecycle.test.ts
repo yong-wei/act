@@ -269,11 +269,34 @@ describe('math-document grading retention lifecycle', () => {
     expect(validateLifecyclePolicy({ dataClass: 'document-conversion', version: 'v1', retentionSeconds: null, governedRecordRule: '', deleteStrategy: 'retain-governed-record' })).toContain('finite-retention-or-record-rule-required');
   });
 
-  it('fails closed when the document-conversion lifecycle policy is missing', async () => {
+  it('continues non-conversion GC when the document-conversion lifecycle policy and records are absent', async () => {
+    const findConversions = vi.fn(async () => []);
+    const findRuns = vi.fn(async () => []);
     const db: any = {
       answerEvidence: { findMany: async () => [] },
-      documentConversion: { findMany: async () => [] },
-      gradingRun: { findMany: async () => [] },
+      documentConversion: { findMany: findConversions },
+      gradingRun: { findMany: findRuns },
+      gradingBatch: { findMany: async () => [] },
+      submissionAttempt: { findMany: async () => [] },
+    };
+    await expect(runGradingRetentionGc({
+      db,
+      store: new MemorySubmissionObjectStore(),
+      policies: [{ dataClass: 'answer-evidence', version: 'v1', retentionSeconds: 60, deleteStrategy: 'delete-content' }],
+      now,
+    })).resolves.toEqual({ scanned: 0, deleted: 0, held: 0, blocked: 0, tombstones: 0 });
+    expect(findConversions).toHaveBeenCalledOnce();
+    expect(findRuns).toHaveBeenCalledOnce();
+  });
+
+  it('fails closed when a conversion record exists without the document-conversion lifecycle policy', async () => {
+    const findConversions = vi.fn(async () => [{ id: 'conversion-policy-required' }]);
+    const findEvidence = vi.fn(async () => []);
+    const findRuns = vi.fn(async () => []);
+    const db: any = {
+      answerEvidence: { findMany: findEvidence },
+      documentConversion: { findMany: findConversions },
+      gradingRun: { findMany: findRuns },
     };
     await expect(runGradingRetentionGc({
       db,
@@ -281,6 +304,9 @@ describe('math-document grading retention lifecycle', () => {
       policies: [{ dataClass: 'answer-evidence', version: 'v1', retentionSeconds: 60, deleteStrategy: 'delete-content' }],
       now,
     })).rejects.toThrow('lifecycle-policy-blocked:missing:document-conversion');
+    expect(findConversions).toHaveBeenCalledOnce();
+    expect(findEvidence).not.toHaveBeenCalled();
+    expect(findRuns).not.toHaveBeenCalled();
   });
 
   it('redacts expired evidence, fences jobs, deletes rendered artifacts, and writes tombstones', async () => {

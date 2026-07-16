@@ -379,6 +379,10 @@ export async function garbageCollectQuarantine(prisma: PrismaClient, store: Subm
       if (!current || current.state === 'DELETED') return { kind: 'skip' as const };
       if (current.state === 'DELETING' && current.deletionClaimToken && current.deletionLeaseExpiresAt && current.deletionLeaseExpiresAt > now) return { kind: 'skip' as const };
       const existing = await findSubmissionObjectTombstone(tx, current.objectKey);
+      // A lifecycle-bound tombstone means source-asset retention GC owns this
+      // DELETING state. Quarantine GC must not take over an expired/failed
+      // source lease and replace its policy, tombstone, or audit semantics.
+      if (current.state === 'DELETING' && existing?.lifecyclePolicyId) return { kind: 'skip' as const };
       if (existing?.status === 'DELETED' || existing?.status === 'DELETED_WITH_HOLD') {
         await removeSubmissionAssetAccessTokens(tx, current.id);
         await tx.submissionAsset.updateMany({ where: { id: current.id, state: { in: ['QUARANTINED', 'REVOKED', 'DELETING', 'CONTENT_UNAVAILABLE'] } }, data: { ...redactedSubmissionAssetData(current.id, existing.status === 'DELETED_WITH_HOLD' ? 'CONTENT_UNAVAILABLE' : 'DELETED'), tombstonedAt: existing.physicalDeletedAt ?? now } });

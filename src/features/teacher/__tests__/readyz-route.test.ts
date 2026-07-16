@@ -39,6 +39,8 @@ describe('readyz route', () => {
   });
 
   it('returns a no-store response when all dependencies are healthy', async () => {
+    vi.stubEnv('MATH_DOCUMENT_GRADING_WORKER_REQUIRED', 'false');
+
     const response = await GET();
 
     expect(response.status).toBe(200);
@@ -48,6 +50,31 @@ describe('readyz route', () => {
       db: true,
       redis: true,
     });
+  });
+
+  it('requires the math document grading worker by default when the setting is absent', async () => {
+    const previousValue = process.env.MATH_DOCUMENT_GRADING_WORKER_REQUIRED;
+    delete process.env.MATH_DOCUMENT_GRADING_WORKER_REQUIRED;
+
+    try {
+      const response = await GET();
+
+      expect(response.status).toBe(503);
+      await expect(response.json()).resolves.toMatchObject({
+        mathDocumentGradingWorker: {
+          required: true,
+          ready: false,
+          configReady: false,
+          missing: ['worker-heartbeat-or-capability'],
+        },
+      });
+    } finally {
+      if (previousValue === undefined) {
+        delete process.env.MATH_DOCUMENT_GRADING_WORKER_REQUIRED;
+      } else {
+        process.env.MATH_DOCUMENT_GRADING_WORKER_REQUIRED = previousValue;
+      }
+    }
   });
 
   it('does not report a required worker ready from the heartbeat alone', async () => {

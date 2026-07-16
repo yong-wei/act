@@ -18,7 +18,7 @@ export async function GET() {
 
   let db = false;
   let redis = false;
-  const workerRequired = ['1', 'true', 'yes'].includes((process.env.MATH_DOCUMENT_GRADING_WORKER_REQUIRED ?? '').toLowerCase());
+  const workerRequired = ['1', 'true', 'yes'].includes((process.env.MATH_DOCUMENT_GRADING_WORKER_REQUIRED ?? 'true').toLowerCase());
   let mathDocumentGradingWorker = !workerRequired;
   let workerCapability: MathDocumentGradingWorkerCapabilityStatus | null = null;
 
