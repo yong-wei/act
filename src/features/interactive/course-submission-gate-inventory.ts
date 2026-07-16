@@ -41,6 +41,14 @@ export const COURSE_RESPONSE_PRODUCING_LESSON_INVENTORY: readonly ManifestSubmis
     minimumResponseSteps: 7,
   },
   {
+    lessonId: '1-5',
+    routeSegment: 'unit-1-5-three-domain-gain-sweep',
+    manifestPath: 'course-content/runtime/lessons/1-5/interactive-manifest.json',
+    studentPagePath: 'src/features/interactive/unit-1-5-three-domain-gain-sweep/student-page.tsx',
+    manifestGetterName: 'getUNIT_1_5ManifestStepFromManifest',
+    minimumResponseSteps: 10,
+  },
+  {
     lessonId: '2-1',
     routeSegment: 'unit-2-1-modeling-language',
     manifestPath: 'course-content/runtime/lessons/2-1/interactive-manifest.json',

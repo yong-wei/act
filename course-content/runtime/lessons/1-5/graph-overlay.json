@@ -28,24 +28,56 @@
   ],
   "groups": [
     {
-      "group_name": "建立三域共同对象",
+      "group_name": "极点与时域响应前置",
       "node_ids": [
         "极点_1_2",
-        "时域响应_1_1",
-        "三域证据链_1_5"
+        "时域响应_1_1"
+      ],
+      "step_ids": [
+        "step-03",
+        "step-05"
       ]
     },
     {
-      "group_name": "扫描增益并定位稳定边界",
+      "group_name": "三域证据链",
       "node_ids": [
-        "增益扫描稳定区间_1_5",
+        "三域证据链_1_5"
+      ],
+      "step_ids": [
+        "step-04",
+        "step-09",
+        "step-14"
+      ]
+    },
+    {
+      "group_name": "增益扫描稳定区间",
+      "node_ids": [
+        "增益扫描稳定区间_1_5"
+      ],
+      "step_ids": [
+        "step-04",
+        "step-09"
+      ]
+    },
+    {
+      "group_name": "临界增益与虚轴极点",
+      "node_ids": [
         "临界增益与虚轴极点_1_5"
+      ],
+      "step_ids": [
+        "step-08",
+        "step-12"
       ]
     },
     {
       "group_name": "区分三种速度语言",
       "node_ids": [
         "速度指标分辨_1_5"
+      ],
+      "step_ids": [
+        "step-07",
+        "step-10",
+        "step-14"
       ]
     }
   ],

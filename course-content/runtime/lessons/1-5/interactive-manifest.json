@@ -1,0 +1,4390 @@
+{
+  "contract_version": "2.0",
+  "lesson_id": "1-5",
+  "course_title": "1-5：三域联动——一个增益如何改变稳定性",
+  "course_route_segment": "unit-1-5-three-domain-gain-sweep",
+  "preview_mode": {
+    "default_entry": "student_demo",
+    "student_demo_base_path": "/interactive-learning/courses/unit-1-5-three-domain-gain-sweep/demo"
+  },
+  "media_policy": {},
+  "telemetry_strategy": "lightweight_high_value",
+  "teacher_insight_strategy": "step_level_aggregation_only",
+  "required_step_fields": [
+    "layout",
+    "modules",
+    "content_blocks",
+    "interaction_spec",
+    "teacher_controls",
+    "student_access",
+    "telemetry_spec",
+    "teacher_insight_spec",
+    "ai_context_spec",
+    "preview_contract",
+    "acceptance_checks"
+  ],
+  "steps": {
+    "step-01": {
+      "title": "增益旋钮牵动的三组证据",
+      "layout": {
+        "template": "cover_dual_column_questions",
+        "regions": [
+          {
+            "id": "intro",
+            "width": "half",
+            "order": 1
+          },
+          {
+            "id": "media",
+            "width": "half",
+            "order": 2
+          },
+          {
+            "id": "questions",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "page-intro",
+          "region": "intro",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "page-intro",
+            "title": "增益旋钮牵动的三组证据"
+          }
+        },
+        {
+          "id": "engineering-scene",
+          "region": "intro",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "engineering-scene",
+            "title": "自动舵增益调整场景"
+          }
+        },
+        {
+          "id": "cover-comic",
+          "region": "media",
+          "kind": "content.figure",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "cover-comic",
+            "title": "增益变化下的三域冲突"
+          }
+        },
+        {
+          "id": "bridge-questions",
+          "region": "questions",
+          "kind": "content.cardSet",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "bridge-questions",
+            "title": "两个核心追问"
+          }
+        }
+      ],
+      "content_blocks": {
+        "page-intro": {
+          "type": "plain_text",
+          "body": "同一个比例增益同时改写闭环极点、阶跃过程和环路稳定余量。"
+        },
+        "engineering-scene": {
+          "type": "plain_text",
+          "body": "船舶自动舵的增益旋钮调大后，航向更早接近目标，却出现更大的摆动；继续调大，振荡越来越难衰减。"
+        },
+        "cover-comic": {
+          "type": "media",
+          "asset": "1-5-cover-comic.png",
+          "caption": "驾驶员看到更早接近目标，工程师同时核对极点、振荡包络和稳定裕度。"
+        },
+        "bridge-questions": {
+          "type": "bullet_list",
+          "items": [
+            "更早到达目标附近，是否等于更快稳定下来？",
+            "一张阶跃曲线能否独自说明系统离失稳还有多远？"
+          ]
+        }
+      },
+      "evidence_sequence": [
+        "page-intro",
+        "engineering-scene",
+        "cover-comic",
+        "bridge-questions"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "阅读自动舵场景并辨认同一增益引出的三组证据。",
+        "activity_cards": []
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": "not_applicable",
+        "can_submit_without_browse": "not_applicable"
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep"
+        ],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count"
+        ]
+      },
+      "ai_context_spec": {
+        "delivery_mode": "hidden_page_context",
+        "page_ai_entry": "forbidden",
+        "page_goal": "识别增益变化同时影响三域证据。",
+        "allowed_scope": [
+          "解释场景中的三类现象",
+          "追问速度语言"
+        ],
+        "forbidden_scope": [
+          "代替学生形成后续结论",
+          "提前给出临界增益"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-5-three-domain-gain-sweep/demo?step=step-01"
+      },
+      "acceptance_checks": [
+        "导入漫画和两组追问常显",
+        "本页无提交活动",
+        "三域对象不被拆成三个系统"
+      ]
+    },
+    "step-02": {
+      "title": "课程目标",
+      "layout": {
+        "template": "goal_focus_slide",
+        "regions": [
+          {
+            "id": "intro",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "goals",
+            "width": "full",
+            "order": 2
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "page-intro",
+          "region": "intro",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "page-intro",
+            "title": "课程目标"
+          }
+        },
+        {
+          "id": "lesson-goals",
+          "region": "goals",
+          "kind": "content.cardSet",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "lesson-goals",
+            "title": "完成本次课程后能够",
+            "objectivePolicy": {
+              "classroomRequired": [
+                "objective-1",
+                "objective-2",
+                "objective-3",
+                "objective-4"
+              ],
+              "afterClassExtension": [
+                "objective-5"
+              ],
+              "classroomAttainmentDenominator": "classroomRequired_only"
+            }
+          }
+        }
+      ],
+      "content_blocks": {
+        "page-intro": {
+          "type": "plain_text",
+          "body": "课堂90分钟必达目标覆盖同步读图、证据组织、速度分辨和状态判断；跨对象迁移作为课后拓展与分层目标单列。"
+        },
+        "lesson-goals": {
+          "type": "bullet_list",
+          "items": [
+            "调节并读取同一增益下的闭环极点、阶跃响应和环路 Bode 图。",
+            "组织极点实部、超调量、5% 调节时间、增益穿越频率和稳定裕度，形成三域证据链。",
+            "区分上升速度、收敛速度与环路频率尺度。",
+            "识别并解释稳定、近临界、临界稳定和不稳定状态的同步信号。",
+            "课后拓展/分层目标：使用 MATLAB/Octave 独立复现三域观察协议，并对新的三阶对象判断稳定区间和临界增益。"
+          ]
+        }
+      },
+      "evidence_sequence": [
+        "page-intro",
+        "lesson-goals"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "阅读五项课程能力目标。",
+        "activity_cards": []
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": "not_applicable",
+        "can_submit_without_browse": "not_applicable"
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep"
+        ],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count"
+        ]
+      },
+      "ai_context_spec": {
+        "delivery_mode": "hidden_page_context",
+        "page_ai_entry": "forbidden",
+        "page_goal": "解释四项课堂必达目标与一项课后拓展分层目标。",
+        "allowed_scope": [
+          "解释目标中的对象和能力动词",
+          "区分课堂必达与课后拓展"
+        ],
+        "forbidden_scope": [
+          "增加课程外目标",
+          "把拓展目标计入课堂必达率",
+          "代替学生完成活动"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-5-three-domain-gain-sweep/demo?step=step-02"
+      },
+      "acceptance_checks": [
+        "四项课堂必达目标与一项课后拓展分层目标均使用能力动词",
+        "课堂必达统计只覆盖目标一至四",
+        "本页无提交活动"
+      ]
+    },
+    "step-03": {
+      "title": "极点、反馈与读图基础前测",
+      "layout": {
+        "template": "quiz_group_with_intro",
+        "regions": [
+          {
+            "id": "intro",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 2
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "page-intro",
+          "region": "intro",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "page-intro",
+            "title": "极点、反馈与读图基础前测"
+          }
+        },
+        {
+          "id": "precheck",
+          "region": "activity",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "payload": {
+            "title": "三项前置能力检查",
+            "responseContractId": "choice.single"
+          }
+        }
+      ],
+      "content_blocks": {
+        "page-intro": {
+          "type": "plain_text",
+          "body": "三道客观题只检查极点趋势、单位负反馈和三种观察域，不考查本课的区段与临界数值。"
+        }
+      },
+      "evidence_sequence": [
+        "page-intro",
+        "precheck"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "quiz_group",
+        "student_task": "三题分别提交，检查进入三域增益实践所需的基础能力。",
+        "activity_cards": [
+          {
+            "id": "pole-natural-response",
+            "title": "共轭极点对应的自然响应",
+            "prompt": "闭环极点为 -0.5±j2，自然响应的总体趋势是？",
+            "response_kind": "choice.single",
+            "options": [
+              "单调收敛",
+              "衰减振荡",
+              "等幅振荡",
+              "发散"
+            ],
+            "reference_answer": "衰减振荡",
+            "submit_scope": "per_card",
+            "layout_span": "one_third"
+          },
+          {
+            "id": "feedback-characteristic",
+            "title": "单位负反馈特征方程",
+            "prompt": "单位负反馈系统的闭环特征方程由 1+L(s)=0 给出。",
+            "response_kind": "choice.binary",
+            "options": [
+              "正确",
+              "错误"
+            ],
+            "reference_answer": "正确",
+            "submit_scope": "per_card",
+            "layout_span": "one_third"
+          },
+          {
+            "id": "domain-matching",
+            "title": "三类证据的观察域",
+            "prompt": "将极点位置、输出随时间变化、不同频率下的幅值与相位分别配到复平面、时域、频域。",
+            "response_kind": "matching.pairs",
+            "pairs": [
+              {
+                "left": "极点位置",
+                "right": "复平面"
+              },
+              {
+                "left": "输出随时间变化",
+                "right": "时域"
+              },
+              {
+                "left": "不同频率下的幅值与相位",
+                "right": "频域"
+              }
+            ],
+            "reference_answer": "极点位置—复平面；输出随时间变化—时域；不同频率下的幅值与相位—频域。",
+            "submit_scope": "per_card",
+            "layout_span": "one_third"
+          }
+        ],
+        "reveal_answer": "after_all_submitted_or_teacher_reveal"
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": "not_applicable",
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "submittedCards",
+          "objectiveAccuracy"
+        ],
+        "result_policy": "per_card_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "submission_rate",
+          "response_summary",
+          "misconception_tags"
+        ]
+      },
+      "ai_context_spec": {
+        "delivery_mode": "hidden_page_context",
+        "page_ai_entry": "forbidden",
+        "page_goal": "检查极点、反馈和观察域三项前置能力。",
+        "allowed_scope": [
+          "提交后解释错误选项",
+          "回顾前序概念"
+        ],
+        "forbidden_scope": [
+          "提交前给出答案",
+          "引入K等于42或四区段结论"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-5-three-domain-gain-sweep/demo?step=step-03"
+      },
+      "acceptance_checks": [
+        "三题均为客观题",
+        "三个题面只在activity_cards出现一次",
+        "每题独立提交且答案揭示分离"
+      ]
+    },
+    "step-04": {
+      "title": "三域联动的共同对象与观察协议",
+      "layout": {
+        "template": "formula_stage_map_table",
+        "regions": [
+          {
+            "id": "intro",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "formulas",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "stages",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "protocol",
+            "width": "full",
+            "order": 4
+          },
+          {
+            "id": "closing",
+            "width": "full",
+            "order": 5
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "page-intro",
+          "region": "intro",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "page-intro",
+            "title": "三域联动的共同对象与观察协议"
+          }
+        },
+        {
+          "id": "model-formulas",
+          "region": "formulas",
+          "kind": "content.formula",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "model-formulas",
+            "title": "对象、环路与闭环"
+          }
+        },
+        {
+          "id": "channel-labels",
+          "region": "formulas",
+          "kind": "content.cardSet",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "channel-labels",
+            "title": "三域读取通道"
+          }
+        },
+        {
+          "id": "gain-regions",
+          "region": "stages",
+          "kind": "content.stageMap",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "gain-regions",
+            "title": "四个增益观察区段"
+          }
+        },
+        {
+          "id": "observation-protocol",
+          "region": "protocol",
+          "kind": "content.table",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "observation-protocol",
+            "title": "三域观察协议"
+          }
+        },
+        {
+          "id": "shared-object-conclusion",
+          "region": "closing",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "shared-object-conclusion",
+            "title": "全程一致的对象约定"
+          }
+        }
+      ],
+      "content_blocks": {
+        "page-intro": {
+          "type": "plain_text",
+          "body": "后续所有面板共享同一对象、同一增益和同一单位负反馈约定。"
+        },
+        "model-formulas": {
+          "type": "formula",
+          "formulas": [
+            "G_0(s)=1/[s(s+1)(s+6)]",
+            "L_K(s)=K/[s(s+1)(s+6)]",
+            "\\Phi_K(s)=K/(s^3+7s^2+6s+K)",
+            "s^3+7s^2+6s+K=0"
+          ],
+          "symbols": [
+            {
+              "symbol": "K",
+              "meaning": "比例增益",
+              "range": "K>0"
+            },
+            {
+              "symbol": "L_K(s)",
+              "meaning": "环路开环传递函数"
+            },
+            {
+              "symbol": "\\Phi_K(s)",
+              "meaning": "单位负反馈闭环传递函数"
+            }
+          ]
+        },
+        "channel-labels": {
+          "type": "bullet_list",
+          "items": [
+            "闭环极点与阶跃响应读取 Φ_K(s)。",
+            "增益穿越频率、相位裕度和增益裕度读取 L_K(s)。"
+          ]
+        },
+        "gain-regions": {
+          "type": "stage_map",
+          "stages": [
+            {
+              "id": "low",
+              "title": "低增益",
+              "range": "3≤K≤6",
+              "state": "稳定余量充足"
+            },
+            {
+              "id": "medium",
+              "title": "中增益",
+              "range": "8≤K≤20",
+              "state": "振荡浮现且余量收缩"
+            },
+            {
+              "id": "high",
+              "title": "高增益",
+              "range": "22≤K<42",
+              "state": "接近稳定边界"
+            },
+            {
+              "id": "boundary",
+              "title": "边界与越界",
+              "range": "K≥42",
+              "state": "临界稳定或不稳定"
+            }
+          ]
+        },
+        "observation-protocol": {
+          "type": "table",
+          "columns": [
+            "观察域",
+            "直接读取对象",
+            "记录指标",
+            "判断职责"
+          ],
+          "rows": [
+            [
+              "复平面",
+              "闭环极点",
+              "主导极点实部与虚部",
+              "模态是否衰减"
+            ],
+            [
+              "时域",
+              "闭环单位阶跃",
+              "超调量上升时间与5%调节时间",
+              "输出过程怎样展开"
+            ],
+            [
+              "频域",
+              "环路Bode",
+              "增益穿越频率相位裕度与增益裕度",
+              "距稳定边界还有多少余量"
+            ]
+          ]
+        },
+        "shared-object-conclusion": {
+          "type": "plain_text",
+          "body": "每次调节 K，都按复平面、时域、频域的顺序核对三组证据，并保留通道标签。"
+        }
+      },
+      "evidence_sequence": [
+        "page-intro",
+        "model-formulas",
+        "channel-labels",
+        "gain-regions",
+        "observation-protocol",
+        "shared-object-conclusion"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "确认共同对象、通道标签、四个区段与观察顺序。",
+        "activity_cards": []
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "teacher_highlight_only",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": "not_applicable",
+        "can_submit_without_browse": "not_applicable"
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep",
+          "highlightedDomain"
+        ],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count"
+        ]
+      },
+      "ai_context_spec": {
+        "delivery_mode": "hidden_page_context",
+        "page_ai_entry": "forbidden",
+        "page_goal": "固定三域增益扫描的对象、通道和观察协议。",
+        "allowed_scope": [
+          "解释公式符号",
+          "区分闭环与环路指标"
+        ],
+        "forbidden_scope": [
+          "改写对象",
+          "混用Phi与L",
+          "提前代填扫描数据"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-5-three-domain-gain-sweep/demo?step=step-04"
+      },
+      "acceptance_checks": [
+        "对象公式和通道标签常显",
+        "四区段顺序与讲义一致",
+        "观察协议表可直接渲染"
+      ]
+    },
+    "step-05": {
+      "title": "低增益区的稳定余量",
+      "layout": {
+        "template": "intro_formula_compute_submit",
+        "regions": [
+          {
+            "id": "intro",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "formula",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "compute",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "closing",
+            "width": "full",
+            "order": 4
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "page-intro",
+          "region": "intro",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "page-intro",
+            "title": "低增益区的稳定余量"
+          }
+        },
+        {
+          "id": "reading-order",
+          "region": "formula",
+          "kind": "content.cardSet",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "reading-order",
+            "title": "低增益区读图顺序"
+          }
+        },
+        {
+          "id": "low-gain-workbench",
+          "region": "compute",
+          "kind": "compute.panel",
+          "must_be_visible": true,
+          "payload": {
+            "capabilityRef": "control-workbench",
+            "panel_id": "unit-1-5-low-gain-three-domain",
+            "spec_key": "control_workbench",
+            "title": "低增益区的闭环极点、阶跃响应与环路 Bode",
+            "visiblePanelIds": [
+              "root-locus",
+              "step-response",
+              "bode",
+              "performance"
+            ],
+            "responseContractId": "step-05.low-gain-observation.parameter.set",
+            "releaseState": "released",
+            "fallbackState": "supported",
+            "objectChannelBar": {
+              "plant": "G_0(s)=1/[s(s+1)(s+6)]",
+              "loop": "L_K(s)=KG_0(s)",
+              "closedLoop": "Φ_K(s)=L_K(s)/[1+L_K(s)]",
+              "feedback": "单位负反馈",
+              "poleAndStepSource": "Φ_K(s)",
+              "marginSource": "L_K(s)"
+            },
+            "defaultParameters": {
+              "k": 3,
+              "gainRegion": "3≤K≤6"
+            },
+            "request": {
+              "runtimeMode": "analysis",
+              "caseId": "unit-1-5-three-domain-gain",
+              "plant": {
+                "numerator": [
+                  1
+                ],
+                "denominator": [
+                  1,
+                  7,
+                  6,
+                  0
+                ],
+                "coefficientOrder": "descending",
+                "label": "G_0(s)=1/[s(s+1)(s+6)]"
+              },
+              "structures": [
+                {
+                  "kind": "gain",
+                  "enabled": true,
+                  "params": {
+                    "k": 3
+                  },
+                  "label": "K"
+                }
+              ],
+              "outputs": [
+                "step_response",
+                "root_locus",
+                "magnitude",
+                "phase",
+                "bode"
+              ],
+              "responseType": "step",
+              "settlingBandRatio": 0.05,
+              "timeRange": {
+                "start": 0,
+                "end": 25,
+                "samples": 240
+              },
+              "frequencyRange": {
+                "min": 0.03,
+                "max": 20,
+                "samples": 180
+              },
+              "rootLocus": {
+                "minGain": 0,
+                "maxGain": 46,
+                "samples": 220,
+                "currentGain": 3
+              }
+            },
+            "parameterControls": {
+              "position": "below_graph",
+              "fields": [
+                {
+                  "key": "k",
+                  "label": "增益 K",
+                  "input": "slider",
+                  "min": 3,
+                  "max": 6,
+                  "step": 0.25,
+                  "defaultValue": 3,
+                  "presets": [
+                    3,
+                    6
+                  ]
+                }
+              ]
+            },
+            "submissionFields": [
+              {
+                "key": "k",
+                "label": "当前增益 K",
+                "input": "slider",
+                "min": 3,
+                "max": 6,
+                "step": 0.25,
+                "defaultValue": 3,
+                "presets": [
+                  3,
+                  6
+                ]
+              },
+              {
+                "key": "dominant_pole_real",
+                "label": "主导极点实部",
+                "input": "number"
+              },
+              {
+                "key": "response_shape",
+                "label": "响应形态",
+                "input": "select",
+                "options": [
+                  "单调收敛",
+                  "衰减振荡",
+                  "等幅振荡",
+                  "发散"
+                ]
+              },
+              {
+                "key": "phase_margin_deg",
+                "label": "相位裕度",
+                "input": "number"
+              },
+              {
+                "key": "boundary_distance",
+                "label": "距稳定边界的判断",
+                "input": "select",
+                "options": [
+                  "较远",
+                  "较近"
+                ]
+              }
+            ],
+            "submissionDefaults": {
+              "k": 3,
+              "dominant_pole_real": "",
+              "response_shape": "",
+              "phase_margin_deg": "",
+              "boundary_distance": ""
+            },
+            "feedbackPolicy": {
+              "validationSource": "control-engine-request-snapshot",
+              "numericTolerance": {
+                "dominant_pole_real": {
+                  "absolute": 0.03
+                },
+                "phase_margin_deg": {
+                  "absolute": 1.0
+                }
+              },
+              "stateCriteria": {
+                "response_shape": "closed_loop_pole_real_part_and_step_envelope",
+                "boundary_distance": "phase_and_gain_margin_band"
+              },
+              "recordOnlyFields": [],
+              "textObservationScoring": "disabled"
+            },
+            "learningFactPolicy": {
+              "skipLearningFact": true,
+              "validationScope": "engine_result_only",
+              "reason": "服务端学习事实校验策略尚未建立；当前仅确认引擎结果可用，不物化课程侧LearningFact。"
+            },
+            "baselineReadings": {
+              "k": 3,
+              "dominantPoles": "-0.452±j0.537",
+              "overshootPercent": 7.05,
+              "settlingTime5PercentSeconds": 7.38,
+              "gainCrossoverRadPerSec": 0.454,
+              "phaseMarginDeg": 61.26,
+              "gainMarginDb": 22.92
+            },
+            "feasible_region": "not_applicable",
+            "fallbackMedia": {
+              "src": "/course-runtime/lessons/1-5/media/1-5-fig-01-three-domain-k3.png",
+              "alt": "K等于3时的闭环极点、阶跃响应和环路Bode后备图"
+            }
+          }
+        },
+        {
+          "id": "low-gain-conclusion",
+          "region": "closing",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "low-gain-conclusion",
+            "title": "首组三域证据"
+          }
+        }
+      ],
+      "content_blocks": {
+        "page-intro": {
+          "type": "plain_text",
+          "body": "在3≤K≤6内同步调节三域图，先建立距离稳定边界较远的基线。"
+        },
+        "reading-order": {
+          "type": "bullet_list",
+          "items": [
+            "先读闭环主导极点实部。",
+            "再读阶跃衰减、超调量和5%调节时间。",
+            "最后读环路相位裕度与增益裕度。"
+          ]
+        },
+        "low-gain-conclusion": {
+          "type": "plain_text",
+          "body": "主导极点离虚轴较远、振荡能够衰减且裕度较大，共同说明低增益状态距离稳定边界较远。"
+        }
+      },
+      "evidence_sequence": [
+        "page-intro",
+        "reading-order",
+        "low-gain-workbench",
+        "low-gain-conclusion"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "interactive_figure_submit",
+        "canonical_response_owner": "compute.panel",
+        "evidence_key": "step-05.low-gain-observation.parameter.set",
+        "activity_cards": [],
+        "student_task": "调节低增益状态，并通过工作台唯一提交入口保存参数、极点、响应形态、相位裕度和边界距离判断。",
+        "reveal_answer": "after_submit_or_teacher_reveal"
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": "not_applicable",
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "parameterChanges",
+          "submittedParameterSet"
+        ],
+        "result_policy": "explicit_parameter_submission_only"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "submission_rate",
+          "parameter_distribution",
+          "response_summary"
+        ]
+      },
+      "ai_context_spec": {
+        "delivery_mode": "hidden_page_context",
+        "page_ai_entry": "forbidden",
+        "page_goal": "建立低增益区的首组三域证据。",
+        "allowed_scope": [
+          "解释已显示的三域读数",
+          "提交后检查证据一致性"
+        ],
+        "forbidden_scope": [
+          "替学生选择参数",
+          "代写提交判断",
+          "把滑块浏览当作掌握证据"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-5-three-domain-gain-sweep/demo?step=step-05"
+      },
+      "acceptance_checks": [
+        "capabilityRef和对象通道条完整",
+        "默认K等于3且控件位于图下",
+        "五个提交字段完整",
+        "本页无普通选择题"
+      ]
+    },
+    "step-06": {
+      "title": "中增益区的振荡与余量收缩",
+      "layout": {
+        "template": "baseline_compute_submit",
+        "regions": [
+          {
+            "id": "intro",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "baseline",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "compute",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "closing",
+            "width": "full",
+            "order": 4
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "page-intro",
+          "region": "intro",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "page-intro",
+            "title": "中增益区的振荡与余量收缩"
+          }
+        },
+        {
+          "id": "low-gain-baseline",
+          "region": "baseline",
+          "kind": "content.cardSet",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "low-gain-baseline",
+            "title": "K等于3的比较基线"
+          }
+        },
+        {
+          "id": "medium-gain-workbench",
+          "region": "compute",
+          "kind": "compute.panel",
+          "must_be_visible": true,
+          "payload": {
+            "capabilityRef": "control-linked-comparison",
+            "panel_id": "unit-1-5-medium-gain-comparison",
+            "spec_key": "control_linked_comparison",
+            "title": "中增益状态与低增益基线的三域对照",
+            "visiblePanelIds": [
+              "root-locus",
+              "step-response",
+              "bode",
+              "performance"
+            ],
+            "responseContractId": "step-06.medium-gain-observation.parameter.set",
+            "releaseState": "released",
+            "fallbackState": "supported",
+            "objectChannelBar": {
+              "plant": "G_0(s)=1/[s(s+1)(s+6)]",
+              "loop": "L_K(s)=KG_0(s)",
+              "closedLoop": "Φ_K(s)=L_K(s)/[1+L_K(s)]",
+              "feedback": "单位负反馈",
+              "poleAndStepSource": "Φ_K(s)",
+              "marginSource": "L_K(s)"
+            },
+            "defaultParameters": {
+              "baselineK": 3,
+              "comparisonK": 12,
+              "gainRegion": "8≤K≤20"
+            },
+            "request": {
+              "runtimeMode": "analysis",
+              "caseId": "unit-1-5-medium-gain",
+              "plant": {
+                "numerator": [
+                  1
+                ],
+                "denominator": [
+                  1,
+                  7,
+                  6,
+                  0
+                ],
+                "coefficientOrder": "descending",
+                "label": "G_0(s)=1/[s(s+1)(s+6)]"
+              },
+              "structures": [
+                {
+                  "kind": "gain",
+                  "enabled": true,
+                  "params": {
+                    "k": 12
+                  },
+                  "label": "K"
+                }
+              ],
+              "outputs": [
+                "step_response",
+                "root_locus",
+                "magnitude",
+                "phase",
+                "bode"
+              ],
+              "responseType": "step",
+              "settlingBandRatio": 0.05,
+              "timeRange": {
+                "start": 0,
+                "end": 30,
+                "samples": 260
+              },
+              "frequencyRange": {
+                "min": 0.03,
+                "max": 20,
+                "samples": 180
+              },
+              "rootLocus": {
+                "minGain": 0,
+                "maxGain": 46,
+                "samples": 220,
+                "currentGain": 12
+              }
+            },
+            "comparisonMode": "fixed_baseline_plus_dynamic",
+            "comparisonRequests": [
+              {
+                "id": "k3-baseline",
+                "label": "K等于3固定基线",
+                "role": "baseline",
+                "fixedKOverride": {
+                  "field": "k",
+                  "value": 3
+                }
+              },
+              {
+                "id": "dynamic-k",
+                "label": "当前中增益状态",
+                "role": "comparison",
+                "request": {
+                  "baseRequestRef": "request",
+                  "gainField": "k"
+                }
+              }
+            ],
+            "comparisonCapabilityStatus": {
+              "state": "implemented",
+              "noLessonPrivateFallback": true
+            },
+            "parameterControls": {
+              "position": "below_graph",
+              "fields": [
+                {
+                  "key": "k",
+                  "label": "中增益 K",
+                  "input": "slider",
+                  "min": 8,
+                  "max": 20,
+                  "step": 1,
+                  "defaultValue": 12,
+                  "presets": [
+                    8,
+                    12,
+                    20
+                  ]
+                }
+              ]
+            },
+            "submissionFields": [
+              {
+                "key": "k",
+                "label": "当前增益 K",
+                "input": "slider",
+                "min": 8,
+                "max": 20,
+                "step": 1,
+                "defaultValue": 12,
+                "presets": [
+                  8,
+                  12,
+                  20
+                ]
+              },
+              {
+                "key": "rise_time_change",
+                "label": "10%到90%上升时间变化",
+                "input": "select",
+                "options": [
+                  "缩短",
+                  "不变",
+                  "延长"
+                ]
+              },
+              {
+                "key": "settling_time_change",
+                "label": "5%调节时间变化",
+                "input": "select",
+                "options": [
+                  "缩短",
+                  "不变",
+                  "延长"
+                ]
+              },
+              {
+                "key": "phase_margin_change",
+                "label": "相位裕度变化",
+                "input": "select",
+                "options": [
+                  "增大",
+                  "不变",
+                  "减小"
+                ]
+              },
+              {
+                "key": "speed_relation",
+                "label": "起步速度与收敛速度关系",
+                "input": "text"
+              }
+            ],
+            "submissionDefaults": {
+              "k": 12,
+              "rise_time_change": "",
+              "settling_time_change": "",
+              "phase_margin_change": "",
+              "speed_relation": ""
+            },
+            "feedbackPolicy": {
+              "validationSource": "control-engine-request-snapshot",
+              "comparisonReference": "k3-baseline",
+              "stateCriteria": {
+                "rise_time_change": "rise_time_10_90_difference",
+                "settling_time_change": "settling_time_5_percent_difference",
+                "phase_margin_change": "phase_margin_difference"
+              },
+              "numericTolerance": {
+                "rise_time_10_90_s": {
+                  "absolute": 0.08
+                },
+                "settling_time_5_percent_s": {
+                  "absolute": 0.2
+                },
+                "phase_margin_deg": {
+                  "absolute": 1.0
+                }
+              },
+              "recordOnlyFields": [
+                "speed_relation"
+              ],
+              "textObservationScoring": "disabled"
+            },
+            "learningFactPolicy": {
+              "skipLearningFact": true,
+              "validationScope": "engine_result_only",
+              "reason": "服务端学习事实校验策略尚未建立；当前仅确认引擎结果可用，不物化课程侧LearningFact。"
+            },
+            "baselineReadings": {
+              "k": 12,
+              "dominantPoles": "-0.324±j1.336",
+              "overshootPercent": 45.59,
+              "riseTime10To90Seconds": 0.94,
+              "settlingTime5PercentSeconds": 8.05,
+              "gainCrossoverRadPerSec": 1.234,
+              "phaseMarginDeg": 27.41,
+              "gainMarginDb": 10.88
+            },
+            "feasible_region": "not_applicable",
+            "fallbackMedia": {
+              "src": "/course-runtime/lessons/1-5/media/1-5-fig-02-three-domain-k12.png",
+              "alt": "K等于12时的三域证据后备图"
+            }
+          }
+        },
+        {
+          "id": "medium-gain-conclusion",
+          "region": "closing",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "medium-gain-conclusion",
+            "title": "起步速度与收敛速度的分离"
+          }
+        }
+      ],
+      "content_blocks": {
+        "page-intro": {
+          "type": "plain_text",
+          "body": "保留K等于3的阶跃基线，观察中增益状态如何同时改变上升时间、调节时间和稳定裕度。"
+        },
+        "low-gain-baseline": {
+          "type": "bullet_list",
+          "items": [
+            "K=3时10%到90%上升时间约2.83秒。",
+            "K=3时5%调节时间约7.38秒。",
+            "K=3时相位裕度约61.26度。"
+          ]
+        },
+        "medium-gain-conclusion": {
+          "type": "plain_text",
+          "body": "从K等于3到K等于12，上升时间缩短而调节时间略有延长；起步更快和收敛更快可以分离。"
+        }
+      },
+      "evidence_sequence": [
+        "page-intro",
+        "low-gain-baseline",
+        "medium-gain-workbench",
+        "medium-gain-conclusion"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "interactive_figure_submit",
+        "canonical_response_owner": "compute.panel",
+        "evidence_key": "step-06.medium-gain-observation.parameter.set",
+        "activity_cards": [],
+        "student_task": "通过工作台唯一提交入口保存当前中增益状态相对K等于3基线的三项变化和速度关系判断。",
+        "reveal_answer": "after_submit_or_teacher_reveal"
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": "not_applicable",
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "parameterChanges",
+          "submittedParameterSet",
+          "speedConflation"
+        ],
+        "result_policy": "explicit_parameter_submission_only"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "submission_rate",
+          "parameter_distribution",
+          "misconception_tags"
+        ]
+      },
+      "ai_context_spec": {
+        "delivery_mode": "hidden_page_context",
+        "page_ai_entry": "forbidden",
+        "page_goal": "比较中增益状态的起步速度、收敛速度和稳定裕度。",
+        "allowed_scope": [
+          "解释已显示的时间指标",
+          "提交后检查速度语言"
+        ],
+        "forbidden_scope": [
+          "代写结构化判断",
+          "把增益穿越频率称为闭环调节速度"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-5-three-domain-gain-sweep/demo?step=step-06"
+      },
+      "acceptance_checks": [
+        "capabilityRef和对象通道条完整",
+        "K等于3基线与K等于12默认态并存",
+        "控件位于图下且提交字段完整",
+        "本页无普通选择题"
+      ]
+    },
+    "step-07": {
+      "title": "高增益区的缓慢衰减",
+      "layout": {
+        "template": "dual_state_compute_cards",
+        "regions": [
+          {
+            "id": "intro",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "compute",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "evidence",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "page-intro",
+          "region": "intro",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "page-intro",
+            "title": "高增益区的缓慢衰减"
+          }
+        },
+        {
+          "id": "high-gain-workbench",
+          "region": "compute",
+          "kind": "compute.panel",
+          "must_be_visible": true,
+          "payload": {
+            "capabilityRef": "control-linked-comparison",
+            "panel_id": "unit-1-5-high-gain-comparison",
+            "spec_key": "control_linked_comparison",
+            "title": "K等于24与高增益状态的三域对照",
+            "visiblePanelIds": [
+              "root-locus",
+              "step-response",
+              "bode",
+              "performance"
+            ],
+            "responseContractId": "step-07.high-gain-observation.parameter.set",
+            "releaseState": "released",
+            "fallbackState": "supported",
+            "objectChannelBar": {
+              "plant": "G_0(s)=1/[s(s+1)(s+6)]",
+              "loop": "L_K(s)=KG_0(s)",
+              "closedLoop": "Φ_K(s)=L_K(s)/[1+L_K(s)]",
+              "feedback": "单位负反馈",
+              "poleAndStepSource": "Φ_K(s)",
+              "marginSource": "L_K(s)"
+            },
+            "defaultParameters": {
+              "baselineK": 24,
+              "comparisonK": 36,
+              "gainRegion": "22≤K<42"
+            },
+            "request": {
+              "runtimeMode": "analysis",
+              "caseId": "unit-1-5-high-gain",
+              "plant": {
+                "numerator": [
+                  1
+                ],
+                "denominator": [
+                  1,
+                  7,
+                  6,
+                  0
+                ],
+                "coefficientOrder": "descending",
+                "label": "G_0(s)=1/[s(s+1)(s+6)]"
+              },
+              "structures": [
+                {
+                  "kind": "gain",
+                  "enabled": true,
+                  "params": {
+                    "k": 36
+                  },
+                  "label": "K"
+                }
+              ],
+              "outputs": [
+                "step_response",
+                "root_locus",
+                "magnitude",
+                "phase",
+                "bode"
+              ],
+              "responseType": "step",
+              "settlingBandRatio": 0.05,
+              "timeRange": {
+                "start": 0,
+                "end": 90,
+                "samples": 420
+              },
+              "frequencyRange": {
+                "min": 0.03,
+                "max": 20,
+                "samples": 200
+              },
+              "rootLocus": {
+                "minGain": 0,
+                "maxGain": 46,
+                "samples": 240,
+                "currentGain": 36
+              }
+            },
+            "comparisonMode": "fixed_baseline_plus_dynamic",
+            "comparisonRequests": [
+              {
+                "id": "k24-baseline",
+                "label": "K等于24固定基线",
+                "role": "baseline",
+                "fixedKOverride": {
+                  "field": "k",
+                  "value": 24
+                }
+              },
+              {
+                "id": "dynamic-k",
+                "label": "当前高增益状态",
+                "role": "comparison",
+                "request": {
+                  "baseRequestRef": "request",
+                  "gainField": "k"
+                }
+              }
+            ],
+            "comparisonCapabilityStatus": {
+              "state": "implemented",
+              "noLessonPrivateFallback": true
+            },
+            "parameterControls": {
+              "position": "below_graph",
+              "fields": [
+                {
+                  "key": "k",
+                  "label": "第二个高增益状态",
+                  "input": "slider",
+                  "min": 22,
+                  "max": 41,
+                  "step": 1,
+                  "defaultValue": 36,
+                  "presets": [
+                    24,
+                    36,
+                    40
+                  ]
+                }
+              ]
+            },
+            "submissionFields": [
+              {
+                "key": "k",
+                "label": "第二状态增益 K",
+                "input": "slider",
+                "min": 22,
+                "max": 41,
+                "step": 1,
+                "defaultValue": 36,
+                "presets": [
+                  24,
+                  36,
+                  40
+                ]
+              },
+              {
+                "key": "settling_time_5_percent_s",
+                "label": "5%调节时间",
+                "input": "number"
+              },
+              {
+                "key": "phase_margin_deg",
+                "label": "相位裕度",
+                "input": "number"
+              },
+              {
+                "key": "stability_state",
+                "label": "系统状态",
+                "input": "select",
+                "options": [
+                  "稳定",
+                  "近临界但稳定",
+                  "临界稳定",
+                  "不稳定"
+                ]
+              }
+            ],
+            "submissionDefaults": {
+              "k": 36,
+              "settling_time_5_percent_s": "",
+              "phase_margin_deg": "",
+              "stability_state": ""
+            },
+            "feedbackPolicy": {
+              "validationSource": "control-engine-request-snapshot",
+              "comparisonReference": "k24-baseline",
+              "numericTolerance": {
+                "settling_time_5_percent_s": {
+                  "absolute": 1.0
+                },
+                "phase_margin_deg": {
+                  "absolute": 0.5
+                }
+              },
+              "stateCriteria": {
+                "stability_state": "closed_loop_pole_half_plane_with_step_envelope_and_margin_band"
+              },
+              "recordOnlyFields": [],
+              "textObservationScoring": "disabled"
+            },
+            "learningFactPolicy": {
+              "skipLearningFact": true,
+              "validationScope": "engine_result_only",
+              "reason": "服务端学习事实校验策略尚未建立；当前仅确认引擎结果可用，不物化课程侧LearningFact。"
+            },
+            "baselineReadings": {
+              "k24": {
+                "dominantPoles": "-0.180±j1.893",
+                "overshootPercent": 71.25,
+                "settlingTime5PercentSeconds": 15.47,
+                "phaseMarginDeg": 11.64,
+                "gainMarginDb": 4.86
+              },
+              "k36": {
+                "dominantPoles": "-0.056±j2.286",
+                "overshootPercent": 87.81,
+                "settlingTime5PercentSeconds": 52.44,
+                "phaseMarginDeg": 3.12,
+                "gainMarginDb": 1.34
+              }
+            },
+            "feasible_region": "not_applicable",
+            "fallbackMedia": {
+              "src": "/course-runtime/lessons/1-5/media/1-5-fig-03-step-k24-k36.png",
+              "alt": "K等于24与36的闭环阶跃响应后备图"
+            }
+          }
+        },
+        {
+          "id": "speed-evidence",
+          "region": "evidence",
+          "kind": "content.cardSet",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "speed-evidence",
+            "title": "高增益区的状态判断"
+          }
+        }
+      ],
+      "content_blocks": {
+        "page-intro": {
+          "type": "plain_text",
+          "body": "以K等于24为参照，在22≤K<42内选择第二状态，核对振荡包络、调节时间和稳定裕度。"
+        },
+        "speed-evidence": {
+          "type": "bullet_list",
+          "items": [
+            "K=36的主导极点实部仍为负，振荡包络仍在衰减。",
+            "K=36的5%调节时间约52.44秒，相位裕度约3.12度。",
+            "该状态近临界但仍稳定，不能称为持续等幅振荡。"
+          ]
+        }
+      },
+      "evidence_sequence": [
+        "page-intro",
+        "high-gain-workbench",
+        "speed-evidence"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "interactive_figure_submit",
+        "canonical_response_owner": "compute.panel",
+        "evidence_key": "step-07.high-gain-observation.parameter.set",
+        "activity_cards": [],
+        "student_task": "通过工作台唯一提交入口保存当前高增益状态的调节时间、相位裕度和系统状态。",
+        "reveal_answer": "after_submit_or_teacher_reveal"
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": "not_applicable",
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "parameterChanges",
+          "submittedParameterSet",
+          "stateClassification"
+        ],
+        "result_policy": "explicit_parameter_submission_only"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "submission_rate",
+          "parameter_distribution",
+          "misconception_tags"
+        ]
+      },
+      "ai_context_spec": {
+        "delivery_mode": "hidden_page_context",
+        "page_ai_entry": "forbidden",
+        "page_goal": "用三域证据判断高增益状态是否越过边界。",
+        "allowed_scope": [
+          "解释极点实部和衰减包络",
+          "提交后检查状态分类"
+        ],
+        "forbidden_scope": [
+          "把K等于36说成临界稳定",
+          "代替学生提交"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-5-three-domain-gain-sweep/demo?step=step-07"
+      },
+      "acceptance_checks": [
+        "capabilityRef和对象通道条完整",
+        "默认比较K等于24与36",
+        "控件位于图下且提交字段完整",
+        "结论明确K等于36仍稳定"
+      ]
+    },
+    "step-08": {
+      "title": "临界增益与越界状态",
+      "layout": {
+        "template": "derivation_then_compute",
+        "regions": [
+          {
+            "id": "intro",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "derivation",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "compute",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "closing",
+            "width": "full",
+            "order": 4
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "page-intro",
+          "region": "intro",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "page-intro",
+            "title": "临界增益与越界状态"
+          }
+        },
+        {
+          "id": "critical-task",
+          "region": "intro",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "critical-task",
+            "title": "临界增益推导与三域验证"
+          }
+        },
+        {
+          "id": "critical-derivation",
+          "region": "derivation",
+          "kind": "visual.derivationStage",
+          "must_be_visible": true,
+          "payload": {
+            "stageId": "unit-1-5-critical-gain-derivation",
+            "aspectRatio": "16:9",
+            "title": "从虚轴代入到临界三域结论",
+            "formulas": [
+              {
+                "id": "characteristic",
+                "latex": "s^3+7s^2+6s+K=0",
+                "region": {
+                  "x": 0.06,
+                  "y": 0.08,
+                  "width": 0.38,
+                  "height": 0.12
+                },
+                "blocks": [
+                  {
+                    "id": "characteristic-block",
+                    "latex": "s^3+7s^2+6s+K=0",
+                    "colorRole": "known"
+                  }
+                ]
+              },
+              {
+                "id": "real-imag",
+                "latex": "K-7\\omega^2=0,\\quad 6\\omega-\\omega^3=0",
+                "region": {
+                  "x": 0.08,
+                  "y": 0.3,
+                  "width": 0.5,
+                  "height": 0.14
+                },
+                "blocks": [
+                  {
+                    "id": "real-part-block",
+                    "latex": "K-7\\omega^2=0",
+                    "colorRole": "transform"
+                  },
+                  {
+                    "id": "imag-part-block",
+                    "latex": "6\\omega-\\omega^3=0",
+                    "colorRole": "transform"
+                  }
+                ]
+              },
+              {
+                "id": "critical-values",
+                "latex": "\\omega^2=6,\\quad K_{\\mathrm{crit}}=42",
+                "region": {
+                  "x": 0.54,
+                  "y": 0.5,
+                  "width": 0.38,
+                  "height": 0.14
+                },
+                "blocks": [
+                  {
+                    "id": "omega-block",
+                    "latex": "\\omega=\\sqrt6",
+                    "colorRole": "result"
+                  },
+                  {
+                    "id": "gain-block",
+                    "latex": "K=7\\omega^2=42",
+                    "colorRole": "result"
+                  }
+                ]
+              },
+              {
+                "id": "factorization",
+                "latex": "s^3+7s^2+6s+42=(s+7)(s^2+6)",
+                "region": {
+                  "x": 0.1,
+                  "y": 0.7,
+                  "width": 0.52,
+                  "height": 0.14
+                },
+                "blocks": [
+                  {
+                    "id": "factor-block",
+                    "latex": "(s+7)(s^2+6)",
+                    "colorRole": "result"
+                  },
+                  {
+                    "id": "poles-block",
+                    "latex": "s=-7,\\;s=\\pm j\\sqrt6",
+                    "colorRole": "result"
+                  }
+                ]
+              }
+            ],
+            "textBlocks": [
+              {
+                "id": "domain-conclusion",
+                "text": "虚轴极点、持续振荡和零稳定裕度在K等于42时同步成立。",
+                "region": {
+                  "x": 0.62,
+                  "y": 0.72,
+                  "width": 0.32,
+                  "height": 0.16
+                }
+              }
+            ],
+            "revealSteps": [
+              {
+                "id": "substitute",
+                "targetIds": [
+                  "characteristic-block"
+                ]
+              },
+              {
+                "id": "separate",
+                "targetIds": [
+                  "real-part-block",
+                  "imag-part-block"
+                ]
+              },
+              {
+                "id": "solve",
+                "targetIds": [
+                  "omega-block",
+                  "gain-block"
+                ]
+              },
+              {
+                "id": "factor",
+                "targetIds": [
+                  "factor-block",
+                  "poles-block"
+                ]
+              },
+              {
+                "id": "interpret",
+                "targetIds": [
+                  "domain-conclusion"
+                ]
+              }
+            ],
+            "connectors": [
+              {
+                "id": "equation-to-separation",
+                "kind": "arrow",
+                "from": "characteristic-block",
+                "to": "real-part-block",
+                "revealStepIds": [
+                  "separate"
+                ]
+              },
+              {
+                "id": "separation-to-values",
+                "kind": "arrow",
+                "from": "imag-part-block",
+                "to": "omega-block",
+                "revealStepIds": [
+                  "solve"
+                ]
+              },
+              {
+                "id": "values-to-factor",
+                "kind": "therefore",
+                "from": "gain-block",
+                "to": "factor-block",
+                "revealStepIds": [
+                  "factor"
+                ]
+              },
+              {
+                "id": "factor-to-conclusion",
+                "kind": "therefore",
+                "from": "poles-block",
+                "to": "domain-conclusion",
+                "revealStepIds": [
+                  "interpret"
+                ]
+              }
+            ],
+            "teacherControls": {
+              "controlClasses": [
+                "release_activity",
+                "open_browse",
+                "teacher_step_reveal",
+                "reveal_reference_answer"
+              ],
+              "enabled": [
+                "next",
+                "previous",
+                "jump",
+                "highlight",
+                "answerReveal",
+                "reset"
+              ]
+            },
+            "cognitiveLoad": {
+              "maxNewFormulaBlocksPerStep": 2,
+              "maxSimultaneousColorRoles": 2,
+              "longFormulaSplitStrategy": "semantic_terms",
+              "teachingLoadException": "worked-example"
+            }
+          }
+        },
+        {
+          "id": "critical-gain-workbench",
+          "region": "compute",
+          "kind": "compute.panel",
+          "must_be_visible": true,
+          "payload": {
+            "capabilityRef": "control-workbench",
+            "panel_id": "unit-1-5-critical-gain-three-domain",
+            "spec_key": "control_workbench",
+            "title": "临界与越界状态的三域验证",
+            "visiblePanelIds": [
+              "root-locus",
+              "step-response",
+              "bode",
+              "performance"
+            ],
+            "responseContractId": "step-08.critical-state.parameter.set",
+            "releaseState": "released",
+            "fallbackState": "supported",
+            "objectChannelBar": {
+              "plant": "G_0(s)=1/[s(s+1)(s+6)]",
+              "loop": "L_K(s)=KG_0(s)",
+              "closedLoop": "Φ_K(s)=L_K(s)/[1+L_K(s)]",
+              "feedback": "单位负反馈",
+              "poleAndStepSource": "Φ_K(s)",
+              "marginSource": "L_K(s)"
+            },
+            "defaultParameters": {
+              "k": 42,
+              "gainRegion": "40≤K≤46"
+            },
+            "request": {
+              "runtimeMode": "analysis",
+              "caseId": "unit-1-5-critical-gain",
+              "plant": {
+                "numerator": [
+                  1
+                ],
+                "denominator": [
+                  1,
+                  7,
+                  6,
+                  0
+                ],
+                "coefficientOrder": "descending",
+                "label": "G_0(s)=1/[s(s+1)(s+6)]"
+              },
+              "structures": [
+                {
+                  "kind": "gain",
+                  "enabled": true,
+                  "params": {
+                    "k": 42
+                  },
+                  "label": "K"
+                }
+              ],
+              "outputs": [
+                "step_response",
+                "root_locus",
+                "magnitude",
+                "phase",
+                "bode"
+              ],
+              "responseType": "step",
+              "settlingBandRatio": 0.05,
+              "timeRange": {
+                "start": 0,
+                "end": 40,
+                "samples": 360
+              },
+              "frequencyRange": {
+                "min": 0.03,
+                "max": 20,
+                "samples": 220
+              },
+              "rootLocus": {
+                "minGain": 0,
+                "maxGain": 46,
+                "samples": 260,
+                "currentGain": 42
+              }
+            },
+            "parameterControls": {
+              "position": "below_graph",
+              "fields": [
+                {
+                  "key": "k",
+                  "label": "临界附近增益 K",
+                  "input": "slider",
+                  "min": 40,
+                  "max": 46,
+                  "step": 1,
+                  "defaultValue": 42,
+                  "presets": [
+                    40,
+                    42,
+                    44,
+                    46
+                  ]
+                }
+              ]
+            },
+            "submissionFields": [
+              {
+                "key": "k",
+                "label": "当前增益 K",
+                "input": "slider",
+                "min": 40,
+                "max": 46,
+                "step": 1,
+                "defaultValue": 42,
+                "presets": [
+                  40,
+                  42,
+                  44,
+                  46
+                ]
+              },
+              {
+                "key": "dominant_pole_half_plane",
+                "label": "主导极点所在位置",
+                "input": "select",
+                "options": [
+                  "左半平面",
+                  "虚轴",
+                  "右半平面"
+                ]
+              },
+              {
+                "key": "response_envelope",
+                "label": "振荡包络",
+                "input": "select",
+                "options": [
+                  "衰减",
+                  "等幅",
+                  "增大"
+                ]
+              },
+              {
+                "key": "system_state",
+                "label": "系统状态",
+                "input": "select",
+                "options": [
+                  "稳定",
+                  "临界稳定",
+                  "不稳定"
+                ]
+              }
+            ],
+            "submissionDefaults": {
+              "k": 42,
+              "dominant_pole_half_plane": "",
+              "response_envelope": "",
+              "system_state": ""
+            },
+            "feedbackPolicy": {
+              "validationSource": "control-engine-request-snapshot",
+              "numericTolerance": {
+                "dominant_pole_real": {
+                  "absolute": 0.01
+                },
+                "phase_margin_deg": {
+                  "absolute": 0.25
+                },
+                "gain_margin_db": {
+                  "absolute": 0.25
+                }
+              },
+              "stateCriteria": {
+                "dominant_pole_half_plane": "dominant_pair_real_part_sign",
+                "response_envelope": "step_envelope_decay_rate",
+                "system_state": "routh_boundary_and_closed_loop_pole_half_plane"
+              },
+              "recordOnlyFields": [],
+              "textObservationScoring": "disabled"
+            },
+            "learningFactPolicy": {
+              "skipLearningFact": true,
+              "validationScope": "engine_result_only",
+              "reason": "服务端学习事实校验策略尚未建立；当前仅确认引擎结果可用，不物化课程侧LearningFact。"
+            },
+            "baselineReadings": {
+              "k": 42,
+              "poles": "-7, ±j√6",
+              "longTermOutputRange": [
+                0.056,
+                1.944
+              ],
+              "gainCrossoverRadPerSec": "√6",
+              "phaseCrossoverRadPerSec": "√6",
+              "phaseMarginDeg": 0,
+              "gainMarginDb": 0
+            },
+            "feasible_region": "not_applicable",
+            "fallbackMedia": {
+              "src": "/course-runtime/lessons/1-5/media/1-5-fig-04-critical-k42.png",
+              "alt": "K等于42时的临界三域证据后备图"
+            }
+          }
+        },
+        {
+          "id": "critical-conclusion",
+          "region": "closing",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "critical-conclusion",
+            "title": "临界状态的三域同步信号"
+          }
+        }
+      ],
+      "content_blocks": {
+        "page-intro": {
+          "type": "plain_text",
+          "body": "先由特征方程求出精确临界点，再跨越边界观察极点、阶跃和裕度怎样同步改变。"
+        },
+        "critical-task": {
+          "type": "plain_text",
+          "body": "令s等于jω代入特征方程，求非零临界频率和临界增益，并用三域图验证；随后把K调到44，判断系统状态。"
+        },
+        "critical-conclusion": {
+          "type": "plain_text",
+          "body": "K等于42时，共轭极点准确位于虚轴，阶跃振荡不衰减，两类稳定裕度均为零；K大于42时共轭极点进入右半平面。"
+        }
+      },
+      "evidence_sequence": [
+        "page-intro",
+        "critical-task",
+        "critical-derivation",
+        "critical-gain-workbench",
+        "critical-conclusion"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "interactive_figure_submit",
+        "canonical_response_owner": "compute.panel",
+        "evidence_key": "step-08.critical-state.parameter.set",
+        "activity_cards": [],
+        "student_task": "在临界附近调节增益，并通过工作台唯一提交入口保存极点位置、振荡包络和系统状态。",
+        "step_reveal_policy": {
+          "problem_statement_always_visible": true,
+          "sequence": [
+            "substitute",
+            "separate",
+            "solve",
+            "factor",
+            "interpret"
+          ],
+          "student_browse_requires_open_browse": true,
+          "teacher_reveal_unrestricted": true
+        },
+        "reveal_answer": "after_submit_or_teacher_reveal"
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "teacher_toggle",
+        "teacher_step_reveal": "teacher_direct",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": true,
+        "browse_required": true,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": "after_open_browse",
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "revealProgress",
+          "parameterChanges",
+          "stateSubmission"
+        ],
+        "result_policy": "submission_only_not_reveal"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "submission_rate",
+          "parameter_distribution",
+          "state_classification",
+          "misconception_tags"
+        ]
+      },
+      "ai_context_spec": {
+        "delivery_mode": "hidden_page_context",
+        "page_ai_entry": "forbidden",
+        "page_goal": "推导并验证临界增益与越界状态。",
+        "allowed_scope": [
+          "解释已显影公式",
+          "提交后检查三域状态链"
+        ],
+        "forbidden_scope": [
+          "隐藏任务书",
+          "代替学生提交",
+          "把显影浏览当作掌握证据"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-5-three-domain-gain-sweep/demo?step=step-08"
+      },
+      "acceptance_checks": [
+        "derivationStage保留LaTeX分块与targetIds",
+        "四类教师控制彼此分离",
+        "compute面板含对象通道条和图下控件",
+        "临界与越界提交字段完整"
+      ]
+    },
+    "step-09": {
+      "title": "增益扫描的三域对照",
+      "layout": {
+        "template": "compute_then_table_workspace",
+        "regions": [
+          {
+            "id": "intro",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "compute",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "closing",
+            "width": "full",
+            "order": 4
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "page-intro",
+          "region": "intro",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "page-intro",
+            "title": "增益扫描的三域对照"
+          }
+        },
+        {
+          "id": "gain-sweep-workbench",
+          "region": "compute",
+          "kind": "compute.panel",
+          "must_be_visible": true,
+          "payload": {
+            "capabilityRef": "control-linked-comparison",
+            "panel_id": "unit-1-5-gain-sweep-summary",
+            "spec_key": "control_linked_comparison",
+            "title": "根轨迹、阶跃响应族与相位裕度扫描",
+            "visiblePanelIds": [
+              "root-locus",
+              "step-response",
+              "bode",
+              "performance"
+            ],
+            "responseContractId": "step-09.custom-gain.parameter.set",
+            "releaseState": "released",
+            "fallbackState": "supported",
+            "objectChannelBar": {
+              "plant": "G_0(s)=1/[s(s+1)(s+6)]",
+              "loop": "L_K(s)=KG_0(s)",
+              "closedLoop": "Φ_K(s)=L_K(s)/[1+L_K(s)]",
+              "feedback": "单位负反馈",
+              "poleAndStepSource": "Φ_K(s)",
+              "marginSource": "L_K(s)"
+            },
+            "defaultParameters": {
+              "k": 12,
+              "representativeGains": [
+                3,
+                12,
+                24,
+                36,
+                42
+              ],
+              "scanRange": "0<K≤42"
+            },
+            "request": {
+              "runtimeMode": "analysis",
+              "caseId": "unit-1-5-gain-sweep-summary",
+              "plant": {
+                "numerator": [
+                  1
+                ],
+                "denominator": [
+                  1,
+                  7,
+                  6,
+                  0
+                ],
+                "coefficientOrder": "descending",
+                "label": "G_0(s)=1/[s(s+1)(s+6)]"
+              },
+              "structures": [
+                {
+                  "kind": "gain",
+                  "enabled": true,
+                  "params": {
+                    "k": 12
+                  },
+                  "label": "K"
+                }
+              ],
+              "outputs": [
+                "step_response",
+                "root_locus",
+                "magnitude",
+                "phase",
+                "bode"
+              ],
+              "responseType": "step",
+              "settlingBandRatio": 0.05,
+              "timeRange": {
+                "start": 0,
+                "end": 90,
+                "samples": 420
+              },
+              "frequencyRange": {
+                "min": 0.03,
+                "max": 20,
+                "samples": 220
+              },
+              "rootLocus": {
+                "minGain": 0,
+                "maxGain": 46,
+                "samples": 300,
+                "currentGain": 12
+              }
+            },
+            "comparisonMode": "fixed_five_point_family_plus_dynamic_cursor",
+            "comparisonRequests": [
+              {
+                "id": "k3-fixed",
+                "label": "K等于3",
+                "role": "representative",
+                "fixedKOverride": {
+                  "field": "k",
+                  "value": 3
+                }
+              },
+              {
+                "id": "k12-fixed",
+                "label": "K等于12",
+                "role": "representative",
+                "fixedKOverride": {
+                  "field": "k",
+                  "value": 12
+                }
+              },
+              {
+                "id": "k24-fixed",
+                "label": "K等于24",
+                "role": "representative",
+                "fixedKOverride": {
+                  "field": "k",
+                  "value": 24
+                }
+              },
+              {
+                "id": "k36-fixed",
+                "label": "K等于36",
+                "role": "representative",
+                "fixedKOverride": {
+                  "field": "k",
+                  "value": 36
+                }
+              },
+              {
+                "id": "k42-fixed",
+                "label": "K等于42",
+                "role": "boundary",
+                "fixedKOverride": {
+                  "field": "k",
+                  "value": 42
+                }
+              },
+              {
+                "id": "dynamic-k",
+                "label": "当前滑块位置",
+                "role": "current",
+                "request": {
+                  "baseRequestRef": "request",
+                  "gainField": "k"
+                }
+              }
+            ],
+            "comparisonCapabilityStatus": {
+              "state": "implemented",
+              "noLessonPrivateFallback": true
+            },
+            "parameterControls": {
+              "position": "below_graph",
+              "fields": [
+                {
+                  "key": "k",
+                  "label": "扫描增益 K",
+                  "input": "slider",
+                  "min": 1,
+                  "max": 46,
+                  "step": 1,
+                  "defaultValue": 12,
+                  "presets": [
+                    3,
+                    12,
+                    24,
+                    36,
+                    42
+                  ]
+                }
+              ]
+            },
+            "submissionFields": [
+              {
+                "key": "k",
+                "label": "当前扫描增益 K",
+                "input": "slider",
+                "min": 1,
+                "max": 46,
+                "step": 1,
+                "defaultValue": 12,
+                "presets": [
+                  3,
+                  12,
+                  24,
+                  36,
+                  42
+                ]
+              },
+              {
+                "key": "point_one_k",
+                "label": "自选点一的K",
+                "input": "number",
+                "min": 4,
+                "max": 40,
+                "step": 1
+              },
+              {
+                "key": "point_one_dominant_poles",
+                "label": "自选点一的主导极点",
+                "input": "text"
+              },
+              {
+                "key": "point_one_overshoot_percent",
+                "label": "自选点一的超调量百分比",
+                "input": "number"
+              },
+              {
+                "key": "point_one_settling_time_5_percent_s",
+                "label": "自选点一的5%调节时间",
+                "input": "number"
+              },
+              {
+                "key": "point_one_phase_margin_deg",
+                "label": "自选点一的相位裕度",
+                "input": "number"
+              },
+              {
+                "key": "point_one_system_state",
+                "label": "自选点一的系统状态",
+                "input": "select",
+                "options": [
+                  "稳定余量充足",
+                  "振荡明显",
+                  "接近边界",
+                  "非常接近边界"
+                ]
+              },
+              {
+                "key": "point_two_k",
+                "label": "自选点二的K",
+                "input": "number",
+                "min": 4,
+                "max": 40,
+                "step": 1
+              },
+              {
+                "key": "point_two_dominant_poles",
+                "label": "自选点二的主导极点",
+                "input": "text"
+              },
+              {
+                "key": "point_two_overshoot_percent",
+                "label": "自选点二的超调量百分比",
+                "input": "number"
+              },
+              {
+                "key": "point_two_settling_time_5_percent_s",
+                "label": "自选点二的5%调节时间",
+                "input": "number"
+              },
+              {
+                "key": "point_two_phase_margin_deg",
+                "label": "自选点二的相位裕度",
+                "input": "number"
+              },
+              {
+                "key": "point_two_system_state",
+                "label": "自选点二的系统状态",
+                "input": "select",
+                "options": [
+                  "稳定余量充足",
+                  "振荡明显",
+                  "接近边界",
+                  "非常接近边界"
+                ]
+              },
+              {
+                "key": "consistency_check_status",
+                "label": "口径自查结果",
+                "input": "select",
+                "options": [
+                  "检查后无口径偏差",
+                  "已发现并修正口径偏差"
+                ]
+              },
+              {
+                "key": "consistency_check_note",
+                "label": "口径自查说明",
+                "input": "text"
+              }
+            ],
+            "submissionDefaults": {
+              "k": 12,
+              "point_one_k": "",
+              "point_one_dominant_poles": "",
+              "point_one_overshoot_percent": "",
+              "point_one_settling_time_5_percent_s": "",
+              "point_one_phase_margin_deg": "",
+              "point_one_system_state": "",
+              "point_two_k": "",
+              "point_two_dominant_poles": "",
+              "point_two_overshoot_percent": "",
+              "point_two_settling_time_5_percent_s": "",
+              "point_two_phase_margin_deg": "",
+              "point_two_system_state": "",
+              "consistency_check_status": "",
+              "consistency_check_note": ""
+            },
+            "feedbackPolicy": {
+              "validationSource": "control-engine-request-snapshot",
+              "numericTolerance": {
+                "overshoot_percent": {
+                  "absolute": 1.0
+                },
+                "settling_time_5_percent_s": {
+                  "absolute": 1.0
+                },
+                "phase_margin_deg": {
+                  "absolute": 1.0
+                }
+              },
+              "stateCriteria": {
+                "system_state": "closed_loop_pole_half_plane_with_margin_band"
+              },
+              "recordOnlyFields": [
+                "point_one_dominant_poles",
+                "point_two_dominant_poles",
+                "consistency_check_status",
+                "consistency_check_note"
+              ],
+              "textObservationScoring": "disabled"
+            },
+            "learningFactPolicy": {
+              "skipLearningFact": true,
+              "validationScope": "engine_result_only",
+              "reason": "服务端学习事实校验策略尚未建立；当前仅确认引擎结果可用，不物化课程侧LearningFact。"
+            },
+            "feasible_region": "not_applicable",
+            "fallbackMedia": {
+              "src": "/course-runtime/lessons/1-5/media/1-5-fig-05-sweep-summary.png",
+              "alt": "增益扫描下根轨迹、阶跃响应族和相位裕度变化后备图"
+            }
+          }
+        },
+        {
+          "id": "gain-table-workspace",
+          "region": "activity",
+          "kind": "activity.workspace",
+          "must_be_visible": true,
+          "payload": {
+            "title": "五个代表增益的三域对照表",
+            "responseContractId": "table.builder",
+            "evidenceKey": "step-09.representative-gain-table.table.builder",
+            "fields": [
+              "k",
+              "dominant_poles",
+              "overshoot_percent",
+              "rise_time_10_90_s",
+              "settling_time_5_percent_s",
+              "gain_crossover_rad_s",
+              "phase_margin_deg",
+              "gain_margin_db",
+              "system_state"
+            ],
+            "responsePrefill": {
+              "capabilityStatus": "implemented",
+              "selectionPolicy": {
+                "retention": "latest_validated",
+                "mismatch": "keep_empty",
+                "crossGainMapping": "forbidden",
+                "rule": "不得将其他K的快照映射到代表行"
+              },
+              "sources": [
+                {
+                  "id": "representative-k3",
+                  "evidenceKey": "step-05.low-gain-observation.parameter.set",
+                  "targetRow": "k3",
+                  "representativeK": 3,
+                  "snapshotSelector": {
+                    "mode": "latest_validated_explicit_submission_where",
+                    "predicate": "parameterSnapshot.k == representativeK",
+                    "retain": "latest_validated",
+                    "mismatch": "keep_empty"
+                  },
+                  "validationSource": {
+                    "mode": "same_snapshot_selector",
+                    "selectorRef": "representative-k3.snapshotSelector"
+                  },
+                  "fieldMap": {
+                    "parameterSnapshot.k": "k",
+                    "validationSnapshot.dominantPoles": "dominant_poles",
+                    "validationSnapshot.overshootPercent": "overshoot_percent",
+                    "validationSnapshot.riseTime10To90Seconds": "rise_time_10_90_s",
+                    "validationSnapshot.settlingTime5PercentSeconds": "settling_time_5_percent_s",
+                    "validationSnapshot.gainCrossoverRadPerSec": "gain_crossover_rad_s",
+                    "validationSnapshot.phaseMarginDeg": "phase_margin_deg",
+                    "validationSnapshot.gainMarginDb": "gain_margin_db",
+                    "validationSnapshot.derivedSystemState": "system_state"
+                  }
+                },
+                {
+                  "id": "representative-k12",
+                  "evidenceKey": "step-06.medium-gain-observation.parameter.set",
+                  "targetRow": "k12",
+                  "representativeK": 12,
+                  "snapshotSelector": {
+                    "mode": "latest_validated_explicit_submission_where",
+                    "predicate": "parameterSnapshot.k == representativeK",
+                    "retain": "latest_validated",
+                    "mismatch": "keep_empty"
+                  },
+                  "validationSource": {
+                    "mode": "same_snapshot_selector",
+                    "selectorRef": "representative-k12.snapshotSelector"
+                  },
+                  "fieldMap": {
+                    "parameterSnapshot.k": "k",
+                    "validationSnapshot.dominantPoles": "dominant_poles",
+                    "validationSnapshot.overshootPercent": "overshoot_percent",
+                    "validationSnapshot.riseTime10To90Seconds": "rise_time_10_90_s",
+                    "validationSnapshot.settlingTime5PercentSeconds": "settling_time_5_percent_s",
+                    "validationSnapshot.gainCrossoverRadPerSec": "gain_crossover_rad_s",
+                    "validationSnapshot.phaseMarginDeg": "phase_margin_deg",
+                    "validationSnapshot.gainMarginDb": "gain_margin_db",
+                    "validationSnapshot.derivedSystemState": "system_state"
+                  }
+                },
+                {
+                  "id": "representative-k24",
+                  "evidenceKey": "step-07.high-gain-observation.parameter.set",
+                  "targetRow": "k24",
+                  "representativeK": 24,
+                  "snapshotSelector": {
+                    "mode": "latest_validated_comparison_request",
+                    "comparisonRequestId": "k24-baseline",
+                    "retain": "latest_validated",
+                    "mismatch": "keep_empty"
+                  },
+                  "validationSource": {
+                    "mode": "same_comparison_request",
+                    "comparisonRequestId": "k24-baseline"
+                  },
+                  "fieldMap": {
+                    "parameterSnapshot.k": "k",
+                    "validationSnapshot.dominantPoles": "dominant_poles",
+                    "validationSnapshot.overshootPercent": "overshoot_percent",
+                    "validationSnapshot.riseTime10To90Seconds": "rise_time_10_90_s",
+                    "validationSnapshot.settlingTime5PercentSeconds": "settling_time_5_percent_s",
+                    "validationSnapshot.gainCrossoverRadPerSec": "gain_crossover_rad_s",
+                    "validationSnapshot.phaseMarginDeg": "phase_margin_deg",
+                    "validationSnapshot.gainMarginDb": "gain_margin_db",
+                    "validationSnapshot.derivedSystemState": "system_state"
+                  }
+                },
+                {
+                  "id": "representative-k36",
+                  "evidenceKey": "step-07.high-gain-observation.parameter.set",
+                  "targetRow": "k36",
+                  "representativeK": 36,
+                  "snapshotSelector": {
+                    "mode": "latest_validated_explicit_submission_where",
+                    "predicate": "parameterSnapshot.k == representativeK",
+                    "retain": "latest_validated",
+                    "mismatch": "keep_empty"
+                  },
+                  "validationSource": {
+                    "mode": "same_snapshot_selector",
+                    "selectorRef": "representative-k36.snapshotSelector"
+                  },
+                  "fieldMap": {
+                    "parameterSnapshot.k": "k",
+                    "validationSnapshot.dominantPoles": "dominant_poles",
+                    "validationSnapshot.overshootPercent": "overshoot_percent",
+                    "validationSnapshot.riseTime10To90Seconds": "rise_time_10_90_s",
+                    "validationSnapshot.settlingTime5PercentSeconds": "settling_time_5_percent_s",
+                    "validationSnapshot.gainCrossoverRadPerSec": "gain_crossover_rad_s",
+                    "validationSnapshot.phaseMarginDeg": "phase_margin_deg",
+                    "validationSnapshot.gainMarginDb": "gain_margin_db",
+                    "validationSnapshot.derivedSystemState": "system_state"
+                  }
+                },
+                {
+                  "id": "representative-k42",
+                  "evidenceKey": "step-08.critical-state.parameter.set",
+                  "targetRow": "k42",
+                  "representativeK": 42,
+                  "snapshotSelector": {
+                    "mode": "latest_validated_explicit_submission_where",
+                    "predicate": "parameterSnapshot.k == representativeK",
+                    "retain": "latest_validated",
+                    "mismatch": "keep_empty"
+                  },
+                  "validationSource": {
+                    "mode": "same_snapshot_selector",
+                    "selectorRef": "representative-k42.snapshotSelector"
+                  },
+                  "fieldMap": {
+                    "parameterSnapshot.k": "k",
+                    "validationSnapshot.dominantPoles": "dominant_poles",
+                    "validationSnapshot.overshootDisplay": "overshoot_percent",
+                    "validationSnapshot.riseTimeDisplay": "rise_time_10_90_s",
+                    "validationSnapshot.settlingTimeDisplay": "settling_time_5_percent_s",
+                    "validationSnapshot.gainCrossoverRadPerSec": "gain_crossover_rad_s",
+                    "validationSnapshot.phaseMarginDeg": "phase_margin_deg",
+                    "validationSnapshot.gainMarginDb": "gain_margin_db",
+                    "validationSnapshot.derivedSystemState": "system_state"
+                  }
+                }
+              ],
+              "mergePolicy": {
+                "studentEditedValue": "preserve",
+                "incomingEvidence": "fill_empty_only",
+                "missingEvidence": "leave_empty_and_show_prompt",
+                "silentDefault": "forbidden"
+              }
+            },
+            "feedbackPolicy": {
+              "validationSource": "responsePrefill.sources[].validationSource",
+              "numericTolerance": {
+                "overshoot_percent": {
+                  "absolute": 1.0
+                },
+                "rise_time_10_90_s": {
+                  "absolute": 0.5
+                },
+                "settling_time_5_percent_s": {
+                  "absolute": 1.0
+                },
+                "gain_crossover_rad_s": {
+                  "absolute": 0.1
+                },
+                "phase_margin_deg": {
+                  "absolute": 1.0
+                },
+                "gain_margin_db": {
+                  "absolute": 1.0
+                }
+              },
+              "stateCriteria": {
+                "system_state": "closed_loop_pole_half_plane_with_critical_band"
+              },
+              "recordOnlyFields": [
+                "dominant_poles"
+              ],
+              "textObservationScoring": "disabled"
+            },
+            "learningFactPolicy": {
+              "skipLearningFact": true,
+              "validationScope": "engine_result_only",
+              "reason": "服务端整表校验与学习事实准入策略尚未建立；当前允许保存显式提交和统计，但不物化课程侧LearningFact。"
+            }
+          }
+        },
+        {
+          "id": "sweep-conclusions",
+          "region": "closing",
+          "kind": "content.cardSet",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "sweep-conclusions",
+            "title": "扫描结果的两条主线"
+          }
+        }
+      ],
+      "content_blocks": {
+        "page-intro": {
+          "type": "plain_text",
+          "body": "同步定位根轨迹、阶跃响应族和相位裕度曲线，再把前四步记录汇入同一张表。"
+        },
+        "sweep-conclusions": {
+          "type": "bullet_list",
+          "items": [
+            "上升更快、收敛更快和环路频率尺度提高可以相互分离。",
+            "三域结论必须相容，但标量指标不保证对所有对象普遍单调。"
+          ]
+        }
+      },
+      "evidence_sequence": [
+        "page-intro",
+        "gain-sweep-workbench",
+        "gain-table-workspace",
+        "sweep-conclusions"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "task_card_workspace",
+        "canonical_response_owners": {
+          "custom_points": "compute.panel",
+          "representative_table": "activity.workspace"
+        },
+        "evidence_keys": [
+          "step-09.custom-gain.parameter.set",
+          "step-09.representative-gain-table.table.builder"
+        ],
+        "student_task": "先通过计算面板提交两个结构化非预设参数点和口径自查，再完成五个代表增益的三域对照表。",
+        "activity_cards": [
+          {
+            "id": "representative-gain-table",
+            "title": "五个代表增益的三域对照表",
+            "prompt": "补全K等于3、12、24、36、42五行的主导极点、超调量、上升时间、5%调节时间、增益穿越频率、相位裕度、增益裕度和系统状态。",
+            "response_kind": "table.builder",
+            "columns": [
+              "K",
+              "主导极点",
+              "超调量",
+              "10%到90%上升时间",
+              "5%调节时间",
+              "增益穿越频率",
+              "相位裕度",
+              "增益裕度",
+              "系统状态"
+            ],
+            "row_keys": [
+              "k3",
+              "k12",
+              "k24",
+              "k36",
+              "k42"
+            ],
+            "reference_answer": "临界行的超调量记为不作为稳定瞬态指标，调节时间记为不存在有限值；其余读数按步骤5到8提交回填。",
+            "submit_scope": "per_card",
+            "layout_span": "full"
+          }
+        ],
+        "reveal_answer": "after_all_submitted_or_teacher_reveal"
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle_per_card",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": "not_applicable",
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "parameterChanges",
+          "customPointSubmissions",
+          "consistencyCheck",
+          "tableSubmission"
+        ],
+        "result_policy": "explicit_submission_only"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "submission_rate",
+          "parameter_coverage",
+          "missing_columns",
+          "consistency_errors",
+          "state_classification"
+        ]
+      },
+      "ai_context_spec": {
+        "delivery_mode": "hidden_page_context",
+        "page_ai_entry": "forbidden",
+        "page_goal": "用同一模型完成非预设扫描与五点三域汇总。",
+        "allowed_scope": [
+          "提交后检查对象和口径",
+          "指出缺失表列"
+        ],
+        "forbidden_scope": [
+          "代填数据表",
+          "替学生选择非预设增益",
+          "把扫描浏览当作掌握证据"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-5-three-domain-gain-sweep/demo?step=step-09"
+      },
+      "acceptance_checks": [
+        "capabilityRef和对象通道条完整",
+        "默认参数和图下控件完整",
+        "两类提交字段分别可用",
+        "五行对照表与同一模型口径一致"
+      ]
+    },
+    "step-10": {
+      "title": "三域证据分工与三种速度",
+      "layout": {
+        "template": "dual_table_formula_activity",
+        "regions": [
+          {
+            "id": "intro",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "evidence",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "formula",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 4
+          },
+          {
+            "id": "closing",
+            "width": "full",
+            "order": 5
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "page-intro",
+          "region": "intro",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "page-intro",
+            "title": "三域证据分工与三种速度"
+          }
+        },
+        {
+          "id": "domain-responsibilities",
+          "region": "evidence",
+          "kind": "content.table",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "domain-responsibilities",
+            "title": "三域证据的直接职责"
+          }
+        },
+        {
+          "id": "speed-definitions",
+          "region": "evidence",
+          "kind": "content.table",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "speed-definitions",
+            "title": "三种速度语言"
+          }
+        },
+        {
+          "id": "crossover-formula",
+          "region": "formula",
+          "kind": "content.formula",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "crossover-formula",
+            "title": "环路增益穿越频率"
+          }
+        },
+        {
+          "id": "speed-check",
+          "region": "activity",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "payload": {
+            "title": "读图与速度分辨",
+            "responseContractId": "choice.multi"
+          }
+        },
+        {
+          "id": "evidence-boundary",
+          "region": "closing",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "evidence-boundary",
+            "title": "直接读数与跨域解释的边界"
+          }
+        }
+      ],
+      "content_blocks": {
+        "page-intro": {
+          "type": "plain_text",
+          "body": "先区分每一域能直接读出的证据，再区分首次到达、保持在误差带和环路频率尺度。"
+        },
+        "domain-responsibilities": {
+          "type": "table",
+          "columns": [
+            "观察域",
+            "传递对象",
+            "直接回答的问题",
+            "典型证据"
+          ],
+          "rows": [
+            [
+              "复平面",
+              "闭环特征方程",
+              "模态是否衰减",
+              "极点实部与虚部"
+            ],
+            [
+              "时域",
+              "Φ_K(s)",
+              "输出过程怎样展开",
+              "超调量上升时间与调节时间"
+            ],
+            [
+              "频域",
+              "L_K(s)",
+              "穿越频率与稳定余量",
+              "增益穿越频率相位裕度与增益裕度"
+            ]
+          ]
+        },
+        "speed-definitions": {
+          "type": "table",
+          "columns": [
+            "速度语言",
+            "定义",
+            "所属对象",
+            "回答的问题"
+          ],
+          "rows": [
+            [
+              "10%到90%上升时间",
+              "输出首次从10%到达90%的时间",
+              "闭环阶跃",
+              "多快到达目标附近"
+            ],
+            [
+              "5%调节时间",
+              "输出进入并保持在5%误差带内的时间",
+              "闭环阶跃",
+              "多快稳定留在目标附近"
+            ],
+            [
+              "增益穿越频率",
+              "满足|L(jω_c)|=1的频率",
+              "环路开环",
+              "环路幅值在哪个频率穿越0dB"
+            ]
+          ]
+        },
+        "crossover-formula": {
+          "type": "formula",
+          "formula": "|L(j\\omega_c)|=1",
+          "symbols": [
+            {
+              "symbol": "\\omega_c",
+              "meaning": "环路增益穿越频率",
+              "unit": "rad/s"
+            }
+          ],
+          "body": "该频率属于环路开环，不能直接替代闭环5%调节时间。"
+        },
+        "evidence-boundary": {
+          "type": "plain_text",
+          "body": "三域证据可以互相解释，但每项数值必须从定义对应的对象和图形中读取。"
+        }
+      },
+      "evidence_sequence": [
+        "page-intro",
+        "domain-responsibilities",
+        "speed-definitions",
+        "crossover-formula",
+        "speed-check",
+        "evidence-boundary"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "activity_cards",
+        "student_task": "分别完成闭环阶跃直接读数和三种速度关系判断。",
+        "activity_cards": [
+          {
+            "id": "step-direct-readings",
+            "title": "闭环阶跃曲线的直接读数",
+            "prompt": "哪些指标能从闭环阶跃曲线直接读取？",
+            "response_kind": "choice.multi",
+            "options": [
+              "上升时间",
+              "超调量",
+              "调节时间",
+              "相位裕度",
+              "增益裕度"
+            ],
+            "reference_answer": [
+              "上升时间",
+              "超调量",
+              "调节时间"
+            ],
+            "submit_scope": "per_card",
+            "layout_span": "half"
+          },
+          {
+            "id": "crossover-proves-settling",
+            "title": "环路频率尺度与闭环收敛速度",
+            "prompt": "环路增益穿越频率提高足以证明闭环5%调节时间缩短。",
+            "response_kind": "choice.binary",
+            "options": [
+              "正确",
+              "错误"
+            ],
+            "reference_answer": "错误",
+            "submit_scope": "per_card",
+            "layout_span": "half"
+          }
+        ],
+        "reveal_answer": "after_submit_or_teacher_reveal"
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": "not_applicable",
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "submittedCards",
+          "objectiveAccuracy"
+        ],
+        "result_policy": "per_card_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "submission_rate",
+          "response_summary",
+          "speed_conflation_tags"
+        ]
+      },
+      "ai_context_spec": {
+        "delivery_mode": "hidden_page_context",
+        "page_ai_entry": "forbidden",
+        "page_goal": "区分三域直接证据和三种速度语言。",
+        "allowed_scope": [
+          "提交后解释指标定义",
+          "提示对象标签"
+        ],
+        "forbidden_scope": [
+          "提交前给出答案",
+          "混用环路与闭环指标",
+          "代替学生作答"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-5-three-domain-gain-sweep/demo?step=step-10"
+      },
+      "acceptance_checks": [
+        "两张原生表格内容完整",
+        "两个活动题面仅在activity_cards出现",
+        "两题双栏且独立提交",
+        "环路与闭环对象标签保留"
+      ]
+    },
+    "step-11": {
+      "title": "两组增益的失稳距离比较",
+      "layout": {
+        "template": "problem_activity_derivation",
+        "regions": [
+          {
+            "id": "intro",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "problem",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "derivation",
+            "width": "full",
+            "order": 4
+          },
+          {
+            "id": "closing",
+            "width": "full",
+            "order": 5
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "page-intro",
+          "region": "intro",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "page-intro",
+            "title": "两组增益的失稳距离比较"
+          }
+        },
+        {
+          "id": "comparison-problem",
+          "region": "problem",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "comparison-problem",
+            "title": "K等于12与36的已知数据"
+          }
+        },
+        {
+          "id": "comparison-data",
+          "region": "problem",
+          "kind": "content.table",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "comparison-data",
+            "title": "两组增益的三域数据"
+          }
+        },
+        {
+          "id": "evidence-order-check",
+          "region": "activity",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "payload": {
+            "title": "失稳距离与证据顺序判断",
+            "responseContractId": "text.structured"
+          }
+        },
+        {
+          "id": "comparison-derivation",
+          "region": "derivation",
+          "kind": "visual.derivationStage",
+          "must_be_visible": true,
+          "payload": {
+            "stageId": "unit-1-5-k12-k36-evidence-chain",
+            "aspectRatio": "16:9",
+            "title": "从复平面到时域再到频域的证据链",
+            "formulas": [
+              {
+                "id": "pole-comparison",
+                "latex": "|-0.056|<|-0.324|",
+                "region": {
+                  "x": 0.06,
+                  "y": 0.12,
+                  "width": 0.3,
+                  "height": 0.14
+                },
+                "blocks": [
+                  {
+                    "id": "pole-block",
+                    "latex": "-0.056\\;\\text{比}\\;-0.324\\;\\text{更接近零}",
+                    "colorRole": "known"
+                  }
+                ]
+              },
+              {
+                "id": "time-comparison",
+                "latex": "87.81\\%>45.59\\%,\\quad 52.44\\,\\mathrm{s}>8.05\\,\\mathrm{s}",
+                "region": {
+                  "x": 0.34,
+                  "y": 0.38,
+                  "width": 0.44,
+                  "height": 0.16
+                },
+                "blocks": [
+                  {
+                    "id": "overshoot-block",
+                    "latex": "M_p(36)=87.81\\%>M_p(12)=45.59\\%",
+                    "colorRole": "transform"
+                  },
+                  {
+                    "id": "settling-block",
+                    "latex": "52.44\\,\\mathrm{s}>8.05\\,\\mathrm{s}",
+                    "colorRole": "transform"
+                  }
+                ]
+              },
+              {
+                "id": "margin-comparison",
+                "latex": "3.12^\\circ<27.41^\\circ",
+                "region": {
+                  "x": 0.62,
+                  "y": 0.64,
+                  "width": 0.3,
+                  "height": 0.14
+                },
+                "blocks": [
+                  {
+                    "id": "margin-block",
+                    "latex": "3.12^\\circ<27.41^\\circ",
+                    "colorRole": "result"
+                  }
+                ]
+              }
+            ],
+            "textBlocks": [
+              {
+                "id": "comparison-result",
+                "text": "三域共同指向K等于36更接近失稳边界。",
+                "region": {
+                  "x": 0.12,
+                  "y": 0.72,
+                  "width": 0.38,
+                  "height": 0.14
+                }
+              }
+            ],
+            "revealSteps": [
+              {
+                "id": "pole-evidence",
+                "targetIds": [
+                  "pole-block"
+                ]
+              },
+              {
+                "id": "time-evidence",
+                "targetIds": [
+                  "overshoot-block",
+                  "settling-block"
+                ]
+              },
+              {
+                "id": "frequency-evidence",
+                "targetIds": [
+                  "margin-block"
+                ]
+              },
+              {
+                "id": "result",
+                "targetIds": [
+                  "comparison-result"
+                ]
+              }
+            ],
+            "connectors": [
+              {
+                "id": "pole-to-time",
+                "kind": "arrow",
+                "from": "pole-block",
+                "to": "overshoot-block",
+                "revealStepIds": [
+                  "time-evidence"
+                ]
+              },
+              {
+                "id": "time-to-frequency",
+                "kind": "arrow",
+                "from": "settling-block",
+                "to": "margin-block",
+                "revealStepIds": [
+                  "frequency-evidence"
+                ]
+              },
+              {
+                "id": "frequency-to-result",
+                "kind": "therefore",
+                "from": "margin-block",
+                "to": "comparison-result",
+                "revealStepIds": [
+                  "result"
+                ]
+              }
+            ],
+            "teacherControls": {
+              "controlClasses": [
+                "release_activity",
+                "open_browse",
+                "teacher_step_reveal",
+                "reveal_reference_answer"
+              ],
+              "enabled": [
+                "next",
+                "previous",
+                "jump",
+                "highlight",
+                "answerReveal",
+                "reset"
+              ]
+            },
+            "cognitiveLoad": {
+              "maxNewFormulaBlocksPerStep": 2,
+              "maxSimultaneousColorRoles": 2,
+              "longFormulaSplitStrategy": "semantic_terms",
+              "teachingLoadException": "worked-example"
+            }
+          }
+        },
+        {
+          "id": "comparison-conclusion",
+          "region": "closing",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "comparison-conclusion",
+            "title": "三域一致性的来源"
+          }
+        }
+      ],
+      "content_blocks": {
+        "page-intro": {
+          "type": "plain_text",
+          "body": "题面与已知数据始终可见；学生先判断，再按复平面、时域、频域逐层核对。"
+        },
+        "comparison-problem": {
+          "type": "plain_text",
+          "body": "比较同一对象在K等于12和K等于36时的三域数据，判断哪一组更接近失稳，并按复平面、时域、频域组织证据。"
+        },
+        "comparison-data": {
+          "type": "table",
+          "columns": [
+            "增益",
+            "主导极点",
+            "超调量",
+            "5%调节时间",
+            "相位裕度"
+          ],
+          "rows": [
+            [
+              12,
+              "-0.324±j1.336",
+              "45.59%",
+              "8.05 s",
+              "27.41°"
+            ],
+            [
+              36,
+              "-0.056±j2.286",
+              "87.81%",
+              "52.44 s",
+              "3.12°"
+            ]
+          ]
+        },
+        "comparison-conclusion": {
+          "type": "plain_text",
+          "body": "极点位置、阶跃过程和环路裕度受同一反馈特征方程约束，因此三域判断应当相容。"
+        }
+      },
+      "evidence_sequence": [
+        "page-intro",
+        "comparison-problem",
+        "comparison-data",
+        "evidence-order-check",
+        "comparison-derivation",
+        "comparison-conclusion"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "worked_example_reveal",
+        "student_task": "先提交失稳距离判断和证据顺序，再查看三域显影链。",
+        "step_reveal_policy": {
+          "problem_statement_always_visible": true,
+          "sequence": [
+            "pole-evidence",
+            "time-evidence",
+            "frequency-evidence",
+            "result"
+          ],
+          "student_browse_requires_open_browse": true,
+          "teacher_reveal_unrestricted": true
+        },
+        "activity_cards": [
+          {
+            "id": "instability-distance",
+            "title": "选择与证据顺序提交",
+            "prompt": "提交选择结果与三域证据顺序。",
+            "problem_source": "content_blocks.comparison-problem",
+            "response_kind": "text.structured",
+            "fields": [
+              {
+                "key": "selected_gain",
+                "label": "更接近失稳的增益",
+                "input": "select",
+                "options": [
+                  12,
+                  36
+                ]
+              },
+              {
+                "key": "evidence_order",
+                "label": "三域证据顺序",
+                "input": "ordering",
+                "options": [
+                  "复平面",
+                  "时域",
+                  "频域"
+                ]
+              }
+            ],
+            "reference_answer": "K=36；证据顺序为复平面、时域、频域。",
+            "submit_scope": "per_card",
+            "layout_span": "full"
+          }
+        ],
+        "reveal_answer": "after_submit_or_teacher_reveal"
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "teacher_toggle",
+        "teacher_step_reveal": "teacher_direct",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": true,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": "after_open_browse",
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "submittedCards",
+          "revealProgress",
+          "evidenceOrder"
+        ],
+        "result_policy": "submission_only_not_reveal"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "submission_rate",
+          "response_summary",
+          "evidence_order_errors"
+        ]
+      },
+      "ai_context_spec": {
+        "delivery_mode": "hidden_page_context",
+        "page_ai_entry": "forbidden",
+        "page_goal": "用三域证据比较K等于12与36的失稳距离。",
+        "allowed_scope": [
+          "解释已显影证据",
+          "提交后检查证据顺序"
+        ],
+        "forbidden_scope": [
+          "隐藏题面",
+          "提交前给出选择",
+          "代写证据链"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-5-three-domain-gain-sweep/demo?step=step-11"
+      },
+      "acceptance_checks": [
+        "题面仅在content_blocks.comparison-problem出现",
+        "activity card通过problem_source引用题面",
+        "数据表始终可见",
+        "derivationStage保留LaTeX与targetIds",
+        "四类教师控制分离"
+      ]
+    },
+    "step-12": {
+      "title": "临界边界与换对象迁移",
+      "layout": {
+        "template": "code_task_workspace",
+        "regions": [
+          {
+            "id": "intro",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "code",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "closing",
+            "width": "full",
+            "order": 4
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "page-intro",
+          "region": "intro",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "page-intro",
+            "title": "临界边界与换对象迁移"
+          }
+        },
+        {
+          "id": "octave-reproduction",
+          "region": "code",
+          "kind": "content.code",
+          "must_be_visible": true,
+          "payload": {
+            "title": "MATLAB/Octave三域复现骨架",
+            "language": "matlab",
+            "code": "G0 = tf(1, [1 7 6 0]);\ngains = [6 18 30 42];\nfor K = gains\n    Phi = feedback(K*G0, 1);\n    p = pole(Phi);\n    figure; step(Phi);\n    figure; margin(K*G0);\nend\nfigure; rlocus(G0);",
+            "block_key": "octave-reproduction"
+          }
+        },
+        {
+          "id": "migration-workspace",
+          "region": "activity",
+          "kind": "activity.workspace",
+          "must_be_visible": true,
+          "payload": {
+            "title": "参数反推、Routh判断与换对象扫描",
+            "responseContractId": "text.structured",
+            "fields": [
+              "k",
+              "dominant_poles",
+              "response_shape",
+              "phase_margin_deg",
+              "system_state"
+            ],
+            "row_keys": [
+              "k5",
+              "k25",
+              "k55",
+              "k70"
+            ],
+            "rows": [
+              {
+                "row_key": "k5",
+                "k": 5,
+                "dominant_poles": "",
+                "response_shape": "",
+                "phase_margin_deg": "",
+                "system_state": ""
+              },
+              {
+                "row_key": "k25",
+                "k": 25,
+                "dominant_poles": "",
+                "response_shape": "",
+                "phase_margin_deg": "",
+                "system_state": ""
+              },
+              {
+                "row_key": "k55",
+                "k": 55,
+                "dominant_poles": "",
+                "response_shape": "",
+                "phase_margin_deg": "",
+                "system_state": ""
+              },
+              {
+                "row_key": "k70",
+                "k": 70,
+                "dominant_poles": "",
+                "response_shape": "",
+                "phase_margin_deg": "",
+                "system_state": ""
+              }
+            ]
+          }
+        },
+        {
+          "id": "migration-conclusion",
+          "region": "closing",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "migration-conclusion",
+            "title": "可迁移关系与必须重算的数值"
+          }
+        }
+      ],
+      "content_blocks": {
+        "page-intro": {
+          "type": "plain_text",
+          "body": "使用同一组控制函数复现三域观察，再分别完成参数反推、含零点对象判断和换对象扫描。"
+        },
+        "octave-reproduction": {
+          "type": "code",
+          "language": "matlab",
+          "code": "G0 = tf(1, [1 7 6 0]);\ngains = [6 18 30 42];\nfor K = gains\n    Phi = feedback(K*G0, 1);\n    p = pole(Phi);\n    figure; step(Phi);\n    figure; margin(K*G0);\nend\nfigure; rlocus(G0);"
+        },
+        "migration-conclusion": {
+          "type": "plain_text",
+          "body": "稳定边界的三域同步关系可以迁移；具体临界增益、极点轨迹、超调量和调节时间必须按新对象重算。"
+        }
+      },
+      "evidence_sequence": [
+        "page-intro",
+        "octave-reproduction",
+        "migration-workspace",
+        "migration-conclusion"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "task_card_workspace",
+        "student_task": "三项任务分别提交，完成参数反推、Routh条件判断和换对象扫描。",
+        "activity_cards": [
+          {
+            "id": "infer-gain",
+            "title": "从三域数据反推增益",
+            "prompt": "已知主导极点约为-0.249±j1.645、超调量约60.18%、相位裕度约17.99°，从K等于12、18、24、36中选择对应增益，并判断三项数据是否相容。",
+            "response_kind": "choice.single",
+            "options": [
+              12,
+              18,
+              24,
+              36
+            ],
+            "reference_answer": "K=18，三项数据相容。",
+            "submit_scope": "per_card",
+            "layout_span": "one_third"
+          },
+          {
+            "id": "zero-added-routh",
+            "title": "增加零点后的Routh判断",
+            "prompt": "对L(s)=K(s+2)/[s(s+1)(s+6)]，补全闭环特征多项式，并根据三阶Routh条件判断是否存在有限正临界增益。",
+            "response_kind": "text.structured",
+            "fields": [
+              {
+                "key": "characteristic_polynomial",
+                "label": "闭环特征多项式"
+              },
+              {
+                "key": "routh_condition",
+                "label": "Routh条件"
+              },
+              {
+                "key": "finite_positive_critical_gain",
+                "label": "是否存在有限正临界增益"
+              }
+            ],
+            "reference_answer": "s^3+7s^2+(6+K)s+2K；7(6+K)>2K对K>0恒成立；不存在有限正临界增益。",
+            "submit_scope": "per_card",
+            "layout_span": "one_third"
+          },
+          {
+            "id": "new-plant-scan",
+            "title": "新对象的四区段三域扫描",
+            "prompt": "对G_1(s)=1/[s(s+2)(s+5)]，由特征多项式求稳定区间和临界增益，再用K等于5、25、55、70完成四行三域对照，并写出一条跨对象比较。",
+            "response_kind": "table.builder",
+            "columns": [
+              "K",
+              "主导极点",
+              "阶跃形态",
+              "相位裕度",
+              "系统状态"
+            ],
+            "row_keys": [
+              "k5",
+              "k25",
+              "k55",
+              "k70"
+            ],
+            "fields": [
+              {
+                "key": "stable_interval",
+                "label": "稳定区间"
+              },
+              {
+                "key": "critical_gain",
+                "label": "临界增益"
+              },
+              {
+                "key": "comparison",
+                "label": "跨对象比较"
+              }
+            ],
+            "reference_answer": "特征多项式s^3+7s^2+10s+K；0<K<70；Kcrit=70；三域同步关系可迁移，具体数值必须重算。",
+            "submit_scope": "per_card",
+            "layout_span": "one_third"
+          }
+        ],
+        "reveal_answer": "after_submit_or_teacher_reveal"
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle_per_card"
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": "not_applicable",
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "codeCopied",
+          "submittedCards",
+          "migrationCompletion"
+        ],
+        "result_policy": "per_card_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "submission_rate",
+          "response_summary",
+          "routh_errors",
+          "migration_completion"
+        ]
+      },
+      "ai_context_spec": {
+        "delivery_mode": "hidden_page_context",
+        "page_ai_entry": "forbidden",
+        "page_goal": "用MATLAB或Octave复现并迁移三域观察协议。",
+        "allowed_scope": [
+          "解释代码函数",
+          "提交后检查Routh逻辑和对象一致性"
+        ],
+        "forbidden_scope": [
+          "代替学生运行并填写提交结果",
+          "把原对象数值直接移植到新对象"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-5-three-domain-gain-sweep/demo?step=step-12"
+      },
+      "acceptance_checks": [
+        "代码模块kind为content.code且language为matlab",
+        "三个任务题面仅在activity_cards出现",
+        "三卡分别提交",
+        "新对象数值与原对象明确分离"
+      ]
+    },
+    "step-13": {
+      "title": "三域联动能力后测",
+      "layout": {
+        "template": "post_quiz_with_intro",
+        "regions": [
+          {
+            "id": "intro",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "feedback",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "page-intro",
+          "region": "intro",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "page-intro",
+            "title": "三域联动能力后测"
+          }
+        },
+        {
+          "id": "postcheck",
+          "region": "activity",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "payload": {
+            "title": "三项目标达成检查",
+            "responseContractId": "choice.single"
+          }
+        },
+        {
+          "id": "scoring-note",
+          "region": "feedback",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "scoring-note",
+            "title": "作答与反馈口径"
+          }
+        }
+      ],
+      "content_blocks": {
+        "page-intro": {
+          "type": "plain_text",
+          "body": "三道题分别检查状态判断、三域证据归位和上升速度与收敛速度分辨。"
+        },
+        "scoring-note": {
+          "type": "plain_text",
+          "body": "三题逐卡提交；目标达成反馈在全部提交或教师揭示后显示。"
+        }
+      },
+      "evidence_sequence": [
+        "page-intro",
+        "postcheck",
+        "scoring-note"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "quiz_group",
+        "student_task": "三题分别提交，完成本次课程的三域联动能力检查。",
+        "activity_cards": [
+          {
+            "id": "near-critical-state",
+            "title": "近临界状态判断",
+            "prompt": "某状态主导极点位于左半平面且实部接近零、阶跃振荡缓慢衰减、相位裕度很小，最恰当的判断是？",
+            "response_kind": "choice.single",
+            "options": [
+              "余量充足",
+              "近临界但稳定",
+              "临界稳定",
+              "不稳定"
+            ],
+            "reference_answer": "近临界但稳定",
+            "submit_scope": "per_card",
+            "layout_span": "one_third"
+          },
+          {
+            "id": "three-domain-slots",
+            "title": "临界信号的三域归位",
+            "prompt": "把闭环极点到达虚轴、阶跃出现不衰减振荡、相位裕度为零分别放入复平面、时域、频域三个证据槽。",
+            "response_kind": "matching.pairs",
+            "pairs": [
+              {
+                "left": "闭环极点到达虚轴",
+                "right": "复平面"
+              },
+              {
+                "left": "阶跃出现不衰减振荡",
+                "right": "时域"
+              },
+              {
+                "left": "相位裕度为零",
+                "right": "频域"
+              }
+            ],
+            "reference_answer": "复平面—闭环极点到达虚轴；时域—阶跃出现不衰减振荡；频域—相位裕度为零。",
+            "submit_scope": "per_card",
+            "layout_span": "one_third"
+          },
+          {
+            "id": "rise-versus-settle",
+            "title": "上升时间与整体收敛",
+            "prompt": "为什么上升时间缩短不能单独证明系统整体收敛更快？",
+            "response_kind": "text.short",
+            "reference_answer": "上升时间只描述首次到达，调节时间还取决于振荡包络衰减。",
+            "scoring_rubric": "同时提及首次到达与振荡包络或调节时间为完整回答。",
+            "submit_scope": "per_card",
+            "layout_span": "one_third"
+          }
+        ],
+        "reveal_answer": "after_all_submitted_or_teacher_reveal"
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": "not_applicable",
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "submittedCards",
+          "objectiveAccuracy",
+          "shortAnswerSubmitted"
+        ],
+        "result_policy": "per_card_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "submission_rate",
+          "response_summary",
+          "ordering_errors",
+          "short_answer_keyword_coverage"
+        ]
+      },
+      "ai_context_spec": {
+        "delivery_mode": "hidden_page_context",
+        "page_ai_entry": "forbidden",
+        "page_goal": "检验状态判断、三域归位和速度分辨目标。",
+        "allowed_scope": [
+          "提交后解释错误原因",
+          "提示短答缺失的信息类别"
+        ],
+        "forbidden_scope": [
+          "提交前给出答案",
+          "代写短答",
+          "用单一关键词判定掌握"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-5-three-domain-gain-sweep/demo?step=step-13"
+      },
+      "acceptance_checks": [
+        "后测恰为三题且最多一题主观题",
+        "三个题面只在activity_cards出现一次",
+        "三题分别提交",
+        "答案揭示与发放分离"
+      ]
+    },
+    "step-14": {
+      "title": "一个增益的完整证据链",
+      "layout": {
+        "template": "summary_figure_cards_analytics",
+        "regions": [
+          {
+            "id": "intro",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "media",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "summary",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "analytics",
+            "width": "full",
+            "order": 4
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "page-intro",
+          "region": "intro",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "page-intro",
+            "title": "一个增益的完整证据链"
+          }
+        },
+        {
+          "id": "summary-infographic",
+          "region": "media",
+          "kind": "content.figure",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "summary-infographic",
+            "title": "一个增益在三域中的完整证据链"
+          }
+        },
+        {
+          "id": "takeaways",
+          "region": "summary",
+          "kind": "content.cardSet",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "takeaways",
+            "title": "三条带走判断"
+          }
+        },
+        {
+          "id": "boundaries",
+          "region": "summary",
+          "kind": "content.cardSet",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "boundaries",
+            "title": "局限、重点难点与拓展思考"
+          }
+        },
+        {
+          "id": "lesson-summary",
+          "region": "analytics",
+          "kind": "analytics.summary",
+          "must_be_visible": true,
+          "payload": {
+            "title": "课堂表现回看",
+            "metrics": [
+              "viewed_steps",
+              "gain_region_submissions",
+              "custom_gain_coverage",
+              "comparison_table_completion",
+              "precheck_results",
+              "postcheck_results",
+              "classroom_evidence_completion",
+              "classroom_submission_completion",
+              "extension_objective_progress"
+            ],
+            "dataSources": {
+              "studentPersonal": [
+                "student_step_view_summary",
+                "student_step_response_summary",
+                "student_precheck_result",
+                "student_postcheck_result"
+              ],
+              "teacherClass": [
+                "class_step_submission_aggregate",
+                "class_response_distribution",
+                "class_misconception_tag_aggregate"
+              ]
+            },
+            "objectivePolicy": {
+              "classroomRequired": [
+                "objective-1",
+                "objective-2",
+                "objective-3",
+                "objective-4"
+              ],
+              "afterClassExtension": [
+                "objective-5"
+              ],
+              "classroomDenominator": "classroomRequired_only",
+              "extensionExcludedFromClassroomDenominator": true,
+              "classroomLabels": [
+                "证据完成度",
+                "提交完成度"
+              ],
+              "forbiddenLabel": "学习达成率"
+            },
+            "items": [
+              "学生个人课堂浏览与提交摘要",
+              "教师班级提交完成度和状态误判分布",
+              "目标一至四课堂证据完成度",
+              "目标五课后拓展与分层进度"
+            ]
+          }
+        }
+      ],
+      "content_blocks": {
+        "page-intro": {
+          "type": "plain_text",
+          "body": "回看对象与通道、三种速度语言、临界同步信号和跨对象迁移边界。"
+        },
+        "summary-infographic": {
+          "type": "media",
+          "asset": "1-5-info.png",
+          "caption": "先确认闭环与环路对象，再沿复平面、时域和频域核对同一增益的证据。"
+        },
+        "takeaways": {
+          "type": "bullet_list",
+          "items": [
+            "先确认对象和通道：极点与阶跃属于闭环，裕度属于环路。",
+            "上升时间、调节时间和环路增益穿越频率描述三种不同的速度。",
+            "K等于42时，虚轴极点、不衰减振荡和零裕度三项临界证据同步成立。"
+          ]
+        },
+        "boundaries": {
+          "type": "bullet_list",
+          "items": [
+            "局限：本例中的超调和裕度单调趋势属于当前对象与扫描区间；加入零点或高阶模态后，标量指标可能非单调。",
+            "重点难点：持续保留对象标签，用极点实部与振荡包络区分近临界、临界和越界。",
+            "拓展思考：对象改变后，三域同步关系可以保留，哪些临界数值和瞬态指标必须重算？"
+          ]
+        }
+      },
+      "evidence_sequence": [
+        "page-intro",
+        "summary-infographic",
+        "takeaways",
+        "boundaries",
+        "lesson-summary"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "回看三条判断、适用边界和个人课堂表现。",
+        "activity_cards": []
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": "not_applicable",
+        "can_submit_without_browse": "not_applicable"
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep"
+        ],
+        "result_policy": "no_new_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count",
+          "class_submission_completion",
+          "classroom_evidence_completion",
+          "extension_objective_progress"
+        ]
+      },
+      "ai_context_spec": {
+        "delivery_mode": "hidden_page_context",
+        "page_ai_entry": "forbidden",
+        "page_goal": "回顾一个增益的完整三域证据链和迁移边界。",
+        "allowed_scope": [
+          "解释总结卡和个人统计",
+          "引导学生复述"
+        ],
+        "forbidden_scope": [
+          "新增作答任务",
+          "代替学生复述",
+          "把个体明细暴露给无关角色"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-5-three-domain-gain-sweep/demo?step=step-14"
+      },
+      "acceptance_checks": [
+        "信息图位于总结内容顶部",
+        "三条判断与局限重点难点完整",
+        "课堂证据完成度与提交完成度只覆盖目标一至四且目标五课后进度单列",
+        "不使用学习达成率称谓",
+        "学生个人与教师班级统计数据源明确分层",
+        "本页无新增提交"
+      ]
+    }
+  }
+}

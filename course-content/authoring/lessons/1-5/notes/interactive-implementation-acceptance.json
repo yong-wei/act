@@ -1,0 +1,77 @@
+{
+  "acceptance_version": 1,
+  "lesson_id": "1-5",
+  "status": "accepted",
+  "accepted_at": "2026-07-16T19:08:00+08:00",
+  "review_mode": "implementation+targeted-tests+browser+data-governance-gate",
+  "reviewed_runtime_artifacts": [
+    "course-content/runtime/lessons/1-5/interactive-manifest.json",
+    "course-content/runtime/lessons/1-5/graph-overlay.json",
+    "course-content/runtime/lessons/1-5/review/review-report.md",
+    "course-content/runtime/lessons/1-5/review/interactive-page-check.json",
+    "course-content/runtime/lessons/1-5/review/interactive-manifest-audit.json"
+  ],
+  "course": {
+    "title": "1-5：三域联动——一个增益如何改变稳定性",
+    "route_segment": "unit-1-5-three-domain-gain-sweep",
+    "preset_key": "unit-1-5-three-domain-gain-sweep-v1",
+    "step_count": 14,
+    "module_count": 58,
+    "duration_minutes": 90,
+    "after_class_step": "step-12"
+  },
+  "implementation_sources": [
+    "course-content/authoring/lessons/1-5/design/1-5-interactive-contract.yaml",
+    "course-content/authoring/knowledge/cards/lessons/1-5/sequence.json",
+    "src/features/interactive/unit-1-5-three-domain-gain-sweep/",
+    "src/lib/unit-1-5-course.ts",
+    "src/lib/unit-1-5-ai-contexts.ts",
+    "src/features/teacher/preset-lessons/presets/unit-1-5-three-domain-gain-sweep.ts"
+  ],
+  "checks": {
+    "inline_ai_visibility": {
+      "status": "pass",
+      "step_ids": ["step-01", "step-02", "step-03", "step-04", "step-05", "step-06", "step-07", "step-08", "step-09", "step-10", "step-11", "step-12", "step-13", "step-14"],
+      "evidence": "All 14 steps use hidden Global AI page context; no page-local AI entry is introduced."
+    },
+    "static_media_downgrade": {
+      "status": "pass",
+      "step_ids": ["step-05", "step-06", "step-07", "step-08", "step-09"],
+      "evidence": "Shared native control workbenches render request-key-bound pole, step and Bode evidence. Submission remains disabled until the current main result and all declared comparisons are ready."
+    },
+    "content_source_completeness": {
+      "status": "pass",
+      "step_ids": ["step-01", "step-02", "step-03", "step-04", "step-05", "step-06", "step-07", "step-08", "step-09", "step-10", "step-11", "step-12", "step-13", "step-14"],
+      "evidence": "The accepted handout, BOPPPS plan and interactive contract cover all 14 runtime steps. Objective 5 is an after-class differentiated migration task and is excluded from the 90-minute classroom denominator."
+    },
+    "runtime_manifest": {
+      "status": "pass",
+      "evidence": "14 steps, 58 modules, 0 manifest audit issues."
+    },
+    "submission_and_prefill": {
+      "status": "pass",
+      "evidence": "Repeated step attempts are retained, exact validated engine snapshots remain selectable, partial saved tables preserve student values and fill only empty cells, and compute submissions await persistence with duplicate-click protection."
+    },
+    "learning_fact_boundary": {
+      "status": "pass",
+      "evidence": "Steps 5-9 preserve explicit submissions and aggregate statistics but set skipLearningFact until server-side answer validation exists. validationScope is engine_result_only and is not presented as answer correctness."
+    },
+    "dynamic_summary": {
+      "status": "pass",
+      "evidence": "Step 14 consumes student state or teacher class aggregation and labels complete versus partial per-card submissions. Objective 5 progress is shown separately."
+    },
+    "browser": {
+      "status": "pass",
+      "urls": [
+        "/interactive-learning/courses/unit-1-5-three-domain-gain-sweep/demo?step=step-05",
+        "/interactive-learning/courses/unit-1-5-three-domain-gain-sweep/demo?step=step-12",
+        "/interactive-learning/courses/unit-1-5-three-domain-gain-sweep/demo?step=step-14"
+      ],
+      "evidence": "Step 12 renders 20 migration table cells plus stable interval, critical gain and cross-object comparison inputs. Step 14 renders the 1672px summary infographic and dynamic personal evidence summary. The checked pages have no horizontal overflow; the only observed 404 is the existing favicon request."
+    },
+    "automated_verification": {
+      "status": "pass",
+      "evidence": "37 Python review tests, targeted Vitest tests, TypeScript typecheck, data-governance integration tests, Rust 2%/5% metric tests, WASM build and git diff whitespace checks passed."
+    }
+  }
+}

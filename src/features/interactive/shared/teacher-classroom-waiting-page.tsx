@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowLeft,
   CheckCircle2,
@@ -54,6 +54,10 @@ export function TeacherClassroomWaitingPage({
   const [notice, setNotice] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isStarting, setIsStarting] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [qrError, setQrError] = useState<string | null>(null);
+  const refreshControllerRef = useRef<AbortController | null>(null);
+  const refreshSequenceRef = useRef(0);
 
   const courseHref = `/interactive-learning/courses/${routeSegment}`;
   const waitingHref = `${courseHref}/teacher/${sessionId}/waiting`;
@@ -69,43 +73,53 @@ export function TeacherClassroomWaitingPage({
     setOrigin(window.location.origin);
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function refreshWaitingState() {
-      try {
-        const [sessionResponse, stateResponse] = await Promise.all([
-          fetch(`/api/session/${sessionId}`, { cache: 'no-store' }),
-          fetch(`/api/session/${sessionId}/state?scope=teacher-view`, { cache: 'no-store' }),
-        ]);
-
-        if (!cancelled && sessionResponse.ok) {
-          setSession((await sessionResponse.json()) as SessionPayload);
-        }
-
-        if (!cancelled && stateResponse.ok) {
-          const payload = (await stateResponse.json()) as TeacherStatePayload;
-          setJoinedStudentCount(Math.max(0, payload.summary?.totalStudents ?? 0));
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
+  const refreshWaitingState = useCallback(async () => {
+    refreshControllerRef.current?.abort();
+    const controller = new AbortController();
+    const sequence = refreshSequenceRef.current + 1;
+    refreshControllerRef.current = controller;
+    refreshSequenceRef.current = sequence;
+    setIsLoading(true);
+    setLoadError(null);
+    try {
+      const [sessionResponse, stateResponse] = await Promise.all([
+        fetch(`/api/session/${sessionId}`, { cache: 'no-store', signal: controller.signal }),
+        fetch(`/api/session/${sessionId}/state?scope=teacher-view`, { cache: 'no-store', signal: controller.signal }),
+      ]);
+      if (!sessionResponse.ok || !stateResponse.ok) {
+        throw new Error('课堂状态读取失败，请重试。');
       }
+      const [sessionPayload, statePayload] = await Promise.all([
+        sessionResponse.json() as Promise<SessionPayload>,
+        stateResponse.json() as Promise<TeacherStatePayload>,
+      ]);
+      if (sequence === refreshSequenceRef.current) {
+        setSession(sessionPayload);
+        setJoinedStudentCount(Math.max(0, statePayload.summary?.totalStudents ?? 0));
+      }
+    } catch (requestError) {
+      if (!controller.signal.aborted && sequence === refreshSequenceRef.current) {
+        setLoadError(requestError instanceof Error ? requestError.message : '课堂状态读取失败，请重试。');
+      }
+    } finally {
+      if (sequence === refreshSequenceRef.current) setIsLoading(false);
     }
+  }, [sessionId]);
 
+  useEffect(() => {
     void refreshWaitingState();
     const intervalId = window.setInterval(() => void refreshWaitingState(), 5000);
 
     return () => {
-      cancelled = true;
+      refreshControllerRef.current?.abort();
       window.clearInterval(intervalId);
     };
-  }, [sessionId]);
+  }, [refreshWaitingState]);
 
   useEffect(() => {
     let cancelled = false;
     setQrDataUrl(null);
+    setQrError(null);
 
     if (!joinUrl) return undefined;
 
@@ -116,11 +130,13 @@ export function TeacherClassroomWaitingPage({
         dark: QR_DARK_COLOR,
         light: QR_LIGHT_COLOR,
       },
-    }).then((dataUrl) => {
-      if (!cancelled) {
-        setQrDataUrl(dataUrl);
-      }
-    });
+    })
+      .then((dataUrl) => {
+        if (!cancelled) setQrDataUrl(dataUrl);
+      })
+      .catch(() => {
+        if (!cancelled) setQrError('二维码生成失败，请刷新或使用课堂码加入。');
+      });
 
     return () => {
       cancelled = true;
@@ -137,6 +153,7 @@ export function TeacherClassroomWaitingPage({
   };
 
   const startClass = () => {
+    if (session?.status === 'FINISHED') return;
     setIsStarting(true);
     router.push(runtimeHref);
   };
@@ -198,7 +215,7 @@ export function TeacherClassroomWaitingPage({
                 />
               ) : (
                 <div className="mx-auto flex aspect-square w-full max-w-[288px] items-center justify-center rounded-md border border-platform-border bg-platform-surface text-sm text-platform-fg-muted">
-                  {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : '二维码生成中'}
+                  {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : qrError ?? (joinUrl ? '二维码生成中' : '等待课堂信息')}
                 </div>
               )}
               <div className="mt-4 text-xs font-medium text-platform-fg-muted">课堂码</div>
@@ -233,6 +250,12 @@ export function TeacherClassroomWaitingPage({
               </button>
             </div>
             {notice ? <p className="mt-3 text-sm text-platform-fg-secondary">{notice}</p> : null}
+            {loadError ? (
+              <div className="mt-3 rounded-md border border-platform-evidence-unsupported px-3 py-3 text-sm text-platform-fg-primary" role="alert">
+                {loadError}
+                <button type="button" onClick={() => void refreshWaitingState()} className="ml-3 font-semibold text-platform-action-primary">重试</button>
+              </div>
+            ) : null}
           </PlatformSurface>
 
           <div className="grid gap-4">
@@ -256,17 +279,19 @@ export function TeacherClassroomWaitingPage({
                 </div>
               </div>
               <p className="mt-4 text-sm leading-6 text-platform-fg-secondary">
-                {title} 已创建。等待学生完成扫码或输入课堂码后，点击开始上课进入教师投影运行态。
+                {session?.status === 'FINISHED'
+                  ? `${title} 已结束，不能再次开始。`
+                  : `${title} 已创建。等待学生完成扫码或输入课堂码后，点击开始上课进入教师投影运行态。`}
               </p>
               <button
                 type="button"
                 onClick={startClass}
-                disabled={isStarting || !session}
+                disabled={isStarting || !session || session.status === 'FINISHED'}
                 className="mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md bg-platform-action-primary px-4 text-sm font-semibold text-platform-fg-inverse transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                 data-start-class-action="teacher-runtime"
               >
                 {isStarting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Presentation className="h-4 w-4" />}
-                开始上课
+                {session?.status === 'FINISHED' ? '课堂已结束' : '开始上课'}
               </button>
             </PlatformSurface>
 
@@ -274,16 +299,21 @@ export function TeacherClassroomWaitingPage({
               <div className="text-sm font-semibold text-platform-fg-primary">开课流程</div>
               <div className="mt-4 grid gap-3">
                 {[
-                  '生成课堂码与二维码',
-                  '学生扫码或输入课堂码加入',
-                  '教师点击开始上课进入投影运行态',
+                  { label: '生成课堂码与二维码', complete: Boolean(qrDataUrl) },
+                  { label: '学生扫码或输入课堂码加入', complete: joinedStudentCount > 0 },
+                  { label: '教师点击开始上课进入投影运行态', complete: false },
                 ].map((item, index) => (
-                  <div key={item} className="flex items-start gap-3 rounded-md border border-platform-border bg-platform-surface px-3 py-3">
+                  <div key={item.label} className="flex items-start gap-3 rounded-md border border-platform-border bg-platform-surface px-3 py-3">
                     <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-platform-action-subtle text-xs font-semibold text-platform-action-primary">
                       {index + 1}
                     </span>
-                    <div className="min-w-0 text-sm text-platform-fg-secondary">{item}</div>
-                    {index < 2 ? <CheckCircle2 className="ml-auto h-4 w-4 shrink-0 text-platform-fg-muted" /> : null}
+                    <div className="min-w-0 text-sm text-platform-fg-secondary">{item.label}</div>
+                    {item.complete ? (
+                      <CheckCircle2
+                        className="ml-auto h-4 w-4 shrink-0 text-platform-fg-muted"
+                        data-flow-step-complete="true"
+                      />
+                    ) : null}
                   </div>
                 ))}
               </div>

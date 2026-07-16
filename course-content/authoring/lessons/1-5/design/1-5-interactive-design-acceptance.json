@@ -1,0 +1,35 @@
+{
+  "acceptance_version": 1,
+  "lesson_id": "1-5",
+  "status": "accepted",
+  "accepted_at": "2026-07-16T19:08:00+08:00",
+  "review_mode": "user-authorized-implementation+independent-course-review",
+  "source_files": {
+    "interactive_page": "course-content/authoring/lessons/1-5/design/1-5-interactive-page.md",
+    "interactive_contract": "course-content/authoring/lessons/1-5/design/1-5-interactive-contract.yaml",
+    "teacher_handout": "course-content/authoring/lessons/1-5/design/1-5-teacher-handout.md",
+    "boppps": "course-content/authoring/lessons/1-5/design/1-5-boppps.md"
+  },
+  "checks": {
+    "evidence_complete": "pass",
+    "contract_alignment": "pass",
+    "student_self_contained": "pass",
+    "no_prose_pollution": "pass",
+    "sequence_finalized": "pass",
+    "standard_module_contract": "pass",
+    "runtime_audit": "pass",
+    "knowledge_graph": "pass",
+    "independent_course_review": "pass"
+  },
+  "sequence_source": "interactive_design_finalized",
+  "review_notes": [
+    "十四步人读设计与机器契约逐步对齐，课堂必达目标一至四在九十分钟内闭合，目标五作为课后分层拓展单列。",
+    "步骤五至八由 compute.panel 持有唯一提交；步骤六、七、九的比较请求和步骤九的前序响应预填均已形成显式机器合同。",
+    "代表点预填仅接受参数快照与 K=3、12、36、42 精确匹配的最新有效显式提交，K=24 绑定步骤七固定比较请求；错配或缺失保持空白。",
+    "全部页面使用 hidden_page_context 且禁止页内 AI 入口；浏览、调参、预填和未提交快照不物化为 LearningFact。",
+    "步骤十二的新对象扫描同时声明四行三域表、稳定区间、临界增益和跨对象比较；步骤十四的数据源区分个人结果与班级聚合。",
+    "比较与精确预填能力状态已更新为 implemented；当前审计事实为十四步、五十八模块、零问题。",
+    "控制分析请求显式声明 5% 调节时间口径，不改变共享引擎默认 2% 语义；增益滑块显示当前值并提供合同声明的代表点快捷按钮。"
+  ],
+  "issues": []
+}

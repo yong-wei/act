@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useMemo } from 'react';
+
 import { useControlEngine } from '../analysis/use-control-engine';
 import type { ControlAnalysisRequest, ControlAnalysisResult } from '../analysis/types';
 import {
@@ -18,13 +20,28 @@ export function ControlFigureWorkspace({
   fallbackResult,
   layout,
   allowedPanelIds,
+  onResult,
 }: {
   request: ControlAnalysisRequest;
   fallbackResult?: ControlAnalysisResult;
   layout: 'quad' | 'platform' | 'standard-quad';
   allowedPanelIds?: string[];
+  onResult?: (result: ControlAnalysisResult | null, requestKey: string) => void;
 }) {
-  const { result, error } = useControlEngine(request, fallbackResult);
+  const { result, error, isLoading, isFallback } = useControlEngine(request, fallbackResult);
+  const requestKey = useMemo(() => JSON.stringify(request), [request]);
+
+  useEffect(() => {
+    onResult?.(result, requestKey);
+  }, [onResult, requestKey, result]);
+
+  if (isLoading && (!result || !isFallback)) {
+    return (
+      <div className="premium-lesson-tone-block premium-tone-slate mt-4 text-sm" role="status">
+        正在计算当前控制分析请求，请稍候。
+      </div>
+    );
+  }
 
   if (!result) {
     return (
@@ -36,6 +53,12 @@ export function ControlFigureWorkspace({
 
   return (
     <div className="mt-4">
+      {isLoading ? (
+        <div className="premium-lesson-tone-block premium-tone-slate mb-4 text-sm" role="status">
+          正在计算当前控制分析请求，请稍候。
+        </div>
+      ) : null}
+
       {error ? (
         <div className="premium-lesson-tone-block premium-tone-amber mb-4 text-sm">
           {result.isFallback ? `${error} 当前已切换到离线基线图。` : error}

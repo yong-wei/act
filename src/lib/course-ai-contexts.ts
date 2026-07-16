@@ -24,6 +24,11 @@ import {
   UNIT_1_3_COURSE_META,
 } from './unit-1-3-ai-contexts';
 import {
+  getUnit15StepAIContextLocal,
+  getUnit15StepQuickQuestionsLocal,
+  UNIT_1_5_COURSE_META,
+} from './unit-1-5-ai-contexts';
+import {
   getUnit21StepAIContext as getUnit21StepAIContextLocal,
   getUnit21StepQuickQuestions as getUnit21StepQuickQuestionsLocal,
 } from './unit-2-1-ai-contexts';
@@ -397,6 +402,17 @@ export {
 
 // 1-3 课程 AI 上下文
 export {
+  UNIT_1_5_COURSE_META,
+  UNIT_1_5_STEP_AI_CONTEXTS,
+  getUNIT_1_5StepAIContext,
+  getUNIT_1_5StepQuickQuestions,
+  getUnit15StepAIContext,
+  getUnit15StepQuickQuestions,
+  getUnit15StepAIContextLocal,
+  getUnit15StepQuickQuestionsLocal,
+} from './unit-1-5-ai-contexts';
+
+export {
   UNIT_1_3_COURSE_META,
   UNIT_1_3_STEP_AI_CONTEXTS,
   getUNIT_1_3StepAIContext,
@@ -452,6 +468,12 @@ export const COURSE_AI_CONTEXT_REGISTRY: Record<
     getStepContext: (stepId: string) => getUnit13StepAIContextLocal(stepId),
     getQuickQuestions: (stepId: string) => getUnit13StepQuickQuestionsLocal(stepId),
     courseMeta: UNIT_1_3_COURSE_META,
+  },
+
+  'unit-1-5-three-domain-gain-sweep-v1': {
+    getStepContext: (stepId: string) => getUnit15StepAIContextLocal(stepId),
+    getQuickQuestions: (stepId: string) => getUnit15StepQuickQuestionsLocal(stepId),
+    courseMeta: UNIT_1_5_COURSE_META,
   },
 
   'unit-2-1-modeling-language-v1': {

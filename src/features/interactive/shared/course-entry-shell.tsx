@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import type { ReactNode } from 'react';
 import { useMemo, useState } from 'react';
@@ -66,6 +66,15 @@ function normalizeRole(raw: string | null | undefined): NormalizedRole {
   return null;
 }
 
+export function isJoinAuthenticationFailure(status: number) {
+  return status === 401 || status === 403;
+}
+
+export function buildCourseEntryLoginHref(routeSegment: string, joinCode: string) {
+  const callbackUrl = `/interactive-learning/courses/${routeSegment}?code=${encodeURIComponent(joinCode)}`;
+  return `/login?callbackUrl=${encodeURIComponent(callbackUrl)}`;
+}
+
 function getRuntimeTagFallback(runtime: RuntimeLessonEntryBundle | undefined) {
   if (!runtime) return [];
   return runtime.graphOverlay.nodes
@@ -108,10 +117,13 @@ export function CourseEntryShell({
 }) {
   const { data: authSession } = useSession();
   const router = useRouter();
-  const [joinCode, setJoinCode] = useState('');
+  const searchParams = useSearchParams();
+  const restoredJoinCode = searchParams.get('code')?.replace(/\D/g, '').slice(0, 6) ?? '';
+  const [joinCode, setJoinCode] = useState(restoredJoinCode);
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loginRecoveryHref, setLoginRecoveryHref] = useState<string | null>(null);
 
   const activeHref = `/interactive-learning/courses/${config.routeSegment}`;
   const userRole = useMemo(
@@ -202,6 +214,7 @@ export function CourseEntryShell({
 
   const joinClassroom = async () => {
     setError(null);
+    setLoginRecoveryHref(null);
     if (joinCode.length !== 6) {
       setError('请输入 6 位课堂码。');
       return;
@@ -212,6 +225,9 @@ export function CourseEntryShell({
       const response = await fetch(`/api/session/join?code=${joinCode}`);
       const data = (await response.json()) as JoinSessionResponse & { error?: string };
       if (!response.ok || !data.id || !data.studentHref) {
+        if (!roleResolved && isJoinAuthenticationFailure(response.status)) {
+          setLoginRecoveryHref(buildCourseEntryLoginHref(config.routeSegment, joinCode));
+        }
         throw new Error(data.error || '课堂码无效');
       }
       router.push(data.studentHref);
@@ -421,6 +437,9 @@ export function CourseEntryShell({
                 学生入口
               </div>
               <h3 className="mt-3 text-lg font-semibold text-platform-fg-primary">输入课堂码加入课堂</h3>
+              {!roleResolved ? (
+                <p className="mt-2 text-sm leading-6 text-platform-fg-secondary">课堂可能要求登录；访客仍可使用右侧演示入口。</p>
+              ) : null}
               <label className="mt-4 block text-xs font-medium text-platform-fg-muted">
                 课堂码
                 <input
@@ -428,7 +447,10 @@ export function CourseEntryShell({
                   inputMode="numeric"
                   maxLength={6}
                   value={joinCode}
-                  onChange={(event) => setJoinCode(event.target.value.replace(/\D/g, '').slice(0, 6))}
+                  onChange={(event) => {
+                    setJoinCode(event.target.value.replace(/\D/g, '').slice(0, 6));
+                    setLoginRecoveryHref(null);
+                  }}
                   placeholder="输入 6 位课堂码"
                   className="mt-2 h-11 w-full rounded-md border border-platform-border bg-platform-surface px-3 text-base tracking-[0.24em] text-platform-fg-primary outline-none transition placeholder:text-platform-fg-muted focus:border-platform-action-primary"
                   data-course-entry-action="join-code"
@@ -470,6 +492,15 @@ export function CourseEntryShell({
         {error ? (
           <div className="rounded-md border border-platform-evidence-unsupported bg-platform-evidence-unsupported/10 px-4 py-3 text-sm text-platform-fg-primary">
             {error}
+            {loginRecoveryHref ? (
+              <Link
+                href={loginRecoveryHref}
+                className="ml-3 inline-flex min-h-9 items-center rounded-md border border-platform-border bg-platform-surface px-3 font-semibold text-platform-action-primary"
+                data-course-entry-action="login-to-join"
+              >
+                登录后加入
+              </Link>
+            ) : null}
           </div>
         ) : null}
 

@@ -30,6 +30,29 @@ def test_review_revision_matches_exported_overlay_for_reconciled_lessons():
         assert check['overlay_revision'] == review_lesson_content.build_lesson_overlay_revision(overlay)['sha256']
 
 
+def test_unit_1_5_uses_manifest_first_implementation_contract_registry():
+    config = review_lesson_content.IMPLEMENTATION_CONTRACT_REGISTRY['1-5']
+
+    assert config == {
+        'course_lib_path': review_lesson_content.REPO_ROOT / 'src' / 'lib' / 'unit-1-5-course.ts',
+        'interactive_contract_path': (
+            review_lesson_content.REPO_ROOT
+            / 'course-content' / 'authoring' / 'lessons' / '1-5' / 'design' / '1-5-interactive-contract.yaml'
+        ),
+        'runtime_manifest_path': (
+            review_lesson_content.REPO_ROOT
+            / 'course-content' / 'runtime' / 'lessons' / '1-5' / 'interactive-manifest.json'
+        ),
+        'implementation_acceptance_path': (
+            review_lesson_content.REPO_ROOT
+            / 'course-content' / 'authoring' / 'lessons' / '1-5' / 'notes' / 'interactive-implementation-acceptance.json'
+        ),
+        'lesson_steps_from_runtime_manifest': True,
+        'lesson_steps_const': 'UNIT_1_5_LESSON_STEPS',
+        'source_path': 'course-content/authoring/lessons/1-5/design/1-5-interactive-contract.yaml',
+    }
+
+
 def test_authoring_lesson_graph_nodes_use_canonical_id_field():
     lesson_root = Path(__file__).resolve().parents[1] / 'authoring' / 'lessons'
     offenders: list[str] = []

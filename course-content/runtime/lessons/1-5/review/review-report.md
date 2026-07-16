@@ -3,15 +3,22 @@
 ## 审查范围
 - 课型：实践
 - `course-content/authoring/lessons/1-5/design/1-5-handout.md`
+- `course-content/authoring/lessons/1-5/design/1-5-interactive-page.md`
+- `course-content/authoring/lessons/1-5/design/1-5-boppps.md`
 
 ## 文本技术审查
 - 未发现阻塞导出的公式配对问题。
 
 ## BOPPPS 对照
-- 未提供 `design/1-5-boppps.md`；本次仅审查现有正式来源。
+- 已将 `design/1-5-boppps.md` 作为 runtime/review 产物导出，供课程制作技能直接读取。
 
 ## 互动页覆盖审查
-- 缺少 design/1-5-interactive-page.md
+- 已识别证据单元升级决策表、混合证据顺序与曲线运行时合同。
+- 已检测到 `1-5` 的 V2 互动契约，步骤字段完整。
+- 已检测到 `1-5` 的本地实现契约与作者态互动契约一致。
+- manifest audit pass: 14 steps, 58 modules, 0 issues
+- 互动设计接受文件已通过校验。
+- 互动实现接受文件已通过校验。
 
 ## knowledge-card-check
 - 知识卡片已全部存在，且均包含 `## 首页` / `## 详情` 基本结构。
