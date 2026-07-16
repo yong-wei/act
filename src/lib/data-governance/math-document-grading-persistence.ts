@@ -1102,6 +1102,11 @@ export async function enqueueGradingRun(input: {
     purpose: input.actor.role === 'SERVICE' || input.actor.role === 'ADMIN' ? 'service' : 'teacher-review',
     now,
   });
+  const assignmentRevision = await input.db.assignmentRevision.findUnique({
+    where: { id: row.attempt.answer.question.assignmentRevisionId },
+    select: { assignment: { select: { courseContext: true } } },
+  });
+  if (!assignmentRevision?.assignment?.courseContext) throw new Error('grading-content-unavailable:course-context-missing');
   const lifecyclePolicies = await requireConfiguredLifecyclePolicies(input.db, ['answer-evidence', 'grading-run']);
   const runLifecycle = freezeLifecyclePolicy(lifecyclePolicies.find((policy: any) => policy.dataClass === 'grading-run'), now);
   const question = input.frozenQuestion ?? questionContractFromRow(row.attempt.answer.question);

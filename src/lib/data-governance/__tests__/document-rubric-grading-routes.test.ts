@@ -2108,6 +2108,8 @@ describe('document rubric grading routes', () => {
       }),
       take: 50,
     }));
+    const listQuery = mocks.prisma.gradingRun.findMany.mock.calls.at(-1)?.[0];
+    expect(listQuery.where.OR).not.toContainEqual({ state: 'CONTENT_UNAVAILABLE' });
   });
 
   it.each([0, -1, Number.POSITIVE_INFINITY])('returns a governed review error for invalid rubric maxScore %s', async (maxScore) => {

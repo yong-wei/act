@@ -108,6 +108,9 @@ function submittedAttempt() {
 
 function lifecyclePolicyRepository() {
   return {
+    assignmentRevision: {
+      findUnique: async () => ({ assignment: { courseContext: 'course-1' } }),
+    },
     gradingLifecyclePolicy: {
       findMany: async ({ where }: any) => where.dataClass.in.map((dataClass: string) => ({ id: `lifecycle:${dataClass}:v1`, dataClass, version: 'v1', retentionSeconds: 3600, governedRecordRule: null, deleteStrategy: 'delete-content', providerRetentionSeconds: 0, enabled: true })),
     },
@@ -700,6 +703,87 @@ describe('production math-document grading persistence contracts', () => {
     });
     expect(second.replay).toBe(true);
     expect(runs).toHaveLength(1);
+  });
+
+  it('rejects missing assignment course context before creating a grading run', async () => {
+    const attempt = submittedAttempt();
+    const createRun = vi.fn();
+    const createJob = vi.fn();
+    const findRevision = vi.fn(async () => ({ assignment: { courseContext: null } }));
+    const db = {
+      ...lifecyclePolicyRepository(),
+      assignmentRevision: { findUnique: findRevision },
+      answerEvidence: {
+        findUnique: async () => ({
+          id: 'evidence-without-course',
+          attemptId: attempt.id,
+          version: 1,
+          sourceHash: 'sha256:evidence-without-course',
+          anchorVersion: 'text-native.v1',
+          readiness: 'READY',
+          blocks: [],
+          attempt,
+        }),
+      },
+      gradingRun: { create: createRun },
+      gradingJob: { create: createJob },
+    };
+
+    await expect(enqueueGradingRun({
+      db,
+      attemptId: attempt.id,
+      evidenceId: 'evidence-without-course',
+      actor: { id: 'teacher-1', role: 'TEACHER' },
+      idempotencyKey: 'missing-course-context',
+      now,
+    })).rejects.toThrow('grading-content-unavailable:course-context-missing');
+
+    expect(findRevision).toHaveBeenCalledWith({
+      where: { id: 'revision-1' },
+      select: { assignment: { select: { courseContext: true } } },
+    });
+    expect(createRun).not.toHaveBeenCalled();
+    expect(createJob).not.toHaveBeenCalled();
+  });
+
+  it('checks grading authorization before exposing missing course context', async () => {
+    const attempt = submittedAttempt();
+    const createRun = vi.fn();
+    const createJob = vi.fn();
+    const db = {
+      ...lifecyclePolicyRepository(),
+      assignmentRevision: {
+        findUnique: async () => ({
+          assignment: { authorId: 'teacher-author', reviewGrants: [], courseContext: null },
+        }),
+      },
+      answerEvidence: {
+        findUnique: async () => ({
+          id: 'unauthorized-evidence-without-course',
+          attemptId: attempt.id,
+          version: 1,
+          sourceHash: 'sha256:unauthorized-evidence',
+          anchorVersion: 'text-native.v1',
+          readiness: 'READY',
+          blocks: [],
+          attempt,
+        }),
+      },
+      gradingRun: { create: createRun },
+      gradingJob: { create: createJob },
+    };
+
+    await expect(enqueueGradingRun({
+      db,
+      attemptId: attempt.id,
+      evidenceId: 'unauthorized-evidence-without-course',
+      actor: { id: 'teacher-intruder', role: 'TEACHER' },
+      idempotencyKey: 'unauthorized-missing-course',
+      now,
+    })).rejects.toThrow('grading-forbidden');
+
+    expect(createRun).not.toHaveBeenCalled();
+    expect(createJob).not.toHaveBeenCalled();
   });
 
   it('keeps dedupe stable while explicit reruns receive distinct reasons and version boundaries', () => {

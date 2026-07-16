@@ -42,7 +42,6 @@ export async function GET() {
       where: {
         state: { in: ['AWAITING_REVIEW', 'CONTENT_UNAVAILABLE'] },
         ...(actorResult.actor.role === 'ADMIN' ? {} : { OR: [
-          { state: 'CONTENT_UNAVAILABLE' },
           { answerAttempt: { answer: { submission: { audience: { class: { teacherId: actorResult.actor.id } } } } } },
           { question: { revision: { assignment: { authorId: actorResult.actor.id } } } },
           { question: { revision: { assignment: { reviewGrants: { some: { teacherId: actorResult.actor.id, revokedAt: null, OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] } } } } } },
