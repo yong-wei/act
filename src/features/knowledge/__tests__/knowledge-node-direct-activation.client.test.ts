@@ -215,7 +215,7 @@ describe('knowledge-node-direct-activation-contract', () => {
     );
   });
 
-  it('does not request teaching-layout fit across dense ordinary domains without lesson context', async () => {
+  it('requests one current-view fit after each dense ordinary domain materializes without a view switch', async () => {
     vi.stubGlobal('fetch', vi.fn((url: string) => {
       if (url.includes(encodeURIComponent(domainA))) return json(domainPayload(domainA, denseDomainNodes(domainA, '基本概念', 'dense-a')));
       if (url.includes(encodeURIComponent(domainB))) return json(domainPayload(domainB, denseDomainNodes(domainB, '系统模型', 'dense-b')));
@@ -228,18 +228,20 @@ describe('knowledge-node-direct-activation-contract', () => {
 
     await act(async () => container.querySelector<HTMLButtonElement>(`[data-testid="canvas-2D-${domainA}"]`)!.click());
     await flush();
-    expect(surface()?.getAttribute('data-fit-view-version')).toBe(initialVersion);
-    expect(surface()?.getAttribute('data-fit-view-target')).toBe('root');
+    expect(container.querySelector('[data-knowledge-domain-state]')?.getAttribute('data-knowledge-domain-state')).toBe('ready');
+    expect(surface()?.getAttribute('data-node-ids')?.split(',').length).toBeGreaterThan(1);
+    expect(Number(surface()?.getAttribute('data-fit-view-version'))).toBeGreaterThan(Number(initialVersion));
+    expect(surface()?.getAttribute('data-fit-view-target')).toBe('current');
     await act(async () => container.querySelector<HTMLButtonElement>('[data-knowledge-return-root]')!.click());
     await flush();
     const returnedVersion = surface()?.getAttribute('data-fit-view-version');
     await act(async () => container.querySelector<HTMLButtonElement>(`[data-testid="canvas-2D-${domainB}"]`)!.click());
     await flush();
-    expect(surface()?.getAttribute('data-fit-view-version')).toBe(returnedVersion);
-    expect(surface()?.getAttribute('data-fit-view-target')).toBe('root');
+    expect(Number(surface()?.getAttribute('data-fit-view-version'))).toBeGreaterThan(Number(returnedVersion));
+    expect(surface()?.getAttribute('data-fit-view-target')).toBe('current');
   });
 
-  it('requests teaching-layout fit for a dense domain with active lesson context', async () => {
+  it('finishes dense lesson-domain materialization with a current-domain fit', async () => {
     history.replaceState({}, '', '/knowledge?lessonId=1-1');
     vi.stubGlobal('fetch', vi.fn((url: string) => url.includes(encodeURIComponent(domainA))
       ? json(domainPayload(domainA, denseDomainNodes(domainA, '基本概念', 'lesson-a')))
@@ -251,7 +253,7 @@ describe('knowledge-node-direct-activation-contract', () => {
     await flush(100);
     expect(Number(container.querySelector('[data-knowledge-layout-fit-scale]')?.getAttribute('data-knowledge-layout-fit-scale'))).toBeLessThan(1);
 
-    expect(container.querySelector('[data-testid="graph-surface-2D"]')?.getAttribute('data-fit-view-target')).toBe('teaching-layout');
+    expect(container.querySelector('[data-testid="graph-surface-2D"]')?.getAttribute('data-fit-view-target')).toBe('current');
   });
 
   it('shares compact family state while keeping complete post-requisite layout input and inspector state', async () => {
@@ -396,6 +398,7 @@ describe('knowledge-node-direct-activation-contract', () => {
     await act(async () => root.render(createElement(KnowledgeGraphSystem)));
     await flush();
     await act(async () => container.querySelector<HTMLButtonElement>(`[data-testid="canvas-2D-${domainA}"]`)!.click());
+    await flush(100);
     await act(async () => container.querySelector<HTMLButtonElement>('[data-testid="canvas-2D-a-1"]')!.click());
     await act(async () => container.querySelector<HTMLButtonElement>('[data-testid="related-b-1"]')!.click());
     expect(container.querySelector('[data-knowledge-active-domain-id]')?.getAttribute('data-knowledge-active-domain-id')).toBe(domainB);
@@ -417,6 +420,7 @@ describe('knowledge-node-direct-activation-contract', () => {
     await act(async () => root.render(createElement(KnowledgeGraphSystem)));
     await flush();
     await act(async () => container.querySelector<HTMLButtonElement>(`[data-testid="canvas-2D-${domainA}"]`)!.click());
+    await flush(100);
     await act(async () => container.querySelector<HTMLButtonElement>('[data-testid="canvas-2D-a-1"]')!.click());
 
     const graph = container.querySelector<HTMLElement>('[data-testid="graph-surface-2D"]')!;
@@ -472,6 +476,7 @@ describe('knowledge-node-direct-activation-contract', () => {
     await act(async () => root.render(createElement(KnowledgeGraphSystem)));
     await flush();
     await act(async () => container.querySelector<HTMLButtonElement>(`[data-testid="canvas-2D-${domainA}"]`)!.click());
+    await flush(100);
     await act(async () => container.querySelector<HTMLButtonElement>('[data-testid="canvas-2D-a-1"]')!.click());
     const graph = container.querySelector('[data-testid="graph-surface-2D"]')!;
     const layoutInputs = [

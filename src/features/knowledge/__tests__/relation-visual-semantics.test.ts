@@ -129,11 +129,12 @@ describe('knowledge graph relation visual semantics', () => {
     const related = getRelationStyle('related');
 
     expect(prerequisite.hasArrow).toBe(true);
-    expect(contains.hasArrow).toBe(false);
-    expect(follows.dash.length).toBeGreaterThan(0);
+    expect(contains.hasArrow).toBe(true);
+    expect(follows.dash).toEqual(prerequisite.dash);
     expect(appliesTo.dash).not.toEqual(follows.dash);
     expect(opposite.hasArrow).toBe(false);
-    expect(related.width).toBeLessThan(prerequisite.width);
+    expect(related).toBe(appliesTo);
+    expect(opposite).toBe(appliesTo);
   });
 
   it('caches platform color token lookups across alpha conversions until theme changes', () => {
@@ -196,7 +197,6 @@ describe('knowledge graph relation visual semantics', () => {
       path.join(process.cwd(), 'src/features/knowledge/graph/knowledge-graph-canvas.tsx'),
       'utf8'
     );
-
     const legendItems = getRelationLegendItems();
     const legendByType = new Map(legendItems.map((item) => [item.type, item]));
     expect(legendItems.length).toBeGreaterThanOrEqual(8);
@@ -235,7 +235,7 @@ describe('knowledge graph relation visual semantics', () => {
     expect(threeDimensionalRendererSource).toContain('new THREE.RingGeometry(ringInnerRadius, ringOuterRadius, 32)');
 
     expect(getRelationStyle('prerequisite').dash).toEqual([]);
-    expect(getRelationStyle('leads_to').dash.length).toBeGreaterThan(0);
+    expect(getRelationStyle('leads_to').dash).toEqual(getRelationStyle('prerequisite').dash);
     expect(getRelationStyle('applies_to').dash).not.toEqual(getRelationStyle('leads_to').dash);
     expect(getRelationStyle('opposite').hasArrow).toBe(false);
   });
@@ -312,7 +312,7 @@ describe('knowledge graph relation visual semantics', () => {
     expect(source).toContain('buildFocusNeighborhood(displayLinks, graphFilterFocusNodeId, filteredNodeIdSet)');
     expect(source).toContain('data-knowledge-clarity-summary="desktop"');
     expect(source).toContain('selectLearnerVisibleRelationEdges({');
-    expect(source).toContain('activeDomainNodeIds: filteredNodeIdSet');
+    expect(source).toContain('activeDomainNodeIds: domainMemberNodeIdSet');
     expect(source).toContain('selectedNodeId: selectedNode?.id ?? null');
     expect(source).toContain('graphDegree: graphStatistics.degreeByNodeId.get(node.id) ?? 0');
     expect(source).not.toContain('relationPassesActiveFilters(link');
@@ -648,7 +648,7 @@ describe('knowledge graph relation visual semantics', () => {
     expect(limitStructureRelationDensity(focusedLinks, { focusNodeId: 'focus-node' })).toHaveLength(12);
   });
 
-  it('maps 3D relation encodings to non-color differences across weak and special relations', () => {
+  it('maps 3D relation encodings through the shared family contract', () => {
     const prerequisite3d = getRelationThreeDimensionalEncoding('prerequisite');
     const related3d = getRelationThreeDimensionalEncoding('related');
     const opposite3d = getRelationThreeDimensionalEncoding('opposite');
@@ -660,13 +660,12 @@ describe('knowledge graph relation visual semantics', () => {
 
     expect(prerequisite3d.arrowLength).toBeGreaterThan(0);
     expect(related3d.arrowLength).toBe(0);
-    expect(opposite3d.directionalParticles).toBeGreaterThan(related3d.directionalParticles);
-    expect(opposite3d.particleWidth).toBeGreaterThan(related3d.particleWidth);
-    expect(appliesTo3d.directionalParticles).toBeGreaterThan(prerequisite3d.directionalParticles);
-    expect(crossDomain3d.directionalParticles).toBe(prerequisite3d.directionalParticles);
-    expect(generalizes3d.arrowLength).toBe(prerequisite3d.arrowLength);
-    expect(supports3d.particleWidth).toBeLessThan(prerequisite3d.particleWidth);
-    expect(enables3d.particleSpeed).toBe(appliesTo3d.particleSpeed);
+    expect(opposite3d).toEqual(related3d);
+    expect(appliesTo3d).toEqual(related3d);
+    expect(crossDomain3d).toEqual(related3d);
+    expect(generalizes3d).toEqual(related3d);
+    expect(supports3d).toEqual(related3d);
+    expect(enables3d).toEqual(related3d);
   });
 
   it('defines a semantic-map contract that keeps default edges fine and non-color differentiated', () => {
@@ -675,8 +674,9 @@ describe('knowledge graph relation visual semantics', () => {
     expect(contract).toBeDefined();
     expect(contract.maxDefaultEdgeWidth).toBeLessThanOrEqual(1.42);
     expect(contract.maxDefaultEdgeOpacity).toBeGreaterThanOrEqual(0.86);
-    expect(contract.dimmedNeighborhoodOpacity).toBeGreaterThanOrEqual(0.8);
-    expect(contract.activeNeighborhoodWidthGain).toBeLessThanOrEqual(1.2);
+    expect(contract.dimmedNeighborhoodOpacity).toBeLessThanOrEqual(0.22);
+    expect(contract.activeNeighborhoodWidthGain).toBeGreaterThanOrEqual(1.5);
+    expect(contract.activeNeighborhoodWidthGain).toBeLessThanOrEqual(1.8);
     expect(contract.semanticRegionKinds).toContain('chapter-territory');
     expect(contract.conceptReferences).toEqual([
       'layered-research-atlas',
@@ -761,6 +761,10 @@ describe('knowledge graph relation visual semantics', () => {
       path.join(process.cwd(), 'src/features/knowledge/graph/knowledge-graph-canvas.tsx'),
       'utf8'
     );
+    const threeLinkPresentationSource = readFileSync(
+      path.join(process.cwd(), 'src/features/knowledge/graph/three-link-presentation.ts'),
+      'utf8'
+    );
     const governanceSource = readFileSync(
       path.join(process.cwd(), 'scripts/tests/test-commercial-ui-governance.ts'),
       'utf8'
@@ -777,7 +781,10 @@ describe('knowledge graph relation visual semantics', () => {
     expect(threeDimensionalRendererSource).toContain('getKnowledgeSemanticRegionStyle');
     expect(threeDimensionalRendererSource).toContain('getKnowledgeGraphEffectiveEdgeOpacity');
     expect(threeDimensionalRendererSource).toContain('getKnowledgeGraphEdgeEmphasisState');
-    expect(threeDimensionalRendererSource).toContain('THREE.LineDashedMaterial');
+    expect(threeDimensionalRendererSource).toContain("from './three-link-presentation'");
+    expect(threeDimensionalRendererSource).toContain('createKnowledgeGraphPresentationLinkGroup');
+    expect(threeDimensionalRendererSource).toContain('updateKnowledgeGraph3DLine');
+    expect(threeLinkPresentationSource).toContain('THREE.TubeGeometry');
     expect(governanceSource).toContain('validateKnowledgeGraphSemanticMapEvidence');
     expect(governanceSource).toContain('knowledge-graph-semantic-map-486/browser-evidence.json');
     expect(governanceSource).toContain('legendSharedContract');

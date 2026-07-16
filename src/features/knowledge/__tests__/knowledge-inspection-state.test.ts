@@ -70,7 +70,7 @@ describe('knowledge inspection state', () => {
       type: 'begin-navigation',
       intentId: 7,
       targetNodeId: 'b-1',
-    });
+    } as Parameters<typeof knowledgeInspectionReducer>[1]);
     const stale = knowledgeInspectionReducer(pending, {
       type: 'commit-navigation-target',
       intentId: 6,
@@ -86,6 +86,10 @@ describe('knowledge inspection state', () => {
 
     expect(stale).toBe(pending);
     expect(pending.pendingNavigationTarget).toEqual({ intentId: 7, nodeId: 'b-1' });
+    expect(pending).toMatchObject({
+      selectedNode: null,
+      isPanelOpen: false,
+    });
     expect(committed).toMatchObject({
       selectedNode: node('b-1'),
       isPanelOpen: true,

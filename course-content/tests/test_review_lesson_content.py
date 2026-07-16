@@ -58,6 +58,28 @@ def test_check_knowledge_graph_relation_names_match_node_ids():
     assert check['relation_issues'] == []
 
 
+def test_1_3_cross_lesson_relation_semantics_match_authored_evidence():
+    relations_path = (
+        Path(__file__).resolve().parents[1]
+        / 'authoring' / 'lessons' / '1-3' / 'graph' / 'relations.jsonl'
+    )
+    relations = [json.loads(line) for line in relations_path.read_text(encoding='utf-8').splitlines() if line]
+
+    foundation = next(
+        relation for relation in relations
+        if relation['source_id'] == '闭环控制_1_1' and relation['target_id'] == '闭环特征方程_1_3'
+    )
+    extension = next(
+        relation for relation in relations
+        if relation['source_id'] == '极点_1_2' and relation['target_id'] == '极点迁移_1_3'
+    )
+
+    assert foundation['relation_type'] == 'provides_foundation'
+    assert '基础' in foundation['description']
+    assert extension['relation_type'] == 'extends'
+    assert '静态极点' in extension['description'] and '引入参数' in extension['description']
+
+
 @pytest.mark.parametrize('relations', [
     [{'source_id': 'a', 'target_id': 'b', 'relation_type': ''}],
     [{'source_id': 'a', 'target_id': 'b', 'relation_type': 'unknown_type'}],

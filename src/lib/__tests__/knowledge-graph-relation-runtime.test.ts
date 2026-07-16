@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import fs from 'node:fs';
+import path from 'node:path';
 
-import { getRelationCategory, getRelationLabel } from '@/lib/knowledge-labels';
+import { getRelationLabel } from '@/lib/knowledge-labels';
+import { getKnowledgeGraphRelationContract } from '@/features/knowledge/graph/relation-contract';
 
 const runtimeModulePath = '../knowledge-graph-relation-runtime';
 
@@ -28,20 +30,32 @@ function jsonl(...rows: Record<string, unknown>[]) {
   return `${rows.map((row) => JSON.stringify(row)).join('\n')}\n`;
 }
 
+const relationValidationGolden = JSON.parse(fs.readFileSync(
+  path.join(process.cwd(), 'course-content/tests/fixtures/relation-validation-golden.json'),
+  'utf8',
+)) as {
+  invalidSingleRecords: Array<{
+    name: string;
+    record: Record<string, unknown>;
+    typescriptCode: string;
+  }>;
+  duplicateIdRecords: Record<string, unknown>[];
+};
+
 describe('knowledge graph relation shared labeling contract', () => {
   it.each([undefined, null, '', '   ', 'not_registered']) (
     'rejects missing, empty, or unknown relation type %j instead of defaulting to related',
     (relationType) => {
       expect(() => getRelationLabel(relationType)).toThrow(/relation type/i);
-      expect(() => getRelationCategory(relationType)).toThrow(/relation type/i);
+      expect(getKnowledgeGraphRelationContract(relationType)).toBeNull();
     }
   );
 
   it('classifies canonical and alias types through the normative relation contract', () => {
-    expect(getRelationCategory('contains')).toBe('membership');
-    expect(getRelationCategory('follows')).toBe('prerequisite');
-    expect(getRelationCategory('applies_to')).toBe('related');
-    expect(getRelationCategory('电路应用')).toBe('related');
+    expect(getKnowledgeGraphRelationContract('contains')?.family).toBe('child');
+    expect(getKnowledgeGraphRelationContract('follows')?.family).toBe('post-requisite');
+    expect(getKnowledgeGraphRelationContract('applies_to')?.family).toBe('association');
+    expect(getKnowledgeGraphRelationContract('电路应用')?.family).toBe('association');
     expect(getRelationLabel('电路应用')).toBe('方法应用');
   });
 });
@@ -113,6 +127,35 @@ describe('runtime knowledge relation loading and coverage boundary', () => {
     expect(result.runtimeLinks).toEqual([]);
   });
 
+  it.each(relationValidationGolden.invalidSingleRecords)(
+    'matches the cross-language fail-closed fixture: $name',
+    async ({ record, typescriptCode }) => {
+      const runtime = await loadRuntimeModule();
+      const result = runtime!.inspectRuntimeKnowledgeRelationCoverage(jsonl(record));
+
+      expect(result.report.ok).toBe(false);
+      expect(result.report.diagnostics).toContainEqual(expect.objectContaining({
+        blocking: true,
+        code: typescriptCode,
+      }));
+      expect(result.runtimeLinks).toEqual([]);
+    },
+  );
+
+  it('matches the cross-language duplicate-id fixture', async () => {
+    const runtime = await loadRuntimeModule();
+    const result = runtime!.inspectRuntimeKnowledgeRelationCoverage(
+      jsonl(...relationValidationGolden.duplicateIdRecords),
+    );
+
+    expect(result.report.diagnostics).toContainEqual(expect.objectContaining({
+      blocking: true,
+      code: 'DUPLICATE_RELATION_ID',
+      relationIds: ['golden-duplicate'],
+    }));
+    expect(result.runtimeLinks).toEqual([]);
+  });
+
   it('blocks reverse child membership with both relation ids', async () => {
     const runtime = await loadRuntimeModule();
     expect(runtime).not.toBeNull();
@@ -147,6 +190,8 @@ describe('runtime knowledge relation loading and coverage boundary', () => {
       relationIds: ['post-a-b', 'post-b-a'],
       stage: 'projection',
     }));
+    expect(result.report.diagnostics.filter((item: { code: string }) => item.code === 'POST_REQUISITE_CYCLE'))
+      .toHaveLength(1);
     expect(result.runtimeLinks.every((link: { motionEligible: boolean }) => !link.motionEligible)).toBe(true);
   });
 
@@ -231,6 +276,48 @@ describe('runtime knowledge relation loading and coverage boundary', () => {
       }));
   });
 
+  it.each([
+    'causes', 'demonstrates', 'equivalent_to', 'exemplifies', 'extends', 'has_stage',
+    'precedes', 'produces', 'provides_context', 'refined_by', 'refines',
+  ])('keeps %s as evidence-honest and motion-ineligible association', async (relationType) => {
+    const runtime = await loadRuntimeModule();
+    const result = runtime!.inspectRuntimeKnowledgeRelationCoverage(jsonl(
+      relation({ relation_type: relationType })
+    ));
+
+    expect(result.report.ok).toBe(true);
+    expect(result.inspectionLinks[0]).toMatchObject({
+      motionEligible: false,
+      provenance: {
+        canonicalType: relationType,
+        evidenceState: 'unavailable',
+        evidenceText: '关系依据未提供',
+      },
+    });
+  });
+
+  it('keeps node chapters separate from unavailable relation evidence', async () => {
+    const runtime = await loadRuntimeModule();
+    const result = runtime!.inspectRuntimeKnowledgeRelationCoverage(jsonl(
+      relation({ source_chapter: 2, target_chapter: 3 }),
+    ));
+    const items = runtime!.buildRuntimeKnowledgeRelationInspectionItems(
+      result.inspectionLinks,
+      new Map([
+        ['node-a', { id: 'node-a', name: 'A', nodeType: 'THEORY' }],
+        ['node-b', { id: 'node-b', name: 'B', nodeType: 'THEORY' }],
+      ]),
+      'node-a',
+    );
+
+    expect(items[0]).toEqual(expect.objectContaining({
+      evidenceState: 'unavailable',
+      sourceChapter: 2,
+      targetChapter: 3,
+    }));
+    expect(items[0].sourceMetadata).toBeUndefined();
+  });
+
   it('classifies contains inspection as membership instead of learning order', async () => {
     const runtime = await loadRuntimeModule();
     const result = runtime!.inspectRuntimeKnowledgeRelationCoverage(jsonl(
@@ -264,7 +351,7 @@ describe('runtime knowledge relation loading and coverage boundary', () => {
     ))).toBe(true);
   });
 
-  it('accepts all 16,545 current canonical runtime relations without changing the source', async () => {
+  it('accepts all 16,571 current canonical runtime relations without changing the source', async () => {
     const runtime = await loadRuntimeModule();
     expect(runtime).not.toBeNull();
     const source = fs.readFileSync('course-content/runtime/knowledge/graph/relations.jsonl', 'utf8');
@@ -272,9 +359,9 @@ describe('runtime knowledge relation loading and coverage boundary', () => {
     const result = runtime!.inspectRuntimeKnowledgeRelationCoverage(source);
 
     expect(result.report.ok).toBe(true);
-    expect(result.report.counts.parsedRelations).toBe(16_545);
-    expect(result.projection.contributingRelations).toHaveLength(16_545);
-    expect(result.inspectionLinks).toHaveLength(16_545);
+    expect(result.report.counts.parsedRelations).toBe(16_571);
+    expect(result.projection.contributingRelations).toHaveLength(16_571);
+    expect(result.inspectionLinks).toHaveLength(16_571);
     expect(result.runtimeLinks).toHaveLength(result.projection.visualEdges.length);
   });
 });

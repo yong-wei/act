@@ -1018,142 +1018,6 @@
   ],
   "links": [
     {
-      "id": "非线性控制系统|死区饱和非线性|1-8",
-      "sourceId": "非线性控制系统_1_1345e52b",
-      "targetId": "死区饱和非线性_8_e04bd4bd",
-      "relation": "contains",
-      "relationType": "contains",
-      "strength": 0.9
-    },
-    {
-      "id": "非线性控制系统|自振|1-8",
-      "sourceId": "非线性控制系统_1_1345e52b",
-      "targetId": "自振_8_3ed83301",
-      "relation": "contains",
-      "relationType": "contains",
-      "strength": 0.9
-    },
-    {
-      "id": "描述函数法|相平面图|8",
-      "sourceId": "描述函数法_8_849fa8a1",
-      "targetId": "相平面图_8_bd606f51",
-      "relation": "related",
-      "relationType": "related",
-      "strength": 0.4
-    },
-    {
-      "id": "描述函数法|死区饱和非线性|8",
-      "sourceId": "描述函数法_8_849fa8a1",
-      "targetId": "死区饱和非线性_8_e04bd4bd",
-      "relation": "applies_to",
-      "relationType": "applies_to",
-      "strength": 0.9
-    },
-    {
-      "id": "描述函数法|负倒描述函数|8",
-      "sourceId": "描述函数法_8_849fa8a1",
-      "targetId": "负倒描述函数_8_159ff256",
-      "relation": "contains",
-      "relationType": "contains",
-      "strength": 0.9
-    },
-    {
-      "id": "描述函数法|饱和非线性|8",
-      "sourceId": "描述函数法_8_849fa8a1",
-      "targetId": "饱和非线性_8_deec42d7",
-      "relation": "applies_to",
-      "relationType": "applies_to",
-      "strength": 0.8
-    },
-    {
-      "id": "描述函数法|自振|8",
-      "sourceId": "描述函数法_8_849fa8a1",
-      "targetId": "自振_8_3ed83301",
-      "relation": "applies_to",
-      "relationType": "applies_to",
-      "strength": 1.0
-    },
-    {
-      "id": "相平面图|死区饱和非线性|8",
-      "sourceId": "相平面图_8_bd606f51",
-      "targetId": "死区饱和非线性_8_e04bd4bd",
-      "relation": "applies_to",
-      "relationType": "applies_to",
-      "strength": 0.7
-    },
-    {
-      "id": "相平面图|负倒描述函数|8",
-      "sourceId": "相平面图_8_bd606f51",
-      "targetId": "负倒描述函数_8_159ff256",
-      "relation": "related",
-      "relationType": "related",
-      "strength": 0.3
-    },
-    {
-      "id": "相平面图|饱和非线性|8",
-      "sourceId": "相平面图_8_bd606f51",
-      "targetId": "饱和非线性_8_deec42d7",
-      "relation": "applies_to",
-      "relationType": "applies_to",
-      "strength": 0.7
-    },
-    {
-      "id": "相平面图|自振|8",
-      "sourceId": "相平面图_8_bd606f51",
-      "targetId": "自振_8_3ed83301",
-      "relation": "applies_to",
-      "relationType": "applies_to",
-      "strength": 0.8
-    },
-    {
-      "id": "死区饱和非线性|负倒描述函数|8",
-      "sourceId": "死区饱和非线性_8_e04bd4bd",
-      "targetId": "负倒描述函数_8_159ff256",
-      "relation": "leads_to",
-      "relationType": "leads_to",
-      "strength": 0.7
-    },
-    {
-      "id": "死区饱和非线性|饱和非线性|8",
-      "sourceId": "死区饱和非线性_8_e04bd4bd",
-      "targetId": "饱和非线性_8_deec42d7",
-      "relation": "contains",
-      "relationType": "contains",
-      "strength": 0.9
-    },
-    {
-      "id": "死区饱和非线性|自振|8",
-      "sourceId": "死区饱和非线性_8_e04bd4bd",
-      "targetId": "自振_8_3ed83301",
-      "relation": "leads_to",
-      "relationType": "leads_to",
-      "strength": 0.8
-    },
-    {
-      "id": "负倒描述函数|饱和非线性|8",
-      "sourceId": "负倒描述函数_8_159ff256",
-      "targetId": "饱和非线性_8_deec42d7",
-      "relation": "applies_to",
-      "relationType": "applies_to",
-      "strength": 0.6
-    },
-    {
-      "id": "负倒描述函数|自振|8",
-      "sourceId": "负倒描述函数_8_159ff256",
-      "targetId": "自振_8_3ed83301",
-      "relation": "applies_to",
-      "relationType": "applies_to",
-      "strength": 0.9
-    },
-    {
-      "id": "饱和非线性|自振|8",
-      "sourceId": "饱和非线性_8_deec42d7",
-      "targetId": "自振_8_3ed83301",
-      "relation": "related",
-      "relationType": "related",
-      "strength": 0.8
-    },
-    {
       "id": "rel-1e094a63786f5918",
       "sourceId": "非线性边界工具选择_5_52001",
       "targetId": "相平面图_8_bd606f51",
@@ -1232,6 +1096,142 @@
       "relation": "prerequisite",
       "relationType": "prerequisite",
       "strength": 0.9
+    },
+    {
+      "id": "描述函数法|死区饱和非线性|8",
+      "sourceId": "描述函数法_8_849fa8a1",
+      "targetId": "死区饱和非线性_8_e04bd4bd",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "描述函数法|相平面图|8",
+      "sourceId": "描述函数法_8_849fa8a1",
+      "targetId": "相平面图_8_bd606f51",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.4
+    },
+    {
+      "id": "描述函数法|自振|8",
+      "sourceId": "描述函数法_8_849fa8a1",
+      "targetId": "自振_8_3ed83301",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 1.0
+    },
+    {
+      "id": "描述函数法|负倒描述函数|8",
+      "sourceId": "描述函数法_8_849fa8a1",
+      "targetId": "负倒描述函数_8_159ff256",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.9
+    },
+    {
+      "id": "描述函数法|饱和非线性|8",
+      "sourceId": "描述函数法_8_849fa8a1",
+      "targetId": "饱和非线性_8_deec42d7",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "死区饱和非线性|自振|8",
+      "sourceId": "死区饱和非线性_8_e04bd4bd",
+      "targetId": "自振_8_3ed83301",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.8
+    },
+    {
+      "id": "死区饱和非线性|负倒描述函数|8",
+      "sourceId": "死区饱和非线性_8_e04bd4bd",
+      "targetId": "负倒描述函数_8_159ff256",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.7
+    },
+    {
+      "id": "死区饱和非线性|饱和非线性|8",
+      "sourceId": "死区饱和非线性_8_e04bd4bd",
+      "targetId": "饱和非线性_8_deec42d7",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.9
+    },
+    {
+      "id": "相平面图|死区饱和非线性|8",
+      "sourceId": "相平面图_8_bd606f51",
+      "targetId": "死区饱和非线性_8_e04bd4bd",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.7
+    },
+    {
+      "id": "相平面图|自振|8",
+      "sourceId": "相平面图_8_bd606f51",
+      "targetId": "自振_8_3ed83301",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "相平面图|负倒描述函数|8",
+      "sourceId": "相平面图_8_bd606f51",
+      "targetId": "负倒描述函数_8_159ff256",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.3
+    },
+    {
+      "id": "相平面图|饱和非线性|8",
+      "sourceId": "相平面图_8_bd606f51",
+      "targetId": "饱和非线性_8_deec42d7",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.7
+    },
+    {
+      "id": "负倒描述函数|自振|8",
+      "sourceId": "负倒描述函数_8_159ff256",
+      "targetId": "自振_8_3ed83301",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "负倒描述函数|饱和非线性|8",
+      "sourceId": "负倒描述函数_8_159ff256",
+      "targetId": "饱和非线性_8_deec42d7",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.6
+    },
+    {
+      "id": "非线性控制系统|死区饱和非线性|1-8",
+      "sourceId": "非线性控制系统_1_1345e52b",
+      "targetId": "死区饱和非线性_8_e04bd4bd",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.9
+    },
+    {
+      "id": "非线性控制系统|自振|1-8",
+      "sourceId": "非线性控制系统_1_1345e52b",
+      "targetId": "自振_8_3ed83301",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.9
+    },
+    {
+      "id": "饱和非线性|自振|8",
+      "sourceId": "饱和非线性_8_deec42d7",
+      "targetId": "自振_8_3ed83301",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.8
     }
   ]
 }

@@ -3,7 +3,10 @@
  * 供 2D、3D 图谱组件和图例共用。
  */
 
-import { getKnowledgeGraphRelationContract } from './relation-contract';
+import {
+  getKnowledgeGraphRelationContract,
+  KNOWLEDGE_GRAPH_RELATION_CONTRACTS,
+} from './relation-contract';
 
 // ========== 知识维度颜色 (按 knowledgeDim) ==========
 export const KNOWLEDGE_DIM_COLORS: Record<string, string> = {
@@ -107,7 +110,7 @@ export interface KnowledgeSemanticRegionStyle {
   label: string;
 }
 
-export type KnowledgeGraphEdgeFocusState = 'active' | 'dimmed' | 'neutral';
+export type KnowledgeGraphEdgeFocusState = 'active' | 'secondary' | 'background' | 'dimmed' | 'neutral';
 export type KnowledgeGraphEdgeRenderer = '2d' | '3d';
 
 export const KNOWLEDGE_GRAPH_FILTER_LABELS: Record<string, string> = {
@@ -124,8 +127,10 @@ export const KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT = {
   maxDefaultEdgeOpacity: 0.9,
   neutralEdgeOpacity: 0.86,
   activeEdgeOpacity: 1,
-  dimmedNeighborhoodOpacity: 0.8,
-  activeNeighborhoodWidthGain: 1.18,
+  dimmedNeighborhoodOpacity: 0.18,
+  secondaryCorridorOpacity: 0.34,
+  structuralBackgroundOpacity: 0.1,
+  activeNeighborhoodWidthGain: 1.7,
   semanticRegionKinds: ['chapter-territory'],
   conceptReferences: [
     'layered-research-atlas',
@@ -218,7 +223,7 @@ export function getKnowledgeGraphEffectiveEdgeWidth(
     : 0.7 + boundedStrength;
   const activeGain = focusState === 'active'
     ? KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.activeNeighborhoodWidthGain
-    : 1;
+    : focusState === 'secondary' ? 0.9 : focusState === 'background' ? 0.62 : 1;
   const maxWidth = KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.maxDefaultEdgeWidth * activeGain;
   return Math.min(style.width * rendererGain * activeGain, maxWidth);
 }
@@ -229,6 +234,8 @@ export function getKnowledgeGraphEffectiveEdgeOpacity(
   focusState: KnowledgeGraphEdgeFocusState,
 ): number {
   if (focusState === 'dimmed') return KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.dimmedNeighborhoodOpacity;
+  if (focusState === 'secondary') return KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.secondaryCorridorOpacity;
+  if (focusState === 'background') return KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.structuralBackgroundOpacity;
   if (focusState === 'active') return KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.activeEdgeOpacity;
   const strengthGain = 0.96 + Math.min(1, Math.max(0, strength)) * 0.04;
   return Math.max(
@@ -310,9 +317,9 @@ export const KNOWLEDGE_GRAPH_FAMILY_PRESENTATION_CONFIG: Record<
     family: 'post-requisite',
     label: '后置',
     sampleStyle: relationStyle({
-      color: '#64748b',
-      lightColor: '#334155',
-      darkColor: '#cbd5e1',
+      color: '#0f4c81',
+      lightColor: '#0f3d66',
+      darkColor: '#38bdf8',
       dash: [],
       width: 1.1,
       hasArrow: true,
@@ -325,9 +332,9 @@ export const KNOWLEDGE_GRAPH_FAMILY_PRESENTATION_CONFIG: Record<
     family: 'association',
     label: '关联',
     sampleStyle: relationStyle({
-      color: '#64748b',
-      lightColor: '#475569',
-      darkColor: '#94a3b8',
+      color: '#d97706',
+      lightColor: '#b45309',
+      darkColor: '#fbbf24',
       dash: [2, 4],
       width: 1,
       hasArrow: false,
@@ -372,7 +379,52 @@ export const RELATION_SEMANTICS: Record<string, RelationSemantic> = {
   quantified_by: { type: 'quantified_by', label: '量化指标', visualFamily: 'measurement-dot-chain', direction: 'directed', density: 'context', legendExplanation: '用指标、参数或图形量化目标概念。' },
   uses: { type: 'uses', label: '使用工具', visualFamily: 'application-short-dash-arrow', direction: 'directed', density: 'context', legendExplanation: '当前任务或概念使用目标方法、工具或资源。' },
   visualized_by: { type: 'visualized_by', label: '图形呈现', visualFamily: 'visualization-diamond-chain', direction: 'directed', density: 'optional', legendExplanation: '通过图形、曲线或可视化方式呈现概念。' },
+  causes: { type: 'causes', label: '因果作用', visualFamily: 'relation-family-association', direction: 'undirected', density: 'context', legendExplanation: '提供与当前节点相关的补充语义。' },
+  demonstrates: { type: 'demonstrates', label: '示范说明', visualFamily: 'relation-family-association', direction: 'undirected', density: 'context', legendExplanation: '提供与当前节点相关的补充语义。' },
+  equivalent_to: { type: 'equivalent_to', label: '条件等价', visualFamily: 'relation-family-association', direction: 'undirected', density: 'context', legendExplanation: '提供与当前节点相关的补充语义。' },
+  exemplifies: { type: 'exemplifies', label: '举例说明', visualFamily: 'relation-family-association', direction: 'undirected', density: 'context', legendExplanation: '提供与当前节点相关的补充语义。' },
+  extends: { type: 'extends', label: '概念扩展', visualFamily: 'relation-family-association', direction: 'undirected', density: 'context', legendExplanation: '提供与当前节点相关的补充语义。' },
+  has_stage: { type: 'has_stage', label: '过程阶段', visualFamily: 'relation-family-association', direction: 'undirected', density: 'context', legendExplanation: '提供与当前节点相关的补充语义。' },
+  precedes: { type: 'precedes', label: '演化先后', visualFamily: 'relation-family-association', direction: 'undirected', density: 'context', legendExplanation: '提供与当前节点相关的补充语义。' },
+  produces: { type: 'produces', label: '产生结果', visualFamily: 'relation-family-association', direction: 'undirected', density: 'context', legendExplanation: '提供与当前节点相关的补充语义。' },
+  provides_context: { type: 'provides_context', label: '提供语境', visualFamily: 'relation-family-association', direction: 'undirected', density: 'context', legendExplanation: '提供与当前节点相关的补充语义。' },
+  refined_by: { type: 'refined_by', label: '被精化', visualFamily: 'relation-family-association', direction: 'undirected', density: 'context', legendExplanation: '提供与当前节点相关的补充语义。' },
+  refines: { type: 'refines', label: '精化概念', visualFamily: 'relation-family-association', direction: 'undirected', density: 'context', legendExplanation: '提供与当前节点相关的补充语义。' },
 };
+
+const FAMILY_SEMANTICS: Record<KnowledgeGraphPresentationFamily, Pick<RelationSemantic, 'visualFamily' | 'direction' | 'density' | 'legendExplanation'>> = {
+  child: {
+    visualFamily: 'relation-family-child',
+    direction: 'directed',
+    density: 'structure',
+    legendExplanation: '表示经过审查的父级与子级关系。',
+  },
+  'post-requisite': {
+    visualFamily: 'relation-family-post-requisite',
+    direction: 'directed',
+    density: 'structure',
+    legendExplanation: '表示规范的先学到后学关系。',
+  },
+  association: {
+    visualFamily: 'relation-family-association',
+    direction: 'undirected',
+    density: 'context',
+    legendExplanation: '提供与当前节点相关的补充语义。',
+  },
+};
+
+KNOWLEDGE_GRAPH_RELATION_CONTRACTS.forEach((contract) => {
+  const semantic = RELATION_SEMANTICS[contract.canonicalType];
+  if (!semantic) return;
+  [contract.canonicalType, ...contract.aliases].forEach((inputType) => {
+    RELATION_STYLES[inputType] = KNOWLEDGE_GRAPH_FAMILY_PRESENTATION_CONFIG[contract.family].sampleStyle;
+    RELATION_SEMANTICS[inputType] = {
+      ...semantic,
+      ...FAMILY_SEMANTICS[contract.family],
+      type: inputType,
+    };
+  });
+});
 
 // ========== 节点类型配置 (按 nodeType) ==========
 export const NODE_TYPE_CONFIGS: Record<string, NodeTypeConfig> = {
@@ -523,47 +575,6 @@ export function getRelationThreeDimensionalEncoding(
   relation?: string | null
 ): RelationThreeDimensionalEncoding {
   const style = getRelationStyle(relation);
-  const semantic = getRelationSemantic(relation);
-
-  if (semantic.density === 'weak') {
-    return {
-      arrowLength: style.hasArrow ? 2.4 : 0,
-      directionalParticles: style.hasArrow ? 1 : 0,
-      particleWidth: Math.max(0.7, style.width * 0.55),
-      particleSpeed: style.hasArrow ? 0.0016 : 0,
-    };
-  }
-
-  if (semantic.direction === 'bidirectional') {
-    return {
-      arrowLength: 0,
-      directionalParticles: 3,
-      particleWidth: Math.min(
-        style.width * 1.1,
-        KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.maxDefaultEdgeWidth
-      ),
-      particleSpeed: 0.0018,
-    };
-  }
-
-  if (semantic.visualFamily.includes('application') || relation === 'enables') {
-    return {
-      arrowLength: style.hasArrow ? 3.5 : 0,
-      directionalParticles: 3,
-      particleWidth: style.width * 0.76,
-      particleSpeed: 0.003,
-    };
-  }
-
-  if (semantic.density === 'optional') {
-    return {
-      arrowLength: style.hasArrow ? 3.2 : 0,
-      directionalParticles: style.hasArrow ? 1 : 0,
-      particleWidth: Math.max(0.75, style.width * 0.72),
-      particleSpeed: style.hasArrow ? 0.0024 : 0,
-    };
-  }
-
   return {
     arrowLength: style.hasArrow ? 4 : 0,
     directionalParticles: style.hasArrow ? 2 : 0,

@@ -9,6 +9,32 @@ import {
 } from '../graph/relation-contract';
 
 describe('knowledge graph relation contract', () => {
+  const associationContractFixtures = [
+    ['causes', '因果作用', '本节点导致目标结果', '本节点由来源条件或机制导致'],
+    ['demonstrates', '示范说明', '本节点展示目标性质或过程', '本节点由来源实例或表征展示'],
+    ['equivalent_to', '条件等价', '本节点在已声明模型与条件下等价于目标', '本节点在已声明模型与条件下等价于来源'],
+    ['exemplifies', '举例说明', '本节点是目标性质或概念的实例', '本节点由来源实例具体说明'],
+    ['extends', '概念扩展', '本节点的既有概念扩展到目标', '本节点扩展来源概念的适用范围或变化维度'],
+    ['has_stage', '过程阶段', '本节点过程包含目标阶段', '本节点是来源过程的一个状态或阶段'],
+    ['precedes', '演化先后', '本节点在过程或参数演化中先于目标', '本节点在过程或参数演化中后于来源'],
+    ['produces', '产生结果', '本节点产生目标现象或结果', '本节点由来源机制或状态产生'],
+    ['provides_context', '提供语境', '本节点为目标提供理解语境', '本节点的理解语境由来源提供'],
+    ['refined_by', '被精化', '本节点由目标进一步精化', '本节点进一步精化来源概念'],
+    ['refines', '精化概念', '本节点进一步精化目标概念', '本节点由来源进一步精化'],
+  ] as const;
+
+  it.each(associationContractFixtures)(
+    'defines the zero-instance %s association contract without learning-order semantics',
+    (canonicalType, _label, source, target) => {
+      expect(getKnowledgeGraphRelationContract(canonicalType)).toMatchObject({
+        canonicalType,
+        family: 'association',
+        direction: 'unordered',
+        detailSentence: { source, target },
+      });
+    }
+  );
+
   it.each([
     ['defines', 'related'],
     ['governs', 'related'],
@@ -66,10 +92,69 @@ describe('knowledge graph relation contract', () => {
     const first = projectKnowledgeGraphRelations(runtimeRelations);
     const second = projectKnowledgeGraphRelations(runtimeRelations);
 
-    expect(runtimeRelations).toHaveLength(16545);
+    expect(runtimeRelations).toHaveLength(16571);
     expect(first.blocked).toBe(false);
     expect(first.diagnostics).toEqual([]);
     expect(first).toEqual(second);
+
+    const runtimeRelationKeys = new Set(runtimeRelations.map((relation) => [
+      relation.source_id,
+      relation.target_id,
+      relation.relation_type,
+    ].join('::')));
+    const repairedIndependentRelations = [
+      {
+        duplicateId: '相位裕度直觉|超调量|new',
+        repairedId: 'rel-7442cec3d3050d07',
+        inferred: ['相位裕度直觉_5_L2c003', '超调量_4_bad49999', 'cross_domain'],
+        reviewed: ['相位裕度直觉_5_L2c003', '超调量_3_fc3f5b17', 'cross_domain'],
+      },
+      {
+        duplicateId: '自然频率|调节时间|new',
+        repairedId: 'rel-8e69c8bcadde04ce',
+        inferred: ['自然频率_3_ab7d6dc0', '调节时间_3_bc329c21', 'leads_to'],
+        reviewed: ['自然频率_10_51a8b7d0', '调节时间_10_fcbccf4e', 'leads_to'],
+      },
+      {
+        duplicateId: '调节时间|复平面可行域|new',
+        repairedId: 'rel-bbc232259eca7c42',
+        inferred: ['调节时间_3_bc329c21', '复平面可行域_4_Lsum001', 'cross_domain'],
+        reviewed: ['调节时间_10_fcbccf4e', '复平面可行域_4_Lsum001', 'cross_domain'],
+      },
+      {
+        duplicateId: 'rel-1a7ab41a342835de',
+        repairedId: 'rel-28c96a22359801a0',
+        inferred: ['超调量_4_bad49999', '时域指标到极点参数映射_3_13003', 'cross_domain'],
+        reviewed: ['超调量_3_fc3f5b17', '时域指标到极点参数映射_3_13003', 'cross_domain'],
+      },
+      {
+        duplicateId: 'rel-66570c2ff086f209',
+        repairedId: 'rel-ce718c4a5291b4f6',
+        inferred: ['阻尼比_3_b849784e', '调节时间_3_bc329c21', 'leads_to'],
+        reviewed: ['阻尼比_3_b849784e', '调节时间_10_fcbccf4e', 'leads_to'],
+      },
+      {
+        duplicateId: 'rel-6ab4c0be5e41bb63',
+        repairedId: 'rel-016f51d02a8e3ffe',
+        inferred: ['调节时间_3_bc329c21', '时域指标到极点参数映射_3_13003', 'cross_domain'],
+        reviewed: ['调节时间_10_fcbccf4e', '时域指标到极点参数映射_3_13003', 'cross_domain'],
+      },
+      {
+        duplicateId: 'rel-8b2033d899c32f9f',
+        repairedId: 'rel-5528ea8f39da8b32',
+        inferred: ['阻尼比_3_b849784e', '超调量_4_bad49999', 'leads_to'],
+        reviewed: ['阻尼比_3_b849784e', '超调量_3_fc3f5b17', 'leads_to'],
+      },
+    ] as const;
+
+    expect(repairedIndependentRelations).toHaveLength(7);
+    const relationIds = runtimeRelations.map((relation) => relation.relation_id);
+    for (const reason of repairedIndependentRelations) {
+      expect(relationIds.filter((id) => id === reason.duplicateId)).toHaveLength(1);
+      expect(relationIds.filter((id) => id === reason.repairedId)).toHaveLength(1);
+      expect(runtimeRelationKeys).toContain(reason.inferred.join('::'));
+      expect(runtimeRelationKeys).toContain(reason.reviewed.join('::'));
+    }
   });
 
   it('defines zero-instance follows as an earlier-to-later directed relation', () => {

@@ -40,12 +40,15 @@ import {
   getKnowledgeGraphVersion,
   loadKnowledgeGraphData,
   loadKnowledgeGraphRootData,
+  PUBLIC_GRAPH_BYTE_BUDGET,
   type UnifiedKnowledgeGraphPayload,
 } from '@/lib/knowledge-graph-source';
+import * as knowledgeGraphSource from '@/lib/knowledge-graph-source';
 import { injectChapterNodes } from '@/features/knowledge/graph/filter-utils';
 import {
   buildInitialGraphCache,
   mergeProgressiveGraphPayload,
+  selectKnowledgeNavigationSnapshot,
 } from '@/features/knowledge/progressive-graph-cache';
 
 vi.mock('server-only', () => ({}));
@@ -139,6 +142,59 @@ describe('truncated progressive shard cache behavior', () => {
     expect(complete.loadedShardKeys).toContain('v1:shard:remaining:all');
     expect(complete.incompleteShardKeys).not.toContain('v1:shard:remaining:all');
   });
+
+  it('rejects a corridor-truncated domain shard and recovers from a complete retry', () => {
+    const shardKey = 'v1:shard:expansion:chapter-node:系统模型';
+    const initial = {
+      ...mergeProgressiveGraphPayload(buildInitialGraphCache([], []), {
+        mode: 'root' as const,
+        graphVersion: 'v1',
+        shardKey: 'v1:shard:root:chapters',
+        nodes: [],
+        links: [],
+      }),
+      loadingShardKeys: [shardKey],
+    };
+    const incomplete = mergeProgressiveGraphPayload(initial, {
+      mode: 'expansion',
+      domainId: 'chapter-node:系统模型',
+      graphVersion: 'v1',
+      shardKey,
+      nodes: [{ ...graphFixture().nodes[1]!, id: 'partial-node' }],
+      links: [],
+      corridorLinks: [{ id: 'partial-edge', sourceId: 'partial-node', targetId: 'outside', relation: 'prerequisite' }],
+      corridorCycleEdgeIds: ['partial-edge'],
+      truncated: { nodes: false, links: false, membershipLinks: false, corridorLinks: true },
+    });
+
+    expect(incomplete.nodesById['partial-node']).toBeUndefined();
+    expect(incomplete.linksByKey['partial-edge']).toBeUndefined();
+    expect(incomplete.loadedShardKeys).not.toContain(shardKey);
+    expect(incomplete.loadingShardKeys).not.toContain(shardKey);
+    expect(incomplete.incompleteShardKeys).toContain(shardKey);
+
+    const recovered = mergeProgressiveGraphPayload(incomplete, {
+      mode: 'expansion',
+      domainId: 'chapter-node:系统模型',
+      graphVersion: 'v1',
+      shardKey,
+      nodes: [{ ...graphFixture().nodes[1]!, id: 'complete-node' }],
+      links: [],
+      corridorLinks: [{ id: 'complete-edge', sourceId: 'complete-node', targetId: 'outside', relation: 'prerequisite' }],
+      corridorCycleEdgeIds: ['complete-edge'],
+      truncated: { nodes: false, links: false, membershipLinks: false, corridorLinks: false },
+    });
+    const snapshot = selectKnowledgeNavigationSnapshot(recovered, {
+      kind: 'domain',
+      domainId: 'chapter-node:系统模型',
+    });
+
+    expect(recovered.loadedShardKeys).toContain(shardKey);
+    expect(recovered.incompleteShardKeys).not.toContain(shardKey);
+    expect(snapshot.nodes.map((node) => node.id)).toEqual(['complete-node']);
+    expect(snapshot.corridorLinks.map((link) => link.id)).toEqual(['complete-edge']);
+    expect(snapshot.corridorCycleEdgeIds).toEqual(['complete-edge']);
+  });
 });
 
 describe('progressive knowledge graph loading', () => {
@@ -198,6 +254,82 @@ describe('progressive knowledge graph loading', () => {
     expect(remaining.nodes.find((node) => node.id === 'node-leaf')?.expansion).toEqual({ state: 'leaf' });
     expect(expansion.graphVersion).toBe(active.graphVersion);
     expect(active.graphVersion).toBe(remaining.graphVersion);
+  });
+
+  it('keeps authored boundary post-requisites as corridor-only shard data', () => {
+    const graph = graphFixture();
+    const expansion = buildKnowledgeGraphExpansionPayload(graph, 'chapter-node:系统模型');
+
+    expect(expansion.links.map((link) => link.id)).toEqual(['link-bc']);
+    expect(expansion.corridorLinks?.map((link) => link.id)).toEqual(['link-ab']);
+    expect(expansion.corridorCycleEdgeIds).toEqual([]);
+    expect(expansion.truncated.corridorLinks).toBe(false);
+
+    const rooted = mergeProgressiveGraphPayload(buildInitialGraphCache([], []), {
+      ...buildKnowledgeGraphRootPayload(graph),
+      graphVersion: 'v1',
+      shardKey: 'v1:shard:root:chapters',
+    });
+    const cached = mergeProgressiveGraphPayload(rooted, {
+      ...expansion,
+      graphVersion: 'v1',
+      shardKey: 'v1:shard:expansion:chapter-node:系统模型',
+    });
+    const snapshot = selectKnowledgeNavigationSnapshot(cached, {
+      kind: 'domain',
+      domainId: 'chapter-node:系统模型',
+    });
+    expect(snapshot.links.map((link) => link.id)).toEqual(['link-bc']);
+    expect(snapshot.corridorLinks.map((link) => link.id)).toEqual(['link-ab']);
+    expect(snapshot.corridorCycleEdgeIds).toEqual([]);
+  });
+
+  it('projects complete cross-domain SCC metadata without adding boundary edges to canvas links', () => {
+    const graph = graphFixture();
+    graph.links = [
+      { id: 'cycle-ab', sourceId: 'node-a', targetId: 'node-b', relation: 'prerequisite', relationType: 'prerequisite', strength: 1 },
+      { id: 'cycle-bc', sourceId: 'node-b', targetId: 'node-c', relation: 'prerequisite', relationType: 'prerequisite', strength: 1 },
+      { id: 'cycle-ca', sourceId: 'node-c', targetId: 'node-a', relation: 'prerequisite', relationType: 'prerequisite', strength: 1 },
+    ];
+    const expansion = buildKnowledgeGraphExpansionPayload(graph, 'chapter-node:系统模型');
+
+    expect(expansion.links.map((link) => link.id)).toEqual(['cycle-bc']);
+    expect(expansion.corridorLinks?.map((link) => link.id)).toEqual(['cycle-ab', 'cycle-ca']);
+    expect(expansion.corridorCycleEdgeIds).toEqual(['cycle-ab', 'cycle-bc', 'cycle-ca']);
+  });
+
+  it('keeps corridor payloads within budget and marks growth truncation explicitly', () => {
+    const graph = graphFixture();
+    const current = buildKnowledgeGraphExpansionPayload(graph, 'chapter-node:系统模型');
+    expect(Buffer.byteLength(JSON.stringify(current), 'utf8')).toBeLessThanOrEqual(PUBLIC_GRAPH_BYTE_BUDGET);
+    expect(current.truncated.corridorLinks).toBe(false);
+
+    const boundCorridorLinks = (knowledgeGraphSource as unknown as {
+      boundKnowledgeGraphCorridorLinks?: (input: {
+        basePayload: { nodes: unknown[]; links: unknown[]; membershipLinks: unknown[] };
+        byteBudget: number;
+        candidates: unknown[];
+        cycleEdgeIds: ReadonlySet<string>;
+      }) => { links: unknown[]; serializedBytes: number; truncated: boolean };
+    }).boundKnowledgeGraphCorridorLinks;
+    expect(boundCorridorLinks).toBeTypeOf('function');
+    if (!boundCorridorLinks) return;
+    const bounded = boundCorridorLinks({
+      basePayload: { nodes: [], links: [], membershipLinks: [] },
+      candidates: Array.from({ length: 20 }, (_, index) => ({
+        id: `large-${index}-${'x'.repeat(120)}`,
+        sourceId: 'node-b',
+        targetId: 'node-a',
+        relation: 'prerequisite',
+        relationType: 'prerequisite',
+        strength: 1,
+      })),
+      cycleEdgeIds: new Set<string>(),
+      byteBudget: 1_200,
+    });
+    expect(bounded.truncated).toBe(true);
+    expect(bounded.links.length).toBeLessThan(20);
+    expect(bounded.serializedBytes).toBeLessThanOrEqual(1_200);
   });
 
   it('normalizes compatibility nodes to unknown and discards descriptors across graph versions', () => {
@@ -303,14 +435,15 @@ describe('progressive knowledge graph loading', () => {
       'utf8'
     );
 
-    expect(source).toContain("fetchGraphPayload('/api/knowledge/graph?mode=root'");
+    expect(source).toContain('buildKnowledgeGraphRootRequestUrl({ lessonId: requestedLessonId })');
+    expect(source).toContain('buildKnowledgeGraphDomainRequestUrl({ domainId })');
     expect(source).not.toContain("fetch('/api/knowledge/graph'");
     expect(source).toContain('loadedShardKeys');
     expect(source).toContain('loadingShardKeys');
     expect(source).toContain('knowledgeGraphNavigationReducer');
     expect(source).toContain('selectKnowledgeNavigationSnapshot');
     expect(source).toContain('domainShardKeysByDomainId');
-    expect(source).toContain('mode=expansion&domainId=');
+    expect(source).toContain('buildKnowledgeGraphDomainRequestUrl({ domainId })');
     expect(source).not.toContain('mode=expansion&nodeId=');
     expect(source).not.toContain("fetchProgressivePayload('active-filter')");
     expect(source).not.toContain("fetchProgressivePayload('remaining')");

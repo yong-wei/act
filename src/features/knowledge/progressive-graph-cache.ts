@@ -5,9 +5,11 @@ import type { SanitizedKnowledgeLessonContext } from '@/lib/knowledge-lesson-ove
 interface GraphApiResponse {
   nodes?: KnowledgeNodeData[];
   links?: KnowledgeLinkData[];
+  corridorLinks?: KnowledgeLinkData[];
+  corridorCycleEdgeIds?: string[];
   membershipLinks?: KnowledgeLinkData[];
   source?: 'file' | 'database';
-  truncated?: { nodes?: boolean; links?: boolean; membershipLinks?: boolean };
+  truncated?: { nodes?: boolean; links?: boolean; membershipLinks?: boolean; corridorLinks?: boolean };
   rootCatalog?: Array<{
     nodeId: string;
     nodeName: string;
@@ -39,6 +41,8 @@ export interface KnowledgeGraphCacheState {
   rootShardKey: string;
   domainNodeIdsByDomainId: Record<string, string[]>;
   domainLinkKeysByDomainId: Record<string, string[]>;
+  domainCorridorLinkKeysByDomainId: Record<string, string[]>;
+  domainCorridorCycleEdgeIdsByDomainId: Record<string, string[]>;
   domainMembershipLinkKeysByDomainId: Record<string, string[]>;
   domainShardKeysByDomainId: Record<string, string>;
   rootCatalogByNodeId: Record<string, NonNullable<GraphApiResponse['rootCatalog']>[number]>;
@@ -93,6 +97,8 @@ export function buildInitialGraphCache(
     rootShardKey: '',
     domainNodeIdsByDomainId: {},
     domainLinkKeysByDomainId: {},
+    domainCorridorLinkKeysByDomainId: {},
+    domainCorridorCycleEdgeIdsByDomainId: {},
     domainMembershipLinkKeysByDomainId: {},
     domainShardKeysByDomainId: {},
     rootCatalogByNodeId: {},
@@ -157,6 +163,9 @@ export function mergeProgressiveGraphPayload(
   for (const link of selectCanvasKnowledgeRelationLinks(payload.links ?? [])) {
     linksByKey[knowledgeLinkCacheKey(link)] = link;
   }
+  for (const link of payload.corridorLinks ?? []) {
+    linksByKey[knowledgeLinkCacheKey(link)] = link;
+  }
   for (const link of payload.membershipLinks ?? []) {
     if (!isKnowledgeNavigationMembershipLink(link)) continue;
     membershipLinksByKey[knowledgeLinkCacheKey(link)] = link;
@@ -180,6 +189,12 @@ export function mergeProgressiveGraphPayload(
   const domainId = payload.mode === 'expansion' ? payload.domainId : undefined;
   const domainNodeIdsByDomainId = resetForVersion ? {} : { ...current.domainNodeIdsByDomainId };
   const domainLinkKeysByDomainId = resetForVersion ? {} : { ...current.domainLinkKeysByDomainId };
+  const domainCorridorLinkKeysByDomainId = resetForVersion
+    ? {}
+    : { ...current.domainCorridorLinkKeysByDomainId };
+  const domainCorridorCycleEdgeIdsByDomainId = resetForVersion
+    ? {}
+    : { ...current.domainCorridorCycleEdgeIdsByDomainId };
   const domainMembershipLinkKeysByDomainId = resetForVersion
     ? {}
     : { ...current.domainMembershipLinkKeysByDomainId };
@@ -190,6 +205,12 @@ export function mergeProgressiveGraphPayload(
     domainLinkKeysByDomainId[domainId] = [...new Set(
       selectCanvasKnowledgeRelationLinks(payload.links ?? []).map(knowledgeLinkCacheKey)
     )];
+    domainCorridorLinkKeysByDomainId[domainId] = [...new Set(
+      (payload.corridorLinks ?? []).map(knowledgeLinkCacheKey)
+    )];
+    domainCorridorCycleEdgeIdsByDomainId[domainId] = [...new Set(
+      payload.corridorCycleEdgeIds ?? []
+    )].sort();
     domainMembershipLinkKeysByDomainId[domainId] = [...new Set(
       (payload.membershipLinks ?? []).filter(isKnowledgeNavigationMembershipLink).map(knowledgeLinkCacheKey)
     )];
@@ -214,6 +235,8 @@ export function mergeProgressiveGraphPayload(
     rootShardKey: payload.mode === 'root' ? payload.shardKey ?? '' : resetForVersion ? '' : current.rootShardKey,
     domainNodeIdsByDomainId,
     domainLinkKeysByDomainId,
+    domainCorridorLinkKeysByDomainId,
+    domainCorridorCycleEdgeIdsByDomainId,
     domainMembershipLinkKeysByDomainId,
     domainShardKeysByDomainId,
     rootCatalogByNodeId,
@@ -223,15 +246,35 @@ export function mergeProgressiveGraphPayload(
 export function selectKnowledgeNavigationSnapshot(
   cache: KnowledgeGraphCacheState,
   view: KnowledgeGraphNavigationView
-): { nodes: KnowledgeNodeData[]; links: KnowledgeLinkData[]; membershipLinks: KnowledgeLinkData[] } {
+): {
+  nodes: KnowledgeNodeData[];
+  links: KnowledgeLinkData[];
+  corridorLinks: KnowledgeLinkData[];
+  corridorCycleEdgeIds: string[];
+  membershipLinks: KnowledgeLinkData[];
+} {
   const nodeIds = view.kind === 'root'
     ? cache.rootNodeIds
     : cache.domainNodeIdsByDomainId[view.domainId] ?? [view.domainId];
   const nodes = nodeIds.flatMap((nodeId) => cache.nodesById[nodeId] ? [cache.nodesById[nodeId]] : []);
-  if (view.kind === 'root') return { nodes, links: [], membershipLinks: [] };
+  if (view.kind === 'root') return {
+    nodes,
+    links: [],
+    corridorLinks: [],
+    corridorCycleEdgeIds: [],
+    membershipLinks: [],
+  };
   const links = (cache.domainLinkKeysByDomainId[view.domainId] ?? [])
     .flatMap((key) => cache.linksByKey[key] ? [cache.linksByKey[key]] : []);
   const membershipLinks = (cache.domainMembershipLinkKeysByDomainId[view.domainId] ?? [])
     .flatMap((key) => cache.membershipLinksByKey[key] ? [cache.membershipLinksByKey[key]] : []);
-  return { nodes, links, membershipLinks };
+  const corridorLinks = (cache.domainCorridorLinkKeysByDomainId[view.domainId] ?? [])
+    .flatMap((key) => cache.linksByKey[key] ? [cache.linksByKey[key]] : []);
+  return {
+    nodes,
+    links,
+    corridorLinks,
+    corridorCycleEdgeIds: cache.domainCorridorCycleEdgeIdsByDomainId[view.domainId] ?? [],
+    membershipLinks,
+  };
 }

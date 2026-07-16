@@ -8,9 +8,12 @@ import { CHAPTER_DISPLAY_ORDER, resolveChapterName } from '@/lib/knowledge-label
 import {
   assertRuntimeKnowledgeRelationCoverage,
   buildRuntimeKnowledgeRelationInspectionItems,
+  RUNTIME_KNOWLEDGE_RELATION_CONTRACT_COVERAGE,
   RuntimeKnowledgeRelationCoverageError,
   type RuntimeKnowledgeRelationLink,
 } from '@/lib/knowledge-graph-relation-runtime';
+import { getKnowledgeGraphRelationContract } from '@/features/knowledge/graph/relation-contract';
+import { findCanonicalPostRequisiteCycleEdgeIds } from '@/features/knowledge/graph/selected-corridor';
 
 type NodeType = 'THEORY' | 'SCENARIO' | 'ETHICS';
 type BloomLevel = 'REMEMBER' | 'UNDERSTAND' | 'APPLY' | 'ANALYZE' | 'EVALUATE' | 'CREATE';
@@ -106,9 +109,11 @@ export interface KnowledgeGraphProgressivePayload {
   filterSignature: string;
   nodes: PublicKnowledgeGraphNode[];
   links: PublicKnowledgeGraphLink[];
+  corridorLinks?: PublicKnowledgeGraphLink[];
+  corridorCycleEdgeIds?: string[];
   membershipLinks?: KnowledgeGraphMembershipLink[];
   source: 'file' | 'database';
-  truncated: { nodes: boolean; links: boolean; membershipLinks: boolean };
+  truncated: { nodes: boolean; links: boolean; membershipLinks: boolean; corridorLinks?: boolean };
   rootSummaries?: KnowledgeGraphRootSummary[];
   rootCatalog?: KnowledgeGraphRootCatalogEntry[];
   domainId?: string;
@@ -174,11 +179,16 @@ export interface UnifiedKnowledgeNodeDetail extends PublicKnowledgeGraphNode {
     inspectionSentence: string;
     evidenceState: 'available' | 'unavailable';
     rationale?: string;
+    rawType: string;
     sourceDocument?: string;
+    sourceChapter?: string | number;
     sourceId: string;
     sourceMetadata?: Record<string, string | number>;
     strength: number;
+    targetChapter?: string | number;
     targetId: string;
+    visualMergeCount: number;
+    visualMergeKey: string;
   }>;
 }
 
@@ -315,7 +325,6 @@ async function readStableFile(filePath: string): Promise<{ content: string; fing
         content,
         fingerprint: {
           size: after.size,
-          mtimeMs: after.mtimeMs,
           sha256: createHash('sha256').update(content).digest('hex'),
         },
       };
@@ -582,6 +591,63 @@ function utf8Bytes(value: unknown): number {
   return Buffer.byteLength(JSON.stringify(value), 'utf8');
 }
 
+export function boundKnowledgeGraphCorridorLinks({
+  basePayload,
+  candidates,
+  cycleEdgeIds = new Set<string>(),
+  baseCycleEdgeIds = [],
+  byteBudget = PUBLIC_GRAPH_BYTE_BUDGET,
+}: {
+  basePayload: object;
+  candidates: readonly PublicKnowledgeGraphLink[];
+  cycleEdgeIds?: ReadonlySet<string>;
+  baseCycleEdgeIds?: readonly string[];
+  byteBudget?: number;
+}): {
+  links: PublicKnowledgeGraphLink[];
+  cycleEdgeIds: string[];
+  truncated: boolean;
+  serializedBytes: number;
+} {
+  const emptySerializedBytes = utf8Bytes({
+    ...basePayload,
+    corridorLinks: [],
+    corridorCycleEdgeIds: [...new Set(baseCycleEdgeIds)].sort(stableStringCompare),
+  });
+  if (emptySerializedBytes > byteBudget) {
+    throw new RangeError('Knowledge graph corridor base payload exceeds its byte budget.');
+  }
+  const ordered = [...candidates]
+    .sort((left, right) => stableStringCompare(left.id, right.id))
+    .slice(0, MAX_PUBLIC_LINKS);
+  const links: PublicKnowledgeGraphLink[] = [];
+  let selectedCycleEdgeIds = [...new Set(baseCycleEdgeIds)].sort(stableStringCompare);
+  for (const link of ordered) {
+    const nextLinks = [...links, link];
+    const nextCycleEdgeIds = cycleEdgeIds.has(link.id)
+      ? [...selectedCycleEdgeIds, link.id].sort(stableStringCompare)
+      : selectedCycleEdgeIds;
+    if (utf8Bytes({
+      ...basePayload,
+      corridorLinks: nextLinks,
+      corridorCycleEdgeIds: nextCycleEdgeIds,
+    }) > byteBudget) break;
+    links.push(link);
+    selectedCycleEdgeIds = nextCycleEdgeIds;
+  }
+  const serializedBytes = utf8Bytes({
+    ...basePayload,
+    corridorLinks: links,
+    corridorCycleEdgeIds: selectedCycleEdgeIds,
+  });
+  return {
+    links,
+    cycleEdgeIds: selectedCycleEdgeIds,
+    truncated: links.length < candidates.length,
+    serializedBytes,
+  };
+}
+
 function boundedProgressiveGraph(
   nodesInput: readonly UnifiedKnowledgeNode[],
   linksInput: readonly UnifiedKnowledgeLink[],
@@ -703,6 +769,7 @@ function normalizeFileKnowledgeNodes(parsedNodes: UnifiedKnowledgeNode[]): Unifi
 
 function runtimeLoadingError(code: string, message: string): RuntimeKnowledgeRelationCoverageError {
   return new RuntimeKnowledgeRelationCoverageError({
+    contractCoverage: RUNTIME_KNOWLEDGE_RELATION_CONTRACT_COVERAGE,
     coverage: [],
     counts: { inputLines: 0, parsedRelations: 0, projectedRelations: 0, visualEdges: 0 },
     diagnostics: [{ blocking: true, code, message, relationIds: [], stage: 'loading', stages: ['loading', 'labeling', 'projection', 'inspection'] }],
@@ -1195,6 +1262,11 @@ export function buildKnowledgeGraphExpansionPayload(
   const rootNode = buildChapterRootNode(group.chapterName, Math.max(0, groupIndex), group.nodes.length);
   const groupNodeIds = new Set(group.nodes.map((node) => node.id));
   const groupLinks = graph.links.filter((link) => groupNodeIds.has(link.sourceId) && groupNodeIds.has(link.targetId));
+  const boundaryCorridorLinks = graph.links
+    .filter((link) => groupNodeIds.has(link.sourceId) !== groupNodeIds.has(link.targetId))
+    .filter((link) => getKnowledgeGraphRelationContract(link.relationType || link.relation)?.family === 'post-requisite')
+    .sort((left, right) => stableStringCompare(left.id, right.id))
+    .map(toPublicKnowledgeGraphLink);
 
   const membershipLinks = chapterRootLinks(rootNode.id, group.nodes);
   const bounded = boundedProgressiveGraph(
@@ -1213,7 +1285,22 @@ export function buildKnowledgeGraphExpansionPayload(
       > PUBLIC_GRAPH_BYTE_BUDGET - 2_000) break;
     boundedMembershipLinks.push(link);
   }
-  return {
+  const canonicalCycleEdgeIds = new Set(findCanonicalPostRequisiteCycleEdgeIds(graph.links.map((link) => ({
+    id: link.id,
+    relation: link.relation,
+    relationType: link.relationType,
+    sourceId: link.sourceId,
+    strength: link.strength,
+    targetId: link.targetId,
+  }))));
+  const fullGraphCycleEdgeIds = new Set(graph.links
+    .filter((link) => canonicalCycleEdgeIds.has(link.id))
+    .map((link) => toPublicKnowledgeGraphLink(link).id));
+  const internalCycleEdgeIds = bounded.links
+    .filter((link) => fullGraphCycleEdgeIds.has(link.id))
+    .map((link) => link.id)
+    .sort(stableStringCompare);
+  const basePayload: KnowledgeGraphProgressivePayload = {
     mode: 'expansion',
     graphVersion,
     shardKey: buildProgressiveShardKey('expansion', graphVersion, nodeId),
@@ -1226,8 +1313,25 @@ export function buildKnowledgeGraphExpansionPayload(
       nodes: bounded.truncated.nodes,
       links: bounded.truncated.links,
       membershipLinks: boundedMembershipLinks.length < membershipLinks.length,
+      corridorLinks: false,
     },
     domainId: nodeId,
+  };
+  const boundedCorridor = boundKnowledgeGraphCorridorLinks({
+    basePayload,
+    candidates: boundaryCorridorLinks,
+    cycleEdgeIds: fullGraphCycleEdgeIds,
+    baseCycleEdgeIds: internalCycleEdgeIds,
+    byteBudget: PUBLIC_GRAPH_BYTE_BUDGET - 1_024,
+  });
+  return {
+    ...basePayload,
+    corridorLinks: boundedCorridor.links,
+    corridorCycleEdgeIds: boundedCorridor.cycleEdgeIds,
+    truncated: {
+      ...basePayload.truncated,
+      corridorLinks: boundedCorridor.truncated,
+    },
   };
 }
 

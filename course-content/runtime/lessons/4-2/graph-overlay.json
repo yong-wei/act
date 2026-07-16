@@ -1973,30 +1973,6 @@
   ],
   "links": [
     {
-      "id": "相角裕度|幅值裕度|5",
-      "sourceId": "相角裕度_5_5a74b451",
-      "targetId": "幅值裕度_5_73af26a5",
-      "relation": "related",
-      "relationType": "related",
-      "strength": 0.9
-    },
-    {
-      "id": "幅值裕度|带宽频率|5",
-      "sourceId": "幅值裕度_5_73af26a5",
-      "targetId": "带宽频率_5_6996a44a",
-      "relation": "related",
-      "relationType": "related",
-      "strength": 0.2
-    },
-    {
-      "id": "rel-59d35b5f11c6a53e",
-      "sourceId": "低频补偿稳态改善路径_3_37003",
-      "targetId": "积分与滞后的稳态改善分工_3_39003",
-      "relation": "contains",
-      "relationType": "contains",
-      "strength": 0.95
-    },
-    {
       "id": "rel-04e19a5b4939ba49",
       "sourceId": "带宽频率_5_6996a44a",
       "targetId": "主矛盾到频段职责映射_4_42003",
@@ -2013,175 +1989,7 @@
       "strength": 0.92
     },
     {
-      "id": "rel-2439edc7b65f3dda",
-      "sourceId": "相角裕度_5_5a74b451",
-      "targetId": "主矛盾到频段职责映射_4_42003",
-      "relation": "cross_domain",
-      "relationType": "cross_domain",
-      "strength": 0.9
-    },
-    {
-      "id": "rel-321fa6b256a8c7cc",
-      "sourceId": "目标驱动超前校正_3_36004",
-      "targetId": "结构工具箱最小语义_4_42002",
-      "relation": "applies_to",
-      "relationType": "applies_to",
-      "strength": 0.88
-    },
-    {
-      "id": "rel-47348c502df654e0",
-      "sourceId": "结构工具箱最小语义_4_42002",
-      "targetId": "主矛盾到频段职责映射_4_42003",
-      "relation": "leads_to",
-      "relationType": "leads_to",
-      "strength": 0.95
-    },
-    {
-      "id": "rel-52840748131e83f2",
-      "sourceId": "相角裕度_5_5a74b451",
-      "targetId": "结构作用点与代价来源对照_4_42004",
-      "relation": "related",
-      "relationType": "related",
-      "strength": 0.88
-    },
-    {
-      "id": "rel-533f0df90b438d5d",
-      "sourceId": "结构作用点与代价来源对照_4_42004",
-      "targetId": "单结构首轮起步卡_4_42001",
-      "relation": "applies_to",
-      "relationType": "applies_to",
-      "strength": 0.95
-    },
-    {
-      "id": "rel-57c08f25fd681b11",
-      "sourceId": "幅值裕度_5_73af26a5",
-      "targetId": "结构作用点与代价来源对照_4_42004",
-      "relation": "related",
-      "relationType": "related",
-      "strength": 0.83
-    },
-    {
-      "id": "rel-59471e8501999a08",
-      "sourceId": "结构工具箱最小语义_4_42002",
-      "targetId": "单结构首轮起步卡_4_42001",
-      "relation": "applies_to",
-      "relationType": "applies_to",
-      "strength": 0.94
-    },
-    {
-      "id": "rel-64279ce498e1776d",
-      "sourceId": "主矛盾到频段职责映射_4_42003",
-      "targetId": "结构作用点与代价来源对照_4_42004",
-      "relation": "leads_to",
-      "relationType": "leads_to",
-      "strength": 0.96
-    },
-    {
-      "id": "rel-6df90136d86500da",
-      "sourceId": "带宽频率_5_6996a44a",
-      "targetId": "结构作用点与代价来源对照_4_42004",
-      "relation": "related",
-      "relationType": "related",
-      "strength": 0.86
-    },
-    {
-      "id": "rel-7c74dd94a5cf67da",
-      "sourceId": "主矛盾到频段职责映射_4_42003",
-      "targetId": "反馈保底与前馈补偿边界_4_42005",
-      "relation": "applies_to",
-      "relationType": "applies_to",
-      "strength": 0.87
-    },
-    {
-      "id": "rel-8f21746fd2013d26",
-      "sourceId": "结构工具箱最小语义_4_42002",
-      "targetId": "反馈保底与前馈补偿边界_4_42005",
-      "relation": "leads_to",
-      "relationType": "leads_to",
-      "strength": 0.9
-    },
-    {
-      "id": "rel-948161cc7d032a4b",
-      "sourceId": "目标驱动PD校正_3_36002",
-      "targetId": "结构工具箱最小语义_4_42002",
-      "relation": "applies_to",
-      "relationType": "applies_to",
-      "strength": 0.89
-    },
-    {
-      "id": "rel-b173854885623ba7",
-      "sourceId": "反馈保底与前馈补偿边界_4_42005",
-      "targetId": "单结构首轮起步卡_4_42001",
-      "relation": "applies_to",
-      "relationType": "applies_to",
-      "strength": 0.88
-    },
-    {
-      "id": "rel-c971e26ca1a412ff",
-      "sourceId": "低频补偿稳态改善路径_3_37003",
-      "targetId": "结构工具箱最小语义_4_42002",
-      "relation": "applies_to",
-      "relationType": "applies_to",
-      "strength": 0.9
-    },
-    {
-      "id": "rel-feb625fbb1878332",
-      "sourceId": "设计任务表达卡_4_41001",
-      "targetId": "结构工具箱最小语义_4_42002",
-      "relation": "leads_to",
-      "relationType": "leads_to",
-      "strength": 0.96
-    },
-    {
-      "id": "rel-35402099f6fb951d",
-      "sourceId": "按输入补偿前馈的无差度提升_4_42006",
-      "targetId": "单结构首轮起步卡_4_42001",
-      "relation": "applies_to",
-      "relationType": "applies_to",
-      "strength": 0.86
-    },
-    {
-      "id": "rel-39c39d967cc570a5",
-      "sourceId": "反馈保底与前馈补偿边界_4_42005",
-      "targetId": "按输入补偿前馈的无差度提升_4_42006",
-      "relation": "leads_to",
-      "relationType": "leads_to",
-      "strength": 0.92
-    },
-    {
-      "id": "rel-93571479f8db934d",
-      "sourceId": "按扰动补偿前馈的对消条件_4_42007",
-      "targetId": "单结构首轮起步卡_4_42001",
-      "relation": "applies_to",
-      "relationType": "applies_to",
-      "strength": 0.87
-    },
-    {
-      "id": "rel-acfb25e7e85a0324",
-      "sourceId": "反馈保底与前馈补偿边界_4_42005",
-      "targetId": "按扰动补偿前馈的对消条件_4_42007",
-      "relation": "leads_to",
-      "relationType": "leads_to",
-      "strength": 0.93
-    },
-    {
-      "id": "rel-0e1154b9ea361887",
-      "sourceId": "相角裕度_5_5a74b451",
-      "targetId": "低频补偿稳态改善路径_3_37003",
-      "relation": "cross_domain",
-      "relationType": "cross_domain",
-      "strength": 0.88
-    },
-    {
-      "id": "rel-6474fcaeb9bc2d9c",
-      "sourceId": "相角裕度_5_5a74b451",
-      "targetId": "三频段闭环性能回读_3_38003",
-      "relation": "cross_domain",
-      "relationType": "cross_domain",
-      "strength": 0.93
-    },
-    {
-      "id": "rel-aed1891cf0ca74ef",
+      "id": "rel-17ec904c7ded2d41",
       "sourceId": "相角裕度_5_5a74b451",
       "targetId": "目标驱动超前校正_3_36004",
       "relation": "prerequisite",
@@ -2197,12 +2005,28 @@
       "strength": 0.9
     },
     {
+      "id": "rel-2439edc7b65f3dda",
+      "sourceId": "相角裕度_5_5a74b451",
+      "targetId": "主矛盾到频段职责映射_4_42003",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.9
+    },
+    {
       "id": "rel-2cbe789fa932fbf5",
       "sourceId": "结构选型决策树_4_42009",
       "targetId": "频域PD与超前整定_4_42011",
       "relation": "leads_to",
       "relationType": "leads_to",
       "strength": 0.92
+    },
+    {
+      "id": "rel-321fa6b256a8c7cc",
+      "sourceId": "目标驱动超前校正_3_36004",
+      "targetId": "结构工具箱最小语义_4_42002",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.88
     },
     {
       "id": "rel-342a53230cee07d4",
@@ -2213,6 +2037,14 @@
       "strength": 0.92
     },
     {
+      "id": "rel-35402099f6fb951d",
+      "sourceId": "按输入补偿前馈的无差度提升_4_42006",
+      "targetId": "单结构首轮起步卡_4_42001",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.86
+    },
+    {
       "id": "rel-396f115419afa69c",
       "sourceId": "频域PI与滞后整定_4_42010",
       "targetId": "客船候选结构整定比较_4_42014",
@@ -2221,12 +2053,28 @@
       "strength": 0.9
     },
     {
+      "id": "rel-39c39d967cc570a5",
+      "sourceId": "反馈保底与前馈补偿边界_4_42005",
+      "targetId": "按输入补偿前馈的无差度提升_4_42006",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.92
+    },
+    {
       "id": "rel-4196a15a875a4c42",
       "sourceId": "单结构整定四类复核量_4_42015",
       "targetId": "单结构首轮起步卡_4_42001",
       "relation": "applies_to",
       "relationType": "applies_to",
       "strength": 0.9
+    },
+    {
+      "id": "rel-47348c502df654e0",
+      "sourceId": "结构工具箱最小语义_4_42002",
+      "targetId": "主矛盾到频段职责映射_4_42003",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.95
     },
     {
       "id": "rel-47b75a226dbb8659",
@@ -2253,12 +2101,60 @@
       "strength": 0.82
     },
     {
+      "id": "rel-52840748131e83f2",
+      "sourceId": "相角裕度_5_5a74b451",
+      "targetId": "结构作用点与代价来源对照_4_42004",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.88
+    },
+    {
+      "id": "rel-533f0df90b438d5d",
+      "sourceId": "结构作用点与代价来源对照_4_42004",
+      "targetId": "单结构首轮起步卡_4_42001",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.95
+    },
+    {
       "id": "rel-54c490b04c78a36b",
       "sourceId": "幅值裕度_5_73af26a5",
       "targetId": "单结构整定四类复核量_4_42015",
       "relation": "related",
       "relationType": "related",
       "strength": 0.84
+    },
+    {
+      "id": "rel-57c08f25fd681b11",
+      "sourceId": "幅值裕度_5_73af26a5",
+      "targetId": "结构作用点与代价来源对照_4_42004",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.83
+    },
+    {
+      "id": "rel-59471e8501999a08",
+      "sourceId": "结构工具箱最小语义_4_42002",
+      "targetId": "单结构首轮起步卡_4_42001",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.94
+    },
+    {
+      "id": "rel-59d35b5f11c6a53e",
+      "sourceId": "低频补偿稳态改善路径_3_37003",
+      "targetId": "积分与滞后的稳态改善分工_3_39003",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-64279ce498e1776d",
+      "sourceId": "主矛盾到频段职责映射_4_42003",
+      "targetId": "结构作用点与代价来源对照_4_42004",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.96
     },
     {
       "id": "rel-69067dba4c7cb82e",
@@ -2285,12 +2181,28 @@
       "strength": 0.95
     },
     {
+      "id": "rel-6df90136d86500da",
+      "sourceId": "带宽频率_5_6996a44a",
+      "targetId": "结构作用点与代价来源对照_4_42004",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.86
+    },
+    {
       "id": "rel-781b5d504b4fbbd4",
       "sourceId": "结构选型决策树_4_42009",
       "targetId": "频域PI与滞后整定_4_42010",
       "relation": "leads_to",
       "relationType": "leads_to",
       "strength": 0.91
+    },
+    {
+      "id": "rel-7c74dd94a5cf67da",
+      "sourceId": "主矛盾到频段职责映射_4_42003",
+      "targetId": "反馈保底与前馈补偿边界_4_42005",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.87
     },
     {
       "id": "rel-7d7c42a6a64bd86e",
@@ -2325,6 +2237,38 @@
       "strength": 0.9
     },
     {
+      "id": "rel-8f21746fd2013d26",
+      "sourceId": "结构工具箱最小语义_4_42002",
+      "targetId": "反馈保底与前馈补偿边界_4_42005",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-93571479f8db934d",
+      "sourceId": "按扰动补偿前馈的对消条件_4_42007",
+      "targetId": "单结构首轮起步卡_4_42001",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.87
+    },
+    {
+      "id": "rel-948161cc7d032a4b",
+      "sourceId": "目标驱动PD校正_3_36002",
+      "targetId": "结构工具箱最小语义_4_42002",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.89
+    },
+    {
+      "id": "rel-acfb25e7e85a0324",
+      "sourceId": "反馈保底与前馈补偿边界_4_42005",
+      "targetId": "按扰动补偿前馈的对消条件_4_42007",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.93
+    },
+    {
       "id": "rel-b07eb6ecfb151711",
       "sourceId": "设计任务表达卡_4_41001",
       "targetId": "控制器频域特性矩阵_4_42008",
@@ -2333,12 +2277,36 @@
       "strength": 0.93
     },
     {
+      "id": "rel-b173854885623ba7",
+      "sourceId": "反馈保底与前馈补偿边界_4_42005",
+      "targetId": "单结构首轮起步卡_4_42001",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.88
+    },
+    {
       "id": "rel-c0d4ce4265b149be",
       "sourceId": "控制器频域特性矩阵_4_42008",
       "targetId": "结构作用点与代价来源对照_4_42004",
       "relation": "leads_to",
       "relationType": "leads_to",
       "strength": 0.94
+    },
+    {
+      "id": "rel-c971e26ca1a412ff",
+      "sourceId": "低频补偿稳态改善路径_3_37003",
+      "targetId": "结构工具箱最小语义_4_42002",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-cd99f87302aa82b0",
+      "sourceId": "相角裕度_5_5a74b451",
+      "targetId": "三频段闭环性能回读_3_38003",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.93
     },
     {
       "id": "rel-f60ad592aa9651df",
@@ -2370,6 +2338,38 @@
       "targetId": "频域PI与滞后整定_4_42010",
       "relation": "applies_to",
       "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-fc9f5968d018ef27",
+      "sourceId": "相角裕度_5_5a74b451",
+      "targetId": "低频补偿稳态改善路径_3_37003",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.88
+    },
+    {
+      "id": "rel-feb625fbb1878332",
+      "sourceId": "设计任务表达卡_4_41001",
+      "targetId": "结构工具箱最小语义_4_42002",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.96
+    },
+    {
+      "id": "幅值裕度|带宽频率|5",
+      "sourceId": "幅值裕度_5_73af26a5",
+      "targetId": "带宽频率_5_6996a44a",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.2
+    },
+    {
+      "id": "相角裕度|幅值裕度|5",
+      "sourceId": "相角裕度_5_5a74b451",
+      "targetId": "幅值裕度_5_73af26a5",
+      "relation": "related",
+      "relationType": "related",
       "strength": 0.9
     }
   ]

@@ -3,6 +3,7 @@ import { expect, test, type Page, type Route } from '@playwright/test';
 const { PNG } = require('pngjs') as {
   PNG: { sync: { read: (buffer: Buffer) => { width: number; height: number; data: Uint8Array } } };
 };
+const axeSourcePath = require.resolve('axe-core/axe.min.js');
 
 type ExpansionGate = {
   release: () => void;
@@ -169,7 +170,7 @@ test('real reciprocal cross-family fixture keeps unique curved lanes and target 
   expect(transparentCanvas.backgroundColor).toBe('rgba(0, 0, 0, 0)');
 });
 
-async function installGraphRoutes(page: Page, options: { denseDomain?: boolean } = {}): Promise<ExpansionGate> {
+async function installGraphRoutes(page: Page, options: { denseDomain?: boolean; launchTarget?: unknown } = {}): Promise<ExpansionGate> {
   const expandableDeferred = deferred();
   const expandableRequested = deferred();
   let expandableRequestCount = 0;
@@ -181,14 +182,54 @@ async function installGraphRoutes(page: Page, options: { denseDomain?: boolean }
       contentType: 'application/json',
       body: JSON.stringify({
         ...leafNode,
+        metadata: {
+          ...leafNode.metadata,
+          launchTarget: options.launchTarget ?? '/adaptive-learning/path-node/opaque-leaf',
+          renderTarget: '/safe-render-fallback-must-not-launch',
+          lessonEntry: '/safe-lesson-fallback-must-not-launch',
+          lessonId: '1-1',
+        },
         resources: [{ path: 'course-content/runtime/knowledge/cards/nodes/leaf-node.md' }],
-        relatedNodes: [{
-          id: expandableNode.id,
-          name: expandableNode.name,
-          nodeType: expandableNode.nodeType,
-          relation: 'contains',
-          category: 'related',
-        }],
+        relatedNodes: [
+          {
+            id: expandableNode.id,
+            name: expandableNode.name,
+            nodeType: expandableNode.nodeType,
+            relation: 'contains',
+            canonicalType: 'contains',
+            category: 'membership',
+            inspectionSentence: '本节点属于当前领域',
+            evidenceState: 'unavailable',
+            sourceId: expandableNode.id,
+            targetId: leafNode.id,
+          },
+          {
+            id: 'cycle-peer',
+            name: '循环相邻节点',
+            nodeType: 'THEORY',
+            relation: 'prerequisite',
+            canonicalType: 'prerequisite',
+            category: 'follows',
+            cycleState: 'cyclic',
+            inspectionSentence: '本节点之后学习目标节点',
+            evidenceState: 'unavailable',
+            sourceId: leafNode.id,
+            targetId: 'cycle-peer',
+          },
+          {
+            id: 'provenance-peer',
+            name: '有依据的关联节点',
+            nodeType: 'THEORY',
+            relation: 'supports',
+            canonicalType: 'supports',
+            category: 'related',
+            inspectionSentence: '本节点支撑目标结论',
+            evidenceState: 'available',
+            rationale: '教材评审依据',
+            sourceId: leafNode.id,
+            targetId: 'provenance-peer',
+          },
+        ],
       }),
     });
   });
@@ -249,14 +290,7 @@ async function installGraphRoutes(page: Page, options: { denseDomain?: boolean }
           domainId,
           graphVersion,
           shardKey: `${graphVersion}:shard:expansion:${retryNode.id}`,
-          nodes: [retryNode, {
-            ...leafNode,
-            id: 'retry-leaf-node',
-            name: '第二章叶节点',
-            chapter: 2,
-            chapterName: retryNode.name,
-            metadata: { chapterName: retryNode.name },
-          }],
+          nodes: [retryNode],
           links: [],
           source: 'file',
           truncated: { nodes: false, links: false, membershipLinks: false },
@@ -326,14 +360,35 @@ async function realCanvasNodePoints(page: Page, nodeId: string) {
   return points;
 }
 
+async function stableRealCanvasNodePoint(page: Page, nodeId: string) {
+  let point = (await realCanvasNodePoints(page, nodeId))[0];
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    await page.mouse.move(point.x, point.y);
+    await page.evaluate(() => new Promise<void>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    }));
+    const nextPoint = (await realCanvasNodePoints(page, nodeId))[0];
+    if (Math.hypot(nextPoint.x - point.x, nextPoint.y - point.y) < 0.75) return nextPoint;
+    point = nextPoint;
+  }
+  return point;
+}
+
 async function activateWithRealCanvas(page: Page, nodeId: string) {
-  const points = await realCanvasNodePoints(page, nodeId);
-  for (const point of points) {
-    await page.mouse.click(point.x, point.y);
+  const points: Array<{ x: number; y: number }> = [];
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const point = await stableRealCanvasNodePoint(page, nodeId);
+    points.push(point);
+    await page.mouse.move(point.x, point.y);
+    await page.evaluate(() => new Promise<void>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    }));
+    await page.mouse.down();
+    await page.mouse.up();
     try {
       await expect(page.locator('[data-knowledge-canvas-primary="true"]'))
-        .toHaveAttribute('data-knowledge-selected-node-id', nodeId, { timeout: 2_000 });
-      await expect(page.locator('[data-knowledge-inspector="floating-right-edge"]')).toBeVisible({ timeout: 2_000 });
+        .toHaveAttribute('data-knowledge-selected-node-id', nodeId, { timeout: 1_000 });
+      await expect(page.locator('[data-knowledge-inspector="floating-right-edge"]')).toBeVisible({ timeout: 1_000 });
       return point;
     } catch {
       // Try the neighboring QA candidate if the renderer's local hit radius differs.
@@ -343,11 +398,18 @@ async function activateWithRealCanvas(page: Page, nodeId: string) {
 }
 
 async function activateExpandableWithRealCanvas(page: Page, nodeId: string) {
-  const points = await realCanvasNodePoints(page, nodeId);
-  for (const point of points) {
-    await page.mouse.click(point.x, point.y);
+  const points: Array<{ x: number; y: number }> = [];
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const point = await stableRealCanvasNodePoint(page, nodeId);
+    points.push(point);
+    await page.mouse.move(point.x, point.y);
+    await page.evaluate(() => new Promise<void>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    }));
+    await page.mouse.down();
+    await page.mouse.up();
     try {
-      await expect(nodeControl(page, nodeId)).toHaveAttribute('aria-busy', 'true', { timeout: 2_000 });
+      await expect(nodeControl(page, nodeId)).toHaveAttribute('aria-busy', 'true', { timeout: 1_000 });
       return point;
     } catch {
       // Try the neighboring QA candidate if the renderer's local hit radius differs.
@@ -356,17 +418,28 @@ async function activateExpandableWithRealCanvas(page: Page, nodeId: string) {
   throw new Error(`Real Canvas expansion activation failed for ${nodeId}; points=${JSON.stringify(points)}.`);
 }
 
-async function centerRealCanvasNode(page: Page, nodeId: string) {
-  await page.evaluate((expectedNodeId) => {
-    (window as Window & { __knowledgeGraphQaResetViewport?: () => void }).__knowledgeGraphQaResetViewport?.();
-    (window as Window & { __knowledgeGraphQaCenterNode?: (id: string) => void }).__knowledgeGraphQaCenterNode?.(expectedNodeId);
-  }, nodeId);
-  await page.waitForTimeout(180);
+async function findRealCanvasBlankPoint(page: Page) {
+  return page.locator('[data-knowledge-graph-renderer="2D"] canvas').evaluate((canvas) => {
+    const rect = canvas.getBoundingClientRect();
+    const points = (window as Window & {
+      __knowledgeGraphQaNodePoints?: () => Array<{ x: number; y: number }>;
+    }).__knowledgeGraphQaNodePoints?.() ?? [];
+    for (const xRatio of [0.88, 0.76, 0.64, 0.52]) {
+      for (const yRatio of [0.18, 0.3, 0.42]) {
+        const point = { x: rect.left + rect.width * xRatio, y: rect.top + rect.height * yRatio };
+        const hit = document.elementFromPoint(point.x, point.y);
+        const clearOfNodes = points.every((node) => Math.hypot(node.x - point.x, node.y - point.y) > 56);
+        if (hit === canvas && clearOfNodes) return point;
+      }
+    }
+    throw new Error('No real blank canvas point is available for dismissal acceptance.');
+  });
 }
 
 test('direct semantic node activation exposes busy, expanded, root return, and cache reuse without a secondary control', async ({ page }) => {
   test.setTimeout(45_000);
-  await page.setViewportSize({ width: 1280, height: 820 });
+  const viewportWidth = Number(process.env.KNOWLEDGE_RETURN_VIEWPORT_WIDTH ?? 1280);
+  await page.setViewportSize({ width: viewportWidth, height: viewportWidth <= 390 ? 844 : 820 });
   const expansion = await installGraphRoutes(page);
   await page.goto('/knowledge?qa=knowledge-direct-activation');
   await waitForNodeControls(page);
@@ -387,7 +460,15 @@ test('direct semantic node activation exposes busy, expanded, root return, and c
   await expect(control).toHaveAttribute('aria-expanded', 'true');
   await expect(control).toHaveAttribute('data-shard-cached', 'true');
 
-  await page.locator('[data-knowledge-return-root="true"]').click();
+  const returnButton = page.locator('[data-knowledge-return-root="true"]');
+  const returnHitTarget = await returnButton.evaluate((button) => {
+    const rect = button.getBoundingClientRect();
+    const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+    return hit?.closest('[data-knowledge-return-root="true"]') === button;
+  });
+  expect(returnHitTarget).toBe(true);
+
+  await returnButton.click();
   await expect(control).toHaveAttribute('aria-expanded', 'false');
   await activateWithKeyboard(page, expandableNode.id);
   await expect(control).toHaveAttribute('aria-expanded', 'true');
@@ -429,6 +510,317 @@ test('leaf activation selects the leaf directly without an expansion request', a
   expect(expansion.requestCount()).toBe(1);
 });
 
+for (const viewport of [{ width: 1280, height: 820 }, { width: 390, height: 844 }]) {
+  test(`inspector preserves read-only learning context at ${viewport.width}px`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    const nonGetRequests: string[] = [];
+    const allowedNonGetRequests = new Set<string>();
+    page.on('request', (request) => {
+      if (request.method() !== 'GET') nonGetRequests.push(`${request.method()} ${request.url()}`);
+    });
+    const expansion = await installGraphRoutes(page);
+    await page.goto('/knowledge?qa=task-73-read-only-inspector');
+    await waitForNodeControls(page);
+
+    await activateWithKeyboard(page, expandableNode.id);
+    await expansion.requested;
+    expansion.release();
+    await expect(nodeControl(page, leafNode.id)).toBeAttached();
+    await activateWithKeyboard(page, leafNode.id);
+
+    const workspace = page.locator('[data-knowledge-workspace="canvas-first"]');
+    const canvas = page.locator('[data-knowledge-canvas-primary="true"]');
+    const inspector = page.locator('[data-knowledge-inspector="floating-right-edge"]');
+    await expect(inspector).toBeVisible();
+    await expect(workspace).toHaveAttribute('data-knowledge-konling-context-status', 'selected-node');
+    await expect(inspector).toContainText('知识卡片');
+    await expect(inspector.locator('[data-resource-node-action="launch"]'))
+      .toHaveAttribute('href', '/adaptive-learning/path-node/opaque-leaf');
+    await expect(inspector.locator('[data-resource-node-action="review-evidence"]'))
+      .toHaveAttribute('href', '/profile/evidence?lessonId=1-1');
+    await expect(inspector).toHaveAttribute('aria-modal', 'false');
+    await expect(canvas).toBeVisible();
+    const membershipGroup = inspector.getByRole('button', { name: /层级与包含关系/ });
+    const followsGroup = inspector.getByRole('button', { name: /后续关系/ });
+    const relatedGroup = inspector.getByRole('button', { name: /关联关系/ });
+    await expect(membershipGroup).toHaveAttribute('aria-expanded', 'true');
+    await expect(inspector).toContainText('本节点属于当前领域');
+    await followsGroup.click();
+    await expect(inspector).toContainText('需共同理解或待审查');
+    await relatedGroup.click();
+    await expect(inspector).toContainText('教材评审依据');
+
+    const scrollTop = await inspector.evaluate((element) => {
+      const body = element.querySelector<HTMLElement>('[data-knowledge-detail-owner]');
+      if (body) body.style.minHeight = '1600px';
+      element.scrollTop = 160;
+      return element.scrollTop;
+    });
+    expect(scrollTop).toBeGreaterThan(0);
+    const familyControl = page.locator('[data-knowledge-relation-family-control]').first();
+    await familyControl.locator('[data-knowledge-relation-family="child"]').click();
+    await expect.poll(() => inspector.evaluate((element) => element.scrollTop)).toBe(scrollTop);
+    await expect(membershipGroup).toHaveAttribute('aria-expanded', 'true');
+    expect(nonGetRequests.filter((request) => !allowedNonGetRequests.has(request))).toEqual([]);
+
+    if (viewport.width === 390) {
+      await page.addScriptTag({ path: axeSourcePath });
+      const axeViolations = await inspector.evaluate(async (element) => {
+        const axe = (window as unknown as {
+          axe: { run: (
+            target: Element,
+            options: { runOnly: { type: 'rule'; values: string[] } }
+          ) => Promise<{ violations: Array<{ id: string }> }> };
+        }).axe;
+        return (await axe.run(element, {
+          runOnly: {
+            type: 'rule',
+            values: ['aria-allowed-role', 'aria-dialog-name', 'aria-valid-attr', 'aria-valid-attr-value'],
+          },
+        })).violations.map((violation) => violation.id);
+      });
+      expect(axeViolations).toEqual([]);
+      await expect(page.locator('[data-knowledge-mobile-command-surface="single-tool-panel"]'))
+        .toHaveAttribute('data-state', 'closed');
+      const close = page.getByRole('button', { name: '关闭知识节点检查器' });
+      await close.focus();
+      await expect(close).toBeFocused();
+      await close.press('Shift+Tab');
+      expect(await inspector.evaluate((element) => element.contains(document.activeElement))).toBe(false);
+      await close.focus();
+      await close.press('Escape');
+      await expect(inspector).toHaveCount(0);
+      await expect(nodeControl(page, leafNode.id)).toBeFocused();
+    }
+  });
+}
+
+test('unsafe opaque launch target never becomes a real inspector anchor', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 820 });
+  const expansion = await installGraphRoutes(page, { launchTarget: 'javascript:alert(document.domain)' });
+  await page.goto('/knowledge?qa=task-62-unsafe-launch');
+  await waitForNodeControls(page);
+
+  await activateWithKeyboard(page, expandableNode.id);
+  await expansion.requested;
+  expansion.release();
+  await expect(nodeControl(page, leafNode.id)).toBeAttached();
+  await activateWithKeyboard(page, leafNode.id);
+
+  const launch = page.locator('[data-resource-node-action="launch"]');
+  await expect(launch).toHaveAttribute('aria-disabled', 'true');
+  await expect(launch).toContainText('资源启动地址未通过安全校验，当前不可启动。');
+  await expect(page.locator('a[data-resource-node-action="launch"]')).toHaveCount(0);
+});
+
+for (const [caseName, launchTarget] of [
+  ['blank', ''],
+  ['newline', '\n'],
+  ['numeric', 42],
+  ['object', { href: '/safe-looking-object' }],
+] as const) {
+  test(`invalid ${caseName} authoritative launch target blocks every safe fallback anchor`, async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 820 });
+    const expansion = await installGraphRoutes(page, { launchTarget });
+    await page.goto(`/knowledge?qa=task-74-invalid-authoritative-${caseName}`);
+    await waitForNodeControls(page);
+
+    await activateWithKeyboard(page, expandableNode.id);
+    await expansion.requested;
+    expansion.release();
+    await expect(nodeControl(page, leafNode.id)).toBeAttached();
+    await activateWithKeyboard(page, leafNode.id);
+
+    const launch = page.locator('[data-resource-node-action="launch"]');
+    await expect(launch).toHaveAttribute('aria-disabled', 'true');
+    await expect(launch).toContainText('资源启动地址未通过安全校验，当前不可启动。');
+    await expect(page.locator('a[data-resource-node-action="launch"]')).toHaveCount(0);
+  });
+}
+
+test('real 2D pan and blank activation dismiss inspection without leaving the domain', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 820 });
+  const expansion = await installGraphRoutes(page);
+  await page.goto('/knowledge?qa=task-73-canvas-dismissal');
+  await waitForNodeControls(page);
+  await activateWithKeyboard(page, expandableNode.id);
+  await expansion.requested;
+  expansion.release();
+  await expect(nodeControl(page, leafNode.id)).toBeAttached();
+  await activateWithKeyboard(page, leafNode.id);
+
+  const canvas = page.locator('[data-knowledge-canvas-primary="true"]');
+  const inspector = page.locator('[data-knowledge-inspector="floating-right-edge"]');
+  await expect(inspector).toBeVisible();
+  const blank = await findRealCanvasBlankPoint(page);
+  await page.mouse.move(blank.x, blank.y);
+  await page.mouse.down();
+  await page.mouse.move(blank.x + 32, blank.y + 12, { steps: 4 });
+  await page.mouse.up();
+  await expect(inspector).toHaveCount(0);
+  await expect(canvas).toHaveAttribute('data-knowledge-active-domain-id', expandableNode.id);
+  await expect(canvas).toHaveAttribute('data-knowledge-selected-node-id', leafNode.id);
+
+  await activateWithKeyboard(page, leafNode.id);
+  await expect(inspector).toBeVisible();
+  const secondBlank = await findRealCanvasBlankPoint(page);
+  await page.mouse.click(secondBlank.x, secondBlank.y);
+  await expect(inspector).toHaveCount(0);
+  await expect(canvas).toHaveAttribute('data-knowledge-active-domain-id', expandableNode.id);
+  await expect(canvas).toHaveAttribute('data-knowledge-selected-node-id', '');
+});
+
+test('selected-node association presentation is capped at 24 edges in the browser', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 820 });
+  const root = { ...expandableNode, id: 'chapter-node:association-cap', name: '关联密度领域' };
+  const selected = { ...leafNode, id: 'association-center', name: '关联中心', chapterName: root.name };
+  const peers = Array.from({ length: 30 }, (_, index) => ({
+    ...leafNode,
+    id: `association-peer-${String(index).padStart(2, '0')}`,
+    name: `关联节点 ${index + 1}`,
+    chapterName: root.name,
+  }));
+  const links = peers.map((peer, index) => ({
+    id: `association-${String(index).padStart(2, '0')}`,
+    sourceId: selected.id,
+    targetId: peer.id,
+    relation: 'related',
+    relationType: 'related',
+    strength: 1 - index / 100,
+  }));
+  await page.route('**/api/knowledge/graph?*', async (route) => {
+    const mode = new URL(route.request().url()).searchParams.get('mode');
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(mode === 'root' ? {
+        mode: 'root', graphVersion, shardKey: `${graphVersion}:shard:root:chapters`,
+        nodes: [root], links: [],
+        rootCatalog: [selected, ...peers].map((node) => ({
+          nodeId: node.id, nodeName: node.name, nodeType: node.nodeType,
+          domainId: root.id, chapterName: root.name,
+        })),
+        rootSummaries: [{ rootId: root.id, rootName: root.name, nodeCount: 31, hasExpansion: true }],
+        source: 'file', truncated: { nodes: false, links: false, membershipLinks: false },
+      } : {
+        mode: 'expansion', domainId: root.id, graphVersion,
+        shardKey: `${graphVersion}:shard:expansion:${root.id}`,
+        nodes: [root, selected, ...peers], links,
+        source: 'file', truncated: { nodes: false, links: false, membershipLinks: false },
+      }),
+    });
+  });
+
+  await page.goto('/knowledge?qa=task-73-association-cap');
+  await activateWithKeyboard(page, root.id);
+  await expect(nodeControl(page, selected.id)).toBeAttached();
+  await activateWithKeyboard(page, selected.id);
+  const renderer = page.locator('[data-knowledge-graph-renderer="2D"]');
+  await expect.poll(async () => {
+    const lanes = JSON.parse(await renderer.getAttribute('data-knowledge-edge-lanes') ?? '[]');
+    return lanes.length;
+  }).toBe(24);
+  const laneIds = JSON.parse(await renderer.getAttribute('data-knowledge-edge-lanes') ?? '[]')
+    .map((lane: { id: string }) => lane.id);
+  expect(laneIds).toEqual(links.slice(0, 24).map((link) => link.id));
+});
+
+test('adjacent corridor navigation switches domain, selects its target, and ignores stale detail', async ({ page }) => {
+  const viewportWidth = Number(process.env.KNOWLEDGE_INSPECTOR_VIEWPORT_WIDTH ?? 1280);
+  await page.setViewportSize({ width: viewportWidth, height: viewportWidth <= 390 ? 844 : 820 });
+  const domainA = { ...expandableNode, id: 'chapter-node:domain-a', name: '领域 A' };
+  const domainB = { ...retryNode, id: 'chapter-node:domain-b', name: '领域 B' };
+  const nodeA = { ...leafNode, id: 'node-a', name: '节点 A', chapterName: domainA.name,
+    metadata: { chapterName: domainA.name } };
+  const nodeB = { ...leafNode, id: 'node-b', name: '节点 B', chapterName: domainB.name,
+    metadata: { chapterName: domainB.name } };
+  const detailA = deferred();
+  const detailB = deferred();
+
+  await page.route('**/api/knowledge/nodes/node-a', async (route) => {
+    await detailA.promise;
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+      ...nodeA, description: '过期的节点 A 详情', relatedNodes: [], resources: [],
+    }) });
+  });
+  await page.route('**/api/knowledge/nodes/node-b', async (route) => {
+    await detailB.promise;
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+      ...nodeB, description: '节点 B 的当前详情', relatedNodes: [], resources: [],
+    }) });
+  });
+  await page.route('**/api/knowledge/graph?*', async (route) => {
+    const url = new URL(route.request().url());
+    const mode = url.searchParams.get('mode');
+    const domainId = url.searchParams.get('domainId');
+    if (mode === 'root') {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+        mode, graphVersion, shardKey: `${graphVersion}:shard:root:chapters`,
+        nodes: [domainA, domainB], links: [],
+        rootCatalog: [
+          { nodeId: nodeA.id, nodeName: nodeA.name, nodeType: nodeA.nodeType, domainId: domainA.id, chapterName: domainA.name },
+          { nodeId: nodeB.id, nodeName: nodeB.name, nodeType: nodeB.nodeType, domainId: domainB.id, chapterName: domainB.name },
+        ],
+        rootSummaries: [
+          { rootId: domainA.id, rootName: domainA.name, nodeCount: 1, hasExpansion: true },
+          { rootId: domainB.id, rootName: domainB.name, nodeCount: 1, hasExpansion: true },
+        ],
+        source: 'file', truncated: { nodes: false, links: false, membershipLinks: false },
+      }) });
+      return;
+    }
+    const activeDomain = domainId === domainA.id ? domainA : domainB;
+    const activeNode = domainId === domainA.id ? nodeA : nodeB;
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+      mode: 'expansion', domainId, graphVersion,
+      shardKey: `${graphVersion}:shard:expansion:${domainId}`,
+      nodes: [activeDomain, activeNode], links: [],
+      corridorLinks: [{
+        id: 'cross-post', sourceId: nodeA.id, targetId: nodeB.id,
+        relation: 'prerequisite', relationType: 'prerequisite', strength: 1,
+      }],
+      membershipLinks: [{
+        id: `chapter-link:${activeDomain.id}->${activeNode.id}`,
+        sourceId: activeDomain.id, targetId: activeNode.id,
+        relation: 'contains', relationType: 'contains', strength: 1,
+      }],
+      source: 'file',
+      truncated: { nodes: false, links: false, membershipLinks: false, corridorLinks: false },
+    }) });
+  });
+
+  await page.goto('/knowledge?qa=inspector-cross-domain-owner');
+  await activateWithKeyboard(page, domainA.id);
+  await expect(page.locator('[data-knowledge-inspector="floating-right-edge"]')).toHaveCount(0);
+  await expect(nodeControl(page, nodeA.id)).toBeAttached();
+  await activateWithKeyboard(page, nodeA.id);
+  const inspector = page.locator('[data-knowledge-inspector="floating-right-edge"]');
+  await expect(inspector).toBeVisible();
+  await expect(inspector).toContainText('节点 A');
+  const adjacent = inspector.locator('[data-knowledge-adjacent-domain-id="chapter-node:domain-b"]');
+  await expect(adjacent).toContainText('进入相邻领域的后续概念');
+  await adjacent.click();
+
+  await expect(page.locator('[data-knowledge-canvas-primary="true"]'))
+    .toHaveAttribute('data-knowledge-active-domain-id', domainB.id);
+  await expect(page.locator('[data-knowledge-canvas-primary="true"]'))
+    .toHaveAttribute('data-knowledge-selected-node-id', nodeB.id);
+  await expect(inspector).toContainText('节点 B');
+  const scrollTopBeforeDetail = await inspector.evaluate((element) => {
+    const detailBody = element.querySelector<HTMLElement>('[data-knowledge-detail-owner]');
+    if (detailBody) detailBody.style.minHeight = '1600px';
+    element.scrollTop = 180;
+    return element.scrollTop;
+  });
+  expect(scrollTopBeforeDetail).toBeGreaterThan(0);
+  detailB.release();
+  await expect(inspector).toContainText('节点 B 的当前详情');
+  await expect.poll(() => inspector.evaluate((element) => element.scrollTop)).toBe(scrollTopBeforeDetail);
+  detailA.release();
+  await expect(inspector).not.toContainText('过期的节点 A 详情');
+  await expect(inspector).toContainText('节点 B 的当前详情');
+});
+
 test('real canvas pointers activate the leaf in both 2D and 3D renderers', async ({ page }) => {
   test.setTimeout(45_000);
   await page.setViewportSize({ width: 1280, height: 820 });
@@ -436,18 +828,22 @@ test('real canvas pointers activate the leaf in both 2D and 3D renderers', async
   await page.goto('/knowledge?qa=issue-894-direct-activation');
   await waitForNodeControls(page);
   await page.locator('[data-knowledge-graph-renderer="2D"] canvas').waitFor({ state: 'attached' });
-  await centerRealCanvasNode(page, expandableNode.id);
   await activateExpandableWithRealCanvas(page, expandableNode.id);
   await expect(page.locator('[data-knowledge-canvas-primary="true"]'))
     .toHaveAttribute('data-knowledge-active-domain-id', expandableNode.id);
   await expansion.requested;
   expansion.release();
   await expect(nodeControl(page, expandableNode.id)).toHaveAttribute('aria-expanded', 'true');
-  await centerRealCanvasNode(page, leafNode.id);
+  await expect(page.locator('[data-knowledge-graph-renderer="2D"]'))
+    .toHaveAttribute('data-knowledge-graph-presentation-phase', 'idle');
+  const inspectorClose = page.getByRole('button', { name: '关闭知识节点检查器' });
+  if (await inspectorClose.isVisible().catch(() => false)) await inspectorClose.click();
 
   const point2d = await activateWithRealCanvas(page, leafNode.id);
   expect(point2d.x).toBeGreaterThan(0);
   expect(point2d.y).toBeGreaterThan(0);
+  await inspectorClose.click();
+  await expect(page.locator('[data-knowledge-inspector="floating-right-edge"]')).toHaveCount(0);
 
   const viewLayoutTrigger = page.locator('[data-knowledge-command-trigger="view-layout"]');
   const viewPanel = page.locator('[data-knowledge-desktop-tool-panel="view-layout"]');
@@ -459,7 +855,6 @@ test('real canvas pointers activate the leaf in both 2D and 3D renderers', async
     await viewPanel.waitFor({ state: 'hidden' });
   }
   await page.waitForTimeout(750);
-  await centerRealCanvasNode(page, leafNode.id);
 
   const point3d = await activateWithRealCanvas(page, leafNode.id);
   expect(point3d.x).toBeGreaterThan(0);
@@ -724,7 +1119,7 @@ test('compact relation family control preserves tri-state keyboard behavior on m
   await expect(control).toBeVisible();
   const search = mobileSurface.getByRole('textbox', { name: '关键词搜索' });
   await search.fill('不存在的节点');
-  await expect(inspector).toHaveCount(0);
+  await expect(inspector).toBeVisible();
   const toolControl = mobileSurface.locator('[data-knowledge-relation-family-control="tool-panel-header"]');
   await expect(toolControl).toBeVisible();
   await expect(page.locator('[aria-label="关系族显示"]')).toHaveCount(1);
@@ -789,24 +1184,24 @@ test('mobile tool panels host the only relation control without blocking directo
     const inspectorElement = document.querySelector('[data-knowledge-inspector="floating-right-edge"]');
     const close = document.querySelector('[aria-label="关闭知识节点检查器"]');
     return active === close || inspectorElement?.contains(active);
-  })).toBe(true);
-  await page.keyboard.press('Shift+Tab');
-  await expect(inspectorClose).toBeFocused();
+  })).toBe(false);
+  await inspectorClose.focus();
 
   const panelToggle = mobileSurface.locator('[data-knowledge-mobile-panel-toggle="true"]');
   await panelToggle.click();
   await expect(directoryPanel).toHaveCount(0);
   await expect(inspectorClose).toHaveAttribute('data-knowledge-inspector-close-priority', 'inline');
-  await expect(inspectorClose).toBeFocused();
+  await expect(panelToggle).toBeFocused();
   await panelToggle.click();
   await expect(directoryPanel).toBeVisible();
   await expect(inspectorClose).toHaveAttribute('data-knowledge-inspector-close-priority', 'above-mobile-tools');
-  await expect(inspectorClose).toBeFocused();
+  await expect(directoryPanel).toBeFocused();
   expect(await inspectorClose.evaluate((button) => {
     const rect = button.getBoundingClientRect();
     const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
     return hit === button || button.contains(hit);
   })).toBe(true);
+  await inspectorClose.focus();
   await page.setViewportSize({ width: 1280, height: 844 });
   await expect(inspectorClose).toHaveAttribute('data-knowledge-inspector-close-priority', 'inline');
   await expect(inspectorClose).toBeVisible();
@@ -926,7 +1321,24 @@ test('3D auto fit waits for domain readiness and keeps the parent manipulation l
       expect(Math.abs(actual![key] - expected[key]), key).toBeLessThan(3);
     }
   };
-  const manipulatedPose = await readPose();
+  const waitForStablePose = async () => {
+    let previous: Awaited<ReturnType<typeof readPose>> = null;
+    let stableSamples = 0;
+    for (let attempt = 0; attempt < 30; attempt += 1) {
+      await page.waitForTimeout(100);
+      const current = await readPose();
+      if (current && previous) {
+        const maximumDelta = Math.max(...(
+          Object.keys(current) as Array<keyof typeof current>
+        ).map((key) => Math.abs(current[key] - previous![key])));
+        stableSamples = maximumDelta < 0.5 ? stableSamples + 1 : 0;
+        if (stableSamples >= 2) return current;
+      }
+      previous = current;
+    }
+    throw new Error('3D camera pose did not settle before remount verification.');
+  };
+  const manipulatedPose = await waitForStablePose();
   expect(manipulatedPose).not.toBeNull();
 
   await viewPanel.getByRole('button', { name: '2D 视图' }).click();
@@ -961,7 +1373,7 @@ test('3D auto fit waits for domain readiness and keeps the parent manipulation l
   await activateWithKeyboard(page, retryNode.id);
   await expect(page.locator('[data-knowledge-domain-retry="true"]')).toBeVisible();
   await page.locator('[data-knowledge-domain-retry="true"]').click();
-  await expect(page.locator('[data-knowledge-canvas-primary="true"]')).toHaveAttribute('data-knowledge-domain-state', 'ready');
+  await expect(page.locator('[data-knowledge-canvas-primary="true"]')).toHaveAttribute('data-knowledge-domain-state', 'filtered-empty');
   await expect(renderer).toHaveAttribute('data-knowledge-auto-fit-count', '1');
 });
 

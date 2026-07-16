@@ -13,6 +13,120 @@ export const KNOWLEDGE_GRAPH_MOTION = {
   individualStaggerLimit: 24,
 } as const;
 
+export const KNOWLEDGE_GRAPH_CORRIDOR_MOTION = {
+  maxMarkers: 3,
+  travelDurationMs: 1_200,
+  pauseDurationMs: 360,
+} as const;
+
+export const KNOWLEDGE_GRAPH_CORRIDOR_MARKER_GEOMETRY = {
+  frontExtent: 5,
+  backExtent: 4,
+  halfWidth: 4,
+} as const;
+
+export function selectKnowledgeGraphMotionMarkerEdgeIds({
+  active,
+  motionEligibleEdgeIds,
+  motionSuppressedEdgeIds,
+  visibleEdgeIds,
+}: {
+  active: boolean;
+  motionEligibleEdgeIds: readonly string[];
+  motionSuppressedEdgeIds: readonly string[];
+  visibleEdgeIds?: readonly string[];
+}): string[] {
+  if (!active) return [];
+  const suppressed = new Set(motionSuppressedEdgeIds);
+  const visible = visibleEdgeIds ? new Set(visibleEdgeIds) : null;
+  return [...new Set(motionEligibleEdgeIds)]
+    .filter((edgeId) => !suppressed.has(edgeId) && (!visible || visible.has(edgeId)))
+    .sort((left, right) => left < right ? -1 : left > right ? 1 : 0)
+    .slice(0, KNOWLEDGE_GRAPH_CORRIDOR_MOTION.maxMarkers);
+}
+
+export function getKnowledgeGraphMotionMarkerFrame(elapsedMs: number) {
+  const boundedElapsedMs = Number.isFinite(elapsedMs) ? Math.max(0, elapsedMs) : 0;
+  const cycleDurationMs = KNOWLEDGE_GRAPH_CORRIDOR_MOTION.travelDurationMs
+    + KNOWLEDGE_GRAPH_CORRIDOR_MOTION.pauseDurationMs;
+  const cycleElapsedMs = boundedElapsedMs % cycleDurationMs;
+  if (cycleElapsedMs >= KNOWLEDGE_GRAPH_CORRIDOR_MOTION.travelDurationMs) {
+    return { visible: false, progress: 1 };
+  }
+  return {
+    visible: true,
+    progress: cycleElapsedMs / KNOWLEDGE_GRAPH_CORRIDOR_MOTION.travelDurationMs,
+  };
+}
+
+export function createKnowledgeGraphMotionScopeKey({
+  graphVersion,
+  selectedNodeId,
+  visibleNodeIds,
+  motionEligibleEdgeIds,
+}: {
+  graphVersion: string | null;
+  selectedNodeId: string | null;
+  visibleNodeIds: readonly string[];
+  motionEligibleEdgeIds: readonly string[];
+}): string {
+  return JSON.stringify({
+    graphVersion,
+    selectedNodeId,
+    visibleNodeIds: [...visibleNodeIds].sort(),
+    motionEligibleEdgeIds: [...motionEligibleEdgeIds].sort(),
+  });
+}
+
+export class KnowledgeGraphMotionFrameLoop {
+  private frameId: number | null = null;
+  private key: string | null = null;
+  private startedAtMs = 0;
+  private onFrame: ((elapsedMs: number) => void) | null = null;
+
+  constructor(private readonly clock: {
+    now: () => number;
+    requestFrame: (callback: FrameRequestCallback) => number;
+    cancelFrame: (frameId: number) => void;
+  }) {}
+
+  start(key: string, onFrame: (elapsedMs: number) => void) {
+    this.stop();
+    this.key = key;
+    this.onFrame = onFrame;
+    this.startedAtMs = this.clock.now();
+    onFrame(0);
+    this.frameId = this.clock.requestFrame(this.tick);
+  }
+
+  stop() {
+    if (this.frameId !== null) this.clock.cancelFrame(this.frameId);
+    this.frameId = null;
+    this.key = null;
+    this.onFrame = null;
+  }
+
+  dispose() {
+    this.stop();
+  }
+
+  isRunning() {
+    return this.frameId !== null;
+  }
+
+  pendingFrameCount() {
+    return this.frameId === null ? 0 : 1;
+  }
+
+  private readonly tick = (now: number) => {
+    const activeKey = this.key;
+    if (!activeKey || !this.onFrame) return;
+    this.frameId = null;
+    this.onFrame(Math.max(0, now - this.startedAtMs));
+    if (this.key === activeKey) this.frameId = this.clock.requestFrame(this.tick);
+  };
+}
+
 export function getKnowledgeGraphMotionMarkerPose(
   path: KnowledgeGraphEdgePath,
   progress: number,
@@ -20,6 +134,79 @@ export function getKnowledgeGraphMotionMarkerPose(
   return {
     point: getKnowledgeGraphPathPoint(path, progress),
     tangent: getKnowledgeGraphPathTangent(path, progress),
+  };
+}
+
+const MOTION_PATH_SAMPLE_COUNT = 64;
+
+export function getKnowledgeGraphMotionMarkerPlacement(
+  path: KnowledgeGraphEdgePath,
+  progress: number,
+  extents: { backExtent: number; frontExtent: number } = KNOWLEDGE_GRAPH_CORRIDOR_MARKER_GEOMETRY,
+) {
+  const samples = Array.from({ length: MOTION_PATH_SAMPLE_COUNT + 1 }, (_, index) => ({
+    progress: index / MOTION_PATH_SAMPLE_COUNT,
+    point: getKnowledgeGraphPathPoint(path, index / MOTION_PATH_SAMPLE_COUNT),
+  }));
+  const cumulativeLengths = [0];
+  for (let index = 1; index < samples.length; index += 1) {
+    const previous = samples[index - 1].point;
+    const current = samples[index].point;
+    cumulativeLengths.push(cumulativeLengths[index - 1]
+      + Math.hypot(current.x - previous.x, current.y - previous.y, current.z - previous.z));
+  }
+  const pathLength = cumulativeLengths[cumulativeLengths.length - 1];
+  const footprintLength = extents.backExtent + extents.frontExtent;
+  if (path.hiddenReason || pathLength <= footprintLength) {
+    return {
+      visible: false,
+      pathLength,
+      centerDistance: 0,
+      progress: 0,
+      ...getKnowledgeGraphMotionMarkerPose(path, 0),
+    };
+  }
+  const normalizedProgress = Number.isFinite(progress) ? Math.min(1, Math.max(0, progress)) : 0;
+  const centerDistance = extents.backExtent
+    + normalizedProgress * (pathLength - footprintLength);
+  let sampleIndex = 1;
+  while (sampleIndex < cumulativeLengths.length - 1
+    && cumulativeLengths[sampleIndex] < centerDistance) sampleIndex += 1;
+  const beforeDistance = cumulativeLengths[sampleIndex - 1];
+  const segmentLength = cumulativeLengths[sampleIndex] - beforeDistance;
+  const segmentProgress = segmentLength > 0 ? (centerDistance - beforeDistance) / segmentLength : 0;
+  const pathProgress = samples[sampleIndex - 1].progress
+    + segmentProgress * (samples[sampleIndex].progress - samples[sampleIndex - 1].progress);
+  return {
+    visible: true,
+    pathLength,
+    centerDistance,
+    progress: pathProgress,
+    ...getKnowledgeGraphMotionMarkerPose(path, pathProgress),
+  };
+}
+
+export function bindKnowledgeGraphMotionEnvironment({
+  documentTarget,
+  mediaQuery,
+  suspend,
+  resume,
+}: {
+  documentTarget: Pick<Document, 'hidden' | 'addEventListener' | 'removeEventListener'>;
+  mediaQuery: Pick<MediaQueryList, 'matches' | 'addEventListener' | 'removeEventListener'>;
+  suspend: () => void;
+  resume: () => void;
+}) {
+  const update = () => {
+    if (documentTarget.hidden || mediaQuery.matches) suspend();
+    else resume();
+  };
+  documentTarget.addEventListener('visibilitychange', update);
+  mediaQuery.addEventListener?.('change', update);
+  update();
+  return () => {
+    documentTarget.removeEventListener('visibilitychange', update);
+    mediaQuery.removeEventListener?.('change', update);
   };
 }
 
@@ -291,5 +478,6 @@ export class KnowledgeGraphTransitionGate {
 
 export function prefersReducedKnowledgeGraphMotion() {
   return typeof window !== 'undefined'
+    && typeof window.matchMedia === 'function'
     && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }

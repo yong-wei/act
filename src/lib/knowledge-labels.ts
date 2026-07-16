@@ -54,6 +54,17 @@ export const RELATION_TYPE_LABELS: Record<string, string> = {
   quantified_by: '量化指标',
   uses: '使用工具',
   visualized_by: '图形呈现',
+  causes: '因果作用',
+  demonstrates: '示范说明',
+  equivalent_to: '条件等价',
+  exemplifies: '举例说明',
+  extends: '概念扩展',
+  has_stage: '过程阶段',
+  precedes: '演化先后',
+  produces: '产生结果',
+  provides_context: '提供语境',
+  refined_by: '被精化',
+  refines: '精化概念',
   influences: '影响',
   defines: '定义',
   implements: '实现',
@@ -112,16 +123,6 @@ export function getRelationLabel(relation?: string | null) {
     throw new Error(`Unknown knowledge graph relation type: ${String(relation ?? '')}`);
   }
   return RELATION_TYPE_LABELS[contract.canonicalType];
-}
-
-// 获取关系类型的分类（用于列表显示）
-export function getRelationCategory(relation?: string | null): 'membership' | 'prerequisite' | 'follows' | 'related' {
-  const contract = getKnowledgeGraphRelationContract(relation);
-  if (!contract) {
-    throw new Error(`Unknown knowledge graph relation type: ${String(relation ?? '')}`);
-  }
-  if (contract.family === 'child') return 'membership';
-  return contract.family === 'association' ? 'related' : 'prerequisite';
 }
 
 export function resolveChapterName(chapter?: number, chapterName?: string | null): string {

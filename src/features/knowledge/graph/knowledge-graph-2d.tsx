@@ -32,16 +32,23 @@ import {
   type KnowledgeGraphLabelMode,
 } from './label-policy';
 import {
+  createKnowledgeGraphMotionScopeKey,
+  bindKnowledgeGraphMotionEnvironment,
   createKnowledgeGraphRevealPlan,
+  getKnowledgeGraphMotionMarkerFrame,
+  getKnowledgeGraphMotionMarkerPlacement,
   getKnowledgeGraphPresentationLinkOpacity,
   getKnowledgeGraphPresentationLinkProgress,
   getKnowledgeGraphPresentationNodeScale,
   getKnowledgeGraphPresentationNodeOpacity,
   IDLE_KNOWLEDGE_GRAPH_PRESENTATION,
+  KnowledgeGraphMotionFrameLoop,
   KnowledgeGraphTransitionGate,
   type KnowledgeGraphPresentationState,
   KNOWLEDGE_GRAPH_MOTION,
+  KNOWLEDGE_GRAPH_CORRIDOR_MARKER_GEOMETRY,
   prefersReducedKnowledgeGraphMotion,
+  selectKnowledgeGraphMotionMarkerEdgeIds,
 } from './motion';
 import { KnowledgeGraphCameraTransition } from './camera-transition';
 import {
@@ -87,9 +94,15 @@ import {
   getKnowledgeGraphNodeEmphasisOpacity,
   getKnowledgeGraphPartialEdgePath,
   getKnowledgeGraphPresentationLinkKey,
+  getKnowledgeGraphPresentationFamily,
+  selectKnowledgeGraphStructuralForegroundEdgeIds,
   sampleKnowledgeGraphEdgePath,
   type KnowledgeGraphSelectedCorridorEmphasis,
 } from './edge-presentation';
+import {
+  installKnowledgeGraphTask74Snapshot,
+  isKnowledgeGraphTask74PerformanceQa,
+} from './performance-snapshot';
 
 interface KnowledgeGraph2DProps {
   nodes: KnowledgeNodeData[];
@@ -301,10 +314,16 @@ export function KnowledgeGraph2D({
   const presentationGenerationRef = useRef(0);
   const presentationGateRef = useRef(new KnowledgeGraphTransitionGate());
   const cameraTransitionRef = useRef(new KnowledgeGraphCameraTransition());
+  const motionFrameLoopRef = useRef<KnowledgeGraphMotionFrameLoop | null>(null);
+  const motionElapsedMsRef = useRef(0);
   const [presentation, setPresentation] = useState<KnowledgeGraphPresentationState>(
     IDLE_KNOWLEDGE_GRAPH_PRESENTATION
   );
   const [viewportRevision, setViewportRevision] = useState(0);
+  const [layoutSettledRevision, setLayoutSettledRevision] = useState(0);
+  const settledLayoutSignatureRef = useRef('');
+  const [reducedMotion, setReducedMotion] = useState(false);
+  const [motionEnvironmentActive, setMotionEnvironmentActive] = useState(false);
   useEffect(() => {
     const handleResize = () => setViewportRevision((value) => value + 1);
     window.addEventListener('resize', handleResize);
@@ -356,6 +375,7 @@ export function KnowledgeGraph2D({
   useEffect(() => () => {
     presentationGateRef.current.dispose();
     cameraTransitionRef.current.dispose();
+    motionFrameLoopRef.current?.dispose();
   }, []);
 
   // 1. 处理数据并应用布局
@@ -418,6 +438,69 @@ export function KnowledgeGraph2D({
       links: transformedLinks
     };
   }, [nodes, links, relayoutVersion, layoutState, expandedNodeIds, expandedDirectLinks, activationSequenceByCenterId, materializedNodeIds, graphVersion, width, height, lessonOrderNodeIds, teachingOrderLinks]);
+  const structuralForegroundEdgeIdSet = useMemo(() => new Set(
+    selectKnowledgeGraphStructuralForegroundEdgeIds(graphData.links),
+  ), [graphData.links]);
+
+  const motionMarkerEdgeIds = useMemo(() => selectKnowledgeGraphMotionMarkerEdgeIds({
+    active: Boolean(selectedCorridorEmphasis?.selectedNodeId),
+    motionEligibleEdgeIds: selectedCorridorEmphasis?.motionEligibleEdgeIds ?? [],
+    motionSuppressedEdgeIds: selectedCorridorEmphasis?.motionSuppressedEdgeIds ?? [],
+    visibleEdgeIds: graphData.links.map((link) => getKnowledgeGraphPresentationLinkKey(link)),
+  }), [graphData.links, selectedCorridorEmphasis]);
+  const motionMarkerEdgeIdSet = useMemo(() => new Set(motionMarkerEdgeIds), [motionMarkerEdgeIds]);
+  const motionScopeKey = createKnowledgeGraphMotionScopeKey({
+    graphVersion,
+    selectedNodeId: selectedCorridorEmphasis?.selectedNodeId ?? null,
+    visibleNodeIds: graphData.nodes.map((node) => node.id),
+    motionEligibleEdgeIds: motionMarkerEdgeIds,
+  });
+
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') {
+      setReducedMotion(false);
+      setMotionEnvironmentActive(true);
+      return;
+    }
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    return bindKnowledgeGraphMotionEnvironment({
+      documentTarget: document,
+      mediaQuery,
+      suspend: () => {
+        motionFrameLoopRef.current?.stop();
+        motionElapsedMsRef.current = 0;
+        setReducedMotion(mediaQuery.matches);
+        setMotionEnvironmentActive(false);
+        fgRef.current?.refresh?.();
+      },
+      resume: () => {
+        setReducedMotion(false);
+        setMotionEnvironmentActive(true);
+      },
+    });
+  }, []);
+
+  useEffect(() => {
+    const motionDisabled = !motionEnvironmentActive || reducedMotion || prefersReducedKnowledgeGraphMotion();
+    if (motionDisabled || motionMarkerEdgeIds.length === 0) {
+      const shouldRefresh = motionElapsedMsRef.current > 0 || motionMarkerEdgeIds.length > 0;
+      motionFrameLoopRef.current?.stop();
+      motionElapsedMsRef.current = 0;
+      if (shouldRefresh) fgRef.current?.refresh?.();
+      return;
+    }
+    const loop = motionFrameLoopRef.current ?? new KnowledgeGraphMotionFrameLoop({
+      now: () => performance.now(),
+      requestFrame: (callback) => window.requestAnimationFrame(callback),
+      cancelFrame: (frameId) => window.cancelAnimationFrame(frameId),
+    });
+    motionFrameLoopRef.current = loop;
+    loop.start(motionScopeKey, (elapsedMs) => {
+      motionElapsedMsRef.current = elapsedMs;
+      fgRef.current?.refresh?.();
+    });
+    return () => loop.stop();
+  }, [motionEnvironmentActive, motionMarkerEdgeIds.length, motionScopeKey, reducedMotion]);
 
   useEffect(() => {
     cameraTransitionRef.current.cancel();
@@ -582,10 +665,17 @@ export function KnowledgeGraph2D({
     });
   }, []);
 
+  const layoutSignature = `${graphVersion ?? 'pending'}:${relayoutVersion}:${graphData.nodes.map((node) => node.id).join('|')}`;
   const snapshotRuntimePositions = useCallback(() => {
     const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
     graphNodes.forEach(rememberRuntimeNodePosition);
   }, [graphData.nodes, rememberRuntimeNodePosition]);
+  const handleEngineStop = useCallback(() => {
+    snapshotRuntimePositions();
+    if (settledLayoutSignatureRef.current === layoutSignature) return;
+    settledLayoutSignatureRef.current = layoutSignature;
+    setLayoutSettledRevision((revision) => revision + 1);
+  }, [layoutSignature, snapshotRuntimePositions]);
 
   useEffect(() => {
     const qaWindow = window as Window & {
@@ -911,7 +1001,11 @@ export function KnowledgeGraph2D({
       : 1;
     const focusState = hoveredNode?.id
       ? (source.id === hoveredNode.id || target.id === hoveredNode.id ? 'active' : 'dimmed')
-      : getKnowledgeGraphEdgeEmphasisState({ link, emphasis: selectedCorridorEmphasis });
+      : getKnowledgeGraphEdgeEmphasisState({
+        link,
+        emphasis: selectedCorridorEmphasis,
+        structuralForegroundEdgeIds: structuralForegroundEdgeIdSet,
+      });
     const alpha = getKnowledgeGraphEffectiveEdgeOpacity(style, strength, focusState)
       * getKnowledgeGraphPresentationLinkOpacity({
         ...presentation,
@@ -975,9 +1069,32 @@ export function KnowledgeGraph2D({
       ctx.fill();
     }
 
+    const linkKey = getKnowledgeGraphPresentationLinkKey(link);
+    const motionEdgeEligible = motionMarkerEdgeIdSet.has(linkKey)
+      || (typeof link.id === 'string' && motionMarkerEdgeIdSet.has(link.id));
+    if (motionEdgeEligible && linkProgress >= 0.999 && motionEnvironmentActive && !reducedMotion) {
+      const markerFrame = getKnowledgeGraphMotionMarkerFrame(motionElapsedMsRef.current);
+      if (markerFrame.visible) {
+        const marker = getKnowledgeGraphMotionMarkerPlacement(fullPath, markerFrame.progress);
+        if (marker.visible) {
+          ctx.save();
+          ctx.translate(marker.point.x, marker.point.y);
+          ctx.rotate(Math.atan2(marker.tangent.y, marker.tangent.x));
+          ctx.fillStyle = hexToRgba(strokeColor, Math.max(alpha, 0.82));
+          ctx.beginPath();
+          ctx.moveTo(KNOWLEDGE_GRAPH_CORRIDOR_MARKER_GEOMETRY.frontExtent, 0);
+          ctx.lineTo(-KNOWLEDGE_GRAPH_CORRIDOR_MARKER_GEOMETRY.backExtent, KNOWLEDGE_GRAPH_CORRIDOR_MARKER_GEOMETRY.halfWidth);
+          ctx.lineTo(-KNOWLEDGE_GRAPH_CORRIDOR_MARKER_GEOMETRY.backExtent, -KNOWLEDGE_GRAPH_CORRIDOR_MARKER_GEOMETRY.halfWidth);
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+    }
+
     // 重置虚线设置
     ctx.setLineDash([]);
-  }, [hoveredNode?.id, isLightTheme, laneCurvatureByLinkKey, presentation, selectedCorridorEmphasis, selectedNode?.id]);
+  }, [hoveredNode?.id, isLightTheme, laneCurvatureByLinkKey, motionEnvironmentActive, motionMarkerEdgeIdSet, presentation, reducedMotion, selectedCorridorEmphasis, selectedNode?.id, structuralForegroundEdgeIdSet]);
 
   const handleNodeDragEnd = useCallback((node: any) => {
     labelProjectionRevisionRef.current += 1;
@@ -1133,18 +1250,20 @@ export function KnowledgeGraph2D({
     const fitSignature = `${fitViewRequest.id}:${width ?? 800}:${height ?? 600}:${window.devicePixelRatio}:${relayoutVersion}`;
     if (consumedFitSignatureRef.current === fitSignature) return;
     if (fitViewRequest.target === 'root' && !isCompactKnowledgeRootSet(nodes)) return;
-    const fit = getKnowledgeGraphViewportFit({
-      nodes: graphData.nodes.map((node: any) => ({
-        id: node.id,
-        x: node.x ?? 0,
-        y: node.y ?? 0,
+    if (graphData.nodes.length > 1 && settledLayoutSignatureRef.current !== layoutSignature) return;
+    const positionedNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes).map((node: any) => ({
+      id: node.id,
+      x: node.x ?? 0,
+      y: node.y ?? 0,
+      bodyRadius: getKnowledgeNodeMaximumPresentationRadius(node),
+      importance: node.importance,
+      labelBounds: getKnowledgeNodeLabelBounds({
+        name: node.name,
         bodyRadius: getKnowledgeNodeMaximumPresentationRadius(node),
-        importance: node.importance,
-        labelBounds: getKnowledgeNodeLabelBounds({
-          name: node.name,
-          bodyRadius: getKnowledgeNodeMaximumPresentationRadius(node),
-        }),
-      })),
+      }),
+    }));
+    const fit = getKnowledgeGraphViewportFit({
+      nodes: positionedNodes,
       width: width ?? 800,
       height: height ?? 600,
       padding: getKnowledgeGraphViewportSafeInsets({ width: width ?? 800, height: height ?? 600 }),
@@ -1163,7 +1282,7 @@ export function KnowledgeGraph2D({
       if (fitTimerRef.current !== null) window.clearTimeout(fitTimerRef.current);
       fitTimerRef.current = null;
     };
-  }, [fitViewRequest, graphData.nodes, height, hoveredNode?.id, labelMode, nodes, relayoutVersion, selectedNode?.id, viewportRevision, width]);
+  }, [fitViewRequest, graphData.nodes, height, hoveredNode?.id, labelMode, layoutSettledRevision, layoutSignature, nodes, relayoutVersion, selectedNode?.id, viewportRevision, width]);
 
   useEffect(() => {
     const cameraTransition = cameraTransitionRef.current;
@@ -1284,6 +1403,96 @@ export function KnowledgeGraph2D({
     fgRef.current?.refresh?.();
   }, [graphData, layoutState]);
 
+  useEffect(() => {
+    if (!isKnowledgeGraphTask74PerformanceQa(window.location.search)) return;
+    return installKnowledgeGraphTask74Snapshot(window, () => {
+      const currentWidth = width ?? 800;
+      const currentHeight = height ?? 600;
+      const scale = Number(fgRef.current?.zoom?.() ?? 1);
+      const projector = fgRef.current?.graph2ScreenCoords as ((x: number, y: number) => { x: number; y: number }) | undefined;
+      const nodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as Array<KnowledgeNodeData & {
+        x?: number;
+        y?: number;
+        graphDegree?: number;
+        graphImportanceScore?: number;
+      }>;
+      const placements = getFrameLabelPlacements(scale);
+      const bodyBounds = nodes.flatMap((node) => {
+        const point = projector?.(Number(node.x ?? node.positionX), Number(node.y ?? node.positionY));
+        if (!point || ![point.x, point.y].every(Number.isFinite)) return [];
+        const focused = selectedNode?.id === node.id
+          || hoveredNode?.id === node.id
+          || Boolean(selectedCorridorEmphasis?.nodeIds.includes(node.id));
+        const naturalRadius = getKnowledgeNodeScale({
+          metadata: node.metadata,
+          degree: node.graphDegree,
+          focused,
+          importanceScore: node.graphImportanceScore,
+        }).radius * getKnowledgeGraphPresentationNodeScale({ ...presentationRef.current, nodeId: node.id });
+        const radius = naturalRadius * scale;
+        if (point.x + radius < 0 || point.x - radius > currentWidth || point.y + radius < 0 || point.y - radius > currentHeight) return [];
+        return [{ id: node.id, x: point.x - radius, y: point.y - radius, width: radius * 2, height: radius * 2, radius }];
+      });
+      const labelBounds = nodes.flatMap((node) => {
+        const point = projector?.(Number(node.x ?? node.positionX), Number(node.y ?? node.positionY));
+        const placement = placements.get(node.id);
+        if (!point || !placement?.visible || ![point.x, point.y].every(Number.isFinite)) return [];
+        const layout = layoutKnowledgeNodeLabel(node.name);
+        const labelWidth = layout.width * placement.fontSize / KNOWLEDGE_NODE_LABEL_POLICY.fontSize;
+        const labelHeight = layout.height * placement.fontSize / KNOWLEDGE_NODE_LABEL_POLICY.fontSize;
+        const centerX = point.x + placement.offsetX;
+        const centerY = point.y + placement.offsetY;
+        return [{ id: node.id, x: centerX - labelWidth / 2, y: centerY - labelHeight / 2, width: labelWidth, height: labelHeight }];
+      });
+      return {
+        renderMode: '2D',
+        visibleNodeIds: nodes.map((node) => node.id).sort(),
+        bodyIds: bodyBounds.map((bound) => bound.id).sort(),
+        labelIds: labelBounds.map((bound) => bound.id).sort(),
+        visibleLineIds: graphData.links
+          .map((link) => getKnowledgeGraphPresentationLinkKey(link))
+          .sort(),
+        bodyBounds: bodyBounds.sort((left, right) => left.id.localeCompare(right.id)),
+        labelBounds: labelBounds.sort((left, right) => left.id.localeCompare(right.id)),
+        canonicalEdges: graphData.links.map((link: any) => {
+          const family = getKnowledgeGraphPresentationFamily(link);
+          return {
+            id: getKnowledgeGraphPresentationLinkKey(link),
+            family,
+            direction: family === 'association' ? 'unordered' as const : 'source-to-target' as const,
+            sourceId: typeof link.source === 'object' ? link.source.id : link.sourceId,
+            targetId: typeof link.target === 'object' ? link.target.id : link.targetId,
+          };
+        }).sort((left, right) => left.id.localeCompare(right.id)),
+        corridorIds: {
+          nodeIds: [...(selectedCorridorEmphasis?.nodeIds ?? [])].sort(),
+          edgeIds: [...(selectedCorridorEmphasis?.edgeIds ?? [])].sort(),
+        },
+        markerCount: !motionEnvironmentActive || reducedMotion ? 0 : motionMarkerEdgeIds.length,
+        viewportCoverage: {
+          declared: nodes.length,
+          body: bodyBounds.length,
+          label: labelBounds.length,
+          eligible: placements.size,
+          deferred: [...placements.values()].filter((placement) => !placement.visible).length,
+          visibleLine: graphData.links.length,
+        },
+        camera: { mode: 'orthographic-2d', zoom: scale },
+      };
+    });
+  }, [
+    getFrameLabelPlacements,
+    graphData,
+    height,
+    hoveredNode?.id,
+    motionEnvironmentActive,
+    motionMarkerEdgeIds.length,
+    reducedMotion,
+    selectedCorridorEmphasis,
+    selectedNode?.id,
+    width,
+  ]);
+
   return (
     <div
       className="relative h-full w-full"
@@ -1300,6 +1509,7 @@ export function KnowledgeGraph2D({
       data-knowledge-graph-presentation-elapsed-ms={String(presentation.elapsedMs ?? 0)}
       data-knowledge-graph-animated-node-count={String(presentation.animatedNodeIds?.length ?? 0)}
       data-knowledge-graph-animated-relation-count={String(presentation.animatedRelationIds?.length ?? 0)}
+      data-knowledge-motion-marker-count={!motionEnvironmentActive || reducedMotion ? '0' : String(motionMarkerEdgeIds.length)}
       onPointerDownCapture={handleCanvasPointerDown}
       onPointerMoveCapture={handleCanvasPointerMove}
       onPointerUpCapture={handleCanvasPointerUp}
@@ -1330,7 +1540,7 @@ export function KnowledgeGraph2D({
         onNodeDrag={handleNodeDrag}
         onNodeDragEnd={handleNodeDragEnd}
         onBackgroundClick={handleBackgroundClick}
-        onEngineStop={snapshotRuntimePositions}
+        onEngineStop={handleEngineStop}
         onEngineTick={handleEngineTick}
         enableNodeDrag={true}
 

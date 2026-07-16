@@ -34,6 +34,30 @@ describe('ResourcePanel relation detail behavior', () => {
     vi.restoreAllMocks();
   });
 
+  it('does not render a launch anchor when an invalid authoritative target coexists with safe fallbacks', async () => {
+    const node = {
+      id: 'unsafe-launch', name: '不安全启动节点', nodeType: 'THEORY' as const,
+      description: '详情', positionX: 0, positionY: 0, positionZ: 0,
+      resources: ['/safe-resource-fallback'],
+      metadata: {
+        launchTarget: '\n',
+        renderTarget: '/safe-render-fallback',
+        lessonEntry: '/safe-lesson-fallback',
+        lessonId: 'lesson-safe-fallback',
+      },
+    };
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('{}', { status: 404 })));
+
+    await act(async () => {
+      root.render(createElement(ResourcePanel, { isOpen: true, selectedNode: node, onClose: () => {} }));
+      await Promise.resolve();
+    });
+
+    expect(container.querySelector('a[data-resource-node-action="launch"]')).toBeNull();
+    expect(container.querySelector('[data-resource-node-action="launch"][aria-disabled="true"]')).not.toBeNull();
+    expect(container.textContent).toContain('资源启动地址未通过安全校验');
+  });
+
   it('renders child, cycle, concrete provenance, and per-field truncation notices', async () => {
     const id = '节点 /?#% Ω';
     const detail = {
@@ -54,8 +78,8 @@ describe('ResourcePanel relation detail behavior', () => {
         {
           id: 'cycle', name: '循环节点', nodeType: 'THEORY', canonicalType: 'prerequisite',
           relationId: 'cycle-1', category: 'follows', family: 'post-requisite', direction: 'earlier-to-later',
-          cycleState: 'cyclic', inspectionSentence: '本节点是目标节点的先修知识', evidenceState: 'available',
-          sourceMetadata: { source_chapter: 2, target_chapter: 3 },
+          cycleState: 'cyclic', inspectionSentence: '本节点是目标节点的先修知识', evidenceState: 'unavailable',
+          sourceChapter: 2, targetChapter: 3,
           sourceId: id, targetId: 'cycle', strength: 1,
         },
       ],
@@ -81,13 +105,155 @@ describe('ResourcePanel relation detail behavior', () => {
 
     const followsButton = Array.from(container.querySelectorAll('button'))
       .find((button) => button.textContent?.includes('后续关系'))!;
+    expect(followsButton.getAttribute('aria-expanded')).toBe('false');
+    const followsPanelId = followsButton.getAttribute('aria-controls');
+    expect(followsPanelId).toBeTruthy();
     await act(async () => fireEvent.click(followsButton));
-    expect(container.textContent).toContain('概念相互依赖，建议结合学习');
-    expect(container.textContent).toContain('章节依据：2 → 3');
-    expect(container.textContent).not.toContain('关系依据可用');
+    expect(followsButton.getAttribute('aria-expanded')).toBe('true');
+    expect(container.querySelector(`#${followsPanelId}`)).not.toBeNull();
+    expect(container.textContent).toContain('需共同理解或待审查');
+    expect(container.textContent).toContain('节点章节：2 → 3');
+    expect(container.textContent).toContain('关系依据未提供');
   });
 
-  it('keeps inline and portal close controls in one mobile focus loop and restores focus on Escape', async () => {
+  it('shows a non-2xx detail error owned by the current node and retries in place', async () => {
+    const detail = {
+      id: 'retry-detail', name: '重试节点', nodeType: 'THEORY' as const,
+      description: '即时摘要', positionX: 0, positionY: 0, positionZ: 0,
+      chapterName: '系统模型', metadata: { chapterName: '系统模型' },
+    };
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ error: 'temporary' }), { status: 503 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        ...detail, description: '重试后的详情', relatedNodes: [], resources: [],
+      }), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await act(async () => {
+      root.render(createElement(ResourcePanel, { isOpen: true, selectedNode: detail, onClose: () => {} }));
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    const inspector = container.querySelector<HTMLElement>('[data-knowledge-inspector]')!;
+    inspector.scrollTop = 90;
+    expect(container.querySelector('[role="alert"]')?.textContent).toContain('节点详情加载失败');
+    const retry = Array.from(container.querySelectorAll('button'))
+      .find((button) => button.textContent?.includes('重试详情'))!;
+    await act(async () => {
+      fireEvent.click(retry);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(container.textContent).toContain('重试后的详情');
+    expect(container.querySelector('[role="alert"]')).toBeNull();
+    expect(inspector.scrollTop).toBe(90);
+  });
+
+  it('keeps the inspector shell and scroll owner stable while rejecting stale detail responses', async () => {
+    const pending = new Map<string, (response: Response) => void>();
+    const fetchMock = vi.fn((url: string) => new Promise<Response>((resolve) => {
+      pending.set(url, resolve);
+    }));
+    vi.stubGlobal('fetch', fetchMock);
+    const selected = (id: string, name: string, description: string) => ({
+      id, name, nodeType: 'THEORY' as const, description,
+      positionX: 0, positionY: 0, positionZ: 0,
+      chapterName: '系统模型', metadata: { chapterName: '系统模型' },
+    });
+
+    await act(async () => root.render(createElement(ResourcePanel, {
+      isOpen: true, selectedNode: selected('node-a', '节点 A', '节点 A 的即时摘要'), onClose: () => {},
+    })));
+    const inspector = container.querySelector<HTMLElement>('[data-knowledge-inspector]')!;
+    expect(container.textContent).toContain('节点 A 的即时摘要');
+    expect(container.textContent).toContain('所属领域');
+    expect(container.textContent).toContain('系统模型');
+    inspector.scrollTop = 140;
+
+    await act(async () => root.render(createElement(ResourcePanel, {
+      isOpen: true, selectedNode: selected('node-a', '节点 A', '节点 A 更新摘要'), onClose: () => {},
+    })));
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(inspector.scrollTop).toBe(140);
+
+    await act(async () => root.render(createElement(ResourcePanel, {
+      isOpen: true, selectedNode: selected('node-b', '节点 B', '节点 B 的即时摘要'), onClose: () => {},
+    })));
+    expect(container.querySelector('[data-knowledge-inspector]')).toBe(inspector);
+    expect(container.textContent).toContain('节点 B 的即时摘要');
+    expect(inspector.scrollTop).toBe(140);
+
+    await act(async () => {
+      pending.get('/api/knowledge/nodes/node-b')?.(new Response(JSON.stringify({
+        ...selected('node-b', '节点 B', '节点 B 的服务端详情'), relatedNodes: [], resources: [],
+      }), { status: 200 }));
+      await Promise.resolve();
+    });
+    expect(container.textContent).toContain('节点 B 的服务端详情');
+
+    await act(async () => {
+      pending.get('/api/knowledge/nodes/node-a')?.(new Response(JSON.stringify({
+        ...selected('node-a', '节点 A', '过期的节点 A 详情'), relatedNodes: [], resources: [],
+      }), { status: 200 }));
+      await Promise.resolve();
+    });
+    expect(container.textContent).toContain('节点 B 的服务端详情');
+    expect(container.textContent).not.toContain('过期的节点 A 详情');
+  });
+
+  it('shows canonical corridor direction and visual merge provenance for every raw association', async () => {
+    const detail = {
+      id: 'selected', name: '当前节点', nodeType: 'THEORY' as const, description: '详情',
+      positionX: 0, positionY: 0, positionZ: 0, chapterName: '当前领域',
+      relatedNodes: [
+        {
+          id: 'peer', name: '相邻节点', nodeType: 'THEORY', canonicalType: 'supports',
+          relationId: 'supports-1', category: 'related', family: 'association', direction: 'unordered',
+          rawType: 'supports',
+          inspectionSentence: '本节点支撑目标结论', evidenceState: 'unavailable',
+          sourceId: 'selected', targetId: 'peer', strength: 0.8,
+          visualMergeKey: 'association|peer|selected', visualMergeCount: 2,
+        },
+        {
+          id: 'peer', name: '相邻节点', nodeType: 'THEORY', canonicalType: 'applies_to',
+          relationId: 'applies-1', category: 'related', family: 'association', direction: 'unordered',
+          rawType: '电路应用',
+          inspectionSentence: '本节点可应用于目标', evidenceState: 'available', rationale: '评审依据',
+          sourceId: 'selected', targetId: 'peer', strength: 0.7,
+          visualMergeKey: 'association|peer|selected', visualMergeCount: 2,
+        },
+      ],
+    };
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify(detail), { status: 200 })));
+    await act(async () => root.render(createElement(ResourcePanel as never, {
+      isOpen: true, selectedNode: detail, onClose: () => {},
+      canonicalCorridor: {
+        ancestors: [{ id: 'ancestor', name: '前置节点' }],
+        descendants: [{ id: 'descendant', name: '后续节点' }],
+        cycleState: 'cyclic',
+      },
+    })));
+    await act(async () => Promise.resolve());
+
+    expect(container.textContent).toContain('当前规范路径');
+    expect(container.textContent).toContain('前置节点');
+    expect(container.textContent).toContain('后续节点');
+    expect(container.textContent).toContain('需共同理解或待审查');
+    const relatedButton = Array.from(container.querySelectorAll('button'))
+      .find((button) => button.textContent?.includes('关联关系'))!;
+    await act(async () => fireEvent.click(relatedButton));
+    expect(container.textContent).toContain('本节点支撑目标结论');
+    expect(container.textContent).toContain('本节点可应用于目标');
+    expect(container.textContent).toContain('电路应用');
+    expect(container.textContent).toContain('规范方向：selected → peer');
+    expect(container.textContent).toContain('关系依据未提供');
+    expect(container.textContent).toContain('画布合并呈现：2 条原始关系');
+  });
+
+  it('keeps the mobile inspector non-modal, does not trap Tab, and restores focus on Escape', async () => {
     vi.stubGlobal('matchMedia', () => ({ matches: true, addEventListener() {}, removeEventListener() {} }));
     vi.stubGlobal('fetch', vi.fn(async () => new Response('{}', { status: 404 })));
     const returnTarget = document.createElement('button');
@@ -116,20 +282,13 @@ describe('ResourcePanel relation detail behavior', () => {
 
     await renderHarness(true);
     let close = document.querySelector<HTMLButtonElement>('[aria-label="关闭知识节点检查器"]')!;
-    const relationControl = container.querySelector<HTMLButtonElement>('[data-knowledge-inspector] button')!;
     expect(document.activeElement).toBe(close);
-    await act(async () => fireEvent.keyDown(close, { key: 'Tab' }));
-    expect(document.activeElement).toBe(relationControl);
-    await act(async () => fireEvent.keyDown(relationControl, { key: 'Tab', shiftKey: true }));
-    expect(document.activeElement).toBe(close);
+    expect(fireEvent.keyDown(close, { key: 'Tab' })).toBe(true);
 
     await renderHarness(false);
     close = container.querySelector<HTMLButtonElement>('[aria-label="关闭知识节点检查器"]')!;
     expect(document.activeElement).toBe(close);
-    await act(async () => fireEvent.keyDown(close, { key: 'Tab' }));
-    expect(document.activeElement).toBe(relationControl);
-    await act(async () => fireEvent.keyDown(relationControl, { key: 'Tab', shiftKey: true }));
-    expect(document.activeElement).toBe(close);
+    expect(fireEvent.keyDown(close, { key: 'Tab' })).toBe(true);
     await renderHarness(true);
     close = document.querySelector<HTMLButtonElement>('[aria-label="关闭知识节点检查器"]')!;
     expect(document.activeElement).toBe(close);

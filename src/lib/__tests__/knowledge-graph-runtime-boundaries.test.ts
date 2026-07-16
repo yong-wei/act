@@ -33,6 +33,7 @@ import {
 import {
   inspectRuntimeKnowledgeRelationCoverage,
   PUBLIC_DIAGNOSTICS_BYTE_BUDGET,
+  RUNTIME_KNOWLEDGE_RELATION_CONTRACT_COVERAGE,
   RuntimeKnowledgeRelationCoverageError,
   toPublicRuntimeKnowledgeDiagnostics,
 } from '@/lib/knowledge-graph-relation-runtime';
@@ -131,6 +132,7 @@ describe('knowledge graph public DTO boundary', () => {
     const dto = toPublicKnowledgeGraphPayload(graph);
     expect(Object.keys(dto.links[0]).sort()).toEqual([
       'id',
+      'motionEligible',
       'relation',
       'sourceId',
       'targetId',
@@ -150,14 +152,18 @@ describe('knowledge graph public DTO boundary', () => {
       'name',
       'nodeType',
       'rationale',
+      'rawType',
       'relationId',
       'sourceDocument',
       'sourceId',
       'sourceMetadata',
       'strength',
       'targetId',
+      'visualMergeCount',
+      'visualMergeKey',
     ]);
     expect(detail?.relatedNodes[0]).toEqual(expect.objectContaining({
+      rawType: 'supports',
       rationale: '可公开摘要',
       sourceDocument: 'document-1',
       sourceMetadata: { title: '评审文档' },
@@ -169,8 +175,8 @@ describe('knowledge graph public DTO boundary', () => {
     const graph = await loadKnowledgeGraphData();
     const bytes = Buffer.byteLength(JSON.stringify(toPublicKnowledgeGraphPayload(graph)), 'utf8');
 
-    expect(graph.inspectionLinks).toHaveLength(16_545);
-    expect(graph.versionLinkCount).toBe(16_545);
+    expect(graph.inspectionLinks).toHaveLength(16_571);
+    expect(graph.versionLinkCount).toBe(16_571);
     expect(graph.links.length).toBeLessThan(graph.inspectionLinks!.length);
     expect(bytes).toBeLessThan(4_000_000);
   });
@@ -185,7 +191,7 @@ describe('database fallback relation contract and inspection', () => {
     ]);
 
     expect(graph.links).toHaveLength(3);
-    expect(graph.links.filter((link) => link.motionEligible === false)).toHaveLength(2);
+    expect(graph.links.filter((link) => link.motionEligible === false)).toHaveLength(3);
     const detail = buildKnowledgeNodeDetailFromGraph(graph, 'node-a');
     expect(detail?.relatedNodes.map((item) => item.relationId).sort()).toEqual([
       'post-a-b',
@@ -221,6 +227,10 @@ describe('database fallback relation contract and inspection', () => {
     expect(payload.links).toHaveLength(1);
     expect(selectCanvasKnowledgeRelationLinks(Object.values(cache.linksByKey))).toHaveLength(1);
     expect(buildKnowledgeNodeDetailFromGraph(graph, 'node-a')?.relatedNodes).toHaveLength(2);
+    expect(buildKnowledgeNodeDetailFromGraph(graph, 'node-a')?.relatedNodes).toEqual([
+      expect.objectContaining({ visualMergeCount: 2, visualMergeKey: 'association|node-a|node-b' }),
+      expect.objectContaining({ visualMergeCount: 2, visualMergeKey: 'association|node-a|node-b' }),
+    ]);
   });
 
   it('round-trips DB relation provenance for same-endpoint semantics through runtime inspection', () => {
@@ -241,11 +251,26 @@ describe('database fallback relation contract and inspection', () => {
     expect(detail.relatedNodes).toEqual(expect.arrayContaining([
       expect.objectContaining({
         relationId: 'supports-db', rationale: '数据库支撑依据', evidenceState: 'available',
-        sourceMetadata: { source_chapter: 2, target_chapter: 3 },
+        sourceChapter: 2, targetChapter: 3,
       }),
       expect.objectContaining({ relationId: 'applies-db', sourceDocument: '数据库来源文档' }),
     ]));
     expect(JSON.stringify(detail)).not.toContain('server-only');
+  });
+
+  it('keeps chapter-only runtime detail evidence unavailable', () => {
+    const graph = databaseGraph([{
+      id: 'chapter-only-db', sourceId: 'node-a', targetId: 'node-b', relation: 'related',
+      metadata: { source_chapter: 2, target_chapter: 3 },
+    }]);
+
+    const relation = buildKnowledgeNodeDetailFromGraph(graph, 'node-a')?.relatedNodes[0];
+    expect(relation).toEqual(expect.objectContaining({
+      evidenceState: 'unavailable',
+      sourceChapter: 2,
+      targetChapter: 3,
+    }));
+    expect(relation?.sourceMetadata).toBeUndefined();
   });
 
   it('whitelists and bounds oversized public nodes and detail output', () => {
@@ -297,6 +322,7 @@ describe('database fallback relation contract and inspection', () => {
       stage: 'loading' as const,
     };
     const bounded = toPublicRuntimeKnowledgeDiagnostics({
+      contractCoverage: RUNTIME_KNOWLEDGE_RELATION_CONTRACT_COVERAGE,
       coverage: [],
       counts: { inputLines: 0, parsedRelations: 0, projectedRelations: 0, visualEdges: 0 },
       diagnostics: Array.from({ length: 101 }, () => diagnostic),

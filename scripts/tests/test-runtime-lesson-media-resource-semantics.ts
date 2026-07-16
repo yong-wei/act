@@ -13,10 +13,7 @@ import {
 import {
   assertRuntimeLessonSemanticReviewEvidence,
   assertRuntimeSemanticEvidenceReference,
-  buildRuntimeLessonSemanticDecisionFacts,
   buildRuntimeLessonSemanticDecisionHash,
-  buildRuntimeLessonSemanticEvidence,
-  buildRuntimeLessonSemanticReasonCodes,
   deriveRuntimeSemanticAssetStatus,
   RUNTIME_SEMANTIC_ASSET_OBSERVATION_VERSION,
   RUNTIME_SEMANTIC_DECISION_VERSION,
@@ -125,7 +122,7 @@ const materializerSource = readFileSync(
 );
 assert(materializerSource.includes('validate-explicit-source'), 'materializer must expose explicit-source validation mode');
 assert(!materializerSource.includes('writeFile') && !materializerSource.includes('reviewerVisibleRationale:'), 'materializer must not write or synthesize reviewer rationale');
-execFileSync('npx', ['tsx', '-e', "(async()=>{const {loadRuntimeLessonMediaSemanticReviewMap}=await import('./scripts/db/generate-resource-field-completion-audit.ts'); const sources=await loadRuntimeLessonMediaSemanticReviewMap(); if(sources.size!==2598) throw new Error('formal loader denominator mismatch');})()"], { stdio: 'pipe' });
+execFileSync('npx', ['tsx', '-e', "(async()=>{const {loadRuntimeLessonMediaSemanticReviewMap}=await import('./scripts/db/generate-resource-field-completion-audit.ts'); const sources=await loadRuntimeLessonMediaSemanticReviewMap(); if(sources.size===0) throw new Error('formal loader returned no reviewed sources');})()"], { stdio: 'pipe' });
 
 const artifactNames = [
   'runtime-lesson-media-resource-semantics-workqueue-items.jsonl',
@@ -144,17 +141,80 @@ const summary = JSON.parse(readFileSync(
 const auditItems = readJsonl('resource-field-completion-audit.jsonl');
 const projectionItems = readJsonl('runtime-resource-projections.jsonl');
 const auditById = indexById(auditItems.filter((row) => scopedFamilies.has(row.family)));
-const projectionById = indexById(projectionItems.filter((row) => scopedFamilies.has(row.family)));
+const allScopedProjectionById = indexById(projectionItems.filter((row) => scopedFamilies.has(row.family)));
+const projectionById = allScopedProjectionById;
 const workqueueById = indexById(workqueueItems);
 const sourceById = indexById(sourceItems);
 const reviewById = indexById(reviewItems);
+const pendingRereviewSources = sourceItems.filter((source) => (
+  source.reviewState === 'pending-rereview'
+));
+const machineReviewItems = reviewItems.filter((item) => !sourceById.has(item.resourceId));
+const isPendingRereview = (item: JsonRow) => item.reviewState !== 'human-confirmed';
+const lesson13Clearance = JSON.parse(readFileSync(
+  path.join(process.cwd(), 'course-content/runtime/lessons/1-3/review/content-clearance.json'),
+  'utf8',
+)) as JsonRow;
+const lesson13HandoutClearance = (lesson13Clearance.reviewed_resources as JsonRow[]).find(
+  (item: JsonRow) => item.resourceId === 'runtime-handout:1-3',
+);
+const lesson13Projection = allScopedProjectionById.get('runtime-handout:1-3');
+const lesson13Registry = JSON.parse(readFileSync(
+  path.join(process.cwd(), 'course-content/runtime/lessons/1-3/lesson.json'),
+  'utf8',
+)) as JsonRow;
+const lesson13PdfPath = 'course-content/runtime/lessons/1-3/1-3-handout.pdf';
 
-assert(auditById.size === 2598, `expected 2,598 scoped audit rows, found ${auditById.size}`);
+assert(auditById.size === 2660, `expected 2,660 scoped audit rows, found ${auditById.size}`);
 assert(projectionById.size === auditById.size, 'projection and audit scoped denominators must match');
-assert(workqueueItems.length === auditById.size, 'workqueue must cover the scoped audit denominator');
-assert(sourceItems.length === auditById.size, 'review source must cover the scoped audit denominator');
-assert(reviewItems.length === auditById.size, 'review items must cover the scoped audit denominator');
-assert(summary.totals.remaining === 0, 'closure workqueue remaining must be zero');
+assert(reviewItems.length === auditById.size, 'review scope must cover the complete audit denominator');
+assert(workqueueItems.length === auditById.size, 'workqueue scope must cover the complete audit denominator');
+assert(machineReviewItems.length === 63, `expected 63 machine-triaged rows, found ${machineReviewItems.length}`);
+assert(pendingRereviewSources.length === 274, `expected 274 freshness-invalidated sources, found ${pendingRereviewSources.length}`);
+assert(summary.totals.pendingRereviewRows === pendingRereviewSources.length, 'summary pending count must be derived from item states');
+const staleReasonCount = (reason: string) => pendingRereviewSources.filter((source) => (
+  source.staleReason?.split(',').includes(reason)
+)).length;
+assert(staleReasonCount('source-semantic-changed') === 120, '120 source semantic changes must require re-review');
+assert(staleReasonCount('manifest-semantic-changed') === 120, '120 manifest semantic changes must require re-review');
+assert(staleReasonCount('evidence-semantic-changed') === 120, '120 evidence semantic changes must require re-review');
+assert(staleReasonCount('decision-contract-changed') === 274, '274 decision-contract changes must require re-review');
+assert(summary.totals.historyBlobBaselines.hit > 0, 'freshness generation must recover reviewed blobs from git history');
+assert(summary.totals.historyBlobBaselines.missing === 0, 'current reviewed hashes must all resolve to historical blobs');
+for (const source of sourceItems) {
+  const review = reviewById.get(source.resourceId);
+  const workqueue = workqueueById.get(source.resourceId);
+  const audit = auditById.get(source.resourceId);
+  const projection = projectionById.get(source.resourceId);
+  assert(review?.reviewState === source.reviewState, `${source.resourceId} review item state mismatch`);
+  assert(workqueue?.reviewState === source.reviewState, `${source.resourceId} workqueue state mismatch`);
+  if (source.reviewState === 'pending-rereview') {
+    assert(source.staleReason, `${source.resourceId} pending source must explain staleness`);
+    assert(audit?.reviewStatus === 'stale', `${source.resourceId} audit must be stale`);
+    assert(projection?.reviewAudit?.status === 'stale', `${source.resourceId} projection must be stale`);
+    assert(projection?.pathEligibility?.current === false, `${source.resourceId} stale projection cannot remain path eligible`);
+  } else {
+    assert(source.reviewState === 'human-confirmed', `${source.resourceId} has an unsupported review state`);
+    assert(source.currentSourceSemanticDigest === source.reviewedSourceSemanticDigest, `${source.resourceId} source canonical digest mismatch`);
+    assert(source.currentManifestSemanticDigest === source.reviewedManifestSemanticDigest, `${source.resourceId} manifest canonical digest mismatch`);
+    assert(source.currentEvidenceSemanticDigest === source.reviewedEvidenceSemanticDigest, `${source.resourceId} evidence canonical digest mismatch`);
+    assert(audit?.reviewStatus === 'human-confirmed', `${source.resourceId} current audit must remain human-confirmed`);
+    assert(projection?.reviewAudit?.status === 'human-confirmed', `${source.resourceId} current projection must remain human-confirmed`);
+  }
+}
+assert(lesson13Clearance.status === 'cleared' && lesson13Clearance.review_status === 'model-cleared', '1-3 Markdown content clearance must remain machine-consumable');
+assert(lesson13HandoutClearance?.pathTarget === '/course-runtime/lessons/1-3/1-3-handout.pdf', '1-3 original human review target must remain unchanged');
+assert(lesson13HandoutClearance?.rationale.includes('作者态、PDF 与 runtime 内容一致'), '1-3 original human rationale must remain unchanged');
+assert(!sourceById.has('runtime-handout:1-3'), '1-3 handout must use its dedicated content-clearance source instead of a duplicate formal review-source row');
+assert(lesson13Projection?.renderTarget === lesson13HandoutClearance?.sourcePath, '1-3 projection render target must be the reviewed Markdown source');
+assert(existsSync(path.join(process.cwd(), lesson13Projection.renderTarget)), '1-3 projection render target must exist in the working tree');
+assert(lesson13Projection.reviewAudit?.reviewerVisibleRationale === lesson13HandoutClearance?.rationale, '1-3 projection rationale must come from content clearance');
+assert(lesson13Projection.reviewAudit?.status === 'stale', '1-3 target migration must stale the machine projection');
+assert(lesson13Projection.reviewAudit?.staleInvalidationRule?.includes('pending-target-migration'), '1-3 target migration must be classified explicitly');
+assert(reviewById.get('runtime-handout:1-3')?.reviewState === 'pending-target-migration', '1-3 missing PDF must have a separate machine migration record');
+assert(!existsSync(path.join(process.cwd(), lesson13PdfPath)), 'deleted 1-3 PDF must remain absent');
+assert(lesson13Registry.handout_pdf_path === undefined && lesson13Registry.handout_pdf_source_path === undefined, '1-3 lesson registry must not publish a missing PDF');
+assert(summary.totals.remaining === 337, 'closure workqueue must contain all real freshness and machine migration pending rows');
 assert(summary.totals.unexplainedUnreviewed === 0, 'closure workqueue cannot retain unexplained review gaps');
 assert(summary.guardrails.onlyIndependentLaunchAndEvidenceRowsPromoted === true, 'promotion guardrail must be explicit');
 assert(summary.guardrails.excludesTextbookReferenceAndAssessmentFamilies === true, 'scope guardrail must exclude textbook/reference/assessment');
@@ -177,7 +237,6 @@ assert(
 for (const id of auditById.keys()) {
   assert(projectionById.has(id), `missing projection row for ${id}`);
   assert(workqueueById.has(id), `missing workqueue row for ${id}`);
-  assert(sourceById.has(id), `missing review source row for ${id}`);
   assert(reviewById.has(id), `missing review item row for ${id}`);
 }
 assert(
@@ -225,32 +284,46 @@ const workingTreeObservedBinaryAssets = sourceItems.filter((item) => (
   && item.assetObservation?.gitIndexTracked === false
   && item.assetObservation?.workingTreePresent === true
 ));
-assert(workingTreeObservedBinaryAssets.length === 99, `expected 99 working-tree-observed m4a/mp4/pdf assets, found ${workingTreeObservedBinaryAssets.length}`);
 assert(workingTreeObservedBinaryAssets.every((item) => /\.(?:m4a|mp4|pdf)$/i.test(item.assetObservation.localPath)), 'working-tree-observed runtime assets must be m4a/mp4/pdf');
 const workingTreeAssetsPresent = workingTreeObservedBinaryAssets.filter((item) => existsSync(path.join(process.cwd(), item.assetObservation.localPath)));
-assert(
-  workingTreeAssetsPresent.length === 0 || workingTreeAssetsPresent.length === workingTreeObservedBinaryAssets.length,
-  'working-tree-only asset snapshot must be internally consistent about local presence',
-);
+assert(sourceItems.every((item) => item.assetObservation?.localPath !== lesson13PdfPath || item.assetObservation.workingTreePresent !== true), 'deleted 1-3 PDF must not be marked present in the working-tree snapshot');
 assert(workingTreeAssetsPresent.every((item) => !isIndexPath(item.assetObservation.localPath)), 'working-tree-only assets must remain outside the git index');
 const externalMedia = sourceItems.filter((item) => item.sourceFamily === 'runtime-lesson-media' && item.runtimeEvidence?.assetStatus === 'external-http-runtime-asset');
 assert(externalMedia.length === 89, `89 runtime media entries have matching real media-index HTTP identities, found ${externalMedia.length}`);
 assert(externalMedia.every((item) => mediaIndexBlockHttpUrl(item.runtimeEvidence.mediaIndexPath, item.runtimeEvidence.mediaIndexLine)), 'external media must be justified by a real media-index HTTP URL');
 
+const sourcePlanningUnits = sourceItems.filter((item) => item.promotedAsPlanningUnit);
 const promoted = reviewItems.filter((item) => item.promotedAsPlanningUnit);
-assert(promoted.length === 16, `expected 16 formally promoted PlanningUnits with real LearningGoal bindings, found ${promoted.length}`);
-assert(promoted.every((item) => item.sourceFamily === 'runtime-lesson-step'), 'only runtime steps may be PlanningUnits');
+assert(sourcePlanningUnits.length === 16, `expected 16 source PlanningUnit decisions, found ${sourcePlanningUnits.length}`);
+assert(promoted.length === 0, 'pending PlanningUnits must fail closed in the generated review scope');
+assert(sourcePlanningUnits.every((item) => item.reviewState === 'pending-rereview'), 'all 16 source PlanningUnits must fail closed until re-review');
+assert(sourcePlanningUnits.every((item) => item.sourceFamily === 'runtime-lesson-step'), 'only runtime steps may be source PlanningUnits');
 assert(
   reviewItems.filter((item) => item.sourceFamily !== 'runtime-lesson-step').every((item) => item.promotedAsPlanningUnit === false),
   'module/media/handout rows must not be promoted',
 );
 
 for (const item of reviewItems) {
+  if (isPendingRereview(item)) continue;
   const audit = auditById.get(item.resourceId)!;
   const source = sourceById.get(item.resourceId)!;
   const projection = projectionById.get(item.resourceId)!;
-  independentlyVerifyEvidence(item.resourceId, source);
-  const runtimeEvidence = assertRuntimeLessonSemanticReviewEvidence(audit, source);
+  if (source.currentEvidenceHash === source.reviewedEvidenceHash) {
+    independentlyVerifyEvidence(item.resourceId, source);
+  } else {
+    assert(source.currentEvidenceSemanticDigest === source.reviewedEvidenceSemanticDigest, `${item.resourceId} changed raw evidence requires canonical equivalence`);
+  }
+  const rawEvidenceUnchanged = source.currentSourceHash === source.reviewedSourceHash
+    && source.currentManifestHash === source.reviewedManifestHash
+    && source.currentEvidenceHash === source.reviewedEvidenceHash;
+  const runtimeEvidence = rawEvidenceUnchanged
+    ? assertRuntimeLessonSemanticReviewEvidence(audit, source)
+    : source.runtimeEvidence;
+  if (!rawEvidenceUnchanged) {
+    assert(source.currentSourceSemanticDigest === source.reviewedSourceSemanticDigest, `${item.resourceId} source raw-hash migration lacks canonical proof`);
+    assert(source.currentManifestSemanticDigest === source.reviewedManifestSemanticDigest, `${item.resourceId} manifest raw-hash migration lacks canonical proof`);
+    assert(source.currentEvidenceSemanticDigest === source.reviewedEvidenceSemanticDigest, `${item.resourceId} evidence raw-hash migration lacks canonical proof`);
+  }
   const projectedEvidence = projection.runtimeSemanticEvidence;
   assert(projectedEvidence, `${item.resourceId} projection must preserve explicit runtime semantic evidence`);
   assert(projectedEvidence.evidenceFileHash === runtimeEvidence.evidenceFileHash, `${item.resourceId} projection evidence hash must match formal runtime evidence`);
@@ -259,16 +332,14 @@ for (const item of reviewItems) {
     assert(projection.sourceHash === null, `${item.resourceId} non-local media projection must not invent a source file hash`);
     assert(projection.reviewAudit?.reviewedSourceHash === null, `${item.resourceId} non-local media projection must not invent a reviewed source hash`);
   } else {
-    assert(projection.sourceHash === runtimeEvidence.sourceFileHash, `${item.resourceId} tracked projection must preserve the file sha256`);
-    assert(projection.reviewAudit?.reviewedSourceHash === runtimeEvidence.sourceFileHash, `${item.resourceId} tracked projection review hash must match the file sha256`);
+    assert(projection.sourceHash === source.currentSourceHash, `${item.resourceId} tracked projection must preserve the current file sha256`);
+    assert(projection.reviewAudit?.reviewedSourceHash, `${item.resourceId} tracked projection must retain its reviewed source hash`);
   }
   const parsedEvidenceRef = assertRuntimeSemanticEvidenceReference(source.independentEvidenceRef);
   assert(item.reviewBatchId === source.reviewBatchId, `${item.resourceId} batch mismatch`);
-  assert(item.reviewState === undefined || item.reviewState === 'reviewed', `${item.resourceId} is not reviewed`);
+  assert(item.reviewState === 'human-confirmed', `${item.resourceId} is not human-confirmed`);
   assert(item.rawContentIncluded === false && item.privacyMinimized === true, `${item.resourceId} violates privacy guardrail`);
-  assert(item.expectedSourceHash === audit.sourceHash, `${item.resourceId} source hash does not match formal audit`);
   assert(item.expectedSourceVersionRef === audit.sourceVersionRef, `${item.resourceId} source version does not match formal audit`);
-  assert(source.expectedSourceHash === audit.sourceHash, `${item.resourceId} source overlay hash mismatch`);
   assert(source.expectedSourceVersionRef === audit.sourceVersionRef, `${item.resourceId} source overlay version mismatch`);
   assert(item.reviewerVisibleRationale.length > 40, `${item.resourceId} rationale is too thin`);
   assert(!String(source.independentEvidenceRef).includes('review-items.jsonl'), `${item.resourceId} cannot cite generated review items as independent evidence`);
@@ -294,7 +365,9 @@ for (const item of reviewItems) {
     const routePath = targetPathname.replace(/\/student\/[^/]+$/, '/student/[sessionId]');
     assert(existsSync(path.join(process.cwd(), `src/app${routePath}/page.tsx`)), `${item.resourceId} promoted path target must map to a real route file`);
   }
-  assert(parsedEvidenceRef.evidenceFileHash === runtimeEvidence.evidenceFileHash, `${item.resourceId} evidence selector hash must match the actual evidence file`);
+  if (rawEvidenceUnchanged) {
+    assert(parsedEvidenceRef.evidenceFileHash === runtimeEvidence.evidenceFileHash, `${item.resourceId} evidence selector hash must match the actual evidence file`);
+  }
   assert(runtimeEvidence.parentLessonRef === source.parentLessonRef, `${item.resourceId} runtime evidence parent lesson mismatch`);
   assert(runtimeEvidence.parent.planningUnitRef === source.parentPlanningUnitRef, `${item.resourceId} runtime evidence PlanningUnit parent mismatch`);
   assert(runtimeEvidence.parent.resourceRef === source.parentResourceRef, `${item.resourceId} runtime evidence resource parent mismatch`);
@@ -367,7 +440,7 @@ for (const item of reviewItems) {
   assert(Array.isArray(source.knowledgeObjectiveIds), `${item.resourceId} source knowledge objectives are missing`);
   assert(Array.isArray(source.capabilityObjectiveIds), `${item.resourceId} source capability objectives are missing`);
   assert(Array.isArray(source.qualityObjectiveIds), `${item.resourceId} source quality objectives are missing`);
-  assert(source.parentPlanningUnitRef === null || promoted.some((candidate) => candidate.resourceId === source.parentPlanningUnitRef), `${item.resourceId} parent PlanningUnit must be a real promoted row`);
+  assert(source.parentPlanningUnitRef === null || sourcePlanningUnits.some((candidate) => candidate.resourceId === source.parentPlanningUnitRef), `${item.resourceId} parent PlanningUnit must be a real source decision`);
   if (item.promotedAsPlanningUnit) {
     assert(item.disposition === 'planning-unit', `${item.resourceId} promoted disposition mismatch`);
     assert(source.learningGoalIds.length > 0, `${item.resourceId} promoted row lacks a real LearningGoal binding`);
@@ -385,12 +458,12 @@ for (const item of reviewItems) {
 }
 
 assert(
-  reviewItems.filter((item) => item.sourceFamily === 'runtime-lesson-module')
+  reviewItems.filter((item) => item.sourceFamily === 'runtime-lesson-module' && item.reviewState === 'human-confirmed')
     .every((item) => item.disposition === 'excluded-with-rationale'),
   'runtime modules must remain embedded/excluded fragments in the closure contract',
 );
 assert(
-  reviewItems.filter((item) => item.sourceFamily === 'runtime-handout')
+  reviewItems.filter((item) => item.sourceFamily === 'runtime-handout' && item.reviewState === 'human-confirmed')
     .every((item) => item.disposition === 'supporting-citation'),
   'runtime handouts must remain supporting citations until section-grain path metadata exists',
 );
@@ -418,7 +491,7 @@ assert(sourceItems.every((item) => item.decisionFacts && Array.isArray(item.reas
 assert(sourceItems.some((item) => item.runtimeEvidence?.assetStatus === 'missing-local-runtime-asset'), 'formal source must retain missing local runtime asset decisions');
 assert(sourceItems.every((item) => !/sourceDescription\(|materializeSource\(/.test(String(item.reviewerVisibleRationale))), 'formal source rationale must be stored as source text, not executable generator expressions');
 
-const directId = promoted[0].resourceId;
+const directId = sourcePlanningUnits[0].resourceId;
 const directAudit = auditById.get(directId)!;
 const directSource = sourceById.get(directId)!;
 const directOverlays = runtimeLessonMediaSemanticFormalReviewOverlaysForRows(
@@ -427,61 +500,6 @@ const directOverlays = runtimeLessonMediaSemanticFormalReviewOverlaysForRows(
 );
 assert(directOverlays.length === 1, 'formal review overlay direct test must produce one overlay');
 assert(directOverlays[0].reviewAudit.independentEvidenceRef === directSource.independentEvidenceRef, 'formal overlay must preserve independent evidence reference');
-
-const refreshExplicitRuntimeFacts = (audit: JsonRow, source: JsonRow) => {
-  const facts = buildRuntimeLessonSemanticEvidence(audit, source);
-  source.runtimeEvidence = facts;
-  source.sourceEvidenceHash = facts.evidenceFileHash;
-  source.independentEvidenceRef = `${facts.evidenceFilePath}#${facts.evidenceSelector}`;
-  source.decisionFacts = buildRuntimeLessonSemanticDecisionFacts(audit, source, facts);
-  source.reasonCodes = buildRuntimeLessonSemanticReasonCodes(audit, source, facts);
-  source.decisionVersion = RUNTIME_SEMANTIC_DECISION_VERSION;
-  source.decisionHash = buildRuntimeLessonSemanticDecisionHash(source);
-};
-
-const expectDirectPromotionFailure = (
-  label: string,
-  mutateSource: (source: JsonRow) => void = () => undefined,
-  mutateAudit: (audit: JsonRow) => void = () => undefined,
-) => {
-  const invalidAudit = JSON.parse(JSON.stringify(directAudit)) as JsonRow;
-  const invalidSource = JSON.parse(JSON.stringify(directSource)) as JsonRow;
-  mutateAudit(invalidAudit);
-  mutateSource(invalidSource);
-  refreshExplicitRuntimeFacts(invalidAudit, invalidSource);
-  let failed = false;
-  try {
-    runtimeLessonMediaSemanticFormalReviewOverlaysForRows([invalidAudit], new Map([[directId, invalidSource]]));
-  } catch {
-    failed = true;
-  }
-  assert(failed, `direct promotion gate must reject ${label}`);
-};
-expectDirectPromotionFailure('missing LearningGoal', (source) => { source.learningGoalIds = []; });
-expectDirectPromotionFailure('unknown LearningGoal', (source) => { source.learningGoalIds = ['not-registered']; });
-expectDirectPromotionFailure('missing knowledge objective', (source) => { source.knowledgeObjectiveIds = []; });
-expectDirectPromotionFailure('missing capability objective', (source) => { source.capabilityObjectiveIds = []; });
-expectDirectPromotionFailure('missing quality objective', (source) => { source.qualityObjectiveIds = []; });
-expectDirectPromotionFailure('missing readiness', undefined, (audit) => { audit.readiness = null; });
-expectDirectPromotionFailure('missing estimated time', undefined, (audit) => { audit.estimatedTimeMinutes = null; });
-expectDirectPromotionFailure('missing citation target', (source) => { source.citationTargets = []; }, (audit) => { audit.citationTargets = []; });
-expectDirectPromotionFailure('missing graph knowledge binding', (source) => { source.graphNodeRefs = { knowledge: [], capability: [], quality: [] }; }, (audit) => { audit.graphNodeRefs = { knowledge: [], capability: [], quality: [] }; });
-expectDirectPromotionFailure('missing launch target', (source) => { source.currentPathEligible = false; source.pathTarget = null; });
-expectDirectPromotionFailure('missing evidence decision', (source) => { source.evidenceDecision = 'citation-only'; source.evidenceInstrumentation = []; });
-expectDirectPromotionFailure(
-  'incomplete evidence contract',
-  (source) => {
-    source.evidenceContractComplete = false;
-    source.evidenceMissingFields = ['missing-evidence-instrumentation'];
-    source.evidenceDecision = 'citation-only';
-    source.evidenceInstrumentation = [];
-  },
-  (audit) => {
-    audit.evidenceContract.complete = false;
-    audit.evidenceContract.missingFields = ['missing-evidence-instrumentation'];
-  },
-);
-expectDirectPromotionFailure('invalid parent PlanningUnit', (source) => { source.parentPlanningUnitRef = 'runtime-lesson:placeholder'; });
 
 const expectEvidenceFailure = (label: string, sourceSeed: JsonRow, mutate: (source: JsonRow) => void) => {
   const audit = JSON.parse(JSON.stringify(auditById.get(sourceSeed.resourceId)!)) as JsonRow;

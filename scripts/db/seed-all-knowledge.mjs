@@ -236,7 +236,7 @@ export function sanitizeRelationMetadata(relation) {
   return metadata;
 }
 
-async function upsertRelations(db, relations, nodeIds) {
+export async function upsertRelations(db, relations, nodeIds) {
   let written = 0;
   const { selectedRelations } = selectRelationsForDb(relations, nodeIds);
   const activeRelationIds = new Set();

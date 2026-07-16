@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  KNOWLEDGE_GRAPH_3D_SCREEN_SPACE_CONTRACT,
   KNOWLEDGE_NODE_LABEL_POLICY,
   createCanvasKnowledgeNodeLabelMeasureText,
   createKnowledgeNodeLabelFallbackMeasureText,
@@ -37,8 +38,12 @@ describe('shared knowledge node label layout', () => {
     expect(13 * labelWorldScale * projectedScale).toBeLessThanOrEqual(16);
     expect(radius).toBeGreaterThanOrEqual(6);
     expect(radius).toBeLessThanOrEqual(6 * 1.45);
-    expect(arrowLength).toBeGreaterThanOrEqual(3);
-    expect(arrowLength).toBeLessThanOrEqual(10);
+    expect(arrowLength * projectedScale).toBeGreaterThanOrEqual(
+      KNOWLEDGE_GRAPH_3D_SCREEN_SPACE_CONTRACT.minimumArrowLength,
+    );
+    expect(arrowLength).toBeLessThanOrEqual(
+      KNOWLEDGE_GRAPH_3D_SCREEN_SPACE_CONTRACT.maximumArrowWorldLength,
+    );
   });
   it('caps pathological 3D label world scale while keeping normal fit projections readable', () => {
     expect(getKnowledgeGraph3DLabelWorldScale({ labelScale: 1, projectedScale: 0.0001 })).toBe(4);

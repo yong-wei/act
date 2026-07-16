@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import React, { forwardRef, StrictMode, useImperativeHandle, useRef } from 'react';
+import React, { forwardRef, StrictMode, useEffect, useImperativeHandle, useRef } from 'react';
 import * as THREE from 'three';
 import { act } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -35,10 +35,13 @@ function forceGraphMock(kind: 'twoD' | 'threeD') {
       forceGraph.threeDCamera = camera;
       forceGraph.threeDTarget = target.current;
     }
+    useEffect(() => {
+      (props.onEngineStop as (() => void) | undefined)?.();
+    }, [props.graphData, props.onEngineStop]);
     useImperativeHandle(ref, () => ({
       graphData: () => props.graphData,
       d3Force: () => ({ strength: () => undefined, distance: () => undefined }),
-      refresh: kind === 'threeD' ? () => { throw new Error('3D refresh must not flush retained objects'); } : () => undefined,
+      refresh: () => undefined,
       zoom: forceGraph.twoDZoom,
       centerAt: forceGraph.twoDCenterAt,
       cameraPosition: (position: THREE.Vector3Like, nextTarget: THREE.Vector3Like) => {

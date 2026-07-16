@@ -40,10 +40,10 @@ from lesson_artifacts import (  # noqa: E402
 from canonical_nodes import load_canonical_index  # noqa: E402
 from runtime_media_index import ensure_runtime_media_index  # noqa: E402
 from lesson_graph_order import (  # noqa: E402
-    CANONICAL_RELATION_TYPES,
-    RELATION_ALIASES,
     build_lesson_overlay_payload,
     build_lesson_overlay_revision,
+    get_relation_contract,
+    normalize_relation_type,
     resolve_authoring_card_order,
 )
 from export_runtime import (  # noqa: E402
@@ -2235,23 +2235,30 @@ def check_knowledge_graph(lesson_id: str) -> dict[str, Any]:
 
     authoring_nodes_by_id, authoring_relation_records = load_combined_authoring_graph()
     by_name_chapter, by_name = build_name_maps(authoring_nodes_by_id)
-    runtime_relations = build_runtime_relations(authoring_nodes_by_id, authoring_relation_records)
+    runtime_relation_contract_issues: list[str] = []
+    try:
+        runtime_relations = build_runtime_relations(authoring_nodes_by_id, authoring_relation_records)
+    except ValueError as exc:
+        runtime_relations = []
+        runtime_relation_contract_issues.append(str(exc))
     relation_issues: list[dict[str, Any]] = []
     relation_keys: set[str] = set()
     for index, relation in enumerate(relations, start=1):
         issues: list[str] = []
         canonical_relation = canonical_index.canonicalize_relation_record(relation)
-        normalized = normalize_relation_record(
-            canonical_relation,
-            authoring_nodes_by_id,
-            by_name_chapter,
-            by_name,
-        )
         relation_type_value = relation.get('relation_type') or relation.get('relation')
         if not isinstance(relation_type_value, str) or not relation_type_value.strip():
             issues.append('missing relation_type')
-        elif RELATION_ALIASES.get(relation_type_value, relation_type_value) not in CANONICAL_RELATION_TYPES:
+        elif get_relation_contract(relation_type_value) is None:
             issues.append('unknown relation_type')
+        normalized = None
+        if not issues:
+            normalized = normalize_relation_record(
+                canonical_relation,
+                authoring_nodes_by_id,
+                by_name_chapter,
+                by_name,
+            )
         if normalized is None:
             issues.append('relation endpoints could not be resolved by canonical normalizer')
             source_id = str(relation.get('source_id') or '')
@@ -2261,7 +2268,7 @@ def check_knowledge_graph(lesson_id: str) -> dict[str, Any]:
             key, normalized_relation = normalized
             source_id = str(normalized_relation['source_id'])
             target_id = str(normalized_relation['target_id'])
-            relation_type = str(normalized_relation['relation_type'])
+            relation_type = normalize_relation_type(normalized_relation['relation_type'])
         key = f'{source_id}::{target_id}::{relation_type}'
         if normalized is not None:
             if key in relation_keys:
@@ -2304,6 +2311,8 @@ def check_knowledge_graph(lesson_id: str) -> dict[str, Any]:
         blocking_issues.append('manifest or sequence references unknown nodes')
     if relation_issues:
         blocking_issues.append('relation format or endpoint issues')
+    if runtime_relation_contract_issues:
+        blocking_issues.append('shared relation contract validation failed')
     if order_issues:
         blocking_issues.append('authoring card order resolution failed')
     if overlay_revision_issues:
@@ -2321,6 +2330,7 @@ def check_knowledge_graph(lesson_id: str) -> dict[str, Any]:
         'node_field_issues': node_field_issues,
         'missing_referenced_nodes': missing_referenced_nodes,
         'relation_issues': relation_issues,
+        'runtime_relation_contract_issues': runtime_relation_contract_issues,
         'order_issues': order_issues,
         'overlay_revision': overlay_revision,
         'overlay_revision_issues': overlay_revision_issues,

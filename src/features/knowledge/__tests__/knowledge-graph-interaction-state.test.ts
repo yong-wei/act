@@ -475,14 +475,14 @@ describe('knowledge graph interaction state stability', () => {
 
     expect(resourcePanelSource).toContain('data-knowledge-inspector="floating-right-edge"');
     expect(resourcePanelSource).toContain('data-knowledge-inspector-responsive="desktop-floating-mobile-sheet"');
-    expect(resourcePanelSource).toContain('data-knowledge-inspector-focus-contract="mobile-trap-escape-return"');
+    expect(resourcePanelSource).toContain('data-knowledge-inspector-focus-contract="mobile-initial-focus-escape-return"');
     expect(resourcePanelSource).toContain('data-knowledge-inspector-dock-safe-area="bottom-padding"');
     expect(resourcePanelSource).toContain('role="dialog"');
     expect(resourcePanelSource).toContain('handleInspectorKeyDown');
     expect(resourcePanelSource).toContain("if (event.key === 'Escape')");
     expect(resourcePanelSource).toContain("const MOBILE_INSPECTOR_QUERY = '(max-width: 1023px)';");
-    expect(resourcePanelSource).toContain("media.addEventListener('change', update);");
-    expect(resourcePanelSource).toContain("media.removeEventListener('change', update);");
+    expect(resourcePanelSource).toContain("media?.addEventListener('change', update);");
+    expect(resourcePanelSource).toContain("media?.removeEventListener('change', update);");
     expect(resourcePanelSource).toContain('const mobilePortalActive = mobileToolPanelOpen && isMobileInspector;');
     expect(resourcePanelSource).toContain('closeButtonRef.current?.focus();');
     expect(resourcePanelSource).toContain('}, [isMobileInspector, mobileToolPanelOpen, selectedNode.id]);');

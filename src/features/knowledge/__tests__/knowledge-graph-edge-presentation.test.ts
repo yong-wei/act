@@ -10,12 +10,16 @@ import {
   getKnowledgeGraphEdgePresentation,
   getKnowledgeGraphNodeEmphasisOpacity,
   getKnowledgeGraphPresentationLinkKey,
+  selectKnowledgeGraphStructuralForegroundEdgeIds,
+  KNOWLEDGE_GRAPH_UNSELECTED_POST_EDGE_LIMIT,
+  selectKnowledgeGraphFocusedPresentationLinks,
 } from '../graph/edge-presentation';
 import { getKnowledgeGraphEndpointArrow } from '../graph/edge-geometry';
 import {
   KNOWLEDGE_GRAPH_FAMILY_PRESENTATION_CONFIG,
   getKnowledgeGraphCompositeContrastRatio,
   getKnowledgeGraphEffectiveEdgeOpacity,
+  getKnowledgeGraphEffectiveEdgeWidth,
 } from '../graph/visual-config';
 import {
   selectCanonicalDomainRelationEdges,
@@ -152,7 +156,7 @@ describe('shared knowledge graph edge presentation', () => {
 
   it('keeps every final edge and legend focus state above the non-text 3:1 contrast contract', () => {
     Object.values(KNOWLEDGE_GRAPH_FAMILY_PRESENTATION_CONFIG).forEach(({ sampleStyle }) => {
-      for (const focusState of ['neutral', 'active', 'dimmed'] as const) {
+      for (const focusState of ['neutral', 'active'] as const) {
         const opacity = getKnowledgeGraphEffectiveEdgeOpacity(sampleStyle, 0, focusState);
         expect(getKnowledgeGraphCompositeContrastRatio(sampleStyle.lightColor, '#ffffff', opacity))
           .toBeGreaterThanOrEqual(3);
@@ -166,7 +170,7 @@ describe('shared knowledge graph edge presentation', () => {
         sampleStyle.darkColor, '#091540', sampleStyle.opacity,
       )).toBeGreaterThanOrEqual(3);
     });
-    expect(getKnowledgeGraphEffectiveEdgeOpacity({ opacity: 1 }, 1, 'dimmed')).toBeGreaterThanOrEqual(0.8);
+    expect(getKnowledgeGraphEffectiveEdgeOpacity({ opacity: 1 }, 1, 'dimmed')).toBeLessThanOrEqual(0.22);
   });
 
   it('restricts both renderers to the same active-domain visible subset', () => {
@@ -183,9 +187,14 @@ describe('shared knowledge graph edge presentation', () => {
 
     const system = readFileSync(join(process.cwd(), 'src/features/knowledge/knowledge-graph-system.tsx'), 'utf8');
     expect(system.match(/nodes=\{displayNodes\}/g)).toHaveLength(2);
-    expect(system.match(/links=\{displayLinks\}/g)).toHaveLength(2);
+    expect(system.match(/links=\{renderDisplayLinks\}/g)).toHaveLength(2);
+    expect(system).toContain('selectKnowledgeGraphFocusedPresentationLinks');
     expect(system.match(/presentationLinks=\{canonicalPresentationLinks\}/g)).toHaveLength(2);
     expect(system.match(/selectedCorridorEmphasis=\{selectedCorridorEmphasis\}/g)).toHaveLength(2);
+    expect(system).toContain('deriveSelectedKnowledgeGraphCorridor');
+    expect(system).toContain('adjacentDomainNavigations={(selectedCorridor?.adjacentDomainNavigations ?? []).map');
+    const inspector = readFileSync(join(process.cwd(), 'src/features/knowledge/resource-panel/resource-panel.tsx'), 'utf8');
+    expect(inspector).toContain('data-knowledge-corridor-adjacent-navigation="true"');
   });
 
   it('keeps canonical lane input complete while visible associations retain the Task 4.1 cap', () => {
@@ -203,13 +212,26 @@ describe('shared knowledge graph edge presentation', () => {
   });
 
   it('keeps edge, node, and label layering plus selected emphasis identical in 2D and 3D', () => {
-    const emphasis = { selectedNodeId: 'a', nodeIds: ['a', 'b'], edgeIds: ['corridor-edge'] };
+    const emphasis = {
+      selectedNodeId: 'a',
+      nodeIds: ['a', 'b', 'c'],
+      edgeIds: ['corridor-edge', 'corridor-context'],
+      primaryEdgeIds: ['corridor-edge'],
+      primaryNodeIds: ['a', 'b'],
+    };
     const corridor = post('corridor-edge', 'a', 'b');
+    const corridorContext = post('corridor-context', 'b', 'c');
     const unrelated = post('unrelated', 'c', 'd');
+    const association = { id: 'association-edge', sourceId: 'a', targetId: 'd', relation: 'related' };
     expect(getKnowledgeGraphEdgeEmphasisState({ link: corridor, emphasis })).toBe('active');
+    expect(getKnowledgeGraphEdgeEmphasisState({ link: corridorContext, emphasis })).toBe('secondary');
     expect(getKnowledgeGraphEdgeEmphasisState({ link: unrelated, emphasis })).toBe('dimmed');
+    expect(getKnowledgeGraphEdgeEmphasisState({ link: association, emphasis })).toBe('secondary');
     expect(getKnowledgeGraphNodeEmphasisOpacity('a', emphasis)).toBe(1);
-    expect(getKnowledgeGraphNodeEmphasisOpacity('c', emphasis)).toBeLessThan(1);
+    expect(getKnowledgeGraphNodeEmphasisOpacity('c', emphasis)).toBeGreaterThan(0.5);
+    expect(getKnowledgeGraphNodeEmphasisOpacity('d', emphasis)).toBeLessThanOrEqual(0.2);
+    expect(getKnowledgeGraphEffectiveEdgeWidth({ width: 1.1 }, 1, 'active', '2d'))
+      .toBeGreaterThanOrEqual(getKnowledgeGraphEffectiveEdgeWidth({ width: 1.1 }, 1, 'dimmed', '2d') * 1.5);
 
     const twoDimensional = readFileSync(join(process.cwd(), 'src/features/knowledge/graph/knowledge-graph-2d.tsx'), 'utf8');
     const threeDimensional = readFileSync(join(process.cwd(), 'src/features/knowledge/graph/knowledge-graph-canvas.tsx'), 'utf8');
@@ -219,6 +241,86 @@ describe('shared knowledge graph edge presentation', () => {
       expect(source).toContain('createKnowledgeGraphRendererEdgePath');
       expect(source).toContain('getKnowledgeGraphEdgeEmphasisState');
       expect(source).toContain('getKnowledgeGraphNodeEmphasisOpacity');
+    }
+  });
+
+  it('chooses a stable directional skeleton and hides the remaining dense post relations from the canvas', () => {
+    const links = Array.from({ length: 132 }, (_, targetIndex) => (
+      Array.from({ length: 4 }, (_, sourceOffset) => ({
+        ...post(
+          `post-${String(targetIndex).padStart(3, '0')}-${sourceOffset}`,
+          `node-${(targetIndex + sourceOffset + 1) % 132}`,
+          `node-${targetIndex}`,
+        ),
+        strength: sourceOffset === 2 ? 1 : 0.5,
+      }))
+    )).flat();
+
+    const foreground = selectKnowledgeGraphStructuralForegroundEdgeIds(links);
+    const reordered = selectKnowledgeGraphStructuralForegroundEdgeIds([...links].reverse());
+    const visible = selectKnowledgeGraphFocusedPresentationLinks({ links });
+    const reorderedVisible = selectKnowledgeGraphFocusedPresentationLinks({ links: [...links].reverse() });
+
+    expect(links).toHaveLength(528);
+    expect(foreground).toEqual(reordered);
+    expect(foreground).toHaveLength(KNOWLEDGE_GRAPH_UNSELECTED_POST_EDGE_LIMIT);
+    expect(foreground.every((edgeId) => links.some((link) => link.id === edgeId))).toBe(true);
+    expect(foreground.length).toBeLessThan(links.length);
+    expect(visible.map((link) => link.id).sort()).toEqual(foreground);
+    expect(reorderedVisible).toEqual(visible);
+  });
+
+  it('shows only the deterministic primary post trunk while preserving non-post selection context', () => {
+    const corridor = Array.from({ length: 4 }, (_, index) => post(`corridor-${index}`, `c-${index}`, `c-${index + 1}`));
+    const unfocused = Array.from({ length: 80 }, (_, index) => ({
+      ...post(`unfocused-${String(index).padStart(2, '0')}`, `u-${index}`, `u-${index + 1}`),
+      strength: index % 3 / 2,
+    }));
+    const association = { id: 'association', sourceId: 'a', targetId: 'b', relation: 'related' };
+    const emphasis = {
+      selectedNodeId: 'c-2',
+      nodeIds: ['c-0', 'c-1', 'c-2', 'c-3', 'c-4'],
+      edgeIds: corridor.map((link) => link.id),
+      primaryEdgeIds: ['corridor-1', 'corridor-2'],
+      primaryNodeIds: ['c-1', 'c-2', 'c-3'],
+    };
+
+    const selected = selectKnowledgeGraphFocusedPresentationLinks({
+      links: [...unfocused, association, ...corridor],
+      emphasis,
+    });
+    const reordered = selectKnowledgeGraphFocusedPresentationLinks({
+      links: [...corridor, association, ...unfocused].reverse(),
+      emphasis,
+    });
+
+    expect(selected.filter((link) => link.id.startsWith('unfocused-'))).toHaveLength(0);
+    expect(selected.filter((link) => link.id.startsWith('corridor-')).map((link) => link.id))
+      .toEqual(['corridor-1', 'corridor-2']);
+    expect(selected).toEqual(reordered);
+    expect(selected.map((link) => link.id)).toContain('association');
+  });
+
+  it('keeps 2D and 3D selected motion on the same eligible-edge, geometry, tangent, and reduced-motion contract', () => {
+    const twoDimensional = readFileSync(join(
+      process.cwd(), 'src/features/knowledge/graph/knowledge-graph-2d.tsx'
+    ), 'utf8');
+    const threeDimensional = readFileSync(join(
+      process.cwd(), 'src/features/knowledge/graph/knowledge-graph-canvas.tsx'
+    ), 'utf8');
+
+    for (const source of [twoDimensional, threeDimensional]) {
+      expect(source).toContain('selectKnowledgeGraphMotionMarkerEdgeIds');
+      expect(source).toContain('motionEligibleEdgeIds');
+      expect(source).toContain('motionSuppressedEdgeIds');
+      expect(source).toContain('createKnowledgeGraphRendererEdgePath');
+      expect(source).toContain('getKnowledgeGraphMotionMarkerPlacement');
+      expect(source).toContain('getKnowledgeGraphMotionMarkerFrame');
+      expect(source).toContain('bindKnowledgeGraphMotionEnvironment');
+      expect(source).toContain('motionEnvironmentActive');
+      expect(source).toContain('prefersReducedKnowledgeGraphMotion');
+      expect(source).toContain('KnowledgeGraphMotionFrameLoop');
+      expect(source).toContain('data-knowledge-motion-marker-count');
     }
   });
 });

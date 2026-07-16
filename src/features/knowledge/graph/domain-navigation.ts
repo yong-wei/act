@@ -92,6 +92,10 @@ export function knowledgeGraphNavigationReducer(
     case 'domain-filter-result':
       if (state.view.kind !== 'domain' || state.view.domainId !== action.domainId) return state;
       if (state.status !== 'ready' && state.status !== 'filtered-empty') return state;
+      if (
+        state.status === (action.visibleMemberCount === 0 ? 'filtered-empty' : 'ready')
+        && state.error === null
+      ) return state;
       return {
         ...state,
         status: action.visibleMemberCount === 0 ? 'filtered-empty' : 'ready',

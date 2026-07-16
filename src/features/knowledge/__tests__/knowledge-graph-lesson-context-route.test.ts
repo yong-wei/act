@@ -71,4 +71,19 @@ describe('knowledge graph lesson context route', () => {
 
     expect(resolveExactRuntimeLessonContext).toHaveBeenCalledWith(null, graph);
   });
+
+  it('ignores persisted path and ResourceNode path query parameters at the production route boundary', async () => {
+    const response = await GET(new Request(
+      'http://localhost/api/knowledge/graph?mode=root&lessonId=1-1&learningPathId=stored-path&resourceNodePathContext=stored-context&pathEligibility=true&plannedSegments=node-b'
+    ));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(resolveExactRuntimeLessonContext).toHaveBeenCalledWith('1-1', graph);
+    expect(payload.lessonContext).toEqual(lessonContext);
+    expect(payload).not.toHaveProperty('learningPathId');
+    expect(payload).not.toHaveProperty('resourceNodePathContext');
+    expect(payload).not.toHaveProperty('pathEligibility');
+    expect(payload).not.toHaveProperty('plannedSegments');
+  });
 });

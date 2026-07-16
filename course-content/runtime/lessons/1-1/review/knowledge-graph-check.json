@@ -10,6 +10,7 @@
   "node_field_issues": {},
   "missing_referenced_nodes": [],
   "relation_issues": [],
+  "runtime_relation_contract_issues": [],
   "order_issues": [],
   "overlay_revision": "a924df420d728936bf40de6d3304dc71e0de4bebfd345a5f613e8be7b3127504",
   "overlay_revision_issues": [],

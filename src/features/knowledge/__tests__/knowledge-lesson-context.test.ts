@@ -175,6 +175,8 @@ describe('knowledge lesson context helpers', () => {
         links: normalizeKnowledgeLessonOverlayLinks(overlay.links),
       }).sha256;
       expect(context?.overlayRevision, lessonId).toBe(exportedRevision);
+      expect(context?.mappingGaps.cardOrder, lessonId).toEqual([]);
+      expect(context?.mappingGaps.links, lessonId).toEqual([]);
     }
   });
 

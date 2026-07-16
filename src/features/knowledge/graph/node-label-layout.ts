@@ -20,8 +20,8 @@ export const KNOWLEDGE_GRAPH_3D_SCREEN_SPACE_CONTRACT = {
   maximumLabelWorldScale: 4,
   minimumNodeRadius: 4.5,
   maximumNodeWorldScaleGain: 1.45,
-  minimumArrowLength: 6,
-  maximumArrowWorldLength: 10,
+  minimumArrowLength: 10,
+  maximumArrowWorldLength: 48,
 } as const;
 
 export function getKnowledgeGraph3DLabelWorldScale(input: {

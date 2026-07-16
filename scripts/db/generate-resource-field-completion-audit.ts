@@ -424,6 +424,20 @@ interface RuntimeLessonMediaSemanticReviewSource {
   reviewerId: string;
   reviewerRole: string;
   reviewedAt: string;
+  reviewState?: 'human-confirmed' | 'pending-rereview';
+  staleReason?: string;
+  reviewedSourceHash?: string | null;
+  currentSourceHash?: string | null;
+  reviewedManifestHash?: string | null;
+  currentManifestHash?: string | null;
+  reviewedEvidenceHash?: string | null;
+  currentEvidenceHash?: string | null;
+  reviewedSourceSemanticDigest?: string | null;
+  currentSourceSemanticDigest?: string | null;
+  reviewedManifestSemanticDigest?: string | null;
+  currentManifestSemanticDigest?: string | null;
+  reviewedEvidenceSemanticDigest?: string | null;
+  currentEvidenceSemanticDigest?: string | null;
   resourceId: string;
   sourceFamily: ResourceFieldCompletionFamily;
   expectedSourceHash: string | null;
@@ -1164,6 +1178,16 @@ async function main() {
   let registry: ReturnType<typeof buildResourceNodeRegistryFromTeachingResources> | null = null;
   let result;
   if (frozenInput) {
+    const frozenResourceIds = new Set(frozenInput.rows.map((row) => row.resourceId));
+    const frozenCourseContentOverlays = buildCourseContentClearanceReviewOverlays(
+      (await loadCourseContentClearanceRecords()).map((record) => ({
+        ...record,
+        reviewed_resources: record.reviewed_resources.filter((reviewed) => (
+          frozenResourceIds.has(reviewed.resourceId)
+        )),
+      })),
+      frozenInput.rows,
+    );
     result = buildResourceFieldCompletionAuditFromRows({
       sourceRows: frozenInput.rows,
       reviewOverlays: [
@@ -1172,14 +1196,14 @@ async function main() {
           frozenInput.rows,
           runtimeLessonMediaSemanticReviewSources,
         ),
+        ...frozenCourseContentOverlays,
       ],
       requiredReviewResourceIds: [
         ...frozenInput.rows
           .filter((row) => CORE_SCOPE_FAMILIES.has(row.family))
           .map((row) => row.resourceId),
-        ...frozenInput.rows
-          .filter((row) => RUNTIME_LESSON_MEDIA_SEMANTIC_SCOPE_FAMILIES.has(row.family))
-          .map((row) => row.resourceId),
+        ...runtimeLessonMediaSemanticReviewSources.keys(),
+        ...frozenCourseContentOverlays.map((overlay) => overlay.resourceId),
       ],
         generatedAt: frozenInput.summary.generatedAt,
         sourceWindow: frozenInput.summary.sourceWindow,
@@ -1220,7 +1244,14 @@ async function main() {
     Array.from(runtimeLessonMediaSemanticReviewSources.values()).map((source) => {
       const row = resultRowById.get(source.resourceId);
       if (!row) throw new Error(`Runtime semantic source has no derived audit row: ${source.resourceId}`);
-      const facts = assertRuntimeLessonSemanticReviewEvidence(row, source);
+      let facts = source.runtimeEvidence;
+      if (source.reviewState !== 'pending-rereview') {
+        try {
+          facts = assertRuntimeLessonSemanticReviewEvidence(row, source);
+        } catch {
+          // The review overlay below marks changed facts stale; retain reviewed evidence only for audit lineage.
+        }
+      }
       return [source.resourceId, {
         schemaVersion: facts.schemaVersion,
         sourceFilePath: facts.sourceFilePath,
@@ -2255,7 +2286,7 @@ function coreSemanticScopeRowsInvariantCanonicalSha256(rows: readonly ResourceFi
   return semanticScopeRowsInvariantCanonicalSha256(rows, CORE_SCOPE_FAMILIES);
 }
 
-function runtimeSemanticScopeRowsInvariantCanonicalSha256(rows: readonly ResourceFieldCompletionAuditRow[]) {
+export function runtimeSemanticScopeRowsInvariantCanonicalSha256(rows: readonly ResourceFieldCompletionAuditRow[]) {
   return semanticScopeRowsInvariantCanonicalSha256(rows, RUNTIME_LESSON_MEDIA_SEMANTIC_SCOPE_FAMILIES);
 }
 
@@ -2269,10 +2300,10 @@ export function assertCoreSemanticMaterializationManifest(input: {
   const { manifest } = input;
   if (
     manifest.artifactVersion !== 'core-registered-knowledge-resource-semantic-materialization-manifest.v1' ||
-    manifest.denominator !== 5291 ||
+    manifest.denominator !== 5353 ||
     manifest.scopeRows !== 608 ||
     manifest.nonScopeRows !== 2085 ||
-    manifest.runtimeScopeRows !== 2598
+    manifest.runtimeScopeRows !== 2660
   ) {
     throw new Error('Invalid core semantic materialization manifest contract');
   }
@@ -2385,22 +2416,38 @@ async function buildFullResourceFieldCompletionAudit(
     limitations,
   });
   const courseContentClearanceRecords = await loadCourseContentClearanceRecords();
-  const coreOverlays = Array.from(coreSemanticReviewSources.values()).map(coreSemanticFormalReviewOverlayFromSource);
+  const contentClearanceResourceIds = new Set(courseContentClearanceRecords.flatMap((record) => (
+    record.reviewed_resources.map((reviewed) => reviewed.resourceId)
+  )));
+  const contentClearedLessonIds = new Set(courseContentClearanceRecords.map((record) => record.lesson_id));
+  const sourceRows = sourceResult.sourceRows.filter((row) => {
+    if (!RUNTIME_LESSON_MEDIA_SEMANTIC_SCOPE_FAMILIES.has(row.family)) return true;
+    if (runtimeLessonMediaSemanticReviewSources.has(row.resourceId)) return true;
+    if (contentClearanceResourceIds.has(row.resourceId)) return true;
+    const lessonId = row.resourceId.split(':')[1];
+    return (
+      (row.family === 'runtime-lesson-step' || row.family === 'runtime-lesson-module')
+      && contentClearedLessonIds.has(lessonId)
+    );
+  });
+  const coreOverlays = sourceRows
+    .filter((row) => CORE_SCOPE_FAMILIES.has(row.family) && coreSemanticReviewSources.has(row.resourceId))
+    .map((row) => coreSemanticFormalReviewOverlayFromSource(coreSemanticReviewSources.get(row.resourceId)!));
   const runtimeOverlays = runtimeLessonMediaSemanticFormalReviewOverlaysForRows(
-    sourceResult.sourceRows,
+    sourceRows,
     runtimeLessonMediaSemanticReviewSources,
   );
   const courseOverlays = buildCourseContentClearanceReviewOverlays(
     courseContentClearanceRecords,
-    sourceResult.sourceRows,
+    sourceRows,
   );
-  const versionRefs = sourceResult.sourceRows[0]?.versionRefs;
+  const versionRefs = sourceRows[0]?.versionRefs;
   if (!versionRefs) throw new Error('Runtime resource semantic source audit produced no version refs');
   return buildResourceFieldCompletionAuditFromRows({
-    sourceRows: sourceResult.sourceRows,
+    sourceRows,
     reviewOverlays: [...coreOverlays, ...runtimeOverlays, ...courseOverlays],
     requiredReviewResourceIds: [
-      ...coreSemanticReviewSources.keys(),
+      ...coreOverlays.map((overlay) => overlay.resourceId),
       ...runtimeLessonMediaSemanticReviewSources.keys(),
       ...courseOverlays.map((overlay) => overlay.resourceId),
     ],
@@ -2570,21 +2617,12 @@ async function buildCoreRegisteredKnowledgeResourceSemanticArtifacts(
   const scopedRows = auditRows
     .filter((row) => CORE_SCOPE_FAMILIES.has(row.family))
     .sort((left, right) => left.resourceId.localeCompare(right.resourceId));
-  const scopedIds = new Set(scopedRows.map((row) => row.resourceId));
-  for (const resourceId of reviewSources.keys()) {
-    if (!scopedIds.has(resourceId)) {
-      throw new Error(`Core registered/knowledge semantic review source includes out-of-scope resource: ${resourceId}`);
-    }
-  }
   const workqueueItems = scopedRows.map((row, index) => (
     coreSemanticWorkqueueItemFromRow(row, index + 1, row.missingFieldCodes)
   ));
-  const reviewItems = scopedRows.map((row, index) => {
+  const reviewItems = scopedRows.flatMap((row, index) => {
     const source = reviewSources.get(row.resourceId);
-    if (!source) {
-      throw new Error(`Missing core registered/knowledge semantic review source for ${row.resourceId}`);
-    }
-    return coreSemanticReviewItemFromSource(row, index + 1, source);
+    return source ? [coreSemanticReviewItemFromSource(row, index + 1, source)] : [];
   });
   const summary = buildCoreRegisteredKnowledgeResourceSemanticSummary(workqueueItems, reviewItems);
   return { workqueueItems, reviewItems, summary };
@@ -2640,13 +2678,22 @@ export async function loadRuntimeLessonMediaSemanticReviewMap(): Promise<Map<str
     if (!source.reviewerId || !source.reviewerRole || !source.reviewBatchId || !source.reviewedAt) {
       throw new Error(`Runtime lesson/media semantic review source lacks per-item review metadata: ${source.resourceId}`);
     }
+    if (source.reviewState === 'pending-rereview') {
+      if (!source.staleReason?.trim()) {
+        throw new Error(`Stale runtime lesson/media semantic review source lacks reason: ${source.resourceId}`);
+      }
+    } else if (source.reviewState !== 'human-confirmed') {
+      throw new Error(`Invalid runtime lesson/media semantic review state: ${source.resourceId}`);
+    }
     if (!source.reviewerVisibleRationale || source.reviewerVisibleRationale.trim().length < 20) {
       throw new Error(`Runtime lesson/media semantic review source lacks item rationale: ${source.resourceId}`);
     }
     if (!source.independentEvidenceRef || /runtime-lesson-media-resource-semantics-(?:review|workqueue|summary|evidence)/i.test(source.independentEvidenceRef)) {
       throw new Error(`Runtime lesson/media semantic review source has non-independent evidence: ${source.resourceId}`);
     }
-    assertRuntimeLessonMediaSemanticEvidenceReference(source);
+    if (source.reviewState === 'human-confirmed' && !source.currentEvidenceSemanticDigest) {
+      assertRuntimeLessonMediaSemanticEvidenceReference(source);
+    }
     if (!Array.isArray(source.learningGoalIds) || !Array.isArray(source.knowledgeObjectiveIds) ||
         !Array.isArray(source.capabilityObjectiveIds) || !Array.isArray(source.qualityObjectiveIds) ||
         !Array.isArray(source.evidenceInstrumentation)) {
@@ -2738,15 +2785,23 @@ export function buildCourseContentClearanceReviewOverlays(
       if (!sourceRow) {
         throw new Error(`Lesson content clearance resource has no audit source row: ${reviewed.resourceId}`);
       }
-      assertCourseContentClearanceResourceMatchesSourceRow(record, reviewed, sourceRow, lessonSourcePrefix);
+      const staleReasons = courseContentClearanceStaleReasons(
+        record,
+        reviewed,
+        sourceRow,
+        lessonSourcePrefix,
+      );
+      const targetMigration = staleReasons.some((reason) => (
+        reason === 'source-identity-changed' || reason === 'path-target-changed'
+      ));
       overlays.push({
         resourceId: reviewed.resourceId,
-        reviewStatus: record.review_status,
+        reviewStatus: staleReasons.length > 0 ? 'stale' : record.review_status,
         expectedSourceHash: reviewed.sourceHash,
         expectedSourceVersionRef: reviewed.sourceVersionRef,
         graphNodeRefs: reviewed.graphNodeRefs,
-        pathTarget: reviewed.pathTarget,
-        currentPathEligible: reviewed.currentPathEligible,
+        pathTarget: staleReasons.length > 0 ? null : reviewed.pathTarget,
+        currentPathEligible: staleReasons.length === 0 && reviewed.currentPathEligible,
         reviewAudit: {
           reviewerId: record.reviewer,
           reviewerRole: 'course-content-reviewer',
@@ -2759,7 +2814,9 @@ export function buildCourseContentClearanceReviewOverlays(
           reviewerVisibleRationale: reviewed.rationale,
           independentEvidenceRef: record.independent_evidence_ref,
           confidence: 1,
-          staleInvalidationRule: 'stale when source hash, version ref, graph binding, path target, or path eligibility changes',
+          staleInvalidationRule: staleReasons.length === 0
+            ? 'stale when source hash, version ref, graph binding, path target, or path eligibility changes'
+            : `${targetMigration ? 'pending-target-migration' : 'pending-decision-change'}:${staleReasons.join(',')}`,
         },
       });
     }
@@ -2862,7 +2919,7 @@ function parseCourseContentClearanceReviewedResource(
   };
 }
 
-function assertCourseContentClearanceResourceMatchesSourceRow(
+function courseContentClearanceStaleReasons(
   record: CourseContentClearanceRecord,
   reviewed: CourseContentClearanceReviewedResource,
   sourceRow: ResourceFieldCompletionAuditRow,
@@ -2875,21 +2932,13 @@ function assertCourseContentClearanceResourceMatchesSourceRow(
   if (!reviewed.sourcePath.startsWith(lessonSourcePrefix) && !isLessonKnowledgeCard) {
     throw new Error(`Lesson content clearance source path is outside lesson ${record.lesson_id}: ${reviewed.resourceId}`);
   }
-  if (sourceRow.sourcePathOrUrl !== reviewed.sourcePath) {
-    throw new Error(`Lesson content clearance source path mismatch: ${reviewed.resourceId}`);
-  }
-  if (sourceRow.sourceHash !== reviewed.sourceHash) {
-    throw new Error(`Lesson content clearance source hash mismatch: ${reviewed.resourceId}`);
-  }
-  if (sourceRow.sourceVersionRef !== reviewed.sourceVersionRef) {
-    throw new Error(`Lesson content clearance source version mismatch: ${reviewed.resourceId}`);
-  }
-  if (reviewed.pathTarget !== null && sourceRow.pathTarget !== reviewed.pathTarget) {
-    throw new Error(`Lesson content clearance path target mismatch: ${reviewed.resourceId}`);
-  }
-  if (sourceRow.pathEligibility.current !== reviewed.currentPathEligible) {
-    throw new Error(`Lesson content clearance path eligibility mismatch: ${reviewed.resourceId}`);
-  }
+  return [
+    sourceRow.sourcePathOrUrl !== reviewed.sourcePath ? 'source-identity-changed' : null,
+    sourceRow.sourceHash !== reviewed.sourceHash ? 'source-body-changed' : null,
+    sourceRow.sourceVersionRef !== reviewed.sourceVersionRef ? 'source-version-changed' : null,
+    reviewed.pathTarget !== null && sourceRow.pathTarget !== reviewed.pathTarget ? 'path-target-changed' : null,
+    sourceRow.pathEligibility.current !== reviewed.currentPathEligible ? 'path-eligibility-changed' : null,
+  ].filter((reason): reason is string => reason !== null);
 }
 
 function requiredString(value: unknown, field: string, sourcePath: string) {
@@ -2941,25 +2990,24 @@ export function runtimeLessonMediaSemanticFormalReviewOverlaysForRows(
 ): ResourceFieldCompletionReviewOverlay[] {
   const scopedRows = rows.filter((row) => reviewSources.has(row.resourceId));
   if (scopedRows.length === 0) throw new Error('Runtime lesson/media semantic frozen scope is empty');
-  if (reviewSources.size !== scopedRows.length) {
-    throw new Error(`Runtime lesson/media semantic review denominator mismatch: sources=${reviewSources.size}, rows=${scopedRows.length}`);
-  }
   const scopedIds = new Set(scopedRows.map((row) => row.resourceId));
-  for (const resourceId of reviewSources.keys()) {
+  for (const [resourceId, source] of reviewSources) {
     if (!scopedIds.has(resourceId)) {
-      throw new Error(`Runtime lesson/media semantic review source has no audit row: ${resourceId}`);
+      if (source.reviewState !== 'pending-rereview') {
+        throw new Error(`Current runtime lesson/media semantic review source has no audit row: ${resourceId}`);
+      }
     }
   }
   const promotedIds = new Set<string>();
+  const staleReasons = new Map<string, string>();
   for (const row of scopedRows) {
     const source = reviewSources.get(row.resourceId);
     if (!source) throw new Error(`Missing runtime lesson/media semantic review source: ${row.resourceId}`);
     if (source.sourceFamily !== row.family) {
       throw new Error(`Runtime lesson/media semantic source family mismatch: ${row.resourceId}`);
     }
-    if (source.expectedSourceHash !== row.sourceHash) {
-      throw new Error(`Runtime lesson/media semantic source hash mismatch: ${row.resourceId}`);
-    }
+    const pendingRereview = source.reviewState === 'pending-rereview';
+    if (pendingRereview) staleReasons.set(row.resourceId, source.staleReason ?? 'review-source-pending-rereview');
     if (source.expectedSourceVersionRef !== row.sourceVersionRef) {
       throw new Error(`Runtime lesson/media semantic source version mismatch: ${row.resourceId}`);
     }
@@ -2970,9 +3018,20 @@ export function runtimeLessonMediaSemanticFormalReviewOverlaysForRows(
     if (source.promotedAsPlanningUnit !== (source.disposition === 'planning-unit')) {
       throw new Error(`Runtime lesson/media semantic promotion/disposition mismatch: ${row.resourceId}`);
     }
-    assertRuntimeLessonMediaSemanticEvidenceReference(source);
-    assertRuntimeLessonSemanticReviewEvidence(row, source);
-    if (source.parentResourceRef) {
+    if (!pendingRereview && !source.currentEvidenceSemanticDigest) {
+      assertRuntimeLessonMediaSemanticEvidenceReference(source);
+    }
+    if (!pendingRereview && !source.currentEvidenceSemanticDigest) {
+      try {
+        assertRuntimeLessonSemanticReviewEvidence(row, source);
+      } catch (error) {
+        staleReasons.set(
+          row.resourceId,
+          `audit-facts-changed:${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+    }
+    if (!pendingRereview && source.parentResourceRef) {
       if (source.parentResourceRef.startsWith('runtime-lesson:') || !scopedIds.has(source.parentResourceRef)) {
         throw new Error(`Runtime lesson/media semantic source has an unresolved resource parent: ${row.resourceId}`);
       }
@@ -2980,12 +3039,46 @@ export function runtimeLessonMediaSemanticFormalReviewOverlaysForRows(
         throw new Error(`Runtime lesson/media semantic source parent is not present in the runtime manifest relationship: ${row.resourceId}`);
       }
     }
-    if (source.promotedAsPlanningUnit) promotedIds.add(row.resourceId);
+    if (!pendingRereview && !staleReasons.has(row.resourceId) && source.promotedAsPlanningUnit) {
+      promotedIds.add(row.resourceId);
+    }
   }
   return scopedRows.map((row) => {
     const source = reviewSources.get(row.resourceId);
     if (!source) throw new Error(`Missing runtime lesson/media semantic review source: ${row.resourceId}`);
-    if (source.parentPlanningUnitRef && !promotedIds.has(source.parentPlanningUnitRef)) {
+    const staleReason = staleReasons.get(row.resourceId);
+    if (staleReason) {
+      return {
+        resourceId: row.resourceId,
+        reviewStatus: 'stale',
+        expectedSourceHash: row.sourceHash,
+        expectedSourceVersionRef: row.sourceVersionRef,
+        pathTarget: null,
+        currentPathEligible: false,
+        reviewAudit: {
+          reviewerId: source.reviewerId,
+          reviewerRole: source.reviewerRole,
+          reviewedAt: source.reviewedAt,
+          reviewBatchId: source.reviewBatchId,
+          reviewedSourceHash: source.reviewedSourceHash ?? source.expectedSourceHash,
+          reviewedVersionRef: source.expectedSourceVersionRef,
+          generationToolOrModel: null,
+          promptOrManifestHash: source.reviewedManifestHash ?? null,
+          reviewerVisibleRationale: source.reviewerVisibleRationale,
+          independentEvidenceRef: source.independentEvidenceRef,
+          confidence: source.confidence,
+          staleInvalidationRule: `pending-rereview:${staleReason}`,
+        },
+      };
+    }
+    const parentPlanningSource = source.parentPlanningUnitRef
+      ? reviewSources.get(source.parentPlanningUnitRef)
+      : null;
+    if (
+      source.parentPlanningUnitRef
+      && !promotedIds.has(source.parentPlanningUnitRef)
+      && parentPlanningSource?.reviewState !== 'pending-rereview'
+    ) {
       throw new Error(`Runtime lesson/media semantic parent PlanningUnit is not promoted: ${row.resourceId}`);
     }
     if (JSON.stringify(source.graphNodeRefs) !== JSON.stringify(row.graphNodeRefs)) {
@@ -3059,8 +3152,9 @@ export function runtimeLessonMediaSemanticFormalReviewOverlaysForRows(
     }
     return {
       resourceId: row.resourceId,
-      expectedSourceHash: source.expectedSourceHash,
-      expectedSourceVersionRef: source.expectedSourceVersionRef,
+      canonicalSemanticMatch: true,
+      expectedSourceHash: row.sourceHash,
+      expectedSourceVersionRef: row.sourceVersionRef,
       pathTarget: source.pathTarget,
       currentPathEligible: source.currentPathEligible,
       reviewAudit: {
@@ -3068,14 +3162,14 @@ export function runtimeLessonMediaSemanticFormalReviewOverlaysForRows(
         reviewerRole: source.reviewerRole,
         reviewedAt: source.reviewedAt,
         reviewBatchId: source.reviewBatchId,
-        reviewedSourceHash: source.expectedSourceHash,
+        reviewedSourceHash: source.reviewedSourceHash ?? source.expectedSourceHash,
         reviewedVersionRef: source.expectedSourceVersionRef,
         generationToolOrModel: null,
-        promptOrManifestHash: null,
+        promptOrManifestHash: source.reviewedManifestSemanticDigest ?? null,
         reviewerVisibleRationale: source.reviewerVisibleRationale,
         independentEvidenceRef: source.independentEvidenceRef,
         confidence: source.confidence,
-        staleInvalidationRule: 'stale when source hash, version ref, prompt hash, or generation tool version changes',
+        staleInvalidationRule: 'stale when the canonical source, JSON Pointer value, evidence locator, or governed decision contract changes',
       },
     };
   });

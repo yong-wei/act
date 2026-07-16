@@ -18,6 +18,30 @@ const nodes = ['a', 'b', 'c', 'd', 'unordered'].map((id) => ({
 }));
 
 describe('knowledge teaching order layout', () => {
+  it('does not derive layout order from the newly registered association types', () => {
+    const associationTypes = [
+      'causes', 'demonstrates', 'equivalent_to', 'exemplifies', 'extends', 'has_stage',
+      'precedes', 'produces', 'provides_context', 'refined_by', 'refines',
+    ];
+    const associationNodes = ['selected', ...associationTypes.map((_, index) => `target-${index}`)]
+      .map((id) => ({ id, name: id }));
+    const result = buildKnowledgeTeachingOrderLayout({
+      nodes: associationNodes,
+      links: associationTypes.map((relationType, index) => ({
+        id: `association-${index}`,
+        sourceId: 'selected',
+        targetId: `target-${index}`,
+        relationType,
+      })),
+      lessonOrderNodeIds: [],
+      viewportWidth: 900,
+      viewportHeight: 600,
+    });
+
+    expect(result.orderNodeIds).toEqual([]);
+    expect(result.unorderedNodeIds).toEqual(expect.arrayContaining(associationNodes.map(({ id }) => id)));
+  });
+
   it.each([
     ['virtual chapter', { id: 'chapter-node:virtual', metadata: { isVirtualChapter: true, nodeCount: 96 }, graphDegree: 2 }],
     ['core', { id: 'core', metadata: { importance: 5 }, graphDegree: 2 }],

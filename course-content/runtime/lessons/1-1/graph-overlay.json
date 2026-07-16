@@ -1135,30 +1135,6 @@
   ],
   "links": [
     {
-      "id": "rel-34d21ec0f867815b",
-      "sourceId": "反馈_1_1",
-      "targetId": "闭环控制_1_1",
-      "relation": "enables",
-      "relationType": "enables",
-      "strength": 1.0
-    },
-    {
-      "id": "rel-66f800edc56f1d23",
-      "sourceId": "闭环控制_1_1",
-      "targetId": "误差_1_1",
-      "relation": "uses",
-      "relationType": "uses",
-      "strength": 1.0
-    },
-    {
-      "id": "rel-a047830052521f9c",
-      "sourceId": "闭环控制_1_1",
-      "targetId": "开环控制_1_1",
-      "relation": "contrasts_with",
-      "relationType": "contrasts_with",
-      "strength": 1.0
-    },
-    {
       "id": "rel-075ce3f1d7377a88",
       "sourceId": "传递函数_1_1",
       "targetId": "极点_1_1",
@@ -1167,27 +1143,11 @@
       "strength": 1.0
     },
     {
-      "id": "rel-3b295b08dd6626d5",
-      "sourceId": "极点_1_1",
-      "targetId": "时域响应_1_1",
-      "relation": "determines",
-      "relationType": "determines",
-      "strength": 1.0
-    },
-    {
-      "id": "rel-c80c222983ea4e38",
-      "sourceId": "极点_1_1",
-      "targetId": "稳定性_1_1",
-      "relation": "determines",
-      "relationType": "determines",
-      "strength": 1.0
-    },
-    {
-      "id": "rel-c10c70700e02f4fe",
-      "sourceId": "时域响应_1_1",
-      "targetId": "性能指标_1_1",
-      "relation": "quantified_by",
-      "relationType": "quantified_by",
+      "id": "rel-34d21ec0f867815b",
+      "sourceId": "反馈_1_1",
+      "targetId": "闭环控制_1_1",
+      "relation": "enables",
+      "relationType": "enables",
       "strength": 1.0
     },
     {
@@ -1199,14 +1159,6 @@
       "strength": 1.0
     },
     {
-      "id": "rel-5af6be66a6413099",
-      "sourceId": "传递函数_1_1",
-      "targetId": "频域响应_1_1",
-      "relation": "enables",
-      "relationType": "enables",
-      "strength": 1.0
-    },
-    {
       "id": "rel-399bfbb5243bc777",
       "sourceId": "频域响应_1_1",
       "targetId": "Bode图_1_1",
@@ -1215,11 +1167,35 @@
       "strength": 1.0
     },
     {
-      "id": "rel-b1d9e7d5ee40a9f3",
-      "sourceId": "比例控制_1_1",
-      "targetId": "控制器_1_1",
-      "relation": "instance_of",
-      "relationType": "instance_of",
+      "id": "rel-3b295b08dd6626d5",
+      "sourceId": "极点_1_1",
+      "targetId": "时域响应_1_1",
+      "relation": "determines",
+      "relationType": "determines",
+      "strength": 1.0
+    },
+    {
+      "id": "rel-58bf92720adecb0a",
+      "sourceId": "时域响应_1_1",
+      "targetId": "频域响应_1_1",
+      "relation": "complements",
+      "relationType": "complements",
+      "strength": 1.0
+    },
+    {
+      "id": "rel-5af6be66a6413099",
+      "sourceId": "传递函数_1_1",
+      "targetId": "频域响应_1_1",
+      "relation": "enables",
+      "relationType": "enables",
+      "strength": 1.0
+    },
+    {
+      "id": "rel-66f800edc56f1d23",
+      "sourceId": "闭环控制_1_1",
+      "targetId": "误差_1_1",
+      "relation": "uses",
+      "relationType": "uses",
       "strength": 1.0
     },
     {
@@ -1239,6 +1215,14 @@
       "strength": 1.0
     },
     {
+      "id": "rel-a047830052521f9c",
+      "sourceId": "闭环控制_1_1",
+      "targetId": "开环控制_1_1",
+      "relation": "contrasts_with",
+      "relationType": "contrasts_with",
+      "strength": 1.0
+    },
+    {
       "id": "rel-a50ac543959ca198",
       "sourceId": "课程总图_1_1",
       "targetId": "系统观念_1_1",
@@ -1247,11 +1231,27 @@
       "strength": 1.0
     },
     {
-      "id": "rel-58bf92720adecb0a",
+      "id": "rel-b1d9e7d5ee40a9f3",
+      "sourceId": "比例控制_1_1",
+      "targetId": "控制器_1_1",
+      "relation": "instance_of",
+      "relationType": "instance_of",
+      "strength": 1.0
+    },
+    {
+      "id": "rel-c10c70700e02f4fe",
       "sourceId": "时域响应_1_1",
-      "targetId": "频域响应_1_1",
-      "relation": "complements",
-      "relationType": "complements",
+      "targetId": "性能指标_1_1",
+      "relation": "quantified_by",
+      "relationType": "quantified_by",
+      "strength": 1.0
+    },
+    {
+      "id": "rel-c80c222983ea4e38",
+      "sourceId": "极点_1_1",
+      "targetId": "稳定性_1_1",
+      "relation": "determines",
+      "relationType": "determines",
       "strength": 1.0
     },
     {

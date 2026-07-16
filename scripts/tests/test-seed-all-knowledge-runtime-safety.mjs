@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import {
   sanitizeRelationMetadata,
   selectRelationsForDb,
+  upsertRelations,
   validateRuntimeNodes,
 } from '../db/seed-all-knowledge.mjs';
 
@@ -11,6 +13,55 @@ assert.throws(
   /runtime knowledge nodes is empty/,
   'seed:knowledge 默认应拒绝空 runtime graph，避免误失活所有 runtime-owned 节点',
 );
+
+const gitEnvironment = Object.fromEntries(Object.entries(process.env).filter(([key]) => (
+  !['GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE', 'GIT_COMMON_DIR'].includes(key)
+)));
+const parseJsonl = (text) => text.trim().split(/\r?\n/).filter(Boolean).map(JSON.parse);
+const currentRuntimeRelations = parseJsonl(fs.readFileSync(
+  'course-content/runtime/knowledge/graph/relations.jsonl',
+  'utf8',
+));
+const reviewedRuntimeRelations = parseJsonl(execFileSync(
+  'git',
+  ['show', 'HEAD:course-content/runtime/knowledge/graph/relations.jsonl'],
+  { encoding: 'utf8', env: gitEnvironment, maxBuffer: 64 * 1024 * 1024 },
+));
+const relationSemanticKey = (relation) => [
+  relation.source_id,
+  relation.target_id,
+  relation.relation_type,
+  relation.strength,
+].join('\0');
+const reviewedIdBySemanticKey = new Map(reviewedRuntimeRelations.map((relation) => (
+  [relationSemanticKey(relation), relation.id]
+)));
+const migratedRelations = currentRuntimeRelations.filter((relation) => {
+  const reviewedId = reviewedIdBySemanticKey.get(relationSemanticKey(relation));
+  return reviewedId && reviewedId !== relation.id;
+});
+assert.equal(migratedRelations.length, 42, 'runtime relation migration must contain the reviewed set of 42 stable-id replacements');
+
+const legacyRelationIds = migratedRelations.map((relation) => reviewedIdBySemanticKey.get(relationSemanticKey(relation)));
+const stableRelationIds = migratedRelations.map((relation) => relation.id);
+const stableRelationIdSet = new Set(stableRelationIds);
+const retiredLegacyRelationIds = legacyRelationIds.filter((id) => !stableRelationIdSet.has(id));
+const deletedRelationIds = [];
+const upsertedRelationIds = [];
+await upsertRelations({
+  knowledgeLink: {
+    upsert: async ({ where }) => upsertedRelationIds.push(where.id),
+    findMany: async () => [
+      ...legacyRelationIds.map((id) => ({ id })),
+      { id: stableRelationIds[0] },
+    ],
+    delete: async ({ where }) => deletedRelationIds.push(where.id),
+  },
+}, migratedRelations, new Set(migratedRelations.flatMap((relation) => [relation.source_id, relation.target_id])));
+assert.deepEqual(upsertedRelationIds, [...stableRelationIds].sort(), 'seed input must contain only the 42 current stable relation ids');
+assert.equal(new Set(upsertedRelationIds).size, stableRelationIds.length, 'new stable relation ids must not be seeded twice');
+assert.deepEqual(deletedRelationIds, retiredLegacyRelationIds, 'seed must delete every runtime-owned legacy id absent from current input');
+assert(retiredLegacyRelationIds.length > 0, 'migration fixture must contain legacy ids that require deletion');
 const sanitized = sanitizeRelationMetadata({
   rationale: 'r'.repeat(900),
   sourceDocument: 'document',

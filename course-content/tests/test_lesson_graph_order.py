@@ -9,12 +9,31 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
 
 from lesson_graph_order import (  # noqa: E402
+    RELATION_CONTRACTS,
     build_lesson_overlay_payload,
     build_lesson_overlay_revision,
     build_overlay_revision,
     normalize_overlay_links,
     resolve_authoring_card_order,
 )
+
+
+@pytest.mark.parametrize('relation_type', [
+    'causes', 'demonstrates', 'equivalent_to', 'exemplifies', 'extends', 'has_stage',
+    'precedes', 'produces', 'provides_context', 'refined_by', 'refines',
+])
+def test_zero_instance_relation_contracts_are_associations(relation_type: str):
+    assert RELATION_CONTRACTS[relation_type]['family'] == 'association'
+    assert RELATION_CONTRACTS[relation_type]['direction'] == 'unordered'
+    assert RELATION_CONTRACTS[relation_type]['label']
+    assert RELATION_CONTRACTS[relation_type]['source_sentence']
+    assert RELATION_CONTRACTS[relation_type]['target_sentence']
+
+
+def test_equivalent_to_contract_limits_equivalence_to_declared_conditions():
+    contract = RELATION_CONTRACTS['equivalent_to']
+    assert '已声明模型与条件下' in contract['source_sentence']
+    assert '已声明模型与条件下' in contract['target_sentence']
 
 
 def test_sequence_is_authoritative_and_manifest_must_match_exactly(tmp_path: Path):

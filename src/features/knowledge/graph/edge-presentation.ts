@@ -27,6 +27,10 @@ export interface KnowledgeGraphSelectedCorridorEmphasis {
   selectedNodeId: string | null;
   nodeIds: readonly string[];
   edgeIds: readonly string[];
+  motionEligibleEdgeIds?: readonly string[];
+  motionSuppressedEdgeIds?: readonly string[];
+  primaryEdgeIds?: readonly string[];
+  primaryNodeIds?: readonly string[];
 }
 
 const FAMILY_ORDER: Record<KnowledgeGraphPresentationFamily, number> = {
@@ -34,6 +38,8 @@ const FAMILY_ORDER: Record<KnowledgeGraphPresentationFamily, number> = {
   'post-requisite': 1,
   association: 2,
 };
+
+export const KNOWLEDGE_GRAPH_UNSELECTED_POST_EDGE_LIMIT = 32;
 
 export function getKnowledgeGraphPresentationLinkKey(link: KnowledgeGraphPresentationLink): string {
   return link.id ?? `${link.relationType ?? link.relation ?? ''}|${link.sourceId}|${link.targetId}`;
@@ -183,20 +189,52 @@ export function sampleKnowledgeGraphEdgePath(
 export function getKnowledgeGraphEdgeEmphasisState({
   link,
   emphasis,
+  structuralForegroundEdgeIds,
 }: {
   link: KnowledgeGraphPresentationLink;
   emphasis?: KnowledgeGraphSelectedCorridorEmphasis | null;
+  structuralForegroundEdgeIds?: ReadonlySet<string>;
 }): KnowledgeGraphEdgeFocusState {
-  if (!emphasis?.selectedNodeId) return 'neutral';
+  const key = getKnowledgeGraphPresentationLinkKey(link);
+  if (!emphasis?.selectedNodeId) {
+    return getKnowledgeGraphPresentationFamily(link) === 'post-requisite'
+      && structuralForegroundEdgeIds
+      && !structuralForegroundEdgeIds.has(key)
+      && !(link.id && structuralForegroundEdgeIds.has(link.id))
+      ? 'background'
+      : 'neutral';
+  }
   if (emphasis.edgeIds.length > 0) {
-    return emphasis.edgeIds.includes(getKnowledgeGraphPresentationLinkKey(link))
-      || (link.id ? emphasis.edgeIds.includes(link.id) : false)
+    const isCorridor = emphasis.edgeIds.includes(key)
+      || (link.id ? emphasis.edgeIds.includes(link.id) : false);
+    if (!isCorridor) {
+      return getKnowledgeGraphPresentationFamily(link) === 'association' ? 'secondary' : 'dimmed';
+    }
+    if (!emphasis.primaryEdgeIds?.length) return 'active';
+    return emphasis.primaryEdgeIds.includes(key)
+      || (link.id ? emphasis.primaryEdgeIds.includes(link.id) : false)
       ? 'active'
-      : 'dimmed';
+      : 'secondary';
   }
   return link.sourceId === emphasis.selectedNodeId || link.targetId === emphasis.selectedNodeId
     ? 'active'
     : 'dimmed';
+}
+
+export function selectKnowledgeGraphStructuralForegroundEdgeIds(
+  links: readonly (KnowledgeGraphPresentationLink & { strength?: number })[],
+): string[] {
+  return links
+    .filter((link) => getKnowledgeGraphPresentationFamily(link) === 'post-requisite')
+    .sort((left, right) => (
+      (right.strength ?? 0) - (left.strength ?? 0)
+      || getKnowledgeGraphPresentationLinkKey(left).localeCompare(
+        getKnowledgeGraphPresentationLinkKey(right),
+      )
+    ))
+    .slice(0, KNOWLEDGE_GRAPH_UNSELECTED_POST_EDGE_LIMIT)
+    .map(getKnowledgeGraphPresentationLinkKey)
+    .sort((left, right) => left.localeCompare(right));
 }
 
 export function getKnowledgeGraphNodeEmphasisOpacity(
@@ -204,7 +242,8 @@ export function getKnowledgeGraphNodeEmphasisOpacity(
   emphasis?: KnowledgeGraphSelectedCorridorEmphasis | null,
 ): number {
   if (!emphasis?.selectedNodeId) return 1;
-  return emphasis.nodeIds.includes(nodeId) ? 1 : 0.56;
+  if (emphasis.primaryNodeIds?.includes(nodeId)) return 1;
+  return emphasis.nodeIds.includes(nodeId) ? 0.58 : 0.18;
 }
 
 export function getKnowledgeGraphEdgePresentation(link: KnowledgeGraphPresentationLink) {
@@ -214,4 +253,28 @@ export function getKnowledgeGraphEdgePresentation(link: KnowledgeGraphPresentati
     style: getKnowledgeGraphFamilyPresentationStyle(link.relationType ?? link.relation),
     directed: family !== 'association',
   };
+}
+
+export function selectKnowledgeGraphFocusedPresentationLinks<
+  T extends KnowledgeGraphPresentationLink & { strength?: number },
+>({
+  links,
+  emphasis,
+}: {
+  links: readonly T[];
+  emphasis?: KnowledgeGraphSelectedCorridorEmphasis | null;
+}): T[] {
+  const postLinks = links.filter((link) => (
+    getKnowledgeGraphPresentationFamily(link) === 'post-requisite'
+  ));
+  const visiblePostIds = new Set(
+    emphasis?.selectedNodeId
+      ? emphasis.primaryEdgeIds ?? []
+      : selectKnowledgeGraphStructuralForegroundEdgeIds(postLinks),
+  );
+  return links.filter((link) => {
+    if (getKnowledgeGraphPresentationFamily(link) !== 'post-requisite') return true;
+    const key = getKnowledgeGraphPresentationLinkKey(link);
+    return visiblePostIds.has(key) || Boolean(link.id && visiblePostIds.has(link.id));
+  }).sort(comparePresentationLinks);
 }

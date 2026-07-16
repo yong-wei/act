@@ -23,13 +23,67 @@ RELATION_ALIASES = {
     '电路应用': 'applies_to',
 }
 
-CANONICAL_RELATION_TYPES = {
-    'contains', 'prerequisite', 'provides_foundation', 'follows', 'leads_to',
-    'applies_to', 'opposite', 'related', 'cross_domain', 'generalizes',
-    'instance_of', 'supports', 'enables', 'complements', 'contrasts_with',
-    'derives', 'describes_migration_of', 'determines', 'embodies', 'informs',
-    'quantified_by', 'uses', 'visualized_by',
+RELATION_CONTRACTS = {
+    relation_type: {'family': family, 'direction': direction}
+    for relation_type, family, direction in (
+        ('contains', 'child', 'parent-to-child'),
+        ('prerequisite', 'post-requisite', 'earlier-to-later'),
+        ('provides_foundation', 'post-requisite', 'earlier-to-later'),
+        ('follows', 'post-requisite', 'earlier-to-later'),
+        ('leads_to', 'post-requisite', 'earlier-to-later'),
+        *(
+            (relation_type, 'association', 'unordered')
+            for relation_type in (
+                'applies_to', 'opposite', 'related', 'cross_domain', 'generalizes',
+                'instance_of', 'supports', 'enables', 'complements', 'contrasts_with',
+                'derives', 'describes_migration_of', 'determines', 'embodies', 'informs',
+                'quantified_by', 'uses', 'visualized_by', 'causes', 'demonstrates',
+                'equivalent_to', 'exemplifies', 'extends', 'has_stage', 'precedes',
+                'produces', 'provides_context', 'refined_by', 'refines',
+            )
+        ),
+    )
 }
+
+RELATION_CONTRACTS.update({
+    relation_type: {
+        **RELATION_CONTRACTS[relation_type],
+        'label': label,
+        'source_sentence': source_sentence,
+        'target_sentence': target_sentence,
+    }
+    for relation_type, label, source_sentence, target_sentence in (
+        ('causes', '因果作用', '本节点导致目标结果', '本节点由来源条件或机制导致'),
+        ('demonstrates', '示范说明', '本节点展示目标性质或过程', '本节点由来源实例或表征展示'),
+        ('equivalent_to', '条件等价', '本节点在已声明模型与条件下等价于目标', '本节点在已声明模型与条件下等价于来源'),
+        ('exemplifies', '举例说明', '本节点是目标性质或概念的实例', '本节点由来源实例具体说明'),
+        ('extends', '概念扩展', '本节点的既有概念扩展到目标', '本节点扩展来源概念的适用范围或变化维度'),
+        ('has_stage', '过程阶段', '本节点过程包含目标阶段', '本节点是来源过程的一个状态或阶段'),
+        ('precedes', '演化先后', '本节点在过程或参数演化中先于目标', '本节点在过程或参数演化中后于来源'),
+        ('produces', '产生结果', '本节点产生目标现象或结果', '本节点由来源机制或状态产生'),
+        ('provides_context', '提供语境', '本节点为目标提供理解语境', '本节点的理解语境由来源提供'),
+        ('refined_by', '被精化', '本节点由目标进一步精化', '本节点进一步精化来源概念'),
+        ('refines', '精化概念', '本节点进一步精化目标概念', '本节点由来源进一步精化'),
+    )
+})
+
+CANONICAL_RELATION_TYPES = set(RELATION_CONTRACTS)
+
+
+def normalize_relation_type(raw_type: Any) -> str:
+    if not isinstance(raw_type, str) or not raw_type or raw_type.strip() != raw_type:
+        raise ValueError('relation_type must be an exact non-empty string')
+    canonical_type = RELATION_ALIASES.get(raw_type, raw_type)
+    if canonical_type not in RELATION_CONTRACTS:
+        raise ValueError(f'unknown relation_type: {raw_type}')
+    return canonical_type
+
+
+def get_relation_contract(raw_type: Any) -> dict[str, str] | None:
+    try:
+        return RELATION_CONTRACTS[normalize_relation_type(raw_type)]
+    except ValueError:
+        return None
 
 
 def _read_json_object(path: Path) -> dict[str, Any]:
@@ -99,9 +153,10 @@ def normalize_overlay_links(value: Any) -> list[dict[str, Any]]:
             _first(raw_link, ('normalizedType', 'relationType', 'relation_type', 'relation', 'type')),
             f'links[{index}].relationType',
         )
-        normalized_type = RELATION_ALIASES.get(raw_type, raw_type)
-        if normalized_type not in CANONICAL_RELATION_TYPES:
-            raise ValueError(f'links[{index}] has an unknown relation type')
+        try:
+            normalized_type = normalize_relation_type(raw_type)
+        except ValueError as exc:
+            raise ValueError(f'links[{index}] has an unknown relation type') from exc
         raw_strength = raw_link.get('strength')
         strength = (
             float(raw_strength)

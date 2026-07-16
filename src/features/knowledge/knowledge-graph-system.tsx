@@ -66,6 +66,8 @@ import { KnowledgeDomainReturnAction } from './graph/domain-return-action';
 import type { KnowledgeGraphFitRequest } from './graph/root-layout';
 import { buildKnowledgeTeachingOrderLayout } from './graph/teaching-order-layout';
 import { getKnowledgeNodeSemanticLabel } from './graph/node-label-layout';
+import { selectKnowledgeGraphFocusedPresentationLinks } from './graph/edge-presentation';
+import { deriveSelectedKnowledgeGraphCorridor } from './graph/selected-corridor';
 import {
   buildInitialGraphCache,
   mergeProgressiveGraphPayload,
@@ -74,6 +76,10 @@ import {
   type KnowledgeGraphCacheState,
   type ProgressiveGraphApiResponse,
 } from './progressive-graph-cache';
+import {
+  buildKnowledgeGraphDomainRequestUrl,
+  buildKnowledgeGraphRootRequestUrl,
+} from './graph/knowledge-graph-request';
 // import { getAllLessonCards, getAllLessonCardLinks } from './data/lesson-knowledge-cards'; // Removed static import
 
 // 动态导入 3D 图谱组件（客户端专用）
@@ -203,6 +209,8 @@ export function KnowledgeGraphSystem({
   );
   const nodes = navigationSnapshot.nodes;
   const links = navigationSnapshot.links;
+  const corridorLinks = navigationSnapshot.corridorLinks;
+  const corridorCycleEdgeIds = navigationSnapshot.corridorCycleEdgeIds;
   const membershipLinks = navigationSnapshot.membershipLinks;
   const rootCatalogNodes = useMemo<KnowledgeNodeData[]>(() => (
     Object.values(graphCache.rootCatalogByNodeId).map((entry) => ({
@@ -257,6 +265,7 @@ export function KnowledgeGraphSystem({
     target: 'root',
   });
   const teachingLayoutFitDomainRef = useRef<string | null>(null);
+  const materializedDomainFitSignaturesRef = useRef(new Set<string>());
   const [relayoutVersion, setRelayoutVersion] = useState(0);
   const hoverAnimationFrameRef = useRef<number | null>(null);
   const pendingHoveredNodeRef = useRef<KnowledgeNodeData | null>(null);
@@ -411,12 +420,10 @@ export function KnowledgeGraphSystem({
     dispatchInspection({ type: 'return-root' });
     dispatchNavigation({ type: 'root-loading', requestId });
     try {
-      const payload = requestedLessonId
-        ? await fetchGraphPayload(
-          `/api/knowledge/graph?mode=root&lessonId=${encodeURIComponent(requestedLessonId)}`,
-          controller
-        )
-        : await fetchGraphPayload('/api/knowledge/graph?mode=root', controller);
+      const payload = await fetchGraphPayload(
+        buildKnowledgeGraphRootRequestUrl({ lessonId: requestedLessonId }),
+        controller
+      );
       if (!mountedRef.current || controller.signal.aborted || requestId !== navigationRequestSequenceRef.current) return;
       if (
         payload.mode !== 'root'
@@ -484,7 +491,9 @@ export function KnowledgeGraphSystem({
       dispatchInspection({
         type: 'begin-navigation',
         intentId: requestId,
-        ...(intendedTargetNodeId ? { targetNodeId: intendedTargetNodeId } : {}),
+        ...(intendedTargetNodeId ? {
+          targetNodeId: intendedTargetNodeId,
+        } : {}),
       });
     }
     const currentLoading = currentNavigationLoadingRef.current;
@@ -518,7 +527,7 @@ export function KnowledgeGraphSystem({
     registerLoadingShard(expectedShardKey, requestId);
     try {
       const payload = await fetchGraphPayload(
-        `/api/knowledge/graph?mode=expansion&domainId=${encodeURIComponent(domainId)}`,
+        buildKnowledgeGraphDomainRequestUrl({ domainId }),
         controller
       );
       if (!mountedRef.current || controller.signal.aborted || requestId !== navigationRequestSequenceRef.current) return;
@@ -560,7 +569,7 @@ export function KnowledgeGraphSystem({
     } finally {
       clearOwnedLoadingShard(expectedShardKey, requestId);
     }
-  }, [clearOwnedLoadingShard, fetchGraphPayload, graphCache.domainShardKeysByDomainId, graphCache.graphVersion, graphCache.loadedShardKeys, graphCache.nodesById, inspection.pendingNavigationTarget?.nodeId, navigation.view, registerLoadingShard]);
+  }, [clearOwnedLoadingShard, fetchGraphPayload, graphCache.domainShardKeysByDomainId, graphCache.graphVersion, graphCache.loadedShardKeys, graphCache.nodesById, inspection.pendingNavigationTarget?.nodeId, navigation.view, registerLoadingShard, rootCatalogNodes]);
 
   const returnToRoot = useCallback(() => {
     navigationRequestSequenceRef.current += 1;
@@ -783,10 +792,11 @@ export function KnowledgeGraphSystem({
   const filteredNodes = nodeFilteredByMeta;
 
   const filteredNodeIdSet = useMemo(() => new Set(filteredNodes.map((item) => item.id)), [filteredNodes]);
+  const domainMemberNodeIdSet = useMemo(() => new Set(nodes.map((node) => node.id)), [nodes]);
 
   const filteredLinks = useMemo(() => selectLearnerVisibleRelationEdges({
     links: eligibleLinks,
-    activeDomainNodeIds: filteredNodeIdSet,
+    activeDomainNodeIds: domainMemberNodeIdSet,
     enabledFamilies: enabledRelationFamilies,
     selectedNodeId: selectedNode?.id ?? null,
   }).map((edge) => ({
@@ -796,11 +806,11 @@ export function KnowledgeGraphSystem({
     relation: edge.relationType,
     relationType: edge.relationType,
     strength: edge.strength ?? undefined,
-  })), [eligibleLinks, enabledRelationFamilies, filteredNodeIdSet, selectedNode?.id]);
+  })), [domainMemberNodeIdSet, eligibleLinks, enabledRelationFamilies, selectedNode?.id]);
 
   const canonicalPresentationLinks = useMemo(() => selectCanonicalDomainRelationEdges({
     links: eligibleLinks,
-    activeDomainNodeIds: filteredNodeIdSet,
+    activeDomainNodeIds: domainMemberNodeIdSet,
   }).map((edge) => ({
     id: edge.relationIds[0] ?? edge.key,
     sourceId: edge.sourceId,
@@ -808,7 +818,7 @@ export function KnowledgeGraphSystem({
     relation: edge.relationType,
     relationType: edge.relationType,
     strength: edge.strength ?? undefined,
-  })), [eligibleLinks, filteredNodeIdSet]);
+  })), [domainMemberNodeIdSet, eligibleLinks]);
 
   const graphWithChapterNodes = useMemo(() => {
     const scoredNodes = filteredNodes.map((node) => ({
@@ -873,6 +883,42 @@ export function KnowledgeGraphSystem({
     (diagnostic) => diagnostic.code === 'POST_REQUISITE_CYCLE'
   ).length ?? 0;
   useEffect(() => {
+    if (navigation.view.kind !== 'root') return;
+    materializedDomainFitSignaturesRef.current.clear();
+    teachingLayoutFitDomainRef.current = null;
+  }, [navigation.view]);
+  useEffect(() => {
+    if (
+      navigation.view.kind !== 'domain'
+      || navigation.status !== 'ready'
+      || displayNodes.length <= 1
+    ) return;
+    const signature = [
+      graphCache.graphVersion,
+      navigation.view.domainId,
+      lessonContext?.overlayRevision ?? 'post-only',
+    ].join(':');
+    if (materializedDomainFitSignaturesRef.current.has(signature)) return;
+    let settledFrame = 0;
+    const materializedFrame = window.requestAnimationFrame(() => {
+      settledFrame = window.requestAnimationFrame(() => {
+        if (materializedDomainFitSignaturesRef.current.has(signature)) return;
+        materializedDomainFitSignaturesRef.current.add(signature);
+        setFitViewRequest((current) => ({ id: current.id + 1, target: 'current' }));
+      });
+    });
+    return () => {
+      window.cancelAnimationFrame(materializedFrame);
+      window.cancelAnimationFrame(settledFrame);
+    };
+  }, [
+    displayNodes.length,
+    graphCache.graphVersion,
+    lessonContext,
+    navigation.status,
+    navigation.view,
+  ]);
+  useEffect(() => {
     if (navigation.view.kind !== 'domain' || !teachingOrderLayout || !lessonContext) return;
     const signature = `${navigation.view.domainId}:${lessonContext.overlayRevision}`;
     if (teachingLayoutFitDomainRef.current === signature) return;
@@ -889,7 +935,7 @@ export function KnowledgeGraphSystem({
       domainId: navigation.view.domainId,
       visibleMemberCount: displayNodes.filter((node) => !isCollapsedRootNode(node)).length,
     });
-  }, [displayNodes, navigation.view]);
+  }, [displayNodes, navigation.status, navigation.view]);
   const displaySelectedNode = selectedNode
     ? displayNodes.find((node) => node.id === selectedNode.id) ?? null
     : null;
@@ -899,15 +945,47 @@ export function KnowledgeGraphSystem({
       : null,
     [displaySelectedNode, selectedNode]
   );
+  const inspectorSelectedNode = useMemo(
+    () => selectedNode
+      ? { ...selectedNode, ...(displaySelectedNode ?? {}) }
+      : null,
+    [displaySelectedNode, selectedNode]
+  );
   const canvasSelectedNode = displaySelectedNode && selectedNode
     ? { ...displaySelectedNode, ...selectedNode }
     : null;
   const canvasSelectedNodeId = canvasSelectedNode?.id ?? null;
-  const selectedCorridorEmphasis = useMemo(() => canvasSelectedNodeId ? ({
-    selectedNodeId: canvasSelectedNodeId,
-    nodeIds: [canvasSelectedNodeId],
-    edgeIds: [],
-  }) : null, [canvasSelectedNodeId]);
+  const domainIdByNodeId = useMemo(() => new Map(
+    Object.values(graphCache.rootCatalogByNodeId).map((entry) => [entry.nodeId, entry.domainId])
+  ), [graphCache.rootCatalogByNodeId]);
+  const corridorCycleEdgeIdSet = useMemo(
+    () => new Set(corridorCycleEdgeIds),
+    [corridorCycleEdgeIds]
+  );
+  const selectedCorridor = useMemo(() => canvasSelectedNodeId
+    ? deriveSelectedKnowledgeGraphCorridor({
+        selectedNodeId: canvasSelectedNodeId,
+        links: [...links, ...corridorLinks],
+        domainMemberNodeIds: domainMemberNodeIdSet,
+        visibleNodeIds: filteredNodeIdSet,
+        domainIdByNodeId,
+        precomputedMotionSuppressedEdgeIds: corridorCycleEdgeIdSet,
+      })
+    : null,
+  [canvasSelectedNodeId, corridorCycleEdgeIdSet, corridorLinks, domainIdByNodeId, domainMemberNodeIdSet, filteredNodeIdSet, links]);
+  const selectedCorridorEmphasis = useMemo(() => selectedCorridor ? ({
+    selectedNodeId: selectedCorridor.selectedNodeId,
+    nodeIds: selectedCorridor.canvasVisibleNodeIds,
+    edgeIds: selectedCorridor.canvasVisibleEdgeIds,
+    primaryEdgeIds: selectedCorridor.primaryEdgeIds,
+    primaryNodeIds: selectedCorridor.primaryNodeIds,
+    motionEligibleEdgeIds: selectedCorridor.motionEligibleEdgeIds,
+    motionSuppressedEdgeIds: selectedCorridor.motionSuppressedEdgeIds,
+  }) : null, [selectedCorridor]);
+  const renderDisplayLinks = useMemo(() => selectKnowledgeGraphFocusedPresentationLinks({
+    links: displayLinks,
+    emphasis: selectedCorridorEmphasis,
+  }), [displayLinks, selectedCorridorEmphasis]);
   const visiblePanelOpen = isPanelOpen;
   const relationFamilyControlPlacement = resolveRelationFamilyControlPlacement({
     isMobile: dimensions.width < 1024,
@@ -1074,6 +1152,15 @@ export function KnowledgeGraphSystem({
     });
   }, []);
 
+  const handleMobileToolPanelToggle = useCallback(() => {
+    setMobileToolPanelOpen(!mobileToolPanelOpen);
+    if (mobileToolPanelOpen) {
+      window.requestAnimationFrame(() => {
+        mobileToolToggleRef.current?.focus();
+      });
+    }
+  }, [mobileToolPanelOpen]);
+
   const hoveredBloomLabel = hoveredNode?.bloomLevel ? getBloomLabel(hoveredNode.bloomLevel) : '';
   const hoveredKnowledgeDimLabel = hoveredNode?.knowledgeDim
     ? getKnowledgeDimLabel(hoveredNode.knowledgeDim)
@@ -1210,6 +1297,7 @@ export function KnowledgeGraphSystem({
         data-knowledge-konling-view-mode={viewMode}
       >
         <KnowledgeDomainReturnAction
+          avoidInspector={visiblePanelOpen && Boolean(inspectorSelectedNode)}
           domainId={navigation.view.kind === 'domain' ? navigation.view.domainId : null}
           onReturn={returnToRoot}
           resolveReturnFocus={resolveRootReturnFocus}
@@ -1592,7 +1680,7 @@ export function KnowledgeGraphSystem({
               ref={mobileToolToggleRef}
               type="button"
               aria-expanded={mobileToolPanelOpen}
-              onClick={() => setMobileToolPanelOpen((open) => !open)}
+              onClick={handleMobileToolPanelToggle}
               className="rounded-lg border border-platform-border px-2.5 py-1.5 text-[11px] text-platform-fg-secondary transition hover:bg-platform-action-subtle hover:text-platform-fg-primary"
               data-knowledge-mobile-panel-toggle="true"
             >
@@ -1903,7 +1991,7 @@ export function KnowledgeGraphSystem({
             {viewMode === '2D' ? (
               <KnowledgeGraph2D
                 nodes={displayNodes}
-                links={displayLinks}
+                links={renderDisplayLinks}
                 presentationLinks={canonicalPresentationLinks}
                 selectedNode={canvasSelectedNode}
                 hoveredNode={hoveredNode}
@@ -1930,7 +2018,7 @@ export function KnowledgeGraphSystem({
             ) : (
               <KnowledgeGraphCanvas
                 nodes={displayNodes}
-                links={displayLinks}
+                links={renderDisplayLinks}
                 presentationLinks={canonicalPresentationLinks}
                 selectedNode={canvasSelectedNode}
                 hoveredNode={hoveredNode}
@@ -2022,9 +2110,30 @@ export function KnowledgeGraphSystem({
       {/* 右侧资源面板 */}
       <ResourcePanel
         isOpen={visiblePanelOpen}
-        selectedNode={visibleSelectedNode}
+        selectedNode={inspectorSelectedNode}
         onClose={handleClosePanel}
         onNodeClick={activateNodeById}
+        adjacentDomainNavigations={(selectedCorridor?.adjacentDomainNavigations ?? []).map((navigation) => ({
+          ...navigation,
+          nodeName: graphCache.rootCatalogByNodeId[navigation.nodeId]?.nodeName ?? navigation.nodeId,
+        }))}
+        canonicalCorridor={selectedCorridor ? {
+          ancestors: selectedCorridor.ancestorNodeIds.map((nodeId) => ({
+            id: nodeId,
+            name: graphCache.nodesById[nodeId]?.name
+              ?? graphCache.rootCatalogByNodeId[nodeId]?.nodeName
+              ?? nodeId,
+          })),
+          descendants: selectedCorridor.descendantNodeIds.map((nodeId) => ({
+            id: nodeId,
+            name: graphCache.nodesById[nodeId]?.name
+              ?? graphCache.rootCatalogByNodeId[nodeId]?.nodeName
+              ?? nodeId,
+          })),
+          ...(selectedCorridor.motionSuppressedEdgeIds.length > 0
+            ? { cycleState: 'cyclic' as const }
+            : {}),
+        } : null}
         viewerRole={viewerRole}
         mobileToolPanelOpen={mobileToolPanelOpen}
         mobileHeaderControl={mobileInspectorControlVisible ? (

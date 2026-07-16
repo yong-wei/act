@@ -1,0 +1,74 @@
+{
+  "invalidSingleRecords": [
+    {
+      "name": "missing relation type",
+      "record": {
+        "relation_id": "golden-missing-type",
+        "source_id": "A_1",
+        "target_id": "B_1"
+      },
+      "typescriptCode": "INVALID_RELATION_FIELD_FAMILY",
+      "pythonMessage": "relation type must use exactly one field alias"
+    },
+    {
+      "name": "empty relation type",
+      "record": {
+        "relation_id": "golden-empty-type",
+        "source_id": "A_1",
+        "target_id": "B_1",
+        "relation_type": ""
+      },
+      "typescriptCode": "EMPTY_RELATION_TYPE",
+      "pythonMessage": "relation_type must be an exact non-empty string"
+    },
+    {
+      "name": "conflicting relation type aliases",
+      "record": {
+        "relation_id": "golden-conflicting-type",
+        "source_id": "A_1",
+        "target_id": "B_1",
+        "relation_type": "related",
+        "relation": "supports"
+      },
+      "typescriptCode": "INVALID_RELATION_FIELD_FAMILY",
+      "pythonMessage": "relation type must use exactly one field alias"
+    },
+    {
+      "name": "empty primary relation type with fallback",
+      "record": {
+        "relation_id": "golden-empty-primary",
+        "source_id": "A_1",
+        "target_id": "B_1",
+        "relation_type": "",
+        "relation": "related"
+      },
+      "typescriptCode": "INVALID_RELATION_FIELD_FAMILY",
+      "pythonMessage": "relation type must use exactly one field alias"
+    },
+    {
+      "name": "surrounding relation type whitespace",
+      "record": {
+        "relation_id": "golden-type-whitespace",
+        "source_id": "A_1",
+        "target_id": "B_1",
+        "relation_type": " related "
+      },
+      "typescriptCode": "EMPTY_RELATION_TYPE",
+      "pythonMessage": "relation_type must be an exact non-empty string"
+    }
+  ],
+  "duplicateIdRecords": [
+    {
+      "relation_id": "golden-duplicate",
+      "source_id": "A_1",
+      "target_id": "B_1",
+      "relation_type": "related"
+    },
+    {
+      "relation_id": "golden-duplicate",
+      "source_id": "A_1",
+      "target_id": "C_1",
+      "relation_type": "supports"
+    }
+  ]
+}
