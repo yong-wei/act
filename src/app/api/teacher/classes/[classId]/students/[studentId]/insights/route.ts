@@ -14,8 +14,10 @@ import {
   type PortraitV2DimensionId,
 } from '@/lib/data-governance/kaq-objective-taxonomy';
 import {
+  hasAuthoritativePortraitV2Evidence,
   hasPortraitV2Evidence,
   resolvePrimaryPortraitV2,
+  selectPortraitV2WithCompatibilityFallback,
   summarizePortraitV2,
   type PortraitV2ConsumerSummary,
 } from '@/lib/data-governance/portrait-v2-consumer';
@@ -396,18 +398,27 @@ export async function GET(
       legacySnapshot: currentSnapshot as Record<string, unknown> | null,
       featureCache: studentEvidenceFeatureRead.cache as Record<string, unknown> | null,
     });
-    const portraitV2 = summarizePortraitV2(portraitResolution.primaryPortrait);
-    const hasPortraitV2Data = hasPortraitV2Evidence(portraitResolution.primaryPortrait);
+    const selectedPortrait = selectPortraitV2WithCompatibilityFallback(portraitResolution, 'reviewer');
+    const portraitV2 = summarizePortraitV2(selectedPortrait);
+    const hasPrimaryPortraitV2Data = hasAuthoritativePortraitV2Evidence(portraitResolution.primaryPortrait);
+    const hasPortraitV2Data = hasPortraitV2Evidence(selectedPortrait);
+    const usesCompatibilityFallback = !hasPrimaryPortraitV2Data && hasPortraitV2Data;
     const portraitFactCount = portraitV2.dimensions.reduce((sum, dimension) => sum + dimension.evidenceCount, 0);
     const snapshotVector = currentVector ?? portraitResolution.legacyCompatibility.vector;
     // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy score is a non-authoritative fallback for empty portrait rows.
-    const overallScore = hasPortraitV2Data
+    const overallScore = hasPrimaryPortraitV2Data
       ? roundTo(portraitV2.overallScore, 1)
       : snapshotVector ? calculateOverallScore(snapshotVector) : 0;
     const snapshotAt = currentSnapshot?.snapshotAt.toISOString() ?? (
-      hasPortraitV2Data ? portraitV2.generatedAt : null
+      usesCompatibilityFallback
+        ? portraitResolution.legacyCompatibility.snapshotAt
+        : hasPrimaryPortraitV2Data ? portraitV2.generatedAt : null
     );
-    const factCount = currentSnapshot?.factCount ?? (hasPortraitV2Data ? portraitFactCount : 0);
+    const factCount = currentSnapshot?.factCount ?? (
+      usesCompatibilityFallback
+        ? readCompatibilitySnapshotFactCount(studentEvidenceFeatureRead.cache)
+        : hasPrimaryPortraitV2Data ? portraitFactCount : 0
+    );
     const riskLevel = normalizeInsightRiskLevel(
       profileSummary?.riskLevel ??
         riskFlags.find((flag) => flag.severity)?.severity ??
@@ -903,6 +914,14 @@ function stringArray(value: unknown): string[] {
 
 function numberValue(value: unknown): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : 0;
+}
+
+function readCompatibilitySnapshotFactCount(cache: Record<string, unknown> | null): number {
+  const features = readObject(cache?.features);
+  const approvedAggregates = readObject(features.approvedAggregates);
+  const latestSnapshot = readObject(approvedAggregates.latestSnapshot);
+  const factCount = numberValue(latestSnapshot.factCount);
+  return factCount >= 0 ? factCount : 0;
 }
 
 function getRiskLabel(level: 'none' | 'low' | 'medium' | 'high') {

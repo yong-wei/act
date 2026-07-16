@@ -4,6 +4,7 @@ import { createEmptyCompetencyVector } from '../competency-model';
 import { PORTRAIT_V2_DIMENSIONS } from '../kaq-objective-taxonomy';
 import {
   aggregatePortraitV2,
+  hasAuthoritativePortraitV2Evidence,
   hasPortraitV2Evidence,
   resolvePrimaryPortraitV2,
   selectPortraitV2WithCompatibilityFallback,
@@ -323,6 +324,7 @@ describe('portrait v2 consumer adapters', () => {
 
     expect(hasPortraitV2Evidence(empty.primaryPortrait)).toBe(false);
     expect(hasPortraitV2Evidence(compatible.primaryPortrait)).toBe(true);
+    expect(hasAuthoritativePortraitV2Evidence(compatible.primaryPortrait)).toBe(false);
   });
 
   it('selects explicit legacy compatibility for read models when the primary portrait is empty', async () => {

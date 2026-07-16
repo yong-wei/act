@@ -5,8 +5,10 @@ import {
 } from '@/lib/data-governance/competency-model';
 import { PORTRAIT_V2_DIMENSIONS, type PortraitV2DimensionId } from '@/lib/data-governance/kaq-objective-taxonomy';
 import {
+  hasAuthoritativePortraitV2Evidence,
   hasPortraitV2Evidence,
   resolvePrimaryPortraitV2,
+  selectPortraitV2WithCompatibilityFallback,
   summarizePortraitV2,
   type PortraitV2ConsumerSummary,
 } from '@/lib/data-governance/portrait-v2-consumer';
@@ -332,8 +334,17 @@ export async function GET(
       }));
     const portraitByUserId = new Map(
       resolvedPortraits
-        .filter(([, resolution]) => hasPortraitV2Evidence(resolution.primaryPortrait))
-        .map(([studentId, resolution]) => [studentId, summarizePortraitV2(resolution.primaryPortrait)] as const),
+        .map(([studentId, resolution]) => [
+          studentId,
+          selectPortraitV2WithCompatibilityFallback(resolution, 'reviewer'),
+        ] as const)
+        .filter(([, portrait]) => hasPortraitV2Evidence(portrait))
+        .map(([studentId, portrait]) => [studentId, summarizePortraitV2(portrait)] as const),
+    );
+    const studentIdsWithPrimaryPortraitEvidence = new Set(
+      resolvedPortraits
+        .filter(([, resolution]) => hasAuthoritativePortraitV2Evidence(resolution.primaryPortrait))
+        .map(([studentId]) => studentId),
     );
     const now = new Date();
     const scopedSimulationArenaByUserId = buildTeacherScopedSimulationArenaFeatureMap(
@@ -377,9 +388,9 @@ export async function GET(
         dimensions: [],
       });
       const studentRiskFlags = riskByUserId[studentProfile.userId] ?? [];
-      const hasPortraitEvidence = portraitV2.dimensions.some((dimension) => dimension.evidenceCount > 0);
+      const hasPrimaryPortraitEvidence = studentIdsWithPrimaryPortraitEvidence.has(studentProfile.userId);
       const overallScore = Math.round(
-        (hasPortraitEvidence ? portraitV2.overallScore : summary?.overallScore ?? portraitV2.overallScore) * 10
+        (hasPrimaryPortraitEvidence ? portraitV2.overallScore : summary?.overallScore ?? 0) * 10
       ) / 10;
       const riskLevel = normalizeInsightRiskLevel(
         summary?.riskLevel ??
@@ -397,9 +408,9 @@ export async function GET(
         email: studentProfile.user.email,
         studentNumber: studentProfile.studentNumber,
         overallScore,
-        overallScoreSource: hasPortraitEvidence ? 'portrait-v2' : 'profile-summary-compatibility',
+        overallScoreSource: hasPrimaryPortraitEvidence ? 'portrait-v2' : 'profile-summary-compatibility',
         overallLevel:
-          hasPortraitEvidence
+          hasPrimaryPortraitEvidence
             ? COMPETENCY_LEVELS[getCompetencyLevelKey(overallScore)].label
             : summary?.overallLevel || COMPETENCY_LEVELS[getCompetencyLevelKey(overallScore)].label,
         riskLevel,
@@ -417,9 +428,9 @@ export async function GET(
             : studentRiskFlags.map((flag) => flag.description),
         growthRecordCount: growthMap.get(studentProfile.userId) ?? 0,
         recommendationCount: recommendationMap.get(studentProfile.userId) ?? 0,
-        factCount: hasPortraitEvidence ? portraitFactCount : snapshot?.factCount ?? 0,
+        factCount: hasPrimaryPortraitEvidence ? portraitFactCount : snapshot?.factCount ?? 0,
         lastSnapshotAt: latestSnapshotTimestamp(
-          hasPortraitEvidence ? portraitV2.generatedAt : null,
+          hasPrimaryPortraitEvidence ? portraitV2.generatedAt : null,
           snapshot?.snapshotAt.toISOString() ?? null,
         ),
         portraitV2,

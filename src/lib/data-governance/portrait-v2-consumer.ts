@@ -107,6 +107,10 @@ export function hasPortraitV2Evidence(payload: PortraitV2ProjectedPayload): bool
   return payload.dimensions.some((dimension) => dimension.evidenceSummary.totalCount > 0);
 }
 
+export function hasAuthoritativePortraitV2Evidence(payload: PortraitV2ProjectedPayload): boolean {
+  return payload.derivation.kind !== 'compatibility-derived' && hasPortraitV2Evidence(payload);
+}
+
 /**
  * Select evidence-bearing data for aggregate/read-model consumers without
  * changing the authority of the resolved primary portrait. Empty native or
