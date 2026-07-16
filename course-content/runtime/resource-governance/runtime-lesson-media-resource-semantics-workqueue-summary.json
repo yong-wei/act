@@ -32,48 +32,57 @@
     "to": "2026-07-13T06:42:08.000Z"
   },
   "totals": {
-    "scopedRows": 2598,
-    "workqueueItems": 2598,
-    "reviewedRows": 2598,
-    "remaining": 0,
+    "scopedRows": 2660,
+    "formalSourceRows": 2597,
+    "dedicatedClearanceRows": 27,
+    "workqueueItems": 2660,
+    "reviewedRows": 2350,
+    "pendingRereviewRows": 274,
+    "machinePendingRows": 63,
+    "historyBlobBaselines": {
+      "hit": 747,
+      "missing": 0
+    },
+    "remaining": 337,
     "unexplainedUnreviewed": 0,
-    "promotedPlanningUnits": 16,
-    "residualFormalBlockers": 14078
+    "promotedPlanningUnits": 0,
+    "residualFormalBlockers": null
   },
   "bySourceFamily": {
-    "runtime-handout": 37,
-    "runtime-lesson-media": 759,
-    "runtime-lesson-module": 1352,
-    "runtime-lesson-step": 450
+    "runtime-handout": 39,
+    "runtime-lesson-media": 783,
+    "runtime-lesson-module": 1377,
+    "runtime-lesson-step": 461
   },
   "byDisposition": {
     "embedded-asset": 647,
     "evidence-producing": 2,
     "excluded-with-rationale": 1769,
     "planning-unit": 16,
-    "supporting-citation": 164
+    "supporting-citation": 163
   },
   "byAssetStatus": {
     "external-http-runtime-asset": 89,
     "missing-local-runtime-asset": 23,
-    "not-applicable": 1839,
+    "not-applicable": 1838,
     "tracked-local-runtime-asset": 647
   },
   "startingBlockers": {
-    "missing-capability-target": 2397,
-    "missing-citation-target": 1698,
-    "missing-content-hash": 149,
+    "missing-capability-target": 2402,
+    "missing-citation-target": 1703,
+    "missing-content-hash": 148,
     "missing-evidence-contract": 1999,
     "missing-evidence-instrumentation": 1999,
+    "missing-human-review": 250,
     "missing-knowledge-binding": 2097,
-    "missing-path-profile": 2387,
+    "missing-path-profile": 2392,
     "missing-path-target": 1352
   },
   "guardrails": {
     "onlyRuntimeLessonStepModuleMediaHandoutFamilies": true,
     "excludesTextbookReferenceAndAssessmentFamilies": true,
     "exactAuditProjectionDenominator": true,
-    "allScopedRowsItemReviewed": true,
+    "allScopedRowsItemReviewed": false,
     "unexplainedUnreviewedRows": 0,
     "onlyIndependentLaunchAndEvidenceRowsPromoted": true,
     "mediaAndHandoutPathNodePromotion": false,

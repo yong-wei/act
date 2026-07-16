@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "knowledge-lesson-overlay-golden.v1",
+  "vectors": [
+    {
+      "name": "chinese-null-and-finite-strengths",
+      "input": {
+        "lessonId": "课程-1",
+        "cardOrder": ["反馈_1_1", "闭环控制_1_1"],
+        "links": [
+          {"sourceId": "反馈_1_1", "targetId": "闭环控制_1_1", "relationType": "leads_to", "strength": 1.0},
+          {"sourceId": "反馈_1_1", "targetId": "闭环控制_1_1", "relationType": "leads_to", "strength": 0},
+          {"sourceId": "反馈_1_1", "targetId": "闭环控制_1_1", "relationType": "leads_to", "strength": -0.5},
+          {"sourceId": "反馈_1_1", "targetId": "闭环控制_1_1", "relationType": "leads_to"}
+        ]
+      },
+      "canonicalUtf8": "{\"cardOrder\":[\"反馈_1_1\",\"闭环控制_1_1\"],\"lessonId\":\"课程-1\",\"links\":[{\"normalizedType\":\"leads_to\",\"relationId\":\"\",\"sourceId\":\"反馈_1_1\",\"strength\":null,\"targetId\":\"闭环控制_1_1\"},{\"normalizedType\":\"leads_to\",\"relationId\":\"\",\"sourceId\":\"反馈_1_1\",\"strength\":-0.5,\"targetId\":\"闭环控制_1_1\"},{\"normalizedType\":\"leads_to\",\"relationId\":\"\",\"sourceId\":\"反馈_1_1\",\"strength\":0,\"targetId\":\"闭环控制_1_1\"},{\"normalizedType\":\"leads_to\",\"relationId\":\"\",\"sourceId\":\"反馈_1_1\",\"strength\":1,\"targetId\":\"闭环控制_1_1\"}]}",
+      "sha256": "16c0c3afaca0523683cc6be3fef867a7c49ed55d92395fed23bc1852ec5ed43f"
+    },
+    {
+      "name": "equal-prefix-input-reordered",
+      "input": {
+        "lessonId": "课程-1",
+        "cardOrder": ["反馈_1_1", "闭环控制_1_1"],
+        "links": [
+          {"sourceId": "反馈_1_1", "targetId": "闭环控制_1_1", "relationType": "leads_to"},
+          {"sourceId": "反馈_1_1", "targetId": "闭环控制_1_1", "relationType": "leads_to", "strength": -0.5},
+          {"sourceId": "反馈_1_1", "targetId": "闭环控制_1_1", "relationType": "leads_to", "strength": 1.0},
+          {"sourceId": "反馈_1_1", "targetId": "闭环控制_1_1", "relationType": "leads_to", "strength": 0}
+        ]
+      },
+      "canonicalUtf8": "{\"cardOrder\":[\"反馈_1_1\",\"闭环控制_1_1\"],\"lessonId\":\"课程-1\",\"links\":[{\"normalizedType\":\"leads_to\",\"relationId\":\"\",\"sourceId\":\"反馈_1_1\",\"strength\":null,\"targetId\":\"闭环控制_1_1\"},{\"normalizedType\":\"leads_to\",\"relationId\":\"\",\"sourceId\":\"反馈_1_1\",\"strength\":-0.5,\"targetId\":\"闭环控制_1_1\"},{\"normalizedType\":\"leads_to\",\"relationId\":\"\",\"sourceId\":\"反馈_1_1\",\"strength\":0,\"targetId\":\"闭环控制_1_1\"},{\"normalizedType\":\"leads_to\",\"relationId\":\"\",\"sourceId\":\"反馈_1_1\",\"strength\":1,\"targetId\":\"闭环控制_1_1\"}]}",
+      "sha256": "16c0c3afaca0523683cc6be3fef867a7c49ed55d92395fed23bc1852ec5ed43f"
+    },
+    {
+      "name": "unicode-scalar-order-and-missing-id",
+      "input": {
+        "lessonId": "标量-😀-",
+        "cardOrder": ["相同前缀", "相同前缀😀"],
+        "links": [
+          {"sourceId": "相同前缀😀", "targetId": "目标", "relationType": "leads_to", "strength": 1.0},
+          {"sourceId": "相同前缀", "targetId": "目标", "relationType": "leads_to", "id": "pua", "strength": 1.0}
+        ]
+      },
+      "canonicalUtf8": "{\"cardOrder\":[\"相同前缀\",\"相同前缀😀\"],\"lessonId\":\"标量-😀-\",\"links\":[{\"normalizedType\":\"leads_to\",\"relationId\":\"pua\",\"sourceId\":\"相同前缀\",\"strength\":1,\"targetId\":\"目标\"},{\"normalizedType\":\"leads_to\",\"relationId\":\"\",\"sourceId\":\"相同前缀😀\",\"strength\":1,\"targetId\":\"目标\"}]}",
+      "sha256": "1723ed247df0bf57afa1aeeee7bfde6cfef41d491ad92aa2afdea86d382a6600"
+    }
+  ],
+  "invalidVectors": [
+    {
+      "name": "numeric-relation-id",
+      "links": [{"sourceId": "a", "targetId": "b", "relationType": "leads_to", "id": 0}]
+    },
+    {
+      "name": "boolean-relation-id",
+      "links": [{"sourceId": "a", "targetId": "b", "relationType": "leads_to", "relationId": false}]
+    },
+    {
+      "name": "null-relation-id",
+      "links": [{"sourceId": "a", "targetId": "b", "relationType": "leads_to", "relationId": null}]
+    },
+    {
+      "name": "object-relation-id",
+      "links": [{"sourceId": "a", "targetId": "b", "relationType": "leads_to", "relationId": {"value": "r"}}]
+    },
+    {
+      "name": "array-relation-id",
+      "links": [{"sourceId": "a", "targetId": "b", "relationType": "leads_to", "relationId": ["r"]}]
+    }
+  ]
+}

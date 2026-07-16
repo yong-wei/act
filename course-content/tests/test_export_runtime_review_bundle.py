@@ -42,6 +42,29 @@ def test_export_review_bundle_exposes_interactive_page_check_path(tmp_path):
     assert review_paths['interactive_page_check_path'] == '/course-runtime/lessons/demo-1/review/interactive-page-check.json'
 
 
+def test_export_review_bundle_does_not_mark_missing_authoring_pdf_reviewed(tmp_path):
+    lesson_id = 'demo-missing-pdf'
+    authoring_lesson_dir = tmp_path / 'authoring' / 'lessons' / lesson_id
+    runtime_lesson_dir = tmp_path / 'runtime' / 'lessons' / lesson_id
+    review_dir = runtime_lesson_dir / 'review'
+    (authoring_lesson_dir / 'design').mkdir(parents=True)
+    review_dir.mkdir(parents=True)
+    (review_dir / 'review-report.md').write_text('# report', encoding='utf-8')
+    (review_dir / 'multimedia-check.json').write_text(
+        '{"missing_assets":["demo-missing-pdf-handout.pdf"]}',
+        encoding='utf-8',
+    )
+
+    export_runtime.get_authoring_lesson_dir = lambda _: authoring_lesson_dir
+    export_runtime.get_runtime_lesson_dir = lambda _: runtime_lesson_dir
+    export_runtime.RUNTIME_ROOT = tmp_path / 'runtime'
+
+    review_paths = export_runtime.export_review_bundle(lesson_id)
+
+    assert review_paths['status'] == 'incomplete'
+    assert review_paths['missing_assets'] == ['demo-missing-pdf-handout.pdf']
+
+
 def test_export_handout_copies_markdown_and_static_pdf(tmp_path):
     lesson_id = 'demo-2'
     authoring_lesson_dir = tmp_path / 'authoring' / 'lessons' / lesson_id
@@ -85,15 +108,7 @@ def test_generate_runtime_media_preserves_existing_media_index(tmp_path):
     assert runtime_media_dir.joinpath('demo-3-info.png').read_bytes() == b'png'
     assert runtime_media_dir.joinpath('demo-3-media.md').read_text(encoding='utf-8') == (
         '# demo-3-course.mp4\n\nhttps://example.com/course\n'
-        '\n# demo-3-intro-video.mp4\n\n'
-        '# demo-3-slides.pdf\n\n'
-        '# demo-3-audio.m4a\n\n'
-        '# demo-3-handout.md\n'
     )
     assert processed_dir.joinpath('demo-3-media.md').read_text(encoding='utf-8') == (
         '# demo-3-course.mp4\n\nhttps://example.com/course\n'
-        '\n# demo-3-intro-video.mp4\n\n'
-        '# demo-3-slides.pdf\n\n'
-        '# demo-3-audio.m4a\n\n'
-        '# demo-3-handout.md\n'
     )

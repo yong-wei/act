@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "generator": "scripts/knowledge/generate-knowledge-graph-task-7-4-fixtures.ts",
+  "sources": [
+    {
+      "path": "course-content/runtime/knowledge/graph/nodes.json",
+      "exactBytesSha256": "bb12670364e96c54b9d979b6ab1b367f1cfc0e081d674e797c6aff3c1e182384"
+    },
+    {
+      "path": "course-content/runtime/knowledge/graph/relations.jsonl",
+      "exactBytesSha256": "5f3cfd3c2b2e111bd8313c9b49d5a6e79f7a7f67ff833a39bf105fe52c87e522"
+    },
+    {
+      "path": "course-content/runtime/lessons/1-1/graph-overlay.json",
+      "exactBytesSha256": "d50852b38799b2b39c096ec8f3e85ef1b6212d636f997fe3045004b9ce603aba"
+    },
+    {
+      "path": "course-content/runtime/lessons/5-3/graph-overlay.json",
+      "exactBytesSha256": "615ac4adea84856b2a41bbb18df987cc3923057ecc3791e19b5574268d8d40d1"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "largest-domain.json",
+      "byteLength": 1096878,
+      "exactBytesSha256": "6dc7b3bf54bf9d17a5c53caaece562b47c693965ac1015110c66e09dd39f2c32"
+    },
+    {
+      "path": "cases.json",
+      "byteLength": 8836,
+      "exactBytesSha256": "eee407b598ff27f6fd03456aa955639bd735868f5faf4e91e1c31197bee8f379"
+    }
+  ]
+}

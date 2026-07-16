@@ -952,7 +952,7 @@ model KnowledgeNode {
 
 // 知识连接
 model KnowledgeLink {
-  id String @id @default(cuid())
+  id String @id
 
   sourceId   String
   sourceNode KnowledgeNode @relation("SourceNode", fields: [sourceId], references: [id])
@@ -961,8 +961,11 @@ model KnowledgeLink {
   targetNode KnowledgeNode @relation("TargetNode", fields: [targetId], references: [id])
 
   relation String // provides_foundation, stability_analysis 等
+  strength Float @default(1)
+  metadata Json  @default("{}")
 
-  @@unique([sourceId, targetId])
+  @@index([sourceId])
+  @@index([targetId])
 }
 
 // ========== 新增：资源分层与 BOPPPS 引擎 ==========

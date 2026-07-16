@@ -387,7 +387,8 @@ export interface ResourceFieldCompletionAuditResult {
 
 export interface ResourceFieldCompletionReviewOverlay {
   resourceId: string;
-  reviewStatus?: Extract<ResourceFieldReviewStatus, 'model-cleared' | 'human-confirmed'>;
+  reviewStatus?: Extract<ResourceFieldReviewStatus, 'model-cleared' | 'human-confirmed' | 'stale'>;
+  canonicalSemanticMatch?: boolean;
   expectedSourceHash: string | null;
   expectedSourceVersionRef: string | null;
   graphNodeRefs?: ResourceGraphNodeRefs;
@@ -561,7 +562,11 @@ export function applyResourceFieldCompletionReviewOverlays(
     if (row.sourceVersionRef !== overlay.expectedSourceVersionRef) {
       throw new Error(`Resource field completion review source version mismatch: ${row.resourceId}`);
     }
-    if (row.sourceHash !== overlay.reviewAudit.reviewedSourceHash) {
+    if (
+      overlay.reviewStatus !== 'stale'
+      && !overlay.canonicalSemanticMatch
+      && row.sourceHash !== overlay.reviewAudit.reviewedSourceHash
+    ) {
       throw new Error(`Resource field completion reviewed source hash mismatch: ${row.resourceId}`);
     }
     if (row.sourceVersionRef !== overlay.reviewAudit.reviewedVersionRef) {

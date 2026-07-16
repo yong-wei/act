@@ -2,6 +2,8 @@
  * 知识图谱标签中文映射
  */
 
+import { getKnowledgeGraphRelationContract } from '@/features/knowledge/graph/relation-contract';
+
 // Bloom 认知层级
 export const BLOOM_LEVEL_LABELS: Record<string, string> = {
   REMEMBER: '记忆',
@@ -33,7 +35,7 @@ export const RELATION_TYPE_LABELS: Record<string, string> = {
   provides_foundation: '提供基础',
   follows: '学习后续',
   related: '弱关联',
-  contains: '章节包含',
+  contains: '包含/隶属',
   leads_to: '引出问题',
   applies_to: '方法应用',
   opposite: '相反概念',
@@ -52,6 +54,17 @@ export const RELATION_TYPE_LABELS: Record<string, string> = {
   quantified_by: '量化指标',
   uses: '使用工具',
   visualized_by: '图形呈现',
+  causes: '因果作用',
+  demonstrates: '示范说明',
+  equivalent_to: '条件等价',
+  exemplifies: '举例说明',
+  extends: '概念扩展',
+  has_stage: '过程阶段',
+  precedes: '演化先后',
+  produces: '产生结果',
+  provides_context: '提供语境',
+  refined_by: '被精化',
+  refines: '精化概念',
   influences: '影响',
   defines: '定义',
   implements: '实现',
@@ -105,35 +118,11 @@ export function getNodeTypeLabel(type?: string | null) {
 
 // 获取关系类型标签
 export function getRelationLabel(relation?: string | null) {
-  if (!relation) return '关联';
-  return RELATION_TYPE_LABELS[relation] ?? '关联';
-}
-
-// 获取关系类型的分类（用于列表显示）
-export function getRelationCategory(relation?: string | null): 'prerequisite' | 'follows' | 'related' {
-  if (!relation) return 'related';
-  if (
-    relation === 'prerequisite' ||
-    relation === 'provides_foundation' ||
-    relation === 'contains' ||
-    relation === 'derives' ||
-    relation === 'determines' ||
-    relation === 'generalizes' ||
-    relation === 'instance_of'
-  ) {
-    return 'prerequisite';
+  const contract = getKnowledgeGraphRelationContract(relation);
+  if (!contract) {
+    throw new Error(`Unknown knowledge graph relation type: ${String(relation ?? '')}`);
   }
-  if (
-    relation === 'follows' ||
-    relation === 'leads_to' ||
-    relation === 'applies_to' ||
-    relation === 'cross_domain' ||
-    relation === 'supports' ||
-    relation === 'enables' ||
-    relation === 'uses' ||
-    relation === 'visualized_by'
-  ) return 'follows';
-  return 'related';
+  return RELATION_TYPE_LABELS[contract.canonicalType];
 }
 
 export function resolveChapterName(chapter?: number, chapterName?: string | null): string {

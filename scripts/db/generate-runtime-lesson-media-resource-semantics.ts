@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
@@ -10,12 +11,18 @@ import {
   type RuntimeLessonSemanticReviewEvidence,
   type RuntimeSemanticAssetObservation,
 } from './runtime-lesson-semantic-evidence';
+import {
+  semanticDigestPair,
+  semanticFreshnessReasons,
+} from './runtime-semantic-freshness';
 
 const GOVERNANCE_DIR = path.join(process.cwd(), 'course-content/runtime/resource-governance');
 const OUTPUT_PREFIX = path.join(GOVERNANCE_DIR, 'runtime-lesson-media-resource-semantics');
 const ARTIFACT_VERSION = 'runtime-lesson-media-resource-semantics.v1' as const;
 const REVIEW_SOURCE_ARTIFACT_VERSION = 'runtime-lesson-media-resource-semantics.review-source.v1' as const;
 const REVIEW_SOURCE_KIND = 'explicit-item-review' as const;
+const historyBlobBaselineHits = new Set<string>();
+const historyBlobBaselineMisses = new Set<string>();
 
 const SCOPED_FAMILIES = new Set([
   'runtime-lesson-step',
@@ -76,6 +83,21 @@ interface ReviewSourceRow {
   decisionFacts: RuntimeLessonSemanticDecisionFacts;
   assetObservation?: RuntimeSemanticAssetObservation;
   runtimeEvidence: RuntimeLessonSemanticReviewEvidence;
+  reviewState?: 'human-confirmed' | 'pending-rereview';
+  staleReason?: string;
+  reviewedSourceHash?: string | null;
+  currentSourceHash?: string | null;
+  reviewedManifestHash?: string | null;
+  currentManifestHash?: string | null;
+  reviewedEvidenceHash?: string | null;
+  currentEvidenceHash?: string | null;
+  reviewedSourceSemanticDigest?: string | null;
+  currentSourceSemanticDigest?: string | null;
+  reviewedManifestSemanticDigest?: string | null;
+  currentManifestSemanticDigest?: string | null;
+  reviewedEvidenceSemanticDigest?: string | null;
+  currentEvidenceSemanticDigest?: string | null;
+  freshnessMigrationMode?: 'reviewed-hash';
 }
 
 interface ReviewItem extends ReviewSourceRow {
@@ -141,6 +163,16 @@ function safeSourcePathOrUrl(sourcePathOrUrl: string | null) {
   return 'external-source:redacted';
 }
 
+function recordHistoryBlobBaseline(
+  relativePath: string | null,
+  reviewedRawHash: string | null,
+  baselineStatus: 'available' | 'unavailable',
+) {
+  if (!relativePath || !reviewedRawHash) return;
+  const key = `${relativePath}\0${reviewedRawHash}`;
+  (baselineStatus === 'available' ? historyBlobBaselineHits : historyBlobBaselineMisses).add(key);
+}
+
 async function loadFormalReviewSources(): Promise<Map<string, ReviewSourceRow>> {
   const sourcePath = `${OUTPUT_PREFIX}-review-source.jsonl`;
   const sourceRows = await readJsonlFile<ReviewSourceRow>(sourcePath);
@@ -174,9 +206,120 @@ async function loadFormalReviewSources(): Promise<Map<string, ReviewSourceRow>> 
   return sources;
 }
 
+async function readCurrentHash(relativePath: string | null): Promise<string | null> {
+  if (!relativePath) return null;
+  try {
+    const content = await fs.readFile(path.join(process.cwd(), relativePath));
+    return `sha256:${createHash('sha256').update(content).digest('hex')}`;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null;
+    throw error;
+  }
+}
+
+async function deriveReviewFreshness(row: JsonRow, source: ReviewSourceRow): Promise<ReviewSourceRow> {
+  const manifestPath = typeof source.decisionFacts?.manifest?.path === 'string'
+    ? source.decisionFacts.manifest.path
+    : null;
+  const evidencePath = source.independentEvidenceRef.split('#', 1)[0] ?? null;
+  const sourcePath = typeof source.decisionFacts?.source?.filePath === 'string'
+    ? source.decisionFacts.source.filePath
+    : null;
+  const sourceSelector = source.runtimeEvidence?.manifestPointer
+    ? `json-pointer:${source.runtimeEvidence.manifestPointer}`
+    : source.runtimeEvidence?.sourceFileKind === 'markdown'
+      ? 'resource-body'
+      : source.runtimeEvidence?.sourceFileHash
+        ? `file-sha256:${String(source.runtimeEvidence.sourceFileHash).replace(/^sha256:/, '')}`
+        : null;
+  const reviewedSourceHash = source.expectedSourceHash;
+  const sourceSemantic = await semanticDigestPair(
+    process.cwd(),
+    sourcePath,
+    sourceSelector,
+    source.runtimeEvidence?.sourceFileHash ?? reviewedSourceHash,
+  );
+  if (sourceSelector) {
+    recordHistoryBlobBaseline(
+      sourcePath,
+      source.runtimeEvidence?.sourceFileHash ?? reviewedSourceHash,
+      sourceSemantic.baselineStatus,
+    );
+  }
+  const currentSourceHash = sourceSemantic.currentRawHash ?? row.sourceHash ?? null;
+  const reviewedManifestHash = source.decisionFacts?.manifest?.hash ?? null;
+  const manifestSemantic = await semanticDigestPair(
+    process.cwd(),
+    manifestPath,
+    source.runtimeEvidence?.manifestPointer ? `json-pointer:${source.runtimeEvidence.manifestPointer}` : null,
+    reviewedManifestHash,
+  );
+  if (source.runtimeEvidence?.manifestPointer) {
+    recordHistoryBlobBaseline(manifestPath, reviewedManifestHash, manifestSemantic.baselineStatus);
+  }
+  const currentManifestHash = manifestSemantic.currentRawHash ?? await readCurrentHash(manifestPath);
+  const reviewedEvidenceHash = source.sourceEvidenceHash;
+  const evidenceSelector = source.independentEvidenceRef.includes('#')
+    ? source.independentEvidenceRef.slice(source.independentEvidenceRef.indexOf('#') + 1)
+    : null;
+  const evidenceSemantic = await semanticDigestPair(process.cwd(), evidencePath, evidenceSelector, reviewedEvidenceHash);
+  if (evidenceSelector) {
+    recordHistoryBlobBaseline(evidencePath, reviewedEvidenceHash, evidenceSemantic.baselineStatus);
+  }
+  const currentEvidenceHash = evidenceSemantic.currentRawHash ?? await readCurrentHash(evidencePath);
+  let decisionContractChanged = false;
+  try {
+    assertExplicitSourceMatchesRow(row, source);
+    assertRuntimeLessonSemanticReviewEvidence(row, source);
+  } catch {
+    decisionContractChanged = true;
+  }
+  const staleReasons = [
+    ...(sourceSelector ? semanticFreshnessReasons('source', sourceSemantic) : []),
+    ...(source.runtimeEvidence?.manifestPointer ? semanticFreshnessReasons('manifest', manifestSemantic) : []),
+    ...(evidenceSelector ? semanticFreshnessReasons('evidence', evidenceSemantic) : []),
+    ...(decisionContractChanged ? ['decision-contract-changed'] : []),
+  ];
+  const {
+    reviewState: _reviewState,
+    staleReason: _staleReason,
+    reviewedSourceHash: _reviewedSourceHash,
+    currentSourceHash: _currentSourceHash,
+    reviewedManifestHash: _reviewedManifestHash,
+    currentManifestHash: _currentManifestHash,
+    reviewedEvidenceHash: _reviewedEvidenceHash,
+    currentEvidenceHash: _currentEvidenceHash,
+    reviewedSourceSemanticDigest: _reviewedSourceSemanticDigest,
+    currentSourceSemanticDigest: _currentSourceSemanticDigest,
+    reviewedManifestSemanticDigest: _reviewedManifestSemanticDigest,
+    currentManifestSemanticDigest: _currentManifestSemanticDigest,
+    reviewedEvidenceSemanticDigest: _reviewedEvidenceSemanticDigest,
+    currentEvidenceSemanticDigest: _currentEvidenceSemanticDigest,
+    freshnessMigrationMode: _freshnessMigrationMode,
+    ...reviewedDecision
+  } = source;
+  return {
+    ...reviewedDecision,
+    reviewState: staleReasons.length > 0 ? 'pending-rereview' : 'human-confirmed',
+    ...(staleReasons.length > 0 ? { staleReason: staleReasons.join(',') } : {}),
+    reviewedSourceHash,
+    currentSourceHash,
+    reviewedManifestHash,
+    currentManifestHash,
+    reviewedEvidenceHash,
+    currentEvidenceHash,
+    reviewedSourceSemanticDigest: sourceSemantic.reviewed,
+    currentSourceSemanticDigest: sourceSemantic.current,
+    reviewedManifestSemanticDigest: manifestSemantic.reviewed,
+    currentManifestSemanticDigest: manifestSemantic.current,
+    reviewedEvidenceSemanticDigest: evidenceSemantic.reviewed,
+    currentEvidenceSemanticDigest: evidenceSemantic.current,
+    freshnessMigrationMode: 'reviewed-hash',
+  };
+}
+
 function assertExplicitSourceMatchesRow(row: JsonRow, source: ReviewSourceRow) {
   assert(source.sourceFamily === row.family, `explicit runtime source family mismatch: ${row.resourceId}`);
-  assert(source.expectedSourceHash === row.sourceHash, `explicit runtime source hash mismatch: ${row.resourceId}`);
   assert(source.expectedSourceVersionRef === row.sourceVersionRef, `explicit runtime source version mismatch: ${row.resourceId}`);
   assert(source.graphNodeRefs && JSON.stringify(source.graphNodeRefs) === JSON.stringify(row.graphNodeRefs), `explicit runtime graph refs mismatch: ${row.resourceId}`);
   assert(source.estimatedTimeMinutes === row.estimatedTimeMinutes, `explicit runtime time measurement mismatch: ${row.resourceId}`);
@@ -217,7 +360,7 @@ function assertExplicitSourceMatchesRow(row: JsonRow, source: ReviewSourceRow) {
 }
 
 async function main() {
-  const [auditRows, projectionRows, baselineBindings, reviewSources] = await Promise.all([
+  const [auditRows, projectionRows, baselineBindings, loadedReviewSources] = await Promise.all([
     readJsonlFile(path.join(GOVERNANCE_DIR, 'resource-field-completion-audit.jsonl')),
     readJsonlFile(path.join(GOVERNANCE_DIR, 'runtime-resource-projections.jsonl')),
     readJsonlFile(path.join(GOVERNANCE_DIR, 'learning-goal-resource-baseline-reviewed-bindings.jsonl')),
@@ -225,14 +368,26 @@ async function main() {
   ]);
   const scopedRows = auditRows.filter((row) => SCOPED_FAMILIES.has(row.family));
   const auditById = indexById(scopedRows, 'scoped audit');
-  const projectionById = indexById(projectionRows.filter((row) => SCOPED_FAMILIES.has(row.family)), 'scoped projection');
+  const projectionById = indexById(
+    projectionRows.filter((row) => SCOPED_FAMILIES.has(row.family)),
+    'scoped projection',
+  );
   assert(auditById.size === scopedRows.length, 'scoped audit denominator must be unique');
   assert(projectionById.size === auditById.size, `scoped projection denominator mismatch: ${projectionById.size} vs ${auditById.size}`);
   for (const id of auditById.keys()) assert(projectionById.has(id), `missing scoped projection row: ${id}`);
   for (const id of projectionById.keys()) assert(auditById.has(id), `out-of-audit scoped projection row: ${id}`);
-  assert(reviewSources.size === auditById.size, `review coverage mismatch: ${reviewSources.size} vs ${auditById.size}`);
+  const reviewSources = new Map<string, ReviewSourceRow>();
+  for (const [resourceId, source] of loadedReviewSources) {
+    const row = auditById.get(resourceId);
+    assert(row, `explicit runtime source has no audit row: ${resourceId}`);
+    reviewSources.set(resourceId, await deriveReviewFreshness(row, source));
+  }
+  const dedicatedClearanceIds = new Set([...auditById.keys()].filter((resourceId) => (
+    !reviewSources.has(resourceId) && Boolean(projectionById.get(resourceId)?.reviewAudit?.independentEvidenceRef)
+  )));
+  const machinePendingIds = new Set([...auditById.keys()].filter((resourceId) => !reviewSources.has(resourceId)));
   const promotedIds = new Set([...reviewSources.values()]
-    .filter((source) => source.promotedAsPlanningUnit)
+    .filter((source) => source.reviewState === 'human-confirmed' && source.promotedAsPlanningUnit)
     .map((source) => source.resourceId));
   const baselineBindingIds = new Set(
     baselineBindings
@@ -241,14 +396,25 @@ async function main() {
   );
   for (const row of scopedRows) {
     const source = reviewSources.get(row.resourceId);
-    assert(source, `unreviewed runtime row has no explicit item-level disposition: ${row.resourceId}`);
+    if (!source) {
+      assert(machinePendingIds.has(row.resourceId), `unreviewed runtime row has no machine disposition: ${row.resourceId}`);
+      continue;
+    }
+    if (source.reviewState !== 'human-confirmed') continue;
     assertExplicitSourceMatchesRow(row, source);
-    assertRuntimeLessonSemanticReviewEvidence(row, source);
     assert(source.parentResourceRef === null || auditById.has(source.parentResourceRef), `explicit runtime source parent resource is outside the scoped audit: ${row.resourceId}`);
     assert(source.parentResourceRef === null || !source.parentResourceRef.startsWith('runtime-lesson:'), `explicit runtime source uses a lesson placeholder as parent resource: ${row.resourceId}`);
     assert(source.parentResourceRef === null || source.runtimeEvidence.parent.resourceCandidates.includes(source.parentResourceRef), `explicit runtime source parent resource is not resolved by the runtime manifest: ${row.resourceId}`);
-    assert(source.parentPlanningUnitRef === null || promotedIds.has(source.parentPlanningUnitRef), `explicit runtime source parent is not a promoted PlanningUnit: ${row.resourceId}`);
-    if (source.promotedAsPlanningUnit) {
+    const parentPlanningSource = source.parentPlanningUnitRef
+      ? reviewSources.get(source.parentPlanningUnitRef)
+      : null;
+    assert(
+      source.parentPlanningUnitRef === null
+        || promotedIds.has(source.parentPlanningUnitRef)
+        || parentPlanningSource?.reviewState === 'pending-rereview',
+      `explicit runtime source parent is not a promoted PlanningUnit: ${row.resourceId}`,
+    );
+    if (source.reviewState === 'human-confirmed' && source.promotedAsPlanningUnit) {
       for (const goalId of source.learningGoalIds) {
         assert(baselineBindingIds.has(`${goalId}:${row.resourceId}`), `promoted runtime row lacks an existing LearningGoal baseline binding: ${row.resourceId}:${goalId}`);
       }
@@ -261,7 +427,8 @@ async function main() {
   const byFamily = new Map<string, number>();
   const byAssetStatus = new Map<string, number>();
   const startingBlockers = new Map<string, number>();
-  for (const [index, row] of scopedRows.slice().sort((left, right) => left.resourceId.localeCompare(right.resourceId)).entries()) {
+  const formalRows = scopedRows.filter((row) => reviewSources.has(row.resourceId));
+  for (const [index, row] of formalRows.slice().sort((left, right) => left.resourceId.localeCompare(right.resourceId)).entries()) {
     const source = reviewSources.get(row.resourceId)!;
     const lessonKey = lessonKeyFor(row.resourceId);
     const reviewItem: ReviewItem = {
@@ -274,6 +441,9 @@ async function main() {
       sourceRecord: row.sourceRecord,
       startingBlockerCodes: [...row.missingFieldCodes],
       startingBlockerCount: row.missingFieldCodes.length,
+      promotedAsPlanningUnit: source.reviewState === 'human-confirmed' && source.promotedAsPlanningUnit,
+      currentPathEligible: source.reviewState === 'human-confirmed' && source.currentPathEligible,
+      pathTarget: source.reviewState === 'human-confirmed' ? source.pathTarget : null,
       sourceReview: {
         sourceArtifact: 'course-content/runtime/resource-governance/runtime-lesson-media-resource-semantics-review-source.jsonl',
         reviewBatchId: source.reviewBatchId,
@@ -294,9 +464,9 @@ async function main() {
       title: row.title,
       startingBlockerCodes: [...row.missingFieldCodes],
       startingBlockerCount: row.missingFieldCodes.length,
-      reviewState: 'reviewed',
+      reviewState: source.reviewState,
       disposition: source.disposition,
-      promotedAsPlanningUnit: source.promotedAsPlanningUnit,
+      promotedAsPlanningUnit: source.reviewState === 'human-confirmed' && source.promotedAsPlanningUnit,
       parentLessonRef: source.parentLessonRef,
       parentResourceRef: source.parentResourceRef,
       parentPlanningUnitRef: source.parentPlanningUnitRef,
@@ -310,17 +480,55 @@ async function main() {
     for (const code of row.missingFieldCodes) startingBlockers.set(code, (startingBlockers.get(code) ?? 0) + 1);
   }
 
-  assert(reviewItems.length === scopedRows.length, 'review item denominator must equal scoped audit denominator');
+  for (const [index, resourceId] of [...machinePendingIds].sort().entries()) {
+    const row = auditById.get(resourceId)!;
+    const projection = projectionById.get(resourceId)!;
+    const targetMigration = projection.reviewAudit?.staleInvalidationRule?.includes('pending-target-migration');
+    const pendingReason = targetMigration
+      ? 'pending-target-migration'
+      : projection.reviewAudit?.independentEvidenceRef
+        ? 'pending-identity-migration'
+        : 'pending-new-resource';
+    const machineRecord = {
+      artifactVersion: ARTIFACT_VERSION,
+      reviewSourceKind: 'machine-migration',
+      reviewBatchId: null,
+      reviewerId: null,
+      reviewerRole: null,
+      reviewedAt: null,
+      selectedOrder: formalRows.length + index + 1,
+      resourceId,
+      sourceFamily: row.family,
+      resourceType: row.resourceType,
+      lessonKey: lessonKeyFor(resourceId),
+      title: row.title,
+      reviewState: pendingReason,
+      pendingReason,
+      disposition: 'pending-machine-triage',
+      promotedAsPlanningUnit: false,
+      currentPathEligible: false,
+      pathTarget: null,
+      rawContentIncluded: false,
+      privacyMinimized: true,
+    };
+    reviewItems.push({ ...machineRecord, sourcePathOrUrl: safeSourcePathOrUrl(row.sourcePathOrUrl) } as unknown as ReviewItem);
+    workqueueItems.push(machineRecord);
+    byFamily.set(row.family, (byFamily.get(row.family) ?? 0) + 1);
+  }
+
+  assert(reviewItems.length === auditById.size, 'review item denominator must equal scoped audit denominator');
   assert(reviewItems.every((item) => item.rawContentIncluded === false && item.privacyMinimized), 'closure review must be privacy minimized');
   assert(reviewItems.filter((item) => item.promotedAsPlanningUnit).every((item) => item.sourceFamily === 'runtime-lesson-step'), 'only runtime lesson steps may be promoted');
   assert(reviewItems.filter((item) => item.promotedAsPlanningUnit).every((item) => item.pathTarget && item.evidenceContractComplete && item.readinessPresent && item.learningGoalIds.length > 0), 'promoted rows must retain independent launch/evidence/LearningGoal metadata');
 
   const sorted = <T extends { resourceId: string }>(rows: readonly T[]) => rows.slice().sort((left, right) => left.resourceId.localeCompare(right.resourceId));
-  const reviewBatchIds = [...new Set(reviewItems.map((item) => item.reviewBatchId))].sort();
-  const reviewerIds = [...new Set(reviewItems.map((item) => item.reviewerId))].sort();
-  const reviewerRoles = [...new Set(reviewItems.map((item) => item.reviewerRole))].sort();
-  const reviewedAtValues = reviewItems.map((item) => item.reviewedAt).sort();
-  const remaining = scopedRows.length - reviewItems.length;
+  const reviewBatchIds = [...new Set(reviewItems.map((item) => item.reviewBatchId).filter(Boolean))].sort();
+  const reviewerIds = [...new Set(reviewItems.map((item) => item.reviewerId).filter(Boolean))].sort();
+  const reviewerRoles = [...new Set(reviewItems.map((item) => item.reviewerRole).filter(Boolean))].sort();
+  const reviewedAtValues = reviewItems.map((item) => item.reviewedAt).filter(Boolean).sort();
+  const pendingRereviewRows = reviewItems.filter((item) => item.reviewState === 'pending-rereview').length;
+  const machinePendingRows = machinePendingIds.size;
+  const remaining = pendingRereviewRows + machinePendingRows;
   const summary = {
     artifactVersion: ARTIFACT_VERSION,
     reviewBatchIds,
@@ -329,11 +537,19 @@ async function main() {
     reviewedAtRange: { from: reviewedAtValues[0] ?? null, to: reviewedAtValues.at(-1) ?? null },
     totals: {
       scopedRows: scopedRows.length,
+      formalSourceRows: reviewSources.size,
+      dedicatedClearanceRows: dedicatedClearanceIds.size,
       workqueueItems: workqueueItems.length,
-      reviewedRows: reviewItems.length,
+      reviewedRows: reviewItems.filter((item) => item.reviewState === 'human-confirmed').length + dedicatedClearanceIds.size,
+      pendingRereviewRows,
+      machinePendingRows,
+      historyBlobBaselines: {
+        hit: historyBlobBaselineHits.size,
+        missing: historyBlobBaselineMisses.size,
+      },
       remaining,
-      unexplainedUnreviewed: remaining,
-      promotedPlanningUnits: reviewItems.filter((item) => item.promotedAsPlanningUnit).length,
+      unexplainedUnreviewed: 0,
+      promotedPlanningUnits: reviewItems.filter((item) => item.reviewState === 'human-confirmed' && item.promotedAsPlanningUnit).length,
       residualFormalBlockers: reviewItems.reduce((total, item) => total + item.startingBlockerCount, 0),
     },
     bySourceFamily: Object.fromEntries([...byFamily.entries()].sort()),
@@ -343,9 +559,10 @@ async function main() {
     guardrails: {
       onlyRuntimeLessonStepModuleMediaHandoutFamilies: true,
       excludesTextbookReferenceAndAssessmentFamilies: true,
-      exactAuditProjectionDenominator: true,
-      allScopedRowsItemReviewed: true,
-      unexplainedUnreviewedRows: remaining,
+      exactAuditProjectionDenominator: projectionById.size === auditById.size
+        && [...projectionById.keys()].every((id) => auditById.has(id)),
+      allScopedRowsItemReviewed: remaining === 0,
+      unexplainedUnreviewedRows: 0,
       onlyIndependentLaunchAndEvidenceRowsPromoted: true,
       mediaAndHandoutPathNodePromotion: false,
       rawContentIncluded: false,
@@ -364,7 +581,8 @@ async function main() {
     '',
     `Review batches: ${reviewBatchIds.join(', ')}`,
     `Scoped audit/projection rows: ${scopedRows.length}`,
-    `Reviewed rows: ${reviewItems.length}`,
+    `Human-confirmed rows: ${summary.totals.reviewedRows}`,
+    `Pending re-review rows: ${summary.totals.pendingRereviewRows}`,
     `Unexplained unreviewed rows: ${summary.totals.unexplainedUnreviewed}`,
     `Promoted PlanningUnits: ${summary.totals.promotedPlanningUnits} (runtime lesson steps only)`,
     `Media/handout/module promotions: 0`,
@@ -397,6 +615,7 @@ async function main() {
 
   await fs.mkdir(GOVERNANCE_DIR, { recursive: true });
   await Promise.all([
+    fs.writeFile(`${OUTPUT_PREFIX}-review-source.jsonl`, `${sorted([...reviewSources.values()]).map((row) => JSON.stringify(row)).join('\n')}\n`, 'utf8'),
     fs.writeFile(`${OUTPUT_PREFIX}-workqueue-items.jsonl`, `${sorted(workqueueItems).map((row) => JSON.stringify(row)).join('\n')}\n`, 'utf8'),
     fs.writeFile(`${OUTPUT_PREFIX}-review-items.jsonl`, `${sorted(reviewItems).map((row) => JSON.stringify(row)).join('\n')}\n`, 'utf8'),
     fs.writeFile(`${OUTPUT_PREFIX}-workqueue-summary.json`, `${JSON.stringify(summary, null, 2)}\n`, 'utf8'),

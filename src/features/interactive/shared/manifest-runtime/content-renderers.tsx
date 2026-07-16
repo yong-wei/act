@@ -4888,12 +4888,12 @@ function ModelingPathsComparisonFigure({ title }: { title: string }) {
   );
 }
 
-function ImagePanel({ title, src, notes, displayMode = 'default' }: { title: string; src: string; notes: string[]; displayMode?: ImageDisplayMode }) {
+function ImagePanel({ title, src, alt = title, notes, displayMode = 'default' }: { title: string; src: string; alt?: string; notes: string[]; displayMode?: ImageDisplayMode }) {
   return (
     <div className="premium-lesson-panel interactive-courseware-panel">
       <ManifestContentTitle>{title}</ManifestContentTitle>
       <div className="mt-3 overflow-hidden" data-image-panel-frame="none">
-        <Image src={src} alt={title} width={1600} height={960} className={imageClassFor(displayMode)} unoptimized />
+        <Image src={src} alt={alt} width={1600} height={960} className={imageClassFor(displayMode)} unoptimized />
       </div>
       {notes.length ? (
         <ul className="interactive-courseware-section interactive-courseware-body">
@@ -5066,10 +5066,10 @@ export function createManifestContentModuleRegistry(extra: {
       if (galleryItems.length === 1) {
         const [item] = galleryItems;
         const notes = [item.caption, ...imageNotes(step, module)].filter((value) => value.trim());
-        return <ImagePanel title={titleFromModule(module, step)} src={item.src} notes={notes} displayMode={displayMode} />;
+        return <ImagePanel title={titleFromModule(module, step)} src={item.src} alt={stringField(module.payload, ['alt']) || undefined} notes={notes} displayMode={displayMode} />;
       }
       const src = getImageSrc(manifest, step, module);
-      if (src) return <ImagePanel title={titleFromModule(module, step)} src={src} notes={imageNotes(step, module)} displayMode={displayMode} />;
+      if (src) return <ImagePanel title={titleFromModule(module, step)} src={src} alt={stringField(module.payload, ['alt']) || undefined} notes={imageNotes(step, module)} displayMode={displayMode} />;
       const content = summaryContent(step, module);
       return <SummaryCard title={titleFromModule(module, step)} text={content.text} bullets={content.bullets} />;
     },

@@ -85,7 +85,7 @@ export async function POST(request: Request) {
   }
 }
 
-export function isAssignmentAuthoringEligible(item: AdaptiveAssessmentCatalogItem): boolean {
+function isAssignmentAuthoringEligible(item: AdaptiveAssessmentCatalogItem): boolean {
   return item.reviewState === 'path-eligible'
     && item.eligibilityState === 'path-eligible'
     && item.allowedStages.includes('low-stakes-practice')

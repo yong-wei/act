@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-07-16T18:20:02+08:00",
+  "automatedAcceptance": "passed",
+  "independentAcceptance": "passed",
+  "manualAcceptance": "passed",
+  "referenceEvidenceCurrent": true,
+  "checks": [
+    {
+      "command": "npm run typecheck",
+      "result": "passed"
+    },
+    {
+      "command": "npx vitest run <five focused Task 7.4 knowledge graph test files>",
+      "result": "passed",
+      "details": "5 files, 54 tests"
+    },
+    {
+      "command": "ACT_NEXT_BUILD_FILESYSTEM_ROOT=/Users/YW npm run build",
+      "result": "passed",
+      "details": "WASM, textbook export, Prisma generation, Next.js production build, type checking, static generation, and trace pruning completed"
+    },
+    {
+      "command": "PLAYWRIGHT_HEADED=1 npx playwright test tests/knowledge-graph-performance.spec.ts --config playwright.knowledge-performance.config.ts",
+      "result": "passed",
+      "details": "3 tests passed; production Chromium six-round evidence, three resilience round-trips, relation-family pixel analysis, and six case-ID screenshots regenerated"
+    },
+    {
+      "command": "npm run test",
+      "result": "blocked-by-existing-worktree-governance-debt",
+      "details": "Smoke, Arena home entry, and Arena routes passed; commercial UI governance then rejected existing unregistered visual evidence, raw palette literals, and unrelated interactive-learning artifacts across the dirty worktree. No out-of-scope governance artifacts were rewritten."
+    },
+    {
+      "command": "npx openspec validate refine-knowledge-graph-path-focused-navigation --type change --strict",
+      "result": "passed"
+    }
+  ],
+  "visualStrategy": {
+    "unselected": "Render all non-post families plus a deterministic strongest-first post-requisite skeleton capped at 32 edges instead of all 528 post relations in the 132-node densest domain.",
+    "selected": "Render association context and only the deterministic primary post trunk. Secondary corridor and non-corridor post semantics remain in the 41-node/96-edge inspector corridor but do not compete on canvas.",
+    "rendererParity": "2D and 3D consume the same visible edge ids and emphasis levels; the selected reference state has 29 visible lines in both renderers.",
+    "threeDimensionalPixels": "3D static links use a single screen-space SVG layer below the WebGL node canvas and above the page background. It consumes the shared path, width, opacity, family dash, focus, clipping, and arrow contracts; retained Three.js geometry is hidden and used only for compatibility, motion, and hit/path support. Pixel evidence screenshots the full renderer and reads the actual SVG polyline ids and points."
+  },
+  "pixelEvidence": {
+    "densestAssociation": {
+      "association": { "changedTargetPixels": 6711, "coverageRatio": 0.006594151633062139, "meanRgbDelta": 55.007240482370634, "p95RgbDelta": 141.1878181713989, "meanContrastRatio": 1.4209421720500335 },
+      "postRequisite": { "changedTargetPixels": 6047, "coverageRatio": 0.005941712848327635, "meanRgbDelta": 174.11594025097102, "p95RgbDelta": 322.06210581190703, "meanContrastRatio": 4.091546759077317 }
+    },
+    "crossDomainAssociation": { "changedTargetPixels": 4737, "coverageRatio": 0.004654521872420705, "meanRgbDelta": 56.073171018465786, "p95RgbDelta": 173.00578025025638, "meanContrastRatio": 1.4610012438169684 }
+  },
+  "environmentNotes": [
+    "The default build root cannot traverse the existing course-content runtime symlink outside this worktree; the explicit filesystem root is isolated to this command and does not modify shared Git configuration or another worktree.",
+    "Playwright reports the existing Next.js standalone start warning, but the configured production server started and all headed checks passed."
+  ],
+  "knownRisks": [
+    "The lesson 1-1 representative case is captured in 3D with 18 rendered bodies and labels. Its relation-free 2D teaching layout can still settle to single-node viewport coverage after the camera transition; this does not bypass the separate largest-domain 2D initial-fit minimum of 40 bodies and 15 labels.",
+    "Full npm run test remains blocked by commercial UI governance debt already present across the dirty worktree; Task 7.4 focused tests, typecheck, build, and headed acceptance pass."
+  ],
+  "note": "Automated, manual screenshot, and independent acceptance are current. The first independent review blocked duplicate rendering and a canvas-only evidence chain; those findings were fixed, the full headed evidence was regenerated, and the final independent re-review passed."
+}

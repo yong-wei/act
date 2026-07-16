@@ -236,11 +236,31 @@ The knowledge graph SHALL explicitly map every runtime relation type to canonica
 - **THEN** the coverage checker SHALL report a machine-readable blocking error instead of skipping the row or defaulting its type to `related`
 - **AND** loading, labeling, projection, and inspection SHALL agree on the same failure.
 
+#### Scenario: Repeated relation identity is exported
+- **WHEN** two authoring records use the same relation ID
+- **THEN** export SHALL resolve both records to normalized source, target, and type before any deduplication
+- **AND** different normalized keys SHALL block export even when one record has explicit endpoint IDs
+- **AND** identical normalized keys MAY coalesce, with deterministic output independent of input order.
+
+### Requirement: Runtime semantic review invalidation is item-scoped and auditable
+Runtime lesson/media governance SHALL derive current review state from each reviewed item's bound source, manifest, and evidence hashes without manufacturing human confirmation.
+
+#### Scenario: Reviewed evidence changes
+- **WHEN** any reviewed source, manifest, or evidence hash differs from the current file hash
+- **THEN** that item SHALL become `pending-rereview` with a stale reason and both reviewed and current hashes
+- **AND** its review item, workqueue item, audit row, and projection SHALL not continue to display `human-confirmed`
+- **AND** summary counts SHALL be calculated from item states rather than lesson identifiers or sentinel resources.
+
+#### Scenario: Governance artifacts are regenerated without input changes
+- **WHEN** the formal generation command runs twice over identical files
+- **THEN** the second run SHALL produce byte-identical source, review-item, workqueue, summary, and evidence artifacts
+- **AND** pending human review MAY be reported separately from generator failure without changing those artifacts.
+
 #### Scenario: Supported relation projection is validated
 - **WHEN** the presentation coverage checker evaluates canonical relation types
 - **THEN** `contains` SHALL use child with preserved parent-to-child source direction
 - **AND** `prerequisite`, `provides_foundation`, `follows`, and `leads_to` SHALL use post-requisite with preserved source-to-target earlier-to-later direction
-- **AND** `applies_to`, `opposite`, `related`, `cross_domain`, `generalizes`, `instance_of`, `supports`, `enables`, `complements`, `contrasts_with`, `derives`, `describes_migration_of`, `determines`, `embodies`, `informs`, `quantified_by`, `uses`, and `visualized_by` SHALL use unordered association presentation while preserving authored direction in inspector provenance
+- **AND** `applies_to`, `opposite`, `related`, `cross_domain`, `generalizes`, `instance_of`, `supports`, `enables`, `complements`, `contrasts_with`, `derives`, `describes_migration_of`, `determines`, `embodies`, `informs`, `quantified_by`, `uses`, `visualized_by`, `causes`, `demonstrates`, `equivalent_to`, `exemplifies`, `extends`, `has_stage`, `precedes`, `produces`, `provides_context`, `refined_by`, and `refines` SHALL use unordered association presentation while preserving authored direction in inspector provenance
 - **AND** `defines`, `governs`, `implements`, and `influences` SHALL normalize to `related`, `example` to `instance_of`, and `explains` to `informs` before projection
 - **AND** `引出机械建模` and `引出电路建模` SHALL normalize to `leads_to`, `机电类比` to `cross_domain`, `非线性扩展` to `generalizes`, `建模基础` to `provides_foundation`, and `电路应用` to `applies_to`
 - **AND** no endpoint reversal SHALL be inferred from an unregistered relation name.
@@ -249,6 +269,18 @@ The knowledge graph SHALL explicitly map every runtime relation type to canonica
 - **WHEN** a coverage fixture uses `follows` even though current runtime data has no instance
 - **THEN** its authoring grammar SHALL be `source is followed by target / target 是 source 的学习后续`
 - **AND** source-to-target SHALL normalize as earlier-to-later without name-based reversal.
+
+#### Scenario: Association contracts are independent of runtime instance count
+- **WHEN** coverage fixtures evaluate `causes`, `demonstrates`, `equivalent_to`, `exemplifies`, `extends`, `has_stage`, `precedes`, `produces`, `provides_context`, `refined_by`, or `refines` with zero runtime instances
+- **THEN** every type SHALL still have association family, unordered canvas direction, Chinese label, source/target inspector sentences, and unavailable-evidence fallback contracts
+- **AND** `equivalent_to` SHALL say equivalence holds only under declared models and conditions
+- **AND** none of these types SHALL enter child membership, post-requisite corridor, teaching order, or motion eligibility.
+
+#### Scenario: Direction-sensitive association distinctions are preserved
+- **WHEN** `precedes`, `has_stage`, `provides_context`, `refined_by`, `refines`, or `extends` is inspected
+- **THEN** `precedes` SHALL describe process or parameter evolution rather than a `follows` inverse, `has_stage` SHALL describe process state rather than child membership, and `provides_context` SHALL remain distinct from `provides_foundation`
+- **AND** `refined_by` SHALL not imply endpoint reversal or alias conversion without an explicit contract
+- **AND** `extends` SHALL preserve the authored source-to-target meaning instead of applying English-name endpoint inference.
 
 #### Scenario: Specialized relation types exist
 - **WHEN** specialized relations such as `cross_domain`, `generalizes`, `instance_of`, `supports`, `enables`, `opposite`, or `applies_to` exist
@@ -316,6 +348,20 @@ The knowledge workspace SHALL present selected domain and knowledge-node content
 
 ### Requirement: Knowledge graph first render is collapsed and root-first
 The knowledge graph SHALL render a compact top-level domain chooser before requesting or parsing domain members or the full graph.
+
+The root-first presentation SHALL NOT weaken canonical validation. Before root, progressive, full, or detail output returns any node, the loader SHALL parse the complete canonical relation source and execute the shared strict relation contract. Malformed JSONL, an empty relation source, missing/empty/unknown type, duplicate relation ID, reverse child membership, or unresolved endpoint SHALL return bounded machine-readable HTTP 422 diagnostics and SHALL NOT expose a partial graph.
+
+Database fallback, graph version fingerprints, progressive shards, and detail inspection SHALL consume only relation rows whose `metadata.runtimeSource` exactly identifies the current canonical runtime relation source. External or unowned rows SHALL remain stored but SHALL NOT enter canonical graph output, counts, fingerprints, projection, or inspection.
+
+DB strict validation SHALL read every relation carrying that current runtime source marker before endpoint validation, including relations whose endpoints are inactive or external. It SHALL validate them against active canonical nodes whose `metadata.source` equals the canonical runtime node marker; no active-node join or external-node inclusion may silently remove an invalid relation. Runtime-owned relations to inactive, external, or otherwise absent canonical endpoints SHALL block root, full, progressive, list, and detail output with unresolved-endpoint HTTP 422 diagnostics.
+
+Canonical file absence SHALL be distinguished from invalid content. Only a genuinely absent canonical node or relation file may select DB fallback. A present malformed or empty node file, duplicate node ID, or blank/whitespace/overlong canonical node ID SHALL fail closed with machine-readable HTTP 422 diagnostics. Cached file output SHALL be reused only after a fresh stable size, modification-time, and SHA-256 fingerprint confirms both canonical files are unchanged; an empty, malformed, or unknown-type mutation SHALL invalidate cached output within the same TTL.
+
+DB canonical node loading and every public node list SHALL include only active nodes carrying the exact canonical node source marker. External/unowned nodes and their raw metadata, content, and resources SHALL NOT enter root, full, remaining, list, or detail DTOs. The legacy `source=db` query SHALL use the same runtime-only sanitized loader contract and SHALL NOT bypass it with a direct raw Prisma response.
+
+Canonical DB nodes, every current runtime-owned relation, and relation count/fingerprint version evidence SHALL be read inside one Prisma `RepeatableRead` transaction with bounded wait, timeout, and transient-conflict retry. The payload and `versionDigest` SHALL be constructed from that one snapshot. Root, full, progressive, list, and detail paths SHALL reuse the snapshot result and SHALL NOT independently re-query fingerprint evidence. If a same-count canonical seed or update commits between the node and relation reads, one request SHALL be entirely old or entirely new; a subsequent request SHALL expose the new digest and shard version without mixing node, relation, provenance, or version evidence.
+
+The database projection SHALL preserve multiple canonical relation IDs for one endpoint pair. Migration SHALL NOT infer historical ownership from endpoint ownership. Canonical seed SHALL claim rows only by exact canonical relation ID, validate all nodes and relations before its single synchronization transaction, and delete stale rows only inside the explicit runtime ownership boundary.
 
 #### Scenario: Learner opens the knowledge graph
 - **WHEN** a learner opens `/knowledge`

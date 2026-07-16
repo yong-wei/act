@@ -28,6 +28,24 @@ assert.equal(
 );
 
 assert.equal(
+  knowledgeSource.includes('assertRuntimeKnowledgeRelationCoverage(rawRelations'),
+  true,
+  'knowledge-graph-source 应在加载边界使用共享 relation contract 进行阻断式覆盖检查',
+);
+
+assert.equal(
+  knowledgeSource.includes('function parseJsonlLines') || knowledgeSource.includes('const dedupeKey ='),
+  false,
+  'knowledge-graph-source 不应静默忽略 malformed JSONL 或在投影前折叠关系 provenance',
+);
+
+assert.equal(
+  knowledgeSource.includes('buildRuntimeKnowledgeRelationInspectionItems('),
+  true,
+  'knowledge-graph-source 详情投影应与 loader 和 labeling 共用 relation contract',
+);
+
+assert.equal(
   knowledgeSource.includes("path.join(process.cwd(), 'data', 'knowledge_graph.json')"),
   false,
   'knowledge-graph-source 不应继续读取根目录 data/knowledge_graph.json',

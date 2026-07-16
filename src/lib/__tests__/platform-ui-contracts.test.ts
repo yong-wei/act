@@ -823,7 +823,8 @@ describe('platform UI contracts', () => {
     expect(knowledgeSidebarSource).toContain('data-knowledge-local-panel="chapter-directory"');
     expect(knowledgeSidebarSource).not.toContain('w-[240px]');
     expect(knowledgeSidebarSource).not.toContain('bg-[#091540]');
-    expect(knowledgeSystemSource).toContain('data-knowledge-local-panel="relation-filters"');
+    expect(knowledgeSystemSource).toContain('data-knowledge-local-panel="node-filters"');
+    expect(knowledgeSystemSource).toContain('data-knowledge-relation-family-control="compact-bottom-left"');
     expect(knowledgeSystemSource).toContain('data-knowledge-desktop-command-system="compact"');
     expect(knowledgeSystemSource).toContain('data-knowledge-local-panel="view-layout-controls"');
     expect(knowledgeSystemSource).toContain('data-knowledge-local-panel="node-hover-preview"');

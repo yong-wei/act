@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import fs from 'node:fs';
 import {
+  sanitizeRelationMetadata,
   selectRelationsForDb,
+  upsertRelations,
   validateRuntimeNodes,
 } from '../db/seed-all-knowledge.mjs';
 
@@ -9,6 +13,67 @@ assert.throws(
   /runtime knowledge nodes is empty/,
   'seed:knowledge 默认应拒绝空 runtime graph，避免误失活所有 runtime-owned 节点',
 );
+
+const gitEnvironment = Object.fromEntries(Object.entries(process.env).filter(([key]) => (
+  !['GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE', 'GIT_COMMON_DIR'].includes(key)
+)));
+const parseJsonl = (text) => text.trim().split(/\r?\n/).filter(Boolean).map(JSON.parse);
+const currentRuntimeRelations = parseJsonl(fs.readFileSync(
+  'course-content/runtime/knowledge/graph/relations.jsonl',
+  'utf8',
+));
+const reviewedRuntimeRelations = parseJsonl(execFileSync(
+  'git',
+  ['show', 'HEAD:course-content/runtime/knowledge/graph/relations.jsonl'],
+  { encoding: 'utf8', env: gitEnvironment, maxBuffer: 64 * 1024 * 1024 },
+));
+const relationSemanticKey = (relation) => [
+  relation.source_id,
+  relation.target_id,
+  relation.relation_type,
+  relation.strength,
+].join('\0');
+const reviewedIdBySemanticKey = new Map(reviewedRuntimeRelations.map((relation) => (
+  [relationSemanticKey(relation), relation.id]
+)));
+const migratedRelations = currentRuntimeRelations.filter((relation) => {
+  const reviewedId = reviewedIdBySemanticKey.get(relationSemanticKey(relation));
+  return reviewedId && reviewedId !== relation.id;
+});
+assert.equal(migratedRelations.length, 42, 'runtime relation migration must contain the reviewed set of 42 stable-id replacements');
+
+const legacyRelationIds = migratedRelations.map((relation) => reviewedIdBySemanticKey.get(relationSemanticKey(relation)));
+const stableRelationIds = migratedRelations.map((relation) => relation.id);
+const stableRelationIdSet = new Set(stableRelationIds);
+const retiredLegacyRelationIds = legacyRelationIds.filter((id) => !stableRelationIdSet.has(id));
+const deletedRelationIds = [];
+const upsertedRelationIds = [];
+await upsertRelations({
+  knowledgeLink: {
+    upsert: async ({ where }) => upsertedRelationIds.push(where.id),
+    findMany: async () => [
+      ...legacyRelationIds.map((id) => ({ id })),
+      { id: stableRelationIds[0] },
+    ],
+    delete: async ({ where }) => deletedRelationIds.push(where.id),
+  },
+}, migratedRelations, new Set(migratedRelations.flatMap((relation) => [relation.source_id, relation.target_id])));
+assert.deepEqual(upsertedRelationIds, [...stableRelationIds].sort(), 'seed input must contain only the 42 current stable relation ids');
+assert.equal(new Set(upsertedRelationIds).size, stableRelationIds.length, 'new stable relation ids must not be seeded twice');
+assert.deepEqual(deletedRelationIds, retiredLegacyRelationIds, 'seed must delete every runtime-owned legacy id absent from current input');
+assert(retiredLegacyRelationIds.length > 0, 'migration fixture must contain legacy ids that require deletion');
+const sanitized = sanitizeRelationMetadata({
+  rationale: 'r'.repeat(900),
+  sourceDocument: 'document',
+  sourceMetadata: { title: 'title', secret: 'no' },
+  source_chapter: 2,
+  secret: 'no',
+  token: 'no',
+});
+assert.equal(sanitized.rationale.length, 500);
+assert.deepEqual(sanitized.sourceMetadata, { title: 'title' });
+assert.equal('secret' in sanitized, false);
+assert.equal('token' in sanitized, false);
 
 assert.doesNotThrow(
   () => validateRuntimeNodes([], { allowEmptyRuntimeGraph: true }),
@@ -22,20 +87,52 @@ assert.throws(
 );
 
 const selected = selectRelationsForDb([
-  { source_id: 'A', target_id: 'B', relation_type: 'leads_to', strength: 0.5 },
-  { source_id: 'A', target_id: 'B', relation_type: 'applies_to', strength: 0.9 },
-  { source_id: 'A', target_id: 'B', relation_type: 'related', strength: 0.9 },
-  { source_id: 'A', target_id: 'C', relation_type: 'related', strength: 1 },
-  { source_id: 'missing', target_id: 'C', relation_type: 'related', strength: 1 },
+  { id: 'r-1', source_id: 'A', target_id: 'B', relation_type: 'leads_to', strength: 0.5, rationale: 'first' },
+  { id: 'r-2', source_id: 'A', target_id: 'B', relation_type: 'applies_to', strength: 0.9, source_chapter: 2 },
+  { id: 'r-3', source_id: 'A', target_id: 'B', relation_type: 'related', strength: 0.9 },
+  { id: 'r-4', source_id: 'A', target_id: 'C', relation_type: 'related', strength: 1 },
 ], new Set(['A', 'B', 'C']));
 
-assert.equal(selected.skipped, 1, '缺端点关系应跳过');
-assert.equal(selected.collapsed, 1, '同一 source/target 的多类型关系应显式计入折叠');
-assert.equal(selected.selectedRelations.size, 2, '当前 DB 唯一键只允许每个端点对保留一个代表关系');
+assert.equal(selected.selectedRelations.size, 4, '同端点多语义关系必须全部保留');
 assert.deepEqual(
-  selected.selectedRelations.get('A::B'),
-  { sourceId: 'A', targetId: 'B', relation: 'applies_to', strength: 0.9 },
-  '代表关系应按最高 strength，平手按 relation 字典序稳定选择',
+  selected.selectedRelations.get('r-2'),
+  {
+    id: 'r-2', sourceId: 'A', targetId: 'B', relation: 'applies_to', strength: 0.9,
+    metadata: {
+      runtimeSource: 'course-content/runtime/knowledge/graph/relations.jsonl',
+      source_chapter: 2,
+    },
+  },
+  'seed contract 应按 relation id 保留完整 provenance',
 );
+assert.throws(
+  () => selectRelationsForDb([
+    { id: 'unknown-endpoint', source_id: 'missing', target_id: 'C', relation_type: 'related' },
+  ], new Set(['A', 'B', 'C'])),
+  /Unknown relation endpoint/,
+);
+assert.throws(
+  () => selectRelationsForDb([
+    { id: 'duplicate', source_id: 'A', target_id: 'B', relation_type: 'related' },
+    { id: 'duplicate', source_id: 'A', target_id: 'C', relation_type: 'supports' },
+  ], new Set(['A', 'B', 'C'])),
+  /Duplicate runtime relation id/,
+);
+
+const schema = fs.readFileSync('prisma/schema.prisma', 'utf8');
+const migration = fs.readFileSync(
+  'prisma/migrations/20260714150000_preserve_knowledge_link_relations/migration.sql',
+  'utf8',
+);
+assert.equal(schema.includes('@@unique([sourceId, targetId])'), false);
+assert.equal(schema.includes('strength Float @default(1)'), true);
+assert.equal(schema.includes('metadata Json  @default("{}")'), true);
+assert.equal(schema.includes('@@index([sourceId])'), true);
+assert.equal(schema.includes('@@index([targetId])'), true);
+assert.equal(migration.includes('DROP INDEX IF EXISTS "KnowledgeLink_sourceId_targetId_key"'), true);
+assert.equal(migration.includes('CREATE INDEX "KnowledgeLink_sourceId_idx"'), true);
+assert.equal(migration.includes('CREATE INDEX "KnowledgeLink_targetId_idx"'), true);
+assert.equal(migration.includes('UPDATE "KnowledgeLink"'), false);
+assert.equal(migration.includes('runtimeSource'), false);
 
 console.log('seed-all-knowledge runtime safety test passed');

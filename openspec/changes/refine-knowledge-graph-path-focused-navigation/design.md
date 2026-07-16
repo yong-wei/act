@@ -2,7 +2,7 @@
 
 The `/knowledge` workspace already loads a collapsed root payload, progressively caches expansion shards, renders 2D and 3D views, and exposes a stable ResourceNode inspector for leaf nodes. Its presentation contracts evolved through several earlier changes: all runtime relation types receive distinct visual semantics, chapter roots use a large ring, newly materialized neighbors use outward sectors, and direct activation chooses expansion, collapse, or inspection from node metadata.
 
-Those decisions no longer match the approved product direction. Runtime data currently contains 21 raw relation types and more than sixteen thousand relations, while the learner-facing purpose of this surface is to expose plausible learning order and useful associations. Chapter membership is an organizational aid, not a deep knowledge hierarchy. The new design must therefore simplify presentation without deleting canonical semantics or breaking progressive loading, ResourceNode launch, deep links, accessibility, or stored graph evidence.
+Those decisions no longer match the approved product direction. Runtime data currently contains 32 raw relation types and more than sixteen thousand relations, while the learner-facing purpose of this surface is to expose plausible learning order and useful associations. Chapter membership is an organizational aid, not a deep knowledge hierarchy. The new design must therefore simplify presentation without deleting canonical semantics or breaking progressive loading, ResourceNode launch, deep links, accessibility, or stored graph evidence.
 
 ## Goals / Non-Goals
 
@@ -18,7 +18,7 @@ Those decisions no longer match the approved product direction. Runtime data cur
 
 **Non-Goals:**
 
-- Changing canonical knowledge graph files, database relation types, K/A/Q schemas, relation evidence, or path-planning algorithms.
+- Changing canonical knowledge graph files, database relation types, K/A/Q schemas, relation evidence, or path-planning algorithms, except for evidence-driven authoring corrections required to make an existing relation's type agree with its authored description.
 - Creating additional authored hierarchy below chapter/domain membership.
 - Enumerating every possible simple path through a dense graph.
 - Replacing ResourceNode launch, Knowledge Card, evidence, or assistant-context contracts.
@@ -42,11 +42,13 @@ Canonical links remain unchanged. A presentation helper will normalize each raw 
 | --- | --- | --- | --- |
 | `contains` | child | preserve `source → target` as parent → child | `child\|source\|target`; a reverse pair is invalid canonical membership and blocks presentation |
 | `prerequisite`, `provides_foundation`, `follows`, `leads_to` | post-requisite | preserve `source → target` as earlier → later | `post\|source\|target`; opposite normalized directions remain two reciprocal curves |
-| `applies_to`, `opposite`, `related`, `cross_domain`, `generalizes`, `instance_of`, `supports`, `enables`, `complements`, `contrasts_with`, `derives`, `describes_migration_of`, `determines`, `embodies`, `informs`, `quantified_by`, `uses`, `visualized_by` | association | canvas is unordered; preserve authored source/target only in provenance | `association\|min(source,target)\|max(source,target)`; never reciprocal on canvas |
+| `applies_to`, `opposite`, `related`, `cross_domain`, `generalizes`, `instance_of`, `supports`, `enables`, `complements`, `contrasts_with`, `derives`, `describes_migration_of`, `determines`, `embodies`, `informs`, `quantified_by`, `uses`, `visualized_by`, `causes`, `demonstrates`, `equivalent_to`, `exemplifies`, `extends`, `has_stage`, `precedes`, `produces`, `provides_context`, `refined_by`, `refines` | association | canvas is unordered; preserve authored source/target only in provenance | `association\|min(source,target)\|max(source,target)`; never reciprocal on canvas |
 
 Input aliases are normalized before this table: `defines`, `governs`, `implements`, and `influences` become `related`; `example` becomes `instance_of`; `explains` becomes `informs`; `引出机械建模` and `引出电路建模` become `leads_to`; `机电类比` becomes `cross_domain`; `非线性扩展` becomes `generalizes`; `建模基础` becomes `provides_foundation`; and `电路应用` becomes `applies_to`. An unknown type or a new alias without an explicit row is a blocking coverage error in loading, labeling, projection, and inspector paths. No type is flipped by name inference. `follows` has the explicit authoring grammar “source is followed by target / target 是 source 的学习后续”, so its stored source-to-target direction means earlier-to-later; a zero-instance contract fixture protects that grammar. A future inverse alias may reverse endpoints only after an explicit reviewed mapping is added.
 
 The projection retains all fields that actually exist on each contributing link: id, relation type, strength, source/target direction, chapter metadata, and source metadata when supplied. Rationale or evidence is displayed when present; otherwise the inspector says `关系依据未提供` and never fabricates provenance. Exact duplicate child or post-requisite descriptions sharing a normalized directed key collapse into one visual edge. A reverse child pair is a blocking canonical-membership error and neither direction renders until repaired. Multiple association semantics for the same unordered node pair collapse into one visual edge but remain individually listed in the inspector. Genuine opposite normalized post-requisite directions form an SCC/cycle state rather than two independent learning steps: reciprocal curves remain visible for diagnosis, the inspector labels the cycle as `需共同理解或待审查`, and no earlier-to-later motion runs within the SCC. Different families on the same node pair coexist as separate visual edges when enabled and receive stable family-specific curvature.
+
+Relation identity is validated before presentation deduplication. One relation ID may repeat only when every occurrence resolves to the same normalized `(source, target, type)` key; those byte-independent duplicates coalesce deterministically. If one ID resolves to more than one key, export blocks regardless of whether one occurrence has explicit endpoint IDs. The seven historical conflicts were independent base and lesson relations whose chapter metadata changed while their IDs did not; the base authoring rows now carry explicit endpoints and endpoint/type-derived stable IDs. The repaired full export contains 16,571 canonical relations, with output sorted by relation ID, source, target, and type.
 
 Directed association details use relation-specific source/target sentences instead of an undirected label alone:
 
@@ -65,8 +67,21 @@ Directed association details use relation-specific source/target sentences inste
 | `quantified_by` | 本节点由目标指标或图形量化 | 本节点用于量化来源概念 |
 | `uses` | 本节点使用目标方法或工具 | 本节点被来源任务或概念使用 |
 | `visualized_by` | 本节点由目标图形呈现 | 本节点用于呈现来源概念 |
+| `causes` | 本节点导致目标结果 | 本节点由来源条件或机制导致 |
+| `demonstrates` | 本节点展示目标性质或过程 | 本节点由来源实例或表征展示 |
+| `equivalent_to` | 本节点在已声明模型与条件下等价于目标 | 本节点在已声明模型与条件下等价于来源 |
+| `exemplifies` | 本节点是目标性质或概念的实例 | 本节点由来源实例具体说明 |
+| `extends` | 本节点的既有概念扩展到目标 | 本节点扩展来源概念的适用范围或变化维度 |
+| `has_stage` | 本节点过程包含目标阶段 | 本节点是来源过程的一个状态或阶段 |
+| `precedes` | 本节点在过程或参数演化中先于目标 | 本节点在过程或参数演化中后于来源 |
+| `produces` | 本节点产生目标现象或结果 | 本节点由来源机制或状态产生 |
+| `provides_context` | 本节点为目标提供理解语境 | 本节点的理解语境由来源提供 |
+| `refined_by` | 本节点由目标进一步精化 | 本节点进一步精化来源概念 |
+| `refines` | 本节点进一步精化目标概念 | 本节点由来源进一步精化 |
 
 Bidirectional or undirected association types (`opposite`, `related`, `complements`, `contrasts_with`, `embodies`) use symmetric Chinese sentences. Aliases inherit their canonical type's sentence while retaining the authored alias in provenance.
+
+The 11 added types remain associations regardless of directional wording. `precedes` describes process or parameter evolution and is not the inverse of `follows`; `has_stage` describes a process state and is not membership; `provides_context` is not `provides_foundation`; and `refined_by` does not reverse endpoints unless a future explicit alias contract says so. Each type has a contract fixture independent of runtime instance count. The 1-3 relation `闭环控制_1_1 → 闭环特征方程_1_3` is authored as “提供基础”, so its canonical authoring type is corrected from `refines` to `provides_foundation`. The authored `极点_1_2 → 极点迁移_1_3` `extends` relation is retained because its description explicitly extends a static concept into a parameter-varying concept in that source-to-target direction.
 
 Flattening canonical data at load time was rejected because goal expansion, diagnostics, and detail inspection rely on the authored semantics.
 
@@ -165,7 +180,13 @@ Representative acceptance uses a checked-in fixture generated from the largest r
 3. Replace relation controls and renderers with three-family presentation, boundary clipping, wrapped labels, and focused motion.
 4. Decouple and verify inspector state, cross-domain navigation, keyboard focus, mobile sheets, and assistant context.
 5. Validate representative runtime graph data, 2D/3D parity, reduced motion, performance, light/dark desktop, and narrow viewports.
-6. Roll back by reverting the change; no canonical data migration or database rollback is required.
+6. The PostgreSQL projection migration removes the endpoint-pair unique constraint and adds relation metadata, strength, and endpoint indexes. Historical rows have unknown ownership and remain unowned; migration never infers ownership from endpoint nodes. Canonical seed claims exact canonical relation IDs and stale cleanup affects only rows carrying the current relation `runtimeSource`.
+7. Root, progressive, and detail loading execute the same complete strict relation contract before returning any node. Missing, malformed, empty, unknown, duplicate, reverse-child, or unresolved relation input blocks the response with bounded machine-readable diagnostics.
+8. This schema change is not directly reversible while duplicate endpoint pairs exist. A downgrade requires a backup, an explicit product decision about which relations to archive or collapse, a duplicate-pair preflight query, and only then restoration of the old unique constraint. The isolated PostgreSQL test exercises this rejection condition rather than claiming a lossless automatic rollback.
+9. Canonical file fallback distinguishes absence from invalidity. Only `ENOENT` for a canonical file permits DB fallback; malformed, empty, duplicate, whitespace, or overlong node identity is a fail-closed loading diagnostic. File cache reuse requires a fresh stable size/mtime/SHA-256 fingerprint of both node and relation files on every request, so invalid mutations cannot be hidden by the TTL.
+10. DB validation reads every relation carrying the current canonical relation `runtimeSource` before endpoint validation, without active-node joins. The endpoint set contains only active nodes carrying the canonical node source marker; therefore runtime-owned relations to inactive or external nodes produce the same unresolved-endpoint 422 as file input. Public node listing, including legacy `source=db`, uses the runtime loader and sanitized node DTO rather than a raw Prisma escape path.
+11. A DB fallback payload is assembled inside one Prisma `RepeatableRead` transaction. Canonical runtime nodes are read first, then all runtime-owned relations and their count/fingerprint evidence are read from that same transaction snapshot; root, full, progressive, list, and detail consumers receive only the resulting payload and never issue a second version query. A bounded retry handles transient snapshot conflicts. The isolated PostgreSQL test commits a same-count node/relation content update between reads and requires one payload/digest to remain wholly old while the next request and shard version switch wholly new.
+12. Runtime lesson/media governance compares each reviewed source, manifest, and evidence hash with the current file hash. Any mismatch changes only that item to `pending-rereview`, records the stale reason and both reviewed/current hashes, and projects it as stale without path eligibility. It never rewrites human reviewer decisions or substitutes a current hash as human-confirmed. Source, review-item, workqueue, audit, and projection summaries are derived from item state; no lesson key or handout sentinel propagates invalidation. A reviewed resource that disappears may remain only as a pending workqueue tombstone, while a missing human-confirmed resource blocks generation. Repeated generation over unchanged inputs must produce identical bytes even when pending review causes a non-success governance result.
 
 ## Open Questions
 
