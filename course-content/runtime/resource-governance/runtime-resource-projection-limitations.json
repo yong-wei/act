@@ -1,6 +1,6 @@
 {
   "artifactVersion": "runtime-resource-projections.v1",
-  "generatedAt": "2026-07-07T10:45:00.000Z",
+  "generatedAt": "2026-07-16T00:30:00.000Z",
   "versionRefs": {
     "artifactVersioningVersion": "kaq-artifact-versioning.v1",
     "learningGoalPackageVersion": "learning-goal-package/v1",
@@ -13,31 +13,32 @@
     "groundingVersion": "konling-graph-grounding.v1"
   },
   "totals": {
-    "rows": 3038,
-    "resourceNodeCandidates": 729,
-    "segmentOnly": 2309,
-    "registryPathEligible": 203,
-    "planningUnitEligible": 52,
-    "humanConfirmed": 492,
-    "provisional": 2397,
-    "stale": 0
+    "rows": 3118,
+    "resourceNodeCandidates": 740,
+    "segmentOnly": 2378,
+    "registryPathEligible": 2,
+    "planningUnitEligible": 0,
+    "humanConfirmed": 2763,
+    "provisional": 36,
+    "stale": 1636
   },
   "byFamily": {
-    "runtime-lesson-step": 450,
-    "runtime-lesson-module": 1352,
-    "runtime-lesson-media": 759,
-    "runtime-handout": 37,
-    "knowledge-card": 279,
+    "runtime-lesson-step": 461,
+    "runtime-lesson-module": 1377,
+    "runtime-lesson-media": 783,
+    "runtime-handout": 39,
+    "knowledge-card": 297,
     "knowledge-infograph": 161
   },
   "byProjectionLevel": {
-    "ResourceNode": 677,
-    "ResourceSegment": 2309,
+    "ResourceNode": 740,
+    "ResourceSegment": 2378,
     "CitationTarget": 0,
     "RetrievalChunk": 0,
-    "PlanningUnit": 52
+    "PlanningUnit": 0
   },
   "blockingCodes": [
+    "blocked-by-dependency",
     "missing-capability-target",
     "missing-citation-target",
     "missing-content-hash",

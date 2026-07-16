@@ -205,6 +205,9 @@ export function toRuntimeLessonNodeInput(entry: RuntimeLessonResourceCatalogEntr
     ]),
     handoutPath: entry.handoutPath,
     handoutPdfPath: entry.handoutPdfPath,
+    handoutSourcePath: entry.handoutSourcePath,
+    handoutSourceHash: entry.handoutSourceHash,
+    handoutSourceVersionRef: entry.handoutSourceVersionRef,
     mediaResources: entry.mediaResources.map((resource) => ({
       id: resource.id,
       title: resource.title,

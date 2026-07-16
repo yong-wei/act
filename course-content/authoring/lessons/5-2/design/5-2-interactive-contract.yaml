@@ -490,9 +490,9 @@ steps:
     title: '理想继电闭环的自振计算'
     layout: { template: 'worked_example_reveal_board', regions: [{ id: 'problem', width: 'full', order: 1 }, { id: 'reveal', width: 'half', order: 2 }, { id: 'media', width: 'half', order: 3 }] }
     modules:
-      - { id: 'relay-problem', title: '继电闭环题面', region: 'problem', kind: 'content.rich', must_be_visible: true , payload: { legacyKind: 'problem-statement', presentation: 'single', semanticRole: 'problem' }}
-      - { id: 'relay-reveal', title: '继电闭环求解步骤', region: 'reveal', kind: 'content.reveal', must_be_visible: true , payload: { legacyKind: 'step-reveal-chain', presentation: 'single', interactionKind: 'progressive-reveal' }}
-      - { id: 'relay-sim', region: 'media', kind: 'content.figure', must_be_visible: true, payload: { legacyKind: 'image-panel', presentation: 'single', semanticRole: 'media',  src: '/course-runtime/lessons/5-2/media/5-2-example-relay-limit-cycle.png', caption: '理想继电闭环的描述函数交点与自振仿真' } }
+      - { id: 'relay-problem', title: '继电闭环题面', region: 'problem', kind: 'content.rich', must_be_visible: true , payload: { block_key: 'problem', legacyKind: 'problem-statement', presentation: 'single', semanticRole: 'problem' }}
+      - { id: 'relay-reveal', title: '继电闭环求解步骤', region: 'reveal', kind: 'content.reveal', must_be_visible: true , payload: { block_key: 'reveal_steps', legacyKind: 'step-reveal-chain', presentation: 'single', interactionKind: 'progressive-reveal' }}
+      - { id: 'relay-sim', title: '继电闭环交点与时域复核图', region: 'media', kind: 'content.figure', must_be_visible: true, payload: { legacyKind: 'image-panel', presentation: 'single', semanticRole: 'media',  src: '/course-runtime/lessons/5-2/media/5-2-example-relay-limit-cycle.png', alt: '继电闭环自振计算结果图像', caption: '理想继电闭环的描述函数交点与自振仿真' } }
     content_blocks:
       problem: '$G(s)=\dfrac{10}{s(s+2)^2}$，理想继电 $M=1$，判断是否存在描述函数意义下的自振并求候选频率和振幅。'
       reveal_steps:
@@ -517,9 +517,9 @@ steps:
     title: '饱和环节中线性增益改变自振条件'
     layout: { template: 'worked_example_compare_board', regions: [{ id: 'problem', width: 'full', order: 1 }, { id: 'reveal', width: 'half', order: 2 }, { id: 'media', width: 'half', order: 3 }] }
     modules:
-      - { id: 'sat-problem', title: '饱和闭环题面', region: 'problem', kind: 'content.rich', must_be_visible: true , payload: { legacyKind: 'problem-statement', presentation: 'single', semanticRole: 'problem' }}
-      - { id: 'sat-reveal', title: '饱和闭环求解步骤', region: 'reveal', kind: 'content.reveal', must_be_visible: true , payload: { legacyKind: 'step-reveal-chain', presentation: 'single', interactionKind: 'progressive-reveal' }}
-      - { id: 'sat-sim', region: 'media', kind: 'content.figure', must_be_visible: true, payload: { legacyKind: 'image-panel', presentation: 'single', semanticRole: 'media',  src: '/course-runtime/lessons/5-2/media/5-2-example-saturation-gain-compare.png', caption: '饱和闭环中线性增益改变自振条件' } }
+      - { id: 'sat-problem', title: '饱和闭环题面', region: 'problem', kind: 'content.rich', must_be_visible: true , payload: { block_key: 'problem', legacyKind: 'problem-statement', presentation: 'single', semanticRole: 'problem' }}
+      - { id: 'sat-reveal', title: '饱和闭环求解步骤', region: 'reveal', kind: 'content.reveal', must_be_visible: true , payload: { block_key: 'reveal_steps', legacyKind: 'step-reveal-chain', presentation: 'single', interactionKind: 'progressive-reveal' }}
+      - { id: 'sat-sim', title: '饱和闭环增益对比图', region: 'media', kind: 'content.figure', must_be_visible: true, payload: { legacyKind: 'image-panel', presentation: 'single', semanticRole: 'media',  src: '/course-runtime/lessons/5-2/media/5-2-example-saturation-gain-compare.png', alt: '饱和闭环两种增益响应对比图像', caption: '饱和闭环中线性增益改变自振条件' } }
     content_blocks:
       problem: '$G(s)=\dfrac{K}{s(s+1)(0.2s+1)}$，单位饱和 $k=1,a=1$，比较 $K=4$ 与 $K=9$。'
       reveal_steps:
@@ -566,9 +566,9 @@ steps:
     title: '舵机自振风险与整改方向'
     layout: { template: 'engineering_case_simulation_board', regions: [{ id: 'calculation', width: 'full', order: 1 }, { id: 'media', width: 'full', order: 2 }, { id: 'consequence', width: 'full', order: 3 }, { id: 'activity', width: 'full', order: 4 }] }
     modules:
-      - { id: 'rudder-calculation', title: '舵机案例候选交点计算', region: 'calculation', kind: 'content.formula', must_be_visible: true , payload: { legacyKind: 'formula-card', presentation: 'single' }}
-      - { id: 'rudder-sim', region: 'media', kind: 'content.figure', must_be_visible: true, payload: { legacyKind: 'image-panel', presentation: 'single', semanticRole: 'media',  src: '/course-runtime/lessons/5-2/media/5-2-ship-rudder-actuator-case-sim.png', caption: '舵机死区饱和案例的交点判断与短脉冲仿真' } }
-      - { id: 'engineering-consequence', title: '工程后果', region: 'consequence', kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'bullet-list-card', presentation: 'single' }}
+      - { id: 'rudder-calculation', title: '舵机案例候选交点计算', region: 'calculation', kind: 'content.formula', must_be_visible: true , payload: { block_key: 'calculation', legacyKind: 'formula-card', presentation: 'single' }}
+      - { id: 'rudder-sim', title: '舵机自振风险仿真图', region: 'media', kind: 'content.figure', must_be_visible: true, payload: { legacyKind: 'image-panel', presentation: 'single', semanticRole: 'media',  src: '/course-runtime/lessons/5-2/media/5-2-ship-rudder-actuator-case-sim.png', alt: '舵机死区饱和自振风险仿真图像', caption: '舵机死区饱和案例的交点判断与短脉冲仿真' } }
+      - { id: 'engineering-consequence', title: '工程后果', region: 'consequence', kind: 'content.cardSet', must_be_visible: true , payload: { block_key: 'consequences', legacyKind: 'bullet-list-card', presentation: 'single' }}
       - { id: 'fix-tasks', title: '整改方向判断', region: 'activity', kind: 'activity.panel', must_be_visible: true , payload: { legacyKind: 'activity-card-set', presentation: 'single' }}
     content_blocks:
       calculation:
@@ -613,11 +613,12 @@ steps:
 
   step-18:
     title: '总结：三种入口与工程验证边界'
-    layout: { template: 'summary_infograph_board', regions: [{ id: 'infograph', width: 'full', order: 1 }, { id: 'summary', width: 'full', order: 2 }, { id: 'analytics', width: 'full', order: 3 }] }
+    layout: { template: 'summary_infograph_board', regions: [{ id: 'infograph', width: 'full', order: 1 }, { id: 'summary', width: 'full', order: 2 }, { id: 'focus', width: 'full', order: 3 }, { id: 'analytics', width: 'full', order: 4 }] }
     modules:
-      - { id: 'info', region: 'infograph', kind: 'content.figure', must_be_visible: true, payload: { legacyKind: 'image-panel', presentation: 'single', semanticRole: 'media',  src: '/course-runtime/lessons/5-2/media/5-2-info.png', caption: '非线性系统最小分析入口总结' } }
-      - { id: 'three-entry-summary', title: '三种分析入口', region: 'summary', kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'bullet-list-card', presentation: 'single' }}
-      - { id: 'limits', title: '工程验证边界', region: 'summary', kind: 'content.cardSet', must_be_visible: true , payload: { legacyKind: 'bullet-list-card', presentation: 'single' }}
+      - { id: 'info', title: '三种非线性分析入口信息图', region: 'infograph', kind: 'content.figure', must_be_visible: true, payload: { legacyKind: 'image-panel', presentation: 'single', semanticRole: 'media',  src: '/course-runtime/lessons/5-2/media/5-2-info.png', alt: '非线性系统三种分析方法信息图像', caption: '非线性系统最小分析入口总结' } }
+      - { id: 'three-entry-summary', title: '三种分析入口', region: 'summary', kind: 'content.cardSet', must_be_visible: true , payload: { block_key: 'entries', legacyKind: 'bullet-list-card', presentation: 'single' }}
+      - { id: 'limits', title: '工程验证边界', region: 'summary', kind: 'content.cardSet', must_be_visible: true , payload: { block_key: 'limits', legacyKind: 'bullet-list-card', presentation: 'single' }}
+      - { id: 'engineering-focus', title: '工程验证重点', region: 'focus', kind: 'content.rich', must_be_visible: true , payload: { block_key: 'extension', legacyKind: 'bullet-card', presentation: 'single' }}
       - { id: 'performance-summary', region: 'analytics', kind: 'analytics.summary', must_be_visible: true, payload: { legacyKind: 'stat-panel', presentation: 'single',  title: '课堂表现统计', text: '学生端显示个人浏览、提交和前后测完成情况；教师端显示班级提交率、正确率、常见误判和目标达成概况。' } }
     content_blocks:
       entries: ['局部线性化看工作点附近的小扰动。', '相平面看二阶状态轨迹和周期行为。', '描述函数看正弦基波近似下的自振边界。']

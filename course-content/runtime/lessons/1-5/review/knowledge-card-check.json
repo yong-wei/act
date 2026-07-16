@@ -1,0 +1,15 @@
+{
+  "lesson_id": "1-5",
+  "sequence_path": "course-content/authoring/knowledge/cards/lessons/1-5/sequence.json",
+  "card_order": [
+    "极点_1_2",
+    "时域响应_1_1",
+    "三域证据链_1_5",
+    "增益扫描稳定区间_1_5",
+    "临界增益与虚轴极点_1_5",
+    "速度指标分辨_1_5"
+  ],
+  "missing_cards": [],
+  "missing_frontmatter_keys": {},
+  "missing_sections": {}
+}

@@ -597,4 +597,3 @@ personalizing explanations, scope, style, and evidence diagnostics.
 - **WHEN** portrait v2 data is missing or migrated with low confidence
 - **THEN** Konling SHALL still answer with available content citations
 - **AND** it SHALL treat portrait incompleteness as a personalization limitation rather than a retrieval failure.
-

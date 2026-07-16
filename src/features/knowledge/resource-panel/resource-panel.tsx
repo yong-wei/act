@@ -1,6 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { BookOpen, FileText, X, ArrowRight, Link2, ChevronDown, ChevronRight, Image as ImageIcon, ListPlus, Target } from 'lucide-react';
 import { BlockMath } from 'react-katex';
@@ -17,14 +18,47 @@ import {
 } from '@/lib/knowledge-labels';
 import { isChapterNodeId } from '../graph/filter-utils';
 import type { PlatformRole } from '@/components/platform/platform-ui-contracts';
+import type { KnowledgeGraphAdjacentDomainNavigation } from '../graph/selected-corridor';
+import {
+  configuredLaunchTargetSecurityContext,
+  resolveLaunchTargetSelection,
+  resolveSafeLaunchTarget,
+} from '../launch-target';
+
+interface AdjacentDomainNavigation extends KnowledgeGraphAdjacentDomainNavigation {
+  nodeName: string;
+}
+
+interface CanonicalCorridorContext {
+  ancestors: Array<{ id: string; name: string }>;
+  descendants: Array<{ id: string; name: string }>;
+  cycleState?: 'cyclic';
+}
 
 interface RelatedNode {
   id: string;
   name: string;
   nodeType: string;
-  relation: string;
-  category: 'prerequisite' | 'follows' | 'related';
+  relation?: string;
+  canonicalType?: string;
+  cycleState?: 'cyclic';
+  relationId?: string;
+  category: 'membership' | 'prerequisite' | 'follows' | 'related';
+  direction?: 'parent-to-child' | 'earlier-to-later' | 'unordered';
+  family?: 'child' | 'post-requisite' | 'association';
+  inspectionSentence?: string;
+  evidenceState?: 'available' | 'unavailable';
+  rationale?: string;
+  rawType?: string;
+  sourceDocument?: string;
+  sourceChapter?: string | number;
+  sourceId?: string;
+  sourceMetadata?: Record<string, string | number>;
+  targetChapter?: string | number;
+  targetId?: string;
   strength?: number;
+  visualMergeCount?: number;
+  visualMergeKey?: string;
 }
 
 interface KnowledgeNodeDetail extends KnowledgeNodeData {
@@ -32,6 +66,12 @@ interface KnowledgeNodeDetail extends KnowledgeNodeData {
   isActive?: boolean;
   createdAt?: string;
   relatedNodes?: RelatedNode[];
+  truncated?: {
+    content?: boolean;
+    metadata?: boolean;
+    relatedNodes?: boolean;
+    resources?: boolean;
+  };
 }
 
 interface ResourcePanelProps {
@@ -39,7 +79,11 @@ interface ResourcePanelProps {
   selectedNode: KnowledgeNodeData | null;
   onClose: () => void;
   onNodeClick?: (nodeId: string) => void;
+  adjacentDomainNavigations?: AdjacentDomainNavigation[];
+  canonicalCorridor?: CanonicalCorridorContext | null;
   viewerRole?: PlatformRole;
+  mobileHeaderControl?: ReactNode;
+  mobileToolPanelOpen?: boolean;
 }
 
 interface ResourcePanelSelectionState {
@@ -50,21 +94,29 @@ interface ResourcePanelSelectionState {
   expandedRelationGroups: Record<string, boolean>;
 }
 
-const RELATION_GROUP_ORDER: Array<RelatedNode['category']> = ['prerequisite', 'follows', 'related'];
+const RELATION_GROUP_ORDER: Array<RelatedNode['category']> = ['membership', 'prerequisite', 'follows', 'related'];
 const RELATION_GROUP_LABEL: Record<RelatedNode['category'], string> = {
+  membership: '层级与包含关系',
   prerequisite: '前置关系',
   follows: '后续关系',
   related: '关联关系',
 };
 const MOBILE_INSPECTOR_QUERY = '(max-width: 1023px)';
-const INSPECTOR_FOCUSABLE_SELECTOR = [
-  'a[href]',
-  'button:not([disabled])',
-  'input:not([disabled])',
-  'select:not([disabled])',
-  'textarea:not([disabled])',
-  '[tabindex]:not([tabindex="-1"])',
-].join(',');
+
+export function formatRelationEvidence(node: RelatedNode): string | null {
+  if (node.rationale) return node.rationale;
+  if (node.sourceDocument) return node.sourceDocument;
+  if (!node.sourceMetadata) return null;
+  const title = node.sourceMetadata.title ?? node.sourceMetadata.documentId ?? node.sourceMetadata.section;
+  if (title !== undefined) return `来源：${title}`;
+  const first = Object.entries(node.sourceMetadata)[0];
+  return first ? `来源元数据：${first[0]}=${first[1]}` : null;
+}
+
+export function formatRelationChapterContext(node: RelatedNode): string | null {
+  if (node.sourceChapter === undefined && node.targetChapter === undefined) return null;
+  return `节点章节：${node.sourceChapter ?? '未知'} → ${node.targetChapter ?? '未知'}`;
+}
 
 export function resolveResourcePanelSelectionState(
   selectedNode: KnowledgeNodeData
@@ -129,12 +181,18 @@ export function resolveKnowledgeResourceLaunch(node: KnowledgeNodeData | null) {
     || isKnowledgeCardPath(metadata.launchTarget)
     || isKnowledgeCardPath(metadata.renderTarget)
     || isKnowledgeCardPath(metadata.lessonEntry);
-  const explicitTarget = metadata.launchTarget ?? metadata.renderTarget ?? metadata.lessonEntry;
-  if (typeof explicitTarget === 'string' && explicitTarget.trim() && !isKnowledgeCardPath(explicitTarget)) {
+  const explicitTarget = resolveLaunchTargetSelection({
+    authoritativeTarget: metadata.launchTarget,
+    fallbackTargets: [metadata.renderTarget, metadata.lessonEntry],
+    context: configuredLaunchTargetSecurityContext(
+      typeof window === 'undefined' ? null : window.location.origin,
+    ),
+  });
+  if (explicitTarget.candidatePresent) {
     return {
-      href: explicitTarget.startsWith('/') ? explicitTarget : `/${explicitTarget}`,
+      href: explicitTarget.href,
       label: '启动关联资源',
-      reason: null,
+      reason: explicitTarget.reason,
       lessonId,
       hasKnowledgeCard,
     };
@@ -144,15 +202,16 @@ export function resolveKnowledgeResourceLaunch(node: KnowledgeNodeData | null) {
     ? node.resources.find((item): item is string => typeof item === 'string' && item.trim().length > 0)
     : null;
   if (resourcePath && !hasKnowledgeCard) {
-    const href = resourcePath.startsWith('course-content/runtime/knowledge/')
+    const candidateHref = resourcePath.startsWith('course-content/runtime/knowledge/')
       ? resourcePath.replace('course-content/runtime/knowledge/', '/course-runtime/knowledge/')
       : resourcePath.startsWith('/')
         ? resourcePath
         : `/${resourcePath}`;
+    const target = resolveSafeLaunchTarget(candidateHref);
     return {
-      href,
+      href: target.href,
       label: resourcePath.includes('/cards/') ? '打开知识卡片资源' : '启动关联资源',
-      reason: null,
+      reason: target.reason,
       lessonId,
       hasKnowledgeCard,
     };
@@ -182,7 +241,11 @@ export function ResourcePanel({
   selectedNode,
   onClose,
   onNodeClick,
+  adjacentDomainNavigations = [],
+  canonicalCorridor = null,
   viewerRole = 'student',
+  mobileHeaderControl,
+  mobileToolPanelOpen = false,
 }: ResourcePanelProps) {
   if (!isOpen || !selectedNode) return null;
 
@@ -191,7 +254,11 @@ export function ResourcePanel({
         selectedNode={selectedNode}
         onClose={onClose}
         onNodeClick={onNodeClick}
+        adjacentDomainNavigations={adjacentDomainNavigations}
+        canonicalCorridor={canonicalCorridor}
         viewerRole={viewerRole}
+        mobileHeaderControl={mobileHeaderControl}
+        mobileToolPanelOpen={mobileToolPanelOpen}
       />
   );
 }
@@ -200,7 +267,11 @@ function ResourcePanelContent({
   selectedNode,
   onClose,
   onNodeClick,
+  adjacentDomainNavigations = [],
+  canonicalCorridor = null,
   viewerRole = 'student',
+  mobileHeaderControl,
+  mobileToolPanelOpen = false,
 }: Omit<ResourcePanelProps, 'isOpen' | 'selectedNode'> & { selectedNode: KnowledgeNodeData }) {
   const [nodeDetail, setNodeDetail] = useState<KnowledgeNodeDetail | null>(
     () => resolveResourcePanelSelectionState(selectedNode).nodeDetail
@@ -212,32 +283,84 @@ function ResourcePanelContent({
     () => resolveResourcePanelSelectionState(selectedNode).isCardOpen
   );
   const [isLoading, setIsLoading] = useState(() => resolveResourcePanelSelectionState(selectedNode).isLoading);
+  const [detailError, setDetailError] = useState<string | null>(null);
+  const [detailRequestVersion, setDetailRequestVersion] = useState(0);
   const [expandedRelationGroups, setExpandedRelationGroups] = useState<Record<string, boolean>>(
     () => resolveResourcePanelSelectionState(selectedNode).expandedRelationGroups
   );
-  const inspectorRef = useRef<HTMLElement | null>(null);
+  const inspectorRef = useRef<HTMLDivElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const previouslyFocusedElementRef = useRef<HTMLElement | null>(null);
+  const restoreCloseFocusAfterBreakpointRef = useRef(false);
+  const restoreCloseFocusAfterPortalRef = useRef(false);
+  const mobileFocusInitializedRef = useRef(false);
+  const mobileFocusNodeIdRef = useRef<string | null>(null);
+  const [isMobileInspector, setIsMobileInspector] = useState(false);
+  const selectedNodeRef = useRef(selectedNode);
+  selectedNodeRef.current = selectedNode;
+  const setCloseButtonRef = useCallback((element: HTMLButtonElement | null) => {
+    if (!element && document.activeElement === closeButtonRef.current) {
+      restoreCloseFocusAfterPortalRef.current = true;
+    }
+    closeButtonRef.current = element;
+  }, []);
 
   useEffect(() => {
-    const nextSelectionState = resolveResourcePanelSelectionState(selectedNode);
+    const media = typeof window.matchMedia === 'function'
+      ? window.matchMedia(MOBILE_INSPECTOR_QUERY)
+      : null;
+    const update = () => {
+      restoreCloseFocusAfterBreakpointRef.current = document.activeElement === closeButtonRef.current;
+      setIsMobileInspector(media?.matches ?? false);
+    };
+    update();
+    media?.addEventListener('change', update);
+    return () => media?.removeEventListener('change', update);
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!restoreCloseFocusAfterBreakpointRef.current) return;
+    restoreCloseFocusAfterBreakpointRef.current = false;
+    closeButtonRef.current?.focus();
+  }, [isMobileInspector]);
+
+  useLayoutEffect(() => {
+    const activeElement = document.activeElement;
+    if (
+      activeElement instanceof HTMLElement
+      && activeElement !== closeButtonRef.current
+      && !inspectorRef.current?.contains(activeElement)
+    ) previouslyFocusedElementRef.current = activeElement;
+  }, [selectedNode.id]);
+
+  useEffect(() => {
+    const nextSelectionState = resolveResourcePanelSelectionState(selectedNodeRef.current);
     setNodeDetail(nextSelectionState.nodeDetail);
     setNodeDetailOwnerId(nextSelectionState.nodeDetailOwnerId);
     setIsLoading(nextSelectionState.isLoading);
+    setDetailError(null);
     setIsCardOpen(nextSelectionState.isCardOpen);
     setExpandedRelationGroups(nextSelectionState.expandedRelationGroups);
 
-    if (!nextSelectionState.isLoading) {
-      return;
-    }
+  }, [selectedNode.id]);
 
-    const selectedNodeId = selectedNode.id;
+  useEffect(() => {
+    if (isChapterNodeId(selectedNodeRef.current.id)) return;
+
+    const selectedNodeId = selectedNodeRef.current.id;
     let cancelled = false;
     const controller = new AbortController();
+    setIsLoading(true);
+    setDetailError(null);
     const fetchDetail = async () => {
+      let scrollTopBeforeUpdate: number | null = null;
       try {
-        const res = await fetch(`/api/knowledge/nodes/${selectedNodeId}`, { signal: controller.signal });
-        if (!res.ok) return;
+        const res = await fetch(`/api/knowledge/nodes/${encodeURIComponent(selectedNodeId)}`, { signal: controller.signal });
+        scrollTopBeforeUpdate = inspectorRef.current?.scrollTop ?? null;
+        if (!res.ok) {
+          if (!cancelled) setDetailError(`节点详情加载失败（${res.status}），可重试。`);
+          return;
+        }
         const data = await res.json();
         if (!cancelled && data?.id === selectedNodeId) {
           setNodeDetail(data);
@@ -246,9 +369,17 @@ function ResourcePanelContent({
       } catch (error) {
         if ((error as Error).name === 'AbortError') return;
         console.error('Failed to fetch knowledge node detail:', error);
+        if (!cancelled) setDetailError('节点详情加载失败，请检查网络后重试。');
       } finally {
         if (!cancelled && !controller.signal.aborted) {
           setIsLoading(false);
+          if (scrollTopBeforeUpdate !== null) {
+            window.requestAnimationFrame(() => {
+              if (selectedNodeRef.current.id === selectedNodeId && inspectorRef.current) {
+                inspectorRef.current.scrollTop = scrollTopBeforeUpdate!;
+              }
+            });
+          }
         }
       }
     };
@@ -259,7 +390,7 @@ function ResourcePanelContent({
       cancelled = true;
       controller.abort();
     };
-  }, [selectedNode]);
+  }, [detailRequestVersion, selectedNode.id]);
 
   useEffect(() => {
     previouslyFocusedElementRef.current =
@@ -275,12 +406,32 @@ function ResourcePanelContent({
     };
   }, []);
 
-  useEffect(() => {
-    if (!window.matchMedia(MOBILE_INSPECTOR_QUERY).matches) return;
-    window.requestAnimationFrame(() => {
-      closeButtonRef.current?.focus();
-    });
-  }, [selectedNode.id]);
+  useLayoutEffect(() => {
+    if (!isMobileInspector) {
+      mobileFocusInitializedRef.current = false;
+      mobileFocusNodeIdRef.current = null;
+      return;
+    }
+    const shouldFocusClose = !mobileFocusInitializedRef.current
+      || mobileFocusNodeIdRef.current !== selectedNode.id
+      || restoreCloseFocusAfterPortalRef.current;
+    mobileFocusInitializedRef.current = true;
+    mobileFocusNodeIdRef.current = selectedNode.id;
+    restoreCloseFocusAfterPortalRef.current = false;
+    let focusFrame = 0;
+    const mountFrame = shouldFocusClose
+      ? window.requestAnimationFrame(() => {
+        focusFrame = window.requestAnimationFrame(() => {
+          closeButtonRef.current?.focus();
+        });
+      })
+      : 0;
+    return () => {
+      restoreCloseFocusAfterPortalRef.current ||= document.activeElement === closeButtonRef.current;
+      window.cancelAnimationFrame(mountFrame);
+      if (focusFrame) window.cancelAnimationFrame(focusFrame);
+    };
+  }, [isMobileInspector, mobileToolPanelOpen, selectedNode.id]);
 
   const handleInspectorKeyDown = useCallback((event: KeyboardEvent<HTMLElement>) => {
     if (event.key === 'Escape') {
@@ -289,27 +440,12 @@ function ResourcePanelContent({
       return;
     }
 
-    if (event.key !== 'Tab' || !window.matchMedia(MOBILE_INSPECTOR_QUERY).matches) return;
-
-    const focusable = Array.from(
-      inspectorRef.current?.querySelectorAll<HTMLElement>(INSPECTOR_FOCUSABLE_SELECTOR) ?? []
-    ).filter((item) => !item.hasAttribute('disabled') && item.tabIndex !== -1);
-    if (focusable.length === 0) {
-      event.preventDefault();
-      inspectorRef.current?.focus();
-      return;
-    }
-
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    if (event.shiftKey && document.activeElement === first) {
-      event.preventDefault();
-      last.focus();
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault();
-      first.focus();
-    }
   }, [onClose]);
+
+  const handleCloseButtonKeyDown = useCallback((event: KeyboardEvent<HTMLElement>) => {
+    event.stopPropagation();
+    handleInspectorKeyDown(event);
+  }, [handleInspectorKeyDown]);
 
   const currentNodeDetail = nodeDetailOwnerId === selectedNode.id ? nodeDetail : null;
   const displayNode = (currentNodeDetail || selectedNode) as KnowledgeNodeDetail | null;
@@ -371,9 +507,23 @@ function ResourcePanelContent({
     blockTitle: 'text-platform-fg-primary',
     text: 'text-platform-fg-secondary',
   };
+  const mobilePortalActive = mobileToolPanelOpen && isMobileInspector;
+  const inspectorCloseButton = (
+    <button type="button"
+      ref={setCloseButtonRef}
+      onClick={onClose}
+      onKeyDown={handleCloseButtonKeyDown}
+      className={`shrink-0 text-platform-fg-muted transition-colors hover:text-platform-fg-primary ${mobilePortalActive ? 'fixed right-4 top-[4.75rem] z-[70] grid h-8 w-8 place-items-center rounded-md border border-platform-border bg-platform-surface shadow-md' : ''}`}
+      aria-label="关闭知识节点检查器"
+      data-knowledge-inspector-close-priority={mobilePortalActive ? 'above-mobile-tools' : 'inline'}
+    >
+      <X className="h-4 w-4" />
+    </button>
+  );
 
   return (
-    <aside
+    <>
+    <div
       ref={inspectorRef}
       role="dialog"
       aria-modal="false"
@@ -383,32 +533,58 @@ function ResourcePanelContent({
       data-knowledge-local-panel="resource-panel"
       data-knowledge-inspector="floating-right-edge"
       data-knowledge-inspector-responsive="desktop-floating-mobile-sheet"
-      data-knowledge-inspector-focus-contract="mobile-trap-escape-return"
+      data-knowledge-inspector-focus-contract="mobile-initial-focus-escape-return"
       data-knowledge-inspector-dock-safe-area="bottom-padding"
       aria-label="知识节点检查器"
     >
       <div
-        className={`sticky top-0 z-10 flex items-center justify-between border-b p-4 ${panelTheme.header}`}
+        className={`sticky top-0 z-10 border-b p-4 ${panelTheme.header}`}
         data-knowledge-inspector-section="header"
       >
-        <div className="flex min-w-0 items-center gap-2">
-          <FileText className="h-4 w-4 shrink-0 text-platform-action-primary" />
-          <span className="truncate text-sm font-medium">{selectedNode.name}</span>
+        <div className="flex items-center justify-between">
+          <div className="flex min-w-0 items-center gap-2">
+            <FileText className="h-4 w-4 shrink-0 text-platform-action-primary" />
+            <span className="truncate text-sm font-medium">{selectedNode.name}</span>
+          </div>
+          {!mobilePortalActive && inspectorCloseButton}
         </div>
-        <button type="button"
-          ref={closeButtonRef}
-          onClick={onClose}
-          className="shrink-0 text-platform-fg-muted transition-colors hover:text-platform-fg-primary"
-          aria-label="关闭知识节点检查器"
-        >
-          <X className="h-4 w-4" />
-        </button>
+        {mobileHeaderControl && (
+          <div className="mt-3 lg:hidden" data-knowledge-inspector-mobile-control="relation-family">
+            {mobileHeaderControl}
+          </div>
+        )}
       </div>
 
-      {isLoading && <div className={`p-4 text-center text-sm ${panelTheme.muted}`}>加载中...</div>}
-
-      {!isLoading && (
-        <div className="space-y-4 p-4">
+      <div className="space-y-4 p-4" data-knowledge-detail-owner={selectedNode.id}>
+          {isLoading && (
+            <div className={`rounded-md border border-platform-border bg-platform-canvas-muted px-3 py-2 text-xs ${panelTheme.muted}`}>
+              正在更新当前节点详情…
+            </div>
+          )}
+          {detailError && !isLoading && (
+            <div className="flex items-center justify-between gap-3 rounded-md border border-platform-evidence-context/35 bg-platform-evidence-context/10 px-3 py-2 text-xs text-platform-evidence-context" role="alert">
+              <span>{detailError}</span>
+              <button
+                type="button"
+                onClick={() => setDetailRequestVersion((current) => current + 1)}
+                className="shrink-0 rounded-md border border-platform-border bg-platform-surface px-2 py-1 font-medium text-platform-fg-primary hover:bg-platform-action-subtle"
+                data-knowledge-detail-retry="true"
+              >
+                重试详情
+              </button>
+            </div>
+          )}
+          {nodeDetail?.truncated && Object.values(nodeDetail.truncated).some(Boolean) && (
+            <div className="rounded-md border border-platform-evidence-context/35 bg-platform-evidence-context/10 p-2 text-xs text-platform-evidence-context" data-knowledge-detail-truncated="true">
+              <p>节点详情数据受限：</p>
+              <ul className="mt-1 list-disc pl-4">
+                {nodeDetail.truncated.metadata && <li>元数据不完整</li>}
+                {nodeDetail.truncated.content && <li>知识内容不完整</li>}
+                {nodeDetail.truncated.resources && <li>关联资源不完整</li>}
+                {nodeDetail.truncated.relatedNodes && <li>关系列表不完整</li>}
+              </ul>
+            </div>
+          )}
           <section className="space-y-3" data-knowledge-inspector-section="semantic-metadata">
             <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center rounded-full bg-platform-action-primary px-2.5 py-0.5 text-xs font-medium text-platform-fg-inverse">
@@ -443,6 +619,14 @@ function ResourcePanelContent({
               {displayNode.description}
             </p>
           </section>
+
+          {!isVirtualChapter && (
+            <section className={`rounded-lg border p-3 ${panelTheme.block}`} data-knowledge-inspector-section="domain-membership">
+              <h3 className={`text-sm font-medium ${panelTheme.blockTitle}`}>所属领域</h3>
+              <p className={`mt-1 text-xs ${panelTheme.text}`}>{chapterName}</p>
+              <p className={`mt-1 text-[11px] ${panelTheme.muted}`}>领域归属用于导航，不作为规范子级关系。</p>
+            </section>
+          )}
 
           {infographSrc && (
             <section className={`overflow-hidden rounded-lg border ${panelTheme.block}`} data-knowledge-inspector-section="infograph-preview">
@@ -541,21 +725,55 @@ function ResourcePanelContent({
               <div className="space-y-2">
                 {relationGroups.map((group) => {
                   const isExpanded = expandedRelationGroups[group.category] ?? group.category === RELATION_GROUP_ORDER[0];
+                  const relationGroupPanelId = `knowledge-relation-group-${group.category}`;
                   return (
                     <div key={`relation-group-${group.category}`} className="rounded-md border border-platform-border bg-platform-surface">
-                      <button type="button" onClick={() => setExpandedRelationGroups((prev) => ({ ...prev, [group.category]: !isExpanded }))} className="flex w-full items-center justify-between px-2 py-1.5 text-xs font-medium text-platform-fg-secondary hover:text-platform-fg-primary">
+                      <button type="button" aria-expanded={isExpanded} aria-controls={relationGroupPanelId} onClick={() => setExpandedRelationGroups((prev) => ({ ...prev, [group.category]: !isExpanded }))} className="flex w-full items-center justify-between px-2 py-1.5 text-xs font-medium text-platform-fg-secondary hover:text-platform-fg-primary">
                         <span>{group.label}</span>
                         <span className="flex items-center gap-1"><span className={panelTheme.muted}>{group.nodes.length}</span>{isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}</span>
                       </button>
                       {isExpanded && (
-                        <ul className="space-y-1 px-2 pb-2">
+                        <ul id={relationGroupPanelId} className="space-y-1 px-2 pb-2">
                           {group.nodes.map((node) => (
-                            <li key={node.id}>
-                              <button type="button" onClick={() => onNodeClick?.(node.id)} className="group flex w-full items-center gap-2 rounded-md bg-platform-canvas-muted p-2 text-left text-platform-fg-secondary transition-colors hover:bg-platform-action-subtle hover:text-platform-fg-primary">
-                                <span className={`shrink-0 rounded border px-1.5 py-0.5 text-xs ${node.category === 'prerequisite' ? 'border-platform-evidence-context/40 bg-platform-evidence-context/10 text-platform-evidence-context' : node.category === 'follows' ? 'border-platform-evidence-eligible/40 bg-platform-evidence-eligible/10 text-platform-evidence-eligible' : 'border-platform-action-primary/40 bg-platform-action-subtle text-platform-action-primary'}`}>{getRelationLabel(node.relation)}</span>
-                                <span className="flex-1 truncate text-sm text-platform-fg-secondary group-hover:text-platform-fg-primary">{node.name}</span>
-                                {typeof node.strength === 'number' && <span className={`shrink-0 text-[10px] ${panelTheme.muted}`}>{node.strength.toFixed(1)}</span>}
-                                <ArrowRight className={`h-3 w-3 shrink-0 ${panelTheme.muted}`} />
+                            <li key={`${node.id}-${node.relationId ?? node.canonicalType ?? node.relation}`}>
+                              <button type="button" onClick={() => onNodeClick?.(node.id)} className="group w-full rounded-md bg-platform-canvas-muted p-2 text-left text-platform-fg-secondary transition-colors hover:bg-platform-action-subtle hover:text-platform-fg-primary">
+                                <span className="flex items-center gap-2">
+                                  <span className={`shrink-0 rounded border px-1.5 py-0.5 text-xs ${node.category === 'prerequisite' ? 'border-platform-evidence-context/40 bg-platform-evidence-context/10 text-platform-evidence-context' : node.category === 'follows' ? 'border-platform-evidence-eligible/40 bg-platform-evidence-eligible/10 text-platform-evidence-eligible' : 'border-platform-action-primary/40 bg-platform-action-subtle text-platform-action-primary'}`}>
+                                    {getRelationLabel(node.canonicalType ?? node.relation)}
+                                    {node.rawType && node.rawType !== node.canonicalType ? ` · ${node.rawType}` : ''}
+                                  </span>
+                                  <span className="flex-1 truncate text-sm text-platform-fg-secondary group-hover:text-platform-fg-primary">{node.name}</span>
+                                  {typeof node.strength === 'number' && <span className={`shrink-0 text-[10px] ${panelTheme.muted}`}>{node.strength.toFixed(1)}</span>}
+                                  <ArrowRight className={`h-3 w-3 shrink-0 ${panelTheme.muted}`} />
+                                </span>
+                                {node.inspectionSentence && (
+                                  <span className={`mt-1 block text-xs ${panelTheme.text}`}>{node.inspectionSentence}</span>
+                                )}
+                                {node.sourceId && node.targetId && (
+                                  <span className={`mt-1 block break-all text-[11px] ${panelTheme.muted}`}>
+                                    规范方向：{node.sourceId} → {node.targetId}
+                                  </span>
+                                )}
+                                {node.cycleState === 'cyclic' && (
+                                  <span className="mt-1 block text-xs font-medium text-platform-evidence-context">
+                                    需共同理解或待审查
+                                  </span>
+                                )}
+                                {formatRelationChapterContext(node) && (
+                                  <span className={`mt-1 block text-[11px] ${panelTheme.muted}`}>
+                                    {formatRelationChapterContext(node)}
+                                  </span>
+                                )}
+                                {node.evidenceState && (
+                                  <span className={`mt-1 block text-[11px] ${panelTheme.muted}`}>
+                                    {formatRelationEvidence(node) ?? '关系依据未提供'}
+                                  </span>
+                                )}
+                                {(node.visualMergeCount ?? 1) > 1 && (
+                                  <span className={`mt-1 block text-[11px] ${panelTheme.muted}`} data-knowledge-visual-merge-key={node.visualMergeKey}>
+                                    画布合并呈现：{node.visualMergeCount} 条原始关系
+                                  </span>
+                                )}
                               </button>
                             </li>
                           ))}
@@ -564,6 +782,69 @@ function ResourcePanelContent({
                     </div>
                   );
                 })}
+              </div>
+            </section>
+          )}
+
+          {!isVirtualChapter && canonicalCorridor
+            && (canonicalCorridor.ancestors.length > 0
+              || canonicalCorridor.descendants.length > 0
+              || canonicalCorridor.cycleState === 'cyclic') && (
+            <section className={`rounded-lg border p-3 ${panelTheme.block}`} data-knowledge-inspector-section="canonical-corridor">
+              <div className="mb-2 flex items-center gap-2">
+                <ArrowRight className="h-4 w-4 text-platform-action-primary" />
+                <h3 className={`text-sm font-medium ${panelTheme.blockTitle}`}>当前规范路径</h3>
+              </div>
+              {canonicalCorridor.cycleState === 'cyclic' && (
+                <p className="mb-2 text-xs font-medium text-platform-evidence-context">需共同理解或待审查</p>
+              )}
+              {([
+                ['前置概念', canonicalCorridor.ancestors],
+                ['后续概念', canonicalCorridor.descendants],
+              ] as const).map(([label, items]) => items.length > 0 && (
+                <div key={label} className="mt-2">
+                  <p className={`text-[11px] font-medium ${panelTheme.muted}`}>{label}</p>
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {items.map((item) => (
+                      <button key={item.id} type="button" onClick={() => onNodeClick?.(item.id)}
+                        className="rounded border border-platform-border bg-platform-surface px-2 py-1 text-xs text-platform-fg-secondary hover:bg-platform-action-subtle hover:text-platform-fg-primary">
+                        {item.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </section>
+          )}
+
+          {!isVirtualChapter && adjacentDomainNavigations.length > 0 && (
+            <section
+              className={`rounded-lg border p-3 ${panelTheme.block}`}
+              data-knowledge-corridor-adjacent-navigation="true"
+              data-knowledge-inspector-section="corridor-adjacent-domains"
+            >
+              <div className="mb-2 flex items-center gap-2">
+                <ArrowRight className="h-4 w-4 text-platform-action-primary" />
+                <h3 className={`text-sm font-medium ${panelTheme.blockTitle}`}>相邻领域路径</h3>
+              </div>
+              <div className="space-y-1.5">
+                {adjacentDomainNavigations.map((navigation) => (
+                  <button
+                    key={`${navigation.direction}-${navigation.edgeId}-${navigation.nodeId}`}
+                    type="button"
+                    onClick={() => onNodeClick?.(navigation.nodeId)}
+                    className="flex w-full items-center gap-2 rounded-md border border-platform-border bg-platform-surface px-2.5 py-2 text-left text-xs text-platform-fg-secondary hover:bg-platform-action-subtle hover:text-platform-fg-primary"
+                    data-knowledge-adjacent-domain-id={navigation.domainId}
+                  >
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-medium">{navigation.nodeName}</span>
+                      <span className={`block text-[11px] ${panelTheme.muted}`}>
+                        {navigation.direction === 'ancestor' ? '来自相邻领域的前置概念' : '进入相邻领域的后续概念'}
+                      </span>
+                    </span>
+                    <ArrowRight className="h-3.5 w-3.5 shrink-0" />
+                  </button>
+                ))}
               </div>
             </section>
           )}
@@ -641,9 +922,12 @@ function ResourcePanelContent({
             </section>
           )}
         </div>
-      )}
 
       <KnowledgeCardDialog open={isCardOpen} onOpenChange={setIsCardOpen} node={displayNode} />
-    </aside>
+    </div>
+    {mobilePortalActive && typeof document !== 'undefined'
+      ? createPortal(inspectorCloseButton, document.body)
+      : null}
+    </>
   );
 }

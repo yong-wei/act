@@ -1,0 +1,36 @@
+Unit 1-4 deterministic checks
+
+K=1 closed-loop
+  poles = -3.73205081 +0.00000000j, -0.26794919 +0.00000000j
+  overshoot = 0.000000%
+  ts_5pct = 11.459000s
+
+K=4 closed-loop
+  poles = -2.00000000 +0.00000000j, -2.00000000 +0.00000000j
+  overshoot = 0.000000%
+  ts_5pct = 2.372000s
+
+K=8 closed-loop
+  poles = -2.00000000 +2.00000000j, -2.00000000 -2.00000000j
+  overshoot = 4.321391%
+  ts_5pct = 1.036000s
+
+T8(s)=8/(s^2+4s+8) closed-loop command response
+  -3dB bandwidth = 2.825036 rad/s
+  omega=0.3: magnitude=0.99993672, phase=-8.626377 deg
+  omega=3: magnitude=0.66436384, phase=-94.763642 deg
+
+L8(s)=8/[s(s+4)] loop transfer
+  gain crossover = 1.820356 rad/s
+
+G0(j2)
+  magnitude=0.11180340, magnitude_dB=-19.030900 dB, phase=-116.565051 deg
+
+Example 1-4-1: 0.64/(s^2+0.88s+0.64)
+  overshoot=12.632409%, ts_5pct=6.616000s
+  omega=0.2: magnitude=1.02354025, phase=-16.348172 deg
+  omega=4: magnitude=0.04061385, phase=-167.092591 deg
+
+Exercise 5 standard second-order inference
+  Mr=1.41253754, zeta=0.38323180, overshoot=27.158620%
+  omega_r/omega_n=0.84039680

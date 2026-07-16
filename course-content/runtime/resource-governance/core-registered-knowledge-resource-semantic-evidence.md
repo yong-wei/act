@@ -6,10 +6,10 @@ Reviewed at: 2026-07-09T16:30:00.000Z
 
 ## Scope
 
-Scoped resources: 608
-Workqueue items: 608
-Reviewed resources: 608
-Starting rows with blockers: 606
+Scoped resources: 624
+Workqueue items: 624
+Reviewed resources: 606
+Starting rows with blockers: 622
 Unexplained remaining items: 0
 Privacy minimized: true
 Raw content included: false
@@ -18,25 +18,25 @@ Raw content included: false
 
 - knowledge-card: 279
 - knowledge-infograph: 161
-- registered-resource: 168
+- registered-resource: 166
 
 ## Dispositions
 
 - embedded-asset: 161
-- evidence-producing: 168
+- evidence-producing: 166
 - path-plannable: 2
 - supporting-citation: 277
 
 ## Residual Limitations
 
-- concrete-missing-source-hash: 168
+- concrete-missing-source-hash: 166
 - downstream-dependency-blocker: 49
 - embedded-asset-not-independent-path-node: 161
 - evidence-contract-limited: 161
-- no-direct-learning-goal-boundary-fit: 558
+- no-direct-learning-goal-boundary-fit: 556
 - path-readiness-profile-incomplete: 48
-- registered-route-source-identity-limited: 168
-- support-or-excluded-resource-not-path-node: 606
+- registered-route-source-identity-limited: 166
+- support-or-excluded-resource-not-path-node: 604
 
 ## Evidence Files
 

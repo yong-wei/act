@@ -49,19 +49,6 @@ AUTHORING_NODE_CARDS = AUTHORING_CARDS / "nodes"
 AUTHORING_CONCEPT_CARDS = AUTHORING_CARDS / "concepts"
 
 RELATION_DERIVED_FIELDS = {"id", "source_id", "target_id", "run_id"}
-NODE_DERIVED_FIELDS = {
-    "nodeType",
-    "description",
-    "positionX",
-    "positionY",
-    "positionZ",
-    "bloomLevel",
-    "knowledgeDim",
-    "chapterName",
-    "content",
-    "resources",
-    "tags",
-}
 VALID_KNOWLEDGE_TYPES = {"C", "X", "D", "框架", "前沿"}
 
 
@@ -167,10 +154,28 @@ def normalize_node(node: dict[str, Any]) -> dict[str, Any]:
             normalized["knowledge_type"] = metadata["knowledge_type"]
         return sorted_json(normalized)
 
-    cleaned = {k: v for k, v in node.items() if k not in NODE_DERIVED_FIELDS and k != "metadata"}
-    cleaned.pop("created_at", None)
-    cleaned.pop("updated_at", None)
-    return sorted_json(cleaned)
+    chapter = node.get("chapter")
+    if isinstance(chapter, str) and chapter.strip().isdigit():
+        chapter = int(chapter.strip())
+    normalized = {
+        "id": node.get("id"),
+        "name": node.get("name") or node.get("label"),
+        "category": node.get("category"),
+        "bloom_level": node.get("bloom_level"),
+        "chapter": chapter,
+        "chapter_name": node.get("chapter_name") or node.get("chapterName") or ("未分章" if chapter is None else None),
+        "definition": node.get("definition") or node.get("summary"),
+        "examples": node.get("examples", []),
+        "formulas": node.get("formulas", []),
+        "prerequisites": node.get("prerequisites", []),
+        "related_concepts": node.get("related_concepts", node.get("relatedConcepts", [])),
+        "difficulty": node.get("difficulty"),
+        "importance": node.get("importance"),
+        "keywords": node.get("keywords", []),
+    }
+    if node.get("knowledge_type") is not None:
+        normalized["knowledge_type"] = node["knowledge_type"]
+    return sorted_json(normalized)
 
 
 def authoring_node_from_runtime(node: dict[str, Any]) -> dict[str, Any]:
@@ -212,6 +217,31 @@ def normalize_relation(rel: dict[str, Any]) -> dict[str, Any]:
 
 def relation_key(rel: dict[str, Any]) -> str:
     return str(rel.get("relation_id") or rel.get("id") or f"{rel.get('source')}|{rel.get('target')}|{rel.get('relation_type')}")
+
+
+def relation_semantic_key(rel: dict[str, Any]) -> str:
+    source = rel.get("source_id") or rel.get("source")
+    target = rel.get("target_id") or rel.get("target")
+    relation_type = rel.get("relation_type") or rel.get("relation") or "related"
+    return f"{source}|{target}|{relation_type}"
+
+
+def lesson_nodes_by_id() -> dict[str, list[dict[str, Any]]]:
+    nodes: dict[str, list[dict[str, Any]]] = {}
+    for path in sorted(AUTHORING_LESSONS.glob("**/graph/nodes.jsonl")):
+        for node in load_jsonl(path):
+            node_id = node.get("id")
+            if node_id:
+                nodes.setdefault(str(node_id), []).append(node)
+    return nodes
+
+
+def lesson_relations_by_semantic_key() -> dict[str, list[dict[str, Any]]]:
+    relations: dict[str, list[dict[str, Any]]] = {}
+    for path in sorted(AUTHORING_LESSONS.glob("**/graph/relations.jsonl")):
+        for relation in load_jsonl(path):
+            relations.setdefault(relation_semantic_key(relation), []).append(relation)
+    return relations
 
 
 def runtime_nodes_by_id() -> dict[str, dict[str, Any]]:
@@ -320,6 +350,7 @@ def compare_graph(
     runtime_nodes = runtime_nodes_by_id()
     graph = authoring_graph()
     authoring_nodes = graph["nodes"]
+    lesson_nodes = lesson_nodes_by_id()
     field_sources = authoring_node_field_sources()
 
     missing_nodes: list[dict[str, Any]] = []
@@ -327,8 +358,14 @@ def compare_graph(
     for node_id, runtime_node in runtime_nodes.items():
         authoring_node = authoring_nodes.get(node_id)
         if authoring_node is None:
-            report.missing_nodes.append(node_id)
-            missing_nodes.append(authoring_node_from_runtime(runtime_node))
+            lesson_candidates = lesson_nodes.get(node_id, [])
+            if any(normalize_node(candidate) == normalize_node(runtime_node) for candidate in lesson_candidates):
+                continue
+            if lesson_candidates:
+                report.node_conflicts.append(node_id)
+            else:
+                report.missing_nodes.append(node_id)
+                missing_nodes.append(authoring_node_from_runtime(runtime_node))
         elif normalize_node(authoring_node) != normalize_node(runtime_node):
             candidate = node_backfill_candidate(node_id, authoring_node, runtime_node, field_sources)
             if candidate is None:
@@ -340,6 +377,7 @@ def compare_graph(
     runtime_rels = load_jsonl(RUNTIME_RELS)
     authoring_rels = load_jsonl(AUTHORING_RELS)
     authoring_by_key = {relation_key(rel): normalize_relation(rel) for rel in authoring_rels}
+    lesson_relations = lesson_relations_by_semantic_key()
 
     missing_rels: list[dict[str, Any]] = []
     for runtime_rel in runtime_rels:
@@ -347,8 +385,15 @@ def compare_graph(
         normalized_runtime = normalize_relation(runtime_rel)
         authoring_rel = authoring_by_key.get(key)
         if authoring_rel is None:
-            report.missing_relations.append(key)
-            missing_rels.append(normalized_runtime)
+            lesson_candidates = lesson_relations.get(relation_semantic_key(runtime_rel), [])
+            runtime_strength = float(runtime_rel.get("strength") or 1)
+            if any(float(candidate.get("strength") or 1) == runtime_strength for candidate in lesson_candidates):
+                continue
+            if lesson_candidates:
+                report.relation_conflicts.append(key)
+            else:
+                report.missing_relations.append(key)
+                missing_rels.append(normalized_runtime)
         elif authoring_rel != normalized_runtime:
             report.relation_conflicts.append(key)
 

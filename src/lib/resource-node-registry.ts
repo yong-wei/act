@@ -333,6 +333,7 @@ export type RuntimeResourceProjectionReviewStatus =
   | 'generated-provisional'
   | 'model-assisted-provisional'
   | 'external-tool-provisional'
+  | 'model-cleared'
   | 'human-confirmed'
   | 'blocked'
   | 'stale';
@@ -375,6 +376,31 @@ export interface RuntimeResourceProjectionReviewAudit {
   staleInvalidationRule: string;
 }
 
+export type RuntimeResourceProjectionAssetStatus =
+  | 'not-applicable'
+  | 'tracked-local-runtime-asset'
+  | 'missing-local-runtime-asset'
+  | 'external-http-runtime-asset';
+
+export type RuntimeResourceProjectionAssetAvailability =
+  | 'not-applicable'
+  | 'tracked-in-git-index'
+  | 'not-tracked-in-git-index'
+  | 'external-media-index-url';
+
+export interface RuntimeResourceProjectionSemanticEvidence {
+  schemaVersion: 'runtime-lesson-semantic-evidence.v1';
+  sourceFilePath: string;
+  sourceFileKind: string;
+  sourceFileHash: string | null;
+  evidenceFilePath: string;
+  evidenceFileHash: string;
+  evidenceSelector: string;
+  assetStatus: RuntimeResourceProjectionAssetStatus;
+  assetAvailability: RuntimeResourceProjectionAssetAvailability;
+  externalIdentitySha256: string | null;
+}
+
 export interface RuntimeResourceProjectionInput {
   id: string;
   resourceNodeId?: string | null;
@@ -398,6 +424,18 @@ export interface RuntimeResourceProjectionInput {
   reviewAudit?: RuntimeResourceProjectionReviewAudit | null;
   readiness?: ResourceNodeReadinessMetadata | null;
   citationTargets?: string[];
+  runtimeSemanticEvidence?: RuntimeResourceProjectionSemanticEvidence;
+  retrievalChunk?: {
+    id: string;
+    pathEligible: boolean;
+    reason: string;
+  };
+  pathEligibility?: {
+    current: boolean;
+    afterCompletion: boolean;
+    masteryAffecting: boolean;
+    blockedBy: string[];
+  };
 }
 
 export interface RuntimeResourceProjectionMetadata {
@@ -913,6 +951,9 @@ export interface RuntimeLessonNodeInput {
   }>;
   handoutPath?: string | null;
   handoutPdfPath?: string | null;
+  handoutSourcePath?: string | null;
+  handoutSourceHash?: string | null;
+  handoutSourceVersionRef?: string | null;
 }
 
 export interface TextbookResourceNodeInput {
@@ -2037,6 +2078,24 @@ function buildRuntimeLessonNodes(lessons: RuntimeLessonNodeInput[]): ResourceNod
           planningMetadata: 'ResourceNode',
         },
         evidenceInstrumentation: ['runtime_handout_open'],
+        runtimeProjection: lesson.handoutSourcePath && lesson.handoutSourceHash && lesson.handoutSourceVersionRef
+          ? {
+              id: `runtime-handout:${lesson.lessonId}`,
+              projectionLevel: 'ResourceNode',
+              sourceKind: 'runtime_handout',
+              sourcePathOrUrl: lesson.handoutSourcePath,
+              sourceRecord: lesson.lessonId,
+              sourceHash: lesson.handoutSourceHash ?? null,
+              sourceVersionRef: lesson.handoutSourceVersionRef ?? null,
+              graphNodeRefs: {
+                knowledge: collectLessonKnowledgeCoverage(lesson),
+                capability: [],
+                quality: [],
+              },
+              evidenceContract: null,
+              reviewAudit: null,
+            }
+          : null,
       }));
     }
     for (const media of lesson.mediaResources ?? []) {

@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "orderSource": {
+    "relationIds": [
+      "三域直觉联动|设计可行域|new"
+    ]
+  },
+  "density": {
+    "selectedNodeId": "三域直觉联动_5_L2c005",
+    "visibleAssociationRelationIds": [
+      "rt-16282",
+      "三域直觉联动|相位裕度直觉|new"
+    ]
+  },
+  "provenance": [
+    {
+      "relationId": "三域直觉联动|设计可行域|new",
+      "sourceId": "三域直觉联动_5_L2c005",
+      "targetId": "设计可行域_4_Lsum004",
+      "canonicalType": "leads_to"
+    }
+  ],
+  "overlayTripleEligibility": [
+    {
+      "relationId": "三域直觉联动|设计可行域|new",
+      "sourceId": "三域直觉联动_5_L2c005",
+      "targetId": "设计可行域_4_Lsum004",
+      "normalizedType": "leads_to"
+    }
+  ]
+}

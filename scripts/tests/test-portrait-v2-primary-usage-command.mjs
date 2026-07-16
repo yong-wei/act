@@ -123,6 +123,17 @@ try {
   runGit(['add', fixturePath], globalHookGitEnv);
   runGit(['commit', '-q', '-m', 'baseline'], globalHookGitEnv);
 
+  writeFixture('artifacts/large-evidence.json', `{"payload":"${'x'.repeat(2 * 1024 * 1024)}"}\n`);
+  runGit(['add', 'artifacts/large-evidence.json'], globalHookGitEnv);
+  const largeUnrelatedDiffResult = runGate(['--staged']);
+  assert.equal(
+    largeUnrelatedDiffResult.status,
+    0,
+    'large unrelated staged evidence must not exhaust the portrait gate diff buffer',
+  );
+  assert.match(largeUnrelatedDiffResult.output, /0 changed file\(s\) scanned/);
+  runGit(['commit', '-q', '-m', 'large unrelated evidence'], globalHookGitEnv);
+
   writeFixture('src/untracked-portrait-v2-fixture.ts', 'const value: CompetencyVector = legacyVector;\n');
   const untrackedResult = runGate(['--staged']);
   assert.equal(untrackedResult.status, 0, 'a truly untracked file must remain outside the staged diff');
@@ -168,6 +179,25 @@ try {
   const headResult = runGate([]);
   assert.notEqual(headResult.status, 0, 'push mode must inspect HEAD, not the dirty worktree');
   assert.match(headResult.output, /legacy-competency-vector/);
+
+  const invalidBaseResult = runGate(['--base', 'definitely-not-a-real-portrait-gate-base']);
+  assert.notEqual(invalidBaseResult.status, 0, 'an invalid explicit base must fail closed');
+  assert.match(invalidBaseResult.output, /无法解析显式 portrait-v2 门禁基线/);
+
+  const ignoredRenameSource = 'tests/fixtures/legacy-portrait-source.ts';
+  const productionRenameTarget = 'src/中文 portrait consumer.ts';
+  writeFixture(ignoredRenameSource, 'const renamedValue: CompetencyVector = legacyVector;\n');
+  runGit(['add', ignoredRenameSource], globalHookGitEnv);
+  runGit(['commit', '-q', '-m', 'ignored legacy fixture'], globalHookGitEnv);
+  runGit(['mv', ignoredRenameSource, productionRenameTarget], globalHookGitEnv);
+  const quotedRenameResult = runGate(['--staged']);
+  assert.notEqual(
+    quotedRenameResult.status,
+    0,
+    'a test-to-production rename with a quoted Unicode path must be scanned',
+  );
+  assert.match(quotedRenameResult.output, /legacy-competency-vector/);
+  assert.match(quotedRenameResult.output, /src\/中文 portrait consumer\.ts/);
 } finally {
   rmSync(tempRoot, { recursive: true, force: true });
 }

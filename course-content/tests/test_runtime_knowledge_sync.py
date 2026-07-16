@@ -111,6 +111,99 @@ def test_safe_knowledge_type_backfill_is_not_a_conflict(tmp_path: Path) -> None:
     assert updated['nodes']['n1']['knowledge_type'] == 'C'
 
 
+def test_lesson_owned_graph_is_not_reported_missing_from_authoring_base(tmp_path: Path) -> None:
+    module = load_sync_module()
+    configure_paths(module, tmp_path)
+
+    node = dict(node_without_type(), knowledge_type='C')
+    runtime_node = runtime_node_with_type('C')
+    runtime_relation = {
+        'id': 'rel-1',
+        'relation_id': 'rel-1',
+        'source_id': 'n1',
+        'source': '稳定性',
+        'target_id': 'n2',
+        'target': '稳定裕度',
+        'source_chapter': 3,
+        'target_chapter': 3,
+        'relation_type': 'prerequisite',
+        'strength': 1.0,
+    }
+    write_json(module.RUNTIME_NODES, [runtime_node])
+    write_json(module.AUTHORING_GRAPH, {'nodes': {}})
+    write_jsonl(module.RUNTIME_RELS, [runtime_relation])
+    write_jsonl(module.AUTHORING_RELS, [])
+    write_jsonl(module.AUTHORING_LESSONS / '3-1' / 'graph' / 'nodes.jsonl', [node])
+    write_jsonl(
+        module.AUTHORING_LESSONS / '3-1' / 'graph' / 'relations.jsonl',
+        [
+            {
+                'source_id': 'n1',
+                'source': '稳定性',
+                'target_id': 'n2',
+                'target': '稳定裕度',
+                'relation_type': 'prerequisite',
+            },
+        ],
+    )
+
+    report = module.SyncReport()
+    _, missing_nodes, missing_rels, _ = module.compare_graph(report)
+
+    assert report.missing_nodes == []
+    assert report.node_conflicts == []
+    assert report.missing_relations == []
+    assert report.relation_conflicts == []
+    assert missing_nodes == []
+    assert missing_rels == []
+
+
+def test_legacy_lesson_node_fields_match_exported_runtime_node(tmp_path: Path) -> None:
+    module = load_sync_module()
+    configure_paths(module, tmp_path)
+
+    legacy_node = {
+        'id': 'n1',
+        'label': '稳定性',
+        'summary': '判断系统响应是否保持有界。',
+        'knowledge_type': 'C',
+        'lesson_id': '3-1',
+    }
+    runtime_node = {
+        'id': 'n1',
+        'name': '稳定性',
+        'description': '判断系统响应是否保持有界。',
+        'chapter': None,
+        'metadata': {
+            'chapter': None,
+            'chapterName': '未分章',
+            'category': None,
+            'knowledge_type': 'C',
+            'bloom_level': None,
+            'definition': '判断系统响应是否保持有界。',
+            'examples': [],
+            'formulas': [],
+            'prerequisites': [],
+            'relatedConcepts': [],
+            'difficulty': None,
+            'importance': None,
+            'keywords': [],
+        },
+    }
+    write_json(module.RUNTIME_NODES, [runtime_node])
+    write_json(module.AUTHORING_GRAPH, {'nodes': {}})
+    write_jsonl(module.RUNTIME_RELS, [])
+    write_jsonl(module.AUTHORING_RELS, [])
+    write_jsonl(module.AUTHORING_LESSONS / '3-1' / 'graph' / 'nodes.jsonl', [legacy_node])
+
+    report = module.SyncReport()
+    _, missing_nodes, _, _ = module.compare_graph(report)
+
+    assert report.missing_nodes == []
+    assert report.node_conflicts == []
+    assert missing_nodes == []
+
+
 def test_conflicting_knowledge_type_sources_still_block_sync(tmp_path: Path) -> None:
     module = load_sync_module()
     configure_paths(module, tmp_path)

@@ -16,6 +16,7 @@ describe('INTERACTIVE_COURSE_MODULES', () => {
     expect(PREMIUM_LESSONS.map((lesson) => lesson.id)).toEqual([
       'unit-1-1-see-the-full-picture',
       'unit-1-2-modeling-from-object-to-system',
+      'unit-1-3-parameter-pole-migration',
       'cruise-comfort-boppps',
     ]);
   });
@@ -46,6 +47,11 @@ describe('INTERACTIVE_COURSE_MODULES', () => {
       {
         id: 'unit-1-2-modeling-from-object-to-system',
         unitLabel: '1-2',
+        legacySourceLabel: null,
+      },
+      {
+        id: 'unit-1-3-parameter-pole-migration',
+        unitLabel: '1-3',
         legacySourceLabel: null,
       },
     ]);

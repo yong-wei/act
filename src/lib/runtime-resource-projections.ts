@@ -18,6 +18,7 @@ import {
   type RuntimeResourceProjectionResourceType,
   type RuntimeResourceProjectionEvidenceContract,
   type RuntimeResourceProjectionInput,
+  type RuntimeResourceProjectionSemanticEvidence,
   type RuntimeResourceProjectionLevel,
   type RuntimeResourceProjectionReviewAudit,
   type RuntimeResourceProjectionReviewStatus,
@@ -83,6 +84,7 @@ export interface RuntimeResourceProjectionArtifacts {
 export function buildRuntimeResourceProjectionArtifacts(input: {
   auditRows: readonly ResourceFieldCompletionAuditRow[];
   generatedAt?: string;
+  runtimeSemanticEvidenceById?: ReadonlyMap<string, RuntimeResourceProjectionSemanticEvidence>;
 }): RuntimeResourceProjectionArtifacts {
   const generatedAt = input.generatedAt ?? new Date().toISOString();
   const versionRefs = buildKaqArtifactVersionRefs({
@@ -93,7 +95,11 @@ export function buildRuntimeResourceProjectionArtifacts(input: {
     .filter((row): row is ResourceFieldCompletionAuditRow & { family: RuntimeResourceProjectionFamily } =>
       isRuntimeProjectionFamily(row.family)
     )
-    .map((row) => rowToRuntimeProjection(row, versionRefs))
+    .map((row) => rowToRuntimeProjection(
+      row,
+      versionRefs,
+      input.runtimeSemanticEvidenceById?.get(row.resourceId),
+    ))
     .sort((left, right) => left.id.localeCompare(right.id));
 
   return {
@@ -105,13 +111,16 @@ export function buildRuntimeResourceProjectionArtifacts(input: {
 function rowToRuntimeProjection(
   row: ResourceFieldCompletionAuditRow & { family: RuntimeResourceProjectionFamily },
   versionRefs: KaqArtifactVersionRefs,
+  runtimeSemanticEvidence?: RuntimeResourceProjectionSemanticEvidence,
 ): RuntimeResourceProjectionArtifactRow {
   const projectionLevel = projectionLevelForRow(row);
   const resourceNodeId = resourceNodeIdForRow(row);
   const sourceKind = sourceKindForFamily(row.family);
   const reviewStatus = runtimeReviewStatus(row.reviewStatus);
+  const sourceHash = row.sourceHash ?? runtimeSemanticEvidence?.sourceFileHash ?? null;
   const reviewAudit: RuntimeResourceProjectionReviewAudit = {
     ...row.reviewAudit,
+    reviewedSourceHash: row.reviewAudit.reviewedSourceHash ?? sourceHash,
     status: reviewStatus,
   };
   const evidenceContract: RuntimeResourceProjectionEvidenceContract = row.evidenceContract;
@@ -127,7 +136,7 @@ function rowToRuntimeProjection(
     sourceRef: row.sourceRecord ?? row.resourceId,
     sourcePathOrUrl: row.sourcePathOrUrl,
     sourceRecord: row.sourceRecord,
-    sourceHash: row.sourceHash,
+    sourceHash,
     sourceVersionRef: row.sourceVersionRef,
     projectionLevel,
     routeTarget: projectionLevel === 'ResourceNode' || projectionLevel === 'PlanningUnit'
@@ -144,6 +153,7 @@ function rowToRuntimeProjection(
     readiness: row.readiness,
     segmentRefs: segmentRefsForRow(row),
     citationTargets: row.citationTargets,
+    ...(runtimeSemanticEvidence ? { runtimeSemanticEvidence } : {}),
     retrievalChunk: {
       id: `retrieval-chunk:${row.resourceId}:primary`,
       pathEligible: false,
@@ -217,6 +227,7 @@ function isRuntimeProjectionFamily(family: ResourceFieldCompletionFamily): famil
 }
 
 function projectionLevelForRow(row: ResourceFieldCompletionAuditRow): RuntimeResourceProjectionLevel {
+  if (row.reviewStatus === 'model-cleared') return 'ResourceSegment';
   if (row.pathEligibility.current && row.pathEligibility.masteryAffecting) return 'PlanningUnit';
   if (row.family === 'runtime-lesson-step') return 'ResourceNode';
   if (row.family === 'knowledge-card' && row.reviewStatus === 'human-confirmed') return 'ResourceNode';
@@ -319,7 +330,7 @@ function normalizeGraphNodeRefs(refs: ResourceGraphNodeRefs): ResourceGraphNodeR
 }
 
 function isStaleProjection(row: RuntimeResourceProjectionArtifactRow): boolean {
-  return row.reviewAudit.status === 'human-confirmed' &&
+  return (row.reviewAudit.status === 'human-confirmed' || row.reviewAudit.status === 'model-cleared') &&
     (!reviewedSourceMatchesProjection(row) ||
       row.reviewAudit.reviewedVersionRef !== row.sourceVersionRef);
 }

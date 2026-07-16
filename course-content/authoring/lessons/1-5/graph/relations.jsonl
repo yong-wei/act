@@ -1,0 +1,6 @@
+{"source_id":"极点_1_2","source":"极点","target_id":"三域证据链_1_5","target":"闭环极点、阶跃响应与环路裕度证据链","relation_type":"prerequisite","strength":0.96,"description":"极点位置提供三域证据链中的复平面判断。"}
+{"source_id":"时域响应_1_1","source":"时域响应","target_id":"三域证据链_1_5","target":"闭环极点、阶跃响应与环路裕度证据链","relation_type":"prerequisite","strength":0.94,"description":"阶跃响应提供三域证据链中的过程表现。"}
+{"source_id":"三域证据链_1_5","source":"闭环极点、阶跃响应与环路裕度证据链","target_id":"增益扫描稳定区间_1_5","target":"增益扫描中的稳定区间","relation_type":"applies_to","strength":0.98,"description":"连续增益扫描用同一套三域证据识别不同稳定状态。"}
+{"source_id":"增益扫描稳定区间_1_5","source":"增益扫描中的稳定区间","target_id":"临界增益与虚轴极点_1_5","target":"临界增益与虚轴极点","relation_type":"leads_to","strength":0.99,"description":"稳定区间的边界由临界增益及其虚轴极点精确确定。"}
+{"source_id":"三域证据链_1_5","source":"闭环极点、阶跃响应与环路裕度证据链","target_id":"速度指标分辨_1_5","target":"上升速度、收敛速度与环路频率尺度","relation_type":"contains","strength":0.95,"description":"跨域联读必须先分辨三个不同的速度尺度。"}
+{"source_id":"速度指标分辨_1_5","source":"上升速度、收敛速度与环路频率尺度","target_id":"增益扫描稳定区间_1_5","target":"增益扫描中的稳定区间","relation_type":"supports","strength":0.9,"description":"正确区分速度指标可避免把起步更快误判为更远离稳定边界。"}

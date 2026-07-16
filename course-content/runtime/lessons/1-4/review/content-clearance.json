@@ -1,0 +1,306 @@
+{
+  "lesson_id": "1-4",
+  "reviewer": "course-pedagogy-reviewer",
+  "batch": "unit-1-4-content-clearance-2026-07-14",
+  "time": "2026-07-14T04:30:00.000Z",
+  "model": "gpt-5.6-sol",
+  "status": "cleared",
+  "review_status": "model-cleared",
+  "independent_evidence_ref": "course-content/runtime/lessons/1-4/review/review-report.md",
+  "reviewed_resources": [
+    {
+      "resourceId": "runtime-handout:1-4",
+      "sourcePath": "course-content/runtime/lessons/1-4/1-4-handout.md",
+      "sourceHash": "sha256:578dc70c4a43675c53d17ecf73a47a8138faa8b92d011e3a8fc9c505d85e259a",
+      "sourceVersionRef": "runtime-handout.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "Bode与Nyquist同源表征_1_4",
+          "多表征一致性读图_1_4",
+          "开环幅相特性曲线_5_fd86e289",
+          "时域响应_1_1",
+          "时域频域通道区分_1_4",
+          "闭环带宽与环路穿越频率_1_4",
+          "频域分析_2_2e257d89"
+        ],
+        "capability": [
+          "controlModeling"
+        ],
+        "quality": []
+      },
+      "pathTarget": "/course-runtime/lessons/1-4/1-4-handout.pdf",
+      "currentPathEligible": false,
+      "rationale": "课程领域复审确认单元 1-4 讲义的数学推导、习题答案、术语、图谱引用与媒体链接正确；作者态、PDF 与 runtime 内容一致。"
+    },
+    {
+      "resourceId": "runtime-media:1-4:1-4-cover-comic.png",
+      "sourcePath": "course-content/runtime/lessons/1-4/media/1-4-cover-comic.png",
+      "sourceHash": "sha256:a87648f9b591ab6bf1cfdacdd65b3762e36fa9b0ba7894f2f58cd5a6ed392995",
+      "sourceVersionRef": "runtime-lesson-media.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "Bode与Nyquist同源表征_1_4",
+          "多表征一致性读图_1_4",
+          "开环幅相特性曲线_5_fd86e289",
+          "时域响应_1_1",
+          "时域频域通道区分_1_4",
+          "闭环带宽与环路穿越频率_1_4",
+          "频域分析_2_2e257d89"
+        ],
+        "capability": [],
+        "quality": []
+      },
+      "pathTarget": "/course-runtime/lessons/1-4/media/1-4-cover-comic.png",
+      "currentPathEligible": false,
+      "rationale": "课程领域复审确认单元 1-4 图像 1-4-cover-comic.png 的曲线、坐标、公式与文字标注符合讲义结论，未发现误导性表达。"
+    },
+    {
+      "resourceId": "runtime-media:1-4:1-4-fig-01-step-responses.png",
+      "sourcePath": "course-content/runtime/lessons/1-4/media/1-4-fig-01-step-responses.png",
+      "sourceHash": "sha256:7c7f6d5a2cdc152d83b7dac7c920460c63cfc3fa9085293258d723f3ca4b7567",
+      "sourceVersionRef": "runtime-lesson-media.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "Bode与Nyquist同源表征_1_4",
+          "多表征一致性读图_1_4",
+          "开环幅相特性曲线_5_fd86e289",
+          "时域响应_1_1",
+          "时域频域通道区分_1_4",
+          "闭环带宽与环路穿越频率_1_4",
+          "频域分析_2_2e257d89"
+        ],
+        "capability": [],
+        "quality": []
+      },
+      "pathTarget": "/course-runtime/lessons/1-4/media/1-4-fig-01-step-responses.png",
+      "currentPathEligible": false,
+      "rationale": "课程领域复审确认单元 1-4 图像 1-4-fig-01-step-responses.png 的曲线、坐标、公式与文字标注符合讲义结论，未发现误导性表达。"
+    },
+    {
+      "resourceId": "runtime-media:1-4:1-4-fig-02-closed-loop-bode.png",
+      "sourcePath": "course-content/runtime/lessons/1-4/media/1-4-fig-02-closed-loop-bode.png",
+      "sourceHash": "sha256:2e2a4ca78b637401005cb81175eac896ae0bfa234ac19733529891242fed0282",
+      "sourceVersionRef": "runtime-lesson-media.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "Bode与Nyquist同源表征_1_4",
+          "多表征一致性读图_1_4",
+          "开环幅相特性曲线_5_fd86e289",
+          "时域响应_1_1",
+          "时域频域通道区分_1_4",
+          "闭环带宽与环路穿越频率_1_4",
+          "频域分析_2_2e257d89"
+        ],
+        "capability": [],
+        "quality": []
+      },
+      "pathTarget": "/course-runtime/lessons/1-4/media/1-4-fig-02-closed-loop-bode.png",
+      "currentPathEligible": false,
+      "rationale": "课程领域复审确认单元 1-4 图像 1-4-fig-02-closed-loop-bode.png 的曲线、坐标、公式与文字标注符合讲义结论，未发现误导性表达。"
+    },
+    {
+      "resourceId": "runtime-media:1-4:1-4-fig-03-open-loop-bode.png",
+      "sourcePath": "course-content/runtime/lessons/1-4/media/1-4-fig-03-open-loop-bode.png",
+      "sourceHash": "sha256:04baf3a32b833076b4cde63e16571f53762e4afd288545fec6ea711b51e09297",
+      "sourceVersionRef": "runtime-lesson-media.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "Bode与Nyquist同源表征_1_4",
+          "多表征一致性读图_1_4",
+          "开环幅相特性曲线_5_fd86e289",
+          "时域响应_1_1",
+          "时域频域通道区分_1_4",
+          "闭环带宽与环路穿越频率_1_4",
+          "频域分析_2_2e257d89"
+        ],
+        "capability": [],
+        "quality": []
+      },
+      "pathTarget": "/course-runtime/lessons/1-4/media/1-4-fig-03-open-loop-bode.png",
+      "currentPathEligible": false,
+      "rationale": "课程领域复审确认单元 1-4 图像 1-4-fig-03-open-loop-bode.png 的曲线、坐标、公式与文字标注符合讲义结论，未发现误导性表达。"
+    },
+    {
+      "resourceId": "runtime-media:1-4:1-4-fig-04-open-loop-nyquist.png",
+      "sourcePath": "course-content/runtime/lessons/1-4/media/1-4-fig-04-open-loop-nyquist.png",
+      "sourceHash": "sha256:11a0666aa6a2a0cc1937b5508755a871f50abcc88726db5a20273609dcc5af62",
+      "sourceVersionRef": "runtime-lesson-media.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "Bode与Nyquist同源表征_1_4",
+          "多表征一致性读图_1_4",
+          "开环幅相特性曲线_5_fd86e289",
+          "时域响应_1_1",
+          "时域频域通道区分_1_4",
+          "闭环带宽与环路穿越频率_1_4",
+          "频域分析_2_2e257d89"
+        ],
+        "capability": [],
+        "quality": []
+      },
+      "pathTarget": "/course-runtime/lessons/1-4/media/1-4-fig-04-open-loop-nyquist.png",
+      "currentPathEligible": false,
+      "rationale": "课程领域复审确认单元 1-4 图像 1-4-fig-04-open-loop-nyquist.png 的曲线、坐标、公式与文字标注符合讲义结论，未发现误导性表达。"
+    },
+    {
+      "resourceId": "runtime-media:1-4:1-4-fig-05-four-views.png",
+      "sourcePath": "course-content/runtime/lessons/1-4/media/1-4-fig-05-four-views.png",
+      "sourceHash": "sha256:551fd367ec6e9d392e6e5cb350721380cdf4e1a0b52393e5ad8f8f1ea707f2f2",
+      "sourceVersionRef": "runtime-lesson-media.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "Bode与Nyquist同源表征_1_4",
+          "多表征一致性读图_1_4",
+          "开环幅相特性曲线_5_fd86e289",
+          "时域响应_1_1",
+          "时域频域通道区分_1_4",
+          "闭环带宽与环路穿越频率_1_4",
+          "频域分析_2_2e257d89"
+        ],
+        "capability": [],
+        "quality": []
+      },
+      "pathTarget": "/course-runtime/lessons/1-4/media/1-4-fig-05-four-views.png",
+      "currentPathEligible": false,
+      "rationale": "课程领域复审确认单元 1-4 图像 1-4-fig-05-four-views.png 的曲线、坐标、公式与文字标注符合讲义结论，未发现误导性表达。"
+    },
+    {
+      "resourceId": "runtime-media:1-4:1-4-fig-06-three-domain-reading.png",
+      "sourcePath": "course-content/runtime/lessons/1-4/media/1-4-fig-06-three-domain-reading.png",
+      "sourceHash": "sha256:b8f388cb6515bfa39bd12092073f956b53717c47769da7804b8da5835fb8d155",
+      "sourceVersionRef": "runtime-lesson-media.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "Bode与Nyquist同源表征_1_4",
+          "多表征一致性读图_1_4",
+          "开环幅相特性曲线_5_fd86e289",
+          "时域响应_1_1",
+          "时域频域通道区分_1_4",
+          "闭环带宽与环路穿越频率_1_4",
+          "频域分析_2_2e257d89"
+        ],
+        "capability": [],
+        "quality": []
+      },
+      "pathTarget": "/course-runtime/lessons/1-4/media/1-4-fig-06-three-domain-reading.png",
+      "currentPathEligible": false,
+      "rationale": "课程领域复审确认单元 1-4 图像 1-4-fig-06-three-domain-reading.png 的曲线、坐标、公式与文字标注符合讲义结论，未发现误导性表达。"
+    },
+    {
+      "resourceId": "runtime-media:1-4:1-4-info.png",
+      "sourcePath": "course-content/runtime/lessons/1-4/media/1-4-info.png",
+      "sourceHash": "sha256:c18fa238892594a74322b5b18d28a85ffb0bc893050b33178a9783832ad0f6b7",
+      "sourceVersionRef": "runtime-lesson-media.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "Bode与Nyquist同源表征_1_4",
+          "多表征一致性读图_1_4",
+          "开环幅相特性曲线_5_fd86e289",
+          "时域响应_1_1",
+          "时域频域通道区分_1_4",
+          "闭环带宽与环路穿越频率_1_4",
+          "频域分析_2_2e257d89"
+        ],
+        "capability": [],
+        "quality": []
+      },
+      "pathTarget": "/course-runtime/lessons/1-4/media/1-4-info.png",
+      "currentPathEligible": false,
+      "rationale": "课程领域复审确认单元 1-4 图像 1-4-info.png 的曲线、坐标、公式与文字标注符合讲义结论，未发现误导性表达。"
+    },
+    {
+      "resourceId": "runtime-media:1-4:generated-data/1-4-analysis-metrics.txt",
+      "sourcePath": "course-content/runtime/lessons/1-4/media/generated-data/1-4-analysis-metrics.txt",
+      "sourceHash": "sha256:b40c5274f039ffaf21ebcdde6f6b2c16477d72fadab655b3fba00075f5fa5aa3",
+      "sourceVersionRef": "runtime-lesson-media.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "Bode与Nyquist同源表征_1_4",
+          "多表征一致性读图_1_4",
+          "开环幅相特性曲线_5_fd86e289",
+          "时域响应_1_1",
+          "时域频域通道区分_1_4",
+          "闭环带宽与环路穿越频率_1_4",
+          "频域分析_2_2e257d89"
+        ],
+        "capability": [],
+        "quality": []
+      },
+      "pathTarget": "/course-runtime/lessons/1-4/media/generated-data/1-4-analysis-metrics.txt",
+      "currentPathEligible": false,
+      "rationale": "课程领域复审确认单元 1-4 计算数据 1-4-analysis-metrics.txt 与 Octave 图形及讲义中的确定性数值一致。"
+    },
+    {
+      "resourceId": "knowledge-card:Bode与Nyquist同源表征_1_4",
+      "sourcePath": "course-content/runtime/knowledge/cards/nodes/Bode与Nyquist同源表征_1_4.md",
+      "sourceHash": "sha256:68ac30e01e5a13183e0dbe86ea8a829dec47af92632be683070137abec52bb26",
+      "sourceVersionRef": "runtime-knowledge-card.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "Bode与Nyquist同源表征_1_4"
+        ],
+        "capability": [
+          "controlModeling"
+        ],
+        "quality": []
+      },
+      "pathTarget": null,
+      "currentPathEligible": false,
+      "rationale": "已核对知识卡“Bode 与 Nyquist 的同源表征”的定义、公式、误区说明及其与单元 1-4 知识图谱节点的一致性；该卡作为知识查阅入口，不直接提升为当前学习路径节点。"
+    },
+    {
+      "resourceId": "knowledge-card:多表征一致性读图_1_4",
+      "sourcePath": "course-content/runtime/knowledge/cards/nodes/多表征一致性读图_1_4.md",
+      "sourceHash": "sha256:c11d5a8020da7175024346c6c885922c911d53cfa3e36d55776b1a8a63679c9e",
+      "sourceVersionRef": "runtime-knowledge-card.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "多表征一致性读图_1_4"
+        ],
+        "capability": [
+          "controlModeling"
+        ],
+        "quality": []
+      },
+      "pathTarget": null,
+      "currentPathEligible": false,
+      "rationale": "已核对知识卡“同一系统的多表征一致性读图”的定义、公式、误区说明及其与单元 1-4 知识图谱节点的一致性；该卡作为知识查阅入口，不直接提升为当前学习路径节点。"
+    },
+    {
+      "resourceId": "knowledge-card:时域频域通道区分_1_4",
+      "sourcePath": "course-content/runtime/knowledge/cards/nodes/时域频域通道区分_1_4.md",
+      "sourceHash": "sha256:4c727126de7576220a5c783cdafe665ef66fccde936d80734c2800a29998e9e0",
+      "sourceVersionRef": "runtime-knowledge-card.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "时域频域通道区分_1_4"
+        ],
+        "capability": [
+          "controlModeling"
+        ],
+        "quality": []
+      },
+      "pathTarget": null,
+      "currentPathEligible": false,
+      "rationale": "已核对知识卡“时域与频域的对象和通道区分 | Domain and Channel Distinction”的定义、公式、误区说明及其与单元 1-4 知识图谱节点的一致性；该卡作为知识查阅入口，不直接提升为当前学习路径节点。"
+    },
+    {
+      "resourceId": "knowledge-card:闭环带宽与环路穿越频率_1_4",
+      "sourcePath": "course-content/runtime/knowledge/cards/nodes/闭环带宽与环路穿越频率_1_4.md",
+      "sourceHash": "sha256:93c27446f98d1b93df124545399ba7c7e6499f8632c30725e8ed39edcf3af1a8",
+      "sourceVersionRef": "runtime-knowledge-card.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "闭环带宽与环路穿越频率_1_4"
+        ],
+        "capability": [
+          "controlModeling"
+        ],
+        "quality": []
+      },
+      "pathTarget": null,
+      "currentPathEligible": false,
+      "rationale": "已核对知识卡“闭环带宽与环路增益穿越频率”的定义、公式、误区说明及其与单元 1-4 知识图谱节点的一致性；该卡作为知识查阅入口，不直接提升为当前学习路径节点。"
+    }
+  ]
+}

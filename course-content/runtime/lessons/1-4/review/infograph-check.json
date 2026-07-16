@@ -1,0 +1,70 @@
+{
+  "lesson_id": "1-4",
+  "sequence_path": "course-content/authoring/knowledge/cards/lessons/1-4/sequence.json",
+  "infograph_root": "course-content/authoring/knowledge/infographs/lessons/1-4/nodes",
+  "card_order": [
+    "时域响应_1_1",
+    "时域频域通道区分_1_4",
+    "闭环带宽与环路穿越频率_1_4",
+    "频域分析_2_2e257d89",
+    "Bode与Nyquist同源表征_1_4",
+    "开环幅相特性曲线_5_fd86e289",
+    "多表征一致性读图_1_4"
+  ],
+  "accepted_infographs": [],
+  "missing_infographs": [
+    "时域响应_1_1",
+    "时域频域通道区分_1_4",
+    "闭环带宽与环路穿越频率_1_4",
+    "频域分析_2_2e257d89",
+    "Bode与Nyquist同源表征_1_4",
+    "开环幅相特性曲线_5_fd86e289",
+    "多表征一致性读图_1_4"
+  ],
+  "missing_source_files": {
+    "时域响应_1_1": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "时域频域通道区分_1_4": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "闭环带宽与环路穿越频率_1_4": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "频域分析_2_2e257d89": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "Bode与Nyquist同源表征_1_4": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "开环幅相特性曲线_5_fd86e289": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "多表征一致性读图_1_4": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ]
+  },
+  "pending_review": [],
+  "broken_review_files": {}
+}

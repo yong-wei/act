@@ -4,6 +4,8 @@ import importlib.util
 import json
 from pathlib import Path
 
+import pytest
+
 
 def load_review_module():
     module_path = Path(__file__).resolve().parents[1] / 'scripts' / 'review_lesson_content.py'
@@ -16,6 +18,16 @@ def load_review_module():
 
 
 review_lesson_content = load_review_module()
+
+
+def test_review_revision_matches_exported_overlay_for_reconciled_lessons():
+    for lesson_id in ('1-1', '4-2', '5-2'):
+        check = review_lesson_content.check_knowledge_graph(lesson_id)
+        overlay = json.loads(
+            (review_lesson_content.RUNTIME_ROOT / 'lessons' / lesson_id / 'graph-overlay.json').read_text(encoding='utf-8')
+        )
+        assert check['blocking_issues'] == []
+        assert check['overlay_revision'] == review_lesson_content.build_lesson_overlay_revision(overlay)['sha256']
 
 
 def test_authoring_lesson_graph_nodes_use_canonical_id_field():
@@ -44,6 +56,63 @@ def test_check_knowledge_graph_relation_names_match_node_ids():
     check = review_lesson_content.check_knowledge_graph('1-1')
 
     assert check['relation_issues'] == []
+
+
+def test_1_3_cross_lesson_relation_semantics_match_authored_evidence():
+    relations_path = (
+        Path(__file__).resolve().parents[1]
+        / 'authoring' / 'lessons' / '1-3' / 'graph' / 'relations.jsonl'
+    )
+    relations = [json.loads(line) for line in relations_path.read_text(encoding='utf-8').splitlines() if line]
+
+    foundation = next(
+        relation for relation in relations
+        if relation['source_id'] == '闭环控制_1_1' and relation['target_id'] == '闭环特征方程_1_3'
+    )
+    extension = next(
+        relation for relation in relations
+        if relation['source_id'] == '极点_1_2' and relation['target_id'] == '极点迁移_1_3'
+    )
+
+    assert foundation['relation_type'] == 'provides_foundation'
+    assert '基础' in foundation['description']
+    assert extension['relation_type'] == 'extends'
+    assert '静态极点' in extension['description'] and '引入参数' in extension['description']
+
+
+@pytest.mark.parametrize('relations', [
+    [{'source_id': 'a', 'target_id': 'b', 'relation_type': ''}],
+    [{'source_id': 'a', 'target_id': 'b', 'relation_type': 'unknown_type'}],
+    [{'source_id': 'a', 'target_id': 'missing', 'relation_type': 'related'}],
+    [
+        {'source_id': 'a', 'target_id': 'b', 'relation_type': 'related'},
+        {'source_id': 'a', 'target_id': 'b', 'relation_type': 'related'},
+    ],
+])
+def test_check_knowledge_graph_blocks_malformed_relations(monkeypatch, tmp_path, relations):
+    lesson_dir = tmp_path / 'lesson'
+    graph_dir = lesson_dir / 'graph'
+    cards_dir = lesson_dir / 'cards'
+    graph_dir.mkdir(parents=True)
+    cards_dir.mkdir()
+    nodes = [
+        {'id': node_id, 'name': node_id, 'category': '理论', 'knowledge_type': 'C', 'bloom_level': '理解', 'chapter': 1, 'definition': node_id}
+        for node_id in ('a', 'b')
+    ]
+    (graph_dir / 'nodes.jsonl').write_text('\n'.join(json.dumps(item, ensure_ascii=False) for item in nodes))
+    (graph_dir / 'relations.jsonl').write_text('\n'.join(json.dumps(item) for item in relations))
+    (lesson_dir / 'manifest.json').write_text(json.dumps({
+        'lesson_id': 'fixture', 'card_order': ['a', 'b'],
+        'graph_order_policy': 'manifest-reviewed-no-sequence',
+    }))
+    monkeypatch.setattr(review_lesson_content, 'get_authoring_lesson_dir', lambda _id: lesson_dir)
+    monkeypatch.setattr(review_lesson_content, 'get_authoring_cards_dir', lambda _id: cards_dir)
+    monkeypatch.setattr(review_lesson_content, 'get_mapped_target_id', lambda _id: None)
+    monkeypatch.setattr(review_lesson_content, 'load_combined_authoring_graph', lambda: ({item['id']: item for item in nodes}, relations))
+
+    check = review_lesson_content.check_knowledge_graph('fixture')
+
+    assert 'relation format or endpoint issues' in check['blocking_issues']
 
 
 def test_extract_expected_code_media_reads_storage_lines():
@@ -312,6 +381,43 @@ def test_build_review_report_includes_interactive_page_coverage_section(tmp_path
 
     assert '## 互动页覆盖审查' in report
     assert '已覆盖讲义中的核心公式与静态承载内容。' in report
+
+
+def test_build_review_report_does_not_claim_missing_design_sources_passed(tmp_path):
+    handout_path = tmp_path / 'handout.md'
+    handout_path.write_text('$$G(s)$$', encoding='utf-8')
+
+    report = review_lesson_content.build_review_report(
+        '1-4',
+        '理论',
+        [handout_path],
+        {'files': [{'path': 'handout.md', 'issues': []}]},
+        {
+            'missing_cards': [],
+            'missing_frontmatter_keys': {},
+            'missing_sections': {},
+        },
+        {
+            'accepted_infographs': [],
+            'missing_infographs': [],
+            'pending_review': [],
+            'broken_review_files': {},
+        },
+        {
+            'generated_assets': [],
+            'missing_assets': [],
+            'formula_contract_issues': [],
+        },
+        {
+            'summary': [],
+            'warnings': [],
+            'blocking_issues': ['缺少 design/1-4-interactive-page.md'],
+        },
+    )
+
+    assert '未提供 `design/1-4-boppps.md`' in report
+    assert '缺少 design/1-4-interactive-page.md' in report
+    assert '已纳入审查，并满足' not in report
 
 
 def test_2_2_interactive_page_contract_passes_review():

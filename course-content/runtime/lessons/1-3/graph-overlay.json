@@ -2,128 +2,1220 @@
   "lesson_id": "1-3",
   "title": "参数变化与极点迁移：根轨迹的第一眼",
   "focus_node_ids": [
-    "根轨迹_1_1",
-    "极点_1_2",
-    "时域响应_1_1",
-    "动态性能指标_3_a10733c1",
-    "二阶系统_3_3a0af45b",
-    "欠阻尼二阶系统_3_242477a2",
-    "闭环特征方程_3_87c88e19",
-    "参数窗口判断_3_7c3e318f"
+    "开环增益_1_3",
+    "闭环特征方程_1_3",
+    "极点迁移_1_3",
+    "实极点_1_3",
+    "重实极点_1_3",
+    "共轭复极点_1_3",
+    "根轨迹雏形_1_3",
+    "参数连续性_1_3",
+    "临界阻尼_1_3",
+    "衰减振荡_1_3"
   ],
   "reuse_node_ids": [
-    "传递函数_1_2",
-    "反馈_1_1",
-    "闭环控制_1_1",
-    "模型结构相似性_1_2",
+    "极点_1_2",
+    "复平面_1_2",
     "稳定区_1_2",
-    "稳定边界_1_2"
+    "稳定边界_1_2",
+    "传递函数_1_1",
+    "反馈_1_1",
+    "闭环控制_1_1"
   ],
   "entry_nodes": [
-    "根轨迹_1_1"
+    "极点迁移_1_3",
+    "闭环特征方程_1_3"
   ],
   "summary_nodes": [
-    "根轨迹_1_1",
-    "极点_1_2",
-    "时域响应_1_1"
+    "极点迁移_1_3",
+    "根轨迹雏形_1_3",
+    "参数连续性_1_3"
   ],
   "card_order": [
-    "传递函数_1_2",
-    "反馈_1_1",
-    "闭环控制_1_1",
-    "极点_1_2",
-    "根轨迹_1_1",
-    "闭环特征方程_3_87c88e19",
-    "时域响应_1_1",
-    "动态性能指标_3_a10733c1",
-    "二阶系统_3_3a0af45b",
-    "欠阻尼二阶系统_3_242477a2",
-    "参数窗口判断_3_7c3e318f"
+    "开环增益_1_3",
+    "闭环特征方程_1_3",
+    "极点迁移_1_3",
+    "实极点_1_3",
+    "重实极点_1_3",
+    "共轭复极点_1_3",
+    "临界阻尼_1_3",
+    "衰减振荡_1_3",
+    "根轨迹雏形_1_3",
+    "参数连续性_1_3"
   ],
   "groups": [
     {
-      "group_name": "导入与闭环增益",
+      "group_name": "区分增益在开环与闭环中的作用",
       "step_ids": [
         "step-01",
-        "step-02"
-      ],
-      "node_ids": [
-        "反馈_1_1",
-        "闭环控制_1_1",
-        "传递函数_1_2"
-      ]
-    },
-    {
-      "group_name": "极点迁移与响应预判",
-      "step_ids": [
+        "step-02",
         "step-03",
         "step-04"
       ],
       "node_ids": [
-        "极点_1_2",
-        "根轨迹_1_1",
-        "闭环特征方程_3_87c88e19",
-        "时域响应_1_1"
+        "开环增益_1_3",
+        "闭环特征方程_1_3"
       ]
     },
     {
-      "group_name": "根轨迹雏形与案例收束",
+      "group_name": "追踪极点随参数连续迁移",
       "step_ids": [
         "step-05",
-        "step-06"
+        "step-07",
+        "step-08",
+        "step-09",
+        "step-11"
       ],
       "node_ids": [
-        "根轨迹_1_1",
-        "动态性能指标_3_a10733c1",
-        "参数窗口判断_3_7c3e318f"
+        "极点迁移_1_3",
+        "实极点_1_3",
+        "重实极点_1_3",
+        "共轭复极点_1_3",
+        "参数连续性_1_3"
+      ]
+    },
+    {
+      "group_name": "联读极点路径与时域行为",
+      "step_ids": [
+        "step-06",
+        "step-10"
+      ],
+      "node_ids": [
+        "临界阻尼_1_3",
+        "衰减振荡_1_3",
+        "根轨迹雏形_1_3"
       ]
     }
   ],
   "nodes": [
     {
-      "id": "根轨迹_1_1",
-      "name": "根轨迹"
+      "id": "临界阻尼_1_3",
+      "name": "临界阻尼",
+      "nodeType": "THEORY",
+      "description": "二阶系统在重实极点条件下形成的阻尼状态；对本例而言，它是无超调约束下最快的单调工作点。",
+      "positionX": 3.6,
+      "positionY": 13.5,
+      "positionZ": 1,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "基本概念",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "基本概念",
+        "category": "概念性",
+        "knowledge_type": "C",
+        "bloom_level": "理解",
+        "definition": "二阶系统在重实极点条件下形成的阻尼状态；对本例而言，它是无超调约束下最快的单调工作点。",
+        "examples": [
+          "K=4 时极点为 -2 二重根，5% 调节时间约 2.372 s。"
+        ],
+        "formulas": [
+          "\\Phi(s)=4/(s+2)^2"
+        ],
+        "prerequisites": [
+          "重实极点_1_3"
+        ],
+        "relatedConcepts": [
+          "衰减振荡_1_3"
+        ],
+        "difficulty": 2,
+        "importance": 4,
+        "keywords": [
+          "临界阻尼",
+          "无超调",
+          "重极点"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/临界阻尼_1_3.md"
+      ],
+      "tags": [
+        "临界阻尼",
+        "无超调",
+        "重极点",
+        "chapter-1"
+      ]
     },
     {
-      "id": "极点_1_2",
-      "name": "极点"
+      "id": "传递函数_1_1",
+      "name": "传递函数",
+      "nodeType": "THEORY",
+      "description": "零初值条件下输出拉氏变换与输入拉氏变换之比 G(s)=Y(s)/U(s)，是课程统一的分析对象",
+      "positionX": -7.0,
+      "positionY": 12.1,
+      "positionZ": 1,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "课程全景",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "课程全景",
+        "category": "概念性",
+        "knowledge_type": "X",
+        "bloom_level": "理解",
+        "definition": "零初值条件下输出拉氏变换与输入拉氏变换之比 G(s)=Y(s)/U(s)，是课程统一的分析对象",
+        "examples": [],
+        "formulas": [],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "传递函数",
+          "模型"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/传递函数_1_1.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/传递函数_1_1.png",
+          "title": "传递函数 信息图",
+          "lessonId": "1-1",
+          "nodeId": "传递函数_1_1",
+          "sourceNodeId": "传递函数_1_1"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/传递函数_1_1.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/传递函数_1_1.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/传递函数_1_1.png",
+          "title": "传递函数 信息图",
+          "lessonId": "1-1",
+          "nodeId": "传递函数_1_1",
+          "sourceNodeId": "传递函数_1_1"
+        }
+      ],
+      "tags": [
+        "传递函数",
+        "模型",
+        "chapter-1"
+      ]
     },
     {
-      "id": "时域响应_1_1",
-      "name": "时域响应"
+      "id": "共轭复极点_1_3",
+      "name": "共轭复极点",
+      "nodeType": "THEORY",
+      "description": "实系数系统中成对出现的复共轭极点；实部决定指数包络衰减率，虚部决定振荡角频率。",
+      "positionX": -13.5,
+      "positionY": 3.6,
+      "positionZ": 1,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "基本概念",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "基本概念",
+        "category": "概念性",
+        "knowledge_type": "C",
+        "bloom_level": "分析",
+        "definition": "实系数系统中成对出现的复共轭极点；实部决定指数包络衰减率，虚部决定振荡角频率。",
+        "examples": [
+          "K=8 时极点为 -2\\pm j2。"
+        ],
+        "formulas": [
+          "s_{1,2}=-2\\pm j\\sqrt{K-4}, K>4"
+        ],
+        "prerequisites": [
+          "重实极点_1_3"
+        ],
+        "relatedConcepts": [
+          "衰减振荡_1_3"
+        ],
+        "difficulty": 2,
+        "importance": 5,
+        "keywords": [
+          "复极点",
+          "实部",
+          "虚部",
+          "振荡"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/共轭复极点_1_3.md"
+      ],
+      "tags": [
+        "复极点",
+        "实部",
+        "虚部",
+        "振荡",
+        "chapter-1"
+      ]
     },
     {
-      "id": "动态性能指标_3_a10733c1",
-      "name": "动态性能指标"
-    },
-    {
-      "id": "二阶系统_3_3a0af45b",
-      "name": "二阶系统"
-    },
-    {
-      "id": "欠阻尼二阶系统_3_242477a2",
-      "name": "欠阻尼二阶系统"
-    },
-    {
-      "id": "闭环特征方程_3_87c88e19",
-      "name": "闭环特征方程"
-    },
-    {
-      "id": "参数窗口判断_3_7c3e318f",
-      "name": "参数窗口判断"
-    },
-    {
-      "id": "传递函数_1_2",
-      "name": "传递函数"
+      "id": "参数连续性_1_3",
+      "name": "参数变化连续性",
+      "nodeType": "THEORY",
+      "description": "当特征方程系数随参数连续变化且不存在阶次突变时，闭环极点及相应时域行为通常连续迁移；本例由解析根直接展示这一性质。",
+      "positionX": -9.9,
+      "positionY": -9.9,
+      "positionZ": 1,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "原理性",
+      "chapter": 1,
+      "chapterName": "基本概念",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "基本概念",
+        "category": "原理性",
+        "knowledge_type": "X",
+        "bloom_level": "分析",
+        "definition": "当特征方程系数随参数连续变化且不存在阶次突变时，闭环极点及相应时域行为通常连续迁移；本例由解析根直接展示这一性质。",
+        "examples": [
+          "本例响应由单调收敛连续过渡到临界阻尼和衰减振荡。"
+        ],
+        "formulas": [
+          "s_{1,2}(K)=-2\\pm\\sqrt{4-K}"
+        ],
+        "prerequisites": [
+          "极点迁移_1_3"
+        ],
+        "relatedConcepts": [
+          "根轨迹雏形_1_3"
+        ],
+        "difficulty": 3,
+        "importance": 4,
+        "keywords": [
+          "连续性",
+          "参数",
+          "极点迁移"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/参数连续性_1_3.md"
+      ],
+      "tags": [
+        "连续性",
+        "参数",
+        "极点迁移",
+        "chapter-1"
+      ]
     },
     {
       "id": "反馈_1_1",
-      "name": "反馈"
+      "name": "反馈",
+      "nodeType": "THEORY",
+      "description": "把输出信息送回比较与决策环节的机制，是闭环控制的核心思想",
+      "positionX": -7.0,
+      "positionY": -12.1,
+      "positionZ": 1,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "课程全景",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "课程全景",
+        "category": "概念性",
+        "knowledge_type": "X",
+        "bloom_level": "理解",
+        "definition": "把输出信息送回比较与决策环节的机制，是闭环控制的核心思想",
+        "examples": [],
+        "formulas": [],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "反馈",
+          "闭环控制"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/反馈_1_1.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/反馈_1_1.png",
+          "title": "反馈 信息图",
+          "lessonId": "1-1",
+          "nodeId": "反馈_1_1",
+          "sourceNodeId": "反馈_1_1"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/反馈_1_1.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/反馈_1_1.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/反馈_1_1.png",
+          "title": "反馈 信息图",
+          "lessonId": "1-1",
+          "nodeId": "反馈_1_1",
+          "sourceNodeId": "反馈_1_1"
+        }
+      ],
+      "tags": [
+        "反馈",
+        "闭环控制",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "复平面_1_2",
+      "name": "复平面",
+      "nodeType": "THEORY",
+      "description": "以实部σ为横轴、虚部jω为纵轴的平面（s平面），用于标注极点位置并读取系统行为特征：横向看衰减或放大，离实轴远近看振荡密度",
+      "positionX": 20.0,
+      "positionY": 0.0,
+      "positionZ": 1,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "建模专题速通",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "建模专题速通",
+        "category": "概念性",
+        "knowledge_type": "X",
+        "bloom_level": "理解",
+        "definition": "以实部σ为横轴、虚部jω为纵轴的平面（s平面），用于标注极点位置并读取系统行为特征：横向看衰减或放大，离实轴远近看振荡密度",
+        "examples": [
+          "左半平面=稳定区，右半平面=不稳定区",
+          "虚轴=稳定边界",
+          "实轴附近=单调走廊",
+          "远离实轴=振荡走廊"
+        ],
+        "formulas": [
+          "s=σ+jω"
+        ],
+        "prerequisites": [
+          "极点_1_2"
+        ],
+        "relatedConcepts": [
+          "稳定区_1_2",
+          "稳定边界_1_2",
+          "模型结构相似性_1_2"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "复平面",
+          "s平面",
+          "行为地图",
+          "σ",
+          "jω"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/复平面_1_2.md"
+      ],
+      "tags": [
+        "复平面",
+        "s平面",
+        "行为地图",
+        "σ",
+        "jω",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "实极点_1_3",
+      "name": "实极点",
+      "nodeType": "THEORY",
+      "description": "位于复平面实轴上的极点；本例在 0<K<4 时具有两个负实极点，对应无超调的单调收敛响应。",
+      "positionX": 19.3,
+      "positionY": 5.2,
+      "positionZ": 1,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "基本概念",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "基本概念",
+        "category": "概念性",
+        "knowledge_type": "C",
+        "bloom_level": "理解",
+        "definition": "位于复平面实轴上的极点；本例在 0<K<4 时具有两个负实极点，对应无超调的单调收敛响应。",
+        "examples": [
+          "K=1 时极点约为 -0.2679 和 -3.7321。"
+        ],
+        "formulas": [
+          "s_{1,2}=-2\\pm\\sqrt{4-K}, 0<K<4"
+        ],
+        "prerequisites": [
+          "极点_1_2"
+        ],
+        "relatedConcepts": [
+          "重实极点_1_3"
+        ],
+        "difficulty": 1,
+        "importance": 4,
+        "keywords": [
+          "实轴",
+          "实极点",
+          "单调响应"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/实极点_1_3.md"
+      ],
+      "tags": [
+        "实轴",
+        "实极点",
+        "单调响应",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "开环增益_1_3",
+      "name": "开环增益",
+      "nodeType": "THEORY",
+      "description": "在开环结构中，增益 K 只作为分子乘数缩放输出，不改变系统极点位置；若对象含原点极点，单位阶跃输出仍无界，不能据此称系统稳定。",
+      "positionX": 14.1,
+      "positionY": 14.1,
+      "positionZ": 1,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "基本概念",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "基本概念",
+        "category": "概念性",
+        "knowledge_type": "C",
+        "bloom_level": "理解",
+        "definition": "在开环结构中，增益 K 只作为分子乘数缩放输出，不改变系统极点位置；若对象含原点极点，单位阶跃输出仍无界，不能据此称系统稳定。",
+        "examples": [
+          "K/[s(s+4)] 的极点始终为 0 和 -4。"
+        ],
+        "formulas": [
+          "G_{open}(s)=K/[s(s+4)]"
+        ],
+        "prerequisites": [
+          "传递函数_1_1"
+        ],
+        "relatedConcepts": [
+          "闭环特征方程_1_3"
+        ],
+        "difficulty": 2,
+        "importance": 4,
+        "keywords": [
+          "开环",
+          "增益",
+          "极点",
+          "幅值"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/开环增益_1_3.md"
+      ],
+      "tags": [
+        "开环",
+        "增益",
+        "极点",
+        "幅值",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "极点_1_2",
+      "name": "极点",
+      "nodeType": "THEORY",
+      "description": "传递函数分母的根（=特征根），在s平面上标记为×。名称来自复变函数几何直观——|G(s)|在极点处趋向无穷，三维幅值曲面上形成极柱。极点s=σ+jω的坐标可记为(σ,ω)：σ管衰减/发散，ω管振荡密度",
+      "positionX": 22.5,
+      "positionY": 13.0,
+      "positionZ": 1,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "建模专题速通",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "建模专题速通",
+        "category": "概念性",
+        "knowledge_type": "X",
+        "bloom_level": "理解",
+        "definition": "传递函数分母的根（=特征根），在s平面上标记为×。名称来自复变函数几何直观——|G(s)|在极点处趋向无穷，三维幅值曲面上形成极柱。极点s=σ+jω的坐标可记为(σ,ω)：σ管衰减/发散，ω管振荡密度",
+        "examples": [
+          "G(s)=(K/J)/[s(s+B/J)]有两个极点：s=0和s=-B/J",
+          "三维可视化：在s=0和s=-B/J处|G(s)|→∞"
+        ],
+        "formulas": [
+          "e^(σt)sin(ωt)——极点σ±jω对应的时域模态"
+        ],
+        "prerequisites": [
+          "特征根_1_2",
+          "传递函数_1_2"
+        ],
+        "relatedConcepts": [
+          "复平面_1_2",
+          "稳定区_1_2",
+          "特征方程_1_2"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "极点",
+          "特征根",
+          "复变函数",
+          "极柱",
+          "行为决定因素"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/极点_1_2.md"
+      ],
+      "tags": [
+        "极点",
+        "特征根",
+        "复变函数",
+        "极柱",
+        "行为决定因素",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "极点迁移_1_3",
+      "name": "极点迁移",
+      "nodeType": "THEORY",
+      "description": "闭环极点随参数连续变化而在复平面上移动的现象；本例中的路径可由特征方程解析求得。",
+      "positionX": 18.4,
+      "positionY": 18.4,
+      "positionZ": 1,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "基本概念",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "基本概念",
+        "category": "概念性",
+        "knowledge_type": "C",
+        "bloom_level": "分析",
+        "definition": "闭环极点随参数连续变化而在复平面上移动的现象；本例中的路径可由特征方程解析求得。",
+        "examples": [
+          "K 从 0 增大时，两极点从 0 和 -4 出发并在 -2 会合。"
+        ],
+        "formulas": [
+          "s_{1,2}=-2\\pm\\sqrt{4-K}"
+        ],
+        "prerequisites": [
+          "闭环特征方程_1_3",
+          "极点_1_2"
+        ],
+        "relatedConcepts": [
+          "根轨迹雏形_1_3",
+          "参数连续性_1_3"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "参数",
+          "闭环极点",
+          "迁移",
+          "复平面"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/极点迁移_1_3.md"
+      ],
+      "tags": [
+        "参数",
+        "闭环极点",
+        "迁移",
+        "复平面",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "根轨迹雏形_1_3",
+      "name": "根轨迹雏形",
+      "nodeType": "THEORY",
+      "description": "将参数连续变化时的全部闭环极点位置画在同一复平面上形成的连续路径。",
+      "positionX": -6.7,
+      "positionY": 25.1,
+      "positionZ": 1,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "基本概念",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "基本概念",
+        "category": "概念性",
+        "knowledge_type": "C",
+        "bloom_level": "理解",
+        "definition": "将参数连续变化时的全部闭环极点位置画在同一复平面上形成的连续路径。",
+        "examples": [
+          "两支轨迹从 0 和 -4 出发，在 -2 会合后沿 Re(s)=-2 上下分离。"
+        ],
+        "formulas": [
+          "s_{1,2}=-2\\pm\\sqrt{4-K}"
+        ],
+        "prerequisites": [
+          "复平面_1_2",
+          "极点迁移_1_3"
+        ],
+        "relatedConcepts": [
+          "参数连续性_1_3"
+        ],
+        "difficulty": 2,
+        "importance": 5,
+        "keywords": [
+          "根轨迹",
+          "闭环极点",
+          "参数扫描"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/根轨迹雏形_1_3.md"
+      ],
+      "tags": [
+        "根轨迹",
+        "闭环极点",
+        "参数扫描",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "稳定区_1_2",
+      "name": "稳定区",
+      "nodeType": "THEORY",
+      "description": "复平面的左半平面（σ<0）。所有相关极点落在此区域时，自由响应或初始偏差模态会衰减；是否零稳态误差和性能可接受还要另行判断",
+      "positionX": 25.1,
+      "positionY": -6.7,
+      "positionZ": 1,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "建模专题速通",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "建模专题速通",
+        "category": "概念性",
+        "knowledge_type": "X",
+        "bloom_level": "理解",
+        "definition": "复平面的左半平面（σ<0）。所有相关极点落在此区域时，自由响应或初始偏差模态会衰减；是否零稳态误差和性能可接受还要另行判断",
+        "examples": [
+          "s=-1±2j落在稳定区→边摆边收"
+        ],
+        "formulas": [
+          "σ<0"
+        ],
+        "prerequisites": [
+          "复平面_1_2"
+        ],
+        "relatedConcepts": [
+          "稳定边界_1_2",
+          "极点_1_2"
+        ],
+        "difficulty": 2,
+        "importance": 4,
+        "keywords": [
+          "稳定区",
+          "左半平面"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/稳定区_1_2.md"
+      ],
+      "tags": [
+        "稳定区",
+        "左半平面",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "稳定边界_1_2",
+      "name": "稳定边界",
+      "nodeType": "THEORY",
+      "description": "复平面的虚轴（σ=0），是稳定区与不稳定区的分界线。简单纯虚共轭极点可对应等幅振荡；原点极点和虚轴重根必须结合重数、输入与系统类型判断",
+      "positionX": 27.7,
+      "positionY": 16.0,
+      "positionZ": 1,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "建模专题速通",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "建模专题速通",
+        "category": "概念性",
+        "knowledge_type": "X",
+        "bloom_level": "理解",
+        "definition": "复平面的虚轴（σ=0），是稳定区与不稳定区的分界线。简单纯虚共轭极点可对应等幅振荡；原点极点和虚轴重根必须结合重数、输入与系统类型判断",
+        "examples": [
+          "s=±2j的简单共轭极点可对应等幅振荡",
+          "s=0常对应积分或保持边界，需要结合输入与重数判断"
+        ],
+        "formulas": [
+          "σ=0"
+        ],
+        "prerequisites": [
+          "复平面_1_2",
+          "稳定区_1_2"
+        ],
+        "relatedConcepts": [
+          "极点_1_2"
+        ],
+        "difficulty": 2,
+        "importance": 4,
+        "keywords": [
+          "稳定边界",
+          "虚轴",
+          "临界稳定",
+          "等幅振荡"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/稳定边界_1_2.md"
+      ],
+      "tags": [
+        "稳定边界",
+        "虚轴",
+        "临界稳定",
+        "等幅振荡",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "衰减振荡_1_3",
+      "name": "衰减振荡",
+      "nodeType": "THEORY",
+      "description": "共轭复极点对应的时域行为：响应在指数包络内振荡并最终收敛；实部决定包络衰减率，虚部决定振荡频率。",
+      "positionX": 8.3,
+      "positionY": -30.9,
+      "positionZ": 1,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "基本概念",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "基本概念",
+        "category": "概念性",
+        "knowledge_type": "C",
+        "bloom_level": "分析",
+        "definition": "共轭复极点对应的时域行为：响应在指数包络内振荡并最终收敛；实部决定包络衰减率，虚部决定振荡频率。",
+        "examples": [
+          "K=8 时出现约 4.321% 超调。"
+        ],
+        "formulas": [
+          "y(t)=1-e^{-2t}(\\cos 2t+\\sin 2t)"
+        ],
+        "prerequisites": [
+          "共轭复极点_1_3"
+        ],
+        "relatedConcepts": [
+          "临界阻尼_1_3"
+        ],
+        "difficulty": 2,
+        "importance": 5,
+        "keywords": [
+          "衰减",
+          "振荡",
+          "超调",
+          "共轭复极点"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/衰减振荡_1_3.md"
+      ],
+      "tags": [
+        "衰减",
+        "振荡",
+        "超调",
+        "共轭复极点",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "重实极点_1_3",
+      "name": "重实极点",
+      "nodeType": "THEORY",
+      "description": "两个极点重合于实轴同一点的情形；本例在 K=4 时于 s=-2 形成二重极点并对应临界阻尼。",
+      "positionX": 26.9,
+      "positionY": 26.9,
+      "positionZ": 1,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "基本概念",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "基本概念",
+        "category": "概念性",
+        "knowledge_type": "C",
+        "bloom_level": "理解",
+        "definition": "两个极点重合于实轴同一点的情形；本例在 K=4 时于 s=-2 形成二重极点并对应临界阻尼。",
+        "examples": [
+          "K=4 时闭环分母为 (s+2)^2。"
+        ],
+        "formulas": [
+          "K=4, s_1=s_2=-2"
+        ],
+        "prerequisites": [
+          "实极点_1_3"
+        ],
+        "relatedConcepts": [
+          "临界阻尼_1_3",
+          "共轭复极点_1_3"
+        ],
+        "difficulty": 2,
+        "importance": 4,
+        "keywords": [
+          "重根",
+          "二重极点",
+          "临界阻尼"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/重实极点_1_3.md"
+      ],
+      "tags": [
+        "重根",
+        "二重极点",
+        "临界阻尼",
+        "chapter-1"
+      ]
     },
     {
       "id": "闭环控制_1_1",
-      "name": "闭环控制"
+      "name": "闭环控制",
+      "nodeType": "THEORY",
+      "description": "利用输出信息持续修正控制动作的方式——系统持续测量、比较、修正",
+      "positionX": 0.0,
+      "positionY": 38.0,
+      "positionZ": 1,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "课程全景",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "课程全景",
+        "category": "概念性",
+        "knowledge_type": "X",
+        "bloom_level": "理解",
+        "definition": "利用输出信息持续修正控制动作的方式——系统持续测量、比较、修正",
+        "examples": [],
+        "formulas": [],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "闭环控制",
+          "反馈"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/闭环控制_1_1.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/闭环控制_1_1.png",
+          "title": "闭环控制 信息图",
+          "lessonId": "1-1",
+          "nodeId": "闭环控制_1_1",
+          "sourceNodeId": "闭环控制_1_1"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/闭环控制_1_1.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/闭环控制_1_1.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/闭环控制_1_1.png",
+          "title": "闭环控制 信息图",
+          "lessonId": "1-1",
+          "nodeId": "闭环控制_1_1",
+          "sourceNodeId": "闭环控制_1_1"
+        }
+      ],
+      "tags": [
+        "闭环控制",
+        "反馈",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "闭环特征方程_1_3",
+      "name": "闭环特征方程",
+      "nodeType": "THEORY",
+      "description": "单位负反馈闭环的分母等于零所形成的方程；增益进入该方程的系数后会改变闭环极点。",
+      "positionX": -19.0,
+      "positionY": 32.9,
+      "positionZ": 1,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 1,
+      "chapterName": "基本概念",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "基本概念",
+        "category": "程序性",
+        "knowledge_type": "C",
+        "bloom_level": "应用",
+        "definition": "单位负反馈闭环的分母等于零所形成的方程；增益进入该方程的系数后会改变闭环极点。",
+        "examples": [
+          "G_0(s)=1/[s(s+4)] 时，特征方程为 s^2+4s+K=0。"
+        ],
+        "formulas": [
+          "1+KG_0(s)=0",
+          "s^2+4s+K=0"
+        ],
+        "prerequisites": [
+          "反馈_1_1",
+          "闭环控制_1_1"
+        ],
+        "relatedConcepts": [
+          "极点迁移_1_3"
+        ],
+        "difficulty": 2,
+        "importance": 5,
+        "keywords": [
+          "闭环",
+          "特征方程",
+          "增益",
+          "极点"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/闭环特征方程_1_3.md"
+      ],
+      "tags": [
+        "闭环",
+        "特征方程",
+        "增益",
+        "极点",
+        "chapter-1"
+      ]
     }
   ],
-  "links": []
+  "links": [
+    {
+      "id": "rel-34d21ec0f867815b",
+      "sourceId": "反馈_1_1",
+      "targetId": "闭环控制_1_1",
+      "relation": "enables",
+      "relationType": "enables",
+      "strength": 1.0
+    },
+    {
+      "id": "rel-94283a1b58563c0b",
+      "sourceId": "极点_1_2",
+      "targetId": "复平面_1_2",
+      "relation": "visualized_by",
+      "relationType": "visualized_by",
+      "strength": 1.0
+    },
+    {
+      "id": "rel-6402718cc30e74b5",
+      "sourceId": "复平面_1_2",
+      "targetId": "稳定区_1_2",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 1.0
+    },
+    {
+      "id": "rel-a5846e7d650a958c",
+      "sourceId": "复平面_1_2",
+      "targetId": "稳定边界_1_2",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 1.0
+    },
+    {
+      "id": "rel-aa56698ed83d04c4",
+      "sourceId": "稳定区_1_2",
+      "targetId": "稳定边界_1_2",
+      "relation": "contrasts_with",
+      "relationType": "contrasts_with",
+      "strength": 1.0
+    },
+    {
+      "id": "rel-3bad196fc39e584e",
+      "sourceId": "开环增益_1_3",
+      "targetId": "闭环特征方程_1_3",
+      "relation": "contrasts_with",
+      "relationType": "contrasts_with",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-bb5e7e710e6112e3",
+      "sourceId": "闭环特征方程_1_3",
+      "targetId": "极点迁移_1_3",
+      "relation": "causes",
+      "relationType": "causes",
+      "strength": 0.98
+    },
+    {
+      "id": "rel-c9a7f420b5a890f4",
+      "sourceId": "极点迁移_1_3",
+      "targetId": "实极点_1_3",
+      "relation": "has_stage",
+      "relationType": "has_stage",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-4e618f3040a0321b",
+      "sourceId": "极点迁移_1_3",
+      "targetId": "重实极点_1_3",
+      "relation": "has_stage",
+      "relationType": "has_stage",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-6b54e9f80f7532d5",
+      "sourceId": "极点迁移_1_3",
+      "targetId": "共轭复极点_1_3",
+      "relation": "has_stage",
+      "relationType": "has_stage",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-42cb7cdf8e0c2d38",
+      "sourceId": "实极点_1_3",
+      "targetId": "参数连续性_1_3",
+      "relation": "exemplifies",
+      "relationType": "exemplifies",
+      "strength": 0.8
+    },
+    {
+      "id": "rel-cf51502e81204d7b",
+      "sourceId": "重实极点_1_3",
+      "targetId": "临界阻尼_1_3",
+      "relation": "equivalent_to",
+      "relationType": "equivalent_to",
+      "strength": 0.98
+    },
+    {
+      "id": "rel-9e6f7ebcd89aae05",
+      "sourceId": "共轭复极点_1_3",
+      "targetId": "衰减振荡_1_3",
+      "relation": "produces",
+      "relationType": "produces",
+      "strength": 0.98
+    },
+    {
+      "id": "rel-8300ef346ab075fa",
+      "sourceId": "极点迁移_1_3",
+      "targetId": "根轨迹雏形_1_3",
+      "relation": "visualized_by",
+      "relationType": "visualized_by",
+      "strength": 0.98
+    },
+    {
+      "id": "rel-af1fdeb52ce7010c",
+      "sourceId": "根轨迹雏形_1_3",
+      "targetId": "参数连续性_1_3",
+      "relation": "demonstrates",
+      "relationType": "demonstrates",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-f0eaf8332c2b458c",
+      "sourceId": "临界阻尼_1_3",
+      "targetId": "衰减振荡_1_3",
+      "relation": "precedes",
+      "relationType": "precedes",
+      "strength": 0.85
+    },
+    {
+      "id": "rel-f25276b30158ce2f",
+      "sourceId": "极点_1_2",
+      "targetId": "极点迁移_1_3",
+      "relation": "extends",
+      "relationType": "extends",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-a9268a859d534a79",
+      "sourceId": "复平面_1_2",
+      "targetId": "根轨迹雏形_1_3",
+      "relation": "provides_context",
+      "relationType": "provides_context",
+      "strength": 0.85
+    },
+    {
+      "id": "rel-4f9a330257ea59be",
+      "sourceId": "闭环控制_1_1",
+      "targetId": "闭环特征方程_1_3",
+      "relation": "provides_foundation",
+      "relationType": "provides_foundation",
+      "strength": 0.9
+    }
+  ]
 }

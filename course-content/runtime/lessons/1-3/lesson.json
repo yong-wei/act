@@ -6,116 +6,129 @@
   "knowledge_type": "X",
   "graph_version": "1",
   "focus_node_ids": [
-    "根轨迹_1_1",
-    "极点_1_2",
-    "时域响应_1_1",
-    "动态性能指标_3_a10733c1",
-    "二阶系统_3_3a0af45b",
-    "欠阻尼二阶系统_3_242477a2",
-    "闭环特征方程_3_87c88e19",
-    "参数窗口判断_3_7c3e318f"
+    "开环增益_1_3",
+    "闭环特征方程_1_3",
+    "极点迁移_1_3",
+    "实极点_1_3",
+    "重实极点_1_3",
+    "共轭复极点_1_3",
+    "根轨迹雏形_1_3",
+    "参数连续性_1_3",
+    "临界阻尼_1_3",
+    "衰减振荡_1_3"
   ],
   "reuse_node_ids": [
-    "传递函数_1_2",
-    "反馈_1_1",
-    "闭环控制_1_1",
-    "模型结构相似性_1_2",
+    "极点_1_2",
+    "复平面_1_2",
     "稳定区_1_2",
-    "稳定边界_1_2"
+    "稳定边界_1_2",
+    "传递函数_1_1",
+    "反馈_1_1",
+    "闭环控制_1_1"
   ],
   "card_order": [
-    "传递函数_1_2",
-    "反馈_1_1",
-    "闭环控制_1_1",
-    "极点_1_2",
-    "根轨迹_1_1",
-    "闭环特征方程_3_87c88e19",
-    "时域响应_1_1",
-    "动态性能指标_3_a10733c1",
-    "二阶系统_3_3a0af45b",
-    "欠阻尼二阶系统_3_242477a2",
-    "参数窗口判断_3_7c3e318f"
+    "开环增益_1_3",
+    "闭环特征方程_1_3",
+    "极点迁移_1_3",
+    "实极点_1_3",
+    "重实极点_1_3",
+    "共轭复极点_1_3",
+    "临界阻尼_1_3",
+    "衰减振荡_1_3",
+    "根轨迹雏形_1_3",
+    "参数连续性_1_3"
   ],
   "entry_nodes": [
-    "根轨迹_1_1"
+    "极点迁移_1_3",
+    "闭环特征方程_1_3"
   ],
   "summary_nodes": [
-    "根轨迹_1_1",
-    "极点_1_2",
-    "时域响应_1_1"
+    "极点迁移_1_3",
+    "根轨迹雏形_1_3",
+    "参数连续性_1_3"
   ],
   "preceding_lesson": "1-2",
-  "following_lesson": "2-1",
+  "following_lesson": "1-4",
   "refinement_units": [
-    "3-1",
-    "4-1"
+    "3-3",
+    "3-4"
   ],
   "sequence": {
     "lesson_id": "1-3",
-    "note": "Runtime catalog restoration from the reviewed 1-3 authoring handout. This record restores the mapped lesson identity without claiming completed interactive-page production.",
+    "note": "本顺序按 1-3 interactive-page 与 interactive-contract 的 11 步互动设计定稿；groups[].step_ids 对应作者态互动步骤归属。",
     "groups": [
       {
-        "group_name": "导入与闭环增益",
+        "group_name": "区分增益在开环与闭环中的作用",
         "step_ids": [
           "step-01",
-          "step-02"
-        ],
-        "node_ids": [
-          "反馈_1_1",
-          "闭环控制_1_1",
-          "传递函数_1_2"
-        ]
-      },
-      {
-        "group_name": "极点迁移与响应预判",
-        "step_ids": [
+          "step-02",
           "step-03",
           "step-04"
         ],
         "node_ids": [
-          "极点_1_2",
-          "根轨迹_1_1",
-          "闭环特征方程_3_87c88e19",
-          "时域响应_1_1"
+          "开环增益_1_3",
+          "闭环特征方程_1_3"
         ]
       },
       {
-        "group_name": "根轨迹雏形与案例收束",
+        "group_name": "追踪极点随参数连续迁移",
         "step_ids": [
           "step-05",
-          "step-06"
+          "step-07",
+          "step-08",
+          "step-09",
+          "step-11"
         ],
         "node_ids": [
-          "根轨迹_1_1",
-          "动态性能指标_3_a10733c1",
-          "参数窗口判断_3_7c3e318f"
+          "极点迁移_1_3",
+          "实极点_1_3",
+          "重实极点_1_3",
+          "共轭复极点_1_3",
+          "参数连续性_1_3"
+        ]
+      },
+      {
+        "group_name": "联读极点路径与时域行为",
+        "step_ids": [
+          "step-06",
+          "step-10"
+        ],
+        "node_ids": [
+          "临界阻尼_1_3",
+          "衰减振荡_1_3",
+          "根轨迹雏形_1_3"
         ]
       }
     ],
     "card_order": [
-      "传递函数_1_2",
-      "反馈_1_1",
-      "闭环控制_1_1",
-      "极点_1_2",
-      "根轨迹_1_1",
-      "闭环特征方程_3_87c88e19",
-      "时域响应_1_1",
-      "动态性能指标_3_a10733c1",
-      "二阶系统_3_3a0af45b",
-      "欠阻尼二阶系统_3_242477a2",
-      "参数窗口判断_3_7c3e318f"
+      "开环增益_1_3",
+      "闭环特征方程_1_3",
+      "极点迁移_1_3",
+      "实极点_1_3",
+      "重实极点_1_3",
+      "共轭复极点_1_3",
+      "临界阻尼_1_3",
+      "衰减振荡_1_3",
+      "根轨迹雏形_1_3",
+      "参数连续性_1_3"
     ]
   },
   "handout_path": "/course-runtime/lessons/1-3/1-3-handout.md",
   "handout_source_path": "course-content/runtime/lessons/1-3/1-3-handout.md",
-  "handout_pdf_path": null,
-  "handout_pdf_source_path": "course-content/runtime/lessons/1-3/1-3-handout.pdf",
   "graph_overlay_path": "/course-runtime/lessons/1-3/graph-overlay.json",
   "media_base_path": "/course-runtime/lessons/1-3/media",
   "media_index_path": "/course-runtime/lessons/1-3/media/1-3-media.md",
   "media_index_source_path": "course-content/runtime/lessons/1-3/media/1-3-media.md",
   "review": {
-    "status": "identity-restored",
+    "status": "incomplete",
+    "boppps_path": "/course-runtime/lessons/1-3/review/1-3-boppps.md",
+    "missing_assets": [
+      "1-3-handout.pdf"
+    ],
+    "report_path": "/course-runtime/lessons/1-3/review/review-report.md",
+    "knowledge_card_check_path": "/course-runtime/lessons/1-3/review/knowledge-card-check.json",
+    "interactive_page_check_path": "/course-runtime/lessons/1-3/review/interactive-page-check.json",
+    "multimedia_check_path": "/course-runtime/lessons/1-3/review/multimedia-check.json",
     "source_manifest_path": "/course-runtime/lessons/1-3/review/source-manifest.json"
   },
   "interactive_manifest_path": "/course-runtime/lessons/1-3/interactive-manifest.json",

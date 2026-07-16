@@ -324,4 +324,3 @@ student-facing contracts from reverting to the legacy six-dimensional model.
 - **WHEN** class competency snapshots, teacher insights, or analytics dashboards expose class portrait summaries
 - **THEN** the gate SHALL verify portrait v2 dimension labels and limitation metadata
 - **AND** it SHALL fail if teacher-facing aggregation silently uses six-dimensional labels as the current primary model.
-

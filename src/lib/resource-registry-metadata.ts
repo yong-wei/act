@@ -2411,6 +2411,17 @@ const registeredResourceSemanticMetadata: Record<string, Partial<RegisteredResou
             teacherPolicy: 'teacher-only',
             privacyLevel: 'teacher-scoped',
             evidenceInstrumentation: ['classroom_objective_view'],
+            pathDisposition: {
+                kind: 'evidence-producing',
+                reviewStatus: 'human-confirmed',
+                rationale: '既有治理审查确认该教师侧目标展示资源仅产生课堂证据，不作为学生学习路径节点。',
+                sourceFamily: 'registered-resource',
+                stableSourceRef: 'registry:classroom-objective',
+                sourceVersionRef: 'resource-node-registry.v1',
+                parentResourceNodeId: null,
+                reviewedAt: '2026-07-09T16:30:00.000Z',
+                reviewerId: 'core-registered-knowledge-resource-implementing-agent'
+            },
             abilityImpact: { selfDirectedLearning: 0.08 }
         }
     },
@@ -2422,6 +2433,17 @@ const registeredResourceSemanticMetadata: Record<string, Partial<RegisteredResou
             teacherPolicy: 'teacher-only',
             privacyLevel: 'teacher-scoped',
             evidenceInstrumentation: ['classroom_assessment_submit'],
+            pathDisposition: {
+                kind: 'evidence-producing',
+                reviewStatus: 'human-confirmed',
+                rationale: '既有治理审查确认该教师侧后测资源用于产生诊断证据，不作为学生学习路径节点。',
+                sourceFamily: 'registered-resource',
+                stableSourceRef: 'registry:classroom-assessment',
+                sourceVersionRef: 'resource-node-registry.v1',
+                parentResourceNodeId: null,
+                reviewedAt: '2026-07-09T16:30:00.000Z',
+                reviewerId: 'core-registered-knowledge-resource-implementing-agent'
+            },
             abilityImpact: { diagnosticAssessment: 0.18 }
         }
     },

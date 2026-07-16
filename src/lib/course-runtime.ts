@@ -149,6 +149,8 @@ export interface RuntimeLessonResourceCatalogEntry {
   };
   handoutPath: string;
   handoutSourcePath: string;
+  handoutSourceHash?: string | null;
+  handoutSourceVersionRef?: string | null;
   handoutPdfPath: string | null;
   mediaResources: RuntimeLessonMediaResource[];
 }
