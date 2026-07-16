@@ -190,6 +190,37 @@ describe('portrait v2 consumer adapters', () => {
     expect(resolution.limitations).toContain('legacy-compatibility-projection-failed');
   });
 
+  it('degrades a failing legacy-only compatibility projection to fallback-empty', async () => {
+    const snapshot = legacySnapshot();
+    snapshot.competencyVector.controlModeling.lastUpdated = '2026-05-20T13:00:00.000Z';
+
+    const resolution = await resolvePrimaryPortraitV2({}, 'student-1', 'student', {
+      now,
+      legacySnapshot: snapshot,
+    });
+
+    expect(resolution.primaryPortrait.dimensions.every((dimension) => dimension.evidenceSummary.totalCount === 0)).toBe(true);
+    expect(resolution.legacyCompatibility.source).toBe('fallback-empty');
+    expect(resolution.limitations).toContain('legacy-compatibility-projection-failed');
+  });
+
+  it('uses a safe timestamp when legacy-only snapshot time is in the future', async () => {
+    const snapshot = legacySnapshot();
+    snapshot.snapshotAt = new Date('2026-05-20T13:00:00.000Z');
+
+    const resolution = await resolvePrimaryPortraitV2({}, 'student-1', 'student', {
+      now,
+      legacySnapshot: snapshot,
+    });
+
+    expect(resolution.primaryPortrait.dimensions.every((dimension) => dimension.evidenceSummary.totalCount === 0)).toBe(true);
+    expect(resolution.legacyCompatibility).toMatchObject({
+      source: 'fallback-empty',
+      snapshotAt: now.toISOString(),
+    });
+    expect(resolution.limitations).toContain('legacy-compatibility-projection-failed');
+  });
+
   it('prefers the cache primary marker over a legacy snapshot', async () => {
     const payload = nativePortrait();
     const resolution = await resolvePrimaryPortraitV2({

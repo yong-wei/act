@@ -631,8 +631,8 @@ describe('generateRecommendations', () => {
     expect(titles).not.toContain('提升反思改进与 AI 协作能力');
   });
 
-  it('does not use stale portrait v2 evidence for direct vector recommendations', async () => {
-    vi.setSystemTime(new Date('2026-09-01T00:00:00.000Z'));
+  it('falls back to governed cache recommendations when portrait v2 evidence is non-current', async () => {
+    vi.setSystemTime(new Date('2026-06-20T00:00:00.000Z'));
     const portrait = strongNativePortrait(
       new Set(PORTRAIT_V2_DIMENSIONS.map(({ id }) => id)),
       'current',
@@ -650,12 +650,13 @@ describe('generateRecommendations', () => {
       payload: portrait,
     });
 
-    const titles = (await generateRecommendations('student-1')).map((item) => item.title);
+    const recommendations = await generateRecommendations('student-1');
+    const titles = recommendations.map((item) => item.title);
 
     expect(titles).not.toContain('挑战专家级任务');
     expect(titles).not.toContain('伦理决策挑战');
-    expect(titles).not.toContain('参数优化大师');
-    expect(titles.some((title) => title.startsWith('提升'))).toBe(false);
+    expect(recommendations.find((item) => item.title === '提升迁移整合与应用能力')?.rationale)
+      .toMatchObject({ evidenceBasis: 'student-evidence-feature-cache' });
   });
 
   it('does not use future-dated portrait v2 evidence for direct recommendations', async () => {
@@ -696,12 +697,11 @@ describe('generateRecommendations', () => {
       payload: portrait,
     });
 
-    const titles = (await generateRecommendations('student-1')).map((item) => item.title);
+    const direct = (await generateRecommendations('student-1'))
+      .filter((item) => item.rationale.evidenceRole === 'direct');
 
-    expect(titles).not.toContain('挑战专家级任务');
-    expect(titles).not.toContain('伦理决策挑战');
-    expect(titles).not.toContain('参数优化大师');
-    expect(titles.some((title) => title.startsWith('提升'))).toBe(false);
+    expect(direct.length).toBeGreaterThan(0);
+    expect(direct.every((item) => item.rationale.evidenceBasis !== 'portrait-v2')).toBe(true);
   });
 
   it('selects the weakest valid dimension when a lower portrait dimension is partial', async () => {

@@ -585,11 +585,17 @@ async function buildRecommendationContext(userId: string): Promise<Recommendatio
       featureCache,
     },
   )).primaryPortrait;
-  const hasAuthoritativePortrait = ['native', 'migrated'].includes(portraitV2.derivation.kind)
-    && hasPortraitV2Evidence(portraitV2);
-  const portraitCompatibilityVector = hasAuthoritativePortrait
+  const portraitCompatibilityCandidate = ['native', 'migrated'].includes(portraitV2.derivation.kind)
+    && hasPortraitV2Evidence(portraitV2)
     ? deriveLegacyCompatibilityVectorFromPortrait(portraitV2, now)
     : null;
+  const hasUsablePortraitDimensions = ['native', 'migrated'].includes(portraitV2.derivation.kind)
+    && portraitV2.dimensions.some((dimension) => dimension.evidenceSummary.totalCount > 0
+      && effectivePortraitFreshness(dimension, now) === 'current'
+      && dimension.confidence >= 0.45);
+  const hasAuthoritativePortrait = portraitCompatibilityCandidate !== null
+    && COMPETENCY_DIMENSIONS.some((dimension) => portraitCompatibilityCandidate[dimension].evidenceCount > 0);
+  const portraitCompatibilityVector = hasAuthoritativePortrait ? portraitCompatibilityCandidate : null;
   // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy vector remains only for rules and metadata not yet v2-shaped.
   // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: all fallback vector sources are non-authoritative.
   const competencyVector =
@@ -607,7 +613,7 @@ async function buildRecommendationContext(userId: string): Promise<Recommendatio
         : !hasAuthoritativePortrait && legacyVector
           ? 'legacy'
           : 'none';
-  const portraitEvidence = hasAuthoritativePortrait
+  const portraitEvidence = hasUsablePortraitDimensions
     ? buildPortraitRecommendationEvidenceContext(portraitV2, now)
     : null;
 
@@ -804,6 +810,7 @@ function weakPortraitDimension(
   const summary = summarizePortraitV2(context.portraitV2);
   const selectedIds = dimensionIds ? new Set(dimensionIds) : null;
   const covered = summary.dimensions.flatMap((dimension) => {
+    if (!context.portraitEvidence) return [];
     if (selectedIds && !selectedIds.has(dimension.id)) return [];
     const source = context.portraitV2.dimensions.find((item) => item.id === dimension.id);
     if (!source || dimension.evidenceCount === 0) return [];

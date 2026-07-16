@@ -177,7 +177,7 @@ export async function resolvePrimaryPortraitV2(
         buildCompatibility: () => buildCompatibilityResult(compatibilityInput),
       });
     }
-    return buildCompatibilityResult(compatibilityInput);
+    return buildCompatibilityResultSafely(compatibilityInput);
   }
 
   const featureSnapshot = readLegacyFeatureSnapshot(featureCache);
@@ -203,7 +203,7 @@ export async function resolvePrimaryPortraitV2(
         buildCompatibility: () => buildCompatibilityResult(compatibilityInput),
       });
     }
-    return buildCompatibilityResult(compatibilityInput);
+    return buildCompatibilityResultSafely(compatibilityInput);
   }
 
   if (primaryPortrait) {
@@ -364,6 +364,27 @@ function buildCompatibilityResult(input: {
     },
     limitations: [...input.limitations],
   };
+}
+
+function buildCompatibilityResultSafely(
+  input: Parameters<typeof buildCompatibilityResult>[0],
+): ResolvedPortraitV2Consumer {
+  try {
+    return buildCompatibilityResult(input);
+  } catch {
+    const fallback = buildCompatibilityResult({
+      ...input,
+      vector: createEmptyCompetencyVector(),
+      snapshotId: null,
+      snapshotAt: input.now.toISOString(),
+      source: 'fallback-empty',
+      limitations: input.limitations,
+    });
+    return {
+      ...fallback,
+      limitations: uniqueStrings([...fallback.limitations, 'legacy-compatibility-projection-failed']),
+    };
+  }
 }
 
 function buildPrimaryPortraitCompatibilityResult(input: {
