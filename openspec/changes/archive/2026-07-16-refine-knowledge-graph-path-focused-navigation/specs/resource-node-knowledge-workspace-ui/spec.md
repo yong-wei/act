@@ -242,6 +242,8 @@ The knowledge graph SHALL explicitly map every runtime relation type to canonica
 - **AND** different normalized keys SHALL block export even when one record has explicit endpoint IDs
 - **AND** identical normalized keys MAY coalesce, with deterministic output independent of input order.
 
+## ADDED Requirements
+
 ### Requirement: Runtime semantic review invalidation is item-scoped and auditable
 Runtime lesson/media governance SHALL derive current review state from each reviewed item's bound source, manifest, and evidence hashes without manufacturing human confirmation.
 
@@ -286,6 +288,8 @@ Runtime lesson/media governance SHALL derive current review state from each revi
 - **WHEN** specialized relations such as `cross_domain`, `generalizes`, `instance_of`, `supports`, `enables`, `opposite`, or `applies_to` exist
 - **THEN** their authored semantics SHALL remain available in the inspector and diagnostics
 - **AND** their canvas edge MAY use the shared association family without deleting or rewriting the canonical relation.
+
+## MODIFIED Requirements
 
 ### Requirement: Selected knowledge nodes render in a stable inspector
 The knowledge workspace SHALL present selected domain and knowledge-node content through a dismissible stable inspector whose state is independent from domain navigation and progressive graph materialization.
