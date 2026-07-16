@@ -36,7 +36,9 @@ import {
 import { materializeIncrementalPortraitV2 } from '@/lib/data-governance/portrait-v2-materialization';
 import {
   aggregatePortraitV2,
+  hasPortraitV2Evidence,
   resolvePrimaryPortraitV2,
+  selectPortraitV2WithCompatibilityFallback,
   summarizePortraitV2,
 } from '@/lib/data-governance/portrait-v2-consumer';
 import type {
@@ -826,12 +828,11 @@ async function processClassSnapshotJob(job: Job<ClassSnapshotJob>) {
       legacySnapshot: snapshots[index] as Record<string, unknown> | null,
     })
   ));
-  const portraitRows = students
-    .map((student, index) => ({
-      snapshot: snapshots[index] ?? null,
-      payload: portraitResolutions[index].primaryPortrait,
+  const portraitRows = portraitResolutions
+    .map((resolution) => ({
+      payload: selectPortraitV2WithCompatibilityFallback(resolution, 'reviewer'),
     }))
-    .filter(({ snapshot, payload }) => Boolean(snapshot?.factCount) || payload.dimensions.some((dimension) => dimension.evidenceSummary.totalCount > 0));
+    .filter(({ payload }) => hasPortraitV2Evidence(payload));
   if (portraitRows.length === 0) {
     return { studentCount: 0, snapshotId: null };
   }

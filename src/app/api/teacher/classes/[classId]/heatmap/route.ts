@@ -9,7 +9,11 @@ import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import { PORTRAIT_V2_DIMENSIONS, type PortraitV2DimensionId } from '@/lib/data-governance/kaq-objective-taxonomy';
-import { hasPortraitV2Evidence, resolvePrimaryPortraitV2 } from '@/lib/data-governance/portrait-v2-consumer';
+import {
+  hasPortraitV2Evidence,
+  resolvePrimaryPortraitV2,
+  selectPortraitV2WithCompatibilityFallback,
+} from '@/lib/data-governance/portrait-v2-consumer';
 import { createDatabaseUnavailableResponse, isDatabaseConnectivityError } from '@/lib/service-availability';
 
 export const dynamic = 'force-dynamic';
@@ -174,13 +178,6 @@ export async function GET(
         return [studentId, resolution] as const;
       })),
     );
-    const studentIdsWithPortraitEvidence = new Set(
-      studentIds.filter((studentId) => {
-        const resolution = resolvedPortraitByUserId.get(studentId);
-        return resolution ? hasPortraitV2Evidence(resolution.primaryPortrait) : false;
-      }),
-    );
-
     // Get active risk flags for all students
     const riskFlags = await prisma.studentRiskFlag.findMany({
       where: {
@@ -197,10 +194,10 @@ export async function GET(
     const matrix: HeatmapData['matrix'] = [];
 
     for (const studentId of studentIds) {
-      if (!studentIdsWithPortraitEvidence.has(studentId)) continue;
       const resolution = resolvedPortraitByUserId.get(studentId);
       if (!resolution) continue;
-      const currentPortrait = resolution.primaryPortrait;
+      const currentPortrait = selectPortraitV2WithCompatibilityFallback(resolution, 'reviewer');
+      if (!hasPortraitV2Evidence(currentPortrait)) continue;
       const previousPortraitSnapshot = previousPortraitSnapshotByUserId[studentId];
       const previousLegacySnapshot = previousSnapshotByUserId[studentId];
       const previousResolution = previousPortraitSnapshot || previousLegacySnapshot
@@ -217,8 +214,8 @@ export async function GET(
             },
           )
         : null;
-      const previousPortrait = previousResolution && hasPortraitV2Evidence(previousResolution.primaryPortrait)
-        ? previousResolution.primaryPortrait
+      const previousPortrait = previousResolution
+        ? selectPortraitV2WithCompatibilityFallback(previousResolution, 'reviewer')
         : null;
 
       // Calculate risk level for this student

@@ -6,6 +6,7 @@ import {
   aggregatePortraitV2,
   hasPortraitV2Evidence,
   resolvePrimaryPortraitV2,
+  selectPortraitV2WithCompatibilityFallback,
   summarizePortraitV2,
 } from '../portrait-v2-consumer';
 import {
@@ -322,5 +323,120 @@ describe('portrait v2 consumer adapters', () => {
 
     expect(hasPortraitV2Evidence(empty.primaryPortrait)).toBe(false);
     expect(hasPortraitV2Evidence(compatible.primaryPortrait)).toBe(true);
+  });
+
+  it('selects explicit legacy compatibility for read models when the primary portrait is empty', async () => {
+    const payload = nativePortrait();
+    const resolution = await resolvePrimaryPortraitV2({
+      studentPortraitV2Snapshot: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'portrait-1',
+          userId: 'student-1',
+          snapshotAt: now,
+          payloadVersion: payload.payloadVersion,
+          calculationVersion: 'portrait-v2-primary.v1',
+          migrationVersion: payload.migrationVersion,
+          derivationKind: 'native',
+          payload,
+        }),
+      },
+    }, 'student-1', 'reviewer', { now, legacySnapshot: legacySnapshot() });
+
+    const selected = selectPortraitV2WithCompatibilityFallback(resolution, 'reviewer', { now });
+
+    expect(resolution.primaryPortrait.derivation.kind).toBe('native');
+    expect(hasPortraitV2Evidence(resolution.primaryPortrait)).toBe(false);
+    expect(selected.derivation.kind).toBe('compatibility-derived');
+    expect(hasPortraitV2Evidence(selected)).toBe(true);
+  });
+
+  it('does not manufacture a compatibility fallback without legacy evidence', async () => {
+    const resolution = await resolvePrimaryPortraitV2({}, 'student-1', 'reviewer', {
+      now,
+      legacySnapshot: null,
+      featureCache: null,
+    });
+
+    const selected = selectPortraitV2WithCompatibilityFallback(resolution, 'reviewer', { now });
+
+    expect(selected).toBe(resolution.primaryPortrait);
+    expect(hasPortraitV2Evidence(selected)).toBe(false);
+  });
+
+  it('rejects an invalid legacy timestamp instead of selecting it behind an empty native primary', async () => {
+    const payload = nativePortrait();
+    const snapshot = legacySnapshot();
+    snapshot.snapshotAt = 'not-a-date' as unknown as Date;
+    const resolution = await resolvePrimaryPortraitV2({
+      studentPortraitV2Snapshot: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'portrait-1',
+          userId: 'student-1',
+          snapshotAt: now,
+          payloadVersion: payload.payloadVersion,
+          calculationVersion: 'portrait-v2-primary.v1',
+          migrationVersion: payload.migrationVersion,
+          derivationKind: 'native',
+          payload,
+        }),
+      },
+    }, 'student-1', 'reviewer', { now, legacySnapshot: snapshot });
+
+    const selected = selectPortraitV2WithCompatibilityFallback(resolution, 'reviewer', { now });
+
+    expect(resolution.legacyCompatibility.source).toBe('fallback-empty');
+    expect(resolution.limitations).toContain('legacy-compatibility-projection-failed');
+    expect(selected).toBe(resolution.primaryPortrait);
+    expect(hasPortraitV2Evidence(selected)).toBe(false);
+  });
+
+  it('rejects an invalid feature-cache timestamp instead of selecting it behind an empty migrated primary', async () => {
+    const payload = nativePortrait();
+    payload.derivation = {
+      kind: 'migrated',
+      sourceLegacySnapshotId: 'legacy-1',
+      sourceLegacySnapshotAt: now.toISOString(),
+      mappingVersion: 'legacy-six-to-portrait-v2.v1',
+      mappingConfidence: Object.fromEntries(PORTRAIT_V2_DIMENSIONS.map(({ id }) => [id, 'none'])),
+      limitations: [
+        'legacy-six-dimensional-input-is-non-authoritative',
+        'missing-native-portrait-v2-evidence',
+      ],
+    };
+    const resolution = await resolvePrimaryPortraitV2({
+      studentPortraitV2Snapshot: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'portrait-1',
+          userId: 'student-1',
+          snapshotAt: now,
+          payloadVersion: payload.payloadVersion,
+          calculationVersion: 'portrait-v2-primary.v1',
+          migrationVersion: payload.migrationVersion,
+          derivationKind: 'migrated',
+          payload,
+        }),
+      },
+    }, 'student-1', 'reviewer', {
+      now,
+      legacySnapshot: null,
+      featureCache: {
+        features: {
+          approvedAggregates: {
+            latestSnapshot: {
+              snapshotAt: 'not-a-date',
+              competencyVector: legacySnapshot().competencyVector,
+            },
+          },
+        },
+      },
+    });
+
+    const selected = selectPortraitV2WithCompatibilityFallback(resolution, 'reviewer', { now });
+
+    expect(resolution.primaryPortrait.derivation.kind).toBe('migrated');
+    expect(resolution.legacyCompatibility.source).toBe('fallback-empty');
+    expect(resolution.limitations).toContain('legacy-compatibility-projection-failed');
+    expect(selected).toBe(resolution.primaryPortrait);
+    expect(hasPortraitV2Evidence(selected)).toBe(false);
   });
 });

@@ -107,6 +107,35 @@ export function hasPortraitV2Evidence(payload: PortraitV2ProjectedPayload): bool
   return payload.dimensions.some((dimension) => dimension.evidenceSummary.totalCount > 0);
 }
 
+/**
+ * Select evidence-bearing data for aggregate/read-model consumers without
+ * changing the authority of the resolved primary portrait. Empty native or
+ * migrated rows remain primary truth, while their explicit legacy
+ * compatibility projection can keep an existing read model populated.
+ */
+export function selectPortraitV2WithCompatibilityFallback(
+  resolution: ResolvedPortraitV2Consumer,
+  consumer: PortraitV2Consumer,
+  options: { now?: Date } = {},
+): PortraitV2ProjectedPayload {
+  if (hasPortraitV2Evidence(resolution.primaryPortrait)
+    || resolution.legacyCompatibility.source === 'fallback-empty') {
+    return resolution.primaryPortrait;
+  }
+
+  const now = options.now ?? new Date();
+  return buildCompatibilityResultSafely({
+    userId: resolution.primaryPortrait.userId,
+    vector: resolution.legacyCompatibility.vector,
+    snapshotId: resolution.legacyCompatibility.snapshotId,
+    snapshotAt: resolution.legacyCompatibility.snapshotAt,
+    source: resolution.legacyCompatibility.source,
+    consumer,
+    now,
+    limitations: resolution.limitations,
+  }).primaryPortrait;
+}
+
 export async function resolvePrimaryPortraitV2(
   db: PortraitV2ConsumerDb,
   userId: string,
@@ -162,7 +191,7 @@ export async function resolvePrimaryPortraitV2(
       userId,
       vector: legacyVector,
       snapshotId: readString(legacySnapshot?.id),
-      snapshotAt: dateToIso(legacySnapshot?.snapshotAt) ?? now.toISOString(),
+      snapshotAt: compatibilitySnapshotAt(legacySnapshot?.snapshotAt, now),
       // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: identify the legacy source for compatibility metadata.
       source: 'StudentCompetencySnapshot',
       consumer,
@@ -188,7 +217,7 @@ export async function resolvePrimaryPortraitV2(
       userId,
       vector: cachedVector,
       snapshotId: null,
-      snapshotAt: dateToIso(featureSnapshot?.snapshotAt) ?? now.toISOString(),
+      snapshotAt: compatibilitySnapshotAt(featureSnapshot?.snapshotAt, now),
       // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: identify the cached legacy source for compatibility metadata.
       source: 'StudentEvidenceFeatureCache',
       consumer,
@@ -484,6 +513,11 @@ function dateToIso(value: unknown): string | null {
     return Number.isFinite(parsed.getTime()) ? parsed.toISOString() : null;
   }
   return null;
+}
+
+function compatibilitySnapshotAt(value: unknown, now: Date): string {
+  if (value === null || value === undefined) return now.toISOString();
+  return dateToIso(value) ?? 'invalid-legacy-compatibility-snapshot-at';
 }
 
 function uniqueStrings(values: string[]): string[] {
