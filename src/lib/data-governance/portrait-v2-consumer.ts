@@ -245,7 +245,8 @@ export function summarizePortraitV2(payload: PortraitV2PayloadShape): PortraitV2
   });
   const ranked = [...dimensions].sort((left, right) => right.score - left.score);
   const covered = ranked.filter((dimension) => dimension.evidenceCount > 0);
-  const weakPool = covered.length > 0 ? covered : ranked;
+  const strengthCount = Math.min(2, Math.ceil(covered.length / 2));
+  const weaknessCount = Math.min(2, Math.floor(covered.length / 2));
   const limitations = uniqueStrings([
     ...payload.derivation.limitations,
     ...dimensions.flatMap((dimension) => dimension.limitations),
@@ -258,8 +259,10 @@ export function summarizePortraitV2(payload: PortraitV2PayloadShape): PortraitV2
     generatedAt: payload.generatedAt,
     overallScore: round(dimensions.reduce((sum, dimension) => sum + dimension.score, 0) / dimensions.length),
     dimensions,
-    strengths: covered.slice(0, 2).map((dimension) => dimension.id),
-    weaknesses: weakPool.slice(-2).map((dimension) => dimension.id),
+    strengths: covered.slice(0, strengthCount).map((dimension) => dimension.id),
+    weaknesses: weaknessCount > 0
+      ? covered.slice(-weaknessCount).map((dimension) => dimension.id)
+      : [],
     limitations,
   };
 }

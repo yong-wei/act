@@ -76,7 +76,48 @@ describe('portrait v2 consumer adapters', () => {
 
     expect(summary.overallScore).toBe(12.9);
     expect(summary.overallScore).toBeLessThan(85);
+    expect(summary.strengths).toEqual([payload.dimensions[0].id]);
+    expect(summary.weaknesses).toEqual([]);
   });
+
+  it('does not invent strengths or weaknesses for a portrait without evidence', () => {
+    const summary = summarizePortraitV2(nativePortrait());
+
+    expect(summary.strengths).toEqual([]);
+    expect(summary.weaknesses).toEqual([]);
+  });
+
+  it.each([
+    { coveredCount: 2, strengthCount: 1, weaknessCount: 1 },
+    { coveredCount: 3, strengthCount: 2, weaknessCount: 1 },
+    { coveredCount: 4, strengthCount: 2, weaknessCount: 2 },
+    { coveredCount: 7, strengthCount: 2, weaknessCount: 2 },
+  ])(
+    'partitions $coveredCount covered dimensions into ranked, disjoint strengths and weaknesses',
+    ({ coveredCount, strengthCount, weaknessCount }) => {
+      const payload = nativePortrait();
+      payload.dimensions = payload.dimensions.map(
+        (dimension, index): (typeof payload.dimensions)[number] => index < coveredCount
+          ? {
+              ...dimension,
+              score: 100 - index,
+              confidence: 1,
+              freshness: { state: 'current' as const, asOf: now.toISOString(), evidenceAgeDays: 0 },
+              evidenceSummary: { totalCount: 1, sourceFamilyCounts: { LearningFact: 1 } },
+              lastPositiveEvidenceAt: now.toISOString(),
+              limitations: [],
+            }
+          : dimension,
+      );
+      const coveredIds = payload.dimensions.slice(0, coveredCount).map((dimension) => dimension.id);
+
+      const summary = summarizePortraitV2(payload);
+
+      expect(summary.strengths).toEqual(coveredIds.slice(0, strengthCount));
+      expect(summary.weaknesses).toEqual(coveredIds.slice(-weaknessCount));
+      expect(summary.strengths).not.toEqual(expect.arrayContaining(summary.weaknesses));
+    },
+  );
 
   it('uses a persisted portrait v2 row as the primary contract', async () => {
     const payload = nativePortrait();
