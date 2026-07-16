@@ -303,6 +303,7 @@ validate_grading_policy_seed_config() {
     --entrypoint ./node_modules/.bin/tsx \
     "${policy_seed_env_args[@]}" \
     -e NODE_ENV="$NODE_ENV" \
+    -e MATH_DOCUMENT_GRADING_WORKER_REQUIRED="$MATH_DOCUMENT_GRADING_WORKER_REQUIRED" \
     "$APP_IMAGE" \
     scripts/assignments/ensure-grading-policies.ts --dry-run >/dev/null
 }

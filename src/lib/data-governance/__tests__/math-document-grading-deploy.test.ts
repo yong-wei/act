@@ -182,6 +182,24 @@ describe('math-document grading production entrypoint contract', () => {
     expect(remoteDeploy).toContain('数学文档批改 worker 已禁用，跳过其专用健康检查');
   });
 
+  it('passes the math worker requirement consistently to policy seed preflight and execution', () => {
+    const deploy = read('deploy/podman/deploy.sh');
+    const preflightStart = deploy.indexOf('validate_grading_policy_seed_config()');
+    const preflightEnd = deploy.indexOf('\nresolve_image()', preflightStart);
+    const preflight = deploy.slice(preflightStart, preflightEnd);
+    const sharedStart = deploy.indexOf('SHARED_ENV_ARGS=(');
+    const sharedEnd = deploy.indexOf('\n)', sharedStart) + 2;
+    const shared = deploy.slice(sharedStart, sharedEnd);
+    const seedStart = deploy.indexOf('POLICY_SEED_ENV_ARGS=("${SHARED_ENV_ARGS[@]}")');
+    const seedEnd = deploy.indexOf('\necho "- 验证学生作业对象存储与扫描服务健康"', seedStart);
+    const seed = deploy.slice(seedStart, seedEnd);
+
+    expect(preflight).toContain('-e MATH_DOCUMENT_GRADING_WORKER_REQUIRED="$MATH_DOCUMENT_GRADING_WORKER_REQUIRED"');
+    expect(shared).toContain('-e MATH_DOCUMENT_GRADING_WORKER_REQUIRED="$MATH_DOCUMENT_GRADING_WORKER_REQUIRED"');
+    expect(seed).toContain('POLICY_SEED_ENV_ARGS=("${SHARED_ENV_ARGS[@]}")');
+    expect(seed).toContain('"${POLICY_SEED_ENV_ARGS[@]}"');
+  });
+
   it('seeds lifecycle policies without requiring provider metadata when the math worker is disabled', async () => {
     const env: Record<string, string> = {
       NODE_ENV: 'production',
