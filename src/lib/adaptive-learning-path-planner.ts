@@ -2419,9 +2419,7 @@ function inferDeficits(
       .map((targetId) => {
         const competency = competencies[targetId];
         const portraitDimensionIds = portraitDimensionIdsForTarget(targetId);
-        const portraitScores = portraitDimensionIds
-          .map((id) => learnerState?.primaryPortrait?.dimensions.find((dimension) => dimension.id === id))
-          .filter((dimension): dimension is NonNullable<typeof dimension> => Boolean(dimension));
+        const portraitScores = usablePortraitDimensionsForTarget(learnerState, targetId);
         const value = portraitScores.length > 0
           ? normalizeCompetencyScore(portraitScores.reduce((sum, dimension) => sum + dimension.score, 0) / portraitScores.length)
           : normalizeCompetencyScore(competency?.score ?? 0);
@@ -2629,10 +2627,7 @@ function buildCapabilityEvidence(
     const knowledge = learnerState?.knowledgeMastery?.tags?.[target.knowledgeNodeRef];
     const competencies: Array<{ score?: number; confidence?: number; evidenceCount?: number }> = target.competencyDimensions
       .flatMap((dimension): Array<{ score?: number; confidence?: number; evidenceCount?: number }> => {
-        const portraitDimensionIds = portraitDimensionIdsForTarget(dimension);
-        const portraitValues = portraitDimensionIds
-          .map((id) => learnerState?.primaryPortrait?.dimensions.find((item) => item.id === id))
-          .filter((value): value is NonNullable<typeof value> => Boolean(value))
+        const portraitValues = usablePortraitDimensionsForTarget(learnerState, dimension)
           .map((value) => ({
             score: value.score,
             confidence: value.confidence,
@@ -3891,12 +3886,7 @@ function learnerCompetencyScore(
   learnerState: AdaptiveLearningPathLearnerState | null,
   dimension: string,
 ): number {
-  const portraitDimensionIds = portraitDimensionIdsForTarget(dimension);
-  const portraitScores = portraitDimensionIds
-    .map((id) => learnerState?.primaryPortrait?.dimensions.find((item) => item.id === id))
-    .filter((item): item is PortraitV2ProjectedPayload['dimensions'][number] => Boolean(item
-      && item.evidenceSummary.totalCount > 0
-      && (item.freshness.state === 'current' || item.freshness.state === 'partial')))
+  const portraitScores = usablePortraitDimensionsForTarget(learnerState, dimension)
     .map((item) => item.score)
     .filter((score): score is number => typeof score === 'number' && Number.isFinite(score));
   if (portraitScores.length > 0) {
@@ -3904,6 +3894,17 @@ function learnerCompetencyScore(
   }
   // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: use the legacy vector only as a fallback.
   return normalizeCompetencyScore(learnerState?.primaryCompetencies?.vector?.[dimension]?.score ?? 0);
+}
+
+function usablePortraitDimensionsForTarget(
+  learnerState: AdaptiveLearningPathLearnerState | null,
+  targetId: string,
+): PortraitV2ProjectedPayload['dimensions'] {
+  return portraitDimensionIdsForTarget(targetId)
+    .map((id) => learnerState?.primaryPortrait?.dimensions.find((item) => item.id === id))
+    .filter((item): item is PortraitV2ProjectedPayload['dimensions'][number] => Boolean(item
+      && item.evidenceSummary.totalCount > 0
+      && (item.freshness.state === 'current' || item.freshness.state === 'partial')));
 }
 
 function normalizeCompetencyScore(score: number): number {

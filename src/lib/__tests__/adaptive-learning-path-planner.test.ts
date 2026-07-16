@@ -4937,12 +4937,24 @@ describe('adaptive learning path planner', () => {
         title: '兼容能力门槛目标',
         knowledgeTargets: ['kn-compatibility-readiness'],
         competencyTargets: ['parameterDesign'],
+        capabilityTargets: [{
+          id: 'compatibility-readiness-capability',
+          knowledgeNodeRef: 'kn-compatibility-readiness',
+          capabilityLevel: 'apply',
+          behaviorVerb: 'apply',
+          successCriteria: ['完成兼容能力门槛仿真。'],
+          observableEvidenceType: 'simulation-run',
+          evaluationMethod: 'simulation',
+          goalSliceId: 'compatibility-readiness',
+          competencyDimensions: ['parameterDesign'],
+          learnerStateFeatureGroups: ['primaryCompetencies'],
+        }],
       },
       learnerState: {
         primaryPortrait,
         primaryCompetencies: {
           vector: {
-            parameterDesign: { score: 0.8, confidence: 0.8, evidenceCount: 4 },
+            parameterDesign: { score: 0.9, confidence: 0.8, evidenceCount: 4 },
           },
         },
       },
@@ -4957,6 +4969,18 @@ describe('adaptive learning path planner', () => {
       state: 'ready',
       missingCompetencies: [],
     });
+    expect(plan.visualization.evidence.learnerStateDeficits).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ targetId: 'parameterDesign' }),
+    ]));
+    expect(plan.visualization.evidence.capabilityEvidence).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        target: expect.objectContaining({ id: 'compatibility-readiness-capability' }),
+        observedEvidence: expect.objectContaining({
+          competencyScore: 0.9,
+          supportingEvidenceCount: 4,
+        }),
+      }),
+    ]));
   });
 
   it('keeps repaired path nodes when only non-blocking checkpoint infeasibility remains', () => {
