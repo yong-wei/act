@@ -9,12 +9,39 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('../../../../src/lib/assignments/submission-object-store', () => ({ createSubmissionObjectStore: mocks.store }));
-vi.mock('../../../../src/lib/data-governance/math-document-grading-persistence', () => ({ processDocumentConversionJob: mocks.conversion, processGradingRunJob: mocks.grading, writeRenderedObjectToSubmissionStore: mocks.writer }));
+vi.mock('../../../../src/lib/data-governance/math-document-grading-persistence', () => ({ GRADING_JOB_LEASE_MS: 5 * 60_000, processDocumentConversionJob: mocks.conversion, processGradingRunJob: mocks.grading, writeRenderedObjectToSubmissionStore: mocks.writer }));
 vi.mock('../../../../src/lib/data-governance/math-document-grading-batch', () => ({ processQuestionGradingBatch: mocks.batch }));
 vi.mock('../../../../src/lib/prisma-client', () => ({ createPrismaClient: vi.fn() }));
 
 import { processMathDocumentGradingJob, settleMathDocumentGradingJobFailure } from '../../../../scripts/workers/math-document-grading-worker';
 import { getMathDocumentGradingWorkerCapabilityStatus } from '../math-document-grading-worker-readiness';
+
+function matchesWhere(row: Record<string, any>, where: Record<string, any>): boolean {
+  if (where.OR && !where.OR.some((candidate: Record<string, any>) => matchesWhere(row, candidate))) return false;
+  if (where.AND && !where.AND.every((candidate: Record<string, any>) => matchesWhere(row, candidate))) return false;
+  return Object.entries(where).every(([field, expected]) => {
+    if (field === 'OR' || field === 'AND') return true;
+    const actual = row[field];
+    if (expected && typeof expected === 'object' && !(expected instanceof Date)) {
+      if ('in' in expected && !expected.in.includes(actual)) return false;
+      if ('gt' in expected && !(actual != null && new Date(actual) > new Date(expected.gt))) return false;
+      return true;
+    }
+    return actual === expected;
+  });
+}
+
+function mutableModel(row: Record<string, any>, updates?: Array<{ where: any; data: any }>) {
+  return {
+    findUnique: vi.fn(async () => row),
+    updateMany: vi.fn(async ({ where, data }: any) => {
+      if (!matchesWhere(row, where)) return { count: 0 };
+      updates?.push({ where, data });
+      Object.assign(row, data);
+      return { count: 1 };
+    }),
+  };
+}
 
 describe('math-document grading worker recovery dispatch', () => {
   it('fails worker capability readiness when production dependencies are incomplete', () => {
@@ -221,6 +248,221 @@ describe('math-document grading worker recovery dispatch', () => {
     expect(jobUpdates.at(-1)).toEqual(expect.objectContaining({ where: expect.objectContaining({ workerClaimToken: 'attempt-a' }), data: expect.objectContaining({ state: 'FAILED', workerClaimToken: null }) }));
   });
 
+  it('fences the matching token when its persisted lease is expired', async () => {
+    const now = new Date('2026-07-17T00:00:00.000Z');
+    const jobRow: any = { id: 'job-expired-token', state: 'RUNNING', workerClaimToken: 'attempt-expired', workerClaimedAt: new Date('2026-07-16T23:50:00.000Z'), workerLeaseExpiresAt: new Date('2026-07-16T23:59:59.999Z') };
+    const gradingRunUpdate = vi.fn();
+    const db: any = {
+      gradingJob: mutableModel(jobRow),
+      gradingRun: { updateMany: gradingRunUpdate },
+    };
+
+    await expect(settleMathDocumentGradingJobFailure({
+      db,
+      job: { data: { kind: 'grading', jobId: jobRow.id, gradingRunId: 'run-expired-token', workerClaimToken: 'attempt-expired' }, attemptsMade: 3, opts: { attempts: 3 } } as any,
+      error: new Error('provider timeout'),
+      now,
+    })).rejects.toThrow('grading-job-failure-settlement-fenced');
+
+    expect(jobRow).toEqual(expect.objectContaining({ state: 'RUNNING', workerClaimToken: 'attempt-expired', workerLeaseExpiresAt: new Date('2026-07-16T23:59:59.999Z') }));
+    expect(gradingRunUpdate).not.toHaveBeenCalled();
+  });
+
+  it('accepts the matching token when the legacy persisted lease is null', async () => {
+    const jobRow: any = { id: 'job-null-lease', state: 'RUNNING', workerClaimToken: 'attempt-null-lease', workerClaimedAt: null, workerLeaseExpiresAt: null };
+    const runRow: any = { id: 'run-null-lease', state: 'RUNNING' };
+    const db: any = {
+      gradingJob: mutableModel(jobRow),
+      gradingRun: mutableModel(runRow),
+    };
+
+    await settleMathDocumentGradingJobFailure({
+      db,
+      job: { data: { kind: 'grading', jobId: jobRow.id, gradingRunId: runRow.id, workerClaimToken: 'attempt-null-lease' }, attemptsMade: 3, opts: { attempts: 3 } } as any,
+      error: new Error('provider timeout'),
+    });
+
+    expect(jobRow).toEqual(expect.objectContaining({ state: 'FAILED', workerClaimToken: null, workerLeaseExpiresAt: null }));
+    expect(runRow).toEqual(expect.objectContaining({ state: 'FAILED' }));
+  });
+
+  it('settles a conversion failure that happened before the queued job persisted its claim token', async () => {
+    const now = new Date('2026-07-17T00:00:00.000Z');
+    const jobRow: any = { id: 'job-unclaimed-conversion', state: 'QUEUED', workerClaimToken: null, workerClaimedAt: null, workerLeaseExpiresAt: null };
+    const conversionRow: any = { id: 'conversion-unclaimed', state: 'QUEUED' };
+    const jobUpdates: any[] = [];
+    const db: any = {
+      gradingJob: {
+        findUnique: async () => jobRow,
+        updateMany: async ({ where, data }: any) => {
+          const exactClaim = where.OR?.some((candidate: any) => candidate.workerClaimToken === jobRow.workerClaimToken && candidate.state?.in?.includes(jobRow.state));
+          const unclaimedQueued = where.OR?.some((candidate: any) => candidate.workerClaimToken === null && candidate.state === jobRow.state) && jobRow.workerClaimToken === null;
+          const simpleClaim = where.workerClaimToken === undefined || where.workerClaimToken === jobRow.workerClaimToken;
+          const active = !where.state?.in || where.state.in.includes(jobRow.state);
+          if ((!where.OR && (!simpleClaim || !active)) || (where.OR && !exactClaim && !unclaimedQueued)) return { count: 0 };
+          jobUpdates.push({ where, data });
+          Object.assign(jobRow, data);
+          return { count: 1 };
+        },
+      },
+      documentConversion: {
+        updateMany: async ({ data }: any) => { Object.assign(conversionRow, data); return { count: 1 }; },
+      },
+    };
+
+    await settleMathDocumentGradingJobFailure({
+      db,
+      job: { data: { kind: 'conversion', jobId: jobRow.id, conversionId: conversionRow.id, workerClaimToken: 'attempt-before-claim' }, attemptsMade: 1, opts: { attempts: 3 } } as any,
+      error: new Error('provider timeout'),
+      now,
+    });
+
+    expect(jobUpdates[0]).toEqual(expect.objectContaining({
+      where: expect.objectContaining({
+        id: jobRow.id,
+        OR: expect.arrayContaining([
+          { state: { in: ['QUEUED', 'RUNNING', 'RETRYABLE'] }, workerClaimToken: 'attempt-before-claim', OR: [{ workerLeaseExpiresAt: null }, { workerLeaseExpiresAt: { gt: now } }] },
+          { state: 'QUEUED', workerClaimToken: null },
+        ]),
+      }),
+      data: expect.objectContaining({
+        state: 'RUNNING',
+        workerClaimToken: 'attempt-before-claim',
+        workerClaimedAt: now,
+        workerLeaseExpiresAt: expect.any(Date),
+      }),
+    }));
+    expect(conversionRow).toEqual(expect.objectContaining({ state: 'RETRYABLE', failureCode: 'provider timeout' }));
+    expect(jobRow).toEqual(expect.objectContaining({ state: 'RETRYABLE', workerClaimToken: null, workerClaimedAt: null, workerLeaseExpiresAt: null }));
+  });
+
+  it('settles an unclaimed queued grading failure with the existing blocked business-state policy', async () => {
+    const jobRow: any = { id: 'job-unclaimed-grading', state: 'QUEUED', workerClaimToken: null };
+    const runRow: any = { id: 'run-unclaimed-grading', state: 'QUEUED' };
+    const db: any = {
+      gradingJob: {
+        findUnique: async () => jobRow,
+        updateMany: async ({ where, data }: any) => {
+          const matches = where.OR
+            ? where.OR.some((candidate: any) => (
+              (candidate.workerClaimToken === jobRow.workerClaimToken && candidate.state?.in?.includes(jobRow.state))
+              || (candidate.workerClaimToken === null && candidate.state === jobRow.state && jobRow.workerClaimToken === null)
+            ))
+            : where.workerClaimToken === jobRow.workerClaimToken && where.state?.in?.includes(jobRow.state);
+          if (!matches) return { count: 0 };
+          Object.assign(jobRow, data);
+          return { count: 1 };
+        },
+      },
+      gradingRun: {
+        updateMany: async ({ data }: any) => { Object.assign(runRow, data); return { count: 1 }; },
+      },
+    };
+
+    await settleMathDocumentGradingJobFailure({
+      db,
+      job: { data: { kind: 'grading', jobId: jobRow.id, gradingRunId: runRow.id, workerClaimToken: 'attempt-before-grading-claim' }, attemptsMade: 1, opts: { attempts: 3 } } as any,
+      error: new Error('grading-content-unavailable:association-missing'),
+    });
+
+    expect(runRow).toEqual(expect.objectContaining({ state: 'BLOCKED', blockedReasons: ['grading-content-unavailable:association-missing'] }));
+    expect(jobRow).toEqual(expect.objectContaining({ state: 'CONTENT_UNAVAILABLE', workerClaimToken: null }));
+  });
+
+  it('does not treat a queued job already tokened by another worker as unclaimed', async () => {
+    const jobRow: any = { id: 'job-queued-other-owner', state: 'QUEUED', workerClaimToken: 'other-worker-token' };
+    const gradingRunUpdate = vi.fn();
+    const db: any = {
+      gradingJob: {
+        findUnique: async () => jobRow,
+        updateMany: async ({ where, data }: any) => {
+          const matches = where.OR.some((candidate: any) => (
+            (candidate.workerClaimToken === jobRow.workerClaimToken && candidate.state?.in?.includes(jobRow.state))
+            || (candidate.workerClaimToken === null && candidate.state === jobRow.state && jobRow.workerClaimToken === null)
+          ));
+          if (!matches) return { count: 0 };
+          Object.assign(jobRow, data);
+          return { count: 1 };
+        },
+      },
+      gradingRun: { updateMany: gradingRunUpdate },
+    };
+
+    await expect(settleMathDocumentGradingJobFailure({
+      db,
+      job: { data: { kind: 'grading', jobId: jobRow.id, gradingRunId: 'run-queued-other-owner', workerClaimToken: 'stale-worker-token' }, attemptsMade: 3, opts: { attempts: 3 } } as any,
+      error: new Error('provider timeout'),
+    })).rejects.toThrow('grading-job-failure-settlement-fenced');
+
+    expect(jobRow).toEqual({ id: 'job-queued-other-owner', state: 'QUEUED', workerClaimToken: 'other-worker-token' });
+    expect(gradingRunUpdate).not.toHaveBeenCalled();
+  });
+
+  it('rolls back an unclaimed-job CAS when the transactional business update fails', async () => {
+    const now = new Date('2026-07-17T00:00:00.000Z');
+    const liveJob: any = { id: 'job-transaction-rollback', state: 'QUEUED', attemptCount: 0, workerClaimToken: null, workerClaimedAt: null, workerLeaseExpiresAt: null };
+    const liveConversion: any = { id: 'conversion-transaction-rollback', state: 'QUEUED' };
+    const claimedDrafts: any[] = [];
+    const db: any = {
+      $transaction: async (callback: (tx: any) => Promise<void>) => {
+        const draftJob = structuredClone(liveJob);
+        const draftConversion = structuredClone(liveConversion);
+        const tx = {
+          gradingJob: mutableModel(draftJob, claimedDrafts),
+          documentConversion: {
+            updateMany: vi.fn(async () => {
+              throw new Error('conversion-business-update-failed');
+            }),
+          },
+        };
+        await callback(tx);
+        Object.assign(liveJob, draftJob);
+        Object.assign(liveConversion, draftConversion);
+      },
+    };
+
+    await expect(settleMathDocumentGradingJobFailure({
+      db,
+      job: { data: { kind: 'conversion', jobId: liveJob.id, conversionId: liveConversion.id, workerClaimToken: 'attempt-rollback' }, attemptsMade: 1, opts: { attempts: 3 } } as any,
+      error: new Error('provider timeout'),
+      now,
+    })).rejects.toThrow('conversion-business-update-failed');
+
+    expect(claimedDrafts[0]?.data).toEqual(expect.objectContaining({ state: 'RUNNING', workerClaimToken: 'attempt-rollback' }));
+    expect(liveJob).toEqual({ id: 'job-transaction-rollback', state: 'QUEUED', attemptCount: 0, workerClaimToken: null, workerClaimedAt: null, workerLeaseExpiresAt: null });
+    expect(liveConversion).toEqual({ id: 'conversion-transaction-rollback', state: 'QUEUED' });
+  });
+
+  it('allows only one token to CAS an unclaimed job into business settlement', async () => {
+    const now = new Date('2026-07-17T00:00:00.000Z');
+    const jobRow: any = { id: 'job-competing-tokens', state: 'QUEUED', workerClaimToken: null, workerClaimedAt: null, workerLeaseExpiresAt: null };
+    const runRow: any = { id: 'run-competing-tokens', state: 'QUEUED' };
+    const businessUpdates: string[] = [];
+    const gradingJob = mutableModel(jobRow);
+    const db: any = {
+      gradingJob,
+      gradingRun: {
+        updateMany: vi.fn(async ({ where, data }: any) => {
+          if (!matchesWhere(runRow, where)) return { count: 0 };
+          businessUpdates.push(data.state);
+          Object.assign(runRow, data);
+          return { count: 1 };
+        }),
+      },
+    };
+    const makeJob = (workerClaimToken: string) => ({ data: { kind: 'grading', jobId: jobRow.id, gradingRunId: runRow.id, workerClaimToken }, attemptsMade: 3, opts: { attempts: 3 } }) as any;
+
+    const results = await Promise.allSettled([
+      settleMathDocumentGradingJobFailure({ db, job: makeJob('attempt-race-a'), error: new Error('provider timeout'), now }),
+      settleMathDocumentGradingJobFailure({ db, job: makeJob('attempt-race-b'), error: new Error('provider timeout'), now }),
+    ]);
+
+    expect(results.filter((result) => result.status === 'fulfilled')).toHaveLength(1);
+    expect(results.filter((result) => result.status === 'rejected')).toHaveLength(1);
+    expect(businessUpdates).toEqual(['FAILED']);
+    expect(jobRow).toEqual(expect.objectContaining({ state: 'FAILED', workerClaimToken: null }));
+  });
+
   it('settles provider policy drift as blocked without retrying the old job', async () => {
     const updates: any[] = [];
     const db = {
@@ -254,7 +496,13 @@ describe('math-document grading worker recovery dispatch', () => {
       error: new Error('network timeout'),
     })).rejects.toThrow('grading-job-failure-settlement-fenced');
     expect(gradingRunUpdate).not.toHaveBeenCalled();
-    expect(db.gradingJob.updateMany).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ id: 'job-fenced', state: { in: ['QUEUED', 'RUNNING', 'RETRYABLE'] }, workerClaimToken: 'attempt-token' }) }));
+    expect(db.gradingJob.updateMany).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({
+      id: 'job-fenced',
+      OR: expect.arrayContaining([
+        { state: { in: ['QUEUED', 'RUNNING', 'RETRYABLE'] }, workerClaimToken: 'attempt-token', OR: [{ workerLeaseExpiresAt: null }, { workerLeaseExpiresAt: { gt: expect.any(Date) } }] },
+        { state: 'QUEUED', workerClaimToken: null },
+      ]),
+    }) }));
   });
 
   it('closes missing parent associations as observable blocked content instead of parameter failure', async () => {

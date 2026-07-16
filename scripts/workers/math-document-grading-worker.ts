@@ -6,6 +6,7 @@ import { createSubmissionObjectStore } from '../../src/lib/assignments/submissio
 import { createMathpixClient } from '../../src/lib/data-governance/math-document-conversion';
 import { processQuestionGradingBatch } from '../../src/lib/data-governance/math-document-grading-batch';
 import {
+  GRADING_JOB_LEASE_MS,
   processDocumentConversionJob,
   processGradingRunJob,
   writeRenderedObjectToSubmissionStore,
@@ -93,7 +94,7 @@ export async function settleMathDocumentGradingJobFailure(input: { db: any; job:
   const attemptIdentity = input.job.data.workerClaimToken;
   if (!attemptIdentity) throw new Error('grading-job-failure-attempt-identity-missing');
   const settle = async (db: any): Promise<void> => {
-    const parentClaimed = await updateActiveRecord(db.gradingJob, input.job.data.jobId, { attemptCount: attempts, updatedAt: now }, ['QUEUED', 'RUNNING', 'RETRYABLE'], attemptIdentity);
+    const parentClaimed = await claimGradingJobForFailureSettlement(db.gradingJob, input.job.data.jobId, attemptIdentity, attempts, now);
     if (!parentClaimed) {
       const current = await db.gradingJob?.findUnique?.({ where: { id: input.job.data.jobId } });
       if (current && ['FAILED', 'BLOCKED', 'CANCELLED', 'CONTENT_UNAVAILABLE'].includes(current.state)) return;
@@ -118,6 +119,46 @@ export async function settleMathDocumentGradingJobFailure(input: { db: any; job:
   };
   if (typeof input.db.$transaction === 'function') await input.db.$transaction((tx: any) => settle(tx));
   else await settle(input.db);
+}
+
+async function claimGradingJobForFailureSettlement(model: any, id: string | undefined, workerClaimToken: string, attemptCount: number, now: Date): Promise<boolean> {
+  if (!model?.updateMany || !id) {
+    if (!model?.findUnique || !id) return false;
+    const current = await model.findUnique({ where: { id } });
+    const currentLeaseExpiresAt = current?.workerLeaseExpiresAt == null ? null : new Date(current.workerLeaseExpiresAt);
+    if (
+      !current
+      || !['QUEUED', 'RUNNING', 'RETRYABLE'].includes(current.state)
+      || current.workerClaimToken !== workerClaimToken
+      || (currentLeaseExpiresAt !== null && (!Number.isFinite(currentLeaseExpiresAt.getTime()) || currentLeaseExpiresAt <= now))
+    ) return false;
+    return updateActiveRecord(model, id, { attemptCount, updatedAt: now }, ['QUEUED', 'RUNNING', 'RETRYABLE'], workerClaimToken);
+  }
+  const result = await model.updateMany({
+    where: {
+      id,
+      OR: [
+        {
+          state: { in: ['QUEUED', 'RUNNING', 'RETRYABLE'] },
+          workerClaimToken,
+          OR: [
+            { workerLeaseExpiresAt: null },
+            { workerLeaseExpiresAt: { gt: now } },
+          ],
+        },
+        { state: 'QUEUED', workerClaimToken: null },
+      ],
+    },
+    data: {
+      state: 'RUNNING',
+      attemptCount,
+      workerClaimToken,
+      workerClaimedAt: now,
+      workerLeaseExpiresAt: new Date(now.getTime() + GRADING_JOB_LEASE_MS),
+      updatedAt: now,
+    },
+  });
+  return result?.count === 1;
 }
 
 async function settleInFlightBatchItems(db: any, batchId: string | undefined, state: string, code: string, now: Date): Promise<void> {
