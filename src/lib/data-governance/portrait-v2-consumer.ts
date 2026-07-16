@@ -290,7 +290,11 @@ export function summarizePortraitV2(payload: PortraitV2PayloadShape): PortraitV2
     payloadVersion: payload.payloadVersion,
     derivationKind: payload.derivation.kind,
     generatedAt: payload.generatedAt,
-    overallScore: round(dimensions.reduce((sum, dimension) => sum + dimension.score, 0) / dimensions.length),
+    overallScore: round(
+      covered.length > 0
+        ? covered.reduce((sum, dimension) => sum + dimension.score, 0) / covered.length
+        : 0,
+    ),
     dimensions,
     strengths: covered.slice(0, strengthCount).map((dimension) => dimension.id),
     weaknesses: weaknessCount > 0

@@ -56,7 +56,7 @@ function nativePortrait() {
 }
 
 describe('portrait v2 consumer adapters', () => {
-  it('includes all seven dimensions in overall score when evidence is missing', () => {
+  it('does not interpret missing portrait dimensions as zero in the overall score', () => {
     const payload = nativePortrait();
     payload.dimensions = payload.dimensions.map(
       (dimension, index): (typeof payload.dimensions)[number] => ({
@@ -76,8 +76,7 @@ describe('portrait v2 consumer adapters', () => {
 
     const summary = summarizePortraitV2(payload);
 
-    expect(summary.overallScore).toBe(12.9);
-    expect(summary.overallScore).toBeLessThan(85);
+    expect(summary.overallScore).toBe(90);
     expect(summary.strengths).toEqual([payload.dimensions[0].id]);
     expect(summary.weaknesses).toEqual([]);
   });
