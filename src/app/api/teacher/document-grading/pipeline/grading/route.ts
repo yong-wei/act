@@ -25,6 +25,19 @@ export async function GET() {
     const actorResult = await requireGradingTeacherActor();
     if ('response' in actorResult) return actorResult.response;
     const now = new Date();
+    const frozenAuthorizationScope = actorResult.actor.role === 'ADMIN' ? [] : [
+      ...(await prisma.class.findMany({
+        where: { teacherId: actorResult.actor.id },
+        select: { id: true },
+      })).map(({ id }) => ({ authorizationSnapshot: { path: ['classId'], equals: id } })),
+      ...(await prisma.assignmentRevision.findMany({
+        where: { assignment: { OR: [
+          { authorId: actorResult.actor.id },
+          { reviewGrants: { some: { teacherId: actorResult.actor.id, revokedAt: null, OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] } } },
+        ] } },
+        select: { id: true },
+      })).map(({ id }) => ({ authorizationSnapshot: { path: ['assignmentRevisionId'], equals: id } })),
+    ];
     const rows = await prisma.gradingRun.findMany({
       where: {
         state: { in: ['AWAITING_REVIEW', 'CONTENT_UNAVAILABLE'] },
@@ -33,6 +46,7 @@ export async function GET() {
           { answerAttempt: { answer: { submission: { audience: { class: { teacherId: actorResult.actor.id } } } } } },
           { question: { revision: { assignment: { authorId: actorResult.actor.id } } } },
           { question: { revision: { assignment: { reviewGrants: { some: { teacherId: actorResult.actor.id, revokedAt: null, OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] } } } } } },
+          ...frozenAuthorizationScope,
         ] }),
       },
       include: PIPELINE_GRADING_REVIEW_INCLUDE,

@@ -59,9 +59,11 @@ const mocks = vi.hoisted(() => ({
     },
     assignmentRevision: {
       findUnique: vi.fn(),
+      findMany: vi.fn(),
     },
     class: {
       findUnique: vi.fn(),
+      findMany: vi.fn(),
     },
     studentProfile: {
       findFirst: vi.fn(),
@@ -341,6 +343,8 @@ describe('document rubric grading routes', () => {
     mocks.prisma.learningEvidenceDraft.findUnique.mockResolvedValue(null);
     mocks.prisma.gradingRun.findUnique.mockResolvedValue(null);
     mocks.prisma.gradingRun.findMany.mockResolvedValue([]);
+    mocks.prisma.assignmentRevision.findMany.mockResolvedValue([]);
+    mocks.prisma.class.findMany.mockResolvedValue([]);
     mocks.prisma.learningFact.findMany.mockResolvedValue([]);
     mocks.prisma.learningEvidenceDraft.create.mockImplementation(async (input) => ({
       id: input.data.id,
@@ -1211,7 +1215,7 @@ describe('document rubric grading routes', () => {
     expect(ui).toContain('entryPoint={view.konlingEntryPoint}');
     expect(ui).toContain('gradingRunId={view.gradingRunId}');
     expect(action).toContain("fetch('/api/teacher/document-grading/approve'");
-    expect(action).toContain("JSON.stringify({ gradingRunId, decision: 'approved', edits })");
+    expect(action).toContain('edits: selectModifiedDocumentGradingEdits(criteria, edits)');
     expect(action).toContain('AI 原值');
     expect(action).toContain('证据锚点为只读');
     expect(action).toContain('type="number"');
@@ -2089,12 +2093,21 @@ describe('document rubric grading routes', () => {
     run.rubricSnapshot = null;
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
     mocks.prisma.gradingRun.findMany.mockResolvedValue([run]);
+    mocks.prisma.class.findMany.mockResolvedValue([{ id: 'class-1' }]);
     mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
     mocks.prisma.assignmentRevision.findUnique.mockResolvedValue({ assignment: { id: 'assignment-1', authorId: 'teacher-author', reviewGrants: [] } });
     await expect(assertPipelineReviewActor({ db: mocks.prisma, run, actor: { id: 'teacher-1', role: 'TEACHER' }, now })).resolves.toBeUndefined();
     const response = await gradingListGET();
     expect(response!.status).toBe(200);
     await expect(response!.json()).resolves.toMatchObject({ items: [{ gradingRunId: run.id, classId: 'class-1', assignmentId: 'assignment-1', rerunRequired: true }] });
+    expect(mocks.prisma.gradingRun.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        OR: expect.arrayContaining([
+          { authorizationSnapshot: { path: ['classId'], equals: 'class-1' } },
+        ]),
+      }),
+      take: 50,
+    }));
   });
 
   it.each([0, -1, Number.POSITIVE_INFINITY])('returns a governed review error for invalid rubric maxScore %s', async (maxScore) => {
