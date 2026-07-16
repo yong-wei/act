@@ -4,7 +4,11 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-import { assertProductionProviderRetentionAdapter } from '../../../../scripts/assignments/ensure-grading-policies';
+import {
+  assertProductionProviderRetentionAdapter,
+  ensureGradingPolicies,
+  parseGradingPolicySeedConfig,
+} from '../../../../scripts/assignments/ensure-grading-policies';
 
 const read = (file: string) => readFileSync(join(process.cwd(), file), 'utf8');
 
@@ -176,6 +180,40 @@ describe('math-document grading production entrypoint contract', () => {
     expect(remoteDeploy).toContain('fail "远端应用容器的 MATH_DOCUMENT_GRADING_WORKER_REQUIRED 缺失或无效"');
     expect(remoteDeploy).not.toContain('MATH_DOCUMENT_GRADING_WORKER_REQUIRED="${MATH_DOCUMENT_GRADING_WORKER_REQUIRED:-true}"');
     expect(remoteDeploy).toContain('数学文档批改 worker 已禁用，跳过其专用健康检查');
+  });
+
+  it('seeds lifecycle policies without requiring provider metadata when the math worker is disabled', async () => {
+    const env: Record<string, string> = {
+      NODE_ENV: 'production',
+      MATH_DOCUMENT_GRADING_WORKER_REQUIRED: 'false',
+    };
+    for (const prefix of ['SOURCE_ASSET', 'ANSWER_EVIDENCE', 'DOCUMENT_CONVERSION', 'AI_DRAFT', 'RUN']) {
+      env[`GRADING_${prefix}_POLICY_VERSION`] = 'v1';
+      env[`GRADING_${prefix}_RETENTION_SECONDS`] = '3600';
+      env[`GRADING_${prefix}_DELETE_STRATEGY`] = 'delete-content';
+      env[`GRADING_${prefix}_PROVIDER_RETENTION_SECONDS`] = '0';
+      env[`GRADING_${prefix}_ENABLED`] = 'true';
+    }
+
+    const config = parseGradingPolicySeedConfig(env);
+
+    expect(config.lifecycle).toHaveLength(5);
+    expect(config.providers).toEqual([]);
+    const writes: unknown[] = [];
+    const actions = await ensureGradingPolicies({
+      db: {
+        gradingLifecyclePolicy: {
+          upsert: async (args) => {
+            writes.push(args);
+            return args.create;
+          },
+        },
+      },
+      config,
+      production: true,
+    });
+    expect(writes).toHaveLength(5);
+    expect(actions.every((action) => action.kind === 'lifecycle' && action.action === 'upserted')).toBe(true);
   });
 
   it('validates public readyz according to the optional math worker requirement', () => {

@@ -130,6 +130,9 @@ function parseProviderPolicy(env: Env, kind: 'ai' | 'mathpix'): ExternalProcessi
 }
 
 export function parseGradingPolicySeedConfig(env: Env = process.env): GradingPolicySeedConfig {
+  const includeProviders = ['1', 'true', 'yes'].includes(
+    (env.MATH_DOCUMENT_GRADING_WORKER_REQUIRED ?? 'true').trim().toLowerCase(),
+  );
   const config = {
     lifecycle: [
       parseLifecyclePolicy(env, 'source-asset', 'SOURCE_ASSET'),
@@ -138,7 +141,9 @@ export function parseGradingPolicySeedConfig(env: Env = process.env): GradingPol
       parseLifecyclePolicy(env, 'ai-draft', 'AI_DRAFT'),
       parseLifecyclePolicy(env, 'grading-run', 'RUN'),
     ],
-    providers: [parseProviderPolicy(env, 'ai'), parseProviderPolicy(env, 'mathpix')],
+    providers: includeProviders
+      ? [parseProviderPolicy(env, 'ai'), parseProviderPolicy(env, 'mathpix')]
+      : [],
   };
   assertProductionProviderRetentionAdapter(config, env.NODE_ENV?.trim().toLowerCase() === 'production');
   return config;
@@ -147,7 +152,10 @@ export function parseGradingPolicySeedConfig(env: Env = process.env): GradingPol
 export async function ensureGradingPolicies(input: { db: GradingPolicyDb; config: GradingPolicySeedConfig; dryRun?: boolean; production?: boolean }) {
   assertProductionProviderRetentionAdapter(input.config, input.production === true);
   const dryRun = input.dryRun === true;
-  if (!dryRun && (!input.db.gradingLifecyclePolicy?.upsert || !input.db.gradingProviderPolicy?.upsert)) throw new Error('grading-policy-repository-unavailable');
+  if (!dryRun && (
+    !input.db.gradingLifecyclePolicy?.upsert
+    || (input.config.providers.length > 0 && !input.db.gradingProviderPolicy?.upsert)
+  )) throw new Error('grading-policy-repository-unavailable');
   const actions: Array<{ kind: 'lifecycle' | 'provider'; key: string; action: 'would-create-or-keep' | 'upserted' }> = [];
   for (const policy of input.config.lifecycle) {
     const where = { dataClass_version: { dataClass: policy.dataClass, version: policy.version } };
