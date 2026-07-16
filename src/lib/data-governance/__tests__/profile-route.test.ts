@@ -302,7 +302,7 @@ function learningFact(overrides: Record<string, unknown> = {}) {
   };
 }
 
-function portraitV2Snapshot(confidence = 0.8) {
+function portraitV2Snapshot(confidence = 0.8, hasEvidence = true) {
   const generatedAt = '2026-05-20T00:00:00.000Z';
   const portrait = createPortraitV2Payload({
     userId: 'student-1',
@@ -310,24 +310,27 @@ function portraitV2Snapshot(confidence = 0.8) {
     now: generatedAt,
     dimensions: PORTRAIT_V2_DIMENSIONS.map(({ id }) => ({
       id,
-      score: 80,
-      confidence,
+      score: hasEvidence ? 80 : 0,
+      confidence: hasEvidence ? confidence : 0,
       trend: 'stable' as const,
       freshness: {
-        state: 'current' as const,
-        asOf: generatedAt,
-        evidenceAgeDays: 0,
+        state: hasEvidence ? 'current' as const : 'missing' as const,
+        asOf: hasEvidence ? generatedAt : null,
+        evidenceAgeDays: hasEvidence ? 0 : null,
       },
-      evidenceSummary: { totalCount: 1, sourceFamilyCounts: { LearningFact: 1 } },
-      lastPositiveEvidenceAt: generatedAt,
+      evidenceSummary: {
+        totalCount: hasEvidence ? 1 : 0,
+        sourceFamilyCounts: hasEvidence ? { LearningFact: 1 } : {} as Record<string, number>,
+      },
+      lastPositiveEvidenceAt: hasEvidence ? generatedAt : null,
       lastNegativeEvidenceAt: null,
-      rationale: 'Governed evidence supports the current score.',
-      limitations: [],
-      sourceLineage: [{
+      rationale: hasEvidence ? 'Governed evidence supports the current score.' : 'No safe legacy mapping exists.',
+      limitations: hasEvidence ? [] : ['missing-native-portrait-v2-evidence'],
+      sourceLineage: hasEvidence ? [{
         kind: 'evidence-family' as const,
         ref: 'LearningFact',
         privacyScope: 'student-visible' as const,
-      }],
+      }] : [],
       calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
     })),
   });
@@ -785,6 +788,18 @@ describe('GET /api/user/profile', () => {
     expect(response.status).toBe(200);
     expect(body.adaptiveLearnerState).toBeNull();
     expect(body.competency.dimensions).toHaveLength(7);
+  });
+
+  it('keeps compatibility profile scores when a native portrait row has no evidence', async () => {
+    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue(portraitV2Snapshot(0.8, false));
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.competency.overallScore).toBeGreaterThan(0);
+    expect(body.competency.dimensions).toHaveLength(7);
+    expect(body.competency.dimensions.some((dimension: { evidenceCount: number }) => dimension.evidenceCount > 0)).toBe(true);
   });
 
   it('does not initialize profile data for a stale student session when the database user is no longer a student', async () => {

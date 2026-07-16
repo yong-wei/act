@@ -26,6 +26,10 @@ import {
 } from '@/lib/data-governance/portrait-v2-consumer';
 import type { PortraitV2ConsumerSummary } from '@/lib/data-governance/portrait-v2-consumer';
 import {
+  derivePortraitV2Compatibility,
+  projectPortraitV2ForConsumer,
+} from '@/lib/data-governance/portrait-v2-model';
+import {
   createPrismaDiagnosisReportSnapshotStore,
   hasDiagnosisReportSnapshotPersistenceTable,
   readLatestControlCorrectionDiagnosisReportSnapshotFromPersistence,
@@ -108,10 +112,22 @@ export async function GET(_request: NextRequest) {
     const portraitResolution = await resolvePrimaryPortraitV2(prisma, userId, 'student', {
       legacySnapshot: currentSnapshot,
     });
-    const portrait = summarizePortraitV2(portraitResolution.primaryPortrait);
+    const legacyCompatibility = portraitResolution.legacyCompatibility;
+    const resolvedPortrait = hasPortraitV2Evidence(portraitResolution.primaryPortrait)
+      ? portraitResolution.primaryPortrait
+      : legacyCompatibility.source !== 'fallback-empty'
+        ? projectPortraitV2ForConsumer(derivePortraitV2Compatibility({
+          userId,
+          snapshotId: legacyCompatibility.snapshotId ?? undefined,
+          snapshotAt: legacyCompatibility.snapshotAt,
+          sourceFamily: legacyCompatibility.source,
+          vector: legacyCompatibility.vector,
+        }), 'student')
+        : portraitResolution.primaryPortrait;
+    const portrait = summarizePortraitV2(resolvedPortrait);
 
     if (!currentSnapshot) {
-      const hasPortraitV2Data = hasPortraitV2Evidence(portraitResolution.primaryPortrait);
+      const hasPortraitV2Data = hasPortraitV2Evidence(resolvedPortrait);
       if (hasPortraitV2Data) {
         const currentVector = portraitResolution.legacyCompatibility.vector;
         const snapshotAt = portrait.generatedAt;

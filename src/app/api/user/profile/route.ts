@@ -35,6 +35,8 @@ import { hasPortraitV2Evidence, resolvePrimaryPortraitV2 } from '@/lib/data-gove
 import {
   PORTRAIT_V2_FRESHNESS_CURRENT_MAX_AGE_DAYS,
   PORTRAIT_V2_FRESHNESS_PARTIAL_MAX_AGE_DAYS,
+  derivePortraitV2Compatibility,
+  projectPortraitV2ForConsumer,
 } from '@/lib/data-governance/portrait-v2-model';
 import {
   getAbilityReportWithPersistenceFallback,
@@ -440,12 +442,31 @@ export async function GET() {
 
     const sessionMap = new Map(classSessions.map((item) => [item.id, item]));
     // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: direct snapshot/cache reads only feed explicit v2 fallback resolution.
-    const portraitPayload = Array.isArray(adaptiveLearnerState?.primaryPortrait?.dimensions)
+    const adaptivePortrait = Array.isArray(adaptiveLearnerState?.primaryPortrait?.dimensions)
       ? adaptiveLearnerState.primaryPortrait
-      : (await resolvePrimaryPortraitV2(prisma, userId, 'student', {
+      : null;
+    const portraitResolution = !adaptivePortrait || !hasPortraitV2Evidence(adaptivePortrait)
+      ? await resolvePrimaryPortraitV2(prisma, userId, 'student', {
           legacySnapshot: latestSnapshot as Record<string, unknown> | null,
           featureCache: studentEvidenceFeatureRead.cache as Record<string, unknown> | null,
-        }).catch(() => null))?.primaryPortrait;
+        }).catch(() => null)
+      : null;
+    const resolvedPortrait = adaptivePortrait && hasPortraitV2Evidence(adaptivePortrait)
+      ? adaptivePortrait
+      : portraitResolution?.primaryPortrait && hasPortraitV2Evidence(portraitResolution.primaryPortrait)
+        ? portraitResolution.primaryPortrait
+        : portraitResolution && portraitResolution.legacyCompatibility.source !== 'fallback-empty'
+          ? projectPortraitV2ForConsumer(derivePortraitV2Compatibility({
+              userId,
+              snapshotId: portraitResolution.legacyCompatibility.snapshotId ?? undefined,
+              snapshotAt: portraitResolution.legacyCompatibility.snapshotAt,
+              sourceFamily: portraitResolution.legacyCompatibility.source,
+              vector: portraitResolution.legacyCompatibility.vector,
+            }), 'student')
+          : null;
+    const portraitPayload = resolvedPortrait && hasPortraitV2Evidence(resolvedPortrait)
+      ? resolvedPortrait
+      : null;
     const portraitSummary = portraitPayload
       ? summarizePortraitForProfile(portraitPayload)
       : null;
