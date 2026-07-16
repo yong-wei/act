@@ -8,6 +8,20 @@ type ApprovalState = 'idle' | 'submitting' | 'success' | 'error';
 type DocumentGradingCriterion = { criterionId: string; label: string; selectedLevelId: string | null; editableScore: number | null; aiLevelId?: string | null; aiScore?: number | null; teacherComment?: string | null; levels?: Array<{ id: string; label: string; minPoints: number; maxPoints: number }> };
 type DocumentGradingEdit = { criterionId: string; levelId: string; score: number; comment: string };
 
+export function selectDocumentGradingLevel(
+  edit: DocumentGradingEdit,
+  levels: DocumentGradingCriterion['levels'],
+  levelId: string,
+): DocumentGradingEdit {
+  const level = levels?.find((candidate) => candidate.id === levelId);
+  if (!level) return { ...edit, levelId };
+  return {
+    ...edit,
+    levelId,
+    score: Math.min(level.maxPoints, Math.max(level.minPoints, edit.score)),
+  };
+}
+
 export function selectModifiedDocumentGradingEdits(
   criteria: DocumentGradingCriterion[],
   edits: DocumentGradingEdit[],
@@ -68,7 +82,7 @@ export function DocumentGradingApprovalButton({ gradingRunId, criteria = [] }: {
 
   return (
     <div data-document-grading-approval="active" className="space-y-4">
-      {criteria.map((criterion, index) => <fieldset key={criterion.criterionId} className="rounded border border-border p-3"><legend className="px-1 text-sm font-medium">{criterion.label}</legend><p className="text-xs text-muted-foreground">AI 原值：{criterion.aiLevelId ?? '未选择'} · {criterion.aiScore ?? '-'}；教师最终值如下。证据锚点为只读。</p><div className="mt-2 grid gap-2 sm:grid-cols-3"><select aria-label={`${criterion.label}等级`} value={edits[index]?.levelId} onChange={(event) => setEdits((current) => current.map((edit, itemIndex) => itemIndex === index ? { ...edit, levelId: event.target.value } : edit))} className="rounded border border-border bg-background px-2 py-2 text-sm">{criterion.levels?.map((level) => <option key={level.id} value={level.id}>{level.label}（{level.minPoints}–{level.maxPoints}）</option>)}</select><input aria-label={`${criterion.label}分数`} type="number" min={criterion.levels?.find((level) => level.id === edits[index]?.levelId)?.minPoints ?? 0} max={criterion.levels?.find((level) => level.id === edits[index]?.levelId)?.maxPoints} value={edits[index]?.score} onChange={(event) => setEdits((current) => current.map((edit, itemIndex) => itemIndex === index ? { ...edit, score: Number(event.target.value) } : edit))} className="rounded border border-border bg-background px-2 py-2 text-sm"/><input aria-label={`${criterion.label}教师评语`} value={edits[index]?.comment} onChange={(event) => setEdits((current) => current.map((edit, itemIndex) => itemIndex === index ? { ...edit, comment: event.target.value } : edit))} className="rounded border border-border bg-background px-2 py-2 text-sm"/></div></fieldset>)}
+      {criteria.map((criterion, index) => <fieldset key={criterion.criterionId} className="rounded border border-border p-3"><legend className="px-1 text-sm font-medium">{criterion.label}</legend><p className="text-xs text-muted-foreground">AI 原值：{criterion.aiLevelId ?? '未选择'} · {criterion.aiScore ?? '-'}；教师最终值如下。证据锚点为只读。</p><div className="mt-2 grid gap-2 sm:grid-cols-3"><select aria-label={`${criterion.label}等级`} value={edits[index]?.levelId} onChange={(event) => setEdits((current) => current.map((edit, itemIndex) => itemIndex === index ? selectDocumentGradingLevel(edit, criterion.levels, event.target.value) : edit))} className="rounded border border-border bg-background px-2 py-2 text-sm">{criterion.levels?.map((level) => <option key={level.id} value={level.id}>{level.label}（{level.minPoints}–{level.maxPoints}）</option>)}</select><input aria-label={`${criterion.label}分数`} type="number" min={criterion.levels?.find((level) => level.id === edits[index]?.levelId)?.minPoints ?? 0} max={criterion.levels?.find((level) => level.id === edits[index]?.levelId)?.maxPoints} value={edits[index]?.score} onChange={(event) => setEdits((current) => current.map((edit, itemIndex) => itemIndex === index ? { ...edit, score: Number(event.target.value) } : edit))} className="rounded border border-border bg-background px-2 py-2 text-sm"/><input aria-label={`${criterion.label}教师评语`} value={edits[index]?.comment} onChange={(event) => setEdits((current) => current.map((edit, itemIndex) => itemIndex === index ? { ...edit, comment: event.target.value } : edit))} className="rounded border border-border bg-background px-2 py-2 text-sm"/></div></fieldset>)}
       <button
         type="button"
         onClick={() => void approve()}

@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { selectModifiedDocumentGradingEdits } from '../document-rubric-grading-actions';
+import {
+  selectDocumentGradingLevel,
+  selectModifiedDocumentGradingEdits,
+} from '../document-rubric-grading-actions';
 
 describe('document rubric grading approval edits', () => {
   it('does not submit untouched legacy criteria as teacher edits', () => {
@@ -30,5 +33,20 @@ describe('document rubric grading approval edits', () => {
       { criterionId: 'criterion-1', levelId: 'level-2', score: 8, comment: '' },
       changed,
     ])).toEqual([changed]);
+  });
+
+  it('clamps the score into the newly selected level range', () => {
+    const edit = { criterionId: 'criterion-1', levelId: 'level-1', score: 3, comment: '' };
+    const levels = [
+      { id: 'level-1', label: '基础', minPoints: 0, maxPoints: 4 },
+      { id: 'level-2', label: '熟练', minPoints: 6, maxPoints: 8 },
+    ];
+
+    expect(selectDocumentGradingLevel(edit, levels, 'level-2')).toEqual({
+      ...edit,
+      levelId: 'level-2',
+      score: 6,
+    });
+    expect(selectDocumentGradingLevel({ ...edit, score: 7 }, levels, 'level-2').score).toBe(7);
   });
 });
