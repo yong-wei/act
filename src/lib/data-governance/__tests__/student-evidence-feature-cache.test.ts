@@ -1743,7 +1743,7 @@ describe('student evidence feature cache service', () => {
     });
   });
 
-  it('marks current-version caches without portrait v2 source fields as stale', async () => {
+  it('normalizes current-version caches created before portrait v2 source fields were added', async () => {
     const payload = buildStudentEvidenceFeaturePayload({
       userId: 'student-1',
       now: new Date('2026-05-19T00:00:00.000Z'),
@@ -1762,6 +1762,76 @@ describe('student evidence feature cache service', () => {
           statusMarkers: [],
           sourceCounts,
           sourceCoverage,
+          features: payload.features,
+        }),
+      },
+    };
+
+    await expect(
+      readStudentEvidenceFeatures(db, 'student-1', {
+        now: new Date('2026-05-19T00:00:00.000Z'),
+      })
+    ).resolves.toMatchObject({
+      state: 'ready',
+      cache: {
+        sourceCounts: { StudentPortraitV2Snapshot: 0 },
+        sourceCoverage: { StudentPortraitV2Snapshot: 'missing' },
+      },
+    });
+  });
+
+  it.each(['count', 'coverage'] as const)(
+    'keeps current-version caches with only the portrait v2 %s missing stale',
+    async (missingField) => {
+      const payload = buildStudentEvidenceFeaturePayload({
+        userId: 'student-1',
+        now: new Date('2026-05-19T00:00:00.000Z'),
+        facts: [fact()],
+      });
+      const sourceCounts = { ...payload.sourceCounts } as Record<string, unknown>;
+      const sourceCoverage = { ...payload.sourceCoverage } as Record<string, unknown>;
+      if (missingField === 'count') {
+        delete sourceCounts.StudentPortraitV2Snapshot;
+      } else {
+        delete sourceCoverage.StudentPortraitV2Snapshot;
+      }
+      const db = {
+        studentEvidenceFeatureCache: {
+          findUnique: vi.fn().mockResolvedValue({
+            userId: 'student-1',
+            payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
+            refreshedAt: new Date('2026-05-18T00:00:00.000Z'),
+            statusMarkers: [],
+            sourceCounts,
+            sourceCoverage,
+            features: payload.features,
+          }),
+        },
+      };
+
+      await expect(
+        readStudentEvidenceFeatures(db, 'student-1', {
+          now: new Date('2026-05-19T00:00:00.000Z'),
+        })
+      ).resolves.toMatchObject({ state: 'stale' });
+    }
+  );
+
+  it('keeps current-version caches with malformed source parent structures stale', async () => {
+    const payload = buildStudentEvidenceFeaturePayload({
+      userId: 'student-1',
+      now: new Date('2026-05-19T00:00:00.000Z'),
+      facts: [fact()],
+    });
+    const db = {
+      studentEvidenceFeatureCache: {
+        findUnique: vi.fn().mockResolvedValue({
+          userId: 'student-1',
+          payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
+          refreshedAt: new Date('2026-05-18T00:00:00.000Z'),
+          statusMarkers: [],
+          sourceCounts: null,
+          sourceCoverage: payload.sourceCoverage,
           features: payload.features,
         }),
       },

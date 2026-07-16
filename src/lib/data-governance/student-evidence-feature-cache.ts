@@ -727,17 +727,18 @@ export async function readStudentEvidenceFeatures(
     };
   }
 
-  const refreshedAt = cache.refreshedAt instanceof Date ? cache.refreshedAt : null;
+  const compatibleCache = normalizeLegacyPortraitV2SourceFields(cache);
+  const refreshedAt = compatibleCache.refreshedAt instanceof Date ? compatibleCache.refreshedAt : null;
   const staleAfterDays = options.staleAfterDays ?? DEFAULT_STALE_AFTER_DAYS;
   const staleByAge = refreshedAt
     ? (options.now ?? new Date()).getTime() - refreshedAt.getTime() > staleAfterDays * DAY_MS
     : true;
-  const markers = Array.isArray(cache.statusMarkers) ? cache.statusMarkers : [];
-  const staleBySchema = !hasCurrentFeaturePayloadSchema(cache);
+  const markers = Array.isArray(compatibleCache.statusMarkers) ? compatibleCache.statusMarkers : [];
+  const staleBySchema = !hasCurrentFeaturePayloadSchema(compatibleCache);
 
   return {
     state: staleByAge || markers.includes('stale') || staleBySchema ? 'stale' : 'ready',
-    cache,
+    cache: compatibleCache,
     rawReadExceptions: [...STUDENT_EVIDENCE_FEATURE_RAW_READ_EXCEPTIONS],
   };
 }
@@ -1964,6 +1965,32 @@ function isObject(value: unknown): value is Record<string, unknown> {
 
 function isCoverageState(value: unknown): value is StudentEvidenceCoverageState {
   return value === 'available' || value === 'partial' || value === 'missing';
+}
+
+function normalizeLegacyPortraitV2SourceFields(
+  cache: Record<string, unknown>
+): Record<string, unknown> {
+  if (!isObject(cache.sourceCounts) || !isObject(cache.sourceCoverage)) {
+    return cache;
+  }
+
+  const missingCount = cache.sourceCounts.StudentPortraitV2Snapshot === undefined;
+  const missingCoverage = cache.sourceCoverage.StudentPortraitV2Snapshot === undefined;
+  if (!missingCount || !missingCoverage) {
+    return cache;
+  }
+
+  return {
+    ...cache,
+    sourceCounts: {
+      ...cache.sourceCounts,
+      StudentPortraitV2Snapshot: 0,
+    },
+    sourceCoverage: {
+      ...cache.sourceCoverage,
+      StudentPortraitV2Snapshot: 'missing',
+    },
+  };
 }
 
 function hasCurrentFeaturePayloadSchema(cache: Record<string, unknown>): boolean {
