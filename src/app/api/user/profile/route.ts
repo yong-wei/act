@@ -31,7 +31,11 @@ import {
   readAdaptiveLearnerState,
   type AdaptiveLearnerState,
 } from '@/lib/data-governance/adaptive-learner-state-service';
-import { resolvePrimaryPortraitV2 } from '@/lib/data-governance/portrait-v2-consumer';
+import { hasPortraitV2Evidence, resolvePrimaryPortraitV2 } from '@/lib/data-governance/portrait-v2-consumer';
+import {
+  PORTRAIT_V2_FRESHNESS_CURRENT_MAX_AGE_DAYS,
+  PORTRAIT_V2_FRESHNESS_PARTIAL_MAX_AGE_DAYS,
+} from '@/lib/data-governance/portrait-v2-model';
 import {
   getAbilityReportWithPersistenceFallback,
   getDiagnosticWithPersistenceFallback,
@@ -551,10 +555,37 @@ export async function GET() {
             startedAt: true,
           },
         });
+    const portraitEvidenceDimensions = portraitSummary?.dimensions.filter((dimension) => dimension.evidenceCount > 0) ?? [];
+    const portraitFreshnessRank = { current: 0, partial: 1, stale: 2, missing: 3 } as const;
+    const portraitEvidenceFreshness = portraitEvidenceDimensions
+      .map((dimension) => {
+        const asOf = Date.parse(dimension.freshness.asOf ?? '');
+        const ageMilliseconds = Date.now() - asOf;
+        if (!Number.isFinite(asOf) || ageMilliseconds < 0) return 'stale' as const;
+        const ageDays = Math.floor(ageMilliseconds / 86_400_000);
+        if (ageDays <= PORTRAIT_V2_FRESHNESS_CURRENT_MAX_AGE_DAYS) return 'current' as const;
+        if (ageDays <= PORTRAIT_V2_FRESHNESS_PARTIAL_MAX_AGE_DAYS) return 'partial' as const;
+        return 'stale' as const;
+      })
+      .sort((left, right) => portraitFreshnessRank[right] - portraitFreshnessRank[left])[0];
     const evidenceStatus = buildStudentProfileEvidenceStatus({
       featureRead: studentEvidenceFeatureRead,
       learningFacts: evidenceStatusFacts,
       hasLatestSnapshot: Boolean(latestSnapshot),
+      primaryPortraitEvidence: portraitPayload
+        && ['native', 'migrated'].includes(portraitPayload.derivation.kind)
+        && hasPortraitV2Evidence(portraitPayload)
+        ? {
+            snapshotCount: 1,
+            // A single governed fact can contribute to several dimensions; max is a conservative lower bound.
+            evidenceCount: Math.max(...portraitEvidenceDimensions.map((dimension) => dimension.evidenceCount)),
+            refreshedAt: portraitPayload.generatedAt,
+            freshness: portraitEvidenceFreshness === 'current' || portraitEvidenceFreshness === 'partial'
+              ? portraitEvidenceFreshness
+              : 'stale',
+            confidence: Math.min(...portraitEvidenceDimensions.map((dimension) => dimension.confidence)),
+          }
+        : null,
     });
 
     const response: UserProfileResponse = {

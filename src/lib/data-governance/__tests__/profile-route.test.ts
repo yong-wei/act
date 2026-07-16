@@ -26,6 +26,9 @@ const mocks = vi.hoisted(() => {
       studentCompetencySnapshot: {
         findFirst: vi.fn(),
       },
+      studentPortraitV2Snapshot: {
+        findFirst: vi.fn(),
+      },
       studentProfileSummary: {
         findUnique: vi.fn(),
       },
@@ -135,6 +138,11 @@ vi.mock('@/features/arena/submissions/prisma-store', () => ({
 }));
 
 import { GET } from '@/app/api/user/profile/route';
+import { PORTRAIT_V2_DIMENSIONS } from '@/lib/data-governance/kaq-objective-taxonomy';
+import {
+  createPortraitV2Payload,
+  PORTRAIT_V2_CALCULATION_VERSION,
+} from '@/lib/data-governance/portrait-v2-model';
 
 function arenaSubmission(overrides: Record<string, unknown> = {}) {
   const taskId = typeof overrides.taskId === 'string' ? overrides.taskId : 'task-integrator-low-frequency-balance';
@@ -294,6 +302,47 @@ function learningFact(overrides: Record<string, unknown> = {}) {
   };
 }
 
+function portraitV2Snapshot(confidence = 0.8) {
+  const generatedAt = '2026-05-20T00:00:00.000Z';
+  const portrait = createPortraitV2Payload({
+    userId: 'student-1',
+    generatedAt,
+    now: generatedAt,
+    dimensions: PORTRAIT_V2_DIMENSIONS.map(({ id }) => ({
+      id,
+      score: 80,
+      confidence,
+      trend: 'stable' as const,
+      freshness: {
+        state: 'current' as const,
+        asOf: generatedAt,
+        evidenceAgeDays: 0,
+      },
+      evidenceSummary: { totalCount: 1, sourceFamilyCounts: { LearningFact: 1 } },
+      lastPositiveEvidenceAt: generatedAt,
+      lastNegativeEvidenceAt: null,
+      rationale: 'Governed evidence supports the current score.',
+      limitations: [],
+      sourceLineage: [{
+        kind: 'evidence-family' as const,
+        ref: 'LearningFact',
+        privacyScope: 'student-visible' as const,
+      }],
+      calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+    })),
+  });
+  return {
+    id: 'portrait-v2-current-at-generation',
+    userId: 'student-1',
+    snapshotAt: new Date(generatedAt),
+    payloadVersion: portrait.payloadVersion,
+    calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+    migrationVersion: portrait.migrationVersion,
+    derivationKind: portrait.derivation.kind,
+    payload: portrait,
+  };
+}
+
 describe('GET /api/user/profile', () => {
   beforeEach(() => {
     vi.useFakeTimers();
@@ -337,6 +386,7 @@ describe('GET /api/user/profile', () => {
       snapshotAt: new Date('2026-03-19T09:00:00.000Z'),
       factCount: 18,
     });
+    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue(null);
 
     mocks.prisma.studentProfileSummary.findUnique.mockResolvedValue({
       overallLevel: '良好',
@@ -788,6 +838,62 @@ describe('GET /api/user/profile', () => {
         StudentProfileSummary: 'missing',
       },
       statusMarkers: ['missing-source'],
+    });
+  });
+
+  it('marks profile evidence ready when portrait v2 is the only snapshot source', async () => {
+    const generatedAt = '2026-05-20T00:00:00.000Z';
+    mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(null);
+    mocks.prisma.studentCompetencySnapshot.findFirst.mockResolvedValue(null);
+    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue(portraitV2Snapshot());
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.evidenceStatus).toMatchObject({
+      state: 'ready',
+      evidenceBasis: 'portrait-v2',
+      refreshedAt: generatedAt,
+      sourceCounts: {
+        StudentCompetencySnapshot: 0,
+        StudentPortraitV2Snapshot: 1,
+      },
+      sourceCoverage: {
+        StudentCompetencySnapshot: 'missing',
+        StudentPortraitV2Snapshot: 'available',
+      },
+      confidence: {
+        state: 'ready',
+        level: 'high',
+        evidenceCount: 1,
+      },
+      statusMarkers: [],
+    });
+  });
+
+  it('does not report a stale portrait-only snapshot as healthy evidence', async () => {
+    vi.setSystemTime(new Date('2026-09-01T00:00:00.000Z'));
+    mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(null);
+    mocks.prisma.studentCompetencySnapshot.findFirst.mockResolvedValue(null);
+    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue(portraitV2Snapshot());
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.evidenceStatus).toMatchObject({
+      state: 'stale',
+      evidenceBasis: 'portrait-v2',
+      sourceCounts: { StudentPortraitV2Snapshot: 1 },
+      sourceCoverage: { StudentPortraitV2Snapshot: 'partial' },
+      confidence: {
+        state: 'stale',
+        level: 'high',
+        score: 0.8,
+        evidenceCount: 1,
+      },
+      statusMarkers: ['stale'],
     });
   });
 

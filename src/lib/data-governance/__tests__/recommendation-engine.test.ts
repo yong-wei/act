@@ -760,6 +760,70 @@ describe('generateRecommendations', () => {
     expect(titles).toEqual(expect.arrayContaining(['挑战专家级任务', '伦理决策挑战', '参数优化大师']));
   });
 
+  it('falls back to governed legacy evidence when a native portrait has no evidence', async () => {
+    const portrait = strongNativePortrait(new Set());
+    mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(evidenceCache());
+    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue({
+      id: 'portrait-v2-empty',
+      userId: 'student-1',
+      snapshotAt: new Date(portrait.generatedAt),
+      payloadVersion: portrait.payloadVersion,
+      calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+      migrationVersion: portrait.migrationVersion,
+      derivationKind: portrait.derivation.kind,
+      payload: portrait,
+    });
+
+    const recommendation = (await generateRecommendations('student-1'))
+      .find((item) => item.title === '提升迁移整合与应用能力');
+
+    expect(recommendation?.rationale).toMatchObject({
+      evidenceBasis: 'student-evidence-feature-cache',
+      evidenceCount: 7,
+    });
+  });
+
+  it('preserves partial freshness when zero-evidence portrait falls back to legacy evidence', async () => {
+    const portrait = strongNativePortrait(new Set());
+    const partialVector: CompetencyVector = {
+      ...cacheVector,
+      crossDomainTransfer: {
+        ...cacheVector.crossDomainTransfer,
+        lastUpdated: '2026-04-01T00:00:00.000Z',
+      },
+    };
+    const approvedAggregates = defaultApprovedAggregates();
+    mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(evidenceCache({
+      features: {
+        approvedAggregates: {
+          ...approvedAggregates,
+          latestSnapshot: {
+            ...approvedAggregates.latestSnapshot,
+            competencyVector: partialVector,
+          },
+        },
+      },
+    }));
+    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue({
+      id: 'portrait-v2-empty-partial-fallback',
+      userId: 'student-1',
+      snapshotAt: new Date(portrait.generatedAt),
+      payloadVersion: portrait.payloadVersion,
+      calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+      migrationVersion: portrait.migrationVersion,
+      derivationKind: portrait.derivation.kind,
+      payload: portrait,
+    });
+
+    const recommendation = (await generateRecommendations('student-1'))
+      .find((item) => item.title === '提升迁移整合与应用能力');
+
+    expect(recommendation?.rationale.portraitV2?.freshness).toMatchObject({
+      state: 'partial',
+      asOf: '2026-04-01T00:00:00.000Z',
+    });
+  });
+
   it('uses a current migrated portrait dimension for weak-dimension practice', async () => {
     const weakVector: CompetencyVector = {
       ...strongSnapshotVector,

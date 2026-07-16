@@ -25,6 +25,7 @@ import {
   type AdaptiveLearnerState,
 } from './adaptive-learner-state-service';
 import {
+  hasPortraitV2Evidence,
   resolvePrimaryPortraitV2,
   summarizePortraitV2,
 } from './portrait-v2-consumer';
@@ -584,7 +585,8 @@ async function buildRecommendationContext(userId: string): Promise<Recommendatio
       featureCache,
     },
   )).primaryPortrait;
-  const hasAuthoritativePortrait = ['native', 'migrated'].includes(portraitV2.derivation.kind);
+  const hasAuthoritativePortrait = ['native', 'migrated'].includes(portraitV2.derivation.kind)
+    && hasPortraitV2Evidence(portraitV2);
   const portraitCompatibilityVector = hasAuthoritativePortrait
     ? deriveLegacyCompatibilityVectorFromPortrait(portraitV2, now)
     : null;
@@ -810,7 +812,38 @@ function weakPortraitDimension(
     if (context.portraitEvidence && (freshness.state !== 'current' || dimension.confidence < 0.45)) return [];
     return [{ ...dimension, freshness }];
   });
-  return [...covered].sort((left, right) => left.score - right.score)[0] ?? {
+  const weakestCovered = [...covered].sort((left, right) => left.score - right.score)[0];
+  if (weakestCovered) return weakestCovered;
+
+  const compatibilityDimensions = context.portraitEvidence
+    ? []
+    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy dimensions and vectors are non-authoritative fallback inputs.
+    : COMPETENCY_DIMENSIONS.flatMap((dimension) => {
+        if (!hasVectorEvidenceFor(context, [dimension])) return [];
+        const portraitDimensionId = mapLegacyCompetencyDimensionToPortraitV2(dimension).targetDimensions[0];
+        if (selectedIds && !selectedIds.has(portraitDimensionId)) return [];
+        const portraitDimension = summary.dimensions.find((item) => item.id === portraitDimensionId);
+        // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: this legacy vector is a non-authoritative fallback only.
+        const compatibility = context.competencyVector[dimension];
+        const evidenceAgeDays = Math.max(0, Math.floor(
+          (context.now.getTime() - Date.parse(compatibility.lastUpdated)) / 86400000
+        ));
+        return [{
+          id: portraitDimensionId,
+          label: portraitDimension?.label ?? portraitDimensionId,
+          score: compatibility.score,
+          confidence: compatibility.confidence,
+          evidenceCount: compatibility.evidenceCount,
+          freshness: {
+            state: evidenceAgeDays <= PORTRAIT_V2_FRESHNESS_CURRENT_MAX_AGE_DAYS
+              ? 'current' as const
+              : 'partial' as const,
+            asOf: compatibility.lastUpdated,
+            evidenceAgeDays,
+          },
+        }];
+      });
+  return compatibilityDimensions.sort((left, right) => left.score - right.score)[0] ?? {
     id: 'simulationValidationEvidence' as const,
     label: '仿真验证与证据',
     score: 0,
