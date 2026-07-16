@@ -61,27 +61,33 @@ export async function GET(request: NextRequest, props: { params: Promise<{ class
 
     // Get active students (had activity in last 7 days)
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const studentProfiles = await prisma.studentProfile.findMany({
+      where: { classId },
+      select: { userId: true },
+    });
+    const studentIds = studentProfiles.map((profile) => profile.userId);
     const activeStudents = await prisma.learningFact.groupBy({
       by: ['userId'],
       where: {
-        userId: {
-          in: await prisma.studentProfile
-            .findMany({ where: { classId }, select: { userId: true } })
-            .then(profiles => profiles.map(p => p.userId)),
-        },
+        userId: { in: studentIds },
         startedAt: { gte: sevenDaysAgo },
         OR: buildTeacherScopedLearningFactScopeFilters(classId, classSessionIds),
       },
     });
 
     // Get risk summary
-    const riskFlags: Array<{ flagType: string; severity: string }> = [];
+    const snapshotState = !classEvidence || (snapshot?.trendJson as any)?._derivation?.state === 'no-evidence' ? 'no-evidence' : 'ready';
+    const riskFlags: Array<{ flagType: string; severity: string }> = snapshotState === 'ready' && studentIds.length > 0
+      ? await prisma.studentRiskFlag.findMany({
+          where: { userId: { in: studentIds }, isResolved: false },
+          select: { flagType: true, severity: true },
+        })
+      : [];
 
     const riskSummary = riskFlags.reduce((acc, flag) => {
       acc[flag.flagType] = (acc[flag.flagType] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
-    const snapshotState = !classEvidence || (snapshot?.trendJson as any)?._derivation?.state === 'no-evidence' ? 'no-evidence' : 'ready';
 
     return NextResponse.json({
       class: {

@@ -310,10 +310,8 @@ async function approvePipelineRun(input: {
       throw new GradingMutationError('grading-review-scope-changed', 409);
     }
     await assertPipelineReviewActor({ db: tx, run: current, actor: { id: input.reviewerId, role: input.reviewerRole as 'TEACHER' | 'ADMIN' }, now: reviewedAt });
-    if (current.answerEvidence?.sourceKind === 'TEXT_NATIVE') {
-      const runtimeReasons = await validatePipelineRuntimeSource(current, createSubmissionObjectStore(), reviewedAt);
-      if (runtimeReasons.length > 0) throw new PipelineReviewContractError(runtimeReasons);
-    }
+    const runtimeReasons = await validatePipelineRuntimeSource(current, createSubmissionObjectStore(), reviewedAt);
+    if (runtimeReasons.length > 0) throw new PipelineReviewContractError(runtimeReasons);
     const currentStudentProfile = await tx.studentProfile.findFirst({ where: { classId: scope.classId, userId: scope.studentId }, select: { id: true } });
     if (!currentStudentProfile) throw new GradingMutationError('grading-review-student-scope-changed', 409);
     const contractReasons = validatePipelineReviewContract(current, reviewedAt);

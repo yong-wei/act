@@ -1795,6 +1795,43 @@ describe('document rubric grading routes', () => {
     expect(mocks.prisma.learningFact.createMany).not.toHaveBeenCalled();
   });
 
+  it('revalidates document object metadata inside the approval transaction', async () => {
+    const run = pipelineRun();
+    const current = structuredClone(run);
+    const store = getLocalTestSubmissionObjectStore();
+    const originalHead = store.head.bind(store);
+    let headCount = 0;
+    const headSpy = vi.spyOn(store, 'head').mockImplementation(async (key) => {
+      const metadata = await originalHead(key);
+      headCount += 1;
+      if (headCount === 1 && metadata) {
+        store.put({ ...metadata, scanState: 'UNSAFE' });
+      }
+      return metadata;
+    });
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    mocks.prisma.gradingRun.findUnique
+      .mockResolvedValueOnce(run)
+      .mockResolvedValueOnce(current);
+    mocks.prisma.studentProfile.findFirst.mockResolvedValue({ id: 'profile-1' });
+
+    try {
+      const response = await postJson({ gradingRunId: run.id, decision: 'approved' });
+
+      expect(response.status).toBe(409);
+      await expect(response.json()).resolves.toEqual({
+        error: 'grading-review-contract-drift',
+        reasons: ['runtime-document-source-unavailable'],
+      });
+      expect(headSpy).toHaveBeenCalledTimes(2);
+      expect(mocks.prisma.gradingRun.updateMany).not.toHaveBeenCalled();
+      expect(mocks.prisma.gradingCriterionAssessment.updateMany).not.toHaveBeenCalled();
+      expect(mocks.prisma.learningFact.createMany).not.toHaveBeenCalled();
+    } finally {
+      headSpy.mockRestore();
+    }
+  });
+
   it('rolls back before CAS when the student leaves the frozen class during approval', async () => {
     const run = pipelineRun();
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });

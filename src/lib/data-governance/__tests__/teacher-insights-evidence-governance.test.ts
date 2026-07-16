@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const TEST_DAY_MS = 24 * 60 * 60 * 1000;
 
 const mocks = vi.hoisted(() => {
+  const getServerSession = vi.fn();
   const getServerAuthSession = vi.fn();
   const generateRecommendations = vi.fn();
   const prismaArenaSubmissionStore = {
@@ -13,6 +14,7 @@ const mocks = vi.hoisted(() => {
   };
 
   return {
+    getServerSession,
     getServerAuthSession,
     generateRecommendations,
     prismaArenaSubmissionStore,
@@ -46,6 +48,7 @@ const mocks = vi.hoisted(() => {
         groupBy: vi.fn(),
       },
       learningFact: {
+        findFirst: vi.fn(),
         findMany: vi.fn(),
         groupBy: vi.fn(),
       },
@@ -63,6 +66,7 @@ const mocks = vi.hoisted(() => {
         findMany: vi.fn(),
       },
       studentProfile: {
+        count: vi.fn(),
         findFirst: vi.fn(),
         findMany: vi.fn(),
       },
@@ -76,7 +80,12 @@ const mocks = vi.hoisted(() => {
   };
 });
 
+vi.mock('next-auth', () => ({
+  getServerSession: mocks.getServerSession,
+}));
+
 vi.mock('@/lib/auth', () => ({
+  authOptions: {},
   getServerAuthSession: mocks.getServerAuthSession,
 }));
 
@@ -95,6 +104,7 @@ vi.mock('@/lib/data-governance/recommendation-engine', () => ({
 import { GET as getClassInsights } from '@/app/api/teacher/classes/[classId]/insights/route';
 import { GET as getStudentInsights } from '@/app/api/teacher/classes/[classId]/students/[studentId]/insights/route';
 import { GET as getClassHeatmap } from '@/app/api/teacher/classes/[classId]/heatmap/route';
+import { GET as getClassDashboard } from '@/app/api/teacher/classes/[classId]/dashboard/route';
 import {
   buildTeacherScopedLearningFactScopeFilters,
   buildTeacherScopedSimulationArenaFeatureMap,
@@ -419,6 +429,9 @@ describe('teacher evidence governance insights', () => {
     mocks.getServerAuthSession.mockResolvedValue({
       user: { id: 'teacher-1', role: 'TEACHER' },
     });
+    mocks.getServerSession.mockResolvedValue({
+      user: { id: 'teacher-1', role: 'TEACHER' },
+    });
     mocks.prismaArenaSubmissionStore.listSubmissions.mockResolvedValue([]);
     mocks.generateRecommendations.mockResolvedValue([]);
     mocks.prisma.$queryRaw.mockResolvedValue([{ exists: false }]);
@@ -563,6 +576,80 @@ describe('teacher evidence governance insights', () => {
       improvedCount: 1,
       lowConfidenceCount: 0,
     });
+  });
+
+  it('summarizes unresolved risk flags only for students in a ready class dashboard', async () => {
+    mocks.prisma.class.findUnique.mockResolvedValue({ teacherId: 'teacher-1', name: '自动控制 1 班' });
+    mocks.prisma.classSession.findMany.mockResolvedValue([{ id: 'session-dashboard' }]);
+    mocks.prisma.learningFact.findFirst.mockResolvedValue({ id: 'fact-current' });
+    mocks.prisma.classCompetencySnapshot.findFirst.mockResolvedValue({
+      activeStudentCount: 2,
+      aggregateJson: {},
+      distributionJson: {},
+      levelDistribution: {},
+      trendJson: { _derivation: { state: 'ready' } },
+      snapshotAt: new Date('2026-05-21T00:00:00.000Z'),
+    });
+    mocks.prisma.studentProfile.count.mockResolvedValue(2);
+    mocks.prisma.studentProfile.findMany.mockResolvedValue([
+      { userId: 'student-dashboard-a' },
+      { userId: 'student-dashboard-b' },
+    ]);
+    mocks.prisma.learningFact.groupBy.mockResolvedValue([]);
+    mocks.prisma.studentRiskFlag.findMany.mockResolvedValue([
+      { flagType: 'participation', severity: 'high' },
+      { flagType: 'stagnation', severity: 'medium' },
+    ]);
+
+    const response = await getClassDashboard(
+      new NextRequest('http://localhost/api/teacher/classes/class-1/dashboard'),
+      { params: Promise.resolve({ classId: 'class-1' }) },
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.riskSummary).toEqual({
+      totalFlags: 2,
+      byType: { participation: 1, stagnation: 1 },
+      highPriorityCount: 1,
+    });
+    expect(mocks.prisma.studentRiskFlag.findMany).toHaveBeenCalledWith({
+      where: {
+        userId: { in: ['student-dashboard-a', 'student-dashboard-b'] },
+        isResolved: false,
+      },
+      select: { flagType: true, severity: true },
+    });
+  });
+
+  it('does not expose stale global risk flags without current class evidence', async () => {
+    mocks.prisma.class.findUnique.mockResolvedValue({ teacherId: 'teacher-1', name: '自动控制 1 班' });
+    mocks.prisma.classSession.findMany.mockResolvedValue([]);
+    mocks.prisma.learningFact.findFirst.mockResolvedValue(null);
+    mocks.prisma.classCompetencySnapshot.findFirst.mockResolvedValue({
+      activeStudentCount: 1,
+      aggregateJson: {},
+      distributionJson: {},
+      levelDistribution: {},
+      trendJson: { _derivation: { state: 'ready' } },
+      snapshotAt: new Date('2026-05-20T00:00:00.000Z'),
+    });
+    mocks.prisma.studentProfile.count.mockResolvedValue(1);
+    mocks.prisma.studentProfile.findMany.mockResolvedValue([{ userId: 'student-dashboard-stale' }]);
+    mocks.prisma.learningFact.groupBy.mockResolvedValue([]);
+    mocks.prisma.studentRiskFlag.findMany.mockResolvedValue([
+      { flagType: 'participation', severity: 'high' },
+    ]);
+
+    const response = await getClassDashboard(
+      new NextRequest('http://localhost/api/teacher/classes/class-1/dashboard'),
+      { params: Promise.resolve({ classId: 'class-1' }) },
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.riskSummary).toEqual({ totalFlags: 0, byType: {}, highPriorityCount: 0 });
+    expect(mocks.prisma.studentRiskFlag.findMany).not.toHaveBeenCalled();
   });
 
   it('builds the class heatmap only from recent class-scoped facts', async () => {
