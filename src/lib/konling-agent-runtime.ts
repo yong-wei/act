@@ -6684,12 +6684,18 @@ function buildServerOwnedUserProfile(input: {
 }
 
 function inferCognitiveLevel(state: AdaptiveLearnerState | null): 1 | 2 | 3 | 4 | 5 {
-  const portraitValues = Array.isArray(state?.primaryPortrait?.dimensions)
+  const portraitDimensions = Array.isArray(state?.primaryPortrait?.dimensions)
     ? state.primaryPortrait.dimensions
-    .map((entry) => typeof entry.score === 'number' ? entry.score : null)
-    .filter((value): value is number => value !== null)
     : [];
-  const values = portraitValues && portraitValues.length > 0
+  const portraitValues = portraitDimensions.length > 0 && portraitDimensions.every((entry) =>
+    entry.evidenceSummary.totalCount > 0
+      && (entry.freshness.state === 'current' || entry.freshness.state === 'partial')
+      && typeof entry.score === 'number'
+      && Number.isFinite(entry.score)
+  )
+    ? portraitDimensions.map((entry) => entry.score)
+    : [];
+  const values = portraitValues.length > 0
     ? portraitValues
     : Object.values(state?.primaryCompetencies.vector ?? {}) // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: cold-start fallback only.
       .map((entry) => typeof entry?.score === 'number' ? entry.score : null)

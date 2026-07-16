@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 
 import {
   COMPETENCY_DIMENSIONS,
+  calculateOverallScore,
   calculateTrendDirection,
   type CompetencyVector,
   type TrendVector,
@@ -398,8 +399,11 @@ export async function GET(
     const portraitV2 = summarizePortraitV2(portraitResolution.primaryPortrait);
     const hasPortraitV2Data = hasPortraitV2Evidence(portraitResolution.primaryPortrait);
     const portraitFactCount = portraitV2.dimensions.reduce((sum, dimension) => sum + dimension.evidenceCount, 0);
-    const overallScore = roundTo(portraitV2.overallScore, 1);
     const snapshotVector = currentVector ?? portraitResolution.legacyCompatibility.vector;
+    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy score is a non-authoritative fallback for empty portrait rows.
+    const overallScore = hasPortraitV2Data
+      ? roundTo(portraitV2.overallScore, 1)
+      : snapshotVector ? calculateOverallScore(snapshotVector) : 0;
     const snapshotAt = currentSnapshot?.snapshotAt.toISOString() ?? (
       hasPortraitV2Data ? portraitV2.generatedAt : null
     );

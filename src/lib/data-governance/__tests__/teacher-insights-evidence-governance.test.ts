@@ -363,6 +363,7 @@ function competencyVector(score: number) {
 function nativePortraitSnapshot(
   userId = 'student-v2-only',
   generatedAt = '2026-05-20T08:00:00.000Z',
+  hasEvidence = true,
 ) {
   const payload = createPortraitV2Payload({
     userId,
@@ -370,26 +371,26 @@ function nativePortraitSnapshot(
     now: new Date(generatedAt),
     dimensions: PORTRAIT_V2_DIMENSION_IDS.map((id) => ({
       id,
-      score: 72,
-      confidence: 0.8,
+      score: hasEvidence ? 72 : 0,
+      confidence: hasEvidence ? 0.8 : 0,
       freshness: {
-        state: 'current' as const,
-        asOf: generatedAt,
-        evidenceAgeDays: 0,
+        state: hasEvidence ? 'current' as const : 'missing' as const,
+        asOf: hasEvidence ? generatedAt : null,
+        evidenceAgeDays: hasEvidence ? 0 : null,
       },
       evidenceSummary: {
-        totalCount: 1,
-        sourceFamilyCounts: { LearningFact: 1 },
+        totalCount: hasEvidence ? 1 : 0,
+        sourceFamilyCounts: hasEvidence ? { LearningFact: 1 } : {} as Record<string, number>,
       },
-      lastPositiveEvidenceAt: generatedAt,
+      lastPositiveEvidenceAt: hasEvidence ? generatedAt : null,
       lastNegativeEvidenceAt: null,
-      rationale: 'Governed evidence supports the current score.',
-      limitations: [],
-      sourceLineage: [{
+      rationale: hasEvidence ? 'Governed evidence supports the current score.' : 'No safe legacy mapping exists.',
+      limitations: hasEvidence ? [] : ['missing-native-portrait-v2-evidence'],
+      sourceLineage: hasEvidence ? [{
         kind: 'evidence-family' as const,
         ref: 'LearningFact',
         privacyScope: 'student-visible' as const,
-      }],
+      }] : [],
       calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
     })),
   });
@@ -1204,6 +1205,9 @@ describe('teacher evidence governance insights', () => {
         factCount: 9,
       })
       .mockResolvedValueOnce(null);
+    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue(
+      nativePortraitSnapshot('student-1', '2026-05-20T00:00:00.000Z', false),
+    );
     mocks.prisma.studentProfileSummary.findUnique.mockResolvedValue(null);
     mocks.prisma.studentRiskFlag.findMany.mockResolvedValue([]);
     mocks.prisma.growthRecord.findMany.mockResolvedValue([]);
@@ -1347,6 +1351,7 @@ describe('teacher evidence governance insights', () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
+    expect(body.overview.overallScore).toBe(76);
     expect(mocks.prisma.classSession.findMany).toHaveBeenCalledWith({
       where: { classId },
       select: { id: true },

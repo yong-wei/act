@@ -1337,6 +1337,98 @@ describe('konling agent runtime', () => {
     expect(contract.permittedTools).toContain('generate_learning_path');
   });
 
+  it.each([
+    {
+      invalidity: 'missing evidence',
+      invalidate: (dimension: NonNullable<KonlingRuntimeContext['learnerState']>['primaryPortrait']['dimensions'][number]) => ({
+        ...dimension,
+        score: 0,
+        confidence: 0,
+        freshness: { state: 'missing' as const, asOf: null, evidenceAgeDays: null },
+        evidenceSummary: { totalCount: 0, sourceFamilyCounts: {} },
+        lastPositiveEvidenceAt: null,
+        sourceLineage: [],
+      }),
+    },
+    {
+      invalidity: 'stale freshness',
+      invalidate: (dimension: NonNullable<KonlingRuntimeContext['learnerState']>['primaryPortrait']['dimensions'][number]) => ({
+        ...dimension,
+        freshness: { state: 'stale' as const, asOf: '2026-01-01T00:00:00.000Z', evidenceAgeDays: 171 },
+      }),
+    },
+    {
+      invalidity: 'non-finite score',
+      invalidate: (dimension: NonNullable<KonlingRuntimeContext['learnerState']>['primaryPortrait']['dimensions'][number]) => ({
+        ...dimension,
+        score: Number.NaN,
+      }),
+    },
+  ])('falls back to the whole compatibility vector for portrait $invalidity', async ({ invalidate }) => {
+    const learnerState = createGraphLearnerState('student-1', 0.6);
+    learnerState.primaryPortrait = {
+      ...learnerState.primaryPortrait,
+      dimensions: learnerState.primaryPortrait.dimensions.map((dimension, index) => {
+        const highPortraitDimension = {
+          ...dimension,
+          score: 90,
+          confidence: 0.8,
+          freshness: { state: 'current' as const, asOf: '2026-06-21T00:00:00.000Z', evidenceAgeDays: 0 },
+          evidenceSummary: { totalCount: 1, sourceFamilyCounts: { StudentEvidenceFeatureCache: 1 } },
+        };
+        return index === 1 ? invalidate(highPortraitDimension) : highPortraitDimension;
+      }),
+    };
+    mocks.readAdaptiveLearnerState.mockResolvedValueOnce(learnerState);
+
+    const runtime = await buildKonlingRuntimeContext({
+      studentProfile: {
+        findFirst: vi.fn().mockResolvedValue({ userId: 'student-1', classId: 'class-1' }),
+      },
+    }, {
+      authenticatedUserId: 'student-1',
+      authenticatedUserName: '张三',
+      role: 'STUDENT',
+      targetUserId: 'student-1',
+      classId: 'class-1',
+      courseId: 'control-correction',
+      pageId: 'adaptive-path-center',
+    });
+
+    expect(runtime.userProfile.cognitiveLevel).toBe(3);
+  });
+
+  it('uses portrait scores when every portrait dimension is usable', async () => {
+    const learnerState = createGraphLearnerState('student-1', 0.6);
+    learnerState.primaryPortrait = {
+      ...learnerState.primaryPortrait,
+      dimensions: learnerState.primaryPortrait.dimensions.map((dimension) => ({
+        ...dimension,
+        score: 90,
+        confidence: 0.8,
+        freshness: { state: 'current' as const, asOf: '2026-06-21T00:00:00.000Z', evidenceAgeDays: 0 },
+        evidenceSummary: { totalCount: 1, sourceFamilyCounts: { StudentEvidenceFeatureCache: 1 } },
+      })),
+    };
+    mocks.readAdaptiveLearnerState.mockResolvedValueOnce(learnerState);
+
+    const runtime = await buildKonlingRuntimeContext({
+      studentProfile: {
+        findFirst: vi.fn().mockResolvedValue({ userId: 'student-1', classId: 'class-1' }),
+      },
+    }, {
+      authenticatedUserId: 'student-1',
+      authenticatedUserName: '张三',
+      role: 'STUDENT',
+      targetUserId: 'student-1',
+      classId: 'class-1',
+      courseId: 'control-correction',
+      pageId: 'adaptive-path-center',
+    });
+
+    expect(runtime.userProfile.cognitiveLevel).toBe(5);
+  });
+
   it('records disabled learner-state service as operational missing context while preserving content citations', async () => {
     process.env.ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED = 'false';
 
