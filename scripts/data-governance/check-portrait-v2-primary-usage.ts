@@ -1,0 +1,181 @@
+#!/usr/bin/env tsx
+
+import { execFileSync } from 'node:child_process';
+
+import {
+  inspectPortraitV2PrimaryUsage,
+  type PortraitV2PrimaryGateIssue,
+} from '@/lib/data-governance/portrait-v2-primary-gate';
+
+const options = resolveDiffOptions(parseArgs(process.argv.slice(2)));
+const changedFiles = readChangedFiles(options).filter(isPotentiallyScannablePath);
+const issues = changedFiles.flatMap((filePath) => inspectDiff(readGitDiff(options, filePath), filePath));
+
+if (issues.length > 0) {
+  console.error(`portrait-v2 primary usage gate failed (${issues.length} issue(s))`);
+  for (const issue of issues) {
+    console.error(`- ${issue.filePath}:${issue.line} ${issue.code}: ${issue.message}`);
+  }
+  process.exit(1);
+}
+
+console.log(`portrait-v2 primary usage gate passed (${changedFiles.length} changed file(s) scanned)`);
+
+function parseArgs(args: string[]) {
+  const staged = args.includes('--staged');
+  const baseIndex = args.indexOf('--base');
+  if (baseIndex >= 0 && !args[baseIndex + 1]) {
+    throw new Error('--base requires a git commit reference');
+  }
+  return {
+    staged,
+    base: baseIndex >= 0 ? args[baseIndex + 1] ?? null : null,
+  };
+}
+
+function resolveDiffOptions(input: { staged: boolean; base: string | null }) {
+  return {
+    staged: input.staged,
+    base: input.staged ? null : resolveDiffBase(input.base),
+  };
+}
+
+function readChangedFiles(input: { staged: boolean; base: string | null }): string[] {
+  const args = input.staged
+    ? ['diff', '--cached', '--name-only', '--diff-filter=ACMR', '-z', '--no-ext-diff']
+    : buildUnstagedDiffArgs(input.base, true);
+  try {
+    return execFileSync('git', args, {
+      encoding: 'utf8',
+      maxBuffer: 16 * 1024 * 1024,
+    }).split('\0').filter(Boolean);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`无法读取 portrait-v2 门禁文件列表：${message}`);
+  }
+}
+
+function readGitDiff(input: { staged: boolean; base: string | null }, filePath: string): string {
+  const args = input.staged
+    ? ['diff', '--cached', '--unified=0', '--no-ext-diff', '--', filePath]
+    : [...buildUnstagedDiffArgs(input.base, false), '--', filePath];
+  try {
+    return execFileSync('git', args, {
+      encoding: 'utf8',
+      maxBuffer: 64 * 1024 * 1024,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`无法读取 portrait-v2 门禁差异：${message}`);
+  }
+}
+
+function buildUnstagedDiffArgs(requestedBase: string | null, namesOnly: boolean): string[] {
+  const outputArgs = namesOnly
+    ? ['--name-only', '--diff-filter=ACMR', '-z']
+    : ['--unified=0'];
+  return requestedBase
+    ? ['diff', ...outputArgs, '--no-ext-diff', `${requestedBase}...HEAD`]
+    : ['diff-tree', '--root', ...outputArgs, '--no-commit-id', '-r', 'HEAD'];
+}
+
+function isPotentiallyScannablePath(filePath: string): boolean {
+  return /^(?:src|scripts)\/.+\.(?:ts|tsx|js|jsx|mjs|cjs)$/.test(filePath) &&
+    !/(^|\/)__tests__(\/|$)/.test(filePath) &&
+    !/(^|\/)tests?(\/|\.|$)/.test(filePath) &&
+    !/(^|\/)fixtures?(\/|\.|$)/.test(filePath) &&
+    !/(^|\/)portrait-v2-primary-gate\.ts$/.test(filePath);
+}
+
+function resolveDiffBase(requestedBase: string | null): string | null {
+  if (requestedBase) {
+    const resolved = resolveGitRef(requestedBase);
+    if (!resolved) {
+      throw new Error(`无法解析显式 portrait-v2 门禁基线：${requestedBase}`);
+    }
+    return resolved;
+  }
+
+  const candidates = ['origin/integration', '@{upstream}', 'HEAD^'];
+  for (const candidate of candidates) {
+    const resolved = resolveGitRef(candidate);
+    if (resolved) return resolved;
+  }
+  return null;
+}
+
+function resolveGitRef(ref: string): string | null {
+  try {
+    return execFileSync('git', ['rev-parse', '--verify', '--quiet', `${ref}^{commit}`], {
+      encoding: 'utf8',
+    }).trim() || null;
+  } catch {
+    return null;
+  }
+}
+
+function inspectDiff(diff: string, expectedFilePath: string): PortraitV2PrimaryGateIssue[] {
+  const issues: PortraitV2PrimaryGateIssue[] = [];
+  let filePath: string | null = expectedFilePath;
+  let addedLines: string[] = [];
+  let addedLineNumbers: number[] = [];
+  let compatibilityRanges: Array<{ start: number; end: number }> = [];
+  let newLine = 0;
+
+  const flush = () => {
+    if (!filePath) return;
+    const source = readVersionedSource(
+      filePath,
+      options.staged ? 'index' : 'HEAD',
+      addedLines.join('\n'),
+    );
+    issues.push(...inspectPortraitV2PrimaryUsage({
+      filePath,
+      addedLines,
+      addedLineNumbers,
+      compatibilityRanges,
+      source,
+    }));
+    filePath = null;
+    addedLines = [];
+    addedLineNumbers = [];
+    compatibilityRanges = [];
+    newLine = 0;
+  };
+
+  for (const line of diff.split('\n')) {
+    const hunkMatch = /^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@/.exec(line);
+    if (hunkMatch) {
+      newLine = Number(hunkMatch[1]);
+      const lineCount = Number(hunkMatch[2] ?? 1);
+      compatibilityRanges.push({ start: newLine, end: newLine + lineCount - 1 });
+      continue;
+    }
+    if (!filePath || line.startsWith('+++')) continue;
+    if (line.startsWith('+')) {
+      addedLines.push(line.slice(1));
+      addedLineNumbers.push(newLine);
+      newLine += 1;
+    } else if (!line.startsWith('-') && !line.startsWith('\\')) {
+      newLine += 1;
+    }
+  }
+  flush();
+  return issues;
+}
+
+function readVersionedSource(
+  filePath: string,
+  version: 'index' | 'HEAD',
+  fallback: string,
+): string {
+  try {
+    return execFileSync('git', ['show', version === 'index' ? `:${filePath}` : `HEAD:${filePath}`], {
+      encoding: 'utf8',
+      maxBuffer: 64 * 1024 * 1024,
+      stdio: ['ignore', 'pipe', 'ignore'],
+    });
+  } catch {
+    return fallback;
+  }
+}

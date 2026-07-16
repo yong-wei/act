@@ -18,6 +18,11 @@ import type {
   StudentEvidenceStatusMarker,
   StudentEvidenceWindow,
 } from '@/lib/data-governance/student-evidence-feature-cache';
+import {
+  summarizePortraitV2,
+  type PortraitV2ConsumerSummary,
+} from '@/lib/data-governance/portrait-v2-consumer';
+import type { PortraitV2PayloadShape } from '@/lib/data-governance/portrait-v2-model';
 
 export type ProfileActivityCategory = 'classroom' | 'interactive' | 'simulation' | 'assessment';
 
@@ -66,13 +71,18 @@ export interface StudentProfileEvidenceStatus {
   evidenceBasis: RecommendationEvidenceBasis;
   refreshedAt: string | null;
   evidenceWindow: StudentEvidenceWindow;
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy snapshot coverage remains non-authoritative compatibility metadata.
   sourceCounts: {
     LearningFact: number;
     StudentCompetencySnapshot: number;
+    StudentPortraitV2Snapshot: number;
     StudentProfileSummary: number;
     byFactType: Record<string, number>;
   };
-  sourceCoverage: Record<'LearningFact' | 'StudentCompetencySnapshot' | 'StudentProfileSummary', StudentEvidenceCoverageState>;
+  sourceCoverage: Record<
+    'LearningFact' | 'StudentCompetencySnapshot' | 'StudentPortraitV2Snapshot' | 'StudentProfileSummary',
+    StudentEvidenceCoverageState
+  >;
   confidence: {
     state: RecommendationConfidenceState;
     level: 'none' | 'low' | 'medium' | 'high';
@@ -149,6 +159,26 @@ export function buildCompetencyDimensions(vector: CompetencyVector) {
   }));
 }
 
+export function buildPortraitV2Dimensions(payload: PortraitV2PayloadShape) {
+  const summary = summarizePortraitV2(payload);
+  return summary.dimensions.map((dimension) => ({
+    key: dimension.id,
+    label: dimension.label,
+    description: dimension.description,
+    score: Math.round(dimension.score),
+    trend: dimension.trend,
+    confidence: Number(dimension.confidence.toFixed(2)),
+    evidenceCount: dimension.evidenceCount,
+    freshness: dimension.freshness,
+    limitations: dimension.limitations,
+    calculationVersion: dimension.calculationVersion,
+  }));
+}
+
+export function summarizePortraitForProfile(payload: PortraitV2PayloadShape): PortraitV2ConsumerSummary {
+  return summarizePortraitV2(payload);
+}
+
 export function getCompetencyLevelLabel(level: keyof typeof COMPETENCY_LEVELS) {
   return COMPETENCY_LEVEL_LABELS[level];
 }
@@ -222,6 +252,13 @@ export function buildStudentProfileEvidenceStatus(input: {
   featureRead: StudentEvidenceFeatureReadResult;
   learningFacts: Array<{ startedAt: Date; factType?: string | null }>;
   hasLatestSnapshot: boolean;
+  primaryPortraitEvidence?: {
+    snapshotCount: number;
+    evidenceCount: number;
+    refreshedAt: string;
+    freshness: 'current' | 'partial' | 'stale';
+    confidence: number;
+  } | null;
 }): StudentProfileEvidenceStatus {
   if (input.featureRead.cache) {
     const cache = input.featureRead.cache;
@@ -249,31 +286,56 @@ export function buildStudentProfileEvidenceStatus(input: {
   }
 
   const evidenceCount = input.learningFacts.length;
+  const portraitSnapshotCount = Math.max(0, input.primaryPortraitEvidence?.snapshotCount ?? 0);
+  const portraitEvidenceCount = Math.max(0, input.primaryPortraitEvidence?.evidenceCount ?? 0);
+  const hasPortraitEvidence = portraitEvidenceCount > 0;
+  const portraitFreshness = input.primaryPortraitEvidence?.freshness ?? 'stale';
+  const portraitConfidence = Math.max(0, Math.min(1, input.primaryPortraitEvidence?.confidence ?? 0));
+  const portraitStatusMarkers: StudentEvidenceStatusMarker[] = hasPortraitEvidence
+    ? [
+        ...(portraitFreshness === 'stale' ? ['stale' as const] : []),
+        ...(portraitFreshness === 'partial' ? ['partial' as const] : []),
+        ...(portraitConfidence < 0.45 ? ['low-confidence' as const] : []),
+      ]
+    : [];
+  const portraitConfidenceState: RecommendationConfidenceState = portraitFreshness === 'stale'
+    ? 'stale'
+    : portraitFreshness === 'partial'
+      ? 'partial'
+      : portraitConfidence < 0.45
+        ? 'low-confidence'
+        : 'ready';
 
   return {
-    state: 'missing',
-    evidenceBasis: evidenceCount > 0 ? 'governed-facts' : 'fallback',
-    refreshedAt: null,
+    state: hasPortraitEvidence ? portraitFreshness === 'stale' ? 'stale' : 'ready' : 'missing',
+    evidenceBasis: hasPortraitEvidence ? 'portrait-v2' : evidenceCount > 0 ? 'governed-facts' : 'fallback',
+    refreshedAt: hasPortraitEvidence ? input.primaryPortraitEvidence?.refreshedAt ?? null : null,
     evidenceWindow: buildLearningFactWindow(input.learningFacts),
     sourceCounts: {
       LearningFact: evidenceCount,
       StudentCompetencySnapshot: input.hasLatestSnapshot ? 1 : 0,
+      StudentPortraitV2Snapshot: portraitSnapshotCount,
       StudentProfileSummary: 0,
       byFactType: countFactsByType(input.learningFacts),
     },
     sourceCoverage: {
       LearningFact: evidenceCount > 0 ? 'available' : 'missing',
       StudentCompetencySnapshot: input.hasLatestSnapshot ? 'available' : 'missing',
+      StudentPortraitV2Snapshot: hasPortraitEvidence
+        ? portraitFreshness === 'current' ? 'available' : 'partial'
+        : 'missing',
       StudentProfileSummary: 'missing',
     },
     confidence: {
-      state: 'missing',
-      level: evidenceCount > 0 || input.hasLatestSnapshot ? 'low' : 'none',
-      score: evidenceCount > 0 || input.hasLatestSnapshot ? 0.25 : 0,
-      evidenceCount,
-      sourceCompleteness: input.hasLatestSnapshot ? 0.5 : 0,
+      state: hasPortraitEvidence ? portraitConfidenceState : 'missing',
+      level: hasPortraitEvidence
+        ? portraitConfidence >= 0.75 ? 'high' : portraitConfidence >= 0.45 ? 'medium' : 'low'
+        : evidenceCount > 0 || input.hasLatestSnapshot ? 'low' : 'none',
+      score: hasPortraitEvidence ? portraitConfidence : evidenceCount > 0 || input.hasLatestSnapshot ? 0.25 : 0,
+      evidenceCount: hasPortraitEvidence ? portraitEvidenceCount : evidenceCount,
+      sourceCompleteness: hasPortraitEvidence || input.hasLatestSnapshot ? 0.5 : 0,
     },
-    statusMarkers: ['missing-source'],
+    statusMarkers: hasPortraitEvidence ? portraitStatusMarkers : ['missing-source'],
     rawReadExceptions: input.featureRead.rawReadExceptions,
   };
 }
@@ -338,6 +400,7 @@ function normalizeSourceCounts(value: unknown): StudentProfileEvidenceStatus['so
   return {
     LearningFact: numberValue(counts.LearningFact),
     StudentCompetencySnapshot: numberValue(counts.StudentCompetencySnapshot),
+    StudentPortraitV2Snapshot: numberValue(counts.StudentPortraitV2Snapshot),
     StudentProfileSummary: numberValue(counts.StudentProfileSummary),
     byFactType: normalizeFactTypeCounts(counts.byFactType),
   };
@@ -357,6 +420,7 @@ function normalizeSourceCoverage(
   return {
     LearningFact: normalizeCoverageState(coverage.LearningFact),
     StudentCompetencySnapshot: normalizeCoverageState(coverage.StudentCompetencySnapshot),
+    StudentPortraitV2Snapshot: normalizeCoverageState(coverage.StudentPortraitV2Snapshot),
     StudentProfileSummary: normalizeCoverageState(coverage.StudentProfileSummary),
   };
 }

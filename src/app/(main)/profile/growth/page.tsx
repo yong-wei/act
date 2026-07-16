@@ -33,8 +33,8 @@ import { buildLearnerDataRouteShell } from '@/features/adaptive/adaptive-learnin
 import { getPlatformCockpitHref } from '@/lib/platform-role-navigation';
 import { DiagnosisSurfacePanel } from '@/features/adaptive/diagnosis-surface-panel';
 import { buildFeedbackTaskContext } from '@/lib/student-feedback-task-contract';
-import { getCompetencyLabel, COMPETENCY_DIMENSIONS } from '@/lib/data-governance/competency-model';
 import type { CompetencyVector, TrendVector } from '@/lib/data-governance/competency-model';
+import type { PortraitV2ConsumerSummary } from '@/lib/data-governance/portrait-v2-consumer';
 import type { RoleBasedLearningDiagnosis } from '@/lib/data-governance/role-based-learning-diagnosis';
 import type { RiskFlag } from '@/lib/data-governance/risk-detector';
 
@@ -55,6 +55,7 @@ interface EvidenceSummaryItem {
 
 interface GrowthSnapshotData {
   currentSnapshot: {
+    portrait: PortraitV2ConsumerSummary;
     vector: CompetencyVector;
     snapshotAt: string;
     factCount: number;
@@ -226,34 +227,27 @@ export default function GrowthPage() {
     );
   }
 
-  const currentVector = snapshot?.currentSnapshot?.vector;
-  const overallScore = currentVector
-    ? Math.round(
-        COMPETENCY_DIMENSIONS.reduce((sum, d) => sum + currentVector[d].score, 0) /
-          COMPETENCY_DIMENSIONS.length
-      )
-    : 0;
+  const portrait = snapshot?.currentSnapshot?.portrait;
+  const portraitDimensions = portrait?.dimensions ?? [];
+  const overallScore = portrait?.overallScore ?? 0;
 
   // Prepare radar chart data
-  const radarData = currentVector
-    ? COMPETENCY_DIMENSIONS.map((dim) => ({
-        dimension: getCompetencyLabel(dim).slice(0, 4),
-        fullDimension: getCompetencyLabel(dim),
-        score: Math.round(currentVector[dim].score),
-        trend: snapshot?.trendVector?.[dim] || 'stable',
-      }))
-    : [];
+  const radarData = portraitDimensions.map((dimension) => ({
+    dimension: dimension.label.slice(0, 4),
+    fullDimension: dimension.label,
+    score: Math.round(dimension.score),
+    trend: dimension.trend,
+  }));
 
   // Prepare bar chart data
-  const barData = currentVector
-    ? COMPETENCY_DIMENSIONS.map((dim) => ({
-        dimension: getCompetencyLabel(dim),
-        score: Math.round(currentVector[dim].score),
-        confidence: Math.round(currentVector[dim].confidence * 100),
-        trend: snapshot?.trendVector?.[dim] || 'stable',
-      }))
-    : [];
-  const hasCompetencyChartData = (snapshot?.currentSnapshot?.factCount ?? 0) > 0
+  const barData = portraitDimensions.map((dimension) => ({
+    dimension: dimension.label,
+    score: Math.round(dimension.score),
+    confidence: Math.round(dimension.confidence * 100),
+    trend: dimension.trend,
+  }));
+  const hasCompetencyChartData = portraitDimensions.length === 7
+    && (snapshot?.currentSnapshot?.factCount ?? 0) > 0
     && barData.some((entry) => entry.score > 0 || entry.confidence > 0);
   const groupedGrowthRecords = groupGrowthTimelineRecords(growthRecords);
 
@@ -392,11 +386,24 @@ export default function GrowthPage() {
           />
         </div>
 
+        {portrait && (portrait.derivationKind !== 'native' || portrait.limitations.length > 0) ? (
+          <div className="mb-8 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-subtle" data-portrait-v2-limitation>
+            <p className="font-medium text-foreground">画像来源说明</p>
+            <p className="mt-1">
+              当前为 {portrait.derivationKind === 'compatibility-derived' ? '历史数据兼容投影' : '迁移后的 portrait v2'}；
+              置信度、时效性和限制信息已保留。
+            </p>
+            {portrait.limitations.length > 0 ? (
+              <p className="mt-1">限制：{portrait.limitations.join('；')}</p>
+            ) : null}
+          </div>
+        ) : null}
+
         {/* Middle Section - Competency Overview */}
         <div className="mb-8 grid gap-6 lg:grid-cols-2">
           {/* Radar Chart */}
           <div className="surface-card min-w-0 p-6">
-            <h3 className="mb-4 text-lg font-semibold text-foreground">能力雷达</h3>
+            <h3 className="mb-4 text-lg font-semibold text-foreground">七维 portrait v2 雷达</h3>
             {hasCompetencyChartData ? (
               <div className="h-[320px] min-h-[320px] min-w-0">
                 <ResponsiveContainer width="100%" height="100%">
@@ -458,7 +465,7 @@ export default function GrowthPage() {
 
           {/* Bar Chart */}
           <div className="surface-card min-w-0 p-6">
-            <h3 className="mb-4 text-lg font-semibold text-foreground">能力详情</h3>
+            <h3 className="mb-4 text-lg font-semibold text-foreground">七维画像详情</h3>
             {hasCompetencyChartData ? (
               <div className="h-[320px] min-h-[320px] min-w-0">
                 <ResponsiveContainer width="100%" height="100%">
@@ -709,7 +716,9 @@ export default function GrowthPage() {
             <div className="grid gap-4 md:grid-cols-2">
               {Object.entries(snapshot.evidenceSummary).slice(0, 4).map(([dimension, evidence]) => (
                 <div key={dimension} className="surface-card-soft p-4">
-                  <p className="font-medium text-foreground">{getCompetencyLabel(dimension as never)}</p>
+                  <p className="font-medium text-foreground">
+                    {portrait?.dimensions.find((item) => item.id === dimension)?.label ?? dimension}
+                  </p>
                   <div className="mt-2 space-y-2">
                     {evidence.slice(0, 3).map((item, idx) => (
                       <div key={idx} className="rounded-lg border border-border/60 bg-card/70 p-3 text-sm">

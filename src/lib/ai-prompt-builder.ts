@@ -407,7 +407,16 @@ function buildUserProfileSection(user: UserProfile): string {
     lines.push(`- 所属舰队: ${user.fleetGroup}`);
   }
 
-  if (user.abilityVector) {
+  if (user.portraitV2) {
+    lines.push(`- 主画像模型: portrait v2（${user.portraitV2.derivationKind}）`);
+    lines.push(`- 七维能力: ${user.portraitV2.dimensions
+      .map((dimension) => `${dimension.label} ${dimension.score}分（置信度 ${dimension.confidence}）`)
+      .join('；')}`);
+    if (user.portraitV2.limitations.length > 0) {
+      lines.push(`- 画像限制: ${user.portraitV2.limitations.join('；')}`);
+    }
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy prompt summary is a cold-start fallback only.
+  } else if (user.abilityVector) {
     lines.push(`- 能力特点: ${describeAbilityVector(user.abilityVector)}`);
   }
 

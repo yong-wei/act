@@ -56,4 +56,16 @@ assert.match(
   'data governance worker 必须注册 evidence-feature-cache 队列',
 );
 
+assert.match(
+  workerSource,
+  /const overallScore = summarizePortraitV2\(payload\)\.overallScore;/,
+  '班级画像分布必须复用 portrait v2 consumer 的七维 overallScore',
+);
+
+assert.doesNotMatch(
+  workerSource,
+  /dimensions\s*\.filter\(\(dimension\) => dimension\.evidenceSummary\.totalCount > 0\)/,
+  '班级画像分布不得只对有证据维度求平均',
+);
+
 console.log('data governance worker guardrails contract passed');

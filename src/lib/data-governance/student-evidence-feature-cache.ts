@@ -7,6 +7,11 @@ import {
   COMPETENCY_DIMENSIONS,
   type CompetencyDimension,
 } from './competency-model';
+import {
+  PORTRAIT_V2_PAYLOAD_VERSION,
+  validatePortraitV2Payload,
+  type PortraitV2PayloadShape,
+} from './portrait-v2-model';
 
 export const STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION = 'student-evidence-features.v4';
 export const STUDENT_EVIDENCE_ADAPTIVE_LEARNER_STATE_PAYLOAD_VERSION = 'adaptive-learner-state.v1';
@@ -212,11 +217,16 @@ export interface StudentEvidenceFeaturePayload {
   sourceWindows: Record<StudentEvidenceSourceWindowKey, StudentEvidenceWindow>;
   sourceCounts: {
     LearningFact: number;
+    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy snapshot counts remain compatibility metadata.
     StudentCompetencySnapshot: number;
+    StudentPortraitV2Snapshot: number;
     StudentProfileSummary: number;
     byFactType: Record<string, number>;
   };
-  sourceCoverage: Record<'LearningFact' | 'StudentCompetencySnapshot' | 'StudentProfileSummary', StudentEvidenceCoverageState>;
+  sourceCoverage: Record<
+    'LearningFact' | 'StudentCompetencySnapshot' | 'StudentPortraitV2Snapshot' | 'StudentProfileSummary',
+    StudentEvidenceCoverageState
+  >;
   confidence: {
     level: 'none' | 'low' | 'medium' | 'high';
     score: number;
@@ -244,11 +254,13 @@ export interface StudentEvidenceFeaturePayload {
     } | null;
     approvedAggregates: {
       latestSnapshot: {
+        authority: 'legacy-compatibility-only';
         snapshotAt: string;
         factCount: number;
         calculationVersion: string;
         competencyVector: unknown;
       } | null;
+      primaryPortrait: StudentEvidencePrimaryPortraitFeature | null;
       profileSummary: {
         updatedAt: string;
         overallScore: number;
@@ -257,6 +269,13 @@ export interface StudentEvidenceFeaturePayload {
       } | null;
     };
   };
+}
+
+export interface StudentEvidencePrimaryPortraitFeature {
+  authority: 'portrait-v2-primary';
+  payloadVersion: typeof PORTRAIT_V2_PAYLOAD_VERSION;
+  derivationKind: PortraitV2PayloadShape['derivation']['kind'];
+  payload: PortraitV2PayloadShape;
 }
 
 export interface StudentEvidenceAdaptiveLearnerStateFeature {
@@ -294,6 +313,10 @@ interface StudentCompetencySnapshotAggregate {
   competencyVector: unknown;
 }
 
+interface StudentPortraitV2SnapshotAggregate {
+  payload: unknown;
+}
+
 interface StudentProfileSummaryAggregate {
   updatedAt: Date;
   overallScore: number;
@@ -306,6 +329,7 @@ interface BuildStudentEvidenceFeaturePayloadInput {
   facts: StudentEvidenceFeatureLearningFact[];
   pathEvidence?: StudentPathEvidenceInput;
   latestSnapshot?: StudentCompetencySnapshotAggregate | null;
+  latestPortraitV2?: StudentPortraitV2SnapshotAggregate | null;
   profileSummary?: StudentProfileSummaryAggregate | null;
   now?: Date;
   staleAfterDays?: number;
@@ -325,6 +349,10 @@ export interface StudentEvidenceFeatureCacheDb {
   studentCompetencySnapshot?: {
     findMany?: (args?: Record<string, unknown>) => Promise<Array<{ userId: string }>>;
     findFirst: (args?: Record<string, unknown>) => Promise<StudentCompetencySnapshotAggregate | null>;
+  };
+  studentPortraitV2Snapshot?: {
+    findFirst?: (args?: Record<string, unknown>) => Promise<StudentPortraitV2SnapshotAggregate | null>;
+    findMany?: (args?: Record<string, unknown>) => Promise<Array<{ userId: string }>>;
   };
   studentProfileSummary?: {
     findMany?: (args?: Record<string, unknown>) => Promise<Array<{ userId: string }>>;
@@ -411,9 +439,16 @@ export function buildStudentEvidenceFeaturePayload(
     pathExecutionAll: pathExecution.allTime.window,
   } satisfies StudentEvidenceFeaturePayload['sourceWindows'];
   const byFactType = countByFactType(facts);
+  const primaryPortrait = buildPrimaryPortraitFeature(input.latestPortraitV2, now);
+  const hasPrimaryPortraitEvidence = Boolean(
+    primaryPortrait?.payload.dimensions.some(
+      (dimension) => dimension.evidenceSummary.totalCount > 0
+    )
+  );
   const sourceCoverage = {
     LearningFact: resolveLearningFactCoverage(facts.length, factsWithSource.length),
     StudentCompetencySnapshot: input.latestSnapshot ? 'available' : 'missing',
+    StudentPortraitV2Snapshot: hasPrimaryPortraitEvidence ? 'available' : 'missing',
     StudentProfileSummary: input.profileSummary ? 'available' : 'missing',
   } satisfies StudentEvidenceFeaturePayload['sourceCoverage'];
   const confidence = buildConfidence(facts, factsWithSource.length);
@@ -431,6 +466,7 @@ export function buildStudentEvidenceFeaturePayload(
     facts,
     recentFacts,
     latestSnapshot: input.latestSnapshot,
+    hasPrimaryPortraitEvidence,
     profileSummary: input.profileSummary,
     confidence,
     statusMarkers,
@@ -446,6 +482,7 @@ export function buildStudentEvidenceFeaturePayload(
     sourceCounts: {
       LearningFact: facts.length,
       StudentCompetencySnapshot: input.latestSnapshot ? 1 : 0,
+      StudentPortraitV2Snapshot: hasPrimaryPortraitEvidence ? 1 : 0,
       StudentProfileSummary: input.profileSummary ? 1 : 0,
       byFactType,
     },
@@ -475,12 +512,14 @@ export function buildStudentEvidenceFeaturePayload(
       approvedAggregates: {
         latestSnapshot: input.latestSnapshot
           ? {
+              authority: 'legacy-compatibility-only',
               snapshotAt: input.latestSnapshot.snapshotAt.toISOString(),
               factCount: input.latestSnapshot.factCount,
               calculationVersion: input.latestSnapshot.calculationVersion,
               competencyVector: input.latestSnapshot.competencyVector,
             }
           : null,
+        primaryPortrait,
         profileSummary: input.profileSummary
           ? {
               updatedAt: input.profileSummary.updatedAt.toISOString(),
@@ -494,6 +533,25 @@ export function buildStudentEvidenceFeaturePayload(
   };
 }
 
+function buildPrimaryPortraitFeature(
+  snapshot: StudentPortraitV2SnapshotAggregate | null | undefined,
+  now: Date,
+): StudentEvidencePrimaryPortraitFeature | null {
+  if (!snapshot?.payload) return null;
+  try {
+    validatePortraitV2Payload(snapshot.payload, { now });
+    const payload = snapshot.payload as PortraitV2PayloadShape;
+    return {
+      authority: 'portrait-v2-primary',
+      payloadVersion: PORTRAIT_V2_PAYLOAD_VERSION,
+      derivationKind: payload.derivation.kind,
+      payload,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function refreshStudentEvidenceFeatureCache(
   db: StudentEvidenceFeatureCacheDb,
   userId: string,
@@ -504,7 +562,7 @@ export async function refreshStudentEvidenceFeatureCache(
   }
 
   const now = options.now ?? new Date();
-  const [facts, latestSnapshot, profileSummary] = await Promise.all([
+  const [facts, latestSnapshot, latestPortraitV2, profileSummary] = await Promise.all([
     db.learningFact.findMany({
       where: { userId },
       orderBy: [{ startedAt: 'asc' }, { id: 'asc' }],
@@ -523,6 +581,11 @@ export async function refreshStudentEvidenceFeatureCache(
         competencyVector: true,
       },
     }) ?? Promise.resolve(null),
+    db.studentPortraitV2Snapshot?.findFirst?.({
+      where: { userId },
+      orderBy: [{ snapshotAt: 'desc' }, { id: 'desc' }],
+      select: { payload: true },
+    }) ?? Promise.resolve(null),
     db.studentProfileSummary?.findUnique({
       where: { userId },
       select: {
@@ -539,6 +602,7 @@ export async function refreshStudentEvidenceFeatureCache(
     facts,
     pathEvidence,
     latestSnapshot,
+    latestPortraitV2,
     profileSummary,
     now,
     staleAfterDays: options.staleAfterDays,
@@ -587,13 +651,18 @@ export async function rebuildStudentEvidenceFeatureCache(
     throw new Error('student evidence feature cache rebuild requires learningFact delegate');
   }
 
-  const [factRows, snapshotRows, profileRows] = await Promise.all([
+  const [factRows, snapshotRows, portraitRows, profileRows] = await Promise.all([
     db.learningFact.findMany({
       select: { userId: true },
       distinct: ['userId'],
       orderBy: { userId: 'asc' },
     }),
     db.studentCompetencySnapshot?.findMany?.({
+      select: { userId: true },
+      distinct: ['userId'],
+      orderBy: { userId: 'asc' },
+    }) ?? Promise.resolve([]),
+    db.studentPortraitV2Snapshot?.findMany?.({
       select: { userId: true },
       distinct: ['userId'],
       orderBy: { userId: 'asc' },
@@ -624,7 +693,7 @@ export async function rebuildStudentEvidenceFeatureCache(
     }) ?? Promise.resolve([]),
   ]);
   const userIds = uniqueSorted(
-    [...factRows, ...snapshotRows, ...profileRows, ...executionRows, ...deviationRows, ...interventionRows]
+    [...factRows, ...snapshotRows, ...portraitRows, ...profileRows, ...executionRows, ...deviationRows, ...interventionRows]
       .map((row) => row.userId)
       .filter(isPresent)
   );
@@ -658,17 +727,18 @@ export async function readStudentEvidenceFeatures(
     };
   }
 
-  const refreshedAt = cache.refreshedAt instanceof Date ? cache.refreshedAt : null;
+  const compatibleCache = normalizeLegacyPortraitV2SourceFields(cache);
+  const refreshedAt = compatibleCache.refreshedAt instanceof Date ? compatibleCache.refreshedAt : null;
   const staleAfterDays = options.staleAfterDays ?? DEFAULT_STALE_AFTER_DAYS;
   const staleByAge = refreshedAt
     ? (options.now ?? new Date()).getTime() - refreshedAt.getTime() > staleAfterDays * DAY_MS
     : true;
-  const markers = Array.isArray(cache.statusMarkers) ? cache.statusMarkers : [];
-  const staleBySchema = !hasCurrentFeaturePayloadSchema(cache);
+  const markers = Array.isArray(compatibleCache.statusMarkers) ? compatibleCache.statusMarkers : [];
+  const staleBySchema = !hasCurrentFeaturePayloadSchema(compatibleCache);
 
   return {
     state: staleByAge || markers.includes('stale') || staleBySchema ? 'stale' : 'ready',
-    cache,
+    cache: compatibleCache,
     rawReadExceptions: [...STUDENT_EVIDENCE_FEATURE_RAW_READ_EXCEPTIONS],
   };
 }
@@ -1271,6 +1341,7 @@ function buildAdaptiveLearnerStateFeature(input: {
   facts: StudentEvidenceFeatureLearningFact[];
   recentFacts: StudentEvidenceFeatureLearningFact[];
   latestSnapshot?: StudentCompetencySnapshotAggregate | null;
+  hasPrimaryPortraitEvidence: boolean;
   profileSummary?: StudentProfileSummaryAggregate | null;
   confidence: StudentEvidenceFeaturePayload['confidence'];
   statusMarkers: StudentEvidenceStatusMarker[];
@@ -1292,7 +1363,8 @@ function buildAdaptiveLearnerStateFeature(input: {
       AdaptiveMasteryEvidence: masteryEvidenceCount,
     },
     sourceCoverage: {
-      primaryCompetencies: input.latestSnapshot ? 'available' : 'missing',
+      // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy primaryCompetencies is non-authoritative coverage.
+      primaryCompetencies: input.latestSnapshot || input.hasPrimaryPortraitEvidence ? 'available' : 'missing',
       knowledgeMastery: resolveCoverageCount(masteryEvidenceCount),
       resourcePreference: resolveCoverageCount(resourceEvidenceCount),
       mediaAbsorption: resolveCoverageCount(mediaEvidenceCount),
@@ -1790,7 +1862,16 @@ function buildStatusMarkers(input: {
   if (['none', 'low'].includes(input.confidenceLevel)) {
     markers.add('low-confidence');
   }
-  if (Object.values(input.sourceCoverage).some((state) => state !== 'available')) {
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: either primary portrait or legacy compatibility may satisfy coverage.
+  const primaryCompetenciesMissing = (
+    input.sourceCoverage.StudentCompetencySnapshot !== 'available' &&
+    input.sourceCoverage.StudentPortraitV2Snapshot !== 'available'
+  );
+  if (
+    input.sourceCoverage.LearningFact !== 'available' ||
+    primaryCompetenciesMissing ||
+    input.sourceCoverage.StudentProfileSummary !== 'available'
+  ) {
     markers.add('missing-source');
   }
 
@@ -1886,15 +1967,45 @@ function isCoverageState(value: unknown): value is StudentEvidenceCoverageState 
   return value === 'available' || value === 'partial' || value === 'missing';
 }
 
+function normalizeLegacyPortraitV2SourceFields(
+  cache: Record<string, unknown>
+): Record<string, unknown> {
+  if (!isObject(cache.sourceCounts) || !isObject(cache.sourceCoverage)) {
+    return cache;
+  }
+
+  const missingCount = cache.sourceCounts.StudentPortraitV2Snapshot === undefined;
+  const missingCoverage = cache.sourceCoverage.StudentPortraitV2Snapshot === undefined;
+  if (!missingCount || !missingCoverage) {
+    return cache;
+  }
+
+  return {
+    ...cache,
+    sourceCounts: {
+      ...cache.sourceCounts,
+      StudentPortraitV2Snapshot: 0,
+    },
+    sourceCoverage: {
+      ...cache.sourceCoverage,
+      StudentPortraitV2Snapshot: 'missing',
+    },
+  };
+}
+
 function hasCurrentFeaturePayloadSchema(cache: Record<string, unknown>): boolean {
   if (cache.payloadVersion !== STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION) {
     return false;
   }
   const features = isObject(cache.features) ? cache.features : {};
+  const sourceCounts = isObject(cache.sourceCounts) ? cache.sourceCounts : {};
+  const sourceCoverage = isObject(cache.sourceCoverage) ? cache.sourceCoverage : {};
   const simulationArena = isObject(features.simulationArena) ? features.simulationArena : {};
   const pathExecution = isObject(features.pathExecution) ? features.pathExecution : {};
   const adaptiveLearnerState = isObject(features.adaptiveLearnerState) ? features.adaptiveLearnerState : {};
-  return hasSimulationArenaFeatureWindowSchema(simulationArena.recent30d) &&
+  return hasFiniteNumber(sourceCounts.StudentPortraitV2Snapshot) &&
+    isCoverageState(sourceCoverage.StudentPortraitV2Snapshot) &&
+    hasSimulationArenaFeatureWindowSchema(simulationArena.recent30d) &&
     hasSimulationArenaFeatureWindowSchema(simulationArena.allTime) &&
     hasPathEvidenceFeatureWindowSchema(pathExecution.recent30d) &&
     hasPathEvidenceFeatureWindowSchema(pathExecution.allTime) &&

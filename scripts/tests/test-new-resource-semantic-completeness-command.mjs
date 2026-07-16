@@ -6,6 +6,7 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import assert from 'node:assert/strict';
 
 const root = process.cwd();
+const realGit = execFileSync('which', ['git'], { encoding: 'utf8' }).trim();
 const tsxBin = path.join(root, 'node_modules', '.bin', process.platform === 'win32' ? 'tsx.cmd' : 'tsx');
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'act-new-resource-gate-'));
 const repo = path.join(tmp, 'repo');
@@ -4086,16 +4087,115 @@ run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-
 const deletedRoutedProjectionWithSourceResult = runGate(['--staged']);
 assert.equal(deletedRoutedProjectionWithSourceResult.status, 0, 'gate must pass when a routed projection row and its mapped runtime source file are deleted together');
 
+run('git', ['reset', '--hard', 'HEAD'], repo);
+const mergeAwareCommonHead = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repo, encoding: 'utf8' }).trim();
+run('git', ['checkout', '-b', 'merge-aware-integration'], repo);
+const mergeAwareManifestPath = path.join(repo, 'course-content/runtime/lessons/1-1/interactive-manifest.json');
+const mergeAwareManifest = JSON.parse(fs.readFileSync(mergeAwareManifestPath, 'utf8'));
+mergeAwareManifest.steps['integration-only-step'] = {
+  id: 'integration-only-step',
+  title: 'Integration-only step already reviewed upstream',
+};
+fs.writeFileSync(mergeAwareManifestPath, `${JSON.stringify(mergeAwareManifest, null, 2)}\n`);
+run('git', ['add', 'course-content/runtime/lessons/1-1/interactive-manifest.json'], repo);
+run('git', ['commit', '--no-verify', '-m', 'integration-only reviewed resource change'], repo);
+run('git', ['checkout', '-b', 'merge-aware-origin-tip'], repo);
+fs.writeFileSync(path.join(repo, 'origin-integration-tip.md'), 'origin integration advanced after merge start\n');
+run('git', ['add', 'origin-integration-tip.md'], repo);
+run('git', ['commit', '--no-verify', '-m', 'advance origin integration fixture'], repo);
+run('git', ['update-ref', 'refs/remotes/origin/integration', 'merge-aware-origin-tip'], repo);
+run('git', ['checkout', 'merge-aware-integration'], repo);
+run('git', ['checkout', '-b', 'merge-aware-feature', mergeAwareCommonHead], repo);
+fs.writeFileSync(path.join(repo, 'README.md'), 'Feature-only documentation change.\n');
+run('git', ['add', 'README.md'], repo);
+run('git', ['commit', '--no-verify', '-m', 'feature-only documentation change'], repo);
+run('git', ['merge', '--no-commit', '--no-ff', 'merge-aware-integration'], repo);
+const mergeAwareStagedResult = runGate(['--staged']);
+assert.equal(
+  mergeAwareStagedResult.status,
+  0,
+  'staged merge mode must compare the index with MERGE_HEAD and exclude upstream-only resource changes',
+);
+assert.match(
+  `${mergeAwareStagedResult.stdout}\n${mergeAwareStagedResult.stderr}`,
+  /new-resource semantic completeness passed \(\d+ changed resources checked\)/,
+);
+assert.doesNotMatch(
+  `${mergeAwareStagedResult.stdout}\n${mergeAwareStagedResult.stderr}`,
+  /integration-only-step|missing-runtime-lesson-runtime-projection-row/,
+);
+run('git', ['commit', '--no-verify', '-m', 'merge integration into feature'], repo);
+
+run('git', ['checkout', '-b', 'merge-aware-reverse-feature', 'merge-aware-integration'], repo);
+const reverseManifest = JSON.parse(fs.readFileSync(mergeAwareManifestPath, 'utf8'));
+reverseManifest.steps['incoming-feature-step'] = {
+  id: 'incoming-feature-step',
+  title: 'Incoming feature resource without projection',
+};
+fs.writeFileSync(mergeAwareManifestPath, `${JSON.stringify(reverseManifest, null, 2)}\n`);
+run('git', ['add', 'course-content/runtime/lessons/1-1/interactive-manifest.json'], repo);
+run('git', ['commit', '--no-verify', '-m', 'incoming feature resource change'], repo);
+run('git', ['checkout', '-b', 'merge-aware-origin-after-feature', 'merge-aware-origin-tip'], repo);
+run('git', ['merge', '--no-ff', '--no-edit', 'merge-aware-reverse-feature'], repo);
+run('git', ['update-ref', 'refs/remotes/origin/integration', 'merge-aware-origin-after-feature'], repo);
+run('git', ['checkout', 'merge-aware-integration'], repo);
+run('git', ['merge', '--no-commit', '--no-ff', 'merge-aware-reverse-feature'], repo);
+const reverseMergeResult = runGate(['--staged']);
+assert.notEqual(
+  reverseMergeResult.status,
+  0,
+  'integration-to-feature reverse merge must compare with HEAD and scan incoming feature resources',
+);
+assert.match(
+  `${reverseMergeResult.stdout}\n${reverseMergeResult.stderr}`,
+  /incoming-feature-step|missing-runtime-lesson-runtime-projection-row/,
+);
+const failingGitBin = path.join(tmp, 'failing-git-bin');
+fs.mkdirSync(failingGitBin, { recursive: true });
+fs.writeFileSync(
+  path.join(failingGitBin, 'git'),
+  `#!/bin/sh\nif [ "$1" = "merge-base" ] && [ "$2" = "--is-ancestor" ]; then exit 128; fi\nexec "${realGit}" "$@"\n`,
+  { mode: 0o755 },
+);
+const ancestryErrorResult = runGate(['--staged'], {
+  PATH: `${failingGitBin}${path.delimiter}${process.env.PATH ?? ''}`,
+});
+assert.notEqual(ancestryErrorResult.status, 0, 'merge-base errors must conservatively fall back to HEAD');
+assert.match(
+  `${ancestryErrorResult.stdout}\n${ancestryErrorResult.stderr}`,
+  /incoming-feature-step|missing-runtime-lesson-runtime-projection-row/,
+);
+run('git', ['commit', '--no-verify', '-m', 'merge feature into integration fixture'], repo);
+
+const octopusBase = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repo, encoding: 'utf8' }).trim();
+run('git', ['checkout', '-b', 'merge-aware-octopus-one', octopusBase], repo);
+fs.writeFileSync(path.join(repo, 'octopus-one.md'), 'octopus one\n');
+run('git', ['add', 'octopus-one.md'], repo);
+run('git', ['commit', '--no-verify', '-m', 'octopus one'], repo);
+run('git', ['checkout', '-b', 'merge-aware-octopus-two', octopusBase], repo);
+fs.writeFileSync(path.join(repo, 'octopus-two.md'), 'octopus two\n');
+run('git', ['add', 'octopus-two.md'], repo);
+run('git', ['commit', '--no-verify', '-m', 'octopus two'], repo);
+run('git', ['checkout', 'merge-aware-integration'], repo);
+run('git', ['merge', '--no-commit', '--no-ff', 'merge-aware-octopus-one', 'merge-aware-octopus-two'], repo);
+const octopusMergeResult = runGate(['--staged']);
+assert.notEqual(octopusMergeResult.status, 0, 'octopus staged merges must fail closed');
+assert.match(
+  `${octopusMergeResult.stdout}\n${octopusMergeResult.stderr}`,
+  /does not support octopus merge staging/,
+);
+
 console.log('new resource semantic completeness command contract passed');
 
 function run(command, args, cwd) {
   execFileSync(command, args, { cwd, stdio: 'pipe' });
 }
 
-function runGate(args) {
+function runGate(args, envOverrides = {}) {
   return spawnSync(tsxBin, ['./scripts/data-governance/check-new-resource-semantic-completeness.ts', ...args], {
     cwd: repo,
     encoding: 'utf8',
+    env: { ...process.env, ...envOverrides },
   });
 }
 

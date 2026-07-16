@@ -1,13 +1,17 @@
 import { NextResponse } from 'next/server';
 
 import {
-  COMPETENCY_DIMENSIONS,
   COMPETENCY_LEVELS,
-  calculateOverallScore,
-  getCompetencyLabel,
-  type CompetencyDimension,
-  type CompetencyVector,
 } from '@/lib/data-governance/competency-model';
+import { PORTRAIT_V2_DIMENSIONS, type PortraitV2DimensionId } from '@/lib/data-governance/kaq-objective-taxonomy';
+import {
+  hasAuthoritativePortraitV2Evidence,
+  hasPortraitV2Evidence,
+  resolvePrimaryPortraitV2,
+  selectPortraitV2WithCompatibilityFallback,
+  summarizePortraitV2,
+  type PortraitV2ConsumerSummary,
+} from '@/lib/data-governance/portrait-v2-consumer';
 import { getServerAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { createDatabaseUnavailableResponse, isDatabaseConnectivityError } from '@/lib/service-availability';
@@ -53,6 +57,7 @@ interface TeacherClassInsightStudent {
   email: string | null;
   studentNumber: string | null;
   overallScore: number;
+  overallScoreSource: 'portrait-v2' | 'profile-summary-compatibility';
   overallLevel: string;
   riskLevel: 'none' | 'low' | 'medium' | 'high';
   riskLabel: string;
@@ -65,7 +70,16 @@ interface TeacherClassInsightStudent {
   recommendationCount: number;
   factCount: number;
   lastSnapshotAt: string | null;
+  portraitV2: PortraitV2ConsumerSummary;
   evidenceStatus: TeacherStudentEvidenceStatus;
+}
+
+function latestSnapshotTimestamp(...timestamps: Array<string | null | undefined>) {
+  return timestamps.reduce<string | null>((latest, timestamp) => {
+    if (!timestamp) return latest;
+    if (!latest || Date.parse(timestamp) > Date.parse(latest)) return timestamp;
+    return latest;
+  }, null);
 }
 
 export interface TeacherClassInsightsPayload {
@@ -96,7 +110,7 @@ export interface TeacherClassInsightsPayload {
   };
   ability: {
     dimensions: Array<{
-      dimension: CompetencyDimension;
+      dimension: PortraitV2DimensionId;
       label: string;
       mean: number;
       stdDev: number;
@@ -311,6 +325,27 @@ export async function GET(
     const cacheHealthByUserId = new Map(
       studentEvidenceFeatureCaches.map((cache) => [cache.userId, cache])
     );
+    const resolvedPortraits = await Promise.all(studentIds.map(async (studentId) => {
+        const resolution = await resolvePrimaryPortraitV2(prisma, studentId, 'reviewer', {
+          legacySnapshot: snapshotMap.get(studentId) as Record<string, unknown> | null,
+          featureCache: cacheHealthByUserId.get(studentId) as Record<string, unknown> | null,
+        });
+        return [studentId, resolution] as const;
+      }));
+    const portraitByUserId = new Map(
+      resolvedPortraits
+        .map(([studentId, resolution]) => [
+          studentId,
+          selectPortraitV2WithCompatibilityFallback(resolution, 'reviewer'),
+        ] as const)
+        .filter(([, portrait]) => hasPortraitV2Evidence(portrait))
+        .map(([studentId, portrait]) => [studentId, summarizePortraitV2(portrait)] as const),
+    );
+    const studentIdsWithPrimaryPortraitEvidence = new Set(
+      resolvedPortraits
+        .filter(([, resolution]) => hasAuthoritativePortraitV2Evidence(resolution.primaryPortrait))
+        .map(([studentId]) => studentId),
+    );
     const now = new Date();
     const scopedSimulationArenaByUserId = buildTeacherScopedSimulationArenaFeatureMap(
       studentIds,
@@ -344,14 +379,27 @@ export async function GET(
     const students: TeacherClassInsightStudent[] = classData.students.map((studentProfile) => {
       const snapshot = snapshotMap.get(studentProfile.userId);
       const summary = summaryMap.get(studentProfile.userId);
+      const portraitV2 = portraitByUserId.get(studentProfile.userId) ?? summarizePortraitV2({
+        userId: studentProfile.userId,
+        payloadVersion: 'learner-portrait.v2',
+        migrationVersion: 'portrait-v2-migration.v1',
+        generatedAt: new Date().toISOString(),
+        derivation: { kind: 'compatibility-derived', limitations: ['missing-native-portrait-v2-evidence'] },
+        dimensions: [],
+      });
       const studentRiskFlags = riskByUserId[studentProfile.userId] ?? [];
-      const vector = snapshot?.competencyVector as CompetencyVector | undefined;
-      const fallbackScore = vector ? calculateOverallScore(vector) : 0;
-      const overallScore = Math.round((summary?.overallScore ?? fallbackScore) * 10) / 10;
+      const hasPrimaryPortraitEvidence = studentIdsWithPrimaryPortraitEvidence.has(studentProfile.userId);
+      const overallScore = Math.round(
+        (hasPrimaryPortraitEvidence ? portraitV2.overallScore : summary?.overallScore ?? 0) * 10
+      ) / 10;
       const riskLevel = normalizeInsightRiskLevel(
         summary?.riskLevel ??
           studentRiskFlags.find((flag) => flag.severity)?.severity ??
           null
+      );
+      const portraitFactCount = portraitV2.dimensions.reduce(
+        (count, dimension) => count + dimension.evidenceCount,
+        0,
       );
 
       return {
@@ -360,9 +408,11 @@ export async function GET(
         email: studentProfile.user.email,
         studentNumber: studentProfile.studentNumber,
         overallScore,
+        overallScoreSource: hasPrimaryPortraitEvidence ? 'portrait-v2' : 'profile-summary-compatibility',
         overallLevel:
-          summary?.overallLevel ||
-          COMPETENCY_LEVELS[getCompetencyLevelKey(overallScore)].label,
+          hasPrimaryPortraitEvidence
+            ? COMPETENCY_LEVELS[getCompetencyLevelKey(overallScore)].label
+            : summary?.overallLevel || COMPETENCY_LEVELS[getCompetencyLevelKey(overallScore)].label,
         riskLevel,
         riskLabel: getRiskLabel(riskLevel),
         trendDirection:
@@ -370,16 +420,20 @@ export async function GET(
             ? summary.trendDirection
             : 'stable',
         recentTrend: summary?.recentTrend || '近期暂无治理趋势',
-        strengths: parseStringList(summary?.strengthsJson),
-        weaknesses: parseStringList(summary?.weaknessesJson),
+        strengths: portraitV2.strengths.map((id) => portraitV2.dimensions.find((dimension) => dimension.id === id)?.label ?? id),
+        weaknesses: portraitV2.weaknesses.map((id) => portraitV2.dimensions.find((dimension) => dimension.id === id)?.label ?? id),
         riskBadges:
           parseStringList(summary?.riskFlagsJson).length > 0
             ? parseStringList(summary?.riskFlagsJson)
             : studentRiskFlags.map((flag) => flag.description),
         growthRecordCount: growthMap.get(studentProfile.userId) ?? 0,
         recommendationCount: recommendationMap.get(studentProfile.userId) ?? 0,
-        factCount: snapshot?.factCount ?? 0,
-        lastSnapshotAt: snapshot?.snapshotAt.toISOString() ?? null,
+        factCount: hasPrimaryPortraitEvidence ? portraitFactCount : snapshot?.factCount ?? 0,
+        lastSnapshotAt: latestSnapshotTimestamp(
+          hasPrimaryPortraitEvidence ? portraitV2.generatedAt : null,
+          snapshot?.snapshotAt.toISOString() ?? null,
+        ),
+        portraitV2,
         evidenceStatus: evidenceStatusMap.get(studentProfile.userId)!,
       };
     });
@@ -387,8 +441,9 @@ export async function GET(
     const coverageStudents = students.filter(
       (student) => student.lastSnapshotAt || student.overallScore > 0 || student.riskBadges.length > 0
     ).length;
-    const latestStudentSnapshotAt =
-      latestSnapshots[0]?.snapshotAt.toISOString() ?? null;
+    const latestStudentSnapshotAt = latestSnapshotTimestamp(
+      ...students.map((student) => student.lastSnapshotAt),
+    );
     const governanceBase = summarizeGovernanceState({
       totalStudents,
       coveredStudents: coverageStudents,
@@ -396,21 +451,21 @@ export async function GET(
       latestStudentSnapshotAt,
     });
 
-    const dimensionStats = COMPETENCY_DIMENSIONS.map((dimension) => {
+    const dimensionStats = PORTRAIT_V2_DIMENSIONS.map(({ id: dimension, label }) => {
       const classMean = extractClassMean(classSnapshot?.aggregateJson, dimension);
       const classStdDev = extractClassStdDev(classSnapshot?.aggregateJson, dimension);
-      const fallbackScores = latestSnapshots
-        .map((snapshot) => {
-          const vector = snapshot.competencyVector as unknown as CompetencyVector;
-          return vector?.[dimension]?.score ?? 0;
-        })
-        .filter((score) => Number.isFinite(score));
+      const fallbackScores = [...portraitByUserId.values()].flatMap((portrait) => {
+        const portraitDimension = portrait.dimensions.find((item) => item.id === dimension);
+        return portraitDimension && portraitDimension.evidenceCount > 0 && Number.isFinite(portraitDimension.score)
+          ? [portraitDimension.score]
+          : [];
+      });
       const fallbackMean = fallbackScores.length
         ? roundTo(fallbackScores.reduce((sum, score) => sum + score, 0) / fallbackScores.length, 1)
         : 0;
       return {
         dimension,
-        label: getCompetencyLabel(dimension),
+        label,
         mean: classMean ?? fallbackMean,
         stdDev: classStdDev ?? 0,
       };
@@ -540,15 +595,21 @@ function getRiskLabel(level: 'none' | 'low' | 'medium' | 'high') {
   return '风险平稳';
 }
 
-function extractClassMean(aggregate: unknown, dimension: CompetencyDimension) {
+function extractClassMean(aggregate: unknown, dimension: PortraitV2DimensionId) {
   if (!aggregate || typeof aggregate !== 'object') return null;
-  const entry = (aggregate as Record<string, { mean?: number }>)[dimension];
+  const record = aggregate as Record<string, unknown>;
+  const entry = (record.dimensions && typeof record.dimensions === 'object'
+    ? (record.dimensions as Record<string, { mean?: number }>)[dimension]
+    : record[dimension]) as { mean?: number } | undefined;
   return typeof entry?.mean === 'number' ? roundTo(entry.mean, 1) : null;
 }
 
-function extractClassStdDev(aggregate: unknown, dimension: CompetencyDimension) {
+function extractClassStdDev(aggregate: unknown, dimension: PortraitV2DimensionId) {
   if (!aggregate || typeof aggregate !== 'object') return null;
-  const entry = (aggregate as Record<string, { stdDev?: number }>)[dimension];
+  const record = aggregate as Record<string, unknown>;
+  const entry = (record.dimensions && typeof record.dimensions === 'object'
+    ? (record.dimensions as Record<string, { stdDev?: number }>)[dimension]
+    : record[dimension]) as { stdDev?: number } | undefined;
   return typeof entry?.stdDev === 'number' ? roundTo(entry.stdDev, 1) : null;
 }
 

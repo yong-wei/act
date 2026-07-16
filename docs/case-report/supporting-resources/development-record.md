@@ -8,7 +8,7 @@
 | 精品互动课建设 | 建设课程入口、教师页、学生页、知识卡片与互动步骤 | 可复用互动课堂样板 |
 | 虚拟仿真升级 | 将船舶仿真实时步进迁入 Rust/WASM | 稳定可复现的数值内核 |
 | AI 助手接入 | 接入可配置供应商适配层，当前使用 SiliconFlow 与 deepseek-ai/DeepSeek-V4-Flash | 控灵上下文学习助手 |
-| 数据治理建设 | 设计 LearningEvent、LearningFact、六维能力画像 | 学生画像和教师学情分析 |
+| 数据治理建设 | 设计 LearningEvent、LearningFact、七维 portrait v2 主画像与历史兼容映射 | 学生画像和教师学情分析 |
 | 运维与验证 | 补充 lint、test、build、Playwright 与部署脚本 | 可验证、可部署的系统状态 |
 
 ## 2. 关键验证

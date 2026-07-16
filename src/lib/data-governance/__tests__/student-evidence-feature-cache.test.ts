@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { LearningFact } from '@prisma/client';
+import { createEmptyCompetencyVector } from '../competency-model';
+import { PORTRAIT_V2_DIMENSIONS } from '../kaq-objective-taxonomy';
 import type { LearningEvent } from '../event-protocol';
 import { eventToLearningFactInput } from '../learning-fact-materialization';
+import { createPortraitV2Payload, derivePortraitV2Compatibility } from '../portrait-v2-model';
 import {
   buildStudentEvidenceFeaturePayload,
   getStudentEvidenceFeatureCacheAdminSummary,
@@ -62,6 +65,91 @@ function clientArenaEvaluationEvent(overrides: Partial<LearningEvent> = {}): Lea
 }
 
 describe('buildStudentEvidenceFeaturePayload', () => {
+  it('uses portrait v2 as the primary competency source without inventing a legacy snapshot', () => {
+    const now = new Date('2026-05-19T00:00:00.000Z');
+    const vector = createEmptyCompetencyVector();
+    for (const entry of Object.values(vector)) {
+      entry.score = 70;
+      entry.confidence = 0.8;
+      entry.evidenceCount = 3;
+      entry.lastUpdated = now.toISOString();
+    }
+    const portrait = derivePortraitV2Compatibility({
+      userId: 'student-1',
+      snapshotId: 'portrait-v2-only',
+      snapshotAt: now.toISOString(),
+      sourceFamily: 'StudentCompetencySnapshot',
+      vector,
+      now,
+    });
+
+    const payload = buildStudentEvidenceFeaturePayload({
+      userId: 'student-1',
+      now,
+      facts: [fact({ startedAt: now, finishedAt: now })],
+      latestPortraitV2: { payload: portrait },
+      profileSummary: {
+        updatedAt: now,
+        overallScore: 70,
+        riskLevel: 'low',
+        trendDirection: 'stable',
+      },
+    });
+
+    expect(payload.sourceCounts).toMatchObject({
+      StudentCompetencySnapshot: 0,
+      StudentPortraitV2Snapshot: 1,
+    });
+    expect(payload.sourceCoverage).toMatchObject({
+      StudentCompetencySnapshot: 'missing',
+      StudentPortraitV2Snapshot: 'available',
+    });
+    expect(payload.statusMarkers).not.toContain('missing-source');
+    expect(payload.features.adaptiveLearnerState.sourceCoverage.primaryCompetencies).toBe('available');
+  });
+
+  it('does not treat an evidence-free native portrait as available primary competencies', () => {
+    const now = new Date('2026-05-19T00:00:00.000Z');
+    const portrait = createPortraitV2Payload({
+      userId: 'student-1',
+      generatedAt: now.toISOString(),
+      now,
+      derivation: { kind: 'native', limitations: [] },
+      dimensions: PORTRAIT_V2_DIMENSIONS.map(({ id }) => ({
+        id,
+        score: 0,
+        confidence: 0,
+        trend: 'stable' as const,
+        freshness: { state: 'missing' as const, asOf: null, evidenceAgeDays: null },
+        evidenceSummary: { totalCount: 0, sourceFamilyCounts: {} },
+        lastPositiveEvidenceAt: null,
+        lastNegativeEvidenceAt: null,
+        rationale: 'No safe legacy mapping exists.',
+        limitations: ['missing-native-portrait-v2-evidence'],
+        sourceLineage: [],
+        calculationVersion: 'portrait-v2-primary.v1',
+      })),
+    });
+
+    const payload = buildStudentEvidenceFeaturePayload({
+      userId: 'student-1',
+      now,
+      facts: [fact({ startedAt: now, finishedAt: now })],
+      latestPortraitV2: { payload: portrait },
+      profileSummary: {
+        updatedAt: now,
+        overallScore: 0,
+        riskLevel: 'low',
+        trendDirection: 'stable',
+      },
+    });
+
+    expect(payload.sourceCoverage.StudentPortraitV2Snapshot).toBe('missing');
+    expect(payload.sourceCounts.StudentPortraitV2Snapshot).toBe(0);
+    expect(payload.statusMarkers).toContain('missing-source');
+    expect(payload.features.adaptiveLearnerState.sourceCoverage.primaryCompetencies).toBe('missing');
+  });
+
   it('derives governed path execution features without raw execution payloads', () => {
     const payload = buildStudentEvidenceFeaturePayload({
       userId: 'student-1',
@@ -1053,6 +1141,8 @@ describe('buildStudentEvidenceFeaturePayload', () => {
           payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
           refreshedAt: new Date('2026-05-21T00:00:00.000Z'),
           statusMarkers: [],
+          sourceCounts: payload.sourceCounts,
+          sourceCoverage: payload.sourceCoverage,
           features: payload.features,
         }),
       },
@@ -1605,6 +1695,8 @@ describe('student evidence feature cache service', () => {
           payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
           refreshedAt: new Date('2026-05-18T00:00:00.000Z'),
           statusMarkers: [],
+          sourceCounts: payload.sourceCounts,
+          sourceCoverage: payload.sourceCoverage,
           features: payload.features,
         }),
       },
@@ -1649,6 +1741,107 @@ describe('student evidence feature cache service', () => {
         payloadVersion: 'student-evidence-features.v1',
       },
     });
+  });
+
+  it('normalizes current-version caches created before portrait v2 source fields were added', async () => {
+    const payload = buildStudentEvidenceFeaturePayload({
+      userId: 'student-1',
+      now: new Date('2026-05-19T00:00:00.000Z'),
+      facts: [fact()],
+    });
+    const sourceCounts = { ...payload.sourceCounts } as Record<string, unknown>;
+    const sourceCoverage = { ...payload.sourceCoverage } as Record<string, unknown>;
+    delete sourceCounts.StudentPortraitV2Snapshot;
+    delete sourceCoverage.StudentPortraitV2Snapshot;
+    const db = {
+      studentEvidenceFeatureCache: {
+        findUnique: vi.fn().mockResolvedValue({
+          userId: 'student-1',
+          payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
+          refreshedAt: new Date('2026-05-18T00:00:00.000Z'),
+          statusMarkers: [],
+          sourceCounts,
+          sourceCoverage,
+          features: payload.features,
+        }),
+      },
+    };
+
+    await expect(
+      readStudentEvidenceFeatures(db, 'student-1', {
+        now: new Date('2026-05-19T00:00:00.000Z'),
+      })
+    ).resolves.toMatchObject({
+      state: 'ready',
+      cache: {
+        sourceCounts: { StudentPortraitV2Snapshot: 0 },
+        sourceCoverage: { StudentPortraitV2Snapshot: 'missing' },
+      },
+    });
+  });
+
+  it.each(['count', 'coverage'] as const)(
+    'keeps current-version caches with only the portrait v2 %s missing stale',
+    async (missingField) => {
+      const payload = buildStudentEvidenceFeaturePayload({
+        userId: 'student-1',
+        now: new Date('2026-05-19T00:00:00.000Z'),
+        facts: [fact()],
+      });
+      const sourceCounts = { ...payload.sourceCounts } as Record<string, unknown>;
+      const sourceCoverage = { ...payload.sourceCoverage } as Record<string, unknown>;
+      if (missingField === 'count') {
+        delete sourceCounts.StudentPortraitV2Snapshot;
+      } else {
+        delete sourceCoverage.StudentPortraitV2Snapshot;
+      }
+      const db = {
+        studentEvidenceFeatureCache: {
+          findUnique: vi.fn().mockResolvedValue({
+            userId: 'student-1',
+            payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
+            refreshedAt: new Date('2026-05-18T00:00:00.000Z'),
+            statusMarkers: [],
+            sourceCounts,
+            sourceCoverage,
+            features: payload.features,
+          }),
+        },
+      };
+
+      await expect(
+        readStudentEvidenceFeatures(db, 'student-1', {
+          now: new Date('2026-05-19T00:00:00.000Z'),
+        })
+      ).resolves.toMatchObject({ state: 'stale' });
+    }
+  );
+
+  it('keeps current-version caches with malformed source parent structures stale', async () => {
+    const payload = buildStudentEvidenceFeaturePayload({
+      userId: 'student-1',
+      now: new Date('2026-05-19T00:00:00.000Z'),
+      facts: [fact()],
+    });
+    const db = {
+      studentEvidenceFeatureCache: {
+        findUnique: vi.fn().mockResolvedValue({
+          userId: 'student-1',
+          payloadVersion: STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
+          refreshedAt: new Date('2026-05-18T00:00:00.000Z'),
+          statusMarkers: [],
+          sourceCounts: null,
+          sourceCoverage: payload.sourceCoverage,
+          features: payload.features,
+        }),
+      },
+    };
+
+    await expect(
+      readStudentEvidenceFeatures(db, 'student-1', {
+        now: new Date('2026-05-19T00:00:00.000Z'),
+      })
+    ).resolves.toMatchObject({ state: 'stale' });
   });
 
   it('marks v2 payloads without adaptive learner-state feature groups as stale', async () => {

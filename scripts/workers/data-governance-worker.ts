@@ -34,6 +34,18 @@ import {
   refreshStudentEvidenceFeatureCache,
 } from '@/lib/data-governance/student-evidence-feature-cache';
 import { materializeIncrementalPortraitV2 } from '@/lib/data-governance/portrait-v2-materialization';
+import {
+  aggregatePortraitV2,
+  hasPortraitV2Evidence,
+  isSamePortraitV2ClassSnapshot,
+  resolvePrimaryPortraitV2,
+  selectPortraitV2WithCompatibilityFallback,
+  summarizePortraitV2,
+} from '@/lib/data-governance/portrait-v2-consumer';
+import type {
+  PortraitV2ClassAggregate,
+} from '@/lib/data-governance/portrait-v2-consumer';
+import type { PortraitV2PayloadShape } from '@/lib/data-governance/portrait-v2-model';
 import type { CompetencyVector } from '@/lib/data-governance/competency-model';
 import type { LearningEvent } from '@/lib/data-governance/event-protocol';
 import {
@@ -807,22 +819,40 @@ async function processClassSnapshotJob(job: Job<ClassSnapshotJob>) {
     ),
   );
 
-  const validSnapshots = snapshots.filter((snapshot) => Boolean(snapshot) && snapshot!.factCount > 0);
-  if (validSnapshots.length === 0) {
+  const validStudentSnapshots = students
+    .map((student, index) => ({ student, snapshot: snapshots[index] }))
+    .filter((row): row is { student: { userId: string }; snapshot: NonNullable<typeof row.snapshot> } =>
+      Boolean(row.snapshot) && row.snapshot.factCount > 0
+    );
+  const portraitResolutions = await Promise.all(students.map((student, index) =>
+    resolvePrimaryPortraitV2(db, student.userId, 'reviewer', {
+      legacySnapshot: snapshots[index] as Record<string, unknown> | null,
+    })
+  ));
+  const portraitRows = portraitResolutions
+    .map((resolution) => ({
+      payload: selectPortraitV2WithCompatibilityFallback(resolution, 'reviewer'),
+    }))
+    .filter(({ payload }) => hasPortraitV2Evidence(payload));
+  if (portraitRows.length === 0) {
     return { studentCount: 0, snapshotId: null };
   }
-
-  const aggregate = calculateClassAggregate(validSnapshots as Array<{ competencyVector: unknown }>);
-  const distribution = calculateLevelDistribution(validSnapshots as Array<{ competencyVector: unknown }>);
-  const riskSummary = calculateRiskSummary(validSnapshots as Array<{ riskFlags: unknown }>);
+  const aggregate = aggregatePortraitV2(portraitRows.map((row) => row.payload));
+  const distribution = calculatePortraitLevelDistribution(portraitRows.map((row) => row.payload));
+  const riskSummary = calculateRiskSummary(validStudentSnapshots.map((row) => row.snapshot));
   const previousClassSnapshot = await db.classCompetencySnapshot.findFirst({
     where: { classId },
     orderBy: { snapshotAt: 'desc' },
   });
-  if (previousClassSnapshot && isSameClassAggregate(aggregate, previousClassSnapshot.aggregateJson)) {
+  if (previousClassSnapshot && isSamePortraitV2ClassSnapshot(
+    aggregate,
+    distribution,
+    previousClassSnapshot.aggregateJson,
+    previousClassSnapshot.distributionJson,
+  )) {
     return {
       snapshotId: previousClassSnapshot.id,
-      studentCount: validSnapshots.length,
+      studentCount: portraitRows.length,
       skipped: true,
       reason: 'unchanged_aggregate',
     };
@@ -838,47 +868,26 @@ async function processClassSnapshotJob(job: Job<ClassSnapshotJob>) {
       trendJson: trend as Prisma.InputJsonValue,
       riskSummaryJson: riskSummary as unknown as Prisma.InputJsonValue,
       levelDistribution: distribution as unknown as Prisma.InputJsonValue,
-      activeStudentCount: validSnapshots.length,
+      activeStudentCount: portraitRows.length,
       totalStudentCount: students.length,
     },
   });
 
   return {
     snapshotId: snapshot.id,
-    studentCount: validSnapshots.length,
+    studentCount: portraitRows.length,
   };
 }
 
-function calculateClassAggregate(snapshots: Array<{ competencyVector: unknown }>) {
-  const vectors = snapshots.map((snapshot) => snapshot.competencyVector as CompetencyVector);
-  const dimensions = Object.keys(vectors[0]) as Array<keyof CompetencyVector>;
-
-  const aggregate: Record<string, { mean: number; stdDev: number }> = {};
-
-  for (const dimension of dimensions) {
-    const scores = vectors.map((vector) => vector[dimension].score);
-    const mean = scores.reduce((a, b) => a + b, 0) / scores.length;
-    const variance = scores.reduce((sum, score) => sum + Math.pow(score - mean, 2), 0) / scores.length;
-
-    aggregate[dimension] = {
-      mean: Math.round(mean * 10) / 10,
-      stdDev: Math.round(Math.sqrt(variance) * 10) / 10,
-    };
-  }
-
-  return aggregate;
-}
-
-function calculateLevelDistribution(snapshots: Array<{ competencyVector: unknown }>) {
-  const vectors = snapshots.map((snapshot) => snapshot.competencyVector as CompetencyVector);
+function calculatePortraitLevelDistribution(payloads: PortraitV2PayloadShape[]) {
   const levels = { excellent: 0, good: 0, average: 0, needsImprovement: 0, atRisk: 0 };
 
-  for (const vector of vectors) {
-    const avg = calculateOverallScore(vector);
-    if (avg >= 85) levels.excellent += 1;
-    else if (avg >= 70) levels.good += 1;
-    else if (avg >= 55) levels.average += 1;
-    else if (avg >= 40) levels.needsImprovement += 1;
+  for (const payload of payloads) {
+    const overallScore = summarizePortraitV2(payload).overallScore;
+    if (overallScore >= 85) levels.excellent += 1;
+    else if (overallScore >= 70) levels.good += 1;
+    else if (overallScore >= 55) levels.average += 1;
+    else if (overallScore >= 40) levels.needsImprovement += 1;
     else levels.atRisk += 1;
   }
 
@@ -897,12 +906,15 @@ function calculateRiskSummary(snapshots: Array<{ riskFlags: unknown }>) {
 }
 
 function calculateClassTrend(
-  current: Record<string, { mean: number; stdDev: number }>,
+  current: PortraitV2ClassAggregate,
   previous: unknown,
 ) {
   const previousAggregate = readRecord(previous);
-  return Object.fromEntries(Object.entries(current).map(([dimension, value]) => {
-    const previousValue = readRecord(previousAggregate[dimension]);
+  const previousDimensions = Object.keys(readRecord(previousAggregate.dimensions)).length > 0
+    ? readRecord(previousAggregate.dimensions)
+    : previousAggregate;
+  return Object.fromEntries(Object.entries(current.dimensions).map(([dimension, value]) => {
+    const previousValue = readRecord(previousDimensions[dimension]);
     const previousMean = typeof previousValue.mean === 'number' ? previousValue.mean : value.mean;
     const delta = Math.round((value.mean - previousMean) * 10) / 10;
     return [dimension, {
@@ -912,17 +924,6 @@ function calculateClassTrend(
       direction: delta > 3 ? 'up' : delta < -3 ? 'down' : 'stable',
     }];
   }));
-}
-
-function isSameClassAggregate(
-  current: Record<string, { mean: number; stdDev: number }>,
-  previous: unknown,
-) {
-  const previousAggregate = readRecord(previous);
-  return Object.entries(current).every(([dimension, value]) => {
-    const previousValue = readRecord(previousAggregate[dimension]);
-    return previousValue.mean === value.mean && previousValue.stdDev === value.stdDev;
-  });
 }
 
 async function processSessionReportJob(job: Job<SessionReportJob>) {

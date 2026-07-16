@@ -15,6 +15,21 @@ import {
   dedupeRiskFlags,
 } from '@/lib/data-governance/profile-center';
 import {
+  mapLegacyCompetencyDimensionToPortraitV2,
+  PORTRAIT_V2_DIMENSIONS,
+  type PortraitV2DimensionId,
+} from '@/lib/data-governance/kaq-objective-taxonomy';
+import {
+  hasPortraitV2Evidence,
+  resolvePrimaryPortraitV2,
+  summarizePortraitV2,
+} from '@/lib/data-governance/portrait-v2-consumer';
+import type { PortraitV2ConsumerSummary } from '@/lib/data-governance/portrait-v2-consumer';
+import {
+  derivePortraitV2Compatibility,
+  projectPortraitV2ForConsumer,
+} from '@/lib/data-governance/portrait-v2-model';
+import {
   createPrismaDiagnosisReportSnapshotStore,
   hasDiagnosisReportSnapshotPersistenceTable,
   readLatestControlCorrectionDiagnosisReportSnapshotFromPersistence,
@@ -48,12 +63,21 @@ interface EvidenceSummaryItem {
 
 export interface StudentSnapshotResponse {
   currentSnapshot: {
+    portrait: PortraitV2ConsumerSummary;
+    legacyCompatibility: {
+      authority: 'legacy-compatibility-only';
+      source: string;
+    };
+    /** @deprecated Use portrait; retained only for legacy adapters. */
     vector: CompetencyVector;
     snapshotAt: string;
     factCount: number;
   };
   previousSnapshot: {
     vector: CompetencyVector;
+    legacyCompatibility: {
+      authority: 'legacy-compatibility-only';
+    };
     snapshotAt: string;
   } | null;
   trendVector: TrendVector;
@@ -85,7 +109,73 @@ export async function GET(_request: NextRequest) {
       orderBy: { snapshotAt: 'desc' },
     });
 
+    const portraitResolution = await resolvePrimaryPortraitV2(prisma, userId, 'student', {
+      legacySnapshot: currentSnapshot,
+    });
+    const legacyCompatibility = portraitResolution.legacyCompatibility;
+    const resolvedPortrait = hasPortraitV2Evidence(portraitResolution.primaryPortrait)
+      ? portraitResolution.primaryPortrait
+      : legacyCompatibility.source !== 'fallback-empty'
+        ? projectPortraitV2ForConsumer(derivePortraitV2Compatibility({
+          userId,
+          snapshotId: legacyCompatibility.snapshotId ?? undefined,
+          snapshotAt: legacyCompatibility.snapshotAt,
+          sourceFamily: legacyCompatibility.source,
+          vector: legacyCompatibility.vector,
+        }), 'student')
+        : portraitResolution.primaryPortrait;
+    const portrait = summarizePortraitV2(resolvedPortrait);
+
     if (!currentSnapshot) {
+      const hasPortraitV2Data = hasPortraitV2Evidence(resolvedPortrait);
+      if (hasPortraitV2Data) {
+        const currentVector = portraitResolution.legacyCompatibility.vector;
+        const snapshotAt = portrait.generatedAt;
+        const portraitFactCount = portrait.dimensions.reduce((sum, dimension) => sum + dimension.evidenceCount, 0);
+        const portraitLearningFactCount = portraitResolution.primaryPortrait.dimensions.reduce(
+          (sum, dimension) => sum + (dimension.evidenceSummary.sourceFamilyCounts.LearningFact ?? 0),
+          0,
+        );
+        const riskFlags = await readActiveRiskFlags(userId);
+        const recommendations = withPortraitRecommendationRationale(
+          generateSnapshotRecommendations(
+            currentVector,
+            riskFlags,
+            {},
+            portraitFactCount,
+            portrait,
+            'portrait-v2',
+            portraitLearningFactCount > 0 ? 'available' : 'missing',
+          ),
+          portrait,
+        );
+        return NextResponse.json({
+          currentSnapshot: {
+            portrait,
+            legacyCompatibility: {
+              authority: 'legacy-compatibility-only',
+              source: portraitResolution.legacyCompatibility.source,
+            },
+            vector: currentVector,
+            snapshotAt,
+            factCount: portraitFactCount,
+          },
+          previousSnapshot: null,
+          trendVector: Object.fromEntries(
+            Object.keys(currentVector).map((key) => [key, 'stable']),
+          ) as unknown as TrendVector,
+          evidenceSummary: mapEvidenceSummaryToPortrait({}),
+          riskFlags,
+          recommendations,
+          diagnosis: materializeRoleBasedLearningDiagnosis({
+            view: 'student',
+            goalId: 'control-correction',
+            userId,
+            targetUserId: userId,
+            diagnosisReportSnapshot: null,
+          }),
+        } satisfies StudentSnapshotResponse);
+      }
       return NextResponse.json({
         currentSnapshot: null,
         previousSnapshot: null,
@@ -136,28 +226,12 @@ export async function GET(_request: NextRequest) {
     const evidenceSummary = sanitizeEvidenceSummary(
       (currentSnapshot.evidenceSummary as unknown as Record<string, EvidenceSummaryItem[]>) || {}
     );
+    const portraitEvidenceSummary = mapEvidenceSummaryToPortrait(evidenceSummary);
 
-    // Get risk flags
-    const rawRiskFlags = await prisma.studentRiskFlag.findMany({
-      where: {
-        userId,
-        isResolved: false,
-      },
-      orderBy: { triggeredAt: 'desc' },
-      take: 10,
-    });
-
-    const riskFlags = dedupeRiskFlags(
-      rawRiskFlags.map((rf) => ({
-        type: rf.flagType as RiskFlag['type'],
-        severity: rf.severity as RiskFlag['severity'],
-        description: rf.description,
-        evidence: rf.evidenceJson as Record<string, unknown>,
-        triggeredAt: rf.triggeredAt,
-      }))
-    );
+    const riskFlags = await readActiveRiskFlags(userId);
 
     // Calculate trend vector
+    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: vector remains for trend and deprecated response compatibility only.
     const currentVector = currentSnapshot.competencyVector as unknown as CompetencyVector;
     const previousVector = previousSnapshot?.competencyVector as unknown as CompetencyVector | undefined;
     const trendVector = previousVector
@@ -167,15 +241,24 @@ export async function GET(_request: NextRequest) {
         ) as unknown as TrendVector);
 
     // Generate basic recommendations based on snapshot data
-    const recommendations = generateSnapshotRecommendations(
-      currentVector,
-      riskFlags,
-      evidenceSummary,
-      currentSnapshot.factCount
+    const recommendations = withPortraitRecommendationRationale(
+      generateSnapshotRecommendations(
+        currentVector,
+        riskFlags,
+        evidenceSummary,
+        currentSnapshot.factCount,
+        portrait,
+      ),
+      portrait,
     );
 
     const response: StudentSnapshotResponse = {
       currentSnapshot: {
+        portrait,
+        legacyCompatibility: {
+          authority: 'legacy-compatibility-only',
+          source: portraitResolution.legacyCompatibility.source,
+        },
         vector: currentVector,
         snapshotAt: currentSnapshot.snapshotAt.toISOString(),
         factCount: currentSnapshot.factCount,
@@ -183,11 +266,14 @@ export async function GET(_request: NextRequest) {
       previousSnapshot: previousSnapshot
         ? {
             vector: previousVector!,
+            legacyCompatibility: {
+              authority: 'legacy-compatibility-only',
+            },
             snapshotAt: previousSnapshot.snapshotAt.toISOString(),
           }
         : null,
       trendVector,
-      evidenceSummary,
+      evidenceSummary: portraitEvidenceSummary,
       riskFlags,
       recommendations,
       diagnosis: materializeRoleBasedLearningDiagnosis({
@@ -208,6 +294,27 @@ export async function GET(_request: NextRequest) {
     console.error('[StudentSnapshot] Error:', error);
     return NextResponse.json({ error: '服务器错误' }, { status: 500 });
   }
+}
+
+async function readActiveRiskFlags(userId: string): Promise<RiskFlag[]> {
+  const rawRiskFlags = await prisma.studentRiskFlag.findMany({
+    where: {
+      userId,
+      isResolved: false,
+    },
+    orderBy: { triggeredAt: 'desc' },
+    take: 10,
+  });
+
+  return dedupeRiskFlags(
+    rawRiskFlags.map((rf) => ({
+      type: rf.flagType as RiskFlag['type'],
+      severity: rf.severity as RiskFlag['severity'],
+      description: rf.description,
+      evidence: rf.evidenceJson as Record<string, unknown>,
+      triggeredAt: rf.triggeredAt,
+    }))
+  );
 }
 
 function sanitizeEvidenceSummary(
@@ -240,9 +347,64 @@ function sanitizeEvidenceSummary(
   );
 }
 
+function mapEvidenceSummaryToPortrait(
+  summary: Record<string, EvidenceSummaryItem[]>,
+): Record<string, EvidenceSummaryItem[]> {
+  const legacyDimensions = [
+    'controlModeling',
+    'parameterDesign',
+    'crossDomainTransfer',
+    'engineeringDecision',
+    'inquiryReflection',
+    'selfDirectedLearning',
+  ] as const;
+  const portraitIds = new Set<PortraitV2DimensionId>(PORTRAIT_V2_DIMENSIONS.map((dimension) => dimension.id));
+  const mapped = Object.fromEntries(
+    PORTRAIT_V2_DIMENSIONS.map((dimension) => [dimension.id, [] as EvidenceSummaryItem[]]),
+  ) as Record<PortraitV2DimensionId, EvidenceSummaryItem[]>;
+
+  for (const [dimension, items] of Object.entries(summary)) {
+    const targetDimensions = portraitIds.has(dimension as PortraitV2DimensionId)
+      ? [dimension as PortraitV2DimensionId]
+      : legacyDimensions.includes(dimension as (typeof legacyDimensions)[number])
+        ? mapLegacyCompetencyDimensionToPortraitV2(dimension as (typeof legacyDimensions)[number]).targetDimensions
+        : [];
+    for (const targetDimension of targetDimensions) {
+      mapped[targetDimension].push(...items);
+    }
+  }
+
+  return mapped;
+}
+
 function truncateOptionalText(value: string | undefined, maxLength: number = 96) {
   if (typeof value !== 'string') return undefined;
   return value.length > maxLength ? `${value.slice(0, maxLength)}...` : value;
+}
+
+function withPortraitRecommendationRationale(
+  recommendations: StudentSnapshotResponse['recommendations'],
+  portrait: PortraitV2ConsumerSummary,
+): StudentSnapshotResponse['recommendations'] {
+  const weakPortrait = [...portrait.dimensions]
+    .filter((dimension) => dimension.evidenceCount > 0)
+    .sort((left, right) => left.score - right.score)[0]
+    ?? [...portrait.dimensions].sort((left, right) => left.score - right.score)[0];
+
+  return recommendations.map((recommendation) => ({
+    ...recommendation,
+    rationale: {
+      ...recommendation.rationale,
+      portraitV2: {
+        dimensionIds: portrait.dimensions.map((dimension) => dimension.id),
+        weakDimensionId: weakPortrait?.id ?? null,
+        derivationKind: portrait.derivationKind,
+        confidence: weakPortrait?.confidence ?? 0,
+        freshness: weakPortrait?.freshness ?? { state: 'missing', asOf: null, evidenceAgeDays: null },
+        limitations: portrait.limitations,
+      },
+    },
+  }));
 }
 
 /**
@@ -252,17 +414,29 @@ function generateSnapshotRecommendations(
   vector: CompetencyVector,
   riskFlags: RiskFlag[],
   _evidenceSummary: Record<string, EvidenceSummaryItem[]>,
-  factCount: number
+  factCount: number,
+  portrait?: PortraitV2ConsumerSummary,
+  evidenceBasis: 'approved-snapshot' | 'portrait-v2' = 'approved-snapshot',
+  learningFactCoverage: RecommendationRationale['sourceCoverage']['LearningFact'] = (
+    factCount > 0 ? 'available' : 'missing'
+  ),
 ): StudentSnapshotResponse['recommendations'] {
   const recommendations: StudentSnapshotResponse['recommendations'] = [];
 
   // Find weakest dimensions
-  const dimensions = Object.entries(vector)
-    .map(([key, value]) => ({ dimension: key, score: value.score }))
+  const dimensions = portrait
+    ? portrait.dimensions.map((dimension) => ({
+        dimension: dimension.id,
+        label: dimension.label,
+        score: dimension.score,
+      }))
+    : Object.entries(vector).map(([key, value]) => ({ dimension: key, score: value.score, label: key }));
+  const rankedDimensions = dimensions
+    .filter((dimension) => portrait ? dimension.score > 0 || portrait.dimensions.some((item) => item.id === dimension.dimension && item.evidenceCount > 0) : true)
     .sort((a, b) => a.score - b.score);
 
-  const weakestDimension = dimensions[0];
-  const secondWeakest = dimensions[1];
+  const weakestDimension = rankedDimensions[0] ?? dimensions[0];
+  const secondWeakest = rankedDimensions[1];
 
   // Immediate recommendations based on risks
   for (const risk of riskFlags) {
@@ -274,7 +448,7 @@ function generateSnapshotRecommendations(
           description: '你近期频繁使用AI助手但问题解决率较低。建议先独立思考，再针对性地提问。',
           actionUrl: '/ai/copilot',
           priority: 90,
-          rationale: buildSnapshotRecommendationRationale('snapshot-risk-ai_misuse', 'risk', vector, factCount),
+          rationale: buildSnapshotRecommendationRationale('snapshot-risk-ai_misuse', 'risk', vector, factCount, portrait, evidenceBasis, learningFactCoverage),
         });
         break;
       case 'constraint':
@@ -284,7 +458,7 @@ function generateSnapshotRecommendations(
           description: '仿真中多次忽视工程约束。建议在调整参数前明确安全边界。',
           actionUrl: '/simulations/destroyer',
           priority: 85,
-          rationale: buildSnapshotRecommendationRationale('snapshot-risk-constraint', 'risk', vector, factCount),
+          rationale: buildSnapshotRecommendationRationale('snapshot-risk-constraint', 'risk', vector, factCount, portrait, evidenceBasis, learningFactCoverage),
         });
         break;
       case 'participation':
@@ -294,7 +468,7 @@ function generateSnapshotRecommendations(
           description: '近一周学习活跃度较低，建议每天保持至少30分钟的学习时间。',
           actionUrl: '/missions',
           priority: 95,
-          rationale: buildSnapshotRecommendationRationale('snapshot-risk-participation', 'risk', vector, factCount),
+          rationale: buildSnapshotRecommendationRationale('snapshot-risk-participation', 'risk', vector, factCount, portrait, evidenceBasis, learningFactCoverage),
         });
         break;
       case 'cross_domain':
@@ -304,7 +478,7 @@ function generateSnapshotRecommendations(
           description: '单点知识掌握较好，但跨域迁移能力需要提升。',
           actionUrl: '/interactive-learning',
           priority: 80,
-          rationale: buildSnapshotRecommendationRationale('snapshot-risk-cross_domain', 'risk', vector, factCount),
+          rationale: buildSnapshotRecommendationRationale('snapshot-risk-cross_domain', 'risk', vector, factCount, portrait, evidenceBasis, learningFactCoverage),
         });
         break;
     }
@@ -312,22 +486,13 @@ function generateSnapshotRecommendations(
 
   // Weekly recommendations based on weak dimensions
   if (weakestDimension.score < 60) {
-    const dimensionNames: Record<string, string> = {
-      controlModeling: '控制建模',
-      parameterDesign: '参数设计',
-      crossDomainTransfer: '跨域迁移',
-      engineeringDecision: '工程决策',
-      inquiryReflection: '探究反思',
-      selfDirectedLearning: '自主学习',
-    };
-
     recommendations.push({
       type: 'weekly',
-      title: `提升${dimensionNames[weakestDimension.dimension]}能力`,
+      title: `提升${weakestDimension.label}能力`,
       description: `这是你的薄弱领域（${Math.round(weakestDimension.score)}分），建议本周重点练习相关任务。`,
       actionUrl: '/missions',
       priority: 70,
-      rationale: buildSnapshotRecommendationRationale('snapshot-weak-dimension', 'direct', vector, factCount),
+      rationale: buildSnapshotRecommendationRationale('snapshot-weak-dimension', 'direct', vector, factCount, portrait, evidenceBasis, learningFactCoverage),
     });
   }
 
@@ -338,7 +503,7 @@ function generateSnapshotRecommendations(
       description: '多维度能力有待提升，建议系统复习基础知识。',
       actionUrl: '/knowledge',
       priority: 60,
-      rationale: buildSnapshotRecommendationRationale('snapshot-foundation-review', 'direct', vector, factCount),
+      rationale: buildSnapshotRecommendationRationale('snapshot-foundation-review', 'direct', vector, factCount, portrait, evidenceBasis, learningFactCoverage),
     });
   }
 
@@ -348,10 +513,10 @@ function generateSnapshotRecommendations(
     recommendations.push({
       type: 'challenge',
       title: '挑战高难度任务',
-      description: `你在${strongDimensions.map((d) => d.dimension).join('、')}方面表现优秀，可以尝试专家级任务。`,
+      description: `你在${strongDimensions.map((d) => d.label).join('、')}方面表现优秀，可以尝试专家级任务。`,
       actionUrl: '/missions',
       priority: 50,
-      rationale: buildSnapshotRecommendationRationale('snapshot-strong-dimension-challenge', 'direct', vector, factCount),
+      rationale: buildSnapshotRecommendationRationale('snapshot-strong-dimension-challenge', 'direct', vector, factCount, portrait, evidenceBasis, learningFactCoverage),
     });
   }
 
@@ -365,18 +530,30 @@ function buildSnapshotRecommendationRationale(
   reasonCode: string,
   evidenceRole: RecommendationRationale['evidenceRole'],
   vector: CompetencyVector,
-  factCount: number
+  factCount: number,
+  portrait?: PortraitV2ConsumerSummary,
+  evidenceBasis: 'approved-snapshot' | 'portrait-v2' = 'approved-snapshot',
+  learningFactCoverage: RecommendationRationale['sourceCoverage']['LearningFact'] = (
+    factCount > 0 ? 'available' : 'missing'
+  ),
 ): RecommendationRationale {
-  const confidenceValues = Object.values(vector)
-    .map((dimension) => dimension.confidence)
+  const confidenceValues = portrait
+    ? portrait.dimensions.map((dimension) => dimension.confidence)
+    : Object.values(vector).map((dimension) => dimension.confidence)
     .filter((value) => Number.isFinite(value));
   const confidenceScore = confidenceValues.length
     ? roundTo(confidenceValues.reduce((sum, value) => sum + value, 0) / confidenceValues.length, 2)
     : 0;
 
+  const weakDimension = portrait
+    ? [...portrait.dimensions]
+      .filter((dimension) => dimension.evidenceCount > 0)
+      .sort((left, right) => left.score - right.score)[0]
+    : null;
+
   return {
     reasonCode,
-    evidenceBasis: 'approved-snapshot',
+    evidenceBasis,
     evidenceRole,
     contextOnly: evidenceRole === 'context',
     evidenceWindow: {
@@ -386,8 +563,9 @@ function buildSnapshotRecommendationRationale(
     },
     evidenceCount: factCount,
     sourceCoverage: {
-      LearningFact: factCount > 0 ? 'available' : 'missing',
-      StudentCompetencySnapshot: 'available',
+      LearningFact: learningFactCoverage,
+      // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy snapshot provenance is non-authoritative.
+      StudentCompetencySnapshot: evidenceBasis === 'approved-snapshot' ? 'available' : 'missing',
       StudentProfileSummary: 'missing',
     },
     confidence: {
@@ -396,6 +574,16 @@ function buildSnapshotRecommendationRationale(
       score: confidenceScore,
       markers: factCount > 0 ? [] : ['missing-source'],
     },
+    ...(portrait ? {
+      portraitV2: {
+        dimensionIds: portrait.dimensions.map((dimension) => dimension.id),
+        weakDimensionId: weakDimension?.id ?? null,
+        derivationKind: portrait.derivationKind,
+        confidence: weakDimension?.confidence ?? 0,
+        freshness: weakDimension?.freshness ?? { state: 'missing', asOf: null, evidenceAgeDays: null },
+        limitations: portrait.limitations,
+      },
+    } : {}),
   };
 }
 
