@@ -26,6 +26,8 @@ function listSourceFiles(relativeDir: string): string[] {
 const seedAllKnowledge = read('scripts/db/seed-all-knowledge.mjs');
 const showcaseSeed = read('scripts/db/seed-extracurricular-showcase.mjs');
 const knowledgeNodeRoute = read('src/app/api/knowledge/nodes/[id]/route.ts');
+const knowledgeNodesRoute = read('src/app/api/knowledge/nodes/route.ts');
+const knowledgeGraphSource = read('src/lib/knowledge-graph-source.ts');
 const runtimeNodes = readJson('course-content/runtime/knowledge/graph/nodes.json') as Array<{ id: string }>;
 const runtimeNodeIds = new Set(runtimeNodes.map((node) => node.id));
 
@@ -49,29 +51,45 @@ assert.equal(
   '过期 KnowledgeNode 只能按 runtime source marker 失活，不能全量失活数据库外部节点',
 );
 assert.equal(
-  seedAllKnowledge.includes('sourceNode: {\n        is: {\n          metadata:')
-    && seedAllKnowledge.includes('targetNode: {\n        is: {\n          metadata:'),
+  seedAllKnowledge.includes("path: ['runtimeSource']")
+    && seedAllKnowledge.includes('equals: RUNTIME_RELATION_SOURCE_MARKER'),
   true,
-  '过期 KnowledgeLink 清理必须限定 source/target 都属于 runtime-owned 节点',
+  '过期 KnowledgeLink 清理必须限定显式 runtime relation ownership 标记',
 );
 assert.equal(
   seedAllKnowledge.includes('selectRelationsForDb')
-    && seedAllKnowledge.includes('database sync stores one deterministic representative relation per pair')
-    && seedAllKnowledge.includes('完整关系语义保留在 runtime relations.jsonl'),
+    && seedAllKnowledge.includes('validateRelationsStrict()')
+    && seedAllKnowledge.includes('prisma.$transaction(async (tx)')
+    && seedAllKnowledge.includes('where: { id: relation.id }')
+    && seedAllKnowledge.includes('metadata: relation.metadata')
+    && !seedAllKnowledge.includes('sourceId_targetId'),
   true,
-  '当前 KnowledgeLink 唯一键只能保存端点对代表关系，seed 脚本必须显式声明折叠策略',
+  'KnowledgeLink seed 必须按 relation id 无损保留同端点多语义与 provenance',
 );
 
 assert.equal(
-  knowledgeNodeRoute.includes('where: { id: params.id, isActive: true }'),
+  knowledgeNodeRoute.includes('buildKnowledgeNodeDetailFromGraph(graph, params.id)')
+    && knowledgeGraphSource.includes("path: ['source'], equals: RUNTIME_NODE_SOURCE_MARKER"),
   true,
-  '单知识节点 API 不应返回 inactive 节点',
+  '单知识节点 API 应从已过滤 active 节点的共享 graph source 构建详情',
 );
 assert.equal(
-  knowledgeNodeRoute.includes('targetNode: { is: { isActive: true } }')
-    && knowledgeNodeRoute.includes('sourceNode: { is: { isActive: true } }'),
+  knowledgeGraphSource.includes("where: { metadata: { path: ['runtimeSource'], equals: RUNTIME_RELATION_SOURCE_MARKER } }")
+    && !knowledgeGraphSource.includes('targetNode: { isActive: true }')
+    && !knowledgeGraphSource.includes('sourceNode: { isActive: true }')
+    && knowledgeNodesRoute.includes('loadKnowledgeGraphData()')
+    && knowledgeNodesRoute.includes('.map(toPublicKnowledgeGraphNode)')
+    && !knowledgeNodesRoute.includes('prisma.knowledgeNode.findMany'),
   true,
-  '单知识节点 API 应过滤 inactive 关联节点',
+  '共享 graph source 应读取全部 runtime 关系并让节点列表复用 runtime-only sanitized loader',
+);
+assert.equal(
+  knowledgeGraphSource.includes('prisma.$transaction(async (tx)')
+    && knowledgeGraphSource.includes("isolationLevel: 'RepeatableRead'")
+    && knowledgeGraphSource.includes('loadDatabaseRelationVersionEvidence(db)')
+    && !knowledgeGraphSource.includes('loadDatabaseRelationVersionEvidence()'),
+  true,
+  'DB graph payload 与 relation fingerprint 必须来自同一 RepeatableRead 快照',
 );
 
 const nodeIdsBlocks = [...showcaseSeed.matchAll(/nodeIds:\s*\[([^\]]*)\]/g)];

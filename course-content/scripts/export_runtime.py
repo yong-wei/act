@@ -39,6 +39,12 @@ from lesson_artifacts import (  # noqa: E402
 )
 from canonical_nodes import load_canonical_index  # noqa: E402
 from runtime_media_index import ensure_runtime_media_index  # noqa: E402
+from lesson_graph_order import (  # noqa: E402
+    build_lesson_overlay_payload,
+    build_lesson_overlay_revision,
+    normalize_relation_type,
+    resolve_authoring_card_order,
+)
 
 CHAPTER_NAME_BY_NUMBER = {
     1: '基本概念',
@@ -192,6 +198,33 @@ def build_generated_relation_id(source_id: str, target_id: str, relation_type: s
     return f'rel-{digest}'
 
 
+def resolve_relation_type(record: dict[str, Any]) -> str:
+    fields = ('type', 'relationType', 'relation_type', 'relation')
+    present_fields = [field for field in fields if field in record]
+    if len(present_fields) != 1:
+        raise ValueError('relation type must use exactly one field alias')
+    return normalize_relation_type(record[present_fields[0]])
+
+
+def resolve_relation_id(record: dict[str, Any], source_id: str, target_id: str, relation_type: str) -> str:
+    fields = ('id', 'relationId', 'relation_id')
+    present_fields = [field for field in fields if field in record]
+    if not present_fields:
+        return build_generated_relation_id(source_id, target_id, relation_type)
+    values = [record[field] for field in present_fields]
+    runtime_compatibility_pair = (
+        set(present_fields) == {'id', 'relation_id'}
+        and len(present_fields) == 2
+        and values[0] == values[1]
+    )
+    if len(present_fields) != 1 and not runtime_compatibility_pair:
+        raise ValueError('relation id must use exactly one field alias')
+    relation_id = values[0]
+    if not isinstance(relation_id, str) or not relation_id or relation_id.strip() != relation_id:
+        raise ValueError('relation id must be an exact non-empty string')
+    return relation_id
+
+
 def normalize_relation_record(
     record: dict[str, Any],
     nodes_by_id: dict[str, dict[str, Any]],
@@ -208,9 +241,18 @@ def normalize_relation_record(
     if not source_node or not target_node:
         return None
 
-    relation_type = str(record.get('relation_type') or record.get('relation') or 'related')
-    relation_id = str(record.get('relation_id') or build_generated_relation_id(source_id, target_id, relation_type))
-    strength = float(record.get('strength') or 1)
+    relation_type = resolve_relation_type(record)
+    relation_id = resolve_relation_id(record, source_id, target_id, relation_type)
+    raw_strength = record.get('strength')
+    if raw_strength is None or isinstance(raw_strength, bool):
+        strength = None
+    else:
+        try:
+            parsed_strength = float(raw_strength)
+        except (TypeError, ValueError):
+            strength = None
+        else:
+            strength = parsed_strength if math.isfinite(parsed_strength) else None
     key = f'{source_id}::{target_id}::{relation_type}'
 
     relation = {
@@ -223,41 +265,71 @@ def normalize_relation_record(
         'source_chapter': source_node.get('chapter'),
         'target_chapter': target_node.get('chapter'),
         'relation_type': relation_type,
-        'strength': max(0.0, min(1.0, strength)),
+        'strength': strength,
+        '__explicit_endpoint_ids': all(
+            isinstance(record.get(f'{endpoint}_id'), str) and bool(record.get(f'{endpoint}_id'))
+            for endpoint in ('source', 'target')
+        ),
     }
     return key, relation
 
 
 def build_runtime_relations(nodes_by_id: dict[str, dict[str, Any]], relation_records: list[dict[str, Any]]) -> list[dict[str, Any]]:
     by_name_chapter, by_name = build_name_maps(nodes_by_id)
-    deduped: dict[str, dict[str, Any]] = {}
-    relation_id_to_key: dict[str, str] = {}
+    normalized_relations: list[tuple[str, dict[str, Any]]] = []
+    relation_id_keys: dict[str, set[str]] = {}
 
     for record in relation_records:
         normalized = normalize_relation_record(record, nodes_by_id, by_name_chapter, by_name)
         if normalized is None:
             continue
         key, relation = normalized
-        existing_key = relation_id_to_key.get(relation['relation_id'])
-        if existing_key is not None and existing_key != key:
-            relation_id = build_generated_relation_id(
-                str(relation['source_id']),
-                str(relation['target_id']),
-                str(relation['relation_type']),
-            )
-            suffix = 2
-            while relation_id in relation_id_to_key and relation_id_to_key[relation_id] != key:
-                relation_id = f"{build_generated_relation_id(str(relation['source_id']), str(relation['target_id']), str(relation['relation_type']))}-{suffix}"
-                suffix += 1
-            relation['id'] = relation_id
-            relation['relation_id'] = relation_id
-        relation_id_to_key[relation['relation_id']] = key
+        normalized_relations.append((key, relation))
+        relation_id_keys.setdefault(relation['relation_id'], set()).add(key)
 
+    for relation_id, keys in relation_id_keys.items():
+        if len(keys) > 1:
+            raise ValueError(f'duplicate relation id: {relation_id}')
+
+    deduped: dict[str, dict[str, Any]] = {}
+    for key, relation in normalized_relations:
         existing = deduped.get(key)
-        if existing is None or relation['strength'] > existing['strength']:
+        relation_strength_key = (
+            relation['strength'] is not None,
+            relation['strength'] if relation['strength'] is not None else 0.0,
+        )
+        existing_strength_key = (
+            existing['strength'] is not None,
+            existing['strength'] if existing['strength'] is not None else 0.0,
+        ) if existing is not None else None
+        if (
+            existing is None
+            or relation_strength_key > existing_strength_key
+            or (
+                relation_strength_key == existing_strength_key
+                and relation['__explicit_endpoint_ids']
+                and not existing['__explicit_endpoint_ids']
+            )
+            or (
+                relation_strength_key == existing_strength_key
+                and relation['__explicit_endpoint_ids'] == existing['__explicit_endpoint_ids']
+                and relation['relation_id'] < existing['relation_id']
+            )
+        ):
             deduped[key] = relation
 
-    return list(deduped.values())
+    return [
+        {key: value for key, value in relation.items() if key != '__explicit_endpoint_ids'}
+        for relation in sorted(
+            deduped.values(),
+            key=lambda item: (
+                item['relation_id'],
+                item['source_id'],
+                item['target_id'],
+                item['relation_type'],
+            ),
+        )
+    ]
 
 
 def build_runtime_nodes(
@@ -542,10 +614,21 @@ def export_review_bundle(lesson_id: str) -> dict[str, Any]:
             legacy_destination.unlink()
         review_paths[json_key] = f'/course-runtime/lessons/{runtime_fragment}/review/{destination_name}'
 
+    multimedia_check_path = review_dir / 'multimedia-check.json'
+    missing_assets: list[str] = []
+    if multimedia_check_path.exists():
+        multimedia_check = read_json(multimedia_check_path)
+        missing_assets = [
+            item for item in multimedia_check.get('missing_assets', [])
+            if isinstance(item, str) and item
+        ]
+        if missing_assets:
+            review_paths['missing_assets'] = missing_assets
+
     report_path = review_dir / 'review-report.md'
     if report_path.exists():
         review_paths['report_path'] = f'/course-runtime/lessons/{runtime_fragment}/review/review-report.md'
-        review_paths['status'] = 'reviewed'
+        review_paths['status'] = 'incomplete' if missing_assets else 'reviewed'
 
     for filename, json_key in (
         ('knowledge-card-check.json', 'knowledge_card_check_path'),
@@ -564,7 +647,8 @@ def load_manifest(lesson_id: str) -> dict[str, Any]:
 
 
 def load_sequence(lesson_id: str) -> dict[str, Any]:
-    return read_json(get_authoring_cards_dir(lesson_id) / 'sequence.json')
+    sequence_path = get_authoring_cards_dir(lesson_id) / 'sequence.json'
+    return read_json(sequence_path) if sequence_path.exists() else {}
 
 
 def load_interactive_contract(lesson_id: str) -> dict[str, Any] | None:
@@ -633,8 +717,10 @@ def build_interactive_runtime_manifest(lesson_id: str) -> dict[str, Any] | None:
     def pick_block_key(module: dict[str, Any], blocks: dict[str, Any], used: set[str]) -> str | None:
         module_id = str(module.get('id', ''))
         kind = str(module.get('kind', ''))
+        region = str(module.get('region', ''))
         normalized = module_id.replace('-', '_')
         candidates = [
+            region,
             module_id,
             normalized,
             module_id.removesuffix('-card'),
@@ -667,6 +753,14 @@ def build_interactive_runtime_manifest(lesson_id: str) -> dict[str, Any] | None:
             candidates.extend(['example', 'fields'])
         if 'next' in kind:
             candidates.extend(['next-step', 'next'])
+        if kind == 'content.reveal':
+            candidates.extend(['reveal_steps', 'reveal'])
+        if kind == 'content.cardSet':
+            candidates.extend(['consequences', 'entries', 'limits'])
+        if kind == 'content.formula':
+            candidates.extend(['calculation', 'formula'])
+        if kind == 'content.rich':
+            candidates.extend(['problem', 'content'])
         candidates.extend(list(blocks.keys()))
         for candidate in dict.fromkeys(candidates):
             if candidate in blocks and candidate not in used:
@@ -691,11 +785,12 @@ def build_interactive_runtime_manifest(lesson_id: str) -> dict[str, Any] | None:
             kind = str(module.get('kind', ''))
             if not payload and kind in {'graphic', 'interactive-figure'}:
                 payload = {'resolver': f'{lesson_id}:{module.get("id", "")}'}
-            if not payload:
+            has_owned_media = kind == 'content.figure' and isinstance(payload.get('src'), str)
+            if kind.startswith('content.') and 'block_key' not in payload and not has_owned_media:
                 block_key = pick_block_key(module, blocks, used)
                 if block_key:
                     used.add(block_key)
-                    payload = block_to_payload(block_key, blocks[block_key])
+                    payload = {**block_to_payload(block_key, blocks[block_key]), **payload}
             if payload:
                 module['payload'] = payload
             normalized_modules.append(module)
@@ -727,7 +822,7 @@ def build_interactive_runtime_manifest(lesson_id: str) -> dict[str, Any] | None:
         if not activity_modules:
             activity_modules = [{'id': f'{step_id}-activity', 'kind': interaction_kind}]
         student_task = str(interaction_spec.get('student_task') or '完成本页判断并提交。')
-        response_kind = 'text'
+        response_kind = 'text.short'
         if interaction_kind in {'single_choice', 'binary_choice', 'quiz_group'}:
             response_kind = 'single_choice'
         if interaction_kind in {'card_sort', 'triple_match', 'task_card_workspace'}:
@@ -780,44 +875,45 @@ def build_graph_overlay(
     sequence: dict[str, Any],
     runtime_nodes: list[dict[str, Any]],
     runtime_relations: list[dict[str, Any]],
+    reviewed_card_order: list[str],
 ) -> dict[str, Any]:
     canonical_index = load_canonical_index()
     manifest = canonical_index.canonicalize_manifest(manifest)
     sequence = canonical_index.canonicalize_sequence(sequence)
-    node_ids = list(
-        dict.fromkeys(
-            list(manifest.get('focus_node_ids', []))
-            + list(manifest.get('reuse_node_ids', []))
-            + list(manifest.get('entry_nodes', []))
-            + list(manifest.get('summary_nodes', []))
-            + list(manifest.get('card_order', []))
-        )
+    overlay = build_lesson_overlay_payload(
+        graph_lesson_id=graph_lesson_id,
+        manifest=manifest,
+        sequence=sequence,
+        runtime_nodes=runtime_nodes,
+        runtime_relations=runtime_relations,
+        reviewed_card_order=reviewed_card_order,
     )
-    node_set = set(node_ids)
+    existing_overlay_path = get_runtime_lesson_dir(lesson_id) / 'graph-overlay.json'
+    if existing_overlay_path.exists():
+        preserve_existing_overlay_positions(overlay, read_json(existing_overlay_path))
+    build_lesson_overlay_revision(overlay)
+    return overlay
 
-    return {
-        'lesson_id': graph_lesson_id,
-        'title': manifest.get('title'),
-        'focus_node_ids': manifest.get('focus_node_ids', []),
-        'reuse_node_ids': manifest.get('reuse_node_ids', []),
-        'entry_nodes': manifest.get('entry_nodes', []),
-        'summary_nodes': manifest.get('summary_nodes', []),
-        'card_order': manifest.get('card_order', []),
-        'groups': sequence.get('groups', []),
-        'nodes': [node for node in runtime_nodes if node['id'] in node_set],
-        'links': [
-            {
-                'id': relation['id'],
-                'sourceId': relation['source_id'],
-                'targetId': relation['target_id'],
-                'relation': relation['relation_type'],
-                'relationType': relation['relation_type'],
-                'strength': relation['strength'],
-            }
-            for relation in runtime_relations
-            if relation['source_id'] in node_set and relation['target_id'] in node_set
-        ],
+
+def preserve_existing_overlay_positions(
+    overlay: dict[str, Any],
+    previous_overlay: dict[str, Any],
+) -> None:
+    previous_positions = {
+        str(node['id']): {
+            key: node[key]
+            for key in ('positionX', 'positionY', 'positionZ')
+            if isinstance(node.get(key), (int, float))
+        }
+        for node in previous_overlay.get('nodes', [])
+        if isinstance(node, dict) and isinstance(node.get('id'), str)
     }
+    for node in overlay.get('nodes', []):
+        if not isinstance(node, dict):
+            continue
+        position = previous_positions.get(str(node.get('id')))
+        if position:
+            node.update(position)
 
 
 def export_lesson_runtime(
@@ -826,8 +922,15 @@ def export_lesson_runtime(
     runtime_relations: list[dict[str, Any]],
 ) -> None:
     canonical_index = load_canonical_index()
+    manifest_path = get_authoring_lesson_dir(lesson_id) / 'manifest.json'
+    sequence_path = get_authoring_cards_dir(lesson_id) / 'sequence.json'
+    reviewed_card_order = resolve_authoring_card_order(sequence_path, manifest_path)
     manifest = canonical_index.canonicalize_manifest(load_manifest(lesson_id))
-    sequence = canonical_index.canonicalize_sequence(load_sequence(lesson_id))
+    sequence = canonical_index.canonicalize_sequence({
+        **load_sequence(lesson_id),
+        'card_order': reviewed_card_order,
+    })
+    reviewed_card_order = sequence['card_order']
     runtime_dir = get_runtime_lesson_dir(lesson_id)
     runtime_fragment = str(runtime_dir.relative_to(RUNTIME_ROOT / 'lessons')).replace('\\', '/')
     graph_lesson_id = get_mapped_target_id(lesson_id) or str(manifest.get('lesson_id') or lesson_id)
@@ -837,13 +940,21 @@ def export_lesson_runtime(
     }
     export_handout(lesson_id)
     generate_runtime_media(lesson_id)
-    review_paths = export_review_bundle(lesson_id)
     interactive_manifest = build_interactive_runtime_manifest(lesson_id)
 
-    graph_overlay = build_graph_overlay(lesson_id, graph_lesson_id, manifest, runtime_sequence, runtime_nodes, runtime_relations)
+    graph_overlay = build_graph_overlay(
+        lesson_id,
+        graph_lesson_id,
+        manifest,
+        runtime_sequence,
+        runtime_nodes,
+        runtime_relations,
+        reviewed_card_order,
+    )
     write_json(runtime_dir / 'graph-overlay.json', graph_overlay)
     if interactive_manifest is not None:
         write_json(runtime_dir / 'interactive-manifest.json', interactive_manifest)
+    review_paths = export_review_bundle(lesson_id)
 
     lesson_json = {
         **manifest,
@@ -853,16 +964,19 @@ def export_lesson_runtime(
         'handout_source_path': (
             f'course-content/runtime/lessons/{runtime_fragment}/{handout_markdown_filename(lesson_id)}'
         ),
-        'handout_pdf_path': f'/course-runtime/lessons/{runtime_fragment}/{handout_pdf_filename(lesson_id)}',
-        'handout_pdf_source_path': (
-            f'course-content/runtime/lessons/{runtime_fragment}/{handout_pdf_filename(lesson_id)}'
-        ),
         'graph_overlay_path': f'/course-runtime/lessons/{runtime_fragment}/graph-overlay.json',
         'media_base_path': f'/course-runtime/lessons/{runtime_fragment}/media',
         'media_index_path': f'/course-runtime/lessons/{runtime_fragment}/media/{lesson_id}-media.md',
         'media_index_source_path': f'course-content/runtime/lessons/{runtime_fragment}/media/{lesson_id}-media.md',
         'review': review_paths,
     }
+    if (runtime_dir / handout_pdf_filename(lesson_id)).exists():
+        lesson_json['handout_pdf_path'] = (
+            f'/course-runtime/lessons/{runtime_fragment}/{handout_pdf_filename(lesson_id)}'
+        )
+        lesson_json['handout_pdf_source_path'] = (
+            f'course-content/runtime/lessons/{runtime_fragment}/{handout_pdf_filename(lesson_id)}'
+        )
     if interactive_manifest is not None:
         lesson_json['interactive_manifest_path'] = f'/course-runtime/lessons/{runtime_fragment}/interactive-manifest.json'
         lesson_json['interactive_manifest_source_path'] = (

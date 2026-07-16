@@ -55,7 +55,22 @@ import {
   stageClassSnapshotOutbox,
   stageGrowthRecomputeOutbox,
 } from '@/lib/data-governance/derived-learning-materialization';
-import { createEmptyCompetencyVector, type CompetencyVector } from '@/lib/data-governance/competency-model';
+// PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy vectors are non-authoritative inputs to v2 projection only.
+import type { CompetencyVector } from '@/lib/data-governance/competency-model';
+import {
+  aggregatePortraitV2,
+  hasPortraitV2Evidence,
+  isSamePortraitV2ClassSnapshot,
+  summarizePortraitV2,
+} from '@/lib/data-governance/portrait-v2-consumer';
+import type {
+  PortraitV2ClassAggregate,
+} from '@/lib/data-governance/portrait-v2-consumer';
+import {
+  derivePortraitV2Compatibility,
+  projectPortraitV2ForConsumer,
+  type PortraitV2PayloadShape,
+} from '@/lib/data-governance/portrait-v2-model';
 import type { LearningEvent } from '@/lib/data-governance/event-protocol';
 import {
   detectRisks,
@@ -627,12 +642,14 @@ export async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
   const growthPreparationEvidenceDetails = await loadEvidenceDetails(db, growthPreparationFacts);
   const growthPreparationEvidenceSummary = generateEvidenceSummary(growthPreparationFacts, 3, growthPreparationEvidenceDetails);
   const growthTargetProfile = await db.studentProfile.findUnique({ where: { userId }, select: { classId: true } });
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: growth evaluation consumes this vector as non-authoritative compatibility data.
   const preparedGrowthDescription = growthPreparationFacts.length > 0
     ? await prepareGrowthEvaluationDescription(db as any, { snapshot: {
       id: `pending:${userId}:${snapshotAt.getTime()}`,
       userId,
       snapshotAt,
       factCount: growthPreparationFacts.length,
+      // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: non-authoritative compatibility input.
       competencyVector: growthPreparationVector,
       evidenceSummary: growthPreparationEvidenceSummary,
       factInputDigest: growthPreparationFactDigest,
@@ -677,6 +694,7 @@ export async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
   if (facts.length === 0) {
     if (!job.data.fullRebuild) {
       const historicalFacts = previousSnapshot ? [] : await executeStage<any[]>((tx) => tx.learningFact.findMany({ where: { userId }, orderBy: { startedAt: 'desc' } }));
+      // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: historical vectors only seed a no-recent-evidence compatibility snapshot.
       const historicalVector = previousSnapshot?.competencyVector ?? calculateCompetencyVector(historicalFacts, 'all');
       const memberships = await executeStage<Array<{ classId: string }>>((tx) => tx.studentProfile.findMany({ where: { userId }, select: { classId: true } }));
       await executeStage(async (tx) => {
@@ -698,6 +716,7 @@ export async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
     }
     if (anyRemainingFact) {
       const historicalFacts = previousSnapshot ? [] : await executeStage<any[]>((tx) => tx.learningFact.findMany({ where: { userId }, orderBy: { startedAt: 'desc' } }));
+      // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: historical vectors only seed a no-recent-evidence compatibility snapshot.
       const historicalVector = previousSnapshot?.competencyVector ?? calculateCompetencyVector(historicalFacts, 'all');
       await executeStage(async (tx) => {
         await appendNoRecentEvidenceCompatibilitySnapshot(tx, userId, historicalVector, snapshotAt);
@@ -714,6 +733,7 @@ export async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
     latestFactCreatedAt.getTime() <= previousSnapshot.snapshotAt.getTime()
   ) {
     const currentFactDigest = createHash('sha256').update(JSON.stringify(facts.map((fact) => [fact.id, fact.createdAt]))).digest('hex');
+    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: growth snapshots retain the legacy vector as non-authoritative input.
     const growthSnapshot = { id: previousSnapshot.id, userId, snapshotAt: previousSnapshot.snapshotAt, factCount: previousSnapshot.factCount, competencyVector: previousSnapshot.competencyVector, evidenceSummary: previousSnapshot.evidenceSummary, factInputDigest: currentFactDigest };
     await executeStage(async (tx) => {
       if (preparedGrowthEvaluationMatches(preparedGrowthDescription, growthSnapshot)) {
@@ -761,6 +781,7 @@ export async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
     },
   });
 
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: profile and growth writes retain legacy vectors as compatibility artifacts.
   await updateProfileSummary(tx, userId, competencyVector, risks, facts);
   const growthSnapshot = {
       id: created.id,
@@ -943,7 +964,10 @@ export async function processClassSnapshotJob(job: Job<ClassSnapshotJob>) {
     select: { userId: true },
   });
 
-  const classSessionIds = (await db.classSession.findMany({ where: { classId }, select: { id: true } })).map((row) => row.id);
+  const classSessionIds = (await db.classSession.findMany({
+    where: { classId },
+    select: { id: true },
+  })).map((row) => row.id);
   const scopedFacts = await db.learningFact.findMany({
     where: {
       userId: { in: students.map((student) => student.userId) },
@@ -951,34 +975,94 @@ export async function processClassSnapshotJob(job: Job<ClassSnapshotJob>) {
       OR: buildTeacherScopedLearningFactScopeFilters(classId, classSessionIds),
     },
   });
-  const validSnapshots = [...buildClassScopedStudentProjections(students.map((student) => student.userId), scopedFacts).values()];
+  const scopedProjections = [...buildClassScopedStudentProjections(
+    students.map((student) => student.userId),
+    scopedFacts,
+  ).values()];
   const previousClassSnapshot = await db.classCompetencySnapshot.findFirst({
     where: { classId, materializationVersion: CLASS_COMPETENCY_MATERIALIZATION_VERSION },
     orderBy: { snapshotAt: 'desc' },
   });
-  if (validSnapshots.length === 0) {
+  const distributionEmpty = { excellent: 0, good: 0, average: 0, needsImprovement: 0, atRisk: 0 };
+
+  if (scopedProjections.length === 0) {
     await revokeDerivedLearningMaterializations(db, { userIds: [], classIds: [classId] });
-    const aggregate = calculateClassAggregate([{ competencyVector: createEmptyCompetencyVector() }]);
-    const distribution = { excellent: 0, good: 0, average: 0, needsImprovement: 0, atRisk: 0 };
-    const risks = {};
-    if (previousClassSnapshot && isSameClassPopulationSignature(
-      { aggregate, distribution, risks, activeStudentCount: 0, totalStudentCount: students.length, evidenceState: 'no-evidence' },
-      { aggregate: previousClassSnapshot.aggregateJson, distribution: previousClassSnapshot.distributionJson, risks: previousClassSnapshot.riskSummaryJson, activeStudentCount: previousClassSnapshot.activeStudentCount, totalStudentCount: previousClassSnapshot.totalStudentCount, evidenceState: (previousClassSnapshot.trendJson as any)?._derivation?.state },
-    )) return { studentCount: 0, snapshotId: previousClassSnapshot.id, revoked: true, skipped: true };
-    const snapshot = await db.classCompetencySnapshot.create({ data: { classId, materializationVersion: CLASS_COMPETENCY_MATERIALIZATION_VERSION, snapshotAt: new Date(), aggregateJson: aggregate as Prisma.InputJsonValue, distributionJson: distribution, trendJson: { _derivation: { state: 'no-evidence', reason: 'no-active-student-evidence' } }, riskSummaryJson: risks, levelDistribution: distribution, activeStudentCount: 0, totalStudentCount: students.length } });
+    const aggregate = aggregatePortraitV2([]);
+    if (previousClassSnapshot
+      && isSamePortraitV2ClassSnapshot(
+        aggregate,
+        distributionEmpty,
+        previousClassSnapshot.aggregateJson,
+        previousClassSnapshot.distributionJson,
+      )
+      && previousClassSnapshot.activeStudentCount === 0
+      && previousClassSnapshot.totalStudentCount === students.length
+    ) {
+      return { studentCount: 0, snapshotId: previousClassSnapshot.id, revoked: true, skipped: true };
+    }
+    const snapshot = await db.classCompetencySnapshot.create({
+      data: {
+        classId,
+        materializationVersion: CLASS_COMPETENCY_MATERIALIZATION_VERSION,
+        snapshotAt: new Date(),
+        aggregateJson: aggregate as unknown as Prisma.InputJsonValue,
+        distributionJson: distributionEmpty,
+        trendJson: { _derivation: { state: 'no-evidence', reason: 'no-active-student-evidence' } },
+        riskSummaryJson: {},
+        levelDistribution: distributionEmpty,
+        activeStudentCount: 0,
+        totalStudentCount: students.length,
+      },
+    });
     return { studentCount: 0, snapshotId: snapshot.id, revoked: true };
   }
 
-  const aggregate = calculateClassAggregate(validSnapshots as Array<{ competencyVector: unknown }>);
-  const distribution = calculateLevelDistribution(validSnapshots as Array<{ competencyVector: unknown }>);
-  const riskSummary = calculateRiskSummary(validSnapshots as Array<{ riskFlags: unknown }>);
-  if (previousClassSnapshot && isSameClassPopulationSignature(
-    { aggregate, distribution, risks: riskSummary, activeStudentCount: validSnapshots.length, totalStudentCount: students.length },
-    { aggregate: previousClassSnapshot.aggregateJson, distribution: previousClassSnapshot.distributionJson, risks: previousClassSnapshot.riskSummaryJson, activeStudentCount: previousClassSnapshot.activeStudentCount, totalStudentCount: previousClassSnapshot.totalStudentCount },
-  )) {
+  const portraitRows = scopedProjections.map((projection) => {
+    const projectionFacts = scopedFacts.filter((fact) => fact.userId === projection.userId);
+    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy vector clocks only bound compatibility provenance.
+    const candidateTimes = [
+      ...projectionFacts.map((fact) => (fact.finishedAt ?? fact.startedAt).getTime()),
+      ...Object.values(projection.competencyVector).map((dimension) => Date.parse(dimension.lastUpdated)),
+    ].filter(Number.isFinite);
+    const snapshotTime = Math.max(...candidateTimes);
+    const snapshotAt = new Date(snapshotTime);
+    const projectionNow = new Date(Math.max(Date.now(), snapshotTime));
+    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: normalize the non-authoritative legacy vector before projection.
+    const compatibilityVector = Object.fromEntries(Object.entries(projection.competencyVector).map(([dimension, value]) => {
+      const lastUpdated = Date.parse(value.lastUpdated);
+      return [dimension, {
+        ...value,
+        lastUpdated: Number.isFinite(lastUpdated) && lastUpdated <= projectionNow.getTime()
+          ? value.lastUpdated
+          : snapshotAt.toISOString(),
+      }];
+    })) as CompetencyVector;
+    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: the legacy snapshot source identifies compatibility provenance only.
+    return {
+      projection,
+      payload: projectPortraitV2ForConsumer(derivePortraitV2Compatibility({
+        userId: projection.userId,
+        snapshotAt: snapshotAt.toISOString(),
+        // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: source and vector are compatibility-only.
+        sourceFamily: 'StudentCompetencySnapshot',
+        vector: compatibilityVector,
+        now: projectionNow,
+      }), 'reviewer'),
+    };
+  }).filter(({ payload }) => hasPortraitV2Evidence(payload));
+  const aggregate = aggregatePortraitV2(portraitRows.map((row) => row.payload));
+  const distribution = calculatePortraitLevelDistribution(portraitRows.map((row) => row.payload));
+  const riskSummary = calculateRiskSummary(portraitRows.map((row) => row.projection));
+  if (previousClassSnapshot && isSamePortraitV2ClassSnapshot(
+    aggregate,
+    distribution,
+    previousClassSnapshot.aggregateJson,
+    previousClassSnapshot.distributionJson,
+  ) && previousClassSnapshot.activeStudentCount === portraitRows.length
+    && previousClassSnapshot.totalStudentCount === students.length) {
     return {
       snapshotId: previousClassSnapshot.id,
-      studentCount: validSnapshots.length,
+      studentCount: portraitRows.length,
       skipped: true,
       reason: 'unchanged_aggregate',
     };
@@ -995,47 +1079,26 @@ export async function processClassSnapshotJob(job: Job<ClassSnapshotJob>) {
       trendJson: trend as Prisma.InputJsonValue,
       riskSummaryJson: riskSummary as unknown as Prisma.InputJsonValue,
       levelDistribution: distribution as unknown as Prisma.InputJsonValue,
-      activeStudentCount: validSnapshots.length,
+      activeStudentCount: portraitRows.length,
       totalStudentCount: students.length,
     },
   });
 
   return {
     snapshotId: snapshot.id,
-    studentCount: validSnapshots.length,
+    studentCount: portraitRows.length,
   };
 }
 
-function calculateClassAggregate(snapshots: Array<{ competencyVector: unknown }>) {
-  const vectors = snapshots.map((snapshot) => snapshot.competencyVector as CompetencyVector);
-  const dimensions = Object.keys(vectors[0]) as Array<keyof CompetencyVector>;
-
-  const aggregate: Record<string, { mean: number; stdDev: number }> = {};
-
-  for (const dimension of dimensions) {
-    const scores = vectors.map((vector) => vector[dimension].score);
-    const mean = scores.reduce((a, b) => a + b, 0) / scores.length;
-    const variance = scores.reduce((sum, score) => sum + Math.pow(score - mean, 2), 0) / scores.length;
-
-    aggregate[dimension] = {
-      mean: Math.round(mean * 10) / 10,
-      stdDev: Math.round(Math.sqrt(variance) * 10) / 10,
-    };
-  }
-
-  return aggregate;
-}
-
-function calculateLevelDistribution(snapshots: Array<{ competencyVector: unknown }>) {
-  const vectors = snapshots.map((snapshot) => snapshot.competencyVector as CompetencyVector);
+function calculatePortraitLevelDistribution(payloads: PortraitV2PayloadShape[]) {
   const levels = { excellent: 0, good: 0, average: 0, needsImprovement: 0, atRisk: 0 };
 
-  for (const vector of vectors) {
-    const avg = calculateOverallScore(vector);
-    if (avg >= 85) levels.excellent += 1;
-    else if (avg >= 70) levels.good += 1;
-    else if (avg >= 55) levels.average += 1;
-    else if (avg >= 40) levels.needsImprovement += 1;
+  for (const payload of payloads) {
+    const overallScore = summarizePortraitV2(payload).overallScore;
+    if (overallScore >= 85) levels.excellent += 1;
+    else if (overallScore >= 70) levels.good += 1;
+    else if (overallScore >= 55) levels.average += 1;
+    else if (overallScore >= 40) levels.needsImprovement += 1;
     else levels.atRisk += 1;
   }
 
@@ -1054,12 +1117,15 @@ function calculateRiskSummary(snapshots: Array<{ riskFlags: unknown }>) {
 }
 
 function calculateClassTrend(
-  current: Record<string, { mean: number; stdDev: number }>,
+  current: PortraitV2ClassAggregate,
   previous: unknown,
 ) {
   const previousAggregate = readRecord(previous);
-  return Object.fromEntries(Object.entries(current).map(([dimension, value]) => {
-    const previousValue = readRecord(previousAggregate[dimension]);
+  const previousDimensions = Object.keys(readRecord(previousAggregate.dimensions)).length > 0
+    ? readRecord(previousAggregate.dimensions)
+    : previousAggregate;
+  return Object.fromEntries(Object.entries(current.dimensions).map(([dimension, value]) => {
+    const previousValue = readRecord(previousDimensions[dimension]);
     const previousMean = typeof previousValue.mean === 'number' ? previousValue.mean : value.mean;
     const delta = Math.round((value.mean - previousMean) * 10) / 10;
     return [dimension, {
@@ -1069,17 +1135,6 @@ function calculateClassTrend(
       direction: delta > 3 ? 'up' : delta < -3 ? 'down' : 'stable',
     }];
   }));
-}
-
-function isSameClassAggregate(
-  current: Record<string, { mean: number; stdDev: number }>,
-  previous: unknown,
-) {
-  const previousAggregate = readRecord(previous);
-  return Object.entries(current).every(([dimension, value]) => {
-    const previousValue = readRecord(previousAggregate[dimension]);
-    return previousValue.mean === value.mean && previousValue.stdDev === value.stdDev;
-  });
 }
 
 async function processSessionReportJob(job: Job<SessionReportJob>) {

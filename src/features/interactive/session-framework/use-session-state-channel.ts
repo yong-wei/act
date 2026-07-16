@@ -44,6 +44,7 @@ export function useSessionStateChannel({ sessionId, isDemo = false, currentStepI
   const [teacherStates, setTeacherStates] = useState<SessionStateRecord[]>([]);
   const [summary, setSummary] = useState(emptyViewPayload().summary);
   const [teacherViewHydrated, setTeacherViewHydrated] = useState(isDemo);
+  const [studentViewHydrated, setStudentViewHydrated] = useState(isDemo);
   const syncIncidentTrackerRef = useRef<ReturnType<typeof createSyncIncidentTracker> | null>(null);
   const failureCountByRequestRef = useRef<Map<string, number>>(new Map());
 
@@ -144,6 +145,7 @@ export function useSessionStateChannel({ sessionId, isDemo = false, currentStepI
 
   const fetchStudentViewStates = useCallback(async () => {
     if (isDemo) {
+      setStudentViewHydrated(true);
       return emptyViewPayload();
     }
 
@@ -151,7 +153,9 @@ export function useSessionStateChannel({ sessionId, isDemo = false, currentStepI
       `/api/session/${sessionId}/state?scope=student-view`,
       'student_state_get',
     );
-    return applyViewPayload(payload);
+    const appliedPayload = applyViewPayload(payload);
+    setStudentViewHydrated(true);
+    return appliedPayload;
   }, [applyViewPayload, fetchJson, isDemo, sessionId]);
 
   const fetchTeacherViewStates = useCallback(async () => {
@@ -197,6 +201,7 @@ export function useSessionStateChannel({ sessionId, isDemo = false, currentStepI
       teacherStates,
       summary,
       teacherViewHydrated,
+      studentViewHydrated,
       fetchSelfStates,
       fetchStudentViewStates,
       fetchTeacherViewStates,
@@ -208,6 +213,7 @@ export function useSessionStateChannel({ sessionId, isDemo = false, currentStepI
       teacherStates,
       summary,
       teacherViewHydrated,
+      studentViewHydrated,
       fetchSelfStates,
       fetchStudentViewStates,
       fetchTeacherViewStates,

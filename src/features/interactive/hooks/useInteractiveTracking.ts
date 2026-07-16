@@ -46,6 +46,7 @@ export function useInteractiveTracking(
   };
 
   const eventsRef = useRef<TrackingEvent[]>([]);
+  const syncQueueRef = useRef<Promise<void>>(Promise.resolve());
   const syncTimerRef = useRef<NodeJS.Timeout | null>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const configuredResourceIdentity = resolveTrackingResourceIdentity({
@@ -85,42 +86,53 @@ export function useInteractiveTracking(
   }, [storageKey]);
 
   // 同步事件到服务器
-  const syncEvents = useCallback(async () => {
-    const events = eventsRef.current;
-    if (events.length === 0) return;
+  const syncEvents = useCallback(() => {
+    const run = syncQueueRef.current.then(async () => {
+      const events = [...eventsRef.current];
+      if (events.length === 0) return;
 
-    // Skip server sync in demo mode (no sessionId)
-    if (isDemoSession || (!sessionId && (!persistWithoutSession || !userId))) {
-      // Just clear events from memory after saving to storage
-      saveToStorage();
-      return;
-    }
-
-    if (onSync) {
-      try {
-        await onSync(events);
-        eventsRef.current = [];
+      // Skip server sync in demo mode (no sessionId)
+      if (isDemoSession || (!sessionId && (!persistWithoutSession || !userId))) {
         saveToStorage();
-      } catch (e) {
-        console.error('[InteractiveTracking] Sync failed:', e);
+        return;
       }
-    } else {
-      // 默认同步到 API
-      try {
-        const response = await fetch('/api/interactive/events', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ events }),
-        });
 
-        if (response.ok) {
-          eventsRef.current = [];
+      const removeSyncedSnapshot = () => {
+        const syncedIds = new Set(events.map((event) => event.id));
+        eventsRef.current = eventsRef.current.filter((event) => !syncedIds.has(event.id));
+        saveToStorage();
+      };
+
+      if (onSync) {
+        try {
+          await onSync(events);
+          removeSyncedSnapshot();
+        } catch (e) {
           saveToStorage();
+          console.error('[InteractiveTracking] Sync failed:', e);
         }
-      } catch (e) {
-        console.error('[InteractiveTracking] API sync failed:', e);
+      } else {
+        // 默认同步到 API
+        try {
+          const response = await fetch('/api/interactive/events', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ events }),
+          });
+
+          if (response.ok) {
+            removeSyncedSnapshot();
+          } else {
+            saveToStorage();
+          }
+        } catch (e) {
+          saveToStorage();
+          console.error('[InteractiveTracking] API sync failed:', e);
+        }
       }
-    }
+    });
+    syncQueueRef.current = run.catch(() => undefined);
+    return run;
   }, [isDemoSession, onSync, persistWithoutSession, saveToStorage, sessionId, userId]);
 
   // 设置定时同步
@@ -169,15 +181,15 @@ export function useInteractiveTracking(
 
     eventsRef.current.push(event);
 
-    // 防抖保存到 localStorage
+    const isCriticalEvent = type === 'complete' || type === 'submit' || type === 'error';
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
-    debounceTimerRef.current = setTimeout(saveToStorage, DEBOUNCE_DELAY);
-
-    // 关键事件立即同步
-    if (type === 'complete' || type === 'submit' || type === 'error') {
-      syncEvents();
+    if (isCriticalEvent) {
+      saveToStorage();
+      void syncEvents();
+    } else {
+      debounceTimerRef.current = setTimeout(saveToStorage, DEBOUNCE_DELAY);
     }
   }, [resourceId, resourceKey, userId, sessionId, saveToStorage, syncEvents]);
 

@@ -11,7 +11,7 @@ export function mapLinkageResultToArenaMetrics(
   const metrics: Record<string, number> = {};
   const isStable = analysis.stability?.isStable !== false;
 
-  if (analysis.timeDomain?.metrics?.overshoot !== undefined) {
+  if (typeof analysis.timeDomain?.metrics?.overshoot === 'number') {
     metrics.overshoot = analysis.timeDomain.metrics.overshoot;
   }
   if (isStable && analysis.timeDomain?.metrics?.settlingTime !== undefined

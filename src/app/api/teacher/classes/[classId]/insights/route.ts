@@ -1,19 +1,26 @@
 import { NextResponse } from 'next/server';
 
 import {
-  COMPETENCY_DIMENSIONS,
   COMPETENCY_LEVELS,
   calculateOverallScore,
-  getCompetencyLabel,
-  type CompetencyDimension,
-  type CompetencyVector,
 } from '@/lib/data-governance/competency-model';
+import { PORTRAIT_V2_DIMENSIONS, type PortraitV2DimensionId } from '@/lib/data-governance/kaq-objective-taxonomy';
+import {
+  hasPortraitV2Evidence,
+  resolvePrimaryPortraitV2,
+  selectPortraitV2WithCompatibilityFallback,
+  summarizePortraitV2,
+  type PortraitV2ConsumerSummary,
+} from '@/lib/data-governance/portrait-v2-consumer';
+import {
+  derivePortraitV2Compatibility,
+  projectPortraitV2ForConsumer,
+} from '@/lib/data-governance/portrait-v2-model';
 import { getServerAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { createDatabaseUnavailableResponse, isDatabaseConnectivityError } from '@/lib/service-availability';
 import {
   normalizeInsightRiskLevel,
-  parseStringList,
   rankStudentsByAttention,
   summarizeGovernanceState,
 } from '@/features/teacher/teacher-insights';
@@ -46,6 +53,20 @@ import {
 
 export const dynamic = 'force-dynamic';
 
+type LifecycleBoundary = 'no-recent-evidence' | 'no-evidence-after-revocation';
+
+function readLifecycleBoundary(snapshot: unknown): LifecycleBoundary | null {
+  if (!snapshot || typeof snapshot !== 'object' || Array.isArray(snapshot)) return null;
+  const evidenceSummary = (snapshot as { evidenceSummary?: unknown }).evidenceSummary;
+  if (!evidenceSummary || typeof evidenceSummary !== 'object' || Array.isArray(evidenceSummary)) return null;
+  const derivation = (evidenceSummary as { _derivation?: unknown })._derivation;
+  if (!derivation || typeof derivation !== 'object' || Array.isArray(derivation)) return null;
+  const state = (derivation as { state?: unknown }).state;
+  return state === 'no-recent-evidence' || state === 'no-evidence-after-revocation'
+    ? state
+    : null;
+}
+
 type LevelDistribution = Record<keyof typeof COMPETENCY_LEVELS, number>;
 
 interface TeacherClassInsightStudent {
@@ -55,6 +76,7 @@ interface TeacherClassInsightStudent {
   studentNumber: string | null;
   overallScore: number | null;
   overallLevel: string | null;
+  overallScoreSource: 'class-scoped-compatibility' | null;
   riskLevel: 'none' | 'low' | 'medium' | 'high';
   riskLabel: string;
   trendDirection: 'up' | 'stable' | 'down';
@@ -66,6 +88,7 @@ interface TeacherClassInsightStudent {
   recommendationCount: number;
   factCount: number;
   lastSnapshotAt: string | null;
+  portraitV2: PortraitV2ConsumerSummary;
   evidenceStatus: TeacherStudentEvidenceStatus;
 }
 
@@ -98,7 +121,7 @@ export interface TeacherClassInsightsPayload {
   ability: {
     state: 'ready' | 'no-evidence';
     dimensions: Array<{
-      dimension: CompetencyDimension;
+      dimension: PortraitV2DimensionId;
       label: string;
       mean: number | null;
       stdDev: number;
@@ -162,6 +185,7 @@ export async function GET(
 
     const [
       classSnapshot,
+      latestSnapshots,
       arenaSubmissions,
       arenaLearningFacts,
       studentEvidenceFeatureCaches,
@@ -173,6 +197,13 @@ export async function GET(
         where: { classId, materializationVersion: CLASS_COMPETENCY_MATERIALIZATION_VERSION },
         orderBy: { snapshotAt: 'desc' },
       }),
+      studentIds.length
+        ? prisma.studentCompetencySnapshot.findMany({
+            where: { userId: { in: studentIds } },
+            orderBy: { snapshotAt: 'desc' },
+            distinct: ['userId'],
+          })
+        : Promise.resolve([]),
       prismaArenaSubmissionStore.listSubmissions({ classId }),
       studentIds.length
         ? prisma.learningFact.findMany({
@@ -259,6 +290,57 @@ export async function GET(
     const cacheHealthByUserId = new Map(
       studentEvidenceFeatureCaches.map((cache) => [cache.userId, cache])
     );
+    const snapshotMap = new Map(latestSnapshots.map((snapshot) => [snapshot.userId, snapshot]));
+    const classScopedProjectionMap = buildClassScopedStudentProjections(
+      studentIds,
+      classScopedSimulationArenaFacts as any,
+    );
+    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: class-scoped legacy vectors are non-authoritative v2 projections.
+    const scopedPortraitByUserId = new Map([...classScopedProjectionMap].map(([studentId, projection]) => {
+      const projected = projectPortraitV2ForConsumer(derivePortraitV2Compatibility({
+        userId: studentId,
+        snapshotAt: now.toISOString(),
+        // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: source and vector are compatibility-only.
+        sourceFamily: 'StudentCompetencySnapshot',
+        vector: projection.competencyVector,
+        now,
+      }), 'reviewer');
+      return [studentId, summarizePortraitV2(projected)] as const;
+    }));
+    const lifecycleBoundaryByUserId = new Map(studentIds.map((studentId) => [
+      studentId,
+      classScopedProjectionMap.has(studentId)
+        ? null
+        : readLifecycleBoundary(snapshotMap.get(studentId)),
+    ] as const));
+    const resolvedPortraits = await Promise.all(studentIds.map(async (studentId) => {
+        const projection = classScopedProjectionMap.get(studentId);
+        if (lifecycleBoundaryByUserId.get(studentId)) {
+          return [studentId, null] as const;
+        }
+        // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy snapshots remain fallback metadata only.
+        const resolution = await resolvePrimaryPortraitV2(prisma, studentId, 'reviewer', {
+          // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy vector is non-authoritative fallback input.
+          legacySnapshot: projection ? {
+            userId: studentId,
+            competencyVector: projection.competencyVector,
+            factCount: projection.factCount,
+            snapshotAt: classSnapshot?.snapshotAt ?? now,
+          } : snapshotMap.get(studentId) as Record<string, unknown> | null,
+          featureCache: projection
+            ? null
+            : cacheHealthByUserId.get(studentId) as Record<string, unknown> | null,
+        });
+        return [studentId, resolution] as const;
+      }));
+    const portraitByUserId = new Map<string, PortraitV2ConsumerSummary>();
+    for (const [studentId, resolution] of resolvedPortraits) {
+      if (!resolution) continue;
+      const portrait = selectPortraitV2WithCompatibilityFallback(resolution, 'reviewer');
+      if (hasPortraitV2Evidence(portrait)) {
+        portraitByUserId.set(studentId, summarizePortraitV2(portrait));
+      }
+    }
     const scopedSimulationArenaByUserId = buildTeacherScopedSimulationArenaFeatureMap(
       studentIds,
       classScopedSimulationArenaFacts,
@@ -273,7 +355,6 @@ export async function GET(
       cacheHealthByUserId,
       scopedSimulationArenaByUserId,
     });
-    const classScopedProjectionMap = buildClassScopedStudentProjections(studentIds, classScopedSimulationArenaFacts as any);
     const evidenceCoverage = summarizeTeacherEvidenceCoverage(evidenceStatusMap.values());
     const recentSessionQuality = summarizeTeacherSessionQualityReports(recentSessionQualityReports);
     const diagnosisReportSnapshot = await hasDiagnosisReportSnapshotPersistenceTable(prisma)
@@ -294,8 +375,28 @@ export async function GET(
     const noClassEvidence = !hasCurrentClassEvidence;
     const students: TeacherClassInsightStudent[] = classData.students.map((studentProfile) => {
       const scopedProjection = classScopedProjectionMap.get(studentProfile.userId);
+      const resolvedPortrait = portraitByUserId.get(studentProfile.userId);
+      const lifecycleBoundary = lifecycleBoundaryByUserId.get(studentProfile.userId) ?? null;
       const hasCurrentEvidence = Boolean(scopedProjection && scopedProjection.factCount > 0);
+      const hasDisplayPortrait = Boolean(resolvedPortrait);
+      // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: this vector only supplies class-scoped compatibility scoring.
       const vector = scopedProjection?.competencyVector;
+      const emptyPortrait = summarizePortraitV2({
+        userId: studentProfile.userId,
+        payloadVersion: 'learner-portrait.v2',
+        migrationVersion: 'portrait-v2-migration.v1',
+        generatedAt: now.toISOString(),
+        derivation: {
+          kind: 'compatibility-derived',
+          limitations: lifecycleBoundary
+            ? [`lifecycle-boundary:${lifecycleBoundary}`]
+            : ['missing-native-portrait-v2-evidence'],
+        },
+        dimensions: [],
+      });
+      const portraitV2 = hasDisplayPortrait || hasCurrentEvidence
+        ? resolvedPortrait ?? emptyPortrait
+        : emptyPortrait;
       const fallbackScore = vector ? calculateOverallScore(vector) : 0;
       const overallScore = hasCurrentEvidence
         ? Math.round(fallbackScore * 10) / 10
@@ -308,6 +409,7 @@ export async function GET(
         email: studentProfile.user.email,
         studentNumber: studentProfile.studentNumber,
         overallScore,
+        overallScoreSource: hasCurrentEvidence ? 'class-scoped-compatibility' : null,
         overallLevel:
           hasCurrentEvidence && overallScore !== null
             ? COMPETENCY_LEVELS[getCompetencyLevelKey(overallScore)].label
@@ -324,14 +426,17 @@ export async function GET(
         recommendationCount: 0,
         factCount: hasCurrentEvidence ? scopedProjection?.factCount ?? 0 : 0,
         lastSnapshotAt: hasCurrentEvidence ? classSnapshot?.snapshotAt.toISOString() ?? null : null,
+        portraitV2,
         evidenceStatus: evidenceStatusMap.get(studentProfile.userId)!,
       };
     });
 
-    const coverageStudents = students.filter(
-      (student) => student.factCount > 0
+    const coverageStudents = [...classScopedProjectionMap.values()].filter(
+      (projection) => projection.factCount > 0,
     ).length;
-    const latestStudentSnapshotAt = classSnapshot?.snapshotAt.toISOString() ?? null;
+    const latestStudentSnapshotAt = hasCurrentClassEvidence
+      ? classSnapshot?.snapshotAt.toISOString() ?? null
+      : null;
     const governanceBase = summarizeGovernanceState({
       totalStudents,
       coveredStudents: coverageStudents,
@@ -339,22 +444,22 @@ export async function GET(
       latestStudentSnapshotAt,
     });
 
-    const dimensionStats = COMPETENCY_DIMENSIONS.map((dimension) => {
+    const dimensionStats = PORTRAIT_V2_DIMENSIONS.map(({ id: dimension, label }) => {
       const classMean = noClassEvidence ? null : extractClassMean(classSnapshot?.aggregateJson, dimension);
       const classStdDev = extractClassStdDev(classSnapshot?.aggregateJson, dimension);
-      const fallbackScores = [...classScopedProjectionMap.values()]
-        .map((projection) => {
-          const vector = projection.competencyVector;
-          return vector?.[dimension]?.score ?? 0;
-        })
-        .filter((score) => Number.isFinite(score));
+      const fallbackScores = [...scopedPortraitByUserId.values()].flatMap((portrait) => {
+        const portraitDimension = portrait.dimensions.find((item) => item.id === dimension);
+        return portraitDimension && portraitDimension.evidenceCount > 0 && Number.isFinite(portraitDimension.score)
+          ? [portraitDimension.score]
+          : [];
+      });
       const fallbackMean = fallbackScores.length
         ? roundTo(fallbackScores.reduce((sum, score) => sum + score, 0) / fallbackScores.length, 1)
         : 0;
       return {
         dimension,
-        label: getCompetencyLabel(dimension),
-        mean: noClassEvidence ? null : classMean ?? fallbackMean,
+        label,
+        mean: noClassEvidence ? null : classMean ?? (fallbackScores.length > 0 ? fallbackMean : null),
         stdDev: classStdDev ?? 0,
       };
     });
@@ -410,8 +515,11 @@ export async function GET(
           weaknesses: student.weaknesses,
           growthRecordCount: student.growthRecordCount,
           recommendationCount: student.recommendationCount,
-        }))
+      }))
     ).slice(0, 5).map((ranked) => students.find((student) => student.id === ranked.id)!);
+    const coveredDimensionMeans = dimensionStats.flatMap((dimension) =>
+      dimension.mean === null ? [] : [dimension.mean]
+    );
 
     const payload: TeacherClassInsightsPayload = {
       classInfo: {
@@ -434,10 +542,12 @@ export async function GET(
         recentSessionQuality,
       },
       overview: {
-        overallIndex: noClassEvidence ? null : roundTo(
-          dimensionStats.reduce((sum, item) => sum + (item.mean ?? 0), 0) / dimensionStats.length,
-          1
-        ),
+        overallIndex: noClassEvidence || coveredDimensionMeans.length === 0
+          ? null
+          : roundTo(
+              coveredDimensionMeans.reduce((sum, mean) => sum + mean, 0) / coveredDimensionMeans.length,
+              1,
+            ),
         highRiskStudents: noClassEvidence ? 0 : students.filter((student) => student.riskLevel === 'high').length,
         mediumRiskStudents: noClassEvidence ? 0 : students.filter((student) => student.riskLevel === 'medium').length,
         attentionStudents: noClassEvidence ? 0 : students.filter((student) =>
@@ -502,15 +612,21 @@ function getRiskLabel(level: 'none' | 'low' | 'medium' | 'high') {
   return '风险平稳';
 }
 
-function extractClassMean(aggregate: unknown, dimension: CompetencyDimension) {
+function extractClassMean(aggregate: unknown, dimension: PortraitV2DimensionId) {
   if (!aggregate || typeof aggregate !== 'object') return null;
-  const entry = (aggregate as Record<string, { mean?: number }>)[dimension];
+  const record = aggregate as Record<string, unknown>;
+  const entry = (record.dimensions && typeof record.dimensions === 'object'
+    ? (record.dimensions as Record<string, { mean?: number }>)[dimension]
+    : record[dimension]) as { mean?: number } | undefined;
   return typeof entry?.mean === 'number' ? roundTo(entry.mean, 1) : null;
 }
 
-function extractClassStdDev(aggregate: unknown, dimension: CompetencyDimension) {
+function extractClassStdDev(aggregate: unknown, dimension: PortraitV2DimensionId) {
   if (!aggregate || typeof aggregate !== 'object') return null;
-  const entry = (aggregate as Record<string, { stdDev?: number }>)[dimension];
+  const record = aggregate as Record<string, unknown>;
+  const entry = (record.dimensions && typeof record.dimensions === 'object'
+    ? (record.dimensions as Record<string, { stdDev?: number }>)[dimension]
+    : record[dimension]) as { stdDev?: number } | undefined;
   return typeof entry?.stdDev === 'number' ? roundTo(entry.stdDev, 1) : null;
 }
 

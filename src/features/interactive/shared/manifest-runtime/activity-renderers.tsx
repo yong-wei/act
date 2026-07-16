@@ -24,18 +24,24 @@ import {
   isOrderingResponseKind,
   isParameterSetResponseKind,
 } from '@/lib/interactive-response-contracts';
+import {
+  mergeManifestTablePrefill,
+  resolveManifestTablePrefill,
+  type ManifestResponseHistoryEntry,
+} from './response-prefill';
 
 export type StudentInteractiveActivityRendererProps<TStep, TResponse> = {
   step: TStep;
   stepManifest: InteractiveRuntimeStepManifest;
   savedResponse?: TResponse;
+  responseHistory?: Record<string, ManifestResponseHistoryEntry>;
   released: boolean;
   browseEnabled: boolean;
   answerVisible: boolean;
   revealProgress: number;
   workspaceParameters?: Record<string, string | number | boolean>;
   readOnly?: boolean;
-  onSubmit: (response: TResponse) => void;
+  onSubmit: (response: TResponse) => void | Promise<void>;
 };
 
 export type StudentInteractiveActivityRegistry<TStep, TResponse> = Record<
@@ -48,6 +54,7 @@ export function renderStudentInteractiveActivity<TStep, TResponse>({
   step,
   stepManifest,
   savedResponse,
+  responseHistory,
   released,
   browseEnabled,
   answerVisible,
@@ -60,13 +67,14 @@ export function renderStudentInteractiveActivity<TStep, TResponse>({
   step: TStep;
   stepManifest: InteractiveRuntimeStepManifest;
   savedResponse?: TResponse;
+  responseHistory?: Record<string, ManifestResponseHistoryEntry>;
   released: boolean;
   browseEnabled: boolean;
   answerVisible: boolean;
   revealProgress: number;
   workspaceParameters?: Record<string, string | number | boolean>;
   readOnly?: boolean;
-  onSubmit: (response: TResponse) => void;
+  onSubmit: (response: TResponse) => void | Promise<void>;
 }) {
   const Renderer = registry[stepManifest.interactionSpec.interactionKind];
   if (!Renderer) {
@@ -76,6 +84,7 @@ export function renderStudentInteractiveActivity<TStep, TResponse>({
     step,
     stepManifest,
     savedResponse,
+    responseHistory,
     released,
     browseEnabled,
     answerVisible,
@@ -242,12 +251,19 @@ function cardsFor(stepManifest: InteractiveRuntimeStepManifest) {
   const activityCards = stepManifest.interactionSpec.activityCards ?? [];
   if (activityCards.length) {
     return activityCards.map((card) => {
+      const workspace = stepManifest.modules.find((module) => module.kind === 'activity.workspace');
+      const tableFields = Array.isArray(workspace?.payload.fields)
+        ? workspace.payload.fields.map(String)
+        : [];
       const parameterFields = parameterFieldsForCard(stepManifest, card);
-      if (!parameterFields.length) return card;
+      if (!parameterFields.length && !tableFields.length) return card;
       return {
         ...card,
-        structuredFields: parameterFields.map((field) => field.key),
-        parameterFields,
+        ...(parameterFields.length ? {
+          structuredFields: parameterFields.map((field) => field.key),
+          parameterFields,
+        } : {}),
+        ...(card.responseKind === 'table.builder' ? { tableFields } : {}),
       };
     });
   }
@@ -878,6 +894,10 @@ function StudentCardAnswerInput({
   value: string;
   onChange: (value: string) => void;
 }) {
+  if (card.responseKind === 'table.builder') {
+    return <TableBuilderAnswerInput card={card} value={value} onChange={onChange} />;
+  }
+
   if (isDragSortCard(card)) {
     return <DragSortAnswerInput card={card} value={value} onChange={onChange} />;
   }
@@ -915,6 +935,7 @@ function StudentCardAnswerInput({
             >
               <input
                 type="checkbox"
+                name={card.id}
                 value={option.value}
                 checked={selected}
                 onChange={() => {
@@ -973,6 +994,7 @@ function StudentCardAnswerInput({
 
   return (
     <textarea aria-label="写出判断依据。"
+      name={card.id}
       value={value}
       onChange={(event) => onChange(event.target.value)}
       placeholder="写出判断依据。"
@@ -981,9 +1003,122 @@ function StudentCardAnswerInput({
   );
 }
 
+function parseTableAnswer(value: string): {
+  rows: Record<string, Record<string, string>>;
+  supplemental: Record<string, string>;
+} {
+  if (!value.trim()) return { rows: {}, supplemental: {} };
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return { rows: {}, supplemental: {} };
+    const root = parsed as Record<string, unknown>;
+    const rows = root.rows && typeof root.rows === 'object' && !Array.isArray(root.rows)
+      ? root.rows as Record<string, unknown>
+      : root;
+    const normalizedRows = Object.fromEntries(Object.entries(rows).map(([rowKey, row]) => [
+      rowKey,
+      row && typeof row === 'object' && !Array.isArray(row)
+        ? Object.fromEntries(Object.entries(row as Record<string, unknown>).map(([key, item]) => [key, String(item ?? '')]))
+        : {},
+    ]));
+    const rawSupplemental = root.supplemental && typeof root.supplemental === 'object' && !Array.isArray(root.supplemental)
+      ? root.supplemental as Record<string, unknown>
+      : {};
+    return {
+      rows: normalizedRows,
+      supplemental: Object.fromEntries(Object.entries(rawSupplemental).map(([key, item]) => [key, String(item ?? '')])),
+    };
+  } catch {
+    return { rows: {}, supplemental: {} };
+  }
+}
+
+function TableBuilderAnswerInput({
+  card,
+  value,
+  onChange,
+}: {
+  card: InteractiveRuntimeActivityCardManifest;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const parsed = parseTableAnswer(value);
+  const rows = parsed.rows;
+  const supplementalFields = card.tableSupplementalFields ?? [];
+  const rowKeys = card.tableRowKeys ?? [];
+  const fields = card.tableFields ?? [];
+  const columns = card.tableColumns ?? fields;
+  const commit = (rowKey: string, field: string, nextValue: string) => {
+    onChange(JSON.stringify({
+      rows: { ...rows, [rowKey]: { ...(rows[rowKey] ?? {}), [field]: nextValue } },
+      supplemental: parsed.supplemental,
+    }));
+  };
+  const commitSupplemental = (field: string, nextValue: string) => {
+    onChange(JSON.stringify({
+      rows,
+      supplemental: { ...parsed.supplemental, [field]: nextValue },
+    }));
+  };
+
+  if (!rowKeys.length || !fields.length) {
+    return <div className="premium-lesson-tone-block premium-tone-amber mt-3">表格字段尚未完整声明。</div>;
+  }
+
+  return (
+    <div className="mt-3 space-y-4">
+      <div className="overflow-x-auto">
+      <table className="w-full min-w-[980px] border-separate border-spacing-1 text-sm">
+        <thead>
+          <tr>
+            <th className="premium-lesson-surface-elevated px-3 py-2 text-left">代表行</th>
+            {fields.map((field, index) => (
+              <th key={field} className="premium-lesson-surface-elevated px-3 py-2 text-left">{columns[index] ?? field}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rowKeys.map((rowKey) => (
+            <tr key={rowKey}>
+              <th className="premium-lesson-surface-elevated px-3 py-2 text-left">{rowKey}</th>
+              {fields.map((field, fieldIndex) => (
+                <td key={field} className="premium-lesson-surface-elevated p-1.5">
+                  <input
+                    aria-label={`${rowKey} ${columns[fieldIndex] ?? field}`}
+                    value={rows[rowKey]?.[field] ?? ''}
+                    onChange={(event) => commit(rowKey, field, event.currentTarget.value)}
+                    className="premium-lesson-input w-full min-w-24"
+                  />
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      </div>
+      {supplementalFields.length ? (
+        <div className="grid gap-3 md:grid-cols-3" data-table-supplemental-fields={supplementalFields.length}>
+          {supplementalFields.map((field) => (
+            <label key={field.key} className="premium-lesson-surface-elevated block px-4 py-3 interactive-courseware-body">
+              <span className="premium-lesson-title block font-medium">{field.label}</span>
+              <input
+                aria-label={field.label}
+                value={parsed.supplemental[field.key] ?? ''}
+                onChange={(event) => commitSupplemental(field.key, event.currentTarget.value)}
+                className="premium-lesson-input mt-2 w-full"
+              />
+            </label>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function StudentCards({
   stepManifest,
   savedResponse,
+  responseHistory,
   released,
   browseEnabled,
   answerVisible,
@@ -993,12 +1128,13 @@ function StudentCards({
 }: {
   stepManifest: InteractiveRuntimeStepManifest;
   savedResponse?: ManifestStepResponse;
+  responseHistory?: Record<string, ManifestResponseHistoryEntry>;
   released: boolean;
   browseEnabled: boolean;
   answerVisible: boolean;
   workspaceParameters?: Record<string, string | number | boolean>;
   readOnly?: boolean;
-  onSubmit: (response: ManifestStepResponse) => void;
+  onSubmit: (response: ManifestStepResponse) => void | Promise<void>;
 }) {
   const cards = useMemo(() => cardsFor(stepManifest), [stepManifest]);
   const cardKeys = useMemo(() => cards.map((card) => card.id), [cards]);
@@ -1009,6 +1145,9 @@ function StudentCards({
     touchedKeys: new Set(),
     localSubmittedKeys: new Set(),
   }));
+  const [pendingKeys, setPendingKeys] = useState<Set<string>>(() => new Set());
+  const pendingKeysRef = useRef<Set<string>>(new Set());
+  const [failedKeys, setFailedKeys] = useState<Set<string>>(() => new Set());
   const {
     identityChanged,
     nextEnvelope,
@@ -1023,6 +1162,16 @@ function StudentCards({
     setDraftEnvelope(nextEnvelope);
   }
   const effectiveLocalSubmittedKeys = nextEnvelope.localSubmittedKeys;
+  const tablePrefillRows = useMemo(
+    () => resolveManifestTablePrefill({ stepManifest, responseHistory: responseHistory ?? {} }),
+    [responseHistory, stepManifest],
+  );
+  const prefilledAnswers = useMemo(() => {
+    if (!Object.keys(tablePrefillRows).length) return {};
+    return Object.fromEntries(cards
+      .filter((card) => card.responseKind === 'table.builder')
+      .map((card) => [card.id, mergeManifestTablePrefill(savedResponse?.answers?.[card.id] ?? '', tablePrefillRows)]));
+  }, [cards, savedResponse?.answers, tablePrefillRows]);
 
   if (!cards.length) return null;
 
@@ -1035,7 +1184,11 @@ function StudentCards({
     );
   }
 
-  if (!browseEnabled && stepManifest.interactionSpec.interactionKind === 'quiz_group') {
+  const browseRequired = stepManifest.studentAccess.browse_required === true
+    || stepManifest.studentAccess.browseRequired === true;
+  const canSubmitWithoutBrowse = stepManifest.studentAccess.can_submit_without_browse === true
+    || stepManifest.studentAccess.canSubmitWithoutBrowse === true;
+  if (!browseEnabled && browseRequired && !canSubmitWithoutBrowse) {
     return (
         <div className="premium-lesson-panel interactive-courseware-panel">
         <ManifestSectionTitle>本页作答</ManifestSectionTitle>
@@ -1045,10 +1198,16 @@ function StudentCards({
   }
 
   const submittedKeys = new Set([...Object.keys(savedResponse?.answers ?? {}), ...Array.from(effectiveLocalSubmittedKeys)]);
+  const revealAnswerPolicy = stepManifest.interactionSpec.answerReveal
+    ?? 'after_submit_or_teacher_reveal';
+  const allCardsSubmitted = cards.every((card) => submittedKeys.has(card.id));
   const draftValueForCard = (card: InteractiveRuntimeActivityCardManifest) => {
     const currentParameterValue = parameterSetDraftValue(card, workspaceParameters);
     if (currentParameterValue) return currentParameterValue;
-    return mergedDraftAnswers[card.id] ?? '';
+    const hasTouchedLocalValue = nextEnvelope.touchedKeys.has(card.id);
+    return hasTouchedLocalValue
+      ? (mergedDraftAnswers[card.id] ?? '')
+      : (prefilledAnswers[card.id] ?? mergedDraftAnswers[card.id] ?? '');
   };
 
   return (
@@ -1074,34 +1233,53 @@ function StudentCards({
             <div className="mt-3 flex items-center justify-between gap-3">
               <button
                 type="button"
-                onClick={() => {
+                onClick={async () => {
+                  if (pendingKeysRef.current.has(card.id)) return;
+                  pendingKeysRef.current.add(card.id);
                   const currentDraft = {
                     ...mergedDraftAnswers,
                     [card.id]: draftValueForCard(card),
                   };
-                  setDraftEnvelope((previous) => {
-                    const nextTouchedKeys = new Set(previous.touchedKeys);
-                    nextTouchedKeys.delete(card.id);
-                    return {
-                      ...previous,
-                      localSubmittedKeys: new Set(previous.localSubmittedKeys).add(card.id),
-                      touchedKeys: nextTouchedKeys,
-                    };
+                  setPendingKeys((previous) => new Set(previous).add(card.id));
+                  setFailedKeys((previous) => {
+                    const next = new Set(previous);
+                    next.delete(card.id);
+                    return next;
                   });
-                  onSubmit({
-                    stepId: stepManifest.id,
-                    submittedAt: Date.now(),
-                    answers: buildPerCardSubmissionAnswers({
-                      savedAnswers: savedResponse?.answers,
-                      currentDraft,
-                      targetKey: card.id,
-                    }),
-                  });
+                  try {
+                    await onSubmit({
+                      stepId: stepManifest.id,
+                      submittedAt: Date.now(),
+                      answers: buildPerCardSubmissionAnswers({
+                        savedAnswers: savedResponse?.answers,
+                        currentDraft,
+                        targetKey: card.id,
+                      }),
+                    });
+                    setDraftEnvelope((previous) => {
+                      const nextTouchedKeys = new Set(previous.touchedKeys);
+                      nextTouchedKeys.delete(card.id);
+                      return {
+                        ...previous,
+                        localSubmittedKeys: new Set(previous.localSubmittedKeys).add(card.id),
+                        touchedKeys: nextTouchedKeys,
+                      };
+                    });
+                  } catch {
+                    setFailedKeys((previous) => new Set(previous).add(card.id));
+                  } finally {
+                    pendingKeysRef.current.delete(card.id);
+                    setPendingKeys((previous) => {
+                      const next = new Set(previous);
+                      next.delete(card.id);
+                      return next;
+                    });
+                  }
                 }}
-                disabled={!draftValueForCard(card).trim()}
+                disabled={!draftValueForCard(card).trim() || pendingKeys.has(card.id)}
                 className="premium-lesson-action-primary interactive-courseware-control disabled:opacity-40"
               >
-                提交答案
+                {pendingKeys.has(card.id) ? '提交中...' : '提交答案'}
               </button>
               <span className="interactive-courseware-caption">
                 {submittedKeys.has(card.id) ? '已提交，可修改后重提。' : '独立提交本卡。'}
@@ -1113,7 +1291,14 @@ function StudentCards({
               idleText={readOnly ? '演示模式仅本机预览，不会同步到教师端汇总。' : '提交后会同步到教师端汇总。'}
               showLock={false}
             />
-            {answerVisible ? (
+            {failedKeys.has(card.id) ? (
+              <div className="premium-lesson-tone-block premium-tone-rose mt-3 interactive-courseware-body" role="alert">
+                提交失败，请重试。
+              </div>
+            ) : null}
+            {answerVisible
+              || (revealAnswerPolicy === 'after_submit_or_teacher_reveal' && submittedKeys.has(card.id))
+              || (revealAnswerPolicy === 'after_all_submitted_or_teacher_reveal' && allCardsSubmitted) ? (
               <div className="premium-lesson-tone-block premium-tone-cyan mt-4 interactive-courseware-body">
                 <ReferenceAnswer card={card} />
               </div>

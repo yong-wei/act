@@ -108,6 +108,8 @@ describe('unit 5-2 interactive course', () => {
 
     expect(htmlByStep.get('step-12')).toContain('饱和中 k 增大使曲线向原点靠近。');
     expect(htmlByStep.get('step-18')).toContain('局部线性化看工作点附近的小扰动。');
+    expect(htmlByStep.get('step-18')).toContain('若海试中出现台架未暴露的周期误差');
+    expect(htmlByStep.get('step-18')).toContain('工程验证重点');
     expect(htmlByStep.get('step-03')).toContain('基础知识点');
     expect(htmlByStep.get('step-03')).not.toContain('前测说明');
     expect(htmlByStep.get('step-03')).not.toContain('不提前');
@@ -124,6 +126,29 @@ describe('unit 5-2 interactive course', () => {
     expect(htmlByStep.get('step-09')).toContain('继电与间隙描述函数');
     expect(htmlByStep.get('step-09')).toContain('滞环继电');
     expect(fullHtml).not.toContain('互动页模块渲染缺失');
+
+    const stepById = new Map(manifest.steps.map((step) => [step.id, step]));
+    const payload = (stepId: string, moduleId: string) => stepById.get(stepId)?.modules.find(
+      (module) => module.id === moduleId,
+    )?.payload;
+    expect(payload('step-18', 'info')?.block_key).toBeUndefined();
+    expect(payload('step-18', 'three-entry-summary')?.block_key).toBe('entries');
+    expect(payload('step-18', 'limits')?.block_key).toBe('limits');
+    expect(payload('step-18', 'engineering-focus')?.block_key).toBe('extension');
+    expect(payload('step-13', 'relay-sim')?.block_key).toBeUndefined();
+    expect(payload('step-14', 'sat-sim')?.block_key).toBeUndefined();
+    expect(payload('step-16', 'rudder-sim')?.block_key).toBeUndefined();
+
+    for (const [stepId, title, caption] of [
+      ['step-13', '继电闭环交点与时域复核图', '理想继电闭环的描述函数交点与自振仿真'],
+      ['step-14', '饱和闭环增益对比图', '饱和闭环中线性增益改变自振条件'],
+      ['step-16', '舵机自振风险仿真图', '舵机死区饱和案例的交点判断与短脉冲仿真'],
+      ['step-18', '三种非线性分析入口信息图', '非线性系统最小分析入口总结'],
+    ] as const) {
+      const html = htmlByStep.get(stepId) ?? '';
+      expect(html.split(title)).toHaveLength(2);
+      expect(html.split(caption)).toHaveLength(2);
+    }
 
     const step03ActivityHtml = renderToStaticMarkup(
       createElement(featureModule.UNIT_5_2StudentActivityForm, {
@@ -238,11 +263,14 @@ describe('unit 5-2 interactive course', () => {
   it('honors 5-2 teacher reveal and browse-required contracts from the real runtime manifest', async () => {
     const manifest = readManifest();
     const step13 = manifest.steps.find((step) => step.id === 'step-13');
+    const step14 = manifest.steps.find((step) => step.id === 'step-14');
     const courseModule = await import('@/lib/unit-5-2-course');
     const featureModule = await import('@/features/interactive/unit-5-2-nonlinear-analysis-entry/step-panels');
 
     expect(step13?.teacherControls.teacherStepReveal).toBe('enabled');
     expect(step13?.studentAccess.browse_required).toBe(true);
+    expect(step13?.interactionSpec.activityCards?.[0]?.responseKind).toBe('text.short');
+    expect(step14?.interactionSpec.activityCards?.[0]?.responseKind).toBe('text.short');
 
     const teacherHtml = renderToStaticMarkup(
       createElement(

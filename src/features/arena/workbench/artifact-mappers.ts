@@ -111,7 +111,7 @@ export function buildPreviewMetricsFromControlAnalysis(
     label: '超调量',
     value: analysis.timeDomain?.metrics?.overshoot ?? null,
     unit: '%',
-    isAvailable: analysis.timeDomain?.metrics?.overshoot !== undefined,
+    isAvailable: typeof analysis.timeDomain?.metrics?.overshoot === 'number',
   });
 
   const settlingRaw = analysis.timeDomain?.metrics?.settlingTime;

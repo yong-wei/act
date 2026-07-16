@@ -144,7 +144,7 @@ export default function TeacherStudentInsightsPage() {
                 </div>
               </div>
               <div className="grid gap-4 md:grid-cols-3">
-                <MetricCard title="综合指数" value={data.overview.overallScore ?? '暂无当前证据'} detail="六维能力平均值" />
+                <MetricCard title="综合指数" value={data.overview.overallScore ?? '暂无当前证据'} detail="七维 portrait v2 平均值" />
                 <MetricCard title="学习事实" value={data.overview.factCount} detail="已沉淀的治理证据数量" />
                 <MetricCard
                   title="最近画像"

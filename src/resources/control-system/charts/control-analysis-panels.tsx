@@ -2470,6 +2470,14 @@ export function BodeComparisonPanel({
 
 export function ControlPerformanceBar({ result }: { result: ControlAnalysisResult }) {
   const metrics = result.metrics;
+  const maxClosedLoopPoleRealPart = Math.max(...result.rootLocus.currentPoles.map((pole) => pole.re));
+  const closedLoopStability = !Number.isFinite(maxClosedLoopPoleRealPart)
+    ? '无法判定'
+    : maxClosedLoopPoleRealPart > 1e-4
+      ? '不稳定'
+      : Math.abs(maxClosedLoopPoleRealPart) <= 1e-4
+        ? '临界稳定'
+        : '稳定';
   const items = [
     ['Mp', formatFixed(metrics.overshootPct, '%')],
     ['tr', formatFixed(metrics.riseTimeSec, ' s')],
@@ -2482,7 +2490,7 @@ export function ControlPerformanceBar({ result }: { result: ControlAnalysisResul
     ['Z', result.nyquist.criterion ? String(result.nyquist.criterion.z) : '--'],
     ['ωc', formatFixed(metrics.gainCrossoverRadPerSec, ' rad/s')],
     ['ωg', formatFixed(metrics.phaseCrossoverRadPerSec, ' rad/s')],
-    ['闭环稳定性', result.rootLocus.currentPoles.every((pole) => pole.re < 0) ? '稳定' : '不稳定'],
+    ['闭环稳定性', closedLoopStability],
   ];
 
   return (

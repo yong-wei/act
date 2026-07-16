@@ -26,6 +26,9 @@ const mocks = vi.hoisted(() => {
       studentCompetencySnapshot: {
         findFirst: vi.fn(),
       },
+      studentPortraitV2Snapshot: {
+        findFirst: vi.fn(),
+      },
       studentProfileSummary: {
         findUnique: vi.fn(),
       },
@@ -135,6 +138,11 @@ vi.mock('@/features/arena/submissions/prisma-store', () => ({
 }));
 
 import { GET } from '@/app/api/user/profile/route';
+import { PORTRAIT_V2_DIMENSIONS } from '@/lib/data-governance/kaq-objective-taxonomy';
+import {
+  createPortraitV2Payload,
+  PORTRAIT_V2_CALCULATION_VERSION,
+} from '@/lib/data-governance/portrait-v2-model';
 
 function arenaSubmission(overrides: Record<string, unknown> = {}) {
   const taskId = typeof overrides.taskId === 'string' ? overrides.taskId : 'task-integrator-low-frequency-balance';
@@ -294,6 +302,50 @@ function learningFact(overrides: Record<string, unknown> = {}) {
   };
 }
 
+function portraitV2Snapshot(confidence = 0.8, hasEvidence = true) {
+  const generatedAt = '2026-05-20T00:00:00.000Z';
+  const portrait = createPortraitV2Payload({
+    userId: 'student-1',
+    generatedAt,
+    now: generatedAt,
+    dimensions: PORTRAIT_V2_DIMENSIONS.map(({ id }) => ({
+      id,
+      score: hasEvidence ? 80 : 0,
+      confidence: hasEvidence ? confidence : 0,
+      trend: 'stable' as const,
+      freshness: {
+        state: hasEvidence ? 'current' as const : 'missing' as const,
+        asOf: hasEvidence ? generatedAt : null,
+        evidenceAgeDays: hasEvidence ? 0 : null,
+      },
+      evidenceSummary: {
+        totalCount: hasEvidence ? 1 : 0,
+        sourceFamilyCounts: hasEvidence ? { LearningFact: 1 } : {} as Record<string, number>,
+      },
+      lastPositiveEvidenceAt: hasEvidence ? generatedAt : null,
+      lastNegativeEvidenceAt: null,
+      rationale: hasEvidence ? 'Governed evidence supports the current score.' : 'No safe legacy mapping exists.',
+      limitations: hasEvidence ? [] : ['missing-native-portrait-v2-evidence'],
+      sourceLineage: hasEvidence ? [{
+        kind: 'evidence-family' as const,
+        ref: 'LearningFact',
+        privacyScope: 'student-visible' as const,
+      }] : [],
+      calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+    })),
+  });
+  return {
+    id: 'portrait-v2-current-at-generation',
+    userId: 'student-1',
+    snapshotAt: new Date(generatedAt),
+    payloadVersion: portrait.payloadVersion,
+    calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+    migrationVersion: portrait.migrationVersion,
+    derivationKind: portrait.derivation.kind,
+    payload: portrait,
+  };
+}
+
 describe('GET /api/user/profile', () => {
   beforeEach(() => {
     vi.useFakeTimers();
@@ -337,6 +389,7 @@ describe('GET /api/user/profile', () => {
       snapshotAt: new Date('2026-03-19T09:00:00.000Z'),
       factCount: 18,
     });
+    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue(null);
 
     mocks.prisma.studentProfileSummary.findUnique.mockResolvedValue({
       overallLevel: '良好',
@@ -575,6 +628,8 @@ describe('GET /api/user/profile', () => {
   });
 
   it('returns six-dimension competency, preview activities, and adaptive reinforcement summary', async () => {
+    process.env.ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED = 'true';
+
     const response = await GET();
     const body = await response.json();
 
@@ -608,14 +663,15 @@ describe('GET /api/user/profile', () => {
       totalSimulationTime: 72000,
       averageScore: 84,
     });
-    expect(body.competency.dimensions).toHaveLength(6);
+    expect(body.competency.dimensions).toHaveLength(7);
     expect(body.competency.dimensions.map((item: { key: string }) => item.key)).toEqual([
-      'controlModeling',
-      'parameterDesign',
-      'crossDomainTransfer',
-      'engineeringDecision',
-      'inquiryReflection',
-      'selfDirectedLearning',
+      'controlModelingRepresentation',
+      'systemAnalysisInterpretation',
+      'controllerDesignSynthesis',
+      'simulationValidationEvidence',
+      'engineeringConstraintSafety',
+      'transferIntegratedApplication',
+      'reflectionImprovementAiCollab',
     ]);
     expect(body.recentActivity.preview).toHaveLength(3);
     expect(body.recentActivity.grouped.map((group: { category: string }) => group.category)).toEqual(
@@ -691,7 +747,17 @@ describe('GET /api/user/profile', () => {
       improvementCount: 1,
       learningFactContextCount: 1,
     });
-    expect(body.adaptiveLearnerState).toBeNull();
+    expect(body.adaptiveLearnerState).toMatchObject({
+      primaryPortrait: {
+        derivation: {
+          kind: 'compatibility-derived',
+        },
+        dimensions: expect.any(Array),
+      },
+      primaryCompetencies: {
+        authority: 'legacy-compatibility-only',
+      },
+    });
   });
 
   it('includes server-owned adaptive learner state when the feature flag is enabled', async () => {
@@ -711,6 +777,29 @@ describe('GET /api/user/profile', () => {
         source: 'latest-snapshot',
       },
     });
+  });
+
+  it('keeps the legacy profile fallback when the learner state feature is disabled', async () => {
+    process.env.ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED = 'false';
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.adaptiveLearnerState).toBeNull();
+    expect(body.competency.dimensions).toHaveLength(7);
+  });
+
+  it('keeps compatibility profile scores when a native portrait row has no evidence', async () => {
+    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue(portraitV2Snapshot(0.8, false));
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.competency.overallScore).toBeGreaterThan(0);
+    expect(body.competency.dimensions).toHaveLength(7);
+    expect(body.competency.dimensions.some((dimension: { evidenceCount: number }) => dimension.evidenceCount > 0)).toBe(true);
   });
 
   it('does not initialize profile data for a stale student session when the database user is no longer a student', async () => {
@@ -767,7 +856,65 @@ describe('GET /api/user/profile', () => {
     });
   });
 
+  it('marks profile evidence ready when portrait v2 is the only snapshot source', async () => {
+    const generatedAt = '2026-05-20T00:00:00.000Z';
+    mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(null);
+    mocks.prisma.studentCompetencySnapshot.findFirst.mockResolvedValue(null);
+    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue(portraitV2Snapshot());
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.evidenceStatus).toMatchObject({
+      state: 'ready',
+      evidenceBasis: 'portrait-v2',
+      refreshedAt: generatedAt,
+      sourceCounts: {
+        StudentCompetencySnapshot: 0,
+        StudentPortraitV2Snapshot: 1,
+      },
+      sourceCoverage: {
+        StudentCompetencySnapshot: 'missing',
+        StudentPortraitV2Snapshot: 'available',
+      },
+      confidence: {
+        state: 'ready',
+        level: 'high',
+        evidenceCount: 1,
+      },
+      statusMarkers: [],
+    });
+  });
+
+  it('does not report a stale portrait-only snapshot as healthy evidence', async () => {
+    vi.setSystemTime(new Date('2026-09-01T00:00:00.000Z'));
+    mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(null);
+    mocks.prisma.studentCompetencySnapshot.findFirst.mockResolvedValue(null);
+    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue(portraitV2Snapshot());
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.evidenceStatus).toMatchObject({
+      state: 'stale',
+      evidenceBasis: 'portrait-v2',
+      sourceCounts: { StudentPortraitV2Snapshot: 1 },
+      sourceCoverage: { StudentPortraitV2Snapshot: 'partial' },
+      confidence: {
+        state: 'stale',
+        level: 'high',
+        score: 0.8,
+        evidenceCount: 1,
+      },
+      statusMarkers: ['stale'],
+    });
+  });
+
   it('uses full governed fact history for missing cache evidence status', async () => {
+    process.env.ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED = 'true';
+
     const dayMs = 24 * 60 * 60 * 1000;
     const recentStart = Date.UTC(2026, 4, 1);
     const fullHistoryStart = Date.UTC(2026, 3, 1);
@@ -783,6 +930,7 @@ describe('GET /api/user/profile', () => {
     mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(null);
     mocks.prisma.learningFact.findMany
       .mockResolvedValueOnce(recentFacts)
+      .mockResolvedValueOnce([])
       .mockResolvedValueOnce(fullFactHistory);
 
     const response = await GET();

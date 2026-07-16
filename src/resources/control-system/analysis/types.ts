@@ -91,6 +91,7 @@ export interface ControlAnalysisRequest {
   responseType?: 'step' | 'impulse' | 'ramp';
   timeRange: TimeRangeConfig;
   frequencyRange: FrequencyRangeConfig;
+  settlingBandRatio?: number;
   nyquist?: NyquistConfig;
   rootLocus: RootLocusConfig;
   feasibleRegion?: FeasibleRegionConfig;
@@ -102,7 +103,7 @@ export interface ControlAnalysisRequest {
 }
 
 export interface ControlMetrics {
-  overshootPct: number;
+  overshootPct: number | null;
   riseTimeSec: number | null;
   settlingTimeSec: number | null;
   peakTimeSec: number | null;

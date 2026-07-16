@@ -77,6 +77,7 @@ const GROWTH_TEMPLATE_VERSION = 'growth-evaluation.v2';
 const GROWTH_MODEL_VERSION = 'configured-ai-policy.v1';
 
 export function growthEvaluationInputDigest(snapshot: GrowthEvaluationSnapshot): string {
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: digesting the vector preserves compatibility identity, not authority.
   return createHash('sha256').update(JSON.stringify({ userId: snapshot.userId, factCount: snapshot.factCount, factInputDigest: snapshot.factInputDigest ?? null, competencyVector: snapshot.competencyVector, evidenceSummary: snapshot.evidenceSummary, templateVersion: GROWTH_TEMPLATE_VERSION })).digest('hex');
 }
 

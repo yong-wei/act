@@ -107,6 +107,7 @@ struct ControlAnalysisRequest {
     response_type: ResponseType,
     time_range: TimeRangeConfig,
     frequency_range: FrequencyRangeConfig,
+    settling_band_ratio: Option<f64>,
     nyquist: Option<NyquistConfig>,
     root_locus: RootLocusConfig,
     feasible_region: Option<FeasibleRegionConfig>,
@@ -408,7 +409,7 @@ struct RootLocusAngle {
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct ControlMetrics {
-    overshoot_pct: f64,
+    overshoot_pct: Option<f64>,
     rise_time_sec: Option<f64>,
     settling_time_sec: Option<f64>,
     peak_time_sec: Option<f64>,
@@ -979,7 +980,12 @@ fn build_root_locus_tf(request: &ControlAnalysisRequest) -> TransferFunction {
         })
 }
 
-fn compute_time_metrics(points: &[CurvePoint]) -> ControlMetrics {
+fn compute_time_metrics(
+    points: &[CurvePoint],
+    expected_final_value: Option<f64>,
+    asymptotically_stable: bool,
+    settling_band_ratio: f64,
+) -> ControlMetrics {
     let finite_points: Vec<&CurvePoint> = points
         .iter()
         .filter(|point| point.x.is_finite() && point.y.is_finite())
@@ -987,7 +993,7 @@ fn compute_time_metrics(points: &[CurvePoint]) -> ControlMetrics {
 
     if finite_points.is_empty() {
         return ControlMetrics {
-            overshoot_pct: 0.0,
+            overshoot_pct: None,
             rise_time_sec: None,
             settling_time_sec: None,
             peak_time_sec: None,
@@ -1000,16 +1006,32 @@ fn compute_time_metrics(points: &[CurvePoint]) -> ControlMetrics {
         };
     }
 
-    let final_value = finite_points.last().map(|point| point.y).unwrap_or(0.0);
+    let final_value = expected_final_value
+        .filter(|value| value.is_finite())
+        .unwrap_or_else(|| finite_points.last().map(|point| point.y).unwrap_or(0.0));
+    if !asymptotically_stable {
+        return ControlMetrics {
+            overshoot_pct: None,
+            rise_time_sec: None,
+            settling_time_sec: None,
+            peak_time_sec: None,
+            final_value,
+            phase_margin_deg: None,
+            gain_margin_db: None,
+            gain_crossover_rad_per_sec: None,
+            phase_crossover_rad_per_sec: None,
+            bandwidth_rad_per_sec: None,
+        };
+    }
     let peak_point = finite_points
         .iter()
         .copied()
         .max_by(|left, right| compare_f64(left.y, right.y));
     let max_value = peak_point.map(|point| point.y).unwrap_or(final_value);
     let overshoot_pct = if final_value.abs() > 1e-12 {
-        ((max_value - final_value).max(0.0) / final_value.abs()) * 100.0
+        Some(((max_value - final_value).max(0.0) / final_value.abs()) * 100.0)
     } else {
-        0.0
+        Some(0.0)
     };
 
     let rise_low = 0.1 * final_value;
@@ -1033,7 +1055,9 @@ fn compute_time_metrics(points: &[CurvePoint]) -> ControlMetrics {
         .map(|point| point.x);
     let settling_time_sec = finite_points
         .iter()
-        .rposition(|point| (point.y - final_value).abs() > 0.02 * final_value.abs().max(1e-9))
+        .rposition(|point| {
+            (point.y - final_value).abs() > settling_band_ratio * final_value.abs().max(1e-9)
+        })
         .and_then(|index| finite_points.get(index + 1).map(|point| point.x));
 
     ControlMetrics {
@@ -1260,6 +1284,7 @@ fn step_response(
     tf: &TransferFunction,
     config: &TimeRangeConfig,
     response_type: ResponseType,
+    settling_band_ratio: f64,
 ) -> (Vec<CurvePoint>, ControlMetrics) {
     let tf = normalize_tf(tf.clone());
     let times = linspace(config.start, config.end, config.samples.max(2));
@@ -1293,13 +1318,33 @@ fn step_response(
             })
         }
     };
-    let metrics = compute_time_metrics(&points);
+    let closed_loop_poles = durand_kerner(&tf.denominator);
+    let asymptotically_stable =
+        !closed_loop_poles.is_empty() && closed_loop_poles.iter().all(|pole| pole.re < -1e-8);
+    let expected_final_value =
+        if matches!(response_type, ResponseType::Step) && asymptotically_stable {
+            tf.numerator
+                .last()
+                .copied()
+                .zip(tf.denominator.last().copied())
+                .and_then(|(numerator, denominator)| {
+                    (denominator.abs() > 1e-12).then_some(numerator / denominator)
+                })
+        } else {
+            None
+        };
+    let metrics = compute_time_metrics(
+        &points,
+        expected_final_value,
+        asymptotically_stable,
+        settling_band_ratio,
+    );
     (points, metrics)
 }
 
 fn default_control_metrics() -> ControlMetrics {
     ControlMetrics {
-        overshoot_pct: 0.0,
+        overshoot_pct: None,
         rise_time_sec: None,
         settling_time_sec: None,
         peak_time_sec: None,
@@ -3703,7 +3748,16 @@ fn compute_analysis_inner(request: &ControlAnalysisRequest) -> ControlAnalysisRe
     let needs_root_locus = output_requested(request, &["root_locus"]);
     let (step_points, mut metrics) = if needs_step {
         let closed_tf = tf_unity_feedback(&loop_tf);
-        step_response(&closed_tf, &request.time_range, request.response_type)
+        let settling_band_ratio = request
+            .settling_band_ratio
+            .filter(|ratio| ratio.is_finite() && *ratio > 0.0 && *ratio < 1.0)
+            .unwrap_or(0.02);
+        step_response(
+            &closed_tf,
+            &request.time_range,
+            request.response_type,
+            settling_band_ratio,
+        )
     } else {
         (Vec::new(), default_control_metrics())
     };
@@ -5273,6 +5327,7 @@ mod tests {
             }],
             outputs: vec!["step_response".to_string()],
             response_type: ResponseType::Step,
+            settling_band_ratio: None,
             time_range: TimeRangeConfig {
                 start: 0.0,
                 end: 5.0,
@@ -5301,6 +5356,55 @@ mod tests {
         assert!(result.metrics.final_value < 0.6);
     }
 
+    fn unit_1_5_gain_request(gain: f64) -> ControlAnalysisRequest {
+        serde_json::from_value(serde_json::json!({
+            "runtimeMode": "analysis",
+            "plant": {
+                "numerator": [1.0],
+                "denominator": [1.0, 7.0, 6.0, 0.0],
+                "coefficientOrder": "descending"
+            },
+            "structures": [{ "kind": "gain", "enabled": true, "params": { "k": gain } }],
+            "outputs": ["step_response", "root_locus", "bode"],
+            "responseType": "step",
+            "settlingBandRatio": 0.05,
+            "timeRange": { "start": 0.0, "end": 90.0, "samples": 420 },
+            "frequencyRange": { "min": 0.03, "max": 20.0, "samples": 220 },
+            "rootLocus": { "minGain": 0.0, "maxGain": 46.0, "samples": 240, "currentGain": gain }
+        }))
+        .expect("1-5 request should deserialize")
+    }
+
+    #[test]
+    fn unit_1_5_uses_five_percent_settling_time() {
+        let k3 = compute_analysis_inner(&unit_1_5_gain_request(3.0));
+        let k12 = compute_analysis_inner(&unit_1_5_gain_request(12.0));
+        assert!((k3.metrics.settling_time_sec.expect("stable K=3") - 7.38).abs() < 0.35);
+        assert!((k12.metrics.settling_time_sec.expect("stable K=12") - 8.05).abs() < 0.35);
+    }
+
+    #[test]
+    fn unit_1_5_preserves_shared_two_percent_settling_time_default() {
+        let mut default_request = unit_1_5_gain_request(3.0);
+        default_request.settling_band_ratio = None;
+        let default_result = compute_analysis_inner(&default_request);
+        let five_percent_result = compute_analysis_inner(&unit_1_5_gain_request(3.0));
+        assert!(
+            default_result.metrics.settling_time_sec.expect("default 2% settling")
+                > five_percent_result.metrics.settling_time_sec.expect("explicit 5% settling")
+        );
+    }
+
+    #[test]
+    fn unit_1_5_critical_and_unstable_steps_have_no_stable_transient_metrics() {
+        for gain in [42.0, 44.0] {
+            let result = compute_analysis_inner(&unit_1_5_gain_request(gain));
+            assert!(result.metrics.overshoot_pct.is_none(), "K={gain}");
+            assert!(result.metrics.rise_time_sec.is_none(), "K={gain}");
+            assert!(result.metrics.settling_time_sec.is_none(), "K={gain}");
+        }
+    }
+
     fn ship_heading_request(gain: f64) -> ControlAnalysisRequest {
         ControlAnalysisRequest {
             runtime_mode: "analysis".to_string(),
@@ -5323,6 +5427,7 @@ mod tests {
                 "bode".to_string(),
             ],
             response_type: ResponseType::Step,
+            settling_band_ratio: None,
             time_range: TimeRangeConfig {
                 start: 0.0,
                 end: 160.0,
@@ -5380,6 +5485,7 @@ mod tests {
                 "bode".to_string(),
             ],
             response_type: ResponseType::Step,
+            settling_band_ratio: None,
             time_range: TimeRangeConfig {
                 start: 0.0,
                 end: 2.0,
@@ -5423,6 +5529,7 @@ mod tests {
             }],
             outputs: vec!["root_locus".to_string()],
             response_type: ResponseType::Step,
+            settling_band_ratio: None,
             time_range: TimeRangeConfig {
                 start: 0.0,
                 end: 8.0,

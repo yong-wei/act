@@ -54,6 +54,7 @@ const PRESET_LESSON_RESOURCE_DIR = 'src/features/teacher/preset-lessons/presets'
 interface CliOptions {
   base: string | null;
   staged: boolean;
+  stagedBase: string | null;
 }
 
 interface DiffLineRange {
@@ -2160,7 +2161,7 @@ function runtimeProjectionValidationTreeRevision(
   tree: 'current' | 'base',
 ): string | null {
   if (tree === 'current') return options.staged ? null : 'HEAD';
-  if (options.staged) return 'HEAD';
+  if (options.staged) return options.stagedBase;
   try {
     return execFileSync('git', ['merge-base', options.base!, 'HEAD'], { encoding: 'utf8' }).trim();
   } catch {
@@ -2186,7 +2187,7 @@ function hasDiff(diff: string): boolean {
 }
 
 function parseArgs(args: string[]): CliOptions {
-  const options: CliOptions = { base: null, staged: true };
+  const options: CliOptions = { base: null, staged: true, stagedBase: null };
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
     if (arg === '--base') {
@@ -2209,12 +2210,70 @@ function parseArgs(args: string[]): CliOptions {
   if (options.base !== null && options.base.trim() === '') {
     throw new Error('--base requires a Git ref');
   }
+  options.stagedBase = options.staged ? resolveStagedDiffBase() : null;
   return options;
+}
+
+function resolveStagedDiffBase(): string {
+  try {
+    const mergeHeadPath = execFileSync('git', ['rev-parse', '--git-path', 'MERGE_HEAD'], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+    const fullMergeHeadPath = path.resolve(process.cwd(), mergeHeadPath);
+    if (!existsSync(fullMergeHeadPath)) return 'HEAD';
+    const mergeHeads = readFileSync(fullMergeHeadPath, 'utf8').trim().split(/\s+/).filter(Boolean);
+    if (mergeHeads.length > 1) {
+      throw new Error('new-resource semantic completeness does not support octopus merge staging');
+    }
+    const incomingHead = resolveCommit(mergeHeads[0]);
+    const integrationHead = resolveCommit('origin/integration');
+    const currentHead = resolveCommit('HEAD');
+    if (
+      incomingHead &&
+      integrationHead &&
+      currentHead &&
+      isAncestor(incomingHead, integrationHead) &&
+      !isAncestor(currentHead, integrationHead)
+    ) {
+      return incomingHead;
+    }
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('octopus merge staging')) {
+      throw error;
+    }
+    // Missing or malformed merge metadata conservatively compares the index with HEAD.
+  }
+  return 'HEAD';
+}
+
+function resolveCommit(ref: string | undefined): string | null {
+  if (!ref) return null;
+  try {
+    return execFileSync('git', ['rev-parse', '--verify', '--quiet', `${ref}^{commit}`], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim() || null;
+  } catch {
+    return null;
+  }
+}
+
+function isAncestor(candidate: string, descendant: string): boolean {
+  try {
+    execFileSync('git', ['merge-base', '--is-ancestor', candidate, descendant], { stdio: 'ignore' });
+    return true;
+  } catch (error) {
+    if (error && typeof error === 'object' && 'status' in error && error.status === 1) {
+      return false;
+    }
+    throw error;
+  }
 }
 
 function gitDiff(options: CliOptions, filePath: string): string {
   const args = options.staged
-    ? ['diff', '--cached', '--unified=0', '--', filePath]
+    ? ['diff', '--cached', '--unified=0', options.stagedBase!, '--', filePath]
     : ['diff', '--unified=0', `${options.base}...HEAD`, '--', filePath];
   return execFileSync('git', args, { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
 }
@@ -2231,7 +2290,7 @@ function gitChangedPathNames(
   diffOptions: readonly string[] = [],
 ): string {
   const args = options.staged
-    ? ['diff', '--cached', '--name-only', ...diffOptions, '--', ...pathspecs]
+    ? ['diff', '--cached', '--name-only', ...diffOptions, options.stagedBase!, '--', ...pathspecs]
     : ['diff', '--name-only', ...diffOptions, `${options.base}...HEAD`, '--', ...pathspecs];
   return execFileSync('git', args, { encoding: 'utf8' });
 }
@@ -2242,7 +2301,7 @@ function gitChangedPathStatuses(
   diffOptions: readonly string[] = [],
 ): string {
   const args = options.staged
-    ? ['diff', '--cached', '--name-status', '--find-renames', ...diffOptions, '--', ...pathspecs]
+    ? ['diff', '--cached', '--name-status', '--find-renames', ...diffOptions, options.stagedBase!, '--', ...pathspecs]
     : ['diff', '--name-status', '--find-renames', ...diffOptions, `${options.base}...HEAD`, '--', ...pathspecs];
   return execFileSync('git', args, { encoding: 'utf8' });
 }

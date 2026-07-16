@@ -88,7 +88,7 @@ export function useKnowledgeCard(id: string) {
 
     const fetchCard = async () => {
       try {
-        const res = await fetch(`/api/knowledge/nodes/${id}`);
+        const res = await fetch(`/api/knowledge/nodes/${encodeURIComponent(id)}`);
         if (!res.ok) {
           setError('知识卡片未找到');
           setIsLoading(false);

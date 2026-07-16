@@ -12,6 +12,8 @@ import {
   getResourceNodeWorkspaceMigrationContracts,
 } from '@/features/knowledge/resource-node-workspace-contracts';
 import { resolveKnowledgeResourceLaunch } from '@/features/knowledge/resource-panel/resource-panel';
+import { resolveInitialKnowledgeNodeId } from '@/features/knowledge/graph/node-activation';
+import { resolveRelationFamilyControlPlacement } from '@/features/knowledge/graph/relation-family-control';
 import { buildPlatformStatusViewModel } from '@/components/platform/platform-ui-contracts';
 import {
   getPathNodeSemanticsForResourceType,
@@ -278,6 +280,37 @@ describe('resource node knowledge workspace UI contracts', () => {
     expect(contractSource).not.toContain("'use client'");
   });
 
+  it('fails closed when the public launch projection receives an unsafe opaque target', () => {
+    const launch = buildResourceNodeLaunchAction(resourceNode({
+      launchTarget: 'javascript:alert(document.domain)',
+      renderTarget: '/safe-fallback-must-not-replace-owned-target',
+    }));
+
+    expect(launch).toMatchObject({
+      kind: 'feature-owned-launcher',
+      href: null,
+      disabledReason: '资源启动地址未通过安全校验，当前不可启动。',
+      owner: 'simulation',
+    });
+  });
+
+  it.each([
+    ['', 'blank'],
+    ['\n', 'newline'],
+    [42, 'numeric'],
+    [{ href: '/safe-fallback-must-not-replace-owned-target' }, 'object'],
+  ])('does not fall back when authoritative launchTarget is %s (%s)', (launchTarget, _description) => {
+    const launch = buildResourceNodeLaunchAction(resourceNode({
+      launchTarget: launchTarget as ResourceNode['launchTarget'],
+      renderTarget: '/safe-fallback-must-not-replace-owned-target',
+    }));
+
+    expect(launch).toMatchObject({
+      href: null,
+      disabledReason: '资源启动地址未通过安全校验，当前不可启动。',
+    });
+  });
+
   it('documents migration from existing graph and resource panels to platform primitives', () => {
     expect(getResourceNodeWorkspaceMigrationContracts()).toEqual(
       expect.arrayContaining([
@@ -300,8 +333,34 @@ describe('resource node knowledge workspace UI contracts', () => {
     expect(source).toContain('data-knowledge-canvas-primary="true"');
     expect(source).toContain('data-knowledge-squeeze-down-rejected="permanent-panels-hidden-at-320"');
     expect(source).toContain('data-knowledge-mobile-drawer="chapter-directory"');
-    expect(source).toContain('data-knowledge-mobile-drawer="relation-filters"');
-    expect(source).toContain('data-knowledge-mobile-drawer="legend"');
+    expect(source).toContain('data-knowledge-mobile-drawer="node-filters"');
+    expect(resolveRelationFamilyControlPlacement({
+      isMobile: true,
+      inspectorVisible: false,
+      toolPanelVisible: false,
+    })).toBe('canvas');
+    expect(resolveRelationFamilyControlPlacement({
+      isMobile: true,
+      inspectorVisible: true,
+      toolPanelVisible: true,
+    })).toBe('inspector');
+    expect(resolveRelationFamilyControlPlacement({
+      isMobile: true,
+      inspectorVisible: false,
+      toolPanelVisible: true,
+    })).toBe('tool-panel');
+    expect(resolveRelationFamilyControlPlacement({
+      isMobile: false,
+      inspectorVisible: true,
+      toolPanelVisible: true,
+    })).toBe('canvas');
+    expect(source).not.toContain('data-knowledge-mobile-drawer="relation-filters"');
+    expect(source).not.toContain('data-knowledge-mobile-drawer="legend"');
+    expect(source).not.toContain('data-knowledge-density-mode=');
+    expect(source).not.toContain('密度模式');
+    expect(source).not.toContain('关系类型');
+    expect(source).not.toContain('关系强度阈值');
+    expect(source).not.toContain('仅显示存在可见关系的节点');
     expect(source).toContain('lg:block');
     expect(source).not.toContain('w-[360px]');
   });
@@ -318,10 +377,14 @@ describe('resource node knowledge workspace UI contracts', () => {
     expect(source).toContain('evidenceHref = launchAction.lessonId');
     expect(source).toContain('/profile/evidence');
     expect(graphSource).toContain('initialSelectedNodeId');
-    expect(graphSource).toContain('new URLSearchParams(window.location.search).get(\'node\')');
+    expect(resolveInitialKnowledgeNodeId('?node=kn-bode', 'kn-initial')).toBe('kn-bode');
+    expect(resolveInitialKnowledgeNodeId('?nodeId=kn-legacy', 'kn-initial')).toBe('kn-legacy');
+    expect(resolveInitialKnowledgeNodeId('?node=kn-preferred&nodeId=kn-legacy', 'kn-initial')).toBe('kn-preferred');
+    expect(resolveInitialKnowledgeNodeId('', 'kn-initial')).toBe('kn-initial');
+    expect(resolveInitialKnowledgeNodeId('')).toBeNull();
   });
 
-  it('derives ResourcePanel launch targets without turning knowledge card files into raw markdown routes', () => {
+  it('preserves explicit source-owned targets and keeps inferred knowledge cards in the card entry', () => {
     const cardOnlyLaunch = resolveKnowledgeResourceLaunch({
       id: 'transfer-function',
       name: '传递函数',
@@ -368,6 +431,20 @@ describe('resource node knowledge workspace UI contracts', () => {
       resources: [],
       metadata: { launchTarget: '/simulations/cruise' },
     });
+    const sourceOwnedInternalLaunch = resolveKnowledgeResourceLaunch({
+      id: 'opaque-internal-node', name: '内部目标', nodeType: 'SCENARIO', description: '',
+      positionX: 0, positionY: 0, positionZ: 0, resources: [],
+      metadata: { launchTarget: 'adaptive-learning/path-node/opaque-7' },
+    });
+    const sourceOwnedHttpsLaunch = resolveKnowledgeResourceLaunch({
+      id: 'opaque-https-node', name: '外部目标', nodeType: 'SCENARIO', description: '',
+      positionX: 0, positionY: 0, positionZ: 0, resources: [],
+      metadata: { launchTarget: 'https://example.edu/resource?id=7#step' },
+    });
+    const noTargetLaunch = resolveKnowledgeResourceLaunch({
+      id: 'no-target-node', name: '无目标', nodeType: 'THEORY', description: '',
+      positionX: 0, positionY: 0, positionZ: 0, resources: [], metadata: {},
+    });
     const metadataCardLaunch = resolveKnowledgeResourceLaunch({
       id: 'metadata-card-node',
       name: '元数据卡片节点',
@@ -398,9 +475,13 @@ describe('resource node knowledge workspace UI contracts', () => {
       href: '/simulations/cruise',
       label: '启动关联资源',
     });
+    expect(sourceOwnedInternalLaunch.href).toBe('adaptive-learning/path-node/opaque-7');
+    expect(sourceOwnedHttpsLaunch.href).toBe('https://example.edu/resource?id=7#step');
+    expect(noTargetLaunch).toMatchObject({ href: null, hasKnowledgeCard: false, lessonId: null });
     expect(metadataCardLaunch).toMatchObject({
-      href: null,
+      href: 'course-content/runtime/knowledge/cards/nodes/传递函数_1_5b0faf8b.md',
       hasKnowledgeCard: true,
     });
+    expect(resolveKnowledgeResourceLaunch(null)).toMatchObject({ href: null, lessonId: null });
   });
 });

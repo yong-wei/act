@@ -225,12 +225,14 @@ export async function runLearningMaterializationBarrierStage<T>(
 }
 
 export async function appendEmptyStudentCompatibilitySnapshot(db: MaterializationDb, userId: string, now = new Date()) {
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: this empty vector is a lifecycle compatibility tombstone.
   const competencyVector = createEmptyCompetencyVector();
   for (const value of Object.values(competencyVector)) value.lastUpdated = now.toISOString();
   return db.studentCompetencySnapshot.create({
     data: {
       userId,
       snapshotAt: now,
+      // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: non-authoritative lifecycle tombstone.
       competencyVector,
       evidenceSummary: { _derivation: { state: 'no-evidence-after-revocation', reason: 'governed-facts-revoked' } },
       riskFlags: [],
@@ -250,6 +252,7 @@ export async function appendNoRecentEvidenceCompatibilitySnapshot(
   return db.studentCompetencySnapshot.create({ data: {
     userId,
     snapshotAt: now,
+    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: historical vector is non-authoritative lifecycle metadata.
     competencyVector: historicalVector,
     evidenceSummary: { _derivation: { state: 'no-recent-evidence', reason: 'no-governed-facts-in-30-day-window' } },
     riskFlags: [],

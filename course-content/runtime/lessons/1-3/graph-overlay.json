@@ -1210,11 +1210,11 @@
       "strength": 0.85
     },
     {
-      "id": "rel-ece7c437603d78d1",
+      "id": "rel-4f9a330257ea59be",
       "sourceId": "闭环控制_1_1",
       "targetId": "闭环特征方程_1_3",
-      "relation": "refines",
-      "relationType": "refines",
+      "relation": "provides_foundation",
+      "relationType": "provides_foundation",
       "strength": 0.9
     }
   ]

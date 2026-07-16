@@ -520,7 +520,7 @@ export default function ClassAnalyticsV2Page() {
             <div className="mb-4 flex items-center justify-between gap-4">
               <div>
                 <h2 className="text-lg font-semibold text-foreground">能力维度概览</h2>
-                <p className="mt-1 text-sm text-subtle">六维能力均值与波动，可快速判断本班共性短板。</p>
+                    <p className="mt-1 text-sm text-subtle">七维 portrait v2 均值与波动，可快速判断本班共性短板。</p>
               </div>
             </div>
             <div className="space-y-4">

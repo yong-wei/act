@@ -4,10 +4,26 @@ import {
   COMPETENCY_DIMENSIONS,
   calculateOverallScore,
   calculateTrendDirection,
-  getCompetencyLabel,
   type CompetencyVector,
   type TrendVector,
 } from '@/lib/data-governance/competency-model';
+// PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy vector is retained only for trend and evidence compatibility.
+import {
+  mapLegacyCompetencyDimensionToPortraitV2,
+  PORTRAIT_V2_DIMENSIONS,
+  type PortraitV2DimensionId,
+} from '@/lib/data-governance/kaq-objective-taxonomy';
+import {
+  hasPortraitV2Evidence,
+  resolvePrimaryPortraitV2,
+  selectPortraitV2WithCompatibilityFallback,
+  summarizePortraitV2,
+  type PortraitV2ConsumerSummary,
+} from '@/lib/data-governance/portrait-v2-consumer';
+import {
+  derivePortraitV2Compatibility,
+  projectPortraitV2ForConsumer,
+} from '@/lib/data-governance/portrait-v2-model';
 import {
   generateRecommendations,
   type RecommendationRationale,
@@ -160,6 +176,7 @@ export interface TeacherStudentInsightsPayload {
   overview: {
     overallScore: number | null;
     evidenceState: 'current' | 'empty';
+    portraitV2: PortraitV2ConsumerSummary;
     riskLevel: 'none' | 'low' | 'medium' | 'high';
     riskLabel: string;
     latestSnapshotAt: string | null;
@@ -169,12 +186,21 @@ export interface TeacherStudentInsightsPayload {
   snapshot: {
     derivationState: 'current' | 'no-evidence' | 'no-recent-evidence' | 'no-evidence-after-revocation';
     current: {
+      portrait: PortraitV2ConsumerSummary;
       vector: CompetencyVector;
+      // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: source identifies compatibility metadata only.
+      legacyCompatibility: {
+        authority: 'legacy-compatibility-only';
+        source: 'StudentCompetencySnapshot' | 'StudentEvidenceFeatureCache' | 'fallback-empty';
+      };
       snapshotAt: string;
       factCount: number;
     } | null;
     previous: {
       vector: CompetencyVector;
+      legacyCompatibility: {
+        authority: 'legacy-compatibility-only';
+      };
       snapshotAt: string;
     } | null;
     trendVector: TrendVector | null;
@@ -260,6 +286,7 @@ export async function GET(
       select: { id: true },
     });
     const scopedSessionIds = scopedClassSessions.map((session) => session.id);
+    const currentEvidenceSince = new Date(Date.now() - 30 * 24 * 60 * 60_000);
 
     const [
       currentSnapshot,
@@ -270,11 +297,14 @@ export async function GET(
       recommendations,
       classSnapshot,
       studentEvidenceFeatureRead,
-      scopedFeatureFacts,
+      scopedFeatureFactCandidates,
       durableSubmissions,
       studentSessionReports,
     ] = await Promise.all([
-      Promise.resolve(null),
+      prisma.studentCompetencySnapshot.findFirst({
+        where: { userId: studentId },
+        orderBy: { snapshotAt: 'desc' },
+      }),
       Promise.resolve(null),
       Promise.resolve(null),
       Promise.resolve([]),
@@ -288,6 +318,7 @@ export async function GET(
       prisma.learningFact.findMany({
         where: {
           userId: studentId,
+          startedAt: { gte: currentEvidenceSince },
           OR: buildTeacherScopedLearningFactScopeFilters(classId, scopedSessionIds),
         },
         orderBy: { startedAt: 'desc' },
@@ -349,16 +380,79 @@ export async function GET(
       }),
     ]);
 
+    const scopedFeatureFacts = scopedFeatureFactCandidates.filter(
+      (fact) => fact.startedAt >= currentEvidenceSince,
+    );
     const scopedProjection = buildClassScopedStudentProjections([studentId], scopedFeatureFacts as any).get(studentId);
-    const currentVector = scopedProjection?.competencyVector ?? null;
-    const derivationState = scopedProjection ? 'current' : 'no-evidence';
-    const hasCurrentEvidence = Boolean(scopedProjection);
+    const lifecycleState = readObject(readObject(currentSnapshot?.evidenceSummary)._derivation).state;
+    const lifecycleBoundary = !scopedProjection
+      && (lifecycleState === 'no-recent-evidence' || lifecycleState === 'no-evidence-after-revocation')
+      ? lifecycleState
+      : null;
+    const scopedSnapshotAt = scopedProjection
+      ? new Date(Math.max(...scopedFeatureFacts.map((fact) =>
+          (fact.finishedAt ?? fact.startedAt).getTime()
+        )))
+      : null;
+    const globalPortraitResolution = scopedProjection
+      ? null
+      : await resolvePrimaryPortraitV2(prisma, studentId, 'reviewer', {
+          legacySnapshot: currentSnapshot as Record<string, unknown> | null,
+          featureCache: studentEvidenceFeatureRead.cache as Record<string, unknown> | null,
+        });
+    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: scoped vectors are non-authoritative inputs to the v2 projection.
+    const selectedPortrait = scopedProjection && scopedSnapshotAt
+      ? projectPortraitV2ForConsumer(derivePortraitV2Compatibility({
+          userId: studentId,
+          snapshotAt: scopedSnapshotAt.toISOString(),
+          // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: source and vector are compatibility-only.
+          sourceFamily: 'StudentCompetencySnapshot',
+          vector: scopedProjection.competencyVector,
+          now: new Date(),
+        }), 'reviewer')
+      : globalPortraitResolution
+        ? selectPortraitV2WithCompatibilityFallback(globalPortraitResolution, 'reviewer')
+        : null;
+    const hasPortraitV2Data = Boolean(selectedPortrait && hasPortraitV2Evidence(selectedPortrait));
+    const hasCurrentEvidence = !lifecycleBoundary && Boolean(scopedProjection);
+    const derivationState = lifecycleBoundary ?? (hasCurrentEvidence ? 'current' : 'no-evidence');
     const trendVector = null;
-    const overallScore = currentVector && hasCurrentEvidence ? roundTo(calculateOverallScore(currentVector), 1) : null;
+    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: retain the scoped legacy vector only in compatibility output.
+    const currentVector = scopedProjection?.competencyVector ?? null;
+    const portraitV2 = lifecycleBoundary
+      ? summarizePortraitV2({
+          userId: studentId,
+          payloadVersion: 'learner-portrait.v2',
+          migrationVersion: 'portrait-v2-migration.v1',
+          generatedAt: currentSnapshot?.snapshotAt.toISOString() ?? new Date().toISOString(),
+          derivation: {
+            kind: 'compatibility-derived',
+            limitations: [`lifecycle-boundary:${lifecycleBoundary}`],
+          },
+          dimensions: [],
+        })
+      : selectedPortrait && (hasCurrentEvidence || hasPortraitV2Data)
+      ? summarizePortraitV2(selectedPortrait)
+      : summarizePortraitV2({
+          userId: studentId,
+          payloadVersion: 'learner-portrait.v2',
+          migrationVersion: 'portrait-v2-migration.v1',
+          generatedAt: new Date().toISOString(),
+          derivation: { kind: 'compatibility-derived', limitations: ['missing-current-class-scoped-evidence'] },
+          dimensions: [],
+        });
+    const snapshotVector = currentVector;
+    const overallScore = currentVector && hasCurrentEvidence
+      ? roundTo(calculateOverallScore(currentVector), 1)
+      : null;
+    const snapshotAt = hasCurrentEvidence
+      ? classSnapshot?.snapshotAt.toISOString() ?? scopedSnapshotAt?.toISOString() ?? null
+      : null;
+    const factCount = hasCurrentEvidence ? scopedProjection?.factCount ?? 0 : 0;
     const riskLevel = normalizeInsightRiskLevel(
       null
     );
-    const classAggregate = (classSnapshot?.aggregateJson ?? {}) as Record<string, { mean?: number }>;
+    const classAggregate = (classSnapshot?.aggregateJson ?? {}) as Record<string, unknown>;
     const generatedScopedSummary = generateEvidenceSummary(scopedFeatureFacts as any, 3) as Record<string, TeacherStudentEvidenceItem[]>;
     const durableScopedSummary = durableSubmissions.flatMap((submission) => {
       const payload = submission.responseData && typeof submission.responseData === 'object' && !Array.isArray(submission.responseData)
@@ -372,6 +466,7 @@ export async function GET(
       }] : [];
     });
     const evidenceSummary = sanitizeEvidenceSummary({ ...generatedScopedSummary, engineeringDecision: [...(generatedScopedSummary.engineeringDecision ?? []), ...durableScopedSummary] } as Record<string, TeacherStudentEvidenceItem[]>);
+    const portraitEvidenceSummary = buildPortraitEvidenceSummary(evidenceSummary);
     const recentFacts = scopedFeatureFacts.slice(0, 8);
     const drawerSessionIds = Array.from(new Set([
       ...recentFacts.map((fact) => fact.sessionId).filter(isNonEmptyString),
@@ -430,8 +525,8 @@ export async function GET(
       targetUserId: studentId,
       classId,
       teacherClassIds: [classId],
-      learnerState: classSnapshot && hasCurrentEvidence
-        ? { generatedAt: classSnapshot.snapshotAt.toISOString() }
+      learnerState: snapshotAt
+        ? { generatedAt: snapshotAt }
         : null,
       featureCache: scopedFeatureCache,
       teacherReport: {
@@ -456,33 +551,42 @@ export async function GET(
       overview: {
         overallScore,
         evidenceState: hasCurrentEvidence ? 'current' : 'empty',
+        portraitV2,
         riskLevel,
         riskLabel: getRiskLabel(riskLevel),
-        latestSnapshotAt: hasCurrentEvidence ? classSnapshot?.snapshotAt.toISOString() ?? null : null,
-        factCount: scopedProjection?.factCount ?? 0,
+        latestSnapshotAt: snapshotAt,
+        factCount,
         recommendedScaffolding:
           hasCurrentEvidence ? '班级范围暂无可靠派生脚手架建议。' : '当前无近期证据，暂不生成脚手架建议。',
       },
       snapshot: {
         derivationState,
-        current: currentVector && hasCurrentEvidence
+        current: snapshotVector && hasCurrentEvidence
           ? {
-              vector: currentVector!,
-              snapshotAt: classSnapshot?.snapshotAt.toISOString() ?? new Date(Math.max(...scopedFeatureFacts.map((fact) => fact.startedAt.getTime()))).toISOString(),
-              factCount: scopedProjection!.factCount,
+              portrait: portraitV2,
+              vector: snapshotVector,
+              // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: provenance labels this legacy payload non-authoritative.
+              legacyCompatibility: {
+                authority: 'legacy-compatibility-only',
+                source: 'StudentCompetencySnapshot',
+              },
+              snapshotAt: snapshotAt!,
+              factCount,
             }
           : null,
         previous: null,
         trendVector,
       },
       profileSummary: null,
-      classComparison: COMPETENCY_DIMENSIONS.map((dimension) => {
-        if (!hasCurrentEvidence) return { dimension, label: getCompetencyLabel(dimension), studentScore: null, classAverage: null, gap: null };
-        const studentScore = currentVector?.[dimension]?.score ?? 0;
-        const classAverage = roundTo(classAggregate[dimension]?.mean ?? 0, 1);
+      classComparison: PORTRAIT_V2_DIMENSIONS.map(({ id: dimension, label }) => {
+        if (!hasCurrentEvidence) {
+          return { dimension, label, studentScore: null, classAverage: null, gap: null };
+        }
+        const studentScore = portraitV2.dimensions.find((item) => item.id === dimension)?.score ?? 0;
+        const classAverage = roundTo(extractClassMean(classAggregate, dimension) ?? 0, 1);
         return {
           dimension,
-          label: getCompetencyLabel(dimension),
+          label,
           studentScore: roundTo(studentScore, 1),
           classAverage,
           gap: roundTo(studentScore - classAverage, 1),
@@ -491,10 +595,10 @@ export async function GET(
       riskFlags: [],
       growthRecords: [],
       recommendations: [],
-      evidenceSummary: COMPETENCY_DIMENSIONS.map((dimension) => ({
+      evidenceSummary: PORTRAIT_V2_DIMENSIONS.map(({ id: dimension, label }) => ({
         dimension,
-        label: getCompetencyLabel(dimension),
-        items: hasCurrentEvidence ? evidenceSummary[dimension] ?? [] : [],
+        label,
+        items: hasCurrentEvidence ? portraitEvidenceSummary[dimension] ?? [] : [],
       })),
       evidenceDrawer,
       diagnosis,
@@ -518,6 +622,27 @@ function buildTrendVector(current: CompetencyVector, previous: CompetencyVector 
     accumulator[dimension] = calculateTrendDirection(currentScore, previousScore, 3);
     return accumulator;
   }, {} as TrendVector);
+}
+
+function buildPortraitEvidenceSummary(
+  legacySummary: Record<string, TeacherStudentEvidenceItem[]>,
+): Record<string, TeacherStudentEvidenceItem[]> {
+  return Object.fromEntries(PORTRAIT_V2_DIMENSIONS.map(({ id }) => [
+    id,
+    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: map historical evidence into v2 dimensions only.
+    COMPETENCY_DIMENSIONS.flatMap((legacyDimension) =>
+      mapLegacyCompetencyDimensionToPortraitV2(legacyDimension).targetDimensions.includes(id)
+        ? legacySummary[legacyDimension] ?? []
+        : []
+    ).slice(0, 6),
+  ]));
+}
+
+function extractClassMean(aggregate: Record<string, unknown>, dimension: PortraitV2DimensionId): number | null {
+  const nested = readObject(aggregate.dimensions)[dimension];
+  const legacy = aggregate[dimension];
+  const entry = readObject(nested ?? legacy);
+  return typeof entry.mean === 'number' && Number.isFinite(entry.mean) ? entry.mean : null;
 }
 
 function parseRecentActivities(value: unknown) {

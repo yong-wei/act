@@ -1,10 +1,11 @@
 /**
- * Six-Dimensional Competency Model
+ * Legacy Six-Dimensional Competency Model
  *
- * Defines the competency framework for student learning analytics.
+ * Defines the compatibility input retained for migration and historical reads;
+ * portrait v2 is the primary learner portrait for current consumers.
  */
 
-// Six primary competency dimensions
+// Legacy compatibility dimensions; do not use as current primary portrait data.
 export interface CompetencyVector {
   controlModeling: CompetencyScore;      // 控制建模与分析能力
   parameterDesign: CompetencyScore;      // 参数设计与调优能力

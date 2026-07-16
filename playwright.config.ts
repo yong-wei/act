@@ -18,6 +18,7 @@ export default defineConfig({
   use: {
     baseURL,
     trace: 'retain-on-failure',
+    channel: process.env.PLAYWRIGHT_CHANNEL || undefined,
   },
   webServer: process.env.PLAYWRIGHT_SKIP_WEB_SERVER
     ? undefined

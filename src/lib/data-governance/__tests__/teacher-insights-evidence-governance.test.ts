@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { NextRequest } from 'next/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const TEST_DAY_MS = 24 * 60 * 60 * 1000;
@@ -52,6 +53,9 @@ const mocks = vi.hoisted(() => {
         findMany: vi.fn(),
         findUnique: vi.fn(),
       },
+      studentPortraitV2Snapshot: {
+        findFirst: vi.fn(),
+      },
       classSessionReport: {
         findMany: vi.fn(),
       },
@@ -60,6 +64,7 @@ const mocks = vi.hoisted(() => {
       },
       studentProfile: {
         findFirst: vi.fn(),
+        findMany: vi.fn(),
       },
       studentStepResponse: {
         findMany: vi.fn(),
@@ -89,6 +94,7 @@ vi.mock('@/lib/data-governance/recommendation-engine', () => ({
 
 import { GET as getClassInsights } from '@/app/api/teacher/classes/[classId]/insights/route';
 import { GET as getStudentInsights } from '@/app/api/teacher/classes/[classId]/students/[studentId]/insights/route';
+import { GET as getClassHeatmap } from '@/app/api/teacher/classes/[classId]/heatmap/route';
 import {
   buildTeacherScopedLearningFactScopeFilters,
   buildTeacherScopedSimulationArenaFeatureMap,
@@ -99,6 +105,11 @@ import {
   STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
   type StudentSimulationArenaFeatureSummary,
 } from '../student-evidence-feature-cache';
+import {
+  PORTRAIT_V2_CALCULATION_VERSION,
+  PORTRAIT_V2_DIMENSION_IDS,
+  createPortraitV2Payload,
+} from '../portrait-v2-model';
 
 function enrolledStudent(userId: string, name: string) {
   return {
@@ -352,6 +363,53 @@ function competencyVector(score: number) {
   };
 }
 
+function nativePortraitSnapshot(
+  userId = 'student-v2-only',
+  generatedAt = '2026-05-20T08:00:00.000Z',
+  hasEvidence = true,
+) {
+  const payload = createPortraitV2Payload({
+    userId,
+    generatedAt,
+    now: new Date(generatedAt),
+    dimensions: PORTRAIT_V2_DIMENSION_IDS.map((id) => ({
+      id,
+      score: hasEvidence ? 72 : 0,
+      confidence: hasEvidence ? 0.8 : 0,
+      freshness: {
+        state: hasEvidence ? 'current' as const : 'missing' as const,
+        asOf: hasEvidence ? generatedAt : null,
+        evidenceAgeDays: hasEvidence ? 0 : null,
+      },
+      evidenceSummary: {
+        totalCount: hasEvidence ? 1 : 0,
+        sourceFamilyCounts: hasEvidence ? { LearningFact: 1 } : {} as Record<string, number>,
+      },
+      lastPositiveEvidenceAt: hasEvidence ? generatedAt : null,
+      lastNegativeEvidenceAt: null,
+      rationale: hasEvidence ? 'Governed evidence supports the current score.' : 'No safe legacy mapping exists.',
+      limitations: hasEvidence ? [] : ['missing-native-portrait-v2-evidence'],
+      sourceLineage: hasEvidence ? [{
+        kind: 'evidence-family' as const,
+        ref: 'LearningFact',
+        privacyScope: 'student-visible' as const,
+      }] : [],
+      calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+    })),
+  });
+
+  return {
+    id: `portrait:${userId}`,
+    userId,
+    snapshotAt: new Date(generatedAt),
+    payloadVersion: payload.payloadVersion,
+    calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+    migrationVersion: payload.migrationVersion,
+    derivationKind: payload.derivation.kind,
+    payload,
+  };
+}
+
 describe('teacher evidence governance insights', () => {
   beforeEach(() => {
     vi.useFakeTimers({ toFake: ['Date'] });
@@ -366,6 +424,7 @@ describe('teacher evidence governance insights', () => {
     mocks.prisma.$queryRaw.mockResolvedValue([{ exists: false }]);
     mocks.prisma.diagnosisReportSnapshot.findMany.mockResolvedValue([]);
     mocks.prisma.studentEvidenceFeatureCache.findMany.mockResolvedValue([]);
+    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue(null);
   });
 
   afterEach(() => {
@@ -504,6 +563,79 @@ describe('teacher evidence governance insights', () => {
       improvedCount: 1,
       lowConfidenceCount: 0,
     });
+  });
+
+  it('builds the class heatmap only from recent class-scoped facts', async () => {
+    mocks.prisma.class.findUnique.mockResolvedValue({ teacherId: 'teacher-1' });
+    mocks.prisma.studentProfile.findMany.mockResolvedValue([
+      { ...enrolledStudent('student-heatmap', '热力图学生'), studentNumber: 'S-HEATMAP' },
+    ]);
+    mocks.prisma.classSession.findMany.mockResolvedValue([{ id: 'session-current' }]);
+    mocks.prisma.learningFact.findMany.mockResolvedValue([
+      scopedSimulationArenaFact('student-heatmap', {
+        id: 'fact-current',
+        startedAt: new Date('2026-05-20T00:00:00.000Z'),
+        finishedAt: new Date('2026-05-20T00:10:00.000Z'),
+        competencyContribution: { controlModeling: 0.8 },
+      }),
+      scopedSimulationArenaFact('student-heatmap', {
+        id: 'fact-previous',
+        startedAt: new Date('2026-04-10T00:00:00.000Z'),
+        finishedAt: new Date('2026-04-10T00:10:00.000Z'),
+        competencyContribution: { controlModeling: 0.4 },
+      }),
+    ]);
+
+    const response = await getClassHeatmap(
+      new NextRequest('http://localhost/api/teacher/classes/class-1/heatmap'),
+      { params: Promise.resolve({ classId: 'class-1' }) },
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.matrix).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        studentId: 'student-heatmap',
+        dimension: 'controlModelingRepresentation',
+        score: 80,
+        change: 40,
+      }),
+    ]));
+    expect(mocks.prisma.learningFact.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        userId: { in: ['student-heatmap'] },
+        startedAt: { gte: expect.any(Date) },
+        OR: expect.arrayContaining([
+          { sessionId: { in: ['session-current'] } },
+          { contextJson: { path: ['arena', 'classId'], equals: 'class-1' } },
+        ]),
+      }),
+    }));
+    expect(mocks.prisma.studentCompetencySnapshot.findMany).not.toHaveBeenCalled();
+    expect(mocks.prisma.studentPortraitV2Snapshot.findFirst).not.toHaveBeenCalled();
+    expect(mocks.prisma.studentRiskFlag.findMany).not.toHaveBeenCalled();
+  });
+
+  it('does not populate the class heatmap from a global portrait without scoped facts', async () => {
+    mocks.prisma.class.findUnique.mockResolvedValue({ teacherId: 'teacher-1' });
+    mocks.prisma.studentProfile.findMany.mockResolvedValue([
+      { ...enrolledStudent('student-global-only', '全局画像学生'), studentNumber: 'S-GLOBAL' },
+    ]);
+    mocks.prisma.classSession.findMany.mockResolvedValue([]);
+    mocks.prisma.learningFact.findMany.mockResolvedValue([]);
+    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue(
+      nativePortraitSnapshot('student-global-only'),
+    );
+
+    const response = await getClassHeatmap(
+      new NextRequest('http://localhost/api/teacher/classes/class-1/heatmap'),
+      { params: Promise.resolve({ classId: 'class-1' }) },
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.matrix).toEqual([]);
+    expect(mocks.prisma.studentPortraitV2Snapshot.findFirst).not.toHaveBeenCalled();
   });
 
   it('returns class evidence coverage counts and per-student cache state', async () => {
@@ -766,6 +898,191 @@ describe('teacher evidence governance insights', () => {
       lastEvidenceAt: null,
     });
   });
+
+  it('uses native portrait evidence metadata for a v2-only class student', async () => {
+    mocks.prisma.class.findUnique.mockResolvedValue({
+      id: 'class-1',
+      name: '自动控制 1 班',
+      code: 'AC101',
+      description: '数据治理试点班',
+      semester: '春季',
+      year: '2026',
+      teacherId: 'teacher-1',
+      students: [enrolledStudent('student-v2-only', '原生画像学生')],
+    });
+    mocks.prisma.classCompetencySnapshot.findFirst.mockResolvedValue(null);
+    mocks.prisma.studentCompetencySnapshot.findMany.mockResolvedValue([]);
+    mocks.prisma.studentProfileSummary.findMany.mockResolvedValue([]);
+    mocks.prisma.studentRiskFlag.findMany.mockResolvedValue([]);
+    mocks.prisma.growthRecord.groupBy.mockResolvedValue([]);
+    mocks.prisma.learningRecommendation.groupBy.mockResolvedValue([]);
+    mocks.prisma.classSession.findMany.mockResolvedValue([]);
+    mocks.prisma.learningFact.findMany.mockResolvedValue([]);
+    mocks.prisma.learningFact.groupBy.mockResolvedValue([]);
+    mocks.prisma.classSessionReport.findMany.mockResolvedValue([]);
+    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue(nativePortraitSnapshot());
+
+    const response = await getClassInsights(
+      new Request('http://localhost/api/teacher/classes/class-1/insights'),
+      { params: Promise.resolve({ classId: 'class-1' }) },
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.students[0]).toMatchObject({
+      id: 'student-v2-only',
+      overallScore: null,
+      overallScoreSource: null,
+      factCount: 0,
+      lastSnapshotAt: null,
+      portraitV2: {
+        derivationKind: 'native',
+        generatedAt: '2026-05-20T08:00:00.000Z',
+      },
+    });
+    expect(body.governance.latestStudentSnapshotAt).toBeNull();
+  });
+
+  it('uses the newer portrait v2 timestamp when it is later than the legacy snapshot', async () => {
+    mocks.prisma.class.findUnique.mockResolvedValue({
+      id: 'class-1',
+      name: '自动控制 1 班',
+      code: 'AC101',
+      description: '数据治理试点班',
+      semester: '春季',
+      year: '2026',
+      teacherId: 'teacher-1',
+      students: [enrolledStudent('student-v2-newer', '原生画像较新学生')],
+    });
+    mocks.prisma.classCompetencySnapshot.findFirst.mockResolvedValue(null);
+    mocks.prisma.studentCompetencySnapshot.findMany.mockResolvedValue([
+      {
+        userId: 'student-v2-newer',
+        snapshotAt: new Date('2026-05-20T08:00:00.000Z'),
+        competencyVector: competencyVector(72),
+        factCount: 6,
+      },
+    ]);
+    mocks.prisma.studentProfileSummary.findMany.mockResolvedValue([]);
+    mocks.prisma.studentRiskFlag.findMany.mockResolvedValue([]);
+    mocks.prisma.growthRecord.groupBy.mockResolvedValue([]);
+    mocks.prisma.learningRecommendation.groupBy.mockResolvedValue([]);
+    mocks.prisma.classSession.findMany.mockResolvedValue([]);
+    mocks.prisma.learningFact.findMany.mockResolvedValue([]);
+    mocks.prisma.learningFact.groupBy.mockResolvedValue([]);
+    mocks.prisma.classSessionReport.findMany.mockResolvedValue([]);
+    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue(
+      nativePortraitSnapshot('student-v2-newer', '2026-05-20T09:00:00.000Z'),
+    );
+
+    const response = await getClassInsights(
+      new Request('http://localhost/api/teacher/classes/class-1/insights'),
+      { params: Promise.resolve({ classId: 'class-1' }) },
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.students[0].lastSnapshotAt).toBeNull();
+    expect(body.students[0].portraitV2.generatedAt).toBe('2026-05-20T09:00:00.000Z');
+    expect(body.governance.latestStudentSnapshotAt).toBeNull();
+  });
+
+  it('keeps legacy-backed students in class portrait summaries when the native portrait is empty', async () => {
+    mocks.prisma.class.findUnique.mockResolvedValue({
+      id: 'class-1',
+      name: '自动控制 1 班',
+      code: 'AC101',
+      description: null,
+      semester: '春季',
+      year: '2026',
+      teacherId: 'teacher-1',
+      students: [enrolledStudent('student-legacy-backed', '兼容画像学生')],
+    });
+    mocks.prisma.classCompetencySnapshot.findFirst.mockResolvedValue(null);
+    mocks.prisma.studentCompetencySnapshot.findMany.mockResolvedValue([{
+      userId: 'student-legacy-backed',
+      snapshotAt: new Date('2026-05-20T08:00:00.000Z'),
+      competencyVector: competencyVector(74),
+      factCount: 12,
+    }]);
+    mocks.prisma.studentProfileSummary.findMany.mockResolvedValue([]);
+    mocks.prisma.studentRiskFlag.findMany.mockResolvedValue([]);
+    mocks.prisma.growthRecord.groupBy.mockResolvedValue([]);
+    mocks.prisma.learningRecommendation.groupBy.mockResolvedValue([]);
+    mocks.prisma.classSession.findMany.mockResolvedValue([]);
+    mocks.prisma.learningFact.findMany.mockResolvedValue([]);
+    mocks.prisma.learningFact.groupBy.mockResolvedValue([]);
+    mocks.prisma.classSessionReport.findMany.mockResolvedValue([]);
+    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue(null);
+
+    const response = await getClassInsights(
+      new Request('http://localhost/api/teacher/classes/class-1/insights'),
+      { params: Promise.resolve({ classId: 'class-1' }) },
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.students[0].portraitV2).toMatchObject({
+      derivationKind: 'compatibility-derived',
+    });
+    expect(body.students[0].portraitV2.dimensions.some(
+      (dimension: { evidenceCount: number }) => dimension.evidenceCount > 0,
+    )).toBe(true);
+    expect(body.ability.state).toBe('no-evidence');
+    expect(body.ability.dimensions.every((dimension: { mean: number | null }) => dimension.mean === null)).toBe(true);
+  });
+
+  it.each(['no-recent-evidence', 'no-evidence-after-revocation'] as const)(
+    'does not revive %s class roster metadata from an older global portrait',
+    async (state) => {
+      mocks.prisma.class.findUnique.mockResolvedValue({
+        id: 'class-1',
+        name: '自动控制 1 班',
+        code: 'AC101',
+        description: null,
+        semester: '春季',
+        year: '2026',
+        teacherId: 'teacher-1',
+        students: [enrolledStudent('student-lifecycle', '生命周期边界学生')],
+      });
+      mocks.prisma.classCompetencySnapshot.findFirst.mockResolvedValue(null);
+      mocks.prisma.studentCompetencySnapshot.findMany.mockResolvedValue([{
+        userId: 'student-lifecycle',
+        snapshotAt: new Date('2026-05-21T00:00:00.000Z'),
+        competencyVector: competencyVector(76),
+        factCount: 0,
+        evidenceSummary: { _derivation: { state, reason: 'lifecycle-boundary' } },
+      }]);
+      mocks.prisma.classSession.findMany.mockResolvedValue([]);
+      mocks.prisma.learningFact.findMany.mockResolvedValue([]);
+      mocks.prisma.learningFact.groupBy.mockResolvedValue([]);
+      mocks.prisma.classSessionReport.findMany.mockResolvedValue([]);
+      mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue(
+        nativePortraitSnapshot('student-lifecycle', '2026-05-20T00:00:00.000Z', true),
+      );
+
+      const response = await getClassInsights(
+        new Request('http://localhost/api/teacher/classes/class-1/insights'),
+        { params: Promise.resolve({ classId: 'class-1' }) },
+      );
+      const body = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(body.students[0]).toMatchObject({
+        overallScore: null,
+        factCount: 0,
+        portraitV2: {
+          overallScore: 0,
+          limitations: expect.arrayContaining([`lifecycle-boundary:${state}`]),
+        },
+      });
+      expect(body.students[0].portraitV2.dimensions.every(
+        (dimension: { score: number; evidenceCount: number }) =>
+          dimension.score === 0 && dimension.evidenceCount === 0,
+      )).toBe(true);
+      expect(mocks.prisma.studentPortraitV2Snapshot.findFirst).not.toHaveBeenCalled();
+    },
+  );
 
   it('does not count global simulation Arena cache entries outside the current class scope', async () => {
     mocks.prisma.class.findUnique.mockResolvedValue({
@@ -1127,6 +1444,7 @@ describe('teacher evidence governance insights', () => {
         factCount: 9,
       })
       .mockResolvedValueOnce(null);
+    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue(null);
     mocks.prisma.studentProfileSummary.findUnique.mockResolvedValue(null);
     mocks.prisma.studentRiskFlag.findMany.mockResolvedValue([]);
     mocks.prisma.growthRecord.findMany.mockResolvedValue([]);
@@ -1270,19 +1588,26 @@ describe('teacher evidence governance insights', () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
+    expect(body.overview.overallScore).toBe(0);
+    expect(body.overview.portraitV2).toMatchObject({
+      derivationKind: 'compatibility-derived',
+    });
+    expect(body.snapshot.current.portrait).toEqual(body.overview.portraitV2);
+    expect(body.classComparison.every((dimension: { studentScore: number }) => dimension.studentScore === 0)).toBe(true);
     expect(mocks.prisma.classSession.findMany).toHaveBeenCalledWith({
       where: { classId },
       select: { id: true },
     });
     expect(mocks.prisma.learningFact.findMany).toHaveBeenCalledWith(expect.objectContaining({
-      where: {
+      where: expect.objectContaining({
         userId: 'student-1',
+        startedAt: { gte: new Date('2026-04-21T00:00:00.000Z') },
         OR: expect.arrayContaining([
           { sessionId: { in: ['session-5-2'] } },
           { contextJson: { path: ['arena', 'classId'], equals: 'class-1' } },
           { contextJson: { path: ['agentTool', 'governanceContext', 'classId'], equals: 'class-1' } },
         ]),
-      },
+      }),
       select: expect.objectContaining({
         id: true,
         userId: true,
@@ -1361,15 +1686,131 @@ describe('teacher evidence governance insights', () => {
     expect(JSON.stringify(body)).not.toContain('official-secret');
     expect(JSON.stringify(body)).not.toContain('official-run-1');
     expect(JSON.stringify(body)).not.toContain('rawTracePayload');
-    expect(body.evidenceSummary[3].items[0].questionSummaries[0]).not.toHaveProperty('studentAnswer');
-    expect(body.evidenceSummary[3].items[0].questionSummaries[0]).toEqual(expect.objectContaining({
+    expect(body.evidenceSummary[4].items[0].questionSummaries[0]).not.toHaveProperty('studentAnswer');
+    expect(body.evidenceSummary[4].items[0].questionSummaries[0]).toEqual(expect.objectContaining({
       questionId: 'q-1',
       studentAnswerRedacted: true,
     }));
-    expect(body.evidenceSummary[3].items[0].questionSummaries[0].referenceAnswer.length).toBeLessThanOrEqual(120);
-    expect(body.evidenceSummary[3].items[0]).not.toHaveProperty('studentAnswer');
-    expect(body.evidenceSummary[3].items[0]).not.toHaveProperty('privateKonlingMemory');
+    expect(body.evidenceSummary[4].items[0].questionSummaries[0].referenceAnswer.length).toBeLessThanOrEqual(120);
+    expect(body.evidenceSummary[4].items[0]).not.toHaveProperty('studentAnswer');
+    expect(body.evidenceSummary[4].items[0]).not.toHaveProperty('privateKonlingMemory');
   });
+
+  it('preserves feature-cache snapshot time and fact count for compatibility-only student insights', async () => {
+    const cachedVector = competencyVector(70);
+    Object.values(cachedVector).forEach((dimension) => {
+      dimension.lastUpdated = '2026-05-19T09:00:00.000Z';
+    });
+    mocks.prisma.class.findUnique.mockResolvedValue({
+      id: 'class-1',
+      name: '自动控制 1 班',
+      teacherId: 'teacher-1',
+    });
+    mocks.prisma.studentProfile.findFirst.mockResolvedValue({
+      id: 'profile-1',
+      userId: 'student-1',
+      studentNumber: 'S001',
+      user: { id: 'student-1', name: '学生甲', email: 'student@example.test' },
+    });
+    mocks.prisma.studentCompetencySnapshot.findFirst.mockResolvedValue(null);
+    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue(
+      nativePortraitSnapshot('student-1', '2026-05-20T00:00:00.000Z', false),
+    );
+    mocks.prisma.studentProfileSummary.findUnique.mockResolvedValue(null);
+    mocks.prisma.studentRiskFlag.findMany.mockResolvedValue([]);
+    mocks.prisma.growthRecord.findMany.mockResolvedValue([]);
+    mocks.prisma.classCompetencySnapshot.findFirst.mockResolvedValue(null);
+    mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(evidenceCache('student-1', {
+      features: {
+        approvedAggregates: {
+          latestSnapshot: {
+            authority: 'legacy-compatibility-only',
+            snapshotAt: '2026-05-19T10:00:00.000Z',
+            factCount: 9,
+            competencyVector: cachedVector,
+          },
+        },
+      },
+    }));
+    mocks.prisma.classSession.findMany.mockResolvedValue([]);
+    mocks.prisma.learningFact.findMany.mockResolvedValue([]);
+    mocks.prisma.studentStepResponse.findMany.mockResolvedValue([]);
+    mocks.prisma.studentSessionReport.findMany.mockResolvedValue([]);
+
+    const response = await getStudentInsights(
+      new Request('http://localhost/api/teacher/classes/class-1/students/student-1/insights'),
+      { params: Promise.resolve({ classId: 'class-1', studentId: 'student-1' }) },
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.overview).toMatchObject({
+      overallScore: null,
+      latestSnapshotAt: null,
+      factCount: 0,
+      portraitV2: { derivationKind: 'compatibility-derived' },
+    });
+    expect(body.snapshot.current).toBeNull();
+  });
+
+  it.each(['no-recent-evidence', 'no-evidence-after-revocation'] as const)(
+    'does not revive %s teacher insights from an older native portrait',
+    async (state) => {
+      mocks.prisma.class.findUnique.mockResolvedValue({
+        id: 'class-1',
+        name: '自动控制 1 班',
+        teacherId: 'teacher-1',
+      });
+      mocks.prisma.studentProfile.findFirst.mockResolvedValue({
+        id: 'profile-1',
+        userId: 'student-1',
+        studentNumber: 'S001',
+        user: { id: 'student-1', name: '学生甲', email: 'student@example.test' },
+      });
+      mocks.prisma.studentCompetencySnapshot.findFirst.mockResolvedValue({
+        userId: 'student-1',
+        competencyVector: competencyVector(76),
+        snapshotAt: new Date('2026-05-21T00:00:00.000Z'),
+        factCount: 0,
+        evidenceSummary: { _derivation: { state, reason: 'lifecycle-boundary' } },
+      });
+      mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue(
+        nativePortraitSnapshot('student-1', '2026-05-20T00:00:00.000Z', true),
+      );
+      mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(null);
+      mocks.prisma.classCompetencySnapshot.findFirst.mockResolvedValue(null);
+      mocks.prisma.classSession.findMany.mockResolvedValue([{ id: 'session-historical' }]);
+      mocks.prisma.learningFact.findMany.mockResolvedValue([
+        scopedSimulationArenaFact('student-1', {
+          sessionId: 'session-historical',
+          startedAt: new Date('2026-04-01T00:00:00.000Z'),
+          finishedAt: new Date('2026-04-01T00:10:00.000Z'),
+          competencyContribution: { controlModeling: 0.9 },
+        }),
+      ]);
+      mocks.prisma.studentStepResponse.findMany.mockResolvedValue([]);
+      mocks.prisma.studentSessionReport.findMany.mockResolvedValue([]);
+
+      const response = await getStudentInsights(
+        new Request('http://localhost/api/teacher/classes/class-1/students/student-1/insights'),
+        { params: Promise.resolve({ classId: 'class-1', studentId: 'student-1' }) },
+      );
+      const body = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(body.overview).toMatchObject({
+        overallScore: null,
+        evidenceState: 'empty',
+        factCount: 0,
+      });
+      expect(body.overview.portraitV2.overallScore).toBe(0);
+      expect(body.overview.portraitV2.limitations).toContain(`lifecycle-boundary:${state}`);
+      expect(body.snapshot).toMatchObject({ derivationState: state, current: null });
+      expect(mocks.prisma.learningFact.findMany).toHaveBeenCalledWith(expect.objectContaining({
+        where: expect.objectContaining({ startedAt: { gte: expect.any(Date) } }),
+      }));
+    },
+  );
 
   it('denies student insights outside teacher class ownership', async () => {
     mocks.prisma.class.findUnique.mockResolvedValue({
