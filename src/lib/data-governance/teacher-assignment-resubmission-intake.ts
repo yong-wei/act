@@ -95,14 +95,15 @@ async function processIntake(db: any, claim: any, now: Date): Promise<'WAITING_E
     if (evidence?.readiness === 'BLOCKED') throw new Error('resubmission-intake-evidence-blocked');
     return settle(db, claim, 'WAITING_EVIDENCE', now);
   }
-  if (!intake.sourceGradingRun.policyId) throw new Error('resubmission-intake-grading-policy-missing');
   await enqueueGradingRun({
     db,
     attemptId: intake.attemptId,
     evidenceId: evidence.id,
     actor,
     idempotencyKey: `resubmission-grading:${intake.attemptId}`,
-    policyId: intake.sourceGradingRun.policyId,
+    policyId: intake.sourceGradingRun.policyId ?? null,
+    policySnapshot: intake.sourceGradingRun.policySnapshot ?? null,
+    policySnapshotHash: intake.sourceGradingRun.policySnapshotHash ?? null,
     rerunReason: `teacher-return:${intake.grant.sourceReviewId}`,
     now,
   });

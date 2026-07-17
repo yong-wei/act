@@ -169,6 +169,9 @@ async function processDerivative(db: any, claim: any, handlers: TeacherAssignmen
 async function processRelease(db: any, claim: any, now: Date) {
   const snapshot = await loadSnapshot(db, claim.snapshotId);
   assertSnapshotSourceLineage(snapshot, 'reviewed-derivative-source-lineage-invalid');
+  if (!['APPROVED_PENDING_RELEASE', 'RELEASE_BLOCKED'].includes(snapshot.submission.reviewState)) {
+    throw new TeacherAssignmentReviewOutboxError('teacher-review-submission-incomplete', { retryable: true });
+  }
   const derivative = await db.teacherAssignmentReviewedDerivative.findFirst({ where: { snapshotId: snapshot.id, state: 'READY' }, orderBy: { readyAt: 'desc' } });
   const structuredOnly = readBoolean(claim.payload, 'structuredOnlyFallback');
   if (!derivative && !structuredOnly) throw new TeacherAssignmentReviewOutboxError('reviewed-derivative-not-ready', { retryable: true });

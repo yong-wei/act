@@ -30,6 +30,22 @@ function memoryOutbox(row: any) {
 }
 
 describe('teacher assignment review outbox', () => {
+  it('waits to release feedback until the whole submission is approved', async () => {
+    const row = { id: 'release-incomplete', snapshotId: 'snapshot-incomplete', command: 'RELEASE_STUDENT_FEEDBACK', state: 'PROCESSING', attemptCount: 1, claimToken: 'worker', leaseExpiresAt: new Date(now.getTime() + 60_000), payload: {} };
+    const db: any = memoryOutbox(row);
+    db.teacherAssignmentApprovalSnapshot = { findUnique: vi.fn().mockResolvedValue({
+      id: 'snapshot-incomplete', submissionId: 'submission-1', submission: { frozenStudentId: 'student-1', reviewState: 'REVIEWING' },
+      authorizationSnapshot: {}, answerEvidence: { sourceHash: 'sha256:aaaaaaaa', sourceAsset: { checksum: 'sha256:aaaaaaaa' } },
+    }) };
+    db.teacherAssignmentReviewedDerivative = { findFirst: vi.fn() };
+    db.teacherAssignmentFeedbackRelease = { upsert: vi.fn() };
+
+    await expect(processClaimedTeacherAssignmentReviewOutbox({ db, claim: { ...row }, handlers: {}, now }))
+      .rejects.toMatchObject({ code: 'teacher-review-submission-incomplete', retryable: true });
+    expect(db.teacherAssignmentReviewedDerivative.findFirst).not.toHaveBeenCalled();
+    expect(db.teacherAssignmentFeedbackRelease.upsert).not.toHaveBeenCalled();
+  });
+
   it('claims pending work with a lease and fences an old token after recovery', async () => {
     const db: any = memoryOutbox({ id: 'outbox-1', state: 'PENDING', attemptCount: 0, availableAt: now, claimToken: null, leaseExpiresAt: null });
     const first = await claimTeacherAssignmentReviewOutbox({ db, claimToken: 'worker-a', now, leaseMs: 1_000 });
@@ -43,7 +59,7 @@ describe('teacher assignment review outbox', () => {
   it('does not release feedback before a derivative is ready unless structured-only fallback is explicit', async () => {
     const row = { id: 'release-1', snapshotId: 'snapshot-1', command: 'RELEASE_STUDENT_FEEDBACK', state: 'PROCESSING', attemptCount: 1, claimToken: 'worker', leaseExpiresAt: new Date(now.getTime() + 60_000), payload: {} };
     const db: any = memoryOutbox(row);
-    db.teacherAssignmentApprovalSnapshot = { findUnique: vi.fn().mockResolvedValue({ id: 'snapshot-1', submissionId: 'submission-1', submission: { frozenStudentId: 'student-1' }, authorizationSnapshot: {}, answerEvidence: { sourceHash: 'sha256:aaaaaaaa', sourceAsset: { checksum: 'sha256:aaaaaaaa' } } }) };
+    db.teacherAssignmentApprovalSnapshot = { findUnique: vi.fn().mockResolvedValue({ id: 'snapshot-1', submissionId: 'submission-1', submission: { frozenStudentId: 'student-1', reviewState: 'APPROVED_PENDING_RELEASE' }, authorizationSnapshot: {}, answerEvidence: { sourceHash: 'sha256:aaaaaaaa', sourceAsset: { checksum: 'sha256:aaaaaaaa' } } }) };
     db.teacherAssignmentReviewedDerivative = { findFirst: vi.fn().mockResolvedValue(null) };
     db.teacherAssignmentFeedbackRelease = { upsert: vi.fn() };
     db.assignmentSubmission = { findUnique: vi.fn().mockResolvedValue({ id: 'submission-1', answers: [] }), updateMany: vi.fn() };
@@ -58,7 +74,7 @@ describe('teacher assignment review outbox', () => {
     const row = { id: 'release-text-native', snapshotId: 'snapshot-text-native', command: 'RELEASE_STUDENT_FEEDBACK', state: 'PROCESSING', attemptCount: 1, claimToken: 'worker', leaseExpiresAt: new Date(now.getTime() + 60_000), payload: {} };
     const db: any = memoryOutbox(row);
     db.teacherAssignmentApprovalSnapshot = {
-      findUnique: vi.fn().mockResolvedValue({ id: 'snapshot-text-native', submissionId: 'submission-text', submission: { frozenStudentId: 'student-1' }, authorizationSnapshot: {}, answerEvidence: { sourceKind: 'TEXT_NATIVE', sourceHash: 'sha256:aaaaaaaa', sourceAsset: null } }),
+      findUnique: vi.fn().mockResolvedValue({ id: 'snapshot-text-native', submissionId: 'submission-text', submission: { frozenStudentId: 'student-1', reviewState: 'APPROVED_PENDING_RELEASE' }, authorizationSnapshot: {}, answerEvidence: { sourceKind: 'TEXT_NATIVE', sourceHash: 'sha256:aaaaaaaa', sourceAsset: null } }),
       findMany: vi.fn().mockResolvedValue([{ id: 'snapshot-text-native', attemptId: 'attempt-text', approvedAt: now, feedbackRelease: { id: 'release-text' } }]),
     };
     db.teacherAssignmentReviewedDerivative = { findFirst: vi.fn().mockResolvedValue({ id: 'derivative-text', state: 'READY', outputKind: 'ANNOTATED_MARKDOWN' }) };
@@ -76,7 +92,7 @@ describe('teacher assignment review outbox', () => {
     const row = { id: 'release-all', snapshotId: 'snapshot-2', command: 'RELEASE_STUDENT_FEEDBACK', state: 'PROCESSING', attemptCount: 1, claimToken: 'worker', leaseExpiresAt: new Date(now.getTime() + 60_000), payload: {} };
     const db: any = memoryOutbox(row);
     db.teacherAssignmentApprovalSnapshot = {
-      findUnique: vi.fn().mockResolvedValue({ id: 'snapshot-2', submissionId: 'submission-1', submission: { frozenStudentId: 'student-1' }, authorizationSnapshot: {}, answerEvidence: { sourceHash: 'sha256:aaaaaaaa', sourceAsset: { checksum: 'sha256:aaaaaaaa' } } }),
+      findUnique: vi.fn().mockResolvedValue({ id: 'snapshot-2', submissionId: 'submission-1', submission: { frozenStudentId: 'student-1', reviewState: 'APPROVED_PENDING_RELEASE' }, authorizationSnapshot: {}, answerEvidence: { sourceHash: 'sha256:aaaaaaaa', sourceAsset: { checksum: 'sha256:aaaaaaaa' } } }),
       findMany: vi.fn().mockResolvedValue([
         { attemptId: 'attempt-1', feedbackRelease: { id: 'release-1' }, outboxCommands: [{ state: 'SUCCEEDED' }] },
         { attemptId: 'attempt-2', feedbackRelease: { id: 'release-2' }, outboxCommands: [{ state: 'SUCCEEDED' }] },
@@ -106,7 +122,7 @@ describe('teacher assignment review outbox', () => {
     const row = { id: 'release-partial', snapshotId: 'snapshot-2', command: 'RELEASE_STUDENT_FEEDBACK', state: 'PROCESSING', attemptCount: 1, claimToken: 'worker', leaseExpiresAt: new Date(now.getTime() + 60_000), payload: {} };
     const db: any = memoryOutbox(row);
     db.teacherAssignmentApprovalSnapshot = {
-      findUnique: vi.fn().mockResolvedValue({ id: 'snapshot-2', submissionId: 'submission-1', submission: { frozenStudentId: 'student-1' }, authorizationSnapshot: {}, answerEvidence: { sourceHash: 'sha256:aaaaaaaa', sourceAsset: { checksum: 'sha256:aaaaaaaa' } } }),
+      findUnique: vi.fn().mockResolvedValue({ id: 'snapshot-2', submissionId: 'submission-1', submission: { frozenStudentId: 'student-1', reviewState: 'APPROVED_PENDING_RELEASE' }, authorizationSnapshot: {}, answerEvidence: { sourceHash: 'sha256:aaaaaaaa', sourceAsset: { checksum: 'sha256:aaaaaaaa' } } }),
       findMany: vi.fn().mockResolvedValue([{ attemptId: 'attempt-1', feedbackRelease: { id: 'release-1' } }]),
     };
     db.teacherAssignmentReviewedDerivative = { findFirst: vi.fn().mockResolvedValue({ id: 'derivative-1', state: 'READY' }) };
@@ -126,7 +142,7 @@ describe('teacher assignment review outbox', () => {
     const row = { id: 'release-final', snapshotId: 'snapshot-final', command: 'RELEASE_STUDENT_FEEDBACK', state: 'PROCESSING', attemptCount: 1, claimToken: 'worker', leaseExpiresAt: new Date(now.getTime() + 60_000), payload: {} };
     const db: any = memoryOutbox(row);
     db.teacherAssignmentApprovalSnapshot = {
-      findUnique: vi.fn().mockResolvedValue({ id: 'snapshot-final', submissionId: 'submission-1', submission: { frozenStudentId: 'student-1' }, authorizationSnapshot: {}, answerEvidence: { sourceHash: 'sha256:aaaaaaaa', sourceAsset: { checksum: 'sha256:aaaaaaaa' } } }),
+      findUnique: vi.fn().mockResolvedValue({ id: 'snapshot-final', submissionId: 'submission-1', submission: { frozenStudentId: 'student-1', reviewState: 'APPROVED_PENDING_RELEASE' }, authorizationSnapshot: {}, answerEvidence: { sourceHash: 'sha256:aaaaaaaa', sourceAsset: { checksum: 'sha256:aaaaaaaa' } } }),
       findMany: vi.fn().mockResolvedValue([
         { attemptId: 'attempt-1', feedbackRelease: null, outboxCommands: [{ state: 'FAILED' }] },
         { attemptId: 'attempt-2', feedbackRelease: { id: 'release-2' }, outboxCommands: [{ state: 'SUCCEEDED' }] },
@@ -156,7 +172,7 @@ describe('teacher assignment review outbox', () => {
     const row = { id: 'release-reapproved', snapshotId: 'snapshot-attempt-2', command: 'RELEASE_STUDENT_FEEDBACK', state: 'PROCESSING', attemptCount: 1, claimToken: 'worker', leaseExpiresAt: new Date(now.getTime() + 60_000), payload: {} };
     const db: any = memoryOutbox(row);
     db.teacherAssignmentApprovalSnapshot = {
-      findUnique: vi.fn().mockResolvedValue({ id: 'snapshot-attempt-2', submissionId: 'submission-1', submission: { frozenStudentId: 'student-1' }, authorizationSnapshot: {}, answerEvidence: { sourceHash: 'sha256:aaaaaaaa', sourceAsset: { checksum: 'sha256:aaaaaaaa' } } }),
+      findUnique: vi.fn().mockResolvedValue({ id: 'snapshot-attempt-2', submissionId: 'submission-1', submission: { frozenStudentId: 'student-1', reviewState: 'APPROVED_PENDING_RELEASE' }, authorizationSnapshot: {}, answerEvidence: { sourceHash: 'sha256:aaaaaaaa', sourceAsset: { checksum: 'sha256:aaaaaaaa' } } }),
       findMany: vi.fn().mockResolvedValue([
         { id: 'snapshot-new', attemptId: 'attempt-1', approvedAt: new Date('2026-07-17T01:00:00Z'), feedbackRelease: null },
         { id: 'snapshot-attempt-2', attemptId: 'attempt-2', approvedAt: new Date('2026-07-17T00:00:00Z'), feedbackRelease: { id: 'release-new' } },
@@ -201,7 +217,7 @@ describe('teacher assignment review outbox', () => {
     const row = { id: 'release-mismatch', snapshotId: 'snapshot-mismatch', command: 'RELEASE_STUDENT_FEEDBACK', state: 'PROCESSING', attemptCount: 1, claimToken: 'worker', leaseExpiresAt: new Date(now.getTime() + 60_000), payload: { structuredOnlyFallback: true } };
     const db: any = memoryOutbox(row);
     db.teacherAssignmentApprovalSnapshot = { findUnique: vi.fn().mockResolvedValue({
-      id: 'snapshot-mismatch', submissionId: 'submission-1', submission: { frozenStudentId: 'student-1' }, authorizationSnapshot: {},
+      id: 'snapshot-mismatch', submissionId: 'submission-1', submission: { frozenStudentId: 'student-1', reviewState: 'APPROVED_PENDING_RELEASE' }, authorizationSnapshot: {},
       answerEvidence: { sourceHash: 'sha256:aaaaaaaa', sourceAsset: { checksum: 'sha256:bbbbbbbb' } },
     }) };
     db.teacherAssignmentReviewedDerivative = { findFirst: vi.fn() };

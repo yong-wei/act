@@ -75,6 +75,31 @@ describe('teacher assignment resubmission intake', () => {
     }));
   });
 
+  it('requeues grading when the source run resolved policy at runtime', async () => {
+    const now = new Date('2026-07-17T03:00:00.000Z');
+    let claimToken: string | null = null;
+    const db = {
+      teacherAssignmentResubmissionIntake: {
+        findFirst: vi.fn().mockResolvedValueOnce({ id: 'intake-runtime-policy', attemptId: 'attempt-new', state: 'PENDING', availableAt: now, createdAt: now, attemptCount: 0 }).mockResolvedValueOnce(null),
+        updateMany: vi.fn(async ({ data }: { data: Record<string, unknown> }) => {
+          if (data.state === 'PROCESSING') claimToken = String(data.claimToken);
+          return { count: 1 };
+        }),
+        findUnique: vi.fn(async () => ({
+          id: 'intake-runtime-policy', attemptId: 'attempt-new', state: 'PROCESSING', claimToken,
+          grant: { state: 'CONSUMED', consumedAttemptId: 'attempt-new', sourceReviewId: 'review-1' },
+          attempt: { answer: { responseType: 'SUBJECTIVE_TEXT', assets: [] } },
+          sourceGradingRun: { policyId: null, policySnapshot: null, policySnapshotHash: null, answerEvidence: null },
+        })),
+      },
+      answerEvidence: { findFirst: vi.fn().mockResolvedValue({ id: 'evidence-new', readiness: 'READY' }) },
+    };
+    persistence.enqueueGradingRun.mockResolvedValue({ gradingRun: { id: 'run-new' } });
+
+    await expect(drainTeacherAssignmentResubmissionIntakes({ db, now: () => now })).resolves.toMatchObject({ queued: 1, blocked: 0 });
+    expect(persistence.enqueueGradingRun).toHaveBeenCalledWith(expect.objectContaining({ policyId: null, policySnapshot: null, policySnapshotHash: null }));
+  });
+
   it('blocks an intake whose consumed grant does not point at the resubmitted attempt', async () => {
     const now = new Date('2026-07-17T03:00:00.000Z');
     let claimToken: string | null = null;
