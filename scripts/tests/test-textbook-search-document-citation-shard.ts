@@ -72,6 +72,7 @@ interface CitationTarget {
   citationTargetId: string;
   retrievalChunkId: string;
   contentHash: string;
+  targetFileHash: string;
   address: { href: string; contentHash: string };
   pathEligibility?: { eligible: boolean };
 }
@@ -112,6 +113,10 @@ assert(summary.guardrails.rawContentIncluded === false, 'raw content must not be
 assert(summary.guardrails.allRowsKeepSectionPlanningBoundary === true, 'section planning boundary must be preserved');
 
 const citationTargetByDocument = new Map(citationTargets.map((target) => [target.documentId, target]));
+assert(
+  citationTargets.every((target) => target.targetFileHash.startsWith('sha256:')),
+  'all consumed textbook CitationTargets must declare a runtime target file hash',
+);
 for (const item of reviewItems) {
   const target = citationTargetByDocument.get(item.documentId);
   assert(target, `${item.documentId} must have a CitationTarget`);

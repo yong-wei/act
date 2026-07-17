@@ -35,6 +35,7 @@ interface CitationTarget {
     contentHash: string;
   };
   contentHash: string;
+  targetFileHash: string;
   pathEligibility: { eligible: boolean; reason: string };
 }
 

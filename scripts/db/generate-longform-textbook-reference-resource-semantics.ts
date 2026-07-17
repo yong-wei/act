@@ -88,6 +88,7 @@ interface CitationTarget {
   documentId: string;
   address: { kind: AddressKind; href: string; locator: string; contentHash: string };
   contentHash: string;
+  targetFileHash: string;
 }
 
 interface CurrentFact {

@@ -35,8 +35,8 @@ Semantic grounding unverified: 983
 - Model-authored URLs accepted: false
 - Chunks or media promoted as PathNodes: false
 - Raw content included in artifacts: false
-- Ready citation hashes match source hashes: true
-- Source semantic, citation target file, and citation payload hashes are explicit: true
+- Ready citation file declarations and semantic payload hashes match: true
+- Source semantic, actual/declared citation target file, and citation payload hashes are explicit: true
 - Metadata contract complete: true
 - CitationChip payloads complete: true
 

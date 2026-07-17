@@ -8,6 +8,7 @@ import type { TextbookRuntimeSearchDocument } from '../textbook-runtime-resource
 const versionRefs = buildKaqArtifactVersionRefs({
   resourceProjectionVersion: 'resource-semantic-projection.v1',
 });
+const targetFileHashForHref = () => 'sha256:runtime-target-file';
 
 function textbookDocument(overrides: Partial<TextbookRuntimeSearchDocument> = {}): TextbookRuntimeSearchDocument {
   return {
@@ -129,6 +130,7 @@ describe('textbook and media grounding artifacts', () => {
       sourcePackageId: 'hu-shousong-exercise-analysis-3rd',
       generatedAt: '2026-06-24T00:00:00.000Z',
       reviewBatchId: 'textbook-grounding-2026-06-24',
+      targetFileHashForHref,
       textbookDocuments: [
         textbookDocument(),
         textbookDocument({
@@ -173,6 +175,7 @@ describe('textbook and media grounding artifacts', () => {
           href: '/course-runtime/resources/textbooks/hu-shousong-exercise-analysis-3rd/sections/ch04-sec01.md#chunk-001',
           locator: 'p.42#chunk-001',
         }),
+        targetFileHash: 'sha256:runtime-target-file',
         pathEligibility: {
           eligible: false,
           reason: 'resource-node-planning-audit-required',
@@ -192,6 +195,7 @@ describe('textbook and media grounding artifacts', () => {
       sourcePackageId: 'hu-shousong-exercise-analysis-3rd',
       generatedAt: '2026-06-24T00:00:00.000Z',
       reviewBatchId: 'textbook-grounding-2026-06-24',
+      targetFileHashForHref,
       textbookDocuments: [
         textbookDocument({
           id: 'ch04-sec01__ignored-runtime-resource',
@@ -217,6 +221,7 @@ describe('textbook and media grounding artifacts', () => {
       sourcePackageId: 'hu-shousong-exercise-analysis-3rd',
       generatedAt: '2026-06-24T00:00:00.000Z',
       reviewBatchId: 'textbook-grounding-2026-06-24',
+      targetFileHashForHref,
       textbookDocuments: [
         textbookDocument({
           id: 'ch04-sec01__missing-source-hash',
@@ -252,6 +257,7 @@ describe('textbook and media grounding artifacts', () => {
       sourcePackageId: 'hu-shousong-exercise-analysis-3rd',
       generatedAt: '2026-06-24T00:00:00.000Z',
       reviewBatchId: 'textbook-grounding-2026-06-24',
+      targetFileHashForHref,
       textbookDocuments: [
         textbookDocument({
           id: 'unsafe-doc',
@@ -397,6 +403,7 @@ describe('textbook and media grounding artifacts', () => {
       sourcePackageId: 'hu-shousong-exercise-analysis-3rd',
       generatedAt: '2026-06-24T00:00:00.000Z',
       reviewBatchId: 'textbook-grounding-2026-06-24',
+      targetFileHashForHref,
       textbookDocuments: [],
       mediaProjections: [
         mediaProjection({

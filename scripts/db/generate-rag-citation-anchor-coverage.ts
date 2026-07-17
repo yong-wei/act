@@ -67,6 +67,7 @@ interface CitationTarget {
     contentHash: string;
   };
   contentHash: string;
+  targetFileHash: string;
   sourceVersionRefs: Record<string, string>;
   pathEligibility: { eligible: boolean; reason: string };
 }
@@ -167,6 +168,7 @@ interface CorpusItem {
   sourceHash: string | null;
   sourceSemanticHash: string | null;
   citationTargetFileHash: string | null;
+  declaredTargetFileHash: string | null;
   citationPayloadHash: string | null;
   sourceWindow: Record<string, unknown> | null;
   freshness: {
@@ -303,6 +305,7 @@ export function textbookCorpusItem(
   const sourceHash = normalizeSha256(candidate.sourceHash);
   const citationPayloadHash = normalizeSha256(target?.contentHash);
   const targetAddressPayloadHash = normalizeSha256(target?.address.contentHash);
+  const declaredTargetFileHash = normalizeSha256(target?.targetFileHash);
   const citationTargetFileHash = hashRuntimeTargetFile(target?.address.href);
   const hasServerOwnedTargetHref = Boolean(target?.address.href && isResolvableServerOwnedHref(target.address.href));
   const targetHashesMatch = Boolean(
@@ -310,7 +313,8 @@ export function textbookCorpusItem(
     sourceHash &&
     citationPayloadHash === sourceHash &&
     targetAddressPayloadHash === citationPayloadHash &&
-    Boolean(citationTargetFileHash),
+    Boolean(declaredTargetFileHash) &&
+    citationTargetFileHash === declaredTargetFileHash,
   );
   const targetAddressKindMatches = Boolean(target && target.address.kind === toCitationAddressKind(candidate.kind));
   const targetSpanMatches = Boolean(
@@ -384,6 +388,7 @@ export function textbookCorpusItem(
     sourceHash,
     sourceSemanticHash: sourceHash,
     citationTargetFileHash,
+    declaredTargetFileHash,
     citationPayloadHash,
     sourceWindow: {
       ...candidate.sourceWindow,
@@ -495,6 +500,7 @@ export function mediaCorpusItem(item: MediaReviewItem, acceptedReview?: MediaAcc
     sourceHash: normalizedSourceHash,
     sourceSemanticHash: acceptedReview ? normalizeSha256(acceptedReview.sourceHash) : null,
     citationTargetFileHash,
+    declaredTargetFileHash: null,
     citationPayloadHash: normalizedSourceHash,
     sourceWindow: {
       family: item.family,
@@ -701,10 +707,20 @@ export function buildSummary(
         Boolean(item.citationTargetFileHash) &&
         (item.sourceClass === 'runtime-media'
           ? item.citationTargetFileHash === item.citationPayloadHash && item.sourceHash === item.citationPayloadHash
-          : item.sourceSemanticHash === item.citationPayloadHash)
-      )),
+          : item.citationTargetFileHash === item.declaredTargetFileHash &&
+            item.sourceSemanticHash === item.citationPayloadHash)
+      )) && corpusItems
+        .filter((item) => item.sourceClass === 'textbook-grounding' && item.citationTargetId)
+        .every((item) => (
+          Boolean(item.citationTargetFileHash) &&
+          item.citationTargetFileHash === item.declaredTargetFileHash &&
+          item.sourceSemanticHash === item.citationPayloadHash
+        )),
       explicitHashRoles: corpusItems.every((item) => (
-        'sourceSemanticHash' in item && 'citationTargetFileHash' in item && 'citationPayloadHash' in item
+        'sourceSemanticHash' in item &&
+        'citationTargetFileHash' in item &&
+        'declaredTargetFileHash' in item &&
+        'citationPayloadHash' in item
       )),
       addressAndSemanticGroundingOrthogonal: corpusItems.every((item) => (
         typeof item.addressReady === 'boolean' && typeof item.semanticGroundingVerified === 'boolean'
@@ -772,8 +788,8 @@ function renderEvidence(summary: ReturnType<typeof buildSummary>, corpusItems: C
     `- Model-authored URLs accepted: ${!summary.guardrails.noModelAuthoredUrls}`,
     `- Chunks or media promoted as PathNodes: ${!summary.guardrails.noPathPromotionFromChunksOrMedia}`,
     `- Raw content included in artifacts: ${summary.guardrails.rawContentIncluded}`,
-    `- Ready citation hashes match source hashes: ${summary.guardrails.readyItemsMatchSourceHash}`,
-    `- Source semantic, citation target file, and citation payload hashes are explicit: ${summary.guardrails.explicitHashRoles}`,
+    `- Ready citation file declarations and semantic payload hashes match: ${summary.guardrails.readyItemsMatchSourceHash}`,
+    `- Source semantic, actual/declared citation target file, and citation payload hashes are explicit: ${summary.guardrails.explicitHashRoles}`,
     `- Metadata contract complete: ${summary.guardrails.metadataContractComplete}`,
     `- CitationChip payloads complete: ${summary.guardrails.citationChipPayloadsComplete}`,
     '',

@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 import {
@@ -18,6 +18,7 @@ interface CorpusItem {
   sourceHash: string | null;
   sourceSemanticHash: string | null;
   citationTargetFileHash: string | null;
+  declaredTargetFileHash: string | null;
   citationPayloadHash: string | null;
   sourceWindow: Record<string, unknown> | null;
   freshness: {
@@ -90,6 +91,7 @@ const CITATION_CHIP_LIMITATION_REASONS = new Set([
 
 const GOVERNANCE_DIR = path.join(process.cwd(), 'course-content/runtime/resource-governance');
 const corpusItems = readJsonl<CorpusItem>('rag-citation-anchor-corpus-items.jsonl');
+const citationTargets = readJsonl<{ targetFileHash: string }>('textbook-section-citation-targets.jsonl');
 const summary = JSON.parse(readFileSync(path.join(
   GOVERNANCE_DIR,
   'rag-citation-anchor-coverage-summary.json',
@@ -101,6 +103,10 @@ const evidence = readFileSync(path.join(
 
 assert(summary.totals.candidates === 964, 'expected current textbook grounding candidate count');
 assert(summary.totals.citationTargets === 964, 'expected current textbook citation target count');
+assert(
+  citationTargets.length === 964 && citationTargets.every((target) => target.targetFileHash.startsWith('sha256:')),
+  'every textbook CitationTarget must declare its final runtime target file hash',
+);
 assert(summary.totals.longformAgentReviewedRows === 964, 'all textbook grounding rows should retain agent-reviewed provenance');
 assert(summary.totals.mediaReviewedRows === 20, 'expected current reviewed media/handout row count');
 assert(summary.totals.corpusItems === 984, 'expected textbook plus media corpus rows');
@@ -138,6 +144,7 @@ assert(
     item.sourceHash?.startsWith('sha256:') &&
     item.sourceSemanticHash === item.citationPayloadHash &&
     item.citationTargetFileHash?.startsWith('sha256:') &&
+    item.declaredTargetFileHash === item.citationTargetFileHash &&
     item.sourceWindow !== null &&
     item.freshness.bucket === 'current' &&
     item.reviewState.state === 'agent-reviewed' &&
@@ -220,12 +227,12 @@ assert(
 );
 assert(evidence.includes('Model-authored URLs accepted: false'), 'evidence must state model URL rejection');
 assert(evidence.includes('Chunks or media promoted as PathNodes: false'), 'evidence must state non-promotion guardrail');
-assert(evidence.includes('Ready citation hashes match source hashes: true'), 'evidence must state CitationTarget hash consistency');
+assert(evidence.includes('Ready citation file declarations and semantic payload hashes match: true'), 'evidence must state CitationTarget file and semantic hash consistency');
 assert(evidence.includes('Metadata contract complete: true'), 'evidence must state metadata contract closure');
 assert(evidence.includes('CitationChip payloads complete: true'), 'evidence must state CitationChip payload closure');
 assert(evidence.includes('Address-ready citations: 978'), 'evidence must report address readiness separately');
 assert(evidence.includes('Semantic grounding verified: 1'), 'evidence must report semantic grounding separately');
-assert(evidence.includes('Source semantic, citation target file, and citation payload hashes are explicit: true'), 'evidence must report explicit hash roles');
+assert(evidence.includes('Source semantic, actual/declared citation target file, and citation payload hashes are explicit: true'), 'evidence must report explicit hash roles');
 assert(evidence.includes('Address limitation rows: 6'), 'evidence must report address limitations separately');
 assert(evidence.includes('Semantic-grounding limitation rows: 983'), 'evidence must report semantic limitations separately');
 assert(!evidence.includes('Ready textbook grounding'), 'address readiness must not be called grounding ready');
@@ -243,6 +250,8 @@ assertUnsafeTextbookTargetDowngradesToLimited();
 assertUnresolvableTextbookTargetDowngradesToLimited();
 assertEncodedTraversalTextbookTargetDowngradesToLimited();
 assertStaleTextbookTargetHashDowngradesToLimited();
+assertTextbookRuntimeTargetFileDriftFailsClosed();
+assertMissingDeclaredTextbookTargetFileHashFailsClosed();
 assertAddressKindMismatchDowngradesToLimited();
 assertSpanMismatchDowngradesToLimited();
 assertFigureSpanMismatchDowngradesToLimited();
@@ -540,6 +549,48 @@ function assertStaleTextbookTargetHashDowngradesToLimited() {
   assert(item.citationChip.confidence === 'medium', 'stale target CitationChip must be confidence downgraded');
 }
 
+function assertTextbookRuntimeTargetFileDriftFailsClosed() {
+  const runtimeRoot = path.join(process.cwd(), 'course-content/runtime/resources/textbooks');
+  const fixtureDir = mkdtempSync(path.join(runtimeRoot, '.rag-citation-target-drift-'));
+  try {
+    const targetPath = path.join(fixtureDir, 'target.md');
+    writeFileSync(targetPath, 'original runtime wrapper\n', 'utf8');
+    const href = `/course-runtime/resources/textbooks/${path.basename(fixtureDir)}/target.md#synthetic-chunk`;
+    const target = syntheticTarget(href);
+    writeFileSync(targetPath, 'corrupted runtime wrapper\n', 'utf8');
+    const item = textbookCorpusItem(
+      syntheticCandidate(),
+      target,
+      new Set(['synthetic-section']),
+      new Set(),
+    ) as CorpusItem;
+    assert(item.citationState === 'limited' && item.addressReady === false, 'runtime target file drift must fail closed');
+    assert(item.freshness.bucket === 'stale', 'runtime target file drift must be stale');
+    assert(item.citationAddress.href === null && item.citationChip.displayHref === null, 'drifted runtime target must not remain clickable');
+    assert(item.citationTargetFileHash !== item.declaredTargetFileHash, 'drift fixture must compare different actual and declared file hashes');
+    const driftSummary = buildSummary([], [], [], [], [], [item] as any[]);
+    assert(driftSummary.guardrails.readyItemsMatchSourceHash === false, 'summary guardrail must reject runtime target file drift');
+  } finally {
+    rmSync(fixtureDir, { recursive: true, force: true });
+  }
+}
+
+function assertMissingDeclaredTextbookTargetFileHashFailsClosed() {
+  const target = syntheticTarget() as ReturnType<typeof syntheticTarget> & { targetFileHash?: string };
+  delete target.targetFileHash;
+  const item = textbookCorpusItem(
+    syntheticCandidate(),
+    target as any,
+    new Set(['synthetic-section']),
+    new Set(),
+  ) as CorpusItem;
+  assert(item.citationState === 'limited' && item.addressReady === false, 'missing declared target file hash must fail closed');
+  assert(item.freshness.bucket === 'stale', 'missing declared target file hash must be stale');
+  assert(item.citationAddress.href === null && item.citationChip.displayHref === null, 'missing declared target file hash must not remain clickable');
+  const missingHashSummary = buildSummary([], [], [], [], [], [item] as any[]);
+  assert(missingHashSummary.guardrails.readyItemsMatchSourceHash === false, 'summary guardrail must reject a missing declared target file hash');
+}
+
 function assertAddressKindMismatchDowngradesToLimited() {
   const figureCandidate = {
     ...syntheticCandidate(),
@@ -643,6 +694,7 @@ function syntheticCandidate() {
 }
 
 function syntheticTarget(href = '/course-runtime/lessons/1-1/1-1-handout.md') {
+  const targetFileHash = hashRuntimeHref(href) ?? `sha256:${'f'.repeat(64)}`;
   return {
     citationTargetId: 'citation-target:synthetic',
     retrievalChunkId: 'retrieval-chunk:synthetic',
@@ -656,7 +708,19 @@ function syntheticTarget(href = '/course-runtime/lessons/1-1/1-1-handout.md') {
       contentHash: '0123456789abcdef',
     },
     contentHash: '0123456789abcdef',
+    targetFileHash,
     sourceVersionRefs: { groundingVersion: 'textbook-media-grounding.v1' },
     pathEligibility: { eligible: false, reason: 'synthetic' },
   };
+}
+
+function hashRuntimeHref(href: string): string | null {
+  if (!href.startsWith('/course-runtime/')) return null;
+  const relativePath = href.split('#')[0].replace(/^\/course-runtime\//, '');
+  const absolutePath = path.join(process.cwd(), 'course-content/runtime', relativePath);
+  try {
+    return `sha256:${createHash('sha256').update(readFileSync(absolutePath)).digest('hex')}`;
+  } catch {
+    return null;
+  }
 }
