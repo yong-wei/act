@@ -80,7 +80,7 @@ export async function processClaimedTeacherAssignmentReviewOutbox(input: {
   const heartbeat = startOutboxLeaseHeartbeat({ db: input.db, claim: input.claim });
   try {
     const result = input.claim.command === 'GENERATE_DERIVATIVE'
-      ? await processDerivative(input.db, input.claim, input.handlers)
+      ? await processDerivative(input.db, input.claim, input.handlers, now)
       : input.claim.command === 'RELEASE_STUDENT_FEEDBACK'
         ? await processRelease(input.db, input.claim, now)
         : input.claim.command === 'PROCESS_GOVERNED_EVIDENCE'
@@ -160,10 +160,34 @@ export async function drainTeacherAssignmentReviewOutbox(input: { db: any; handl
   return result;
 }
 
-async function processDerivative(db: any, claim: any, handlers: TeacherAssignmentReviewOutboxHandlers) {
+async function processDerivative(db: any, claim: any, handlers: TeacherAssignmentReviewOutboxHandlers, now: Date) {
   if (!handlers.derivativeRenderer || !handlers.derivativeOptions) throw new TeacherAssignmentReviewOutboxError('reviewed-derivative-renderer-unavailable', { retryable: true });
   const snapshot = await loadSnapshot(db, claim.snapshotId);
-  return generateReviewedDerivative({ db, snapshot, renderer: handlers.derivativeRenderer, options: handlers.derivativeOptions });
+  const derivative = await generateReviewedDerivative({ db, snapshot, renderer: handlers.derivativeRenderer, options: handlers.derivativeOptions, now });
+  await wakeTeacherAssignmentFeedbackRelease(db, snapshot.id, now);
+  return derivative;
+}
+
+export async function wakeTeacherAssignmentFeedbackRelease(db: any, snapshotId: string, now: Date) {
+  return db.teacherAssignmentReviewOutbox.updateMany({
+    where: {
+      snapshotId,
+      command: 'RELEASE_STUDENT_FEEDBACK',
+      state: { in: ['RETRYABLE', 'BLOCKED', 'FAILED'] },
+    },
+    data: {
+      state: 'PENDING',
+      attemptCount: 0,
+      availableAt: now,
+      claimToken: null,
+      claimedAt: null,
+      leaseExpiresAt: null,
+      lastErrorCode: null,
+      limitationCode: null,
+      processedAt: null,
+      updatedAt: now,
+    },
+  });
 }
 
 async function processRelease(db: any, claim: any, now: Date) {

@@ -4,6 +4,7 @@ import {
   claimTeacherAssignmentReviewOutbox,
   processClaimedTeacherAssignmentReviewOutbox,
   settleTeacherAssignmentReviewOutboxFailure,
+  wakeTeacherAssignmentFeedbackRelease,
 } from '../teacher-assignment-review-outbox';
 import { runTeacherAssignmentReviewOutboxWorkerTick } from '../../../../scripts/workers/teacher-assignment-review-outbox-worker';
 
@@ -30,6 +31,19 @@ function memoryOutbox(row: any) {
 }
 
 describe('teacher assignment review outbox', () => {
+  it('wakes an exhausted release command when its derivative becomes ready', async () => {
+    const updateMany = vi.fn().mockResolvedValue({ count: 1 });
+    await wakeTeacherAssignmentFeedbackRelease({ teacherAssignmentReviewOutbox: { updateMany } }, 'snapshot-1', now);
+    expect(updateMany).toHaveBeenCalledWith({
+      where: {
+        snapshotId: 'snapshot-1',
+        command: 'RELEASE_STUDENT_FEEDBACK',
+        state: { in: ['RETRYABLE', 'BLOCKED', 'FAILED'] },
+      },
+      data: expect.objectContaining({ state: 'PENDING', attemptCount: 0, availableAt: now, lastErrorCode: null }),
+    });
+  });
+
   it('waits to release feedback until the whole submission is approved', async () => {
     const row = { id: 'release-incomplete', snapshotId: 'snapshot-incomplete', command: 'RELEASE_STUDENT_FEEDBACK', state: 'PROCESSING', attemptCount: 1, claimToken: 'worker', leaseExpiresAt: new Date(now.getTime() + 60_000), payload: {} };
     const db: any = memoryOutbox(row);
