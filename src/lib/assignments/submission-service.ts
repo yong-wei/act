@@ -932,13 +932,27 @@ export function presentRevision(revision: any, audience: any, submission: any, c
 export function presentStudentAssignmentFeedback(submission: any, questions: any[], now: Date) {
   if (!submission || submission.studentId !== submission.frozenStudentId) return [];
   const questionById = new Map(questions.map((question: any) => [question.id, question]));
-  return (submission.approvalSnapshots ?? []).flatMap((snapshot: any) => {
+  const currentAttemptByQuestion = new Map((submission.answers ?? []).flatMap((answer: any) => {
+    const attempt = (answer.attempts ?? []).find((row: any) => row.attemptNumber === answer.currentAttemptNumber);
+    return attempt ? [[answer.assignmentQuestionId, attempt.id] as const] : [];
+  }));
+  const latestPublished = new Map<string, any>();
+  for (const snapshot of submission.approvalSnapshots ?? []) {
     const release = (snapshot.outboxCommands ?? []).find((row: any) => row.command === 'RELEASE_STUDENT_FEEDBACK');
-    if (!release || release.state !== 'SUCCEEDED' || !snapshot.feedbackRelease || snapshot.feedbackRelease.ownerStudentId !== submission.frozenStudentId) return [];
+    if (!release || release.state !== 'SUCCEEDED' || !snapshot.feedbackRelease || snapshot.feedbackRelease.ownerStudentId !== submission.frozenStudentId) continue;
+    const currentAttemptId = currentAttemptByQuestion.get(snapshot.questionId);
+    if (currentAttemptId && snapshot.attemptId !== currentAttemptId) continue;
+    const key = currentAttemptId ? String(snapshot.questionId) : `${snapshot.questionId}:${snapshot.attemptId ?? ''}`;
+    const previous = latestPublished.get(key);
+    const previousAt = previous?.approvedAt ? new Date(previous.approvedAt).getTime() : Number.NEGATIVE_INFINITY;
+    const snapshotAt = snapshot.approvedAt ? new Date(snapshot.approvedAt).getTime() : Number.NEGATIVE_INFINITY;
+    if (!previous || snapshotAt >= previousAt) latestPublished.set(key, snapshot);
+  }
+  return [...latestPublished.values()].map((snapshot: any) => {
     const derivative = snapshot.feedbackRelease.derivative;
     const question: any = questionById.get(snapshot.questionId);
     const grant = (submission.resubmissionGrants ?? []).find((row: any) => row.questionId === snapshot.questionId && row.state === 'ACTIVE' && (!row.expiresAt || new Date(row.expiresAt) > now));
-    return [{
+    return {
       snapshotId: snapshot.id,
       questionId: snapshot.questionId,
       questionTitle: question ? safePromptText(question.promptSnapshot).slice(0, 160) : '题目反馈',
@@ -956,7 +970,7 @@ export function presentStudentAssignmentFeedback(submission: any, questions: any
       }] : [],
       limitations: derivative?.limitations ?? (snapshot.feedbackRelease.mode === 'STRUCTURED_ONLY' ? ['structured-only-fallback'] : []),
       resubmission: grant ? { state: grant.state, reason: grant.reason, allowedResponseType: grant.allowedResponseType, deadlineAt: grant.newDeadlineAt } : null,
-    }];
+    };
   });
 }
 

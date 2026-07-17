@@ -119,6 +119,18 @@ describe('student assignment approved feedback projection', () => {
     })]);
   });
 
+  it('shows only the latest published feedback for the current attempt', () => {
+    const old = { ...snapshot, id: 'snapshot-old', attemptId: 'attempt-1', questionTotal: 4, approvedAt: new Date('2026-07-16T00:00:00Z') };
+    const latest = { ...snapshot, id: 'snapshot-latest', attemptId: 'attempt-1', questionTotal: 9, approvedAt: new Date('2026-07-17T00:00:00Z') };
+    const feedback = presentStudentAssignmentFeedback({
+      studentId: 'student-1', frozenStudentId: 'student-1', approvalSnapshots: [old, latest], resubmissionGrants: [],
+      answers: [{ assignmentQuestionId: 'question-1', currentAttemptNumber: 1, attempts: [{ id: 'attempt-1', attemptNumber: 1 }] }],
+    }, [question], new Date('2026-07-17T01:00:00Z'));
+
+    expect(feedback).toHaveLength(1);
+    expect(feedback[0]).toMatchObject({ snapshotId: 'snapshot-latest', questionTotal: 9 });
+  });
+
   it('keeps feedback hidden before release and on owner mismatch', () => {
     expect(presentStudentAssignmentFeedback({ studentId: 'student-1', frozenStudentId: 'student-1', approvalSnapshots: [{ ...snapshot, outboxCommands: [{ command: 'RELEASE_STUDENT_FEEDBACK', state: 'PENDING' }] }] }, [question], new Date())).toEqual([]);
     expect(presentStudentAssignmentFeedback({ studentId: 'student-1', frozenStudentId: 'student-2', approvalSnapshots: [snapshot] }, [question], new Date())).toEqual([]);
