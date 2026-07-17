@@ -98,26 +98,38 @@ describe('interactive lesson identity resolver', () => {
     }
   });
 
-  it('registers content-ready lessons without claiming interactive surfaces', () => {
-    const recordsById = new Map(
-      listInteractiveLessonIdentityRecords().map((record) => [record.canonicalId, record]),
-    );
+  it('registers lesson 1-5 as a formal interactive unit', () => {
+    const resolved = resolveInteractiveLessonIdentity({
+      kind: 'routeSegment',
+      value: 'unit-1-5-three-domain-gain-sweep',
+    });
 
-    for (const canonicalId of ['1-4', '1-5']) {
-      expect(recordsById.get(canonicalId)).toEqual({
-        canonicalId,
-        routeSegments: [],
-        runtimeLessonDir: canonicalId,
-        lessonKeys: [],
-        presetKeys: [],
-        planTitleAliases: [],
-        evidenceAliases: [],
-      });
-      expect(resolveInteractiveLessonIdentity({ kind: 'canonicalId', value: canonicalId }).status)
-        .toBe('resolved');
-      expect(resolveInteractiveLessonIdentity({ kind: 'runtimeLessonDir', value: canonicalId }).status)
-        .toBe('resolved');
-    }
+    expect(resolved.status).toBe('resolved');
+    if (resolved.status !== 'resolved') throw new Error('1-5 route did not resolve');
+    expect(resolved.record).toMatchObject({
+      canonicalId: '1-5',
+      runtimeLessonDir: '1-5',
+      routeSegments: ['unit-1-5-three-domain-gain-sweep'],
+      lessonKeys: ['unit-1-5-three-domain-gain-sweep-v1'],
+      presetKeys: ['unit-1-5-three-domain-gain-sweep-v1'],
+    });
+  });
+
+  it('registers lesson 1-4 as a formal interactive unit', () => {
+    const resolved = resolveInteractiveLessonIdentity({
+      kind: 'routeSegment',
+      value: 'unit-1-4-time-frequency-views',
+    });
+
+    expect(resolved.status).toBe('resolved');
+    if (resolved.status !== 'resolved') throw new Error('1-4 route did not resolve');
+    expect(resolved.record).toMatchObject({
+      canonicalId: '1-4',
+      runtimeLessonDir: '1-4',
+      routeSegments: ['unit-1-4-time-frequency-views'],
+      lessonKeys: ['unit-1-4-time-frequency-views-v1'],
+      presetKeys: ['unit-1-4-time-frequency-views-v1'],
+    });
   });
 
   it('keeps the registry aligned with gate inventory, AI context, and lesson-id map surfaces', () => {

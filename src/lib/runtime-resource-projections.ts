@@ -186,6 +186,11 @@ function rowToRuntimeProjection(
       : row.pathEligibility,
     groundingEligibility: strictLongformAuditOnly
       ? { retrievalReady: false, citationReady: false, authoringTriageReady: row.groundingEligibility.authoringTriageReady }
+      : runtimeSemanticEvidence?.assetStatus === 'missing-local-runtime-asset'
+      ? {
+          ...row.groundingEligibility,
+          citationReady: false,
+        }
       : row.groundingEligibility,
     versionRefs,
   };

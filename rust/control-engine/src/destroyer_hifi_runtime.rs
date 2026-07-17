@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 
 use crate::destroyer_hifi::{
-    disturbance_at, params, step_mmg, wrap_pi, DestroyerExperimentConfig, DisturbanceVector,
-    MmgState, DEG,
+    DEG, DestroyerExperimentConfig, DisturbanceVector, MmgState, disturbance_at, params, step_mmg,
+    wrap_pi,
 };
 
 #[derive(Clone, Copy, Debug, Deserialize)]
@@ -73,11 +73,7 @@ struct DestroyerRuntimeResult {
 }
 
 fn finite_or(value: f64, fallback: f64) -> f64 {
-    if value.is_finite() {
-        value
-    } else {
-        fallback
-    }
+    if value.is_finite() { value } else { fallback }
 }
 
 fn command_rudder_deg(request: &DestroyerRuntimeRequest, dt_s: f64) -> (f64, f64, f64) {

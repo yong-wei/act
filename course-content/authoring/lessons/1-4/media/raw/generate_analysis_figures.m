@@ -208,6 +208,23 @@ xlabel("角频率 ω / (rad/s)"); ylabel("相位 / (°)");
 xlim([0.03 50]); ylim([-185 -80]); style_axes(font_name, axes_font_size);
 save_figure("1-4-fig-03-open-loop-bode", processed_dir, font_name, axes_font_size);
 
+% 图 1-4-3b：环路 L8=8G0 的 Bode 图和 0 dB 增益穿越频率。
+figure(31); setup_figure(8.2, 6.0);
+subplot(2, 1, 1); hold on;
+semilogx(w, 20 * log10(mag_L8), "color", colors(1, :));
+plot([w(1) w(end)], [0 0], ":", "color", [0.35 0.35 0.35], "linewidth", 1.4);
+plot([gain_cross_L8 gain_cross_L8], [-55 35], "--", "color", colors(3, :));
+text(gain_cross_L8 * 1.08, 23, sprintf("ω_c≈%.3f rad/s", gain_cross_L8), ...
+  "color", colors(3, :), "fontsize", axes_font_size, "verticalalignment", "middle");
+ylabel("环路幅值 / dB"); xlim([0.03 50]); ylim([-55 35]);
+style_axes(font_name, axes_font_size);
+subplot(2, 1, 2); hold on;
+semilogx(w, phase_L8, "color", colors(2, :));
+plot([gain_cross_L8 gain_cross_L8], [-185 -80], "--", "color", colors(3, :));
+xlabel("角频率 ω / (rad/s)"); ylabel("环路相位 / (°)");
+xlim([0.03 50]); ylim([-185 -80]); style_axes(font_name, axes_font_size);
+save_figure("1-4-fig-03b-loop-k8-bode", processed_dir, font_name, axes_font_size);
+
 % 图 1-4-4：G0 的正、负频率响应支；正频率支始终位于第三象限。
 w_nyq = logspace(-1, 2, 900);
 response_G0 = squeeze(freqresp(G0, w_nyq));

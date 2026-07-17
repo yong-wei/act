@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { assertSubmissionObjectIntegrity } from '@/lib/assignments/submission-domain';
+import { assertSubmissionObjectIntegrity, SubmissionError } from '@/lib/assignments/submission-domain';
 import { createSubmissionObjectStore } from '@/lib/assignments/submission-object-store';
 import { consumeSubmissionAssetRead, signSubmissionAssetRead } from '@/lib/assignments/submission-service';
 import { requireStudentActor, submissionErrorResponse } from '@/lib/assignments/submission-route-guards';
@@ -16,6 +16,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ assi
     const ids = await params; const token = new URL(request.url).searchParams.get('token') ?? '';
     const asset = await consumeSubmissionAssetRead(prisma, { studentId: auth.actor.id, ...ids, token });
     const bytes = await createSubmissionObjectStore().readObject(asset.objectKey);
+    if (!asset.checksum) throw new SubmissionError('submission-content-unavailable', 410);
     assertSubmissionObjectIntegrity(bytes, asset.sizeBytes, asset.checksum);
     const disposition = `attachment; filename*=UTF-8''${encodeURIComponent(asset.displayName)}`;
     return new NextResponse(Buffer.from(bytes), { status: 200, headers: { 'Content-Type': asset.mimeType, 'Content-Length': String(bytes.byteLength), 'Content-Disposition': disposition, 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'private, no-store' } });

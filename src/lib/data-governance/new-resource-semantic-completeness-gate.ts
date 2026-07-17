@@ -139,6 +139,108 @@ export function validateChangedRuntimeResourceProjections(
   };
 }
 
+export function validateChangedRuntimeResourceProjectionChanges(
+  rows: readonly RuntimeResourceProjectionInput[],
+  deletedRows: readonly RuntimeResourceProjectionInput[],
+): NewResourceGateResult {
+  const deletedRowsById = new Map(deletedRows.map((row) => [row.id, row]));
+  const provenanceIssues = rows.flatMap((row) => validateRuntimeProjectionProvenanceProgression(
+    deletedRowsById.get(row.id),
+    row,
+  ));
+  const rowsRequiringReview = rows.filter((row) => !runtimeProjectionIsDerivedCitationSafetyTightening(
+    deletedRowsById.get(row.id),
+    row,
+  ));
+  const result = validateChangedRuntimeResourceProjections(rowsRequiringReview);
+  return {
+    passed: result.passed && provenanceIssues.length === 0,
+    checked: rows.length,
+    issues: [...provenanceIssues, ...result.issues],
+  };
+}
+
+function validateRuntimeProjectionProvenanceProgression(
+  previous: RuntimeResourceProjectionInput | undefined,
+  current: RuntimeResourceProjectionInput,
+): NewResourceGateIssue[] {
+  if (!previous || runtimeProjectionHasExplicitSemanticChange(previous, current)) return [];
+  const previousReviewedAt = Date.parse(previous.reviewAudit?.reviewedAt ?? '');
+  const currentReviewedAt = Date.parse(current.reviewAudit?.reviewedAt ?? '');
+  if (!Number.isFinite(previousReviewedAt) || !Number.isFinite(currentReviewedAt)) return [];
+  const issues: NewResourceGateIssue[] = [];
+  if (currentReviewedAt < previousReviewedAt) {
+    issues.push(issue(
+      current.id,
+      'runtime-resource-projection',
+      'runtime-projection-reviewed-at-regression',
+      `Runtime projection reviewedAt cannot move backward from ${previous.reviewAudit?.reviewedAt} to ${current.reviewAudit?.reviewedAt} without an explicit semantic contract change.`,
+    ));
+  }
+  if (
+    previous.reviewAudit?.reviewBatchId !== current.reviewAudit?.reviewBatchId &&
+    currentReviewedAt <= previousReviewedAt
+  ) {
+    issues.push(issue(
+      current.id,
+      'runtime-resource-projection',
+      'runtime-projection-review-batch-regression',
+      `Runtime projection reviewBatchId cannot replace ${previous.reviewAudit?.reviewBatchId} with ${current.reviewAudit?.reviewBatchId} without newer review provenance or an explicit semantic contract change.`,
+    ));
+  }
+  return issues;
+}
+
+function runtimeProjectionHasExplicitSemanticChange(
+  previous: RuntimeResourceProjectionInput,
+  current: RuntimeResourceProjectionInput,
+): boolean {
+  const semanticContract = (row: RuntimeResourceProjectionInput) => {
+    const {
+      reviewAudit: _reviewAudit,
+      reviewConcluded: _reviewConcluded,
+      semanticConfirmed: _semanticConfirmed,
+      ...semanticFields
+    } = row as RuntimeResourceProjectionInput & {
+      reviewConcluded?: boolean;
+      semanticConfirmed?: boolean;
+    };
+    return semanticFields;
+  };
+  return canonicalJson(semanticContract(previous)) !== canonicalJson(semanticContract(current));
+}
+
+export function runtimeProjectionIsDerivedCitationSafetyTightening(
+  previous: RuntimeResourceProjectionInput | undefined,
+  current: RuntimeResourceProjectionInput,
+): boolean {
+  const previousProjection = previous as (RuntimeResourceProjectionInput & {
+    groundingEligibility?: { citationReady?: boolean; [key: string]: unknown };
+  }) | undefined;
+  const currentProjection = current as RuntimeResourceProjectionInput & {
+    groundingEligibility?: { citationReady?: boolean; [key: string]: unknown };
+  };
+  if (!previousProjection || previousProjection.id !== currentProjection.id) return false;
+  if (previousProjection.reviewAudit?.status !== 'stale' || currentProjection.reviewAudit?.status !== 'stale') return false;
+  if (previousProjection.projectionLevel !== 'ResourceSegment' || currentProjection.projectionLevel !== 'ResourceSegment') return false;
+  if (runtimeProjectionIsPathEligible(previousProjection) || runtimeProjectionIsPathEligible(currentProjection)) return false;
+  if (
+    previousProjection.runtimeSemanticEvidence?.assetStatus !== 'missing-local-runtime-asset' ||
+    currentProjection.runtimeSemanticEvidence?.assetStatus !== 'missing-local-runtime-asset'
+  ) return false;
+  if (
+    previousProjection.groundingEligibility?.citationReady !== true ||
+    currentProjection.groundingEligibility?.citationReady !== false
+  ) return false;
+  return canonicalJson({
+    ...previousProjection,
+    groundingEligibility: {
+      ...previousProjection.groundingEligibility,
+      citationReady: false,
+    },
+  }) === canonicalJson(currentProjection);
+}
+
 export function mergeGateResults(results: readonly NewResourceGateResult[]): NewResourceGateResult {
   const issues = results.flatMap((result) => result.issues);
   return {
@@ -560,13 +662,18 @@ function validateRuntimeResourceProjection(row: RuntimeResourceProjectionInput):
     issues.push(issue(row.id, 'runtime-resource-projection', 'invalid-runtime-projection-family-source-kind', 'Runtime projection family, sourceKind, and resourceType must classify the row consistently.'));
   }
   const agentReviewed = audit?.status === 'agent-reviewed';
+  const modelCleared = audit?.status === 'model-cleared';
   const humanPathAuthorized = audit?.status === 'human-confirmed';
   const agentAuditOnlyAuthorized = agentReviewed && isAgentReviewedAuditOnlySupportProjection(row);
-  if (!audit || (!humanPathAuthorized && !agentAuditOnlyAuthorized)) {
-    issues.push(issue(row.id, 'runtime-resource-projection', 'missing-human-review', 'New runtime projections require human-confirmed review metadata unless an agent-reviewed ResourceSegment is strictly teacher-scoped, support-only, and audit-only.'));
+  const modelClearedRetrievalAuthorized = modelCleared && isModelClearedRetrievalProjection(row);
+  if (!audit || (!humanPathAuthorized && !agentAuditOnlyAuthorized && !modelClearedRetrievalAuthorized)) {
+    issues.push(issue(row.id, 'runtime-resource-projection', 'missing-human-review', 'New runtime projections require human-confirmed review metadata unless they satisfy the strict agent-reviewed audit-only or model-cleared retrieval-only contract.'));
   }
   if (agentReviewed && !agentAuditOnlyAuthorized) {
     issues.push(issue(row.id, 'runtime-resource-projection', 'invalid-agent-reviewed-audit-only-projection', 'Agent-reviewed projections cannot carry publication, route/render, path, mastery, or learning-evidence authorization.'));
+  }
+  if (modelCleared && !modelClearedRetrievalAuthorized) {
+    issues.push(issue(row.id, 'runtime-resource-projection', 'invalid-model-cleared-retrieval-projection', 'Model-cleared runtime projections must remain retrieval-only ResourceSegments without path or mastery eligibility.'));
   }
   if (!audit?.reviewerId || PLACEHOLDER_REVIEWER_PATTERN.test(audit.reviewerId)) {
     issues.push(issue(row.id, 'runtime-resource-projection', 'missing-reviewer-id', 'Runtime projection requires a non-placeholder reviewer identity.'));
@@ -623,6 +730,38 @@ function validateRuntimeResourceProjection(row: RuntimeResourceProjectionInput):
   }
 
   return issues;
+}
+
+function canonicalJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
+  if (value && typeof value === 'object') {
+    const record = value as Record<string, unknown>;
+    return `{${Object.keys(record)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${canonicalJson(record[key])}`)
+      .join(',')}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function isModelClearedRetrievalProjection(row: RuntimeResourceProjectionInput): boolean {
+  const audit = row.reviewAudit;
+  return audit?.status === 'model-cleared' &&
+    Boolean(audit.generationToolOrModel) &&
+    Boolean(audit.promptOrManifestHash) &&
+    typeof audit.confidence === 'number' &&
+    Number.isFinite(audit.confidence) &&
+    row.projectionLevel === 'ResourceSegment' &&
+    row.routeTarget == null &&
+    Boolean(row.renderTarget) &&
+    Boolean(row.sourcePathOrUrl) &&
+    hasGraphBinding(row.graphNodeRefs) &&
+    Boolean(row.citationTargets?.length) &&
+    row.pathEligibility?.current === false &&
+    row.pathEligibility.afterCompletion === false &&
+    row.pathEligibility.masteryAffecting === false &&
+    row.retrievalChunk?.pathEligible === false &&
+    row.evidenceContract?.learningFactMaterializationPolicy !== 'materialized-learning-fact';
 }
 
 function isAgentReviewedAuditOnlySupportProjection(row: RuntimeResourceProjectionInput): boolean {
@@ -777,10 +916,22 @@ function runtimeProjectionReviewSourceMatches(row: RuntimeResourceProjectionInpu
   if (isKnowledgeRuntimeProjection(row)) {
     return audit?.reviewedSourceHash === row.sourceHash;
   }
+  if (isRuntimeLessonSemanticProjection(row)) {
+    return audit?.reviewedSourceHash === row.sourceHash;
+  }
   if (audit?.promptOrManifestHash) {
     return audit.reviewedSourceHash === audit.promptOrManifestHash;
   }
   return audit?.reviewedSourceHash === row.sourceHash;
+}
+
+function isRuntimeLessonSemanticProjection(row: RuntimeResourceProjectionInput): boolean {
+  const family = (row as RuntimeResourceProjectionInputWithFamily).family;
+  return Boolean(row.runtimeSemanticEvidence) && (
+    family === 'runtime-lesson-step' ||
+    family === 'runtime-lesson-module' ||
+    family === 'runtime-lesson-media'
+  );
 }
 
 function isKnowledgeRuntimeProjection(row: RuntimeResourceProjectionInput): boolean {

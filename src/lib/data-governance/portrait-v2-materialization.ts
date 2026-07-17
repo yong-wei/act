@@ -14,7 +14,9 @@ import {
 
 interface PortraitV2MaterializationDb {
   studentPortraitV2Snapshot?: NonNullable<PortraitV2SnapshotReadDb['studentPortraitV2Snapshot']> &
-    NonNullable<PortraitV2SnapshotWriteDb['studentPortraitV2Snapshot']>;
+    NonNullable<PortraitV2SnapshotWriteDb['studentPortraitV2Snapshot']> & {
+      deleteMany?: (args: { where: { userId: string } }) => Promise<unknown>;
+    };
   learningFact: {
     findMany: (args: Record<string, unknown>) => Promise<PortraitLearningFactDelta[]>;
   };
@@ -30,7 +32,7 @@ const PORTRAIT_V2_MATERIALIZATION_TRANSACTION_TIMEOUT_MS = 120_000;
 export async function materializeIncrementalPortraitV2(
   db: PortraitV2MaterializationDb,
   userId: string,
-  options: { now?: Date } = {},
+  options: { now?: Date; fullRebuild?: boolean } = {},
 ): Promise<{
   written: boolean;
   snapshotId?: string;
@@ -40,7 +42,7 @@ export async function materializeIncrementalPortraitV2(
 }> {
   const materialize = async (transactionDb: PortraitV2MaterializationDb) => {
     const now = options.now ?? new Date();
-    const previous = await readLatestPortraitV2SnapshotForUpdate(transactionDb, userId, { now });
+    const previous = options.fullRebuild ? null : await readLatestPortraitV2SnapshotForUpdate(transactionDb, userId, { now });
     const cursor = previous?.updateCursor;
     const facts = await transactionDb.learningFact.findMany({
       where: {
@@ -75,7 +77,7 @@ export async function materializeIncrementalPortraitV2(
       lastFactId: lastFact.id,
     } : previous?.updateCursor;
     const profileEvidence = mapped.evidence.filter((item) =>
-      item.outcome !== 'context-only' && Object.values(item.contributions).some((value) => value !== 0),
+      item.outcome !== 'context-only' && Object.values(item.contributions).some((value) => value !== 0 || item.normalizedPerformance),
     );
     const updated = updatePortraitV2Incrementally({
       userId,

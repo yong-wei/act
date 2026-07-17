@@ -24,6 +24,11 @@ import {
   UNIT_1_3_COURSE_META,
 } from './unit-1-3-ai-contexts';
 import {
+  getUnit14StepAIContextLocal,
+  getUnit14StepQuickQuestionsLocal,
+  UNIT_1_4_COURSE_META,
+} from './unit-1-4-ai-contexts';
+import {
   getUnit15StepAIContextLocal,
   getUnit15StepQuickQuestionsLocal,
   UNIT_1_5_COURSE_META,
@@ -402,17 +407,6 @@ export {
 
 // 1-3 课程 AI 上下文
 export {
-  UNIT_1_5_COURSE_META,
-  UNIT_1_5_STEP_AI_CONTEXTS,
-  getUNIT_1_5StepAIContext,
-  getUNIT_1_5StepQuickQuestions,
-  getUnit15StepAIContext,
-  getUnit15StepQuickQuestions,
-  getUnit15StepAIContextLocal,
-  getUnit15StepQuickQuestionsLocal,
-} from './unit-1-5-ai-contexts';
-
-export {
   UNIT_1_3_COURSE_META,
   UNIT_1_3_STEP_AI_CONTEXTS,
   getUNIT_1_3StepAIContext,
@@ -422,6 +416,28 @@ export {
   getUnit13StepAIContextLocal,
   getUnit13StepQuickQuestionsLocal,
 } from './unit-1-3-ai-contexts';
+
+export {
+  UNIT_1_4_COURSE_META,
+  UNIT_1_4_STEP_AI_CONTEXTS,
+  getUNIT_1_4StepAIContext,
+  getUNIT_1_4StepQuickQuestions,
+  getUnit14StepAIContext,
+  getUnit14StepQuickQuestions,
+  getUnit14StepAIContextLocal,
+  getUnit14StepQuickQuestionsLocal,
+} from './unit-1-4-ai-contexts';
+
+export {
+  UNIT_1_5_COURSE_META,
+  UNIT_1_5_STEP_AI_CONTEXTS,
+  getUNIT_1_5StepAIContext,
+  getUNIT_1_5StepQuickQuestions,
+  getUnit15StepAIContext,
+  getUnit15StepQuickQuestions,
+  getUnit15StepAIContextLocal,
+  getUnit15StepQuickQuestionsLocal,
+} from './unit-1-5-ai-contexts';
 
 /**
  * 课程AI上下文注册表
@@ -469,7 +485,11 @@ export const COURSE_AI_CONTEXT_REGISTRY: Record<
     getQuickQuestions: (stepId: string) => getUnit13StepQuickQuestionsLocal(stepId),
     courseMeta: UNIT_1_3_COURSE_META,
   },
-
+  'unit-1-4-time-frequency-views-v1': {
+    getStepContext: (stepId: string) => getUnit14StepAIContextLocal(stepId),
+    getQuickQuestions: (stepId: string) => getUnit14StepQuickQuestionsLocal(stepId),
+    courseMeta: UNIT_1_4_COURSE_META,
+  },
   'unit-1-5-three-domain-gain-sweep-v1': {
     getStepContext: (stepId: string) => getUnit15StepAIContextLocal(stepId),
     getQuickQuestions: (stepId: string) => getUnit15StepQuickQuestionsLocal(stepId),

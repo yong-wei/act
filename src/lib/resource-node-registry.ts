@@ -432,6 +432,11 @@ export interface RuntimeResourceProjectionInput {
   semanticConfirmed?: boolean;
   readiness?: ResourceNodeReadinessMetadata | null;
   citationTargets?: string[];
+  groundingEligibility?: {
+    retrievalReady: boolean;
+    citationReady: boolean;
+    authoringTriageReady: boolean;
+  };
   runtimeSemanticEvidence?: RuntimeResourceProjectionSemanticEvidence;
   retrievalChunk?: {
     id: string;
@@ -443,11 +448,6 @@ export interface RuntimeResourceProjectionInput {
     afterCompletion: boolean;
     masteryAffecting: boolean;
     blockedBy: string[];
-  };
-  groundingEligibility?: {
-    retrievalReady: boolean;
-    citationReady: boolean;
-    authoringTriageReady: boolean;
   };
 }
 
@@ -462,6 +462,8 @@ export interface RuntimeResourceProjectionMetadata {
   graphNodeRefs: ResourceGraphNodeRefs;
   evidenceContract: RuntimeResourceProjectionEvidenceContract | null;
   reviewAudit: RuntimeResourceProjectionReviewAudit | null;
+  groundingEligibility?: RuntimeResourceProjectionInput['groundingEligibility'] | null;
+  runtimeSemanticEvidence?: RuntimeResourceProjectionSemanticEvidence | null;
 }
 
 export interface ResourceSemanticSourceOfRecord {
@@ -2164,11 +2166,15 @@ function buildRuntimeProjectionResourceNodes(projections: RuntimeResourceProject
     .map((projection) => {
       const ownership = RESOURCE_SEMANTIC_SOURCE_OWNERSHIP[projection.sourceKind];
       const routeTarget = projection.routeTarget ?? null;
+      const citationUnavailable = projection.groundingEligibility?.citationReady === false
+        || projection.runtimeSemanticEvidence?.assetStatus === 'missing-local-runtime-asset';
       const capabilityTargets = uniqueSorted(projection.graphNodeRefs?.capability ?? []);
       const resourceType = runtimeProjectionResourceNodeType(projection.resourceType);
-      const renderTarget = projection.projectionLevel === 'ResourceNode' || projection.projectionLevel === 'PlanningUnit'
-        ? routeTarget
-        : projection.renderTarget ?? routeTarget;
+      const renderTarget = citationUnavailable
+        ? null
+        : projection.projectionLevel === 'ResourceNode' || projection.projectionLevel === 'PlanningUnit'
+          ? routeTarget
+          : projection.renderTarget ?? routeTarget;
 
       return createNode({
         id: projection.resourceNodeId ?? projection.id,
@@ -2178,7 +2184,7 @@ function buildRuntimeProjectionResourceNodes(projections: RuntimeResourceProject
         sourceRef: projection.sourceRecord ?? projection.sourceRef,
         sourceRefs: [{ kind: projection.sourceKind, ref: projection.sourceRef }],
         renderTarget,
-        launchTarget: routeTarget,
+        launchTarget: citationUnavailable ? null : routeTarget,
         knowledgeCoverage: projection.graphNodeRefs?.knowledge ?? [],
         sourceOfRecord: {
           content: ownership.contentOwner as ResourceNodeSourceOwner,
@@ -2187,6 +2193,7 @@ function buildRuntimeProjectionResourceNodes(projections: RuntimeResourceProject
         },
         evidenceInstrumentation: projection.evidenceInstrumentation ?? [],
         planningOverride: {
+          availability: citationUnavailable ? 'draft' : undefined,
           estimatedTimeMinutes: projection.estimatedTimeMinutes ?? undefined,
           abilityImpact: Object.fromEntries(capabilityTargets.map((target) => [target, 0.25])),
           privacyLevel: projection.privacyScope ?? undefined,
@@ -2542,6 +2549,8 @@ function normalizeRuntimeProjectionMetadata(
       ? normalizeRuntimeProjectionEvidenceContract(projection.evidenceContract)
       : null,
     reviewAudit: projection.reviewAudit ?? null,
+    groundingEligibility: projection.groundingEligibility ?? null,
+    runtimeSemanticEvidence: projection.runtimeSemanticEvidence ?? null,
   };
 }
 

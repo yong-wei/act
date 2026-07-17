@@ -109,6 +109,15 @@ function readReviewedFile(
     env: sanitizedGitEnvironment(),
     maxBuffer: 64 * 1024 * 1024,
   } as const;
+  try {
+    const stagedContent = execFileSync('git', ['show', `:${relativePath}`], options);
+    if (rawContentDigest(stagedContent) === reviewedRawHash) {
+      reviewedFileCache.set(cacheKey, stagedContent);
+      return stagedContent;
+    }
+  } catch {
+    // The path may not exist in the index.
+  }
   const commits = execFileSync('git', ['log', '--all', '--format=%H', '--', relativePath], {
     ...options,
     encoding: 'utf8',

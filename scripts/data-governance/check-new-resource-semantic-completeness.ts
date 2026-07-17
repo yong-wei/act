@@ -14,7 +14,7 @@ import {
   parseAddedRuntimeProjectionChanges,
   parseChangedRegisteredResourceIds,
   validateChangedRegisteredResources,
-  validateChangedRuntimeResourceProjections,
+  validateChangedRuntimeResourceProjectionChanges,
   type NewResourceGateIssue,
   type NewResourceGateResult,
 } from '@/lib/data-governance/new-resource-semantic-completeness-gate';
@@ -239,7 +239,10 @@ function main() {
       options,
     ),
     validateRuntimeProjectionRowSourceEvidence(runtimeProjectionRows, options),
-    validateChangedRuntimeResourceProjections(runtimeProjectionRows),
+    validateChangedRuntimeResourceProjectionChanges(
+      runtimeProjectionRows,
+      deletedRuntimeProjectionRows,
+    ),
   ]);
 
   if (result.passed) {
@@ -1258,6 +1261,7 @@ function runtimeProjectionRowMatchesCurrentSourceHash(
   if (!requirement.sourceHash) return false;
   const audit = row.reviewAudit;
   const knowledgeProjection = isKnowledgeRuntimeProjection(row);
+  const runtimeLessonSemanticProjection = isRuntimeLessonSemanticProjection(row);
   const runtimeSemanticEvidenceHashMatches = runtimeProjectionUsesAssetEvidence(row) &&
     row.runtimeSemanticEvidence?.evidenceFileHash === requirement.sourceHash;
   const coverageHashMatches = row.sourceHash === requirement.sourceHash ||
@@ -1265,10 +1269,22 @@ function runtimeProjectionRowMatchesCurrentSourceHash(
     (knowledgeProjection && audit?.promptOrManifestHash === requirement.sourceHash);
   const reviewHashMatches = knowledgeProjection
     ? audit?.reviewedSourceHash === row.sourceHash
+    : runtimeProjectionUsesAssetEvidence(row)
+      ? runtimeSemanticEvidenceHashMatches
+      : runtimeLessonSemanticProjection
+        ? audit?.reviewedSourceHash === row.sourceHash
     : audit?.promptOrManifestHash
       ? audit.reviewedSourceHash === audit.promptOrManifestHash
       : audit?.reviewedSourceHash === requirement.sourceHash || runtimeSemanticEvidenceHashMatches;
   return coverageHashMatches && reviewHashMatches;
+}
+
+function isRuntimeLessonSemanticProjection(row: RuntimeProjectionRow): boolean {
+  return Boolean(row.runtimeSemanticEvidence) && (
+    row.family === 'runtime-lesson-step' ||
+    row.family === 'runtime-lesson-module' ||
+    row.family === 'runtime-lesson-media'
+  );
 }
 
 function isKnowledgeRuntimeProjection(row: RuntimeProjectionRow): boolean {

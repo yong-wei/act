@@ -3005,6 +3005,9 @@ export function buildResourceNodeSourcePackCandidate(node: ResourceNode): Source
   const pathEligible = node.eligibility.pathEligible === true;
   const citationTargetId = `citation-target:${node.id}:primary`;
   const citationHref = sourcePackCitationHrefForResourceNode(node);
+  const runtimeCitationReady = node.runtimeProjection?.groundingEligibility?.citationReady !== false
+    && node.runtimeProjection?.runtimeSemanticEvidence?.assetStatus !== 'missing-local-runtime-asset';
+  const citationVerified = runtimeCitationReady && node.planningMetadata.availability === 'available';
   return {
     id: `resource-node:${node.id}`,
     title: node.title,
@@ -3034,9 +3037,9 @@ export function buildResourceNodeSourcePackCandidate(node: ResourceNode): Source
       citationTargetId,
       sourceId: `resource-node-source:${node.id}`,
       displayTitle: node.title,
-      href: citationHref,
-      resolver: citationHref ? 'course-runtime' : undefined,
-      verified: true,
+      href: citationVerified ? citationHref : undefined,
+      resolver: citationVerified && citationHref ? 'course-runtime' : undefined,
+      verified: citationVerified,
     },
     metadata: {
       reviewStatus: node.runtimeProjection?.reviewAudit?.status ?? 'current',
@@ -3048,6 +3051,8 @@ export function buildResourceNodeSourcePackCandidate(node: ResourceNode): Source
       sourceKind: node.sourceKind,
       pathEligible: String(pathEligible),
       teacherPolicy: node.planningMetadata.teacherPolicy,
+      availability: node.planningMetadata.availability,
+      citationReady: String(citationVerified),
     },
   };
 }

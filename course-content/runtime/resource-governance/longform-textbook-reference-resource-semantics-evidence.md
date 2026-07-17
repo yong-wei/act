@@ -27,10 +27,10 @@ Forbidden teaching-use starts: 0
 
 ## Buddy issue-body validator
 
-- Command: `rtk node /Users/YW/Documents/Project/OpenSpec-buddy/skills/openspec-buddy/scripts/validate-issue-body.mjs openspec/changes/complete-longform-textbook-reference-resource-semantics/.buddy/issue.md`
+- Command: `rtk node /Users/YW/Documents/Project/OpenSpec-buddy/skills/openspec-buddy/scripts/validate-issue-body.mjs openspec/changes/complete-longform-textbook-reference-resource-semantics/evidence/issue-body-propose-snapshot.md`
 - Result: Buddy issue body validation passed. (exit 0)
-- Validated at: 2026-07-17T01:36:42.306Z
-- Input: `openspec/changes/complete-longform-textbook-reference-resource-semantics/.buddy/issue.md` (sha256:f4d9ddfdf2e1f23dfcfe68ae73a58b5ee37f3f46e6bf60eb6646255f2c4fe640)
+- Validated at: 2026-07-17T07:15:37.000Z
+- Input: `openspec/changes/complete-longform-textbook-reference-resource-semantics/evidence/issue-body-propose-snapshot.md` (sha256:f4d9ddfdf2e1f23dfcfe68ae73a58b5ee37f3f46e6bf60eb6646255f2c4fe640)
 - GitHub state observed: false
 
 ## Family counts

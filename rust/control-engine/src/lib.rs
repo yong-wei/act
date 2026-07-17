@@ -107,6 +107,8 @@ struct ControlAnalysisRequest {
     response_type: ResponseType,
     time_range: TimeRangeConfig,
     frequency_range: FrequencyRangeConfig,
+    #[serde(default)]
+    frequency_probes_rad_per_sec: Vec<Value>,
     settling_band_ratio: Option<f64>,
     nyquist: Option<NyquistConfig>,
     root_locus: RootLocusConfig,
@@ -558,8 +560,19 @@ struct ControlAnalysisResult {
     step_response: StepResponseData,
     magnitude: BodeAxisData,
     phase: BodeAxisData,
+    frequency_readings: Vec<FrequencyResponseReading>,
     nyquist: NyquistData,
     root_locus: RootLocusData,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct FrequencyResponseReading {
+    frequency_rad_per_sec: f64,
+    re: f64,
+    im: f64,
+    magnitude_db: f64,
+    phase_deg: f64,
 }
 
 #[derive(Debug, Deserialize)]
@@ -1916,7 +1929,13 @@ fn build_nyquist_data(
     } else {
         positive_points.clone()
     };
-    let segments = nyquist_contour_segments(loop_tf, display_samples, &positive_points, &negative_points, mode);
+    let segments = nyquist_contour_segments(
+        loop_tf,
+        display_samples,
+        &positive_points,
+        &negative_points,
+        mode,
+    );
     let closure_segments: Vec<Vec<ComplexPoint>> = segments
         .iter()
         .filter(|segment| segment.segment_type == "infinity_arc")
@@ -1940,10 +1959,16 @@ fn build_nyquist_data(
                 im: -point.im,
             })
             .collect();
-        nyquist_contour_segments(loop_tf, full_samples, &full_positive_points, &full_negative_points, mode)
-            .iter()
-            .flat_map(|segment| segment.points.iter().cloned())
-            .collect()
+        nyquist_contour_segments(
+            loop_tf,
+            full_samples,
+            &full_positive_points,
+            &full_negative_points,
+            mode,
+        )
+        .iter()
+        .flat_map(|segment| segment.points.iter().cloned())
+        .collect()
     } else {
         positive_points.clone()
     };
@@ -1955,7 +1980,8 @@ fn build_nyquist_data(
         -winding_number(&contour_points, Complex64::new(-1.0, 0.0)) as i64
     } else {
         let p = count_right_half_plane_roots(&loop_tf.denominator) as i64;
-        let z = count_right_half_plane_roots(&poly_add(&loop_tf.denominator, &loop_tf.numerator)) as i64;
+        let z = count_right_half_plane_roots(&poly_add(&loop_tf.denominator, &loop_tf.numerator))
+            as i64;
         z - p
     };
 
@@ -1996,19 +2022,14 @@ fn frequency_response(
         let omega = sample.omega;
         let value = sample.value;
         let norm = value.norm();
-        let mut phase_deg = if norm < 1e-12 {
-            0.0
-        } else {
-            value.arg().to_degrees()
-        };
-        if let Some(previous_phase) = last_phase {
-            while phase_deg - previous_phase > 180.0 {
-                phase_deg -= 360.0;
-            }
-            while phase_deg - previous_phase < -180.0 {
-                phase_deg += 360.0;
-            }
-        }
+        let phase_deg = unwrap_bode_phase_deg(
+            if norm < 1e-12 {
+                0.0
+            } else {
+                value.arg().to_degrees()
+            },
+            last_phase,
+        );
         last_phase = Some(phase_deg);
 
         magnitude.push(CurvePoint {
@@ -2022,6 +2043,82 @@ fn frequency_response(
     }
     let nyquist = build_nyquist_data(&loop_tf, &display_samples, &samples, mode);
     (magnitude, phase, nyquist)
+}
+
+fn unwrap_bode_phase_deg(mut phase_deg: f64, previous_phase: Option<f64>) -> f64 {
+    if let Some(previous_phase) = previous_phase {
+        while phase_deg - previous_phase > 180.0 {
+            phase_deg -= 360.0;
+        }
+        while phase_deg - previous_phase < -180.0 {
+            phase_deg += 360.0;
+        }
+    }
+    phase_deg
+}
+
+fn exact_frequency_readings(
+    loop_tf: &TransferFunction,
+    probes: &[Value],
+    range: &FrequencyRangeConfig,
+) -> Vec<FrequencyResponseReading> {
+    let mut frequencies = probes
+        .iter()
+        .filter_map(Value::as_f64)
+        .filter(|frequency| {
+            frequency.is_finite()
+                && *frequency > 0.0
+                && *frequency >= range.min
+                && *frequency <= range.max
+        })
+        .collect::<Vec<_>>();
+    frequencies.sort_by(f64::total_cmp);
+    frequencies.dedup_by(|left, right| left.to_bits() == right.to_bits());
+
+    let mut phase_grid = nyquist_frequency_samples(loop_tf, range, SamplingMode::Adaptive)
+        .into_iter()
+        .map(|sample| sample.omega)
+        .collect::<Vec<_>>();
+    phase_grid.extend(frequencies.iter().copied());
+    phase_grid.sort_by(f64::total_cmp);
+    phase_grid.dedup_by(|left, right| left.to_bits() == right.to_bits());
+    let mut unwrapped_phases = HashMap::new();
+    let mut previous_phase = None;
+    for frequency in phase_grid {
+        let value = eval_transfer_function(loop_tf, frequency);
+        if !is_finite_complex(value) {
+            continue;
+        }
+        let norm = value.norm();
+        let phase_deg = unwrap_bode_phase_deg(
+            if norm < 1e-12 {
+                0.0
+            } else {
+                value.arg().to_degrees()
+            },
+            previous_phase,
+        );
+        previous_phase = Some(phase_deg);
+        unwrapped_phases.insert(frequency.to_bits(), phase_deg);
+    }
+
+    frequencies
+        .into_iter()
+        .filter_map(|frequency| {
+            let value = eval_transfer_function(loop_tf, frequency);
+            if !is_finite_complex(value) {
+                return None;
+            }
+            let norm = value.norm();
+            Some(FrequencyResponseReading {
+                frequency_rad_per_sec: frequency,
+                re: value.re,
+                im: value.im,
+                magnitude_db: 20.0 * norm.max(1e-12).log10(),
+                phase_deg: *unwrapped_phases.get(&frequency.to_bits())?,
+            })
+        })
+        .collect()
 }
 
 fn interpolate_zero_cross(points: &[CurvePoint], target: f64) -> Option<f64> {
@@ -2589,8 +2686,8 @@ fn root_locus_gain_sequence(
                     .min(span);
                 for ratio in [
                     -1.0, -0.75, -0.5, -0.375, -0.25, -0.1875, -0.125, -0.0625, -0.03125,
-                    -0.015625, 0.0, 0.015625, 0.03125, 0.0625, 0.125, 0.1875, 0.25, 0.375,
-                    0.5, 0.75, 1.0,
+                    -0.015625, 0.0, 0.015625, 0.03125, 0.0625, 0.125, 0.1875, 0.25, 0.375, 0.5,
+                    0.75, 1.0,
                 ] {
                     gains.push((center + window * ratio).clamp(min_gain, max_gain));
                 }
@@ -2895,7 +2992,10 @@ fn root_locus_completion_segments(
         let Some(endpoint) = branches[branch_index].last() else {
             continue;
         };
-        let scale = zero.norm().max(Complex64::new(endpoint.re, endpoint.im).norm()).max(1.0);
+        let scale = zero
+            .norm()
+            .max(Complex64::new(endpoint.re, endpoint.im).norm())
+            .max(1.0);
         if best_distance > 0.08 * scale {
             continue;
         }
@@ -2941,7 +3041,11 @@ struct RootLocusNearZeroPlan {
     diagnostics: RootLocusDiagnostics,
 }
 
-fn near_zero_roots(loop_tf: &TransferFunction, mu: f64, previous: Option<&[Complex64]>) -> Vec<Complex64> {
+fn near_zero_roots(
+    loop_tf: &TransferFunction,
+    mu: f64,
+    previous: Option<&[Complex64]>,
+) -> Vec<Complex64> {
     let scaled_denominator: Vec<f64> = loop_tf.denominator.iter().map(|value| value * mu).collect();
     let roots = durand_kerner(&poly_add(&loop_tf.numerator, &scaled_denominator));
     previous
@@ -2954,7 +3058,11 @@ fn near_zero_roots(loop_tf: &TransferFunction, mu: f64, previous: Option<&[Compl
 }
 
 fn root_locus_mu_sequence(config: &RootLocusConfig) -> Vec<f64> {
-    let terminal_gain = config.max_gain.max(config.current_gain).max(config.min_gain).max(1e-6);
+    let terminal_gain = config
+        .max_gain
+        .max(config.current_gain)
+        .max(config.min_gain)
+        .max(1e-6);
     let start_mu = 1.0 / terminal_gain;
     let end_mu = (start_mu * 1e-10).max(1e-14);
     let samples = 18usize;
@@ -3015,7 +3123,9 @@ fn assign_branches_to_finite_zeros(
 
     for zero_index in 0..open_loop_zeros.len() {
         if !used_zeros[zero_index] {
-            warnings.push(format!("finite zero {zero_index} was not assigned to a branch"));
+            warnings.push(format!(
+                "finite zero {zero_index} was not assigned to a branch"
+            ));
         }
     }
 
@@ -3054,7 +3164,8 @@ fn root_locus_near_zero_plan(
                 .unwrap_or_else(|| Complex64::new(0.0, 0.0))
         })
         .collect();
-    let mut tracks: Vec<Vec<Complex64>> = branch_endpoints.iter().map(|point| vec![*point]).collect();
+    let mut tracks: Vec<Vec<Complex64>> =
+        branch_endpoints.iter().map(|point| vec![*point]).collect();
     let mut previous = branch_endpoints.clone();
     for mu in root_locus_mu_sequence(config) {
         let ordered = near_zero_roots(loop_tf, mu, Some(&previous));
@@ -3110,7 +3221,13 @@ fn root_locus_near_zero_plan(
                 None,
             ));
         }
-        points.push(root_locus_segment_point(zero.re, zero.im, None, Some(branch_index), None));
+        points.push(root_locus_segment_point(
+            zero.re,
+            zero.im,
+            None,
+            Some(branch_index),
+            None,
+        ));
         segments.push(RootLocusSegment {
             segment_type: RootLocusSegmentType::NearZero,
             line_style: RootLocusSegmentLineStyle::Solid,
@@ -3281,20 +3398,30 @@ fn root_locus_events(
     asymptotes: &[RootLocusSegment],
 ) -> Vec<RootLocusEvent> {
     let mut events = Vec::new();
-    events.extend(open_loop_poles.iter().enumerate().map(|(index, pole)| RootLocusEvent {
-        event_type: RootLocusEventType::OpenLoopPole,
-        point: point_from_complex(*pole),
-        gain: Some(0.0),
-        branch_id: Some(index),
-        label: None,
-    }));
-    events.extend(open_loop_zeros.iter().enumerate().map(|(index, zero)| RootLocusEvent {
-        event_type: RootLocusEventType::OpenLoopZero,
-        point: point_from_complex(*zero),
-        gain: None,
-        branch_id: Some(index),
-        label: None,
-    }));
+    events.extend(
+        open_loop_poles
+            .iter()
+            .enumerate()
+            .map(|(index, pole)| RootLocusEvent {
+                event_type: RootLocusEventType::OpenLoopPole,
+                point: point_from_complex(*pole),
+                gain: Some(0.0),
+                branch_id: Some(index),
+                label: None,
+            }),
+    );
+    events.extend(
+        open_loop_zeros
+            .iter()
+            .enumerate()
+            .map(|(index, zero)| RootLocusEvent {
+                event_type: RootLocusEventType::OpenLoopZero,
+                point: point_from_complex(*zero),
+                gain: None,
+                branch_id: Some(index),
+                label: None,
+            }),
+    );
     events.extend(stationary_points.iter().map(|point| RootLocusEvent {
         event_type: if point.gain >= 0.0 {
             RootLocusEventType::Breakaway
@@ -3384,7 +3511,11 @@ fn root_locus_branch_structure(
             near_pole_id.clone(),
             RootLocusStructuredSegmentType::NearPole,
             Some(branch_id),
-            branch.iter().take(first_count).map(to_segment_point).collect(),
+            branch
+                .iter()
+                .take(first_count)
+                .map(to_segment_point)
+                .collect(),
             None,
         ));
         segment_ids.push(near_pole_id);
@@ -3397,7 +3528,10 @@ fn root_locus_branch_structure(
                 regular_id.clone(),
                 RootLocusStructuredSegmentType::Regular,
                 Some(branch_id),
-                branch[start..end.min(branch.len())].iter().map(to_segment_point).collect(),
+                branch[start..end.min(branch.len())]
+                    .iter()
+                    .map(to_segment_point)
+                    .collect(),
                 None,
             ));
             segment_ids.push(regular_id);
@@ -3421,17 +3555,13 @@ fn root_locus_branch_structure(
             segment_ids.push(near_break_id);
         }
 
-        if let Some(segment) = near_zero_plan
-            .segments
-            .iter()
-            .find(|segment| {
-                segment
-                    .metadata
-                    .as_ref()
-                    .and_then(|metadata| metadata.branch_id)
-                    == Some(branch_id)
-            })
-        {
+        if let Some(segment) = near_zero_plan.segments.iter().find(|segment| {
+            segment
+                .metadata
+                .as_ref()
+                .and_then(|metadata| metadata.branch_id)
+                == Some(branch_id)
+        }) {
             let near_zero_id = format!("b{branch_id}-near-zero");
             structured_segments.push(structured_segment_from_points(
                 near_zero_id.clone(),
@@ -3664,13 +3794,14 @@ fn root_locus(
         }
     }
 
-    let current_poles: Vec<ComplexPoint> = compute_characteristic_roots(loop_tf, config.current_gain)
-        .into_iter()
-        .map(|root| ComplexPoint {
-            re: root.re,
-            im: root.im,
-        })
-        .collect();
+    let current_poles: Vec<ComplexPoint> =
+        compute_characteristic_roots(loop_tf, config.current_gain)
+            .into_iter()
+            .map(|root| ComplexPoint {
+                re: root.re,
+                im: root.im,
+            })
+            .collect();
     let open_loop_poles = open_loop_poles_raw
         .iter()
         .map(|root| ComplexPoint {
@@ -3710,12 +3841,8 @@ fn root_locus(
         &imaginary_axis_crossings,
         &segments,
     );
-    let branch_structure = root_locus_branch_structure(
-        &branches,
-        &near_zero_plan,
-        &stationary_points,
-        &segments,
-    );
+    let branch_structure =
+        root_locus_branch_structure(&branches, &near_zero_plan, &stationary_points, &segments);
     let views = root_locus_views(&branch_structure, &events, &current_poles);
 
     RootLocusData {
@@ -3743,6 +3870,11 @@ fn root_locus(
 
 fn compute_analysis_inner(request: &ControlAnalysisRequest) -> ControlAnalysisResult {
     let loop_tf = build_loop_tf(request);
+    let frequency_readings = exact_frequency_readings(
+        &loop_tf,
+        &request.frequency_probes_rad_per_sec,
+        &request.frequency_range,
+    );
     let needs_step = output_requested(request, &["step_response"]);
     let needs_frequency = output_requested(request, &["magnitude", "phase", "nyquist", "bode"]);
     let needs_root_locus = output_requested(request, &["root_locus"]);
@@ -3803,7 +3935,11 @@ fn compute_analysis_inner(request: &ControlAnalysisRequest) -> ControlAnalysisRe
     }
     let root_locus_data = if needs_root_locus {
         let root_locus_tf = build_root_locus_tf(request);
-        root_locus(&root_locus_tf, &request.root_locus, request.feasible_region.clone())
+        root_locus(
+            &root_locus_tf,
+            &request.root_locus,
+            request.feasible_region.clone(),
+        )
     } else {
         RootLocusData {
             branches: Vec::new(),
@@ -3814,7 +3950,11 @@ fn compute_analysis_inner(request: &ControlAnalysisRequest) -> ControlAnalysisRe
                 segments: Vec::new(),
             },
             views: RootLocusViews {
-                feature: view_from_points(std::iter::empty::<ComplexPoint>(), Vec::new(), Vec::new()),
+                feature: view_from_points(
+                    std::iter::empty::<ComplexPoint>(),
+                    Vec::new(),
+                    Vec::new(),
+                ),
                 full: view_from_points(std::iter::empty::<ComplexPoint>(), Vec::new(), Vec::new()),
             },
             diagnostics: RootLocusDiagnostics {
@@ -3849,6 +3989,7 @@ fn compute_analysis_inner(request: &ControlAnalysisRequest) -> ControlAnalysisRe
         },
         magnitude: BodeAxisData { points: magnitude },
         phase: BodeAxisData { points: phase },
+        frequency_readings,
         nyquist,
         root_locus: root_locus_data,
     }
@@ -4099,20 +4240,12 @@ fn characteristic_value(model_id: &str, x: f64, request: &NonlinearAnalysisReque
         }
         "relay" => {
             let m = nonlinear_param(request, "M", 1.0).max(0.05);
-            if x >= 0.0 {
-                m
-            } else {
-                -m
-            }
+            if x >= 0.0 { m } else { -m }
         }
         "deadzone_relay" => {
             let m = nonlinear_param(request, "M", 1.0).max(0.05);
             let d = nonlinear_param(request, "d", 0.5).max(0.0);
-            if x.abs() <= d {
-                0.0
-            } else {
-                x.signum() * m
-            }
+            if x.abs() <= d { 0.0 } else { x.signum() * m }
         }
         _ => {
             let limit = nonlinear_param(request, "a", 1.0).max(0.05);
@@ -5327,7 +5460,6 @@ mod tests {
             }],
             outputs: vec!["step_response".to_string()],
             response_type: ResponseType::Step,
-            settling_band_ratio: None,
             time_range: TimeRangeConfig {
                 start: 0.0,
                 end: 5.0,
@@ -5338,6 +5470,8 @@ mod tests {
                 max: 10.0,
                 samples: 64,
             },
+            frequency_probes_rad_per_sec: Vec::new(),
+            settling_band_ratio: None,
             nyquist: None,
             root_locus: RootLocusConfig {
                 min_gain: 0.0,
@@ -5390,8 +5524,14 @@ mod tests {
         let default_result = compute_analysis_inner(&default_request);
         let five_percent_result = compute_analysis_inner(&unit_1_5_gain_request(3.0));
         assert!(
-            default_result.metrics.settling_time_sec.expect("default 2% settling")
-                > five_percent_result.metrics.settling_time_sec.expect("explicit 5% settling")
+            default_result
+                .metrics
+                .settling_time_sec
+                .expect("default 2% settling")
+                > five_percent_result
+                    .metrics
+                    .settling_time_sec
+                    .expect("explicit 5% settling")
         );
     }
 
@@ -5403,6 +5543,119 @@ mod tests {
             assert!(result.metrics.rise_time_sec.is_none(), "K={gain}");
             assert!(result.metrics.settling_time_sec.is_none(), "K={gain}");
         }
+    }
+
+    #[test]
+    fn computes_exact_frequency_probes_independently_from_sampled_outputs() {
+        let request: ControlAnalysisRequest = serde_json::from_value(serde_json::json!({
+            "runtimeMode": "analysis",
+            "plant": {
+                "numerator": [1.0],
+                "denominator": [1.0, 1.0],
+                "coefficientOrder": "descending"
+            },
+            "structures": [],
+            "outputs": ["step_response"],
+            "timeRange": { "start": 0.0, "end": 1.0, "samples": 8 },
+            "frequencyRange": { "min": 0.1, "max": 10.0, "samples": 2 },
+            "frequencyProbesRadPerSec": [1.0, 1.0, 0.0, -1.0, 11.0, null, "bad"],
+            "rootLocus": { "minGain": 0.0, "maxGain": 2.0, "samples": 2, "currentGain": 1.0 }
+        }))
+        .expect("frequency probe request should deserialize");
+
+        let result = compute_analysis_inner(&request);
+
+        assert!(result.magnitude.points.is_empty());
+        assert!(result.phase.points.is_empty());
+        assert_eq!(result.frequency_readings.len(), 1);
+        let reading = &result.frequency_readings[0];
+        assert!((reading.frequency_rad_per_sec - 1.0).abs() < 1e-12);
+        assert!((reading.re - 0.5).abs() < 1e-12);
+        assert!((reading.im + 0.5).abs() < 1e-12);
+        assert!((reading.magnitude_db + 3.010_299_956_639_812).abs() < 1e-12);
+        assert!((reading.phase_deg + 45.0).abs() < 1e-12);
+        assert_eq!(result.metrics.phase_margin_deg, None);
+    }
+
+    #[test]
+    fn exact_frequency_probe_phase_follows_the_unwrapped_bode_branch() {
+        for (denominator, order) in [
+            (vec![1.0, 3.0, 3.0, 1.0], 3.0_f64),
+            (vec![1.0, 4.0, 6.0, 4.0, 1.0], 4.0_f64),
+        ] {
+            let request: ControlAnalysisRequest = serde_json::from_value(serde_json::json!({
+                "runtimeMode": "analysis",
+                "plant": {
+                    "numerator": [1.0],
+                    "denominator": denominator,
+                    "coefficientOrder": "descending"
+                },
+                "structures": [],
+                "outputs": ["bode"],
+                "timeRange": { "start": 0.0, "end": 1.0, "samples": 8 },
+                "frequencyRange": { "min": 0.01, "max": 100.0, "samples": 8 },
+                "frequencyProbesRadPerSec": [10.0],
+                "rootLocus": { "minGain": 0.0, "maxGain": 2.0, "samples": 2, "currentGain": 1.0 }
+            }))
+            .expect("high-order frequency probe request should deserialize");
+
+            let result = compute_analysis_inner(&request);
+            let reading = &result.frequency_readings[0];
+            let expected_phase = -order * 10.0_f64.atan().to_degrees();
+            let principal_from_complex = reading.im.atan2(reading.re).to_degrees();
+            let wrapped_reading_phase = (reading.phase_deg + 180.0).rem_euclid(360.0) - 180.0;
+
+            assert!((reading.phase_deg - expected_phase).abs() < 1e-10);
+            assert!((wrapped_reading_phase - principal_from_complex).abs() < 1e-10);
+            assert!(
+                (reading.phase_deg
+                    - result
+                        .phase
+                        .points
+                        .iter()
+                        .min_by(|left, right| (left.x - 10.0)
+                            .abs()
+                            .total_cmp(&(right.x - 10.0).abs()))
+                        .expect("sampled Bode phase should exist")
+                        .y)
+                    .abs()
+                    < 30.0
+            );
+        }
+    }
+
+    #[test]
+    fn frequency_probes_do_not_change_sampled_bode_or_metrics() {
+        let request_json = serde_json::json!({
+            "runtimeMode": "analysis",
+            "plant": {
+                "numerator": [1.0],
+                "denominator": [1.0, 3.0, 3.0, 1.0],
+                "coefficientOrder": "descending"
+            },
+            "structures": [],
+            "outputs": ["bode"],
+            "timeRange": { "start": 0.0, "end": 1.0, "samples": 8 },
+            "frequencyRange": { "min": 0.01, "max": 100.0, "samples": 24 },
+            "rootLocus": { "minGain": 0.0, "maxGain": 2.0, "samples": 2, "currentGain": 1.0 }
+        });
+        let without_probes: ControlAnalysisRequest = serde_json::from_value(request_json.clone())
+            .expect("baseline request should deserialize");
+        let mut with_probes_json = request_json;
+        with_probes_json["frequencyProbesRadPerSec"] = serde_json::json!([0.2, 2.0, 10.0]);
+        let with_probes: ControlAnalysisRequest =
+            serde_json::from_value(with_probes_json).expect("probe request should deserialize");
+
+        let baseline = compute_analysis_inner(&without_probes);
+        let probed = compute_analysis_inner(&with_probes);
+
+        assert_eq!(
+            serde_json::to_value((&baseline.magnitude, &baseline.phase, &baseline.metrics))
+                .unwrap(),
+            serde_json::to_value((&probed.magnitude, &probed.phase, &probed.metrics)).unwrap(),
+        );
+        assert!(baseline.frequency_readings.is_empty());
+        assert_eq!(probed.frequency_readings.len(), 3);
     }
 
     fn ship_heading_request(gain: f64) -> ControlAnalysisRequest {
@@ -5427,7 +5680,6 @@ mod tests {
                 "bode".to_string(),
             ],
             response_type: ResponseType::Step,
-            settling_band_ratio: None,
             time_range: TimeRangeConfig {
                 start: 0.0,
                 end: 160.0,
@@ -5438,6 +5690,8 @@ mod tests {
                 max: 1e1,
                 samples: 360,
             },
+            frequency_probes_rad_per_sec: Vec::new(),
+            settling_band_ratio: None,
             nyquist: None,
             root_locus: RootLocusConfig {
                 min_gain: 0.0,
@@ -5485,7 +5739,6 @@ mod tests {
                 "bode".to_string(),
             ],
             response_type: ResponseType::Step,
-            settling_band_ratio: None,
             time_range: TimeRangeConfig {
                 start: 0.0,
                 end: 2.0,
@@ -5496,6 +5749,8 @@ mod tests {
                 max: 1e4,
                 samples: 420,
             },
+            frequency_probes_rad_per_sec: Vec::new(),
+            settling_band_ratio: None,
             nyquist: None,
             root_locus: RootLocusConfig {
                 min_gain: 0.0,
@@ -5529,7 +5784,6 @@ mod tests {
             }],
             outputs: vec!["root_locus".to_string()],
             response_type: ResponseType::Step,
-            settling_band_ratio: None,
             time_range: TimeRangeConfig {
                 start: 0.0,
                 end: 8.0,
@@ -5540,6 +5794,8 @@ mod tests {
                 max: 1e2,
                 samples: 240,
             },
+            frequency_probes_rad_per_sec: Vec::new(),
+            settling_band_ratio: None,
             nyquist: None,
             root_locus: RootLocusConfig {
                 min_gain: 0.0,
@@ -5569,16 +5825,20 @@ mod tests {
                 && point.im.abs() < 1e-8
                 && (point.gain - 7.4941).abs() < 2e-3
         }));
-        assert!(result
-            .root_locus
-            .gains
-            .iter()
-            .any(|gain| (gain - 0.7059).abs() < 2e-3));
-        assert!(result
-            .root_locus
-            .gains
-            .iter()
-            .any(|gain| (gain - 7.4941).abs() < 2e-3));
+        assert!(
+            result
+                .root_locus
+                .gains
+                .iter()
+                .any(|gain| (gain - 0.7059).abs() < 2e-3)
+        );
+        assert!(
+            result
+                .root_locus
+                .gains
+                .iter()
+                .any(|gain| (gain - 7.4941).abs() < 2e-3)
+        );
     }
 
     #[test]
@@ -5586,11 +5846,13 @@ mod tests {
         let result = compute_analysis_inner(&unit_3_3_step_05_request(2.0));
 
         assert_eq!(result.root_locus.branches.len(), 2);
-        assert!(result
-            .root_locus
-            .branches
-            .iter()
-            .all(|branch| branch.len() > 30));
+        assert!(
+            result
+                .root_locus
+                .branches
+                .iter()
+                .all(|branch| branch.len() > 30)
+        );
         for branch in &result.root_locus.branches {
             let complex_signs: Vec<i32> = branch
                 .iter()
@@ -5682,17 +5944,21 @@ mod tests {
         assert_eq!(result.root_locus.gains.len(), 6);
         assert_eq!(result.root_locus.gains.first().copied(), Some(0.0));
         assert_eq!(result.root_locus.gains.last().copied(), Some(4.0));
-        assert!(result
-            .root_locus
-            .gains
-            .iter()
-            .any(|gain| (gain - 0.7059).abs() < 2e-3));
+        assert!(
+            result
+                .root_locus
+                .gains
+                .iter()
+                .any(|gain| (gain - 0.7059).abs() < 2e-3)
+        );
         assert!(result.root_locus.gains.iter().all(|gain| *gain <= 4.0));
-        assert!(result
-            .root_locus
-            .branches
-            .iter()
-            .all(|branch| branch.len() == 6));
+        assert!(
+            result
+                .root_locus
+                .branches
+                .iter()
+                .all(|branch| branch.len() == 6)
+        );
     }
 
     #[test]
@@ -5701,43 +5967,59 @@ mod tests {
 
         assert!(!result.root_locus.real_axis_segments.is_empty());
         assert!(!result.root_locus.asymptotes.is_empty());
-        assert!(result
-            .root_locus
-            .segments
-            .iter()
-            .any(|segment| segment.segment_type == RootLocusSegmentType::RealAxisLocus
-                && segment.line_style == RootLocusSegmentLineStyle::Solid));
-        assert!(result
-            .root_locus
-            .segments
-            .iter()
-            .any(|segment| segment.segment_type == RootLocusSegmentType::Branch
-                && segment.line_style == RootLocusSegmentLineStyle::Solid));
-        assert!(result
-            .root_locus
-            .segments
-            .iter()
-            .filter(|segment| segment.segment_type == RootLocusSegmentType::Asymptote)
-            .all(|segment| {
-                segment.line_style == RootLocusSegmentLineStyle::Dashed
-                    && segment.points.len() == 2
-                    && segment.points[0].im.abs() <= 1e-12
-            }));
-        assert!(result
-            .root_locus
-            .departure_angles
-            .iter()
-            .all(|angle| angle.angle_deg.is_finite()));
-        assert!(result
-            .root_locus
-            .arrival_angles
-            .iter()
-            .all(|angle| angle.angle_deg.is_finite()));
-        assert!(result
-            .root_locus
-            .imaginary_axis_crossings
-            .iter()
-            .all(|point| point.gain.is_finite() && point.gain >= 0.0));
+        assert!(
+            result
+                .root_locus
+                .segments
+                .iter()
+                .any(
+                    |segment| segment.segment_type == RootLocusSegmentType::RealAxisLocus
+                        && segment.line_style == RootLocusSegmentLineStyle::Solid
+                )
+        );
+        assert!(
+            result
+                .root_locus
+                .segments
+                .iter()
+                .any(
+                    |segment| segment.segment_type == RootLocusSegmentType::Branch
+                        && segment.line_style == RootLocusSegmentLineStyle::Solid
+                )
+        );
+        assert!(
+            result
+                .root_locus
+                .segments
+                .iter()
+                .filter(|segment| segment.segment_type == RootLocusSegmentType::Asymptote)
+                .all(|segment| {
+                    segment.line_style == RootLocusSegmentLineStyle::Dashed
+                        && segment.points.len() == 2
+                        && segment.points[0].im.abs() <= 1e-12
+                })
+        );
+        assert!(
+            result
+                .root_locus
+                .departure_angles
+                .iter()
+                .all(|angle| angle.angle_deg.is_finite())
+        );
+        assert!(
+            result
+                .root_locus
+                .arrival_angles
+                .iter()
+                .all(|angle| angle.angle_deg.is_finite())
+        );
+        assert!(
+            result
+                .root_locus
+                .imaginary_axis_crossings
+                .iter()
+                .all(|point| point.gain.is_finite() && point.gain >= 0.0)
+        );
     }
 
     #[test]
@@ -5772,7 +6054,9 @@ mod tests {
                 segment
                     .points
                     .last()
-                    .map(|point| (point.re - zero.re).abs() < 1e-6 && (point.im - zero.im).abs() < 1e-6)
+                    .map(|point| {
+                        (point.re - zero.re).abs() < 1e-6 && (point.im - zero.im).abs() < 1e-6
+                    })
                     .unwrap_or(false)
             }));
         }
@@ -5804,16 +6088,26 @@ mod tests {
         let forbidden_end = real_poles[1];
 
         assert_eq!(real_poles.len(), 3);
-        assert!(result
-            .root_locus
-            .segments
-            .iter()
-            .filter(|segment| segment.segment_type == RootLocusSegmentType::RealAxisLocus)
-            .all(|segment| {
-                let left = segment.points.iter().map(|point| point.re).fold(f64::INFINITY, f64::min);
-                let right = segment.points.iter().map(|point| point.re).fold(f64::NEG_INFINITY, f64::max);
-                right <= forbidden_start + 1e-8 || left >= forbidden_end - 1e-8
-            }));
+        assert!(
+            result
+                .root_locus
+                .segments
+                .iter()
+                .filter(|segment| segment.segment_type == RootLocusSegmentType::RealAxisLocus)
+                .all(|segment| {
+                    let left = segment
+                        .points
+                        .iter()
+                        .map(|point| point.re)
+                        .fold(f64::INFINITY, f64::min);
+                    let right = segment
+                        .points
+                        .iter()
+                        .map(|point| point.re)
+                        .fold(f64::NEG_INFINITY, f64::max);
+                    right <= forbidden_start + 1e-8 || left >= forbidden_end - 1e-8
+                })
+        );
     }
 
     #[test]
@@ -5829,11 +6123,13 @@ mod tests {
 
         let result = compute_analysis_inner(&request);
 
-        assert!(result
-            .root_locus
-            .segments
-            .iter()
-            .all(|segment| segment.segment_type != RootLocusSegmentType::BranchCompletion));
+        assert!(
+            result
+                .root_locus
+                .segments
+                .iter()
+                .all(|segment| segment.segment_type != RootLocusSegmentType::BranchCompletion)
+        );
     }
 
     #[test]
@@ -5868,7 +6164,10 @@ mod tests {
                         == Some(zero_index)
                 })
                 .expect("missing near-zero segment for finite zero");
-            let metadata = segment.metadata.as_ref().expect("missing near-zero metadata");
+            let metadata = segment
+                .metadata
+                .as_ref()
+                .expect("missing near-zero metadata");
             let endpoint = segment.points.last().expect("missing near-zero endpoint");
 
             assert_eq!(metadata.endpoint_type.as_deref(), Some("finite_zero"));
@@ -5877,7 +6176,13 @@ mod tests {
             assert!((endpoint.re - zero.re).abs() < 1e-8);
             assert!((endpoint.im - zero.im).abs() < 1e-8);
         }
-        assert!(result.root_locus.diagnostics.finite_zero_coverage.all_matched_within_tolerance);
+        assert!(
+            result
+                .root_locus
+                .diagnostics
+                .finite_zero_coverage
+                .all_matched_within_tolerance
+        );
     }
 
     #[test]
@@ -5932,16 +6237,20 @@ mod tests {
         let result = compute_analysis_inner(&request);
 
         assert_eq!(result.root_locus.open_loop_zeros.len(), 2);
-        assert!(result
-            .root_locus
-            .open_loop_zeros
-            .iter()
-            .any(|zero| (zero.re + 1.0).abs() < 1e-8 && (zero.im - 2.0).abs() < 1e-8));
-        assert!(result
-            .root_locus
-            .open_loop_zeros
-            .iter()
-            .any(|zero| (zero.re + 1.0).abs() < 1e-8 && (zero.im + 2.0).abs() < 1e-8));
+        assert!(
+            result
+                .root_locus
+                .open_loop_zeros
+                .iter()
+                .any(|zero| (zero.re + 1.0).abs() < 1e-8 && (zero.im - 2.0).abs() < 1e-8)
+        );
+        assert!(
+            result
+                .root_locus
+                .open_loop_zeros
+                .iter()
+                .any(|zero| (zero.re + 1.0).abs() < 1e-8 && (zero.im + 2.0).abs() < 1e-8)
+        );
     }
 
     #[test]
@@ -5982,37 +6291,47 @@ mod tests {
             origin_zero_count(&result.root_locus.open_loop_zeros),
             origin_zero_count(&baseline.root_locus.open_loop_zeros)
         );
-        assert!(result
-            .root_locus
-            .open_loop_poles
-            .iter()
-            .any(|pole| (pole.re + 25.0).abs() < 1e-8 && pole.im.abs() < 1e-8));
-        assert!(result
-            .root_locus
-            .open_loop_zeros
-            .iter()
-            .any(|zero| (zero.re + 1.0 / 0.24).abs() < 1e-8 && zero.im.abs() < 1e-8));
+        assert!(
+            result
+                .root_locus
+                .open_loop_poles
+                .iter()
+                .any(|pole| (pole.re + 25.0).abs() < 1e-8 && pole.im.abs() < 1e-8)
+        );
+        assert!(
+            result
+                .root_locus
+                .open_loop_zeros
+                .iter()
+                .any(|zero| (zero.re + 1.0 / 0.24).abs() < 1e-8 && zero.im.abs() < 1e-8)
+        );
     }
 
     #[test]
     fn ship_heading_zero_gain_keeps_all_outputs_finite() {
         let result = compute_analysis_inner(&ship_heading_request(0.0));
 
-        assert!(result
-            .magnitude
-            .points
-            .iter()
-            .all(|point| point.x.is_finite() && point.y.is_finite()));
-        assert!(result
-            .phase
-            .points
-            .iter()
-            .all(|point| point.x.is_finite() && point.y.is_finite()));
-        assert!(result
-            .nyquist
-            .points
-            .iter()
-            .all(|point| point.re.is_finite() && point.im.is_finite()));
+        assert!(
+            result
+                .magnitude
+                .points
+                .iter()
+                .all(|point| point.x.is_finite() && point.y.is_finite())
+        );
+        assert!(
+            result
+                .phase
+                .points
+                .iter()
+                .all(|point| point.x.is_finite() && point.y.is_finite())
+        );
+        assert!(
+            result
+                .nyquist
+                .points
+                .iter()
+                .all(|point| point.re.is_finite() && point.im.is_finite())
+        );
     }
 
     #[test]
@@ -6037,19 +6356,23 @@ mod tests {
             result.nyquist.negative_samples.len(),
             result.nyquist.negative_points.len()
         );
-        assert!(result
-            .nyquist
-            .positive_samples
-            .iter()
-            .all(|point| point.frequency.is_finite()
-                && point.frequency > 0.0
-                && point.magnitude_db.is_finite()
-                && point.phase_deg.is_finite()));
-        assert!(result
-            .nyquist
-            .negative_samples
-            .iter()
-            .all(|point| point.frequency.is_finite() && point.frequency < 0.0));
+        assert!(
+            result
+                .nyquist
+                .positive_samples
+                .iter()
+                .all(|point| point.frequency.is_finite()
+                    && point.frequency > 0.0
+                    && point.magnitude_db.is_finite()
+                    && point.phase_deg.is_finite())
+        );
+        assert!(
+            result
+                .nyquist
+                .negative_samples
+                .iter()
+                .all(|point| point.frequency.is_finite() && point.frequency < 0.0)
+        );
         assert_eq!(
             result.nyquist.positive_points.len(),
             result.nyquist.negative_points.len()
@@ -6074,32 +6397,35 @@ mod tests {
         assert!((closure.first().unwrap().im - negative_end.im).abs() < 1e-9);
         assert!((closure.last().unwrap().re - positive_start.re).abs() < 1e-9);
         assert!((closure.last().unwrap().im - positive_start.im).abs() < 1e-9);
-        assert!(closure
-            .iter()
-            .any(|point| point.re > positive_start.re.hypot(positive_start.im) * 0.5));
-        let high_frequency_gap = result
-            .nyquist
-            .positive_points
-            .last()
-            .unwrap()
-            .re
+        assert!(
+            closure
+                .iter()
+                .any(|point| point.re > positive_start.re.hypot(positive_start.im) * 0.5)
+        );
+        let high_frequency_gap = result.nyquist.positive_points.last().unwrap().re
             - result.nyquist.negative_points.first().unwrap().re;
         assert!(high_frequency_gap.abs() < 1e-6);
-        assert!(result
-            .nyquist
-            .key_points
-            .iter()
-            .any(|point| point.kind == "real_axis_crossing"));
-        assert!(result
-            .nyquist
-            .key_points
-            .iter()
-            .any(|point| point.kind == "unit_circle_crossing"));
-        assert!(result
-            .nyquist
-            .key_points
-            .iter()
-            .all(|point| point.frequency.is_finite()));
+        assert!(
+            result
+                .nyquist
+                .key_points
+                .iter()
+                .any(|point| point.kind == "real_axis_crossing")
+        );
+        assert!(
+            result
+                .nyquist
+                .key_points
+                .iter()
+                .any(|point| point.kind == "unit_circle_crossing")
+        );
+        assert!(
+            result
+                .nyquist
+                .key_points
+                .iter()
+                .all(|point| point.frequency.is_finite())
+        );
         assert!(result.nyquist.encirclements.is_finite());
     }
 
@@ -6132,8 +6458,14 @@ mod tests {
             .map(|point| point.re.hypot(point.im))
             .fold(0.0_f64, f64::max);
 
-        assert!(display_start_radius <= 2.25, "display radius {display_start_radius}");
-        assert!(closure_max_radius <= 2.75, "closure radius {closure_max_radius}");
+        assert!(
+            display_start_radius <= 2.25,
+            "display radius {display_start_radius}"
+        );
+        assert!(
+            closure_max_radius <= 2.75,
+            "closure radius {closure_max_radius}"
+        );
         assert!(result.nyquist.criterion.is_consistent);
         assert_eq!(
             result.nyquist.criterion.z as i64,
@@ -6171,7 +6503,10 @@ mod tests {
         assert_eq!(result.nyquist.criterion.z, 0);
         assert_eq!(result.nyquist.criterion.n, -1);
         assert!(result.nyquist.criterion.is_consistent);
-        assert_eq!(result.nyquist.encirclements, result.nyquist.criterion.n as f64);
+        assert_eq!(
+            result.nyquist.encirclements,
+            result.nyquist.criterion.n as f64
+        );
     }
 
     #[test]
@@ -6179,10 +6514,11 @@ mod tests {
         let request = ship_heading_request(1.0);
         let result = compute_analysis_inner(&request);
         let loop_tf = build_loop_tf(&request);
-        let closed_loop_rhp_roots = durand_kerner(&poly_add(&loop_tf.denominator, &loop_tf.numerator))
-            .iter()
-            .filter(|root| root.re > 1e-7)
-            .count();
+        let closed_loop_rhp_roots =
+            durand_kerner(&poly_add(&loop_tf.denominator, &loop_tf.numerator))
+                .iter()
+                .filter(|root| root.re > 1e-7)
+                .count();
 
         assert_eq!(result.nyquist.criterion.p, 0);
         assert_eq!(result.nyquist.criterion.z, closed_loop_rhp_roots);
@@ -6257,24 +6593,30 @@ mod tests {
     fn root_locus_feature_view_excludes_asymptotic_tail() {
         let result = compute_analysis_inner(&ship_heading_request(1.0));
 
-        assert!(result
-            .root_locus
-            .views
-            .feature
-            .exclude_segment_types
-            .contains(&RootLocusStructuredSegmentType::AsymptoticTail));
-        assert!(result
-            .root_locus
-            .views
-            .feature
-            .exclude_segment_types
-            .contains(&RootLocusStructuredSegmentType::Asymptote));
-        assert!(result
-            .root_locus
-            .views
-            .full
-            .include_segment_types
-            .contains(&RootLocusStructuredSegmentType::AsymptoticTail));
+        assert!(
+            result
+                .root_locus
+                .views
+                .feature
+                .exclude_segment_types
+                .contains(&RootLocusStructuredSegmentType::AsymptoticTail)
+        );
+        assert!(
+            result
+                .root_locus
+                .views
+                .feature
+                .exclude_segment_types
+                .contains(&RootLocusStructuredSegmentType::Asymptote)
+        );
+        assert!(
+            result
+                .root_locus
+                .views
+                .full
+                .include_segment_types
+                .contains(&RootLocusStructuredSegmentType::AsymptoticTail)
+        );
     }
 
     #[test]
@@ -6283,16 +6625,20 @@ mod tests {
         impulse_request.response_type = ResponseType::Impulse;
         let impulse = compute_analysis_inner(&impulse_request);
         assert!(!impulse.step_response.points.is_empty());
-        assert!(impulse
-            .step_response
-            .points
-            .iter()
-            .all(|point| point.x.is_finite() && point.y.is_finite()));
-        assert!(impulse
-            .step_response
-            .points
-            .iter()
-            .any(|point| point.y.abs() > 1e-6));
+        assert!(
+            impulse
+                .step_response
+                .points
+                .iter()
+                .all(|point| point.x.is_finite() && point.y.is_finite())
+        );
+        assert!(
+            impulse
+                .step_response
+                .points
+                .iter()
+                .any(|point| point.y.abs() > 1e-6)
+        );
 
         let mut ramp_request = ship_heading_request(1.0);
         ramp_request.response_type = ResponseType::Ramp;

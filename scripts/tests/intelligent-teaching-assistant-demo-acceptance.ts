@@ -31,9 +31,12 @@ function readRoleCookie(actorRole: AssistantDemoActorRole): string {
   return specific || process.env.INTELLIGENT_TEACHING_ASSISTANT_DEMO_AUTH_COOKIE?.trim() || '';
 }
 
-function buildHttpHeaders(method: 'GET' | 'POST', actorRole: AssistantDemoActorRole): HeadersInit {
+function buildHttpHeaders(method: 'GET' | 'POST', actorRole: AssistantDemoActorRole, origin?: string): HeadersInit {
   const headers: Record<string, string> = {};
-  if (method === 'POST') headers['Content-Type'] = 'application/json';
+  if (method === 'POST') {
+    headers['Content-Type'] = 'application/json';
+    if (origin) headers.Origin = origin;
+  }
   const cookie = readRoleCookie(actorRole);
   if (cookie) headers.Cookie = cookie;
   return headers;
@@ -477,7 +480,7 @@ async function runHttpChecks(baseUrl: string, options: { requireProductSurface: 
         : example.actorRole;
       const response = await fetch(new URL(example.path, target.url), {
         method: example.method,
-        headers: buildHttpHeaders(example.method, actorRole),
+        headers: buildHttpHeaders(example.method, actorRole, target.url.origin),
         body: example.method === 'POST' ? buildApiBody(example.path, modeId) : undefined,
         redirect: 'manual',
       }).catch((error) => {

@@ -1,25 +1,40 @@
 {
   "lesson_id": "1-4",
-  "status": "pre_interactive_design_draft",
+  "note": "本顺序按已确认的 1-4 interactive-page 与 interactive-contract 的 12 步互动设计定稿；groups[].step_ids 对应知识卡片在互动步骤中的实际归属。",
   "groups": [
     {
-      "group_name": "先分清对象和通道",
+      "group_name": "区分观察域与输入输出通道",
+      "step_ids": ["step-04"],
       "node_ids": [
-        "时域响应_1_1",
-        "时域频域通道区分_1_4",
-        "闭环带宽与环路穿越频率_1_4"
+        "时域频域通道区分_1_4"
       ]
     },
     {
-      "group_name": "建立频域双图的共同来源",
+      "group_name": "建立时域响应参照",
+      "step_ids": ["step-05"],
       "node_ids": [
-        "频域分析_2_2e257d89",
+        "时域响应_1_1"
+      ]
+    },
+    {
+      "group_name": "读取闭环带宽与频率响应",
+      "step_ids": ["step-06"],
+      "node_ids": [
+        "闭环带宽与环路穿越频率_1_4",
+        "频域分析_2_2e257d89"
+      ]
+    },
+    {
+      "group_name": "联读 Bode 与 Nyquist",
+      "step_ids": ["step-07"],
+      "node_ids": [
         "Bode与Nyquist同源表征_1_4",
         "开环幅相特性曲线_5_fd86e289"
       ]
     },
     {
       "group_name": "完成多表征联读",
+      "step_ids": ["step-08", "step-12"],
       "node_ids": [
         "多表征一致性读图_1_4"
       ]

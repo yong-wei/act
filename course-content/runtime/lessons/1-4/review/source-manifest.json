@@ -1,14 +1,86 @@
 {
   "lesson_id": "1-4",
   "unit_type": "理论",
-  "generated_at": "2026-07-14T03:45:23.641661+00:00",
+  "generated_at": "2026-07-17T03:02:13.274069+00:00",
   "primary_sources": [
-    "course-content/authoring/lessons/1-4/design/1-4-handout.md"
+    "course-content/authoring/lessons/1-4/design/1-4-handout.md",
+    "course-content/authoring/lessons/1-4/design/1-4-interactive-page.md"
   ],
-  "interactive_page_source": null,
+  "interactive_page_source": "course-content/authoring/lessons/1-4/design/1-4-interactive-page.md",
   "interactive_contract_source": "course-content/authoring/lessons/1-4/design/1-4-interactive-contract.yaml",
   "handout_pdf_source": "course-content/authoring/lessons/1-4/design/1-4-handout.pdf",
   "boppps_source": "course-content/authoring/lessons/1-4/design/1-4-boppps.md",
   "sequence_source": "course-content/authoring/knowledge/cards/lessons/1-4/sequence.json",
-  "expected_code_media": []
+  "expected_code_media": [
+    {
+      "output": "1-4-cover-comic.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-4-info.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-4-fig-01-step-responses.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-4-fig-02-closed-loop-bode.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-4-fig-03-open-loop-bode.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-4-fig-03b-loop-k8-bode.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-4-fig-04-open-loop-nyquist.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-4-fig-05-four-views.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-4-fig-06-three-domain-reading.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-4-intro-video.mp4",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-4-slides.pdf",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-4-course.mp4",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-4-audio.m4a",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-4-teacher-handout.pdf",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    }
+  ]
 }

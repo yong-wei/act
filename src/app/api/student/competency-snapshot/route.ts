@@ -62,6 +62,8 @@ interface EvidenceSummaryItem {
 }
 
 export interface StudentSnapshotResponse {
+  derivationState: 'current' | 'no-evidence' | 'no-recent-evidence' | 'no-evidence-after-revocation';
+  evidenceState: 'current' | 'empty';
   currentSnapshot: {
     portrait: PortraitV2ConsumerSummary;
     legacyCompatibility: {
@@ -80,7 +82,7 @@ export interface StudentSnapshotResponse {
     };
     snapshotAt: string;
   } | null;
-  trendVector: TrendVector;
+  trendVector: TrendVector | null;
   evidenceSummary: Record<string, EvidenceSummaryItem[]>;
   riskFlags: RiskFlag[];
   recommendations: Array<{
@@ -149,8 +151,10 @@ export async function GET(_request: NextRequest) {
           ),
           portrait,
         );
-        return NextResponse.json({
-          currentSnapshot: {
+      return NextResponse.json({
+        derivationState: 'current',
+        evidenceState: 'current',
+        currentSnapshot: {
             portrait,
             legacyCompatibility: {
               authority: 'legacy-compatibility-only',
@@ -177,6 +181,8 @@ export async function GET(_request: NextRequest) {
         } satisfies StudentSnapshotResponse);
       }
       return NextResponse.json({
+        derivationState: 'no-evidence',
+        evidenceState: 'empty',
         currentSnapshot: null,
         previousSnapshot: null,
         trendVector: null,
@@ -190,7 +196,7 @@ export async function GET(_request: NextRequest) {
           targetUserId: userId,
           diagnosisReportSnapshot: null,
         }),
-      } as unknown as StudentSnapshotResponse);
+      } satisfies Omit<StudentSnapshotResponse, 'currentSnapshot'> & { currentSnapshot: null });
     }
 
     const studentProfile = await prisma.studentProfile.findUnique({
@@ -223,6 +229,13 @@ export async function GET(_request: NextRequest) {
     });
 
     // Get evidence summary from current snapshot
+    const rawEvidenceSummary = (currentSnapshot.evidenceSummary as unknown as Record<string, unknown>) || {};
+    const derivation = rawEvidenceSummary._derivation && typeof rawEvidenceSummary._derivation === 'object' ? rawEvidenceSummary._derivation as Record<string, unknown> : null;
+    const noEvidenceAfterRevocation = derivation?.state === 'no-evidence-after-revocation'
+      || derivation?.state === 'no-recent-evidence';
+    const derivationState = derivation?.state === 'no-recent-evidence' || derivation?.state === 'no-evidence-after-revocation'
+      ? derivation.state
+      : 'current';
     const evidenceSummary = sanitizeEvidenceSummary(
       (currentSnapshot.evidenceSummary as unknown as Record<string, EvidenceSummaryItem[]>) || {}
     );
@@ -234,27 +247,44 @@ export async function GET(_request: NextRequest) {
     // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: vector remains for trend and deprecated response compatibility only.
     const currentVector = currentSnapshot.competencyVector as unknown as CompetencyVector;
     const previousVector = previousSnapshot?.competencyVector as unknown as CompetencyVector | undefined;
-    const trendVector = previousVector
+    const trendVector = noEvidenceAfterRevocation ? null : previousVector
       ? calculateTrendVector(currentVector, previousVector)
       : (Object.fromEntries(
           Object.keys(currentVector).map((k) => [k, 'stable'])
         ) as unknown as TrendVector);
 
     // Generate basic recommendations based on snapshot data
-    const recommendations = withPortraitRecommendationRationale(
-      generateSnapshotRecommendations(
-        currentVector,
-        riskFlags,
-        evidenceSummary,
-        currentSnapshot.factCount,
-        portrait,
-      ),
-      portrait,
-    );
+    const recommendations = noEvidenceAfterRevocation
+      ? []
+      : withPortraitRecommendationRationale(
+          generateSnapshotRecommendations(
+            currentVector,
+            riskFlags,
+            evidenceSummary,
+            currentSnapshot.factCount,
+            portrait,
+          ),
+          portrait,
+        );
+    const responsePortrait = noEvidenceAfterRevocation
+      ? summarizePortraitV2({
+          userId,
+          payloadVersion: 'learner-portrait.v2',
+          migrationVersion: 'portrait-v2-migration.v1',
+          generatedAt: currentSnapshot.snapshotAt.toISOString(),
+          derivation: {
+            kind: 'compatibility-derived',
+            limitations: [`lifecycle-boundary:${derivationState}`],
+          },
+          dimensions: [],
+        })
+      : portrait;
 
     const response: StudentSnapshotResponse = {
+      derivationState,
+      evidenceState: noEvidenceAfterRevocation ? 'empty' : 'current',
       currentSnapshot: {
-        portrait,
+        portrait: responsePortrait,
         legacyCompatibility: {
           authority: 'legacy-compatibility-only',
           source: portraitResolution.legacyCompatibility.source,
@@ -274,7 +304,7 @@ export async function GET(_request: NextRequest) {
         : null,
       trendVector,
       evidenceSummary: portraitEvidenceSummary,
-      riskFlags,
+      riskFlags: noEvidenceAfterRevocation ? [] : riskFlags,
       recommendations,
       diagnosis: materializeRoleBasedLearningDiagnosis({
         view: 'student',

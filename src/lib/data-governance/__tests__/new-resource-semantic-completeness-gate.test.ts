@@ -8,6 +8,7 @@ import {
   parseAddedRuntimeProjectionRows,
   parseChangedRegisteredResourceIds,
   validateChangedRegisteredResources,
+  validateChangedRuntimeResourceProjectionChanges,
   validateChangedRuntimeResourceProjections,
 } from '@/lib/data-governance/new-resource-semantic-completeness-gate';
 
@@ -466,6 +467,99 @@ describe('new resource semantic completeness gate', () => {
     });
   });
 
+  it('accepts runtime semantic projection reviews against the raw source hash', () => {
+    const projection = completeRuntimeProjection({ id: 'projection-runtime-semantic' });
+    const result = validateChangedRuntimeResourceProjections([{
+      ...projection,
+      reviewAudit: {
+        ...projection.reviewAudit!,
+        reviewedSourceHash: projection.sourceHash,
+        promptOrManifestHash: 'sha-json-pointer-semantic-digest',
+      },
+      runtimeSemanticEvidence: runtimeSemanticEvidenceFor(projection),
+    }]);
+
+    expect(result).toMatchObject({
+      passed: true,
+      checked: 1,
+      issues: [],
+    });
+  });
+
+  it('rejects runtime semantic projection reviews with a stale raw source hash', () => {
+    const projection = completeRuntimeProjection({ id: 'projection-runtime-semantic-stale' });
+    const result = validateChangedRuntimeResourceProjections([{
+      ...projection,
+      reviewAudit: {
+        ...projection.reviewAudit!,
+        reviewedSourceHash: 'sha-stale-raw-source',
+        promptOrManifestHash: 'sha-stale-raw-source',
+      },
+      runtimeSemanticEvidence: runtimeSemanticEvidenceFor(projection),
+    }]);
+
+    expect(result.passed).toBe(false);
+    expect(result.issues).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        resourceId: 'projection-runtime-semantic-stale',
+        code: 'stale-review-evidence',
+      }),
+    ]));
+  });
+
+  it('allows only a derived stale missing-asset citation safety tightening', () => {
+    const base = completeRuntimeProjection({ id: 'projection-stale-missing-asset' });
+    const previous = {
+      ...base,
+      projectionLevel: 'ResourceSegment' as const,
+      reviewAudit: {
+        ...base.reviewAudit!,
+        status: 'stale' as const,
+      },
+      pathEligibility: {
+        current: false,
+        afterCompletion: false,
+        masteryAffecting: false,
+        blockedBy: ['missing-content-hash'],
+      },
+      groundingEligibility: {
+        retrievalReady: false,
+        citationReady: true,
+        authoringTriageReady: true,
+      },
+      runtimeSemanticEvidence: {
+        ...runtimeSemanticEvidenceFor(base),
+        sourceFileHash: null,
+        assetStatus: 'missing-local-runtime-asset' as const,
+        assetAvailability: 'not-tracked-in-git-index' as const,
+      },
+    };
+    const tightened = {
+      ...previous,
+      groundingEligibility: {
+        ...previous.groundingEligibility,
+        citationReady: false,
+      },
+    };
+
+    expect(validateChangedRuntimeResourceProjectionChanges([tightened], [previous])).toMatchObject({
+      passed: true,
+      checked: 1,
+      issues: [],
+    });
+    expect(validateChangedRuntimeResourceProjectionChanges([tightened], []).passed).toBe(false);
+    expect(validateChangedRuntimeResourceProjectionChanges([{
+      ...tightened,
+      pathEligibility: {
+        current: true,
+        afterCompletion: true,
+        masteryAffecting: true,
+        blockedBy: [],
+      },
+    }], [previous]).passed).toBe(false);
+    expect(validateChangedRuntimeResourceProjectionChanges([previous], [previous]).passed).toBe(false);
+  });
+
   it('rejects path-capable runtime projections without capability bindings', () => {
     const projection = completeRuntimeProjection({ id: 'projection-no-capability' });
     const result = validateChangedRuntimeResourceProjections([{
@@ -778,6 +872,32 @@ describe('new resource semantic completeness gate', () => {
     expect(parsed.deletedRows.map((row) => row.id)).toEqual(['projection-existing']);
   });
 
+  it('rejects an unchanged MERGE_HEAD projection whose review provenance moves backward', () => {
+    const previous = completeRuntimeProjection({ id: 'projection-provenance-regression' });
+    previous.reviewAudit!.reviewedAt = '2026-07-16T11:05:14.000Z';
+    previous.reviewAudit!.reviewBatchId = 'unit-1-5-content-clearance-2026-07-16-1905';
+    const current = structuredClone(previous);
+    current.reviewAudit!.reviewedAt = '2026-07-14T04:30:00.000Z';
+    current.reviewAudit!.reviewBatchId = 'unit-1-5-content-clearance-2026-07-14';
+    const parsed = parseAddedRuntimeProjectionChanges([
+      `-${JSON.stringify(previous)}`,
+      `+${JSON.stringify(current)}`,
+    ].join('\n'));
+    const result = validateChangedRuntimeResourceProjectionChanges(parsed.rows, parsed.deletedRows);
+
+    expect(result.passed).toBe(false);
+    expect(result.issues).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        resourceId: 'projection-provenance-regression',
+        code: 'runtime-projection-reviewed-at-regression',
+      }),
+      expect.objectContaining({
+        resourceId: 'projection-provenance-regression',
+        code: 'runtime-projection-review-batch-regression',
+      }),
+    ]));
+  });
+
   it.each([
     ['reviewedAt', (row: ReturnType<typeof completeRuntimeProjection>) => {
       row.reviewAudit!.reviewedAt = '';
@@ -1055,5 +1175,22 @@ function completeRuntimeProjection(
       masteryAffecting: true,
       blockedBy: [],
     },
+  };
+}
+
+function runtimeSemanticEvidenceFor(
+  projection: RuntimeResourceProjectionInput,
+): NonNullable<RuntimeResourceProjectionInput['runtimeSemanticEvidence']> {
+  return {
+    schemaVersion: 'runtime-lesson-semantic-evidence.v1',
+    sourceFilePath: projection.sourcePathOrUrl!,
+    sourceFileKind: 'json-manifest',
+    sourceFileHash: projection.sourceHash,
+    evidenceFilePath: projection.sourcePathOrUrl!,
+    evidenceFileHash: projection.sourceHash!,
+    evidenceSelector: 'json-pointer:/steps/example',
+    assetStatus: 'not-applicable',
+    assetAvailability: 'not-applicable',
+    externalIdentitySha256: null,
   };
 }

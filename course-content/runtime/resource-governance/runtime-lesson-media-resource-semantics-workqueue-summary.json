@@ -10,9 +10,14 @@
     "runtime-lesson-media-asset-canonical-re-review-2026-07-13",
     "runtime-lesson-planning-unit-review-2026-07-05",
     "runtime-media-handout-disposition-review-2026-07-05",
-    "simulation-transfer-graph-resource-bindings-2026-07-04"
+    "simulation-transfer-graph-resource-bindings-2026-07-04",
+    "unit-1-4-knowledge-card-manifest-rereview-2026-07-17",
+    "unit-1-4-missing-media-current-manifest-rereview-2026-07-17",
+    "unit-1-4-semantic-binding-rereview-2026-07-17",
+    "units-1-3-1-5-runtime-structure-review-2026-07-17"
   ],
   "reviewerIds": [
+    "course-pedagogy-reviewer",
     "graph-resource-governance-review",
     "patch-worker:runtime-lesson-media-asset-canonical-re-review",
     "residual-runtime-handout-implementing-agent",
@@ -23,60 +28,62 @@
     "runtime-media-handout-disposition-implementing-agent"
   ],
   "reviewerRoles": [
+    "course-content-reviewer",
     "curriculum-data-governance",
     "runtime-asset-provenance-review",
     "runtime-resource-governance"
   ],
   "reviewedAtRange": {
     "from": "2026-07-04T00:00:00.000Z",
-    "to": "2026-07-13T06:42:08.000Z"
+    "to": "2026-07-17T03:48:10.000Z"
   },
   "totals": {
-    "scopedRows": 2660,
-    "formalSourceRows": 2597,
-    "dedicatedClearanceRows": 27,
-    "workqueueItems": 2660,
-    "reviewedRows": 2350,
+    "scopedRows": 2801,
+    "formalSourceRows": 2773,
+    "dedicatedClearanceRows": 28,
+    "workqueueItems": 2801,
+    "reviewedRows": 2527,
     "pendingRereviewRows": 274,
-    "machinePendingRows": 63,
+    "machinePendingRows": 28,
     "historyBlobBaselines": {
-      "hit": 747,
+      "hit": 751,
       "missing": 0
     },
-    "remaining": 337,
+    "remaining": 302,
     "unexplainedUnreviewed": 0,
     "promotedPlanningUnits": 0,
     "residualFormalBlockers": null
   },
   "bySourceFamily": {
     "runtime-handout": 39,
-    "runtime-lesson-media": 783,
-    "runtime-lesson-module": 1377,
-    "runtime-lesson-step": 461
+    "runtime-lesson-media": 788,
+    "runtime-lesson-module": 1487,
+    "runtime-lesson-step": 487
   },
   "byDisposition": {
     "embedded-asset": 647,
     "evidence-producing": 2,
-    "excluded-with-rationale": 1769,
+    "excluded-with-rationale": 1945,
     "planning-unit": 16,
     "supporting-citation": 163
   },
   "byAssetStatus": {
     "external-http-runtime-asset": 89,
-    "missing-local-runtime-asset": 23,
-    "not-applicable": 1838,
+    "missing-local-runtime-asset": 27,
+    "not-applicable": 2010,
     "tracked-local-runtime-asset": 647
   },
   "startingBlockers": {
-    "missing-capability-target": 2402,
-    "missing-citation-target": 1703,
-    "missing-content-hash": 148,
-    "missing-evidence-contract": 1999,
-    "missing-evidence-instrumentation": 1999,
+    "blocked-by-dependency": 4,
+    "missing-capability-target": 2574,
+    "missing-citation-target": 1875,
+    "missing-content-hash": 152,
+    "missing-evidence-contract": 2134,
+    "missing-evidence-instrumentation": 2134,
     "missing-human-review": 250,
-    "missing-knowledge-binding": 2097,
-    "missing-path-profile": 2392,
-    "missing-path-target": 1352
+    "missing-knowledge-binding": 2243,
+    "missing-path-profile": 2564,
+    "missing-path-target": 1487
   },
   "guardrails": {
     "onlyRuntimeLessonStepModuleMediaHandoutFamilies": true,

@@ -41,6 +41,55 @@ function baseline(): PortraitV2Payload {
 }
 
 describe('portrait v2 incremental updates', () => {
+  it('aggregates rubric performance by rubricWeight within a mapped dimension', () => {
+    const result = updatePortraitV2Incrementally({
+      userId: 'student-rubric', previous: null, generatedAt: '2026-05-02T00:00:00.000Z',
+      evidence: [
+        { id: 'heavy-half', occurredAt: baselineAt, sourceFamily: 'LearningFact', outcome: 'positive', contributions: { controlModelingRepresentation: 0.5 }, rubricWeight: 0.9, normalizedPerformance: true },
+        { id: 'light-full', occurredAt: baselineAt, sourceFamily: 'LearningFact', outcome: 'positive', contributions: { controlModelingRepresentation: 1 }, rubricWeight: 0.1, normalizedPerformance: true },
+      ],
+    });
+    expect(result.payload.dimensions.find((item) => item.id === 'controlModelingRepresentation')?.score).toBe(55);
+  });
+  it('keeps zero and partial normalized rubric performances without outcome rescaling', () => {
+    const weighted = updatePortraitV2Incrementally({
+      userId: 'student-zero-rubric', previous: null, generatedAt: '2026-05-02T00:00:00.000Z',
+      evidence: [
+        { id: 'zero-heavy', occurredAt: baselineAt, sourceFamily: 'LearningFact', outcome: 'negative', contributions: { controlModelingRepresentation: 0 }, rubricWeight: 0.9, normalizedPerformance: true },
+        { id: 'full-light', occurredAt: baselineAt, sourceFamily: 'LearningFact', outcome: 'positive', contributions: { controlModelingRepresentation: 1 }, rubricWeight: 0.1, normalizedPerformance: true },
+      ],
+    });
+    expect(weighted.payload.dimensions.find((item) => item.id === 'controlModelingRepresentation')?.score).toBe(10);
+
+    const partial = updatePortraitV2Incrementally({
+      userId: 'student-half-rubric', previous: null, generatedAt: '2026-05-02T00:00:00.000Z',
+      evidence: [{ id: 'half', occurredAt: baselineAt, sourceFamily: 'LearningFact', outcome: 'partial', contributions: { controlModelingRepresentation: 0.5 }, rubricWeight: 1, normalizedPerformance: true }],
+    });
+    expect(partial.payload.dimensions.find((item) => item.id === 'controlModelingRepresentation')?.score).toBe(50);
+  });
+  it('normalizes mixed legacy and rubric evidence before weighting', () => {
+    const result = updatePortraitV2Incrementally({
+      userId: 'student-mixed', previous: null, generatedAt: '2026-05-02T00:00:00.000Z',
+      evidence: [
+        { id: 'legacy-full', occurredAt: baselineAt, sourceFamily: 'LearningFact', outcome: 'positive', contributions: { controlModelingRepresentation: 1 } },
+        { id: 'rubric-zero', occurredAt: baselineAt, sourceFamily: 'LearningFact', outcome: 'negative', contributions: { controlModelingRepresentation: 0 }, rubricWeight: 1, normalizedPerformance: true },
+      ],
+    });
+    expect(result.payload.dimensions.find((item) => item.id === 'controlModelingRepresentation')?.score).toBe(50);
+  });
+
+  it.each([0, -1, Number.POSITIVE_INFINITY, Number.NaN])('uses a safe weight for invalid rubricWeight %s', (rubricWeight) => {
+    const result = updatePortraitV2Incrementally({
+      userId: 'student-invalid-weight', previous: null, generatedAt: '2026-05-02T00:00:00.000Z',
+      evidence: [{ id: 'full', occurredAt: baselineAt, sourceFamily: 'LearningFact', outcome: 'positive', contributions: { controlModelingRepresentation: 1 }, rubricWeight, normalizedPerformance: true }],
+    });
+    expect(result.payload.dimensions.find((item) => item.id === 'controlModelingRepresentation')?.score).toBe(100);
+  });
+  it.each([0, -1, Number.POSITIVE_INFINITY, Number.NaN])('reports governed mapping issues for invalid fact rubricWeight %s', (rubricWeight) => {
+    const mapped = mapLearningFactsToPortraitEvidence([{ id: 'invalid-weight', startedAt: new Date(baselineAt), createdAt: new Date(baselineAt), outcome: 'success', score: 1, competencyContribution: { controlModeling: 1 }, contextJson: { rubricWeight } }]);
+    expect(mapped.mappingIssues).toContain('invalid-rubric-weight:invalid-weight');
+    expect(mapped.evidence[0].rubricWeight).toBe(1);
+  });
   it('preserves all scores without new evidence while aging freshness and confidence', () => {
     const previous = baseline();
     const result = updatePortraitV2Incrementally({
@@ -308,6 +357,22 @@ describe('portrait v2 incremental updates', () => {
     });
     expect(payload.dimensions).toHaveLength(7);
     expect(payload.dimensions.every((item) => item.score === 0)).toBe(true);
+  });
+
+  it('full rebuild resets the cursor and derives the portrait from all remaining mixed-source facts', async () => {
+    const remaining = fact('remaining-non-rubric', { controlModeling: 0.7 }, {});
+    const deleteMany = vi.fn(async () => ({ count: 1 }));
+    const findMany = vi.fn(async () => [remaining]);
+    const create = vi.fn(async ({ data }: { data: Record<string, unknown> }) => ({ id: 'portrait-rebuilt', ...data }));
+    await materializeIncrementalPortraitV2({
+      studentPortraitV2Snapshot: { findFirst: vi.fn(async () => { throw new Error('incremental cursor must not be read'); }), create, deleteMany },
+      learningFact: { findMany },
+    }, 'student-1', { now: new Date('2026-05-03T00:00:00.000Z'), fullRebuild: true });
+    expect(deleteMany).not.toHaveBeenCalled();
+    expect(findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { userId: 'student-1', createdAt: { lte: new Date('2026-05-03T00:00:00.000Z') } } }));
+    const payload = create.mock.calls[0][0].data.payload as PortraitV2Payload;
+    expect(payload.updateCursor?.lastFactId).toBe(remaining.id);
+    expect(payload.dimensions.some((dimension) => dimension.score > 0)).toBe(true);
   });
 
   it('serializes per-student materialization behind a transaction-scoped advisory lock', async () => {

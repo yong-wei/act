@@ -199,14 +199,19 @@ function main() {
 
   assert.equal(
     script.includes('migrate resolve --rolled-back'),
-    true,
-    '远端部署脚本必须能回滚失败的 Prisma 迁移记录'
+    false,
+    '远端部署脚本不得自动回滚失败的 Prisma 迁移记录'
   );
 
   assert.equal(
     script.includes('migrate resolve --applied 20260303142500_add_platform_settings'),
+    false,
+    '远端部署脚本不得在未核对 schema 时自动补记迁移'
+  );
+  assert.equal(
+    script.includes('PlatformSetting 表已存在但 Prisma 迁移记录缺失'),
     true,
-    '远端部署脚本必须能在 PlatformSetting 已存在时补记最新迁移'
+    '远端部署脚本必须在迁移记录漂移时停止并要求人工核对'
   );
 
   assert.match(

@@ -1,19 +1,34 @@
 {
   "lesson_id": "1-3",
   "expected_assets": [
+    "1-3-cover-comic.png",
+    "1-3-info.png",
+    "1-3-slides.pdf",
+    "1-3-intro-video.mp4",
+    "1-3-course.mp4",
+    "1-3-audio.m4a",
     "1-3-handout.pdf",
+    "1-3-teacher-handout.pdf",
     "1-3-media.md"
   ],
   "generated_assets": [
+    "1-3-cover-comic.png",
+    "1-3-info.png",
+    "1-3-handout.pdf",
+    "1-3-teacher-handout.pdf",
     "1-3-media.md"
   ],
   "missing_assets": [
-    "1-3-handout.pdf"
+    "1-3-slides.pdf",
+    "1-3-intro-video.mp4",
+    "1-3-course.mp4",
+    "1-3-audio.m4a"
   ],
   "executed_scripts": [],
   "processed_dir": "course-content/authoring/lessons/1-3/media/processed",
   "media_index_path": "course-content/runtime/lessons/1-3/media/1-3-media.md",
-  "handout_pdf_source": null,
+  "handout_pdf_source": "course-content/authoring/lessons/1-3/design/1-3-handout.pdf",
+  "teacher_handout_pdf_source": "course-content/authoring/lessons/1-3/design/1-3-teacher-handout.pdf",
   "formula_contract_issues": [],
   "formula_media": []
 }

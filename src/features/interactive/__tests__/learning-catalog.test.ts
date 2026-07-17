@@ -17,6 +17,8 @@ describe('INTERACTIVE_COURSE_MODULES', () => {
       'unit-1-1-see-the-full-picture',
       'unit-1-2-modeling-from-object-to-system',
       'unit-1-3-parameter-pole-migration',
+      'unit-1-4-time-frequency-views',
+      'unit-1-5-three-domain-gain-sweep',
       'cruise-comfort-boppps',
     ]);
   });
@@ -52,6 +54,16 @@ describe('INTERACTIVE_COURSE_MODULES', () => {
       {
         id: 'unit-1-3-parameter-pole-migration',
         unitLabel: '1-3',
+        legacySourceLabel: null,
+      },
+      {
+        id: 'unit-1-4-time-frequency-views',
+        unitLabel: '1-4',
+        legacySourceLabel: null,
+      },
+      {
+        id: 'unit-1-5-three-domain-gain-sweep',
+        unitLabel: '1-5',
         legacySourceLabel: null,
       },
     ]);

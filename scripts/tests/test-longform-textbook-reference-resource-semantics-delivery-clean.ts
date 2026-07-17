@@ -24,11 +24,12 @@ assert(deliverySummary.delivery.validationEntrypoints.deliveryClean.guarantee.in
 const cloneParent = fs.mkdtempSync(path.join(os.tmpdir(), 'act-longform-clean-staged-'));
 const clone = path.join(cloneParent, 'repo');
 execFileSync('git', ['clone', '--quiet', '--no-hardlinks', process.cwd(), clone], { stdio: 'pipe', env: cleanEnv });
-const stagedPaths = execFileSync('git', ['diff', '--cached', '--name-only', '--diff-filter=ACMRTUXB'], {
+fs.symlinkSync(path.join(process.cwd(), 'node_modules'), path.join(clone, 'node_modules'), 'dir');
+const stagedPaths = execFileSync('git', ['diff', '--cached', '--name-only', '-z', '--diff-filter=ACMRTUXB'], {
   cwd: process.cwd(),
   encoding: 'utf8',
   env: cleanEnv,
-}).split(/\r?\n/).filter(Boolean);
+}).split('\0').filter(Boolean);
 for (const relativePath of stagedPaths) {
   const targetFile = path.join(clone, relativePath);
   fs.mkdirSync(path.dirname(targetFile), { recursive: true });
@@ -55,6 +56,29 @@ execFileSync('npm', ['run', 'db:complete-longform-textbook-reference-resource-se
 const cloneSummary = readJson(path.join(clone, 'course-content/runtime/resource-governance/longform-textbook-reference-resource-semantics-summary.json'));
 assert(cloneSummary.delivery.cleanDeliveryInput.validationMode === 'delivery', `clean staged clone must validate from tracked sealed delivery input without untracked textbook exports; got ${cloneSummary.delivery.cleanDeliveryInput.validationMode}`);
 assert(cloneSummary.delivery.validationEntrypoints.deliveryClean.guarantee.includes('does not claim live textbook-body coverage'), 'clean clone must promise delivery validation only');
+const totalAudit = spawnSync('npm', ['run', 'db:resource-field-completion-audit'], {
+  cwd: clone,
+  encoding: 'utf8',
+  env: {
+    ...gateEnv,
+    LONGFORM_VALIDATION_MODE: 'delivery',
+    LONGFORM_TEXTBOOK_ROOT: path.join(clone, '.missing-untracked-textbook-exports'),
+  },
+});
+assert(
+  totalAudit.status === 0 || (
+    totalAudit.status === 1 &&
+    `${totalAudit.stdout}\n${totalAudit.stderr}`.includes('Full resource path readiness gate failed')
+  ),
+  `clean staged clone total resource audit failed unexpectedly:\n${totalAudit.stdout}\n${totalAudit.stderr}`,
+);
+const totalAuditRows = readJsonl(path.join(clone, 'course-content/runtime/resource-governance/resource-field-completion-audit.jsonl'));
+const longformReviewIds = new Set(readJsonl(path.join(
+  clone,
+  'course-content/runtime/resource-governance/longform-textbook-reference-resource-semantics-review-source.jsonl',
+)).map((row) => row.resourceId));
+assert(totalAuditRows.filter((row) => longformReviewIds.has(row.resourceId)).length === 3082, 'clean staged clone total audit must preserve all 3082 sealed longform rows');
+execFileSync('git', ['diff', '--exit-code'], { cwd: clone, stdio: 'pipe', env: cleanEnv });
 
 const validSnapshotPath = path.join(clone, 'openspec/changes/complete-longform-textbook-reference-resource-semantics/evidence/longform-textbook-reference-resource-input-snapshot.jsonl');
 const validReviewSourcePath = path.join(clone, 'course-content/runtime/resource-governance/longform-textbook-reference-resource-semantics-review-source.jsonl');

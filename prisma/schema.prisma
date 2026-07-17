@@ -52,7 +52,124 @@ enum SubmissionAssetState {
   DELETING
   FINALIZED
   REVOKED
+  CONTENT_UNAVAILABLE
   DELETED
+}
+
+enum SubmissionObjectTombstoneState {
+  PENDING
+  RETRYABLE
+  BLOCKED
+  RETAINED
+  DELETED_WITH_HOLD
+  DELETED
+}
+
+enum GradingTombstoneState {
+  PENDING
+  RETRYABLE
+  BLOCKED
+  RETAINED
+  DELETED_WITH_HOLD
+  DELETED
+}
+
+enum GradingTombstoneObjectState {
+  PENDING
+  RETRYABLE
+  DELETED_WITH_HOLD
+  DELETED
+}
+
+enum AnswerEvidenceSourceKind {
+  TEXT_NATIVE
+  DOCUMENT
+}
+
+enum AnswerEvidenceReadiness {
+  PENDING
+  READY
+  BLOCKED
+  DELETED
+}
+
+enum GradingPrecision {
+  SPAN
+  BLOCK
+  PAGE
+}
+
+enum DocumentConversionState {
+  QUEUED
+  RUNNING
+  RETRYABLE
+  SUCCEEDED
+  FALLBACK
+  BLOCKED
+  FAILED
+  CANCELLED
+  CONTENT_UNAVAILABLE
+  DELETED
+}
+
+enum GradingJobKind {
+  CONVERSION
+  GRADING
+  BATCH
+  RETRY
+  RERUN
+}
+
+enum GradingJobState {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+  RETRYABLE
+  CANCELLED
+  BLOCKED
+  CONTENT_UNAVAILABLE
+}
+
+enum GradingBatchState {
+  QUEUED
+  RUNNING
+  RETRYABLE
+  SUCCEEDED
+  PARTIAL
+  COMPLETED
+  FAILED
+  CANCELLED
+  BLOCKED
+  CONTENT_UNAVAILABLE
+}
+
+enum GradingBatchItemState {
+  QUEUED
+  CONVERTING
+  GRADING
+  SUCCEEDED
+  FAILED
+  RETRYABLE
+  CANCELLED
+  BLOCKED
+}
+
+enum GradingRunState {
+  QUEUED
+  RUNNING
+  FAILED
+  AWAITING_REVIEW
+  APPROVED
+  BLOCKED
+  RETRYABLE
+  CANCELLED
+  CONTENT_UNAVAILABLE
+}
+
+enum GradingAnnotationAuthorRole {
+  AI_DRAFT
+  TEACHER
 }
 
 // 任务难度等级
@@ -151,6 +268,9 @@ model User {
 
   // Data governance
   riskFlags StudentRiskFlag[]
+  learningMaterializationRebuildRequest LearningMaterializationRebuildRequest?
+  learningMaterializationGeneration LearningMaterializationGeneration?
+  learningMaterializationOutbox LearningMaterializationOutbox[]
 
   // Arena mode
   arenaControllerArtifacts       ArenaControllerArtifact[]
@@ -165,6 +285,7 @@ model User {
   issuedAssignmentReviewGrants   AssignmentReviewGrant[]         @relation("AssignmentReviewGrantIssuer")
   assignmentHistoricalOwnerships AssignmentHistoricalOwnership[]
   assignmentSubmissions          AssignmentSubmission[]
+  requestedGradingBatches        GradingBatch[]                  @relation("GradingBatchRequester")
 }
 
 model StudentProfile {
@@ -219,6 +340,7 @@ model Class {
   sessions                   ClassSession[] // 班级的课堂会话
   arenaChallengePublications ArenaChallengePublication[]
   assignmentAudiences        AssignmentAudience[]
+  gradingBatches             GradingBatch[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -272,6 +394,7 @@ model AssignmentRevision {
   historicalOwnerships  AssignmentHistoricalOwnership[]
   publicationOperations AssignmentPublicationOperation[]
   submissions           AssignmentSubmission[]
+  gradingBatches        GradingBatch[]
 
   @@unique([assignmentId, revisionNumber])
   @@index([assignmentId, state, updatedAt])
@@ -320,6 +443,8 @@ model AssignmentQuestion {
 
   revision          AssignmentRevision @relation(fields: [assignmentRevisionId], references: [id], onDelete: Restrict)
   submissionAnswers SubmissionAnswer[]
+  gradingBatches    GradingBatch[]
+  gradingRuns       GradingRun[]
 
   @@unique([assignmentRevisionId, stableQuestionId])
   @@unique([assignmentRevisionId, orderIndex])
@@ -372,47 +497,84 @@ model SubmissionAnswer {
 }
 
 model SubmissionAttempt {
-  id            String   @id @default(cuid())
-  answerId      String
-  attemptNumber Int
-  answerVersion Int
-  textSnapshot  String?
-  submittedAt   DateTime @default(now())
+  id                                   String    @id @default(cuid())
+  answerId                             String
+  attemptNumber                        Int
+  answerVersion                        Int
+  textSnapshot                         String?
+  textSnapshotPolicyId                 String?
+  textSnapshotPolicyVersion            String?
+  textSnapshotDeleteStrategy           String?
+  textSnapshotRetentionSeconds         Int?
+  textSnapshotGovernedRecordRule       String?
+  textSnapshotProviderRetentionSeconds Int?
+  textSnapshotExpiresAt                DateTime?
+  lifecycleBlockedAt                   DateTime?
+  lifecycleBlockReason                 String?
+  submittedAt                          DateTime  @default(now())
 
-  answer      SubmissionAnswer        @relation(fields: [answerId], references: [id], onDelete: Restrict)
-  assets      SubmissionAsset[]
-  idempotency SubmissionIdempotency[]
+  answer              SubmissionAnswer        @relation(fields: [answerId], references: [id], onDelete: Restrict)
+  assets              SubmissionAsset[]
+  idempotency         SubmissionIdempotency[]
+  answerEvidence      AnswerEvidence[]
+  documentConversions DocumentConversion[]
+  gradingBatchItems   GradingBatchItem[]
+  gradingRuns         GradingRun[]
+  gradingJobs         GradingJob[]
+  textSnapshotPolicy  GradingLifecyclePolicy? @relation("SubmissionAttemptTextSnapshotLifecyclePolicy", fields: [textSnapshotPolicyId], references: [id], onDelete: Restrict)
 
   @@unique([answerId, attemptNumber])
   @@index([submittedAt])
+  @@index([textSnapshotExpiresAt])
 }
 
 model SubmissionAsset {
-  id                  String               @id @default(cuid())
-  answerId            String
-  attemptId           String?
-  version             Int
-  objectKey           String               @unique
-  originalName        String
-  mimeType            String
-  sizeBytes           Int
-  checksum            String
-  state               SubmissionAssetState @default(QUARANTINED)
-  scanState           String               @default("PENDING")
-  scanRetryCount      Int                  @default(0)
-  lastScanErrorCode   String?
-  nextScanAt          DateTime?
-  quarantineExpiresAt DateTime?
-  finalizationKey     String?              @unique
-  finalizedAt         DateTime?
-  createdAt           DateTime             @default(now())
+  id                      String               @id @default(cuid())
+  answerId                String?
+  attemptId               String?
+  version                 Int
+  objectKey               String               @unique
+  originalName            String
+  mimeType                String
+  sizeBytes               Int
+  checksum                String?
+  state                   SubmissionAssetState @default(QUARANTINED)
+  scanState               String               @default("PENDING")
+  scanRetryCount          Int                  @default(0)
+  lastScanErrorCode       String?
+  nextScanAt              DateTime?
+  quarantineExpiresAt     DateTime?
+  finalizationKey         String?              @unique
+  finalizedAt             DateTime?
+  retentionPolicyId       String?
+  retentionPolicyVersion  String?
+  retentionDeleteStrategy String?
+  retentionSeconds        Int?
+  retentionExpiresAt      DateTime?
+  governedRecordRule      String?
+  lifecycleBlockedAt      DateTime?
+  lifecycleBlockReason    String?
+  deletionIntentAt        DateTime?
+  deletionAttemptCount    Int                  @default(0)
+  deletionClaimToken      String?
+  deletionClaimedAt       DateTime?
+  deletionLeaseExpiresAt  DateTime?
+  lastDeletionErrorCode   String?
+  tombstonedAt            DateTime?
+  redactionCount          Int                  @default(0)
+  createdAt               DateTime             @default(now())
 
-  answer       SubmissionAnswer             @relation(fields: [answerId], references: [id], onDelete: Restrict)
-  attempt      SubmissionAttempt?           @relation(fields: [attemptId], references: [id], onDelete: Restrict)
-  accessTokens SubmissionAssetAccessToken[]
+  answer              SubmissionAnswer?            @relation(fields: [answerId], references: [id], onDelete: Restrict)
+  attempt             SubmissionAttempt?           @relation(fields: [attemptId], references: [id], onDelete: Restrict)
+  accessTokens        SubmissionAssetAccessToken[]
+  documentConversions DocumentConversion[]
+  answerEvidence      AnswerEvidence[]             @relation("AnswerEvidenceSourceAsset")
+  retentionPolicy     GradingLifecyclePolicy?      @relation("SubmissionAssetRetentionPolicy", fields: [retentionPolicyId], references: [id], onDelete: Restrict)
 
   @@unique([answerId, version])
   @@index([state, createdAt])
+  @@index([state, retentionExpiresAt])
+  @@index([deletionLeaseExpiresAt])
 }
 
 model SubmissionAssetAccessToken {
@@ -447,14 +609,36 @@ model SubmissionIdempotency {
 }
 
 model SubmissionObjectTombstone {
-  id        String   @id @default(cuid())
-  objectKey String   @unique
-  reason    String
-  checksum  String?
-  deletedAt DateTime @default(now())
-  createdAt DateTime @default(now())
+  id                          String                         @id @default(cuid())
+  objectKey                   String                         @unique
+  lookupKey                   String                         @unique
+  lineageReference            String?
+  reason                      String
+  checksum                    String?
+  status                      SubmissionObjectTombstoneState @default(PENDING)
+  deletionIntentAt            DateTime                       @default(now())
+  physicalDeletedAt           DateTime?
+  deletedAt                   DateTime?
+  retryCount                  Int                            @default(0)
+  lastErrorCode               String?
+  lifecyclePolicyId           String?
+  lifecyclePolicyVersion      String?
+  lifecycleDeleteStrategy     String?
+  lifecycleRetentionSeconds   Int?
+  lifecycleGovernedRecordRule String?
+  pseudonymizedAt             DateTime?
+  deletionClaimToken          String?
+  deletionClaimedAt           DateTime?
+  deletionLeaseExpiresAt      DateTime?
+  redactionCount              Int                            @default(0)
+  createdAt                   DateTime                       @default(now())
+  lifecyclePolicy             GradingLifecyclePolicy?        @relation("SubmissionObjectTombstoneLifecyclePolicy", fields: [lifecyclePolicyId], references: [id], onDelete: Restrict)
 
+  @@index([status, deletionIntentAt])
+  @@index([deletionLeaseExpiresAt])
   @@index([deletedAt])
+  @@index([lifecyclePolicyId])
+  @@index([lineageReference])
 }
 
 model SubmissionMutationQuota {
@@ -465,6 +649,684 @@ model SubmissionMutationQuota {
   updatedAt    DateTime  @updatedAt
 
   @@index([blockedUntil])
+}
+
+model GradingRequestIdempotency {
+  id             String   @id @default(cuid())
+  operation      String
+  scope          String
+  actorPseudoId  String
+  idempotencyKey String
+  requestHash    String
+  resourceType   String
+  resourceId     String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  expiresAt      DateTime @default(dbgenerated("(CURRENT_TIMESTAMP + INTERVAL '24 hours')"))
+
+  @@unique([operation, scope, actorPseudoId, idempotencyKey], map: "GradingRequestIdempotency_operation_scope_actor_key")
+  @@index([resourceType, resourceId])
+  @@index([expiresAt], map: "GradingRequestIdempotency_expiresAt_idx")
+}
+
+model LearningMaterializationRebuildRequest {
+  userId            String    @id
+  classIds           Json
+  reason             String
+  status             String    @default("PENDING")
+  generation         Int       @default(1)
+  claimedGeneration  Int?
+  claimToken         String?
+  claimExpiresAt     DateTime?
+  attemptCount       Int       @default(0)
+  lastErrorCode      String?
+  completedAt        DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status, claimExpiresAt, updatedAt], map: "LMRebuild_status_claim_exp_updated_idx")
+}
+
+model LearningMaterializationGeneration {
+  userId      String   @id
+  generation  Int      @default(0)
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model LearningMaterializationOutbox {
+  id             String   @id @default(cuid())
+  dedupeKey      String   @unique
+  userId         String
+  kind           String   @default("CLASS_SNAPSHOT")
+  classId        String?
+  generation     Int
+  snapshotId     String?
+  status         String   @default("PENDING")
+  attemptCount   Int      @default(0)
+  claimToken     String?
+  claimExpiresAt DateTime?
+  availableAt    DateTime @default(now())
+  deliveredAt    DateTime?
+  expiresAt      DateTime
+  lastErrorCode  String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status, availableAt, claimExpiresAt], map: "LMOutbox_status_available_claim_idx")
+  @@index([expiresAt], map: "LMOutbox_expiresAt_idx")
+}
+
+model GradingProviderPolicy {
+  id                       String    @id @default(cuid())
+  provider                 String
+  version                  String
+  model                    String?
+  endpoint                 String?
+  purpose                  String
+  dataCategories           String[]
+  minimizedScope           String[]
+  institutionScope         String?
+  classScope               String[]
+  processingRegion         String
+  agreementVersion         String
+  noTraining               Boolean
+  providerRetentionSeconds Int
+  deletionCapability       Boolean
+  rateLimitPerMinute       Int
+  enabled                  Boolean   @default(true)
+  disabledAt               DateTime?
+  credentialRef            String
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+
+  conversions       DocumentConversion[]
+  batches           GradingBatch[]       @relation("GradingBatchGradingPolicy")
+  conversionBatches GradingBatch[]       @relation("GradingBatchConversionPolicy")
+  runs              GradingRun[]
+  jobs              GradingJob[]
+
+  @@unique([provider, version])
+  @@index([provider, enabled, createdAt])
+}
+
+model GradingLifecyclePolicy {
+  id                       String   @id @default(cuid())
+  dataClass                String
+  version                  String
+  retentionSeconds         Int?
+  governedRecordRule       String?
+  deleteStrategy           String
+  providerRetentionSeconds Int?
+  enabled                  Boolean  @default(true)
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  submissionAttemptTextSnapshots SubmissionAttempt[]         @relation("SubmissionAttemptTextSnapshotLifecyclePolicy")
+  submissionAssets               SubmissionAsset[]           @relation("SubmissionAssetRetentionPolicy")
+  answerEvidences                AnswerEvidence[]            @relation("AnswerEvidenceLifecyclePolicy")
+  documentConversions            DocumentConversion[]        @relation("DocumentConversionLifecyclePolicy")
+  gradingRuns                    GradingRun[]                @relation("GradingRunLifecyclePolicy")
+  gradingBatches                 GradingBatch[]              @relation("GradingBatchLifecyclePolicy")
+  tombstones                     GradingTombstone[]          @relation("GradingTombstoneLifecyclePolicy")
+  submissionObjectTombstones     SubmissionObjectTombstone[] @relation("SubmissionObjectTombstoneLifecyclePolicy")
+
+  @@unique([dataClass, version])
+  @@index([dataClass, enabled])
+}
+
+model GradingAuditEvent {
+  id                String   @id @default(cuid())
+  eventKey          String   @unique
+  actorPseudoId     String
+  actorRole         String
+  action            String
+  purpose           String
+  resourceType      String
+  resourceId        String
+  classId           String?
+  assignmentId      String?
+  answerId          String?
+  provider          String?
+  providerRequestId String?
+  policyVersion     String?
+  requestHash       String?
+  metadata          Json     @default("{}")
+  redactionCount    Int      @default(0)
+  createdAt         DateTime @default(now())
+
+  @@index([resourceType, resourceId, createdAt])
+  @@index([actorPseudoId, createdAt])
+  @@index([purpose, createdAt])
+  @@index([classId, createdAt])
+}
+
+model GradingTombstone {
+  id                          String                @id @default(cuid())
+  resourceType                String
+  resourceId                  String
+  resourceKey                 String                @unique
+  lookupKey                   String                @unique
+  reason                      String
+  checksum                    String?
+  lifecyclePolicyId           String?
+  lifecyclePolicyVersion      String?
+  lifecycleDeleteStrategy     String?
+  lifecycleRetentionSeconds   Int?
+  lifecycleGovernedRecordRule String?
+  status                      GradingTombstoneState @default(PENDING)
+  deletionIntentAt            DateTime              @default(now())
+  deletionClaimToken          String?
+  deletionClaimedAt           DateTime?
+  deletionLeaseExpiresAt      DateTime?
+  physicalDeletedAt           DateTime?
+  contentDeletedAt            DateTime?
+  providerRetentionDeadlineAt DateTime?
+  providerRetentionStartedAt  DateTime?
+  provider                    String?
+  providerRequestId           String?
+  providerDeletionHandle      String?
+  providerDeletionState       String?
+  providerDeletionReason      String?
+  providerDeletionRequestedAt DateTime?
+  providerRetentionSeconds    Int?
+  retryCount                  Int                   @default(0)
+  lastErrorCode               String?
+  lineageRetained             Boolean               @default(true)
+  lineageReference            String?
+  pseudonymizedAt             DateTime?
+  redactionCount              Int                   @default(0)
+  createdAt                   DateTime              @default(now())
+
+  lifecyclePolicy GradingLifecyclePolicy?  @relation("GradingTombstoneLifecyclePolicy", fields: [lifecyclePolicyId], references: [id], onDelete: Restrict)
+  objects         GradingTombstoneObject[]
+
+  @@index([resourceType, resourceId])
+  @@index([status, deletionIntentAt])
+  @@index([deletionLeaseExpiresAt])
+  @@index([status, deletionLeaseExpiresAt], map: "GradingTombstone_status_lease_idx")
+  @@index([providerDeletionState, providerRetentionDeadlineAt], map: "GradingTombstone_provider_state_idx")
+  @@index([contentDeletedAt])
+  @@index([providerRequestId])
+}
+
+model GradingTombstoneObject {
+  id                 String                      @id @default(cuid())
+  tombstoneId        String
+  objectKey          String
+  status             GradingTombstoneObjectState @default(PENDING)
+  deletionClaimToken String?
+  physicalDeletedAt  DateTime?
+  deletedAt          DateTime?
+  retryCount         Int                         @default(0)
+  lastErrorCode      String?
+  createdAt          DateTime                    @default(now())
+  updatedAt          DateTime                    @updatedAt
+
+  tombstone GradingTombstone @relation(fields: [tombstoneId], references: [id], onDelete: Restrict)
+
+  @@unique([tombstoneId, objectKey])
+  @@index([status, updatedAt])
+  @@index([tombstoneId, status])
+}
+
+model GradingLegalHold {
+  id                 String    @id @default(cuid())
+  scopeType          String
+  scopeId            String
+  reason             String
+  placedByPseudoId   String
+  expiresAt          DateTime?
+  releasedAt         DateTime?
+  releasedByPseudoId String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([scopeType, scopeId, releasedAt])
+  @@index([expiresAt])
+}
+
+model GradingQuota {
+  key          String    @id
+  subjectType  String
+  subjectId    String
+  scope        String
+  windowStart  DateTime
+  requestCount Int
+  blockedUntil DateTime?
+  updatedAt    DateTime  @updatedAt
+
+  @@index([subjectType, subjectId, scope])
+  @@index([blockedUntil])
+}
+
+model AnswerEvidence {
+  id                                String                   @id @default(cuid())
+  attemptId                         String?
+  sourceAssetId                     String?
+  conversionId                      String?                  @unique
+  version                           Int
+  sourceKind                        AnswerEvidenceSourceKind
+  sourceHash                        String
+  canonicalMarkdown                 String                   @db.Text
+  anchorVersion                     String
+  precision                         GradingPrecision
+  readiness                         AnswerEvidenceReadiness  @default(PENDING)
+  limitationState                   String                   @default("none")
+  limitations                       String[]                 @default([])
+  lifecyclePolicyId                 String?
+  lifecyclePolicyVersion            String?
+  lifecycleDeleteStrategy           String?
+  lifecycleRetentionSeconds         Int?
+  lifecycleGovernedRecordRule       String?
+  lifecycleProviderRetentionSeconds Int?
+  retentionExpiresAt                DateTime?
+  lifecycleBlockedAt                DateTime?
+  lifecycleBlockReason              String?
+  tombstonedAt                      DateTime?
+  createdAt                         DateTime                 @default(now())
+  updatedAt                         DateTime                 @updatedAt
+
+  attempt         SubmissionAttempt?      @relation(fields: [attemptId], references: [id], onDelete: Restrict)
+  sourceAsset     SubmissionAsset?        @relation("AnswerEvidenceSourceAsset", fields: [sourceAssetId], references: [id], onDelete: Restrict)
+  conversion      DocumentConversion?     @relation(fields: [conversionId], references: [id], onDelete: Restrict)
+  lifecyclePolicy GradingLifecyclePolicy? @relation("AnswerEvidenceLifecyclePolicy", fields: [lifecyclePolicyId], references: [id], onDelete: Restrict)
+  blocks          AnswerEvidenceBlock[]
+  gradingRuns     GradingRun[]
+  batchItems      GradingBatchItem[]
+
+  @@unique([attemptId, version])
+  @@index([sourceHash])
+  @@index([readiness, retentionExpiresAt])
+  @@index([sourceAssetId])
+  @@index([lifecyclePolicyId])
+}
+
+model AnswerEvidenceBlock {
+  id         String           @id @default(cuid())
+  evidenceId String
+  blockIndex Int
+  pageNumber Int?
+  text       String           @db.Text
+  markdown   String           @db.Text
+  spanStart  Int?
+  spanEnd    Int?
+  bbox       Json?
+  precision  GradingPrecision
+  confidence Float
+  sourceHash String
+  createdAt  DateTime         @default(now())
+
+  evidence    AnswerEvidence      @relation(fields: [evidenceId], references: [id], onDelete: Restrict)
+  annotations GradingAnnotation[]
+
+  @@unique([evidenceId, blockIndex])
+  @@index([evidenceId, pageNumber])
+  @@index([sourceHash])
+}
+
+model DocumentConversion {
+  id                                String                  @id @default(cuid())
+  assetId                           String?
+  attemptId                         String?
+  policyId                          String?
+  policySnapshot                    Json?
+  policySnapshotHash                String?
+  lifecyclePolicyId                 String?
+  lifecyclePolicyVersion            String?
+  lifecycleDeleteStrategy           String?
+  lifecycleRetentionSeconds         Int?
+  lifecycleGovernedRecordRule       String?
+  lifecycleProviderRetentionSeconds Int?
+  lifecycleBlockedAt                DateTime?
+  lifecycleBlockReason              String?
+  version                           Int
+  dedupeKey                         String                  @unique
+  adapter                           String
+  adapterVersion                    String
+  state                             DocumentConversionState @default(QUEUED)
+  sourceChecksum                    String
+  outputChecksum                    String?
+  canonicalMarkdown                 String?                 @db.Text
+  renderedObjectKey                 String?
+  renderedChecksum                  String?
+  precision                         GradingPrecision?
+  confidence                        Float?
+  warningCodes                      String[]                @default([])
+  limitationState                   String                  @default("none")
+  providerRequestId                 String?
+  providerRequestedAt               DateTime?
+  providerProcessedAt               DateTime?
+  progress                          Int                     @default(0)
+  cancellationRequestedAt           DateTime?
+  retryCount                        Int                     @default(0)
+  failureCode                       String?
+  startedAt                         DateTime?
+  completedAt                       DateTime?
+  retentionExpiresAt                DateTime?
+  createdAt                         DateTime                @default(now())
+  updatedAt                         DateTime                @updatedAt
+
+  asset           SubmissionAsset?           @relation(fields: [assetId], references: [id], onDelete: Restrict)
+  attempt         SubmissionAttempt?         @relation(fields: [attemptId], references: [id], onDelete: Restrict)
+  policy          GradingProviderPolicy?     @relation(fields: [policyId], references: [id], onDelete: Restrict)
+  lifecyclePolicy GradingLifecyclePolicy?    @relation("DocumentConversionLifecyclePolicy", fields: [lifecyclePolicyId], references: [id], onDelete: Restrict)
+  answerEvidence  AnswerEvidence?
+  warnings        GradingConversionWarning[]
+  batchItems      GradingBatchItem[]
+  jobs            GradingJob[]
+
+  @@unique([assetId, version])
+  @@index([state, progress, createdAt])
+  @@index([attemptId, state])
+  @@index([sourceChecksum])
+  @@index([lifecyclePolicyId])
+}
+
+model GradingConversionWarning {
+  id           String   @id @default(cuid())
+  conversionId String
+  code         String
+  detail       String?
+  severity     String   @default("warning")
+  createdAt    DateTime @default(now())
+
+  conversion DocumentConversion @relation(fields: [conversionId], references: [id], onDelete: Restrict)
+
+  @@unique([conversionId, code])
+  @@index([conversionId, severity])
+}
+
+model GradingBatch {
+  id                                String            @id @default(cuid())
+  assignmentRevisionId              String?
+  questionId                        String?
+  classId                           String?
+  requesterUserId                   String?
+  policyId                          String?
+  policySnapshot                    Json?
+  policySnapshotHash                String?
+  conversionPolicyId                String?
+  conversionPolicySnapshot          Json?
+  conversionPolicySnapshotHash      String?
+  dedupeKey                         String            @unique
+  idempotencyKey                    String
+  questionSnapshotHash              String
+  rubricVersion                     String
+  evaluatorId                       String
+  evaluatorVersion                  String
+  questionSnapshot                  Json?
+  rubricSnapshot                    Json?
+  referenceAnswer                   String?           @db.Text
+  state                             GradingBatchState @default(QUEUED)
+  progress                          Int               @default(0)
+  totalItems                        Int               @default(0)
+  completedItems                    Int               @default(0)
+  failedItems                       Int               @default(0)
+  blockedItems                      Int               @default(0)
+  retryCount                        Int               @default(0)
+  lastErrorCode                     String?
+  nextRunAt                         DateTime?
+  cancellationRequestedAt           DateTime?
+  rerunReason                       String?
+  retentionExpiresAt                DateTime?
+  lifecyclePolicyId                 String?
+  lifecyclePolicyVersion            String?
+  lifecycleDeleteStrategy           String?
+  lifecycleRetentionSeconds         Int?
+  lifecycleGovernedRecordRule       String?
+  lifecycleProviderRetentionSeconds Int?
+  lifecycleBlockedAt                DateTime?
+  lifecycleBlockReason              String?
+  tombstonedAt                      DateTime?
+  requestedAt                       DateTime          @default(now())
+  startedAt                         DateTime?
+  completedAt                       DateTime?
+  createdAt                         DateTime          @default(now())
+  updatedAt                         DateTime          @updatedAt
+
+  revision         AssignmentRevision?     @relation(fields: [assignmentRevisionId], references: [id], onDelete: Restrict)
+  question         AssignmentQuestion?     @relation(fields: [questionId], references: [id], onDelete: Restrict)
+  class            Class?                  @relation(fields: [classId], references: [id], onDelete: Restrict)
+  requester        User?                   @relation("GradingBatchRequester", fields: [requesterUserId], references: [id], onDelete: Restrict)
+  policy           GradingProviderPolicy?  @relation("GradingBatchGradingPolicy", fields: [policyId], references: [id], onDelete: Restrict)
+  conversionPolicy GradingProviderPolicy?  @relation("GradingBatchConversionPolicy", fields: [conversionPolicyId], references: [id], onDelete: Restrict)
+  lifecyclePolicy  GradingLifecyclePolicy? @relation("GradingBatchLifecyclePolicy", fields: [lifecyclePolicyId], references: [id], onDelete: Restrict)
+  items            GradingBatchItem[]
+  runs             GradingRun[]
+  jobs             GradingJob[]
+  reruns           GradingRerun[]
+
+  @@unique([requesterUserId, idempotencyKey])
+  @@index([questionId, classId, state])
+  @@index([assignmentRevisionId, questionId, questionSnapshotHash], map: "GradingBatch_assignment_question_hash_idx")
+  @@index([conversionPolicyId])
+  @@index([state, updatedAt])
+  @@index([lifecyclePolicyId])
+}
+
+model GradingBatchItem {
+  id                   String                @id @default(cuid())
+  batchId              String
+  answerId             String?
+  attemptId            String?
+  answerVersion        Int
+  questionSnapshotHash String
+  rubricVersion        String
+  evaluatorVersion     String
+  evidenceId           String?
+  conversionId         String?
+  evidenceHash         String?
+  evidenceVersion      Int?
+  inputHash            String?
+  gradingRunId         String?               @unique
+  state                GradingBatchItemState @default(QUEUED)
+  progress             Int                   @default(0)
+  retryCount           Int                   @default(0)
+  failureCode          String?
+  lastAttemptAt        DateTime?
+  workerClaimToken     String?
+  workerClaimedAt      DateTime?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+
+  batch      GradingBatch        @relation(fields: [batchId], references: [id], onDelete: Restrict)
+  attempt    SubmissionAttempt?  @relation(fields: [attemptId], references: [id], onDelete: Restrict)
+  evidence   AnswerEvidence?     @relation(fields: [evidenceId], references: [id], onDelete: Restrict)
+  conversion DocumentConversion? @relation(fields: [conversionId], references: [id], onDelete: Restrict)
+  gradingRun GradingRun?         @relation(fields: [gradingRunId], references: [id], onDelete: Restrict)
+  jobs       GradingJob[]
+
+  @@unique([batchId, answerId])
+  @@index([batchId, state])
+  @@index([attemptId])
+  @@index([workerClaimToken, workerClaimedAt])
+}
+
+model GradingRerun {
+  id                String         @id @default(cuid())
+  kind              GradingJobKind
+  batchId           String?
+  gradingRunId      String?
+  gradingJobId      String?
+  rerunIdentity     String?
+  reason            String
+  createdByPseudoId String
+  versionBoundary   String
+  idempotencyKey    String         @unique
+  createdAt         DateTime       @default(now())
+
+  batch      GradingBatch? @relation(fields: [batchId], references: [id], onDelete: Restrict)
+  gradingRun GradingRun?   @relation("GradingRunReruns", fields: [gradingRunId], references: [id], onDelete: Restrict)
+  gradingJob GradingJob?   @relation("GradingJobReruns", fields: [gradingJobId], references: [id], onDelete: Restrict)
+
+  @@index([kind, createdAt])
+  @@index([batchId])
+  @@index([gradingRunId])
+  @@index([gradingJobId])
+  @@index([rerunIdentity])
+}
+
+model GradingRun {
+  id                                String          @id @default(cuid())
+  batchId                           String?
+  answerAttemptId                   String?
+  answerEvidenceId                  String?
+  questionId                        String?
+  policyId                          String?
+  policySnapshot                    Json?
+  policySnapshotHash                String?
+  authorizationSnapshot            Json?
+  provider                          String?
+  providerRequestId                 String?
+  providerRequestedAt               DateTime?
+  providerProcessedAt               DateTime?
+  providerDeletionHandle            String?
+  lifecyclePolicyId                 String?
+  lifecyclePolicyVersion            String?
+  lifecycleDeleteStrategy           String?
+  lifecycleRetentionSeconds         Int?
+  lifecycleGovernedRecordRule       String?
+  lifecycleProviderRetentionSeconds Int?
+  lifecycleBlockedAt                DateTime?
+  lifecycleBlockReason              String?
+  rerunIdentity                     String?
+  rerunReason                       String?
+  idempotencyKey                    String
+  dedupeKey                         String          @unique
+  inputHash                         String
+  questionSnapshotHash              String
+  rubricId                          String?
+  rubricVersion                     String
+  evaluatorId                       String
+  evaluatorVersion                  String
+  questionSnapshot                  Json?
+  rubricSnapshot                    Json?
+  referenceAnswer                   String?         @db.Text
+  limitations                       String[]        @default([])
+  blockedReasons                    String[]        @default([])
+  state                             GradingRunState @default(QUEUED)
+  draftTotalScore                   Float?
+  overallComment                    String?         @db.Text
+  modelInputObjectKey               String?
+  modelOutputObjectKey              String?
+  teacherReviewedAt                 DateTime?
+  retentionExpiresAt                DateTime?
+  tombstonedAt                      DateTime?
+  createdAt                         DateTime        @default(now())
+  updatedAt                         DateTime        @updatedAt
+
+  batch           GradingBatch?                @relation(fields: [batchId], references: [id], onDelete: Restrict)
+  batchItem       GradingBatchItem?
+  answerAttempt   SubmissionAttempt?           @relation(fields: [answerAttemptId], references: [id], onDelete: Restrict)
+  answerEvidence  AnswerEvidence?              @relation(fields: [answerEvidenceId], references: [id], onDelete: Restrict)
+  question        AssignmentQuestion?          @relation(fields: [questionId], references: [id], onDelete: Restrict)
+  policy          GradingProviderPolicy?       @relation(fields: [policyId], references: [id], onDelete: Restrict)
+  lifecyclePolicy GradingLifecyclePolicy?      @relation("GradingRunLifecyclePolicy", fields: [lifecyclePolicyId], references: [id], onDelete: Restrict)
+  assessments     GradingCriterionAssessment[]
+  annotations     GradingAnnotation[]
+  jobs            GradingJob[]
+  reruns          GradingRerun[]               @relation("GradingRunReruns")
+
+  @@unique([answerAttemptId, rubricId, rubricVersion, evaluatorVersion, inputHash, rerunIdentity], map: "GradingRun_attempt_rubric_input_rerun_key")
+  @@index([questionId, state, createdAt])
+  @@index([answerAttemptId, createdAt])
+  @@index([batchId, state])
+  @@index([state, retentionExpiresAt])
+  @@index([lifecyclePolicyId])
+}
+
+model GradingCriterionAssessment {
+  id              String   @id @default(cuid())
+  gradingRunId    String
+  criterionId     String
+  levelId         String
+  score           Float
+  rationale       String   @db.Text
+  confidence      Float
+  limitationState String   @default("none")
+  teacherLevelId  String?
+  teacherScore    Float?
+  teacherComment  String?  @db.Text
+  teacherReviewedAt DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  gradingRun  GradingRun          @relation(fields: [gradingRunId], references: [id], onDelete: Restrict)
+  annotations GradingAnnotation[]
+
+  @@unique([gradingRunId, criterionId])
+  @@index([criterionId, createdAt])
+}
+
+model GradingAnnotation {
+  id           String                      @id @default(cuid())
+  gradingRunId String
+  assessmentId String?
+  blockId      String?
+  criterionId  String
+  pageNumber   Int?
+  spanStart    Int?
+  spanEnd      Int?
+  bbox         Json?
+  precision    GradingPrecision
+  excerpt      String                      @db.Text
+  comment      String                      @db.Text
+  authorRole   GradingAnnotationAuthorRole
+  createdAt    DateTime                    @default(now())
+
+  gradingRun GradingRun                  @relation(fields: [gradingRunId], references: [id], onDelete: Restrict)
+  assessment GradingCriterionAssessment? @relation(fields: [assessmentId], references: [id], onDelete: Restrict)
+  block      AnswerEvidenceBlock?        @relation(fields: [blockId], references: [id], onDelete: Restrict)
+
+  @@index([gradingRunId, criterionId])
+  @@index([blockId])
+}
+
+model GradingJob {
+  id                   String          @id @default(cuid())
+  kind                 GradingJobKind
+  state                GradingJobState @default(QUEUED)
+  dedupeKey            String          @unique
+  idempotencyKey       String?
+  reason               String?
+  rerunIdentity        String?
+  attemptId            String?
+  conversionId         String?
+  batchId              String?
+  batchItemId          String?
+  gradingRunId         String?
+  policyId             String?
+  progress             Int             @default(0)
+  attemptCount         Int             @default(0)
+  nextRunAt            DateTime?
+  cancelRequestedAt    DateTime?
+  workerClaimToken     String?
+  workerClaimedAt      DateTime?
+  workerLeaseExpiresAt DateTime?
+  lastErrorCode        String?
+  correlationId        String
+  startedAt            DateTime?
+  completedAt          DateTime?
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+
+  attempt    SubmissionAttempt?     @relation(fields: [attemptId], references: [id], onDelete: Restrict)
+  conversion DocumentConversion?    @relation(fields: [conversionId], references: [id], onDelete: Restrict)
+  batch      GradingBatch?          @relation(fields: [batchId], references: [id], onDelete: Restrict)
+  batchItem  GradingBatchItem?      @relation(fields: [batchItemId], references: [id], onDelete: Restrict)
+  gradingRun GradingRun?            @relation(fields: [gradingRunId], references: [id], onDelete: Restrict)
+  policy     GradingProviderPolicy? @relation(fields: [policyId], references: [id], onDelete: Restrict)
+  reruns     GradingRerun[]         @relation("GradingJobReruns")
+
+  @@index([state, nextRunAt])
+  @@index([kind, state, createdAt])
+  @@index([attemptId, kind])
+  @@index([batchId, state])
+  @@index([workerLeaseExpiresAt])
 }
 
 model AssignmentReviewGrant {
@@ -672,33 +1534,33 @@ model UserProgress {
 
 // 仿真详细日志
 model SimulationLog {
-  id                 String   @id @default(cuid())
-  userId             String
-  missionId          String?
-  sessionId          String? // 关联 SimulationSession
-  controlMode        String   @default("PID") // 控制模式: Manual, P, PD, PID
-  inputParams        Json // { kp, ki, kd, targetHeading, seaState }
-  metrics            Json // { avgError, maxRudderRate, energyConsumption, settlingTime }
-  trajectoryData     Json? // 轨迹数据数组 [{ time, x, z, heading, rudder }]
-  isEthicalViolation Boolean  @default(false) // 是否触发伦理违规
-  score              Float? // 得分
-  duration           Float? // 实际仿真时长（秒）
-  odysseyRunId       String? // 控制奥德赛提交幂等键；历史非奥德赛日志保持为空
-  odysseyCompletedAt DateTime? // 该 run 的积分与 Arena 桥接副作用已结束
+  id                     String    @id @default(cuid())
+  userId                 String
+  missionId              String?
+  sessionId              String? // 关联 SimulationSession
+  controlMode            String    @default("PID") // 控制模式: Manual, P, PD, PID
+  inputParams            Json // { kp, ki, kd, targetHeading, seaState }
+  metrics                Json // { avgError, maxRudderRate, energyConsumption, settlingTime }
+  trajectoryData         Json? // 轨迹数据数组 [{ time, x, z, heading, rudder }]
+  isEthicalViolation     Boolean   @default(false) // 是否触发伦理违规
+  score                  Float? // 得分
+  duration               Float? // 实际仿真时长（秒）
+  odysseyRunId           String? // 控制奥德赛提交幂等键；历史非奥德赛日志保持为空
+  odysseyCompletedAt     DateTime? // 该 run 的积分与 Arena 桥接副作用已结束
   odysseyCreditAppliedAt DateTime?
   odysseyOfficialMetrics Json?
-  odysseySubmissionId String?
-  odysseyLeaseToken String?
-  odysseyLeaseExpiresAt DateTime?
-  createdAt          DateTime @default(now())
+  odysseySubmissionId    String?
+  odysseyLeaseToken      String?
+  odysseyLeaseExpiresAt  DateTime?
+  createdAt              DateTime  @default(now())
 
   user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   mission    Mission?    @relation(fields: [missionId], references: [id])
   ethicalLog EthicalLog?
 
+  @@unique([userId, odysseyRunId])
   @@index([userId])
   @@index([missionId])
-  @@unique([userId, odysseyRunId])
 }
 
 // 伦理违规记录
@@ -2195,22 +3057,22 @@ model StudentCompetencySnapshot {
 // Canonical seven-dimensional learner portrait. Legacy competency snapshots
 // remain separate compatibility inputs and are never written into this model.
 model StudentPortraitV2Snapshot {
-  id                 String   @id @default(cuid())
-  userId             String
-  snapshotAt         DateTime
-  payloadVersion     String
-  calculationVersion String
-  migrationVersion   String
-  derivationKind     String
+  id                     String   @id @default(cuid())
+  userId                 String
+  snapshotAt             DateTime
+  payloadVersion         String
+  calculationVersion     String
+  migrationVersion       String
+  derivationKind         String
   sourceLegacySnapshotId String?
-  payload            Json
-  createdAt          DateTime @default(now())
+  payload                Json
+  createdAt              DateTime @default(now())
 
+  @@unique([userId, sourceLegacySnapshotId])
   @@index([userId, snapshotAt])
   @@index([snapshotAt])
   @@index([payloadVersion, calculationVersion])
   @@index([derivationKind, snapshotAt])
-  @@unique([userId, sourceLegacySnapshotId])
 }
 
 model StudentEvidenceFeatureCache {
@@ -2287,6 +3149,7 @@ model ClassCompetencySnapshot {
   id         String   @id @default(cuid())
   classId    String
   snapshotAt DateTime
+  materializationVersion String?
 
   aggregateJson    Json // Mean/stdev per dimension
   distributionJson Json // Score distribution
@@ -2298,7 +3161,7 @@ model ClassCompetencySnapshot {
   activeStudentCount Int
   totalStudentCount  Int
 
-  @@index([classId, snapshotAt])
+  @@index([classId, materializationVersion, snapshotAt], map: "ClassCompetency_class_version_snapshot_idx")
 }
 
 // Student risk flags
@@ -2329,6 +3192,7 @@ model StudentRiskFlag {
 model GrowthRecord {
   id     String @id @default(cuid())
   userId String
+  businessKey String? @unique(map: "GrowthRecord_businessKey_key")
 
   recordType  String // milestone, breakthrough, remediation, reflection, portfolio
   title       String
@@ -2342,9 +3206,13 @@ model GrowthRecord {
   isPublic   Boolean  @default(false)
 
   createdAt DateTime @default(now())
+  sourceSnapshotAt DateTime?
+  sourceInputDigest String?
+  expiresAt DateTime?
 
   @@index([userId, recordType])
   @@index([userId, occurredAt])
+  @@index([recordType, expiresAt], map: "GrowthRecord_recordType_expiresAt_idx")
 }
 
 // Learning recommendations

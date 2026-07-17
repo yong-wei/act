@@ -30,6 +30,12 @@ export const RUNTIME_SEMANTIC_ASSET_OBSERVATION_VERSION = 'runtime-lesson-asset-
 export const RUNTIME_SEMANTIC_DECISION_VERSION = 'runtime-lesson-media-semantic-decision.v1' as const;
 export type RuntimeSemanticSourcePathKind = 'local-path' | 'http-url' | 'none';
 
+const RUNTIME_SEMANTIC_REVIEW_LIFECYCLE_MISSING_FIELD_CODES = new Set([
+  'missing-human-review',
+  'provisional-metadata',
+  'stale-review',
+]);
+
 export interface RuntimeSemanticAssetObservation {
   schemaVersion: typeof RUNTIME_SEMANTIC_ASSET_OBSERVATION_VERSION;
   localPath: string | null;
@@ -989,7 +995,9 @@ export function buildRuntimeLessonSemanticReasonCodes(
   facts: RuntimeLessonSemanticReviewEvidence,
 ): string[] {
   return [...new Set([
-    ...(row.missingFieldCodes ?? []).map((code: string) => `audit:${code}`),
+    ...(row.missingFieldCodes ?? [])
+      .filter((code: string) => !RUNTIME_SEMANTIC_REVIEW_LIFECYCLE_MISSING_FIELD_CODES.has(code))
+      .map((code: string) => `audit:${code}`),
     `disposition:${source.disposition}`,
     `record-kind:${facts.recordKind}`,
     `source-kind:${facts.sourceFileKind}`,

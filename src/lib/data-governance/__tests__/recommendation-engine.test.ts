@@ -445,6 +445,17 @@ describe('generateRecommendations', () => {
     });
   });
 
+  it.each(['no-recent-evidence', 'no-evidence-after-revocation'])('does not generate current recommendations for %s', async (state) => {
+    mocks.prisma.studentCompetencySnapshot.findFirst.mockResolvedValue({
+      competencyVector: strongSnapshotVector,
+      snapshotAt: new Date('2026-05-20T00:00:00.000Z'),
+      factCount: 0,
+      evidenceSummary: { _derivation: { state } },
+    });
+    expect(await generateRecommendations('student-1')).toEqual([]);
+    expect(mocks.prisma.studentEvidenceFeatureCache.findUnique).not.toHaveBeenCalled();
+  });
+
   it('derives compatibility scores from native portrait v2 for rules without a legacy snapshot', async () => {
     const portrait = strongNativePortrait();
     mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(null);

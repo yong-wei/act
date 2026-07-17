@@ -2717,11 +2717,13 @@ function SharedControlWorkbenchComputePanel({
   step,
   module,
   onPanelSubmit,
+  showFrequencyReadings = true,
 }: {
   manifest: InteractiveRuntimeManifest;
   step: InteractiveRuntimeStepManifest;
   module: InteractiveRuntimeModuleManifest;
   onPanelSubmit?: (response: ManifestComputePanelSubmission) => void | Promise<void>;
+  showFrequencyReadings?: boolean;
 }) {
   const capabilityRef = computeCapabilityRef(module.payload);
   const visiblePanelIds = stringArrayField(module.payload, ['visiblePanelIds', 'visible_panel_ids', 'panels']);
@@ -2731,6 +2733,8 @@ function SharedControlWorkbenchComputePanel({
   const request = controlAnalysisRequestFromPayload(module.payload);
   const fallbackResult = controlAnalysisResultFromPayload(module.payload);
   const layout = controlWorkbenchLayoutFromPayload(module.payload);
+  const hidePerformanceMetricsMeta = module.payload.hidePerformanceMetricsMeta === true
+    || module.payload.hide_performance_metrics_meta === true;
   const submissionFields = controlWorkbenchSubmissionFieldsFromPayload(module.payload);
   const [submissionValues, setSubmissionValues] = useState<Record<string, string | number | boolean>>(() =>
     initialControlWorkbenchSubmissionValues(module.payload, request),
@@ -2782,7 +2786,12 @@ function SharedControlWorkbenchComputePanel({
     comparisonCount: comparisonRequests.length,
     submitPending,
   });
-  const canSubmit = Boolean(onPanelSubmit && capabilityRef && submissionReady);
+  const canSubmit = Boolean(
+    onPanelSubmit
+    && capabilityRef
+    && submissionReady
+    && controlWorkbenchSubmissionFieldsComplete(submissionFields, submissionValues),
+  );
   const currentPanelIds = comparisonRequests.length
     ? visiblePanelIds.filter((panelId) => !['step-response', 'time-domain', 'bode', 'magnitude', 'phase'].includes(panelId))
     : visiblePanelIds;
@@ -2849,6 +2858,8 @@ function SharedControlWorkbenchComputePanel({
             fallbackResult={fallbackResult}
             layout={layout}
             allowedPanelIds={currentPanelIds}
+            hidePerformanceMetricsMeta={hidePerformanceMetricsMeta}
+            showFrequencyReadings={showFrequencyReadings}
             onResult={handleCurrentResult}
           />
           {comparisonRequests.length ? (
@@ -2937,7 +2948,7 @@ function SharedControlWorkbenchComputePanel({
                       value={String(submissionValues[field.key] ?? '')}
                       onChange={(event) => {
                         const rawValue = event.currentTarget.value;
-                        const value = field.input === 'number' ? Number(rawValue) : rawValue;
+                        const value = field.input === 'number' && rawValue !== '' ? Number(rawValue) : rawValue;
                         setSubmissionValues((prev) => ({ ...prev, [field.key]: value }));
                       }}
                     />
@@ -5157,6 +5168,7 @@ export function createManifestContentModuleRegistry(extra: {
   revealLocked?: boolean;
   onInlineReveal?: () => void;
   onPanelSubmit?: (response: ManifestComputePanelSubmission) => void | Promise<void>;
+  showFrequencyReadings?: boolean;
   analyticsSummary?: string[];
   interactionMode?: 'active' | 'readonly';
 }): InteractiveModuleRegistry<typeof extra> {
@@ -5255,7 +5267,15 @@ export function createManifestContentModuleRegistry(extra: {
         return <StaticSurface3DPanel {...staticSurfacePanelProps(manifest, step, module)} />;
       }
       if (isControlWorkbenchComputeCapabilityRef(computeCapabilityRef(module.payload))) {
-        return <SharedControlWorkbenchComputePanel manifest={manifest} step={step} module={module} onPanelSubmit={extra.onPanelSubmit} />;
+        return (
+          <SharedControlWorkbenchComputePanel
+            manifest={manifest}
+            step={step}
+            module={module}
+            onPanelSubmit={extra.onPanelSubmit}
+            showFrequencyReadings={extra.showFrequencyReadings}
+          />
+        );
       }
       if (computeCapabilityRef(module.payload) === 'interactive-figure') {
         return <InteractiveFigureComputePanel step={step} module={module} onPanelSubmit={extra.onPanelSubmit} />;
@@ -5734,10 +5754,19 @@ function initialControlWorkbenchSubmissionValues(
     const direct = scalarSubmissionValue(defaults[field.key]);
     if (direct !== undefined) return [field.key, direct];
     if (field.defaultValue !== undefined) return [field.key, field.defaultValue];
-    if (field.input === 'slider' || field.input === 'number') return [field.key, field.min ?? 0];
-    if ((field.input === 'select' || field.input === 'toggle') && field.options?.[0]) return [field.key, field.options[0]];
+    if (field.input === 'slider') return [field.key, field.min ?? 0];
     return [field.key, ''];
   }));
+}
+
+function controlWorkbenchSubmissionFieldsComplete(
+  fields: ControlWorkbenchSubmissionField[],
+  values: Record<string, string | number | boolean>,
+) {
+  return fields.every((field) => {
+    const value = values[field.key];
+    return value !== undefined && value !== null && String(value).trim() !== '';
+  });
 }
 
 export function buildControlWorkbenchRequestForSubmission(
@@ -5748,9 +5777,29 @@ export function buildControlWorkbenchRequestForSubmission(
   const request = controlAnalysisRequestFromPayload(contentPayload);
   if (!request) return undefined;
   const currentValues = values ?? initialControlWorkbenchSubmissionValues(contentPayload, request);
-  return poleControlWorkbenchRequest(contentPayload, request, currentValues)
+  const dynamicRequest = poleControlWorkbenchRequest(contentPayload, request, currentValues)
     ?? shipComparisonControlWorkbenchRequest(contentPayload, request, currentValues)
     ?? parameterizedControlWorkbenchRequest(contentPayload, request, currentValues);
+  return controlWorkbenchRequestWithFocusFrequency(contentPayload, dynamicRequest, currentValues);
+}
+
+function controlWorkbenchRequestWithFocusFrequency(
+  payload: ContentRecord,
+  request: ControlAnalysisRequest,
+  values: Record<string, string | number | boolean>,
+): ControlAnalysisRequest {
+  const focusFrequencyField = stringField(payload, ['focusFrequencyField', 'focus_frequency_field']);
+  if (!focusFrequencyField) return request;
+  const frequency = Number(values[focusFrequencyField]);
+  const isValid = Number.isFinite(frequency)
+    && frequency > 0
+    && frequency >= request.frequencyRange.min
+    && frequency <= request.frequencyRange.max;
+  if (isValid) {
+    return { ...request, frequencyProbesRadPerSec: [frequency] };
+  }
+  const { frequencyProbesRadPerSec: _ignored, ...requestWithoutFrequencyProbes } = request;
+  return requestWithoutFrequencyProbes;
 }
 
 function poleControlWorkbenchRequest(

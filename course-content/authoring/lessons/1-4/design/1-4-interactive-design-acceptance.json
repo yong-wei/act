@@ -1,0 +1,35 @@
+{
+  "acceptance_version": 1,
+  "lesson_id": "1-4",
+  "status": "accepted",
+  "accepted_at": "2026-07-17T06:37:30+08:00",
+  "review_mode": "user-approved-design+independent-course-review+blocking-contract-fix",
+  "source_files": {
+    "interactive_page": "course-content/authoring/lessons/1-4/design/1-4-interactive-page.md",
+    "interactive_contract": "course-content/authoring/lessons/1-4/design/1-4-interactive-contract.yaml",
+    "teacher_handout": "course-content/authoring/lessons/1-4/design/1-4-teacher-handout.md",
+    "boppps": "course-content/authoring/lessons/1-4/design/1-4-boppps.md"
+  },
+  "checks": {
+    "evidence_complete": "pass",
+    "contract_alignment": "pass",
+    "student_self_contained": "pass",
+    "no_prose_pollution": "pass",
+    "sequence_finalized": "pass",
+    "standard_module_contract": "pass",
+    "runtime_audit": "pass",
+    "knowledge_graph": "pass",
+    "independent_course_review": "pass"
+  },
+  "sequence_source": "interactive_design_finalized",
+  "review_notes": [
+    "用户确认 12 步人读稿为设计主真源，步骤 1、2、12 保持口头参与且不新增页面提交。",
+    "闭环指令传递 T、扰动传递 Td 与环路 L 均保留对象标签，步骤 5 至 10 的参数、频点和多表征证据链已经契约化。",
+    "步骤 6、7、10 使用 focusFrequencyField 声明共享频点联动；该能力由共享控制工作台实现，不创建课程专用图表组件。",
+    "步骤 7 的同频点控件使用标准 slider 字段；无默认值的数值与选择观察保持空白。步骤 6 的两个计算面板是数值证据唯一入口，活动卡仅保留定义辨析。",
+    "步骤 6、7、10 的精确频率读数只在确认提交或教师揭示后显著显示，频点标记与滑块探索始终可用。",
+    "独立课程复审通过；当前审计事实为 12 步、52 模块、0 问题。",
+    "后测常显评分口径已移除答案泄露。"
+  ],
+  "issues": []
+}

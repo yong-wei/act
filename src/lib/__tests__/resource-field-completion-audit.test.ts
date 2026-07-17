@@ -37,10 +37,15 @@ import { buildRuntimeResourceProjectionArtifacts } from '../runtime-resource-pro
 import {
   atomicWriteFileBatch,
   assertCoreSemanticMaterializationManifest,
+  assertCoreSemanticReviewFreeze,
   assertFrozenCoreRegisteredKnowledgeResourceSemanticArtifacts,
+  assertResidualKnowledgeCardDispositionReviewFreeze,
   buildCourseContentClearanceReviewOverlays,
   filterTextbookSearchDocumentsForCitationReviewScope,
+  expectedCoreSemanticReviewFreezeForResourceId,
+  expectedResidualKnowledgeCardDispositionReviewFreezeForResourceId,
   isRuntimeLessonMediaSourceFile,
+  listIndexedAuthoringTextbookManifestPaths,
   loadCourseContentClearanceRecords,
   loadRuntimeLessonMediaSemanticReviewMap,
   parseResourceFieldCompletionAuditCliArgs,
@@ -52,6 +57,63 @@ import {
 } from '../../../scripts/db/generate-resource-field-completion-audit';
 
 describe('resource field completion audit', () => {
+  it('allows the item-scoped unit 1-4 knowledge-card rereview freeze only for three exact resource ids', () => {
+    const rereviewFreeze = {
+      reviewBatchId: 'unit-1-4-knowledge-card-rereview-2026-07-17-1023',
+      reviewedAt: '2026-07-17T02:23:59.000Z',
+    };
+    const rereviewResourceIds = [
+      'knowledge-card:时域响应_1_1',
+      'knowledge-card:频域分析_2_2e257d89',
+      'knowledge-card:开环幅相特性曲线_5_fd86e289',
+    ];
+
+    for (const resourceId of rereviewResourceIds) {
+      expect(expectedCoreSemanticReviewFreezeForResourceId(resourceId)).toEqual(rereviewFreeze);
+      expect(() => assertCoreSemanticReviewFreeze({ resourceId, ...rereviewFreeze })).not.toThrow();
+    }
+
+    const unrelatedResourceId = 'knowledge-card:unrelated';
+    const defaultFreeze = {
+      reviewBatchId: 'core-registered-knowledge-resource-semantics-2026-07-09',
+      reviewedAt: '2026-07-09T16:30:00.000Z',
+    };
+    expect(expectedCoreSemanticReviewFreezeForResourceId(unrelatedResourceId)).toEqual(defaultFreeze);
+    expect(() => assertCoreSemanticReviewFreeze({
+      resourceId: unrelatedResourceId,
+      ...defaultFreeze,
+    })).not.toThrow();
+    expect(() => assertCoreSemanticReviewFreeze({
+      resourceId: unrelatedResourceId,
+      ...rereviewFreeze,
+    })).toThrow(`Unexpected core semantic review batch for ${unrelatedResourceId}`);
+
+    const residualRereviewFreeze = {
+      ...rereviewFreeze,
+      reviewerId: 'core-registered-knowledge-resource-implementing-agent',
+    };
+    for (const resourceId of rereviewResourceIds) {
+      expect(expectedResidualKnowledgeCardDispositionReviewFreezeForResourceId(resourceId))
+        .toEqual(residualRereviewFreeze);
+      expect(() => assertResidualKnowledgeCardDispositionReviewFreeze({
+        resourceId,
+        ...residualRereviewFreeze,
+      })).not.toThrow();
+    }
+
+    const defaultResidualFreeze = {
+      reviewBatchId: 'residual-knowledge-card-disposition-review-2026-07-05',
+      reviewerId: 'residual-knowledge-card-implementing-agent',
+      reviewedAt: '2026-07-05T20:00:00.000Z',
+    };
+    expect(expectedResidualKnowledgeCardDispositionReviewFreezeForResourceId(unrelatedResourceId))
+      .toEqual(defaultResidualFreeze);
+    expect(() => assertResidualKnowledgeCardDispositionReviewFreeze({
+      resourceId: unrelatedResourceId,
+      ...residualRereviewFreeze,
+    })).toThrow(`Unexpected residual knowledge-card review batch for ${unrelatedResourceId}`);
+  });
+
   it('loads content clearance only for the three new lessons', async () => {
     const records = await loadCourseContentClearanceRecords();
     expect(records).toEqual(expect.arrayContaining([
@@ -279,7 +341,7 @@ describe('resource field completion audit', () => {
     )).toThrow('Missing lesson content clearance resource');
   });
 
-  it('preserves existing knowledge-card review chronology when lesson clearance is newer', () => {
+  it('preserves the latest integration knowledge-card review chronology', () => {
     const candidate = {
       id: 'knowledge-card:三域证据链_1_5',
       title: 'Existing reviewed card',
@@ -331,8 +393,8 @@ describe('resource field completion audit', () => {
     }], [sourceRow]);
 
     expect(overlay.reviewAudit).toMatchObject({
-      reviewedAt: '2026-07-14T04:30:00.000Z',
-      reviewBatchId: 'unit-1-5-content-clearance-2026-07-14',
+      reviewedAt: '2026-07-16T11:05:14.000Z',
+      reviewBatchId: 'unit-1-5-content-clearance-2026-07-16-1905',
     });
   });
 
@@ -603,6 +665,39 @@ describe('resource field completion audit', () => {
       '--materialize-core-semantic-review',
       '--unknown',
     ])).toThrow('Unsupported arguments');
+  });
+
+  it('uses only tracked or staged authoring textbook manifests as candidate sources', () => {
+    const repoRoot = mkdtempSync(join(tmpdir(), 'authoring-textbook-index-'));
+    const textbookRoot = join(repoRoot, 'course-content/authoring/resources/textbooks');
+    const runGit = (args: string[]) => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8' });
+    const writeManifest = (bookId: string) => {
+      const manifestDir = join(textbookRoot, bookId, 'chapter-01');
+      mkdirSync(manifestDir, { recursive: true });
+      writeFileSync(join(manifestDir, 'manifest.json'), `${JSON.stringify({ id: 'chapter-01' })}\n`);
+    };
+    try {
+      runGit(['init', '-q']);
+      runGit(['config', 'user.email', 'resource-audit-test@example.invalid']);
+      runGit(['config', 'user.name', 'Resource Audit Test']);
+      writeManifest('tracked-book');
+      runGit(['add', '.']);
+      runGit(['commit', '-q', '-m', 'tracked textbook manifest']);
+      writeManifest('staged-book');
+      runGit(['add', 'course-content/authoring/resources/textbooks/staged-book/chapter-01/manifest.json']);
+      writeManifest('untracked-book');
+      writeFileSync(join(repoRoot, '.git', 'info', 'exclude'), 'course-content/authoring/resources/textbooks/ignored-book/\n');
+      writeManifest('ignored-book');
+
+      expect(listIndexedAuthoringTextbookManifestPaths({ repoRoot, authoringRoot: textbookRoot })
+        .map((filePath) => filePath.slice(textbookRoot.length + 1)))
+        .toEqual([
+          'staged-book/chapter-01/manifest.json',
+          'tracked-book/chapter-01/manifest.json',
+        ]);
+    } finally {
+      rmSync(repoRoot, { recursive: true, force: true });
+    }
   });
 
   it('runs main when invoked through the package script', () => {
@@ -1117,6 +1212,13 @@ describe('resource field completion audit', () => {
       .trim()
       .split('\n')
       .map((line) => JSON.parse(line));
+    const residualKnowledgeCardDispositionReviewItems = readFileSync(
+      join(process.cwd(), 'course-content/runtime/resource-governance/residual-knowledge-card-disposition-review-items.jsonl'),
+      'utf8',
+    )
+      .trim()
+      .split('\n')
+      .map((line) => JSON.parse(line));
     const dispositionReviewEvidence = readFileSync(
       join(process.cwd(), 'course-content/runtime/resource-governance/resource-disposition-backlog-review-evidence.md'),
       'utf8',
@@ -1176,8 +1278,19 @@ describe('resource field completion audit', () => {
     const reviewedKnowledgeInfographRows = dispositionReviewItems.filter((item) =>
       item.reviewBatchId === 'residual-knowledge-infograph-disposition-review-2026-07-05'
     );
+    const rereviewedKnowledgeCardResourceIds = new Set([
+      'knowledge-card:时域响应_1_1',
+      'knowledge-card:频域分析_2_2e257d89',
+      'knowledge-card:开环幅相特性曲线_5_fd86e289',
+    ]);
     const reviewedKnowledgeCardRows = dispositionReviewItems.filter((item) =>
       item.reviewBatchId === 'residual-knowledge-card-disposition-review-2026-07-05'
+    );
+    const rereviewedKnowledgeCardRows = residualKnowledgeCardDispositionReviewItems.filter((item) =>
+      item.reviewBatchId === 'unit-1-4-knowledge-card-rereview-2026-07-17-1023'
+    );
+    const unchangedKnowledgeCardRows = residualKnowledgeCardDispositionReviewItems.filter((item) =>
+      !rereviewedKnowledgeCardResourceIds.has(item.resourceId)
     );
     const reviewedAuthoringTextbookFigureDispositionRows = dispositionReviewItems.filter((item) =>
       item.sourceFamily === 'authoring-textbook-figure' && item.changeScope === 'longform-882'
@@ -1347,7 +1460,29 @@ describe('resource field completion audit', () => {
       return item.sourceHash === actualHash;
     })).toBe(true);
     expect(unresolvedDispositionRows.some((item) => item.sourceFamily === 'knowledge-infograph')).toBe(false);
-    expect(reviewedKnowledgeCardRows).toHaveLength(277);
+    expect(reviewedKnowledgeCardRows).toHaveLength(274);
+    expect(rereviewedKnowledgeCardRows.map((item) => item.resourceId).sort())
+      .toEqual([...rereviewedKnowledgeCardResourceIds].sort());
+    expect(rereviewedKnowledgeCardRows.every((item) =>
+      item.reviewerId === 'core-registered-knowledge-resource-implementing-agent' &&
+      item.reviewedAt === '2026-07-17T02:23:59.000Z'
+    )).toBe(true);
+    expect(rereviewedKnowledgeCardRows.every((item) => {
+      const sourcePath = join(
+        process.cwd(),
+        'course-content/runtime/knowledge/cards/nodes',
+        `${item.resourceId.replace('knowledge-card:', '')}.md`,
+      );
+      const actualHash = `sha256:${createHash('sha256')
+        .update(readFileSync(sourcePath))
+        .digest('hex')}`;
+      return item.sourceHash === actualHash;
+    })).toBe(true);
+    expect(unchangedKnowledgeCardRows.every((item) =>
+      item.reviewBatchId === 'residual-knowledge-card-disposition-review-2026-07-05' &&
+      item.reviewerId === 'residual-knowledge-card-implementing-agent' &&
+      item.reviewedAt === '2026-07-05T20:00:00.000Z'
+    )).toBe(true);
     expect(reviewedKnowledgeCardRows.some((item) => item.resourceId === 'knowledge-card:Bode图_1_1')).toBe(false);
     expect(reviewedKnowledgeCardRows.some((item) => item.resourceId === 'knowledge-card:Bode首轮骨架_5_1e07d9da')).toBe(false);
     expect(reviewedKnowledgeCardRows.every((item) =>
@@ -1358,14 +1493,20 @@ describe('resource field completion audit', () => {
       !item.reviewedLimitationState.includes('unresolved-residual-disposition-review')
     )).toBe(true);
     expect(reviewedKnowledgeCardRows.every((item) => {
+      if (rereviewedKnowledgeCardResourceIds.has(item.resourceId)) return true;
       const actualHash = `sha256:${createHash('sha256')
         .update(readFileSync(item.sourcePathOrUrl))
         .digest('hex')}`;
       return item.sourceHash === actualHash;
     })).toBe(true);
-    expect(unresolvedDispositionRows
-      .filter((item) => item.sourceFamily === 'knowledge-card')
-      .every((item) => item.changeScope === 'out-of-scope-existing')).toBe(true);
+    const unresolvedKnowledgeCardRows = unresolvedDispositionRows
+      .filter((item) => item.sourceFamily === 'knowledge-card');
+    expect(unresolvedKnowledgeCardRows).toHaveLength(18);
+    expect(unresolvedKnowledgeCardRows.every((item) => (
+      /^knowledge-card:.*_1_[345]$/.test(item.resourceId) &&
+      item.changeScope === 'out-of-scope-existing' &&
+      item.reviewedLimitationState.includes('unresolved-residual-disposition-review')
+    ))).toBe(true);
     expect(knowledgeVisualSemanticReviewSummary).toMatchObject({
       selectedCount: 4,
       remainingSelectedSemanticReview: 0,
@@ -1435,9 +1576,10 @@ describe('resource field completion audit', () => {
     expect(reviewedRuntimeLessonStepRows.every((item) =>
       existsSync(item.sourcePathOrUrl) && /^sha256:[0-9a-f]{64}$/.test(item.sourceHash ?? '')
     )).toBe(true);
-    expect(unresolvedDispositionRows
-      .filter((item) => item.sourceFamily === 'runtime-lesson-step')
-      .every((item) => item.changeScope === 'out-of-scope-existing')).toBe(true);
+    const unresolvedRuntimeLessonStepRows = unresolvedDispositionRows
+      .filter((item) => item.sourceFamily === 'runtime-lesson-step');
+    expect(unresolvedRuntimeLessonStepRows).toHaveLength(5);
+    expect(unresolvedRuntimeLessonStepRows.every((item) => item.changeScope === 'out-of-scope-existing')).toBe(true);
     expect(reviewedRuntimeLessonModuleRows).toHaveLength(1352);
     expect(reviewedRuntimeLessonModuleRows.every((item) =>
       item.classification === 'excluded-with-rationale' &&
@@ -1449,9 +1591,10 @@ describe('resource field completion audit', () => {
     expect(reviewedRuntimeLessonModuleRows.every((item) =>
       existsSync(item.sourcePathOrUrl) && /^sha256:[0-9a-f]{64}$/.test(item.sourceHash ?? '')
     )).toBe(true);
-    expect(unresolvedDispositionRows
-      .filter((item) => item.sourceFamily === 'runtime-lesson-module')
-      .every((item) => item.changeScope === 'out-of-scope-existing')).toBe(true);
+    const unresolvedRuntimeLessonModuleRows = unresolvedDispositionRows
+      .filter((item) => item.sourceFamily === 'runtime-lesson-module');
+    expect(unresolvedRuntimeLessonModuleRows).toHaveLength(0);
+    expect(unresolvedRuntimeLessonModuleRows.every((item) => item.changeScope === 'out-of-scope-existing')).toBe(true);
     expect(reviewedRuntimeLessonMediaRows).toHaveLength(740);
     expect(reviewedRuntimeLessonMediaRows.every((item) =>
       ['embedded-asset', 'path-plannable'].includes(item.classification) &&
@@ -1468,7 +1611,44 @@ describe('resource field completion audit', () => {
         item.originalMissingFieldCodes.includes('missing-content-hash') &&
         item.reviewedLimitationState.includes('downstream-runtime-identity-blocker')
       )).toBe(true);
-    expect(unresolvedDispositionRows.filter((item) => item.sourceFamily === 'runtime-lesson-media')).toHaveLength(24);
+    const unresolvedRuntimeLessonMediaRows = unresolvedDispositionRows
+      .filter((item) => item.sourceFamily === 'runtime-lesson-media');
+    expect(unresolvedRuntimeLessonMediaRows).toHaveLength(25);
+    expect(unresolvedRuntimeLessonMediaRows.every((item) => item.changeScope === 'out-of-scope-existing')).toBe(true);
+    const unit14LoopBodeAuditRow = jsonlRows.find((row) =>
+      row.resourceId === 'runtime-media:1-4:1-4-fig-03b-loop-k8-bode.png'
+    );
+    const unit14ContentClearance = JSON.parse(readFileSync(
+      join(process.cwd(), 'course-content/runtime/lessons/1-4/review/content-clearance.json'),
+      'utf8',
+    )) as {
+      batch: string;
+      review_status: string;
+      independent_evidence_ref: string;
+      reviewed_resources: Array<{
+        resourceId: string;
+        sourceHash: string;
+        currentPathEligible: boolean;
+      }>;
+    };
+    const unit14LoopBodeClearance = unit14ContentClearance.reviewed_resources.find((resource) =>
+      resource.resourceId === 'runtime-media:1-4:1-4-fig-03b-loop-k8-bode.png'
+    );
+    expect(unit14LoopBodeAuditRow).toMatchObject({
+      family: 'runtime-lesson-media',
+      sourceHash: 'sha256:23f817e9487bcbcbbd892e16695bf5c0e1401ce8908a8639708a89621d4773c5',
+      reviewStatus: 'model-cleared',
+      pathEligibility: expect.objectContaining({ current: false }),
+      reviewAudit: expect.objectContaining({
+        reviewBatchId: unit14ContentClearance.batch,
+        independentEvidenceRef: unit14ContentClearance.independent_evidence_ref,
+      }),
+    });
+    expect(unit14ContentClearance.review_status).toBe('model-cleared');
+    expect(unit14LoopBodeClearance).toMatchObject({
+      sourceHash: 'sha256:23f817e9487bcbcbbd892e16695bf5c0e1401ce8908a8639708a89621d4773c5',
+      currentPathEligible: false,
+    });
     expect(reviewedRegisteredResourceRows).toHaveLength(166);
     expect(reviewedRegisteredResourceRows.every((item) =>
       ['evidence-producing', 'path-plannable'].includes(item.classification) &&

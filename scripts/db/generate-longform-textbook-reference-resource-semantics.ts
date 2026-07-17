@@ -172,9 +172,11 @@ export function sealLongformReviewRows(inputRows: ReviewSourceRow[]): ReviewSour
   return withRowHashes.map((row) => ({ ...row, reviewSourceSha256 }));
 }
 
-export async function loadLongformValidationFacts(): Promise<ValidationFacts> {
+export async function loadLongformValidationFacts(
+  auditRowsOverride?: readonly AuditRow[],
+): Promise<ValidationFacts> {
   const [auditRows, candidates, targets, inputRows] = await Promise.all([
-    readJsonl<AuditRow>(AUDIT_PATH),
+    auditRowsOverride ? Promise.resolve([...auditRowsOverride]) : readJsonl<AuditRow>(AUDIT_PATH),
     readJsonl<GroundingCandidate>(CANDIDATES_PATH),
     readJsonl<CitationTarget>(TARGETS_PATH),
     loadInputSnapshot(),

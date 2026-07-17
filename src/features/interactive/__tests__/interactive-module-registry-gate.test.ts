@@ -14,7 +14,10 @@ import {
   renderStudentInteractiveActivity,
   renderTeacherInteractiveActivity,
 } from '@/features/interactive/shared/manifest-runtime/activity-renderers';
-import { createManifestContentModuleRegistry } from '@/features/interactive/shared/manifest-runtime/content-renderers';
+import {
+  buildControlWorkbenchRequestForSubmission,
+  createManifestContentModuleRegistry,
+} from '@/features/interactive/shared/manifest-runtime/content-renderers';
 import { renderInteractiveManifestStep } from '@/features/interactive/shared/manifest-runtime/layout-renderer';
 import {
   evaluateInteractiveCoursePrivateControlPanelSourceGate,
@@ -1116,6 +1119,47 @@ describe('interactive module registry gate', () => {
     expect(html).toContain('data-control-workbench-panel="root-locus"');
     expect(html).not.toContain('data-control-workbench-panel="nyquist"');
     expect(html).toContain('提交会保存当前参数、图形状态和判断');
+  });
+
+  it('associates shared control workbench labels with stable unique form fields', () => {
+    const registry = createManifestContentModuleRegistry({
+      revealProgress: 0,
+      allowInlineReveal: false,
+    });
+    const manifest = manifestFixture({
+      module: {
+        id: 'control-workbench-module',
+        kind: 'compute.panel',
+        mustBeVisible: true,
+        payload: {
+          capabilityRef: 'control-workbench',
+          request: controlAnalysisRequestFixture(),
+          submissionFields: [
+            { key: 'mode', label: '模式', input: 'select', options: ['auto', 'manual'] },
+            { key: 'k', label: '增益', input: 'slider', min: 0, max: 10 },
+            { key: 'focus', label: '频率', input: 'number' },
+          ],
+        },
+      },
+    });
+    const step = manifest.steps[0];
+    const node = registry['compute.panel']({
+      manifest,
+      step,
+      module: step.modules[0],
+      extra: { revealProgress: 0, allowInlineReveal: false },
+    }) as ReactElement;
+    const html = renderToStaticMarkup(createElement(ThemeProvider, null, node));
+
+    expect(html).toContain('for="control-workbench-control-workbench-module-mode"');
+    expect(html).toContain('id="control-workbench-control-workbench-module-mode"');
+    expect(html).toContain('name="mode"');
+    expect(html).toContain('for="control-workbench-control-workbench-module-k"');
+    expect(html).toContain('id="control-workbench-control-workbench-module-k"');
+    expect(html).toContain('name="k"');
+    expect(html).toContain('for="control-workbench-control-workbench-module-focus"');
+    expect(html).toContain('id="control-workbench-control-workbench-module-focus"');
+    expect(html).toContain('name="focus"');
   });
 
   it('captures shared control workbench input values before state update callbacks', () => {
@@ -3631,6 +3675,100 @@ function controlAnalysisResultFixture(): Record<string, unknown> {
     isFallback: true,
   };
 }
+
+describe('shared control workbench frequency linkage', () => {
+  it('injects the valid focus frequency and synchronizes a numeric gain select', () => {
+    const request = buildControlWorkbenchRequestForSubmission({
+      request: {
+        ...controlAnalysisRequestFixture(),
+        rootLocus: { minGain: 0, maxGain: 10, samples: 64, currentGain: 0 },
+      },
+      focusFrequencyField: 'focus_frequency_rad_s',
+      submissionFields: [
+        { key: 'focus_frequency_rad_s', label: '频率', input: 'select', options: ['0.5', '2'] },
+        { key: 'k', label: '增益', input: 'select', options: ['1', '3'] },
+      ],
+    }, {
+      focus_frequency_rad_s: '2',
+      k: '3',
+    });
+
+    expect(request?.frequencyProbesRadPerSec).toEqual([2]);
+    expect(request?.structures[0].params.k).toBe(3);
+    expect(request?.rootLocus.currentGain).toBe(3);
+  });
+
+  it('does not implicitly update a numeric gain select when multiple gains are enabled', () => {
+    const baseRequest = controlAnalysisRequestFixture();
+    const request = buildControlWorkbenchRequestForSubmission({
+      request: {
+        ...baseRequest,
+        structures: [
+          { kind: 'gain', enabled: true, params: { k: 1 }, label: 'K1' },
+          { kind: 'gain', enabled: true, params: { k: 2 }, label: 'K2' },
+        ],
+      },
+      submissionFields: [{ key: 'k', label: '增益', input: 'select', options: ['1', '3'] }],
+    }, { k: '3' });
+
+    expect(request?.structures.map((structure) => structure.params.k)).toEqual([1, 2]);
+    expect(request?.rootLocus.currentGain).toBe(1);
+  });
+
+  it.each(['slider', 'number'] as const)(
+    'synchronizes a %s gain field with the sole enabled gain and root locus',
+    (input) => {
+      const request = buildControlWorkbenchRequestForSubmission({
+        request: {
+          ...controlAnalysisRequestFixture(),
+          rootLocus: { minGain: 0, maxGain: 10, samples: 64, currentGain: 8 },
+        },
+        submissionFields: [{ key: 'k', label: '增益', input }],
+      }, { k: 4 });
+
+      expect(request?.structures[0].params.k).toBe(4);
+      expect(request?.rootLocus.currentGain).toBe(4);
+    },
+  );
+
+  it.each(['slider', 'number'] as const)(
+    'does not implicitly update %s gain structures or root locus when multiple gains are enabled',
+    (input) => {
+      const request = buildControlWorkbenchRequestForSubmission({
+        request: {
+          ...controlAnalysisRequestFixture(),
+          structures: [
+            { kind: 'gain', enabled: true, params: { k: 1 }, label: 'K1' },
+            { kind: 'gain', enabled: true, params: { k: 2 }, label: 'K2' },
+          ],
+          rootLocus: { minGain: 0, maxGain: 10, samples: 64, currentGain: 8 },
+        },
+        submissionFields: [{ key: 'k', label: '增益', input }],
+      }, { k: 4 });
+
+      expect(request?.structures.map((structure) => structure.params.k)).toEqual([1, 2]);
+      expect(request?.rootLocus.currentGain).toBe(8);
+    },
+  );
+
+  it('drops invalid focus frequencies and does not map ordinary text selects into parameters', () => {
+    const request = buildControlWorkbenchRequestForSubmission({
+      request: controlAnalysisRequestFixture(),
+      focusFrequencyField: 'focus_frequency_rad_s',
+      submissionFields: [
+        { key: 'focus_frequency_rad_s', label: '频率', input: 'number' },
+        { key: 'k', label: '模式', input: 'select', options: ['automatic', 'manual'] },
+      ],
+    }, {
+      focus_frequency_rad_s: 20,
+      k: 'manual',
+    });
+
+    expect(request?.frequencyProbesRadPerSec).toBeUndefined();
+    expect(request?.structures[0].params.k).toBe(1);
+    expect(request?.rootLocus.currentGain).toBe(1);
+  });
+});
 
 function collectSourceFiles(root: string): string[] {
   const result: string[] = [];

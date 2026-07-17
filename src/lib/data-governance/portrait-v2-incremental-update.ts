@@ -29,6 +29,8 @@ export interface PortraitV2IncrementalEvidence {
   sourceFamily: 'LearningFact';
   outcome: 'positive' | 'partial' | 'negative' | 'context-only';
   contributions: Partial<Record<PortraitV2DimensionId, number>>;
+  rubricWeight?: number;
+  normalizedPerformance?: boolean;
 }
 
 export interface PortraitV2IncrementalResult {
@@ -65,7 +67,7 @@ export function updatePortraitV2Incrementally(input: {
     const relevant = uniqueEvidence.filter((item) =>
       item.outcome !== 'context-only' &&
       Number.isFinite(item.contributions[id]) &&
-      item.contributions[id] !== 0,
+      (item.contributions[id] !== 0 || item.normalizedPerformance === true),
     );
     if (relevant.length === 0) return aged;
     affectedDimensions.push(id);
@@ -93,10 +95,16 @@ export function mapLearningFactsToPortraitEvidence(facts: PortraitLearningFactDe
   const mappingIssues = new Set<string>();
   const evidence = facts.map((fact) => {
     const profileWeight = resolveLearningFactProfileWeight(fact.contextJson);
+    const context = isRecord(fact.contextJson) ? fact.contextJson : {};
+    const rawRubricWeight = context.rubricWeight;
+    const hasRubricWeight = typeof rawRubricWeight === 'number';
+    const validRubricWeight = hasRubricWeight && Number.isFinite(rawRubricWeight) && rawRubricWeight > 0;
+    if (hasRubricWeight && !validRubricWeight) mappingIssues.add(`invalid-rubric-weight:${fact.id}`);
     const contributions: Partial<Record<PortraitV2DimensionId, number>> = {};
     const source = isRecord(fact.competencyContribution) ? fact.competencyContribution : {};
     for (const [legacyDimension, rawValue] of Object.entries(source)) {
-      if (typeof rawValue !== 'number' || !Number.isFinite(rawValue) || rawValue === 0) continue;
+      const normalizedRubricPerformance = hasRubricWeight;
+      if (typeof rawValue !== 'number' || !Number.isFinite(rawValue) || (rawValue === 0 && !normalizedRubricPerformance)) continue;
       const mapping = mapLegacyCompetencyDimensionToPortraitV2(legacyDimension);
       if (mapping.targetDimensions.length === 0) {
         mappingIssues.add(`unknown-portrait-dimension:${legacyDimension}`);
@@ -112,6 +120,8 @@ export function mapLearningFactsToPortraitEvidence(facts: PortraitLearningFactDe
       sourceFamily: 'LearningFact' as const,
       outcome: profileWeight <= 0 ? 'context-only' as const : classifyOutcome(fact.outcome),
       contributions,
+      rubricWeight: hasRubricWeight ? (validRubricWeight ? rawRubricWeight : 1) : undefined,
+      normalizedPerformance: hasRubricWeight,
     };
   });
   return { evidence, mappingIssues: [...mappingIssues] };
@@ -125,9 +135,14 @@ function applyEvidence(
 ): PortraitV2DimensionState {
   const ordered = [...evidence].sort((a, b) => Date.parse(a.occurredAt) - Date.parse(b.occurredAt));
   const signals = ordered.map((item) => signedSignal(item, item.contributions[id] ?? 0));
-  const averageSignal = signals.reduce((sum, value) => sum + value, 0) / signals.length;
+  const observationScores = signals.map((signal, index) => ordered[index].normalizedPerformance
+    ? clamp(signal * 100, 0, 100)
+    : clamp(50 + signal * 50, 0, 100));
+  const weights = ordered.map((item) => safeRubricWeight(item.rubricWeight));
+  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+  const averageSignal = signals.reduce((sum, value, index) => sum + value * weights[index], 0) / totalWeight;
   const hadEvidence = previous.evidenceSummary.totalCount > 0;
-  const observation = clamp(50 + averageSignal * 50, 0, 100);
+  const observation = observationScores.reduce((sum, value, index) => sum + value * weights[index], 0) / totalWeight;
   const boundedDelta = clamp(observation - previous.score, -MAX_SCORE_DELTA_PER_UPDATE, MAX_SCORE_DELTA_PER_UPDATE);
   const score = round(hadEvidence ? previous.score + boundedDelta : observation);
   const confidence = round(clamp(
@@ -203,9 +218,14 @@ function missingDimension(id: PortraitV2DimensionId): PortraitV2DimensionState {
 
 function signedSignal(evidence: PortraitV2IncrementalEvidence, contribution: number): number {
   const magnitude = Math.abs(clamp(contribution, -1, 1));
+  if (evidence.normalizedPerformance) return clamp(contribution, 0, 1);
   if (evidence.outcome === 'negative') return -magnitude;
   if (evidence.outcome === 'partial') return contribution * 0.45;
   return contribution;
+}
+
+function safeRubricWeight(value: number | undefined): number {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : 1;
 }
 
 function classifyOutcome(outcome: string): PortraitV2IncrementalEvidence['outcome'] {

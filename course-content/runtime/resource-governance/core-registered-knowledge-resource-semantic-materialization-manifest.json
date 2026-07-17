@@ -1,13 +1,13 @@
 {
   "artifactVersion": "core-registered-knowledge-resource-semantic-materialization-manifest.v1",
   "legacyAuditSha256": "sha256:92bbd8d5aaaa414ae42795f5ed5c908bf2c24a9bb4dcdc9e82b95a836a2bd664",
-  "legacySummaryMetadataSha256": "sha256:ce9427a1b2935475acc6d27bbfcab109a6a60ae6694ca9eb3c8571a969aaaf6b",
-  "nonScopeRowsCanonicalSha256": "sha256:428dc7defc1b71795dace8708ac929f6a594aa5c411c479d4346b8038da1f077",
-  "scopeRowsInvariantCanonicalSha256": "sha256:d70bf1d3c71a9a72db0e9cc6d67a6fbadf70f02a09ec94388905967616999437",
-  "runtimeScopeRowsInvariantCanonicalSha256": "sha256:3f1b0248314fa303a604481cc818614617f0ef597d2a3171607dab5b3c71c47c",
-  "reviewSourceFileSha256": "sha256:86f60ed8c6087ed1041bb0fef70960bc59d30cb2c96dc66bdddc99e54a36a356",
-  "denominator": 6440,
+  "legacySummaryMetadataSha256": "sha256:f848c9ca220cde7be03f9167ebf9e57b647ab7d919318b9bb20b63938abbfd2b",
+  "nonScopeRowsCanonicalSha256": "sha256:79578241d2e18da9eacc14dd0c880c4298cb48ae6c73df30e6080460a487a6fa",
+  "scopeRowsInvariantCanonicalSha256": "sha256:9b94db8c0dfdd8514ac2f313b483e5828bfa4847fff964b4ee861464071f1e49",
+  "runtimeScopeRowsInvariantCanonicalSha256": "sha256:fc3631e65f2b337de07ac57d3512a6e73cb135cd01b767f8804928503a7dd192",
+  "reviewSourceFileSha256": "sha256:337e6a6ce9f6a8a8dc9d2971587ab04460c019c9312fc7a0d13f698bb27c8f53",
+  "denominator": 6509,
   "scopeRows": 624,
-  "runtimeScopeRows": 2732,
+  "runtimeScopeRows": 2801,
   "nonScopeRows": 3084
 }

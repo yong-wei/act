@@ -53,6 +53,25 @@ def test_unit_1_5_uses_manifest_first_implementation_contract_registry():
     }
 
 
+def test_unit_1_4_uses_manifest_first_implementation_contract_registry():
+    config = review_lesson_content.IMPLEMENTATION_CONTRACT_REGISTRY['1-4']
+
+    assert config == {
+        'course_lib_path': review_lesson_content.REPO_ROOT / 'src' / 'lib' / 'unit-1-4-course.ts',
+        'runtime_manifest_path': (
+            review_lesson_content.REPO_ROOT
+            / 'course-content'
+            / 'runtime'
+            / 'lessons'
+            / '1-4'
+            / 'interactive-manifest.json'
+        ),
+        'lesson_steps_from_runtime_manifest': True,
+        'lesson_steps_const': 'UNIT_1_4_LESSON_STEPS',
+        'source_path': 'src/lib/unit-1-4-course.ts',
+    }
+
+
 def test_authoring_lesson_graph_nodes_use_canonical_id_field():
     lesson_root = Path(__file__).resolve().parents[1] / 'authoring' / 'lessons'
     offenders: list[str] = []
@@ -164,6 +183,56 @@ def test_extract_expected_code_media_reads_storage_lines():
         '2-2-course.mp4',
         '2-2-audio.m4a',
     ]
+
+
+def test_build_runtime_asset_check_reports_missing_course_media_and_teacher_handout(monkeypatch, tmp_path):
+    lesson_id = 'demo-1'
+    lesson_dir = tmp_path / 'authoring' / 'lessons' / lesson_id
+    design_dir = lesson_dir / 'design'
+    processed_dir = lesson_dir / 'media' / 'processed'
+    runtime_dir = tmp_path / 'runtime' / 'lessons' / lesson_id
+    design_dir.mkdir(parents=True)
+    processed_dir.mkdir(parents=True)
+    (design_dir / f'{lesson_id}-handout.pdf').write_bytes(b'handout')
+    (design_dir / f'{lesson_id}-teacher-handout.md').write_text('# teacher', encoding='utf-8')
+    (processed_dir / f'{lesson_id}-cover-comic.png').write_bytes(b'cover')
+    (processed_dir / f'{lesson_id}-info.png').write_bytes(b'info')
+
+    monkeypatch.setattr(review_lesson_content, 'get_runtime_lesson_dir', lambda _: runtime_dir)
+
+    def ensure_media_index(path, _lesson_id):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text('# media', encoding='utf-8')
+
+    monkeypatch.setattr(review_lesson_content, 'ensure_runtime_media_index', ensure_media_index)
+
+    check = review_lesson_content.build_runtime_asset_check(lesson_id, lesson_dir)
+
+    assert check['expected_assets'] == [
+        'demo-1-cover-comic.png',
+        'demo-1-info.png',
+        'demo-1-slides.pdf',
+        'demo-1-intro-video.mp4',
+        'demo-1-course.mp4',
+        'demo-1-audio.m4a',
+        'demo-1-handout.pdf',
+        'demo-1-teacher-handout.pdf',
+        'demo-1-media.md',
+    ]
+    assert check['generated_assets'] == [
+        'demo-1-cover-comic.png',
+        'demo-1-info.png',
+        'demo-1-handout.pdf',
+        'demo-1-media.md',
+    ]
+    assert check['missing_assets'] == [
+        'demo-1-slides.pdf',
+        'demo-1-intro-video.mp4',
+        'demo-1-course.mp4',
+        'demo-1-audio.m4a',
+        'demo-1-teacher-handout.pdf',
+    ]
+    assert check['teacher_handout_pdf_source'] is None
 
 
 def test_extract_expected_code_media_reads_resource_table_assets():
@@ -406,12 +475,15 @@ def test_build_review_report_includes_interactive_page_coverage_section(tmp_path
     assert '已覆盖讲义中的核心公式与静态承载内容。' in report
 
 
-def test_build_review_report_does_not_claim_missing_design_sources_passed(tmp_path):
+def test_build_review_report_does_not_claim_missing_design_sources_passed(tmp_path, monkeypatch):
+    lesson_id = 'missing-design-fixture'
+    lesson_dir = tmp_path / 'authoring' / 'lessons' / lesson_id
+    monkeypatch.setattr(review_lesson_content, 'get_authoring_lesson_dir', lambda _: lesson_dir)
     handout_path = tmp_path / 'handout.md'
     handout_path.write_text('$$G(s)$$', encoding='utf-8')
 
     report = review_lesson_content.build_review_report(
-        '1-4',
+        lesson_id,
         '理论',
         [handout_path],
         {'files': [{'path': 'handout.md', 'issues': []}]},
@@ -434,12 +506,12 @@ def test_build_review_report_does_not_claim_missing_design_sources_passed(tmp_pa
         {
             'summary': [],
             'warnings': [],
-            'blocking_issues': ['缺少 design/1-4-interactive-page.md'],
+            'blocking_issues': [f'缺少 design/{lesson_id}-interactive-page.md'],
         },
     )
 
-    assert '未提供 `design/1-4-boppps.md`' in report
-    assert '缺少 design/1-4-interactive-page.md' in report
+    assert f'未提供 `design/{lesson_id}-boppps.md`' in report
+    assert f'缺少 design/{lesson_id}-interactive-page.md' in report
     assert '已纳入审查，并满足' not in report
 
 

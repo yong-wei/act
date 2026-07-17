@@ -1,32 +1,31 @@
 {
   "artifactVersion": "resource-field-completion-audit.v1",
-  "auditMissingFieldRows": 6391,
-  "queuedResources": 6391,
-  "primaryQueueItems": 6391,
-  "dependentQueueItems": 22197,
+  "auditMissingFieldRows": 6460,
+  "queuedResources": 6460,
+  "primaryQueueItems": 6460,
+  "dependentQueueItems": 22404,
   "byFollowupBucket": {
-    "repair-resource-identity-bindings": 316,
-    "complete-analysis-design-graph-resource-bindings": 6997,
-    "complete-evidence-lineage-bindings": 6744,
-    "review-runtime-lesson-planning-units": 8555,
-    "review-runtime-media-handout-dispositions": 2505,
-    "complete-citation-and-rag-bindings": 1970,
+    "repair-resource-identity-bindings": 320,
+    "complete-analysis-design-graph-resource-bindings": 7121,
+    "complete-evidence-lineage-bindings": 6850,
+    "review-runtime-lesson-planning-units": 8672,
+    "review-runtime-media-handout-dispositions": 2362,
+    "complete-citation-and-rag-bindings": 2034,
     "complete-foundation-graph-resource-bindings": 436,
-    "blocked-resource-completion-dependencies": 1065
+    "blocked-resource-completion-dependencies": 1069
   },
   "byMissingFieldCode": {
-    "missing-content-hash": 316,
-    "missing-capability-target": 4081,
-    "missing-evidence-contract": 3372,
-    "missing-evidence-instrumentation": 3372,
-    "missing-knowledge-binding": 3352,
-    "missing-path-profile": 5049,
-    "missing-path-target": 3506,
-    "missing-human-review": 2397,
+    "missing-content-hash": 320,
+    "missing-capability-target": 4146,
+    "missing-evidence-contract": 3425,
+    "missing-evidence-instrumentation": 3425,
+    "missing-knowledge-binding": 3411,
+    "missing-path-profile": 5114,
+    "missing-path-target": 3558,
+    "missing-human-review": 2362,
     "missing-segment-ref": 159,
-    "blocked-by-dependency": 1065,
-    "missing-citation-target": 1811,
-    "provisional-metadata": 108
+    "blocked-by-dependency": 1069,
+    "missing-citation-target": 1875
   },
   "queues": [
     {
@@ -522,6 +521,18 @@
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
+      "id": "resource-completion:dependent:runtime-lesson-media:controlModeling:runtime-media:missing-content-hash:repair-resource-identity-bindings:blocked-by-dependency",
+      "queueRole": "dependent",
+      "sourceFamily": "runtime-lesson-media",
+      "learningGoalId": "controlModeling",
+      "graphDomain": "runtime-media",
+      "missingFieldCode": "missing-content-hash",
+      "followupBucket": "repair-resource-identity-bindings",
+      "dependencyState": "blocked-by-dependency",
+      "total": 4,
+      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
+    },
+    {
       "id": "resource-completion:dependent:runtime-lesson-media:unassigned-learning-goal:runtime-media:missing-capability-target:complete-analysis-design-graph-resource-bindings:needs-human-review",
       "queueRole": "dependent",
       "sourceFamily": "runtime-lesson-media",
@@ -530,7 +541,7 @@
       "missingFieldCode": "missing-capability-target",
       "followupBucket": "complete-analysis-design-graph-resource-bindings",
       "dependencyState": "needs-human-review",
-      "total": 122,
+      "total": 123,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -554,7 +565,7 @@
       "missingFieldCode": "missing-evidence-contract",
       "followupBucket": "complete-evidence-lineage-bindings",
       "dependencyState": "needs-human-review",
-      "total": 122,
+      "total": 123,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -578,7 +589,7 @@
       "missingFieldCode": "missing-evidence-instrumentation",
       "followupBucket": "complete-evidence-lineage-bindings",
       "dependencyState": "needs-human-review",
-      "total": 122,
+      "total": 123,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -602,7 +613,7 @@
       "missingFieldCode": "missing-knowledge-binding",
       "followupBucket": "complete-analysis-design-graph-resource-bindings",
       "dependencyState": "needs-human-review",
-      "total": 122,
+      "total": 123,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -614,7 +625,7 @@
       "missingFieldCode": "missing-path-profile",
       "followupBucket": "review-runtime-lesson-planning-units",
       "dependencyState": "needs-human-review",
-      "total": 122,
+      "total": 123,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -638,7 +649,7 @@
       "missingFieldCode": "missing-capability-target",
       "followupBucket": "complete-analysis-design-graph-resource-bindings",
       "dependencyState": "needs-human-review",
-      "total": 137,
+      "total": 112,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -650,7 +661,7 @@
       "missingFieldCode": "missing-capability-target",
       "followupBucket": "complete-analysis-design-graph-resource-bindings",
       "dependencyState": "ready",
-      "total": 1298,
+      "total": 1375,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -662,7 +673,7 @@
       "missingFieldCode": "missing-citation-target",
       "followupBucket": "complete-citation-and-rag-bindings",
       "dependencyState": "needs-human-review",
-      "total": 129,
+      "total": 104,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -674,7 +685,7 @@
       "missingFieldCode": "missing-citation-target",
       "followupBucket": "complete-citation-and-rag-bindings",
       "dependencyState": "ready",
-      "total": 1254,
+      "total": 1331,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -686,7 +697,7 @@
       "missingFieldCode": "missing-evidence-contract",
       "followupBucket": "complete-evidence-lineage-bindings",
       "dependencyState": "needs-human-review",
-      "total": 137,
+      "total": 112,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -698,7 +709,7 @@
       "missingFieldCode": "missing-evidence-contract",
       "followupBucket": "complete-evidence-lineage-bindings",
       "dependencyState": "ready",
-      "total": 1298,
+      "total": 1375,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -710,7 +721,7 @@
       "missingFieldCode": "missing-evidence-instrumentation",
       "followupBucket": "complete-evidence-lineage-bindings",
       "dependencyState": "needs-human-review",
-      "total": 137,
+      "total": 112,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -722,7 +733,7 @@
       "missingFieldCode": "missing-evidence-instrumentation",
       "followupBucket": "complete-evidence-lineage-bindings",
       "dependencyState": "ready",
-      "total": 1298,
+      "total": 1375,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -734,19 +745,7 @@
       "missingFieldCode": "missing-knowledge-binding",
       "followupBucket": "complete-analysis-design-graph-resource-bindings",
       "dependencyState": "needs-human-review",
-      "total": 137,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
-      "id": "resource-completion:dependent:runtime-lesson-module:unassigned-learning-goal:runtime-lesson:missing-knowledge-binding:complete-analysis-design-graph-resource-bindings:ready",
-      "queueRole": "dependent",
-      "sourceFamily": "runtime-lesson-module",
-      "learningGoalId": "unassigned-learning-goal",
-      "graphDomain": "runtime-lesson",
-      "missingFieldCode": "missing-knowledge-binding",
-      "followupBucket": "complete-analysis-design-graph-resource-bindings",
-      "dependencyState": "ready",
-      "total": 58,
+      "total": 112,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -758,7 +757,7 @@
       "missingFieldCode": "missing-path-profile",
       "followupBucket": "review-runtime-lesson-planning-units",
       "dependencyState": "needs-human-review",
-      "total": 137,
+      "total": 112,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -770,7 +769,7 @@
       "missingFieldCode": "missing-path-profile",
       "followupBucket": "review-runtime-lesson-planning-units",
       "dependencyState": "ready",
-      "total": 1298,
+      "total": 1375,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -782,7 +781,7 @@
       "missingFieldCode": "missing-path-target",
       "followupBucket": "review-runtime-lesson-planning-units",
       "dependencyState": "needs-human-review",
-      "total": 137,
+      "total": 112,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -794,19 +793,7 @@
       "missingFieldCode": "missing-path-target",
       "followupBucket": "review-runtime-lesson-planning-units",
       "dependencyState": "ready",
-      "total": 1298,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
-      "id": "resource-completion:dependent:runtime-lesson-module:unassigned-learning-goal:runtime-lesson:provisional-metadata:review-runtime-media-handout-dispositions:needs-human-review",
-      "queueRole": "dependent",
-      "sourceFamily": "runtime-lesson-module",
-      "learningGoalId": "unassigned-learning-goal",
-      "graphDomain": "runtime-lesson",
-      "missingFieldCode": "provisional-metadata",
-      "followupBucket": "review-runtime-media-handout-dispositions",
-      "dependencyState": "needs-human-review",
-      "total": 25,
+      "total": 1375,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -818,7 +805,7 @@
       "missingFieldCode": "missing-capability-target",
       "followupBucket": "complete-analysis-design-graph-resource-bindings",
       "dependencyState": "needs-human-review",
-      "total": 51,
+      "total": 40,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -830,7 +817,7 @@
       "missingFieldCode": "missing-capability-target",
       "followupBucket": "complete-analysis-design-graph-resource-bindings",
       "dependencyState": "ready",
-      "total": 112,
+      "total": 109,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -842,7 +829,7 @@
       "missingFieldCode": "missing-citation-target",
       "followupBucket": "complete-citation-and-rag-bindings",
       "dependencyState": "needs-human-review",
-      "total": 51,
+      "total": 40,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -854,19 +841,7 @@
       "missingFieldCode": "missing-citation-target",
       "followupBucket": "complete-citation-and-rag-bindings",
       "dependencyState": "ready",
-      "total": 377,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
-      "id": "resource-completion:dependent:runtime-lesson-step:unassigned-learning-goal:runtime-lesson:missing-knowledge-binding:complete-analysis-design-graph-resource-bindings:ready",
-      "queueRole": "dependent",
-      "sourceFamily": "runtime-lesson-step",
-      "learningGoalId": "unassigned-learning-goal",
-      "graphDomain": "runtime-lesson",
-      "missingFieldCode": "missing-knowledge-binding",
-      "followupBucket": "complete-analysis-design-graph-resource-bindings",
-      "dependencyState": "ready",
-      "total": 5,
+      "total": 400,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -878,7 +853,7 @@
       "missingFieldCode": "missing-path-profile",
       "followupBucket": "review-runtime-lesson-planning-units",
       "dependencyState": "needs-human-review",
-      "total": 51,
+      "total": 40,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -890,19 +865,7 @@
       "missingFieldCode": "missing-path-profile",
       "followupBucket": "review-runtime-lesson-planning-units",
       "dependencyState": "ready",
-      "total": 367,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
-      "id": "resource-completion:dependent:runtime-lesson-step:unassigned-learning-goal:runtime-lesson:provisional-metadata:review-runtime-media-handout-dispositions:needs-human-review",
-      "queueRole": "dependent",
-      "sourceFamily": "runtime-lesson-step",
-      "learningGoalId": "unassigned-learning-goal",
-      "graphDomain": "runtime-lesson",
-      "missingFieldCode": "provisional-metadata",
-      "followupBucket": "review-runtime-media-handout-dispositions",
-      "dependencyState": "needs-human-review",
-      "total": 11,
+      "total": 390,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -1254,6 +1217,18 @@
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
+      "id": "resource-completion:primary:runtime-lesson-media:controlModeling:runtime-media:blocked-by-dependency:blocked-resource-completion-dependencies:blocked-by-dependency",
+      "queueRole": "primary",
+      "sourceFamily": "runtime-lesson-media",
+      "learningGoalId": "controlModeling",
+      "graphDomain": "runtime-media",
+      "missingFieldCode": "blocked-by-dependency",
+      "followupBucket": "blocked-resource-completion-dependencies",
+      "dependencyState": "blocked-by-dependency",
+      "total": 4,
+      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
+    },
+    {
       "id": "resource-completion:primary:runtime-lesson-media:controlModeling:runtime-media:missing-content-hash:repair-resource-identity-bindings:needs-human-review",
       "queueRole": "primary",
       "sourceFamily": "runtime-lesson-media",
@@ -1286,7 +1261,7 @@
       "missingFieldCode": "missing-human-review",
       "followupBucket": "review-runtime-media-handout-dispositions",
       "dependencyState": "needs-human-review",
-      "total": 122,
+      "total": 123,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -1310,7 +1285,7 @@
       "missingFieldCode": "missing-human-review",
       "followupBucket": "review-runtime-media-handout-dispositions",
       "dependencyState": "needs-human-review",
-      "total": 137,
+      "total": 112,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -1322,19 +1297,7 @@
       "missingFieldCode": "missing-knowledge-binding",
       "followupBucket": "complete-analysis-design-graph-resource-bindings",
       "dependencyState": "ready",
-      "total": 1240,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
-      "id": "resource-completion:primary:runtime-lesson-module:unassigned-learning-goal:runtime-lesson:provisional-metadata:review-runtime-media-handout-dispositions:ready",
-      "queueRole": "primary",
-      "sourceFamily": "runtime-lesson-module",
-      "learningGoalId": "unassigned-learning-goal",
-      "graphDomain": "runtime-lesson",
-      "missingFieldCode": "provisional-metadata",
-      "followupBucket": "review-runtime-media-handout-dispositions",
-      "dependencyState": "ready",
-      "total": 58,
+      "total": 1375,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -1346,7 +1309,7 @@
       "missingFieldCode": "missing-capability-target",
       "followupBucket": "complete-analysis-design-graph-resource-bindings",
       "dependencyState": "ready",
-      "total": 265,
+      "total": 291,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -1358,7 +1321,7 @@
       "missingFieldCode": "missing-human-review",
       "followupBucket": "review-runtime-media-handout-dispositions",
       "dependencyState": "needs-human-review",
-      "total": 51,
+      "total": 40,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -1370,19 +1333,7 @@
       "missingFieldCode": "missing-knowledge-binding",
       "followupBucket": "complete-analysis-design-graph-resource-bindings",
       "dependencyState": "ready",
-      "total": 98,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
-      "id": "resource-completion:primary:runtime-lesson-step:unassigned-learning-goal:runtime-lesson:provisional-metadata:review-runtime-media-handout-dispositions:ready",
-      "queueRole": "primary",
-      "sourceFamily": "runtime-lesson-step",
-      "learningGoalId": "unassigned-learning-goal",
-      "graphDomain": "runtime-lesson",
-      "missingFieldCode": "provisional-metadata",
-      "followupBucket": "review-runtime-media-handout-dispositions",
-      "dependencyState": "ready",
-      "total": 14,
+      "total": 109,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
