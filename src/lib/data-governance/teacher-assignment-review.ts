@@ -551,6 +551,17 @@ export async function getTeacherAssignmentReview(db: any, input: { actor: Teache
   return review;
 }
 
+export function deriveTeacherReviewQueueStatus(run: any) {
+  const review = run?.teacherAssignmentReview;
+  return review?.state === 'WORKING' ? 'IN_REVIEW'
+    : run?.approvalSnapshot || review?.state === 'APPROVED' || run?.state === 'APPROVED' ? 'APPROVED'
+      : review?.state === 'RETURNED' || run?.state === 'RETURNED' ? 'RETURNED'
+        : run?.state === 'AWAITING_REVIEW' ? 'READY'
+          : run && ['QUEUED', 'RUNNING', 'RETRYABLE'].includes(run.state) ? 'PROCESSING'
+            : run && ['BLOCKED', 'FAILED', 'CONTENT_UNAVAILABLE'].includes(run.state) ? 'BLOCKED'
+              : 'NOT_SUBMITTED';
+}
+
 export async function listTeacherAssignmentSubmissions(db: any, input: { actor: TeacherReviewActor; assignmentId: string; now?: Date }) {
   const now = input.now ?? new Date();
   const assignment = await db.assignment.findUnique({ where: { id: input.assignmentId }, include: { reviewGrants: true } });
@@ -593,13 +604,7 @@ export async function listTeacherAssignmentSubmissions(db: any, input: { actor: 
       .map((question: any) => {
         const run = latestRunByQuestion.get(question.id);
         const review = run?.teacherAssignmentReview;
-        const status = review?.state === 'WORKING' ? 'IN_REVIEW'
-          : run?.approvalSnapshot || review?.state === 'APPROVED' || run?.state === 'APPROVED' ? 'APPROVED'
-            : review?.state === 'RETURNED' || run?.state === 'RETURNED' ? 'RETURNED'
-              : run?.state === 'AWAITING_REVIEW' ? 'READY'
-                : run && ['QUEUED', 'RUNNING', 'RETRYABLE'].includes(run.state) ? 'PROCESSING'
-                  : run?.state === 'BLOCKED' ? 'BLOCKED'
-                    : 'NOT_SUBMITTED';
+        const status = deriveTeacherReviewQueueStatus(run);
         return {
           id: question.id,
           questionId: question.id,

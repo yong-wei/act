@@ -5,6 +5,7 @@ import {
   approveTeacherAssignmentReview,
   createTeacherAssignmentReview,
   deriveTeacherAssignmentReviewTotal,
+  deriveTeacherReviewQueueStatus,
   evaluateAssignmentReviewCompleteness,
   getTeacherAssignmentReview,
   resolveTeacherAssignmentReviewAuthorization,
@@ -86,6 +87,13 @@ function reviewFixture() {
 }
 
 describe('teacher assignment review persistence', () => {
+  it.each(['BLOCKED', 'FAILED', 'CONTENT_UNAVAILABLE'])(
+    'exposes terminal grading state %s as a blocked teacher queue item',
+    (state) => {
+      expect(deriveTeacherReviewQueueStatus({ state })).toBe('BLOCKED');
+    },
+  );
+
   it('rejects detail lookup without an exact review locator', async () => {
     const findUnique = vi.fn();
     await expect(getTeacherAssignmentReview(
