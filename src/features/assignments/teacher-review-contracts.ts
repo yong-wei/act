@@ -373,7 +373,7 @@ export function normalizeTeacherReviewDetail(
     questionId,
     questionTitle: stringFrom(question.title ?? question.label ?? promptSnapshot.title, "未命名题目"),
     questionPrompt: stringFrom(question.prompt ?? promptSnapshot.prompt ?? promptSnapshot.text),
-    status: statusFrom(review.status ?? question.status ?? submission.status),
+    status: statusFrom(review.status ?? review.state ?? question.status ?? submission.status),
     questions: (arrayFrom(root.questions ?? submission.questions).length
       ? arrayFrom(root.questions ?? submission.questions)
       : [question]

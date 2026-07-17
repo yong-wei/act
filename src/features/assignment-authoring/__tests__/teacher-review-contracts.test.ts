@@ -340,4 +340,12 @@ describe("teacher assignment review UI contracts", () => {
     expect(workspace).toContain("重新加载最新版本");
     expect(workspace).toContain('action: "return" | "approve"');
   });
+
+  it("maps the persisted WORKING review state to an editable review detail", () => {
+    expect(normalizeTeacherReviewDetail({
+      submission: { id: "submission-1", status: "READY" },
+      question: { id: "question-1", title: "Question" },
+      review: { id: "review-1", submissionId: "submission-1", questionId: "question-1", state: "WORKING", version: 1 },
+    })?.status).toBe("IN_REVIEW");
+  });
 });

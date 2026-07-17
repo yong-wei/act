@@ -295,11 +295,6 @@ BEGIN
     OR OLD."anchorMapVersion" IS DISTINCT FROM NEW."anchorMapVersion"
     OR OLD."lifecyclePolicyVersion" IS DISTINCT FROM NEW."lifecyclePolicyVersion"
     OR OLD."idempotencyKey" IS DISTINCT FROM NEW."idempotencyKey"
-    OR OLD."outputKind" IS DISTINCT FROM NEW."outputKind"
-    OR OLD."outputMimeType" IS DISTINCT FROM NEW."outputMimeType"
-    OR OLD."nativeCapable" IS DISTINCT FROM NEW."nativeCapable"
-    OR OLD."anchorPrecision" IS DISTINCT FROM NEW."anchorPrecision"
-    OR OLD."limitations" IS DISTINCT FROM NEW."limitations"
   THEN
     RAISE EXCEPTION 'teacher-review-derivative-lineage-immutable';
   END IF;

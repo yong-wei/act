@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -20,6 +21,17 @@ const snapshot = {
   overallComment: 'Revise the sign.',
   answerEvidence: { id: 'evidence-1', sourceHash: 'sha256:aaaaaaaa', anchorVersion: 'anchors-v2', precision: 'SPAN', canonicalMarkdown: 'x = -1, then verify', blocks: [], limitations: [], sourceAsset: { id: 'asset-1', objectKey: 'private/source.docx', checksum: 'sha256:aaaaaaaa', sizeBytes: 100, mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' } },
 };
+
+it('freezes derivative source lineage without blocking honest runtime output fallback metadata', () => {
+  const migration = readFileSync('prisma/migrations/20260717093000_close_teacher_review_persistence/migration.sql', 'utf8');
+  const triggerFunction = migration.slice(
+    migration.indexOf('CREATE FUNCTION "prevent_teacher_review_derivative_lineage_update"'),
+    migration.indexOf('CREATE TRIGGER "TeacherAssignmentReviewedDerivative_immutable_lineage"'),
+  );
+  expect(triggerFunction).toContain('OLD."sourceChecksum" IS DISTINCT FROM NEW."sourceChecksum"');
+  expect(triggerFunction).not.toContain('OLD."outputKind" IS DISTINCT FROM NEW."outputKind"');
+  expect(triggerFunction).not.toContain('OLD."limitations" IS DISTINCT FROM NEW."limitations"');
+});
 
 describe('reviewed derivative', () => {
   it('uses native DOCX metadata only when the anchor map is reliable', () => {
