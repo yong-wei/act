@@ -164,6 +164,7 @@ function main() {
   const runtimeProjectionRows = runtimeProjectionChanges.rows;
   const deletedRuntimeProjectionRows = runtimeProjectionChanges.deletedRows;
   const finalRuntimeProjectionRowsResult = parseFinalRuntimeProjectionRows(options);
+  const changedLongformReviewSourceIdsResult = parseChangedLongformReviewSourceIds(longformReviewSourceDiff);
   const runtimeProjectionRowSourcePaths = runtimeProjectionRows
     .flatMap((row) => runtimeProjectionRowEvidenceLocalSourcePaths(row));
   const teachingResourceChanges = teachingResourcePaths.map((filePath) => ({
@@ -181,9 +182,9 @@ function main() {
       ...(hasDiff(repairDiff) ? [TEACHING_RESOURCE_REPAIR_PATH, REGISTERED_RESOURCE_METADATA_PATH] : []),
       ...(hasDiff(runtimeProjectionDiff) ? [
         RUNTIME_RESOURCE_PROJECTIONS_PATH,
-        ...(hasDiff(longformReviewSourceDiff) ? [LONGFORM_REVIEW_SOURCE_PATH] : []),
         ...runtimeProjectionRowSourcePaths,
       ] : []),
+      ...(hasDiff(longformReviewSourceDiff) ? [LONGFORM_REVIEW_SOURCE_PATH] : []),
       ...(runtimeProjectionSourcePaths.length > 0 ? [
         ...runtimeProjectionSourcePaths,
         RUNTIME_RESOURCE_PROJECTIONS_PATH,
@@ -230,6 +231,12 @@ function main() {
       deletedRuntimeProjectionRows,
     ),
     finalRuntimeProjectionRowsResult.result,
+    changedLongformReviewSourceIdsResult.result,
+    validateChangedLongformReviewSourceBindings(
+      changedLongformReviewSourceIdsResult.resourceIds,
+      finalRuntimeProjectionRowsResult.rows,
+      options,
+    ),
     validateRuntimeLessonMediaStableIdentity(finalRuntimeProjectionRowsResult.rows),
     validateRuntimeMediaIndexEvidenceBindings(finalRuntimeProjectionRowsResult.rows),
     validateRuntimeMediaIndexEvidenceHashClosure(
@@ -255,6 +262,67 @@ function main() {
     console.error(`- ${item.family}:${item.resourceId} ${item.code}: ${item.message}`);
   }
   process.exit(1);
+}
+
+function parseChangedLongformReviewSourceIds(
+  diff: string,
+): { resourceIds: string[]; result: NewResourceGateResult } {
+  const resourceIds: string[] = [];
+  const issues: NewResourceGateIssue[] = [];
+  for (const rawLine of diff.split(/\r?\n/)) {
+    if (!/^[+-](?![+-])/.test(rawLine)) continue;
+    const line = rawLine.slice(1).trim();
+    if (!line) continue;
+    try {
+      const row: unknown = JSON.parse(line);
+      const resourceId = row && typeof row === 'object' && !Array.isArray(row)
+        ? (row as Record<string, unknown>).resourceId
+        : null;
+      if (typeof resourceId !== 'string' || resourceId.trim() === '') {
+        throw new Error('row is missing resourceId');
+      }
+      resourceIds.push(resourceId);
+    } catch (error) {
+      issues.push({
+        family: 'runtime-resource-projection',
+        resourceId: LONGFORM_REVIEW_SOURCE_PATH,
+        code: 'invalid-changed-longform-review-source-row',
+        message: `Changed longform review-source line must be a JSON object with resourceId: ${error instanceof Error ? error.message : 'unknown parse error'}.`,
+      });
+    }
+  }
+  return {
+    resourceIds: uniqueSorted(resourceIds),
+    result: {
+      passed: issues.length === 0,
+      checked: resourceIds.length + issues.length,
+      issues,
+    },
+  };
+}
+
+function validateChangedLongformReviewSourceBindings(
+  resourceIds: readonly string[],
+  finalRows: readonly RuntimeProjectionRow[],
+  options: CliOptions,
+): NewResourceGateResult {
+  const issues = resourceIds.flatMap((resourceId) => {
+    const matchingRows = finalRows.filter((row) => row.id === resourceId && isLongformAuditProjection(row));
+    if (matchingRows.length !== 1) {
+      return [{
+        family: 'runtime-resource-projection' as const,
+        resourceId,
+        code: 'missing-longform-review-source-projection',
+        message: 'Changed longform review-source row must bind to exactly one current agent-reviewed longform runtime projection.',
+      }];
+    }
+    return validateLongformReviewSourceBinding(matchingRows[0], options);
+  });
+  return {
+    passed: issues.length === 0,
+    checked: resourceIds.length,
+    issues,
+  };
 }
 
 function parseFinalRuntimeProjectionRows(

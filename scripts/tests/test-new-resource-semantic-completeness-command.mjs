@@ -4117,6 +4117,112 @@ const deletedRoutedProjectionWithSourceResult = runGate(['--staged']);
 assert.equal(deletedRoutedProjectionWithSourceResult.status, 0, 'gate must pass when a routed projection row and its mapped runtime source file are deleted together');
 
 run('git', ['reset', '--hard', 'HEAD'], repo);
+const reviewOnlyBaselineParent = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repo, encoding: 'utf8' }).trim();
+const reviewOnlySnapshotDirectory = path.join(
+  repo,
+  'openspec/changes/complete-longform-textbook-reference-resource-semantics/evidence',
+);
+fs.mkdirSync(reviewOnlySnapshotDirectory, { recursive: true });
+const reviewOnlyReviewPath = path.join(
+  repo,
+  'course-content/runtime/resource-governance/longform-textbook-reference-resource-semantics-review-source.jsonl',
+);
+const reviewOnlySnapshotPath = path.join(
+  reviewOnlySnapshotDirectory,
+  'longform-textbook-reference-resource-input-snapshot.jsonl',
+);
+const reviewOnlySealPath = path.join(
+  reviewOnlySnapshotDirectory,
+  'longform-textbook-reference-resource-input-snapshot.seal.json',
+);
+const reviewOnlyProjectionPath = path.join(
+  repo,
+  'course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
+);
+const reviewOnlyReviewRow = JSON.parse(fs.readFileSync(
+  path.join(root, 'course-content/runtime/resource-governance/longform-textbook-reference-resource-semantics-review-source.jsonl'),
+  'utf8',
+).split(/\r?\n/).find(Boolean));
+const reviewOnlySnapshotRow = JSON.parse(fs.readFileSync(
+  path.join(root, 'openspec/changes/complete-longform-textbook-reference-resource-semantics/evidence/longform-textbook-reference-resource-input-snapshot.jsonl'),
+  'utf8',
+).split(/\r?\n/).find(Boolean));
+const reviewOnlyProjectionRow = JSON.parse(fs.readFileSync(
+  path.join(root, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  'utf8',
+).split(/\r?\n/).find(Boolean));
+delete reviewOnlyReviewRow.reviewSourceSha256;
+delete reviewOnlyReviewRow.reviewRowHash;
+reviewOnlyReviewRow.reviewRowHash = `sha256:${createHash('sha256').update(JSON.stringify(reviewOnlyReviewRow)).digest('hex')}`;
+reviewOnlyReviewRow.reviewSourceSha256 = createHash('sha256')
+  .update(`${JSON.stringify(reviewOnlyReviewRow)}\n`)
+  .digest('hex');
+reviewOnlyProjectionRow.reviewAudit.reviewSourceSha256 = reviewOnlyReviewRow.reviewSourceSha256;
+reviewOnlyProjectionRow.reviewAudit.reviewRowHash = reviewOnlyReviewRow.reviewRowHash;
+const reviewOnlySnapshotContent = `${JSON.stringify(reviewOnlySnapshotRow)}\n`;
+const reviewOnlyBaselineTree = execFileSync('git', ['rev-parse', `${reviewOnlyBaselineParent}^{tree}`], {
+  cwd: repo,
+  encoding: 'utf8',
+}).trim();
+fs.writeFileSync(reviewOnlyReviewPath, `${JSON.stringify(reviewOnlyReviewRow)}\n`);
+fs.writeFileSync(reviewOnlySnapshotPath, reviewOnlySnapshotContent);
+fs.writeFileSync(reviewOnlySealPath, `${JSON.stringify({
+  artifactVersion: 'longform-textbook-reference-resource-input-snapshot.v1',
+  baselineCommit: reviewOnlyBaselineParent,
+  baselineTree: reviewOnlyBaselineTree,
+  rowCount: 1,
+  rowsSha256: `sha256:${createHash('sha256').update(reviewOnlySnapshotContent).digest('hex')}`,
+}, null, 2)}\n`);
+fs.writeFileSync(reviewOnlyProjectionPath, `${JSON.stringify(reviewOnlyProjectionRow)}\n`);
+run('git', ['add',
+  'course-content/runtime/resource-governance/longform-textbook-reference-resource-semantics-review-source.jsonl',
+  'course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
+  'openspec/changes/complete-longform-textbook-reference-resource-semantics/evidence/longform-textbook-reference-resource-input-snapshot.jsonl',
+  'openspec/changes/complete-longform-textbook-reference-resource-semantics/evidence/longform-textbook-reference-resource-input-snapshot.seal.json',
+], repo);
+run('git', ['commit', '--no-verify', '-m', 'add sealed longform review-only baseline'], repo);
+const reviewOnlyBaselineCommit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repo, encoding: 'utf8' }).trim();
+const reviewOnlyNoopResult = runGate(['--staged']);
+assert.equal(reviewOnlyNoopResult.status, 0, 'byte-identical review source with no staged diff must remain a no-op');
+
+fs.rmSync(reviewOnlyReviewPath);
+run('git', ['add', 'course-content/runtime/resource-governance/longform-textbook-reference-resource-semantics-review-source.jsonl'], repo);
+const deletedReviewOnlyStagedResult = runGate(['--staged']);
+assert.notEqual(deletedReviewOnlyStagedResult.status, 0, 'review-source-only staged deletion must fail without a projection diff');
+assert.match(
+  `${deletedReviewOnlyStagedResult.stdout}\n${deletedReviewOnlyStagedResult.stderr}`,
+  /sealed staged review-source row|stale-runtime-projection-source-hash/,
+);
+run('git', ['reset', '--hard', reviewOnlyBaselineCommit], repo);
+
+const forgedReviewOnlyRow = structuredClone(reviewOnlyReviewRow);
+forgedReviewOnlyRow.reviewRowHash = 'sha256:forged-review-only-row';
+fs.writeFileSync(reviewOnlyReviewPath, `${JSON.stringify(forgedReviewOnlyRow)}\n`);
+run('git', ['add', 'course-content/runtime/resource-governance/longform-textbook-reference-resource-semantics-review-source.jsonl'], repo);
+const forgedReviewOnlyStagedResult = runGate(['--staged']);
+assert.notEqual(forgedReviewOnlyStagedResult.status, 0, 'review-source-only staged hash forgery must fail without a projection diff');
+assert.match(
+  `${forgedReviewOnlyStagedResult.stdout}\n${forgedReviewOnlyStagedResult.stderr}`,
+  /sealed staged review-source row|stale-runtime-projection-source-hash/,
+);
+fs.writeFileSync(reviewOnlyReviewPath, `${JSON.stringify(reviewOnlyReviewRow)}\n`);
+const forgedReviewOnlyWorktreeResult = runGate(['--staged']);
+assert.notEqual(forgedReviewOnlyWorktreeResult.status, 0, 'review-source-only staged changes must reject a different working-tree copy');
+assert.match(
+  `${forgedReviewOnlyWorktreeResult.stdout}\n${forgedReviewOnlyWorktreeResult.stderr}`,
+  /cannot run with unstaged changes in gated resource files/,
+);
+fs.writeFileSync(reviewOnlyReviewPath, `${JSON.stringify(forgedReviewOnlyRow)}\n`);
+run('git', ['commit', '--no-verify', '-m', 'forge review source only'], repo);
+const forgedReviewOnlyBaseResult = runGate(['--base', reviewOnlyBaselineCommit]);
+assert.notEqual(forgedReviewOnlyBaseResult.status, 0, 'base mode must reject a review-source-only hash forgery');
+assert.match(
+  `${forgedReviewOnlyBaseResult.stdout}\n${forgedReviewOnlyBaseResult.stderr}`,
+  /sealed staged review-source row|stale-runtime-projection-source-hash/,
+);
+run('git', ['reset', '--hard', reviewOnlyBaselineParent], repo);
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
 const mixedRewriteReviewSourcePath = path.join(
   repo,
   'course-content/runtime/resource-governance/longform-textbook-reference-resource-semantics-review-source.jsonl',
