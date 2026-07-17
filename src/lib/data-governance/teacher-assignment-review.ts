@@ -539,10 +539,11 @@ export async function createTeacherAssignmentReview(db: any, input: { actor: Tea
 }
 
 export async function getTeacherAssignmentReview(db: any, input: { actor: TeacherReviewActor; assignmentId: string; submissionId: string; reviewId?: string; gradingRunId?: string; now?: Date }) {
-  const where = input.reviewId ? { id: input.reviewId } : input.gradingRunId ? { gradingRunId: input.gradingRunId } : { submissionId: input.submissionId };
-  const review = input.reviewId || input.gradingRunId
-    ? await db.teacherAssignmentReview.findUnique({ where, include: TEACHER_ASSIGNMENT_REVIEW_INCLUDE })
-    : await db.teacherAssignmentReview.findFirst({ where, include: TEACHER_ASSIGNMENT_REVIEW_INCLUDE, orderBy: { updatedAt: 'desc' } });
+  if (!input.reviewId && !input.gradingRunId) {
+    throw new TeacherAssignmentReviewError('teacher-review-not-found', 404);
+  }
+  const where = input.reviewId ? { id: input.reviewId } : { gradingRunId: input.gradingRunId };
+  const review = await db.teacherAssignmentReview.findUnique({ where, include: TEACHER_ASSIGNMENT_REVIEW_INCLUDE });
   if (!review) throw new TeacherAssignmentReviewError('teacher-review-not-found', 404);
   assertReviewPath(review, input.assignmentId, input.submissionId);
   assertReviewRunLineage(review);

@@ -6,6 +6,7 @@ import {
   createTeacherAssignmentReview,
   deriveTeacherAssignmentReviewTotal,
   evaluateAssignmentReviewCompleteness,
+  getTeacherAssignmentReview,
   resolveTeacherAssignmentReviewAuthorization,
   returnTeacherAssignmentReview,
   saveTeacherAssignmentReview,
@@ -85,6 +86,20 @@ function reviewFixture() {
 }
 
 describe('teacher assignment review persistence', () => {
+  it('rejects detail lookup without an exact review locator', async () => {
+    const findUnique = vi.fn();
+    await expect(getTeacherAssignmentReview(
+      { teacherAssignmentReview: { findUnique } },
+      {
+        actor: { id: 'teacher-1', role: 'TEACHER' },
+        assignmentId: 'assignment-1',
+        submissionId: 'submission-1',
+        now,
+      },
+    )).rejects.toMatchObject({ code: 'teacher-review-not-found', status: 404 });
+    expect(findUnique).not.toHaveBeenCalled();
+  });
+
   it('derives totals only from a complete bounded criterion set', () => {
     expect(deriveTeacherAssignmentReviewTotal(rubric(), criteria())).toBe(9);
     expect(() => deriveTeacherAssignmentReviewTotal(rubric(), criteria().slice(0, 1))).toThrow('teacher-review-criteria-incomplete');
