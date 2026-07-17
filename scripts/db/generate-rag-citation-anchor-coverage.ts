@@ -449,18 +449,21 @@ export function ensureTextbookRuntimeExports(targets: CitationTarget[]) {
   );
 }
 
-function mediaCorpusItem(item: MediaReviewItem, acceptedReview?: MediaAcceptedRefReviewRow): CorpusItem {
+export function mediaCorpusItem(item: MediaReviewItem, acceptedReview?: MediaAcceptedRefReviewRow): CorpusItem {
   const href = isResolvableServerOwnedHref(item.renderTarget) ? item.renderTarget : null;
   const sourceHash = item.sourceHash ?? item.repairedSourceHash ?? null;
-  const ready = item.citationAnchorState === 'figure-anchor-ready' && Boolean(href && sourceHash);
+  const normalizedSourceHash = normalizeSha256(sourceHash);
+  const citationTargetFileHash = href ? hashRuntimeTargetFile(href) : null;
+  const targetHashMatches = Boolean(
+    normalizedSourceHash && citationTargetFileHash === normalizedSourceHash,
+  );
+  const ready = item.citationAnchorState === 'figure-anchor-ready' && Boolean(href) && targetHashMatches;
   const acceptedRefs = acceptedReview?.acceptedGraphNodeRefs ?? { knowledge: [], capability: [], quality: [] };
   const acceptedRefProvenanceFresh = Boolean(acceptedReview);
   const semanticGroundingVerified = Boolean(
     Object.values(acceptedRefs).some((refs) => refs.length > 0) &&
     acceptedRefProvenanceFresh,
   );
-  const normalizedSourceHash = normalizeSha256(sourceHash);
-  const citationTargetFileHash = href ? hashRuntimeTargetFile(href) : null;
   const limitationState = uniqueSorted([
     semanticGroundingVerified ? '' : 'semantic-relevance-unconfirmed',
     !acceptedRefProvenanceFresh ? 'accepted-ref-provenance-missing-or-stale' : '',
@@ -469,6 +472,7 @@ function mediaCorpusItem(item: MediaReviewItem, acceptedReview?: MediaAcceptedRe
       limitationForAnchorState(item.citationAnchorState),
       href ? '' : 'server-owned-display-href-unavailable',
       sourceHash ? '' : 'source-hash-unavailable',
+      href && normalizedSourceHash && !targetHashMatches ? 'quote-hash-mismatch' : '',
     ]),
   ]);
   const citationAddress = {
@@ -478,7 +482,7 @@ function mediaCorpusItem(item: MediaReviewItem, acceptedReview?: MediaAcceptedRe
     contentHash: normalizedSourceHash,
     sourceRefId: item.resourceId,
   };
-  const freshnessBucket = normalizedSourceHash && item.sourceAvailability === 'local-source-present' ? 'current' : 'stale';
+  const freshnessBucket = targetHashMatches && item.sourceAvailability === 'local-source-present' ? 'current' : 'stale';
   return {
     artifactVersion: ARTIFACT_VERSION,
     reviewBatchId: REVIEW_BATCH_ID,
@@ -631,7 +635,7 @@ function mediaAcceptedRefIndependentEvidenceMatches(
     row.acceptedGraphNodeRefs.capability.every((ref) => row.rationale.includes(registry.capability.get(ref)!));
 }
 
-function buildSummary(
+export function buildSummary(
   candidates: GroundingCandidate[],
   targets: CitationTarget[],
   coreReviews: SectionReviewItem[],
@@ -695,7 +699,9 @@ function buildSummary(
       readyItemsMatchSourceHash: readyItems.every((item) => (
         item.citationAddress.contentHash === item.citationPayloadHash &&
         Boolean(item.citationTargetFileHash) &&
-        (item.sourceClass === 'runtime-media' || item.sourceSemanticHash === item.citationPayloadHash)
+        (item.sourceClass === 'runtime-media'
+          ? item.citationTargetFileHash === item.citationPayloadHash && item.sourceHash === item.citationPayloadHash
+          : item.sourceSemanticHash === item.citationPayloadHash)
       )),
       explicitHashRoles: corpusItems.every((item) => (
         'sourceSemanticHash' in item && 'citationTargetFileHash' in item && 'citationPayloadHash' in item

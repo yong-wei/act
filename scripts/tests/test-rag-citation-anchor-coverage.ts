@@ -3,7 +3,9 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import {
+  buildSummary,
   ensureTextbookRuntimeExports,
+  mediaCorpusItem,
   textbookCorpusItem,
   validateMediaAcceptedRefReviewSource,
 } from '../db/generate-rag-citation-anchor-coverage';
@@ -157,8 +159,26 @@ assert(
   'textbook rows must use server-owned citation targets, addresses, review metadata, and CitationChip payloads',
 );
 
+const mediaReviewRows = readJsonl<any>('runtime-media-handout-disposition-review-items.jsonl');
 const mediaItems = corpusItems.filter((item) => item.sourceClass === 'runtime-media');
 assert(mediaItems.length === 20, 'media corpus row count mismatch');
+const readyMediaReview = mediaReviewRows.find((item) => item.citationAnchorState === 'figure-anchor-ready');
+assert(readyMediaReview, 'a ready media review fixture is required');
+const staleMedia = mediaCorpusItem({
+  ...readyMediaReview,
+  sourceHash: `sha256:${'0'.repeat(64)}`,
+}) as CorpusItem;
+assert(staleMedia.citationState === 'limited' && staleMedia.addressReady === false, 'stale media bytes/hash must fail closed');
+assert(staleMedia.freshness.bucket === 'stale', 'stale media bytes/hash must not remain current');
+assert(staleMedia.limitationState.includes('quote-hash-mismatch'), 'stale media hash limitation must be explicit');
+assert(staleMedia.citationAddress.href === null, 'stale media citation must not remain hydratable');
+
+const forgedReadyMedia = {
+  ...mediaItems.find((item) => item.citationState === 'ready')!,
+  citationTargetFileHash: `sha256:${'f'.repeat(64)}`,
+};
+const staleSummary = buildSummary([], [], [], [], [], [forgedReadyMedia] as any[]);
+assert(staleSummary.guardrails.readyItemsMatchSourceHash === false, 'summary guardrail must compare target file and declared payload/source hashes');
 assert(
   mediaItems.filter((item) => item.citationState === 'ready').every((item) =>
     item.resourceSegmentRef.startsWith('ResourceSegment:') &&
@@ -235,7 +255,6 @@ assert(runtimeHandout.citationChip.authorityLevel === 'contextual' && runtimeHan
 
 const acceptedRows = readJsonl<any>('rag-media-accepted-ref-review-source.jsonl');
 const acceptedSeal = JSON.parse(readFileSync(path.join(GOVERNANCE_DIR, 'rag-media-accepted-ref-review-source.seal.json'), 'utf8'));
-const mediaReviewRows = readJsonl<any>('runtime-media-handout-disposition-review-items.jsonl');
 assert(validateMediaAcceptedRefReviewSource(acceptedRows, acceptedSeal, mediaReviewRows).size === 1, 'sealed accepted-ref review source needs one legal positive');
 for (const mutation of [
   (row: any) => { row.reviewerRole = 'forged-reviewer'; },
