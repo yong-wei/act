@@ -1559,7 +1559,7 @@ describe('resource node registry', () => {
     } as any)).toEqual(['rawSubmission']);
   });
 
-  it('requires human-confirmed runtime projection sidecars before creating PlanningUnits', () => {
+  it('requires confirmed runtime projection sidecars before creating PlanningUnits', () => {
     const confirmedProjection = runtimeProjectionSidecar({
       id: 'runtime-step:unit-demo:step-1',
       resourceNodeId: 'lesson-step:unit-demo:step-1',
@@ -1641,6 +1641,22 @@ describe('resource node registry', () => {
         staleInvalidationRule: 'requires human review before path eligibility or mastery effect',
       },
     });
+    const agentReviewedProjection = runtimeProjectionSidecar({
+      ...confirmedProjection,
+      id: 'runtime-step:unit-demo:step-agent-reviewed',
+      resourceNodeId: 'lesson-step:unit-demo:step-agent-reviewed',
+      sourceRef: 'unit-demo:step-agent-reviewed',
+      sourceRecord: 'unit-demo:step-agent-reviewed',
+      sourceHash: 'sha256:step-agent-reviewed',
+      reviewAudit: {
+        ...confirmedProjection.reviewAudit!,
+        status: 'agent-reviewed',
+        reviewerId: 'implementing-agent-882',
+        reviewerRole: 'implementing-agent',
+        reviewedSourceHash: 'sha256:step-agent-reviewed',
+        promptOrManifestHash: null,
+      },
+    });
     const staleProjection = runtimeProjectionSidecar({
       id: 'runtime-step:unit-demo:step-3',
       resourceNodeId: 'lesson-step:unit-demo:step-3',
@@ -1700,6 +1716,7 @@ describe('resource node registry', () => {
     const registry = buildResourceNodeRegistry({
       runtimeResourceProjections: [
         confirmedProjection,
+        agentReviewedProjection,
         provisionalProjection,
         staleProjection,
         missingCapabilityProjection,
@@ -1707,15 +1724,23 @@ describe('resource node registry', () => {
     });
 
     const confirmed = registry.nodes.find((node) => node.id === 'lesson-step:unit-demo:step-1') as ResourceNode;
+    const agentReviewed = registry.nodes.find((node) => node.id === 'lesson-step:unit-demo:step-agent-reviewed') as ResourceNode;
     const provisional = registry.nodes.find((node) => node.id === 'lesson-step:unit-demo:step-2') as ResourceNode;
     const stale = registry.nodes.find((node) => node.id === 'lesson-step:unit-demo:step-3') as ResourceNode;
     const missingCapability = registry.nodes.find((node) => node.id === 'lesson-step:unit-demo:step-4') as ResourceNode;
     const confirmedSemanticProjection = buildResourceSemanticProjection(confirmed);
+    const agentReviewedSemanticProjection = buildResourceSemanticProjection(agentReviewed);
     const provisionalSemanticProjection = buildResourceSemanticProjection(provisional);
     const staleSemanticProjection = buildResourceSemanticProjection(stale);
     const missingCapabilitySemanticProjection = buildResourceSemanticProjection(missingCapability);
 
     expect(confirmed.eligibility.pathEligible).toBe(true);
+    expect(agentReviewed.eligibility.pathEligible).toBe(false);
+    expect(agentReviewedSemanticProjection.planningUnit).toBeNull();
+    expect(agentReviewed.eligibility.auditIssues).toContainEqual(expect.objectContaining({
+      code: 'provisional-runtime-projection',
+      severity: 'blocking',
+    }));
     expect(provisional.eligibility.pathEligible).toBe(false);
     expect(provisional.eligibility.auditIssues).toContainEqual(expect.objectContaining({
       code: 'provisional-runtime-projection',

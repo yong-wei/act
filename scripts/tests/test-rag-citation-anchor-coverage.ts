@@ -1,7 +1,12 @@
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
-import { ensureTextbookRuntimeExports, textbookCorpusItem } from '../db/generate-rag-citation-anchor-coverage';
+import {
+  ensureTextbookRuntimeExports,
+  textbookCorpusItem,
+  validateMediaAcceptedRefReviewSource,
+} from '../db/generate-rag-citation-anchor-coverage';
 
 interface CorpusItem {
   sourceClass: string;
@@ -9,6 +14,9 @@ interface CorpusItem {
   resourceSegmentRef: string;
   resourceSegmentId: string;
   sourceHash: string | null;
+  sourceSemanticHash: string | null;
+  citationTargetFileHash: string | null;
+  citationPayloadHash: string | null;
   sourceWindow: Record<string, unknown> | null;
   freshness: {
     bucket: 'current' | 'stale';
@@ -33,8 +41,11 @@ interface CorpusItem {
     sourceRefId: string | null;
   };
   serverOwnedAddress: boolean;
+  addressReady: boolean;
+  semanticGroundingVerified: boolean;
   authority: string;
   privacyScope: string;
+  graphNodeRefs: { knowledge: string[]; capability: string[]; quality: string[] };
   pathEligible: boolean;
   promotedAsPathNode: boolean;
   rawContentIncluded: boolean;
@@ -72,6 +83,7 @@ const CITATION_CHIP_LIMITATION_REASONS = new Set([
   'unsafe-address',
   'address-kind-mismatch',
   'missing-version-ref',
+  'semantic-relevance-unconfirmed',
 ]);
 
 const GOVERNANCE_DIR = path.join(process.cwd(), 'course-content/runtime/resource-governance');
@@ -87,19 +99,29 @@ const evidence = readFileSync(path.join(
 
 assert(summary.totals.candidates === 964, 'expected current textbook grounding candidate count');
 assert(summary.totals.citationTargets === 964, 'expected current textbook citation target count');
+assert(summary.totals.longformAgentReviewedRows === 964, 'all textbook grounding rows should retain agent-reviewed provenance');
 assert(summary.totals.mediaReviewedRows === 20, 'expected current reviewed media/handout row count');
 assert(summary.totals.corpusItems === 984, 'expected textbook plus media corpus rows');
 assert(summary.coverage.candidatesWithoutCitationTargets === 0, 'every grounding candidate must have a citation target');
 assert(summary.coverage.citationTargetsWithoutCandidates === 0, 'every citation target must map to a grounding candidate');
-assert(summary.coverage.readyTextbookGrounding === 964, 'all textbook grounding rows must resolve through CitationAddress metadata');
-assert(summary.coverage.readyMediaAnchors === 14, 'reviewed figure anchors should be ready');
-assert(summary.coverage.limitedMediaAnchors === 6, 'non-figure media/handout anchors should be explicitly limited');
+assert(summary.totals.addressReady === 978 && summary.totals.addressLimited === 6, 'address readiness totals must be explicit');
+assert(summary.totals.semanticGroundingVerified === 1 && summary.totals.semanticGroundingUnverified === 983, 'semantic grounding totals must be independent from address readiness');
+assert(summary.coverage.addressReadyTextbookRows === 964, 'all textbook rows must resolve through CitationAddress metadata');
+assert(summary.coverage.semanticVerifiedTextbookRows === 0, 'address-ready textbook rows are not grounding-verified without accepted refs');
+assert(summary.coverage.addressReadyMediaAnchors === 14, 'reviewed figure anchors should be address-ready');
+assert(summary.coverage.semanticVerifiedMediaRows === 1, 'media graph refs require explicit accepted-ref provenance');
+assert(summary.coverage.addressLimitedMediaAnchors === 6, 'non-figure media/handout anchors should be explicitly address-limited');
+assert(Object.keys(summary.limitations.address).length > 0, 'address limitations need a separate reason histogram');
+assert(summary.limitations.semanticGrounding['semantic-relevance-unconfirmed'] === 983, 'semantic grounding limitations need an independent reason histogram');
 assert(summary.guardrails.serverOwnedAddressOnly === true, 'citations must use server-owned hrefs only');
 assert(summary.guardrails.noModelAuthoredUrls === true, 'model-authored footnote URLs must not be accepted');
 assert(summary.guardrails.noPathPromotionFromChunksOrMedia === true, 'chunks/media must not become path nodes');
 assert(summary.guardrails.rawContentIncluded === false, 'artifacts must not include raw content');
 assert(summary.guardrails.readyItemsHaveAddressAndHash === true, 'ready rows need href and content hash');
 assert(summary.guardrails.readyItemsMatchSourceHash === true, 'ready rows must not use stale CitationTarget hashes');
+assert(summary.guardrails.explicitHashRoles === true, 'source semantic, citation target file, and citation payload hashes must remain distinct fields');
+assert(summary.guardrails.addressAndSemanticGroundingOrthogonal === true, 'address readiness and semantic grounding must remain orthogonal');
+assert(summary.guardrails.unverifiedSemanticRowsDoNotRetainGraphRefs === true, 'unverified semantic rows must not retain candidate graph refs');
 assert(summary.guardrails.limitedItemsHaveReason === true, 'limited rows need explicit reasons');
 assert(summary.guardrails.metadataContractComplete === true, 'all rows must carry segment, freshness, source hash or source-hash limitation, and review state metadata');
 assert(summary.guardrails.citationChipPayloadsComplete === true, 'all rows must carry product CitationChip payload metadata');
@@ -112,9 +134,11 @@ assert(
     item.resourceSegmentRef.startsWith('ResourceSegment:hu-shousong-exercise-analysis-3rd:') &&
     item.resourceSegmentId.length > 0 &&
     item.sourceHash?.startsWith('sha256:') &&
+    item.sourceSemanticHash === item.citationPayloadHash &&
+    item.citationTargetFileHash?.startsWith('sha256:') &&
     item.sourceWindow !== null &&
     item.freshness.bucket === 'current' &&
-    item.reviewState.state === 'human-confirmed' &&
+    item.reviewState.state === 'agent-reviewed' &&
     isSafeDisplayTitle(item.title) &&
     isSafeDisplayTitle(item.citationChip.displayTitle) &&
     item.citationTargetId?.startsWith('citation-target:') &&
@@ -122,6 +146,10 @@ assert(
     item.citationAddress.href?.startsWith('/course-runtime/resources/textbooks/') &&
     item.citationAddress.contentHash?.startsWith('sha256:') &&
     item.serverOwnedAddress === true &&
+    item.addressReady === true &&
+    item.semanticGroundingVerified === false &&
+    Object.values(item.graphNodeRefs).every((refs) => refs.length === 0) &&
+    item.limitationState.includes('semantic-relevance-unconfirmed') &&
     item.authority.length > 0 &&
     item.privacyScope.length > 0 &&
     isReadyCitationChip(item, 'course-content')
@@ -141,6 +169,9 @@ assert(
     item.citationAddress.href?.startsWith('/course-runtime/lessons/') &&
     item.citationAddress.contentHash?.startsWith('sha256:') &&
     item.authority.length > 0 &&
+    (item.semanticGroundingVerified
+      ? Object.values(item.graphNodeRefs).some((refs) => refs.length > 0) && item.citationChip.authorityLevel === 'verified' && item.citationChip.confidence === 'high'
+      : Object.values(item.graphNodeRefs).every((refs) => refs.length === 0) && item.citationChip.authorityLevel === 'contextual' && item.citationChip.confidence === 'medium') &&
     item.privacyScope.length > 0 &&
     isReadyCitationChip(item, 'runtime-handout')
   ),
@@ -172,11 +203,19 @@ assert(evidence.includes('Chunks or media promoted as PathNodes: false'), 'evide
 assert(evidence.includes('Ready citation hashes match source hashes: true'), 'evidence must state CitationTarget hash consistency');
 assert(evidence.includes('Metadata contract complete: true'), 'evidence must state metadata contract closure');
 assert(evidence.includes('CitationChip payloads complete: true'), 'evidence must state CitationChip payload closure');
+assert(evidence.includes('Address-ready citations: 978'), 'evidence must report address readiness separately');
+assert(evidence.includes('Semantic grounding verified: 1'), 'evidence must report semantic grounding separately');
+assert(evidence.includes('Source semantic, citation target file, and citation payload hashes are explicit: true'), 'evidence must report explicit hash roles');
+assert(evidence.includes('Address limitation rows: 6'), 'evidence must report address limitations separately');
+assert(evidence.includes('Semantic-grounding limitation rows: 983'), 'evidence must report semantic limitations separately');
+assert(!evidence.includes('Ready textbook grounding'), 'address readiness must not be called grounding ready');
 assert(
   corpusItems.every((item) => isSafeDisplayTitle(item.title) && isSafeDisplayTitle(item.citationChip.displayTitle)),
   'corpus titles and CitationChip display titles must not carry raw image descriptions',
 );
 assertMissingTextbookTargetDowngradesToLimited();
+assertAcceptedGraphRefsEmptyStayContextual();
+assertForgedAcceptedGraphRefsStayContextual();
 assertMissingFigureTargetDowngradesToLimitedImage();
 assertInvalidFigureTargetDowngradesToLimitedImage();
 assertUnreviewedTextbookTargetDowngradesToLimited();
@@ -189,6 +228,35 @@ assertSpanMismatchDowngradesToLimited();
 assertFigureSpanMismatchDowngradesToLimited();
 assertMissingTextbookRuntimeExportFailsFast();
 
+const runtimeHandout = corpusItems.find((item) => item.sourceClass === 'runtime-media' && item.resourceSegmentId === 'runtime-handout:1-1');
+assert(runtimeHandout, 'runtime-handout:1-1 corpus row is required');
+assert(runtimeHandout.semanticGroundingVerified === false, 'runtime-handout:1-1 has no accepted-ref provenance');
+assert(runtimeHandout.citationChip.authorityLevel === 'contextual' && runtimeHandout.citationChip.confidence === 'medium', 'runtime-handout:1-1 cannot be verified/high');
+
+const acceptedRows = readJsonl<any>('rag-media-accepted-ref-review-source.jsonl');
+const acceptedSeal = JSON.parse(readFileSync(path.join(GOVERNANCE_DIR, 'rag-media-accepted-ref-review-source.seal.json'), 'utf8'));
+const mediaReviewRows = readJsonl<any>('runtime-media-handout-disposition-review-items.jsonl');
+assert(validateMediaAcceptedRefReviewSource(acceptedRows, acceptedSeal, mediaReviewRows).size === 1, 'sealed accepted-ref review source needs one legal positive');
+for (const mutation of [
+  (row: any) => { row.reviewerRole = 'forged-reviewer'; },
+  (row: any) => { row.acceptedGraphNodeRefs.knowledge = ['forged-node']; },
+  (row: any) => { row.sourceHash = 'sha256:stale-source'; },
+]) {
+  const changed = structuredClone(acceptedRows);
+  mutation(changed[0]);
+  assert(validateMediaAcceptedRefReviewSource(changed, acceptedSeal, mediaReviewRows).size === 0, 'forged fields, refs, or stale source must clear accepted refs');
+}
+assert(validateMediaAcceptedRefReviewSource(acceptedRows, { ...acceptedSeal, aggregateDigest: 'sha256:bad-seal' }, mediaReviewRows).size === 0, 'bad aggregate seal must clear accepted refs');
+for (const [label, refs] of [
+  ['nonexistent node', { knowledge: ['knowledge-node-does-not-exist'], capability: ['controlModeling'], quality: [] }],
+  ['wrong node type', { knowledge: ['controlModeling'], capability: ['反馈_1_1'], quality: [] }],
+] as const) {
+  const changed = structuredClone(acceptedRows);
+  changed[0].acceptedGraphNodeRefs = refs;
+  const resealed = resealMediaAcceptedRows(changed);
+  assert(validateMediaAcceptedRefReviewSource(resealed.rows, resealed.seal, mediaReviewRows).size === 0, `recomputed seal must not admit ${label}`);
+}
+
 console.log('RAG citation anchor coverage artifacts verified.');
 
 function readJsonl<T>(filename: string): T[] {
@@ -196,6 +264,29 @@ function readJsonl<T>(filename: string): T[] {
     .split(/\r?\n/)
     .filter(Boolean)
     .map((line) => JSON.parse(line) as T);
+}
+
+function resealMediaAcceptedRows(rows: any[]) {
+  const sealedRows = rows.map((row) => {
+    const { rowDigest: _rowDigest, ...signedFields } = row;
+    return { ...signedFields, rowDigest: sha256Json(signedFields) };
+  });
+  return {
+    rows: sealedRows,
+    seal: {
+      artifactVersion: 'rag-media-accepted-ref-review-source.seal.v1',
+      rowCount: sealedRows.length,
+      aggregateDigest: sha256Text(sealedRows.map((row) => JSON.stringify(row)).join('\n') + '\n'),
+    },
+  };
+}
+
+function sha256Json(value: unknown) {
+  return sha256Text(JSON.stringify(value));
+}
+
+function sha256Text(value: string) {
+  return `sha256:${createHash('sha256').update(value).digest('hex')}`;
 }
 
 function assert(condition: unknown, message: string): asserts condition {
@@ -208,11 +299,11 @@ function isReadyCitationChip(item: CorpusItem, expectedSourceType: string) {
     item.citationChip.displayHref === item.citationAddress.href &&
     item.citationChip.sourceType === expectedSourceType &&
     item.citationChip.citationAddress.href === item.citationAddress.href &&
-    item.citationChip.authorityLevel === 'verified' &&
-    item.citationChip.confidence === 'high' &&
+    item.citationChip.authorityLevel === (item.semanticGroundingVerified ? 'verified' : 'contextual') &&
+    item.citationChip.confidence === (item.semanticGroundingVerified ? 'high' : 'medium') &&
     item.citationChip.freshnessBucket === item.freshness.bucket &&
     item.citationChip.privacyVisibility === 'public' &&
-    item.citationChip.limitationState === null;
+    item.citationChip.limitationState === (item.semanticGroundingVerified ? null : 'semantic-relevance-unconfirmed');
 }
 
 function isLimitedCitationChip(item: CorpusItem) {
@@ -221,8 +312,8 @@ function isLimitedCitationChip(item: CorpusItem) {
     item.citationChip.displayHref === null &&
     item.citationChip.sourceType === 'runtime-handout' &&
     item.citationChip.citationAddress.sourceRefId === item.citationAddress.sourceRefId &&
-    item.citationChip.authorityLevel === 'contextual' &&
-    item.citationChip.confidence === 'medium' &&
+    item.citationChip.authorityLevel === (item.semanticGroundingVerified ? 'verified' : 'contextual') &&
+    item.citationChip.confidence === (item.semanticGroundingVerified ? 'high' : 'medium') &&
     item.citationChip.freshnessBucket === item.freshness.bucket &&
     item.citationChip.privacyVisibility === 'public' &&
     item.citationChip.limitationState !== null &&
@@ -247,6 +338,71 @@ function assertMissingTextbookTargetDowngradesToLimited() {
   assert(item.citationChip.authorityLevel === 'contextual', 'missing target CitationChip must be authority downgraded');
   assert(item.citationChip.confidence === 'medium', 'missing target CitationChip must be confidence downgraded');
   assert((item as any).sourceVersionRef.groundingVersion === 'textbook-media-grounding.v1', 'missing target artifact must preserve grounding version lineage');
+}
+
+function assertAcceptedGraphRefsEmptyStayContextual() {
+  const candidate = {
+    ...syntheticCandidate(),
+    graphNodeRefs: { knowledge: ['candidate-only-node'], capability: [], quality: [] },
+  };
+  const reviews = new Map([[`textbook-search-document:${candidate.documentId}`, {
+    resourceId: `textbook-search-document:${candidate.documentId}`,
+    sourceFamily: 'textbook-search-document',
+    reviewStatus: 'agent-reviewed',
+    reviewBatchId: 'review-batch',
+    reviewerId: 'implementing-agent',
+    reviewedAt: '2026-07-16T00:00:00.000Z',
+    sourceHash: candidate.sourceHash,
+    citationAddress: { href: syntheticTarget().address.href, locator: candidate.pageAnchor, contentHash: candidate.sourceHash },
+    acceptedGraphNodeRefs: { knowledge: [], capability: [], quality: [] },
+    independentEvidenceRef: syntheticTarget().address.href,
+    reviewSourceSha256: 'sha256:review-source',
+    reviewRowHash: 'sha256:review-row',
+  }]]);
+  const item = textbookCorpusItem(
+    candidate,
+    syntheticTarget(),
+    new Set([candidate.sectionId]),
+    new Set(),
+    reviews as any,
+  ) as CorpusItem;
+  assert(item.addressReady === true && item.citationState === 'ready', 'valid address must remain independently ready');
+  assert(item.semanticGroundingVerified === false, 'empty accepted refs cannot verify semantic grounding');
+  assert(Object.values(item.graphNodeRefs).every((refs) => refs.length === 0), 'candidate graph refs must be cleared');
+  assert(item.limitationState.includes('semantic-relevance-unconfirmed'), 'semantic limitation must be explicit');
+  assert(item.citationChip.authorityLevel === 'contextual' && item.citationChip.confidence === 'medium', 'unverified semantics cannot be high/verified');
+}
+
+function assertForgedAcceptedGraphRefsStayContextual() {
+  const candidate = syntheticCandidate();
+  const target = syntheticTarget();
+  const forgedReview = {
+    resourceId: `textbook-search-document:${candidate.documentId}`,
+    sourceFamily: 'textbook-search-document',
+    reviewStatus: 'agent-reviewed',
+    reviewBatchId: 'forged-review-batch',
+    reviewerId: 'forged-reviewer',
+    reviewerRole: 'implementing-agent',
+    reviewedAt: '2999-01-01T00:00:00.000Z',
+    sourceHash: candidate.sourceHash,
+    sourceVersionRef: 'textbook-runtime-search-documents.v1',
+    citationAddress: { ...target.address },
+    acceptedGraphNodeRefs: { knowledge: ['forged-node'], capability: ['forged-capability'], quality: [] },
+    independentEvidenceRef: target.address.href,
+    reviewSourceSha256: 'sha256:forged-source',
+    reviewRowHash: 'sha256:forged-row',
+  };
+  const item = textbookCorpusItem(
+    candidate,
+    target,
+    new Set([candidate.sectionId]),
+    new Set(),
+    new Map([[forgedReview.resourceId, forgedReview]]) as any,
+  ) as CorpusItem;
+  assert(item.addressReady === true, 'independently valid address may remain ready');
+  assert(item.semanticGroundingVerified === false, 'forged/future review provenance cannot verify grounding');
+  assert(Object.values(item.graphNodeRefs).every((refs) => refs.length === 0), 'forged accepted refs must be cleared');
+  assert(item.citationChip.authorityLevel === 'contextual' && item.citationChip.confidence === 'medium', 'forged review must downgrade authority and confidence');
 }
 
 function assertMissingFigureTargetDowngradesToLimitedImage() {

@@ -34,8 +34,8 @@ export interface DiffLineRange {
 }
 
 export interface RuntimeProjectionParseResult {
-  rows: RuntimeResourceProjectionInput[];
-  deletedRows: RuntimeResourceProjectionInput[];
+  rows: RuntimeResourceProjectionInputWithFamily[];
+  deletedRows: RuntimeResourceProjectionInputWithFamily[];
   result: NewResourceGateResult;
 }
 
@@ -51,6 +51,13 @@ const RUNTIME_PROJECTION_FAMILIES = new Set<RuntimeResourceProjectionFamily>([
   'runtime-handout',
   'knowledge-card',
   'knowledge-infograph',
+  'textbook',
+  'textbook-section',
+  'textbook-search-document',
+  'authoring-textbook-chapter',
+  'authoring-textbook-section',
+  'authoring-textbook-figure',
+  'authoring-textbook-caption',
 ]);
 const RUNTIME_PROJECTION_LEVELS = new Set<RuntimeResourceProjectionLevel>([
   'ResourceNode',
@@ -122,7 +129,7 @@ export function validateChangedRegisteredResources(
 }
 
 export function validateChangedRuntimeResourceProjections(
-  rows: readonly RuntimeResourceProjectionInput[],
+  rows: readonly RuntimeResourceProjectionInputWithFamily[],
 ): NewResourceGateResult {
   const issues = rows.flatMap((row) => validateRuntimeResourceProjection(row));
   return {
@@ -177,8 +184,8 @@ export function parseAddedRuntimeProjectionRows(diff: string): RuntimeResourcePr
 }
 
 export function parseAddedRuntimeProjectionChanges(diff: string): RuntimeProjectionParseResult {
-  const rows: RuntimeResourceProjectionInput[] = [];
-  const deletedRows: RuntimeResourceProjectionInput[] = [];
+  const parsedRows: RuntimeResourceProjectionInputWithFamily[] = [];
+  const parsedDeletedRows: RuntimeResourceProjectionInputWithFamily[] = [];
   const issues: NewResourceGateIssue[] = [];
   for (const [index, rawLine] of diff.split(/\r?\n/).entries()) {
     const isAdded = rawLine.startsWith('+') && !rawLine.startsWith('+++');
@@ -194,7 +201,7 @@ export function parseAddedRuntimeProjectionChanges(diff: string): RuntimeProject
         continue;
       }
       if (isDeleted) {
-        deletedRows.push(row as RuntimeResourceProjectionInput);
+        parsedDeletedRows.push(row as RuntimeResourceProjectionInputWithFamily);
         continue;
       }
       const schemaIssues = validateRuntimeProjectionInputSchema(row, `added-line-${index + 1}`);
@@ -202,12 +209,22 @@ export function parseAddedRuntimeProjectionChanges(diff: string): RuntimeProject
         issues.push(...schemaIssues);
         continue;
       }
-      rows.push(row as RuntimeResourceProjectionInput);
+      parsedRows.push(row as RuntimeResourceProjectionInputWithFamily);
     } catch {
       const prefix = isAdded ? 'Added' : 'Deleted';
       issues.push(issue(`${isAdded ? 'added' : 'deleted'}-line-${index + 1}`, 'runtime-resource-projection', 'malformed-runtime-projection-json', `${prefix} runtime projection JSONL row must be valid single-line JSON.`));
     }
   }
+  const deletedById = new Map(parsedDeletedRows.map((row) => [row.id, row]));
+  const addedById = new Map(parsedRows.map((row) => [row.id, row]));
+  const rows = parsedRows.filter((row) => {
+    const previous = deletedById.get(row.id);
+    return !previous || hasGateRelevantRuntimeProjectionChange(previous, row);
+  });
+  const deletedRows = parsedDeletedRows.filter((row) => {
+    const replacement = addedById.get(row.id);
+    return !replacement || hasGateRelevantRuntimeProjectionChange(row, replacement);
+  });
   return {
     rows,
     deletedRows,
@@ -217,6 +234,28 @@ export function parseAddedRuntimeProjectionChanges(diff: string): RuntimeProject
       issues,
     },
   };
+}
+
+function hasGateRelevantRuntimeProjectionChange(
+  previous: RuntimeResourceProjectionInputWithFamily,
+  next: RuntimeResourceProjectionInputWithFamily,
+): boolean {
+  const withoutAuditSummary = (row: RuntimeResourceProjectionInputWithFamily) => {
+    const {
+      reviewConcluded: _reviewConcluded,
+      semanticConfirmed: _semanticConfirmed,
+      ...relevant
+    } = row;
+    const normalized = { ...relevant };
+    if (normalized.pathEligibility) {
+      normalized.pathEligibility = {
+        ...normalized.pathEligibility,
+        blockedBy: [],
+      };
+    }
+    return normalized;
+  };
+  return JSON.stringify(withoutAuditSummary(previous)) !== JSON.stringify(withoutAuditSummary(next));
 }
 
 function validateRuntimeProjectionInputSchema(
@@ -520,12 +559,14 @@ function validateRuntimeResourceProjection(row: RuntimeResourceProjectionInput):
   if (runtimeProjectionFamilySourceKindMismatch(row)) {
     issues.push(issue(row.id, 'runtime-resource-projection', 'invalid-runtime-projection-family-source-kind', 'Runtime projection family, sourceKind, and resourceType must classify the row consistently.'));
   }
-  const modelCleared = audit?.status === 'model-cleared';
-  if (!audit || (audit.status !== 'human-confirmed' && !modelCleared)) {
-    issues.push(issue(row.id, 'runtime-resource-projection', 'missing-human-review', 'Runtime projection requires human-confirmed review metadata.'));
+  const agentReviewed = audit?.status === 'agent-reviewed';
+  const humanPathAuthorized = audit?.status === 'human-confirmed';
+  const agentAuditOnlyAuthorized = agentReviewed && isAgentReviewedAuditOnlySupportProjection(row);
+  if (!audit || (!humanPathAuthorized && !agentAuditOnlyAuthorized)) {
+    issues.push(issue(row.id, 'runtime-resource-projection', 'missing-human-review', 'New runtime projections require human-confirmed review metadata unless an agent-reviewed ResourceSegment is strictly teacher-scoped, support-only, and audit-only.'));
   }
-  if (modelCleared && !isModelClearedRetrievalProjection(row)) {
-    issues.push(issue(row.id, 'runtime-resource-projection', 'invalid-model-cleared-retrieval-projection', 'Model-cleared runtime projections must remain retrieval-only ResourceSegments without path or mastery eligibility.'));
+  if (agentReviewed && !agentAuditOnlyAuthorized) {
+    issues.push(issue(row.id, 'runtime-resource-projection', 'invalid-agent-reviewed-audit-only-projection', 'Agent-reviewed projections cannot carry publication, route/render, path, mastery, or learning-evidence authorization.'));
   }
   if (!audit?.reviewerId || PLACEHOLDER_REVIEWER_PATTERN.test(audit.reviewerId)) {
     issues.push(issue(row.id, 'runtime-resource-projection', 'missing-reviewer-id', 'Runtime projection requires a non-placeholder reviewer identity.'));
@@ -584,24 +625,38 @@ function validateRuntimeResourceProjection(row: RuntimeResourceProjectionInput):
   return issues;
 }
 
-function isModelClearedRetrievalProjection(row: RuntimeResourceProjectionInput): boolean {
+function isAgentReviewedAuditOnlySupportProjection(row: RuntimeResourceProjectionInput): boolean {
   const audit = row.reviewAudit;
-  return audit?.status === 'model-cleared' &&
-    Boolean(audit.generationToolOrModel) &&
-    Boolean(audit.promptOrManifestHash) &&
-    typeof audit.confidence === 'number' &&
-    Number.isFinite(audit.confidence) &&
+  return audit?.status === 'agent-reviewed' &&
+    audit.reviewerRole === 'implementing-agent' &&
+    isLongformAuditFamily((row as RuntimeResourceProjectionInputWithFamily).family) &&
     row.projectionLevel === 'ResourceSegment' &&
+    row.lifecycleScope === 'audit-only' &&
+    row.teacherPolicy === 'teacher-only' &&
+    row.privacyScope === 'teacher-scoped' &&
     row.routeTarget == null &&
-    Boolean(row.renderTarget) &&
+    row.renderTarget == null &&
+    row.resourceNodeId == null &&
+    row.estimatedTimeMinutes == null &&
+    row.readiness == null &&
     Boolean(row.sourcePathOrUrl) &&
-    hasGraphBinding(row.graphNodeRefs) &&
-    Boolean(row.citationTargets?.length) &&
+    !hasGraphBinding(row.graphNodeRefs) &&
+    (row.citationTargets?.length ?? 0) === 0 &&
+    (row.evidenceInstrumentation?.length ?? 0) === 0 &&
     row.pathEligibility?.current === false &&
     row.pathEligibility.afterCompletion === false &&
     row.pathEligibility.masteryAffecting === false &&
-    row.retrievalChunk?.pathEligible === false &&
-    row.evidenceContract?.learningFactMaterializationPolicy !== 'materialized-learning-fact';
+    row.retrievalChunk == null &&
+    row.evidenceContract == null &&
+    row.groundingEligibility?.retrievalReady === false &&
+    row.groundingEligibility.citationReady === false;
+}
+
+function isLongformAuditFamily(family: RuntimeResourceProjectionFamily | undefined): boolean {
+  return family === 'textbook' ||
+    family === 'textbook-section' ||
+    family === 'textbook-search-document' ||
+    Boolean(family?.startsWith('authoring-textbook-'));
 }
 
 function runtimeProjectionIsPathEligible(row: RuntimeResourceProjectionInput): boolean {
@@ -647,8 +702,9 @@ function pushDispositionIssues(
     issues.push(issue(resourceId, family, 'missing-path-disposition', 'Resource requires reviewed path-planning disposition.'));
     return;
   }
-  if (disposition.reviewStatus !== 'human-confirmed') {
-    issues.push(issue(resourceId, family, 'missing-human-review', 'Disposition requires human-confirmed review status.'));
+  const supportOnlyAgentReview = disposition.reviewStatus === 'agent-reviewed' && disposition.kind !== 'path-plannable';
+  if (disposition.reviewStatus !== 'human-confirmed' && !supportOnlyAgentReview) {
+    issues.push(issue(resourceId, family, 'missing-human-review', 'Path-plannable disposition requires human-confirmed review; agent review is limited to semantic, support, and citation dispositions.'));
   }
   if (!disposition.reviewerId || PLACEHOLDER_REVIEWER_PATTERN.test(disposition.reviewerId)) {
     issues.push(issue(resourceId, family, 'missing-reviewer-id', 'Disposition requires a non-placeholder reviewer identity.'));
@@ -750,6 +806,15 @@ function runtimeProjectionFamilySourceKindMismatch(row: RuntimeResourceProjectio
   }
   if (family === 'knowledge-infograph') {
     return projection.sourceKind !== 'knowledge_graph' || projection.resourceType !== 'image';
+  }
+  if (family === 'textbook') {
+    return projection.sourceKind !== 'textbook' || projection.resourceType !== 'textbook';
+  }
+  if (family === 'authoring-textbook-figure') {
+    return projection.sourceKind !== 'media_source_manifest' || projection.resourceType !== 'image';
+  }
+  if (family === 'textbook-section' || family === 'textbook-search-document' || family.startsWith('authoring-textbook-')) {
+    return projection.sourceKind !== 'textbook_section' || projection.resourceType !== 'textbook_section';
   }
   return projection.sourceKind === 'knowledge_graph';
 }

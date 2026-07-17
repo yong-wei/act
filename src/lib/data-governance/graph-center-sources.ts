@@ -90,7 +90,7 @@ export async function buildGraphCenterCoverageSources(input: {
       runtimeResourceProjections,
     ),
     evidenceCorpus: textbookSearchDocumentsToLearningEvidenceCorpus(textbookDocuments),
-    resourceFieldCompletionSummary: resourceFieldCompletionSummary as ResourceFieldCompletionGraphSummary,
+    resourceFieldCompletionSummary: resourceFieldCompletionSummary as unknown as ResourceFieldCompletionGraphSummary,
     ...overlays,
   };
 }

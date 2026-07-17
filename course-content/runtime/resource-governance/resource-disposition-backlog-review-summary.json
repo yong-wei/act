@@ -4,17 +4,17 @@
   "reviewerId": "residual-resource-disposition-implementing-agent",
   "reviewedAt": "2026-07-05T17:45:00.000Z",
   "totals": {
-    "reviewedResources": 5370,
-    "unresolvedDispositionBlockers": 1084,
+    "reviewedResources": 6391,
+    "unresolvedDispositionBlockers": 159,
     "rawContentIncluded": false,
     "privacyMinimized": true
   },
   "byClassification": {
-    "path-plannable": 234,
-    "supporting-citation": 628,
-    "embedded-asset": 1367,
-    "evidence-producing": 1370,
-    "excluded-with-rationale": 1771
+    "path-plannable": 229,
+    "supporting-citation": 1875,
+    "excluded-with-rationale": 2009,
+    "embedded-asset": 1902,
+    "evidence-producing": 376
   },
   "bySourceFamily": {
     "arena": 2,
@@ -27,27 +27,31 @@
     "registered-resource": 166,
     "runtime-handout": 39,
     "runtime-lesson-media": 783,
-    "runtime-lesson-module": 1377,
-    "runtime-lesson-step": 414,
-    "textbook-search-document": 15,
+    "runtime-lesson-module": 1435,
+    "runtime-lesson-step": 428,
+    "textbook-search-document": 964,
     "textbook-section": 1007,
     "textbook": 6
   },
+  "byChangeScope": {
+    "out-of-scope-existing": 3309,
+    "longform-882": 3082
+  },
   "downstreamBlockers": {
-    "dependency": 1060,
-    "evidence-lineage": 6628,
-    "path-readiness": 13819,
-    "runtime-identity": 3227
+    "dependency": 1065,
+    "evidence-lineage": 6744,
+    "path-readiness": 15988,
+    "runtime-identity": 2286
   },
   "evidence": {
     "beforeResidualDispositionReview": {
-      "queuedResources": 5370,
-      "primaryQueueItems": 5370,
-      "dependentQueueItems": 21938
+      "queuedResources": 6391,
+      "primaryQueueItems": 6391,
+      "dependentQueueItems": 22197
     },
     "afterResidualDispositionReview": {
-      "reviewedResources": 5370,
-      "unresolvedDispositionBlockers": 1084
+      "reviewedResources": 6391,
+      "unresolvedDispositionBlockers": 159
     },
     "itemJsonlPath": "course-content/runtime/resource-governance/resource-disposition-backlog-review-items.jsonl",
     "sourceAuditPath": "course-content/runtime/resource-governance/resource-field-completion-audit.jsonl",

@@ -1,32 +1,32 @@
 {
   "artifactVersion": "resource-field-completion-audit.v1",
-  "auditMissingFieldRows": 5370,
-  "queuedResources": 5370,
-  "primaryQueueItems": 5370,
-  "dependentQueueItems": 21938,
+  "auditMissingFieldRows": 6391,
+  "queuedResources": 6391,
+  "primaryQueueItems": 6391,
+  "dependentQueueItems": 22197,
   "byFollowupBucket": {
-    "repair-resource-identity-bindings": 1329,
-    "complete-analysis-design-graph-resource-bindings": 6856,
-    "complete-evidence-lineage-bindings": 6628,
-    "review-runtime-lesson-planning-units": 6527,
-    "review-runtime-media-handout-dispositions": 2574,
-    "complete-citation-and-rag-bindings": 1898,
+    "repair-resource-identity-bindings": 316,
+    "complete-analysis-design-graph-resource-bindings": 6997,
+    "complete-evidence-lineage-bindings": 6744,
+    "review-runtime-lesson-planning-units": 8555,
+    "review-runtime-media-handout-dispositions": 2505,
+    "complete-citation-and-rag-bindings": 1970,
     "complete-foundation-graph-resource-bindings": 436,
-    "blocked-resource-completion-dependencies": 1060
+    "blocked-resource-completion-dependencies": 1065
   },
   "byMissingFieldCode": {
-    "missing-content-hash": 1329,
-    "missing-capability-target": 4003,
-    "missing-evidence-contract": 3314,
-    "missing-evidence-instrumentation": 3314,
-    "missing-knowledge-binding": 3289,
-    "missing-path-profile": 4028,
-    "missing-path-target": 2499,
-    "provisional-metadata": 1141,
-    "missing-human-review": 1433,
+    "missing-content-hash": 316,
+    "missing-capability-target": 4081,
+    "missing-evidence-contract": 3372,
+    "missing-evidence-instrumentation": 3372,
+    "missing-knowledge-binding": 3352,
+    "missing-path-profile": 5049,
+    "missing-path-target": 3506,
+    "missing-human-review": 2397,
     "missing-segment-ref": 159,
-    "blocked-by-dependency": 1060,
-    "missing-citation-target": 1739
+    "blocked-by-dependency": 1065,
+    "missing-citation-target": 1811,
+    "provisional-metadata": 108
   },
   "queues": [
     {
@@ -97,18 +97,6 @@
       "graphDomain": "textbook",
       "missingFieldCode": "missing-path-target",
       "followupBucket": "review-runtime-lesson-planning-units",
-      "dependencyState": "needs-human-review",
-      "total": 535,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
-      "id": "resource-completion:dependent:authoring-textbook-caption:unassigned-learning-goal:textbook:provisional-metadata:review-runtime-media-handout-dispositions:needs-human-review",
-      "queueRole": "dependent",
-      "sourceFamily": "authoring-textbook-caption",
-      "learningGoalId": "unassigned-learning-goal",
-      "graphDomain": "textbook",
-      "missingFieldCode": "provisional-metadata",
-      "followupBucket": "review-runtime-media-handout-dispositions",
       "dependencyState": "needs-human-review",
       "total": 535,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
@@ -186,18 +174,6 @@
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
-      "id": "resource-completion:dependent:authoring-textbook-chapter:unassigned-learning-goal:textbook:provisional-metadata:review-runtime-media-handout-dispositions:needs-human-review",
-      "queueRole": "dependent",
-      "sourceFamily": "authoring-textbook-chapter",
-      "learningGoalId": "unassigned-learning-goal",
-      "graphDomain": "textbook",
-      "missingFieldCode": "provisional-metadata",
-      "followupBucket": "review-runtime-media-handout-dispositions",
-      "dependencyState": "needs-human-review",
-      "total": 10,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
       "id": "resource-completion:dependent:authoring-textbook-figure:unassigned-learning-goal:textbook:missing-capability-target:complete-analysis-design-graph-resource-bindings:needs-human-review",
       "queueRole": "dependent",
       "sourceFamily": "authoring-textbook-figure",
@@ -270,18 +246,6 @@
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
-      "id": "resource-completion:dependent:authoring-textbook-figure:unassigned-learning-goal:textbook:provisional-metadata:review-runtime-media-handout-dispositions:needs-human-review",
-      "queueRole": "dependent",
-      "sourceFamily": "authoring-textbook-figure",
-      "learningGoalId": "unassigned-learning-goal",
-      "graphDomain": "textbook",
-      "missingFieldCode": "provisional-metadata",
-      "followupBucket": "review-runtime-media-handout-dispositions",
-      "dependencyState": "needs-human-review",
-      "total": 535,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
       "id": "resource-completion:dependent:authoring-textbook-section:unassigned-learning-goal:textbook:missing-capability-target:complete-analysis-design-graph-resource-bindings:needs-human-review",
       "queueRole": "dependent",
       "sourceFamily": "authoring-textbook-section",
@@ -349,18 +313,6 @@
       "graphDomain": "textbook",
       "missingFieldCode": "missing-path-target",
       "followupBucket": "review-runtime-lesson-planning-units",
-      "dependencyState": "needs-human-review",
-      "total": 25,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
-      "id": "resource-completion:dependent:authoring-textbook-section:unassigned-learning-goal:textbook:provisional-metadata:review-runtime-media-handout-dispositions:needs-human-review",
-      "queueRole": "dependent",
-      "sourceFamily": "authoring-textbook-section",
-      "learningGoalId": "unassigned-learning-goal",
-      "graphDomain": "textbook",
-      "missingFieldCode": "provisional-metadata",
-      "followupBucket": "review-runtime-media-handout-dispositions",
       "dependencyState": "needs-human-review",
       "total": 25,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
@@ -698,7 +650,7 @@
       "missingFieldCode": "missing-capability-target",
       "followupBucket": "complete-analysis-design-graph-resource-bindings",
       "dependencyState": "ready",
-      "total": 1240,
+      "total": 1298,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -722,7 +674,7 @@
       "missingFieldCode": "missing-citation-target",
       "followupBucket": "complete-citation-and-rag-bindings",
       "dependencyState": "ready",
-      "total": 1196,
+      "total": 1254,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -746,7 +698,7 @@
       "missingFieldCode": "missing-evidence-contract",
       "followupBucket": "complete-evidence-lineage-bindings",
       "dependencyState": "ready",
-      "total": 1240,
+      "total": 1298,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -770,7 +722,7 @@
       "missingFieldCode": "missing-evidence-instrumentation",
       "followupBucket": "complete-evidence-lineage-bindings",
       "dependencyState": "ready",
-      "total": 1240,
+      "total": 1298,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -783,6 +735,18 @@
       "followupBucket": "complete-analysis-design-graph-resource-bindings",
       "dependencyState": "needs-human-review",
       "total": 137,
+      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
+    },
+    {
+      "id": "resource-completion:dependent:runtime-lesson-module:unassigned-learning-goal:runtime-lesson:missing-knowledge-binding:complete-analysis-design-graph-resource-bindings:ready",
+      "queueRole": "dependent",
+      "sourceFamily": "runtime-lesson-module",
+      "learningGoalId": "unassigned-learning-goal",
+      "graphDomain": "runtime-lesson",
+      "missingFieldCode": "missing-knowledge-binding",
+      "followupBucket": "complete-analysis-design-graph-resource-bindings",
+      "dependencyState": "ready",
+      "total": 58,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -806,7 +770,7 @@
       "missingFieldCode": "missing-path-profile",
       "followupBucket": "review-runtime-lesson-planning-units",
       "dependencyState": "ready",
-      "total": 1240,
+      "total": 1298,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -830,7 +794,7 @@
       "missingFieldCode": "missing-path-target",
       "followupBucket": "review-runtime-lesson-planning-units",
       "dependencyState": "ready",
-      "total": 1240,
+      "total": 1298,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -866,7 +830,7 @@
       "missingFieldCode": "missing-capability-target",
       "followupBucket": "complete-analysis-design-graph-resource-bindings",
       "dependencyState": "ready",
-      "total": 98,
+      "total": 112,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -890,7 +854,19 @@
       "missingFieldCode": "missing-citation-target",
       "followupBucket": "complete-citation-and-rag-bindings",
       "dependencyState": "ready",
-      "total": 363,
+      "total": 377,
+      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
+    },
+    {
+      "id": "resource-completion:dependent:runtime-lesson-step:unassigned-learning-goal:runtime-lesson:missing-knowledge-binding:complete-analysis-design-graph-resource-bindings:ready",
+      "queueRole": "dependent",
+      "sourceFamily": "runtime-lesson-step",
+      "learningGoalId": "unassigned-learning-goal",
+      "graphDomain": "runtime-lesson",
+      "missingFieldCode": "missing-knowledge-binding",
+      "followupBucket": "complete-analysis-design-graph-resource-bindings",
+      "dependencyState": "ready",
+      "total": 5,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -914,7 +890,7 @@
       "missingFieldCode": "missing-path-profile",
       "followupBucket": "review-runtime-lesson-planning-units",
       "dependencyState": "ready",
-      "total": 353,
+      "total": 367,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
@@ -930,94 +906,34 @@
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
-      "id": "resource-completion:dependent:textbook-search-document:controlModeling:textbook:missing-path-profile:review-runtime-lesson-planning-units:ready",
+      "id": "resource-completion:dependent:textbook-search-document:unassigned-learning-goal:textbook:missing-path-profile:review-runtime-lesson-planning-units:needs-human-review",
       "queueRole": "dependent",
       "sourceFamily": "textbook-search-document",
-      "learningGoalId": "controlModeling",
+      "learningGoalId": "unassigned-learning-goal",
       "graphDomain": "textbook",
       "missingFieldCode": "missing-path-profile",
       "followupBucket": "review-runtime-lesson-planning-units",
-      "dependencyState": "ready",
-      "total": 15,
+      "dependencyState": "needs-human-review",
+      "total": 964,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
-      "id": "resource-completion:dependent:textbook-section:controlModeling:textbook:missing-content-hash:repair-resource-identity-bindings:blocked-by-dependency",
+      "id": "resource-completion:dependent:textbook-search-document:unassigned-learning-goal:textbook:missing-path-target:review-runtime-lesson-planning-units:needs-human-review",
       "queueRole": "dependent",
-      "sourceFamily": "textbook-section",
-      "learningGoalId": "controlModeling",
+      "sourceFamily": "textbook-search-document",
+      "learningGoalId": "unassigned-learning-goal",
       "graphDomain": "textbook",
-      "missingFieldCode": "missing-content-hash",
-      "followupBucket": "repair-resource-identity-bindings",
-      "dependencyState": "blocked-by-dependency",
-      "total": 767,
+      "missingFieldCode": "missing-path-target",
+      "followupBucket": "review-runtime-lesson-planning-units",
+      "dependencyState": "needs-human-review",
+      "total": 964,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
-      "id": "resource-completion:dependent:textbook-section:crossDomainTransfer:textbook:missing-content-hash:repair-resource-identity-bindings:blocked-by-dependency",
+      "id": "resource-completion:dependent:textbook-section:unassigned-learning-goal:textbook:missing-knowledge-binding:complete-analysis-design-graph-resource-bindings:blocked-by-dependency",
       "queueRole": "dependent",
       "sourceFamily": "textbook-section",
-      "learningGoalId": "crossDomainTransfer",
-      "graphDomain": "textbook",
-      "missingFieldCode": "missing-content-hash",
-      "followupBucket": "repair-resource-identity-bindings",
-      "dependencyState": "blocked-by-dependency",
-      "total": 39,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
-      "id": "resource-completion:dependent:textbook-section:diagnosticAssessment:textbook:missing-content-hash:repair-resource-identity-bindings:blocked-by-dependency",
-      "queueRole": "dependent",
-      "sourceFamily": "textbook-section",
-      "learningGoalId": "diagnosticAssessment",
-      "graphDomain": "textbook",
-      "missingFieldCode": "missing-content-hash",
-      "followupBucket": "repair-resource-identity-bindings",
-      "dependencyState": "blocked-by-dependency",
-      "total": 23,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
-      "id": "resource-completion:dependent:textbook-section:engineeringDecision:textbook:missing-content-hash:repair-resource-identity-bindings:blocked-by-dependency",
-      "queueRole": "dependent",
-      "sourceFamily": "textbook-section",
-      "learningGoalId": "engineeringDecision",
-      "graphDomain": "textbook",
-      "missingFieldCode": "missing-content-hash",
-      "followupBucket": "repair-resource-identity-bindings",
-      "dependencyState": "blocked-by-dependency",
-      "total": 116,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
-      "id": "resource-completion:dependent:textbook-section:parameterDesign:textbook:missing-content-hash:repair-resource-identity-bindings:blocked-by-dependency",
-      "queueRole": "dependent",
-      "sourceFamily": "textbook-section",
-      "learningGoalId": "parameterDesign",
-      "graphDomain": "textbook",
-      "missingFieldCode": "missing-content-hash",
-      "followupBucket": "repair-resource-identity-bindings",
-      "dependencyState": "blocked-by-dependency",
-      "total": 1,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
-      "id": "resource-completion:dependent:textbook-section:selfDirectedLearning:textbook:missing-content-hash:repair-resource-identity-bindings:blocked-by-dependency",
-      "queueRole": "dependent",
-      "sourceFamily": "textbook-section",
-      "learningGoalId": "selfDirectedLearning",
-      "graphDomain": "textbook",
-      "missingFieldCode": "missing-content-hash",
-      "followupBucket": "repair-resource-identity-bindings",
-      "dependencyState": "blocked-by-dependency",
-      "total": 56,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
-      "id": "resource-completion:dependent:textbook-section:selfDirectedLearning:textbook:missing-knowledge-binding:complete-analysis-design-graph-resource-bindings:blocked-by-dependency",
-      "queueRole": "dependent",
-      "sourceFamily": "textbook-section",
-      "learningGoalId": "selfDirectedLearning",
+      "learningGoalId": "unassigned-learning-goal",
       "graphDomain": "textbook",
       "missingFieldCode": "missing-knowledge-binding",
       "followupBucket": "complete-analysis-design-graph-resource-bindings",
@@ -1026,13 +942,13 @@
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
-      "id": "resource-completion:dependent:textbook:controlModeling:textbook:missing-content-hash:repair-resource-identity-bindings:blocked-by-dependency",
+      "id": "resource-completion:dependent:textbook:unassigned-learning-goal:textbook:missing-capability-target:complete-analysis-design-graph-resource-bindings:blocked-by-dependency",
       "queueRole": "dependent",
       "sourceFamily": "textbook",
-      "learningGoalId": "controlModeling",
+      "learningGoalId": "unassigned-learning-goal",
       "graphDomain": "textbook",
-      "missingFieldCode": "missing-content-hash",
-      "followupBucket": "repair-resource-identity-bindings",
+      "missingFieldCode": "missing-capability-target",
+      "followupBucket": "complete-analysis-design-graph-resource-bindings",
       "dependencyState": "blocked-by-dependency",
       "total": 6,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
@@ -1410,6 +1326,18 @@
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
+      "id": "resource-completion:primary:runtime-lesson-module:unassigned-learning-goal:runtime-lesson:provisional-metadata:review-runtime-media-handout-dispositions:ready",
+      "queueRole": "primary",
+      "sourceFamily": "runtime-lesson-module",
+      "learningGoalId": "unassigned-learning-goal",
+      "graphDomain": "runtime-lesson",
+      "missingFieldCode": "provisional-metadata",
+      "followupBucket": "review-runtime-media-handout-dispositions",
+      "dependencyState": "ready",
+      "total": 58,
+      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
+    },
+    {
       "id": "resource-completion:primary:runtime-lesson-step:unassigned-learning-goal:runtime-lesson:missing-capability-target:complete-analysis-design-graph-resource-bindings:ready",
       "queueRole": "primary",
       "sourceFamily": "runtime-lesson-step",
@@ -1446,118 +1374,46 @@
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
-      "id": "resource-completion:primary:textbook-search-document:controlModeling:textbook:missing-path-target:review-runtime-lesson-planning-units:ready",
+      "id": "resource-completion:primary:runtime-lesson-step:unassigned-learning-goal:runtime-lesson:provisional-metadata:review-runtime-media-handout-dispositions:ready",
+      "queueRole": "primary",
+      "sourceFamily": "runtime-lesson-step",
+      "learningGoalId": "unassigned-learning-goal",
+      "graphDomain": "runtime-lesson",
+      "missingFieldCode": "provisional-metadata",
+      "followupBucket": "review-runtime-media-handout-dispositions",
+      "dependencyState": "ready",
+      "total": 14,
+      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
+    },
+    {
+      "id": "resource-completion:primary:textbook-search-document:unassigned-learning-goal:textbook:missing-human-review:review-runtime-media-handout-dispositions:needs-human-review",
       "queueRole": "primary",
       "sourceFamily": "textbook-search-document",
-      "learningGoalId": "controlModeling",
+      "learningGoalId": "unassigned-learning-goal",
       "graphDomain": "textbook",
-      "missingFieldCode": "missing-path-target",
-      "followupBucket": "review-runtime-lesson-planning-units",
-      "dependencyState": "ready",
-      "total": 15,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
-      "id": "resource-completion:primary:textbook-section:controlModeling:textbook:blocked-by-dependency:blocked-resource-completion-dependencies:blocked-by-dependency",
-      "queueRole": "primary",
-      "sourceFamily": "textbook-section",
-      "learningGoalId": "controlModeling",
-      "graphDomain": "textbook",
-      "missingFieldCode": "blocked-by-dependency",
-      "followupBucket": "blocked-resource-completion-dependencies",
-      "dependencyState": "blocked-by-dependency",
-      "total": 767,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
-      "id": "resource-completion:primary:textbook-section:controlModeling:textbook:missing-content-hash:repair-resource-identity-bindings:needs-human-review",
-      "queueRole": "primary",
-      "sourceFamily": "textbook-section",
-      "learningGoalId": "controlModeling",
-      "graphDomain": "textbook",
-      "missingFieldCode": "missing-content-hash",
-      "followupBucket": "repair-resource-identity-bindings",
+      "missingFieldCode": "missing-human-review",
+      "followupBucket": "review-runtime-media-handout-dispositions",
       "dependencyState": "needs-human-review",
-      "total": 3,
+      "total": 964,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
-      "id": "resource-completion:primary:textbook-section:crossDomainTransfer:textbook:blocked-by-dependency:blocked-resource-completion-dependencies:blocked-by-dependency",
+      "id": "resource-completion:primary:textbook-section:unassigned-learning-goal:textbook:blocked-by-dependency:blocked-resource-completion-dependencies:blocked-by-dependency",
       "queueRole": "primary",
       "sourceFamily": "textbook-section",
-      "learningGoalId": "crossDomainTransfer",
+      "learningGoalId": "unassigned-learning-goal",
       "graphDomain": "textbook",
       "missingFieldCode": "blocked-by-dependency",
       "followupBucket": "blocked-resource-completion-dependencies",
       "dependencyState": "blocked-by-dependency",
-      "total": 39,
+      "total": 1007,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {
-      "id": "resource-completion:primary:textbook-section:diagnosticAssessment:textbook:blocked-by-dependency:blocked-resource-completion-dependencies:blocked-by-dependency",
-      "queueRole": "primary",
-      "sourceFamily": "textbook-section",
-      "learningGoalId": "diagnosticAssessment",
-      "graphDomain": "textbook",
-      "missingFieldCode": "blocked-by-dependency",
-      "followupBucket": "blocked-resource-completion-dependencies",
-      "dependencyState": "blocked-by-dependency",
-      "total": 23,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
-      "id": "resource-completion:primary:textbook-section:engineeringDecision:textbook:blocked-by-dependency:blocked-resource-completion-dependencies:blocked-by-dependency",
-      "queueRole": "primary",
-      "sourceFamily": "textbook-section",
-      "learningGoalId": "engineeringDecision",
-      "graphDomain": "textbook",
-      "missingFieldCode": "blocked-by-dependency",
-      "followupBucket": "blocked-resource-completion-dependencies",
-      "dependencyState": "blocked-by-dependency",
-      "total": 116,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
-      "id": "resource-completion:primary:textbook-section:engineeringDecision:textbook:missing-content-hash:repair-resource-identity-bindings:needs-human-review",
-      "queueRole": "primary",
-      "sourceFamily": "textbook-section",
-      "learningGoalId": "engineeringDecision",
-      "graphDomain": "textbook",
-      "missingFieldCode": "missing-content-hash",
-      "followupBucket": "repair-resource-identity-bindings",
-      "dependencyState": "needs-human-review",
-      "total": 2,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
-      "id": "resource-completion:primary:textbook-section:parameterDesign:textbook:blocked-by-dependency:blocked-resource-completion-dependencies:blocked-by-dependency",
-      "queueRole": "primary",
-      "sourceFamily": "textbook-section",
-      "learningGoalId": "parameterDesign",
-      "graphDomain": "textbook",
-      "missingFieldCode": "blocked-by-dependency",
-      "followupBucket": "blocked-resource-completion-dependencies",
-      "dependencyState": "blocked-by-dependency",
-      "total": 1,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
-      "id": "resource-completion:primary:textbook-section:selfDirectedLearning:textbook:blocked-by-dependency:blocked-resource-completion-dependencies:blocked-by-dependency",
-      "queueRole": "primary",
-      "sourceFamily": "textbook-section",
-      "learningGoalId": "selfDirectedLearning",
-      "graphDomain": "textbook",
-      "missingFieldCode": "blocked-by-dependency",
-      "followupBucket": "blocked-resource-completion-dependencies",
-      "dependencyState": "blocked-by-dependency",
-      "total": 56,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
-      "id": "resource-completion:primary:textbook:controlModeling:textbook:blocked-by-dependency:blocked-resource-completion-dependencies:blocked-by-dependency",
+      "id": "resource-completion:primary:textbook:unassigned-learning-goal:textbook:blocked-by-dependency:blocked-resource-completion-dependencies:blocked-by-dependency",
       "queueRole": "primary",
       "sourceFamily": "textbook",
-      "learningGoalId": "controlModeling",
+      "learningGoalId": "unassigned-learning-goal",
       "graphDomain": "textbook",
       "missingFieldCode": "blocked-by-dependency",
       "followupBucket": "blocked-resource-completion-dependencies",

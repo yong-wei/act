@@ -68,6 +68,7 @@ export type ResourceFieldCompletionFamily =
 
 export type ResourceFieldCompletionMethod =
   | 'manual'
+  | 'agent-reviewed'
   | 'local-model-assisted'
   | 'external-tool-assisted'
   | 'generated-provisional'
@@ -80,6 +81,7 @@ export type ResourceFieldReviewStatus =
   | 'model-assisted-provisional'
   | 'external-tool-provisional'
   | 'model-cleared'
+  | 'agent-reviewed'
   | 'human-confirmed'
   | 'blocked'
   | 'stale';
@@ -122,6 +124,7 @@ export interface ResourceFieldCompletionCandidate {
   privacyScope?: ResourceNodePrivacyLevel | null;
   generatedBy?: 'local-model' | 'external-tool' | 'template' | null;
   humanConfirmed?: boolean;
+  reviewProvenance?: 'agent-reviewed' | 'human-confirmed';
   currentPathEligible?: boolean;
   contentHash?: string | null;
   versionRef?: string | null;
@@ -171,6 +174,9 @@ export interface ResourceFieldReviewAudit {
   independentEvidenceRef: string | null;
   confidence: number | null;
   staleInvalidationRule: string;
+  reviewArtifactVersion?: string | null;
+  reviewSourceSha256?: string | null;
+  reviewRowHash?: string | null;
 }
 
 export interface ResourceFieldSourceWindow {
@@ -195,6 +201,8 @@ export interface ResourceFieldCompletionAuditRow {
   missingFieldCodes: ResourceFieldMissingCode[];
   completionMethod: ResourceFieldCompletionMethod;
   reviewStatus: ResourceFieldReviewStatus;
+  reviewConcluded: boolean;
+  semanticConfirmed: boolean;
   reviewAudit: ResourceFieldReviewAudit;
   evidenceContract: ResourceEvidenceContractCompleteness;
   pathEligibility: {
@@ -222,6 +230,9 @@ export interface ResourceFieldCompletionCoverageSummary {
   missingField: number;
   provisional: number;
   humanConfirmed: number;
+  agentReviewed: number;
+  reviewConcluded: number;
+  semanticReviewed: number;
   citationReady: number;
   pathEligible: number;
   blocked: number;
@@ -387,8 +398,10 @@ export interface ResourceFieldCompletionAuditResult {
 
 export interface ResourceFieldCompletionReviewOverlay {
   resourceId: string;
-  reviewStatus?: Extract<ResourceFieldReviewStatus, 'model-cleared' | 'human-confirmed' | 'stale'>;
+  reviewStatus?: Extract<ResourceFieldReviewStatus, 'model-cleared' | 'agent-reviewed' | 'human-confirmed' | 'stale'>;
   canonicalSemanticMatch?: boolean;
+  semanticConfirmed?: boolean;
+  preserveProvisionalMetadata?: boolean;
   expectedSourceHash: string | null;
   expectedSourceVersionRef: string | null;
   graphNodeRefs?: ResourceGraphNodeRefs;
@@ -418,6 +431,7 @@ export interface ResourceFieldCompletionAuditRowsInput {
 
 const EMPTY_COUNTS: Record<ResourceFieldCompletionMethod, number> = {
   manual: 0,
+  'agent-reviewed': 0,
   'local-model-assisted': 0,
   'external-tool-assisted': 0,
   'generated-provisional': 0,
@@ -431,6 +445,7 @@ const EMPTY_REVIEW_COUNTS: Record<ResourceFieldReviewStatus, number> = {
   'model-assisted-provisional': 0,
   'external-tool-provisional': 0,
   'model-cleared': 0,
+  'agent-reviewed': 0,
   'human-confirmed': 0,
   blocked: 0,
   stale: 0,
@@ -576,8 +591,9 @@ export function applyResourceFieldCompletionReviewOverlays(
     const reviewedGraphNodeRefs = overlay.graphNodeRefs ?? row.graphNodeRefs;
     const reviewStatus = overlay.reviewStatus ?? 'human-confirmed';
     const missingFieldCodes = row.missingFieldCodes.filter((code) => {
-      if (code === 'missing-human-review') return reviewStatus !== 'human-confirmed';
-      if (code === 'provisional-metadata' || code === 'stale-review') return false;
+      if (code === 'missing-human-review') return !isHumanPathAuthorized(reviewStatus);
+      if (code === 'provisional-metadata') return overlay.preserveProvisionalMetadata === true;
+      if (code === 'stale-review') return false;
       if (code === 'missing-capability-target' && reviewedGraphNodeRefs.capability.length > 0) return false;
       if (code === 'missing-quality-target' && reviewedGraphNodeRefs.quality.length > 0) return false;
       return true;
@@ -593,9 +609,10 @@ export function applyResourceFieldCompletionReviewOverlays(
       missingFieldCodes,
       completionMethod: row.completionMethod,
       reviewStatus,
+      semanticConfirmed: overlay.semanticConfirmed,
       reviewAudit: overlay.reviewAudit,
       evidenceContract: row.evidenceContract,
-      currentPathEligible: reviewStatus === 'human-confirmed' && overlay.currentPathEligible,
+      currentPathEligible: isHumanPathAuthorized(reviewStatus) && overlay.currentPathEligible,
       sourceHash: row.sourceHash,
       sourceVersionRef: row.sourceVersionRef,
       pathTarget: overlay.pathTarget,
@@ -643,6 +660,9 @@ export function summarizeResourceFieldCompletionCoverageSummaries(
     missingField: sumSummaryField(summaries, 'missingField'),
     provisional: sumSummaryField(summaries, 'provisional'),
     humanConfirmed: sumSummaryField(summaries, 'humanConfirmed'),
+    agentReviewed: sumSummaryField(summaries, 'agentReviewed'),
+    reviewConcluded: sumSummaryField(summaries, 'reviewConcluded'),
+    semanticReviewed: sumSummaryField(summaries, 'semanticReviewed'),
     citationReady: sumSummaryField(summaries, 'citationReady'),
     pathEligible: sumSummaryField(summaries, 'pathEligible'),
     blocked: sumSummaryField(summaries, 'blocked'),
@@ -744,7 +764,9 @@ function rowFromCandidate(
 ): ResourceFieldCompletionAuditRow {
   const evidenceInstrumentation = candidate.evidenceInstrumentation ?? [];
   const learningFactMaterializationPolicy = learningFactMaterializationPolicyForCandidate(candidate, evidenceInstrumentation);
-  const humanReviewConfirmed = candidateHasFreshHumanReviewEvidence(candidate);
+  const reviewProvenance = candidateReviewProvenance(candidate);
+  const semanticReviewFresh = candidateHasFreshReviewEvidence(candidate);
+  const humanPathAuthorized = semanticReviewFresh && reviewProvenance === 'human-confirmed';
   const reviewedConceptStep = candidate.family === 'runtime-lesson-step' &&
     candidate.humanConfirmed === true &&
     Boolean(candidate.knowledgeNodeIds?.length);
@@ -774,12 +796,12 @@ function rowFromCandidate(
     ...(!evidenceContract.complete ? ['missing-evidence-contract' as const] : []),
     ...(!candidate.segmentRefs?.length ? ['missing-segment-ref' as const] : []),
     ...(!candidate.citationTargets?.length ? ['missing-citation-target' as const] : []),
-    ...(!humanReviewConfirmed ? ['missing-human-review' as const] : []),
-    ...(candidate.humanConfirmed && !humanReviewConfirmed ? ['stale-review' as const] : []),
-    ...(candidate.generatedBy && !humanReviewConfirmed ? ['provisional-metadata' as const] : []),
+    ...(!humanPathAuthorized ? ['missing-human-review' as const] : []),
+    ...(reviewProvenance && !semanticReviewFresh ? ['stale-review' as const] : []),
+    ...(candidate.generatedBy && !semanticReviewFresh ? ['provisional-metadata' as const] : []),
     ...(candidate.blockingDependency ? ['blocked-by-dependency' as const] : []),
   ]);
-  const reviewStatus = reviewStatusForCandidate(candidate, humanReviewConfirmed);
+  const reviewStatus = reviewStatusForCandidate(candidate, semanticReviewFresh, reviewProvenance);
 
   return buildRow({
     resourceId: candidate.id,
@@ -790,9 +812,9 @@ function rowFromCandidate(
     sourceRecord: candidate.sourceRecord ?? null,
     missingFieldCodes,
     evidenceContract,
-    completionMethod: completionMethodForCandidate(candidate, missingFieldCodes, humanReviewConfirmed),
+    completionMethod: completionMethodForCandidate(candidate, missingFieldCodes, semanticReviewFresh, reviewProvenance),
     reviewStatus,
-    reviewAudit: candidate.humanConfirmed
+    reviewAudit: reviewProvenance
       ? confirmedReviewAudit({
         sourceHash: candidate.reviewEvidence?.reviewedSourceHash ?? candidate.contentHash ?? null,
         versionRef: candidate.reviewEvidence?.reviewedVersionRef ?? candidate.versionRef ?? null,
@@ -807,7 +829,7 @@ function rowFromCandidate(
         confidence: candidate.reviewEvidence?.confidence,
       })
       : emptyReviewAudit(candidate),
-    currentPathEligible: humanReviewConfirmed && candidate.currentPathEligible === true,
+    currentPathEligible: humanPathAuthorized && candidate.currentPathEligible === true,
     versionRefs,
     sourceHash: candidate.contentHash ?? null,
     sourceVersionRef: candidate.versionRef ?? null,
@@ -840,6 +862,7 @@ function buildRow(input: {
   missingFieldCodes: ResourceFieldMissingCode[];
   completionMethod: ResourceFieldCompletionMethod;
   reviewStatus: ResourceFieldReviewStatus;
+  semanticConfirmed?: boolean;
   reviewAudit: ResourceFieldReviewAudit;
   evidenceContract: ResourceEvidenceContractCompleteness;
   currentPathEligible: boolean;
@@ -858,12 +881,14 @@ function buildRow(input: {
     ...input.missingFieldCodes.filter((code) => (
       code !== 'missing-quality-target'
     )),
-    ...(!isHumanConfirmed(input.reviewStatus) ? ['missing-human-review' as const] : []),
+    ...(!isHumanPathAuthorized(input.reviewStatus) ? ['missing-human-review' as const] : []),
   ]);
   const afterCompletion = blockedBy.length === 0 && input.evidenceContract.complete;
   const citationReady = !input.missingFieldCodes.includes('missing-citation-target') &&
     !input.missingFieldCodes.includes('missing-segment-ref');
   const denominatorKey = uniqueSorted(input.coverageKeys).join('|') || input.resourceId;
+  const reviewConcluded = isReviewConcluded(input.reviewStatus);
+  const semanticConfirmed = input.semanticConfirmed ?? isSemanticReviewFresh(input.reviewStatus);
 
   return {
     resourceId: input.resourceId,
@@ -886,6 +911,8 @@ function buildRow(input: {
     missingFieldCodes: input.missingFieldCodes,
     completionMethod: input.completionMethod,
     reviewStatus: input.reviewStatus,
+    reviewConcluded,
+    semanticConfirmed,
     reviewAudit: input.reviewAudit,
     evidenceContract: input.evidenceContract,
     pathEligibility: {
@@ -894,7 +921,7 @@ function buildRow(input: {
       masteryAffecting: afterCompletion &&
         input.evidenceContract.complete &&
         input.evidenceContract.learningFactMaterializationPolicy === 'materialized-learning-fact' &&
-        isHumanConfirmed(input.reviewStatus),
+        isHumanPathAuthorized(input.reviewStatus),
       blockedBy,
     },
     groundingEligibility: {
@@ -1506,10 +1533,13 @@ function humanReviewIntegrityIssuesFor(row: ResourceFieldCompletionAuditRow): st
 
 function summarizeRows(rows: ResourceFieldCompletionAuditRow[]): ResourceFieldCompletionCoverageSummary {
   return {
-    complete: rows.filter((row) => row.missingFieldCodes.length === 0 && row.reviewStatus === 'human-confirmed').length,
+    complete: rows.filter((row) => row.missingFieldCodes.length === 0 && isHumanPathAuthorized(row.reviewStatus)).length,
     missingField: rows.filter((row) => row.missingFieldCodes.length > 0).length,
     provisional: rows.filter((row) => isProvisional(row.reviewStatus)).length,
     humanConfirmed: rows.filter((row) => row.reviewStatus === 'human-confirmed').length,
+    agentReviewed: rows.filter((row) => row.reviewStatus === 'agent-reviewed').length,
+    reviewConcluded: rows.filter((row) => row.reviewConcluded).length,
+    semanticReviewed: rows.filter((row) => row.semanticConfirmed).length,
     citationReady: rows.filter((row) => row.groundingEligibility.citationReady).length,
     pathEligible: rows.filter((row) => row.pathEligibility.current).length,
     blocked: rows.filter((row) => row.pathEligibility.blockedBy.length > 0).length,
@@ -1533,6 +1563,9 @@ function sumSummaryField(
     | 'missingField'
     | 'provisional'
     | 'humanConfirmed'
+    | 'agentReviewed'
+    | 'reviewConcluded'
+    | 'semanticReviewed'
     | 'citationReady'
     | 'pathEligible'
     | 'blocked'
@@ -1612,10 +1645,12 @@ function familyForResourceNode(node: ResourceNode): ResourceFieldCompletionFamil
 function completionMethodForCandidate(
   candidate: ResourceFieldCompletionCandidate,
   missingFieldCodes: ResourceFieldMissingCode[],
-  humanReviewConfirmed: boolean,
+  semanticReviewFresh: boolean,
+  reviewProvenance: ResourceFieldCompletionCandidate['reviewProvenance'],
 ): ResourceFieldCompletionMethod {
   if (candidate.blockingDependency) return 'blocked';
-  if (missingFieldCodes.length === 0 && humanReviewConfirmed) return 'already-governed';
+  if (semanticReviewFresh && reviewProvenance === 'agent-reviewed') return 'agent-reviewed';
+  if (missingFieldCodes.length === 0 && semanticReviewFresh) return 'already-governed';
   if (candidate.generatedBy === 'local-model') return 'local-model-assisted';
   if (candidate.generatedBy === 'external-tool') return 'external-tool-assisted';
   if (candidate.generatedBy) return 'generated-provisional';
@@ -1624,19 +1659,26 @@ function completionMethodForCandidate(
 
 function reviewStatusForCandidate(
   candidate: ResourceFieldCompletionCandidate,
-  humanReviewConfirmed: boolean,
+  semanticReviewFresh: boolean,
+  reviewProvenance: ResourceFieldCompletionCandidate['reviewProvenance'],
 ): ResourceFieldReviewStatus {
   if (candidate.blockingDependency) return 'blocked';
-  if (humanReviewConfirmed) return 'human-confirmed';
-  if (candidate.humanConfirmed) return 'stale';
+  if (semanticReviewFresh && reviewProvenance) return reviewProvenance;
+  if (reviewProvenance) return 'stale';
   if (candidate.generatedBy === 'local-model') return 'model-assisted-provisional';
   if (candidate.generatedBy === 'external-tool') return 'external-tool-provisional';
   if (candidate.generatedBy) return 'generated-provisional';
   return 'not-reviewed';
 }
 
-function candidateHasFreshHumanReviewEvidence(candidate: ResourceFieldCompletionCandidate): boolean {
-  if (!candidate.humanConfirmed) return false;
+function candidateReviewProvenance(
+  candidate: ResourceFieldCompletionCandidate,
+): ResourceFieldCompletionCandidate['reviewProvenance'] {
+  return candidate.reviewProvenance ?? (candidate.humanConfirmed ? 'human-confirmed' : undefined);
+}
+
+function candidateHasFreshReviewEvidence(candidate: ResourceFieldCompletionCandidate): boolean {
+  if (!candidateReviewProvenance(candidate)) return false;
   const reviewerId = candidate.reviewEvidence?.reviewerId ?? '';
   const placeholderReviewer = reviewerId === 'system-governed' ||
     reviewerId.includes('template') ||
@@ -1730,6 +1772,18 @@ function requiresReadiness(type: string): boolean {
 
 function isHumanConfirmed(status: ResourceFieldReviewStatus): boolean {
   return status === 'human-confirmed';
+}
+
+function isSemanticReviewFresh(status: ResourceFieldReviewStatus): boolean {
+  return isHumanConfirmed(status) || status === 'agent-reviewed';
+}
+
+function isReviewConcluded(status: ResourceFieldReviewStatus): boolean {
+  return status === 'agent-reviewed' || status === 'human-confirmed' || status === 'blocked';
+}
+
+function isHumanPathAuthorized(status: ResourceFieldReviewStatus): boolean {
+  return isHumanConfirmed(status);
 }
 
 function isProvisional(status: ResourceFieldReviewStatus): boolean {

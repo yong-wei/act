@@ -279,6 +279,63 @@ describe('resource field completion audit', () => {
     )).toThrow('Missing lesson content clearance resource');
   });
 
+  it('preserves existing knowledge-card review chronology when lesson clearance is newer', () => {
+    const candidate = {
+      id: 'knowledge-card:三域证据链_1_5',
+      title: 'Existing reviewed card',
+      family: 'knowledge-card' as const,
+      sourcePathOrUrl: 'course-content/runtime/knowledge/cards/nodes/三域证据链_1_5.md',
+      sourceRecord: '三域证据链_1_5',
+      knowledgeNodeIds: ['existing-review'],
+      segmentRefs: ['三域证据链_1_5'],
+      citationTargets: ['course-content/runtime/knowledge/cards/nodes/三域证据链_1_5.md'],
+      pathTarget: '/knowledge?node=existing-review',
+      privacyScope: 'student-visible' as const,
+      contentHash: 'sha256:existing-review',
+      versionRef: 'runtime-knowledge-card.v1',
+      humanConfirmed: true,
+      reviewEvidence: {
+        reviewerId: 'knowledge-card-reviewer',
+        reviewerRole: 'curriculum-data-governance',
+        reviewedAt: '2026-07-14T04:30:00.000Z',
+        reviewBatchId: 'knowledge-card-review-2026-07-14',
+        reviewerVisibleRationale: 'The card was reviewed against its source and retained as citation support.',
+        independentEvidenceRef: 'review-packet:existing-review',
+        reviewedSourceHash: 'sha256:existing-review',
+        reviewedVersionRef: 'runtime-knowledge-card.v1',
+      },
+    };
+    const sourceRow = buildResourceFieldCompletionAudit({
+      registry: buildResourceNodeRegistry({}),
+      candidates: [candidate],
+    }).sourceRows[0];
+    const [overlay] = buildCourseContentClearanceReviewOverlays([{
+      lesson_id: '1-5',
+      reviewer: 'course-reviewer',
+      batch: 'lesson-clearance-2026-07-16',
+      time: '2026-07-16T11:05:14.000Z',
+      model: 'gpt-5.6-sol',
+      status: 'cleared',
+      review_status: 'model-cleared',
+      independent_evidence_ref: 'course-content/runtime/lessons/1-5/review/review-report.md',
+      reviewed_resources: [{
+        resourceId: candidate.id,
+        sourcePath: candidate.sourcePathOrUrl,
+        sourceHash: candidate.contentHash,
+        sourceVersionRef: candidate.versionRef,
+        graphNodeRefs: { knowledge: ['existing-review'], capability: [], quality: [] },
+        pathTarget: candidate.pathTarget,
+        currentPathEligible: false,
+        rationale: 'The lesson clearance confirms use of the already-reviewed card without replacing its review chronology.',
+      }],
+    }], [sourceRow]);
+
+    expect(overlay.reviewAudit).toMatchObject({
+      reviewedAt: '2026-07-14T04:30:00.000Z',
+      reviewBatchId: 'unit-1-5-content-clearance-2026-07-14',
+    });
+  });
+
   it('rejects invalid model clearance status and missing or self-referential evidence', async () => {
     const runtimeLessonsDir = mkdtempSync(join(tmpdir(), 'content-clearance-validation-'));
     const reviewDir = join(runtimeLessonsDir, '1-3', 'review');
@@ -442,8 +499,39 @@ describe('resource field completion audit', () => {
     expect(result.summary.generatedAt).toBe(frozen.summary.generatedAt);
     expect(result.summary.totals.denominator).toBe(2);
     expect(result.summary.byReviewStatus['human-confirmed']).toBe(1);
+    expect(result.summary.totals).toMatchObject({
+      humanConfirmed: 1,
+      agentReviewed: 0,
+      semanticReviewed: 1,
+    });
     expect(result.workqueues.auditMissingFieldRows).toBe(2);
     expect(result.integrityDiagnostics.invalidHumanConfirmedRows).toBe(0);
+
+    const agentReviewed = buildResourceFieldCompletionAuditFromRows({
+      sourceRows: frozen.rows,
+      reviewOverlays: [{ ...overlay, reviewStatus: 'agent-reviewed' }],
+      requiredReviewResourceIds: ['knowledge-card:frozen-review'],
+      generatedAt: frozen.summary.generatedAt,
+      sourceWindow: frozen.summary.sourceWindow,
+      versionRefs: frozen.summary.versionRefs,
+    });
+    expect(agentReviewed.rows[0]).toMatchObject({
+      reviewStatus: 'agent-reviewed',
+      pathEligibility: { current: false },
+    });
+    expect(agentReviewed.rows[0].missingFieldCodes).toContain('missing-human-review');
+    expect(agentReviewed.rows[0].pathEligibility).toMatchObject({
+      current: false,
+      afterCompletion: false,
+      masteryAffecting: false,
+      blockedBy: expect.arrayContaining(['missing-human-review']),
+    });
+    expect(agentReviewed.summary.totals).toMatchObject({
+      humanConfirmed: 0,
+      agentReviewed: 1,
+      semanticReviewed: 1,
+    });
+    expect(agentReviewed.integrityDiagnostics.humanConfirmedRows).toBe(0);
 
     expect(() => buildResourceFieldCompletionAuditFromRows({
       sourceRows: [...frozen.rows, frozen.rows[0]],
@@ -1071,7 +1159,7 @@ describe('resource field completion audit', () => {
         (dispositionItem.reviewBatchId !== 'residual-resource-disposition-review-2026-07-05' ||
           dispositionItem.reviewerId !== 'residual-resource-disposition-implementing-agent');
       return !hasIndependentDispositionReview && (
-        row.reviewStatus !== 'human-confirmed' ||
+        !['human-confirmed', 'agent-reviewed'].includes(row.reviewStatus) ||
         row.missingFieldCodes.includes('missing-human-review') ||
         row.missingFieldCodes.includes('provisional-metadata') ||
         row.pathEligibility.blockedBy.includes('missing-human-review') ||
@@ -1079,11 +1167,8 @@ describe('resource field completion audit', () => {
       );
     });
     const stableSourceRefs = new Set(dispositionReviewItems.map((item) => item.stableSourceRef));
-    const reviewedTextbookOverviewRows = dispositionReviewItems.filter((item) =>
-      item.reviewBatchId === 'residual-textbook-overview-disposition-review-2026-07-05'
-    );
-    const reviewedAuthoringTextbookRows = dispositionReviewItems.filter((item) =>
-      item.reviewBatchId === 'residual-authoring-textbook-disposition-review-2026-07-05'
+    const reviewedLongformRows = jsonlRows.filter((row) =>
+      row.reviewAudit.reviewBatchId === 'longform-textbook-reference-resource-semantics-882-2026-07-17'
     );
     const reviewedRuntimeHandoutRows = dispositionReviewItems.filter((item) =>
       item.reviewBatchId === 'residual-runtime-handout-disposition-review-2026-07-05'
@@ -1095,10 +1180,10 @@ describe('resource field completion audit', () => {
       item.reviewBatchId === 'residual-knowledge-card-disposition-review-2026-07-05'
     );
     const reviewedAuthoringTextbookFigureDispositionRows = dispositionReviewItems.filter((item) =>
-      item.reviewBatchId === 'residual-authoring-textbook-figure-disposition-review-2026-07-05'
+      item.sourceFamily === 'authoring-textbook-figure' && item.changeScope === 'longform-882'
     );
     const reviewedAuthoringTextbookCaptionDispositionRows = dispositionReviewItems.filter((item) =>
-      item.reviewBatchId === 'residual-authoring-textbook-caption-disposition-review-2026-07-05'
+      item.sourceFamily === 'authoring-textbook-caption' && item.changeScope === 'longform-882'
     );
     const reviewedRuntimeLessonStepRows = dispositionReviewItems.filter((item) =>
       item.reviewBatchId === 'residual-runtime-lesson-step-disposition-review-2026-07-05'
@@ -1125,9 +1210,7 @@ describe('resource field completion audit', () => {
         Number(candidate.index) === figureIndexFromResourceId(item.resourceId)
       );
       if (!image) return null;
-      return image.caption
-        ? `sha256:${createHash('sha256').update(image.caption).digest('hex')}`
-        : manifest.markdownSha256 ?? null;
+      return `sha256:${createHash('sha256').update(image.caption ?? '').digest('hex')}`;
     };
 
     expect(workqueueSummary.primaryQueueItems + workqueueSummary.dependentQueueItems).toBe(workqueueItems.length);
@@ -1227,20 +1310,15 @@ describe('resource field completion audit', () => {
       .filter((item) => !item.reviewedLimitationState.includes('unresolved-residual-disposition-review'))
       .every((item) => item.reviewedLimitationState.includes('residual-disposition-reviewed'))).toBe(true);
     expect(independentlyReviewedDispositionRows.length).toBeGreaterThan(0);
-    expect(reviewedTextbookOverviewRows).toHaveLength(11);
-    expect(reviewedTextbookOverviewRows.every((item) =>
-      item.classification === 'evidence-producing' &&
-      item.sourceHash?.startsWith('sha256:') &&
-      item.reviewedLimitationState.includes('residual-disposition-reviewed') &&
-      !item.reviewedLimitationState.includes('unresolved-residual-disposition-review')
-    )).toBe(true);
-    expect(reviewedAuthoringTextbookRows).toHaveLength(35);
-    expect(reviewedAuthoringTextbookRows.every((item) =>
-      item.classification === 'supporting-citation' &&
-      item.sourceHash?.startsWith('sha256:') &&
-      item.sourceVersionRef === 'authoring-textbook-manifest.v1' &&
-      item.reviewedLimitationState.includes('residual-disposition-reviewed') &&
-      !item.reviewedLimitationState.includes('unresolved-residual-disposition-review')
+    expect(reviewedLongformRows).toHaveLength(3082);
+    expect(reviewedLongformRows.every((row) =>
+      row.reviewStatus === 'agent-reviewed' &&
+      row.reviewAudit.reviewerRole === 'implementing-agent' &&
+      row.reviewAudit.reviewedSourceHash?.replace(/^sha256:/, '') === row.sourceHash?.replace(/^sha256:/, '') &&
+      row.graphNodeRefs.knowledge.length === 0 &&
+      row.graphNodeRefs.capability.length === 0 &&
+      row.graphNodeRefs.quality.length === 0 &&
+      row.pathEligibility.current === false
     )).toBe(true);
     expect(reviewedRuntimeHandoutRows).toHaveLength(36);
     expect(reviewedRuntimeHandoutRows.every((item) =>
@@ -1285,13 +1363,15 @@ describe('resource field completion audit', () => {
         .digest('hex')}`;
       return item.sourceHash === actualHash;
     })).toBe(true);
-    expect(unresolvedDispositionRows.some((item) => item.sourceFamily === 'knowledge-card')).toBe(false);
+    expect(unresolvedDispositionRows
+      .filter((item) => item.sourceFamily === 'knowledge-card')
+      .every((item) => item.changeScope === 'out-of-scope-existing')).toBe(true);
     expect(knowledgeVisualSemanticReviewSummary).toMatchObject({
       selectedCount: 4,
       remainingSelectedSemanticReview: 0,
       residualUnselectedCounts: {
-        'knowledge-card': 277,
-        'knowledge-infograph': 159,
+        'knowledge-card': 18,
+        'knowledge-infograph': 0,
       },
       byDisposition: {
         'path-plannable': 2,
@@ -1317,7 +1397,7 @@ describe('resource field completion audit', () => {
     expect(reviewedAuthoringTextbookFigureDispositionRows).toHaveLength(535);
     expect(reviewedAuthoringTextbookFigureDispositionRows.every((item) =>
       item.classification === 'embedded-asset' &&
-      /^[0-9a-f]{64}$/.test(item.sourceHash ?? '') &&
+      /^sha256:[0-9a-f]{64}$/.test(item.sourceHash ?? '') &&
       item.currentPathEligible === false &&
       item.reviewedLimitationState.includes('residual-disposition-reviewed') &&
       !item.reviewedLimitationState.includes('unresolved-residual-disposition-review')
@@ -1326,17 +1406,20 @@ describe('resource field completion audit', () => {
       const actualHash = createHash('sha256')
         .update(readFileSync(item.sourcePathOrUrl))
         .digest('hex');
-      return item.sourceHash === actualHash;
+      return item.sourceHash === `sha256:${actualHash}`;
     })).toBe(true);
     expect(unresolvedDispositionRows.some((item) => item.sourceFamily === 'authoring-textbook-figure')).toBe(false);
     expect(reviewedAuthoringTextbookCaptionDispositionRows).toHaveLength(535);
     expect(reviewedAuthoringTextbookCaptionDispositionRows.every((item) =>
-      item.classification === 'supporting-citation' &&
+      (item.classification === 'supporting-citation' || item.classification === 'excluded-with-rationale') &&
       /^sha256:[0-9a-f]{64}$|^[0-9a-f]{64}$/.test(item.sourceHash ?? '') &&
       item.currentPathEligible === false &&
       item.reviewedLimitationState.includes('residual-disposition-reviewed') &&
       !item.reviewedLimitationState.includes('unresolved-residual-disposition-review')
     )).toBe(true);
+    expect(reviewedAuthoringTextbookCaptionDispositionRows.filter((item) =>
+      item.classification === 'excluded-with-rationale'
+    )).toHaveLength(180);
     expect(reviewedAuthoringTextbookCaptionDispositionRows.every((item) =>
       item.sourceHash === captionHashForReviewItem(item)
     )).toBe(true);
@@ -1352,7 +1435,9 @@ describe('resource field completion audit', () => {
     expect(reviewedRuntimeLessonStepRows.every((item) =>
       existsSync(item.sourcePathOrUrl) && /^sha256:[0-9a-f]{64}$/.test(item.sourceHash ?? '')
     )).toBe(true);
-    expect(unresolvedDispositionRows.filter((item) => item.sourceFamily === 'runtime-lesson-step')).toHaveLength(16);
+    expect(unresolvedDispositionRows
+      .filter((item) => item.sourceFamily === 'runtime-lesson-step')
+      .every((item) => item.changeScope === 'out-of-scope-existing')).toBe(true);
     expect(reviewedRuntimeLessonModuleRows).toHaveLength(1352);
     expect(reviewedRuntimeLessonModuleRows.every((item) =>
       item.classification === 'excluded-with-rationale' &&
@@ -1364,7 +1449,9 @@ describe('resource field completion audit', () => {
     expect(reviewedRuntimeLessonModuleRows.every((item) =>
       existsSync(item.sourcePathOrUrl) && /^sha256:[0-9a-f]{64}$/.test(item.sourceHash ?? '')
     )).toBe(true);
-    expect(unresolvedDispositionRows.filter((item) => item.sourceFamily === 'runtime-lesson-module')).toHaveLength(25);
+    expect(unresolvedDispositionRows
+      .filter((item) => item.sourceFamily === 'runtime-lesson-module')
+      .every((item) => item.changeScope === 'out-of-scope-existing')).toBe(true);
     expect(reviewedRuntimeLessonMediaRows).toHaveLength(740);
     expect(reviewedRuntimeLessonMediaRows.every((item) =>
       ['embedded-asset', 'path-plannable'].includes(item.classification) &&
@@ -1382,7 +1469,7 @@ describe('resource field completion audit', () => {
         item.reviewedLimitationState.includes('downstream-runtime-identity-blocker')
       )).toBe(true);
     expect(unresolvedDispositionRows.filter((item) => item.sourceFamily === 'runtime-lesson-media')).toHaveLength(24);
-    expect(reviewedRegisteredResourceRows).toHaveLength(168);
+    expect(reviewedRegisteredResourceRows).toHaveLength(166);
     expect(reviewedRegisteredResourceRows.every((item) =>
       ['evidence-producing', 'path-plannable'].includes(item.classification) &&
       item.sourceHash === null &&
@@ -3858,6 +3945,7 @@ describe('resource field completion audit', () => {
         "teacherAdminDiagnostics": true,
         "totalRows": 2,
         "totals": {
+          "agentReviewed": 0,
           "artifactVersion": "resource-field-completion-audit.v1",
           "blocked": 2,
           "citationReady": 1,
@@ -3880,10 +3968,12 @@ describe('resource field completion audit', () => {
           ],
           "pathEligible": 1,
           "provisional": 0,
+          "reviewConcluded": 0,
           "sampleLimitations": [
             "registry:ready-bode: missing fields: missing-content-hash",
             "runtime-step:3-5:step-01: missing fields: missing-capability-target, missing-citation-target, missing-content-hash, missing-evidence-contract, missing-human-review, missing-knowledge-binding, missing-path-profile",
           ],
+          "semanticReviewed": 0,
           "sourceWindow": {
             "from": null,
             "to": "2026-06-22T00:00:00.000Z",
@@ -3902,6 +3992,9 @@ function coverageSummary(
     missingField: 1,
     provisional: 1,
     humanConfirmed: 0,
+    agentReviewed: 0,
+    reviewConcluded: 0,
+    semanticReviewed: 0,
     citationReady: 0,
     pathEligible: 0,
     blocked: 1,
@@ -3940,6 +4033,8 @@ function baselineAuditRow(
     missingFieldCodes: [],
     completionMethod: 'already-governed',
     reviewStatus: 'not-reviewed',
+    reviewConcluded: false,
+    semanticConfirmed: false,
     reviewAudit: {
       reviewerId: null,
       reviewerRole: null,

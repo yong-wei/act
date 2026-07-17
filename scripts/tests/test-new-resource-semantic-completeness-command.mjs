@@ -4088,6 +4088,93 @@ const deletedRoutedProjectionWithSourceResult = runGate(['--staged']);
 assert.equal(deletedRoutedProjectionWithSourceResult.status, 0, 'gate must pass when a routed projection row and its mapped runtime source file are deleted together');
 
 run('git', ['reset', '--hard', 'HEAD'], repo);
+const mixedRewriteReviewSourcePath = path.join(
+  repo,
+  'course-content/runtime/resource-governance/longform-textbook-reference-resource-semantics-review-source.jsonl',
+);
+const mixedRewriteProjectionPath = path.join(
+  repo,
+  'course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
+);
+const mixedChapterRows = Array.from({ length: 1001 }, (_, index) => runtimeProjectionRow({
+  id: `authoring-textbook-chapter:mixed-book:chapter-${String(index + 1).padStart(4, '0')}`,
+  family: 'authoring-textbook-chapter',
+  resourceType: 'textbook_section',
+  sourceKind: 'textbook_section',
+  sourceRef: `mixed-book:chapter-${String(index + 1).padStart(4, '0')}`,
+  sourcePathOrUrl: 'course-content/runtime/knowledge/cards/nodes/kn-demo.md',
+  sourceVersionRef: 'authoring-textbook-manifest.v1',
+}));
+const mixedRuntimeRow = runtimeProjectionRow({
+  id: 'runtime-step:mixed-rewrite:step-01',
+  family: 'runtime-lesson-step',
+  resourceType: 'lesson_step',
+  sourceKind: 'runtime_lesson_step',
+  sourceRef: 'mixed-rewrite:step-01',
+  sourcePathOrUrl: 'course-content/runtime/lessons/1-1/interactive-manifest.json',
+  sourceVersionRef: 'interactive-manifest.v1',
+});
+fs.writeFileSync(mixedRewriteReviewSourcePath, '{}\n');
+fs.writeFileSync(mixedRewriteProjectionPath, `${[...mixedChapterRows, mixedRuntimeRow].map(JSON.stringify).join('\n')}\n`);
+run('git', ['add',
+  'course-content/runtime/resource-governance/longform-textbook-reference-resource-semantics-review-source.jsonl',
+  'course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
+], repo);
+run('git', ['commit', '--no-verify', '-m', 'add mixed rewrite baseline'], repo);
+const changedChapter = structuredClone(mixedChapterRows[0]);
+changedChapter.reviewAudit.reviewedSourceHash = 'sha256:stale-chapter-contract';
+const changedRuntime = structuredClone(mixedRuntimeRow);
+changedRuntime.reviewAudit.reviewedSourceHash = 'sha256:stale-runtime-contract';
+fs.writeFileSync(mixedRewriteReviewSourcePath, '{"changed":true}\n');
+fs.writeFileSync(mixedRewriteProjectionPath, `${[
+  changedChapter,
+  ...mixedChapterRows.slice(1),
+  changedRuntime,
+].map(JSON.stringify).join('\n')}\n`);
+run('git', ['add',
+  'course-content/runtime/resource-governance/longform-textbook-reference-resource-semantics-review-source.jsonl',
+  'course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
+], repo);
+const mixedRewriteResult = runGate(['--staged']);
+assert.notEqual(mixedRewriteResult.status, 0, 'real staged CLI must reject gate-relevant chapter and non-longform changes in one full materialization rewrite');
+assert.match(`${mixedRewriteResult.stdout}\n${mixedRewriteResult.stderr}`, /authoring-textbook-chapter:mixed-book:chapter-0001/);
+assert.match(`${mixedRewriteResult.stdout}\n${mixedRewriteResult.stderr}`, /runtime-step:mixed-rewrite:step-01/);
+assert.match(`${mixedRewriteResult.stdout}\n${mixedRewriteResult.stderr}`, /stale-review-evidence/);
+
+for (const [field, mutate, expectedIssue] of [
+  ['reviewedAt', (row) => { row.reviewAudit.reviewedAt = ''; }, /missing-reviewed-at/],
+  ['reviewBatchId', (row) => { row.reviewAudit.reviewBatchId = ''; }, /missing-review-batch-id/],
+  ['lifecycleScope', (row) => { row.lifecycleScope = 'runtime'; }, /invalid-agent-reviewed-audit-only-projection/],
+]) {
+  run('git', ['reset', '--hard', 'HEAD'], repo);
+  const baseline = structuredClone(mixedChapterRows[0]);
+  delete baseline.lifecycleScope;
+  if (field === 'lifecycleScope') {
+    baseline.resourceNodeId = null;
+    baseline.graphNodeRefs = { knowledge: [], capability: [], quality: [] };
+    baseline.privacyScope = 'teacher-scoped';
+    baseline.teacherPolicy = 'teacher-only';
+    baseline.evidenceContract = null;
+    baseline.citationTargets = [];
+    baseline.pathEligibility = { current: false, afterCompletion: false, masteryAffecting: false, blockedBy: [] };
+    baseline.groundingEligibility = { retrievalReady: false, citationReady: false, authoringTriageReady: true };
+    baseline.retrievalChunk = null;
+    baseline.reviewAudit.status = 'agent-reviewed';
+    baseline.reviewAudit.reviewerRole = 'implementing-agent';
+  }
+  fs.writeFileSync(mixedRewriteProjectionPath, `${JSON.stringify(baseline)}\n`);
+  run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+  run('git', ['commit', '--allow-empty', '--no-verify', '-m', `add ${field} replacement baseline`], repo);
+  const invalid = structuredClone(baseline);
+  mutate(invalid);
+  fs.writeFileSync(mixedRewriteProjectionPath, `${JSON.stringify(invalid)}\n`);
+  run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+  const result = runGate(['--staged']);
+  assert.notEqual(result.status, 0, `real staged CLI must retain and reject a replacement row with invalid ${field}`);
+  assert.match(`${result.stdout}\n${result.stderr}`, expectedIssue);
+}
+
+run('git', ['reset', '--hard', 'HEAD'], repo);
 const mergeAwareCommonHead = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repo, encoding: 'utf8' }).trim();
 run('git', ['checkout', '-b', 'merge-aware-integration'], repo);
 const mergeAwareManifestPath = path.join(repo, 'course-content/runtime/lessons/1-1/interactive-manifest.json');

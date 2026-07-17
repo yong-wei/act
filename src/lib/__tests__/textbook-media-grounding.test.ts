@@ -98,6 +98,8 @@ function mediaProjection(
       staleInvalidationRule: 'requires upstream media projection review before path eligibility',
       status: 'generated-provisional',
     },
+    reviewConcluded: false,
+    semanticConfirmed: false,
     segmentRefs: ['video:00:03:00-00:03:42'],
     citationTargets: [],
     retrievalChunk: {

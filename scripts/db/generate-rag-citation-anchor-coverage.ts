@@ -1,7 +1,13 @@
 import { createHash } from 'node:crypto';
-import { existsSync, promises as fs } from 'node:fs';
+import { existsSync, promises as fs, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+
+import {
+  loadLongformValidationFacts,
+  validateLongformReviewSource,
+  type ReviewSourceRow,
+} from './generate-longform-textbook-reference-resource-semantics';
 
 type CitationState = 'ready' | 'limited';
 type CitationChipLimitationReason =
@@ -22,7 +28,8 @@ type CitationChipLimitationReason =
   | 'unresolved-address'
   | 'unsafe-address'
   | 'address-kind-mismatch'
-  | 'missing-version-ref';
+  | 'missing-version-ref'
+  | 'semantic-relevance-unconfirmed';
 
 interface GroundingCandidate {
   artifactVersion: string;
@@ -81,6 +88,24 @@ interface ReferenceReviewItem {
   citationAddress: { href: string | null; sourceHash: string | null };
 }
 
+interface LongformReviewSourceItem extends Pick<ReviewSourceRow,
+  | 'resourceId'
+  | 'sourceFamily'
+  | 'reviewStatus'
+  | 'reviewBatchId'
+  | 'reviewerId'
+  | 'reviewerRole'
+  | 'reviewedAt'
+  | 'sourceHash'
+  | 'sourceVersionRef'
+  | 'citationAddress'
+  | 'acceptedGraphNodeRefs'
+  | 'independentEvidenceRef'
+  | 'reviewSourceSha256'
+  | 'reviewRowHash'
+> {
+}
+
 interface MediaReviewItem {
   resourceId: string;
   family: string;
@@ -102,6 +127,28 @@ interface MediaReviewItem {
   reviewerVisibleRationale: string;
 }
 
+export interface MediaAcceptedRefReviewRow {
+  artifactVersion: 'rag-media-accepted-ref-review-source.v1';
+  resourceId: string;
+  reviewStatus: 'agent-reviewed';
+  acceptedGraphNodeRefs: GraphNodeRefs;
+  citation: { kind: string; href: string; locator: string };
+  sourceHash: string;
+  sourceVersionRef: string;
+  reviewerId: string;
+  reviewerRole: 'implementing-agent';
+  reviewedAt: string;
+  provenance: { reviewBatchId: string; independentEvidenceRef: string };
+  rationale: string;
+  rowDigest: string;
+}
+
+export interface MediaAcceptedRefReviewSeal {
+  artifactVersion: 'rag-media-accepted-ref-review-source.seal.v1';
+  rowCount: number;
+  aggregateDigest: string;
+}
+
 interface GraphNodeRefs {
   knowledge: string[];
   capability: string[];
@@ -118,6 +165,9 @@ interface CorpusItem {
   resourceSegmentRef: string;
   resourceSegmentId: string;
   sourceHash: string | null;
+  sourceSemanticHash: string | null;
+  citationTargetFileHash: string | null;
+  citationPayloadHash: string | null;
   sourceWindow: Record<string, unknown> | null;
   freshness: {
     bucket: 'current' | 'stale';
@@ -143,6 +193,8 @@ interface CorpusItem {
     sourceRefId: string | null;
   };
   serverOwnedAddress: boolean;
+  addressReady: boolean;
+  semanticGroundingVerified: boolean;
   authority: string;
   privacyScope: string;
   graphNodeRefs: GraphNodeRefs;
@@ -172,13 +224,18 @@ const CANDIDATES_PATH = path.join(GOVERNANCE_DIR, 'textbook-section-grounding-ca
 const CITATION_TARGETS_PATH = path.join(GOVERNANCE_DIR, 'textbook-section-citation-targets.jsonl');
 const CORE_REVIEW_PATH = path.join(GOVERNANCE_DIR, 'core-textbook-section-path-role-review-items.jsonl');
 const REFERENCE_REVIEW_PATH = path.join(GOVERNANCE_DIR, 'reference-section-path-role-review-items.jsonl');
+const LONGFORM_REVIEW_SOURCE_PATH = path.join(GOVERNANCE_DIR, 'longform-textbook-reference-resource-semantics-review-source.jsonl');
 const MEDIA_REVIEW_PATH = path.join(GOVERNANCE_DIR, 'runtime-media-handout-disposition-review-items.jsonl');
+const MEDIA_ACCEPTED_REF_REVIEW_PATH = path.join(GOVERNANCE_DIR, 'rag-media-accepted-ref-review-source.jsonl');
+const MEDIA_ACCEPTED_REF_REVIEW_SEAL_PATH = path.join(GOVERNANCE_DIR, 'rag-media-accepted-ref-review-source.seal.json');
+const KNOWLEDGE_GRAPH_NODES_PATH = path.join(process.cwd(), 'course-content/runtime/knowledge/graph/nodes.json');
 const CORPUS_ITEMS_PATH = path.join(GOVERNANCE_DIR, 'rag-citation-anchor-corpus-items.jsonl');
 const SUMMARY_PATH = path.join(GOVERNANCE_DIR, 'rag-citation-anchor-coverage-summary.json');
 const EVIDENCE_PATH = path.join(GOVERNANCE_DIR, 'rag-citation-anchor-coverage-evidence.md');
 const ARTIFACT_VERSION = 'rag-citation-anchor-coverage.v1' as const;
 const REVIEW_BATCH_ID = 'rag-citation-anchor-coverage-2026-07-05' as const;
-const GENERATED_AT = process.env.RAG_CITATION_ANCHOR_GENERATED_AT ?? '2026-07-05T12:00:00.000Z';
+const GENERATED_AT = process.env.RAG_CITATION_ANCHOR_GENERATED_AT ?? '2026-07-17T00:00:00.000Z';
+const VERIFIED_LONGFORM_REVIEW_ROWS = new WeakSet<object>();
 
 async function main() {
   const candidates = await readJsonl<GroundingCandidate>(CANDIDATES_PATH);
@@ -186,17 +243,36 @@ async function main() {
   const coreReviews = await readJsonl<SectionReviewItem>(CORE_REVIEW_PATH);
     const referenceReviews = await readJsonl<ReferenceReviewItem>(REFERENCE_REVIEW_PATH);
     const mediaReviews = await readJsonl<MediaReviewItem>(MEDIA_REVIEW_PATH);
+    const mediaAcceptedRefReviews = await readJsonl<MediaAcceptedRefReviewRow>(MEDIA_ACCEPTED_REF_REVIEW_PATH);
+    const mediaAcceptedRefReviewSeal = JSON.parse(await fs.readFile(MEDIA_ACCEPTED_REF_REVIEW_SEAL_PATH, 'utf8')) as MediaAcceptedRefReviewSeal;
+    const longformReviews = await readJsonl<ReviewSourceRow>(LONGFORM_REVIEW_SOURCE_PATH);
+    await validateLongformReviewSource(longformReviews, await loadLongformValidationFacts());
+    longformReviews.forEach((row) => VERIFIED_LONGFORM_REVIEW_ROWS.add(row));
+    const verifiedMediaAcceptedRefs = validateMediaAcceptedRefReviewSource(
+      mediaAcceptedRefReviews,
+      mediaAcceptedRefReviewSeal,
+      mediaReviews,
+    );
 
     ensureTextbookRuntimeExports(targets);
 
     const targetByCandidate = new Map(targets.map((target) => [target.candidateId, target]));
   const coreSectionIds = new Set(coreReviews.map((item) => item.sectionId));
   const referenceChunkIds = new Set(referenceReviews.map((item) => item.chunkId).filter(Boolean) as string[]);
+  const longformSearchReviews = new Map(longformReviews
+    .filter((item) => item.sourceFamily === 'textbook-search-document')
+    .map((item) => [item.resourceId, item]));
   const corpusItems = [
-    ...candidates.map((candidate) => textbookCorpusItem(candidate, targetByCandidate.get(candidate.candidateId), coreSectionIds, referenceChunkIds)),
-    ...mediaReviews.map(mediaCorpusItem),
+    ...candidates.map((candidate) => textbookCorpusItem(
+      candidate,
+      targetByCandidate.get(candidate.candidateId),
+      coreSectionIds,
+      referenceChunkIds,
+      longformSearchReviews,
+    )),
+    ...mediaReviews.map((item) => mediaCorpusItem(item, verifiedMediaAcceptedRefs.get(item.resourceId))),
   ];
-  const summary = buildSummary(candidates, targets, coreReviews, referenceReviews, mediaReviews, corpusItems);
+  const summary = buildSummary(candidates, targets, coreReviews, referenceReviews, mediaReviews, corpusItems, longformSearchReviews.size);
 
   await writeJsonl(CORPUS_ITEMS_PATH, corpusItems);
   await fs.writeFile(SUMMARY_PATH, `${JSON.stringify(summary, null, 2)}\n`, 'utf8');
@@ -205,8 +281,8 @@ async function main() {
   console.log(`RAG corpus items: ${corpusItems.length}`);
   console.log(`Textbook citation targets: ${targets.length}`);
   console.log(`Media reviewed rows: ${mediaReviews.length}`);
-  console.log(`Ready citations: ${summary.totals.ready}`);
-  console.log(`Limited citations: ${summary.totals.limited}`);
+  console.log(`Address-ready citations: ${summary.totals.addressReady}`);
+  console.log(`Semantically verified rows: ${summary.totals.semanticGroundingVerified}`);
 }
 
 export function textbookCorpusItem(
@@ -214,21 +290,27 @@ export function textbookCorpusItem(
   target: CitationTarget | undefined,
   coreSectionIds: Set<string>,
   referenceChunkIds: Set<string>,
+  longformSearchReviews: ReadonlyMap<string, LongformReviewSourceItem> = new Map(),
 ): CorpusItem {
-  const reviewedSourceRef = coreSectionIds.has(candidate.sectionId)
+  const longformReview = longformSearchReviews.get(`textbook-search-document:${candidate.documentId}`);
+  const reviewedSourceRef = longformReview
+    ? `longform-agent-review:${longformReview.resourceId}`
+    : coreSectionIds.has(candidate.sectionId)
     ? `core-textbook-section:${candidate.sectionId}`
     : referenceChunkIds.has(candidate.documentId)
       ? `reference-search-document:${candidate.documentId}`
       : null;
   const sourceHash = normalizeSha256(candidate.sourceHash);
-  const targetContentHash = normalizeSha256(target?.contentHash);
-  const targetAddressContentHash = normalizeSha256(target?.address.contentHash);
+  const citationPayloadHash = normalizeSha256(target?.contentHash);
+  const targetAddressPayloadHash = normalizeSha256(target?.address.contentHash);
+  const citationTargetFileHash = hashRuntimeTargetFile(target?.address.href);
   const hasServerOwnedTargetHref = Boolean(target?.address.href && isResolvableServerOwnedHref(target.address.href));
   const targetHashesMatch = Boolean(
     target &&
     sourceHash &&
-    targetContentHash === sourceHash &&
-    targetAddressContentHash === sourceHash,
+    citationPayloadHash === sourceHash &&
+    targetAddressPayloadHash === citationPayloadHash &&
+    Boolean(citationTargetFileHash),
   );
   const targetAddressKindMatches = Boolean(target && target.address.kind === toCitationAddressKind(candidate.kind));
   const targetSpanMatches = Boolean(
@@ -245,19 +327,48 @@ export function textbookCorpusItem(
     targetAddressKindMatches &&
     targetSpanMatches,
   );
-  const limitationState = ready ? [] : uniqueSorted([
+  const longformReviewIntegrity = Boolean(
+    longformReview &&
+    VERIFIED_LONGFORM_REVIEW_ROWS.has(longformReview) &&
+    longformReview.resourceId === `textbook-search-document:${candidate.documentId}` &&
+    longformReview.sourceFamily === 'textbook-search-document' &&
+    longformReview.reviewStatus === 'agent-reviewed' &&
+    longformReview.reviewerRole === 'implementing-agent' &&
+    Number.isFinite(Date.parse(longformReview.reviewedAt)) &&
+    Date.parse(longformReview.reviewedAt) <= Date.parse(GENERATED_AT) &&
+    longformReview.sourceHash &&
+    longformReview.sourceVersionRef &&
+    longformReview.reviewSourceSha256 &&
+    longformReview.reviewRowHash &&
+    target &&
+    longformReview.citationAddress.href === target.address.href &&
+    longformReview.citationAddress.locator === target.address.locator &&
+    normalizeSha256(longformReview.sourceHash) === sourceHash &&
+    normalizeSha256(longformReview.citationAddress.contentHash) === citationPayloadHash
+  );
+  const semanticGroundingVerified = Boolean(
+    longformReviewIntegrity &&
+    longformReview &&
+    Object.values(longformReview.acceptedGraphNodeRefs).some((refs) => refs.length > 0) &&
+    longformReview.independentEvidenceRef,
+  );
+  const limitationState = uniqueSorted([
+    semanticGroundingVerified ? '' : 'semantic-relevance-unconfirmed',
+    longformReview && !longformReviewIntegrity ? 'semantic-review-provenance-or-freshness-invalid' : '',
+    ...(ready ? [] : [
     target ? '' : 'missing-citation-target',
     reviewedSourceRef ? '' : 'section-review-not-selected-for-current-path-batch',
     target && !hasServerOwnedTargetHref ? 'unsafe-citation-target-href' : '',
     target && !targetHashesMatch ? 'quote-hash-mismatch' : '',
     target && !targetAddressKindMatches ? 'address-kind-mismatch' : '',
     target && !targetSpanMatches ? 'span-ref-mismatch' : '',
+    ]),
   ]);
   const citationAddress = {
     kind: ready ? target!.address.kind : toCitationAddressKind(candidate.kind),
     href: ready ? target!.address.href : null,
     locator: ready ? target!.address.locator : candidate.pageAnchor,
-    contentHash: ready ? targetAddressContentHash : sourceHash,
+    contentHash: ready ? citationPayloadHash : sourceHash,
     sourceRefId: ready ? target!.address.sourceRefId : candidate.pageAnchor,
   };
   const displayTitle = textbookDisplayTitle(candidate);
@@ -271,20 +382,23 @@ export function textbookCorpusItem(
     resourceSegmentRef: `ResourceSegment:${candidate.sourcePackageId}:${candidate.sectionId}:${candidate.documentId}`,
     resourceSegmentId: candidate.documentId,
     sourceHash,
+    sourceSemanticHash: sourceHash,
+    citationTargetFileHash,
+    citationPayloadHash,
     sourceWindow: {
       ...candidate.sourceWindow,
       pageAnchor: candidate.pageAnchor,
     },
     freshness: {
-      bucket: 'current',
+      bucket: targetHashesMatch ? 'current' : 'stale',
       checkedAt: GENERATED_AT,
-      limitationState: [],
+      limitationState: targetHashesMatch ? [] : ['citation-target-freshness-unverified'],
     },
     reviewState: {
-      state: candidate.reviewState,
-      reviewBatchId: candidate.reviewBatchId,
-      reviewedAt: null,
-      reviewerId: null,
+      state: longformReview?.reviewStatus ?? candidate.reviewState,
+      reviewBatchId: longformReview?.reviewBatchId ?? candidate.reviewBatchId,
+      reviewedAt: longformReview?.reviewedAt ?? null,
+      reviewerId: longformReview?.reviewerId ?? null,
       sourceAvailability: 'server-owned-runtime-address',
     },
     citationState: ready ? 'ready' : 'limited',
@@ -293,9 +407,13 @@ export function textbookCorpusItem(
     retrievalChunkId: ready ? target!.retrievalChunkId : target?.retrievalChunkId ?? null,
     citationAddress,
     serverOwnedAddress: ready,
-    authority: candidate.authority,
+    addressReady: ready,
+    semanticGroundingVerified,
+    authority: semanticGroundingVerified ? candidate.authority : 'contextual-address-only',
     privacyScope: candidate.privacyScope,
-    graphNodeRefs: candidate.graphNodeRefs,
+    graphNodeRefs: semanticGroundingVerified
+      ? longformReview!.acceptedGraphNodeRefs
+      : { knowledge: [], capability: [], quality: [] },
     sourceVersionRef: target?.sourceVersionRefs ?? { groundingVersion: candidate.artifactVersion },
     reviewedSourceRef,
     citationChip: buildCitationChip({
@@ -305,9 +423,9 @@ export function textbookCorpusItem(
       sourceType: 'course-content',
       addressKind: toCitationAddressKind(citationAddress.kind),
       citationAddress,
-      authorityLevel: ready ? 'verified' : 'contextual',
-      confidence: ready ? 'high' : 'medium',
-      freshnessBucket: 'current',
+      authorityLevel: semanticGroundingVerified ? 'verified' : 'contextual',
+      confidence: semanticGroundingVerified ? 'high' : 'medium',
+      freshnessBucket: targetHashesMatch ? 'current' : 'stale',
       privacyScope: candidate.privacyScope,
       limitationState,
       sourceVersionRefs: target?.sourceVersionRefs,
@@ -331,16 +449,27 @@ export function ensureTextbookRuntimeExports(targets: CitationTarget[]) {
   );
 }
 
-function mediaCorpusItem(item: MediaReviewItem): CorpusItem {
+function mediaCorpusItem(item: MediaReviewItem, acceptedReview?: MediaAcceptedRefReviewRow): CorpusItem {
   const href = isResolvableServerOwnedHref(item.renderTarget) ? item.renderTarget : null;
   const sourceHash = item.sourceHash ?? item.repairedSourceHash ?? null;
   const ready = item.citationAnchorState === 'figure-anchor-ready' && Boolean(href && sourceHash);
+  const acceptedRefs = acceptedReview?.acceptedGraphNodeRefs ?? { knowledge: [], capability: [], quality: [] };
+  const acceptedRefProvenanceFresh = Boolean(acceptedReview);
+  const semanticGroundingVerified = Boolean(
+    Object.values(acceptedRefs).some((refs) => refs.length > 0) &&
+    acceptedRefProvenanceFresh,
+  );
   const normalizedSourceHash = normalizeSha256(sourceHash);
-  const limitationState = ready ? [] : uniqueSorted([
-    ...item.limitationState,
-    limitationForAnchorState(item.citationAnchorState),
-    href ? '' : 'server-owned-display-href-unavailable',
-    sourceHash ? '' : 'source-hash-unavailable',
+  const citationTargetFileHash = href ? hashRuntimeTargetFile(href) : null;
+  const limitationState = uniqueSorted([
+    semanticGroundingVerified ? '' : 'semantic-relevance-unconfirmed',
+    !acceptedRefProvenanceFresh ? 'accepted-ref-provenance-missing-or-stale' : '',
+    ...(ready ? [] : [
+      ...item.limitationState,
+      limitationForAnchorState(item.citationAnchorState),
+      href ? '' : 'server-owned-display-href-unavailable',
+      sourceHash ? '' : 'source-hash-unavailable',
+    ]),
   ]);
   const citationAddress = {
     kind: toCitationAddressKind(item.resourceKind),
@@ -360,6 +489,9 @@ function mediaCorpusItem(item: MediaReviewItem): CorpusItem {
     resourceSegmentRef: `ResourceSegment:${item.family}:${item.lessonKey}:${item.resourceId}`,
     resourceSegmentId: item.resourceId,
     sourceHash: normalizedSourceHash,
+    sourceSemanticHash: acceptedReview ? normalizeSha256(acceptedReview.sourceHash) : null,
+    citationTargetFileHash,
+    citationPayloadHash: normalizedSourceHash,
     sourceWindow: {
       family: item.family,
       lessonKey: item.lessonKey,
@@ -383,9 +515,15 @@ function mediaCorpusItem(item: MediaReviewItem): CorpusItem {
     retrievalChunkId: ready ? `retrieval-chunk:${item.resourceId}` : null,
     citationAddress,
     serverOwnedAddress: Boolean(citationAddress.href),
-    authority: item.disposition === 'embedded-asset' ? 'reviewed-embedded-asset' : 'reviewed-supporting-citation',
+    addressReady: ready,
+    semanticGroundingVerified,
+    authority: semanticGroundingVerified
+      ? item.disposition === 'embedded-asset' ? 'reviewed-embedded-asset' : 'reviewed-supporting-citation'
+      : 'contextual-address-only',
     privacyScope: item.privacyScope,
-    graphNodeRefs: item.graphNodeRefs,
+    graphNodeRefs: semanticGroundingVerified
+      ? acceptedRefs
+      : { knowledge: [], capability: [], quality: [] },
     sourceVersionRef: item.sourceVersionRef,
     reviewedSourceRef: `runtime-media-handout-disposition:${item.resourceId}`,
     citationChip: buildCitationChip({
@@ -395,8 +533,8 @@ function mediaCorpusItem(item: MediaReviewItem): CorpusItem {
       sourceType: 'runtime-handout',
       addressKind: toCitationAddressKind(item.resourceKind),
       citationAddress,
-      authorityLevel: ready ? 'verified' : 'contextual',
-      confidence: ready ? 'high' : 'medium',
+      authorityLevel: semanticGroundingVerified ? 'verified' : 'contextual',
+      confidence: semanticGroundingVerified ? 'high' : 'medium',
       freshnessBucket,
       privacyScope: item.privacyScope,
       limitationState,
@@ -407,6 +545,92 @@ function mediaCorpusItem(item: MediaReviewItem): CorpusItem {
   };
 }
 
+export function validateMediaAcceptedRefReviewSource(
+  rows: MediaAcceptedRefReviewRow[],
+  seal: MediaAcceptedRefReviewSeal,
+  items: MediaReviewItem[],
+): Map<string, MediaAcceptedRefReviewRow> {
+  const verified = new Map<string, MediaAcceptedRefReviewRow>();
+  const expectedAggregate = hashText(rows.map((row) => JSON.stringify(row)).join('\n') + '\n');
+  if (
+    seal.artifactVersion !== 'rag-media-accepted-ref-review-source.seal.v1' ||
+    seal.rowCount !== rows.length ||
+    seal.aggregateDigest !== expectedAggregate
+  ) return verified;
+  const itemById = new Map(items.map((item) => [item.resourceId, item]));
+  const acceptedRefRegistry = loadAcceptedRefRegistry();
+  for (const row of rows) {
+    const item = itemById.get(row.resourceId);
+    const reviewedAt = Date.parse(row.reviewedAt);
+    const currentHash = item ? normalizeSha256(item.sourceHash ?? item.repairedSourceHash) : null;
+    const actualFileHash = hashRuntimeTargetFile(row.citation.href);
+    const rowDigestValid = row.rowDigest === hashJson(mediaAcceptedRefRowForDigest(row));
+    const refsPresent = Object.values(row.acceptedGraphNodeRefs).some((refs) => refs.length > 0);
+    const refsExistAndMatchType = mediaAcceptedRefsExistAndMatchType(row, acceptedRefRegistry);
+    const independentEvidenceMatches = mediaAcceptedRefIndependentEvidenceMatches(row, item, acceptedRefRegistry);
+    if (
+      item && rowDigestValid && refsPresent && refsExistAndMatchType && independentEvidenceMatches &&
+      row.artifactVersion === 'rag-media-accepted-ref-review-source.v1' &&
+      row.reviewStatus === 'agent-reviewed' && row.reviewerRole === 'implementing-agent' &&
+      Boolean(row.reviewerId) && row.rationale.trim().length >= 24 &&
+      Boolean(row.provenance.reviewBatchId && row.provenance.independentEvidenceRef) &&
+      row.citation.href === item.renderTarget && row.citation.locator === item.resourceId &&
+      row.citation.kind === toCitationAddressKind(item.resourceKind) &&
+      normalizeSha256(row.sourceHash) === currentHash && actualFileHash === currentHash &&
+      row.sourceVersionRef === item.sourceVersionRef &&
+      Number.isFinite(reviewedAt) && reviewedAt <= Date.parse(GENERATED_AT)
+    ) verified.set(row.resourceId, row);
+  }
+  return verified;
+}
+
+interface AcceptedRefRegistry {
+  knowledge: Map<string, string>;
+  capability: Map<string, string>;
+}
+
+function loadAcceptedRefRegistry(): AcceptedRefRegistry {
+  const nodes = JSON.parse(readFileSync(KNOWLEDGE_GRAPH_NODES_PATH, 'utf8')) as Array<{ id?: string; name?: string }>;
+  const knowledge = new Map(nodes
+    .filter((node): node is { id: string; name?: string } => Boolean(node.id))
+    .map((node) => [node.id, node.name ?? node.id]));
+  const capability = new Map<string, string>([
+    ['controlModeling', '控制建模'],
+    ['parameterDesign', '参数设计'],
+    ['crossDomainTransfer', '跨域迁移'],
+    ['engineeringDecision', '工程决策'],
+    ['inquiryReflection', '探究反思'],
+    ['selfDirectedLearning', '自主学习'],
+  ]);
+  return { knowledge, capability };
+}
+
+function mediaAcceptedRefsExistAndMatchType(
+  row: MediaAcceptedRefReviewRow,
+  registry: AcceptedRefRegistry,
+) {
+  return row.acceptedGraphNodeRefs.knowledge.every((ref) => registry.knowledge.has(ref) && !registry.capability.has(ref)) &&
+    row.acceptedGraphNodeRefs.capability.every((ref) => registry.capability.has(ref) && !registry.knowledge.has(ref)) &&
+    row.acceptedGraphNodeRefs.quality.length === 0;
+}
+
+function mediaAcceptedRefIndependentEvidenceMatches(
+  row: MediaAcceptedRefReviewRow,
+  item: MediaReviewItem | undefined,
+  registry: AcceptedRefRegistry,
+) {
+  if (!item) return false;
+  const evidencePath = row.provenance.independentEvidenceRef.split('#')[0];
+  if (!evidencePath.startsWith('course-content/')) return false;
+  const fullEvidencePath = path.join(process.cwd(), evidencePath);
+  if (!existsSync(fullEvidencePath)) return false;
+  const evidence = readFileSync(fullEvidencePath, 'utf8');
+  const assetName = path.basename(row.citation.href);
+  if (!assetName || !evidence.includes(assetName)) return false;
+  return row.acceptedGraphNodeRefs.knowledge.every((ref) => row.rationale.includes(registry.knowledge.get(ref)!)) &&
+    row.acceptedGraphNodeRefs.capability.every((ref) => row.rationale.includes(registry.capability.get(ref)!));
+}
+
 function buildSummary(
   candidates: GroundingCandidate[],
   targets: CitationTarget[],
@@ -414,11 +638,15 @@ function buildSummary(
   referenceReviews: ReferenceReviewItem[],
   mediaReviews: MediaReviewItem[],
   corpusItems: CorpusItem[],
+  longformReviewedRows = 0,
 ) {
   const targetCandidateIds = new Set(targets.map((target) => target.candidateId));
   const corpusByClass = countBy(corpusItems, (item) => item.sourceClass);
   const readyItems = corpusItems.filter((item) => item.citationState === 'ready');
   const limitedItems = corpusItems.filter((item) => item.citationState === 'limited');
+  const addressReadyItems = corpusItems.filter((item) => item.addressReady);
+  const semanticVerifiedItems = corpusItems.filter((item) => item.semanticGroundingVerified);
+  const semanticUnverifiedItems = corpusItems.filter((item) => !item.semanticGroundingVerified);
   return {
     artifactVersion: ARTIFACT_VERSION,
     generatedAt: GENERATED_AT,
@@ -428,20 +656,35 @@ function buildSummary(
       citationTargets: targets.length,
       coreReviewedSections: coreReviews.length,
       referenceStructuralRows: referenceReviews.length,
+      longformAgentReviewedRows: longformReviewedRows,
       mediaReviewedRows: mediaReviews.length,
       corpusItems: corpusItems.length,
-      ready: readyItems.length,
-      limited: limitedItems.length,
+      addressReady: addressReadyItems.length,
+      addressLimited: corpusItems.length - addressReadyItems.length,
+      semanticGroundingVerified: semanticVerifiedItems.length,
+      semanticGroundingUnverified: corpusItems.length - semanticVerifiedItems.length,
     },
     coverage: {
       candidatesWithoutCitationTargets: candidates.filter((candidate) => !targetCandidateIds.has(candidate.candidateId)).length,
       citationTargetsWithoutCandidates: targets.filter((target) => !candidates.some((candidate) => candidate.candidateId === target.candidateId)).length,
-      readyTextbookGrounding: readyItems.filter((item) => item.sourceClass === 'textbook-grounding').length,
-      readyMediaAnchors: readyItems.filter((item) => item.sourceClass === 'runtime-media').length,
-      limitedMediaAnchors: limitedItems.filter((item) => item.sourceClass === 'runtime-media').length,
+      addressReadyTextbookRows: addressReadyItems.filter((item) => item.sourceClass === 'textbook-grounding').length,
+      semanticVerifiedTextbookRows: semanticVerifiedItems.filter((item) => item.sourceClass === 'textbook-grounding').length,
+      addressReadyMediaAnchors: addressReadyItems.filter((item) => item.sourceClass === 'runtime-media').length,
+      semanticVerifiedMediaRows: semanticVerifiedItems.filter((item) => item.sourceClass === 'runtime-media').length,
+      addressLimitedMediaAnchors: limitedItems.filter((item) => item.sourceClass === 'runtime-media').length,
       bySourceClass: corpusByClass,
       bySourceKind: countBy(corpusItems, (item) => item.sourceKind),
       byLimitation: countBy(limitedItems.flatMap((item) => item.limitationState), (item) => item),
+    },
+    limitations: {
+      address: countBy(
+        limitedItems.flatMap((item) => item.limitationState.filter((reason) => !isSemanticLimitation(reason))),
+        (item) => item,
+      ),
+      semanticGrounding: countBy(
+        semanticUnverifiedItems.flatMap((item) => item.limitationState.filter(isSemanticLimitation)),
+        (item) => item,
+      ),
     },
     guardrails: {
       serverOwnedAddressOnly: corpusItems.every((item) => !item.citationAddress.href || isResolvableServerOwnedHref(item.citationAddress.href)),
@@ -449,7 +692,20 @@ function buildSummary(
       noPathPromotionFromChunksOrMedia: corpusItems.every((item) => item.pathEligible === false && item.promotedAsPathNode === false),
       rawContentIncluded: corpusItems.some((item) => item.rawContentIncluded === true),
       readyItemsHaveAddressAndHash: readyItems.every((item) => Boolean(item.citationAddress.href && item.citationAddress.contentHash)),
-      readyItemsMatchSourceHash: readyItems.every((item) => item.citationAddress.contentHash === item.sourceHash),
+      readyItemsMatchSourceHash: readyItems.every((item) => (
+        item.citationAddress.contentHash === item.citationPayloadHash &&
+        Boolean(item.citationTargetFileHash) &&
+        (item.sourceClass === 'runtime-media' || item.sourceSemanticHash === item.citationPayloadHash)
+      )),
+      explicitHashRoles: corpusItems.every((item) => (
+        'sourceSemanticHash' in item && 'citationTargetFileHash' in item && 'citationPayloadHash' in item
+      )),
+      addressAndSemanticGroundingOrthogonal: corpusItems.every((item) => (
+        typeof item.addressReady === 'boolean' && typeof item.semanticGroundingVerified === 'boolean'
+      )),
+      unverifiedSemanticRowsDoNotRetainGraphRefs: corpusItems
+        .filter((item) => !item.semanticGroundingVerified)
+        .every((item) => Object.values(item.graphNodeRefs).every((refs) => refs.length === 0)),
       limitedItemsHaveReason: limitedItems.every((item) => item.limitationState.length > 0),
       metadataContractComplete: corpusItems.every((item) =>
         Boolean(item.resourceSegmentRef && item.resourceSegmentId && item.freshness.bucket && item.reviewState.state) &&
@@ -480,21 +736,29 @@ function renderEvidence(summary: ReturnType<typeof buildSummary>, corpusItems: C
     '',
     `Textbook citation targets: ${summary.totals.citationTargets}`,
     `Runtime media reviewed rows: ${summary.totals.mediaReviewedRows}`,
-    `Ready citations: ${summary.totals.ready}`,
-    `Limited citations: ${summary.totals.limited}`,
+    `Address-ready citations: ${summary.totals.addressReady}`,
+    `Address-limited citations: ${summary.totals.addressLimited}`,
+    `Semantic grounding verified: ${summary.totals.semanticGroundingVerified}`,
+    `Semantic grounding unverified: ${summary.totals.semanticGroundingUnverified}`,
     '',
     '## Batch Before/After',
     '',
     '- Before: no tracked RAG citation-anchor coverage artifact existed for this batch.',
-    `- After: ${summary.totals.corpusItems} governed corpus rows, ${summary.totals.ready} ready citation chips, ${summary.totals.limited} limited citation chips.`,
+    `- After: ${summary.totals.corpusItems} governed corpus rows, ${summary.totals.addressReady} address-ready citation chips, ${summary.totals.semanticGroundingVerified} semantically verified rows.`,
     '',
     '## Coverage',
     '',
     `- Candidates without citation targets: ${summary.coverage.candidatesWithoutCitationTargets}`,
     `- Citation targets without candidates: ${summary.coverage.citationTargetsWithoutCandidates}`,
-    `- Ready textbook grounding rows: ${summary.coverage.readyTextbookGrounding}`,
-    `- Ready media anchors: ${summary.coverage.readyMediaAnchors}`,
-    `- Limited media anchors: ${summary.coverage.limitedMediaAnchors}`,
+    `- Address-ready textbook rows: ${summary.coverage.addressReadyTextbookRows}`,
+    `- Semantically verified textbook rows: ${summary.coverage.semanticVerifiedTextbookRows}`,
+    `- Address-ready media anchors: ${summary.coverage.addressReadyMediaAnchors}`,
+    `- Semantically verified media rows: ${summary.coverage.semanticVerifiedMediaRows}`,
+    `- Address-limited media anchors: ${summary.coverage.addressLimitedMediaAnchors}`,
+    `- Address limitation rows: ${summary.totals.addressLimited}`,
+    `- Semantic-grounding limitation rows: ${summary.totals.semanticGroundingUnverified}`,
+    `- Address limitation reasons: ${JSON.stringify(summary.limitations.address)}`,
+    `- Semantic-grounding limitation reasons: ${JSON.stringify(summary.limitations.semanticGrounding)}`,
     '',
     '## Guardrails',
     '',
@@ -503,6 +767,7 @@ function renderEvidence(summary: ReturnType<typeof buildSummary>, corpusItems: C
     `- Chunks or media promoted as PathNodes: ${!summary.guardrails.noPathPromotionFromChunksOrMedia}`,
     `- Raw content included in artifacts: ${summary.guardrails.rawContentIncluded}`,
     `- Ready citation hashes match source hashes: ${summary.guardrails.readyItemsMatchSourceHash}`,
+    `- Source semantic, citation target file, and citation payload hashes are explicit: ${summary.guardrails.explicitHashRoles}`,
     `- Metadata contract complete: ${summary.guardrails.metadataContractComplete}`,
     `- CitationChip payloads complete: ${summary.guardrails.citationChipPayloadsComplete}`,
     '',
@@ -522,6 +787,12 @@ function limitationForAnchorState(state: string) {
   if (state === 'data-appendix-anchor-required') return 'data-appendix-anchor-required';
   if (state === 'production-missing') return 'media-production-missing';
   return `citation-anchor-limited:${state || 'unknown'}`;
+}
+
+function isSemanticLimitation(reason: string) {
+  return reason === 'semantic-relevance-unconfirmed' ||
+    reason === 'semantic-review-provenance-or-freshness-invalid' ||
+    reason === 'accepted-ref-provenance-missing-or-stale';
 }
 
 function isServerOwnedHref(value: string) {
@@ -626,6 +897,7 @@ function citationChipLimitationReason(limitationState: string[]): CitationChipLi
   if (limitationState.includes('quote-hash-mismatch')) return 'quote-hash-mismatch';
   if (limitationState.includes('address-kind-mismatch')) return 'address-kind-mismatch';
   if (limitationState.includes('span-ref-mismatch')) return 'span-ref-mismatch';
+  if (limitationState.includes('semantic-relevance-unconfirmed')) return 'semantic-relevance-unconfirmed';
   if (limitationState.includes('media-production-missing')) return 'inaccessible-source';
   if (limitationState.some((item) =>
     item.includes('anchor-required') ||
@@ -641,6 +913,28 @@ function citationChipLimitationReason(limitationState: string[]): CitationChipLi
 function normalizeSha256(value: string | null | undefined) {
   if (!value) return null;
   return value.startsWith('sha256:') ? value : `sha256:${value}`;
+}
+
+function hashRuntimeTargetFile(href: string | null | undefined): string | null {
+  if (!href || !isResolvableServerOwnedHref(href) || !href.startsWith('/course-runtime/')) return null;
+  const relativePath = runtimeRelativePath(href);
+  if (!relativePath) return null;
+  return normalizeSha256(createHash('sha256').update(readFileSync(
+    path.join(process.cwd(), 'course-content', 'runtime', relativePath),
+  )).digest('hex'));
+}
+
+function mediaAcceptedRefRowForDigest(row: MediaAcceptedRefReviewRow) {
+  const { rowDigest: _rowDigest, ...signedFields } = row;
+  return signedFields;
+}
+
+function hashText(value: string): string {
+  return `sha256:${createHash('sha256').update(value).digest('hex')}`;
+}
+
+function hashJson(value: unknown): string {
+  return hashText(JSON.stringify(value));
 }
 
 async function readJsonl<T>(filePath: string): Promise<T[]> {

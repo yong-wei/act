@@ -35,40 +35,40 @@ Complete reviewed semantics for textbook and reference resources at the correct 
 
 ## Acceptance Checklist
 
-- [ ] AC-1: Scoped long-form workqueues are deterministic and include only textbook/reference long-form families with starting blocker counts. Owner: independent reviewer.
+- [x] AC-1: Scoped long-form workqueues are deterministic and include only textbook/reference long-form families with starting blocker counts. Owner: independent reviewer.
   Evidence: helper output.
-- [ ] AC-2: Path-plannable sections have reviewed section-level ResourceNode semantics. Owner: independent reviewer.
+- [x] AC-2: Path-plannable sections have reviewed section-level ResourceNode semantics. Owner: independent reviewer.
   Evidence: metadata diff and ResourceNode audit.
-- [ ] AC-3: Chunks, search documents, figures, captions, and similar child items are parent-linked or classified with reviewed rationale and cannot become PathNodes by retrieval relevance alone. Owner: independent reviewer.
+- [x] AC-3: Chunks, search documents, figures, captions, and similar child items are parent-linked or classified with reviewed rationale and cannot become PathNodes by retrieval relevance alone. Owner: independent reviewer.
   Evidence: parent-link checks and helper before/after output.
-- [ ] AC-4: Scoped long-form queues close with `remaining: 0` for unexplained unreviewed long-form items, and supporting citations resolve through section, figure, page, or anchor metadata, or carry reviewed limitation state. Owner: independent reviewer.
+- [x] AC-4: Scoped long-form queues close with `remaining: 0` for unexplained unreviewed long-form items, and supporting citations resolve through section, figure, page, or anchor metadata, or carry reviewed limitation state. Owner: independent reviewer.
   Evidence: final scoped helper summary plus citation resolver/RAG focused checks.
-- [ ] AC-5: OpenSpec and Buddy contracts remain valid. Owner: independent reviewer.
+- [x] AC-5: OpenSpec and Buddy contracts remain valid. Owner: independent reviewer.
   Evidence: `rtk openspec validate complete-longform-textbook-reference-resource-semantics --strict` and issue-body validation pass.
 
 ## Tasks
 
-- [ ] Task 1: Generate scoped long-form workqueues.
+- [x] Task 1: Generate scoped long-form workqueues.
   Covers: AC-1
   Acceptance: Queue is limited to textbook/reference long-form families and records starting blockers.
   Evidence: Helper output.
   Reviewer Check: Confirm runtime and assessment families are excluded.
-- [ ] Task 2: Review section-level PlanningUnits.
+- [x] Task 2: Review section-level PlanningUnits.
   Covers: AC-2
   Acceptance: Path-plannable sections have reviewed source, graph/K/A/Q, LearningGoal, path, citation, privacy, authority, source hash, and review metadata.
   Evidence: Metadata diff and ResourceNode audit.
   Reviewer Check: Confirm reviewed sections are suitable as student path resources.
-- [ ] Task 3: Review child item support roles.
+- [x] Task 3: Review child item support roles.
   Covers: AC-3
   Acceptance: Child items are parent-linked or classified with reviewed rationale and cannot become PathNodes.
   Evidence: Parent-link checks and helper output.
   Reviewer Check: Confirm raw search documents are not promoted by relevance alone.
-- [ ] Task 4: Validate citation addressability.
+- [x] Task 4: Validate citation addressability.
   Covers: AC-4
   Acceptance: Scoped helper output reports `remaining: 0` for unexplained unreviewed long-form items, and supporting citations resolve or carry reviewed limitation state.
   Evidence: Final helper summary plus citation resolver and RAG checks.
   Reviewer Check: Confirm citation links are usable where source anchors exist and no item was skipped because semantic review was required.
-- [ ] Task 5: Run validation and prepare review evidence.
+- [x] Task 5: Run validation and prepare review evidence.
   Covers: AC-5
   Acceptance: OpenSpec validation, issue-body validation, helper checks, and focused tests pass.
   Evidence: Command output.

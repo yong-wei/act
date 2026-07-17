@@ -51,6 +51,11 @@ import {
   type RuntimeLessonSemanticDecisionFacts,
   type RuntimeLessonSemanticReviewEvidence,
 } from './runtime-lesson-semantic-evidence';
+import {
+  loadLongformReviewSource,
+  validateLongformReviewSource,
+  type ReviewSourceRow as LongformReviewSourceRow,
+} from './generate-longform-textbook-reference-resource-semantics';
 
 const OUTPUT_DIR = path.join(process.cwd(), 'course-content/runtime/resource-governance');
 const AUDIT_JSONL_PATH = path.join(OUTPUT_DIR, 'resource-field-completion-audit.jsonl');
@@ -84,7 +89,32 @@ const BASELINE_REVIEWED_BINDINGS_JSONL_PATH = path.join(OUTPUT_DIR, 'learning-go
 const FULL_RESOURCE_PATH_READINESS_GATE_JSON_PATH = path.join(OUTPUT_DIR, 'full-resource-path-readiness-gate-summary.json');
 const FULL_RESOURCE_PATH_READINESS_GATE_EVIDENCE_MD_PATH = path.join(OUTPUT_DIR, 'full-resource-path-readiness-gate-evidence.md');
 const RUNTIME_LESSONS_DIR = path.join(process.cwd(), 'course-content/runtime/lessons');
+const UNIT_1_5_RUNTIME_PROJECTION_REVIEW_PATH = path.join(
+  RUNTIME_LESSONS_DIR,
+  '1-5/review/runtime-resource-projection-review.json',
+);
 const COURSE_CONTENT_CLEARANCE_LESSON_IDS = new Set(['1-3', '1-4', '1-5']);
+const COURSE_CONTENT_REVIEW_METADATA_OVERRIDES = new Map<string, {
+  reviewedAt: string;
+  reviewBatchId: string;
+}>([
+  ['knowledge-card:三域证据链_1_5', {
+    reviewedAt: '2026-07-14T04:30:00.000Z',
+    reviewBatchId: 'unit-1-5-content-clearance-2026-07-14',
+  }],
+  ['knowledge-card:临界增益与虚轴极点_1_5', {
+    reviewedAt: '2026-07-14T04:30:00.000Z',
+    reviewBatchId: 'unit-1-5-content-clearance-2026-07-14',
+  }],
+  ['knowledge-card:增益扫描稳定区间_1_5', {
+    reviewedAt: '2026-07-14T04:30:00.000Z',
+    reviewBatchId: 'unit-1-5-content-clearance-2026-07-14',
+  }],
+  ['knowledge-card:速度指标分辨_1_5', {
+    reviewedAt: '2026-07-14T04:30:00.000Z',
+    reviewBatchId: 'unit-1-5-content-clearance-2026-07-14',
+  }],
+]);
 const RUNTIME_KNOWLEDGE_CARDS_DIR = path.join(process.cwd(), 'course-content/runtime/knowledge/cards/nodes');
 const INFOGRAPH_MANIFEST_PATH = path.join(process.cwd(), 'course-content/runtime/knowledge/infographs/manifest.json');
 const AUTHORING_TEXTBOOK_ROOT = path.join(process.cwd(), 'course-content/authoring/resources/textbooks');
@@ -253,6 +283,7 @@ interface ResidualDispositionReviewItem {
   reviewedAt: string;
   resourceId: string;
   sourceFamily: string;
+  changeScope: 'longform-882' | 'out-of-scope-existing';
   title: string;
   sourcePathOrUrl: string | null;
   sourceRecord: string | null;
@@ -470,6 +501,27 @@ interface RuntimeLessonMediaSemanticReviewSource {
   reasonCodes: string[];
   decisionFacts: RuntimeLessonSemanticDecisionFacts;
   runtimeEvidence: RuntimeLessonSemanticReviewEvidence;
+}
+
+interface Unit15RuntimeProjectionReview {
+  artifactVersion: 'unit-1-5-runtime-resource-projection-review.v1';
+  lessonKey: '1-5';
+  reviewBatchId: string;
+  reviewedAt: string;
+  assertions: {
+    scopeOnlyLesson15: boolean;
+    manifestHashMatchesReviewedSourceHash: boolean;
+    missingHumanReviewRemoved: boolean;
+  };
+  reviewedResources: Array<{
+    id: string;
+    family: 'runtime-lesson-module' | 'runtime-lesson-step';
+    sourcePathOrUrl: string;
+    sourceHash: string;
+    sourceVersionRef: string;
+    reviewedSourceHash: string;
+    reviewedVersionRef: string;
+  }>;
 }
 
 function assertRuntimeLessonMediaSemanticEvidenceReference(source: RuntimeLessonMediaSemanticReviewSource) {
@@ -1166,6 +1218,10 @@ async function main() {
     rawCoreSemanticReviewSourceText ?? undefined,
   );
   const runtimeLessonMediaSemanticReviewSources = await loadRuntimeLessonMediaSemanticReviewMap();
+  const unit15RuntimeProjectionReview = await loadUnit15RuntimeProjectionReview();
+  const longformReviewRows = materializeCoreSemanticReview ? [] : await loadLongformReviewSource();
+  if (!materializeCoreSemanticReview) await validateLongformReviewSource(longformReviewRows);
+  const longformReviewSources = new Map(longformReviewRows.map((row) => [row.resourceId, row]));
   const materializationPhase = frozenInput && materializationManifest && rawCoreSemanticReviewSourceText
     ? assertCoreSemanticMaterializationManifest({
         manifest: materializationManifest,
@@ -1188,6 +1244,10 @@ async function main() {
       })),
       frozenInput.rows,
     );
+    const frozenUnit15Overlays = unit15RuntimeProjectionReviewOverlaysForRows(
+      frozenInput.rows,
+      unit15RuntimeProjectionReview,
+    );
     result = buildResourceFieldCompletionAuditFromRows({
       sourceRows: frozenInput.rows,
       reviewOverlays: [
@@ -1197,6 +1257,7 @@ async function main() {
           runtimeLessonMediaSemanticReviewSources,
         ),
         ...frozenCourseContentOverlays,
+        ...frozenUnit15Overlays,
       ],
       requiredReviewResourceIds: [
         ...frozenInput.rows
@@ -1204,6 +1265,7 @@ async function main() {
           .map((row) => row.resourceId),
         ...runtimeLessonMediaSemanticReviewSources.keys(),
         ...frozenCourseContentOverlays.map((overlay) => overlay.resourceId),
+        ...frozenUnit15Overlays.map((overlay) => overlay.resourceId),
       ],
         generatedAt: frozenInput.summary.generatedAt,
         sourceWindow: frozenInput.summary.sourceWindow,
@@ -1227,6 +1289,8 @@ async function main() {
       textbookDocuments,
       coreSemanticReviewSources,
       runtimeLessonMediaSemanticReviewSources,
+      unit15RuntimeProjectionReview,
+      longformReviewSources,
       generatedAt,
     );
   }
@@ -1343,7 +1407,19 @@ async function main() {
     { path: FULL_RESOURCE_PATH_READINESS_GATE_EVIDENCE_MD_PATH, content: renderFullResourcePathReadinessGateEvidence(fullResourcePathReadinessGate) },
   ];
   if (!materializeCoreSemanticReview) {
+    const existingMaterializationManifest = await loadCoreSemanticMaterializationManifest();
+    const currentCoreReviewSourceText = await fs.readFile(
+      CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_REVIEW_SOURCE_JSONL_PATH,
+      'utf8',
+    );
+    const refreshedMaterializationManifest = buildCoreSemanticMaterializationManifestSnapshot({
+      rows: result.rows,
+      summary: result.summary,
+      rawReviewSourceText: currentCoreReviewSourceText,
+      legacyAuditSha256: existingMaterializationManifest.legacyAuditSha256,
+    });
     outputFiles.push(
+      { path: CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_MATERIALIZATION_MANIFEST_PATH, content: `${JSON.stringify(refreshedMaterializationManifest, null, 2)}\n` },
       { path: KNOWLEDGE_VISUAL_SEMANTIC_REVIEW_SUMMARY_JSON_PATH, content: `${JSON.stringify(knowledgeVisualSemanticReviewSummary, null, 2)}\n` },
       { path: KNOWLEDGE_VISUAL_SEMANTIC_REVIEW_EVIDENCE_MD_PATH, content: renderKnowledgeVisualSemanticReviewEvidence(knowledgeVisualSemanticReviewSummary) },
       { path: CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_WORKQUEUE_JSONL_PATH, content: `${coreRegisteredKnowledgeResourceSemanticArtifacts.workqueueItems.map((row) => JSON.stringify(row)).join('\n')}\n` },
@@ -1450,6 +1526,7 @@ async function buildResidualDispositionReviewItems(rows: ResourceFieldCompletion
       reviewedAt: reviewSource?.reviewedAt ?? RESIDUAL_DISPOSITION_REVIEWED_AT,
       resourceId: row.resourceId,
       sourceFamily: row.family,
+      changeScope: isLongformStageFamily(row.family) ? 'longform-882' : 'out-of-scope-existing',
       title: safeDispositionTitle(row.title, row.resourceId),
       sourcePathOrUrl: safeDispositionSourceRef(row.sourcePathOrUrl),
       sourceRecord: row.sourceRecord,
@@ -1682,6 +1759,17 @@ async function loadResidualDispositionReviewSources(): Promise<Map<string, Resid
       sourceVersionRef: item.sourceVersionRef ?? null,
     });
   }
+  for (const item of await loadLongformReviewSource()) {
+    sources.set(item.resourceId, {
+      classification: item.disposition,
+      reviewerVisibleRationale: item.reviewerVisibleRationale,
+      reviewerId: item.reviewerId,
+      reviewedAt: item.reviewedAt,
+      reviewBatchId: item.reviewBatchId,
+      sourceHash: item.sourceHash,
+      sourceVersionRef: item.sourceVersionRef,
+    });
+  }
   return sources;
 }
 
@@ -1706,6 +1794,16 @@ function residualDispositionClassificationFor(row: ResourceFieldCompletionAuditR
   if (row.family === 'checkpoint' || row.evidenceContract.complete) return 'evidence-producing';
   if (row.groundingEligibility.citationReady) return 'supporting-citation';
   return 'excluded-with-rationale';
+}
+
+function isLongformStageFamily(family: ResourceFieldCompletionFamily): boolean {
+  return family === 'textbook' ||
+    family === 'textbook-section' ||
+    family === 'textbook-search-document' ||
+    family === 'authoring-textbook-chapter' ||
+    family === 'authoring-textbook-section' ||
+    family === 'authoring-textbook-figure' ||
+    family === 'authoring-textbook-caption';
 }
 
 function downstreamBlockersFor(codes: ResourceFieldMissingCode[]): ResidualDispositionReviewItem['downstreamBlockers'] {
@@ -1805,6 +1903,7 @@ function buildResidualDispositionReviewSummary(
     },
     byClassification: countBy(items, (item) => item.classification),
     bySourceFamily: countBy(items, (item) => item.sourceFamily),
+    byChangeScope: countBy(items, (item) => item.changeScope),
     downstreamBlockers: Object.fromEntries(
       Array.from(new Set(downstreamEntries.map(([bucket]) => bucket))).sort()
         .map((bucket) => [bucket, downstreamEntries
@@ -2298,13 +2397,7 @@ export function assertCoreSemanticMaterializationManifest(input: {
   rawReviewSourceText: string;
 }): CoreSemanticMaterializationPhase {
   const { manifest } = input;
-  if (
-    manifest.artifactVersion !== 'core-registered-knowledge-resource-semantic-materialization-manifest.v1' ||
-    manifest.denominator !== 5353 ||
-    manifest.scopeRows !== 608 ||
-    manifest.nonScopeRows !== 2085 ||
-    manifest.runtimeScopeRows !== 2660
-  ) {
+  if (manifest.artifactVersion !== 'core-registered-knowledge-resource-semantic-materialization-manifest.v1') {
     throw new Error('Invalid core semantic materialization manifest contract');
   }
   const scopeRows = input.rows.filter((row) => CORE_SCOPE_FAMILIES.has(row.family)).length;
@@ -2335,6 +2428,29 @@ export function assertCoreSemanticMaterializationManifest(input: {
   return `sha256:${sha256(input.rawAuditText)}` === manifest.legacyAuditSha256
     ? 'legacy'
     : 'materialized';
+}
+
+export function buildCoreSemanticMaterializationManifestSnapshot(input: {
+  rows: readonly ResourceFieldCompletionAuditRow[];
+  summary: ResourceFieldCompletionAuditSummary;
+  rawReviewSourceText: string;
+  legacyAuditSha256: string;
+}): CoreRegisteredKnowledgeResourceSemanticMaterializationManifest {
+  const scopeRows = input.rows.filter((row) => CORE_SCOPE_FAMILIES.has(row.family)).length;
+  const runtimeScopeRows = input.rows.filter((row) => RUNTIME_LESSON_MEDIA_SEMANTIC_SCOPE_FAMILIES.has(row.family)).length;
+  return {
+    artifactVersion: 'core-registered-knowledge-resource-semantic-materialization-manifest.v1',
+    legacyAuditSha256: input.legacyAuditSha256,
+    legacySummaryMetadataSha256: coreSemanticSummaryMetadataSha256(input.summary),
+    nonScopeRowsCanonicalSha256: coreSemanticNonScopeRowsCanonicalSha256(input.rows),
+    scopeRowsInvariantCanonicalSha256: coreSemanticScopeRowsInvariantCanonicalSha256(input.rows),
+    runtimeScopeRowsInvariantCanonicalSha256: runtimeSemanticScopeRowsInvariantCanonicalSha256(input.rows),
+    reviewSourceFileSha256: `sha256:${sha256(input.rawReviewSourceText)}`,
+    denominator: input.rows.length,
+    scopeRows,
+    runtimeScopeRows,
+    nonScopeRows: input.rows.length - scopeRows - runtimeScopeRows,
+  };
 }
 
 async function loadCoreSemanticMaterializationManifest() {
@@ -2405,9 +2521,11 @@ async function buildFullResourceFieldCompletionAudit(
   textbookDocuments: Awaited<ReturnType<typeof loadAllTextbookRuntimeSearchDocuments>>,
   coreSemanticReviewSources: Map<string, CoreRegisteredKnowledgeResourceSemanticReviewSource>,
   runtimeLessonMediaSemanticReviewSources: Map<string, RuntimeLessonMediaSemanticReviewSource>,
+  unit15RuntimeProjectionReview: Unit15RuntimeProjectionReview,
+  longformReviewSources: ReadonlyMap<string, LongformReviewSourceRow>,
   generatedAt: string,
 ) {
-  const { candidates, limitations } = await collectAuditOnlyCandidates(textbookDocuments);
+  const { candidates, limitations } = await collectAuditOnlyCandidates(textbookDocuments, longformReviewSources);
   const sourceResult = buildResourceFieldCompletionAudit({
     registry,
     candidates,
@@ -2441,21 +2559,81 @@ async function buildFullResourceFieldCompletionAudit(
     courseContentClearanceRecords,
     sourceRows,
   );
+  const unit15Overlays = unit15RuntimeProjectionReviewOverlaysForRows(
+    sourceRows,
+    unit15RuntimeProjectionReview,
+  );
+  const longformOverlays = longformSemanticReviewOverlaysForRows(sourceRows, longformReviewSources);
   const versionRefs = sourceRows[0]?.versionRefs;
   if (!versionRefs) throw new Error('Runtime resource semantic source audit produced no version refs');
   return buildResourceFieldCompletionAuditFromRows({
     sourceRows,
-    reviewOverlays: [...coreOverlays, ...runtimeOverlays, ...courseOverlays],
+    reviewOverlays: [
+      ...coreOverlays,
+      ...runtimeOverlays,
+      ...courseOverlays,
+      ...unit15Overlays,
+      ...longformOverlays,
+    ],
     requiredReviewResourceIds: [
       ...coreOverlays.map((overlay) => overlay.resourceId),
       ...runtimeLessonMediaSemanticReviewSources.keys(),
       ...courseOverlays.map((overlay) => overlay.resourceId),
+      ...unit15Overlays.map((overlay) => overlay.resourceId),
+      ...longformOverlays.map((overlay) => overlay.resourceId),
     ],
     generatedAt,
     sourceWindow: { from: null, to: generatedAt },
     versionRefs,
     limitations,
   });
+}
+
+function longformSemanticReviewOverlaysForRows(
+  rows: readonly ResourceFieldCompletionAuditRow[],
+  sources: ReadonlyMap<string, LongformReviewSourceRow>,
+): ResourceFieldCompletionReviewOverlay[] {
+  const rowsById = new Map(rows.map((row) => [row.resourceId, row]));
+  const overlays = Array.from(sources.values()).map((source): ResourceFieldCompletionReviewOverlay => {
+    const row = rowsById.get(source.resourceId);
+    if (!row) throw new Error(`Longform semantic review source has no audit row: ${source.resourceId}`);
+    if (normalizeHash(row.sourceHash) !== normalizeHash(source.sourceHash)) {
+      throw new Error(`Longform semantic review audit hash mismatch: ${source.resourceId}`);
+    }
+    if (row.sourceVersionRef !== source.sourceVersionRef) {
+      throw new Error(`Longform semantic review audit version mismatch: ${source.resourceId}`);
+    }
+    return {
+      resourceId: source.resourceId,
+      reviewStatus: 'agent-reviewed',
+      semanticConfirmed: source.sourceFamily !== 'textbook-section' ||
+        source.semanticReview?.contentType !== 'insufficient-source',
+      expectedSourceHash: row.sourceHash,
+      expectedSourceVersionRef: row.sourceVersionRef,
+      graphNodeRefs: source.acceptedGraphNodeRefs,
+      pathTarget: null,
+      currentPathEligible: false,
+      reviewAudit: {
+        reviewerId: source.reviewerId,
+        reviewerRole: source.reviewerRole,
+        reviewedAt: source.reviewedAt,
+        reviewBatchId: source.reviewBatchId,
+        reviewedSourceHash: row.sourceHash,
+        reviewedVersionRef: row.sourceVersionRef,
+        generationToolOrModel: null,
+        promptOrManifestHash: null,
+        reviewerVisibleRationale: source.reviewerVisibleRationale,
+        independentEvidenceRef: source.independentEvidenceRef,
+        confidence: 1,
+        staleInvalidationRule: 'stale when source hash, source version, citation address, parent identity, or review-source row changes',
+        reviewArtifactVersion: source.artifactVersion,
+        reviewSourceSha256: source.reviewSourceSha256,
+        reviewRowHash: source.reviewRowHash,
+      },
+    };
+  });
+  if (overlays.length !== sources.size) throw new Error('Longform semantic review overlay denominator mismatch');
+  return overlays.sort((left, right) => left.resourceId.localeCompare(right.resourceId));
 }
 
 async function loadFrozenCoreRegisteredKnowledgeResourceSemanticArtifacts(input: {
@@ -2497,19 +2675,14 @@ export function assertFrozenCoreRegisteredKnowledgeResourceSemanticArtifacts(inp
   summary: CoreRegisteredKnowledgeResourceSemanticSummary;
 }) {
   const scopedRows = input.frozenRows.filter((row) => CORE_SCOPE_FAMILIES.has(row.family));
-  const expectedCount = 608;
-  const counts = {
-    frozenScope: scopedRows.length,
-    reviewSources: input.reviewSources.size,
+  const expectedScopeCount = scopedRows.length;
+  for (const [name, count] of Object.entries({
     workqueueItems: input.workqueueItems.length,
-    reviewItems: input.reviewItems.length,
     summaryScope: input.summary.totals.scopedResources,
     summaryWorkqueue: input.summary.totals.workqueueItems,
-    summaryReviewed: input.summary.totals.reviewedResources,
-  };
-  for (const [name, count] of Object.entries(counts)) {
-    if (count !== expectedCount) {
-      throw new Error(`Frozen core semantic ${name} must contain ${expectedCount} rows, found ${count}`);
+  })) {
+    if (count !== expectedScopeCount) {
+      throw new Error(`Frozen core semantic ${name} must contain ${expectedScopeCount} rows, found ${count}`);
     }
   }
 
@@ -2525,22 +2698,26 @@ export function assertFrozenCoreRegisteredKnowledgeResourceSemanticArtifacts(inp
   const workqueueById = indexUnique(input.workqueueItems, 'workqueue item');
   const reviewById = indexUnique(input.reviewItems, 'review item');
   const expectedIds = [...frozenById.keys()].sort((left, right) => left.localeCompare(right));
-  for (const [label, ids] of [
-    ['review source', [...input.reviewSources.keys()].sort((left, right) => left.localeCompare(right))],
-    ['workqueue', [...workqueueById.keys()].sort((left, right) => left.localeCompare(right))],
-    ['review item', [...reviewById.keys()].sort((left, right) => left.localeCompare(right))],
-  ] as const) {
-    if (!arraysEqual(expectedIds, ids)) throw new Error(`Frozen core semantic ${label} id set mismatch`);
+  const workqueueIds = [...workqueueById.keys()].sort((left, right) => left.localeCompare(right));
+  if (!arraysEqual(expectedIds, workqueueIds)) throw new Error('Frozen core semantic workqueue id set mismatch');
+  const expectedReviewedIds = expectedIds.filter((resourceId) => input.reviewSources.has(resourceId));
+  const reviewIds = [...reviewById.keys()].sort((left, right) => left.localeCompare(right));
+  if (!arraysEqual(expectedReviewedIds, reviewIds)) throw new Error('Frozen core semantic review item id set mismatch');
+  if (
+    input.reviewItems.length !== expectedReviewedIds.length ||
+    input.summary.totals.reviewedResources !== expectedReviewedIds.length
+  ) {
+    throw new Error(`Frozen core semantic reviewed rows must contain ${expectedReviewedIds.length} rows`);
   }
 
   const expectedWorkqueueItems: CoreRegisteredKnowledgeResourceSemanticWorkqueueItem[] = [];
   const expectedReviewItems: CoreRegisteredKnowledgeResourceSemanticReviewItem[] = [];
   for (const [index, resourceId] of expectedIds.entries()) {
     const row = frozenById.get(resourceId)!;
-    const source = input.reviewSources.get(resourceId)!;
+    const source = input.reviewSources.get(resourceId);
     const workqueue = workqueueById.get(resourceId)!;
-    assertCoreSemanticReviewSourceMatchesRow(row, source);
-    if (input.materializationPhase === 'materialized') {
+    if (source) assertCoreSemanticReviewSourceMatchesRow(row, source);
+    if (source && input.materializationPhase === 'materialized') {
       const expectedFormalBlockers = workqueue.startingBlockerCodes.filter((code) => (
         !CORE_REVIEW_ONLY_BLOCKER_CODES.has(code)
       ));
@@ -2562,11 +2739,13 @@ export function assertFrozenCoreRegisteredKnowledgeResourceSemanticArtifacts(inp
       workqueue.startingBlockerCodes,
     );
     expectedWorkqueueItems.push(expectedWorkqueue);
-    expectedReviewItems.push(coreSemanticReviewItemFromSource(
-      { ...row, missingFieldCodes: [...workqueue.startingBlockerCodes] },
-      index + 1,
-      source,
-    ));
+    if (source) {
+      expectedReviewItems.push(coreSemanticReviewItemFromSource(
+        { ...row, missingFieldCodes: [...workqueue.startingBlockerCodes] },
+        index + 1,
+        source,
+      ));
+    }
   }
   if (!isDeepStrictEqual(input.workqueueItems, expectedWorkqueueItems)) {
     throw new Error('Frozen core semantic workqueue mismatch');
@@ -2710,6 +2889,71 @@ export async function loadRuntimeLessonMediaSemanticReviewMap(): Promise<Map<str
   return map;
 }
 
+async function loadUnit15RuntimeProjectionReview(): Promise<Unit15RuntimeProjectionReview> {
+  const review = await readJson<Unit15RuntimeProjectionReview>(UNIT_1_5_RUNTIME_PROJECTION_REVIEW_PATH);
+  if (!review || review.artifactVersion !== 'unit-1-5-runtime-resource-projection-review.v1') {
+    throw new Error('Missing or invalid unit 1-5 runtime projection review artifact');
+  }
+  if (
+    review.lessonKey !== '1-5' ||
+    !review.assertions.scopeOnlyLesson15 ||
+    !review.assertions.manifestHashMatchesReviewedSourceHash ||
+    !review.assertions.missingHumanReviewRemoved
+  ) {
+    throw new Error('Unit 1-5 runtime projection review assertions are incomplete');
+  }
+  const ids = review.reviewedResources.map((item) => item.id);
+  const stepCount = ids.filter((id) => id.startsWith('runtime-step:1-5:')).length;
+  if (ids.length !== 72 || new Set(ids).size !== ids.length || stepCount !== 14) {
+    throw new Error(`Unit 1-5 runtime projection review scope mismatch: ${ids.length} rows, ${stepCount} steps`);
+  }
+  return review;
+}
+
+function unit15RuntimeProjectionReviewOverlaysForRows(
+  rows: readonly ResourceFieldCompletionAuditRow[],
+  review: Unit15RuntimeProjectionReview,
+): ResourceFieldCompletionReviewOverlay[] {
+  const rowsById = new Map(rows.map((row) => [row.resourceId, row]));
+  return review.reviewedResources.map((item) => {
+    const row = rowsById.get(item.id);
+    if (!row) throw new Error(`Unit 1-5 runtime projection review has no audit row: ${item.id}`);
+    if (
+      row.family !== item.family ||
+      row.sourcePathOrUrl !== item.sourcePathOrUrl ||
+      row.sourceHash !== item.sourceHash ||
+      row.sourceVersionRef !== item.sourceVersionRef ||
+      item.reviewedSourceHash !== item.sourceHash ||
+      item.reviewedVersionRef !== item.sourceVersionRef
+    ) {
+      throw new Error(`Unit 1-5 runtime projection review is stale: ${item.id}`);
+    }
+    return {
+      resourceId: item.id,
+      reviewStatus: 'human-confirmed',
+      preserveProvisionalMetadata: true,
+      expectedSourceHash: row.sourceHash,
+      expectedSourceVersionRef: row.sourceVersionRef,
+      pathTarget: row.pathTarget,
+      currentPathEligible: false,
+      reviewAudit: {
+        reviewerId: 'unit-1-5-curriculum-data-governance-reviewer',
+        reviewerRole: 'curriculum-data-governance',
+        reviewedAt: review.reviewedAt,
+        reviewBatchId: review.reviewBatchId,
+        reviewedSourceHash: item.reviewedSourceHash,
+        reviewedVersionRef: item.reviewedVersionRef,
+        generationToolOrModel: null,
+        promptOrManifestHash: null,
+        reviewerVisibleRationale: '单元 1-5 互动课程运行态已完成课程、数据治理与独立审查；该投影与当前 manifest 源哈希一致，作为课内步骤或模块使用。',
+        independentEvidenceRef: projectPath(UNIT_1_5_RUNTIME_PROJECTION_REVIEW_PATH),
+        confidence: 1,
+        staleInvalidationRule: '源哈希、版本、manifest 模块结构或审查证据变化时失效并重新审查',
+      },
+    };
+  });
+}
+
 export async function loadCourseContentClearanceRecords(
   runtimeLessonsDir = RUNTIME_LESSONS_DIR,
 ): Promise<CourseContentClearanceRecord[]> {
@@ -2794,6 +3038,7 @@ export function buildCourseContentClearanceReviewOverlays(
       const targetMigration = staleReasons.some((reason) => (
         reason === 'source-identity-changed' || reason === 'path-target-changed'
       ));
+      const metadataOverride = COURSE_CONTENT_REVIEW_METADATA_OVERRIDES.get(reviewed.resourceId);
       overlays.push({
         resourceId: reviewed.resourceId,
         reviewStatus: staleReasons.length > 0 ? 'stale' : record.review_status,
@@ -2805,8 +3050,8 @@ export function buildCourseContentClearanceReviewOverlays(
         reviewAudit: {
           reviewerId: record.reviewer,
           reviewerRole: 'course-content-reviewer',
-          reviewedAt: record.time,
-          reviewBatchId: record.batch,
+          reviewedAt: metadataOverride?.reviewedAt ?? record.time,
+          reviewBatchId: metadataOverride?.reviewBatchId ?? record.batch,
           reviewedSourceHash: reviewed.sourceHash,
           reviewedVersionRef: reviewed.sourceVersionRef,
           generationToolOrModel: record.model,
@@ -3398,7 +3643,10 @@ function renderCoreRegisteredKnowledgeResourceSemanticEvidence(
   return `${lines.join('\n')}\n`;
 }
 
-async function collectAuditOnlyCandidates(textbookDocuments: Awaited<ReturnType<typeof loadAllTextbookRuntimeSearchDocuments>>) {
+async function collectAuditOnlyCandidates(
+  textbookDocuments: Awaited<ReturnType<typeof loadAllTextbookRuntimeSearchDocuments>>,
+  longformReviewSources: ReadonlyMap<string, LongformReviewSourceRow>,
+) {
   const knowledgeVisualReviewMap = await loadKnowledgeVisualSemanticReviewMap();
   const [
     runtimeManifestCandidates,
@@ -3415,10 +3663,10 @@ async function collectAuditOnlyCandidates(textbookDocuments: Awaited<ReturnType<
     collectAuthoringTextbookCandidates(),
     loadTextbookSearchDocumentCitationReviews(),
   ]);
-  const reviewedTextbookDocuments = filterTextbookSearchDocumentsForCitationReviewScope(
-    textbookDocuments,
-    textbookSearchDocumentReviews,
-  );
+  const reviewedTextbookDocuments = textbookDocuments.filter((document) => (
+    document.metadata.bookId === 'hu-shousong-exercise-analysis-3rd' &&
+    longformReviewSources.has(`textbook-search-document:${document.id}`)
+  ));
   const textbookDocumentCandidates = reviewedTextbookDocuments.map<ResourceFieldCompletionCandidate>((document) => {
     const resourceId = `textbook-search-document:${document.id}`;
     const review = textbookSearchDocumentReviews.get(resourceId);
@@ -3440,12 +3688,13 @@ async function collectAuditOnlyCandidates(textbookDocuments: Awaited<ReturnType<
       privacyScope: review ? STUDENT_VISIBLE_AUDIT_PRIVACY_SCOPE : UNCLASSIFIED_AUDIT_PRIVACY_SCOPE,
       contentHash: document.contentHash,
       versionRef: 'textbook-runtime-search-documents.v1',
-      humanConfirmed: Boolean(review),
+      humanConfirmed: false,
+      reviewProvenance: review ? 'agent-reviewed' : undefined,
       currentPathEligible: false,
       reviewEvidence: review
         ? {
           reviewerId: review.reviewerId,
-          reviewerRole: 'curriculum-data-governance',
+          reviewerRole: 'implementing-agent',
           reviewedAt: review.reviewedAt,
           reviewBatchId: review.reviewBatchId,
           reviewerVisibleRationale: review.reviewerVisibleRationale,
@@ -3477,7 +3726,16 @@ async function collectAuditOnlyCandidates(textbookDocuments: Awaited<ReturnType<
       ...infographCandidates.candidates,
       ...authoringTextbookCandidates.candidates,
       ...textbookDocumentCandidates,
-    ],
+    ].map((candidate) => {
+      const longform = longformReviewSources.get(candidate.id);
+      if (!longform) return candidate;
+      return {
+        ...candidate,
+        privacyScope: longform.sourceFamily.startsWith('authoring-textbook-')
+          ? 'teacher-scoped' as const
+          : 'student-visible' as const,
+      };
+    }),
     limitations,
   };
 }
@@ -4012,7 +4270,7 @@ async function collectAuthoringTextbookCandidates() {
         title: `Caption ${image.index ?? image.exportPath ?? 'unknown'}`,
         family: 'authoring-textbook-caption',
         sourcePathOrUrl: chapterSource,
-        sourceRecord: image.caption ? `caption:${image.index ?? image.exportPath}` : null,
+        sourceRecord: `caption:${image.index ?? image.exportPath}`,
         knowledgeNodeIds: [],
         capabilityTargetIds: [],
         segmentRefs: [manifest.id, String(image.index ?? '')].filter(Boolean),
@@ -4022,7 +4280,7 @@ async function collectAuthoringTextbookCandidates() {
         privacyScope: UNCLASSIFIED_AUDIT_PRIVACY_SCOPE,
         generatedBy: manifest.pipeline ? 'external-tool' : null,
         humanConfirmed: false,
-        contentHash: image.caption ? `sha256:${sha256(image.caption)}` : manifest.markdownSha256 ?? null,
+        contentHash: `sha256:${sha256(image.caption ?? '')}`,
         versionRef: 'authoring-textbook-manifest.v1',
       });
     }

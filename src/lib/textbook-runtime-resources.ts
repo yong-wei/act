@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
@@ -53,6 +54,7 @@ interface RuntimeTextbookSectionIndexEntry {
   bookId?: string;
   title?: string;
   href?: string;
+  contentHash?: string;
   pathPlanning?: {
     pathEligible?: boolean;
     estimatedTimeMinutes?: number;
@@ -277,7 +279,8 @@ async function loadTextbookRuntimeSearchDocuments(bookDir: string): Promise<Text
 async function loadTextbookRuntimeResourceCatalogEntry(
   bookDir: string,
 ): Promise<TextbookRuntimeResourceCatalogEntry | null> {
-  const manifest = await readJson<RuntimeTextbookManifest>(path.join(bookDir, 'manifest.json'));
+  const manifestPath = path.join(bookDir, 'manifest.json');
+  const manifest = await readJson<RuntimeTextbookManifest>(manifestPath);
   const bookId = manifest?.bookId ?? path.basename(bookDir);
   const title = manifest?.title ?? bookId;
   const sectionLines = await readJsonl<RuntimeTextbookSectionIndexEntry>(path.join(bookDir, 'section-index.jsonl'));
@@ -290,6 +293,8 @@ async function loadTextbookRuntimeResourceCatalogEntry(
         sectionId: section.id as string,
         title: section.title || section.id as string,
         citationHref: section.href as string,
+        sourceHash: section.contentHash ? `sha256:${section.contentHash}` : null,
+        sourceVersionRef: 'textbook-runtime-section-index.v1',
         knowledgeNodeIds: semantic?.knowledgeNodeIds ?? section.pathPlanning?.knowledgeNodeIds ?? [],
         capabilityTargetIds: semantic?.capabilityTargetIds ?? section.pathPlanning?.capabilityTargetRefs ?? [],
         estimatedTimeMinutes: section.pathPlanning?.estimatedTimeMinutes ?? null,
@@ -307,6 +312,8 @@ async function loadTextbookRuntimeResourceCatalogEntry(
       bookId,
       title,
       sourceHref: `/course-runtime/resources/textbooks/${bookId}`,
+      sourceHash: await sha256File(manifestPath),
+      sourceVersionRef: 'textbook-runtime-manifest.v1',
       knowledgeNodeIds: uniqueSorted(sections.flatMap((section) => section.knowledgeNodeIds ?? [])),
       planningOverride: {
         evidenceInstrumentation: ['textbook_catalog_view'],
@@ -314,6 +321,15 @@ async function loadTextbookRuntimeResourceCatalogEntry(
     },
     sections,
   };
+}
+
+async function sha256File(filePath: string): Promise<string | null> {
+  try {
+    const content = await fs.readFile(filePath);
+    return `sha256:${createHash('sha256').update(content).digest('hex')}`;
+  } catch {
+    return null;
+  }
 }
 
 function controlIntro(capabilityTargetIds: string[]): TextbookSectionSemanticOverride {

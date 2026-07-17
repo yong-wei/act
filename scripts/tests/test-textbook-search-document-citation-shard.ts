@@ -159,27 +159,27 @@ const reviewByResourceId = new Map(reviewItems.map((item) => [item.resourceId, i
 for (const row of selectedAuditRows) {
   const review = reviewByResourceId.get(row.resourceId);
   assert(review, `${row.resourceId} review item missing`);
-  assert(row.reviewStatus === 'human-confirmed', `${row.resourceId} audit review status mismatch`);
+  assert(row.reviewStatus === 'agent-reviewed', `${row.resourceId} audit review status mismatch`);
   assert(row.sourceHash === review.sourceHash, `${row.resourceId} audit source hash must match review hash`);
-  assert(!row.missingFieldCodes.includes('missing-human-review'), `${row.resourceId} must close the review blocker`);
-  assert(row.missingFieldCodes.every((code) => ['missing-path-profile', 'missing-path-target'].includes(code)), `${row.resourceId} should only retain path readiness blockers`);
+  assert(row.missingFieldCodes.includes('missing-human-review'), `${row.resourceId} must retain human path authorization blocker`);
+  assert(row.missingFieldCodes.every((code) => ['missing-human-review', 'missing-path-profile', 'missing-path-target'].includes(code)), `${row.resourceId} should retain only human/path readiness blockers`);
   assert(row.groundingEligibility.citationReady === true, `${row.resourceId} must remain citation-ready`);
   assert(row.pathEligibility.current === false, `${row.resourceId} must not be path eligible`);
   assert(row.pathEligibility.blockedBy.includes('missing-path-target'), `${row.resourceId} must retain path target blocker`);
   assert(row.pathEligibility.blockedBy.includes('missing-path-profile'), `${row.resourceId} must retain path profile blocker`);
-  assert(row.reviewAudit.reviewBatchId === REVIEW_BATCH_ID, `${row.resourceId} audit batch mismatch`);
-  assert(row.reviewAudit.reviewerRole === 'curriculum-data-governance', `${row.resourceId} reviewer role mismatch`);
-  assert(row.reviewAudit.independentEvidenceRef?.includes('textbook-search-document-citation-shard-review-items.jsonl'), `${row.resourceId} evidence ref mismatch`);
-  assert(setEquals(new Set(row.graphNodeRefs.knowledge), new Set(review.graphNodeRefs.knowledge)), `${row.resourceId} audit knowledge refs must come from review artifact`);
-  assert(setEquals(new Set(row.graphNodeRefs.capability), new Set(review.graphNodeRefs.capability)), `${row.resourceId} audit capability refs must come from review artifact`);
-  assert(setEquals(new Set(row.graphNodeRefs.quality), new Set(review.graphNodeRefs.quality)), `${row.resourceId} audit quality refs must come from review artifact`);
-  assert(setEquals(new Set(row.graphNodeRefs.knowledge), EXPECTED_KNOWLEDGE_REFS), `${row.resourceId} audit knowledge refs must match reviewed parent section`);
+  assert(row.pathEligibility.blockedBy.includes('missing-human-review'), `${row.resourceId} must remain human-authorization blocked`);
+  assert(row.reviewAudit.reviewBatchId === 'longform-textbook-reference-resource-semantics-882-2026-07-17', `${row.resourceId} audit batch mismatch`);
+  assert(row.reviewAudit.reviewerRole === 'implementing-agent', `${row.resourceId} reviewer role mismatch`);
+  assert(Boolean(row.reviewAudit.independentEvidenceRef) && !row.reviewAudit.independentEvidenceRef?.includes('longform-textbook-reference-resource-semantics-review-source.jsonl'), `${row.resourceId} independent evidence must not self-reference review source`);
+  assert(row.graphNodeRefs.knowledge.length === 0, `${row.resourceId} audit must not infer knowledge refs`);
+  assert(row.graphNodeRefs.capability.length === 0, `${row.resourceId} audit must not infer capability refs`);
+  assert(row.graphNodeRefs.quality.length === 0, `${row.resourceId} audit must not infer quality refs`);
 }
 
 const selectedSourceRows = sourceWorkqueueRows.filter((row) => EXPECTED_IDS.includes(row.resourceId));
-assert(selectedSourceRows.length === 30, 'selected source workqueue rows must now retain only two path blockers each');
-assert(selectedSourceRows.every((row) => !row.currentBlockers?.includes('missing-human-review')), 'current workqueue blockers must not include missing review');
-assert(setEquals(new Set(selectedSourceRows.map((row) => row.missingFieldCode)), new Set(['missing-path-profile', 'missing-path-target'])), 'current workqueue rows should only retain path blockers');
+assert(selectedSourceRows.length === 45, 'selected source workqueue rows must retain human authorization plus two path blockers each');
+assert(selectedSourceRows.every((row) => row.currentBlockers?.includes('missing-human-review')), 'current workqueue blockers must retain missing human authorization');
+assert(setEquals(new Set(selectedSourceRows.map((row) => row.missingFieldCode)), new Set(['missing-human-review', 'missing-path-profile', 'missing-path-target'])), 'current workqueue rows should retain human authorization and path blockers');
 assert(evidence.includes('Raw search documents promoted as PathNodes: false'), 'evidence must state non-promotion guardrail');
 assert(evidence.includes('Residual unselected rows: 949'), 'evidence must record residual unselected count');
 

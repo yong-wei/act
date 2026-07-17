@@ -1,38 +1,38 @@
 {
   "artifactVersion": "resource-evidence-lineage-readiness.v1",
   "layerTotals": {
-    "auditRows": 5419,
-    "pathRelevantRows": 3506,
-    "evidenceProducingRows": 3482,
-    "evidenceLineageBlockers": 71,
+    "auditRows": 6440,
+    "pathRelevantRows": 4527,
+    "evidenceProducingRows": 4503,
+    "evidenceLineageBlockers": 129,
     "reviewedLimitations": 1352,
-    "readyRows": 2105
+    "readyRows": 3068
   },
   "findingCounts": {
-    "missing-evidence-contract": 1423,
-    "missing-evidence-instrumentation": 1423,
+    "missing-evidence-contract": 1481,
+    "missing-evidence-instrumentation": 1481,
     "missing-human-review": 22
   },
   "contractFieldGaps": {
-    "attemptKey": 1423,
-    "clientEventIdPolicy": 1423,
-    "confidencePolicy": 1423,
-    "eventType": 1423,
-    "learningFactMaterializationPolicy": 1423,
-    "learningFactPolicy": 1423,
-    "sourceLogId": 1423,
-    "timestamps": 1423,
+    "attemptKey": 1481,
+    "clientEventIdPolicy": 1481,
+    "confidencePolicy": 1481,
+    "eventType": 1481,
+    "learningFactMaterializationPolicy": 1481,
+    "learningFactPolicy": 1481,
+    "sourceLogId": 1481,
+    "timestamps": 1481,
     "privacyScope": 22
   },
   "followupBuckets": {
-    "complete-evidence-lineage-bindings": 1423
+    "complete-evidence-lineage-bindings": 1481
   },
-  "evidenceLineageBlockerCount": 71,
+  "evidenceLineageBlockerCount": 129,
   "yangFanFixtureBlockers": {
     "blocked": true,
     "blockerCount": 22,
     "scopedBlockerCount": 22,
-    "globalLimitationCount": 1401,
+    "globalLimitationCount": 1459,
     "blockerFamilies": {
       "external-resource": 22
     },

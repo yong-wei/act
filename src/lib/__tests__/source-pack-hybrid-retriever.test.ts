@@ -174,6 +174,8 @@ function projectionRow(overrides: Partial<RuntimeResourceProjectionArtifactRow> 
       confidence: 0.95,
       staleInvalidationRule: 'source-hash-change',
     },
+    reviewConcluded: true,
+    semanticConfirmed: true,
     segmentRefs: ['segment:root-locus'],
     citationTargets: ['source-pack-citation:root-locus'],
     retrievalChunk: {
