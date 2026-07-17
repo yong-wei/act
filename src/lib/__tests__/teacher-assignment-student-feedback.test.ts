@@ -66,4 +66,27 @@ describe('student assignment approved feedback projection', () => {
     });
     expect(detail.feedback).toEqual([]);
   });
+
+  it('exposes only new unbound uploads when a file question is returned', () => {
+    const now = new Date('2026-07-17T01:00:00Z');
+    const detail = presentRevision({
+      assignmentId: 'assignment-1', id: 'revision-1', title: '作业', instructions: '', latePolicy: { mode: 'CLOSED' },
+      questions: [{ ...question, stableQuestionId: 'stable-1', orderIndex: 0, responseType: 'SUBJECTIVE_FILE', points: 10 }],
+    }, { availableAt: new Date('2026-07-01T00:00:00Z'), dueAt: new Date('2026-07-10T00:00:00Z') }, {
+      id: 'submission-1', state: 'SUBMITTED', reviewState: 'RETURNED', studentId: 'student-1', frozenStudentId: 'student-1',
+      submittedRequiredCount: 1, approvalSnapshots: [],
+      answers: [{
+        assignmentQuestionId: 'question-1', state: 'SUBMITTED', version: 2, currentAttemptNumber: 1, attempts: [],
+        assets: [
+          { id: 'historical-asset', attemptId: 'attempt-1', originalName: 'old.pdf', mimeType: 'application/pdf', sizeBytes: 10, state: 'FINALIZED' },
+          { id: 'new-asset', attemptId: null, originalName: 'new.pdf', mimeType: 'application/pdf', sizeBytes: 20, state: 'FINALIZED' },
+        ],
+      }],
+      resubmissionGrants: [{ questionId: 'question-1', state: 'ACTIVE', reason: '请重新上传文档', allowedResponseType: 'SUBJECTIVE_FILE', newDeadlineAt: new Date('2026-07-20T00:00:00Z'), expiresAt: new Date('2026-07-20T00:00:00Z') }],
+    }, true, now);
+
+    expect(detail.questions[0].assets).toEqual([
+      expect.objectContaining({ id: 'new-asset', displayName: 'new.pdf' }),
+    ]);
+  });
 });

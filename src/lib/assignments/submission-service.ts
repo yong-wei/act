@@ -905,7 +905,9 @@ export function presentRevision(revision: any, audience: any, submission: any, c
         currentAttemptNumber: answer?.currentAttemptNumber ?? 0,
         textDraft: answer?.textDraft ?? null,
         history: (answer?.attempts ?? []).map((attempt: any) => ({ id: attempt.id, attemptNumber: attempt.attemptNumber, submittedAt: attempt.submittedAt, textSnapshot: attempt.textSnapshot, assets: (attempt.assets ?? []).map((asset: any) => ({ id: asset.id, displayName: asset.originalName, mimeType: asset.mimeType, sizeBytes: asset.sizeBytes, canDownload: true as const })) })),
-        assets: (answer?.assets ?? []).map((asset: any) => ({ id: asset.id, displayName: asset.originalName, mimeType: asset.mimeType, sizeBytes: asset.sizeBytes, state: asset.state, finalizedAt: asset.finalizedAt })),
+        assets: (answer?.assets ?? [])
+          .filter((asset: any) => !grant || asset.attemptId == null)
+          .map((asset: any) => ({ id: asset.id, displayName: asset.originalName, mimeType: asset.mimeType, sizeBytes: asset.sizeBytes, state: asset.state, finalizedAt: asset.finalizedAt })),
         resubmission: grant ? { state: grant.state, reason: grant.reason, allowedResponseType: grant.allowedResponseType, deadlineAt: grant.newDeadlineAt } : null,
       };
     }),
