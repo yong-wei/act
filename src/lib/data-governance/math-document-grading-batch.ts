@@ -8,6 +8,7 @@ import {
   MATH_DOCUMENT_GRADING_LIMITS,
   pseudonymousAuditId,
   sha256,
+  stableStringify,
 } from './math-document-grading-contracts';
 import {
   assertCurrentGradingProviderPolicy,
@@ -44,9 +45,53 @@ export interface BatchRequest {
   evaluatorVersion?: string;
   policyId?: string | null;
   conversionPolicyId?: string | null;
+  conversionImagePolicyId?: string | null;
+  conversionDocumentPolicyId?: string | null;
   rerunReason?: string;
   maxItems?: number;
   now?: Date;
+}
+
+type FrozenConversionPolicyEntry = { id: string; snapshot: NonNullable<ReturnType<typeof toGradingProviderPolicySnapshot>>; snapshotHash: string };
+type FrozenConversionPolicyBundle = { kind: 'mime-routed-answer-conversion.v1'; image: FrozenConversionPolicyEntry; document: FrozenConversionPolicyEntry };
+
+function isFrozenConversionPolicyBundle(value: unknown): value is FrozenConversionPolicyBundle {
+  const bundle = value as Partial<FrozenConversionPolicyBundle> | null;
+  return bundle?.kind === 'mime-routed-answer-conversion.v1'
+    && typeof bundle.image?.id === 'string' && typeof bundle.image?.snapshotHash === 'string'
+    && typeof bundle.document?.id === 'string' && typeof bundle.document?.snapshotHash === 'string';
+}
+
+function assertPolicyEndpointKind(policy: NonNullable<ReturnType<typeof toGradingProviderPolicySnapshot>>, kind: 'image' | 'document') {
+  if (policy.provider !== 'mathpix' || policy.purpose !== 'answer-conversion') throw new Error('provider-policy-purpose-mismatch');
+  let path = '';
+  try { path = new URL(policy.endpoint ?? '').pathname.replace(/\/+$/, ''); } catch { throw new Error('provider-policy-endpoint-invalid'); }
+  if (path !== (kind === 'image' ? '/v3/text' : '/v3/pdf')) throw new Error('provider-policy-mime-endpoint-mismatch');
+}
+
+function freezeConversionPolicyEntry(row: any, kind: 'image' | 'document'): FrozenConversionPolicyEntry {
+  const snapshot = toGradingProviderPolicySnapshot(row);
+  if (!snapshot) throw new Error('grading-provider-policy-not-found');
+  assertPolicyEndpointKind(snapshot, kind);
+  const snapshotHash = externalProcessingPolicyHash(snapshot);
+  if (!snapshotHash) throw new Error('provider-policy-snapshot-missing');
+  return { id: row.id, snapshot, snapshotHash };
+}
+
+async function validateFrozenConversionPolicyBundle(db: MathGradingDb, value: unknown, bundleHash: string | null | undefined): Promise<FrozenConversionPolicyBundle> {
+  if (!isFrozenConversionPolicyBundle(value) || !bundleHash || sha256(stableStringify(value)) !== bundleHash) throw new Error('provider-policy-snapshot-missing');
+  for (const [kind, entry] of [['image', value.image], ['document', value.document]] as const) {
+    const current = await db.gradingProviderPolicy.findUnique({ where: { id: entry.id }, select: GRADING_PROVIDER_POLICY_SELECT });
+    const snapshot = assertCurrentGradingProviderPolicy({ policyId: entry.id, snapshot: entry.snapshot, snapshotHash: entry.snapshotHash, currentPolicy: current, expectedPurpose: 'answer-conversion' });
+    if (!snapshot) throw new Error('provider-policy-snapshot-missing');
+    assertPolicyEndpointKind(snapshot, kind);
+  }
+  return value;
+}
+
+function selectConversionPolicyForMime(value: unknown, mimeType: string): FrozenConversionPolicyEntry | null {
+  if (!isFrozenConversionPolicyBundle(value)) return null;
+  return mimeType.trim().toLowerCase().startsWith('image/') ? value.image : value.document;
 }
 
 export async function createQuestionScopedGradingBatch(input: {
@@ -73,14 +118,30 @@ export async function createQuestionScopedGradingBatch(input: {
   if (input.request.policyId && !policyRow) throw new Error('grading-provider-policy-not-found');
   const policy = toGradingProviderPolicySnapshot(policyRow);
   if (policy && policy.purpose !== 'rubric-grading') throw new Error('provider-policy-purpose-mismatch');
-  const conversionPolicyRow = input.request.conversionPolicyId
+  const hasRoutedPolicies = Boolean(input.request.conversionImagePolicyId || input.request.conversionDocumentPolicyId);
+  if (hasRoutedPolicies && (!input.request.conversionImagePolicyId || !input.request.conversionDocumentPolicyId)) throw new Error('conversion-policy-pair-required');
+  if (hasRoutedPolicies && input.request.conversionPolicyId) throw new Error('conversion-policy-selection-ambiguous');
+  const conversionPolicyRow = input.request.conversionPolicyId && !hasRoutedPolicies
     ? await input.db.gradingProviderPolicy.findUnique({ where: { id: input.request.conversionPolicyId }, select: GRADING_PROVIDER_POLICY_SELECT })
     : null;
-  if (input.request.conversionPolicyId && !conversionPolicyRow) throw new Error('grading-provider-policy-not-found');
+  if (input.request.conversionPolicyId && !hasRoutedPolicies && !conversionPolicyRow) throw new Error('grading-provider-policy-not-found');
   const conversionPolicy = toGradingProviderPolicySnapshot(conversionPolicyRow);
   if (conversionPolicy && conversionPolicy.purpose !== 'answer-conversion') throw new Error('provider-policy-purpose-mismatch');
+  const routedRows = hasRoutedPolicies ? await Promise.all([
+    input.db.gradingProviderPolicy.findUnique({ where: { id: input.request.conversionImagePolicyId }, select: GRADING_PROVIDER_POLICY_SELECT }),
+    input.db.gradingProviderPolicy.findUnique({ where: { id: input.request.conversionDocumentPolicyId }, select: GRADING_PROVIDER_POLICY_SELECT }),
+  ]) : null;
+  if (routedRows && routedRows.some((row) => !row)) throw new Error('grading-provider-policy-not-found');
+  const conversionPolicyBundle: FrozenConversionPolicyBundle | null = routedRows ? {
+    kind: 'mime-routed-answer-conversion.v1',
+    image: freezeConversionPolicyEntry(routedRows[0], 'image'),
+    document: freezeConversionPolicyEntry(routedRows[1], 'document'),
+  } : null;
+  const frozenConversionSnapshot = conversionPolicyBundle ?? conversionPolicy;
   const policySnapshotHash = externalProcessingPolicyHash(policy);
-  const conversionPolicySnapshotHash = externalProcessingPolicyHash(conversionPolicy);
+  const conversionPolicySnapshotHash = conversionPolicyBundle
+    ? sha256(stableStringify(conversionPolicyBundle))
+    : externalProcessingPolicyHash(conversionPolicy);
   const evaluatorIdentity = {
     id: policy?.provider ?? 'configured-provider',
     version: policy?.model ?? policy?.version ?? 'runtime-resolved',
@@ -91,6 +152,8 @@ export async function createQuestionScopedGradingBatch(input: {
     classId: input.request.classId.trim(),
     policyId: input.request.policyId ?? null,
     conversionPolicyId: input.request.conversionPolicyId ?? null,
+    conversionImagePolicyId: input.request.conversionImagePolicyId ?? null,
+    conversionDocumentPolicyId: input.request.conversionDocumentPolicyId ?? null,
     policySnapshotHash,
     conversionPolicySnapshotHash,
     evaluatorId: input.request.evaluatorId?.trim() || null,
@@ -109,6 +172,8 @@ export async function createQuestionScopedGradingBatch(input: {
     policyId: input.request.policyId ?? null,
     policySnapshotHash,
     conversionPolicyId: input.request.conversionPolicyId ?? null,
+    conversionImagePolicyId: input.request.conversionImagePolicyId ?? null,
+    conversionDocumentPolicyId: input.request.conversionDocumentPolicyId ?? null,
     conversionPolicySnapshotHash,
     rerunReason: input.request.rerunReason ?? null,
     rerunIdempotencyKey: input.request.rerunReason ? input.request.idempotencyKey : null,
@@ -145,8 +210,8 @@ export async function createQuestionScopedGradingBatch(input: {
           policyId: input.request.policyId ?? null,
           policySnapshot: policy ?? null,
           policySnapshotHash,
-          conversionPolicyId: input.request.conversionPolicyId ?? null,
-          conversionPolicySnapshot: conversionPolicy ?? null,
+          conversionPolicyId: conversionPolicyBundle ? null : input.request.conversionPolicyId ?? null,
+          conversionPolicySnapshot: frozenConversionSnapshot ?? null,
           conversionPolicySnapshotHash,
           dedupeKey,
           idempotencyKey: input.request.idempotencyKey,
@@ -277,11 +342,14 @@ export async function processQuestionGradingBatch(input: {
     ? assertCurrentGradingProviderPolicy({ policyId: batch.policyId, snapshot: batch.policySnapshot, snapshotHash: batch.policySnapshotHash, currentPolicy: batch.policy, expectedPurpose: 'rubric-grading' })
     : batch.policy ? toGradingProviderPolicySnapshot(batch.policy) : null;
   if (frozenPolicy && frozenPolicy.purpose !== 'rubric-grading') throw new Error('provider-policy-purpose-mismatch');
-  const frozenConversionPolicy = batch.conversionPolicyId
+  const frozenConversionPolicyBundle = isFrozenConversionPolicyBundle(batch.conversionPolicySnapshot)
+    ? await validateFrozenConversionPolicyBundle(input.db, batch.conversionPolicySnapshot, batch.conversionPolicySnapshotHash)
+    : null;
+  const frozenConversionPolicy = frozenConversionPolicyBundle ? null : batch.conversionPolicyId
     ? assertCurrentGradingProviderPolicy({ policyId: batch.conversionPolicyId, snapshot: batch.conversionPolicySnapshot, snapshotHash: batch.conversionPolicySnapshotHash, currentPolicy: batch.conversionPolicy, expectedPurpose: 'answer-conversion' })
     : batch.conversionPolicy ? toGradingProviderPolicySnapshot(batch.conversionPolicy) : null;
   if (frozenConversionPolicy && frozenConversionPolicy.purpose !== 'answer-conversion') throw new Error('provider-policy-purpose-mismatch');
-  const workerBatch = { ...batch, policy: frozenPolicy, policySnapshot: frozenPolicy, conversionPolicy: frozenConversionPolicy, conversionPolicySnapshot: frozenConversionPolicy };
+  const workerBatch = { ...batch, policy: frozenPolicy, policySnapshot: frozenPolicy, conversionPolicy: frozenConversionPolicy, conversionPolicySnapshot: frozenConversionPolicyBundle ?? frozenConversionPolicy };
   const itemResults: Array<{ itemId: string; state: string; error?: string }> = [];
   let claimedItems = 0;
   let workerStarted = false;
@@ -598,9 +666,12 @@ async function processBatchItem(input: {
       await assertBatchWorkerLease(input);
       await updateClaimedBatchItem(input.db.gradingBatchItem, input.item.id, input.workerClaimToken, { state: 'CONVERTING', progress: 20, conversionId: input.item.conversionId, updatedAt: input.now });
       await assertBatchNotCancelled(input.db, input.batch.id);
-      const conversionPolicyId = input.batch.conversionPolicyId ?? null;
+      const routedPolicy = selectConversionPolicyForMime(input.batch.conversionPolicySnapshot, asset.mimeType);
+      const conversionPolicyId = routedPolicy?.id ?? input.batch.conversionPolicyId ?? null;
+      const conversionPolicySnapshot = routedPolicy?.snapshot ?? input.batch.conversionPolicySnapshot ?? null;
+      const conversionPolicySnapshotHash = routedPolicy?.snapshotHash ?? input.batch.conversionPolicySnapshotHash ?? null;
       const executionSuffix = input.rerunIdentity ? `:${input.rerunIdentity}` : '';
-      const conversion = await enqueueDocumentConversion({ db: input.db, assetId: asset.id, attemptId: attempt.id, actor: { id: 'grading-worker', role: 'SERVICE' }, adapterVersion: 'router.v1', policyId: conversionPolicyId, policySnapshot: input.batch.conversionPolicySnapshot ?? null, policySnapshotHash: input.batch.conversionPolicySnapshotHash ?? null, idempotencyKey: `batch:${input.batch.id}:${input.item.id}:conversion${executionSuffix}`, rerunIdentity: input.rerunIdentity ?? null, reason: input.rerunReason ? `conversion-rerun:${input.rerunReason}` : 'batch-item-conversion', now: input.now });
+      const conversion = await enqueueDocumentConversion({ db: input.db, assetId: asset.id, attemptId: attempt.id, actor: { id: 'grading-worker', role: 'SERVICE' }, adapterVersion: 'router.v1', policyId: conversionPolicyId, policySnapshot: conversionPolicySnapshot, policySnapshotHash: conversionPolicySnapshotHash, idempotencyKey: `batch:${input.batch.id}:${input.item.id}:conversion${executionSuffix}`, rerunIdentity: input.rerunIdentity ?? null, reason: input.rerunReason ? `conversion-rerun:${input.rerunReason}` : 'batch-item-conversion', now: input.now });
       await updateClaimedBatchItem(input.db.gradingBatchItem, input.item.id, input.workerClaimToken, { conversionId: conversion.conversion.id, updatedAt: input.now });
       if (conversion.job) {
         const processedConversion = await processDocumentConversionJob({ db: input.db, jobId: conversion.job.id, workerClaimToken: input.workerClaimToken, store: input.store, writeRendered: input.store ? (rendered) => writeRenderedObjectToSubmissionStore({ store: input.store!, ...rendered }) : undefined, mathpix: conversionPolicyId ? input.mathpix : undefined, local: input.local, parentLeaseLost: input.parentLeaseLost, signal: input.signal, now: input.now });

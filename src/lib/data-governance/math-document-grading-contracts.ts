@@ -18,6 +18,13 @@ export const MATH_DOCUMENT_GRADING_LIMITS = {
 export type MathGradingProvider = string;
 export type EvidencePrecision = 'span' | 'block' | 'page';
 export type EvidenceSourceKind = 'text-native' | 'document';
+export type FrozenCoordinateProvenance = {
+  origin: 'TOP_LEFT' | 'BOTTOM_LEFT';
+  unit: 'PDF_POINT' | 'NORMALIZED' | 'PIXEL';
+  pageWidth: number;
+  pageHeight: number;
+  rotation: 0 | 90 | 180 | 270;
+};
 export type GradingAuditPurpose = 'conversion' | 'grading' | 'lifecycle' | 'retry' | 'hold' | 'idempotency' | 'batch' | 'general' | string;
 
 export interface ExternalProcessingPolicy {
@@ -109,6 +116,7 @@ export interface EvidenceBlockInput {
   spanStart?: number | null;
   spanEnd?: number | null;
   bbox?: [number, number, number, number] | null;
+  coordinateProvenance?: FrozenCoordinateProvenance | null;
   precision?: EvidencePrecision;
   confidence?: number;
 }
@@ -183,6 +191,10 @@ export function normalizeExternalProcessingPolicy(input: ExternalProcessingPolic
 export function externalProcessingPolicyHash(policy: ExternalProcessingPolicy | Record<string, unknown> | null | undefined): string | null {
   const normalized = normalizeExternalProcessingPolicy(policy);
   return normalized ? sha256(stableStringify(normalized)) : null;
+}
+
+export function gradingMathpixPolicyId(version: string, kind: 'image' | 'document'): string {
+  return `grading-provider:mathpix:${version.trim()}:${kind}`.replace(/[^A-Za-z0-9._:-]/g, '-');
 }
 
 export function buildGradingRequestHash(operation: string, request: Record<string, unknown>): string {
@@ -398,6 +410,7 @@ export function normalizeDocumentEvidence(input: {
   );
   const blocks = input.blocks.slice(0, MATH_DOCUMENT_GRADING_LIMITS.blocks).map((block, index) => {
     const precision = block.precision ?? inferPrecision(block);
+    const coordinateProvenance = normalizeCoordinateProvenance(block.coordinateProvenance);
     return {
       ...block,
       id: block.id ?? `document-block-${index + 1}`,
@@ -406,6 +419,7 @@ export function normalizeDocumentEvidence(input: {
       markdown: (block.markdown ?? block.text).slice(0, MATH_DOCUMENT_GRADING_LIMITS.blockCharacters),
       precision,
       confidence: clamp01(block.confidence ?? 0.6),
+      coordinateProvenance,
     };
   });
   const precision = strongestSupportedPrecision(blocks);
@@ -413,6 +427,7 @@ export function normalizeDocumentEvidence(input: {
   if (input.markdown.length > MATH_DOCUMENT_GRADING_LIMITS.markdownCharacters) limitations.add('source-snapshot-truncated');
   if (blocksTruncated) limitations.add('blocks-truncated');
   if (blockContentTruncated) limitations.add('block-content-truncated');
+  if (input.blocks.some((block) => block.coordinateProvenance != null && !normalizeCoordinateProvenance(block.coordinateProvenance))) limitations.add('coordinate-provenance-invalid');
   if (blocks.length === 0) limitations.add('no-converted-blocks');
   const limitationList = [...limitations];
   return {
@@ -426,6 +441,20 @@ export function normalizeDocumentEvidence(input: {
     limitations: limitationList,
     blocks,
   };
+}
+
+export function normalizeCoordinateProvenance(value: unknown): FrozenCoordinateProvenance | null {
+  if (!value || typeof value !== 'object') return null;
+  const candidate = value as Record<string, unknown>;
+  const origin = String(candidate.origin ?? '').toUpperCase();
+  const unit = String(candidate.unit ?? '').toUpperCase();
+  const pageWidth = Number(candidate.pageWidth);
+  const pageHeight = Number(candidate.pageHeight);
+  const rotation = Number(candidate.rotation);
+  if (!['TOP_LEFT', 'BOTTOM_LEFT'].includes(origin) || !['PDF_POINT', 'NORMALIZED', 'PIXEL'].includes(unit)
+    || !Number.isFinite(pageWidth) || pageWidth <= 0 || !Number.isFinite(pageHeight) || pageHeight <= 0
+    || ![0, 90, 180, 270].includes(rotation)) return null;
+  return { origin: origin as FrozenCoordinateProvenance['origin'], unit: unit as FrozenCoordinateProvenance['unit'], pageWidth, pageHeight, rotation: rotation as FrozenCoordinateProvenance['rotation'] };
 }
 
 export function validateEvidenceAnchor(input: {

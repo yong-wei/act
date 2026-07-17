@@ -91,6 +91,9 @@ describe('math-document grading worker recovery dispatch', () => {
       SILICONFLOW_API_KEY: 'ai-key',
       GRADING_AI_PROVIDER_ENABLED: 'true',
       GRADING_MATHPIX_ENABLED: 'true',
+      GRADING_MATHPIX_POLICY_VERSION: 'mathpix.v1',
+      MATHPIX_IMAGE_ENDPOINT: 'https://api.mathpix.com/v3/text',
+      MATHPIX_DOCUMENT_ENDPOINT: 'https://api.mathpix.com/v3/pdf',
       MATHPIX_APP_ID: 'mathpix-id',
       MATHPIX_APP_KEY: 'mathpix-key',
       GRADING_AUDIT_SECRET: 'audit-secret',
@@ -122,6 +125,24 @@ describe('math-document grading worker recovery dispatch', () => {
 
     expect(status.capabilities.mathpix).toBe(false);
     expect(status.missing).toContain('GRADING_MATHPIX_ENABLED');
+  });
+
+  it.each(['MATHPIX_IMAGE_ENDPOINT', 'MATHPIX_DOCUMENT_ENDPOINT'])('requires the split Mathpix endpoint %s for readiness', (missingEndpoint) => {
+    const env: NodeJS.ProcessEnv = {
+      NODE_ENV: 'test',
+      GRADING_MATHPIX_ENABLED: 'true',
+      GRADING_MATHPIX_POLICY_VERSION: 'mathpix.v1',
+      MATHPIX_IMAGE_ENDPOINT: 'https://api.mathpix.com/v3/text',
+      MATHPIX_DOCUMENT_ENDPOINT: 'https://api.mathpix.com/v3/pdf',
+      MATHPIX_APP_ID: 'mathpix-id',
+      MATHPIX_APP_KEY: 'mathpix-key',
+    };
+    delete env[missingEndpoint];
+
+    const status = getMathDocumentGradingWorkerCapabilityStatus(env);
+
+    expect(status.capabilities.mathpix).toBe(false);
+    expect(status.missing).toContain(missingEndpoint);
   });
 
   it('uses the grading-specific provider flag for worker readiness', () => {

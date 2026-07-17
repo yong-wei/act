@@ -37,6 +37,7 @@ for (const migrationName of [nativeReviewMigrationName, governanceHardeningMigra
 }
 const nativeReviewMigration = readFileSync(join(root, `prisma/migrations/${nativeReviewMigrationName}/migration.sql`), 'utf8');
 const governanceHardeningMigration = readFileSync(join(root, `prisma/migrations/${governanceHardeningMigrationName}/migration.sql`), 'utf8');
+const teacherReviewMigration = readFileSync(join(root, 'prisma/migrations/20260717093000_close_teacher_review_persistence/migration.sql'), 'utf8');
 const retentionPgScript = readFileSync(join(root, 'scripts/tests/test-math-document-grading-retention-pg.mjs'), 'utf8');
 const batch = readFileSync(join(root, 'src/lib/data-governance/math-document-grading-batch.ts'), 'utf8');
 const allMathMigrations = `${migration}\n${issue916Migration}\n${lifecycleLeaseMigration}\n${reviewHardeningMigration}\n${phaseThreeMigration}\n${phaseFourMigration}\n${phaseFiveMigration}\n${phaseSixMigration}\n${reconciliationMigration}\n${p0P1Migration}\n${submissionLookupMigration}\n${nativeReviewMigration}\n${governanceHardeningMigration}`;
@@ -63,7 +64,7 @@ for (const column of [
 
 assert.match(schema, /@@unique\(\[answerAttemptId, rubricId, rubricVersion, evaluatorVersion, inputHash, rerunIdentity\], map: "GradingRun_attempt_rubric_input_rerun_key"\)/);
 assert.match(schema, /enum GradingRunState[\s\S]*AWAITING_REVIEW[\s\S]*APPROVED/);
-assert.doesNotMatch(schema, /enum GradingRunState[\s\S]*RETURNED|enum GradingRunState[\s\S]*REJECTED/);
+assert.doesNotMatch(schema, /enum GradingRunState\s*\{[^}]*\b(?:RETURNED|REJECTED)\b/);
 assert.match(schema, /model GradingCriterionAssessment[\s\S]*teacherLevelId\s+String\?[\s\S]*teacherScore\s+Float\?[\s\S]*teacherComment\s+String\?[\s\S]*teacherReviewedAt\s+DateTime\?/);
 assert.match(nativeReviewMigration, /ALTER TYPE "GradingRunState" ADD VALUE IF NOT EXISTS 'APPROVED'/);
 assert.match(nativeReviewMigration, /ALTER TABLE "GradingCriterionAssessment"[\s\S]*"teacherReviewedAt" TIMESTAMP\(3\)/);
@@ -90,6 +91,8 @@ assert.match(governanceHardeningMigration, /LearningMaterializationRebuildReques
 assert.match(governanceHardeningMigration, /CREATE TABLE "LearningMaterializationGeneration"/);
 assert.match(governanceHardeningMigration, /LearningMaterializationGeneration_userId_fkey[\s\S]*ON DELETE CASCADE/);
 assert.match(schema, /@@unique\(\[conversionId, code\]\)/);
+assert.match(schema, /model AnswerEvidenceBlock[\s\S]*coordinateProvenance\s+Json\?/);
+assert.match(teacherReviewMigration, /ALTER TABLE "AnswerEvidenceBlock" ADD COLUMN IF NOT EXISTS "coordinateProvenance" JSONB/);
 assert.match(batch, /id: `grading-batch-item:\$\{batchId\}:\$\{attempt\.id\}`/s);
 assert.match(migration, /GradingRun_attempt_rubric_input_rerun_key/);
 assert.match(migration, /GradingConversionWarning_conversionId_code_key/);

@@ -1,0 +1,1002 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  AlertCircle,
+  ArrowLeft,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  RefreshCw,
+  RotateCcw,
+  Save,
+} from "lucide-react";
+
+import {
+  buildDeterministicReviewQueue,
+  buildTeacherReviewApiUrl,
+  buildTeacherReviewHref,
+  buildTeacherSubmissionQueueUrl,
+  deriveReviewTotal,
+  filterTeacherReviewQueue,
+  findQueueNeighbours,
+  normalizeTeacherReviewDetail,
+  normalizeTeacherSubmissionQueue,
+  type TeacherReviewCriterion,
+  type TeacherReviewDetail,
+  type TeacherReviewQueueItem,
+  type TeacherReviewQueueMode,
+} from "./teacher-review-contracts";
+import { StatusBadge } from "./teacher-review-queue";
+
+type LoadState = "loading" | "ready" | "error" | "missing";
+type MutationState =
+  "idle" | "saving" | "acting" | "conflict" | "error" | "saved";
+type EvidenceView = "source" | "markdown";
+
+interface TeacherReviewWorkspaceProps {
+  assignmentId: string;
+  submissionId: string;
+  initialQuestionId: string;
+  initialMode: TeacherReviewQueueMode;
+  initialStatus: string;
+  initialReviewId: string | null;
+  initialGradingRunId: string | null;
+}
+
+export function TeacherReviewWorkspace({
+  assignmentId,
+  submissionId,
+  initialQuestionId,
+  initialMode,
+  initialStatus,
+  initialReviewId,
+  initialGradingRunId,
+}: TeacherReviewWorkspaceProps) {
+  const router = useRouter();
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const [loadState, setLoadState] = useState<LoadState>("loading");
+  const [mutationState, setMutationState] = useState<MutationState>("idle");
+  const [detail, setDetail] = useState<TeacherReviewDetail | null>(null);
+  const [queue, setQueue] = useState<TeacherReviewQueueItem[]>([]);
+  const [criteria, setCriteria] = useState<TeacherReviewCriterion[]>([]);
+  const [overallComment, setOverallComment] = useState("");
+  const [returnReason, setReturnReason] = useState("");
+  const [returnResponseType, setReturnResponseType] =
+    useState("SUBJECTIVE_TEXT");
+  const [returnDeadline, setReturnDeadline] = useState(() =>
+    defaultReturnDeadline(),
+  );
+  const [fallbackAcknowledgement, setFallbackAcknowledgement] = useState("");
+  const [evidenceView, setEvidenceView] = useState<EvidenceView>("source");
+
+  const loadQueue = useCallback(async () => {
+    const response = await fetch(
+      buildTeacherSubmissionQueueUrl(assignmentId, {
+        mode: initialMode,
+        status: initialStatus,
+        questionId: initialMode === "question" ? initialQuestionId : undefined,
+      }),
+      { cache: "no-store" },
+    );
+    if (!response.ok)
+      throw new Error(`teacher-review-queue:${response.status}`);
+    const normalized = normalizeTeacherSubmissionQueue(await response.json());
+    return filterTeacherReviewQueue(
+      buildDeterministicReviewQueue(
+        normalized.submissions,
+        initialMode,
+        initialQuestionId,
+        initialStatus,
+      ),
+      initialStatus,
+    );
+  }, [assignmentId, initialMode, initialQuestionId, initialStatus]);
+
+  const load = useCallback(async () => {
+    setLoadState("loading");
+    setMutationState("idle");
+    try {
+      const reviewUrl = buildTeacherReviewApiUrl(assignmentId, submissionId, {
+        reviewId: initialReviewId,
+        gradingRunId: initialGradingRunId,
+      });
+      let [reviewResponse, nextQueue] = await Promise.all([
+        fetch(reviewUrl, { cache: "no-store" }),
+        loadQueue(),
+      ]);
+      if (reviewResponse.status === 404 && initialGradingRunId) {
+        reviewResponse = await fetch(reviewUrl.replace(/\?.*$/, ""), {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ gradingRunId: initialGradingRunId }),
+        });
+      }
+      if (
+        reviewResponse.status === 404 ||
+        reviewResponse.status === 409 ||
+        reviewResponse.status === 410
+      ) {
+        setQueue(nextQueue);
+        setLoadState("missing");
+        return;
+      }
+      if (!reviewResponse.ok)
+        throw new Error(`teacher-review-detail:${reviewResponse.status}`);
+      const normalized = normalizeTeacherReviewDetail(
+        await reviewResponse.json(),
+      );
+      if (!normalized) {
+        setQueue(nextQueue);
+        setLoadState("missing");
+        return;
+      }
+      setDetail(normalized);
+      setCriteria(normalized.criteria);
+      setOverallComment(normalized.overallComment);
+      setQueue(nextQueue);
+      setEvidenceView("source");
+      setLoadState("ready");
+      requestAnimationFrame(() => headingRef.current?.focus());
+    } catch {
+      setLoadState("error");
+    }
+  }, [
+    assignmentId,
+    initialGradingRunId,
+    initialReviewId,
+    loadQueue,
+    submissionId,
+  ]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const currentKey = `${submissionId}:${initialQuestionId}`;
+  const neighbours = useMemo(
+    () => findQueueNeighbours(queue, currentKey),
+    [currentKey, queue],
+  );
+  const total = deriveReviewTotal(criteria);
+  const reviewMutable = detail?.status === "IN_REVIEW";
+  const maxTotal = criteria.reduce(
+    (sum, criterion) => sum + criterion.maxPoints,
+    0,
+  );
+  const reviewUrl = buildTeacherReviewApiUrl(assignmentId, submissionId, {
+    reviewId: detail?.reviewId ?? initialReviewId,
+  });
+
+  const navigateTo = useCallback(
+    (item: TeacherReviewQueueItem | null) => {
+      if (!item) return;
+      router.push(
+        buildTeacherReviewHref(assignmentId, item, initialMode, initialStatus),
+      );
+    },
+    [assignmentId, initialMode, initialStatus, router],
+  );
+
+  const save = useCallback(async (): Promise<number | null> => {
+    if (!detail) return null;
+    setMutationState("saving");
+    try {
+      const response = await fetch(reviewUrl, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          reviewId: detail.reviewId,
+          expectedVersion: detail.version,
+          criteria: criteria.map(({ id, levelId, score, comment }) => ({
+            criterionId: id,
+            levelId,
+            score,
+            comment,
+          })),
+          annotations: detail.annotations,
+          overallComment,
+        }),
+      });
+      if (response.status === 409) {
+        setMutationState("conflict");
+        return null;
+      }
+      if (!response.ok)
+        throw new Error(`teacher-review-save:${response.status}`);
+      const normalized = normalizeTeacherReviewDetail(await response.json());
+      const nextVersion = normalized?.version ?? detail.version + 1;
+      if (normalized) {
+        setDetail(normalized);
+        setCriteria(normalized.criteria);
+        setOverallComment(normalized.overallComment);
+      } else {
+        setDetail((current) =>
+          current ? { ...current, version: current.version + 1 } : current,
+        );
+      }
+      setMutationState("saved");
+      return nextVersion;
+    } catch {
+      setMutationState("error");
+      return null;
+    }
+  }, [criteria, detail, overallComment, reviewUrl]);
+
+  const act = useCallback(
+    async (action: "return" | "approve") => {
+      if (
+        !detail ||
+        (action === "return" &&
+          (returnReason.trim().length < 8 ||
+            !returnDeadline ||
+            !returnResponseType))
+      )
+        return;
+      const actionVersion =
+        action === "approve" ? await save() : detail.version;
+      if (actionVersion === null) return;
+      setMutationState("acting");
+      const oldIndex = Math.max(
+        0,
+        queue.findIndex((item) => item.key === currentKey),
+      );
+      try {
+        const idempotencyKey = createIdempotencyKey(action, detail);
+        const response = await fetch(
+          `${reviewUrl.replace(/\?.*$/, "")}/${action}`,
+          {
+            method: "POST",
+            headers: {
+              "content-type": "application/json",
+              "idempotency-key": idempotencyKey,
+            },
+            body: JSON.stringify({
+              reviewId: detail.reviewId,
+              expectedVersion: actionVersion,
+              idempotencyKey,
+              ...(action === "return"
+                ? {
+                    reason: returnReason.trim(),
+                    allowedResponseType: returnResponseType,
+                    newDeadlineAt: new Date(returnDeadline).toISOString(),
+                  }
+                : {}),
+            }),
+          },
+        );
+        if (response.status === 409) {
+          setMutationState("conflict");
+          return;
+        }
+        if (!response.ok)
+          throw new Error(`teacher-review-${action}:${response.status}`);
+        const nextQueue = await loadQueue();
+        const withoutCurrent = nextQueue.filter(
+          (item) => item.key !== currentKey,
+        );
+        const nextItem =
+          withoutCurrent[
+            Math.min(oldIndex, Math.max(0, withoutCurrent.length - 1))
+          ] ?? null;
+        setQueue(nextQueue);
+        if (nextItem) navigateTo(nextItem);
+        else setLoadState("missing");
+      } catch {
+        setMutationState("error");
+      }
+    },
+    [
+      currentKey,
+      detail,
+      loadQueue,
+      navigateTo,
+      queue,
+      returnReason,
+      returnDeadline,
+      returnResponseType,
+      reviewUrl,
+      save,
+    ],
+  );
+
+  const requestRelease = useCallback(async (mode: "RETRY_DERIVATIVE" | "STRUCTURED_ONLY") => {
+    if (!detail || (mode === "STRUCTURED_ONLY" && fallbackAcknowledgement.trim().length < 8)) return;
+    setMutationState("acting");
+    try {
+      const response = await fetch(`${reviewUrl.replace(/\?.*$/, "")}/release`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ reviewId: detail.reviewId, mode, limitationAcknowledgement: fallbackAcknowledgement.trim() || undefined }),
+      });
+      if (!response.ok) throw new Error(`teacher-review-release:${response.status}`);
+      setMutationState("saved");
+    } catch {
+      setMutationState("error");
+    }
+  }, [detail, fallbackAcknowledgement, reviewUrl]);
+
+  if (loadState === "loading")
+    return (
+      <ReviewShell>
+        <ReviewLoading />
+      </ReviewShell>
+    );
+  if (loadState === "error")
+    return (
+      <ReviewShell>
+        <StatePanel
+          kind="error"
+          title="批阅内容暂时无法加载"
+          detail="没有保存任何更改，可安全重试。"
+          action={
+            <button
+              type="button"
+              onClick={() => void load()}
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-rose-400 px-4"
+            >
+              <RefreshCw className="h-4 w-4" />
+              重试
+            </button>
+          }
+        />
+      </ReviewShell>
+    );
+  if (loadState === "missing" || !detail)
+    return (
+      <ReviewShell>
+        <StatePanel
+          kind="empty"
+          title="当前批阅项目不可用"
+          detail="它可能已完成、被筛选移除，或缺少可授权的证据。"
+          action={
+            <Link
+              href={`/teacher/assignments/${encodeURIComponent(assignmentId)}/submissions`}
+              className="inline-flex min-h-11 items-center rounded-lg border border-slate-600 px-4"
+            >
+              返回提交队列
+            </Link>
+          }
+        />
+      </ReviewShell>
+    );
+
+  return (
+    <main
+      className="surface-page min-h-screen text-slate-100"
+      data-teacher-review-workspace="three-pane"
+    >
+      <header className="border-b border-slate-800 bg-slate-950/90 px-4 py-3 md:px-6">
+        <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4">
+          <div className="min-w-0">
+            <Link
+              href={`/teacher/assignments/${encodeURIComponent(assignmentId)}/submissions`}
+              className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-cyan-300"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              返回提交队列
+            </Link>
+            <h1
+              ref={headingRef}
+              tabIndex={-1}
+              className="truncate text-lg font-semibold text-white outline-none"
+            >
+              {detail.assignmentTitle} · {detail.studentName}
+            </h1>
+          </div>
+          <StatusBadge status={detail.status} />
+        </div>
+      </header>
+
+      <div
+        className="border-b border-amber-500/30 bg-amber-950/30 px-4 py-4 md:hidden"
+        data-review-mobile-handoff
+      >
+        <p className="font-medium text-amber-100">请在平板或电脑端继续批阅</p>
+        <p className="mt-1 text-sm text-amber-200/80">
+          手机端可查看状态与切换项目，但评分项编辑和文档批注需要至少 768px
+          宽度。
+        </p>
+        <div className="mt-3 flex gap-2">
+          <NavigationButton
+            label="上一项"
+            item={neighbours.previous}
+            onNavigate={navigateTo}
+          />
+          <NavigationButton
+            label="下一项"
+            item={neighbours.next}
+            onNavigate={navigateTo}
+          />
+        </div>
+      </div>
+
+      <div className="mx-auto hidden min-h-[calc(100vh-73px)] max-w-[1600px] md:grid md:grid-cols-[16rem_minmax(0,1fr)_22rem]">
+        <aside
+          aria-label="学生与题目导航"
+          className="border-r border-slate-800 bg-slate-950/60 p-4"
+        >
+          <p className="text-xs uppercase tracking-wide text-slate-500">
+            {initialMode === "student" ? "按学生队列" : "按题队列"}
+          </p>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <NavigationButton
+              label="上一项"
+              item={neighbours.previous}
+              onNavigate={navigateTo}
+            />
+            <NavigationButton
+              label="下一项"
+              item={neighbours.next}
+              onNavigate={navigateTo}
+            />
+          </div>
+          <dl className="mt-5 space-y-3 border-y border-slate-800 py-4 text-sm">
+            <div>
+              <dt className="text-slate-500">学生</dt>
+              <dd>{detail.studentName}</dd>
+              <dd className="text-xs text-slate-500">
+                {detail.studentNumber ?? "无学号"}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-slate-500">进度</dt>
+              <dd>
+                {Math.max(
+                  1,
+                  queue.findIndex((item) => item.key === currentKey) + 1,
+                )}{" "}
+                / {queue.length}
+              </dd>
+            </div>
+          </dl>
+          <nav aria-label="题目导航" className="mt-5 space-y-2">
+            <p className="text-xs uppercase tracking-wide text-slate-500">
+              题目
+            </p>
+            {detail.questions.map((question) => (
+              <Link
+                key={question.id}
+                aria-current={
+                  question.id === detail.questionId ? "page" : undefined
+                }
+                href={buildTeacherReviewHref(
+                  assignmentId,
+                  {
+                    submissionId,
+                    questionId: question.id,
+                    reviewId: question.reviewId,
+                    gradingRunId: question.gradingRunId,
+                  },
+                  initialMode,
+                  initialStatus,
+                )}
+                className={`block rounded-lg border px-3 py-3 text-sm ${question.id === detail.questionId ? "border-cyan-500 bg-cyan-950/30 text-cyan-100" : "border-slate-800 text-slate-300 hover:border-slate-600"}`}
+              >
+                <span className="line-clamp-2">{question.title}</span>
+                <span className="mt-2 block">
+                  <StatusBadge status={question.status} />
+                </span>
+              </Link>
+            ))}
+          </nav>
+        </aside>
+
+        <section
+          aria-label="作答证据"
+          className="min-w-0 bg-slate-900/30 p-5 lg:p-6"
+        >
+          <div className="mb-4">
+            <p className="text-xs text-cyan-300">当前题目</p>
+            <h2 className="mt-1 text-xl font-semibold text-white">
+              {detail.questionTitle}
+            </h2>
+            {detail.questionPrompt ? (
+              <p className="mt-2 text-sm text-slate-400">
+                {detail.questionPrompt}
+              </p>
+            ) : null}
+          </div>
+          {detail.limitations.length ? (
+            <div
+              role="status"
+              className="mb-4 rounded-lg border border-amber-500/30 bg-amber-950/20 p-3 text-sm text-amber-200"
+            >
+              {detail.limitations.join("；")}
+            </div>
+          ) : null}
+          {!detail.evidence ? (
+            <StatePanel
+              kind="empty"
+              title="暂无可批阅证据"
+              detail="作答可能仍在处理，或证据授权上下文不完整。"
+            />
+          ) : (
+            <>
+              <div
+                className="mb-3 flex items-center gap-2"
+                role="group"
+                aria-label="证据显示方式"
+              >
+                <TabButton
+                  active={evidenceView === "source"}
+                  onClick={() => setEvidenceView("source")}
+                >
+                  {detail.evidence.kind === "DOCUMENT"
+                    ? "原始文档"
+                    : "规范文本"}
+                </TabButton>
+                {detail.evidence.markdown ? (
+                  <TabButton
+                    active={evidenceView === "markdown"}
+                    onClick={() => setEvidenceView("markdown")}
+                  >
+                    Markdown
+                  </TabButton>
+                ) : null}
+              </div>
+              <article className="min-h-[28rem] rounded-xl border border-slate-800 bg-slate-950 p-5">
+                {evidenceView === "source" &&
+                detail.evidence.kind === "DOCUMENT" &&
+                detail.evidence.originalUrl ? (
+                  <iframe
+                    title={detail.evidence.fileName ?? "学生提交文档"}
+                    src={detail.evidence.originalUrl}
+                    className="h-[65vh] w-full rounded-lg bg-white"
+                  />
+                ) : (
+                  <pre className="whitespace-pre-wrap font-sans text-sm leading-7 text-slate-200">
+                    {evidenceView === "markdown"
+                      ? detail.evidence.markdown
+                      : detail.evidence.canonicalText || "证据正文为空"}
+                  </pre>
+                )}
+              </article>
+              {detail.evidence.anchors.length ? (
+                <section className="mt-4" aria-label="证据锚点">
+                  <h3 className="text-sm font-medium text-white">证据锚点</h3>
+                  <ul className="mt-2 grid gap-2 lg:grid-cols-2">
+                    {detail.evidence.anchors.map((anchor) => (
+                      <li
+                        key={anchor.id}
+                        id={`anchor-${anchor.id}`}
+                        tabIndex={-1}
+                        className="rounded-lg border border-slate-800 bg-slate-950 p-3 text-sm"
+                      >
+                        <div className="flex justify-between gap-2">
+                          <span className="text-cyan-300">{anchor.label}</span>
+                          <span className="text-xs text-slate-500">
+                            {anchor.precision}
+                          </span>
+                        </div>
+                        <p className="mt-2 text-slate-300">{anchor.excerpt}</p>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ) : null}
+            </>
+          )}
+        </section>
+
+        <aside
+          aria-label="评分规则与批阅操作"
+          className="border-l border-slate-800 bg-slate-950/70 p-4"
+        >
+          <div className="sticky top-4 space-y-4">
+            <div className="flex items-end justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-slate-500">
+                  派生总分
+                </p>
+                <p
+                  className="text-2xl font-semibold text-white"
+                  data-derived-review-total
+                >
+                  {total}
+                  <span className="text-sm font-normal text-slate-500">
+                    {" "}
+                    / {maxTotal}
+                  </span>
+                </p>
+              </div>
+              <span className="text-xs text-slate-500">仅由评分项求和</span>
+            </div>
+            {criteria.length === 0 ? (
+              <StatePanel
+                kind="empty"
+                title="Rubric 尚不可用"
+                detail="无法安全保存或批准此项目。"
+              />
+            ) : (
+              <div className="max-h-[55vh] space-y-3 overflow-y-auto pr-1">
+                {criteria.map((criterion) => (
+                  <CriterionEditor
+                    key={criterion.id}
+                    criterion={criterion}
+                    readOnly={!reviewMutable}
+                    onChange={(next) => {
+                      setCriteria((current) =>
+                        current.map((item) =>
+                          item.id === next.id ? next : item,
+                        ),
+                      );
+                      setMutationState("idle");
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+            <label className="block text-sm">
+              <span className="text-slate-400">总体评语</span>
+              <textarea
+                disabled={!reviewMutable}
+                value={overallComment}
+                maxLength={4000}
+                onChange={(event) => {
+                  setOverallComment(event.target.value);
+                  setMutationState("idle");
+                }}
+                rows={3}
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 p-2 text-white"
+              />
+            </label>
+            <label className="block text-sm">
+              <span className="text-slate-400">退回原因</span>
+              <textarea
+                disabled={!reviewMutable}
+                value={returnReason}
+                maxLength={1000}
+                onChange={(event) => setReturnReason(event.target.value)}
+                rows={2}
+                aria-describedby="return-reason-help"
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 p-2 text-white"
+              />
+              <span
+                id="return-reason-help"
+                className="mt-1 block text-xs text-slate-500"
+              >
+                退回学生时至少填写 8 个字符，不会用于批准。
+              </span>
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <label className="block text-xs text-slate-400">
+                允许重新作答类型
+                <select
+                  disabled={!reviewMutable}
+                  value={returnResponseType}
+                  onChange={(event) =>
+                    setReturnResponseType(event.target.value)
+                  }
+                  className="mt-1 min-h-10 w-full rounded-lg border border-slate-700 bg-slate-900 px-2 text-sm text-white"
+                >
+                  <option value="SUBJECTIVE_TEXT">文本</option>
+                  <option value="SUBJECTIVE_FILE">文档</option>
+                </select>
+              </label>
+              <label className="block text-xs text-slate-400">
+                重新提交截止时间
+                <input
+                  disabled={!reviewMutable}
+                  type="datetime-local"
+                  value={returnDeadline}
+                  onChange={(event) => setReturnDeadline(event.target.value)}
+                  className="mt-1 min-h-10 w-full rounded-lg border border-slate-700 bg-slate-900 px-2 text-sm text-white"
+                />
+              </label>
+            </div>
+            <MutationMessage
+              state={mutationState}
+              onReload={() => void load()}
+            />
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                disabled={
+                  !criteria.length ||
+                  !reviewMutable ||
+                  mutationState === "saving" ||
+                  mutationState === "acting"
+                }
+                onClick={() => void save()}
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-600 text-slate-100 disabled:opacity-50"
+              >
+                <Save className="h-4 w-4" />
+                保存
+              </button>
+              <button
+                type="button"
+                disabled={
+                  !criteria.length ||
+                  !reviewMutable ||
+                  returnReason.trim().length < 8 ||
+                  !returnDeadline ||
+                  mutationState === "saving" ||
+                  mutationState === "acting"
+                }
+                onClick={() => void act("return")}
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-amber-500 text-amber-200 disabled:opacity-50"
+              >
+                <RotateCcw className="h-4 w-4" />
+                退回
+              </button>
+              <button
+                type="button"
+                disabled={
+                  !criteria.length ||
+                  !reviewMutable ||
+                  mutationState === "saving" ||
+                  mutationState === "acting"
+                }
+                onClick={() => void act("approve")}
+                className="col-span-2 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-emerald-600 font-medium text-white disabled:opacity-50"
+              >
+                <Check className="h-4 w-4" />
+                批准并前往下一项
+              </button>
+            </div>
+            {detail.status === "APPROVED" && <div className="rounded-lg border border-slate-700 p-3">
+              <p className="text-sm font-medium text-white">反馈发布</p>
+              <p className="mt-1 text-xs text-slate-400">派生文件失败时可重试；仅在确认定位限制后发布结构化反馈。</p>
+              <textarea value={fallbackAcknowledgement} onChange={(event) => setFallbackAcknowledgement(event.target.value)} maxLength={1000} rows={2} placeholder="说明并确认结构化反馈的限制（至少 8 个字符）" className="mt-3 w-full rounded-lg border border-slate-700 bg-slate-900 p-2 text-sm text-white" />
+              <div className="mt-3 grid grid-cols-2 gap-2"><button type="button" disabled={mutationState === "acting"} onClick={() => void requestRelease("RETRY_DERIVATIVE")} className="min-h-10 rounded-lg border border-slate-600 text-sm text-slate-100 disabled:opacity-50">重试派生文件</button><button type="button" disabled={mutationState === "acting" || fallbackAcknowledgement.trim().length < 8} onClick={() => void requestRelease("STRUCTURED_ONLY")} className="min-h-10 rounded-lg border border-amber-500 text-sm text-amber-200 disabled:opacity-50">带限制发布</button></div>
+            </div>}
+          </div>
+        </aside>
+      </div>
+    </main>
+  );
+}
+
+function CriterionEditor({
+  criterion,
+  onChange,
+  readOnly,
+}: {
+  criterion: TeacherReviewCriterion;
+  onChange: (criterion: TeacherReviewCriterion) => void;
+  readOnly: boolean;
+}) {
+  const scoreId = `criterion-${criterion.id}-score`;
+  const selectedLevel = criterion.levels.find(
+    (level) => level.id === criterion.levelId,
+  );
+  return (
+    <fieldset className="rounded-lg border border-slate-800 bg-slate-900/70 p-3">
+      <legend className="px-1 text-sm font-medium text-white">
+        {criterion.label}
+      </legend>
+      {criterion.aiScore !== null ? (
+        <div className="mb-2 rounded bg-slate-950 p-2 text-xs text-slate-400">
+          <span>
+            AI 草评：{criterion.aiScore} / {criterion.maxPoints}
+          </span>
+          {criterion.aiComment ? (
+            <p className="mt-1">{criterion.aiComment}</p>
+          ) : null}
+        </div>
+      ) : null}
+      {criterion.levels.length ? (
+        <label className="mb-2 block text-xs text-slate-400">
+          Rubric 档位
+          <select
+            disabled={readOnly}
+            value={criterion.levelId}
+            onChange={(event) => {
+              const level = criterion.levels.find(
+                (candidate) => candidate.id === event.target.value,
+              );
+              if (!level) return;
+              onChange({
+                ...criterion,
+                levelId: level.id,
+                score: Math.min(
+                  level.maxPoints,
+                  Math.max(level.minPoints, criterion.score),
+                ),
+              });
+            }}
+            className="mt-1 min-h-10 w-full rounded-md border border-slate-700 bg-slate-950 px-2 text-white"
+          >
+            {criterion.levels.map((level) => (
+              <option key={level.id} value={level.id}>
+                {level.label}（{level.minPoints}–{level.maxPoints}）
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : null}
+      <label htmlFor={scoreId} className="text-xs text-slate-400">
+        教师评分
+        {selectedLevel
+          ? `（当前档位 ${selectedLevel.minPoints}–${selectedLevel.maxPoints}）`
+          : `（最高 ${criterion.maxPoints}）`}
+      </label>
+      <input
+        disabled={readOnly}
+        id={scoreId}
+        type="number"
+        min={selectedLevel?.minPoints ?? 0}
+        max={selectedLevel?.maxPoints ?? criterion.maxPoints}
+        step="0.01"
+        value={criterion.score}
+        onChange={(event) =>
+          onChange({
+            ...criterion,
+            score: Math.min(
+              selectedLevel?.maxPoints ?? criterion.maxPoints,
+              Math.max(
+                selectedLevel?.minPoints ?? 0,
+                Number(event.target.value) || 0,
+              ),
+            ),
+          })
+        }
+        className="mt-1 min-h-10 w-full rounded-md border border-slate-700 bg-slate-950 px-2 text-white"
+      />
+      <label className="mt-2 block text-xs text-slate-400">
+        评分说明
+        <textarea
+          disabled={readOnly}
+          value={criterion.comment}
+          maxLength={2000}
+          onChange={(event) =>
+            onChange({ ...criterion, comment: event.target.value })
+          }
+          rows={2}
+          className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 p-2 text-sm text-white"
+        />
+      </label>
+    </fieldset>
+  );
+}
+
+function NavigationButton({
+  label,
+  item,
+  onNavigate,
+}: {
+  label: string;
+  item: TeacherReviewQueueItem | null;
+  onNavigate: (item: TeacherReviewQueueItem | null) => void;
+}) {
+  const previous = label.includes("上一");
+  return (
+    <button
+      type="button"
+      disabled={!item}
+      onClick={() => onNavigate(item)}
+      className="inline-flex min-h-10 items-center justify-center gap-1 rounded-lg border border-slate-700 px-2 text-sm disabled:cursor-not-allowed disabled:opacity-40"
+    >
+      {previous ? <ChevronLeft className="h-4 w-4" /> : null}
+      {label}
+      {!previous ? <ChevronRight className="h-4 w-4" /> : null}
+    </button>
+  );
+}
+function TabButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={`min-h-10 rounded-lg px-3 text-sm ${active ? "bg-cyan-600 text-white" : "border border-slate-700 text-slate-300"}`}
+    >
+      {children}
+    </button>
+  );
+}
+function MutationMessage({
+  state,
+  onReload,
+}: {
+  state: MutationState;
+  onReload: () => void;
+}) {
+  if (state === "idle") return null;
+  if (state === "conflict")
+    return (
+      <div
+        role="alert"
+        className="rounded-lg border border-amber-500/40 bg-amber-950/30 p-3 text-sm text-amber-100"
+      >
+        此批阅已被更新。
+        <button type="button" onClick={onReload} className="ml-2 underline">
+          重新加载最新版本
+        </button>
+      </div>
+    );
+  if (state === "error")
+    return (
+      <div
+        role="alert"
+        className="rounded-lg border border-rose-500/40 bg-rose-950/30 p-3 text-sm text-rose-100"
+      >
+        操作失败，当前编辑仍保留，请重试。
+      </div>
+    );
+  return (
+    <p role="status" aria-live="polite" className="text-sm text-slate-400">
+      {state === "saving"
+        ? "正在保存…"
+        : state === "acting"
+          ? "正在提交操作…"
+          : "已保存"}
+    </p>
+  );
+}
+function ReviewShell({ children }: { children: React.ReactNode }) {
+  return (
+    <main className="surface-page flex min-h-screen items-center justify-center px-4 py-10">
+      {children}
+    </main>
+  );
+}
+function ReviewLoading() {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="w-full max-w-5xl space-y-4"
+    >
+      <span className="sr-only">正在加载批阅工作台</span>
+      <div className="h-16 animate-pulse rounded-xl bg-slate-800" />
+      <div className="grid gap-4 md:grid-cols-3">
+        <div className="h-96 animate-pulse rounded-xl bg-slate-800" />
+        <div className="h-96 animate-pulse rounded-xl bg-slate-800 md:col-span-2" />
+      </div>
+    </div>
+  );
+}
+function StatePanel({
+  kind,
+  title,
+  detail,
+  action,
+}: {
+  kind: "empty" | "error";
+  title: string;
+  detail: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <section
+      role={kind === "error" ? "alert" : undefined}
+      className={`w-full rounded-xl border p-6 ${kind === "error" ? "border-rose-500/40 bg-rose-950/30 text-rose-100" : "border-dashed border-slate-700 text-slate-200"}`}
+    >
+      {kind === "error" ? <AlertCircle className="mb-3 h-6 w-6" /> : null}
+      <h2 className="font-semibold">{title}</h2>
+      <p className="mt-2 text-sm opacity-80">{detail}</p>
+      {action ? <div className="mt-4">{action}</div> : null}
+    </section>
+  );
+}
+
+function defaultReturnDeadline() {
+  const deadline = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  const local = new Date(
+    deadline.getTime() - deadline.getTimezoneOffset() * 60_000,
+  );
+  return local.toISOString().slice(0, 16);
+}
+
+function createIdempotencyKey(
+  action: "return" | "approve",
+  detail: TeacherReviewDetail,
+) {
+  const random =
+    typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  return `teacher-review:${action}:${detail.submissionId}:${detail.questionId}:${detail.version}:${random}`;
+}

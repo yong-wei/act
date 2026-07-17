@@ -130,6 +130,13 @@ describe('math-document grading production entrypoint contract', () => {
     expect(deploy).toContain('GRADING_AI_PROVIDER_ENABLED');
     expect(envExample).toContain('MATH_DOCUMENT_GRADING_WORKER_REQUIRED=false');
     expect(envExample).toContain('GRADING_AI_PROVIDER_ENABLED=false');
+    expect(envExample).toContain('MATHPIX_IMAGE_ENDPOINT=https://api.mathpix.com/v3/text');
+    expect(envExample).toContain('MATHPIX_DOCUMENT_ENDPOINT=https://api.mathpix.com/v3/pdf');
+    expect(deploy).toContain('-e MATHPIX_IMAGE_ENDPOINT="$MATHPIX_IMAGE_ENDPOINT"');
+    expect(deploy).toContain('-e MATHPIX_DOCUMENT_ENDPOINT="$MATHPIX_DOCUMENT_ENDPOINT"');
+    expect(deploy).toContain('-e GRADING_MATHPIX_POLICY_VERSION="$GRADING_MATHPIX_POLICY_VERSION"');
+    expect(deploy).toMatch(/APP_ENV_ARGS=\([\s\S]*-e GRADING_MATHPIX_ENABLED=/);
+    expect(deploy).toMatch(/APP_ENV_ARGS=\([\s\S]*-e GRADING_MATHPIX_POLICY_VERSION=/);
   });
 
   it('blocks production policy seeding when positive provider retention has no deletion adapter', () => {
@@ -234,6 +241,18 @@ describe('math-document grading production entrypoint contract', () => {
     expect(actions.every((action) => action.kind === 'lifecycle' && action.action === 'upserted')).toBe(true);
   });
 
+  it('seeds distinct frozen Mathpix image and document conversion policies', () => {
+    const config = parseGradingPolicySeedConfig(enabledPolicySeedEnv());
+    const mathpix = config.providers.filter((policy) => policy.provider === 'mathpix');
+
+    expect(mathpix).toHaveLength(2);
+    expect(mathpix.map(({ version, endpoint }) => ({ version, endpoint }))).toEqual([
+      { version: 'mathpix.v1:image', endpoint: 'https://api.mathpix.com/v3/text' },
+      { version: 'mathpix.v1:document', endpoint: 'https://api.mathpix.com/v3/pdf' },
+    ]);
+    expect(new Set(mathpix.map((policy) => policy.id)).size).toBe(2);
+  });
+
   it('validates public readyz according to the optional math worker requirement', () => {
     const remoteDeploy = read('scripts/remote-deploy.sh');
     const readyzValidator = read('scripts/lib/validate-readyz.py');
@@ -281,3 +300,17 @@ describe('math-document grading production entrypoint contract', () => {
     expect(route).not.toContain('policyId: body.policyId ?? null');
   });
 });
+
+function enabledPolicySeedEnv(): Record<string, string> {
+  const env: Record<string, string> = {
+    NODE_ENV: 'test', MATH_DOCUMENT_GRADING_WORKER_REQUIRED: 'true',
+    AI_PROVIDER: 'siliconflow', AI_BASE_URL: 'https://api.siliconflow.cn/v1', AI_SECRET_REF: 'env:AI_API_KEY', AI_MODEL: 'model.v1',
+    MATHPIX_IMAGE_ENDPOINT: 'https://api.mathpix.com/v3/text', MATHPIX_DOCUMENT_ENDPOINT: 'https://api.mathpix.com/v3/pdf', MATHPIX_CREDENTIAL_REF: 'env:MATHPIX_APP_KEY',
+    GRADING_PROVIDER_PROCESSING_REGION: 'CN', GRADING_PROVIDER_AGREEMENT_VERSION: 'agreement.v1', GRADING_PROVIDER_NO_TRAINING: 'true', GRADING_PROVIDER_RETENTION_SECONDS: '0', GRADING_PROVIDER_DELETION_CAPABILITY: 'true', GRADING_PROVIDER_RATE_LIMIT_PER_MINUTE: '10', GRADING_PROVIDER_CLASS_SCOPE: '*',
+    GRADING_AI_PROVIDER_VERSION: 'ai.v1', GRADING_AI_PROVIDER_ENABLED: 'true', GRADING_MATHPIX_POLICY_VERSION: 'mathpix.v1', GRADING_MATHPIX_ENABLED: 'true',
+  };
+  for (const prefix of ['SOURCE_ASSET', 'ANSWER_EVIDENCE', 'DOCUMENT_CONVERSION', 'AI_DRAFT', 'RUN']) {
+    env[`GRADING_${prefix}_POLICY_VERSION`] = 'v1'; env[`GRADING_${prefix}_RETENTION_SECONDS`] = '3600'; env[`GRADING_${prefix}_DELETE_STRATEGY`] = 'delete-content'; env[`GRADING_${prefix}_PROVIDER_RETENTION_SECONDS`] = '0'; env[`GRADING_${prefix}_ENABLED`] = 'true';
+  }
+  return env;
+}

@@ -16,6 +16,106 @@ import {
 type AssignmentDb = PrismaClient;
 type Actor = { id: string; role: 'TEACHER' | 'ADMIN' };
 
+export async function listTeacherAssignments(db: AssignmentDb, actor: Actor, now = new Date()) {
+  const assignments = await db.assignment.findMany({
+    where: actor.role === 'ADMIN' ? {} : {
+      OR: [
+        { authorId: actor.id },
+        { reviewGrants: { some: { teacherId: actor.id, revokedAt: null, OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] } } },
+        { revisions: { some: { submissions: { some: { audience: { archivedAt: null, class: { teacherId: actor.id, isActive: true } } } } } } },
+      ],
+    },
+    orderBy: { updatedAt: 'desc' },
+    include: {
+      reviewGrants: true,
+      revisions: {
+        orderBy: { revisionNumber: 'desc' },
+        take: 1,
+        include: { audiences: { select: { classId: true, availableAt: true, dueAt: true } } },
+      },
+    },
+  });
+  if (assignments.length === 0) return [];
+
+  const submissions = await db.assignmentSubmission.findMany({
+    where: { revision: { assignmentId: { in: assignments.map((assignment) => assignment.id) } } },
+    include: {
+      revision: { select: { assignmentId: true } },
+      audience: { include: { class: { select: { id: true, teacherId: true, isActive: true } } } },
+      student: { include: { profile: { select: { classId: true } } } },
+      answers: {
+        include: {
+          attempts: {
+            include: {
+              gradingRuns: {
+                include: {
+                  teacherAssignmentReview: { select: { id: true, state: true } },
+                  approvalSnapshot: { select: { id: true } },
+                  question: { select: { orderIndex: true } },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    orderBy: [{ updatedAt: 'asc' }, { id: 'asc' }],
+  });
+
+  return assignments.map((assignment) => {
+    const assignmentWide = actor.role === 'ADMIN'
+      || assignment.authorId === actor.id
+      || assignment.reviewGrants.some((grant) => grant.teacherId === actor.id
+        && grant.revokedAt == null && (grant.expiresAt == null || grant.expiresAt > now));
+    const visibleSubmissions = submissions.filter((submission) => {
+      if (submission.revision.assignmentId !== assignment.id
+        || submission.studentId !== submission.frozenStudentId
+        || submission.audience.classId !== submission.frozenAudienceClassId) return false;
+      if (assignmentWide) return true;
+      return submission.audience.archivedAt == null
+        && submission.audience.class.isActive
+        && submission.audience.class.teacherId === actor.id
+        && submission.student.profile?.classId === submission.frozenAudienceClassId;
+    });
+    const reviewItems = visibleSubmissions.flatMap((submission) => latestReviewRuns(submission).map((run) => ({ submission, run })));
+    const pending = reviewItems.filter(({ run }) => run.teacherAssignmentReview?.state === 'WORKING'
+      || (run.state === 'AWAITING_REVIEW' && run.teacherReviewedAt == null && !run.approvalSnapshot && !run.teacherAssignmentReview));
+    const reviewedCount = reviewItems.filter(({ run }) => Boolean(run.approvalSnapshot) || run.state === 'APPROVED').length;
+    const next = pending.sort((left, right) => {
+      const submissionOrder = new Date(left.submission.updatedAt).getTime() - new Date(right.submission.updatedAt).getTime()
+        || String(left.submission.id).localeCompare(String(right.submission.id));
+      return submissionOrder || Number(left.run.question?.orderIndex ?? 0) - Number(right.run.question?.orderIndex ?? 0)
+        || String(left.run.questionId).localeCompare(String(right.run.questionId));
+    })[0];
+    const { reviewGrants: _reviewGrants, ...publicAssignment } = assignment;
+    return {
+      ...publicAssignment,
+      reviewSummary: {
+        submissionCount: visibleSubmissions.length,
+        pendingReviewCount: pending.length,
+        reviewedCount,
+        nextReview: next ? {
+          submissionId: next.submission.id,
+          questionId: next.run.questionId,
+          reviewId: next.run.teacherAssignmentReview?.id ?? null,
+          gradingRunId: next.run.id,
+        } : null,
+      },
+    };
+  });
+}
+
+function latestReviewRuns(submission: any) {
+  const byQuestion = new Map<string, any>();
+  for (const run of submission.answers.flatMap((answer: any) => answer.attempts.flatMap((attempt: any) => attempt.gradingRuns))) {
+    const current = byQuestion.get(run.questionId);
+    if (!current || new Date(run.updatedAt ?? run.createdAt).getTime() > new Date(current.updatedAt ?? current.createdAt).getTime()
+      || (new Date(run.updatedAt ?? run.createdAt).getTime() === new Date(current.updatedAt ?? current.createdAt).getTime()
+        && String(run.id).localeCompare(String(current.id)) > 0)) byQuestion.set(run.questionId, run);
+  }
+  return [...byQuestion.values()];
+}
+
 export async function createAssignmentDraft(db: AssignmentDb, input: {
   actor: Actor;
   courseContext?: string;

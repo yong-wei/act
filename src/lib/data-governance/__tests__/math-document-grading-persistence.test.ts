@@ -1183,7 +1183,8 @@ describe('production math-document grading persistence contracts', () => {
     const conversions: any[] = [];
     const jobs: any[] = [];
     const requestRows: any[] = [];
-    const conversionPolicy = gradingPolicy({ provider: 'mathpix', purpose: 'answer-conversion', endpoint: 'https://api.mathpix.com/v3/text', credentialRef: 'env:MATHPIX_APP_KEY' });
+    const conversionPolicy = gradingPolicy({ provider: 'mathpix', purpose: 'answer-conversion', endpoint: 'https://api.mathpix.com/v3/pdf', credentialRef: 'env:MATHPIX_APP_KEY' });
+    const imageConversionPolicy = { ...conversionPolicy, id: 'grading-provider:mathpix:mathpix.v1:image', version: 'mathpix.v1:image', endpoint: 'https://api.mathpix.com/v3/text' };
     const asset = {
       id: 'asset-idempotency-1',
       answerId: 'answer-1',
@@ -1209,7 +1210,7 @@ describe('production math-document grading persistence contracts', () => {
     const db: any = {
       ...lifecyclePolicyRepository(),
       submissionAsset: { findUnique: async () => asset },
-      gradingProviderPolicy: { findUnique: async () => conversionPolicy },
+      gradingProviderPolicy: { findUnique: async ({ where }: any) => where.id === imageConversionPolicy.id ? imageConversionPolicy : conversionPolicy },
       documentConversion: {
         findUnique: async ({ where }: any) => {
           const row = where.id
@@ -1251,6 +1252,21 @@ describe('production math-document grading persistence contracts', () => {
     expect(requestRows).toHaveLength(1);
     expect(conversions[0].policySnapshot).toEqual(expect.objectContaining({ model: 'model.v1', credentialRef: 'env:MATHPIX_APP_KEY' }));
     expect(conversions[0].policySnapshotHash).toMatch(/^sha256:/);
+
+    asset.mimeType = 'image/png';
+    asset.originalName = 'answer.png';
+    await expect(enqueueDocumentConversion({
+      db, assetId: asset.id, attemptId: asset.attemptId, actor: { id: 'teacher-1', role: 'TEACHER' }, adapterVersion: 'router.v1', policyId: 'policy-1', idempotencyKey: 'conversion-cross-policy-001', now,
+    })).rejects.toThrow('provider-policy-mime-endpoint-mismatch');
+    expect(conversions).toHaveLength(1);
+
+    vi.stubEnv('GRADING_MATHPIX_ENABLED', 'true');
+    vi.stubEnv('GRADING_MATHPIX_POLICY_VERSION', 'mathpix.v1');
+    const autoSelected = await enqueueDocumentConversion({
+      db, assetId: asset.id, attemptId: asset.attemptId, actor: { id: 'teacher-1', role: 'TEACHER' }, adapterVersion: 'router.v1', idempotencyKey: 'conversion-auto-image-001', now,
+    });
+    vi.unstubAllEnvs();
+    expect(autoSelected.conversion).toMatchObject({ policyId: imageConversionPolicy.id, policySnapshot: expect.objectContaining({ endpoint: 'https://api.mathpix.com/v3/text' }) });
   });
 
   it('replays a grading request by actor and key, then conflicts when the evidence payload changes', async () => {

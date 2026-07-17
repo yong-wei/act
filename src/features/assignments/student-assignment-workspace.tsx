@@ -288,6 +288,10 @@ export function StudentAssignmentWorkspace({ assignmentId }: { assignmentId: str
             </div>
           </header>
 
+          {(assignment.feedbackStatus === 'PUBLISHING' || assignment.feedbackStatus === 'BLOCKED') && <div role="status" className={assignment.feedbackStatus === 'BLOCKED' ? 'mb-5 rounded-xl border border-amber-500/30 bg-amber-500/8 p-4 text-sm text-amber-800 dark:text-amber-200' : 'mb-5 rounded-xl border border-blue-500/25 bg-blue-500/8 p-4 text-sm text-blue-800 dark:text-blue-200'}>{assignment.policyReason}</div>}
+
+          {assignment.feedback && assignment.feedback.length > 0 && <StudentApprovedFeedback assignment={assignment} onSelectQuestion={selectQuestion} />}
+
           <div className="grid gap-5 lg:grid-cols-[14rem_minmax(0,1fr)_16rem]">
             <nav className="surface-card h-fit p-3" aria-label="作业题目">
               <p className="px-2 pb-2 text-xs font-medium text-subtle">题目导航</p>
@@ -327,6 +331,22 @@ export function StudentAssignmentWorkspace({ assignmentId }: { assignmentId: str
       )}
     </AppShell>
   );
+}
+
+function StudentApprovedFeedback({ assignment, onSelectQuestion }: { assignment: StudentAssignmentDetail; onSelectQuestion: (questionId: string) => void }) {
+  const feedback = assignment.feedback ?? [];
+  return <section className="surface-card mb-5 p-5 sm:p-6" aria-labelledby="approved-feedback-heading" data-student-assignment-feedback="approved">
+    <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-medium text-emerald-600 dark:text-emerald-300">教师已批准反馈</p><h2 id="approved-feedback-heading" className="mt-1 text-xl font-semibold text-foreground">批阅结果</h2></div>{assignment.approvedTotal != null && <p className="rounded-xl bg-emerald-500/10 px-4 py-2 text-lg font-semibold text-emerald-700 dark:text-emerald-300">总分 {assignment.approvedTotal}</p>}</div>
+    <div className="mt-5 space-y-4">{feedback.map((item) => <article key={item.snapshotId} id={`feedback-question-${item.questionId}`} className="rounded-xl border border-border/70 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3"><button type="button" onClick={() => onSelectQuestion(item.questionId)} className="text-left font-semibold text-foreground underline-offset-4 hover:underline">{item.questionTitle}</button><span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">{item.questionTotal} 分</span></div>
+      {item.criteria.length > 0 && <dl className="mt-4 grid gap-3 sm:grid-cols-2">{item.criteria.map((criterion, index) => <div key={`${criterion.criterionId ?? 'criterion'}-${index}`} className="rounded-lg bg-accent/50 p-3"><dt className="text-xs font-medium text-subtle">{criterion.criterionId ?? `评分项 ${index + 1}`}</dt><dd className="mt-1 text-sm text-foreground">{criterion.score ?? 0} 分{criterion.comment ? ` · ${criterion.comment}` : ''}</dd></div>)}</dl>}
+      {item.overallComment && <p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-subtle">{item.overallComment}</p>}
+      {item.annotations.filter((annotation) => annotation.status !== 'SUPPRESSED').length > 0 && <ul className="mt-4 space-y-2" aria-label="教师批注">{item.annotations.filter((annotation) => annotation.status !== 'SUPPRESSED').map((annotation, index) => <li key={annotation.id ?? index} className="rounded-lg border-l-2 border-primary bg-accent/40 px-3 py-2 text-sm text-subtle"><span className="font-medium text-foreground">{String(annotation.anchor?.precision ?? 'BLOCK')} 定位：</span>{annotation.comment || '教师批注'}</li>)}</ul>}
+      {item.reviewedAssets.length > 0 && <div className="mt-4 flex flex-wrap gap-2">{item.reviewedAssets.map((asset, index) => asset.href ? <a key={asset.id ?? index} href={asset.href} className="btn-ghost-themed rounded-lg px-3 py-2 text-xs">{asset.label ?? '查看批阅文档'}{asset.precision ? ` · ${asset.precision}` : ''}</a> : null)}</div>}
+      {item.limitations.length > 0 && <div className="mt-4 rounded-lg bg-amber-500/10 p-3 text-xs text-amber-800 dark:text-amber-200">{item.limitations.join('；')}</div>}
+      {item.resubmission && <div className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/8 p-3 text-sm text-amber-800 dark:text-amber-200"><p className="font-medium">本题需要重新提交</p><p className="mt-1">{item.resubmission.reason}</p><p className="mt-1 text-xs">截止 {new Date(item.resubmission.deadlineAt).toLocaleString('zh-CN')}</p><button type="button" onClick={() => onSelectQuestion(item.questionId)} className="btn-ghost-themed mt-3 rounded-lg px-3 py-2 text-xs">前往修改本题</button></div>}
+    </article>)}</div>
+  </section>;
 }
 
 function QuestionEditor({ question, index, draft, onDraftChange, onSave, onUpload, onSubmit, onHistory, busyAction, readOnly, headingRef, pendingUpload, uploadStatusRef, onRetryConfirm }: { question: StudentAssignmentQuestion; index: number; draft: string; onDraftChange: (value: string) => void; onSave: () => void; onUpload: (file: File) => void; onSubmit: () => void; onHistory: () => void; busyAction: string | null; readOnly: boolean; headingRef: React.RefObject<HTMLHeadingElement | null>; pendingUpload?: PendingUpload; uploadStatusRef: React.RefObject<HTMLDivElement | null>; onRetryConfirm: (pending: PendingUpload) => void }) {

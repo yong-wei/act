@@ -13,7 +13,8 @@ export const MATH_DOCUMENT_GRADING_WORKER_CAPABILITY_KEYS = [
 
 const DEFAULT_AI_ENDPOINT = 'https://api.siliconflow.cn/v1';
 const DEFAULT_AI_MODEL = 'Qwen/Qwen3.6-35B-A3B';
-const DEFAULT_MATHPIX_ENDPOINT = 'https://api.mathpix.com/v3/text';
+const DEFAULT_MATHPIX_IMAGE_ENDPOINT = 'https://api.mathpix.com/v3/text';
+const DEFAULT_MATHPIX_DOCUMENT_ENDPOINT = 'https://api.mathpix.com/v3/pdf';
 
 export interface MathDocumentGradingWorkerCapabilities {
   database: boolean;
@@ -132,16 +133,22 @@ export function getMathDocumentGradingWorkerCapabilityStatus(
   if (!aiModel) missing.add('AI_MODEL');
   if (!aiKey) missing.add(provider === 'siliconflow' ? 'SILICONFLOW_API_KEY' : 'AI_API_KEY');
 
-  const mathpixEndpoint = nonEmpty(env.MATHPIX_ENDPOINT) || DEFAULT_MATHPIX_ENDPOINT;
+  const mathpixImageEndpoint = nonEmpty(env.MATHPIX_IMAGE_ENDPOINT);
+  const mathpixDocumentEndpoint = nonEmpty(env.MATHPIX_DOCUMENT_ENDPOINT);
+  const mathpixPolicyVersion = nonEmpty(env.GRADING_MATHPIX_POLICY_VERSION) || nonEmpty(env.MATHPIX_VERSION);
   const mathpixCredentialRef = nonEmpty(env.MATHPIX_CREDENTIAL_REF) || 'env:MATHPIX_APP_KEY';
   const mathpixEnabled = ['1', 'true', 'yes'].includes((env.GRADING_MATHPIX_ENABLED ?? '').trim().toLowerCase());
   const mathpix = mathpixEnabled
-    && isHttpsUrl(mathpixEndpoint)
+    && isMathpixEndpoint(mathpixImageEndpoint, DEFAULT_MATHPIX_IMAGE_ENDPOINT)
+    && isMathpixEndpoint(mathpixDocumentEndpoint, DEFAULT_MATHPIX_DOCUMENT_ENDPOINT)
+    && Boolean(mathpixPolicyVersion)
     && Boolean(nonEmpty(env.MATHPIX_APP_ID))
     && Boolean(nonEmpty(env.MATHPIX_APP_KEY))
     && /^env:[A-Z][A-Z0-9_]*$/.test(mathpixCredentialRef);
   if (!mathpixEnabled) missing.add('GRADING_MATHPIX_ENABLED');
-  requireHttpsUrl('MATHPIX_ENDPOINT', mathpixEndpoint);
+  if (!isMathpixEndpoint(mathpixImageEndpoint, DEFAULT_MATHPIX_IMAGE_ENDPOINT)) missing.add('MATHPIX_IMAGE_ENDPOINT');
+  if (!isMathpixEndpoint(mathpixDocumentEndpoint, DEFAULT_MATHPIX_DOCUMENT_ENDPOINT)) missing.add('MATHPIX_DOCUMENT_ENDPOINT');
+  if (!mathpixPolicyVersion) missing.add('GRADING_MATHPIX_POLICY_VERSION');
   requireValue('MATHPIX_APP_ID', env.MATHPIX_APP_ID ?? '');
   requireValue('MATHPIX_APP_KEY', env.MATHPIX_APP_KEY ?? '');
   if (!/^env:[A-Z][A-Z0-9_]*$/.test(mathpixCredentialRef)) missing.add('MATHPIX_CREDENTIAL_REF');
@@ -161,6 +168,15 @@ export function getMathDocumentGradingWorkerCapabilityStatus(
     capabilities: { database, redis, objectStore, scanner, aiProvider, mathpix, auditSecret },
     missing: [...missing].sort(),
   };
+}
+
+function isMathpixEndpoint(value: string, expected: string): boolean {
+  if (!isHttpsUrl(value)) return false;
+  try {
+    return new URL(value).pathname.replace(/\/+$/, '') === new URL(expected).pathname;
+  } catch {
+    return false;
+  }
 }
 
 export function assertMathDocumentGradingWorkerConfig(

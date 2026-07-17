@@ -79,6 +79,17 @@ export default async function TeacherGradingWorkbenchPage({
     try {
       await assertPipelineReviewActor({ db: prisma, run: pipelineRun, actor: { id: session.user.id, role: session.user.role } });
     } catch { redirect('/dashboard'); }
+    const assignmentScope = pipelineReviewScope(pipelineRun);
+    const submissionId = pipelineRun.answerAttempt?.answer?.submission?.id;
+    if (assignmentScope.assignmentId && submissionId && pipelineRun.questionId) {
+      const query = new URLSearchParams({
+        questionId: pipelineRun.questionId,
+        gradingRunId: pipelineRun.id,
+        mode: 'student',
+      });
+      if (params?.returnTo) query.set('returnTo', params.returnTo);
+      redirect(`/teacher/assignments/${encodeURIComponent(assignmentScope.assignmentId)}/submissions/${encodeURIComponent(submissionId)}/review?${query.toString()}`);
+    }
     if (pipelineRun.state === 'CONTENT_UNAVAILABLE') return <TeacherDocumentGradingUnavailableState reasons={[...(pipelineRun.blockedReasons ?? []), ...(pipelineRun.limitations ?? []), 'rerun-required']} />;
     const scope = pipelineReviewScope(pipelineRun);
     const studentProfile = await prisma.studentProfile.findFirst({

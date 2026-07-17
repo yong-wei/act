@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { parseGradingPolicySeedConfig } from '../../../../scripts/assignments/ensure-grading-policies';
 
 import * as gradingPersistence from '../math-document-grading-persistence';
-import { buildGradingRequestHash, externalProcessingPolicyHash } from '../math-document-grading-contracts';
+import { buildGradingRequestHash, externalProcessingPolicyHash, sha256, stableStringify } from '../math-document-grading-contracts';
 
 import {
   cancelQuestionGradingBatch,
@@ -301,21 +302,26 @@ describe('question-scoped grading batch orchestration', () => {
 
   it('passes conversion policy to document jobs and retains grading policy for the AI run', async () => {
     const aiPolicy: any = { provider: 'ai-evaluator', version: 'ai.v1', model: 'model.v1', endpoint: 'https://ai.example/v1', purpose: 'rubric-grading', dataCategories: ['student-answer'], minimizedScope: ['selected-question', 'answer-evidence'], institutionScope: null, classScope: ['class-1'], processingRegion: 'CN', agreementVersion: 'agreement.v1', noTraining: true, providerRetentionSeconds: 0, deletionCapability: true, rateLimitPerMinute: 10, enabled: true, disabledAt: null, credentialRef: 'env:AI_PROVIDER_KEY' };
-    const conversionPolicy: any = { ...aiPolicy, provider: 'mathpix', version: 'mathpix.v1', model: null, endpoint: 'https://api.mathpix.com/v3/text', purpose: 'answer-conversion', credentialRef: 'env:MATHPIX_APP_KEY' };
-    const item: any = { id: 'item-policy-routing', attemptId: 'attempt-policy-routing', answerVersion: 1, questionSnapshotHash: 'sha256:question', rubricVersion: 'rubric.v1', evaluatorVersion: 'model.v1', state: 'QUEUED', retryCount: 0 };
+    const seededMathpix = parseGradingPolicySeedConfig(enabledPolicySeedEnv()).providers.filter((policy) => policy.provider === 'mathpix');
+    const imagePolicy: any = seededMathpix.find((policy) => policy.endpoint?.endsWith('/v3/text'))!;
+    const documentPolicy: any = seededMathpix.find((policy) => policy.endpoint?.endsWith('/v3/pdf'))!;
+    const conversionBundle: any = { kind: 'mime-routed-answer-conversion.v1', image: { id: imagePolicy.id, snapshot: imagePolicy, snapshotHash: externalProcessingPolicyHash(imagePolicy) }, document: { id: documentPolicy.id, snapshot: documentPolicy, snapshotHash: externalProcessingPolicyHash(documentPolicy) } };
+    const item: any = { id: 'item-policy-routing-image', attemptId: 'attempt-policy-routing-image', answerVersion: 1, questionSnapshotHash: 'sha256:question', rubricVersion: 'rubric.v1', evaluatorVersion: 'model.v1', state: 'QUEUED', retryCount: 0 };
+    const documentItem: any = { ...item, id: 'item-policy-routing-document', attemptId: 'attempt-policy-routing-document' };
     const batch: any = {
-      id: 'batch-policy-routing', state: 'QUEUED', totalItems: 1, progress: 0, completedItems: 0, failedItems: 0, blockedItems: 0, cancellationRequestedAt: null,
+      id: 'batch-policy-routing', state: 'QUEUED', totalItems: 2, progress: 0, completedItems: 0, failedItems: 0, blockedItems: 0, cancellationRequestedAt: null,
       assignmentRevisionId: 'revision-1', questionId: 'question-1', classId: 'class-1', questionSnapshotHash: 'sha256:question', rubricVersion: 'rubric.v1', evaluatorId: 'ai-evaluator', evaluatorVersion: 'model.v1',
       questionSnapshot: { assignmentRevisionId: 'revision-1', questionId: 'question-1', stableQuestionId: 'q1', responseType: 'SUBJECTIVE_FILE', prompt: 'Explain stability.', referenceAnswer: 'Cite the margin.', rubric: { schemaVersion: 'assignment-analytic-rubric.v1', id: 'rubric:question-1', version: 'rubric.v1', maxScore: 5, criteria: [] }, contentHash: 'sha256:question' },
       rubricSnapshot: {}, referenceAnswer: 'Cite the margin.', policyId: 'policy-ai', policySnapshot: aiPolicy, policySnapshotHash: externalProcessingPolicyHash(aiPolicy), policy: aiPolicy,
-      conversionPolicyId: 'policy-conversion', conversionPolicySnapshot: conversionPolicy, conversionPolicySnapshotHash: externalProcessingPolicyHash(conversionPolicy), conversionPolicy,
-      items: [item], question: {},
+      conversionPolicyId: null, conversionPolicySnapshot: conversionBundle, conversionPolicySnapshotHash: sha256(stableStringify(conversionBundle)), conversionPolicy: null,
+      items: [item, documentItem], question: {},
     };
     const evidence = { id: 'evidence-policy-routing', version: 1, sourceHash: 'sha256:evidence', readiness: 'READY', blocks: [] };
     const db: any = {
       gradingBatch: { findUnique: async () => batch, updateMany: async ({ data }: any) => { Object.assign(batch, data); return { count: 1 }; } },
-      gradingBatchItem: { updateMany: async ({ data }: any) => { Object.assign(item, data); return { count: 1 }; }, update: async ({ data }: any) => { Object.assign(item, data); return item; }, groupBy: async () => [{ state: 'SUCCEEDED', _count: { _all: 1 } }] },
-      submissionAttempt: { findUnique: async () => ({ id: item.attemptId, answerVersion: 1, answer: { assets: [{ id: 'asset-policy-routing' }], question: { contentHash: 'sha256:question' } } }) },
+      gradingBatchItem: { updateMany: async ({ where, data }: any) => { const target = where.id === documentItem.id ? documentItem : item; Object.assign(target, data); return { count: 1 }; }, update: async ({ where, data }: any) => { const target = where.id === documentItem.id ? documentItem : item; Object.assign(target, data); return target; }, groupBy: async () => [{ state: 'SUCCEEDED', _count: { _all: 2 } }] },
+      gradingProviderPolicy: { findUnique: async ({ where }: any) => where.id === imagePolicy.id ? imagePolicy : documentPolicy },
+      submissionAttempt: { findUnique: async ({ where }: any) => ({ id: where.id, answerVersion: 1, answer: { assets: [{ id: `asset-${where.id}`, mimeType: where.id === documentItem.attemptId ? 'application/pdf' : 'image/png' }], question: { contentHash: 'sha256:question' } } }) },
       answerEvidence: { findUnique: async () => null, findFirst: async () => evidence },
     };
     const conversion = vi.spyOn(gradingPersistence, 'enqueueDocumentConversion').mockResolvedValue({ conversion: { id: 'conversion-policy-routing', state: 'QUEUED' }, job: { id: 'conversion-job-policy-routing' }, replay: false } as any);
@@ -323,7 +329,8 @@ describe('question-scoped grading batch orchestration', () => {
     const grading = vi.spyOn(gradingPersistence, 'enqueueGradingRun').mockResolvedValue({ run: { id: 'run-policy-routing', inputHash: 'sha256:input', state: 'QUEUED' }, job: { id: 'grading-job-policy-routing' }, replay: false } as any);
     vi.spyOn(gradingPersistence, 'processGradingRunJob').mockResolvedValue({ run: { id: 'run-policy-routing', state: 'AWAITING_REVIEW' }, draft: {} } as any);
     await processQuestionGradingBatch({ db, batchId: batch.id, store: {} as any, mathpix: {} as any, now });
-    expect(conversion).toHaveBeenCalledWith(expect.objectContaining({ policyId: 'policy-conversion', policySnapshotHash: batch.conversionPolicySnapshotHash }));
+    expect(conversion).toHaveBeenCalledWith(expect.objectContaining({ policyId: imagePolicy.id, policySnapshot: expect.objectContaining({ endpoint: 'https://api.mathpix.com/v3/text' }), policySnapshotHash: externalProcessingPolicyHash(imagePolicy) }));
+    expect(conversion).toHaveBeenCalledWith(expect.objectContaining({ policyId: documentPolicy.id, policySnapshot: expect.objectContaining({ endpoint: 'https://api.mathpix.com/v3/pdf' }), policySnapshotHash: externalProcessingPolicyHash(documentPolicy) }));
     expect(conversion).not.toHaveBeenCalledWith(expect.objectContaining({ policyId: 'policy-ai' }));
     expect(conversionWorker).toHaveBeenCalledWith(expect.objectContaining({ mathpix: expect.anything() }));
     expect(conversionWorker).toHaveBeenCalledWith(expect.objectContaining({ writeRendered: expect.any(Function) }));
@@ -871,3 +878,17 @@ describe('question-scoped grading batch orchestration', () => {
     ]));
   });
 });
+
+function enabledPolicySeedEnv(): Record<string, string> {
+  const env: Record<string, string> = {
+    NODE_ENV: 'test', MATH_DOCUMENT_GRADING_WORKER_REQUIRED: 'true',
+    AI_PROVIDER: 'siliconflow', AI_BASE_URL: 'https://api.siliconflow.cn/v1', AI_SECRET_REF: 'env:AI_API_KEY', AI_MODEL: 'model.v1',
+    MATHPIX_IMAGE_ENDPOINT: 'https://api.mathpix.com/v3/text', MATHPIX_DOCUMENT_ENDPOINT: 'https://api.mathpix.com/v3/pdf', MATHPIX_CREDENTIAL_REF: 'env:MATHPIX_APP_KEY',
+    GRADING_PROVIDER_PROCESSING_REGION: 'CN', GRADING_PROVIDER_AGREEMENT_VERSION: 'agreement.v1', GRADING_PROVIDER_NO_TRAINING: 'true', GRADING_PROVIDER_RETENTION_SECONDS: '0', GRADING_PROVIDER_DELETION_CAPABILITY: 'true', GRADING_PROVIDER_RATE_LIMIT_PER_MINUTE: '10', GRADING_PROVIDER_CLASS_SCOPE: '*',
+    GRADING_AI_PROVIDER_VERSION: 'ai.v1', GRADING_AI_PROVIDER_ENABLED: 'true', GRADING_MATHPIX_POLICY_VERSION: 'mathpix.v1', GRADING_MATHPIX_ENABLED: 'true',
+  };
+  for (const prefix of ['SOURCE_ASSET', 'ANSWER_EVIDENCE', 'DOCUMENT_CONVERSION', 'AI_DRAFT', 'RUN']) {
+    env[`GRADING_${prefix}_POLICY_VERSION`] = 'v1'; env[`GRADING_${prefix}_RETENTION_SECONDS`] = '3600'; env[`GRADING_${prefix}_DELETE_STRATEGY`] = 'delete-content'; env[`GRADING_${prefix}_PROVIDER_RETENTION_SECONDS`] = '0'; env[`GRADING_${prefix}_ENABLED`] = 'true';
+  }
+  return env;
+}
