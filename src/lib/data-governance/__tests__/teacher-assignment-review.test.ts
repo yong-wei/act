@@ -195,6 +195,19 @@ describe('teacher assignment review persistence', () => {
     expect(evaluateAssignmentReviewCompleteness({ ...base, exemptions: [{ questionId: 'question-2', scoreEffect: 1 }] })).toEqual({ complete: true, total: 5, blockers: [] });
   });
 
+  it('uses the latest approval when a current attempt is regraded', () => {
+    expect(evaluateAssignmentReviewCompleteness({
+      questions: [{ id: 'question-1' }],
+      answers: [{ assignmentQuestionId: 'question-1', currentAttemptNumber: 1, attempts: [{ id: 'attempt-1', attemptNumber: 1 }] }],
+      approvalSnapshots: [
+        { questionId: 'question-1', attemptId: 'attempt-1', questionTotal: 4, approvedAt: new Date('2026-07-16T00:00:00Z') },
+        { questionId: 'question-1', attemptId: 'attempt-1', questionTotal: 9, approvedAt: new Date('2026-07-17T00:00:00Z') },
+      ],
+      activeGrants: [],
+      exemptions: [],
+    })).toEqual({ complete: true, total: 9, blockers: [] });
+  });
+
   it('uses current class authority only for current ownership and explicit grants for historical access', () => {
     const review: any = reviewFixture();
     expect(resolveTeacherAssignmentReviewAuthorization({ actor: { id: 'teacher-1', role: 'TEACHER' }, review, now }).mode).toBe('current-class');

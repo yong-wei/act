@@ -74,7 +74,7 @@ export function deriveTeacherAssignmentReviewTotal(rubric: any, values: ReviewCr
 export function evaluateAssignmentReviewCompleteness(input: {
   questions: Array<{ id: string }>;
   answers: Array<{ id?: string; assignmentQuestionId: string; currentAttemptNumber: number; attempts: Array<{ id: string; attemptNumber: number; gradingState?: string }> }>;
-  approvalSnapshots: Array<{ questionId: string; attemptId: string; questionTotal: number }>;
+  approvalSnapshots: Array<{ questionId: string; attemptId: string; questionTotal: number; approvedAt?: Date | string }>;
   activeGrants: Array<{ answerId?: string; questionId: string }>;
   exemptions: Array<{ questionId: string; scoreEffect: number }>;
 }): { complete: boolean; total: number | null; blockers: Array<{ questionId: string; reason: string }> } {
@@ -100,7 +100,14 @@ export function evaluateAssignmentReviewCompleteness(input: {
       blockers.push({ questionId: question.id, reason: 'current-attempt-missing' });
       continue;
     }
-    const snapshot = input.approvalSnapshots.find((row) => row.questionId === question.id && row.attemptId === attempt.id);
+    const snapshot = input.approvalSnapshots
+      .filter((row) => row.questionId === question.id && row.attemptId === attempt.id)
+      .reduce<(typeof input.approvalSnapshots)[number] | undefined>((latest, candidate) => {
+        if (!latest) return candidate;
+        const latestAt = latest.approvedAt ? new Date(latest.approvedAt).getTime() : Number.NEGATIVE_INFINITY;
+        const candidateAt = candidate.approvedAt ? new Date(candidate.approvedAt).getTime() : Number.NEGATIVE_INFINITY;
+        return candidateAt >= latestAt ? candidate : latest;
+      }, undefined);
     if (!snapshot) {
       const processing = attempt.gradingState && ['QUEUED', 'RUNNING', 'RETRYABLE'].includes(attempt.gradingState);
       blockers.push({ questionId: question.id, reason: processing ? 'current-attempt-processing' : 'unapproved-current-attempt' });
