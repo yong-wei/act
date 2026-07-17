@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { presentStudentAssignmentFeedback } from '@/lib/assignments/submission-service';
+import { presentRevision, presentStudentAssignmentFeedback } from '@/lib/assignments/submission-service';
 
 const question = { id: 'question-1', promptSnapshot: { prompt: '解释闭环稳定性' } };
 const snapshot = {
@@ -45,5 +45,25 @@ describe('student assignment approved feedback projection', () => {
   it('keeps feedback hidden before release and on owner mismatch', () => {
     expect(presentStudentAssignmentFeedback({ studentId: 'student-1', frozenStudentId: 'student-1', approvalSnapshots: [{ ...snapshot, outboxCommands: [{ command: 'RELEASE_STUDENT_FEEDBACK', state: 'PENDING' }] }] }, [question], new Date())).toEqual([]);
     expect(presentStudentAssignmentFeedback({ studentId: 'student-1', frozenStudentId: 'student-2', approvalSnapshots: [snapshot] }, [question], new Date())).toEqual([]);
+  });
+
+  it('keeps a returned submitted question editable from its active grant without requiring published feedback', () => {
+    const now = new Date('2026-07-17T01:00:00Z');
+    const detail = presentRevision({
+      assignmentId: 'assignment-1', id: 'revision-1', title: '作业', instructions: '', latePolicy: { mode: 'CLOSED' },
+      questions: [{ ...question, stableQuestionId: 'stable-1', orderIndex: 0, responseType: 'SUBJECTIVE_TEXT', points: 10 }],
+    }, { availableAt: new Date('2026-07-01T00:00:00Z'), dueAt: new Date('2026-07-10T00:00:00Z') }, {
+      id: 'submission-1', state: 'SUBMITTED', reviewState: 'RETURNED', studentId: 'student-1', frozenStudentId: 'student-1',
+      submittedRequiredCount: 1, approvalSnapshots: [],
+      answers: [{ assignmentQuestionId: 'question-1', state: 'SUBMITTED', version: 2, currentAttemptNumber: 1, attempts: [], assets: [] }],
+      resubmissionGrants: [{ questionId: 'question-1', state: 'ACTIVE', reason: '请修正符号', allowedResponseType: 'SUBJECTIVE_TEXT', newDeadlineAt: new Date('2026-07-20T00:00:00Z'), expiresAt: new Date('2026-07-20T00:00:00Z') }],
+    }, true, now);
+
+    expect(detail).toMatchObject({ state: 'RESUBMISSION_REQUIRED', nextAction: 'resubmit-question', canMutate: true });
+    expect(detail.questions[0]).toMatchObject({
+      state: 'NOT_STARTED',
+      resubmission: { reason: '请修正符号', deadlineAt: new Date('2026-07-20T00:00:00Z') },
+    });
+    expect(detail.feedback).toEqual([]);
   });
 });

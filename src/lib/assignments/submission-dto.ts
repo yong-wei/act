@@ -6,6 +6,7 @@ export interface StudentQuestionDto {
   state: 'NOT_STARTED' | 'DRAFT' | 'READY' | 'SUBMITTED'; version: number; currentAttemptNumber: number; textDraft: string | null;
   history: Array<{ id: string; attemptNumber: number; submittedAt: Date; textSnapshot: string | null; assets: Array<{ id: string; displayName: string; mimeType: string; sizeBytes: number; canDownload: true }> }>;
   assets: Array<{ id: string; displayName: string; mimeType: string; sizeBytes: number; state: string; finalizedAt: Date | null }>;
+  resubmission: { state: string; reason: string; allowedResponseType: string; deadlineAt: Date } | null;
 }
 export interface StudentAssignmentDto {
   id: string; revisionId: string; title: string; instructions: string; availableAt: Date; dueAt: Date;

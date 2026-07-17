@@ -15,6 +15,7 @@ export interface StudentAssignmentQuestion {
   currentAttemptNumber?: number | null;
   textDraft?: string | null;
   assets?: Array<{ id: string; displayName: string; sizeBytes?: number }>;
+  resubmission?: { state: string; reason: string; allowedResponseType: string; deadlineAt: string } | null;
 }
 
 export interface StudentAssignmentSummary {

@@ -856,12 +856,13 @@ async function aggregateAndUpdate(prisma: PrismaClient, submissionId: string) {
   return aggregate;
 }
 
-function presentRevision(revision: any, audience: any, submission: any, currentContext: boolean, now: Date): StudentAssignmentDto {
+export function presentRevision(revision: any, audience: any, submission: any, currentContext: boolean, now: Date): StudentAssignmentDto {
   const answers = new Map((submission?.answers ?? []).map((answer: any) => [answer.assignmentQuestionId, answer]));
   const historicalOnly = !currentContext;
   const persistedState = submission?.state ?? 'NOT_STARTED';
   const feedback = presentStudentAssignmentFeedback(submission, revision.questions, now);
-  const activeResubmission = feedback.some((item: any) => item.resubmission?.state === 'ACTIVE');
+  const activeGrants = (submission?.resubmissionGrants ?? []).filter((row: any) => row.state === 'ACTIVE' && (!row.expiresAt || new Date(row.expiresAt) > now));
+  const activeResubmission = activeGrants.length > 0;
   const downstreamState = submission?.reviewState === 'REVIEWED' ? 'REVIEWED'
     : activeResubmission || submission?.reviewState === 'RETURNED' ? 'RESUBMISSION_REQUIRED'
       : ['APPROVED_PENDING_RELEASE', 'RELEASE_BLOCKED'].includes(submission?.reviewState) ? 'AWAITING_TEACHER_CONFIRMATION'
@@ -891,7 +892,7 @@ function presentRevision(revision: any, audience: any, submission: any, currentC
     feedback,
     questions: revision.questions.map((question: any) => {
       const answer: any = answers.get(question.id);
-      const grant = (submission?.resubmissionGrants ?? []).find((row: any) => row.questionId === question.id && row.state === 'ACTIVE' && (!row.expiresAt || new Date(row.expiresAt) > now));
+      const grant = activeGrants.find((row: any) => row.questionId === question.id);
       return {
         id: question.id,
         stableQuestionId: question.stableQuestionId,
@@ -905,6 +906,7 @@ function presentRevision(revision: any, audience: any, submission: any, currentC
         textDraft: answer?.textDraft ?? null,
         history: (answer?.attempts ?? []).map((attempt: any) => ({ id: attempt.id, attemptNumber: attempt.attemptNumber, submittedAt: attempt.submittedAt, textSnapshot: attempt.textSnapshot, assets: (attempt.assets ?? []).map((asset: any) => ({ id: asset.id, displayName: asset.originalName, mimeType: asset.mimeType, sizeBytes: asset.sizeBytes, canDownload: true as const })) })),
         assets: (answer?.assets ?? []).map((asset: any) => ({ id: asset.id, displayName: asset.originalName, mimeType: asset.mimeType, sizeBytes: asset.sizeBytes, state: asset.state, finalizedAt: asset.finalizedAt })),
+        resubmission: grant ? { state: grant.state, reason: grant.reason, allowedResponseType: grant.allowedResponseType, deadlineAt: grant.newDeadlineAt } : null,
       };
     }),
   };
