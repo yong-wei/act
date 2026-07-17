@@ -160,7 +160,12 @@ function rowToRuntimeProjection(
       reason: 'resource-node-planning-audit-required',
     },
     pathEligibility: row.pathEligibility,
-    groundingEligibility: row.groundingEligibility,
+    groundingEligibility: runtimeSemanticEvidence?.assetStatus === 'missing-local-runtime-asset'
+      ? {
+          ...row.groundingEligibility,
+          citationReady: false,
+        }
+      : row.groundingEligibility,
     versionRefs,
   };
 }

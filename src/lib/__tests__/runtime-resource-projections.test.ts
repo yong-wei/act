@@ -5,7 +5,10 @@ import {
   RUNTIME_RESOURCE_PROJECTION_ARTIFACT_VERSION,
 } from '../runtime-resource-projections';
 import { buildResourceFieldCompletionAudit } from '../resource-field-completion-audit';
-import { buildResourceNodeRegistry } from '../resource-node-registry';
+import {
+  buildResourceNodeRegistry,
+  type RuntimeResourceProjectionSemanticEvidence,
+} from '../resource-node-registry';
 
 describe('runtime resource projections', () => {
   it('builds sidecar rows for runtime lessons, knowledge cards, and infographs', () => {
@@ -249,6 +252,123 @@ describe('runtime resource projections', () => {
     expect(artifact.rows[0].reviewAudit).toMatchObject({
       status: 'human-confirmed',
       reviewedSourceHash: 'sha256:old',
+    });
+  });
+
+  it('keeps tracked runtime assets citation-ready and blocks human-confirmed missing local assets', () => {
+    const audit = buildResourceFieldCompletionAudit({
+      registry: buildResourceNodeRegistry({}),
+      generatedAt: '2026-06-22T00:00:00.000Z',
+      candidates: [{
+        id: 'runtime-media:unit-demo:figure.png',
+        title: 'Runtime figure',
+        family: 'runtime-lesson-media',
+        sourcePathOrUrl: 'course-content/runtime/lessons/unit-demo/media/figure.png',
+        sourceRecord: 'unit-demo:figure.png',
+        knowledgeNodeIds: ['kn-demo'],
+        segmentRefs: ['figure.png'],
+        citationTargets: ['course-content/runtime/lessons/unit-demo/media/figure.png'],
+        pathTarget: '/course-runtime/lessons/unit-demo/media/figure.png',
+        evidenceInstrumentation: [],
+        privacyScope: 'student-visible',
+        contentHash: 'sha256:figure',
+        versionRef: 'runtime-lesson-media.v1',
+        generatedBy: 'external-tool',
+        humanConfirmed: true,
+        reviewEvidence: {
+          reviewerId: 'teacher-reviewer-1',
+          reviewerRole: 'curriculum-data-governance',
+          reviewedAt: '2026-07-03T00:00:00.000Z',
+          reviewBatchId: 'review-batch-1',
+          reviewerVisibleRationale: 'Teacher verified that the local runtime asset is absent.',
+          independentEvidenceRef: 'review-packet:runtime-media-unit-demo-figure',
+          reviewedSourceHash: 'sha256:figure',
+          promptOrManifestHash: 'sha256:figure',
+        },
+      }],
+    });
+    const semanticEvidence = (
+      assetStatus: RuntimeResourceProjectionSemanticEvidence['assetStatus'],
+      assetAvailability: RuntimeResourceProjectionSemanticEvidence['assetAvailability'],
+    ): RuntimeResourceProjectionSemanticEvidence => ({
+      schemaVersion: 'runtime-lesson-semantic-evidence.v1',
+      sourceFilePath: 'course-content/runtime/lessons/unit-demo/interactive-manifest.json',
+      sourceFileKind: 'interactive-manifest',
+      sourceFileHash: 'sha256:manifest',
+      evidenceFilePath: 'course-content/authoring/lessons/unit-demo.md',
+      evidenceFileHash: 'sha256:evidence',
+      evidenceSelector: 'figure.png',
+      assetStatus,
+      assetAvailability,
+      externalIdentitySha256: null,
+    });
+    const baseline = buildRuntimeResourceProjectionArtifacts({ auditRows: audit.rows });
+    const tracked = buildRuntimeResourceProjectionArtifacts({
+      auditRows: audit.rows,
+      runtimeSemanticEvidenceById: new Map([[
+        'runtime-media:unit-demo:figure.png',
+        semanticEvidence('tracked-local-runtime-asset', 'tracked-in-git-index'),
+      ]]),
+    });
+    const missing = buildRuntimeResourceProjectionArtifacts({
+      auditRows: audit.rows,
+      runtimeSemanticEvidenceById: new Map([[
+        'runtime-media:unit-demo:figure.png',
+        semanticEvidence('missing-local-runtime-asset', 'not-tracked-in-git-index'),
+      ]]),
+    });
+
+    expect(baseline.rows[0].groundingEligibility.citationReady).toBe(true);
+    expect(tracked.rows[0].groundingEligibility).toEqual(baseline.rows[0].groundingEligibility);
+    expect(missing.rows[0].groundingEligibility).toEqual({
+      ...baseline.rows[0].groundingEligibility,
+      citationReady: false,
+    });
+  });
+
+  it('blocks stale missing local assets from citation', () => {
+    const audit = buildResourceFieldCompletionAudit({
+      registry: buildResourceNodeRegistry({}),
+      generatedAt: '2026-06-22T00:00:00.000Z',
+      candidates: [{
+        id: 'runtime-media:unit-demo:stale.png',
+        title: 'Stale runtime figure',
+        family: 'runtime-lesson-media',
+        sourcePathOrUrl: 'course-content/runtime/lessons/unit-demo/media/stale.png',
+        sourceRecord: 'unit-demo:stale.png',
+        knowledgeNodeIds: ['kn-demo'],
+        segmentRefs: ['stale.png'],
+        citationTargets: ['course-content/runtime/lessons/unit-demo/media/stale.png'],
+        pathTarget: '/course-runtime/lessons/unit-demo/media/stale.png',
+        evidenceInstrumentation: [],
+        privacyScope: 'student-visible',
+        contentHash: 'sha256:stale',
+        versionRef: 'runtime-lesson-media.v1',
+        generatedBy: 'external-tool',
+        humanConfirmed: false,
+      }],
+    });
+    const baseline = buildRuntimeResourceProjectionArtifacts({ auditRows: audit.rows });
+    const missing = buildRuntimeResourceProjectionArtifacts({
+      auditRows: audit.rows,
+      runtimeSemanticEvidenceById: new Map([['runtime-media:unit-demo:stale.png', {
+        schemaVersion: 'runtime-lesson-semantic-evidence.v1',
+        sourceFilePath: 'course-content/runtime/lessons/unit-demo/media/stale.png',
+        sourceFileKind: 'missing-local-runtime-asset',
+        sourceFileHash: null,
+        evidenceFilePath: 'course-content/runtime/lessons/unit-demo/media/unit-demo-media.md',
+        evidenceFileHash: 'sha256:evidence',
+        evidenceSelector: 'stale.png',
+        assetStatus: 'missing-local-runtime-asset',
+        assetAvailability: 'not-tracked-in-git-index',
+        externalIdentitySha256: null,
+      }]]),
+    });
+
+    expect(missing.rows[0].reviewAudit.status).not.toBe('human-confirmed');
+    expect(missing.rows[0].groundingEligibility).toEqual({
+      ...baseline.rows[0].groundingEligibility,
+      citationReady: false,
     });
   });
 

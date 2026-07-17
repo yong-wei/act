@@ -439,6 +439,13 @@ IMPLEMENTATION_CONTRACT_REGISTRY: dict[str, dict[str, Any]] = {
         'lesson_steps_const': 'UNIT_1_5_LESSON_STEPS',
         'source_path': 'course-content/authoring/lessons/1-5/design/1-5-interactive-contract.yaml',
     },
+    '1-4': {
+        'course_lib_path': REPO_ROOT / 'src' / 'lib' / 'unit-1-4-course.ts',
+        'runtime_manifest_path': REPO_ROOT / 'course-content' / 'runtime' / 'lessons' / '1-4' / 'interactive-manifest.json',
+        'lesson_steps_from_runtime_manifest': True,
+        'lesson_steps_const': 'UNIT_1_4_LESSON_STEPS',
+        'source_path': 'src/lib/unit-1-4-course.ts',
+    },
     '1-2': {
         'course_lib_path': REPO_ROOT / 'src' / 'lib' / 'unit-1-2-course.ts',
         'runtime_manifest_path': REPO_ROOT / 'course-content' / 'runtime' / 'lessons' / '1-2' / 'interactive-manifest.json',
@@ -2043,16 +2050,44 @@ def build_runtime_asset_check(lesson_id: str, lesson_dir: Path) -> dict[str, Any
     media_index_path = runtime_dir / 'media' / media_index_filename
     ensure_runtime_media_index(media_index_path, lesson_id)
 
-    handout_pdf_source = resolve_lesson_artifact_path(lesson_dir / 'design', lesson_id, 'handout.pdf')
+    design_dir = lesson_dir / 'design'
+    processed_dir = lesson_dir / 'media' / 'processed'
+    handout_pdf_source = resolve_lesson_artifact_path(design_dir, lesson_id, 'handout.pdf')
+    teacher_handout_source = resolve_lesson_artifact_path(design_dir, lesson_id, 'teacher-handout.md')
+    teacher_handout_pdf_source = resolve_lesson_artifact_path(design_dir, lesson_id, 'teacher-handout.pdf')
     prefixed_handout_pdf = handout_pdf_filename(lesson_id)
-    expected_assets = [prefixed_handout_pdf, media_index_filename]
+    critical_media = [
+        f'{lesson_id}-cover-comic.png',
+        f'{lesson_id}-info.png',
+        f'{lesson_id}-slides.pdf',
+        f'{lesson_id}-intro-video.mp4',
+        f'{lesson_id}-course.mp4',
+        f'{lesson_id}-audio.m4a',
+    ]
+    expected_assets = [*critical_media, prefixed_handout_pdf]
+    if teacher_handout_source.exists():
+        expected_assets.append(f'{lesson_id}-teacher-handout.pdf')
+    expected_assets.append(media_index_filename)
     generated_assets: list[str] = []
     missing_assets: list[str] = []
+
+    for filename in critical_media:
+        if (processed_dir / filename).exists():
+            generated_assets.append(filename)
+        else:
+            missing_assets.append(filename)
 
     if handout_pdf_source.exists():
         generated_assets.append(prefixed_handout_pdf)
     else:
         missing_assets.append(prefixed_handout_pdf)
+
+    if teacher_handout_source.exists():
+        teacher_handout_pdf = f'{lesson_id}-teacher-handout.pdf'
+        if teacher_handout_pdf_source.exists():
+            generated_assets.append(teacher_handout_pdf)
+        else:
+            missing_assets.append(teacher_handout_pdf)
 
     if media_index_path.exists():
         generated_assets.append(media_index_filename)
@@ -2065,6 +2100,9 @@ def build_runtime_asset_check(lesson_id: str, lesson_dir: Path) -> dict[str, Any
         'missing_assets': missing_assets,
         'media_index_path': format_repo_path(media_index_path),
         'handout_pdf_source': format_repo_path(handout_pdf_source) if handout_pdf_source.exists() else None,
+        'teacher_handout_pdf_source': (
+            format_repo_path(teacher_handout_pdf_source) if teacher_handout_pdf_source.exists() else None
+        ),
     }
 
 

@@ -488,21 +488,50 @@ assert.match(
 );
 run('git', ['checkout', '--', 'course-content/runtime/lessons/1-1/interactive-manifest.json'], repo);
 
+const syncedLessonSourcePath = 'course-content/runtime/lessons/1-1/interactive-manifest.json';
+const syncedLessonSourceHash = sha256File(lessonManifestPath);
+const syncedLessonSemanticDigest = 'sha256:json-pointer-step-01-semantic-digest';
+const syncedLessonProjection = runtimeProjectionRow({
+  id: 'lesson-step:1-1:step-01',
+  family: 'runtime-lesson-step',
+  resourceType: 'lesson_step',
+  sourceKind: 'runtime_lesson_step',
+  sourceRef: '1-1:step-01',
+  sourcePathOrUrl: syncedLessonSourcePath,
+  sourceHash: syncedLessonSourceHash,
+  sourceVersionRef: 'runtime-lesson-manifest.v1',
+  reviewedSourceHash: syncedLessonSourceHash,
+  promptOrManifestHash: syncedLessonSemanticDigest,
+  independentEvidenceRef: `${syncedLessonSourcePath}#/steps/step-01`,
+});
+syncedLessonProjection.runtimeSemanticEvidence = {
+  schemaVersion: 'runtime-lesson-semantic-evidence.v1',
+  sourceFilePath: syncedLessonSourcePath,
+  sourceFileKind: 'json-manifest',
+  sourceFileHash: syncedLessonSourceHash,
+  evidenceFilePath: syncedLessonSourcePath,
+  evidenceFileHash: syncedLessonSourceHash,
+  evidenceSelector: 'json-pointer:/steps/step-01',
+  assetStatus: 'not-applicable',
+  assetAvailability: 'not-applicable',
+  externalIdentitySha256: null,
+};
 fs.writeFileSync(
   path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
-  `${JSON.stringify(runtimeProjectionRow({
-    id: 'lesson-step:1-1:step-01',
-    family: 'runtime-lesson-step',
-    resourceType: 'lesson_step',
-    sourceKind: 'runtime_lesson_step',
-    sourceRef: '1-1:step-01',
-    sourcePathOrUrl: 'course-content/runtime/lessons/1-1/interactive-manifest.json',
-    sourceVersionRef: 'runtime-lesson-manifest.v1',
-  }))}\n`,
+  `${JSON.stringify(syncedLessonProjection)}\n`,
 );
 run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
 const syncedLessonProjectionResult = runGate(['--staged']);
-assert.equal(syncedLessonProjectionResult.status, 0, 'gate must pass when a runtime lesson source change has a matching valid projection row');
+assert.equal(syncedLessonProjectionResult.status, 0, 'gate must match runtime semantic source coverage when the semantic digest differs from the reviewed raw source hash');
+
+syncedLessonProjection.reviewAudit.reviewedSourceHash = syncedLessonSemanticDigest;
+fs.writeFileSync(
+  path.join(repo, 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'),
+  `${JSON.stringify(syncedLessonProjection)}\n`,
+);
+run('git', ['add', 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl'], repo);
+const staleReviewedLessonSourceResult = runGate(['--staged']);
+assert.notEqual(staleReviewedLessonSourceResult.status, 0, 'gate must reject runtime semantic review evidence when the reviewed raw source hash is stale');
 
 run('git', ['reset', '--hard', 'HEAD'], repo);
 fs.writeFileSync(lessonManifestPath, JSON.stringify({

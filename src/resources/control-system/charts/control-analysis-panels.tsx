@@ -14,6 +14,7 @@ import type {
   ControlAnalysisResult,
   ControlMetrics,
   CurvePoint,
+  FrequencyResponseReading,
   NyquistSegment,
   RootLocusData,
   RootLocusSegment,
@@ -24,6 +25,7 @@ import {
   buildBodeComparisonOption,
   buildBodePanelOption,
   buildBodeTurnFrequencySeries,
+  buildFrequencyResponseMarkerSeries,
   buildMarginSeries,
   CONTROL_CHART_AUXILIARY_LINE_WIDTH,
   CONTROL_CHART_KEY_POINT_MARKER_SIZE,
@@ -650,6 +652,33 @@ function buildMarginText(metrics: ControlMetrics): ReactNode {
     `ωc ${formatFixed(metrics.gainCrossoverRadPerSec, ' rad/s')}`,
     `ωg ${formatFixed(metrics.phaseCrossoverRadPerSec, ' rad/s')}`,
   ].join(' | ');
+}
+
+export function frequencyResponsePositionLabel(reading: FrequencyResponseReading): string {
+  const re = Math.abs(reading.re) < 1e-12 ? 0 : reading.re;
+  const im = Math.abs(reading.im) < 1e-12 ? 0 : reading.im;
+  if (re === 0 && im === 0) return '原点';
+  if (im === 0) return re > 0 ? '正实轴' : '负实轴';
+  if (re === 0) return im > 0 ? '正虚轴' : '负虚轴';
+  if (re > 0) return im > 0 ? '第一象限' : '第四象限';
+  return im > 0 ? '第二象限' : '第三象限';
+}
+
+export function formatFrequencyResponseReading(reading: FrequencyResponseReading): string {
+  return [
+    `ω=${formatAxisValue(reading.frequencyRadPerSec)} rad/s`,
+    `Re=${formatAxisValue(reading.re)}`,
+    `Im=${formatAxisValue(reading.im)}`,
+    `${formatAxisValue(reading.magnitudeDb)} dB`,
+    `${formatAxisValue(reading.phaseDeg)}°`,
+    frequencyResponsePositionLabel(reading),
+  ].join(' · ');
+}
+
+function buildFrequencyResponseMetaText(result: ControlAnalysisResult, base: ReactNode): ReactNode {
+  const readings = result.frequencyReadings ?? [];
+  if (readings.length === 0) return base;
+  return [String(base), ...readings.map(formatFrequencyResponseReading)].filter(Boolean).join(' | ');
 }
 
 function buildNyquistCriterionText(result: ControlAnalysisResult): string | null {
@@ -1468,6 +1497,7 @@ export function buildNyquistOption(
   result: ControlAnalysisResult,
   caseId?: string,
   axisPresetOverride?: AxisPreset,
+  showFrequencyReadings = true,
 ): EChartsCoreOption {
   const axisPreset = axisPresetOverride ?? getControlAxisPreset(caseId, 'nyquist');
   const positivePoints = result.nyquist.positiveSamples ?? result.nyquist.positivePoints ?? result.nyquist.points;
@@ -1558,6 +1588,26 @@ export function buildNyquistOption(
               data: keyPoints.map((point) => [point.point.re, point.point.im, point.frequency]),
             } as ChartSeriesItem,
           ]
+        : []),
+      ...(showFrequencyReadings && (result.frequencyReadings ?? []).length > 0
+        ? [{
+            name: '精确频点（Nyquist）',
+            type: 'scatter',
+            z: 12,
+            ...getInteractiveSvgEChartsPointMarker('diamond-filled', {
+              size: CONTROL_CHART_KEY_POINT_MARKER_SIZE,
+              color: '#14b8a6',
+              strokeColor: '#ffffff',
+              strokeWidth: 1,
+            }),
+            data: (result.frequencyReadings ?? []).map((reading) => [
+              reading.re,
+              reading.im,
+              reading.frequencyRadPerSec,
+              reading.magnitudeDb,
+              reading.phaseDeg,
+            ]),
+          } as ChartSeriesItem]
         : []),
       ...(result.nyquist.asymptotes ?? []).map((asymptote, index) => {
         const rad = ((asymptote.angleDeg ?? (asymptote.end === 'low_frequency' ? 180 : 0)) * Math.PI) / 180;
@@ -1700,14 +1750,22 @@ function renderInteractiveHandle(
   );
 }
 
-export function StepResponsePanel({ result, caseId }: { result: ControlAnalysisResult; caseId?: string }) {
+export function StepResponsePanel({
+  result,
+  caseId,
+  hidePerformanceMetricsMeta = false,
+}: {
+  result: ControlAnalysisResult;
+  caseId?: string;
+  hidePerformanceMetricsMeta?: boolean;
+}) {
   const option = buildLineOption(result.stepResponse.points, '#22d3ee', '时间 / s', '响应', {
     axisPreset: getControlAxisPreset(caseId, 'step'),
   });
   return (
     <ControlChartPanel
       title="时域响应"
-      meta={buildMetricText(result.metrics)}
+      meta={hidePerformanceMetricsMeta ? undefined : buildMetricText(result.metrics)}
       option={option}
       fallback={fallbackNode(result)}
       isFallback={Boolean(result.isFallback)}
@@ -1900,16 +1958,20 @@ export function TimeDomainComparisonPanel({
   );
 }
 
-export function MagnitudePanel({ result, caseId }: { result: ControlAnalysisResult; caseId?: string }) {
-  const option = buildLineOption(result.magnitude.points, '#a78bfa', 'ω / rad/s', '幅值 / dB', {
-    xAxisType: 'log',
-    axisPreset: getControlAxisPreset(caseId, 'magnitude'),
-    extraSeries: buildMarginSeries(result.metrics, 'magnitude'),
-  });
+export function MagnitudePanel({
+  result,
+  caseId,
+  showFrequencyReadings = true,
+}: {
+  result: ControlAnalysisResult;
+  caseId?: string;
+  showFrequencyReadings?: boolean;
+}) {
+  const option = buildMagnitudeOption(result, caseId, showFrequencyReadings);
   return (
     <ControlChartPanel
       title="幅频特性"
-      meta={buildMarginText(result.metrics)}
+      meta={showFrequencyReadings ? buildFrequencyResponseMetaText(result, buildMarginText(result.metrics)) : buildMarginText(result.metrics)}
       option={option}
       fallback={fallbackNode(result)}
       isFallback={Boolean(result.isFallback)}
@@ -1917,16 +1979,35 @@ export function MagnitudePanel({ result, caseId }: { result: ControlAnalysisResu
   );
 }
 
-export function PhasePanel({ result, caseId }: { result: ControlAnalysisResult; caseId?: string }) {
-  const option = buildLineOption(result.phase.points, '#fb7185', 'ω / rad/s', '相位 / deg', {
+export function buildMagnitudeOption(
+  result: ControlAnalysisResult,
+  caseId?: string,
+  showFrequencyReadings = true,
+): EChartsCoreOption {
+  return buildLineOption(result.magnitude.points, '#a78bfa', 'ω / rad/s', '幅值 / dB', {
     xAxisType: 'log',
-    axisPreset: getControlAxisPreset(caseId, 'phase'),
-    extraSeries: buildMarginSeries(result.metrics, 'phase'),
+    axisPreset: getControlAxisPreset(caseId, 'magnitude'),
+    extraSeries: [
+      ...buildMarginSeries(result.metrics, 'magnitude'),
+      ...buildFrequencyResponseMarkerSeries(showFrequencyReadings ? result.frequencyReadings ?? [] : [], 'magnitude'),
+    ],
   });
+}
+
+export function PhasePanel({
+  result,
+  caseId,
+  showFrequencyReadings = true,
+}: {
+  result: ControlAnalysisResult;
+  caseId?: string;
+  showFrequencyReadings?: boolean;
+}) {
+  const option = buildPhaseOption(result, caseId, showFrequencyReadings);
   return (
     <ControlChartPanel
       title="相频特性"
-      meta={buildMarginText(result.metrics)}
+      meta={showFrequencyReadings ? buildFrequencyResponseMetaText(result, buildMarginText(result.metrics)) : buildMarginText(result.metrics)}
       option={option}
       fallback={fallbackNode(result)}
       isFallback={Boolean(result.isFallback)}
@@ -1934,7 +2015,30 @@ export function PhasePanel({ result, caseId }: { result: ControlAnalysisResult; 
   );
 }
 
-export function NyquistPanel({ result, caseId }: { result: ControlAnalysisResult; caseId?: string }) {
+export function buildPhaseOption(
+  result: ControlAnalysisResult,
+  caseId?: string,
+  showFrequencyReadings = true,
+): EChartsCoreOption {
+  return buildLineOption(result.phase.points, '#fb7185', 'ω / rad/s', '相位 / deg', {
+    xAxisType: 'log',
+    axisPreset: getControlAxisPreset(caseId, 'phase'),
+    extraSeries: [
+      ...buildMarginSeries(result.metrics, 'phase'),
+      ...buildFrequencyResponseMarkerSeries(showFrequencyReadings ? result.frequencyReadings ?? [] : [], 'phase'),
+    ],
+  });
+}
+
+export function NyquistPanel({
+  result,
+  caseId,
+  showFrequencyReadings = true,
+}: {
+  result: ControlAnalysisResult;
+  caseId?: string;
+  showFrequencyReadings?: boolean;
+}) {
   const axisPreset = getControlAxisPreset(caseId, 'nyquist');
   const chartRef = useRef<ECharts | null>(null);
   const panZoomCleanupRef = useRef<(() => void) | null>(null);
@@ -1954,8 +2058,8 @@ export function NyquistPanel({ result, caseId }: { result: ControlAnalysisResult
   }
   const displayedAxisPreset = preservedRangeRef.current ?? axisPreset;
   const option = useMemo(
-    () => buildNyquistOption(result, caseId, displayedAxisPreset),
-    [displayedAxisPreset, caseId, result],
+    () => buildNyquistOption(result, caseId, displayedAxisPreset, showFrequencyReadings),
+    [displayedAxisPreset, caseId, result, showFrequencyReadings],
   );
   const scheduleNyquistEqualAspect = useCallback((chart: ECharts | null = chartRef.current) => {
     if (!chart || typeof window === 'undefined') {
@@ -2004,7 +2108,7 @@ export function NyquistPanel({ result, caseId }: { result: ControlAnalysisResult
   return (
     <ControlChartPanel
       title="Nyquist 图"
-      meta={buildNyquistMetaText(result)}
+      meta={showFrequencyReadings ? buildFrequencyResponseMetaText(result, buildNyquistMetaText(result)) : buildNyquistMetaText(result)}
       option={option}
       fallback={fallbackNode(result)}
       isFallback={Boolean(result.isFallback)}
@@ -2338,6 +2442,7 @@ export function BodePanel({
   result,
   caseId,
   showMargins = true,
+  showFrequencyReadings = true,
   turnFrequencyHandles = [],
   onTurnFrequencyCommit,
   onRefreshRange,
@@ -2345,6 +2450,7 @@ export function BodePanel({
   result: ControlAnalysisResult;
   caseId?: string;
   showMargins?: boolean;
+  showFrequencyReadings?: boolean;
   turnFrequencyHandles?: BodeTurnFrequencyHandle[];
   onTurnFrequencyCommit?: (id: string, frequency: number) => void;
   onRefreshRange?: (range: [number, number]) => void;
@@ -2354,8 +2460,15 @@ export function BodePanel({
   const preservedFrequencyRangeRef = useRef<[number, number] | null>(null);
   const displayedFrequencyRange = preservedFrequencyRangeRef.current;
   const option = useMemo(
-    () => buildBodePanelOption(result, caseId, showMargins, displayedFrequencyRange, turnFrequencyHandles),
-    [caseId, displayedFrequencyRange, result, showMargins, turnFrequencyHandles],
+    () => buildBodePanelOption(
+      result,
+      caseId,
+      showMargins,
+      displayedFrequencyRange,
+      turnFrequencyHandles,
+      showFrequencyReadings,
+    ),
+    [caseId, displayedFrequencyRange, result, showFrequencyReadings, showMargins, turnFrequencyHandles],
   );
   const handleChartReady = useCallback((chart: ECharts) => {
     chartRef.current = chart;
@@ -2391,7 +2504,7 @@ export function BodePanel({
   return (
     <ControlChartPanel
       title="组合 Bode 图"
-      meta={buildMarginText(result.metrics)}
+      meta={showFrequencyReadings ? buildFrequencyResponseMetaText(result, buildMarginText(result.metrics)) : buildMarginText(result.metrics)}
       option={option}
       fallback={fallbackNode(result)}
       isFallback={Boolean(result.isFallback)}

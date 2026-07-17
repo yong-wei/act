@@ -8,6 +8,7 @@ import {
   parseAddedRuntimeProjectionRows,
   parseChangedRegisteredResourceIds,
   validateChangedRegisteredResources,
+  validateChangedRuntimeResourceProjectionChanges,
   validateChangedRuntimeResourceProjections,
 } from '@/lib/data-governance/new-resource-semantic-completeness-gate';
 
@@ -415,6 +416,99 @@ describe('new resource semantic completeness gate', () => {
       checked: 1,
       issues: [],
     });
+  });
+
+  it('accepts runtime semantic projection reviews against the raw source hash', () => {
+    const projection = completeRuntimeProjection({ id: 'projection-runtime-semantic' });
+    const result = validateChangedRuntimeResourceProjections([{
+      ...projection,
+      reviewAudit: {
+        ...projection.reviewAudit!,
+        reviewedSourceHash: projection.sourceHash,
+        promptOrManifestHash: 'sha-json-pointer-semantic-digest',
+      },
+      runtimeSemanticEvidence: runtimeSemanticEvidenceFor(projection),
+    }]);
+
+    expect(result).toMatchObject({
+      passed: true,
+      checked: 1,
+      issues: [],
+    });
+  });
+
+  it('rejects runtime semantic projection reviews with a stale raw source hash', () => {
+    const projection = completeRuntimeProjection({ id: 'projection-runtime-semantic-stale' });
+    const result = validateChangedRuntimeResourceProjections([{
+      ...projection,
+      reviewAudit: {
+        ...projection.reviewAudit!,
+        reviewedSourceHash: 'sha-stale-raw-source',
+        promptOrManifestHash: 'sha-stale-raw-source',
+      },
+      runtimeSemanticEvidence: runtimeSemanticEvidenceFor(projection),
+    }]);
+
+    expect(result.passed).toBe(false);
+    expect(result.issues).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        resourceId: 'projection-runtime-semantic-stale',
+        code: 'stale-review-evidence',
+      }),
+    ]));
+  });
+
+  it('allows only a derived stale missing-asset citation safety tightening', () => {
+    const base = completeRuntimeProjection({ id: 'projection-stale-missing-asset' });
+    const previous = {
+      ...base,
+      projectionLevel: 'ResourceSegment' as const,
+      reviewAudit: {
+        ...base.reviewAudit!,
+        status: 'stale' as const,
+      },
+      pathEligibility: {
+        current: false,
+        afterCompletion: false,
+        masteryAffecting: false,
+        blockedBy: ['missing-content-hash'],
+      },
+      groundingEligibility: {
+        retrievalReady: false,
+        citationReady: true,
+        authoringTriageReady: true,
+      },
+      runtimeSemanticEvidence: {
+        ...runtimeSemanticEvidenceFor(base),
+        sourceFileHash: null,
+        assetStatus: 'missing-local-runtime-asset' as const,
+        assetAvailability: 'not-tracked-in-git-index' as const,
+      },
+    };
+    const tightened = {
+      ...previous,
+      groundingEligibility: {
+        ...previous.groundingEligibility,
+        citationReady: false,
+      },
+    };
+
+    expect(validateChangedRuntimeResourceProjectionChanges([tightened], [previous])).toMatchObject({
+      passed: true,
+      checked: 1,
+      issues: [],
+    });
+    expect(validateChangedRuntimeResourceProjectionChanges([tightened], []).passed).toBe(false);
+    expect(validateChangedRuntimeResourceProjectionChanges([{
+      ...tightened,
+      pathEligibility: {
+        current: true,
+        afterCompletion: true,
+        masteryAffecting: true,
+        blockedBy: [],
+      },
+    }], [previous]).passed).toBe(false);
+    expect(validateChangedRuntimeResourceProjectionChanges([previous], [previous]).passed).toBe(false);
   });
 
   it('rejects path-capable runtime projections without capability bindings', () => {
@@ -909,5 +1003,22 @@ function completeRuntimeProjection(
       masteryAffecting: true,
       blockedBy: [],
     },
+  };
+}
+
+function runtimeSemanticEvidenceFor(
+  projection: RuntimeResourceProjectionInput,
+): NonNullable<RuntimeResourceProjectionInput['runtimeSemanticEvidence']> {
+  return {
+    schemaVersion: 'runtime-lesson-semantic-evidence.v1',
+    sourceFilePath: projection.sourcePathOrUrl!,
+    sourceFileKind: 'json-manifest',
+    sourceFileHash: projection.sourceHash,
+    evidenceFilePath: projection.sourcePathOrUrl!,
+    evidenceFileHash: projection.sourceHash!,
+    evidenceSelector: 'json-pointer:/steps/example',
+    assetStatus: 'not-applicable',
+    assetAvailability: 'not-applicable',
+    externalIdentitySha256: null,
   };
 }

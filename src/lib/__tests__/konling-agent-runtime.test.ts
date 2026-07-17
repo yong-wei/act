@@ -110,6 +110,7 @@ import {
 } from '@/lib/konling-agent-runtime';
 import { clearPendingChanges, getPendingChanges, updateSimulationState } from '@/lib/ai-tools';
 import { buildResourceNodeRegistry, type RuntimeResourceProjectionInput } from '@/lib/resource-node-registry';
+import { retrieveSourcePack } from '@/lib/source-pack';
 
 function expectRecord(value: unknown, label: string): asserts value is Record<string, unknown> {
   expect(typeof value, `${label} should be an object`).toBe('object');
@@ -11109,5 +11110,65 @@ describe('konling agent runtime', () => {
         resourceType: 'lesson_step',
       },
     });
+  });
+
+  it('keeps a missing local runtime asset unavailable and out of Konling citeable Source Packs', () => {
+    const missingAssetProjection = runtimeResourceProjectionFixture({
+      id: 'runtime-media:unit-demo:missing.png',
+      resourceNodeId: 'runtime-media:unit-demo:missing.png',
+      title: 'Missing runtime figure',
+      resourceType: 'image',
+      sourceKind: 'runtime_lesson_media',
+      sourceRef: 'unit-demo:missing.png',
+      sourceRecord: 'unit-demo:missing.png',
+      projectionLevel: 'ResourceSegment',
+      routeTarget: null,
+      renderTarget: '/course-runtime/lessons/unit-demo/media/missing.png',
+      groundingEligibility: {
+        retrievalReady: true,
+        citationReady: false,
+        authoringTriageReady: true,
+      },
+      runtimeSemanticEvidence: {
+        schemaVersion: 'runtime-lesson-semantic-evidence.v1',
+        sourceFilePath: 'course-content/runtime/lessons/unit-demo/media/missing.png',
+        sourceFileKind: 'missing-local-runtime-asset',
+        sourceFileHash: null,
+        evidenceFilePath: 'course-content/runtime/lessons/unit-demo/media/unit-demo-media.md',
+        evidenceFileHash: 'sha256:media-index',
+        evidenceSelector: 'missing.png',
+        assetStatus: 'missing-local-runtime-asset',
+        assetAvailability: 'not-tracked-in-git-index',
+        externalIdentitySha256: null,
+      },
+    });
+    const registry = buildResourceNodeRegistry({
+      runtimeResourceProjections: [missingAssetProjection],
+    });
+    const node = registry.nodes.find((item) => item.id === missingAssetProjection.resourceNodeId)!;
+    const candidate = buildResourceNodeSourcePackCandidate(node);
+    const result = retrieveSourcePack({
+      query: 'Missing runtime figure',
+      answerRelevanceQuery: 'Missing runtime figure',
+      profile: 'konling-answer',
+      role: 'student',
+      caller: 'konling-runtime-missing-asset-test',
+      candidates: [candidate],
+    });
+
+    expect(node).toMatchObject({
+      renderTarget: null,
+      launchTarget: null,
+      planningMetadata: { availability: 'draft' },
+      runtimeProjection: {
+        groundingEligibility: { citationReady: false },
+        runtimeSemanticEvidence: { assetStatus: 'missing-local-runtime-asset' },
+      },
+    });
+    expect(candidate.citation).toMatchObject({ verified: false });
+    expect(candidate.citation?.href).toBeUndefined();
+    expect(candidate.metadata).toMatchObject({ availability: 'draft', citationReady: 'false' });
+    expect(result.pack.items).toEqual([]);
+    expect(result.pack.limitations.map((limitation) => limitation.code)).toContain('profile-filtered-citation-readiness');
   });
 });

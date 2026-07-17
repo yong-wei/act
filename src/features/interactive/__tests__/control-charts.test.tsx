@@ -2,9 +2,10 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { renderToStaticMarkup } from 'react-dom/server';
 
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
-import type { ControlAnalysisResult } from '@/resources/control-system/analysis/types';
+import { ThemeProvider } from '@/components/providers/theme-provider';
+import type { ControlAnalysisRequest, ControlAnalysisResult } from '@/resources/control-system/analysis/types';
 import {
   buildBodeComparisonOption,
   buildBodePanelOption,
@@ -13,9 +14,11 @@ import {
 } from '@/resources/control-system/charts/control-bode-options';
 import {
   buildBodeTurnFrequencySeries,
+  buildMagnitudeOption,
   buildTimeDomainComparisonOption,
   buildLineOption,
   buildNyquistOption,
+  buildPhaseOption,
   buildRootLocusOption,
   ControlPerformanceBar,
   CONTROL_SIGNAL_CURVE_STYLES,
@@ -23,8 +26,15 @@ import {
   calculateTimeDomainVisibleAxisPreset,
   calculateCartesianDragRange,
   calculateEqualAspectCartesianRange,
+  formatFrequencyResponseReading,
 } from '@/resources/control-system/charts/control-analysis-panels';
 import { applyControlChartTheme } from '@/resources/control-system/charts/control-chart-theme';
+import { ControlFigureWorkspace } from '@/resources/control-system/charts/control-figure-workspace';
+
+const mockedControlEngineState = vi.hoisted(() => ({ current: {} as Record<string, unknown> }));
+vi.mock('@/resources/control-system/analysis/use-control-engine', () => ({
+  useControlEngine: () => mockedControlEngineState.current,
+}));
 
 const LOW_FREQUENCY_CASE_ID = 'unit37_low_frequency_bode';
 const repoRoot = process.cwd();
@@ -44,6 +54,10 @@ type ChartSeriesLike = {
 
 function getTooltipFormatter(option: unknown): unknown {
   return (option as { tooltip?: { formatter?: unknown } }).tooltip?.formatter;
+}
+
+function getChartSeries(option: unknown): ChartSeriesLike[] {
+  return ((option as { series?: unknown }).series ?? []) as ChartSeriesLike[];
 }
 
 const SAMPLE_RESULT: ControlAnalysisResult = {
@@ -223,6 +237,28 @@ const MARGIN_RESULT: ControlAnalysisResult = {
       },
     },
   },
+};
+
+const FREQUENCY_READING_RESULT: ControlAnalysisResult = {
+  ...MARGIN_RESULT,
+  frequencyReadings: [{
+    frequencyRadPerSec: 2,
+    re: -0.05,
+    im: -0.1,
+    magnitudeDb: -19.031,
+    phaseDeg: -116.565,
+  }],
+};
+
+const FREQUENCY_READING_REQUEST: ControlAnalysisRequest = {
+  runtimeMode: 'analysis',
+  plant: { numerator: [1], denominator: [1, 1], coefficientOrder: 'descending' },
+  structures: [],
+  outputs: ['bode'],
+  timeRange: { start: 0, end: 1, samples: 8 },
+  frequencyRange: { min: 0.1, max: 10, samples: 8 },
+  frequencyProbesRadPerSec: [2],
+  rootLocus: { minGain: 0, maxGain: 2, samples: 2, currentGain: 1 },
 };
 
 describe('control chart shared presets and themes', () => {
@@ -599,7 +635,7 @@ describe('control chart shared presets and themes', () => {
     expect(turnSeries.map((series) => series.name)).toEqual(['超前零点', '超前极点']);
     expect(turnSeries.every((series) => series.xAxisIndex === 0 && series.yAxisIndex === 0)).toBe(true);
     expect(panelSource).toContain('installBodeFrequencyPanZoom');
-    expect(panelSource).toContain('buildBodePanelOption(result, caseId, showMargins, displayedFrequencyRange, turnFrequencyHandles)');
+    expect(panelSource).toContain('turnFrequencyHandles,\n      showFrequencyReadings,');
     expect(panelSource).toContain('buildBodeComparisonOption(panels, caseId, displayedFrequencyRange, turnFrequencyHandles)');
     expect(panelSource).toContain('installBodeTurnFrequencyDrag(chart, turnFrequencyHandles, onTurnFrequencyCommit, refreshRange)');
     expect(panelSource).toContain('findBodeTurnHandleAt(chart, turnFrequencyHandles, event)');
@@ -826,7 +862,7 @@ describe('control chart shared presets and themes', () => {
     expect(yAxis.min).toBe(-0.8);
     expect(yAxis.max).toBe(0.8);
     expect(panelSource).toContain('const displayedAxisPreset = preservedRangeRef.current ?? axisPreset;');
-    expect(panelSource).toContain('buildNyquistOption(result, caseId, displayedAxisPreset)');
+    expect(panelSource).toContain('buildNyquistOption(result, caseId, displayedAxisPreset, showFrequencyReadings)');
   });
 
   it('renders Nyquist criterion and margin geometry annotations together', () => {
@@ -848,14 +884,76 @@ describe('control chart shared presets and themes', () => {
       itemStyle?: { color?: string };
     }>;
     const markup = renderToStaticMarkup(<ControlPerformanceBar result={MARGIN_RESULT} />);
+    const criticalMarkup = renderToStaticMarkup(<ControlPerformanceBar result={{
+      ...MARGIN_RESULT,
+      rootLocus: {
+        ...MARGIN_RESULT.rootLocus,
+        currentPoles: [{ re: 5e-5, im: 2 }, { re: 5e-5, im: -2 }],
+      },
+    }} />);
 
     expect(markup).toContain('data-testid="metric-N"');
     expect(markup).toContain('data-testid="metric-P"');
     expect(markup).toContain('data-testid="metric-Z"');
+    expect(criticalMarkup).toContain('临界稳定');
     expect(series.some((item) => item.name === 'GM 增益裕度连线')).toBe(true);
     expect(series.some((item) => item.name === 'PM 相位裕度半径')).toBe(true);
     expect(series.some((item) => item.name === 'PM 相位裕度扇区' && (item.z ?? 0) < 3)).toBe(true);
     expect(series.find((item) => item.name === 'PM 相位裕度扇区')?.itemStyle?.color).toContain('rgba');
+  });
+
+  it('includes exact frequency-reading option data only when explicitly shown', () => {
+    const bodeSeries = getChartSeries(buildBodePanelOption(FREQUENCY_READING_RESULT));
+    const magnitudeSeries = getChartSeries(buildMagnitudeOption(FREQUENCY_READING_RESULT));
+    const phaseSeries = getChartSeries(buildPhaseOption(FREQUENCY_READING_RESULT));
+    const nyquistSeries = getChartSeries(buildNyquistOption(FREQUENCY_READING_RESULT));
+    const bodeMagnitudeMarker = bodeSeries.find((item) => item.name === '精确频点（幅值）');
+    const bodePhaseMarker = bodeSeries.find((item) => item.name === '精确频点（相位）');
+    const magnitudeMarker = magnitudeSeries.find((item) => item.name === '精确频点（幅值）');
+    const phaseMarker = phaseSeries.find((item) => item.name === '精确频点（相位）');
+    const nyquistMarker = nyquistSeries.find((item) => item.name === '精确频点（Nyquist）');
+
+    expect(bodeMagnitudeMarker?.data).toEqual([[2, -19.031]]);
+    expect(bodePhaseMarker?.data).toEqual([[2, -116.565]]);
+    expect(bodePhaseMarker?.xAxisIndex).toBe(1);
+    expect(bodePhaseMarker?.yAxisIndex).toBe(1);
+    expect(magnitudeMarker?.data).toEqual([[2, -19.031]]);
+    expect(phaseMarker?.data).toEqual([[2, -116.565]]);
+    expect(nyquistMarker?.data).toEqual([[-0.05, -0.1, 2, -19.031, -116.565]]);
+    expect(formatFrequencyResponseReading(FREQUENCY_READING_RESULT.frequencyReadings![0])).toContain('第三象限');
+
+    const hiddenOptions = [
+      buildBodePanelOption(FREQUENCY_READING_RESULT, undefined, true, null, [], false),
+      buildMagnitudeOption(FREQUENCY_READING_RESULT, undefined, false),
+      buildPhaseOption(FREQUENCY_READING_RESULT, undefined, false),
+      buildNyquistOption(FREQUENCY_READING_RESULT, undefined, undefined, false),
+    ];
+    for (const option of hiddenOptions) {
+      const serialized = JSON.stringify(option);
+      expect(serialized).not.toContain(JSON.stringify([2, -19.031]));
+      expect(serialized).not.toContain(JSON.stringify([2, -116.565]));
+      expect(serialized).not.toContain(JSON.stringify([-0.05, -0.1, 2, -19.031, -116.565]));
+      expect(getChartSeries(option).some((item) => item.name?.startsWith('精确频点'))).toBe(false);
+    }
+  });
+
+  it('hides stale results and frequency markers while a new control request is loading', () => {
+    mockedControlEngineState.current = {
+      result: FREQUENCY_READING_RESULT,
+      error: null,
+      isLoading: true,
+      isFallback: false,
+    };
+
+    const markup = renderToStaticMarkup(
+      <ThemeProvider>
+        <ControlFigureWorkspace request={FREQUENCY_READING_REQUEST} layout="platform" />
+      </ThemeProvider>,
+    );
+
+    expect(markup).toContain('正在计算当前控制分析请求');
+    expect(markup).not.toContain('data-control-workbench-frequency-readings="exact"');
+    expect(markup).not.toContain('第三象限');
   });
 
   it('lets root-locus options reuse a preserved viewport instead of resetting to the preset', () => {

@@ -1,9 +1,9 @@
 {
   "artifactVersion": "learning-goal-resource-baseline.v1",
-  "generatedAt": "2026-07-16T00:30:00.000Z",
+  "generatedAt": "2026-07-17T00:21:45.583Z",
   "sourceWindow": {
     "from": null,
-    "to": "2026-07-16T00:30:00.000Z"
+    "to": "2026-07-17T00:21:45.583Z"
   },
   "versionRefs": {
     "artifactVersioningVersion": "kaq-artifact-versioning.v1",
@@ -4027,7 +4027,7 @@
         "reviewedBindingCount": 3,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-16T00:30:00.000Z"
+          "to": "2026-07-17T00:21:45.583Z"
         },
         "artifactVersion": "learning-goal-resource-baseline.v1",
         "versionRefs": {
@@ -4098,10 +4098,10 @@
       ],
       "categories": {
         "concept": {
-          "linked": 113,
-          "humanConfirmed": 38,
+          "linked": 116,
+          "humanConfirmed": 41,
           "pathEligible": 2,
-          "citationReady": 95,
+          "citationReady": 96,
           "assessment": 0,
           "checkpoint": 0,
           "highComplexityLocked": 0,
@@ -4125,6 +4125,7 @@
             "runtime-handout:2-4",
             "runtime-handout:legacy/L-2c",
             "runtime-media:1-1:1-1-slides",
+            "runtime-media:1-4:1-4-slides",
             "runtime-media:2-3:2-3-slides",
             "runtime-media:2-4:2-4-slides",
             "runtime-step:1-1:step-04",
@@ -4132,6 +4133,8 @@
             "runtime-step:1-1:step-06",
             "runtime-step:1-1:step-07",
             "runtime-step:1-1:step-08",
+            "runtime-step:1-4:step-06",
+            "runtime-step:1-4:step-07",
             "runtime-step:2-3:step-01",
             "runtime-step:2-3:step-02",
             "runtime-step:2-3:step-03",
@@ -4369,10 +4372,10 @@
           "missing": true
         },
         "citation": {
-          "linked": 98,
-          "humanConfirmed": 23,
+          "linked": 99,
+          "humanConfirmed": 24,
           "pathEligible": 2,
-          "citationReady": 98,
+          "citationReady": 99,
           "assessment": 3,
           "checkpoint": 0,
           "highComplexityLocked": 0,
@@ -4399,6 +4402,7 @@
             "runtime-handout:2-4",
             "runtime-handout:legacy/L-2c",
             "runtime-media:1-1:1-1-slides",
+            "runtime-media:1-4:1-4-slides",
             "runtime-media:2-3:2-3-slides",
             "runtime-media:2-4:2-4-slides",
             "runtime-step:2-4:step-11",
@@ -4593,7 +4597,7 @@
         "reviewedBindingCount": 3,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-16T00:30:00.000Z"
+          "to": "2026-07-17T00:21:45.583Z"
         },
         "artifactVersion": "learning-goal-resource-baseline.v1",
         "versionRefs": {
@@ -8566,7 +8570,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-16T00:30:00.000Z"
+          "to": "2026-07-17T00:21:45.583Z"
         },
         "artifactVersion": "learning-goal-resource-baseline.v1",
         "versionRefs": {
@@ -12321,7 +12325,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-16T00:30:00.000Z"
+          "to": "2026-07-17T00:21:45.583Z"
         },
         "artifactVersion": "learning-goal-resource-baseline.v1",
         "versionRefs": {
@@ -16800,7 +16804,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-16T00:30:00.000Z"
+          "to": "2026-07-17T00:21:45.583Z"
         },
         "artifactVersion": "learning-goal-resource-baseline.v1",
         "versionRefs": {
@@ -20946,7 +20950,7 @@
         "reviewedBindingCount": 3,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-16T00:30:00.000Z"
+          "to": "2026-07-17T00:21:45.583Z"
         },
         "artifactVersion": "learning-goal-resource-baseline.v1",
         "versionRefs": {
@@ -24091,7 +24095,7 @@
         "reviewedBindingCount": 3,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-16T00:30:00.000Z"
+          "to": "2026-07-17T00:21:45.583Z"
         },
         "artifactVersion": "learning-goal-resource-baseline.v1",
         "versionRefs": {
@@ -27358,7 +27362,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-16T00:30:00.000Z"
+          "to": "2026-07-17T00:21:45.583Z"
         },
         "artifactVersion": "learning-goal-resource-baseline.v1",
         "versionRefs": {
@@ -30561,7 +30565,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-16T00:30:00.000Z"
+          "to": "2026-07-17T00:21:45.583Z"
         },
         "artifactVersion": "learning-goal-resource-baseline.v1",
         "versionRefs": {

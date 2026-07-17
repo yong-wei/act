@@ -41,6 +41,7 @@ import {
   buildCourseContentClearanceReviewOverlays,
   filterTextbookSearchDocumentsForCitationReviewScope,
   isRuntimeLessonMediaSourceFile,
+  listIndexedAuthoringTextbookManifestPaths,
   loadCourseContentClearanceRecords,
   loadRuntimeLessonMediaSemanticReviewMap,
   parseResourceFieldCompletionAuditCliArgs,
@@ -515,6 +516,39 @@ describe('resource field completion audit', () => {
       '--materialize-core-semantic-review',
       '--unknown',
     ])).toThrow('Unsupported arguments');
+  });
+
+  it('uses only tracked or staged authoring textbook manifests as candidate sources', () => {
+    const repoRoot = mkdtempSync(join(tmpdir(), 'authoring-textbook-index-'));
+    const textbookRoot = join(repoRoot, 'course-content/authoring/resources/textbooks');
+    const runGit = (args: string[]) => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8' });
+    const writeManifest = (bookId: string) => {
+      const manifestDir = join(textbookRoot, bookId, 'chapter-01');
+      mkdirSync(manifestDir, { recursive: true });
+      writeFileSync(join(manifestDir, 'manifest.json'), `${JSON.stringify({ id: 'chapter-01' })}\n`);
+    };
+    try {
+      runGit(['init', '-q']);
+      runGit(['config', 'user.email', 'resource-audit-test@example.invalid']);
+      runGit(['config', 'user.name', 'Resource Audit Test']);
+      writeManifest('tracked-book');
+      runGit(['add', '.']);
+      runGit(['commit', '-q', '-m', 'tracked textbook manifest']);
+      writeManifest('staged-book');
+      runGit(['add', 'course-content/authoring/resources/textbooks/staged-book/chapter-01/manifest.json']);
+      writeManifest('untracked-book');
+      writeFileSync(join(repoRoot, '.git', 'info', 'exclude'), 'course-content/authoring/resources/textbooks/ignored-book/\n');
+      writeManifest('ignored-book');
+
+      expect(listIndexedAuthoringTextbookManifestPaths({ repoRoot, authoringRoot: textbookRoot })
+        .map((filePath) => filePath.slice(textbookRoot.length + 1)))
+        .toEqual([
+          'staged-book/chapter-01/manifest.json',
+          'tracked-book/chapter-01/manifest.json',
+        ]);
+    } finally {
+      rmSync(repoRoot, { recursive: true, force: true });
+    }
   });
 
   it('runs main when invoked through the package script', () => {
@@ -1285,13 +1319,19 @@ describe('resource field completion audit', () => {
         .digest('hex')}`;
       return item.sourceHash === actualHash;
     })).toBe(true);
-    expect(unresolvedDispositionRows.some((item) => item.sourceFamily === 'knowledge-card')).toBe(false);
+    const unresolvedKnowledgeCardRows = unresolvedDispositionRows
+      .filter((item) => item.sourceFamily === 'knowledge-card');
+    expect(unresolvedKnowledgeCardRows).toHaveLength(18);
+    expect(unresolvedKnowledgeCardRows.every((item) => (
+      /^knowledge-card:.*_1_[345]$/.test(item.resourceId) &&
+      item.reviewedLimitationState.includes('unresolved-residual-disposition-review')
+    ))).toBe(true);
     expect(knowledgeVisualSemanticReviewSummary).toMatchObject({
       selectedCount: 4,
       remainingSelectedSemanticReview: 0,
       residualUnselectedCounts: {
-        'knowledge-card': 277,
-        'knowledge-infograph': 159,
+        'knowledge-card': 18,
+        'knowledge-infograph': 0,
       },
       byDisposition: {
         'path-plannable': 2,
@@ -1352,7 +1392,7 @@ describe('resource field completion audit', () => {
     expect(reviewedRuntimeLessonStepRows.every((item) =>
       existsSync(item.sourcePathOrUrl) && /^sha256:[0-9a-f]{64}$/.test(item.sourceHash ?? '')
     )).toBe(true);
-    expect(unresolvedDispositionRows.filter((item) => item.sourceFamily === 'runtime-lesson-step')).toHaveLength(16);
+    expect(unresolvedDispositionRows.filter((item) => item.sourceFamily === 'runtime-lesson-step')).toHaveLength(5);
     expect(reviewedRuntimeLessonModuleRows).toHaveLength(1352);
     expect(reviewedRuntimeLessonModuleRows.every((item) =>
       item.classification === 'excluded-with-rationale' &&
@@ -1364,7 +1404,7 @@ describe('resource field completion audit', () => {
     expect(reviewedRuntimeLessonModuleRows.every((item) =>
       existsSync(item.sourcePathOrUrl) && /^sha256:[0-9a-f]{64}$/.test(item.sourceHash ?? '')
     )).toBe(true);
-    expect(unresolvedDispositionRows.filter((item) => item.sourceFamily === 'runtime-lesson-module')).toHaveLength(25);
+    expect(unresolvedDispositionRows.filter((item) => item.sourceFamily === 'runtime-lesson-module')).toHaveLength(0);
     expect(reviewedRuntimeLessonMediaRows).toHaveLength(740);
     expect(reviewedRuntimeLessonMediaRows.every((item) =>
       ['embedded-asset', 'path-plannable'].includes(item.classification) &&
@@ -1382,7 +1422,7 @@ describe('resource field completion audit', () => {
         item.reviewedLimitationState.includes('downstream-runtime-identity-blocker')
       )).toBe(true);
     expect(unresolvedDispositionRows.filter((item) => item.sourceFamily === 'runtime-lesson-media')).toHaveLength(24);
-    expect(reviewedRegisteredResourceRows).toHaveLength(168);
+    expect(reviewedRegisteredResourceRows).toHaveLength(166);
     expect(reviewedRegisteredResourceRows.every((item) =>
       ['evidence-producing', 'path-plannable'].includes(item.classification) &&
       item.sourceHash === null &&

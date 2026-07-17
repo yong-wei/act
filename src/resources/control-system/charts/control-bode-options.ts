@@ -1,7 +1,7 @@
 import type { EChartsCoreOption } from 'echarts/core';
 
 import { getInteractiveSvgEChartsPointMarker } from '@/features/interactive/shared/interactive-svg-markers';
-import type { ControlAnalysisResult, ControlMetrics } from '../analysis/types';
+import type { ControlAnalysisResult, ControlMetrics, FrequencyResponseReading } from '../analysis/types';
 import type { ControlSignalCurveStyle } from './control-signal-styles';
 
 type ChartSeriesValue = NonNullable<EChartsCoreOption['series']>;
@@ -247,6 +247,7 @@ export function buildBodePanelOption(
   showMargins = true,
   frequencyRangeOverride?: [number, number] | null,
   turnFrequencyHandles: BodeTurnFrequencyHandle[] = [],
+  showFrequencyReadings = true,
 ): EChartsCoreOption {
   const magnitudeAxis = getControlAxisPreset(caseId, 'magnitude');
   const phaseAxis = getControlAxisPreset(caseId, 'phase');
@@ -327,6 +328,7 @@ export function buildBodePanelOption(
         lineStyle: { color: '#a78bfa', width: CONTROL_CHART_MAIN_LINE_WIDTH },
         data: result.magnitude.points.map((point) => [point.x, point.y]),
       },
+      ...buildFrequencyResponseMarkerSeries(showFrequencyReadings ? result.frequencyReadings ?? [] : [], 'magnitude'),
       ...magnitudeMarginSeries,
       ...buildBodeTurnFrequencySeries(turnFrequencyHandles),
       {
@@ -338,6 +340,7 @@ export function buildBodePanelOption(
         lineStyle: { color: '#fb7185', width: CONTROL_CHART_MAIN_LINE_WIDTH },
         data: result.phase.points.map((point) => [point.x, point.y]),
       },
+      ...buildFrequencyResponseMarkerSeries(showFrequencyReadings ? result.frequencyReadings ?? [] : [], 'phase', 1, 1),
       ...phaseMarginSeries.map((series) => ({
         ...series,
         xAxisIndex: 1,
@@ -345,6 +348,33 @@ export function buildBodePanelOption(
       })),
     ],
   };
+}
+
+export function buildFrequencyResponseMarkerSeries(
+  readings: FrequencyResponseReading[],
+  axis: 'magnitude' | 'phase',
+  xAxisIndex = 0,
+  yAxisIndex = 0,
+): ChartSeriesArray {
+  if (readings.length === 0) return [];
+  const isMagnitude = axis === 'magnitude';
+  return [{
+    name: isMagnitude ? '精确频点（幅值）' : '精确频点（相位）',
+    type: 'scatter',
+    xAxisIndex,
+    yAxisIndex,
+    z: 12,
+    ...getInteractiveSvgEChartsPointMarker('diamond-filled', {
+      size: CONTROL_CHART_KEY_POINT_MARKER_SIZE,
+      color: '#14b8a6',
+      strokeColor: '#ffffff',
+      strokeWidth: 1,
+    }),
+    data: readings.map((reading) => [
+      reading.frequencyRadPerSec,
+      isMagnitude ? reading.magnitudeDb : reading.phaseDeg,
+    ]),
+  } satisfies ChartSeriesItem];
 }
 
 export function buildBodeTurnFrequencySeries(handles: BodeTurnFrequencyHandle[]): ChartSeriesArray {

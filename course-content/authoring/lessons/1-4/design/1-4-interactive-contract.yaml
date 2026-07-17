@@ -1,0 +1,461 @@
+contract_version: '2.0'
+lesson_id: '1-4'
+course_title: '1-4：时域与频域——同一个系统的两种观察视角'
+course_route_segment: 'unit-1-4-time-frequency-views'
+preview_mode:
+  default_entry: student_demo
+  student_demo_base_path: '/interactive-learning/courses/unit-1-4-time-frequency-views/student/demo'
+telemetry_strategy: lightweight_high_value
+teacher_insight_strategy: step_level_aggregation_only
+required_step_fields: [layout, modules, content_blocks, interaction_spec, teacher_controls, telemetry_spec, teacher_insight_spec, ai_context_spec, preview_contract, acceptance_checks]
+layout: {source: 'steps[].layout'}
+modules: {source: 'steps[].modules'}
+content_blocks: {source: 'steps[].content_blocks'}
+evidence_sequence: {source: 'steps[].evidence_sequence'}
+interaction_spec: {source: 'steps[].interaction_spec'}
+teacher_controls: {source: 'steps[].teacher_controls'}
+preview_contract: {source: 'steps[].preview_contract'}
+steps:
+  step-01:
+    title: 船舶航向中的过程与节律
+    layout:
+      template: cover_top_dual_column
+      regions: [{id: lead, width: half, order: 1}, {id: media, width: half, order: 2}, {id: closing, width: full, order: 3}]
+    modules:
+      - {id: page-intro, region: lead, kind: content.rich, must_be_visible: true, payload: {block_key: page-intro, title: 船舶航向中的过程与节律}}
+      - {id: cover-comic, region: media, kind: content.figure, must_be_visible: true, payload: {block_key: cover-comic, title: 船舶航向控制场景}}
+      - {id: observation-questions, region: closing, kind: content.cardSet, must_be_visible: true, payload: {block_key: observation-questions, title: 两类观察问题}}
+      - {id: bridge-question, region: closing, kind: content.rich, must_be_visible: true, payload: {block_key: bridge-question, title: 核心追问}}
+    content_blocks:
+      - {id: page-intro, type: plain_text, body: '自动舵既要完成一次转向指令，也要面对持续的周期海浪。同一套系统因此出现两种不同的观察任务。'}
+      - {id: cover-comic, type: media, asset: '1-4-cover-comic.png', caption: '驾驶员关注转向后的全过程，工程师同时关注不同海浪节律传到航向输出的程度。'}
+      - {id: observation-questions, type: bullet_list, items: ['指令刚发出后，航向是否超调、多久稳定？', '海浪持续作用时，哪些节律容易传到输出、哪些节律被削弱？']}
+      - {id: bridge-question, type: plain_text, body: '同一个系统，为什么既要沿时间轴看过程，又要沿频率轴看节律？'}
+    evidence_sequence: [page-intro, cover-comic, observation-questions, bridge-question]
+    interaction_spec: {interaction_kind: none, student_task: 阅读场景并区分过程问题与节律问题。}
+    teacher_controls: {release_activity: not_applicable, open_browse: page_load_open, teacher_step_reveal: not_applicable, reveal_reference_answer: not_applicable}
+    student_access: {default_visibility: visible, release_required: false, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: not_applicable, can_submit_without_browse: not_applicable}
+    telemetry_spec: {summary_fields: [viewed, timeOnStep], result_policy: no_submission}
+    teacher_insight_spec: {widgets: [view_count]}
+    ai_context_spec: {delivery_mode: guided, page_goal: 区分一次变化的全过程与持续节律问题。, allowed_scope: [解释时域与频域问题的差别, 追问观察对象], forbidden_scope: [代替学生作答, 生成提交内容]}
+    acceptance_checks: [导入漫画与两类问题常显, 本页无提交模块, T_r与T_d与L对象语义不提前混用]
+    preview_contract: {route_kind: student_demo, demo_path: '/interactive-learning/courses/unit-1-4-time-frequency-views/student/demo?step=step-01'}
+
+  step-02:
+    title: 课程目标
+    layout: {template: goal_focus_slide, regions: [{id: goals, width: full, order: 1}]}
+    modules:
+      - {id: page-intro, region: goals, kind: content.rich, must_be_visible: true, payload: {block_key: page-intro, title: 课程目标}}
+      - {id: lesson-goals, region: goals, kind: content.cardSet, must_be_visible: true, payload: {block_key: lesson-goals, title: 完成本次课程后能够}}
+    content_blocks:
+      - {id: page-intro, type: plain_text, body: '本页列出读图、通道区分和多域联读的五项学习目标。'}
+      - id: lesson-goals
+        type: bullet_list
+        items: ['区分复平面、时域和频域分别呈现的系统信息。', '标明频率响应的输入输出通道，区分闭环指令、扰动和环路对象。', '读取 Bode 图的低频、高频趋势与闭环 -3 dB 带宽。', '解释 Bode 与 Nyquist 的同源关系，完成单个频点的幅值—相位—复平面互译。', '联读闭环极点、阶跃响应、Bode 与 Nyquist 图，形成有对象标签的定性判断。']
+    evidence_sequence: [page-intro, lesson-goals]
+    interaction_spec: {interaction_kind: none, student_task: 阅读五项课程目标。}
+    teacher_controls: {release_activity: not_applicable, open_browse: page_load_open, teacher_step_reveal: not_applicable, reveal_reference_answer: not_applicable}
+    student_access: {default_visibility: visible, release_required: false, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: not_applicable, can_submit_without_browse: not_applicable}
+    telemetry_spec: {summary_fields: [viewed, timeOnStep], result_policy: no_submission}
+    teacher_insight_spec: {widgets: [view_count]}
+    ai_context_spec: {delivery_mode: guided, page_goal: 解释本次课程五项能力目标。, allowed_scope: [解释目标中的学科动词和对象], forbidden_scope: [代替学生作答, 生成提交内容, 增加课程外目标]}
+    acceptance_checks: [五项目标均使用能力动词, 目标只覆盖本次课程, 本页无提交模块]
+    preview_contract: {route_kind: student_demo, demo_path: '/interactive-learning/courses/unit-1-4-time-frequency-views/student/demo?step=step-02'}
+
+  step-03:
+    title: 复平面、正弦信号与反馈结构前测
+    layout: {template: quiz_group_with_intro, regions: [{id: intro, width: full, order: 1}, {id: activity, width: full, order: 2}]}
+    modules:
+      - {id: page-intro, region: intro, kind: content.rich, must_be_visible: true, payload: {block_key: page-intro, title: 复平面、正弦信号与反馈结构前测}}
+      - {id: precheck, region: activity, kind: activity.panel, must_be_visible: true, payload: {title: 三项前置能力检查, responseContractId: choice.single}}
+    content_blocks:
+      - {id: page-intro, type: plain_text, body: '三道客观题只检查极点位置、正弦频率和单位负反馈结构，不考查本次课程的新概念。'}
+    evidence_sequence: [page-intro, precheck]
+    interaction_spec:
+      interaction_kind: quiz_group
+      student_task: 三题分别提交，检查进入频域学习所需的基础能力。
+      activity_cards:
+        - {id: pole-trend, title: 左半平面极点对应的响应趋势, prompt: '极点 -2±j2 位于左半平面，对应自然响应的总体趋势是？', response_kind: choice.single, options: [收敛, 等幅振荡, 发散, 仅凭极点无法判断], reference_answer: 收敛, submit_scope: per_card, layout_span: one_third}
+        - {id: sine-frequency, title: 周期与频率的关系, prompt: 正弦信号周期缩短为原来的一半，频率变为原来的多少倍？, response_kind: choice.single, options: [一半, 不变, 两倍, 四倍], reference_answer: 两倍, submit_scope: per_card, layout_span: one_third}
+        - {id: feedback-denominator, title: 单位负反馈闭环分母, prompt: 单位负反馈闭环传递函数的分母来自 1+L(s)。, response_kind: choice.binary, options: [正确, 错误], reference_answer: 正确, submit_scope: per_card, layout_span: one_third}
+      reveal_answer: after_all_submitted_or_teacher_reveal
+    teacher_controls: {release_activity: teacher_toggle, open_browse: not_applicable, teacher_step_reveal: not_applicable, reveal_reference_answer: teacher_toggle}
+    student_access: {default_visibility: hidden, release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: not_applicable, can_submit_without_browse: true}
+    telemetry_spec: {summary_fields: [viewed, submittedCards, objectiveAccuracy], result_policy: per_card_submission}
+    teacher_insight_spec: {widgets: [submission_rate, response_summary]}
+    ai_context_spec: {delivery_mode: guided, page_goal: 检查进入本次课程所需的三项前置能力。, allowed_scope: [提交后的概念提示, 解释错误选项], forbidden_scope: [提交前给出答案, 代替学生作答, 引入Bode或Nyquist新知识]}
+    acceptance_checks: [三题均为客观题, 不考查本次课程新知识, 每题独立提交且答案揭示分离]
+    preview_contract: {route_kind: student_demo, demo_path: '/interactive-learning/courses/unit-1-4-time-frequency-views/student/demo?step=step-03'}
+
+  step-04:
+    title: 观察域与输入输出通道
+    layout: {template: table_formula_dual_activity, regions: [{id: intro, width: full, order: 1}, {id: evidence, width: full, order: 2}, {id: activity, width: full, order: 3}, {id: closing, width: full, order: 4}]}
+    modules:
+      - {id: page-intro, region: intro, kind: content.rich, must_be_visible: true, payload: {block_key: page-intro, title: 观察域与输入输出通道}}
+      - {id: domain-table, region: evidence, kind: content.table, must_be_visible: true, payload: {block_key: domain-table, title: 三种表征的观察对象}}
+      - {id: channel-formulas, region: evidence, kind: content.formula, must_be_visible: true, payload: {block_key: channel-formulas, title: 三类输入输出通道}}
+      - {id: channel-classification, region: activity, kind: activity.panel, must_be_visible: true, payload: {title: 表征与通道分类, responseContractId: matching.pairs}}
+      - {id: conclusion, region: closing, kind: content.rich, must_be_visible: true, payload: {block_key: conclusion, title: 判断顺序}}
+    content_blocks:
+      - {id: page-intro, type: plain_text, body: '先区分复平面、时域和频域的观察对象，再为工程问题标明输入与输出。'}
+      - id: domain-table
+        type: table
+        columns: [表征, 横向对象, 典型问题, 主要证据]
+        rows: [[复平面, 极点位置, 模态收敛发散或振荡倾向, 实部与虚部], [时域, '时间 t', 一次输入后过程怎样展开, 超调调节时间与波形], [频域, '频率 ω', 不同节律如何传到输出, 幅值比与相位差]]
+      - {id: channel-formulas, type: formula, formula: 'T_r(s)=Y(s)/R(s),\quad T_d(s)=Y(s)/D(s),\quad L(s)=C(s)G(s)H(s)', body: '指令跟随、扰动抑制和环路分析对应不同传递对象。'}
+      - {id: conclusion, type: plain_text, body: '频域读图必须先标明输入和输出；未标通道的“系统 Bode 图”不足以支持工程判断。'}
+    evidence_sequence: [page-intro, domain-table, channel-formulas, channel-classification, conclusion]
+    interaction_spec:
+      interaction_kind: activity_cards
+      student_task: 分别完成表征归类和扰动通道选择。
+      activity_cards:
+        - {id: domain-match, title: 证据归入对应表征, prompt: 将阶跃超调、周期扰动幅值、闭环极点向左移动分别归入时域、频域、复平面。, response_kind: matching.pairs, pairs: [{left: 阶跃超调, right: 时域}, {left: 周期扰动幅值, right: 频域}, {left: 闭环极点向左移动, right: 复平面}], reference_answer: 时域—阶跃超调；频域—周期扰动幅值；复平面—闭环极点向左移动, submit_scope: per_card, layout_span: half}
+        - {id: disturbance-channel, title: 阵风抑制对应的通道, prompt: 判断阵风抑制能力时，应优先明确哪一个传递对象？, response_kind: choice.single, options: ['T_r(s)', 'T_d(s)', 'L(s)'], reference_answer: 'T_d(s)', submit_scope: per_card, layout_span: half}
+      reveal_answer: after_submit_or_teacher_reveal
+    teacher_controls: {release_activity: teacher_toggle, open_browse: page_load_open, teacher_step_reveal: not_applicable, reveal_reference_answer: teacher_toggle}
+    student_access: {default_visibility: hidden, release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: not_applicable, can_submit_without_browse: true}
+    telemetry_spec: {summary_fields: [viewed, submittedCards, objectiveAccuracy], result_policy: per_card_submission}
+    teacher_insight_spec: {widgets: [submission_rate, response_summary]}
+    ai_context_spec: {delivery_mode: guided, page_goal: 先区分观察域，再为工程任务标明输入输出通道。, allowed_scope: [提示输入和输出的识别方法, 提交后解释T_r与T_d与L], forbidden_scope: [代替学生配对, 直接给出选项答案]}
+    acceptance_checks: [仅包含两张作答卡, T_r与T_d与L标签常显, 两题分别提交]
+    preview_contract: {route_kind: student_demo, demo_path: '/interactive-learning/courses/unit-1-4-time-frequency-views/student/demo?step=step-04'}
+
+  step-05:
+    title: 闭环极点与阶跃响应的时域参照
+    layout: {template: formula_compute_table, regions: [{id: intro, width: full, order: 1}, {id: formula, width: full, order: 2}, {id: compute, width: full, order: 3}, {id: evidence, width: full, order: 4}]}
+    modules:
+      - {id: page-intro, region: intro, kind: content.rich, must_be_visible: true, payload: {block_key: page-intro, title: 闭环极点与阶跃响应的时域参照}}
+      - {id: model-formulas, region: formula, kind: content.formula, must_be_visible: true, payload: {block_key: model-formulas, title: 对象与闭环传递函数}}
+      - id: time-domain-workbench
+        region: compute
+        kind: compute.panel
+        must_be_visible: true
+        payload:
+          capabilityRef: control-linked-comparison
+          panel_id: unit-1-4-time-domain-reference
+          spec_key: control_linked_comparison
+          title: 增益、闭环极点与阶跃响应
+          visiblePanelIds: [step-response, root-locus, performance]
+          responseContractId: step-05.time-domain-observation.parameter.set
+          releaseState: released
+          fallbackState: supported
+          request: &gain_request {runtimeMode: analysis, caseId: unit-1-4-gain-family, plant: {numerator: [1], denominator: [1, 4, 0], coefficientOrder: descending, label: 'G_0(s)=1/[s(s+4)]'}, structures: [{kind: gain, enabled: true, params: {k: 8}, label: K}], outputs: [step_response, root_locus, magnitude, phase, bode, nyquist], responseType: step, timeRange: {start: 0, end: 15, samples: 160}, frequencyRange: {min: 0.05, max: 20, samples: 128}, rootLocus: {minGain: 0, maxGain: 12, samples: 160, currentGain: 8}}
+          parameterPresets: [1, 4, 8]
+          submissionFields: [{key: k, label: 增益 K, input: slider, min: 0.5, max: 12, step: 0.5, defaultValue: 8, presets: [1, 4, 8]}, {key: pole_type, label: 极点类型, input: select, options: [两个实极点, 重实极点, 共轭复极点]}, {key: response_shape, label: 响应形态, input: text}, {key: numeric_observation, label: 一项数值观察, input: text}]
+          fallbackMedia: {src: '/course-runtime/lessons/1-4/media/1-4-fig-01-step-responses.png', alt: 'K=1、4、8 的闭环阶跃响应后备图'}
+    content_blocks:
+      - {id: page-intro, type: plain_text, body: '在进入频域前，先用同一对象回看增益、闭环极点与阶跃响应之间的联系。'}
+      - {id: model-formulas, type: formula, formula: 'G_0(s)=1/[s(s+4)],\qquad T_K(s)=K/(s^2+4s+K)', body: 'K 改变闭环特征方程，因此极点形态与阶跃过程同步变化。'}
+    evidence_sequence: [page-intro, model-formulas, time-domain-workbench]
+    interaction_spec:
+      interaction_kind: interactive_figure_submit
+      submit_fields: [k, pole_type, response_shape, numeric_observation]
+      student_task: 选择一个非预设 K，提交极点类型、响应形态和一项数值观察。
+      activity_cards: [{id: gain-observation, title: 增益变化下的时域观察, prompt: 选择一个非预设 K，记录极点类型、响应形态和一项超调量或调节时间数值。, response_kind: parameter.set, submit_scope: per_card, layout_span: full, reference_answer: 按当前计算状态核对对象、极点和阶跃指标的一致性。}]
+    teacher_controls: {release_activity: teacher_toggle, open_browse: page_load_open, teacher_step_reveal: not_applicable, reveal_reference_answer: teacher_toggle}
+    student_access: {default_visibility: visible, release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: not_applicable, can_submit_without_browse: true}
+    telemetry_spec: {summary_fields: [viewed, parameterChanges, submittedParameterSet], result_policy: explicit_parameter_submission_only}
+    teacher_insight_spec: {widgets: [submission_rate, response_summary]}
+    ai_context_spec: {delivery_mode: guided, page_goal: 建立K变化、闭环极点和阶跃响应之间的时域参照。, allowed_scope: [解释参数变化后的图形证据, 提交后检查观察链], forbidden_scope: [替学生选择K, 代写观察结论, 直接生成提交内容]}
+    acceptance_checks: [参数字段key为k且范围0.5到12, 预设包含1与4与8, 极点曲线指标同页联动, 本页不增加选择题]
+    preview_contract: {route_kind: student_demo, demo_path: '/interactive-learning/courses/unit-1-4-time-frequency-views/student/demo?step=step-05'}
+
+  step-06:
+    title: 闭环 Bode 图、带宽与环路穿越频率
+    layout: {template: formula_dual_compute_definition, regions: [{id: intro, width: full, order: 1}, {id: formula, width: full, order: 2}, {id: compute, width: full, order: 3}, {id: definitions, width: full, order: 4}]}
+    modules:
+      - {id: page-intro, region: intro, kind: content.rich, must_be_visible: true, payload: {block_key: page-intro, title: 闭环 Bode 图、带宽与环路穿越频率}}
+      - {id: sinusoid-formula, region: formula, kind: content.formula, must_be_visible: true, payload: {block_key: sinusoid-formula, title: 正弦稳态的幅值与相位}}
+      - id: closed-loop-bode
+        region: compute
+        kind: compute.panel
+        must_be_visible: true
+        payload:
+          capabilityRef: control-frequency-reading-workbench
+          panel_id: unit-1-4-closed-loop-bode
+          spec_key: control_frequency_reading_workbench
+          title: 闭环指令传递 T(s) 的 Bode 图
+          visiblePanelIds: [bode]
+          responseContractId: step-06.closed-loop-bandwidth.parameter.set
+          releaseState: released
+          fallbackState: supported
+          focusFrequencyField: closed_loop_bandwidth_rad_s
+          sharedFrequencyAnchors: [{id: low_frequency_reference, frequencyRadPerSec: 0.05, role: low_frequency_baseline}]
+          request: &closed_loop_request {runtimeMode: analysis, caseId: unit-1-4-closed-loop-frequency, plant: {numerator: [8], denominator: [1, 4, 8], coefficientOrder: descending, label: 'T(s)=8/(s^2+4s+8)'}, structures: [{kind: gain, enabled: true, params: {k: 1}, label: 固定闭环对象}], outputs: [step_response, root_locus, magnitude, phase, bode, nyquist], responseType: step, timeRange: {start: 0, end: 8, samples: 160}, frequencyRange: {min: 0.05, max: 30, samples: 160}, rootLocus: {minGain: 0, maxGain: 1, samples: 80, currentGain: 0}}
+          submissionFields: [{key: closed_loop_bandwidth_rad_s, label: 相对低频下降 3 dB 的频点, input: number}]
+          fallbackMedia: {src: '/course-runtime/lessons/1-4/media/1-4-fig-02-closed-loop-bode.png', alt: '闭环指令传递 T(s) 的 Bode 后备图'}
+      - id: loop-bode
+        region: compute
+        kind: compute.panel
+        must_be_visible: true
+        payload:
+          capabilityRef: control-frequency-reading-workbench
+          panel_id: unit-1-4-loop-bode
+          spec_key: control_frequency_reading_workbench
+          title: 环路 L(s) 的增益穿越频率对照
+          visiblePanelIds: [bode]
+          responseContractId: step-06.loop-gain-crossover.parameter.set
+          releaseState: course-controlled
+          fallbackState: supported
+          focusFrequencyField: loop_gain_crossover_rad_s
+          sharedFrequencyAnchors: []
+          request: *gain_request
+          submissionFields: [{key: loop_gain_crossover_rad_s, label: 环路 0 dB 穿越频率, input: number}]
+          fallbackMedia: {src: '/course-runtime/lessons/1-4/media/1-4-fig-03-open-loop-bode.png', alt: '对象 G0(s) 的开环 Bode 后备图'}
+      - {id: definition-cards, region: definitions, kind: content.cardSet, must_be_visible: true, payload: {block_key: definition-cards, title: 带宽与增益穿越频率}}
+      - {id: definition-check, region: definitions, kind: activity.panel, must_be_visible: true, payload: {title: 两个频率标志的关系, responseContractId: choice.binary}}
+    content_blocks:
+      - {id: page-intro, type: plain_text, body: '先读取闭环指令通道的幅值与相位，再用环路对象辨析另一种频率标志。'}
+      - {id: sinusoid-formula, type: formula, formula: 'r(t)=A\sin\omega t,\qquad y_{ss}(t)=A|T(j\omega)|\sin(\omega t+\angle T(j\omega))', body: '该关系成立于稳定线性定常系统的正弦稳态。'}
+      - {id: definition-cards, type: bullet_list, items: ['闭环带宽满足 |T(jω_b)|=|T(j0)|/√2。', '环路增益穿越频率满足 |L(jω_c)|=1。', '两个频率相关，但定义不同，读图时必须保留传递对象标签。']}
+    evidence_sequence: [page-intro, sinusoid-formula, closed-loop-bode, loop-bode, definition-cards, definition-check]
+    interaction_spec:
+      interaction_kind: activity_cards
+      submit_fields: [closed_loop_bandwidth_rad_s, loop_gain_crossover_rad_s]
+      student_task: 分别在两个计算面板提交闭环带宽与环路增益穿越频率读数，再判断二者的定义关系。
+      activity_cards:
+        - {id: bandwidth-crossover-relation, title: 两种频率标志的定义关系, prompt: 闭环带宽与环路增益穿越频率的定义相同。, response_kind: choice.binary, options: [正确, 错误], reference_answer: 错误, submit_scope: per_card, layout_span: half}
+    teacher_controls: {release_activity: teacher_toggle, open_browse: page_load_open, teacher_step_reveal: not_applicable, reveal_reference_answer: teacher_toggle}
+    student_access: {default_visibility: visible, release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: not_applicable, can_submit_without_browse: true}
+    telemetry_spec: {summary_fields: [viewed, bandwidthSubmission, definitionChoice], result_policy: explicit_submission_only}
+    teacher_insight_spec: {widgets: [submission_rate, response_summary]}
+    ai_context_spec: {delivery_mode: guided, page_goal: 从闭环T与环路L分别读取带宽和增益穿越频率。, allowed_scope: [解释读图顺序, 提交后核对对象标签和定义], forbidden_scope: [代替学生读数, 直接给出二选一答案, 混用T与L]}
+    acceptance_checks: [两个频率面板常显, 两项数值只从各自计算面板提交, focusFrequencyField与提交字段一致, T与L对象标签常显, 精确读数仅在确认提交或教师揭示后显著显示, 参考答案单独揭示]
+    preview_contract: {route_kind: student_demo, demo_path: '/interactive-learning/courses/unit-1-4-time-frequency-views/student/demo?step=step-06'}
+
+  step-07:
+    title: Bode 与 Nyquist 的同频点表达
+    layout: {template: formula_compute_reading, regions: [{id: intro, width: full, order: 1}, {id: formula, width: full, order: 2}, {id: compute, width: full, order: 3}, {id: closing, width: full, order: 4}]}
+    modules:
+      - {id: page-intro, region: intro, kind: content.rich, must_be_visible: true, payload: {block_key: page-intro, title: Bode 与 Nyquist 的同频点表达}}
+      - {id: same-source-formula, region: formula, kind: content.formula, must_be_visible: true, payload: {block_key: same-source-formula, title: 幅相形式与复数形式}}
+      - id: bode-nyquist-workbench
+        region: compute
+        kind: compute.panel
+        must_be_visible: true
+        payload:
+          capabilityRef: control-frequency-reading-workbench
+          panel_id: unit-1-4-bode-nyquist-link
+          spec_key: control_frequency_reading_workbench
+          title: G0(s) 的 Bode 与 Nyquist 同频点联读
+          visiblePanelIds: [bode, nyquist]
+          responseContractId: step-07.frequency-reading.parameter.set
+          releaseState: released
+          fallbackState: supported
+          focusFrequencyField: focus_frequency_rad_s
+          sharedFrequencyAnchors: [{id: translation_point, frequencyRadPerSec: 2, role: bode_nyquist_translation}]
+          request: {runtimeMode: analysis, caseId: unit-1-4-open-loop-frequency, plant: {numerator: [1], denominator: [1, 4, 0], coefficientOrder: descending, label: 'G_0(s)=1/[s(s+4)]'}, structures: [{kind: gain, enabled: true, params: {k: 1}, label: 固定对象}], outputs: [step_response, root_locus, magnitude, phase, bode, nyquist], responseType: step, timeRange: {start: 0, end: 15, samples: 160}, frequencyRange: {min: 0.05, max: 30, samples: 180}, rootLocus: {minGain: 0, maxGain: 8, samples: 120, currentGain: 1}}
+          submissionFields: [{key: focus_frequency_rad_s, label: 频率 ω, input: slider, min: 0.05, max: 30, step: 0.05, defaultValue: 2}, {key: magnitude_db, label: 幅值 dB, input: number}, {key: phase_deg, label: 相位角, input: number}, {key: nyquist_quadrant, label: Nyquist 象限, input: select, options: [第一象限, 第二象限, 第三象限, 第四象限]}]
+          fallbackMedia: {src: '/course-runtime/lessons/1-4/media/1-4-fig-04-open-loop-nyquist.png', alt: 'G0(s) 的 Nyquist 正频率支后备图'}
+      - {id: conclusion, region: closing, kind: content.rich, must_be_visible: true, payload: {block_key: conclusion, title: 同一频点的两种坐标}}
+    content_blocks:
+      - {id: page-intro, type: plain_text, body: '同一个频率点在 Bode 图中拆成幅值与相位，在 Nyquist 图中合成复平面上的一个点。'}
+      - {id: same-source-formula, type: formula, formula: 'G(j\omega)=|G(j\omega)|e^{j\angle G(j\omega)}=\operatorname{Re}G(j\omega)+j\operatorname{Im}G(j\omega)', body: '两种图形组织的是同一套频率响应数据。'}
+      - {id: conclusion, type: plain_text, body: '同一频点的 Bode 幅值与相位共同确定 Nyquist 复增益点；具体读数由学生观察后提交。'}
+    evidence_sequence: [page-intro, same-source-formula, bode-nyquist-workbench, conclusion]
+    interaction_spec:
+      interaction_kind: interactive_figure_submit
+      submit_fields: [focus_frequency_rad_s, magnitude_db, phase_deg, nyquist_quadrant]
+      student_task: 将频率设为 2 rad/s，提交幅值、相位和 Nyquist 象限。
+      activity_cards: [{id: frequency-point-translation, title: ω=2 rad/s 的双图互译, prompt: 将频率设为 2 rad/s，记录 Bode 幅值、相位和 Nyquist 象限。, response_kind: parameter.set, submit_scope: per_card, layout_span: full, reference_answer: '-19.031 dB；-116.565°；第三象限'}]
+    teacher_controls: {release_activity: teacher_toggle, open_browse: page_load_open, teacher_step_reveal: not_applicable, reveal_reference_answer: teacher_toggle}
+    student_access: {default_visibility: visible, release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: not_applicable, can_submit_without_browse: true}
+    telemetry_spec: {summary_fields: [viewed, submittedParameterSet], result_policy: explicit_parameter_submission_only}
+    teacher_insight_spec: {widgets: [submission_rate, response_summary]}
+    ai_context_spec: {delivery_mode: guided, page_goal: 将同一频点在Bode与Nyquist两种图形中互译。, allowed_scope: [解释幅相形式与复数形式的关系, 提交后检查计算步骤], forbidden_scope: [代替学生提交读数, 直接给出象限答案]}
+    acceptance_checks: [Bode与Nyquist共享同一频率滑块, focusFrequencyField与提交字段一致, 三项观察保持空白起始, 精确读数仅在确认提交或教师揭示后显著显示, 对象始终为G0]
+    preview_contract: {route_kind: student_demo, demo_path: '/interactive-learning/courses/unit-1-4-time-frequency-views/student/demo?step=step-07'}
+
+  step-08:
+    title: 闭环时域与环路频域的四图联读
+    layout: {template: compute_table_dual_activity, regions: [{id: intro, width: full, order: 1}, {id: compute, width: full, order: 2}, {id: evidence, width: full, order: 3}, {id: activity, width: full, order: 4}]}
+    modules:
+      - {id: page-intro, region: intro, kind: content.rich, must_be_visible: true, payload: {block_key: page-intro, title: 闭环时域与环路频域的四图联读}}
+      - {id: object-labels, region: intro, kind: content.cardSet, must_be_visible: true, payload: {block_key: object-labels, title: 四张图的传递对象}}
+      - id: four-view-workbench
+        region: compute
+        kind: compute.panel
+        must_be_visible: true
+        payload:
+          capabilityRef: control-workbench
+          panel_id: unit-1-4-classic-four-view
+          spec_key: control_workbench
+          title: 闭环极点、闭环阶跃、环路 Bode 与环路 Nyquist
+          visiblePanelIds: [root-locus, step-response, bode, nyquist]
+          responseContractId: parameter.set
+          releaseState: released
+          fallbackState: supported
+          request: *gain_request
+          parameterPresets: [1, 4, 8]
+          submissionFields: [{key: k, label: 增益 K, input: select, options: ['1', '4', '8'], defaultValue: '8'}]
+          fallbackMedia: {src: '/course-runtime/lessons/1-4/media/1-4-fig-05-four-views.png', alt: 'K=8 时闭环极点、闭环阶跃、环路 Bode 与环路 Nyquist 后备图'}
+      - {id: object-information-table, region: evidence, kind: content.table, must_be_visible: true, payload: {block_key: object-information-table, title: 对象、图形与信息}}
+      - {id: four-view-match, region: activity, kind: activity.panel, must_be_visible: true, payload: {title: 四图对象与证据配对, responseContractId: matching.pairs}}
+      - {id: judgment-boundary, region: evidence, kind: content.rich, must_be_visible: true, payload: {block_key: judgment-boundary, title: 多域联读的判断边界}}
+    content_blocks:
+      - {id: page-intro, type: plain_text, body: '四张图随 K 同步变化，但闭环极点与阶跃、环路 Bode 与 Nyquist 分别属于不同对象。'}
+      - {id: object-labels, type: bullet_list, items: ['闭环对象：极点分布与阶跃响应。', '环路对象 L(s)=KG0(s)：Bode 与 Nyquist 频率响应。']}
+      - id: object-information-table
+        type: table
+        columns: [图形, 传递对象, 主要信息]
+        rows: [[闭环极点, 闭环特征方程, 振荡模态与衰减趋势], [闭环阶跃, 闭环指令通道, 超调与调节时间], [环路 Bode, 'L(jω)', 逐频幅值与相位], [环路 Nyquist, 'L(jω)', 复增益轨迹]]
+      - {id: judgment-boundary, type: plain_text, body: '环路频率图通过反馈特征方程与闭环行为相联系，环路幅值不能当作闭环指令输出幅值。'}
+    evidence_sequence: [page-intro, object-labels, four-view-workbench, object-information-table, four-view-match, judgment-boundary]
+    interaction_spec:
+      interaction_kind: activity_cards
+      student_task: 完成图形信息配对，再选择可以直接互证的一组证据。
+      activity_cards:
+        - {id: figure-information-match, title: 四张图对应的主要信息, prompt: 将振荡模态、过程超调、逐频幅值与相位、复增益轨迹分别配到闭环极点、闭环阶跃、环路 Bode、环路 Nyquist。, response_kind: matching.pairs, pairs: [{left: 振荡模态, right: 闭环极点}, {left: 过程超调, right: 闭环阶跃}, {left: 逐频幅值与相位, right: 环路 Bode}, {left: 复增益轨迹, right: 环路 Nyquist}], reference_answer: 闭环极点—振荡模态；闭环阶跃—过程超调；环路 Bode—逐频幅值与相位；环路 Nyquist—复增益轨迹, submit_scope: per_card, layout_span: half}
+        - {id: direct-cross-check, title: 可以直接互证的证据, prompt: 选择可以直接互证的一组证据。, response_kind: choice.single, options: [闭环极点—闭环阶跃, 闭环阶跃—未标通道的任意 Bode, Nyquist 单点—闭环超调], reference_answer: 闭环极点—闭环阶跃, submit_scope: per_card, layout_span: half}
+    teacher_controls: {release_activity: teacher_toggle, open_browse: page_load_open, teacher_step_reveal: not_applicable, reveal_reference_answer: teacher_toggle}
+    student_access: {default_visibility: visible, release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: not_applicable, can_submit_without_browse: true}
+    telemetry_spec: {summary_fields: [viewed, gainChanges, submittedCards, objectiveAccuracy], result_policy: per_card_submission}
+    teacher_insight_spec: {widgets: [submission_rate, response_summary]}
+    ai_context_spec: {delivery_mode: guided, page_goal: 联读闭环极点和阶跃与环路Bode和Nyquist。, allowed_scope: [提示先看对象标签, 提交后解释反馈特征方程的联系], forbidden_scope: [代替学生配对, 把环路幅值解释为闭环输出幅值]}
+    acceptance_checks: [参数字段key为k且选项为1与4与8, 四张图对象标签常显, 两道题分别提交]
+    preview_contract: {route_kind: student_demo, demo_path: '/interactive-learning/courses/unit-1-4-time-frequency-views/student/demo?step=step-08'}
+
+  step-09:
+    title: 多域数据与双图互译例题
+    layout: {template: worked_examples_derivation_activity, regions: [{id: intro, width: full, order: 1}, {id: example_one, width: full, order: 2}, {id: example_two, width: full, order: 3}, {id: activity, width: full, order: 4}]}
+    modules:
+      - {id: page-intro, region: intro, kind: content.rich, must_be_visible: true, payload: {block_key: page-intro, title: 多域数据与双图互译例题}}
+      - {id: example-one-problem, region: example_one, kind: content.rich, must_be_visible: true, payload: {block_key: example-one-problem, title: 标准二阶系统的多域数据}}
+      - {id: example-one-reveal, region: example_one, kind: content.reveal, must_be_visible: true, payload: {block_key: example-one-reveal, title: 多域证据的四层解释}}
+      - {id: example-one-check, region: activity, kind: activity.panel, must_be_visible: true, payload: {title: 更容易跟随的输入频率, responseContractId: choice.single}}
+      - {id: example-two-problem, region: example_two, kind: content.rich, must_be_visible: true, payload: {block_key: example-two-problem, title: ω=2 rad/s 的双图互译}}
+      - id: example-two-derivation
+        region: example_two
+        kind: visual.derivationStage
+        must_be_visible: true
+        payload:
+          stageId: unit-1-4-frequency-point-derivation
+          aspectRatio: '16:9'
+          releaseState: released
+          activeRevealStepId: substitution
+          title: 从 G0(j2) 到 Bode 读数和 Nyquist 点
+          formulas:
+            - {id: complex-value, latex: 'G_0(j2)=1/(-4+j8)', region: {x: 0.08, y: 0.12, width: 0.34, height: 0.16}, blocks: [{id: substitution-block, latex: 'G_0(j2)=1/(-4+j8)', colorRole: known}]}
+            - {id: magnitude-value, latex: '|G_0(j2)|=1/\sqrt{80}\approx0.1118', region: {x: 0.08, y: 0.38, width: 0.38, height: 0.16}, blocks: [{id: magnitude-block, latex: '|G_0(j2)|=1/\sqrt{80}\approx0.1118', colorRole: transform}]}
+            - {id: bode-value, latex: '20\log_{10}|G_0(j2)|\approx-19.031\,\mathrm{dB}', region: {x: 0.54, y: 0.22, width: 0.4, height: 0.16}, blocks: [{id: db-block, latex: '20\log_{10}|G_0(j2)|\approx-19.031\,\mathrm{dB}', colorRole: result}]}
+            - {id: phase-value, latex: '\angle G_0(j2)\approx-116.565^\circ', region: {x: 0.54, y: 0.5, width: 0.34, height: 0.16}, blocks: [{id: phase-block, latex: '\angle G_0(j2)\approx-116.565^\circ', colorRole: result}]}
+          textBlocks: [{id: quadrant-result, text: 幅值与相位合成的复数点位于第三象限。, region: {x: 0.3, y: 0.76, width: 0.4, height: 0.12}}]
+          revealSteps: [{id: substitution, targetIds: [substitution-block]}, {id: magnitude, targetIds: [magnitude-block]}, {id: bode-reading, targetIds: [db-block, phase-block]}, {id: nyquist-location, targetIds: [quadrant-result]}]
+          connectors: [{id: complex-to-magnitude, kind: arrow, from: substitution-block, to: magnitude-block, fromAnchor: S, toAnchor: N, revealStepIds: [magnitude]}, {id: magnitude-to-db, kind: arrow, from: magnitude-block, to: db-block, fromAnchor: E, toAnchor: W, revealStepIds: [bode-reading]}, {id: phase-to-quadrant, kind: therefore, from: phase-block, to: quadrant-result, fromAnchor: S, toAnchor: N, revealStepIds: [nyquist-location]}]
+          cognitiveLoad: {maxNewFormulaBlocksPerStep: 2, maxSimultaneousColorRoles: 2, longFormulaSplitStrategy: semantic_terms, teachingLoadException: worked-example}
+          teacherControls: {enabled: [next, previous, jump, highlight, answerReveal, reset]}
+      - {id: example-two-check, region: activity, kind: activity.panel, must_be_visible: true, payload: {title: 双图互译数值定位, responseContractId: parameter.set}}
+    content_blocks:
+      - {id: page-intro, type: plain_text, body: '两道题面始终可见；求解内容按例题一到例题二的单一顺序显影，查看显影不计作掌握证据。'}
+      - {id: example-one-problem, type: plain_text, body: '已知 T_e(s)=0.64/(s²+0.88s+0.64)。单位阶跃超调约 12.63%，5% 调节时间约 6.62 s；ω=0.2 rad/s 时输出幅值比约 1.024、相位 -16.35°；ω=4 rad/s 时输出幅值比约 0.0406、相位 -167.09°。判断哪个频率更容易被系统跟随，并说明三组数据的表征归属。'}
+      - {id: example-one-reveal, type: reveal_list, items: ['时域证据：超调量和调节时间描述一次输入后的全过程。', '低频证据：ω=0.2 rad/s 时幅值接近 1、相位滞后较小，慢节律基本通过。', '高频证据：ω=4 rad/s 时输出幅值仅为输入约 4.06%，且相位接近反相。', '结构联系：同一对共轭闭环极点同时影响阶跃超调和自然频率附近的幅相变化，单个频点不能独立确定超调量。']}
+      - {id: example-two-problem, type: plain_text, body: '对 G0(s)=1/[s(s+4)]，计算 ω=2 rad/s 时的幅值、dB、相位，并在 Nyquist 图中定位对应点。'}
+    evidence_sequence: [page-intro, example-one-problem, example-one-check, example-one-reveal, example-two-problem, example-two-derivation, example-two-check]
+    interaction_spec:
+      interaction_kind: worked_example_reveal
+      student_task: 先完成判断与数值定位，再按教师控制查看有序解答链。
+      step_reveal_policy: {problem_statement_always_visible: true, sequence: [example-one-reveal, example-two-derivation], student_browse_requires_open_browse: true, teacher_reveal_unrestricted: true}
+      activity_cards:
+        - {id: easier-frequency, title: 更容易被跟随的频率, prompt: 根据幅值比与相位，选择更容易被 T_e(s) 跟随的输入频率。, response_kind: choice.single, options: ['0.2 rad/s', '4 rad/s'], reference_answer: '0.2 rad/s', submit_scope: per_card, layout_span: half}
+        - {id: point-location, title: ω=2 rad/s 的幅相与象限, prompt: 提交 G0(j2) 的幅值 dB、相位和 Nyquist 象限。, response_kind: parameter.set, reference_answer: '-19.031 dB；-116.565°；第三象限', submit_scope: per_card, layout_span: half}
+    teacher_controls: {release_activity: teacher_toggle, open_browse: teacher_toggle, teacher_step_reveal: teacher_direct, reveal_reference_answer: teacher_toggle}
+    student_access: {default_visibility: hidden, release_required: true, browse_required: true, can_view_problem_statement: true, can_view_derivation_steps: after_open_browse, can_submit_without_browse: true}
+    telemetry_spec: {summary_fields: [viewed, submittedCards, revealProgress], result_policy: submission_only_not_reveal}
+    teacher_insight_spec: {widgets: [submission_rate, response_summary]}
+    ai_context_spec: {delivery_mode: guided, page_goal: 完成标准二阶多域解释和G0在ω等于2处的双图互译。, allowed_scope: [解释已显影步骤, 提交后检查公式链和对象], forbidden_scope: [隐藏题面, 代替学生选择或计算, 直接生成提交内容]}
+    acceptance_checks: [两道例题题面始终可见, 解答按单一顺序显影, 例题一与例题二分别提交]
+    preview_contract: {route_kind: student_demo, demo_path: '/interactive-learning/courses/unit-1-4-time-frequency-views/student/demo?step=step-09'}
+
+  step-10:
+    title: 船舶航向闭环的三域证据
+    layout: {template: dual_compute_structured_workspace, regions: [{id: intro, width: full, order: 1}, {id: compute, width: full, order: 2}, {id: activity, width: full, order: 3}, {id: closing, width: full, order: 4}]}
+    modules:
+      - {id: page-intro, region: intro, kind: content.rich, must_be_visible: true, payload: {block_key: page-intro, title: 船舶航向闭环的三域证据}}
+      - {id: closed-loop-formula, region: intro, kind: content.formula, must_be_visible: true, payload: {block_key: closed-loop-formula, title: 航向闭环对象}}
+      - id: pole-step-workbench
+        region: compute
+        kind: compute.panel
+        must_be_visible: true
+        payload: {capabilityRef: control-linked-comparison, panel_id: unit-1-4-ship-pole-step, spec_key: control_linked_comparison, title: 闭环极点与阶跃过程, visiblePanelIds: [root-locus, step-response], hidePerformanceMetricsMeta: true, responseContractId: step-10.pole-step.parameter.set, releaseState: released, fallbackState: supported, request: *gain_request, submissionFields: [{key: gain_k, label: 固定增益 K, input: select, options: ['8'], defaultValue: '8'}], fallbackMedia: {src: '/course-runtime/lessons/1-4/media/1-4-fig-06-three-domain-reading.png', alt: '航向闭环三域联读后备图'}}
+      - id: closed-loop-frequency-workbench
+        region: compute
+        kind: compute.panel
+        must_be_visible: true
+        payload: {capabilityRef: control-frequency-reading-workbench, panel_id: unit-1-4-ship-closed-loop-frequency, spec_key: control_frequency_reading_workbench, title: 闭环指令通道 T(s) 的慢频与快频响应, visiblePanelIds: [bode], responseContractId: step-10.closed-loop-frequency.parameter.set, releaseState: released, fallbackState: supported, focusFrequencyField: focus_frequency_rad_s, sharedFrequencyAnchors: [{id: slow_command, frequencyRadPerSec: 0.3, role: slow_command_tracking}, {id: fast_command, frequencyRadPerSec: 3, role: fast_command_attenuation}], request: *closed_loop_request, submissionFields: [{key: focus_frequency_rad_s, label: 共享频率锚点, input: select, options: ['0.3', '3'], defaultValue: '0.3'}], fallbackMedia: {src: '/course-runtime/lessons/1-4/media/1-4-fig-06-three-domain-reading.png', alt: '航向闭环三域联读后备图'}}
+      - {id: evidence-workspace, region: activity, kind: activity.workspace, must_be_visible: true, payload: {title: 极点—阶跃—慢指令—快指令四格记录, responseContractId: table.builder}}
+    content_blocks:
+      - {id: page-intro, type: plain_text, body: '极点、阶跃和闭环指令频率响应都围绕同一个 T(s)，用于形成有对象标签的三域判断。'}
+      - {id: closed-loop-formula, type: formula, formula: 'T(s)=8/(s^2+4s+8)', body: '三张图统一使用闭环指令传递对象；极点、读数与判断由学生观察后提交。'}
+    evidence_sequence: [page-intro, closed-loop-formula, pole-step-workbench, closed-loop-frequency-workbench, evidence-workspace]
+    interaction_spec:
+      interaction_kind: table_builder
+      submit_fields: [gain_k, focus_frequency_rad_s, poles, step, slow, fast, chain]
+      student_task: 填写极点结构、阶跃过程、慢指令响应、快指令响应，并写出一条相互支撑的判断链。
+      activity_cards:
+        - id: four-cell-evidence
+          title: 航向闭环四格证据链
+          prompt: 填写四格观察并写出一条多域证据相互支撑的判断。
+          response_kind: table.builder
+          fields: [{key: poles, label: 极点结构}, {key: step, label: 阶跃过程}, {key: slow, label: 慢指令响应}, {key: fast, label: 快指令响应}, {key: chain, label: 证据链判断}]
+          reference_answer: '-2±j2；约 4.321% 超调并收敛；0.3 rad/s 近似等幅且相位滞后小；3 rad/s 幅值降至约 0.664 且相位滞后约 94.76°。'
+          submit_scope: per_card
+          layout_span: full
+    teacher_controls: {release_activity: teacher_toggle, open_browse: page_load_open, teacher_step_reveal: not_applicable, reveal_reference_answer: teacher_toggle}
+    student_access: {default_visibility: hidden, release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: not_applicable, can_submit_without_browse: true}
+    telemetry_spec: {summary_fields: [viewed, workspaceSubmission], result_policy: explicit_workspace_submission_only}
+    teacher_insight_spec: {widgets: [submission_rate, response_summary]}
+    ai_context_spec: {delivery_mode: guided, page_goal: 用闭环T的极点、阶跃、慢指令和快指令证据形成判断链。, allowed_scope: [仅在提交后检查通道名称, 仅在提交后检查因果链完整性, 指出缺失证据], forbidden_scope: [提交前生成四格答案, 代替学生作答, 把环路L或扰动Td混入闭环T证据]}
+    acceptance_checks: [闭环T对象标签常显, focusFrequencyField与共享快慢锚点一致, 快慢频点精确读数仅在确认提交或教师揭示后显著显示, AI仅在提交后检查通道和因果链, 四格记录独立提交]
+    preview_contract: {route_kind: student_demo, demo_path: '/interactive-learning/courses/unit-1-4-time-frequency-views/student/demo?step=step-10'}
+
+  step-11:
+    title: 通道、双图与多域联读后测
+    layout: {template: post_quiz_with_intro, regions: [{id: intro, width: full, order: 1}, {id: activity, width: full, order: 2}, {id: feedback, width: full, order: 3}]}
+    modules:
+      - {id: page-intro, region: intro, kind: content.rich, must_be_visible: true, payload: {block_key: page-intro, title: 通道、双图与多域联读后测}}
+      - {id: postcheck, region: activity, kind: activity.panel, must_be_visible: true, payload: {title: 三项目标检验, responseContractId: choice.single}}
+      - {id: scoring-note, region: feedback, kind: content.rich, must_be_visible: true, payload: {block_key: scoring-note, title: 作答提醒}}
+    content_blocks:
+      - {id: page-intro, type: plain_text, body: '三道题分别检查闭环带宽对象、双图同源关系和扰动通道判断。'}
+      - {id: scoring-note, type: plain_text, body: '独立作答，评价口径将在全部提交或教师揭示后显示。'}
+    evidence_sequence: [page-intro, postcheck, scoring-note]
+    interaction_spec:
+      interaction_kind: quiz_group
+      student_task: 三题独立提交，完成本次课程目标检验。
+      activity_cards:
+        - {id: bandwidth-object, title: 闭环带宽的读取对象, prompt: 闭环 -3 dB 带宽应从哪一对象读取？, response_kind: choice.single, options: ['T(jω)', 'L(jω)', 任意 Nyquist 图, 闭环极点实部], reference_answer: 'T(jω)', submit_scope: per_card, layout_span: one_third}
+        - {id: same-frequency-translation, title: Bode 与 Nyquist 的同源关系, prompt: 对同一个传递函数，Bode 与 Nyquist 的每个频点可以互相翻译。, response_kind: choice.binary, options: [正确, 错误], reference_answer: 正确, submit_scope: per_card, layout_span: one_third}
+        - {id: disturbance-missing-information, title: 阵风抑制判断缺少的信息, prompt: 某同学用闭环指令通道 T_r(s) 的高频衰减证明阵风扰动被抑制。指出缺少的关键信息。, response_kind: text.short, reference_answer: 需要明确阵风注入位置并建立扰动到输出的传递函数 T_d(s)。, scoring_rubric: 同时提及扰动注入位置与扰动到输出通道为完整回答。, submit_scope: per_card, layout_span: one_third}
+      reveal_answer: after_all_submitted_or_teacher_reveal
+    teacher_controls: {release_activity: teacher_toggle, open_browse: not_applicable, teacher_step_reveal: not_applicable, reveal_reference_answer: teacher_toggle}
+    student_access: {default_visibility: hidden, release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: not_applicable, can_submit_without_browse: true}
+    telemetry_spec: {summary_fields: [viewed, submittedCards, objectiveAccuracy, shortAnswerSubmitted], result_policy: per_card_submission}
+    teacher_insight_spec: {widgets: [submission_rate, response_summary]}
+    ai_context_spec: {delivery_mode: guided, page_goal: 检验通道区分、双图互译和多域判断目标。, allowed_scope: [提交后解释错误原因, 提示短答缺失的信息类别], forbidden_scope: [提交前给出答案, 代写短答, 用单一关键词自动判定掌握]}
+    acceptance_checks: [后测不超过三题, 最多一道主观题, T与Td与L对象保持区分, 答案揭示与发放分离]
+    preview_contract: {route_kind: student_demo, demo_path: '/interactive-learning/courses/unit-1-4-time-frequency-views/student/demo?step=step-11'}
+
+  step-12:
+    title: 先标通道、再读图、最后联读
+    layout: {template: summary_figure_cards, regions: [{id: intro, width: full, order: 1}, {id: media, width: full, order: 2}, {id: summary, width: full, order: 3}, {id: closing, width: full, order: 4}]}
+    modules:
+      - {id: page-intro, region: intro, kind: content.rich, must_be_visible: true, payload: {block_key: page-intro, title: 先标通道、再读图、最后联读}}
+      - {id: summary-infographic, region: media, kind: content.figure, must_be_visible: true, payload: {block_key: summary-infographic, title: 时域与频域的多表征地图}}
+      - {id: takeaways, region: summary, kind: content.cardSet, must_be_visible: true, payload: {block_key: takeaways, title: 三条判断}}
+      - {id: boundaries, region: summary, kind: content.cardSet, must_be_visible: true, payload: {block_key: boundaries, title: 局限、重点难点与拓展思考}}
+      - {id: lesson-summary, region: closing, kind: content.rich, must_be_visible: true, payload: {block_key: lesson-summary, title: 课程总结与提交回看}}
+    content_blocks:
+      - {id: page-intro, type: plain_text, body: '回顾时域与频域的对象、读图顺序和多域证据可以互相支撑的条件。'}
+      - {id: summary-infographic, type: media, asset: '1-4-info.png', caption: '先标明输入输出通道，再读取对应图形，最后检查多域证据是否围绕同一对象或明确的反馈关系。'}
+      - {id: takeaways, type: bullet_list, items: ['时域看过程，频域看节律；两者描述同一输入输出关系的不同侧面。', '闭环带宽属于闭环通道，环路增益穿越频率属于环路对象；先标通道，指标才有意义。', 'Bode 与 Nyquist 同源，多域证据只有在对象一致或联系被明确说明时才能互相支撑。']}
+      - {id: boundaries, type: bullet_list, items: ['局限：本次课程不使用 Nyquist 围绕数判稳，不展开 Bode 渐近线绘制，也不把标准二阶换算推广到含零点或高阶系统。', '重点难点：通道区分、双图同源，以及四图联读时持续保留对象标签。', '拓展思考：两套系统的阶跃响应都满足要求，但其中一套对某段周期扰动更敏感，任务规范应怎样同时表达过程指标与频段指标？']}
+      - {id: lesson-summary, type: bullet_list, items: ['按“先标通道、再读图、最后联读”的顺序复述本课三条判断。', '已提交响应可在课堂活动记录中回看；教师可在共享教师端查看实际提交分布。', '本页不新增个人画像、答案性指标或频率原始轨迹采集。']}
+    evidence_sequence: [page-intro, summary-infographic, takeaways, boundaries, lesson-summary]
+    interaction_spec: {interaction_kind: none, student_task: 回看三条判断、适用边界与已提交响应。}
+    teacher_controls: {release_activity: not_applicable, open_browse: page_load_open, teacher_step_reveal: not_applicable, reveal_reference_answer: not_applicable}
+    student_access: {default_visibility: visible, release_required: false, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: not_applicable, can_submit_without_browse: not_applicable}
+    telemetry_spec: {summary_fields: [viewed, timeOnStep], result_policy: no_new_submission}
+    teacher_insight_spec: {widgets: [view_count]}
+    ai_context_spec: {delivery_mode: guided, page_goal: 回顾先标通道再读图最后联读的完整判断链。, allowed_scope: [解释总结卡, 引导口头复述, 说明已提交响应的回看入口], forbidden_scope: [新增作答任务, 代替学生复述, 生成提交内容, 声明未实现的学习分析]}
+    acceptance_checks: [信息图位于总结内容顶部, 课程总结与提交回看口径真实, T与Td与L边界保留, 本页无新增提交]
+    preview_contract: {route_kind: student_demo, demo_path: '/interactive-learning/courses/unit-1-4-time-frequency-views/student/demo?step=step-12'}

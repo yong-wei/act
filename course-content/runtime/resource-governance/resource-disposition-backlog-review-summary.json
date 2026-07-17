@@ -4,17 +4,17 @@
   "reviewerId": "residual-resource-disposition-implementing-agent",
   "reviewedAt": "2026-07-05T17:45:00.000Z",
   "totals": {
-    "reviewedResources": 5370,
-    "unresolvedDispositionBlockers": 1084,
+    "reviewedResources": 5510,
+    "unresolvedDispositionBlockers": 1048,
     "rawContentIncluded": false,
     "privacyMinimized": true
   },
   "byClassification": {
     "path-plannable": 234,
     "supporting-citation": 628,
-    "embedded-asset": 1367,
-    "evidence-producing": 1370,
-    "excluded-with-rationale": 1771
+    "embedded-asset": 1371,
+    "evidence-producing": 1396,
+    "excluded-with-rationale": 1881
   },
   "bySourceFamily": {
     "arena": 2,
@@ -26,28 +26,28 @@
     "knowledge-card": 295,
     "registered-resource": 166,
     "runtime-handout": 39,
-    "runtime-lesson-media": 783,
-    "runtime-lesson-module": 1377,
-    "runtime-lesson-step": 414,
+    "runtime-lesson-media": 787,
+    "runtime-lesson-module": 1487,
+    "runtime-lesson-step": 440,
     "textbook-search-document": 15,
     "textbook-section": 1007,
     "textbook": 6
   },
   "downstreamBlockers": {
-    "dependency": 1060,
-    "evidence-lineage": 6628,
-    "path-readiness": 13819,
-    "runtime-identity": 3227
+    "dependency": 1064,
+    "evidence-lineage": 6848,
+    "path-readiness": 14322,
+    "runtime-identity": 3367
   },
   "evidence": {
     "beforeResidualDispositionReview": {
-      "queuedResources": 5370,
-      "primaryQueueItems": 5370,
-      "dependentQueueItems": 21938
+      "queuedResources": 5510,
+      "primaryQueueItems": 5510,
+      "dependentQueueItems": 22593
     },
     "afterResidualDispositionReview": {
-      "reviewedResources": 5370,
-      "unresolvedDispositionBlockers": 1084
+      "reviewedResources": 5510,
+      "unresolvedDispositionBlockers": 1048
     },
     "itemJsonlPath": "course-content/runtime/resource-governance/resource-disposition-backlog-review-items.jsonl",
     "sourceAuditPath": "course-content/runtime/resource-governance/resource-field-completion-audit.jsonl",

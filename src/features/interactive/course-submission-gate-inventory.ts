@@ -41,6 +41,14 @@ export const COURSE_RESPONSE_PRODUCING_LESSON_INVENTORY: readonly ManifestSubmis
     minimumResponseSteps: 7,
   },
   {
+    lessonId: '1-4',
+    routeSegment: 'unit-1-4-time-frequency-views',
+    manifestPath: 'course-content/runtime/lessons/1-4/interactive-manifest.json',
+    studentPagePath: 'src/features/interactive/unit-1-4-time-frequency-views/student-page.tsx',
+    manifestGetterName: 'getUNIT_1_4ManifestStepFromManifest',
+    minimumResponseSteps: 9,
+  },
+  {
     lessonId: '1-5',
     routeSegment: 'unit-1-5-three-domain-gain-sweep',
     manifestPath: 'course-content/runtime/lessons/1-5/interactive-manifest.json',

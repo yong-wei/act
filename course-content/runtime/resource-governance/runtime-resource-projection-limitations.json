@@ -1,6 +1,6 @@
 {
   "artifactVersion": "runtime-resource-projections.v1",
-  "generatedAt": "2026-07-16T00:30:00.000Z",
+  "generatedAt": "2026-07-17T00:21:45.583Z",
   "versionRefs": {
     "artifactVersioningVersion": "kaq-artifact-versioning.v1",
     "learningGoalPackageVersion": "learning-goal-package/v1",
@@ -13,26 +13,26 @@
     "groundingVersion": "konling-graph-grounding.v1"
   },
   "totals": {
-    "rows": 3118,
-    "resourceNodeCandidates": 740,
-    "segmentOnly": 2378,
+    "rows": 3258,
+    "resourceNodeCandidates": 766,
+    "segmentOnly": 2492,
     "registryPathEligible": 2,
     "planningUnitEligible": 0,
-    "humanConfirmed": 2763,
-    "provisional": 36,
-    "stale": 1636
+    "humanConfirmed": 2939,
+    "provisional": 0,
+    "stale": 1834
   },
   "byFamily": {
-    "runtime-lesson-step": 461,
-    "runtime-lesson-module": 1377,
-    "runtime-lesson-media": 783,
+    "runtime-lesson-step": 487,
+    "runtime-lesson-module": 1487,
+    "runtime-lesson-media": 787,
     "runtime-handout": 39,
     "knowledge-card": 297,
     "knowledge-infograph": 161
   },
   "byProjectionLevel": {
-    "ResourceNode": 740,
-    "ResourceSegment": 2378,
+    "ResourceNode": 766,
+    "ResourceSegment": 2492,
     "CitationTarget": 0,
     "RetrievalChunk": 0,
     "PlanningUnit": 0
@@ -48,8 +48,7 @@
     "missing-knowledge-binding",
     "missing-path-profile",
     "missing-path-target",
-    "missing-segment-ref",
-    "provisional-metadata"
+    "missing-segment-ref"
   ],
   "limitations": [
     "infograph:Bode图_1_1: missing-evidence-contract, missing-evidence-instrumentation, missing-path-profile, missing-path-target",

@@ -132,6 +132,53 @@ export function validateChangedRuntimeResourceProjections(
   };
 }
 
+export function validateChangedRuntimeResourceProjectionChanges(
+  rows: readonly RuntimeResourceProjectionInput[],
+  deletedRows: readonly RuntimeResourceProjectionInput[],
+): NewResourceGateResult {
+  const deletedRowsById = new Map(deletedRows.map((row) => [row.id, row]));
+  const rowsRequiringReview = rows.filter((row) => !runtimeProjectionIsDerivedCitationSafetyTightening(
+    deletedRowsById.get(row.id),
+    row,
+  ));
+  const result = validateChangedRuntimeResourceProjections(rowsRequiringReview);
+  return {
+    ...result,
+    checked: rows.length,
+  };
+}
+
+export function runtimeProjectionIsDerivedCitationSafetyTightening(
+  previous: RuntimeResourceProjectionInput | undefined,
+  current: RuntimeResourceProjectionInput,
+): boolean {
+  const previousProjection = previous as (RuntimeResourceProjectionInput & {
+    groundingEligibility?: { citationReady?: boolean; [key: string]: unknown };
+  }) | undefined;
+  const currentProjection = current as RuntimeResourceProjectionInput & {
+    groundingEligibility?: { citationReady?: boolean; [key: string]: unknown };
+  };
+  if (!previousProjection || previousProjection.id !== currentProjection.id) return false;
+  if (previousProjection.reviewAudit?.status !== 'stale' || currentProjection.reviewAudit?.status !== 'stale') return false;
+  if (previousProjection.projectionLevel !== 'ResourceSegment' || currentProjection.projectionLevel !== 'ResourceSegment') return false;
+  if (runtimeProjectionIsPathEligible(previousProjection) || runtimeProjectionIsPathEligible(currentProjection)) return false;
+  if (
+    previousProjection.runtimeSemanticEvidence?.assetStatus !== 'missing-local-runtime-asset' ||
+    currentProjection.runtimeSemanticEvidence?.assetStatus !== 'missing-local-runtime-asset'
+  ) return false;
+  if (
+    previousProjection.groundingEligibility?.citationReady !== true ||
+    currentProjection.groundingEligibility?.citationReady !== false
+  ) return false;
+  return canonicalJson({
+    ...previousProjection,
+    groundingEligibility: {
+      ...previousProjection.groundingEligibility,
+      citationReady: false,
+    },
+  }) === canonicalJson(currentProjection);
+}
+
 export function mergeGateResults(results: readonly NewResourceGateResult[]): NewResourceGateResult {
   const issues = results.flatMap((result) => result.issues);
   return {
@@ -584,6 +631,18 @@ function validateRuntimeResourceProjection(row: RuntimeResourceProjectionInput):
   return issues;
 }
 
+function canonicalJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
+  if (value && typeof value === 'object') {
+    const record = value as Record<string, unknown>;
+    return `{${Object.keys(record)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${canonicalJson(record[key])}`)
+      .join(',')}}`;
+  }
+  return JSON.stringify(value);
+}
+
 function isModelClearedRetrievalProjection(row: RuntimeResourceProjectionInput): boolean {
   const audit = row.reviewAudit;
   return audit?.status === 'model-cleared' &&
@@ -721,10 +780,22 @@ function runtimeProjectionReviewSourceMatches(row: RuntimeResourceProjectionInpu
   if (isKnowledgeRuntimeProjection(row)) {
     return audit?.reviewedSourceHash === row.sourceHash;
   }
+  if (isRuntimeLessonSemanticProjection(row)) {
+    return audit?.reviewedSourceHash === row.sourceHash;
+  }
   if (audit?.promptOrManifestHash) {
     return audit.reviewedSourceHash === audit.promptOrManifestHash;
   }
   return audit?.reviewedSourceHash === row.sourceHash;
+}
+
+function isRuntimeLessonSemanticProjection(row: RuntimeResourceProjectionInput): boolean {
+  const family = (row as RuntimeResourceProjectionInputWithFamily).family;
+  return Boolean(row.runtimeSemanticEvidence) && (
+    family === 'runtime-lesson-step' ||
+    family === 'runtime-lesson-module' ||
+    family === 'runtime-lesson-media'
+  );
 }
 
 function isKnowledgeRuntimeProjection(row: RuntimeResourceProjectionInput): boolean {

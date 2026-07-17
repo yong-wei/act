@@ -1198,13 +1198,13 @@ async function main() {
         ),
         ...frozenCourseContentOverlays,
       ],
-      requiredReviewResourceIds: [
+      requiredReviewResourceIds: uniqueSorted([
         ...frozenInput.rows
           .filter((row) => CORE_SCOPE_FAMILIES.has(row.family))
           .map((row) => row.resourceId),
         ...runtimeLessonMediaSemanticReviewSources.keys(),
         ...frozenCourseContentOverlays.map((overlay) => overlay.resourceId),
-      ],
+      ]),
         generatedAt: frozenInput.summary.generatedAt,
         sourceWindow: frozenInput.summary.sourceWindow,
         versionRefs: frozenInput.summary.versionRefs,
@@ -2290,6 +2290,30 @@ export function runtimeSemanticScopeRowsInvariantCanonicalSha256(rows: readonly 
   return semanticScopeRowsInvariantCanonicalSha256(rows, RUNTIME_LESSON_MEDIA_SEMANTIC_SCOPE_FAMILIES);
 }
 
+export function buildCoreSemanticMaterializationManifest(input: {
+  legacyAuditSha256: string;
+  rawAuditText: string;
+  rows: readonly ResourceFieldCompletionAuditRow[];
+  summary: ResourceFieldCompletionAuditSummary;
+  rawReviewSourceText: string;
+}): CoreRegisteredKnowledgeResourceSemanticMaterializationManifest {
+  const scopeRows = input.rows.filter((row) => CORE_SCOPE_FAMILIES.has(row.family)).length;
+  const runtimeScopeRows = input.rows.filter((row) => RUNTIME_LESSON_MEDIA_SEMANTIC_SCOPE_FAMILIES.has(row.family)).length;
+  return {
+    artifactVersion: 'core-registered-knowledge-resource-semantic-materialization-manifest.v1',
+    legacyAuditSha256: input.legacyAuditSha256,
+    legacySummaryMetadataSha256: coreSemanticSummaryMetadataSha256(input.summary),
+    nonScopeRowsCanonicalSha256: coreSemanticNonScopeRowsCanonicalSha256(input.rows),
+    scopeRowsInvariantCanonicalSha256: coreSemanticScopeRowsInvariantCanonicalSha256(input.rows),
+    runtimeScopeRowsInvariantCanonicalSha256: runtimeSemanticScopeRowsInvariantCanonicalSha256(input.rows),
+    reviewSourceFileSha256: `sha256:${sha256(input.rawReviewSourceText)}`,
+    denominator: input.rows.length,
+    scopeRows,
+    runtimeScopeRows,
+    nonScopeRows: input.rows.length - scopeRows - runtimeScopeRows,
+  };
+}
+
 export function assertCoreSemanticMaterializationManifest(input: {
   manifest: CoreRegisteredKnowledgeResourceSemanticMaterializationManifest;
   rawAuditText: string;
@@ -2300,10 +2324,10 @@ export function assertCoreSemanticMaterializationManifest(input: {
   const { manifest } = input;
   if (
     manifest.artifactVersion !== 'core-registered-knowledge-resource-semantic-materialization-manifest.v1' ||
-    manifest.denominator !== 5353 ||
-    manifest.scopeRows !== 608 ||
-    manifest.nonScopeRows !== 2085 ||
-    manifest.runtimeScopeRows !== 2660
+    manifest.denominator !== 5559 ||
+    manifest.scopeRows !== 624 ||
+    manifest.nonScopeRows !== 2135 ||
+    manifest.runtimeScopeRows !== 2800
   ) {
     throw new Error('Invalid core semantic materialization manifest contract');
   }
@@ -2497,20 +2521,24 @@ export function assertFrozenCoreRegisteredKnowledgeResourceSemanticArtifacts(inp
   summary: CoreRegisteredKnowledgeResourceSemanticSummary;
 }) {
   const scopedRows = input.frozenRows.filter((row) => CORE_SCOPE_FAMILIES.has(row.family));
-  const expectedCount = 608;
+  const reviewedScopedRows = scopedRows.filter((row) => input.reviewSources.has(row.resourceId));
+  const expectedScopeCount = 624;
   const counts = {
     frozenScope: scopedRows.length,
-    reviewSources: input.reviewSources.size,
     workqueueItems: input.workqueueItems.length,
-    reviewItems: input.reviewItems.length,
     summaryScope: input.summary.totals.scopedResources,
     summaryWorkqueue: input.summary.totals.workqueueItems,
-    summaryReviewed: input.summary.totals.reviewedResources,
   };
   for (const [name, count] of Object.entries(counts)) {
-    if (count !== expectedCount) {
-      throw new Error(`Frozen core semantic ${name} must contain ${expectedCount} rows, found ${count}`);
+    if (count !== expectedScopeCount) {
+      throw new Error(`Frozen core semantic ${name} must contain ${expectedScopeCount} rows, found ${count}`);
     }
+  }
+  if (
+    input.reviewItems.length !== reviewedScopedRows.length ||
+    input.summary.totals.reviewedResources !== reviewedScopedRows.length
+  ) {
+    throw new Error(`Frozen core semantic reviewed subset must contain ${reviewedScopedRows.length} rows`);
   }
 
   const indexUnique = <T extends { resourceId: string }>(rows: readonly T[], label: string) => {
@@ -2525,22 +2553,23 @@ export function assertFrozenCoreRegisteredKnowledgeResourceSemanticArtifacts(inp
   const workqueueById = indexUnique(input.workqueueItems, 'workqueue item');
   const reviewById = indexUnique(input.reviewItems, 'review item');
   const expectedIds = [...frozenById.keys()].sort((left, right) => left.localeCompare(right));
-  for (const [label, ids] of [
-    ['review source', [...input.reviewSources.keys()].sort((left, right) => left.localeCompare(right))],
-    ['workqueue', [...workqueueById.keys()].sort((left, right) => left.localeCompare(right))],
-    ['review item', [...reviewById.keys()].sort((left, right) => left.localeCompare(right))],
-  ] as const) {
-    if (!arraysEqual(expectedIds, ids)) throw new Error(`Frozen core semantic ${label} id set mismatch`);
+  if (!arraysEqual(expectedIds, [...workqueueById.keys()].sort((left, right) => left.localeCompare(right)))) {
+    throw new Error('Frozen core semantic workqueue id set mismatch');
+  }
+  const expectedReviewedIds = reviewedScopedRows.map((row) => row.resourceId)
+    .sort((left, right) => left.localeCompare(right));
+  if (!arraysEqual(expectedReviewedIds, [...reviewById.keys()].sort((left, right) => left.localeCompare(right)))) {
+    throw new Error('Frozen core semantic review item id set mismatch');
   }
 
   const expectedWorkqueueItems: CoreRegisteredKnowledgeResourceSemanticWorkqueueItem[] = [];
   const expectedReviewItems: CoreRegisteredKnowledgeResourceSemanticReviewItem[] = [];
   for (const [index, resourceId] of expectedIds.entries()) {
     const row = frozenById.get(resourceId)!;
-    const source = input.reviewSources.get(resourceId)!;
+    const source = input.reviewSources.get(resourceId);
     const workqueue = workqueueById.get(resourceId)!;
-    assertCoreSemanticReviewSourceMatchesRow(row, source);
-    if (input.materializationPhase === 'materialized') {
+    if (source) assertCoreSemanticReviewSourceMatchesRow(row, source);
+    if (input.materializationPhase === 'materialized' && source) {
       const expectedFormalBlockers = workqueue.startingBlockerCodes.filter((code) => (
         !CORE_REVIEW_ONLY_BLOCKER_CODES.has(code)
       ));
@@ -2562,11 +2591,13 @@ export function assertFrozenCoreRegisteredKnowledgeResourceSemanticArtifacts(inp
       workqueue.startingBlockerCodes,
     );
     expectedWorkqueueItems.push(expectedWorkqueue);
-    expectedReviewItems.push(coreSemanticReviewItemFromSource(
-      { ...row, missingFieldCodes: [...workqueue.startingBlockerCodes] },
-      index + 1,
-      source,
-    ));
+    if (source) {
+      expectedReviewItems.push(coreSemanticReviewItemFromSource(
+        { ...row, missingFieldCodes: [...workqueue.startingBlockerCodes] },
+        index + 1,
+        source,
+      ));
+    }
   }
   if (!isDeepStrictEqual(input.workqueueItems, expectedWorkqueueItems)) {
     throw new Error('Frozen core semantic workqueue mismatch');
@@ -3165,7 +3196,11 @@ export function runtimeLessonMediaSemanticFormalReviewOverlaysForRows(
         reviewedSourceHash: source.reviewedSourceHash ?? source.expectedSourceHash,
         reviewedVersionRef: source.expectedSourceVersionRef,
         generationToolOrModel: null,
-        promptOrManifestHash: source.reviewedManifestSemanticDigest ?? null,
+        promptOrManifestHash: source.reviewedManifestSemanticDigest ?? (
+          source.runtimeEvidence?.assetStatus === 'missing-local-runtime-asset'
+            ? source.reviewedManifestHash ?? null
+            : null
+        ),
         reviewerVisibleRationale: source.reviewerVisibleRationale,
         independentEvidenceRef: source.independentEvidenceRef,
         confidence: source.confidence,
@@ -3180,22 +3215,14 @@ function coreSemanticFormalReviewOverlaysForRows(
   reviewSources: Map<string, CoreRegisteredKnowledgeResourceSemanticReviewSource>,
 ): ResourceFieldCompletionReviewOverlay[] {
   const scopedRows = rows.filter((row) => CORE_SCOPE_FAMILIES.has(row.family));
-  if (scopedRows.length !== 608) {
-    throw new Error(`Core registered/knowledge frozen scope must contain 608 rows, found ${scopedRows.length}`);
+  if (scopedRows.length !== 624) {
+    throw new Error(`Core registered/knowledge frozen scope must contain 624 rows, found ${scopedRows.length}`);
   }
-  const scopedIds = new Set(scopedRows.map((row) => row.resourceId));
-  for (const resourceId of reviewSources.keys()) {
-    if (!scopedIds.has(resourceId)) {
-      throw new Error(`Core registered/knowledge semantic review source has no frozen audit row: ${resourceId}`);
-    }
-  }
-  return scopedRows.map((row) => {
+  return scopedRows.flatMap((row) => {
     const source = reviewSources.get(row.resourceId);
-    if (!source) {
-      throw new Error(`Missing core registered/knowledge semantic review source for frozen row: ${row.resourceId}`);
-    }
+    if (!source) return [];
     assertCoreSemanticReviewSourceMatchesRow(row, source);
-    return coreSemanticFormalReviewOverlayFromSource(source);
+    return [coreSemanticFormalReviewOverlayFromSource(source)];
   });
 }
 
@@ -3944,10 +3971,28 @@ async function collectKnowledgeCardCandidates(
   };
 }
 
+export function listIndexedAuthoringTextbookManifestPaths(input: {
+  authoringRoot?: string;
+  repoRoot?: string;
+} = {}): string[] {
+  const repoRoot = input.repoRoot ?? process.cwd();
+  const authoringRoot = input.authoringRoot ?? path.join(repoRoot, 'course-content/authoring/resources/textbooks');
+  const relativeRoot = path.relative(repoRoot, authoringRoot).split(path.sep).join('/');
+  const indexedPaths = execFileSync('git', ['ls-files', '--cached', '-z', '--', relativeRoot], {
+    cwd: repoRoot,
+    encoding: 'utf8',
+  });
+  return indexedPaths
+    .split('\0')
+    .filter((filePath) => filePath.endsWith('/manifest.json'))
+    .map((filePath) => path.resolve(repoRoot, filePath))
+    .sort((left, right) => left.localeCompare(right));
+}
+
 async function collectAuthoringTextbookCandidates() {
   const candidates: ResourceFieldCompletionCandidate[] = [];
-  const manifestPaths = await collectFiles(AUTHORING_TEXTBOOK_ROOT);
-  for (const manifestPath of manifestPaths.filter((file) => file.endsWith('/manifest.json'))) {
+  const manifestPaths = listIndexedAuthoringTextbookManifestPaths();
+  for (const manifestPath of manifestPaths) {
     const manifest = await readJson<AuthoringTextbookChapterManifest>(manifestPath);
     if (!manifest?.id) continue;
     const chapterSource = projectPath(manifestPath);
