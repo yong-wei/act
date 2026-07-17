@@ -20,6 +20,12 @@ export interface TeacherReviewQuestionItem {
   gradingRunId: string | null;
 }
 
+export function responseKindToSubmissionResponseType(
+  responseKind: TeacherReviewQuestionItem["responseKind"],
+) {
+  return responseKind === "DOCUMENT" ? "SUBJECTIVE_FILE" : "SUBJECTIVE_TEXT";
+}
+
 export interface TeacherReviewSubmissionItem {
   id: string;
   studentId: string;
@@ -89,6 +95,7 @@ export interface TeacherReviewDetail {
   questionId: string;
   questionTitle: string;
   questionPrompt: string;
+  responseKind: TeacherReviewQuestionItem["responseKind"];
   status: TeacherReviewStatus;
   questions: TeacherReviewQuestionItem[];
   evidence: TeacherReviewEvidence | null;
@@ -373,6 +380,7 @@ export function normalizeTeacherReviewDetail(
     questionId,
     questionTitle: stringFrom(question.title ?? question.label ?? promptSnapshot.title, "未命名题目"),
     questionPrompt: stringFrom(question.prompt ?? promptSnapshot.prompt ?? promptSnapshot.text),
+    responseKind: normalizeQuestion(question, 0).responseKind,
     status: statusFrom(review.status ?? review.state ?? question.status ?? submission.status),
     questions: (arrayFrom(root.questions ?? submission.questions).length
       ? arrayFrom(root.questions ?? submission.questions)
@@ -434,7 +442,7 @@ function normalizeQuestion(
     `question-${index + 1}`,
   );
   const rawKind = stringFrom(
-    row.responseKind ?? row.answerKind ?? question.responseType,
+    row.responseKind ?? row.answerKind ?? row.responseType ?? question.responseType,
   ).toUpperCase();
   return {
     id,

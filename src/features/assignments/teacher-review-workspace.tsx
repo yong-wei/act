@@ -24,6 +24,7 @@ import {
   findQueueNeighbours,
   normalizeTeacherReviewDetail,
   normalizeTeacherSubmissionQueue,
+  responseKindToSubmissionResponseType,
   type TeacherReviewCriterion,
   type TeacherReviewDetail,
   type TeacherReviewQueueItem,
@@ -136,6 +137,9 @@ export function TeacherReviewWorkspace({
       setDetail(normalized);
       setCriteria(normalized.criteria);
       setOverallComment(normalized.overallComment);
+      setReturnResponseType(
+        responseKindToSubmissionResponseType(normalized.responseKind),
+      );
       setQueue(nextQueue);
       setEvidenceView("source");
       setLoadState("ready");

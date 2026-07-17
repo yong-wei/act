@@ -12,6 +12,7 @@ import {
   findQueueNeighbours,
   normalizeTeacherReviewDetail,
   normalizeTeacherSubmissionQueue,
+  responseKindToSubmissionResponseType,
   type TeacherReviewSubmissionItem,
 } from "../../assignments/teacher-review-contracts";
 import {
@@ -86,6 +87,25 @@ const submissions: TeacherReviewSubmissionItem[] = [
 ];
 
 describe("teacher assignment review UI contracts", () => {
+  it("matches returned resubmission types to the current question kind", () => {
+    expect(responseKindToSubmissionResponseType("TEXT")).toBe(
+      "SUBJECTIVE_TEXT",
+    );
+    expect(responseKindToSubmissionResponseType("DOCUMENT")).toBe(
+      "SUBJECTIVE_FILE",
+    );
+    expect(
+      normalizeTeacherReviewDetail({
+        submission: { id: "submission-1" },
+        question: {
+          id: "question-1",
+          responseType: "SUBJECTIVE_FILE",
+        },
+        review: { id: "review-1" },
+      })?.responseKind,
+    ).toBe("DOCUMENT");
+  });
+
   it("consumes the real assignment-list summary and preserves its review locator", () => {
     const item = normalizeTeacherAssignmentListItem({
       id: "assignment-1",
