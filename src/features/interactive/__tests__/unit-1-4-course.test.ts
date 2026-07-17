@@ -94,6 +94,37 @@ describe('unit 1-4 time frequency views course', () => {
     );
   });
 
+  it('keeps knowledge cards mapped to their intended runtime steps without duplicate groups', () => {
+    const graphOverlay = JSON.parse(readFileSync(graphOverlayPath, 'utf8')) as {
+      card_order: string[];
+      groups: Array<{ step_ids: string[]; node_ids: string[] }>;
+    };
+    const expectedNodeIdsByStep: Record<string, string[]> = {
+      'step-04': ['时域频域通道区分_1_4'],
+      'step-05': ['时域响应_1_1'],
+      'step-06': ['闭环带宽与环路穿越频率_1_4', '频域分析_2_2e257d89'],
+      'step-07': ['Bode与Nyquist同源表征_1_4', '开环幅相特性曲线_5_fd86e289'],
+      'step-08': ['多表征一致性读图_1_4'],
+      'step-12': ['多表征一致性读图_1_4'],
+    };
+
+    for (const [stepId, expectedNodeIds] of Object.entries(expectedNodeIdsByStep)) {
+      const matchingGroups = graphOverlay.groups.filter((group) => group.step_ids.includes(stepId));
+      expect(matchingGroups, stepId).toHaveLength(1);
+      expect(matchingGroups[0]?.node_ids, stepId).toEqual(expectedNodeIds);
+    }
+
+    expect(graphOverlay.card_order).toEqual([
+      '时域响应_1_1',
+      '时域频域通道区分_1_4',
+      '闭环带宽与环路穿越频率_1_4',
+      '频域分析_2_2e257d89',
+      'Bode与Nyquist同源表征_1_4',
+      '开环幅相特性曲线_5_fd86e289',
+      '多表征一致性读图_1_4',
+    ]);
+  });
+
   it('uses shared native capabilities for steps 5, 6, 7, 8, and 10', () => {
     const manifest = readManifest();
     const computeModules = (stepId: string) => manifest.steps

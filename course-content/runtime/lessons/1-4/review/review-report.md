@@ -35,3 +35,8 @@
 
 ## 导出结论
 - authoring 已作为审查源保留；runtime 仅包含本报告已确认生成的产物，缺失项与审查问题以上述检查结果为准。
+
+## 知识卡与后备图专项复核
+- 课程审查代理已复核当前 staged runtime 的 51 个 module 与 8 个 step：semantic digest 保持不变，父子关系、manifest pointer、telemetry、path 与 evidence 结论均正确。
+- 7 个关联知识卡保持知识查阅与引用支持边界，不因本轮复核提升为独立 PathNode 或真实人工审查。
+- 后备图 `1-4-fig-03b-loop-k8-bode.png` 已核对环路 `L(s)=8G0(s)`、0 dB 线及 `ωc≈1.820 rad/s`，数学与图形表达通过模型审查，保持 `model-cleared`、`currentPathEligible=false`。

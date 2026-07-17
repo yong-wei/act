@@ -1,6 +1,6 @@
 {
   "artifactVersion": "full-resource-path-readiness-gate.v1",
-  "generatedAt": "2026-07-17T00:21:45.583Z",
+  "generatedAt": "2026-07-17T03:49:36.289Z",
   "status": "failed",
   "sourceArtifacts": {
     "resourceFieldCompletion": "course-content/runtime/resource-governance/resource-field-completion-summary.json",
@@ -10,7 +10,7 @@
     "learningGoalReviewedBindings": "course-content/runtime/resource-governance/learning-goal-resource-baseline-reviewed-bindings.jsonl"
   },
   "resourceCoverage": {
-    "totalResources": 5559,
+    "totalResources": 5560,
     "familyTotals": {
       "arena": 2,
       "authoring-textbook-caption": 535,
@@ -21,7 +21,7 @@
       "knowledge-infograph": 161,
       "registered-resource": 166,
       "runtime-handout": 39,
-      "runtime-lesson-media": 787,
+      "runtime-lesson-media": 788,
       "runtime-lesson-module": 1487,
       "runtime-lesson-step": 487,
       "textbook": 6,
@@ -31,37 +31,37 @@
     "dispositionClassifications": {
       "path-plannable": 234,
       "supporting-citation": 628,
-      "embedded-asset": 1371,
+      "embedded-asset": 1372,
       "evidence-producing": 1396,
       "excluded-with-rationale": 1881
     },
-    "unaccountedCount": 1048,
+    "unaccountedCount": 1049,
     "invalidPromotionCount": 7,
-    "unreviewedSemanticCount": 2439,
-    "unresolvedGraphNodeResourceMissingCount": 4177,
+    "unreviewedSemanticCount": 2440,
+    "unresolvedGraphNodeResourceMissingCount": 4178,
     "downstreamBlockers": {
       "dependency": 1064,
-      "evidence-lineage": 6848,
-      "path-readiness": 14322,
+      "evidence-lineage": 6850,
+      "path-readiness": 14325,
       "runtime-identity": 3367
     },
-    "unresolvedDownstreamPathBlockers": 18753,
-    "evidenceLineageBlockerCount": 46,
+    "unresolvedDownstreamPathBlockers": 18756,
+    "evidenceLineageBlockerCount": 47,
     "followupBuckets": {
       "blocked-resource-completion-dependencies": 1064,
-      "complete-analysis-design-graph-resource-bindings": 7113,
+      "complete-analysis-design-graph-resource-bindings": 7115,
       "complete-citation-and-rag-bindings": 2034,
-      "complete-evidence-lineage-bindings": 6848,
+      "complete-evidence-lineage-bindings": 6850,
       "complete-foundation-graph-resource-bindings": 436,
       "repair-resource-identity-bindings": 1333,
-      "review-runtime-lesson-planning-units": 6773,
-      "review-runtime-media-handout-dispositions": 2502
+      "review-runtime-lesson-planning-units": 6774,
+      "review-runtime-media-handout-dispositions": 2503
     },
     "yangFanFixtureBlockers": {
       "blocked": true,
       "blockerCount": 22,
       "scopedBlockerCount": 22,
-      "globalLimitationCount": 1511,
+      "globalLimitationCount": 1512,
       "blockerFamilies": {
         "external-resource": 22
       },
@@ -495,7 +495,7 @@
     {
       "id": "unaccounted-resource-disposition",
       "severity": "blocking",
-      "count": 1048,
+      "count": 1049,
       "message": "Resources are missing a reviewed path-planning disposition.",
       "evidenceRefs": [
         "resource-disposition-backlog-review-summary.json"
@@ -504,7 +504,7 @@
     {
       "id": "unresolved-downstream-path-blockers",
       "severity": "blocking",
-      "count": 18753,
+      "count": 18756,
       "message": "Reviewed disposition output still carries downstream path-readiness, runtime-identity, or dependency blockers.",
       "evidenceRefs": [
         "resource-disposition-backlog-review-summary.json"
@@ -522,7 +522,7 @@
     {
       "id": "unreviewed-resource-semantics",
       "severity": "blocking",
-      "count": 2439,
+      "count": 2440,
       "message": "Resources still require reviewed semantic fields or reviewed limitations.",
       "evidenceRefs": [
         "resource-field-completion-summary.json"
@@ -531,7 +531,7 @@
     {
       "id": "unresolved-graph-node-resource-missing",
       "severity": "blocking",
-      "count": 4177,
+      "count": 4178,
       "message": "Resources still lack reviewed graph knowledge or capability bindings.",
       "evidenceRefs": [
         "resource-field-completion-audit.jsonl"
@@ -540,7 +540,7 @@
     {
       "id": "evidence-lineage-blockers",
       "severity": "blocking",
-      "count": 46,
+      "count": 47,
       "message": "Evidence-producing path resources still have hard evidence-lineage blockers.",
       "evidenceRefs": [
         "resource-evidence-lineage-readiness-summary.json"
@@ -558,7 +558,7 @@
     {
       "id": "yang-fan-fixture-limited-coverage",
       "severity": "warning",
-      "count": 1511,
+      "count": 1512,
       "message": "Yang Fan fixture-owned resources are scoped separately; unrelated global resource backlog remains visible as limited coverage.",
       "evidenceRefs": [
         "resource-evidence-lineage-readiness-summary.json"

@@ -9,6 +9,7 @@
 | 1-4-fig-01 | `1-4-fig-01-step-responses.png` | 代码直出图 | 三组增益的闭环阶跃响应 | Octave control 包 | ✅ |
 | 1-4-fig-02 | `1-4-fig-02-closed-loop-bode.png` | 代码直出图 | 闭环指令通道 Bode 与带宽 | Octave control 包 | ✅ |
 | 1-4-fig-03 | `1-4-fig-03-open-loop-bode.png` | 代码直出图 | 环路对象的 Bode 趋势 | Octave control 包 | ✅ |
+| 1-4-fig-03b | `1-4-fig-03b-loop-k8-bode.png` | 代码直出图 | step-06 环路面板的 L=8G0 Bode 后备图 | Octave control 包 | ✅ |
 | 1-4-fig-04 | `1-4-fig-04-open-loop-nyquist.png` | 代码直出图 | 与图 1-4-3 同源的 Nyquist 轨迹 | Octave control 包 | ✅ |
 | 1-4-fig-05 | `1-4-fig-05-four-views.png` | 代码直出图 | 闭环极点、阶跃与环路频率图并置 | Octave control 包 | ✅ |
 | 1-4-fig-06 | `1-4-fig-06-three-domain-reading.png` | 代码直出图 | 航向闭环三域联读 | Octave control 包 | ✅ |
@@ -50,6 +51,13 @@
 - **对象**：$G_0(s)=1/[s(s+4)]$
 - **内容**：幅频与相频上下排列，用于和图 1-4-4 做同源比较；不叠加闭环带宽标记。
 - **读图锚点**：$\omega=2\ \mathrm{rad/s}$ 时幅值约 $-19.03$ dB，相位约 $-116.57^\circ$。
+- **源文件**：`media/raw/generate_analysis_figures.m`
+
+### 1-4-fig-03b-loop-k8-bode
+
+- **对象**：环路传递 $L(s)=8G_0(s)=8/[s(s+4)]$
+- **内容**：幅频与相频上下排列；幅频图明确标出 0 dB 水平线，并在上下两幅图标出 $\omega_c\approx1.820\ \mathrm{rad/s}$ 竖线。
+- **用途边界**：仅供互动课程 step-06 的环路计算面板不可用时作为 fallback；不得替代图 1-4-3 的 $G_0(s)$ 同源 Bode/Nyquist 教学用途。
 - **源文件**：`media/raw/generate_analysis_figures.m`
 
 ### 1-4-fig-04-open-loop-nyquist
@@ -95,5 +103,6 @@
 ## 制作记录
 
 - 2026-07-14：封面、封底信息图和六张正文分析图完成。
-- 六张分析图由 Octave control 包计算并直接输出 PNG 与矢量 PDF；确定性指标记录在 `media/raw/generated-data/1-4-analysis-metrics.txt`。
+- 七张分析图由 Octave control 包计算并直接输出 PNG 与矢量 PDF；确定性指标记录在 `media/raw/generated-data/1-4-analysis-metrics.txt`。
 - 2026-07-15：逐项复核闭环带宽、环路穿越频率、两个频点响应和例题数值；现有图片无缺失占位。
+- 2026-07-17：新增 $L=8G_0$ 的 step-06 专用 fallback Bode 图，保留原图 1-4-3 的 $G_0$ 对象不变。

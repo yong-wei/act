@@ -1116,8 +1116,8 @@
               }
             ],
             "fallbackMedia": {
-              "src": "/course-runtime/lessons/1-4/media/1-4-fig-03-open-loop-bode.png",
-              "alt": "对象 G0(s) 的开环 Bode 后备图"
+              "src": "/course-runtime/lessons/1-4/media/1-4-fig-03b-loop-k8-bode.png",
+              "alt": "环路 L(s)=8G0(s) 的 Bode 后备图，标出 0 dB 线与增益穿越频率 ωc≈1.820 rad/s"
             }
           }
         },

@@ -163,8 +163,11 @@ const priorRuntimeStructureReviewCounts = new Map(['1-3', '1-5'].map((lessonKey)
   lessonKey,
   priorRuntimeStructureReviewSources.filter((item) => item.resourceId.startsWith(`runtime-step:${lessonKey}:`) || item.resourceId.startsWith(`runtime-module:${lessonKey}:`)).length,
 ]));
-const unit14RuntimeStructureReviewBatchId = 'unit-1-4-current-manifest-structure-review-2026-07-17';
-const unit14RuntimeStructureReviewSources = sourceItems.filter((item) => item.reviewBatchId === unit14RuntimeStructureReviewBatchId);
+const unit14ManifestRereviewBatchId = 'unit-1-4-knowledge-card-manifest-rereview-2026-07-17';
+const unit14SemanticBindingRereviewBatchId = 'unit-1-4-semantic-binding-rereview-2026-07-17';
+const unit14RuntimeStructureReviewSources = sourceItems.filter((item) => (
+  /^runtime-(?:step|module):1-4:/.test(item.resourceId)
+));
 const unit14ManifestHash = hashFile('course-content/runtime/lessons/1-4/interactive-manifest.json');
 const dedicatedClearanceRows = machineReviewItems.filter((item) => (
   ['1-3', '1-4', '1-5'].includes(item.lessonKey)
@@ -178,22 +181,22 @@ const lesson13Clearance = JSON.parse(readFileSync(
 const lesson13HandoutClearance = (lesson13Clearance.reviewed_resources as JsonRow[]).find(
   (item: JsonRow) => item.resourceId === 'runtime-handout:1-3',
 );
-assert(auditById.size === 2800, `expected 2,800 scoped audit rows, found ${auditById.size}`);
+assert(auditById.size === 2801, `expected 2,801 scoped audit rows, found ${auditById.size}`);
 assert(projectionById.size === auditById.size, 'projection and audit scoped denominators must match');
 assert(reviewItems.length === auditById.size, 'review scope must cover the complete audit denominator');
 assert(workqueueItems.length === auditById.size, 'workqueue scope must cover the complete audit denominator');
 assert(sourceItems.length === 2773, `expected 2,773 formal source rows, found ${sourceItems.length}`);
-assert(machineReviewItems.length === 27, `expected 27 machine-triaged rows, found ${machineReviewItems.length}`);
+assert(machineReviewItems.length === 28, `expected 28 machine-triaged rows, found ${machineReviewItems.length}`);
 assert(
   [...machineReviewItemsByLesson.keys()].every((lessonKey) => ['1-3', '1-4', '1-5'].includes(lessonKey)),
   'machine-triaged rows must remain limited to lessons 1-3, 1-4, and 1-5',
 );
-assert(dedicatedClearanceRows.length === 27, 'three reviewed units must retain exactly 27 dedicated-clearance-backed handout/media rows');
+assert(dedicatedClearanceRows.length === 28, 'three reviewed units must retain exactly 28 dedicated-clearance-backed handout/media rows');
 assert(dedicatedClearanceRows.every((item) => !sourceById.has(item.resourceId)), 'dedicated-clearance-backed handout/media rows must not require duplicate formal sources');
 assert(dedicatedClearanceRows.every((item) => {
   const audit = auditById.get(item.resourceId);
   return audit?.reviewStatus === 'model-cleared' && audit.reviewAudit?.reviewBatchId?.includes('content-clearance');
-}), 'all 27 handout/media machine rows must remain covered by dedicated content-clearance reviews');
+}), 'all 28 handout/media machine rows must remain covered by dedicated content-clearance reviews');
 assert(priorRuntimeStructureReviewSources.length === 108, 'the prior runtime structure review batch must retain exactly 108 unit 1-3/1-5 rows');
 assert(priorRuntimeStructureReviewCounts.get('1-3') === 36, 'prior runtime structure review batch must retain exactly 36 unit 1-3 step/module rows');
 assert(priorRuntimeStructureReviewCounts.get('1-5') === 72, 'prior runtime structure review batch must retain exactly 72 unit 1-5 step/module rows');
@@ -204,6 +207,8 @@ assert(priorRuntimeStructureReviewSources.every((item) => (
   && item.reviewState === 'human-confirmed'
 )), 'all 108 prior runtime structure review rows must remain human-confirmed, excluded with rationale, and non-promoted');
 assert(unit14RuntimeStructureReviewSources.length === 64, 'current unit 1-4 runtime structure review batch must cover exactly 64 rows');
+assert(unit14RuntimeStructureReviewSources.filter((item) => item.reviewBatchId === unit14ManifestRereviewBatchId).length === 59, 'unit 1-4 manifest re-review batch must contain exactly 59 rows');
+assert(unit14RuntimeStructureReviewSources.filter((item) => item.reviewBatchId === unit14SemanticBindingRereviewBatchId).length === 5, 'unit 1-4 semantic-binding re-review batch must retain exactly 5 rows');
 assert(unit14RuntimeStructureReviewSources.filter((item) => item.sourceFamily === 'runtime-lesson-step').length === 12, 'current unit 1-4 review must cover exactly 12 steps');
 assert(unit14RuntimeStructureReviewSources.filter((item) => item.sourceFamily === 'runtime-lesson-module').length === 52, 'current unit 1-4 review must cover exactly 52 modules');
 assert(unit14RuntimeStructureReviewSources.every((item) => (
@@ -222,8 +227,10 @@ assert(unit14RuntimeStructureReviewSources.every((item) => (
   && item.parentPlanningUnitRef === null
   && item.runtimeEvidence?.launch?.independent === false
   && item.runtimeEvidence?.evidence?.independent === false
-  && item.reviewerVisibleRationale.includes('作答遥测归父 step/lesson')
 )), 'all 64 current unit 1-4 structure rows must bind the current manifest pointer and remain human-confirmed without independent path/evidence eligibility');
+assert(unit14RuntimeStructureReviewSources
+  .filter((item) => item.reviewBatchId === unit14ManifestRereviewBatchId)
+  .every((item) => item.reviewerVisibleRationale.includes('作答遥测归父 step/lesson')), 'all 59 unit 1-4 manifest re-review rows must retain their item-specific telemetry rationale');
 assert(pendingRereviewSources.length === 274, `expected 274 freshness-invalidated sources, found ${pendingRereviewSources.length}`);
 assert(summary.totals.pendingRereviewRows === pendingRereviewSources.length, 'summary pending count must be derived from item states');
 const staleReasonCount = (reason: string) => pendingRereviewSources.filter((source) => (
@@ -264,7 +271,7 @@ assert(lesson13HandoutClearance?.pathTarget === '/course-runtime/lessons/1-3/1-3
 assert(lesson13HandoutClearance?.rationale.includes('作者态、PDF 与 runtime 内容一致'), '1-3 original human rationale must remain unchanged');
 assert(!sourceById.has('runtime-handout:1-3'), '1-3 handout must use its dedicated content-clearance source instead of a duplicate formal review-source row');
 assert(dedicatedClearanceRows.some((item) => item.resourceId === 'runtime-handout:1-3'), '1-3 handout must remain covered by its dedicated content-clearance review');
-assert(summary.totals.remaining === 301, 'closure workqueue must contain 274 pending-rereview rows plus 27 dedicated-clearance-backed machine rows');
+assert(summary.totals.remaining === 302, 'closure workqueue must contain 274 pending-rereview rows plus 28 dedicated-clearance-backed machine rows');
 assert(summary.totals.unexplainedUnreviewed === 0, 'closure workqueue cannot retain unexplained review gaps');
 assert(summary.guardrails.onlyIndependentLaunchAndEvidenceRowsPromoted === true, 'promotion guardrail must be explicit');
 assert(summary.guardrails.excludesTextbookReferenceAndAssessmentFamilies === true, 'scope guardrail must exclude textbook/reference/assessment');
@@ -328,7 +335,7 @@ const assetRereviewed = sourceItems.filter((item) => (
 ));
 assert(assetRereviewed.length === 116, 'all non-tracked media asset decisions must carry explicit current review provenance');
 const canonicalAssetRereviewed = assetRereviewed.filter((item) => item.reviewBatchId === assetRereviewBatchId);
-const unit14MissingMediaReviewed = assetRereviewed.filter((item) => item.reviewBatchId === 'unit-1-4-missing-runtime-media-current-manifest-review-2026-07-17');
+const unit14MissingMediaReviewed = assetRereviewed.filter((item) => item.reviewBatchId === 'unit-1-4-missing-media-current-manifest-rereview-2026-07-17');
 assert(canonicalAssetRereviewed.length === 112, 'the canonical asset re-review batch must retain its 112 reviewed decisions');
 assert(canonicalAssetRereviewed.every((item) => item.reviewerId === assetRereviewReviewerId && item.reviewedAt === assetRereviewedAt), 'canonical non-tracked media decisions must retain consistent re-review provenance');
 assert(unit14MissingMediaReviewed.length === 4, 'unit 1-4 must contain four explicitly reviewed missing formal media assets');

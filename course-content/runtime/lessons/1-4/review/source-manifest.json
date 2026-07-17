@@ -1,7 +1,7 @@
 {
   "lesson_id": "1-4",
   "unit_type": "理论",
-  "generated_at": "2026-07-16T22:40:11.079847+00:00",
+  "generated_at": "2026-07-17T03:02:13.274069+00:00",
   "primary_sources": [
     "course-content/authoring/lessons/1-4/design/1-4-handout.md",
     "course-content/authoring/lessons/1-4/design/1-4-interactive-page.md"
@@ -34,6 +34,11 @@
     },
     {
       "output": "1-4-fig-03-open-loop-bode.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-4-fig-03b-loop-k8-bode.png",
       "formula_mode": "none",
       "page_formula_sources": []
     },

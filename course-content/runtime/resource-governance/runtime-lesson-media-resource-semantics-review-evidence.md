@@ -1,8 +1,8 @@
 # Runtime lesson/media resource semantics closure
 
-Review batches: analysis-design-graph-resource-bindings-2026-07-04, foundation-graph-resource-bindings-2026-07-04, residual-runtime-handout-disposition-review-2026-07-05, residual-runtime-lesson-media-disposition-review-2026-07-05, residual-runtime-lesson-module-disposition-review-2026-07-05, residual-runtime-lesson-step-disposition-review-2026-07-05, runtime-lesson-media-asset-canonical-re-review-2026-07-13, runtime-lesson-planning-unit-review-2026-07-05, runtime-media-handout-disposition-review-2026-07-05, simulation-transfer-graph-resource-bindings-2026-07-04, unit-1-4-current-manifest-structure-review-2026-07-17, unit-1-4-missing-runtime-media-current-manifest-review-2026-07-17, units-1-3-1-5-runtime-structure-review-2026-07-17
-Scoped audit/projection rows: 2800
-Human-confirmed rows: 2526
+Review batches: analysis-design-graph-resource-bindings-2026-07-04, foundation-graph-resource-bindings-2026-07-04, residual-runtime-handout-disposition-review-2026-07-05, residual-runtime-lesson-media-disposition-review-2026-07-05, residual-runtime-lesson-module-disposition-review-2026-07-05, residual-runtime-lesson-step-disposition-review-2026-07-05, runtime-lesson-media-asset-canonical-re-review-2026-07-13, runtime-lesson-planning-unit-review-2026-07-05, runtime-media-handout-disposition-review-2026-07-05, simulation-transfer-graph-resource-bindings-2026-07-04, unit-1-4-knowledge-card-manifest-rereview-2026-07-17, unit-1-4-missing-media-current-manifest-rereview-2026-07-17, unit-1-4-semantic-binding-rereview-2026-07-17, units-1-3-1-5-runtime-structure-review-2026-07-17
+Scoped audit/projection rows: 2801
+Human-confirmed rows: 2527
 Pending re-review rows: 274
 Unexplained unreviewed rows: 0
 Promoted PlanningUnits: 0 (runtime lesson steps only)
@@ -11,7 +11,7 @@ Media/handout/module promotions: 0
 ## Family counts
 
 - runtime-handout: 39
-- runtime-lesson-media: 787
+- runtime-lesson-media: 788
 - runtime-lesson-module: 1487
 - runtime-lesson-step: 487
 

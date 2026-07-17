@@ -1,6 +1,6 @@
 {
   "artifactVersion": "runtime-resource-projections.v1",
-  "generatedAt": "2026-07-17T00:21:45.583Z",
+  "generatedAt": "2026-07-17T03:49:36.289Z",
   "versionRefs": {
     "artifactVersioningVersion": "kaq-artifact-versioning.v1",
     "learningGoalPackageVersion": "learning-goal-package/v1",
@@ -13,9 +13,9 @@
     "groundingVersion": "konling-graph-grounding.v1"
   },
   "totals": {
-    "rows": 3258,
+    "rows": 3259,
     "resourceNodeCandidates": 766,
-    "segmentOnly": 2492,
+    "segmentOnly": 2493,
     "registryPathEligible": 2,
     "planningUnitEligible": 0,
     "humanConfirmed": 2939,
@@ -25,14 +25,14 @@
   "byFamily": {
     "runtime-lesson-step": 487,
     "runtime-lesson-module": 1487,
-    "runtime-lesson-media": 787,
+    "runtime-lesson-media": 788,
     "runtime-handout": 39,
     "knowledge-card": 297,
     "knowledge-infograph": 161
   },
   "byProjectionLevel": {
     "ResourceNode": 766,
-    "ResourceSegment": 2492,
+    "ResourceSegment": 2493,
     "CitationTarget": 0,
     "RetrievalChunk": 0,
     "PlanningUnit": 0

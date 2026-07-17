@@ -104,7 +104,73 @@ const RESIDUAL_DISPOSITION_REVIEWED_AT = '2026-07-05T17:45:00.000Z' as const;
 const CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_REVIEW_BATCH_ID = 'core-registered-knowledge-resource-semantics-2026-07-09' as const;
 const CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_REVIEWER_ID = 'core-registered-knowledge-resource-implementing-agent' as const;
 const CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_REVIEWED_AT = '2026-07-09T16:30:00.000Z' as const;
+const UNIT_1_4_KNOWLEDGE_CARD_REREVIEW_BATCH_ID = 'unit-1-4-knowledge-card-rereview-2026-07-17-1023' as const;
+const UNIT_1_4_KNOWLEDGE_CARD_REREVIEWER_ID = 'core-registered-knowledge-resource-implementing-agent' as const;
+const UNIT_1_4_KNOWLEDGE_CARD_REREVIEWED_AT = '2026-07-17T02:23:59.000Z' as const;
+const UNIT_1_4_KNOWLEDGE_CARD_REREVIEW_RESOURCE_IDS = new Set([
+  'knowledge-card:时域响应_1_1',
+  'knowledge-card:频域分析_2_2e257d89',
+  'knowledge-card:开环幅相特性曲线_5_fd86e289',
+]);
 const MATERIALIZE_CORE_SEMANTIC_REVIEW_FLAG = '--materialize-core-semantic-review' as const;
+
+export function expectedCoreSemanticReviewFreezeForResourceId(resourceId: string) {
+  return UNIT_1_4_KNOWLEDGE_CARD_REREVIEW_RESOURCE_IDS.has(resourceId)
+    ? {
+        reviewBatchId: UNIT_1_4_KNOWLEDGE_CARD_REREVIEW_BATCH_ID,
+        reviewedAt: UNIT_1_4_KNOWLEDGE_CARD_REREVIEWED_AT,
+      }
+    : {
+        reviewBatchId: CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_REVIEW_BATCH_ID,
+        reviewedAt: CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_REVIEWED_AT,
+      };
+}
+
+export function assertCoreSemanticReviewFreeze(input: {
+  resourceId: string;
+  reviewBatchId: string;
+  reviewedAt: string;
+}) {
+  const expected = expectedCoreSemanticReviewFreezeForResourceId(input.resourceId);
+  if (input.reviewBatchId !== expected.reviewBatchId) {
+    throw new Error(`Unexpected core semantic review batch for ${input.resourceId}`);
+  }
+  if (input.reviewedAt !== expected.reviewedAt) {
+    throw new Error(`Unexpected core semantic reviewedAt for ${input.resourceId}`);
+  }
+}
+
+export function expectedResidualKnowledgeCardDispositionReviewFreezeForResourceId(resourceId: string) {
+  return UNIT_1_4_KNOWLEDGE_CARD_REREVIEW_RESOURCE_IDS.has(resourceId)
+    ? {
+        reviewBatchId: UNIT_1_4_KNOWLEDGE_CARD_REREVIEW_BATCH_ID,
+        reviewerId: UNIT_1_4_KNOWLEDGE_CARD_REREVIEWER_ID,
+        reviewedAt: UNIT_1_4_KNOWLEDGE_CARD_REREVIEWED_AT,
+      }
+    : {
+        reviewBatchId: 'residual-knowledge-card-disposition-review-2026-07-05',
+        reviewerId: 'residual-knowledge-card-implementing-agent',
+        reviewedAt: '2026-07-05T20:00:00.000Z',
+      };
+}
+
+export function assertResidualKnowledgeCardDispositionReviewFreeze(input: {
+  resourceId: string;
+  reviewBatchId: string;
+  reviewerId: string;
+  reviewedAt: string;
+}) {
+  const expected = expectedResidualKnowledgeCardDispositionReviewFreezeForResourceId(input.resourceId);
+  if (input.reviewBatchId !== expected.reviewBatchId) {
+    throw new Error(`Unexpected residual knowledge-card review batch for ${input.resourceId}`);
+  }
+  if (input.reviewerId !== expected.reviewerId) {
+    throw new Error(`Unexpected residual knowledge-card reviewer for ${input.resourceId}`);
+  }
+  if (input.reviewedAt !== expected.reviewedAt) {
+    throw new Error(`Unexpected residual knowledge-card reviewedAt for ${input.resourceId}`);
+  }
+}
 
 export function parseResourceFieldCompletionAuditCliArgs(args: readonly string[]) {
   if (args.length === 0) return { materializeCoreSemanticReview: false } as const;
@@ -1595,6 +1661,7 @@ async function loadResidualDispositionReviewSources(): Promise<Map<string, Resid
     });
   }
   for (const item of residualKnowledgeCard) {
+    assertResidualKnowledgeCardDispositionReviewFreeze(item);
     sources.set(item.resourceId, {
       classification: item.classification,
       reviewerVisibleRationale: item.reviewerVisibleRationale,
@@ -2324,10 +2391,10 @@ export function assertCoreSemanticMaterializationManifest(input: {
   const { manifest } = input;
   if (
     manifest.artifactVersion !== 'core-registered-knowledge-resource-semantic-materialization-manifest.v1' ||
-    manifest.denominator !== 5559 ||
+    manifest.denominator !== 5560 ||
     manifest.scopeRows !== 624 ||
     manifest.nonScopeRows !== 2135 ||
-    manifest.runtimeScopeRows !== 2800
+    manifest.runtimeScopeRows !== 2801
   ) {
     throw new Error('Invalid core semantic materialization manifest contract');
   }
@@ -3283,12 +3350,7 @@ function assertCoreSemanticReviewSourceMatchesRow(
   if (source.reviewerId !== CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_REVIEWER_ID) {
     throw new Error(`Unexpected core semantic reviewer for ${source.resourceId}`);
   }
-  if (source.reviewBatchId !== CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_REVIEW_BATCH_ID) {
-    throw new Error(`Unexpected core semantic review batch for ${source.resourceId}`);
-  }
-  if (source.reviewedAt !== CORE_REGISTERED_KNOWLEDGE_RESOURCE_SEMANTIC_REVIEWED_AT) {
-    throw new Error(`Unexpected core semantic reviewedAt for ${source.resourceId}`);
-  }
+  assertCoreSemanticReviewFreeze(source);
   if (!CORE_SCOPE_FAMILIES.has(row.family)) {
     throw new Error(`Out-of-scope core semantic audit row: ${row.resourceId}`);
   }

@@ -201,7 +201,7 @@ steps:
           sharedFrequencyAnchors: []
           request: *gain_request
           submissionFields: [{key: loop_gain_crossover_rad_s, label: 环路 0 dB 穿越频率, input: number}]
-          fallbackMedia: {src: '/course-runtime/lessons/1-4/media/1-4-fig-03-open-loop-bode.png', alt: '对象 G0(s) 的开环 Bode 后备图'}
+          fallbackMedia: {src: '/course-runtime/lessons/1-4/media/1-4-fig-03b-loop-k8-bode.png', alt: '环路 L(s)=8G0(s) 的 Bode 后备图，标出 0 dB 线与增益穿越频率 ωc≈1.820 rad/s'}
       - {id: definition-cards, region: definitions, kind: content.cardSet, must_be_visible: true, payload: {block_key: definition-cards, title: 带宽与增益穿越频率}}
       - {id: definition-check, region: definitions, kind: activity.panel, must_be_visible: true, payload: {title: 两个频率标志的关系, responseContractId: choice.binary}}
     content_blocks:
