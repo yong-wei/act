@@ -2208,7 +2208,8 @@ function buildRuntimeProjectionResourceNodes(projections: RuntimeResourceProject
 function isRuntimeResourceProjectionResourceNodeCandidate(
   projection: RuntimeResourceProjectionInput,
 ): boolean {
-  return isResourceNodeType(projection.resourceType) || projection.resourceType === 'image';
+  return projection.lifecycleScope !== 'audit-only' &&
+    (isResourceNodeType(projection.resourceType) || projection.resourceType === 'image');
 }
 
 function runtimeProjectionResourceNodeType(

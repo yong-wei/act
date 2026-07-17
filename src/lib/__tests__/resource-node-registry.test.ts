@@ -296,6 +296,111 @@ function runtimeProjectionSidecar(
 }
 
 describe('resource node registry', () => {
+  it('does not materialize audit-only runtime projections as ResourceNodes', () => {
+    const projectionId = 'textbook-section:book:synthetic-audit-only';
+    const registry = buildResourceNodeRegistry({
+      runtimeResourceProjections: [runtimeProjectionSidecar({
+        id: projectionId,
+        resourceNodeId: null,
+        resourceType: 'textbook_section',
+        sourceKind: 'textbook_section',
+        sourceRef: projectionId,
+        sourceRecord: projectionId,
+        lifecycleScope: 'audit-only',
+        privacyScope: 'teacher-scoped',
+        teacherPolicy: 'teacher-only',
+      })],
+    });
+
+    expect(registry.nodes).toEqual([]);
+    expect(registry.edges).toEqual([]);
+  });
+
+  it('keeps audit-only projection IDs from merging into existing textbook sections', () => {
+    const projectionId = 'textbook-section:book:section-1';
+    const registry = buildResourceNodeRegistry({
+      textbookSections: [{
+        bookId: 'book',
+        sectionId: 'section-1',
+        title: 'Existing reviewed section',
+        citationHref: '/course-runtime/resources/textbooks/book/sections/section-1',
+        knowledgeNodeIds: ['kn-existing'],
+      }],
+      runtimeResourceProjections: [runtimeProjectionSidecar({
+        id: projectionId,
+        resourceNodeId: null,
+        title: 'Audit-only duplicate title',
+        resourceType: 'textbook_section',
+        sourceKind: 'textbook_section',
+        sourceRef: 'authoring-textbook-section:book:section-1',
+        sourceRecord: 'authoring-textbook-section:book:section-1',
+        lifecycleScope: 'audit-only',
+        privacyScope: 'teacher-scoped',
+        teacherPolicy: 'teacher-only',
+      })],
+    });
+
+    expect(registry.nodes).toHaveLength(1);
+    expect(registry.nodes[0]).toMatchObject({
+      id: projectionId,
+      title: 'Existing reviewed section',
+      runtimeProjection: null,
+      planningMetadata: { knowledgeCoverage: ['kn-existing'] },
+    });
+    expect(registry.nodes[0].sourceRefs).not.toContainEqual(expect.objectContaining({
+      ref: 'authoring-textbook-section:book:section-1',
+    }));
+  });
+
+  it('still materializes non-audit model-cleared teacher-only retrieval projections', () => {
+    const projectionId = 'textbook-section:book:model-cleared-retrieval';
+    const registry = buildResourceNodeRegistry({
+      runtimeResourceProjections: [runtimeProjectionSidecar({
+        id: projectionId,
+        resourceNodeId: null,
+        resourceType: 'textbook_section',
+        sourceKind: 'textbook_section',
+        sourceRef: projectionId,
+        sourceRecord: projectionId,
+        projectionLevel: 'ResourceSegment',
+        lifecycleScope: 'runtime',
+        routeTarget: null,
+        renderTarget: '/course-runtime/resources/textbooks/book/sections/model-cleared-retrieval',
+        privacyScope: 'teacher-scoped',
+        teacherPolicy: 'teacher-only',
+        reviewAudit: {
+          ...runtimeProjectionSidecar({}).reviewAudit!,
+          status: 'model-cleared',
+        },
+        groundingEligibility: {
+          retrievalReady: true,
+          citationReady: true,
+          authoringTriageReady: false,
+        },
+        pathEligibility: {
+          current: false,
+          afterCompletion: false,
+          masteryAffecting: false,
+          blockedBy: ['missing-human-review'],
+        },
+      })],
+    });
+
+    expect(registry.nodes).toHaveLength(1);
+    expect(registry.nodes[0]).toMatchObject({
+      id: projectionId,
+      runtimeProjection: {
+        id: projectionId,
+        projectionLevel: 'ResourceSegment',
+        reviewAudit: { status: 'model-cleared' },
+      },
+      planningMetadata: {
+        privacyLevel: 'teacher-scoped',
+        teacherPolicy: 'teacher-only',
+      },
+    });
+  });
+
   it('loads an audited versioned control-correction seed graph across required resource types', () => {
     const registry = buildControlCorrectionResourceNodeRegistry();
     const eligibleNodes = registry.nodes.filter((node) => node.eligibility.pathEligible);

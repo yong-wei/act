@@ -5,12 +5,31 @@ import {
   RUNTIME_RESOURCE_PROJECTION_ARTIFACT_VERSION,
 } from '../runtime-resource-projections';
 import { buildResourceFieldCompletionAudit } from '../resource-field-completion-audit';
+import { loadRuntimeResourceProjectionInputs } from '../teacher-resource-node-data';
 import {
   buildResourceNodeRegistry,
   type RuntimeResourceProjectionSemanticEvidence,
 } from '../resource-node-registry';
 
 describe('runtime resource projections', () => {
+  it('retains all 3,082 longform audit rows without materializing ResourceNodes', async () => {
+    const projections = await loadRuntimeResourceProjectionInputs({ allowMissing: false });
+    const auditOnlyProjections = projections.filter((projection) => projection.lifecycleScope === 'audit-only');
+    const runtimeProjections = projections.filter((projection) => projection.lifecycleScope !== 'audit-only');
+    const fullRegistry = buildResourceNodeRegistry({
+      runtimeResourceProjections: projections,
+    });
+    const auditOnlyRegistry = buildResourceNodeRegistry({ runtimeResourceProjections: auditOnlyProjections });
+    const runtimeRegistry = buildResourceNodeRegistry({ runtimeResourceProjections: runtimeProjections });
+
+    expect(auditOnlyProjections).toHaveLength(3_082);
+    expect(auditOnlyProjections.every((projection) => projection.resourceNodeId === null)).toBe(true);
+    expect(auditOnlyRegistry.nodes).toEqual([]);
+    expect(auditOnlyRegistry.edges).toEqual([]);
+    expect(fullRegistry.nodes.map((node) => node.id)).toEqual(runtimeRegistry.nodes.map((node) => node.id));
+    expect(fullRegistry.nodes).toHaveLength(3_259);
+  });
+
   it('builds sidecar rows for runtime lessons, knowledge cards, and infographs', () => {
     const audit = buildResourceFieldCompletionAudit({
       registry: buildResourceNodeRegistry({}),

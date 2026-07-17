@@ -220,7 +220,8 @@ function summarizeRuntimeProjectionRows(
     totals: {
       rows: rows.length,
       resourceNodeCandidates: rows.filter((row) =>
-        row.projectionLevel === 'ResourceNode' || row.projectionLevel === 'PlanningUnit'
+        row.lifecycleScope !== 'audit-only' &&
+        (row.projectionLevel === 'ResourceNode' || row.projectionLevel === 'PlanningUnit')
       ).length,
       segmentOnly: rows.filter((row) => row.projectionLevel === 'ResourceSegment').length,
       registryPathEligible: rows.filter((row) => row.pathEligibility.current).length,
