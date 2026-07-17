@@ -9,6 +9,7 @@ import {
   evaluateAssignmentReviewCompleteness,
   getTeacherAssignmentReview,
   resolveTeacherAssignmentReviewAuthorization,
+  requestTeacherAssignmentFeedbackRelease,
   returnTeacherAssignmentReview,
   saveTeacherAssignmentReview,
   TeacherAssignmentReviewError,
@@ -87,6 +88,43 @@ function reviewFixture() {
 }
 
 describe('teacher assignment review persistence', () => {
+  it('resets a terminal reviewed derivative before retrying its outbox command', async () => {
+    const review: any = {
+      ...reviewFixture(),
+      state: 'APPROVED',
+      approvalSnapshot: { id: 'snapshot-1' },
+    };
+    const resetDerivative = vi.fn().mockResolvedValue({ count: 1 });
+    const db: any = {
+      $transaction: (callback: (tx: any) => Promise<any>) => callback(db),
+      teacherAssignmentReview: { findUnique: vi.fn().mockResolvedValue(review) },
+      teacherAssignmentReviewedDerivative: { updateMany: resetDerivative },
+      teacherAssignmentReviewOutbox: {
+        findMany: vi.fn().mockResolvedValue([
+          { id: 'derivative-command', command: 'GENERATE_DERIVATIVE', state: 'FAILED' },
+          { id: 'release-command', command: 'RELEASE_STUDENT_FEEDBACK', state: 'BLOCKED', payload: {} },
+        ]),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+        update: vi.fn(),
+      },
+      assignmentSubmission: { update: vi.fn() },
+    };
+
+    await requestTeacherAssignmentFeedbackRelease(db, {
+      actor: { id: 'teacher-1', role: 'TEACHER' },
+      assignmentId: 'assignment-1',
+      submissionId: 'submission-1',
+      reviewId: 'review-1',
+      mode: 'RETRY_DERIVATIVE',
+      now,
+    });
+
+    expect(resetDerivative).toHaveBeenCalledWith(expect.objectContaining({
+      where: { snapshotId: 'snapshot-1', state: { in: ['BLOCKED', 'FAILED'] } },
+      data: expect.objectContaining({ state: 'RETRYABLE', lastErrorCode: null }),
+    }));
+  });
+
   it.each(['BLOCKED', 'FAILED', 'CONTENT_UNAVAILABLE'])(
     'exposes terminal grading state %s as a blocked teacher queue item',
     (state) => {

@@ -777,9 +777,24 @@ export async function consumeSubmissionAssetRead(prisma: PrismaClient, input: { 
 
 export async function submitQuestionAnswer(prisma: PrismaClient, input: { studentId: string; assignmentId: string; questionId: string; answerVersion: number; idempotencyKey: string; now?: Date }) {
   return withSerializableRetry(() => prisma.$transaction(async (tx) => {
-    const now = input.now ?? new Date(); const context = await requireMutableQuestion(tx as never, input, now);
+    const now = input.now ?? new Date();
+    const requestHash = submissionHash({ answerVersion: input.answerVersion });
+    const replayCandidates = await tx.submissionIdempotency.findMany({
+      where: { studentId: input.studentId, idempotencyKey: input.idempotencyKey, scope: { startsWith: 'submit:' } },
+      include: { attempt: { include: { answer: { include: { submission: { include: { revision: { select: { assignmentId: true } } } } } } } } },
+    });
+    const preflightReplay = replayCandidates.find((row) => row.attempt
+      && row.scope === `submit:${row.attempt.answer.id}`
+      && row.attempt.answer.assignmentQuestionId === input.questionId
+      && row.attempt.answer.submission.revision.assignmentId === input.assignmentId);
+    if (preflightReplay?.attempt) {
+      if (preflightReplay.requestHash !== requestHash) throw new SubmissionError('idempotency-key-conflict', 409);
+      const { answer, ...attempt } = preflightReplay.attempt;
+      return { attempt, aggregate: await aggregateAndUpdate(tx as never, answer.submissionId) };
+    }
+    const context = await requireMutableQuestion(tx as never, input, now);
     if (!context.answer) throw new SubmissionError('answer-not-ready', 409);
-    const scope = `submit:${context.answer.id}`; const requestHash = submissionHash({ answerVersion: input.answerVersion });
+    const scope = `submit:${context.answer.id}`;
     const replay = await tx.submissionIdempotency.findUnique({ where: { studentId_scope_idempotencyKey: { studentId: input.studentId, scope, idempotencyKey: input.idempotencyKey } }, include: { attempt: true } });
     if (replay) { if (replay.requestHash !== requestHash) throw new SubmissionError('idempotency-key-conflict', 409); return { attempt: replay.attempt, aggregate: await aggregateAndUpdate(tx as never, context.submission.id) }; }
     if (context.answer.state === 'SUBMITTED' || context.answer.version !== input.answerVersion) throw new SubmissionError('answer-version-conflict', 409);

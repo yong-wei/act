@@ -405,6 +405,21 @@ export async function requestTeacherAssignmentFeedbackRelease(db: any, input: {
       throw new TeacherAssignmentReviewError('teacher-review-fallback-acknowledgement-required', 422);
     }
     if (input.mode === 'RETRY_DERIVATIVE') {
+      await tx.teacherAssignmentReviewedDerivative.updateMany({
+        where: { snapshotId: review.approvalSnapshot.id, state: { in: ['BLOCKED', 'FAILED'] } },
+        data: {
+          state: 'RETRYABLE',
+          outputObjectKey: null,
+          outputChecksum: null,
+          outputSizeBytes: null,
+          readyAt: null,
+          claimToken: null,
+          claimedAt: null,
+          leaseExpiresAt: null,
+          lastErrorCode: null,
+          updatedAt: now,
+        },
+      });
       await tx.teacherAssignmentReviewOutbox.updateMany({
         where: { id: derivative.id, state: { in: ['RETRYABLE', 'BLOCKED', 'FAILED'] } },
         data: { state: 'PENDING', availableAt: now, claimToken: null, claimedAt: null, leaseExpiresAt: null, lastErrorCode: null, limitationCode: null, processedAt: null, updatedAt: now },

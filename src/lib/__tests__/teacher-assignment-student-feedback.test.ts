@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { presentRevision, presentStudentAssignmentFeedback } from '@/lib/assignments/submission-service';
+import { presentRevision, presentStudentAssignmentFeedback, submitQuestionAnswer } from '@/lib/assignments/submission-service';
+import { submissionHash } from '@/lib/assignments/submission-domain';
 
 const question = { id: 'question-1', promptSnapshot: { prompt: '解释闭环稳定性' } };
 const snapshot = {
@@ -29,6 +30,38 @@ const snapshot = {
 };
 
 describe('student assignment approved feedback projection', () => {
+  it('replays a consumed resubmission before checking mutable delivery state', async () => {
+    const attempt = {
+      id: 'attempt-2',
+      answerId: 'answer-1',
+      attemptNumber: 2,
+      answerVersion: 3,
+      answer: {
+        id: 'answer-1',
+        assignmentQuestionId: 'question-1',
+        submissionId: 'submission-1',
+        submission: { revision: { assignmentId: 'assignment-1' } },
+      },
+    };
+    const tx: any = {
+      submissionIdempotency: { findMany: async () => [{ scope: 'submit:answer-1', requestHash: submissionHash({ answerVersion: 3 }), attempt }] },
+      submissionAnswer: { findMany: async () => [{ state: 'SUBMITTED' }] },
+      assignmentSubmission: {
+        findUniqueOrThrow: async () => ({ requiredQuestionCount: 1 }),
+        update: async () => ({}),
+      },
+    };
+    const prisma: any = { $transaction: (callback: (client: any) => Promise<any>) => callback(tx) };
+
+    const result = await submitQuestionAnswer(prisma, {
+      studentId: 'student-1', assignmentId: 'assignment-1', questionId: 'question-1',
+      answerVersion: 3, idempotencyKey: 'resubmit-key', now: new Date('2026-08-01T00:00:00Z'),
+    });
+
+    expect(result.attempt).toMatchObject({ id: 'attempt-2', attemptNumber: 2 });
+    expect(result.attempt).not.toHaveProperty('answer');
+  });
+
   it('publishes only a successful release owned by the frozen student', () => {
     const feedback = presentStudentAssignmentFeedback({
       studentId: 'student-1', frozenStudentId: 'student-1', approvalSnapshots: [snapshot], resubmissionGrants: [],
