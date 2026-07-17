@@ -302,6 +302,10 @@ describe('teacher assignment review persistence', () => {
       submissionId: 'submission-1', answerId: 'answer-1', questionId: 'question-1', sourceReviewId: 'review-1', sourceGradingRunId: 'run-1',
       state: 'ACTIVE', reason: 'Please correct the sign error', allowedResponseType: 'SUBJECTIVE_TEXT',
     }) }));
+    expect(db.gradingRun.updateMany).toHaveBeenCalledWith({
+      where: { id: 'run-1', state: 'AWAITING_REVIEW', teacherReviewedAt: null },
+      data: { state: 'CANCELLED', teacherReviewedAt: now, updatedAt: now },
+    });
     db.teacherAssignmentResubmissionGrant.findUnique.mockResolvedValueOnce(result.grant);
     await expect(returnTeacherAssignmentReview(db, {
       actor: { id: 'teacher-1', role: 'TEACHER' }, assignmentId: review.assignmentId, submissionId: review.submissionId,

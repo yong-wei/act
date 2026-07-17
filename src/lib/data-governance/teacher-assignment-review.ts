@@ -346,7 +346,7 @@ export async function returnTeacherAssignmentReview(db: any, input: {
     if (reviewCas?.count !== 1) throw conflict();
     const runCas = await tx.gradingRun.updateMany({
       where: { id: review.gradingRunId, state: 'AWAITING_REVIEW', teacherReviewedAt: null },
-      data: { teacherReviewedAt: now, updatedAt: now },
+      data: { state: 'CANCELLED', teacherReviewedAt: now, updatedAt: now },
     });
     if (runCas?.count !== 1) throw conflict();
     const grant = await tx.teacherAssignmentResubmissionGrant.create({
