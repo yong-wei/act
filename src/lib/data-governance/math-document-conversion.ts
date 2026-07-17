@@ -12,9 +12,11 @@ import type { StoredObjectMetadata, SubmissionObjectStore } from '@/lib/assignme
 import {
   evaluateExternalProcessingPolicy,
   normalizeDocumentEvidence,
+  normalizeCoordinateProvenance,
   sha256,
   type EvidenceBlockInput,
   type ExternalProcessingPolicy,
+  type FrozenCoordinateProvenance,
   type MathGradingProvider,
   type NormalizedAnswerEvidence,
 } from './math-document-grading-contracts';
@@ -55,14 +57,53 @@ export interface ConversionResult {
 
 export interface MathpixResponse {
   requestId?: string;
+  request_id?: string;
   markdown?: string;
+  md?: string;
   text?: string;
+  image_width?: number;
+  image_height?: number;
+  auto_rotate_degrees?: number;
+  line_data?: Array<{
+    text?: string;
+    page?: number;
+    page_number?: number;
+    cnt?: Array<[number, number] | { x?: number; y?: number }>;
+    region?: Record<string, unknown>;
+    image_width?: number;
+    image_height?: number;
+    confidence?: number;
+  }>;
   lines?: Array<{
     text?: string;
     page?: number;
     pageNumber?: number;
-    bbox?: [number, number, number, number];
+    bbox?: [number, number, number, number] | null;
+    coordinateProvenance?: FrozenCoordinateProvenance | {
+      origin?: string;
+      unit?: string;
+      pageWidth?: number;
+      pageHeight?: number;
+      rotation?: number;
+    } | null;
     confidence?: number;
+  }>;
+}
+
+interface MathpixPdfLinesResponse {
+  pages?: Array<{
+    page?: number;
+    page_width?: number;
+    page_height?: number;
+    rotation?: number;
+    auto_rotate_degrees?: number;
+    lines?: Array<{
+      text?: string;
+      text_display?: string;
+      cnt?: Array<[number, number] | { x?: number; y?: number }>;
+      region?: Record<string, unknown>;
+      confidence?: number;
+    }>;
   }>;
 }
 
@@ -116,20 +157,29 @@ export class ConversionLeaseLostError extends Error {
 export function createMathpixClient(input: {
   fetchImpl?: typeof fetch;
   endpoint?: string;
+  imageEndpoint?: string;
+  documentEndpoint?: string;
   provider?: MathGradingProvider;
   credentialRef?: string;
   classId?: string;
   appId?: string;
   appKey?: string;
+  pdfPollIntervalMs?: number;
+  pdfMaxPollAttempts?: number;
 } = {}): MathpixClient {
   const fetchImpl = input.fetchImpl ?? fetch;
-  const endpoint = input.endpoint ?? process.env.MATHPIX_ENDPOINT ?? 'https://api.mathpix.com/v3/text';
+  const imageEndpoint = input.imageEndpoint ?? input.endpoint ?? process.env.MATHPIX_IMAGE_ENDPOINT ?? 'https://api.mathpix.com/v3/text';
+  const documentEndpoint = input.documentEndpoint ?? input.endpoint ?? process.env.MATHPIX_DOCUMENT_ENDPOINT ?? 'https://api.mathpix.com/v3/pdf';
   const provider = input.provider ?? 'mathpix';
   const credentialRef = input.credentialRef ?? process.env.MATHPIX_CREDENTIAL_REF ?? 'env:MATHPIX_APP_KEY';
   const appId = input.appId ?? process.env.MATHPIX_APP_ID ?? '';
   const appKey = input.appKey ?? process.env.MATHPIX_APP_KEY ?? '';
+  const pdfPollIntervalMs = Math.max(0, input.pdfPollIntervalMs ?? 1_000);
+  const pdfMaxPollAttempts = Math.max(1, Math.floor(input.pdfMaxPollAttempts ?? 300));
   return {
     async convert(request) {
+      const isImage = request.mimeType.trim().toLowerCase().startsWith('image/');
+      const endpoint = isImage ? imageEndpoint : documentEndpoint;
       const decision = evaluateExternalProcessingPolicy({
         policy: request.policy,
         provider,
@@ -140,6 +190,12 @@ export function createMathpixClient(input: {
       });
       if (!decision.allowed) throw new ConversionBlockedError('mathpix-policy-blocked', decision.reasons);
       if (!appId || !appKey) throw new ConversionBlockedError('mathpix-credentials-missing');
+      const endpointPath = new URL(endpoint).pathname.replace(/\/+$/, '');
+      if (!isImage && endpointPath === '/v3/pdf') {
+        return convertMathpixPdf({ fetchImpl, endpoint, appId, appKey, request, pdfPollIntervalMs, pdfMaxPollAttempts });
+      }
+      if (isImage && endpointPath !== '/v3/text') throw new ConversionBlockedError('mathpix-image-endpoint-invalid');
+      if (!isImage) throw new ConversionBlockedError('mathpix-document-endpoint-invalid');
       const response = await fetchImpl(endpoint, {
         method: 'POST',
         headers: {
@@ -151,19 +207,141 @@ export function createMathpixClient(input: {
         signal: request.signal,
         body: JSON.stringify({
           src: `data:${request.mimeType};base64,${Buffer.from(request.bytes).toString('base64')}`,
-          formats: ['md'],
+          formats: ['text'],
           rm_spaces: true,
           include_line_data: true,
         }),
       });
       const payload = await response.json().catch(() => ({})) as MathpixResponse;
       if (!response.ok) throw new Error(`mathpix-http-${response.status}`);
+      const adapted = adaptOfficialMathpixTextResponse(payload);
       return {
-        ...payload,
-        requestId: response.headers.get('x-request-id') ?? payload.requestId,
+        ...adapted,
+        requestId: response.headers.get('x-request-id') ?? payload.request_id ?? payload.requestId,
       };
     },
   };
+}
+
+async function convertMathpixPdf(input: {
+  fetchImpl: typeof fetch;
+  endpoint: string;
+  appId: string;
+  appKey: string;
+  request: Parameters<MathpixClient['convert']>[0];
+  pdfPollIntervalMs: number;
+  pdfMaxPollAttempts: number;
+}): Promise<MathpixResponse> {
+  const headers = { app_id: input.appId, app_key: input.appKey };
+  const form = new FormData();
+  form.append('file', new Blob([Buffer.from(input.request.bytes)], { type: input.request.mimeType }), input.request.fileName);
+  form.append('options_json', JSON.stringify({}));
+  const submitted = await input.fetchImpl(input.endpoint, {
+    method: 'POST', headers: { ...headers, ...(input.request.idempotencyKey ? { 'Idempotency-Key': input.request.idempotencyKey } : {}) }, body: form, signal: input.request.signal,
+  });
+  const submission = await submitted.json().catch(() => ({})) as { pdf_id?: unknown; error?: unknown };
+  if (!submitted.ok) throw new Error(`mathpix-http-${submitted.status}`);
+  const pdfId = String(submission.pdf_id ?? '');
+  if (!/^[A-Za-z0-9_-]{1,160}$/.test(pdfId)) throw new Error('mathpix-pdf-id-invalid');
+  const base = input.endpoint.replace(/\/+$/, '');
+  let completed = false;
+  for (let attempt = 0; attempt < input.pdfMaxPollAttempts; attempt += 1) {
+    const response = await input.fetchImpl(`${base}/${pdfId}`, { headers, signal: input.request.signal });
+    const status = await response.json().catch(() => ({})) as { status?: unknown; error?: unknown };
+    if (!response.ok) throw new Error(`mathpix-http-${response.status}`);
+    if (status.status === 'completed') { completed = true; break; }
+    if (status.status === 'error') throw new Error('mathpix-pdf-processing-error');
+    if (attempt + 1 < input.pdfMaxPollAttempts) await abortableDelay(input.pdfPollIntervalMs, input.request.signal);
+  }
+  if (!completed) throw new Error('mathpix-pdf-poll-timeout');
+  const [linesResponse, markdownResponse] = await Promise.all([
+    input.fetchImpl(`${base}/${pdfId}.lines.json`, { headers, signal: input.request.signal }),
+    input.fetchImpl(`${base}/${pdfId}.mmd`, { headers, signal: input.request.signal }),
+  ]);
+  if (!linesResponse.ok) throw new Error(`mathpix-lines-http-${linesResponse.status}`);
+  if (!markdownResponse.ok) throw new Error(`mathpix-markdown-http-${markdownResponse.status}`);
+  const linesPayload = await linesResponse.json().catch(() => ({})) as MathpixPdfLinesResponse;
+  const markdown = await markdownResponse.text();
+  return adaptOfficialMathpixPdfResponse(linesPayload, markdown, pdfId);
+}
+
+function adaptOfficialMathpixPdfResponse(payload: MathpixPdfLinesResponse, markdown: string, requestId: string): MathpixResponse {
+  const lines = (payload.pages ?? []).flatMap((page) => {
+    const pageWidth = positiveNumber(page.page_width);
+    const pageHeight = positiveNumber(page.page_height);
+    const rotation = quarterRotation(page.rotation ?? page.auto_rotate_degrees);
+    return (page.lines ?? []).map((line) => {
+      const bbox = contourOrRegionBbox(line.cnt, line.region);
+      return {
+        text: line.text_display ?? line.text,
+        page: page.page ?? 1,
+        bbox,
+        confidence: line.confidence,
+        coordinateProvenance: bbox && pageWidth && pageHeight && rotation !== null
+          ? { origin: 'TOP_LEFT' as const, unit: 'PIXEL' as const, pageWidth, pageHeight, rotation }
+          : null,
+      };
+    });
+  });
+  return { requestId, markdown, text: markdown, lines };
+}
+
+async function abortableDelay(milliseconds: number, signal?: AbortSignal) {
+  if (signal?.aborted) throw new ConversionLeaseLostError();
+  if (milliseconds <= 0) return;
+  await new Promise<void>((resolve, reject) => {
+    const onAbort = () => { clearTimeout(timeout); reject(new ConversionLeaseLostError()); };
+    const timeout = setTimeout(() => { signal?.removeEventListener('abort', onAbort); resolve(); }, milliseconds);
+    signal?.addEventListener('abort', onAbort, { once: true });
+  });
+}
+
+export function adaptOfficialMathpixTextResponse(payload: MathpixResponse): MathpixResponse {
+  const officialLines = Array.isArray(payload.line_data) ? payload.line_data.map((line) => {
+    const bbox = contourOrRegionBbox(line.cnt, line.region);
+    const pageWidth = positiveNumber(line.image_width) ?? positiveNumber(payload.image_width);
+    const pageHeight = positiveNumber(line.image_height) ?? positiveNumber(payload.image_height);
+    const rotation = quarterRotation(payload.auto_rotate_degrees);
+    return {
+      text: line.text,
+      page: line.page_number ?? line.page ?? 1,
+      bbox,
+      confidence: line.confidence,
+      coordinateProvenance: bbox && pageWidth && pageHeight && rotation !== null
+        ? { origin: 'TOP_LEFT' as const, unit: 'PIXEL' as const, pageWidth, pageHeight, rotation }
+        : null,
+    };
+  }) : [];
+  const legacyLines = (payload.lines ?? []).map(({ coordinateProvenance: _untrusted, ...line }) => line);
+  return {
+    requestId: payload.request_id ?? payload.requestId,
+    markdown: payload.markdown ?? payload.md ?? payload.text,
+    text: payload.text,
+    lines: officialLines.length > 0 ? officialLines : legacyLines,
+  };
+}
+
+function contourOrRegionBbox(contour: unknown, region: Record<string, unknown> | undefined): [number, number, number, number] | null {
+  const points = Array.isArray(contour) ? contour.map((point: any) => Array.isArray(point) ? [Number(point[0]), Number(point[1])] : [Number(point?.x), Number(point?.y)]) : [];
+  if (points.length >= 2 && points.every(([x, y]) => Number.isFinite(x) && Number.isFinite(y))) {
+    const xs = points.map(([x]) => x); const ys = points.map(([, y]) => y);
+    const bbox: [number, number, number, number] = [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)];
+    if (bbox[0] < bbox[2] && bbox[1] < bbox[3] && bbox[0] >= 0 && bbox[1] >= 0) return bbox;
+  }
+  if (region) {
+    const left = Number(region.left ?? region.x ?? region.top_left_x);
+    const top = Number(region.top ?? region.y ?? region.top_left_y);
+    const right = Number(region.right ?? (Number.isFinite(left) ? left + Number(region.width) : Number.NaN));
+    const bottom = Number(region.bottom ?? (Number.isFinite(top) ? top + Number(region.height) : Number.NaN));
+    if ([left, top, right, bottom].every(Number.isFinite) && left >= 0 && top >= 0 && left < right && top < bottom) return [left, top, right, bottom];
+  }
+  return null;
+}
+
+function positiveNumber(value: unknown) { const parsed = Number(value); return Number.isFinite(parsed) && parsed > 0 ? parsed : null; }
+function quarterRotation(value: unknown): 0 | 90 | 180 | 270 | null {
+  const normalized = ((Number(value ?? 0) % 360) + 360) % 360;
+  return [0, 90, 180, 270].includes(normalized) ? normalized as 0 | 90 | 180 | 270 : null;
 }
 
 export function createLocalDocumentConverter(input: {
@@ -346,6 +524,7 @@ export function mathpixToConversionResult(response: MathpixResponse, sourceCheck
         text: line.text!.trim(),
         markdown: line.text!.trim(),
         bbox: line.bbox ?? null,
+        coordinateProvenance: normalizeCoordinateProvenance(line.coordinateProvenance),
         confidence: line.confidence ?? 0.75,
         precision: line.bbox ? 'block' : line.page || line.pageNumber ? 'page' : 'block',
       }))

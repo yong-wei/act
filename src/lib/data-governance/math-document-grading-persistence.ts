@@ -9,6 +9,7 @@ import {
   buildPipelineDedupeKey,
   buildRerunIdentity,
   externalProcessingPolicyHash,
+  gradingMathpixPolicyId,
   gradingRequestScope,
   normalizeTextAnswerEvidence,
   normalizeExternalProcessingPolicy,
@@ -599,19 +600,25 @@ export async function enqueueDocumentConversion(input: {
   });
   const lifecyclePolicies = await requireConfiguredLifecyclePolicies(input.db, ['answer-evidence', 'document-conversion']);
   const conversionLifecycle = freezeLifecyclePolicy(lifecyclePolicies.find((policy: any) => policy.dataClass === 'document-conversion'), now);
-  const policyRow = input.policyId
-    ? await input.db.gradingProviderPolicy.findUnique({ where: { id: input.policyId }, select: GRADING_PROVIDER_POLICY_SELECT })
+  const mathpixEnabled = ['1', 'true', 'yes'].includes((process.env.GRADING_MATHPIX_ENABLED ?? '').trim().toLowerCase());
+  const seededVersion = (process.env.GRADING_MATHPIX_POLICY_VERSION ?? process.env.MATHPIX_VERSION ?? '').trim();
+  const resolvedPolicyId = input.policyId ?? (!input.policySnapshot && mathpixEnabled && seededVersion
+    ? gradingMathpixPolicyId(seededVersion, asset.mimeType.trim().toLowerCase().startsWith('image/') ? 'image' : 'document')
+    : null);
+  const policyRow = resolvedPolicyId
+    ? await input.db.gradingProviderPolicy.findUnique({ where: { id: resolvedPolicyId }, select: GRADING_PROVIDER_POLICY_SELECT })
     : null;
-  if (input.policyId && !policyRow) throw new Error('grading-provider-policy-not-found');
+  if (resolvedPolicyId && !policyRow) throw new Error('grading-provider-policy-not-found');
   const currentPolicy = toGradingProviderPolicySnapshot(policyRow);
   const policySnapshot = normalizeExternalProcessingPolicy(input.policySnapshot ?? currentPolicy);
   const policySnapshotHash = input.policySnapshotHash ?? externalProcessingPolicyHash(policySnapshot);
-  if (input.policyId && input.policySnapshotHash && externalProcessingPolicyHash(currentPolicy) !== input.policySnapshotHash) throw new Error('provider-policy-snapshot-mismatch');
+  if (resolvedPolicyId && input.policySnapshotHash && externalProcessingPolicyHash(currentPolicy) !== input.policySnapshotHash) throw new Error('provider-policy-snapshot-mismatch');
+  assertAnswerConversionPolicyMatchesMime(policySnapshot, asset.mimeType);
   const requestHash = buildGradingRequestHash('document-conversion', {
     assetId: input.assetId.trim(),
     attemptId: input.attemptId.trim(),
     adapterVersion: input.adapterVersion.trim(),
-    policyId: input.policyId ?? null,
+    policyId: resolvedPolicyId,
     reason: input.reason?.trim() || null,
   });
   const dedupeKey = buildPipelineDedupeKey('document-conversion', {
@@ -647,7 +654,7 @@ export async function enqueueDocumentConversion(input: {
           id: `conversion:${lockedAsset.id}:${(versionRow?.version ?? 0) + 1}`,
           assetId: lockedAsset.id,
           attemptId: input.attemptId,
-          policyId: input.policyId ?? null,
+          policyId: resolvedPolicyId,
           policySnapshot: policySnapshot ?? null,
           policySnapshotHash,
           ...conversionLifecycle,
@@ -670,7 +677,7 @@ export async function enqueueDocumentConversion(input: {
         rerunIdentity: input.rerunIdentity ?? null,
         attemptId: input.attemptId,
         conversionId: conversion.id,
-        policyId: input.policyId ?? null,
+        policyId: resolvedPolicyId,
         correlationId: randomUUID(),
         now,
       });
@@ -688,6 +695,21 @@ export async function enqueueDocumentConversion(input: {
     },
   });
   return { ...requestResult.value, replay: requestResult.replay };
+}
+
+function assertAnswerConversionPolicyMatchesMime(policy: ExternalProcessingPolicy | null, mimeType: string): void {
+  if (!policy) return;
+  if (policy.purpose !== 'answer-conversion') throw new Error('provider-policy-purpose-mismatch');
+  if (!policy.enabled || policy.disabledAt) throw new Error('provider-policy-disabled');
+  if (policy.provider !== 'mathpix') return;
+  let path: string;
+  try {
+    path = new URL(policy.endpoint ?? '').pathname.replace(/\/+$/, '');
+  } catch {
+    throw new Error('provider-policy-endpoint-invalid');
+  }
+  const expectedPath = mimeType.trim().toLowerCase().startsWith('image/') ? '/v3/text' : '/v3/pdf';
+  if (path !== expectedPath) throw new Error('provider-policy-mime-endpoint-mismatch');
 }
 
 async function lockAndLoadConversionAsset(db: MathGradingDb, assetId: string, attemptId: string): Promise<any> {
@@ -986,21 +1008,7 @@ export async function processDocumentConversionJob(input: {
       updatedAt: now,
     };
     const evidenceId = existingEvidence?.id ?? `evidence:${updated.attemptId}:conversion:${updated.version}`;
-    const persistedBlocks = normalized.blocks.map((block) => ({
-      id: `${updated.id}:${block.id}`,
-      evidenceId,
-      blockIndex: block.blockIndex,
-      pageNumber: block.pageNumber ?? null,
-      text: block.text,
-      markdown: block.markdown ?? block.text,
-      spanStart: block.spanStart ?? null,
-      spanEnd: block.spanEnd ?? null,
-      bbox: block.bbox ?? undefined,
-      precision: (block.precision ?? normalized.precision).toUpperCase(),
-      confidence: block.confidence ?? 0,
-      sourceHash: result.sourceChecksum,
-      createdAt: now,
-    }));
+    const persistedBlocks = buildPersistedAnswerEvidenceBlocks({ normalized, conversionId: updated.id, evidenceId, sourceHash: result.sourceChecksum, now });
     let evidence;
     if (existingEvidence) {
       const refreshed = await tx.answerEvidence.update({ where: { id: existingEvidence.id }, data: evidenceData });
@@ -1473,8 +1481,27 @@ export function evidenceFromRow(row: any): NormalizedAnswerEvidence {
     readiness: row.readiness === 'READY' ? 'ready' : 'blocked',
     limitationState: row.limitationState,
     limitations: row.limitations,
-    blocks: row.blocks.map((block: any) => ({ id: block.id.includes(':') ? block.id.split(':').pop() : block.id, blockIndex: block.blockIndex, pageNumber: block.pageNumber, text: block.text, markdown: block.markdown, spanStart: block.spanStart, spanEnd: block.spanEnd, bbox: block.bbox, precision: String(block.precision).toLowerCase(), confidence: block.confidence })),
+    blocks: row.blocks.map((block: any) => ({ id: block.id.includes(':') ? block.id.split(':').pop() : block.id, blockIndex: block.blockIndex, pageNumber: block.pageNumber, text: block.text, markdown: block.markdown, spanStart: block.spanStart, spanEnd: block.spanEnd, bbox: block.bbox, coordinateProvenance: block.coordinateProvenance ?? null, precision: String(block.precision).toLowerCase(), confidence: block.confidence })),
   };
+}
+
+export function buildPersistedAnswerEvidenceBlocks(input: { normalized: NormalizedAnswerEvidence; conversionId: string; evidenceId: string; sourceHash: string; now: Date }) {
+  return input.normalized.blocks.map((block) => ({
+    id: `${input.conversionId}:${block.id}`,
+    evidenceId: input.evidenceId,
+    blockIndex: block.blockIndex,
+    pageNumber: block.pageNumber ?? null,
+    text: block.text,
+    markdown: block.markdown ?? block.text,
+    spanStart: block.spanStart ?? null,
+    spanEnd: block.spanEnd ?? null,
+    bbox: block.bbox ?? undefined,
+    coordinateProvenance: block.coordinateProvenance ?? undefined,
+    precision: (block.precision ?? input.normalized.precision).toUpperCase(),
+    confidence: block.confidence ?? 0,
+    sourceHash: input.sourceHash,
+    createdAt: input.now,
+  }));
 }
 
 async function createJob(db: MathGradingDb, input: { kind: 'CONVERSION' | 'GRADING' | 'BATCH' | 'RETRY' | 'RERUN'; dedupeKey: string; idempotencyKey?: string | null; reason?: string | null; rerunIdentity?: string | null; attemptId?: string; conversionId?: string; batchId?: string; batchItemId?: string; gradingRunId?: string; policyId?: string | null; correlationId: string; now: Date }) {

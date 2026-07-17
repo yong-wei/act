@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-import { validatePipelineMutation } from '@/lib/data-governance/math-document-grading-contracts';
+import { gradingMathpixPolicyId, validatePipelineMutation } from '@/lib/data-governance/math-document-grading-contracts';
 import { gradingApiError, readGradingJson, requireGradingTeacherActor } from '@/lib/data-governance/math-document-grading-api';
 import { enforceGradingQuota } from '@/lib/data-governance/math-document-grading-lifecycle';
 import { enqueueMathDocumentGradingJob } from '@/lib/data-governance/math-document-grading-queue';
@@ -17,6 +17,8 @@ const batchRequestSchema = z.object({
   classId: z.string().trim().min(1).max(160),
   policyId: z.string().trim().min(1).max(160).nullable().optional(),
   conversionPolicyId: z.string().trim().min(1).max(160).nullable().optional(),
+  conversionImagePolicyId: z.string().trim().min(1).max(160).nullable().optional(),
+  conversionDocumentPolicyId: z.string().trim().min(1).max(160).nullable().optional(),
   maxItems: z.number().int().positive().max(200).optional(),
   idempotencyKey: z.string().trim().min(8).max(160),
   rerunReason: z.string().trim().min(8).max(500).optional(),
@@ -30,7 +32,18 @@ export async function POST(request: Request) {
     const mutation = validatePipelineMutation({ request, body, requiresRerunReason: Boolean(body.rerunReason) });
     const quota = await enforceGradingQuota({ db: prisma, subjectType: 'user', subjectId: actorResult.actor.id, scope: 'batch', maxRequests: 10 });
     if (!quota.allowed) return NextResponse.json({ error: 'grading-quota-exceeded' }, { status: 429, headers: { 'Retry-After': String(quota.retryAfterSeconds ?? 60) } });
-    const result = await createQuestionScopedGradingBatch({ db: prisma, request: { ...body, idempotencyKey: mutation.idempotencyKey, actor: actorResult.actor, policyId: body.policyId ?? null, rerunReason: mutation.rerunReason } });
+    const mathpixEnabled = ['1', 'true', 'yes'].includes((process.env.GRADING_MATHPIX_ENABLED ?? '').trim().toLowerCase());
+    const mathpixVersion = (process.env.GRADING_MATHPIX_POLICY_VERSION ?? process.env.MATHPIX_VERSION ?? '').trim();
+    const useSeededPair = mathpixEnabled && Boolean(mathpixVersion) && !body.conversionPolicyId && !body.conversionImagePolicyId && !body.conversionDocumentPolicyId;
+    const result = await createQuestionScopedGradingBatch({ db: prisma, request: {
+      ...body,
+      idempotencyKey: mutation.idempotencyKey,
+      actor: actorResult.actor,
+      policyId: body.policyId ?? null,
+      conversionImagePolicyId: body.conversionImagePolicyId ?? (useSeededPair ? gradingMathpixPolicyId(mathpixVersion, 'image') : null),
+      conversionDocumentPolicyId: body.conversionDocumentPolicyId ?? (useSeededPair ? gradingMathpixPolicyId(mathpixVersion, 'document') : null),
+      rerunReason: mutation.rerunReason,
+    } });
     const queueResult = result.batch.job ? await enqueueMathDocumentGradingJob({ kind: 'batch', jobId: result.batch.job.id, batchId: result.batch.id }, prisma) : { queued: true, queueJobId: null, state: 'QUEUED' as const, retryable: false };
     return NextResponse.json({ status: queueResult.queued ? result.batch.state : queueResult.state, batchId: result.batch.id, totalItems: result.items.length, queue: queueResult, replay: result.replay, questionScoped: true }, { status: queueResult.queued ? (result.replay ? 200 : 202) : 503 });
   } catch (error) {

@@ -87,6 +87,9 @@ import type {
   StudentSnapshotJob,
 } from './types';
 import { createMathDocumentGradingWorker } from './math-document-grading-worker';
+import { createTeacherAssignmentReviewOutboxWorker } from './teacher-assignment-review-outbox-worker';
+import { createDefaultReviewedDerivativeRenderer } from '@/lib/data-governance/teacher-assignment-review-derivative-storage';
+import { defaultReviewedDerivativeOptions } from '@/lib/data-governance/teacher-assignment-review-derivative';
 
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
 const WORKER_CONCURRENCY = parseInt(process.env.WORKER_CONCURRENCY || '2', 10);
@@ -124,6 +127,7 @@ let classSnapshotWorker: Worker<ClassSnapshotJob> | null = null;
 let sessionReportWorker: Worker<SessionReportJob> | null = null;
 let evidenceFeatureCacheWorker: Worker<EvidenceFeatureCacheJob> | null = null;
 let mathDocumentGradingController: Awaited<ReturnType<typeof createMathDocumentGradingWorker>> | null = null;
+let teacherAssignmentReviewController: ReturnType<typeof createTeacherAssignmentReviewOutboxWorker> | null = null;
 let isShuttingDown = false;
 let infrastructureFailureHandled = false;
 
@@ -1181,6 +1185,20 @@ async function startWorkers() {
   } else {
     console.log('[Worker] Math document grading worker disabled by MATH_DOCUMENT_GRADING_WORKER_REQUIRED');
   }
+  if (isTeacherAssignmentReviewWorkerRequired()) {
+    teacherAssignmentReviewController = createTeacherAssignmentReviewOutboxWorker({
+      db: prisma,
+      handlers: {
+        derivativeRenderer: createDefaultReviewedDerivativeRenderer(),
+        derivativeOptions: defaultReviewedDerivativeOptions({ generatorVersion: process.env.TEACHER_REVIEW_DERIVATIVE_GENERATOR_VERSION, markitdownVersion: process.env.MARKITDOWN_VERSION, mathpixVersion: process.env.MATHPIX_VERSION }),
+      },
+      intervalMs: Number(process.env.TEACHER_REVIEW_OUTBOX_INTERVAL_MS ?? 5_000),
+      limit: Number(process.env.TEACHER_REVIEW_OUTBOX_BATCH_SIZE ?? 25),
+      onError: (error) => logWithThrottle('teacher-review-outbox:error', 'error', '[TeacherReviewOutbox] tick failed', error),
+    });
+  } else {
+    console.log('[Worker] Teacher assignment review outbox disabled by TEACHER_REVIEW_OUTBOX_REQUIRED');
+  }
 
   redis.on('error', (error) => {
     if (isInfrastructureError(error)) {
@@ -1251,6 +1269,10 @@ function isMathDocumentGradingWorkerRequired(): boolean {
   return ['1', 'true', 'yes'].includes((process.env.MATH_DOCUMENT_GRADING_WORKER_REQUIRED ?? 'true').toLowerCase());
 }
 
+function isTeacherAssignmentReviewWorkerRequired(): boolean {
+  return ['1', 'true', 'yes'].includes((process.env.TEACHER_REVIEW_OUTBOX_REQUIRED ?? 'true').toLowerCase());
+}
+
 async function shutdown(exitCode: number) {
   if (isShuttingDown) {
     return;
@@ -1267,6 +1289,7 @@ async function shutdown(exitCode: number) {
   if (sessionReportWorker) cleanupTasks.push(sessionReportWorker.close());
   if (evidenceFeatureCacheWorker) cleanupTasks.push(evidenceFeatureCacheWorker.close());
   if (mathDocumentGradingController) cleanupTasks.push(mathDocumentGradingController.close());
+  if (teacherAssignmentReviewController) cleanupTasks.push(teacherAssignmentReviewController.close());
   if (eventQueue) cleanupTasks.push(eventQueue.close());
   if (studentQueue) cleanupTasks.push(studentQueue.close());
   if (classQueue) cleanupTasks.push(classQueue.close());

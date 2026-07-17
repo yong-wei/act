@@ -1,4 +1,4 @@
-import { normalizeExternalProcessingPolicy, type ExternalProcessingPolicy } from '../../src/lib/data-governance/math-document-grading-contracts';
+import { gradingMathpixPolicyId, normalizeExternalProcessingPolicy, type ExternalProcessingPolicy } from '../../src/lib/data-governance/math-document-grading-contracts';
 import { assertLifecyclePolicy, type LifecyclePolicyInput } from '../../src/lib/data-governance/math-document-grading-lifecycle';
 
 export const GRADING_POLICY_DATA_CLASSES = [
@@ -89,11 +89,12 @@ function parseLifecyclePolicy(env: Env, dataClass: typeof GRADING_POLICY_DATA_CL
   return policy;
 }
 
-function parseProviderPolicy(env: Env, kind: 'ai' | 'mathpix'): ExternalProcessingPolicy & { id: string } {
+function parseProviderPolicy(env: Env, kind: 'ai' | 'mathpix-image' | 'mathpix-document'): ExternalProcessingPolicy & { id: string } {
   const isAi = kind === 'ai';
   const provider = isAi ? required(env, 'AI_PROVIDER') : 'mathpix';
-  const version = required(env, isAi ? 'GRADING_AI_PROVIDER_VERSION' : 'GRADING_MATHPIX_POLICY_VERSION');
-  const endpoint = required(env, isAi ? 'AI_BASE_URL' : 'MATHPIX_ENDPOINT');
+  const baseVersion = required(env, isAi ? 'GRADING_AI_PROVIDER_VERSION' : 'GRADING_MATHPIX_POLICY_VERSION');
+  const version = isAi ? baseVersion : `${baseVersion}:${kind === 'mathpix-image' ? 'image' : 'document'}`;
+  const endpoint = required(env, isAi ? 'AI_BASE_URL' : kind === 'mathpix-image' ? 'MATHPIX_IMAGE_ENDPOINT' : 'MATHPIX_DOCUMENT_ENDPOINT');
   const credentialRef = required(env, isAi ? 'AI_SECRET_REF' : 'MATHPIX_CREDENTIAL_REF');
   if (!/^env:[A-Z][A-Z0-9_]*$/.test(credentialRef)) throw new Error(`grading-policy-config-invalid:${isAi ? 'AI_SECRET_REF' : 'MATHPIX_CREDENTIAL_REF'}`);
   const processingRegion = required(env, 'GRADING_PROVIDER_PROCESSING_REGION');
@@ -126,7 +127,7 @@ function parseProviderPolicy(env: Env, kind: 'ai' | 'mathpix'): ExternalProcessi
   if (!policy.dataCategories.includes('student-answer') || !policy.minimizedScope.includes('selected-question') || !policy.minimizedScope.includes('answer-evidence')) {
     throw new Error(`grading-policy-config-incomplete:${kind}-scope`);
   }
-  return { ...policy, id: policyId(`grading-provider:${provider}`, version) };
+  return { ...policy, id: isAi ? policyId(`grading-provider:${provider}`, version) : gradingMathpixPolicyId(baseVersion, kind === 'mathpix-image' ? 'image' : 'document') };
 }
 
 export function parseGradingPolicySeedConfig(env: Env = process.env): GradingPolicySeedConfig {
@@ -142,7 +143,7 @@ export function parseGradingPolicySeedConfig(env: Env = process.env): GradingPol
       parseLifecyclePolicy(env, 'grading-run', 'RUN'),
     ],
     providers: includeProviders
-      ? [parseProviderPolicy(env, 'ai'), parseProviderPolicy(env, 'mathpix')]
+      ? [parseProviderPolicy(env, 'ai'), parseProviderPolicy(env, 'mathpix-image'), parseProviderPolicy(env, 'mathpix-document')]
       : [],
   };
   assertProductionProviderRetentionAdapter(config, env.NODE_ENV?.trim().toLowerCase() === 'production');

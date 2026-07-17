@@ -2,12 +2,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 process.env.NEXTAUTH_SECRET ??= 'assignment-route-test-lineage-secret';
 
-const { getServerAuthSession, createAssignmentDraft, createNextDraftRevision, updateAssignmentDraft, publishAssignmentRevision, findFirstAssignment, findCatalogRef, findCatalogRefs, findManagedClasses } = vi.hoisted(() => ({
+const { getServerAuthSession, createAssignmentDraft, createNextDraftRevision, updateAssignmentDraft, publishAssignmentRevision, listTeacherAssignments, findFirstAssignment, findCatalogRef, findCatalogRefs, findManagedClasses } = vi.hoisted(() => ({
   getServerAuthSession: vi.fn(),
   createAssignmentDraft: vi.fn(),
   createNextDraftRevision: vi.fn(),
   updateAssignmentDraft: vi.fn(),
   publishAssignmentRevision: vi.fn(),
+  listTeacherAssignments: vi.fn(),
   findFirstAssignment: vi.fn(),
   findCatalogRef: vi.fn(),
   findCatalogRefs: vi.fn(),
@@ -21,10 +22,11 @@ vi.mock('@/lib/assignments/assignment-service', async (importOriginal) => ({
   createNextDraftRevision,
   updateAssignmentDraft,
   publishAssignmentRevision,
+  listTeacherAssignments,
 }));
 vi.mock('@/lib/prisma', () => ({ prisma: { assignment: { findMany: vi.fn(async () => []), findFirst: findFirstAssignment }, adaptiveAssessmentItemRef: { findUnique: findCatalogRef, findMany: findCatalogRefs }, class: { findMany: findManagedClasses } } }));
 
-import { POST } from '../route';
+import { GET, POST } from '../route';
 import { POST as POST_NEXT_DRAFT } from '../[assignmentId]/next-draft/route';
 import { GET as GET_ASSIGNMENT, PATCH as PATCH_ASSIGNMENT } from '../[assignmentId]/route';
 import { POST as PUBLISH_ASSIGNMENT } from '../[assignmentId]/publish/route';
@@ -64,6 +66,7 @@ describe('teacher assignment mutation route', () => {
     createNextDraftRevision.mockResolvedValue({ id: 'revision-2', state: 'DRAFT', revisionNumber: 2 });
     updateAssignmentDraft.mockResolvedValue({ id: 'revision-1', state: 'DRAFT', version: 2 });
     publishAssignmentRevision.mockResolvedValue({ id: 'revision-1', state: 'PUBLISHED', version: 3, frozenAt: new Date('2026-07-11T00:00:00Z') });
+    listTeacherAssignments.mockResolvedValue([]);
     findFirstAssignment.mockResolvedValue({ id: 'assignment-1', revisions: [{ id: 'revision-1', state: 'PUBLISHED', version: 3, frozenAt: new Date('2026-07-11T00:00:00Z'), questions: [], audiences: [] }] });
     findCatalogRef.mockResolvedValue({ id: 'source-1', questionId: 'control-correction-checkpoint-01', contentHash: '5ae0d4bab205672561a6ea4c82388f21aa876252eeb52e4d71456152c201e1c4', algorithmVersion: 'catalog-v1' });
     findCatalogRefs.mockResolvedValue([
@@ -71,6 +74,50 @@ describe('teacher assignment mutation route', () => {
       { id: 'source-ineligible', questionId: 'AC-Q-0001', contentHash: 'd71f098353d20cf581944978fa5b2883cef1e7ca3fc37653b81b2837cbd5f0ac', algorithmVersion: 'catalog-v1' },
     ]);
     findManagedClasses.mockResolvedValue([{ id: 'class-1', name: '自控 2401', code: 'AC2401', year: '2026', semester: '春' }]);
+  });
+
+  it('returns actor-authorized assignment review summaries from the list service', async () => {
+    listTeacherAssignments.mockResolvedValueOnce([{
+      id: 'assignment-1',
+      state: 'PUBLISHED',
+      updatedAt: new Date('2026-07-17T00:00:00Z'),
+      revisions: [],
+      reviewSummary: {
+        submissionCount: 2,
+        pendingReviewCount: 1,
+        reviewedCount: 1,
+        nextReview: {
+          submissionId: 'submission-1',
+          questionId: 'question-1',
+          reviewId: 'review-1',
+          gradingRunId: 'run-1',
+        },
+      },
+    }]);
+
+    const response = await GET() as Response;
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      assignments: [{
+        id: 'assignment-1',
+        reviewSummary: {
+          submissionCount: 2,
+          pendingReviewCount: 1,
+          reviewedCount: 1,
+          nextReview: {
+            submissionId: 'submission-1',
+            questionId: 'question-1',
+            reviewId: 'review-1',
+            gradingRunId: 'run-1',
+          },
+        },
+      }],
+    });
+    expect(listTeacherAssignments).toHaveBeenCalledWith(expect.anything(), {
+      id: 'teacher-1',
+      role: 'TEACHER',
+    });
   });
 
   it('requires authentication and teacher authorization', async () => {

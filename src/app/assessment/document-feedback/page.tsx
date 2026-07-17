@@ -67,6 +67,19 @@ export default async function DocumentFeedbackPage({
     });
     return renderDocumentFeedbackShell(studentView, feedbackContext);
   }
+  if (params?.gradingRunId) {
+    const approved = await prisma.teacherAssignmentApprovalSnapshot.findUnique({
+      where: { gradingRunId: params.gradingRunId },
+      include: { submission: true, outboxCommands: true },
+    });
+    const released = approved?.outboxCommands.some((command) => command.command === 'RELEASE_STUDENT_FEEDBACK' && command.state === 'SUCCEEDED');
+    if (approved && released && approved.submission.studentId === session.user.id && approved.submission.frozenStudentId === session.user.id) {
+      const query = new URLSearchParams({ feedbackQuestionId: approved.questionId });
+      const returnTo = Array.isArray(params.returnTo) ? params.returnTo[0] : params.returnTo;
+      if (returnTo) query.set('returnTo', returnTo);
+      redirect(`/missions/assignments/${encodeURIComponent(approved.assignmentId)}?${query.toString()}#feedback-question-${encodeURIComponent(approved.questionId)}`);
+    }
+  }
   if (!params?.gradingRunId) {
     return renderDocumentFeedbackShell(createHiddenStudentGradingFeedbackView({ studentId: session.user.id }), feedbackContext);
   }

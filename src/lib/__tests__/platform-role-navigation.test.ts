@@ -95,8 +95,10 @@ describe('platform role navigation', () => {
       '/teacher/assignments',
       '/teacher/assignments/new',
       '/teacher/assignments/[assignmentId]/edit',
+      '/teacher/assignments/[assignmentId]/submissions',
+      '/teacher/assignments/[assignmentId]/submissions/[submissionId]/review',
     ]);
-    expect(routes.every((entry) => entry.frame === 'operations-console' && entry.roleScope.join(',') === 'teacher')).toBe(true);
+    expect(routes.every((entry) => entry.frame === 'operations-console' && entry.roleScope.includes('teacher'))).toBe(true);
     expect(routes.every((entry) => entry.navigationLayers.join(',') === 'role-cockpit,contextual-workspace,local-tool')).toBe(true);
     expect(resolvePlatformRouteInventory('/teacher/assignments/assignment-1/edit')?.href).toBe('/teacher/assignments/[assignmentId]/edit');
   });
@@ -368,6 +370,7 @@ describe('platform role navigation', () => {
       '/arena/challenges/[taskId]',
       '/assessment/adaptive-practice',
       '/missions',
+      '/missions/assignments/[assignmentId]',
       '/interactive-learning/control-workbench',
       '/dashboard',
       '/profile',
@@ -399,6 +402,8 @@ describe('platform role navigation', () => {
       '/teacher/assignments',
       '/teacher/assignments/new',
       '/teacher/assignments/[assignmentId]/edit',
+      '/teacher/assignments/[assignmentId]/submissions',
+      '/teacher/assignments/[assignmentId]/submissions/[submissionId]/review',
       '/teacher/preset-lessons',
       '/teacher/resources',
       '/teacher/resources/resource-nodes',

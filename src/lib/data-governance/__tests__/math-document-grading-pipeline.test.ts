@@ -194,7 +194,10 @@ describe('production math-document grading contracts', () => {
   });
 
   it('requires the approved Mathpix endpoint and credential before the first request', async () => {
-    const fetchImpl = vi.fn().mockResolvedValue(new Response(JSON.stringify({ markdown: 'ok' }), { status: 200 }));
+    const fetchImpl = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      markdown: 'ok',
+      lines: [{ text: 'legacy', page: 1, bbox: [1, 2, 3, 4], coordinateProvenance: { origin: 'TOP_LEFT', unit: 'PIXEL', pageWidth: 10, pageHeight: 10, rotation: 0 } }],
+    }), { status: 200 }));
     const client = createMathpixClient({
       fetchImpl,
       endpoint: 'https://api.mathpix.com/v3/text',
@@ -202,7 +205,13 @@ describe('production math-document grading contracts', () => {
       appId: 'app-id',
       appKey: 'app-key',
     });
-    await expect(client.convert({ bytes: new Uint8Array([1]), fileName: 'answer.pdf', mimeType: 'application/pdf', policy: policy('mathpix', 'answer-conversion') })).resolves.toEqual(expect.objectContaining({ markdown: 'ok' }));
+    await expect(client.convert({ bytes: new Uint8Array([1]), fileName: 'answer.png', mimeType: 'image/png', policy: policy('mathpix', 'answer-conversion') })).resolves.toEqual(expect.objectContaining({
+      markdown: 'ok',
+      lines: [{ text: 'legacy', page: 1, bbox: [1, 2, 3, 4] }],
+    }));
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+
+    await expect(client.convert({ bytes: new Uint8Array([1]), fileName: 'answer.pdf', mimeType: 'application/pdf', policy: policy('mathpix', 'answer-conversion') })).rejects.toThrow('mathpix-document-endpoint-invalid');
     expect(fetchImpl).toHaveBeenCalledTimes(1);
 
     const missingCredential = createMathpixClient({
@@ -212,8 +221,95 @@ describe('production math-document grading contracts', () => {
       appId: 'app-id',
       appKey: '',
     });
-    await expect(missingCredential.convert({ bytes: new Uint8Array([1]), fileName: 'answer.pdf', mimeType: 'application/pdf', policy: policy('mathpix', 'answer-conversion') })).rejects.toThrow('mathpix-credentials-missing');
+    await expect(missingCredential.convert({ bytes: new Uint8Array([1]), fileName: 'answer.png', mimeType: 'image/png', policy: policy('mathpix', 'answer-conversion') })).rejects.toThrow('mathpix-credentials-missing');
     expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
+  it('submits, polls, and downloads official Mathpix PDF lines and markdown', async () => {
+    const fetchImpl = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ pdf_id: 'pdf-1' }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ status: 'received' }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ status: 'completed', num_pages: 1 }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ pages: [{ page: 1, page_width: 600, page_height: 800, lines: [{ text: 'x', cnt: [[20, 40], [200, 40], [200, 100], [20, 100]], confidence: 0.9 }] }] }), { status: 200 }))
+      .mockResolvedValueOnce(new Response('x', { status: 200 }));
+    const client = createMathpixClient({ fetchImpl, endpoint: 'https://api.mathpix.com/v3/pdf', credentialRef: 'env:MATHPIX_APP_KEY', appId: 'app-id', appKey: 'app-key', pdfPollIntervalMs: 0 });
+    const result = await client.convert({ bytes: new Uint8Array([1]), fileName: 'answer.pdf', mimeType: 'application/pdf', policy: policy('mathpix', 'answer-conversion', { endpoint: 'https://api.mathpix.com/v3/pdf' }) });
+    expect(result).toMatchObject({ markdown: 'x', lines: [{ page: 1, bbox: [20, 40, 200, 100], coordinateProvenance: { origin: 'TOP_LEFT', unit: 'PIXEL', pageWidth: 600, pageHeight: 800, rotation: 0 } }] });
+    expect(fetchImpl.mock.calls.map(([url]) => String(url))).toEqual([
+      'https://api.mathpix.com/v3/pdf',
+      'https://api.mathpix.com/v3/pdf/pdf-1',
+      'https://api.mathpix.com/v3/pdf/pdf-1',
+      'https://api.mathpix.com/v3/pdf/pdf-1.lines.json',
+      'https://api.mathpix.com/v3/pdf/pdf-1.mmd',
+    ]);
+    expect(fetchImpl.mock.calls[0][1]?.body).toBeInstanceOf(FormData);
+  });
+
+  it('routes default PNG conversion only to the Mathpix text JSON endpoint', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(new Response(JSON.stringify({ text: 'x' }), { status: 200 }));
+    const client = createMathpixClient({ fetchImpl, credentialRef: 'env:MATHPIX_APP_KEY', appId: 'app-id', appKey: 'app-key' });
+
+    await client.convert({ bytes: new Uint8Array([1]), fileName: 'answer.png', mimeType: 'image/png', policy: policy('mathpix', 'answer-conversion', { endpoint: 'https://api.mathpix.com/v3/text' }) });
+
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    expect(fetchImpl.mock.calls[0][0]).toBe('https://api.mathpix.com/v3/text');
+    expect(fetchImpl.mock.calls[0][1]).toMatchObject({ method: 'POST', headers: expect.objectContaining({ 'Content-Type': 'application/json' }) });
+    expect(fetchImpl.mock.calls[0][1]?.body).toEqual(expect.any(String));
+  });
+
+  it('routes default PDF conversion through Mathpix PDF submit, poll, lines, and mmd endpoints', async () => {
+    const fetchImpl = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ pdf_id: 'pdf-default' }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ status: 'completed' }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ pages: [] }), { status: 200 }))
+      .mockResolvedValueOnce(new Response('x', { status: 200 }));
+    const client = createMathpixClient({ fetchImpl, credentialRef: 'env:MATHPIX_APP_KEY', appId: 'app-id', appKey: 'app-key', pdfPollIntervalMs: 0 });
+
+    await client.convert({ bytes: new Uint8Array([1]), fileName: 'answer.pdf', mimeType: 'application/pdf', policy: policy('mathpix', 'answer-conversion', { endpoint: 'https://api.mathpix.com/v3/pdf' }) });
+
+    expect(fetchImpl.mock.calls.map(([url]) => String(url))).toEqual([
+      'https://api.mathpix.com/v3/pdf',
+      'https://api.mathpix.com/v3/pdf/pdf-default',
+      'https://api.mathpix.com/v3/pdf/pdf-default.lines.json',
+      'https://api.mathpix.com/v3/pdf/pdf-default.mmd',
+    ]);
+  });
+
+  it.each([
+    ['image', 'answer.png', 'image/png', 'https://api.mathpix.com/v3/pdf'],
+    ['document', 'answer.pdf', 'application/pdf', 'https://api.mathpix.com/v3/text'],
+  ])('rejects %s conversion when the frozen policy authorizes only the other Mathpix endpoint', async (_kind, fileName, mimeType, endpoint) => {
+    const fetchImpl = vi.fn();
+    const client = createMathpixClient({ fetchImpl, credentialRef: 'env:MATHPIX_APP_KEY', appId: 'app-id', appKey: 'app-key', pdfPollIntervalMs: 0 });
+
+    await expect(client.convert({ bytes: new Uint8Array([1]), fileName, mimeType, policy: policy('mathpix', 'answer-conversion', { endpoint }) })).rejects.toThrow('endpoint-mismatch');
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it('fails closed when Mathpix PDF processing errors or never completes', async () => {
+    const failedFetch = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ pdf_id: 'pdf-error' }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ status: 'error' }), { status: 200 }));
+    const failed = createMathpixClient({ fetchImpl: failedFetch, endpoint: 'https://api.mathpix.com/v3/pdf', credentialRef: 'env:MATHPIX_APP_KEY', appId: 'app-id', appKey: 'app-key', pdfPollIntervalMs: 0 });
+    await expect(failed.convert({ bytes: new Uint8Array([1]), fileName: 'answer.pdf', mimeType: 'application/pdf', policy: policy('mathpix', 'answer-conversion', { endpoint: 'https://api.mathpix.com/v3/pdf' }) })).rejects.toThrow('mathpix-pdf-processing-error');
+
+    const pendingFetch = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ pdf_id: 'pdf-pending' }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ status: 'loaded' }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ status: 'split' }), { status: 200 }));
+    const pending = createMathpixClient({ fetchImpl: pendingFetch, endpoint: 'https://api.mathpix.com/v3/pdf', credentialRef: 'env:MATHPIX_APP_KEY', appId: 'app-id', appKey: 'app-key', pdfPollIntervalMs: 0, pdfMaxPollAttempts: 2 });
+    await expect(pending.convert({ bytes: new Uint8Array([1]), fileName: 'answer.pdf', mimeType: 'application/pdf', policy: policy('mathpix', 'answer-conversion', { endpoint: 'https://api.mathpix.com/v3/pdf' }) })).rejects.toThrow('mathpix-pdf-poll-timeout');
+    expect(pendingFetch).toHaveBeenCalledTimes(3);
+  });
+
+  it('does not invent coordinate provenance when an official line response omits image geometry', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      text: 'x',
+      line_data: [{ text: 'x', cnt: [[1, 2], [3, 2], [3, 4], [1, 4]], coordinateProvenance: { origin: 'TOP_LEFT', unit: 'PIXEL', pageWidth: 10, pageHeight: 10, rotation: 0 } }],
+    }), { status: 200 }));
+    const client = createMathpixClient({ fetchImpl, endpoint: 'https://api.mathpix.com/v3/text', credentialRef: 'env:MATHPIX_APP_KEY', appId: 'app-id', appKey: 'app-key' });
+    const result = await client.convert({ bytes: new Uint8Array([1]), fileName: 'answer.png', mimeType: 'image/png', policy: policy('mathpix', 'answer-conversion') });
+    expect(result.lines?.[0]).toMatchObject({ bbox: [1, 2, 3, 4], coordinateProvenance: null });
   });
 
   it('routes Mathpix success, policy block, and local fallback without exposing source bytes', async () => {

@@ -15,6 +15,7 @@ export interface StudentAssignmentQuestion {
   currentAttemptNumber?: number | null;
   textDraft?: string | null;
   assets?: Array<{ id: string; displayName: string; sizeBytes?: number }>;
+  resubmission?: { state: string; reason: string; allowedResponseType: string; deadlineAt: string } | null;
 }
 
 export interface StudentAssignmentSummary {
@@ -41,6 +42,21 @@ export interface StudentAnswerAttempt extends Omit<StudentQuestionDto['history']
 
 export interface StudentAssignmentDetail extends StudentAssignmentSummary {
   history?: Record<string, StudentAnswerAttempt[]>;
+  approvedTotal?: number | null;
+  feedbackStatus?: 'HIDDEN' | 'PUBLISHING' | 'BLOCKED' | 'PUBLISHED';
+  feedback?: Array<{
+    snapshotId: string;
+    questionId: string;
+    questionTitle: string;
+    questionTotal: number;
+    criteria: Array<{ criterionId?: string; levelId?: string; score?: number; comment?: string }>;
+    annotations: Array<{ id?: string; criterionId?: string; status?: string; comment?: string; anchor?: Record<string, unknown> }>;
+    overallComment: string;
+    approvedAt: string;
+    reviewedAssets: Array<{ id?: string; label?: string; href?: string; mimeType?: string; precision?: string }>;
+    limitations: string[];
+    resubmission: { state: string; reason: string; allowedResponseType: string; deadlineAt: string } | null;
+  }>;
 }
 
 export const assignmentStateLabels: Record<StudentAssignmentState, string> = {
