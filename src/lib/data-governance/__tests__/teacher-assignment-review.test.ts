@@ -270,6 +270,7 @@ describe('teacher assignment review persistence', () => {
     const review = reviewFixture();
     const snapshotCreate = vi.fn(async ({ data }: any) => ({ ...data, id: 'snapshot-1' }));
     const outboxCreateMany = vi.fn().mockResolvedValue({ count: 3 });
+    const outboxUpdateMany = vi.fn().mockResolvedValue({ count: 1 });
     const reviewUpdateMany = vi.fn().mockResolvedValue({ count: 1 });
     const runUpdateMany = vi.fn().mockResolvedValue({ count: 1 });
     const assessmentUpdateMany = vi.fn().mockResolvedValue({ count: 1 });
@@ -277,8 +278,10 @@ describe('teacher assignment review persistence', () => {
     const db: any = {
       $transaction: (callback: (tx: any) => Promise<any>) => callback(db),
       teacherAssignmentReview: { findUnique: vi.fn().mockResolvedValue(review), updateMany: reviewUpdateMany },
-      teacherAssignmentApprovalSnapshot: { create: snapshotCreate, findMany: vi.fn().mockResolvedValue([]) },
-      teacherAssignmentReviewOutbox: { createMany: outboxCreateMany },
+      teacherAssignmentApprovalSnapshot: { create: snapshotCreate, findMany: vi.fn().mockResolvedValue([
+        { id: 'snapshot-old', questionId: 'question-1', attemptId: 'attempt-1', questionTotal: 4, approvedAt: new Date('2026-07-16T00:00:00Z') },
+      ]) },
+      teacherAssignmentReviewOutbox: { createMany: outboxCreateMany, updateMany: outboxUpdateMany },
       gradingRun: { updateMany: runUpdateMany },
       gradingCriterionAssessment: { updateMany: assessmentUpdateMany },
       assignmentSubmission: {
@@ -304,6 +307,14 @@ describe('teacher assignment review persistence', () => {
         expect.objectContaining({ command: 'PROCESS_GOVERNED_EVIDENCE', dedupeKey: 'teacher-review:snapshot-1:process-governed-evidence' }),
       ]),
       skipDuplicates: true,
+    });
+    expect(outboxUpdateMany).toHaveBeenCalledWith({
+      where: {
+        snapshotId: { in: ['snapshot-old', 'snapshot-1'] },
+        command: 'RELEASE_STUDENT_FEEDBACK',
+        state: { in: ['RETRYABLE', 'BLOCKED', 'FAILED'] },
+      },
+      data: expect.objectContaining({ state: 'PENDING', attemptCount: 0, availableAt: now, lastErrorCode: null }),
     });
     expect(assessmentUpdateMany).toHaveBeenCalledTimes(2);
     expect(submissionUpdate).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ reviewState: 'APPROVED_PENDING_RELEASE', approvedTotal: 9, reviewedAt: null }) }));

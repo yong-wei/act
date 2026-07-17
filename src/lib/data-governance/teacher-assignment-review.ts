@@ -304,6 +304,28 @@ export async function approveTeacherAssignmentReview(db: any, input: {
         ? { reviewState: 'APPROVED_PENDING_RELEASE', approvedTotal: completion.total, reviewedAt: null, updatedAt: now }
         : { reviewState: 'REVIEWING', approvedTotal: null, reviewedAt: null, updatedAt: now },
     });
+    if (completion.complete) {
+      const snapshotIds = [...new Set([...priorSnapshots.map((row: any) => row.id), snapshot.id])];
+      await tx.teacherAssignmentReviewOutbox.updateMany({
+        where: {
+          snapshotId: { in: snapshotIds },
+          command: 'RELEASE_STUDENT_FEEDBACK',
+          state: { in: ['RETRYABLE', 'BLOCKED', 'FAILED'] },
+        },
+        data: {
+          state: 'PENDING',
+          attemptCount: 0,
+          availableAt: now,
+          claimToken: null,
+          claimedAt: null,
+          leaseExpiresAt: null,
+          lastErrorCode: null,
+          limitationCode: null,
+          processedAt: null,
+          updatedAt: now,
+        },
+      });
+    }
     return { snapshot, replay: false, assignment: completion };
   });
 }
