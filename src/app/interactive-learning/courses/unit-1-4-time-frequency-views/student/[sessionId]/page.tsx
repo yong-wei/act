@@ -15,4 +15,3 @@ export default async function UNIT_1_4StudentRoute(
   const lessonRuntime = await loadLessonRuntimeEntry('1-4');
   return <UNIT_1_4StudentPage sessionId={params.sessionId} lessonRuntime={lessonRuntime} />;
 }
-

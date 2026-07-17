@@ -5,12 +5,31 @@ import {
   RUNTIME_RESOURCE_PROJECTION_ARTIFACT_VERSION,
 } from '../runtime-resource-projections';
 import { buildResourceFieldCompletionAudit } from '../resource-field-completion-audit';
+import { loadRuntimeResourceProjectionInputs } from '../teacher-resource-node-data';
 import {
   buildResourceNodeRegistry,
   type RuntimeResourceProjectionSemanticEvidence,
 } from '../resource-node-registry';
 
 describe('runtime resource projections', () => {
+  it('retains all 3,082 longform audit rows without materializing ResourceNodes', async () => {
+    const projections = await loadRuntimeResourceProjectionInputs({ allowMissing: false });
+    const auditOnlyProjections = projections.filter((projection) => projection.lifecycleScope === 'audit-only');
+    const runtimeProjections = projections.filter((projection) => projection.lifecycleScope !== 'audit-only');
+    const fullRegistry = buildResourceNodeRegistry({
+      runtimeResourceProjections: projections,
+    });
+    const auditOnlyRegistry = buildResourceNodeRegistry({ runtimeResourceProjections: auditOnlyProjections });
+    const runtimeRegistry = buildResourceNodeRegistry({ runtimeResourceProjections: runtimeProjections });
+
+    expect(auditOnlyProjections).toHaveLength(3_082);
+    expect(auditOnlyProjections.every((projection) => projection.resourceNodeId === null)).toBe(true);
+    expect(auditOnlyRegistry.nodes).toEqual([]);
+    expect(auditOnlyRegistry.edges).toEqual([]);
+    expect(fullRegistry.nodes.map((node) => node.id)).toEqual(runtimeRegistry.nodes.map((node) => node.id));
+    expect(fullRegistry.nodes).toHaveLength(3_259);
+  });
+
   it('builds sidecar rows for runtime lessons, knowledge cards, and infographs', () => {
     const audit = buildResourceFieldCompletionAudit({
       registry: buildResourceNodeRegistry({}),
@@ -129,6 +148,11 @@ describe('runtime resource projections', () => {
     });
 
     expect(artifact.rows).toHaveLength(5);
+    expect(artifact.rows.every((row) => (
+      !('lifecycleScope' in row) &&
+      !('reviewConcluded' in row) &&
+      !('semanticConfirmed' in row)
+    ))).toBe(true);
     expect(artifact.limitations.artifactVersion).toBe(RUNTIME_RESOURCE_PROJECTION_ARTIFACT_VERSION);
     expect(artifact.limitations.totals).toMatchObject({
       rows: 5,
@@ -137,6 +161,8 @@ describe('runtime resource projections', () => {
       registryPathEligible: 0,
       planningUnitEligible: 0,
       humanConfirmed: 1,
+      agentReviewed: 0,
+      semanticReviewed: 0,
       provisional: 4,
     });
     expect(artifact.rows.find((row) => row.id === 'runtime-step:unit-demo:step-1')).toMatchObject({
@@ -419,6 +445,91 @@ describe('runtime resource projections', () => {
         reviewedSourceHash: 'sha256:manifest-plus-overlay',
         promptOrManifestHash: 'sha256:manifest-plus-overlay',
       },
+    });
+  });
+
+  it('keeps an agent-reviewed sidecar out of PlanningUnit and mastery eligibility', () => {
+    const audit = buildResourceFieldCompletionAudit({
+      registry: buildResourceNodeRegistry({}),
+      generatedAt: '2026-07-16T21:30:00.000Z',
+      candidates: [{
+        id: 'knowledge-card:agent-reviewed-only',
+        title: 'Agent reviewed support',
+        family: 'knowledge-card',
+        sourcePathOrUrl: 'course-content/runtime/knowledge/cards/nodes/agent-reviewed-only.md',
+        sourceRecord: 'agent-reviewed-only',
+        knowledgeNodeIds: ['kn-agent-reviewed'],
+        capabilityTargetIds: ['controlModeling'],
+        segmentRefs: ['agent-reviewed-only'],
+        citationTargets: ['course-content/runtime/knowledge/cards/nodes/agent-reviewed-only.md'],
+        pathTarget: '/knowledge?node=kn-agent-reviewed',
+        estimatedTimeMinutes: 5,
+        evidenceInstrumentation: ['knowledge_card_open'],
+        privacyScope: 'student-visible',
+        contentHash: 'sha256:agent-reviewed',
+        versionRef: 'runtime-knowledge-card.v1',
+        reviewProvenance: 'agent-reviewed',
+        currentPathEligible: true,
+        reviewEvidence: {
+          reviewerId: 'codex-implementing-agent',
+          reviewerRole: 'implementing-agent',
+          reviewedAt: '2026-07-16T21:30:00.000Z',
+          reviewBatchId: 'agent-semantic-review',
+          reviewerVisibleRationale: 'Agent semantic review confirms citation support only and does not authorize path publication.',
+          independentEvidenceRef: 'course-content/runtime/knowledge/cards/nodes/agent-reviewed-only.md',
+          reviewedSourceHash: 'sha256:agent-reviewed',
+          reviewedVersionRef: 'runtime-knowledge-card.v1',
+        },
+      }],
+    });
+    const row = audit.rows[0];
+    const projection = buildRuntimeResourceProjectionArtifacts({ auditRows: audit.rows }).rows[0];
+
+    expect(row).toMatchObject({
+      reviewStatus: 'agent-reviewed',
+      pathEligibility: {
+        current: false,
+        afterCompletion: false,
+        masteryAffecting: false,
+        blockedBy: expect.arrayContaining(['missing-human-review']),
+      },
+    });
+    expect(projection).toMatchObject({
+      projectionLevel: 'ResourceSegment',
+      routeTarget: null,
+      pathEligibility: { current: false, masteryAffecting: false },
+    });
+  });
+
+  it('keeps authoring textbook families teacher-scoped and audit-only', () => {
+    const audit = buildResourceFieldCompletionAudit({
+      registry: buildResourceNodeRegistry({}),
+      candidates: [{
+        id: 'authoring-textbook-caption:book:chapter:figure-1',
+        title: 'Authoring caption',
+        family: 'authoring-textbook-caption',
+        sourcePathOrUrl: 'course-content/authoring/resources/textbooks/book/chapter/manifest.json',
+        sourceRecord: 'caption:1',
+        segmentRefs: ['chapter', 'figure-1'],
+        citationTargets: ['course-content/authoring/resources/textbooks/book/chapter/manifest.json'],
+        pathTarget: 'course-content/authoring/resources/textbooks/book/chapter/manifest.json',
+        privacyScope: 'teacher-scoped',
+        contentHash: 'sha256:caption',
+        versionRef: 'authoring-textbook-manifest.v1',
+      }],
+    });
+    const projection = buildRuntimeResourceProjectionArtifacts({ auditRows: audit.rows }).rows[0];
+
+    expect(projection).toMatchObject({
+      lifecycleScope: 'audit-only',
+      reviewConcluded: false,
+      semanticConfirmed: false,
+      privacyScope: 'teacher-scoped',
+      teacherPolicy: 'teacher-only',
+      routeTarget: null,
+      renderTarget: null,
+      citationTargets: [],
+      projectionLevel: 'ResourceSegment',
     });
   });
 

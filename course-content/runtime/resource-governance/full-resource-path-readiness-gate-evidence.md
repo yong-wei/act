@@ -1,16 +1,16 @@
 # Full Resource Path Readiness Gate
 
-Generated: 2026-07-17T03:49:36.289Z
+Generated: 2026-07-17T07:10:48.315Z
 Status: failed
 
 ## Resource Coverage
 
-Total resources: 5560
-Unaccounted resources: 1049
-Invalid path promotions: 7
-Unreviewed semantic rows: 2440
-Unresolved graph-node resource gaps: 4178
-Unresolved downstream path blockers: 18756
+Total resources: 6509
+Unaccounted resources: 52
+Invalid path promotions: 2
+Unreviewed semantic rows: 3404
+Unresolved graph-node resource gaps: 4184
+Unresolved downstream path blockers: 19652
 Evidence-lineage blockers: 47
 Yang Fan fixture blockers: 22
 Yang Fan fixture global limitations: 1512
@@ -66,11 +66,11 @@ Missing audited resource types: adaptive_quiz, checkpoint, control_workbench, ex
 
 ## Findings
 
-- [blocking] unaccounted-resource-disposition: 1049 - Resources are missing a reviewed path-planning disposition.
-- [blocking] unresolved-downstream-path-blockers: 18756 - Reviewed disposition output still carries downstream path-readiness, runtime-identity, or dependency blockers.
-- [blocking] invalid-path-promotion: 7 - Resources are marked path-current without complete human-reviewed governance.
-- [blocking] unreviewed-resource-semantics: 2440 - Resources still require reviewed semantic fields or reviewed limitations.
-- [blocking] unresolved-graph-node-resource-missing: 4178 - Resources still lack reviewed graph knowledge or capability bindings.
+- [blocking] unaccounted-resource-disposition: 52 - Resources are missing a reviewed path-planning disposition.
+- [blocking] unresolved-downstream-path-blockers: 19652 - Reviewed disposition output still carries downstream path-readiness, runtime-identity, or dependency blockers.
+- [blocking] invalid-path-promotion: 2 - Resources are marked path-current without complete human-reviewed governance.
+- [blocking] unreviewed-resource-semantics: 3404 - Resources still require reviewed semantic fields or reviewed limitations.
+- [blocking] unresolved-graph-node-resource-missing: 4184 - Resources still lack reviewed graph knowledge or capability bindings.
 - [blocking] evidence-lineage-blockers: 47 - Evidence-producing path resources still have hard evidence-lineage blockers.
 - [blocking] yang-fan-fixture-blockers: 22 - Yang Fan fixture generation remains blocked by fixture-owned lineage limitations.
 - [warning] yang-fan-fixture-limited-coverage: 1512 - Yang Fan fixture-owned resources are scoped separately; unrelated global resource backlog remains visible as limited coverage.

@@ -1,12 +1,12 @@
 {
   "artifactVersion": "resource-evidence-lineage-readiness.v1",
   "layerTotals": {
-    "auditRows": 5560,
-    "pathRelevantRows": 3647,
-    "evidenceProducingRows": 3622,
+    "auditRows": 6509,
+    "pathRelevantRows": 4596,
+    "evidenceProducingRows": 4571,
     "evidenceLineageBlockers": 47,
     "reviewedLimitations": 1487,
-    "readyRows": 2135
+    "readyRows": 3084
   },
   "findingCounts": {
     "missing-evidence-contract": 1534,

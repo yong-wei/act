@@ -245,6 +245,7 @@ export type ResourcePathPlanningDispositionKind =
 export type ResourcePathPlanningDispositionReviewStatus =
   | 'not-reviewed'
   | 'generated-provisional'
+  | 'agent-reviewed'
   | 'human-confirmed';
 
 export interface ResourcePathPlanningDisposition {
@@ -334,6 +335,7 @@ export type RuntimeResourceProjectionReviewStatus =
   | 'model-assisted-provisional'
   | 'external-tool-provisional'
   | 'model-cleared'
+  | 'agent-reviewed'
   | 'human-confirmed'
   | 'blocked'
   | 'stale';
@@ -374,6 +376,9 @@ export interface RuntimeResourceProjectionReviewAudit {
   independentEvidenceRef?: string | null;
   confidence: number | null;
   staleInvalidationRule: string;
+  reviewArtifactVersion?: string | null;
+  reviewSourceSha256?: string | null;
+  reviewRowHash?: string | null;
 }
 
 export type RuntimeResourceProjectionAssetStatus =
@@ -413,6 +418,7 @@ export interface RuntimeResourceProjectionInput {
   sourceHash: string | null;
   sourceVersionRef: string | null;
   projectionLevel: RuntimeResourceProjectionLevel;
+  lifecycleScope?: 'runtime' | 'audit-only';
   routeTarget?: string | null;
   renderTarget?: string | null;
   graphNodeRefs?: Partial<ResourceGraphNodeRefs>;
@@ -422,6 +428,8 @@ export interface RuntimeResourceProjectionInput {
   teacherPolicy?: ResourceNodeTeacherPolicy | null;
   evidenceContract?: RuntimeResourceProjectionEvidenceContract | null;
   reviewAudit?: RuntimeResourceProjectionReviewAudit | null;
+  reviewConcluded?: boolean;
+  semanticConfirmed?: boolean;
   readiness?: ResourceNodeReadinessMetadata | null;
   citationTargets?: string[];
   groundingEligibility?: {
@@ -434,7 +442,7 @@ export interface RuntimeResourceProjectionInput {
     id: string;
     pathEligible: boolean;
     reason: string;
-  };
+  } | null;
   pathEligibility?: {
     current: boolean;
     afterCompletion: boolean;
@@ -967,6 +975,8 @@ export interface TextbookResourceNodeInput {
   bookId: string;
   title: string;
   sourceHref?: string | null;
+  sourceHash?: string | null;
+  sourceVersionRef?: string | null;
   knowledgeNodeIds?: string[];
   planningOverride?: ResourceNodePlanningOverride;
 }
@@ -976,6 +986,8 @@ export interface TextbookSectionResourceNodeInput {
   sectionId: string;
   title: string;
   citationHref: string;
+  sourceHash?: string | null;
+  sourceVersionRef?: string | null;
   knowledgeNodeIds?: string[];
   capabilityTargetIds?: string[];
   prerequisiteNodeIds?: string[];
@@ -1347,12 +1359,12 @@ export function auditResourcePathPlanningDisposition(
   }
 
   const issues: ResourceNodeAuditIssue[] = [];
-  const reviewEvidenceComplete = isResourcePathPlanningDispositionHumanReviewed(disposition);
+  const reviewEvidenceComplete = isResourcePathPlanningDispositionReviewConfirmed(disposition);
   if (!reviewEvidenceComplete) {
     issues.push({
       code: 'missing-disposition-review',
       severity: 'warning',
-      message: 'Resource path-planning disposition requires human review status, reviewer, review time, and source version.',
+      message: 'Resource path-planning disposition requires confirmed review status, reviewer, review time, and source version.',
     });
   }
   if (!disposition.rationale) {
@@ -1393,14 +1405,14 @@ export function auditResourcePathPlanningDisposition(
       includeDispositionPromotion: false,
     });
     if (
-      !reviewEvidenceComplete ||
+      !isResourcePathPlanningDispositionHumanReviewed(disposition) ||
       !highConfidenceAudit.pathEligible ||
       !node.planningMetadata.readiness
     ) {
       issues.push({
         code: 'invalid-path-disposition-promotion',
         severity: 'blocking',
-        message: 'Path-plannable disposition requires human review, path audit clearance, and readiness metadata.',
+        message: 'Path-plannable disposition requires human-confirmed review, path audit clearance, and readiness metadata.',
       });
     }
   }
@@ -1414,6 +1426,18 @@ export function isResourcePathPlanningDispositionHumanReviewed(
   return Boolean(
     disposition &&
     disposition.reviewStatus === 'human-confirmed' &&
+    disposition.reviewerId &&
+    disposition.reviewedAt &&
+    disposition.sourceVersionRef,
+  );
+}
+
+export function isResourcePathPlanningDispositionReviewConfirmed(
+  disposition: ResourcePathPlanningDisposition | null | undefined,
+): disposition is ResourcePathPlanningDisposition {
+  return Boolean(
+    disposition &&
+    (disposition.reviewStatus === 'human-confirmed' || disposition.reviewStatus === 'agent-reviewed') &&
     disposition.reviewerId &&
     disposition.reviewedAt &&
     disposition.sourceVersionRef,
@@ -2184,7 +2208,8 @@ function buildRuntimeProjectionResourceNodes(projections: RuntimeResourceProject
 function isRuntimeResourceProjectionResourceNodeCandidate(
   projection: RuntimeResourceProjectionInput,
 ): boolean {
-  return isResourceNodeType(projection.resourceType) || projection.resourceType === 'image';
+  return projection.lifecycleScope !== 'audit-only' &&
+    (isResourceNodeType(projection.resourceType) || projection.resourceType === 'image');
 }
 
 function runtimeProjectionResourceNodeType(
@@ -2210,6 +2235,20 @@ function buildTextbookNodes(textbooks: TextbookResourceNodeInput[]): ResourceNod
       planningMetadata: 'ResourceNode',
     },
     evidenceInstrumentation: [],
+    runtimeProjection: textbook.sourceHash && textbook.sourceVersionRef
+      ? {
+          id: `textbook:${textbook.bookId}`,
+          projectionLevel: 'ResourceSegment',
+          sourceKind: 'textbook',
+          sourcePathOrUrl: textbook.sourceHref ?? null,
+          sourceRecord: textbook.bookId,
+          sourceHash: textbook.sourceHash,
+          sourceVersionRef: textbook.sourceVersionRef,
+          graphNodeRefs: { knowledge: textbook.knowledgeNodeIds ?? [], capability: [], quality: [] },
+          evidenceContract: null,
+          reviewAudit: null,
+        }
+      : null,
     planningOverride: {
       ...textbook.planningOverride,
       teacherPolicy: 'blocked',
@@ -2242,6 +2281,24 @@ function buildTextbookSectionNodes(sections: TextbookSectionResourceNodeInput[])
     },
     prerequisites: section.prerequisiteNodeIds ?? [],
     evidenceInstrumentation: ['textbook_section_open'],
+    runtimeProjection: section.sourceHash && section.sourceVersionRef
+      ? {
+          id: `textbook-section:${section.bookId}:${section.sectionId}`,
+          projectionLevel: 'ResourceSegment',
+          sourceKind: 'textbook_section',
+          sourcePathOrUrl: section.citationHref,
+          sourceRecord: `${section.bookId}:${section.sectionId}`,
+          sourceHash: section.sourceHash,
+          sourceVersionRef: section.sourceVersionRef,
+          graphNodeRefs: {
+            knowledge: section.knowledgeNodeIds ?? [],
+            capability: section.capabilityTargetIds ?? [],
+            quality: [],
+          },
+          evidenceContract: null,
+          reviewAudit: null,
+        }
+      : null,
     planningOverride: {
       ...section.planningOverride,
       estimatedTimeMinutes: section.estimatedTimeMinutes ?? section.planningOverride?.estimatedTimeMinutes,
@@ -2818,7 +2875,7 @@ function auditPathDispositionPlanningEligibility(node: ResourceNode): ResourceNo
   if (!isResourcePathPlanningDispositionHumanReviewed(disposition) || !node.planningMetadata.readiness) {
     return [{
       code: 'invalid-path-disposition-promotion',
-      message: 'Path-plannable disposition requires human review evidence and readiness metadata.',
+      message: 'Path-plannable disposition requires human-confirmed review evidence and readiness metadata.',
       severity: 'blocking',
     }];
   }
@@ -2882,7 +2939,7 @@ function auditRuntimeProjectionPlanning(node: ResourceNode): ResourceNodeAuditIs
   if (!isRuntimeProjectionReviewHumanConfirmed(projection.reviewAudit)) {
     issues.push({
       code: projection.reviewAudit ? 'provisional-runtime-projection' : 'missing-runtime-projection-review-audit',
-      message: 'Runtime projection has not been human-confirmed.',
+      message: 'Runtime projection has not received human-confirmed path authorization.',
       severity: 'blocking',
     });
   } else if (isRuntimeProjectionReviewStale(projection)) {
@@ -3697,7 +3754,10 @@ function isResourcePathPlanningDispositionKind(value: unknown): value is Resourc
 function isResourcePathPlanningDispositionReviewStatus(
   value: unknown,
 ): value is ResourcePathPlanningDispositionReviewStatus {
-  return value === 'not-reviewed' || value === 'generated-provisional' || value === 'human-confirmed';
+  return value === 'not-reviewed' ||
+    value === 'generated-provisional' ||
+    value === 'agent-reviewed' ||
+    value === 'human-confirmed';
 }
 
 function normalizeNumericRecord(value: unknown): Record<string, number> {

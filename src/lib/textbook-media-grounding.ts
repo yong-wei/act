@@ -47,6 +47,7 @@ export interface TextbookSectionCitationTargetArtifact {
   documentId: string;
   address: NonNullable<TextbookRuntimeSearchDocument['citationAddress']>;
   contentHash: string | null;
+  targetFileHash: string;
   sourceVersionRefs: TextbookRuntimeSearchDocument['resourceProjection']['versionRefs'];
   pathEligibility: {
     eligible: false;
@@ -121,6 +122,7 @@ export function buildTextbookMediaGroundingArtifacts(input: {
   mediaProjections: readonly RuntimeResourceProjectionArtifactRow[];
   generatedAt?: string;
   reviewBatchId: string;
+  targetFileHashForHref: (href: string) => string | null;
   maxLimitationRows?: number;
 }): TextbookMediaGroundingArtifacts {
   const generatedAt = input.generatedAt ?? new Date().toISOString();
@@ -131,7 +133,12 @@ export function buildTextbookMediaGroundingArtifacts(input: {
   const citationTargets = input.textbookDocuments
     .flatMap((document) => {
       const candidate = candidateByDocumentId.get(document.id);
-      return candidate ? buildTextbookCitationTarget(input.sourcePackageId, document, candidate) : [];
+      return candidate ? buildTextbookCitationTarget(
+        input.sourcePackageId,
+        document,
+        candidate,
+        input.targetFileHashForHref,
+      ) : [];
     })
     .sort((left, right) => left.citationTargetId.localeCompare(right.citationTargetId));
   const mediaReviewStatusCounts = countMediaReviewStatuses(input.mediaProjections);
@@ -233,9 +240,13 @@ function buildTextbookCitationTarget(
   sourcePackageId: string,
   document: TextbookRuntimeSearchDocument,
   candidate: TextbookSectionGroundingCandidate,
+  targetFileHashForHref: (href: string) => string | null,
 ): TextbookSectionCitationTargetArtifact[] {
   if (candidate.reviewState !== 'human-confirmed' || candidate.limitationReason || !candidate.sourceHash) return [];
-  if (!document.citationAddress || !isSafeServerOwnedAddress(document.citationAddress.href)) return [];
+  const href = document.citationAddress?.href;
+  if (!document.citationAddress || !href || !isSafeServerOwnedAddress(href)) return [];
+  const targetFileHash = targetFileHashForHref(href);
+  if (!targetFileHash) return [];
   return [{
     artifactVersion: TEXTBOOK_MEDIA_GROUNDING_ARTIFACT_VERSION,
     sourcePackageId,
@@ -245,6 +256,7 @@ function buildTextbookCitationTarget(
     documentId: document.id,
     address: document.citationAddress,
     contentHash: candidate.sourceHash,
+    targetFileHash,
     sourceVersionRefs: document.resourceProjection.versionRefs,
     pathEligibility: {
       eligible: false,

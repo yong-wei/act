@@ -4,7 +4,7 @@ import {
   auditResourcePathPlanningDisposition,
   buildResourceNodeHighConfidencePlanningAudit,
   buildResourceSemanticProjection,
-  isResourcePathPlanningDispositionHumanReviewed,
+  isResourcePathPlanningDispositionReviewConfirmed,
   type CitationTarget,
   type ResourceNode,
   type ResourceNodeRegistry,
@@ -460,7 +460,7 @@ function buildResourceDispositionLayer(
     resourceNodes: nodes.length,
     corpusResourceProjections: countCorpusResourceProjections(evidenceCorpus),
     reviewedDispositions: nodes.filter((node) =>
-      isResourcePathPlanningDispositionHumanReviewed(node.planningMetadata.pathDisposition)
+      isResourcePathPlanningDispositionReviewConfirmed(node.planningMetadata.pathDisposition)
     ).length,
     missingDisposition: countFindings(findings, 'missing-path-disposition'),
     missingHumanReview: countFindings(findings, 'missing-disposition-review'),

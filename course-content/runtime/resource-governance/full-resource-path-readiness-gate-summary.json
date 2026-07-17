@@ -1,6 +1,6 @@
 {
   "artifactVersion": "full-resource-path-readiness-gate.v1",
-  "generatedAt": "2026-07-17T03:49:36.289Z",
+  "generatedAt": "2026-07-17T07:10:48.315Z",
   "status": "failed",
   "sourceArtifacts": {
     "resourceFieldCompletion": "course-content/runtime/resource-governance/resource-field-completion-summary.json",
@@ -10,7 +10,7 @@
     "learningGoalReviewedBindings": "course-content/runtime/resource-governance/learning-goal-resource-baseline-reviewed-bindings.jsonl"
   },
   "resourceCoverage": {
-    "totalResources": 5560,
+    "totalResources": 6509,
     "familyTotals": {
       "arena": 2,
       "authoring-textbook-caption": 535,
@@ -25,37 +25,37 @@
       "runtime-lesson-module": 1487,
       "runtime-lesson-step": 487,
       "textbook": 6,
-      "textbook-search-document": 15,
+      "textbook-search-document": 964,
       "textbook-section": 1007
     },
     "dispositionClassifications": {
-      "path-plannable": 234,
-      "supporting-citation": 628,
-      "embedded-asset": 1372,
-      "evidence-producing": 1396,
-      "excluded-with-rationale": 1881
+      "path-plannable": 229,
+      "supporting-citation": 1875,
+      "excluded-with-rationale": 2061,
+      "embedded-asset": 1907,
+      "evidence-producing": 388
     },
-    "unaccountedCount": 1049,
-    "invalidPromotionCount": 7,
-    "unreviewedSemanticCount": 2440,
-    "unresolvedGraphNodeResourceMissingCount": 4178,
+    "unaccountedCount": 52,
+    "invalidPromotionCount": 2,
+    "unreviewedSemanticCount": 3404,
+    "unresolvedGraphNodeResourceMissingCount": 4184,
     "downstreamBlockers": {
-      "dependency": 1064,
+      "dependency": 1069,
       "evidence-lineage": 6850,
-      "path-readiness": 14325,
-      "runtime-identity": 3367
+      "path-readiness": 16229,
+      "runtime-identity": 2354
     },
-    "unresolvedDownstreamPathBlockers": 18756,
+    "unresolvedDownstreamPathBlockers": 19652,
     "evidenceLineageBlockerCount": 47,
     "followupBuckets": {
-      "blocked-resource-completion-dependencies": 1064,
-      "complete-analysis-design-graph-resource-bindings": 7115,
+      "blocked-resource-completion-dependencies": 1069,
+      "complete-analysis-design-graph-resource-bindings": 7121,
       "complete-citation-and-rag-bindings": 2034,
       "complete-evidence-lineage-bindings": 6850,
       "complete-foundation-graph-resource-bindings": 436,
-      "repair-resource-identity-bindings": 1333,
-      "review-runtime-lesson-planning-units": 6774,
-      "review-runtime-media-handout-dispositions": 2503
+      "repair-resource-identity-bindings": 320,
+      "review-runtime-lesson-planning-units": 8672,
+      "review-runtime-media-handout-dispositions": 2362
     },
     "yangFanFixtureBlockers": {
       "blocked": true,
@@ -495,7 +495,7 @@
     {
       "id": "unaccounted-resource-disposition",
       "severity": "blocking",
-      "count": 1049,
+      "count": 52,
       "message": "Resources are missing a reviewed path-planning disposition.",
       "evidenceRefs": [
         "resource-disposition-backlog-review-summary.json"
@@ -504,7 +504,7 @@
     {
       "id": "unresolved-downstream-path-blockers",
       "severity": "blocking",
-      "count": 18756,
+      "count": 19652,
       "message": "Reviewed disposition output still carries downstream path-readiness, runtime-identity, or dependency blockers.",
       "evidenceRefs": [
         "resource-disposition-backlog-review-summary.json"
@@ -513,7 +513,7 @@
     {
       "id": "invalid-path-promotion",
       "severity": "blocking",
-      "count": 7,
+      "count": 2,
       "message": "Resources are marked path-current without complete human-reviewed governance.",
       "evidenceRefs": [
         "resource-field-completion-audit.jsonl"
@@ -522,7 +522,7 @@
     {
       "id": "unreviewed-resource-semantics",
       "severity": "blocking",
-      "count": 2440,
+      "count": 3404,
       "message": "Resources still require reviewed semantic fields or reviewed limitations.",
       "evidenceRefs": [
         "resource-field-completion-summary.json"
@@ -531,7 +531,7 @@
     {
       "id": "unresolved-graph-node-resource-missing",
       "severity": "blocking",
-      "count": 4178,
+      "count": 4184,
       "message": "Resources still lack reviewed graph knowledge or capability bindings.",
       "evidenceRefs": [
         "resource-field-completion-audit.jsonl"

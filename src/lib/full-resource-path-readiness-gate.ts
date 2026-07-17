@@ -585,7 +585,7 @@ function canonicalPathReadinessResourceType(resourceType: string): string {
 }
 
 function isReviewedPathEligibleAuditRow(row: ResourceFieldCompletionAuditRow): boolean {
-  return row.reviewStatus === 'human-confirmed' &&
+  return isConfirmedReviewStatus(row.reviewStatus) &&
     row.pathEligibility.afterCompletion &&
     row.pathEligibility.blockedBy.length === 0;
 }
@@ -603,7 +603,7 @@ function countInvalidPromotions(rows: readonly ResourceFieldCompletionAuditRow[]
   return rows.filter((row) => (
     row.pathEligibility.current &&
     (
-      row.reviewStatus !== 'human-confirmed' ||
+      !isConfirmedReviewStatus(row.reviewStatus) ||
       row.pathEligibility.blockedBy.length > 0 ||
       !row.evidenceContract.complete
     )
@@ -612,8 +612,12 @@ function countInvalidPromotions(rows: readonly ResourceFieldCompletionAuditRow[]
 
 function countUnreviewedSemanticRows(summary: ResourceFieldCompletionAuditSummary): number {
   return Object.entries(summary.byReviewStatus)
-    .filter(([status]) => status !== 'human-confirmed')
+    .filter(([status]) => !isConfirmedReviewStatus(status))
     .reduce((total, [, count]) => total + count, 0);
+}
+
+function isConfirmedReviewStatus(status: string): boolean {
+  return status === 'human-confirmed';
 }
 
 function countUnresolvedGraphNodeResourceMissing(rows: readonly ResourceFieldCompletionAuditRow[]): number {

@@ -53,6 +53,7 @@ interface GroundingCandidate {
 
 interface CitationTarget {
   candidateId: string;
+  targetFileHash: string;
   pathEligibility?: { eligible: boolean; reason?: string };
 }
 

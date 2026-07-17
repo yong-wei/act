@@ -1,12 +1,12 @@
 # Resource Evidence-Lineage Readiness Evidence
 
 Artifact version: resource-evidence-lineage-readiness.v1
-Source audit rows: 5560
-Path-relevant rows: 3647
-Evidence-producing rows: 3622
+Source audit rows: 6509
+Path-relevant rows: 4596
+Evidence-producing rows: 4571
 Evidence-lineage blockers: 47
 Reviewed limitations: 1487
-Ready rows: 2135
+Ready rows: 3084
 
 ## Finding Counts
 
