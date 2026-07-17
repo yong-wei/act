@@ -158,6 +158,21 @@ const MIN_ORBIT_RADIUS = 20;
 const MIN_POLAR_ANGLE = 0.05;
 const MAX_POLAR_ANGLE = Math.PI - 0.05;
 
+export function calculateWheelRadiusOffset(
+  presetRadius: number,
+  currentRadius: number,
+  minDistance: number,
+  maxDistance: number
+): number {
+  const minimum = Number.isFinite(minDistance) ? Math.max(MIN_ORBIT_RADIUS, minDistance) : MIN_ORBIT_RADIUS;
+  const maximum = Number.isFinite(maxDistance) ? Math.max(minimum, maxDistance) : Number.POSITIVE_INFINITY;
+  return THREE.MathUtils.clamp(currentRadius, minimum, maximum) - presetRadius;
+}
+
+export function shouldResetPresetOffset(previousMode: CameraMode, nextMode: CameraMode): boolean {
+  return previousMode === 'free' && nextMode !== 'free';
+}
+
 function createDefaultViewOffsets(): Record<CameraView, ViewOrbitOffset> {
   return {
     chase: { radius: 0, theta: 0, phi: 0 },
@@ -280,12 +295,50 @@ export function UnifiedCameraController({
     };
   }, [enabled, gl]);
 
+  useEffect(() => {
+    if (!enabled || cameraMode === 'free') return;
+
+    const domElement = gl.domElement;
+    const handleWheel = () => {
+      // OrbitControls applies wheel zoom synchronously. Deferring the read until
+      // event dispatch completes preserves its native zoom speed and clamping.
+      queueMicrotask(() => {
+        const controls = controlsRef.current;
+        if (!controls || transitionRef.current.active) return;
+
+        const presetBase = calculatePresetPosition(
+          cameraMode,
+          position.x,
+          position.z,
+          headingRad,
+          cfg
+        );
+        const presetRadius = presetBase.position.distanceTo(presetBase.target);
+        const currentRadius = camera.position.distanceTo(controls.target);
+        viewOffsetsRef.current[cameraMode].radius = calculateWheelRadiusOffset(
+          presetRadius,
+          currentRadius,
+          controls.minDistance,
+          controls.maxDistance
+        );
+      });
+    };
+
+    domElement.addEventListener('wheel', handleWheel, { passive: true });
+    return () => {
+      domElement.removeEventListener('wheel', handleWheel);
+    };
+  }, [camera, cameraMode, cfg, controlsRef, enabled, gl, headingRad, position.x, position.z]);
+
   // 监听模式变化，启动过渡动画
   useEffect(() => {
     if (!enabled) return;
 
     // 检测模式是否变化
     if (prevModeRef.current !== cameraMode && cameraMode !== 'free') {
+      if (shouldResetPresetOffset(prevModeRef.current, cameraMode)) {
+        viewOffsetsRef.current[cameraMode] = { radius: 0, theta: 0, phi: 0 };
+      }
       // 计算目标位置
       const presetBase = calculatePresetPosition(
         cameraMode,
