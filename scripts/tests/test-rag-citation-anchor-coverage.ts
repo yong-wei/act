@@ -4,6 +4,7 @@ import path from 'node:path';
 
 import {
   buildSummary,
+  citationChipLimitationReason,
   ensureTextbookRuntimeExports,
   mediaCorpusItem,
   textbookCorpusItem,
@@ -169,6 +170,18 @@ assert(
 const mediaReviewRows = readJsonl<any>('runtime-media-handout-disposition-review-items.jsonl');
 const mediaItems = corpusItems.filter((item) => item.sourceClass === 'runtime-media');
 assert(mediaItems.length === 20, 'media corpus row count mismatch');
+assert(
+  citationChipLimitationReason(['semantic-relevance-unconfirmed', 'transcript-required'], false) === 'unresolved-address',
+  'address limitation must win over semantic fallback for a non-clickable chip',
+);
+assert(
+  citationChipLimitationReason(['semantic-relevance-unconfirmed'], true) === 'semantic-relevance-unconfirmed',
+  'semantic fallback must remain visible when the address is available',
+);
+assert(
+  citationChipLimitationReason(['media-production-missing'], false) === 'inaccessible-source',
+  'address-only source availability limitation must remain visible',
+);
 const readyMediaReview = mediaReviewRows.find((item) => item.citationAnchorState === 'figure-anchor-ready');
 assert(readyMediaReview, 'a ready media review fixture is required');
 const staleMedia = mediaCorpusItem({
@@ -217,6 +230,11 @@ assert(
     item.serverOwnedAddress === false &&
     item.citationChip.limitationState !== null &&
     CITATION_CHIP_LIMITATION_REASONS.has(item.citationChip.limitationState) &&
+    item.citationChip.limitationState === citationChipLimitationReason(
+      item.limitationState,
+      Boolean(item.citationChip.displayHref),
+    ) &&
+    item.citationChip.limitationState !== 'semantic-relevance-unconfirmed' &&
     isLimitedCitationChip(item)
   ),
   'limited media rows must preserve review metadata, limitation state, and limited CitationChip payloads',

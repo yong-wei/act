@@ -906,20 +906,24 @@ function buildCitationChip(input: {
     confidence: input.confidence,
     freshnessBucket: input.freshnessBucket,
     privacyVisibility: privacyVisibilityFor(input.privacyScope),
-    limitationState: citationChipLimitationReason(input.limitationState),
+    limitationState: citationChipLimitationReason(input.limitationState, Boolean(input.href)),
     sourceVersionRefs: input.sourceVersionRefs,
   };
 }
 
-function citationChipLimitationReason(limitationState: string[]): CitationChipLimitationReason | null {
+export function citationChipLimitationReason(
+  limitationState: string[],
+  addressAvailable: boolean,
+): CitationChipLimitationReason | null {
   if (limitationState.length === 0) return null;
+
+  // User-visible chips must explain why an address cannot be opened before
+  // reporting independent semantic-review limitations.
   if (limitationState.includes('missing-citation-target')) return 'missing-chunk';
-  if (limitationState.includes('section-review-not-selected-for-current-path-batch')) return 'insufficient-authority';
   if (limitationState.includes('unsafe-citation-target-href')) return 'unsafe-address';
   if (limitationState.includes('quote-hash-mismatch')) return 'quote-hash-mismatch';
   if (limitationState.includes('address-kind-mismatch')) return 'address-kind-mismatch';
   if (limitationState.includes('span-ref-mismatch')) return 'span-ref-mismatch';
-  if (limitationState.includes('semantic-relevance-unconfirmed')) return 'semantic-relevance-unconfirmed';
   if (limitationState.includes('media-production-missing')) return 'inaccessible-source';
   if (limitationState.some((item) =>
     item.includes('anchor-required') ||
@@ -929,6 +933,10 @@ function citationChipLimitationReason(limitationState: string[]): CitationChipLi
     return 'unresolved-address';
   }
   if (limitationState.includes('source-hash-unavailable')) return 'stale-source';
+  if (addressAvailable && limitationState.includes('semantic-relevance-unconfirmed')) {
+    return 'semantic-relevance-unconfirmed';
+  }
+  if (limitationState.includes('section-review-not-selected-for-current-path-batch')) return 'insufficient-authority';
   return 'unsupported-source-type';
 }
 
