@@ -5,6 +5,17 @@ import { createHash } from 'node:crypto';
 import { execFileSync, spawnSync } from 'node:child_process';
 import assert from 'node:assert/strict';
 
+for (const inheritedGitVariable of [
+  'GIT_DIR',
+  'GIT_WORK_TREE',
+  'GIT_INDEX_FILE',
+  'GIT_COMMON_DIR',
+  'GIT_OBJECT_DIRECTORY',
+  'GIT_ALTERNATE_OBJECT_DIRECTORIES',
+]) {
+  delete process.env[inheritedGitVariable];
+}
+
 const root = process.cwd();
 const realGit = execFileSync('which', ['git'], { encoding: 'utf8' }).trim();
 const tsxBin = path.join(root, 'node_modules', '.bin', process.platform === 'win32' ? 'tsx.cmd' : 'tsx');
