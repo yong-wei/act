@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
-import { presentRevision, presentStudentAssignmentFeedback, submitQuestionAnswer } from '@/lib/assignments/submission-service';
+import { listStudentAssignments, presentRevision, presentStudentAssignmentFeedback, submitQuestionAnswer } from '@/lib/assignments/submission-service';
 import { submissionHash } from '@/lib/assignments/submission-domain';
 
 const question = { id: 'question-1', promptSnapshot: { prompt: '解释闭环稳定性' } };
@@ -30,6 +30,34 @@ const snapshot = {
 };
 
 describe('student assignment approved feedback projection', () => {
+  it('includes active resubmission grants in assignment list presentation', async () => {
+    const now = new Date('2026-07-17T01:00:00Z');
+    const findMany = vi.fn(async () => [{
+      id: 'revision-1', assignmentId: 'assignment-1', title: '作业', instructions: '', latePolicy: { mode: 'CLOSED' },
+      publishedAt: now,
+      audiences: [{ classId: 'class-1', availableAt: new Date('2026-07-01T00:00:00Z'), dueAt: new Date('2026-07-10T00:00:00Z') }],
+      questions: [{ ...question, stableQuestionId: 'stable-1', orderIndex: 0, responseType: 'SUBJECTIVE_TEXT', points: 10 }],
+      submissions: [{
+        id: 'submission-1', state: 'SUBMITTED', reviewState: 'RETURNED', studentId: 'student-1', frozenStudentId: 'student-1',
+        answers: [], approvalSnapshots: [],
+        resubmissionGrants: [{ questionId: 'question-1', state: 'ACTIVE', reason: '请修正符号', allowedResponseType: 'SUBJECTIVE_TEXT', newDeadlineAt: new Date('2026-07-20T00:00:00Z'), expiresAt: new Date('2026-07-20T00:00:00Z') }],
+      }],
+    }]);
+    const prisma: any = {
+      studentProfile: { findUnique: async () => ({ classId: 'class-1' }) },
+      assignmentRevision: { findMany },
+      assignmentSubmission: { findMany: async () => [] },
+    };
+
+    const [item] = await listStudentAssignments(prisma, 'student-1', now);
+    expect(item).toMatchObject({ state: 'RESUBMISSION_REQUIRED', canMutate: true, nextAction: 'resubmit-question' });
+    expect(findMany).toHaveBeenCalledWith(expect.objectContaining({
+      include: expect.objectContaining({
+        submissions: expect.objectContaining({ include: expect.objectContaining({ resubmissionGrants: expect.any(Object) }) }),
+      }),
+    }));
+  });
+
   it('replays a consumed resubmission before checking mutable delivery state', async () => {
     const attempt = {
       id: 'attempt-2',

@@ -65,7 +65,7 @@ export async function listStudentAssignments(prisma: PrismaClient, studentId: st
   const currentClassId = profile?.classId ?? null;
   const revisions = currentClassId ? await prisma.assignmentRevision.findMany({
     where: { state: 'PUBLISHED', audiences: { some: { classId: currentClassId, archivedAt: null, availableAt: { lte: now }, class: { isActive: true } } } },
-    include: { audiences: { where: { classId: currentClassId, archivedAt: null }, take: 1 }, questions: { orderBy: { orderIndex: 'asc' } }, submissions: { where: { studentId }, include: { answers: true }, take: 1 } },
+    include: { audiences: { where: { classId: currentClassId, archivedAt: null }, take: 1 }, questions: { orderBy: { orderIndex: 'asc' } }, submissions: { where: { studentId }, include: { answers: true, resubmissionGrants: { orderBy: { grantedAt: 'desc' } } }, take: 1 } },
     orderBy: { publishedAt: 'desc' },
   }) : [];
   const historical = await prisma.assignmentSubmission.findMany({
