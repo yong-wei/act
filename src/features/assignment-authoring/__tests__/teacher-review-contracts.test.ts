@@ -290,11 +290,14 @@ describe("teacher assignment review UI contracts", () => {
 
     expect(
       normalizeTeacherReviewDetail({
-        submission: { id: "s1" },
+        submission: {
+          id: "s1",
+          student: { name: "学生甲", profile: { studentNumber: "2026001" } },
+        },
         question: { id: "q1" },
         review: { id: "review-1", version: 1, criteria: [] },
       }),
-    ).toMatchObject({ submissionId: "s1", questionId: "q1", evidence: null });
+    ).toMatchObject({ submissionId: "s1", questionId: "q1", studentNumber: "2026001", evidence: null });
     expect(
       normalizeTeacherReviewDetail({
         submission: { id: "s1" },

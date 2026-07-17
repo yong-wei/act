@@ -326,6 +326,7 @@ export function normalizeTeacherReviewDetail(
   const questionSnapshot = asRecord(gradingRun.questionSnapshot);
   const submission = asRecord(root.submission ?? review.submission);
   const student = asRecord(submission.student ?? review.student);
+  const studentProfile = asRecord(student.profile);
   const question = asRecord(
     root.question ?? review.question ?? gradingRun.question ?? questionSnapshot,
   );
@@ -375,7 +376,7 @@ export function normalizeTeacherReviewDetail(
     submissionId,
     studentName: stringFrom(student.name ?? submission.studentName, "未知学生"),
     studentNumber: nullableString(
-      student.studentNumber ?? student.number ?? submission.studentNumber,
+      studentProfile.studentNumber ?? student.studentNumber ?? student.number ?? submission.studentNumber,
     ),
     questionId,
     questionTitle: stringFrom(question.title ?? question.label ?? promptSnapshot.title, "未命名题目"),
