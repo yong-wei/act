@@ -879,7 +879,7 @@ export function presentRevision(revision: any, audience: any, submission: any, c
   const activeGrants = (submission?.resubmissionGrants ?? []).filter((row: any) => row.state === 'ACTIVE' && (!row.expiresAt || new Date(row.expiresAt) > now));
   const activeResubmission = activeGrants.length > 0;
   const downstreamState = submission?.reviewState === 'REVIEWED' ? 'REVIEWED'
-    : activeResubmission || submission?.reviewState === 'RETURNED' ? 'RESUBMISSION_REQUIRED'
+    : activeResubmission ? 'RESUBMISSION_REQUIRED'
       : ['APPROVED_PENDING_RELEASE', 'RELEASE_BLOCKED'].includes(submission?.reviewState) ? 'AWAITING_TEACHER_CONFIRMATION'
       : submission?.reviewState === 'REVIEWING' ? 'IN_REVIEW'
         : null;

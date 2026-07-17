@@ -93,6 +93,7 @@ describe('teacher assignment review persistence', () => {
       ...reviewFixture(),
       state: 'APPROVED',
       approvalSnapshot: { id: 'snapshot-1' },
+      submission: { ...reviewFixture().submission, reviewState: 'RELEASE_BLOCKED' },
     };
     const resetDerivative = vi.fn().mockResolvedValue({ count: 1 });
     const db: any = {
@@ -123,6 +124,31 @@ describe('teacher assignment review persistence', () => {
       where: { snapshotId: 'snapshot-1', state: { in: ['BLOCKED', 'FAILED'] } },
       data: expect.objectContaining({ state: 'RETRYABLE', lastErrorCode: null }),
     }));
+  });
+
+  it('does not release one question before the whole submission is complete', async () => {
+    const review: any = {
+      ...reviewFixture(),
+      state: 'APPROVED',
+      approvalSnapshot: { id: 'snapshot-1' },
+      submission: { ...reviewFixture().submission, reviewState: 'REVIEWING' },
+    };
+    const resetDerivative = vi.fn();
+    const db: any = {
+      $transaction: (callback: (tx: any) => Promise<any>) => callback(db),
+      teacherAssignmentReview: { findUnique: vi.fn().mockResolvedValue(review) },
+      teacherAssignmentReviewedDerivative: { updateMany: resetDerivative },
+      teacherAssignmentReviewOutbox: { findMany: vi.fn().mockResolvedValue([
+        { id: 'derivative-command', command: 'GENERATE_DERIVATIVE', state: 'FAILED' },
+        { id: 'release-command', command: 'RELEASE_STUDENT_FEEDBACK', state: 'BLOCKED', payload: {} },
+      ]) },
+    };
+
+    await expect(requestTeacherAssignmentFeedbackRelease(db, {
+      actor: { id: 'teacher-1', role: 'TEACHER' }, assignmentId: 'assignment-1', submissionId: 'submission-1',
+      reviewId: 'review-1', mode: 'RETRY_DERIVATIVE', now,
+    })).rejects.toMatchObject({ code: 'teacher-review-release-incomplete', status: 409 });
+    expect(resetDerivative).not.toHaveBeenCalled();
   });
 
   it.each(['BLOCKED', 'FAILED', 'CONTENT_UNAVAILABLE'])(

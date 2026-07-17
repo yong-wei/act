@@ -58,6 +58,22 @@ describe('student assignment approved feedback projection', () => {
     }));
   });
 
+  it('does not advertise resubmission after the return grant expires', () => {
+    const now = new Date('2026-07-21T01:00:00Z');
+    const detail = presentRevision({
+      assignmentId: 'assignment-1', id: 'revision-1', title: '作业', instructions: '', latePolicy: { mode: 'CLOSED' },
+      questions: [{ ...question, stableQuestionId: 'stable-1', orderIndex: 0, responseType: 'SUBJECTIVE_TEXT', points: 10 }],
+    }, { availableAt: new Date('2026-07-01T00:00:00Z'), dueAt: new Date('2026-07-10T00:00:00Z') }, {
+      id: 'submission-1', state: 'SUBMITTED', reviewState: 'RETURNED', studentId: 'student-1', frozenStudentId: 'student-1',
+      answers: [], approvalSnapshots: [],
+      resubmissionGrants: [{ questionId: 'question-1', state: 'ACTIVE', reason: '已过期', allowedResponseType: 'SUBJECTIVE_TEXT', newDeadlineAt: new Date('2026-07-20T00:00:00Z'), expiresAt: new Date('2026-07-20T00:00:00Z') }],
+    }, true, now);
+
+    expect(detail).toMatchObject({ state: 'SUBMITTED', canMutate: false });
+    expect(detail.nextAction).not.toBe('resubmit-question');
+    expect(detail.questions[0].resubmission).toBeNull();
+  });
+
   it('replays a consumed resubmission before checking mutable delivery state', async () => {
     const attempt = {
       id: 'attempt-2',

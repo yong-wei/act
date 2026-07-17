@@ -401,6 +401,9 @@ export async function requestTeacherAssignmentFeedbackRelease(db: any, input: {
     const derivative = commands.find((row: any) => row.command === 'GENERATE_DERIVATIVE');
     if (!release || !derivative) throw new TeacherAssignmentReviewError('teacher-review-release-command-missing', 409);
     if (release.state === 'SUCCEEDED') return { replay: true, mode: 'PUBLISHED' as const };
+    if (!['APPROVED_PENDING_RELEASE', 'RELEASE_BLOCKED'].includes(review.submission.reviewState)) {
+      throw new TeacherAssignmentReviewError('teacher-review-release-incomplete', 409);
+    }
     if (input.mode === 'STRUCTURED_ONLY' && (input.limitationAcknowledgement?.trim().length ?? 0) < 8) {
       throw new TeacherAssignmentReviewError('teacher-review-fallback-acknowledgement-required', 422);
     }
