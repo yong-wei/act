@@ -1926,6 +1926,7 @@ function buildRegisteredResourceNodes(resources: RegisteredResourceNodeInput[]):
 
   return resources.map((resource) => {
     const arenaTarget = arenaTargets.get(resource.id);
+    const planningOverride = remapRegisteredPlanningOverride(resource.planningOverride, nodeIdAliases);
     const type = arenaTarget
       ? 'arena_task'
       : resource.type === 'SIMULATION_APP'
@@ -1955,9 +1956,76 @@ function buildRegisteredResourceNodes(resources: RegisteredResourceNodeInput[]):
       },
       prerequisites: remapRegisteredNodeIds(resource.prerequisiteNodeIds, nodeIdAliases),
       evidenceInstrumentation: ['InteractionLog'],
-      planningOverride: remapRegisteredPlanningOverride(resource.planningOverride, nodeIdAliases),
+      planningOverride,
+      runtimeProjection: arenaTarget
+        ? buildRegisteredArenaRuntimeProjection(resource, arenaTarget, planningOverride)
+        : null,
     });
   });
+}
+
+function buildRegisteredArenaRuntimeProjection(
+  resource: RegisteredResourceNodeInput,
+  arenaTarget: CanonicalArenaPathTarget,
+  planningOverride: ResourceNodePlanningOverride | undefined,
+): RuntimeResourceProjectionMetadata {
+  const config = resource.defaultConfig ?? {};
+  const sourcePathOrUrl = normalizeOptionalString(config.sourcePathOrUrl);
+  const sourceHash = normalizeOptionalString(config.sourceHash);
+  const sourceVersionRef = normalizeOptionalString(config.sourceVersionRef);
+  const disposition = planningOverride?.pathDisposition;
+  const evidenceInstrumentation = planningOverride?.evidenceInstrumentation ?? [];
+  const evidenceContract: RuntimeResourceProjectionEvidenceContract = {
+    eventSource: true,
+    eventType: evidenceInstrumentation.length > 0,
+    clientEventIdPolicy: true,
+    attemptKey: true,
+    sourceLogId: true,
+    dedupeKey: true,
+    timestamps: true,
+    learningFactPolicy: true,
+    learningFactMaterializationPolicy: 'materialized-learning-fact',
+    confidencePolicy: true,
+    privacyScope: true,
+    complete: true,
+    missingFields: [],
+  };
+  return {
+    id: `runtime-projection:${arenaTarget.nodeId}`,
+    projectionLevel: 'ResourceNode',
+    sourceKind: 'arena_task',
+    sourcePathOrUrl,
+    sourceRecord: arenaTarget.sourceRef,
+    sourceHash,
+    sourceVersionRef,
+    graphNodeRefs: {
+      knowledge: [...(resource.knowledgeNodeIds ?? [])],
+      capability: Object.keys(planningOverride?.abilityImpact ?? {}),
+      quality: [],
+    },
+    evidenceContract,
+    reviewAudit: {
+      status: disposition?.reviewStatus ?? 'not-reviewed',
+      reviewerId: disposition?.reviewerId ?? null,
+      reviewerRole: 'resource-governance-reviewer',
+      reviewedAt: disposition?.reviewedAt ?? null,
+      reviewBatchId: disposition?.sourceVersionRef ?? null,
+      reviewedSourceHash: sourceHash,
+      reviewedVersionRef: disposition?.sourceVersionRef ?? null,
+      generationToolOrModel: null,
+      promptOrManifestHash: null,
+      reviewerVisibleRationale: disposition?.rationale ?? null,
+      independentEvidenceRef: sourcePathOrUrl ? `${sourcePathOrUrl}#${arenaTarget.sourceRef}` : null,
+      confidence: 1,
+      staleInvalidationRule: 'invalidate when canonical arena integrity source hash changes',
+    },
+    groundingEligibility: {
+      retrievalReady: false,
+      citationReady: Boolean(arenaTarget.target),
+      authoringTriageReady: false,
+    },
+    runtimeSemanticEvidence: null,
+  };
 }
 
 function resolveRegisteredArenaTaskTarget(

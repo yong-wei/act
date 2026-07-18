@@ -1,21 +1,20 @@
 {
   "artifactVersion": "resource-field-completion-audit.v1",
-  "auditMissingFieldRows": 6460,
-  "queuedResources": 6460,
-  "primaryQueueItems": 6460,
+  "auditMissingFieldRows": 6458,
+  "queuedResources": 6458,
+  "primaryQueueItems": 6458,
   "dependentQueueItems": 22404,
   "byFollowupBucket": {
-    "repair-resource-identity-bindings": 320,
     "complete-analysis-design-graph-resource-bindings": 7121,
     "complete-evidence-lineage-bindings": 6850,
     "review-runtime-lesson-planning-units": 8672,
     "review-runtime-media-handout-dispositions": 2362,
     "complete-citation-and-rag-bindings": 2034,
     "complete-foundation-graph-resource-bindings": 436,
+    "repair-resource-identity-bindings": 318,
     "blocked-resource-completion-dependencies": 1069
   },
   "byMissingFieldCode": {
-    "missing-content-hash": 320,
     "missing-capability-target": 4146,
     "missing-evidence-contract": 3425,
     "missing-evidence-instrumentation": 3425,
@@ -24,6 +23,7 @@
     "missing-path-target": 3558,
     "missing-human-review": 2362,
     "missing-segment-ref": 159,
+    "missing-content-hash": 318,
     "blocked-by-dependency": 1069,
     "missing-citation-target": 1875
   },
@@ -914,30 +914,6 @@
       "followupBucket": "complete-analysis-design-graph-resource-bindings",
       "dependencyState": "blocked-by-dependency",
       "total": 6,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
-      "id": "resource-completion:primary:arena:controlModeling:knowledge-linked:missing-content-hash:repair-resource-identity-bindings:needs-human-review",
-      "queueRole": "primary",
-      "sourceFamily": "arena",
-      "learningGoalId": "controlModeling",
-      "graphDomain": "knowledge-linked",
-      "missingFieldCode": "missing-content-hash",
-      "followupBucket": "repair-resource-identity-bindings",
-      "dependencyState": "needs-human-review",
-      "total": 1,
-      "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
-    },
-    {
-      "id": "resource-completion:primary:arena:crossDomainTransfer:knowledge-linked:missing-content-hash:repair-resource-identity-bindings:needs-human-review",
-      "queueRole": "primary",
-      "sourceFamily": "arena",
-      "learningGoalId": "crossDomainTransfer",
-      "graphDomain": "knowledge-linked",
-      "missingFieldCode": "missing-content-hash",
-      "followupBucket": "repair-resource-identity-bindings",
-      "dependencyState": "needs-human-review",
-      "total": 1,
       "itemJsonlPath": "course-content/runtime/resource-governance/resource-completion-workqueue-items.jsonl"
     },
     {

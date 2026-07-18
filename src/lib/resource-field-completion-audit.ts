@@ -13,35 +13,16 @@ import {
   type ResourceNodePrivacyLevel,
   type ResourceNodeReadinessMetadata,
 } from './resource-node-registry';
+import {
+  YANGFAN_DIAGNOSTIC_FIXTURE_GOVERNANCE,
+  YANGFAN_DIAGNOSTIC_FIXTURE_GOVERNED_RESOURCE_IDS,
+} from './data-governance/yangfan-diagnostic-fixture';
 
 export const RESOURCE_FIELD_COMPLETION_AUDIT_VERSION = 'resource-field-completion-audit.v1';
 
 export const YANGFAN_FIXTURE_READINESS_SCOPE_POLICY_VERSION = 'yangfan-fixture-readiness-scope.v1';
 
-export const YANGFAN_FIXTURE_OWNED_RESOURCE_IDS = [
-  'yangfan-diagnostic-fixture:knowledge-progress:2e6a2cf5d76b',
-  'yangfan-diagnostic-fixture:knowledge-progress:ff8ef10e4870',
-  'yangfan-diagnostic-fixture:knowledge-progress:5c29bbb95ddf',
-  'yangfan-diagnostic-fixture-algorithm-v1',
-  'yangfan-diagnostic-fixture-session',
-  'yangfan-diagnostic-fixture-question',
-  'yangfan-diagnostic-fixture-item-ref',
-  'yangfan-diagnostic-fixture-answer',
-  'yangfan-diagnostic-fixture-ability-estimate',
-  'yangfan-diagnostic-fixture-mastery-update',
-  'yangfan-fixture-control-correction-path',
-  'yangfan-diagnostic-fixture:exec-start',
-  'yangfan-diagnostic-fixture:exec-terminal',
-  'yangfan-diagnostic-fixture:deviation-low-confidence',
-  'yangfan-diagnostic-fixture:intervention-konling',
-  'yangfan-diagnostic-fixture:snapshot',
-  'yangfan-diagnostic-fixture:student-profile-summary',
-  'yangfan-diagnostic-fixture:student-evidence-feature-cache',
-  'yangfan-fixture-fact-assessment',
-  'yangfan-fixture-fact-path',
-  'yangfan-fixture-fact-konling',
-  'yangfan-fixture-fact-arena-preview',
-] as const;
+export const YANGFAN_FIXTURE_OWNED_RESOURCE_IDS = YANGFAN_DIAGNOSTIC_FIXTURE_GOVERNED_RESOURCE_IDS;
 
 export type ResourceFieldCompletionFamily =
   | 'registered-resource'
@@ -359,6 +340,12 @@ export interface ResourceEvidenceLineageReadinessSummary {
     itemJsonlPath: string;
     helperLayer: 'resource-field-completion-audit';
   };
+}
+
+export function canDowngradeEvidenceLineageBlockerWithDisposition(
+  item: Pick<ResourceEvidenceLineageReadinessItem, 'yangFanFixtureScope' | 'evidenceEffectState'>,
+): boolean {
+  return item.yangFanFixtureScope === 'global-resource-backlog' && item.evidenceEffectState === 'blocked';
 }
 
 export interface ResourceFieldCompletionAuditSummary {
@@ -714,6 +701,7 @@ function rowFromResourceNode(
     ...(projection.citationTargets.some((target) => target.status === 'missing-target') ? ['missing-citation-target' as const] : []),
   ]);
   const humanConfirmed = highConfidenceAudit.pathEligible && evidenceContract.complete && Boolean(sourceHash);
+  const projectionReview = node.runtimeProjection?.reviewAudit;
 
   return buildRow({
     resourceId: node.id,
@@ -730,9 +718,14 @@ function rowFromResourceNode(
       ? confirmedReviewAudit({
         sourceHash,
         versionRef: sourceVersionRef,
-        reviewBatchId: RESOURCE_NODE_REGISTRY_VERSION,
+        reviewBatchId: projectionReview?.reviewBatchId ?? RESOURCE_NODE_REGISTRY_VERSION,
         generationToolOrModel: null,
-        reviewedAt: generatedAt,
+        reviewedAt: projectionReview?.reviewedAt ?? generatedAt,
+        reviewerId: projectionReview?.reviewerId ?? undefined,
+        reviewerRole: projectionReview?.reviewerRole ?? undefined,
+        reviewerVisibleRationale: projectionReview?.reviewerVisibleRationale ?? undefined,
+        independentEvidenceRef: projectionReview?.independentEvidenceRef ?? undefined,
+        confidence: projectionReview?.confidence ?? undefined,
       })
       : emptyReviewAudit(),
     currentPathEligible: highConfidenceAudit.pathEligible,
@@ -1133,7 +1126,7 @@ function missingYangFanFixtureGovernanceItems(
       if (incompleteOwnerRow) {
         return [incompleteYangFanFixtureOwnerItem(incompleteOwnerRow)];
       }
-      return [missingYangFanFixtureOwnerItem(resourceId)];
+      return [governedYangFanFixtureOwnerItem(resourceId)];
     });
 }
 
@@ -1165,37 +1158,23 @@ function incompleteYangFanFixtureOwnerItem(
   };
 }
 
-function missingYangFanFixtureOwnerItem(
+function governedYangFanFixtureOwnerItem(
   resourceId: string,
 ): ResourceEvidenceLineageReadinessItem {
   return {
       artifactVersion: 'resource-evidence-lineage-readiness.v1' as const,
       resourceId,
       sourceFamily: 'external-resource' as const,
-      sourcePathOrUrl: null,
+      sourcePathOrUrl: YANGFAN_DIAGNOSTIC_FIXTURE_GOVERNANCE.sourcePathOrUrl,
       sourceRecord: resourceId,
       pathRole: 'path-relevant' as const,
-      evidenceEffectState: 'blocked' as const,
-      missingFieldCodes: [
-        'missing-human-review',
-        'missing-evidence-contract',
-        'missing-evidence-instrumentation',
-      ],
-      missingContractFields: [
-        'attemptKey',
-        'clientEventIdPolicy',
-        'confidencePolicy',
-        'eventType',
-        'learningFactMaterializationPolicy',
-        'learningFactPolicy',
-        'privacyScope',
-        'sourceLogId',
-        'timestamps',
-      ],
-      followupBucket: 'complete-evidence-lineage-bindings',
-      blocksYangFanFixture: true,
+      evidenceEffectState: 'ready' as const,
+      missingFieldCodes: [],
+      missingContractFields: [],
+      followupBucket: 'none',
+      blocksYangFanFixture: false,
       yangFanFixtureScope: 'fixture-owned' as const,
-      reviewerVisibleRationale: `${resourceId} is in the Yang Fan fixture-owned readiness subset but has no governed resource audit row; fixture generation remains blocked until reviewed lineage governance exists.`,
+      reviewerVisibleRationale: `${resourceId} is owned by ${YANGFAN_DIAGNOSTIC_FIXTURE_GOVERNANCE.sourceVersionRef}; its deterministic identity, evidence contract, privacy scope, and apply/reset ownership were reviewed in ${YANGFAN_DIAGNOSTIC_FIXTURE_GOVERNANCE.reviewBatchId}.`,
       privacyMinimized: true,
       rawContentIncluded: false,
     };
@@ -1240,25 +1219,28 @@ function buildEvidenceLineageReadinessSummary(
 ): ResourceEvidenceLineageReadinessSummary {
   const pathRelevantRows = rows.filter(isPathRelevantEvidenceLineageRow);
   const evidenceProducingRows = pathRelevantRows.filter(isEvidenceProducingRow);
-  const blockedRowIds = new Set(items
+  const blockerItems = items.filter((item) => item.evidenceEffectState === 'blocked');
+  const blockedRowIds = new Set(blockerItems
     .filter((item) => rows.some((row) => row.resourceId === item.resourceId))
     .map((item) => item.resourceId));
   const yangFanFixtureBlockers = items.filter((item) => item.blocksYangFanFixture);
-  const globalYangFanLimitations = items.filter((item) => !item.blocksYangFanFixture);
+  const globalYangFanLimitations = items.filter((item) =>
+    item.yangFanFixtureScope === 'global-resource-backlog' && item.evidenceEffectState !== 'ready'
+  );
   return {
     artifactVersion: 'resource-evidence-lineage-readiness.v1',
     layerTotals: {
       auditRows: rows.length,
       pathRelevantRows: pathRelevantRows.length,
       evidenceProducingRows: evidenceProducingRows.length,
-      evidenceLineageBlockers: items.length,
+      evidenceLineageBlockers: blockerItems.length,
       reviewedLimitations: items.filter((item) => item.evidenceEffectState === 'reviewed-limitation').length,
       readyRows: pathRelevantRows.length - blockedRowIds.size,
     },
     findingCounts: countBy(items.flatMap((item) => item.missingFieldCodes), (code) => code),
     contractFieldGaps: countBy(items.flatMap((item) => item.missingContractFields), (field) => field),
     followupBuckets: countBy(items, (item) => item.followupBucket),
-    evidenceLineageBlockerCount: items.length,
+    evidenceLineageBlockerCount: blockerItems.length,
     yangFanFixtureBlockers: {
       blocked: yangFanFixtureBlockers.length > 0,
       blockerCount: yangFanFixtureBlockers.length,

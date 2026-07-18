@@ -1,9 +1,9 @@
 {
   "artifactVersion": "learning-goal-resource-baseline.v1",
-  "generatedAt": "2026-07-17T07:10:48.315Z",
+  "generatedAt": "2026-07-18T05:00:00.000Z",
   "sourceWindow": {
     "from": null,
-    "to": "2026-07-17T07:10:48.315Z"
+    "to": "2026-07-18T05:00:00.000Z"
   },
   "versionRefs": {
     "artifactVersioningVersion": "kaq-artifact-versioning.v1",
@@ -339,12 +339,12 @@
         },
         "practice": {
           "linked": 15,
-          "humanConfirmed": 12,
-          "pathEligible": 0,
+          "humanConfirmed": 14,
+          "pathEligible": 2,
           "citationReady": 15,
           "assessment": 5,
           "checkpoint": 0,
-          "highComplexityLocked": 12,
+          "highComplexityLocked": 10,
           "resourceIds": [
             "arena-task:task-cruise-roll-blackbox-identification",
             "arena-task:task-second-order-lead-pid",
@@ -362,10 +362,11 @@
             "registry:sim-scene-icebreaker",
             "registry:sim-scene-lng"
           ],
-          "pathEligibleResourceIds": [],
-          "highComplexityLockedResourceIds": [
+          "pathEligibleResourceIds": [
             "arena-task:task-cruise-roll-blackbox-identification",
-            "arena-task:task-second-order-lead-pid",
+            "arena-task:task-second-order-lead-pid"
+          ],
+          "highComplexityLockedResourceIds": [
             "registry:lesson13-cruise-typhoon-sim",
             "registry:lesson13-physics-builder-simple",
             "registry:sim-pid-v1",
@@ -377,11 +378,8 @@
             "registry:sim-scene-icebreaker",
             "registry:sim-scene-lng"
           ],
-          "provisionalResourceIds": [
-            "arena-task:task-cruise-roll-blackbox-identification",
-            "arena-task:task-second-order-lead-pid"
-          ],
-          "missing": true
+          "provisionalResourceIds": [],
+          "missing": false
         },
         "checkpoint": {
           "linked": 0,
@@ -413,12 +411,12 @@
         },
         "citation": {
           "linked": 119,
-          "humanConfirmed": 64,
-          "pathEligible": 2,
+          "humanConfirmed": 66,
+          "pathEligible": 4,
           "citationReady": 119,
           "assessment": 5,
           "checkpoint": 0,
-          "highComplexityLocked": 12,
+          "highComplexityLocked": 10,
           "resourceIds": [
             "arena-task:task-cruise-roll-blackbox-identification",
             "arena-task:task-second-order-lead-pid",
@@ -541,12 +539,12 @@
             "runtime-step:5-3:step-15"
           ],
           "pathEligibleResourceIds": [
+            "arena-task:task-cruise-roll-blackbox-identification",
+            "arena-task:task-second-order-lead-pid",
             "knowledge-card:Bode图_1_1",
             "knowledge-card:Bode首轮骨架_5_1e07d9da"
           ],
           "highComplexityLockedResourceIds": [
-            "arena-task:task-cruise-roll-blackbox-identification",
-            "arena-task:task-second-order-lead-pid",
             "registry:lesson13-cruise-typhoon-sim",
             "registry:lesson13-physics-builder-simple",
             "registry:sim-pid-v1",
@@ -559,8 +557,6 @@
             "registry:sim-scene-lng"
           ],
           "provisionalResourceIds": [
-            "arena-task:task-cruise-roll-blackbox-identification",
-            "arena-task:task-second-order-lead-pid",
             "runtime-step:2-2:step-09",
             "runtime-step:2-2:step-10",
             "runtime-step:3-5:step-01",
@@ -574,12 +570,12 @@
         },
         "terminal-validation": {
           "linked": 12,
-          "humanConfirmed": 9,
-          "pathEligible": 0,
+          "humanConfirmed": 11,
+          "pathEligible": 2,
           "citationReady": 12,
           "assessment": 2,
           "checkpoint": 0,
-          "highComplexityLocked": 12,
+          "highComplexityLocked": 10,
           "resourceIds": [
             "arena-task:task-cruise-roll-blackbox-identification",
             "arena-task:task-second-order-lead-pid",
@@ -594,10 +590,11 @@
             "registry:sim-scene-icebreaker",
             "registry:sim-scene-lng"
           ],
-          "pathEligibleResourceIds": [],
-          "highComplexityLockedResourceIds": [
+          "pathEligibleResourceIds": [
             "arena-task:task-cruise-roll-blackbox-identification",
-            "arena-task:task-second-order-lead-pid",
+            "arena-task:task-second-order-lead-pid"
+          ],
+          "highComplexityLockedResourceIds": [
             "registry:lesson13-cruise-typhoon-sim",
             "registry:lesson13-physics-builder-simple",
             "registry:sim-pid-v1",
@@ -609,33 +606,30 @@
             "registry:sim-scene-icebreaker",
             "registry:sim-scene-lng"
           ],
-          "provisionalResourceIds": [
-            "arena-task:task-cruise-roll-blackbox-identification",
-            "arena-task:task-second-order-lead-pid"
-          ],
-          "missing": true
+          "provisionalResourceIds": [],
+          "missing": false
         }
       },
       "selectedReviewedBindingIds": [
         "control-correction:concept:knowledge-card:Bode图_1_1",
         "control-correction:concept:knowledge-card:Bode首轮骨架_5_1e07d9da",
-        "control-correction:citation:knowledge-card:Bode图_1_1"
+        "control-correction:practice:arena-task:task-second-order-lead-pid",
+        "control-correction:citation:arena-task:task-second-order-lead-pid",
+        "control-correction:terminal-validation:arena-task:task-second-order-lead-pid"
       ],
       "missingBaselineCategories": [
         "diagnostic",
-        "practice",
         "checkpoint",
-        "remediation",
-        "terminal-validation"
+        "remediation"
       ],
       "coverageState": "limited",
-      "limitationReason": "missing-baseline-categories:diagnostic,practice,checkpoint,remediation,terminal-validation",
+      "limitationReason": "missing-baseline-categories:diagnostic,checkpoint,remediation",
       "denominator": {
         "requiredCategoryCount": 6,
-        "reviewedBindingCount": 3,
+        "reviewedBindingCount": 5,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-17T07:10:48.315Z"
+          "to": "2026-07-18T05:00:00.000Z"
         },
         "artifactVersion": "learning-goal-resource-baseline.v1",
         "versionRefs": {
@@ -916,7 +910,7 @@
         "reviewedBindingCount": 3,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-17T07:10:48.315Z"
+          "to": "2026-07-18T05:00:00.000Z"
         },
         "artifactVersion": "learning-goal-resource-baseline.v1",
         "versionRefs": {
@@ -1553,7 +1547,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-17T07:10:48.315Z"
+          "to": "2026-07-18T05:00:00.000Z"
         },
         "artifactVersion": "learning-goal-resource-baseline.v1",
         "versionRefs": {
@@ -2192,7 +2186,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-17T07:10:48.315Z"
+          "to": "2026-07-18T05:00:00.000Z"
         },
         "artifactVersion": "learning-goal-resource-baseline.v1",
         "versionRefs": {
@@ -2574,10 +2568,7 @@
             "registry:sim-scene-icebreaker",
             "registry:sim-scene-lng"
           ],
-          "provisionalResourceIds": [
-            "arena-task:task-cruise-roll-blackbox-identification",
-            "arena-task:task-second-order-lead-pid"
-          ],
+          "provisionalResourceIds": [],
           "missing": true
         },
         "checkpoint": {
@@ -2832,8 +2823,6 @@
             "registry:sim-scene-lng"
           ],
           "provisionalResourceIds": [
-            "arena-task:task-cruise-roll-blackbox-identification",
-            "arena-task:task-second-order-lead-pid",
             "knowledge-card:Bode与Nyquist同源表征_1_4",
             "knowledge-card:三域证据链_1_5",
             "knowledge-card:临界增益与虚轴极点_1_5",
@@ -2899,7 +2888,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-17T07:10:48.315Z"
+          "to": "2026-07-18T05:00:00.000Z"
         },
         "artifactVersion": "learning-goal-resource-baseline.v1",
         "versionRefs": {
@@ -3281,10 +3270,7 @@
             "registry:sim-scene-icebreaker",
             "registry:sim-scene-lng"
           ],
-          "provisionalResourceIds": [
-            "arena-task:task-cruise-roll-blackbox-identification",
-            "arena-task:task-second-order-lead-pid"
-          ],
+          "provisionalResourceIds": [],
           "missing": true
         },
         "checkpoint": {
@@ -3537,8 +3523,6 @@
             "registry:sim-scene-lng"
           ],
           "provisionalResourceIds": [
-            "arena-task:task-cruise-roll-blackbox-identification",
-            "arena-task:task-second-order-lead-pid",
             "knowledge-card:Bode与Nyquist同源表征_1_4",
             "knowledge-card:三域证据链_1_5",
             "knowledge-card:临界增益与虚轴极点_1_5",
@@ -3605,7 +3589,7 @@
         "reviewedBindingCount": 3,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-17T07:10:48.315Z"
+          "to": "2026-07-18T05:00:00.000Z"
         },
         "artifactVersion": "learning-goal-resource-baseline.v1",
         "versionRefs": {
@@ -3858,10 +3842,7 @@
             "registry:sim-scene-icebreaker",
             "registry:sim-scene-lng"
           ],
-          "provisionalResourceIds": [
-            "arena-task:task-cruise-roll-blackbox-identification",
-            "arena-task:task-second-order-lead-pid"
-          ],
+          "provisionalResourceIds": [],
           "missing": true
         },
         "checkpoint": {
@@ -4006,8 +3987,6 @@
             "registry:sim-scene-lng"
           ],
           "provisionalResourceIds": [
-            "arena-task:task-cruise-roll-blackbox-identification",
-            "arena-task:task-second-order-lead-pid",
             "runtime-step:2-4:step-09",
             "runtime-step:2-4:step-10",
             "runtime-step:4-7:step-03",
@@ -4050,7 +4029,7 @@
         "reviewedBindingCount": 3,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-17T07:10:48.315Z"
+          "to": "2026-07-18T05:00:00.000Z"
         },
         "artifactVersion": "learning-goal-resource-baseline.v1",
         "versionRefs": {
@@ -4256,10 +4235,7 @@
             "registry:sim-scene-icebreaker",
             "registry:sim-scene-lng"
           ],
-          "provisionalResourceIds": [
-            "arena-task:task-cruise-roll-blackbox-identification",
-            "arena-task:task-second-order-lead-pid"
-          ],
+          "provisionalResourceIds": [],
           "missing": true
         },
         "checkpoint": {
@@ -4381,8 +4357,6 @@
             "registry:sim-scene-lng"
           ],
           "provisionalResourceIds": [
-            "arena-task:task-cruise-roll-blackbox-identification",
-            "arena-task:task-second-order-lead-pid",
             "runtime-step:4-7:step-03",
             "runtime-step:4-7:step-04",
             "runtime-step:5-3:step-09",
@@ -4441,7 +4415,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-17T07:10:48.315Z"
+          "to": "2026-07-18T05:00:00.000Z"
         },
         "artifactVersion": "learning-goal-resource-baseline.v1",
         "versionRefs": {
@@ -4632,12 +4606,12 @@
         },
         "practice": {
           "linked": 12,
-          "humanConfirmed": 3,
-          "pathEligible": 0,
+          "humanConfirmed": 4,
+          "pathEligible": 1,
           "citationReady": 12,
           "assessment": 2,
           "checkpoint": 0,
-          "highComplexityLocked": 12,
+          "highComplexityLocked": 11,
           "resourceIds": [
             "arena-task:task-cruise-roll-blackbox-identification",
             "arena-task:task-second-order-lead-pid",
@@ -4652,9 +4626,10 @@
             "registry:sim-scene-icebreaker",
             "registry:sim-scene-lng"
           ],
-          "pathEligibleResourceIds": [],
+          "pathEligibleResourceIds": [
+            "arena-task:task-cruise-roll-blackbox-identification"
+          ],
           "highComplexityLockedResourceIds": [
-            "arena-task:task-cruise-roll-blackbox-identification",
             "arena-task:task-second-order-lead-pid",
             "registry:lesson13-cruise-typhoon-sim",
             "registry:lesson13-physics-builder-simple",
@@ -4667,11 +4642,8 @@
             "registry:sim-scene-icebreaker",
             "registry:sim-scene-lng"
           ],
-          "provisionalResourceIds": [
-            "arena-task:task-cruise-roll-blackbox-identification",
-            "arena-task:task-second-order-lead-pid"
-          ],
-          "missing": true
+          "provisionalResourceIds": [],
+          "missing": false
         },
         "checkpoint": {
           "linked": 0,
@@ -4703,12 +4675,12 @@
         },
         "citation": {
           "linked": 72,
-          "humanConfirmed": 18,
-          "pathEligible": 0,
+          "humanConfirmed": 19,
+          "pathEligible": 1,
           "citationReady": 72,
           "assessment": 2,
           "checkpoint": 0,
-          "highComplexityLocked": 12,
+          "highComplexityLocked": 11,
           "resourceIds": [
             "arena-task:task-cruise-roll-blackbox-identification",
             "arena-task:task-second-order-lead-pid",
@@ -4783,9 +4755,10 @@
             "runtime-step:5-3:step-13",
             "runtime-step:5-3:step-15"
           ],
-          "pathEligibleResourceIds": [],
+          "pathEligibleResourceIds": [
+            "arena-task:task-cruise-roll-blackbox-identification"
+          ],
           "highComplexityLockedResourceIds": [
-            "arena-task:task-cruise-roll-blackbox-identification",
             "arena-task:task-second-order-lead-pid",
             "registry:lesson13-cruise-typhoon-sim",
             "registry:lesson13-physics-builder-simple",
@@ -4799,23 +4772,21 @@
             "registry:sim-scene-lng"
           ],
           "provisionalResourceIds": [
-            "arena-task:task-cruise-roll-blackbox-identification",
-            "arena-task:task-second-order-lead-pid",
             "runtime-step:4-7:step-03",
             "runtime-step:4-7:step-04",
             "runtime-step:5-3:step-09",
             "runtime-step:5-3:step-10"
           ],
-          "missing": true
+          "missing": false
         },
         "terminal-validation": {
           "linked": 12,
-          "humanConfirmed": 3,
-          "pathEligible": 0,
+          "humanConfirmed": 4,
+          "pathEligible": 1,
           "citationReady": 12,
           "assessment": 2,
           "checkpoint": 0,
-          "highComplexityLocked": 12,
+          "highComplexityLocked": 11,
           "resourceIds": [
             "arena-task:task-cruise-roll-blackbox-identification",
             "arena-task:task-second-order-lead-pid",
@@ -4830,9 +4801,10 @@
             "registry:sim-scene-icebreaker",
             "registry:sim-scene-lng"
           ],
-          "pathEligibleResourceIds": [],
+          "pathEligibleResourceIds": [
+            "arena-task:task-cruise-roll-blackbox-identification"
+          ],
           "highComplexityLockedResourceIds": [
-            "arena-task:task-cruise-roll-blackbox-identification",
             "arena-task:task-second-order-lead-pid",
             "registry:lesson13-cruise-typhoon-sim",
             "registry:lesson13-physics-builder-simple",
@@ -4845,30 +4817,29 @@
             "registry:sim-scene-icebreaker",
             "registry:sim-scene-lng"
           ],
-          "provisionalResourceIds": [
-            "arena-task:task-cruise-roll-blackbox-identification",
-            "arena-task:task-second-order-lead-pid"
-          ],
-          "missing": true
+          "provisionalResourceIds": [],
+          "missing": false
         }
       },
-      "selectedReviewedBindingIds": [],
+      "selectedReviewedBindingIds": [
+        "ship-ocean-transfer-application:practice:arena-task:task-cruise-roll-blackbox-identification",
+        "ship-ocean-transfer-application:citation:arena-task:task-cruise-roll-blackbox-identification",
+        "ship-ocean-transfer-application:terminal-validation:arena-task:task-cruise-roll-blackbox-identification"
+      ],
       "missingBaselineCategories": [
         "concept",
         "diagnostic",
-        "practice",
         "checkpoint",
-        "remediation",
-        "terminal-validation"
+        "remediation"
       ],
       "coverageState": "limited",
-      "limitationReason": "missing-baseline-categories:concept,diagnostic,practice,checkpoint,remediation,terminal-validation",
+      "limitationReason": "missing-baseline-categories:concept,diagnostic,checkpoint,remediation",
       "denominator": {
         "requiredCategoryCount": 6,
-        "reviewedBindingCount": 0,
+        "reviewedBindingCount": 3,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-17T07:10:48.315Z"
+          "to": "2026-07-18T05:00:00.000Z"
         },
         "artifactVersion": "learning-goal-resource-baseline.v1",
         "versionRefs": {
@@ -4895,7 +4866,7 @@
     "learningGoals": 9,
     "complete": 0,
     "limited": 9,
-    "reviewedBindings": 12,
-    "provisionalLinkedResources": 49
+    "reviewedBindings": 17,
+    "provisionalLinkedResources": 47
   }
 }

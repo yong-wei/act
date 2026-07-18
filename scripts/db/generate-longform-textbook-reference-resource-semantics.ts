@@ -3,6 +3,8 @@ import { execFileSync } from 'node:child_process';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
+import { resolveOpenSpecChangeEvidencePath } from '@/lib/data-governance/openspec-change-evidence-path';
+
 type LongformFamily =
   | 'textbook'
   | 'textbook-section'
@@ -139,13 +141,12 @@ const WORKQUEUE_PATH = path.join(GOVERNANCE_DIR, 'longform-textbook-reference-re
 const REVIEW_ITEMS_PATH = path.join(GOVERNANCE_DIR, 'longform-textbook-reference-resource-semantics-review-items.jsonl');
 const SUMMARY_PATH = path.join(GOVERNANCE_DIR, 'longform-textbook-reference-resource-semantics-summary.json');
 const EVIDENCE_PATH = path.join(GOVERNANCE_DIR, 'longform-textbook-reference-resource-semantics-evidence.md');
-const CHANGE_EVIDENCE_DIR = path.join(
-  process.cwd(),
-  'openspec/changes/complete-longform-textbook-reference-resource-semantics/evidence',
-);
-const INPUT_SNAPSHOT_PATH = path.join(CHANGE_EVIDENCE_DIR, 'longform-textbook-reference-resource-input-snapshot.jsonl');
-const INPUT_SNAPSHOT_SEAL_PATH = path.join(CHANGE_EVIDENCE_DIR, 'longform-textbook-reference-resource-input-snapshot.seal.json');
-const ISSUE_BODY_VALIDATOR_EVIDENCE_PATH = path.join(CHANGE_EVIDENCE_DIR, 'issue-body-validator-evidence.json');
+const LONGFORM_CHANGE_ID = 'complete-longform-textbook-reference-resource-semantics';
+const changeEvidencePath = (fileName: string) =>
+  resolveOpenSpecChangeEvidencePath(process.cwd(), LONGFORM_CHANGE_ID, fileName);
+const INPUT_SNAPSHOT_PATH = changeEvidencePath('longform-textbook-reference-resource-input-snapshot.jsonl');
+const INPUT_SNAPSHOT_SEAL_PATH = changeEvidencePath('longform-textbook-reference-resource-input-snapshot.seal.json');
+const ISSUE_BODY_VALIDATOR_EVIDENCE_PATH = changeEvidencePath('issue-body-validator-evidence.json');
 const AUDIT_PATH = path.join(GOVERNANCE_DIR, 'resource-field-completion-audit.jsonl');
 const CANDIDATES_PATH = path.join(GOVERNANCE_DIR, 'textbook-section-grounding-candidates.jsonl');
 const TARGETS_PATH = path.join(GOVERNANCE_DIR, 'textbook-section-citation-targets.jsonl');
