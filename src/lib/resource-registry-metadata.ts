@@ -1858,6 +1858,7 @@ const registeredResourceSemanticMetadata: Record<string, Partial<RegisteredResou
                 sourceFamily: 'arena_task',
                 stableSourceRef: 'task-second-order-lead-pid',
                 sourceVersionRef: 'arena-path-target-integrity.v1',
+                reviewBatchId: 'full-resource-semantic-closure-884.v1',
                 parentResourceNodeId: null,
                 reviewedAt: '2026-07-18T04:30:00.000Z',
                 reviewerId: 'full-resource-semantic-closure-reviewer'
@@ -1888,6 +1889,7 @@ const registeredResourceSemanticMetadata: Record<string, Partial<RegisteredResou
                 sourceFamily: 'arena_task',
                 stableSourceRef: 'task-cruise-roll-blackbox-identification',
                 sourceVersionRef: 'arena-path-target-integrity.v1',
+                reviewBatchId: 'full-resource-semantic-closure-884.v1',
                 parentResourceNodeId: null,
                 reviewedAt: '2026-07-18T04:30:00.000Z',
                 reviewerId: 'full-resource-semantic-closure-reviewer'

@@ -255,6 +255,7 @@ export interface ResourcePathPlanningDisposition {
   sourceFamily: string;
   stableSourceRef: string;
   sourceVersionRef: string | null;
+  reviewBatchId?: string | null;
   parentResourceNodeId: string | null;
   reviewedAt: string | null;
   reviewerId: string | null;
@@ -2009,7 +2010,7 @@ function buildRegisteredArenaRuntimeProjection(
       reviewerId: disposition?.reviewerId ?? null,
       reviewerRole: 'resource-governance-reviewer',
       reviewedAt: disposition?.reviewedAt ?? null,
-      reviewBatchId: disposition?.sourceVersionRef ?? null,
+      reviewBatchId: disposition?.reviewBatchId ?? null,
       reviewedSourceHash: sourceHash,
       reviewedVersionRef: disposition?.sourceVersionRef ?? null,
       generationToolOrModel: null,
@@ -3805,6 +3806,7 @@ function normalizePathPlanningDisposition(
     sourceFamily,
     stableSourceRef,
     sourceVersionRef: normalizeOptionalString(raw.sourceVersionRef),
+    reviewBatchId: normalizeOptionalString(raw.reviewBatchId),
     parentResourceNodeId: normalizeOptionalString(raw.parentResourceNodeId),
     reviewedAt: normalizeOptionalString(raw.reviewedAt),
     reviewerId: normalizeOptionalString(raw.reviewerId),
