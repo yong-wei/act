@@ -167,7 +167,7 @@ export function validateGeneratedSlideBrowserSnapshot(
 ): GeneratedSlideBrowserValidationResult {
   const expectedAspectRatio = options.expectedAspectRatio ?? 16 / 9;
   const geometryTolerancePx = options.geometryTolerancePx ?? 1;
-  const scrollTolerancePx = options.scrollTolerancePx ?? 6;
+  const scrollTolerancePx = options.scrollTolerancePx ?? 0;
   const glyphMetricTolerancePx = options.glyphMetricTolerancePx ?? 0.01;
   const issues: GeneratedSlideBrowserValidationIssue[] = [];
   const add = (
@@ -225,6 +225,7 @@ export function validateGeneratedSlideBrowserSnapshot(
   });
 
   const expectedModuleIds = new Set(expectation.expectedModuleIds);
+  const measuredModulesById = new Map(snapshot.modules.map((module) => [module.moduleId, module]));
   const modulesWithText = new Set(snapshot.text.map((measurement) => measurement.moduleId));
   for (const moduleId of expectation.expectedModuleIds) {
     if (!modulesWithText.has(moduleId)) {
@@ -282,15 +283,19 @@ export function validateGeneratedSlideBrowserSnapshot(
     if (hasVisualClippingSignal(element)) {
       add('element.visual-clipping', element.selector);
     }
-    if (
-      element.scrollWidth > element.clientWidth + scrollTolerancePx
-      || element.scrollHeight > element.clientHeight + scrollTolerancePx
-    ) {
+    if (hasScrollOverflow(element, scrollTolerancePx)) {
       add('element.scroll-overflow', element.selector);
     }
   }
 
   for (const formula of snapshot.formulas) {
+    const owner = measuredModulesById.get(formula.moduleId);
+    if (owner && !rectContains(owner.rect, formula.rect, geometryTolerancePx)) {
+      add('element.out-of-bounds', formula.selector, {
+        moduleId: formula.moduleId,
+        relatedSelector: owner.selector,
+      });
+    }
     if (formula.scrollWidth > formula.clientWidth + scrollTolerancePx) {
       add('formula.width-overflow', formula.selector);
     }
@@ -299,8 +304,21 @@ export function validateGeneratedSlideBrowserSnapshot(
     }
   }
   for (const text of snapshot.text) {
+    const owner = measuredModulesById.get(text.moduleId);
+    if (owner && !rectContains(owner.rect, text.rect, geometryTolerancePx)) {
+      add('element.out-of-bounds', text.selector, {
+        moduleId: text.moduleId,
+        relatedSelector: owner.selector,
+      });
+    }
+    if (!rectContains(snapshot.canvas.rect, text.rect, geometryTolerancePx)) {
+      add('element.out-of-bounds', text.selector, { moduleId: text.moduleId });
+    }
     if (hasVisualClippingSignal(text)) {
       add('element.visual-clipping', text.selector, { moduleId: text.moduleId });
+    }
+    if (hasScrollOverflow(text, scrollTolerancePx)) {
+      add('element.scroll-overflow', text.selector, { moduleId: text.moduleId });
     }
     if (isBelowMinimumEffectiveFontSize(snapshot, text)) {
       add('text.minimum-font-size', text.selector, { moduleId: text.moduleId });
@@ -422,6 +440,16 @@ function hasVisualClippingSignal(element: GeneratedSlideBrowserElementMeasuremen
     || (element.clipPath !== 'none' && element.clipPath !== '')
     || (element.maskImage !== 'none' && element.maskImage !== '')
     || (element.textOverflow !== 'clip' && element.textOverflow !== '');
+}
+
+function hasScrollOverflow(
+  element: GeneratedSlideBrowserElementMeasurement,
+  tolerancePx: number,
+): boolean {
+  return (element.computedOverflowX !== 'visible'
+      && element.scrollWidth > element.clientWidth + tolerancePx)
+    || (element.computedOverflowY !== 'visible'
+      && element.scrollHeight > element.clientHeight + tolerancePx);
 }
 
 function rectContains(

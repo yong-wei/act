@@ -638,7 +638,7 @@ const defectCases: Array<{ name: string; css: string; code: string }> = [
   { name: 'title bounds', css: '[data-manifest-step-title] { transform: translateY(100px); }', code: 'title.out-of-bounds' },
   { name: 'slot bounds', css: '[data-generated-slide-slot="left"] { transform: translateX(-1000px); }', code: 'slot.out-of-bounds' },
   { name: 'slot overlap', css: '[data-generated-slide-slot="right"] { transform: translateX(-500px); }', code: 'slot.overlap' },
-  { name: 'scroll overflow', css: '[data-generated-slide-module="formula-module"] h2 { width: 1800px; }', code: 'element.scroll-overflow' },
+  { name: 'scroll overflow', css: '[data-generated-slide-module="formula-module"] h2 { width: 1800px; overflow-x: auto; }', code: 'element.scroll-overflow' },
   { name: 'formula width overflow', css: '.katex-display > .katex { display: block; width: 120px !important; } .katex-display > .katex .katex-html { display: block; min-width: 600px; }', code: 'formula.width-overflow' },
   { name: 'minimum font size', css: '.generated-slide-viewport [data-generated-slide-module="formula-module"] h2 { font-size: 12px !important; }', code: 'text.minimum-font-size' },
   { name: 'formula minimum font size', css: '.katex-display > .katex { font-size: 8px !important; }', code: 'text.minimum-font-size' },

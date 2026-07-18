@@ -139,6 +139,7 @@ export const GENERATED_SLIDE_TEXT_BUDGET_REGISTRY = deepFreeze({
   minimumFontPx: number;
   normalFontPx: number;
 }>);
+export const GENERATED_SLIDE_MINIMUM_VISUAL_SCALE = 0.8 as const;
 
 const idSchema = z.string().trim().min(1).max(96).regex(/^[a-z0-9]+(?:[._-][a-z0-9]+)*$/);
 const nonEmptyText = z.string().trim().min(1);
@@ -201,21 +202,24 @@ export function resolveGeneratedSlideTypographyFit(module: GeneratedSlideModule)
   }
 
   const suggestedCharacters = Math.floor(budget.suggestedCharactersAtFullSize * size.textCapacity);
+  const minimumCanvasFontPx = Math.ceil(
+    budget.minimumFontPx / GENERATED_SLIDE_MINIMUM_VISUAL_SCALE,
+  );
   if (actualCharacters <= suggestedCharacters) {
     return { state: 'normal', fontSizePx: budget.normalFontPx, actualCharacters, suggestedCharacters };
   }
 
   const minimumCapacity = Math.floor(
-    suggestedCharacters * (budget.normalFontPx / budget.minimumFontPx),
+    suggestedCharacters * (budget.normalFontPx / minimumCanvasFontPx),
   );
   if (actualCharacters > minimumCapacity) {
-    return { state: 'unfit', fontSizePx: budget.minimumFontPx, actualCharacters, suggestedCharacters };
+    return { state: 'unfit', fontSizePx: minimumCanvasFontPx, actualCharacters, suggestedCharacters };
   }
 
   return {
     state: 'adapted',
     fontSizePx: Math.max(
-      budget.minimumFontPx,
+      minimumCanvasFontPx,
       Math.floor(budget.normalFontPx * (suggestedCharacters / actualCharacters)),
     ),
     actualCharacters,

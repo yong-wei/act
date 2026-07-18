@@ -77,19 +77,21 @@ describe('generated slide contract', () => {
       suggestedCharacters: 900,
     });
 
-    manifestModule.payload = { text: 'A'.repeat(1_000) };
-    expect(resolveGeneratedSlideTypographyFit(manifestModule)).toEqual({
+    manifestModule.payload = { text: 'A'.repeat(950) };
+    const adapted = resolveGeneratedSlideTypographyFit(manifestModule);
+    expect(adapted).toEqual({
       state: 'adapted',
-      fontSizePx: 28,
-      actualCharacters: 1_000,
+      fontSizePx: 30,
+      actualCharacters: 950,
       suggestedCharacters: 900,
     });
+    expect(adapted.fontSizePx * 0.8).toBeGreaterThanOrEqual(24);
 
-    manifestModule.payload = { text: 'A'.repeat(1_201) };
+    manifestModule.payload = { text: 'A'.repeat(961) };
     expect(resolveGeneratedSlideTypographyFit(manifestModule)).toEqual({
       state: 'unfit',
-      fontSizePx: 24,
-      actualCharacters: 1_201,
+      fontSizePx: 30,
+      actualCharacters: 961,
       suggestedCharacters: 900,
     });
   });

@@ -142,6 +142,7 @@ describe('generated slide browser validator', () => {
     measured.slots[1].rect.left = 630;
     measured.slots[1].rect.x = 630;
     measured.slots[0].scrollWidth = 700;
+    measured.slots[0].computedOverflowX = 'auto';
     measured.formulas[0].clientWidth = 300;
     measured.formulas[0].scrollWidth = 500;
     measured.text[0].fontSizePx = 12;
@@ -326,6 +327,41 @@ describe('generated slide browser validator', () => {
       .not.toContain('text.minimum-font-size');
   });
 
+  it('rejects text outside the canvas and a single pixel of scroll overflow', () => {
+    const measured = snapshot();
+    measured.text[0].rect.right = measured.canvas.rect.right + 2;
+    measured.text[0].scrollWidth = measured.text[0].clientWidth + 1;
+    measured.text[0].computedOverflowX = 'auto';
+
+    expect(validateGeneratedSlideBrowserSnapshot(measured, expectation()).issues).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        code: 'element.out-of-bounds',
+        location: expect.objectContaining({ selector: measured.text[0].selector }),
+      }),
+      expect.objectContaining({
+        code: 'element.scroll-overflow',
+        location: expect.objectContaining({ selector: measured.text[0].selector }),
+      }),
+    ]));
+  });
+
+  it('rejects visible content that escapes its owning module while remaining on canvas', () => {
+    const measured = snapshot();
+    measured.text[0].rect.left = 650;
+    measured.text[0].rect.x = 650;
+    measured.text[0].rect.right = 1150;
+
+    expect(validateGeneratedSlideBrowserSnapshot(measured, expectation()).issues).toContainEqual({
+      code: 'element.out-of-bounds',
+      location: {
+        projection: 'student',
+        selector: measured.text[0].selector,
+        moduleId: 'explanation',
+        relatedSelector: measured.modules[0].selector,
+      },
+    });
+  });
+
   it('rejects title escape, clipped module/container/formula roots, and missing font measurements', () => {
     const measured = snapshot();
     measured.titleContent.rect.bottom = 120;
@@ -333,6 +369,7 @@ describe('generated slide browser validator', () => {
     measured.formulas[0].computedOverflowY = 'clip';
     measured.formulas[0].fontSizePx = null;
     measured.containers[0].scrollHeight += 10;
+    measured.containers[0].computedOverflowY = 'auto';
     measured.text[0].fontSizePx = null;
 
     expect(validateGeneratedSlideBrowserSnapshot(measured, expectation()).issues).toEqual(expect.arrayContaining([

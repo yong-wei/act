@@ -229,16 +229,16 @@ describe('generated slide layout renderer', () => {
 
   it('renders bounded adapted typography and a visible machine-readable unfit state', () => {
     const adaptedStep = makeGeneratedStep();
-    adaptedStep.modules[0].payload = { text: 'A'.repeat(500) };
+    adaptedStep.modules[0].payload = { text: 'A'.repeat(470) };
     const adaptedHtml = renderToStaticMarkup(renderInteractiveLessonLayout({
       step: adaptedStep,
       regionNodes: [],
     }));
     expect(adaptedHtml).toContain('data-generated-slide-font-fit="adapted"');
-    expect(adaptedHtml).toContain('font-size:28px');
+    expect(adaptedHtml).toContain('font-size:30px');
 
     const unfitStep = makeGeneratedStep();
-    unfitStep.modules[0].payload = { text: 'A'.repeat(601) };
+    unfitStep.modules[0].payload = { text: 'A'.repeat(500) };
     const unfitHtml = renderToStaticMarkup(renderInteractiveLessonLayout({
       step: unfitStep,
       regionNodes: [],
