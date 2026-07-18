@@ -1918,7 +1918,7 @@ async function loadFullResourceClosureReviewSources(generatedAt: string): Promis
     .update(await fs.readFile(yangFanFixtureSourcePath))
     .digest('hex')}`;
   for (const row of rows) {
-    if (!row.resourceId || !row.classification || !row.reviewerId || !row.reviewedAt ||
+    if (!row.resourceId || !isResidualDispositionClassification(row.classification) || !row.reviewerId || !row.reviewedAt ||
       !row.reviewBatchId || !row.sourceHash || !row.sourceVersionRef ||
       !row.reviewerVisibleRationale || !row.independentEvidenceRef) {
       throw new Error(`Invalid full-resource closure review source: ${row.resourceId ?? 'missing-resource-id'}`);
@@ -2161,7 +2161,7 @@ function buildReviewedEvidenceLineageReadiness(
     const closureReview = closureReviewSources.get(item.resourceId);
     const reviewedLimitation = disposition
       ? isReviewedEvidenceLineageLimitation(disposition)
-      : Boolean(closureReview && closureReview.classification !== 'path-plannable');
+      : Boolean(closureReview && isEvidenceLineageLimitationClassification(closureReview.classification));
     if (!reviewedLimitation) return item;
     const fixtureScope = item.yangFanFixtureScope;
     return {
@@ -2190,6 +2190,15 @@ function isReviewedEvidenceLineageLimitation(item: ResidualDispositionReviewItem
     item.reviewerId.length > 0 &&
     item.reviewedAt.length > 0 &&
     item.reviewerVisibleRationale.length > 0;
+}
+
+function isResidualDispositionClassification(value: unknown): value is ResidualDispositionClassification {
+  return value === 'path-plannable' || value === 'supporting-citation' || value === 'embedded-asset' ||
+    value === 'evidence-producing' || value === 'excluded-with-rationale';
+}
+
+function isEvidenceLineageLimitationClassification(value: ResidualDispositionClassification): boolean {
+  return value === 'supporting-citation' || value === 'embedded-asset' || value === 'excluded-with-rationale';
 }
 
 function summarizeReviewedEvidenceLineageReadiness(

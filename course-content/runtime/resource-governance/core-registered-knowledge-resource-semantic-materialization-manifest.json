@@ -2,7 +2,7 @@
   "artifactVersion": "core-registered-knowledge-resource-semantic-materialization-manifest.v1",
   "legacyAuditSha256": "sha256:92bbd8d5aaaa414ae42795f5ed5c908bf2c24a9bb4dcdc9e82b95a836a2bd664",
   "legacySummaryMetadataSha256": "sha256:c83d10f9987b525a60cec36335d00937000612b017b3b027222f9273cffff7ea",
-  "nonScopeRowsCanonicalSha256": "sha256:272d095b909604af457a22f7d3f99f339d35093f78c44f9b9bd11ef192d84d66",
+  "nonScopeRowsCanonicalSha256": "sha256:6f21ecfa672b6e98d0dea39d9182d815abee64ba6a266b99edbba504571098ef",
   "scopeRowsInvariantCanonicalSha256": "sha256:9c339801dd025001d7a547358ab02c3bc59a3523a8262763c852a2f3045cc9c9",
   "runtimeScopeRowsInvariantCanonicalSha256": "sha256:7bfc5070c3c19c9d4ed61e429a8d1d9d5c081ac66c80eb59c85d602a0adbe1f6",
   "reviewSourceFileSha256": "sha256:337e6a6ce9f6a8a8dc9d2971587ab04460c019c9312fc7a0d13f698bb27c8f53",

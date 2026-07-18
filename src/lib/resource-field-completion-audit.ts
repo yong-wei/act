@@ -687,6 +687,11 @@ function rowFromResourceNode(
       Object.keys(node.planningMetadata.abilityImpact).length > 0,
     privacyScope: Boolean(node.planningMetadata.privacyLevel),
   });
+  const projectionReview = node.runtimeProjection?.reviewAudit;
+  const projectionReviewUsable = !node.runtimeProjection || isRuntimeProjectionReviewAuditUsable(
+    projectionReview,
+    generatedAt,
+  );
   const missingFieldCodes = uniqueCodes([
     ...highConfidenceAudit.issues.map((issue) => mapAuditIssueCode(issue.code)),
     ...(!node.sourceRef ? ['missing-source-path-or-url' as const] : []),
@@ -699,12 +704,10 @@ function rowFromResourceNode(
     ...(!node.planningMetadata.readiness && requiresReadiness(node.type) ? ['missing-readiness-gating' as const] : []),
     ...(!evidenceContract.complete ? ['missing-evidence-contract' as const] : []),
     ...(projection.citationTargets.some((target) => target.status === 'missing-target') ? ['missing-citation-target' as const] : []),
+    ...(node.runtimeProjection && !projectionReviewUsable
+      ? ['missing-human-review' as const, 'stale-review' as const]
+      : []),
   ]);
-  const projectionReview = node.runtimeProjection?.reviewAudit;
-  const projectionReviewUsable = !node.runtimeProjection || isRuntimeProjectionReviewAuditUsable(
-    projectionReview,
-    generatedAt,
-  );
   const humanConfirmed = highConfidenceAudit.pathEligible && evidenceContract.complete &&
     Boolean(sourceHash) && projectionReviewUsable;
 
