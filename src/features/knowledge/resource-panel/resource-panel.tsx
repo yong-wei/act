@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { BookOpen, FileText, X, ArrowRight, Link2, ChevronDown, ChevronRight, Image as ImageIcon, ListPlus, Target } from 'lucide-react';
@@ -92,6 +92,75 @@ interface ResourcePanelSelectionState {
   isLoading: boolean;
   isCardOpen: boolean;
   expandedRelationGroups: Record<string, boolean>;
+}
+
+type RelationPathSection = 'relations' | 'canonical-corridor' | 'adjacent-domains' | 'learning-actions';
+
+interface InspectorAccordionSectionProps {
+  activeSection: RelationPathSection | null;
+  children: ReactNode;
+  controlId: string;
+  icon: ReactNode;
+  inspectorSection: string;
+  onToggle: (section: RelationPathSection) => void;
+  panelClassName: string;
+  section: RelationPathSection;
+  summary: string;
+  title: string;
+  titleClassName: string;
+  adjacentNavigation?: boolean;
+}
+
+function InspectorAccordionSection({
+  activeSection,
+  adjacentNavigation = false,
+  children,
+  controlId,
+  icon,
+  inspectorSection,
+  onToggle,
+  panelClassName,
+  section,
+  summary,
+  title,
+  titleClassName,
+}: InspectorAccordionSectionProps) {
+  const isExpanded = activeSection === section;
+  const triggerId = `${controlId}-trigger`;
+  const regionId = `${controlId}-region`;
+  return (
+    <section
+      className={`rounded-lg border p-3 ${panelClassName}`}
+      data-knowledge-corridor-adjacent-navigation={adjacentNavigation ? 'true' : undefined}
+      data-knowledge-inspector-section={inspectorSection}
+    >
+      <button
+        id={triggerId}
+        type="button"
+        aria-controls={regionId}
+        aria-expanded={isExpanded}
+        onClick={() => onToggle(section)}
+        className="flex w-full items-center gap-2 rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-platform-action-primary focus-visible:ring-offset-2 focus-visible:ring-offset-platform-surface"
+      >
+        {icon}
+        <span className={`min-w-0 flex-1 text-sm font-medium ${titleClassName}`}>{title}</span>
+        <span className="shrink-0 text-[11px] text-platform-fg-muted">{summary}</span>
+        <ChevronDown
+          aria-hidden="true"
+          className={`h-4 w-4 shrink-0 text-platform-fg-muted transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+        />
+      </button>
+      <div
+        id={regionId}
+        role="region"
+        aria-labelledby={triggerId}
+        hidden={!isExpanded}
+        className="mt-3"
+      >
+        {children}
+      </div>
+    </section>
+  );
 }
 
 const RELATION_GROUP_ORDER: Array<RelatedNode['category']> = ['membership', 'prerequisite', 'follows', 'related'];
@@ -288,6 +357,8 @@ function ResourcePanelContent({
   const [expandedRelationGroups, setExpandedRelationGroups] = useState<Record<string, boolean>>(
     () => resolveResourcePanelSelectionState(selectedNode).expandedRelationGroups
   );
+  const [activeRelationPathSection, setActiveRelationPathSection] = useState<RelationPathSection | null>(null);
+  const accordionId = `knowledge-resource-panel-${useId().replace(/[^A-Za-z0-9_-]/gu, '-')}`;
   const inspectorRef = useRef<HTMLDivElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const previouslyFocusedElementRef = useRef<HTMLElement | null>(null);
@@ -341,8 +412,14 @@ function ResourcePanelContent({
     setDetailError(null);
     setIsCardOpen(nextSelectionState.isCardOpen);
     setExpandedRelationGroups(nextSelectionState.expandedRelationGroups);
+    setActiveRelationPathSection(null);
+    if (inspectorRef.current) inspectorRef.current.scrollTop = 0;
 
   }, [selectedNode.id]);
+
+  const toggleRelationPathSection = useCallback((section: RelationPathSection) => {
+    setActiveRelationPathSection((current) => current === section ? null : section);
+  }, []);
 
   useEffect(() => {
     if (isChapterNodeId(selectedNodeRef.current.id)) return;
@@ -717,23 +794,31 @@ function ResourcePanelContent({
           )}
 
           {!isVirtualChapter && relationGroups.length > 0 && (
-            <section className={`rounded-lg border p-3 ${panelTheme.block}`} data-knowledge-inspector-section="relation-overview">
-              <div className="mb-3 flex items-center gap-2">
-                <Link2 className="h-4 w-4 text-platform-action-primary" />
-                <h3 className={`text-sm font-medium ${panelTheme.blockTitle}`}>关联知识点</h3>
-              </div>
+            <InspectorAccordionSection
+              activeSection={activeRelationPathSection}
+              controlId={`${accordionId}-relations`}
+              icon={<Link2 className="h-4 w-4 text-platform-action-primary" />}
+              inspectorSection="relation-overview"
+              onToggle={toggleRelationPathSection}
+              panelClassName={panelTheme.block}
+              section="relations"
+              summary={`${relationGroups.reduce((count, group) => count + group.nodes.length, 0)} 条`}
+              title="关联知识点"
+              titleClassName={panelTheme.blockTitle}
+            >
               <div className="space-y-2">
                 {relationGroups.map((group) => {
-                  const isExpanded = expandedRelationGroups[group.category] ?? group.category === RELATION_GROUP_ORDER[0];
-                  const relationGroupPanelId = `knowledge-relation-group-${group.category}`;
+                  const isExpanded = expandedRelationGroups[group.category] ?? false;
+                  const relationGroupPanelId = `${accordionId}-relation-group-${group.category}`;
+                  const relationGroupTriggerId = `${relationGroupPanelId}-trigger`;
                   return (
                     <div key={`relation-group-${group.category}`} className="rounded-md border border-platform-border bg-platform-surface">
-                      <button type="button" aria-expanded={isExpanded} aria-controls={relationGroupPanelId} onClick={() => setExpandedRelationGroups((prev) => ({ ...prev, [group.category]: !isExpanded }))} className="flex w-full items-center justify-between px-2 py-1.5 text-xs font-medium text-platform-fg-secondary hover:text-platform-fg-primary">
+                      <button id={relationGroupTriggerId} type="button" aria-expanded={isExpanded} aria-controls={relationGroupPanelId} onClick={() => setExpandedRelationGroups((prev) => ({ ...prev, [group.category]: !isExpanded }))} className="flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-xs font-medium text-platform-fg-secondary hover:text-platform-fg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-platform-action-primary">
                         <span>{group.label}</span>
                         <span className="flex items-center gap-1"><span className={panelTheme.muted}>{group.nodes.length}</span>{isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}</span>
                       </button>
                       {isExpanded && (
-                        <ul id={relationGroupPanelId} className="space-y-1 px-2 pb-2">
+                        <ul id={relationGroupPanelId} role="region" aria-labelledby={relationGroupTriggerId} className="space-y-1 px-2 pb-2">
                           {group.nodes.map((node) => (
                             <li key={`${node.id}-${node.relationId ?? node.canonicalType ?? node.relation}`}>
                               <button type="button" onClick={() => onNodeClick?.(node.id)} className="group w-full rounded-md bg-platform-canvas-muted p-2 text-left text-platform-fg-secondary transition-colors hover:bg-platform-action-subtle hover:text-platform-fg-primary">
@@ -783,18 +868,25 @@ function ResourcePanelContent({
                   );
                 })}
               </div>
-            </section>
+            </InspectorAccordionSection>
           )}
 
           {!isVirtualChapter && canonicalCorridor
             && (canonicalCorridor.ancestors.length > 0
               || canonicalCorridor.descendants.length > 0
               || canonicalCorridor.cycleState === 'cyclic') && (
-            <section className={`rounded-lg border p-3 ${panelTheme.block}`} data-knowledge-inspector-section="canonical-corridor">
-              <div className="mb-2 flex items-center gap-2">
-                <ArrowRight className="h-4 w-4 text-platform-action-primary" />
-                <h3 className={`text-sm font-medium ${panelTheme.blockTitle}`}>当前规范路径</h3>
-              </div>
+            <InspectorAccordionSection
+              activeSection={activeRelationPathSection}
+              controlId={`${accordionId}-canonical-corridor`}
+              icon={<ArrowRight className="h-4 w-4 text-platform-action-primary" />}
+              inspectorSection="canonical-corridor"
+              onToggle={toggleRelationPathSection}
+              panelClassName={panelTheme.block}
+              section="canonical-corridor"
+              summary={`${canonicalCorridor.ancestors.length + canonicalCorridor.descendants.length} 个节点`}
+              title="当前规范路径"
+              titleClassName={panelTheme.blockTitle}
+            >
               {canonicalCorridor.cycleState === 'cyclic' && (
                 <p className="mb-2 text-xs font-medium text-platform-evidence-context">需共同理解或待审查</p>
               )}
@@ -814,19 +906,23 @@ function ResourcePanelContent({
                   </div>
                 </div>
               ))}
-            </section>
+            </InspectorAccordionSection>
           )}
 
           {!isVirtualChapter && adjacentDomainNavigations.length > 0 && (
-            <section
-              className={`rounded-lg border p-3 ${panelTheme.block}`}
-              data-knowledge-corridor-adjacent-navigation="true"
-              data-knowledge-inspector-section="corridor-adjacent-domains"
+            <InspectorAccordionSection
+              activeSection={activeRelationPathSection}
+              adjacentNavigation
+              controlId={`${accordionId}-adjacent-domains`}
+              icon={<ArrowRight className="h-4 w-4 text-platform-action-primary" />}
+              inspectorSection="corridor-adjacent-domains"
+              onToggle={toggleRelationPathSection}
+              panelClassName={panelTheme.block}
+              section="adjacent-domains"
+              summary={`${adjacentDomainNavigations.length} 条路径`}
+              title="相邻领域路径"
+              titleClassName={panelTheme.blockTitle}
             >
-              <div className="mb-2 flex items-center gap-2">
-                <ArrowRight className="h-4 w-4 text-platform-action-primary" />
-                <h3 className={`text-sm font-medium ${panelTheme.blockTitle}`}>相邻领域路径</h3>
-              </div>
               <div className="space-y-1.5">
                 {adjacentDomainNavigations.map((navigation) => (
                   <button
@@ -846,20 +942,26 @@ function ResourcePanelContent({
                   </button>
                 ))}
               </div>
-            </section>
+            </InspectorAccordionSection>
           )}
 
           {!isVirtualChapter && (
-            <section
-              className="rounded-lg border border-platform-border bg-platform-surface p-3"
-              data-resource-node-launch-contract="launch-return-evidence"
-              data-knowledge-inspector-section="learning-actions"
+            <InspectorAccordionSection
+              activeSection={activeRelationPathSection}
+              controlId={`${accordionId}-learning-actions`}
+              icon={<ArrowRight className="h-4 w-4 text-platform-action-primary" />}
+              inspectorSection="learning-actions"
+              onToggle={toggleRelationPathSection}
+              panelClassName={panelTheme.block}
+              section="learning-actions"
+              summary="操作"
+              title="学习路径动作"
+              titleClassName={panelTheme.blockTitle}
             >
-              <div className="mb-3 flex items-center gap-2">
-                <ArrowRight className="h-4 w-4 text-platform-action-primary" />
-                <h3 className="text-sm font-medium text-platform-fg-primary">学习路径动作</h3>
-              </div>
-              <div className="grid gap-2">
+              <div
+                className="grid gap-2"
+                data-resource-node-launch-contract="launch-return-evidence"
+              >
                 {launchAction.href ? (
                   <a
                     href={launchAction.href}
@@ -919,7 +1021,7 @@ function ResourcePanelContent({
                   <ArrowRight className="h-3.5 w-3.5" />
                 </a>
               </div>
-            </section>
+            </InspectorAccordionSection>
           )}
         </div>
 

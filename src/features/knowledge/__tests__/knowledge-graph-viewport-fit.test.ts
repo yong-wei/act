@@ -1,19 +1,110 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 
-import { getKnowledgeNodeLabelBounds } from '../graph/node-label-layout';
+import {
+  getKnowledgeNodeLabelBounds,
+  KNOWLEDGE_ROOT_LABEL_POLICY,
+  KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE,
+} from '../graph/node-label-layout';
 import { getKnowledgeNodeLabelPresentation } from '../graph/label-policy';
 import {
+  applyKnowledgeGraph3DControlsPolicy,
+  normalizeKnowledgeRootCameraPose,
+  getKnowledgeGraph3DControlsPolicy,
   getKnowledgeGraphViewportFit,
   getKnowledgeGraphViewportSafeInsets,
   getKnowledgeProjectionScale,
   getPerspectiveCameraFitDistance,
+  getKnowledgeRootProjectionSafeCameraDistance,
   placeKnowledgeGraphLabels,
   projectKnowledgeWorldPoint,
 } from '../graph/viewport-fit';
 import { packKnowledgeGraphRootNodes } from '../graph/root-layout';
 
 describe('knowledge graph viewport fit', () => {
+  it('derives the shared root projection floor from the readable and natural font sizes', () => {
+    expect(KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE).toBe(
+      KNOWLEDGE_ROOT_LABEL_POLICY.minimumReadableFontSize / KNOWLEDGE_ROOT_LABEL_POLICY.fontSize
+    );
+    expect(getKnowledgeRootProjectionSafeCameraDistance({
+      viewportHeight: 600, fovDegrees: 50, zoom: 1,
+    })).toBe(getPerspectiveCameraFitDistance({
+      viewportHeight: 600,
+      pixelsPerWorldUnit: KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE,
+      fovDegrees: 50,
+      zoom: 1,
+    }));
+  });
+
+  it('normalizes a side-view root pose to a front view while preserving target and up', () => {
+    const pose = {
+      position: { x: 33, y: 44, z: 12 },
+      target: { x: 3, y: 4, z: 12 },
+      up: { x: 0, y: 1, z: 0 },
+    };
+    expect(normalizeKnowledgeRootCameraPose(pose, 25)).toEqual({
+      position: { x: 3, y: 4, z: 37 },
+      target: pose.target,
+      up: pose.up,
+    });
+    expect(normalizeKnowledgeRootCameraPose(pose, 80)).toEqual({
+      position: { x: 3, y: 4, z: 62 },
+      target: pose.target,
+      up: pose.up,
+    });
+  });
+
+  it('uses a valid positive maximum when the restored root pose has zero distance', () => {
+    const pose = {
+      position: { x: 3, y: 4, z: 12 },
+      target: { x: 3, y: 4, z: 12 },
+      up: { x: 0, y: 1, z: 0 },
+    };
+    expect(normalizeKnowledgeRootCameraPose(pose, 25).position).toEqual({ x: 3, y: 4, z: 37 });
+  });
+
+  it('locks only compact-root 3D controls and leaves domain controls unchanged', () => {
+    const rootPolicy = getKnowledgeGraph3DControlsPolicy({
+      compactRootView: true,
+      viewportHeight: 600,
+      fovDegrees: 50,
+      zoom: 1,
+    });
+    expect(rootPolicy).toEqual({
+      enablePan: true,
+      enableRotate: false,
+      enableZoom: true,
+      maxDistance: getKnowledgeRootProjectionSafeCameraDistance({
+        viewportHeight: 600, fovDegrees: 50, zoom: 1,
+      }),
+    });
+    const controls = {
+      enablePan: false,
+      enableRotate: true,
+      enableZoom: false,
+      maxDistance: Number.POSITIVE_INFINITY,
+    };
+    const restore = applyKnowledgeGraph3DControlsPolicy(controls, rootPolicy);
+    expect(controls).toEqual(rootPolicy);
+    restore();
+    expect(controls).toEqual({
+      enablePan: false,
+      enableRotate: true,
+      enableZoom: false,
+      maxDistance: Number.POSITIVE_INFINITY,
+    });
+
+    const domainPolicy = getKnowledgeGraph3DControlsPolicy({
+      compactRootView: false,
+      viewportHeight: 600,
+      fovDegrees: 50,
+      zoom: 1,
+    });
+    expect(domainPolicy).toBeNull();
+    const domainControls = { ...controls };
+    applyKnowledgeGraph3DControlsPolicy(domainControls, domainPolicy)();
+    expect(domainControls).toEqual(controls);
+  });
   it('fits every visible node body instead of sampling a local anchor subset', () => {
     const nodes = Array.from({ length: 62 }, (_, index) => ({
       id: index === 0 ? 'chapter-node:domain' : `node-${index}`,
@@ -236,12 +327,15 @@ describe('knowledge graph viewport fit', () => {
     for (const renderer of ['2d', '3d']) {
       const chapterCandidate = getKnowledgeNodeLabelPresentation({
         labelMode: 'focus', nodeId: 'chapter-node:root', globalScale: scale,
+        isRootBubble: true,
       });
       const deferred = getKnowledgeNodeLabelPresentation({
         labelMode: 'all', nodeId: `ordinary-${renderer}`, globalScale: scale,
       });
       expect(chapterCandidate.visible).toBe(true);
       expect(chapterCandidate.fontSize).toBe(12);
+      expect(chapterCandidate.placement).toBe('inside');
+      expect(chapterCandidate.complete).toBe(true);
       expect(deferred.visible).toBe(false);
       const keyNode = getKnowledgeNodeLabelPresentation({
         labelMode: 'focus', nodeId: `key-${renderer}`, globalScale: scale, isKeyNode: true,
@@ -306,6 +400,30 @@ describe('knowledge graph viewport fit', () => {
       .map((placement) => `${placement.offsetX}:${placement.offsetY}`)).size).toBe(2);
   });
 
+  it('uses packing state rather than chapter ids when placing root labels', () => {
+    const node = {
+      id: 'chapter-node:shared', x: 160, y: 135, bodyRadius: 12,
+      labelBounds: getKnowledgeNodeLabelBounds({ name: '同一章节领域', bodyRadius: 12 }),
+    };
+    const domainPlacement = placeKnowledgeGraphLabels({
+      nodes: [node], width: 320, height: 270, padding: 16,
+      scale: 1, labelMode: 'all',
+    }).get(node.id)!;
+    const rootPlacement = placeKnowledgeGraphLabels({
+      nodes: [{ ...node, isRootBubble: true }], width: 320, height: 270, padding: 16,
+      scale: 0.5, labelMode: 'focus',
+    }).get(node.id)!;
+
+    expect(domainPlacement).toMatchObject({
+      visible: true, placement: 'external', complete: false,
+    });
+    expect(domainPlacement.offsetY).not.toBe(0);
+    expect(rootPlacement).toMatchObject({
+      visible: true, placement: 'inside', complete: true,
+      fontSize: 12, offsetX: 0, offsetY: 0,
+    });
+  });
+
   it.each([
     ['top-left', 16, 16],
     ['top-right', 304, 16],
@@ -348,6 +466,7 @@ describe('knowledge graph viewport fit', () => {
         nodes: positions.map((node) => ({
           ...node,
           bodyRadius: 32,
+          isRootBubble: true,
           labelBounds: getKnowledgeNodeLabelBounds({ name: `${node.id} WWWMMMM`, bodyRadius: 32 }),
         })),
       });
@@ -361,7 +480,7 @@ describe('knowledge graph viewport fit', () => {
     }
   });
 
-  it.each([[320, 270], [390, 844]] as const)('projects packed root label rectangles without overlap at %sx%s', (width, height) => {
+  it.each([[390, 844]] as const)('projects packed root label rectangles without overlap at %sx%s', (width, height) => {
     const packed = packKnowledgeGraphRootNodes(
       Array.from({ length: 8 }, (_, index) => ({
         id: `chapter-node:${index}`,
@@ -382,6 +501,7 @@ describe('knowledge graph viewport fit', () => {
         x: node.x,
         y: node.y,
         bodyRadius: node.__knowledgeRootPacking.labelBounds.halfHeight,
+        isRootBubble: true,
         labelBounds: node.__knowledgeRootPacking.labelBounds,
       })),
     });

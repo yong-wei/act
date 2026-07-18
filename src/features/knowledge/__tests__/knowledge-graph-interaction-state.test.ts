@@ -347,6 +347,7 @@ describe('knowledge graph interaction state stability', () => {
     expect(rendererSource).not.toContain('onPointerDown={onManipulationStart}');
     expect(rendererSource).not.toContain('onWheel={onManipulationStart}');
     expect(rendererSource).not.toContain('onZoom={onManipulationStart}');
+    expect(rendererSource).not.toContain('onManipulationStart');
     expect(canvasSource).toContain('onBackgroundClick={handleBackgroundClick}');
     expect(canvasSource).toContain('onPointerUpCapture={handleCanvasPointerUp}');
     expect(canvasSource).toContain('finishKnowledgeCanvasBlankGesture(gesture, event)');
@@ -356,6 +357,7 @@ describe('knowledge graph interaction state stability', () => {
     expect(canvasSource).toContain('onNodeDrag={handleNodeDrag}');
     expect(canvasSource).not.toContain('onPointerDown={onManipulationStart}');
     expect(canvasSource).not.toContain('onWheel={onManipulationStart}');
+    expect(canvasSource).not.toContain('onManipulationStart');
     expect(canvasSource).not.toContain("controls.addEventListener('start', handleOrbitControlsStart)");
     expect(canvasSource).not.toContain("controls.removeEventListener('start', handleOrbitControlsStart)");
     expect(canvasSource).toContain('freezeKnowledgeGraphDragFrame(graphNodes, node as RuntimeKnowledgeGraphNode)');
@@ -497,8 +499,8 @@ describe('knowledge graph interaction state stability', () => {
     expect(resourcePanelSource).toContain('data-knowledge-inspector-section="semantic-metadata"');
     expect(resourcePanelSource).toContain('data-knowledge-inspector-section="summary"');
     expect(resourcePanelSource).toContain('data-knowledge-inspector-section="infograph-preview"');
-    expect(resourcePanelSource).toContain('data-knowledge-inspector-section="relation-overview"');
-    expect(resourcePanelSource).toContain('data-knowledge-inspector-section="learning-actions"');
+    expect(resourcePanelSource).toContain('inspectorSection="relation-overview"');
+    expect(resourcePanelSource).toContain('inspectorSection="learning-actions"');
     expect(resourcePanelSource).toContain('data-knowledge-inspector-section="evidence-sources"');
     expect(resourcePanelSource).not.toContain('w-[min(22rem,calc(100vw-1rem))]');
   });

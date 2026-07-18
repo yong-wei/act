@@ -95,4 +95,14 @@ describe('knowledge graph 3D presentation link resources', () => {
     expect(source).toContain('updatePresentationLinkObjectRef.current(linkObject');
     expect(source).toContain('disposeKnowledgeGraphPresentationLinkGroup(object);');
   });
+
+  it('keeps the ordinary-node natural radius unprojected during focus updates', () => {
+    const source = readFileSync(join(
+      process.cwd(),
+      'src/features/knowledge/graph/knowledge-graph-canvas.tsx',
+    ), 'utf8');
+    expect(source).toContain('const naturalRadius = (entry.node.__knowledgeRootPacking?.collisionRadius ?? nodeScale.radius)');
+    expect(source).toContain('entry.object.userData.knowledgeNaturalRadius = naturalRadius;');
+    expect(source).not.toContain('entry.object.userData.knowledgeNaturalRadius = renderedRadius;');
+  });
 });

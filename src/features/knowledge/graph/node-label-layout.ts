@@ -14,6 +14,22 @@ export const KNOWLEDGE_NODE_LABEL_POLICY = {
   maxMeasuredCharacters: 4096,
 } as const;
 
+export const KNOWLEDGE_ROOT_LABEL_POLICY = {
+  fontSize: 14,
+  minimumReadableFontSize: 12,
+  fontFamily: KNOWLEDGE_NODE_LABEL_POLICY.fontFamily,
+  fontWeight: 700,
+  font: '700 14px "PingFang SC", "Microsoft YaHei", sans-serif',
+  minimumLineWidth: KNOWLEDGE_NODE_LABEL_POLICY.maxWidth,
+  maxLines: 3,
+  lineHeight: 17,
+  bubblePadding: 14,
+  minimumBubbleRadius: 28,
+} as const;
+
+export const KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE =
+  KNOWLEDGE_ROOT_LABEL_POLICY.minimumReadableFontSize / KNOWLEDGE_ROOT_LABEL_POLICY.fontSize;
+
 export const KNOWLEDGE_GRAPH_3D_SCREEN_SPACE_CONTRACT = {
   minimumFontSize: KNOWLEDGE_NODE_LABEL_POLICY.minimumReadableFontSize,
   maximumFontSize: 16,
@@ -96,6 +112,10 @@ export interface KnowledgeNodeLabelPaintModel {
   lines: Array<KnowledgeNodeLabelLine & { y: number }>;
 }
 
+export interface KnowledgeRootLabelLayout extends KnowledgeNodeLabelLayout {
+  fontSize: number;
+}
+
 export function getKnowledgeNodeSemanticLabel(
   name: string | null | undefined,
   kind: 'domain' | 'node'
@@ -160,6 +180,101 @@ export function measureKnowledgeNodeLabelText(text: string): number {
 
 function splitDisplayTokens(text: string): string[] {
   return text.match(/\s+|[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Emoji_Presentation}]|[^\s\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Emoji_Presentation}]+/gu) ?? [];
+}
+
+function splitTextAtMeasuredWidth(
+  text: string,
+  maxWidth: number,
+  measureText: KnowledgeNodeLabelMeasureText
+): string[] {
+  const lines: string[] = [];
+  let current = '';
+  for (const character of Array.from(text)) {
+    const candidate = `${current}${character}`;
+    if (current && measureText(candidate) > maxWidth) {
+      lines.push(current.trim());
+      current = character.trimStart();
+    } else {
+      current = candidate;
+    }
+  }
+  if (current.trim()) lines.push(current.trim());
+  return lines;
+}
+
+export function layoutKnowledgeRootLabel(
+  name: string | null | undefined,
+  measureText: KnowledgeNodeLabelMeasureText = getSharedKnowledgeNodeLabelMeasureText()
+): KnowledgeRootLabelLayout {
+  const trimmedName = typeof name === 'string' ? name.trim() : '';
+  const accessibleName = trimmedName || KNOWLEDGE_NODE_LABEL_POLICY.emptyName;
+  const displayName = accessibleName.replace(/\s+/gu, ' ');
+  const measuredWidth = measureText(displayName);
+  const targetLineWidth = Math.max(
+    KNOWLEDGE_ROOT_LABEL_POLICY.minimumLineWidth,
+    Math.ceil(measuredWidth / KNOWLEDGE_ROOT_LABEL_POLICY.maxLines)
+  );
+  const lineTexts = splitTextAtMeasuredWidth(displayName, targetLineWidth, measureText);
+
+  while (lineTexts.length > KNOWLEDGE_ROOT_LABEL_POLICY.maxLines) {
+    const shortestPairIndex = lineTexts.slice(0, -1).reduce((bestIndex, line, index) => {
+      const width = measureText(`${line}${lineTexts[index + 1]}`);
+      const bestWidth = measureText(`${lineTexts[bestIndex]}${lineTexts[bestIndex + 1]}`);
+      return width < bestWidth ? index : bestIndex;
+    }, 0);
+    lineTexts.splice(
+      shortestPairIndex,
+      2,
+      `${lineTexts[shortestPairIndex]}${lineTexts[shortestPairIndex + 1]}`
+    );
+  }
+
+  const lines = lineTexts.map((text) => ({ text, width: measureText(text) }));
+  return {
+    accessibleName,
+    displayName,
+    lines,
+    width: Math.max(0, ...lines.map((line) => line.width)),
+    height: lines.length * KNOWLEDGE_ROOT_LABEL_POLICY.lineHeight,
+    truncated: false,
+    fontSize: KNOWLEDGE_ROOT_LABEL_POLICY.fontSize,
+  };
+}
+
+export function getKnowledgeRootLabelBounds(input: {
+  name: string | null | undefined;
+  minimumBodyRadius?: number;
+  measureText?: KnowledgeNodeLabelMeasureText;
+}): KnowledgeNodeLabelBounds {
+  const label = layoutKnowledgeRootLabel(input.name, input.measureText);
+  const labelHalfWidth = label.width / 2 + KNOWLEDGE_ROOT_LABEL_POLICY.bubblePadding;
+  const labelHalfHeight = label.height / 2 + KNOWLEDGE_ROOT_LABEL_POLICY.bubblePadding;
+  const collisionRadius = Math.max(
+    input.minimumBodyRadius ?? 0,
+    KNOWLEDGE_ROOT_LABEL_POLICY.minimumBubbleRadius,
+    Math.hypot(labelHalfWidth, labelHalfHeight)
+  );
+  return {
+    halfWidth: labelHalfWidth,
+    halfHeight: labelHalfHeight,
+    collisionRadius,
+    label,
+  };
+}
+
+export function getKnowledgeRootLabelPaintModel(
+  name: string | null | undefined,
+  measureText: KnowledgeNodeLabelMeasureText = getSharedKnowledgeNodeLabelMeasureText()
+): KnowledgeNodeLabelPaintModel {
+  const layout = layoutKnowledgeRootLabel(name, measureText);
+  return {
+    font: KNOWLEDGE_ROOT_LABEL_POLICY.font,
+    layout,
+    lines: layout.lines.map((line, index) => ({
+      ...line,
+      y: (index - (layout.lines.length - 1) / 2) * KNOWLEDGE_ROOT_LABEL_POLICY.lineHeight,
+    })),
+  };
 }
 
 function fitTokenPrefix(token: string, measureText: KnowledgeNodeLabelMeasureText): [string, string] {

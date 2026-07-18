@@ -33,7 +33,6 @@ afterEach(() => {
 
 describe('controlled knowledge graph drag isolation', () => {
   it('keeps every non-dragged coordinate fixed without restarting cooldown', async () => {
-    const onManipulationStart = vi.fn();
     const onBackgroundClick = vi.fn();
     const container = document.createElement('div');
     document.body.appendChild(container);
@@ -54,7 +53,6 @@ describe('controlled knowledge graph drag isolation', () => {
           onNodeClick: () => undefined,
           onNodeHover: () => undefined,
           onNodeDragEnd: () => undefined,
-          onManipulationStart,
           onBackgroundClick,
           labelMode: 'focus',
           layoutState: getEmptyKnowledgeGraphLayoutState(),
@@ -82,7 +80,7 @@ describe('controlled knowledge graph drag isolation', () => {
     expect(rendererProps).not.toHaveProperty('onZoom');
     expect(typeof rendererProps.onBackgroundClick).toBe('function');
     await act(async () => (rendererProps.onBackgroundClick as () => void)());
-    expect(onManipulationStart).toHaveBeenCalledTimes(1);
+    expect(rendererProps).not.toHaveProperty('onManipulationStart');
     expect(onBackgroundClick).not.toHaveBeenCalled();
     await act(async () => root.unmount());
   });

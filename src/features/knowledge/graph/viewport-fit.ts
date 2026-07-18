@@ -1,4 +1,8 @@
-import { KNOWLEDGE_NODE_LABEL_POLICY, type KnowledgeNodeLabelBounds } from './node-label-layout';
+import {
+  KNOWLEDGE_NODE_LABEL_POLICY,
+  KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE,
+  type KnowledgeNodeLabelBounds,
+} from './node-label-layout';
 import { getKnowledgeNodeLabelPresentation, type KnowledgeGraphLabelMode } from './label-policy';
 
 export const KNOWLEDGE_GRAPH_VIEWPORT_PADDING = 48;
@@ -43,6 +47,76 @@ export function getPerspectiveCameraFitDistance(input: {
     / (2 * Math.tan(fov * Math.PI / 360) * Math.max(0.0001, input.pixelsPerWorldUnit));
 }
 
+export function getKnowledgeRootProjectionSafeCameraDistance(input: {
+  viewportHeight: number;
+  fovDegrees?: number;
+  zoom?: number;
+}): number {
+  return getPerspectiveCameraFitDistance({
+    ...input,
+    pixelsPerWorldUnit: KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE,
+  });
+}
+
+export function getKnowledgeGraph3DControlsPolicy(input: {
+  compactRootView: boolean;
+  viewportHeight: number;
+  fovDegrees?: number;
+  zoom?: number;
+}) {
+  if (!input.compactRootView) return null;
+  return {
+    enablePan: true,
+    enableRotate: false,
+    enableZoom: true,
+    maxDistance: getKnowledgeRootProjectionSafeCameraDistance(input),
+  } as const;
+}
+
+export function applyKnowledgeGraph3DControlsPolicy(
+  controls: { enablePan?: boolean; enableRotate?: boolean; enableZoom?: boolean; maxDistance?: number },
+  policy: ReturnType<typeof getKnowledgeGraph3DControlsPolicy>,
+): () => void {
+  if (!policy) return () => undefined;
+  const previous = {
+    enablePan: controls.enablePan,
+    enableRotate: controls.enableRotate,
+    enableZoom: controls.enableZoom,
+    maxDistance: controls.maxDistance,
+  };
+  Object.assign(controls, policy);
+  return () => Object.assign(controls, previous);
+}
+
+export function normalizeKnowledgeRootCameraPose<T extends {
+  position: { x: number; y: number; z: number };
+  target: { x: number; y: number; z: number };
+}>(pose: T, maximumDistance: number): T {
+  const originalDistance = Math.hypot(
+    pose.position.x - pose.target.x,
+    pose.position.y - pose.target.y,
+    pose.position.z - pose.target.z,
+  );
+  const validOriginalDistance = Number.isFinite(originalDistance) && originalDistance > 0
+    ? originalDistance
+    : null;
+  const validMaximumDistance = Number.isFinite(maximumDistance) && maximumDistance > 0
+    ? maximumDistance
+    : null;
+  const safeDistance = validOriginalDistance && validMaximumDistance
+    ? Math.min(validOriginalDistance, validMaximumDistance)
+    : validOriginalDistance ?? validMaximumDistance;
+  if (!safeDistance) return pose;
+  return {
+    ...pose,
+    position: {
+      x: pose.target.x,
+      y: pose.target.y,
+      z: pose.target.z + safeDistance,
+    },
+  };
+}
+
 export interface KnowledgeViewportNode {
   id: string;
   x: number;
@@ -50,6 +124,7 @@ export interface KnowledgeViewportNode {
   bodyRadius: number;
   labelBounds: KnowledgeNodeLabelBounds;
   isKeyNode?: boolean;
+  isRootBubble?: boolean;
   importance?: number;
   screenX?: number;
   screenY?: number;
@@ -136,7 +211,7 @@ export function placeKnowledgeGraphLabels(input: Pick<KnowledgeViewportFitInput,
   const priority = (node: KnowledgeViewportNode) => {
     if (node.id === input.selectedNodeId) return 0;
     if (node.id === input.hoveredNodeId) return 1;
-    if (node.id.startsWith('chapter-node:')) return 2;
+    if (node.isRootBubble) return 2;
     if ((node.importance ?? 0) >= 4 || node.isKeyNode) return 3;
     return 4;
   };
@@ -156,6 +231,7 @@ export function placeKnowledgeGraphLabels(input: Pick<KnowledgeViewportFitInput,
     if (node.isInFrustum === false || (node.depth !== undefined && !Number.isFinite(node.depth))) {
       result.set(node.id, {
         visible: false, fontSize: 0, scale: 0, priority: 'deferred',
+        placement: 'external', complete: false,
         offsetX: 0, offsetY: 0, projectedScale: nodeScale(node),
       });
       return;
@@ -167,9 +243,29 @@ export function placeKnowledgeGraphLabels(input: Pick<KnowledgeViewportFitInput,
       hoveredNodeId: input.hoveredNodeId,
       globalScale: nodeScale(node),
       isKeyNode: (node.importance ?? 0) >= 4 || node.isKeyNode,
+      isRootBubble: node.isRootBubble,
     });
     if (!label.visible) {
       result.set(node.id, { ...label, offsetX: 0, offsetY: 0, projectedScale: nodeScale(node) });
+      return;
+    }
+    if (label.placement === 'inside') {
+      const point = center(node);
+      const halfWidth = node.labelBounds.halfWidth * nodeScale(node) * label.scale;
+      const halfHeight = node.labelBounds.halfHeight * nodeScale(node) * label.scale;
+      accepted.push({
+        id: node.id,
+        left: point.x - halfWidth,
+        right: point.x + halfWidth,
+        top: point.y - halfHeight,
+        bottom: point.y + halfHeight,
+      });
+      result.set(node.id, {
+        ...label,
+        offsetX: 0,
+        offsetY: 0,
+        projectedScale: nodeScale(node),
+      });
       return;
     }
     const halfWidth = node.labelBounds.halfWidth * nodeScale(node) * label.scale;

@@ -81,6 +81,7 @@ import {
   type KnowledgeCanvasBlankGesture,
 } from './canvas-dismissal';
 import {
+  KNOWLEDGE_ROOT_BUBBLE_STYLE,
   type KnowledgeGraphFitRequest,
   isCompactKnowledgeRootSet,
   packKnowledgeGraphRootNodes,
@@ -88,13 +89,19 @@ import {
 import { buildKnowledgeTeachingOrderLayout } from './teaching-order-layout';
 import {
   KNOWLEDGE_NODE_LABEL_POLICY,
+  KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE,
   getKnowledgeGraph3DArrowLength,
   getKnowledgeGraph3DNodePresentationRadius,
   layoutKnowledgeNodeLabel,
+  layoutKnowledgeRootLabel,
   getKnowledgeNodeLabelBounds,
 } from './node-label-layout';
 import {
+  applyKnowledgeGraph3DControlsPolicy,
+  normalizeKnowledgeRootCameraPose,
+  getKnowledgeGraph3DControlsPolicy,
   getKnowledgeGraphViewportFit,
+  getKnowledgeRootProjectionSafeCameraDistance,
   getKnowledgeGraphViewportSafeInsets,
   getKnowledgeProjectionScale,
   getPerspectiveCameraFitDistance,
@@ -135,7 +142,6 @@ interface KnowledgeGraphCanvasProps {
   onNodeClick: (node: KnowledgeNodeData) => void;
   onNodeHover: (node: KnowledgeNodeData | null) => void;
   onNodeDragEnd: (node: KnowledgeNodeData) => void;
-  onManipulationStart?: () => void;
   onBackgroundClick?: () => void;
   labelMode: KnowledgeGraphLabelMode;
   layoutState: KnowledgeGraphLayoutState;
@@ -169,7 +175,8 @@ type RuntimeKnowledgeGraphNode = KnowledgeGraphPositionedNode & {
   vz?: number;
 };
 
-function getKnowledgeGraphNodeVisualDataSignature(node: any): string {
+export function getKnowledgeGraphNodeVisualDataSignature(node: any): string {
+  const rootPacking = node.__knowledgeRootPacking;
   return JSON.stringify([
     node.id,
     node.name,
@@ -180,6 +187,10 @@ function getKnowledgeGraphNodeVisualDataSignature(node: any): string {
     node.graphImportanceScore,
     node.importance,
     node.metadata,
+    rootPacking ? {
+      collisionRadius: rootPacking.collisionRadius,
+      labelBounds: rootPacking.labelBounds,
+    } : null,
   ]);
 }
 
@@ -228,13 +239,25 @@ function updateKnowledgeGraphNodeProjection(
   const mesh = object.userData.knowledgeBodyMesh as THREE.Mesh | undefined;
   const naturalRadius = object.userData.knowledgeNaturalRadius as number | undefined;
   if (mesh && naturalRadius !== undefined) {
-    const radius = getKnowledgeGraph3DNodePresentationRadius(
-      naturalRadius,
-      labelPresentation.projectedScale,
-    );
+    const radius = object.userData.knowledgeIsRootBubble
+      ? naturalRadius
+      : getKnowledgeGraph3DNodePresentationRadius(
+          naturalRadius,
+          labelPresentation.projectedScale,
+        );
     mesh.scale.setScalar(radius / 5);
     object.userData.knowledgePresentationRadius = radius;
   }
+}
+
+function getKnowledgeGraph3DRenderedNodeRadius(
+  node: any,
+  naturalRadius: number,
+  projectedScale: number,
+): number {
+  return node?.__knowledgeRootPacking
+    ? naturalRadius
+    : getKnowledgeGraph3DNodePresentationRadius(naturalRadius, projectedScale);
 }
 
 // ========== 几何体创建函数 ==========
@@ -265,7 +288,6 @@ export function KnowledgeGraphCanvas({
   onNodeClick,
   onNodeHover,
   onNodeDragEnd,
-  onManipulationStart,
   onBackgroundClick,
   labelMode,
   layoutState,
@@ -296,6 +318,7 @@ export function KnowledgeGraphCanvas({
   collapsingNodeId = null,
   onCollapsePresentationComplete,
 }: KnowledgeGraphCanvasProps) {
+  const compactRootView = isCompactKnowledgeRootSet(nodes);
   const fgRef = useRef<any>(null);
   const nodeObjectsByIdRef = useRef(new Map<string, {
     node: any;
@@ -455,6 +478,7 @@ export function KnowledgeGraphCanvas({
       ? packKnowledgeGraphRootNodes(clonedNodes, {
           viewportWidth: width ?? 1280,
           viewportHeight: height ?? 720,
+          graphVersion,
         })
       : buildKnowledgeTeachingOrderLayout({
           nodes: clonedNodes,
@@ -1047,9 +1071,11 @@ export function KnowledgeGraphCanvas({
       return {
         id: node.id, x: node.x ?? 0, y: node.y ?? 0,
         ...projection,
-        bodyRadius: getKnowledgeNodeMaximumPresentationRadius(node),
+        bodyRadius: node.__knowledgeRootPacking?.collisionRadius
+          ?? getKnowledgeNodeMaximumPresentationRadius(node),
+        isRootBubble: Boolean(node.__knowledgeRootPacking),
         importance: node.importance,
-        labelBounds: getKnowledgeNodeLabelBounds({
+        labelBounds: node.__knowledgeRootPacking?.labelBounds ?? getKnowledgeNodeLabelBounds({
           name: node.name, bodyRadius: getKnowledgeNodeMaximumPresentationRadius(node),
         }),
       };
@@ -1134,16 +1160,47 @@ export function KnowledgeGraphCanvas({
     posePersistenceEnabledScopesRef.current.add(autoFitScopeKey);
     const camera = fgRef.current.camera?.() as THREE.PerspectiveCamera | undefined;
     camera?.up.set(restoredCameraPose.up.x, restoredCameraPose.up.y, restoredCameraPose.up.z);
-    fgRef.current.cameraPosition(restoredCameraPose.position, restoredCameraPose.target, 0);
+    const safePose = compactRootView
+      ? normalizeKnowledgeRootCameraPose(restoredCameraPose, getKnowledgeRootProjectionSafeCameraDistance({
+        viewportHeight: height ?? 600,
+        fovDegrees: camera?.fov,
+        zoom: camera?.zoom,
+      }))
+      : restoredCameraPose;
+    fgRef.current.cameraPosition(safePose.position, safePose.target, 0);
     scheduleProjectionRefresh();
-  }, [autoFitScopeKey, fitViewRequest.id, restoredCameraPose, scheduleProjectionRefresh]);
+  }, [autoFitScopeKey, compactRootView, fitViewRequest.id, height, restoredCameraPose, scheduleProjectionRefresh]);
 
   useEffect(() => {
-    const controls = fgRef.current?.controls?.();
+    const controls = fgRef.current?.controls?.() as {
+      addEventListener?: (event: string, listener: () => void) => void;
+      removeEventListener?: (event: string, listener: () => void) => void;
+      enablePan?: boolean;
+      enableRotate?: boolean;
+      enableZoom?: boolean;
+      maxDistance?: number;
+      screenSpacePanning?: boolean;
+      mouseButtons?: { RIGHT?: number };
+    } | undefined;
     if (!controls?.addEventListener) return;
+    const previous = {
+      enablePan: controls.enablePan,
+      enableRotate: controls.enableRotate,
+      enableZoom: controls.enableZoom,
+      maxDistance: controls.maxDistance,
+      screenSpacePanning: controls.screenSpacePanning,
+      rightMouseButton: controls.mouseButtons?.RIGHT,
+    };
     controls.enablePan = true;
     controls.screenSpacePanning = true;
     if (controls.mouseButtons) controls.mouseButtons.RIGHT = THREE.MOUSE.PAN;
+    const rootControlsPolicy = getKnowledgeGraph3DControlsPolicy({
+      compactRootView,
+      viewportHeight: height ?? 600,
+      fovDegrees: (fgRef.current?.camera?.() as THREE.PerspectiveCamera | undefined)?.fov,
+      zoom: (fgRef.current?.camera?.() as THREE.PerspectiveCamera | undefined)?.zoom,
+    });
+    const restoreRootControls = applyKnowledgeGraph3DControlsPolicy(controls, rootControlsPolicy);
     const handleControlsChange = () => {
       scheduleProjectionRefresh();
       scheduleCameraPoseReport(autoFitScopeKey);
@@ -1151,9 +1208,16 @@ export function KnowledgeGraphCanvas({
     controls.addEventListener('change', handleControlsChange);
     return () => {
       controls.removeEventListener?.('change', handleControlsChange);
+      restoreRootControls();
+      controls.enablePan = previous.enablePan;
+      controls.enableRotate = previous.enableRotate;
+      controls.enableZoom = previous.enableZoom;
+      controls.maxDistance = previous.maxDistance;
+      controls.screenSpacePanning = previous.screenSpacePanning;
+      if (controls.mouseButtons) controls.mouseButtons.RIGHT = previous.rightMouseButton;
       flushCameraPose(autoFitScopeKey);
     };
-  }, [autoFitScopeKey, flushCameraPose, scheduleCameraPoseReport, scheduleProjectionRefresh]);
+  }, [autoFitScopeKey, compactRootView, flushCameraPose, height, scheduleCameraPoseReport, scheduleProjectionRefresh]);
 
   useEffect(() => {
     const canvas = fgRef.current?.renderer?.()?.domElement as HTMLCanvasElement | undefined;
@@ -1195,15 +1259,19 @@ export function KnowledgeGraphCanvas({
     const presentationScale = getKnowledgeGraphPresentationNodeScale({
       ...visualState.presentation, nodeId: node.id,
     });
+    const rootPacking = node.__knowledgeRootPacking;
+    const isRootBubble = Boolean(rootPacking);
     const projectedScale = labelPlacementsRef.current.get(node.id)?.projectedScale ?? viewportScaleRef.current;
-    const presentationRadius = getKnowledgeGraph3DNodePresentationRadius(
-      nodeScale.radius * presentationScale,
-      projectedScale,
-    );
-    const presentationGlowRadius = nodeScale.glowRadius * presentationScale;
+    const naturalRadius = (rootPacking?.collisionRadius ?? nodeScale.radius) * presentationScale;
+    const presentationRadius = isRootBubble
+      ? naturalRadius
+      : getKnowledgeGraph3DNodePresentationRadius(naturalRadius, projectedScale);
+    const presentationGlowRadius = isRootBubble
+      ? presentationRadius * 1.08
+      : nodeScale.glowRadius * presentationScale;
     const semanticRegionStyle = getKnowledgeSemanticRegionStyle(node, isLightTheme);
 
-    if (semanticRegionStyle.enabled) {
+    if (!isRootBubble && semanticRegionStyle.enabled) {
       const regionRadius = Math.min(
         semanticRegionStyle.maxRadius,
         presentationRadius * semanticRegionStyle.radiusMultiplier
@@ -1226,16 +1294,28 @@ export function KnowledgeGraphCanvas({
     }
 
     // 1. 创建节点几何体
-    const geometry = createGeometryByType(node.nodeType);
+    const geometry = isRootBubble
+      ? new THREE.SphereGeometry(5, 40, 40)
+      : createGeometryByType(node.nodeType);
 
     // 2. 创建材质（带发光效果）
     const material = new THREE.MeshPhongMaterial({
-      color: new THREE.Color(hexToRgba(fillColor, 1)),
-      emissive: glowColor ? new THREE.Color(hexToRgba(glowColor, 1)) : new THREE.Color(hexToRgba(fillColor, 1)),
-      emissiveIntensity: glowColor ? (isActive ? 0.8 : 0.5) : (isActive ? 0.4 : 0.2),
+      color: new THREE.Color(hexToRgba(
+        isRootBubble ? KNOWLEDGE_ROOT_BUBBLE_STYLE.surface : fillColor,
+        1,
+      )),
+      emissive: new THREE.Color(hexToRgba(
+        isRootBubble
+          ? KNOWLEDGE_ROOT_BUBBLE_STYLE.surfaceDepth
+          : glowColor ?? fillColor,
+        1,
+      )),
+      emissiveIntensity: isRootBubble
+        ? KNOWLEDGE_ROOT_BUBBLE_STYLE.emissiveIntensity
+        : glowColor ? (isActive ? 0.8 : 0.5) : (isActive ? 0.4 : 0.2),
       transparent: true,
       opacity: (isActive ? 1 : 0.9) * presentationOpacity,
-      shininess: 100,
+      shininess: isRootBubble ? KNOWLEDGE_ROOT_BUBBLE_STYLE.shininess : 100,
     });
 
     const mesh = new THREE.Mesh(geometry, material);
@@ -1243,15 +1323,26 @@ export function KnowledgeGraphCanvas({
     mesh.scale.setScalar(presentationRadius / 5);
     group.add(mesh);
     group.userData.knowledgeBodyMesh = mesh;
-    group.userData.knowledgeNaturalRadius = nodeScale.radius * presentationScale;
+    group.userData.knowledgeNaturalRadius = naturalRadius;
+    group.userData.knowledgeIsRootBubble = isRootBubble;
+    group.userData.knowledgeRootLabelComplete = isRootBubble;
 
     // 3. 创建辉光层（如果有 bloomLevel）
-    if (glowColor) {
-      const glowGeometry = new THREE.SphereGeometry(presentationGlowRadius / 1.7, 16, 16);
+    if (isRootBubble || glowColor) {
+      const glowGeometry = new THREE.SphereGeometry(
+        isRootBubble ? presentationGlowRadius : presentationGlowRadius / 1.7,
+        16,
+        16,
+      );
       const glowMaterial = new THREE.MeshBasicMaterial({
-        color: new THREE.Color(hexToRgba(glowColor, 1)),
+        color: new THREE.Color(hexToRgba(
+          isRootBubble ? KNOWLEDGE_ROOT_BUBBLE_STYLE.glow : glowColor!,
+          1,
+        )),
         transparent: true,
-        opacity: (isActive ? 0.3 : 0.15) * presentationOpacity,
+        opacity: (isRootBubble ? (isActive ? 0.2 : 0.1) : isActive ? 0.3 : 0.15)
+          * presentationOpacity,
+        depthWrite: false,
       });
       const glowMesh = new THREE.Mesh(glowGeometry, glowMaterial);
       group.add(glowMesh);
@@ -1310,8 +1401,13 @@ export function KnowledgeGraphCanvas({
         THREE.BufferGeometry, THREE.MeshPhongMaterial
       > | undefined;
       if (body) {
-        const fillColor = getNodeColor(node.knowledgeDim);
-        const glowColor = getGlowColor(node.bloomLevel);
+        const isRootBubble = Boolean(node.__knowledgeRootPacking);
+        const fillColor = isRootBubble
+          ? KNOWLEDGE_ROOT_BUBBLE_STYLE.surface
+          : getNodeColor(node.knowledgeDim);
+        const glowColor = isRootBubble
+          ? KNOWLEDGE_ROOT_BUBBLE_STYLE.surfaceDepth
+          : getGlowColor(node.bloomLevel);
         body.material.color.set(new THREE.Color(hexToRgba(fillColor, 1)));
         body.material.emissive.set(new THREE.Color(hexToRgba(glowColor ?? fillColor, 1)));
         body.material.needsUpdate = true;
@@ -1343,14 +1439,17 @@ export function KnowledgeGraphCanvas({
         importanceScore: entry.node.graphImportanceScore,
       });
       const presentationScale = getKnowledgeGraphPresentationNodeScale({ ...presentation, nodeId });
-      const radius = getKnowledgeGraph3DNodePresentationRadius(
-        nodeScale.radius * presentationScale,
+      const naturalRadius = (entry.node.__knowledgeRootPacking?.collisionRadius ?? nodeScale.radius)
+        * presentationScale;
+      const renderedRadius = getKnowledgeGraph3DRenderedNodeRadius(
+        entry.node,
+        naturalRadius,
         labelPlacementsRef.current.get(nodeId)?.projectedScale ?? viewportScaleRef.current,
       );
       const mesh = entry.object.userData.knowledgeBodyMesh as THREE.Mesh | undefined;
-      if (mesh) mesh.scale.setScalar(radius / 5);
-      entry.object.userData.knowledgeNaturalRadius = nodeScale.radius * presentationScale;
-      entry.object.userData.knowledgePresentationRadius = radius;
+      if (mesh) mesh.scale.setScalar(renderedRadius / 5);
+      entry.object.userData.knowledgeNaturalRadius = naturalRadius;
+      entry.object.userData.knowledgePresentationRadius = renderedRadius;
       const ring = entry.object.userData.knowledgeSelectionRing as THREE.Mesh | undefined;
       if (ring) ring.visible = isSelected;
     });
@@ -1428,15 +1527,16 @@ export function KnowledgeGraphCanvas({
     });
     const sourceNode = typeof link.source === 'object' ? link.source : null;
     const targetNode = typeof link.target === 'object' ? link.target : null;
-    const getRadius = (node: any) => getKnowledgeGraph3DNodePresentationRadius(
-      getKnowledgeNodeScale({
+    const getRadius = (node: any) => getKnowledgeGraph3DRenderedNodeRadius(
+      node,
+      (node?.__knowledgeRootPacking?.collisionRadius ?? getKnowledgeNodeScale({
         metadata: node?.metadata,
         degree: node?.graphDegree,
         focused: selectedCorridorEmphasis?.nodeIds.includes(node?.id)
           || selectedNode?.id === node?.id
           || hoveredNode?.id === node?.id,
         importanceScore: node?.graphImportanceScore,
-      }).radius * getKnowledgeGraphPresentationNodeScale({ ...presentation, nodeId: node?.id }),
+      }).radius) * getKnowledgeGraphPresentationNodeScale({ ...presentation, nodeId: node?.id }),
       labelPlacementsRef.current.get(node?.id)?.projectedScale ?? viewportScaleRef.current,
     );
     const sourcePresentationRadius = getRadius(sourceNode);
@@ -1599,6 +1699,7 @@ export function KnowledgeGraphCanvas({
       x: node.x ?? 0,
       y: node.y ?? 0,
       bodyRadius: getKnowledgeNodeMaximumPresentationRadius(node),
+      isRootBubble: Boolean(node.__knowledgeRootPacking),
       importance: node.importance,
       labelBounds: getKnowledgeNodeLabelBounds({
         name: node.name,
@@ -1614,9 +1715,12 @@ export function KnowledgeGraphCanvas({
       selectedNodeId: selectedNode?.id,
       hoveredNodeId: hoveredNode?.id,
     });
+    const effectiveFitScale = compactRootView
+      ? Math.max(fit.scale, KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE)
+      : fit.scale;
     const distance = getPerspectiveCameraFitDistance({
       viewportHeight: height ?? 600,
-      pixelsPerWorldUnit: fit.scale,
+      pixelsPerWorldUnit: effectiveFitScale,
       fovDegrees: fov,
       zoom,
     });
@@ -1626,7 +1730,7 @@ export function KnowledgeGraphCanvas({
         fitTimerRef.current = null;
         return;
       }
-      setViewportScale(fit.scale);
+      setViewportScale(effectiveFitScale);
       if (autoFitScopeKey) posePersistenceEnabledScopesRef.current.add(autoFitScopeKey);
       fgRef.current?.cameraPosition?.(
         { x: fit.centerX, y: fit.cameraCenterY, z: distance },
@@ -1662,7 +1766,7 @@ export function KnowledgeGraphCanvas({
         projectionSettledTimerRef.current = null;
       }
     };
-  }, [autoFitConsumed, autoFitReady, autoFitScopeKey, fitViewRequest, flushCameraPose, graphData.nodes, height, hoveredNode?.id, labelMode, layoutSettledRevision, layoutSignature, nodes, onAutoFitConsumed, relayoutVersion, scheduleProjectionRefresh, selectedNode?.id, viewportRevision, width]);
+  }, [autoFitConsumed, autoFitReady, autoFitScopeKey, compactRootView, fitViewRequest, flushCameraPose, graphData.nodes, height, hoveredNode?.id, labelMode, layoutSettledRevision, layoutSignature, nodes, onAutoFitConsumed, relayoutVersion, scheduleProjectionRefresh, selectedNode?.id, viewportRevision, width]);
 
   useEffect(() => {
     const cameraTransition = cameraTransitionRef.current;
@@ -1838,10 +1942,9 @@ export function KnowledgeGraphCanvas({
     cameraManipulatedRef.current = true;
     if (autoFitScopeKey) posePersistenceEnabledScopesRef.current.add(autoFitScopeKey);
     if (autoFitScopeKey) onCameraManipulation?.(autoFitScopeKey);
-    onManipulationStart?.();
     const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
     freezeKnowledgeGraphDragFrame(graphNodes, node as RuntimeKnowledgeGraphNode);
-  }, [autoFitScopeKey, graphData.nodes, onCameraManipulation, onManipulationStart, scheduleProjectionRefresh]);
+  }, [autoFitScopeKey, graphData.nodes, onCameraManipulation, scheduleProjectionRefresh]);
 
   const handleCanvasPointerDown = useCallback((event: PointerEvent<HTMLDivElement>) => {
     const canvas = event.currentTarget.querySelector<HTMLCanvasElement>('canvas');
@@ -1853,7 +1956,6 @@ export function KnowledgeGraphCanvas({
       cameraManipulatedRef.current = true;
       if (autoFitScopeKey) posePersistenceEnabledScopesRef.current.add(autoFitScopeKey);
       if (autoFitScopeKey) onCameraManipulation?.(autoFitScopeKey);
-      onManipulationStart?.();
       return;
     }
     completedBlankGestureRef.current = null;
@@ -1887,15 +1989,16 @@ export function KnowledgeGraphCanvas({
       if (!source || !target || ![source.x, source.y, source.z ?? 0, target.x, target.y, target.z ?? 0].every(Number.isFinite)) {
         return false;
       }
-      const getRadius = (node: RuntimeKnowledgeGraphNode) => getKnowledgeGraph3DNodePresentationRadius(
-        getKnowledgeNodeScale({
+      const getRadius = (node: RuntimeKnowledgeGraphNode) => getKnowledgeGraph3DRenderedNodeRadius(
+        node,
+        ((node as any).__knowledgeRootPacking?.collisionRadius ?? getKnowledgeNodeScale({
           metadata: node.metadata,
           degree: node.graphDegree,
           focused: selectedCorridorEmphasis?.nodeIds.includes(node.id)
             || selectedNode?.id === node.id
             || hoveredNode?.id === node.id,
           importanceScore: node.graphImportanceScore,
-        }).radius * getKnowledgeGraphPresentationNodeScale({ ...presentation, nodeId: node.id }),
+        }).radius) * getKnowledgeGraphPresentationNodeScale({ ...presentation, nodeId: node.id }),
         labelPlacementsRef.current.get(node.id)?.projectedScale ?? viewportScaleRef.current,
       );
       const path = createKnowledgeGraphRendererEdgePath({
@@ -1924,12 +2027,11 @@ export function KnowledgeGraphCanvas({
           startKnowledgeCanvasBlankGesture(event)
         );
       }
-      onManipulationStart?.();
       cameraManipulatedRef.current = true;
       if (autoFitScopeKey) posePersistenceEnabledScopesRef.current.add(autoFitScopeKey);
       if (autoFitScopeKey) onCameraManipulation?.(autoFitScopeKey);
     }
-  }, [autoFitScopeKey, graphData.links, graphData.nodes, hoveredNode?.id, laneCurvatureByLinkKey, onCameraManipulation, onManipulationStart, presentation, selectedCorridorEmphasis, selectedNode?.id]);
+  }, [autoFitScopeKey, graphData.links, graphData.nodes, hoveredNode?.id, laneCurvatureByLinkKey, onCameraManipulation, presentation, selectedCorridorEmphasis, selectedNode?.id]);
 
   const handleCanvasPointerMove = useCallback((event: PointerEvent<HTMLDivElement>) => {
     const rightPan = rightPanRef.current;
@@ -2013,13 +2115,16 @@ export function KnowledgeGraphCanvas({
         const focused = selectedNode?.id === node.id
           || hoveredNode?.id === node.id
           || Boolean(selectedCorridorEmphasis?.nodeIds.includes(node.id));
-        const naturalRadius = getKnowledgeNodeScale({
+        const rootPacking = (node as KnowledgeNodeData & {
+          __knowledgeRootPacking?: { collisionRadius?: number };
+        }).__knowledgeRootPacking;
+        const naturalRadius = (rootPacking?.collisionRadius ?? getKnowledgeNodeScale({
           metadata: node.metadata,
           degree: node.graphDegree,
           focused,
           importanceScore: node.graphImportanceScore,
-        }).radius * getKnowledgeGraphPresentationNodeScale({ ...presentationRef.current, nodeId: node.id });
-        const radius = getKnowledgeGraph3DNodePresentationRadius(naturalRadius, placement.projectedScale)
+        }).radius) * getKnowledgeGraphPresentationNodeScale({ ...presentationRef.current, nodeId: node.id });
+        const radius = getKnowledgeGraph3DRenderedNodeRadius(node, naturalRadius, placement.projectedScale)
           * placement.projectedScale;
         if (point.x + radius < 0 || point.x - radius > currentWidth || point.y + radius < 0 || point.y - radius > currentHeight) return [];
         return [{ id: node.id, x: point.x - radius, y: point.y - radius, width: radius * 2, height: radius * 2, radius }];
@@ -2118,15 +2223,21 @@ export function KnowledgeGraphCanvas({
     const placement = labelPlacements.get(node.id);
     const point = fgRef.current?.graph2ScreenCoords?.(node.x ?? 0, node.y ?? 0, node.z ?? 0);
     if (!placement?.visible || !Number.isFinite(point?.x) || !Number.isFinite(point?.y)) return [];
-    const layout = layoutKnowledgeNodeLabel(node.name);
+    const isRootBubble = Boolean(node.__knowledgeRootPacking);
+    const layout = isRootBubble ? layoutKnowledgeRootLabel(node.name) : layoutKnowledgeNodeLabel(node.name);
+    const policyFontSize: number = isRootBubble && 'fontSize' in layout
+      ? Number((layout as { fontSize: number }).fontSize)
+      : KNOWLEDGE_NODE_LABEL_POLICY.fontSize;
     return [{
       id: node.id,
       lines: layout.lines.map((line) => line.text),
-      x: Number(point.x) + placement.offsetX,
-      y: Number(point.y) + placement.offsetY,
-      width: layout.width * placement.fontSize / KNOWLEDGE_NODE_LABEL_POLICY.fontSize,
-      height: layout.height * placement.fontSize / KNOWLEDGE_NODE_LABEL_POLICY.fontSize,
+      x: Number(point.x) + (isRootBubble ? 0 : placement.offsetX),
+      y: Number(point.y) + (isRootBubble ? 0 : placement.offsetY),
+      width: layout.width * placement.fontSize / policyFontSize,
+      height: layout.height * placement.fontSize / policyFontSize,
       fontSize: placement.fontSize,
+      isRootBubble,
+      completeName: layout.accessibleName,
       opacity: getKnowledgeGraphPresentationNodeOpacity({ ...presentation, nodeId: node.id })
         * getKnowledgeGraphNodeEmphasisOpacity(node.id, selectedCorridorEmphasis),
     }];
@@ -2139,15 +2250,16 @@ export function KnowledgeGraphCanvas({
     if (!source || !target || ![
       source.x, source.y, source.z ?? 0, target.x, target.y, target.z ?? 0,
     ].every(Number.isFinite)) return [];
-    const getRadius = (node: any) => getKnowledgeGraph3DNodePresentationRadius(
-      getKnowledgeNodeScale({
+    const getRadius = (node: any) => getKnowledgeGraph3DRenderedNodeRadius(
+      node,
+      (node.__knowledgeRootPacking?.collisionRadius ?? getKnowledgeNodeScale({
         metadata: node.metadata,
         degree: node.graphDegree,
         focused: selectedCorridorEmphasis?.nodeIds.includes(node.id)
           || selectedNode?.id === node.id
           || hoveredNode?.id === node.id,
         importanceScore: node.graphImportanceScore,
-      }).radius * getKnowledgeGraphPresentationNodeScale({ ...presentation, nodeId: node.id }),
+      }).radius) * getKnowledgeGraphPresentationNodeScale({ ...presentation, nodeId: node.id }),
       labelPlacementsRef.current.get(node.id)?.projectedScale ?? viewportScaleRef.current,
     );
     const path = createKnowledgeGraphRendererEdgePath({
@@ -2282,7 +2394,11 @@ export function KnowledgeGraphCanvas({
             key={label.id}
             data-knowledge-3d-node-label={label.id}
             data-knowledge-screen-font-size={String(label.fontSize)}
-            className="absolute flex flex-col items-center justify-center text-center font-semibold leading-tight text-platform-fg-primary [text-shadow:0_0_2px_hsl(var(--platform-canvas)),0_0_4px_hsl(var(--platform-canvas))]"
+            data-knowledge-root-label={label.isRootBubble ? 'inside-complete' : undefined}
+            data-knowledge-complete-name={label.isRootBubble ? label.completeName : undefined}
+            className={label.isRootBubble
+              ? 'absolute flex flex-col items-center justify-center text-center font-bold leading-tight text-platform-fg-inverse [text-shadow:0_0_2px_hsl(var(--platform-canvas)),0_0_5px_hsl(var(--platform-canvas))]'
+              : 'absolute flex flex-col items-center justify-center text-center font-semibold leading-tight text-platform-fg-primary [text-shadow:0_0_2px_hsl(var(--platform-canvas)),0_0_4px_hsl(var(--platform-canvas))]'}
             style={{
               left: label.x,
               top: label.y,

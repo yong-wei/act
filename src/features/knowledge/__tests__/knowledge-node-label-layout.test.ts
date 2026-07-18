@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   KNOWLEDGE_GRAPH_3D_SCREEN_SPACE_CONTRACT,
   KNOWLEDGE_NODE_LABEL_POLICY,
+  KNOWLEDGE_ROOT_LABEL_POLICY,
   createCanvasKnowledgeNodeLabelMeasureText,
   createKnowledgeNodeLabelFallbackMeasureText,
   getKnowledgeGraph3DArrowLength,
@@ -10,10 +11,13 @@ import {
   getKnowledgeGraph3DNodePresentationRadius,
   getKnowledgeNodeLabelBounds,
   getKnowledgeNodeLabelPaintModel,
+  getKnowledgeRootLabelBounds,
+  getKnowledgeRootLabelPaintModel,
   getKnowledgeNodeLabelSpritePresentation,
   getKnowledgeNodeLabelTextureSize,
   getKnowledgeNodeSemanticLabel,
   layoutKnowledgeNodeLabel,
+  layoutKnowledgeRootLabel,
   type KnowledgeNodeLabelMeasureText,
 } from '../graph/node-label-layout';
 
@@ -163,5 +167,30 @@ describe('shared knowledge node label layout', () => {
 
     const rotatedOrigin = sprite.position.map((coordinate) => coordinate * Math.cos(Math.PI / 3));
     expect(rotatedOrigin).toEqual([0, 0, 0]);
+  });
+
+  it('keeps a root full name centered and untruncated in at most three lines', () => {
+    const name = 'A deliberately long English domain name 混合中文文本';
+    const layout = layoutKnowledgeRootLabel(name, reviewMeasureText);
+    const bounds = getKnowledgeRootLabelBounds({ name, measureText: reviewMeasureText });
+    const paint = getKnowledgeRootLabelPaintModel(name, reviewMeasureText);
+
+    expect(layout.accessibleName).toBe(name);
+    expect(layout.lines.map((line) => line.text).join('').replace(/\s+/gu, '')).toBe(
+      name.replace(/\s+/gu, '')
+    );
+    expect(layout.lines.length).toBeLessThanOrEqual(KNOWLEDGE_ROOT_LABEL_POLICY.maxLines);
+    expect(layout.truncated).toBe(false);
+    expect(layout.fontSize).toBeGreaterThanOrEqual(
+      KNOWLEDGE_ROOT_LABEL_POLICY.minimumReadableFontSize
+    );
+    expect(bounds.collisionRadius).toBeGreaterThanOrEqual(
+      Math.hypot(bounds.halfWidth, bounds.halfHeight)
+    );
+    expect(paint.lines.map((line) => line.y)).toEqual(
+      paint.lines.map((_, index) => (
+        index - (paint.lines.length - 1) / 2
+      ) * KNOWLEDGE_ROOT_LABEL_POLICY.lineHeight)
+    );
   });
 });

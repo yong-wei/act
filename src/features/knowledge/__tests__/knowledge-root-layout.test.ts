@@ -47,16 +47,11 @@ function expectZeroBodyOverlap(nodes: ReturnType<typeof packKnowledgeGraphRootNo
     for (let right = left + 1; right < nodes.length; right += 1) {
       const a = nodes[left];
       const b = nodes[right];
-      const aBounds = a.__knowledgeRootPacking!.labelBounds;
-      const bBounds = b.__knowledgeRootPacking!.labelBounds;
-      const horizontalGap = Math.abs(a.x! - b.x!) - aBounds.halfWidth - bBounds.halfWidth;
-      const verticalGap = Math.abs(a.y! - b.y!) - aBounds.halfHeight - bBounds.halfHeight;
-      expect(
-        horizontalGap >= KNOWLEDGE_ROOT_PACKING.minimumGap - 1e-9
-        || verticalGap >= KNOWLEDGE_ROOT_PACKING.minimumGap - 1e-9
-      ).toBe(true);
       expect(Math.hypot(a.x! - b.x!, a.y! - b.y!)).toBeGreaterThanOrEqual(
-        getKnowledgeRootPresentationRadius(a) + getKnowledgeRootPresentationRadius(b) - 1e-9
+        a.__knowledgeRootPacking!.collisionRadius
+          + b.__knowledgeRootPacking!.collisionRadius
+          + KNOWLEDGE_ROOT_PACKING.minimumGap
+          - 0.000002
       );
     }
   }
@@ -76,10 +71,11 @@ describe('knowledge graph compact root packing', () => {
   ];
 
   it('uses fixed reviewed order and is stable when input order changes', () => {
-    const first = packKnowledgeGraphRootNodes(roots, { viewportWidth: 1440, viewportHeight: 900 });
+    const first = packKnowledgeGraphRootNodes(roots, {
+      viewportWidth: 1440, viewportHeight: 900, graphVersion: 'graph-v1',
+    });
     const reordered = packKnowledgeGraphRootNodes([...roots].reverse(), {
-      viewportWidth: 1440,
-      viewportHeight: 900,
+      viewportWidth: 1440, viewportHeight: 900, graphVersion: 'graph-v1',
     });
 
     expect(first.map((node) => node.name)).toEqual([
@@ -87,6 +83,22 @@ describe('knowledge graph compact root packing', () => {
       '离散系统', '状态空间', '未知乙', '未知甲',
     ]);
     expect(coordinates(reordered)).toEqual(coordinates(first));
+    expect(new Set(first.map((node) => node.__knowledgeRootPacking.seed)).size).toBe(1);
+  });
+
+  it('uses graph version and viewport dimensions in the stable seed', () => {
+    const first = packKnowledgeGraphRootNodes(roots, {
+      viewportWidth: 1440, viewportHeight: 900, graphVersion: 'graph-v1',
+    });
+    const nextVersion = packKnowledgeGraphRootNodes(roots, {
+      viewportWidth: 1440, viewportHeight: 900, graphVersion: 'graph-v2',
+    });
+    const portrait = packKnowledgeGraphRootNodes(roots, {
+      viewportWidth: 390, viewportHeight: 844, graphVersion: 'graph-v1',
+    });
+
+    expect(coordinates(nextVersion)).not.toEqual(coordinates(first));
+    expect(coordinates(portrait)).not.toEqual(coordinates(first));
   });
 
   it('returns an empty layout for an empty root catalog', () => {
@@ -151,19 +163,21 @@ describe('knowledge graph compact root packing', () => {
       expect(node.__knowledgeRootPacking.collisionRadius).toBe(
         getKnowledgeRootCollisionBounds(node).collisionRadius
       );
-      expect(getKnowledgeRootPresentationRadius(node)).toBe(focusedPresentationRadius);
+      expect(getKnowledgeRootPresentationRadius(node)).toBeGreaterThanOrEqual(focusedPresentationRadius);
     });
     expectZeroBodyOverlap(packed);
   });
 
-  it('lets a wrapped long label enlarge root collision bounds without changing body radius', () => {
+  it('lets a wrapped long label enlarge the root bubble and collision bounds', () => {
     const short = rootNode('chapter-node:short', '短名');
     const long = rootNode(
       'chapter-node:long',
       'A deliberately long English domain name 混合中文文本'
     );
 
-    expect(getKnowledgeRootPresentationRadius(long)).toBe(getKnowledgeRootPresentationRadius(short));
+    expect(getKnowledgeRootPresentationRadius(long)).toBeGreaterThan(
+      getKnowledgeRootPresentationRadius(short)
+    );
     expect(getKnowledgeRootCollisionBounds(long).halfWidth).toBeGreaterThan(
       getKnowledgeRootCollisionBounds(short).halfWidth
     );
@@ -222,6 +236,27 @@ describe('knowledge graph compact root packing', () => {
     expect(extent(desktop).width).toBeGreaterThan(extent(desktop).height);
     expect(extent(mobile).height).toBeGreaterThan(extent(mobile).width);
     for (const packed of [desktop, mobile]) expectZeroBodyOverlap(packed);
+  });
+
+  it('forms an irregular centered cluster instead of a grid or complete ring', () => {
+    const packed = packKnowledgeGraphRootNodes(roots, {
+      viewportWidth: 1440, viewportHeight: 900, graphVersion: 'irregular-v1',
+    });
+    const uniqueX = new Set(packed.map((node) => node.x));
+    const uniqueY = new Set(packed.map((node) => node.y));
+    const radii = new Set(packed.map((node) => node.__knowledgeRootPacking.radialDistance));
+    const bounds = {
+      left: Math.min(...packed.map((node) => node.x - node.__knowledgeRootPacking.collisionRadius)),
+      right: Math.max(...packed.map((node) => node.x + node.__knowledgeRootPacking.collisionRadius)),
+      top: Math.min(...packed.map((node) => node.y - node.__knowledgeRootPacking.collisionRadius)),
+      bottom: Math.max(...packed.map((node) => node.y + node.__knowledgeRootPacking.collisionRadius)),
+    };
+
+    expect(uniqueX.size).toBeGreaterThan(3);
+    expect(uniqueY.size).toBeGreaterThan(3);
+    expect(radii.size).toBeGreaterThan(3);
+    expect(bounds.left + bounds.right).toBeCloseTo(0, 5);
+    expect(bounds.top + bounds.bottom).toBeCloseTo(0, 5);
   });
 
   it('uses actual bounds to make 25 ordinary roots wide on landscape and tall on portrait', () => {

@@ -65,6 +65,7 @@ import {
   type KnowledgeCanvasBlankGesture,
 } from './canvas-dismissal';
 import {
+  KNOWLEDGE_ROOT_BUBBLE_STYLE,
   type KnowledgeGraphFitRequest,
   isCompactKnowledgeRootSet,
   packKnowledgeGraphRootNodes,
@@ -72,8 +73,10 @@ import {
 import { buildKnowledgeTeachingOrderLayout } from './teaching-order-layout';
 import {
   KNOWLEDGE_NODE_LABEL_POLICY,
+  KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE,
   getKnowledgeNodeLabelBounds,
   getKnowledgeNodeLabelPaintModel,
+  getKnowledgeRootLabelPaintModel,
   layoutKnowledgeNodeLabel,
 } from './node-label-layout';
 import {
@@ -113,7 +116,6 @@ interface KnowledgeGraph2DProps {
   onNodeClick: (node: KnowledgeNodeData) => void;
   onNodeHover: (node: KnowledgeNodeData | null) => void;
   onNodeDragEnd: (node: KnowledgeNodeData) => void;
-  onManipulationStart?: () => void;
   onBackgroundClick?: () => void;
   width?: number;
   height?: number;
@@ -132,6 +134,8 @@ interface KnowledgeGraph2DProps {
   collapsingNodeId?: string | null;
   onCollapsePresentationComplete?: (nodeId: string) => void;
 }
+
+export const KNOWLEDGE_GRAPH_2D_LIBRARY_DEFAULT_MIN_ZOOM = 0.01;
 
 type RuntimeKnowledgeGraphNode = KnowledgeGraphPositionedNode & {
   vx?: number;
@@ -260,7 +264,6 @@ export function KnowledgeGraph2D({
   onNodeClick,
   onNodeHover,
   onNodeDragEnd,
-  onManipulationStart,
   onBackgroundClick,
   width,
   height,
@@ -283,6 +286,7 @@ export function KnowledgeGraph2D({
   collapsingNodeId = null,
   onCollapsePresentationComplete,
 }: KnowledgeGraph2DProps) {
+  const compactRootView = isCompactKnowledgeRootSet(nodes);
   const fgRef = useRef<any>(null);
   const activeCanvasPointerIdsRef = useRef(new Set<number>());
   const blankGesturesByPointerIdRef = useRef(new Map<number, KnowledgeCanvasBlankGesture>());
@@ -409,6 +413,7 @@ export function KnowledgeGraph2D({
       ? packKnowledgeGraphRootNodes(clonedNodes, {
           viewportWidth: width ?? 1280,
           viewportHeight: height ?? 720,
+          graphVersion,
         })
       : buildKnowledgeTeachingOrderLayout({
           nodes: clonedNodes,
@@ -829,14 +834,18 @@ export function KnowledgeGraph2D({
     const placements = placeKnowledgeGraphLabels({
       nodes: graphData.nodes.map((candidate: any) => {
         const screen = projector ? projector(candidate.x ?? 0, candidate.y ?? 0) : null;
+        const rootPacking = candidate.__knowledgeRootPacking;
+        const bodyRadius = rootPacking?.collisionRadius
+          ?? getKnowledgeNodeMaximumPresentationRadius(candidate);
         return {
           id: candidate.id, x: candidate.x ?? 0, y: candidate.y ?? 0,
           ...(screen ? { screenX: screen.x, screenY: screen.y } : {}),
           projectedScale: globalScale,
-          bodyRadius: getKnowledgeNodeMaximumPresentationRadius(candidate),
+          bodyRadius,
+          isRootBubble: Boolean(rootPacking),
           importance: candidate.importance,
-          labelBounds: getKnowledgeNodeLabelBounds({
-            name: candidate.name, bodyRadius: getKnowledgeNodeMaximumPresentationRadius(candidate),
+          labelBounds: rootPacking?.labelBounds ?? getKnowledgeNodeLabelBounds({
+            name: candidate.name, bodyRadius,
           }),
         };
       }),
@@ -877,11 +886,13 @@ export function KnowledgeGraph2D({
       importanceScore: node.graphImportanceScore,
     });
     const presentationScale = getKnowledgeGraphPresentationNodeScale({ ...presentation, nodeId: node.id });
-    const baseRadius = nodeScale.radius * presentationScale;
+    const rootPacking = node.__knowledgeRootPacking;
+    const isRootBubble = Boolean(rootPacking);
+    const baseRadius = (rootPacking?.collisionRadius ?? nodeScale.radius) * presentationScale;
     const glowRadius = nodeScale.glowRadius * presentationScale;
     const semanticRegionStyle = getKnowledgeSemanticRegionStyle(node, isLightTheme);
 
-    if (semanticRegionStyle.enabled) {
+    if (!isRootBubble && semanticRegionStyle.enabled) {
       const regionRadius = Math.min(
         semanticRegionStyle.maxRadius,
         baseRadius * semanticRegionStyle.radiusMultiplier
@@ -898,14 +909,40 @@ export function KnowledgeGraph2D({
     }
 
     // 绘制辉光（如果有 bloomLevel）
-    if (glowColor) {
+    if (isRootBubble) {
+      ctx.save();
+      ctx.shadowColor = hexToRgba(KNOWLEDGE_ROOT_BUBBLE_STYLE.glow, isActive ? 0.42 : 0.24);
+      ctx.shadowBlur = (isActive ? 18 : 12) / Math.max(0.0001, globalScale);
+      const gradient = ctx.createRadialGradient(
+        node.x - baseRadius * 0.34,
+        node.y - baseRadius * 0.38,
+        baseRadius * 0.08,
+        node.x,
+        node.y,
+        baseRadius,
+      );
+      gradient.addColorStop(0, hexToRgba(KNOWLEDGE_ROOT_BUBBLE_STYLE.highlight, 0.92));
+      gradient.addColorStop(0.24, hexToRgba(KNOWLEDGE_ROOT_BUBBLE_STYLE.surface, 0.98));
+      gradient.addColorStop(1, hexToRgba(KNOWLEDGE_ROOT_BUBBLE_STYLE.surfaceDepth, 1));
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, baseRadius, 0, 2 * Math.PI);
+      ctx.fillStyle = gradient;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = hexToRgba(KNOWLEDGE_ROOT_BUBBLE_STYLE.rim, isActive ? 0.96 : 0.78);
+      ctx.lineWidth = (isActive ? 2.2 : 1.4) / Math.max(0.0001, globalScale);
+      ctx.stroke();
+      ctx.restore();
+    } else if (glowColor) {
       ctx.fillStyle = hexToRgba(glowColor, isActive ? 0.34 : 0.18);
       drawShape(ctx, node.nodeType, node.x, node.y, glowRadius);
     }
 
     // 绘制节点核心
-    ctx.fillStyle = hexToRgba(fillColor, 1);
-    drawShape(ctx, node.nodeType, node.x, node.y, baseRadius);
+    if (!isRootBubble) {
+      ctx.fillStyle = hexToRgba(fillColor, 1);
+      drawShape(ctx, node.nodeType, node.x, node.y, baseRadius);
+    }
 
     // 绘制选中环
     if (isSelected) {
@@ -913,7 +950,7 @@ export function KnowledgeGraph2D({
       ctx.lineWidth = 2 / globalScale;
       ctx.beginPath();
       const config = getNodeTypeConfig(node.nodeType);
-      if (config.shape === 'circle') {
+      if (isRootBubble || config.shape === 'circle') {
         ctx.arc(node.x, node.y, baseRadius + 4, 0, 2 * Math.PI);
       } else if (config.shape === 'square') {
         const ringSize = baseRadius * 1.6 + 6;
@@ -939,19 +976,26 @@ export function KnowledgeGraph2D({
       return;
     }
 
-    const labelPaint = getKnowledgeNodeLabelPaintModel(node.name);
+    const labelPaint = isRootBubble
+      ? getKnowledgeRootLabelPaintModel(node.name)
+      : getKnowledgeNodeLabelPaintModel(node.name);
     ctx.translate(
-      node.x + labelPresentation.offsetX / globalScale,
-      node.y + labelPresentation.offsetY / globalScale
+      node.x + (isRootBubble ? 0 : labelPresentation.offsetX / globalScale),
+      node.y + (isRootBubble ? 0 : labelPresentation.offsetY / globalScale)
     );
     ctx.scale(labelPresentation.scale, labelPresentation.scale);
     ctx.font = labelPaint.font;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    const labelFillColor = isLightTheme
+    // Canvas cannot resolve CSS custom properties; use explicit theme colors for root text.
+    const labelFillColor = isRootBubble
+      ? (isLightTheme ? '#07111f' : '#f8fafc')
+      : isLightTheme
       ? (isActive ? '#0f172a' : 'rgba(15, 23, 42, 0.9)')
       : (isActive ? '#ffffff' : 'rgba(255, 255, 255, 0.85)');
-    const labelStrokeColor = isLightTheme
+    const labelStrokeColor = isRootBubble
+      ? (isLightTheme ? 'rgba(255, 255, 255, 0.92)' : 'rgba(3, 12, 28, 0.9)')
+      : isLightTheme
       ? 'rgba(255, 255, 255, 0.95)'
       : 'rgba(2, 8, 23, 0.82)';
     ctx.lineJoin = 'round';
@@ -976,10 +1020,10 @@ export function KnowledgeGraph2D({
     ctx.fillStyle = color;
     drawNodePointerShape(
       ctx,
-      node.nodeType,
+      node.__knowledgeRootPacking ? 'THEORY' : node.nodeType,
       node.x,
       node.y,
-      nodeScale.radius * presentationScale,
+      (node.__knowledgeRootPacking?.collisionRadius ?? nodeScale.radius) * presentationScale,
       8 / Math.max(0.0001, globalScale),
     );
   }, [hoveredNode?.id, presentation, selectedNode?.id]);
@@ -1020,14 +1064,16 @@ export function KnowledgeGraph2D({
     if (linkProgress <= 0) return;
     const lineWidth = getKnowledgeGraphEffectiveEdgeWidth(style, strength, focusState, '2d');
 
-    const getPresentationRadius = (node: any) => getKnowledgeNodeScale({
-      metadata: node.metadata,
-      degree: node.graphDegree,
-      focused: selectedCorridorEmphasis?.nodeIds.includes(node.id)
-        || selectedNode?.id === node.id
-        || hoveredNode?.id === node.id,
-      importanceScore: node.graphImportanceScore,
-    }).radius * getKnowledgeGraphPresentationNodeScale({ ...presentation, nodeId: node.id });
+    const getPresentationRadius = (node: any) => (
+      node.__knowledgeRootPacking?.collisionRadius ?? getKnowledgeNodeScale({
+        metadata: node.metadata,
+        degree: node.graphDegree,
+        focused: selectedCorridorEmphasis?.nodeIds.includes(node.id)
+          || selectedNode?.id === node.id
+          || hoveredNode?.id === node.id,
+        importanceScore: node.graphImportanceScore,
+      }).radius
+    ) * getKnowledgeGraphPresentationNodeScale({ ...presentation, nodeId: node.id });
     const fullPath = createKnowledgeGraphRendererEdgePath({
       renderer: '2d',
       link,
@@ -1104,10 +1150,9 @@ export function KnowledgeGraph2D({
 
   const handleNodeDrag = useCallback((node: any) => {
     labelProjectionRevisionRef.current += 1;
-    onManipulationStart?.();
     const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
     freezeKnowledgeGraphDragFrame(graphNodes, node as RuntimeKnowledgeGraphNode);
-  }, [graphData.nodes, onManipulationStart]);
+  }, [graphData.nodes]);
 
   const handleEngineTick = useCallback(() => {
     labelProjectionRevisionRef.current += 1;
@@ -1199,9 +1244,8 @@ export function KnowledgeGraph2D({
           startKnowledgeCanvasBlankGesture(event)
         );
       }
-      onManipulationStart?.();
     }
-  }, [graphData.links, graphData.nodes, hoveredNode?.id, laneCurvatureByLinkKey, onManipulationStart, presentation, selectedCorridorEmphasis, selectedNode?.id]);
+  }, [graphData.links, graphData.nodes, hoveredNode?.id, laneCurvatureByLinkKey, presentation, selectedCorridorEmphasis, selectedNode?.id]);
 
   const handleCanvasPointerMove = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
     const gesture = blankGesturesByPointerIdRef.current.get(event.pointerId) ?? null;
@@ -1249,13 +1293,14 @@ export function KnowledgeGraph2D({
     if ((width ?? 800) <= 0 || (height ?? 600) <= 0) return;
     const fitSignature = `${fitViewRequest.id}:${width ?? 800}:${height ?? 600}:${window.devicePixelRatio}:${relayoutVersion}`;
     if (consumedFitSignatureRef.current === fitSignature) return;
-    if (fitViewRequest.target === 'root' && !isCompactKnowledgeRootSet(nodes)) return;
+    if (fitViewRequest.target === 'root' && !compactRootView) return;
     if (graphData.nodes.length > 1 && settledLayoutSignatureRef.current !== layoutSignature) return;
     const positionedNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes).map((node: any) => ({
       id: node.id,
       x: node.x ?? 0,
       y: node.y ?? 0,
       bodyRadius: getKnowledgeNodeMaximumPresentationRadius(node),
+      isRootBubble: Boolean(node.__knowledgeRootPacking),
       importance: node.importance,
       labelBounds: getKnowledgeNodeLabelBounds({
         name: node.name,
@@ -1274,7 +1319,10 @@ export function KnowledgeGraph2D({
     if (fitTimerRef.current !== null) window.clearTimeout(fitTimerRef.current);
     fitTimerRef.current = window.setTimeout(() => {
       fgRef.current?.centerAt?.(fit.centerX, fit.centerY, 320);
-      fgRef.current?.zoom?.(fit.scale, 320);
+      fgRef.current?.zoom?.(
+        compactRootView ? Math.max(fit.scale, KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE) : fit.scale,
+        320
+      );
       consumedFitSignatureRef.current = fitSignature;
       fitTimerRef.current = null;
     }, 0);
@@ -1282,7 +1330,7 @@ export function KnowledgeGraph2D({
       if (fitTimerRef.current !== null) window.clearTimeout(fitTimerRef.current);
       fitTimerRef.current = null;
     };
-  }, [fitViewRequest, graphData.nodes, height, hoveredNode?.id, labelMode, layoutSettledRevision, layoutSignature, nodes, relayoutVersion, selectedNode?.id, viewportRevision, width]);
+  }, [compactRootView, fitViewRequest, graphData.nodes, height, hoveredNode?.id, labelMode, layoutSettledRevision, layoutSignature, relayoutVersion, selectedNode?.id, viewportRevision, width]);
 
   useEffect(() => {
     const cameraTransition = cameraTransitionRef.current;
@@ -1521,6 +1569,9 @@ export function KnowledgeGraph2D({
         width={width}
         height={height}
         graphData={graphData}
+        minZoom={compactRootView
+          ? KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE
+          : KNOWLEDGE_GRAPH_2D_LIBRARY_DEFAULT_MIN_ZOOM}
 
         // 节点渲染
         nodeCanvasObject={paintNode}

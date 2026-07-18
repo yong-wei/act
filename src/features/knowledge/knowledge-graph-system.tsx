@@ -1094,10 +1094,6 @@ export function KnowledgeGraphSystem({
     setLayoutState((current) => clearKnowledgeGraphLayoutPins(current));
   }, []);
 
-  const handleGraphManipulationStart = useCallback(() => {
-    dispatchInspection({ type: 'close-inspector' });
-  }, []);
-
   const handleBlankCanvasClick = useCallback(() => {
     dispatchInspection({ type: 'dismiss-selection' });
   }, []);
@@ -1998,7 +1994,6 @@ export function KnowledgeGraphSystem({
                 onNodeClick={activateNode}
                 onNodeHover={handleNodeHover}
                 onNodeDragEnd={handleNodeDragEnd}
-                onManipulationStart={handleGraphManipulationStart}
                 onBackgroundClick={handleBlankCanvasClick}
                 width={dimensions.width}
                 height={dimensions.height}
@@ -2025,7 +2020,6 @@ export function KnowledgeGraphSystem({
                 onNodeClick={activateNode}
                 onNodeHover={handleNodeHover}
                 onNodeDragEnd={handleNodeDragEnd}
-                onManipulationStart={handleGraphManipulationStart}
                 onBackgroundClick={handleBlankCanvasClick}
                 labelMode={labelMode}
                 layoutState={layoutState}

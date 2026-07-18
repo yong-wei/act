@@ -60,11 +60,11 @@ const link = {
   relation: 'related', relationType: 'related', strength: 1,
 };
 
-function props(onManipulationStart: () => void, onBackgroundClick: () => void) {
+function props(onBackgroundClick: () => void) {
   return {
     nodes: [node, nodeTwo], links: [link], selectedNode: null, hoveredNode: null,
     onNodeClick: () => undefined, onNodeHover: () => undefined,
-    onNodeDragEnd: () => undefined, onManipulationStart, onBackgroundClick,
+    onNodeDragEnd: () => undefined, onBackgroundClick,
     labelMode: 'focus' as const, layoutState: getEmptyKnowledgeGraphLayoutState(),
     fitViewRequest: { id: 0, target: 'root' as const }, relayoutVersion: 0, expandedNodeIds: [],
     expandedDirectLinks: [], activationSequenceByCenterId: {}, materializedNodeIds: [],
@@ -85,12 +85,11 @@ describe.each([
   ['3D', KnowledgeGraphCanvas, 'threeD'],
 ] as const)('%s renderer multi-pointer blank dismissal', (_label, Renderer, kind) => {
   it('cancels all blank candidates when a stationary second pointer overlaps a primary pan', async () => {
-    const onManipulationStart = vi.fn();
     const onBackgroundClick = vi.fn();
     const container = document.createElement('div');
     document.body.appendChild(container);
     const root = createRoot(container);
-    await act(async () => root.render(React.createElement(Renderer, props(onManipulationStart, onBackgroundClick))));
+    await act(async () => root.render(React.createElement(Renderer, props(onBackgroundClick))));
     const canvas = container.querySelector('canvas')!;
 
     fireEvent.pointerDown(canvas, { pointerId: 1, clientX: 200, clientY: 200 });
@@ -105,12 +104,11 @@ describe.each([
   });
 
   it('isolates unknown cancel but cancels the sequence for a control, node, or edge second pointer', async () => {
-    const onManipulationStart = vi.fn();
     const onBackgroundClick = vi.fn();
     const container = document.createElement('div');
     document.body.appendChild(container);
     const root = createRoot(container);
-    await act(async () => root.render(React.createElement(Renderer, props(onManipulationStart, onBackgroundClick))));
+    await act(async () => root.render(React.createElement(Renderer, props(onBackgroundClick))));
     const canvas = container.querySelector('canvas')!;
     const control = document.createElement('button');
     container.querySelector('[data-knowledge-graph-renderer]')!.appendChild(control);
@@ -142,7 +140,7 @@ describe.each([
     const container = document.createElement('div');
     document.body.appendChild(container);
     const root = createRoot(container);
-    await act(async () => root.render(React.createElement(Renderer, props(vi.fn(), onBackgroundClick))));
+    await act(async () => root.render(React.createElement(Renderer, props(onBackgroundClick))));
     const canvas = container.querySelector('canvas')!;
 
     fireEvent.pointerDown(canvas, { pointerId: 7, clientX: 200, clientY: 200 });
@@ -168,7 +166,7 @@ describe('2D renderer shape-aware blank dismissal', () => {
       { ...node, id: 'hexagon', nodeType: 'ETHICS' as const, x: 200, y: 40, positionX: 200, positionY: 40 },
     ];
     await act(async () => root.render(React.createElement(KnowledgeGraph2D, {
-      ...props(vi.fn(), onBackgroundClick),
+      ...props(onBackgroundClick),
       nodes: shapeNodes,
       links: [],
     })));
