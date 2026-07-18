@@ -119,6 +119,47 @@ describe('course-basis service', () => {
     expect(transactionCount).toBe(2);
   });
 
+  it('does not select raw or normalized content in the import response', async () => {
+    const create = vi.fn(async ({ data }: any) => ({ id: 'version-1', versionNumber: 1, extractionState: data.extractionState }));
+    const db: any = {
+      courseBasisDocument: { findFirst: vi.fn(async () => ({ id: 'document-1' })) },
+      courseBasisDocumentVersion: { findFirst: vi.fn(async () => null), create },
+    };
+    db.$transaction = vi.fn(async (callback: (tx: any) => unknown) => callback(db));
+
+    await importCourseBasisVersion(db, {
+      actor: teacher,
+      documentId: 'document-1',
+      source: { sourceType: 'PLAIN_TEXT', sourceName: 'large.txt', mimeType: 'text/plain', content: 'safe response' },
+    });
+
+    const query = create.mock.calls[0][0];
+    expect(query.select.originalContent).toBeUndefined();
+    expect(query.select.normalizedText).toBeUndefined();
+    expect(query.select).toMatchObject({ id: true, extractionState: true, failureReason: true });
+  });
+
+  it('does not allow a rejected version to be confirmed', async () => {
+    const rejected = {
+      id: 'version-1',
+      reviewState: 'REJECTED',
+      extractionState: 'EXTRACTED',
+      normalizedText: 'Rejected text',
+      retiredAt: null,
+      document: { courseBasis: { id: 'basis-1', ownerId: teacher.id } },
+      segments: [{ id: 'segment-1', stableAnchor: 'root/paragraph:1' }],
+    };
+    const db: any = {
+      courseBasisDocumentVersion: { findFirst: vi.fn(async () => rejected) },
+      courseBasisProjection: { createMany: vi.fn(), count: vi.fn() },
+    };
+    db.$transaction = vi.fn(async (callback: (tx: any) => unknown) => callback(db));
+
+    await expect(confirmCourseBasisVersion(db, { actor: teacher, versionId: rejected.id }))
+      .rejects.toMatchObject({ code: 'rejected-version-immutable' });
+    expect(db.courseBasisProjection.createMany).not.toHaveBeenCalled();
+  });
+
   it('persists a failed PDF extraction as a retryable version', async () => {
     const create = vi.fn(async ({ data }: any) => ({ id: 'version-1', ...data, segments: data.segments.create }));
     const db: any = {

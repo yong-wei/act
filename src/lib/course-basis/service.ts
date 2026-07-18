@@ -255,7 +255,26 @@ export async function importCourseBasisVersion(db: CourseBasisDb, input: {
             failureReason: extracted.failureReason,
             segments: { create: extracted.segments },
           },
-          include: { segments: { orderBy: { orderIndex: 'asc' } } },
+          select: {
+            id: true,
+            documentId: true,
+            versionNumber: true,
+            sourceType: true,
+            sourceName: true,
+            mimeType: true,
+            byteSize: true,
+            contentHash: true,
+            extractionState: true,
+            extractionVersion: true,
+            failureReason: true,
+            reviewState: true,
+            reviewedById: true,
+            reviewedAt: true,
+            retiredById: true,
+            retiredAt: true,
+            createdAt: true,
+            segments: { orderBy: { orderIndex: 'asc' } },
+          },
         });
       }, { isolationLevel: 'Serializable' });
     } catch (error) {
@@ -278,6 +297,7 @@ export async function confirmCourseBasisVersion(db: CourseBasisDb, input: {
   return withSerializableRetry(db, async (tx) => {
     const version = await findVersionForActor(tx as CourseBasisDb, actor, versionId);
     if (version.retiredAt) throw new CourseBasisError('version-retired');
+    if (version.reviewState === 'REJECTED') throw new CourseBasisError('rejected-version-immutable');
     if (version.extractionState !== 'EXTRACTED' || !version.normalizedText || version.segments.length === 0) {
       throw new CourseBasisError('extraction-not-confirmable');
     }
