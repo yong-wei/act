@@ -13,7 +13,7 @@ Raw content included: false
 
 Before queued resources: 6458
 Before primary queue items: 6458
-Before dependent queue items: 23420
+Before dependent queue items: 22404
 After reviewed resources: 6509
 After unresolved disposition blockers: 0
 

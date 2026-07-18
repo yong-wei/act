@@ -688,7 +688,8 @@ function rowFromResourceNode(
     privacyScope: Boolean(node.planningMetadata.privacyLevel),
   });
   const projectionReview = node.runtimeProjection?.reviewAudit;
-  const projectionReviewUsable = !node.runtimeProjection || isRuntimeProjectionReviewAuditUsable(
+  const projectionRequiresExplicitReview = node.runtimeProjection?.sourceKind === 'arena_task';
+  const projectionReviewUsable = !projectionRequiresExplicitReview || isRuntimeProjectionReviewAuditUsable(
     projectionReview,
     generatedAt,
   );
@@ -704,7 +705,7 @@ function rowFromResourceNode(
     ...(!node.planningMetadata.readiness && requiresReadiness(node.type) ? ['missing-readiness-gating' as const] : []),
     ...(!evidenceContract.complete ? ['missing-evidence-contract' as const] : []),
     ...(projection.citationTargets.some((target) => target.status === 'missing-target') ? ['missing-citation-target' as const] : []),
-    ...(node.runtimeProjection && !projectionReviewUsable
+    ...(projectionRequiresExplicitReview && !projectionReviewUsable
       ? ['missing-human-review' as const, 'stale-review' as const]
       : []),
   ]);
