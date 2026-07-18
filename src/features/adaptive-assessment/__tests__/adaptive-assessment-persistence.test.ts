@@ -75,6 +75,33 @@ function incompleteHistoricalCatalogAnswer(params: {
   };
 }
 
+function noSnapshotHistoricalCatalogAnswer(params: {
+  createdAt: Date;
+  answeredAt: Date;
+}) {
+  const question = approvedReadinessQuestion();
+  return {
+    id: 'answer-no-catalog-snapshot-history',
+    userId: 'student-quiz',
+    questionId: question.id,
+    selectedOptionKey: 'A',
+    isCorrect: true,
+    responseTimeSeconds: 28,
+    createdAt: params.createdAt,
+    answeredAt: params.answeredAt,
+    session: {
+      sessionKey: 'session-no-catalog-snapshot-history',
+    },
+    questionRef: {
+      difficulty: question.difficulty,
+      questionType: question.type,
+      domains: question.domains,
+      knowledgeTags: question.knowledgeTags,
+      metadata: {},
+    },
+  };
+}
+
 function createMockDb(): any {
   const answeredAt = new Date('2026-06-24T08:00:00.000Z');
   const sessionState = {
@@ -541,6 +568,77 @@ describe('K/A/Q adaptive assessment persistence', () => {
 
     const masteryRows = db.adaptiveMasteryUpdate.createMany.mock.calls[0][0].data;
     expect(masteryRows.length).toBeGreaterThan(0);
+    expect(masteryRows.every((row: { answerId: string; priorMastery: number }) => (
+      row.answerId === 'answer-quiz-1' && row.priorMastery === 0.35
+    ))).toBe(true);
+  });
+
+  it('includes a truly pre-cutoff answer with no snapshot in historical mastery rebuilds', async () => {
+    const db = createMockDb();
+    const question = approvedReadinessQuestion();
+    const correctOptionText = question.options.find((option) => option.isCorrect)?.text;
+    expect(correctOptionText).toBeTruthy();
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([
+      noSnapshotHistoricalCatalogAnswer({
+        createdAt: new Date('2026-07-03T23:59:59.998Z'),
+        answeredAt: new Date('2026-07-03T23:59:59.999Z'),
+      }),
+    ]);
+
+    await submitAnswerDurably({
+      userId: 'student-quiz',
+      sessionId: 'session-quiz',
+      questionId: question.id,
+      selectedOption: correctOptionText!,
+      timeSpent: 32,
+      pathContext: {
+        pathId: 'path-quiz-1',
+        nodeId: 'adaptive-quiz:time-domain-response-analysis:precheck',
+        goalId: APPROVED_READINESS_GOAL_ID,
+        routeIntent: 'path-execution',
+        questionScope: 'readiness',
+      },
+    }, db);
+
+    const masteryRows = db.adaptiveMasteryUpdate.createMany.mock.calls[0][0].data;
+    expect(masteryRows.length).toBeGreaterThan(0);
+    expect(masteryRows.every((row: { answerId: string; priorMastery: number }) => (
+      row.answerId === 'answer-quiz-1' && row.priorMastery > 0.35
+    ))).toBe(true);
+  });
+
+  it.each([
+    ['post-cutoff createdAt', new Date('2026-07-04T00:00:00.001Z'), new Date('2026-07-03T23:59:59.999Z')],
+    ['post-cutoff answeredAt', new Date('2026-07-03T23:59:59.999Z'), new Date('2026-07-04T00:00:00.001Z')],
+    ['exact-cutoff createdAt', new Date('2026-07-04T00:00:00.000Z'), new Date('2026-07-03T23:59:59.999Z')],
+    ['exact-cutoff answeredAt', new Date('2026-07-03T23:59:59.999Z'), new Date('2026-07-04T00:00:00.000Z')],
+    ['invalid createdAt', new Date('invalid'), new Date('2026-07-03T23:59:59.999Z')],
+    ['invalid answeredAt', new Date('2026-07-03T23:59:59.999Z'), new Date('invalid')],
+  ])('rejects no-snapshot mastery rebuild recovery with %s', async (_label, createdAt, answeredAt) => {
+    const db = createMockDb();
+    const question = approvedReadinessQuestion();
+    const correctOptionText = question.options.find((option) => option.isCorrect)?.text;
+    expect(correctOptionText).toBeTruthy();
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([
+      noSnapshotHistoricalCatalogAnswer({ createdAt, answeredAt }),
+    ]);
+
+    await submitAnswerDurably({
+      userId: 'student-quiz',
+      sessionId: 'session-quiz',
+      questionId: question.id,
+      selectedOption: correctOptionText!,
+      timeSpent: 32,
+      pathContext: {
+        pathId: 'path-quiz-1',
+        nodeId: 'adaptive-quiz:time-domain-response-analysis:precheck',
+        goalId: APPROVED_READINESS_GOAL_ID,
+        routeIntent: 'path-execution',
+        questionScope: 'readiness',
+      },
+    }, db);
+
+    const masteryRows = db.adaptiveMasteryUpdate.createMany.mock.calls[0][0].data;
     expect(masteryRows.every((row: { answerId: string; priorMastery: number }) => (
       row.answerId === 'answer-quiz-1' && row.priorMastery === 0.35
     ))).toBe(true);

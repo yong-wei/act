@@ -382,18 +382,25 @@ function toRecord(value: unknown): Record<string, unknown> {
 }
 
 function isMasteryEligiblePersistedAnswer(row: PersistedAssessmentAnswerRow): boolean {
-  const kaqMetadata = toRecord(toRecord(row.questionRef?.metadata).kaq);
+  const metadata = toRecord(row.questionRef?.metadata);
+  const kaqMetadata = toRecord(metadata.kaq);
   if (kaqMetadata.learningFactEligible === false) return false;
-  const snapshot = toRecord(toRecord(row.questionRef?.metadata).adaptiveAssessmentItemRef);
+  const currentSnapshot = findAdaptiveAssessmentCatalogSnapshot(row.questionId);
+  const isBeforeEnforcementEpoch = isAssessmentSnapshotBeforeEnforcementEpoch(
+    row.createdAt,
+    row.answeredAt,
+  );
+  if (!Object.hasOwn(metadata, 'adaptiveAssessmentItemRef')) {
+    return isBeforeEnforcementEpoch &&
+      evaluateAssessmentEvidenceSnapshotAuthority(currentSnapshot).mastery;
+  }
+  const snapshot = toRecord(metadata.adaptiveAssessmentItemRef);
   const persistedSnapshot = snapshot as unknown as AssessmentEvidenceCatalogSnapshot;
   return evaluateAssessmentEvidenceSnapshotWithCurrentCatalogAuthority(
     persistedSnapshot,
-    findAdaptiveAssessmentCatalogSnapshot(row.questionId),
+    currentSnapshot,
     {
-      allowHistoricalIncompleteSnapshotRecovery: isAssessmentSnapshotBeforeEnforcementEpoch(
-        row.createdAt,
-        row.answeredAt,
-      ),
+      allowHistoricalIncompleteSnapshotRecovery: isBeforeEnforcementEpoch,
     },
   ).mastery;
 }
