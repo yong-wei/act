@@ -189,6 +189,7 @@ function segmentMarkdown(text: string): ExtractedCourseBasisSegment[] {
   const allocatedHeadingAnchors = new Set<string>();
   const paragraphCounts = new Map<string, number>();
   const segments: ExtractedCourseBasisSegment[] = [];
+  let extractedChars = 0;
   let paragraph: string[] = [];
 
   const flush = () => {
@@ -200,14 +201,14 @@ function segmentMarkdown(text: string): ExtractedCourseBasisSegment[] {
     const paragraphNumber = (paragraphCounts.get(key) ?? 0) + 1;
     paragraphCounts.set(key, paragraphNumber);
     const anchorPath = headingPath.map((heading) => `h${heading.level}:${heading.anchor}`).join('/');
-    segments.push(makeSegment({
+    extractedChars = pushBoundedSegment(segments, makeSegment({
       orderIndex: segments.length,
       stableAnchor: `${anchorPath || 'root'}/paragraph:${paragraphNumber}`,
       headingPath: path,
       pageNumber: null,
       paragraphNumber,
       text: value,
-    }));
+    }), extractedChars);
   };
 
   for (const line of text.split('\n')) {
@@ -241,14 +242,22 @@ function segmentMarkdown(text: string): ExtractedCourseBasisSegment[] {
 }
 
 function segmentPlainText(text: string): ExtractedCourseBasisSegment[] {
-  return text.split(/\n\s*\n+/).map(normalizeInlineText).filter(Boolean).map((value, index) => makeSegment({
-    orderIndex: index,
-    stableAnchor: `root/paragraph:${index + 1}`,
-    headingPath: [],
-    pageNumber: null,
-    paragraphNumber: index + 1,
-    text: value,
-  }));
+  const segments: ExtractedCourseBasisSegment[] = [];
+  let extractedChars = 0;
+  for (const paragraph of text.split(/\n\s*\n+/)) {
+    const value = normalizeInlineText(paragraph);
+    if (!value) continue;
+    const paragraphNumber = segments.length + 1;
+    extractedChars = pushBoundedSegment(segments, makeSegment({
+      orderIndex: segments.length,
+      stableAnchor: `root/paragraph:${paragraphNumber}`,
+      headingPath: [],
+      pageNumber: null,
+      paragraphNumber,
+      text: value,
+    }), extractedChars);
+  }
+  return segments;
 }
 
 function makeSegment(input: Omit<ExtractedCourseBasisSegment, 'contentHash'>): ExtractedCourseBasisSegment {
