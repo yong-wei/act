@@ -13,6 +13,36 @@ enum UserRole {
   ADMIN
 }
 
+enum CourseBasisDocumentKind {
+  STANDARD
+  TEXTBOOK
+  OTHER
+}
+
+enum CourseBasisSourceType {
+  MARKDOWN
+  PLAIN_TEXT
+  PASTED_TEXT
+  SEARCHABLE_PDF
+}
+
+enum CourseBasisExtractionState {
+  EXTRACTED
+  UNSUPPORTED
+  FAILED
+}
+
+enum CourseBasisReviewState {
+  PENDING
+  CONFIRMED
+  REJECTED
+}
+
+enum CourseBasisReferenceType {
+  LESSON_PLAN_REVISION
+  COURSEWARE_REVISION
+}
+
 enum AssignmentLifecycleState {
   DRAFT
   PUBLISHED
@@ -356,6 +386,118 @@ model User {
   teacherApprovalSnapshots       TeacherAssignmentApprovalSnapshot[]  @relation("TeacherAssignmentApprovalReviewer")
   teacherResubmissionGrants      TeacherAssignmentResubmissionGrant[] @relation("TeacherAssignmentResubmissionGrantTeacher")
   teacherQuestionExemptions      TeacherAssignmentQuestionExemption[] @relation("TeacherAssignmentQuestionExemptionActor")
+  ownedCourseBases               CourseBasis[]                        @relation("CourseBasisOwner")
+  reviewedCourseBasisVersions    CourseBasisDocumentVersion[]         @relation("CourseBasisVersionReviewer")
+  retiredCourseBasisVersions     CourseBasisDocumentVersion[]         @relation("CourseBasisVersionRetirer")
+}
+
+model CourseBasis {
+  id             String   @id @default(cuid())
+  ownerId        String
+  courseIdentity String
+  title          String
+  description    String?  @db.Text
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  owner     User                  @relation("CourseBasisOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  documents CourseBasisDocument[]
+
+  @@index([ownerId, updatedAt])
+  @@index([ownerId, courseIdentity])
+}
+
+model CourseBasisDocument {
+  id            String                  @id @default(cuid())
+  courseBasisId String
+  title         String
+  kind          CourseBasisDocumentKind
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
+
+  courseBasis CourseBasis                  @relation(fields: [courseBasisId], references: [id], onDelete: Restrict)
+  versions    CourseBasisDocumentVersion[]
+
+  @@index([courseBasisId, updatedAt])
+}
+
+model CourseBasisDocumentVersion {
+  id                String                     @id @default(cuid())
+  documentId        String
+  versionNumber     Int
+  sourceType        CourseBasisSourceType
+  sourceName        String
+  mimeType          String
+  byteSize          Int
+  contentHash       String
+  originalContent   Bytes
+  normalizedText    String?                    @db.Text
+  extractionState   CourseBasisExtractionState
+  extractionVersion String
+  failureReason     String?
+  reviewState       CourseBasisReviewState     @default(PENDING)
+  reviewedById      String?
+  reviewedAt        DateTime?
+  retiredById       String?
+  retiredAt         DateTime?
+  createdAt         DateTime                   @default(now())
+
+  document       CourseBasisDocument        @relation(fields: [documentId], references: [id], onDelete: Restrict)
+  reviewedBy     User?                      @relation("CourseBasisVersionReviewer", fields: [reviewedById], references: [id], onDelete: Restrict)
+  retiredBy      User?                      @relation("CourseBasisVersionRetirer", fields: [retiredById], references: [id], onDelete: Restrict)
+  segments       CourseBasisSegment[]
+  projections    CourseBasisProjection[]
+  referenceLinks CourseBasisReferenceLink[]
+
+  @@unique([documentId, versionNumber])
+  @@index([documentId, reviewState, retiredAt])
+  @@index([contentHash])
+}
+
+model CourseBasisSegment {
+  id              String   @id @default(cuid())
+  versionId       String
+  orderIndex      Int
+  stableAnchor    String
+  headingPath     String[]
+  pageNumber      Int?
+  paragraphNumber Int
+  text            String   @db.Text
+  contentHash     String
+
+  version     CourseBasisDocumentVersion @relation(fields: [versionId], references: [id], onDelete: Restrict)
+  projections CourseBasisProjection[]
+
+  @@unique([versionId, stableAnchor])
+  @@unique([versionId, orderIndex])
+  @@unique([id, versionId])
+}
+
+model CourseBasisProjection {
+  id             String   @id @default(cuid())
+  versionId      String
+  segmentId      String   @unique
+  projectionKey  String   @unique
+  corpusSourceId String   @unique
+  projectedAt    DateTime @default(now())
+
+  version CourseBasisDocumentVersion @relation(fields: [versionId], references: [id], onDelete: Restrict)
+  segment CourseBasisSegment         @relation(fields: [segmentId, versionId], references: [id, versionId], onDelete: Restrict)
+
+  @@index([versionId])
+}
+
+model CourseBasisReferenceLink {
+  id            String                   @id @default(cuid())
+  versionId     String
+  referenceType CourseBasisReferenceType
+  referenceId   String
+  createdAt     DateTime                 @default(now())
+
+  version CourseBasisDocumentVersion @relation(fields: [versionId], references: [id], onDelete: Restrict)
+
+  @@unique([versionId, referenceType, referenceId])
+  @@index([referenceType, referenceId])
 }
 
 model StudentProfile {

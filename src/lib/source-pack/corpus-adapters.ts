@@ -31,7 +31,10 @@ import type {
   LearningEvidenceCorpusPrivacyClass,
   LearningEvidenceRetrievalScope,
 } from '../data-governance/learning-evidence-rag-corpus';
-import { validateLearningEvidenceCorpusChunk } from '../data-governance/learning-evidence-rag-corpus';
+import {
+  matchesTeacherCourseBasisRetrievalScope,
+  validateLearningEvidenceCorpusChunk,
+} from '../data-governance/learning-evidence-rag-corpus';
 
 import type {
   TextbookRuntimeSearchDocument,
@@ -88,7 +91,7 @@ const USE_CASE_SOURCE_TYPES: Record<LearningEvidenceCitationUseCase, Set<Learnin
   konling: new Set(['course-content', 'knowledge-card', 'runtime-handout', 'path-summary', 'simulation-summary', 'arena-summary', 'diagnosis']),
   recommendation: new Set(['course-content', 'knowledge-card', 'runtime-handout', 'path-summary', 'simulation-summary', 'arena-summary', 'teacher-report']),
   'teacher-report': new Set(['path-summary', 'diagnosis', 'grading-artifact', 'simulation-summary', 'arena-summary', 'teacher-report']),
-  'prep-pack': new Set(['course-content', 'knowledge-card', 'runtime-handout', 'diagnosis', 'grading-artifact', 'teacher-report']),
+  'prep-pack': new Set(['course-content', 'teacher-course-basis', 'knowledge-card', 'runtime-handout', 'diagnosis', 'grading-artifact', 'teacher-report']),
 };
 
 // ─── Visibility Helpers ──────────────────────────────────────────────────────
@@ -113,10 +116,17 @@ function mapPrivacyClass(privacy: LearningEvidenceCorpusPrivacyClass): SourcePac
   }
 }
 
-function mapSourceTypeToKind(sourceType: string): SourcePackSourceKind {
+function mapSourceTypeToKind(
+  sourceType: string,
+  documentSourceType?: string | null,
+): SourcePackSourceKind {
   switch (sourceType) {
     case 'course-content':
       return 'textbook';
+    case 'teacher-course-basis':
+      if (documentSourceType === 'textbook') return 'textbook';
+      if (documentSourceType === 'reference') return 'reference';
+      return 'other';
     case 'knowledge-card':
       return 'knowledge-card';
     case 'runtime-handout':
@@ -268,7 +278,7 @@ export function adaptLearningEvidenceChunk(
   const item: SourcePackItem = {
     id: chunk.id,
     title: chunk.display?.title ?? chunk.id,
-    sourceKind: mapSourceTypeToKind(chunk.sourceType),
+    sourceKind: mapSourceTypeToKind(chunk.sourceType, chunk.sourceRef.documentSourceType),
     modality: chunk.citationAddress?.kind === 'image' ? 'image'
       : chunk.citationAddress?.kind === 'video' ? 'video'
       : chunk.citationAddress?.kind === 'audio' ? 'audio'
@@ -292,6 +302,7 @@ export function adaptLearningEvidenceChunk(
       freshnessBucket: chunk.authority?.freshnessBucket ?? 'recent',
       contentHash: chunk.content?.hash ?? '',
       spanKind: chunk.spanRef.kind,
+      stableAnchor: chunk.spanRef.locator ?? '',
       spanStart: chunk.spanRef.start ?? '',
       spanEnd: chunk.spanRef.end ?? '',
       spanLocator: chunk.spanRef.locator ?? '',
@@ -305,6 +316,13 @@ export function adaptLearningEvidenceChunk(
       citationImageRegionHeight: chunk.citationAddress?.imageRegion?.height ?? '',
       resourceId: chunk.resourceProjection?.resourceId ?? chunk.sourceRef.resourceId ?? '',
       resourceIds: stringRefs([chunk.resourceProjection?.resourceId, chunk.sourceRef.resourceId]),
+      ownerUserId: chunk.sourceRef.ownerUserId ?? '',
+      courseBasisId: chunk.sourceRef.courseBasisId ?? '',
+      documentId: chunk.sourceRef.documentId ?? '',
+      versionId: chunk.sourceRef.versionId ?? '',
+      documentSourceType: chunk.sourceRef.documentSourceType ?? '',
+      reviewState: chunk.sourceRef.reviewState ?? '',
+      versionState: chunk.sourceRef.versionState ?? '',
       knowledgeNodeRefs: chunk.resourceProjection?.knowledgeNodeRefs ?? [],
       capabilityTargetRefs: chunk.resourceProjection?.capabilityTargetRefs ?? [],
       qualityTargetRefs: chunk.resourceProjection?.graphNodeRefs?.quality ?? [],
@@ -526,6 +544,7 @@ function isLearningEvidenceChunkInScope(
     (!scope.allowedSourceTypes || scope.allowedSourceTypes.includes(chunk.sourceType)) &&
     (!scope.useCase || chunk.retrieval.useCases.includes(scope.useCase)) &&
     (!scope.useCase || USE_CASE_SOURCE_TYPES[scope.useCase]?.has(chunk.sourceType) === true) &&
+    matchesTeacherCourseBasisRetrievalScope(chunk, scope) &&
     matchesResourceProjectionSceneAvailability(chunk, scope.useCase) &&
     isChunkVisible(chunk, scope);
 }
@@ -552,6 +571,7 @@ function matchesClassScope(chunk: LearningEvidenceCorpusChunk, scope: LearningEv
 function matchesOwnerScope(chunk: LearningEvidenceCorpusChunk, scope: LearningEvidenceRetrievalScope): boolean {
   const ownerUserId = chunk.sourceRef.ownerUserId;
   if (!ownerUserId) return chunk.privacyClass !== 'student-visible';
+  if (chunk.sourceType === 'teacher-course-basis' && (scope.role === 'admin' || scope.role === 'service')) return true;
   if (scope.role === 'student') return Boolean(scope.userId && ownerUserId === scope.userId);
   if (!scope.targetUserId) return true;
   return ownerUserId === scope.targetUserId;
@@ -573,6 +593,9 @@ function isChunkVisible(chunk: LearningEvidenceCorpusChunk, scope: LearningEvide
   if (chunk.privacyClass === 'admin-only') return scope.role === 'admin' || scope.role === 'service';
   if (chunk.privacyClass === 'teacher-visible') {
     if (scope.role === 'admin' || scope.role === 'service') return true;
+    if (chunk.sourceType === 'teacher-course-basis') {
+      return scope.role === 'teacher' && scope.userId === chunk.sourceRef.ownerUserId;
+    }
     return scope.role === 'teacher' && Boolean(chunk.sourceRef.classId && scope.classIds?.includes(chunk.sourceRef.classId));
   }
   if (chunk.privacyClass === 'student-visible') {

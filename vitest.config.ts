@@ -15,6 +15,7 @@ export default defineConfig({
       'src/resources/simulations/__tests__/**/*.test.ts',
       'src/lib/__tests__/**/*.test.ts',
       'src/lib/data-governance/__tests__/**/*.test.ts',
+      'src/lib/course-basis/__tests__/**/*.test.ts',
       'src/app/__tests__/**/*.test.ts',
       'src/features/admin/__tests__/**/*.test.ts',
       'src/features/admin/__tests__/**/*.test.tsx',
