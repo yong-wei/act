@@ -30,6 +30,7 @@ import {
   RESOURCE_FIELD_COMPLETION_AUDIT_VERSION,
   YANGFAN_FIXTURE_OWNED_RESOURCE_IDS,
   canDowngradeEvidenceLineageBlockerWithDisposition,
+  isRuntimeProjectionReviewAuditUsable,
   type ResourceFieldCompletionCoverageSummary,
   type ResourceFieldCompletionAuditRow,
 } from '../resource-field-completion-audit';
@@ -2100,6 +2101,24 @@ describe('resource field completion audit', () => {
       invalidHumanConfirmedRows: 0,
       issues: [],
     });
+  });
+
+  it('rejects runtime projection reviews with synthetic batches or invalid timestamps', () => {
+    const validReview = {
+      status: 'human-confirmed',
+      reviewerId: 'reviewer-a',
+      reviewerRole: 'resource-governance-reviewer',
+      reviewedAt: '2026-06-21T00:00:00.000Z',
+      reviewBatchId: 'review-batch-a',
+      reviewerVisibleRationale: 'The current projection was independently reviewed.',
+      independentEvidenceRef: 'review-source#a',
+    };
+    const generatedAt = '2026-06-22T00:00:00.000Z';
+
+    expect(isRuntimeProjectionReviewAuditUsable(validReview, generatedAt)).toBe(true);
+    expect(isRuntimeProjectionReviewAuditUsable({ ...validReview, reviewBatchId: null }, generatedAt)).toBe(false);
+    expect(isRuntimeProjectionReviewAuditUsable({ ...validReview, reviewedAt: 'not-a-date' }, generatedAt)).toBe(false);
+    expect(isRuntimeProjectionReviewAuditUsable({ ...validReview, reviewedAt: '2026-06-23T00:00:00.000Z' }, generatedAt)).toBe(false);
   });
 
   it('keeps provisional metadata out of PlanningUnit eligibility', () => {

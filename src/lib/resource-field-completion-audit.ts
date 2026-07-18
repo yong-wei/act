@@ -700,8 +700,13 @@ function rowFromResourceNode(
     ...(!evidenceContract.complete ? ['missing-evidence-contract' as const] : []),
     ...(projection.citationTargets.some((target) => target.status === 'missing-target') ? ['missing-citation-target' as const] : []),
   ]);
-  const humanConfirmed = highConfidenceAudit.pathEligible && evidenceContract.complete && Boolean(sourceHash);
   const projectionReview = node.runtimeProjection?.reviewAudit;
+  const projectionReviewUsable = !node.runtimeProjection || isRuntimeProjectionReviewAuditUsable(
+    projectionReview,
+    generatedAt,
+  );
+  const humanConfirmed = highConfidenceAudit.pathEligible && evidenceContract.complete &&
+    Boolean(sourceHash) && projectionReviewUsable;
 
   return buildRow({
     resourceId: node.id,
@@ -718,9 +723,9 @@ function rowFromResourceNode(
       ? confirmedReviewAudit({
         sourceHash,
         versionRef: sourceVersionRef,
-        reviewBatchId: projectionReview?.reviewBatchId ?? RESOURCE_NODE_REGISTRY_VERSION,
+        reviewBatchId: projectionReview ? projectionReview.reviewBatchId : RESOURCE_NODE_REGISTRY_VERSION,
         generationToolOrModel: null,
-        reviewedAt: projectionReview?.reviewedAt ?? generatedAt,
+        reviewedAt: projectionReview ? projectionReview.reviewedAt : generatedAt,
         reviewerId: projectionReview?.reviewerId ?? undefined,
         reviewerRole: projectionReview?.reviewerRole ?? undefined,
         reviewerVisibleRationale: projectionReview?.reviewerVisibleRationale ?? undefined,
@@ -748,6 +753,26 @@ function rowFromResourceNode(
       ...Object.keys(node.planningMetadata.abilityImpact),
     ],
   });
+}
+
+export function isRuntimeProjectionReviewAuditUsable(
+  review: {
+    status: string;
+    reviewerId?: string | null;
+    reviewerRole?: string | null;
+    reviewedAt?: string | null;
+    reviewBatchId?: string | null;
+    reviewerVisibleRationale?: string | null;
+    independentEvidenceRef?: string | null;
+  } | null | undefined,
+  generatedAt: string,
+): boolean {
+  if (review?.status !== 'human-confirmed' || !review.reviewerId || !review.reviewerRole ||
+    !review.reviewBatchId || !review.reviewerVisibleRationale || !review.independentEvidenceRef || !review.reviewedAt) {
+    return false;
+  }
+  const reviewedAt = Date.parse(review.reviewedAt);
+  return Number.isFinite(reviewedAt) && reviewedAt <= Date.parse(generatedAt);
 }
 
 function rowFromCandidate(
