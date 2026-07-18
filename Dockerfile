@@ -77,7 +77,9 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV RUN_MIGRATIONS_ON_START=1
 
-RUN apk add --no-cache chromium libreoffice \
+RUN (apk add --no-cache chromium libreoffice \
+  || (sed -i "s|https://mirrors.aliyun.com/alpine|https://dl-cdn.alpinelinux.org/alpine|g" /etc/apk/repositories \
+    && apk add --no-cache chromium libreoffice)) \
   && python3 -m pip install --break-system-packages --no-cache-dir markitdown==0.1.2
 
 # Create nextjs user
