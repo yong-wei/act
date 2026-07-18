@@ -6,6 +6,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
+import { resolveOpenSpecChangeEvidencePath } from '@/lib/data-governance/openspec-change-evidence-path';
 import type { RuntimeResourceProjectionFamily } from '@/lib/runtime-resource-projections';
 import { normalizeMediaId } from '../db/runtime-lesson-semantic-evidence';
 import {
@@ -23,8 +24,13 @@ const REGISTERED_RESOURCE_METADATA_PATH = 'src/lib/resource-registry-metadata.ts
 const RESOURCE_COMPONENT_REGISTRY_PATH = 'src/lib/resource-registry.tsx';
 const RUNTIME_RESOURCE_PROJECTIONS_PATH = 'course-content/runtime/resource-governance/runtime-resource-projections.jsonl';
 const LONGFORM_REVIEW_SOURCE_PATH = 'course-content/runtime/resource-governance/longform-textbook-reference-resource-semantics-review-source.jsonl';
-const LONGFORM_INPUT_SNAPSHOT_PATH = 'openspec/changes/complete-longform-textbook-reference-resource-semantics/evidence/longform-textbook-reference-resource-input-snapshot.jsonl';
-const LONGFORM_INPUT_SNAPSHOT_SEAL_PATH = 'openspec/changes/complete-longform-textbook-reference-resource-semantics/evidence/longform-textbook-reference-resource-input-snapshot.seal.json';
+const LONGFORM_CHANGE_ID = 'complete-longform-textbook-reference-resource-semantics';
+const LONGFORM_INPUT_SNAPSHOT_PATH = resolveOpenSpecChangeEvidencePath(
+  process.cwd(), LONGFORM_CHANGE_ID, 'longform-textbook-reference-resource-input-snapshot.jsonl',
+);
+const LONGFORM_INPUT_SNAPSHOT_SEAL_PATH = resolveOpenSpecChangeEvidencePath(
+  process.cwd(), LONGFORM_CHANGE_ID, 'longform-textbook-reference-resource-input-snapshot.seal.json',
+);
 const LONGFORM_INPUT_SNAPSHOT_VERSION = 'longform-textbook-reference-resource-input-snapshot.v1';
 const RUNTIME_LESSON_MANIFEST_DIR = 'course-content/runtime/lessons';
 const RUNTIME_TEXTBOOK_DIR = 'course-content/runtime/resources/textbooks';

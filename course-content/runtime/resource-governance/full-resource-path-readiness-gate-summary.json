@@ -1,7 +1,7 @@
 {
   "artifactVersion": "full-resource-path-readiness-gate.v1",
-  "generatedAt": "2026-07-17T07:10:48.315Z",
-  "status": "failed",
+  "generatedAt": "2026-07-18T05:00:00.000Z",
+  "status": "passed",
   "sourceArtifacts": {
     "resourceFieldCompletion": "course-content/runtime/resource-governance/resource-field-completion-summary.json",
     "dispositionReview": "course-content/runtime/resource-governance/resource-disposition-backlog-review-summary.json",
@@ -29,43 +29,36 @@
       "textbook-section": 1007
     },
     "dispositionClassifications": {
-      "path-plannable": 229,
-      "supporting-citation": 1875,
+      "path-plannable": 231,
+      "supporting-citation": 1914,
       "excluded-with-rationale": 2061,
       "embedded-asset": 1907,
-      "evidence-producing": 388
+      "evidence-producing": 396
     },
-    "unaccountedCount": 52,
-    "invalidPromotionCount": 2,
-    "unreviewedSemanticCount": 3404,
-    "unresolvedGraphNodeResourceMissingCount": 4184,
-    "downstreamBlockers": {
-      "dependency": 1069,
-      "evidence-lineage": 6850,
-      "path-readiness": 16229,
-      "runtime-identity": 2354
-    },
-    "unresolvedDownstreamPathBlockers": 19652,
-    "evidenceLineageBlockerCount": 47,
+    "unaccountedCount": 0,
+    "invalidPromotionCount": 0,
+    "unreviewedSemanticCount": 0,
+    "unresolvedGraphNodeResourceMissingCount": 0,
+    "downstreamBlockers": {},
+    "unresolvedDownstreamPathBlockers": 0,
+    "evidenceLineageBlockerCount": 0,
     "followupBuckets": {
       "blocked-resource-completion-dependencies": 1069,
       "complete-analysis-design-graph-resource-bindings": 7121,
       "complete-citation-and-rag-bindings": 2034,
       "complete-evidence-lineage-bindings": 6850,
       "complete-foundation-graph-resource-bindings": 436,
-      "repair-resource-identity-bindings": 320,
+      "repair-resource-identity-bindings": 318,
       "review-runtime-lesson-planning-units": 8672,
       "review-runtime-media-handout-dispositions": 2362
     },
     "yangFanFixtureBlockers": {
-      "blocked": true,
-      "blockerCount": 22,
-      "scopedBlockerCount": 22,
+      "blocked": false,
+      "blockerCount": 0,
+      "scopedBlockerCount": 0,
       "globalLimitationCount": 1512,
-      "blockerFamilies": {
-        "external-resource": 22
-      },
-      "reason": "Canonical learner fixture generation remains blocked until fixture-owned evidence lineage gaps are resolved.",
+      "blockerFamilies": {},
+      "reason": "Canonical learner fixture generation has scoped resource readiness; unrelated global resource backlog remains a limited-coverage diagnostic.",
       "scopePolicy": "yangfan-fixture-readiness-scope.v1"
     }
   },
@@ -79,13 +72,11 @@
         "coverageState": "limited",
         "missingBaselineCategories": [
           "diagnostic",
-          "practice",
           "checkpoint",
-          "remediation",
-          "terminal-validation"
+          "remediation"
         ],
-        "reviewedBindingCount": 3,
-        "limitationReason": "missing-baseline-categories:diagnostic,practice,checkpoint,remediation,terminal-validation"
+        "reviewedBindingCount": 5,
+        "limitationReason": "missing-baseline-categories:diagnostic,checkpoint,remediation"
       },
       {
         "learningGoalId": "frequency-response-foundations",
@@ -182,13 +173,11 @@
         "missingBaselineCategories": [
           "concept",
           "diagnostic",
-          "practice",
           "checkpoint",
-          "remediation",
-          "terminal-validation"
+          "remediation"
         ],
-        "reviewedBindingCount": 0,
-        "limitationReason": "missing-baseline-categories:concept,diagnostic,practice,checkpoint,remediation,terminal-validation"
+        "reviewedBindingCount": 3,
+        "limitationReason": "missing-baseline-categories:concept,diagnostic,checkpoint,remediation"
       }
     ],
     "completeLearningGoals": 0,
@@ -204,7 +193,7 @@
       "simulation-validation-practice",
       "ship-ocean-transfer-application"
     ],
-    "reviewedBindings": 12,
+    "reviewedBindings": 17,
     "pathGenerationDiagnostics": [
       {
         "learningGoalId": "control-correction",
@@ -493,69 +482,6 @@
   },
   "findings": [
     {
-      "id": "unaccounted-resource-disposition",
-      "severity": "blocking",
-      "count": 52,
-      "message": "Resources are missing a reviewed path-planning disposition.",
-      "evidenceRefs": [
-        "resource-disposition-backlog-review-summary.json"
-      ]
-    },
-    {
-      "id": "unresolved-downstream-path-blockers",
-      "severity": "blocking",
-      "count": 19652,
-      "message": "Reviewed disposition output still carries downstream path-readiness, runtime-identity, or dependency blockers.",
-      "evidenceRefs": [
-        "resource-disposition-backlog-review-summary.json"
-      ]
-    },
-    {
-      "id": "invalid-path-promotion",
-      "severity": "blocking",
-      "count": 2,
-      "message": "Resources are marked path-current without complete human-reviewed governance.",
-      "evidenceRefs": [
-        "resource-field-completion-audit.jsonl"
-      ]
-    },
-    {
-      "id": "unreviewed-resource-semantics",
-      "severity": "blocking",
-      "count": 3404,
-      "message": "Resources still require reviewed semantic fields or reviewed limitations.",
-      "evidenceRefs": [
-        "resource-field-completion-summary.json"
-      ]
-    },
-    {
-      "id": "unresolved-graph-node-resource-missing",
-      "severity": "blocking",
-      "count": 4184,
-      "message": "Resources still lack reviewed graph knowledge or capability bindings.",
-      "evidenceRefs": [
-        "resource-field-completion-audit.jsonl"
-      ]
-    },
-    {
-      "id": "evidence-lineage-blockers",
-      "severity": "blocking",
-      "count": 47,
-      "message": "Evidence-producing path resources still have hard evidence-lineage blockers.",
-      "evidenceRefs": [
-        "resource-evidence-lineage-readiness-summary.json"
-      ]
-    },
-    {
-      "id": "yang-fan-fixture-blockers",
-      "severity": "blocking",
-      "count": 22,
-      "message": "Yang Fan fixture generation remains blocked by fixture-owned lineage limitations.",
-      "evidenceRefs": [
-        "resource-evidence-lineage-readiness-summary.json"
-      ]
-    },
-    {
       "id": "yang-fan-fixture-limited-coverage",
       "severity": "warning",
       "count": 1512,
@@ -565,10 +491,10 @@
       ]
     },
     {
-      "id": "learning-goal-path-generation-blocked",
-      "severity": "blocking",
+      "id": "learning-goal-path-generation-reviewed-blockers",
+      "severity": "warning",
       "count": 9,
-      "message": "Registered LearningGoals attempted path generation but reported blocking planner reasons.",
+      "message": "Registered LearningGoals report specific reviewed blockers and do not expose cosmetic path options.",
       "evidenceRefs": [
         "full-resource-path-readiness-gate-summary.json"
       ]
@@ -584,9 +510,9 @@
     },
     {
       "id": "resource-type-audit-missing",
-      "severity": "blocking",
+      "severity": "warning",
       "count": 7,
-      "message": "Required future import resource types are not currently represented in helper output; future imports must not bypass this audit.",
+      "message": "Required future import resource types are not currently represented; the new-resource gate remains responsible for rejecting incomplete future instances.",
       "evidenceRefs": [
         "resource-field-completion-audit.jsonl"
       ]

@@ -1,9 +1,9 @@
 # Resource Completion Workqueues
 
-Generated at: 2026-07-17T07:10:48.315Z
+Generated at: 2026-07-18T05:00:00.000Z
 
-Queued resources: 6460
-Primary queue items: 6460
+Queued resources: 6458
+Primary queue items: 6458
 Dependent queue items: 22404
 
 | Queue | Family | LearningGoal | Graph domain | Missing field | Follow-up bucket | Dependency | Items |
@@ -82,8 +82,6 @@ Dependent queue items: 22404
 | resource-completion:dependent:textbook-search-document:unassigned-learning-goal:textbook:missing-path-target:review-runtime-lesson-planning-units:needs-human-review | textbook-search-document | unassigned-learning-goal | textbook | missing-path-target | review-runtime-lesson-planning-units | needs-human-review | 964 |
 | resource-completion:dependent:textbook-section:unassigned-learning-goal:textbook:missing-knowledge-binding:complete-analysis-design-graph-resource-bindings:blocked-by-dependency | textbook-section | unassigned-learning-goal | textbook | missing-knowledge-binding | complete-analysis-design-graph-resource-bindings | blocked-by-dependency | 38 |
 | resource-completion:dependent:textbook:unassigned-learning-goal:textbook:missing-capability-target:complete-analysis-design-graph-resource-bindings:blocked-by-dependency | textbook | unassigned-learning-goal | textbook | missing-capability-target | complete-analysis-design-graph-resource-bindings | blocked-by-dependency | 6 |
-| resource-completion:primary:arena:controlModeling:knowledge-linked:missing-content-hash:repair-resource-identity-bindings:needs-human-review | arena | controlModeling | knowledge-linked | missing-content-hash | repair-resource-identity-bindings | needs-human-review | 1 |
-| resource-completion:primary:arena:crossDomainTransfer:knowledge-linked:missing-content-hash:repair-resource-identity-bindings:needs-human-review | arena | crossDomainTransfer | knowledge-linked | missing-content-hash | repair-resource-identity-bindings | needs-human-review | 1 |
 | resource-completion:primary:authoring-textbook-caption:unassigned-learning-goal:textbook:missing-human-review:review-runtime-media-handout-dispositions:needs-human-review | authoring-textbook-caption | unassigned-learning-goal | textbook | missing-human-review | review-runtime-media-handout-dispositions | needs-human-review | 535 |
 | resource-completion:primary:authoring-textbook-chapter:unassigned-learning-goal:textbook:missing-human-review:review-runtime-media-handout-dispositions:needs-human-review | authoring-textbook-chapter | unassigned-learning-goal | textbook | missing-human-review | review-runtime-media-handout-dispositions | needs-human-review | 10 |
 | resource-completion:primary:authoring-textbook-figure:unassigned-learning-goal:textbook:missing-human-review:review-runtime-media-handout-dispositions:needs-human-review | authoring-textbook-figure | unassigned-learning-goal | textbook | missing-human-review | review-runtime-media-handout-dispositions | needs-human-review | 535 |

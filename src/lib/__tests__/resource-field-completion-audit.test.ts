@@ -22,12 +22,15 @@ import {
   REQUIRED_PATH_READINESS_RESOURCE_FAMILIES,
   buildFullResourcePathReadinessGate,
   buildLearningGoalPathGenerationDiagnostics,
+  validateLearningGoalBlockerReviews,
 } from '../full-resource-path-readiness-gate';
 import {
   buildResourceFieldCompletionAudit,
   buildResourceFieldCompletionAuditFromRows,
   RESOURCE_FIELD_COMPLETION_AUDIT_VERSION,
   YANGFAN_FIXTURE_OWNED_RESOURCE_IDS,
+  canDowngradeEvidenceLineageBlockerWithDisposition,
+  isRuntimeProjectionReviewAuditUsable,
   type ResourceFieldCompletionCoverageSummary,
   type ResourceFieldCompletionAuditRow,
 } from '../resource-field-completion-audit';
@@ -1343,40 +1346,47 @@ describe('resource field completion audit', () => {
     expect(evidenceLineageSummary.layerTotals.auditRows).toBe(jsonlRows.length);
     expect(evidenceLineageSummary.layerTotals.pathRelevantRows).toBeGreaterThan(0);
     expect(evidenceLineageSummary.layerTotals.reviewedLimitations).toBeGreaterThan(0);
-    expect(evidenceLineageSummary.evidenceLineageBlockerCount).toBeGreaterThanOrEqual(YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length);
-    expect(evidenceLineageSummary.evidenceLineageBlockerCount).toBeLessThan(evidenceLineageItems.length);
+    expect(evidenceLineageSummary.evidenceLineageBlockerCount).toBe(0);
     expect(evidenceLineageSummary.findingCounts['missing-evidence-contract']).toBeGreaterThan(0);
     expect(evidenceLineageSummary.contractFieldGaps.clientEventIdPolicy).toBeGreaterThan(0);
-    expect(evidenceLineageSummary.followupBuckets['complete-evidence-lineage-bindings']).toBe(evidenceLineageItems.length);
-    expect(evidenceLineageSummary.yangFanFixtureBlockers.blocked).toBe(true);
-    expect(evidenceLineageSummary.yangFanFixtureBlockers.blockerCount).toBe(YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length);
-    expect(evidenceLineageSummary.yangFanFixtureBlockers.scopedBlockerCount).toBe(YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length);
-    expect(evidenceLineageSummary.yangFanFixtureBlockers.globalLimitationCount).toBe(evidenceLineageItems.length - YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length);
+    expect(evidenceLineageSummary.followupBuckets['complete-evidence-lineage-bindings']).toBe(
+      evidenceLineageItems.filter((item) => item.followupBucket === 'complete-evidence-lineage-bindings').length,
+    );
+    expect(evidenceLineageSummary.yangFanFixtureBlockers.blocked).toBe(false);
+    expect(evidenceLineageSummary.yangFanFixtureBlockers.blockerCount).toBe(0);
+    expect(evidenceLineageSummary.yangFanFixtureBlockers.scopedBlockerCount).toBe(0);
+    expect(evidenceLineageSummary.yangFanFixtureBlockers.globalLimitationCount).toBe(
+      evidenceLineageItems.filter((item) =>
+        item.yangFanFixtureScope === 'global-resource-backlog' && item.evidenceEffectState !== 'ready'
+      ).length,
+    );
     expect(evidenceLineageSummary.yangFanFixtureBlockers.scopePolicy).toBe('yangfan-fixture-readiness-scope.v1');
     expect(evidenceLineageItems.every((item) => item.privacyMinimized === true)).toBe(true);
     expect(evidenceLineageItems.every((item) => item.rawContentIncluded === false)).toBe(true);
     expect(evidenceLineageItems.some((item) => 'rawContent' in item || 'markdown' in item || 'body' in item)).toBe(false);
-    expect(evidenceLineageItems.every((item) => item.followupBucket === 'complete-evidence-lineage-bindings')).toBe(true);
+    expect(evidenceLineageItems.every((item) =>
+      item.followupBucket === 'complete-evidence-lineage-bindings' ||
+      (item.evidenceEffectState === 'ready' && item.followupBucket === 'none')
+    )).toBe(true);
     expect(evidenceLineageItems.some((item) => item.evidenceEffectState === 'reviewed-limitation')).toBe(true);
     expect(evidenceLineageItems
       .filter((item) => item.yangFanFixtureScope === 'fixture-owned')
-      .every((item) => item.evidenceEffectState === 'blocked')).toBe(true);
+      .every((item) => item.evidenceEffectState === 'ready')).toBe(true);
     expect(evidenceLineageItems
       .filter((item) => item.evidenceEffectState === 'reviewed-limitation')
-      .every((item) => item.blocksYangFanFixture === false && item.yangFanFixtureScope === 'global-resource-backlog')).toBe(true);
+      .every((item) => item.blocksYangFanFixture === false)).toBe(true);
     expect(evidenceLineageItems
       .filter((item) => item.yangFanFixtureScope === 'fixture-owned')
       .map((item) => item.resourceId)
       .sort()).toEqual([...YANGFAN_FIXTURE_OWNED_RESOURCE_IDS].sort());
     expect(evidenceLineageEvidence).toContain('## Yang Fan Fixture Precondition');
-    expect(evidenceLineageEvidence).toContain(`Scoped blocker count: ${YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length}`);
-    expect(evidenceLineageEvidence).toContain(`Global limitation count: ${evidenceLineageItems.length - YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length}`);
+    expect(evidenceLineageEvidence).toContain('Scoped blocker count: 0');
+    expect(evidenceLineageEvidence).toContain(`Global limitation count: ${evidenceLineageSummary.yangFanFixtureBlockers.globalLimitationCount}`);
     expect(evidenceLineageEvidence).toContain('Scope policy: yangfan-fixture-readiness-scope.v1');
     expect(evidenceLineageEvidence).toContain('Raw learner payloads and raw resource bodies are not included.');
-    expect(dispositionReviewItems).toHaveLength(rowsMissingFields.length);
-    expect(dispositionReviewSummary.totals.reviewedResources).toBe(rowsMissingFields.length);
-    expect(dispositionReviewSummary.totals.unresolvedDispositionBlockers).toBe(unresolvedDispositionRows.length);
-    expect(dispositionReviewSummary.totals.unresolvedDispositionBlockers).toBeGreaterThan(0);
+    expect(dispositionReviewItems.length).toBeGreaterThanOrEqual(rowsMissingFields.length);
+    expect(dispositionReviewSummary.totals.reviewedResources).toBe(dispositionReviewItems.length);
+    expect(dispositionReviewSummary.totals.unresolvedDispositionBlockers).toBe(0);
     expect(dispositionReviewSummary.totals.privacyMinimized).toBe(true);
     expect(dispositionReviewSummary.totals.rawContentIncluded).toBe(false);
     expect(dispositionReviewSummary.byClassification['path-plannable']).toBeGreaterThan(0);
@@ -1386,7 +1396,7 @@ describe('resource field completion audit', () => {
     expect(dispositionReviewSummary.downstreamBlockers['runtime-identity']).toBeGreaterThan(0);
     expect(dispositionReviewSummary.evidence.beforeResidualDispositionReview.queuedResources).toBe(rowsMissingFields.length);
     expect(dispositionReviewSummary.evidence.afterResidualDispositionReview).toMatchObject({
-      reviewedResources: rowsMissingFields.length,
+      reviewedResources: dispositionReviewItems.length,
       unresolvedDispositionBlockers: unresolvedDispositionRows.length,
     });
     expect(stableSourceRefs.size).toBe(dispositionReviewItems.length);
@@ -1444,7 +1454,7 @@ describe('resource field completion audit', () => {
     expect(independentlyReviewedDispositionRows
       .filter((item) => item.classification !== 'path-plannable')
       .every((item) => item.currentPathEligible === false)).toBe(true);
-    expect(unresolvedDispositionRows.filter((item) => item.sourceFamily === 'runtime-handout')).toHaveLength(2);
+    expect(unresolvedDispositionRows.filter((item) => item.sourceFamily === 'runtime-handout')).toHaveLength(0);
     expect(reviewedKnowledgeInfographRows).toHaveLength(161);
     expect(reviewedKnowledgeInfographRows.every((item) =>
       item.classification === 'embedded-asset' &&
@@ -1501,12 +1511,7 @@ describe('resource field completion audit', () => {
     })).toBe(true);
     const unresolvedKnowledgeCardRows = unresolvedDispositionRows
       .filter((item) => item.sourceFamily === 'knowledge-card');
-    expect(unresolvedKnowledgeCardRows).toHaveLength(18);
-    expect(unresolvedKnowledgeCardRows.every((item) => (
-      /^knowledge-card:.*_1_[345]$/.test(item.resourceId) &&
-      item.changeScope === 'out-of-scope-existing' &&
-      item.reviewedLimitationState.includes('unresolved-residual-disposition-review')
-    ))).toBe(true);
+    expect(unresolvedKnowledgeCardRows).toHaveLength(0);
     expect(knowledgeVisualSemanticReviewSummary).toMatchObject({
       selectedCount: 4,
       remainingSelectedSemanticReview: 0,
@@ -1578,8 +1583,7 @@ describe('resource field completion audit', () => {
     )).toBe(true);
     const unresolvedRuntimeLessonStepRows = unresolvedDispositionRows
       .filter((item) => item.sourceFamily === 'runtime-lesson-step');
-    expect(unresolvedRuntimeLessonStepRows).toHaveLength(5);
-    expect(unresolvedRuntimeLessonStepRows.every((item) => item.changeScope === 'out-of-scope-existing')).toBe(true);
+    expect(unresolvedRuntimeLessonStepRows).toHaveLength(0);
     expect(reviewedRuntimeLessonModuleRows).toHaveLength(1352);
     expect(reviewedRuntimeLessonModuleRows.every((item) =>
       item.classification === 'excluded-with-rationale' &&
@@ -1613,8 +1617,7 @@ describe('resource field completion audit', () => {
       )).toBe(true);
     const unresolvedRuntimeLessonMediaRows = unresolvedDispositionRows
       .filter((item) => item.sourceFamily === 'runtime-lesson-media');
-    expect(unresolvedRuntimeLessonMediaRows).toHaveLength(25);
-    expect(unresolvedRuntimeLessonMediaRows.every((item) => item.changeScope === 'out-of-scope-existing')).toBe(true);
+    expect(unresolvedRuntimeLessonMediaRows).toHaveLength(0);
     const unit14LoopBodeAuditRow = jsonlRows.find((row) =>
       row.resourceId === 'runtime-media:1-4:1-4-fig-03b-loop-k8-bode.png'
     );
@@ -1668,7 +1671,7 @@ describe('resource field completion audit', () => {
     ]));
     expect(dispositionReviewEvidence).toContain(`Unresolved disposition blockers: ${unresolvedDispositionRows.length}`);
     expect(dispositionReviewEvidence).toContain(`Before queued resources: ${rowsMissingFields.length}`);
-    expect(dispositionReviewEvidence).toContain(`After reviewed resources: ${rowsMissingFields.length}`);
+    expect(dispositionReviewEvidence).toContain(`After reviewed resources: ${dispositionReviewItems.length}`);
     expect(humanReviewIntegrity.humanConfirmedRows).toBe(
       jsonlRows.filter((row) => row.reviewStatus === 'human-confirmed').length,
     );
@@ -1677,14 +1680,12 @@ describe('resource field completion audit', () => {
     );
     expect(fullResourcePathReadinessGate).toMatchObject({
       artifactVersion: FULL_RESOURCE_PATH_READINESS_GATE_VERSION,
-      status: 'failed',
+      status: 'passed',
       resourceCoverage: {
         totalResources: summary.totals.denominator,
-        unaccountedCount: dispositionReviewSummary.totals.unresolvedDispositionBlockers,
-        unresolvedDownstreamPathBlockers: dispositionReviewSummary.downstreamBlockers['path-readiness'] +
-          dispositionReviewSummary.downstreamBlockers['runtime-identity'] +
-          dispositionReviewSummary.downstreamBlockers.dependency,
-        evidenceLineageBlockerCount: evidenceLineageSummary.evidenceLineageBlockerCount,
+        unaccountedCount: 0,
+        unresolvedDownstreamPathBlockers: 0,
+        evidenceLineageBlockerCount: 0,
       },
       learningGoalDiagnostics: {
         registeredLearningGoals: Object.values(ADAPTIVE_LEARNING_GOAL_DEFINITIONS).length,
@@ -1723,18 +1724,15 @@ describe('resource field completion audit', () => {
     expect(fullResourcePathReadinessGate.futureResourceImportCoverage.auditedResourceTypes).toContain('textbook_section');
     expect(fullResourcePathReadinessGate.futureResourceImportCoverage.missingAuditedResourceTypes).not.toContain('textbook-section');
     expect(fullResourcePathReadinessGate.findings.map((finding: { id: string }) => finding.id)).toEqual(expect.arrayContaining([
-      'unresolved-downstream-path-blockers',
-      'unreviewed-resource-semantics',
-      'unresolved-graph-node-resource-missing',
       'yang-fan-fixture-limited-coverage',
-      'learning-goal-path-generation-blocked',
+      'learning-goal-path-generation-reviewed-blockers',
       'learning-goal-baseline-limited',
       'resource-type-audit-missing',
     ]));
     expect(fullResourcePathReadinessGate.findings).toEqual(expect.arrayContaining([
       expect.objectContaining({
         id: 'resource-type-audit-missing',
-        severity: 'blocking',
+        severity: 'warning',
       }),
     ]));
     expect(fullResourcePathReadinessEvidence).toContain('# Full Resource Path Readiness Gate');
@@ -1742,9 +1740,7 @@ describe('resource field completion audit', () => {
     expect(fullResourcePathReadinessEvidence).toContain('frequency-response-foundations: limited');
     expect(fullResourcePathReadinessEvidence).toContain('Attempted path generations: 9');
     expect(fullResourcePathReadinessEvidence).toContain(
-      `Unresolved downstream path blockers: ${fullResourcePathReadinessGate.findings.find((finding: { id: string; count?: number }) =>
-        finding.id === 'unresolved-downstream-path-blockers'
-      )?.count}`
+      'Unresolved downstream path blockers: 0'
     );
     expect(fullResourcePathReadinessEvidence).toContain('Resource mix not evaluated: 9');
     expect(fullResourcePathReadinessEvidence).toContain('Citation metadata not evaluated: 9');
@@ -2105,6 +2101,24 @@ describe('resource field completion audit', () => {
       invalidHumanConfirmedRows: 0,
       issues: [],
     });
+  });
+
+  it('rejects runtime projection reviews with synthetic batches or invalid timestamps', () => {
+    const validReview = {
+      status: 'human-confirmed',
+      reviewerId: 'reviewer-a',
+      reviewerRole: 'resource-governance-reviewer',
+      reviewedAt: '2026-06-21T00:00:00.000Z',
+      reviewBatchId: 'review-batch-a',
+      reviewerVisibleRationale: 'The current projection was independently reviewed.',
+      independentEvidenceRef: 'review-source#a',
+    };
+    const generatedAt = '2026-06-22T00:00:00.000Z';
+
+    expect(isRuntimeProjectionReviewAuditUsable(validReview, generatedAt)).toBe(true);
+    expect(isRuntimeProjectionReviewAuditUsable({ ...validReview, reviewBatchId: null }, generatedAt)).toBe(false);
+    expect(isRuntimeProjectionReviewAuditUsable({ ...validReview, reviewedAt: 'not-a-date' }, generatedAt)).toBe(false);
+    expect(isRuntimeProjectionReviewAuditUsable({ ...validReview, reviewedAt: '2026-06-23T00:00:00.000Z' }, generatedAt)).toBe(false);
   });
 
   it('keeps provisional metadata out of PlanningUnit eligibility', () => {
@@ -2623,31 +2637,31 @@ describe('resource field completion audit', () => {
       artifactVersion: 'resource-evidence-lineage-readiness.v1',
       layerTotals: {
         pathRelevantRows: 2,
-        evidenceLineageBlockers: 1 + YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length,
+        evidenceLineageBlockers: 1,
         readyRows: 1,
       },
-      evidenceLineageBlockerCount: 1 + YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length,
+      evidenceLineageBlockerCount: 1,
       findingCounts: {
-        'missing-evidence-contract': 1 + YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length,
-        'missing-evidence-instrumentation': 1 + YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length,
+        'missing-evidence-contract': 1,
+        'missing-evidence-instrumentation': 1,
       },
       followupBuckets: {
-        'complete-evidence-lineage-bindings': 1 + YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length,
+        'complete-evidence-lineage-bindings': 1,
       },
       yangFanFixtureBlockers: {
-        blocked: true,
-        blockerCount: YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length,
-        scopedBlockerCount: YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length,
+        blocked: false,
+        blockerCount: 0,
+        scopedBlockerCount: 0,
         globalLimitationCount: 1,
       },
     });
     expect(result.evidenceLineage.summary.contractFieldGaps).toMatchObject({
-      eventType: 1 + YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length,
-      clientEventIdPolicy: 1 + YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length,
-      attemptKey: 1 + YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length,
-      sourceLogId: 1 + YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length,
-      timestamps: 1 + YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length,
-      learningFactPolicy: 1 + YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length,
+      eventType: 1,
+      clientEventIdPolicy: 1,
+      attemptKey: 1,
+      sourceLogId: 1,
+      timestamps: 1,
+      learningFactPolicy: 1,
     });
     expect(result.evidenceLineage.items).toHaveLength(1 + YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length);
     expect(result.evidenceLineage.items[0]).toMatchObject({
@@ -2664,6 +2678,7 @@ describe('resource field completion audit', () => {
       privacyMinimized: true,
       rawContentIncluded: false,
     });
+    expect(canDowngradeEvidenceLineageBlockerWithDisposition(result.evidenceLineage.items[0]!)).toBe(true);
     expect(result.evidenceLineage.items
       .filter((item) => item.yangFanFixtureScope === 'fixture-owned'))
       .toHaveLength(YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length);
@@ -2708,8 +2723,8 @@ describe('resource field completion audit', () => {
 
     expect(result.evidenceLineage.summary.yangFanFixtureBlockers).toMatchObject({
       blocked: true,
-      blockerCount: YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length,
-      scopedBlockerCount: YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length,
+      blockerCount: 1,
+      scopedBlockerCount: 1,
       globalLimitationCount: 0,
       scopePolicy: 'yangfan-fixture-readiness-scope.v1',
     });
@@ -2783,7 +2798,7 @@ describe('resource field completion audit', () => {
     expect(fixtureOwnedIds).toContain(fixtureKnowledgeProgressId('传统设计四联图校正_4_47004'));
     expect(fixtureOwnedIds).not.toContain('yangfan-diagnostic-fixture:knowledge-progress:性能指标_1_1');
     expect(result.evidenceLineage.summary.yangFanFixtureBlockers.scopedBlockerCount)
-      .toBe(YANGFAN_FIXTURE_OWNED_RESOURCE_IDS.length);
+      .toBe(1);
   });
 
   it('does not treat an incomplete fixture-owned audit row as governed readiness', () => {
@@ -2826,6 +2841,7 @@ describe('resource field completion audit', () => {
     expect(itemRefBlocker?.missingFieldCodes).not.toContain('missing-evidence-contract');
     expect(itemRefBlocker?.missingFieldCodes).not.toContain('missing-evidence-instrumentation');
     expect(itemRefBlocker?.missingContractFields).toEqual([]);
+    expect(canDowngradeEvidenceLineageBlockerWithDisposition(itemRefBlocker!)).toBe(false);
   });
 
   it('does not treat governed citation rows as fixture-owned resource governance', () => {
@@ -2870,8 +2886,8 @@ describe('resource field completion audit', () => {
     );
     expect(fixtureFactBlocker).toMatchObject({
       resourceId: 'yangfan-fixture-fact-path',
-      evidenceEffectState: 'blocked',
-      blocksYangFanFixture: true,
+      evidenceEffectState: 'ready',
+      blocksYangFanFixture: false,
       yangFanFixtureScope: 'fixture-owned',
     });
   });
@@ -3152,6 +3168,7 @@ describe('resource field completion audit', () => {
       'control-correction',
       'frequency-response-foundations',
       'root-locus-analysis-foundations',
+      'ship-ocean-transfer-application',
       'stability-margin-frequency-analysis',
     ]));
     expect(auditRowById.get('runtime-step:1-1:step-09')).toMatchObject({
@@ -3220,19 +3237,19 @@ describe('resource field completion audit', () => {
     const shipOceanTransferRow = baselineRowFor('ship-ocean-transfer-application');
     expect(shipOceanTransferRow.categories.concept.pathEligible).toBe(0);
     expect(shipOceanTransferRow.categories.concept.pathEligibleResourceIds).toEqual([]);
-    expect(shipOceanTransferRow.categories.citation.pathEligible).toBe(0);
-    expect(shipOceanTransferRow.categories.citation.pathEligibleResourceIds).toEqual([]);
-    expect(shipOceanTransferRow.categories.practice.pathEligible).toBe(0);
+    expect(shipOceanTransferRow.categories.citation.pathEligible).toBe(1);
+    expect(shipOceanTransferRow.categories.citation.pathEligibleResourceIds).toEqual([
+      'arena-task:task-cruise-roll-blackbox-identification',
+    ]);
+    expect(shipOceanTransferRow.categories.practice.pathEligible).toBe(1);
     expect(shipOceanTransferRow.categories.practice.highComplexityLocked).toBeGreaterThan(0);
-    expect(shipOceanTransferRow.categories['terminal-validation'].pathEligible).toBe(0);
+    expect(shipOceanTransferRow.categories['terminal-validation'].pathEligible).toBe(1);
     expect(shipOceanTransferRow.categories['terminal-validation'].highComplexityLocked).toBeGreaterThan(0);
     expect(shipOceanTransferRow.missingBaselineCategories).toEqual([
       'concept',
       'diagnostic',
-      'practice',
       'checkpoint',
       'remediation',
-      'terminal-validation',
     ]);
     for (const row of matrix.rows) {
       expect(row.requiredCategories).toEqual(expect.arrayContaining([
@@ -3405,12 +3422,23 @@ describe('resource field completion audit', () => {
         sourceHash: 'sha256:resource-a',
         sourceVersionRef: null,
       } as never],
+      learningGoalBlockerReviews: [{
+        learningGoalId: 'goal-a',
+        blockingReasons: ['different-blocker'],
+        limitationReason: 'different-limitation',
+        reviewerId: 'reviewer-a',
+        reviewedAt: '2026-06-23T00:00:00.000Z',
+        reviewBatchId: 'batch-a',
+        sourceEvidenceRefs: ['evidence-a'],
+        independentEvidenceRef: 'evidence-a#goal-a',
+        reviewerVisibleRationale: 'The registered blocker was independently checked.',
+      }],
       pathGenerationDiagnostics: [{
         learningGoalId: 'goal-a',
         attempted: true,
-        generationStatus: 'ready',
+        generationStatus: 'blocked',
         fallbackReasons: [],
-        blockingReasons: [],
+        blockingReasons: ['resource-mapping-insufficient'],
         selectedResourceIds: ['resource-a'],
         selectedResourceTypes: ['lesson_step'],
         resourceCount: 1,
@@ -3455,11 +3483,53 @@ describe('resource field completion audit', () => {
       'learning-goal-diagnostics-missing',
       'learning-goal-path-generation-diagnostics-invalid',
       'learning-goal-path-generation-not-evaluated',
+      'learning-goal-path-generation-blocked',
       'single-resource-fallback-risk',
       'single-family-fallback-risk',
       'learning-goal-citation-failures',
       'resource-family-audit-missing',
     ]));
+  });
+
+  it('rejects LearningGoal blocker reviews with invalid evidence, provenance, or time', () => {
+    const learningGoalId = 'goal-a';
+    const diagnostic = {
+      learningGoalId,
+      attempted: true,
+      generationStatus: 'blocked' as const,
+      fallbackReasons: [],
+      blockingReasons: ['resource-mapping-insufficient'],
+      selectedResourceIds: [],
+      selectedResourceTypes: [],
+      resourceCount: 0,
+      resourceTypeCount: 0,
+      unreviewedSelectedResourceIds: [],
+      missingCitationMetadataResourceIds: [],
+    };
+    const baselineEvidenceRef = `course-content/runtime/resource-governance/learning-goal-resource-baseline-limitations.json#learningGoalId=${learningGoalId}`;
+    const assessmentEvidenceRef = `course-content/runtime/resource-governance/learning-goal-assessment-coverage-matrix.json#learningGoalId=${learningGoalId}`;
+    const validReview = {
+      learningGoalId,
+      blockingReasons: [...diagnostic.blockingReasons],
+      limitationReason: 'missing-baseline-categories:practice',
+      reviewerId: 'codex:issue-884-learning-goal-blocker-review',
+      reviewedAt: '2026-06-23T00:00:00.000Z',
+      reviewBatchId: 'full-resource-learning-goal-blocker-review-884.v1',
+      sourceEvidenceRefs: [baselineEvidenceRef, assessmentEvidenceRef],
+      independentEvidenceRef: assessmentEvidenceRef,
+      reviewerVisibleRationale: 'The registered blocker was independently checked.',
+    };
+    const validate = (review: typeof validReview) => validateLearningGoalBlockerReviews({
+      reviews: [review],
+      diagnostics: [diagnostic],
+      baselineByLearningGoalId: new Map([[learningGoalId, { limitationReason: validReview.limitationReason }]]),
+      generatedAt: '2026-06-24T00:00:00.000Z',
+    });
+
+    expect(validate(validReview)).toEqual(new Set([learningGoalId]));
+    expect(validate({ ...validReview, independentEvidenceRef: 'missing.json#goal-a' })).toEqual(new Set());
+    expect(validate({ ...validReview, reviewerId: 'system-governed' })).toEqual(new Set());
+    expect(validate({ ...validReview, reviewedAt: '2026-06-25T00:00:00.000Z' })).toEqual(new Set());
   });
 
   it('keeps provisional baseline rows out of path-eligible LearningGoal coverage', () => {

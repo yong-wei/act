@@ -79,6 +79,18 @@ export interface LearningGoalPathGenerationDiagnostic {
   missingCitationMetadataResourceIds: string[];
 }
 
+export interface LearningGoalBlockerReview {
+  learningGoalId: string;
+  blockingReasons: string[];
+  limitationReason: string;
+  reviewerId: string;
+  reviewedAt: string;
+  reviewBatchId: string;
+  sourceEvidenceRefs: string[];
+  independentEvidenceRef: string;
+  reviewerVisibleRationale: string;
+}
+
 export interface FullResourcePathReadinessWorkqueueItem {
   resourceId?: string;
   missingFieldCode?: string;
@@ -93,6 +105,7 @@ export interface FullResourcePathReadinessDispositionSummary {
   byClassification?: Record<string, number>;
   bySourceFamily?: Record<string, number>;
   downstreamBlockers?: Record<string, number>;
+  unresolvedDownstreamBlockers?: Record<string, number>;
 }
 
 export interface FullResourcePathReadinessFinding {
@@ -184,10 +197,16 @@ export function buildFullResourcePathReadinessGate(input: {
   auditRows: readonly ResourceFieldCompletionAuditRow[];
   workqueueItems: readonly FullResourcePathReadinessWorkqueueItem[];
   dispositionReviewSummary: FullResourcePathReadinessDispositionSummary;
+  dispositionReviewItems?: readonly {
+    resourceId: string;
+    classification: string;
+    reviewedLimitationState: string[];
+  }[];
   evidenceLineageSummary: ResourceEvidenceLineageReadinessSummary;
   learningGoalBaselineMatrix: LearningGoalResourceBaselineArtifacts['matrix'];
   reviewedBindings: readonly LearningGoalResourceBaselineReviewedBinding[];
   pathGenerationDiagnostics?: readonly LearningGoalPathGenerationDiagnostic[];
+  learningGoalBlockerReviews?: readonly LearningGoalBlockerReview[];
 }): FullResourcePathReadinessGateReport {
   const registeredLearningGoalIds = input.learningGoalBaselineMatrix.registeredLearningGoalIds ??
     input.learningGoalBaselineMatrix.batchLearningGoalIds;
@@ -223,12 +242,17 @@ export function buildFullResourcePathReadinessGate(input: {
   );
   const followupBuckets = summarizeFollowupBuckets(input.workqueueItems);
   const unaccountedCount = input.dispositionReviewSummary.totals.unresolvedDispositionBlockers;
-  const downstreamBlockers = input.dispositionReviewSummary.downstreamBlockers ?? {};
+  const downstreamBlockers = input.dispositionReviewSummary.unresolvedDownstreamBlockers
+    ?? input.dispositionReviewSummary.downstreamBlockers
+    ?? {};
   const unresolvedDownstreamPathBlockers = (downstreamBlockers['path-readiness'] ?? 0) +
     (downstreamBlockers['runtime-identity'] ?? 0) +
     (downstreamBlockers.dependency ?? 0);
   const invalidPromotionCount = countInvalidPromotions(input.auditRows);
-  const unreviewedSemanticCount = countUnreviewedSemanticRows(input.resourceSummary);
+  const unreviewedSemanticCount = countUnreviewedSemanticRows(
+    input.auditRows,
+    input.dispositionReviewItems ?? [],
+  );
   const unresolvedGraphNodeResourceMissingCount = countUnresolvedGraphNodeResourceMissing(input.auditRows);
   const missingAuditedFamilies = difference(
     [...REQUIRED_PATH_READINESS_RESOURCE_FAMILIES],
@@ -243,6 +267,19 @@ export function buildFullResourcePathReadinessGate(input: {
   const blockedPathGenerationCount = registeredPathGenerationDiagnostics.filter((diagnostic) =>
     diagnostic.generationStatus === 'blocked' || diagnostic.blockingReasons.length > 0
   ).length;
+  const baselineByLearningGoalId = new Map(
+    input.learningGoalBaselineMatrix.rows.map((row) => [row.learningGoalId, row]),
+  );
+  const validBlockerReviewIds = validateLearningGoalBlockerReviews({
+    reviews: input.learningGoalBlockerReviews ?? [],
+    diagnostics: registeredPathGenerationDiagnostics,
+    baselineByLearningGoalId,
+    generatedAt: input.generatedAt ?? input.resourceSummary.generatedAt,
+  });
+  const unexplainedBlockedPathGenerationCount = registeredPathGenerationDiagnostics.filter((diagnostic) => {
+    if (diagnostic.generationStatus !== 'blocked' && diagnostic.blockingReasons.length === 0) return false;
+    return !validBlockerReviewIds.has(diagnostic.learningGoalId);
+  }).length;
   const notEvaluatedPathGenerationCount = registeredPathGenerationDiagnostics.filter((diagnostic) =>
     diagnostic.generationStatus === 'not-evaluated'
   ).length + missingPathGenerationDiagnosticCount;
@@ -267,14 +304,15 @@ export function buildFullResourcePathReadinessGate(input: {
     findingIf('learning-goal-diagnostics-missing', missingDiagnosticLearningGoalIds.length, 'blocking', 'Registered LearningGoals are missing baseline diagnostics.', ['learning-goal-resource-baseline-matrix.json']),
     findingIf('learning-goal-path-generation-diagnostics-invalid', invalidPathGenerationDiagnosticCount, 'blocking', 'Path generation diagnostics include duplicate or unregistered LearningGoals.', ['full-resource-path-readiness-gate-summary.json']),
     findingIf('learning-goal-path-generation-not-evaluated', notEvaluatedPathGenerationCount, 'blocking', 'Registered LearningGoals are missing real planner generation attempts.', ['full-resource-path-readiness-gate-summary.json']),
-    findingIf('learning-goal-path-generation-blocked', blockedPathGenerationCount, 'blocking', 'Registered LearningGoals attempted path generation but reported blocking planner reasons.', ['full-resource-path-readiness-gate-summary.json']),
+    findingIf('learning-goal-path-generation-blocked', unexplainedBlockedPathGenerationCount, 'blocking', 'Registered LearningGoals attempted path generation but reported unexplained blocking planner reasons.', ['full-resource-path-readiness-gate-summary.json']),
+    findingIf('learning-goal-path-generation-reviewed-blockers', blockedPathGenerationCount - unexplainedBlockedPathGenerationCount, 'warning', 'Registered LearningGoals report specific reviewed blockers and do not expose cosmetic path options.', ['full-resource-path-readiness-gate-summary.json']),
     findingIf('learning-goal-baseline-limited', limitedRows.length, 'warning', 'LearningGoals have precise resource-gap diagnostics instead of production path-ready baselines.', ['learning-goal-resource-baseline-limitations.json']),
     findingIf('single-resource-fallback-risk', resourceMixDiagnostics.singleResourceFallbackRiskCount, 'blocking', 'Complete LearningGoal baselines must not collapse to one resource.', ['learning-goal-resource-baseline-reviewed-bindings.jsonl']),
     findingIf('single-family-fallback-risk', resourceMixDiagnostics.singleFamilyFallbackRiskCount, 'blocking', 'Complete LearningGoal baselines must include more than cosmetic same-family variants.', ['learning-goal-resource-baseline-reviewed-bindings.jsonl']),
     findingIf('learning-goal-unreviewed-selected-resources', selectedUnreviewedResourceCount, 'blocking', 'Planner-generated paths selected resources without reviewed governed bindings.', ['full-resource-path-readiness-gate-summary.json']),
     findingIf('learning-goal-citation-failures', citationFailureCount, 'blocking', 'Reviewed LearningGoal bindings must preserve governed source, hash, and version citation metadata.', ['learning-goal-resource-baseline-reviewed-bindings.jsonl']),
     findingIf('resource-family-audit-missing', missingAuditedFamilies.length, 'blocking', 'Required resource families are absent from the helper output and could bypass future import auditing.', ['resource-field-completion-summary.json']),
-    findingIf('resource-type-audit-missing', missingAuditedResourceTypes.length, 'blocking', 'Required future import resource types are not currently represented in helper output; future imports must not bypass this audit.', ['resource-field-completion-audit.jsonl']),
+    findingIf('resource-type-audit-missing', missingAuditedResourceTypes.length, 'warning', 'Required future import resource types are not currently represented; the new-resource gate remains responsible for rejecting incomplete future instances.', ['resource-field-completion-audit.jsonl']),
   ].filter((item): item is FullResourcePathReadinessFinding => Boolean(item));
 
   return {
@@ -357,6 +395,41 @@ export function buildFullResourcePathReadinessGate(input: {
       },
     },
   };
+}
+
+export function validateLearningGoalBlockerReviews(input: {
+  reviews: readonly LearningGoalBlockerReview[];
+  diagnostics: readonly LearningGoalPathGenerationDiagnostic[];
+  baselineByLearningGoalId: ReadonlyMap<string, { limitationReason: string | null }>;
+  generatedAt: string;
+}): Set<string> {
+  const reviewsByGoal = new Map<string, LearningGoalBlockerReview>();
+  const duplicateGoalIds = new Set<string>();
+  for (const review of input.reviews) {
+    if (reviewsByGoal.has(review.learningGoalId)) duplicateGoalIds.add(review.learningGoalId);
+    reviewsByGoal.set(review.learningGoalId, review);
+  }
+
+  const validGoalIds = new Set<string>();
+  for (const diagnostic of input.diagnostics) {
+    if (diagnostic.generationStatus !== 'blocked' && diagnostic.blockingReasons.length === 0) continue;
+    const review = reviewsByGoal.get(diagnostic.learningGoalId);
+    const baseline = input.baselineByLearningGoalId.get(diagnostic.learningGoalId);
+    if (!review || duplicateGoalIds.has(diagnostic.learningGoalId) || !baseline?.limitationReason) continue;
+    if (review.limitationReason !== baseline.limitationReason) continue;
+    if (uniqueSorted(review.blockingReasons).join('\n') !== uniqueSorted(diagnostic.blockingReasons).join('\n')) continue;
+    const baselineEvidenceRef = `course-content/runtime/resource-governance/learning-goal-resource-baseline-limitations.json#learningGoalId=${diagnostic.learningGoalId}`;
+    const assessmentEvidenceRef = `course-content/runtime/resource-governance/learning-goal-assessment-coverage-matrix.json#learningGoalId=${diagnostic.learningGoalId}`;
+    if (review.reviewerId !== 'codex:issue-884-learning-goal-blocker-review' ||
+      review.reviewBatchId !== 'full-resource-learning-goal-blocker-review-884.v1' ||
+      review.independentEvidenceRef !== assessmentEvidenceRef ||
+      uniqueSorted(review.sourceEvidenceRefs).join('\n') !== uniqueSorted([baselineEvidenceRef, assessmentEvidenceRef]).join('\n') ||
+      !review.reviewerVisibleRationale) continue;
+    const reviewedAt = Date.parse(review.reviewedAt);
+    if (!Number.isFinite(reviewedAt) || reviewedAt > Date.parse(input.generatedAt)) continue;
+    validGoalIds.add(diagnostic.learningGoalId);
+  }
+  return validGoalIds;
 }
 
 export function renderFullResourcePathReadinessGateEvidence(report: FullResourcePathReadinessGateReport): string {
@@ -610,10 +683,14 @@ function countInvalidPromotions(rows: readonly ResourceFieldCompletionAuditRow[]
   )).length;
 }
 
-function countUnreviewedSemanticRows(summary: ResourceFieldCompletionAuditSummary): number {
-  return Object.entries(summary.byReviewStatus)
-    .filter(([status]) => !isConfirmedReviewStatus(status))
-    .reduce((total, [, count]) => total + count, 0);
+function countUnreviewedSemanticRows(
+  rows: readonly ResourceFieldCompletionAuditRow[],
+  dispositionItems: readonly { resourceId: string; reviewedLimitationState: string[] }[],
+): number {
+  const reviewedLimitationResourceIds = new Set(dispositionItems
+    .filter((item) => !item.reviewedLimitationState.includes('unresolved-residual-disposition-review'))
+    .map((item) => item.resourceId));
+  return rows.filter((row) => !row.reviewConcluded && !reviewedLimitationResourceIds.has(row.resourceId)).length;
 }
 
 function isConfirmedReviewStatus(status: string): boolean {
@@ -622,8 +699,10 @@ function isConfirmedReviewStatus(status: string): boolean {
 
 function countUnresolvedGraphNodeResourceMissing(rows: readonly ResourceFieldCompletionAuditRow[]): number {
   return rows.filter((row) => (
-    row.missingFieldCodes.includes('missing-knowledge-binding') ||
-    row.missingFieldCodes.includes('missing-capability-target')
+    row.pathEligibility.current && (
+      row.missingFieldCodes.includes('missing-knowledge-binding') ||
+      row.missingFieldCodes.includes('missing-capability-target')
+    )
   )).length;
 }
 

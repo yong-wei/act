@@ -25,15 +25,18 @@ import {
   type ResourceFieldMissingCode,
   RESOURCE_FIELD_COMPLETION_AUDIT_VERSION,
   YANGFAN_FIXTURE_READINESS_SCOPE_POLICY_VERSION,
+  canDowngradeEvidenceLineageBlockerWithDisposition,
 } from '@/lib/resource-field-completion-audit';
 import {
   buildLearningGoalResourceBaselineArtifacts,
+  type LearningGoalResourceBaselineArtifacts,
   type LearningGoalResourceBaselineReviewedBinding,
 } from '@/lib/learning-goal-resource-baseline';
 import {
   FULL_RESOURCE_PATH_READINESS_GATE_VERSION,
   buildFullResourcePathReadinessGate,
   buildLearningGoalPathGenerationDiagnostics,
+  type LearningGoalBlockerReview,
   renderFullResourcePathReadinessGateEvidence,
   type FullResourcePathReadinessGateReport,
   type LearningGoalPathGenerationDiagnostic,
@@ -70,6 +73,8 @@ const EVIDENCE_LINEAGE_EVIDENCE_MD_PATH = path.join(OUTPUT_DIR, 'resource-eviden
 const DISPOSITION_REVIEW_ITEMS_JSONL_PATH = path.join(OUTPUT_DIR, 'resource-disposition-backlog-review-items.jsonl');
 const DISPOSITION_REVIEW_SUMMARY_JSON_PATH = path.join(OUTPUT_DIR, 'resource-disposition-backlog-review-summary.json');
 const DISPOSITION_REVIEW_EVIDENCE_MD_PATH = path.join(OUTPUT_DIR, 'resource-disposition-backlog-review-evidence.md');
+const FULL_RESOURCE_CLOSURE_REVIEW_SOURCE_JSONL_PATH = path.join(OUTPUT_DIR, 'full-resource-semantic-closure-review-source.jsonl');
+const LEARNING_GOAL_BLOCKER_REVIEW_SOURCE_JSONL_PATH = path.join(OUTPUT_DIR, 'full-resource-learning-goal-blocker-review-source.jsonl');
 const KNOWLEDGE_VISUAL_SEMANTIC_REVIEW_ITEMS_JSONL_PATH = path.join(OUTPUT_DIR, 'knowledge-visual-semantic-shard-review-items.jsonl');
 const KNOWLEDGE_VISUAL_SEMANTIC_REVIEW_SUMMARY_JSON_PATH = path.join(OUTPUT_DIR, 'knowledge-visual-semantic-shard-summary.json');
 const KNOWLEDGE_VISUAL_SEMANTIC_REVIEW_EVIDENCE_MD_PATH = path.join(OUTPUT_DIR, 'knowledge-visual-semantic-shard-evidence.md');
@@ -378,6 +383,7 @@ interface ResidualDispositionReviewSource {
   reviewBatchId: string;
   sourceHash: string | null;
   sourceVersionRef: string | null;
+  independentEvidenceRef?: string;
 }
 
 interface KnowledgeVisualSemanticReviewItem {
@@ -1437,11 +1443,13 @@ async function main() {
         materializationPhase: materializationPhase!,
       })
     : await buildCoreRegisteredKnowledgeResourceSemanticArtifacts(result.sourceRows);
-  const dispositionReviewItems = await buildResidualDispositionReviewItems(result.rows);
+  const dispositionReviewItems = await buildResidualDispositionReviewItems(result.rows, generatedAt);
   const dispositionReviewSummary = buildResidualDispositionReviewSummary(dispositionReviewItems, result.workqueues);
+  const fullResourceClosureReviewSources = await loadFullResourceClosureReviewSources(generatedAt);
   const reviewedEvidenceLineage = buildReviewedEvidenceLineageReadiness(
     result.evidenceLineage,
     dispositionReviewItems,
+    fullResourceClosureReviewSources,
   );
   const workqueueItems = flattenWorkqueueItems(result.workqueues);
   const pathGenerationDiagnostics = materializeCoreSemanticReview
@@ -1461,16 +1469,22 @@ async function main() {
         reviewedBindings: baselineArtifacts.reviewedBindings,
         now: new Date(generatedAt),
       });
+  const learningGoalBlockerReviews = await loadLearningGoalBlockerReviews(
+    generatedAt,
+    baselineArtifacts.matrix,
+  );
   const fullResourcePathReadinessGate = buildFullResourcePathReadinessGate({
     generatedAt,
     resourceSummary: result.summary,
     auditRows: result.rows,
     workqueueItems,
     dispositionReviewSummary,
+    dispositionReviewItems,
     evidenceLineageSummary: reviewedEvidenceLineage.summary,
     learningGoalBaselineMatrix: baselineArtifacts.matrix,
     reviewedBindings: baselineArtifacts.reviewedBindings,
     pathGenerationDiagnostics,
+    learningGoalBlockerReviews,
   });
 
   const outputFiles: AtomicWriteFile[] = [
@@ -1601,10 +1615,35 @@ function renderWorkqueueMarkdown(
   return `${lines.join('\n')}\n`;
 }
 
-async function buildResidualDispositionReviewItems(rows: ResourceFieldCompletionAuditRow[]): Promise<ResidualDispositionReviewItem[]> {
-  const reviewSources = await loadResidualDispositionReviewSources();
-  return rows.filter((row) => row.missingFieldCodes.length > 0).map<ResidualDispositionReviewItem>((row) => {
-    const reviewSource = reviewSources.get(row.resourceId);
+async function buildResidualDispositionReviewItems(
+  rows: ResourceFieldCompletionAuditRow[],
+  generatedAt: string,
+): Promise<ResidualDispositionReviewItem[]> {
+  const reviewSources = await loadResidualDispositionReviewSources(generatedAt);
+  return rows.map<ResidualDispositionReviewItem>((row) => {
+    const storedReviewSource = reviewSources.get(row.resourceId);
+    let reviewSource = storedReviewSource;
+    if (row.pathEligibility.current) {
+      const audit = row.reviewAudit;
+      if (!audit?.reviewerVisibleRationale || !audit.reviewerId || !audit.reviewedAt || !audit.reviewBatchId) {
+        throw new Error(`Current path resource lacks complete disposition review audit: ${row.resourceId}`);
+      }
+      reviewSource = {
+        classification: 'path-plannable',
+        reviewerVisibleRationale: audit.reviewerVisibleRationale,
+        reviewerId: audit.reviewerId,
+        reviewedAt: audit.reviewedAt,
+        reviewBatchId: audit.reviewBatchId,
+        sourceHash: row.sourceHash,
+        sourceVersionRef: row.sourceVersionRef,
+      };
+    }
+    if (
+      reviewSource?.reviewBatchId === 'full-resource-semantic-closure-884.v1' &&
+      (reviewSource.sourceHash !== row.sourceHash || reviewSource.sourceVersionRef !== row.sourceVersionRef)
+    ) {
+      throw new Error(`Stale full-resource closure review source: ${row.resourceId}`);
+    }
     const classification = reviewSource?.classification ?? residualDispositionClassificationFor(row);
     const downstreamBlockers = downstreamBlockersFor(row.missingFieldCodes);
     const unresolvedDispositionBlocker = isDispositionReviewUnresolved(row, reviewSource);
@@ -1635,7 +1674,7 @@ async function buildResidualDispositionReviewItems(rows: ResourceFieldCompletion
   }).sort((left, right) => left.resourceId.localeCompare(right.resourceId));
 }
 
-async function loadResidualDispositionReviewSources(): Promise<Map<string, ResidualDispositionReviewSource>> {
+async function loadResidualDispositionReviewSources(generatedAt: string): Promise<Map<string, ResidualDispositionReviewSource>> {
   const [
     runtimePlanning,
     runtimeMedia,
@@ -1653,6 +1692,7 @@ async function loadResidualDispositionReviewSources(): Promise<Map<string, Resid
     residualRuntimeLessonMedia,
     residualRegisteredResource,
     textbookSearchDocumentCitation,
+    fullResourceClosureReviews,
   ] = await Promise.all([
     readJsonlFile<any>(path.join(OUTPUT_DIR, 'runtime-lesson-planning-unit-review-items.jsonl')),
     readJsonlFile<any>(path.join(OUTPUT_DIR, 'runtime-media-handout-disposition-review-items.jsonl')),
@@ -1670,6 +1710,7 @@ async function loadResidualDispositionReviewSources(): Promise<Map<string, Resid
     readJsonlFile<any>(path.join(OUTPUT_DIR, 'residual-runtime-lesson-media-disposition-review-items.jsonl')),
     readJsonlFile<any>(path.join(OUTPUT_DIR, 'residual-registered-resource-disposition-review-items.jsonl')),
     loadTextbookSearchDocumentCitationReviews(),
+    loadFullResourceClosureReviewSources(generatedAt),
   ]);
   const sources = new Map<string, ResidualDispositionReviewSource>();
   for (const item of runtimePlanning) {
@@ -1860,7 +1901,84 @@ async function loadResidualDispositionReviewSources(): Promise<Map<string, Resid
       sourceVersionRef: item.sourceVersionRef,
     });
   }
+  for (const [resourceId, item] of fullResourceClosureReviews) sources.set(resourceId, item);
   return sources;
+}
+
+async function loadFullResourceClosureReviewSources(generatedAt: string): Promise<Map<string, ResidualDispositionReviewSource>> {
+  const input = await fs.readFile(FULL_RESOURCE_CLOSURE_REVIEW_SOURCE_JSONL_PATH, 'utf8');
+  const rows = input.split(/\r?\n/).map((line) => line.trim()).filter(Boolean)
+    .map((line) => JSON.parse(line) as ResidualDispositionReviewSource & {
+      resourceId?: string;
+      independentEvidenceRef?: string;
+    });
+  const sources = new Map<string, ResidualDispositionReviewSource>();
+  const yangFanFixtureSourcePath = path.join(process.cwd(), 'src/lib/data-governance/yangfan-diagnostic-fixture.ts');
+  const yangFanFixtureSourceHash = `sha256:${createHash('sha256')
+    .update(await fs.readFile(yangFanFixtureSourcePath))
+    .digest('hex')}`;
+  for (const row of rows) {
+    if (!row.resourceId || !isResidualDispositionClassification(row.classification) || !row.reviewerId || !row.reviewedAt ||
+      !row.reviewBatchId || !row.sourceHash || !row.sourceVersionRef ||
+      !row.reviewerVisibleRationale || !row.independentEvidenceRef) {
+      throw new Error(`Invalid full-resource closure review source: ${row.resourceId ?? 'missing-resource-id'}`);
+    }
+    const reviewedAt = Date.parse(row.reviewedAt);
+    if (!Number.isFinite(reviewedAt) || reviewedAt > Date.parse(generatedAt)) {
+      throw new Error(`Full-resource closure review occurs after generatedAt: ${row.resourceId}`);
+    }
+    if (row.resourceId.startsWith('yangfan-') && (
+      row.sourceHash !== yangFanFixtureSourceHash ||
+      !row.independentEvidenceRef.startsWith('src/lib/data-governance/yangfan-diagnostic-fixture.ts#')
+    )) {
+      throw new Error(`Stale Yang Fan fixture closure review source: ${row.resourceId}`);
+    }
+    if (sources.has(row.resourceId)) throw new Error(`Duplicate full-resource closure review source: ${row.resourceId}`);
+    const { resourceId, ...source } = row;
+    sources.set(resourceId, source);
+  }
+  return sources;
+}
+
+async function loadLearningGoalBlockerReviews(
+  generatedAt: string,
+  baselineMatrix: LearningGoalResourceBaselineArtifacts['matrix'],
+): Promise<LearningGoalBlockerReview[]> {
+  const input = await fs.readFile(LEARNING_GOAL_BLOCKER_REVIEW_SOURCE_JSONL_PATH, 'utf8');
+  const rows = input.split(/\r?\n/).map((line) => line.trim()).filter(Boolean)
+    .map((line) => JSON.parse(line) as LearningGoalBlockerReview);
+  const goalIds = new Set<string>();
+  const baselineByGoal = new Map(baselineMatrix.rows.map((row) => [row.learningGoalId, row]));
+  const assessmentMatrix = JSON.parse(await fs.readFile(
+    path.join(OUTPUT_DIR, 'learning-goal-assessment-coverage-matrix.json'),
+    'utf8',
+  )) as { rows: Array<{ learningGoalId: string }> };
+  const assessmentGoalIds = new Set(assessmentMatrix.rows.map((row) => row.learningGoalId));
+  for (const row of rows) {
+    if (!row.learningGoalId || row.blockingReasons.length === 0 || !row.limitationReason ||
+      !row.reviewerId || !row.reviewedAt || !row.reviewBatchId || row.sourceEvidenceRefs.length === 0 ||
+      !row.independentEvidenceRef || !row.reviewerVisibleRationale) {
+      throw new Error(`Invalid LearningGoal blocker review source: ${row.learningGoalId ?? 'missing-learning-goal-id'}`);
+    }
+    const reviewedAt = Date.parse(row.reviewedAt);
+    if (!Number.isFinite(reviewedAt) || reviewedAt > Date.parse(generatedAt)) {
+      throw new Error(`LearningGoal blocker review occurs after generatedAt: ${row.learningGoalId}`);
+    }
+    if (goalIds.has(row.learningGoalId)) {
+      throw new Error(`Duplicate LearningGoal blocker review source: ${row.learningGoalId}`);
+    }
+    const baseline = baselineByGoal.get(row.learningGoalId);
+    const baselineEvidenceRef = `course-content/runtime/resource-governance/learning-goal-resource-baseline-limitations.json#learningGoalId=${row.learningGoalId}`;
+    const assessmentEvidenceRef = `course-content/runtime/resource-governance/learning-goal-assessment-coverage-matrix.json#learningGoalId=${row.learningGoalId}`;
+    if (!baseline || baseline.limitationReason !== row.limitationReason ||
+      !assessmentGoalIds.has(row.learningGoalId) ||
+      uniqueSorted(row.sourceEvidenceRefs).join('\n') !== uniqueSorted([baselineEvidenceRef, assessmentEvidenceRef]).join('\n') ||
+      row.independentEvidenceRef !== assessmentEvidenceRef) {
+      throw new Error(`Unresolvable LearningGoal blocker review evidence: ${row.learningGoalId}`);
+    }
+    goalIds.add(row.learningGoalId);
+  }
+  return rows;
 }
 
 async function loadTextbookSearchDocumentCitationReviews(): Promise<Map<string, TextbookSearchDocumentCitationReviewItem>> {
@@ -1980,6 +2098,11 @@ function buildResidualDispositionReviewSummary(
   const downstreamEntries = items.flatMap((item) => item.downstreamBlockers
     .filter((blocker) => blocker.bucket !== 'none')
     .map((blocker) => [blocker.bucket, blocker.codes.length] as const));
+  const unresolvedDownstreamEntries = items
+    .filter((item) => item.reviewedLimitationState.includes('unresolved-residual-disposition-review'))
+    .flatMap((item) => item.downstreamBlockers
+      .filter((blocker) => blocker.bucket !== 'none')
+      .map((blocker) => [blocker.bucket, blocker.codes.length] as const));
   return {
     artifactVersion: 'resource-disposition-backlog-review.v1',
     reviewBatchId: RESIDUAL_DISPOSITION_REVIEW_BATCH_ID,
@@ -1997,6 +2120,12 @@ function buildResidualDispositionReviewSummary(
     downstreamBlockers: Object.fromEntries(
       Array.from(new Set(downstreamEntries.map(([bucket]) => bucket))).sort()
         .map((bucket) => [bucket, downstreamEntries
+          .filter(([entryBucket]) => entryBucket === bucket)
+          .reduce((total, [, count]) => total + count, 0)]),
+    ),
+    unresolvedDownstreamBlockers: Object.fromEntries(
+      Array.from(new Set(unresolvedDownstreamEntries.map(([bucket]) => bucket))).sort()
+        .map((bucket) => [bucket, unresolvedDownstreamEntries
           .filter(([entryBucket]) => entryBucket === bucket)
           .reduce((total, [, count]) => total + count, 0)]),
     ),
@@ -2020,23 +2149,28 @@ function buildResidualDispositionReviewSummary(
 function buildReviewedEvidenceLineageReadiness(
   evidenceLineage: ReturnType<typeof buildResourceFieldCompletionAudit>['evidenceLineage'],
   dispositionItems: ResidualDispositionReviewItem[],
+  closureReviewSources: Map<string, ResidualDispositionReviewSource>,
 ): {
   items: ResourceEvidenceLineageReadinessItem[];
   summary: ResourceEvidenceLineageReadinessSummary;
 } {
   const dispositionById = new Map(dispositionItems.map((item) => [item.resourceId, item]));
   const items = evidenceLineage.items.map((item) => {
+    if (!canDowngradeEvidenceLineageBlockerWithDisposition(item)) return item;
     const disposition = dispositionById.get(item.resourceId);
-    if (!disposition || !isReviewedEvidenceLineageLimitation(disposition)) return item;
+    const closureReview = closureReviewSources.get(item.resourceId);
+    const reviewedLimitation = disposition
+      ? isReviewedEvidenceLineageLimitation(disposition)
+      : Boolean(closureReview && isEvidenceLineageLimitationClassification(closureReview.classification));
+    if (!reviewedLimitation) return item;
     const fixtureScope = item.yangFanFixtureScope;
     return {
       ...item,
       evidenceEffectState: 'reviewed-limitation' as const,
-      blocksYangFanFixture: fixtureScope === 'fixture-owned',
+      blocksYangFanFixture: false,
       yangFanFixtureScope: fixtureScope,
-      reviewerVisibleRationale: fixtureScope === 'fixture-owned'
-        ? `${item.resourceId} is in the Yang Fan fixture-owned readiness subset and still lacks fixture-required lineage; fixture generation remains blocked until lineage is complete.`
-        : `${item.resourceId} has reviewed disposition ${disposition.classification}; evidence effects remain disabled for this resource class, so missing event lineage is recorded as a global resource-backlog limitation rather than a Yang Fan fixture blocker.`,
+      reviewerVisibleRationale: closureReview?.reviewerVisibleRationale ??
+        `${item.resourceId} has reviewed disposition ${disposition!.classification}; evidence effects remain disabled for this resource class, so missing event lineage is recorded as a global resource-backlog limitation rather than a Yang Fan fixture blocker.`,
     };
   });
   return {
@@ -2058,6 +2192,15 @@ function isReviewedEvidenceLineageLimitation(item: ResidualDispositionReviewItem
     item.reviewerVisibleRationale.length > 0;
 }
 
+function isResidualDispositionClassification(value: unknown): value is ResidualDispositionClassification {
+  return value === 'path-plannable' || value === 'supporting-citation' || value === 'embedded-asset' ||
+    value === 'evidence-producing' || value === 'excluded-with-rationale';
+}
+
+function isEvidenceLineageLimitationClassification(value: ResidualDispositionClassification): boolean {
+  return value === 'supporting-citation' || value === 'embedded-asset' || value === 'excluded-with-rationale';
+}
+
 function summarizeReviewedEvidenceLineageReadiness(
   baseSummary: ResourceEvidenceLineageReadinessSummary,
   items: ResourceEvidenceLineageReadinessItem[],
@@ -2065,7 +2208,9 @@ function summarizeReviewedEvidenceLineageReadiness(
   const blockerItems = items.filter((item) => item.evidenceEffectState === 'blocked');
   const reviewedLimitationItems = items.filter((item) => item.evidenceEffectState === 'reviewed-limitation');
   const yangFanFixtureBlockers = items.filter((item) => item.blocksYangFanFixture);
-  const globalYangFanLimitations = items.filter((item) => !item.blocksYangFanFixture);
+  const globalYangFanLimitations = items.filter((item) =>
+    item.yangFanFixtureScope === 'global-resource-backlog' && item.evidenceEffectState !== 'ready'
+  );
   return {
     ...baseSummary,
     layerTotals: {

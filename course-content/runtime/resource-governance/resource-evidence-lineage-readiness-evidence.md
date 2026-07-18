@@ -4,40 +4,39 @@ Artifact version: resource-evidence-lineage-readiness.v1
 Source audit rows: 6509
 Path-relevant rows: 4596
 Evidence-producing rows: 4571
-Evidence-lineage blockers: 47
-Reviewed limitations: 1487
+Evidence-lineage blockers: 0
+Reviewed limitations: 1512
 Ready rows: 3084
 
 ## Finding Counts
 
-- missing-evidence-contract: 1534
-- missing-evidence-instrumentation: 1534
-- missing-human-review: 22
+- missing-evidence-contract: 1512
+- missing-evidence-instrumentation: 1512
 
 ## Contract Field Gaps
 
-- attemptKey: 1534
-- clientEventIdPolicy: 1534
-- confidencePolicy: 1534
-- eventType: 1534
-- learningFactMaterializationPolicy: 1534
-- learningFactPolicy: 1534
-- privacyScope: 22
-- sourceLogId: 1534
-- timestamps: 1534
+- attemptKey: 1512
+- clientEventIdPolicy: 1512
+- confidencePolicy: 1512
+- eventType: 1512
+- learningFactMaterializationPolicy: 1512
+- learningFactPolicy: 1512
+- sourceLogId: 1512
+- timestamps: 1512
 
 ## Follow-up Buckets
 
-- complete-evidence-lineage-bindings: 1534
+- complete-evidence-lineage-bindings: 1512
+- none: 22
 
 ## Yang Fan Fixture Precondition
 
-Blocked: true
-Blocker count: 22
-Scoped blocker count: 22
+Blocked: false
+Blocker count: 0
+Scoped blocker count: 0
 Global limitation count: 1512
 Scope policy: yangfan-fixture-readiness-scope.v1
-Reason: Canonical learner fixture generation remains blocked until fixture-owned evidence lineage gaps are resolved.
+Reason: Canonical learner fixture generation has scoped resource readiness; unrelated global resource backlog remains a limited-coverage diagnostic.
 
 ## Evidence Files
 
