@@ -65,14 +65,14 @@ function snapshot(): GeneratedSlideBrowserMeasurementSnapshot {
       { ...element('[data-generated-slide-slot="left"]', 0, 90, 640, 630), slotId: 'left' },
       { ...element('[data-generated-slide-slot="right"]', 640, 90, 640, 630), slotId: 'right' },
     ],
-    modules: [{ ...element('[data-generated-slide-module-root="explanation"]', 0, 90, 640, 630), moduleId: 'explanation' }],
+    modules: [{ ...element('[data-generated-slide-module-root="explanation"]', 0, 90, 640, 630), moduleId: 'explanation', slotId: 'left' }],
     formulas: [{
       ...element('[data-validation-formula="main"]', 20, 150, 500, 60),
       formulaId: 'main',
       moduleId: 'module-a',
       minimumFontSizePx: 18,
     }],
-    containers: [{ ...element('[data-generated-slide-container-id="container:0"]', 20, 150, 500, 100), containerId: 'container:0' }],
+    containers: [{ ...element('[data-generated-slide-container-id="container:0"]', 20, 150, 500, 100), containerId: 'container:0', moduleId: 'explanation' }],
     text: [{
       ...element('[data-generated-slide-text-id="explanation:0"]', 20, 220, 500, 80),
       textId: 'explanation:0',
@@ -115,7 +115,7 @@ describe('generated slide browser validator', () => {
       moduleId: 'code',
       minimumFontSizePx: 18,
     });
-    measured.modules.push({ ...element('[data-generated-slide-module-root="code"]', 640, 90, 640, 630), moduleId: 'code' });
+    measured.modules.push({ ...element('[data-generated-slide-module-root="code"]', 640, 90, 640, 630), moduleId: 'code', slotId: 'right' });
     const expected = expectation();
     expected.expectedModuleIds = ['explanation', 'code'];
     expected.expectedTextIds = ['explanation:0', 'code:0'];
@@ -356,6 +356,38 @@ describe('generated slide browser validator', () => {
       location: {
         projection: 'student',
         selector: measured.text[0].selector,
+        moduleId: 'explanation',
+        relatedSelector: measured.modules[0].selector,
+      },
+    });
+  });
+
+  it('rejects a module that escapes its owning slot while remaining on canvas', () => {
+    const measured = snapshot();
+    measured.modules[0].rect.left = 100;
+    measured.modules[0].rect.x = 100;
+    measured.modules[0].rect.right = 740;
+
+    expect(validateGeneratedSlideBrowserSnapshot(measured, expectation()).issues).toContainEqual({
+      code: 'element.out-of-bounds',
+      location: {
+        projection: 'student',
+        selector: measured.modules[0].selector,
+        moduleId: 'explanation',
+        relatedSelector: measured.slots[0].selector,
+      },
+    });
+  });
+
+  it('rejects a visible child container that escapes its owning module', () => {
+    const measured = snapshot();
+    measured.containers[0].rect.right = 700;
+
+    expect(validateGeneratedSlideBrowserSnapshot(measured, expectation()).issues).toContainEqual({
+      code: 'element.out-of-bounds',
+      location: {
+        projection: 'student',
+        selector: measured.containers[0].selector,
         moduleId: 'explanation',
         relatedSelector: measured.modules[0].selector,
       },

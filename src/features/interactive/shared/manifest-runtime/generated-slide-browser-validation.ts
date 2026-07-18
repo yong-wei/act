@@ -50,10 +50,12 @@ export interface GeneratedSlideBrowserFormulaMeasurement extends GeneratedSlideB
 
 export interface GeneratedSlideBrowserModuleMeasurement extends GeneratedSlideBrowserElementMeasurement {
   moduleId: string;
+  slotId: string;
 }
 
 export interface GeneratedSlideBrowserContainerMeasurement extends GeneratedSlideBrowserElementMeasurement {
   containerId: string;
+  moduleId: string | null;
 }
 
 export interface GeneratedSlideBrowserTextMeasurement extends GeneratedSlideBrowserElementMeasurement {
@@ -226,6 +228,7 @@ export function validateGeneratedSlideBrowserSnapshot(
 
   const expectedModuleIds = new Set(expectation.expectedModuleIds);
   const measuredModulesById = new Map(snapshot.modules.map((module) => [module.moduleId, module]));
+  const measuredSlotsById = new Map(snapshot.slots.map((slot) => [slot.slotId, slot]));
   const modulesWithText = new Set(snapshot.text.map((measurement) => measurement.moduleId));
   for (const moduleId of expectation.expectedModuleIds) {
     if (!modulesWithText.has(moduleId)) {
@@ -263,6 +266,27 @@ export function validateGeneratedSlideBrowserSnapshot(
       if (rectsOverlap(left.rect, right.rect, geometryTolerancePx)) {
         add('slot.overlap', left.selector, { relatedSelector: right.selector });
       }
+    }
+  }
+
+  for (const generatedModule of snapshot.modules) {
+    const owner = measuredSlotsById.get(generatedModule.slotId);
+    if (!owner || !rectContains(owner.rect, generatedModule.rect, geometryTolerancePx)) {
+      add('element.out-of-bounds', generatedModule.selector, {
+        moduleId: generatedModule.moduleId,
+        ...(owner ? { relatedSelector: owner.selector } : {}),
+      });
+    }
+  }
+
+  for (const container of snapshot.containers) {
+    if (!container.moduleId) continue;
+    const owner = measuredModulesById.get(container.moduleId);
+    if (!owner || !rectContains(owner.rect, container.rect, geometryTolerancePx)) {
+      add('element.out-of-bounds', container.selector, {
+        moduleId: container.moduleId,
+        ...(owner ? { relatedSelector: owner.selector } : {}),
+      });
     }
   }
 

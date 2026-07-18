@@ -222,6 +222,16 @@ async function captureSnapshot(
     glyphSample,
     fontSha256,
   }) => {
+    const toRect = (rect: DOMRect) => ({
+      x: rect.x,
+      y: rect.y,
+      width: rect.width,
+      height: rect.height,
+      top: rect.top,
+      right: rect.right,
+      bottom: rect.bottom,
+      left: rect.left,
+    });
     const measure = (element: Element, selector: string) => {
       const htmlElement = element as HTMLElement;
       const rect = htmlElement.getBoundingClientRect();
@@ -229,16 +239,7 @@ async function captureSnapshot(
       const fontSize = Number.parseFloat(computed.fontSize);
       return {
         selector,
-        rect: {
-          x: rect.x,
-          y: rect.y,
-          width: rect.width,
-          height: rect.height,
-          top: rect.top,
-          right: rect.right,
-          bottom: rect.bottom,
-          left: rect.left,
-        },
+        rect: toRect(rect),
         clientWidth: htmlElement.clientWidth,
         clientHeight: htmlElement.clientHeight,
         scrollWidth: htmlElement.scrollWidth,
@@ -295,10 +296,13 @@ async function captureSnapshot(
     });
     const modules = [...canvasElement.querySelectorAll('[data-generated-slide-module-root]')].map((element) => {
       const moduleId = element.getAttribute('data-generated-slide-module-root') ?? '';
+      const slotId = element.closest('[data-generated-slide-slot]')
+        ?.getAttribute('data-generated-slide-slot') ?? '';
       const selector = `[data-generated-slide-module-root="${moduleId}"]`;
       return {
         ...measure(element, selector),
         moduleId,
+        slotId,
         selector,
       };
     });
@@ -314,9 +318,11 @@ async function captureSnapshot(
         || computed.maskImage !== 'none';
     }).map((element, index) => {
       const containerId = `container:${index}`;
+      const moduleId = element.closest('[data-generated-slide-module-root]')
+        ?.getAttribute('data-generated-slide-module-root') ?? null;
       element.setAttribute('data-generated-slide-container-id', containerId);
       const selector = `[data-generated-slide-container-id="${containerId}"]`;
-      return { ...measure(element, selector), containerId };
+      return { ...measure(element, selector), containerId, moduleId };
     });
     const text = [...canvasElement.querySelectorAll('[data-generated-slide-module]')].flatMap((slot) => {
       const moduleId = slot.getAttribute('data-generated-slide-module') ?? '';
@@ -334,7 +340,15 @@ async function captureSnapshot(
         const textId = `${moduleId}:${index}`;
         element.setAttribute('data-generated-slide-text-id', textId);
         const selector = `[data-generated-slide-text-id="${textId}"]`;
-        return { ...measure(element, selector), textId, moduleId, minimumFontSizePx };
+        const range = document.createRange();
+        range.selectNodeContents(element);
+        return {
+          ...measure(element, selector),
+          rect: toRect(range.getBoundingClientRect()),
+          textId,
+          moduleId,
+          minimumFontSizePx,
+        };
       });
     });
     const userAgentVersion = navigator.userAgent.match(/(?:HeadlessChrome|Chrome)\/(\d+\.\d+\.\d+\.\d+)/)?.[1] ?? '';
@@ -452,6 +466,8 @@ for (const projection of ['student', 'teacher'] as const) {
           client: [item.clientWidth, item.clientHeight],
           scroll: [item.scrollWidth, item.scrollHeight],
         })),
+      modules: snapshot.modules.map((item) => ({ id: item.moduleId, rect: item.rect })),
+      text: snapshot.text.map((item) => ({ id: item.textId, rect: item.rect })),
     })).toEqual([]);
     expect(result.valid).toBe(true);
     expect(result.identity).toEqual(expect.objectContaining({

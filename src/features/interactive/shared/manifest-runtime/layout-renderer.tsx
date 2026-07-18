@@ -415,6 +415,7 @@ function renderCommercialModuleChrome({
         'commercial-module-chrome--stable-panel commercial-module-chrome--projection-readable',
         standard?.chromeClassName ?? 'commercial-module-chrome--fallback',
       ].join(' '),
+      ...(generatedSlideSafe ? { style: { paddingTop: '4px' } } : {}),
     },
     node,
   );
