@@ -1923,7 +1923,8 @@ async function loadFullResourceClosureReviewSources(generatedAt: string): Promis
       !row.reviewerVisibleRationale || !row.independentEvidenceRef) {
       throw new Error(`Invalid full-resource closure review source: ${row.resourceId ?? 'missing-resource-id'}`);
     }
-    if (Date.parse(row.reviewedAt) > Date.parse(generatedAt)) {
+    const reviewedAt = Date.parse(row.reviewedAt);
+    if (!Number.isFinite(reviewedAt) || reviewedAt > Date.parse(generatedAt)) {
       throw new Error(`Full-resource closure review occurs after generatedAt: ${row.resourceId}`);
     }
     if (row.resourceId.startsWith('yangfan-') && (
@@ -1959,7 +1960,8 @@ async function loadLearningGoalBlockerReviews(
       !row.independentEvidenceRef || !row.reviewerVisibleRationale) {
       throw new Error(`Invalid LearningGoal blocker review source: ${row.learningGoalId ?? 'missing-learning-goal-id'}`);
     }
-    if (Date.parse(row.reviewedAt) > Date.parse(generatedAt)) {
+    const reviewedAt = Date.parse(row.reviewedAt);
+    if (!Number.isFinite(reviewedAt) || reviewedAt > Date.parse(generatedAt)) {
       throw new Error(`LearningGoal blocker review occurs after generatedAt: ${row.learningGoalId}`);
     }
     if (goalIds.has(row.learningGoalId)) {
