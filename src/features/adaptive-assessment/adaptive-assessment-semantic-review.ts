@@ -96,6 +96,9 @@ export interface AssessmentItemSemanticCoverageReport {
   artifactVersion: 'assessment-item-semantic-review-coverage.v1';
   itemCount: number;
   reviewedItemCount: number;
+  reviewedDispositionCount: number;
+  reviewedLimitationCount: number;
+  unreviewedItemCount: number;
   pathEligibleItemCount: number;
   staleReviewCount: number;
   rejectedItemCount: number;
@@ -497,6 +500,8 @@ export function buildAssessmentItemSemanticCoverageReport(
   const learningGoalTotals: Record<string, number> = {};
   const kaqObjectiveTotals: Record<string, number> = {};
   const stageTotals: Record<string, number> = {};
+  let reviewedDispositionCount = 0;
+  let reviewedLimitationCount = 0;
 
   for (const sourceFamily of input.sourceFamilies ?? []) {
     sourceFamilyCounts.set(sourceFamily.family, {
@@ -545,7 +550,12 @@ export function buildAssessmentItemSemanticCoverageReport(
         severity: issueSeverity(reason),
       });
     }
-    if (hasPathGate(item) && !isApprovedDecisionValid(item, decision, input)) {
+    const hasValidReviewedLimitation = Boolean(
+      decision
+      && decision.outcome !== 'approved'
+      && itemDecisionIssues.length === 0,
+    );
+    if (hasPathGate(item) && !isApprovedDecisionValid(item, decision, input) && !hasValidReviewedLimitation) {
       issues.push({
         catalogItemId: item.catalogItemId,
         sourceFamily: item.sourceFamily,
@@ -562,12 +572,19 @@ export function buildAssessmentItemSemanticCoverageReport(
       sourceCounts.unreviewedTotal += 1;
     } else if (decision.outcome === 'rejected') {
       sourceCounts.rejectedTotal += 1;
+      reviewedDispositionCount += 1;
+      reviewedLimitationCount += 1;
     } else if (decision.outcome === 'deprecated') {
       sourceCounts.deprecatedTotal += 1;
+      reviewedDispositionCount += 1;
+      reviewedLimitationCount += 1;
     } else if (decision.outcome === 'blocked') {
       sourceCounts.blockedTotal += 1;
+      reviewedDispositionCount += 1;
+      reviewedLimitationCount += 1;
     } else if (isApprovedDecisionValid(item, decision, input)) {
       sourceCounts.reviewedTotal += 1;
+      reviewedDispositionCount += 1;
       if (item.eligibilityState === 'path-eligible') sourceCounts.pathEligibleTotal += 1;
       for (const learningGoalId of decision.selectedLearningGoalIds) {
         learningGoalTotals[learningGoalId] = (learningGoalTotals[learningGoalId] ?? 0) + 1;
@@ -587,6 +604,9 @@ export function buildAssessmentItemSemanticCoverageReport(
     artifactVersion: 'assessment-item-semantic-review-coverage.v1',
     itemCount: input.items.length,
     reviewedItemCount: [...sourceFamilyCounts.values()].reduce((sum, item) => sum + item.reviewedTotal, 0),
+    reviewedDispositionCount,
+    reviewedLimitationCount,
+    unreviewedItemCount: input.items.length - reviewedDispositionCount,
     pathEligibleItemCount: [...sourceFamilyCounts.values()].reduce((sum, item) => sum + item.pathEligibleTotal, 0),
     staleReviewCount: [...sourceFamilyCounts.values()].reduce((sum, item) => sum + item.staleTotal, 0),
     rejectedItemCount: [...sourceFamilyCounts.values()].reduce((sum, item) => sum + item.rejectedTotal, 0),

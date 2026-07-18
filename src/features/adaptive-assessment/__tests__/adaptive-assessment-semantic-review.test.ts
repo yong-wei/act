@@ -260,6 +260,47 @@ describe('adaptive assessment semantic review workflow', () => {
     expect(report.issues.map((issue) => issue.reason)).toContain('stale-source-hash');
   });
 
+  it('treats a current human-reviewed limitation as a closed disposition without path eligibility', () => {
+    const catalog = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [PRESET_QUESTIONS[0]],
+      checkpointQuestions: [],
+      kaqReviewedItems: [],
+    });
+    const item = {
+      ...catalog.items[0],
+      reviewState: 'path-eligible' as const,
+      eligibilityState: 'path-eligible' as const,
+      allowedStages: ['readiness' as const],
+    };
+    const [packet] = buildAssessmentItemSemanticReviewPackets([item]);
+    const report = buildAssessmentItemSemanticCoverageReport({
+      items: [item],
+      decisions: [{
+        ...baseDecision(item),
+        outcome: 'blocked',
+        selectedLearningGoalIds: [],
+        selectedKaqObjectiveIds: [],
+        selectedGraphNodeIds: [],
+        selectedStagePurpose: undefined,
+        difficulty: undefined,
+        cognitiveLevel: undefined,
+        misconceptionRefs: [],
+        remediationRefs: [],
+        metadataVersionRefs: packet.packetVersionRefs,
+      }],
+    });
+
+    expect(report).toMatchObject({
+      reviewedItemCount: 0,
+      reviewedDispositionCount: 1,
+      reviewedLimitationCount: 1,
+      unreviewedItemCount: 0,
+      pathEligibleItemCount: 0,
+      blockedItemCount: 1,
+    });
+    expect(report.issues.map((issue) => issue.reason)).not.toContain('invalid-path-eligibility');
+  });
+
   it('rejects non-approved machine suggestions as reviewed decisions', () => {
     const catalog = buildAdaptiveAssessmentItemCatalog({
       presetQuestions: [PRESET_QUESTIONS[0]],

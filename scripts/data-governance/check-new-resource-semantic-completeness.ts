@@ -29,9 +29,6 @@ const RUNTIME_INFOGRAPH_MANIFEST_PATH = 'course-content/runtime/knowledge/infogr
 const RUNTIME_INFOGRAPH_NODE_DIR = 'course-content/runtime/knowledge/infographs/nodes';
 const QUESTION_BANK_DIR = 'course-content/questions/questions';
 const RUNTIME_ASSESSMENT_CATALOG_PATHS = [
-  'course-content/runtime/resource-governance/adaptive-assessment-item-catalog-items.jsonl',
-  'course-content/runtime/resource-governance/assessment-item-semantic-review-packets.jsonl',
-  'course-content/runtime/resource-governance/assessment-item-semantic-review-snapshots.jsonl',
   'course-content/runtime/resource-governance/kaq-quiz-foundation-reviewed-items.jsonl',
 ];
 const RUNTIME_PROJECTION_SOURCE_PATHS = [

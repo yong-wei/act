@@ -100,6 +100,7 @@
     "db:adaptive-assessment-item-catalog": "tsx ./scripts/db/generate-adaptive-assessment-item-catalog.ts",
     "db:assessment-item-semantic-review": "tsx ./scripts/db/generate-assessment-item-semantic-review.ts",
     "db:learning-goal-assessment-coverage": "tsx ./scripts/db/generate-learning-goal-assessment-coverage.ts",
+    "test:assessment-item-semantic-review-closure": "tsx ./scripts/tests/test-assessment-item-semantic-review-closure.ts",
     "db:resource-field-completion-audit": "tsx ./scripts/db/generate-resource-field-completion-audit.ts",
     "db:materialize-core-semantic-review": "tsx ./scripts/db/generate-resource-field-completion-audit.ts --materialize-core-semantic-review",
     "db:seed-yangfan-diagnostic-learning-state": "tsx ./scripts/db/seed-yangfan-diagnostic-learning-state.ts",
