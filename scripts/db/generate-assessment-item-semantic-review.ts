@@ -8,10 +8,7 @@ import {
 import {
   assessmentItemSemanticReviewArtifactsToFiles,
   buildAssessmentItemSemanticReviewArtifacts,
-  buildCheckpointAuthoredSemanticReviewDecisions,
-  buildKaqFoundationSemanticReviewDecisions,
-  mergeAssessmentItemSemanticReviewDecisions,
-  type AssessmentItemSemanticReviewDecision,
+  loadAssessmentItemSemanticReviewSource,
 } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
 import { CORE_RESOURCE_PATH_READINESS_REVIEW_BATCH } from '@/lib/resource-node-path-readiness-review-batch';
 
@@ -39,20 +36,6 @@ type LearningGoalResourceBaselineMatrix = {
 
 function uniqueSorted(values: Array<string | null | undefined>): string[] {
   return [...new Set(values.filter((value): value is string => Boolean(value)))].sort();
-}
-
-async function readExistingReviewSnapshots(): Promise<AssessmentItemSemanticReviewDecision[]> {
-  try {
-    const input = await readFile(SNAPSHOTS_PATH, 'utf8');
-    return input
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter(Boolean)
-      .map((line) => JSON.parse(line) as AssessmentItemSemanticReviewDecision);
-  } catch (error) {
-    if (error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT') return [];
-    throw error;
-  }
 }
 
 async function loadRegisteredSemanticIds() {
@@ -86,13 +69,7 @@ async function main() {
     icourseObjectiveBankIndexTotal: sources.icourseObjectiveBankIndexTotal,
     kaqReviewedItems: sources.kaqReviewedItems,
   });
-  const reviewedSnapshots = mergeAssessmentItemSemanticReviewDecisions(
-    await readExistingReviewSnapshots(),
-    [
-      ...buildKaqFoundationSemanticReviewDecisions(catalog.items, sources.kaqReviewedItems),
-      ...buildCheckpointAuthoredSemanticReviewDecisions(catalog.items),
-    ],
-  );
+  const reviewedSnapshots = await loadAssessmentItemSemanticReviewSource(catalog.items);
   const registeredSemanticIds = await loadRegisteredSemanticIds();
   const artifacts = buildAssessmentItemSemanticReviewArtifacts({
     items: catalog.items,

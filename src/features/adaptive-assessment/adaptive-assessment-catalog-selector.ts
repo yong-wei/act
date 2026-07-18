@@ -3,16 +3,17 @@ import path from 'node:path';
 
 import type {
   AdaptiveAssessmentCatalogItem,
-  AdaptiveAssessmentCatalogStage,
 } from './adaptive-assessment-item-catalog';
 import {
-  getAssessmentItemSemanticReviewDecisionIssues,
   type AssessmentItemSemanticReviewDecision,
 } from './adaptive-assessment-semantic-review';
 import {
   checkpointAuthoredQuestionRuntimeId,
   sourceIdFromCheckpointAuthoredQuestionRuntimeId,
 } from './learning-goal-checkpoint-question-sets';
+import {
+  evaluateAssessmentEvidenceAuthority,
+} from './assessment-evidence-authority';
 
 export type CatalogBackedAssessmentScope = 'readiness' | 'checkpoint' | 'remediation';
 
@@ -41,7 +42,9 @@ export interface AdaptiveAssessmentCatalogSnapshot {
   reviewState: AdaptiveAssessmentCatalogItem['reviewState'];
   eligibilityState: AdaptiveAssessmentCatalogItem['eligibilityState'];
   allowedStages: AdaptiveAssessmentCatalogItem['allowedStages'];
+  questionRefs: AdaptiveAssessmentCatalogItem['questionRefs'];
   semanticRefs: AdaptiveAssessmentCatalogItem['semanticRefs'];
+  limitations: AdaptiveAssessmentCatalogItem['limitations'];
   reviewDecision: AssessmentItemSemanticReviewDecision;
   versionRefs: AdaptiveAssessmentCatalogItem['versionRefs'];
   relationship: AdaptiveAssessmentCatalogItem['adaptiveAssessmentItemRef'];
@@ -86,7 +89,7 @@ function buildRuntimeCatalogArtifacts(
 ): RuntimeCatalogArtifacts {
   const decisionsByCatalogItemId = new Map(
     decisions
-      .filter((decision) => decision.decisionKind === 'human-review' && decision.outcome === 'approved')
+      .filter((decision) => decision.decisionKind === 'human-review')
       .map((decision) => [decision.catalogItemId, decision]),
   );
   const selectionsByQuestionId = new Map<string, CatalogBackedAssessmentSelection>();
@@ -131,16 +134,17 @@ function isReviewedPathEligibleSelection(
   learningGoalId: string,
   requestedStage: CatalogBackedAssessmentScope,
 ): decision is AssessmentItemSemanticReviewDecision {
+  const authority = decision
+    ? evaluateAssessmentEvidenceAuthority(item, decision, {
+        learningGoalId,
+        requestedStage,
+      })
+    : null;
   return Boolean(
     decision &&
-    item.reviewState === 'path-eligible' &&
-    item.eligibilityState === 'path-eligible' &&
-    item.sourceFamily !== 'generated-adaptive-question' &&
-    item.allowedStages.includes(requestedStage as AdaptiveAssessmentCatalogStage) &&
-    decision.selectedLearningGoalIds.includes(learningGoalId) &&
-    decisionStageMatches(decision, requestedStage) &&
-    decision.sourceContentHash === item.contentHash &&
-    getAssessmentItemSemanticReviewDecisionIssues(item, decision).length === 0,
+    authority &&
+    authority[requestedStage] &&
+    decisionStageMatches(decision, requestedStage),
   );
 }
 
@@ -234,6 +238,7 @@ export function findAdaptiveAssessmentCatalogSnapshot(
   const sourceId = sourceIdFromCheckpointAuthoredQuestionRuntimeId(questionId) ?? questionId;
   const selection = loadRuntimeCatalogArtifacts().selectionsByQuestionId.get(sourceId);
   if (!selection) return null;
+  const reviewDecision = selection.reviewDecision;
   return {
     catalogItemId: selection.catalogItem.catalogItemId,
     sourceFamily: selection.catalogItem.sourceFamily,
@@ -245,8 +250,20 @@ export function findAdaptiveAssessmentCatalogSnapshot(
     reviewState: selection.catalogItem.reviewState,
     eligibilityState: selection.catalogItem.eligibilityState,
     allowedStages: selection.catalogItem.allowedStages,
-    semanticRefs: selection.catalogItem.semanticRefs,
-    reviewDecision: selection.reviewDecision,
+    questionRefs: selection.catalogItem.questionRefs,
+    semanticRefs: {
+      ...selection.catalogItem.semanticRefs,
+      learningGoalIds: reviewDecision.selectedLearningGoalIds,
+      kaqObjectiveIds: reviewDecision.selectedKaqObjectiveIds,
+      graphNodeIds: reviewDecision.selectedGraphNodeIds,
+      misconceptionTags: reviewDecision.misconceptionRefs,
+      remediationResourceNodeIds: reviewDecision.remediationRefs,
+      difficulty: reviewDecision.difficulty ?? selection.catalogItem.semanticRefs.difficulty,
+      cognitiveLevel: reviewDecision.cognitiveLevel ?? selection.catalogItem.semanticRefs.cognitiveLevel,
+      assessmentStage: reviewDecision.selectedStagePurpose ?? selection.catalogItem.semanticRefs.assessmentStage,
+    },
+    limitations: selection.catalogItem.limitations,
+    reviewDecision,
     versionRefs: selection.catalogItem.versionRefs,
     relationship: selection.catalogItem.adaptiveAssessmentItemRef,
   };

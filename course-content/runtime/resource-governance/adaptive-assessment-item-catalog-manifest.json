@@ -1,7 +1,7 @@
 {
   "artifactVersion": "adaptive-assessment-item-catalog.v1",
-  "itemCount": 530,
-  "pathEligibleItemCount": 137,
+  "itemCount": 576,
+  "pathEligibleItemCount": 183,
   "sourceFamilies": [
     {
       "family": "preset-adaptive-question",
@@ -106,8 +106,8 @@
     {
       "family": "checkpoint-authored-question",
       "role": "item-source",
-      "sourceTotal": 87,
-      "importedTotal": 87,
+      "sourceTotal": 133,
+      "importedTotal": 133,
       "blockedTotal": 0,
       "limitationReasons": [],
       "versionRefs": {

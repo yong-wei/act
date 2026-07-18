@@ -6,6 +6,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { generateQuestion, getAdaptiveQuestionById } from '../../assessment/adaptive-engine';
 import { PRESET_QUESTIONS } from '../../assessment/adaptive-question-bank';
 import { submitAnswerDurably } from '../../assessment/adaptive-persistence';
+import { findAdaptiveAssessmentCatalogSnapshot } from '../adaptive-assessment-catalog-selector';
 import { buildKaqQuizQuestionMetadata } from '../kaq-quiz-foundation';
 import {
   checkpointAuthoredQuestionRuntimeId,
@@ -32,6 +33,46 @@ function legacyQuestionMetadataContentHash(question: typeof PRESET_QUESTIONS[num
   };
 
   return createHash('sha256').update(JSON.stringify(snapshot)).digest('hex');
+}
+
+const APPROVED_READINESS_GOAL_ID = 'time-domain-response-analysis';
+
+function approvedReadinessQuestion() {
+  const question = PRESET_QUESTIONS.find((candidate) => candidate.id === 'preset-q-05');
+  if (!question) throw new Error('missing approved readiness question preset-q-05');
+  return question;
+}
+
+function incompleteHistoricalCatalogAnswer(params: {
+  createdAt: Date;
+  answeredAt: Date;
+}) {
+  const question = approvedReadinessQuestion();
+  const currentSnapshot = findAdaptiveAssessmentCatalogSnapshot(question.id);
+  if (!currentSnapshot) throw new Error(`missing catalog snapshot for ${question.id}`);
+  const { questionRefs: _questionRefs, ...incompleteSnapshot } = currentSnapshot;
+  return {
+    id: 'answer-incomplete-catalog-history',
+    userId: 'student-quiz',
+    questionId: question.id,
+    selectedOptionKey: 'A',
+    isCorrect: true,
+    responseTimeSeconds: 28,
+    createdAt: params.createdAt,
+    answeredAt: params.answeredAt,
+    session: {
+      sessionKey: 'session-incomplete-catalog-history',
+    },
+    questionRef: {
+      difficulty: question.difficulty,
+      questionType: question.type,
+      domains: question.domains,
+      knowledgeTags: question.knowledgeTags,
+      metadata: {
+        adaptiveAssessmentItemRef: incompleteSnapshot,
+      },
+    },
+  };
 }
 
 function createMockDb(): any {
@@ -90,7 +131,7 @@ function createMockDb(): any {
 describe('K/A/Q adaptive assessment persistence', () => {
   it('persists immutable K/A/Q question metadata and governed outcome refs without raw answer bodies', async () => {
     const db = createMockDb();
-    const question = PRESET_QUESTIONS[0];
+    const question = approvedReadinessQuestion();
     const correctOptionText = question.options.find((option) => option.isCorrect)?.text;
     expect(correctOptionText).toBeTruthy();
 
@@ -102,8 +143,8 @@ describe('K/A/Q adaptive assessment persistence', () => {
       timeSpent: 32,
       pathContext: {
         pathId: 'path-quiz-1',
-        nodeId: 'adaptive-quiz:control-correction:precheck',
-        goalId: 'control-correction',
+        nodeId: 'adaptive-quiz:time-domain-response-analysis:precheck',
+        goalId: APPROVED_READINESS_GOAL_ID,
         routeIntent: 'path-execution',
         questionScope: 'readiness',
       },
@@ -116,7 +157,7 @@ describe('K/A/Q adaptive assessment persistence', () => {
     expect(itemRefCreate.contentHash).toBe(itemRefWhere.contentHash);
     expect(itemRefCreate.metadata).toMatchObject({
       kaq: expect.objectContaining({
-        learningGoalIds: expect.arrayContaining(['control-correction']),
+        learningGoalIds: expect.arrayContaining([APPROVED_READINESS_GOAL_ID]),
         knowledgeNodeIds: expect.any(Array),
         capabilityTargetIds: expect.any(Array),
         qualityTargetIds: expect.any(Array),
@@ -141,12 +182,12 @@ describe('K/A/Q adaptive assessment persistence', () => {
         reviewState: 'path-eligible',
         eligibilityState: 'path-eligible',
         semanticRefs: expect.objectContaining({
-          learningGoalIds: expect.arrayContaining(['control-correction']),
+          learningGoalIds: expect.arrayContaining([APPROVED_READINESS_GOAL_ID]),
         }),
         reviewDecision: expect.objectContaining({
           decisionKind: 'human-review',
           outcome: 'approved',
-          selectedLearningGoalIds: expect.arrayContaining(['control-correction']),
+          selectedLearningGoalIds: expect.arrayContaining([APPROVED_READINESS_GOAL_ID]),
         }),
         relationship: expect.objectContaining({
           relationship: 'answer-time-snapshot',
@@ -189,7 +230,7 @@ describe('K/A/Q adaptive assessment persistence', () => {
     expect(factPayload).toMatchObject({
       questionSnapshotId: expect.stringMatching(/^question-snapshot:/),
       quizSetId: expect.stringMatching(/^kaq-quiz-set:/),
-      attemptKey: 'session-quiz:preset-q-01',
+      attemptKey: 'session-quiz:preset-q-05',
       scoringVersion: 'adaptive-assessment-bkt-v1',
       denominator: 1,
       retryPolicy: expect.objectContaining({
@@ -198,7 +239,7 @@ describe('K/A/Q adaptive assessment persistence', () => {
       eventSource: 'adaptive_assessment',
       eventType: 'answer_submit',
       sourceLogId: 'adaptive-assessment:answer-quiz-1',
-      dedupeKey: 'adaptive-assessment:session-quiz:preset-q-01',
+      dedupeKey: 'adaptive-assessment:session-quiz:preset-q-05',
       learningFactEligible: true,
       readinessGateEligible: true,
       terminalValidationEligible: true,
@@ -212,9 +253,9 @@ describe('K/A/Q adaptive assessment persistence', () => {
     expect(JSON.stringify(factPayload)).not.toContain(correctOptionText!);
   });
 
-  it('does not promote catalog-backed answers without verified path context', async () => {
+  it('does not promote catalog-backed answers to path completion without verified path context', async () => {
     const db = createMockDb();
-    const question = PRESET_QUESTIONS[0];
+    const question = approvedReadinessQuestion();
     const correctOptionText = question.options.find((option) => option.isCorrect)?.text;
     expect(correctOptionText).toBeTruthy();
 
@@ -233,13 +274,13 @@ describe('K/A/Q adaptive assessment persistence', () => {
       readinessGateEligible: false,
       terminalValidationEligible: false,
       pathCompletionEligible: false,
-      evidenceAuthority: 'legacy-compatible',
+      evidenceAuthority: 'path-assessment',
     });
   });
 
   it('does not promote catalog-backed answers when the server path scope does not match the item snapshot', async () => {
     const db = createMockDb();
-    const question = PRESET_QUESTIONS[0];
+    const question = approvedReadinessQuestion();
     const correctOptionText = question.options.find((option) => option.isCorrect)?.text;
     expect(correctOptionText).toBeTruthy();
 
@@ -356,7 +397,7 @@ describe('K/A/Q adaptive assessment persistence', () => {
 
   it('excludes historical provisional answers from reviewed mastery rebuilds', async () => {
     const db = createMockDb();
-    const question = PRESET_QUESTIONS[0];
+    const question = approvedReadinessQuestion();
     const correctOptionText = question.options.find((option) => option.isCorrect)?.text;
     expect(correctOptionText).toBeTruthy();
     db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([{
@@ -392,8 +433,8 @@ describe('K/A/Q adaptive assessment persistence', () => {
       timeSpent: 32,
       pathContext: {
         pathId: 'path-quiz-1',
-        nodeId: 'adaptive-quiz:control-correction:precheck',
-        goalId: 'control-correction',
+        nodeId: 'adaptive-quiz:time-domain-response-analysis:precheck',
+        goalId: APPROVED_READINESS_GOAL_ID,
         routeIntent: 'path-execution',
         questionScope: 'readiness',
       },
@@ -415,9 +456,9 @@ describe('K/A/Q adaptive assessment persistence', () => {
     ))).toBe(true);
   });
 
-  it('keeps legacy preset answers in reviewed mastery rebuild history', async () => {
+  it('keeps legacy preset answers without catalog snapshots out of mastery rebuild history', async () => {
     const db = createMockDb();
-    const question = PRESET_QUESTIONS[0];
+    const question = approvedReadinessQuestion();
     const correctOptionText = question.options.find((option) => option.isCorrect)?.text;
     expect(correctOptionText).toBeTruthy();
     db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([{
@@ -448,8 +489,42 @@ describe('K/A/Q adaptive assessment persistence', () => {
       timeSpent: 32,
       pathContext: {
         pathId: 'path-quiz-1',
-        nodeId: 'adaptive-quiz:control-correction:precheck',
-        goalId: 'control-correction',
+        nodeId: 'adaptive-quiz:time-domain-response-analysis:precheck',
+        goalId: APPROVED_READINESS_GOAL_ID,
+        routeIntent: 'path-execution',
+        questionScope: 'readiness',
+      },
+    }, db);
+
+    const masteryRows = db.adaptiveMasteryUpdate.createMany.mock.calls[0][0].data;
+    expect(masteryRows.length).toBeGreaterThan(0);
+    expect(masteryRows.every((row: { answerId: string; priorMastery: number }) => (
+      row.answerId === 'answer-quiz-1' && row.priorMastery === 0.35
+    ))).toBe(true);
+  });
+
+  it('includes a truly pre-cutoff incomplete snapshot in historical mastery rebuilds', async () => {
+    const db = createMockDb();
+    const question = approvedReadinessQuestion();
+    const correctOptionText = question.options.find((option) => option.isCorrect)?.text;
+    expect(correctOptionText).toBeTruthy();
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([
+      incompleteHistoricalCatalogAnswer({
+        createdAt: new Date('2026-07-03T23:59:59.998Z'),
+        answeredAt: new Date('2026-07-03T23:59:59.999Z'),
+      }),
+    ]);
+
+    await submitAnswerDurably({
+      userId: 'student-quiz',
+      sessionId: 'session-quiz',
+      questionId: question.id,
+      selectedOption: correctOptionText!,
+      timeSpent: 32,
+      pathContext: {
+        pathId: 'path-quiz-1',
+        nodeId: 'adaptive-quiz:time-domain-response-analysis:precheck',
+        goalId: APPROVED_READINESS_GOAL_ID,
         routeIntent: 'path-execution',
         questionScope: 'readiness',
       },
@@ -459,6 +534,42 @@ describe('K/A/Q adaptive assessment persistence', () => {
     expect(masteryRows.length).toBeGreaterThan(0);
     expect(masteryRows.every((row: { answerId: string; priorMastery: number }) => (
       row.answerId === 'answer-quiz-1' && row.priorMastery > 0.35
+    ))).toBe(true);
+  });
+
+  it.each([
+    ['post-cutoff answeredAt', new Date('2026-07-03T23:59:59.999Z'), new Date('2026-07-04T00:00:00.001Z')],
+    ['exact-cutoff createdAt', new Date('2026-07-04T00:00:00.000Z'), new Date('2026-07-03T23:59:59.999Z')],
+    ['exact-cutoff answeredAt', new Date('2026-07-03T23:59:59.999Z'), new Date('2026-07-04T00:00:00.000Z')],
+    ['invalid createdAt', new Date('invalid'), new Date('2026-07-03T23:59:59.999Z')],
+    ['invalid answeredAt', new Date('2026-07-03T23:59:59.999Z'), new Date('invalid')],
+  ])('rejects incomplete snapshot mastery rebuild recovery with %s', async (_label, createdAt, answeredAt) => {
+    const db = createMockDb();
+    const question = approvedReadinessQuestion();
+    const correctOptionText = question.options.find((option) => option.isCorrect)?.text;
+    expect(correctOptionText).toBeTruthy();
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([
+      incompleteHistoricalCatalogAnswer({ createdAt, answeredAt }),
+    ]);
+
+    await submitAnswerDurably({
+      userId: 'student-quiz',
+      sessionId: 'session-quiz',
+      questionId: question.id,
+      selectedOption: correctOptionText!,
+      timeSpent: 32,
+      pathContext: {
+        pathId: 'path-quiz-1',
+        nodeId: 'adaptive-quiz:time-domain-response-analysis:precheck',
+        goalId: APPROVED_READINESS_GOAL_ID,
+        routeIntent: 'path-execution',
+        questionScope: 'readiness',
+      },
+    }, db);
+
+    const masteryRows = db.adaptiveMasteryUpdate.createMany.mock.calls[0][0].data;
+    expect(masteryRows.every((row: { answerId: string; priorMastery: number }) => (
+      row.answerId === 'answer-quiz-1' && row.priorMastery === 0.35
     ))).toBe(true);
   });
 

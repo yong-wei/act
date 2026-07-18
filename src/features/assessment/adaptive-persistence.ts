@@ -13,6 +13,12 @@ import {
   findAdaptiveAssessmentCatalogSnapshot,
   type AdaptiveAssessmentCatalogSnapshot,
 } from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
+import {
+  evaluateAssessmentEvidenceSnapshotAuthority,
+  evaluateAssessmentEvidenceSnapshotWithCurrentCatalogAuthority,
+  isAssessmentSnapshotBeforeEnforcementEpoch,
+  type AssessmentEvidenceCatalogSnapshot,
+} from '@/features/adaptive-assessment/assessment-evidence-authority';
 
 import {
   buildSubmitAnswerResult,
@@ -50,6 +56,7 @@ type PersistedAssessmentAnswerRow = {
   selectedOptionKey?: string;
   isCorrect: boolean;
   responseTimeSeconds?: number;
+  createdAt?: Date;
   answeredAt: Date;
   session?: {
     id?: string;
@@ -222,7 +229,9 @@ function buildAdaptiveAssessmentItemRefMetadata(params: {
       reviewState: params.catalogSnapshot.reviewState,
       eligibilityState: params.catalogSnapshot.eligibilityState,
       allowedStages: params.catalogSnapshot.allowedStages,
+      questionRefs: params.catalogSnapshot.questionRefs,
       semanticRefs: params.catalogSnapshot.semanticRefs,
+      limitations: params.catalogSnapshot.limitations,
       reviewDecision: params.catalogSnapshot.reviewDecision,
       versionRefs: params.catalogSnapshot.versionRefs,
       relationship: params.catalogSnapshot.relationship,
@@ -258,18 +267,23 @@ function buildAdaptiveAssessmentOutcomeRef(params: {
   kaqQuizEvidence: ReturnType<typeof materializeKaqQuizOutcomeEvidence>;
 }): AdaptiveAssessmentOutcomeRef {
   const catalogSnapshot = params.catalogSnapshot;
+  const requestedStage = pathContextCatalogStage(params.details.pathContext);
+  const authority = evaluateAssessmentEvidenceSnapshotAuthority(catalogSnapshot, {
+    learningGoalId: params.details.pathContext?.goalId,
+    requestedStage,
+  });
   const reviewState = catalogSnapshot
     ? 'reviewed'
     : params.kaqQuizEvidence.learningFactEligible
       ? 'legacy'
       : 'provisional';
-  const pathAssessmentEligible = catalogSnapshot !== null &&
-    catalogSnapshot.reviewState === 'path-eligible' &&
-    catalogSnapshot.eligibilityState === 'path-eligible' &&
+  const pathAssessmentEligible = requestedStage !== null &&
+    catalogSnapshot !== null &&
+    authority[requestedStage] &&
     catalogSnapshotMatchesPathContext(catalogSnapshot, params.details.pathContext);
-  const readinessGateEligible = pathAssessmentEligible &&
+  const readinessGateEligible = requestedStage === 'readiness' && pathAssessmentEligible &&
     params.kaqQuizEvidence.readinessGateEligible;
-  const terminalValidationEligible = pathAssessmentEligible &&
+  const terminalValidationEligible = authority.terminalValidation &&
     params.kaqQuizEvidence.terminalValidationEligible;
 
   return {
@@ -292,11 +306,21 @@ function buildAdaptiveAssessmentOutcomeRef(params: {
     readinessGateEligible,
     terminalValidationEligible,
     pathCompletionEligible: pathAssessmentEligible,
-    evidenceAuthority: pathAssessmentEligible ? 'path-assessment' :
+    evidenceAuthority: authority.mastery ? 'path-assessment' :
       params.kaqQuizEvidence.learningFactEligible ? 'legacy-compatible' : 'low-stakes-practice-only',
     algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
     answeredAt: params.answeredAt.toISOString(),
   };
+}
+
+function pathContextCatalogStage(
+  pathContext: SubmittedAnswerDetails['pathContext'],
+): 'readiness' | 'checkpoint' | 'remediation' | null {
+  return pathContext?.questionScope === 'readiness' ||
+    pathContext?.questionScope === 'checkpoint' ||
+    pathContext?.questionScope === 'remediation'
+    ? pathContext.questionScope
+    : null;
 }
 
 function catalogSnapshotMatchesPathContext(
@@ -359,12 +383,19 @@ function toRecord(value: unknown): Record<string, unknown> {
 
 function isMasteryEligiblePersistedAnswer(row: PersistedAssessmentAnswerRow): boolean {
   const kaqMetadata = toRecord(toRecord(row.questionRef?.metadata).kaq);
-  const review = toRecord(kaqMetadata.review);
   if (kaqMetadata.learningFactEligible === false) return false;
-  if (Object.keys(kaqMetadata).length === 0) {
-    return row.questionId.startsWith('preset-q-');
-  }
-  return review.state === 'reviewed';
+  const snapshot = toRecord(toRecord(row.questionRef?.metadata).adaptiveAssessmentItemRef);
+  const persistedSnapshot = snapshot as unknown as AssessmentEvidenceCatalogSnapshot;
+  return evaluateAssessmentEvidenceSnapshotWithCurrentCatalogAuthority(
+    persistedSnapshot,
+    findAdaptiveAssessmentCatalogSnapshot(row.questionId),
+    {
+      allowHistoricalIncompleteSnapshotRecovery: isAssessmentSnapshotBeforeEnforcementEpoch(
+        row.createdAt,
+        row.answeredAt,
+      ),
+    },
+  ).mastery;
 }
 
 function abilityConfidenceInterval(theta: number, answerCount: number): [number, number] {
@@ -798,7 +829,10 @@ async function persistAdaptiveAssessmentSubmission(
     scoringVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
     occurredAt: answeredAt.toISOString(),
   });
-  if (!kaqQuizEvidence.learningFactEligible) {
+  const evidenceAuthority = evaluateAssessmentEvidenceSnapshotAuthority(catalogSnapshot, {
+    learningGoalId: effectiveDetails.pathContext?.goalId,
+  });
+  if (!kaqQuizEvidence.learningFactEligible || !evidenceAuthority.mastery) {
     return {
       durableSessionId: session.id,
       durableAnswerId: answer.id,

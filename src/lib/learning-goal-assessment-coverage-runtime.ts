@@ -5,7 +5,7 @@ import type { LearningGoalAssessmentCoverageMatrixRow } from '@/features/adaptiv
 
 type PlannerLearningGoalAssessmentCoverage = NonNullable<AdaptiveLearningPathGraphContextInput['assessmentCoverage']>;
 
-const matrix = learningGoalAssessmentCoverageMatrix as {
+const matrix = learningGoalAssessmentCoverageMatrix as unknown as {
   artifactVersion?: string;
   generatedAt?: string;
   rows?: LearningGoalAssessmentCoverageMatrixRow[];

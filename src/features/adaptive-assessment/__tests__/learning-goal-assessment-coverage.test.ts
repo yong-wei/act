@@ -8,8 +8,7 @@ import {
   loadAdaptiveAssessmentCatalogSources,
 } from '../adaptive-assessment-item-catalog';
 import {
-  buildCheckpointAuthoredSemanticReviewDecisions,
-  buildKaqFoundationSemanticReviewDecisions,
+  loadAssessmentItemSemanticReviewSource,
 } from '../adaptive-assessment-semantic-review';
 import {
   buildLearningGoalAssessmentCoverageArtifacts,
@@ -42,10 +41,7 @@ describe('LearningGoal assessment coverage', () => {
       icourseObjectiveBankIndexTotal: sources.icourseObjectiveBankIndexTotal,
       kaqReviewedItems: sources.kaqReviewedItems,
     });
-    const decisions = [
-      ...buildKaqFoundationSemanticReviewDecisions(catalog.items, sources.kaqReviewedItems),
-      ...buildCheckpointAuthoredSemanticReviewDecisions(catalog.items),
-    ];
+    const decisions = await loadAssessmentItemSemanticReviewSource(catalog.items);
     const decisionStageByItemId = new Map(decisions.map((decision) => [
       decision.catalogItemId,
       decision.selectedStagePurpose === 'readiness-gate' || decision.selectedStagePurpose === 'precheck'
@@ -67,7 +63,7 @@ describe('LearningGoal assessment coverage', () => {
       learningGoalCount: 9,
       complete: 9,
       limited: 0,
-      reviewedPathEligibleItemCount: 137,
+      reviewedPathEligibleItemCount: 135,
     });
     for (const row of artifacts.matrix.rows) {
       expect(row.assessmentCoverageState).toBe('complete');
@@ -187,7 +183,7 @@ describe('LearningGoal assessment coverage', () => {
       icourseObjectiveBankIndexTotal: sources.icourseObjectiveBankIndexTotal,
       kaqReviewedItems: sources.kaqReviewedItems,
     });
-    const validDecision = buildCheckpointAuthoredSemanticReviewDecisions(catalog.items)
+    const validDecision = (await loadAssessmentItemSemanticReviewSource(catalog.items))
       .find((decision) => decision.selectedLearningGoalIds.includes(goals()[0].id));
     expect(validDecision).toBeDefined();
     const item = catalog.items.find((candidate) => candidate.catalogItemId === validDecision!.catalogItemId);
@@ -234,7 +230,7 @@ describe('LearningGoal assessment coverage', () => {
       icourseObjectiveBankIndexTotal: sources.icourseObjectiveBankIndexTotal,
       kaqReviewedItems: sources.kaqReviewedItems,
     });
-    const validDecision = buildCheckpointAuthoredSemanticReviewDecisions(catalog.items)
+    const validDecision = (await loadAssessmentItemSemanticReviewSource(catalog.items))
       .find((decision) => decision.selectedLearningGoalIds.includes(goals()[0].id));
     expect(validDecision).toBeDefined();
     const item = catalog.items.find((candidate) => candidate.catalogItemId === validDecision!.catalogItemId);
