@@ -1,0 +1,275 @@
+{
+  "lesson_id": "1-5",
+  "reviewer": "course-pedagogy-reviewer",
+  "batch": "unit-1-5-content-clearance-2026-07-16-1905",
+  "time": "2026-07-16T11:05:14.000Z",
+  "model": "gpt-5.6-sol",
+  "status": "cleared",
+  "review_status": "model-cleared",
+  "independent_evidence_ref": "course-content/runtime/lessons/1-5/review/review-report.md",
+  "reviewed_resources": [
+    {
+      "resourceId": "runtime-handout:1-5",
+      "sourcePath": "course-content/runtime/lessons/1-5/1-5-handout.md",
+      "sourceHash": "sha256:5c369d346a34ea118e793b05738f2ae5a5b1dd0617023c04c652666873aeb2b3",
+      "sourceVersionRef": "runtime-handout.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "三域证据链_1_5",
+          "临界增益与虚轴极点_1_5",
+          "增益扫描稳定区间_1_5",
+          "时域响应_1_1",
+          "极点_1_2",
+          "速度指标分辨_1_5"
+        ],
+        "capability": [
+          "controlModeling"
+        ],
+        "quality": []
+      },
+      "pathTarget": "/course-runtime/lessons/1-5/1-5-handout.pdf",
+      "currentPathEligible": false,
+      "rationale": "课程领域复审确认单元 1-5 讲义的数学推导、习题答案、术语、图谱引用与媒体链接正确；作者态、PDF 与 runtime 内容一致。"
+    },
+    {
+      "resourceId": "runtime-media:1-5:1-5-cover-comic.png",
+      "sourcePath": "course-content/runtime/lessons/1-5/media/1-5-cover-comic.png",
+      "sourceHash": "sha256:bd84ff31eb68533accfc5c3e736704708ff12496964f3c5649ac3ae66b804f6a",
+      "sourceVersionRef": "runtime-lesson-media.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "三域证据链_1_5",
+          "临界增益与虚轴极点_1_5",
+          "增益扫描稳定区间_1_5",
+          "时域响应_1_1",
+          "极点_1_2",
+          "速度指标分辨_1_5"
+        ],
+        "capability": [],
+        "quality": []
+      },
+      "pathTarget": "/course-runtime/lessons/1-5/media/1-5-cover-comic.png",
+      "currentPathEligible": false,
+      "rationale": "课程领域复审确认单元 1-5 图像 1-5-cover-comic.png 的曲线、坐标、公式与文字标注符合讲义结论，未发现误导性表达。"
+    },
+    {
+      "resourceId": "runtime-media:1-5:1-5-fig-01-three-domain-k3.png",
+      "sourcePath": "course-content/runtime/lessons/1-5/media/1-5-fig-01-three-domain-k3.png",
+      "sourceHash": "sha256:8250abebabf5e6c85c0a76078c9799b7474648a33e2095319a7a7703dc260653",
+      "sourceVersionRef": "runtime-lesson-media.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "三域证据链_1_5",
+          "临界增益与虚轴极点_1_5",
+          "增益扫描稳定区间_1_5",
+          "时域响应_1_1",
+          "极点_1_2",
+          "速度指标分辨_1_5"
+        ],
+        "capability": [],
+        "quality": []
+      },
+      "pathTarget": "/course-runtime/lessons/1-5/media/1-5-fig-01-three-domain-k3.png",
+      "currentPathEligible": false,
+      "rationale": "课程领域复审确认单元 1-5 图像 1-5-fig-01-three-domain-k3.png 的曲线、坐标、公式与文字标注符合讲义结论，未发现误导性表达。"
+    },
+    {
+      "resourceId": "runtime-media:1-5:1-5-fig-02-three-domain-k12.png",
+      "sourcePath": "course-content/runtime/lessons/1-5/media/1-5-fig-02-three-domain-k12.png",
+      "sourceHash": "sha256:2e3ab920a1c8aef4118ffec96fe421b6b1f4bb6b20d54ef7cda8fa2294355885",
+      "sourceVersionRef": "runtime-lesson-media.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "三域证据链_1_5",
+          "临界增益与虚轴极点_1_5",
+          "增益扫描稳定区间_1_5",
+          "时域响应_1_1",
+          "极点_1_2",
+          "速度指标分辨_1_5"
+        ],
+        "capability": [],
+        "quality": []
+      },
+      "pathTarget": "/course-runtime/lessons/1-5/media/1-5-fig-02-three-domain-k12.png",
+      "currentPathEligible": false,
+      "rationale": "课程领域复审确认单元 1-5 图像 1-5-fig-02-three-domain-k12.png 的曲线、坐标、公式与文字标注符合讲义结论，未发现误导性表达。"
+    },
+    {
+      "resourceId": "runtime-media:1-5:1-5-fig-03-step-k24-k36.png",
+      "sourcePath": "course-content/runtime/lessons/1-5/media/1-5-fig-03-step-k24-k36.png",
+      "sourceHash": "sha256:be298af8a09b0c2a38e7a2c0044e3fb843712b035898590281efbd804766009e",
+      "sourceVersionRef": "runtime-lesson-media.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "三域证据链_1_5",
+          "临界增益与虚轴极点_1_5",
+          "增益扫描稳定区间_1_5",
+          "时域响应_1_1",
+          "极点_1_2",
+          "速度指标分辨_1_5"
+        ],
+        "capability": [],
+        "quality": []
+      },
+      "pathTarget": "/course-runtime/lessons/1-5/media/1-5-fig-03-step-k24-k36.png",
+      "currentPathEligible": false,
+      "rationale": "课程领域复审确认单元 1-5 图像 1-5-fig-03-step-k24-k36.png 的曲线、坐标、公式与文字标注符合讲义结论，未发现误导性表达。"
+    },
+    {
+      "resourceId": "runtime-media:1-5:1-5-fig-04-critical-k42.png",
+      "sourcePath": "course-content/runtime/lessons/1-5/media/1-5-fig-04-critical-k42.png",
+      "sourceHash": "sha256:032e25db4e81f4f3278b913dce2a9d11a4add1d24aa2b42795899a79b2ae5900",
+      "sourceVersionRef": "runtime-lesson-media.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "三域证据链_1_5",
+          "临界增益与虚轴极点_1_5",
+          "增益扫描稳定区间_1_5",
+          "时域响应_1_1",
+          "极点_1_2",
+          "速度指标分辨_1_5"
+        ],
+        "capability": [],
+        "quality": []
+      },
+      "pathTarget": "/course-runtime/lessons/1-5/media/1-5-fig-04-critical-k42.png",
+      "currentPathEligible": false,
+      "rationale": "课程领域复审确认单元 1-5 图像 1-5-fig-04-critical-k42.png 的曲线、坐标、公式与文字标注符合讲义结论，未发现误导性表达。"
+    },
+    {
+      "resourceId": "runtime-media:1-5:1-5-fig-05-sweep-summary.png",
+      "sourcePath": "course-content/runtime/lessons/1-5/media/1-5-fig-05-sweep-summary.png",
+      "sourceHash": "sha256:44472a2b470b401ea62e74626529f687dd12610e0603e589f0912a418da49d0e",
+      "sourceVersionRef": "runtime-lesson-media.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "三域证据链_1_5",
+          "临界增益与虚轴极点_1_5",
+          "增益扫描稳定区间_1_5",
+          "时域响应_1_1",
+          "极点_1_2",
+          "速度指标分辨_1_5"
+        ],
+        "capability": [],
+        "quality": []
+      },
+      "pathTarget": "/course-runtime/lessons/1-5/media/1-5-fig-05-sweep-summary.png",
+      "currentPathEligible": false,
+      "rationale": "课程领域复审确认单元 1-5 图像 1-5-fig-05-sweep-summary.png 的曲线、坐标、公式与文字标注符合讲义结论，未发现误导性表达。"
+    },
+    {
+      "resourceId": "runtime-media:1-5:1-5-info.png",
+      "sourcePath": "course-content/runtime/lessons/1-5/media/1-5-info.png",
+      "sourceHash": "sha256:dc66a380be74db41e3b192597b6f73b976971f8d074deca59e4d962c27643e07",
+      "sourceVersionRef": "runtime-lesson-media.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "三域证据链_1_5",
+          "临界增益与虚轴极点_1_5",
+          "增益扫描稳定区间_1_5",
+          "时域响应_1_1",
+          "极点_1_2",
+          "速度指标分辨_1_5"
+        ],
+        "capability": [],
+        "quality": []
+      },
+      "pathTarget": "/course-runtime/lessons/1-5/media/1-5-info.png",
+      "currentPathEligible": false,
+      "rationale": "课程领域复审确认单元 1-5 图像 1-5-info.png 的曲线、坐标、公式与文字标注符合讲义结论，未发现误导性表达。"
+    },
+    {
+      "resourceId": "runtime-media:1-5:generated-data/1-5-analysis-metrics.txt",
+      "sourcePath": "course-content/runtime/lessons/1-5/media/generated-data/1-5-analysis-metrics.txt",
+      "sourceHash": "sha256:d3d9b255dd7ae9f0597f6d83e7c715028dc7f9fba9d757125fba50663781be95",
+      "sourceVersionRef": "runtime-lesson-media.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "三域证据链_1_5",
+          "临界增益与虚轴极点_1_5",
+          "增益扫描稳定区间_1_5",
+          "时域响应_1_1",
+          "极点_1_2",
+          "速度指标分辨_1_5"
+        ],
+        "capability": [],
+        "quality": []
+      },
+      "pathTarget": "/course-runtime/lessons/1-5/media/generated-data/1-5-analysis-metrics.txt",
+      "currentPathEligible": false,
+      "rationale": "课程领域复审确认单元 1-5 计算数据 1-5-analysis-metrics.txt 与 Octave 图形及讲义中的确定性数值一致。"
+    },
+    {
+      "resourceId": "knowledge-card:三域证据链_1_5",
+      "sourcePath": "course-content/runtime/knowledge/cards/nodes/三域证据链_1_5.md",
+      "sourceHash": "sha256:cf9e9deb3179e189548288bba3882cd8041b8a899b42ae7538e24bef2ec27e37",
+      "sourceVersionRef": "runtime-knowledge-card.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "三域证据链_1_5"
+        ],
+        "capability": [
+          "controlModeling"
+        ],
+        "quality": []
+      },
+      "pathTarget": null,
+      "currentPathEligible": false,
+      "rationale": "已核对知识卡“闭环极点、阶跃响应与环路裕度证据链”的定义、公式、误区说明及其与单元 1-5 知识图谱节点的一致性；该卡作为知识查阅入口，不直接提升为当前学习路径节点。"
+    },
+    {
+      "resourceId": "knowledge-card:临界增益与虚轴极点_1_5",
+      "sourcePath": "course-content/runtime/knowledge/cards/nodes/临界增益与虚轴极点_1_5.md",
+      "sourceHash": "sha256:249a0e799b2734281aea271f5e3dcc0d870634138332c246e5657b5b2c94bb0f",
+      "sourceVersionRef": "runtime-knowledge-card.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "临界增益与虚轴极点_1_5"
+        ],
+        "capability": [
+          "controlModeling"
+        ],
+        "quality": []
+      },
+      "pathTarget": null,
+      "currentPathEligible": false,
+      "rationale": "已核对知识卡“临界增益与虚轴极点”的定义、公式、误区说明及其与单元 1-5 知识图谱节点的一致性；该卡作为知识查阅入口，不直接提升为当前学习路径节点。"
+    },
+    {
+      "resourceId": "knowledge-card:增益扫描稳定区间_1_5",
+      "sourcePath": "course-content/runtime/knowledge/cards/nodes/增益扫描稳定区间_1_5.md",
+      "sourceHash": "sha256:951b1c3af41422ef7b7b6076e05baaf5f40723ad69333f27fd2bf66419ad4d74",
+      "sourceVersionRef": "runtime-knowledge-card.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "增益扫描稳定区间_1_5"
+        ],
+        "capability": [
+          "controlModeling"
+        ],
+        "quality": []
+      },
+      "pathTarget": null,
+      "currentPathEligible": false,
+      "rationale": "已核对知识卡“增益扫描中的稳定区间”的定义、公式、误区说明及其与单元 1-5 知识图谱节点的一致性；该卡作为知识查阅入口，不直接提升为当前学习路径节点。"
+    },
+    {
+      "resourceId": "knowledge-card:速度指标分辨_1_5",
+      "sourcePath": "course-content/runtime/knowledge/cards/nodes/速度指标分辨_1_5.md",
+      "sourceHash": "sha256:2a56bdcaed68338c99b5378cfc8c6968cfe093713643d278021f901ac8f92203",
+      "sourceVersionRef": "runtime-knowledge-card.v1",
+      "graphNodeRefs": {
+        "knowledge": [
+          "速度指标分辨_1_5"
+        ],
+        "capability": [
+          "controlModeling"
+        ],
+        "quality": []
+      },
+      "pathTarget": null,
+      "currentPathEligible": false,
+      "rationale": "已核对知识卡“上升速度、收敛速度与环路频率尺度”的定义、公式、误区说明及其与单元 1-5 知识图谱节点的一致性；该卡作为知识查阅入口，不直接提升为当前学习路径节点。"
+    }
+  ]
+}

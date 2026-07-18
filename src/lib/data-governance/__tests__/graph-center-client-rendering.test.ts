@@ -646,6 +646,9 @@ describe('graph center client surface', () => {
           missingField: 2,
           provisional: 1,
           humanConfirmed: 1,
+          agentReviewed: 0,
+          reviewConcluded: 1,
+          semanticReviewed: 1,
           citationReady: 1,
           pathEligible: 1,
           blocked: 1,
@@ -943,9 +946,9 @@ function buildFullCoverageRegistry() {
     ],
     arenaTasks: [
       {
-        id: 'full-coverage-arena-preview',
+        id: 'task-ship-roll-comfort',
         title: 'Full coverage Arena preview',
-        launchTarget: '/arena/full-coverage-preview',
+        launchTarget: '/arena/challenges/task-ship-roll-comfort',
         knowledgeNodeIds: ['PID控制器_6_656b8b52'],
         official: false,
         planningOverride: {
@@ -954,9 +957,9 @@ function buildFullCoverageRegistry() {
         },
       },
       {
-        id: 'full-coverage-arena-official',
+        id: 'task-second-order-lead-pid',
         title: 'Full coverage Arena official',
-        launchTarget: '/arena/full-coverage-official',
+        launchTarget: '/arena/challenges/task-second-order-lead-pid',
         knowledgeNodeIds: ['PID控制器_6_656b8b52'],
         official: true,
         planningOverride: {

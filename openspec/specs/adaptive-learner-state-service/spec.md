@@ -17,11 +17,14 @@ The system SHALL provide a server-owned Learner State Service for adaptive-learn
 - **AND** authoritative adaptive state SHALL come from the Learner State Service.
 
 ### Requirement: Learner state retains and extends competency dimensions
-The system SHALL retain the current six primary competency dimensions while adding second-level dimensions.
+The system SHALL expose portrait v2 as the primary learner portrait dimensions
+while retaining legacy six-dimensional competency values only as
+compatibility or migration metadata.
 
 #### Scenario: Learner state is returned
-- **WHEN** learner state is read
-- **THEN** it SHALL include `controlModeling`, `parameterDesign`, `crossDomainTransfer`, `engineeringDecision`, `inquiryReflection`, and `selfDirectedLearning`
+- **WHEN** learner state is read after portrait v2 is available
+- **THEN** it SHALL include the seven portrait v2 dimensions as the primary learner portrait
+- **AND** any `controlModeling`, `parameterDesign`, `crossDomainTransfer`, `engineeringDecision`, `inquiryReflection`, or `selfDirectedLearning` values SHALL be marked as legacy compatibility or migration inputs rather than primary dimensions.
 - **AND** it SHALL include second-level dimensions for concept mastery, time/frequency transfer, modeling reliability, tuning efficiency, constrained optimization, solution stability, cross-modal transfer, scenario generalization, risk recognition, constraint compliance, explanation quality, AI-use strategy, reflection depth, path execution, persistence, and remedial initiative where evidence exists.
 
 ### Requirement: Learner-state fields are quantified and scoped
@@ -112,3 +115,122 @@ The Learner State Service SHALL distinguish an unavailable service from an avail
 - **WHEN** learner-state is requested for a goal that has no active path for the learner
 - **THEN** the service SHALL return an explicit no-active-path state
 - **AND** consumers SHALL be able to distinguish it from path read failure.
+
+### Requirement: Learner portrait state uses portrait v2 as primary model
+The learner-state service SHALL expose a canonical seven-dimensional portrait
+v2 payload as the primary learner portrait.
+
+#### Scenario: Portrait v2 state is read
+- **WHEN** the learner-state service returns current portrait data
+- **THEN** it SHALL include all seven portrait v2 dimensions with score, confidence, freshness, evidence counts, source lineage, and calculation version
+- **AND** it SHALL identify any migrated legacy values with limitation metadata.
+
+#### Scenario: Legacy portrait state exists
+- **WHEN** only legacy six-dimensional snapshot data exists for a learner
+- **THEN** the service MAY derive portrait v2 compatibility values
+- **AND** it SHALL mark the result as migrated or compatibility-derived rather than native portrait v2 evidence.
+
+### Requirement: Portrait source lineage is privacy scoped
+The learner-state service SHALL keep portrait source lineage auditable without
+leaking raw or unauthorized evidence to learner-facing or AI-facing consumers.
+
+#### Scenario: Learner-facing portrait is returned
+- **WHEN** portrait v2 data is returned to a student-facing profile, Konling, or planner consumer
+- **THEN** source lineage SHALL be redacted to allowed evidence-family, citation, aggregate, or hashed refs
+- **AND** raw source payloads, teacher-scoped refs, private fixture refs, and migration-source snapshot ids SHALL NOT be exposed unless the caller is authorized for that evidence scope.
+
+#### Scenario: Reviewer or administrator audits lineage
+- **WHEN** an authorized reviewer or administrator requests audit details
+- **THEN** the system MAY expose richer lineage metadata
+- **AND** the response SHALL still respect role scope, privacy minimization, and export boundaries.
+
+### Requirement: Learner portrait updates are stable and incremental
+The learner portrait update engine SHALL treat portrait data as long-term state
+that is incrementally corrected by new governed evidence.
+
+#### Scenario: No new evidence is available
+- **WHEN** a learner has an existing portrait v2 state
+- **AND** no new governed evidence affects a dimension
+- **THEN** the dimension score SHALL be preserved
+- **AND** confidence or freshness MAY change according to a documented aging policy.
+
+#### Scenario: Sparse evidence affects one dimension
+- **WHEN** new evidence affects only one portrait dimension
+- **THEN** only that dimension SHALL receive a score update
+- **AND** unrelated dimensions SHALL NOT be reset to zero.
+
+#### Scenario: Negative evidence is processed
+- **WHEN** governed evidence explicitly indicates failure, misconception, unsafe action, or low-quality work
+- **THEN** affected dimensions MAY decrease through a bounded update
+- **AND** the update SHALL include rationale and evidence lineage.
+
+#### Scenario: Context-only evidence is processed
+- **WHEN** a LearningFact or event is marked as context-only or has no profile contribution
+- **THEN** it SHALL NOT overwrite any portrait score
+- **AND** it MAY appear in evidence context or activity history.
+
+### Requirement: Legacy learner portraits migrate to portrait v2 with lineage
+The system SHALL provide an auditable migration path from legacy
+six-dimensional learner portrait data to primary seven-dimensional portrait v2
+records.
+
+#### Scenario: Legacy snapshot is migrated
+- **WHEN** a legacy six-dimensional snapshot is migrated
+- **THEN** the resulting portrait v2 record SHALL include source snapshot refs, mapping version, mapping confidence, limitation metadata, original timestamp, and migration timestamp
+- **AND** the migration SHALL NOT claim native portrait v2 evidence when values are compatibility-derived.
+
+#### Scenario: Migration is rerun
+- **WHEN** the migration apply path runs more than once
+- **THEN** it SHALL be idempotent
+- **AND** it SHALL NOT duplicate portrait rows or erase source lineage.
+
+#### Scenario: Canonical fixture account is migrated
+- **WHEN** Yang Fan diagnostic fixture data is generated or migrated
+- **THEN** the canonical student number and canonical email SHALL identify the target account
+- **AND** display-name-only duplicate accounts SHALL NOT receive fixture overwrite data.
+
+### Requirement: Portrait materialization has a transaction-scoped concurrency guard
+
+The learner portrait update engine SHALL serialize the complete per-learner
+snapshot read/update/write unit and SHALL acquire the required database lock
+before reading the previous snapshot.
+
+#### Scenario: Concurrent materializations target one learner
+
+- **WHEN** two portrait materialization jobs target the same learner
+- **THEN** only one job at a time SHALL read and update that learner's
+  incremental snapshot baseline
+- **AND** the transaction-scoped lock SHALL be released when the transaction
+  commits or rolls back.
+
+#### Scenario: Transaction lock support is unavailable
+
+- **WHEN** the production Prisma transaction client cannot acquire the required
+  advisory lock
+- **THEN** portrait materialization SHALL fail closed
+- **AND** it SHALL NOT write a snapshot without the concurrency guard.
+
+### Requirement: Learner portrait consumers use portrait v2
+Learner-state consumers SHALL treat portrait v2 as the primary learner portrait
+for student-facing and personalization-facing behavior.
+
+#### Scenario: Student profile is rendered
+- **WHEN** a student profile or growth surface displays learner portrait data
+- **THEN** it SHALL render the seven portrait v2 dimensions
+- **AND** it SHALL show migrated-data limitations when values are compatibility-derived.
+
+#### Scenario: Learner context is produced
+- **WHEN** learner-state context is prepared for adaptive planning, Konling, or diagnostics
+- **THEN** weak dimensions, strengths, limitations, and evidence summaries SHALL use portrait v2 ids
+- **AND** legacy six-dimensional ids SHALL appear only in compatibility metadata.
+
+#### Scenario: Evidence feature cache is used as fallback
+- **WHEN** learner-state service reads `StudentEvidenceFeatureCache` or approved aggregate fallback data
+- **THEN** portrait v2 payloads SHALL be versioned or marked as native portrait v2
+- **AND** legacy six-dimensional `competencyVector` values SHALL NOT re-enter learner-state as primary portrait dimensions.
+
+#### Scenario: Recommendations are generated
+- **WHEN** profile or learner-state code generates personalized recommendations or `LearningRecommendation` rationale
+- **THEN** weak-dimension references SHALL use portrait v2 ids, confidence, freshness, and limitation metadata
+- **AND** recommendation records SHALL NOT persist legacy six-dimensional ids as primary portrait rationale.
+

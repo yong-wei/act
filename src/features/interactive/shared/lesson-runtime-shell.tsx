@@ -7,6 +7,7 @@ import { BookOpen, ChevronLeft, ChevronRight, Loader2, PanelRightClose, Route } 
 
 import { AppShell, PlatformSurface, type AppBreadcrumbItem } from '@/components/platform/app-shell';
 import { resolveAdaptivePathLaunchReturnContext } from '@/features/adaptive/adaptive-learning-center-contracts';
+import { AdaptivePathJourneyControlFromRoute } from '@/features/adaptive/adaptive-path-journey-control';
 import { formatLessonStepMenuLabel } from '@/features/interactive/shared/course-step-labels';
 
 export type LessonRuntimeMode = 'student' | 'guest' | 'teacher' | 'invalid';
@@ -114,6 +115,7 @@ export function LessonRuntimeShell({
       breadcrumbs={breadcrumbs}
       activeHref={activeHref}
       sidebarMode="collapsible"
+      journeyControl={<AdaptivePathJourneyControlFromRoute />}
       routeMetadata={{
         frame: 'mission-workspace',
         themeSupport: ['light', 'dark'],

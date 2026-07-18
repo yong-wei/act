@@ -131,8 +131,8 @@ export default function TeacherStudentInsightsPage() {
                 <div>
                   <div className="flex flex-wrap items-center gap-3">
                     <h2 className="text-2xl font-semibold text-foreground">{data.student.name}</h2>
-                    <span className={`teacher-insight-chip teacher-insight-risk-${data.overview.riskLevel}`}>
-                      {data.overview.riskLabel}
+                    <span className={`teacher-insight-chip ${data.overview.evidenceState === 'current' ? `teacher-insight-risk-${data.overview.riskLevel}` : 'teacher-insight-chip-pending'}`}>
+                      {data.overview.evidenceState === 'current' ? data.overview.riskLabel : '暂无证据'}
                     </span>
                   </div>
                   <p className="mt-1 text-sm text-subtle">
@@ -144,7 +144,7 @@ export default function TeacherStudentInsightsPage() {
                 </div>
               </div>
               <div className="grid gap-4 md:grid-cols-3">
-                <MetricCard title="综合指数" value={data.overview.overallScore} detail="六维能力平均值" />
+                <MetricCard title="综合指数" value={data.overview.overallScore ?? '暂无当前证据'} detail="七维 portrait v2 平均值" />
                 <MetricCard title="学习事实" value={data.overview.factCount} detail="已沉淀的治理证据数量" />
                 <MetricCard
                   title="最近画像"
@@ -315,16 +315,16 @@ export default function TeacherStudentInsightsPage() {
                     <div>
                       <p className="text-sm font-medium text-foreground">{item.label}</p>
                       <p className="mt-1 text-xs text-subtle">
-                        与班级均值 {item.classAverage} 相比 {item.gap >= 0 ? '领先' : '落后'} {Math.abs(item.gap)}
+                        {item.gap === null ? '暂无当前证据，暂不计算班级差距' : `与班级均值 ${item.classAverage} 相比 ${item.gap >= 0 ? '领先' : '落后'} ${Math.abs(item.gap)}`}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-xl font-semibold text-foreground">{item.studentScore}</p>
-                      <p className="text-xs text-subtle">班级均值 {item.classAverage}</p>
+                      <p className="text-xl font-semibold text-foreground">{item.studentScore ?? '—'}</p>
+                      <p className="text-xs text-subtle">班级均值 {item.classAverage ?? '—'}</p>
                     </div>
                   </div>
                   <div className="teacher-insight-track mt-4">
-                    <div className="teacher-insight-fill" style={{ width: `${Math.min(item.studentScore, 100)}%` }} />
+                    <div className="teacher-insight-fill" style={{ width: `${Math.min(item.studentScore ?? 0, 100)}%` }} />
                   </div>
                 </div>
               ))}
@@ -505,7 +505,7 @@ function MetricCard({
   detail,
 }: {
   title: string;
-  value: number;
+  value: number | string;
   detail: string;
 }) {
   return (

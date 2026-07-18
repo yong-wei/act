@@ -4,6 +4,7 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 
 import { AppShell, type AppBreadcrumbItem } from '@/components/platform/app-shell';
+import { AdaptivePathJourneyControlFromRoute } from '@/features/adaptive/adaptive-path-journey-control';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -69,6 +70,7 @@ export function SimulationShell({
       title={title}
       subtitle={subtitle}
       breadcrumbs={breadcrumbs}
+      journeyControl={<AdaptivePathJourneyControlFromRoute />}
       className="bg-platform-canvas"
     >
       <SimulationSceneFrame

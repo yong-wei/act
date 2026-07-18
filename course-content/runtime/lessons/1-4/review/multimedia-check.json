@@ -1,0 +1,34 @@
+{
+  "lesson_id": "1-4",
+  "expected_assets": [
+    "1-4-cover-comic.png",
+    "1-4-info.png",
+    "1-4-slides.pdf",
+    "1-4-intro-video.mp4",
+    "1-4-course.mp4",
+    "1-4-audio.m4a",
+    "1-4-handout.pdf",
+    "1-4-teacher-handout.pdf",
+    "1-4-media.md"
+  ],
+  "generated_assets": [
+    "1-4-cover-comic.png",
+    "1-4-info.png",
+    "1-4-handout.pdf",
+    "1-4-media.md"
+  ],
+  "missing_assets": [
+    "1-4-slides.pdf",
+    "1-4-intro-video.mp4",
+    "1-4-course.mp4",
+    "1-4-audio.m4a",
+    "1-4-teacher-handout.pdf"
+  ],
+  "executed_scripts": [],
+  "processed_dir": "course-content/authoring/lessons/1-4/media/processed",
+  "media_index_path": "course-content/runtime/lessons/1-4/media/1-4-media.md",
+  "handout_pdf_source": "course-content/authoring/lessons/1-4/design/1-4-handout.pdf",
+  "teacher_handout_pdf_source": null,
+  "formula_contract_issues": [],
+  "formula_media": []
+}

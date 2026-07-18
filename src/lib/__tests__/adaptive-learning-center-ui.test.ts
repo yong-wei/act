@@ -25,6 +25,11 @@ import {
 } from '@/features/adaptive/adaptive-learning-center-contracts';
 import { buildPlatformStatusViewModel } from '@/components/platform/platform-ui-contracts';
 import type { AdaptiveLearnerState } from '@/lib/data-governance/adaptive-learner-state-service';
+import { createEmptyCompetencyVector } from '@/lib/data-governance/competency-model';
+import {
+  derivePortraitV2Compatibility,
+  projectPortraitV2ForConsumer,
+} from '@/lib/data-governance/portrait-v2-model';
 import { ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES } from '@/lib/adaptive-learning-path-planner';
 import type { AdaptiveLearningPathPlan } from '@/lib/adaptive-learning-path-planner';
 import {
@@ -81,7 +86,16 @@ function learnerState(overrides: Partial<AdaptiveLearnerState> = {}): AdaptiveLe
       authoritative: false,
       reason: 'client-hints-non-authoritative',
     },
+    primaryPortrait: projectPortraitV2ForConsumer(
+      derivePortraitV2Compatibility({
+        userId: 'student-1',
+        snapshotAt: '2026-05-28T06:00:00.000Z',
+        vector: createEmptyCompetencyVector(),
+      }),
+      'student',
+    ),
     primaryCompetencies: {
+      authority: 'legacy-compatibility-only',
       source: 'latest-snapshot',
       vector: {} as AdaptiveLearnerState['primaryCompetencies']['vector'],
     },
@@ -783,40 +797,45 @@ describe('adaptive learning center UI contracts', () => {
 
   it('renders adaptive path execution, skip warning, and evidence history in student-facing language', () => {
     const source = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
+    const timelineSource = readFileSync(join(repoRoot, 'src/features/adaptive/adaptive-path-timeline.tsx'), 'utf8');
+    const moduleSource = readFileSync(join(repoRoot, 'src/features/adaptive/path-workspace-module.tsx'), 'utf8');
+    const journeyControlSource = readFileSync(join(repoRoot, 'src/features/adaptive/adaptive-path-journey-control.tsx'), 'utf8');
 
     expect(source).toContain('data-adaptive-path-execution-surface="active-route"');
-    expect(source).toContain('data-adaptive-path-route-map="complete"');
-    expect(source).toContain('data-adaptive-path-node-detail="selected"');
+    expect(source).toContain("? 'avoid-learning-record' : undefined");
+    expect(source).toContain('{showExecutionWorkspace || showRecoveredExecutionWorkspace ? null : (');
+    expect(source).toContain('data-adaptive-path-route-map="compact"');
+    expect(source).toContain('data-adaptive-path-progress-summary="essential"');
+    expect(source).toContain('<AdaptivePathTimeline');
+    expect(timelineSource).toContain('data-adaptive-path-node-detail="inline"');
     expect(source).toContain('data-adaptive-path-skip-warning="visible"');
     expect(source).toContain('data-adaptive-path-history-surface="timeline-evidence"');
     expect(source).toContain('data-adaptive-path-history-timeline="governed-activity"');
     expect(source).toContain('当前学习路径');
     expect(source).toContain('当前节点');
-    expect(source).toContain('已耗时');
     expect(source).toContain('预计剩余');
-    expect(source).toContain('预计总时长');
     expect(source).toContain('完成节点');
     expect(source).toContain('检查点通过');
-    expect(source).toContain('本周学习');
     expect(source).toContain('推荐理由');
     expect(source).toContain('将收集的学习证据');
     expect(source).toContain('检查标准');
     expect(source).toContain('回顾');
     expect(source).toContain('继续互动');
     expect(source).toContain('查看证据');
-    expect(source).toContain('开始学习');
+    expect(journeyControlSource).toContain('开始学习');
     expect(source).toContain('跳过');
     expect(source).toContain('跳过后该资源不会计入完成进度，但会记录为路径偏离，可稍后返回。');
     expect(source).toContain('title="学习记录"');
     expect(source).toContain('moduleId="current-path"');
     expect(source).toContain('moduleId="learning-record"');
-    expect(source).toContain('data-adaptive-path-module={moduleId}');
-    expect(source).toContain('data-adaptive-path-module-state={isOpen ? \'expanded\' : \'collapsed\'}');
+    expect(moduleSource).toContain('data-adaptive-path-module={moduleId}');
+    expect(moduleSource).toContain('data-adaptive-path-module-state={isOpen ? \'expanded\' : \'collapsed\'}');
+    expect(moduleSource).toContain('data-adaptive-path-module-header="responsive"');
     expect(source).toContain('setOpenPathModuleId((current) => (current === moduleId ? null : moduleId))');
-    expect(source).toContain('data-adaptive-path-route-flow="connected"');
-    expect(source).toContain('data-adaptive-path-route-connector="true"');
-    expect(source).toContain('data-adaptive-path-node-selectable="true"');
-    expect(source).toContain('aria-pressed={focusedPathNode?.nodeId === node.nodeId}');
+    expect(timelineSource).toContain('data-adaptive-path-route-flow="connected"');
+    expect(timelineSource).toContain('data-adaptive-path-route-connector="adaptive"');
+    expect(timelineSource).toContain('data-adaptive-path-node-selectable="true"');
+    expect(timelineSource).toContain('aria-pressed={focused}');
     expect(source).toContain('activeExecutionPathId');
     expect(source).toContain('intent=path-execution&pathId=');
     expect(source).toContain('currentPathNode?.title');
@@ -835,14 +854,14 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('检查点未通过');
     expect(source).toContain('外部资源引用');
     expect(source).toContain('控灵干预');
-    expect(source).toContain('互动课程');
-    expect(source).toContain('自适应练习');
-    expect(source).toContain('控制工作台');
-    expect(source).toContain('虚拟仿真');
-    expect(source).toContain('Arena');
-    expect(source).toContain('外部资源');
-    expect(source).toContain('控灵建议');
-    expect(source).toContain('知识卡');
+    expect(timelineSource).toContain('互动课程');
+    expect(timelineSource).toContain('自适应练习');
+    expect(timelineSource).toContain('控制工作台');
+    expect(timelineSource).toContain('虚拟仿真');
+    expect(timelineSource).toContain('Arena');
+    expect(timelineSource).toContain('外部资源');
+    expect(timelineSource).toContain('控灵建议');
+    expect(timelineSource).toContain('知识卡');
     expect(source).toContain('已记录');
     expect(source).toContain('待复核');
     expect(source).toContain('可用于推荐');

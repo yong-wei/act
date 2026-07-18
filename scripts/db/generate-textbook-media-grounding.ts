@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
@@ -32,12 +33,14 @@ async function main() {
   await assertRuntimeExportExists();
   const textbookManifest = await readJson<RuntimeTextbookManifest>(path.join(RUNTIME_TEXTBOOK_ROOT, 'manifest.json'));
   const textbookDocuments = await buildTextbookDocuments(textbookManifest);
+  const targetFileHashes = await buildTargetFileHashes(textbookDocuments);
   const mediaProjections = await loadMediaProjectionRows(RUNTIME_PROJECTIONS_PATH);
   const artifacts = buildTextbookMediaGroundingArtifacts({
     sourcePackageId: SOURCE_PACKAGE_ID,
     generatedAt,
     reviewBatchId: `textbook-grounding-${generatedAt.slice(0, 10)}`,
     textbookDocuments,
+    targetFileHashForHref: (href) => targetFileHashes.get(runtimeHrefPathname(href)) ?? null,
     mediaProjections,
   });
 
@@ -108,15 +111,36 @@ async function assertTextbookDocumentRuntimeHrefExists(document: TextbookRuntime
   if (href) await assertRuntimeHrefExists(href);
 }
 
+async function buildTargetFileHashes(
+  documents: readonly TextbookRuntimeSearchDocument[],
+): Promise<ReadonlyMap<string, string>> {
+  const pathnames = Array.from(new Set(documents
+    .map((document) => document.citationAddress?.href ?? document.href)
+    .filter(Boolean)
+    .map(runtimeHrefPathname)));
+  const entries = await Promise.all(pathnames.map(async (pathname) => {
+    const bytes = await fs.readFile(runtimeHrefAbsolutePath(pathname));
+    return [pathname, `sha256:${createHash('sha256').update(bytes).digest('hex')}`] as const;
+  }));
+  return new Map(entries);
+}
+
 async function assertRuntimeHrefExists(href: string): Promise<void> {
-  const [pathname] = href.split('#');
+  const pathname = runtimeHrefPathname(href);
+  await fs.access(runtimeHrefAbsolutePath(pathname));
+}
+
+function runtimeHrefPathname(href: string): string {
+  return href.split('#')[0];
+}
+
+function runtimeHrefAbsolutePath(pathname: string): string {
   const prefix = '/course-runtime/';
   if (!pathname.startsWith(prefix)) {
-    throw new Error(`Textbook runtime section href must start with ${prefix}: ${href}`);
+    throw new Error(`Textbook runtime section href must start with ${prefix}: ${pathname}`);
   }
   const relativePath = pathname.slice(prefix.length);
-  const absolutePath = path.join(process.cwd(), 'course-content/runtime', relativePath);
-  await fs.access(absolutePath);
+  return path.join(process.cwd(), 'course-content/runtime', relativePath);
 }
 
 async function assertRuntimeExportExists(): Promise<void> {

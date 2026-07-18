@@ -9,6 +9,7 @@ import {
 
 export const YANGFAN_DIAGNOSTIC_FIXTURE_VERSION = 'yangfan-diagnostic-fixture.v1';
 export const YANGFAN_DIAGNOSTIC_FIXTURE_STUDENT_NUMBER = '20230010102605';
+export const YANGFAN_DIAGNOSTIC_FIXTURE_EMAIL = 'yangfan@example.test';
 export const YANGFAN_DIAGNOSTIC_FIXTURE_PREFIX = 'yangfan-diagnostic-fixture';
 
 export type YangFanDiagnosticFixtureMode = 'dry-run' | 'apply' | 'reset' | 'audit';
@@ -178,6 +179,9 @@ const FIXTURE_FACT_IDS = [
   'yangfan-fixture-fact-arena-preview',
 ] as const;
 const FIXTURE_PATH_ID = 'yangfan-fixture-control-correction-path';
+const FIXTURE_ARENA_TASK_ID = 'task-second-order-lead-pid';
+const FIXTURE_ARENA_NODE_ID = `arena-task:${FIXTURE_ARENA_TASK_ID}`;
+const FIXTURE_ARENA_TARGET = `/arena/challenges/${FIXTURE_ARENA_TASK_ID}`;
 const FIXTURE_ALGORITHM_VERSION = 'yangfan-diagnostic-fixture-algorithm-v1';
 const FIXTURE_SESSION_ID = 'yangfan-diagnostic-fixture-session';
 const FIXTURE_SESSION_KEY = 'yangfan-diagnostic-fixture-session';
@@ -194,6 +198,50 @@ const FIXTURE_KNOWLEDGE_NODE_IDS = [
   '传统设计四联图校正_4_47004',
 ] as const;
 
+export const YANGFAN_DIAGNOSTIC_FIXTURE_GOVERNED_RESOURCE_IDS = [
+  'yangfan-diagnostic-fixture:knowledge-progress:2e6a2cf5d76b',
+  'yangfan-diagnostic-fixture:knowledge-progress:ff8ef10e4870',
+  'yangfan-diagnostic-fixture:knowledge-progress:5c29bbb95ddf',
+  FIXTURE_ALGORITHM_VERSION,
+  FIXTURE_SESSION_ID,
+  FIXTURE_QUESTION_ID,
+  FIXTURE_ITEM_REF_ID,
+  FIXTURE_ANSWER_ID,
+  FIXTURE_ABILITY_ESTIMATE_ID,
+  FIXTURE_MASTERY_UPDATE_ID,
+  FIXTURE_PATH_ID,
+  'yangfan-diagnostic-fixture:exec-start',
+  'yangfan-diagnostic-fixture:exec-terminal',
+  'yangfan-diagnostic-fixture:deviation-low-confidence',
+  'yangfan-diagnostic-fixture:intervention-konling',
+  'yangfan-diagnostic-fixture:snapshot',
+  'yangfan-diagnostic-fixture:student-profile-summary',
+  'yangfan-diagnostic-fixture:student-evidence-feature-cache',
+  ...FIXTURE_FACT_IDS,
+] as const;
+
+export const YANGFAN_DIAGNOSTIC_FIXTURE_GOVERNANCE = {
+  sourcePathOrUrl: 'src/lib/data-governance/yangfan-diagnostic-fixture.ts',
+  sourceVersionRef: YANGFAN_DIAGNOSTIC_FIXTURE_VERSION,
+  reviewerId: 'codex:issue-884-yangfan-fixture-governance-review',
+  reviewedAt: '2026-07-18T04:35:00.000Z',
+  reviewBatchId: 'yangfan-diagnostic-fixture-governance-884.v1',
+  independentEvidenceRef: 'src/lib/data-governance/yangfan-diagnostic-fixture.ts#applyYangFanDiagnosticFixture',
+  evidenceContract: {
+    eventType: 'fixture entity-specific create/upsert event',
+    clientEventIdPolicy: 'deterministic fixture-owned id',
+    attemptKey: 'canonical user id plus fixture version',
+    sourceLogId: 'fixture entity id',
+    dedupeKey: 'fixture entity primary or compound key',
+    timestamps: 'the confirmed fixture apply timestamp',
+    learningFactPolicy: 'fixture writes are linked to deterministic LearningFact evidence',
+    learningFactMaterializationPolicy: 'materialized-learning-fact',
+    confidencePolicy: 'fixture-owned deterministic confidence only',
+    privacyScope: 'minimized; raw identifiers and payloads excluded from governance output',
+  },
+  resourceIds: YANGFAN_DIAGNOSTIC_FIXTURE_GOVERNED_RESOURCE_IDS,
+} as const;
+
 export async function buildYangFanDiagnosticFixturePlan(
   db: YangFanDiagnosticFixtureDb,
   options: YangFanDiagnosticFixtureOptions = {},
@@ -201,11 +249,12 @@ export async function buildYangFanDiagnosticFixturePlan(
   const mode = options.mode ?? 'dry-run';
   const now = options.now ?? new Date();
   const canonicalStudentNumber = options.canonicalStudentNumber ?? YANGFAN_DIAGNOSTIC_FIXTURE_STUDENT_NUMBER;
+  const canonicalEmail = options.canonicalEmail ?? YANGFAN_DIAGNOSTIC_FIXTURE_EMAIL;
   const candidates = await loadYangFanCandidates(db, {
-    canonicalEmail: options.canonicalEmail,
+    canonicalEmail,
     canonicalStudentNumber,
   });
-  const canonical = resolveCanonicalAccount(candidates, options.canonicalEmail, canonicalStudentNumber);
+  const canonical = resolveCanonicalYangFanAccount(candidates, canonicalEmail, canonicalStudentNumber);
   const duplicates = canonical ? candidates.filter((candidate) => candidate.id !== canonical.id) : candidates;
   const duplicateSafety = canonical
     ? classifyDuplicateSafety(canonical, duplicates)
@@ -304,7 +353,7 @@ export async function applyYangFanDiagnosticFixture(
     await resetFixtureRows(tx, canonicalUserId);
 
     const startedAt = new Date(now.getTime() - 60 * 60 * 1000);
-    const facts = fixtureLearningFacts(canonicalUserId, startedAt);
+    const facts = buildYangFanPortraitV2FixtureFacts(canonicalUserId, startedAt);
     await tx.learningFact.createMany({ data: facts, skipDuplicates: true });
 
     await tx.knowledgeProgress?.createMany({
@@ -414,18 +463,21 @@ export async function resetYangFanDiagnosticFixture(
   };
 }
 
-function fixtureLearningFacts(userId: string, startedAt: Date) {
+export function buildYangFanPortraitV2FixtureFacts(userId: string, startedAt: Date) {
   const base = {
     userId,
     courseId: 'control-correction',
     lessonId: 'yangfan-diagnostic-fixture',
     sessionId: FIXTURE_SESSION_KEY,
-    competencyContribution: { controlModeling: 0.35, diagnosticAssessment: 0.4 },
     createdAt: startedAt,
   };
   return [
     {
       ...base,
+      competencyContribution: {
+        controlModelingRepresentation: 0.35,
+        systemAnalysisInterpretation: 0.35,
+      },
       id: FIXTURE_FACT_IDS[0],
       factType: 'question',
       moduleId: 'adaptive-assessment',
@@ -447,6 +499,10 @@ function fixtureLearningFacts(userId: string, startedAt: Date) {
     },
     {
       ...base,
+      competencyContribution: {
+        transferIntegratedApplication: 0.32,
+        reflectionImprovementAiCollab: 0.28,
+      },
       id: FIXTURE_FACT_IDS[1],
       factType: 'resource',
       moduleId: 'path-planning',
@@ -467,6 +523,10 @@ function fixtureLearningFacts(userId: string, startedAt: Date) {
     },
     {
       ...base,
+      competencyContribution: {
+        reflectionImprovementAiCollab: 0.36,
+        engineeringConstraintSafety: 0.24,
+      },
       id: FIXTURE_FACT_IDS[2],
       factType: 'ai_intervention',
       moduleId: 'konling',
@@ -487,6 +547,11 @@ function fixtureLearningFacts(userId: string, startedAt: Date) {
     },
     {
       ...base,
+      competencyContribution: {
+        controllerDesignSynthesis: 0.34,
+        simulationValidationEvidence: 0.4,
+        engineeringConstraintSafety: 0.22,
+      },
       id: FIXTURE_FACT_IDS[3],
       factType: 'simulation',
       moduleId: 'arena-preview',
@@ -517,7 +582,7 @@ async function upsertPathEvidence(
   now: Date,
 ) {
   const entryNodeId = nodeIds[0] ?? 'yangfan-fixture-entry-node';
-  const terminalNodeId = nodeIds[1] ?? entryNodeId;
+  const terminalNodeId = FIXTURE_ARENA_NODE_ID;
   await db.learningPath?.upsert({
     where: { id: FIXTURE_PATH_ID },
     create: pathData(userId, entryNodeId, terminalNodeId, now),
@@ -816,6 +881,10 @@ function pathData(userId: string, entryNodeId: string, terminalNodeId: string, n
     entryNodeId,
     terminalValidation: {
       nodeId: terminalNodeId,
+      sourceKind: 'arena_task',
+      sourceRef: FIXTURE_ARENA_TASK_ID,
+      taskId: FIXTURE_ARENA_TASK_ID,
+      target: FIXTURE_ARENA_TARGET,
       state: 'low-confidence',
       fallbackRequired: true,
       lowConfidenceMarkers: ['fixture-terminal-preview'],
@@ -870,7 +939,7 @@ function fixturePathPayload(entryNodeId: string, terminalNodeId: string, complet
     },
     {
       nodeId: terminalNodeId,
-      title: '根轨迹终点检查',
+      title: '二阶对象快速稳定挑战',
       type: 'arena_task',
       pathNodeType: 'arena_task',
       displayName: 'Arena 挑战',
@@ -880,12 +949,12 @@ function fixturePathPayload(entryNodeId: string, terminalNodeId: string, complet
       evidenceStatus: 'instrumented',
       externalResource: null,
       checkpoint: null,
-      sourceKind: 'knowledge_graph',
-      sourceRef: terminalNodeId,
-      target: `/arena?nodeId=${encodeURIComponent(terminalNodeId)}`,
+      sourceKind: 'arena_task',
+      sourceRef: FIXTURE_ARENA_TASK_ID,
+      target: FIXTURE_ARENA_TARGET,
       estimatedTimeMinutes: 23,
       prerequisiteNodeIds: [entryNodeId],
-      knowledgeCoverage: [terminalNodeId],
+      knowledgeCoverage: ['根轨迹_1_1'],
       teacherPolicy: 'allowed',
       privacyLevel: 'student-visible',
       terminalConstraints: ['terminal-validation'],
@@ -1032,14 +1101,16 @@ async function loadYangFanCandidates(
   });
 }
 
-function resolveCanonicalAccount(
+export function resolveCanonicalYangFanAccount(
   candidates: Array<Record<string, any>>,
   canonicalEmail?: string | null,
   canonicalStudentNumber?: string | null,
 ) {
-  return candidates.find((candidate) => canonicalEmail && candidate.email === canonicalEmail)
-    ?? candidates.find((candidate) => canonicalStudentNumber && candidate.profile?.studentNumber === canonicalStudentNumber)
-    ?? null;
+  if (!canonicalEmail || !canonicalStudentNumber) return null;
+  const exact = candidates.filter((candidate) =>
+    candidate.email === canonicalEmail && candidate.profile?.studentNumber === canonicalStudentNumber
+  );
+  return exact.length === 1 ? exact[0] : null;
 }
 
 function classifyDuplicateSafety(
@@ -1193,11 +1264,12 @@ async function resolveWritableAccounts(
   options: YangFanDiagnosticFixtureOptions,
 ) {
   const canonicalStudentNumber = options.canonicalStudentNumber ?? YANGFAN_DIAGNOSTIC_FIXTURE_STUDENT_NUMBER;
+  const canonicalEmail = options.canonicalEmail ?? YANGFAN_DIAGNOSTIC_FIXTURE_EMAIL;
   const candidates = await loadYangFanCandidates(db, {
-    canonicalEmail: options.canonicalEmail,
+    canonicalEmail,
     canonicalStudentNumber,
   });
-  const canonical = resolveCanonicalAccount(candidates, options.canonicalEmail, canonicalStudentNumber);
+  const canonical = resolveCanonicalYangFanAccount(candidates, canonicalEmail, canonicalStudentNumber);
   if (!canonical) throw new Error('Cannot resolve canonical Yang Fan account for fixture write.');
   const duplicates = candidates.filter((candidate) => candidate.id !== canonical.id);
   const duplicateSafety = classifyDuplicateSafety(canonical, duplicates);
@@ -1219,11 +1291,12 @@ async function resolveResettableAccount(
   options: YangFanDiagnosticFixtureOptions,
 ) {
   const canonicalStudentNumber = options.canonicalStudentNumber ?? YANGFAN_DIAGNOSTIC_FIXTURE_STUDENT_NUMBER;
+  const canonicalEmail = options.canonicalEmail ?? YANGFAN_DIAGNOSTIC_FIXTURE_EMAIL;
   const candidates = await loadYangFanCandidates(db, {
-    canonicalEmail: options.canonicalEmail,
+    canonicalEmail,
     canonicalStudentNumber,
   });
-  const canonical = resolveCanonicalAccount(candidates, options.canonicalEmail, canonicalStudentNumber);
+  const canonical = resolveCanonicalYangFanAccount(candidates, canonicalEmail, canonicalStudentNumber);
   if (!canonical) throw new Error('Cannot resolve canonical Yang Fan account for fixture reset.');
   const duplicates = candidates.filter((candidate) => candidate.id !== canonical.id);
   const duplicateSafety = classifyDuplicateSafety(canonical, duplicates);

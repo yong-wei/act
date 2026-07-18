@@ -330,3 +330,103 @@ Knowledge-card and infograph resources SHALL be eligible for path planning or Ko
 - **WHEN** a selected card, image, or infograph is display-only, duplicate, too broad, teacher-only, or unsuitable as an independent path node
 - **THEN** it SHALL be classified as supporting-citation, embedded-asset, evidence-producing, or excluded-with-rationale
 - **AND** it SHALL not become an independent PathNode without a reviewed launch target and evidence contract.
+
+### Requirement: ResourceNode registry exposes a planner-consumable projection
+The ResourceNode governance layer SHALL provide a planner-consumable projection that matches the resource center inventory boundary.
+
+#### Scenario: Planner projection is built
+- **WHEN** the planner requests governed resource candidates
+- **THEN** the projection SHALL include all audited path-eligible ResourceNodes and reviewed non-path dispositions from the resource center inventory
+- **AND** the projection SHALL identify source family, source ref, registry version, projection version, review state, path disposition, and eligibility blockers.
+
+#### Scenario: Projection excludes raw content
+- **WHEN** the planner consumes the ResourceNode projection
+- **THEN** it SHALL receive metadata, graph bindings, path profile, evidence policy, citation refs, privacy policy, and readiness data
+- **AND** it SHALL NOT receive raw textbook content, raw media bytes, hidden assessment internals, or private learner evidence.
+
+### Requirement: Core registered and knowledge resources have complete reviewed semantics
+Registered resources, knowledge cards, and knowledge infographs SHALL be semantically reviewed before they affect path planning, Konling grounding, or governed citation coverage.
+
+#### Scenario: Core resource is reviewed
+- **WHEN** a registered resource, knowledge card, or knowledge infograph is processed in the core completion batch
+- **THEN** it SHALL receive a reviewed disposition, graph binding or rationale, LearningGoal fit, K/A/Q objective mapping where applicable, path profile where applicable, citation target, evidence behavior, privacy policy, source/version evidence, and review metadata
+- **AND** generated suggestions or unreviewed placeholders SHALL NOT satisfy completion.
+
+#### Scenario: Core resource is not an independent path node
+- **WHEN** the resource is display-only, derived, embedded, duplicate, inaccessible, or unsuitable for path execution
+- **THEN** it SHALL be classified as supporting-citation, embedded-asset, evidence-producing, or excluded-with-rationale
+- **AND** the helper SHALL stop reporting it as an unexplained path-readiness gap.
+
+#### Scenario: Core batch is complete
+- **WHEN** the scoped helper queue for registered resources, knowledge cards, and infographs is rerun
+- **THEN** it SHALL report zero unreviewed or unexplained in-scope items
+- **AND** the tracked review source SHALL be applied to formal audit rows before summaries, workqueues, projections, baselines, and path-readiness gates are derived
+- **AND** materialization SHALL use the tracked audit snapshot and summary metadata without replacing the frozen denominator from live candidate enumeration
+- **AND** any residual item SHALL name a concrete missing source artifact or schema blocker.
+
+### Requirement: Arena path nodes bind concrete challenge tasks
+Every path-plannable `arena_task` ResourceNode SHALL bind a stable Arena task identity and a verified concrete challenge route.
+
+#### Scenario: Arena task enters the path registry
+- **WHEN** an Arena task is promoted to a path-plannable or terminal-validation node
+- **THEN** its stable node id SHALL be based on `arena-task:<taskId>`, its source kind and source reference SHALL identify the Arena task, and its launch target SHALL resolve to `/arena/challenges/<taskId>`
+- **AND** the referenced task SHALL exist in the governed Arena task catalog.
+
+#### Scenario: Arena task uses a generic or placeholder target
+- **WHEN** an `arena_task` node points to `/arena`, uses a knowledge node as its source identity, lacks a task id, or resolves to an unknown challenge
+- **THEN** registry or fixture validation SHALL mark it path-ineligible
+- **AND** path execution SHALL block or repair the target from a verified stable task mapping rather than launch the Arena hall.
+
+#### Scenario: Persisted path contains a legacy Arena target
+- **WHEN** a restored path contains an Arena node with a generic or invalid target
+- **THEN** the system SHALL repair it only when a unique verified task mapping exists
+- **AND** otherwise SHALL require path regeneration or an explicit recovery action without treating the node as executable.
+
+### Requirement: New ResourceNode records cannot be provisionally complete
+New or modified resource records SHALL not be treated as complete when semantic fields are generated, provisional, or missing review evidence.
+
+#### Scenario: Generated metadata is present
+- **WHEN** a new resource contains generated suggestions for K/A/Q, graph, path profile, evidence, citation, or disposition fields
+- **THEN** the ResourceNode audit SHALL keep the resource incomplete until an implementing-agent review records reviewer identity, source/version evidence, rationale, and fresh review metadata.
+
+#### Scenario: Resource is intentionally not path-plannable
+- **WHEN** a new resource should not become a PathNode
+- **THEN** it SHALL still declare reviewed supporting-citation, embedded-asset, evidence-producing, or excluded-with-rationale disposition
+- **AND** the rationale SHALL be sufficient for the helper to stop reporting it as unexplained missing path readiness.
+
+### Requirement: Runtime lesson and media resources have complete reviewed dispositions
+Runtime lesson steps, modules, media, slides, audio/video, PDFs, and handouts SHALL have reviewed dispositions before they affect path planning or governed citations.
+
+#### Scenario: Runtime PlanningUnit is path-plannable
+- **WHEN** a runtime lesson step, handout, or media-backed resource is promoted to path-plannable
+- **THEN** it SHALL have a verified launch target, parent lesson ref, graph binding, LearningGoal fit, K/A/Q mapping where applicable, path stage, time cost, evidence contract, privacy policy, readiness metadata, citation/source refs, and review metadata
+- **AND** the ResourceNode audit SHALL block promotion if any required field is missing or provisional.
+
+#### Scenario: Runtime fragment is supporting material
+- **WHEN** a lesson module, slide fragment, media asset, transcript segment, or embedded PDF section lacks independent launch and evidence contracts
+- **THEN** it SHALL be linked to a reviewed parent PlanningUnit or classified as supporting-citation, embedded-asset, evidence-producing, or excluded-with-rationale
+- **AND** it SHALL NOT become an independent PathNode.
+
+#### Scenario: Runtime family batch is complete
+- **WHEN** scoped runtime workqueues are rerun
+- **THEN** unreviewed runtime lesson and media disposition blockers SHALL be zero
+- **AND** residual blockers SHALL identify concrete missing runtime artifacts, route gaps, or schema conflicts.
+
+### Requirement: Textbook and reference resources have reviewed long-form semantics
+Textbook and reference resources SHALL be reviewed at section/supporting-resource grain before they affect path planning, RAG grounding, or citation presentation.
+
+#### Scenario: Long-form section is path-plannable
+- **WHEN** a textbook or reference section is promoted to path-plannable
+- **THEN** it SHALL include source book/reference ref, section ref, citation target, graph binding, K/A/Q mapping where applicable, LearningGoal fit, prerequisite position, estimated time, path role, authority, privacy, source hash, and review metadata
+- **AND** it SHALL be selectable by the planner only through the reviewed section PlanningUnit.
+
+#### Scenario: Long-form child item is support only
+- **WHEN** a search document, chunk, figure, caption, image description, equation, table, or citation target lacks an independent reviewed PlanningUnit
+- **THEN** it SHALL be classified as supporting-citation, embedded-asset, parent-section evidence, or excluded-with-rationale
+- **AND** it SHALL link to a reviewed parent section where available.
+
+#### Scenario: Long-form batch is complete
+- **WHEN** scoped long-form workqueues are rerun
+- **THEN** unreviewed long-form disposition and citation-anchor blockers SHALL be zero
+- **AND** residual blockers SHALL identify concrete missing source artifacts, anchor gaps, or schema conflicts.
+

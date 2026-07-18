@@ -13,35 +13,16 @@ import {
   type ResourceNodePrivacyLevel,
   type ResourceNodeReadinessMetadata,
 } from './resource-node-registry';
+import {
+  YANGFAN_DIAGNOSTIC_FIXTURE_GOVERNANCE,
+  YANGFAN_DIAGNOSTIC_FIXTURE_GOVERNED_RESOURCE_IDS,
+} from './data-governance/yangfan-diagnostic-fixture';
 
 export const RESOURCE_FIELD_COMPLETION_AUDIT_VERSION = 'resource-field-completion-audit.v1';
 
 export const YANGFAN_FIXTURE_READINESS_SCOPE_POLICY_VERSION = 'yangfan-fixture-readiness-scope.v1';
 
-export const YANGFAN_FIXTURE_OWNED_RESOURCE_IDS = [
-  'yangfan-diagnostic-fixture:knowledge-progress:2e6a2cf5d76b',
-  'yangfan-diagnostic-fixture:knowledge-progress:ff8ef10e4870',
-  'yangfan-diagnostic-fixture:knowledge-progress:5c29bbb95ddf',
-  'yangfan-diagnostic-fixture-algorithm-v1',
-  'yangfan-diagnostic-fixture-session',
-  'yangfan-diagnostic-fixture-question',
-  'yangfan-diagnostic-fixture-item-ref',
-  'yangfan-diagnostic-fixture-answer',
-  'yangfan-diagnostic-fixture-ability-estimate',
-  'yangfan-diagnostic-fixture-mastery-update',
-  'yangfan-fixture-control-correction-path',
-  'yangfan-diagnostic-fixture:exec-start',
-  'yangfan-diagnostic-fixture:exec-terminal',
-  'yangfan-diagnostic-fixture:deviation-low-confidence',
-  'yangfan-diagnostic-fixture:intervention-konling',
-  'yangfan-diagnostic-fixture:snapshot',
-  'yangfan-diagnostic-fixture:student-profile-summary',
-  'yangfan-diagnostic-fixture:student-evidence-feature-cache',
-  'yangfan-fixture-fact-assessment',
-  'yangfan-fixture-fact-path',
-  'yangfan-fixture-fact-konling',
-  'yangfan-fixture-fact-arena-preview',
-] as const;
+export const YANGFAN_FIXTURE_OWNED_RESOURCE_IDS = YANGFAN_DIAGNOSTIC_FIXTURE_GOVERNED_RESOURCE_IDS;
 
 export type ResourceFieldCompletionFamily =
   | 'registered-resource'
@@ -68,6 +49,7 @@ export type ResourceFieldCompletionFamily =
 
 export type ResourceFieldCompletionMethod =
   | 'manual'
+  | 'agent-reviewed'
   | 'local-model-assisted'
   | 'external-tool-assisted'
   | 'generated-provisional'
@@ -79,6 +61,8 @@ export type ResourceFieldReviewStatus =
   | 'generated-provisional'
   | 'model-assisted-provisional'
   | 'external-tool-provisional'
+  | 'model-cleared'
+  | 'agent-reviewed'
   | 'human-confirmed'
   | 'blocked'
   | 'stale';
@@ -121,6 +105,7 @@ export interface ResourceFieldCompletionCandidate {
   privacyScope?: ResourceNodePrivacyLevel | null;
   generatedBy?: 'local-model' | 'external-tool' | 'template' | null;
   humanConfirmed?: boolean;
+  reviewProvenance?: 'agent-reviewed' | 'human-confirmed';
   currentPathEligible?: boolean;
   contentHash?: string | null;
   versionRef?: string | null;
@@ -170,6 +155,9 @@ export interface ResourceFieldReviewAudit {
   independentEvidenceRef: string | null;
   confidence: number | null;
   staleInvalidationRule: string;
+  reviewArtifactVersion?: string | null;
+  reviewSourceSha256?: string | null;
+  reviewRowHash?: string | null;
 }
 
 export interface ResourceFieldSourceWindow {
@@ -194,6 +182,8 @@ export interface ResourceFieldCompletionAuditRow {
   missingFieldCodes: ResourceFieldMissingCode[];
   completionMethod: ResourceFieldCompletionMethod;
   reviewStatus: ResourceFieldReviewStatus;
+  reviewConcluded: boolean;
+  semanticConfirmed: boolean;
   reviewAudit: ResourceFieldReviewAudit;
   evidenceContract: ResourceEvidenceContractCompleteness;
   pathEligibility: {
@@ -221,6 +211,9 @@ export interface ResourceFieldCompletionCoverageSummary {
   missingField: number;
   provisional: number;
   humanConfirmed: number;
+  agentReviewed: number;
+  reviewConcluded: number;
+  semanticReviewed: number;
   citationReady: number;
   pathEligible: number;
   blocked: number;
@@ -349,6 +342,12 @@ export interface ResourceEvidenceLineageReadinessSummary {
   };
 }
 
+export function canDowngradeEvidenceLineageBlockerWithDisposition(
+  item: Pick<ResourceEvidenceLineageReadinessItem, 'yangFanFixtureScope' | 'evidenceEffectState'>,
+): boolean {
+  return item.yangFanFixtureScope === 'global-resource-backlog' && item.evidenceEffectState === 'blocked';
+}
+
 export interface ResourceFieldCompletionAuditSummary {
   artifactVersion: typeof RESOURCE_FIELD_COMPLETION_AUDIT_VERSION;
   generatedAt: string;
@@ -373,6 +372,7 @@ export interface ResourceFieldCompletionAuditSummary {
 }
 
 export interface ResourceFieldCompletionAuditResult {
+  sourceRows: ResourceFieldCompletionAuditRow[];
   rows: ResourceFieldCompletionAuditRow[];
   summary: ResourceFieldCompletionAuditSummary;
   workqueues: ResourceCompletionWorkqueueSummary;
@@ -383,16 +383,42 @@ export interface ResourceFieldCompletionAuditResult {
   };
 }
 
+export interface ResourceFieldCompletionReviewOverlay {
+  resourceId: string;
+  reviewStatus?: Extract<ResourceFieldReviewStatus, 'model-cleared' | 'agent-reviewed' | 'human-confirmed' | 'stale'>;
+  canonicalSemanticMatch?: boolean;
+  semanticConfirmed?: boolean;
+  preserveProvisionalMetadata?: boolean;
+  expectedSourceHash: string | null;
+  expectedSourceVersionRef: string | null;
+  graphNodeRefs?: ResourceGraphNodeRefs;
+  pathTarget: string | null;
+  currentPathEligible: boolean;
+  reviewAudit: ResourceFieldReviewAudit;
+}
+
 export interface ResourceFieldCompletionAuditInput {
   registry: ResourceNodeRegistry;
   candidates?: ResourceFieldCompletionCandidate[];
+  reviewOverlays?: ResourceFieldCompletionReviewOverlay[];
   generatedAt?: string;
   sourceWindow?: ResourceFieldSourceWindow;
   limitations?: string[];
 }
 
+export interface ResourceFieldCompletionAuditRowsInput {
+  sourceRows: ResourceFieldCompletionAuditRow[];
+  reviewOverlays?: ResourceFieldCompletionReviewOverlay[];
+  requiredReviewResourceIds?: string[];
+  generatedAt: string;
+  sourceWindow: ResourceFieldSourceWindow;
+  versionRefs: KaqArtifactVersionRefs;
+  limitations?: string[];
+}
+
 const EMPTY_COUNTS: Record<ResourceFieldCompletionMethod, number> = {
   manual: 0,
+  'agent-reviewed': 0,
   'local-model-assisted': 0,
   'external-tool-assisted': 0,
   'generated-provisional': 0,
@@ -405,6 +431,8 @@ const EMPTY_REVIEW_COUNTS: Record<ResourceFieldReviewStatus, number> = {
   'generated-provisional': 0,
   'model-assisted-provisional': 0,
   'external-tool-provisional': 0,
+  'model-cleared': 0,
+  'agent-reviewed': 0,
   'human-confirmed': 0,
   blocked: 0,
   stale: 0,
@@ -419,19 +447,40 @@ export function buildResourceFieldCompletionAudit(
     resourceRegistryVersion: RESOURCE_NODE_REGISTRY_VERSION,
     resourceProjectionVersion: RESOURCE_SEMANTIC_PROJECTION_VERSION,
   });
-  const rows = [
+  const sourceRows = [
     ...input.registry.nodes.map((node) => rowFromResourceNode(node, sourceWindow, versionRefs, generatedAt)),
     ...(input.candidates ?? []).map((candidate) => rowFromCandidate(candidate, sourceWindow, versionRefs)),
   ].sort((left, right) => left.resourceId.localeCompare(right.resourceId));
 
+  return buildResourceFieldCompletionAuditFromRows({
+    sourceRows,
+    reviewOverlays: input.reviewOverlays,
+    generatedAt,
+    sourceWindow,
+    versionRefs,
+    limitations: input.limitations,
+  });
+}
+
+export function buildResourceFieldCompletionAuditFromRows(
+  input: ResourceFieldCompletionAuditRowsInput,
+): ResourceFieldCompletionAuditResult {
+  assertFrozenResourceFieldCompletionRows(input.sourceRows, input.versionRefs);
+  assertRequiredResourceFieldCompletionReviewOverlays(
+    input.reviewOverlays ?? [],
+    input.requiredReviewResourceIds,
+  );
+  const rows = applyResourceFieldCompletionReviewOverlays(input.sourceRows, input.reviewOverlays ?? []);
+
   const evidenceLineageItems = buildEvidenceLineageReadinessItems(rows);
 
   return {
+    sourceRows: input.sourceRows,
     rows,
     summary: buildResourceFieldCompletionSummary(rows, {
-      generatedAt,
-      sourceWindow,
-      versionRefs,
+      generatedAt: input.generatedAt,
+      sourceWindow: input.sourceWindow,
+      versionRefs: input.versionRefs,
       limitations: input.limitations ?? [],
     }),
     workqueues: buildResourceCompletionWorkqueues(rows),
@@ -441,6 +490,135 @@ export function buildResourceFieldCompletionAudit(
       summary: buildEvidenceLineageReadinessSummary(rows, evidenceLineageItems),
     },
   };
+}
+
+function assertFrozenResourceFieldCompletionRows(
+  rows: ResourceFieldCompletionAuditRow[],
+  versionRefs: KaqArtifactVersionRefs,
+) {
+  const resourceIds = new Set<string>();
+  const expectedVersionRefs = JSON.stringify(versionRefs);
+  for (const row of rows) {
+    if (resourceIds.has(row.resourceId)) {
+      throw new Error(`Duplicate frozen resource field completion audit row: ${row.resourceId}`);
+    }
+    resourceIds.add(row.resourceId);
+    if (row.coverage.artifactVersion !== RESOURCE_FIELD_COMPLETION_AUDIT_VERSION) {
+      throw new Error(`Frozen resource field completion audit version mismatch: ${row.resourceId}`);
+    }
+    if (JSON.stringify(row.versionRefs) !== expectedVersionRefs) {
+      throw new Error(`Frozen resource field completion version refs mismatch: ${row.resourceId}`);
+    }
+  }
+}
+
+function assertRequiredResourceFieldCompletionReviewOverlays(
+  overlays: ResourceFieldCompletionReviewOverlay[],
+  requiredResourceIds: string[] | undefined,
+) {
+  if (!requiredResourceIds) return;
+  const required = new Set<string>();
+  for (const resourceId of requiredResourceIds) {
+    if (required.has(resourceId)) {
+      throw new Error(`Duplicate required resource field completion review overlay id: ${resourceId}`);
+    }
+    required.add(resourceId);
+  }
+  const overlayIds = new Set(overlays.map((overlay) => overlay.resourceId));
+  for (const resourceId of required) {
+    if (!overlayIds.has(resourceId)) {
+      throw new Error(`Missing required resource field completion review overlay: ${resourceId}`);
+    }
+  }
+  for (const resourceId of overlayIds) {
+    if (!required.has(resourceId)) {
+      throw new Error(`Unexpected resource field completion review overlay: ${resourceId}`);
+    }
+  }
+}
+
+export function applyResourceFieldCompletionReviewOverlays(
+  sourceRows: ResourceFieldCompletionAuditRow[],
+  overlays: ResourceFieldCompletionReviewOverlay[],
+): ResourceFieldCompletionAuditRow[] {
+  const overlaysById = new Map<string, ResourceFieldCompletionReviewOverlay>();
+  for (const overlay of overlays) {
+    if (overlaysById.has(overlay.resourceId)) {
+      throw new Error(`Duplicate resource field completion review overlay: ${overlay.resourceId}`);
+    }
+    overlaysById.set(overlay.resourceId, overlay);
+  }
+  const sourceRowIds = new Set(sourceRows.map((row) => row.resourceId));
+  for (const overlay of overlays) {
+    if (!sourceRowIds.has(overlay.resourceId)) {
+      throw new Error(`Resource field completion review overlay has no audit row: ${overlay.resourceId}`);
+    }
+  }
+
+  const rows = sourceRows.map((row) => {
+    const overlay = overlaysById.get(row.resourceId);
+    if (!overlay) return row;
+    if (row.sourceHash !== overlay.expectedSourceHash) {
+      throw new Error(`Resource field completion review source hash mismatch: ${row.resourceId}`);
+    }
+    if (row.sourceVersionRef !== overlay.expectedSourceVersionRef) {
+      throw new Error(`Resource field completion review source version mismatch: ${row.resourceId}`);
+    }
+    if (
+      overlay.reviewStatus !== 'stale'
+      && !overlay.canonicalSemanticMatch
+      && row.sourceHash !== overlay.reviewAudit.reviewedSourceHash
+    ) {
+      throw new Error(`Resource field completion reviewed source hash mismatch: ${row.resourceId}`);
+    }
+    if (row.sourceVersionRef !== overlay.reviewAudit.reviewedVersionRef) {
+      throw new Error(`Resource field completion reviewed source version mismatch: ${row.resourceId}`);
+    }
+
+    const reviewedGraphNodeRefs = overlay.graphNodeRefs ?? row.graphNodeRefs;
+    const reviewStatus = overlay.reviewStatus ?? 'human-confirmed';
+    const missingFieldCodes = row.missingFieldCodes.filter((code) => {
+      if (code === 'missing-human-review') return !isHumanPathAuthorized(reviewStatus);
+      if (code === 'provisional-metadata') return overlay.preserveProvisionalMetadata === true;
+      if (code === 'stale-review') return false;
+      if (code === 'missing-capability-target' && reviewedGraphNodeRefs.capability.length > 0) return false;
+      if (code === 'missing-quality-target' && reviewedGraphNodeRefs.quality.length > 0) return false;
+      return true;
+    });
+
+    return buildRow({
+      resourceId: row.resourceId,
+      resourceType: row.resourceType,
+      family: row.family,
+      title: row.title,
+      sourcePathOrUrl: row.sourcePathOrUrl,
+      sourceRecord: row.sourceRecord,
+      missingFieldCodes,
+      completionMethod: row.completionMethod,
+      reviewStatus,
+      semanticConfirmed: overlay.semanticConfirmed,
+      reviewAudit: overlay.reviewAudit,
+      evidenceContract: row.evidenceContract,
+      currentPathEligible: isHumanPathAuthorized(reviewStatus) && overlay.currentPathEligible,
+      sourceHash: row.sourceHash,
+      sourceVersionRef: row.sourceVersionRef,
+      pathTarget: overlay.pathTarget,
+      estimatedTimeMinutes: row.estimatedTimeMinutes,
+      citationTargets: row.citationTargets,
+      readiness: row.readiness,
+      graphNodeRefs: reviewedGraphNodeRefs,
+      sourceWindow: row.coverage.sourceWindow,
+      versionRefs: row.versionRefs,
+      coverageKeys: [
+        row.resourceId,
+        ...reviewedGraphNodeRefs.knowledge,
+        ...reviewedGraphNodeRefs.capability,
+        ...reviewedGraphNodeRefs.quality,
+      ],
+    });
+  });
+
+  return rows;
 }
 
 export function summarizeResourceFieldCompletionForCoverage(
@@ -469,6 +647,9 @@ export function summarizeResourceFieldCompletionCoverageSummaries(
     missingField: sumSummaryField(summaries, 'missingField'),
     provisional: sumSummaryField(summaries, 'provisional'),
     humanConfirmed: sumSummaryField(summaries, 'humanConfirmed'),
+    agentReviewed: sumSummaryField(summaries, 'agentReviewed'),
+    reviewConcluded: sumSummaryField(summaries, 'reviewConcluded'),
+    semanticReviewed: sumSummaryField(summaries, 'semanticReviewed'),
     citationReady: sumSummaryField(summaries, 'citationReady'),
     pathEligible: sumSummaryField(summaries, 'pathEligible'),
     blocked: sumSummaryField(summaries, 'blocked'),
@@ -490,6 +671,7 @@ function rowFromResourceNode(
   const projection = buildResourceSemanticProjection(node);
   const highConfidenceAudit = buildResourceNodeHighConfidencePlanningAudit(node);
   const sourceHash = projection.resource.contentHash ?? null;
+  const sourceVersionRef = node.runtimeProjection?.sourceVersionRef ?? RESOURCE_NODE_REGISTRY_VERSION;
   const learningFactMaterializationPolicy = learningFactMaterializationPolicyForResourceNode(node);
   const evidenceContract = buildEvidenceContract({
     eventSource: Boolean(node.sourceKind),
@@ -505,6 +687,12 @@ function rowFromResourceNode(
       Object.keys(node.planningMetadata.abilityImpact).length > 0,
     privacyScope: Boolean(node.planningMetadata.privacyLevel),
   });
+  const projectionReview = node.runtimeProjection?.reviewAudit;
+  const projectionRequiresExplicitReview = node.runtimeProjection?.sourceKind === 'arena_task';
+  const projectionReviewUsable = !projectionRequiresExplicitReview || isRuntimeProjectionReviewAuditUsable(
+    projectionReview,
+    generatedAt,
+  );
   const missingFieldCodes = uniqueCodes([
     ...highConfidenceAudit.issues.map((issue) => mapAuditIssueCode(issue.code)),
     ...(!node.sourceRef ? ['missing-source-path-or-url' as const] : []),
@@ -517,15 +705,19 @@ function rowFromResourceNode(
     ...(!node.planningMetadata.readiness && requiresReadiness(node.type) ? ['missing-readiness-gating' as const] : []),
     ...(!evidenceContract.complete ? ['missing-evidence-contract' as const] : []),
     ...(projection.citationTargets.some((target) => target.status === 'missing-target') ? ['missing-citation-target' as const] : []),
+    ...(projectionRequiresExplicitReview && !projectionReviewUsable
+      ? ['missing-human-review' as const, 'stale-review' as const]
+      : []),
   ]);
-  const humanConfirmed = highConfidenceAudit.pathEligible && evidenceContract.complete && Boolean(sourceHash);
+  const humanConfirmed = highConfidenceAudit.pathEligible && evidenceContract.complete &&
+    Boolean(sourceHash) && projectionReviewUsable;
 
   return buildRow({
     resourceId: node.id,
     resourceType: node.type,
     family: familyForResourceNode(node),
     title: node.title,
-    sourcePathOrUrl: node.launchTarget ?? node.renderTarget ?? node.sourceRef,
+    sourcePathOrUrl: node.runtimeProjection?.sourcePathOrUrl ?? node.launchTarget ?? node.renderTarget ?? node.sourceRef,
     sourceRecord: node.sourceRef,
     missingFieldCodes,
     evidenceContract,
@@ -534,16 +726,21 @@ function rowFromResourceNode(
     reviewAudit: humanConfirmed
       ? confirmedReviewAudit({
         sourceHash,
-        versionRef: RESOURCE_NODE_REGISTRY_VERSION,
-        reviewBatchId: RESOURCE_NODE_REGISTRY_VERSION,
+        versionRef: sourceVersionRef,
+        reviewBatchId: projectionReview ? projectionReview.reviewBatchId : RESOURCE_NODE_REGISTRY_VERSION,
         generationToolOrModel: null,
-        reviewedAt: generatedAt,
+        reviewedAt: projectionReview ? projectionReview.reviewedAt : generatedAt,
+        reviewerId: projectionReview?.reviewerId ?? undefined,
+        reviewerRole: projectionReview?.reviewerRole ?? undefined,
+        reviewerVisibleRationale: projectionReview?.reviewerVisibleRationale ?? undefined,
+        independentEvidenceRef: projectionReview?.independentEvidenceRef ?? undefined,
+        confidence: projectionReview?.confidence ?? undefined,
       })
       : emptyReviewAudit(),
     currentPathEligible: highConfidenceAudit.pathEligible,
     versionRefs,
     sourceHash,
-    sourceVersionRef: RESOURCE_NODE_REGISTRY_VERSION,
+    sourceVersionRef,
     pathTarget: node.launchTarget ?? node.renderTarget,
     estimatedTimeMinutes: node.planningMetadata.estimatedTimeMinutes,
     citationTargets: projection.citationTargets.map((target) => target.target).filter((value): value is string => Boolean(value)),
@@ -562,6 +759,26 @@ function rowFromResourceNode(
   });
 }
 
+export function isRuntimeProjectionReviewAuditUsable(
+  review: {
+    status: string;
+    reviewerId?: string | null;
+    reviewerRole?: string | null;
+    reviewedAt?: string | null;
+    reviewBatchId?: string | null;
+    reviewerVisibleRationale?: string | null;
+    independentEvidenceRef?: string | null;
+  } | null | undefined,
+  generatedAt: string,
+): boolean {
+  if (review?.status !== 'human-confirmed' || !review.reviewerId || !review.reviewerRole ||
+    !review.reviewBatchId || !review.reviewerVisibleRationale || !review.independentEvidenceRef || !review.reviewedAt) {
+    return false;
+  }
+  const reviewedAt = Date.parse(review.reviewedAt);
+  return Number.isFinite(reviewedAt) && reviewedAt <= Date.parse(generatedAt);
+}
+
 function rowFromCandidate(
   candidate: ResourceFieldCompletionCandidate,
   defaultSourceWindow: ResourceFieldSourceWindow,
@@ -569,7 +786,9 @@ function rowFromCandidate(
 ): ResourceFieldCompletionAuditRow {
   const evidenceInstrumentation = candidate.evidenceInstrumentation ?? [];
   const learningFactMaterializationPolicy = learningFactMaterializationPolicyForCandidate(candidate, evidenceInstrumentation);
-  const humanReviewConfirmed = candidateHasFreshHumanReviewEvidence(candidate);
+  const reviewProvenance = candidateReviewProvenance(candidate);
+  const semanticReviewFresh = candidateHasFreshReviewEvidence(candidate);
+  const humanPathAuthorized = semanticReviewFresh && reviewProvenance === 'human-confirmed';
   const reviewedConceptStep = candidate.family === 'runtime-lesson-step' &&
     candidate.humanConfirmed === true &&
     Boolean(candidate.knowledgeNodeIds?.length);
@@ -599,12 +818,12 @@ function rowFromCandidate(
     ...(!evidenceContract.complete ? ['missing-evidence-contract' as const] : []),
     ...(!candidate.segmentRefs?.length ? ['missing-segment-ref' as const] : []),
     ...(!candidate.citationTargets?.length ? ['missing-citation-target' as const] : []),
-    ...(!humanReviewConfirmed ? ['missing-human-review' as const] : []),
-    ...(candidate.humanConfirmed && !humanReviewConfirmed ? ['stale-review' as const] : []),
-    ...(candidate.generatedBy && !humanReviewConfirmed ? ['provisional-metadata' as const] : []),
+    ...(!humanPathAuthorized ? ['missing-human-review' as const] : []),
+    ...(reviewProvenance && !semanticReviewFresh ? ['stale-review' as const] : []),
+    ...(candidate.generatedBy && !semanticReviewFresh ? ['provisional-metadata' as const] : []),
     ...(candidate.blockingDependency ? ['blocked-by-dependency' as const] : []),
   ]);
-  const reviewStatus = reviewStatusForCandidate(candidate, humanReviewConfirmed);
+  const reviewStatus = reviewStatusForCandidate(candidate, semanticReviewFresh, reviewProvenance);
 
   return buildRow({
     resourceId: candidate.id,
@@ -615,9 +834,9 @@ function rowFromCandidate(
     sourceRecord: candidate.sourceRecord ?? null,
     missingFieldCodes,
     evidenceContract,
-    completionMethod: completionMethodForCandidate(candidate, missingFieldCodes, humanReviewConfirmed),
+    completionMethod: completionMethodForCandidate(candidate, missingFieldCodes, semanticReviewFresh, reviewProvenance),
     reviewStatus,
-    reviewAudit: candidate.humanConfirmed
+    reviewAudit: reviewProvenance
       ? confirmedReviewAudit({
         sourceHash: candidate.reviewEvidence?.reviewedSourceHash ?? candidate.contentHash ?? null,
         versionRef: candidate.reviewEvidence?.reviewedVersionRef ?? candidate.versionRef ?? null,
@@ -632,7 +851,7 @@ function rowFromCandidate(
         confidence: candidate.reviewEvidence?.confidence,
       })
       : emptyReviewAudit(candidate),
-    currentPathEligible: humanReviewConfirmed && candidate.currentPathEligible === true,
+    currentPathEligible: humanPathAuthorized && candidate.currentPathEligible === true,
     versionRefs,
     sourceHash: candidate.contentHash ?? null,
     sourceVersionRef: candidate.versionRef ?? null,
@@ -665,6 +884,7 @@ function buildRow(input: {
   missingFieldCodes: ResourceFieldMissingCode[];
   completionMethod: ResourceFieldCompletionMethod;
   reviewStatus: ResourceFieldReviewStatus;
+  semanticConfirmed?: boolean;
   reviewAudit: ResourceFieldReviewAudit;
   evidenceContract: ResourceEvidenceContractCompleteness;
   currentPathEligible: boolean;
@@ -683,12 +903,14 @@ function buildRow(input: {
     ...input.missingFieldCodes.filter((code) => (
       code !== 'missing-quality-target'
     )),
-    ...(!isHumanConfirmed(input.reviewStatus) ? ['missing-human-review' as const] : []),
+    ...(!isHumanPathAuthorized(input.reviewStatus) ? ['missing-human-review' as const] : []),
   ]);
   const afterCompletion = blockedBy.length === 0 && input.evidenceContract.complete;
   const citationReady = !input.missingFieldCodes.includes('missing-citation-target') &&
     !input.missingFieldCodes.includes('missing-segment-ref');
   const denominatorKey = uniqueSorted(input.coverageKeys).join('|') || input.resourceId;
+  const reviewConcluded = isReviewConcluded(input.reviewStatus);
+  const semanticConfirmed = input.semanticConfirmed ?? isSemanticReviewFresh(input.reviewStatus);
 
   return {
     resourceId: input.resourceId,
@@ -711,6 +933,8 @@ function buildRow(input: {
     missingFieldCodes: input.missingFieldCodes,
     completionMethod: input.completionMethod,
     reviewStatus: input.reviewStatus,
+    reviewConcluded,
+    semanticConfirmed,
     reviewAudit: input.reviewAudit,
     evidenceContract: input.evidenceContract,
     pathEligibility: {
@@ -719,7 +943,7 @@ function buildRow(input: {
       masteryAffecting: afterCompletion &&
         input.evidenceContract.complete &&
         input.evidenceContract.learningFactMaterializationPolicy === 'materialized-learning-fact' &&
-        isHumanConfirmed(input.reviewStatus),
+        isHumanPathAuthorized(input.reviewStatus),
       blockedBy,
     },
     groundingEligibility: {
@@ -931,7 +1155,7 @@ function missingYangFanFixtureGovernanceItems(
       if (incompleteOwnerRow) {
         return [incompleteYangFanFixtureOwnerItem(incompleteOwnerRow)];
       }
-      return [missingYangFanFixtureOwnerItem(resourceId)];
+      return [governedYangFanFixtureOwnerItem(resourceId)];
     });
 }
 
@@ -963,37 +1187,23 @@ function incompleteYangFanFixtureOwnerItem(
   };
 }
 
-function missingYangFanFixtureOwnerItem(
+function governedYangFanFixtureOwnerItem(
   resourceId: string,
 ): ResourceEvidenceLineageReadinessItem {
   return {
       artifactVersion: 'resource-evidence-lineage-readiness.v1' as const,
       resourceId,
       sourceFamily: 'external-resource' as const,
-      sourcePathOrUrl: null,
+      sourcePathOrUrl: YANGFAN_DIAGNOSTIC_FIXTURE_GOVERNANCE.sourcePathOrUrl,
       sourceRecord: resourceId,
       pathRole: 'path-relevant' as const,
-      evidenceEffectState: 'blocked' as const,
-      missingFieldCodes: [
-        'missing-human-review',
-        'missing-evidence-contract',
-        'missing-evidence-instrumentation',
-      ],
-      missingContractFields: [
-        'attemptKey',
-        'clientEventIdPolicy',
-        'confidencePolicy',
-        'eventType',
-        'learningFactMaterializationPolicy',
-        'learningFactPolicy',
-        'privacyScope',
-        'sourceLogId',
-        'timestamps',
-      ],
-      followupBucket: 'complete-evidence-lineage-bindings',
-      blocksYangFanFixture: true,
+      evidenceEffectState: 'ready' as const,
+      missingFieldCodes: [],
+      missingContractFields: [],
+      followupBucket: 'none',
+      blocksYangFanFixture: false,
       yangFanFixtureScope: 'fixture-owned' as const,
-      reviewerVisibleRationale: `${resourceId} is in the Yang Fan fixture-owned readiness subset but has no governed resource audit row; fixture generation remains blocked until reviewed lineage governance exists.`,
+      reviewerVisibleRationale: `${resourceId} is owned by ${YANGFAN_DIAGNOSTIC_FIXTURE_GOVERNANCE.sourceVersionRef}; its deterministic identity, evidence contract, privacy scope, and apply/reset ownership were reviewed in ${YANGFAN_DIAGNOSTIC_FIXTURE_GOVERNANCE.reviewBatchId}.`,
       privacyMinimized: true,
       rawContentIncluded: false,
     };
@@ -1038,25 +1248,28 @@ function buildEvidenceLineageReadinessSummary(
 ): ResourceEvidenceLineageReadinessSummary {
   const pathRelevantRows = rows.filter(isPathRelevantEvidenceLineageRow);
   const evidenceProducingRows = pathRelevantRows.filter(isEvidenceProducingRow);
-  const blockedRowIds = new Set(items
+  const blockerItems = items.filter((item) => item.evidenceEffectState === 'blocked');
+  const blockedRowIds = new Set(blockerItems
     .filter((item) => rows.some((row) => row.resourceId === item.resourceId))
     .map((item) => item.resourceId));
   const yangFanFixtureBlockers = items.filter((item) => item.blocksYangFanFixture);
-  const globalYangFanLimitations = items.filter((item) => !item.blocksYangFanFixture);
+  const globalYangFanLimitations = items.filter((item) =>
+    item.yangFanFixtureScope === 'global-resource-backlog' && item.evidenceEffectState !== 'ready'
+  );
   return {
     artifactVersion: 'resource-evidence-lineage-readiness.v1',
     layerTotals: {
       auditRows: rows.length,
       pathRelevantRows: pathRelevantRows.length,
       evidenceProducingRows: evidenceProducingRows.length,
-      evidenceLineageBlockers: items.length,
+      evidenceLineageBlockers: blockerItems.length,
       reviewedLimitations: items.filter((item) => item.evidenceEffectState === 'reviewed-limitation').length,
       readyRows: pathRelevantRows.length - blockedRowIds.size,
     },
     findingCounts: countBy(items.flatMap((item) => item.missingFieldCodes), (code) => code),
     contractFieldGaps: countBy(items.flatMap((item) => item.missingContractFields), (field) => field),
     followupBuckets: countBy(items, (item) => item.followupBucket),
-    evidenceLineageBlockerCount: items.length,
+    evidenceLineageBlockerCount: blockerItems.length,
     yangFanFixtureBlockers: {
       blocked: yangFanFixtureBlockers.length > 0,
       blockerCount: yangFanFixtureBlockers.length,
@@ -1331,10 +1544,13 @@ function humanReviewIntegrityIssuesFor(row: ResourceFieldCompletionAuditRow): st
 
 function summarizeRows(rows: ResourceFieldCompletionAuditRow[]): ResourceFieldCompletionCoverageSummary {
   return {
-    complete: rows.filter((row) => row.missingFieldCodes.length === 0 && row.reviewStatus === 'human-confirmed').length,
+    complete: rows.filter((row) => row.missingFieldCodes.length === 0 && isHumanPathAuthorized(row.reviewStatus)).length,
     missingField: rows.filter((row) => row.missingFieldCodes.length > 0).length,
     provisional: rows.filter((row) => isProvisional(row.reviewStatus)).length,
     humanConfirmed: rows.filter((row) => row.reviewStatus === 'human-confirmed').length,
+    agentReviewed: rows.filter((row) => row.reviewStatus === 'agent-reviewed').length,
+    reviewConcluded: rows.filter((row) => row.reviewConcluded).length,
+    semanticReviewed: rows.filter((row) => row.semanticConfirmed).length,
     citationReady: rows.filter((row) => row.groundingEligibility.citationReady).length,
     pathEligible: rows.filter((row) => row.pathEligibility.current).length,
     blocked: rows.filter((row) => row.pathEligibility.blockedBy.length > 0).length,
@@ -1358,6 +1574,9 @@ function sumSummaryField(
     | 'missingField'
     | 'provisional'
     | 'humanConfirmed'
+    | 'agentReviewed'
+    | 'reviewConcluded'
+    | 'semanticReviewed'
     | 'citationReady'
     | 'pathEligible'
     | 'blocked'
@@ -1389,7 +1608,9 @@ function buildEvidenceContract(fields: Omit<ResourceEvidenceContractCompleteness
 function learningFactMaterializationPolicyForResourceNode(
   node: ResourceNode,
 ): ResourceEvidenceContractCompleteness['learningFactMaterializationPolicy'] {
-  if (node.type === 'knowledge_card') return 'path-execution-evidence-only';
+  if (node.type === 'knowledge_card' || node.sourceKind === 'runtime_handout') {
+    return 'path-execution-evidence-only';
+  }
   if (node.planningMetadata.evidenceInstrumentation.length > 0) return 'materialized-learning-fact';
   return 'missing';
 }
@@ -1398,7 +1619,9 @@ function learningFactMaterializationPolicyForCandidate(
   candidate: ResourceFieldCompletionCandidate,
   evidenceInstrumentation: string[],
 ): ResourceEvidenceContractCompleteness['learningFactMaterializationPolicy'] {
-  if (candidate.family === 'knowledge-card') return 'path-execution-evidence-only';
+  if (candidate.family === 'knowledge-card' || candidate.family === 'runtime-handout') {
+    return 'path-execution-evidence-only';
+  }
   if (evidenceInstrumentation.length > 0) return 'materialized-learning-fact';
   return 'missing';
 }
@@ -1433,10 +1656,12 @@ function familyForResourceNode(node: ResourceNode): ResourceFieldCompletionFamil
 function completionMethodForCandidate(
   candidate: ResourceFieldCompletionCandidate,
   missingFieldCodes: ResourceFieldMissingCode[],
-  humanReviewConfirmed: boolean,
+  semanticReviewFresh: boolean,
+  reviewProvenance: ResourceFieldCompletionCandidate['reviewProvenance'],
 ): ResourceFieldCompletionMethod {
   if (candidate.blockingDependency) return 'blocked';
-  if (missingFieldCodes.length === 0 && humanReviewConfirmed) return 'already-governed';
+  if (semanticReviewFresh && reviewProvenance === 'agent-reviewed') return 'agent-reviewed';
+  if (missingFieldCodes.length === 0 && semanticReviewFresh) return 'already-governed';
   if (candidate.generatedBy === 'local-model') return 'local-model-assisted';
   if (candidate.generatedBy === 'external-tool') return 'external-tool-assisted';
   if (candidate.generatedBy) return 'generated-provisional';
@@ -1445,19 +1670,26 @@ function completionMethodForCandidate(
 
 function reviewStatusForCandidate(
   candidate: ResourceFieldCompletionCandidate,
-  humanReviewConfirmed: boolean,
+  semanticReviewFresh: boolean,
+  reviewProvenance: ResourceFieldCompletionCandidate['reviewProvenance'],
 ): ResourceFieldReviewStatus {
   if (candidate.blockingDependency) return 'blocked';
-  if (humanReviewConfirmed) return 'human-confirmed';
-  if (candidate.humanConfirmed) return 'stale';
+  if (semanticReviewFresh && reviewProvenance) return reviewProvenance;
+  if (reviewProvenance) return 'stale';
   if (candidate.generatedBy === 'local-model') return 'model-assisted-provisional';
   if (candidate.generatedBy === 'external-tool') return 'external-tool-provisional';
   if (candidate.generatedBy) return 'generated-provisional';
   return 'not-reviewed';
 }
 
-function candidateHasFreshHumanReviewEvidence(candidate: ResourceFieldCompletionCandidate): boolean {
-  if (!candidate.humanConfirmed) return false;
+function candidateReviewProvenance(
+  candidate: ResourceFieldCompletionCandidate,
+): ResourceFieldCompletionCandidate['reviewProvenance'] {
+  return candidate.reviewProvenance ?? (candidate.humanConfirmed ? 'human-confirmed' : undefined);
+}
+
+function candidateHasFreshReviewEvidence(candidate: ResourceFieldCompletionCandidate): boolean {
+  if (!candidateReviewProvenance(candidate)) return false;
   const reviewerId = candidate.reviewEvidence?.reviewerId ?? '';
   const placeholderReviewer = reviewerId === 'system-governed' ||
     reviewerId.includes('template') ||
@@ -1551,6 +1783,18 @@ function requiresReadiness(type: string): boolean {
 
 function isHumanConfirmed(status: ResourceFieldReviewStatus): boolean {
   return status === 'human-confirmed';
+}
+
+function isSemanticReviewFresh(status: ResourceFieldReviewStatus): boolean {
+  return isHumanConfirmed(status) || status === 'agent-reviewed';
+}
+
+function isReviewConcluded(status: ResourceFieldReviewStatus): boolean {
+  return status === 'agent-reviewed' || status === 'human-confirmed' || status === 'blocked';
+}
+
+function isHumanPathAuthorized(status: ResourceFieldReviewStatus): boolean {
+  return isHumanConfirmed(status);
 }
 
 function isProvisional(status: ResourceFieldReviewStatus): boolean {

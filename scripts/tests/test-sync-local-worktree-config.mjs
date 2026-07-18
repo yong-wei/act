@@ -53,6 +53,8 @@ run('git', ['init'], target);
 
 writeFile('.codex/agents/starter.toml', 'name = "starter"\n');
 writeFile('.codex/config.toml', '[tools]\n');
+writeFile('.codex/environments/environment.toml', '[environment]\n');
+writeFile('AGENTS.md', '# Source agents\n');
 writeFile(
   '.codex/hooks.json',
   JSON.stringify(
@@ -109,6 +111,7 @@ writeFile('course-content/runtime/lessons/demo/manifest.json', '{ "id": "demo" }
 writeFile('course-content/runtime/knowledge/tracked.json', '{ "tracked": true }\n');
 writeFile('course-content/runtime/knowledge/media/asset.txt', 'asset\n');
 writeTargetFile('.codex/agents/starter.toml', 'name = "old-starter"\n');
+writeTargetFile('AGENTS.md', '# Old agents\n');
 writeTargetFile('.github/workflows/ci.yml', 'name: old-ci\n');
 
 const dryRun = run(
@@ -127,6 +130,11 @@ assert.match(
   dryRun.stdout,
   /would sync dir: \.codex\//,
   '工作树配置同步应默认包含 .codex/',
+);
+assert.match(
+  dryRun.stdout,
+  /would copy file with backup: AGENTS\.md/,
+  '工作树配置同步应默认包含 AGENTS.md',
 );
 assert.match(
   dryRun.stdout,
@@ -182,6 +190,14 @@ assert.equal(
   'name = "starter"\n',
   'apply 模式应覆盖目标工作树中的旧 .codex 配置',
 );
+assert.equal(
+  fs.readFileSync(path.join(target, 'AGENTS.md'), 'utf8'),
+  '# Source agents\n',
+  'apply 模式应同步本地 AGENTS.md',
+);
+const targetLocalExclude = fs.readFileSync(path.join(target, '.git/info/exclude'), 'utf8');
+assert.match(targetLocalExclude, /^AGENTS\.md$/m, '同步脚本应在隔离工作树本地忽略 AGENTS.md');
+assert.match(targetLocalExclude, /^\.codex\/$/m, '同步脚本应在隔离工作树本地忽略 .codex/');
 assert.equal(
   fs.readdirSync(path.join(target, '.codex/agents')).some((name) => name.includes('.bak.')),
   false,
@@ -374,6 +390,26 @@ assert.equal(
   fs.existsSync(path.join(freshLinkTarget, '.codex/hooks.json')),
   true,
   'fresh link-config 目标也应获得 .codex/hooks.json',
+);
+assert.equal(
+  fs.lstatSync(path.join(freshLinkTarget, 'AGENTS.md')).isSymbolicLink(),
+  true,
+  'link-config 应链接 AGENTS.md',
+);
+assert.equal(
+  fs.lstatSync(path.join(freshLinkTarget, '.codex/config.toml')).isSymbolicLink(),
+  true,
+  'link-config 应链接 .codex/config.toml',
+);
+assert.equal(
+  fs.lstatSync(path.join(freshLinkTarget, '.codex/agents')).isSymbolicLink(),
+  true,
+  'link-config 应链接 .codex/agents',
+);
+assert.equal(
+  fs.lstatSync(path.join(freshLinkTarget, '.codex/environments')).isSymbolicLink(),
+  true,
+  'link-config 应链接 .codex/environments',
 );
 assert.match(
   fs.readFileSync(path.join(freshLinkTarget, '.codex/hooks.json'), 'utf8'),
@@ -647,8 +683,13 @@ assert.match(
 const preCommitHook = fs.readFileSync(gitHookPath(target, 'pre-commit'), 'utf8');
 assert.match(
   preCommitHook,
+  /typecheck_run "pre-commit"/,
+  'pre-commit hook 应执行本地提交门禁',
+);
+assert.match(
+  preCommitHook,
   /detect-changes --brief/,
-  'pre-commit hook 只应做 CRG 变更检测',
+  'pre-commit hook 应保留 CRG 变更检测',
 );
 
 run('sh', [postCommitHookPath], target, {

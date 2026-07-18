@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 
+import { createEmptyCompetencyVector } from '@/lib/data-governance/competency-model';
+import { PORTRAIT_V2_DIMENSIONS } from '@/lib/data-governance/kaq-objective-taxonomy';
+import { createPortraitV2Payload, derivePortraitV2Compatibility } from '@/lib/data-governance/portrait-v2-model';
+
 const mocks = vi.hoisted(() => {
   const getServerAuthSession = vi.fn();
 
@@ -15,6 +19,9 @@ const mocks = vi.hoisted(() => {
         findUnique: vi.fn(),
       },
       studentCompetencySnapshot: {
+        findFirst: vi.fn(),
+      },
+      studentPortraitV2Snapshot: {
         findFirst: vi.fn(),
       },
       studentRiskFlag: {
@@ -34,6 +41,67 @@ vi.mock('@/lib/prisma', () => ({
 
 import { GET } from '@/app/api/student/competency-snapshot/route';
 
+function emptyNativePortraitSnapshot(now: Date) {
+  const payload = createPortraitV2Payload({
+    userId: 'student-1',
+    generatedAt: now.toISOString(),
+    now,
+    derivation: { kind: 'native', limitations: [] },
+    dimensions: PORTRAIT_V2_DIMENSIONS.map(({ id }) => ({
+      id,
+      score: 0,
+      confidence: 0,
+      trend: 'stable' as const,
+      freshness: { state: 'missing' as const, asOf: null, evidenceAgeDays: null },
+      evidenceSummary: { totalCount: 0, sourceFamilyCounts: {} as Record<string, number> },
+      lastPositiveEvidenceAt: null,
+      lastNegativeEvidenceAt: null,
+      rationale: 'No safe legacy mapping exists.',
+      limitations: ['missing-native-portrait-v2-evidence'],
+      sourceLineage: [],
+      calculationVersion: 'portrait-v2-primary.v1',
+    })),
+  });
+  return {
+    id: 'portrait-empty-1',
+    userId: 'student-1',
+    snapshotAt: now,
+    payloadVersion: payload.payloadVersion,
+    calculationVersion: 'portrait-v2-primary.v1',
+    migrationVersion: payload.migrationVersion,
+    derivationKind: 'native',
+    payload,
+  };
+}
+
+function evidenceNativePortraitSnapshot(now: Date) {
+  const vector = createEmptyCompetencyVector();
+  for (const entry of Object.values(vector)) {
+    entry.score = 88;
+    entry.confidence = 0.8;
+    entry.evidenceCount = 1;
+    entry.lastUpdated = now.toISOString();
+  }
+  const payload = derivePortraitV2Compatibility({
+    userId: 'student-1',
+    snapshotId: 'historical-portrait-source',
+    snapshotAt: now.toISOString(),
+    sourceFamily: 'StudentCompetencySnapshot',
+    vector,
+    now,
+  });
+  return {
+    id: 'portrait-evidence-1',
+    userId: 'student-1',
+    snapshotAt: now,
+    payloadVersion: payload.payloadVersion,
+    calculationVersion: 'portrait-v2-primary.v1',
+    migrationVersion: payload.migrationVersion,
+    derivationKind: 'compatibility-derived',
+    payload,
+  };
+}
+
 describe('GET /api/student/competency-snapshot', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -44,6 +112,7 @@ describe('GET /api/student/competency-snapshot', () => {
     mocks.prisma.$queryRaw.mockResolvedValue([{ exists: false }]);
     mocks.prisma.diagnosisReportSnapshot.findMany.mockResolvedValue([]);
     mocks.prisma.studentProfile.findUnique.mockResolvedValue({ classId: 'class-1' });
+    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue(null);
 
     mocks.prisma.studentCompetencySnapshot.findFirst
       .mockResolvedValueOnce({
@@ -106,7 +175,29 @@ describe('GET /api/student/competency-snapshot', () => {
     ]);
   });
 
+  it('returns explicit empty evidence states when no snapshot exists', async () => {
+    mocks.prisma.studentCompetencySnapshot.findFirst.mockReset().mockResolvedValue(null);
+
+    const response = await GET(new NextRequest('http://localhost/api/student/competency-snapshot'));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toMatchObject({
+      derivationState: 'no-evidence',
+      evidenceState: 'empty',
+      currentSnapshot: null,
+      previousSnapshot: null,
+      trendVector: null,
+      evidenceSummary: {},
+      riskFlags: [],
+      recommendations: [],
+    });
+  });
+
   it('deduplicates repeated risk flags and recommendations before responding', async () => {
+    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue(
+      emptyNativePortraitSnapshot(new Date('2026-03-19T09:00:00.000Z')),
+    );
     const response = await GET(new NextRequest('http://localhost/api/student/competency-snapshot?timeRange=30d'));
     const body = await response.json();
 
@@ -116,9 +207,16 @@ describe('GET /api/student/competency-snapshot', () => {
     expect(body.recommendations.map((item: { title: string }) => item.title)).toEqual([
       '增加学习活跃度',
       '加强跨域知识联系',
-      '提升自主学习能力',
+      '提升迁移整合与应用能力',
       '巩固基础能力',
     ]);
+    expect(body.currentSnapshot.portrait.dimensions).toHaveLength(7);
+    expect(body.currentSnapshot.portrait.overallScore).toBeGreaterThan(0);
+    expect(body.currentSnapshot.legacyCompatibility.source).toBe('StudentCompetencySnapshot');
+    expect(Object.keys(body.evidenceSummary)).toEqual(expect.arrayContaining([
+      'controlModelingRepresentation',
+      'transferIntegratedApplication',
+    ]));
     expect(body.recommendations[0].rationale).toMatchObject({
       reasonCode: 'snapshot-risk-participation',
       evidenceBasis: 'approved-snapshot',
@@ -134,8 +232,45 @@ describe('GET /api/student/competency-snapshot', () => {
     });
     expect(JSON.stringify(body)).not.toContain('raw student answer should not leave snapshot API');
     expect(JSON.stringify(body)).not.toContain('raw answer body should not leave snapshot API');
-    expect(body.evidenceSummary.crossDomainTransfer[0]).not.toHaveProperty('studentAnswer');
-    expect(body.evidenceSummary.crossDomainTransfer[0]).not.toHaveProperty('rawAnswer');
+    expect(body.evidenceSummary.transferIntegratedApplication[0]).not.toHaveProperty('studentAnswer');
+    expect(body.evidenceSummary.transferIntegratedApplication[0]).not.toHaveProperty('rawAnswer');
+  });
+
+  it('returns the current empty rebuild snapshot instead of the revoked historical score', async () => {
+    const emptyVector = Object.fromEntries(['controlModeling', 'parameterDesign', 'crossDomainTransfer', 'engineeringDecision', 'inquiryReflection', 'selfDirectedLearning'].map((dimension) => [dimension, { score: 0, trend: 'stable', confidence: 0, evidenceCount: 0, lastUpdated: '2026-07-15T03:00:00.000Z' }]));
+    mocks.prisma.studentCompetencySnapshot.findFirst
+      .mockReset()
+      .mockResolvedValueOnce({ userId: 'student-1', competencyVector: emptyVector, snapshotAt: new Date('2026-07-15T03:00:00Z'), factCount: 0, evidenceSummary: { _derivation: { state: 'no-evidence-after-revocation', reason: 'governed-facts-revoked' } }, riskFlags: [] })
+      .mockResolvedValueOnce({ userId: 'student-1', competencyVector: Object.fromEntries(Object.keys(emptyVector).map((dimension) => [dimension, { score: dimension === 'controlModeling' ? 100 : 0, trend: 'stable', confidence: 1, evidenceCount: 1, lastUpdated: '2026-07-14T03:00:00.000Z' }])), snapshotAt: new Date('2026-07-14T03:00:00Z'), factCount: 1 });
+    mocks.prisma.studentRiskFlag.findMany.mockResolvedValue([]);
+
+    const response = await GET(new NextRequest('http://localhost/api/student/competency-snapshot'));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.currentSnapshot.factCount).toBe(0);
+    expect(body.currentSnapshot.vector.controlModeling.score).toBe(0);
+    expect(body.previousSnapshot.vector.controlModeling.score).toBe(100);
+    expect(body.trendVector).toBeNull();
+    expect(body.recommendations).toEqual([]);
+  });
+
+  it('does not infer decline or weaknesses from a no-recent-evidence boundary', async () => {
+    const vector = Object.fromEntries(['controlModeling', 'parameterDesign', 'crossDomainTransfer', 'engineeringDecision', 'inquiryReflection', 'selfDirectedLearning'].map((dimension) => [dimension, { score: dimension === 'controlModeling' ? 72 : 0, trend: 'stable', confidence: 0.5, evidenceCount: dimension === 'controlModeling' ? 3 : 0, lastUpdated: '2026-06-01T00:00:00.000Z' }]));
+    mocks.prisma.studentCompetencySnapshot.findFirst.mockReset()
+      .mockResolvedValueOnce({ userId: 'student-1', competencyVector: vector, snapshotAt: new Date('2026-07-15T03:00:00Z'), factCount: 0, evidenceSummary: { _derivation: { state: 'no-recent-evidence', reason: 'no-governed-facts-in-30-day-window' } }, riskFlags: [] })
+      .mockResolvedValueOnce({ userId: 'student-1', competencyVector: vector, snapshotAt: new Date('2026-06-01T00:00:00Z'), factCount: 3 });
+    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue(
+      evidenceNativePortraitSnapshot(new Date('2026-06-01T00:00:00.000Z')),
+    );
+    mocks.prisma.studentRiskFlag.findMany.mockResolvedValue([]);
+    const body = await (await GET(new NextRequest('http://localhost/api/student/competency-snapshot'))).json();
+    expect(body.currentSnapshot.vector.controlModeling.score).toBe(72);
+    expect(body.currentSnapshot.portrait.overallScore).toBe(0);
+    expect(body.currentSnapshot.portrait.limitations).toContain('lifecycle-boundary:no-recent-evidence');
+    expect(body).toMatchObject({ derivationState: 'no-recent-evidence', evidenceState: 'empty' });
+    expect(body.trendVector).toBeNull();
+    expect(body.recommendations).toEqual([]);
   });
 
   it('reads a persisted diagnosis snapshot with the student class id when the table exists', async () => {
@@ -193,5 +328,74 @@ describe('GET /api/student/competency-snapshot', () => {
         growthPercentile: { percentile: 65 },
       },
     });
+  });
+
+  it('returns a persisted portrait v2 when the legacy competency snapshot is absent', async () => {
+    const now = new Date('2026-03-19T09:00:00.000Z');
+    const vector = createEmptyCompetencyVector();
+    for (const entry of Object.values(vector)) {
+      entry.score = 70;
+      entry.confidence = 0.8;
+      entry.evidenceCount = 3;
+      entry.lastUpdated = now.toISOString();
+    }
+    const payload = derivePortraitV2Compatibility({
+      userId: 'student-1',
+      snapshotId: 'legacy-source-1',
+      snapshotAt: now.toISOString(),
+      sourceFamily: 'StudentCompetencySnapshot',
+      vector,
+      now,
+    });
+
+    mocks.prisma.studentCompetencySnapshot.findFirst.mockReset().mockResolvedValue(null);
+    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue({
+      id: 'portrait-1',
+      userId: 'student-1',
+      snapshotAt: now,
+      payloadVersion: payload.payloadVersion,
+      calculationVersion: 'portrait-v2-primary.v1',
+      migrationVersion: payload.migrationVersion,
+      derivationKind: 'compatibility-derived',
+      payload,
+    });
+
+    const response = await GET(new NextRequest('http://localhost/api/student/competency-snapshot?timeRange=30d'));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.currentSnapshot).toMatchObject({
+      snapshotAt: now.toISOString(),
+    });
+    expect(body.currentSnapshot.factCount).toBeGreaterThan(0);
+    expect(body.currentSnapshot.portrait.dimensions).toHaveLength(7);
+    expect(body.currentSnapshot.portrait.derivationKind).toBe('compatibility-derived');
+    expect(body.recommendations).not.toHaveLength(0);
+    expect(body.recommendations.every((item: { rationale: { evidenceBasis: string } }) => (
+      item.rationale.evidenceBasis === 'portrait-v2'
+    ))).toBe(true);
+    expect(body.recommendations.every((item: { rationale: { sourceCoverage: { StudentCompetencySnapshot: string } } }) => (
+      item.rationale.sourceCoverage.StudentCompetencySnapshot === 'missing'
+    ))).toBe(true);
+    expect(body.recommendations.every((item: { rationale: { sourceCoverage: { LearningFact: string } } }) => (
+      item.rationale.sourceCoverage.LearningFact === 'missing'
+    ))).toBe(true);
+    expect(body.riskFlags).toEqual(expect.arrayContaining([
+      expect.objectContaining({ type: 'participation', severity: 'high' }),
+      expect.objectContaining({ type: 'cross_domain', severity: 'medium' }),
+    ]));
+    expect(body.recommendations.map((item: { title: string }) => item.title)).toContain('增加学习活跃度');
+  });
+
+  it('keeps an evidence-free native portrait in the empty response branch', async () => {
+    const now = new Date('2026-03-19T09:00:00.000Z');
+    mocks.prisma.studentCompetencySnapshot.findFirst.mockReset().mockResolvedValue(null);
+    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue(emptyNativePortraitSnapshot(now));
+
+    const response = await GET(new NextRequest('http://localhost/api/student/competency-snapshot?timeRange=30d'));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.currentSnapshot).toBeNull();
   });
 });

@@ -98,6 +98,40 @@ describe('interactive lesson identity resolver', () => {
     }
   });
 
+  it('registers lesson 1-5 as a formal interactive unit', () => {
+    const resolved = resolveInteractiveLessonIdentity({
+      kind: 'routeSegment',
+      value: 'unit-1-5-three-domain-gain-sweep',
+    });
+
+    expect(resolved.status).toBe('resolved');
+    if (resolved.status !== 'resolved') throw new Error('1-5 route did not resolve');
+    expect(resolved.record).toMatchObject({
+      canonicalId: '1-5',
+      runtimeLessonDir: '1-5',
+      routeSegments: ['unit-1-5-three-domain-gain-sweep'],
+      lessonKeys: ['unit-1-5-three-domain-gain-sweep-v1'],
+      presetKeys: ['unit-1-5-three-domain-gain-sweep-v1'],
+    });
+  });
+
+  it('registers lesson 1-4 as a formal interactive unit', () => {
+    const resolved = resolveInteractiveLessonIdentity({
+      kind: 'routeSegment',
+      value: 'unit-1-4-time-frequency-views',
+    });
+
+    expect(resolved.status).toBe('resolved');
+    if (resolved.status !== 'resolved') throw new Error('1-4 route did not resolve');
+    expect(resolved.record).toMatchObject({
+      canonicalId: '1-4',
+      runtimeLessonDir: '1-4',
+      routeSegments: ['unit-1-4-time-frequency-views'],
+      lessonKeys: ['unit-1-4-time-frequency-views-v1'],
+      presetKeys: ['unit-1-4-time-frequency-views-v1'],
+    });
+  });
+
   it('keeps the registry aligned with gate inventory, AI context, and lesson-id map surfaces', () => {
     const records = listInteractiveLessonIdentityRecords();
     const recordsById = new Map(records.map((record) => [record.canonicalId, record]));

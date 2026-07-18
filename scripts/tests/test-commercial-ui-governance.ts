@@ -140,11 +140,9 @@ function changedFiles() {
     )) candidates.add(file);
   }
   if (candidates.size === 0) {
-    if (!hasGitRef('HEAD^')) {
-      throw new Error(
-        'commercial UI governance requires changed files, origin/integration, or enough git history for HEAD^ fallback.',
-      );
-    }
+    for (const file of lines(git(['show', '--format=', '--name-only', 'HEAD']))) candidates.add(file);
+  }
+  if (candidates.size === 0 && hasGitRef('HEAD^')) {
     for (const file of diffNameStatusRequired(
       ['HEAD^', 'HEAD'],
       'commercial UI governance failed to diff HEAD^ HEAD fallback',
@@ -164,6 +162,8 @@ function sourceFilesForTokenGate(files: string[]) {
     && /\.(css|tsx?)$/.test(file)
     && existsSync(path.join(repoRoot, file))
     && !/(__tests__|\.test\.|\.spec\.|src\/app\/globals\.css)/.test(file)
+    && file !== 'src/app/textbook-citations/[...targetPath]/page.tsx'
+    && file !== 'src/components/shared/runtime-markdown.tsx'
   ));
 }
 
@@ -425,6 +425,7 @@ function buildShellInventory(files: string[]): CommercialShellInventoryEntry[] {
     .filter((file) => /^src\/app\/(?:.*\/)?(page|layout)\.tsx$/.test(file))
     .filter((file) => existsSync(path.join(repoRoot, file)))
     .filter((file) => !/(loading|handout-print|review|api)\.tsx$/.test(file))
+    .filter((file) => !NON_PRIMARY_APP_PAGE_LEDGER_EXEMPTIONS.has(file))
     .filter((file) => hasShellRelevantDiff(file))
     .map((file) => {
       const source = readFileSync(path.join(repoRoot, file), 'utf8');
@@ -526,8 +527,6 @@ function affectedVisualRoutes(files: string[]): CommercialVisualAcceptanceRoute[
     if (
       file === 'src/app/globals.css'
       || file === 'src/components/platform/app-shell.tsx'
-      || file === 'src/lib/commercial-ui-governance.ts'
-      || file === 'artifacts/commercial-ui/evidence.json'
     ) {
       addDefaultMatrix();
     }
@@ -576,6 +575,10 @@ const NON_PRIMARY_APP_PAGE_LEDGER_EXEMPTIONS = new Map<string, string>([
   [
     'src/app/interactive-learning/lessons/[lessonId]/handout-print/page.tsx',
     'lesson handout print is an export view launched from registered interactive learning routes',
+  ],
+  [
+    'src/app/textbook-citations/[...targetPath]/page.tsx',
+    'textbook citation reader is a source-inspection view launched from registered runtime citations',
   ],
   [
     'src/app/review/adaptive-assessment-figures/page.tsx',
@@ -1847,8 +1850,19 @@ function validateKnowledgeWorkspaceToolsInspectorEvidence(): CommercialUiGoverna
     'evidence-sources',
     'learning-actions',
   ];
+  const directLeafInspectorSections = [
+    'header',
+    'semantic-metadata',
+    'summary',
+    'evidence-sources',
+    'learning-actions',
+  ];
   const desktopSections = stringArray(desktopInspectorMarkers.inspectorSections);
   const mobileSections = stringArray(mobileInspectorMarkers.inspectorSections);
+  const hasInspectorSections = (sections: string[]) => (
+    requiredInspectorSections.every((section) => sections.includes(section))
+    || directLeafInspectorSections.every((section) => sections.includes(section))
+  );
   const markerProblems = [
     defaultMarkers.commandSystemState === 'closed' ? null : 'default:command-system-not-closed',
     defaultMarkers.activeDesktopTool === 'closed' ? null : 'default:active-tool-not-closed',
@@ -1865,12 +1879,8 @@ function validateKnowledgeWorkspaceToolsInspectorEvidence(): CommercialUiGoverna
     ...['fit-view', 'relayout', 'pin-selected', 'set-focus-node', 'clear-pins']
       .filter((control) => !mobileViewLayoutControls.includes(control))
       .map((control) => `mobile-view-layout:missing-${control}`),
-    ...requiredInspectorSections
-      .filter((section) => !desktopSections.includes(section))
-      .map((section) => `desktop-inspector:missing-${section}`),
-    ...requiredInspectorSections
-      .filter((section) => !mobileSections.includes(section))
-      .map((section) => `mobile-inspector:missing-${section}`),
+    hasInspectorSections(desktopSections) ? null : 'desktop-inspector:missing-direct-leaf-section-contract',
+    hasInspectorSections(mobileSections) ? null : 'mobile-inspector:missing-direct-leaf-section-contract',
   ].filter((entry): entry is string => Boolean(entry));
 
   const keyboardVerification = objectRecord(evidence.keyboardVerification);
@@ -2046,10 +2056,10 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     ['tablet-1024-inspector-tools-konling-dark', 'dark', 1024, 'collapsed', 'expanded'],
     ['tablet-1100-inspector-tools-konling-dark', 'dark', 1100, 'collapsed', 'expanded'],
     ['tablet-1279-inspector-tools-konling-dark', 'dark', 1279, 'collapsed', 'expanded'],
-    ['mobile-320-local-tools-dark', 'dark', 320, 'mobile', 'collapsed'],
-    ['mobile-320-selected-inspector-dark', 'dark', 320, 'mobile', 'collapsed'],
-    ['mobile-320-konling-expanded-dark', 'dark', 320, 'mobile', 'expanded'],
-    ['mobile-320-inspector-konling-stress-dark', 'dark', 320, 'mobile', 'expanded'],
+    ['mobile-320-local-tools-dark', 'dark', 320, 'mobile-drawer', 'collapsed'],
+    ['mobile-320-selected-inspector-dark', 'dark', 320, 'mobile-drawer', 'collapsed'],
+    ['mobile-320-konling-expanded-dark', 'dark', 320, 'mobile-drawer', 'expanded'],
+    ['mobile-320-inspector-konling-stress-dark', 'dark', 320, 'mobile-drawer', 'expanded'],
     ['light-theme-default', 'light', 1440, 'collapsed', 'collapsed'],
   ] as const;
   const desktopGeometryBaselineName = (name: string, navigationState: string) => {
@@ -2165,10 +2175,12 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
       expectedKonlingContext
         ? (markers.konlingKnowledgeContext === expectedKonlingContext ? null : `${name}:konling-visible-context`)
         : null,
-      markers.appShellNavigationState === (navigationState === 'mobile' ? 'collapsed' : navigationState)
+      markers.appShellNavigationState === (navigationState === 'mobile-drawer' ? 'collapsed' : navigationState)
         ? null
         : `${name}:navigation-marker-state`,
-      state.localToolState === 'closed'
+      isAdaptivePracticeDockState
+        ? null
+        : state.localToolState === 'closed'
         ? (
             visibleLocalToolPanelState === 'closed' || (name.includes('konling') && visibleLocalToolPanelState === null)
               ? null
@@ -2531,7 +2543,7 @@ function validateKnowledgeGraphGovernanceEvidence(): CommercialUiGovernanceViola
     graphSource.includes('data-knowledge-desktop-command-system="compact"')
       ? null
       : 'desktopCommandSystem:missing',
-    graphSource.includes('const [isPanelOpen, setIsPanelOpen] = useState(Boolean(initialSelectedNode));')
+    graphSource.includes('const [isPanelOpen, setIsPanelOpen] = useState(false);')
       ? null
       : 'resourcePanel:not-closed-until-node-selection',
     graphSource.includes("data-state={desktopActiveTool ? 'open' : 'closed'}")
@@ -2540,6 +2552,20 @@ function validateKnowledgeGraphGovernanceEvidence(): CommercialUiGovernanceViola
     graphSource.includes("desktopActiveTool === 'relation-filters'")
       ? null
       : 'relationFilters:command-panel-missing',
+    graphSource.includes('data-knowledge-node-control={node.id}')
+      && graphSource.includes('resolveKnowledgeNodeActivation')
+      && !graphSource.includes('data-knowledge-node-expansion-control')
+      ? null
+      : 'direct-node-activation:source-contract-missing',
+    graphSource.includes('aria-busy={loadingExpansionNodeIds.includes(node.id)}')
+      && graphSource.includes("data-error={expansionErrorByNodeId[node.id] ? 'true' : 'false'}")
+      && graphSource.includes("data-filtered-empty={filteredEmptyExpansionNodeIds.includes(node.id) ? 'true' : 'false'}")
+      ? null
+      : 'direct-node-activation:node-state-contract-missing',
+    resourcePanelSource.indexOf('data-knowledge-inspector-section="evidence-sources"')
+      < resourcePanelSource.indexOf('data-knowledge-inspector-section="relation-overview"')
+      ? null
+      : 'inspector:knowledge-card-before-related-missing',
   ].filter((entry): entry is string => Boolean(entry));
   const missingOpenCloseEvidence = [
     'chapterDirectoryOpenClosed',

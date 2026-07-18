@@ -1,0 +1,53 @@
+{
+  "generatedAt": "2026-07-11T03:58:53.165Z",
+  "entries": [
+    {
+      "name": "list-768",
+      "viewport": 768,
+      "screenshot": "list-768.png",
+      "widthEvidence": "list-768-width.json"
+    },
+    {
+      "name": "editor-768",
+      "viewport": 768,
+      "screenshot": "editor-768.png",
+      "widthEvidence": "editor-768-width.json"
+    },
+    {
+      "name": "list-1024",
+      "viewport": 1024,
+      "screenshot": "list-1024.png",
+      "widthEvidence": "list-1024-width.json"
+    },
+    {
+      "name": "editor-1024",
+      "viewport": 1024,
+      "screenshot": "editor-1024.png",
+      "widthEvidence": "editor-1024-width.json"
+    },
+    {
+      "name": "list-1440",
+      "viewport": 1440,
+      "screenshot": "list-1440.png",
+      "widthEvidence": "list-1440-width.json"
+    },
+    {
+      "name": "editor-1440",
+      "viewport": 1440,
+      "screenshot": "editor-1440.png",
+      "widthEvidence": "editor-1440-width.json"
+    },
+    {
+      "name": "mobile-fallback-320",
+      "viewport": 320,
+      "screenshot": "mobile-fallback-320.png",
+      "widthEvidence": "mobile-fallback-320-width.json"
+    },
+    {
+      "name": "mobile-fallback-375",
+      "viewport": 375,
+      "screenshot": "mobile-fallback-375.png",
+      "widthEvidence": "mobile-fallback-375-width.json"
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "artifactVersion": "core-registered-knowledge-resource-semantics.v1",
+  "reviewBatchId": "core-registered-knowledge-resource-semantics-2026-07-09",
+  "reviewerId": "core-registered-knowledge-resource-implementing-agent",
+  "reviewedAt": "2026-07-09T16:30:00.000Z",
+  "totals": {
+    "scopedResources": 624,
+    "workqueueItems": 624,
+    "reviewedResources": 606,
+    "remainingSemanticReviewBlockers": 622,
+    "unexplainedRemainingItems": 0,
+    "rawContentIncluded": false,
+    "privacyMinimized": true
+  },
+  "bySourceFamily": {
+    "knowledge-infograph": 161,
+    "knowledge-card": 279,
+    "registered-resource": 166
+  },
+  "byDisposition": {
+    "embedded-asset": 161,
+    "path-plannable": 2,
+    "supporting-citation": 277,
+    "evidence-producing": 166
+  },
+  "residualLimitations": {
+    "embedded-asset-not-independent-path-node": 161,
+    "evidence-contract-limited": 161,
+    "no-direct-learning-goal-boundary-fit": 556,
+    "support-or-excluded-resource-not-path-node": 604,
+    "path-readiness-profile-incomplete": 48,
+    "concrete-missing-source-hash": 166,
+    "downstream-dependency-blocker": 49,
+    "registered-route-source-identity-limited": 166
+  },
+  "startingBlockers": {
+    "missing-evidence-contract": 161,
+    "missing-evidence-instrumentation": 161,
+    "missing-path-profile": 456,
+    "missing-path-target": 2,
+    "missing-capability-target": 454,
+    "missing-human-review": 454,
+    "missing-segment-ref": 159,
+    "provisional-metadata": 454,
+    "blocked-by-dependency": 49,
+    "missing-content-hash": 166
+  },
+  "evidence": {
+    "workqueueItemsPath": "course-content/runtime/resource-governance/core-registered-knowledge-resource-semantic-workqueue-items.jsonl",
+    "reviewSourcePath": "course-content/runtime/resource-governance/core-registered-knowledge-resource-semantic-review-source.jsonl",
+    "reviewItemsPath": "course-content/runtime/resource-governance/core-registered-knowledge-resource-semantic-review-items.jsonl",
+    "sourceAuditPath": "course-content/runtime/resource-governance/resource-field-completion-audit.jsonl"
+  }
+}

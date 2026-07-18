@@ -35,6 +35,24 @@ function createMockFact(overrides: Partial<LearningFact> = {}): LearningFact {
 }
 
 describe('calculateCompetencyVector', () => {
+  it('uses rubricWeight as the within-dimension denominator without treating it as performance', () => {
+    const startedAt = new Date();
+    const facts: any[] = [
+      { id: 'heavy-half', startedAt, outcome: 'partial', timeSpent: 300, competencyContribution: { controlModeling: 0.5 }, contextJson: { rubricWeight: 0.9 } },
+      { id: 'light-full', startedAt, outcome: 'success', timeSpent: 300, competencyContribution: { controlModeling: 1 }, contextJson: { rubricWeight: 0.1 } },
+    ];
+    expect(calculateCompetencyVector(facts, 'all').controlModeling.score).toBe(55);
+    expect(calculateCompetencyVector([facts[1]], 'all').controlModeling.score).toBe(100);
+  });
+  it('keeps zero and partial normalized rubric performances in weighted competency aggregation', () => {
+    const startedAt = new Date();
+    const facts: any[] = [
+      { id: 'zero-heavy', factType: 'document_rubric_grading', startedAt, outcome: 'failure', timeSpent: 0, competencyContribution: { controlModeling: 0 }, contextJson: { rubricWeight: 0.9 } },
+      { id: 'full-light', factType: 'document_rubric_grading', startedAt, outcome: 'success', timeSpent: 0, competencyContribution: { controlModeling: 1 }, contextJson: { rubricWeight: 0.1 } },
+    ];
+    expect(calculateCompetencyVector(facts, 'all').controlModeling.score).toBe(10);
+    expect(calculateCompetencyVector([{ ...facts[0], id: 'half', outcome: 'partial', competencyContribution: { controlModeling: 0.5 }, contextJson: { rubricWeight: 1 } }], 'all').controlModeling.score).toBe(50);
+  });
   it('should return empty vector when no facts provided', () => {
     const vector = calculateCompetencyVector([], '1m');
 

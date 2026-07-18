@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { Fragment, useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react';
 import { BlockMath, InlineMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
 
@@ -18,6 +18,13 @@ import { isControlWorkbenchComputeCapabilityRef } from './module-taxonomy';
 import type { ControlAnalysisRequest, ControlAnalysisResult } from '@/resources/control-system/analysis/types';
 import { ControlFigureWorkspace } from '@/resources/control-system/charts/control-figure-workspace';
 import { StaticSurface3DPanel, type StaticSurface3DPanelProps, type StaticSurfaceDataset } from './static-surface-3d-panel';
+import { ControlWorkbenchComparisonPanel } from './control-workbench-comparison-panel';
+import {
+  buildControlWorkbenchComparisonRequests,
+  buildControlWorkbenchValidationSnapshot,
+  isControlWorkbenchSubmissionReady,
+  type ControlWorkbenchComparisonSnapshot,
+} from './control-workbench-comparison';
 
 type ContentRecord = Record<string, unknown>;
 type ManifestComputePanelSubmission = {
@@ -33,6 +40,7 @@ type ControlWorkbenchSubmissionField = {
   max?: number;
   step?: number;
   options?: string[];
+  presets?: number[];
   defaultValue?: string | number | boolean;
 };
 type TableCell = string | { kind: 'math'; value: string };
@@ -1914,7 +1922,7 @@ type StructureDiagramPanelProps = {
   manifest: InteractiveRuntimeManifest;
   step: InteractiveRuntimeStepManifest;
   module: InteractiveRuntimeModuleManifest;
-  onPanelSubmit?: (response: ManifestComputePanelSubmission) => void;
+  onPanelSubmit?: (response: ManifestComputePanelSubmission) => void | Promise<void>;
   interactionMode?: 'active' | 'readonly';
   annotatedMediaSharedState?: AnnotatedMediaSharedStateStore;
 };
@@ -2698,16 +2706,24 @@ function InteractiveFigureComputePanel({
   return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
 }
 
+export function tryBeginControlWorkbenchSubmission(lock: { current: boolean }) {
+  if (lock.current) return false;
+  lock.current = true;
+  return true;
+}
+
 function SharedControlWorkbenchComputePanel({
   manifest,
   step,
   module,
   onPanelSubmit,
+  showFrequencyReadings = true,
 }: {
   manifest: InteractiveRuntimeManifest;
   step: InteractiveRuntimeStepManifest;
   module: InteractiveRuntimeModuleManifest;
-  onPanelSubmit?: (response: ManifestComputePanelSubmission) => void;
+  onPanelSubmit?: (response: ManifestComputePanelSubmission) => void | Promise<void>;
+  showFrequencyReadings?: boolean;
 }) {
   const capabilityRef = computeCapabilityRef(module.payload);
   const visiblePanelIds = stringArrayField(module.payload, ['visiblePanelIds', 'visible_panel_ids', 'panels']);
@@ -2717,6 +2733,8 @@ function SharedControlWorkbenchComputePanel({
   const request = controlAnalysisRequestFromPayload(module.payload);
   const fallbackResult = controlAnalysisResultFromPayload(module.payload);
   const layout = controlWorkbenchLayoutFromPayload(module.payload);
+  const hidePerformanceMetricsMeta = module.payload.hidePerformanceMetricsMeta === true
+    || module.payload.hide_performance_metrics_meta === true;
   const submissionFields = controlWorkbenchSubmissionFieldsFromPayload(module.payload);
   const [submissionValues, setSubmissionValues] = useState<Record<string, string | number | boolean>>(() =>
     initialControlWorkbenchSubmissionValues(module.payload, request),
@@ -2725,6 +2743,58 @@ function SharedControlWorkbenchComputePanel({
     () => buildControlWorkbenchRequestForSubmission(module.payload, submissionValues),
     [module.payload, submissionValues],
   );
+  const comparisonRequests = useMemo(
+    () => dynamicRequest ? buildControlWorkbenchComparisonRequests({
+      baseRequest: dynamicRequest,
+      payload: module.payload,
+      values: submissionValues,
+    }) : [],
+    [dynamicRequest, module.payload, submissionValues],
+  );
+  const dynamicRequestKey = useMemo(() => JSON.stringify(dynamicRequest), [dynamicRequest]);
+  const comparisonRequestKey = useMemo(
+    () => JSON.stringify(comparisonRequests.map((comparison) => ({ id: comparison.id, request: comparison.request }))),
+    [comparisonRequests],
+  );
+  const [currentResultEntry, setCurrentResultEntry] = useState<{ requestKey: string; result: ControlAnalysisResult | null } | null>(null);
+  const [comparisonState, setComparisonState] = useState<{ requestKey: string; snapshots: ControlWorkbenchComparisonSnapshot[]; ready: boolean }>({
+    requestKey: '',
+    snapshots: [],
+    ready: false,
+  });
+  const [submitPending, setSubmitPending] = useState(false);
+  const submitPendingRef = useRef(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const handleCurrentResult = useCallback((result: ControlAnalysisResult | null, requestKey: string) => {
+    setCurrentResultEntry({ requestKey, result });
+  }, []);
+  const handleComparisonSnapshots = useCallback((snapshots: ControlWorkbenchComparisonSnapshot[], ready: boolean) => {
+    setComparisonState({ requestKey: comparisonRequestKey, snapshots, ready });
+  }, [comparisonRequestKey]);
+  const currentResult = currentResultEntry?.requestKey === dynamicRequestKey ? currentResultEntry.result : null;
+  const comparisonSnapshots = comparisonState.requestKey === comparisonRequestKey ? comparisonState.snapshots : [];
+  const comparisonsReady = comparisonRequests.length === 0
+    || (comparisonState.requestKey === comparisonRequestKey
+      && comparisonState.ready
+      && comparisonSnapshots.length === comparisonRequests.length);
+  const resultReady = Boolean(currentResult && !currentResult.isFallback);
+  const submissionReady = isControlWorkbenchSubmissionReady({
+    currentRequestKey: dynamicRequestKey,
+    currentResultEntry,
+    comparisonRequestKey,
+    comparisonState,
+    comparisonCount: comparisonRequests.length,
+    submitPending,
+  });
+  const canSubmit = Boolean(
+    onPanelSubmit
+    && capabilityRef
+    && submissionReady
+    && controlWorkbenchSubmissionFieldsComplete(submissionFields, submissionValues),
+  );
+  const currentPanelIds = comparisonRequests.length
+    ? visiblePanelIds.filter((panelId) => !['step-response', 'time-domain', 'bode', 'magnitude', 'phase'].includes(panelId))
+    : visiblePanelIds;
   const content = summaryContent(step, module);
   const bullets = [
     visiblePanelIds.length ? '课程已声明本页需要的分析视图。' : '分析视图由课程配置选择。',
@@ -2732,8 +2802,11 @@ function SharedControlWorkbenchComputePanel({
     fallbackState === 'unsupported' ? '当前状态仅提供替代说明。' : '本次参数探索可用于课后复盘。',
     ...content.bullets,
   ];
-  const submitCurrent = () => {
-    if (!onPanelSubmit || !capabilityRef) return;
+  const submitCurrent = async () => {
+    if (!onPanelSubmit || !capabilityRef || !canSubmit || !currentResult
+      || !tryBeginControlWorkbenchSubmission(submitPendingRef)) return;
+    setSubmitPending(true);
+    setSubmitError(null);
     const submittedAt = Date.now();
     const eventDraft = buildSharedControlWorkbenchEvidenceDraft({
       manifest,
@@ -2741,15 +2814,28 @@ function SharedControlWorkbenchComputePanel({
       module,
       submittedAt,
       submissionValues,
+      validationSnapshot: buildControlWorkbenchValidationSnapshot(currentResult),
+      comparisonSnapshots,
     });
-    if (!eventDraft) return;
-    onPanelSubmit({
-      stepId: step.id,
-      submittedAt,
-      answers: {
-        [responseContractId ?? `${module.id}:control-workbench`]: JSON.stringify(eventDraft),
-      },
-    });
+    if (!eventDraft) {
+      submitPendingRef.current = false;
+      setSubmitPending(false);
+      return;
+    }
+    try {
+      await onPanelSubmit({
+        stepId: step.id,
+        submittedAt,
+        answers: {
+          [responseContractId ?? `${module.id}:control-workbench`]: JSON.stringify(eventDraft),
+        },
+      });
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : '提交失败，请重试。');
+    } finally {
+      submitPendingRef.current = false;
+      setSubmitPending(false);
+    }
   };
 
   return (
@@ -2771,15 +2857,33 @@ function SharedControlWorkbenchComputePanel({
             request={dynamicRequest}
             fallbackResult={fallbackResult}
             layout={layout}
-            allowedPanelIds={visiblePanelIds}
+            allowedPanelIds={currentPanelIds}
+            hidePerformanceMetricsMeta={hidePerformanceMetricsMeta}
+            showFrequencyReadings={showFrequencyReadings}
+            onResult={handleCurrentResult}
           />
+          {comparisonRequests.length ? (
+            <ControlWorkbenchComparisonPanel
+              comparisons={comparisonRequests}
+              showTimeDomain={visiblePanelIds.some((panelId) => ['step-response', 'time-domain'].includes(panelId))}
+              showBode={visiblePanelIds.some((panelId) => ['bode', 'magnitude', 'phase'].includes(panelId))}
+              onSnapshotsChange={handleComparisonSnapshots}
+            />
+          ) : null}
           {submissionFields.length > 0 ? (
             <div className="premium-lesson-panel-soft grid gap-3 p-4 sm:grid-cols-2">
               {submissionFields.map((field) => (
-                <label key={field.key} className="grid gap-1 interactive-courseware-control">
-                  <span className="premium-lesson-muted block">{field.label}</span>
+                <div key={field.key} className="grid gap-1 interactive-courseware-control">
+                  <label
+                    className="premium-lesson-muted block"
+                    htmlFor={`control-workbench-${module.id}-${field.key}`}
+                  >
+                    {field.label}
+                  </label>
                   {field.input === 'select' || field.input === 'toggle' ? (
                     <select
+                      id={`control-workbench-${module.id}-${field.key}`}
+                      name={field.key}
                       className="premium-lesson-select w-full"
                       value={String(submissionValues[field.key] ?? '')}
                       onChange={(event) => {
@@ -2787,25 +2891,55 @@ function SharedControlWorkbenchComputePanel({
                         setSubmissionValues((prev) => ({ ...prev, [field.key]: nextValue }));
                       }}
                     >
+                      {submissionValues[field.key] === undefined || submissionValues[field.key] === '' ? (
+                        <option value="" disabled>请选择</option>
+                      ) : null}
                       {(field.options ?? []).map((option) => (
                         <option key={option} value={option}>{option}</option>
                       ))}
                     </select>
                   ) : field.input === 'slider' ? (
-                    <input
-                      className="w-full accent-current"
-                      type="range"
-                      min={field.min}
-                      max={field.max}
-                      step={field.step ?? 0.1}
-                      value={Number(submissionValues[field.key] ?? field.defaultValue ?? field.min ?? 0)}
-                      onChange={(event) => {
-                        const nextValue = Number(event.currentTarget.value);
-                        setSubmissionValues((prev) => ({ ...prev, [field.key]: nextValue }));
-                      }}
-                    />
+                    <div className="grid gap-2">
+                      <output
+                        htmlFor={`control-workbench-${module.id}-${field.key}`}
+                        className="text-sm font-semibold text-platform-fg-primary"
+                        aria-live="polite"
+                      >
+                        当前值：{String(submissionValues[field.key] ?? field.defaultValue ?? field.min ?? 0)}
+                      </output>
+                      <input
+                        id={`control-workbench-${module.id}-${field.key}`}
+                        name={field.key}
+                        className="w-full accent-current"
+                        type="range"
+                        min={field.min}
+                        max={field.max}
+                        step={field.step ?? 0.1}
+                        value={Number(submissionValues[field.key] ?? field.defaultValue ?? field.min ?? 0)}
+                        onChange={(event) => {
+                          const nextValue = Number(event.currentTarget.value);
+                          setSubmissionValues((prev) => ({ ...prev, [field.key]: nextValue }));
+                        }}
+                      />
+                      {field.presets?.length ? (
+                        <div className="flex flex-wrap gap-2" aria-label={`${field.label}代表点`}>
+                          {field.presets.map((preset) => (
+                            <button
+                              key={preset}
+                              type="button"
+                              className="premium-lesson-action-tone interactive-courseware-control px-3 py-1.5 text-xs"
+                              onClick={() => setSubmissionValues((prev) => ({ ...prev, [field.key]: preset }))}
+                            >
+                              {preset}
+                            </button>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
                   ) : (
                     <input
+                      id={`control-workbench-${module.id}-${field.key}`}
+                      name={field.key}
                       className="premium-lesson-input w-full"
                       type={field.input === 'number' ? 'number' : 'text'}
                       min={field.min}
@@ -2814,23 +2948,28 @@ function SharedControlWorkbenchComputePanel({
                       value={String(submissionValues[field.key] ?? '')}
                       onChange={(event) => {
                         const rawValue = event.currentTarget.value;
-                        const value = field.input === 'number' ? Number(rawValue) : rawValue;
+                        const value = field.input === 'number' && rawValue !== '' ? Number(rawValue) : rawValue;
                         setSubmissionValues((prev) => ({ ...prev, [field.key]: value }));
                       }}
                     />
                   )}
-                </label>
+                </div>
               ))}
             </div>
           ) : null}
           <button
             type="button"
-            onClick={submitCurrent}
-            disabled={!onPanelSubmit}
+            onClick={() => void submitCurrent()}
+            disabled={!canSubmit}
             className="premium-lesson-action-primary interactive-courseware-control px-4 py-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {onPanelSubmit ? '提交当前观察' : '等待教师发放'}
+            {!onPanelSubmit ? '等待教师发放' : submitPending ? '提交中...' : resultReady && comparisonsReady ? '提交当前观察' : '等待当前计算完成'}
           </button>
+          {submitError ? (
+            <div className="premium-lesson-tone-block premium-tone-rose mt-3" role="alert">
+              {submitError} 当前结果仍保留，可再次提交。
+            </div>
+          ) : null}
         </>
       ) : null}
     </section>
@@ -4888,12 +5027,12 @@ function ModelingPathsComparisonFigure({ title }: { title: string }) {
   );
 }
 
-function ImagePanel({ title, src, notes, displayMode = 'default' }: { title: string; src: string; notes: string[]; displayMode?: ImageDisplayMode }) {
+function ImagePanel({ title, src, alt = title, notes, displayMode = 'default' }: { title: string; src: string; alt?: string; notes: string[]; displayMode?: ImageDisplayMode }) {
   return (
     <div className="premium-lesson-panel interactive-courseware-panel">
       <ManifestContentTitle>{title}</ManifestContentTitle>
       <div className="mt-3 overflow-hidden" data-image-panel-frame="none">
-        <Image src={src} alt={title} width={1600} height={960} className={imageClassFor(displayMode)} unoptimized />
+        <Image src={src} alt={alt} width={1600} height={960} className={imageClassFor(displayMode)} unoptimized />
       </div>
       {notes.length ? (
         <ul className="interactive-courseware-section interactive-courseware-body">
@@ -4933,12 +5072,14 @@ function StepReveal({
   revealProgress,
   allowInlineReveal,
   onInlineReveal,
+  revealLocked = false,
 }: {
   title: string;
   items: RevealItem[];
   revealProgress: number;
   allowInlineReveal: boolean;
   onInlineReveal?: () => void;
+  revealLocked?: boolean;
 }) {
   const teacherVisibleCount = Math.min(items.length, Math.max(1, revealProgress + 1));
   const [localVisibleCount, setLocalVisibleCount] = useState(teacherVisibleCount);
@@ -4946,6 +5087,15 @@ function StepReveal({
   const visibleCount = onInlineReveal
     ? teacherVisibleCount
     : Math.min(items.length, Math.max(teacherVisibleCount, localVisibleCount));
+
+  if (revealLocked) {
+    return (
+      <div className="premium-lesson-panel interactive-courseware-panel">
+        <ManifestContentTitle>{title}</ManifestContentTitle>
+        <div className="premium-lesson-tone-block premium-tone-amber mt-3">教师尚未开放浏览，请等待课堂推进。</div>
+      </div>
+    );
+  }
 
   return (
     <div className="premium-lesson-panel interactive-courseware-panel">
@@ -5015,8 +5165,11 @@ function stepRevealIdentityKey(
 export function createManifestContentModuleRegistry(extra: {
   revealProgress: number;
   allowInlineReveal: boolean;
+  revealLocked?: boolean;
   onInlineReveal?: () => void;
-  onPanelSubmit?: (response: ManifestComputePanelSubmission) => void;
+  onPanelSubmit?: (response: ManifestComputePanelSubmission) => void | Promise<void>;
+  showFrequencyReadings?: boolean;
+  analyticsSummary?: string[];
   interactionMode?: 'active' | 'readonly';
 }): InteractiveModuleRegistry<typeof extra> {
   const annotatedMediaSharedState: AnnotatedMediaSharedStateStore = new Map();
@@ -5066,10 +5219,10 @@ export function createManifestContentModuleRegistry(extra: {
       if (galleryItems.length === 1) {
         const [item] = galleryItems;
         const notes = [item.caption, ...imageNotes(step, module)].filter((value) => value.trim());
-        return <ImagePanel title={titleFromModule(module, step)} src={item.src} notes={notes} displayMode={displayMode} />;
+        return <ImagePanel title={titleFromModule(module, step)} src={item.src} alt={stringField(module.payload, ['alt']) || undefined} notes={notes} displayMode={displayMode} />;
       }
       const src = getImageSrc(manifest, step, module);
-      if (src) return <ImagePanel title={titleFromModule(module, step)} src={src} notes={imageNotes(step, module)} displayMode={displayMode} />;
+      if (src) return <ImagePanel title={titleFromModule(module, step)} src={src} alt={stringField(module.payload, ['alt']) || undefined} notes={imageNotes(step, module)} displayMode={displayMode} />;
       const content = summaryContent(step, module);
       return <SummaryCard title={titleFromModule(module, step)} text={content.text} bullets={content.bullets} />;
     },
@@ -5084,6 +5237,7 @@ export function createManifestContentModuleRegistry(extra: {
             revealProgress={renderExtra.revealProgress}
             allowInlineReveal={renderExtra.allowInlineReveal}
             onInlineReveal={renderExtra.onInlineReveal}
+            revealLocked={renderExtra.revealLocked}
           />
         );
       }
@@ -5113,7 +5267,15 @@ export function createManifestContentModuleRegistry(extra: {
         return <StaticSurface3DPanel {...staticSurfacePanelProps(manifest, step, module)} />;
       }
       if (isControlWorkbenchComputeCapabilityRef(computeCapabilityRef(module.payload))) {
-        return <SharedControlWorkbenchComputePanel manifest={manifest} step={step} module={module} onPanelSubmit={extra.onPanelSubmit} />;
+        return (
+          <SharedControlWorkbenchComputePanel
+            manifest={manifest}
+            step={step}
+            module={module}
+            onPanelSubmit={extra.onPanelSubmit}
+            showFrequencyReadings={extra.showFrequencyReadings}
+          />
+        );
       }
       if (computeCapabilityRef(module.payload) === 'interactive-figure') {
         return <InteractiveFigureComputePanel step={step} module={module} onPanelSubmit={extra.onPanelSubmit} />;
@@ -5121,8 +5283,8 @@ export function createManifestContentModuleRegistry(extra: {
       const content = summaryContent(step, module);
       return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
     },
-    'analytics.summary': ({ step, module }) => (
-      <CardGrid title={titleFromModule(module)} items={learningStatItems(step, module)} columns="md:grid-cols-2" />
+    'analytics.summary': ({ step, module, extra: renderExtra }) => (
+      <CardGrid title={titleFromModule(module)} items={renderExtra.analyticsSummary?.length ? renderExtra.analyticsSummary : learningStatItems(step, module)} columns="md:grid-cols-2" />
     ),
     'layout.support': ({ step, module }) => {
       const content = summaryContent(step, module);
@@ -5457,6 +5619,7 @@ export function createManifestContentModuleRegistry(extra: {
           revealProgress={renderExtra.revealProgress}
           allowInlineReveal={renderExtra.allowInlineReveal}
           onInlineReveal={renderExtra.onInlineReveal}
+          revealLocked={renderExtra.revealLocked}
         />
       );
     },
@@ -5471,6 +5634,7 @@ export function createManifestContentModuleRegistry(extra: {
           revealProgress={renderExtra.revealProgress}
           allowInlineReveal={renderExtra.allowInlineReveal}
           onInlineReveal={renderExtra.onInlineReveal}
+          revealLocked={renderExtra.revealLocked}
         />
       );
     },
@@ -5485,6 +5649,7 @@ export function createManifestContentModuleRegistry(extra: {
           revealProgress={renderExtra.revealProgress}
           allowInlineReveal={renderExtra.allowInlineReveal}
           onInlineReveal={renderExtra.onInlineReveal}
+          revealLocked={renderExtra.revealLocked}
         />
       );
     },
@@ -5499,6 +5664,7 @@ export function createManifestContentModuleRegistry(extra: {
             revealProgress={renderExtra.revealProgress}
             allowInlineReveal={renderExtra.allowInlineReveal}
             onInlineReveal={renderExtra.onInlineReveal}
+            revealLocked={renderExtra.revealLocked}
           />
         );
       }
@@ -5556,6 +5722,9 @@ function controlWorkbenchSubmissionFieldsFromPayload(payload: ContentRecord): Co
         max: Number.isFinite(Number(record.max)) ? Number(record.max) : undefined,
         step: Number.isFinite(Number(record.step)) ? Number(record.step) : undefined,
         options: stringArrayField(record, ['options']),
+        presets: Array.isArray(record.presets)
+          ? record.presets.map(Number).filter((value) => Number.isFinite(value))
+          : undefined,
         defaultValue: scalarSubmissionValue(record.defaultValue ?? record.default_value),
       };
     })
@@ -5585,10 +5754,19 @@ function initialControlWorkbenchSubmissionValues(
     const direct = scalarSubmissionValue(defaults[field.key]);
     if (direct !== undefined) return [field.key, direct];
     if (field.defaultValue !== undefined) return [field.key, field.defaultValue];
-    if (field.input === 'slider' || field.input === 'number') return [field.key, field.min ?? 0];
-    if ((field.input === 'select' || field.input === 'toggle') && field.options?.[0]) return [field.key, field.options[0]];
+    if (field.input === 'slider') return [field.key, field.min ?? 0];
     return [field.key, ''];
   }));
+}
+
+function controlWorkbenchSubmissionFieldsComplete(
+  fields: ControlWorkbenchSubmissionField[],
+  values: Record<string, string | number | boolean>,
+) {
+  return fields.every((field) => {
+    const value = values[field.key];
+    return value !== undefined && value !== null && String(value).trim() !== '';
+  });
 }
 
 export function buildControlWorkbenchRequestForSubmission(
@@ -5599,9 +5777,29 @@ export function buildControlWorkbenchRequestForSubmission(
   const request = controlAnalysisRequestFromPayload(contentPayload);
   if (!request) return undefined;
   const currentValues = values ?? initialControlWorkbenchSubmissionValues(contentPayload, request);
-  return poleControlWorkbenchRequest(contentPayload, request, currentValues)
+  const dynamicRequest = poleControlWorkbenchRequest(contentPayload, request, currentValues)
     ?? shipComparisonControlWorkbenchRequest(contentPayload, request, currentValues)
     ?? parameterizedControlWorkbenchRequest(contentPayload, request, currentValues);
+  return controlWorkbenchRequestWithFocusFrequency(contentPayload, dynamicRequest, currentValues);
+}
+
+function controlWorkbenchRequestWithFocusFrequency(
+  payload: ContentRecord,
+  request: ControlAnalysisRequest,
+  values: Record<string, string | number | boolean>,
+): ControlAnalysisRequest {
+  const focusFrequencyField = stringField(payload, ['focusFrequencyField', 'focus_frequency_field']);
+  if (!focusFrequencyField) return request;
+  const frequency = Number(values[focusFrequencyField]);
+  const isValid = Number.isFinite(frequency)
+    && frequency > 0
+    && frequency >= request.frequencyRange.min
+    && frequency <= request.frequencyRange.max;
+  if (isValid) {
+    return { ...request, frequencyProbesRadPerSec: [frequency] };
+  }
+  const { frequencyProbesRadPerSec: _ignored, ...requestWithoutFrequencyProbes } = request;
+  return requestWithoutFrequencyProbes;
 }
 
 function poleControlWorkbenchRequest(
@@ -5653,18 +5851,49 @@ function parameterizedControlWorkbenchRequest(
       .filter((field) => field.input === 'slider' || field.input === 'number')
       .map((field) => field.key),
   );
-  if (numericFieldKeys.size === 0) return request;
+  const numericSelectFieldKeys = new Set(
+    controlWorkbenchSubmissionFieldsFromPayload(payload)
+      .filter((field) => field.input === 'select'
+        && (field.options?.length ?? 0) > 0
+        && field.options?.every((option) => Number.isFinite(Number(option))))
+      .map((field) => field.key),
+  );
+  const enabledGainTargets = request.structures
+    .map((structure, index) => ({ structure, index }))
+    .filter(({ structure }) => structure.kind === 'gain' && structure.enabled);
+  const soleEnabledGainTarget = enabledGainTargets.length === 1 ? enabledGainTargets[0] : undefined;
+  if (numericFieldKeys.size === 0 && numericSelectFieldKeys.size === 0) return request;
   let changed = false;
-  const structures = request.structures.map((structure) => {
+  let selectedGain: number | undefined;
+  const structures = request.structures.map((structure, structureIndex) => {
+    let structureChanged = false;
     const params = Object.fromEntries(Object.entries(structure.params).map(([key, value]) => {
-      if (!numericFieldKeys.has(key)) return [key, value];
+      const isGainField = key === 'k'
+        && (numericFieldKeys.has(key) || numericSelectFieldKeys.has(key));
+      const isSoleEnabledGainTarget = isGainField
+        && soleEnabledGainTarget?.index === structureIndex;
+      if (isGainField && !isSoleEnabledGainTarget) return [key, value];
+      if (!numericFieldKeys.has(key) && !isSoleEnabledGainTarget) return [key, value];
       const nextValue = finiteSubmissionNumber(values[key], value);
-      if (nextValue !== value) changed = true;
+      if (nextValue !== value) {
+        changed = true;
+        structureChanged = true;
+      }
+      if (isSoleEnabledGainTarget) selectedGain = nextValue;
       return [key, nextValue];
     }));
-    return changed ? { ...structure, params } : structure;
+    return structureChanged ? { ...structure, params } : structure;
   });
-  return changed ? { ...request, structures } : request;
+  const rootLocusChanged = selectedGain !== undefined
+    && request.rootLocus.currentGain !== selectedGain;
+  if (!changed && !rootLocusChanged) return request;
+  return {
+    ...request,
+    structures: changed ? structures : request.structures,
+    rootLocus: selectedGain === undefined
+      ? request.rootLocus
+      : { ...request.rootLocus, currentGain: selectedGain },
+  };
 }
 
 function shipComparisonControlWorkbenchRequest(
@@ -5767,12 +5996,16 @@ export function buildSharedControlWorkbenchEvidenceDraft({
   module,
   submittedAt,
   submissionValues,
+  validationSnapshot,
+  comparisonSnapshots,
 }: {
   manifest: InteractiveRuntimeManifest;
   step: InteractiveRuntimeStepManifest;
   module: InteractiveRuntimeModuleManifest;
   submittedAt: number;
   submissionValues?: Record<string, string | number | boolean>;
+  validationSnapshot?: Record<string, unknown>;
+  comparisonSnapshots?: ControlWorkbenchComparisonSnapshot[];
 }) {
   const capabilityRef = computeCapabilityRef(module.payload);
   if (!capabilityRef) return null;
@@ -5798,6 +6031,8 @@ export function buildSharedControlWorkbenchEvidenceDraft({
     answerPayload: {
       responseContractId: responseContractId ?? 'parameter.set',
       submissionFieldKeys: controlWorkbenchSubmissionFieldsFromPayload(module.payload).map((field) => field.key),
+      ...(validationSnapshot ? { validationSnapshot } : {}),
+      ...(comparisonSnapshots?.length ? { comparisonSnapshots } : {}),
     },
     releaseState: releaseState === 'released' || releaseState === 'revealed' ? releaseState : 'released',
     fallbackState: fallbackState === 'fallback' || fallbackState === 'unsupported' ? fallbackState : 'supported',

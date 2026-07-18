@@ -29,6 +29,20 @@ export async function getConfiguredAIModel(modelId?: string, requirements?: Mode
   return createAIProviderFromConfig(config).getModel(modelId || config.model);
 }
 
+export async function getConfiguredAIProviderBinding(modelId?: string) {
+  const config = await resolveConfiguredAIProviderConfig(undefined, modelId);
+  return { provider: config.provider, model: modelId || config.model, endpoint: config.baseURL, credentialRef: config.secretRef };
+}
+
+export async function getConfiguredAIProviderRuntime(providerId: string, modelId: string) {
+  const config = await resolveConfiguredAIProviderConfig(providerId, modelId);
+  return {
+    binding: { provider: config.provider, model: modelId || config.model, endpoint: config.baseURL, credentialRef: config.secretRef },
+    configured: config.authMode === 'none' || config.apiKey.trim().length > 0,
+    model: createAIProviderFromConfig(config).getModel(modelId || config.model),
+  };
+}
+
 export async function isConfiguredAIServiceAvailable(requirements?: ModelProviderCapabilityRequirements): Promise<boolean> {
   try {
     const config = await resolveConfiguredAIProviderConfig(undefined, undefined, requirements);

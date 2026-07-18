@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { KnowledgeNodeType, BloomLevel } from '@prisma/client';
-import { filterKnowledgeNodes, loadKnowledgeGraphData } from '@/lib/knowledge-graph-source';
+import { filterKnowledgeNodes, loadKnowledgeGraphData, toPublicKnowledgeGraphNode } from '@/lib/knowledge-graph-source';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import { RuntimeKnowledgeRelationCoverageError, toPublicRuntimeKnowledgeDiagnostics } from '@/lib/knowledge-graph-relation-runtime';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -13,59 +12,19 @@ export async function GET(request: Request) {
     const type = searchParams.get('type');
     const search = searchParams.get('search');
     const bloom = searchParams.get('bloom');
-    const source = searchParams.get('source');
-
-    const graph = source === 'db' ? null : await loadKnowledgeGraphData();
-    if (graph?.source === 'file') {
-      const nodes = filterKnowledgeNodes(graph.nodes, { type, bloom, search });
-      return NextResponse.json(nodes);
-    }
-
-    const where: any = {
-      isActive: true,
-    };
-
-    if (type) {
-      where.nodeType = type as KnowledgeNodeType;
-    }
-
-    if (bloom) {
-      where.bloomLevel = bloom as BloomLevel;
-    }
-
-    if (search) {
-      where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
-        { tags: { has: search } } // Search within tags array
-      ];
-    }
-
-    const nodes = await prisma.knowledgeNode.findMany({
-      where,
-      select: {
-        id: true,
-        name: true,
-        nodeType: true,
-        description: true,
-        bloomLevel: true,
-        knowledgeDim: true,
-        positionX: true,
-        positionY: true,
-        positionZ: true,
-        metadata: true,
-        content: true,
-        resources: true,
-        tags: true,
-      },
-      orderBy: {
-        name: 'asc',
-      },
-    });
-
+    const graph = await loadKnowledgeGraphData();
+    const nodes = filterKnowledgeNodes(graph.nodes, { type, bloom, search })
+      .map(toPublicKnowledgeGraphNode);
     return NextResponse.json(nodes);
   } catch (error) {
     rethrowIfNextDynamicError(error);
+    if (error instanceof RuntimeKnowledgeRelationCoverageError) {
+      return NextResponse.json({
+        error: 'Knowledge graph relation coverage blocked',
+        code: 'KNOWLEDGE_RELATION_COVERAGE_BLOCKED',
+        ...toPublicRuntimeKnowledgeDiagnostics(error.report),
+      }, { status: 422 });
+    }
     console.error('Error fetching knowledge nodes:', error);
     return NextResponse.json(
       { error: 'Failed to fetch knowledge nodes' },

@@ -1,0 +1,108 @@
+{
+  "acceptance_version": 1,
+  "lesson_id": "1-4",
+  "status": "accepted",
+  "accepted_at": "2026-07-17T06:37:30+08:00",
+  "review_mode": "implementation+targeted-tests+desktop-mobile-browser+course-ui-data-independent-review+blocking-regression-fix",
+  "reviewed_runtime_artifacts": [
+    "course-content/runtime/lessons/1-4/interactive-manifest.json",
+    "course-content/runtime/lessons/1-4/graph-overlay.json",
+    "course-content/runtime/lessons/1-4/review/review-report.md",
+    "course-content/runtime/lessons/1-4/review/interactive-page-check.json",
+    "course-content/runtime/lessons/1-4/review/interactive-manifest-audit.json"
+  ],
+  "course": {
+    "title": "1-4：时域与频域——同一个系统的两种观察视角",
+    "route_segment": "unit-1-4-time-frequency-views",
+    "preset_key": "unit-1-4-time-frequency-views-v1",
+    "step_count": 12,
+    "module_count": 52,
+    "duration_minutes": 90
+  },
+  "implementation_sources": [
+    "course-content/authoring/lessons/1-4/design/1-4-interactive-contract.yaml",
+    "course-content/authoring/knowledge/cards/lessons/1-4/sequence.json",
+    "src/features/interactive/unit-1-4-time-frequency-views/",
+    "src/lib/unit-1-4-course.ts",
+    "src/lib/unit-1-4-ai-contexts.ts",
+    "src/features/teacher/preset-lessons/presets/unit-1-4-time-frequency-views.ts"
+  ],
+  "checks": {
+    "inline_ai_visibility": {
+      "status": "pass",
+      "step_ids": ["step-03", "step-04", "step-05", "step-06", "step-07", "step-08", "step-09", "step-10", "step-11"],
+      "evidence": "AI guidance is delivered through the shared page context. Answer checking remains unavailable until every required response key is confirmed or the teacher reveals answers."
+    },
+    "static_media_downgrade": {
+      "status": "pass",
+      "step_ids": ["step-05", "step-06", "step-07", "step-08", "step-10"],
+      "evidence": "Shared native control workbenches render linked pole, step, Bode and Nyquist views. Static lesson figures remain supporting or fallback evidence."
+    },
+    "content_source_completeness": {
+      "status": "pass",
+      "step_ids": ["step-01", "step-02", "step-03", "step-04", "step-05", "step-06", "step-07", "step-08", "step-09", "step-10", "step-11", "step-12"],
+      "evidence": "The accepted interactive page, contract, BOPPPS plan, teacher handout and knowledge-card sequence cover all 12 runtime steps without implementation-authored replacement prose."
+    },
+    "runtime_manifest": {
+      "status": "pass",
+      "evidence": "12 steps, 52 modules, 0 manifest audit issues."
+    },
+    "submission_confirmation": {
+      "status": "pass",
+      "evidence": "Student cards confirm only after persisted state succeeds; failed saves remain retryable and do not reveal answers. Shared state updates and tracking outbox synchronization are serialized."
+    },
+    "multi_panel_evidence": {
+      "status": "pass",
+      "step_ids": ["step-06", "step-10"],
+      "evidence": "Cumulative page answers are preserved while the current control-workbench draft is sent as the direct event evidence, preventing attribution to an earlier panel."
+    },
+    "frequency_answer_visibility": {
+      "status": "pass",
+      "step_ids": ["step-06", "step-07", "step-10"],
+      "evidence": "Student pages keep exact frequency-reading text hidden until the step has a confirmed saved response or the teacher reveals answers. Frequency markers and standard workbench exploration remain available."
+    },
+    "blank_control_defaults": {
+      "status": "pass",
+      "step_ids": ["step-06", "step-07"],
+      "evidence": "Number and select fields without explicit defaults initialize as blank and block submission until completed. Step 7 uses the shared slider input for the 2 rad/s frequency control."
+    },
+    "unique_step_06_evidence_entry": {
+      "status": "pass",
+      "step_ids": ["step-06"],
+      "evidence": "The closed-loop bandwidth and loop crossover readings are submitted only by their respective compute panels; the activity card records only the definition-relation judgment."
+    },
+    "async_panel_submission": {
+      "status": "pass",
+      "step_ids": ["step-05", "step-06", "step-07", "step-08", "step-10"],
+      "evidence": "The 1-4 page adapter returns the persistence Promise to the shared workbench. A real deferred-Promise client regression test proves pending double-click lock, failure visibility, retained results and explicit retry."
+    },
+    "student_browser": {
+      "status": "pass",
+      "viewports": ["1440x900", "390x844"],
+      "urls": [
+        "/interactive-learning/courses/unit-1-4-time-frequency-views",
+        "/interactive-learning/courses/unit-1-4-time-frequency-views/student/demo?step=step-05",
+        "/interactive-learning/courses/unit-1-4-time-frequency-views/student/demo?step=step-06",
+        "/interactive-learning/courses/unit-1-4-time-frequency-views/student/demo?step=step-07",
+        "/interactive-learning/courses/unit-1-4-time-frequency-views/student/demo?step=step-08",
+        "/interactive-learning/courses/unit-1-4-time-frequency-views/student/demo?step=step-10",
+        "/interactive-learning/courses/unit-1-4-time-frequency-views/student/demo?step=step-11"
+      ],
+      "evidence": "Entry and key linked-workbench pages rendered without console errors or page-level horizontal overflow. Desktop and mobile Lighthouse accessibility, best-practices, SEO and agentic-browsing scores were 100."
+    },
+    "teacher_route": {
+      "status": "pass_auth_boundary",
+      "evidence": "Unauthenticated teacher and waiting routes redirect to login with the full classroom callback path. Live confirmation and waiting-state failures are covered by component and route tests."
+    },
+    "independent_reviews": {
+      "status": "pass",
+      "evidence": [
+        "Course pedagogy review passed after BOPPPS, teacher handout and runtime timing were aligned.",
+        "UI flow review passed after failed submissions stopped confirming cards or revealing answers.",
+        "Data-governance review passed after direct multi-panel evidence and snapshot-based outbox acknowledgment were verified.",
+        "Independent final review found no remaining reproducible blocker."
+      ]
+    }
+  },
+  "known_external_issue": "The full course-data-quality gate remains blocked only by the existing 1-5 missing response-producing lesson inventory entry; 1-4 is registered and passes its targeted governance checks."
+}

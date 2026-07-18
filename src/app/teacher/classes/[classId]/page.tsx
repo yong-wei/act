@@ -736,7 +736,9 @@ export default function ClassDetailPage() {
         <section className="mb-8 grid gap-4 md:grid-cols-2 xl:grid-cols-6">
           <div className="teacher-insight-metric">
             <p className="text-sm text-subtle">班级总体指数</p>
-            <p className="mt-2 text-3xl font-semibold text-foreground">{insights.overview.overallIndex}</p>
+            <p className="mt-2 text-3xl font-semibold text-foreground">
+              {insights.overview.overallIndex ?? '暂无证据'}
+            </p>
             <p className="mt-2 text-xs text-subtle">来自最新班级快照与学生画像聚合。</p>
           </div>
           <div className="teacher-insight-metric">
@@ -1024,12 +1026,12 @@ export default function ClassDetailPage() {
                         </Link>
                       </td>
                       <td className="px-4 py-4 align-top text-foreground" data-label="画像等级">
-                        {insight ? insight.overallLevel : '待生成'}
+                        {insight ? insight.overallLevel ?? '暂无证据' : '待生成'}
                       </td>
                       <td className="px-4 py-4 align-top" data-label="综合指数">
                         {insight ? (
                           <span className="font-semibold text-sky-600 dark:text-sky-300">
-                            {insight.overallScore}
+                            {insight.overallScore ?? '暂无证据'}
                           </span>
                         ) : (
                           <span className="text-subtle">-</span>

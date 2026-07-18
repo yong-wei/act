@@ -981,7 +981,7 @@ const adaptivePathProductQaConceptImages = [
 const adaptivePathProductQaMatrixMetadata = {
   'generation-main-desktop-light': ['light', 'desktop', 'desktop-collapsed', 'collapsed', adaptivePathProductQaConceptImages[0], 'frequency-response-foundations'],
   'generation-main-mobile-dark': ['dark', 'mobile', 'workspace-command-surface', 'collapsed', adaptivePathProductQaConceptImages[0], 'frequency-response-foundations'],
-  'konling-parameter-panel-desktop-dark': ['dark', 'desktop', 'desktop-collapsed', 'expanded', adaptivePathProductQaConceptImages[0], 'frequency-response-foundations'],
+  'konling-parameter-panel-desktop-dark': ['dark', 'desktop', 'desktop-collapsed', 'collapsed', adaptivePathProductQaConceptImages[0], 'frequency-response-foundations'],
   'cold-start-starter-paths-mobile-light': ['light', 'mobile', 'workspace-command-surface', 'collapsed', adaptivePathProductQaConceptImages[0], 'frequency-response-foundations'],
   'path-comparison-desktop-light': ['light', 'desktop', 'desktop-collapsed', 'collapsed', adaptivePathProductQaConceptImages[1], 'control-correction'],
   'path-comparison-mobile-dark': ['dark', 'mobile', 'workspace-command-surface', 'collapsed', adaptivePathProductQaConceptImages[1], 'control-correction'],

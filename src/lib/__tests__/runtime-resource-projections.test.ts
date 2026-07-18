@@ -5,9 +5,31 @@ import {
   RUNTIME_RESOURCE_PROJECTION_ARTIFACT_VERSION,
 } from '../runtime-resource-projections';
 import { buildResourceFieldCompletionAudit } from '../resource-field-completion-audit';
-import { buildResourceNodeRegistry } from '../resource-node-registry';
+import { loadRuntimeResourceProjectionInputs } from '../teacher-resource-node-data';
+import {
+  buildResourceNodeRegistry,
+  type RuntimeResourceProjectionSemanticEvidence,
+} from '../resource-node-registry';
 
 describe('runtime resource projections', () => {
+  it('retains all 3,082 longform audit rows without materializing ResourceNodes', async () => {
+    const projections = await loadRuntimeResourceProjectionInputs({ allowMissing: false });
+    const auditOnlyProjections = projections.filter((projection) => projection.lifecycleScope === 'audit-only');
+    const runtimeProjections = projections.filter((projection) => projection.lifecycleScope !== 'audit-only');
+    const fullRegistry = buildResourceNodeRegistry({
+      runtimeResourceProjections: projections,
+    });
+    const auditOnlyRegistry = buildResourceNodeRegistry({ runtimeResourceProjections: auditOnlyProjections });
+    const runtimeRegistry = buildResourceNodeRegistry({ runtimeResourceProjections: runtimeProjections });
+
+    expect(auditOnlyProjections).toHaveLength(3_082);
+    expect(auditOnlyProjections.every((projection) => projection.resourceNodeId === null)).toBe(true);
+    expect(auditOnlyRegistry.nodes).toEqual([]);
+    expect(auditOnlyRegistry.edges).toEqual([]);
+    expect(fullRegistry.nodes.map((node) => node.id)).toEqual(runtimeRegistry.nodes.map((node) => node.id));
+    expect(fullRegistry.nodes).toHaveLength(3_259);
+  });
+
   it('builds sidecar rows for runtime lessons, knowledge cards, and infographs', () => {
     const audit = buildResourceFieldCompletionAudit({
       registry: buildResourceNodeRegistry({}),
@@ -126,6 +148,11 @@ describe('runtime resource projections', () => {
     });
 
     expect(artifact.rows).toHaveLength(5);
+    expect(artifact.rows.every((row) => (
+      !('lifecycleScope' in row) &&
+      !('reviewConcluded' in row) &&
+      !('semanticConfirmed' in row)
+    ))).toBe(true);
     expect(artifact.limitations.artifactVersion).toBe(RUNTIME_RESOURCE_PROJECTION_ARTIFACT_VERSION);
     expect(artifact.limitations.totals).toMatchObject({
       rows: 5,
@@ -134,6 +161,8 @@ describe('runtime resource projections', () => {
       registryPathEligible: 0,
       planningUnitEligible: 0,
       humanConfirmed: 1,
+      agentReviewed: 0,
+      semanticReviewed: 0,
       provisional: 4,
     });
     expect(artifact.rows.find((row) => row.id === 'runtime-step:unit-demo:step-1')).toMatchObject({
@@ -252,6 +281,123 @@ describe('runtime resource projections', () => {
     });
   });
 
+  it('keeps tracked runtime assets citation-ready and blocks human-confirmed missing local assets', () => {
+    const audit = buildResourceFieldCompletionAudit({
+      registry: buildResourceNodeRegistry({}),
+      generatedAt: '2026-06-22T00:00:00.000Z',
+      candidates: [{
+        id: 'runtime-media:unit-demo:figure.png',
+        title: 'Runtime figure',
+        family: 'runtime-lesson-media',
+        sourcePathOrUrl: 'course-content/runtime/lessons/unit-demo/media/figure.png',
+        sourceRecord: 'unit-demo:figure.png',
+        knowledgeNodeIds: ['kn-demo'],
+        segmentRefs: ['figure.png'],
+        citationTargets: ['course-content/runtime/lessons/unit-demo/media/figure.png'],
+        pathTarget: '/course-runtime/lessons/unit-demo/media/figure.png',
+        evidenceInstrumentation: [],
+        privacyScope: 'student-visible',
+        contentHash: 'sha256:figure',
+        versionRef: 'runtime-lesson-media.v1',
+        generatedBy: 'external-tool',
+        humanConfirmed: true,
+        reviewEvidence: {
+          reviewerId: 'teacher-reviewer-1',
+          reviewerRole: 'curriculum-data-governance',
+          reviewedAt: '2026-07-03T00:00:00.000Z',
+          reviewBatchId: 'review-batch-1',
+          reviewerVisibleRationale: 'Teacher verified that the local runtime asset is absent.',
+          independentEvidenceRef: 'review-packet:runtime-media-unit-demo-figure',
+          reviewedSourceHash: 'sha256:figure',
+          promptOrManifestHash: 'sha256:figure',
+        },
+      }],
+    });
+    const semanticEvidence = (
+      assetStatus: RuntimeResourceProjectionSemanticEvidence['assetStatus'],
+      assetAvailability: RuntimeResourceProjectionSemanticEvidence['assetAvailability'],
+    ): RuntimeResourceProjectionSemanticEvidence => ({
+      schemaVersion: 'runtime-lesson-semantic-evidence.v1',
+      sourceFilePath: 'course-content/runtime/lessons/unit-demo/interactive-manifest.json',
+      sourceFileKind: 'interactive-manifest',
+      sourceFileHash: 'sha256:manifest',
+      evidenceFilePath: 'course-content/authoring/lessons/unit-demo.md',
+      evidenceFileHash: 'sha256:evidence',
+      evidenceSelector: 'figure.png',
+      assetStatus,
+      assetAvailability,
+      externalIdentitySha256: null,
+    });
+    const baseline = buildRuntimeResourceProjectionArtifacts({ auditRows: audit.rows });
+    const tracked = buildRuntimeResourceProjectionArtifacts({
+      auditRows: audit.rows,
+      runtimeSemanticEvidenceById: new Map([[
+        'runtime-media:unit-demo:figure.png',
+        semanticEvidence('tracked-local-runtime-asset', 'tracked-in-git-index'),
+      ]]),
+    });
+    const missing = buildRuntimeResourceProjectionArtifacts({
+      auditRows: audit.rows,
+      runtimeSemanticEvidenceById: new Map([[
+        'runtime-media:unit-demo:figure.png',
+        semanticEvidence('missing-local-runtime-asset', 'not-tracked-in-git-index'),
+      ]]),
+    });
+
+    expect(baseline.rows[0].groundingEligibility.citationReady).toBe(true);
+    expect(tracked.rows[0].groundingEligibility).toEqual(baseline.rows[0].groundingEligibility);
+    expect(missing.rows[0].groundingEligibility).toEqual({
+      ...baseline.rows[0].groundingEligibility,
+      citationReady: false,
+    });
+  });
+
+  it('blocks stale missing local assets from citation', () => {
+    const audit = buildResourceFieldCompletionAudit({
+      registry: buildResourceNodeRegistry({}),
+      generatedAt: '2026-06-22T00:00:00.000Z',
+      candidates: [{
+        id: 'runtime-media:unit-demo:stale.png',
+        title: 'Stale runtime figure',
+        family: 'runtime-lesson-media',
+        sourcePathOrUrl: 'course-content/runtime/lessons/unit-demo/media/stale.png',
+        sourceRecord: 'unit-demo:stale.png',
+        knowledgeNodeIds: ['kn-demo'],
+        segmentRefs: ['stale.png'],
+        citationTargets: ['course-content/runtime/lessons/unit-demo/media/stale.png'],
+        pathTarget: '/course-runtime/lessons/unit-demo/media/stale.png',
+        evidenceInstrumentation: [],
+        privacyScope: 'student-visible',
+        contentHash: 'sha256:stale',
+        versionRef: 'runtime-lesson-media.v1',
+        generatedBy: 'external-tool',
+        humanConfirmed: false,
+      }],
+    });
+    const baseline = buildRuntimeResourceProjectionArtifacts({ auditRows: audit.rows });
+    const missing = buildRuntimeResourceProjectionArtifacts({
+      auditRows: audit.rows,
+      runtimeSemanticEvidenceById: new Map([['runtime-media:unit-demo:stale.png', {
+        schemaVersion: 'runtime-lesson-semantic-evidence.v1',
+        sourceFilePath: 'course-content/runtime/lessons/unit-demo/media/stale.png',
+        sourceFileKind: 'missing-local-runtime-asset',
+        sourceFileHash: null,
+        evidenceFilePath: 'course-content/runtime/lessons/unit-demo/media/unit-demo-media.md',
+        evidenceFileHash: 'sha256:evidence',
+        evidenceSelector: 'stale.png',
+        assetStatus: 'missing-local-runtime-asset',
+        assetAvailability: 'not-tracked-in-git-index',
+        externalIdentitySha256: null,
+      }]]),
+    });
+
+    expect(missing.rows[0].reviewAudit.status).not.toBe('human-confirmed');
+    expect(missing.rows[0].groundingEligibility).toEqual({
+      ...baseline.rows[0].groundingEligibility,
+      citationReady: false,
+    });
+  });
+
   it('does not mark prompt-scoped review hashes stale when they differ from raw source hashes', () => {
     const audit = buildResourceFieldCompletionAudit({
       registry: buildResourceNodeRegistry({}),
@@ -299,6 +445,91 @@ describe('runtime resource projections', () => {
         reviewedSourceHash: 'sha256:manifest-plus-overlay',
         promptOrManifestHash: 'sha256:manifest-plus-overlay',
       },
+    });
+  });
+
+  it('keeps an agent-reviewed sidecar out of PlanningUnit and mastery eligibility', () => {
+    const audit = buildResourceFieldCompletionAudit({
+      registry: buildResourceNodeRegistry({}),
+      generatedAt: '2026-07-16T21:30:00.000Z',
+      candidates: [{
+        id: 'knowledge-card:agent-reviewed-only',
+        title: 'Agent reviewed support',
+        family: 'knowledge-card',
+        sourcePathOrUrl: 'course-content/runtime/knowledge/cards/nodes/agent-reviewed-only.md',
+        sourceRecord: 'agent-reviewed-only',
+        knowledgeNodeIds: ['kn-agent-reviewed'],
+        capabilityTargetIds: ['controlModeling'],
+        segmentRefs: ['agent-reviewed-only'],
+        citationTargets: ['course-content/runtime/knowledge/cards/nodes/agent-reviewed-only.md'],
+        pathTarget: '/knowledge?node=kn-agent-reviewed',
+        estimatedTimeMinutes: 5,
+        evidenceInstrumentation: ['knowledge_card_open'],
+        privacyScope: 'student-visible',
+        contentHash: 'sha256:agent-reviewed',
+        versionRef: 'runtime-knowledge-card.v1',
+        reviewProvenance: 'agent-reviewed',
+        currentPathEligible: true,
+        reviewEvidence: {
+          reviewerId: 'codex-implementing-agent',
+          reviewerRole: 'implementing-agent',
+          reviewedAt: '2026-07-16T21:30:00.000Z',
+          reviewBatchId: 'agent-semantic-review',
+          reviewerVisibleRationale: 'Agent semantic review confirms citation support only and does not authorize path publication.',
+          independentEvidenceRef: 'course-content/runtime/knowledge/cards/nodes/agent-reviewed-only.md',
+          reviewedSourceHash: 'sha256:agent-reviewed',
+          reviewedVersionRef: 'runtime-knowledge-card.v1',
+        },
+      }],
+    });
+    const row = audit.rows[0];
+    const projection = buildRuntimeResourceProjectionArtifacts({ auditRows: audit.rows }).rows[0];
+
+    expect(row).toMatchObject({
+      reviewStatus: 'agent-reviewed',
+      pathEligibility: {
+        current: false,
+        afterCompletion: false,
+        masteryAffecting: false,
+        blockedBy: expect.arrayContaining(['missing-human-review']),
+      },
+    });
+    expect(projection).toMatchObject({
+      projectionLevel: 'ResourceSegment',
+      routeTarget: null,
+      pathEligibility: { current: false, masteryAffecting: false },
+    });
+  });
+
+  it('keeps authoring textbook families teacher-scoped and audit-only', () => {
+    const audit = buildResourceFieldCompletionAudit({
+      registry: buildResourceNodeRegistry({}),
+      candidates: [{
+        id: 'authoring-textbook-caption:book:chapter:figure-1',
+        title: 'Authoring caption',
+        family: 'authoring-textbook-caption',
+        sourcePathOrUrl: 'course-content/authoring/resources/textbooks/book/chapter/manifest.json',
+        sourceRecord: 'caption:1',
+        segmentRefs: ['chapter', 'figure-1'],
+        citationTargets: ['course-content/authoring/resources/textbooks/book/chapter/manifest.json'],
+        pathTarget: 'course-content/authoring/resources/textbooks/book/chapter/manifest.json',
+        privacyScope: 'teacher-scoped',
+        contentHash: 'sha256:caption',
+        versionRef: 'authoring-textbook-manifest.v1',
+      }],
+    });
+    const projection = buildRuntimeResourceProjectionArtifacts({ auditRows: audit.rows }).rows[0];
+
+    expect(projection).toMatchObject({
+      lifecycleScope: 'audit-only',
+      reviewConcluded: false,
+      semanticConfirmed: false,
+      privacyScope: 'teacher-scoped',
+      teacherPolicy: 'teacher-only',
+      routeTarget: null,
+      renderTarget: null,
+      citationTargets: [],
+      projectionLevel: 'ResourceSegment',
     });
   });
 

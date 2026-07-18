@@ -1,0 +1,229 @@
+{
+  "generatedAt": "2026-07-09T06:36:08.264Z",
+  "targetPath": "http://localhost:3015/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37",
+  "variants": [
+    {
+      "name": "desktop-light",
+      "width": 1440,
+      "height": 1000,
+      "dark": false,
+      "screenshot": "/Users/YW/.codex/worktrees/e734/act.just.edu.cn/openspec/changes/render-textbook-citation-targets/evidence/textbook-citation-reader-desktop-light.png",
+      "url": "http://localhost:3015/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37",
+      "pathWithHash": "/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37",
+      "title": "ch02-example-0212",
+      "canonicalHref": "/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md",
+      "ready": true,
+      "imageCount": 8,
+      "loadedImageCount": 8,
+      "hashTargetId": "fig-02-37",
+      "hashTargetExists": true,
+      "rawHtmlAnchorVisible": false,
+      "rawMarkdownImageSyntaxVisible": false,
+      "imageDescriptionVisible": false,
+      "citationCommentVisible": false,
+      "internalAnchorMarkerVisible": false,
+      "hasRenderedTable": true,
+      "hasRenderedFormula": true,
+      "images": [
+        {
+          "src": "/course-runtime/resources/textbooks/dorf-modern-control-systems/assets/chapter-02/fig-02-37.png",
+          "complete": true,
+          "naturalWidth": 802,
+          "naturalHeight": 631
+        },
+        {
+          "src": "/course-runtime/resources/textbooks/dorf-modern-control-systems/assets/chapter-02/img-chapter-02-080.png",
+          "complete": true,
+          "naturalWidth": 1512,
+          "naturalHeight": 1224
+        },
+        {
+          "src": "/course-runtime/resources/textbooks/dorf-modern-control-systems/assets/chapter-02/fig-02-39.png",
+          "complete": true,
+          "naturalWidth": 1290,
+          "naturalHeight": 998
+        },
+        {
+          "src": "/course-runtime/resources/textbooks/dorf-modern-control-systems/assets/chapter-02/fig-02-41.png",
+          "complete": true,
+          "naturalWidth": 1253,
+          "naturalHeight": 926
+        },
+        {
+          "src": "/course-runtime/resources/textbooks/dorf-modern-control-systems/assets/chapter-02/fig-02-40.png",
+          "complete": true,
+          "naturalWidth": 1295,
+          "naturalHeight": 2022
+        },
+        {
+          "src": "/course-runtime/resources/textbooks/dorf-modern-control-systems/assets/chapter-02/fig-02-42.png",
+          "complete": true,
+          "naturalWidth": 1294,
+          "naturalHeight": 992
+        },
+        {
+          "src": "/_next/image?url=%2Fimages%2FAI64.png&w=96&q=75",
+          "complete": true,
+          "naturalWidth": 48,
+          "naturalHeight": 48
+        },
+        {
+          "src": "/_next/image?url=%2Fimages%2FAI32.png&w=64&q=75",
+          "complete": true,
+          "naturalWidth": 32,
+          "naturalHeight": 32
+        }
+      ],
+      "pass": true
+    },
+    {
+      "name": "mobile-320-light",
+      "width": 320,
+      "height": 720,
+      "dark": false,
+      "screenshot": "/Users/YW/.codex/worktrees/e734/act.just.edu.cn/openspec/changes/render-textbook-citation-targets/evidence/textbook-citation-reader-mobile-320-light.png",
+      "url": "http://localhost:3015/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37",
+      "pathWithHash": "/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37",
+      "title": "ch02-example-0212",
+      "canonicalHref": "/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md",
+      "ready": true,
+      "imageCount": 8,
+      "loadedImageCount": 8,
+      "hashTargetId": "fig-02-37",
+      "hashTargetExists": true,
+      "rawHtmlAnchorVisible": false,
+      "rawMarkdownImageSyntaxVisible": false,
+      "imageDescriptionVisible": false,
+      "citationCommentVisible": false,
+      "internalAnchorMarkerVisible": false,
+      "hasRenderedTable": true,
+      "hasRenderedFormula": true,
+      "images": [
+        {
+          "src": "/course-runtime/resources/textbooks/dorf-modern-control-systems/assets/chapter-02/fig-02-37.png",
+          "complete": true,
+          "naturalWidth": 802,
+          "naturalHeight": 631
+        },
+        {
+          "src": "/course-runtime/resources/textbooks/dorf-modern-control-systems/assets/chapter-02/img-chapter-02-080.png",
+          "complete": true,
+          "naturalWidth": 1512,
+          "naturalHeight": 1224
+        },
+        {
+          "src": "/course-runtime/resources/textbooks/dorf-modern-control-systems/assets/chapter-02/fig-02-39.png",
+          "complete": true,
+          "naturalWidth": 1290,
+          "naturalHeight": 998
+        },
+        {
+          "src": "/course-runtime/resources/textbooks/dorf-modern-control-systems/assets/chapter-02/fig-02-41.png",
+          "complete": true,
+          "naturalWidth": 1253,
+          "naturalHeight": 926
+        },
+        {
+          "src": "/course-runtime/resources/textbooks/dorf-modern-control-systems/assets/chapter-02/fig-02-40.png",
+          "complete": true,
+          "naturalWidth": 1295,
+          "naturalHeight": 2022
+        },
+        {
+          "src": "/course-runtime/resources/textbooks/dorf-modern-control-systems/assets/chapter-02/fig-02-42.png",
+          "complete": true,
+          "naturalWidth": 1294,
+          "naturalHeight": 992
+        },
+        {
+          "src": "/_next/image?url=%2Fimages%2FAI64.png&w=96&q=75",
+          "complete": true,
+          "naturalWidth": 48,
+          "naturalHeight": 48
+        },
+        {
+          "src": "/_next/image?url=%2Fimages%2FAI32.png&w=64&q=75",
+          "complete": true,
+          "naturalWidth": 32,
+          "naturalHeight": 32
+        }
+      ],
+      "pass": true
+    },
+    {
+      "name": "mobile-320-dark",
+      "width": 320,
+      "height": 720,
+      "dark": true,
+      "screenshot": "/Users/YW/.codex/worktrees/e734/act.just.edu.cn/openspec/changes/render-textbook-citation-targets/evidence/textbook-citation-reader-mobile-320-dark.png",
+      "url": "http://localhost:3015/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37",
+      "pathWithHash": "/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md#fig-02-37",
+      "title": "ch02-example-0212",
+      "canonicalHref": "/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch02-example-0212.md",
+      "ready": true,
+      "imageCount": 8,
+      "loadedImageCount": 8,
+      "hashTargetId": "fig-02-37",
+      "hashTargetExists": true,
+      "rawHtmlAnchorVisible": false,
+      "rawMarkdownImageSyntaxVisible": false,
+      "imageDescriptionVisible": false,
+      "citationCommentVisible": false,
+      "internalAnchorMarkerVisible": false,
+      "hasRenderedTable": true,
+      "hasRenderedFormula": true,
+      "images": [
+        {
+          "src": "/course-runtime/resources/textbooks/dorf-modern-control-systems/assets/chapter-02/fig-02-37.png",
+          "complete": true,
+          "naturalWidth": 802,
+          "naturalHeight": 631
+        },
+        {
+          "src": "/course-runtime/resources/textbooks/dorf-modern-control-systems/assets/chapter-02/img-chapter-02-080.png",
+          "complete": true,
+          "naturalWidth": 1512,
+          "naturalHeight": 1224
+        },
+        {
+          "src": "/course-runtime/resources/textbooks/dorf-modern-control-systems/assets/chapter-02/fig-02-39.png",
+          "complete": true,
+          "naturalWidth": 1290,
+          "naturalHeight": 998
+        },
+        {
+          "src": "/course-runtime/resources/textbooks/dorf-modern-control-systems/assets/chapter-02/fig-02-41.png",
+          "complete": true,
+          "naturalWidth": 1253,
+          "naturalHeight": 926
+        },
+        {
+          "src": "/course-runtime/resources/textbooks/dorf-modern-control-systems/assets/chapter-02/fig-02-40.png",
+          "complete": true,
+          "naturalWidth": 1295,
+          "naturalHeight": 2022
+        },
+        {
+          "src": "/course-runtime/resources/textbooks/dorf-modern-control-systems/assets/chapter-02/fig-02-42.png",
+          "complete": true,
+          "naturalWidth": 1294,
+          "naturalHeight": 992
+        },
+        {
+          "src": "/_next/image?url=%2Fimages%2FAI64.png&w=96&q=75",
+          "complete": true,
+          "naturalWidth": 48,
+          "naturalHeight": 48
+        },
+        {
+          "src": "/_next/image?url=%2Fimages%2FAI32.png&w=64&q=75",
+          "complete": true,
+          "naturalWidth": 32,
+          "naturalHeight": 32
+        }
+      ],
+      "pass": true
+    }
+  ],
+  "pass": true
+}

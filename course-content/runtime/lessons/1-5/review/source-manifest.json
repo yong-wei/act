@@ -1,0 +1,71 @@
+{
+  "lesson_id": "1-5",
+  "unit_type": "实践",
+  "generated_at": "2026-07-16T11:09:00.312683+00:00",
+  "primary_sources": [
+    "course-content/authoring/lessons/1-5/design/1-5-handout.md",
+    "course-content/authoring/lessons/1-5/design/1-5-interactive-page.md"
+  ],
+  "interactive_page_source": "course-content/authoring/lessons/1-5/design/1-5-interactive-page.md",
+  "interactive_contract_source": "course-content/authoring/lessons/1-5/design/1-5-interactive-contract.yaml",
+  "handout_pdf_source": "course-content/authoring/lessons/1-5/design/1-5-handout.pdf",
+  "boppps_source": "course-content/authoring/lessons/1-5/design/1-5-boppps.md",
+  "sequence_source": "course-content/authoring/knowledge/cards/lessons/1-5/sequence.json",
+  "expected_code_media": [
+    {
+      "output": "1-5-cover-comic.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-5-info.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-5-fig-01-three-domain-k3.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-5-fig-02-three-domain-k12.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-5-fig-03-step-k24-k36.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-5-fig-04-critical-k42.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-5-fig-05-sweep-summary.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-5-intro-video.mp4",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-5-slides.pdf",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-5-course.mp4",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "1-5-audio.m4a",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    }
+  ]
+}

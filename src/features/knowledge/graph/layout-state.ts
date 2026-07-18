@@ -41,7 +41,6 @@ const EMPTY_LAYOUT_STATE: KnowledgeGraphLayoutState = {
   version: 0,
   positionsByNodeId: {},
 };
-const CHAPTER_NODE_ID_PREFIX = 'chapter-node:';
 
 function readCoordinate(value: unknown): number | null {
   return typeof value === 'number' && Number.isFinite(value) ? value : null;
@@ -150,7 +149,7 @@ export function markKnowledgeGraphAutomaticNodeAnchors<T extends KnowledgeGraphM
 ): void {
   if (!nodes) return;
   nodes.forEach((node) => {
-    if (!node.id.startsWith(CHAPTER_NODE_ID_PREFIX) || node.__knowledgeAutomaticAnchor) return;
+    if (node.__knowledgeAutomaticAnchor) return;
     const x = readCoordinate(node.fx ?? node.x ?? node.positionX);
     const y = readCoordinate(node.fy ?? node.y ?? node.positionY);
     if (x === null || y === null) return;
@@ -161,6 +160,9 @@ export function markKnowledgeGraphAutomaticNodeAnchors<T extends KnowledgeGraphM
       y,
       ...(z === null ? {} : { z }),
     };
+    node.fx = x;
+    node.fy = y;
+    if (z !== null) node.fz = z;
   });
 }
 

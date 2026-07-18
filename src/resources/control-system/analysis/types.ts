@@ -91,6 +91,8 @@ export interface ControlAnalysisRequest {
   responseType?: 'step' | 'impulse' | 'ramp';
   timeRange: TimeRangeConfig;
   frequencyRange: FrequencyRangeConfig;
+  frequencyProbesRadPerSec?: number[];
+  settlingBandRatio?: number;
   nyquist?: NyquistConfig;
   rootLocus: RootLocusConfig;
   feasibleRegion?: FeasibleRegionConfig;
@@ -102,7 +104,7 @@ export interface ControlAnalysisRequest {
 }
 
 export interface ControlMetrics {
-  overshootPct: number;
+  overshootPct: number | null;
   riseTimeSec: number | null;
   settlingTimeSec: number | null;
   peakTimeSec: number | null;
@@ -122,6 +124,12 @@ export interface CurvePoint {
 export interface ComplexPoint {
   re: number;
   im: number;
+}
+
+export interface FrequencyResponseReading extends ComplexPoint {
+  frequencyRadPerSec: number;
+  magnitudeDb: number;
+  phaseDeg: number;
 }
 
 export interface NyquistSamplePoint extends ComplexPoint {
@@ -362,6 +370,7 @@ export interface ControlAnalysisResult {
   stepResponse: StepResponseData;
   magnitude: BodeAxisData;
   phase: BodeAxisData;
+  frequencyReadings?: FrequencyResponseReading[];
   nyquist: NyquistData;
   rootLocus: RootLocusData;
   isFallback?: boolean;

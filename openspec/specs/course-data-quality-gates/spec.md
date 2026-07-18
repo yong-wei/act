@@ -253,3 +253,93 @@ Canonical test-account fixture readiness SHALL be evaluated against the resource
 - **WHEN** fixture-owned resources are ready but global resource completeness remains incomplete
 - **THEN** fixture output SHALL carry a limited-coverage diagnostic
 - **AND** it SHALL NOT fabricate citations, path readiness, learner evidence, or completion state for resources outside the reviewed fixture subset.
+
+### Requirement: Portrait update regressions are gated
+The data-quality gates SHALL detect portrait update behavior that can erase
+stable learner scores without negative evidence.
+
+#### Scenario: Sparse update regression is tested
+- **WHEN** the portrait update regression suite runs
+- **AND** an existing learner portrait receives sparse evidence for only one dimension
+- **THEN** untouched dimensions SHALL retain their prior score
+- **AND** the gate SHALL fail if those dimensions become zero or missing.
+
+#### Scenario: Evidence aging is tested
+- **WHEN** evidence ages beyond the recent activity window
+- **THEN** score SHALL remain available as long-term portrait state
+- **AND** the gate SHALL verify that freshness or confidence carries the aging signal.
+
+### Requirement: Portrait migration completeness is auditable
+The data completeness helper SHALL report portrait v2 migration state for
+learner data and diagnostic fixtures.
+
+#### Scenario: Portrait migration audit runs
+- **WHEN** the helper audits learner portrait readiness
+- **THEN** it SHALL report native portrait v2 rows, migrated rows, stale rows, unmigrated legacy rows, and fixture blockers
+- **AND** it SHALL use privacy-minimized learner identifiers.
+
+#### Scenario: Fixture readiness is audited
+- **WHEN** the helper audits the canonical Yang Fan account
+- **THEN** it SHALL verify all seven portrait v2 dimensions, evidence lineage, worker recomputation stability, and duplicate-account safety
+- **AND** it SHALL report blockers separately from ordinary learner data gaps.
+
+### Requirement: Newly added resources pass semantic completeness before commit
+The course data-quality gates SHALL prevent newly added or modified registered resources from introducing missing reviewed semantic metadata.
+
+#### Scenario: New resource is incomplete
+- **WHEN** a new or modified TeachingResource, runtime lesson projection, knowledge card, infograph, simulation, control workbench entry, Arena resource, quiz, exercise, textbook section, reference section, figure, transcript, slide, media anchor, handout, or image description is detected
+- **AND** it lacks reviewed disposition, required graph/K/A/Q bindings, path profile, evidence policy, citation metadata, review metadata, or exclusion rationale for its declared role
+- **THEN** the new-resource completeness gate SHALL fail before commit.
+
+#### Scenario: Historical backlog exists
+- **WHEN** existing historical resources remain incomplete during staged cleanup
+- **THEN** the new-resource gate MAY use a reviewed baseline to avoid failing on unchanged historical rows
+- **AND** it SHALL still fail on new or modified rows that introduce additional incompleteness.
+
+#### Scenario: Gate is installed in worktree setup
+- **WHEN** the worktree sync or hook setup script runs
+- **THEN** it SHALL install or update a local commit-time gate for new resource semantic completeness
+- **AND** the same check SHALL be available as a direct command for future CI use.
+
+### Requirement: Legacy six-dimensional primary usage is gated
+Repository gates SHALL prevent new primary learner portrait writes or exposed
+student-facing contracts from reverting to the legacy six-dimensional model.
+
+#### Scenario: New primary write uses legacy model
+- **WHEN** a gate scans changed learner portrait code
+- **AND** it finds a new primary write of six-dimensional `CompetencyVector` outside an approved compatibility adapter
+- **THEN** the gate SHALL fail with the file and symbol responsible.
+
+#### Scenario: Student-facing contract exposes legacy primary model
+- **WHEN** a profile, learner-state, planner, or Konling contract exposes learner portrait data
+- **THEN** the gate SHALL verify that portrait v2 is primary
+- **AND** legacy dimensions SHALL be allowed only as explicit compatibility metadata.
+
+#### Scenario: Recommendation or cache contract exposes legacy primary model
+- **WHEN** recommendation generation, `LearningRecommendation` persistence, or `StudentEvidenceFeatureCache` payloads expose portrait-related rationale or aggregates
+- **THEN** the gate SHALL verify portrait v2 ids, confidence, freshness, and limitation metadata are primary
+- **AND** legacy six-dimensional values SHALL be allowed only inside explicitly named compatibility fields.
+
+#### Scenario: Class-level portrait aggregation is checked
+- **WHEN** class competency snapshots, teacher insights, or analytics dashboards expose class portrait summaries
+- **THEN** the gate SHALL verify portrait v2 dimension labels and limitation metadata
+- **AND** it SHALL fail if teacher-facing aggregation silently uses six-dimensional labels as the current primary model.
+
+### Requirement: Full resource semantic completion can be closed
+The data-quality gates SHALL provide a final closure check proving current project resources have complete reviewed semantic disposition and path/citation readiness.
+
+#### Scenario: Full closure check runs
+- **WHEN** resource-family completion batches have landed
+- **THEN** the closure check SHALL consume helper output, ResourceNode audit output, LearningGoal stage coverage, path diagnostics, and resource-metadata citation addressability checks
+- **AND** it SHALL fail on unexplained missing disposition, unreviewed semantic fields, invalid path promotion, missing parent PlanningUnit link, missing exclusion rationale, missing evidence policy, or missing citation addressability.
+
+#### Scenario: Current resources are accounted for
+- **WHEN** the closure check enumerates current discovered resources
+- **THEN** every resource SHALL be classified as path-plannable, supporting-citation, embedded-asset, evidence-producing, or excluded-with-rationale
+- **AND** each classification SHALL include review metadata and source/version evidence or a concrete external blocker.
+
+#### Scenario: Closure succeeds
+- **WHEN** full resource semantic completion succeeds
+- **THEN** the new-resource gate SHALL be tightened so future resource additions and modified existing records cannot bypass reviewed semantic completeness
+- **AND** any future incomplete resource SHALL fail local gate or CI-ready checks.
+

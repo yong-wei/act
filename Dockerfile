@@ -2,7 +2,7 @@
 FROM node:20-alpine AS base
 ARG APK_MIRROR=https://mirrors.aliyun.com/alpine
 RUN sed -i "s|https://dl-cdn.alpinelinux.org/alpine|${APK_MIRROR}|g" /etc/apk/repositories \
-  && apk add --no-cache libc6-compat openssl curl
+  && apk add --no-cache libc6-compat openssl curl python3 py3-pip unzip
 
 # Dependencies stage
 FROM base AS deps
@@ -77,7 +77,8 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV RUN_MIGRATIONS_ON_START=1
 
-RUN apk add --no-cache chromium
+RUN apk add --no-cache chromium libreoffice \
+  && python3 -m pip install --break-system-packages --no-cache-dir markitdown==0.1.2
 
 # Create nextjs user
 RUN addgroup --system --gid 1001 nodejs
@@ -95,6 +96,7 @@ COPY --from=builder /app/package-lock.json ./package-lock.json
 COPY --from=builder /app/tsconfig.json ./tsconfig.json
 COPY --from=builder /app/src ./src
 COPY --from=builder /app/scripts/db ./scripts/db
+COPY --from=builder /app/scripts/assignments ./scripts/assignments
 COPY --from=builder /app/scripts/lib ./scripts/lib
 COPY --from=builder /app/scripts/workers ./scripts/workers
 

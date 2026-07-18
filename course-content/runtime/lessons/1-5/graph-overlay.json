@@ -1,0 +1,488 @@
+{
+  "lesson_id": "1-5",
+  "title": "三域联动：一个增益如何改变稳定性",
+  "focus_node_ids": [
+    "三域证据链_1_5",
+    "增益扫描稳定区间_1_5",
+    "临界增益与虚轴极点_1_5",
+    "速度指标分辨_1_5"
+  ],
+  "reuse_node_ids": [
+    "极点_1_2",
+    "时域响应_1_1"
+  ],
+  "entry_nodes": [
+    "三域证据链_1_5"
+  ],
+  "summary_nodes": [
+    "临界增益与虚轴极点_1_5",
+    "速度指标分辨_1_5"
+  ],
+  "card_order": [
+    "极点_1_2",
+    "时域响应_1_1",
+    "三域证据链_1_5",
+    "增益扫描稳定区间_1_5",
+    "临界增益与虚轴极点_1_5",
+    "速度指标分辨_1_5"
+  ],
+  "groups": [
+    {
+      "group_name": "极点与时域响应前置",
+      "node_ids": [
+        "极点_1_2",
+        "时域响应_1_1"
+      ],
+      "step_ids": [
+        "step-03",
+        "step-05"
+      ]
+    },
+    {
+      "group_name": "三域证据链",
+      "node_ids": [
+        "三域证据链_1_5"
+      ],
+      "step_ids": [
+        "step-04",
+        "step-09",
+        "step-14"
+      ]
+    },
+    {
+      "group_name": "增益扫描稳定区间",
+      "node_ids": [
+        "增益扫描稳定区间_1_5"
+      ],
+      "step_ids": [
+        "step-04",
+        "step-09"
+      ]
+    },
+    {
+      "group_name": "临界增益与虚轴极点",
+      "node_ids": [
+        "临界增益与虚轴极点_1_5"
+      ],
+      "step_ids": [
+        "step-08",
+        "step-12"
+      ]
+    },
+    {
+      "group_name": "区分三种速度语言",
+      "node_ids": [
+        "速度指标分辨_1_5"
+      ],
+      "step_ids": [
+        "step-07",
+        "step-10",
+        "step-14"
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "速度指标分辨_1_5",
+      "name": "上升速度、收敛速度与环路频率尺度",
+      "nodeType": "THEORY",
+      "description": "上升时间描述第一次到达目标附近的速度，调节时间描述进入并保持在容差带内的速度，增益穿越频率描述环路开环的频率尺度，三者不能互相替代。",
+      "positionX": 9.9,
+      "positionY": 9.9,
+      "positionZ": 1,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "基本概念",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "基本概念",
+        "category": "概念性",
+        "knowledge_type": "X",
+        "bloom_level": "分析",
+        "definition": "上升时间描述第一次到达目标附近的速度，调节时间描述进入并保持在容差带内的速度，增益穿越频率描述环路开环的频率尺度，三者不能互相替代。",
+        "examples": [
+          "增益从 3 增至 12 时，上升时间缩短而 5% 调节时间略有延长，二者可以同时发生。"
+        ],
+        "formulas": [
+          "|L(j\\omega_c)|=1"
+        ],
+        "prerequisites": [
+          "三域证据链_1_5"
+        ],
+        "relatedConcepts": [
+          "增益扫描稳定区间_1_5"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "上升时间",
+          "调节时间",
+          "增益穿越频率",
+          "速度"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/速度指标分辨_1_5.md"
+      ],
+      "tags": [
+        "上升时间",
+        "调节时间",
+        "增益穿越频率",
+        "速度",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "临界增益与虚轴极点_1_5",
+      "name": "临界增益与虚轴极点",
+      "nodeType": "THEORY",
+      "description": "临界增益使闭环共轭极点恰好到达虚轴；此时响应持续振荡，稳定裕度为零，调节时间和稳定系统超调量不再具有通常意义。",
+      "positionX": 7.0,
+      "positionY": 12.1,
+      "positionZ": 1,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "基本概念",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "基本概念",
+        "category": "概念性",
+        "knowledge_type": "C",
+        "bloom_level": "分析",
+        "definition": "临界增益使闭环共轭极点恰好到达虚轴；此时响应持续振荡，稳定裕度为零，调节时间和稳定系统超调量不再具有通常意义。",
+        "examples": [
+          "本课对象在 K=42 时的闭环极点为 -7 与 ±j√6。"
+        ],
+        "formulas": [
+          "K_{crit}=42",
+          "s=-7,\\;s=\\pm j\\sqrt{6}"
+        ],
+        "prerequisites": [
+          "增益扫描稳定区间_1_5"
+        ],
+        "relatedConcepts": [
+          "三域证据链_1_5"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "临界增益",
+          "虚轴极点",
+          "持续振荡",
+          "稳定裕度"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/临界增益与虚轴极点_1_5.md"
+      ],
+      "tags": [
+        "临界增益",
+        "虚轴极点",
+        "持续振荡",
+        "稳定裕度",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "增益扫描稳定区间_1_5",
+      "name": "增益扫描中的稳定区间",
+      "nodeType": "THEORY",
+      "description": "在连续改变比例增益时，用闭环特征方程和三域观察把参数范围划分为稳定、近临界、临界稳定与不稳定区间。",
+      "positionX": 12.1,
+      "positionY": -7.0,
+      "positionZ": 1,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 1,
+      "chapterName": "基本概念",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "基本概念",
+        "category": "程序性",
+        "knowledge_type": "C",
+        "bloom_level": "分析",
+        "definition": "在连续改变比例增益时，用闭环特征方程和三域观察把参数范围划分为稳定、近临界、临界稳定与不稳定区间。",
+        "examples": [
+          "对 L(s)=K/[s(s+1)(s+6)]，0<K<42 稳定，K=42 临界稳定，K>42 不稳定。"
+        ],
+        "formulas": [
+          "s^3+7s^2+6s+K=0",
+          "0<K<42"
+        ],
+        "prerequisites": [
+          "三域证据链_1_5"
+        ],
+        "relatedConcepts": [
+          "临界增益与虚轴极点_1_5"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "增益扫描",
+          "稳定区间",
+          "Routh",
+          "临界稳定"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/增益扫描稳定区间_1_5.md"
+      ],
+      "tags": [
+        "增益扫描",
+        "稳定区间",
+        "Routh",
+        "临界稳定",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "时域响应_1_1",
+      "name": "时域响应",
+      "nodeType": "THEORY",
+      "description": "输出 y(t) 随时间变化的过程曲线，分解为基本运动模态 e^{σt}sin(ωt) 的叠加，其中 σ 是极点实部",
+      "positionX": 17.3,
+      "positionY": -10.0,
+      "positionZ": 1,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "课程全景",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "课程全景",
+        "category": "概念性",
+        "knowledge_type": "X",
+        "bloom_level": "理解",
+        "definition": "输出 y(t) 随时间变化的过程曲线，分解为基本运动模态 e^{σt}sin(ωt) 的叠加，其中 σ 是极点实部",
+        "examples": [],
+        "formulas": [],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 4,
+        "keywords": [
+          "时域响应",
+          "阶跃响应"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/时域响应_1_1.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/时域响应_1_1.png",
+          "title": "时域响应 信息图",
+          "lessonId": "1-1",
+          "nodeId": "时域响应_1_1",
+          "sourceNodeId": "时域响应_1_1"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/时域响应_1_1.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/时域响应_1_1.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/时域响应_1_1.png",
+          "title": "时域响应 信息图",
+          "lessonId": "1-1",
+          "nodeId": "时域响应_1_1",
+          "sourceNodeId": "时域响应_1_1"
+        }
+      ],
+      "tags": [
+        "时域响应",
+        "阶跃响应",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "极点_1_2",
+      "name": "极点",
+      "nodeType": "THEORY",
+      "description": "传递函数分母的根（=特征根），在s平面上标记为×。名称来自复变函数几何直观——|G(s)|在极点处趋向无穷，三维幅值曲面上形成极柱。极点s=σ+jω的坐标可记为(σ,ω)：σ管衰减/发散，ω管振荡密度",
+      "positionX": 22.5,
+      "positionY": 13.0,
+      "positionZ": 1,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "建模专题速通",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "建模专题速通",
+        "category": "概念性",
+        "knowledge_type": "X",
+        "bloom_level": "理解",
+        "definition": "传递函数分母的根（=特征根），在s平面上标记为×。名称来自复变函数几何直观——|G(s)|在极点处趋向无穷，三维幅值曲面上形成极柱。极点s=σ+jω的坐标可记为(σ,ω)：σ管衰减/发散，ω管振荡密度",
+        "examples": [
+          "G(s)=(K/J)/[s(s+B/J)]有两个极点：s=0和s=-B/J",
+          "三维可视化：在s=0和s=-B/J处|G(s)|→∞"
+        ],
+        "formulas": [
+          "e^(σt)sin(ωt)——极点σ±jω对应的时域模态"
+        ],
+        "prerequisites": [
+          "特征根_1_2",
+          "传递函数_1_2"
+        ],
+        "relatedConcepts": [
+          "复平面_1_2",
+          "稳定区_1_2",
+          "特征方程_1_2"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "极点",
+          "特征根",
+          "复变函数",
+          "极柱",
+          "行为决定因素"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/极点_1_2.md"
+      ],
+      "tags": [
+        "极点",
+        "特征根",
+        "复变函数",
+        "极柱",
+        "行为决定因素",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "三域证据链_1_5",
+      "name": "闭环极点、阶跃响应与环路裕度证据链",
+      "nodeType": "THEORY",
+      "description": "针对同一个对象、增益和反馈约定，依次读取闭环极点、闭环阶跃响应和环路开环稳定裕度，并检查三个域的稳定性判断是否相容。",
+      "positionX": -9.8,
+      "positionY": 36.7,
+      "positionZ": 1,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 1,
+      "chapterName": "基本概念",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "基本概念",
+        "category": "程序性",
+        "knowledge_type": "C",
+        "bloom_level": "分析",
+        "definition": "针对同一个对象、增益和反馈约定，依次读取闭环极点、闭环阶跃响应和环路开环稳定裕度，并检查三个域的稳定性判断是否相容。",
+        "examples": [
+          "主导极点实部趋近零、振荡衰减变慢和相位裕度减小共同指向稳定边界。"
+        ],
+        "formulas": [
+          "L(s)=KG_0(s)",
+          "\\Phi(s)=L(s)/(1+L(s))"
+        ],
+        "prerequisites": [
+          "极点_1_2",
+          "时域响应_1_1"
+        ],
+        "relatedConcepts": [
+          "增益扫描稳定区间_1_5",
+          "速度指标分辨_1_5"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "闭环极点",
+          "阶跃响应",
+          "相位裕度",
+          "三域联动"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/三域证据链_1_5.md"
+      ],
+      "tags": [
+        "闭环极点",
+        "阶跃响应",
+        "相位裕度",
+        "三域联动",
+        "chapter-1"
+      ]
+    }
+  ],
+  "links": [
+    {
+      "id": "rel-c2c947c8e466559b",
+      "sourceId": "极点_1_2",
+      "targetId": "三域证据链_1_5",
+      "relation": "prerequisite",
+      "relationType": "prerequisite",
+      "strength": 0.96
+    },
+    {
+      "id": "rel-690d3be60ffa1b6c",
+      "sourceId": "时域响应_1_1",
+      "targetId": "三域证据链_1_5",
+      "relation": "prerequisite",
+      "relationType": "prerequisite",
+      "strength": 0.94
+    },
+    {
+      "id": "rel-80fae95b0989fd96",
+      "sourceId": "三域证据链_1_5",
+      "targetId": "增益扫描稳定区间_1_5",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.98
+    },
+    {
+      "id": "rel-f95d14027d99e2f8",
+      "sourceId": "增益扫描稳定区间_1_5",
+      "targetId": "临界增益与虚轴极点_1_5",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.99
+    },
+    {
+      "id": "rel-debf158b388b00ee",
+      "sourceId": "三域证据链_1_5",
+      "targetId": "速度指标分辨_1_5",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-a73b1e169ab8ca7c",
+      "sourceId": "速度指标分辨_1_5",
+      "targetId": "增益扫描稳定区间_1_5",
+      "relation": "supports",
+      "relationType": "supports",
+      "strength": 0.9
+    }
+  ]
+}

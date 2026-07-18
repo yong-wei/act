@@ -865,6 +865,23 @@ describe('textbook citation preservation', () => {
     expect(item.citation).toBeDefined();
     expect(item.citation?.verified).toBe(true);
     expect(item.citation?.href).toBe('/course-runtime/textbook/ch02/root-locus#sec1');
+    expect(item.citation?.canonicalHref).toBe('/course-runtime/textbook/ch02/root-locus#sec1');
+  });
+
+  it('adds rendered display hrefs for runtime textbook Markdown citations without replacing canonical href', () => {
+    const href = '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch02-sec01.md#fig-02-01';
+    const doc = makeTextbookDoc({
+      href,
+      citationAddress: {
+        ...makeTextbookDoc().citationAddress!,
+        href,
+        locator: 'fig-02-01',
+      },
+    });
+    const { item } = adaptTextbookSearchDocument(doc);
+    expect(item.citation?.href).toBe(href);
+    expect(item.citation?.canonicalHref).toBe(href);
+    expect(item.citation?.displayHref).toBe('/textbook-citations/resources/textbooks/dorf-modern-control-systems/sections/ch02-sec01.md#fig-02-01');
   });
 
   it('warns for missing href in textbook doc', () => {
@@ -1066,6 +1083,31 @@ describe('stale and provisional limitations', () => {
 
   it('isProvisionalReview returns false for human-confirmed', () => {
     expect(isProvisionalReview('human-confirmed')).toBe(false);
+  });
+
+  it('treats model-cleared projections as retrieval-reviewed without promoting path authority', () => {
+    expect(isProvisionalReview('model-cleared')).toBe(false);
+    const row = makeProjectionRow({
+      projectionLevel: 'ResourceSegment',
+      resourceNodeId: 'runtime-media:1-3:diagram.png',
+      pathEligibility: {
+        current: false,
+        afterCompletion: false,
+        masteryAffecting: false,
+        blockedBy: ['missing-human-review'],
+      },
+      reviewAudit: {
+        ...makeProjectionRow().reviewAudit,
+        status: 'model-cleared',
+      },
+    } as Partial<RuntimeResourceProjectionArtifactRow> as RuntimeResourceProjectionArtifactRow);
+
+    const { item, limitations } = adaptResourceProjectionRow(row);
+
+    expect(item.metadata?.reviewStatus).toBe('model-cleared');
+    expect(item.resourceNodeId).toBeUndefined();
+    expect(item.planningUnitId).toBeUndefined();
+    expect(limitations.some((limitation) => limitation.code === 'projection-provisional')).toBe(false);
   });
 
   it('flags provisional projection rows', () => {

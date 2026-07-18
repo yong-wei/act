@@ -189,6 +189,14 @@ export const TEACHER_OPERATIONS_NAVIGATION: TeacherOperationsNavigationEntry[] =
     statusSemantics: ['draft', 'updated', 'empty'],
   },
   {
+    id: 'teacher-operations-assignments',
+    label: '作业',
+    href: '/teacher/assignments',
+    workspace: 'teacher-operations',
+    objectLevelActions: ['新建作业', '编辑草稿', '查看发布状态'],
+    statusSemantics: ['loading', 'draft', 'scheduled', 'published', 'closed', 'empty', 'error'],
+  },
+  {
     id: 'teacher-operations-resources',
     label: '资源',
     href: '/teacher/resources',

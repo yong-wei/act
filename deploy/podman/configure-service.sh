@@ -68,6 +68,8 @@ APP_CONTAINER="${APP_CONTAINER:-${APP_NAME:-act-obe-app}}"
 DB_CONTAINER="${DB_CONTAINER:-${POSTGRES_NAME:-act-obe-postgres}}"
 REDIS_CONTAINER="${REDIS_CONTAINER:-${REDIS_NAME:-act-obe-redis}}"
 WORKER_CONTAINER="${WORKER_CONTAINER:-${WORKER_NAME:-act-obe-worker}}"
+SUBMISSION_SCANNER_CONTAINER="${SUBMISSION_SCANNER_CONTAINER:-act-obe-submission-scanner}"
+SUBMISSION_GC_CONTAINER="${SUBMISSION_GC_CONTAINER:-act-obe-submission-gc}"
 SERVICE_NAME="${SERVICE_NAME:-act-obe-stack.service}"
 SERVICE_FILE="/etc/systemd/system/${SERVICE_NAME}"
 DB_NAME="${DB_NAME:-${POSTGRES_DB:-act_obe}}"
@@ -197,6 +199,8 @@ Delegate=yes
 ExecStart=/usr/bin/podman start ${DB_CONTAINER}
 ExecStart=/bin/sh -lc 'until /usr/bin/podman exec -e PGPASSWORD="${DB_PASSWORD}" ${DB_CONTAINER} pg_isready -U "${DB_USER}" -d "${DB_NAME}" >/dev/null 2>&1; do sleep 2; done'
 ExecStart=/bin/sh -lc '"${APP_DEPLOY_SCRIPT}" --app-only'
+ExecStop=/usr/bin/podman stop -t 20 ${SUBMISSION_GC_CONTAINER}
+ExecStop=/usr/bin/podman stop -t 20 ${SUBMISSION_SCANNER_CONTAINER}
 ExecStop=/usr/bin/podman stop -t 20 ${WORKER_CONTAINER}
 ExecStop=/usr/bin/podman stop -t 20 ${APP_CONTAINER}
 ExecStop=/usr/bin/podman stop -t 20 ${REDIS_CONTAINER}
@@ -230,6 +234,12 @@ fi
 if ! podman ps --format '{{.Names}}' | grep -Fxq "$WORKER_CONTAINER"; then
   echo "ERROR: systemd 启动后 worker 容器未运行: $WORKER_CONTAINER" >&2
   exit 1
+fi
+if ! podman ps --format '{{.Names}}' | grep -Fxq "$SUBMISSION_SCANNER_CONTAINER"; then
+  echo "ERROR: systemd 启动后学生作业扫描 worker 未运行: $SUBMISSION_SCANNER_CONTAINER" >&2; exit 1
+fi
+if ! podman ps --format '{{.Names}}' | grep -Fxq "$SUBMISSION_GC_CONTAINER"; then
+  echo "ERROR: systemd 启动后学生作业 GC worker 未运行: $SUBMISSION_GC_CONTAINER" >&2; exit 1
 fi
 
 app_ready=0

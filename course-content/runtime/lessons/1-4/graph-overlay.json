@@ -1,0 +1,528 @@
+{
+  "lesson_id": "1-4",
+  "title": "时域与频域：同一个系统的两种观察视角",
+  "focus_node_ids": [
+    "时域频域通道区分_1_4",
+    "闭环带宽与环路穿越频率_1_4",
+    "Bode与Nyquist同源表征_1_4",
+    "多表征一致性读图_1_4"
+  ],
+  "reuse_node_ids": [
+    "时域响应_1_1",
+    "频域分析_2_2e257d89",
+    "开环幅相特性曲线_5_fd86e289"
+  ],
+  "entry_nodes": [
+    "时域频域通道区分_1_4"
+  ],
+  "summary_nodes": [
+    "Bode与Nyquist同源表征_1_4",
+    "多表征一致性读图_1_4"
+  ],
+  "card_order": [
+    "时域响应_1_1",
+    "时域频域通道区分_1_4",
+    "闭环带宽与环路穿越频率_1_4",
+    "频域分析_2_2e257d89",
+    "Bode与Nyquist同源表征_1_4",
+    "开环幅相特性曲线_5_fd86e289",
+    "多表征一致性读图_1_4"
+  ],
+  "groups": [
+    {
+      "group_name": "区分观察域与输入输出通道",
+      "step_ids": [
+        "step-04"
+      ],
+      "node_ids": [
+        "时域频域通道区分_1_4"
+      ]
+    },
+    {
+      "group_name": "建立时域响应参照",
+      "step_ids": [
+        "step-05"
+      ],
+      "node_ids": [
+        "时域响应_1_1"
+      ]
+    },
+    {
+      "group_name": "读取闭环带宽与频率响应",
+      "step_ids": [
+        "step-06"
+      ],
+      "node_ids": [
+        "闭环带宽与环路穿越频率_1_4",
+        "频域分析_2_2e257d89"
+      ]
+    },
+    {
+      "group_name": "联读 Bode 与 Nyquist",
+      "step_ids": [
+        "step-07"
+      ],
+      "node_ids": [
+        "Bode与Nyquist同源表征_1_4",
+        "开环幅相特性曲线_5_fd86e289"
+      ]
+    },
+    {
+      "group_name": "完成多表征联读",
+      "step_ids": [
+        "step-08",
+        "step-12"
+      ],
+      "node_ids": [
+        "多表征一致性读图_1_4"
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "Bode与Nyquist同源表征_1_4",
+      "name": "Bode 与 Nyquist 的同源表征",
+      "nodeType": "THEORY",
+      "description": "Bode 图和 Nyquist 图都来自同一个频率响应；前者把幅值与相位按频率分开排列，后者把同一复数轨迹画在复平面上。",
+      "positionX": 14.0,
+      "positionY": 0.0,
+      "positionZ": 1,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "基本概念",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "基本概念",
+        "category": "概念性",
+        "knowledge_type": "X",
+        "bloom_level": "理解",
+        "definition": "Bode 图和 Nyquist 图都来自同一个频率响应；前者把幅值与相位按频率分开排列，后者把同一复数轨迹画在复平面上。",
+        "examples": [
+          "只有针对同一个传递函数时，Bode 与 Nyquist 才能逐频点互相对应。"
+        ],
+        "formulas": [
+          "G(j\\omega)=|G(j\\omega)|e^{j\\angle G(j\\omega)}"
+        ],
+        "prerequisites": [
+          "频域分析_2_2e257d89"
+        ],
+        "relatedConcepts": [
+          "开环幅相特性曲线_5_fd86e289",
+          "多表征一致性读图_1_4"
+        ],
+        "difficulty": 2,
+        "importance": 4,
+        "keywords": [
+          "Bode",
+          "Nyquist",
+          "频率响应",
+          "复平面"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/Bode与Nyquist同源表征_1_4.md"
+      ],
+      "tags": [
+        "Bode",
+        "Nyquist",
+        "频率响应",
+        "复平面",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "多表征一致性读图_1_4",
+      "name": "同一系统的多表征一致性读图",
+      "nodeType": "THEORY",
+      "description": "在闭环极点、阶跃响应、Bode 图和 Nyquist 图之间交叉核对稳定性、振荡倾向、速度尺度与稳定余量，同时保持各域指标定义不混淆。",
+      "positionX": 7.0,
+      "positionY": -12.1,
+      "positionZ": 1,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 1,
+      "chapterName": "基本概念",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "基本概念",
+        "category": "程序性",
+        "knowledge_type": "C",
+        "bloom_level": "分析",
+        "definition": "在闭环极点、阶跃响应、Bode 图和 Nyquist 图之间交叉核对稳定性、振荡倾向、速度尺度与稳定余量，同时保持各域指标定义不混淆。",
+        "examples": [
+          "主导极点更靠近虚轴、阶跃衰减更慢和相位裕度更小可以共同指向更接近稳定边界。"
+        ],
+        "formulas": [
+          "T(s)=L(s)/(1+L(s))"
+        ],
+        "prerequisites": [
+          "时域频域通道区分_1_4",
+          "Bode与Nyquist同源表征_1_4"
+        ],
+        "relatedConcepts": [
+          "闭环带宽与环路穿越频率_1_4"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "多表征",
+          "一致性",
+          "读图",
+          "稳定余量"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/多表征一致性读图_1_4.md"
+      ],
+      "tags": [
+        "多表征",
+        "一致性",
+        "读图",
+        "稳定余量",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "时域频域通道区分_1_4",
+      "name": "时域与频域的对象和通道区分",
+      "nodeType": "THEORY",
+      "description": "先明确输入输出通道，再分别用时域响应和频率响应描述同一系统；闭环指令、扰动通道与环路开环不能混用。",
+      "positionX": 14.1,
+      "positionY": -14.1,
+      "positionZ": 1,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "基本概念",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "基本概念",
+        "category": "概念性",
+        "knowledge_type": "X",
+        "bloom_level": "分析",
+        "definition": "先明确输入输出通道，再分别用时域响应和频率响应描述同一系统；闭环指令、扰动通道与环路开环不能混用。",
+        "examples": [
+          "闭环指令响应使用 T(s)，稳定裕度读取环路 L(s)。",
+          "扰动抑制必须先写明扰动注入位置和对应传递函数。"
+        ],
+        "formulas": [
+          "T(s)=L(s)/(1+L(s))"
+        ],
+        "prerequisites": [
+          "时域响应_1_1"
+        ],
+        "relatedConcepts": [
+          "闭环带宽与环路穿越频率_1_4",
+          "多表征一致性读图_1_4"
+        ],
+        "difficulty": 2,
+        "importance": 5,
+        "keywords": [
+          "时域",
+          "频域",
+          "通道",
+          "闭环",
+          "环路"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/时域频域通道区分_1_4.md"
+      ],
+      "tags": [
+        "时域",
+        "频域",
+        "通道",
+        "闭环",
+        "环路",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "时域响应_1_1",
+      "name": "时域响应",
+      "nodeType": "THEORY",
+      "description": "输出 y(t) 随时间变化的过程曲线，分解为基本运动模态 e^{σt}sin(ωt) 的叠加，其中 σ 是极点实部",
+      "positionX": 17.3,
+      "positionY": -10.0,
+      "positionZ": 1,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "课程全景",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "课程全景",
+        "category": "概念性",
+        "knowledge_type": "X",
+        "bloom_level": "理解",
+        "definition": "输出 y(t) 随时间变化的过程曲线，分解为基本运动模态 e^{σt}sin(ωt) 的叠加，其中 σ 是极点实部",
+        "examples": [],
+        "formulas": [],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 4,
+        "keywords": [
+          "时域响应",
+          "阶跃响应"
+        ],
+        "infograph": {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/时域响应_1_1.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/时域响应_1_1.png",
+          "title": "时域响应 信息图",
+          "lessonId": "1-1",
+          "nodeId": "时域响应_1_1",
+          "sourceNodeId": "时域响应_1_1"
+        },
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/时域响应_1_1.md",
+        {
+          "type": "infograph",
+          "path": "course-content/runtime/knowledge/infographs/nodes/时域响应_1_1.png",
+          "url": "/course-runtime/knowledge/infographs/nodes/时域响应_1_1.png",
+          "title": "时域响应 信息图",
+          "lessonId": "1-1",
+          "nodeId": "时域响应_1_1",
+          "sourceNodeId": "时域响应_1_1"
+        }
+      ],
+      "tags": [
+        "时域响应",
+        "阶跃响应",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "闭环带宽与环路穿越频率_1_4",
+      "name": "闭环带宽与环路增益穿越频率",
+      "nodeType": "THEORY",
+      "description": "闭环带宽由闭环频率响应相对低频值的 -3 dB 点定义；环路增益穿越频率由 |L(jω)|=1 定义，二者属于不同传递对象。",
+      "positionX": 9.8,
+      "positionY": 36.7,
+      "positionZ": 1,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "基本概念",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "基本概念",
+        "category": "概念性",
+        "knowledge_type": "C",
+        "bloom_level": "分析",
+        "definition": "闭环带宽由闭环频率响应相对低频值的 -3 dB 点定义；环路增益穿越频率由 |L(jω)|=1 定义，二者属于不同传递对象。",
+        "examples": [
+          "不能把 margin(L) 返回的增益穿越频率直接称为闭环带宽。"
+        ],
+        "formulas": [
+          "|T(j\\omega_b)|=|T(j0)|/\\sqrt{2}",
+          "|L(j\\omega_c)|=1"
+        ],
+        "prerequisites": [
+          "时域频域通道区分_1_4"
+        ],
+        "relatedConcepts": [
+          "Bode与Nyquist同源表征_1_4"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "闭环带宽",
+          "增益穿越频率",
+          "Bode",
+          "环路"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/闭环带宽与环路穿越频率_1_4.md"
+      ],
+      "tags": [
+        "闭环带宽",
+        "增益穿越频率",
+        "Bode",
+        "环路",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "频域分析_2_2e257d89",
+      "name": "频域分析",
+      "nodeType": "THEORY",
+      "description": "在频率域内分析系统的频率响应特性，常用伯德图、奈奎斯特图等工具。",
+      "positionX": -0.0,
+      "positionY": -70.0,
+      "positionZ": 2,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 2,
+      "chapterName": "系统模型",
+      "metadata": {
+        "chapter": 2,
+        "chapterName": "系统模型",
+        "category": "程序性",
+        "knowledge_type": null,
+        "bloom_level": "分析",
+        "definition": "在频率域内分析系统的频率响应特性，常用伯德图、奈奎斯特图等工具。",
+        "examples": [
+          "绘制系统的伯德图，分析系统的稳定裕度和带宽。"
+        ],
+        "formulas": [
+          "频率响应: G(j\\omega)",
+          "伯德图: 幅频和相频曲线"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "伯德图",
+          "奈奎斯特图",
+          "尼科尔斯图",
+          "频率响应"
+        ],
+        "infograph": null,
+        "createdAt": "2026-02-04T17:54:16.627041",
+        "updatedAt": "2026-02-04T17:54:16.627041",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/频域分析_2_2e257d89.md"
+      ],
+      "tags": [
+        "伯德图",
+        "奈奎斯特图",
+        "尼科尔斯图",
+        "频率响应",
+        "chapter-2"
+      ]
+    },
+    {
+      "id": "开环幅相特性曲线_5_fd86e289",
+      "name": "开环幅相特性曲线",
+      "nodeType": "THEORY",
+      "description": "系统开环频率特性在复平面上随频率变化而形成的轨迹，又称奈奎斯特曲线。",
+      "positionX": 130.1,
+      "positionY": 130.1,
+      "positionZ": 5,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 5,
+      "chapterName": "频域分析",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "频域分析",
+        "category": "程序性",
+        "knowledge_type": null,
+        "bloom_level": "分析",
+        "definition": "系统开环频率特性在复平面上随频率变化而形成的轨迹，又称奈奎斯特曲线。",
+        "examples": [
+          "用于奈奎斯特稳定性判据"
+        ],
+        "formulas": [
+          "G(jω) = |G(jω)|e^(j∠G(jω))"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "幅相曲线",
+          "奈奎斯特",
+          "频率特性"
+        ],
+        "infograph": null,
+        "createdAt": "2026-02-04T17:54:16.628475",
+        "updatedAt": "2026-02-04T17:54:16.628475",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/开环幅相特性曲线_5_fd86e289.md"
+      ],
+      "tags": [
+        "幅相曲线",
+        "奈奎斯特",
+        "频率特性",
+        "chapter-5"
+      ]
+    }
+  ],
+  "links": [
+    {
+      "id": "rel-0a1d42a34ad03539",
+      "sourceId": "时域响应_1_1",
+      "targetId": "时域频域通道区分_1_4",
+      "relation": "prerequisite",
+      "relationType": "prerequisite",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-155e91500e5d4609",
+      "sourceId": "Bode与Nyquist同源表征_1_4",
+      "targetId": "开环幅相特性曲线_5_fd86e289",
+      "relation": "refined_by",
+      "relationType": "refined_by",
+      "strength": 0.88
+    },
+    {
+      "id": "rel-7f37690dcf27b627",
+      "sourceId": "时域频域通道区分_1_4",
+      "targetId": "闭环带宽与环路穿越频率_1_4",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.98
+    },
+    {
+      "id": "rel-ad48c56150dd9e64",
+      "sourceId": "Bode与Nyquist同源表征_1_4",
+      "targetId": "多表征一致性读图_1_4",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.96
+    },
+    {
+      "id": "rel-b7185c546c2a0b74",
+      "sourceId": "频域分析_2_2e257d89",
+      "targetId": "Bode与Nyquist同源表征_1_4",
+      "relation": "prerequisite",
+      "relationType": "prerequisite",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-d96d1e4e8fa80121",
+      "sourceId": "闭环带宽与环路穿越频率_1_4",
+      "targetId": "多表征一致性读图_1_4",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.94
+    }
+  ]
+}

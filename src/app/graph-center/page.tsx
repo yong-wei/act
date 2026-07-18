@@ -29,7 +29,7 @@ function resolveShellRole(role: string | undefined): PlatformRole {
   return 'student';
 }
 
-export default async function GraphCenterPage({ searchParams }: GraphCenterPageProps = {}) {
+export default async function GraphCenterPage({ searchParams }: GraphCenterPageProps) {
   const [session, params] = await Promise.all([
     getServerAuthSession(),
     searchParams,

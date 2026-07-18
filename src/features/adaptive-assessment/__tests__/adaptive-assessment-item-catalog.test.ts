@@ -7,7 +7,10 @@ import {
   loadAdaptiveAssessmentCatalogSources,
 } from '../adaptive-assessment-item-catalog';
 import { selectCatalogBackedAssessmentItemFromArtifacts } from '../adaptive-assessment-catalog-selector';
-import type { CheckpointAuthoredQuestionRecord } from '../learning-goal-checkpoint-question-sets';
+import {
+  REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS,
+  type CheckpointAuthoredQuestionRecord,
+} from '../learning-goal-checkpoint-question-sets';
 
 describe('adaptive assessment item catalog', () => {
   it('registers current repository question source families and counts', async () => {
@@ -50,14 +53,14 @@ describe('adaptive assessment item catalog', () => {
     });
     expect(byFamily.get('generated-adaptive-question')?.limitationReasons).toContain('generated-provisional-not-path-eligible');
     expect(byFamily.get('checkpoint-authored-question')).toMatchObject({
-      sourceTotal: 87,
-      importedTotal: 87,
+      sourceTotal: 133,
+      importedTotal: 133,
       blockedTotal: 0,
       limitationReasons: [],
     });
-    expect(artifacts.items.length).toBeGreaterThanOrEqual(50 + 167 + 226 + 87);
+    expect(artifacts.items.length).toBeGreaterThanOrEqual(50 + 167 + 226 + 133);
     expect(artifacts.items.some((item) => item.sourceFamily === 'kaq-foundation-reviewed')).toBe(false);
-    expect(artifacts.items.filter((item) => item.sourceFamily === 'checkpoint-authored-question')).toHaveLength(87);
+    expect(artifacts.items.filter((item) => item.sourceFamily === 'checkpoint-authored-question')).toHaveLength(133);
   });
 
   it('keeps catalog identity separate from immutable answer-time snapshots', () => {
@@ -177,6 +180,57 @@ describe('adaptive assessment item catalog', () => {
     }
 
     expect(Array.from(answerKeys).sort()).toEqual(['A', 'B', 'C']);
+  });
+
+  it('pins the 46 issue-883 added answer keys and keeps the original 44 balanced', () => {
+    const expected = {
+      'control-correction-readiness-01': 'A', 'control-correction-readiness-02': 'B', 'control-correction-readiness-03': 'C', 'control-correction-practice-06': 'A', 'control-correction-checkpoint-03': 'B',
+      'frequency-response-foundations-readiness-01': 'C', 'frequency-response-foundations-readiness-02': 'A', 'frequency-response-foundations-readiness-03': 'B', 'frequency-response-foundations-practice-05': 'C', 'frequency-response-foundations-practice-06': 'A', 'frequency-response-foundations-checkpoint-03': 'B',
+      'feedback-loop-concept-foundations-readiness-02': 'C', 'feedback-loop-concept-foundations-readiness-03': 'A', 'feedback-loop-concept-foundations-practice-05': 'B', 'feedback-loop-concept-foundations-practice-06': 'C', 'feedback-loop-concept-foundations-checkpoint-02': 'A', 'feedback-loop-concept-foundations-checkpoint-03': 'B',
+      'transfer-function-modeling-foundations-readiness-01': 'C', 'transfer-function-modeling-foundations-readiness-02': 'A', 'transfer-function-modeling-foundations-readiness-03': 'B', 'transfer-function-modeling-foundations-practice-06': 'C', 'transfer-function-modeling-foundations-checkpoint-02': 'A', 'transfer-function-modeling-foundations-checkpoint-03': 'B',
+      'time-domain-response-analysis-readiness-01': 'C', 'time-domain-response-analysis-readiness-02': 'A', 'time-domain-response-analysis-practice-06': 'B', 'time-domain-response-analysis-checkpoint-03': 'C',
+      'root-locus-analysis-foundations-readiness-01': 'A', 'root-locus-analysis-foundations-readiness-02': 'B', 'root-locus-analysis-foundations-readiness-03': 'C', 'root-locus-analysis-foundations-practice-06': 'A', 'root-locus-analysis-foundations-checkpoint-03': 'B',
+      'stability-margin-frequency-analysis-readiness-02': 'C', 'stability-margin-frequency-analysis-practice-05': 'A', 'stability-margin-frequency-analysis-practice-06': 'B', 'stability-margin-frequency-analysis-checkpoint-03': 'C',
+      'simulation-validation-practice-readiness-02': 'A', 'simulation-validation-practice-readiness-03': 'B', 'simulation-validation-practice-practice-06': 'C', 'simulation-validation-practice-checkpoint-02': 'A', 'simulation-validation-practice-checkpoint-03': 'B',
+      'ship-ocean-transfer-application-readiness-01': 'C', 'ship-ocean-transfer-application-readiness-02': 'A', 'ship-ocean-transfer-application-readiness-03': 'B',
+      'ship-ocean-transfer-application-practice-06': 'C', 'ship-ocean-transfer-application-checkpoint-03': 'A',
+    } as const;
+    const byId = new Map(REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS.map((question) => [question.id, question]));
+    for (const [id, key] of Object.entries(expected)) expect(byId.get(id)?.answerKeys).toEqual([key]);
+    const original44 = Object.keys(expected).slice(0, 44).map((id) => byId.get(id)!);
+    expect(Object.fromEntries(['A', 'B', 'C'].map((key) => [key, original44.filter((item) => item.answerKeys[0] === key).length])))
+      .toEqual({ A: 15, B: 15, C: 14 });
+    expect(Object.fromEntries(['A', 'B', 'C'].map((key) => [key, Object.values(expected).filter((value) => value === key).length])))
+      .toEqual({ A: 16, B: 15, C: 15 });
+  });
+
+  it('uses real remediation tasks with balanced keys and explicit objective subsets', () => {
+    const authored = REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS;
+    expect(authored).toHaveLength(133);
+    expect(authored.every((item) => item.objectiveKinds.length > 0 && item.objectiveKinds.length < 3)).toBe(true);
+    expect(authored.every((item) => item.kaqObjectiveIds.length === item.objectiveKinds.length
+      && item.graphNodeIds.length === item.objectiveKinds.length)).toBe(true);
+    const remediation = authored.filter((item) => item.stagePurpose === 'remediation');
+    expect(remediation).toHaveLength(27);
+    expect(remediation.some((item) => /推送|补救|资源|回到哪|先补哪/.test(item.stem))).toBe(false);
+    expect(Object.fromEntries(['A', 'B', 'C'].map((key) => [key, remediation.filter((item) => item.answerKeys[0] === key).length])))
+      .toEqual({ A: 9, B: 9, C: 9 });
+    expect(authored.find((item) => item.id === 'ship-ocean-transfer-application-readiness-03')?.objectiveKinds).toEqual(['Q']);
+    expect(authored.find((item) => item.id === 'simulation-validation-practice-remediation-02')?.objectiveKinds).toEqual(['Q']);
+    expect(authored.find((item) => item.id === 'control-correction-remediation-03')?.objectiveKinds).toEqual(['A', 'Q']);
+    for (const [id, objectiveKinds, kaqObjectiveIds, graphNodeIds] of [
+      ['control-correction-remediation-01', ['K'], ['knowledge:autocontrol:controller-correction'], ['kn:autocontrol:controller-correction']],
+      ['frequency-response-foundations-remediation-03', ['A'], ['capability:autocontrol:interpret-time-frequency-response'], ['cap:autocontrol:interpret-time-frequency-response']],
+      ['root-locus-analysis-foundations-checkpoint-02', ['A'], ['capability:autocontrol:interpret-time-frequency-response'], ['cap:autocontrol:interpret-time-frequency-response']],
+      ['root-locus-analysis-foundations-practice-04', ['A'], ['capability:autocontrol:interpret-time-frequency-response'], ['cap:autocontrol:interpret-time-frequency-response']],
+      ['time-domain-response-analysis-remediation-03', ['A'], ['capability:autocontrol:interpret-time-frequency-response'], ['cap:autocontrol:interpret-time-frequency-response']],
+    ] as const) {
+      expect(authored.find((item) => item.id === id)).toMatchObject({
+        objectiveKinds,
+        kaqObjectiveIds,
+        graphNodeIds,
+      });
+    }
   });
 
   it('does not trust stale K/A/Q review metadata for path eligibility', async () => {
@@ -384,6 +438,7 @@ describe('adaptive assessment item catalog', () => {
       explanation: '校正设计检查点需要围绕闭环性能指标进行验证。',
       difficulty: 0.55,
       cognitiveLevel: 'analyze',
+      objectiveKinds: ['K'],
       kaqObjectiveIds: ['knowledge:autocontrol:controller-correction'],
       graphNodeIds: ['kn:autocontrol:controller-correction'],
       knowledgeTags: ['controller-correction'],
@@ -391,6 +446,7 @@ describe('adaptive assessment item catalog', () => {
       remediationResourceNodeIds: ['registry:lesson09-correction-precheck'],
       reviewedAt: '2026-07-03T00:00:00.000Z',
       reviewerId: 'reviewer:checkpoint-content',
+      reviewerRole: 'course-pedagogy-reviewer',
       reviewBatchId: 'learning-goal-checkpoint-question-sets.v1',
       sourceRef: 'unit-test:checkpoint-audit-hash-1',
     };
@@ -432,6 +488,7 @@ describe('adaptive assessment item catalog', () => {
       explanation: '校正设计检查点需要围绕闭环性能指标进行验证。',
       difficulty: 0.55,
       cognitiveLevel: 'analyze',
+      objectiveKinds: ['K'],
       kaqObjectiveIds: ['knowledge:autocontrol:controller-correction'],
       graphNodeIds: ['kn:autocontrol:controller-correction'],
       knowledgeTags: ['controller-correction'],
@@ -439,6 +496,7 @@ describe('adaptive assessment item catalog', () => {
       remediationResourceNodeIds: ['registry:lesson09-correction-precheck'],
       reviewedAt: '2026-07-03T00:00:00.000Z',
       reviewerId: 'reviewer:checkpoint-content',
+      reviewerRole: 'course-pedagogy-reviewer',
       reviewBatchId: 'learning-goal-checkpoint-question-sets.v1',
       sourceRef: 'unit-test:checkpoint-content-hash-1',
     };
@@ -478,6 +536,7 @@ describe('adaptive assessment item catalog', () => {
       explanation: '校正设计检查点需要围绕闭环性能指标进行验证。',
       difficulty: 0.55,
       cognitiveLevel: 'analyze',
+      objectiveKinds: ['K'],
       kaqObjectiveIds: ['knowledge:autocontrol:controller-correction'],
       graphNodeIds: ['kn:autocontrol:controller-correction'],
       knowledgeTags: ['controller-correction'],
@@ -485,6 +544,7 @@ describe('adaptive assessment item catalog', () => {
       remediationResourceNodeIds: ['registry:lesson09-correction-precheck'],
       reviewedAt: '2026-07-03T00:00:00.000Z',
       reviewerId: 'reviewer:checkpoint-content',
+      reviewerRole: 'course-pedagogy-reviewer',
       reviewBatchId: 'learning-goal-checkpoint-question-sets.v1',
       sourceRef: 'unit-test:checkpoint-semantic-hash-1',
     };

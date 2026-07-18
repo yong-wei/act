@@ -14,7 +14,8 @@ const navigationContent = fs.readFileSync(navigationPath, 'utf8');
 
 assert.equal(
   (homeContent.includes('getStudentCoreNavigationEntries') ||
-    homeContent.includes('getCommercialStudentEntryIntentGroups')) &&
+    homeContent.includes('getCommercialStudentEntryIntentGroups') ||
+    homeContent.includes('getStudentLearningIntentNavigationGroups')) &&
     navigationContent.includes("href: '/arena'"),
   true,
   '首页应通过共享学生入口提供指向 /arena 的竞技场入口',
@@ -64,7 +65,8 @@ assert.equal(
 );
 
 assert.equal(
-  combinedArenaContent.includes('getStudentLearningIntentNavigationGroups') &&
+  (combinedArenaContent.includes('getStudentLearningIntentNavigationGroups') ||
+    combinedArenaContent.includes('getCommercialStudentEntryIntentGroups')) &&
     navigationContent.includes('虚拟仿真') &&
     navigationContent.includes('竞技场') &&
     navigationContent.includes('知识资源') &&

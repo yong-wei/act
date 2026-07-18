@@ -28,9 +28,11 @@ const teacherConfigContent = fs.readFileSync(teacherConfigPath, 'utf8');
 const workspaceRoutingContent = fs.existsSync(workspaceRoutingPath) ? fs.readFileSync(workspaceRoutingPath, 'utf8') : '';
 
 assert.equal(
-  detailRouteContent.includes('notFound'),
+  detailRouteContent.includes('ArenaRouteRecovery') &&
+    detailRouteContent.includes('kind="invalid-object-route"') &&
+    !detailRouteContent.includes('notFound('),
   true,
-  '无效挑战任务路由应调用 notFound',
+  '无效挑战任务路由应返回 invalid-object-route 恢复页，而非调用 Next notFound',
 );
 
 assert.equal(
@@ -57,9 +59,13 @@ assert.equal(
   '挑战详情页不得提供提交面板，提交应仅在工作台内部发生',
 );
 
-assert.equal(
-  hallContent.includes('Pareto 榜') || hallContent.includes('班级榜') || hallContent.includes('赛季榜'),
-  false,
+const leaderboardOptionsSection = hallContent.match(
+  /const leaderboardOptions: Array<\{ value: LeaderboardType \| 'all'; label: string \}> = \[(?<options>[\s\S]*?)\n\];/,
+)?.groups?.options ?? '';
+
+assert.deepEqual(
+  Array.from(leaderboardOptionsSection.matchAll(/\{ value: '([^']+)'/g), (match) => match[1]),
+  ['all', 'main', 'method', 'metric'],
   '学生可见竞技场大厅只应保留主榜、方法榜和指标榜',
 );
 

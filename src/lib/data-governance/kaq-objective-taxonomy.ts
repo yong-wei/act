@@ -246,6 +246,14 @@ export function validateKaqObjectiveCatalog(
 export function mapLegacyCompetencyDimensionToPortraitV2(
   dimension: CompetencyDimension | string,
 ): PortraitV2DimensionMapping {
+  if (PORTRAIT_V2_DIMENSION_SET.has(dimension)) {
+    return {
+      sourceDimension: String(dimension),
+      targetDimensions: [dimension as PortraitV2DimensionId],
+      confidence: 'high',
+      limitations: [],
+    };
+  }
   return LEGACY_COMPETENCY_TO_PORTRAIT_V2[dimension as CompetencyDimension] ?? unknownMapping(dimension);
 }
 

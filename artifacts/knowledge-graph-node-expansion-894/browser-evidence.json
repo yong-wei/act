@@ -1,0 +1,477 @@
+{
+  "change": "redesign-knowledge-graph-direct-manipulation",
+  "capturedAt": "2026-07-12T18:25:47.877Z",
+  "sourceSha256": {
+    "src/features/knowledge/knowledge-graph-system.tsx": "53b2a9c4038bd2f90b4f4fd0e7b4bb520874db4d9293906ebdcc3fd8bb611d26",
+    "src/features/knowledge/resource-panel/resource-panel.tsx": "22cfce0a17d8c797adfd8debdd1a43d5b2d485946134dcf1272ed80cd9f1484c",
+    "src/features/knowledge/graph/knowledge-graph-2d.tsx": "e9606875131bc899322b14354d9c51962d1924ad8901ba296690d841ce2c2bb4",
+    "src/features/knowledge/graph/knowledge-graph-canvas.tsx": "7a171cfaad846acfb1554411296c67d28960311141386baf45cfd4a168f5e110",
+    "src/features/knowledge/graph/motion.ts": "c8ece885a41eaaad8788c9a60a7f39fef603ca1bdad2cc06c8eb996690f32cef",
+    "src/features/knowledge/graph/camera-transition.ts": "1c316f56e23a63a6cc6fb8c6e78e2fea618a86a595660b0b6231d4b78890d746",
+    "src/features/knowledge/graph/layout-engine.ts": "ddae2dfe69d2a257db5cadfca71c957a2b0779726b32e5b4cc81a8f792b77b4a",
+    "src/features/knowledge/graph/layout-state.ts": "945bc60e4e0eb46de50cb52db61cbfa7fb84002756973d30d825a9546da051b4",
+    "src/features/knowledge/graph/node-activation.ts": "b4227a9ab7ce3b3858d684ec771ed8d5f49bd7489b7ba51c63aea2eaaf99fb66",
+    "src/features/knowledge/progressive-graph-cache.ts": "49df25d2322bb810ff89bec0c36f8eead38ad78da1c496ab4618c59ce17620c7",
+    "scripts/tests/capture-knowledge-graph-node-expansion-894.ts": "de49da0c032b6621d091770678ac3f67f0cc1772b522d8c349c076f51fac14f1"
+  },
+  "states": [
+    {
+      "name": "2d-motion",
+      "screenshotPath": "artifacts/knowledge-graph-node-expansion-894/2d-motion.png",
+      "transitionScreenshotPath": "artifacts/knowledge-graph-node-expansion-894/2d-motion-transition.png",
+      "transitionPresentation": {
+        "phase": "revealing",
+        "elapsedMs": 0,
+        "animatedNodeCount": 1,
+        "animatedRelationCount": 1
+      },
+      "presentationHistory": [
+        {
+          "at": 530.7000000476837,
+          "phase": "idle",
+          "elapsedMs": 0,
+          "animatedNodeCount": 0,
+          "animatedRelationCount": 0
+        },
+        {
+          "at": 2960.5999999046326,
+          "phase": "revealing",
+          "elapsedMs": 0,
+          "animatedNodeCount": 1,
+          "animatedRelationCount": 1
+        }
+      ],
+      "transitionPixelEvidence": {
+        "available": true,
+        "nodeColorPixels": 528887
+      },
+      "canvasPixelEvidence": {
+        "available": true,
+        "nodeColorPixels": 37211
+      },
+      "expanded": {
+        "selectedNodeId": "chapter-node:第一章",
+        "expandedNodeCount": "1",
+        "visibleNodeCount": "2",
+        "visibleLinkCount": "1",
+        "viewMode": "2D",
+        "presentation": {
+          "phase": "revealing",
+          "elapsedMs": 30.699999904632477,
+          "animatedNodeCount": 1,
+          "animatedRelationCount": 1
+        },
+        "rendererStates": [
+          {
+            "renderer": "2D",
+            "phase": "revealing",
+            "width": 1160,
+            "height": 691
+          }
+        ],
+        "directControl": {
+          "nodeId": "chapter-node:第一章",
+          "expanded": "true",
+          "busy": "false",
+          "error": "false",
+          "filteredEmpty": "false"
+        },
+        "inspectorVisible": false,
+        "inspectorSections": [],
+        "reducedMotion": false
+      },
+      "inspected": {
+        "selectedNodeId": "issue-894-leaf",
+        "expandedNodeCount": "1",
+        "visibleNodeCount": "2",
+        "visibleLinkCount": "1",
+        "viewMode": "2D",
+        "presentation": {
+          "phase": "idle",
+          "elapsedMs": 0,
+          "animatedNodeCount": 0,
+          "animatedRelationCount": 0
+        },
+        "rendererStates": [
+          {
+            "renderer": "2D",
+            "phase": "idle",
+            "width": 1160,
+            "height": 691
+          }
+        ],
+        "directControl": {
+          "nodeId": "issue-894-leaf",
+          "expanded": null,
+          "busy": "false",
+          "error": "false",
+          "filteredEmpty": "false"
+        },
+        "inspectorVisible": true,
+        "inspectorSections": [
+          "header",
+          "semantic-metadata",
+          "summary",
+          "evidence-sources",
+          "relation-overview",
+          "learning-actions"
+        ],
+        "reducedMotion": false
+      },
+      "realCanvas": {
+        "parentCanvasPoint": {
+          "x": 668,
+          "y": 454.5
+        },
+        "leafCanvasPoint": {
+          "x": 1167.0769230769229,
+          "y": 454.5
+        },
+        "repeatedLeafCanvasPoint": {
+          "x": 1167.0769230769229,
+          "y": 454.5
+        },
+        "leafClickStable": true,
+        "leafDetailRequests": 3
+      },
+      "dismissal": {
+        "trigger": "canvas-blank-pointerdown",
+        "inspectorClosed": true
+      },
+      "dismissed": {
+        "selectedNodeId": "issue-894-leaf",
+        "expandedNodeCount": "1",
+        "visibleNodeCount": "2",
+        "visibleLinkCount": "1",
+        "viewMode": "2D",
+        "presentation": {
+          "phase": "idle",
+          "elapsedMs": 0,
+          "animatedNodeCount": 0,
+          "animatedRelationCount": 0
+        },
+        "rendererStates": [
+          {
+            "renderer": "2D",
+            "phase": "idle",
+            "width": 1160,
+            "height": 691
+          }
+        ],
+        "directControl": {
+          "nodeId": "issue-894-leaf",
+          "expanded": null,
+          "busy": "false",
+          "error": "false",
+          "filteredEmpty": "false"
+        },
+        "inspectorVisible": false,
+        "inspectorSections": [],
+        "reducedMotion": false
+      }
+    },
+    {
+      "name": "3d-motion",
+      "screenshotPath": "artifacts/knowledge-graph-node-expansion-894/3d-motion.png",
+      "transitionScreenshotPath": "artifacts/knowledge-graph-node-expansion-894/3d-motion-transition.png",
+      "transitionPresentation": {
+        "phase": "revealing",
+        "elapsedMs": 0,
+        "animatedNodeCount": 1,
+        "animatedRelationCount": 1
+      },
+      "presentationHistory": [
+        {
+          "at": 1943.2999999523163,
+          "phase": "idle",
+          "elapsedMs": 0,
+          "animatedNodeCount": 0,
+          "animatedRelationCount": 0
+        },
+        {
+          "at": 4738.400000095367,
+          "phase": "revealing",
+          "elapsedMs": 0,
+          "animatedNodeCount": 1,
+          "animatedRelationCount": 1
+        }
+      ],
+      "transitionPixelEvidence": {
+        "available": true,
+        "nodeColorPixels": 2614
+      },
+      "canvasPixelEvidence": {
+        "available": true,
+        "nodeColorPixels": 937
+      },
+      "expanded": {
+        "selectedNodeId": "chapter-node:第一章",
+        "expandedNodeCount": "1",
+        "visibleNodeCount": "2",
+        "visibleLinkCount": "1",
+        "viewMode": "3D",
+        "presentation": {
+          "phase": "idle",
+          "elapsedMs": 0,
+          "animatedNodeCount": 0,
+          "animatedRelationCount": 0
+        },
+        "rendererStates": [
+          {
+            "renderer": "3D",
+            "phase": "idle",
+            "width": 1160,
+            "height": 691
+          }
+        ],
+        "directControl": {
+          "nodeId": "chapter-node:第一章",
+          "expanded": "true",
+          "busy": "false",
+          "error": "false",
+          "filteredEmpty": "false"
+        },
+        "inspectorVisible": false,
+        "inspectorSections": [],
+        "reducedMotion": false
+      },
+      "inspected": {
+        "selectedNodeId": "issue-894-leaf",
+        "expandedNodeCount": "1",
+        "visibleNodeCount": "2",
+        "visibleLinkCount": "1",
+        "viewMode": "3D",
+        "presentation": {
+          "phase": "idle",
+          "elapsedMs": 0,
+          "animatedNodeCount": 0,
+          "animatedRelationCount": 0
+        },
+        "rendererStates": [
+          {
+            "renderer": "3D",
+            "phase": "idle",
+            "width": 1160,
+            "height": 691
+          }
+        ],
+        "directControl": {
+          "nodeId": "issue-894-leaf",
+          "expanded": null,
+          "busy": "false",
+          "error": "false",
+          "filteredEmpty": "false"
+        },
+        "inspectorVisible": true,
+        "inspectorSections": [
+          "header",
+          "semantic-metadata",
+          "summary",
+          "evidence-sources",
+          "relation-overview",
+          "learning-actions"
+        ],
+        "reducedMotion": false
+      },
+      "realCanvas": {
+        "parentCanvasPoint": {
+          "x": 668,
+          "y": 454.5
+        },
+        "leafCanvasPoint": {
+          "x": 810.9309569238557,
+          "y": 684.6540199249463
+        },
+        "repeatedLeafCanvasPoint": {
+          "x": 818.9309569238557,
+          "y": 684.6540199249463
+        },
+        "leafClickStable": true,
+        "leafDetailRequests": 3
+      },
+      "dismissal": {
+        "trigger": "canvas-blank-pointerdown",
+        "inspectorClosed": true
+      },
+      "dismissed": {
+        "selectedNodeId": "issue-894-leaf",
+        "expandedNodeCount": "1",
+        "visibleNodeCount": "2",
+        "visibleLinkCount": "1",
+        "viewMode": "3D",
+        "presentation": {
+          "phase": "idle",
+          "elapsedMs": 0,
+          "animatedNodeCount": 0,
+          "animatedRelationCount": 0
+        },
+        "rendererStates": [
+          {
+            "renderer": "3D",
+            "phase": "idle",
+            "width": 1160,
+            "height": 691
+          }
+        ],
+        "directControl": {
+          "nodeId": "issue-894-leaf",
+          "expanded": null,
+          "busy": "false",
+          "error": "false",
+          "filteredEmpty": "false"
+        },
+        "inspectorVisible": false,
+        "inspectorSections": [],
+        "reducedMotion": false
+      }
+    },
+    {
+      "name": "2d-reduced",
+      "screenshotPath": "artifacts/knowledge-graph-node-expansion-894/2d-reduced.png",
+      "transitionScreenshotPath": "artifacts/knowledge-graph-node-expansion-894/2d-reduced-transition.png",
+      "transitionPresentation": {
+        "phase": "idle",
+        "elapsedMs": 0,
+        "animatedNodeCount": 0,
+        "animatedRelationCount": 0
+      },
+      "presentationHistory": [
+        {
+          "at": 308.2000000476837,
+          "phase": "idle",
+          "elapsedMs": 0,
+          "animatedNodeCount": 0,
+          "animatedRelationCount": 0
+        }
+      ],
+      "transitionPixelEvidence": {
+        "available": true,
+        "nodeColorPixels": 471930
+      },
+      "canvasPixelEvidence": {
+        "available": true,
+        "nodeColorPixels": 37211
+      },
+      "expanded": {
+        "selectedNodeId": "chapter-node:第一章",
+        "expandedNodeCount": "1",
+        "visibleNodeCount": "2",
+        "visibleLinkCount": "1",
+        "viewMode": "2D",
+        "presentation": {
+          "phase": "idle",
+          "elapsedMs": 0,
+          "animatedNodeCount": 0,
+          "animatedRelationCount": 0
+        },
+        "rendererStates": [
+          {
+            "renderer": "2D",
+            "phase": "idle",
+            "width": 1160,
+            "height": 691
+          }
+        ],
+        "directControl": {
+          "nodeId": "chapter-node:第一章",
+          "expanded": "true",
+          "busy": "false",
+          "error": "false",
+          "filteredEmpty": "false"
+        },
+        "inspectorVisible": false,
+        "inspectorSections": [],
+        "reducedMotion": true
+      },
+      "inspected": {
+        "selectedNodeId": "issue-894-leaf",
+        "expandedNodeCount": "1",
+        "visibleNodeCount": "2",
+        "visibleLinkCount": "1",
+        "viewMode": "2D",
+        "presentation": {
+          "phase": "idle",
+          "elapsedMs": 0,
+          "animatedNodeCount": 0,
+          "animatedRelationCount": 0
+        },
+        "rendererStates": [
+          {
+            "renderer": "2D",
+            "phase": "idle",
+            "width": 1160,
+            "height": 691
+          }
+        ],
+        "directControl": {
+          "nodeId": "issue-894-leaf",
+          "expanded": null,
+          "busy": "false",
+          "error": "false",
+          "filteredEmpty": "false"
+        },
+        "inspectorVisible": true,
+        "inspectorSections": [
+          "header",
+          "semantic-metadata",
+          "summary",
+          "evidence-sources",
+          "relation-overview",
+          "learning-actions"
+        ],
+        "reducedMotion": true
+      },
+      "realCanvas": {
+        "parentCanvasPoint": {
+          "x": 668,
+          "y": 454.5
+        },
+        "leafCanvasPoint": {
+          "x": 1167.0769230769229,
+          "y": 454.5
+        },
+        "repeatedLeafCanvasPoint": {
+          "x": 1167.0769230769229,
+          "y": 454.5
+        },
+        "leafClickStable": true,
+        "leafDetailRequests": 3
+      },
+      "dismissal": {
+        "trigger": "canvas-blank-pointerdown",
+        "inspectorClosed": true
+      },
+      "dismissed": {
+        "selectedNodeId": "issue-894-leaf",
+        "expandedNodeCount": "1",
+        "visibleNodeCount": "2",
+        "visibleLinkCount": "1",
+        "viewMode": "2D",
+        "presentation": {
+          "phase": "idle",
+          "elapsedMs": 0,
+          "animatedNodeCount": 0,
+          "animatedRelationCount": 0
+        },
+        "rendererStates": [
+          {
+            "renderer": "2D",
+            "phase": "idle",
+            "width": 1160,
+            "height": 691
+          }
+        ],
+        "directControl": {
+          "nodeId": "issue-894-leaf",
+          "expanded": null,
+          "busy": "false",
+          "error": "false",
+          "filteredEmpty": "false"
+        },
+        "inspectorVisible": false,
+        "inspectorSections": [],
+        "reducedMotion": true
+      }
+    }
+  ]
+}

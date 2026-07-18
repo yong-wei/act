@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "status": "active",
-  "lastUpdated": "2026-06-23",
+  "lastUpdated": "2026-07-12",
   "root": ".agents/skills",
   "purpose": "Machine-readable index for project-local skills that may not be automatically exposed by devspace or global skill discovery.",
   "usage": {
@@ -195,6 +195,12 @@
       "path": "server-ops/SKILL.md",
       "category": "operations",
       "description": "Investigate server-side operations, production faults, remote deployment, runtime environment, or database sync."
+    },
+    {
+      "name": "skillopt-sleep",
+      "path": "skillopt-sleep/SKILL.md",
+      "category": "agents",
+      "description": "Harvest Codex sessions and stage validation-gated improvements to the project-linked openspec-buddy-auto skill."
     },
     {
       "name": "stitch-design-taste",

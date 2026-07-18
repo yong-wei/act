@@ -8,6 +8,11 @@ import type {
   GraphCenterOverlayStatus,
   GraphCenterResourceCoverage,
 } from './data-governance/graph-center';
+import {
+  mapLegacyCompetencyDimensionToPortraitV2,
+  type PortraitV2DimensionId,
+} from './data-governance/kaq-objective-taxonomy';
+import type { PortraitV2ProjectedPayload } from './data-governance/portrait-v2-model';
 import type {
   ExpandedGoalSubgraph,
   GoalSubgraphLimitation,
@@ -185,6 +190,7 @@ export interface AdaptiveLearningPathGraphContextSummary {
   learningGoalVersion: string;
   graphVersion: string;
   objectiveBoundary: AdaptiveLearningPathGraphContextInput['objectiveBoundary'];
+  objectiveBoundaryDiagnostics?: AdaptiveLearningPathObjectiveBoundaryDiagnostics;
   targetGraphNodeIds: string[];
   selectedGraphNodeIds: string[];
   prerequisitePolicy: Array<Pick<
@@ -204,6 +210,24 @@ export interface AdaptiveLearningPathGraphContextSummary {
   assessmentCoverage?: NonNullable<AdaptiveLearningPathGraphContextInput['assessmentCoverage']>;
   versionRefs: KaqArtifactVersionRefs;
   limitations: AdaptiveLearningPathGraphLimitation[];
+}
+
+export interface AdaptiveLearningPathObjectiveBoundaryDiagnostics {
+  acceptedBoundaryRefs: {
+    knowledgeObjectiveIds: string[];
+    capabilityObjectiveIds: string[];
+    qualityObjectiveIds: string[];
+    graphNodeIds: string[];
+    prerequisiteGraphNodeIds: string[];
+    policyRequiredRoles: string[];
+  };
+  rejectedMismatchCount: number;
+  selectedResourceMatches: Array<{
+    nodeId: string;
+    matchRefs: string[];
+    matchReasons: string[];
+  }>;
+  lowResourceReasons: string[];
 }
 
 export type AdaptiveLearningPathGraphContextPersistenceSummary = Omit<
@@ -303,6 +327,7 @@ export interface AdaptiveLearningPathLearnerState {
       evidenceCount?: number;
     }>;
   };
+  primaryPortrait?: PortraitV2ProjectedPayload;
   resourcePreference?: {
     preferredModalities?: string[];
   };
@@ -373,6 +398,7 @@ export interface AdaptiveLearningPathPlannerInput {
   preferredStyleId?: string;
   sourcePackCandidates?: readonly SourcePackItem[];
   sourcePackLimitations?: readonly SourcePackLimitation[];
+  candidatePoolDiagnostics?: AdaptiveLearningPathCandidatePoolDiagnostics;
   sourcePackRole?: SourcePackCallerRole;
   sarCandidateContext?: AdaptiveLearningPathSarCandidateContext;
   requestedAt?: string;
@@ -500,7 +526,29 @@ export interface AdaptiveLearningPathEvidencePayload {
   teacherPolicy: Array<{ nodeId: string; policy: ResourceNode['planningMetadata']['teacherPolicy'] }>;
   alternatives: AdaptiveLearningPathAlternative[];
   sourcePackEvidence?: AdaptiveLearningPathSourcePackEvidence | null;
+  candidatePoolDiagnostics?: AdaptiveLearningPathCandidatePoolDiagnostics | null;
   associativeRetrieval?: AdaptiveLearningPathAssociativeRetrievalBasis;
+}
+
+export interface AdaptiveLearningPathCandidatePoolDiagnostics {
+  registryVersion: string;
+  projectionVersion: string;
+  totalCandidates: number;
+  pathEligibleCandidates: number;
+  candidateCountsByFamily: Record<string, number>;
+  sourceFamilies: Array<{
+    family: string;
+    status: 'loaded' | 'empty' | 'missing' | 'error';
+    count: number;
+    reason: string | null;
+  }>;
+  excluded: {
+    total: number;
+    byReason: Record<string, number>;
+  };
+  sourceFamilyIssues: Record<string, number>;
+  missingSourceReasons: Record<string, number>;
+  nodeEligibilityMissingReasons: Record<string, number>;
 }
 
 export interface AdaptiveLearningPathAssociativeRetrievalBasis {
@@ -653,6 +701,7 @@ export interface AdaptiveLearningPathDeficit {
   confidence: number;
   evidenceCount: number;
   reasonCode: string;
+  portraitDimensionIds?: PortraitV2DimensionId[];
 }
 
 export interface AdaptiveLearningPathCapabilityEvidence {
@@ -664,6 +713,7 @@ export interface AdaptiveLearningPathCapabilityEvidence {
     confidence: number;
     directEvidenceCount: number;
     supportingEvidenceCount: number;
+    portraitDimensionIds?: PortraitV2DimensionId[];
     source: 'adaptive-learner-state';
     recommendationBias: 'starter-or-evidence-gathering' | 'targeted-practice';
   };
@@ -1832,7 +1882,17 @@ function buildAdaptiveLearningPathPlanInternal(
     .filter((node) => !excludedNodeIds.has(node.id))
     .filter((node) => policyAllowsNode(node, policyFamily, input.constraints))
     .filter((node) => externalResourceAllowed(node, input, registeredGoal));
-  const eligibleIds = new Set(pathEligible.map((node) => node.id));
+  const learningGoalBoundary = buildLearningGoalObjectiveBoundary(registeredGoal, graphContext);
+  const learningGoalBoundaryEvaluations = learningGoalBoundary
+    ? new Map(pathEligible.map((node) => [
+        node.id,
+        evaluateLearningGoalObjectiveBoundary(node, learningGoalBoundary, graphContext, registeredGoal, input.constraints),
+      ]))
+    : null;
+  const candidatePathEligible = pathEligible
+    .filter((node) => goalAllowsResourceNode(node, registeredGoal))
+    .filter((node) => learningGoalBoundaryEvaluations?.get(node.id)?.allowed ?? true);
+  const eligibleIds = new Set(candidatePathEligible.map((node) => node.id));
   const targetGraphNodeIds = graphContext?.targetGraphNodeIds.length
     ? graphContext.targetGraphNodeIds
     : unique([
@@ -1842,14 +1902,14 @@ function buildAdaptiveLearningPathPlanInternal(
     ]);
   const sarCandidates = evaluateSarCandidates({
     input,
-    pathEligible,
+    pathEligible: candidatePathEligible,
     graphContext,
     deficits,
     registeredGoal,
     completedNodeIds: requestedCompletedNodeIds,
   });
   const rankerResult = rankResourceLearnerCandidates({
-    candidates: pathEligible.map((node) => {
+    candidates: candidatePathEligible.map((node) => {
       const planningUnit = planningUnitForNode(node);
       return {
         node,
@@ -1872,8 +1932,7 @@ function buildAdaptiveLearningPathPlanInternal(
     registry: input.registry,
   });
   const rankerByNodeId = new Map(rankerResult.ranked.map((entry) => [entry.node.id, entry.explanation]));
-  const scored = pathEligible
-    .filter((node) => goalAllowsResourceNode(node, registeredGoal))
+  const scored = candidatePathEligible
     .filter((node) =>
       nodeMatchesGoal(node, input.goal, deficits, graphContext) ||
       (input.constraints.requireRiskIntervention && isRiskInterventionNode(node))
@@ -1894,6 +1953,9 @@ function buildAdaptiveLearningPathPlanInternal(
           ...(resourceRanker?.featureContributions
             .filter((contribution) => contribution.value > 0)
             .map((contribution) => `ranker:${contribution.feature}`) ?? []),
+          ...(learningGoalBoundaryEvaluations?.get(node.id)?.matchedRefs.length
+            ? ['learning-goal-objective-boundary']
+            : []),
         ]),
       };
     })
@@ -2032,6 +2094,17 @@ function buildAdaptiveLearningPathPlanInternal(
   const capabilityTargets = resolveCapabilityTargets(input.goal, registeredGoal);
   const goal = attachLearningGoal(input.goal, registeredGoal);
   const sourcePackEvidence = buildPathPlanningSourcePackEvidence(input, mainPath, goal);
+  const graphContextWithBoundaryDiagnostics = graphContext && learningGoalBoundary
+    ? {
+        ...graphContext,
+        objectiveBoundaryDiagnostics: buildLearningGoalObjectiveBoundaryDiagnostics({
+          boundary: learningGoalBoundary,
+          evaluations: learningGoalBoundaryEvaluations ?? new Map(),
+          mainPath,
+          fallbackReasons: uniqueFallbackReasons,
+        }),
+      }
+    : graphContext;
 
   return {
     id: `adaptive-path:${input.studentId}:${input.goal.id}`,
@@ -2075,10 +2148,11 @@ function buildAdaptiveLearningPathPlanInternal(
       status,
       hasUsablePath: mainPath.length > 0,
       sourcePackEvidence,
+      candidatePoolDiagnostics: input.candidatePoolDiagnostics,
       associativeRetrieval: explanations.associativeRetrieval,
       generatedAt: now,
     }),
-    graphContext,
+    graphContext: graphContextWithBoundaryDiagnostics,
     constraintRepair,
   };
 }
@@ -2293,8 +2367,22 @@ function serializeGraphContextSummary(
   graphContext: AdaptiveLearningPathGraphContextSummary | undefined,
 ): AdaptiveLearningPathPersistenceRecord['payload']['graphContext'] {
   if (!graphContext) return undefined;
-  const { resourceCoveragePathEligibleResourceIds: _internalPathEligibleResourceIds, ...serialized } = graphContext;
-  return serialized;
+  const {
+    resourceCoveragePathEligibleResourceIds: _internalPathEligibleResourceIds,
+    objectiveBoundaryDiagnostics,
+    ...serialized
+  } = graphContext;
+  return {
+    ...serialized,
+    ...(objectiveBoundaryDiagnostics
+      ? {
+          objectiveBoundaryDiagnostics: {
+            ...objectiveBoundaryDiagnostics,
+            selectedResourceMatches: [],
+          },
+        }
+      : {}),
+  };
 }
 
 export function normalizeLearningPathPayloadLearningGoal(
@@ -2330,14 +2418,25 @@ function inferDeficits(
     ...(goal.competencyTargets ?? [])
       .map((targetId) => {
         const competency = competencies[targetId];
-        const value = competency?.score ?? 0;
+        const portraitDimensionIds = portraitDimensionIdsForTarget(targetId);
+        const portraitScores = usablePortraitDimensionsForTarget(learnerState, targetId);
+        const value = portraitScores.length > 0
+          ? normalizeCompetencyScore(portraitScores.reduce((sum, dimension) => sum + dimension.score, 0) / portraitScores.length)
+          : normalizeCompetencyScore(competency?.score ?? 0);
+        const confidence = portraitScores.length > 0
+          ? portraitScores.reduce((sum, dimension) => sum + dimension.confidence, 0) / portraitScores.length
+          : competency?.confidence ?? 0;
+        const evidenceCount = portraitScores.length > 0
+          ? Math.max(...portraitScores.map((dimension) => dimension.evidenceSummary.totalCount))
+          : competency?.evidenceCount ?? 0;
         return {
           targetId,
           kind: 'competency' as const,
           value,
-          confidence: competency?.confidence ?? 0,
-          evidenceCount: competency?.evidenceCount ?? 0,
+          confidence,
+          evidenceCount,
           reasonCode: value < 0.7 ? 'competency-deficit' : 'competency-maintenance',
+          portraitDimensionIds,
         };
       })
       .filter((item) => item.value < 0.85),
@@ -2526,9 +2625,20 @@ function buildCapabilityEvidence(
       };
     }
     const knowledge = learnerState?.knowledgeMastery?.tags?.[target.knowledgeNodeRef];
-    const competencies = target.competencyDimensions
-      .map((dimension) => learnerState?.primaryCompetencies?.vector?.[dimension])
-      .filter((value): value is NonNullable<typeof value> => Boolean(value));
+    const competencies: Array<{ score?: number; confidence?: number; evidenceCount?: number }> = target.competencyDimensions
+      .flatMap((dimension): Array<{ score?: number; confidence?: number; evidenceCount?: number }> => {
+        const portraitValues = usablePortraitDimensionsForTarget(learnerState, dimension)
+          .map((value) => ({
+            score: value.score,
+            confidence: value.confidence,
+            evidenceCount: value.evidenceSummary.totalCount,
+          }));
+        // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: use legacy values only when portrait v2 has no usable evidence.
+        const legacyValue = learnerState?.primaryCompetencies?.vector?.[dimension];
+        return portraitValues.length > 0
+          ? portraitValues
+          : legacyValue ? [legacyValue] : [];
+      });
     const competencyScore = competencies.length > 0
       ? round(competencies.reduce((sum, competency) => sum + (competency.score ?? 0), 0) / competencies.length, 2)
       : null;
@@ -2549,6 +2659,7 @@ function buildCapabilityEvidence(
         confidence: round(directConfidence, 2),
         directEvidenceCount: knowledgeEvidenceCount,
         supportingEvidenceCount,
+        portraitDimensionIds: unique(target.competencyDimensions.flatMap(portraitDimensionIdsForTarget)),
         source: 'adaptive-learner-state',
         recommendationBias: state === 'observed' ? 'targeted-practice' : 'starter-or-evidence-gathering',
       },
@@ -3775,7 +3886,37 @@ function learnerCompetencyScore(
   learnerState: AdaptiveLearningPathLearnerState | null,
   dimension: string,
 ): number {
-  return learnerState?.primaryCompetencies?.vector?.[dimension]?.score ?? 0;
+  const portraitScores = usablePortraitDimensionsForTarget(learnerState, dimension)
+    .map((item) => item.score)
+    .filter((score): score is number => typeof score === 'number' && Number.isFinite(score));
+  if (portraitScores.length > 0) {
+    return normalizeCompetencyScore(portraitScores.reduce((sum, score) => sum + score, 0) / portraitScores.length);
+  }
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: use the legacy vector only as a fallback.
+  return normalizeCompetencyScore(learnerState?.primaryCompetencies?.vector?.[dimension]?.score ?? 0);
+}
+
+function usablePortraitDimensionsForTarget(
+  learnerState: AdaptiveLearningPathLearnerState | null,
+  targetId: string,
+): PortraitV2ProjectedPayload['dimensions'] {
+  return portraitDimensionIdsForTarget(targetId)
+    .map((id) => learnerState?.primaryPortrait?.dimensions.find((item) => item.id === id))
+    .filter((item): item is PortraitV2ProjectedPayload['dimensions'][number] => Boolean(item
+      && item.evidenceSummary.totalCount > 0
+      && (item.freshness.state === 'current' || item.freshness.state === 'partial')));
+}
+
+function normalizeCompetencyScore(score: number): number {
+  return score > 1 ? score / 100 : score;
+}
+
+function portraitDimensionIdsForTarget(targetId: string): PortraitV2DimensionId[] {
+  if (targetId === 'controlModeling' || targetId === 'parameterDesign' || targetId === 'crossDomainTransfer' ||
+    targetId === 'engineeringDecision' || targetId === 'inquiryReflection' || targetId === 'selfDirectedLearning') {
+    return mapLegacyCompetencyDimensionToPortraitV2(targetId).targetDimensions;
+  }
+  return [targetId as PortraitV2DimensionId];
 }
 
 function learnerEvidenceCount(
@@ -3784,9 +3925,16 @@ function learnerEvidenceCount(
 ): number {
   const competencyEvidence = Object.keys(readiness.minimumCompetency)
     .map((dimension) => learnerState?.primaryCompetencies?.vector?.[dimension]?.evidenceCount ?? 0);
+  const portraitCompetencyEvidence = Object.keys(readiness.minimumCompetency)
+    .flatMap((dimension) => portraitDimensionIdsForTarget(dimension))
+    .map((portraitDimensionId) =>
+      learnerState?.primaryPortrait?.dimensions.find((dimension) => dimension.id === portraitDimensionId)
+        ?.evidenceSummary.totalCount ?? 0,
+    );
   return Math.max(
     learnerState?.evidence?.confidence?.evidenceCount ?? 0,
     ...competencyEvidence,
+    ...portraitCompetencyEvidence,
     0,
   );
 }
@@ -3938,6 +4086,168 @@ function goalAllowsResourceNode(
   registeredGoal: AdaptiveLearningPathRegisteredGoalDefinition | null,
 ): boolean {
   return !registeredGoal || registeredGoal.allowedResourceMix.includes(node.type);
+}
+
+interface LearningGoalObjectiveBoundary {
+  knowledgeObjectiveIds: string[];
+  capabilityObjectiveIds: string[];
+  qualityObjectiveIds: string[];
+  graphNodeIds: string[];
+  prerequisiteGraphNodeIds: string[];
+  policyRequiredRoles: string[];
+  hasPathEligibleCoverage: boolean;
+}
+
+interface LearningGoalObjectiveBoundaryEvaluation {
+  allowed: boolean;
+  matchedRefs: string[];
+  matchReasons: string[];
+}
+
+function buildLearningGoalObjectiveBoundary(
+  registeredGoal: AdaptiveLearningPathRegisteredGoalDefinition | null,
+  graphContext: AdaptiveLearningPathGraphContextSummary | undefined,
+): LearningGoalObjectiveBoundary | null {
+  const learningGoal = registeredGoal?.learningGoal;
+  if (!learningGoal || !graphContext?.targetGraphNodeIds.length) return null;
+  const knowledgeObjectiveIds = unique([
+    ...learningGoal.knowledgeObjectiveIds,
+    ...graphContext.objectiveBoundary.knowledgeObjectiveIds,
+  ]);
+  const capabilityObjectiveIds = unique([
+    ...learningGoal.capabilityObjectiveIds,
+    ...graphContext.objectiveBoundary.capabilityObjectiveIds,
+  ]);
+  const qualityObjectiveIds = unique([
+    ...learningGoal.qualityObjectiveIds,
+    ...graphContext.objectiveBoundary.qualityObjectiveIds,
+  ]);
+  const objectiveGraphNodeIds = unique([
+    ...knowledgeObjectiveIds,
+    ...capabilityObjectiveIds,
+    ...qualityObjectiveIds,
+  ].map(objectiveIdToGraphNodeId));
+  const prerequisiteGraphNodeIds = unique(graphContext.prerequisitePolicy
+    .filter((entry) => entry.required)
+    .flatMap((entry) => [entry.sourceNodeId, entry.targetNodeId]));
+  const policyRequiredRoles = unique([
+    ...(registeredGoal.checkpointPolicy.minCheckpoints > 0 ? ['checkpoint'] : []),
+    ...(registeredGoal.checkpointPolicy.requiresTerminalValidation ? ['terminal-validation'] : []),
+  ]);
+  const hasPathEligibleCoverage = Object.values(graphContext.resourceCoverageStatus)
+    .some((coverage) => coverage.pathEligibleResourceCount > 0);
+  return {
+    knowledgeObjectiveIds,
+    capabilityObjectiveIds,
+    qualityObjectiveIds,
+    graphNodeIds: unique([
+      ...learningGoal.targetGraphNodeIds,
+      ...graphContext.targetGraphNodeIds,
+      ...objectiveGraphNodeIds,
+      ...prerequisiteGraphNodeIds,
+    ]),
+    prerequisiteGraphNodeIds,
+    policyRequiredRoles,
+    hasPathEligibleCoverage,
+  };
+}
+
+function objectiveIdToGraphNodeId(objectiveId: string): string {
+  if (objectiveId.startsWith('knowledge:')) return objectiveId.replace(/^knowledge:/, 'kn:');
+  if (objectiveId.startsWith('capability:')) return objectiveId.replace(/^capability:/, 'cap:');
+  if (objectiveId.startsWith('quality:')) return objectiveId.replace(/^quality:/, 'qual:');
+  return objectiveId;
+}
+
+function evaluateLearningGoalObjectiveBoundary(
+  node: ResourceNode,
+  boundary: LearningGoalObjectiveBoundary,
+  graphContext: AdaptiveLearningPathGraphContextSummary | undefined,
+  registeredGoal: AdaptiveLearningPathRegisteredGoalDefinition | null,
+  constraints: AdaptiveLearningPathConstraints,
+): LearningGoalObjectiveBoundaryEvaluation {
+  const planningUnit = planningUnitForNode(node);
+  if (!planningUnit) return { allowed: false, matchedRefs: [], matchReasons: ['missing-planning-unit'] };
+  const refs = new Set([
+    ...planningUnit.graphNodeRefs.knowledge,
+    ...planningUnit.graphNodeRefs.capability,
+    ...planningUnit.graphNodeRefs.quality,
+    ...planningUnit.knowledgeCoverage,
+    ...Object.keys(planningUnit.abilityImpact),
+  ]);
+  const matchedRefs = new Set<string>();
+  const matchReasons = new Set<string>();
+  for (const graphNodeId of boundary.graphNodeIds) {
+    if (
+      refs.has(graphNodeId) ||
+      graphContext?.resourceCoveragePathEligibleResourceIds[graphNodeId]?.includes(planningUnit.resourceNodeId)
+    ) {
+      matchedRefs.add(graphNodeId);
+      matchReasons.add('graph-boundary');
+    }
+  }
+  if (
+    boundary.hasPathEligibleCoverage &&
+    boundary.policyRequiredRoles.includes('terminal-validation') &&
+    isTerminalValidationNode(node)
+  ) {
+    matchedRefs.add('policy:terminal-validation');
+    matchReasons.add('policy-required-terminal-validation');
+  }
+  if (
+    boundary.hasPathEligibleCoverage &&
+    boundary.policyRequiredRoles.includes('checkpoint') &&
+    registeredGoal?.checkpointPolicy.checkpointResourceTypes.includes(node.type)
+  ) {
+    matchedRefs.add('policy:checkpoint');
+    matchReasons.add('policy-required-checkpoint');
+  }
+  if (constraints.requireRiskIntervention && isRiskInterventionNode(node)) {
+    matchedRefs.add('policy:risk-intervention');
+    matchReasons.add('policy-required-remediation');
+  }
+  return {
+    allowed: matchedRefs.size > 0,
+    matchedRefs: Array.from(matchedRefs).sort((left, right) => left.localeCompare(right)),
+    matchReasons: Array.from(matchReasons).sort((left, right) => left.localeCompare(right)),
+  };
+}
+
+function buildLearningGoalObjectiveBoundaryDiagnostics(input: {
+  boundary: LearningGoalObjectiveBoundary;
+  evaluations: Map<string, LearningGoalObjectiveBoundaryEvaluation>;
+  mainPath: AdaptiveLearningPathPlanNode[];
+  fallbackReasons: string[];
+}): AdaptiveLearningPathObjectiveBoundaryDiagnostics {
+  const lowResourceReasons = input.fallbackReasons.filter((reason) => [
+    'resource-mapping-insufficient',
+    'feasible-goal-path-missing',
+    'graph-target-coverage-partial',
+    'terminal-validation-resource-missing',
+    'checkpoint-resource-missing',
+    'learning-goal-baseline-incomplete',
+  ].includes(reason));
+  return {
+    acceptedBoundaryRefs: {
+      knowledgeObjectiveIds: input.boundary.knowledgeObjectiveIds,
+      capabilityObjectiveIds: input.boundary.capabilityObjectiveIds,
+      qualityObjectiveIds: input.boundary.qualityObjectiveIds,
+      graphNodeIds: input.boundary.graphNodeIds,
+      prerequisiteGraphNodeIds: input.boundary.prerequisiteGraphNodeIds,
+      policyRequiredRoles: input.boundary.policyRequiredRoles,
+    },
+    rejectedMismatchCount: Array.from(input.evaluations.values())
+      .filter((evaluation) => !evaluation.allowed).length,
+    selectedResourceMatches: input.mainPath
+      .map((node) => {
+        const evaluation = input.evaluations.get(node.nodeId);
+        return evaluation?.matchedRefs.length
+          ? { nodeId: node.nodeId, matchRefs: evaluation.matchedRefs, matchReasons: evaluation.matchReasons }
+          : null;
+      })
+      .filter((item): item is NonNullable<typeof item> => Boolean(item)),
+    lowResourceReasons,
+  };
 }
 
 function externalResourceAllowed(
@@ -4305,10 +4615,15 @@ function selectPolicySupportNodes(
   let remaining = Math.max(0, remainingBudget);
   const deficits = inferDeficits(input.goal, input.learnerState);
   const registeredGoal = getRegisteredAdaptiveLearningPathGoal(input.goal.id);
+  const graphContext = buildAdaptiveLearningPathGraphContext(input.graphContext, input.goal, registeredGoal);
+  const learningGoalBoundary = buildLearningGoalObjectiveBoundary(registeredGoal, graphContext);
   const excludedNodeIds = new Set(input.excludedNodeIds ?? []);
   const eligibleIds = new Set(partitionResourceNodes(input.registry.nodes, input.constraints).eligible
     .filter((node) => !excludedNodeIds.has(node.id))
     .filter((node) => externalResourceAllowed(node, input, registeredGoal))
+    .filter((node) => learningGoalBoundary
+      ? evaluateLearningGoalObjectiveBoundary(node, learningGoalBoundary, graphContext, registeredGoal, input.constraints).allowed
+      : true)
     .map((node) => node.id));
   const picked: ResourceNode[] = [];
   const addCandidates = (candidates: ResourceNode[], limit: number) => {
@@ -4322,7 +4637,7 @@ function selectPolicySupportNodes(
       if (!planningUnit) continue;
       if (planningUnit.prerequisites.length > 0) continue;
       if (!policyAllowsNode(node, policyFamily, input.constraints)) continue;
-      if (!nodeMatchesGoal(node, input.goal, deficits)) continue;
+      if (!nodeMatchesGoal(node, input.goal, deficits, graphContext)) continue;
       const estimatedMinutes = planningUnit.estimatedTimeMinutes;
       if (estimatedMinutes > remaining) continue;
       picked.push(node);
@@ -4595,6 +4910,7 @@ function buildVisualization(input: {
   status: AdaptiveLearningPathStatus;
   hasUsablePath: boolean;
   sourcePackEvidence: AdaptiveLearningPathSourcePackEvidence | null;
+  candidatePoolDiagnostics?: AdaptiveLearningPathCandidatePoolDiagnostics;
   associativeRetrieval?: AdaptiveLearningPathAssociativeRetrievalBasis;
   generatedAt: string;
 }): AdaptiveLearningPathVisualization {
@@ -4628,6 +4944,7 @@ function buildVisualization(input: {
       teacherPolicy: input.mainPath.map((node) => ({ nodeId: node.nodeId, policy: node.teacherPolicy })),
       alternatives: input.alternatives,
       sourcePackEvidence: input.sourcePackEvidence,
+      candidatePoolDiagnostics: input.candidatePoolDiagnostics ?? null,
       associativeRetrieval: input.associativeRetrieval,
     },
   };

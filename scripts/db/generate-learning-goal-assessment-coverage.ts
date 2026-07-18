@@ -6,10 +6,7 @@ import {
   loadAdaptiveAssessmentCatalogSources,
 } from '@/features/adaptive-assessment/adaptive-assessment-item-catalog';
 import {
-  buildCheckpointAuthoredSemanticReviewDecisions,
-  buildKaqFoundationSemanticReviewDecisions,
-  mergeAssessmentItemSemanticReviewDecisions,
-  type AssessmentItemSemanticReviewDecision,
+  loadAssessmentItemSemanticReviewSource,
 } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
 import {
   buildLearningGoalAssessmentCoverageArtifacts,
@@ -19,9 +16,9 @@ import { ADAPTIVE_LEARNING_GOAL_DEFINITIONS } from '@/lib/adaptive-learning-path
 import { CORE_RESOURCE_PATH_READINESS_REVIEW_BATCH } from '@/lib/resource-node-path-readiness-review-batch';
 
 const OUTPUT_DIR = path.join(process.cwd(), 'course-content/runtime/resource-governance');
-const SNAPSHOTS_PATH = path.join(OUTPUT_DIR, 'assessment-item-semantic-review-snapshots.jsonl');
 const MATRIX_PATH = path.join(OUTPUT_DIR, 'learning-goal-assessment-coverage-matrix.json');
 const BASELINE_MATRIX_PATH = path.join(OUTPUT_DIR, 'learning-goal-resource-baseline-matrix.json');
+const CORE_SEMANTIC_REVIEW_PATH = path.join(OUTPUT_DIR, 'core-registered-knowledge-resource-semantic-review-source.jsonl');
 
 type LearningGoalResourceBaselineMatrix = {
   registeredLearningGoalIds?: string[];
@@ -41,26 +38,18 @@ type LearningGoalResourceBaselineMatrix = {
   }>;
 };
 
+type CoreSemanticReviewRow = {
+  resourceId?: string;
+  learningGoalIds?: string[];
+};
+
 function uniqueSorted(values: Array<string | null | undefined>): string[] {
   return [...new Set(values.filter((value): value is string => Boolean(value)))].sort();
 }
 
-async function readExistingReviewSnapshots(): Promise<AssessmentItemSemanticReviewDecision[]> {
-  try {
-    const input = await readFile(SNAPSHOTS_PATH, 'utf8');
-    return input
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter(Boolean)
-      .map((line) => JSON.parse(line) as AssessmentItemSemanticReviewDecision);
-  } catch (error) {
-    if (error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT') return [];
-    throw error;
-  }
-}
-
 async function loadRegisteredSemanticIds() {
   const matrix = JSON.parse(await readFile(BASELINE_MATRIX_PATH, 'utf8')) as LearningGoalResourceBaselineMatrix;
+  const coreReviewRows = await loadCoreSemanticReviewRows();
   const rows = matrix.rows ?? [];
   return {
     learningGoalIds: uniqueSorted([
@@ -78,12 +67,20 @@ async function loadRegisteredSemanticIds() {
         Object.values(row.categories ?? {}).flatMap((category) => category.pathEligibleResourceIds ?? [])
       ),
       ...CORE_RESOURCE_PATH_READINESS_REVIEW_BATCH.reviewedSourceRefs.map((ref) => ref.split('|')[0]),
+      ...coreReviewRows.map((row) => row.resourceId),
     ]),
   };
 }
 
+async function loadCoreSemanticReviewRows(): Promise<CoreSemanticReviewRow[]> {
+  return (await readFile(CORE_SEMANTIC_REVIEW_PATH, 'utf8'))
+    .split(/\r?\n/).map((line) => line.trim()).filter(Boolean)
+    .map((line) => JSON.parse(line) as CoreSemanticReviewRow);
+}
+
 async function loadLearningGoalSemanticBoundaries() {
   const matrix = JSON.parse(await readFile(BASELINE_MATRIX_PATH, 'utf8')) as LearningGoalResourceBaselineMatrix;
+  const coreReviewRows = await loadCoreSemanticReviewRows();
   return new Map((matrix.rows ?? [])
     .filter((row): row is Required<Pick<LearningGoalResourceBaselineMatrix['rows'][number], 'learningGoalId'>> & NonNullable<LearningGoalResourceBaselineMatrix['rows'][number]> =>
       Boolean(row.learningGoalId)
@@ -97,8 +94,12 @@ async function loadLearningGoalSemanticBoundaries() {
           ...(row.objectiveBoundary?.qualityObjectiveIds ?? []),
         ]),
         graphNodeIds: uniqueSorted(row.targetGraphNodeIds ?? []),
-        remediationResourceNodeIds: uniqueSorted(Object.values(row.categories ?? {})
-          .flatMap((category) => category.resourceIds ?? [])),
+        remediationResourceNodeIds: uniqueSorted([
+          ...Object.values(row.categories ?? {}).flatMap((category) => category.resourceIds ?? []),
+          ...coreReviewRows
+            .filter((review) => review.learningGoalIds?.includes(row.learningGoalId!))
+            .map((review) => review.resourceId),
+        ]),
       },
     ]));
 }
@@ -111,13 +112,7 @@ async function main() {
     icourseObjectiveBankIndexTotal: sources.icourseObjectiveBankIndexTotal,
     kaqReviewedItems: sources.kaqReviewedItems,
   });
-  const decisions = mergeAssessmentItemSemanticReviewDecisions(
-    await readExistingReviewSnapshots(),
-    [
-      ...buildKaqFoundationSemanticReviewDecisions(catalog.items, sources.kaqReviewedItems),
-      ...buildCheckpointAuthoredSemanticReviewDecisions(catalog.items),
-    ],
-  );
+  const decisions = await loadAssessmentItemSemanticReviewSource(catalog.items);
   const learningGoalSemanticBoundaries = await loadLearningGoalSemanticBoundaries();
   const registeredSemanticIds = await loadRegisteredSemanticIds();
   const goals = Object.values(ADAPTIVE_LEARNING_GOAL_DEFINITIONS)

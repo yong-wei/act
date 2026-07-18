@@ -51,6 +51,38 @@
       "removalCondition": "Permanent print/export exception."
     },
     {
+      "path": "src/app/textbook-citations/[...targetPath]/page.tsx",
+      "owner": "standardize-sitewide-compact-spacing",
+      "scope": "Textbook citation reader page",
+      "classification": "component-intrinsic-exception",
+      "reason": "Citation reading pages require a measured prose width for source inspection rather than workspace utilization.",
+      "removalCondition": "Permanent citation reader exception."
+    },
+    {
+      "path": "src/app/interactive-learning/resources/[id]/page.tsx",
+      "owner": "redesign-adaptive-path-continuous-journey",
+      "scope": "Legacy interactive resource detail route frame",
+      "classification": "temporary-exception",
+      "reason": "The legacy resource player still owns a centered 1440px route wrapper while adaptive journey completion is integrated into that existing surface.",
+      "removalCondition": "Remove when the legacy resource detail route migrates to the shared AppShell compact page-edge frame."
+    },
+    {
+      "path": "src/features/arena/arena-hall.tsx",
+      "owner": "redesign-adaptive-path-continuous-journey",
+      "scope": "Arena empty-state illustration measure",
+      "classification": "component-intrinsic-exception",
+      "reason": "The centered max-w-sm class constrains an empty-state background illustration inside the Arena shell, not the page route frame.",
+      "removalCondition": "Permanent media-illustration measure unless the empty-state asset component is replaced."
+    },
+    {
+      "path": "src/features/arena/odyssey/odyssey-arena-bridge-shell.tsx",
+      "owner": "redesign-adaptive-path-continuous-journey",
+      "scope": "Control Odyssey Arena context header content measure",
+      "classification": "component-intrinsic-exception",
+      "reason": "The max-w-7xl wrapper aligns the Arena bridge header content within the immersive Odyssey runtime and does not own the application page frame.",
+      "removalCondition": "Remove if the Odyssey runtime adopts AppShell as its route frame."
+    },
+    {
       "path": "src/features/interactive/shared/teacher-classroom-waiting-page.tsx",
       "owner": "standardize-sitewide-compact-spacing",
       "scope": "QR code square preview",

@@ -14,7 +14,6 @@ import {
 
 import { ArenaPageShell } from './arena-page-shell';
 import {
-  ARENA_HIDDEN_TEST_SIGNAL_LABELS,
   ARENA_TRAINING_CAPABILITY_LABELS,
   ARENA_TRAINING_STAGE_LABELS,
   ARENA_CHALLENGE_TASKS,
@@ -360,8 +359,6 @@ export function ArenaHall({
                                 <span>{challenge.difficulty}</span>
                                 <span>·</span>
                                 <span>预计 {challenge.training.estimatedEffortMinutes} 分钟</span>
-                                <span>·</span>
-                                <span>{ARENA_HIDDEN_TEST_SIGNAL_LABELS[challenge.training.hiddenTestSignal]}</span>
                               </div>
                               <h3 className="mt-2 text-xl font-semibold text-foreground">{challenge.title}</h3>
                               {object ? (

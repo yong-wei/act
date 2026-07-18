@@ -3,7 +3,7 @@
 /**
  * 学生个人中心页面
  *
- * 展示学生六维能力画像、学习统计、最近活动与个性化补强路径。
+ * 展示学生七维 portrait v2 画像、学习统计、最近活动与个性化补强路径。
  */
 
 import { useEffect, useState, type ReactNode } from 'react';
@@ -101,6 +101,9 @@ interface UserProfile {
     averageScore: number;
   };
   competency: {
+    model: 'portrait-v2';
+    derivationKind: 'native' | 'migrated' | 'compatibility-derived';
+    limitations: string[];
     overallScore: number;
     level: string;
     trend: string;
@@ -114,6 +117,9 @@ interface UserProfile {
       trend: 'up' | 'stable' | 'down';
       confidence: number;
       evidenceCount: number;
+      freshness: { state: string; asOf: string | null; evidenceAgeDays: number | null };
+      limitations: string[];
+      calculationVersion: string;
     }>;
   };
   recentActivity: {
@@ -176,6 +182,7 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [pendingAssignmentCount, setPendingAssignmentCount] = useState<number | null>(null);
   const [showAllActivities, setShowAllActivities] = useState(false);
   const entryIntents = getCommercialStudentEntryIntentGroups();
   const studentEntryByHref = new Map(
@@ -196,12 +203,25 @@ export default function ProfilePage() {
   const fetchProfile = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/user/profile');
+      const [response, assignmentResponse] = await Promise.all([
+        fetch('/api/user/profile'),
+        fetch('/api/student/assignments', { cache: 'no-store' }).catch(() => null),
+      ]);
       if (!response.ok) {
         throw new Error('获取用户画像失败');
       }
       const data = await response.json();
       setProfile(data);
+      if (assignmentResponse?.ok) {
+        const assignmentData = await assignmentResponse.json() as {
+          assignments?: Array<{ canMutate?: boolean; nextAction?: string }>;
+        };
+        setPendingAssignmentCount((assignmentData.assignments ?? []).filter(
+          (assignment) => assignment.canMutate !== false && ['start-answering', 'continue-answering', 'resubmit-question'].includes(assignment.nextAction ?? ''),
+        ).length);
+      } else {
+        setPendingAssignmentCount(null);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : '未知错误');
     } finally {
@@ -311,7 +331,14 @@ export default function ProfilePage() {
             <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 px-6 py-4 text-center md:text-right">
               <div className="text-5xl font-bold text-amber-500">{profile.competency.overallScore}</div>
               <p className="text-lg font-medium text-foreground">{profile.competency.level}</p>
-              <p className="text-sm text-subtle">六维能力综合得分</p>
+              <p className="text-sm text-subtle">七维 portrait v2 综合得分</p>
+              {profile.competency.derivationKind !== 'native' || profile.competency.limitations.length > 0 ? (
+                <p className="mt-1 max-w-xs text-xs text-amber-700 dark:text-amber-300">
+                  {profile.competency.derivationKind === 'native'
+                    ? '画像数据存在覆盖限制。'
+                    : '当前画像由迁移兼容数据推导，不能视为原生 portrait v2 证据。'}
+                </p>
+              ) : null}
               <div className={`mt-3 rounded-lg border px-3 py-2 text-left text-xs ${evidenceStatusMeta.className}`}>
                 <div className="flex items-center justify-between gap-3">
                   <span>证据状态</span>
@@ -332,8 +359,17 @@ export default function ProfilePage() {
             <Link href="/profile/evidence" className="btn-ghost-themed rounded-lg px-4 py-2 text-sm">
               查看学习记录
             </Link>
-            <Link href="/classroom/join" className="btn-ghost-themed rounded-lg px-4 py-2 text-sm">
-              加入课堂 / 班级
+            <Link
+              href="/missions"
+              className="btn-ghost-themed rounded-lg px-4 py-2 text-sm"
+              aria-label={pendingAssignmentCount === null ? '任务中心' : `任务中心，${pendingAssignmentCount} 项待完成`}
+            >
+              任务中心
+              {pendingAssignmentCount !== null && (
+                <span className="ml-2 rounded-full bg-primary/15 px-2 py-0.5 text-xs text-primary" role="status">
+                  {pendingAssignmentCount} 项待完成
+                </span>
+              )}
             </Link>
           </div>
         </div>
@@ -405,7 +441,7 @@ export default function ProfilePage() {
               <div>
                 <h3 className="text-lg font-semibold text-foreground">能力画像</h3>
                 <p className="mt-1 text-sm text-subtle">
-                  已对齐当前实际能力维度，聚焦控制建模、参数设计、跨域迁移、工程决策、探究反思与自主学习。
+                  当前主画像包含七个 portrait v2 维度；迁移数据会保留置信度、新鲜度和限制说明。
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -445,6 +481,9 @@ export default function ProfilePage() {
                     <span>置信度 {Math.round(dimension.confidence * 100)}%</span>
                     <span>{dimension.evidenceCount} 条证据</span>
                   </div>
+                  {dimension.limitations.length > 0 ? (
+                    <p className="mt-2 text-xs text-amber-700 dark:text-amber-300">限制：{dimension.limitations.join('；')}</p>
+                  ) : null}
                 </div>
               ))}
             </div>
@@ -775,8 +814,8 @@ export default function ProfilePage() {
             />
             <QuickAction
               href="/missions"
-              title="任务大厅"
-              description="查看学习任务进度"
+              title="任务中心"
+              description="查看主线作业与任务进阶"
               iconPath="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
             />
           </div>

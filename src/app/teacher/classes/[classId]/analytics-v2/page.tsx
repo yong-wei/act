@@ -495,7 +495,7 @@ export default function ClassAnalyticsV2Page() {
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
               <MetricCard
                 title="班级总体指数"
-                value={insights.overview.overallIndex}
+                value={insights.overview.overallIndex ?? '暂无证据'}
                 detail="最新班级快照与学生画像聚合值"
                 icon={<TrendingUp className="h-5 w-5 text-sky-500 dark:text-sky-300" />}
               />
@@ -520,7 +520,7 @@ export default function ClassAnalyticsV2Page() {
             <div className="mb-4 flex items-center justify-between gap-4">
               <div>
                 <h2 className="text-lg font-semibold text-foreground">能力维度概览</h2>
-                <p className="mt-1 text-sm text-subtle">六维能力均值与波动，可快速判断本班共性短板。</p>
+                    <p className="mt-1 text-sm text-subtle">七维 portrait v2 均值与波动，可快速判断本班共性短板。</p>
               </div>
             </div>
             <div className="space-y-4">
@@ -528,10 +528,10 @@ export default function ClassAnalyticsV2Page() {
                 <div key={item.dimension} className="space-y-2">
                   <div className="flex items-center justify-between gap-4">
                     <p className="text-sm font-medium text-foreground">{item.label}</p>
-                    <p className="text-sm text-subtle">均值 {item.mean} / 波动 {item.stdDev}</p>
+                    <p className="text-sm text-subtle">{item.mean === null ? '暂无有效证据' : `均值 ${item.mean} / 波动 ${item.stdDev}`}</p>
                   </div>
                   <div className="teacher-insight-track">
-                    <div className="teacher-insight-fill" style={{ width: `${Math.min(item.mean, 100)}%` }} />
+                    <div className="teacher-insight-fill" style={{ width: `${Math.min(item.mean ?? 0, 100)}%` }} />
                   </div>
                 </div>
               ))}
@@ -683,7 +683,7 @@ export default function ClassAnalyticsV2Page() {
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-subtle">综合指数</p>
-                      <p className="text-2xl font-semibold text-foreground">{student.overallScore}</p>
+                      <p className="text-2xl font-semibold text-foreground">{student.overallScore ?? '暂无证据'}</p>
                       <p className="mt-2 text-xs text-subtle">成长档案 {student.growthRecordCount} 条</p>
                     </div>
                   </div>
@@ -1004,7 +1004,7 @@ function MetricCard({
   icon,
 }: {
   title: string;
-  value: number;
+  value: ReactNode;
   detail: string;
   icon: ReactNode;
 }) {

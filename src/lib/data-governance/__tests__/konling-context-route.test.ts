@@ -23,6 +23,8 @@ const mocks = vi.hoisted(() => ({
   },
 }));
 
+vi.mock('server-only', () => ({}));
+
 vi.mock('next-auth', () => ({
   getServerSession: mocks.getServerSession,
 }));
@@ -101,8 +103,11 @@ describe('Konling context route learner-state integration', () => {
       expect.objectContaining({
         userId: 'student-1',
         role: 'student',
+        portraitConsumer: 'konling',
       }),
     );
+    expect(mocks.readAdaptiveLearnerState.mock.calls.every(([, input]) =>
+      input.portraitConsumer === 'konling')).toBe(true);
     expect(body.learner_state_context).toMatchObject({
       authority: 'server-owned',
       primaryCompetencies: {
@@ -149,6 +154,8 @@ describe('Konling context route learner-state integration', () => {
         classId: null,
       }),
     );
+    expect(mocks.readAdaptiveLearnerState.mock.calls.every(([, input]) =>
+      input.portraitConsumer === 'konling')).toBe(true);
   });
 
   it('allows teacher reads only for students in the teacher class', async () => {
@@ -178,6 +185,7 @@ describe('Konling context route learner-state integration', () => {
         userId: 'student-1',
         role: 'teacher',
         classId: 'class-1',
+        portraitConsumer: 'konling',
       }),
     );
   });

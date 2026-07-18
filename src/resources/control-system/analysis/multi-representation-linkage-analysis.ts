@@ -10,7 +10,7 @@ import type {
 export interface LinkageTimeDomainResponse {
   samples: Array<{ time: number; response: number }>;
   metrics: {
-    overshoot: number;
+    overshoot: number | null;
     settlingTime: number;
     riseTime: number;
     steadyStateError: number;

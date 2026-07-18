@@ -5,6 +5,7 @@
  */
 
 import type { Message } from '@/types/ai-message';
+import type { PortraitV2ConsumerSummary } from '@/lib/data-governance/portrait-v2-consumer';
 
 /**
  * 页面类型
@@ -79,8 +80,10 @@ export interface UserProfile {
   learningStyle: LearningStyle;
   /** 认知水平 (1-5) */
   cognitiveLevel: 1 | 2 | 3 | 4 | 5;
-  /** 能力向量 */
+  /** 能力向量；PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER，仅作无 portrait v2 时的兼容字段 */
   abilityVector: AbilityVector;
+  /** 七维 portrait v2 主画像；abilityVector 仅保留为兼容字段 */
+  portraitV2?: PortraitV2ConsumerSummary;
   /** 舰队/班组 */
   fleetGroup?: string;
   /** 班级 */

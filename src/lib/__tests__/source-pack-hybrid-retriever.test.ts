@@ -174,6 +174,8 @@ function projectionRow(overrides: Partial<RuntimeResourceProjectionArtifactRow> 
       confidence: 0.95,
       staleInvalidationRule: 'source-hash-change',
     },
+    reviewConcluded: true,
+    semanticConfirmed: true,
     segmentRefs: ['segment:root-locus'],
     citationTargets: ['source-pack-citation:root-locus'],
     retrievalChunk: {
@@ -241,6 +243,7 @@ describe('source pack retrieval profiles', () => {
     expect(getSourcePackRetrievalProfile('lesson-design').allowedSourceKinds).toContain('runtime-lesson');
     expect(getSourcePackRetrievalProfile('lesson-authoring').name).toBe('lesson-authoring');
     expect(getSourcePackRetrievalProfile('konling').name).toBe('konling');
+    expect(getSourcePackRetrievalProfile('konling-answer').allowedReviewStatuses).toContain('model-cleared');
   });
 
   it('filters Konling candidates before ranking by role, AI use, and citation readiness', () => {

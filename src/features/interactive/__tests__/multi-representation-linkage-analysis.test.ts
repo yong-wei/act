@@ -408,6 +408,12 @@ describe('multi representation linkage analysis adapter', () => {
     expect(adapted.stability.hints.length).toBeGreaterThan(0);
   });
 
+  it('preserves unavailable overshoot instead of converting it to zero', () => {
+    const result = makeAnalysisResult();
+    result.metrics.overshootPct = null;
+    expect(adaptLinkageAnalysisResult(result).timeDomain.metrics.overshoot).toBeNull();
+  });
+
   it('fills stability defaults when margins are absent and closed-loop poles cross into the right half plane', () => {
     const adapted = adaptLinkageAnalysisResult(
       makeAnalysisResult({

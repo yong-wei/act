@@ -17,12 +17,20 @@ import {
 import { deterministicPathConstraintRepairAdapter } from '../adaptive-planning/path-constraint-repair';
 import { rankResourceLearnerCandidates } from '../adaptive-planning/resource-ranker';
 import { buildControlCorrectionResourceNodeRegistry } from '../control-correction-resource-seed';
+import { createEmptyCompetencyVector } from '../data-governance/competency-model';
 import {
   AUTOCONTROL_KAQ_GRAPH_CATALOG,
   AUTOCONTROL_KAQ_GRAPH_VERSION,
   AUTOCONTROL_KAQ_OBJECTIVES,
 } from '../data-governance/autocontrol-kaq-graph-catalog';
 import { expandLearningGoalSubgraph } from '../graphs/goal-subgraph-expansion-service';
+import {
+  PORTRAIT_V2_CALCULATION_VERSION,
+  PORTRAIT_V2_DIMENSION_IDS,
+  createPortraitV2Payload,
+  derivePortraitV2Compatibility,
+  projectPortraitV2ForConsumer,
+} from '../data-governance/portrait-v2-model';
 import { buildKaqArtifactVersionRefs, GRAPH_CENTER_OVERLAY_VERSION } from '../kaq-artifact-versioning';
 import {
   applyCoreResourcePathReadinessDispositions,
@@ -88,9 +96,9 @@ function plannerInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {})
     ],
     arenaTasks: [
       {
-        id: 'roll-control',
+        id: 'task-second-order-lead-pid',
         title: '横摇控制 Arena',
-        launchTarget: '/arena/challenges/roll-control',
+        launchTarget: '/arena/challenges/task-second-order-lead-pid',
         knowledgeNodeIds: ['kn-cruise'],
         prerequisiteNodeIds: ['simulation:cruise'],
         official: true,
@@ -184,6 +192,80 @@ function plannerInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {})
   };
 }
 
+function graphContextForLearningGoal(
+  learningGoal: NonNullable<(typeof ADAPTIVE_LEARNING_GOAL_DEFINITIONS)[string]['learningGoal']>,
+  pathEligibleResourceIdsByGraphNodeId: Record<string, string[]> = {},
+): NonNullable<AdaptiveLearningPathPlannerInput['graphContext']> {
+  const expandedSubgraph = expandLearningGoalSubgraph(learningGoal.id);
+  return {
+    learningGoalId: learningGoal.id,
+    learningGoalVersion: learningGoal.version,
+    objectiveBoundary: {
+      knowledgeObjectiveIds: learningGoal.knowledgeObjectiveIds,
+      capabilityObjectiveIds: learningGoal.capabilityObjectiveIds,
+      qualityObjectiveIds: learningGoal.qualityObjectiveIds,
+    },
+    expandedSubgraph,
+    resourceCoverage: Object.fromEntries(learningGoal.targetGraphNodeIds.map((nodeId) => {
+      const pathEligibleResourceIds = pathEligibleResourceIdsByGraphNodeId[nodeId] ?? [];
+      return [nodeId, {
+        domain: nodeId.startsWith('cap:')
+          ? 'capability'
+          : nodeId.startsWith('qual:') ? 'quality' : 'knowledge',
+        nodeId,
+        linkedResourceCount: pathEligibleResourceIds.length,
+        pathEligibleResourceCount: pathEligibleResourceIds.length,
+        ragIndexedCount: 0,
+        citationReadyCount: 0,
+        verifiedCitationCount: 0,
+        assessmentResourceCount: 0,
+        simulationResourceCount: 0,
+        arenaPreviewResourceCount: 0,
+        arenaOfficialResourceCount: 0,
+        terminalValidationCapableResourceCount: 0,
+        coverageState: pathEligibleResourceIds.length > 0 ? 'sufficient' : 'missing',
+        missingCoverageTypes: pathEligibleResourceIds.length > 0 ? [] : ['linked-resource'],
+        linkedResourceIds: pathEligibleResourceIds,
+        pathEligibleResourceIds,
+        pathEligibleResourceRouteIds: pathEligibleResourceIds,
+        filterKnowledgeRefs: [nodeId],
+      }];
+    })),
+  };
+}
+
+function runtimeProjectionRegistryForLearningGoal(
+  learningGoal: NonNullable<(typeof ADAPTIVE_LEARNING_GOAL_DEFINITIONS)[string]['learningGoal']>,
+  graphNodeId: string,
+  resourceNodeId: string,
+) {
+  const resourceType = learningGoal.resourceMix.preferred[0] ?? learningGoal.resourceMix.required[0] ?? 'knowledge_card';
+  return buildResourceNodeRegistry({
+    runtimeResourceProjections: [{
+      id: resourceNodeId,
+      resourceNodeId,
+      title: `${learningGoal.title} boundary fixture`,
+      resourceType,
+      sourceKind: 'runtime_lesson_step',
+      sourceRef: `${learningGoal.id}:boundary-fixture`,
+      sourcePathOrUrl: null,
+      sourceRecord: `${learningGoal.id}:boundary-fixture`,
+      sourceHash: 'fixture-hash',
+      sourceVersionRef: 'fixture.v1',
+      projectionLevel: 'PlanningUnit',
+      routeTarget: `/fixtures/${learningGoal.id}`,
+      graphNodeRefs: {
+        knowledge: graphNodeId.startsWith('kn:') ? [graphNodeId] : [],
+        capability: graphNodeId.startsWith('cap:') ? [graphNodeId] : [],
+        quality: graphNodeId.startsWith('qual:') ? [graphNodeId] : [],
+      },
+      estimatedTimeMinutes: 5,
+      evidenceInstrumentation: ['boundary_fixture_viewed'],
+      privacyScope: 'student-visible',
+    }],
+  });
+}
+
 function textbookRuntimeFixtureSections() {
   return [
     {
@@ -258,9 +340,9 @@ function policyFixtureInput(overrides: Partial<AdaptiveLearningPathPlannerInput>
     ],
     arenaTasks: [
       {
-        id: 'arena',
+        id: 'task-ship-roll-comfort',
         title: '策略 Arena',
-        launchTarget: '/arena/challenges/policy',
+        launchTarget: '/arena/challenges/task-ship-roll-comfort',
         knowledgeNodeIds: ['kn-c'],
         prerequisiteNodeIds: ['simulation:sim'],
         official: true,
@@ -323,6 +405,18 @@ function policyFixtureInput(overrides: Partial<AdaptiveLearningPathPlannerInput>
 }
 
 describe('adaptive learning path planner', () => {
+  it('preserves legacy competency scores already normalized to 0-1', () => {
+    const plan = buildAdaptiveLearningPathPlan(plannerInput());
+    const parameterDeficit = plan.visualization.evidence.learnerStateDeficits.find(
+      (deficit) => deficit.targetId === 'parameterDesign',
+    );
+
+    expect(parameterDeficit).toMatchObject({
+      value: 0.35,
+      reasonCode: 'competency-deficit',
+    });
+  });
+
   it('uses explicit policy families to produce different path emphasis', () => {
     const base = plannerInput({
       constraints: {
@@ -841,7 +935,7 @@ describe('adaptive learning path planner', () => {
     const candidateNodes = input.registry.nodes.filter((node) => [
       'registry:bode-card',
       'simulation:cruise',
-      'arena-task:roll-control',
+      'arena-task:task-second-order-lead-pid',
     ].includes(node.id));
     const candidates = candidateNodes.map((node) => ({
       node,
@@ -1905,6 +1999,96 @@ describe('adaptive learning path planner', () => {
     expect(JSON.stringify(serialized.payload.graphContext)).not.toContain('knowledge-card:graph-frequency-card');
   });
 
+  it('excludes legacy-compatible resources outside the LearningGoal objective boundary', () => {
+    const learningGoal = ADAPTIVE_LEARNING_GOAL_DEFINITIONS['root-locus-analysis-foundations'].learningGoal!;
+    const graphTargetId = learningGoal.targetGraphNodeIds[0];
+    const registry = buildResourceNodeRegistry({
+      knowledgeCards: [{
+        id: 'root-locus-boundary-card',
+        title: '根轨迹边界知识卡',
+        sourceRef: 'root-locus:boundary-card',
+        renderTarget: '/knowledge/cards/root-locus-boundary',
+        knowledgeNodeIds: [graphTargetId],
+      }, {
+        id: 'legacy-correction-card',
+        title: '旧校正兼容知识卡',
+        sourceRef: 'legacy:correction-card',
+        renderTarget: '/knowledge/cards/legacy-correction',
+        knowledgeNodeIds: ['legacy-correction-target'],
+        planningOverride: {
+          abilityImpact: {
+            parameterDesign: 1,
+          },
+        },
+      }],
+    });
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      goal: {
+        id: learningGoal.id,
+        title: learningGoal.title,
+        knowledgeTargets: ['legacy-correction-target'],
+        competencyTargets: ['parameterDesign'],
+      },
+      learnerState: null,
+      registry,
+      constraints: {
+        timeBudgetMinutes: 30,
+        privacyScopes: ['student-visible'],
+      },
+      graphContext: graphContextForLearningGoal(learningGoal, {
+        [graphTargetId]: ['knowledge-card:root-locus-boundary-card'],
+      }),
+    }));
+
+    expect(plan.mainPath.map((node) => node.nodeId)).toContain('knowledge-card:root-locus-boundary-card');
+    expect(plan.mainPath.map((node) => node.nodeId)).not.toContain('knowledge-card:legacy-correction-card');
+    expect(plan.graphContext?.objectiveBoundaryDiagnostics).toMatchObject({
+      rejectedMismatchCount: 1,
+      selectedResourceMatches: expect.arrayContaining([
+        expect.objectContaining({
+          nodeId: 'knowledge-card:root-locus-boundary-card',
+          matchRefs: expect.arrayContaining([graphTargetId]),
+          matchReasons: expect.arrayContaining(['graph-boundary']),
+        }),
+      ]),
+    });
+  });
+
+  it('builds objective-boundary diagnostics for every path-ready LearningGoal dynamically', () => {
+    const pathReadyLearningGoals = listLearningGoals().filter((learningGoal) => learningGoal.status === 'path-ready');
+    expect(pathReadyLearningGoals.length).toBeGreaterThanOrEqual(8);
+
+    for (const learningGoal of pathReadyLearningGoals) {
+      const graphTargetId = learningGoal.targetGraphNodeIds[0];
+      const resourceNodeId = `runtime-boundary:${learningGoal.id}`;
+      const plan = buildAdaptiveLearningPathPlan(plannerInput({
+        goal: {
+          id: learningGoal.id,
+          title: learningGoal.title,
+          knowledgeTargets: ['legacy-wide-target'],
+          competencyTargets: ['legacyWideCompetency'],
+        },
+        learnerState: null,
+        registry: runtimeProjectionRegistryForLearningGoal(learningGoal, graphTargetId, resourceNodeId),
+        constraints: {
+          timeBudgetMinutes: 90,
+          privacyScopes: ['student-visible'],
+        },
+        graphContext: graphContextForLearningGoal(learningGoal, {
+          [graphTargetId]: [resourceNodeId],
+        }),
+      }));
+
+      expect(plan.graphContext?.objectiveBoundaryDiagnostics?.acceptedBoundaryRefs).toMatchObject({
+        knowledgeObjectiveIds: learningGoal.knowledgeObjectiveIds,
+        capabilityObjectiveIds: learningGoal.capabilityObjectiveIds,
+        qualityObjectiveIds: learningGoal.qualityObjectiveIds,
+        graphNodeIds: expect.arrayContaining([graphTargetId]),
+      });
+      expect(plan.graphContext?.objectiveBoundaryDiagnostics?.rejectedMismatchCount).toBe(0);
+    }
+  });
+
   it('keeps graph-driven paths usable when LearningGoal baseline coverage is incomplete', () => {
     const learningGoal = ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].learningGoal!;
     const expandedSubgraph = expandLearningGoalSubgraph(learningGoal.id);
@@ -2777,7 +2961,7 @@ describe('adaptive learning path planner', () => {
           'registry:bode-card',
           'registry:bode-sim',
           'simulation:cruise',
-          'arena-task:roll-control',
+          'arena-task:task-second-order-lead-pid',
         ],
       },
       policyFamily: 'teacher-assigned',
@@ -3543,7 +3727,7 @@ describe('adaptive learning path planner', () => {
     expect(plan.mainPath.map((node) => node.nodeId)).toEqual(expect.arrayContaining([
       'registry:lesson09-correction-precheck',
       'registry:lesson09-summary-card',
-      'registry:arena-challenge-workbench',
+      'arena-task:task-second-order-lead-pid',
     ]));
     expect(plan.mainPath.length).toBeGreaterThanOrEqual(3);
     expect(plan.mainPath.slice(0, -1).some((node) =>
@@ -3608,7 +3792,7 @@ describe('adaptive learning path planner', () => {
       readiness: { state: 'ready' },
     });
     expect(unlockedPlan.mainPath.at(-1)).toMatchObject({
-      nodeId: 'registry:arena-challenge-workbench',
+      nodeId: 'arena-task:task-second-order-lead-pid',
       readiness: {
         state: 'ready',
         missingOutcomeRefs: [],
@@ -3681,7 +3865,7 @@ describe('adaptive learning path planner', () => {
     expect(policyNodeIds).toEqual(expect.arrayContaining([
       'registry:lesson09-correction-precheck',
       'registry:lesson09-summary-card',
-      'registry:arena-challenge-workbench',
+      'arena-task:task-second-order-lead-pid',
     ]));
     for (const nodeId of policyNodeIds) {
       const node = registry.nodes.find((item) => item.id === nodeId);
@@ -3869,6 +4053,100 @@ describe('adaptive learning path planner', () => {
       status: 'satisfied',
       checkpointNodeIds: ['knowledge-card:policy-checkpoint-card'],
       infeasibleReasons: [],
+    });
+  });
+
+  it('allows registered non-checkpoint resource types through LearningGoal checkpoint boundary', () => {
+    const learningGoal = ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].learningGoal!;
+    const expandedSubgraph = expandLearningGoalSubgraph(learningGoal.id);
+    const graphTargetId = learningGoal.targetGraphNodeIds[0];
+    const registry = buildResourceNodeRegistry({
+      knowledgeCards: [{
+        id: 'policy-checkpoint-boundary-card',
+        title: '边界策略检查知识卡',
+        sourceRef: 'frequency-response:policy-checkpoint-boundary-card',
+        renderTarget: '/knowledge/cards/policy-checkpoint-boundary-card',
+        knowledgeNodeIds: ['legacy-policy-checkpoint'],
+        planningOverride: {
+          estimatedTimeMinutes: 8,
+          evidenceInstrumentation: ['knowledge_card_viewed'],
+        },
+      }],
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: {
+        id: learningGoal.id,
+        title: learningGoal.title,
+        knowledgeTargets: ['legacy-policy-checkpoint'],
+      },
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'legacy-policy-checkpoint': { posteriorMastery: 0.18, confidence: 0.7, evidenceCount: 2 },
+          },
+        },
+        evidence: {
+          confidence: {
+            level: 'medium',
+            score: 0.65,
+            evidenceCount: 3,
+            sourceCompleteness: 0.65,
+          },
+        },
+      },
+      constraints: {
+        timeBudgetMinutes: 30,
+        privacyScopes: ['student-visible'],
+      },
+      graphContext: {
+        learningGoalId: learningGoal.id,
+        learningGoalVersion: learningGoal.version,
+        objectiveBoundary: {
+          knowledgeObjectiveIds: learningGoal.knowledgeObjectiveIds,
+          capabilityObjectiveIds: learningGoal.capabilityObjectiveIds,
+          qualityObjectiveIds: learningGoal.qualityObjectiveIds,
+        },
+        expandedSubgraph,
+        resourceCoverage: {
+          [graphTargetId]: {
+            domain: 'knowledge',
+            nodeId: graphTargetId,
+            linkedResourceCount: 1,
+            pathEligibleResourceCount: 1,
+            ragIndexedCount: 0,
+            citationReadyCount: 0,
+            verifiedCitationCount: 0,
+            assessmentResourceCount: 0,
+            simulationResourceCount: 0,
+            arenaPreviewResourceCount: 0,
+            arenaOfficialResourceCount: 0,
+            terminalValidationCapableResourceCount: 0,
+            coverageState: 'sufficient',
+            missingCoverageTypes: [],
+            linkedResourceIds: [],
+            pathEligibleResourceIds: [],
+            pathEligibleResourceRouteIds: [],
+            filterKnowledgeRefs: [],
+          },
+        },
+      },
+    }));
+
+    expect(plan.status).toBe('ready');
+    expect(plan.mainPath.map((node) => node.nodeId)).toEqual(['knowledge-card:policy-checkpoint-boundary-card']);
+    expect(plan.constraintRepair).toMatchObject({
+      status: 'satisfied',
+      checkpointNodeIds: ['knowledge-card:policy-checkpoint-boundary-card'],
+      infeasibleReasons: [],
+    });
+    expect(plan.graphContext?.objectiveBoundaryDiagnostics).toMatchObject({
+      selectedResourceMatches: [{
+        nodeId: 'knowledge-card:policy-checkpoint-boundary-card',
+        matchRefs: ['policy:checkpoint'],
+        matchReasons: ['policy-required-checkpoint'],
+      }],
     });
   });
 
@@ -4151,6 +4429,10 @@ describe('adaptive learning path planner', () => {
         timeBudgetMinutes: 20,
         privacyScopes: ['student-visible'],
       },
+      policyBundle: {
+        families: ['foundation-remediation'],
+        overlapThreshold: 0.9,
+      },
       graphContext: {
         learningGoalId: learningGoal.id,
         learningGoalVersion: learningGoal.version,
@@ -4187,18 +4469,139 @@ describe('adaptive learning path planner', () => {
 
     expect(plan.status).toBe('fallback');
     expect(plan.mainPath).toEqual([]);
-    expect(plan.explanations.fallbackReasons).toContain('time-budget-insufficient');
+    expect(plan.explanations.fallbackReasons).toContain('resource-mapping-insufficient');
+    expect(plan.explanations.fallbackReasons).not.toContain('time-budget-insufficient');
     expect(plan.constraintRepair).toMatchObject({
       status: 'infeasible',
-      repairedNodeIds: expect.arrayContaining([
-        'simulation:legacy-b-simulation',
-        'simulation:legacy-terminal-simulation',
-      ]),
+      repairedNodeIds: [],
+    });
+    expect(plan.constraintRepair?.repairedNodeIds).not.toContain('simulation:legacy-b-simulation');
+    expect(plan.constraintRepair?.repairedNodeIds).not.toContain('simulation:legacy-terminal-simulation');
+    const policyBundleNodeIds = plan.policyBundle?.paths.flatMap((path) => path.nodeIds) ?? [];
+    expect(policyBundleNodeIds).not.toContain('knowledge-card:legacy-a-card');
+    expect(policyBundleNodeIds).not.toContain('simulation:legacy-b-simulation');
+    expect(policyBundleNodeIds).not.toContain('simulation:legacy-terminal-simulation');
+
+    const record = serializeLearningPathPlan(plan);
+    const pathOptionNodeIds = (record.payload.pathOptions ?? []).flatMap((option) =>
+      Array.isArray(option.nodeIds) ? option.nodeIds as string[] : []
+    );
+    expect(pathOptionNodeIds).not.toContain('knowledge-card:legacy-a-card');
+    expect(pathOptionNodeIds).not.toContain('simulation:legacy-b-simulation');
+    expect(pathOptionNodeIds).not.toContain('simulation:legacy-terminal-simulation');
+  });
+
+  it('keeps LearningGoal boundary on readiness repair fallback candidates', () => {
+    const learningGoal = ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].learningGoal!;
+    const expandedSubgraph = expandLearningGoalSubgraph(learningGoal.id);
+    const graphTargetId = learningGoal.targetGraphNodeIds.find((id) => id.startsWith('cap:'))!;
+    const registry = buildResourceNodeRegistry({
+      knowledgeCards: [{
+        id: 'legacy-prep-card',
+        title: '旧目标准备卡',
+        sourceRef: 'learning-goal-boundary:legacy-prep',
+        renderTarget: '/knowledge/cards/legacy-prep',
+        knowledgeNodeIds: ['legacy-prep'],
+        planningOverride: {
+          estimatedTimeMinutes: 8,
+          evidenceInstrumentation: ['knowledge_card_viewed'],
+        },
+      }],
+      simulations: [{
+        id: 'graph-boundary-locked-lab',
+        title: '图边界锁定实验',
+        launchTarget: '/simulations/graph-boundary-locked-lab',
+        knowledgeNodeIds: ['legacy-unmatched-knowledge'],
+        planningOverride: {
+          estimatedTimeMinutes: 12,
+          abilityImpact: { parameterDesign: 0.4 },
+          evidenceInstrumentation: ['simulation_run'],
+          terminalConstraints: ['terminal-validation'],
+          readiness: {
+            minimumCompetency: { parameterDesign: 0.8 },
+            minimumEvidenceCount: 0,
+            requiredCompletedNodeIds: [],
+            requiredOutcomeRefs: [],
+            fallbackNodeIds: ['knowledge-card:legacy-prep-card'],
+            unlockMessage: '先完成准备资源。',
+          },
+        },
+      }],
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: {
+        id: learningGoal.id,
+        title: learningGoal.title,
+        knowledgeTargets: ['unmatched-current-target'],
+        competencyTargets: ['parameterDesign'],
+      },
+      learnerState: {
+        knowledgeMastery: { tags: {} },
+        primaryCompetencies: {
+          vector: {
+            parameterDesign: { score: 0.2, confidence: 0.7, evidenceCount: 1 },
+          },
+        },
+        evidence: {
+          confidence: {
+            level: 'medium',
+            score: 0.7,
+            evidenceCount: 1,
+            sourceCompleteness: 0.7,
+          },
+        },
+      },
+      constraints: {
+        timeBudgetMinutes: 30,
+        privacyScopes: ['student-visible'],
+      },
+      graphContext: {
+        learningGoalId: learningGoal.id,
+        learningGoalVersion: learningGoal.version,
+        objectiveBoundary: {
+          knowledgeObjectiveIds: learningGoal.knowledgeObjectiveIds,
+          capabilityObjectiveIds: learningGoal.capabilityObjectiveIds,
+          qualityObjectiveIds: learningGoal.qualityObjectiveIds,
+        },
+        expandedSubgraph,
+        resourceCoverage: {
+          [graphTargetId]: {
+            domain: 'knowledge',
+            nodeId: graphTargetId,
+            linkedResourceCount: 1,
+            pathEligibleResourceCount: 1,
+            ragIndexedCount: 0,
+            citationReadyCount: 0,
+            verifiedCitationCount: 0,
+            assessmentResourceCount: 0,
+            simulationResourceCount: 1,
+            arenaPreviewResourceCount: 0,
+            arenaOfficialResourceCount: 0,
+            terminalValidationCapableResourceCount: 1,
+            coverageState: 'sufficient',
+            missingCoverageTypes: [],
+            linkedResourceIds: ['graph-boundary-locked-lab'],
+            pathEligibleResourceIds: ['simulation:graph-boundary-locked-lab'],
+            pathEligibleResourceRouteIds: ['/simulations/graph-boundary-locked-lab'],
+            filterKnowledgeRefs: [],
+          },
+        },
+      },
+    }));
+
+    expect(plan.status).toBe('fallback');
+    expect(plan.mainPath.map((node) => node.nodeId)).not.toContain('knowledge-card:legacy-prep-card');
+    expect(plan.constraintRepair).toMatchObject({
+      status: 'infeasible',
+      repairedNodeIds: ['simulation:graph-boundary-locked-lab'],
+      insertedNodeIds: [],
       infeasibleReasons: expect.arrayContaining([
-        expect.objectContaining({ code: 'time-budget-insufficient' }),
+        expect.objectContaining({ code: 'locked-node-without-fallback' }),
       ]),
     });
-    expect(plan.constraintRepair?.removedNodeIds).not.toContain('simulation:legacy-b-simulation');
+    expect(plan.constraintRepair?.repairedNodeIds).not.toContain('knowledge-card:legacy-prep-card');
   });
 
   it('keeps graph-covered capability resources when registered knowledge targets are present', () => {
@@ -4349,6 +4752,22 @@ describe('adaptive learning path planner', () => {
         },
       }],
     });
+    const portraitVector = createEmptyCompetencyVector();
+    portraitVector.parameterDesign = {
+      score: 20,
+      trend: 'stable',
+      confidence: 0.6,
+      evidenceCount: 2,
+      lastUpdated: '2026-05-27T08:00:00.000Z',
+    };
+    const portraitNow = new Date('2026-05-27T08:00:00.000Z');
+    const primaryPortrait = projectPortraitV2ForConsumer(derivePortraitV2Compatibility({
+      userId: 'student-1',
+      snapshotAt: portraitNow.toISOString(),
+      sourceFamily: 'StudentCompetencySnapshot',
+      vector: portraitVector,
+      now: portraitNow,
+    }), 'reviewer', { now: portraitNow });
 
     const plan = buildAdaptiveLearningPathPlan(plannerInput({
       registry,
@@ -4369,6 +4788,7 @@ describe('adaptive learning path planner', () => {
             parameterDesign: { score: 0.2, confidence: 0.6, evidenceCount: 1 },
           },
         },
+        primaryPortrait,
         evidence: {
           confidence: {
             level: 'medium',
@@ -4395,6 +4815,172 @@ describe('adaptive learning path planner', () => {
       'knowledge-card:low-risk-prep-card',
       'simulation:locked-validation-lab',
     ]);
+  });
+
+  it('uses native portrait v2 evidence for readiness gates without legacy learner state', () => {
+    const portraitNow = new Date('2026-05-27T08:00:00.000Z');
+    const generatedAt = portraitNow.toISOString();
+    const primaryPortrait = projectPortraitV2ForConsumer(createPortraitV2Payload({
+      userId: 'student-1',
+      generatedAt,
+      now: portraitNow,
+      dimensions: PORTRAIT_V2_DIMENSION_IDS.map((id, index) => ({
+        id,
+        score: 80,
+        confidence: 0.8,
+        freshness: {
+          state: 'current' as const,
+          asOf: generatedAt,
+          evidenceAgeDays: 0,
+        },
+        evidenceSummary: {
+          totalCount: 1,
+          sourceFamilyCounts: { LearningFact: 1 },
+        },
+        lastPositiveEvidenceAt: generatedAt,
+        lastNegativeEvidenceAt: null,
+        rationale: 'Governed evidence supports the current score.',
+        limitations: [],
+        sourceLineage: [
+          { kind: 'evidence-family' as const, ref: 'LearningFact', privacyScope: 'student-visible' as const },
+          {
+            kind: 'citation' as const,
+            ref: `citation-target:sha256:${index.toString(16).padStart(64, '0')}`,
+            privacyScope: 'student-visible' as const,
+          },
+        ],
+        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+      })),
+    }), 'planner', { now: portraitNow });
+    const registry = buildResourceNodeRegistry({
+      simulations: [{
+        id: 'native-portrait-evidence-gated-sim',
+        title: '原生肖像证据门槛仿真',
+        launchTarget: '/simulations/native-portrait-evidence-gated',
+        knowledgeNodeIds: ['kn-native-portrait-evidence'],
+        planningOverride: {
+          estimatedTimeMinutes: 10,
+          abilityImpact: { parameterDesign: 0.4 },
+          evidenceInstrumentation: ['simulation_run'],
+          readiness: {
+            minimumCompetency: { parameterDesign: 0.7 },
+            minimumEvidenceCount: 1,
+            requiredCompletedNodeIds: [],
+            requiredOutcomeRefs: [],
+            fallbackNodeIds: [],
+            unlockMessage: '原生肖像证据满足后解锁。',
+          },
+        },
+      }],
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: {
+        id: 'native-portrait-evidence-gate-goal',
+        title: '原生肖像证据门槛目标',
+        knowledgeTargets: ['kn-native-portrait-evidence'],
+        competencyTargets: ['parameterDesign'],
+      },
+      learnerState: { primaryPortrait },
+      constraints: {
+        timeBudgetMinutes: 30,
+        privacyScopes: ['student-visible'],
+      },
+    }));
+    const node = plan.mainPath.find((item) => item.nodeId === 'simulation:native-portrait-evidence-gated-sim');
+
+    expect(node).toEqual(expect.objectContaining({
+      readiness: expect.objectContaining({
+        state: 'ready',
+        missingCompetencies: [],
+        missingEvidenceCount: 0,
+      }),
+    }));
+  });
+
+  it('falls back to the compatibility vector when the portrait dimension has no usable evidence', () => {
+    const portraitNow = new Date('2026-05-27T08:00:00.000Z');
+    const primaryPortrait = projectPortraitV2ForConsumer(derivePortraitV2Compatibility({
+      userId: 'student-1',
+      snapshotAt: portraitNow.toISOString(),
+      sourceFamily: 'StudentCompetencySnapshot',
+      vector: createEmptyCompetencyVector(),
+      now: portraitNow,
+    }), 'planner', { now: portraitNow });
+    const registry = buildResourceNodeRegistry({
+      simulations: [{
+        id: 'compatibility-readiness-fallback',
+        title: '兼容能力门槛仿真',
+        launchTarget: '/simulations/compatibility-readiness-fallback',
+        knowledgeNodeIds: ['kn-compatibility-readiness'],
+        planningOverride: {
+          estimatedTimeMinutes: 10,
+          abilityImpact: { parameterDesign: 0.4 },
+          evidenceInstrumentation: ['simulation_run'],
+          readiness: {
+            minimumCompetency: { parameterDesign: 0.7 },
+            minimumEvidenceCount: 0,
+            requiredCompletedNodeIds: [],
+            requiredOutcomeRefs: [],
+            fallbackNodeIds: [],
+            unlockMessage: '兼容能力值满足后解锁。',
+          },
+        },
+      }],
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: {
+        id: 'compatibility-readiness-goal',
+        title: '兼容能力门槛目标',
+        knowledgeTargets: ['kn-compatibility-readiness'],
+        competencyTargets: ['parameterDesign'],
+        capabilityTargets: [{
+          id: 'compatibility-readiness-capability',
+          knowledgeNodeRef: 'kn-compatibility-readiness',
+          capabilityLevel: 'apply',
+          behaviorVerb: 'apply',
+          successCriteria: ['完成兼容能力门槛仿真。'],
+          observableEvidenceType: 'simulation-run',
+          evaluationMethod: 'simulation',
+          goalSliceId: 'compatibility-readiness',
+          competencyDimensions: ['parameterDesign'],
+          learnerStateFeatureGroups: ['primaryCompetencies'],
+        }],
+      },
+      learnerState: {
+        primaryPortrait,
+        primaryCompetencies: {
+          vector: {
+            parameterDesign: { score: 0.9, confidence: 0.8, evidenceCount: 4 },
+          },
+        },
+      },
+      constraints: {
+        timeBudgetMinutes: 30,
+        privacyScopes: ['student-visible'],
+      },
+    }));
+    const node = plan.mainPath.find((item) => item.nodeId === 'simulation:compatibility-readiness-fallback');
+
+    expect(node?.readiness).toMatchObject({
+      state: 'ready',
+      missingCompetencies: [],
+    });
+    expect(plan.visualization.evidence.learnerStateDeficits).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ targetId: 'parameterDesign' }),
+    ]));
+    expect(plan.visualization.evidence.capabilityEvidence).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        target: expect.objectContaining({ id: 'compatibility-readiness-capability' }),
+        observedEvidence: expect.objectContaining({
+          competencyScore: 0.9,
+          supportingEvidenceCount: 4,
+        }),
+      }),
+    ]));
   });
 
   it('keeps repaired path nodes when only non-blocking checkpoint infeasibility remains', () => {
@@ -4993,8 +5579,8 @@ describe('adaptive learning path planner', () => {
     expect(plan.excludedPolicyFamilies).toEqual(['contextual-bandit', 'reinforcement-learning', 'long-horizon-hybrid']);
     expect(plan.status).toBe('ready');
     expect(plan.mainPath.map((node) => node.nodeId)).toContain('simulation:cruise');
-    expect(plan.mainPath.map((node) => node.nodeId)).toContain('arena-task:roll-control');
-    expect(plan.mainPath.find((node) => node.nodeId === 'arena-task:roll-control')?.prerequisiteNodeIds)
+    expect(plan.mainPath.map((node) => node.nodeId)).toContain('arena-task:task-second-order-lead-pid');
+    expect(plan.mainPath.find((node) => node.nodeId === 'arena-task:task-second-order-lead-pid')?.prerequisiteNodeIds)
       .toEqual(['simulation:cruise']);
     expect(plan.score.objectives.learningGain).toBeGreaterThan(0);
     expect(plan.explanations.selectedReasons.length).toBeGreaterThan(0);

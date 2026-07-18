@@ -1,0 +1,783 @@
+{
+  "change": "improve-knowledge-graph-node-expansion-interaction",
+  "issue": 894,
+  "captureScope": "matrix-a",
+  "status": "passed",
+  "capturedAt": "2026-07-10T11:23:21.115Z",
+  "sourceCwd": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn",
+  "sourceGitSha": "ed025d5d1ea1db1af0c8d8622df80c2e4e080cdb",
+  "baseUrl": "http://localhost:3101",
+  "browser": "chromium-headed",
+  "screenshotMode": "hybrid",
+  "groups": {
+    "desktopLight2D": {
+      "status": "passed",
+      "states": [
+        {
+          "name": "desktop-light-collapsed-focus",
+          "theme": "light",
+          "mode": "2D",
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "screenshotPath": "artifacts/knowledge-graph-node-expansion-894/1440x960-light-2d-desktop-light-collapsed-focus.png",
+          "screenshotSha256": "e4597a279667b6c4f3e97c78e062d9dde90db949a02551435024b47d87b35e81",
+          "geometry": {
+            "title": "智控深蓝",
+            "url": "http://localhost:3101/knowledge?node=chapter-node%3A%E7%AC%AC%E4%B8%80%E7%AB%A0&qa=knowledge-product",
+            "htmlClass": "light",
+            "controlRect": {
+              "left": 691,
+              "top": 839.2946166992188,
+              "right": 741,
+              "bottom": 883.2946166992188,
+              "width": 50,
+              "height": 44
+            },
+            "canvasRect": {
+              "left": 96,
+              "top": 109,
+              "right": 1401,
+              "bottom": 956,
+              "width": 1305,
+              "height": 847
+            },
+            "surfaces": {
+              "desktopTools": {
+                "left": 112,
+                "top": 125,
+                "right": 653.3125,
+                "bottom": 209.5,
+                "width": 541.3125,
+                "height": 84.5
+              },
+              "activeLocalPanel": null,
+              "desktopDirectory": null,
+              "inspector": {
+                "left": 977,
+                "top": 88,
+                "right": 1409,
+                "bottom": 880,
+                "width": 432,
+                "height": 792
+              },
+              "dock": null,
+              "pageFloatingControls": null,
+              "konling": null,
+              "mobileTools": null,
+              "mobilePanel": null
+            },
+            "control": {
+              "state": "collapsed",
+              "viewMode": "2D",
+              "anchorNodeId": "chapter-node:第一章",
+              "anchorClamped": "false",
+              "ariaExpanded": "false",
+              "ariaBusy": "false",
+              "ariaDisabled": "false",
+              "activeElement": true,
+              "focusVisible": true,
+              "outlineStyle": "none",
+              "outlineWidth": "1px",
+              "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(255, 255, 255) 0px 0px 0px 2px, rgb(13, 129, 201) 0px 0px 0px 4px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.1) 0px 4px 6px -4px",
+              "offsetWidth": 50,
+              "offsetHeight": 44
+            },
+            "canvas": {
+              "selectedNodeId": "chapter-node:第一章",
+              "expandedNodeCount": 0,
+              "pinnedNodeCount": 0,
+              "pinnedSignature": "",
+              "visibleNodeCount": 2,
+              "visibleLinkCount": 0
+            },
+            "scroll": {
+              "viewportWidth": 1440,
+              "scrollWidth": 1425,
+              "bodyScrollWidth": 1425
+            },
+            "frameworkOverlay": false
+          },
+          "measurements": {
+            "edgeClearances": {
+              "left": 595,
+              "top": 730.295,
+              "right": 660,
+              "bottom": 72.705
+            },
+            "controlSurfaceOverlaps": {
+              "desktopTools": false,
+              "activeLocalPanel": false,
+              "desktopDirectory": false,
+              "inspector": false,
+              "dock": false,
+              "pageFloatingControls": false,
+              "konling": false,
+              "mobileTools": false,
+              "mobilePanel": false
+            },
+            "routeFitsViewport": true,
+            "hitTargetAtLeast44": true,
+            "visibleFocusRing": true
+          }
+        },
+        {
+          "name": "desktop-light-expanded-inspector",
+          "theme": "light",
+          "mode": "2D",
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "screenshotPath": "artifacts/knowledge-graph-node-expansion-894/1440x960-light-2d-desktop-light-expanded-inspector.png",
+          "screenshotSha256": "251f91b8ffe8117fc3f0cb1ed5b6282f268799b2e103e14ba5d0c2f70d998855",
+          "geometry": {
+            "title": "智控深蓝",
+            "url": "http://localhost:3101/knowledge?node=chapter-node%3A%E7%AC%AC%E4%B8%80%E7%AB%A0&qa=knowledge-product",
+            "htmlClass": "light",
+            "controlRect": {
+              "left": 691,
+              "top": 685.0714111328125,
+              "right": 741,
+              "bottom": 729.0714111328125,
+              "width": 50,
+              "height": 44
+            },
+            "canvasRect": {
+              "left": 96,
+              "top": 109,
+              "right": 1401,
+              "bottom": 956,
+              "width": 1305,
+              "height": 847
+            },
+            "surfaces": {
+              "desktopTools": {
+                "left": 112,
+                "top": 125,
+                "right": 650.3203125,
+                "bottom": 209.5,
+                "width": 538.3203125,
+                "height": 84.5
+              },
+              "activeLocalPanel": null,
+              "desktopDirectory": null,
+              "inspector": {
+                "left": 977,
+                "top": 88,
+                "right": 1409,
+                "bottom": 880,
+                "width": 432,
+                "height": 792
+              },
+              "dock": null,
+              "pageFloatingControls": null,
+              "konling": null,
+              "mobileTools": null,
+              "mobilePanel": null
+            },
+            "control": {
+              "state": "expanded",
+              "viewMode": "2D",
+              "anchorNodeId": "chapter-node:第一章",
+              "anchorClamped": "false",
+              "ariaExpanded": "true",
+              "ariaBusy": "false",
+              "ariaDisabled": "false",
+              "activeElement": true,
+              "focusVisible": true,
+              "outlineStyle": "none",
+              "outlineWidth": "1px",
+              "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(255, 255, 255) 0px 0px 0px 2px, rgb(13, 129, 201) 0px 0px 0px 4px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.1) 0px 4px 6px -4px",
+              "offsetWidth": 50,
+              "offsetHeight": 44
+            },
+            "canvas": {
+              "selectedNodeId": "chapter-node:第一章",
+              "expandedNodeCount": 1,
+              "pinnedNodeCount": 0,
+              "pinnedSignature": "",
+              "visibleNodeCount": 6,
+              "visibleLinkCount": 4
+            },
+            "scroll": {
+              "viewportWidth": 1440,
+              "scrollWidth": 1425,
+              "bodyScrollWidth": 1425
+            },
+            "frameworkOverlay": false
+          },
+          "measurements": {
+            "edgeClearances": {
+              "left": 595,
+              "top": 576.071,
+              "right": 660,
+              "bottom": 226.929
+            },
+            "controlSurfaceOverlaps": {
+              "desktopTools": false,
+              "activeLocalPanel": false,
+              "desktopDirectory": false,
+              "inspector": false,
+              "dock": false,
+              "pageFloatingControls": false,
+              "konling": false,
+              "mobileTools": false,
+              "mobilePanel": false
+            },
+            "routeFitsViewport": true,
+            "hitTargetAtLeast44": true,
+            "visibleFocusRing": true
+          }
+        }
+      ],
+      "metrics": {
+        "collapsed": {
+          "passed": true,
+          "failures": [],
+          "anchorClamped": false,
+          "edgeClearances": {
+            "left": 595,
+            "top": 730.295,
+            "right": 660,
+            "bottom": 72.705
+          },
+          "controlSurfaceOverlaps": {
+            "desktopTools": false,
+            "activeLocalPanel": false,
+            "desktopDirectory": false,
+            "inspector": false,
+            "dock": false,
+            "pageFloatingControls": false,
+            "konling": false,
+            "mobileTools": false,
+            "mobilePanel": false
+          },
+          "routeFitsViewport": true,
+          "hitTargetAtLeast44": true,
+          "selectedNodeId": "chapter-node:第一章",
+          "expandedNodeCount": 0,
+          "visibleLinkCount": 0,
+          "ariaExpanded": "false",
+          "controlDistancePixels": 51.539
+        },
+        "expanded": {
+          "passed": true,
+          "failures": [],
+          "anchorClamped": false,
+          "edgeClearances": {
+            "left": 595,
+            "top": 576.071,
+            "right": 660,
+            "bottom": 226.929
+          },
+          "controlSurfaceOverlaps": {
+            "desktopTools": false,
+            "activeLocalPanel": false,
+            "desktopDirectory": false,
+            "inspector": false,
+            "dock": false,
+            "pageFloatingControls": false,
+            "konling": false,
+            "mobileTools": false,
+            "mobilePanel": false
+          },
+          "routeFitsViewport": true,
+          "hitTargetAtLeast44": true,
+          "selectedNodeId": "chapter-node:第一章",
+          "expandedNodeCount": 1,
+          "visibleLinkCount": 4,
+          "ariaExpanded": "true",
+          "controlDistancePixels": 51.539
+        }
+      }
+    },
+    "desktopDark3D": {
+      "status": "passed",
+      "states": [
+        {
+          "name": "desktop-dark-collapsed",
+          "theme": "dark",
+          "mode": "3D",
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "screenshotPath": "artifacts/knowledge-graph-node-expansion-894/1440x960-dark-3d-desktop-dark-collapsed.png",
+          "screenshotSha256": "140a2271ab25ac479b87866dffe51e6be09a76d91a5644e9a66cf8671d0e5fec",
+          "geometry": {
+            "title": "智控深蓝",
+            "url": "http://localhost:3101/knowledge?node=chapter-node%3A%E7%AC%AC%E4%B8%80%E7%AB%A0&qa=knowledge-product",
+            "htmlClass": "dark",
+            "controlRect": {
+              "left": 691,
+              "top": 117,
+              "right": 741,
+              "bottom": 161,
+              "width": 50,
+              "height": 44
+            },
+            "canvasRect": {
+              "left": 96,
+              "top": 109,
+              "right": 1401,
+              "bottom": 956,
+              "width": 1305,
+              "height": 847
+            },
+            "surfaces": {
+              "desktopTools": {
+                "left": 112,
+                "top": 125,
+                "right": 653.546875,
+                "bottom": 209.5,
+                "width": 541.546875,
+                "height": 84.5
+              },
+              "activeLocalPanel": null,
+              "desktopDirectory": null,
+              "inspector": {
+                "left": 977,
+                "top": 88,
+                "right": 1409,
+                "bottom": 880,
+                "width": 432,
+                "height": 792
+              },
+              "dock": null,
+              "pageFloatingControls": null,
+              "konling": null,
+              "mobileTools": null,
+              "mobilePanel": null
+            },
+            "control": {
+              "state": "collapsed",
+              "viewMode": "3D",
+              "anchorNodeId": "chapter-node:第一章",
+              "anchorClamped": "false",
+              "ariaExpanded": "false",
+              "ariaBusy": "false",
+              "ariaDisabled": "false",
+              "activeElement": false,
+              "focusVisible": false,
+              "outlineStyle": "none",
+              "outlineWidth": "1.5px",
+              "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.1) 0px 4px 6px -4px",
+              "offsetWidth": 50,
+              "offsetHeight": 44
+            },
+            "canvas": {
+              "selectedNodeId": "chapter-node:第一章",
+              "expandedNodeCount": 0,
+              "pinnedNodeCount": 0,
+              "pinnedSignature": "",
+              "visibleNodeCount": 2,
+              "visibleLinkCount": 0
+            },
+            "scroll": {
+              "viewportWidth": 1440,
+              "scrollWidth": 1425,
+              "bodyScrollWidth": 1425
+            },
+            "frameworkOverlay": false
+          },
+          "measurements": {
+            "edgeClearances": {
+              "left": 595,
+              "top": 8,
+              "right": 660,
+              "bottom": 795
+            },
+            "controlSurfaceOverlaps": {
+              "desktopTools": false,
+              "activeLocalPanel": false,
+              "desktopDirectory": false,
+              "inspector": false,
+              "dock": false,
+              "pageFloatingControls": false,
+              "konling": false,
+              "mobileTools": false,
+              "mobilePanel": false
+            },
+            "routeFitsViewport": true,
+            "hitTargetAtLeast44": true,
+            "visibleFocusRing": false
+          }
+        },
+        {
+          "name": "desktop-dark-expanded",
+          "theme": "dark",
+          "mode": "3D",
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "screenshotPath": "artifacts/knowledge-graph-node-expansion-894/1440x960-dark-3d-desktop-dark-expanded.png",
+          "screenshotSha256": "2e893338752e52e36dcd24aacefca4c63f8bff2644e652fdb7dacc759048e76a",
+          "geometry": {
+            "title": "智控深蓝",
+            "url": "http://localhost:3101/knowledge?node=chapter-node%3A%E7%AC%AC%E4%B8%80%E7%AB%A0&qa=knowledge-product",
+            "htmlClass": "dark",
+            "controlRect": {
+              "left": 691,
+              "top": 117,
+              "right": 741,
+              "bottom": 161,
+              "width": 50,
+              "height": 44
+            },
+            "canvasRect": {
+              "left": 96,
+              "top": 109,
+              "right": 1401,
+              "bottom": 956,
+              "width": 1305,
+              "height": 847
+            },
+            "surfaces": {
+              "desktopTools": {
+                "left": 112,
+                "top": 125,
+                "right": 650.5546875,
+                "bottom": 209.5,
+                "width": 538.5546875,
+                "height": 84.5
+              },
+              "activeLocalPanel": null,
+              "desktopDirectory": null,
+              "inspector": {
+                "left": 977,
+                "top": 88,
+                "right": 1409,
+                "bottom": 880,
+                "width": 432,
+                "height": 792
+              },
+              "dock": null,
+              "pageFloatingControls": null,
+              "konling": null,
+              "mobileTools": null,
+              "mobilePanel": null
+            },
+            "control": {
+              "state": "expanded",
+              "viewMode": "3D",
+              "anchorNodeId": "chapter-node:第一章",
+              "anchorClamped": "true",
+              "ariaExpanded": "true",
+              "ariaBusy": "false",
+              "ariaDisabled": "false",
+              "activeElement": true,
+              "focusVisible": true,
+              "outlineStyle": "none",
+              "outlineWidth": "1px",
+              "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(255, 255, 255) 0px 0px 0px 2px, rgb(51, 186, 235) 0px 0px 0px 4px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.1) 0px 4px 6px -4px",
+              "offsetWidth": 50,
+              "offsetHeight": 44
+            },
+            "canvas": {
+              "selectedNodeId": "chapter-node:第一章",
+              "expandedNodeCount": 1,
+              "pinnedNodeCount": 0,
+              "pinnedSignature": "",
+              "visibleNodeCount": 6,
+              "visibleLinkCount": 4
+            },
+            "scroll": {
+              "viewportWidth": 1440,
+              "scrollWidth": 1425,
+              "bodyScrollWidth": 1425
+            },
+            "frameworkOverlay": false
+          },
+          "measurements": {
+            "edgeClearances": {
+              "left": 595,
+              "top": 8,
+              "right": 660,
+              "bottom": 795
+            },
+            "controlSurfaceOverlaps": {
+              "desktopTools": false,
+              "activeLocalPanel": false,
+              "desktopDirectory": false,
+              "inspector": false,
+              "dock": false,
+              "pageFloatingControls": false,
+              "konling": false,
+              "mobileTools": false,
+              "mobilePanel": false
+            },
+            "routeFitsViewport": true,
+            "hitTargetAtLeast44": true,
+            "visibleFocusRing": true
+          }
+        },
+        {
+          "name": "desktop-dark-expanded-orbit",
+          "theme": "dark",
+          "mode": "3D",
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "screenshotPath": "artifacts/knowledge-graph-node-expansion-894/1440x960-dark-3d-desktop-dark-expanded-orbit.png",
+          "screenshotSha256": "f2b2fee76c6881d1ca3668bb5712fe84c4ca09bf386595d7494f5b3eb17e6ed9",
+          "geometry": {
+            "title": "智控深蓝",
+            "url": "http://localhost:3101/knowledge?node=chapter-node%3A%E7%AC%AC%E4%B8%80%E7%AB%A0&qa=knowledge-product",
+            "htmlClass": "dark",
+            "controlRect": {
+              "left": 691,
+              "top": 322.59698486328125,
+              "right": 741,
+              "bottom": 366.59698486328125,
+              "width": 50,
+              "height": 44
+            },
+            "canvasRect": {
+              "left": 96,
+              "top": 109,
+              "right": 1401,
+              "bottom": 956,
+              "width": 1305,
+              "height": 847
+            },
+            "surfaces": {
+              "desktopTools": {
+                "left": 112,
+                "top": 125,
+                "right": 650.5546875,
+                "bottom": 209.5,
+                "width": 538.5546875,
+                "height": 84.5
+              },
+              "activeLocalPanel": null,
+              "desktopDirectory": null,
+              "inspector": {
+                "left": 977,
+                "top": 88,
+                "right": 1409,
+                "bottom": 880,
+                "width": 432,
+                "height": 792
+              },
+              "dock": null,
+              "pageFloatingControls": null,
+              "konling": null,
+              "mobileTools": null,
+              "mobilePanel": null
+            },
+            "control": {
+              "state": "expanded",
+              "viewMode": "3D",
+              "anchorNodeId": "chapter-node:第一章",
+              "anchorClamped": "false",
+              "ariaExpanded": "true",
+              "ariaBusy": "false",
+              "ariaDisabled": "false",
+              "activeElement": false,
+              "focusVisible": false,
+              "outlineStyle": "none",
+              "outlineWidth": "1.5px",
+              "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.1) 0px 4px 6px -4px",
+              "offsetWidth": 50,
+              "offsetHeight": 44
+            },
+            "canvas": {
+              "selectedNodeId": "chapter-node:第一章",
+              "expandedNodeCount": 1,
+              "pinnedNodeCount": 0,
+              "pinnedSignature": "",
+              "visibleNodeCount": 6,
+              "visibleLinkCount": 4
+            },
+            "scroll": {
+              "viewportWidth": 1440,
+              "scrollWidth": 1425,
+              "bodyScrollWidth": 1425
+            },
+            "frameworkOverlay": false
+          },
+          "measurements": {
+            "edgeClearances": {
+              "left": 595,
+              "top": 213.597,
+              "right": 660,
+              "bottom": 589.403
+            },
+            "controlSurfaceOverlaps": {
+              "desktopTools": false,
+              "activeLocalPanel": false,
+              "desktopDirectory": false,
+              "inspector": false,
+              "dock": false,
+              "pageFloatingControls": false,
+              "konling": false,
+              "mobileTools": false,
+              "mobilePanel": false
+            },
+            "routeFitsViewport": true,
+            "hitTargetAtLeast44": true,
+            "visibleFocusRing": false
+          }
+        }
+      ],
+      "metrics": {
+        "collapsed": {
+          "passed": true,
+          "failures": [],
+          "anchorClamped": false,
+          "edgeClearances": {
+            "left": 595,
+            "top": 8,
+            "right": 660,
+            "bottom": 795
+          },
+          "controlSurfaceOverlaps": {
+            "desktopTools": false,
+            "activeLocalPanel": false,
+            "desktopDirectory": false,
+            "inspector": false,
+            "dock": false,
+            "pageFloatingControls": false,
+            "konling": false,
+            "mobileTools": false,
+            "mobilePanel": false
+          },
+          "routeFitsViewport": true,
+          "hitTargetAtLeast44": true,
+          "selectedNodeId": "chapter-node:第一章",
+          "expandedNodeCount": 0,
+          "visibleLinkCount": 0,
+          "ariaExpanded": "false",
+          "modeSwitchContinuity": true,
+          "before3D": {
+            "selectedNodeId": "chapter-node:第一章",
+            "expandedNodeCount": "0",
+            "pinnedSignature": "",
+            "viewMode": "2D",
+            "ariaExpanded": "false",
+            "controlState": "collapsed"
+          },
+          "after3D": {
+            "selectedNodeId": "chapter-node:第一章",
+            "expandedNodeCount": "0",
+            "pinnedSignature": "",
+            "viewMode": "3D",
+            "ariaExpanded": "false",
+            "controlState": "collapsed"
+          },
+          "controlDistancePolicy": "3d-exact-node-vector-unverified"
+        },
+        "expanded": {
+          "passed": true,
+          "failures": [],
+          "anchorClamped": true,
+          "edgeClearances": {
+            "left": 595,
+            "top": 8,
+            "right": 660,
+            "bottom": 795
+          },
+          "controlSurfaceOverlaps": {
+            "desktopTools": false,
+            "activeLocalPanel": false,
+            "desktopDirectory": false,
+            "inspector": false,
+            "dock": false,
+            "pageFloatingControls": false,
+            "konling": false,
+            "mobileTools": false,
+            "mobilePanel": false
+          },
+          "routeFitsViewport": true,
+          "hitTargetAtLeast44": true,
+          "selectedNodeId": "chapter-node:第一章",
+          "expandedNodeCount": 1,
+          "visibleLinkCount": 4,
+          "ariaExpanded": "true",
+          "continuity": {
+            "selectedNodeId": "chapter-node:第一章",
+            "expandedNodeCount": "1",
+            "pinnedSignature": "",
+            "viewMode": "3D",
+            "ariaExpanded": "true",
+            "controlState": "expanded"
+          },
+          "controlDistancePolicy": "clamped"
+        },
+        "orbit": {
+          "passed": true,
+          "failures": [],
+          "anchorClamped": false,
+          "edgeClearances": {
+            "left": 595,
+            "top": 213.597,
+            "right": 660,
+            "bottom": 589.403
+          },
+          "controlSurfaceOverlaps": {
+            "desktopTools": false,
+            "activeLocalPanel": false,
+            "desktopDirectory": false,
+            "inspector": false,
+            "dock": false,
+            "pageFloatingControls": false,
+            "konling": false,
+            "mobileTools": false,
+            "mobilePanel": false
+          },
+          "routeFitsViewport": true,
+          "hitTargetAtLeast44": true,
+          "selectedNodeId": "chapter-node:第一章",
+          "expandedNodeCount": 1,
+          "visibleLinkCount": 4,
+          "ariaExpanded": "true",
+          "probeNodeId": "chapter-node:第一章",
+          "controlCenterBefore": {
+            "x": 708.5,
+            "y": 329.024
+          },
+          "controlCenterAfter": {
+            "x": 708.5,
+            "y": 344.597
+          },
+          "controlMovementPixels": 15.573,
+          "controlFollowedOrbit": true,
+          "expandedModeSwitchContinuity": true,
+          "expandedContinuity": {
+            "selectedNodeId": "chapter-node:第一章",
+            "expandedNodeCount": "1",
+            "pinnedSignature": "",
+            "viewMode": "3D",
+            "ariaExpanded": "true",
+            "controlState": "expanded"
+          },
+          "expanded2D": {
+            "selectedNodeId": "chapter-node:第一章",
+            "expandedNodeCount": "1",
+            "pinnedSignature": "",
+            "viewMode": "2D",
+            "ariaExpanded": "true",
+            "controlState": "expanded"
+          },
+          "expanded3DAgain": {
+            "selectedNodeId": "chapter-node:第一章",
+            "expandedNodeCount": "1",
+            "pinnedSignature": "",
+            "viewMode": "3D",
+            "ariaExpanded": "true",
+            "controlState": "expanded"
+          },
+          "exactCameraVector": "unverified-no-existing-page-read-hook"
+        }
+      }
+    }
+  },
+  "unverified": [
+    "Exact 3D camera and OrbitControls target vectors are not exposed by an existing page read hook."
+  ],
+  "completedAt": "2026-07-10T11:23:30.039Z"
+}

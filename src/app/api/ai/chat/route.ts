@@ -35,6 +35,7 @@ import {
   getOrCreateKonlingAgentSession,
   KonlingRuntimeScopeError,
   normalizeKonlingKnowledgeWorkspaceHint,
+  serializeKonlingCitationMetadata,
   verifyKonlingRuntimeScope,
 } from '@/lib/konling-agent-runtime';
 import { AIProviderCapabilityUnavailableError } from '@/lib/ai/provider-settings';
@@ -105,21 +106,8 @@ function buildCitationGuardMetadataPayload(
     personalizationAvailability: citationGuardMetadata.personalizationAvailability,
     missingContext,
     retrievalSources: buildKonlingCitationRetrievalSources(citationGuardMetadata),
-    citations: citationGuardMetadata.citations.map((citation) => ({
-      id: citation.id,
-      sourceType: citation.sourceType,
-      displayTitle: citation.displayTitle,
-      href: citation.href,
-      confidence: citation.confidence,
-      evidenceBasis: citation.evidenceBasis,
-      citationChip: jsonSafe(citation.citationChip),
-    })),
+    citations: citationGuardMetadata.citations.map(serializeKonlingCitationMetadata),
   };
-}
-
-function jsonSafe(value: unknown): unknown | null {
-  if (value === undefined) return null;
-  return JSON.parse(JSON.stringify(value)) as unknown;
 }
 
 export async function POST(request: Request) {

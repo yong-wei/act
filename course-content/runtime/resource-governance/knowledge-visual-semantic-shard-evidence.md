@@ -13,8 +13,8 @@ Remaining selected semantic review blockers: 0
 
 ## Residual Unselected Counts
 
-- knowledge-card: 277
-- knowledge-infograph: 159
+- knowledge-card: 18
+- knowledge-infograph: 0
 
 ## Evidence Files
 

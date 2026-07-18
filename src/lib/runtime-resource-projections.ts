@@ -18,6 +18,7 @@ import {
   type RuntimeResourceProjectionResourceType,
   type RuntimeResourceProjectionEvidenceContract,
   type RuntimeResourceProjectionInput,
+  type RuntimeResourceProjectionSemanticEvidence,
   type RuntimeResourceProjectionLevel,
   type RuntimeResourceProjectionReviewAudit,
   type RuntimeResourceProjectionReviewStatus,
@@ -31,20 +32,30 @@ export type RuntimeResourceProjectionFamily =
   | 'runtime-lesson-media'
   | 'runtime-handout'
   | 'knowledge-card'
-  | 'knowledge-infograph';
+  | 'knowledge-infograph'
+  | 'textbook'
+  | 'textbook-section'
+  | 'textbook-search-document'
+  | 'authoring-textbook-chapter'
+  | 'authoring-textbook-section'
+  | 'authoring-textbook-figure'
+  | 'authoring-textbook-caption';
 
 export interface RuntimeResourceProjectionArtifactRow extends RuntimeResourceProjectionInput {
   artifactVersion: typeof RUNTIME_RESOURCE_PROJECTION_ARTIFACT_VERSION;
   family: RuntimeResourceProjectionFamily;
-  evidenceContract: RuntimeResourceProjectionEvidenceContract;
+  evidenceContract: RuntimeResourceProjectionEvidenceContract | null;
   reviewAudit: RuntimeResourceProjectionReviewAudit;
   segmentRefs: string[];
   citationTargets: string[];
+  lifecycleScope?: 'audit-only';
   retrievalChunk: {
     id: string;
     pathEligible: false;
     reason: 'resource-node-planning-audit-required';
-  };
+  } | null;
+  reviewConcluded?: boolean;
+  semanticConfirmed?: boolean;
   pathEligibility: {
     current: boolean;
     afterCompletion: boolean;
@@ -66,6 +77,9 @@ export interface RuntimeResourceProjectionLimitations {
     registryPathEligible: number;
     planningUnitEligible: number;
     humanConfirmed: number;
+    agentReviewed: number;
+    reviewConcluded: number;
+    semanticReviewed: number;
     provisional: number;
     stale: number;
   };
@@ -83,6 +97,7 @@ export interface RuntimeResourceProjectionArtifacts {
 export function buildRuntimeResourceProjectionArtifacts(input: {
   auditRows: readonly ResourceFieldCompletionAuditRow[];
   generatedAt?: string;
+  runtimeSemanticEvidenceById?: ReadonlyMap<string, RuntimeResourceProjectionSemanticEvidence>;
 }): RuntimeResourceProjectionArtifacts {
   const generatedAt = input.generatedAt ?? new Date().toISOString();
   const versionRefs = buildKaqArtifactVersionRefs({
@@ -93,7 +108,11 @@ export function buildRuntimeResourceProjectionArtifacts(input: {
     .filter((row): row is ResourceFieldCompletionAuditRow & { family: RuntimeResourceProjectionFamily } =>
       isRuntimeProjectionFamily(row.family)
     )
-    .map((row) => rowToRuntimeProjection(row, versionRefs))
+    .map((row) => rowToRuntimeProjection(
+      row,
+      versionRefs,
+      input.runtimeSemanticEvidenceById?.get(row.resourceId),
+    ))
     .sort((left, right) => left.id.localeCompare(right.id));
 
   return {
@@ -105,21 +124,28 @@ export function buildRuntimeResourceProjectionArtifacts(input: {
 function rowToRuntimeProjection(
   row: ResourceFieldCompletionAuditRow & { family: RuntimeResourceProjectionFamily },
   versionRefs: KaqArtifactVersionRefs,
+  runtimeSemanticEvidence?: RuntimeResourceProjectionSemanticEvidence,
 ): RuntimeResourceProjectionArtifactRow {
   const projectionLevel = projectionLevelForRow(row);
   const resourceNodeId = resourceNodeIdForRow(row);
   const sourceKind = sourceKindForFamily(row.family);
   const reviewStatus = runtimeReviewStatus(row.reviewStatus);
+  const sourceHash = row.sourceHash ?? runtimeSemanticEvidence?.sourceFileHash ?? null;
   const reviewAudit: RuntimeResourceProjectionReviewAudit = {
     ...row.reviewAudit,
+    reviewedSourceHash: row.reviewAudit.reviewedSourceHash ?? sourceHash,
     status: reviewStatus,
   };
-  const evidenceContract: RuntimeResourceProjectionEvidenceContract = row.evidenceContract;
+  const strictLongformAuditOnly = isAuthoringTextbookFamily(row.family) ||
+    (reviewStatus === 'agent-reviewed' && isLongformFamily(row.family));
+  const evidenceContract: RuntimeResourceProjectionEvidenceContract | null = strictLongformAuditOnly
+    ? null
+    : row.evidenceContract;
 
   return {
     artifactVersion: RUNTIME_RESOURCE_PROJECTION_ARTIFACT_VERSION,
     id: row.resourceId,
-    resourceNodeId,
+    resourceNodeId: strictLongformAuditOnly ? null : resourceNodeId,
     title: row.title,
     family: row.family,
     resourceType: resourceTypeForRow(row),
@@ -127,30 +153,45 @@ function rowToRuntimeProjection(
     sourceRef: row.sourceRecord ?? row.resourceId,
     sourcePathOrUrl: row.sourcePathOrUrl,
     sourceRecord: row.sourceRecord,
-    sourceHash: row.sourceHash,
+    sourceHash,
     sourceVersionRef: row.sourceVersionRef,
     projectionLevel,
-    routeTarget: projectionLevel === 'ResourceNode' || projectionLevel === 'PlanningUnit'
+    routeTarget: !strictLongformAuditOnly && (projectionLevel === 'ResourceNode' || projectionLevel === 'PlanningUnit')
       ? row.pathTarget
       : null,
-    renderTarget: renderTargetForRow(row),
-    graphNodeRefs: normalizeGraphNodeRefs(row.graphNodeRefs),
-    estimatedTimeMinutes: row.estimatedTimeMinutes,
-    evidenceInstrumentation: evidenceInstrumentationFromContract(row.evidenceContract, row.family),
-    privacyScope: privacyScopeFromContract(row.evidenceContract),
-    teacherPolicy: 'allowed',
+    renderTarget: strictLongformAuditOnly ? null : renderTargetForRow(row),
+    graphNodeRefs: strictLongformAuditOnly ? { knowledge: [], capability: [], quality: [] } : normalizeGraphNodeRefs(row.graphNodeRefs),
+    estimatedTimeMinutes: strictLongformAuditOnly ? null : row.estimatedTimeMinutes,
+    evidenceInstrumentation: strictLongformAuditOnly ? [] : evidenceInstrumentationFromContract(row.evidenceContract, row.family),
+    privacyScope: strictLongformAuditOnly ? 'teacher-scoped' : privacyScopeFromContract(row.evidenceContract),
+    teacherPolicy: strictLongformAuditOnly ? 'teacher-only' : 'allowed',
     evidenceContract,
     reviewAudit,
-    readiness: row.readiness,
+    ...(strictLongformAuditOnly ? {
+      lifecycleScope: 'audit-only' as const,
+      reviewConcluded: row.reviewConcluded,
+      semanticConfirmed: row.semanticConfirmed,
+    } : {}),
+    readiness: strictLongformAuditOnly ? null : row.readiness,
     segmentRefs: segmentRefsForRow(row),
-    citationTargets: row.citationTargets,
-    retrievalChunk: {
+    citationTargets: strictLongformAuditOnly ? [] : row.citationTargets,
+    ...(runtimeSemanticEvidence ? { runtimeSemanticEvidence } : {}),
+    retrievalChunk: strictLongformAuditOnly ? null : {
       id: `retrieval-chunk:${row.resourceId}:primary`,
       pathEligible: false,
       reason: 'resource-node-planning-audit-required',
     },
-    pathEligibility: row.pathEligibility,
-    groundingEligibility: row.groundingEligibility,
+    pathEligibility: strictLongformAuditOnly
+      ? { current: false, afterCompletion: false, masteryAffecting: false, blockedBy: row.pathEligibility.blockedBy }
+      : row.pathEligibility,
+    groundingEligibility: strictLongformAuditOnly
+      ? { retrievalReady: false, citationReady: false, authoringTriageReady: row.groundingEligibility.authoringTriageReady }
+      : runtimeSemanticEvidence?.assetStatus === 'missing-local-runtime-asset'
+      ? {
+          ...row.groundingEligibility,
+          citationReady: false,
+        }
+      : row.groundingEligibility,
     versionRefs,
   };
 }
@@ -168,7 +209,7 @@ function summarizeRuntimeProjectionRows(
   ) as Record<RuntimeResourceProjectionLevel, number>;
   const blockingCodes = uniqueSorted(rows.flatMap((row) => row.pathEligibility.blockedBy));
   const limitations = uniqueSorted(rows
-    .filter((row) => row.pathEligibility.blockedBy.length > 0 || row.reviewAudit.status !== 'human-confirmed')
+    .filter((row) => row.pathEligibility.blockedBy.length > 0 || !isSemanticReviewFresh(row.reviewAudit.status))
     .slice(0, 25)
     .map((row) => `${row.id}: ${row.pathEligibility.blockedBy.join(', ') || row.reviewAudit.status}`));
 
@@ -179,12 +220,16 @@ function summarizeRuntimeProjectionRows(
     totals: {
       rows: rows.length,
       resourceNodeCandidates: rows.filter((row) =>
-        row.projectionLevel === 'ResourceNode' || row.projectionLevel === 'PlanningUnit'
+        row.lifecycleScope !== 'audit-only' &&
+        (row.projectionLevel === 'ResourceNode' || row.projectionLevel === 'PlanningUnit')
       ).length,
       segmentOnly: rows.filter((row) => row.projectionLevel === 'ResourceSegment').length,
       registryPathEligible: rows.filter((row) => row.pathEligibility.current).length,
       planningUnitEligible: rows.filter((row) => row.projectionLevel === 'PlanningUnit').length,
       humanConfirmed: rows.filter((row) => row.reviewAudit.status === 'human-confirmed').length,
+      agentReviewed: rows.filter((row) => row.reviewAudit.status === 'agent-reviewed').length,
+      reviewConcluded: rows.filter((row) => row.reviewConcluded).length,
+      semanticReviewed: rows.filter((row) => row.semanticConfirmed).length,
       provisional: rows.filter((row) => row.reviewAudit.status.includes('provisional')).length,
       stale: rows.filter((row) => isStaleProjection(row)).length,
     },
@@ -202,6 +247,13 @@ const RUNTIME_PROJECTION_FAMILIES: RuntimeResourceProjectionFamily[] = [
   'runtime-handout',
   'knowledge-card',
   'knowledge-infograph',
+  'textbook',
+  'textbook-section',
+  'textbook-search-document',
+  'authoring-textbook-chapter',
+  'authoring-textbook-section',
+  'authoring-textbook-figure',
+  'authoring-textbook-caption',
 ];
 
 const RUNTIME_PROJECTION_LEVELS: RuntimeResourceProjectionLevel[] = [
@@ -217,13 +269,15 @@ function isRuntimeProjectionFamily(family: ResourceFieldCompletionFamily): famil
 }
 
 function projectionLevelForRow(row: ResourceFieldCompletionAuditRow): RuntimeResourceProjectionLevel {
+  if (row.reviewStatus === 'model-cleared') return 'ResourceSegment';
   if (row.pathEligibility.current && row.pathEligibility.masteryAffecting) return 'PlanningUnit';
   if (row.family === 'runtime-lesson-step') return 'ResourceNode';
-  if (row.family === 'knowledge-card' && row.reviewStatus === 'human-confirmed') return 'ResourceNode';
+  if (row.family === 'knowledge-card' && isHumanPathAuthorized(row.reviewStatus)) return 'ResourceNode';
   return 'ResourceSegment';
 }
 
 function resourceNodeIdForRow(row: ResourceFieldCompletionAuditRow): string | null {
+  if (row.family === 'textbook' || row.family === 'textbook-section') return row.resourceId;
   if (row.family === 'runtime-lesson-step' && row.resourceId.startsWith('runtime-step:')) {
     return row.resourceId.replace(/^runtime-step:/, 'lesson-step:');
   }
@@ -246,6 +300,11 @@ function sourceKindForFamily(family: RuntimeResourceProjectionFamily): ResourceN
   if (family === 'runtime-lesson-step' || family === 'runtime-lesson-module') return 'runtime_lesson_step';
   if (family === 'runtime-lesson-media') return 'runtime_lesson_media';
   if (family === 'runtime-handout') return 'runtime_handout';
+  if (family === 'textbook') return 'textbook';
+  if (family === 'authoring-textbook-figure') return 'media_source_manifest';
+  if (family === 'textbook-section' || family === 'textbook-search-document' || family.startsWith('authoring-textbook-')) {
+    return 'textbook_section';
+  }
   return 'knowledge_graph';
 }
 
@@ -255,6 +314,11 @@ function resourceTypeForRow(row: ResourceFieldCompletionAuditRow): RuntimeResour
   if (row.family === 'knowledge-infograph') return 'image';
   if (row.family === 'runtime-lesson-media') return inferRuntimeMediaProjectionType(row);
   if (row.family === 'runtime-handout') return 'handout';
+  if (row.family === 'textbook') return 'textbook';
+  if (row.family === 'authoring-textbook-figure') return 'image';
+  if (row.family === 'textbook-section' || row.family === 'textbook-search-document' || row.family.startsWith('authoring-textbook-')) {
+    return 'textbook_section';
+  }
   return 'lesson_step';
 }
 
@@ -285,6 +349,10 @@ function segmentRefsForRow(row: ResourceFieldCompletionAuditRow): string[] {
   if (row.family === 'runtime-lesson-module') return [row.resourceId.replace(/^runtime-module:/, '')];
   if (row.family === 'runtime-lesson-media') return [row.resourceId.replace(/^runtime-media:/, '')];
   if (row.family === 'runtime-handout') return [row.resourceId.replace(/^runtime-handout:/, '')];
+  if (row.family === 'textbook-search-document') return [row.resourceId.replace(/^textbook-search-document:/, '')];
+  if (row.family === 'textbook' || row.family === 'textbook-section' || row.family.startsWith('authoring-textbook-')) {
+    return [row.sourceRecord ?? row.resourceId];
+  }
   return [row.sourceRecord ?? row.resourceId];
 }
 
@@ -292,6 +360,9 @@ function evidenceInstrumentationFromContract(
   contract: RuntimeResourceProjectionEvidenceContract,
   family: RuntimeResourceProjectionFamily,
 ): string[] {
+  if (family === 'textbook' || family === 'textbook-section' || family === 'textbook-search-document' || family.startsWith('authoring-textbook-')) {
+    return [];
+  }
   if (!contract.eventType) return [];
   if (family === 'knowledge-card') return ['knowledge_card_open'];
   if (family === 'runtime-handout') return ['runtime_handout_open'];
@@ -319,9 +390,28 @@ function normalizeGraphNodeRefs(refs: ResourceGraphNodeRefs): ResourceGraphNodeR
 }
 
 function isStaleProjection(row: RuntimeResourceProjectionArtifactRow): boolean {
-  return row.reviewAudit.status === 'human-confirmed' &&
+  return (isSemanticReviewFresh(row.reviewAudit.status) || row.reviewAudit.status === 'model-cleared') &&
     (!reviewedSourceMatchesProjection(row) ||
       row.reviewAudit.reviewedVersionRef !== row.sourceVersionRef);
+}
+
+function isSemanticReviewFresh(status: RuntimeResourceProjectionReviewStatus): boolean {
+  return status === 'human-confirmed' || status === 'agent-reviewed';
+}
+
+function isHumanPathAuthorized(status: RuntimeResourceProjectionReviewStatus): boolean {
+  return status === 'human-confirmed';
+}
+
+function isLongformFamily(family: RuntimeResourceProjectionFamily): boolean {
+  return family === 'textbook' ||
+    family === 'textbook-section' ||
+    family === 'textbook-search-document' ||
+    family.startsWith('authoring-textbook-');
+}
+
+function isAuthoringTextbookFamily(family: RuntimeResourceProjectionFamily): boolean {
+  return family.startsWith('authoring-textbook-');
 }
 
 function reviewedSourceMatchesProjection(row: RuntimeResourceProjectionArtifactRow): boolean {

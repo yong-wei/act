@@ -21,6 +21,7 @@ import {
   type AdaptiveLearnerStatePrivacyScope,
   type AdaptiveLearnerStateRole,
 } from '@/lib/data-governance/adaptive-learner-state-service';
+import { summarizePortraitV2 } from '@/lib/data-governance/portrait-v2-consumer';
 import { persistSimulationAgentEvidenceMaterialization } from '@/lib/data-governance/simulation-agent-evidence-materialization';
 import {
   CONTROL_CORRECTION_PATH_ROUND_GOAL_ID,
@@ -28,6 +29,7 @@ import {
   recordPathChoiceEvidence,
   recordPathIntervention,
 } from '@/lib/control-correction-path-rounds';
+import { loadAllLessonRuntimeResourceCatalogEntries } from '@/lib/course-runtime';
 import {
   loadAllTextbookRuntimeResourceCatalogEntries,
   loadAllTextbookRuntimeSearchDocuments,
@@ -62,12 +64,18 @@ import { getLearningGoalResourceBaselineForPlanner } from '@/lib/learning-goal-r
 import { getLearningGoalAssessmentCoverageForPlanner } from '@/lib/learning-goal-assessment-coverage-runtime';
 import type { GraphCenterClassOverlayInput } from '@/lib/data-governance/graph-center';
 import {
-  applyCoreResourcePathReadinessDispositions,
-  buildResourceNodeRegistry,
   type ResourceNode,
   type ResourceNodeRegistry,
 } from '@/lib/resource-node-registry';
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
+import {
+  buildResourceCandidatePoolDiagnostics,
+  buildResourceNodeRegistryFromTeachingResources,
+  loadRuntimeResourceProjectionInputs,
+  toTextbookSectionNodeInputs,
+  type ResourceCandidatePoolDiagnostics,
+  type ResourceCandidatePoolSourceStatus,
+} from '@/lib/teacher-resource-node-data';
 import { buildFrequencyResponseFoundationsResourceSeedInput } from '@/lib/frequency-response-resource-seed';
 import { expandLearningGoalSubgraph } from '@/lib/graphs/goal-subgraph-expansion-service';
 import type { PageContext, UserProfile, AbilityVector } from '@/types/ai-context';
@@ -1286,10 +1294,18 @@ export interface KonlingCitation {
   sourceType: 'content' | 'learner-state' | 'path-execution' | 'simulation' | 'arena' | 'intervention' | 'memory';
   displayTitle: string;
   href: string | null;
+  displayHref?: string | null;
+  canonicalHref?: string | null;
   confidence: 'none' | 'low' | 'medium' | 'high';
   evidenceBasis: string;
   owner: 'answer' | 'recommendation' | 'intervention' | 'report-explanation';
   citationChip?: LearningEvidenceCitationChipPayload;
+  citationTargetId?: string | null;
+  retrievalChunkId?: string | null;
+  answerRelevanceBasis?: string | null;
+  answerRelevanceMatch?: string | null;
+  answerRelevanceQueryHash?: string | null;
+  omittedCitationReason?: string | null;
 }
 
 export interface KonlingCitationContext {
@@ -1334,13 +1350,32 @@ export interface KonlingCitationGuard {
 }
 
 export function buildKonlingCitationRetrievalSources(guard: KonlingCitationGuard) {
-  return guard.citations.map((citation) => ({
+  return guard.citations.map(serializeKonlingCitationMetadata);
+}
+
+export function serializeKonlingCitationMetadata(citation: KonlingCitation) {
+  return {
     sourceType: citation.sourceType,
     displayTitle: citation.displayTitle,
     href: citation.href,
+    displayHref: citation.displayHref ?? citation.citationChip?.displayHref ?? null,
+    canonicalHref: citation.canonicalHref ?? citation.href,
     confidence: citation.confidence,
     evidenceBasis: citation.evidenceBasis,
-  }));
+    id: citation.id,
+    citationTargetId: citation.citationTargetId ?? null,
+    retrievalChunkId: citation.retrievalChunkId ?? null,
+    answerRelevanceBasis: citation.answerRelevanceBasis ?? null,
+    answerRelevanceMatch: citation.answerRelevanceMatch ?? null,
+    answerRelevanceQueryHash: citation.answerRelevanceQueryHash ?? null,
+    omittedCitationReason: citation.omittedCitationReason ?? null,
+    citationChip: jsonSafe(citation.citationChip),
+  };
+}
+
+function jsonSafe(value: unknown): unknown | null {
+  if (value === undefined) return null;
+  return JSON.parse(JSON.stringify(value)) as unknown;
 }
 
 export interface KonlingMemoryView {
@@ -1909,6 +1944,7 @@ async function buildKonlingRuntimeClassOverlayInput(
       role: input.scope.role,
       classId: input.scope.classId,
       goal: input.learnerStateGoal,
+      portraitConsumer: 'konling',
       clientHints: input.pageContextHint ? { pageContext: input.pageContextHint } : undefined,
       now: input.now,
     }).catch(() => null);
@@ -1979,6 +2015,7 @@ export async function buildKonlingRuntimeContext(
         role: scope.role,
         classId: scope.classId,
         goal: learnerStateGoal,
+        portraitConsumer: 'konling',
         clientHints: input.pageContextHint ? { pageContext: input.pageContextHint } : undefined,
         now: input.now,
       }).catch(() => null)
@@ -2287,7 +2324,7 @@ async function buildAdaptivePathToolOutput(
   if (!registeredGoal) {
     throw new KonlingRuntimeScopeError(404, '当前页面目标没有可生成的学习路径。');
   }
-  const registry = await resolveAdaptivePathGenerationRegistry(goalId);
+  const { registry, diagnostics: candidatePoolDiagnostics } = await resolveAdaptivePathGenerationRegistry(input, goalId);
   const timeBudget = resolveAdaptivePathTimeBudget(registeredGoal, args.timeBudgetMinutes);
   const resourcePreferences = normalizeAdaptivePathResourcePreferences(args.resourcePreference)
     ?? registeredGoal.starterPathPolicy.preferredResourceTypes;
@@ -2315,6 +2352,7 @@ async function buildAdaptivePathToolOutput(
     allowExternalResources: args.allowExternalResources ?? registeredGoal.starterPathPolicy.allowExternalResources,
     sourcePackCandidates: sourcePackInput.items,
     sourcePackLimitations: sourcePackInput.limitations,
+    candidatePoolDiagnostics,
     sourcePackRole: 'student',
     ...plannerRevisionPreference,
     excludedNodeIds: args.excludedNodeIds,
@@ -2335,8 +2373,17 @@ async function buildAdaptivePathToolOutput(
     excludedNodeIds: args.excludedNodeIds ?? [],
     preferredStyleId: args.preferredStyleId ?? null,
     requestedAt: args.requestedAt ?? null,
+    candidatePoolDiagnostics,
   });
   const hasPersistablePath = plan.mainPath.length > 0;
+  const candidatePoolLimitationCodes = candidatePoolDiagnostics.sourceFamilies
+    .map((source) => source.reason)
+    .filter((reason): reason is string => Boolean(reason));
+  const candidatePoolLimited = candidatePoolLimitationCodes.length > 0;
+  const candidatePoolStatus = {
+    limited: candidatePoolLimited,
+    limitationCodes: candidatePoolLimitationCodes,
+  };
   if (hasPersistablePath) {
     await persistLearningPathRound(input.db as any, {
       plan,
@@ -2346,7 +2393,14 @@ async function buildAdaptivePathToolOutput(
         source: 'konling-tool',
         operation,
         toolScope,
+        candidatePoolLimited,
+        candidatePoolLimitationCodes,
         request: requestSnapshot,
+      },
+      pathPayloadMetadata: {
+        candidatePoolLimited,
+        candidatePoolLimitationCodes,
+        candidatePoolStatus,
       },
     });
   }
@@ -2402,7 +2456,11 @@ async function buildAdaptivePathToolOutput(
         ? '已根据你的学习证据生成可比较的路径方案。'
         : buildBlockedAdaptivePathGenerationMessage(fallbackReasons),
     },
-    limitations: fallbackReasons,
+    limitations: uniqueStringList([...fallbackReasons, ...candidatePoolLimitationCodes]),
+    candidatePoolLimited,
+    diagnostics: {
+      candidatePool: candidatePoolDiagnostics,
+    },
     studentSafeRationale: [
       '路径会依据你的当前目标、学习证据和可用时间生成。',
       '证据不足时会先给出可开始的基础路径，并提示需要补充的学习记录。',
@@ -2425,6 +2483,14 @@ function buildBlockedAdaptivePathGenerationMessage(fallbackReasons: readonly str
     return '当前目标缺少可用的路径资源映射，暂不能生成可执行学习路径。';
   }
   return '当前限制条件下暂不能生成可执行学习路径，请调整目标、时间或资源偏好后重试。';
+}
+
+function uniqueStringList(values: readonly string[]): string[] {
+  return Array.from(new Set(values.filter(Boolean)));
+}
+
+function isMissingFileError(error: unknown): boolean {
+  return Boolean(error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT');
 }
 
 function buildAdaptivePathPlannerGraphContext(
@@ -2787,34 +2853,136 @@ function resolveScopedAdaptivePathGoalId(input: KonlingToolRuntimeInput, request
   return goalId;
 }
 
-async function resolveAdaptivePathGenerationRegistry(goalId: string) {
-  const runtimeTextbooks = await loadAllTextbookRuntimeResourceCatalogEntries().catch(() => []);
+async function resolveAdaptivePathGenerationRegistry(input: KonlingToolRuntimeInput, goalId: string): Promise<{
+  registry: ResourceNodeRegistry;
+  diagnostics: ResourceCandidatePoolDiagnostics;
+}> {
+  const [teachingResourcesSource, runtimeLessonsSource, runtimeTextbooksSource, runtimeResourceProjectionsSource] = await Promise.all([
+    loadCandidateSourceFamily('teaching-resources', () => loadAdaptivePathTeachingResources(input.db)),
+    loadCandidateSourceFamily('runtime-lessons', () => loadAllLessonRuntimeResourceCatalogEntries()),
+    loadCandidateSourceFamily('runtime-textbooks', () => loadAllTextbookRuntimeResourceCatalogEntries()),
+    loadCandidateSourceFamily('runtime-resource-projections', () => loadRuntimeResourceProjectionInputs({ allowMissing: false })),
+  ]);
+  const teachingResources = teachingResourcesSource.items;
+  const runtimeLessons = runtimeLessonsSource.items;
+  const runtimeTextbooks = runtimeTextbooksSource.items;
+  const runtimeResourceProjections = runtimeResourceProjectionsSource.items;
+  const sourceFamilies = [
+    teachingResourcesSource.status,
+    runtimeLessonsSource.status,
+    runtimeTextbooksSource.status,
+    runtimeResourceProjectionsSource.status,
+  ];
+  const registeredResources = getAllRegisteredResourceMetadata();
   const runtimeTextbookInput = {
     textbooks: runtimeTextbooks.map((entry) => entry.textbook),
-    textbookSections: runtimeTextbooks.flatMap((entry) =>
-      entry.sections.map((section) => ({
-        ...section,
-        bookId: entry.textbook.bookId,
-      }))
-    ),
+    textbookSections: runtimeTextbooks.flatMap(toTextbookSectionNodeInputs),
   };
-  const buildGenericRegistry = () => applyCoreResourcePathReadinessDispositions(buildResourceNodeRegistry({
-    registeredResources: getAllRegisteredResourceMetadata(),
-    ...runtimeTextbookInput,
-  }));
+  const withDiagnostics = (registry: ResourceNodeRegistry) => ({
+    registry,
+    diagnostics: buildResourceCandidatePoolDiagnostics(registry, sourceFamilies),
+  });
+  const buildGenericRegistry = () => buildResourceNodeRegistryFromTeachingResources(
+    teachingResources,
+    registeredResources,
+    runtimeLessons,
+    runtimeTextbooks,
+    runtimeResourceProjections,
+  );
   if (goalId === CONTROL_CORRECTION_PATH_ROUND_GOAL_ID) {
-    return buildGenericRegistry();
+    return withDiagnostics(buildGenericRegistry());
   }
   if (goalId === 'frequency-response-foundations') {
-    return applyCoreResourcePathReadinessDispositions(buildResourceNodeRegistry({
-      ...buildFrequencyResponseFoundationsResourceSeedInput(),
-      ...runtimeTextbookInput,
-    }));
+    return withDiagnostics(buildResourceNodeRegistryFromTeachingResources(
+      teachingResources,
+      registeredResources,
+      runtimeLessons,
+      runtimeTextbooks,
+      runtimeResourceProjections,
+      buildFrequencyResponseFoundationsResourceSeedInput(),
+    ));
   }
   if (getRegisteredAdaptiveLearningPathGoal(goalId)) {
-    return buildGenericRegistry();
+    return withDiagnostics(buildGenericRegistry());
   }
   throw new KonlingRuntimeScopeError(404, '当前学习目标未注册。');
+}
+
+async function loadCandidateSourceFamily<T>(
+  family: string,
+  loader: () => Promise<readonly T[]>,
+): Promise<{ items: T[]; status: ResourceCandidatePoolSourceStatus }> {
+  try {
+    const items = [...await loader()];
+    return {
+      items,
+      status: {
+        family,
+        status: items.length > 0 ? 'loaded' : 'empty',
+        count: items.length,
+        reason: null,
+      },
+    };
+  } catch (error) {
+    if (isMissingFileError(error)) {
+      return {
+        items: [],
+        status: {
+          family,
+          status: 'missing',
+          count: 0,
+          reason: `missing-source-family:${family}`,
+        },
+      };
+    }
+    return {
+      items: [],
+      status: {
+        family,
+        status: 'error',
+        count: 0,
+        reason: `loader-error:${family}`,
+      },
+    };
+  }
+}
+
+async function loadAdaptivePathTeachingResources(db: unknown): Promise<Array<{
+  id: string;
+  title: string;
+  displayName: string | null;
+  description: string | null;
+  type: string;
+  registryId: string | null;
+  content: string | null;
+  category: string | null;
+  teacherOnly: boolean | null;
+  config: unknown;
+  knowledgeNodes: Array<{
+    id: string;
+    name: string;
+    resources: unknown;
+    tags: string[];
+  }>;
+}>> {
+  const teachingResource = readRecord(db).teachingResource;
+  if (!teachingResource || typeof teachingResource !== 'object') return [];
+  const findMany = readRecord(teachingResource).findMany;
+  if (typeof findMany !== 'function') return [];
+  return await findMany({
+    where: { teacherOnly: false },
+    include: {
+      knowledgeNodes: {
+        select: {
+          id: true,
+          name: true,
+          resources: true,
+          tags: true,
+        },
+      },
+    },
+    orderBy: [{ category: 'asc' }, { displayOrder: 'asc' }, { title: 'asc' }],
+  });
 }
 
 async function buildAdaptivePathSourcePackCandidates(
@@ -2837,6 +3005,9 @@ export function buildResourceNodeSourcePackCandidate(node: ResourceNode): Source
   const pathEligible = node.eligibility.pathEligible === true;
   const citationTargetId = `citation-target:${node.id}:primary`;
   const citationHref = sourcePackCitationHrefForResourceNode(node);
+  const runtimeCitationReady = node.runtimeProjection?.groundingEligibility?.citationReady !== false
+    && node.runtimeProjection?.runtimeSemanticEvidence?.assetStatus !== 'missing-local-runtime-asset';
+  const citationVerified = runtimeCitationReady && node.planningMetadata.availability === 'available';
   return {
     id: `resource-node:${node.id}`,
     title: node.title,
@@ -2866,9 +3037,9 @@ export function buildResourceNodeSourcePackCandidate(node: ResourceNode): Source
       citationTargetId,
       sourceId: `resource-node-source:${node.id}`,
       displayTitle: node.title,
-      href: citationHref,
-      resolver: citationHref ? 'course-runtime' : undefined,
-      verified: true,
+      href: citationVerified ? citationHref : undefined,
+      resolver: citationVerified && citationHref ? 'course-runtime' : undefined,
+      verified: citationVerified,
     },
     metadata: {
       reviewStatus: node.runtimeProjection?.reviewAudit?.status ?? 'current',
@@ -2880,6 +3051,8 @@ export function buildResourceNodeSourcePackCandidate(node: ResourceNode): Source
       sourceKind: node.sourceKind,
       pathEligible: String(pathEligible),
       teacherPolicy: node.planningMetadata.teacherPolicy,
+      availability: node.planningMetadata.availability,
+      citationReady: String(citationVerified),
     },
   };
 }
@@ -3532,14 +3705,12 @@ async function validateKonlingToolPreflight(
   if (toolName === 'generate_learning_path') {
     const parsed = generateLearningPathParameters.parse(toolInput);
     const goalId = resolveScopedAdaptivePathGoalId(runtimeInput, parsed.goalId);
-    await resolveAdaptivePathGenerationRegistry(goalId);
     await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { goalId, requirePath: false, requireExisting: false });
     return;
   }
   if (toolName === 'revise_learning_path_options') {
     const parsed = reviseLearningPathOptionsParameters.parse(toolInput);
     const goalId = resolveScopedAdaptivePathGoalId(runtimeInput, parsed.goalId);
-    await resolveAdaptivePathGenerationRegistry(goalId);
     const path = await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { goalId, requirePath: true, requireExisting: true });
     assertAdaptivePathOptionIds(path, parsed.selectedStyleId, parsed.rejectedStyleIds ?? [], { allowPolicyFallback: true });
     return;
@@ -5747,22 +5918,46 @@ function sourcePackRoleForKonling(role: AdaptiveLearnerStateRole): SourcePackCal
 function buildSourcePackContentCitation(pack: SourcePack, item: SourcePackItem): KonlingCitation {
   const citation = item.citation;
   const citationTargetRef = citation?.citationTargetId ?? item.citationTargetId ?? item.id;
+  const retrievalChunkId = item.retrievalChunkId ?? citation?.sourceId ?? item.id;
   const id = `content:${citationTargetRef}`;
   const title = citation?.displayTitle ?? item.title;
-  const href = citation?.href ?? null;
+  const canonicalHref = citation?.canonicalHref ?? citation?.href ?? null;
+  const displayHref = citation?.displayHref ?? canonicalHref;
+  const citationAddressKind = metadataString(item, 'citationAddressKind');
+  const citationAddressKindValue = citationAddressKind
+    ? citationAddressKind as LearningEvidenceCitationChipPayload['addressKind']
+    : undefined;
+  const citationLocator = metadataString(item, 'citationLocator');
+  const contentHash = metadataString(item, 'contentHash');
   return {
     id,
     sourceType: 'content',
     displayTitle: title,
-    href,
+    href: canonicalHref,
+    displayHref,
+    canonicalHref,
     confidence: 'high',
     evidenceBasis: `source-pack:${pack.profile}:${pack.packId}`,
     owner: 'answer',
+    citationTargetId: citationTargetRef,
+    retrievalChunkId,
+    answerRelevanceBasis: metadataString(item, 'answerRelevanceBasis'),
+    answerRelevanceMatch: metadataString(item, 'answerRelevanceMatch'),
+    answerRelevanceQueryHash: metadataString(item, 'answerRelevanceQueryHash'),
+    omittedCitationReason: metadataString(item, 'omittedCitationReason'),
     citationChip: {
       chunkId: id,
       displayTitle: title,
-      displayHref: href,
+      displayHref,
       sourceType: 'course-content',
+      addressKind: citationAddressKindValue,
+      citationAddress: canonicalHref ? {
+        kind: citationAddressKind || 'text',
+        sourceRefId: citationTargetRef,
+        href: canonicalHref,
+        locator: citationLocator,
+        contentHash,
+      } as LearningEvidenceCitationChipPayload['citationAddress'] : undefined,
       authorityLevel: 'canonical',
       confidence: 'high',
       freshnessBucket: 'current',
@@ -6479,19 +6674,37 @@ function buildServerOwnedUserProfile(input: {
   name: string;
   learnerState: AdaptiveLearnerState | null;
 }): UserProfile {
+  const portraitPayload = input.learnerState?.primaryPortrait;
+  const portraitV2 = portraitPayload && Array.isArray(portraitPayload.dimensions)
+    ? summarizePortraitV2(portraitPayload)
+    : undefined;
   return {
     id: input.userId,
     name: input.name,
     learningStyle: 'INTERACTIVE',
     cognitiveLevel: inferCognitiveLevel(input.learnerState),
     abilityVector: toLegacyAbilityVector(input.learnerState),
+    ...(portraitV2 ? { portraitV2 } : {}),
   };
 }
 
 function inferCognitiveLevel(state: AdaptiveLearnerState | null): 1 | 2 | 3 | 4 | 5 {
-  const values = Object.values(state?.primaryCompetencies.vector ?? {})
-    .map((entry) => typeof entry?.score === 'number' ? entry.score : null)
-    .filter((value): value is number => value !== null);
+  const portraitDimensions = Array.isArray(state?.primaryPortrait?.dimensions)
+    ? state.primaryPortrait.dimensions
+    : [];
+  const portraitValues = portraitDimensions.length > 0 && portraitDimensions.every((entry) =>
+    entry.evidenceSummary.totalCount > 0
+      && (entry.freshness.state === 'current' || entry.freshness.state === 'partial')
+      && typeof entry.score === 'number'
+      && Number.isFinite(entry.score)
+  )
+    ? portraitDimensions.map((entry) => entry.score)
+    : [];
+  const values = portraitValues.length > 0
+    ? portraitValues
+    : Object.values(state?.primaryCompetencies.vector ?? {}) // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: cold-start fallback only.
+      .map((entry) => typeof entry?.score === 'number' ? entry.score : null)
+      .filter((value): value is number => value !== null);
   if (values.length === 0) return 3;
   const avg = values.reduce((sum, value) => sum + value, 0) / values.length;
   if (avg >= 85) return 5;
@@ -6502,6 +6715,7 @@ function inferCognitiveLevel(state: AdaptiveLearnerState | null): 1 | 2 | 3 | 4 
 }
 
 function toLegacyAbilityVector(state: AdaptiveLearnerState | null): AbilityVector {
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: AIContext still exposes this legacy field.
   const vector = (state?.primaryCompetencies.vector ?? {}) as Record<string, { score?: number } | undefined>;
   return {
     computational: normalizeScore(vector.controlModeling?.score),

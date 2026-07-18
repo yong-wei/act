@@ -26,10 +26,6 @@
   ],
   "reuse_node_ids": [],
   "card_order": [
-    "反馈_1_1",
-    "开环控制_1_1",
-    "闭环控制_1_1",
-    "误差_1_1",
     "传递函数_1_1",
     "极点_1_1",
     "时域响应_1_1",
@@ -38,6 +34,10 @@
     "根轨迹_1_1",
     "频域响应_1_1",
     "Bode图_1_1",
+    "反馈_1_1",
+    "开环控制_1_1",
+    "闭环控制_1_1",
+    "误差_1_1",
     "控制器_1_1",
     "比例控制_1_1",
     "校正_1_1",
@@ -131,8 +131,6 @@
   },
   "handout_path": "/course-runtime/lessons/1-1/1-1-handout.md",
   "handout_source_path": "course-content/runtime/lessons/1-1/1-1-handout.md",
-  "handout_pdf_path": "/course-runtime/lessons/1-1/1-1-handout.pdf",
-  "handout_pdf_source_path": "course-content/runtime/lessons/1-1/1-1-handout.pdf",
   "graph_overlay_path": "/course-runtime/lessons/1-1/graph-overlay.json",
   "media_base_path": "/course-runtime/lessons/1-1/media",
   "media_index_path": "/course-runtime/lessons/1-1/media/1-1-media.md",
@@ -146,6 +144,8 @@
     "multimedia_check_path": "/course-runtime/lessons/1-1/review/multimedia-check.json",
     "source_manifest_path": "/course-runtime/lessons/1-1/review/source-manifest.json"
   },
+  "handout_pdf_path": "/course-runtime/lessons/1-1/1-1-handout.pdf",
+  "handout_pdf_source_path": "course-content/runtime/lessons/1-1/1-1-handout.pdf",
   "interactive_manifest_path": "/course-runtime/lessons/1-1/interactive-manifest.json",
   "interactive_manifest_source_path": "course-content/runtime/lessons/1-1/interactive-manifest.json"
 }

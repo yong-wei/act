@@ -3,6 +3,11 @@ import {
   getAdaptivePracticeGoalOption,
   isAdaptivePracticeGoalId,
 } from '@/lib/adaptive-path-goal-options';
+import { resolveArenaPathTargetIntegrity } from '@/lib/arena-path-target-integrity';
+import {
+  remapAdaptivePathPayloadReferences,
+  remapPathNodeId,
+} from '@/lib/path-node-id-alias-remap';
 
 export interface LearningPathRoundForRestore {
   id: string;
@@ -22,17 +27,30 @@ export function restoreAdaptiveLearningPathPlanFromRound(
   if (!round || !isAdaptivePracticeGoalId(round.goalId)) return null;
   const goalOption = getAdaptivePracticeGoalOption(round.goalId);
   const payload = round.pathPayload ?? {};
-  const planNodes = Array.isArray(payload.planNodes) ? payload.planNodes : [];
-  const alternatives = Array.isArray(payload.alternatives)
+  const rawPlanNodes = Array.isArray(payload.planNodes) ? payload.planNodes : [];
+  const restoredArenaTargets = restoreArenaPathTargets(rawPlanNodes, payload.fixtureScope);
+  const rawAlternatives = Array.isArray(payload.alternatives)
     ? payload.alternatives
     : Array.isArray(round.alternativePayload)
       ? round.alternativePayload
       : [];
-  const explanations = restoreExplanations(
-    round.explanationPayload,
-    payload.explanations,
-    planNodes.length === 0,
-  );
+  const currentNodeId = remapPathNodeId(round.currentNodeId, restoredArenaTargets.nodeIdReplacements);
+  const restoredReferences = remapAdaptivePathPayloadReferences({
+    planNodes: restoredArenaTargets.planNodes,
+    alternatives: rawAlternatives,
+    explanations: restoreExplanations(
+      round.explanationPayload,
+      payload.explanations,
+      restoredArenaTargets.planNodes.length === 0,
+    ),
+    executionStatus: restoreExecutionStatus(payload.executionStatus, currentNodeId),
+    deviations: payload.deviations ?? [],
+    corrections: payload.corrections ?? [],
+    feedbackEvents: restoreFeedbackEvents(payload),
+    visualization: payload.visualization,
+    policyBundle: payload.policyBundle,
+    constraintRepair: payload.constraintRepair,
+  }, restoredArenaTargets.nodeIdReplacements);
 
   return {
     id: round.id,
@@ -47,24 +65,83 @@ export function restoreAdaptiveLearningPathPlanFromRound(
       ? payload.policyFamily as AdaptiveLearningPathPlan['policyFamily']
       : 'rules-plus-graph-search',
     policyMetadata: payload.policyMetadata as AdaptiveLearningPathPlan['policyMetadata'],
-    policyBundle: payload.policyBundle as AdaptiveLearningPathPlan['policyBundle'],
+    policyBundle: restoredReferences.policyBundle as AdaptiveLearningPathPlan['policyBundle'],
     excludedPolicyFamilies: ['contextual-bandit', 'reinforcement-learning', 'long-horizon-hybrid'],
-    status: round.pathStatus === 'active' || round.pathStatus === 'completed' ? 'ready' : 'fallback',
-    currentNodeId: round.currentNodeId ?? null,
-    mainPath: planNodes as AdaptiveLearningPathPlan['mainPath'],
-    alternatives: alternatives as AdaptiveLearningPathPlan['alternatives'],
+    status: restoredArenaTargets.blocked
+      ? 'fallback'
+      : round.pathStatus === 'active' || round.pathStatus === 'completed' ? 'ready' : 'fallback',
+    currentNodeId,
+    mainPath: restoredReferences.planNodes as AdaptiveLearningPathPlan['mainPath'],
+    alternatives: restoredReferences.alternatives as AdaptiveLearningPathPlan['alternatives'],
     score: restoreScore(payload.score),
     confidence: payload.confidence as AdaptiveLearningPathPlan['confidence'] ?? {
       level: 'low',
       score: 0,
       sourceCoverage: 0,
     },
-    explanations,
-    executionStatus: restoreExecutionStatus(payload.executionStatus, round.currentNodeId),
-    deviations: payload.deviations as AdaptiveLearningPathPlan['deviations'] ?? [],
-    corrections: payload.corrections as AdaptiveLearningPathPlan['corrections'] ?? [],
-    feedbackEvents: restoreFeedbackEvents(payload),
-    visualization: payload.visualization as AdaptiveLearningPathPlan['visualization'],
+    explanations: restoredReferences.explanations as AdaptiveLearningPathPlan['explanations'],
+    executionStatus: restoredReferences.executionStatus as AdaptiveLearningPathPlan['executionStatus'],
+    deviations: restoredReferences.deviations as AdaptiveLearningPathPlan['deviations'],
+    corrections: restoredReferences.corrections as AdaptiveLearningPathPlan['corrections'],
+    feedbackEvents: restoredReferences.feedbackEvents as AdaptiveLearningPathPlan['feedbackEvents'],
+    visualization: restoredReferences.visualization as AdaptiveLearningPathPlan['visualization'],
+    constraintRepair: restoredReferences.constraintRepair as AdaptiveLearningPathPlan['constraintRepair'],
+  };
+}
+
+function restoreArenaPathTargets(
+  planNodes: unknown[],
+  fixtureScope: unknown,
+): {
+  planNodes: AdaptiveLearningPathPlan['mainPath'];
+  nodeIdReplacements: ReadonlyMap<string, string>;
+  blocked: boolean;
+} {
+  const nodeIdReplacements = new Map<string, string>();
+  let blocked = false;
+  const restored = planNodes.map((value) => {
+    const node = getRecord(value);
+    if (node.type !== 'arena_task') return value;
+    const integrity = resolveArenaPathTargetIntegrity({ ...node, fixtureScope });
+    if (integrity.status === 'blocked') {
+      blocked = true;
+      const readiness = getRecord(node.readiness);
+      return {
+        ...node,
+        target: '',
+        status: 'blocked',
+        reasonCodes: uniqueStrings([...getStringArray(node.reasonCodes), integrity.reason]),
+        readiness: {
+          ...readiness,
+          state: 'locked',
+          message: 'Arena 任务目标无法验证，请重新生成学习路径。',
+          unlockMessage: '重新生成路径或使用明确的恢复操作。',
+          reasonCodes: [integrity.reason],
+          fallbackNodeIds: getStringArray(readiness.fallbackNodeIds),
+          missingCompetencies: getStringArray(readiness.missingCompetencies),
+          missingEvidenceCount: typeof readiness.missingEvidenceCount === 'number'
+            ? readiness.missingEvidenceCount
+            : 0,
+          missingCompletedNodeIds: getStringArray(readiness.missingCompletedNodeIds),
+          missingOutcomeRefs: getStringArray(readiness.missingOutcomeRefs),
+        },
+      };
+    }
+    if (integrity.status === 'repaired' && typeof node.nodeId === 'string') {
+      nodeIdReplacements.set(node.nodeId, integrity.target.nodeId);
+    }
+    return {
+      ...node,
+      ...integrity.target,
+      reasonCodes: integrity.status === 'repaired'
+        ? uniqueStrings([...getStringArray(node.reasonCodes), integrity.reason])
+        : getStringArray(node.reasonCodes),
+    };
+  });
+  return {
+    planNodes: restored as AdaptiveLearningPathPlan['mainPath'],
+    nodeIdReplacements,
+    blocked,
   };
 }
 
@@ -153,4 +230,8 @@ function getRecord(value: unknown): Record<string, unknown> {
 
 function getStringArray(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+}
+
+function uniqueStrings(values: string[]): string[] {
+  return Array.from(new Set(values));
 }

@@ -1,7 +1,9 @@
 {
   "brand": "智控深蓝",
-  "asset": "/assets/platform-brand/deepblue-smart-control-logo.png",
-  "darkAsset": "/assets/platform-brand/deepblue-smart-control-logo-dark.png",
+  "asset": "/assets/platform-brand/deepblue-smart-control-logo-small.png",
+  "darkAsset": "/assets/platform-brand/deepblue-smart-control-logo-dark-small.png",
+  "originalAsset": "/assets/platform-brand/deepblue-smart-control-logo.png",
+  "originalDarkAsset": "/assets/platform-brand/deepblue-smart-control-logo-dark.png",
   "sourceAsset": "/assets/platform-brand/deepblue-smart-control-logo-source.png",
   "generator": "image2 via Codex image_gen",
   "modelFamily": "image2",
@@ -23,6 +25,7 @@
   "backgroundTreatment": "Source image generated on #00ff00-style chroma key; final light and dark assets use transparent alpha.",
   "reviewNotes": [
     "Use through src/components/shared/platform-brand-lockup.tsx rather than embedding asset paths in route pages.",
+    "Homepage lockup uses 400px-wide small derivatives; original light and dark assets are retained for future high-resolution usage.",
     "Keep text alternative as 智控深蓝 for screen readers."
   ]
 }

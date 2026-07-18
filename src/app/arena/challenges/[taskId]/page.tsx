@@ -17,6 +17,10 @@ import {
   resolveAccessibleArenaPublicationForStudent,
   type ArenaResolvedSubmissionContext,
 } from '@/features/arena/teacher/publication-store';
+import {
+  buildArenaChallengeSearchParams,
+  resolveArenaPathLaunchParams,
+} from '@/features/arena/arena-path-journey';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,7 +44,7 @@ function buildStudentLeaderboardBoundary(publication: ArenaResolvedSubmissionCon
 export default async function ArenaChallengePage(
   props: {
     params: Promise<{ taskId: string }>;
-    searchParams?: Promise<{ publicationId?: string }>;
+    searchParams?: Promise<Record<string, string | string[] | undefined>>;
   }
 ) {
   const searchParams = await props.searchParams;
@@ -61,6 +65,12 @@ export default async function ArenaChallengePage(
       />
     );
   }
+  const normalizedSearchParams = buildArenaChallengeSearchParams(searchParams ?? {});
+  const pathContext = resolveArenaPathLaunchParams(normalizedSearchParams, task.id);
+  const usePlaywrightPathFixture = process.env.NODE_ENV !== 'production' &&
+    Boolean(process.env.PLAYWRIGHT_PORT) &&
+    process.env.ACT_E2E_FIXTURE_TOKEN === 'adaptive-path-continuous-journey-v1' &&
+    normalizedSearchParams.get('journeyFixture') === '1';
 
   const object = getArenaChallengeObject(task.objectId);
   const metricProfile = getArenaMetricProfile(task.metricProfileId);
@@ -81,13 +91,13 @@ export default async function ArenaChallengePage(
       />
     );
   }
-  const publicationId = typeof searchParams?.publicationId === 'string' && searchParams.publicationId.trim().length > 0
-    ? searchParams.publicationId
-    : undefined;
+  const publicationId = normalizedSearchParams.get('publicationId')?.trim() || undefined;
   let publicationContext: ArenaResolvedSubmissionContext | null = null;
   let viewerUserId: string | undefined;
   if (publicationId) {
-    const session = await getServerAuthSession();
+    const session = usePlaywrightPathFixture
+      ? { user: { id: 'student-path-e2e', role: 'STUDENT' } }
+      : await getServerAuthSession();
     const publicationPath = `/arena/challenges/${encodeURIComponent(params.taskId)}?${new URLSearchParams({ publicationId }).toString()}`;
     if (!session?.user?.id || session.user.role !== 'STUDENT') {
       return (
@@ -106,13 +116,32 @@ export default async function ArenaChallengePage(
     }
     viewerUserId = session.user.id;
     try {
-      publicationContext = await resolveAccessibleArenaPublicationForStudent(prisma as any, {
-        publicationId,
-        studentId: session.user.id,
-        taskId: task.id,
-        now: new Date(),
-        allowAfterDeadline: true,
-      });
+      publicationContext = usePlaywrightPathFixture
+        ? {
+            id: publicationId,
+            taskId: task.id,
+            visibility: 'class',
+            studentVisibility: 'class',
+            classId: normalizedSearchParams.get('classId')?.trim() || undefined,
+            seasonId: normalizedSearchParams.get('seasonId')?.trim() || undefined,
+            isLate: false,
+            deadline: '2099-07-11T00:00:00.000Z',
+            leaderboardPolicyId: task.leaderboardPolicyId,
+            gradingPolicy: { hideFullLeaderboardBeforeDeadline: false },
+            displayContext: {
+              assignmentTitle: '路径 Arena 验收发布',
+              classTitle: '路径验收班级',
+              teacherName: '验收教师',
+              sourceLabel: '受控 Playwright fixture',
+            },
+          }
+        : await resolveAccessibleArenaPublicationForStudent(prisma as any, {
+            publicationId,
+            studentId: session.user.id,
+            taskId: task.id,
+            now: new Date(),
+            allowAfterDeadline: true,
+          });
     } catch (error) {
       if (error instanceof ArenaPublicationAccessError) {
         return (
@@ -132,11 +161,13 @@ export default async function ArenaChallengePage(
     }
   }
 
-  const submissions = await prismaArenaSubmissionStore.listSubmissions({
-    taskId: task.id,
-    publicationId,
-    ...(publicationContext?.visibility === 'class' && publicationContext.classId ? { classId: publicationContext.classId } : {}),
-  });
+  const submissions = usePlaywrightPathFixture
+    ? []
+    : await prismaArenaSubmissionStore.listSubmissions({
+        taskId: task.id,
+        publicationId,
+        ...(publicationContext?.visibility === 'class' && publicationContext.classId ? { classId: publicationContext.classId } : {}),
+      });
   const submissionPublicationIds = publicationId
     ? []
     : Array.from(
@@ -176,6 +207,7 @@ export default async function ArenaChallengePage(
       publicationId={publicationId}
       classId={publicationContext?.classId}
       seasonId={publicationContext?.seasonId}
+      pathContext={pathContext ?? undefined}
       publicationContext={publicationContext ? {
         assignmentTitle: publicationContext.displayContext?.assignmentTitle ?? (
           publicationContext.visibility === 'public' ? '公开 Arena 挑战' : 'Arena 发布挑战'

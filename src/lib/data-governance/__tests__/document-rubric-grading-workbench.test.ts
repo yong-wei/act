@@ -1,5 +1,9 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { describe, expect, it } from 'vitest';
 import { vi } from 'vitest';
+import { sha256, stableStringify } from '../math-document-grading-contracts';
 
 import {
   approveGradingRun,
@@ -22,6 +26,8 @@ import {
 } from '../document-rubric-grading-workbench';
 import { listEvidenceTimeline } from '../evidence-timeline';
 import { buildFeedbackTaskContext } from '../../student-feedback-task-contract';
+import { buildPipelineGradingWorkbenchView, buildPipelineReviewListItem, validatePipelineReviewContract, validatePipelineRuntimeSource } from '../math-document-grading-review';
+import { MemorySubmissionObjectStore } from '@/lib/assignments/submission-object-store';
 
 const now = new Date('2026-06-04T08:00:00.000Z');
 
@@ -89,6 +95,73 @@ function mockEvidenceDb() {
 }
 
 describe('document rubric grading workbench', () => {
+  it('projects native pipeline evidence without creating an asset copy and preserves AI authority', () => {
+    const criterion = { id: 'controlModeling', label: '模型', goalDimension: 'controlModeling', maxPoints: 4, evidenceDescription: '', feedbackGuidance: '', levels: [{ id: 'full', label: '满分', minPoints: 4, maxPoints: 4, description: '' }] };
+    const rubricSnapshot = { schemaVersion: 'assignment-analytic-rubric.v1', id: 'rubric:question-1', version: 'sha256:question', maxScore: 4, criteria: [criterion] };
+    const assignment = { id: 'assignment-1', courseContext: 'course-1' };
+    const revision = { id: 'revision-1', assignmentId: 'assignment-1', assignment };
+    const run: any = {
+      id: 'run-native', state: 'AWAITING_REVIEW', questionId: 'question-1', answerAttemptId: 'attempt-1', answerEvidenceId: 'evidence-1', questionSnapshotHash: 'sha256:question', rubricId: rubricSnapshot.id, rubricVersion: rubricSnapshot.version, evaluatorId: 'evaluator-1', evaluatorVersion: 'eval-v1', retentionExpiresAt: new Date('2027-01-01T00:00:00Z'), createdAt: now, updatedAt: now,
+      questionSnapshot: { assignmentRevisionId: 'revision-1', questionId: 'question-1', stableQuestionId: 'q1', responseType: 'SUBJECTIVE_TEXT', prompt: 'Explain.', referenceAnswer: 'Reference.', rubric: rubricSnapshot, contentHash: 'sha256:question' },
+      rubricSnapshot,
+      assessments: [{ id: 'assessment-1', criterionId: 'controlModeling', levelId: 'full', score: 4, confidence: 0.9, limitationState: 'none' }],
+      annotations: [{ id: 'ann-1', assessmentId: 'assessment-1', criterionId: 'controlModeling', blockId: 'block-1', precision: 'SPAN', excerpt: '证据', spanStart: 0, spanEnd: 2, comment: 'AI anchor', authorRole: 'AI_DRAFT' }],
+      answerEvidence: { id: 'evidence-1', attemptId: 'attempt-1', version: 1, anchorVersion: 'text-native.v1', sourceKind: 'TEXT_NATIVE', sourceHash: 'sha256:evidence', canonicalMarkdown: '仅从受治理证据读取', precision: 'SPAN', readiness: 'READY', retentionExpiresAt: new Date('2027-01-01T00:00:00Z'), limitations: [], blocks: [{ id: 'block-1', text: '证据', markdown: '证据', confidence: 0.9, sourceHash: 'sha256:block', precision: 'SPAN', spanStart: 0, spanEnd: 2, pageNumber: null }], sourceAsset: null, conversion: null },
+      answerAttempt: { id: 'attempt-1', submittedAt: now, answer: { id: 'answer-1', assignmentQuestionId: 'question-1', submission: { studentId: 'student-1', assignmentRevisionId: 'revision-1', frozenStudentId: 'student-1', frozenAudienceClassId: 'class-1', revision, audience: { assignmentRevisionId: 'revision-1', classId: 'class-1', revision, class: { teacherId: 'teacher-1' } } } } },
+      question: { id: 'question-1', assignmentRevisionId: 'revision-1', stableQuestionId: 'q1', responseType: 'SUBJECTIVE_TEXT', promptSnapshot: { text: 'Explain.' }, answerSnapshot: { text: 'Reference.' }, rubricSnapshot, contentHash: 'sha256:question', revision },
+    };
+    run.inputHash = sha256(stableStringify({ questionSnapshot: run.questionSnapshot, evidence: { id: run.answerEvidence.id, version: 1, sourceHash: run.answerEvidence.sourceHash, anchorVersion: run.answerEvidence.anchorVersion }, evaluator: { provider: run.evaluatorId, version: run.evaluatorVersion } }));
+
+    const reasons = validatePipelineReviewContract(run);
+    expect(reasons).toEqual([]);
+    const view = buildPipelineGradingWorkbenchView(run);
+    const listItem = buildPipelineReviewListItem(run);
+
+    expect(view.asset).toMatchObject({ id: null, fileName: '文本作答', checksum: 'sha256:evidence' });
+    expect(view.preview.markdown).toBe(run.answerEvidence.canonicalMarkdown);
+    expect(view.annotations[0].reference.citationChip.authorityLevel).toBe('service-internal');
+    expect(view.actions).toEqual(['approve']);
+    expect(JSON.stringify(view)).not.toContain('bytes');
+    expect(JSON.stringify(view)).not.toContain('mimeType');
+    expect(listItem).toMatchObject({ gradingRunId: 'run-native', assignmentId: 'assignment-1', assignmentRevisionId: 'revision-1', sourceAssetId: null, fileName: '文本作答' });
+    expect(JSON.stringify(listItem)).not.toContain(run.answerEvidence.canonicalMarkdown);
+    const unavailableRun = structuredClone(run);
+    unavailableRun.state = 'CONTENT_UNAVAILABLE';
+    unavailableRun.blockedReasons = ['review-contract-rerun-required'];
+    const unavailableItem = buildPipelineReviewListItem(unavailableRun);
+    expect(unavailableItem).toMatchObject({ state: 'CONTENT_UNAVAILABLE', contentAvailable: false, rerunRequired: true });
+    expect(JSON.stringify(unavailableItem)).not.toMatch(/仅从受治理证据读取|sha256:evidence|fileName|checksum/);
+    const blockedRun = structuredClone(run);
+    blockedRun.answerEvidence.readiness = 'BLOCKED';
+    try {
+      buildPipelineGradingWorkbenchView(blockedRun);
+      throw new Error('expected-content-unavailable');
+    } catch (error) {
+      expect(error).toMatchObject({ message: 'grading-review-content-unavailable', reasons: expect.arrayContaining(['answer-evidence-content-unavailable']) });
+      expect(JSON.stringify(error)).not.toContain(run.answerEvidence.canonicalMarkdown);
+      expect(JSON.stringify(error)).not.toContain('sha256:evidence');
+    }
+    const unanchoredRun = structuredClone(run);
+    unanchoredRun.annotations = [];
+    expect(() => buildPipelineGradingWorkbenchView(unanchoredRun)).toThrow('grading-review-content-unavailable');
+    run.state = 'APPROVED';
+    run.teacherReviewedAt = now;
+    const approvedView = buildPipelineGradingWorkbenchView(run);
+    expect(approvedView.draftSummary).toMatchObject({ status: 'approved', requiresTeacherApproval: false });
+    expect(approvedView.actions).toEqual([]);
+    const uiSource = readFileSync(join(process.cwd(), 'src/features/assessment/document-rubric-grading-ui.tsx'), 'utf8');
+    expect(uiSource).toContain('AI 证据已完成教师决策');
+    expect(uiSource).toContain('当前展示 AI 评分证据与已完成的教师决策');
+  });
+
+  it('shares fail-closed runtime source validation for text evidence', async () => {
+    const run: any = { answerEvidence: { sourceKind: 'TEXT_NATIVE', sourceHash: sha256('稳定文本') }, answerAttempt: { textSnapshot: '漂移文本', textSnapshotDeleteStrategy: 'delete-content', textSnapshotExpiresAt: new Date('2027-01-01T00:00:00Z') } };
+    await expect(validatePipelineRuntimeSource(run, new MemorySubmissionObjectStore(), now)).resolves.toEqual(['runtime-text-source-unavailable']);
+    run.answerAttempt.textSnapshot = '稳定文本';
+    run.answerEvidence.sourceHash = sha256('稳定文本');
+    await expect(validatePipelineRuntimeSource(run, new MemorySubmissionObjectStore(), now)).resolves.toEqual([]);
+  });
+
   it('converts documents with MarkItDown metadata and span references when available', async () => {
     const converted = await convertSubmissionDocument({
       asset: asset(),
@@ -947,6 +1020,13 @@ describe('document rubric grading workbench', () => {
       reference: expect.objectContaining({ precision: 'block' }),
     }));
     expect(teacherView.actions).toEqual(expect.arrayContaining(['edit-criterion', 'approve', 'retry-conversion']));
+    const approvedTeacherView = buildTeacherGradingWorkbenchView({
+      asset: submission,
+      convertedDocument: converted,
+      rubric: rubric(),
+      run: approved,
+    });
+    expect(approvedTeacherView.actions).not.toContain('approve');
     expect(teacherView.konlingEntryPoint.mode).toBe('grading-assistant');
     expect(teacherView.konlingEntryPoint.serverContext).toEqual(expect.objectContaining({
       gradingRunId: draft.id,
@@ -1034,6 +1114,15 @@ describe('document rubric grading workbench', () => {
       averageAiTeacherScoreDelta: 0.5,
       agreementRate: 0.5,
     });
+  });
+
+  it.each([0, -1, Number.POSITIVE_INFINITY, Number.NaN])('rejects a persisted rubric with invalid maxScore %s', (maxScore) => {
+    expect(parsePersistedDocumentRubricGradingDraft({
+      id: 'draft-invalid-rubric', ownerUserId: 'student-1', dedupeKey: 'dedupe', classId: 'class-1',
+      sourceRefs: { asset: asset(), classId: 'class-1', assignmentId: 'assignment-1' },
+      evidenceRefs: { convertedDocument: { id: 'converted-1' } },
+      summary: { run: { id: 'run-1' }, rubric: { ...rubric(), maxScore } },
+    } as any)).toBeNull();
   });
 
   it('parses persisted grading annotations for real teacher workbench views', async () => {

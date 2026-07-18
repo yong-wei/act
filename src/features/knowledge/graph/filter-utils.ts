@@ -1,8 +1,8 @@
 import {
   CHAPTER_DISPLAY_ORDER,
-  getRelationCategory,
   resolveChapterName,
 } from '@/lib/knowledge-labels';
+import { getKnowledgeGraphRelationContract } from './relation-contract';
 import {
   getKnowledgeNodeScale,
   KNOWLEDGE_NODE_SCALE_CONTRACT,
@@ -111,7 +111,9 @@ export function getRelationFamily(relation?: string | null): RelationFamily {
   if (DEFAULT_STRUCTURE_RELATION_ORDER.includes(relation as (typeof DEFAULT_STRUCTURE_RELATION_ORDER)[number])) {
     return 'structure';
   }
-  if (getRelationCategory(relation) === 'related') return 'optional';
+  const contract = getKnowledgeGraphRelationContract(relation);
+  if (!contract) throw new Error(`Unknown knowledge graph relation type: ${String(relation ?? '')}`);
+  if (contract.family === 'association') return 'optional';
   return 'context';
 }
 
@@ -348,7 +350,9 @@ export function buildDefaultSelectedRelationTypes(types: string[]): string[] {
 export function isHighSignalRelation(relation?: string | null): boolean {
   if (!relation) return false;
   if (HIGH_SIGNAL_RELATIONS.has(relation)) return true;
-  return getRelationCategory(relation) !== 'related';
+  const contract = getKnowledgeGraphRelationContract(relation);
+  if (!contract) throw new Error(`Unknown knowledge graph relation type: ${String(relation ?? '')}`);
+  return contract.family !== 'association';
 }
 
 export function getRelationFocusState(
@@ -555,8 +559,6 @@ export function injectChapterNodes(
       chapterName: group.chapterName,
       chapter: index + 1,
       nodeType: 'THEORY',
-      knowledgeDim: 'METACOGNITIVE',
-      bloomLevel: 'UNDERSTAND',
       description: `${group.chapterName}（共 ${group.nodes.length} 个知识点）`,
       positionX: 0,
       positionY: 0,

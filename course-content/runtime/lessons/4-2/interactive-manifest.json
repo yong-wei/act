@@ -59,10 +59,10 @@
           "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "intro_question",
             "legacyKind": "summary-card",
             "presentation": "single",
-            "semanticRole": "summary"
+            "semanticRole": "summary",
+            "block_key": "intro_question"
           }
         },
         {
@@ -71,9 +71,10 @@
           "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "cover_comic",
             "legacyKind": "image-panel",
-            "presentation": "single"
+            "presentation": "single",
+            "semanticRole": "media",
+            "block_key": "cover_comic"
           }
         },
         {
@@ -82,10 +83,10 @@
           "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "intro_summary",
             "legacyKind": "summary-card",
             "presentation": "single",
-            "semanticRole": "summary"
+            "semanticRole": "summary",
+            "block_key": "intro_summary"
           }
         }
       ],
@@ -166,10 +167,10 @@
           "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "lesson_goals",
             "legacyKind": "goal-card-row",
             "presentation": "row",
-            "semanticRole": "goal"
+            "semanticRole": "goal",
+            "block_key": "lesson_goals"
           }
         }
       ],
@@ -249,10 +250,10 @@
           "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "pretest_intro",
             "legacyKind": "summary-card",
             "presentation": "single",
-            "semanticRole": "summary"
+            "semanticRole": "summary",
+            "block_key": "pretest_intro"
           }
         },
         {
@@ -261,7 +262,6 @@
           "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "pretest_intro",
             "legacyKind": "activity-card-set",
             "presentation": "single"
           }
@@ -403,9 +403,9 @@
           "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "review_quantities",
             "legacyKind": "formula-card",
-            "presentation": "single"
+            "presentation": "single",
+            "block_key": "review_quantities"
           }
         },
         {
@@ -414,8 +414,6 @@
           "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "review_quantities",
-            "formula": "L(s)=C(s)G(s)",
             "legacyKind": "activity-card-set",
             "presentation": "single"
           }
@@ -544,9 +542,9 @@
           "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "loop_formulas",
             "legacyKind": "formula-card",
-            "presentation": "single"
+            "presentation": "single",
+            "block_key": "loop_formulas"
           }
         },
         {
@@ -555,9 +553,10 @@
           "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "frequency_media",
             "legacyKind": "image-panel",
-            "presentation": "single"
+            "presentation": "single",
+            "semanticRole": "media",
+            "block_key": "frequency_media"
           }
         },
         {
@@ -566,7 +565,6 @@
           "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "loop_formulas",
             "legacyKind": "multi-select-matrix",
             "presentation": "matrix",
             "interactionKind": "multi-select",
@@ -734,9 +732,10 @@
           "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "selection_tree",
             "legacyKind": "image-panel",
-            "presentation": "single"
+            "presentation": "single",
+            "semanticRole": "media",
+            "block_key": "selection_tree"
           }
         },
         {
@@ -745,10 +744,10 @@
           "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "selection_rules",
             "legacyKind": "summary-card",
             "presentation": "single",
-            "semanticRole": "summary"
+            "semanticRole": "summary",
+            "block_key": "selection_rules"
           }
         },
         {
@@ -757,7 +756,6 @@
           "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "selection_tree",
             "legacyKind": "drag-match",
             "presentation": "single",
             "interactionKind": "drag-match",
@@ -917,9 +915,9 @@
           "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "zn_table",
             "legacyKind": "table-card",
-            "presentation": "single"
+            "presentation": "single",
+            "block_key": "zn_table"
           }
         },
         {
@@ -928,10 +926,10 @@
           "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
-            "block_key": "zn_steps",
             "legacyKind": "step-reveal",
             "presentation": "single",
-            "interactionKind": "progressive-reveal"
+            "interactionKind": "progressive-reveal",
+            "block_key": "zn_steps"
           }
         }
       ],
@@ -1044,9 +1042,9 @@
           "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "pi_lag_formulas",
             "legacyKind": "formula-card",
-            "presentation": "single"
+            "presentation": "single",
+            "block_key": "pi_lag_formulas"
           }
         },
         {
@@ -1055,10 +1053,10 @@
           "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
-            "block_key": "pi_lag_steps",
             "legacyKind": "step-reveal",
             "presentation": "single",
-            "interactionKind": "progressive-reveal"
+            "interactionKind": "progressive-reveal",
+            "block_key": "pi_lag_steps"
           }
         }
       ],
@@ -1152,9 +1150,9 @@
           "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "lead_formulas",
             "legacyKind": "formula-card",
-            "presentation": "single"
+            "presentation": "single",
+            "block_key": "lead_formulas"
           }
         },
         {
@@ -1163,10 +1161,10 @@
           "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
-            "block_key": "lead_steps",
             "legacyKind": "step-reveal",
             "presentation": "single",
-            "interactionKind": "progressive-reveal"
+            "interactionKind": "progressive-reveal",
+            "block_key": "lead_steps"
           }
         }
       ],
@@ -1260,9 +1258,9 @@
           "kind": "content.formula",
           "must_be_visible": true,
           "payload": {
-            "block_key": "model_feedforward_formulas",
             "legacyKind": "formula-card",
-            "presentation": "single"
+            "presentation": "single",
+            "block_key": "model_feedforward_formulas"
           }
         },
         {
@@ -1271,7 +1269,6 @@
           "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "model_feedforward_formulas",
             "legacyKind": "activity-card-set",
             "presentation": "single"
           }
@@ -1401,10 +1398,10 @@
           "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "example_5_1",
             "legacyKind": "worked-example-card",
             "presentation": "single",
-            "semanticRole": "example"
+            "semanticRole": "example",
+            "block_key": "example_5_1"
           }
         },
         {
@@ -1414,11 +1411,12 @@
           "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
-            "panel_id": "unit42_example_pi",
-            "spec_key": "example_5_1_panel",
             "legacyKind": "interactive-figure-panel",
             "presentation": "single",
-            "capabilityRef": "interactive-figure"
+            "semanticRole": "media",
+            "capabilityRef": "interactive-figure",
+            "panel_id": "unit42_example_pi",
+            "spec_key": "example_5_1_panel"
           }
         },
         {
@@ -1427,7 +1425,6 @@
           "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "example_5_1",
             "legacyKind": "activity-card-set",
             "presentation": "single"
           }
@@ -1570,10 +1567,10 @@
           "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "example_5_2",
             "legacyKind": "worked-example-card",
             "presentation": "single",
-            "semanticRole": "example"
+            "semanticRole": "example",
+            "block_key": "example_5_2"
           }
         },
         {
@@ -1583,11 +1580,12 @@
           "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
-            "panel_id": "unit42_example_lead",
-            "spec_key": "example_5_2_panel",
             "legacyKind": "interactive-figure-panel",
             "presentation": "single",
-            "capabilityRef": "interactive-figure"
+            "semanticRole": "media",
+            "capabilityRef": "interactive-figure",
+            "panel_id": "unit42_example_lead",
+            "spec_key": "example_5_2_panel"
           }
         },
         {
@@ -1596,7 +1594,6 @@
           "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "example_5_2",
             "legacyKind": "activity-card-set",
             "presentation": "single"
           }
@@ -1639,7 +1636,7 @@
             "label": "T",
             "default": 1.025,
             "min": 0.4,
-            "max": 2,
+            "max": 2.0,
             "step": 0.001
           },
           {
@@ -1647,7 +1644,7 @@
             "label": "K_c",
             "default": 1.95,
             "min": 0.8,
-            "max": 4,
+            "max": 4.0,
             "step": 0.01
           }
         ]
@@ -1740,10 +1737,10 @@
           "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "example_5_3",
             "legacyKind": "worked-example-card",
             "presentation": "single",
-            "semanticRole": "example"
+            "semanticRole": "example",
+            "block_key": "example_5_3"
           }
         },
         {
@@ -1753,11 +1750,12 @@
           "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
-            "panel_id": "unit42_example_lag",
-            "spec_key": "example_5_3_panel",
             "legacyKind": "interactive-figure-panel",
             "presentation": "single",
-            "capabilityRef": "interactive-figure"
+            "semanticRole": "media",
+            "capabilityRef": "interactive-figure",
+            "panel_id": "unit42_example_lag",
+            "spec_key": "example_5_3_panel"
           }
         },
         {
@@ -1766,7 +1764,6 @@
           "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "example_5_3",
             "legacyKind": "activity-card-set",
             "presentation": "single"
           }
@@ -1800,7 +1797,7 @@
             "label": "beta",
             "default": 2.5,
             "min": 1.2,
-            "max": 5,
+            "max": 5.0,
             "step": 0.01
           },
           {
@@ -1909,10 +1906,10 @@
           "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "example_5_4",
             "legacyKind": "worked-example-card",
             "presentation": "single",
-            "semanticRole": "example"
+            "semanticRole": "example",
+            "block_key": "example_5_4"
           }
         },
         {
@@ -1921,9 +1918,10 @@
           "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "example_5_4_critical_media",
             "legacyKind": "image-panel",
-            "presentation": "single"
+            "presentation": "single",
+            "semanticRole": "media",
+            "block_key": "example_5_4_critical_media"
           }
         },
         {
@@ -1933,11 +1931,12 @@
           "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
-            "panel_id": "unit42_example_pid_zn",
-            "spec_key": "example_5_4_panel",
             "legacyKind": "interactive-figure-panel",
             "presentation": "single",
-            "capabilityRef": "interactive-figure"
+            "semanticRole": "media",
+            "capabilityRef": "interactive-figure",
+            "panel_id": "unit42_example_pid_zn",
+            "spec_key": "example_5_4_panel"
           }
         },
         {
@@ -1946,7 +1945,6 @@
           "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "example_5_4",
             "legacyKind": "activity-card-set",
             "presentation": "single"
           }
@@ -1984,16 +1982,16 @@
             "id": "Kp",
             "label": "K_p",
             "default": 4.8,
-            "min": 2,
-            "max": 7,
+            "min": 2.0,
+            "max": 7.0,
             "step": 0.01
           },
           {
             "id": "Ti",
             "label": "T_i",
-            "default": 2,
+            "default": 2.0,
             "min": 0.8,
-            "max": 4,
+            "max": 4.0,
             "step": 0.01
           },
           {
@@ -2009,7 +2007,7 @@
             "label": "K_i",
             "default": 2.4,
             "min": 0.5,
-            "max": 5,
+            "max": 5.0,
             "step": 0.01
           },
           {
@@ -2017,7 +2015,7 @@
             "label": "K_d",
             "default": 2.4,
             "min": 0.5,
-            "max": 5,
+            "max": 5.0,
             "step": 0.01
           }
         ]
@@ -2119,10 +2117,10 @@
           "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "feedforward_problem",
             "legacyKind": "summary-card",
             "presentation": "single",
-            "semanticRole": "summary"
+            "semanticRole": "summary",
+            "block_key": "feedforward_problem"
           }
         },
         {
@@ -2131,10 +2129,10 @@
           "kind": "content.reveal",
           "must_be_visible": true,
           "payload": {
-            "block_key": "feedforward_steps",
             "legacyKind": "step-reveal",
             "presentation": "single",
-            "interactionKind": "progressive-reveal"
+            "interactionKind": "progressive-reveal",
+            "block_key": "feedforward_steps"
           }
         },
         {
@@ -2143,9 +2141,10 @@
           "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "feedforward_media",
             "legacyKind": "image-panel",
-            "presentation": "single"
+            "presentation": "single",
+            "semanticRole": "media",
+            "block_key": "feedforward_media"
           }
         },
         {
@@ -2154,7 +2153,6 @@
           "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "feedforward_problem",
             "legacyKind": "activity-card-set",
             "presentation": "single"
           }
@@ -2289,9 +2287,9 @@
           "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "ship_setup",
             "legacyKind": "table-card",
-            "presentation": "single"
+            "presentation": "single",
+            "block_key": "ship_setup"
           }
         },
         {
@@ -2300,8 +2298,6 @@
           "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "ship_setup",
-            "formula": "G_h(s)=0.01715/[s(s+0.1)(s+2.14375)]",
             "legacyKind": "activity-card-set",
             "presentation": "single"
           }
@@ -2416,9 +2412,10 @@
           "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "ship_bode_media",
             "legacyKind": "image-panel",
-            "presentation": "single"
+            "presentation": "single",
+            "semanticRole": "media",
+            "block_key": "ship_bode_media"
           }
         },
         {
@@ -2427,9 +2424,10 @@
           "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "ship_time_media",
             "legacyKind": "image-panel",
-            "presentation": "single"
+            "presentation": "single",
+            "semanticRole": "media",
+            "block_key": "ship_time_media"
           }
         },
         {
@@ -2438,9 +2436,10 @@
           "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "ship_summary_media",
             "legacyKind": "image-panel",
-            "presentation": "single"
+            "presentation": "single",
+            "semanticRole": "media",
+            "block_key": "ship_summary_media"
           }
         },
         {
@@ -2449,9 +2448,9 @@
           "kind": "content.table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "ship_candidate_table",
             "legacyKind": "table-card",
-            "presentation": "single"
+            "presentation": "single",
+            "block_key": "ship_candidate_table"
           }
         },
         {
@@ -2461,11 +2460,12 @@
           "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
-            "panel_id": "unit42_ship_candidate_compare",
-            "spec_key": "ship_candidate_compare_panel",
             "legacyKind": "interactive-figure-panel",
             "presentation": "single",
-            "capabilityRef": "interactive-figure"
+            "semanticRole": "media",
+            "capabilityRef": "interactive-figure",
+            "panel_id": "unit42_ship_candidate_compare",
+            "spec_key": "ship_candidate_compare_panel"
           }
         }
       ],
@@ -2605,10 +2605,10 @@
           "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "practice_prompts",
             "legacyKind": "summary-card",
             "presentation": "single",
-            "semanticRole": "summary"
+            "semanticRole": "summary",
+            "block_key": "practice_prompts"
           }
         },
         {
@@ -2617,10 +2617,10 @@
           "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "start_card_fields",
             "legacyKind": "template-card",
             "presentation": "single",
-            "semanticRole": "template"
+            "semanticRole": "template",
+            "block_key": "start_card_fields"
           }
         },
         {
@@ -2629,7 +2629,6 @@
           "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "practice_prompts",
             "legacyKind": "activity-card-set",
             "presentation": "single"
           }
@@ -2798,7 +2797,6 @@
           "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "posttest_intro",
             "legacyKind": "activity-card-set",
             "presentation": "single"
           }
@@ -2945,9 +2943,10 @@
           "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "summary_infograph",
             "legacyKind": "image-panel",
-            "presentation": "single"
+            "presentation": "single",
+            "semanticRole": "media",
+            "block_key": "summary_infograph"
           }
         },
         {
@@ -2956,10 +2955,10 @@
           "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
-            "block_key": "summary_content",
             "legacyKind": "summary-card",
             "presentation": "single",
-            "semanticRole": "summary"
+            "semanticRole": "summary",
+            "block_key": "summary_content"
           }
         },
         {
@@ -2968,10 +2967,10 @@
           "kind": "analytics.summary",
           "must_be_visible": true,
           "payload": {
-            "block_key": "performance_stats",
             "legacyKind": "performance-summary",
             "presentation": "single",
-            "semanticRole": "summary"
+            "semanticRole": "summary",
+            "block_key": "performance_stats"
           }
         }
       ],

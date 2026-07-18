@@ -1,0 +1,94 @@
+{
+  "lesson_id": "1-3",
+  "sequence_path": "course-content/authoring/knowledge/cards/lessons/1-3/sequence.json",
+  "infograph_root": "course-content/authoring/knowledge/infographs/lessons/1-3/nodes",
+  "card_order": [
+    "开环增益_1_3",
+    "闭环特征方程_1_3",
+    "极点迁移_1_3",
+    "实极点_1_3",
+    "重实极点_1_3",
+    "共轭复极点_1_3",
+    "临界阻尼_1_3",
+    "衰减振荡_1_3",
+    "根轨迹雏形_1_3",
+    "参数连续性_1_3"
+  ],
+  "accepted_infographs": [],
+  "missing_infographs": [
+    "开环增益_1_3",
+    "闭环特征方程_1_3",
+    "极点迁移_1_3",
+    "实极点_1_3",
+    "重实极点_1_3",
+    "共轭复极点_1_3",
+    "临界阻尼_1_3",
+    "衰减振荡_1_3",
+    "根轨迹雏形_1_3",
+    "参数连续性_1_3"
+  ],
+  "missing_source_files": {
+    "开环增益_1_3": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "闭环特征方程_1_3": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "极点迁移_1_3": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "实极点_1_3": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "重实极点_1_3": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "共轭复极点_1_3": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "临界阻尼_1_3": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "衰减振荡_1_3": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "根轨迹雏形_1_3": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "参数连续性_1_3": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ]
+  },
+  "pending_review": [],
+  "broken_review_files": {}
+}

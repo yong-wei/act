@@ -1,0 +1,6 @@
+{"source_id":"时域响应_1_1","source":"时域响应","target_id":"时域频域通道区分_1_4","target":"时域与频域的对象和通道区分","relation_type":"prerequisite","strength":0.95,"description":"已有的时域直觉是比较不同分析域和传递通道的起点。"}
+{"source_id":"时域频域通道区分_1_4","source":"时域与频域的对象和通道区分","target_id":"闭环带宽与环路穿越频率_1_4","target":"闭环带宽与环路增益穿越频率","relation_type":"leads_to","strength":0.98,"description":"只有先区分闭环与环路对象，才能正确解释两个频率指标。"}
+{"source_id":"频域分析_2_2e257d89","source":"频域分析","target_id":"Bode与Nyquist同源表征_1_4","target":"Bode 与 Nyquist 的同源表征","relation_type":"prerequisite","strength":0.9,"description":"频域分析提供按频率观察同一系统的基本语言。"}
+{"source_id":"Bode与Nyquist同源表征_1_4","source":"Bode 与 Nyquist 的同源表征","target_id":"开环幅相特性曲线_5_fd86e289","target":"开环幅相特性曲线","relation_type":"refined_by","strength":0.88,"description":"后续课程会把同源直觉精化为完整的开环幅相特性曲线读法。"}
+{"source_id":"闭环带宽与环路穿越频率_1_4","source":"闭环带宽与环路增益穿越频率","target_id":"多表征一致性读图_1_4","target":"同一系统的多表征一致性读图","relation_type":"applies_to","strength":0.94,"description":"正确区分指标后，才能把频域信息纳入跨域判断。"}
+{"source_id":"Bode与Nyquist同源表征_1_4","source":"Bode 与 Nyquist 的同源表征","target_id":"多表征一致性读图_1_4","target":"同一系统的多表征一致性读图","relation_type":"leads_to","strength":0.96,"description":"同源关系使 Bode、Nyquist 与其他表征能够在同一对象上互相核对。"}

@@ -154,9 +154,9 @@ function sampleRegistry() {
     ],
     arenaTasks: [
       {
-        id: 'roll-control',
+        id: 'task-second-order-lead-pid',
         title: '横摇控制 Arena',
-        launchTarget: '/arena/challenges/roll-control',
+        launchTarget: '/arena/challenges/task-second-order-lead-pid',
         knowledgeNodeIds: ['kn-bode'],
         prerequisiteNodeIds: ['simulation:cruise'],
         official: true,
@@ -235,7 +235,7 @@ function sampleRegistry() {
         title: '伯德图项目',
         launchTarget: '/missions?project=bode',
         knowledgeNodeIds: ['kn-bode'],
-        prerequisiteNodeIds: ['arena-task:roll-control'],
+        prerequisiteNodeIds: ['arena-task:task-second-order-lead-pid'],
       },
     ],
   });
@@ -296,6 +296,111 @@ function runtimeProjectionSidecar(
 }
 
 describe('resource node registry', () => {
+  it('does not materialize audit-only runtime projections as ResourceNodes', () => {
+    const projectionId = 'textbook-section:book:synthetic-audit-only';
+    const registry = buildResourceNodeRegistry({
+      runtimeResourceProjections: [runtimeProjectionSidecar({
+        id: projectionId,
+        resourceNodeId: null,
+        resourceType: 'textbook_section',
+        sourceKind: 'textbook_section',
+        sourceRef: projectionId,
+        sourceRecord: projectionId,
+        lifecycleScope: 'audit-only',
+        privacyScope: 'teacher-scoped',
+        teacherPolicy: 'teacher-only',
+      })],
+    });
+
+    expect(registry.nodes).toEqual([]);
+    expect(registry.edges).toEqual([]);
+  });
+
+  it('keeps audit-only projection IDs from merging into existing textbook sections', () => {
+    const projectionId = 'textbook-section:book:section-1';
+    const registry = buildResourceNodeRegistry({
+      textbookSections: [{
+        bookId: 'book',
+        sectionId: 'section-1',
+        title: 'Existing reviewed section',
+        citationHref: '/course-runtime/resources/textbooks/book/sections/section-1',
+        knowledgeNodeIds: ['kn-existing'],
+      }],
+      runtimeResourceProjections: [runtimeProjectionSidecar({
+        id: projectionId,
+        resourceNodeId: null,
+        title: 'Audit-only duplicate title',
+        resourceType: 'textbook_section',
+        sourceKind: 'textbook_section',
+        sourceRef: 'authoring-textbook-section:book:section-1',
+        sourceRecord: 'authoring-textbook-section:book:section-1',
+        lifecycleScope: 'audit-only',
+        privacyScope: 'teacher-scoped',
+        teacherPolicy: 'teacher-only',
+      })],
+    });
+
+    expect(registry.nodes).toHaveLength(1);
+    expect(registry.nodes[0]).toMatchObject({
+      id: projectionId,
+      title: 'Existing reviewed section',
+      runtimeProjection: null,
+      planningMetadata: { knowledgeCoverage: ['kn-existing'] },
+    });
+    expect(registry.nodes[0].sourceRefs).not.toContainEqual(expect.objectContaining({
+      ref: 'authoring-textbook-section:book:section-1',
+    }));
+  });
+
+  it('still materializes non-audit model-cleared teacher-only retrieval projections', () => {
+    const projectionId = 'textbook-section:book:model-cleared-retrieval';
+    const registry = buildResourceNodeRegistry({
+      runtimeResourceProjections: [runtimeProjectionSidecar({
+        id: projectionId,
+        resourceNodeId: null,
+        resourceType: 'textbook_section',
+        sourceKind: 'textbook_section',
+        sourceRef: projectionId,
+        sourceRecord: projectionId,
+        projectionLevel: 'ResourceSegment',
+        lifecycleScope: 'runtime',
+        routeTarget: null,
+        renderTarget: '/course-runtime/resources/textbooks/book/sections/model-cleared-retrieval',
+        privacyScope: 'teacher-scoped',
+        teacherPolicy: 'teacher-only',
+        reviewAudit: {
+          ...runtimeProjectionSidecar({}).reviewAudit!,
+          status: 'model-cleared',
+        },
+        groundingEligibility: {
+          retrievalReady: true,
+          citationReady: true,
+          authoringTriageReady: false,
+        },
+        pathEligibility: {
+          current: false,
+          afterCompletion: false,
+          masteryAffecting: false,
+          blockedBy: ['missing-human-review'],
+        },
+      })],
+    });
+
+    expect(registry.nodes).toHaveLength(1);
+    expect(registry.nodes[0]).toMatchObject({
+      id: projectionId,
+      runtimeProjection: {
+        id: projectionId,
+        projectionLevel: 'ResourceSegment',
+        reviewAudit: { status: 'model-cleared' },
+      },
+      planningMetadata: {
+        privacyLevel: 'teacher-scoped',
+        teacherPolicy: 'teacher-only',
+      },
+    });
+  });
+
   it('loads an audited versioned control-correction seed graph across required resource types', () => {
     const registry = buildControlCorrectionResourceNodeRegistry();
     const eligibleNodes = registry.nodes.filter((node) => node.eligibility.pathEligible);
@@ -362,6 +467,105 @@ describe('resource node registry', () => {
     }));
     expect(registry.nodes.find((node) => node.id === 'registry:control-correction-invalid-quiz')?.eligibility.pathEligible)
       .toBe(false);
+  });
+
+  it.each([
+    ['generic Arena route', '/arena', 'generic-arena-target'],
+    ['mismatched Arena route', '/arena/challenges/task-ship-roll-comfort', 'arena-route-mismatch'],
+  ])('blocks %s from ResourceNode path eligibility', (_label, launchTarget, reason) => {
+    const registry = buildResourceNodeRegistry({
+      arenaTasks: [{
+        id: 'task-second-order-lead-pid',
+        title: '二阶对象快速稳定挑战',
+        launchTarget,
+        knowledgeNodeIds: ['kn-bode'],
+        official: true,
+        planningOverride: {
+          abilityImpact: { controlModeling: 0.4 },
+          evidenceInstrumentation: ['arena_evaluation_complete'],
+        },
+      }],
+    });
+
+    expect(registry.nodes[0]?.eligibility).toMatchObject({
+      pathEligible: false,
+      reasons: expect.arrayContaining([reason]),
+    });
+    expect(registry.audit.ineligibleNodes[0]?.reasons).toContain(reason);
+  });
+
+  it('blocks unknown Arena catalog tasks even when identity and route agree', () => {
+    const registry = buildResourceNodeRegistry({
+      arenaTasks: [{
+        id: 'unknown-task',
+        title: 'Unknown Arena task',
+        launchTarget: '/arena/challenges/unknown-task',
+        knowledgeNodeIds: ['kn-bode'],
+        official: true,
+        planningOverride: {
+          abilityImpact: { controlModeling: 0.4 },
+          evidenceInstrumentation: ['arena_evaluation_complete'],
+        },
+      }],
+    });
+
+    expect(registry.nodes[0]?.eligibility).toMatchObject({
+      pathEligible: false,
+      reasons: expect.arrayContaining(['unknown-arena-task']),
+    });
+  });
+
+  it('blocks an explicitly path-plannable Arena node that uses a knowledge placeholder identity', () => {
+    const canonical = buildControlCorrectionResourceNodeRegistry().nodes.find(
+      (node) => node.id === 'arena-task:task-second-order-lead-pid',
+    ) as ResourceNode;
+    const placeholder: ResourceNode = {
+      ...canonical,
+      id: '根轨迹_1_1',
+      sourceKind: 'knowledge_graph',
+      sourceRef: '根轨迹_1_1',
+      launchTarget: '/arena?nodeId=%E6%A0%B9%E8%BD%A8%E8%BF%B9_1_1',
+      planningMetadata: {
+        ...canonical.planningMetadata,
+        pathDisposition: {
+          kind: 'path-plannable',
+          reviewStatus: 'human-confirmed',
+          rationale: 'Legacy fixture marked path-plannable.',
+          sourceFamily: 'knowledge_graph',
+          stableSourceRef: '根轨迹_1_1',
+          sourceVersionRef: 'legacy-fixture.v1',
+          parentResourceNodeId: null,
+          reviewedAt: '2026-07-10T00:00:00.000Z',
+          reviewerId: 'fixture-reviewer',
+        },
+      },
+    };
+
+    expect(auditResourceNode(placeholder).reasons).toContain('knowledge-placeholder-identity');
+    expect(auditResourceNode(placeholder).pathEligible).toBe(false);
+  });
+
+  it('blocks a terminal-validation Arena node with a knowledge placeholder even without a path disposition', () => {
+    const canonical = buildControlCorrectionResourceNodeRegistry().nodes.find(
+      (node) => node.id === 'arena-task:task-second-order-lead-pid',
+    ) as ResourceNode;
+    const placeholder: ResourceNode = {
+      ...canonical,
+      id: '根轨迹_1_1',
+      sourceKind: 'knowledge_graph',
+      sourceRef: '根轨迹_1_1',
+      launchTarget: '/arena?nodeId=%E6%A0%B9%E8%BD%A8%E8%BF%B9_1_1',
+      planningMetadata: {
+        ...canonical.planningMetadata,
+        pathDisposition: undefined,
+        terminalConstraints: ['terminal-validation'],
+      },
+    };
+
+    expect(auditResourceNode(placeholder)).toMatchObject({
+      pathEligible: false,
+      reasons: expect.arrayContaining(['knowledge-placeholder-identity']),
+    });
   });
 
   it('audits empty readiness metadata on high-complexity path nodes as missing', () => {
@@ -840,7 +1044,13 @@ describe('resource node registry', () => {
         reasons: expect.arrayContaining(['unavailable-resource']),
       },
     });
-    expect(registry.nodes.find((node) => node.id === 'registry:arena-challenge-workbench')).toMatchObject({
+    expect(registry.nodes.find((node) => node.id === 'arena-task:task-second-order-lead-pid')).toMatchObject({
+      sourceKind: 'arena_task',
+      sourceRef: 'task-second-order-lead-pid',
+      launchTarget: '/arena/challenges/task-second-order-lead-pid',
+      sourceRefs: expect.arrayContaining([
+        { kind: 'resource_registry', ref: 'arena-challenge-workbench' },
+      ]),
       planningMetadata: {
         readiness: {
           requiredCompletedNodeIds: ['registry:lesson09-summary-card'],
@@ -848,6 +1058,25 @@ describe('resource node registry', () => {
         },
       },
     });
+    expect(registry.nodes.find((node) => node.id === 'arena-task:task-cruise-roll-blackbox-identification'))
+      .toMatchObject({
+        sourceKind: 'arena_task',
+        sourceRef: 'task-cruise-roll-blackbox-identification',
+        launchTarget: '/arena/challenges/task-cruise-roll-blackbox-identification',
+        planningMetadata: {
+          pathDisposition: {
+            kind: 'path-plannable',
+            reviewStatus: 'human-confirmed',
+            sourceFamily: 'arena_task',
+            stableSourceRef: 'task-cruise-roll-blackbox-identification',
+            sourceVersionRef: 'resource-node-registry.v1',
+          },
+          readiness: {
+            fallbackNodeIds: ['registry:lesson15-series-precheck'],
+          },
+        },
+      });
+    expect(registry.nodes.some((node) => node.id === 'registry:arena-challenge-workbench')).toBe(false);
     expect(registry.nodes.find((node) => node.id === 'registry:lesson09-time-domain-synthesis')).toMatchObject({
       type: 'lesson_step',
       planningMetadata: {
@@ -878,7 +1107,7 @@ describe('resource node registry', () => {
       .filter((node) => node.type === 'simulation' && !node.planningMetadata.readiness)
       .map((node) => node.id);
 
-    expect(activeRegisteredNodes).toHaveLength(139);
+    expect(activeRegisteredNodes).toHaveLength(137);
     expect(incompleteActiveNodes).toEqual([]);
     expect(unlockedSimulations).toEqual([]);
   });
@@ -1005,9 +1234,9 @@ describe('resource node registry', () => {
         knowledgeNodeIds: ['kn-demo'],
       }],
       arenaTasks: [{
-        id: 'demo-arena',
+        id: 'task-second-order-lead-pid',
         title: 'Arena 挑战',
-        launchTarget: '/arena/challenges/demo',
+        launchTarget: '/arena/challenges/task-second-order-lead-pid',
         knowledgeNodeIds: ['kn-demo'],
       }],
       externalResources: [{
@@ -1435,7 +1664,7 @@ describe('resource node registry', () => {
     } as any)).toEqual(['rawSubmission']);
   });
 
-  it('requires human-confirmed runtime projection sidecars before creating PlanningUnits', () => {
+  it('requires confirmed runtime projection sidecars before creating PlanningUnits', () => {
     const confirmedProjection = runtimeProjectionSidecar({
       id: 'runtime-step:unit-demo:step-1',
       resourceNodeId: 'lesson-step:unit-demo:step-1',
@@ -1517,6 +1746,22 @@ describe('resource node registry', () => {
         staleInvalidationRule: 'requires human review before path eligibility or mastery effect',
       },
     });
+    const agentReviewedProjection = runtimeProjectionSidecar({
+      ...confirmedProjection,
+      id: 'runtime-step:unit-demo:step-agent-reviewed',
+      resourceNodeId: 'lesson-step:unit-demo:step-agent-reviewed',
+      sourceRef: 'unit-demo:step-agent-reviewed',
+      sourceRecord: 'unit-demo:step-agent-reviewed',
+      sourceHash: 'sha256:step-agent-reviewed',
+      reviewAudit: {
+        ...confirmedProjection.reviewAudit!,
+        status: 'agent-reviewed',
+        reviewerId: 'implementing-agent-882',
+        reviewerRole: 'implementing-agent',
+        reviewedSourceHash: 'sha256:step-agent-reviewed',
+        promptOrManifestHash: null,
+      },
+    });
     const staleProjection = runtimeProjectionSidecar({
       id: 'runtime-step:unit-demo:step-3',
       resourceNodeId: 'lesson-step:unit-demo:step-3',
@@ -1576,6 +1821,7 @@ describe('resource node registry', () => {
     const registry = buildResourceNodeRegistry({
       runtimeResourceProjections: [
         confirmedProjection,
+        agentReviewedProjection,
         provisionalProjection,
         staleProjection,
         missingCapabilityProjection,
@@ -1583,15 +1829,23 @@ describe('resource node registry', () => {
     });
 
     const confirmed = registry.nodes.find((node) => node.id === 'lesson-step:unit-demo:step-1') as ResourceNode;
+    const agentReviewed = registry.nodes.find((node) => node.id === 'lesson-step:unit-demo:step-agent-reviewed') as ResourceNode;
     const provisional = registry.nodes.find((node) => node.id === 'lesson-step:unit-demo:step-2') as ResourceNode;
     const stale = registry.nodes.find((node) => node.id === 'lesson-step:unit-demo:step-3') as ResourceNode;
     const missingCapability = registry.nodes.find((node) => node.id === 'lesson-step:unit-demo:step-4') as ResourceNode;
     const confirmedSemanticProjection = buildResourceSemanticProjection(confirmed);
+    const agentReviewedSemanticProjection = buildResourceSemanticProjection(agentReviewed);
     const provisionalSemanticProjection = buildResourceSemanticProjection(provisional);
     const staleSemanticProjection = buildResourceSemanticProjection(stale);
     const missingCapabilitySemanticProjection = buildResourceSemanticProjection(missingCapability);
 
     expect(confirmed.eligibility.pathEligible).toBe(true);
+    expect(agentReviewed.eligibility.pathEligible).toBe(false);
+    expect(agentReviewedSemanticProjection.planningUnit).toBeNull();
+    expect(agentReviewed.eligibility.auditIssues).toContainEqual(expect.objectContaining({
+      code: 'provisional-runtime-projection',
+      severity: 'blocking',
+    }));
     expect(provisional.eligibility.pathEligible).toBe(false);
     expect(provisional.eligibility.auditIssues).toContainEqual(expect.objectContaining({
       code: 'provisional-runtime-projection',
@@ -1985,7 +2239,7 @@ describe('resource node registry', () => {
 
   it('maps path-eligible ResourceNodes into PlanningUnits through audited planning metadata', () => {
     const registry = sampleRegistry();
-    const arenaTask = registry.nodes.find((node) => node.id === 'arena-task:roll-control') as ResourceNode;
+    const arenaTask = registry.nodes.find((node) => node.id === 'arena-task:task-second-order-lead-pid') as ResourceNode;
     const brokenExternal = buildResourceNodeRegistry({
       externalResources: [
         {
@@ -2054,10 +2308,10 @@ describe('resource node registry', () => {
     const auditBlockedEvidenceProjection = buildResourceSemanticProjection(auditBlockedEvidenceResource);
 
     expect(projection.planningUnit).toMatchObject({
-      id: 'planning-unit:arena-task:roll-control',
-      resourceNodeId: 'arena-task:roll-control',
+      id: 'planning-unit:arena-task:task-second-order-lead-pid',
+      resourceNodeId: 'arena-task:task-second-order-lead-pid',
       pathEligible: true,
-      target: '/arena/challenges/roll-control',
+      target: '/arena/challenges/task-second-order-lead-pid',
       prerequisites: ['simulation:cruise'],
       knowledgeCoverage: ['kn-bode'],
       estimatedTimeMinutes: 25,
@@ -2066,8 +2320,8 @@ describe('resource node registry', () => {
       evidenceInstrumentation: ['arena_evaluation_complete'],
       launchBinding: {
         kind: 'resource-node',
-        target: '/arena/challenges/roll-control',
-        sourceRef: { kind: 'arena_task', ref: 'roll-control' },
+        target: '/arena/challenges/task-second-order-lead-pid',
+        sourceRef: { kind: 'arena_task', ref: 'task-second-order-lead-pid' },
       },
       privacyLevel: 'student-visible',
       teacherPolicy: 'allowed',
@@ -2095,15 +2349,15 @@ describe('resource node registry', () => {
       },
     });
     expect(projection.citationTargets).toContainEqual(expect.objectContaining({
-      id: 'citation-target:arena-task:roll-control:primary',
-      resourceSegmentId: 'resource-segment:arena-task:roll-control:primary',
-      target: '/arena/challenges/roll-control',
+      id: 'citation-target:arena-task:task-second-order-lead-pid:primary',
+      resourceSegmentId: 'resource-segment:arena-task:task-second-order-lead-pid:primary',
+      target: '/arena/challenges/task-second-order-lead-pid',
       status: 'resolvable',
     }));
     expect(projection.retrievalChunks).toContainEqual(expect.objectContaining({
-      id: 'retrieval-chunk:arena-task:roll-control:primary',
-      resourceSegmentId: 'resource-segment:arena-task:roll-control:primary',
-      citationTargetId: 'citation-target:arena-task:roll-control:primary',
+      id: 'retrieval-chunk:arena-task:task-second-order-lead-pid:primary',
+      resourceSegmentId: 'resource-segment:arena-task:task-second-order-lead-pid:primary',
+      citationTargetId: 'citation-target:arena-task:task-second-order-lead-pid:primary',
       projectionStatus: 'not-indexed',
       pathEligibility: {
         eligible: false,
@@ -3328,16 +3582,16 @@ describe('resource node registry', () => {
     expect(first).toEqual(second);
     expect(first.edges).toEqual([
       {
-        id: 'arena-task:roll-control->project:bode-project:prerequisite',
-        fromNodeId: 'arena-task:roll-control',
+        id: 'arena-task:task-second-order-lead-pid->project:bode-project:prerequisite',
+        fromNodeId: 'arena-task:task-second-order-lead-pid',
         toNodeId: 'project:bode-project',
         kind: 'prerequisite',
         source: 'declared-prerequisite',
       },
       {
-        id: 'simulation:cruise->arena-task:roll-control:prerequisite',
+        id: 'simulation:cruise->arena-task:task-second-order-lead-pid:prerequisite',
         fromNodeId: 'simulation:cruise',
-        toNodeId: 'arena-task:roll-control',
+        toNodeId: 'arena-task:task-second-order-lead-pid',
         kind: 'prerequisite',
         source: 'declared-prerequisite',
       },

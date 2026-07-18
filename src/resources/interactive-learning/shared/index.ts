@@ -4,3 +4,9 @@
  */
 
 export { KnowledgeCard, KnowledgeSidebar, KnowledgeCardTrigger } from './knowledge-card';
+export {
+  KnowledgeDeck,
+  knowledgeDeckCardKey,
+  recordKnowledgeDeckVisit,
+} from './knowledge-deck';
+export type { KnowledgeDeckVisitState } from './knowledge-deck';

@@ -158,6 +158,21 @@ const MIN_ORBIT_RADIUS = 20;
 const MIN_POLAR_ANGLE = 0.05;
 const MAX_POLAR_ANGLE = Math.PI - 0.05;
 
+export function calculateWheelRadiusOffset(
+  presetRadius: number,
+  currentRadius: number,
+  minDistance: number,
+  maxDistance: number
+): number {
+  const minimum = Number.isFinite(minDistance) ? Math.max(MIN_ORBIT_RADIUS, minDistance) : MIN_ORBIT_RADIUS;
+  const maximum = Number.isFinite(maxDistance) ? Math.max(minimum, maxDistance) : Number.POSITIVE_INFINITY;
+  return THREE.MathUtils.clamp(currentRadius, minimum, maximum) - presetRadius;
+}
+
+export function shouldResetPresetOffset(previousMode: CameraMode, nextMode: CameraMode): boolean {
+  return previousMode === 'free' && nextMode !== 'free';
+}
+
 function createDefaultViewOffsets(): Record<CameraView, ViewOrbitOffset> {
   return {
     chase: { radius: 0, theta: 0, phi: 0 },
@@ -219,7 +234,7 @@ export function UnifiedCameraController({
   headingRad,
   cameraMode,
   controlsRef,
-  config = {},
+  config,
   followTarget = true,
   enabled = true,
 }: UnifiedCameraControllerProps) {
@@ -229,7 +244,7 @@ export function UnifiedCameraController({
   const cfg: Required<CameraConfig> = useMemo(
     () => {
       const merged = { ...defaultConfig, ...config };
-      if (config.chaseSideOffset === undefined) {
+      if (config?.chaseSideOffset === undefined) {
         merged.chaseSideOffset = merged.chaseDistance;
       }
       return merged;
@@ -255,6 +270,9 @@ export function UnifiedCameraController({
   const pointerButtonRef = useRef<number | null>(null);
   // 记录各预设视角的用户拖动偏移
   const viewOffsetsRef = useRef<Record<CameraView, ViewOrbitOffset>>(createDefaultViewOffsets());
+  // wheel 监听器保持稳定，通过 ref 读取仿真帧中的最新参数
+  const wheelContextRef = useRef({ cameraMode, positionX: position.x, positionZ: position.z, headingRad, cfg });
+  wheelContextRef.current = { cameraMode, positionX: position.x, positionZ: position.z, headingRad, cfg };
 
   useEffect(() => {
     if (!enabled) return;
@@ -280,12 +298,59 @@ export function UnifiedCameraController({
     };
   }, [enabled, gl]);
 
+  useEffect(() => {
+    if (!enabled) return;
+
+    const domElement = gl.domElement;
+    const handleWheel = () => {
+      const contextAtEvent = wheelContextRef.current;
+      if (!isPresetView(contextAtEvent.cameraMode)) return;
+      const presetMode = contextAtEvent.cameraMode;
+
+      // OrbitControls applies wheel zoom synchronously. Deferring the read until
+      // event dispatch completes preserves its native zoom speed and clamping.
+      queueMicrotask(() => {
+        const controls = controlsRef.current;
+        const currentContext = wheelContextRef.current;
+        if (
+          !controls
+          || transitionRef.current.active
+          || currentContext.cameraMode !== presetMode
+        ) return;
+
+        const presetBase = calculatePresetPosition(
+          presetMode,
+          contextAtEvent.positionX,
+          contextAtEvent.positionZ,
+          contextAtEvent.headingRad,
+          contextAtEvent.cfg
+        );
+        const presetRadius = presetBase.position.distanceTo(presetBase.target);
+        const currentRadius = camera.position.distanceTo(controls.target);
+        viewOffsetsRef.current[presetMode].radius = calculateWheelRadiusOffset(
+          presetRadius,
+          currentRadius,
+          controls.minDistance,
+          controls.maxDistance
+        );
+      });
+    };
+
+    domElement.addEventListener('wheel', handleWheel, { passive: true });
+    return () => {
+      domElement.removeEventListener('wheel', handleWheel);
+    };
+  }, [camera, controlsRef, enabled, gl]);
+
   // 监听模式变化，启动过渡动画
   useEffect(() => {
     if (!enabled) return;
 
     // 检测模式是否变化
     if (prevModeRef.current !== cameraMode && cameraMode !== 'free') {
+      if (shouldResetPresetOffset(prevModeRef.current, cameraMode)) {
+        viewOffsetsRef.current[cameraMode] = { radius: 0, theta: 0, phi: 0 };
+      }
       // 计算目标位置
       const presetBase = calculatePresetPosition(
         cameraMode,

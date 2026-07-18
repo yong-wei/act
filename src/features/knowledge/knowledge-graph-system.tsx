@@ -6,41 +6,39 @@
  * 重构自 knowledge0316.html，使用 React Three Fiber
  */
 
-import { Suspense, useState, useCallback, useEffect, useRef, useMemo, type CSSProperties, type Dispatch, type KeyboardEvent, type SetStateAction } from 'react';
+import { Suspense, useState, useCallback, useEffect, useRef, useMemo, useReducer, type CSSProperties, type Dispatch, type KeyboardEvent, type SetStateAction } from 'react';
 import dynamic from 'next/dynamic';
-import { BookOpen, Filter, LocateFixed, Network, SlidersHorizontal, X } from 'lucide-react';
+import { BookOpen, Filter, LocateFixed, SlidersHorizontal, X } from 'lucide-react';
 import { useGlobalAI } from '@/components/providers/global-ai-provider';
 import type { PlatformRole } from '@/components/platform/platform-ui-contracts';
+import type { SanitizedKnowledgeLessonContext } from '@/lib/knowledge-lesson-overlay';
 import { KnowledgeSidebar } from './sidebar/knowledge-sidebar';
 import { ResourcePanel } from './resource-panel/resource-panel';
 import {
   CHAPTER_DISPLAY_ORDER,
   getBloomLabel,
   getKnowledgeDimLabel,
-  getRelationCategory,
-  getRelationLabel,
   resolveChapterName,
 } from '@/lib/knowledge-labels';
 import {
   buildFocusNeighborhood,
   buildGraphStatistics,
-  buildDefaultSelectedRelationTypes,
-  buildRelationTypeStats,
   calculateGraphClarityMetrics,
   injectChapterNodes,
-  isNodeVisibleInFocusedGraph,
-  limitStructureRelationDensity,
   matchesNodeFilters,
-  relationPassesActiveFilters,
-  relationPassesFocusNeighborhoodSeedFilters,
-  type RelationDensityMode,
 } from './graph/filter-utils';
 import type { KnowledgeGraphLabelMode } from './graph/label-policy';
+import type { KnowledgeGraphCameraPose } from './graph/knowledge-graph-canvas';
+import { getGraphFilterLabel, KNOWLEDGE_GRAPH_FAMILY_PRESENTATION_CONFIG } from './graph/visual-config';
 import {
-  getGraphFilterLabel,
-  getRelationLegendItems,
-  type RelationLegendItem,
-} from './graph/visual-config';
+  DEFAULT_KNOWLEDGE_GRAPH_RELATION_FAMILIES,
+  selectCanonicalDomainRelationEdges,
+  selectLearnerVisibleRelationEdges,
+  toggleAllRelationFamilies,
+  toggleRelationFamily,
+} from './graph/relation-family-controls';
+import type { KnowledgeGraphRelationFamily } from './graph/relation-contract';
+import { RelationFamilyControl, resolveRelationFamilyControlPlacement } from './graph/relation-family-control';
 import {
   clearKnowledgeGraphLayoutPins,
   getEmptyKnowledgeGraphLayoutState,
@@ -49,7 +47,39 @@ import {
   removeKnowledgeGraphNodePin,
   storeKnowledgeGraphNodePosition,
 } from './graph/layout-state';
-import { applyRadialLayout } from './graph/layout-engine';
+import {
+  applyRadialLayout,
+} from './graph/layout-engine';
+import {
+  resolveKnowledgeLessonLocation,
+  resolveInitialKnowledgeNodeId,
+} from './graph/node-activation';
+import {
+  createKnowledgeGraphNavigationState,
+  knowledgeGraphNavigationReducer,
+} from './graph/domain-navigation';
+import {
+  createKnowledgeInspectionState,
+  knowledgeInspectionReducer,
+} from './graph/inspection-state';
+import { KnowledgeDomainReturnAction } from './graph/domain-return-action';
+import type { KnowledgeGraphFitRequest } from './graph/root-layout';
+import { buildKnowledgeTeachingOrderLayout } from './graph/teaching-order-layout';
+import { getKnowledgeNodeSemanticLabel } from './graph/node-label-layout';
+import { selectKnowledgeGraphFocusedPresentationLinks } from './graph/edge-presentation';
+import { deriveSelectedKnowledgeGraphCorridor } from './graph/selected-corridor';
+import {
+  buildInitialGraphCache,
+  mergeProgressiveGraphPayload,
+  selectCanvasKnowledgeRelationLinks,
+  selectKnowledgeNavigationSnapshot,
+  type KnowledgeGraphCacheState,
+  type ProgressiveGraphApiResponse,
+} from './progressive-graph-cache';
+import {
+  buildKnowledgeGraphDomainRequestUrl,
+  buildKnowledgeGraphRootRequestUrl,
+} from './graph/knowledge-graph-request';
 // import { getAllLessonCards, getAllLessonCardLinks } from './data/lesson-knowledge-cards'; // Removed static import
 
 // 动态导入 3D 图谱组件（客户端专用）
@@ -66,7 +96,7 @@ const KnowledgeGraph2D = dynamic(
 
 // 知识节点类型
 export type NodeType = 'THEORY' | 'SCENARIO' | 'ETHICS';
-type KnowledgeMobileTool = 'chapter-directory' | 'relation-filters' | 'legend' | 'view-layout';
+type KnowledgeMobileTool = 'chapter-directory' | 'node-filters' | 'view-layout';
 type KnowledgeDesktopTool = KnowledgeMobileTool;
 const DESKTOP_TOOL_PANEL_ID_PREFIX = 'knowledge-desktop-tool-panel';
 const KNOWLEDGE_WORKSPACE_STYLE = {
@@ -83,7 +113,6 @@ const FOCUSABLE_SELECTOR = [
   'textarea:not([disabled])',
   '[tabindex]:not([tabindex="-1"])',
 ].join(',');
-
 // 知识节点接口 (Aligned with Prisma Model)
 export interface KnowledgeNodeData {
   id: string;
@@ -104,6 +133,11 @@ export interface KnowledgeNodeData {
   ethicsContent?: Record<string, unknown>;
   graphDegree?: number;
   graphImportanceScore?: number;
+  importance?: number;
+  expansion?: {
+    state: 'expandable' | 'leaf' | 'unknown';
+    revealableNeighborCount?: number;
+  };
 }
 
 // 知识连接接口
@@ -121,108 +155,118 @@ interface KnowledgeGraphSystemProps {
   initialNodes?: KnowledgeNodeData[];
   initialLinks?: KnowledgeLinkData[];
   initialSelectedNodeId?: string | null;
+  trustedLessonId?: string | null;
   viewerRole?: PlatformRole;
 }
 
-interface GraphApiResponse {
-  nodes?: KnowledgeNodeData[];
-  links?: KnowledgeLinkData[];
-  source?: 'file' | 'database';
+function isCollapsedRootNode(node: KnowledgeNodeData): boolean {
+  const metadata = (node.metadata ?? {}) as Record<string, unknown>;
+  return Boolean(metadata.isVirtualChapter || metadata.isCollapsedRoot || node.id.startsWith('chapter-node:'));
 }
 
-function RelationLegendSample({ item, isLightTheme }: { item: RelationLegendItem; isLightTheme: boolean }) {
-  const dashArray = item.sampleStyle.dash.length > 0 ? item.sampleStyle.dash.join(' ') : undefined;
-  const markerId = `knowledge-relation-legend-${item.type}`;
-  const sampleColor = isLightTheme ? item.sampleStyle.lightColor : item.sampleStyle.darkColor;
-
-  return (
-    <div className="grid grid-cols-[4rem_minmax(0,1fr)] gap-2 rounded-md border border-platform-border bg-platform-canvas-muted px-2 py-1.5">
-      <svg
-        viewBox="0 0 72 22"
-        role="img"
-        aria-label={`${item.label}关系线样式`}
-        className="h-6 w-16 overflow-visible"
-        data-knowledge-relation-legend-sample={item.type}
-      >
-        {item.sampleStyle.hasArrow && (
-          <defs>
-            <marker
-              id={markerId}
-              markerWidth="5"
-              markerHeight="5"
-              refX="4"
-              refY="2.5"
-              orient="auto"
-            >
-              <path d="M0,0 L5,2.5 L0,5 Z" fill={sampleColor} />
-            </marker>
-          </defs>
-        )}
-        <path
-          d={`M6 11 C 24 ${11 - item.sampleStyle.curvature * 55}, 48 ${11 + item.sampleStyle.curvature * 55}, 66 11`}
-          fill="none"
-          stroke={sampleColor}
-          strokeDasharray={dashArray}
-          strokeLinecap="round"
-          strokeWidth={item.sampleStyle.width}
-          markerEnd={item.sampleStyle.hasArrow ? `url(#${markerId})` : undefined}
-          opacity={item.sampleStyle.opacity}
-        />
-        {item.sampleStyle.endpoint === 'dot' && (
-          <circle cx="66" cy="11" r="2.2" fill={sampleColor} opacity={item.sampleStyle.opacity} />
-        )}
-        {item.sampleStyle.endpoint === 'bar' && (
-          <path d="M63 6 L69 16" stroke={sampleColor} strokeWidth="1.4" strokeLinecap="round" opacity={item.sampleStyle.opacity} />
-        )}
-        {item.sampleStyle.endpoint === 'diamond' && (
-          <path d="M66 6 L70 11 L66 16 L62 11 Z" fill={sampleColor} opacity={item.sampleStyle.opacity} />
-        )}
-      </svg>
-      <div className="min-w-0">
-        <div className="text-[11px] font-medium text-platform-fg-primary">{item.label}</div>
-        <div className="line-clamp-2 text-[10px] text-platform-fg-muted">{item.legendExplanation}</div>
-      </div>
-    </div>
+function hasNodeFilters(input: {
+  searchQuery: string;
+  selectedChapters: string[];
+  selectedCategories: string[];
+  selectedBloomLevels: string[];
+}) {
+  return Boolean(
+    input.searchQuery.trim()
+    || input.selectedChapters.length > 0
+    || input.selectedCategories.length > 0
+    || input.selectedBloomLevels.length > 0
   );
+}
+
+function collapsedRootMatchesNodeFilters(
+  rootNode: KnowledgeNodeData,
+  rootChildren: KnowledgeNodeData[],
+  filters: Parameters<typeof matchesNodeFilters>[1]
+) {
+  if (matchesNodeFilters(rootNode, filters)) return true;
+  if (rootChildren.length === 0) return true;
+  return rootChildren.some((child) => matchesNodeFilters(child, filters));
 }
 
 export function KnowledgeGraphSystem({
   initialNodes = [],
   initialLinks = [],
   initialSelectedNodeId = null,
+  trustedLessonId = null,
   viewerRole = 'student',
 }: KnowledgeGraphSystemProps) {
   const { updatePageContext, isOpen: aiSidebarOpen } = useGlobalAI();
   const initialRequestedNodeId = initialSelectedNodeId;
-  const initialSelectedNode = initialRequestedNodeId
-    ? initialNodes.find((node) => node.id === initialRequestedNodeId) ?? null
-    : null;
-  const [nodes, setNodes] = useState<KnowledgeNodeData[]>(initialNodes);
-  const [links, setLinks] = useState<KnowledgeLinkData[]>(initialLinks);
-  const [isLoading, setIsLoading] = useState(true);
+  const [graphCache, setGraphCache] = useState<KnowledgeGraphCacheState>(() => buildInitialGraphCache(initialNodes, initialLinks));
+  const [navigation, dispatchNavigation] = useReducer(
+    knowledgeGraphNavigationReducer,
+    undefined,
+    createKnowledgeGraphNavigationState
+  );
+  const navigationSnapshot = useMemo(
+    () => selectKnowledgeNavigationSnapshot(graphCache, navigation.view),
+    [graphCache, navigation.view]
+  );
+  const nodes = navigationSnapshot.nodes;
+  const links = navigationSnapshot.links;
+  const corridorLinks = navigationSnapshot.corridorLinks;
+  const corridorCycleEdgeIds = navigationSnapshot.corridorCycleEdgeIds;
+  const membershipLinks = navigationSnapshot.membershipLinks;
+  const rootCatalogNodes = useMemo<KnowledgeNodeData[]>(() => (
+    Object.values(graphCache.rootCatalogByNodeId).map((entry) => ({
+      id: entry.nodeId,
+      name: entry.nodeName,
+      nodeType: entry.nodeType,
+      description: '',
+      positionX: 0,
+      positionY: 0,
+      positionZ: 0,
+      chapterName: entry.chapterName,
+      metadata: { chapterName: entry.chapterName },
+      expansion: { state: 'leaf' },
+    }))
+  ), [graphCache.rootCatalogByNodeId]);
 
   const [requestedNodeId, setRequestedNodeId] = useState<string | null>(initialRequestedNodeId);
-  const [selectedNode, setSelectedNode] = useState<KnowledgeNodeData | null>(initialSelectedNode);
+  const initialLessonLocationRef = useRef(
+    typeof window === 'undefined'
+      ? { lessonId: trustedLessonId, search: '' }
+      : resolveKnowledgeLessonLocation(window.location.search, trustedLessonId)
+  );
+  const [requestedLessonId, setRequestedLessonId] = useState<string | null>(
+    initialLessonLocationRef.current.lessonId
+  );
+  const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
+  const [lessonContext, setLessonContext] = useState<SanitizedKnowledgeLessonContext | null>(null);
+  const [inspection, dispatchInspection] = useReducer(
+    knowledgeInspectionReducer<KnowledgeNodeData>,
+    undefined,
+    createKnowledgeInspectionState<KnowledgeNodeData>
+  );
+  const selectedNode = inspection.selectedNode;
+  const isPanelOpen = inspection.isPanelOpen;
+  const explicitFocusNodeId = inspection.explicitFocusNodeId;
   const [hoveredNode, setHoveredNode] = useState<KnowledgeNodeData | null>(null);
-  const [isPanelOpen, setIsPanelOpen] = useState(Boolean(initialSelectedNode));
   const [searchQuery, setSearchQuery] = useState('');
-  const [dataSource, setDataSource] = useState<'file' | 'database'>('database');
-  const [minRelationStrength, setMinRelationStrength] = useState(0.8);
-  const [selectedRelationTypes, setSelectedRelationTypes] = useState<string[]>([]);
+  const [enabledRelationFamilies, setEnabledRelationFamilies] = useState<KnowledgeGraphRelationFamily[]>(
+    () => [...DEFAULT_KNOWLEDGE_GRAPH_RELATION_FAMILIES]
+  );
   const [selectedChapters, setSelectedChapters] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedBloomLevels, setSelectedBloomLevels] = useState<string[]>([]);
-  const [showOnlyConnectedNodes, setShowOnlyConnectedNodes] = useState(true);
   const [labelMode, setLabelMode] = useState<KnowledgeGraphLabelMode>('focus');
-  const [relationDensityMode, setRelationDensityMode] = useState<RelationDensityMode>('structure');
   const [desktopActiveTool, setDesktopActiveTool] = useState<KnowledgeDesktopTool | null>(null);
   const [mobileActiveTool, setMobileActiveTool] = useState<KnowledgeMobileTool>('chapter-directory');
   const [mobileToolPanelOpen, setMobileToolPanelOpen] = useState(false);
   const [isLightTheme, setIsLightTheme] = useState(false);
   const [layoutState, setLayoutState] = useState(getEmptyKnowledgeGraphLayoutState);
-  const [fitViewVersion, setFitViewVersion] = useState(0);
+  const [fitViewRequest, setFitViewRequest] = useState<KnowledgeGraphFitRequest>({
+    id: 0,
+    target: 'root',
+  });
+  const teachingLayoutFitDomainRef = useRef<string | null>(null);
+  const materializedDomainFitSignaturesRef = useRef(new Set<string>());
   const [relayoutVersion, setRelayoutVersion] = useState(0);
-  const [explicitFocusNodeId, setExplicitFocusNodeId] = useState<string | null>(null);
   const hoverAnimationFrameRef = useRef<number | null>(null);
   const pendingHoveredNodeRef = useRef<KnowledgeNodeData | null>(null);
   const hoveredNodeIdRef = useRef<string | null>(null);
@@ -231,23 +275,64 @@ export function KnowledgeGraphSystem({
   const previousDesktopToolRef = useRef<KnowledgeDesktopTool | null>(null);
   const mobileToolPanelRef = useRef<HTMLDivElement | null>(null);
   const mobileToolToggleRef = useRef<HTMLButtonElement | null>(null);
+  const mountedRef = useRef(true);
+  const navigationRequestSequenceRef = useRef(0);
+  const navigationRequestControllerRef = useRef<AbortController | null>(null);
+  const loadingShardOwnerByKeyRef = useRef(new Map<string, number>());
+  const currentNavigationLoadingRef = useRef<{ shardKey: string; requestId: number } | null>(null);
 
   // 视图模式：默认 2D
   const [viewMode, setViewMode] = useState<'2D' | '3D'>('2D');
+  const [manipulatedAutoFitScopeKeys, setManipulatedAutoFitScopeKeys] = useState<ReadonlySet<string>>(
+    () => new Set()
+  );
+  const [consumedAutoFitScopeKeys, setConsumedAutoFitScopeKeys] = useState<ReadonlySet<string>>(
+    () => new Set()
+  );
+  const cameraPoseByAutoFitScopeRef = useRef(new Map<string, KnowledgeGraphCameraPose>());
 
   // 容器尺寸测量
   const containerRef = useRef<HTMLDivElement>(null);
-  const relationTypesInitialized = useRef(false);
   const initialRequestedNodeIdRef = useRef(initialRequestedNodeId);
-  const initialSelectedNodeResolvedRef = useRef(Boolean(initialSelectedNode));
+  const initialSelectedNodeResolvedRef = useRef(false);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const nodeId = params.get('node') ?? params.get('nodeId');
-    initialRequestedNodeIdRef.current = nodeId;
-    setRequestedNodeId(nodeId);
+    const loadingShardOwners = loadingShardOwnerByKeyRef.current;
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      navigationRequestSequenceRef.current += 1;
+      navigationRequestControllerRef.current?.abort();
+      navigationRequestControllerRef.current = null;
+      loadingShardOwners.clear();
+      currentNavigationLoadingRef.current = null;
+    };
   }, []);
+
+  useEffect(() => {
+    const syncLocation = (allowTrustedContext: boolean) => {
+      const lessonLocation = resolveKnowledgeLessonLocation(
+        window.location.search,
+        allowTrustedContext ? trustedLessonId : null
+      );
+      if (lessonLocation.search !== window.location.search) {
+        window.history.replaceState(window.history.state, '', `${window.location.pathname}${lessonLocation.search}`);
+      }
+      setActiveLessonId((current) => current === lessonLocation.lessonId ? current : null);
+      setLessonContext((current) => current?.lessonId === lessonLocation.lessonId ? current : null);
+      setRequestedLessonId(lessonLocation.lessonId);
+      const nodeId = resolveInitialKnowledgeNodeId(window.location.search, initialRequestedNodeIdRef.current);
+      initialRequestedNodeIdRef.current = nodeId;
+      initialSelectedNodeResolvedRef.current = false;
+      setRequestedNodeId(nodeId);
+    };
+
+    syncLocation(true);
+    const handlePopState = () => syncLocation(false);
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [trustedLessonId]);
 
   // 监听容器大小变化
   useEffect(() => {
@@ -289,62 +374,258 @@ export function KnowledgeGraphSystem({
     return () => observer.disconnect();
   }, []);
 
-  // Fetch data from API on mount
-  useEffect(() => {
-    let cancelled = false;
+  const fetchGraphPayload = useCallback(async (url: string, controller: AbortController) => {
+    const response = await fetch(url, { signal: controller.signal });
+    if (!response.ok) throw new Error(`Knowledge graph request failed with ${response.status}`);
+    return (await response.json()) as ProgressiveGraphApiResponse;
+  }, []);
+
+  const registerLoadingShard = useCallback((shardKey: string, requestId: number) => {
+    if (!shardKey) return;
+    loadingShardOwnerByKeyRef.current.set(shardKey, requestId);
+    currentNavigationLoadingRef.current = { shardKey, requestId };
+    setGraphCache((current) => ({
+      ...current,
+      loadingShardKeys: current.loadingShardKeys.includes(shardKey)
+        ? current.loadingShardKeys
+        : [...current.loadingShardKeys, shardKey],
+    }));
+  }, []);
+
+  const clearOwnedLoadingShard = useCallback((shardKey: string, requestId: number) => {
+    if (!shardKey || loadingShardOwnerByKeyRef.current.get(shardKey) !== requestId) return;
+    loadingShardOwnerByKeyRef.current.delete(shardKey);
+    if (
+      currentNavigationLoadingRef.current?.shardKey === shardKey
+      && currentNavigationLoadingRef.current.requestId === requestId
+    ) {
+      currentNavigationLoadingRef.current = null;
+    }
+    if (!mountedRef.current) return;
+    setGraphCache((current) => ({
+      ...current,
+      loadingShardKeys: current.loadingShardKeys.filter((key) => key !== shardKey),
+    }));
+  }, []);
+
+  const loadRoot = useCallback(async () => {
+    const currentLoading = currentNavigationLoadingRef.current;
+    if (currentLoading) clearOwnedLoadingShard(currentLoading.shardKey, currentLoading.requestId);
+    navigationRequestControllerRef.current?.abort();
     const controller = new AbortController();
-    const fetchGraphData = async () => {
-      try {
-        const response = await fetch('/api/knowledge/graph', { signal: controller.signal });
-        if (response.ok) {
-          const data = (await response.json()) as GraphApiResponse;
-          if (cancelled || controller.signal.aborted) return;
-          const fetchedNodes = Array.isArray(data.nodes) ? data.nodes : [];
-          setNodes(fetchedNodes);
-          setLinks(Array.isArray(data.links) ? data.links : []);
-          setDataSource(data.source === 'file' ? 'file' : 'database');
-          const requestedNodeId = initialRequestedNodeIdRef.current;
-          if (!initialSelectedNodeResolvedRef.current && requestedNodeId) {
-            const requestedNode = fetchedNodes.find((item) => item.id === requestedNodeId);
-            if (requestedNode) {
-              setSelectedNode(requestedNode);
-              setIsPanelOpen(true);
-            }
-          }
-        } else {
-          console.error('Failed to fetch knowledge graph data');
-        }
-      } catch (error) {
-        if ((error as Error).name === 'AbortError') return;
-        console.error('Error fetching knowledge graph data:', error);
-      } finally {
-        if (!cancelled && !controller.signal.aborted) {
-          setIsLoading(false);
+    const requestId = ++navigationRequestSequenceRef.current;
+    navigationRequestControllerRef.current = controller;
+    setActiveLessonId(null);
+    setLessonContext(null);
+    dispatchInspection({ type: 'return-root' });
+    dispatchNavigation({ type: 'root-loading', requestId });
+    try {
+      const payload = await fetchGraphPayload(
+        buildKnowledgeGraphRootRequestUrl({ lessonId: requestedLessonId }),
+        controller
+      );
+      if (!mountedRef.current || controller.signal.aborted || requestId !== navigationRequestSequenceRef.current) return;
+      if (
+        payload.mode !== 'root'
+        || !payload.graphVersion
+        || payload.shardKey !== `${payload.graphVersion}:shard:root:chapters`
+        || payload.domainId !== undefined
+        || Object.values(payload.truncated ?? {}).some(Boolean)
+      ) {
+        throw new Error('Invalid root shard response');
+      }
+      setGraphCache((current) => mergeProgressiveGraphPayload(current, payload));
+      const verifiedLessonId = payload.lessonContext?.lessonId ?? null;
+      if (requestedLessonId && verifiedLessonId !== requestedLessonId) {
+        const params = new URLSearchParams(window.location.search);
+        params.delete('lessonId');
+        const search = params.toString();
+        window.history.replaceState(
+          window.history.state,
+          '',
+          `${window.location.pathname}${search ? `?${search}` : ''}`
+        );
+        setRequestedLessonId(null);
+        setActiveLessonId(null);
+        setLessonContext(null);
+      } else {
+        setActiveLessonId(verifiedLessonId);
+        setLessonContext(payload.lessonContext ?? null);
+      }
+      dispatchNavigation({ type: 'root-loaded', requestId, graphVersion: payload.graphVersion });
+      const nodeId = initialRequestedNodeIdRef.current
+        ?? resolveInitialKnowledgeNodeId(window.location.search);
+      initialRequestedNodeIdRef.current = nodeId;
+      setRequestedNodeId(nodeId);
+    } catch (error) {
+      if ((error as Error).name === 'AbortError' || controller.signal.aborted) return;
+      console.error('Error fetching knowledge graph root shard:', error);
+      setActiveLessonId(null);
+      setLessonContext(null);
+      dispatchNavigation({ type: 'root-failed', requestId, error: '知识领域加载失败，请重试。' });
+    }
+  }, [clearOwnedLoadingShard, fetchGraphPayload, requestedLessonId]);
+
+  useEffect(() => {
+    void loadRoot();
+    return () => navigationRequestControllerRef.current?.abort();
+  }, [loadRoot]);
+
+  const loadDomain = useCallback(async (domainId: string, retry = false, targetNodeId?: string) => {
+    const cachedShardKey = graphCache.domainShardKeysByDomainId[domainId];
+    const cached = Boolean(cachedShardKey && graphCache.loadedShardKeys.includes(cachedShardKey));
+    const requestId = ++navigationRequestSequenceRef.current;
+    const intendedTargetNodeId = targetNodeId
+      ?? (retry ? inspection.pendingNavigationTarget?.nodeId : undefined);
+    const isCurrentCachedDomain = navigation.view.kind === 'domain'
+      && navigation.view.domainId === domainId
+      && cached
+      && !retry;
+    if (isCurrentCachedDomain && !intendedTargetNodeId) return;
+    if (isCurrentCachedDomain && intendedTargetNodeId) {
+      const targetNode = graphCache.nodesById[intendedTargetNodeId];
+      if (targetNode) dispatchInspection({ type: 'inspect-node', node: targetNode });
+      return;
+    }
+    if (!retry || intendedTargetNodeId) {
+      dispatchInspection({
+        type: 'begin-navigation',
+        intentId: requestId,
+        ...(intendedTargetNodeId ? {
+          targetNodeId: intendedTargetNodeId,
+        } : {}),
+      });
+    }
+    const currentLoading = currentNavigationLoadingRef.current;
+    if (currentLoading) clearOwnedLoadingShard(currentLoading.shardKey, currentLoading.requestId);
+    navigationRequestControllerRef.current?.abort();
+    navigationRequestControllerRef.current = null;
+    if (cached && !retry) {
+      dispatchNavigation({ type: 'enter-domain', domainId, requestId, cached: true });
+      if (intendedTargetNodeId) {
+        const targetNode = graphCache.nodesById[intendedTargetNodeId];
+        if (targetNode) {
+          dispatchInspection({
+            type: 'commit-navigation-target',
+            intentId: requestId,
+            nodeId: intendedTargetNodeId,
+            node: targetNode,
+          });
         }
       }
-    };
-
-    fetchGraphData();
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
-  }, []);
-
-  // 节点点击处理
-  const handleNodeClick = useCallback((node: KnowledgeNodeData) => {
-    setSelectedNode(node);
-    setIsPanelOpen(true);
-  }, []);
-
-  // 通过 ID 选择节点（用于关联知识点跳转）
-  const handleNodeSelectById = useCallback((nodeId: string) => {
-    const node = nodes.find(n => n.id === nodeId);
-    if (node) {
-      setSelectedNode(node);
-      setIsPanelOpen(true);
+      return;
     }
-  }, [nodes]);
+
+    const controller = new AbortController();
+    navigationRequestControllerRef.current = controller;
+    dispatchNavigation(retry
+      ? { type: 'retry-domain', requestId }
+      : { type: 'enter-domain', domainId, requestId, cached: false });
+    const expectedShardKey = graphCache.graphVersion
+      ? `${graphCache.graphVersion}:shard:expansion:${domainId}`
+      : '';
+    registerLoadingShard(expectedShardKey, requestId);
+    try {
+      const payload = await fetchGraphPayload(
+        buildKnowledgeGraphDomainRequestUrl({ domainId }),
+        controller
+      );
+      if (!mountedRef.current || controller.signal.aborted || requestId !== navigationRequestSequenceRef.current) return;
+      if (
+        payload.mode !== 'expansion'
+        || payload.domainId !== domainId
+        || payload.graphVersion !== graphCache.graphVersion
+        || payload.shardKey !== expectedShardKey
+      ) {
+        throw new Error('Invalid or stale domain shard response');
+      }
+      setGraphCache((current) => mergeProgressiveGraphPayload(current, payload));
+      if (Object.values(payload.truncated ?? {}).some(Boolean)) {
+        dispatchNavigation({
+          type: 'domain-incomplete',
+          domainId,
+          requestId,
+          error: '领域知识分片不完整，请重试。',
+        });
+        return;
+      }
+      dispatchNavigation({ type: 'domain-loaded', domainId, requestId });
+      if (intendedTargetNodeId) {
+        const targetNode = payload.nodes?.find((node) => node.id === intendedTargetNodeId);
+        if (targetNode) {
+          dispatchInspection({
+            type: 'commit-navigation-target',
+            intentId: requestId,
+            nodeId: intendedTargetNodeId,
+            node: targetNode,
+          });
+        }
+      }
+    } catch (error) {
+      if ((error as Error).name === 'AbortError' || controller.signal.aborted) return;
+      if (requestId !== navigationRequestSequenceRef.current) return;
+      console.error('Error fetching knowledge graph domain shard:', error);
+      dispatchNavigation({ type: 'domain-failed', domainId, requestId, error: '领域知识加载失败，请重试。' });
+    } finally {
+      clearOwnedLoadingShard(expectedShardKey, requestId);
+    }
+  }, [clearOwnedLoadingShard, fetchGraphPayload, graphCache.domainShardKeysByDomainId, graphCache.graphVersion, graphCache.loadedShardKeys, graphCache.nodesById, inspection.pendingNavigationTarget?.nodeId, navigation.view, registerLoadingShard, rootCatalogNodes]);
+
+  const returnToRoot = useCallback(() => {
+    navigationRequestSequenceRef.current += 1;
+    const currentLoading = currentNavigationLoadingRef.current;
+    if (currentLoading) clearOwnedLoadingShard(currentLoading.shardKey, currentLoading.requestId);
+    navigationRequestControllerRef.current?.abort();
+    navigationRequestControllerRef.current = null;
+    dispatchInspection({ type: 'return-root' });
+    dispatchNavigation({ type: 'return-root' });
+    setFitViewRequest((current) => ({ id: current.id + 1, target: 'root' }));
+  }, [clearOwnedLoadingShard]);
+
+  const resolveRootReturnFocus = useCallback(() => {
+    if (navigation.view.kind !== 'domain') return null;
+    const domainId = navigation.view.domainId;
+    return Array.from(document.querySelectorAll<HTMLElement>('[data-knowledge-node-control]'))
+      .find((element) => element.dataset.knowledgeNodeControl === domainId)
+      ?? document.querySelector<HTMLElement>('[data-knowledge-canvas-primary="true"]');
+  }, [navigation.view]);
+
+  const activateNodeById = useCallback((nodeId: string) => {
+    const node = graphCache.nodesById[nodeId]
+      ?? rootCatalogNodes.find((candidate) => candidate.id === nodeId);
+    if (!node) return;
+    if (isCollapsedRootNode(node)) {
+      if (navigation.view.kind === 'domain'
+        && navigation.view.domainId === node.id
+        && navigation.status === 'loading') return;
+      void loadDomain(node.id);
+      return;
+    }
+    const catalogEntry = graphCache.rootCatalogByNodeId[nodeId];
+    const chapterName = catalogEntry?.chapterName ?? resolveChapterName(node.chapter, node.chapterName);
+    const domainId = catalogEntry?.domainId ?? (chapterName ? `chapter-node:${chapterName}` : null);
+    if (!domainId) return;
+    const cachedShardKey = graphCache.domainShardKeysByDomainId[domainId];
+    const domainCached = Boolean(cachedShardKey && graphCache.loadedShardKeys.includes(cachedShardKey));
+    if (navigation.view.kind === 'domain' && navigation.view.domainId === domainId && domainCached) {
+      dispatchInspection({ type: 'inspect-node', node });
+      return;
+    }
+    void loadDomain(domainId, false, nodeId);
+  }, [graphCache.domainShardKeysByDomainId, graphCache.loadedShardKeys, graphCache.nodesById, graphCache.rootCatalogByNodeId, loadDomain, navigation.status, navigation.view, rootCatalogNodes]);
+
+  const activateNode = useCallback((node: KnowledgeNodeData) => {
+    activateNodeById(node.id);
+  }, [activateNodeById]);
+
+  useEffect(() => {
+    if (!requestedNodeId || initialSelectedNodeResolvedRef.current) return;
+    const requestedNode = graphCache.nodesById[requestedNodeId]
+      ?? rootCatalogNodes.find((node) => node.id === requestedNodeId);
+    if (!requestedNode) return;
+    initialSelectedNodeResolvedRef.current = true;
+    activateNodeById(requestedNodeId);
+  }, [activateNodeById, graphCache.nodesById, requestedNodeId, rootCatalogNodes]);
 
   // 节点悬停处理
   const handleNodeHover = useCallback((node: KnowledgeNodeData | null) => {
@@ -378,7 +659,7 @@ export function KnowledgeGraphSystem({
 
   // 关闭资源面板
   const handleClosePanel = useCallback(() => {
-    setIsPanelOpen(false);
+    dispatchInspection({ type: 'close-inspector' });
   }, []);
 
   const chapterOptions = useMemo(() => {
@@ -401,6 +682,7 @@ export function KnowledgeGraphSystem({
   const categoryOptions = useMemo(() => {
     const categorySet = new Set<string>();
     nodes.forEach((node) => {
+      if (isCollapsedRootNode(node)) return;
       const metadata = (node.metadata ?? {}) as Record<string, unknown>;
       const category = typeof metadata.category === 'string' ? metadata.category : node.knowledgeDim;
       if (category) categorySet.add(category);
@@ -411,6 +693,7 @@ export function KnowledgeGraphSystem({
   const bloomOptions = useMemo(() => {
     const bloomSet = new Set<string>();
     nodes.forEach((node) => {
+      if (isCollapsedRootNode(node)) return;
       const metadata = (node.metadata ?? {}) as Record<string, unknown>;
       const bloom = typeof metadata.bloom_level === 'string' ? metadata.bloom_level : node.bloomLevel;
       if (bloom) bloomSet.add(bloom);
@@ -418,30 +701,80 @@ export function KnowledgeGraphSystem({
     return Array.from(bloomSet).sort((a, b) => a.localeCompare(b, 'zh-Hans-CN'));
   }, [nodes]);
 
+  const collapsedRootChildNodesByRootId = useMemo(() => {
+    const childrenByRootId = new Map<string, KnowledgeNodeData[]>();
+    nodes.forEach((node) => {
+      if (isCollapsedRootNode(node)) return;
+      const metadata = (node.metadata ?? {}) as Record<string, unknown>;
+      const chapterName = resolveChapterName(
+        node.chapter,
+        typeof node.chapterName === 'string'
+          ? node.chapterName
+          : (typeof metadata.chapterName === 'string' ? metadata.chapterName : null)
+      );
+      const rootId = `chapter-node:${chapterName}`;
+      const current = childrenByRootId.get(rootId) ?? [];
+      current.push(node);
+      childrenByRootId.set(rootId, current);
+    });
+    const nodeById = new Map(nodes.map((node) => [node.id, node]));
+    membershipLinks.forEach((link) => {
+      const relation = link.relationType || link.relation;
+      if (relation !== 'contains' || !link.sourceId.startsWith('chapter-node:')) return;
+      const child = nodeById.get(link.targetId);
+      if (!child || isCollapsedRootNode(child)) return;
+      const current = childrenByRootId.get(link.sourceId) ?? [];
+      if (current.some((node) => node.id === child.id)) return;
+      current.push(child);
+      childrenByRootId.set(link.sourceId, current);
+    });
+    return childrenByRootId;
+  }, [membershipLinks, nodes]);
+  const navigationVisibleNodeIds = useMemo(
+    () => new Set(nodes.map((node) => node.id)),
+    [nodes]
+  );
+
   // 节点筛选（章节 / category / bloom_level / 搜索关键词）
   const nodeFilteredByMeta = useMemo(
-    () =>
-      nodes.filter((node) =>
-        matchesNodeFilters(node, {
-          searchQuery,
-          selectedChapters,
-          selectedCategories,
-          selectedBloomLevels,
-        })
-      ),
-    [nodes, searchQuery, selectedChapters, selectedCategories, selectedBloomLevels]
+    () => {
+      const filters = {
+        searchQuery,
+        selectedChapters,
+        selectedCategories,
+        selectedBloomLevels,
+      };
+      const hasActiveNodeFilters = hasNodeFilters(filters);
+      return nodes.filter((node) => {
+        if (!navigationVisibleNodeIds.has(node.id)) return false;
+        if (isCollapsedRootNode(node) && hasActiveNodeFilters) {
+          return collapsedRootMatchesNodeFilters(
+            node,
+            collapsedRootChildNodesByRootId.get(node.id) ?? [],
+            filters
+          );
+        }
+        return matchesNodeFilters(node, filters);
+      });
+    },
+    [collapsedRootChildNodesByRootId, navigationVisibleNodeIds, nodes, searchQuery, selectedChapters, selectedCategories, selectedBloomLevels]
   );
 
   const nodeFilterIdSet = useMemo(
     () => new Set(nodeFilteredByMeta.map((item) => item.id)),
     [nodeFilteredByMeta]
   );
+  const directoryNodes = useMemo(() => {
+    if (rootCatalogNodes.length === 0) return nodeFilteredByMeta;
+    const filters = {
+      searchQuery,
+      selectedChapters,
+      selectedCategories,
+      selectedBloomLevels,
+    };
+    return rootCatalogNodes.filter((node) => matchesNodeFilters(node, filters));
+  }, [nodeFilteredByMeta, rootCatalogNodes, searchQuery, selectedBloomLevels, selectedCategories, selectedChapters]);
 
-  // 关系类型统计按“当前节点过滤结果”计算（含搜索结果）
-  const relationTypeStats = useMemo(
-    () => buildRelationTypeStats(links, nodeFilterIdSet),
-    [links, nodeFilterIdSet]
-  );
   const eligibleLinks = useMemo(
     () => links.filter((link) => nodeFilterIdSet.has(link.sourceId) && nodeFilterIdSet.has(link.targetId)),
     [links, nodeFilterIdSet]
@@ -453,107 +786,156 @@ export function KnowledgeGraphSystem({
   const graphFilterFocusNodeId = explicitFocusNodeId && nodeFilterIdSet.has(explicitFocusNodeId)
     ? explicitFocusNodeId
     : null;
-  const focusNeighborhoodSeedLinks = useMemo(
-    () => eligibleLinks.filter((link) =>
-      relationPassesFocusNeighborhoodSeedFilters(link, {
-        densityMode: relationDensityMode,
-        selectedRelationTypes,
-        minRelationStrength,
-        focusNodeId: graphFilterFocusNodeId,
-      })
-    ),
-    [eligibleLinks, graphFilterFocusNodeId, minRelationStrength, relationDensityMode, selectedRelationTypes]
-  );
-  const focusNeighborhood = useMemo(
-    () => buildFocusNeighborhood(focusNeighborhoodSeedLinks, graphFilterFocusNodeId, nodeFilterIdSet),
-    [focusNeighborhoodSeedLinks, graphFilterFocusNodeId, nodeFilterIdSet]
-  );
 
-  useEffect(() => {
-    const types = relationTypeStats.map((item) => item.type);
-    setSelectedRelationTypes((prev) => {
-      if (types.length === 0) return [];
-      if (!relationTypesInitialized.current) {
-        relationTypesInitialized.current = true;
-        return buildDefaultSelectedRelationTypes(types);
-      }
-      const kept = prev.filter((item) => types.includes(item));
-      return kept.length > 0 ? kept : buildDefaultSelectedRelationTypes(types);
-    });
-  }, [relationTypeStats]);
+  const expandedDirectLinks = useMemo<KnowledgeLinkData[]>(() => [], []);
 
-  const filteredLinksByRelation = useMemo(() => {
-    return eligibleLinks.filter((link) =>
-      relationPassesActiveFilters(link, {
-        densityMode: relationDensityMode,
-        selectedRelationTypes,
-        minRelationStrength,
-        focusNodeId: graphFilterFocusNodeId,
-        focusNeighborhood,
-      })
-    );
-  }, [eligibleLinks, focusNeighborhood, graphFilterFocusNodeId, minRelationStrength, relationDensityMode, selectedRelationTypes]);
-
-  const densityFilteredLinks = useMemo(
-    () =>
-      relationDensityMode === 'structure'
-        ? limitStructureRelationDensity(filteredLinksByRelation, {
-            focusNodeId: graphFilterFocusNodeId,
-          })
-        : filteredLinksByRelation,
-    [filteredLinksByRelation, graphFilterFocusNodeId, relationDensityMode]
-  );
-
-  const filteredNodes = useMemo(() => {
-    if (!showOnlyConnectedNodes) return nodeFilteredByMeta;
-
-    const connectedInSearch = new Set<string>();
-    const connectedByVisibleLinks = new Set<string>();
-
-    links.forEach((link) => {
-      if (nodeFilterIdSet.has(link.sourceId) && nodeFilterIdSet.has(link.targetId)) {
-        connectedInSearch.add(link.sourceId);
-        connectedInSearch.add(link.targetId);
-      }
-    });
-
-    densityFilteredLinks.forEach((link) => {
-      connectedByVisibleLinks.add(link.sourceId);
-      connectedByVisibleLinks.add(link.targetId);
-    });
-
-    return nodeFilteredByMeta.filter((node) => {
-      if (relationDensityMode === 'focused' && focusNeighborhood.focusNodeId) {
-        return isNodeVisibleInFocusedGraph(node.id, focusNeighborhood, connectedByVisibleLinks);
-      }
-      if (!connectedInSearch.has(node.id)) return true;
-      return connectedByVisibleLinks.has(node.id);
-    });
-  }, [densityFilteredLinks, focusNeighborhood, links, nodeFilterIdSet, nodeFilteredByMeta, relationDensityMode, showOnlyConnectedNodes]);
+  const filteredNodes = nodeFilteredByMeta;
 
   const filteredNodeIdSet = useMemo(() => new Set(filteredNodes.map((item) => item.id)), [filteredNodes]);
+  const domainMemberNodeIdSet = useMemo(() => new Set(nodes.map((node) => node.id)), [nodes]);
 
-  const filteredLinks = useMemo(() => {
-    const visibleLinks = densityFilteredLinks.filter(
-      (link) => filteredNodeIdSet.has(link.sourceId) && filteredNodeIdSet.has(link.targetId)
-    );
-    return visibleLinks;
-  }, [densityFilteredLinks, filteredNodeIdSet]);
+  const filteredLinks = useMemo(() => selectLearnerVisibleRelationEdges({
+    links: eligibleLinks,
+    activeDomainNodeIds: domainMemberNodeIdSet,
+    enabledFamilies: enabledRelationFamilies,
+    selectedNodeId: selectedNode?.id ?? null,
+  }).map((edge) => ({
+    id: edge.relationIds[0] ?? edge.key,
+    sourceId: edge.sourceId,
+    targetId: edge.targetId,
+    relation: edge.relationType,
+    relationType: edge.relationType,
+    strength: edge.strength ?? undefined,
+  })), [domainMemberNodeIdSet, eligibleLinks, enabledRelationFamilies, selectedNode?.id]);
 
-  const graphWithChapterNodes = useMemo(
-    () => injectChapterNodes(
-      filteredNodes.map((node) => ({
-        ...node,
-        graphDegree: graphStatistics.degreeByNodeId.get(node.id) ?? 0,
-        graphImportanceScore: graphStatistics.importanceScoreByNodeId.get(node.id) ?? 0,
-      })),
-      filteredLinks
-    ),
-    [filteredNodes, filteredLinks, graphStatistics]
-  );
+  const canonicalPresentationLinks = useMemo(() => selectCanonicalDomainRelationEdges({
+    links: eligibleLinks,
+    activeDomainNodeIds: domainMemberNodeIdSet,
+  }).map((edge) => ({
+    id: edge.relationIds[0] ?? edge.key,
+    sourceId: edge.sourceId,
+    targetId: edge.targetId,
+    relation: edge.relationType,
+    relationType: edge.relationType,
+    strength: edge.strength ?? undefined,
+  })), [domainMemberNodeIdSet, eligibleLinks]);
+
+  const graphWithChapterNodes = useMemo(() => {
+    const scoredNodes = filteredNodes.map((node) => ({
+      ...node,
+      graphDegree: graphStatistics.degreeByNodeId.get(node.id) ?? 0,
+      graphImportanceScore: typeof node.importance === 'number'
+        ? Math.max(0, Math.min(1, node.importance / 5))
+        : graphStatistics.importanceScoreByNodeId.get(node.id) ?? 0,
+    }));
+    if (scoredNodes.some(isCollapsedRootNode)) {
+      return { nodes: scoredNodes, links: filteredLinks };
+    }
+    return injectChapterNodes(scoredNodes, filteredLinks);
+  }, [filteredNodes, filteredLinks, graphStatistics]);
 
   const displayNodes = graphWithChapterNodes.nodes;
-  const displayLinks = graphWithChapterNodes.links;
+  const displayLinks = useMemo(
+    () => selectCanvasKnowledgeRelationLinks(graphWithChapterNodes.links),
+    [graphWithChapterNodes.links]
+  );
+  const teachingOrderLinks = useMemo(
+    () => navigation.view.kind === 'domain' ? links : [],
+    [links, navigation.view.kind]
+  );
+  const teachingOrderLayout = useMemo(() => navigation.view.kind === 'domain'
+    ? buildKnowledgeTeachingOrderLayout({
+        nodes: displayNodes,
+        links: teachingOrderLinks,
+        lessonOrderNodeIds: lessonContext?.cardOrderNodeIds ?? [],
+        viewportWidth: dimensions.width || 1280,
+        viewportHeight: dimensions.height || 720,
+      })
+    : null,
+  [dimensions.height, dimensions.width, displayNodes, lessonContext, navigation.view.kind, teachingOrderLinks]);
+  const autoFitScopeKey = navigation.view.kind === 'domain'
+    ? `${navigation.view.domainId}:${lessonContext?.overlayRevision ?? 'post-only'}`
+    : null;
+  const autoFitReady = navigation.status === 'ready';
+  const handleCameraManipulation = useCallback((scopeKey: string) => {
+    setManipulatedAutoFitScopeKeys((current) => {
+      if (current.has(scopeKey)) return current;
+      const next = new Set(current);
+      next.add(scopeKey);
+      return next;
+    });
+  }, []);
+  const handleAutoFitConsumed = useCallback((scopeKey: string) => {
+    setConsumedAutoFitScopeKeys((current) => {
+      if (current.has(scopeKey)) return current;
+      const next = new Set(current);
+      next.add(scopeKey);
+      return next;
+    });
+  }, []);
+  const handleCameraPoseChange = useCallback((scopeKey: string, pose: KnowledgeGraphCameraPose) => {
+    cameraPoseByAutoFitScopeRef.current.set(scopeKey, pose);
+  }, []);
+  const lessonOrderConflictCount = teachingOrderLayout?.diagnostics.filter(
+    (diagnostic) => diagnostic.code === 'LESSON_POST_REQUISITE_CONFLICT'
+  ).length ?? 0;
+  const postRequisiteCycleCount = teachingOrderLayout?.diagnostics.filter(
+    (diagnostic) => diagnostic.code === 'POST_REQUISITE_CYCLE'
+  ).length ?? 0;
+  useEffect(() => {
+    if (navigation.view.kind !== 'root') return;
+    materializedDomainFitSignaturesRef.current.clear();
+    teachingLayoutFitDomainRef.current = null;
+  }, [navigation.view]);
+  useEffect(() => {
+    if (
+      navigation.view.kind !== 'domain'
+      || navigation.status !== 'ready'
+      || displayNodes.length <= 1
+    ) return;
+    const signature = [
+      graphCache.graphVersion,
+      navigation.view.domainId,
+      lessonContext?.overlayRevision ?? 'post-only',
+    ].join(':');
+    if (materializedDomainFitSignaturesRef.current.has(signature)) return;
+    let settledFrame = 0;
+    const materializedFrame = window.requestAnimationFrame(() => {
+      settledFrame = window.requestAnimationFrame(() => {
+        if (materializedDomainFitSignaturesRef.current.has(signature)) return;
+        materializedDomainFitSignaturesRef.current.add(signature);
+        setFitViewRequest((current) => ({ id: current.id + 1, target: 'current' }));
+      });
+    });
+    return () => {
+      window.cancelAnimationFrame(materializedFrame);
+      window.cancelAnimationFrame(settledFrame);
+    };
+  }, [
+    displayNodes.length,
+    graphCache.graphVersion,
+    lessonContext,
+    navigation.status,
+    navigation.view,
+  ]);
+  useEffect(() => {
+    if (navigation.view.kind !== 'domain' || !teachingOrderLayout || !lessonContext) return;
+    const signature = `${navigation.view.domainId}:${lessonContext.overlayRevision}`;
+    if (teachingLayoutFitDomainRef.current === signature) return;
+    if (teachingOrderLayout.fitScale < 1) {
+      teachingLayoutFitDomainRef.current = signature;
+      setFitViewRequest((current) => ({ id: current.id + 1, target: 'teaching-layout' }));
+    }
+  }, [lessonContext, navigation.view, teachingOrderLayout]);
+  const rendererLayoutVersion = `${graphCache.graphVersion}:${lessonContext?.overlayRevision ?? 'post-only'}`;
+  useEffect(() => {
+    if (navigation.view.kind !== 'domain') return;
+    dispatchNavigation({
+      type: 'domain-filter-result',
+      domainId: navigation.view.domainId,
+      visibleMemberCount: displayNodes.filter((node) => !isCollapsedRootNode(node)).length,
+    });
+  }, [displayNodes, navigation.status, navigation.view]);
   const displaySelectedNode = selectedNode
     ? displayNodes.find((node) => node.id === selectedNode.id) ?? null
     : null;
@@ -563,7 +945,55 @@ export function KnowledgeGraphSystem({
       : null,
     [displaySelectedNode, selectedNode]
   );
-  const visiblePanelOpen = isPanelOpen && Boolean(visibleSelectedNode);
+  const inspectorSelectedNode = useMemo(
+    () => selectedNode
+      ? { ...selectedNode, ...(displaySelectedNode ?? {}) }
+      : null,
+    [displaySelectedNode, selectedNode]
+  );
+  const canvasSelectedNode = displaySelectedNode && selectedNode
+    ? { ...displaySelectedNode, ...selectedNode }
+    : null;
+  const canvasSelectedNodeId = canvasSelectedNode?.id ?? null;
+  const domainIdByNodeId = useMemo(() => new Map(
+    Object.values(graphCache.rootCatalogByNodeId).map((entry) => [entry.nodeId, entry.domainId])
+  ), [graphCache.rootCatalogByNodeId]);
+  const corridorCycleEdgeIdSet = useMemo(
+    () => new Set(corridorCycleEdgeIds),
+    [corridorCycleEdgeIds]
+  );
+  const selectedCorridor = useMemo(() => canvasSelectedNodeId
+    ? deriveSelectedKnowledgeGraphCorridor({
+        selectedNodeId: canvasSelectedNodeId,
+        links: [...links, ...corridorLinks],
+        domainMemberNodeIds: domainMemberNodeIdSet,
+        visibleNodeIds: filteredNodeIdSet,
+        domainIdByNodeId,
+        precomputedMotionSuppressedEdgeIds: corridorCycleEdgeIdSet,
+      })
+    : null,
+  [canvasSelectedNodeId, corridorCycleEdgeIdSet, corridorLinks, domainIdByNodeId, domainMemberNodeIdSet, filteredNodeIdSet, links]);
+  const selectedCorridorEmphasis = useMemo(() => selectedCorridor ? ({
+    selectedNodeId: selectedCorridor.selectedNodeId,
+    nodeIds: selectedCorridor.canvasVisibleNodeIds,
+    edgeIds: selectedCorridor.canvasVisibleEdgeIds,
+    primaryEdgeIds: selectedCorridor.primaryEdgeIds,
+    primaryNodeIds: selectedCorridor.primaryNodeIds,
+    motionEligibleEdgeIds: selectedCorridor.motionEligibleEdgeIds,
+    motionSuppressedEdgeIds: selectedCorridor.motionSuppressedEdgeIds,
+  }) : null, [selectedCorridor]);
+  const renderDisplayLinks = useMemo(() => selectKnowledgeGraphFocusedPresentationLinks({
+    links: displayLinks,
+    emphasis: selectedCorridorEmphasis,
+  }), [displayLinks, selectedCorridorEmphasis]);
+  const visiblePanelOpen = isPanelOpen;
+  const relationFamilyControlPlacement = resolveRelationFamilyControlPlacement({
+    isMobile: dimensions.width < 1024,
+    inspectorVisible: visiblePanelOpen && Boolean(visibleSelectedNode),
+    toolPanelVisible: !aiSidebarOpen && mobileToolPanelOpen,
+  });
+  const mobileInspectorControlVisible = relationFamilyControlPlacement === 'inspector';
+  const mobileToolControlVisible = relationFamilyControlPlacement === 'tool-panel';
   const konlingContextStatus = visibleSelectedNode
     ? 'selected-node'
     : requestedNodeId
@@ -593,31 +1023,39 @@ export function KnowledgeGraphSystem({
   const selectedNodeRelationCount = visibleSelectedNode
     ? displayLinks.filter((link) => link.sourceId === visibleSelectedNode.id || link.targetId === visibleSelectedNode.id).length
     : 0;
+  const navigationStatusText = navigation.view.kind === 'root'
+    ? navigation.status === 'loading'
+      ? '正在加载知识领域。'
+      : navigation.status === 'failure'
+        ? navigation.error ?? '知识领域加载失败，请重试。'
+        : '知识领域已就绪。'
+    : navigation.status === 'loading'
+      ? '正在加载当前领域知识。'
+      : navigation.status === 'failure' || navigation.status === 'incomplete'
+        ? navigation.error ?? '领域知识加载失败，请重试。'
+        : navigation.status === 'filtered-empty'
+          ? '当前筛选条件下没有可见知识点。'
+          : '当前领域知识已就绪。';
+  const mobileKonlingModalOpen = aiSidebarOpen && dimensions.width < 640;
   const activeFilterSummary = [
     searchQuery ? `搜索：${searchQuery}` : '',
     selectedChapters.length > 0 ? `章节 ${selectedChapters.length}` : '',
     selectedCategories.length > 0 ? `分类 ${selectedCategories.length}` : '',
     selectedBloomLevels.length > 0 ? `层级 ${selectedBloomLevels.length}` : '',
-    selectedRelationTypes.length !== relationTypeStats.length ? `关系 ${selectedRelationTypes.length}/${relationTypeStats.length}` : '',
-    graphFilterFocusNodeId ? '焦点邻域' : '',
-    minRelationStrength > 0 ? `强度 >= ${minRelationStrength.toFixed(1)}` : '',
-    showOnlyConnectedNodes ? '仅连通节点' : '',
   ].filter(Boolean).join(' · ') || '未启用额外筛选';
   const knowledgeWorkspaceFilterSummary = [
     searchQuery.trim() ? '搜索词已启用' : '',
     selectedChapters.length > 0 ? `章节 ${selectedChapters.length}` : '',
     selectedCategories.length > 0 ? `分类 ${selectedCategories.length}` : '',
     selectedBloomLevels.length > 0 ? `层级 ${selectedBloomLevels.length}` : '',
-    selectedRelationTypes.length !== relationTypeStats.length ? `关系 ${selectedRelationTypes.length}/${relationTypeStats.length}` : '',
-    graphFilterFocusNodeId ? '焦点邻域' : '',
-    minRelationStrength > 0 ? `强度 >= ${minRelationStrength.toFixed(1)}` : '',
-    showOnlyConnectedNodes ? '仅连通节点' : '',
   ].filter(Boolean).join(' · ') || '未启用额外筛选';
 
-  const toggleRelationType = useCallback((type: string) => {
-    setSelectedRelationTypes((prev) =>
-      prev.includes(type) ? prev.filter((item) => item !== type) : [...prev, type]
-    );
+  const toggleFamily = useCallback((family: KnowledgeGraphRelationFamily) => {
+    setEnabledRelationFamilies((current) => toggleRelationFamily(current, family));
+  }, []);
+
+  const toggleAllFamilies = useCallback(() => {
+    setEnabledRelationFamilies(toggleAllRelationFamilies);
   }, []);
 
   const toggleMultiSelectValue = useCallback(
@@ -628,7 +1066,7 @@ export function KnowledgeGraphSystem({
   );
 
   const handleFitView = useCallback(() => {
-    setFitViewVersion((current) => current + 1);
+    setFitViewRequest((current) => ({ id: current.id + 1, target: 'current' }));
   }, []);
 
   const handleRelayout = useCallback(() => {
@@ -637,7 +1075,7 @@ export function KnowledgeGraphSystem({
       positionsByNodeId: {},
     }));
     setRelayoutVersion((current) => current + 1);
-    setFitViewVersion((current) => current + 1);
+    setFitViewRequest((current) => ({ id: current.id + 1, target: 'current' }));
   }, []);
 
   const handleToggleSelectedNodePin = useCallback(() => {
@@ -656,9 +1094,13 @@ export function KnowledgeGraphSystem({
     setLayoutState((current) => clearKnowledgeGraphLayoutPins(current));
   }, []);
 
+  const handleBlankCanvasClick = useCallback(() => {
+    dispatchInspection({ type: 'dismiss-selection' });
+  }, []);
+
   const handleToggleSelectedFocus = useCallback(() => {
     if (!visibleSelectedNode) return;
-    setExplicitFocusNodeId((current) => current === visibleSelectedNode.id ? null : visibleSelectedNode.id);
+    dispatchInspection({ type: 'toggle-explicit-focus', nodeId: visibleSelectedNode.id });
   }, [visibleSelectedNode]);
 
   useEffect(() => {
@@ -706,6 +1148,15 @@ export function KnowledgeGraphSystem({
     });
   }, []);
 
+  const handleMobileToolPanelToggle = useCallback(() => {
+    setMobileToolPanelOpen(!mobileToolPanelOpen);
+    if (mobileToolPanelOpen) {
+      window.requestAnimationFrame(() => {
+        mobileToolToggleRef.current?.focus();
+      });
+    }
+  }, [mobileToolPanelOpen]);
+
   const hoveredBloomLabel = hoveredNode?.bloomLevel ? getBloomLabel(hoveredNode.bloomLevel) : '';
   const hoveredKnowledgeDimLabel = hoveredNode?.knowledgeDim
     ? getKnowledgeDimLabel(hoveredNode.knowledgeDim)
@@ -713,7 +1164,10 @@ export function KnowledgeGraphSystem({
   const hoveredChapterName = hoveredNode
     ? resolveChapterName(hoveredNode.chapter, hoveredNode.chapterName)
     : '';
-  const relationLegendItems = getRelationLegendItems();
+  const focusNeighborhood = useMemo(
+    () => buildFocusNeighborhood(displayLinks, graphFilterFocusNodeId, filteredNodeIdSet),
+    [displayLinks, filteredNodeIdSet, graphFilterFocusNodeId]
+  );
   const clarityMetrics = useMemo(
     () => calculateGraphClarityMetrics(displayNodes, displayLinks, focusNeighborhood),
     [displayLinks, displayNodes, focusNeighborhood]
@@ -721,9 +1175,7 @@ export function KnowledgeGraphSystem({
   const claritySummary = [
     `${clarityMetrics.visibleEdgeCount} 条可见关系`,
     `${clarityMetrics.edgeToNodeRatio.toFixed(2)} 边/点`,
-    relationDensityMode === 'focused'
-      ? `邻域 ${(clarityMetrics.selectedNeighborhoodEdgeRatio * 100).toFixed(0)}%`
-      : `弱关系 ${(clarityMetrics.weakEdgeRatio * 100).toFixed(0)}%`,
+    `邻域 ${(clarityMetrics.selectedNeighborhoodEdgeRatio * 100).toFixed(0)}%`,
   ].join(' · ');
   const desktopToolItems = [
     {
@@ -733,16 +1185,10 @@ export function KnowledgeGraphSystem({
       summary: `${filteredNodes.length} 个节点`,
     },
     {
-      id: 'relation-filters',
+      id: 'node-filters',
       label: '筛选',
       icon: Filter,
-      summary: `${selectedRelationTypes.length}/${relationTypeStats.length} 类关系`,
-    },
-    {
-      id: 'legend',
-      label: '图例',
-      icon: Network,
-      summary: `${relationLegendItems.length} 种语义`,
+      summary: activeFilterSummary,
     },
     {
       id: 'view-layout',
@@ -776,7 +1222,7 @@ export function KnowledgeGraphSystem({
         requestedNodeId,
         status: konlingContextStatus,
         activeFilters: [knowledgeWorkspaceFilterSummary],
-        densityMode: relationDensityMode,
+        densityMode: 'family-scoped',
         viewMode,
         visibleRelationCount: displayLinks.length,
         selectedNodeRelationCount,
@@ -785,7 +1231,6 @@ export function KnowledgeGraphSystem({
   }, [
     displayLinks.length,
     knowledgeWorkspaceFilterSummary,
-    relationDensityMode,
     requestedNodeId,
     selectedNodeRelationCount,
     updatePageContext,
@@ -808,6 +1253,7 @@ export function KnowledgeGraphSystem({
       {/* 中央图谱区域 */}
       <div
         ref={containerRef}
+        id="knowledge-graph-canvas"
         className="relative h-full min-w-0 flex-1 overflow-hidden"
         tabIndex={-1}
         aria-label="知识图谱画布"
@@ -817,12 +1263,76 @@ export function KnowledgeGraphSystem({
         data-knowledge-visible-link-count={displayLinks.length}
         data-knowledge-pinned-node-count={pinnedNodeCount}
         data-knowledge-pinned-layout-signature={pinnedLayoutSignature}
+        data-knowledge-progressive-loading="root-first"
+        data-knowledge-graph-version={graphCache.graphVersion}
+        data-knowledge-loaded-shard-count={graphCache.loadedShardKeys.length}
+        data-knowledge-incomplete-shard-count={graphCache.incompleteShardKeys.length}
+        data-knowledge-loading-shard-count={graphCache.loadingShardKeys.length}
+        data-knowledge-navigation-view={navigation.view.kind}
+        data-knowledge-root-state={navigation.view.kind === 'root' ? navigation.status : undefined}
+        data-knowledge-active-domain-id={navigation.view.kind === 'domain' ? navigation.view.domainId : ''}
+        data-knowledge-domain-state={navigation.view.kind === 'domain' ? navigation.status : undefined}
+        data-knowledge-fit-request-id={String(fitViewRequest.id)}
+        data-knowledge-domain-cache-count={Object.keys(graphCache.domainShardKeysByDomainId).length}
+        data-knowledge-full-graph-first-render="avoided"
         data-knowledge-selected-node-id={visibleSelectedNode?.id ?? ''}
+        data-knowledge-active-lesson-id={activeLessonId ?? ''}
+        data-knowledge-lesson-overlay-revision={lessonContext?.overlayRevision ?? ''}
+        data-knowledge-teaching-order-source={lessonContext?.overlayRevision ?? 'post-only'}
+        data-knowledge-lesson-card-order-count={lessonContext?.cardOrderNodeIds?.length ?? 0}
+        data-knowledge-lesson-mapping-gap-count={
+          (lessonContext?.mappingGaps?.cardOrder?.length ?? 0)
+          + (lessonContext?.mappingGaps?.links?.length ?? 0)
+        }
+        data-knowledge-layout-conflict-count={teachingOrderLayout?.diagnostics.length ?? 0}
+        data-knowledge-layout-unordered-node-count={teachingOrderLayout?.unorderedNodeIds.length ?? 0}
+        data-knowledge-layout-fit-scale={teachingOrderLayout?.fitScale ?? 1}
         data-knowledge-konling-selected-node-id={visibleSelectedNode?.id ?? ''}
         data-knowledge-konling-relation-summary={activeFilterSummary}
-        data-knowledge-konling-density-mode={relationDensityMode}
+        data-knowledge-konling-relation-families={enabledRelationFamilies.join(',')}
         data-knowledge-konling-view-mode={viewMode}
       >
+        <KnowledgeDomainReturnAction
+          avoidInspector={visiblePanelOpen && Boolean(inspectorSelectedNode)}
+          domainId={navigation.view.kind === 'domain' ? navigation.view.domainId : null}
+          onReturn={returnToRoot}
+          resolveReturnFocus={resolveRootReturnFocus}
+        />
+        {navigation.view.kind === 'domain' && lessonOrderConflictCount > 0 && lessonContext && (
+          <div
+            className="pointer-events-none absolute left-1/2 top-3 z-20 -translate-x-1/2 rounded-md border border-amber-500/30 bg-slate-950/80 px-3 py-1.5 text-xs text-amber-200"
+            role="status"
+            data-knowledge-layout-diagnostic="teaching-order-conflict"
+          >
+            {lessonOrderConflictCount} 项概念先后关系与本课学习顺序不同，当前按本课顺序呈现。
+          </div>
+        )}
+        {navigation.view.kind === 'domain' && postRequisiteCycleCount > 0 && (
+          <div
+            className="pointer-events-none absolute left-1/2 top-12 z-20 -translate-x-1/2 rounded-md border border-amber-500/30 bg-slate-950/80 px-3 py-1.5 text-xs text-amber-200"
+            role="status"
+            data-knowledge-layout-diagnostic="post-requisite-cycle"
+          >
+            {postRequisiteCycleCount} 组概念相互依赖，已置于同一层级，建议结合学习。
+          </div>
+        )}
+        {navigation.view.kind === 'domain' && (teachingOrderLayout?.unorderedNodeIds.length ?? 0) > 0 && (
+          <div
+            className="pointer-events-none absolute bottom-4 right-4 z-20 rounded-md border border-slate-700/70 bg-slate-950/75 px-2.5 py-1.5 text-xs text-slate-300"
+            data-knowledge-layout-region="unordered"
+          >
+            尚无可验证的先后关系 · {teachingOrderLayout?.unorderedNodeIds.length}
+          </div>
+        )}
+        {graphCache.incompleteShardKeys.length > 0 && (
+          <div
+            role="status"
+            className="absolute bottom-14 left-3 z-30 rounded-md border border-platform-evidence-context/35 bg-platform-evidence-context/10 px-2 py-1 text-xs text-platform-evidence-context"
+            data-knowledge-graph-incomplete="true"
+          >
+            图谱数据受限，当前视图可能不完整
+          </div>
+        )}
         <div
           className="absolute left-[var(--knowledge-workspace-inset)] top-[var(--knowledge-workspace-inset)] z-30 hidden max-w-[min(45rem,calc(100vw-36rem))] lg:block"
           data-knowledge-desktop-command-system="compact"
@@ -887,7 +1397,7 @@ export function KnowledgeGraphSystem({
                 {displayLinks.length} 关系
               </span>
               <span className="rounded-full border border-platform-border bg-platform-canvas-muted px-2 py-0.5">
-                {relationDensityMode === 'structure' ? '结构优先' : relationDensityMode === 'focused' ? '焦点邻域' : '全部关系'}
+                {enabledRelationFamilies.map((family) => KNOWLEDGE_GRAPH_FAMILY_PRESENTATION_CONFIG[family].label).join(' · ') || '未显示关系'}
               </span>
               <span className="min-w-0 max-w-[26rem] truncate rounded-full border border-platform-border bg-platform-canvas-muted px-2 py-0.5">
                 {activeFilterSummary}
@@ -910,27 +1420,24 @@ export function KnowledgeGraphSystem({
               >
                 {desktopActiveTool === 'chapter-directory' && (
                   <KnowledgeSidebar
-                    nodes={nodeFilteredByMeta}
+                    nodes={directoryNodes}
                     selectedNodeId={visibleSelectedNode?.id}
                     searchQuery={searchQuery}
                     onSearchChange={setSearchQuery}
-                    onNodeSelect={handleNodeClick}
+                    onNodeSelect={activateNode}
                     onNodeHover={handleNodeHover}
                   />
                 )}
 
-                {desktopActiveTool === 'relation-filters' && (
-                  <div className="space-y-3" data-knowledge-local-panel="relation-filters">
+                {desktopActiveTool === 'node-filters' && (
+                  <div className="space-y-3" data-knowledge-local-panel="node-filters">
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <div className="font-semibold text-platform-fg-primary">关系筛选</div>
+                        <div className="font-semibold text-platform-fg-primary">节点筛选</div>
                         <div className="text-[11px] text-platform-fg-muted">
-                          当前显示关系 {displayLinks.length} 条，节点 {filteredNodes.length} / {nodes.length}
+                          当前显示节点 {filteredNodes.length} / {nodes.length}
                         </div>
                       </div>
-                      <span className="rounded-full border border-platform-border bg-platform-action-subtle px-2 py-0.5 text-[10px] text-platform-fg-secondary">
-                        {dataSource === 'file' ? '文件图谱' : '数据库图谱'}
-                      </span>
                     </div>
 
                     <div
@@ -965,6 +1472,8 @@ export function KnowledgeGraphSystem({
                     </div>
 
                     <input
+                      id="knowledge-node-filter-search-desktop"
+                      name="knowledge-node-filter-search"
                       aria-label="关键词搜索（名称 / 标签 / 公式 / 示例）"
                       type="text"
                       value={searchQuery}
@@ -1032,111 +1541,6 @@ export function KnowledgeGraphSystem({
                       </details>
                     </div>
 
-                    <div>
-                      <div className="mb-1.5 text-[11px] text-platform-fg-secondary">关系密度</div>
-                      <div className="mb-3 grid grid-cols-3 gap-1 rounded-lg border border-platform-border p-0.5">
-                        {([
-                          ['structure', '结构优先'],
-                          ['focused', '焦点邻域'],
-                          ['all', '全部关系'],
-                        ] as const).map(([mode, label]) => (
-                          <button
-                            key={mode}
-                            type="button"
-                            aria-pressed={relationDensityMode === mode}
-                            onClick={() => setRelationDensityMode(mode)}
-                            className={`rounded px-2 py-1 text-[10px] transition-colors ${
-                              relationDensityMode === mode
-                                ? 'bg-platform-action-primary text-platform-fg-inverse'
-                                : 'text-platform-fg-muted hover:bg-platform-action-subtle hover:text-platform-fg-primary'
-                            }`}
-                          >
-                            {label}
-                          </button>
-                        ))}
-                      </div>
-
-                      <div className="mb-1.5 flex items-center justify-between text-[11px] text-platform-fg-secondary">
-                        <span>关系类型</span>
-                        <div className="flex gap-2">
-                          <button
-                            type="button"
-                            className="text-[10px] text-platform-fg-muted hover:text-platform-fg-primary"
-                            onClick={() => setSelectedRelationTypes(relationTypeStats.map((item) => item.type))}
-                          >
-                            全选
-                          </button>
-                          <button
-                            type="button"
-                            className="text-[10px] text-platform-fg-muted hover:text-platform-fg-primary"
-                            onClick={() => setSelectedRelationTypes([])}
-                          >
-                            清空
-                          </button>
-                        </div>
-                      </div>
-                      <div className="flex max-h-24 flex-wrap gap-1.5 overflow-y-auto">
-                        {relationTypeStats.map((item) => {
-                          const selected = selectedRelationTypes.includes(item.type);
-                          return (
-                            <button
-                              type="button"
-                              key={item.type}
-                              onClick={() => toggleRelationType(item.type)}
-                              className={`rounded-full border px-2 py-1 text-[10px] transition-colors ${
-                                selected
-                                  ? 'border-platform-action-primary bg-platform-action-subtle text-platform-fg-primary'
-                                  : 'border-platform-border bg-platform-surface text-platform-fg-secondary hover:border-platform-border-strong hover:text-platform-fg-primary'
-                              }`}
-                            >
-                              {getRelationLabel(item.type)} · {item.count}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    <div className="rounded-lg border border-platform-surface bg-platform-surface px-2.5 py-2 text-[11px] text-platform-fg-secondary">
-                      <div className="mb-1 font-medium text-platform-fg-primary">关系图例</div>
-                      <div className="grid max-h-48 grid-cols-2 gap-1.5 overflow-y-auto pr-1">
-                        {relationLegendItems.map((item) => (
-                          <RelationLegendSample key={`desktop-filter-legend-${item.type}`} item={item} isLightTheme={isLightTheme} />
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <div className="mb-1.5 flex items-center justify-between text-[11px] text-platform-fg-secondary">
-                        <span>关系强度阈值</span>
-                        <span className="text-platform-action-primary">{minRelationStrength.toFixed(1)}</span>
-                      </div>
-                      <input
-                        aria-label="关系强度阈值"
-                        type="range"
-                        min={0}
-                        max={1}
-                        step={0.1}
-                        value={minRelationStrength}
-                        onChange={(e) => setMinRelationStrength(Number(e.target.value))}
-                        className="w-full accent-[hsl(var(--platform-action-primary))]"
-                      />
-                      {relationDensityMode === 'focused' && (
-                        <p className="mt-1 text-[10px] text-platform-fg-muted">
-                          焦点邻域会保留直连弱关系，关系类型筛选仍然生效。
-                        </p>
-                      )}
-                    </div>
-
-                    <label className="flex cursor-pointer items-center gap-2 text-[11px] text-platform-fg-secondary">
-                      <input
-                        type="checkbox"
-                        checked={showOnlyConnectedNodes}
-                        onChange={(e) => setShowOnlyConnectedNodes(e.target.checked)}
-                        className="h-3.5 w-3.5 accent-[hsl(var(--platform-action-primary))]"
-                      />
-                      <span>仅显示存在可见关系的节点</span>
-                    </label>
-
                     <button
                       type="button"
                       onClick={() => {
@@ -1149,23 +1553,6 @@ export function KnowledgeGraphSystem({
                     >
                       清空节点筛选条件
                     </button>
-                  </div>
-                )}
-
-                {desktopActiveTool === 'legend' && (
-                  <div className="grid gap-2" data-knowledge-local-panel="relation-legend">
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <div className="font-semibold text-platform-fg-primary">关系图例</div>
-                        <div className="text-[11px] text-platform-fg-muted">细线、虚线和端点标记解释关系语义。</div>
-                      </div>
-                      <Network className="h-4 w-4 text-platform-action-primary" aria-hidden="true" />
-                    </div>
-                    <div className="grid gap-1.5">
-                      {relationLegendItems.map((item) => (
-                        <RelationLegendSample key={`desktop-command-legend-${item.type}`} item={item} isLightTheme={isLightTheme} />
-                      ))}
-                    </div>
                   </div>
                 )}
 
@@ -1251,7 +1638,9 @@ export function KnowledgeGraphSystem({
 
         {!aiSidebarOpen && (
           <div
-            className="absolute left-3 right-3 top-3 z-30 grid gap-2 lg:hidden"
+            className={`absolute left-3 right-3 top-3 grid gap-2 lg:hidden ${
+              mobileToolPanelOpen ? 'z-[60]' : 'z-30'
+            }`}
             data-knowledge-mobile-command-surface="single-tool-panel"
             data-knowledge-local-tool={mobileActiveTool}
             data-state={mobileToolPanelOpen ? 'open' : 'closed'}
@@ -1259,8 +1648,7 @@ export function KnowledgeGraphSystem({
           <div className="flex flex-wrap items-center gap-2 rounded-xl border border-platform-border bg-platform-surface/95 p-2 text-xs text-platform-fg-primary shadow-lg backdrop-blur">
             {([
               ['chapter-directory', '目录'],
-              ['relation-filters', '筛选'],
-              ['legend', '图例'],
+              ['node-filters', '筛选'],
               ['view-layout', '视图'],
             ] as const).map(([tool, label]) => (
               <button
@@ -1288,7 +1676,7 @@ export function KnowledgeGraphSystem({
               ref={mobileToolToggleRef}
               type="button"
               aria-expanded={mobileToolPanelOpen}
-              onClick={() => setMobileToolPanelOpen((open) => !open)}
+              onClick={handleMobileToolPanelToggle}
               className="rounded-lg border border-platform-border px-2.5 py-1.5 text-[11px] text-platform-fg-secondary transition hover:bg-platform-action-subtle hover:text-platform-fg-primary"
               data-knowledge-mobile-panel-toggle="true"
             >
@@ -1301,83 +1689,55 @@ export function KnowledgeGraphSystem({
               ref={mobileToolPanelRef}
               tabIndex={-1}
               onKeyDown={handleMobileToolPanelKeyDown}
-              className="max-h-[min(28rem,calc(100vh-7rem))] overflow-y-auto rounded-xl border border-platform-border bg-platform-surface/95 p-3 text-xs text-platform-fg-primary shadow-xl backdrop-blur"
+              className={`max-h-[min(28rem,calc(100vh-7rem))] overflow-y-auto rounded-xl border border-platform-border bg-platform-surface/95 px-3 pb-3 text-xs text-platform-fg-primary shadow-xl backdrop-blur ${
+                navigation.view.kind === 'domain' ? 'pt-14' : 'pt-3'
+              }`}
               data-knowledge-mobile-tool-panel={mobileActiveTool}
+              data-knowledge-mobile-tool-return-safe-area={navigation.view.kind === 'domain' ? 'reserved' : 'none'}
               data-state="open"
             >
+            {mobileToolControlVisible && (
+              <div
+                className={`sticky z-10 mb-3 bg-platform-surface/95 pb-2 ${navigation.view.kind === 'domain' ? 'top-12' : 'top-0'}`}
+                data-knowledge-mobile-tool-sticky-control="relation-family"
+              >
+                <RelationFamilyControl
+                  enabledFamilies={enabledRelationFamilies}
+                  isLightTheme={isLightTheme}
+                  placement="tool-panel"
+                  onToggleAll={toggleAllFamilies}
+                  onToggleFamily={toggleFamily}
+                />
+              </div>
+            )}
             {mobileActiveTool === 'chapter-directory' && (
               <div data-knowledge-mobile-drawer="chapter-directory" data-knowledge-local-tool="chapter-directory" data-state="open">
                 <KnowledgeSidebar
-                  nodes={nodeFilteredByMeta}
+                  nodes={directoryNodes}
                   selectedNodeId={visibleSelectedNode?.id}
                   searchQuery={searchQuery}
                   onSearchChange={setSearchQuery}
-                  onNodeSelect={handleNodeClick}
+                  onNodeSelect={activateNode}
                   onNodeHover={handleNodeHover}
                 />
               </div>
             )}
 
-            {mobileActiveTool === 'relation-filters' && (
-              <div className="space-y-2" data-knowledge-mobile-drawer="relation-filters" data-knowledge-local-tool="relation-filters" data-state="open">
-                <p className="text-platform-fg-secondary">关系 {displayLinks.length} 条 · 节点 {filteredNodes.length} / {nodes.length}</p>
+            {mobileActiveTool === 'node-filters' && (
+              <div className="space-y-2" data-knowledge-mobile-drawer="node-filters" data-knowledge-local-tool="node-filters" data-state="open">
+                <p className="text-platform-fg-secondary">节点 {filteredNodes.length} / {nodes.length}</p>
                 <p className="text-[11px] text-platform-fg-muted" data-knowledge-clarity-summary="mobile">
                   {claritySummary}
                 </p>
-                <input aria-label="关键词搜索"
+                <input id="knowledge-node-filter-search-mobile"
+                  name="knowledge-node-filter-search"
+                  aria-label="关键词搜索"
                   type="text"
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
                   placeholder="关键词搜索"
                   className="w-full rounded-md border border-platform-border bg-platform-surface px-2 py-1.5 text-xs text-platform-fg-primary outline-none"
                 />
-	                <details className="rounded-md border border-platform-border px-2 py-1.5" data-knowledge-mobile-filter-group="density-mode">
-	                  <summary className="cursor-pointer text-[11px] font-medium">密度模式 · {relationDensityMode === 'structure' ? '结构优先' : relationDensityMode === 'focused' ? '焦点邻域' : '全部关系'}</summary>
-	                  <div className="mt-2 grid grid-cols-3 gap-1 rounded-lg border border-platform-border p-0.5">
-	                    {([
-	                      ['structure', '结构优先'],
-	                      ['focused', '焦点邻域'],
-	                      ['all', '全部关系'],
-	                    ] as const).map(([mode, label]) => (
-	                      <button
-	                        key={`mobile-density-${mode}`}
-	                        type="button"
-	                        aria-pressed={relationDensityMode === mode}
-	                        onClick={() => setRelationDensityMode(mode)}
-	                        className={`rounded px-2 py-1 text-[10px] transition-colors ${
-	                          relationDensityMode === mode
-	                            ? 'bg-platform-action-primary text-platform-fg-inverse'
-	                            : 'text-platform-fg-muted hover:bg-platform-action-subtle hover:text-platform-fg-primary'
-	                        }`}
-	                      >
-	                        {label}
-	                      </button>
-	                    ))}
-	                  </div>
-	                </details>
-	                <details className="rounded-md border border-platform-border px-2 py-1.5" data-knowledge-mobile-filter-group="relation-types">
-	                  <summary className="cursor-pointer text-[11px] font-medium">关系类型 · {selectedRelationTypes.length}/{relationTypeStats.length}</summary>
-	                  <div className="mt-2 flex flex-wrap gap-1.5">
-	                    {relationTypeStats.map((item) => {
-	                      const selected = selectedRelationTypes.includes(item.type);
-	                      return (
-	                        <button
-	                          type="button"
-	                          key={`mobile-relation-${item.type}`}
-	                          aria-pressed={selected}
-	                          onClick={() => toggleRelationType(item.type)}
-	                          className={`rounded-full border px-2 py-1 text-[10px] transition-colors ${
-	                            selected
-	                              ? 'border-platform-action-primary bg-platform-action-subtle text-platform-fg-primary'
-	                              : 'border-platform-border text-platform-fg-secondary'
-	                          }`}
-	                        >
-	                          {getRelationLabel(item.type)} · {item.count}
-	                        </button>
-	                      );
-	                    })}
-	                  </div>
-	                </details>
                 <div className="grid gap-2">
                   <details className="rounded-md border border-platform-border px-2 py-1.5">
                     <summary className="cursor-pointer text-[11px] font-medium">{getGraphFilterLabel('category')}筛选{selectedCategories.length > 0 ? ` · ${selectedCategories.length}` : ''}</summary>
@@ -1412,32 +1772,6 @@ export function KnowledgeGraphSystem({
                     </div>
                   </details>
                 </div>
-	                <details className="rounded-md border border-platform-border px-2 py-1.5" data-knowledge-mobile-filter-group="advanced-thresholds">
-	                  <summary className="cursor-pointer text-[11px] font-medium">进阶过滤 · 强度 {minRelationStrength.toFixed(1)}</summary>
-	                  <div className="mt-2 grid gap-2">
-	                    <label className="grid gap-1 text-[11px] text-platform-fg-secondary">
-	                      <span>关系强度阈值：{minRelationStrength.toFixed(1)}</span>
-	                      <input
-	                        type="range"
-	                        min={0}
-	                        max={1}
-	                        step={0.1}
-	                        value={minRelationStrength}
-	                        onChange={(event) => setMinRelationStrength(Number(event.target.value))}
-	                        className="w-full accent-[hsl(var(--platform-action-primary))]"
-	                      />
-	                    </label>
-	                    <label className="flex items-center gap-2 text-[11px] text-platform-fg-secondary">
-	                      <input
-	                        type="checkbox"
-	                        checked={showOnlyConnectedNodes}
-	                        onChange={(event) => setShowOnlyConnectedNodes(event.target.checked)}
-	                        className="accent-[hsl(var(--platform-action-primary))]"
-	                      />
-	                      <span>仅显示存在可见关系的节点</span>
-	                    </label>
-	                  </div>
-	                </details>
                 <button
                   type="button"
                   onClick={() => {
@@ -1450,14 +1784,6 @@ export function KnowledgeGraphSystem({
                 >
                   清空节点筛选条件
                 </button>
-              </div>
-            )}
-
-            {mobileActiveTool === 'legend' && (
-              <div className="grid gap-1.5 text-[11px] text-platform-fg-secondary" data-knowledge-mobile-drawer="legend" data-knowledge-local-tool="legend" data-state="open">
-                {relationLegendItems.map((item) => (
-                  <RelationLegendSample key={`mobile-legend-${item.type}`} item={item} isLightTheme={isLightTheme} />
-                ))}
               </div>
             )}
 
@@ -1547,7 +1873,86 @@ export function KnowledgeGraphSystem({
           </div>
         )}
 
-        {isLoading ? (
+        {!mobileInspectorControlVisible && !mobileToolControlVisible && (
+          <RelationFamilyControl
+            enabledFamilies={enabledRelationFamilies}
+            isLightTheme={isLightTheme}
+            placement="canvas"
+            onToggleAll={toggleAllFamilies}
+            onToggleFamily={toggleFamily}
+          />
+        )}
+
+        <div
+          className="pointer-events-none absolute bottom-4 left-1/2 z-40 flex max-h-[min(10rem,calc(100%-2rem))] w-[min(calc(100%-2rem),32rem)] min-w-0 -translate-x-1/2 flex-wrap justify-center gap-2 overflow-y-auto px-1"
+          aria-label="知识图谱节点控制"
+        >
+          {displayNodes.map((node) => {
+            const semanticLabel = getKnowledgeNodeSemanticLabel(
+              node.name,
+              isCollapsedRootNode(node) ? 'domain' : 'node'
+            );
+            return (
+              <button
+                key={`semantic-node-${node.id}`}
+                type="button"
+                data-knowledge-node-control={node.id}
+                aria-label={semanticLabel.ariaLabel}
+                title={semanticLabel.title}
+                aria-busy={isCollapsedRootNode(node) && navigation.view.kind === 'domain' && navigation.view.domainId === node.id && navigation.status === 'loading'}
+                aria-expanded={isCollapsedRootNode(node) ? navigation.view.kind === 'domain' && navigation.view.domainId === node.id : undefined}
+                aria-describedby="knowledge-node-activation-status"
+                data-error={isCollapsedRootNode(node) && navigation.view.kind === 'domain' && navigation.view.domainId === node.id && navigation.status === 'failure' ? 'true' : 'false'}
+                data-filtered-empty={isCollapsedRootNode(node) && navigation.view.kind === 'domain' && navigation.view.domainId === node.id && navigation.status === 'filtered-empty' ? 'true' : 'false'}
+                data-shard-cached={graphCache.domainShardKeysByDomainId[node.id] ? 'true' : 'false'}
+                onClick={() => activateNodeById(node.id)}
+                className="pointer-events-none h-px w-px max-w-full min-w-0 overflow-hidden opacity-0 focus:pointer-events-auto focus:h-auto focus:w-auto focus:max-w-[min(24rem,calc(100vw-2rem))] focus:whitespace-normal focus:break-words focus:overflow-visible focus:rounded-md focus:border focus:border-platform-action-primary focus:bg-platform-surface focus:px-3 focus:py-2 focus:text-center focus:opacity-100 focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-inset focus:ring-platform-action-primary"
+              >
+                {semanticLabel.accessibleName}
+              </button>
+            );
+          })}
+        </div>
+        <span id="knowledge-node-activation-status" role="status" aria-live="polite" className="sr-only">
+          {navigationStatusText}
+        </span>
+        {navigation.view.kind === 'domain' && navigation.status === 'loading' && (
+          <div
+            role="status"
+            className="absolute bottom-16 left-1/2 z-30 -translate-x-1/2 rounded-md border border-platform-border bg-platform-surface px-3 py-2 text-xs text-platform-fg-secondary shadow-lg"
+            data-knowledge-domain-loading="true"
+          >
+            正在加载当前领域知识…
+          </div>
+        )}
+        {navigation.view.kind === 'domain' && (navigation.status === 'failure' || navigation.status === 'incomplete') && (
+          <div className="absolute bottom-16 left-1/2 z-30 flex -translate-x-1/2 items-center gap-3 rounded-md border border-platform-evidence-context/35 bg-platform-surface px-3 py-2 text-xs text-platform-fg-secondary shadow-lg" role="alert">
+            <span>{navigation.error}</span>
+            <button
+              type="button"
+              onClick={() => {
+                if (navigation.view.kind === 'domain') {
+                  void loadDomain(navigation.view.domainId, true);
+                }
+              }}
+              className="rounded-md border border-platform-border bg-platform-action-subtle px-2 py-1 font-medium text-platform-fg-primary hover:bg-platform-action-primary hover:text-platform-fg-inverse"
+              data-knowledge-domain-retry="true"
+            >
+              重试
+            </button>
+          </div>
+        )}
+        {navigation.view.kind === 'domain' && navigation.status === 'filtered-empty' && (
+          <div
+            role="status"
+            className="absolute bottom-16 left-1/2 z-30 -translate-x-1/2 rounded-md border border-platform-border bg-platform-surface px-3 py-2 text-xs text-platform-fg-secondary shadow-lg"
+            data-knowledge-filtered-empty-explanation="visible"
+          >
+            当前筛选条件下没有可见知识点；领域缓存仍保留，可调整筛选或返回全部领域。
+          </div>
+        )}
+
+        {navigation.view.kind === 'root' && navigation.status === 'loading' && displayNodes.length === 0 ? (
             <div className="flex h-full w-full items-center justify-center">
               <div className="text-center">
                 <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-platform-border border-t-platform-action-primary" />
@@ -1555,6 +1960,20 @@ export function KnowledgeGraphSystem({
                 <div className="mt-2 text-sm text-platform-fg-muted">同步 {nodes.length} 个节点...</div>
               </div>
             </div>
+        ) : navigation.view.kind === 'root' && navigation.status === 'failure' ? (
+          <div className="flex h-full w-full items-center justify-center">
+            <div className="text-center">
+              <div className="text-platform-fg-secondary">{navigation.error}</div>
+              <button
+                type="button"
+                onClick={() => void loadRoot()}
+                className="mt-3 rounded-md border border-platform-border bg-platform-action-subtle px-3 py-2 text-sm font-medium text-platform-fg-primary hover:bg-platform-action-primary hover:text-platform-fg-inverse"
+                data-knowledge-root-retry="true"
+              >
+                重试
+              </button>
+            </div>
+          </div>
         ) : (
             <Suspense
             fallback={
@@ -1568,32 +1987,68 @@ export function KnowledgeGraphSystem({
             {viewMode === '2D' ? (
               <KnowledgeGraph2D
                 nodes={displayNodes}
-                links={displayLinks}
-                selectedNode={visibleSelectedNode}
+                links={renderDisplayLinks}
+                presentationLinks={canonicalPresentationLinks}
+                selectedNode={canvasSelectedNode}
                 hoveredNode={hoveredNode}
-                onNodeClick={handleNodeClick}
+                onNodeClick={activateNode}
                 onNodeHover={handleNodeHover}
                 onNodeDragEnd={handleNodeDragEnd}
+                onBackgroundClick={handleBlankCanvasClick}
                 width={dimensions.width}
                 height={dimensions.height}
                 labelMode={labelMode}
                 layoutState={layoutState}
-                fitViewVersion={fitViewVersion}
+                fitViewRequest={fitViewRequest}
                 relayoutVersion={relayoutVersion}
+                expandedNodeIds={[]}
+                expandedDirectLinks={expandedDirectLinks}
+                activationSequenceByCenterId={{}}
+                materializedNodeIds={[]}
+                graphVersion={rendererLayoutVersion}
+                lessonOrderNodeIds={lessonContext?.cardOrderNodeIds ?? []}
+                teachingOrderLinks={teachingOrderLinks}
+                selectedCorridorEmphasis={selectedCorridorEmphasis}
               />
             ) : (
               <KnowledgeGraphCanvas
                 nodes={displayNodes}
-                links={displayLinks}
-                selectedNode={visibleSelectedNode}
+                links={renderDisplayLinks}
+                presentationLinks={canonicalPresentationLinks}
+                selectedNode={canvasSelectedNode}
                 hoveredNode={hoveredNode}
-                onNodeClick={handleNodeClick}
+                onNodeClick={activateNode}
                 onNodeHover={handleNodeHover}
                 onNodeDragEnd={handleNodeDragEnd}
+                onBackgroundClick={handleBlankCanvasClick}
                 labelMode={labelMode}
                 layoutState={layoutState}
-                fitViewVersion={fitViewVersion}
+                fitViewRequest={fitViewRequest}
+                autoFitScopeKey={autoFitScopeKey}
+                autoFitReady={autoFitReady}
+                autoFitConsumed={Boolean(
+                  autoFitScopeKey && consumedAutoFitScopeKeys.has(autoFitScopeKey)
+                )}
+                autoFitCameraManipulated={Boolean(
+                  autoFitScopeKey && manipulatedAutoFitScopeKeys.has(autoFitScopeKey)
+                )}
+                restoredCameraPose={autoFitScopeKey
+                  ? cameraPoseByAutoFitScopeRef.current.get(autoFitScopeKey) ?? null
+                  : null}
+                onAutoFitConsumed={handleAutoFitConsumed}
+                onCameraManipulation={handleCameraManipulation}
+                onCameraPoseChange={handleCameraPoseChange}
                 relayoutVersion={relayoutVersion}
+                width={dimensions.width}
+                height={dimensions.height}
+                expandedNodeIds={[]}
+                expandedDirectLinks={expandedDirectLinks}
+                activationSequenceByCenterId={{}}
+                materializedNodeIds={[]}
+                graphVersion={rendererLayoutVersion}
+                lessonOrderNodeIds={lessonContext?.cardOrderNodeIds ?? []}
+                teachingOrderLinks={teachingOrderLinks}
+                selectedCorridorEmphasis={selectedCorridorEmphasis}
               />
             )}
             </Suspense>
@@ -1607,7 +2062,9 @@ export function KnowledgeGraphSystem({
             data-knowledge-hover-context-policy="preview-only-not-durable-context"
           >
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-medium text-platform-fg-primary">{hoveredNode.name}</span>
+              <span className="font-medium text-platform-fg-primary">
+                {getKnowledgeNodeSemanticLabel(hoveredNode.name, 'node').accessibleName}
+              </span>
               <span
                 className={`rounded-full px-2 py-0.5 text-xs ${
                   hoveredNode.nodeType === 'THEORY'
@@ -1647,10 +2104,41 @@ export function KnowledgeGraphSystem({
       {/* 右侧资源面板 */}
       <ResourcePanel
         isOpen={visiblePanelOpen}
-        selectedNode={visibleSelectedNode}
+        selectedNode={inspectorSelectedNode}
         onClose={handleClosePanel}
-        onNodeClick={handleNodeSelectById}
+        onNodeClick={activateNodeById}
+        adjacentDomainNavigations={(selectedCorridor?.adjacentDomainNavigations ?? []).map((navigation) => ({
+          ...navigation,
+          nodeName: graphCache.rootCatalogByNodeId[navigation.nodeId]?.nodeName ?? navigation.nodeId,
+        }))}
+        canonicalCorridor={selectedCorridor ? {
+          ancestors: selectedCorridor.ancestorNodeIds.map((nodeId) => ({
+            id: nodeId,
+            name: graphCache.nodesById[nodeId]?.name
+              ?? graphCache.rootCatalogByNodeId[nodeId]?.nodeName
+              ?? nodeId,
+          })),
+          descendants: selectedCorridor.descendantNodeIds.map((nodeId) => ({
+            id: nodeId,
+            name: graphCache.nodesById[nodeId]?.name
+              ?? graphCache.rootCatalogByNodeId[nodeId]?.nodeName
+              ?? nodeId,
+          })),
+          ...(selectedCorridor.motionSuppressedEdgeIds.length > 0
+            ? { cycleState: 'cyclic' as const }
+            : {}),
+        } : null}
         viewerRole={viewerRole}
+        mobileToolPanelOpen={mobileToolPanelOpen}
+        mobileHeaderControl={mobileInspectorControlVisible ? (
+          <RelationFamilyControl
+            enabledFamilies={enabledRelationFamilies}
+            isLightTheme={isLightTheme}
+            placement="inspector"
+            onToggleAll={toggleAllFamilies}
+            onToggleFamily={toggleFamily}
+          />
+        ) : undefined}
       />
     </div>
   );

@@ -232,7 +232,7 @@ export function adaptResourceProjectionRow(
   const scores: SourcePackScoreFields = {
     relevance: pathEligible ? 0.85 : 0.5,
     graphAlignment: 0.7,
-    authority: reviewStatus === 'human-confirmed' ? 0.95 : 0.5,
+    authority: reviewStatus === 'human-confirmed' ? 0.95 : reviewStatus === 'model-cleared' ? 0.8 : 0.5,
     eligibility: pathEligible ? 0.9 : 0.3,
     freshness: stale ? 0.3 : 0.8,
     final: 0,
@@ -296,7 +296,7 @@ function detectProjectionLevel(row: RuntimeResourceProjectionArtifactRow): strin
 }
 
 function detectProjectionStaleness(row: RuntimeResourceProjectionArtifactRow): boolean {
-  return row.reviewAudit.status === 'human-confirmed' &&
+  return (row.reviewAudit.status === 'human-confirmed' || row.reviewAudit.status === 'model-cleared') &&
     (!reviewedSourceMatchesProjection(row) ||
       row.reviewAudit.reviewedVersionRef !== row.sourceVersionRef);
 }

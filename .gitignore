@@ -3,16 +3,10 @@
 .serena/
 image/
 generated-images/
-AGENTS.md
+/AGENTS.md
 CLAUDE.md
 GEMINI.md
-.codex/
-!.codex/
-.codex/config.toml
-.codex/agents/
-!.codex/agents/
-!.codex/agents/**
-.codex/plans/
+/.codex/
 .DS_Store
 .logs/
 docs/courses/
@@ -91,3 +85,6 @@ unit41-step*.png
 /octave-workspace
 # Added by code-review-graph
 .code-review-graph/
+
+# SkillOpt-Sleep local runtime
+/.skillopt-sleep/

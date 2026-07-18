@@ -64,6 +64,7 @@ describe('platform role navigation', () => {
         '/teacher',
         '/teacher/classes',
         '/teacher/lesson-plans',
+        '/teacher/assignments',
         '/teacher/preset-lessons',
         '/teacher/resources',
         '/teacher/resources/resource-nodes',
@@ -86,6 +87,20 @@ describe('platform role navigation', () => {
       expect.arrayContaining(['/', '/login', '/simulations', '/knowledge', '/arena']),
     );
     expect(getPlatformRoleNavigation('guest').map((entry) => entry.href)).not.toContain('/virtual-lab');
+  });
+
+  it('registers assignment list, create, and edit routes in the teacher operations ledger', () => {
+    const routes = PLATFORM_PRIMARY_ROUTE_INVENTORY.filter((entry) => entry.href.startsWith('/teacher/assignments'));
+    expect(routes.map((entry) => entry.href)).toEqual([
+      '/teacher/assignments',
+      '/teacher/assignments/new',
+      '/teacher/assignments/[assignmentId]/edit',
+      '/teacher/assignments/[assignmentId]/submissions',
+      '/teacher/assignments/[assignmentId]/submissions/[submissionId]/review',
+    ]);
+    expect(routes.every((entry) => entry.frame === 'operations-console' && entry.roleScope.includes('teacher'))).toBe(true);
+    expect(routes.every((entry) => entry.navigationLayers.join(',') === 'role-cockpit,contextual-workspace,local-tool')).toBe(true);
+    expect(resolvePlatformRouteInventory('/teacher/assignments/assignment-1/edit')?.href).toBe('/teacher/assignments/[assignmentId]/edit');
   });
 
   it('keeps role cockpit destinations compatible with auth roles', () => {
@@ -355,6 +370,7 @@ describe('platform role navigation', () => {
       '/arena/challenges/[taskId]',
       '/assessment/adaptive-practice',
       '/missions',
+      '/missions/assignments/[assignmentId]',
       '/interactive-learning/control-workbench',
       '/dashboard',
       '/profile',
@@ -383,6 +399,11 @@ describe('platform role navigation', () => {
       '/teacher/lesson-plans',
       '/teacher/lesson-plans/new',
       '/teacher/lesson-plans/[id]/edit',
+      '/teacher/assignments',
+      '/teacher/assignments/new',
+      '/teacher/assignments/[assignmentId]/edit',
+      '/teacher/assignments/[assignmentId]/submissions',
+      '/teacher/assignments/[assignmentId]/submissions/[submissionId]/review',
       '/teacher/preset-lessons',
       '/teacher/resources',
       '/teacher/resources/resource-nodes',
@@ -1312,14 +1333,14 @@ describe('platform role navigation', () => {
     expect(knowledgeGraphSource).toContain('data-knowledge-command-trigger={item.id}');
     expect(knowledgeGraphSource).toContain('data-knowledge-local-tool-summary="desktop"');
     expect(knowledgeGraphSource).toContain('data-knowledge-local-tool="chapter-directory"');
-    expect(knowledgeGraphSource).toContain('data-knowledge-local-tool="relation-filters"');
+    expect(knowledgeGraphSource).toContain('data-knowledge-local-tool="node-filters"');
     expect(knowledgeGraphSource).toContain('data-knowledge-active-filter-summary={activeFilterSummary}');
     expect(knowledgeGraphSource).toContain('data-knowledge-mobile-command-surface="single-tool-panel"');
     expect(knowledgeGraphSource).toContain("data-state={mobileToolPanelOpen ? 'open' : 'closed'}");
     expect(knowledgeGraphSource).toContain('data-knowledge-mobile-panel-toggle="true"');
     expect(knowledgeGraphSource).toContain('{mobileToolPanelOpen && (');
     expect(knowledgeGraphSource).toContain('data-knowledge-mobile-tool-panel={mobileActiveTool}');
-    expect(knowledgeGraphSource).toContain('data-knowledge-local-tool="legend"');
+    expect(knowledgeGraphSource).toContain('data-knowledge-relation-family-control="compact-bottom-left"');
     expect(knowledgeGraphSource).toContain('data-knowledge-local-tool="view-layout"');
     expect(knowledgeGraphSource).toContain('data-knowledge-local-panel="view-layout-controls"');
   });

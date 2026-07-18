@@ -1,0 +1,132 @@
+{
+  "lesson_id": "1-4",
+  "title": "时域与频域：同一个系统的两种观察视角",
+  "layer": "层0",
+  "unit_type": "理论",
+  "hours": 2,
+  "knowledge_type": "C+X",
+  "graph_version": "1-4-v1",
+  "focus_node_ids": [
+    "时域频域通道区分_1_4",
+    "闭环带宽与环路穿越频率_1_4",
+    "Bode与Nyquist同源表征_1_4",
+    "多表征一致性读图_1_4"
+  ],
+  "reuse_node_ids": [
+    "时域响应_1_1",
+    "频域分析_2_2e257d89",
+    "开环幅相特性曲线_5_fd86e289"
+  ],
+  "entry_nodes": [
+    "时域频域通道区分_1_4"
+  ],
+  "summary_nodes": [
+    "Bode与Nyquist同源表征_1_4",
+    "多表征一致性读图_1_4"
+  ],
+  "card_order": [
+    "时域响应_1_1",
+    "时域频域通道区分_1_4",
+    "闭环带宽与环路穿越频率_1_4",
+    "频域分析_2_2e257d89",
+    "Bode与Nyquist同源表征_1_4",
+    "开环幅相特性曲线_5_fd86e289",
+    "多表征一致性读图_1_4"
+  ],
+  "preceding_lesson": "1-3",
+  "following_lesson": "1-5",
+  "refinement_units": [
+    "2-2",
+    "2-3",
+    "2-4"
+  ],
+  "sequence": {
+    "lesson_id": "1-4",
+    "note": "本顺序按已确认的 1-4 interactive-page 与 interactive-contract 的 12 步互动设计定稿；groups[].step_ids 对应知识卡片在互动步骤中的实际归属。",
+    "groups": [
+      {
+        "group_name": "区分观察域与输入输出通道",
+        "step_ids": [
+          "step-04"
+        ],
+        "node_ids": [
+          "时域频域通道区分_1_4"
+        ]
+      },
+      {
+        "group_name": "建立时域响应参照",
+        "step_ids": [
+          "step-05"
+        ],
+        "node_ids": [
+          "时域响应_1_1"
+        ]
+      },
+      {
+        "group_name": "读取闭环带宽与频率响应",
+        "step_ids": [
+          "step-06"
+        ],
+        "node_ids": [
+          "闭环带宽与环路穿越频率_1_4",
+          "频域分析_2_2e257d89"
+        ]
+      },
+      {
+        "group_name": "联读 Bode 与 Nyquist",
+        "step_ids": [
+          "step-07"
+        ],
+        "node_ids": [
+          "Bode与Nyquist同源表征_1_4",
+          "开环幅相特性曲线_5_fd86e289"
+        ]
+      },
+      {
+        "group_name": "完成多表征联读",
+        "step_ids": [
+          "step-08",
+          "step-12"
+        ],
+        "node_ids": [
+          "多表征一致性读图_1_4"
+        ]
+      }
+    ],
+    "card_order": [
+      "时域响应_1_1",
+      "时域频域通道区分_1_4",
+      "闭环带宽与环路穿越频率_1_4",
+      "频域分析_2_2e257d89",
+      "Bode与Nyquist同源表征_1_4",
+      "开环幅相特性曲线_5_fd86e289",
+      "多表征一致性读图_1_4"
+    ]
+  },
+  "handout_path": "/course-runtime/lessons/1-4/1-4-handout.md",
+  "handout_source_path": "course-content/runtime/lessons/1-4/1-4-handout.md",
+  "graph_overlay_path": "/course-runtime/lessons/1-4/graph-overlay.json",
+  "media_base_path": "/course-runtime/lessons/1-4/media",
+  "media_index_path": "/course-runtime/lessons/1-4/media/1-4-media.md",
+  "media_index_source_path": "course-content/runtime/lessons/1-4/media/1-4-media.md",
+  "review": {
+    "status": "incomplete",
+    "boppps_path": "/course-runtime/lessons/1-4/review/1-4-boppps.md",
+    "missing_assets": [
+      "1-4-slides.pdf",
+      "1-4-intro-video.mp4",
+      "1-4-course.mp4",
+      "1-4-audio.m4a",
+      "1-4-teacher-handout.pdf"
+    ],
+    "report_path": "/course-runtime/lessons/1-4/review/review-report.md",
+    "knowledge_card_check_path": "/course-runtime/lessons/1-4/review/knowledge-card-check.json",
+    "interactive_page_check_path": "/course-runtime/lessons/1-4/review/interactive-page-check.json",
+    "multimedia_check_path": "/course-runtime/lessons/1-4/review/multimedia-check.json",
+    "source_manifest_path": "/course-runtime/lessons/1-4/review/source-manifest.json"
+  },
+  "handout_pdf_path": "/course-runtime/lessons/1-4/1-4-handout.pdf",
+  "handout_pdf_source_path": "course-content/runtime/lessons/1-4/1-4-handout.pdf",
+  "interactive_manifest_path": "/course-runtime/lessons/1-4/interactive-manifest.json",
+  "interactive_manifest_source_path": "course-content/runtime/lessons/1-4/interactive-manifest.json"
+}

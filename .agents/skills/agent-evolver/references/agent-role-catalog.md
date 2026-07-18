@@ -1,31 +1,27 @@
 # Agent Role Catalog
 
-## starter
-- 模型：`gpt-5.4`
-- 默认推理：`medium`
-- 主要职责：多数起步任务、任务分流、初步判断
-- 不做：复杂 debug 终局判断、关键 review、最终验收
+## Sol Low：窄执行与窄读扫
 
-## deep-debugger
-- 模型：`gpt-5.4`
-- 默认推理：`high`
-- 主要职责：复杂分析、跨文件排障、根因定位
-- 不做：终审裁决、轻量读扫、大批量支持文档整理
+- `spark-coder`：简单、局部、可快速验证的写任务。
+- `explorer-librarian`、`code-mapper`、`test-engineer`：窄读扫、路径定位和聚焦测试。
 
-## critical-reviewer
-- 模型：`gpt-5.4`
-- 默认推理：`xhigh`
-- 主要职责：关键审查、复杂 review、疑难终审
-- 不做：普通起步分流、简单修补实现
+## Sol Medium：复合任务、主协调和常规审核
 
-## explorer-librarian
-- 模型：`gpt-5.4-mini`
-- 默认推理：`medium`
-- 主要职责：探索、读扫、大文件审阅、支持性文档处理
-- 不做：最终验收、复杂架构判断、复杂修复设计
+- `agent-router`：复杂任务角色选择和主协调建议。
+- `patch-worker`、`deep-debugger`、`long-context-investigator`：复合实现、复杂排障和长上下文调查。
+- `ui-flow-reviewer`、`retro-analyst`：常规 UI 审核与失败复盘。
+- `spec-planner`、`independent-reviewer` 及常规领域 reviewer：规划、常规审核和一般任务终审。
 
-## spark-coder
-- 模型：`gpt-5.3-codex-spark`
-- 默认推理：`medium`
-- 主要职责：极低延迟简单编码、小范围修补
-- 不做：复杂 debug、复杂 review、跨文件重构
+## Sol High：高风险任务与终审
+
+- `security-reviewer`、`release-sentinel`：安全敏感和发布关键审查。
+- `critical-reviewer`：只用于高风险、架构回归、安全敏感或发布关键终审。
+- 一般任务终审仍使用 `independent-reviewer` 的 Sol `medium`。
+
+所有角色只使用 `gpt-5.6-sol`，不使用 `xhigh`、`max` 或 `ultra`。
+
+## 权限
+
+- 正式写代理：`spark-coder`、`patch-worker`、`test-engineer`。
+- 诊断写权限：`deep-debugger`，不得完成正式修复。
+- 其余角色只读。

@@ -145,6 +145,9 @@ const COURSE_LOCAL_CHROME_KEYS = [
 export const STANDARD_MODULE_ENFORCED_LESSON_IDS = [
   '1-1',
   '1-2',
+  '1-3',
+  '1-4',
+  '1-5',
   '2-1',
   '2-2',
   '2-3',
