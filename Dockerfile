@@ -79,8 +79,7 @@ ENV RUN_MIGRATIONS_ON_START=1
 
 RUN (apk add --no-cache chromium libreoffice \
   || (sed -i "s|https://mirrors.aliyun.com/alpine|https://dl-cdn.alpinelinux.org/alpine|g" /etc/apk/repositories \
-    && apk add --no-cache chromium libreoffice)) \
-  && python3 -m pip install --break-system-packages --no-cache-dir markitdown==0.1.2
+    && apk add --no-cache chromium libreoffice))
 
 # Create nextjs user
 RUN addgroup --system --gid 1001 nodejs

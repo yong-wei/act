@@ -23,7 +23,7 @@ describe('math-document grading production entrypoint contract', () => {
 
     expect(dockerfile).toMatch(/apk add[^\n]*unzip/);
     expect(dockerfile).toMatch(/apk add[^\n]*libreoffice/);
-    expect(dockerfile).toContain('markitdown==');
+    expect(dockerfile).not.toContain('markitdown==');
     expect(dockerfile).toContain('scripts/assignments');
     expect(worker).toContain('math-document-grading-worker');
     expect(mathWorker).toContain('assertMathDocumentGradingWorkerConfig');
