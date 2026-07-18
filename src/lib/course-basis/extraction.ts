@@ -131,6 +131,9 @@ async function extractPdf(bytes: Uint8Array): Promise<Omit<ExtractionResult, 'by
         extractedChars = pushBoundedSegment(segments, segment, extractedChars);
       });
     }
+  } catch (error) {
+    if (error instanceof CourseBasisError) throw error;
+    throw new CourseBasisError('pdf-extraction-failed');
   } finally {
     await document.destroy();
   }
@@ -166,7 +169,7 @@ function pdfParagraphs(items: TextItem[]): string[] {
 }
 
 function segmentMarkdown(text: string): ExtractedCourseBasisSegment[] {
-  const headingPath: Array<{ level: number; label: string }> = [];
+  const headingPath: Array<{ level: number; label: string; anchor: string }> = [];
   const headingOccurrences = new Map<string, number>();
   const paragraphCounts = new Map<string, number>();
   const segments: ExtractedCourseBasisSegment[] = [];
@@ -180,7 +183,7 @@ function segmentMarkdown(text: string): ExtractedCourseBasisSegment[] {
     const key = path.join('/');
     const paragraphNumber = (paragraphCounts.get(key) ?? 0) + 1;
     paragraphCounts.set(key, paragraphNumber);
-    const anchorPath = headingPath.map((heading) => `h${heading.level}:${slug(heading.label)}`).join('/');
+    const anchorPath = headingPath.map((heading) => `h${heading.level}:${heading.anchor}`).join('/');
     segments.push(makeSegment({
       orderIndex: segments.length,
       stableAnchor: `${anchorPath || 'root'}/paragraph:${paragraphNumber}`,
@@ -198,10 +201,15 @@ function segmentMarkdown(text: string): ExtractedCourseBasisSegment[] {
       const level = heading[1].length;
       const textValue = normalizeInlineText(heading[2]);
       while (headingPath.length && headingPath[headingPath.length - 1].level >= level) headingPath.pop();
-      const base = headingPath.map((item) => item.label).concat(textValue).join('/');
+      const slugValue = slug(textValue);
+      const base = headingPath.map((item) => item.anchor).concat(slugValue).join('/');
       const occurrence = (headingOccurrences.get(base) ?? 0) + 1;
       headingOccurrences.set(base, occurrence);
-      headingPath.push({ level, label: occurrence === 1 ? textValue : `${textValue} (${occurrence})` });
+      headingPath.push({
+        level,
+        label: occurrence === 1 ? textValue : `${textValue} (${occurrence})`,
+        anchor: occurrence === 1 ? slugValue : `${slugValue}-${occurrence}`,
+      });
       continue;
     }
     if (!line.trim()) flush();

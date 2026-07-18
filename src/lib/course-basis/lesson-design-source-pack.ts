@@ -2,6 +2,7 @@ import type { PrismaClient } from '@prisma/client';
 
 import type { SarAssociationExpansionResult } from '@/lib/data-governance/sar-association-expansion';
 import { buildTeacherCourseBasisLessonDesignCandidatesFromReader } from '@/lib/source-pack/teacher-course-basis';
+import { retrieveSourcePack, type RetrieveSourcePackInput } from '@/lib/source-pack/hybrid-retriever';
 
 import type { CourseBasisActor } from './domain';
 
@@ -12,9 +13,10 @@ export async function buildCourseBasisLessonDesignSourcePack(
     selectedVersionIds: readonly string[];
     explicitRetiredVersionIds?: readonly string[];
     sar: SarAssociationExpansionResult;
+    retrieval: Omit<RetrieveSourcePackInput, 'profile' | 'role' | 'caller' | 'candidates'>;
   },
 ) {
-  return buildTeacherCourseBasisLessonDesignCandidatesFromReader({
+  const candidates = await buildTeacherCourseBasisLessonDesignCandidatesFromReader({
     reader: {
       readCourseBasisProjections: ({ ownerUserId, selectedVersionIds }) => db.courseBasisProjection.findMany({
         where: {
@@ -33,4 +35,14 @@ export async function buildCourseBasisLessonDesignSourcePack(
     explicitRetiredVersionIds: input.explicitRetiredVersionIds,
     sar: input.sar,
   });
+  return {
+    chunks: candidates.chunks,
+    retrieval: retrieveSourcePack({
+      ...input.retrieval,
+      profile: 'lesson-design',
+      role: input.actor.role === 'ADMIN' ? 'admin' : 'teacher',
+      caller: input.actor.id,
+      candidates: candidates.items,
+    }),
+  };
 }

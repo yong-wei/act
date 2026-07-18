@@ -45,6 +45,20 @@ describe('course-basis extraction', () => {
     expect(result.segments[1].stableAnchor).toBe('h1:course/h3:topic/paragraph:1');
   });
 
+  it('disambiguates distinct headings that normalize to the same anchor slug', async () => {
+    const result = await extractCourseBasisSource({
+      sourceType: 'MARKDOWN',
+      sourceName: 'colliding-headings.md',
+      mimeType: 'text/markdown',
+      content: '# A B\n\nFirst.\n\n# A-B\n\nSecond.',
+    });
+
+    expect(result.segments.map((segment) => segment.stableAnchor)).toEqual([
+      'h1:a-b/paragraph:1',
+      'h1:a-b-2/paragraph:1',
+    ]);
+  });
+
   it('extracts searchable PDF text into stable page and paragraph anchors', async () => {
     const pdf = await PDFDocument.create();
     const font = await pdf.embedFont(StandardFonts.Helvetica);
