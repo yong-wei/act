@@ -119,6 +119,34 @@ describe('course-basis service', () => {
     expect(transactionCount).toBe(2);
   });
 
+  it('persists a failed PDF extraction as a retryable version', async () => {
+    const create = vi.fn(async ({ data }: any) => ({ id: 'version-1', ...data, segments: data.segments.create }));
+    const db: any = {
+      courseBasisDocument: { findFirst: vi.fn(async () => ({ id: 'document-1' })) },
+      courseBasisDocumentVersion: { findFirst: vi.fn(async () => null), create },
+    };
+    db.$transaction = vi.fn(async (callback: (tx: any) => unknown) => callback(db));
+
+    const created = await importCourseBasisVersion(db, {
+      actor: teacher,
+      documentId: 'document-1',
+      source: {
+        sourceType: 'SEARCHABLE_PDF',
+        sourceName: 'broken.pdf',
+        mimeType: 'application/pdf',
+        content: new TextEncoder().encode('%PDF-not-a-document'),
+      },
+    });
+
+    expect(created).toMatchObject({
+      extractionState: 'FAILED',
+      failureReason: 'pdf-extraction-failed',
+      normalizedText: null,
+      segments: [],
+    });
+    expect(create).toHaveBeenCalledOnce();
+  });
+
   it('uses indistinguishable not-found behavior for another teacher while allowing an administrator', async () => {
     const db: any = {
       courseBasis: {

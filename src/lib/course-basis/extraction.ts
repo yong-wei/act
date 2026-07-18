@@ -31,10 +31,26 @@ type ExtractionResult = {
   contentHash: string;
   originalContent: Uint8Array;
   normalizedText: string | null;
-  extractionState: 'EXTRACTED' | 'UNSUPPORTED';
+  extractionState: 'EXTRACTED' | 'UNSUPPORTED' | 'FAILED';
   failureReason: string | null;
   segments: ExtractedCourseBasisSegment[];
 };
+
+export function failedCourseBasisExtraction(source: CourseBasisSource, failureReason: string): ExtractionResult {
+  const originalContent = typeof source.content === 'string'
+    ? new TextEncoder().encode(source.content)
+    : new Uint8Array(source.content);
+  validateSource(source, originalContent);
+  return {
+    byteSize: originalContent.byteLength,
+    contentHash: sha256(originalContent),
+    originalContent,
+    normalizedText: null,
+    extractionState: 'FAILED',
+    failureReason,
+    segments: [],
+  };
+}
 
 export async function extractCourseBasisSource(source: CourseBasisSource): Promise<ExtractionResult> {
   const originalContent = typeof source.content === 'string'
@@ -170,7 +186,7 @@ function pdfParagraphs(items: TextItem[]): string[] {
 
 function segmentMarkdown(text: string): ExtractedCourseBasisSegment[] {
   const headingPath: Array<{ level: number; label: string; anchor: string }> = [];
-  const headingOccurrences = new Map<string, number>();
+  const allocatedHeadingAnchors = new Set<string>();
   const paragraphCounts = new Map<string, number>();
   const segments: ExtractedCourseBasisSegment[] = [];
   let paragraph: string[] = [];
@@ -202,13 +218,18 @@ function segmentMarkdown(text: string): ExtractedCourseBasisSegment[] {
       const textValue = normalizeInlineText(heading[2]);
       while (headingPath.length && headingPath[headingPath.length - 1].level >= level) headingPath.pop();
       const slugValue = slug(textValue);
-      const base = headingPath.map((item) => item.anchor).concat(slugValue).join('/');
-      const occurrence = (headingOccurrences.get(base) ?? 0) + 1;
-      headingOccurrences.set(base, occurrence);
+      const parentAnchor = headingPath.map((item) => item.anchor).join('/');
+      let occurrence = 1;
+      let anchor = slugValue;
+      while (allocatedHeadingAnchors.has(`${parentAnchor}/${anchor}`)) {
+        occurrence += 1;
+        anchor = `${slugValue}-${occurrence}`;
+      }
+      allocatedHeadingAnchors.add(`${parentAnchor}/${anchor}`);
       headingPath.push({
         level,
         label: occurrence === 1 ? textValue : `${textValue} (${occurrence})`,
-        anchor: occurrence === 1 ? slugValue : `${slugValue}-${occurrence}`,
+        anchor,
       });
       continue;
     }

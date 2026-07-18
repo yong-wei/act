@@ -59,6 +59,21 @@ describe('course-basis extraction', () => {
     ]);
   });
 
+  it('does not reuse a generated suffix later claimed by a literal heading', async () => {
+    const result = await extractCourseBasisSource({
+      sourceType: 'MARKDOWN',
+      sourceName: 'suffix-collision.md',
+      mimeType: 'text/markdown',
+      content: '# A\n\nFirst.\n\n# A\n\nSecond.\n\n# A-2\n\nThird.',
+    });
+
+    expect(result.segments.map((segment) => segment.stableAnchor)).toEqual([
+      'h1:a/paragraph:1',
+      'h1:a-2/paragraph:1',
+      'h1:a-2-2/paragraph:1',
+    ]);
+  });
+
   it('extracts searchable PDF text into stable page and paragraph anchors', async () => {
     const pdf = await PDFDocument.create();
     const font = await pdf.embedFont(StandardFonts.Helvetica);

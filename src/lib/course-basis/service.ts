@@ -5,6 +5,7 @@ import { CourseBasisError, type CourseBasisActor, type CourseBasisSource } from 
 import {
   COURSE_BASIS_EXTRACTION_VERSION,
   extractCourseBasisSource,
+  failedCourseBasisExtraction,
   normalizeCourseBasisMimeType,
 } from './extraction';
 
@@ -222,7 +223,13 @@ export async function importCourseBasisVersion(db: CourseBasisDb, input: {
   const documentId = validateId(input.documentId, 'document-id-invalid');
   await assertDocumentAccess(db, actor, documentId);
   const sourceName = requiredText(input.source.sourceName, 'source-name-required', 255);
-  const extracted = await extractCourseBasisSource(input.source);
+  let extracted;
+  try {
+    extracted = await extractCourseBasisSource(input.source);
+  } catch (error) {
+    if (!(error instanceof CourseBasisError) || error.code !== 'pdf-extraction-failed') throw error;
+    extracted = failedCourseBasisExtraction(input.source, error.code);
+  }
   for (let attempt = 0; attempt < 3; attempt += 1) {
     try {
       return await db.$transaction(async (tx) => {
