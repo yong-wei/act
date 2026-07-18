@@ -8,11 +8,7 @@ import {
 import {
   assessmentItemSemanticReviewArtifactsToFiles,
   buildAssessmentItemSemanticReviewArtifacts,
-  buildCheckpointAuthoredSemanticReviewDecisions,
-  buildKaqFoundationSemanticReviewDecisions,
-  mergeAssessmentItemSemanticReviewDecisions,
-  sourceReviewShardReplacementPolicy,
-  type AssessmentItemSemanticReviewDecision,
+  loadAssessmentItemSemanticReviewSource,
 } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
 import { CORE_RESOURCE_PATH_READINESS_REVIEW_BATCH } from '@/lib/resource-node-path-readiness-review-batch';
 
@@ -20,10 +16,6 @@ const OUTPUT_DIR = path.join(process.cwd(), 'course-content/runtime/resource-gov
 const PACKETS_PATH = path.join(OUTPUT_DIR, 'assessment-item-semantic-review-packets.jsonl');
 const SNAPSHOTS_PATH = path.join(OUTPUT_DIR, 'assessment-item-semantic-review-snapshots.jsonl');
 const COVERAGE_PATH = path.join(OUTPUT_DIR, 'assessment-item-semantic-review-coverage.json');
-const REVIEW_DECISION_PATHS = [
-  path.join(OUTPUT_DIR, 'assessment-item-semantic-review-acq-decisions.jsonl'),
-  path.join(OUTPUT_DIR, 'assessment-item-semantic-review-icourse-decisions.jsonl'),
-];
 const BASELINE_MATRIX_PATH = path.join(OUTPUT_DIR, 'learning-goal-resource-baseline-matrix.json');
 const CORE_SEMANTIC_REVIEW_PATH = path.join(OUTPUT_DIR, 'core-registered-knowledge-resource-semantic-review-source.jsonl');
 
@@ -50,31 +42,6 @@ type CoreSemanticReviewRow = {
 
 function uniqueSorted(values: Array<string | null | undefined>): string[] {
   return [...new Set(values.filter((value): value is string => Boolean(value)))].sort();
-}
-
-async function readExistingReviewSnapshots(): Promise<AssessmentItemSemanticReviewDecision[]> {
-  try {
-    const input = await readFile(SNAPSHOTS_PATH, 'utf8');
-    return input
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter(Boolean)
-      .map((line) => JSON.parse(line) as AssessmentItemSemanticReviewDecision);
-  } catch (error) {
-    if (error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT') return [];
-    throw error;
-  }
-}
-
-async function readReviewDecisionFile(filePath: string): Promise<AssessmentItemSemanticReviewDecision[]> {
-  try {
-    const input = await readFile(filePath, 'utf8');
-    return input.split(/\r?\n/).map((line) => line.trim()).filter(Boolean)
-      .map((line) => JSON.parse(line) as AssessmentItemSemanticReviewDecision);
-  } catch (error) {
-    if (error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT') return [];
-    throw error;
-  }
 }
 
 async function loadRegisteredSemanticIds() {
@@ -112,18 +79,7 @@ async function main() {
     icourseObjectiveBankIndexTotal: sources.icourseObjectiveBankIndexTotal,
     kaqReviewedItems: sources.kaqReviewedItems,
   });
-  const sourceReviewDecisions = (await Promise.all(
-    REVIEW_DECISION_PATHS.map(readReviewDecisionFile),
-  )).flat();
-  const reviewedSnapshots = mergeAssessmentItemSemanticReviewDecisions(
-    await readExistingReviewSnapshots(),
-    [
-      ...buildKaqFoundationSemanticReviewDecisions(catalog.items, sources.kaqReviewedItems),
-      ...buildCheckpointAuthoredSemanticReviewDecisions(catalog.items),
-      ...sourceReviewDecisions,
-    ],
-    sourceReviewShardReplacementPolicy,
-  );
+  const reviewedSnapshots = await loadAssessmentItemSemanticReviewSource(catalog.items);
   const registeredSemanticIds = await loadRegisteredSemanticIds();
   const artifacts = buildAssessmentItemSemanticReviewArtifacts({
     items: catalog.items,

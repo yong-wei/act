@@ -11,9 +11,11 @@ import {
   buildAssessmentItemSemanticCoverageReport,
   buildAssessmentItemSemanticReviewArtifacts,
   buildAssessmentItemSemanticReviewPackets,
-  buildCheckpointAuthoredSemanticReviewDecisions,
   buildKaqFoundationSemanticReviewDecisions,
+  assessmentItemSemanticReviewSourceHash,
+  loadAssessmentItemSemanticReviewSource,
   mergeAssessmentItemSemanticReviewDecisions,
+  validateAssessmentItemSemanticReviewSource,
   sourceReviewShardReplacementPolicy,
   type AssessmentItemSemanticReviewDecision,
 } from '../adaptive-assessment-semantic-review';
@@ -40,7 +42,113 @@ function baseDecision(item: AdaptiveAssessmentCatalogItem): AssessmentItemSemant
   };
 }
 
+function reviewSourceFixture() {
+  const catalog = buildAdaptiveAssessmentItemCatalog({
+    presetQuestions: [PRESET_QUESTIONS[0]],
+    checkpointQuestions: [],
+    kaqReviewedItems: [],
+  });
+  const item = {
+    ...catalog.items[0],
+    versionRefs: { resourceRegistryVersion: 'resource-registry.v1' },
+  };
+  const decisionWithoutHash: AssessmentItemSemanticReviewDecision = {
+    ...baseDecision(item),
+    reviewerRole: 'assessment-content-reviewer',
+  };
+  return {
+    item,
+    decision: {
+      ...decisionWithoutHash,
+      reviewSourceHash: assessmentItemSemanticReviewSourceHash(decisionWithoutHash),
+    },
+  };
+}
+
 describe('adaptive assessment semantic review workflow', () => {
+  it('rejects a missing tracked review source', async () => {
+    const { item } = reviewSourceFixture();
+
+    await expect(loadAssessmentItemSemanticReviewSource([item], {
+      sourcePath: 'course-content/runtime/resource-governance/does-not-exist-review-source.jsonl',
+    })).rejects.toThrow('missing-review-source:');
+  });
+
+  it('requires the review source to cover the exact catalog denominator', () => {
+    const { item, decision } = reviewSourceFixture();
+
+    expect(() => validateAssessmentItemSemanticReviewSource([item], []))
+      .toThrow(`missing-review-source-item:${item.catalogItemId}`);
+    expect(() => validateAssessmentItemSemanticReviewSource([item], [decision, decision]))
+      .toThrow(`duplicate-review-source-item:${item.catalogItemId}`);
+    const orphanWithoutHash = { ...decision, catalogItemId: 'orphan:item', reviewSourceHash: undefined };
+    const orphan = {
+      ...orphanWithoutHash,
+      reviewSourceHash: assessmentItemSemanticReviewSourceHash(orphanWithoutHash),
+    };
+    expect(() => validateAssessmentItemSemanticReviewSource([item], [decision, orphan]))
+      .toThrow('orphan-review-source-item:orphan:item');
+
+    const earlierItem = { ...item, catalogItemId: 'a:catalog-item' };
+    const earlierWithoutHash = { ...decision, catalogItemId: earlierItem.catalogItemId, reviewSourceHash: undefined };
+    const earlierDecision = {
+      ...earlierWithoutHash,
+      reviewSourceHash: assessmentItemSemanticReviewSourceHash(earlierWithoutHash),
+    };
+    expect(validateAssessmentItemSemanticReviewSource(
+      [item, earlierItem],
+      [decision, earlierDecision],
+    ).map((sourceDecision) => sourceDecision.catalogItemId)).toEqual([
+      earlierItem.catalogItemId,
+      item.catalogItemId,
+    ]);
+  });
+
+  it('rejects canonical hash tampering and machine suggestions', () => {
+    const { item, decision } = reviewSourceFixture();
+    expect(() => validateAssessmentItemSemanticReviewSource([item], [{
+      ...decision,
+      notes: `${decision.notes} tampered`,
+    }])).toThrow(`invalid-review-source-hash:${item.catalogItemId}`);
+
+    const machineWithoutHash = {
+      ...decision,
+      decisionKind: 'machine-suggestion' as const,
+      reviewSourceHash: undefined,
+    };
+    const machine = {
+      ...machineWithoutHash,
+      reviewSourceHash: assessmentItemSemanticReviewSourceHash(machineWithoutHash),
+    };
+    expect(() => validateAssessmentItemSemanticReviewSource([item], [machine]))
+      .toThrow(`machine-review-source-rejected:${item.catalogItemId}`);
+  });
+
+  it('rejects stale source hashes, metadata versions, and incomplete audit fields', () => {
+    const { item, decision } = reviewSourceFixture();
+    const staleWithoutHash = {
+      ...decision,
+      reviewerRole: undefined,
+      sourceContentHash: 'sha256:stale',
+      metadataVersionRefs: { resourceRegistryVersion: 'resource-registry.v0' },
+      reviewSourceHash: undefined,
+    };
+    const stale = {
+      ...staleWithoutHash,
+      reviewSourceHash: assessmentItemSemanticReviewSourceHash(staleWithoutHash),
+    };
+
+    expect(() => validateAssessmentItemSemanticReviewSource([item], [stale])).toThrow(
+      `missing-review-audit-field:${item.catalogItemId}:reviewerRole`,
+    );
+    expect(() => validateAssessmentItemSemanticReviewSource([item], [stale])).toThrow(
+      `stale-source-content-hash:${item.catalogItemId}`,
+    );
+    expect(() => validateAssessmentItemSemanticReviewSource([item], [stale])).toThrow(
+      `stale-metadata-version-refs:${item.catalogItemId}`,
+    );
+  });
+
   it('generates review packets with suggestions separated from decisions', () => {
     const catalog = buildAdaptiveAssessmentItemCatalog({
       presetQuestions: [PRESET_QUESTIONS[0]],
@@ -737,6 +845,57 @@ describe('adaptive assessment semantic review workflow', () => {
     ]));
   });
 
+  it.each(['blocked', 'rejected', 'deprecated'] as const)(
+    'lets a valid %s disposition override a catalog path-gate candidate',
+    (outcome) => {
+      const { item: fixtureItem, decision } = reviewSourceFixture();
+      const item = {
+        ...fixtureItem,
+        reviewState: 'path-eligible' as const,
+        eligibilityState: 'path-eligible' as const,
+        allowedStages: ['readiness' as const],
+      };
+      const report = buildAssessmentItemSemanticCoverageReport({
+        items: [item],
+        decisions: [{ ...decision, outcome }],
+      });
+
+      expect(report.issues.map((issue) => issue.reason)).not.toContain('invalid-path-eligibility');
+      expect(report.pathEligibleItemCount).toBe(0);
+      expect(report.sourceFamilies[0]).toMatchObject({
+        [`${outcome}Total`]: 1,
+      });
+    },
+  );
+
+  it('keeps a malformed approved decision fail closed at the path gate', () => {
+    const catalog = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [PRESET_QUESTIONS[0]],
+      checkpointQuestions: [],
+      kaqReviewedItems: [],
+    });
+    const item = {
+      ...catalog.items[0],
+      reviewState: 'path-eligible' as const,
+      eligibilityState: 'path-eligible' as const,
+      allowedStages: ['readiness' as const],
+    };
+    const report = buildAssessmentItemSemanticCoverageReport({
+      items: [item],
+      decisions: [{
+        ...baseDecision(item),
+        selectedLearningGoalIds: [],
+      }],
+    });
+
+    expect(report.reviewedItemCount).toBe(0);
+    expect(report.pathEligibleItemCount).toBe(0);
+    expect(report.issues.map((issue) => issue.reason)).toEqual(expect.arrayContaining([
+      'missing-learning-goal-binding',
+      'invalid-path-eligibility',
+    ]));
+  });
+
   it('inherits source-family blocked totals from catalog summaries', () => {
     const catalog = buildAdaptiveAssessmentItemCatalog({
       presetQuestions: [],
@@ -774,7 +933,7 @@ describe('adaptive assessment semantic review workflow', () => {
 
     expect(reviewedSnapshots).toHaveLength(50);
     expect(artifacts.coverage).toMatchObject({
-      itemCount: 530,
+      itemCount: 576,
       reviewedItemCount: 0,
       pathEligibleItemCount: 0,
       staleReviewCount: 0,
@@ -800,8 +959,8 @@ describe('adaptive assessment semantic review workflow', () => {
       unreviewedTotal: 50,
     });
     expect(artifacts.coverage.sourceFamilies.find((family) => family.family === 'checkpoint-authored-question')).toMatchObject({
-      itemTotal: 87,
-      unreviewedTotal: 87,
+      itemTotal: 133,
+      unreviewedTotal: 133,
     });
     expect(artifacts.coverage.issues.map((issue) => issue.reason)).toEqual(expect.arrayContaining([
       'invalid-remediation-ref:knowledge-card:Bode图_1_1',
@@ -812,7 +971,7 @@ describe('adaptive assessment semantic review workflow', () => {
     ]));
   });
 
-  it('counts authored checkpoint review decisions when ResourceNode remediation refs are known', async () => {
+  it('counts only tracked authored review decisions when ResourceNode remediation refs are known', async () => {
     const sources = await loadAdaptiveAssessmentCatalogSources();
     const catalog = buildAdaptiveAssessmentItemCatalog({
       presetQuestions: PRESET_QUESTIONS,
@@ -821,10 +980,7 @@ describe('adaptive assessment semantic review workflow', () => {
       icourseObjectiveBankIndexTotal: sources.icourseObjectiveBankIndexTotal,
       kaqReviewedItems: sources.kaqReviewedItems,
     });
-    const reviewedSnapshots = [
-      ...buildKaqFoundationSemanticReviewDecisions(catalog.items, sources.kaqReviewedItems),
-      ...buildCheckpointAuthoredSemanticReviewDecisions(catalog.items),
-    ];
+    const reviewedSnapshots = await loadAssessmentItemSemanticReviewSource(catalog.items);
     const remediationRefs = reviewedSnapshots.flatMap((decision) => decision.remediationRefs);
     const artifacts = buildAssessmentItemSemanticReviewArtifacts({
       items: catalog.items,
@@ -833,17 +989,17 @@ describe('adaptive assessment semantic review workflow', () => {
       knownRemediationResourceNodeIds: remediationRefs,
     });
 
-    expect(reviewedSnapshots).toHaveLength(137);
+    expect(reviewedSnapshots).toHaveLength(576);
     expect(reviewedSnapshots.every((decision) => decision.notes?.trim())).toBe(true);
     expect(artifacts.packets
       .filter((packet) => packet.reviewDecision?.outcome === 'approved')
       .every((packet) => packet.reviewDecision?.notes?.trim())).toBe(true);
-    expect(artifacts.coverage.reviewedItemCount).toBe(137);
-    expect(artifacts.coverage.pathEligibleItemCount).toBe(137);
+    expect(artifacts.coverage.reviewedItemCount).toBe(135);
+    expect(artifacts.coverage.pathEligibleItemCount).toBe(135);
     expect(artifacts.coverage.sourceFamilies.find((family) => family.family === 'checkpoint-authored-question')).toMatchObject({
-      itemTotal: 87,
-      reviewedTotal: 87,
-      pathEligibleTotal: 87,
+      itemTotal: 133,
+      reviewedTotal: 133,
+      pathEligibleTotal: 133,
     });
   });
 });
