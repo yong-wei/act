@@ -17,6 +17,7 @@ const PACKETS_PATH = path.join(OUTPUT_DIR, 'assessment-item-semantic-review-pack
 const SNAPSHOTS_PATH = path.join(OUTPUT_DIR, 'assessment-item-semantic-review-snapshots.jsonl');
 const COVERAGE_PATH = path.join(OUTPUT_DIR, 'assessment-item-semantic-review-coverage.json');
 const BASELINE_MATRIX_PATH = path.join(OUTPUT_DIR, 'learning-goal-resource-baseline-matrix.json');
+const CORE_SEMANTIC_REVIEW_PATH = path.join(OUTPUT_DIR, 'core-registered-knowledge-resource-semantic-review-source.jsonl');
 
 type LearningGoalResourceBaselineMatrix = {
   batchLearningGoalIds?: string[];
@@ -34,12 +35,20 @@ type LearningGoalResourceBaselineMatrix = {
   }>;
 };
 
+type CoreSemanticReviewRow = {
+  resourceId?: string;
+  learningGoalIds?: string[];
+};
+
 function uniqueSorted(values: Array<string | null | undefined>): string[] {
   return [...new Set(values.filter((value): value is string => Boolean(value)))].sort();
 }
 
 async function loadRegisteredSemanticIds() {
   const matrix = JSON.parse(await readFile(BASELINE_MATRIX_PATH, 'utf8')) as LearningGoalResourceBaselineMatrix;
+  const coreReviewRows = (await readFile(CORE_SEMANTIC_REVIEW_PATH, 'utf8'))
+    .split(/\r?\n/).map((line) => line.trim()).filter(Boolean)
+    .map((line) => JSON.parse(line) as CoreSemanticReviewRow);
   const rows = matrix.rows ?? [];
   return {
     learningGoalIds: uniqueSorted([
@@ -57,6 +66,7 @@ async function loadRegisteredSemanticIds() {
         Object.values(row.categories ?? {}).flatMap((category) => category.pathEligibleResourceIds ?? [])
       ),
       ...CORE_RESOURCE_PATH_READINESS_REVIEW_BATCH.reviewedSourceRefs.map((ref) => ref.split('|')[0]),
+      ...coreReviewRows.map((row) => row.resourceId),
     ]),
   };
 }
@@ -92,6 +102,9 @@ async function main() {
   console.log(JSON.stringify({
     itemCount: artifacts.coverage.itemCount,
     reviewedItemCount: artifacts.coverage.reviewedItemCount,
+    reviewedDispositionCount: artifacts.coverage.reviewedDispositionCount,
+    reviewedLimitationCount: artifacts.coverage.reviewedLimitationCount,
+    unreviewedItemCount: artifacts.coverage.unreviewedItemCount,
     pathEligibleItemCount: artifacts.coverage.pathEligibleItemCount,
     staleReviewCount: artifacts.coverage.staleReviewCount,
     sourceFamilies: artifacts.coverage.sourceFamilies.map((family) => ({
