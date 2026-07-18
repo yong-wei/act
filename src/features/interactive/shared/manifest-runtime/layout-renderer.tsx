@@ -727,7 +727,7 @@ export function renderGeneratedSlideManifestStep<TExtra = undefined>({
   });
 }
 
-function projectGeneratedRuntimeManifest(
+export function projectGeneratedRuntimeManifest(
   adapted: ReturnType<typeof adaptGeneratedSlideManifestToInteractiveRuntime>,
   projection: GeneratedSlideProjection,
 ): InteractiveRuntimeManifest {
@@ -747,13 +747,25 @@ function projectGeneratedRuntimeManifest(
       const activityCards = runtimeStep.interactionSpec.activityCards
         ?.filter((card) => visibleModuleIds.has(card.id))
         .map((card) => projection === 'student' ? stripTeacherReferenceData(card) : card);
+      const evidencePaths = sourceStep.modules
+        .filter((module) => visibleModuleIds.has(module.id) && module.canonicalClass === GENERATED_ACTIVITY_CLASS)
+        .flatMap((module) => module.evidencePath ? [module.evidencePath] : []);
+      const hasVisibleActivity = (activityCards?.length ?? 0) > 0;
       return {
         ...runtimeStep,
         modules: runtimeStep.modules.filter((module) => visibleModuleIds.has(module.id)),
+        evidenceSequence: evidencePaths,
         interactionSpec: {
           ...runtimeStep.interactionSpec,
-          ...(activityCards ? { activityCards } : {}),
+          interactionKind: hasVisibleActivity ? runtimeStep.interactionSpec.interactionKind : 'display',
+          studentTask: activityCards?.[0]?.prompt,
+          activityCards: activityCards ?? [],
+          submitFields: evidencePaths,
           ...(projection === 'student' ? { answerReveal: undefined } : {}),
+        },
+        telemetrySpec: {
+          ...runtimeStep.telemetrySpec,
+          summaryFields: evidencePaths,
         },
       };
     }),

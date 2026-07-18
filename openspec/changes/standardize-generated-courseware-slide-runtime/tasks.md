@@ -17,4 +17,4 @@
 - [x] 3.3 Add content-hash invalidation and machine-readable stage/step/module issue locations.
 - [x] 3.4 Run schema, registry, renderer, validator, legacy compatibility, typecheck, and strict OpenSpec tests; record AC evidence.
 
-  Evidence: related Vitest 45/45; Playwright 20/20; typecheck, target ESLint, strict OpenSpec validation, and `git diff --check` passed; independent Sol Medium final review approved with no P0/P1/P2 findings.
+  Evidence: related Vitest 46/46; Playwright 20/20; typecheck, target ESLint, strict OpenSpec validation, and `git diff --check` passed; independent Sol Medium final review approved with no P0/P1/P2 findings.

@@ -6,6 +6,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   renderGeneratedSlideManifestStep,
   renderInteractiveLessonLayout,
+  projectGeneratedRuntimeManifest,
   type GeneratedSlideActivityRendererProps,
   type GeneratedSlideStep,
   type InteractiveModuleRegistry,
@@ -381,6 +382,26 @@ describe('generated slide layout renderer', () => {
       expect(call?.[0].step.telemetrySpec.summaryFields).toEqual([generatedModule.evidencePath]);
       expect(html.match(new RegExp(`data-rendered-card="${generatedModule.id}"`, 'g'))).toHaveLength(1);
     }
+  });
+
+  it('removes hidden activity submission metadata from the student projection', () => {
+    const generatedManifest = makeGeneratedManifest();
+    const adapted = adaptGeneratedSlideManifestToInteractiveRuntime(generatedManifest);
+    const generatedStep = adapted.stepMappings[0].generatedStep;
+    const activity = generatedStep.modules.find((module) => module.canonicalClass === 'activity.panel');
+    if (!activity) throw new Error('Missing activity fixture.');
+    activity.roleMetadata.studentVisible = false;
+    const projected = projectGeneratedRuntimeManifest(adapted, 'student').steps
+      .find((candidate) => candidate.id === generatedStep.id);
+
+    expect(projected?.evidenceSequence).toEqual([]);
+    expect(projected?.interactionSpec).toEqual(expect.objectContaining({
+      interactionKind: 'display',
+      studentTask: undefined,
+      activityCards: [],
+      submitFields: [],
+    }));
+    expect(projected?.telemetrySpec.summaryFields).toEqual([]);
   });
 
   it('keeps student-invisible modules and their teacher reference data out of the student DOM', () => {
