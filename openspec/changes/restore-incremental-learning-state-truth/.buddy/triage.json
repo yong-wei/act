@@ -1,6 +1,6 @@
 {
   "subject": {
-    "issue": null,
+    "issue": 934,
     "change_id": "restore-incremental-learning-state-truth"
   },
   "truth": {
@@ -24,8 +24,8 @@
     "reason": "A single coordinated high-risk expand-migrate-contract change can add journaled processing, dual generations, deterministic scoped selection, frozen repair inputs, atomic activation, and synchronized rollback before contracting any legacy path."
   },
   "binding": {
-    "issue_updated_at": null,
-    "base_sha": "0a65cc1d9765c1c2064f56d722f540d9661fe96b",
-    "generated_at": "2026-07-18T12:22:12Z"
+    "issue_updated_at": "2026-07-18T13:04:55Z",
+    "base_sha": "40ee52d4deab5b54f141df7fcd160c0ff89c7e4b",
+    "generated_at": "2026-07-18T13:04:55Z"
   }
 }
