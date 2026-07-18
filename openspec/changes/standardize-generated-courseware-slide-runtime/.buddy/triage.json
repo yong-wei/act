@@ -1,0 +1,14 @@
+{
+  "subject": { "issue": null, "change_id": "standardize-generated-courseware-slide-runtime" },
+  "truth": {
+    "problem_reproduced": "yes",
+    "evidence": [
+      "The current interactive manifest runtime does not define generated-courseware fixed 16:9 layouts, named occupancy slots, registered size variants, or text budgets.",
+      "Existing module registry and canonical response contracts provide a reusable allowlist foundation but do not prevent generated layout overflow by themselves.",
+      "The interview requires deterministic static and pinned-browser validation while retaining compatibility with preset interactive lessons."
+    ]
+  },
+  "duplication": { "existing_implementation": "partial", "conflicting_specs": [], "active_changes": [], "superseded_by": null },
+  "readiness": { "information": "sufficient", "disposition": "executable", "reason": "Hierarchy, count, timing, layout, slots, sizes, text fitting, allowlist, validators, renderer behavior, and compatibility boundary are specified." },
+  "binding": { "issue_updated_at": null, "base_sha": "c18e40372e0f444ec3ad08a5385f0ad854825d23", "generated_at": "2026-07-18T15:57:40Z" }
+}

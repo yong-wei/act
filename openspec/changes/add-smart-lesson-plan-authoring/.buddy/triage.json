@@ -1,0 +1,14 @@
+{
+  "subject": { "issue": null, "change_id": "add-smart-lesson-plan-authoring" },
+  "truth": {
+    "problem_reproduced": "yes",
+    "evidence": [
+      "The platform has diagnosis-driven preparation packs but no complete source-grounded BOPPPS lesson-plan draft workflow for another teacher's selected course basis.",
+      "Provider Registry, Source Packs, aggregate diagnosis, BullMQ, and persistence patterns exist but are not composed into durable single-lesson plan generation and approval.",
+      "The interview fixes required goals, timing, optional outline pause, progressive generation, advisory AI review, and immutable 教案第N版 semantics."
+    ]
+  },
+  "duplication": { "existing_implementation": "partial", "conflicting_specs": [], "active_changes": [], "superseded_by": null },
+  "readiness": { "information": "sufficient", "disposition": "executable", "reason": "The prerequisite course-basis capability, setup contract, privacy projection, job lifecycle, plan schema, approval, and version semantics are explicit." },
+  "binding": { "issue_updated_at": null, "base_sha": "c18e40372e0f444ec3ad08a5385f0ad854825d23", "generated_at": "2026-07-18T15:57:40Z" }
+}

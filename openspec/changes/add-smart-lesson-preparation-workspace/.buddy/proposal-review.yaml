@@ -1,0 +1,11 @@
+split_status: series-required
+vertical_slice_status: valid
+blocking_edges_status: valid
+wide_refactor_strategy: none
+children:
+  - add-teacher-course-basis-management
+  - add-smart-lesson-plan-authoring
+  - standardize-generated-courseware-slide-runtime
+  - add-smart-courseware-generation-editor
+  - publish-smart-courseware-to-classroom
+  - export-smart-courseware-pdf
