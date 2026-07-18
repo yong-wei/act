@@ -327,6 +327,7 @@ describe('knowledge graph viewport fit', () => {
     for (const renderer of ['2d', '3d']) {
       const chapterCandidate = getKnowledgeNodeLabelPresentation({
         labelMode: 'focus', nodeId: 'chapter-node:root', globalScale: scale,
+        isRootBubble: true,
       });
       const deferred = getKnowledgeNodeLabelPresentation({
         labelMode: 'all', nodeId: `ordinary-${renderer}`, globalScale: scale,
@@ -399,6 +400,30 @@ describe('knowledge graph viewport fit', () => {
       .map((placement) => `${placement.offsetX}:${placement.offsetY}`)).size).toBe(2);
   });
 
+  it('uses packing state rather than chapter ids when placing root labels', () => {
+    const node = {
+      id: 'chapter-node:shared', x: 160, y: 135, bodyRadius: 12,
+      labelBounds: getKnowledgeNodeLabelBounds({ name: '同一章节领域', bodyRadius: 12 }),
+    };
+    const domainPlacement = placeKnowledgeGraphLabels({
+      nodes: [node], width: 320, height: 270, padding: 16,
+      scale: 1, labelMode: 'all',
+    }).get(node.id)!;
+    const rootPlacement = placeKnowledgeGraphLabels({
+      nodes: [{ ...node, isRootBubble: true }], width: 320, height: 270, padding: 16,
+      scale: 0.5, labelMode: 'focus',
+    }).get(node.id)!;
+
+    expect(domainPlacement).toMatchObject({
+      visible: true, placement: 'external', complete: false,
+    });
+    expect(domainPlacement.offsetY).not.toBe(0);
+    expect(rootPlacement).toMatchObject({
+      visible: true, placement: 'inside', complete: true,
+      fontSize: 12, offsetX: 0, offsetY: 0,
+    });
+  });
+
   it.each([
     ['top-left', 16, 16],
     ['top-right', 304, 16],
@@ -441,6 +466,7 @@ describe('knowledge graph viewport fit', () => {
         nodes: positions.map((node) => ({
           ...node,
           bodyRadius: 32,
+          isRootBubble: true,
           labelBounds: getKnowledgeNodeLabelBounds({ name: `${node.id} WWWMMMM`, bodyRadius: 32 }),
         })),
       });
@@ -475,6 +501,7 @@ describe('knowledge graph viewport fit', () => {
         x: node.x,
         y: node.y,
         bodyRadius: node.__knowledgeRootPacking.labelBounds.halfHeight,
+        isRootBubble: true,
         labelBounds: node.__knowledgeRootPacking.labelBounds,
       })),
     });

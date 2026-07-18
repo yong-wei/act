@@ -9,6 +9,7 @@ describe('shouldRenderKnowledgeNodeLabel', () => {
         labelMode: 'focus',
         nodeId: 'chapter-node:时域分析',
         globalScale: 1,
+        isRootBubble: true,
       })
     ).toBe(true);
 
@@ -84,12 +85,13 @@ describe('shouldRenderKnowledgeNodeLabel', () => {
     expect(selected.fontSize).toBe(12);
   });
 
-  it('keeps root names complete inside at every zoom without changing ordinary nodes', () => {
+  it('uses explicit root packing state instead of chapter ids for inside labels', () => {
     const root = getKnowledgeNodeLabelPresentation({
       labelMode: 'focus', nodeId: 'chapter-node:系统模型', globalScale: 0.01,
+      isRootBubble: true,
     });
-    const ordinary = getKnowledgeNodeLabelPresentation({
-      labelMode: 'focus', nodeId: 'system-model', globalScale: 0.01,
+    const domainChapter = getKnowledgeNodeLabelPresentation({
+      labelMode: 'all', nodeId: 'chapter-node:系统模型', globalScale: 1,
     });
 
     expect(root).toMatchObject({
@@ -99,19 +101,22 @@ describe('shouldRenderKnowledgeNodeLabel', () => {
       fontSize: 12,
     });
     expect(root.scale).toBeCloseTo(12 / 0.14);
-    expect(ordinary).toMatchObject({
-      visible: false,
+    expect(domainChapter).toMatchObject({
+      visible: true,
       placement: 'external',
       complete: false,
+      fontSize: 13,
     });
   });
 
   it('keeps the 2D root label screen-readable across zoom levels', () => {
     const zoomedOut = getKnowledgeNodeLabelPresentation({
       labelMode: 'focus', nodeId: 'chapter-node:系统模型', globalScale: 0.5,
+      isRootBubble: true,
     });
     const zoomedIn = getKnowledgeNodeLabelPresentation({
       labelMode: 'focus', nodeId: 'chapter-node:系统模型', globalScale: 2,
+      isRootBubble: true,
     });
 
     expect(zoomedOut.fontSize).toBe(12);

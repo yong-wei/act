@@ -175,7 +175,8 @@ type RuntimeKnowledgeGraphNode = KnowledgeGraphPositionedNode & {
   vz?: number;
 };
 
-function getKnowledgeGraphNodeVisualDataSignature(node: any): string {
+export function getKnowledgeGraphNodeVisualDataSignature(node: any): string {
+  const rootPacking = node.__knowledgeRootPacking;
   return JSON.stringify([
     node.id,
     node.name,
@@ -186,6 +187,10 @@ function getKnowledgeGraphNodeVisualDataSignature(node: any): string {
     node.graphImportanceScore,
     node.importance,
     node.metadata,
+    rootPacking ? {
+      collisionRadius: rootPacking.collisionRadius,
+      labelBounds: rootPacking.labelBounds,
+    } : null,
   ]);
 }
 
@@ -1068,6 +1073,7 @@ export function KnowledgeGraphCanvas({
         ...projection,
         bodyRadius: node.__knowledgeRootPacking?.collisionRadius
           ?? getKnowledgeNodeMaximumPresentationRadius(node),
+        isRootBubble: Boolean(node.__knowledgeRootPacking),
         importance: node.importance,
         labelBounds: node.__knowledgeRootPacking?.labelBounds ?? getKnowledgeNodeLabelBounds({
           name: node.name, bodyRadius: getKnowledgeNodeMaximumPresentationRadius(node),
@@ -1693,6 +1699,7 @@ export function KnowledgeGraphCanvas({
       x: node.x ?? 0,
       y: node.y ?? 0,
       bodyRadius: getKnowledgeNodeMaximumPresentationRadius(node),
+      isRootBubble: Boolean(node.__knowledgeRootPacking),
       importance: node.importance,
       labelBounds: getKnowledgeNodeLabelBounds({
         name: node.name,

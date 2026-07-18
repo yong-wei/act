@@ -124,6 +124,7 @@ export interface KnowledgeViewportNode {
   bodyRadius: number;
   labelBounds: KnowledgeNodeLabelBounds;
   isKeyNode?: boolean;
+  isRootBubble?: boolean;
   importance?: number;
   screenX?: number;
   screenY?: number;
@@ -210,7 +211,7 @@ export function placeKnowledgeGraphLabels(input: Pick<KnowledgeViewportFitInput,
   const priority = (node: KnowledgeViewportNode) => {
     if (node.id === input.selectedNodeId) return 0;
     if (node.id === input.hoveredNodeId) return 1;
-    if (node.id.startsWith('chapter-node:')) return 2;
+    if (node.isRootBubble) return 2;
     if ((node.importance ?? 0) >= 4 || node.isKeyNode) return 3;
     return 4;
   };
@@ -242,6 +243,7 @@ export function placeKnowledgeGraphLabels(input: Pick<KnowledgeViewportFitInput,
       hoveredNodeId: input.hoveredNodeId,
       globalScale: nodeScale(node),
       isKeyNode: (node.importance ?? 0) >= 4 || node.isKeyNode,
+      isRootBubble: node.isRootBubble,
     });
     if (!label.visible) {
       result.set(node.id, { ...label, offsetX: 0, offsetY: 0, projectedScale: nodeScale(node) });

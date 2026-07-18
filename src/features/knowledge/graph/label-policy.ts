@@ -1,4 +1,3 @@
-import { isChapterNodeId } from './filter-utils';
 import { KNOWLEDGE_NODE_LABEL_POLICY } from './node-label-layout';
 import { KNOWLEDGE_ROOT_LABEL_POLICY } from './node-label-layout';
 
@@ -13,6 +12,7 @@ interface KnowledgeGraphLabelPolicyInput {
   hoveredNodeId?: string | null;
   globalScale?: number;
   isKeyNode?: boolean;
+  isRootBubble?: boolean;
 }
 
 export interface KnowledgeGraphLabelPresentation {
@@ -28,8 +28,7 @@ export function getKnowledgeNodeLabelPresentation(
   input: KnowledgeGraphLabelPolicyInput
 ): KnowledgeGraphLabelPresentation {
   const selected = Boolean(input.nodeId) && input.nodeId === input.selectedNodeId;
-  const isRoot = Boolean(input.nodeId) && isChapterNodeId(input.nodeId!);
-  if (isRoot) {
+  if (input.isRootBubble) {
     const graphScale = typeof input.globalScale === 'number' && input.globalScale > 0
       ? input.globalScale
       : 1;
@@ -89,8 +88,9 @@ export function shouldRenderKnowledgeNodeLabel({
   hoveredNodeId,
   globalScale,
   isKeyNode,
+  isRootBubble,
 }: KnowledgeGraphLabelPolicyInput): boolean {
   return getKnowledgeNodeLabelPresentation({
-    labelMode, nodeId, selectedNodeId, hoveredNodeId, globalScale, isKeyNode,
+    labelMode, nodeId, selectedNodeId, hoveredNodeId, globalScale, isKeyNode, isRootBubble,
   }).visible;
 }

@@ -73,7 +73,10 @@ import {
   KnowledgeGraph2D,
   KNOWLEDGE_GRAPH_2D_LIBRARY_DEFAULT_MIN_ZOOM,
 } from '../graph/knowledge-graph-2d';
-import { KnowledgeGraphCanvas } from '../graph/knowledge-graph-canvas';
+import {
+  getKnowledgeGraphNodeVisualDataSignature,
+  KnowledgeGraphCanvas,
+} from '../graph/knowledge-graph-canvas';
 import { getEmptyKnowledgeGraphLayoutState } from '../graph/layout-state';
 import {
   getKnowledgeNodeLabelBounds,
@@ -198,6 +201,7 @@ it('clamps a genuinely sub-floor dense root fit to the shared projection floor',
       x: node.x ?? 0,
       y: node.y ?? 0,
       bodyRadius: getKnowledgeNodeMaximumPresentationRadius(node),
+      isRootBubble: Boolean(node.__knowledgeRootPacking),
       importance: node.importance,
       labelBounds: getKnowledgeNodeLabelBounds({
         name: node.name,
@@ -235,6 +239,7 @@ it.each([
       x: node.x ?? 0,
       y: node.y ?? 0,
       bodyRadius: getKnowledgeNodeMaximumPresentationRadius(node),
+      isRootBubble: Boolean(node.__knowledgeRootPacking),
       importance: node.importance,
       labelBounds: getKnowledgeNodeLabelBounds({
         name: node.name,
@@ -883,6 +888,38 @@ it('3D updates same-id node data in place and disposes replaced resources exactl
   expect(oldMaterialDispose).toHaveBeenCalledTimes(1);
   expect(sameObject.userData.knowledgeLabelSprite).toBeUndefined();
   await act(async () => root.unmount());
+});
+
+it('3D visual signature distinguishes same-id root packing state and collision geometry', () => {
+  const domainNode = { ...rootNodes[0] };
+  const rootNode = {
+    ...domainNode,
+    __knowledgeRootPacking: {
+      collisionRadius: 32,
+      labelBounds: { halfWidth: 24, halfHeight: 12 },
+    },
+  };
+  const resizedRootNode = {
+    ...rootNode,
+    __knowledgeRootPacking: {
+      ...rootNode.__knowledgeRootPacking,
+      collisionRadius: 36,
+    },
+  };
+  const relabeledRootNode = {
+    ...rootNode,
+    __knowledgeRootPacking: {
+      ...rootNode.__knowledgeRootPacking,
+      labelBounds: { halfWidth: 28, halfHeight: 12 },
+    },
+  };
+
+  expect(getKnowledgeGraphNodeVisualDataSignature(rootNode))
+    .not.toBe(getKnowledgeGraphNodeVisualDataSignature(domainNode));
+  expect(getKnowledgeGraphNodeVisualDataSignature(resizedRootNode))
+    .not.toBe(getKnowledgeGraphNodeVisualDataSignature(rootNode));
+  expect(getKnowledgeGraphNodeVisualDataSignature(relabeledRootNode))
+    .not.toBe(getKnowledgeGraphNodeVisualDataSignature(rootNode));
 });
 
 it('3D hover changes update retained objects without recreating or disposing node resources', async () => {
