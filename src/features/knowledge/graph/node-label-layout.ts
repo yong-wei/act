@@ -27,6 +27,9 @@ export const KNOWLEDGE_ROOT_LABEL_POLICY = {
   minimumBubbleRadius: 28,
 } as const;
 
+export const KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE =
+  KNOWLEDGE_ROOT_LABEL_POLICY.minimumReadableFontSize / KNOWLEDGE_ROOT_LABEL_POLICY.fontSize;
+
 export const KNOWLEDGE_GRAPH_3D_SCREEN_SPACE_CONTRACT = {
   minimumFontSize: KNOWLEDGE_NODE_LABEL_POLICY.minimumReadableFontSize,
   maximumFontSize: 16,

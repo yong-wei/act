@@ -89,6 +89,7 @@ import {
 import { buildKnowledgeTeachingOrderLayout } from './teaching-order-layout';
 import {
   KNOWLEDGE_NODE_LABEL_POLICY,
+  KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE,
   getKnowledgeGraph3DArrowLength,
   getKnowledgeGraph3DNodePresentationRadius,
   layoutKnowledgeNodeLabel,
@@ -96,7 +97,11 @@ import {
   getKnowledgeNodeLabelBounds,
 } from './node-label-layout';
 import {
+  applyKnowledgeGraph3DControlsPolicy,
+  normalizeKnowledgeRootCameraPose,
+  getKnowledgeGraph3DControlsPolicy,
   getKnowledgeGraphViewportFit,
+  getKnowledgeRootProjectionSafeCameraDistance,
   getKnowledgeGraphViewportSafeInsets,
   getKnowledgeProjectionScale,
   getPerspectiveCameraFitDistance,
@@ -308,6 +313,7 @@ export function KnowledgeGraphCanvas({
   collapsingNodeId = null,
   onCollapsePresentationComplete,
 }: KnowledgeGraphCanvasProps) {
+  const compactRootView = isCompactKnowledgeRootSet(nodes);
   const fgRef = useRef<any>(null);
   const nodeObjectsByIdRef = useRef(new Map<string, {
     node: any;
@@ -1148,16 +1154,47 @@ export function KnowledgeGraphCanvas({
     posePersistenceEnabledScopesRef.current.add(autoFitScopeKey);
     const camera = fgRef.current.camera?.() as THREE.PerspectiveCamera | undefined;
     camera?.up.set(restoredCameraPose.up.x, restoredCameraPose.up.y, restoredCameraPose.up.z);
-    fgRef.current.cameraPosition(restoredCameraPose.position, restoredCameraPose.target, 0);
+    const safePose = compactRootView
+      ? normalizeKnowledgeRootCameraPose(restoredCameraPose, getKnowledgeRootProjectionSafeCameraDistance({
+        viewportHeight: height ?? 600,
+        fovDegrees: camera?.fov,
+        zoom: camera?.zoom,
+      }))
+      : restoredCameraPose;
+    fgRef.current.cameraPosition(safePose.position, safePose.target, 0);
     scheduleProjectionRefresh();
-  }, [autoFitScopeKey, fitViewRequest.id, restoredCameraPose, scheduleProjectionRefresh]);
+  }, [autoFitScopeKey, compactRootView, fitViewRequest.id, height, restoredCameraPose, scheduleProjectionRefresh]);
 
   useEffect(() => {
-    const controls = fgRef.current?.controls?.();
+    const controls = fgRef.current?.controls?.() as {
+      addEventListener?: (event: string, listener: () => void) => void;
+      removeEventListener?: (event: string, listener: () => void) => void;
+      enablePan?: boolean;
+      enableRotate?: boolean;
+      enableZoom?: boolean;
+      maxDistance?: number;
+      screenSpacePanning?: boolean;
+      mouseButtons?: { RIGHT?: number };
+    } | undefined;
     if (!controls?.addEventListener) return;
+    const previous = {
+      enablePan: controls.enablePan,
+      enableRotate: controls.enableRotate,
+      enableZoom: controls.enableZoom,
+      maxDistance: controls.maxDistance,
+      screenSpacePanning: controls.screenSpacePanning,
+      rightMouseButton: controls.mouseButtons?.RIGHT,
+    };
     controls.enablePan = true;
     controls.screenSpacePanning = true;
     if (controls.mouseButtons) controls.mouseButtons.RIGHT = THREE.MOUSE.PAN;
+    const rootControlsPolicy = getKnowledgeGraph3DControlsPolicy({
+      compactRootView,
+      viewportHeight: height ?? 600,
+      fovDegrees: (fgRef.current?.camera?.() as THREE.PerspectiveCamera | undefined)?.fov,
+      zoom: (fgRef.current?.camera?.() as THREE.PerspectiveCamera | undefined)?.zoom,
+    });
+    const restoreRootControls = applyKnowledgeGraph3DControlsPolicy(controls, rootControlsPolicy);
     const handleControlsChange = () => {
       scheduleProjectionRefresh();
       scheduleCameraPoseReport(autoFitScopeKey);
@@ -1165,9 +1202,16 @@ export function KnowledgeGraphCanvas({
     controls.addEventListener('change', handleControlsChange);
     return () => {
       controls.removeEventListener?.('change', handleControlsChange);
+      restoreRootControls();
+      controls.enablePan = previous.enablePan;
+      controls.enableRotate = previous.enableRotate;
+      controls.enableZoom = previous.enableZoom;
+      controls.maxDistance = previous.maxDistance;
+      controls.screenSpacePanning = previous.screenSpacePanning;
+      if (controls.mouseButtons) controls.mouseButtons.RIGHT = previous.rightMouseButton;
       flushCameraPose(autoFitScopeKey);
     };
-  }, [autoFitScopeKey, flushCameraPose, scheduleCameraPoseReport, scheduleProjectionRefresh]);
+  }, [autoFitScopeKey, compactRootView, flushCameraPose, height, scheduleCameraPoseReport, scheduleProjectionRefresh]);
 
   useEffect(() => {
     const canvas = fgRef.current?.renderer?.()?.domElement as HTMLCanvasElement | undefined;
@@ -1664,9 +1708,12 @@ export function KnowledgeGraphCanvas({
       selectedNodeId: selectedNode?.id,
       hoveredNodeId: hoveredNode?.id,
     });
+    const effectiveFitScale = compactRootView
+      ? Math.max(fit.scale, KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE)
+      : fit.scale;
     const distance = getPerspectiveCameraFitDistance({
       viewportHeight: height ?? 600,
-      pixelsPerWorldUnit: fit.scale,
+      pixelsPerWorldUnit: effectiveFitScale,
       fovDegrees: fov,
       zoom,
     });
@@ -1676,7 +1723,7 @@ export function KnowledgeGraphCanvas({
         fitTimerRef.current = null;
         return;
       }
-      setViewportScale(fit.scale);
+      setViewportScale(effectiveFitScale);
       if (autoFitScopeKey) posePersistenceEnabledScopesRef.current.add(autoFitScopeKey);
       fgRef.current?.cameraPosition?.(
         { x: fit.centerX, y: fit.cameraCenterY, z: distance },
@@ -1712,7 +1759,7 @@ export function KnowledgeGraphCanvas({
         projectionSettledTimerRef.current = null;
       }
     };
-  }, [autoFitConsumed, autoFitReady, autoFitScopeKey, fitViewRequest, flushCameraPose, graphData.nodes, height, hoveredNode?.id, labelMode, layoutSettledRevision, layoutSignature, nodes, onAutoFitConsumed, relayoutVersion, scheduleProjectionRefresh, selectedNode?.id, viewportRevision, width]);
+  }, [autoFitConsumed, autoFitReady, autoFitScopeKey, compactRootView, fitViewRequest, flushCameraPose, graphData.nodes, height, hoveredNode?.id, labelMode, layoutSettledRevision, layoutSignature, nodes, onAutoFitConsumed, relayoutVersion, scheduleProjectionRefresh, selectedNode?.id, viewportRevision, width]);
 
   useEffect(() => {
     const cameraTransition = cameraTransitionRef.current;

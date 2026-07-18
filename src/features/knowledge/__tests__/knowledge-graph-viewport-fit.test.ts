@@ -1,19 +1,110 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 
-import { getKnowledgeNodeLabelBounds } from '../graph/node-label-layout';
+import {
+  getKnowledgeNodeLabelBounds,
+  KNOWLEDGE_ROOT_LABEL_POLICY,
+  KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE,
+} from '../graph/node-label-layout';
 import { getKnowledgeNodeLabelPresentation } from '../graph/label-policy';
 import {
+  applyKnowledgeGraph3DControlsPolicy,
+  normalizeKnowledgeRootCameraPose,
+  getKnowledgeGraph3DControlsPolicy,
   getKnowledgeGraphViewportFit,
   getKnowledgeGraphViewportSafeInsets,
   getKnowledgeProjectionScale,
   getPerspectiveCameraFitDistance,
+  getKnowledgeRootProjectionSafeCameraDistance,
   placeKnowledgeGraphLabels,
   projectKnowledgeWorldPoint,
 } from '../graph/viewport-fit';
 import { packKnowledgeGraphRootNodes } from '../graph/root-layout';
 
 describe('knowledge graph viewport fit', () => {
+  it('derives the shared root projection floor from the readable and natural font sizes', () => {
+    expect(KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE).toBe(
+      KNOWLEDGE_ROOT_LABEL_POLICY.minimumReadableFontSize / KNOWLEDGE_ROOT_LABEL_POLICY.fontSize
+    );
+    expect(getKnowledgeRootProjectionSafeCameraDistance({
+      viewportHeight: 600, fovDegrees: 50, zoom: 1,
+    })).toBe(getPerspectiveCameraFitDistance({
+      viewportHeight: 600,
+      pixelsPerWorldUnit: KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE,
+      fovDegrees: 50,
+      zoom: 1,
+    }));
+  });
+
+  it('normalizes a side-view root pose to a front view while preserving target and up', () => {
+    const pose = {
+      position: { x: 33, y: 44, z: 12 },
+      target: { x: 3, y: 4, z: 12 },
+      up: { x: 0, y: 1, z: 0 },
+    };
+    expect(normalizeKnowledgeRootCameraPose(pose, 25)).toEqual({
+      position: { x: 3, y: 4, z: 37 },
+      target: pose.target,
+      up: pose.up,
+    });
+    expect(normalizeKnowledgeRootCameraPose(pose, 80)).toEqual({
+      position: { x: 3, y: 4, z: 62 },
+      target: pose.target,
+      up: pose.up,
+    });
+  });
+
+  it('uses a valid positive maximum when the restored root pose has zero distance', () => {
+    const pose = {
+      position: { x: 3, y: 4, z: 12 },
+      target: { x: 3, y: 4, z: 12 },
+      up: { x: 0, y: 1, z: 0 },
+    };
+    expect(normalizeKnowledgeRootCameraPose(pose, 25).position).toEqual({ x: 3, y: 4, z: 37 });
+  });
+
+  it('locks only compact-root 3D controls and leaves domain controls unchanged', () => {
+    const rootPolicy = getKnowledgeGraph3DControlsPolicy({
+      compactRootView: true,
+      viewportHeight: 600,
+      fovDegrees: 50,
+      zoom: 1,
+    });
+    expect(rootPolicy).toEqual({
+      enablePan: true,
+      enableRotate: false,
+      enableZoom: true,
+      maxDistance: getKnowledgeRootProjectionSafeCameraDistance({
+        viewportHeight: 600, fovDegrees: 50, zoom: 1,
+      }),
+    });
+    const controls = {
+      enablePan: false,
+      enableRotate: true,
+      enableZoom: false,
+      maxDistance: Number.POSITIVE_INFINITY,
+    };
+    const restore = applyKnowledgeGraph3DControlsPolicy(controls, rootPolicy);
+    expect(controls).toEqual(rootPolicy);
+    restore();
+    expect(controls).toEqual({
+      enablePan: false,
+      enableRotate: true,
+      enableZoom: false,
+      maxDistance: Number.POSITIVE_INFINITY,
+    });
+
+    const domainPolicy = getKnowledgeGraph3DControlsPolicy({
+      compactRootView: false,
+      viewportHeight: 600,
+      fovDegrees: 50,
+      zoom: 1,
+    });
+    expect(domainPolicy).toBeNull();
+    const domainControls = { ...controls };
+    applyKnowledgeGraph3DControlsPolicy(domainControls, domainPolicy)();
+    expect(domainControls).toEqual(controls);
+  });
   it('fits every visible node body instead of sampling a local anchor subset', () => {
     const nodes = Array.from({ length: 62 }, (_, index) => ({
       id: index === 0 ? 'chapter-node:domain' : `node-${index}`,

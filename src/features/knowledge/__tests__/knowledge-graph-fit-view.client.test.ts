@@ -69,10 +69,19 @@ function forceGraphMock(kind: 'twoD' | 'threeD') {
 vi.mock('react-force-graph-2d', () => ({ default: forceGraphMock('twoD') }));
 vi.mock('react-force-graph-3d', () => ({ default: forceGraphMock('threeD') }));
 
-import { KnowledgeGraph2D } from '../graph/knowledge-graph-2d';
+import {
+  KnowledgeGraph2D,
+  KNOWLEDGE_GRAPH_2D_LIBRARY_DEFAULT_MIN_ZOOM,
+} from '../graph/knowledge-graph-2d';
 import { KnowledgeGraphCanvas } from '../graph/knowledge-graph-canvas';
 import { getEmptyKnowledgeGraphLayoutState } from '../graph/layout-state';
+import {
+  getKnowledgeNodeLabelBounds,
+  KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE,
+} from '../graph/node-label-layout';
 import type { KnowledgeGraphFitRequest } from '../graph/root-layout';
+import { getKnowledgeGraphViewportFit, getKnowledgeGraphViewportSafeInsets } from '../graph/viewport-fit';
+import { getKnowledgeNodeMaximumPresentationRadius } from '../graph/visual-config';
 
 const rootNodes = [
   {
@@ -135,6 +144,111 @@ beforeEach(() => {
   forceGraph.suppressEngineStop = false;
   forceGraph.twoDGraph2Screen.mockClear();
   Object.defineProperty(window, 'devicePixelRatio', { configurable: true, value: 1 });
+});
+
+it('restores the force-graph minZoom default after compact root rerenders as a domain', async () => {
+  const container = document.createElement('div');
+  document.body.append(container);
+  const root = createRoot(container);
+
+  await act(async () => root.render(React.createElement(KnowledgeGraph2D, rendererProps(rootNodes, {
+    id: 30, target: 'root',
+  }))));
+  await act(async () => vi.runAllTimers());
+  expect(forceGraph.twoDProps.minZoom).toBe(KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE);
+  expect(forceGraph.twoDZoom.mock.calls[0]?.[0]).toBeGreaterThanOrEqual(
+    KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE
+  );
+
+  await act(async () => root.render(React.createElement(KnowledgeGraph2D, rendererProps(domainNodes, {
+    id: 30, target: 'current',
+  }))));
+  await act(async () => vi.runAllTimers());
+  expect(forceGraph.twoDProps.minZoom).toBe(KNOWLEDGE_GRAPH_2D_LIBRARY_DEFAULT_MIN_ZOOM);
+  expect(forceGraph.twoDProps.minZoom).toBeLessThan(KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE);
+  await act(async () => root.unmount());
+});
+
+it('clamps a genuinely sub-floor dense root fit to the shared projection floor', async () => {
+  const denseRootNodes = Array.from({ length: 24 }, (_, index) => ({
+    id: `chapter-node:dense-${index}`,
+    name: `第${index + 1}个完整控制系统建模与分析知识领域名称`,
+    nodeType: 'THEORY' as const,
+    description: '',
+    positionX: 0,
+    positionY: 0,
+    positionZ: 0,
+    metadata: { isCollapsedRoot: true },
+  }));
+  const width = 390;
+  const height = 844;
+  const container = document.createElement('div');
+  document.body.append(container);
+  const root = createRoot(container);
+  await act(async () => root.render(React.createElement(KnowledgeGraph2D, {
+    ...rendererProps(denseRootNodes, { id: 34, target: 'root' }),
+    width,
+    height,
+  })));
+  await act(async () => vi.runAllTimers());
+  const graphData = forceGraph.twoDProps.graphData as { nodes: Array<Record<string, any>> };
+  const fit = getKnowledgeGraphViewportFit({
+    nodes: graphData.nodes.map((node) => ({
+      id: node.id,
+      x: node.x ?? 0,
+      y: node.y ?? 0,
+      bodyRadius: getKnowledgeNodeMaximumPresentationRadius(node),
+      importance: node.importance,
+      labelBounds: getKnowledgeNodeLabelBounds({
+        name: node.name,
+        bodyRadius: getKnowledgeNodeMaximumPresentationRadius(node),
+      }),
+    })),
+    width,
+    height,
+    padding: getKnowledgeGraphViewportSafeInsets({ width, height }),
+    labelMode: 'focus',
+  });
+  expect(fit.scale).toBeLessThan(KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE);
+  expect(forceGraph.twoDZoom).toHaveBeenLastCalledWith(
+    KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE,
+    320,
+  );
+  await act(async () => root.unmount());
+});
+
+it.each([
+  [390, 844],
+  [1440, 900],
+] as const)('keeps the production %sx%s compact-root fit unchanged', async (width, height) => {
+  const container = document.createElement('div');
+  document.body.append(container);
+  const root = createRoot(container);
+  await act(async () => root.render(React.createElement(KnowledgeGraph2D, {
+    ...rendererProps(rootNodes, { id: width, target: 'root' }), width, height,
+  })));
+  await act(async () => vi.runAllTimers());
+  const graphData = forceGraph.twoDProps.graphData as { nodes: Array<Record<string, any>> };
+  const expected = getKnowledgeGraphViewportFit({
+    nodes: graphData.nodes.map((node) => ({
+      id: node.id,
+      x: node.x ?? 0,
+      y: node.y ?? 0,
+      bodyRadius: getKnowledgeNodeMaximumPresentationRadius(node),
+      importance: node.importance,
+      labelBounds: getKnowledgeNodeLabelBounds({
+        name: node.name,
+        bodyRadius: getKnowledgeNodeMaximumPresentationRadius(node),
+      }),
+    })),
+    width,
+    height,
+    padding: getKnowledgeGraphViewportSafeInsets({ width, height }),
+    labelMode: 'focus',
+  });
+  expect(expected.scale).toBeGreaterThanOrEqual(KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE);
+  expect(forceGraph.twoDZoom).toHaveBeenLastCalledWith(expected.scale, 320);
+  await act(async () => root.unmount());
 });
 
 afterEach(() => {

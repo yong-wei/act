@@ -73,6 +73,7 @@ import {
 import { buildKnowledgeTeachingOrderLayout } from './teaching-order-layout';
 import {
   KNOWLEDGE_NODE_LABEL_POLICY,
+  KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE,
   getKnowledgeNodeLabelBounds,
   getKnowledgeNodeLabelPaintModel,
   getKnowledgeRootLabelPaintModel,
@@ -133,6 +134,8 @@ interface KnowledgeGraph2DProps {
   collapsingNodeId?: string | null;
   onCollapsePresentationComplete?: (nodeId: string) => void;
 }
+
+export const KNOWLEDGE_GRAPH_2D_LIBRARY_DEFAULT_MIN_ZOOM = 0.01;
 
 type RuntimeKnowledgeGraphNode = KnowledgeGraphPositionedNode & {
   vx?: number;
@@ -283,6 +286,7 @@ export function KnowledgeGraph2D({
   collapsingNodeId = null,
   onCollapsePresentationComplete,
 }: KnowledgeGraph2DProps) {
+  const compactRootView = isCompactKnowledgeRootSet(nodes);
   const fgRef = useRef<any>(null);
   const activeCanvasPointerIdsRef = useRef(new Set<number>());
   const blankGesturesByPointerIdRef = useRef(new Map<number, KnowledgeCanvasBlankGesture>());
@@ -1288,7 +1292,7 @@ export function KnowledgeGraph2D({
     if ((width ?? 800) <= 0 || (height ?? 600) <= 0) return;
     const fitSignature = `${fitViewRequest.id}:${width ?? 800}:${height ?? 600}:${window.devicePixelRatio}:${relayoutVersion}`;
     if (consumedFitSignatureRef.current === fitSignature) return;
-    if (fitViewRequest.target === 'root' && !isCompactKnowledgeRootSet(nodes)) return;
+    if (fitViewRequest.target === 'root' && !compactRootView) return;
     if (graphData.nodes.length > 1 && settledLayoutSignatureRef.current !== layoutSignature) return;
     const positionedNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes).map((node: any) => ({
       id: node.id,
@@ -1313,7 +1317,10 @@ export function KnowledgeGraph2D({
     if (fitTimerRef.current !== null) window.clearTimeout(fitTimerRef.current);
     fitTimerRef.current = window.setTimeout(() => {
       fgRef.current?.centerAt?.(fit.centerX, fit.centerY, 320);
-      fgRef.current?.zoom?.(fit.scale, 320);
+      fgRef.current?.zoom?.(
+        compactRootView ? Math.max(fit.scale, KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE) : fit.scale,
+        320
+      );
       consumedFitSignatureRef.current = fitSignature;
       fitTimerRef.current = null;
     }, 0);
@@ -1321,7 +1328,7 @@ export function KnowledgeGraph2D({
       if (fitTimerRef.current !== null) window.clearTimeout(fitTimerRef.current);
       fitTimerRef.current = null;
     };
-  }, [fitViewRequest, graphData.nodes, height, hoveredNode?.id, labelMode, layoutSettledRevision, layoutSignature, nodes, relayoutVersion, selectedNode?.id, viewportRevision, width]);
+  }, [compactRootView, fitViewRequest, graphData.nodes, height, hoveredNode?.id, labelMode, layoutSettledRevision, layoutSignature, relayoutVersion, selectedNode?.id, viewportRevision, width]);
 
   useEffect(() => {
     const cameraTransition = cameraTransitionRef.current;
@@ -1560,6 +1567,9 @@ export function KnowledgeGraph2D({
         width={width}
         height={height}
         graphData={graphData}
+        minZoom={compactRootView
+          ? KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE
+          : KNOWLEDGE_GRAPH_2D_LIBRARY_DEFAULT_MIN_ZOOM}
 
         // 节点渲染
         nodeCanvasObject={paintNode}

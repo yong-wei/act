@@ -1,4 +1,8 @@
-import { KNOWLEDGE_NODE_LABEL_POLICY, type KnowledgeNodeLabelBounds } from './node-label-layout';
+import {
+  KNOWLEDGE_NODE_LABEL_POLICY,
+  KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE,
+  type KnowledgeNodeLabelBounds,
+} from './node-label-layout';
 import { getKnowledgeNodeLabelPresentation, type KnowledgeGraphLabelMode } from './label-policy';
 
 export const KNOWLEDGE_GRAPH_VIEWPORT_PADDING = 48;
@@ -41,6 +45,76 @@ export function getPerspectiveCameraFitDistance(input: {
   const zoom = Number.isFinite(input.zoom) && input.zoom! > 0 ? input.zoom! : 1;
   return input.viewportHeight * zoom
     / (2 * Math.tan(fov * Math.PI / 360) * Math.max(0.0001, input.pixelsPerWorldUnit));
+}
+
+export function getKnowledgeRootProjectionSafeCameraDistance(input: {
+  viewportHeight: number;
+  fovDegrees?: number;
+  zoom?: number;
+}): number {
+  return getPerspectiveCameraFitDistance({
+    ...input,
+    pixelsPerWorldUnit: KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE,
+  });
+}
+
+export function getKnowledgeGraph3DControlsPolicy(input: {
+  compactRootView: boolean;
+  viewportHeight: number;
+  fovDegrees?: number;
+  zoom?: number;
+}) {
+  if (!input.compactRootView) return null;
+  return {
+    enablePan: true,
+    enableRotate: false,
+    enableZoom: true,
+    maxDistance: getKnowledgeRootProjectionSafeCameraDistance(input),
+  } as const;
+}
+
+export function applyKnowledgeGraph3DControlsPolicy(
+  controls: { enablePan?: boolean; enableRotate?: boolean; enableZoom?: boolean; maxDistance?: number },
+  policy: ReturnType<typeof getKnowledgeGraph3DControlsPolicy>,
+): () => void {
+  if (!policy) return () => undefined;
+  const previous = {
+    enablePan: controls.enablePan,
+    enableRotate: controls.enableRotate,
+    enableZoom: controls.enableZoom,
+    maxDistance: controls.maxDistance,
+  };
+  Object.assign(controls, policy);
+  return () => Object.assign(controls, previous);
+}
+
+export function normalizeKnowledgeRootCameraPose<T extends {
+  position: { x: number; y: number; z: number };
+  target: { x: number; y: number; z: number };
+}>(pose: T, maximumDistance: number): T {
+  const originalDistance = Math.hypot(
+    pose.position.x - pose.target.x,
+    pose.position.y - pose.target.y,
+    pose.position.z - pose.target.z,
+  );
+  const validOriginalDistance = Number.isFinite(originalDistance) && originalDistance > 0
+    ? originalDistance
+    : null;
+  const validMaximumDistance = Number.isFinite(maximumDistance) && maximumDistance > 0
+    ? maximumDistance
+    : null;
+  const safeDistance = validOriginalDistance && validMaximumDistance
+    ? Math.min(validOriginalDistance, validMaximumDistance)
+    : validOriginalDistance ?? validMaximumDistance;
+  if (!safeDistance) return pose;
+  return {
+    ...pose,
+    position: {
+      x: pose.target.x,
+      y: pose.target.y,
+      z: pose.target.z + safeDistance,
+    },
+  };
 }
 
 export interface KnowledgeViewportNode {
