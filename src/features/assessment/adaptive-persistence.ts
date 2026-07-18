@@ -831,6 +831,7 @@ async function persistAdaptiveAssessmentSubmission(
   });
   const evidenceAuthority = evaluateAssessmentEvidenceSnapshotAuthority(catalogSnapshot, {
     learningGoalId: effectiveDetails.pathContext?.goalId,
+    requestedStage: pathContextCatalogStage(effectiveDetails.pathContext),
   });
   if (!kaqQuizEvidence.learningFactEligible || !evidenceAuthority.mastery) {
     return {

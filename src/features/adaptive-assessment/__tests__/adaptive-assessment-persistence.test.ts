@@ -347,6 +347,49 @@ describe('K/A/Q adaptive assessment persistence', () => {
       pathCompletionEligible: true,
       evidenceAuthority: 'path-assessment',
     });
+    expect(db.adaptiveMasteryUpdate.createMany).toHaveBeenCalled();
+    expect(db.learningFact.createMany).toHaveBeenCalled();
+  });
+
+  it('rejects checkpoint evidence submitted from a readiness path for the same LearningGoal', async () => {
+    const db = createMockDb();
+    const authoredCheckpoint = REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS.find((candidate) =>
+      candidate.learningGoalId === 'control-correction' &&
+      candidate.stagePurpose === 'checkpoint'
+    );
+    expect(authoredCheckpoint).toBeTruthy();
+    const runtimeQuestionId = checkpointAuthoredQuestionRuntimeId(authoredCheckpoint!.id);
+    const question = getAdaptiveQuestionById(runtimeQuestionId);
+    expect(question).toBeTruthy();
+    const correctOptionText = question!.options.find((option) => option.isCorrect)?.text;
+    expect(correctOptionText).toBeTruthy();
+
+    const result = await submitAnswerDurably({
+      userId: 'student-quiz',
+      sessionId: 'session-quiz',
+      questionId: runtimeQuestionId,
+      selectedOption: correctOptionText!,
+      timeSpent: 32,
+      pathContext: {
+        pathId: 'path-quiz-1',
+        nodeId: 'adaptive-quiz:control-correction:precheck',
+        goalId: 'control-correction',
+        routeIntent: 'path-execution',
+        questionScope: 'readiness',
+      },
+    }, db);
+
+    expect(result.adaptiveAssessmentRef).toMatchObject({
+      kind: 'AdaptiveAssessmentAnswer',
+      reviewState: 'reviewed',
+      catalogItemId: `adaptive-assessment-item:checkpoint-authored-question:${authoredCheckpoint!.id}`,
+      readinessGateEligible: false,
+      terminalValidationEligible: false,
+      pathCompletionEligible: false,
+      evidenceAuthority: 'legacy-compatible',
+    });
+    expect(db.adaptiveMasteryUpdate.createMany).not.toHaveBeenCalled();
+    expect(db.learningFact.createMany).not.toHaveBeenCalled();
   });
 
   it('treats catalog-backed remediation answers as path-completion eligible', async () => {
