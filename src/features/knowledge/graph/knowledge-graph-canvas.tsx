@@ -1389,17 +1389,16 @@ export function KnowledgeGraphCanvas({
         importanceScore: entry.node.graphImportanceScore,
       });
       const presentationScale = getKnowledgeGraphPresentationNodeScale({ ...presentation, nodeId });
-      const radius = getKnowledgeGraph3DRenderedNodeRadius(
+      const naturalRadius = (entry.node.__knowledgeRootPacking?.collisionRadius ?? nodeScale.radius)
+        * presentationScale;
+      const renderedRadius = getKnowledgeGraph3DRenderedNodeRadius(
         entry.node,
-        nodeScale.radius * presentationScale,
+        naturalRadius,
         labelPlacementsRef.current.get(nodeId)?.projectedScale ?? viewportScaleRef.current,
       );
-      const renderedRadius = entry.node.__knowledgeRootPacking?.collisionRadius
-        ? entry.node.__knowledgeRootPacking.collisionRadius * presentationScale
-        : radius;
       const mesh = entry.object.userData.knowledgeBodyMesh as THREE.Mesh | undefined;
       if (mesh) mesh.scale.setScalar(renderedRadius / 5);
-      entry.object.userData.knowledgeNaturalRadius = renderedRadius;
+      entry.object.userData.knowledgeNaturalRadius = naturalRadius;
       entry.object.userData.knowledgePresentationRadius = renderedRadius;
       const ring = entry.object.userData.knowledgeSelectionRing as THREE.Mesh | undefined;
       if (ring) ring.visible = isSelected;

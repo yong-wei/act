@@ -958,7 +958,10 @@ function ResourcePanelContent({
               title="学习路径动作"
               titleClassName={panelTheme.blockTitle}
             >
-              <div className="grid gap-2">
+              <div
+                className="grid gap-2"
+                data-resource-node-launch-contract="launch-return-evidence"
+              >
                 {launchAction.href ? (
                   <a
                     href={launchAction.href}

@@ -30,10 +30,18 @@ export function getKnowledgeNodeLabelPresentation(
   const selected = Boolean(input.nodeId) && input.nodeId === input.selectedNodeId;
   const isRoot = Boolean(input.nodeId) && isChapterNodeId(input.nodeId!);
   if (isRoot) {
+    const graphScale = typeof input.globalScale === 'number' && input.globalScale > 0
+      ? input.globalScale
+      : 1;
+    const projectedFontSize = KNOWLEDGE_ROOT_LABEL_POLICY.fontSize * graphScale;
+    const fontSize = Math.max(
+      projectedFontSize,
+      KNOWLEDGE_ROOT_LABEL_POLICY.minimumReadableFontSize,
+    );
     return {
       visible: true,
-      fontSize: KNOWLEDGE_ROOT_LABEL_POLICY.fontSize,
-      scale: 1,
+      fontSize,
+      scale: fontSize / projectedFontSize,
       priority: selected ? 'selected' : 'candidate',
       placement: 'inside',
       complete: true,

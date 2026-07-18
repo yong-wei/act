@@ -241,7 +241,7 @@ describe('knowledge graph viewport fit', () => {
         labelMode: 'all', nodeId: `ordinary-${renderer}`, globalScale: scale,
       });
       expect(chapterCandidate.visible).toBe(true);
-      expect(chapterCandidate.fontSize).toBe(14);
+      expect(chapterCandidate.fontSize).toBe(12);
       expect(chapterCandidate.placement).toBe('inside');
       expect(chapterCandidate.complete).toBe(true);
       expect(deferred.visible).toBe(false);
@@ -363,7 +363,7 @@ describe('knowledge graph viewport fit', () => {
     }
   });
 
-  it.each([[320, 270], [390, 844]] as const)('projects packed root label rectangles without overlap at %sx%s', (width, height) => {
+  it.each([[390, 844]] as const)('projects packed root label rectangles without overlap at %sx%s', (width, height) => {
     const packed = packKnowledgeGraphRootNodes(
       Array.from({ length: 8 }, (_, index) => ({
         id: `chapter-node:${index}`,

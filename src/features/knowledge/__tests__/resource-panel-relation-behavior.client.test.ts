@@ -285,6 +285,10 @@ describe('ResourcePanel relation detail behavior', () => {
     expect(learningActionsButton.getAttribute('aria-expanded')).toBe('true');
     expect(corridorButton.getAttribute('aria-expanded')).toBe('false');
     expect(document.getElementById(learningActionsButton.getAttribute('aria-controls')!)?.hidden).toBe(false);
+    const launchContract = container.querySelector('[data-resource-node-launch-contract="launch-return-evidence"]');
+    expect(launchContract?.querySelector('[data-resource-node-action="launch"]')).not.toBeNull();
+    expect(launchContract?.querySelector('[data-resource-node-action="return-to-learning-path"]')).not.toBeNull();
+    expect(launchContract?.querySelector('[data-resource-node-action="review-evidence"]')).not.toBeNull();
 
     await act(async () => fireEvent.click(overviewButton));
     expect(overviewButton.getAttribute('aria-expanded')).toBe('true');

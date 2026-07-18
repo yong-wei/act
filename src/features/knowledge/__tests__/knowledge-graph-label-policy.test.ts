@@ -96,12 +96,27 @@ describe('shouldRenderKnowledgeNodeLabel', () => {
       visible: true,
       placement: 'inside',
       complete: true,
-      fontSize: 14,
+      fontSize: 12,
     });
+    expect(root.scale).toBeCloseTo(12 / 0.14);
     expect(ordinary).toMatchObject({
       visible: false,
       placement: 'external',
       complete: false,
     });
+  });
+
+  it('keeps the 2D root label screen-readable across zoom levels', () => {
+    const zoomedOut = getKnowledgeNodeLabelPresentation({
+      labelMode: 'focus', nodeId: 'chapter-node:系统模型', globalScale: 0.5,
+    });
+    const zoomedIn = getKnowledgeNodeLabelPresentation({
+      labelMode: 'focus', nodeId: 'chapter-node:系统模型', globalScale: 2,
+    });
+
+    expect(zoomedOut.fontSize).toBe(12);
+    expect(zoomedOut.scale).toBeCloseTo(12 / 7);
+    expect(zoomedIn.fontSize).toBe(28);
+    expect(zoomedIn.scale).toBe(1);
   });
 });
