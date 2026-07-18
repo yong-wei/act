@@ -36,6 +36,7 @@ export interface GeneratedSlideBrowserElementMeasurement {
   clipPath: string;
   maskImage: string;
   textOverflow: string;
+  nativeFormControl?: boolean;
 }
 
 export interface GeneratedSlideBrowserSlotMeasurement extends GeneratedSlideBrowserElementMeasurement {
@@ -56,6 +57,7 @@ export interface GeneratedSlideBrowserModuleMeasurement extends GeneratedSlideBr
 export interface GeneratedSlideBrowserContainerMeasurement extends GeneratedSlideBrowserElementMeasurement {
   containerId: string;
   moduleId: string | null;
+  minimumFontSizePx?: number;
 }
 
 export interface GeneratedSlideBrowserTextMeasurement extends GeneratedSlideBrowserElementMeasurement {
@@ -288,6 +290,15 @@ export function validateGeneratedSlideBrowserSnapshot(
         ...(owner ? { relatedSelector: owner.selector } : {}),
       });
     }
+    if (container.nativeFormControl) {
+      const minimumFontSizePx = container.minimumFontSizePx;
+      if (minimumFontSizePx !== undefined && isBelowMinimumEffectiveFontSize(snapshot, {
+        fontSizePx: container.fontSizePx,
+        minimumFontSizePx,
+      })) {
+        add('text.minimum-font-size', container.selector, { moduleId: container.moduleId });
+      }
+    }
   }
 
   const measuredElements = [
@@ -458,8 +469,10 @@ function normalizeFontFamily(value: string): string {
 }
 
 function hasVisualClippingSignal(element: GeneratedSlideBrowserElementMeasurement): boolean {
-  const clipsOverflow = ['hidden', 'clip'].includes(element.computedOverflowX)
-    || ['hidden', 'clip'].includes(element.computedOverflowY);
+  const clipsOverflow = !element.nativeFormControl && (
+    ['hidden', 'clip'].includes(element.computedOverflowX)
+    || ['hidden', 'clip'].includes(element.computedOverflowY)
+  );
   return clipsOverflow
     || (element.clipPath !== 'none' && element.clipPath !== '')
     || (element.maskImage !== 'none' && element.maskImage !== '')
@@ -470,10 +483,11 @@ function hasScrollOverflow(
   element: GeneratedSlideBrowserElementMeasurement,
   tolerancePx: number,
 ): boolean {
+  const effectiveTolerancePx = tolerancePx + (element.nativeFormControl ? 2 : 0);
   return (element.computedOverflowX !== 'visible'
-      && element.scrollWidth > element.clientWidth + tolerancePx)
+      && element.scrollWidth > element.clientWidth + effectiveTolerancePx)
     || (element.computedOverflowY !== 'visible'
-      && element.scrollHeight > element.clientHeight + tolerancePx);
+      && element.scrollHeight > element.clientHeight + effectiveTolerancePx);
 }
 
 function rectContains(

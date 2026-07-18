@@ -51,8 +51,8 @@ const PINNED_FONT_CSS = PINNED_FONT_CSS_SOURCE
   .replace(/\.\/files\/([^')]+\.woff2)/g, (_match, fileName: string) => PINNED_FONT_DATA_URLS.get(fileName) ?? '');
 
 const FIXTURE_TEXT_IDS = {
-  student: ['formula-module:0', 'student-activity:0', 'student-activity:1'],
-  teacher: ['formula-module:0', 'teacher-secret:0', 'teacher-secret:1', 'teacher-secret:2', 'student-activity:0', 'student-activity:1'],
+  student: ['formula-module:0', ...Array.from({ length: 7 }, (_, index) => `student-activity:${index}`)],
+  teacher: ['formula-module:0', 'teacher-secret:0', 'teacher-secret:1', 'teacher-secret:2', ...Array.from({ length: 7 }, (_, index) => `student-activity:${index}`)],
 } as const;
 const FIXTURE_STEP_TEXT_IDS: Record<string, readonly string[]> = {
   'browser-gate-step-2': ['browser-gate-module-2:0', 'browser-gate-module-2:1', 'browser-gate-module-2:2'],
@@ -181,24 +181,8 @@ async function installFixture(page: Page, projection: GeneratedSlideProjection, 
   expect(response?.status()).toBeLessThan(500);
   await page.addStyleTag({ content: `
       ${PINNED_FONT_CSS}
-      * { box-sizing: border-box; font-family: inherit; }
-      html, body { margin: 0; width: 100%; min-height: 100%; }
       body { font-family: ${GENERATED_SLIDE_BROWSER_FONT_FAMILY}; }
-      .generated-slide-viewport { width: 100%; }
-      .generated-slide-canvas { background: white; color: black; }
-      [data-generated-slide-title-slot] { padding: 0; }
-      [data-manifest-step-title] { display: grid; grid-template-columns: auto 1fr; gap: 4px 20px; }
-      [data-generated-slide-title-slot] [data-manifest-step-title] { margin: 0; padding: 12px 24px; }
-      [data-manifest-step-title] h1 { margin: 0; font-size: 34px; line-height: 1.15; }
-      [data-manifest-step-title] p { grid-column: 2; margin: 0; font-size: 18px; line-height: 1.2; }
-      [data-generated-slide-slot] { padding: 28px; line-height: 1.35; }
-      [data-generated-slide-module="formula-module"] p { margin: 0 0 24px; font-size: 32px; }
-      .katex { font-size: 32px; white-space: normal; }
-      .katex-display > .katex { width: 100%; }
-      [data-generated-slide-module="teacher-secret"] pre { margin: 0; font-size: 24px; white-space: pre-wrap; }
-      [data-generated-slide-production-activity] p { margin: 0 0 20px; font-size: 32px; line-height: 1.25; }
-      [data-generated-slide-production-activity] button { display: block; padding: 0; font-size: 32px; line-height: 1.25; }
-      [data-after-generated-slide] { height: 48px; padding: 8px; }
+      .generated-slide-viewport { font-family: ${GENERATED_SLIDE_BROWSER_FONT_FAMILY}; }
       ${defectCss}
     ` });
   await page.evaluate(async () => {
@@ -250,6 +234,7 @@ async function captureSnapshot(
         clipPath: computed.clipPath,
         maskImage: computed.maskImage,
         textOverflow: computed.textOverflow,
+        nativeFormControl: htmlElement.matches('button, input, textarea, select'),
       } satisfies GeneratedSlideBrowserElementMeasurement;
     };
     const required = (selector: string) => {
@@ -308,7 +293,7 @@ async function captureSnapshot(
     });
     const containers = [...canvasElement.querySelectorAll('*')].filter(
       (element): element is HTMLElement => element instanceof HTMLElement,
-    ).filter((element) => {
+    ).filter((element) => !element.matches('option')).filter((element) => {
       if (element.closest('.katex-mathml')) return false;
       const computed = getComputedStyle(element);
       return computed.display !== 'inline'
@@ -320,9 +305,18 @@ async function captureSnapshot(
       const containerId = `container:${index}`;
       const moduleId = element.closest('[data-generated-slide-module-root]')
         ?.getAttribute('data-generated-slide-module-root') ?? null;
+      const minimumFontSizePx = Number.parseFloat(
+        element.closest('[data-generated-slide-module]')
+          ?.getAttribute('data-generated-slide-minimum-font-px') ?? '',
+      );
       element.setAttribute('data-generated-slide-container-id', containerId);
       const selector = `[data-generated-slide-container-id="${containerId}"]`;
-      return { ...measure(element, selector), containerId, moduleId };
+      return {
+        ...measure(element, selector),
+        containerId,
+        moduleId,
+        ...(Number.isFinite(minimumFontSizePx) ? { minimumFontSizePx } : {}),
+      };
     });
     const text = [...canvasElement.querySelectorAll('[data-generated-slide-module]')].flatMap((slot) => {
       const moduleId = slot.getAttribute('data-generated-slide-module') ?? '';
@@ -334,17 +328,20 @@ async function captureSnapshot(
       }
       const descendants = [slot, ...slot.querySelectorAll('*')]
         .filter((element) => !element.closest('.katex'))
-        .filter((element) => [...element.childNodes]
-          .some((node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim()));
+        .filter((element) => !element.matches('option'))
+        .filter((element) => element.matches('input, textarea, select')
+          || [...element.childNodes]
+            .some((node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim()));
       return descendants.map((element, index) => {
         const textId = `${moduleId}:${index}`;
         element.setAttribute('data-generated-slide-text-id', textId);
         const selector = `[data-generated-slide-text-id="${textId}"]`;
+        const nativeFormControl = element.matches('input, textarea, select');
         const range = document.createRange();
-        range.selectNodeContents(element);
+        if (!nativeFormControl) range.selectNodeContents(element);
         return {
           ...measure(element, selector),
-          rect: toRect(range.getBoundingClientRect()),
+          rect: toRect(nativeFormControl ? element.getBoundingClientRect() : range.getBoundingClientRect()),
           textId,
           moduleId,
           minimumFontSizePx,
@@ -524,8 +521,11 @@ test('all six generated content classes use the production registry and the full
           || rect.bottom > canvasRect.bottom + 1;
         const scrolled = element.scrollWidth > element.clientWidth + 6
           || element.scrollHeight > element.clientHeight + 6;
-        const clipped = ['hidden', 'clip'].includes(computed.overflowX)
+        const nativeFormControl = element.matches('button, input, textarea, select');
+        const clipped = (!nativeFormControl && (
+          ['hidden', 'clip'].includes(computed.overflowX)
           || ['hidden', 'clip'].includes(computed.overflowY)
+        ))
           || (computed.clipPath !== 'none' && computed.clipPath !== '')
           || (computed.maskImage !== 'none' && computed.maskImage !== '');
         if (escapedCanvas || scrolled || clipped) {
@@ -613,7 +613,7 @@ test('table and reveal formulas enter the same identity and font-size gate', asy
 
 test('rejects removal of a module second measurable text descendant', async ({ page, browser }) => {
   await installFixture(page, 'student');
-  await page.locator('[data-generated-slide-production-activity] button').evaluate((element) => {
+  await page.locator('[data-generated-slide-module-class="activity.panel"] button').evaluate((element) => {
     element.textContent = '';
   });
 
@@ -627,7 +627,7 @@ test('rejects removal of a module second measurable text descendant', async ({ p
     code: 'text.missing',
     location: {
       projection: 'student',
-      selector: '[data-generated-slide-text-id="student-activity:1"]',
+      selector: '[data-generated-slide-text-id="student-activity:6"]',
       moduleId: 'student-activity',
     },
   });

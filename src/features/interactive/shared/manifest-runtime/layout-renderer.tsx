@@ -181,7 +181,77 @@ function renderGeneratedSlideTemplate({
           display: grid;
           font-size: inherit;
           min-width: 0;
+          width: 100%;
+          max-width: 100%;
           overflow: visible;
+        }
+        .generated-slide-viewport [data-generated-slide-title-slot] {
+          padding: 0;
+        }
+        .generated-slide-viewport [data-generated-slide-title-slot] [data-manifest-step-title] {
+          display: grid;
+          grid-template-columns: auto 1fr;
+          gap: 4px 20px;
+          margin: 0;
+          padding: 12px 24px;
+        }
+        .generated-slide-viewport [data-generated-slide-title-slot] [data-manifest-step-title] h1 {
+          margin: 0;
+          font-size: 34px;
+          line-height: 1.15;
+        }
+        .generated-slide-viewport [data-generated-slide-title-slot] [data-manifest-step-title] p {
+          grid-column: 2;
+          margin: 0;
+          font-size: 18px;
+          line-height: 1.2;
+        }
+        .generated-slide-viewport [data-generated-slide-activity-content] {
+          box-sizing: border-box;
+          min-width: 0;
+          width: 100%;
+          max-width: 100%;
+          padding-bottom: 4px;
+        }
+        .generated-slide-viewport [data-generated-slide-module-class="activity.panel"] [data-generated-slide-module-root] > * {
+          box-sizing: border-box;
+          min-width: 0;
+          width: 100%;
+          max-width: 100%;
+        }
+        .generated-slide-viewport [data-generated-slide-activity-content] > * {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 8px;
+          min-width: 0;
+          max-width: 100%;
+        }
+        .generated-slide-viewport [data-generated-slide-activity-content] :is(p, ul, ol) {
+          margin: 0;
+          line-height: 1.25;
+        }
+        .generated-slide-viewport [data-generated-slide-activity-content] p {
+          grid-column: 1 / -1;
+        }
+        .generated-slide-viewport [data-generated-slide-activity-content] :is(ul, ol) {
+          padding-left: 24px;
+        }
+        .generated-slide-viewport [data-generated-slide-activity-content] :is(button, input, textarea, select, [role="textbox"]) {
+          appearance: none;
+          border: 0;
+          box-sizing: border-box;
+          min-height: 48px;
+          min-width: 0;
+          width: 100%;
+          max-width: 100%;
+          padding: 2px 4px;
+          font: inherit;
+          line-height: 1.25;
+          overflow: visible;
+          outline: 1px solid currentColor;
+        }
+        .generated-slide-viewport [data-generated-slide-activity-content] textarea {
+          resize: none;
         }
         .generated-slide-viewport [data-generated-slide-module-class="content.formula"] [data-generated-slide-module-root] .overflow-x-auto,
         .generated-slide-viewport [data-generated-slide-module-class="content.table"] [data-generated-slide-module-root] .overflow-x-auto,
@@ -681,13 +751,16 @@ export function renderGeneratedSlideManifestStep<TExtra = undefined>({
           ...runtimeManifest,
           steps: runtimeManifest.steps.map((step) => step.id === activityStep.id ? activityStep : step),
         };
-        node = activityRenderer?.({
+        const activityNode = activityRenderer?.({
           manifest: activityManifest,
           step: activityStep,
           module: runtimeModule,
           extra,
           projection,
         });
+        node = activityNode
+          ? createElement('div', { 'data-generated-slide-activity-content': runtimeModule.id }, activityNode)
+          : activityNode;
       } else {
         node = moduleRegistry[runtimeModule.kind]?.({
           manifest: runtimeManifest,

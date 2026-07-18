@@ -14,9 +14,14 @@ import type { GeneratedSlideProjection } from '@/features/interactive/shared/man
 const rendererExtra = { revealProgress: 8, allowInlineReveal: true };
 
 const activityRenderer: GeneratedSlideActivityRenderer<typeof rendererExtra> = ({ module, projection }) => (
-  <section data-generated-slide-production-activity={module.id}>
+  <section>
     <p>{String(module.payload.prompt ?? '')}</p>
-    <button type="button">{projection}: 稳定</button>
+    <button type="button">稳定</button>
+    <input aria-label={`${projection} 简答`} defaultValue="稳定" />
+    <textarea aria-label={`${projection} 长答`} defaultValue="闭环稳定" rows={1} />
+    <select aria-label="多选" defaultValue="稳定"><option>稳定</option><option>不稳定</option></select>
+    <ol aria-label="排序"><li>判断极点</li></ol>
+    <ul aria-label="匹配"><li>左半平面对应稳定</li></ul>
   </section>
 );
 

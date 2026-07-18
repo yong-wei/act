@@ -413,4 +413,45 @@ describe('generated slide browser validator', () => {
       expect.objectContaining({ code: 'text.minimum-font-size', location: expect.objectContaining({ selector: measured.text[0].selector }) }),
     ]));
   });
+
+  it('ignores native control chrome clipping but still enforces font size and real overflow', () => {
+    const measured = snapshot();
+    measured.containers[0] = {
+      ...measured.containers[0],
+      nativeFormControl: true,
+      minimumFontSizePx: 24,
+      computedOverflowX: 'clip',
+      computedOverflowY: 'clip',
+      fontSizePx: 20,
+      scrollWidth: measured.containers[0].clientWidth + 8,
+    };
+
+    const issues = validateGeneratedSlideBrowserSnapshot(measured, expectation()).issues;
+
+    expect(issues).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'text.minimum-font-size' }),
+      expect.objectContaining({ code: 'element.scroll-overflow' }),
+    ]));
+    expect(issues).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'element.visual-clipping' }),
+    ]));
+  });
+
+  it('rejects explicit visual clipping on a native control', () => {
+    const measured = snapshot();
+    measured.containers[0] = {
+      ...measured.containers[0],
+      nativeFormControl: true,
+      computedOverflowX: 'clip',
+      computedOverflowY: 'clip',
+      clipPath: 'inset(100%)',
+    };
+
+    expect(validateGeneratedSlideBrowserSnapshot(measured, expectation()).issues).toContainEqual(
+      expect.objectContaining({
+        code: 'element.visual-clipping',
+        location: expect.objectContaining({ selector: measured.containers[0].selector }),
+      }),
+    );
+  });
 });
