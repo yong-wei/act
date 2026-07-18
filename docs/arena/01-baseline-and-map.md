@@ -15,7 +15,6 @@ docs/memory/CHATGPT_CONTEXT.md
 docs/memory/00-index.md
 docs/memory/02-recent-summary.md
 docs/memory/01-reading-map.md
-docs/arenav2.md
 docs/arena.md
 docs/ProjectDescription.md
 src/features/arena/index.ts
