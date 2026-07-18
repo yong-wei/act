@@ -61,7 +61,8 @@ describe('math-document grading production entrypoint contract', () => {
     expect(deploy.lastIndexOf('require_math_document_grading_worker_config', removal)).toBeGreaterThan(-1);
     expect(deploy.lastIndexOf('require_math_document_grading_worker_config', removal)).toBeLessThan(removal);
     expect(preflight).toBeGreaterThan(-1);
-    expect(preflightBlock).toContain('\n  validate_grading_policy_seed_config\n');
+    expect(preflightBlock).toContain('\n    validate_grading_policy_seed_config\n');
+    expect(preflightBlock).toContain('数学文档批改 worker 已禁用，跳过其专用安全配置预检');
     expect(deploy.slice(0, preflight)).toContain('ensure-grading-policies.ts --dry-run');
     expect(preflightBlock).toContain('require_math_document_grading_worker_config');
     expect(deploy).toContain('AI_PROVIDER_ENABLED=false 与数学文档批改 worker 不兼容');
