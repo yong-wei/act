@@ -1,6 +1,6 @@
 {
   "artifactVersion": "learning-goal-assessment-coverage.v1",
-  "generatedAt": "2026-07-03T22:37:19.780Z",
+  "generatedAt": "2026-07-18T02:30:10.007Z",
   "batchLearningGoalIds": [
     "control-correction",
     "frequency-response-foundations",
@@ -1898,6 +1898,7 @@
             "misconception:ship-ocean-transfer-application:single-objective-transfer"
           ],
           "remediationResourceNodeIds": [
+            "arena-task:task-second-order-lead-pid",
             "registry:arena-challenge-workbench",
             "registry:arena-cruise-blackbox-workbench",
             "registry:lesson13-cruise-typhoon-sim",
@@ -1950,6 +1951,7 @@
             "misconception:ship-ocean-transfer-application:quiz-replaces-transfer-evidence"
           ],
           "remediationResourceNodeIds": [
+            "arena-task:task-second-order-lead-pid",
             "registry:arena-challenge-workbench",
             "registry:arena-cruise-blackbox-workbench",
             "registry:lesson13-cruise-typhoon-sim",
@@ -1997,7 +1999,7 @@
             "misconception:ship-ocean-transfer-application:parameter-copying"
           ],
           "remediationResourceNodeIds": [
-            "registry:arena-challenge-workbench"
+            "arena-task:task-second-order-lead-pid"
           ],
           "blockers": [],
           "limitationReasons": []

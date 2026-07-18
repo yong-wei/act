@@ -14,6 +14,7 @@ import {
   buildCheckpointAuthoredSemanticReviewDecisions,
   buildKaqFoundationSemanticReviewDecisions,
   mergeAssessmentItemSemanticReviewDecisions,
+  sourceReviewShardReplacementPolicy,
   type AssessmentItemSemanticReviewDecision,
 } from '../adaptive-assessment-semantic-review';
 
@@ -134,6 +135,132 @@ describe('adaptive assessment semantic review workflow', () => {
     };
 
     expect(mergeAssessmentItemSemanticReviewDecisions([existingGenerated], [generated])).toEqual([generated]);
+  });
+
+  it.each([
+    'issue-883-acq-static-question-review.v1',
+    'assessment-item-semantic-review-icourse-2026-07-17.v1',
+  ])('replaces an existing %s shard snapshot across reviewer changes', (reviewBatchId) => {
+    const catalog = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [PRESET_QUESTIONS[0]],
+      checkpointQuestions: [],
+      kaqReviewedItems: [],
+    });
+    const item = catalog.items[0];
+    const existing = {
+      ...baseDecision(item),
+      reviewerId: 'reviewer:old-shard',
+      reviewBatchId,
+      outcome: 'blocked' as const,
+    };
+    const replacement = {
+      ...existing,
+      reviewerId: 'reviewer:new-shard',
+      reviewBatchId: `${reviewBatchId}.next`,
+      outcome: 'rejected' as const,
+    };
+
+    expect(mergeAssessmentItemSemanticReviewDecisions(
+      [existing],
+      [replacement],
+      sourceReviewShardReplacementPolicy,
+    )).toEqual([replacement]);
+  });
+
+  it('preserves a manual correction even when a source shard contains the same item', () => {
+    const catalog = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [PRESET_QUESTIONS[0]],
+      checkpointQuestions: [],
+      kaqReviewedItems: [],
+    });
+    const item = catalog.items[0];
+    const shardDecision = {
+      ...baseDecision(item),
+      reviewerId: 'reviewer:source-shard',
+      reviewBatchId: 'issue-883-acq-static-question-review.v2',
+    };
+    const manual = {
+      ...shardDecision,
+      reviewBatchId: 'manual-review.v1',
+      outcome: 'rejected' as const,
+    };
+
+    expect(mergeAssessmentItemSemanticReviewDecisions(
+      [manual],
+      [shardDecision],
+      sourceReviewShardReplacementPolicy,
+    )).toEqual([manual]);
+  });
+
+  it.each([undefined, 'issue-883-acq-static-question-review', 'assessment-item-semantic-review-icourse']) (
+    'does not classify an adjacent or missing batch ID %s as a source shard',
+    (reviewBatchId) => {
+      const catalog = buildAdaptiveAssessmentItemCatalog({
+        presetQuestions: [PRESET_QUESTIONS[0]],
+        checkpointQuestions: [],
+        kaqReviewedItems: [],
+      });
+      const item = catalog.items[0];
+      const existing = { ...baseDecision(item), reviewerId: 'same-reviewer', reviewBatchId };
+      const generated = {
+        ...existing,
+        reviewBatchId: 'issue-883-acq-static-question-review.v2',
+      };
+
+      expect(mergeAssessmentItemSemanticReviewDecisions(
+        [existing],
+        [generated],
+        sourceReviewShardReplacementPolicy,
+      )).toEqual([existing]);
+    },
+  );
+
+  it('does not replace a source shard with a non-shard decision from the same reviewer', () => {
+    const catalog = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [PRESET_QUESTIONS[0]],
+      checkpointQuestions: [],
+      kaqReviewedItems: [],
+    });
+    const item = catalog.items[0];
+    const existing = {
+      ...baseDecision(item),
+      reviewerId: 'same-reviewer',
+      reviewBatchId: 'issue-883-acq-static-question-review.v1',
+    };
+    const generated = { ...existing, reviewBatchId: 'unrelated-generated.v1' };
+
+    expect(mergeAssessmentItemSemanticReviewDecisions(
+      [existing],
+      [generated],
+      sourceReviewShardReplacementPolicy,
+    )).toEqual([existing]);
+  });
+
+  it('falls back to reviewer identity for non-shard decisions when the policy is present', () => {
+    const catalog = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [PRESET_QUESTIONS[0]],
+      checkpointQuestions: [],
+      kaqReviewedItems: [],
+    });
+    const item = catalog.items[0];
+    const existing = {
+      ...baseDecision(item),
+      reviewerId: 'reviewer:generated-overlay',
+      reviewBatchId: 'generated-overlay.v1',
+    };
+    const sameReviewer = { ...existing, reviewBatchId: 'generated-overlay.v2' };
+    const differentReviewer = { ...sameReviewer, reviewerId: 'reviewer:other-overlay' };
+
+    expect(mergeAssessmentItemSemanticReviewDecisions(
+      [existing],
+      [sameReviewer],
+      sourceReviewShardReplacementPolicy,
+    )).toEqual([sameReviewer]);
+    expect(mergeAssessmentItemSemanticReviewDecisions(
+      [existing],
+      [differentReviewer],
+      sourceReviewShardReplacementPolicy,
+    )).toEqual([existing]);
   });
 
   it('rejects script-only review decisions and missing required semantic fields', () => {
@@ -258,6 +385,47 @@ describe('adaptive assessment semantic review workflow', () => {
     expect(report.blockedItemCount).toBe(0);
     expect(report.staleReviewCount).toBe(1);
     expect(report.issues.map((issue) => issue.reason)).toContain('stale-source-hash');
+  });
+
+  it('treats a current human-reviewed limitation as a closed disposition without path eligibility', () => {
+    const catalog = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [PRESET_QUESTIONS[0]],
+      checkpointQuestions: [],
+      kaqReviewedItems: [],
+    });
+    const item = {
+      ...catalog.items[0],
+      reviewState: 'path-eligible' as const,
+      eligibilityState: 'path-eligible' as const,
+      allowedStages: ['readiness' as const],
+    };
+    const [packet] = buildAssessmentItemSemanticReviewPackets([item]);
+    const report = buildAssessmentItemSemanticCoverageReport({
+      items: [item],
+      decisions: [{
+        ...baseDecision(item),
+        outcome: 'blocked',
+        selectedLearningGoalIds: [],
+        selectedKaqObjectiveIds: [],
+        selectedGraphNodeIds: [],
+        selectedStagePurpose: undefined,
+        difficulty: undefined,
+        cognitiveLevel: undefined,
+        misconceptionRefs: [],
+        remediationRefs: [],
+        metadataVersionRefs: packet.packetVersionRefs,
+      }],
+    });
+
+    expect(report).toMatchObject({
+      reviewedItemCount: 0,
+      reviewedDispositionCount: 1,
+      reviewedLimitationCount: 1,
+      unreviewedItemCount: 0,
+      pathEligibleItemCount: 0,
+      blockedItemCount: 1,
+    });
+    expect(report.issues.map((issue) => issue.reason)).not.toContain('invalid-path-eligibility');
   });
 
   it('rejects non-approved machine suggestions as reviewed decisions', () => {

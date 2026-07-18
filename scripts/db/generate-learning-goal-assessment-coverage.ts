@@ -9,6 +9,7 @@ import {
   buildCheckpointAuthoredSemanticReviewDecisions,
   buildKaqFoundationSemanticReviewDecisions,
   mergeAssessmentItemSemanticReviewDecisions,
+  sourceReviewShardReplacementPolicy,
   type AssessmentItemSemanticReviewDecision,
 } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
 import {
@@ -22,6 +23,11 @@ const OUTPUT_DIR = path.join(process.cwd(), 'course-content/runtime/resource-gov
 const SNAPSHOTS_PATH = path.join(OUTPUT_DIR, 'assessment-item-semantic-review-snapshots.jsonl');
 const MATRIX_PATH = path.join(OUTPUT_DIR, 'learning-goal-assessment-coverage-matrix.json');
 const BASELINE_MATRIX_PATH = path.join(OUTPUT_DIR, 'learning-goal-resource-baseline-matrix.json');
+const CORE_SEMANTIC_REVIEW_PATH = path.join(OUTPUT_DIR, 'core-registered-knowledge-resource-semantic-review-source.jsonl');
+const REVIEW_DECISION_PATHS = [
+  path.join(OUTPUT_DIR, 'assessment-item-semantic-review-acq-decisions.jsonl'),
+  path.join(OUTPUT_DIR, 'assessment-item-semantic-review-icourse-decisions.jsonl'),
+];
 
 type LearningGoalResourceBaselineMatrix = {
   registeredLearningGoalIds?: string[];
@@ -39,6 +45,11 @@ type LearningGoalResourceBaselineMatrix = {
       pathEligibleResourceIds?: string[];
     }>;
   }>;
+};
+
+type CoreSemanticReviewRow = {
+  resourceId?: string;
+  learningGoalIds?: string[];
 };
 
 function uniqueSorted(values: Array<string | null | undefined>): string[] {
@@ -59,8 +70,20 @@ async function readExistingReviewSnapshots(): Promise<AssessmentItemSemanticRevi
   }
 }
 
+async function readReviewDecisionFile(filePath: string): Promise<AssessmentItemSemanticReviewDecision[]> {
+  try {
+    const input = await readFile(filePath, 'utf8');
+    return input.split(/\r?\n/).map((line) => line.trim()).filter(Boolean)
+      .map((line) => JSON.parse(line) as AssessmentItemSemanticReviewDecision);
+  } catch (error) {
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT') return [];
+    throw error;
+  }
+}
+
 async function loadRegisteredSemanticIds() {
   const matrix = JSON.parse(await readFile(BASELINE_MATRIX_PATH, 'utf8')) as LearningGoalResourceBaselineMatrix;
+  const coreReviewRows = await loadCoreSemanticReviewRows();
   const rows = matrix.rows ?? [];
   return {
     learningGoalIds: uniqueSorted([
@@ -78,12 +101,20 @@ async function loadRegisteredSemanticIds() {
         Object.values(row.categories ?? {}).flatMap((category) => category.pathEligibleResourceIds ?? [])
       ),
       ...CORE_RESOURCE_PATH_READINESS_REVIEW_BATCH.reviewedSourceRefs.map((ref) => ref.split('|')[0]),
+      ...coreReviewRows.map((row) => row.resourceId),
     ]),
   };
 }
 
+async function loadCoreSemanticReviewRows(): Promise<CoreSemanticReviewRow[]> {
+  return (await readFile(CORE_SEMANTIC_REVIEW_PATH, 'utf8'))
+    .split(/\r?\n/).map((line) => line.trim()).filter(Boolean)
+    .map((line) => JSON.parse(line) as CoreSemanticReviewRow);
+}
+
 async function loadLearningGoalSemanticBoundaries() {
   const matrix = JSON.parse(await readFile(BASELINE_MATRIX_PATH, 'utf8')) as LearningGoalResourceBaselineMatrix;
+  const coreReviewRows = await loadCoreSemanticReviewRows();
   return new Map((matrix.rows ?? [])
     .filter((row): row is Required<Pick<LearningGoalResourceBaselineMatrix['rows'][number], 'learningGoalId'>> & NonNullable<LearningGoalResourceBaselineMatrix['rows'][number]> =>
       Boolean(row.learningGoalId)
@@ -97,8 +128,12 @@ async function loadLearningGoalSemanticBoundaries() {
           ...(row.objectiveBoundary?.qualityObjectiveIds ?? []),
         ]),
         graphNodeIds: uniqueSorted(row.targetGraphNodeIds ?? []),
-        remediationResourceNodeIds: uniqueSorted(Object.values(row.categories ?? {})
-          .flatMap((category) => category.resourceIds ?? [])),
+        remediationResourceNodeIds: uniqueSorted([
+          ...Object.values(row.categories ?? {}).flatMap((category) => category.resourceIds ?? []),
+          ...coreReviewRows
+            .filter((review) => review.learningGoalIds?.includes(row.learningGoalId!))
+            .map((review) => review.resourceId),
+        ]),
       },
     ]));
 }
@@ -116,7 +151,9 @@ async function main() {
     [
       ...buildKaqFoundationSemanticReviewDecisions(catalog.items, sources.kaqReviewedItems),
       ...buildCheckpointAuthoredSemanticReviewDecisions(catalog.items),
+      ...(await Promise.all(REVIEW_DECISION_PATHS.map(readReviewDecisionFile))).flat(),
     ],
+    sourceReviewShardReplacementPolicy,
   );
   const learningGoalSemanticBoundaries = await loadLearningGoalSemanticBoundaries();
   const registeredSemanticIds = await loadRegisteredSemanticIds();
