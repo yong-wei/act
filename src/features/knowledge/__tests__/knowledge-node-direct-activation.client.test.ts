@@ -20,7 +20,7 @@ vi.mock('next/dynamic', () => ({
       teachingOrderLinks?: Array<{ id: string }>;
       selectedNode?: { id: string } | null;
       onNodeClick: (node: unknown) => void;
-      onManipulationStart: () => void;
+      onManipulationStart?: () => void;
       onBackgroundClick: () => void;
       fitViewRequest: { id: number; target: 'current' | 'root' };
       relayoutVersion: number;
@@ -39,7 +39,7 @@ vi.mock('next/dynamic', () => ({
         'data-graph-version': props.graphVersion,
         'data-renderer-width': String(props.width),
       }, createElement('button', {
-        type: 'button', 'data-testid': `manipulation-${renderer}`, onClick: props.onManipulationStart,
+        type: 'button', 'data-testid': `manipulation-${renderer}`, onClick: () => props.onManipulationStart?.(),
       }, 'manipulation'), createElement('button', {
         type: 'button', 'data-testid': `background-${renderer}`, onClick: props.onBackgroundClick,
       }, 'background'), props.nodes.map((node) => createElement('button', {
@@ -410,7 +410,7 @@ describe('knowledge-node-direct-activation-contract', () => {
     expect(container.querySelector('[data-testid="resource-panel"]')?.getAttribute('data-open')).toBe('false');
   });
 
-  it('separates manipulation dismissal from a true blank-canvas dismissal without changing domain or layout inputs', async () => {
+  it('preserves inspection through manipulation while a true blank-canvas activation dismisses without changing layout inputs', async () => {
     vi.stubGlobal('fetch', vi.fn((url: string) => {
       if (url.includes(encodeURIComponent(domainA))) {
         return json(domainPayload(domainA, [rootNode(domainA), members['a-1']]));
@@ -433,11 +433,10 @@ describe('knowledge-node-direct-activation-contract', () => {
     expect(container.querySelector('[data-testid="resource-panel"]')?.getAttribute('data-open')).toBe('true');
 
     await act(async () => container.querySelector<HTMLButtonElement>('[data-testid="manipulation-2D"]')!.click());
-    expect(container.querySelector('[data-testid="resource-panel"]')?.getAttribute('data-open')).toBe('false');
+    expect(container.querySelector('[data-testid="resource-panel"]')?.getAttribute('data-open')).toBe('true');
     expect(graph.getAttribute('data-selected-node-id')).toBe('a-1');
     expect(container.querySelector('[data-knowledge-active-domain-id]')?.getAttribute('data-knowledge-active-domain-id')).toBe(domainA);
 
-    await act(async () => container.querySelector<HTMLButtonElement>('[data-testid="canvas-2D-a-1"]')!.click());
     await act(async () => container.querySelector<HTMLButtonElement>('[data-testid="background-2D"]')!.click());
     expect(container.querySelector('[data-testid="resource-panel"]')?.getAttribute('data-open')).toBe('false');
     expect(graph.getAttribute('data-selected-node-id')).toBe('');

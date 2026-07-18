@@ -4,6 +4,7 @@ import { act, createElement, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent } from '@testing-library/dom';
+import userEvent from '@testing-library/user-event';
 
 vi.mock('next/image', () => ({ default: (props: Record<string, unknown>) => createElement('span', props) }));
 vi.mock('../knowledge-card', () => ({
@@ -96,12 +97,24 @@ describe('ResourcePanel relation detail behavior', () => {
       `/api/knowledge/nodes/${encodeURIComponent(id)}`,
       expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
-    expect(container.textContent).toContain('层级与包含关系');
-    expect(container.textContent).toContain('本节点包含目标子级');
     expect(container.textContent).toContain('元数据不完整');
     expect(container.textContent).toContain('知识内容不完整');
     expect(container.textContent).toContain('关联资源不完整');
     expect(container.textContent).toContain('关系列表不完整');
+
+    const overviewButton = Array.from(container.querySelectorAll('button'))
+      .find((button) => button.textContent?.includes('关联知识点'))!;
+    expect(overviewButton.getAttribute('aria-expanded')).toBe('false');
+    const overviewRegion = document.getElementById(overviewButton.getAttribute('aria-controls')!);
+    expect(overviewRegion?.hidden).toBe(true);
+    await act(async () => fireEvent.click(overviewButton));
+    expect(overviewRegion?.hidden).toBe(false);
+
+    const membershipButton = Array.from(container.querySelectorAll('button'))
+      .find((button) => button.textContent?.includes('层级与包含关系'))!;
+    expect(membershipButton.getAttribute('aria-expanded')).toBe('false');
+    await act(async () => fireEvent.click(membershipButton));
+    expect(container.textContent).toContain('本节点包含目标子级');
 
     const followsButton = Array.from(container.querySelectorAll('button'))
       .find((button) => button.textContent?.includes('后续关系'))!;
@@ -184,7 +197,7 @@ describe('ResourcePanel relation detail behavior', () => {
     })));
     expect(container.querySelector('[data-knowledge-inspector]')).toBe(inspector);
     expect(container.textContent).toContain('节点 B 的即时摘要');
-    expect(inspector.scrollTop).toBe(140);
+    expect(inspector.scrollTop).toBe(0);
 
     await act(async () => {
       pending.get('/api/knowledge/nodes/node-b')?.(new Response(JSON.stringify({
@@ -204,7 +217,7 @@ describe('ResourcePanel relation detail behavior', () => {
     expect(container.textContent).not.toContain('过期的节点 A 详情');
   });
 
-  it('shows canonical corridor direction and visual merge provenance for every raw association', async () => {
+  it('uses a keyboard-accessible single-open accordion while preserving raw relation provenance', async () => {
     const detail = {
       id: 'selected', name: '当前节点', nodeType: 'THEORY' as const, description: '详情',
       positionX: 0, positionY: 0, positionZ: 0, chapterName: '当前领域',
@@ -235,15 +248,52 @@ describe('ResourcePanel relation detail behavior', () => {
         descendants: [{ id: 'descendant', name: '后续节点' }],
         cycleState: 'cyclic',
       },
+      adjacentDomainNavigations: [{
+        direction: 'descendant', edgeId: 'cross-1', nodeId: 'remote', nodeName: '跨域节点',
+        domainId: 'chapter-node:相邻领域',
+      }],
     })));
     await act(async () => Promise.resolve());
 
-    expect(container.textContent).toContain('当前规范路径');
+    const overviewButton = Array.from(container.querySelectorAll('button'))
+      .find((button) => button.textContent?.includes('关联知识点'))!;
+    const corridorButton = Array.from(container.querySelectorAll('button'))
+      .find((button) => button.textContent?.includes('当前规范路径'))!;
+    const adjacentButton = Array.from(container.querySelectorAll('button'))
+      .find((button) => button.textContent?.includes('相邻领域路径'))!;
+    const learningActionsButton = Array.from(container.querySelectorAll('button'))
+      .find((button) => button.textContent?.includes('学习路径动作'))!;
+    for (const button of [overviewButton, corridorButton, adjacentButton, learningActionsButton]) {
+      expect(button.getAttribute('aria-expanded')).toBe('false');
+      const regionId = button.getAttribute('aria-controls');
+      expect(regionId).toBeTruthy();
+      const region = document.getElementById(regionId!);
+      expect(region?.getAttribute('role')).toBe('region');
+      expect(region?.getAttribute('aria-labelledby')).toBe(button.id);
+      expect(region?.hidden).toBe(true);
+    }
+
+    corridorButton.focus();
+    await userEvent.setup().keyboard('{Enter}');
+    expect(corridorButton.getAttribute('aria-expanded')).toBe('true');
+    expect(document.getElementById(corridorButton.getAttribute('aria-controls')!)?.hidden).toBe(false);
     expect(container.textContent).toContain('前置节点');
     expect(container.textContent).toContain('后续节点');
     expect(container.textContent).toContain('需共同理解或待审查');
+
+    await act(async () => fireEvent.click(learningActionsButton));
+    expect(learningActionsButton.getAttribute('aria-expanded')).toBe('true');
+    expect(corridorButton.getAttribute('aria-expanded')).toBe('false');
+    expect(document.getElementById(learningActionsButton.getAttribute('aria-controls')!)?.hidden).toBe(false);
+
+    await act(async () => fireEvent.click(overviewButton));
+    expect(overviewButton.getAttribute('aria-expanded')).toBe('true');
+    expect(learningActionsButton.getAttribute('aria-expanded')).toBe('false');
+    expect(corridorButton.getAttribute('aria-expanded')).toBe('false');
+    expect(document.getElementById(corridorButton.getAttribute('aria-controls')!)?.hidden).toBe(true);
     const relatedButton = Array.from(container.querySelectorAll('button'))
       .find((button) => button.textContent?.includes('关联关系'))!;
+    expect(relatedButton.getAttribute('aria-expanded')).toBe('false');
     await act(async () => fireEvent.click(relatedButton));
     expect(container.textContent).toContain('本节点支撑目标结论');
     expect(container.textContent).toContain('本节点可应用于目标');
@@ -251,6 +301,58 @@ describe('ResourcePanel relation detail behavior', () => {
     expect(container.textContent).toContain('规范方向：selected → peer');
     expect(container.textContent).toContain('关系依据未提供');
     expect(container.textContent).toContain('画布合并呈现：2 条原始关系');
+  });
+
+  it('preserves disclosure and scroll for same-node updates, then resets both for a new node id', async () => {
+    const selected = (id: string, description: string) => ({
+      id, name: `节点 ${id}`, nodeType: 'THEORY' as const, description,
+      positionX: 0, positionY: 0, positionZ: 0,
+      relatedNodes: [{
+        id: `${id}-peer`, name: '相邻节点', nodeType: 'THEORY', canonicalType: 'related',
+        relationId: `${id}-related`, category: 'related' as const, family: 'association' as const,
+        direction: 'unordered' as const, sourceId: id, targetId: `${id}-peer`, strength: 1,
+      }],
+    });
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      const id = decodeURIComponent(url.split('/').pop()!);
+      return new Response(JSON.stringify(selected(id, `服务端详情 ${id}`)), { status: 200 });
+    }));
+
+    await act(async () => {
+      root.render(createElement(ResourcePanel, {
+        isOpen: true, selectedNode: selected('node-a', '即时详情 A'), onClose: () => {},
+      }));
+      await Promise.resolve();
+    });
+    const inspector = container.querySelector<HTMLElement>('[data-knowledge-inspector]')!;
+    const overview = Array.from(container.querySelectorAll('button'))
+      .find((button) => button.textContent?.includes('关联知识点'))!;
+    await act(async () => fireEvent.click(overview));
+    const related = Array.from(container.querySelectorAll('button'))
+      .find((button) => button.textContent?.includes('关联关系'))!;
+    await act(async () => fireEvent.click(related));
+    inspector.scrollTop = 120;
+
+    await act(async () => root.render(createElement(ResourcePanel, {
+      isOpen: true, selectedNode: selected('node-a', '同节点异步更新'), onClose: () => {},
+    })));
+    expect(overview.getAttribute('aria-expanded')).toBe('true');
+    expect(related.getAttribute('aria-expanded')).toBe('true');
+    expect(inspector.scrollTop).toBe(120);
+
+    await act(async () => {
+      root.render(createElement(ResourcePanel, {
+        isOpen: true, selectedNode: selected('node-b', '新节点详情'), onClose: () => {},
+      }));
+      await Promise.resolve();
+    });
+    const nextOverview = Array.from(container.querySelectorAll('button'))
+      .find((button) => button.textContent?.includes('关联知识点'))!;
+    const nextRelated = Array.from(container.querySelectorAll('button'))
+      .find((button) => button.textContent?.includes('关联关系'))!;
+    expect(nextOverview.getAttribute('aria-expanded')).toBe('false');
+    expect(nextRelated.getAttribute('aria-expanded')).toBe('false');
+    expect(inspector.scrollTop).toBe(0);
   });
 
   it('keeps the mobile inspector non-modal, does not trap Tab, and restores focus on Escape', async () => {

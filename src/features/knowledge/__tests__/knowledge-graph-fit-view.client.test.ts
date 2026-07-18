@@ -16,6 +16,7 @@ const forceGraph = vi.hoisted(() => ({
   threeDControlsListeners: new Set<() => void>(),
   threeDCamera: null as THREE.PerspectiveCamera | null,
   threeDTarget: null as THREE.Vector3 | null,
+  suppressEngineStop: false,
 }));
 
 function forceGraphMock(kind: 'twoD' | 'threeD') {
@@ -36,7 +37,9 @@ function forceGraphMock(kind: 'twoD' | 'threeD') {
       forceGraph.threeDTarget = target.current;
     }
     useEffect(() => {
-      (props.onEngineStop as (() => void) | undefined)?.();
+      if (!forceGraph.suppressEngineStop) {
+        (props.onEngineStop as (() => void) | undefined)?.();
+      }
     }, [props.graphData, props.onEngineStop]);
     useImperativeHandle(ref, () => ({
       graphData: () => props.graphData,
@@ -107,7 +110,7 @@ function rendererProps(
   return {
     nodes, links: [], selectedNode: null, hoveredNode: null,
     onNodeClick: () => undefined, onNodeHover: () => undefined,
-    onNodeDragEnd: () => undefined, onManipulationStart: () => undefined,
+    onNodeDragEnd: () => undefined,
     onBackgroundClick: () => undefined, labelMode: 'focus' as const,
     layoutState: getEmptyKnowledgeGraphLayoutState(), fitViewRequest,
     relayoutVersion: 0, expandedNodeIds: [], expandedDirectLinks: [],
@@ -129,6 +132,7 @@ beforeEach(() => {
   forceGraph.threeDControlsListeners.clear();
   forceGraph.threeDCamera = null;
   forceGraph.threeDTarget = null;
+  forceGraph.suppressEngineStop = false;
   forceGraph.twoDGraph2Screen.mockClear();
   Object.defineProperty(window, 'devicePixelRatio', { configurable: true, value: 1 });
 });
@@ -503,7 +507,11 @@ it('2D projects the full label set once through the live pan and zoom transform'
   ) => void;
   const graphData = forceGraph.twoDProps.graphData as { nodes: Array<Record<string, unknown>> };
   const translate = vi.fn();
-  const context = new Proxy({ globalAlpha: 1, translate } as unknown as CanvasRenderingContext2D, {
+  const context = new Proxy({
+    globalAlpha: 1,
+    translate,
+    createRadialGradient: () => ({ addColorStop: vi.fn() }),
+  } as unknown as CanvasRenderingContext2D, {
     get(target, property) {
       if (property in target) return Reflect.get(target, property);
       return () => undefined;
@@ -527,6 +535,127 @@ it('2D projects the full label set once through the live pan and zoom transform'
   graphData.nodes.forEach((node) => paint(node, context, 2));
   expect(forceGraph.twoDGraph2Screen).toHaveBeenCalledWith(movedNode.x, movedNode.y);
   expect(forceGraph.twoDGraph2Screen.mock.calls.length).toBe(graphData.nodes.length * 2);
+  await act(async () => root.unmount());
+});
+
+it.each([
+  ['desktop', 1440, 900],
+  ['mobile', 390, 844],
+] as const)('renders complete dimensional root bubbles in 2D at %s size', async (_name, width, height) => {
+  const container = document.createElement('div');
+  document.body.append(container);
+  const root = createRoot(container);
+  const longRoot = {
+    ...rootNodes[0],
+    name: '完整系统建模知识领域名称',
+  };
+  await act(async () => root.render(React.createElement(KnowledgeGraph2D, {
+    ...rendererProps([longRoot, rootNodes[1]], { id: 18, target: 'root' }),
+    width,
+    height,
+  })));
+  const graphData = forceGraph.twoDProps.graphData as {
+    nodes: Array<Record<string, any>>;
+  };
+  const node = graphData.nodes.find((candidate) => candidate.id === longRoot.id)!;
+  const addColorStop = vi.fn();
+  const context = new Proxy({
+    globalAlpha: 1,
+    createRadialGradient: vi.fn(() => ({ addColorStop })),
+    arc: vi.fn(),
+    fillText: vi.fn(),
+    strokeText: vi.fn(),
+  } as unknown as CanvasRenderingContext2D, {
+    get(target, property) {
+      if (property in target) return Reflect.get(target, property);
+      return () => undefined;
+    },
+    set(target, property, value) {
+      Reflect.set(target, property, value);
+      return true;
+    },
+  });
+  const paint = forceGraph.twoDProps.nodeCanvasObject as (
+    node: Record<string, unknown>, ctx: CanvasRenderingContext2D, scale: number
+  ) => void;
+
+  paint(node, context, 1);
+
+  expect(node.__knowledgeRootPacking.collisionRadius).toBeGreaterThanOrEqual(28);
+  expect(context.createRadialGradient).toHaveBeenCalledTimes(1);
+  expect(addColorStop).toHaveBeenCalledTimes(3);
+  expect(context.fillStyle).toBe('#f8fafc');
+  expect((context.arc as ReturnType<typeof vi.fn>).mock.calls[0][2]).toBe(
+    node.__knowledgeRootPacking.collisionRadius
+  );
+  const paintedName = (context.fillText as ReturnType<typeof vi.fn>).mock.calls
+    .map(([line]) => line)
+    .join('')
+    .replace(/\s+/gu, '');
+  expect(paintedName).toBe(longRoot.name.replace(/\s+/gu, ''));
+  await act(async () => root.unmount());
+});
+
+it.each([
+  ['desktop', 1440, 900],
+  ['mobile', 390, 844],
+] as const)('renders equivalent complete spherical root bubbles in 3D at %s size', async (_name, width, height) => {
+  const container = document.createElement('div');
+  document.body.append(container);
+  const root = createRoot(container);
+  const longRoot = {
+    ...rootNodes[0],
+    name: '完整系统建模知识领域名称',
+  };
+  forceGraph.suppressEngineStop = true;
+  await act(async () => root.render(React.createElement(KnowledgeGraphCanvas, {
+    ...rendererProps([longRoot, rootNodes[1]], { id: 19, target: 'root' }),
+    width,
+    height,
+  })));
+  const graphData = forceGraph.threeDProps.graphData as { nodes: Array<Record<string, any>> };
+  const node = graphData.nodes.find((candidate) => candidate.id === longRoot.id)!;
+  const factory = forceGraph.threeDProps.nodeThreeObject as (node: unknown) => THREE.Group;
+  const object = factory(node);
+  const body = object.userData.knowledgeBodyMesh as THREE.Mesh<
+    THREE.SphereGeometry,
+    THREE.MeshPhongMaterial
+  >;
+  const label = container.querySelector(`[data-knowledge-3d-node-label="${longRoot.id}"]`);
+
+  expect(object.userData.knowledgeIsRootBubble).toBe(true);
+  expect(object.userData.knowledgeRootLabelComplete).toBe(true);
+  expect(object.userData.knowledgePresentationRadius).toBe(
+    node.__knowledgeRootPacking.collisionRadius
+  );
+  expect(body.geometry).toBeInstanceOf(THREE.SphereGeometry);
+  expect(body.material.shininess).toBe(72);
+  expect(body.material.emissiveIntensity).toBeCloseTo(0.22);
+  expect(label?.getAttribute('data-knowledge-root-label')).toBe('inside-complete');
+  expect(label?.getAttribute('data-knowledge-complete-name')).toBe(longRoot.name);
+  expect(label?.textContent?.replace(/\s+/gu, '')).toBe(longRoot.name.replace(/\s+/gu, ''));
+  await act(async () => root.unmount());
+});
+
+it('keeps ordinary node geometry and external label policy outside the root map', async () => {
+  const container = document.createElement('div');
+  document.body.append(container);
+  const root = createRoot(container);
+  forceGraph.suppressEngineStop = true;
+  await act(async () => root.render(React.createElement(KnowledgeGraphCanvas, {
+    ...rendererProps(domainNodes, { id: 20, target: 'current' }),
+    selectedNode: domainNodes[1],
+  })));
+  const graphData = forceGraph.threeDProps.graphData as { nodes: Array<Record<string, any>> };
+  const member = graphData.nodes.find((node) => node.id === 'member-1')!;
+  const factory = forceGraph.threeDProps.nodeThreeObject as (node: unknown) => THREE.Group;
+  const object = factory(member);
+  const label = container.querySelector('[data-knowledge-3d-node-label="member-1"]');
+
+  expect(member.__knowledgeRootPacking).toBeUndefined();
+  expect(object.userData.knowledgeIsRootBubble).toBe(false);
+  expect(object.userData.knowledgeRootLabelComplete).toBe(false);
+  expect(label?.getAttribute('data-knowledge-root-label')).toBeNull();
   await act(async () => root.unmount());
 });
 

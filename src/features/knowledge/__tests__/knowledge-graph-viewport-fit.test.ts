@@ -241,7 +241,9 @@ describe('knowledge graph viewport fit', () => {
         labelMode: 'all', nodeId: `ordinary-${renderer}`, globalScale: scale,
       });
       expect(chapterCandidate.visible).toBe(true);
-      expect(chapterCandidate.fontSize).toBe(12);
+      expect(chapterCandidate.fontSize).toBe(14);
+      expect(chapterCandidate.placement).toBe('inside');
+      expect(chapterCandidate.complete).toBe(true);
       expect(deferred.visible).toBe(false);
       const keyNode = getKnowledgeNodeLabelPresentation({
         labelMode: 'focus', nodeId: `key-${renderer}`, globalScale: scale, isKeyNode: true,

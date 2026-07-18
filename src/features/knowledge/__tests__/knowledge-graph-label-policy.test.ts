@@ -83,4 +83,25 @@ describe('shouldRenderKnowledgeNodeLabel', () => {
     expect(selected.visible).toBe(true);
     expect(selected.fontSize).toBe(12);
   });
+
+  it('keeps root names complete inside at every zoom without changing ordinary nodes', () => {
+    const root = getKnowledgeNodeLabelPresentation({
+      labelMode: 'focus', nodeId: 'chapter-node:系统模型', globalScale: 0.01,
+    });
+    const ordinary = getKnowledgeNodeLabelPresentation({
+      labelMode: 'focus', nodeId: 'system-model', globalScale: 0.01,
+    });
+
+    expect(root).toMatchObject({
+      visible: true,
+      placement: 'inside',
+      complete: true,
+      fontSize: 14,
+    });
+    expect(ordinary).toMatchObject({
+      visible: false,
+      placement: 'external',
+      complete: false,
+    });
+  });
 });

@@ -2,6 +2,7 @@ import type { KnowledgeNodeData } from '../knowledge-graph-system';
 import { CHAPTER_DISPLAY_ORDER } from '@/lib/knowledge-labels';
 import {
   getKnowledgeNodeLabelBounds,
+  getKnowledgeRootLabelBounds,
   type KnowledgeNodeLabelBounds,
   type KnowledgeNodeLabelMeasureText,
 } from './node-label-layout';
@@ -16,9 +17,22 @@ export const KNOWLEDGE_ROOT_PACKING = {
   maximumViewportAspect: 2.5,
 } as const;
 
+export const KNOWLEDGE_ROOT_BUBBLE_STYLE = {
+  surface: 'hsl(var(--platform-action-primary))',
+  surfaceDepth: 'hsl(var(--platform-brand-surface-2))',
+  highlight: 'hsl(var(--platform-fg-inverse))',
+  rim: 'hsl(var(--platform-border-strong))',
+  glow: 'hsl(var(--platform-brand-focus-ring))',
+  label: 'hsl(var(--platform-fg-inverse))',
+  labelBacking: 'hsl(var(--platform-canvas))',
+  shininess: 72,
+  emissiveIntensity: 0.22,
+} as const;
+
 export interface KnowledgeRootPackingViewport {
   viewportWidth: number;
   viewportHeight: number;
+  graphVersion?: string | null;
 }
 
 export interface KnowledgeGraphFitRequest {
@@ -35,8 +49,9 @@ export type KnowledgeRootPackedNode<T extends KnowledgeNodeData = KnowledgeNodeD
   fz: number;
   __knowledgeRootPacking: {
     order: number;
-    row: number;
-    column: number;
+    seed: number;
+    attempt: number;
+    radialDistance: number;
     collisionRadius: number;
     labelBounds: KnowledgeNodeLabelBounds;
   };
@@ -71,16 +86,20 @@ export function getKnowledgeRootPresentationRadius(node: KnowledgeNodeData): num
   const semanticRadius = semanticRegion.enabled
     ? Math.min(semanticRegion.maxRadius, nodeScale.radius * semanticRegion.radiusMultiplier)
     : 0;
-  return Math.ceil(Math.max(nodeScale.radius, nodeScale.glowRadius, semanticRadius) * 1000) / 1000;
+  const minimumBodyRadius = Math.max(nodeScale.radius, nodeScale.glowRadius, semanticRadius);
+  return Math.ceil(getKnowledgeRootLabelBounds({
+    name: node.name,
+    minimumBodyRadius,
+  }).collisionRadius * 1000) / 1000;
 }
 
 export function getKnowledgeRootCollisionBounds(
   node: KnowledgeNodeData,
   measureText?: KnowledgeNodeLabelMeasureText
 ) {
-  return getKnowledgeNodeLabelBounds({
+  return getKnowledgeRootLabelBounds({
     name: node.name,
-    bodyRadius: getKnowledgeRootPresentationRadius(node),
+    minimumBodyRadius: getKnowledgeRootPresentationRadius(node),
     measureText,
   });
 }
@@ -98,44 +117,28 @@ function safeViewportAspect(viewport: KnowledgeRootPackingViewport): number {
   );
 }
 
-function calculateGridGeometry<T extends KnowledgeNodeData>(
-  nodes: readonly T[],
-  boundsById: ReadonlyMap<string, KnowledgeNodeLabelBounds>,
-  columns: number
-) {
-  const rows = Math.ceil(nodes.length / columns);
-  const columnHalfWidths = Array.from({ length: columns }, () => 0);
-  const rowHalfHeights = Array.from({ length: rows }, () => 0);
-  nodes.forEach((node, index) => {
-    const bounds = boundsById.get(node.id)!;
-    const column = index % columns;
-    const row = Math.floor(index / columns);
-    columnHalfWidths[column] = Math.max(columnHalfWidths[column], bounds.halfWidth);
-    rowHalfHeights[row] = Math.max(rowHalfHeights[row], bounds.halfHeight);
-  });
-  const width = columnHalfWidths.reduce((sum, radius) => sum + radius * 2, 0)
-    + KNOWLEDGE_ROOT_PACKING.minimumGap * Math.max(0, columns - 1);
-  const height = rowHalfHeights.reduce((sum, radius) => sum + radius * 2, 0)
-    + KNOWLEDGE_ROOT_PACKING.minimumGap * Math.max(0, rows - 1);
-  return { rows, columnHalfWidths, rowHalfHeights, width, height };
+function hashRootPackingSeed(value: string): number {
+  let hash = 2166136261;
+  for (const character of Array.from(value)) {
+    hash ^= character.codePointAt(0)!;
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
 }
 
-function chooseColumnCount<T extends KnowledgeNodeData>(
-  nodes: readonly T[],
-  boundsById: ReadonlyMap<string, KnowledgeNodeLabelBounds>,
-  viewport: KnowledgeRootPackingViewport
-): number {
-  const aspect = safeViewportAspect(viewport);
-  let best = { columns: 1, score: Number.POSITIVE_INFINITY };
-  for (let columns = 1; columns <= nodes.length; columns += 1) {
-    const geometry = calculateGridGeometry(nodes, boundsById, columns);
-    const gridAspect = geometry.width / geometry.height;
-    const emptyCells = columns * geometry.rows - nodes.length;
-    const score = Math.abs(Math.log(gridAspect / aspect))
-      + emptyCells / Math.max(1, nodes.length) * 0.08;
-    if (score < best.score - 1e-12) best = { columns, score };
-  }
-  return best.columns;
+function createSeededRandom(seed: number): () => number {
+  let value = seed >>> 0;
+  return () => {
+    value += 0x6d2b79f5;
+    let mixed = value;
+    mixed = Math.imul(mixed ^ mixed >>> 15, mixed | 1);
+    mixed ^= mixed + Math.imul(mixed ^ mixed >>> 7, mixed | 61);
+    return ((mixed ^ mixed >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+function roundCoordinate(value: number): number {
+  return Math.round(value * 1000000) / 1000000;
 }
 
 export function isCompactKnowledgeRootSet(nodes: readonly KnowledgeNodeData[]): boolean {
@@ -161,36 +164,69 @@ export function packKnowledgeGraphRootNodes<T extends KnowledgeNodeData>(
     node.id,
     labelBoundsById.get(node.id)!.collisionRadius,
   ]));
-  const columns = chooseColumnCount(ordered, labelBoundsById, viewport);
-  const geometry = calculateGridGeometry(ordered, labelBoundsById, columns);
+  const width = Number.isFinite(viewport.viewportWidth) && viewport.viewportWidth > 0
+    ? viewport.viewportWidth
+    : 1;
+  const height = Number.isFinite(viewport.viewportHeight) && viewport.viewportHeight > 0
+    ? viewport.viewportHeight
+    : 1;
+  const seed = hashRootPackingSeed([
+    viewport.graphVersion ?? 'unversioned',
+    `${width}x${height}`,
+    ordered.map((node) => node.id).join('|'),
+  ].join(':'));
+  const random = createSeededRandom(seed);
+  const aspect = safeViewportAspect(viewport);
+  const aspectX = Math.sqrt(aspect);
+  const aspectY = 1 / aspectX;
+  const averageRadius = [...radiusById.values()].reduce((sum, radius) => sum + radius, 0)
+    / ordered.length;
+  const radialStep = Math.max(12, averageRadius * 0.42);
+  const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+  const placed: Array<{
+    node: T;
+    order: number;
+    x: number;
+    y: number;
+    attempt: number;
+    collisionRadius: number;
+  }> = [];
 
-  const centers = (halfExtents: readonly number[]) => {
-    const values: number[] = [];
-    let cursor = 0;
-    halfExtents.forEach((halfExtent, index) => {
-      if (index === 0) {
-        cursor = halfExtent;
-      } else {
-        cursor += halfExtents[index - 1] + KNOWLEDGE_ROOT_PACKING.minimumGap + halfExtent;
-      }
-      values.push(cursor);
-    });
-    const minimum = values[0] - halfExtents[0];
-    const last = values.length - 1;
-    const maximum = values[last] + halfExtents[last];
-    const midpoint = (minimum + maximum) / 2;
-    return values.map((value) => value - midpoint);
-  };
-
-  const xCenters = centers(geometry.columnHalfWidths);
-  const yCenters = centers(geometry.rowHalfHeights);
-
-  return ordered.map((node, order) => {
-    const row = Math.floor(order / columns);
-    const column = order % columns;
-    const x = xCenters[column];
-    const y = yCenters[row];
+  ordered.forEach((node, order) => {
     const collisionRadius = radiusById.get(node.id)!;
+    if (order === 0) {
+      placed.push({ node, order, x: 0, y: 0, attempt: 0, collisionRadius });
+      return;
+    }
+    const phase = random() * Math.PI * 2;
+    const jitterPhase = random() * Math.PI * 2;
+    for (let attempt = 1; attempt <= 200000; attempt += 1) {
+      const radius = radialStep * Math.sqrt(attempt);
+      const angle = phase + attempt * goldenAngle;
+      const jitter = radialStep * 0.28 * Math.sin(jitterPhase + attempt * 1.61803398875);
+      const x = Math.cos(angle) * (radius + jitter) * aspectX;
+      const y = Math.sin(angle) * (radius - jitter) * aspectY;
+      const collisionFree = placed.every((candidate) => Math.hypot(
+        x - candidate.x,
+        y - candidate.y,
+      ) >= collisionRadius + candidate.collisionRadius + KNOWLEDGE_ROOT_PACKING.minimumGap);
+      if (!collisionFree) continue;
+      placed.push({ node, order, x, y, attempt, collisionRadius });
+      return;
+    }
+    throw new Error(`Unable to pack knowledge root node ${node.id}`);
+  });
+
+  const minimumX = Math.min(...placed.map((item) => item.x - item.collisionRadius));
+  const maximumX = Math.max(...placed.map((item) => item.x + item.collisionRadius));
+  const minimumY = Math.min(...placed.map((item) => item.y - item.collisionRadius));
+  const maximumY = Math.max(...placed.map((item) => item.y + item.collisionRadius));
+  const centerX = (minimumX + maximumX) / 2;
+  const centerY = (minimumY + maximumY) / 2;
+
+  return placed.map(({ node, order, x: rawX, y: rawY, attempt, collisionRadius }) => {
+    const x = roundCoordinate(rawX - centerX);
+    const y = roundCoordinate(rawY - centerY);
     return {
       ...node,
       x,
@@ -204,8 +240,9 @@ export function packKnowledgeGraphRootNodes<T extends KnowledgeNodeData>(
       positionZ: 0,
       __knowledgeRootPacking: {
         order,
-        row,
-        column,
+        seed,
+        attempt,
+        radialDistance: roundCoordinate(Math.hypot(rawX, rawY)),
         collisionRadius,
         labelBounds: labelBoundsById.get(node.id)!,
       },

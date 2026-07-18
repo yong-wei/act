@@ -156,6 +156,7 @@ export function placeKnowledgeGraphLabels(input: Pick<KnowledgeViewportFitInput,
     if (node.isInFrustum === false || (node.depth !== undefined && !Number.isFinite(node.depth))) {
       result.set(node.id, {
         visible: false, fontSize: 0, scale: 0, priority: 'deferred',
+        placement: 'external', complete: false,
         offsetX: 0, offsetY: 0, projectedScale: nodeScale(node),
       });
       return;
@@ -170,6 +171,25 @@ export function placeKnowledgeGraphLabels(input: Pick<KnowledgeViewportFitInput,
     });
     if (!label.visible) {
       result.set(node.id, { ...label, offsetX: 0, offsetY: 0, projectedScale: nodeScale(node) });
+      return;
+    }
+    if (label.placement === 'inside') {
+      const point = center(node);
+      const halfWidth = node.labelBounds.halfWidth * nodeScale(node) * label.scale;
+      const halfHeight = node.labelBounds.halfHeight * nodeScale(node) * label.scale;
+      accepted.push({
+        id: node.id,
+        left: point.x - halfWidth,
+        right: point.x + halfWidth,
+        top: point.y - halfHeight,
+        bottom: point.y + halfHeight,
+      });
+      result.set(node.id, {
+        ...label,
+        offsetX: 0,
+        offsetY: 0,
+        projectedScale: nodeScale(node),
+      });
       return;
     }
     const halfWidth = node.labelBounds.halfWidth * nodeScale(node) * label.scale;
