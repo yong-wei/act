@@ -9,6 +9,7 @@ import {
   buildCheckpointAuthoredSemanticReviewDecisions,
   buildKaqFoundationSemanticReviewDecisions,
   mergeAssessmentItemSemanticReviewDecisions,
+  sourceReviewShardReplacementPolicy,
   type AssessmentItemSemanticReviewDecision,
 } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
 import {
@@ -152,6 +153,7 @@ async function main() {
       ...buildCheckpointAuthoredSemanticReviewDecisions(catalog.items),
       ...(await Promise.all(REVIEW_DECISION_PATHS.map(readReviewDecisionFile))).flat(),
     ],
+    sourceReviewShardReplacementPolicy,
   );
   const learningGoalSemanticBoundaries = await loadLearningGoalSemanticBoundaries();
   const registeredSemanticIds = await loadRegisteredSemanticIds();

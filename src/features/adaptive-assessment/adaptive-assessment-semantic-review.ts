@@ -373,15 +373,38 @@ function canGeneratedDecisionReplaceExisting(
   return Boolean(existing.reviewerId && existing.reviewerId === generated.reviewerId);
 }
 
+export function sourceReviewShardReplacementPolicy(
+  existing: AssessmentItemSemanticReviewDecision,
+  generated: AssessmentItemSemanticReviewDecision,
+): boolean | undefined {
+  const isSourceReviewShard = (decision: AssessmentItemSemanticReviewDecision) =>
+    decision.reviewBatchId?.startsWith('issue-883-acq-static-question-review.') === true
+    || decision.reviewBatchId?.startsWith('assessment-item-semantic-review-icourse-') === true;
+
+  const existingIsSourceReviewShard = isSourceReviewShard(existing);
+  const generatedIsSourceReviewShard = isSourceReviewShard(generated);
+  if (!existingIsSourceReviewShard && !generatedIsSourceReviewShard) return undefined;
+  return existingIsSourceReviewShard && generatedIsSourceReviewShard;
+}
+
 export function mergeAssessmentItemSemanticReviewDecisions(
   existingDecisions: AssessmentItemSemanticReviewDecision[],
   generatedDecisions: AssessmentItemSemanticReviewDecision[],
+  replacementPolicy?: (
+    existing: AssessmentItemSemanticReviewDecision,
+    generated: AssessmentItemSemanticReviewDecision,
+  ) => boolean | undefined,
 ): AssessmentItemSemanticReviewDecision[] {
   const decisionsByItemId = new Map<string, AssessmentItemSemanticReviewDecision>();
   for (const decision of existingDecisions) decisionsByItemId.set(decision.catalogItemId, decision);
   for (const decision of generatedDecisions) {
     const existing = decisionsByItemId.get(decision.catalogItemId);
-    if (!existing || canGeneratedDecisionReplaceExisting(existing, decision)) {
+    const replacementDecision = existing ? replacementPolicy?.(existing, decision) : undefined;
+    if (
+      !existing
+      || replacementDecision === true
+      || (replacementDecision === undefined && canGeneratedDecisionReplaceExisting(existing, decision))
+    ) {
       decisionsByItemId.set(decision.catalogItemId, decision);
     }
   }

@@ -11,6 +11,7 @@ import {
   buildCheckpointAuthoredSemanticReviewDecisions,
   buildKaqFoundationSemanticReviewDecisions,
   mergeAssessmentItemSemanticReviewDecisions,
+  sourceReviewShardReplacementPolicy,
   type AssessmentItemSemanticReviewDecision,
 } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
 import { CORE_RESOURCE_PATH_READINESS_REVIEW_BATCH } from '@/lib/resource-node-path-readiness-review-batch';
@@ -111,13 +112,17 @@ async function main() {
     icourseObjectiveBankIndexTotal: sources.icourseObjectiveBankIndexTotal,
     kaqReviewedItems: sources.kaqReviewedItems,
   });
+  const sourceReviewDecisions = (await Promise.all(
+    REVIEW_DECISION_PATHS.map(readReviewDecisionFile),
+  )).flat();
   const reviewedSnapshots = mergeAssessmentItemSemanticReviewDecisions(
     await readExistingReviewSnapshots(),
     [
       ...buildKaqFoundationSemanticReviewDecisions(catalog.items, sources.kaqReviewedItems),
       ...buildCheckpointAuthoredSemanticReviewDecisions(catalog.items),
-      ...(await Promise.all(REVIEW_DECISION_PATHS.map(readReviewDecisionFile))).flat(),
+      ...sourceReviewDecisions,
     ],
+    sourceReviewShardReplacementPolicy,
   );
   const registeredSemanticIds = await loadRegisteredSemanticIds();
   const artifacts = buildAssessmentItemSemanticReviewArtifacts({
