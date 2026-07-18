@@ -39,6 +39,8 @@ scripts/*
 !scripts/wasm/**
 !scripts/db/
 !scripts/db/**
+!scripts/assignments/
+!scripts/assignments/**
 !scripts/lib/
 !scripts/lib/**
 !scripts/workers/

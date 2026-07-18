@@ -15,6 +15,7 @@ const read = (file: string) => readFileSync(join(process.cwd(), file), 'utf8');
 describe('math-document grading production entrypoint contract', () => {
   it('provisions the local conversion toolchain and starts the math worker from the production worker entrypoint', () => {
     const dockerfile = read('Dockerfile');
+    const dockerignore = read('.dockerignore');
     const worker = read('scripts/workers/data-governance-worker.ts');
     const mathWorker = read('scripts/workers/math-document-grading-worker.ts');
     const gc = read('scripts/assignments/gc-submission-objects.ts');
@@ -25,6 +26,7 @@ describe('math-document grading production entrypoint contract', () => {
     expect(dockerfile).toMatch(/apk add[^\n]*libreoffice/);
     expect(dockerfile).not.toContain('markitdown==');
     expect(dockerfile).toContain('scripts/assignments');
+    expect(dockerignore).toContain('!scripts/assignments/**');
     expect(worker).toContain('math-document-grading-worker');
     expect(mathWorker).toContain('assertMathDocumentGradingWorkerConfig');
     expect(mathWorker).toContain('MATH_DOCUMENT_GRADING_WORKER_CAPABILITY_KEY');
