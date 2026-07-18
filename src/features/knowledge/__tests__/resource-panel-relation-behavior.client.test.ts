@@ -263,15 +263,23 @@ describe('ResourcePanel relation detail behavior', () => {
       .find((button) => button.textContent?.includes('相邻领域路径'))!;
     const learningActionsButton = Array.from(container.querySelectorAll('button'))
       .find((button) => button.textContent?.includes('学习路径动作'))!;
+    const accordionIds = new Set<string>();
     for (const button of [overviewButton, corridorButton, adjacentButton, learningActionsButton]) {
       expect(button.getAttribute('aria-expanded')).toBe('false');
       const regionId = button.getAttribute('aria-controls');
       expect(regionId).toBeTruthy();
+      expect(button.id).toMatch(/^knowledge-resource-panel-[A-Za-z0-9_-]+$/u);
+      expect(regionId).toMatch(/^knowledge-resource-panel-[A-Za-z0-9_-]+$/u);
       const region = document.getElementById(regionId!);
+      expect(container.querySelector(`#${button.id}`)).toBe(button);
+      expect(container.querySelector(`#${regionId}`)).toBe(region);
       expect(region?.getAttribute('role')).toBe('region');
       expect(region?.getAttribute('aria-labelledby')).toBe(button.id);
       expect(region?.hidden).toBe(true);
+      accordionIds.add(button.id);
+      accordionIds.add(regionId!);
     }
+    expect(accordionIds.size).toBe(8);
 
     corridorButton.focus();
     await userEvent.setup().keyboard('{Enter}');

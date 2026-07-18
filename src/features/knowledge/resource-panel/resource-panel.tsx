@@ -358,7 +358,7 @@ function ResourcePanelContent({
     () => resolveResourcePanelSelectionState(selectedNode).expandedRelationGroups
   );
   const [activeRelationPathSection, setActiveRelationPathSection] = useState<RelationPathSection | null>(null);
-  const accordionId = useId();
+  const accordionId = `knowledge-resource-panel-${useId().replace(/[^A-Za-z0-9_-]/gu, '-')}`;
   const inspectorRef = useRef<HTMLDivElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const previouslyFocusedElementRef = useRef<HTMLElement | null>(null);

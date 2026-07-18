@@ -613,6 +613,10 @@ it.each([
     width,
     height,
   })));
+  await act(async () => {
+    (forceGraph.threeDProps.onEngineStop as () => void)();
+    vi.runAllTimers();
+  });
   const graphData = forceGraph.threeDProps.graphData as { nodes: Array<Record<string, any>> };
   const node = graphData.nodes.find((candidate) => candidate.id === longRoot.id)!;
   const factory = forceGraph.threeDProps.nodeThreeObject as (node: unknown) => THREE.Group;
