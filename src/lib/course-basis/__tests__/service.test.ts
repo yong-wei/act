@@ -162,6 +162,26 @@ describe('course-basis service', () => {
     expect(db.courseBasisProjection.createMany).not.toHaveBeenCalled();
   });
 
+  it('keeps the first rejection audit immutable on repeated requests', async () => {
+    const rejected = {
+      id: 'version-1', reviewState: 'REJECTED', extractionState: 'EXTRACTED', retiredAt: null,
+      reviewedById: 'teacher-original', reviewedAt: new Date('2026-07-18T00:00:00Z'), segments: [],
+    };
+    const db: any = {
+      courseBasisDocumentVersion: {
+        findFirst: vi.fn(async () => rejected),
+        update: vi.fn(),
+        findUniqueOrThrow: vi.fn(async () => ({ ...rejected, _count: { segments: 0, projections: 0 } })),
+      },
+    };
+    db.$transaction = vi.fn(async (callback: (tx: any) => unknown) => callback(db));
+
+    const result = await rejectCourseBasisVersion(db, { actor: teacher, versionId: rejected.id });
+
+    expect(result).toMatchObject({ reviewedById: 'teacher-original', reviewedAt: rejected.reviewedAt });
+    expect(db.courseBasisDocumentVersion.update).not.toHaveBeenCalled();
+  });
+
   it('persists a failed PDF extraction as a retryable version', async () => {
     const create = vi.fn(async ({ data }: any) => ({ id: 'version-1', ...data, segments: data.segments.create }));
     const db: any = {
@@ -258,6 +278,9 @@ describe('course-basis service', () => {
     const result = await listCourseBases(db, teacher);
     const query = db.courseBasis.findMany.mock.calls[0][0];
     const versionSelect = query.select.documents.select.versions.select;
+    expect(query.take).toBe(50);
+    expect(query.select.documents.take).toBe(20);
+    expect(query.select.documents.select.versions.take).toBe(20);
     expect(versionSelect.originalContent).toBeUndefined();
     expect(versionSelect.normalizedText).toBeUndefined();
     expect(result[0].documents[0].versions[0]).toMatchObject({ segmentCount: 8 });

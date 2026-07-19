@@ -15,6 +15,9 @@ const courseBasisIdSchema = z.string().trim().min(1).max(200);
 const courseBasisDocumentKindSchema = z.enum(['STANDARD', 'TEXTBOOK', 'OTHER']);
 const COURSE_BASIS_LIST_PREVIEW_SEGMENTS = 3;
 const COURSE_BASIS_LIST_PREVIEW_CHARS = 320;
+const COURSE_BASIS_LIST_LIMIT = 50;
+const COURSE_BASIS_DOCUMENT_LIST_LIMIT = 20;
+const COURSE_BASIS_VERSION_LIST_LIMIT = 20;
 const COURSE_BASIS_PREVIEW_DEFAULT_PAGE_SIZE = 20;
 export const COURSE_BASIS_PREVIEW_MAX_PAGE_SIZE = 100;
 
@@ -40,6 +43,7 @@ export async function listCourseBases(db: CourseBasisDb, actor: CourseBasisActor
   const rows = await db.courseBasis.findMany({
     where: validatedActor.role === 'ADMIN' ? {} : { ownerId: validatedActor.id },
     orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
+    take: COURSE_BASIS_LIST_LIMIT,
     select: {
       id: true,
       ownerId: true,
@@ -50,6 +54,7 @@ export async function listCourseBases(db: CourseBasisDb, actor: CourseBasisActor
       updatedAt: true,
       documents: {
         orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
+        take: COURSE_BASIS_DOCUMENT_LIST_LIMIT,
         select: {
           id: true,
           courseBasisId: true,
@@ -59,6 +64,7 @@ export async function listCourseBases(db: CourseBasisDb, actor: CourseBasisActor
           updatedAt: true,
           versions: {
             orderBy: { versionNumber: 'desc' },
+            take: COURSE_BASIS_VERSION_LIST_LIMIT,
             select: {
               id: true,
               documentId: true,
@@ -336,6 +342,7 @@ export async function rejectCourseBasisVersion(db: CourseBasisDb, input: {
     const version = await findVersionForActor(tx as CourseBasisDb, actor, versionId);
     if (version.retiredAt) throw new CourseBasisError('version-retired');
     if (version.reviewState === 'CONFIRMED') throw new CourseBasisError('confirmed-version-immutable');
+    if (version.reviewState === 'REJECTED') return selectVersionMutationResult(tx as CourseBasisDb, version.id);
     await tx.courseBasisDocumentVersion.update({
       where: { id: version.id },
       data: { reviewState: 'REJECTED', reviewedById: actor.id, reviewedAt: input.now ?? new Date() },
