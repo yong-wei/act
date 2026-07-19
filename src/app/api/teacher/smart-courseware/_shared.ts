@@ -116,17 +116,39 @@ export function publicCoursewareJob(value: unknown) {
     updatedAt: iso(job.updatedAt),
     units: Array.isArray(job.units) ? job.units.map((value) => {
       const unit = record(value);
+      const output = publicUnitOutput(unit.output);
       return compact({
         id: unit.id,
         unitKey: unit.unitKey,
         orderIndex: unit.orderIndex,
         state: unit.state,
         failureCode: unit.failureCode,
+        output,
+        outputTruncated: unit.output != null && output == null,
         startedAt: iso(unit.startedAt),
         completedAt: iso(unit.completedAt),
       });
     }) : [],
   });
+}
+
+function publicUnitOutput(value: unknown): unknown {
+  if (value === undefined) return undefined;
+  const redacted = redactUnitOutput(value);
+  try {
+    return new TextEncoder().encode(JSON.stringify(redacted)).byteLength <= 64_000 ? redacted : null;
+  } catch {
+    return null;
+  }
+}
+
+function redactUnitOutput(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(redactUnitOutput);
+  if (!value || typeof value !== 'object' || value instanceof Date) return value;
+  const forbidden = new Set(['providerAudit', 'request', 'resultSnapshot']);
+  return Object.fromEntries(Object.entries(value as Record<string, unknown>)
+    .filter(([key]) => !forbidden.has(key))
+    .map(([key, child]) => [key, redactUnitOutput(child)]));
 }
 
 export function publicCoursewareRevision(value: unknown) {

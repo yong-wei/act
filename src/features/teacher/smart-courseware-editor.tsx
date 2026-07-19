@@ -82,7 +82,7 @@ export type SmartCoursewareJobView = {
   acceptedAt?: string | null;
   firstIncompleteUnitKey?: string;
   failureCode?: string | null;
-  units?: Array<{ id: string; unitKey: string; orderIndex: number; state: string; failureCode?: string | null }>;
+  units?: Array<{ id: string; unitKey: string; orderIndex: number; state: string; failureCode?: string | null; output?: unknown; outputTruncated?: boolean }>;
 };
 
 export type SmartCoursewareTeacherEnvelope = SmartCoursewareDraftShell & {
@@ -952,7 +952,11 @@ function CoursewareJobPanel({
       </div>
     </div>
     {job.failureCode ? <p className="mt-2 text-sm text-destructive">{job.failureCode}</p> : null}
-    {job.units?.length ? <ol className="mt-3 grid gap-2 md:grid-cols-3">{job.units.map((unit) => <li key={unit.id} className="rounded bg-muted px-3 py-2 text-xs">{unit.unitKey} · {unit.state}</li>)}</ol> : null}
+    {job.units?.length ? <ol className="mt-3 grid gap-2 md:grid-cols-3">{job.units.map((unit) => <li key={unit.id} className="rounded bg-muted px-3 py-2 text-xs">
+      <strong>{unit.unitKey} · {unit.state}</strong>
+      {unit.output ? <pre className="mt-2 max-h-52 overflow-auto whitespace-pre-wrap">{JSON.stringify(unit.output, null, 2)}</pre> : null}
+      {unit.outputTruncated ? <p className="mt-2 text-subtle">该单元输出过大，请在完整课件中查看。</p> : null}
+    </li>)}</ol> : null}
   </section>;
 }
 
