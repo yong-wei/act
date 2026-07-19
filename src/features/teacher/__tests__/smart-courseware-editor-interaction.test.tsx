@@ -190,4 +190,92 @@ describe('smart courseware editor activity creation', () => {
     await act(async () => regenerate.click());
     expect(requestedUrls).toContain(`/api/teacher/smart-courseware/drafts/draft-1/modules/${copiedModuleId}/regeneration`);
   });
+
+  it('persists slot and registered size atomically without exposing incompatible local state', async () => {
+    const composition = validCompositionInput();
+    const submissions: ReturnType<typeof validCompositionInput>[] = [];
+    let version = 1;
+    let rejectNextPatch = false;
+    const fetch = vi.fn(async (_url: string, init?: RequestInit) => {
+      if (init?.method === 'PATCH') {
+        const submitted = JSON.parse(String(init.body)) as ReturnType<typeof validCompositionInput>;
+        submissions.push(submitted);
+        if (rejectNextPatch) {
+          rejectNextPatch = false;
+          return { ok: false, json: async () => ({ error: 'rejected' }) } as Response;
+        }
+        const validated = validateCoursewareComposition(submitted, validPlan());
+        version += 1;
+        return {
+          ok: true,
+          json: async () => ({ preview: {
+            draftId: 'draft-1', version, planRevisionId: 'plan-1',
+            runtimeManifest: validated.runtimeManifest,
+            moduleMetadata: validated.moduleMetadata.map((metadata) => ({ ...metadata, provenance: 'teacher_created' })),
+            planLimitations: [], aiReview: null, generationAudit: [], validation: validated.validation,
+          } }),
+        } as Response;
+      }
+      return { ok: false, json: async () => ({}) } as Response;
+    });
+    vi.stubGlobal('fetch', fetch);
+    const envelope: SmartCoursewareTeacherEnvelope = {
+      draftId: 'draft-1', planRevisionId: 'plan-1', state: 'ready', version,
+      manifest: composition.runtimeManifest, stalePlan: false, teacherModules: {},
+      compositionMetadata: composition.moduleMetadata,
+      planLimitations: [], aiReview: null, generationAudit: [],
+    };
+    await act(async () => root.render(createElement(SmartCoursewareEditor, { initialEnvelope: envelope })));
+
+    const selectFor = (label: string) => [...container.querySelectorAll('select')]
+      .find((select) => select.parentElement?.textContent?.startsWith(label))!;
+    const change = async (select: HTMLSelectElement, value: string) => {
+      await act(async () => {
+        select.value = value;
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+    };
+    const placement = (submission: ReturnType<typeof validCompositionInput>) => {
+      const module = submission.runtimeManifest.stages[0].steps[0].modules[0];
+      return { layoutId: submission.runtimeManifest.stages[0].steps[0].layoutId, slotId: module.slotId, sizeId: module.sizeId };
+    };
+
+    expect(selectFor('slot').value).toBe('main');
+    expect(selectFor('注册尺寸').value).toBe('full');
+    expect(selectFor('注册尺寸').disabled).toBe(true);
+
+    await change(selectFor('布局'), 'main-sidebar');
+    expect(placement(submissions.at(-1)!)).toEqual({ layoutId: 'main-sidebar', slotId: 'main', sizeId: 'two-thirds' });
+    const beforeSidebar = submissions.length;
+    await change(selectFor('slot'), 'sidebar');
+    expect(submissions).toHaveLength(beforeSidebar + 1);
+    expect(placement(submissions.at(-1)!)).toEqual({ layoutId: 'main-sidebar', slotId: 'sidebar', sizeId: 'third' });
+    expect(selectFor('注册尺寸').value).toBe('third');
+
+    await change(selectFor('布局'), 'single');
+    expect(placement(submissions.at(-1)!)).toEqual({ layoutId: 'single', slotId: 'main', sizeId: 'full' });
+
+    await change(selectFor('布局'), 'two-column');
+    const beforeSameSize = submissions.length;
+    await change(selectFor('slot'), 'right');
+    expect(submissions).toHaveLength(beforeSameSize + 1);
+    expect(placement(submissions.at(-1)!)).toEqual({ layoutId: 'two-column', slotId: 'right', sizeId: 'half' });
+
+    const slotSelect = selectFor('slot');
+    slotSelect.append(new Option('invalid', 'invalid'));
+    const beforeInvalid = submissions.length;
+    await change(slotSelect, 'invalid');
+    expect(submissions).toHaveLength(beforeInvalid);
+    expect(selectFor('slot').value).toBe('right');
+    expect(selectFor('注册尺寸').value).toBe('half');
+    expect(container.textContent).toContain('当前布局不存在该 slot');
+
+    rejectNextPatch = true;
+    const beforeFailure = submissions.length;
+    await change(selectFor('slot'), 'left');
+    expect(submissions).toHaveLength(beforeFailure + 1);
+    expect(placement(submissions.at(-1)!)).toEqual({ layoutId: 'two-column', slotId: 'left', sizeId: 'half' });
+    expect(selectFor('slot').value).toBe('right');
+    expect(selectFor('注册尺寸').value).toBe('half');
+  });
 });

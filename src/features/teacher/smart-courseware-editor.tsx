@@ -17,7 +17,6 @@ import {
   GENERATED_CONTENT_CLASSES,
   GENERATED_RESPONSE_KINDS,
   GENERATED_SLIDE_LAYOUT_REGISTRY,
-  GENERATED_SLIDE_SIZE_REGISTRY,
   validateGeneratedSlideManifest,
   type GeneratedSlideManifest,
   type GeneratedSlideModule,
@@ -582,11 +581,16 @@ export function SmartCoursewareEditor({
     if (next) await persistComposition(next);
   }
 
-  async function updateModulePlacement(change: Partial<Pick<GeneratedSlideModule, 'slotId' | 'sizeId'>>) {
-    if (!selectedModule) return;
+  async function updateModuleSlot(slotId: string) {
+    if (!selectedModule || !selectedStep) return;
+    const layout = GENERATED_SLIDE_LAYOUT_REGISTRY[selectedStep.layoutId as keyof typeof GENERATED_SLIDE_LAYOUT_REGISTRY];
+    const slot = layout?.slots.find((candidate) => candidate.id === slotId);
+    if (!slot) return setMessage('当前布局不存在该 slot。');
     const next = replaceSelectedStep((step) => ({
       ...step,
-      modules: step.modules.map((module) => module.id === selectedModule.id ? { ...module, ...change } : module),
+      modules: step.modules.map((module) => module.id === selectedModule.id
+        ? { ...module, slotId: slot.id, sizeId: slot.sizeId }
+        : module),
     }));
     if (next) await persistComposition(next);
   }
@@ -759,7 +763,7 @@ export function SmartCoursewareEditor({
         onEdit={editSelectedModule}
         onDelete={deleteModule}
         onMove={moveModule}
-        onPlacement={updateModulePlacement}
+        onSlot={updateModuleSlot}
         onLayout={switchLayout}
         onRegenerate={requestModuleRegeneration}
       /> : null}
@@ -969,7 +973,7 @@ function CoursewareCompositionControls({
   onEdit,
   onDelete,
   onMove,
-  onPlacement,
+  onSlot,
   onLayout,
   onRegenerate,
 }: {
@@ -989,7 +993,7 @@ function CoursewareCompositionControls({
   onEdit: () => Promise<void>;
   onDelete: () => Promise<void>;
   onMove: (offset: -1 | 1) => Promise<void>;
-  onPlacement: (change: Partial<Pick<GeneratedSlideModule, 'slotId' | 'sizeId'>>) => Promise<void>;
+  onSlot: (slotId: string) => Promise<void>;
   onLayout: (layout: keyof typeof GENERATED_SLIDE_LAYOUT_REGISTRY) => Promise<void>;
   onRegenerate: () => Promise<void>;
 }) {
@@ -997,6 +1001,7 @@ function CoursewareCompositionControls({
   const step = steps.find((candidate) => candidate.id === selectedStepId) ?? steps[0];
   const module = step?.modules.find((candidate) => candidate.id === selectedModuleId) ?? step?.modules[0];
   const layout = step ? GENERATED_SLIDE_LAYOUT_REGISTRY[step.layoutId as keyof typeof GENERATED_SLIDE_LAYOUT_REGISTRY] : null;
+  const registeredSizeId = layout?.slots.find((slot) => slot.id === module?.slotId)?.sizeId ?? module?.sizeId ?? '';
   return <section className="space-y-3 rounded-xl border border-border p-4" data-courseware-composition-controls>
     <h2 className="font-semibold">组合编辑</h2>
     <p className="text-sm text-subtle">所有动作提交到服务器，并由共享 slide runtime 校验；无效组合不会写入。</p>
@@ -1004,8 +1009,8 @@ function CoursewareCompositionControls({
       <label className="grid gap-1 text-sm">步骤<select value={step?.id ?? ''} onChange={(event) => onSelectStep(event.target.value)} className="rounded border border-border bg-background px-2 py-1.5">{steps.map((candidate) => <option key={candidate.id} value={candidate.id}>{candidate.title}</option>)}</select></label>
       <label className="grid gap-1 text-sm">模块<select value={module?.id ?? ''} onChange={(event) => onSelectModule(event.target.value)} className="rounded border border-border bg-background px-2 py-1.5">{step?.modules.map((candidate) => <option key={candidate.id} value={candidate.id}>{candidate.id}</option>)}</select></label>
       <label className="grid gap-1 text-sm">布局<select value={step?.layoutId ?? ''} disabled={busy} onChange={(event) => void onLayout(event.target.value as keyof typeof GENERATED_SLIDE_LAYOUT_REGISTRY)} className="rounded border border-border bg-background px-2 py-1.5">{Object.keys(GENERATED_SLIDE_LAYOUT_REGISTRY).map((id) => <option key={id} value={id}>{id}</option>)}</select></label>
-      <label className="grid gap-1 text-sm">slot<select value={module?.slotId ?? ''} disabled={!module || busy} onChange={(event) => void onPlacement({ slotId: event.target.value })} className="rounded border border-border bg-background px-2 py-1.5">{layout?.slots.map((slot) => <option key={slot.id} value={slot.id}>{slot.id}</option>)}</select></label>
-      <label className="grid gap-1 text-sm">注册尺寸<select value={module?.sizeId ?? ''} disabled={!module || busy} onChange={(event) => void onPlacement({ sizeId: event.target.value })} className="rounded border border-border bg-background px-2 py-1.5">{Object.keys(GENERATED_SLIDE_SIZE_REGISTRY).map((id) => <option key={id} value={id}>{id}</option>)}</select></label>
+      <label className="grid gap-1 text-sm">slot<select value={module?.slotId ?? ''} disabled={!module || busy} onChange={(event) => void onSlot(event.target.value)} className="rounded border border-border bg-background px-2 py-1.5">{layout?.slots.map((slot) => <option key={slot.id} value={slot.id}>{slot.id}</option>)}</select></label>
+      <label className="grid gap-1 text-sm">注册尺寸<select aria-label="注册尺寸（随 slot）" value={registeredSizeId} disabled className="rounded border border-border bg-background px-2 py-1.5"><option value={registeredSizeId}>{registeredSizeId}</option></select></label>
       <label className="grid gap-1 text-sm">新增模块类型<select value={newModuleClass} onChange={(event) => onNewModuleClass(event.target.value)} className="rounded border border-border bg-background px-2 py-1.5">{[...GENERATED_CONTENT_CLASSES, GENERATED_ACTIVITY_CLASS].map((id) => <option key={id} value={id}>{id}</option>)}</select></label>
     </div>
     <div className="flex flex-wrap gap-2">
