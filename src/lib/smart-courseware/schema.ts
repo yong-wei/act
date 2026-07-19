@@ -49,10 +49,14 @@ function requireVerifiedInclusionRationale(
 export const coursewareModuleMetadataInputSchema = coursewareModuleMetadataInputObjectSchema
   .superRefine(requireVerifiedInclusionRationale);
 
+const coursewareCompositionModuleMetadataInputSchema = coursewareModuleMetadataInputObjectSchema.extend({
+  copiedFromModuleId: z.string().trim().min(1).max(96).optional(),
+}).strict().superRefine(requireVerifiedInclusionRationale);
+
 export const coursewareCompositionInputSchema = z.object({
   expectedVersion: z.number().int().positive(),
   runtimeManifest: generatedSlideManifestSchema,
-  moduleMetadata: z.array(coursewareModuleMetadataInputSchema).max(72),
+  moduleMetadata: z.array(coursewareCompositionModuleMetadataInputSchema).max(72),
 }).strict();
 
 export const coursewareApprovedPlanAlignmentSchema = z.object({

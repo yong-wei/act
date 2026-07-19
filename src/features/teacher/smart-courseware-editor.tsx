@@ -57,6 +57,7 @@ export type SmartCoursewareDraftShell = {
 
 export type SmartCoursewareCompositionMetadata = {
   moduleId: string;
+  copiedFromModuleId?: string;
   sourceState: SmartCoursewareSourceState;
   sourceBindings: Array<{ sourceVersionId: string; anchor: string; contentHash: string; citationId: string }>;
   teacherFields: {
@@ -307,10 +308,9 @@ export function splitCoursewareStep(input: {
     })),
   } satisfies GeneratedSlideManifest;
   const copiedMetadata = sourceStep.modules.map((module, index) => ({
+    ...metadataById.get(module.id)!,
     moduleId: input.newModuleIds[index],
-    sourceState: 'teacher_created_source_pending' as const,
-    sourceBindings: [],
-    teacherFields: metadataById.get(module.id)!.teacherFields,
+    copiedFromModuleId: module.id,
   }));
   return { manifest, moduleMetadata: [...input.moduleMetadata, ...copiedMetadata] };
 }

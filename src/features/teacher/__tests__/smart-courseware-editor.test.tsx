@@ -281,7 +281,12 @@ describe('smart courseware role previews', () => {
     expect(steps[1].modules).toHaveLength(1);
     expect(steps[1].modules.map((module) => module.id)).toEqual(['module-split-1']);
     expect(result!.moduleMetadata.slice(-1)).toEqual(expect.arrayContaining([
-      expect.objectContaining({ moduleId: 'module-split-1', sourceState: 'teacher_created_source_pending' }),
+      expect.objectContaining({
+        moduleId: 'module-split-1',
+        copiedFromModuleId: 'module-1',
+        sourceState: composition.moduleMetadata[0].sourceState,
+        sourceBindings: composition.moduleMetadata[0].sourceBindings,
+      }),
     ]));
     expect(validateCoursewareComposition({
       expectedVersion: 1, runtimeManifest: result!.manifest, moduleMetadata: result!.moduleMetadata,

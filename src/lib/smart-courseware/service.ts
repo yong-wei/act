@@ -143,17 +143,51 @@ export async function updateSmartCoursewareComposition(db: CoursewareDb, input: 
   const runtimeModules = allRuntimeModules(composition.runtimeManifest);
   const requestedById = new Map(composition.moduleMetadata.map((metadata) => [metadata.moduleId, metadata]));
   const existingById = new Map(draft.modules.map((module) => [module.runtimeModuleId, module]));
+  const priorRuntime = draft.runtimeManifest ? allRuntimeModules(draft.runtimeManifest as unknown as GeneratedSlideManifest) : [];
+  const priorRuntimeById = new Map(priorRuntime.map((module) => [module.id, module]));
   const allowedSourceBindings = normalizeSourceBindings([
     ...plan.sources,
     ...draft.modules.flatMap((module) => normalizeSourceBindings(module.sourceBindings)),
   ]);
-  const derived = runtimeModules.map((runtimeModule) => deriveCoursewareModuleMetadata({
-    authoringLineageRoot: draft.authoringLineageRoot,
-    runtimeModule,
-    requested: requestedById.get(runtimeModule.id)!,
-    allowedSourceBindings,
-    existing: existingById.get(runtimeModule.id),
-  }));
+  const derived = runtimeModules.map((runtimeModule) => {
+    const { copiedFromModuleId, ...requested } = requestedById.get(runtimeModule.id)!;
+    const existing = existingById.get(runtimeModule.id);
+    const matchingCopyOrigins = existing ? [] : priorRuntime.filter((candidate) => (
+      existingById.has(candidate.id) && moduleCopyContentHash(candidate) === moduleCopyContentHash(runtimeModule)
+    ));
+    if (matchingCopyOrigins.length > 1) {
+      throw new SmartCoursewareError('courseware-module-copy-origin-ambiguous', 409);
+    }
+    const copyOriginId = copiedFromModuleId ?? matchingCopyOrigins[0]?.id;
+    if (!copyOriginId) {
+      return deriveCoursewareModuleMetadata({
+        authoringLineageRoot: draft.authoringLineageRoot, runtimeModule, requested,
+        allowedSourceBindings, existing,
+      });
+    }
+    const copiedFrom = existingById.get(copyOriginId);
+    const copiedRuntime = priorRuntimeById.get(copyOriginId);
+    if (existing || !copiedFrom || !copiedRuntime || moduleCopyContentHash(runtimeModule) !== moduleCopyContentHash(copiedRuntime)) {
+      throw new SmartCoursewareError('courseware-module-copy-origin-invalid', 409);
+    }
+    const sourceMetadata = publicModuleMetadata(copiedFrom);
+    const aiProvenance = copiedFrom.provenance === 'AI_GENERATED' || copiedFrom.provenance === 'AI_GENERATED_TEACHER_EDITED';
+    if (aiProvenance && !copiedFrom.originalAttemptId) {
+      throw new SmartCoursewareError('courseware-module-copy-origin-unaudited', 409);
+    }
+    return deriveCoursewareModuleMetadata({
+      authoringLineageRoot: draft.authoringLineageRoot,
+      runtimeModule,
+      requested: {
+        ...requested,
+        sourceState: sourceMetadata.sourceState,
+        sourceBindings: sourceMetadata.sourceBindings,
+      },
+      allowedSourceBindings,
+      newProvenance: aiProvenance ? 'ai_generated_teacher_edited' : 'teacher_created',
+      originalAttemptId: copiedFrom.originalAttemptId,
+    });
+  });
 
   try {
     await db.$transaction(async (tx) => {
@@ -185,8 +219,6 @@ export async function updateSmartCoursewareComposition(db: CoursewareDb, input: 
         await updateModuleIfChanged(tx, existing, actor, runtimeModule, metadata);
       }
 
-      const priorRuntime = draft.runtimeManifest ? allRuntimeModules(draft.runtimeManifest as unknown as GeneratedSlideManifest) : [];
-      const priorRuntimeById = new Map(priorRuntime.map((module) => [module.id, module]));
       const retainedIds = new Set(derived.map((metadata) => metadata.moduleId));
       for (const deleted of draft.modules.filter((module) => !retainedIds.has(module.runtimeModuleId))) {
         await deleteModule(tx, deleted, actor, priorRuntimeById.get(deleted.runtimeModuleId));
@@ -568,6 +600,11 @@ function publicModuleMetadata(module: CoursewareModuleRow): CoursewareModuleMeta
 
 function allRuntimeModules(manifest: GeneratedSlideManifest): GeneratedSlideModule[] {
   return manifest.stages.flatMap((stage) => stage.steps.flatMap((step) => step.modules));
+}
+
+function moduleCopyContentHash(module: GeneratedSlideModule) {
+  const { id: _id, evidencePath: _evidencePath, ...content } = module;
+  return contentHash(content);
 }
 
 function assertCreateReplay<T extends { creationRequestHash: string }>(draft: T, requestHash: string) {

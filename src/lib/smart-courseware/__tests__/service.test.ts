@@ -193,6 +193,124 @@ describe('smart courseware service', () => {
     })).rejects.toMatchObject({ code: 'source-binding-not-in-approved-plan', status: 409 });
   });
 
+  it('preserves AI provenance and the original provider attempt when persisting a split-step copy', async () => {
+    const planContent = validPlanFixture();
+    const planRevision = {
+      id: 'plan-1', ownerId: teacher.id, revisionNumber: 1,
+      content: planContent, contentHash: contentHash(planContent),
+    };
+    const before = validCompositionInput();
+    const runtimeModules = before.runtimeManifest.stages.flatMap((stage) => stage.steps.flatMap((step) => step.modules));
+    const existingModules = runtimeModules.map((runtimeModule, index) => ({
+      id: `stored-${runtimeModule.id}`, ownerId: teacher.id, draftId: 'draft-1', runtimeModuleId: runtimeModule.id,
+      moduleInstanceLineage: `lineage-${runtimeModule.id}`, contentHash: contentHash(runtimeModule),
+      sourceState: 'VERIFIED', sourceBindings: before.moduleMetadata[index].sourceBindings,
+      sourceBindingSetHash: contentHash(before.moduleMetadata[index].sourceBindings), gapIdentity: null,
+      provenance: 'AI_GENERATED', originalAttemptId: `attempt-${index + 1}`,
+      teacherMetadata: before.moduleMetadata[index].teacherFields, currentRevisionNumber: 1, deletedAt: null,
+    }));
+    const sourceStep = before.runtimeManifest.stages[0].steps[0];
+    const copiedModule = { ...structuredClone(sourceStep.modules[0]), id: 'module-split-copy' };
+    const after = structuredClone(before);
+    after.runtimeManifest.stages[0].steps = [
+      { ...structuredClone(sourceStep), durationSeconds: 150 },
+      { ...structuredClone(sourceStep), id: 'step-split-copy', title: `${sourceStep.title}（续）`, durationSeconds: 150, modules: [copiedModule] },
+    ];
+    after.moduleMetadata.push({ ...structuredClone(before.moduleMetadata[0]), moduleId: copiedModule.id });
+    const draft = {
+      id: 'draft-1', ownerId: teacher.id, planRevisionId: planRevision.id,
+      planRevisionNumber: 1, planContentHash: planRevision.contentHash,
+      authoringLineageRoot: 'lineage-1', state: 'READY', version: 1,
+      runtimeManifest: before.runtimeManifest, contentHash: coursewareManifestHash(before.runtimeManifest),
+      modules: existingModules, planRevision,
+    };
+    const createdModule = vi.fn().mockResolvedValue({});
+    const db = {
+      smartCoursewareDraft: {
+        findFirst: vi.fn().mockResolvedValueOnce(draft).mockResolvedValueOnce({
+          ...draft, version: 2, runtimeManifest: after.runtimeManifest, contentHash: coursewareManifestHash(after.runtimeManifest),
+        }),
+      },
+      $transaction: vi.fn(async (callback: (tx: unknown) => unknown) => callback({
+        smartCoursewareDraft: { updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
+        smartCoursewareModule: { create: createdModule, update: vi.fn().mockResolvedValue({}) },
+      })),
+    };
+
+    await updateSmartCoursewareComposition(db as never, {
+      actor: teacher, draftId: draft.id, ...after,
+    });
+
+    expect(createdModule).toHaveBeenCalledOnce();
+    expect(createdModule).toHaveBeenCalledWith({ data: expect.objectContaining({
+      runtimeModuleId: copiedModule.id,
+      moduleInstanceLineage: expect.not.stringContaining(existingModules[0].moduleInstanceLineage),
+      provenance: 'AI_GENERATED_TEACHER_EDITED',
+      originalAttemptId: existingModules[0].originalAttemptId,
+      revisions: { create: expect.objectContaining({
+        provenance: 'AI_GENERATED_TEACHER_EDITED',
+        originalAttemptIdSnapshot: existingModules[0].originalAttemptId,
+      }) },
+    }) });
+  });
+
+  it('rejects an explicit teacher origin when identical AI and teacher copy origins are ambiguous', async () => {
+    const planContent = validPlanFixture();
+    const planRevision = {
+      id: 'plan-1', ownerId: teacher.id, revisionNumber: 1,
+      content: planContent, contentHash: contentHash(planContent),
+    };
+    const before = validCompositionInput();
+    const aiRuntime = before.runtimeManifest.stages[0].steps[0].modules[0];
+    const teacherRuntimeId = before.runtimeManifest.stages[1].steps[0].modules[0].id;
+    before.runtimeManifest.stages[1].steps[0].modules[0] = { ...structuredClone(aiRuntime), id: teacherRuntimeId };
+    const runtimeModules = before.runtimeManifest.stages.flatMap((stage) => stage.steps.flatMap((step) => step.modules));
+    const existingModules = runtimeModules.map((runtimeModule, index) => ({
+      id: `stored-${runtimeModule.id}`, ownerId: teacher.id, draftId: 'draft-1', runtimeModuleId: runtimeModule.id,
+      moduleInstanceLineage: `lineage-${runtimeModule.id}`, contentHash: contentHash(runtimeModule),
+      sourceState: index === 1 ? 'TEACHER_CREATED_SOURCE_PENDING' : 'VERIFIED',
+      sourceBindings: index === 1 ? [] : before.moduleMetadata[index].sourceBindings,
+      sourceBindingSetHash: contentHash(index === 1 ? [] : before.moduleMetadata[index].sourceBindings),
+      gapIdentity: index === 1 ? 'teacher-gap' : null,
+      provenance: index === 1 ? 'TEACHER_CREATED' : 'AI_GENERATED',
+      originalAttemptId: index === 1 ? null : `attempt-${index + 1}`,
+      teacherMetadata: before.moduleMetadata[index].teacherFields, currentRevisionNumber: 1, deletedAt: null,
+    }));
+    const sourceStep = before.runtimeManifest.stages[0].steps[0];
+    const copiedModule = { ...structuredClone(aiRuntime), id: 'module-ambiguous-copy' };
+    const after = structuredClone(before);
+    after.runtimeManifest.stages[0].steps = [
+      { ...structuredClone(sourceStep), durationSeconds: 150 },
+      { ...structuredClone(sourceStep), id: 'step-ambiguous-copy', title: `${sourceStep.title}（续）`, durationSeconds: 150, modules: [copiedModule] },
+    ];
+    (after.moduleMetadata as unknown as Array<{
+      moduleId: string;
+      copiedFromModuleId?: string;
+      sourceState: string;
+      sourceBindings: typeof before.moduleMetadata[number]['sourceBindings'];
+      teacherFields: typeof before.moduleMetadata[number]['teacherFields'];
+    }>).push({
+      moduleId: copiedModule.id,
+      copiedFromModuleId: teacherRuntimeId,
+      sourceState: 'teacher_created_source_pending',
+      sourceBindings: [],
+      teacherFields: structuredClone(before.moduleMetadata[0].teacherFields),
+    });
+    const draft = {
+      id: 'draft-1', ownerId: teacher.id, planRevisionId: planRevision.id,
+      planRevisionNumber: 1, planContentHash: planRevision.contentHash,
+      authoringLineageRoot: 'lineage-1', state: 'READY', version: 1,
+      runtimeManifest: before.runtimeManifest, contentHash: coursewareManifestHash(before.runtimeManifest),
+      modules: existingModules, planRevision,
+    };
+    const db = { smartCoursewareDraft: { findFirst: vi.fn().mockResolvedValue(draft) }, $transaction: vi.fn() };
+
+    await expect(updateSmartCoursewareComposition(db as never, {
+      actor: teacher, draftId: draft.id, ...after,
+    })).rejects.toMatchObject({ code: 'courseware-module-copy-origin-ambiguous', status: 409 });
+    expect(db.$transaction).not.toHaveBeenCalled();
+  });
+
   it('does not persist module changes after losing the version claim', async () => {
     const planContent = validPlanFixture();
     const planRevision = { id: 'plan-1', revisionNumber: 1, content: planContent, contentHash: contentHash(planContent) };
