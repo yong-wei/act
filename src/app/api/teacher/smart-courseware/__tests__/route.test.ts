@@ -217,12 +217,12 @@ describe('smart courseware teacher routes', () => {
   it('queues module generation without running the provider in the request and later accepts a candidate', async () => {
     const requested = { id: 'job-module-1', draftId: 'draft-1', state: 'QUEUED', mode: 'MODULE', targetModuleId: 'module-1', units: [] };
     const completed = { ...requested, state: 'COMPLETED', candidateRuntimeModule: { id: 'module-1' }, candidateHash: 'candidate-hash' };
-    mocks.requestRegeneration.mockResolvedValue(requested);
+    mocks.requestRegeneration.mockResolvedValue({ job: requested, delivery: { queued: true, errorCode: null } });
     const response = await regenerateModule(new Request('http://localhost', {
       method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ idempotencyKey: 'regenerate-key-1' }),
     }), { params: Promise.resolve({ draftId: 'draft-1', moduleId: 'module-1' }) });
     expect(response.status).toBe(202);
-    expect((await response.json()).job.state).toBe('QUEUED');
+    expect(await response.json()).toMatchObject({ job: { state: 'QUEUED' }, delivery: { queued: true, errorCode: null } });
     expect(mocks.generateCandidate).not.toHaveBeenCalled();
 
     mocks.acceptCandidate.mockResolvedValue({ ...completed, acceptedAt: new Date('2026-07-19T00:00:00Z') });
@@ -234,6 +234,24 @@ describe('smart courseware teacher routes', () => {
     expect(acceptResponse.status).toBe(200);
     expect(mocks.acceptCandidate).toHaveBeenCalledWith({ marker: 'prisma' }, expect.objectContaining({ expectedDraftVersion: 2, expectedModuleHash: 'module-hash' }));
     expect((await acceptResponse.json()).preview.version).toBe(3);
+  });
+
+  it('returns the MODULE queue delivery failure and retryable job state', async () => {
+    const retryable = { id: 'job-module-retry', draftId: 'draft-1', state: 'RETRYABLE', mode: 'MODULE', targetModuleId: 'module-1', units: [] };
+    mocks.requestRegeneration.mockResolvedValue({
+      job: retryable,
+      delivery: { queued: false, errorCode: 'courseware-queue-unavailable' },
+    });
+
+    const response = await regenerateModule(new Request('http://localhost', {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ idempotencyKey: 'regenerate-delivery-failure' }),
+    }), { params: Promise.resolve({ draftId: 'draft-1', moduleId: 'module-1' }) });
+
+    expect(response.status).toBe(202);
+    expect(await response.json()).toMatchObject({
+      job: { id: retryable.id, state: 'RETRYABLE' },
+      delivery: { queued: false, errorCode: 'courseware-queue-unavailable' },
+    });
   });
 
   it('approves the whole courseware while returning pending gaps without private approval internals', async () => {

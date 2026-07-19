@@ -627,8 +627,16 @@ export function SmartCoursewareEditor({
         body: JSON.stringify({ idempotencyKey: `courseware-module:${envelope.draftId}:${selectedModule.id}:${crypto.randomUUID()}` }),
       });
       const payload = await response.json();
-      setMessage(response.ok ? '模块重生成任务已进入队列；请刷新任务状态查看候选。' : errorMessage(payload));
-      if (response.ok) setJob(payload.job);
+      if (!response.ok) {
+        setMessage(errorMessage(payload));
+      } else {
+        setJob(payload.job);
+        setMessage(payload.delivery?.queued === true
+          ? '模块重生成任务已进入队列；请刷新任务状态查看候选。'
+          : payload.delivery?.errorCode
+            ? `模块重生成任务已保存，但队列投递失败（${payload.delivery.errorCode}）；请恢复任务后重试。`
+            : '模块重生成任务已存在；请刷新任务状态。');
+      }
     } finally {
       setBusy(false);
     }

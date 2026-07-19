@@ -30,7 +30,8 @@ type Dependencies = {
   now?: () => Date;
   leaseMs?: number;
 };
-type EnqueueModuleJob = (db: Db, jobId: string) => Promise<unknown>;
+type ModuleJobDelivery = { queued: boolean; errorCode: string | null };
+type EnqueueModuleJob = (db: Db, jobId: string) => Promise<ModuleJobDelivery>;
 
 export async function requestCoursewareModuleRegeneration(db: Db, input: {
   actor: SmartCoursewareActor;
@@ -117,18 +118,23 @@ export async function requestCoursewareModuleRegeneration(db: Db, input: {
       const active = await db.smartCoursewareGenerationJob.findFirst({
         where: { ownerId: actor.id, activeIdentity: `draft:${draft.id}` },
       });
-      if (active) return enqueueRequestedModuleJob(db, actor, active, dependencies.enqueue);
+      if (active?.mode === 'MODULE' && active.targetModuleId === moduleId) {
+        return enqueueRequestedModuleJob(db, actor, active, dependencies.enqueue);
+      }
+      if (active) throw new SmartCoursewareError('courseware-generation-active', 409);
     }
     throw error;
   }
 }
 
 async function enqueueRequestedModuleJob(db: Db, actor: SmartCoursewareActor, job: { id: string; state: string }, override?: EnqueueModuleJob) {
+  let delivery: ModuleJobDelivery | null = null;
   if (job.state === 'QUEUED') {
     const enqueue = override ?? (await import('./queue')).enqueueCoursewareGenerationJob;
-    await enqueue(db, job.id);
+    const result = await enqueue(db, job.id);
+    delivery = { queued: result.queued, errorCode: result.errorCode };
   }
-  return getCoursewareGenerationJob(db, { actor, jobId: job.id });
+  return { job: await getCoursewareGenerationJob(db, { actor, jobId: job.id }), delivery };
 }
 
 export async function getCoursewareGenerationJob(db: Db, input: {

@@ -49,6 +49,32 @@ describe('smart courseware editor activity creation', () => {
     expect(container.textContent).not.toContain('已进入队列');
   });
 
+  it('reports a retryable MODULE delivery failure instead of claiming regeneration was queued', async () => {
+    const composition = validCompositionInput();
+    vi.stubGlobal('crypto', { randomUUID: () => '00000000-0000-4000-8000-000000000002' });
+    vi.stubGlobal('fetch', vi.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        job: { id: 'module-job-1', draftId: 'draft-1', state: 'RETRYABLE', mode: 'MODULE', targetModuleId: 'module-1' },
+        delivery: { queued: false, errorCode: 'courseware-queue-unavailable' },
+      }),
+    } as Response)));
+    const envelope: SmartCoursewareTeacherEnvelope = {
+      draftId: 'draft-1', planRevisionId: 'plan-1', state: 'ready', version: 1,
+      manifest: composition.runtimeManifest, stalePlan: false, teacherModules: {},
+      compositionMetadata: composition.moduleMetadata,
+      planLimitations: [], aiReview: null, generationAudit: [],
+    };
+    await act(async () => root.render(createElement(SmartCoursewareEditor, { initialEnvelope: envelope })));
+    const regenerate = [...container.querySelectorAll('button')].find((button) => button.textContent === '重新生成所选模块')!;
+    await act(async () => regenerate.click());
+
+    expect(container.textContent).toContain('队列投递失败');
+    expect(container.textContent).toContain('courseware-queue-unavailable');
+    expect(container.textContent).toContain('生成任务 RETRYABLE');
+    expect(container.textContent).not.toContain('模块重生成任务已进入队列');
+  });
+
   it('submits a newly added activity with editable teacher evidence accepted by the server contract', async () => {
     const composition = validCompositionInput();
     const runtimeManifest = {

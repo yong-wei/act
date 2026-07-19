@@ -25,7 +25,7 @@ describe('smart courseware selected-module regeneration acceptance', () => {
       targetModuleHash: selected.contentHash, candidateRuntimeModule: null,
     };
     const create = vi.fn().mockResolvedValue(created);
-    const enqueue = vi.fn().mockResolvedValue({ queued: true, job: created });
+    const enqueue = vi.fn().mockResolvedValue({ queued: true, job: created, errorCode: null });
     const db = {
       smartCoursewareGenerationCommand: { findFirst: vi.fn().mockResolvedValue(null) },
       smartCoursewareDraft: { findFirst: vi.fn().mockResolvedValue({
@@ -42,7 +42,10 @@ describe('smart courseware selected-module regeneration acceptance', () => {
     await expect(requestCoursewareModuleRegeneration(db as never, {
       actor, draftId: fixture.job.draft.id, moduleId: selected.runtimeModuleId,
       idempotencyKey: 'request-module-1',
-    }, { enqueue: enqueue as never })).resolves.toEqual(created);
+    }, { enqueue: enqueue as never })).resolves.toEqual({
+      job: created,
+      delivery: { queued: true, errorCode: null },
+    });
 
     expect(create).toHaveBeenCalledWith({ data: expect.objectContaining({
       mode: 'MODULE',
@@ -53,7 +56,7 @@ describe('smart courseware selected-module regeneration acceptance', () => {
     expect(created.candidateRuntimeModule).toBeNull();
   });
 
-  it('returns the existing draft-level active job when another module races', async () => {
+  it('rejects a different target when another draft-level generation job wins the race', async () => {
     const fixture = acceptanceFixture();
     const selected = fixture.job.draft.modules[3];
     const active = {
@@ -72,10 +75,33 @@ describe('smart courseware selected-module regeneration acceptance', () => {
     await expect(requestCoursewareModuleRegeneration(db as never, {
       actor, draftId: fixture.job.draft.id, moduleId: selected.runtimeModuleId,
       idempotencyKey: 'request-module-2',
-    }, { enqueue: vi.fn() as never })).resolves.toEqual(active);
+    }, { enqueue: vi.fn() as never })).rejects.toMatchObject({ code: 'courseware-generation-active' });
     expect(db.smartCoursewareGenerationJob.findFirst).toHaveBeenCalledWith({
       where: { ownerId: actor.id, activeIdentity: `draft:${fixture.job.draft.id}` },
     });
+  });
+
+  it('reuses the active MODULE job only when a same-target request races', async () => {
+    const fixture = acceptanceFixture();
+    const selected = fixture.job.draft.modules[3];
+    const active = {
+      id: 'active-module-job', ownerId: actor.id, draftId: fixture.job.draft.id,
+      mode: 'MODULE', state: 'RUNNING', targetModuleId: selected.runtimeModuleId,
+      activeIdentity: `draft:${fixture.job.draft.id}`,
+    };
+    const db = {
+      smartCoursewareGenerationCommand: { findFirst: vi.fn().mockResolvedValue(null) },
+      smartCoursewareDraft: { findFirst: vi.fn().mockResolvedValue({ ...fixture.job.draft, modules: [selected] }) },
+      smartCoursewareGenerationJob: { findFirst: vi.fn().mockResolvedValue(active) },
+      $transaction: vi.fn().mockRejectedValue(new Prisma.PrismaClientKnownRequestError('unique', {
+        code: 'P2002', clientVersion: 'test', meta: {},
+      })),
+    };
+
+    await expect(requestCoursewareModuleRegeneration(db as never, {
+      actor, draftId: fixture.job.draft.id, moduleId: selected.runtimeModuleId,
+      idempotencyKey: 'request-module-same-target',
+    }, { enqueue: vi.fn() as never })).resolves.toEqual({ job: active, delivery: null });
   });
 
   it('rejects module request and idempotent replay after the draft is ACCEPTED', async () => {

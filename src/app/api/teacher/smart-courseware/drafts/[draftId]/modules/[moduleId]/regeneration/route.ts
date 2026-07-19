@@ -26,7 +26,10 @@ export async function POST(request: Request, context: { params: Promise<{ draftI
     const requested = await requestCoursewareModuleRegeneration(prisma, {
       actor: auth.actor, draftId, moduleId, idempotencyKey: input.idempotencyKey,
     });
-    return NextResponse.json({ job: publicCoursewareJob(requested) }, { status: 202 });
+    return NextResponse.json({
+      job: publicCoursewareJob(requested.job),
+      ...(requested.delivery ? { delivery: requested.delivery } : {}),
+    }, { status: 202 });
   } catch (error) {
     return smartCoursewareErrorResponse(error);
   }
