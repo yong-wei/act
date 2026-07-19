@@ -1,0 +1,87 @@
+// @vitest-environment jsdom
+
+import { act, createElement } from 'react';
+import { createRoot, type Root } from 'react-dom/client';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { SmartCoursewareEditor, type SmartCoursewareTeacherEnvelope } from '../smart-courseware-editor';
+import { validateCoursewareComposition } from '@/lib/smart-courseware';
+import { validCompositionInput, validPlan } from '@/lib/smart-courseware/__tests__/fixtures';
+
+describe('smart courseware editor activity creation', () => {
+  let container: HTMLDivElement;
+  let root: Root;
+
+  beforeEach(() => {
+    (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+    container = document.createElement('div');
+    document.body.append(container);
+    root = createRoot(container);
+  });
+
+  afterEach(() => {
+    act(() => root.unmount());
+    container.remove();
+    vi.unstubAllGlobals();
+  });
+
+  it('submits a newly added activity with editable teacher evidence accepted by the server contract', async () => {
+    const composition = validCompositionInput();
+    const runtimeManifest = {
+      ...composition.runtimeManifest,
+      stages: composition.runtimeManifest.stages.map((stage, index) => index === 0 ? {
+        ...stage,
+        steps: stage.steps.map((step) => ({
+          ...step,
+          layoutId: 'two-column' as const,
+          modules: step.modules.map((module) => ({ ...module, slotId: 'left', sizeId: 'half' })),
+        })),
+      } : stage),
+    };
+    let submitted: ReturnType<typeof validCompositionInput> | null = null;
+    const fetch = vi.fn(async (_url: string, init?: RequestInit) => {
+      if (init?.method === 'PATCH') {
+        submitted = JSON.parse(String(init.body));
+        const validated = validateCoursewareComposition(submitted, validPlan());
+        return {
+          ok: true,
+          json: async () => ({
+            preview: {
+              draftId: 'draft-1', version: 2, planRevisionId: 'plan-1',
+              runtimeManifest: validated.runtimeManifest,
+              moduleMetadata: validated.moduleMetadata.map((metadata) => ({ ...metadata, provenance: 'teacher_created' })),
+              planLimitations: [], aiReview: null, generationAudit: [],
+              validation: validated.validation,
+            },
+          }),
+        } as Response;
+      }
+      return { ok: false, json: async () => ({}) } as Response;
+    });
+    vi.stubGlobal('fetch', fetch);
+    const envelope: SmartCoursewareTeacherEnvelope = {
+      draftId: 'draft-1', planRevisionId: 'plan-1', state: 'ready', version: 1,
+      manifest: runtimeManifest, stalePlan: false, teacherModules: {},
+      compositionMetadata: composition.moduleMetadata,
+      planLimitations: [], aiReview: null, generationAudit: [],
+    };
+    await act(async () => root.render(createElement(SmartCoursewareEditor, { initialEnvelope: envelope })));
+
+    const typeSelect = [...container.querySelectorAll('select')]
+      .find((select) => select.parentElement?.textContent?.includes('新增模块类型'))!;
+    await act(async () => {
+      typeSelect.value = 'activity.panel';
+      typeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    const add = [...container.querySelectorAll('button')].find((button) => button.textContent === '添加模块')!;
+    await act(async () => add.click());
+
+    const added = submitted!.moduleMetadata.find((metadata) => !composition.moduleMetadata.some((item) => item.moduleId === metadata.moduleId));
+    expect(added?.teacherFields).toMatchObject({
+      expectedOutput: expect.any(String),
+      reviewPoints: [expect.any(String)],
+    });
+    expect(container.textContent).toContain('编辑教师证据');
+    expect(container.textContent).toContain('组合已保存');
+  });
+});

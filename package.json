@@ -41,6 +41,7 @@
     "check:knowledge-relation-coverage": "tsx ./scripts/knowledge/check-runtime-relation-coverage.ts",
     "test:unit": "NODE_OPTIONS=\"${NODE_OPTIONS:-} --disable-warning=DEP0205\" vitest run",
     "test:unit:watch": "NODE_OPTIONS=\"${NODE_OPTIONS:-} --disable-warning=DEP0205\" vitest",
+    "test:smart-courseware": "vitest run --config src/lib/smart-courseware/vitest.config.ts",
     "test:appshell-governance": "NODE_OPTIONS=\"${NODE_OPTIONS:-} --disable-warning=DEP0205\" vitest run src/lib/__tests__/platform-appshell-contract.test.ts src/lib/__tests__/platform-role-navigation.test.ts src/lib/__tests__/platform-ui-contracts.test.ts",
     "test:appshell-governance:browser": "playwright test tests/primary-appshell-chrome.spec.ts tests/role-workspace-appshell-navigation-801.spec.ts tests/appshell-governance-representative-matrix.spec.ts",
     "audit:governance": "node ./scripts/security/audit-governance.mjs",

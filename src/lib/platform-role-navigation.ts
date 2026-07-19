@@ -1633,6 +1633,18 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     owningChange: 'add-teacher-course-basis-management',
   }),
   primaryRoute({
+    href: '/teacher/smart-prep/courseware/[draftId]',
+    routeFile: 'src/app/teacher/smart-prep/courseware/[draftId]/page.tsx',
+    frame: 'operations-console',
+    roleScope: ['teacher'],
+    authState: 'protected-redirect',
+    navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'representative',
+    screenshotProfile: 'temporary-exception',
+    owningChange: 'add-smart-courseware-generation-editor',
+  }),
+  primaryRoute({
     href: '/teacher/prep-packs',
     routeFile: 'src/app/teacher/prep-packs/page.tsx',
     frame: 'report-ledger',

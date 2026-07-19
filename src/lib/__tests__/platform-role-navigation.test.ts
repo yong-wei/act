@@ -410,6 +410,7 @@ describe('platform role navigation', () => {
       '/teacher/history',
       '/teacher/grading-workbench',
       '/teacher/smart-prep',
+      '/teacher/smart-prep/courseware/[draftId]',
       '/teacher/prep-packs',
       '/teacher/arena',
       '/teacher/arena/publications/[publicationId]',

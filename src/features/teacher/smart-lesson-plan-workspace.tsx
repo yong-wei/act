@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import { Bot, CheckCircle2, LoaderCircle, Plus } from 'lucide-react';
 import { KonlingEntryPointButton } from '@/components/ai/konling-entry-point-button';
 
@@ -322,6 +323,7 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
             <button onClick={() => void requestAdvisoryReview(task)} disabled={!draft?.content || draft.state !== 'READY'} className="rounded border border-border px-3 py-1.5 text-sm disabled:opacity-50">AI 建议</button>
             <button onClick={() => void approve(task)} disabled={!draft || draft.state !== 'READY'} className="inline-flex items-center gap-1 rounded border border-primary px-3 py-1.5 text-sm text-primary disabled:opacity-50"><CheckCircle2 className="h-4 w-4" />批准版本</button>
             {task.revisions?.[0] ? <button onClick={() => void deriveDraft(task, task.revisions![0].id)} className="rounded border border-border px-3 py-1.5 text-sm">基于{task.revisions[0].displayName}继续修订</button> : null}
+            {task.revisions?.[0] ? <Link href={`/teacher/smart-prep/courseware/new?planRevisionId=${encodeURIComponent(task.revisions[0].id)}`} className="rounded border border-primary px-3 py-1.5 text-sm text-primary">生成互动课件</Link> : null}
           </div>
         </div>
         <div className="grid gap-2 md:grid-cols-2">

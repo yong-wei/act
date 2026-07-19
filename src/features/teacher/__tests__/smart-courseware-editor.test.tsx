@@ -1,0 +1,259 @@
+import { renderToStaticMarkup } from 'react-dom/server';
+import { describe, expect, it } from 'vitest';
+
+import {
+  createSmartCoursewareStudentPreviewFromService,
+  createSmartCoursewareTeacherEnvelopeFromProjection,
+  defaultTeacherFieldsForActivity,
+  StudentCoursewarePreview,
+  SmartCoursewareEditor,
+  splitCoursewareStep,
+  mergeAndDeleteCoursewareStep,
+  TeacherCoursewarePreview,
+  type SmartCoursewareTeacherEnvelope,
+} from '@/features/teacher/smart-courseware-editor';
+import {
+  BOPPPS_STAGES,
+  GENERATED_SLIDE_SCHEMA_VERSION,
+  type GeneratedSlideManifest,
+} from '@/features/interactive/shared/manifest-runtime/generated-slide-contract';
+import { projectCoursewareForStudent } from '@/lib/smart-courseware';
+import { validateCoursewareComposition } from '@/lib/smart-courseware';
+import { validCompositionInput, validPlan } from '@/lib/smart-courseware/__tests__/fixtures';
+
+const manifest: GeneratedSlideManifest = {
+  schemaVersion: GENERATED_SLIDE_SCHEMA_VERSION,
+  lessonId: 'courseware-editor-test',
+  title: '角色预览测试',
+  durationSeconds: 360,
+  stages: BOPPPS_STAGES.map((stage, index) => ({
+    stage,
+    durationSeconds: 60,
+    steps: [{
+      id: `step-${index + 1}`,
+      title: `步骤 ${index + 1}`,
+      durationSeconds: 60,
+      layoutId: index === 0 ? 'two-column' : 'single',
+      modules: [{
+        id: `module-${index + 1}`,
+        canonicalClass: 'content.rich',
+        slotId: index === 0 ? 'left' : 'main',
+        sizeId: index === 0 ? 'half' : 'full',
+        payload: { text: `学生内容 ${index + 1}` },
+        roleMetadata: { studentVisible: true, teacherVisible: true, referenceAnswerVisibility: 'none' },
+      }, ...(index === 0 ? [{
+        id: 'teacher-only-module',
+        canonicalClass: 'content.code' as const,
+        slotId: 'right',
+        sizeId: 'half',
+        payload: { language: 'text', code: 'TEACHER_MANIFEST_SECRET' },
+        roleMetadata: { studentVisible: false, teacherVisible: true as const, referenceAnswerVisibility: 'none' as const },
+      }] : [])],
+    }],
+  })),
+};
+
+const teacherEnvelope: SmartCoursewareTeacherEnvelope & { manifest: GeneratedSlideManifest } = {
+  draftId: 'draft-1',
+  planRevisionId: 'revision-1',
+  state: 'ready',
+  version: 2,
+  manifest,
+  stalePlan: false,
+  planLimitations: ['PRIVATE_PLAN_LIMITATION'],
+  aiReview: {
+    findings: [{ category: 'CONTENT_QUALITY', severity: 'WARNING', message: 'PRIVATE_AI_FINDING', path: null }],
+    suggestions: ['PRIVATE_AI_SUGGESTION'],
+  },
+  generationAudit: [{
+    jobId: 'job-1', mode: 'INITIAL', state: 'COMPLETED',
+    attempts: [{ attemptNumber: 1, serviceId: 'PRIVATE_SERVICE', providerKind: 'PRIVATE_PROVIDER', model: 'PRIVATE_MODEL', outcome: 'SUCCEEDED' }],
+  }],
+  compositionMetadata: [],
+  teacherModules: {
+    'module-1': {
+      moduleId: 'module-1',
+      correctAnswer: 'PRIVATE_CORRECT_ANSWER',
+      explanation: 'PRIVATE_EXPLANATION',
+      reviewPoints: ['PRIVATE_REVIEW_POINT'],
+      sourceState: 'verified',
+      citationTitles: ['教师引用审计'],
+      provenance: 'ai-generated',
+      validationNotes: ['PRIVATE_VALIDATION_NOTE'],
+    },
+  },
+};
+
+describe('smart courseware role previews', () => {
+  it('renders teacher metadata only in the teacher preview', () => {
+    const html = renderToStaticMarkup(<TeacherCoursewarePreview envelope={teacherEnvelope} />);
+    expect(html).toContain('PRIVATE_CORRECT_ANSWER');
+    expect(html).toContain('PRIVATE_REVIEW_POINT');
+    expect(html).toContain('TEACHER_MANIFEST_SECRET');
+    expect(html).toContain('PRIVATE_PROVIDER');
+    expect(html).toContain('PRIVATE_MODEL');
+    expect(html).toContain('PRIVATE_PLAN_LIMITATION');
+    expect(html).toContain('PRIVATE_AI_FINDING');
+    expect(html).toContain('PRIVATE_VALIDATION_NOTE');
+    expect(html).toContain('data-courseware-preview="teacher"');
+  });
+
+  it('projects a student envelope that cannot carry teacher metadata', () => {
+    const receipt = projectCoursewareForStudent({ draftId: 'draft-1', version: 2, runtimeManifest: manifest });
+    const preview = createSmartCoursewareStudentPreviewFromService(teacherEnvelope, receipt);
+    expect(preview).not.toBeNull();
+    const serialized = JSON.stringify(preview);
+    expect(serialized).not.toContain('teacherModules');
+    expect(serialized).not.toContain('PRIVATE_');
+    expect(serialized).not.toContain('generationAudit');
+    expect(serialized).not.toContain('TEACHER_MANIFEST_SECRET');
+    expect(preview!.manifest).toEqual(receipt.runtimeManifest);
+
+    const html = renderToStaticMarkup(<StudentCoursewarePreview preview={preview!} />);
+    expect(html).toContain('data-courseware-preview="student"');
+    expect(html).toContain('AI 辅助生成');
+    expect(html).not.toContain('PRIVATE_');
+    expect(html).not.toContain('TEACHER_MANIFEST_SECRET');
+    expect(html).toContain(preview!.sourceContentHash);
+  });
+
+  it('maps the service teacher projection and requires a matching student receipt', () => {
+    const envelope = createSmartCoursewareTeacherEnvelopeFromProjection({
+      draftId: 'draft-1',
+      version: 2,
+      planRevisionId: 'revision-1',
+      runtimeManifest: manifest,
+      moduleMetadata: [{
+        moduleId: 'module-1',
+        sourceState: 'verified',
+        sourceBindings: [{ citationId: 'citation-1' }],
+        provenance: 'ai_generated_teacher_edited',
+        teacherFields: { referenceAnswer: { value: 'PRIVATE_OBJECT_ANSWER' }, reviewPoints: ['检查极点'] },
+      }],
+      validation: { issues: [{ message: '教师校验备注' }] },
+      planLimitations: ['待核对课堂设备'],
+      aiReview: { findings: [], suggestions: ['补充形成性评价'] },
+      generationAudit: [{
+        jobId: 'job-1', mode: 'INITIAL', state: 'COMPLETED',
+        attempts: [{ attemptNumber: 1, serviceId: 'service-1', providerKind: 'openai-compatible', model: 'model-1', outcome: 'SUCCEEDED' }],
+      }],
+    });
+    expect(envelope.teacherModules['module-1']).toMatchObject({
+      correctAnswer: '{"value":"PRIVATE_OBJECT_ANSWER"}',
+      citationTitles: ['citation-1'],
+      provenance: 'ai-generated-teacher-edited',
+    });
+    expect(envelope.planLimitations).toEqual(['待核对课堂设备']);
+    expect(envelope.generationAudit[0].attempts[0].model).toBe('model-1');
+    expect(createSmartCoursewareStudentPreviewFromService(envelope, {
+      draftId: 'other-draft', version: 2, runtimeManifest: {}, notice: 'ai-assisted-teacher-reviewed',
+    })).toBeNull();
+    expect(createSmartCoursewareStudentPreviewFromService(envelope, {
+      draftId: 'draft-1', version: 2, runtimeManifest: {}, notice: 'ai-assisted-teacher-reviewed',
+    })).toBeNull();
+    expect(createSmartCoursewareStudentPreviewFromService(envelope, projectCoursewareForStudent({
+      draftId: 'draft-1', version: 2, runtimeManifest: manifest,
+    }))).not.toBeNull();
+  });
+
+  it('renders stale-plan and whole-course approval controls without clearing pending gaps', () => {
+    const html = renderToStaticMarkup(<SmartCoursewareEditor initialEnvelope={{
+      ...teacherEnvelope,
+      stalePlan: true,
+      teacherModules: {
+        ...teacherEnvelope.teacherModules,
+        'module-pending': {
+          moduleId: 'module-pending', sourceState: 'teacher_created_source_pending', citationTitles: [],
+          provenance: 'teacher-created', validationNotes: [],
+        },
+      },
+    }} />);
+    expect(html).toContain('关联教案已有更新');
+    expect(html).toContain('批准整课版本');
+    expect(html).toContain('来源待补项保留在版本快照中');
+    expect(html).not.toContain('acknowledgement');
+  });
+
+  it('splits a step without changing total durations and creates non-empty new module instances', () => {
+    const composition = validCompositionInput();
+    const splittableManifest = composition.runtimeManifest;
+    const beforeStageDuration = splittableManifest.stages[0].durationSeconds;
+    const result = splitCoursewareStep({
+      manifest: splittableManifest,
+      moduleMetadata: composition.moduleMetadata,
+      stepId: 'step-1',
+      newStepId: 'step-split',
+      newModuleIds: ['module-split-1'],
+    });
+    expect(result).not.toBeNull();
+    expect(result!.manifest.durationSeconds).toBe(splittableManifest.durationSeconds);
+    expect(result!.manifest.stages[0].durationSeconds).toBe(beforeStageDuration);
+    const steps = result!.manifest.stages[0].steps;
+    expect(steps.map((step) => step.durationSeconds).reduce((sum, value) => sum + value, 0)).toBe(beforeStageDuration);
+    expect(steps[1].modules).toHaveLength(1);
+    expect(steps[1].modules.map((module) => module.id)).toEqual(['module-split-1']);
+    expect(result!.moduleMetadata.slice(-1)).toEqual(expect.arrayContaining([
+      expect.objectContaining({ moduleId: 'module-split-1', sourceState: 'teacher_created_source_pending' }),
+    ]));
+    expect(validateCoursewareComposition({
+      expectedVersion: 1, runtimeManifest: result!.manifest, moduleMetadata: result!.moduleMetadata,
+    }, validPlan()).validation.valid).toBe(true);
+  });
+
+  it('fails closed when a step is too short or lacks metadata coverage', () => {
+    const short = { ...manifest, stages: manifest.stages.map((stage, index) => index === 0
+      ? { ...stage, steps: stage.steps.map((step) => ({ ...step, durationSeconds: 119 })) }
+      : stage) };
+    expect(splitCoursewareStep({ manifest: short, moduleMetadata: [], stepId: 'step-1', newStepId: 'step-split', newModuleIds: ['one', 'two'] })).toBeNull();
+    expect(splitCoursewareStep({ manifest, moduleMetadata: [], stepId: 'step-1', newStepId: 'step-split', newModuleIds: ['one', 'two'] })).toBeNull();
+  });
+
+  it('merges a deleted step duration into its adjacent survivor without changing course totals', () => {
+    const composition = validCompositionInput();
+    const split = splitCoursewareStep({
+      manifest: composition.runtimeManifest,
+      moduleMetadata: composition.moduleMetadata,
+      stepId: 'step-1',
+      newStepId: 'step-split-delete',
+      newModuleIds: ['module-split-delete'],
+    })!;
+    const merged = mergeAndDeleteCoursewareStep({
+      manifest: split.manifest,
+      moduleMetadata: split.moduleMetadata,
+      stepId: 'step-split-delete',
+    });
+    expect(merged).not.toBeNull();
+    expect(merged!.manifest.durationSeconds).toBe(composition.runtimeManifest.durationSeconds);
+    expect(merged!.manifest.stages[0].durationSeconds).toBe(composition.runtimeManifest.stages[0].durationSeconds);
+    expect(merged!.manifest.stages[0].steps).toHaveLength(1);
+    expect(merged!.manifest.stages[0].steps[0].durationSeconds).toBe(300);
+    expect(merged!.moduleMetadata.some((metadata) => metadata.moduleId === 'module-split-delete')).toBe(false);
+    expect(validateCoursewareComposition({
+      expectedVersion: 1, runtimeManifest: merged!.manifest, moduleMetadata: merged!.moduleMetadata,
+    }, validPlan()).validation.valid).toBe(true);
+  });
+
+  it('fails closed when merge-delete has no adjacent step', () => {
+    const composition = validCompositionInput();
+    expect(mergeAndDeleteCoursewareStep({
+      manifest: composition.runtimeManifest, moduleMetadata: composition.moduleMetadata, stepId: 'step-1',
+    })).toBeNull();
+  });
+
+  it('builds server-valid teacher evidence from each activity response contract', () => {
+    const composition = validCompositionInput();
+    const activity = composition.runtimeManifest.stages[2].steps[0].modules[0];
+    const teacherFields = defaultTeacherFieldsForActivity(activity);
+    expect(teacherFields).toMatchObject({
+      referenceAnswer: 'a',
+      explanation: expect.any(String),
+      scoring: expect.objectContaining({ maxPoints: 1 }),
+    });
+    expect(validateCoursewareComposition({
+      ...composition,
+      moduleMetadata: composition.moduleMetadata.map((metadata, index) => (
+        index === 2 ? { ...metadata, teacherFields } : metadata
+      )),
+    }, validPlan()).validation.valid).toBe(true);
+  });
+});
