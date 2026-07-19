@@ -32,9 +32,12 @@ describe('smart lesson plan workspace request contracts', () => {
   });
 
   it('uses the stable courseware draft and approved-plan revision URL contract', () => {
-    expect(workspaceSource).toContain('/teacher/smart-prep/courseware/new?planRevisionId=');
-    expect(workspaceSource).toContain('encodeURIComponent(task.revisions[0].id)');
+    expect(workspaceSource).toContain("new URLSearchParams({ planRevisionId, creationIntentId: crypto.randomUUID() })");
+    expect(workspaceSource).toContain('coursewareCreationInFlight.current');
+    expect(workspaceSource).toContain('/teacher/smart-prep/courseware/new?${query.toString()}');
     expect(coursewarePageSource).toContain("draftId === 'new'");
+    expect(coursewarePageSource).toContain('creationIntentId');
+    expect(coursewarePageSource).toContain('buildSmartCoursewareDraftCreationKey(planRevisionId, creationIntentId)');
     expect(coursewarePageSource).toContain('createSmartCoursewareDraft(prisma');
     expect(coursewarePageSource).toContain('redirect(`/teacher/smart-prep/courseware/${encodeURIComponent(draft.id)}`)');
   });

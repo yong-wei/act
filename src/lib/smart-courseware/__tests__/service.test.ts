@@ -4,6 +4,7 @@ import { contentHash } from '@/lib/smart-lesson-plan/domain';
 import { sourceBindingFixture, validPlanFixture } from '@/lib/smart-lesson-plan/__tests__/fixtures';
 
 import {
+  buildSmartCoursewareDraftCreationKey,
   createSmartCoursewareDraft,
   getSmartCoursewareDraft,
   getSmartCoursewareTeacherProjection,
@@ -14,6 +15,12 @@ import { validCompositionInput } from './fixtures';
 const teacher = { id: 'teacher-1', role: 'TEACHER' as const };
 
 describe('smart courseware service', () => {
+  it('scopes draft creation idempotency to one creation intent rather than the plan revision forever', () => {
+    const first = buildSmartCoursewareDraftCreationKey('plan-revision-1', 'intent-1');
+    expect(buildSmartCoursewareDraftCreationKey('plan-revision-1', 'intent-1')).toBe(first);
+    expect(buildSmartCoursewareDraftCreationKey('plan-revision-1', 'intent-2')).not.toBe(first);
+  });
+
   it('creates an idempotent draft from the exact owned approved revision', async () => {
     const content = validPlanFixture();
     const revision = {
@@ -95,6 +102,60 @@ describe('smart courseware service', () => {
       activeIdentity: `${draft.id}:module-1`,
       revisions: { create: expect.objectContaining({ changeKind: 'CREATE', actorId: teacher.id }) },
     }) });
+  });
+
+  it('accepts an edited module binding already persisted from Source Pack retrieval but rejects a new client binding', async () => {
+    const planContent = validPlanFixture();
+    const planRevision = {
+      id: 'plan-1', ownerId: teacher.id, revisionNumber: 1,
+      content: planContent, contentHash: contentHash(planContent),
+    };
+    const composition = validCompositionInput();
+    const runtimeModule = composition.runtimeManifest.stages[0].steps[0].modules[0];
+    const retrievedBinding = {
+      ...sourceBindingFixture,
+      citationId: 'citation-retrieved-fragment',
+      anchor: 'chapter-1#retrieved-fragment',
+      contentHash: 'b'.repeat(64),
+    };
+    composition.moduleMetadata[0].sourceBindings = [retrievedBinding];
+    const existing = {
+      id: 'stored-module-1', ownerId: teacher.id, draftId: 'draft-1', runtimeModuleId: runtimeModule.id,
+      moduleInstanceLineage: 'module-lineage-1', contentHash: contentHash(runtimeModule),
+      sourceState: 'VERIFIED', sourceBindings: [retrievedBinding], sourceBindingSetHash: contentHash([retrievedBinding]),
+      gapIdentity: null, provenance: 'AI_GENERATED', originalAttemptId: 'audited-attempt-1',
+      teacherMetadata: {}, currentRevisionNumber: 1, deletedAt: null,
+    };
+    const draft = {
+      id: 'draft-1', ownerId: teacher.id, planRevisionId: planRevision.id,
+      planRevisionNumber: 1, planContentHash: planRevision.contentHash,
+      authoringLineageRoot: 'lineage-1', state: 'READY', version: 1,
+      runtimeManifest: composition.runtimeManifest, modules: [existing], planRevision,
+    };
+    const updated = { ...draft, version: 2 };
+    const db = {
+      smartCoursewareDraft: { findFirst: vi.fn().mockResolvedValueOnce(draft).mockResolvedValueOnce(updated) },
+      $transaction: vi.fn(async (callback: (tx: unknown) => unknown) => callback({
+        smartCoursewareDraft: { updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
+        smartCoursewareModule: { create: vi.fn().mockResolvedValue({}), update: vi.fn().mockResolvedValue({}) },
+      })),
+    };
+
+    await expect(updateSmartCoursewareComposition(db as never, {
+      actor: teacher, draftId: draft.id, ...composition,
+    })).resolves.toMatchObject({ id: draft.id, version: 2 });
+
+    const arbitrary = structuredClone(composition);
+    arbitrary.moduleMetadata[0].sourceBindings = [{
+      ...retrievedBinding,
+      citationId: 'client-invented-citation',
+      anchor: 'client-invented-anchor',
+      contentHash: 'c'.repeat(64),
+    }];
+    const rejectingDb = { smartCoursewareDraft: { findFirst: vi.fn().mockResolvedValue(draft) } };
+    await expect(updateSmartCoursewareComposition(rejectingDb as never, {
+      actor: teacher, draftId: draft.id, ...arbitrary,
+    })).rejects.toMatchObject({ code: 'source-binding-not-in-approved-plan', status: 409 });
   });
 
   it('does not persist module changes after losing the version claim', async () => {

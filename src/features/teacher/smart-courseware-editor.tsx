@@ -462,16 +462,17 @@ export function SmartCoursewareEditor({
   async function splitSelectedStep() {
     if (!envelope.manifest || !selectedStep) return;
     const newStepId = `step-${crypto.randomUUID()}`;
+    const newModuleIds = selectedStep.modules.map(() => `module-${crypto.randomUUID()}`);
     const result = splitCoursewareStep({
       manifest: envelope.manifest,
       moduleMetadata: envelope.compositionMetadata,
       stepId: selectedStep.id,
       newStepId,
-      newModuleIds: selectedStep.modules.map(() => `module-${crypto.randomUUID()}`),
+      newModuleIds,
     });
     if (!result) return setMessage('只能拆分时长至少 2 分钟、且包含 1–3 个合法模块的步骤。');
     setSelectedStepId(newStepId);
-    setSelectedModuleId('');
+    setSelectedModuleId(newModuleIds[0] ?? '');
     await persistComposition(result.manifest, result.moduleMetadata);
   }
 

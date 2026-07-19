@@ -1,4 +1,3 @@
-import { createHash } from 'node:crypto';
 import { UserRole } from '@prisma/client';
 import { redirect } from 'next/navigation';
 
@@ -9,6 +8,7 @@ import {
 import { getServerAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import {
+  buildSmartCoursewareDraftCreationKey,
   createSmartCoursewareDraft,
   getCoursewareGenerationJob,
   getSmartCoursewareDraft,
@@ -23,7 +23,7 @@ export default async function SmartCoursewareEditorPage({
   searchParams,
 }: {
   params: Promise<{ draftId: string }>;
-  searchParams: Promise<{ planRevisionId?: string }>;
+  searchParams: Promise<{ planRevisionId?: string; creationIntentId?: string }>;
 }) {
   const session = await getServerAuthSession();
   if (!session?.user) redirect('/login');
@@ -33,11 +33,14 @@ export default async function SmartCoursewareEditorPage({
   const actor = { id: session.user.id, role: 'TEACHER' as const };
   const planRevisionId = query.planRevisionId?.trim() || null;
   if (draftId === 'new') {
-    if (!planRevisionId) redirect('/teacher/smart-prep');
+    const creationIntentId = query.creationIntentId?.trim() || null;
+    if (!planRevisionId || !creationIntentId || !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(creationIntentId)) {
+      redirect('/teacher/smart-prep');
+    }
     const draft = await createSmartCoursewareDraft(prisma, {
       actor,
       planRevisionId,
-      idempotencyKey: `courseware-editor:${createHash('sha256').update(planRevisionId).digest('hex')}`,
+      idempotencyKey: buildSmartCoursewareDraftCreationKey(planRevisionId, creationIntentId),
     });
     redirect(`/teacher/smart-prep/courseware/${encodeURIComponent(draft.id)}`);
   }

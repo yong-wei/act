@@ -20,6 +20,10 @@ import type { CoursewareModuleMetadata } from './schema';
 
 type CoursewareDb = PrismaClient;
 
+export function buildSmartCoursewareDraftCreationKey(planRevisionId: string, creationIntentId: string) {
+  return `courseware-editor:${contentHash({ planRevisionId, creationIntentId })}`;
+}
+
 export async function createSmartCoursewareDraft(db: CoursewareDb, input: {
   actor: SmartCoursewareActor;
   planRevisionId: string;
@@ -115,7 +119,10 @@ export async function updateSmartCoursewareComposition(db: CoursewareDb, input: 
   const runtimeModules = allRuntimeModules(composition.runtimeManifest);
   const requestedById = new Map(composition.moduleMetadata.map((metadata) => [metadata.moduleId, metadata]));
   const existingById = new Map(draft.modules.map((module) => [module.runtimeModuleId, module]));
-  const allowedSourceBindings = normalizeSourceBindings(plan.sources);
+  const allowedSourceBindings = normalizeSourceBindings([
+    ...plan.sources,
+    ...draft.modules.flatMap((module) => normalizeSourceBindings(module.sourceBindings)),
+  ]);
   const derived = runtimeModules.map((runtimeModule) => deriveCoursewareModuleMetadata({
     authoringLineageRoot: draft.authoringLineageRoot,
     runtimeModule,
