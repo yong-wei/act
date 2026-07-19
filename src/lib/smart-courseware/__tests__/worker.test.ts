@@ -259,6 +259,53 @@ describe('smart courseware generation worker', () => {
     }));
   });
 
+  it('rejects an unauthorized persisted unit before beginning or invoking the next provider attempt', async () => {
+    const plan = validPlanFixture();
+    const { approvedPlanAlignment: _alignment, stepPlanBindings: _bindings, ...legacyOutput } = createDeterministicCoursewareStage({
+      unitKey: 'bridge-in', durationSeconds: 300, approvedPlan: plan, sourceBinding: sourceBindingFixture,
+    });
+    const context = {
+      id: 'job-invalid-resume', ownerId: 'teacher-1', draftId: 'draft-1', state: 'QUEUED', firstIncompleteUnitKey: 'objective',
+      deliveryGeneration: 2,
+      draft: { id: 'draft-1', planRevision: { content: plan } },
+      units: [
+        {
+          id: 'unit-0', unitKey: 'bridge-in', state: 'COMPLETED', output: legacyOutput, orderIndex: 0, attemptGeneration: 1,
+          attempts: [{ outcome: 'SUCCEEDED', schemaVersion: 'smart-courseware-stage-bridge-in.v2' }],
+        },
+        { id: 'unit-1', unitKey: 'objective', state: 'PENDING', output: null, orderIndex: 1, attemptGeneration: 0, attempts: [] },
+      ],
+    };
+    mocks.buildSar.mockResolvedValue({ selectedVersionIds: [sourceBindingFixture.sourceVersionId] });
+    mocks.buildSourcePack.mockResolvedValue({ retrieval: { pack: { items: [{
+      citationTargetId: sourceBindingFixture.citationId,
+      metadata: {
+        versionId: sourceBindingFixture.sourceVersionId,
+        stableAnchor: sourceBindingFixture.anchor,
+        contentHash: sourceBindingFixture.contentHash,
+      },
+    }] } } });
+    const updateJob = vi.fn().mockResolvedValue({ count: 1 });
+    const db = {
+      smartCoursewareGenerationJob: { findUnique: vi.fn().mockResolvedValue(context) },
+      $transaction: vi.fn(async (run: (tx: unknown) => unknown) => run({
+        smartCoursewareGenerationJob: { updateMany: updateJob },
+        smartCoursewareGenerationUnit: { updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
+      })),
+    };
+    const runtime = {
+      serviceId: 'fixture-service', providerKind: 'fixture', model: 'fixture-model', generate: vi.fn(),
+    };
+
+    await expect(processCoursewareGenerationJob(db as never, context.id, async () => runtime as never))
+      .resolves.toEqual({ jobId: context.id, state: 'FAILED' });
+    expect(updateJob).toHaveBeenCalledWith(expect.objectContaining({
+      data: { state: 'FAILED', failureCode: 'generated-courseware-schema-invalid' },
+    }));
+    expect(mocks.beginAttempt).not.toHaveBeenCalled();
+    expect(runtime.generate).not.toHaveBeenCalled();
+  });
+
   it('rejects an initial provider unit that mislabels AI output as teacher-created pending', async () => {
     const plan = validPlanFixture();
     const context = {

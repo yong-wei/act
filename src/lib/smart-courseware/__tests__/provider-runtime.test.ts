@@ -9,7 +9,11 @@ import {
   parsePersistedCoursewareStageOutput,
   resolveSmartCoursewareStructuredProvider,
 } from '../provider-runtime';
-import { coursewareGeneratedStageOutputSchema, coursewareModuleCandidateOutputSchema } from '../schema';
+import {
+  coursewareGeneratedStageOutputSchema,
+  coursewareModuleCandidateOutputSchema,
+  legacyCoursewareGeneratedStageOutputSchema,
+} from '../schema';
 
 describe('smart courseware provider runtime', () => {
   const approvedPlan = validPlanFixture();
@@ -90,6 +94,21 @@ describe('smart courseware provider runtime', () => {
         expect.objectContaining({ message: 'ordering items must be unique after normalization' }),
       ]),
     }));
+  });
+
+  it('keeps the legacy metadata limit while allowing the current manifest-wide limit', () => {
+    const current = createDeterministicCoursewareStage({
+      unitKey: 'summary', durationSeconds: 300, approvedPlan, sourceBinding: sourceBindingFixture,
+    });
+    current.moduleMetadata = Array.from({ length: 31 }, (_, index) => ({
+      ...structuredClone(current.moduleMetadata[0]),
+      moduleId: `module-${index}`,
+    }));
+    expect(() => coursewareGeneratedStageOutputSchema.parse(current)).not.toThrow();
+
+    const { approvedPlanAlignment: _alignment, stepPlanBindings: _bindings, ...legacy } = current;
+    legacy.moduleMetadata = legacy.moduleMetadata.slice(0, 13);
+    expect(() => legacyCoursewareGeneratedStageOutputSchema.parse(legacy)).toThrow();
   });
 
   it.each([
