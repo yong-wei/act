@@ -45,6 +45,7 @@ export interface DatabaseDataset {
   discriminator_summaries?: Record<string, Record<string, number | 'suppressed'>>;
   historical_shape_summaries?: Record<string, Record<string, number | 'suppressed'>>;
   json_observation_summaries?: Record<string, Record<string, number | 'suppressed'>>;
+  relation_summaries?: Record<string, Record<string, number | 'suppressed'>>;
 }
 
 export interface DatabaseSnapshot {

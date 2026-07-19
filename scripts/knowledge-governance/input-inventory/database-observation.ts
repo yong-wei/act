@@ -24,6 +24,18 @@ export interface JsonObservationContract {
   summary: JsonObservationKind;
   accepted: string[];
   applicability?: 'any' | 'object_only';
+  zeroObservation?: 'forbid';
+  requiredParentSelector?: string;
+}
+
+export interface RelationObservationContract { table: string; field: string; joinTable: string; ownerColumn: string; targetColumn: string }
+
+export function compileRelationObservationContracts(registry: Registry): RelationObservationContract[] {
+  return registry.database_sources.flatMap((source) => Object.entries((source.relation_observation_contracts ?? {}) as Record<string, Record<string, unknown>>).map(([sourceField, value]) => {
+    const [table, field] = sourceField.split('.');
+    if (!table || !field || typeof value.join_table !== 'string' || typeof value.owner_column !== 'string' || typeof value.target_column !== 'string') throw new Error(`invalid relation observation contract: ${sourceField}`);
+    return { table, field, joinTable: value.join_table, ownerColumn: value.owner_column, targetColumn: value.target_column };
+  }));
 }
 
 interface RegistryObservationContract {
@@ -124,7 +136,7 @@ export function compileJsonObservationContracts(registry: Registry, fixtures: Sh
   const drift: Drift[] = [];
   const contracts: JsonObservationContract[] = [];
   const fixtureById = new Map(fixtures.map((fixture) => [fixture.decoder_id, fixture]));
-  const visit = (table: string, field: string, decoderId: string, prefix: string, active: Set<string>): void => {
+  const visit = (table: string, field: string, decoderId: string, prefix: string, active: Set<string>, requiredParentSelector?: string): void => {
     const decoder = registry.decoder_contracts[decoderId];
     const fixture = fixtureById.get(decoderId);
     if (!decoder || !fixture || active.has(decoderId)) {
@@ -148,7 +160,7 @@ export function compileJsonObservationContracts(registry: Registry, fixtures: Sh
     const discriminatorSelectors = (decoder.discriminator_selectors as string[] ?? []).flatMap(variants).map((item) => ({ ...item, selector: joinSelector(prefix, item.selector) }));
     const rootShapes = decoderRootShapes(decoder.root_type);
     if (!rootShapes) drift.push({ code: 'DATABASE_JSON_DECODER_ROOT_TYPE_UNRESOLVED', scope: `${table}.${field}`, observed: decoder.root_type ?? null });
-    else contracts.push({ table, field, decoderId, selector: prefix, summary: 'root_type', accepted: rootShapes });
+    else contracts.push({ table, field, decoderId, selector: prefix, summary: 'root_type', accepted: rootShapes, ...(requiredParentSelector ? { zeroObservation: 'forbid' as const, requiredParentSelector } : {}) });
     contracts.push({ table, field, decoderId, selector: prefix, summary: 'path', accepted: sortUnique([...selectors, ...versionSelectors.map((item) => canonicalJsonSelector(item.selector)), ...discriminatorSelectors.map((item) => canonicalJsonSelector(item.selector))]) });
     for (const versionSelector of versionSelectors) {
       contracts.push({ table, field, decoderId, selector: versionSelector.selector, summary: 'version', accepted: sortUnique(fixture.accepted_versions), applicability: versionSelector.applicability });
@@ -161,7 +173,7 @@ export function compileJsonObservationContracts(registry: Registry, fixtures: Sh
     }
     if (typeof decoder.item_decoder === 'string') visit(table, field, decoder.item_decoder, `${prefix}[*]`, next);
     if (typeof decoder.payload_decoder === 'string' && typeof decoder.payload_selector === 'string') {
-      visit(table, field, decoder.payload_decoder, joinSelector(prefix, decoder.payload_selector), next);
+      visit(table, field, decoder.payload_decoder, joinSelector(prefix, decoder.payload_selector), next, prefix);
     }
   };
   for (const item of registry.field_decoders) {

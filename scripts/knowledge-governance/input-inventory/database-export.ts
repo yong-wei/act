@@ -6,7 +6,7 @@ import { Client, type ClientBase } from 'pg';
 import { Prisma } from '@prisma/client';
 import { canonicalJson, sortUnique, taggedDigest } from './normalize';
 import { loadRegistry, type Registry } from './registry';
-import { canonicalJsonSelector, compileDatabaseObservationContracts, compileJsonObservationContracts, type JsonObservationContract } from './database-observation';
+import { canonicalJsonSelector, compileDatabaseObservationContracts, compileJsonObservationContracts, compileRelationObservationContracts, type JsonObservationContract } from './database-observation';
 import type { ShapeFixture } from './decoder-validation';
 import type { Json } from './types';
 
@@ -28,6 +28,7 @@ export interface AggregateDatasetExport {
   discriminator_summaries: Record<string, Record<string, SafeCount>>;
   historical_shape_summaries: Record<string, Record<string, SafeCount>>;
   json_observation_summaries?: Record<string, Record<string, SafeCount>>;
+  relation_summaries?: Record<string, Record<string, SafeCount>>;
 }
 
 export interface AggregateDatabaseExport {
@@ -104,7 +105,7 @@ const SAFE_CATEGORY = /^[\p{L}\p{N}_.:+@/\[\]$*-]{1,256}$/u;
 const CANONICAL_WATERMARK = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$/u;
 const PRIVATE_SUMMARY_TOKEN = /^(?:userid|answer|answers|payload|eventpayload|eventspayload|row|rows|rawrowdigest|reversiblekey|description|reasoning|sourceinputdigest)$/iu;
 const SUMMARY_FIELD = '[A-Za-z_][A-Za-z0-9_]*';
-const SUMMARY_LOCATOR = new RegExp(`^${SUMMARY_FIELD}$|^(?:field|path):${SUMMARY_FIELD}$|^(?:version|discriminator|root_type|version_presence|legacy_shape):${SUMMARY_FIELD}:selector_[0-9a-f]{64}$`, 'u');
+const SUMMARY_LOCATOR = new RegExp(`^${SUMMARY_FIELD}$|^(?:field|path|relation):${SUMMARY_FIELD}$|^(?:version|discriminator|root_type|version_presence|legacy_shape):${SUMMARY_FIELD}:selector_[0-9a-f]{64}$`, 'u');
 
 function exactSha256(bytes: Buffer): string {
   return `sha256:${createHash('sha256').update(bytes).digest('hex')}`;
@@ -248,6 +249,12 @@ async function groupedSummary(client: ClientBase, table: string, field: string, 
   return { summary: suppressRows(result.rows as Array<{ category: unknown; count: unknown }>), plan };
 }
 
+export async function groupedRelationSummary(client: ClientBase, joinTable: string, ownerColumn: string, targetColumn: string): Promise<{ summary: Record<string, SafeCount>; plan: string }> {
+  const sql = `SELECT 'linked' AS category, count(*)::text AS count FROM ${quoteIdentifier(joinTable)} WHERE ${quoteIdentifier(ownerColumn)} IS NOT NULL AND ${quoteIdentifier(targetColumn)} IS NOT NULL GROUP BY 1`;
+  const [result, plan] = await Promise.all([client.query(sql), explainDigest(client, sql)]);
+  return { summary: suppressRows(result.rows as Array<{ category: unknown; count: unknown }>), plan };
+}
+
 function quoteLiteral(value: string): string {
   return `'${value.replaceAll("'", "''")}'`;
 }
@@ -381,6 +388,8 @@ function fieldSummaryToken(field: string): string {
 
 export function fieldSummaryKey(field: string): string { return `field:${fieldSummaryToken(field)}`; }
 
+export function relationSummaryKey(field: string): string { return `relation:${fieldSummaryToken(field)}`; }
+
 export function jsonPathCategoryKey(category: string): string {
   return `path_${createHash('sha256').update('json-path-category/v1\0', 'utf8').update(category.normalize('NFC'), 'utf8').digest('hex')}`;
 }
@@ -488,7 +497,7 @@ export function assertAggregateExportShape(exported: AggregateDatabaseExport): v
       for (const [field, value] of Object.entries(dataset.watermarks)) if (value !== null && !CANONICAL_WATERMARK.test(value)) throw new Error(`invalid dataset watermark: ${dataset.table}.${field}`);
       if (dataset.watermark !== latestWatermark(dataset.watermarks)) throw new Error(`aggregate database export watermark compatibility mismatch: ${dataset.table}`);
     } else if (dataset.watermark !== null && !Number.isFinite(Date.parse(dataset.watermark))) throw new Error(`invalid dataset watermark: ${dataset.table}`);
-    for (const collection of [dataset.version_summaries, dataset.discriminator_summaries, dataset.historical_shape_summaries, dataset.json_observation_summaries ?? {}]) for (const [field, summary] of Object.entries(collection)) {
+    for (const collection of [dataset.version_summaries, dataset.discriminator_summaries, dataset.historical_shape_summaries, dataset.json_observation_summaries ?? {}, dataset.relation_summaries ?? {}]) for (const [field, summary] of Object.entries(collection)) {
       assertPublicSummaryLocator(field, dataset.table);
       for (const [category, count] of Object.entries(summary)) {
         if (category === '__suppressed__') { if (count !== 'suppressed') throw new Error(`invalid suppression marker: ${dataset.table}.${field}`); continue; }
@@ -538,14 +547,16 @@ export async function exportAggregateDatabase(options: ExportOptions): Promise<{
   const contracts = contractsFromRegistry(registry);
   const fixtureFile = JSON.parse(await readFile(path.join(options.root, 'scripts/knowledge-governance/input-inventory/fixtures/synthetic-history-payload-shapes.json'), 'utf8')) as { fixtures: ShapeFixture[] };
   const jsonObservations = compileJsonObservationContracts(registry, fixtureFile.fixtures);
+  const relationObservations = compileRelationObservationContracts(registry);
   if (jsonObservations.drift.length > 0) throw new Error(`invalid database JSON observation contracts: ${jsonObservations.drift.map((item) => item.code).join(', ')}`);
   if (contracts.length !== 37) throw new Error(`declared database table count mismatch: expected 37, observed ${contracts.length}`);
   for (const contract of contracts) {
     for (const field of [...contract.versionFields, ...contract.discriminatorFields, ...contract.jsonFields]) assertPublicSummaryLocator(fieldSummaryKey(field), contract.table);
   }
-  for (const contract of jsonObservations.contracts) {
-    assertPublicSummaryLocator(jsonSummaryKey(contract), contract.table);
-  }
+    for (const contract of jsonObservations.contracts) {
+      assertPublicSummaryLocator(jsonSummaryKey(contract), contract.table);
+    }
+    for (const contract of relationObservations) assertPublicSummaryLocator(relationSummaryKey(contract.field), contract.table);
   const registryBytes = await readFile(path.join(options.root, options.registryPath));
   const exporterBytes = await readFile(fileURLToPath(import.meta.url));
   const prismaModels = new Map(Prisma.dmmf.datamodel.models.map((model) => [model.name, model]));
@@ -571,7 +582,7 @@ export async function exportAggregateDatabase(options: ExportOptions): Promise<{
     const identityRow = identity.rows[0] as Record<string, unknown> | undefined;
     if (!identityRow || typeof identityRow.schema_name !== 'string' || typeof identityRow.postgres_version !== 'string') throw new Error('database identity query returned no row');
     const sourceIdentityDigest = taggedDigest('database-source-identity/v1', canonicalJson(identityRow as Json));
-    const tableNames = contracts.map((contract) => contract.table);
+    const tableNames = sortUnique([...contracts.map((contract) => contract.table), ...relationObservations.map((contract) => contract.joinTable)]);
     const columns = await client.query(
       'SELECT table_name, column_name, data_type, udt_name FROM information_schema.columns WHERE table_schema = current_schema() AND table_name = ANY($1::text[]) ORDER BY table_name, ordinal_position',
       [tableNames],
@@ -587,6 +598,10 @@ export async function exportAggregateDatabase(options: ExportOptions): Promise<{
         const dmmfField = model.fields.find((candidate) => candidate.name === field)!;
         if (dmmfField.kind !== 'object' && !actual.has(dmmfField.dbName ?? field)) throw new Error(`declared database field missing: ${contract.table}.${field}`);
       }
+    }
+    for (const relation of relationObservations) {
+      const actual = columnsByTable.get(relation.joinTable);
+      if (!actual?.has(relation.ownerColumn) || !actual.has(relation.targetColumn)) throw new Error(`declared relation join table missing: ${relation.joinTable}`);
     }
     const migration = await client.query<{ migration_name: string }>('SELECT migration_name FROM "_prisma_migrations" WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL ORDER BY finished_at DESC, migration_name DESC LIMIT 1');
     const migrationHead = migration.rows[0]?.migration_name;
@@ -608,6 +623,7 @@ export async function exportAggregateDatabase(options: ExportOptions): Promise<{
       const discriminatorSummaries: Record<string, Record<string, SafeCount>> = {};
       const historicalShapeSummaries: Record<string, Record<string, SafeCount>> = {};
       const jsonObservationSummaries: Record<string, Record<string, SafeCount>> = {};
+      const relationSummaries: Record<string, Record<string, SafeCount>> = {};
       for (const field of contract.versionFields) { const result = await groupedSummary(client, contract.table, field); versionSummaries[fieldSummaryKey(field)] = result.summary; planDigests.push(result.plan); }
       for (const field of contract.discriminatorFields) { const result = await groupedSummary(client, contract.table, field); discriminatorSummaries[fieldSummaryKey(field)] = result.summary; planDigests.push(result.plan); }
       for (const field of contract.jsonFields) { const result = await groupedSummary(client, contract.table, field, `jsonb_typeof(${quoteIdentifier(field)}::jsonb)`); historicalShapeSummaries[fieldSummaryKey(field)] = result.summary; planDigests.push(result.plan); }
@@ -632,6 +648,11 @@ export async function exportAggregateDatabase(options: ExportOptions): Promise<{
           planDigests.push(result.plan);
         }
       }
+      for (const relation of relationObservations.filter((item) => item.table === contract.table)) {
+        const result = await groupedRelationSummary(client, relation.joinTable, relation.ownerColumn, relation.targetColumn);
+        relationSummaries[relationSummaryKey(relation.field)] = result.summary;
+        planDigests.push(result.plan);
+      }
       const row = aggregate.rows[0] as Record<string, unknown>;
       const watermarks = Object.fromEntries(contract.watermarkFields.map((field, index) => [field, row[`watermark_${index}`] == null ? null : String(row[`watermark_${index}`])])) as Record<string, string | null>;
       const watermark = latestWatermark(watermarks);
@@ -647,6 +668,7 @@ export async function exportAggregateDatabase(options: ExportOptions): Promise<{
         discriminator_summaries: discriminatorSummaries,
         historical_shape_summaries: historicalShapeSummaries,
         json_observation_summaries: jsonObservationSummaries,
+        relation_summaries: relationSummaries,
       });
     }
     const capturedAt = timestamp(tx.transaction_started_at, 'transaction start');

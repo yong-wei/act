@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
+import type { ClientBase, QueryResult } from 'pg';
 import { validateDatabaseClosure } from '../database-snapshot';
 import type { Registry } from '../registry';
 import type { DatabaseSnapshot } from '../types';
 import { shapeDigest, type ShapeFixture } from '../decoder-validation';
 import { canonicalJsonSelector, compileJsonObservationContracts } from '../database-observation';
+import { groupedRelationSummary, relationSummaryKey } from '../database-export';
 
 const fixtures: ShapeFixture[] = [{ decoder_id: 'payload/v1', accepted_versions: ['v1'], legacy_shape_digests: [], samples: [{ version: 'v1', payload: { id: 'safe' } }] }];
 
@@ -169,6 +171,45 @@ describe('database decoder observation closure', () => {
   it('does not treat an empty summary on a non-empty table as allowed zero observation', () => {
     expect(validateDatabaseClosure(snapshot({ version_summaries: { 'field:version': {} }, versions: [] }), registry(), fixtures))
       .toEqual(expect.arrayContaining([expect.objectContaining({ code: 'DATABASE_OBSERVATION_EVIDENCE_MISSING', scope: 'Observed.version' })]));
+  });
+
+  it('requires aggregate evidence for a declared implicit many-to-many relation', () => {
+    const candidate = registry();
+    candidate.database_sources.push({
+      id: 'resources', tables: ['TeachingResource'], fields: { TeachingResource: ['knowledgeNodes'] },
+      relation_observation_contracts: { 'TeachingResource.knowledgeNodes': { join_table: '_KnowledgeNodeToTeachingResource', owner_column: 'B', target_column: 'A' } },
+    } as never);
+    const relationSnapshot: DatabaseSnapshot = {
+      snapshot_id: 'snapshot', captured_at: '2026-01-01T00:00:00.000Z', snapshot_proof: { profile: 'immutable_export' }, dataset_watermarks: {}, summary_key_format: 'opaque',
+      datasets: [{ id: 'resources', table: 'TeachingResource', count: 5, watermark: null, shape: ['knowledgeNodes'], versions: [], version_summaries: {}, discriminator_summaries: {}, historical_shape_summaries: {}, json_observation_summaries: {}, relation_summaries: { [relationSummaryKey('knowledgeNodes')]: {} } }],
+    };
+    expect(validateDatabaseClosure(relationSnapshot, candidate, fixtures)).toContainEqual(expect.objectContaining({ code: 'DATABASE_RELATION_OBSERVATION_EVIDENCE_MISSING', scope: 'TeachingResource.knowledgeNodes' }));
+    relationSnapshot.datasets[0]!.relation_summaries = { [relationSummaryKey('knowledgeNodes')]: { linked: 5 } };
+    expect(validateDatabaseClosure(relationSnapshot, candidate, fixtures)).not.toContainEqual(expect.objectContaining({ code: expect.stringContaining('RELATION_OBSERVATION') }));
+  });
+
+  it('returns an empty relation summary when the join query has zero linked rows', async () => {
+    const queries: string[] = [];
+    const client = {
+      query: async (sql: string) => {
+        queries.push(sql);
+        return { rows: sql.startsWith('EXPLAIN ') ? [{ 'QUERY PLAN': [] }] : [] } as unknown as QueryResult;
+      },
+    } as unknown as ClientBase;
+    await expect(groupedRelationSummary(client, '_KnowledgeNodeToTeachingResource', 'B', 'A')).resolves.toMatchObject({ summary: {} });
+    expect(queries.find((sql) => !sql.startsWith('EXPLAIN '))).toMatch(/GROUP BY 1$/u);
+  });
+
+  it('fails closed when a required payload decoder has no nested payload observations', () => {
+    const candidate = registry();
+    candidate.decoder_contracts['payload/v1']!.payload_decoder = 'child/v1';
+    candidate.decoder_contracts['payload/v1']!.payload_selector = '$.payload';
+    candidate.decoder_contracts['child/v1'] = { root_type: 'object', selectors: ['$.id'], reference_namespace: 'test' };
+    const candidateFixtures: ShapeFixture[] = [...fixtures, { decoder_id: 'child/v1', accepted_versions: ['v1'], legacy_shape_digests: [], samples: [{ version: 'v1', payload: { id: 'child' } }] }];
+    const summaries = { ...snapshot().datasets[0]!.json_observation_summaries!, 'root_type:payload:$.payload': {} };
+    expect(validateDatabaseClosure(snapshot({ json_observation_summaries: summaries }), candidate, candidateFixtures)).toContainEqual(expect.objectContaining({
+      code: 'DATABASE_JSON_OBSERVATION_EVIDENCE_MISSING', scope: 'Observed.payload.payload', observed: 0,
+    }));
   });
 
   it.each([

@@ -42,7 +42,7 @@ function aggregateExport(datasets: AggregateDatasetExport[]): AggregateDatabaseE
     transaction_started_at: '2026-01-01T00:00:00.000Z',
     exported_snapshot_token: '00000003-00000001-1',
     declared_table_count: datasets.length,
-    datasets,
+    datasets: datasets.map((dataset) => ({ ...dataset, relation_summaries: dataset.relation_summaries ?? {} })),
   };
 }
 

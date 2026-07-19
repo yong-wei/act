@@ -444,6 +444,8 @@ database_sources:
     observation_contracts:
       TeachingResource.type: { discriminators: [ETHICS_SCENARIO, INTERACTIVE_COMP, SIMULATION, SIMULATION_APP, STATIC_MEDIA, STATIC_TEXT, VIDEO], zero_observation: forbid }
       TeachingResource.teacherOnly: { discriminators: ['true', 'false'], zero_observation: forbid }
+    relation_observation_contracts:
+      TeachingResource.knowledgeNodes: { join_table: _KnowledgeNodeToTeachingResource, owner_column: B, target_column: A }
     logical_selectors:
       - TeachingResource.knowledgeNodes[*].id
     item_kind: resource
