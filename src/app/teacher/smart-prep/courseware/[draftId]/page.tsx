@@ -14,6 +14,7 @@ import {
   getSmartCoursewareDraft,
   getSmartCoursewareStudentProjection,
   getSmartCoursewareTeacherProjection,
+  SmartCoursewareError,
 } from '@/lib/smart-courseware';
 import { resolveSmartCoursewareOrderingSecret } from '@/lib/smart-courseware/student-projection-secret';
 
@@ -81,14 +82,17 @@ export default async function SmartCoursewareEditorPage({
     return <SmartCoursewareEditor initialEnvelope={initialEnvelope} initialJob={initialJob} />;
   }
 
-  const [teacherProjection, studentProjection] = await Promise.all([
-    getSmartCoursewareTeacherProjection(prisma, { actor, draftId }),
-    getSmartCoursewareStudentProjection(
+  const teacherProjection = await getSmartCoursewareTeacherProjection(prisma, { actor, draftId });
+  let studentProjection = null;
+  try {
+    studentProjection = await getSmartCoursewareStudentProjection(
       prisma,
       { actor, draftId },
       { orderingPermutationSecret: resolveSmartCoursewareOrderingSecret() },
-    ),
-  ]);
+    );
+  } catch (error) {
+    if (!(error instanceof SmartCoursewareError && error.code === 'courseware-ordering-secret-unavailable')) throw error;
+  }
   return (
     <SmartCoursewareProjectionEditor
       teacherProjection={teacherProjection}

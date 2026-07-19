@@ -7,6 +7,7 @@ import {
   defaultTeacherFieldsForActivity,
   StudentCoursewarePreview,
   SmartCoursewareEditor,
+  SmartCoursewareProjectionEditor,
   splitCoursewareStep,
   mergeAndDeleteCoursewareStep,
   TeacherCoursewarePreview,
@@ -200,6 +201,22 @@ describe('smart courseware role previews', () => {
     expect(html).toContain('批准整课版本');
     expect(html).toContain('来源待补项保留在版本快照中');
     expect(html).not.toContain('acknowledgement');
+  });
+
+  it('keeps teacher editing available when the student projection is unavailable', () => {
+    const html = renderToStaticMarkup(<SmartCoursewareProjectionEditor
+      teacherProjection={{
+        draftId: teacherEnvelope.draftId, version: teacherEnvelope.version,
+        planRevisionId: teacherEnvelope.planRevisionId!, runtimeManifest: teacherEnvelope.manifest!,
+        moduleMetadata: [], planLimitations: [], aiReview: null, generationAudit: [], validation: { issues: [] },
+      }}
+      studentProjection={null}
+      state="ready"
+      stalePlan={false}
+    />);
+    expect(html).toContain('教师预览');
+    expect(html).toContain('学生预览暂不可用');
+    expect(html).toContain('学生预览</button>');
   });
 
   it('preserves stale-plan state when rebuilding an envelope after save', () => {

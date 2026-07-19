@@ -241,7 +241,7 @@ export function SmartCoursewareProjectionEditor({
   initialJob,
 }: {
   teacherProjection: SmartCoursewareTeacherProjectionInput;
-  studentProjection: SmartCoursewareStudentProjectionReceipt;
+  studentProjection: SmartCoursewareStudentProjectionReceipt | null;
   state: SmartCoursewareTeacherEnvelope['state'];
   stalePlan: boolean;
   initialJob?: SmartCoursewareJobView | null;
@@ -249,7 +249,9 @@ export function SmartCoursewareProjectionEditor({
   const initialEnvelope = createSmartCoursewareTeacherEnvelopeFromProjection(teacherProjection);
   initialEnvelope.state = state;
   initialEnvelope.stalePlan = stalePlan;
-  const initialStudentPreview = createSmartCoursewareStudentPreviewFromService(initialEnvelope, studentProjection);
+  const initialStudentPreview = studentProjection
+    ? createSmartCoursewareStudentPreviewFromService(initialEnvelope, studentProjection)
+    : null;
 
   return (
     <SmartCoursewareEditor
@@ -685,6 +687,7 @@ export function SmartCoursewareEditor({
                 key={role}
                 type="button"
                 aria-pressed={previewRole === role}
+                disabled={role === 'student' && !studentPreview}
                 onClick={() => setPreviewRole(role)}
                 className={`rounded px-3 py-1.5 text-sm ${previewRole === role ? 'bg-primary text-primary-foreground' : 'text-subtle'}`}
               >
@@ -696,6 +699,7 @@ export function SmartCoursewareEditor({
       </header>
 
       {message ? <p className="rounded-lg bg-muted px-4 py-3 text-sm" role="status">{message}</p> : null}
+      {envelope.manifest && !studentPreview ? <p className="rounded-lg border border-border bg-muted px-4 py-3 text-sm" role="status">学生预览暂不可用；教师编辑与预览不受影响。</p> : null}
 
       {envelope.manifest ? (
         <section className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border p-4" data-courseware-approval>
