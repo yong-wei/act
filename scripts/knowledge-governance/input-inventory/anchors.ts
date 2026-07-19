@@ -64,6 +64,7 @@ export interface AnchorReviewAttestation {
   review_artifact_digest: string;
   admitted_artifact_digest: string;
   accepted_candidate_digests: string[];
+  rejected_candidate_digests: string[];
   evidence: AnchorReviewEvidence;
   reason: string;
 }
@@ -286,13 +287,18 @@ export async function verifyAnchorReviewAttestation(root: string, attestationPat
   const expectedDigests = [attestation.candidate_artifact_digest, attestation.review_artifact_digest, attestation.admitted_artifact_digest];
   if (expectedDigests.some((digest) => !/^sha256:[0-9a-f]{64}$/u.test(digest))) throw new Error('invalid anchor review attestation digest');
   if (!Array.isArray(attestation.accepted_candidate_digests) || new Set(attestation.accepted_candidate_digests).size !== attestation.accepted_candidate_digests.length) throw new Error('duplicate accepted anchor candidate');
+  if (!Array.isArray(attestation.rejected_candidate_digests) || new Set(attestation.rejected_candidate_digests).size !== attestation.rejected_candidate_digests.length) throw new Error('duplicate rejected anchor candidate');
   const candidates = await extractAuthoritativeAnchorCandidates({ root, repositoryRevision: attestation.source_revision, extractionRun: attestation.extraction_run });
   if (candidates.artifact_digest !== attestation.candidate_artifact_digest) throw new Error('attested candidate artifact digest mismatch');
   const observed = candidates.candidates.map((item) => item.candidate_digest).sort(compareCodePoints);
   const accepted = [...attestation.accepted_candidate_digests].sort(compareCodePoints);
-  if (canonicalJson(observed as unknown as Json) !== canonicalJson(accepted as unknown as Json)) throw new Error('attested candidate set mismatch');
+  const rejected = [...attestation.rejected_candidate_digests].sort(compareCodePoints);
+  if (accepted.some((digest) => rejected.includes(digest))) throw new Error('anchor review decision sets overlap');
+  const decided = [...accepted, ...rejected].sort(compareCodePoints);
+  if (canonicalJson(observed as unknown as Json) !== canonicalJson(decided as unknown as Json)) throw new Error('attested candidate decision coverage mismatch');
+  const acceptedSet = new Set(accepted);
   const decisions = candidates.candidates.map((candidate) => makeAnchorReviewDecision(candidate, {
-    decision: 'ACCEPT', evidence: attestation.evidence, reason: attestation.reason, reviewRun: attestation.review_run,
+    decision: acceptedSet.has(candidate.candidate_digest) ? 'ACCEPT' : 'REJECT', evidence: attestation.evidence, reason: attestation.reason, reviewRun: attestation.review_run,
   }));
   const review = makeAnchorReviewArtifact(attestation.review_run, decisions);
   if (review.artifact_digest !== attestation.review_artifact_digest) throw new Error('attested review artifact digest mismatch');

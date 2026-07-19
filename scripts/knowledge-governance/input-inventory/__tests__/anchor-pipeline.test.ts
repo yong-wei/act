@@ -97,7 +97,34 @@ describe('authoritative anchor pipeline', () => {
       const attestation = JSON.parse(await readFile(path.join(root, 'scripts/knowledge-governance/input-inventory/fixtures/anchor-review-attestation.json'), 'utf8')) as { accepted_candidate_digests: string[] };
       attestation.accepted_candidate_digests.pop();
       await writeFile(path.join(directory, 'changed.json'), JSON.stringify(attestation));
-      await expect(verifyAnchorReviewAttestation(directory, 'changed.json')).rejects.toThrow(/candidate set mismatch/u);
+      await expect(verifyAnchorReviewAttestation(directory, 'changed.json')).rejects.toThrow(/decision coverage/u);
+    } finally { await rm(directory, { recursive: true }); }
+  });
+
+  it('reconstructs a complete manifest with both accepted and rejected candidate decisions', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'anchor-attestation-reject-'));
+    try {
+      for (const logicalPath of AUTHORITATIVE_ANCHOR_MARKDOWN) {
+        await mkdir(path.join(directory, path.dirname(logicalPath)), { recursive: true });
+        await cp(path.join(root, logicalPath), path.join(directory, logicalPath));
+      }
+      const sourceRevision = '6d9b9f3a8f6098d6c5b581716d855f4dc5bbfb4d';
+      const candidates = await extractAuthoritativeAnchorCandidates({ root: directory, repositoryRevision: sourceRevision, extractionRun: 'extract-reject' });
+      const evidence = { provenance: 'checked', type: 'checked', scope: 'checked', fidelity: 'checked' };
+      const decisions = candidates.candidates.map((candidate, index) => makeAnchorReviewDecision(candidate, { decision: index === 0 ? 'REJECT' : 'ACCEPT', evidence, reason: 'reviewed independently', reviewRun: 'review-reject' }));
+      const review = makeAnchorReviewArtifact('review-reject', decisions);
+      const admitted = verifyAndAdmitAnchors(candidates, review);
+      const rejected = [candidates.candidates[0]!.candidate_digest];
+      const accepted = candidates.candidates.slice(1).map((candidate) => candidate.candidate_digest);
+      await writeFile(path.join(directory, 'attestation.json'), JSON.stringify({
+        schema_version: 'course-scope-anchor-review-attestation/v1', source_revision: sourceRevision,
+        extraction_run: 'extract-reject', review_run: 'review-reject', candidate_artifact_digest: candidates.artifact_digest,
+        review_artifact_digest: review.artifact_digest, admitted_artifact_digest: admitted.artifact_digest,
+        accepted_candidate_digests: accepted, rejected_candidate_digests: rejected, evidence, reason: 'reviewed independently',
+      }));
+      const verified = await verifyAnchorReviewAttestation(directory, 'attestation.json');
+      expect(verified.admitted.rejected_candidate_digests).toEqual(rejected);
+      expect(verified.admitted.pending_candidate_digests).toEqual([]);
     } finally { await rm(directory, { recursive: true }); }
   });
 });

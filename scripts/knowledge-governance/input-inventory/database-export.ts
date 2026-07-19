@@ -1,5 +1,5 @@
-import { createHash } from 'node:crypto';
-import { access, lstat, mkdir, readFile, realpath, stat, writeFile } from 'node:fs/promises';
+import { createHash, randomUUID } from 'node:crypto';
+import { access, link, lstat, mkdir, readFile, realpath, stat, unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Client, type ClientBase } from 'pg';
@@ -476,6 +476,27 @@ export function assertAggregateExportShape(exported: AggregateDatabaseExport): v
   }
 }
 
+export async function publishExportArtifacts(outputPath: string, outputBytes: Buffer, proofPath: string, proofBytes: Buffer): Promise<void> {
+  const outputTemp = path.join(path.dirname(outputPath), `.${path.basename(outputPath)}.${randomUUID()}.tmp`);
+  const proofTemp = path.join(path.dirname(proofPath), `.${path.basename(proofPath)}.${randomUUID()}.tmp`);
+  let outputPublished = false;
+  try {
+    await writeFile(outputTemp, outputBytes, { flag: 'wx', mode: 0o600 });
+    await writeFile(proofTemp, proofBytes, { flag: 'wx', mode: 0o600 });
+    await link(outputTemp, outputPath);
+    outputPublished = true;
+    await link(proofTemp, proofPath);
+  } catch (error) {
+    if (outputPublished) {
+      const [published, temporary] = await Promise.all([lstat(outputPath).catch(() => null), lstat(outputTemp).catch(() => null)]);
+      if (published && temporary && published.dev === temporary.dev && published.ino === temporary.ino) await unlink(outputPath);
+    }
+    throw error;
+  } finally {
+    await Promise.all([unlink(outputTemp).catch(() => undefined), unlink(proofTemp).catch(() => undefined)]);
+  }
+}
+
 export async function exportAggregateDatabase(options: ExportOptions): Promise<{ exported: AggregateDatabaseExport; proof: AggregateExportProof }> {
   if (!path.isAbsolute(options.outputPath) || !path.isAbsolute(options.proofPath)) throw new Error('database export and proof paths must be absolute');
   const outputTarget = await inspectExportTarget(options.outputPath);
@@ -623,8 +644,7 @@ export async function exportAggregateDatabase(options: ExportOptions): Promise<{
     assertAggregateExportShape(exported);
     const exportBytes = Buffer.from(canonicalJson(exported as unknown as Json), 'utf8');
     const proof = deriveProof(exported, exportBytes);
-    await writeFile(options.outputPath, exportBytes, { flag: 'wx', mode: 0o600 });
-    await writeFile(options.proofPath, canonicalJson(proof as unknown as Json), { flag: 'wx', mode: 0o600 });
+    await publishExportArtifacts(options.outputPath, exportBytes, options.proofPath, Buffer.from(canonicalJson(proof as unknown as Json), 'utf8'));
     return { exported, proof };
   } finally {
     if (began) await client.query('ROLLBACK').catch(() => undefined);

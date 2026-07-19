@@ -6,7 +6,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { canonicalJson, compareCodePoints, normalizePath, normalizeText, taggedDigest } from '../normalize';
 import { loadImmutableExport, validateDatabaseClosure } from '../database-snapshot';
-import { assertAggregateExportShape, contractsFromRegistry, DATABASE_EXPORT_FORMAT, deriveProof, exportAggregateDatabase, latestWatermark, type AggregateDatabaseExport, type AggregateDatasetExport } from '../database-export';
+import { assertAggregateExportShape, contractsFromRegistry, DATABASE_EXPORT_FORMAT, deriveProof, exportAggregateDatabase, latestWatermark, publishExportArtifacts, type AggregateDatabaseExport, type AggregateDatasetExport } from '../database-export';
 import { discoverWriters, discoverWritersInSource } from '../writer-discovery';
 import { validateOutputPrivacy } from '../schema-validation';
 import { sourceFingerprints } from '../manifest';
@@ -135,6 +135,24 @@ describe('filesystem closure', () => {
 });
 
 describe('immutable database privacy boundary', () => {
+  it('rolls back a newly published export when proof publication loses a no-overwrite race', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-atomic-publish-'));
+    const outputPath = path.join(directory, 'export.json');
+    const proofPath = path.join(directory, 'proof.json');
+    try {
+      await writeFile(proofPath, 'pre-existing proof');
+      await expect(publishExportArtifacts(outputPath, Buffer.from('export'), proofPath, Buffer.from('proof'))).rejects.toThrow();
+      expect(existsSync(outputPath)).toBe(false);
+      expect(await readFile(proofPath, 'utf8')).toBe('pre-existing proof');
+      expect((await readdir(directory)).filter((name) => name.endsWith('.tmp'))).toEqual([]);
+
+      await rm(proofPath);
+      await publishExportArtifacts(outputPath, Buffer.from('export'), proofPath, Buffer.from('proof'));
+      expect(await readFile(outputPath, 'utf8')).toBe('export');
+      expect(await readFile(proofPath, 'utf8')).toBe('proof');
+    } finally { await rm(directory, { recursive: true }); }
+  });
+
   it('rejects unsafe export paths before creating any directory', async () => {
     const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-export-paths-'));
     const repository = path.join(directory, 'repository');

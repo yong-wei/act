@@ -40,6 +40,7 @@
     "sha256:f6353437bc39a960c57f3737e12a1c8e849a062f585fda7bf47e7371902b5499",
     "sha256:fbe9f252a1697b23e6e5d62fec0d09d8a0b79f4a2c7496d22877823478d43467"
   ],
+  "rejected_candidate_digests": [],
   "evidence": {
     "provenance": "Registered logical path, heading locator, row locator, repository revision, and source digest independently verified against isolated HEAD 6d9b9f3a8f6098d6c5b581716d855f4dc5bbfb4d",
     "type": "Cited text independently confirms formal_objective, necessary_prerequisite, or explicit_extension without downstream semantic decisions",
