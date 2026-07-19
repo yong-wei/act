@@ -120,7 +120,7 @@ describe('course-basis service', () => {
   });
 
   it('does not select raw or normalized content in the import response', async () => {
-    const create = vi.fn(async ({ data }: any) => ({ id: 'version-1', versionNumber: 1, extractionState: data.extractionState }));
+    const create = vi.fn(async ({ data }: any) => ({ id: 'version-1', versionNumber: 1, extractionState: data.extractionState, _count: { segments: data.segments.create.length } }));
     const db: any = {
       courseBasisDocument: { findFirst: vi.fn(async () => ({ id: 'document-1' })) },
       courseBasisDocumentVersion: { findFirst: vi.fn(async () => null), create },
@@ -136,6 +136,8 @@ describe('course-basis service', () => {
     const query = create.mock.calls[0][0];
     expect(query.select.originalContent).toBeUndefined();
     expect(query.select.normalizedText).toBeUndefined();
+    expect(query.select.segments).toBeUndefined();
+    expect(query.select._count).toEqual({ select: { segments: true } });
     expect(query.select).toMatchObject({ id: true, extractionState: true, failureReason: true });
   });
 

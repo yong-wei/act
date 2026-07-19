@@ -239,7 +239,7 @@ export async function importCourseBasisVersion(db: CourseBasisDb, input: {
           orderBy: { versionNumber: 'desc' },
           select: { versionNumber: true },
         });
-        return tx.courseBasisDocumentVersion.create({
+        const { _count, ...version } = await tx.courseBasisDocumentVersion.create({
           data: {
             documentId,
             versionNumber: (latest?.versionNumber ?? 0) + 1,
@@ -273,9 +273,10 @@ export async function importCourseBasisVersion(db: CourseBasisDb, input: {
             retiredById: true,
             retiredAt: true,
             createdAt: true,
-            segments: { orderBy: { orderIndex: 'asc' } },
+            _count: { select: { segments: true } },
           },
         });
+        return { ...version, segmentCount: _count?.segments ?? extracted.segments.length };
       }, { isolationLevel: 'Serializable' });
     } catch (error) {
       if (!isVersionRace(error) || attempt === 2) {
