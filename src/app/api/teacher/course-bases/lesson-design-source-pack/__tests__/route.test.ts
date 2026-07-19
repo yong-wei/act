@@ -25,7 +25,7 @@ const projection = {
     text: '闭环控制系统通过反馈比较给定值与输出值。', orderIndex: 0,
   },
   version: {
-    id: 'version-1', reviewState: 'CONFIRMED', retiredAt: null,
+    id: 'version-1', reviewState: 'CONFIRMED', retiredAt: null as Date | null,
     createdAt: new Date('2026-07-19T00:00:00Z'),
     document: {
       id: 'document-1', title: '自动控制原理课程标准', kind: 'STANDARD',
@@ -37,6 +37,7 @@ const projection = {
 describe('lesson-design Course Basis Source Pack route', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    projection.version.retiredAt = null;
     getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
     findVersions.mockResolvedValue([{ document: { courseBasis: { ownerId: 'teacher-1' } } }]);
     findProjections.mockImplementation(async (query) => query.select ? [{ corpusSourceId }] : [projection]);
@@ -50,7 +51,8 @@ describe('lesson-design Course Basis Source Pack route', () => {
     expect(findProjections.mock.calls[0][0].where).toEqual({
       versionId: { in: ['version-1'] },
       version: {
-        reviewState: 'CONFIRMED', retiredAt: null,
+        reviewState: 'CONFIRMED',
+        OR: [{ retiredAt: null }, { id: { in: [] } }],
         document: { courseBasis: { ownerId: 'teacher-1' } },
       },
     });
@@ -64,6 +66,32 @@ describe('lesson-design Course Basis Source Pack route', () => {
     expect(JSON.stringify(body)).not.toContain(projection.segment.text);
     expect(JSON.stringify(body)).not.toContain('limitations');
     expect(JSON.stringify(body)).not.toContain('ranked');
+  });
+
+  it('passes an explicitly selected retired version through SAR and retrieval', async () => {
+    projection.version.retiredAt = new Date('2026-07-20T00:00:00Z');
+    const response = await POST(request({
+      selectedVersionIds: ['version-1'],
+      explicitRetiredVersionIds: ['version-1'],
+      query: '历史课次重放',
+    }));
+
+    expect(response.status).toBe(200);
+    expect(findProjections.mock.calls[0][0].where.version.OR).toEqual([
+      { retiredAt: null }, { id: { in: ['version-1'] } },
+    ]);
+    await expect(response.json()).resolves.toMatchObject({ sourcePack: { itemCount: 1 } });
+  });
+
+  it('rejects a retired replay version outside the selected set', async () => {
+    const response = await POST(request({
+      selectedVersionIds: ['version-1'],
+      explicitRetiredVersionIds: ['version-2'],
+      query: '历史课次重放',
+    }));
+
+    expect(response.status).toBe(400);
+    expect(findVersions).not.toHaveBeenCalled();
   });
 
   it('returns a controlled 404 for a version outside the teacher owner scope', async () => {

@@ -51,7 +51,12 @@ export async function buildCourseBasisLessonDesignSourcePack(
 
 export async function buildCourseBasisLessonDesignSar(
   db: PrismaClient,
-  input: { actor: CourseBasisActor; selectedVersionIds: readonly string[]; query: string },
+  input: {
+    actor: CourseBasisActor;
+    selectedVersionIds: readonly string[];
+    explicitRetiredVersionIds?: readonly string[];
+    query: string;
+  },
 ): Promise<SarAssociationExpansionResult> {
   const ownerUserId = await resolveSelectedOwner(db, input.actor, input.selectedVersionIds);
   const projections = await db.courseBasisProjection.findMany({
@@ -59,7 +64,10 @@ export async function buildCourseBasisLessonDesignSar(
       versionId: { in: [...input.selectedVersionIds] },
       version: {
         reviewState: 'CONFIRMED',
-        retiredAt: null,
+        OR: [
+          { retiredAt: null },
+          { id: { in: [...(input.explicitRetiredVersionIds ?? [])] } },
+        ],
         document: { courseBasis: { ownerId: ownerUserId } },
       },
     },
