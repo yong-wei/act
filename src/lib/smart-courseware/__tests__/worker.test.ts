@@ -162,6 +162,45 @@ describe('smart courseware generation worker', () => {
     }));
   });
 
+  it('rejects an invalid early-stage layout before completion and accepts a corrected retry', async () => {
+    const plan = validPlanFixture();
+    const pending = {
+      id: 'job-layout', ownerId: 'teacher-1', draftId: 'draft-1', state: 'QUEUED', firstIncompleteUnitKey: 'bridge-in', deliveryGeneration: 1,
+      draft: { id: 'draft-1', planRevision: { content: plan } },
+      units: [{ id: 'unit-1', unitKey: 'bridge-in', state: 'PENDING', output: null, orderIndex: 0, attemptGeneration: 0 }],
+    };
+    const retry = { ...pending, state: 'QUEUED', deliveryGeneration: 2, units: [{ ...pending.units[0], state: 'PENDING', attemptGeneration: 1 }] };
+    const db = { smartCoursewareGenerationJob: { findUnique: vi.fn().mockResolvedValueOnce(pending).mockResolvedValueOnce(retry) } };
+    mocks.buildSar.mockResolvedValue({ selectedVersionIds: [sourceBindingFixture.sourceVersionId] });
+    mocks.buildSourcePack.mockResolvedValue({ retrieval: { pack: { items: [{
+      citationTargetId: sourceBindingFixture.citationId,
+      metadata: { versionId: sourceBindingFixture.sourceVersionId, stableAnchor: sourceBindingFixture.anchor, contentHash: sourceBindingFixture.contentHash },
+    }] } } });
+    mocks.beginAttempt
+      .mockResolvedValueOnce({ claimed: true, claimToken: 'claim-1', attempt: { id: 'attempt-1', idempotencyKey: 'attempt-key-1' } })
+      .mockResolvedValueOnce({ claimed: true, claimToken: 'claim-2', attempt: { id: 'attempt-2', idempotencyKey: 'attempt-key-2' } });
+    mocks.failUnit.mockResolvedValue({ state: 'FAILED' });
+    mocks.completeUnit.mockResolvedValue({ state: 'COMPLETED' });
+    const invalid = createDeterministicCoursewareStage({ unitKey: 'bridge-in', durationSeconds: 300, sourceBinding: sourceBindingFixture });
+    invalid.stage.steps[0].layoutId = 'unregistered-layout';
+    const corrected = createDeterministicCoursewareStage({ unitKey: 'bridge-in', durationSeconds: 300, sourceBinding: sourceBindingFixture });
+    const runtime = {
+      serviceId: 'fixture-service', providerKind: 'fixture', model: 'fixture-model',
+      generate: vi.fn().mockResolvedValueOnce({ output: invalid }).mockResolvedValueOnce({ output: corrected }),
+    };
+
+    await expect(processCoursewareGenerationJob(db as never, pending.id, async () => runtime as never))
+      .rejects.toMatchObject({ code: 'runtime-stage-invalid:layout.unregistered-template' });
+    expect(mocks.completeUnit).not.toHaveBeenCalled();
+    expect(mocks.failUnit).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      unitKey: 'bridge-in', failureCode: 'runtime-stage-invalid:layout.unregistered-template', retryable: false,
+    }));
+
+    await expect(processCoursewareGenerationJob(db as never, pending.id, async () => runtime as never))
+      .resolves.toEqual({ jobId: pending.id, state: 'COMPLETED' });
+    expect(mocks.completeUnit).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ unitKey: 'bridge-in', output: corrected }));
+  });
+
   it('fails a crash redelivery with a live unit lease and processes a later reclaimed delivery', async () => {
     const plan = validPlanFixture();
     const context = {

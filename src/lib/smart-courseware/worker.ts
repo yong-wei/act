@@ -4,7 +4,7 @@ import type { Redis } from 'ioredis';
 import { ZodError } from 'zod';
 
 import { buildCourseBasisLessonDesignSar, buildCourseBasisLessonDesignSourcePack } from '@/lib/course-basis/lesson-design-source-pack';
-import type { GeneratedSlideManifest } from '@/features/interactive/shared/manifest-runtime/generated-slide-contract';
+import { validateGeneratedSlideManifest, type GeneratedSlideManifest } from '@/features/interactive/shared/manifest-runtime/generated-slide-contract';
 import { prisma } from '@/lib/prisma';
 import { normalizeSourceBindings } from '@/lib/smart-lesson-plan/domain';
 import { validateSmartLessonPlan, type SmartLessonPlan } from '@/lib/smart-lesson-plan/schema';
@@ -217,6 +217,17 @@ function validateUnitOutput(output: unknown, unitKey: CoursewareGenerationUnitKe
     if (!allowed.has(bindingKey(binding))) throw new SmartCoursewareError('generated-source-binding-unverified', 409);
   }
   parsed.moduleMetadata.forEach(assertAiGeneratedCoursewareSourceState);
+  const stageValidation = validateGeneratedSlideManifest({
+    schemaVersion: 'generated-slide-v1', lessonId: 'stage-validation', title: 'stage-validation',
+    durationSeconds: parsed.stage.durationSeconds, stages: [parsed.stage],
+  });
+  const localError = stageValidation.issues.find((issue) => issue.severity === 'error'
+    && !['hierarchy.stage-order', 'hierarchy.step-count'].includes(issue.code));
+  if (localError) throw new SmartCoursewareError(`runtime-stage-invalid:${localError.code}`, 409);
+  if (['pre-assessment', 'participatory-learning', 'post-assessment'].includes(unitKey)
+    && !parsed.stage.steps.some((step) => step.modules.some((module) => module.canonicalClass === 'activity.panel'))) {
+    throw new SmartCoursewareError(`required-activity-missing:${unitKey}`, 409);
+  }
   return parsed;
 }
 
