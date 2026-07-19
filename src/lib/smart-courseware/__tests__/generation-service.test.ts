@@ -120,8 +120,11 @@ describe('smart courseware generation service', () => {
   });
 
   it('fails a stage identity collision before completion and accepts a corrected retry', async () => {
-    const previous = createDeterministicCoursewareStage({ unitKey: 'bridge-in', durationSeconds: 60, sourceBinding: sourceBindingFixture });
-    const corrected = createDeterministicCoursewareStage({ unitKey: 'objective', durationSeconds: 60, sourceBinding: sourceBindingFixture });
+    const approvedPlan = validPlanFixture();
+    const { approvedPlanAlignment: _legacyAlignment, stepPlanBindings: _legacyBindings, ...previous } = createDeterministicCoursewareStage({
+      unitKey: 'bridge-in', durationSeconds: 60, approvedPlan, sourceBinding: sourceBindingFixture,
+    });
+    const corrected = createDeterministicCoursewareStage({ unitKey: 'objective', durationSeconds: 60, approvedPlan, sourceBinding: sourceBindingFixture });
     const conflicting = structuredClone(corrected);
     conflicting.stage.steps[0].id = previous.stage.steps[0].id;
     conflicting.stage.steps[0].modules[0].id = previous.stage.steps[0].modules[0].id;
@@ -130,7 +133,9 @@ describe('smart courseware generation service', () => {
     const job = {
       id: 'job-1', ownerId: actor.id, draftId: 'draft-1', state: 'RUNNING', draft: { state: 'GENERATING' },
       units: [
-        { id: 'unit-1', unitKey: 'bridge-in', orderIndex: 0, state: 'COMPLETED', output: previous, attempts: [] },
+        { id: 'unit-1', unitKey: 'bridge-in', orderIndex: 0, state: 'COMPLETED', output: previous, attempts: [{
+          outcome: 'SUCCEEDED', schemaVersion: 'smart-courseware-stage-bridge-in.v1',
+        }] },
         current,
         { id: 'unit-3', unitKey: 'pre-assessment', orderIndex: 2, state: 'PENDING', attempts: [] },
       ],

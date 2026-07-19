@@ -17,6 +17,7 @@ import {
   validateCoursewareComposition,
   type SmartCoursewareActor,
 } from './domain';
+import { parsePersistedCoursewareStageOutput } from './provider-runtime';
 import { coursewareGeneratedStageOutputSchema } from './schema';
 
 export const COURSEWARE_GENERATION_UNITS = [
@@ -268,7 +269,7 @@ export async function completeCoursewareGenerationUnit(db: Db, input: {
     }
     const attempt = unit.attempts.find((candidate) => candidate.id === input.attemptId && candidate.outcome === 'RUNNING');
     if (unit.state !== 'RUNNING' || !attempt) throw new SmartCoursewareError('courseware-unit-not-running', 409);
-    assertUniqueGeneratedIdentities(job.units.filter((candidate) => candidate.state === 'COMPLETED').map((candidate) => candidate.output), input.output);
+    assertUniqueGeneratedIdentities(job.units.filter((candidate) => candidate.state === 'COMPLETED'), input.output);
     const completed = await tx.smartCoursewareGenerationUnit.updateMany({
       where: { id: unit.id, state: 'RUNNING', claimToken: validateId(input.claimToken) },
       data: { state: 'COMPLETED', output: asJson(input.output), outputHash, completedAt: new Date(), claimToken: null, claimExpiresAt: null },
@@ -291,8 +292,19 @@ export async function completeCoursewareGenerationUnit(db: Db, input: {
   });
 }
 
-function assertUniqueGeneratedIdentities(previousOutputs: unknown[], currentOutput: unknown) {
-  const outputs = [...previousOutputs, currentOutput].map((output) => coursewareGeneratedStageOutputSchema.parse(output));
+function assertUniqueGeneratedIdentities(previousUnits: Array<{
+  unitKey: string;
+  output: unknown;
+  attempts: Array<{ outcome: string; schemaVersion: string }>;
+}>, currentOutput: unknown) {
+  const outputs = [
+    ...previousUnits.map((unit) => parsePersistedCoursewareStageOutput({
+      output: unit.output,
+      unitKey: unit.unitKey as CoursewareGenerationUnitKey,
+      schemaVersion: unit.attempts.find((attempt) => attempt.outcome === 'SUCCEEDED')?.schemaVersion,
+    })),
+    coursewareGeneratedStageOutputSchema.parse(currentOutput),
+  ];
   const stepIds = outputs.flatMap((output) => output.stage.steps.map((step) => step.id));
   const moduleIds = outputs.flatMap((output) => output.stage.steps.flatMap((step) => step.modules.map((module) => module.id)));
   if (new Set(stepIds).size !== stepIds.length || new Set(moduleIds).size !== moduleIds.length) {

@@ -97,7 +97,7 @@ describe('smart courseware generation worker', () => {
     });
     mocks.completeUnit.mockResolvedValue({ state: 'COMPLETED' });
     const output = createDeterministicCoursewareStage({
-      unitKey: 'bridge-in', durationSeconds: 300, sourceBinding: sourceBindingFixture,
+      unitKey: 'bridge-in', durationSeconds: 300, approvedPlan: plan, sourceBinding: sourceBindingFixture,
     });
     const runtime = {
       serviceId: 'fixture-service', providerKind: 'fixture', model: 'fixture-model',
@@ -110,12 +110,153 @@ describe('smart courseware generation worker', () => {
       .resolves.toEqual({ jobId: 'job-1', state: 'COMPLETED' });
 
     expect(mocks.beginAttempt).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
-      request: expect.objectContaining({ authoritativeSourceBindings: [sourceBindingFixture] }),
+      schemaVersion: 'smart-courseware-stage-bridge-in.v2',
+      request: expect.objectContaining({
+        authoritativeSourceBindings: [sourceBindingFixture],
+        approvedPlanAlignment: output.approvedPlanAlignment,
+        approvedStepExpectations: output.stepPlanBindings.map(({ generatedStepId: _stepId, ...expectation }) => expectation),
+      }),
     }));
+    expect(runtime.generate).toHaveBeenCalledWith(expect.objectContaining({
+      schemaVersion: 'smart-courseware-stage-bridge-in.v2',
+      system: expect.stringContaining('approvedPlanAlignment'),
+      prompt: expect.stringContaining(JSON.stringify(output.approvedPlanAlignment)),
+    }));
+    expect(runtime.generate.mock.calls[0][0].prompt).toContain(JSON.stringify(
+      output.stepPlanBindings.map(({ generatedStepId: _stepId, ...expectation }) => expectation),
+    ));
     expect(mocks.completeUnit).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
       unitKey: 'bridge-in', output,
     }));
     expect(mocks.failUnit).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['an unrelated goal id', (output: ReturnType<typeof createDeterministicCoursewareStage>) => {
+      output.approvedPlanAlignment.goalIds.push('goal-unrelated');
+    }, 'generated-courseware-plan-alignment-changed'],
+    ['a mutated goal set hash', (output: ReturnType<typeof createDeterministicCoursewareStage>) => {
+      output.approvedPlanAlignment.goalSetHash = 'b'.repeat(64);
+    }, 'generated-courseware-plan-alignment-changed'],
+    ['a mutated stage content hash', (output: ReturnType<typeof createDeterministicCoursewareStage>) => {
+      output.approvedPlanAlignment.stageContentHash = 'c'.repeat(64);
+    }, 'generated-courseware-plan-alignment-changed'],
+    ['a changed approved outline title', (output: ReturnType<typeof createDeterministicCoursewareStage>) => {
+      output.approvedPlanAlignment.stageOutlineTitles = ['未批准的标题'];
+    }, 'generated-courseware-plan-alignment-changed'],
+    ['an omitted goal id', (output: ReturnType<typeof createDeterministicCoursewareStage>) => {
+      output.approvedPlanAlignment.goalIds = [];
+    }, 'generated-courseware-schema-invalid'],
+    ['a mutated actual step title', (output: ReturnType<typeof createDeterministicCoursewareStage>) => {
+      output.stage.steps[0].title = '未批准的标题';
+    }, 'generated-courseware-step-plan-binding-changed'],
+    ['a mutated actual step identity', (output: ReturnType<typeof createDeterministicCoursewareStage>) => {
+      output.stage.steps[0].id = 'generated-step-mutated';
+    }, 'generated-courseware-step-plan-binding-changed'],
+    ['an additional actual step', (output: ReturnType<typeof createDeterministicCoursewareStage>) => {
+      const step = structuredClone(output.stage.steps[0]);
+      step.id = `${step.id}-extra`;
+      step.modules[0].id = `${step.modules[0].id}-extra`;
+      if (step.modules[0].evidencePath) step.modules[0].evidencePath = `${step.modules[0].evidencePath}-extra`;
+      output.stage.steps.push(step);
+      output.moduleMetadata.push({ ...structuredClone(output.moduleMetadata[0]), moduleId: step.modules[0].id });
+    }, 'generated-courseware-step-plan-binding-changed'],
+    ['a mutated step goal binding', (output: ReturnType<typeof createDeterministicCoursewareStage>) => {
+      output.stepPlanBindings[0].goalIds = ['goal-unrelated'];
+    }, 'generated-courseware-step-plan-binding-changed'],
+  ])('rejects provider output with %s before unit completion', async (_label, mutate, failureCode) => {
+    const plan = validPlanFixture();
+    const context = {
+      id: 'job-plan-alignment', ownerId: 'teacher-1', draftId: 'draft-1', state: 'QUEUED', firstIncompleteUnitKey: 'bridge-in',
+      deliveryGeneration: 1,
+      draft: { id: 'draft-1', planRevision: { content: plan } },
+      units: [{ id: 'unit-1', unitKey: 'bridge-in', state: 'PENDING', output: null, orderIndex: 0, attemptGeneration: 0 }],
+    };
+    const db = { smartCoursewareGenerationJob: { findUnique: vi.fn().mockResolvedValue(context) } };
+    mocks.buildSar.mockResolvedValue({ selectedVersionIds: [sourceBindingFixture.sourceVersionId] });
+    mocks.buildSourcePack.mockResolvedValue({ retrieval: { pack: { items: [{
+      citationTargetId: sourceBindingFixture.citationId,
+      metadata: {
+        versionId: sourceBindingFixture.sourceVersionId,
+        stableAnchor: sourceBindingFixture.anchor,
+        contentHash: sourceBindingFixture.contentHash,
+      },
+    }] } } });
+    mocks.beginAttempt.mockResolvedValue({
+      claimed: true, claimToken: 'claim-alignment', attempt: { id: 'attempt-alignment', idempotencyKey: 'attempt-alignment-key' },
+    });
+    mocks.failUnit.mockResolvedValue({ state: 'FAILED' });
+    const output = createDeterministicCoursewareStage({
+      unitKey: 'bridge-in', durationSeconds: 300, approvedPlan: plan, sourceBinding: sourceBindingFixture,
+    });
+    mutate(output);
+    const runtime = {
+      serviceId: 'fixture-service', providerKind: 'fixture', model: 'fixture-model',
+      generate: vi.fn().mockResolvedValue({
+        output, normalizedResponseId: 'fixture-response', inputTokens: 0, outputTokens: 0, costMicros: null,
+      }),
+    };
+
+    await expect(processCoursewareGenerationJob(db as never, context.id, async () => runtime as never)).rejects.toBeDefined();
+    expect(mocks.completeUnit).not.toHaveBeenCalled();
+    expect(mocks.failUnit).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      failureCode, retryable: false,
+    }));
+  });
+
+  it('assembles a summary after resuming with persisted v1 completed units', async () => {
+    const plan = validPlanFixture();
+    const completedUnitKeys = [
+      'bridge-in', 'objective', 'pre-assessment', 'participatory-learning', 'post-assessment',
+    ] as const;
+    const units = completedUnitKeys.map((unitKey, orderIndex) => {
+      const { approvedPlanAlignment: _legacyAlignment, stepPlanBindings: _legacyBindings, ...output } = createDeterministicCoursewareStage({
+        unitKey, durationSeconds: 300, approvedPlan: plan, sourceBinding: sourceBindingFixture,
+      });
+      return {
+        id: `unit-${orderIndex}`, unitKey, state: 'COMPLETED', output, orderIndex, attemptGeneration: 1,
+        attempts: [{ outcome: 'SUCCEEDED', schemaVersion: `smart-courseware-stage-${unitKey}.v1` }],
+      };
+    });
+    const context = {
+      id: 'job-v1-resume', ownerId: 'teacher-1', draftId: 'draft-1', state: 'QUEUED', firstIncompleteUnitKey: 'summary',
+      deliveryGeneration: 2,
+      draft: { id: 'draft-1', planRevision: { content: plan } },
+      units: [...units, { id: 'unit-5', unitKey: 'summary', state: 'PENDING', output: null, orderIndex: 5, attemptGeneration: 0 }],
+    };
+    const db = { smartCoursewareGenerationJob: { findUnique: vi.fn().mockResolvedValue(context) } };
+    mocks.buildSar.mockResolvedValue({ selectedVersionIds: [sourceBindingFixture.sourceVersionId] });
+    mocks.buildSourcePack.mockResolvedValue({ retrieval: { pack: { items: [{
+      citationTargetId: sourceBindingFixture.citationId,
+      metadata: {
+        versionId: sourceBindingFixture.sourceVersionId,
+        stableAnchor: sourceBindingFixture.anchor,
+        contentHash: sourceBindingFixture.contentHash,
+      },
+    }] } } });
+    mocks.beginAttempt.mockResolvedValue({
+      claimed: true, claimToken: 'claim-summary', attempt: { id: 'attempt-summary', idempotencyKey: 'attempt-summary-key' },
+    });
+    mocks.completeUnit.mockResolvedValue({ state: 'COMPLETED' });
+    const summaryOutput = createDeterministicCoursewareStage({
+      unitKey: 'summary', durationSeconds: 300, approvedPlan: plan, sourceBinding: sourceBindingFixture,
+    });
+    const runtime = {
+      serviceId: 'fixture-service', providerKind: 'fixture', model: 'fixture-model',
+      generate: vi.fn().mockResolvedValue({
+        output: summaryOutput, normalizedResponseId: 'fixture-response', inputTokens: 0, outputTokens: 0, costMicros: null,
+      }),
+    };
+
+    await expect(processCoursewareGenerationJob(db as never, context.id, async () => runtime as never))
+      .resolves.toEqual({ jobId: context.id, state: 'COMPLETED' });
+    expect(mocks.completeUnit).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      unitKey: 'summary',
+      completedManifest: expect.objectContaining({ stages: expect.arrayContaining([
+        expect.objectContaining({ stage: 'bridge-in' }),
+        expect.objectContaining({ stage: 'summary' }),
+      ]) }),
+    }));
   });
 
   it('rejects an initial provider unit that mislabels AI output as teacher-created pending', async () => {
@@ -143,7 +284,7 @@ describe('smart courseware generation worker', () => {
     });
     mocks.failUnit.mockResolvedValue({ state: 'FAILED' });
     const output = createDeterministicCoursewareStage({
-      unitKey: 'bridge-in', durationSeconds: 300, sourceBinding: sourceBindingFixture,
+      unitKey: 'bridge-in', durationSeconds: 300, approvedPlan: plan, sourceBinding: sourceBindingFixture,
     });
     output.moduleMetadata[0].sourceState = 'teacher_created_source_pending';
     const runtime = {
@@ -181,9 +322,9 @@ describe('smart courseware generation worker', () => {
       .mockResolvedValueOnce({ claimed: true, claimToken: 'claim-2', attempt: { id: 'attempt-2', idempotencyKey: 'attempt-key-2' } });
     mocks.failUnit.mockResolvedValue({ state: 'FAILED' });
     mocks.completeUnit.mockResolvedValue({ state: 'COMPLETED' });
-    const invalid = createDeterministicCoursewareStage({ unitKey: 'bridge-in', durationSeconds: 300, sourceBinding: sourceBindingFixture });
+    const invalid = createDeterministicCoursewareStage({ unitKey: 'bridge-in', durationSeconds: 300, approvedPlan: plan, sourceBinding: sourceBindingFixture });
     invalid.stage.steps[0].layoutId = 'unregistered-layout';
-    const corrected = createDeterministicCoursewareStage({ unitKey: 'bridge-in', durationSeconds: 300, sourceBinding: sourceBindingFixture });
+    const corrected = createDeterministicCoursewareStage({ unitKey: 'bridge-in', durationSeconds: 300, approvedPlan: plan, sourceBinding: sourceBindingFixture });
     const runtime = {
       serviceId: 'fixture-service', providerKind: 'fixture', model: 'fixture-model',
       generate: vi.fn().mockResolvedValueOnce({ output: invalid }).mockResolvedValueOnce({ output: corrected }),
@@ -226,7 +367,7 @@ describe('smart courseware generation worker', () => {
       .mockResolvedValueOnce({ claimed: true, claimToken: 'claim-2', attempt: { id: 'attempt-2', idempotencyKey: 'attempt-key-2' } });
     mocks.completeUnit.mockResolvedValue({ state: 'COMPLETED' });
     const output = createDeterministicCoursewareStage({
-      unitKey: 'bridge-in', durationSeconds: 300, sourceBinding: sourceBindingFixture,
+      unitKey: 'bridge-in', durationSeconds: 300, approvedPlan: plan, sourceBinding: sourceBindingFixture,
     });
     const runtime = {
       serviceId: 'fixture-service', providerKind: 'fixture', model: 'fixture-model',

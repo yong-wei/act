@@ -5,12 +5,25 @@ import { createAIProviderFromConfig } from '@/lib/ai/provider-registry';
 import { AIProviderCapabilityUnavailableError, resolveConfiguredAIProviderConfig } from '@/lib/ai/provider-settings';
 import { contentHash } from '@/lib/smart-lesson-plan/domain';
 import type { SmartLessonSourceBinding } from '@/lib/smart-lesson-plan/domain';
+import { validateSmartLessonPlan, type SmartLessonPlan } from '@/lib/smart-lesson-plan/schema';
 
 import { SmartCoursewareError } from './domain';
 import type { CoursewareGenerationUnitKey } from './generation-service';
-import { coursewareGeneratedStageOutputSchema } from './schema';
+import {
+  coursewareGeneratedStageOutputSchema,
+  legacyCoursewareGeneratedStageOutputSchema,
+} from './schema';
 
-export const SMART_COURSEWARE_PROMPT_VERSION = 'smart-courseware-generation.v1';
+export const SMART_COURSEWARE_PROMPT_VERSION = 'smart-courseware-generation.v2';
+
+export const COURSEWARE_PLAN_STAGE_KEYS = {
+  'bridge-in': 'bridgeIn',
+  objective: 'objectives',
+  'pre-assessment': 'preAssessment',
+  'participatory-learning': 'participatoryLearning',
+  'post-assessment': 'postAssessment',
+  summary: 'summary',
+} as const;
 
 type RuntimeDependencies = {
   resolveConfig?: typeof resolveConfiguredAIProviderConfig;
@@ -69,56 +82,128 @@ export async function resolveSmartCoursewareStructuredProvider(dependencies: Run
 export function createDeterministicCoursewareStage(input: {
   unitKey: CoursewareGenerationUnitKey;
   durationSeconds: number;
+  approvedPlan: unknown;
   sourceBinding?: SmartLessonSourceBinding;
 }) {
-  const moduleId = `generated-${input.unitKey}`;
+  const approvedPlan = validateSmartLessonPlan(input.approvedPlan);
+  const stepExpectations = deriveCoursewareApprovedStepExpectations(approvedPlan, input.unitKey);
   const activity = ['pre-assessment', 'participatory-learning', 'post-assessment'].includes(input.unitKey);
-  const runtimeModule = activity ? {
-    id: moduleId,
-    canonicalClass: 'activity.panel',
-    slotId: 'main',
-    sizeId: 'full',
-    responseKind: 'choice.single',
-    evidencePath: `responses.${input.unitKey}.${moduleId}`,
-    payload: {
-      prompt: `${input.unitKey} 学习活动`,
-      options: [{ value: 'a', label: '选项 A' }, { value: 'b', label: '选项 B' }],
-    },
-    roleMetadata: { studentVisible: true, teacherVisible: true, referenceAnswerVisibility: 'teacher-only' },
-  } : {
-    id: moduleId,
-    canonicalClass: 'content.rich',
-    slotId: 'main',
-    sizeId: 'full',
-    payload: { text: `${input.unitKey} 教学内容` },
-    roleMetadata: { studentVisible: true, teacherVisible: true, referenceAnswerVisibility: 'none' },
-  };
+  const generatedSteps = stepExpectations.map((expectation, index) => {
+    const suffix = index === 0 ? '' : `-${index + 1}`;
+    const moduleId = `generated-${input.unitKey}${suffix}`;
+    const runtimeModule = activity && index === 0 ? {
+      id: moduleId,
+      canonicalClass: 'activity.panel',
+      slotId: 'main',
+      sizeId: 'full',
+      responseKind: 'choice.single',
+      evidencePath: `responses.${input.unitKey}.${moduleId}`,
+      payload: {
+        prompt: `${input.unitKey} 学习活动`,
+        options: [{ value: 'a', label: '选项 A' }, { value: 'b', label: '选项 B' }],
+      },
+      roleMetadata: { studentVisible: true, teacherVisible: true, referenceAnswerVisibility: 'teacher-only' },
+    } : {
+      id: moduleId,
+      canonicalClass: 'content.rich',
+      slotId: 'main',
+      sizeId: 'full',
+      payload: { text: `${input.unitKey} 教学内容` },
+      roleMetadata: { studentVisible: true, teacherVisible: true, referenceAnswerVisibility: 'none' },
+    };
+    return {
+      step: {
+        id: `generated-step-${input.unitKey}${suffix}`,
+        title: expectation.approvedTitle,
+        durationSeconds: expectation.approvedDurationSeconds,
+        layoutId: 'single',
+        modules: [runtimeModule],
+      },
+      metadata: {
+        moduleId,
+        sourceState: input.sourceBinding ? 'verified' : 'ai_generated_source_pending',
+        sourceBindings: input.sourceBinding ? [input.sourceBinding] : [],
+        teacherFields: activity && index === 0 ? {
+          referenceAnswer: 'a',
+          explanation: '确定性测试答案。',
+          scoring: { strategy: 'exact-match', maxPoints: 1 },
+          ...(input.sourceBinding ? { inclusionRationale: '该权威来源直接支撑本阶段活动内容。' } : {}),
+        } : input.sourceBinding
+          ? { inclusionRationale: '该权威来源直接支撑本阶段教学内容。' }
+          : {},
+      },
+    };
+  });
   return coursewareGeneratedStageOutputSchema.parse({
+    approvedPlanAlignment: deriveCoursewareApprovedPlanAlignment(approvedPlan, input.unitKey),
+    stepPlanBindings: generatedSteps.map(({ step }, index) => ({
+      generatedStepId: step.id,
+      ...stepExpectations[index],
+    })),
     stage: {
       stage: input.unitKey,
       durationSeconds: input.durationSeconds,
-      steps: [{
-        id: `generated-step-${input.unitKey}`,
-        title: `${input.unitKey} 教学步骤`,
-        durationSeconds: input.durationSeconds,
-        layoutId: 'single',
-        modules: [runtimeModule],
-      }],
+      steps: generatedSteps.map(({ step }) => step),
     },
-    moduleMetadata: [{
-      moduleId,
-      sourceState: input.sourceBinding ? 'verified' : 'ai_generated_source_pending',
-      sourceBindings: input.sourceBinding ? [input.sourceBinding] : [],
-      teacherFields: activity ? {
-        referenceAnswer: 'a',
-        explanation: '确定性测试答案。',
-        scoring: { strategy: 'exact-match', maxPoints: 1 },
-        ...(input.sourceBinding ? { inclusionRationale: '该权威来源直接支撑本阶段活动内容。' } : {}),
-      } : input.sourceBinding
-        ? { inclusionRationale: '该权威来源直接支撑本阶段教学内容。' }
-        : {},
-    }],
+    moduleMetadata: generatedSteps.map(({ metadata }) => metadata),
   });
+}
+
+export function deriveCoursewareApprovedPlanAlignment(
+  plan: SmartLessonPlan,
+  unitKey: CoursewareGenerationUnitKey,
+) {
+  const stageKey = COURSEWARE_PLAN_STAGE_KEYS[unitKey];
+  const goalsById = [...plan.goals].sort((left, right) => (
+    left.id < right.id ? -1 : left.id > right.id ? 1 : 0
+  ));
+  return {
+    goalIds: plan.goals.map((goal) => goal.id),
+    goalSetHash: contentHash(goalsById),
+    stageContentHash: contentHash(plan.boppps[stageKey]),
+    stageOutlineTitles: plan.coursewareStepOutline
+      .filter((step) => step.bopppsStage === stageKey)
+      .map((step) => step.title),
+  };
+}
+
+export function deriveCoursewareApprovedStepExpectations(
+  plan: SmartLessonPlan,
+  unitKey: CoursewareGenerationUnitKey,
+) {
+  const stageKey = COURSEWARE_PLAN_STAGE_KEYS[unitKey];
+  const stageSteps = plan.boppps[stageKey].steps;
+  const outlineSteps = plan.coursewareStepOutline
+    .map((step, approvedOutlineIndex) => ({ ...step, approvedOutlineIndex }))
+    .filter((step) => step.bopppsStage === stageKey);
+  const consistent = stageSteps.length === outlineSteps.length
+    && stageSteps.every((step, index) => (
+      step.title === outlineSteps[index]?.title
+      && step.minutes === outlineSteps[index]?.minutes
+    ));
+  if (!consistent) throw new SmartCoursewareError('approved-plan-courseware-outline-inconsistent', 409);
+  const goalIds = plan.goals.map((goal) => goal.id);
+  return stageSteps.map((step, approvedStageStepIndex) => ({
+    approvedStageStepIndex,
+    approvedOutlineIndex: outlineSteps[approvedStageStepIndex].approvedOutlineIndex,
+    approvedTitle: step.title,
+    approvedDurationSeconds: step.minutes * 60,
+    goalIds,
+  }));
+}
+
+export function parsePersistedCoursewareStageOutput(input: {
+  output: unknown;
+  unitKey: CoursewareGenerationUnitKey;
+  schemaVersion: string | null | undefined;
+}) {
+  if (input.schemaVersion === `smart-courseware-stage-${input.unitKey}.v1`) {
+    return legacyCoursewareGeneratedStageOutputSchema.parse(input.output);
+  }
+  if (input.schemaVersion === `smart-courseware-stage-${input.unitKey}.v2`) {
+    return coursewareGeneratedStageOutputSchema.parse(input.output);
+  }
+  throw new SmartCoursewareError('persisted-courseware-stage-schema-version-unsupported', 409);
 }
 
 function deterministicCoursewareRuntime(environment = process.env.NODE_ENV) {

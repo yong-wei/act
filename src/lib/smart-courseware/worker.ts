@@ -6,7 +6,7 @@ import { ZodError } from 'zod';
 import { buildCourseBasisLessonDesignSar, buildCourseBasisLessonDesignSourcePack } from '@/lib/course-basis/lesson-design-source-pack';
 import { validateGeneratedSlideManifest, type GeneratedSlideManifest } from '@/features/interactive/shared/manifest-runtime/generated-slide-contract';
 import { prisma } from '@/lib/prisma';
-import { normalizeSourceBindings } from '@/lib/smart-lesson-plan/domain';
+import { contentHash, normalizeSourceBindings } from '@/lib/smart-lesson-plan/domain';
 import { validateSmartLessonPlan, type SmartLessonPlan } from '@/lib/smart-lesson-plan/schema';
 
 import {
@@ -22,7 +22,11 @@ import {
 } from './generation-service';
 import { generateCoursewareModuleCandidate } from './module-regeneration-service';
 import {
+  COURSEWARE_PLAN_STAGE_KEYS,
   createDeterministicCoursewareStage,
+  deriveCoursewareApprovedPlanAlignment,
+  deriveCoursewareApprovedStepExpectations,
+  parsePersistedCoursewareStageOutput,
   resolveSmartCoursewareStructuredProvider,
   SMART_COURSEWARE_PROMPT_VERSION,
 } from './provider-runtime';
@@ -33,15 +37,6 @@ export const COURSEWARE_GENERATION_QUEUE = 'smart-courseware-generation';
 type Db = PrismaClient;
 type Resolver = typeof resolveSmartCoursewareStructuredProvider;
 let worker: Worker<{ jobId: string }> | null = null;
-
-const PLAN_STAGE_KEYS = {
-  'bridge-in': 'bridgeIn',
-  objective: 'objectives',
-  'pre-assessment': 'preAssessment',
-  'participatory-learning': 'participatoryLearning',
-  'post-assessment': 'postAssessment',
-  summary: 'summary',
-} as const;
 
 export async function ensureCoursewareGenerationWorker(connection: Redis) {
   if (worker) {
@@ -109,11 +104,13 @@ export async function processCoursewareGenerationJob(
         unitKey: unit.unitKey as CoursewareGenerationUnitKey,
         serviceId: runtime.serviceId, providerKind: runtime.providerKind, model: runtime.model,
         promptVersion: SMART_COURSEWARE_PROMPT_VERSION,
-        schemaVersion: `smart-courseware-stage-${unit.unitKey}.v1`,
+        schemaVersion: `smart-courseware-stage-${unit.unitKey}.v2`,
         request: {
           system: request.system,
           prompt: request.prompt,
           authoritativeSourceBindings: request.authoritativeSourceBindings,
+          approvedPlanAlignment: request.expectedPlanAlignment,
+          approvedStepExpectations: request.expectedStepExpectations,
         },
       });
     } catch (error) {
@@ -133,13 +130,20 @@ export async function processCoursewareGenerationJob(
     try {
       const generated = await runtime.generate({
         schema: coursewareGeneratedStageOutputSchema,
-        schemaVersion: `smart-courseware-stage-${unit.unitKey}.v1`,
+        schemaVersion: `smart-courseware-stage-${unit.unitKey}.v2`,
         system: request.system,
         prompt: request.prompt,
         idempotencyKey: claim.attempt.idempotencyKey,
         fixtureOutput: request.fixtureOutput,
       });
-      const output = validateUnitOutput(generated.output, unit.unitKey as CoursewareGenerationUnitKey, request.expectedDurationSeconds, request.allowedBindingKeys);
+      const output = validateUnitOutput(
+        generated.output,
+        unit.unitKey as CoursewareGenerationUnitKey,
+        request.expectedDurationSeconds,
+        request.allowedBindingKeys,
+        request.expectedPlanAlignment,
+        request.expectedStepExpectations,
+      );
       const completed = unit.unitKey === 'summary' ? assembleManifest(context, output) : undefined;
       const updated = await completeCoursewareGenerationUnit(db, {
         actor: { id: context.ownerId, role: 'TEACHER' }, jobId: context.id,
@@ -166,7 +170,7 @@ async function loadContext(db: Db, jobId: string) {
   return db.smartCoursewareGenerationJob.findUnique({
     where: { id: jobId },
     include: {
-      units: { orderBy: { orderIndex: 'asc' } },
+      units: { orderBy: { orderIndex: 'asc' }, include: { attempts: { orderBy: { attemptNumber: 'desc' } } } },
       draft: { include: { planRevision: true } },
     },
   });
@@ -190,20 +194,60 @@ async function buildUnitRequest(db: Db, context: NonNullable<Awaited<ReturnType<
     contentHash: item.metadata?.contentHash,
   })));
   if (!authoritativeBindings.length) throw new SmartCoursewareError('governed-source-evidence-unavailable', 409);
-  const planStage = plan.boppps[PLAN_STAGE_KEYS[unitKey]];
-  const previous = Object.fromEntries(context.units.filter((unit) => unit.state === 'COMPLETED').map((unit) => [unit.unitKey, unit.output]));
+  const planStage = plan.boppps[COURSEWARE_PLAN_STAGE_KEYS[unitKey]];
+  const expectedPlanAlignment = deriveCoursewareApprovedPlanAlignment(plan, unitKey);
+  const expectedStepExpectations = deriveCoursewareApprovedStepExpectations(plan, unitKey);
+  const previous = Object.fromEntries(context.units.filter((unit) => unit.state === 'COMPLETED').map((unit) => [
+    unit.unitKey,
+    parsePersistedCoursewareStageOutput({
+      output: unit.output,
+      unitKey: unit.unitKey as CoursewareGenerationUnitKey,
+      schemaVersion: unit.attempts.find((attempt) => attempt.outcome === 'SUCCEEDED')?.schemaVersion,
+    }),
+  ]));
   return {
-    system: '你是单课互动课件生成器。只能按已批准教案、注册版式、注册模块、服务端来源证据生成当前 BOPPPS 阶段；不得改写目标、时长或其他阶段。来源状态为 verified 时，teacherFields.inclusionRationale 必须说明引用证据与模块内容的关系。输出严格符合 JSON Schema。',
-    prompt: `当前阶段：${unitKey}。已批准教案：${JSON.stringify(plan)}。权威来源：${JSON.stringify(authoritativeBindings)}。已完成阶段：${JSON.stringify(previous)}。`,
+    system: '你是单课互动课件生成器。只能按已批准教案、注册版式、注册模块、服务端来源证据生成当前 BOPPPS 阶段；不得改写、遗漏或新增目标、当前阶段内容或批准的课件纲要。必须逐字返回 approvedPlanAlignment，并按 approvedStepExpectations 的数量和顺序生成 stage.steps；每个 stepPlanBindings 必须引用对应的 generatedStepId 并完整返回 goalIds。来源状态为 verified 时，teacherFields.inclusionRationale 必须说明引用证据与模块内容的关系。输出严格符合 JSON Schema。',
+    prompt: `当前阶段：${unitKey}。已批准教案：${JSON.stringify(plan)}。必须精确返回的 approvedPlanAlignment：${JSON.stringify(expectedPlanAlignment)}。必须逐项绑定的 approvedStepExpectations：${JSON.stringify(expectedStepExpectations)}。权威来源：${JSON.stringify(authoritativeBindings)}。已完成阶段：${JSON.stringify(previous)}。`,
     expectedDurationSeconds: planStage.minutes * 60,
+    expectedPlanAlignment,
+    expectedStepExpectations,
     authoritativeSourceBindings: authoritativeBindings,
     allowedBindingKeys: new Set(authoritativeBindings.map(bindingKey)),
-    fixtureOutput: createDeterministicCoursewareStage({ unitKey, durationSeconds: planStage.minutes * 60, sourceBinding: authoritativeBindings[0] }),
+    fixtureOutput: createDeterministicCoursewareStage({
+      unitKey,
+      durationSeconds: planStage.minutes * 60,
+      approvedPlan: plan,
+      sourceBinding: authoritativeBindings[0],
+    }),
   };
 }
 
-function validateUnitOutput(output: unknown, unitKey: CoursewareGenerationUnitKey, durationSeconds: number, allowed: ReadonlySet<string>) {
+function validateUnitOutput(
+  output: unknown,
+  unitKey: CoursewareGenerationUnitKey,
+  durationSeconds: number,
+  allowed: ReadonlySet<string>,
+  expectedPlanAlignment: ReturnType<typeof deriveCoursewareApprovedPlanAlignment>,
+  expectedStepExpectations: ReturnType<typeof deriveCoursewareApprovedStepExpectations>,
+) {
   const parsed = coursewareGeneratedStageOutputSchema.parse(output);
+  if (contentHash(parsed.approvedPlanAlignment) !== contentHash(expectedPlanAlignment)) {
+    throw new SmartCoursewareError('generated-courseware-plan-alignment-changed', 409);
+  }
+  if (parsed.stage.steps.length !== expectedStepExpectations.length
+    || parsed.stepPlanBindings.length !== expectedStepExpectations.length
+    || parsed.stage.steps.some((step, index) => {
+      const binding = parsed.stepPlanBindings[index];
+      const expected = expectedStepExpectations[index];
+      if (!binding || !expected) return true;
+      const { generatedStepId, ...actualExpectation } = binding;
+      return generatedStepId !== step.id
+        || contentHash(actualExpectation) !== contentHash(expected)
+        || step.title !== expected.approvedTitle
+        || step.durationSeconds !== expected.approvedDurationSeconds;
+    })) {
+    throw new SmartCoursewareError('generated-courseware-step-plan-binding-changed', 409);
+  }
   if (parsed.stage.stage !== unitKey) throw new SmartCoursewareError('generated-courseware-stage-changed', 409);
   if (parsed.stage.durationSeconds !== durationSeconds || parsed.stage.steps.reduce((sum, step) => sum + step.durationSeconds, 0) !== durationSeconds) {
     throw new SmartCoursewareError('generated-courseware-stage-timing-changed', 409);
@@ -235,7 +279,11 @@ function assembleManifest(context: NonNullable<Awaited<ReturnType<typeof loadCon
   const plan = validateSmartLessonPlan(context.draft.planRevision.content);
   const outputs = context.units.map((unit) => unit.unitKey === 'summary'
     ? summaryOutput
-    : coursewareGeneratedStageOutputSchema.parse(unit.output));
+    : parsePersistedCoursewareStageOutput({
+      output: unit.output,
+      unitKey: unit.unitKey as CoursewareGenerationUnitKey,
+      schemaVersion: unit.attempts.find((attempt) => attempt.outcome === 'SUCCEEDED')?.schemaVersion,
+    }));
   return {
     manifest: {
       schemaVersion: 'generated-slide-v1' as const,

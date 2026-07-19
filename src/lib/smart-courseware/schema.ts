@@ -55,9 +55,40 @@ export const coursewareCompositionInputSchema = z.object({
   moduleMetadata: z.array(coursewareModuleMetadataInputSchema).max(72),
 }).strict();
 
-export const coursewareGeneratedStageOutputSchema = z.object({
-  stage: generatedSlideManifestSchema.shape.stages.element,
+export const coursewareApprovedPlanAlignmentSchema = z.object({
+  goalIds: z.array(z.string().trim().min(1).max(200)).min(1).max(100),
+  goalSetHash: z.string().regex(/^[a-f0-9]{64}$/),
+  stageContentHash: z.string().regex(/^[a-f0-9]{64}$/),
+  stageOutlineTitles: z.array(z.string().trim().min(1).max(500)).min(1).max(100),
+}).strict();
+
+export const coursewareApprovedStepBindingSchema = z.object({
+  generatedStepId: z.string().trim().min(1).max(96),
+  approvedStageStepIndex: z.number().int().nonnegative().max(29),
+  approvedOutlineIndex: z.number().int().nonnegative().max(99),
+  approvedTitle: z.string().trim().min(1).max(500),
+  approvedDurationSeconds: z.number().int().positive().max(7_200),
+  goalIds: z.array(z.string().trim().min(1).max(200)).min(1).max(100),
+}).strict();
+
+const coursewareGeneratedStageSchema = generatedSlideManifestSchema.shape.stages.element;
+
+export const legacyCoursewareGeneratedStageOutputSchema = z.object({
+  stage: coursewareGeneratedStageSchema,
   moduleMetadata: z.array(coursewareModuleMetadataInputSchema).min(1).max(12),
+}).strict().superRefine((value, context) => {
+  requireUniqueOrderingItems(
+    value.stage.steps.flatMap((step) => step.modules),
+    context,
+    ['stage'],
+  );
+});
+
+export const coursewareGeneratedStageOutputSchema = z.object({
+  stage: coursewareGeneratedStageSchema,
+  moduleMetadata: z.array(coursewareModuleMetadataInputSchema).min(1).max(72),
+  approvedPlanAlignment: coursewareApprovedPlanAlignmentSchema,
+  stepPlanBindings: z.array(coursewareApprovedStepBindingSchema).min(1).max(30),
 }).strict().superRefine((value, context) => {
   requireUniqueOrderingItems(
     value.stage.steps.flatMap((step) => step.modules),
