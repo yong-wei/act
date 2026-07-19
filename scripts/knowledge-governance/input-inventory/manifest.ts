@@ -104,12 +104,8 @@ export async function buildManifest(options: InventoryOptions): Promise<Json> {
   const writers = await discoverWriters(options.root, registry);
   drift.push(...writers.drift);
   const isolatedPaths = new Set(repository.sources.flatMap((source) => source.physical_paths as string[]));
-  const mainOnlyOrReplacementPaths = mainRepository
-    ? mainRepository.sources.flatMap((source) => source.physical_paths as string[]).filter((relative) => (
-      !isolatedPaths.has(relative) || symlinks.authorized_main_worktree_replacements.includes(relative)
-    ))
-    : [];
-  const fileRecords = await collectInputObservations({ isolatedRoot: options.root, isolatedRevision, isolatedPaths: [...isolatedPaths], ...(mainRepository && authorizedMainRoot && options.mainWorktreeRevision ? { mainRoot: authorizedMainRoot, mainRevision: options.mainWorktreeRevision, mainPaths: mainOnlyOrReplacementPaths, isolatedSymlinkReplacements: symlinks.authorized_main_worktree_replacements } : {}) }, registry, drift);
+  const mainPaths = mainRepository ? mainRepository.sources.flatMap((source) => source.physical_paths as string[]) : [];
+  const fileRecords = await collectInputObservations({ isolatedRoot: options.root, isolatedRevision, isolatedPaths: [...isolatedPaths], ...(mainRepository && authorizedMainRoot && options.mainWorktreeRevision ? { mainRoot: authorizedMainRoot, mainRevision: options.mainWorktreeRevision, mainPaths, isolatedSymlinkReplacements: symlinks.authorized_main_worktree_replacements } : {}) }, registry, drift);
   const effectiveRepository = mainRepository ? mergeRepositoryObservations(repository, mainRepository) : repository;
   if (mainRepository) {
     const reconciled = resolvedRepositoryMissingDrift(drift, effectiveRepository);

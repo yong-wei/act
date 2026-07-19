@@ -87,6 +87,39 @@ describe('closed repository input codecs', () => {
     } finally { await rm(isolated, { recursive: true }); await rm(main, { recursive: true }); }
   });
 
+  it('preserves conflicting same-path observations through the --main-worktree-root CLI entrypoint', async () => {
+    const main = await mkdtemp(path.join(os.tmpdir(), 'inventory-main-entrypoint-'));
+    const relative = 'docs/knowledge-graph-current-state-audit-2026-07-18.md';
+    try {
+      git(main, 'init', '-q');
+      git(main, 'config', 'user.email', 'inventory@example.invalid');
+      git(main, 'config', 'user.name', 'Inventory Test');
+      await mkdir(path.join(main, 'docs/adr'), { recursive: true });
+      await writeFile(path.join(main, relative), '# conflicting main-worktree audit\n');
+      await writeFile(path.join(main, 'docs/adr/README.md'), '# ADR fixture\n');
+      git(main, 'add', relative, 'docs/adr/README.md');
+      git(main, 'commit', '-qm', 'fixture');
+      const mainRevision = await repositoryRevision(main);
+      const result = spawnSync(process.execPath, [
+        '--import', 'tsx', 'scripts/knowledge-governance/input-inventory/cli.ts',
+        '--captured-at', '2026-07-19T00:00:00.000Z', '--allow-blocked',
+        '--main-worktree-root', main, '--main-worktree-revision', mainRevision,
+      ], { cwd: root, encoding: 'utf8', maxBuffer: 128 * 1024 * 1024 });
+      expect(result.stderr).toBe('');
+      expect(result.status).toBe(0);
+      const manifest = JSON.parse(result.stdout) as { repository_files: Array<{ path: string; source_root: string; raw_digest: string }>; drift: Drift[] };
+      const records = manifest.repository_files.filter((item) => item.path === relative);
+      expect(records).toHaveLength(2);
+      expect(records.map((item) => item.source_root).sort()).toEqual(['isolated-worktree', 'main-worktree']);
+      expect(new Set(records.map((item) => item.raw_digest)).size).toBe(2);
+      expect(manifest.drift).toContainEqual(expect.objectContaining({
+        code: 'SAME_PATH_CONTENT_DRIFT', scope: relative,
+        expected: expect.objectContaining({ source_root: 'isolated-worktree', raw_digest: records.find((item) => item.source_root === 'isolated-worktree')!.raw_digest }),
+        observed: expect.objectContaining({ source_root: 'main-worktree', raw_digest: records.find((item) => item.source_root === 'main-worktree')!.raw_digest }),
+      }));
+    } finally { await rm(main, { recursive: true }); }
+  }, 120_000);
+
   it('authorizes only same-relative main-worktree regular-file replacements and retains target hash evidence', async () => {
     const isolated = await mkdtemp(path.join(os.tmpdir(), 'inventory-isolated-symlink-'));
     const main = await mkdtemp(path.join(os.tmpdir(), 'inventory-main-symlink-'));
