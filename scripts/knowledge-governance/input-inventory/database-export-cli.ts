@@ -13,12 +13,17 @@ async function main(): Promise<void> {
   const proofPath = option('--proof');
   if (!databaseUrl?.trim()) throw new Error('DATABASE_URL is required; the exporter does not load credentials or dotenv files');
   if (!outputPath || !proofPath) throw new Error('--output and --proof absolute paths are required');
+  const signingPrivateKeyPath = option('--signing-private-key');
+  const signingKeyId = option('--signing-key-id');
+  if (!signingPrivateKeyPath || !signingKeyId) throw new Error('--signing-private-key and --signing-key-id are required');
   await exportAggregateDatabase({
     root: option('--root') ?? process.cwd(),
     registryPath: option('--registry') ?? 'docs/proposals/course-knowledge-base-governance-source-registry.yaml',
     databaseUrl,
     outputPath,
     proofPath,
+    signingPrivateKeyPath,
+    signingKeyId,
   });
   process.stdout.write('aggregate database export completed\n');
 }

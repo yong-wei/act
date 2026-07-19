@@ -1,6 +1,7 @@
 import { link, mkdir, mkdtemp, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
+import { generateKeyPairSync } from 'node:crypto';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -19,7 +20,10 @@ import { compileDatabaseObservationContracts, compileJsonObservationContracts } 
 
 const root = path.resolve(import.meta.dirname, '../../../..');
 const digest = `sha256:${'0'.repeat(64)}`;
-const authority = { registryDigest: digest, exporterDigest: digest };
+const proofKeys = generateKeyPairSync('ed25519');
+const proofKeyId = 'inventory-test-key-v1';
+const proofSigner = { privateKey: proofKeys.privateKey.export({ type: 'pkcs8', format: 'pem' }), keyId: proofKeyId };
+const authority = { registryDigest: digest, exporterDigest: digest, proofPublicKey: proofKeys.publicKey.export({ type: 'spki', format: 'pem' }), proofKeyId };
 
 function aggregateExport(datasets: AggregateDatasetExport[]): AggregateDatabaseExport {
   return {
@@ -45,7 +49,7 @@ function aggregateExport(datasets: AggregateDatasetExport[]): AggregateDatabaseE
 async function writeAggregateExport(directory: string, exported: AggregateDatabaseExport): Promise<void> {
   const bytes = Buffer.from(canonicalJson(exported as unknown as Json));
   await writeFile(path.join(directory, 'export.json'), bytes);
-  await writeFile(path.join(directory, 'proof.json'), canonicalJson(deriveProof(exported, bytes) as unknown as Json));
+  await writeFile(path.join(directory, 'proof.json'), canonicalJson(deriveProof(exported, bytes, proofSigner) as unknown as Json));
 }
 
 describe('normalization contract', () => {
@@ -287,15 +291,49 @@ describe('immutable database privacy boundary', () => {
     } finally { await rm(directory, { recursive: true }); }
   });
 
+  it('accepts only a proof signed by the explicitly trusted Ed25519 key and key id', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-proof-signature-'));
+    try {
+      const exported = aggregateExport([]);
+      const bytes = Buffer.from(canonicalJson(exported as unknown as Json));
+      await writeFile(path.join(directory, 'export.json'), bytes);
+      const trusted = deriveProof(exported, bytes, proofSigner);
+      await writeFile(path.join(directory, 'proof.json'), canonicalJson(trusted as unknown as Json));
+      await expect(loadImmutableExport(directory, 'export.json', 'proof.json', [], authority)).resolves.toMatchObject({ summary_key_format: 'opaque' });
+      await expect(loadImmutableExport(directory, 'export.json', 'proof.json', [], { registryDigest: digest, exporterDigest: digest })).rejects.toThrow(/trusted database proof public key/u);
+
+      const rogueKeys = generateKeyPairSync('ed25519');
+      await expect(loadImmutableExport(directory, 'export.json', 'proof.json', [], { ...authority, proofPublicKey: rogueKeys.publicKey.export({ type: 'spki', format: 'pem' }) })).rejects.toThrow(/signing authority mismatch/u);
+
+      const { signature: _signature, signature_algorithm: _algorithm, signing_key_id: _keyId, signing_key_fingerprint: _fingerprint, ...unsigned } = trusted;
+      await writeFile(path.join(directory, 'proof.json'), canonicalJson(unsigned as unknown as Json));
+      await expect(loadImmutableExport(directory, 'export.json', 'proof.json', [], authority)).rejects.toThrow(/caller-authored or missing fields/u);
+
+      const rogue = deriveProof(exported, bytes, { privateKey: rogueKeys.privateKey.export({ type: 'pkcs8', format: 'pem' }), keyId: proofKeyId });
+      await writeFile(path.join(directory, 'proof.json'), canonicalJson(rogue as unknown as Json));
+      await expect(loadImmutableExport(directory, 'export.json', 'proof.json', [], authority)).rejects.toThrow(/signing authority mismatch/u);
+
+      const wrongId = deriveProof(exported, bytes, { ...proofSigner, keyId: 'wrong-key-id' });
+      await writeFile(path.join(directory, 'proof.json'), canonicalJson(wrongId as unknown as Json));
+      await expect(loadImmutableExport(directory, 'export.json', 'proof.json', [], authority)).rejects.toThrow(/signing authority mismatch/u);
+
+      await writeFile(path.join(directory, 'proof.json'), canonicalJson({ ...trusted, signature: `${trusted.signature.slice(0, -4)}AAAA` } as unknown as Json));
+      await expect(loadImmutableExport(directory, 'export.json', 'proof.json', [], authority)).rejects.toThrow(/signature verification failed/u);
+    } finally { await rm(directory, { recursive: true }); }
+  });
+
   it('builds a schema-valid manifest from a real current-authority database export', async () => {
     const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-manifest-database-export-'));
     try {
       const currentAuthority = await currentDatabaseExportAuthority(root, 'docs/proposals/course-knowledge-base-governance-source-registry.yaml');
       const exported = { ...aggregateExport([]), registry_digest: currentAuthority.registryDigest, exporter_digest: currentAuthority.exporterDigest };
       await writeAggregateExport(directory, exported);
+      const publicKeyPath = path.join(directory, 'proof-public-key.pem');
+      await writeFile(publicKeyPath, authority.proofPublicKey);
       const manifest = await buildManifest({
         root, capturedAt: '2026-01-01T00:00:00.000Z',
         databaseExportPath: path.join(directory, 'export.json'), databaseExportProofPath: path.join(directory, 'proof.json'),
+        databaseProofPublicKeyPath: publicKeyPath, databaseProofKeyId: proofKeyId,
       }) as Record<string, unknown>;
       expect(manifest.database_snapshot).toMatchObject({ summary_key_format: 'opaque' });
       expect(manifest.drift).toEqual(expect.arrayContaining([expect.objectContaining({ code: 'DATABASE_TABLE_SNAPSHOT_MISSING' })]));
@@ -311,7 +349,7 @@ describe('immutable database privacy boundary', () => {
     try {
       const exported = aggregateExport([]);
       const bytes = Buffer.from(canonicalJson(exported as unknown as Json));
-      const proof = deriveProof(exported, bytes);
+      const proof = deriveProof(exported, bytes, proofSigner);
       await writeFile(path.join(directory, 'proof.json'), canonicalJson({ ...proof, export_object_id: digest } as unknown as Json));
       await writeFile(path.join(directory, 'embedded.json'), canonicalJson({ ...exported, proof } as unknown as Json));
       await writeFile(path.join(directory, 'export.json'), bytes);
@@ -330,13 +368,13 @@ describe('immutable database privacy boundary', () => {
       const privateExport = { ...aggregateExport([{ ...baseDataset, version_summaries: { version: { __suppressed__: 'suppressed' } } }]), userId: 'private-user' };
       const privateBytes = Buffer.from(canonicalJson(privateExport as unknown as Json));
       await writeFile(path.join(directory, 'private.json'), privateBytes);
-      await writeFile(path.join(directory, 'private-proof.json'), canonicalJson(deriveProof(privateExport, privateBytes) as unknown as Json));
+      await writeFile(path.join(directory, 'private-proof.json'), canonicalJson(deriveProof(privateExport, privateBytes, proofSigner) as unknown as Json));
       await expect(loadImmutableExport(directory, 'private.json', 'private-proof.json', [], authority)).rejects.toThrow(/learner row content/u);
 
       const prefixedPrivate = aggregateExport([{ ...baseDataset, version_summaries: { 'field:userId': { value: 5 } } }]);
       const prefixedBytes = Buffer.from(canonicalJson(prefixedPrivate as unknown as Json));
       await writeFile(path.join(directory, 'prefixed-private.json'), prefixedBytes);
-      await writeFile(path.join(directory, 'prefixed-private-proof.json'), canonicalJson(deriveProof(prefixedPrivate, prefixedBytes) as unknown as Json));
+      await writeFile(path.join(directory, 'prefixed-private-proof.json'), canonicalJson(deriveProof(prefixedPrivate, prefixedBytes, proofSigner) as unknown as Json));
       await expect(loadImmutableExport(directory, 'prefixed-private.json', 'prefixed-private-proof.json', [], authority)).rejects.toThrow(/learner row content/u);
       expect(() => assertAggregateExportShape(prefixedPrivate)).toThrow(/private summary field/u);
 
@@ -347,7 +385,7 @@ describe('immutable database privacy boundary', () => {
 
       const safeExport = aggregateExport([]);
       const safeBytes = Buffer.from(canonicalJson(safeExport as unknown as Json));
-      const freeLabelProof = { ...deriveProof(safeExport, safeBytes), label: 'trusted-by-caller' };
+      const freeLabelProof = { ...deriveProof(safeExport, safeBytes, proofSigner), label: 'trusted-by-caller' };
       await writeFile(path.join(directory, 'safe.json'), safeBytes);
       await writeFile(path.join(directory, 'free-label-proof.json'), canonicalJson(freeLabelProof as unknown as Json));
       await expect(loadImmutableExport(directory, 'safe.json', 'free-label-proof.json', [], authority)).rejects.toThrow(/caller-authored/u);
@@ -363,7 +401,7 @@ describe('immutable database privacy boundary', () => {
       const exported = { ...aggregateExport([]), ...replacement };
       const bytes = Buffer.from(canonicalJson(exported as unknown as Json));
       await writeFile(path.join(directory, 'export.json'), bytes);
-      await writeFile(path.join(directory, 'proof.json'), canonicalJson(deriveProof(exported, bytes) as unknown as Json));
+      await writeFile(path.join(directory, 'proof.json'), canonicalJson(deriveProof(exported, bytes, proofSigner) as unknown as Json));
       await expect(loadImmutableExport(directory, 'export.json', 'proof.json', [], authority)).rejects.toThrow(expected);
     } finally { await rm(directory, { recursive: true }); }
   });

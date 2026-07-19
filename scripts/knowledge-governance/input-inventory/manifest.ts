@@ -148,7 +148,7 @@ export async function buildManifest(options: InventoryOptions): Promise<Json> {
     options.databaseExportPath,
     options.databaseExportProofPath,
     drift,
-    await currentDatabaseExportAuthority(options.root, registryPath),
+    { ...await currentDatabaseExportAuthority(options.root, registryPath), proofPublicKeyPath: options.databaseProofPublicKeyPath, proofKeyId: options.databaseProofKeyId },
   );
   else if (options.databaseExportPath || options.databaseExportProofPath) throw new Error('database export and external proof paths must be supplied together');
   else database = noDatabaseSnapshot(capturedAt, drift);

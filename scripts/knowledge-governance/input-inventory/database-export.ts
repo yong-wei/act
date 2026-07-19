@@ -1,4 +1,4 @@
-import { createHash, randomUUID } from 'node:crypto';
+import { createHash, createPrivateKey, createPublicKey, randomUUID, sign } from 'node:crypto';
 import { access, link, lstat, mkdir, readFile, realpath, stat, unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -67,6 +67,10 @@ export interface AggregateExportProof {
   transaction_started_at: string;
   exported_snapshot_token: string;
   shared_snapshot_import_count: 0;
+  signature_algorithm: 'Ed25519';
+  signing_key_id: string;
+  signing_key_fingerprint: string;
+  signature: string;
 }
 
 interface ExportOptions {
@@ -75,6 +79,8 @@ interface ExportOptions {
   databaseUrl: string;
   outputPath: string;
   proofPath: string;
+  signingPrivateKeyPath?: string;
+  signingKeyId?: string;
 }
 
 interface TableContract {
@@ -432,7 +438,7 @@ async function assertOutsideRepository(root: string, target: string, resolvedTar
   }
 }
 
-export function proofCore(exported: AggregateDatabaseExport, exportDigest: string): Omit<AggregateExportProof, 'proof_digest' | 'export_object_id'> {
+export function proofCore(exported: AggregateDatabaseExport, exportDigest: string): Omit<AggregateExportProof, 'proof_digest' | 'export_object_id' | 'signature_algorithm' | 'signing_key_id' | 'signing_key_fingerprint' | 'signature'> {
   return {
     proof_format: DATABASE_PROOF_FORMAT,
     profile: 'repeatable_read_read_only',
@@ -452,12 +458,19 @@ export function proofCore(exported: AggregateDatabaseExport, exportDigest: strin
   };
 }
 
-export function deriveProof(exported: AggregateDatabaseExport, exportBytes: Buffer): AggregateExportProof {
+export function deriveProof(exported: AggregateDatabaseExport, exportBytes: Buffer, signer: { privateKey: string | Buffer; keyId: string }): AggregateExportProof {
   const exportDigest = exactSha256(exportBytes);
   const core = proofCore(exported, exportDigest);
   const proofDigest = taggedDigest('database-export-proof/v1', canonicalJson(core as unknown as Json));
   const exportObjectId = taggedDigest('database-export-object/v1', `${exportDigest}\n${proofDigest}\n`);
-  return { ...core, proof_digest: proofDigest, export_object_id: exportObjectId };
+  if (!/^[A-Za-z0-9._-]{1,128}$/u.test(signer.keyId)) throw new Error('invalid database proof signing key id');
+  const privateKey = createPrivateKey(signer.privateKey);
+  if (privateKey.asymmetricKeyType !== 'ed25519') throw new Error('database proof signing key must be Ed25519');
+  const publicDer = createPublicKey(privateKey).export({ type: 'spki', format: 'der' });
+  const signingKeyFingerprint = exactSha256(publicDer);
+  const unsigned = { ...core, proof_digest: proofDigest, export_object_id: exportObjectId, signature_algorithm: 'Ed25519' as const, signing_key_id: signer.keyId, signing_key_fingerprint: signingKeyFingerprint };
+  const payload = Buffer.from(canonicalJson(unsigned as unknown as Json), 'utf8');
+  return { ...unsigned, signature: sign(null, payload, privateKey).toString('base64') };
 }
 
 export function assertAggregateExportShape(exported: AggregateDatabaseExport): void {
@@ -657,7 +670,8 @@ export async function exportAggregateDatabase(options: ExportOptions): Promise<{
     };
     assertAggregateExportShape(exported);
     const exportBytes = Buffer.from(canonicalJson(exported as unknown as Json), 'utf8');
-    const proof = deriveProof(exported, exportBytes);
+    if (!options.signingPrivateKeyPath || !options.signingKeyId) throw new Error('database proof Ed25519 signing private key path and key id are required');
+    const proof = deriveProof(exported, exportBytes, { privateKey: await readFile(options.signingPrivateKeyPath), keyId: options.signingKeyId });
     await publishExportArtifacts(options.outputPath, exportBytes, options.proofPath, Buffer.from(canonicalJson(proof as unknown as Json), 'utf8'));
     return { exported, proof };
   } finally {

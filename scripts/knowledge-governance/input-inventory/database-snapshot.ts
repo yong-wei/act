@@ -1,13 +1,14 @@
 import { readFile } from 'node:fs/promises';
+import { createHash, createPublicKey, verify } from 'node:crypto';
 import path from 'node:path';
 import { canonicalJson, sortUnique, taggedDigest } from './normalize';
-import { assertAggregateExportShape, assertNoPrivateSummaryToken, DATABASE_PROOF_FORMAT, deriveProof, fieldSummaryKey, jsonPathCategoryKey, jsonSummaryKey, type AggregateDatabaseExport, type AggregateExportProof } from './database-export';
+import { assertAggregateExportShape, assertNoPrivateSummaryToken, DATABASE_PROOF_FORMAT, fieldSummaryKey, jsonPathCategoryKey, jsonSummaryKey, proofCore, type AggregateDatabaseExport, type AggregateExportProof } from './database-export';
 import type { DatabaseDataset, DatabaseSnapshot, Drift, Json, SnapshotProof } from './types';
 import type { Registry } from './registry';
 import { compileDatabaseObservationContracts, compileJsonObservationContracts, type DatabaseSummaryKind, type JsonObservationKind } from './database-observation';
 import type { ShapeFixture } from './decoder-validation';
 
-const PROOF_KEYS = ['export_digest', 'export_object_id', 'exported_snapshot_token', 'exporter_digest', 'generated_at', 'migration_head', 'profile', 'proof_digest', 'proof_format', 'query_plan_digest', 'registry_digest', 'schema_digest', 'shared_snapshot_import_count', 'source_identity_digest', 'transaction_isolation', 'transaction_read_only', 'transaction_started_at'];
+const PROOF_KEYS = ['export_digest', 'export_object_id', 'exported_snapshot_token', 'exporter_digest', 'generated_at', 'migration_head', 'profile', 'proof_digest', 'proof_format', 'query_plan_digest', 'registry_digest', 'schema_digest', 'shared_snapshot_import_count', 'signature', 'signature_algorithm', 'signing_key_fingerprint', 'signing_key_id', 'source_identity_digest', 'transaction_isolation', 'transaction_read_only', 'transaction_started_at'];
 const EXPORT_KEYS = ['captured_at', 'datasets', 'declared_table_count', 'exported_snapshot_token', 'exporter_digest', 'format_version', 'migration_head', 'postgres_version', 'query_plan_digest', 'registry_digest', 'schema_digest', 'schema_name', 'source_identity_digest', 'transaction_isolation', 'transaction_read_only', 'transaction_started_at'];
 const DATASET_KEYS = ['count', 'discriminator_summaries', 'historical_shape_summaries', 'id', 'json_observation_summaries', 'shape', 'table', 'version_summaries', 'versions', 'watermark', 'watermarks'];
 
@@ -30,7 +31,7 @@ export async function loadImmutableExport(
   relativePath: string,
   proofPath: string,
   _drift: Drift[],
-  authority: { registryDigest: string; exporterDigest: string },
+  authority: { registryDigest: string; exporterDigest: string; proofPublicKeyPath?: string; proofPublicKey?: string | Buffer; proofKeyId?: string },
 ): Promise<DatabaseSnapshot> {
   const exportFile = path.isAbsolute(relativePath) ? relativePath : path.join(root, relativePath);
   const proofFile = path.isAbsolute(proofPath) ? proofPath : path.join(root, proofPath);
@@ -60,8 +61,19 @@ export async function loadImmutableExport(
   rejectRowContent(proof as unknown as Json);
   exactKeys(proof, PROOF_KEYS, 'aggregate database export proof');
   if (proof.proof_format !== DATABASE_PROOF_FORMAT || proof.profile !== 'repeatable_read_read_only') throw new Error('unsupported aggregate database export proof');
-  const expectedProof = deriveProof(parsed, bytes);
-  if (canonicalJson(proof as unknown as Json) !== canonicalJson(expectedProof as unknown as Json)) throw new Error('aggregate database export proof digest or closure mismatch');
+  if ((!authority.proofPublicKeyPath && !authority.proofPublicKey) || !authority.proofKeyId) throw new Error('trusted database proof public key and key id are required');
+  const exportDigest = `sha256:${createHash('sha256').update(bytes).digest('hex')}`;
+  const core = proofCore(parsed, exportDigest);
+  const proofDigest = taggedDigest('database-export-proof/v1', canonicalJson(core as unknown as Json));
+  const exportObjectId = taggedDigest('database-export-object/v1', `${exportDigest}\n${proofDigest}\n`);
+  if (canonicalJson(core as unknown as Json) !== canonicalJson(Object.fromEntries(Object.keys(core).map((key) => [key, proof[key as keyof AggregateExportProof]])) as Json)
+    || proof.proof_digest !== proofDigest || proof.export_object_id !== exportObjectId) throw new Error('aggregate database export proof digest or closure mismatch');
+  const publicKey = createPublicKey(authority.proofPublicKey ?? await readFile(authority.proofPublicKeyPath!));
+  if (publicKey.asymmetricKeyType !== 'ed25519') throw new Error('trusted database proof public key must be Ed25519');
+  const fingerprint = `sha256:${createHash('sha256').update(publicKey.export({ type: 'spki', format: 'der' })).digest('hex')}`;
+  if (proof.signature_algorithm !== 'Ed25519' || proof.signing_key_id !== authority.proofKeyId || proof.signing_key_fingerprint !== fingerprint) throw new Error('database export proof signing authority mismatch');
+  const { signature, ...unsigned } = proof;
+  if (!/^[A-Za-z0-9+/]+={0,2}$/u.test(signature) || !verify(null, Buffer.from(canonicalJson(unsigned as unknown as Json), 'utf8'), publicKey, Buffer.from(signature, 'base64'))) throw new Error('database export proof signature verification failed');
   const datasets: DatabaseDataset[] = parsed.datasets.map((dataset) => ({
     id: dataset.id,
     table: dataset.table,

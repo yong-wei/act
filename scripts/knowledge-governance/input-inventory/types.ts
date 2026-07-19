@@ -26,6 +26,10 @@ export interface SnapshotProof {
   transaction_started_at?: string;
   exported_snapshot_token?: string;
   shared_snapshot_import_count?: number;
+  signature_algorithm?: 'Ed25519';
+  signing_key_id?: string;
+  signing_key_fingerprint?: string;
+  signature?: string;
 }
 
 export interface DatabaseDataset {
@@ -59,6 +63,8 @@ export interface InventoryOptions {
   registryPath?: string;
   databaseExportPath?: string;
   databaseExportProofPath?: string;
+  databaseProofPublicKeyPath?: string;
+  databaseProofKeyId?: string;
   capturedAt?: string;
   anchorReviewAttestationPath?: string;
 }

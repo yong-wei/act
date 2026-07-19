@@ -16,6 +16,8 @@ async function main(): Promise<void> {
     registryPath: option('--registry'),
     databaseExportPath: option('--database-export'),
     databaseExportProofPath: option('--database-export-proof'),
+    databaseProofPublicKeyPath: option('--database-proof-public-key'),
+    databaseProofKeyId: option('--database-proof-key-id'),
     capturedAt: option('--captured-at'),
     anchorReviewAttestationPath: option('--anchor-review-attestation'),
   });
