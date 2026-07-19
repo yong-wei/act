@@ -342,7 +342,7 @@ describe('smart courseware domain', () => {
     expect(JSON.stringify(student)).not.toContain('referenceAnswer');
   });
 
-  it('deterministically scrambles student ordering options without changing teacher, choice, or matching semantics', () => {
+  it('deterministically scrambles student ordering and matching options without changing teacher or choice semantics', () => {
     const input = validCompositionInput();
     const orderingModule = input.runtimeManifest.stages[2].steps[0].modules[0];
     orderingModule.responseKind = 'ordering.sequence';
@@ -409,8 +409,10 @@ describe('smart courseware domain', () => {
     expect(differentSecretOrdering.options).not.toEqual(firstOrdering);
     expect(card(matchingModule.id)).toMatchObject({
       matchItems: [{ value: 'l1', label: '左一' }, { value: 'l2', label: '左二' }],
-      matchOptions: [{ value: 'r1', label: '右一' }, { value: 'r2', label: '右二' }],
     });
+    expect(card(matchingModule.id).matchOptions).not.toEqual([{ value: 'r1', label: '右一' }, { value: 'r2', label: '右二' }]);
+    const projectedMatchingModule = first.runtimeManifest.steps.flatMap((step) => step.modules).find((module) => module.id === matchingModule.id)!;
+    expect((projectedMatchingModule.payload as { right: unknown[] }).right).toEqual(card(matchingModule.id).matchOptions);
     expect(card(input.runtimeManifest.stages[4].steps[0].modules[0].id).options.map((option) => option.value))
       .toEqual(['a', 'b']);
     expect((teacher.runtimeManifest.stages[2].steps[0].modules[0].payload as { items: string[] }).items)

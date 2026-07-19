@@ -418,20 +418,30 @@ function studentRuntimeProjection(
         .filter((card) => visible.has(card.id))
         .map(({ referenceAnswer: _answer, referenceMatches: _matches, ...card }) => {
           const sourceModule = sourceModules.get(card.id);
-          if (sourceModule?.responseKind !== 'ordering.sequence') return card;
-          return {
-            ...card,
-            options: keyedDeterministicNonIdentityRotation(card.options, {
+          if (sourceModule?.responseKind === 'ordering.sequence') return {
+            ...card, options: keyedDeterministicNonIdentityRotation(card.options, {
               draftId: identity.draftId,
               version: identity.version,
               stepId: step.id,
               moduleId: card.id,
             }, identity.orderingPermutationSecret),
           };
+          if (sourceModule?.responseKind === 'matching.pairs' && card.matchOptions) return {
+            ...card, matchOptions: keyedDeterministicNonIdentityRotation(card.matchOptions, {
+              draftId: identity.draftId,
+              version: identity.version,
+              stepId: step.id,
+              moduleId: `${card.id}:matching-options`,
+            }, identity.orderingPermutationSecret),
+          };
+          return card;
         });
       const orderingItems = new Map(activityCards
         .filter((card) => sourceModules.get(card.id)?.responseKind === 'ordering.sequence')
         .map((card) => [card.id, card.options.map((option) => option.value)]));
+      const matchingOptions = new Map(activityCards
+        .filter((card) => sourceModules.get(card.id)?.responseKind === 'matching.pairs' && card.matchOptions)
+        .map((card) => [card.id, card.matchOptions!]));
       const evidencePaths = source.modules
         .filter((module) => visible.has(module.id) && module.canonicalClass === 'activity.panel')
         .flatMap((module) => module.evidencePath ? [module.evidencePath] : []);
@@ -439,8 +449,11 @@ function studentRuntimeProjection(
         ...step,
         modules: step.modules.filter((module) => visible.has(module.id)).map((module) => {
           const items = orderingItems.get(module.id);
-          if (!items || !module.payload || typeof module.payload !== 'object') return module;
-          return { ...module, payload: { ...module.payload, items } };
+          const right = matchingOptions.get(module.id);
+          if (!module.payload || typeof module.payload !== 'object') return module;
+          if (items) return { ...module, payload: { ...module.payload, items } };
+          if (right) return { ...module, payload: { ...module.payload, right } };
+          return module;
         }),
         evidenceSequence: evidencePaths,
         interactionSpec: {
