@@ -6,10 +6,10 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { canonicalJson, compareCodePoints, normalizePath, normalizeText, taggedDigest } from '../normalize';
 import { loadImmutableExport, validateDatabaseClosure } from '../database-snapshot';
-import { assertAggregateExportShape, contractsFromRegistry, DATABASE_EXPORT_FORMAT, deriveProof, exportAggregateDatabase, fieldSummaryKey, jsonPathCategoryKey, jsonSummaryKey, latestWatermark, publishExportArtifacts, type AggregateDatabaseExport, type AggregateDatasetExport } from '../database-export';
+import { assertAggregateExportShape, contractsFromRegistry, currentDatabaseExportAuthority, DATABASE_EXPORT_FORMAT, deriveProof, exportAggregateDatabase, fieldSummaryKey, jsonPathCategoryKey, jsonSummaryKey, latestWatermark, publishExportArtifacts, type AggregateDatabaseExport, type AggregateDatasetExport } from '../database-export';
 import { discoverWriters, discoverWritersInSource } from '../writer-discovery';
 import { validateOutputPrivacy } from '../schema-validation';
-import { sourceFingerprints } from '../manifest';
+import { buildManifest, sourceFingerprints } from '../manifest';
 import { enumerateRepository, loadRegistry, matchGlob, type Registry } from '../registry';
 import type { Json } from '../types';
 import { effectiveDecoderContract, validateFixtureClosure, validateSyntheticPayload, type ShapeFixture } from '../decoder-validation';
@@ -286,6 +286,21 @@ describe('immutable database privacy boundary', () => {
       await expect(loadImmutableExport(directory, 'export.json', 'proof.json', [], authority)).rejects.toThrow(/requires opaque summary keys/u);
     } finally { await rm(directory, { recursive: true }); }
   });
+
+  it('builds a schema-valid manifest from a real current-authority database export', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-manifest-database-export-'));
+    try {
+      const currentAuthority = await currentDatabaseExportAuthority(root, 'docs/proposals/course-knowledge-base-governance-source-registry.yaml');
+      const exported = { ...aggregateExport([]), registry_digest: currentAuthority.registryDigest, exporter_digest: currentAuthority.exporterDigest };
+      await writeAggregateExport(directory, exported);
+      const manifest = await buildManifest({
+        root, capturedAt: '2026-01-01T00:00:00.000Z',
+        databaseExportPath: path.join(directory, 'export.json'), databaseExportProofPath: path.join(directory, 'proof.json'),
+      }) as Record<string, unknown>;
+      expect(manifest.database_snapshot).toMatchObject({ summary_key_format: 'opaque' });
+      expect(manifest.drift).toEqual(expect.arrayContaining([expect.objectContaining({ code: 'DATABASE_TABLE_SNAPSHOT_MISSING' })]));
+    } finally { await rm(directory, { recursive: true }); }
+  }, 120_000);
 
   it('rejects rows, users, payloads and row digests recursively', () => {
     expect(validateOutputPrivacy({ safe: { payload: 'secret' } } as Json)).toEqual([expect.objectContaining({ code: 'PROHIBITED_OUTPUT_FIELD' })]);

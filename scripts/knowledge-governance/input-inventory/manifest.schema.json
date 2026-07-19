@@ -257,8 +257,9 @@
     "databaseSnapshot": {
       "type": "object", "additionalProperties": false, "required": ["snapshot_id", "captured_at", "snapshot_proof", "datasets", "dataset_watermarks"],
       "properties": {
-        "snapshot_id": { "$ref": "#/$defs/digest" }, "captured_at": { "$ref": "#/$defs/timestamp" }, "snapshot_proof": { "$ref": "#/$defs/snapshotProof" }, "datasets": { "type": "array", "items": { "$ref": "#/$defs/databaseDataset" } }, "dataset_watermarks": { "$ref": "#/$defs/nullableStringMap" }
-      }
+        "snapshot_id": { "$ref": "#/$defs/digest" }, "captured_at": { "$ref": "#/$defs/timestamp" }, "snapshot_proof": { "$ref": "#/$defs/snapshotProof" }, "datasets": { "type": "array", "items": { "$ref": "#/$defs/databaseDataset" } }, "dataset_watermarks": { "$ref": "#/$defs/nullableStringMap" }, "summary_key_format": { "enum": ["opaque", "legacy"] }
+      },
+      "allOf": [{ "if": { "properties": { "snapshot_proof": { "type": "object", "properties": { "profile": { "const": "repeatable_read_read_only" } }, "required": ["profile"] } } }, "then": { "required": ["summary_key_format"], "properties": { "summary_key_format": { "const": "opaque" } } } }]
     },
     "snapshotProof": {
       "type": "object", "additionalProperties": false, "required": ["profile"],

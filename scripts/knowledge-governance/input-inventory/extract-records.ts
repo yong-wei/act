@@ -7,17 +7,25 @@ import type { DatabaseSnapshot, Drift, Json } from './types';
 import type { Registry } from './registry';
 import { observationDigest, type FileObservation } from './input-codecs';
 
-function logicalUnits(relative: string, text: string): Array<{ locator: string; schema: string; value: Json; cardinality: number }> {
+function logicalUnits(relative: string, text: string, drift: Drift[]): Array<{ locator: string; schema: string; value: Json; cardinality: number }> {
   if (relative.endsWith('.json') || relative.endsWith('.jsonl')) {
     if (relative.endsWith('.jsonl')) {
-      let cardinality = 0;
-      let hasContent = false;
-      for (let index = 0; index < text.length; index += 1) {
-        if (text.charCodeAt(index) === 10) { if (hasContent) cardinality += 1; hasContent = false; }
-        else if (![9, 13, 32].includes(text.charCodeAt(index))) hasContent = true;
+      const records: Json[] = [];
+      let reportedInvalid = false;
+      for (const [index, line] of text.split('\n').entries()) {
+        if (line.trim().length === 0) continue;
+        try { records.push(JSON.parse(line) as Json); }
+        catch (error) {
+          if (!reportedInvalid) drift.push({
+            code: 'LOGICAL_RECORD_PARSE_FAILED', scope: relative,
+            expected: 'valid JSON on every non-empty JSONL line',
+            observed: { line_number: index + 1, line_locator: `${relative}#L${index + 1}` },
+            detail: error instanceof Error ? error.message : String(error),
+          });
+          reportedInvalid = true;
+        }
       }
-      if (hasContent) cardinality += 1;
-      return [{ locator: `${relative}#records`, schema: 'jsonl-record-set/v1', value: { aggregate_digest: taggedDigest('jsonl-record-set/v1', text) }, cardinality }];
+      return [{ locator: `${relative}#records`, schema: 'jsonl-record-set/v1', value: { aggregate_digest: taggedDigest('jsonl-record-set/v1', canonicalJson(records as unknown as Json)) }, cardinality: records.length }];
     }
     const value = JSON.parse(text) as Json;
     const cardinality = Array.isArray(value) ? value.length : value && typeof value === 'object' ? Object.keys(value).length : 1;
@@ -54,7 +62,7 @@ export async function extractRecordSets(repository: { sources: Array<Record<stri
       continue;
     }
     if (text !== null) try {
-      for (const unit of logicalUnits(relative, text)) logical.push({ item_kind: `${source.item_kind}_logical`, identity_namespace: String(source.identity_namespace), source_id: `${source.id}:${unit.locator}`, source_locator: unit.locator, schema_version: unit.schema, digest: taggedDigest(unit.schema, canonicalJson(unit.value)), cardinality: unit.cardinality });
+      for (const unit of logicalUnits(relative, text, drift)) logical.push({ item_kind: `${source.item_kind}_logical`, identity_namespace: String(source.identity_namespace), source_id: `${source.id}:${unit.locator}`, source_locator: unit.locator, schema_version: unit.schema, digest: taggedDigest(unit.schema, canonicalJson(unit.value)), cardinality: unit.cardinality });
     } catch (error) { drift.push({ code: 'LOGICAL_RECORD_PARSE_FAILED', scope: relative, detail: error instanceof Error ? error.message : String(error) }); }
     }
   }

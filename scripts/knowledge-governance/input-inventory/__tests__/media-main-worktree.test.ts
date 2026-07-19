@@ -120,6 +120,38 @@ describe('closed repository input codecs', () => {
     } finally { await rm(main, { recursive: true }); }
   }, 120_000);
 
+  it('reports the first invalid JSONL line through the CLI and excludes it from logical cardinality', async () => {
+    const main = await mkdtemp(path.join(os.tmpdir(), 'inventory-main-jsonl-entrypoint-'));
+    const relative = 'course-content/authoring/resources/invalid-records.jsonl';
+    try {
+      git(main, 'init', '-q');
+      git(main, 'config', 'user.email', 'inventory@example.invalid');
+      git(main, 'config', 'user.name', 'Inventory Test');
+      await mkdir(path.join(main, 'docs/adr'), { recursive: true });
+      await mkdir(path.join(main, 'course-content/authoring/resources'), { recursive: true });
+      await writeFile(path.join(main, 'docs/adr/README.md'), '# ADR fixture\n');
+      await writeFile(path.join(main, relative), '{"id":1}\nnot-json\n\n{"id":2}\n');
+      git(main, 'add', 'docs/adr/README.md', relative);
+      git(main, 'commit', '-qm', 'fixture');
+      const mainRevision = await repositoryRevision(main);
+      const result = spawnSync(process.execPath, [
+        '--import', 'tsx', 'scripts/knowledge-governance/input-inventory/cli.ts',
+        '--captured-at', '2026-07-19T00:00:00.000Z', '--allow-blocked',
+        '--main-worktree-root', main, '--main-worktree-revision', mainRevision,
+      ], { cwd: root, encoding: 'utf8', maxBuffer: 128 * 1024 * 1024 });
+      expect(result.stderr).toBe('');
+      expect(result.status).toBe(0);
+      const manifest = JSON.parse(result.stdout) as { readiness: boolean; record_sets: { logical: Array<{ source_locator: string; cardinality: number }> }; drift: Drift[] };
+      expect(manifest.readiness).toBe(false);
+      expect(manifest.drift).toContainEqual(expect.objectContaining({
+        code: 'LOGICAL_RECORD_PARSE_FAILED', scope: relative,
+        expected: 'valid JSON on every non-empty JSONL line',
+        observed: { line_number: 2, line_locator: `${relative}#L2` },
+      }));
+      expect(manifest.record_sets.logical).toContainEqual(expect.objectContaining({ source_locator: `${relative}#records`, cardinality: 2 }));
+    } finally { await rm(main, { recursive: true }); }
+  }, 120_000);
+
   it('authorizes only same-relative main-worktree regular-file replacements and retains target hash evidence', async () => {
     const isolated = await mkdtemp(path.join(os.tmpdir(), 'inventory-isolated-symlink-'));
     const main = await mkdtemp(path.join(os.tmpdir(), 'inventory-main-symlink-'));
