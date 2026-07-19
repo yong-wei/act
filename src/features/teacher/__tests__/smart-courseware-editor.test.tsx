@@ -271,7 +271,10 @@ describe('smart courseware role previews', () => {
     expect(validateCoursewareComposition({
       ...composition,
       moduleMetadata: composition.moduleMetadata.map((metadata, index) => (
-        index === 2 ? { ...metadata, teacherFields } : metadata
+        index === 2 ? {
+          ...metadata,
+          teacherFields: { ...teacherFields, inclusionRationale: metadata.teacherFields.inclusionRationale },
+        } : metadata
       )),
     }, validPlan()).validation.valid).toBe(true);
   });

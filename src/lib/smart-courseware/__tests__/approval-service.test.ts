@@ -115,6 +115,31 @@ describe('smart courseware whole-course approval', () => {
     expect(updateDraft).not.toHaveBeenCalled();
     expect(createRevision).not.toHaveBeenCalled();
   });
+
+  it.each([
+    ['missing', undefined],
+    ['blank', '   '],
+  ])('rejects approval when verified persisted metadata has a %s inclusion rationale', async (_label, rationale) => {
+    const draft = approvalDraft();
+    const verified = draft.modules.find((module) => module.sourceState === 'VERIFIED')!;
+    const teacherMetadata = { ...(verified.teacherMetadata as Record<string, unknown>) };
+    if (rationale === undefined) delete teacherMetadata.inclusionRationale;
+    else teacherMetadata.inclusionRationale = rationale;
+    (verified as { teacherMetadata: unknown }).teacherMetadata = teacherMetadata;
+    const createRevision = vi.fn();
+    const updateDraft = vi.fn();
+    const db = approvalDb(draft, { createRevision, updateDraft });
+
+    await expect(approveSmartCoursewareDraft(db as never, {
+      actor, draftId: draft.id, idempotencyKey: `approve-invalid-rationale-${_label}`,
+    })).rejects.toMatchObject({
+      issues: expect.arrayContaining([
+        expect.objectContaining({ path: expect.arrayContaining(['inclusionRationale']) }),
+      ]),
+    });
+    expect(updateDraft).not.toHaveBeenCalled();
+    expect(createRevision).not.toHaveBeenCalled();
+  });
 });
 
 function approvalDraft() {

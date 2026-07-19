@@ -314,4 +314,45 @@ describe('smart courseware service', () => {
     }));
     expect(findJobs).toHaveBeenCalledWith(expect.objectContaining({ where: { ownerId: teacher.id, draftId: draft.id }, take: 20 }));
   });
+
+  it.each([
+    ['missing', undefined],
+    ['blank', '   '],
+  ])('fails closed on teacher GET when verified persisted metadata has a %s inclusion rationale', async (_label, rationale) => {
+    const plan = validPlanFixture();
+    const composition = validCompositionInput();
+    const modules = composition.moduleMetadata.map((metadata, index) => ({
+      runtimeModuleId: metadata.moduleId,
+      moduleInstanceLineage: `lineage-${index}`,
+      contentHash: contentHash(composition.runtimeManifest.stages[index].steps[0].modules[0]),
+      sourceState: 'VERIFIED',
+      sourceBindings: metadata.sourceBindings,
+      sourceBindingSetHash: contentHash(metadata.sourceBindings),
+      gapIdentity: null,
+      provenance: 'AI_GENERATED',
+      originalAttemptId: `attempt-${index}`,
+      teacherMetadata: { ...metadata.teacherFields } as Record<string, unknown>,
+    }));
+    if (rationale === undefined) delete modules[0].teacherMetadata.inclusionRationale;
+    else modules[0].teacherMetadata.inclusionRationale = rationale;
+    const draft = {
+      id: 'draft-1', ownerId: teacher.id, planRevisionId: 'plan-1', planRevisionNumber: 1,
+      planContentHash: contentHash(plan), version: 2, runtimeManifest: composition.runtimeManifest,
+      contentHash: coursewareManifestHash(composition.runtimeManifest),
+      planRevision: { id: 'plan-1', draftId: 'plan-draft-1', revisionNumber: 1, content: plan, contentHash: contentHash(plan) },
+      modules,
+    };
+    const db = {
+      smartCoursewareDraft: { findFirst: vi.fn().mockResolvedValue(draft) },
+      smartLessonAdvisoryReview: { findFirst: vi.fn().mockResolvedValue(null) },
+      smartCoursewareGenerationJob: { findMany: vi.fn().mockResolvedValue([]) },
+    };
+
+    await expect(getSmartCoursewareTeacherProjection(db as never, { actor: teacher, draftId: draft.id }))
+      .rejects.toMatchObject({
+        issues: expect.arrayContaining([
+          expect.objectContaining({ path: ['moduleMetadata', 0, 'teacherFields', 'inclusionRationale'] }),
+        ]),
+      });
+  });
 });

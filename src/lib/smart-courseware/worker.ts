@@ -189,7 +189,7 @@ async function buildUnitRequest(db: Db, context: NonNullable<Awaited<ReturnType<
   const planStage = plan.boppps[PLAN_STAGE_KEYS[unitKey]];
   const previous = Object.fromEntries(context.units.filter((unit) => unit.state === 'COMPLETED').map((unit) => [unit.unitKey, unit.output]));
   return {
-    system: '你是单课互动课件生成器。只能按已批准教案、注册版式、注册模块、服务端来源证据生成当前 BOPPPS 阶段；不得改写目标、时长或其他阶段。输出严格符合 JSON Schema。',
+    system: '你是单课互动课件生成器。只能按已批准教案、注册版式、注册模块、服务端来源证据生成当前 BOPPPS 阶段；不得改写目标、时长或其他阶段。来源状态为 verified 时，teacherFields.inclusionRationale 必须说明引用证据与模块内容的关系。输出严格符合 JSON Schema。',
     prompt: `当前阶段：${unitKey}。已批准教案：${JSON.stringify(plan)}。权威来源：${JSON.stringify(authoritativeBindings)}。已完成阶段：${JSON.stringify(previous)}。`,
     expectedDurationSeconds: planStage.minutes * 60,
     authoritativeSourceBindings: authoritativeBindings,

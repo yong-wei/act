@@ -16,6 +16,7 @@ import {
   COURSEWARE_AUTHORING_SCHEMA_VERSION,
   coursewareCompositionInputSchema,
   coursewareModuleMetadataSchema,
+  coursewareTeacherProjectionSchema,
   type CoursewareCompositionInput,
   type CoursewareModuleMetadata,
   type CoursewareModuleMetadataInput,
@@ -159,8 +160,10 @@ export function deriveCoursewareModuleMetadata(input: {
     || existing.sourceBindingSetHash !== sourceBindingSetHash
     || contentHash(existing.teacherMetadata ?? null) !== contentHash(input.requested.teacherFields)
   );
-  const provenance = !existing
-    ? input.newProvenance ?? 'teacher_created'
+  const provenance = input.newProvenance
+    ? input.newProvenance
+    : !existing
+      ? 'teacher_created'
     : existing.provenance === 'AI_GENERATED' && auditableStateChanged
       ? 'ai_generated_teacher_edited'
       : publicProvenance(existing.provenance);
@@ -173,7 +176,9 @@ export function deriveCoursewareModuleMetadata(input: {
     sourceBindingSetHash,
     gapIdentity,
     provenance,
-    originalAttemptId: existing?.originalAttemptId ?? input.originalAttemptId ?? null,
+    originalAttemptId: input.originalAttemptId !== undefined
+      ? input.originalAttemptId
+      : existing?.originalAttemptId ?? null,
   });
 }
 
@@ -196,11 +201,11 @@ export function projectCoursewareForTeacher(input: {
     attempts: Array<{ attemptNumber: number; serviceId: string; providerKind: string; model: string; outcome: string }>;
   }>;
 }) {
-  return {
+  return coursewareTeacherProjectionSchema.parse({
     schemaVersion: COURSEWARE_AUTHORING_SCHEMA_VERSION,
     ...input,
     validation: validateGeneratedSlideManifest(input.runtimeManifest),
-  };
+  });
 }
 
 export function projectCoursewareForStudent(input: {

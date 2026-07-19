@@ -26,12 +26,28 @@ export const coursewareTeacherFieldsSchema = z.object({
   inclusionRationale: z.string().trim().min(1).max(2_000).optional(),
 }).strict();
 
-export const coursewareModuleMetadataInputSchema = z.object({
+const coursewareModuleMetadataInputObjectSchema = z.object({
   moduleId: z.string().trim().min(1).max(96),
   sourceState: coursewareSourceStateSchema,
   sourceBindings: z.array(sourceBindingSchema).max(100),
   teacherFields: coursewareTeacherFieldsSchema.default({}),
 }).strict();
+
+function requireVerifiedInclusionRationale(
+  value: { sourceState: z.infer<typeof coursewareSourceStateSchema>; teacherFields: z.infer<typeof coursewareTeacherFieldsSchema> },
+  context: z.RefinementCtx,
+) {
+  if (value.sourceState === 'verified' && !value.teacherFields.inclusionRationale) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'verified source state requires an inclusion rationale',
+      path: ['teacherFields', 'inclusionRationale'],
+    });
+  }
+}
+
+export const coursewareModuleMetadataInputSchema = coursewareModuleMetadataInputObjectSchema
+  .superRefine(requireVerifiedInclusionRationale);
 
 export const coursewareCompositionInputSchema = z.object({
   expectedVersion: z.number().int().positive(),
@@ -49,14 +65,14 @@ export const coursewareModuleCandidateOutputSchema = z.object({
   moduleMetadata: coursewareModuleMetadataInputSchema,
 }).strict();
 
-export const coursewareModuleMetadataSchema = coursewareModuleMetadataInputSchema.extend({
+export const coursewareModuleMetadataSchema = coursewareModuleMetadataInputObjectSchema.extend({
   moduleInstanceLineage: z.string().trim().min(1).max(200),
   moduleContentHash: z.string().regex(/^[a-f0-9]{64}$/),
   sourceBindingSetHash: z.string().regex(/^[a-f0-9]{64}$/),
   gapIdentity: z.string().trim().min(1).max(200).nullable(),
   provenance: coursewareProvenanceSchema,
   originalAttemptId: z.string().trim().min(1).max(200).nullable(),
-}).strict();
+}).strict().superRefine(requireVerifiedInclusionRationale);
 
 export const coursewareTeacherProjectionSchema = z.object({
   schemaVersion: z.literal(COURSEWARE_AUTHORING_SCHEMA_VERSION),

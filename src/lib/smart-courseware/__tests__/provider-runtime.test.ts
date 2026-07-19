@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { sourceBindingFixture } from '@/lib/smart-lesson-plan/__tests__/fixtures';
 
 import { resolveSmartCoursewareStructuredProvider, createDeterministicCoursewareStage } from '../provider-runtime';
+import { coursewareGeneratedStageOutputSchema, coursewareModuleCandidateOutputSchema } from '../schema';
 
 describe('smart courseware provider runtime', () => {
   afterEach(() => {
@@ -15,13 +16,34 @@ describe('smart courseware provider runtime', () => {
     expect(pre.stage.steps[0].modules[0]).toMatchObject({
       canonicalClass: 'activity.panel', responseKind: 'choice.single',
     });
-    expect(pre.moduleMetadata[0]).toMatchObject({ sourceState: 'verified', sourceBindings: [sourceBindingFixture] });
+    expect(pre.moduleMetadata[0]).toMatchObject({
+      sourceState: 'verified',
+      sourceBindings: [sourceBindingFixture],
+      teacherFields: { inclusionRationale: expect.any(String) },
+    });
   });
 
   it('fails closed when the fixture provider is requested in production', async () => {
     vi.stubEnv('NODE_ENV', 'production');
     vi.stubEnv('SMART_COURSEWARE_E2E_FIXTURE_TOKEN', 'smart-courseware-real-browser-v1');
     await expect(resolveSmartCoursewareStructuredProvider()).rejects.toMatchObject({ code: 'fixture-provider-forbidden' });
+  });
+
+  it.each([
+    ['stage generation', coursewareGeneratedStageOutputSchema],
+    ['module candidate generation', coursewareModuleCandidateOutputSchema],
+  ])('rejects verified %s output without a non-blank inclusion rationale', (_label, schema) => {
+    const stage = createDeterministicCoursewareStage({
+      unitKey: 'summary', durationSeconds: 300, sourceBinding: sourceBindingFixture,
+    });
+    const output: unknown = schema === coursewareGeneratedStageOutputSchema
+      ? stage
+      : { runtimeModule: stage.stage.steps[0].modules[0], moduleMetadata: stage.moduleMetadata[0] };
+    const metadata = stage.moduleMetadata[0];
+    delete metadata.teacherFields.inclusionRationale;
+    expect(() => schema.parse(output)).toThrow();
+    metadata.teacherFields.inclusionRationale = '   ';
+    expect(() => schema.parse(output)).toThrow();
   });
 
   it('returns stable fixture identities outside production', async () => {

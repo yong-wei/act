@@ -60,7 +60,11 @@ describe('smart courseware domain', () => {
     openModule.responseKind = 'text.long';
     openModule.payload = { prompt: '请说明判断过程。' };
     const openMetadata = open.moduleMetadata[2] as CoursewareModuleMetadataInput;
-    openMetadata.teacherFields = { expectedOutput: '说明特征根均位于左半平面。', reviewPoints: ['结论', '理由'] };
+    openMetadata.teacherFields = {
+      expectedOutput: '说明特征根均位于左半平面。',
+      reviewPoints: ['结论', '理由'],
+      inclusionRationale: '该来源直接支撑稳定性判定活动。',
+    };
     expect(() => validateCoursewareComposition(open, validPlan())).not.toThrow();
     delete openMetadata.teacherFields.reviewPoints;
     expect(() => validateCoursewareComposition(open, validPlan()))
@@ -79,14 +83,34 @@ describe('smart courseware domain', () => {
     openModule.payload = { prompt: '说明理由。' };
     (open.moduleMetadata[2] as CoursewareModuleMetadataInput).teacherFields = {
       expectedOutput: '完整说明。', reviewPoints: ['结论'], referenceAnswer: '旧答案',
+      inclusionRationale: '该来源直接支撑稳定性判定活动。',
     };
     expect(() => validateCoursewareComposition(open, validPlan()))
       .toThrowError(expect.objectContaining({ code: 'open-activity-objective-evidence-forbidden:module-3' }));
 
     const content = validCompositionInput();
-    (content.moduleMetadata[0] as CoursewareModuleMetadataInput).teacherFields = { explanation: '内容模块不接受答案证据' };
+    (content.moduleMetadata[0] as CoursewareModuleMetadataInput).teacherFields = {
+      explanation: '内容模块不接受答案证据',
+      inclusionRationale: '该来源直接支撑本模块的教学内容。',
+    };
     expect(() => validateCoursewareComposition(content, validPlan()))
       .toThrowError(expect.objectContaining({ code: 'content-module-teacher-evidence-forbidden:module-1' }));
+  });
+
+  it.each([
+    ['missing', undefined],
+    ['blank', '   '],
+  ])('rejects verified metadata with a %s inclusion rationale', (_label, inclusionRationale) => {
+    const input = validCompositionInput();
+    const teacherFields = input.moduleMetadata[0].teacherFields as Record<string, unknown>;
+    if (inclusionRationale === undefined) delete teacherFields.inclusionRationale;
+    else teacherFields.inclusionRationale = inclusionRationale;
+
+    expect(() => validateCoursewareComposition(input, validPlan())).toThrowError(
+      expect.objectContaining({ issues: expect.arrayContaining([
+        expect.objectContaining({ path: ['moduleMetadata', 0, 'teacherFields', 'inclusionRationale'] }),
+      ]) }),
+    );
   });
 
   it('binds persisted manifest identity and hash to the draft and approved plan', () => {
@@ -219,7 +243,12 @@ describe('smart courseware domain', () => {
     expect(() => deriveCoursewareModuleMetadata({
       authoringLineageRoot: 'lineage-1',
       runtimeModule,
-      requested: { moduleId: runtimeModule.id, sourceState: 'verified', sourceBindings: [sourceBindingFixture], teacherFields: {} },
+      requested: {
+        moduleId: runtimeModule.id,
+        sourceState: 'verified',
+        sourceBindings: [sourceBindingFixture],
+        teacherFields: { inclusionRationale: '支撑本模块。' },
+      },
       allowedSourceBindings: [],
     })).toThrowError(expect.objectContaining({ code: 'source-binding-not-in-approved-plan' }));
   });
@@ -233,7 +262,9 @@ describe('smart courseware domain', () => {
         moduleId: runtimeModule.id,
         sourceState: 'verified',
         sourceBindings: [sourceBindingFixture],
-        teacherFields: { referenceAnswer: 'a', explanation: '原解释', scoring: { maxPoints: 1 } },
+        teacherFields: {
+          referenceAnswer: 'a', explanation: '原解释', scoring: { maxPoints: 1 }, inclusionRationale: '支撑本模块。',
+        },
       },
       allowedSourceBindings: [sourceBindingFixture],
       newProvenance: 'ai_generated',
@@ -246,7 +277,9 @@ describe('smart courseware domain', () => {
         moduleId: runtimeModule.id,
         sourceState: 'verified',
         sourceBindings: [sourceBindingFixture],
-        teacherFields: { referenceAnswer: 'a', explanation: '教师修订解释', scoring: { maxPoints: 1 } },
+        teacherFields: {
+          referenceAnswer: 'a', explanation: '教师修订解释', scoring: { maxPoints: 1 }, inclusionRationale: '支撑本模块。',
+        },
       },
       allowedSourceBindings: [sourceBindingFixture],
       existing: {
@@ -282,8 +315,36 @@ describe('smart courseware domain', () => {
       generationAudit: [],
     });
     const student = projectCoursewareForStudent({ draftId: 'draft-1', version: 2, runtimeManifest: validated.runtimeManifest });
+    expect(teacher.moduleMetadata[0].teacherFields.inclusionRationale).toBeTruthy();
     expect(JSON.stringify(teacher)).toContain('教师专用解释');
     expect(JSON.stringify(student)).not.toContain('教师专用解释');
     expect(JSON.stringify(student)).not.toContain('referenceAnswer');
+  });
+
+  it.each([
+    ['missing', undefined],
+    ['blank', '   '],
+  ])('rejects a teacher projection with a %s verified inclusion rationale', (_label, rationale) => {
+    const composition = validateCoursewareComposition(validCompositionInput(), validPlan());
+    const moduleMetadata = composition.moduleMetadata.map((requested, index) => deriveCoursewareModuleMetadata({
+      authoringLineageRoot: 'lineage-1',
+      runtimeModule: composition.runtimeManifest.stages[index].steps[0].modules[0],
+      requested,
+      allowedSourceBindings: [sourceBindingFixture],
+    }));
+    const teacherFields = { ...moduleMetadata[0].teacherFields } as Record<string, unknown>;
+    if (rationale === undefined) delete teacherFields.inclusionRationale;
+    else teacherFields.inclusionRationale = rationale;
+    (moduleMetadata[0] as { teacherFields: unknown }).teacherFields = teacherFields;
+
+    expect(() => projectCoursewareForTeacher({
+      draftId: 'draft-1', version: 2, planRevisionId: 'plan-1', planContentHash: 'hash',
+      runtimeManifest: composition.runtimeManifest, moduleMetadata,
+      planLimitations: [], aiReview: null, generationAudit: [],
+    })).toThrowError(expect.objectContaining({
+      issues: expect.arrayContaining([
+        expect.objectContaining({ path: ['moduleMetadata', 0, 'teacherFields', 'inclusionRationale'] }),
+      ]),
+    }));
   });
 });

@@ -284,7 +284,7 @@ export async function generateCoursewareModuleCandidate(
     const generated = await runtime.generate({
       schema: coursewareModuleCandidateOutputSchema,
       schemaVersion: 'smart-courseware-module-candidate.v1',
-      system: '仅重新生成指定课件模块。不得输出或修改相邻模块、步骤顺序、阶段时长或已批准教案基线。来源只能使用服务端提供的权威绑定。',
+      system: '仅重新生成指定课件模块。不得输出或修改相邻模块、步骤顺序、阶段时长或已批准教案基线。来源只能使用服务端提供的权威绑定；来源状态为 verified 时，teacherFields.inclusionRationale 必须说明引用证据与模块内容的关系。',
       prompt: JSON.stringify(request),
       idempotencyKey: attempt.idempotencyKey,
     });
@@ -438,13 +438,6 @@ export async function acceptCoursewareModuleCandidate(db: Db, input: {
         approvedPlanTitle: plan.topic,
         manifest: composition.runtimeManifest,
       });
-      const derived = deriveCoursewareModuleMetadata({
-        authoringLineageRoot: draft.authoringLineageRoot,
-        runtimeModule: candidate.runtimeModule,
-        requested: candidate.moduleMetadata,
-        allowedSourceBindings: authoritativeBindings,
-        existing: target,
-      });
       const providerAttempt = await tx.smartCoursewareProviderAttempt.findFirst({
         where: {
           generationJobId: job.id,
@@ -453,6 +446,15 @@ export async function acceptCoursewareModuleCandidate(db: Db, input: {
         },
       });
       if (!providerAttempt) throw new SmartCoursewareError('courseware-module-provider-audit-missing', 409);
+      const derived = deriveCoursewareModuleMetadata({
+        authoringLineageRoot: draft.authoringLineageRoot,
+        runtimeModule: candidate.runtimeModule,
+        requested: candidate.moduleMetadata,
+        allowedSourceBindings: authoritativeBindings,
+        existing: target,
+        newProvenance: 'ai_generated',
+        originalAttemptId: providerAttempt.id,
+      });
 
       const accepted = await tx.smartCoursewareGenerationJob.updateMany({
         where: { id: job.id, ownerId: actor.id, mode: 'MODULE', state: 'COMPLETED', acceptedAt: null, candidateHash: job.candidateHash },
@@ -481,6 +483,7 @@ export async function acceptCoursewareModuleCandidate(db: Db, input: {
           sourceBindingSetHash: derived.sourceBindingSetHash,
           gapIdentity: derived.gapIdentity,
           provenance: persistenceProvenanceFor(derived.provenance),
+          originalAttemptId: derived.originalAttemptId,
           teacherMetadata: asJson(derived.teacherFields),
           currentRevisionNumber: revisionNumber,
         },

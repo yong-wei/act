@@ -113,7 +113,10 @@ export function createDeterministicCoursewareStage(input: {
         referenceAnswer: 'a',
         explanation: '确定性测试答案。',
         scoring: { strategy: 'exact-match', maxPoints: 1 },
-      } : {},
+        ...(input.sourceBinding ? { inclusionRationale: '该权威来源直接支撑本阶段活动内容。' } : {}),
+      } : input.sourceBinding
+        ? { inclusionRationale: '该权威来源直接支撑本阶段教学内容。' }
+        : {},
     }],
   });
 }

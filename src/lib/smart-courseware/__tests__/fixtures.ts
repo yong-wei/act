@@ -39,8 +39,11 @@ export function validCompositionInput() {
       sourceState: 'verified' as const,
       sourceBindings: [sourceBindingFixture],
       teacherFields: module.canonicalClass === 'activity.panel'
-        ? { referenceAnswer: 'a', explanation: '教师专用解释', scoring: { strategy: 'exact-match', maxPoints: 1 } }
-        : {},
+        ? {
+            referenceAnswer: 'a', explanation: '教师专用解释', scoring: { strategy: 'exact-match', maxPoints: 1 },
+            inclusionRationale: '该来源直接支撑本模块的教学内容。',
+          }
+        : { inclusionRationale: '该来源直接支撑本模块的教学内容。' },
     })))),
   };
 }

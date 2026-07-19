@@ -449,8 +449,10 @@ describe('smart courseware selected-module regeneration acceptance', () => {
     expect(race.state.job.state).toBe('CANCELLED');
   });
 
-  it('accepts a candidate by changing only the selected module and recording an immutable revision', async () => {
+  it('accepts an AI candidate over a teacher-created module with current and revision provider provenance', async () => {
     const fixture = acceptanceFixture();
+    fixture.target.provenance = 'TEACHER_CREATED';
+    (fixture.target as { originalAttemptId: string | null }).originalAttemptId = null;
     const db = acceptanceDb(fixture.job);
 
     await expect(acceptCoursewareModuleCandidate(db.value as never, {
@@ -473,19 +475,23 @@ describe('smart courseware selected-module regeneration acceptance', () => {
     });
     expect(db.updateModule).toHaveBeenCalledWith(expect.objectContaining({
       where: expect.objectContaining({ contentHash: fixture.target.contentHash }),
-      data: expect.objectContaining({ provenance: 'AI_GENERATED_TEACHER_EDITED', currentRevisionNumber: 2 }),
+      data: expect.objectContaining({
+        provenance: 'AI_GENERATED',
+        originalAttemptId: fixture.job.providerAttempt.id,
+        currentRevisionNumber: 2,
+      }),
     }));
     expect(db.createRevision).toHaveBeenCalledWith({ data: expect.objectContaining({
       moduleRecordId: fixture.target.id,
       revisionNumber: 2,
       changeKind: 'REGENERATE_ACCEPT',
-      provenance: 'AI_GENERATED_TEACHER_EDITED',
+      provenance: 'AI_GENERATED',
       generationJobId: fixture.job.id,
       providerAttemptId: fixture.job.providerAttempt.id,
       candidateHash: fixture.job.candidateHash,
       candidateDiffId: `${fixture.job.id}:${fixture.job.candidateHash}`,
       acceptedCommandId: expect.any(String),
-      originalAttemptIdSnapshot: fixture.target.originalAttemptId,
+      originalAttemptIdSnapshot: fixture.job.providerAttempt.id,
       actorId: actor.id,
     }) });
     expect(db.createCommand).toHaveBeenCalledWith({ data: expect.objectContaining({
@@ -648,6 +654,7 @@ function acceptanceFixture() {
       referenceAnswer: 'a',
       explanation: '基于权威来源形成的新解释。',
       scoring: { strategy: 'exact-match', maxPoints: 1 },
+      inclusionRationale: '该权威来源直接支撑重新生成的单选题。',
     },
   };
   const draft = {
