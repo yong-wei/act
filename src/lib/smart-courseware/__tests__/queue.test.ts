@@ -51,6 +51,32 @@ describe('smart courseware queue', () => {
     expect(updateDraft).not.toHaveBeenCalled();
   });
 
+  it('keeps an INITIAL delivery failure active and leaves its draft generating', async () => {
+    const updateDraft = vi.fn();
+    const updateJob = vi.fn().mockResolvedValue({ count: 1 });
+    const retryable = {
+      id: 'job-1', draftId: 'draft-1', mode: 'INITIAL', state: 'RETRYABLE',
+      activeIdentity: 'draft:draft-1', firstIncompleteUnitKey: 'bridge-in', deliveryGeneration: 1,
+    };
+    const db = {
+      smartCoursewareGenerationJob: { findUnique: vi.fn().mockResolvedValue({ ...retryable, state: 'QUEUED' }) },
+      smartCoursewareGenerationUnit: { findUnique: vi.fn().mockResolvedValue({ id: 'unit-1' }) },
+      $transaction: vi.fn(async (run: (tx: unknown) => unknown) => run({
+        smartCoursewareGenerationJob: { updateMany: updateJob, findUniqueOrThrow: vi.fn().mockResolvedValue(retryable) },
+        smartCoursewareDraft: { updateMany: updateDraft },
+      })),
+    };
+
+    await expect(enqueueCoursewareGenerationJob(db as never, 'job-1', {
+      add: vi.fn().mockRejectedValue(new Error('redis-unavailable')), close: vi.fn(),
+    })).resolves.toEqual({ queued: false, job: retryable, errorCode: 'courseware-queue-unavailable' });
+    expect(updateJob).toHaveBeenCalledWith({
+      where: { id: 'job-1', state: 'QUEUED' },
+      data: { state: 'RETRYABLE', failureCode: 'courseware-queue-unavailable' },
+    });
+    expect(updateDraft).not.toHaveBeenCalled();
+  });
+
   it('never enqueues work for an ACCEPTED draft', async () => {
     const add = vi.fn();
     const db = {

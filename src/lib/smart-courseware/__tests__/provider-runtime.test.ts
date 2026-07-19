@@ -62,6 +62,27 @@ describe('smart courseware provider runtime', () => {
     }));
   });
 
+  it.each([
+    ['choice values', 'choice.single', { prompt: '选择', options: [{ value: 'A', label: '甲' }, { value: ' a ', label: '乙' }] }],
+    ['choice labels', 'choice.multi', { prompt: '选择', options: [{ value: 'a', label: 'Same' }, { value: 'b', label: ' same ' }] }],
+    ['matching left values', 'matching.pairs', {
+      prompt: '匹配',
+      left: [{ value: 'A', label: '甲' }, { value: ' a ', label: '乙' }],
+      right: [{ value: 'x', label: '子' }, { value: 'y', label: '丑' }],
+    }],
+    ['matching right labels', 'matching.pairs', {
+      prompt: '匹配',
+      left: [{ value: 'a', label: '甲' }, { value: 'b', label: '乙' }],
+      right: [{ value: 'x', label: 'Same' }, { value: 'y', label: ' same ' }],
+    }],
+  ])('rejects normalized duplicate %s', (_label, responseKind, payload) => {
+    const output = createDeterministicCoursewareStage({
+      unitKey: 'pre-assessment', durationSeconds: 300, sourceBinding: sourceBindingFixture,
+    });
+    Object.assign(output.stage.steps[0].modules[0], { responseKind, payload });
+    expect(() => coursewareGeneratedStageOutputSchema.parse(output)).toThrow();
+  });
+
   it('returns stable fixture identities outside production', async () => {
     vi.stubEnv('NODE_ENV', 'test');
     vi.stubEnv('SMART_COURSEWARE_E2E_FIXTURE_TOKEN', 'smart-courseware-real-browser-v1');

@@ -11,6 +11,7 @@ import {
   resumeCoursewareGenerationJob,
   retryCoursewareGenerationJob,
   startCoursewareGenerationJob,
+  failCoursewareGenerationUnit,
 } from '../generation-service';
 import { coursewareManifestHash, coursewareModuleGenerationInputHash } from '../domain';
 import { validCoursewareManifest } from './fixtures';
@@ -115,6 +116,27 @@ describe('smart courseware generation service', () => {
     await expect(completeCoursewareGenerationUnit(db as never, {
       actor, jobId: job.id, unitKey: 'bridge-in', claimToken: 'claim', attemptId: 'attempt', output: { accepted: false },
     })).rejects.toMatchObject({ code: 'completed-courseware-unit-output-conflict' });
+  });
+
+  it('keeps a failed initial job active and the draft generating until an explicit transition', async () => {
+    const job = { id: 'job-1', ownerId: actor.id, draftId: 'draft-1', state: 'RUNNING', activeIdentity: 'draft:draft-1', draft: { state: 'GENERATING' } };
+    const updateJob = vi.fn().mockResolvedValue({ ...job, state: 'FAILED' });
+    const updateDraft = vi.fn();
+    const db = { $transaction: vi.fn(async (run: (tx: unknown) => unknown) => run({
+      smartCoursewareGenerationJob: { findFirst: vi.fn().mockResolvedValue(job), update: updateJob },
+      smartCoursewareGenerationUnit: {
+        findUnique: vi.fn().mockResolvedValue({ id: 'unit-1', unitKey: 'bridge-in', state: 'RUNNING' }),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      smartCoursewareProviderAttempt: { updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
+      smartCoursewareDraft: { update: updateDraft },
+    })) };
+
+    await failCoursewareGenerationUnit(db as never, {
+      actor, jobId: job.id, unitKey: 'bridge-in', claimToken: 'claim', attemptId: 'attempt-1', failureCode: 'provider-failed', retryable: false,
+    });
+    expect(updateDraft).not.toHaveBeenCalled();
+    expect(updateJob).toHaveBeenCalledWith({ where: { id: job.id }, data: expect.not.objectContaining({ activeIdentity: expect.anything() }) });
   });
 
   it.each([
@@ -250,10 +272,35 @@ describe('smart courseware generation service', () => {
       data: { outcome: 'CANCELLED', finishedAt: expect.any(Date) },
     });
     expect(updateUnit).toHaveBeenCalledWith({
-      where: { jobId: job.id, state: { in: ['PENDING', 'RUNNING', 'RETRYABLE'] } },
+      where: { jobId: job.id, state: { in: ['PENDING', 'RUNNING', 'RETRYABLE', 'FAILED'] } },
       data: { state: 'CANCELLED', claimToken: null, claimExpiresAt: null },
     });
     expect(calls).toEqual(['attempt', 'unit', 'draft', 'job']);
+  });
+
+  it('allows a permanently failed INITIAL job to be cancelled and releases its draft', async () => {
+    const job = { id: 'job-failed', ownerId: actor.id, draftId: 'draft-1', mode: 'INITIAL', state: 'FAILED', draft: { state: 'GENERATING' } };
+    const updateUnit = vi.fn().mockResolvedValue({ count: 1 });
+    const updateDraft = vi.fn();
+    const updateJob = vi.fn().mockResolvedValue({ ...job, state: 'CANCELLED', activeIdentity: null });
+    const db = {
+      smartCoursewareGenerationCommand: { findFirst: vi.fn().mockResolvedValue(null) },
+      $transaction: vi.fn(async (run: (tx: unknown) => unknown) => run({
+        smartCoursewareGenerationJob: { findFirst: vi.fn().mockResolvedValue(job), update: updateJob },
+        smartCoursewareGenerationUnit: { updateMany: updateUnit },
+        smartCoursewareProviderAttempt: { updateMany: vi.fn().mockResolvedValue({ count: 0 }) },
+        smartCoursewareDraft: { update: updateDraft },
+        smartCoursewareGenerationCommand: { create: vi.fn() },
+      })),
+    };
+
+    await cancelCoursewareGenerationJob(db as never, { actor, jobId: job.id, idempotencyKey: 'cancel-failed-initial' });
+    expect(updateUnit).toHaveBeenCalledWith({
+      where: { jobId: job.id, state: { in: ['PENDING', 'RUNNING', 'RETRYABLE', 'FAILED'] } },
+      data: { state: 'CANCELLED', claimToken: null, claimExpiresAt: null },
+    });
+    expect(updateDraft).toHaveBeenCalledWith({ where: { id: job.draftId }, data: { state: 'EDITABLE' } });
+    expect(updateJob).toHaveBeenCalledWith({ where: { id: job.id }, data: expect.objectContaining({ state: 'CANCELLED', activeIdentity: null }) });
   });
 
   it.each([

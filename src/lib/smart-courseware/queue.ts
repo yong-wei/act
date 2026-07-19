@@ -64,13 +64,10 @@ async function deliveryFailure(db: PrismaClient, jobId: string, draftId: string,
   const result = await db.$transaction(async (tx) => {
     const transitioned = await tx.smartCoursewareGenerationJob.updateMany({
       where: { id: jobId, state: 'QUEUED' },
-      data: { state: 'RETRYABLE', activeIdentity: null, failureCode },
+      data: { state: 'RETRYABLE', ...(mode === 'MODULE' ? { activeIdentity: null } : {}), failureCode },
     });
     if (transitioned.count !== 1) {
       return { transitioned: false as const, job: await tx.smartCoursewareGenerationJob.findUniqueOrThrow({ where: { id: jobId } }) };
-    }
-    if (mode === 'INITIAL') {
-      await tx.smartCoursewareDraft.updateMany({ where: { id: draftId, state: 'GENERATING' }, data: { state: 'EDITABLE' } });
     }
     return { transitioned: true as const, job: await tx.smartCoursewareGenerationJob.findUniqueOrThrow({ where: { id: jobId } }) };
   });

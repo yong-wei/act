@@ -266,9 +266,17 @@ export const GENERATED_CONTENT_PAYLOAD_SCHEMAS = Object.freeze({
 } as const satisfies Record<GeneratedContentClass, z.ZodTypeAny>);
 
 const optionSchema = z.object({ value: nonEmptyText, label: nonEmptyText }).strict();
+const uniqueOptionsSchema = (maximum: number) => z.array(optionSchema).min(2).max(maximum).superRefine((options, context) => {
+  for (const field of ['value', 'label'] as const) {
+    const normalized = options.map((option) => option[field].trim().toLowerCase());
+    if (new Set(normalized).size !== normalized.length) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: `option ${field}s must be unique after normalization` });
+    }
+  }
+});
 export const GENERATED_ACTIVITY_PAYLOAD_SCHEMAS = Object.freeze({
-  'choice.single': z.object({ prompt: nonEmptyText, options: z.array(optionSchema).min(2).max(8) }).strict(),
-  'choice.multi': z.object({ prompt: nonEmptyText, options: z.array(optionSchema).min(2).max(10) }).strict(),
+  'choice.single': z.object({ prompt: nonEmptyText, options: uniqueOptionsSchema(8) }).strict(),
+  'choice.multi': z.object({ prompt: nonEmptyText, options: uniqueOptionsSchema(10) }).strict(),
   'text.short': z.object({ prompt: nonEmptyText, placeholder: z.string().max(120).optional() }).strict(),
   'text.long': z.object({ prompt: nonEmptyText, placeholder: z.string().max(200).optional() }).strict(),
   'ordering.sequence': z.object({
@@ -282,8 +290,8 @@ export const GENERATED_ACTIVITY_PAYLOAD_SCHEMAS = Object.freeze({
   }).strict(),
   'matching.pairs': z.object({
     prompt: nonEmptyText,
-    left: z.array(optionSchema).min(2).max(10),
-    right: z.array(optionSchema).min(2).max(10),
+    left: uniqueOptionsSchema(10),
+    right: uniqueOptionsSchema(10),
   }).strict(),
 } as const satisfies Record<GeneratedResponseKind, z.ZodTypeAny>);
 

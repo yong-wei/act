@@ -148,7 +148,7 @@ export async function retryCoursewareGenerationJob(db: Db, input: CommandInput) 
 }
 
 export async function cancelCoursewareGenerationJob(db: Db, input: CommandInput) {
-  return transitionJob(db, input, 'CANCEL', ['QUEUED', 'RUNNING', 'RETRYABLE'], async (tx, job) => {
+  return transitionJob(db, input, 'CANCEL', ['QUEUED', 'RUNNING', 'RETRYABLE', 'FAILED'], async (tx, job) => {
     if (job.mode === 'MODULE') {
       await tx.smartCoursewareProviderAttempt.updateMany({
         where: { generationJobId: job.id, outcome: 'RUNNING' },
@@ -167,7 +167,7 @@ export async function cancelCoursewareGenerationJob(db: Db, input: CommandInput)
       data: { outcome: 'CANCELLED', finishedAt: new Date() },
     });
     await tx.smartCoursewareGenerationUnit.updateMany({
-      where: { jobId: job.id, state: { in: ['PENDING', 'RUNNING', 'RETRYABLE'] } },
+      where: { jobId: job.id, state: { in: ['PENDING', 'RUNNING', 'RETRYABLE', 'FAILED'] } },
       data: { state: 'CANCELLED', claimToken: null, claimExpiresAt: null },
     });
     await tx.smartCoursewareDraft.update({ where: { id: job.draftId }, data: { state: 'EDITABLE' } });
@@ -313,9 +313,8 @@ export async function failCoursewareGenerationUnit(db: Db, input: {
       where: { id: input.attemptId, unitId: unit.id, outcome: 'RUNNING' },
       data: { outcome: input.retryable ? 'RETRYABLE_FAILURE' : 'PERMANENT_FAILURE', finishedAt: new Date() },
     });
-    await tx.smartCoursewareDraft.update({ where: { id: job.draftId }, data: { state: 'EDITABLE' } });
     return tx.smartCoursewareGenerationJob.update({
-      where: { id: job.id }, data: { state, activeIdentity: null, failureCode: requiredText(input.failureCode, 200), firstIncompleteUnitKey: unit.unitKey },
+      where: { id: job.id }, data: { state, failureCode: requiredText(input.failureCode, 200), firstIncompleteUnitKey: unit.unitKey },
     });
   });
 }

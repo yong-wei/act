@@ -257,4 +257,30 @@ describe('smart courseware generation worker', () => {
       .resolves.toEqual({ jobId: 'job-1', state: 'RUNNING' });
     expect(updateDraft).not.toHaveBeenCalled();
   });
+
+  it('keeps a pre-provider failure active and leaves its draft generating', async () => {
+    const context = {
+      id: 'job-1', ownerId: 'teacher-1', draftId: 'draft-1', state: 'QUEUED', firstIncompleteUnitKey: 'bridge-in',
+      deliveryGeneration: 1,
+      draft: { id: 'draft-1', planRevision: { content: validPlanFixture() } },
+      units: [{ id: 'unit-1', unitKey: 'bridge-in', state: 'PENDING', output: null, orderIndex: 0, attemptGeneration: 0 }],
+    };
+    const updateJob = vi.fn().mockResolvedValue({ count: 1 });
+    const updateDraft = vi.fn();
+    const db = {
+      smartCoursewareGenerationJob: { findUnique: vi.fn().mockResolvedValue(context) },
+      $transaction: vi.fn(async (run: (tx: unknown) => unknown) => run({
+        smartCoursewareGenerationJob: { updateMany: updateJob },
+        smartCoursewareGenerationUnit: { updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
+        smartCoursewareDraft: { updateMany: updateDraft },
+      })),
+    };
+
+    await expect(processCoursewareGenerationJob(db as never, 'job-1', async () => { throw new Error('provider-offline'); }))
+      .resolves.toEqual({ jobId: 'job-1', state: 'RETRYABLE' });
+    expect(updateJob).toHaveBeenCalledWith(expect.objectContaining({
+      data: { state: 'RETRYABLE', failureCode: 'courseware-provider-failed' },
+    }));
+    expect(updateDraft).not.toHaveBeenCalled();
+  });
 });

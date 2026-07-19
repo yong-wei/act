@@ -79,18 +79,39 @@ function requireUniqueOrderingItems(
   path: Array<string | number>,
 ) {
   modules.forEach((module, index) => {
-    if (module.responseKind !== 'ordering.sequence' || !module.payload || typeof module.payload !== 'object') return;
-    const items = (module.payload as { items?: unknown }).items;
-    if (!Array.isArray(items) || !items.every((item) => typeof item === 'string')) return;
-    const normalized = items.map((item) => item.trim().toLowerCase());
-    if (new Set(normalized).size !== normalized.length) {
+    if (!module.payload || typeof module.payload !== 'object') return;
+    const payload = module.payload as { items?: unknown; options?: unknown; left?: unknown; right?: unknown };
+    if (module.responseKind === 'ordering.sequence' && hasNormalizedDuplicates(payload.items)) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'ordering items must be unique after normalization',
         path: [...path, index, 'payload', 'items'],
       });
     }
+    const optionGroups = module.responseKind === 'choice.single' || module.responseKind === 'choice.multi'
+      ? [['options', payload.options] as const]
+      : module.responseKind === 'matching.pairs'
+        ? [['left', payload.left] as const, ['right', payload.right] as const]
+        : [];
+    for (const [group, options] of optionGroups) {
+      if (!Array.isArray(options)) continue;
+      for (const field of ['value', 'label'] as const) {
+        const values = options.map((option) => option && typeof option === 'object' ? (option as Record<string, unknown>)[field] : undefined);
+        if (!hasNormalizedDuplicates(values)) continue;
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `option ${field}s must be unique after normalization`,
+          path: [...path, index, 'payload', group],
+        });
+      }
+    }
   });
+}
+
+function hasNormalizedDuplicates(values: unknown): boolean {
+  if (!Array.isArray(values) || !values.every((value) => typeof value === 'string')) return false;
+  const normalized = values.map((value) => value.trim().toLowerCase());
+  return new Set(normalized).size !== normalized.length;
 }
 
 export const coursewareModuleMetadataSchema = coursewareModuleMetadataInputObjectSchema.extend({

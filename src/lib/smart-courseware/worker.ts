@@ -256,7 +256,7 @@ async function markPreProviderFailure(db: Db, expected: {
           firstIncompleteUnitKey: expected.unitKey,
           deliveryGeneration: expected.deliveryGeneration,
         },
-        data: { state, activeIdentity: null, failureCode: errorCode(error) },
+        data: { state, failureCode: errorCode(error) },
       });
       if (transitioned.count !== 1) throw new PreProviderFailureClaimLost();
       const unitTransitioned = await tx.smartCoursewareGenerationUnit.updateMany({
@@ -270,10 +270,6 @@ async function markPreProviderFailure(db: Db, expected: {
         data: { state, claimToken: null, claimExpiresAt: null },
       });
       if (unitTransitioned.count !== 1) throw new PreProviderFailureClaimLost();
-      await tx.smartCoursewareDraft.updateMany({
-        where: { id: expected.draftId, state: 'GENERATING' },
-        data: { state: 'EDITABLE' },
-      });
       return state;
     });
   } catch (failure) {
