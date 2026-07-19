@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { BookOpen, FileUp, Plus, RefreshCw } from 'lucide-react';
 
 type Version = {
@@ -14,13 +14,15 @@ type Version = {
   segments?: Array<{ stableAnchor: string; headingPath: string[]; pageNumber: number | null; text: string }>;
 };
 
-type Document = { id: string; title: string; kind: string; versions: Version[] };
+type Pagination = { offset: number; limit: number; total: number; hasMore: boolean };
+type Document = { id: string; title: string; kind: string; versions: Version[]; versionPagination: Pagination };
 type CourseBasis = {
   id: string;
   courseIdentity: string;
   title: string;
   description: string | null;
   documents: Document[];
+  documentPagination: Pagination;
 };
 
 export function CourseBasisWorkspace({ initialCourseBases }: { initialCourseBases: CourseBasis[] }) {
@@ -28,15 +30,28 @@ export function CourseBasisWorkspace({ initialCourseBases }: { initialCourseBase
   const [selectedId, setSelectedId] = useState(initialCourseBases[0]?.id ?? '');
   const [hasMoreBases, setHasMoreBases] = useState(initialCourseBases.length === 50);
   const [message, setMessage] = useState('');
+  const inFlightPages = useRef(new Set<string>());
   const selected = courseBases.find((item) => item.id === selectedId) ?? null;
 
   async function refresh(preferredId = selectedId) {
-    const response = await fetch('/api/teacher/course-bases', { cache: 'no-store' });
+    const targetId = preferredId || selectedId;
+    const response = await fetch(targetId
+      ? `/api/teacher/course-bases?courseBasisId=${encodeURIComponent(targetId)}`
+      : '/api/teacher/course-bases', { cache: 'no-store' });
     const payload = await response.json();
     if (!response.ok) throw new Error(payload.error ?? '加载失败');
-    setCourseBases(payload.courseBases);
-    setHasMoreBases(payload.pagination?.hasMore ?? false);
-    setSelectedId(preferredId || payload.courseBases[0]?.id || '');
+    if (targetId && payload.courseBases[0]) {
+      setCourseBases((current) => {
+        const exists = current.some((item) => item.id === targetId);
+        return exists
+          ? current.map((item) => item.id === targetId ? payload.courseBases[0] : item)
+          : [payload.courseBases[0], ...current];
+      });
+    } else {
+      setCourseBases(payload.courseBases);
+      setHasMoreBases(payload.pagination?.hasMore ?? false);
+    }
+    setSelectedId(targetId || payload.courseBases[0]?.id || '');
   }
 
   async function loadMoreBases() {
@@ -49,10 +64,48 @@ export function CourseBasisWorkspace({ initialCourseBases }: { initialCourseBase
 
   async function selectBasis(courseBasisId: string) {
     setSelectedId(courseBasisId);
-    const response = await fetch(`/api/teacher/course-bases?courseBasisId=${encodeURIComponent(courseBasisId)}&fullHistory=true`, { cache: 'no-store' });
+    const response = await fetch(`/api/teacher/course-bases?courseBasisId=${encodeURIComponent(courseBasisId)}`, { cache: 'no-store' });
     const payload = await response.json();
     if (!response.ok || !payload.courseBases[0]) return setMessage(errorText(payload.error));
     setCourseBases((current) => current.map((item) => item.id === courseBasisId ? payload.courseBases[0] : item));
+  }
+
+  async function loadMoreDocuments() {
+    if (!selected) return;
+    const key = `documents:${selected.id}`;
+    if (inFlightPages.current.has(key)) return;
+    inFlightPages.current.add(key);
+    try {
+      const response = await fetch(`/api/teacher/course-bases?courseBasisId=${encodeURIComponent(selected.id)}&documentOffset=${selected.documents.length}`, { cache: 'no-store' });
+      const payload = await response.json();
+      if (!response.ok || !payload.courseBases[0]) return setMessage(errorText(payload.error));
+      const next = payload.courseBases[0] as CourseBasis;
+      setCourseBases((current) => current.map((basis) => basis.id === selected.id
+        ? { ...basis, documents: appendUnique(basis.documents, next.documents), documentPagination: next.documentPagination }
+        : basis));
+    } finally {
+      inFlightPages.current.delete(key);
+    }
+  }
+
+  async function loadMoreVersions(document: Document) {
+    if (!selected) return;
+    const key = `versions:${document.id}`;
+    if (inFlightPages.current.has(key)) return;
+    inFlightPages.current.add(key);
+    try {
+      const response = await fetch(`/api/teacher/course-bases?courseBasisId=${encodeURIComponent(selected.id)}&documentId=${encodeURIComponent(document.id)}&versionOffset=${document.versions.length}`, { cache: 'no-store' });
+      const payload = await response.json();
+      if (!response.ok || !payload.courseBases[0]?.documents[0]) return setMessage(errorText(payload.error));
+      const next = payload.courseBases[0].documents[0] as Document;
+      setCourseBases((current) => current.map((basis) => basis.id === selected.id
+        ? { ...basis, documents: basis.documents.map((item) => item.id === document.id
+          ? { ...item, versions: appendUnique(item.versions, next.versions), versionPagination: next.versionPagination }
+          : item) }
+        : basis));
+    } finally {
+      inFlightPages.current.delete(key);
+    }
   }
 
   async function createBasis(formData: FormData) {
@@ -170,12 +223,18 @@ export function CourseBasisWorkspace({ initialCourseBases }: { initialCourseBase
               <textarea name="content" rows={5} placeholder="粘贴文本或 Markdown；上传 PDF 时可留空" className="rounded-lg border border-border bg-background px-3 py-2" />
               <button className="justify-self-start rounded-lg bg-primary px-4 py-2 text-primary-foreground">导入新版本</button>
             </form>
-            <div className="mt-4 space-y-2">{document.versions.map((version) => <div key={version.id} className="rounded-lg border border-border px-4 py-3 text-sm"><div className="flex flex-wrap items-center justify-between gap-3"><div><strong>v{version.versionNumber}</strong> · {version.sourceName}<span className="ml-2 text-subtle">{version.extractionState} / {version.reviewState}{version.retiredAt ? ' / RETIRED' : ''}</span>{version.failureReason ? <p className="mt-1 text-destructive">{errorText(version.failureReason)}</p> : null}</div><div className="flex gap-2">{!version.retiredAt && version.reviewState === 'PENDING' && version.extractionState === 'EXTRACTED' ? <button onClick={() => void runVersionAction(version.id, 'reject')} className="rounded border border-border px-2 py-1">拒绝</button> : null}{!version.retiredAt && version.extractionState === 'FAILED' ? <button onClick={() => void runVersionAction(version.id, 'retry')} className="rounded border border-border px-2 py-1">重试为新版本</button> : null}{!version.retiredAt ? <button onClick={() => void runVersionAction(version.id, 'retire')} className="rounded border border-border px-2 py-1">停用</button> : null}</div></div>{!version.retiredAt && version.extractionState === 'EXTRACTED' ? <VersionPreview version={version} onConfirm={() => runVersionAction(version.id, 'confirm')} /> : null}</div>)}</div>
+            <div className="mt-4 space-y-2">{document.versions.map((version) => <div key={version.id} className="rounded-lg border border-border px-4 py-3 text-sm"><div className="flex flex-wrap items-center justify-between gap-3"><div><strong>v{version.versionNumber}</strong> · {version.sourceName}<span className="ml-2 text-subtle">{version.extractionState} / {version.reviewState}{version.retiredAt ? ' / RETIRED' : ''}</span>{version.failureReason ? <p className="mt-1 text-destructive">{errorText(version.failureReason)}</p> : null}</div><div className="flex gap-2">{!version.retiredAt && version.reviewState === 'PENDING' && version.extractionState === 'EXTRACTED' ? <button onClick={() => void runVersionAction(version.id, 'reject')} className="rounded border border-border px-2 py-1">拒绝</button> : null}{!version.retiredAt && version.extractionState === 'FAILED' ? <button onClick={() => void runVersionAction(version.id, 'retry')} className="rounded border border-border px-2 py-1">重试为新版本</button> : null}{!version.retiredAt ? <button onClick={() => void runVersionAction(version.id, 'retire')} className="rounded border border-border px-2 py-1">停用</button> : null}</div></div>{!version.retiredAt && version.extractionState === 'EXTRACTED' ? <VersionPreview version={version} onConfirm={() => runVersionAction(version.id, 'confirm')} /> : null}</div>)}{document.versionPagination.hasMore ? <button type="button" onClick={() => void loadMoreVersions(document)} className="rounded border border-border px-3 py-2 text-primary">加载更多版本</button> : null}</div>
           </article>)}
+          {selected.documentPagination.hasMore ? <button type="button" onClick={() => void loadMoreDocuments()} className="rounded-lg border border-border px-3 py-2 text-primary">加载更多文档</button> : null}
         </section> : null}
       </div>
     </main>
   );
+}
+
+function appendUnique<T extends { id: string }>(current: T[], next: T[]) {
+  const ids = new Set(current.map((item) => item.id));
+  return [...current, ...next.filter((item) => !ids.has(item.id))];
 }
 
 type PreviewPayload = {

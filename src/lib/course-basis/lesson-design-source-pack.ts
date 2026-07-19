@@ -16,6 +16,18 @@ export async function buildCourseBasisLessonDesignSourcePack(
     retrieval: Omit<RetrieveSourcePackInput, 'profile' | 'role' | 'caller' | 'candidates'>;
   },
 ) {
+  const selectedOwners = await db.courseBasisDocumentVersion.findMany({
+    where: { id: { in: [...input.selectedVersionIds] } },
+    select: { document: { select: { courseBasis: { select: { ownerId: true } } } } },
+  });
+  const ownerIds = [...new Set(selectedOwners.map((version) => version.document.courseBasis.ownerId))];
+  const ownerUserId = input.actor.role === 'ADMIN' ? ownerIds[0] : input.actor.id;
+  if (selectedOwners.length !== new Set(input.selectedVersionIds).size
+    || !ownerUserId
+    || ownerIds.length !== 1
+    || (input.actor.role === 'TEACHER' && ownerUserId !== ownerIds[0])) {
+    throw new Error('course-basis-owner-mismatch');
+  }
   const candidates = await buildTeacherCourseBasisLessonDesignCandidatesFromReader({
     reader: {
       readCourseBasisProjections: ({ ownerUserId, selectedVersionIds }) => db.courseBasisProjection.findMany({
@@ -30,7 +42,7 @@ export async function buildCourseBasisLessonDesignSourcePack(
         orderBy: [{ versionId: 'asc' }, { segment: { orderIndex: 'asc' } }],
       }),
     },
-    ownerUserId: input.actor.id,
+    ownerUserId,
     selectedVersionIds: input.selectedVersionIds,
     explicitRetiredVersionIds: input.explicitRetiredVersionIds,
     sar: input.sar,

@@ -237,6 +237,7 @@ describe('course-basis service', () => {
           description: null,
           createdAt: new Date(),
           updatedAt: new Date(),
+          _count: { documents: 25 },
           documents: [{
             id: 'document-1',
             courseBasisId: 'basis-1',
@@ -244,6 +245,7 @@ describe('course-basis service', () => {
             kind: 'STANDARD',
             createdAt: new Date(),
             updatedAt: new Date(),
+            _count: { versions: 24 },
             versions: [{
               id: 'version-1',
               documentId: 'document-1',
@@ -279,7 +281,9 @@ describe('course-basis service', () => {
     const query = db.courseBasis.findMany.mock.calls[0][0];
     const versionSelect = query.select.documents.select.versions.select;
     expect(query.take).toBe(50);
+    expect(query.select.documents.skip).toBe(0);
     expect(query.select.documents.take).toBe(20);
+    expect(query.select.documents.select.versions.skip).toBe(0);
     expect(query.select.documents.select.versions.take).toBe(20);
     expect(versionSelect.originalContent).toBeUndefined();
     expect(versionSelect.normalizedText).toBeUndefined();
@@ -289,7 +293,16 @@ describe('course-basis service', () => {
       previewTruncated: true,
     });
     expect(result[0].documents[0].versions[0].previewTruncated).toBe(true);
+    expect(result[0].documentPagination).toEqual({ offset: 0, limit: 20, total: 25, hasMore: true });
+    expect(result[0].documents[0].versionPagination).toEqual({ offset: 0, limit: 20, total: 24, hasMore: true });
     expect(JSON.stringify(result)).not.toContain(fullText);
+
+    const nextPage = await listCourseBases(db, teacher, { documentOffset: 20, versionOffset: 20 });
+    const nextQuery = db.courseBasis.findMany.mock.calls[1][0];
+    expect(nextQuery.select.documents.skip).toBe(20);
+    expect(nextQuery.select.documents.select.versions.skip).toBe(20);
+    expect(nextPage[0].documentPagination).toEqual({ offset: 20, limit: 20, total: 25, hasMore: true });
+    expect(nextPage[0].documents[0].versionPagination).toEqual({ offset: 20, limit: 20, total: 24, hasMore: true });
   });
 
   it('returns an authorized paginated extraction preview with full segment text but no original source', async () => {

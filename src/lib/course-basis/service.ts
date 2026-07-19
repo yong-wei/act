@@ -42,11 +42,15 @@ export async function listCourseBases(db: CourseBasisDb, actor: CourseBasisActor
   offset?: number;
   limit?: number;
   courseBasisId?: string;
-  fullHistory?: boolean;
+  documentId?: string;
+  documentOffset?: number;
+  versionOffset?: number;
 } = {}) {
   const validatedActor = validateActor(actor);
-  const offset = Math.max(0, Math.trunc(options.offset ?? 0));
-  const limit = Math.min(COURSE_BASIS_LIST_LIMIT, Math.max(1, Math.trunc(options.limit ?? COURSE_BASIS_LIST_LIMIT)));
+  const offset = nonNegativeInteger(options.offset ?? 0, 'offset-invalid');
+  const limit = Math.min(COURSE_BASIS_LIST_LIMIT, positiveInteger(options.limit ?? COURSE_BASIS_LIST_LIMIT, 'limit-invalid'));
+  const documentOffset = nonNegativeInteger(options.documentOffset ?? 0, 'document-offset-invalid');
+  const versionOffset = nonNegativeInteger(options.versionOffset ?? 0, 'version-offset-invalid');
   const rows = await db.courseBasis.findMany({
     where: {
       ...(validatedActor.role === 'ADMIN' ? {} : { ownerId: validatedActor.id }),
@@ -63,9 +67,12 @@ export async function listCourseBases(db: CourseBasisDb, actor: CourseBasisActor
       description: true,
       createdAt: true,
       updatedAt: true,
+      _count: { select: { documents: true } },
       documents: {
+        ...(options.documentId ? { where: { id: validateId(options.documentId, 'document-id-invalid') } } : {}),
         orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
-        ...(!options.fullHistory ? { take: COURSE_BASIS_DOCUMENT_LIST_LIMIT } : {}),
+        skip: documentOffset,
+        take: COURSE_BASIS_DOCUMENT_LIST_LIMIT,
         select: {
           id: true,
           courseBasisId: true,
@@ -73,9 +80,11 @@ export async function listCourseBases(db: CourseBasisDb, actor: CourseBasisActor
           kind: true,
           createdAt: true,
           updatedAt: true,
+          _count: { select: { versions: true } },
           versions: {
             orderBy: { versionNumber: 'desc' },
-            ...(!options.fullHistory ? { take: COURSE_BASIS_VERSION_LIST_LIMIT } : {}),
+            skip: versionOffset,
+            take: COURSE_BASIS_VERSION_LIST_LIMIT,
             select: {
               id: true,
               documentId: true,
@@ -111,10 +120,22 @@ export async function listCourseBases(db: CourseBasisDb, actor: CourseBasisActor
       },
     },
   });
-  return rows.map((courseBasis) => ({
+  return rows.map(({ _count, ...courseBasis }) => ({
     ...courseBasis,
-    documents: courseBasis.documents.map((document) => ({
+    documentPagination: {
+      offset: documentOffset,
+      limit: COURSE_BASIS_DOCUMENT_LIST_LIMIT,
+      total: _count.documents,
+      hasMore: documentOffset + courseBasis.documents.length < _count.documents,
+    },
+    documents: courseBasis.documents.map(({ _count: documentCount, ...document }) => ({
       ...document,
+      versionPagination: {
+        offset: versionOffset,
+        limit: COURSE_BASIS_VERSION_LIST_LIMIT,
+        total: documentCount.versions,
+        hasMore: versionOffset + document.versions.length < documentCount.versions,
+      },
       versions: document.versions.map(({ _count, segments, ...version }) => {
         const previewTruncated = _count.segments > segments.length
           || segments.some((segment) => segment.text.length > COURSE_BASIS_LIST_PREVIEW_CHARS);
@@ -500,6 +521,12 @@ function validateId(value: string, code: string) {
 
 function positiveInteger(value: number, code: string) {
   const result = z.number().int().positive().safeParse(value);
+  if (!result.success) throw new CourseBasisError(code);
+  return result.data;
+}
+
+function nonNegativeInteger(value: number, code: string) {
+  const result = z.number().int().nonnegative().safeParse(value);
   if (!result.success) throw new CourseBasisError(code);
   return result.data;
 }

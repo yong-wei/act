@@ -12,16 +12,33 @@ const createSchema = z.object({
   description: z.string().trim().max(1000).nullish(),
 }).strict();
 
+const listSchema = z.object({
+  offset: z.coerce.number().int().finite().min(0).default(0),
+  limit: z.coerce.number().int().finite().min(1).max(50).default(50),
+  documentOffset: z.coerce.number().int().finite().min(0).default(0),
+  versionOffset: z.coerce.number().int().finite().min(0).default(0),
+  courseBasisId: z.string().trim().min(1).max(200).optional(),
+  documentId: z.string().trim().min(1).max(200).optional(),
+}).strict();
+
 export async function GET(request: Request) {
   const auth = await requireCourseBasisActor();
   if ('response' in auth) return auth.response;
-  const url = new URL(request.url);
-  const offset = Math.max(0, Number(url.searchParams.get('offset') ?? 0));
-  const limit = Math.min(50, Math.max(1, Number(url.searchParams.get('limit') ?? 50)));
-  const courseBasisId = url.searchParams.get('courseBasisId') ?? undefined;
-  const fullHistory = url.searchParams.get('fullHistory') === 'true';
-  const courseBases = await listCourseBases(prisma, auth.actor, { offset, limit, courseBasisId, fullHistory });
-  return NextResponse.json({ courseBases, pagination: { offset, limit, hasMore: !courseBasisId && courseBases.length === limit } });
+  try {
+    const url = new URL(request.url);
+    const input = listSchema.parse(Object.fromEntries(url.searchParams));
+    const courseBases = await listCourseBases(prisma, auth.actor, input);
+    return NextResponse.json({
+      courseBases,
+      pagination: {
+        offset: input.offset,
+        limit: input.limit,
+        hasMore: !input.courseBasisId && courseBases.length === input.limit,
+      },
+    });
+  } catch (error) {
+    return courseBasisErrorResponse(error);
+  }
 }
 
 export async function POST(request: Request) {
