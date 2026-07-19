@@ -1,0 +1,15 @@
+{
+  "subject": { "issue": null, "change_id": "derive-cross-block-identity-conflict-manifest" },
+  "truth": {
+    "problem_reproduced": "yes",
+    "evidence": [
+      "Source contract: docs/contexts/course-knowledge-base/CONTEXT.md, docs/adr/README.md indexed ADR 0015-0044 files, and docs/knowledge-graph-current-state-audit-2026-07-18.md.",
+      "Exact normalized names and reviewed aliases define indivisible equivalence components, so any cross-block leakage is a partition validation failure.",
+      "Near-similar evidence can connect distinct components assigned to different owner blocks, but no digest-bound cross-block review queue currently records those edges.",
+      "Leakage validation and the near-similar queue can be independently derived after partition without approving merge, split, rename, archive, or canonical identity outcomes."
+    ]
+  },
+  "duplication": { "existing_implementation": "none", "conflicting_specs": [], "active_changes": [], "superseded_by": null },
+  "readiness": { "information": "sufficient", "disposition": "executable", "reason": "Frozen identity and partition manifests provide the exact derivation inputs and the no-approval boundary is explicit." },
+  "binding": { "issue_updated_at": null, "base_sha": "ce1d37742066038e164f05baa3a2cb077844353c", "generated_at": "2026-07-19T03:20:50Z" }
+}
