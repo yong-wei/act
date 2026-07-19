@@ -169,19 +169,18 @@ function safeCategory(value: unknown): string {
   return SAFE_CATEGORY.test(normalized) ? normalized : '__non_public_category__';
 }
 
-function suppressRows(rows: Array<{ category: unknown; count: unknown }>): Record<string, SafeCount> {
-  const visible = new Map<string, SafeCount>();
+export function suppressRows(rows: Array<{ category: unknown; count: unknown }>): Record<string, SafeCount> {
+  const totals = new Map<string, number>();
   for (const row of rows) {
     const count = integer(row.count, 'summary');
     const category = safeCategory(row.category ?? '__null__');
-    if (count < MIN_GROUP_SIZE) visible.set(category, 'suppressed');
-    else {
-      const current = visible.get(category);
-      visible.set(category, typeof current === 'number' ? current + count : count);
-    }
+    totals.set(category, (totals.get(category) ?? 0) + count);
   }
   const result: Record<string, SafeCount> = {};
-  for (const category of [...visible.keys()].sort()) result[category] = visible.get(category)!;
+  for (const category of [...totals.keys()].sort()) {
+    const count = totals.get(category)!;
+    result[category] = count < MIN_GROUP_SIZE ? 'suppressed' : count;
+  }
   return result;
 }
 

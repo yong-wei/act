@@ -7,7 +7,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { canonicalJson, compareCodePoints, normalizePath, normalizeText, taggedDigest } from '../normalize';
 import { loadImmutableExport, validateDatabaseClosure } from '../database-snapshot';
-import { assertAggregateExportShape, contractsFromRegistry, currentDatabaseExportAuthority, DATABASE_EXPORT_FORMAT, deriveProof, exportAggregateDatabase, fieldSummaryKey, jsonPathCategoryKey, jsonSummaryKey, latestWatermark, publishExportArtifacts, type AggregateDatabaseExport, type AggregateDatasetExport } from '../database-export';
+import { assertAggregateExportShape, contractsFromRegistry, currentDatabaseExportAuthority, DATABASE_EXPORT_FORMAT, deriveProof, exportAggregateDatabase, fieldSummaryKey, jsonPathCategoryKey, jsonSummaryKey, latestWatermark, publishExportArtifacts, suppressRows, type AggregateDatabaseExport, type AggregateDatasetExport } from '../database-export';
 import { discoverWriters, discoverWritersInSource } from '../writer-discovery';
 import { validateOutputPrivacy } from '../schema-validation';
 import { buildManifest, sourceFingerprints } from '../manifest';
@@ -53,6 +53,12 @@ async function writeAggregateExport(directory: string, exported: AggregateDataba
 }
 
 describe('normalization contract', () => {
+  it('aggregates normalized summary categories before applying small-cell suppression', () => {
+    expect(suppressRows([{ category: 'e\u0301', count: 6 }, { category: 'é', count: 7 }])).toEqual({ é: 13 });
+    expect(suppressRows([{ category: 'é', count: 2 }, { category: 'e\u0301', count: 6 }])).toEqual({ é: 8 });
+    expect(suppressRows([{ category: 'é', count: 2 }, { category: 'e\u0301', count: 2 }])).toEqual({ é: 'suppressed' });
+  });
+
   it('normalizes NFC and LF, rejects BOM, and sorts by Unicode code point', () => {
     expect(normalizeText(Buffer.from('e\u0301\r\n'))).toBe('é\n');
     expect(() => normalizeText(Buffer.from('\ufefftext'))).toThrow(/BOM/u);

@@ -8,6 +8,8 @@ import { collectInputObservations, observeInput } from '../input-codecs';
 import { buildManifest, repositoryRevision } from '../manifest';
 import { classifyRegisteredSymlinks, enumerateRepository, loadRegistry, matchGlob, type Registry } from '../registry';
 import type { Drift } from '../types';
+import type { Json } from '../types';
+import { canonicalJson, taggedDigest } from '../normalize';
 
 const root = path.resolve(import.meta.dirname, '../../../..');
 const realMainRoot = '/Users/YW/Documents/Site/act.just.edu.cn';
@@ -63,6 +65,26 @@ describe('closed repository input codecs', () => {
       ]));
       expect(drift.map((item) => item.code).sort()).toEqual(['INVALID_MEDIA_SIGNATURE', 'INVALID_MEDIA_SIGNATURE', 'UNKNOWN_INPUT_CODEC'].sort());
     } finally { await rm(directory, { recursive: true }); }
+  });
+
+  it('emits root-independent evidence for the same logical input read failure', async () => {
+    const firstRoot = await mkdtemp(path.join(os.tmpdir(), 'inventory-missing-first-'));
+    const secondRoot = await mkdtemp(path.join(os.tmpdir(), 'inventory-missing-second-'));
+    try {
+      const observeMissing = async (filesystemRoot: string) => {
+        const drift: Drift[] = [];
+        const observation = await observeInput({ path: 'missing/input.txt', source_root: 'isolated-worktree', filesystem_root: filesystemRoot, capture_revision: revision, vcs_state: 'untracked' }, fixtureRegistry(), drift);
+        const { filesystem_root: _root, ...stable } = observation;
+        return { stable, drift };
+      };
+      const first = await observeMissing(firstRoot);
+      const second = await observeMissing(secondRoot);
+      expect(second).toEqual(first);
+      expect(taggedDigest('manifest-fixture/v1', canonicalJson(first as unknown as Json))).toBe(taggedDigest('manifest-fixture/v1', canonicalJson(second as unknown as Json)));
+      expect(JSON.stringify(first)).not.toContain(firstRoot);
+      expect(JSON.stringify(second)).not.toContain(secondRoot);
+      expect(first).toMatchObject({ stable: { error_code: 'INPUT_READ_FAILED', error_detail: 'input read failed (ENOENT)' }, drift: [{ code: 'INPUT_READ_FAILED', scope: 'missing/input.txt', detail: 'input read failed (ENOENT)' }] });
+    } finally { await rm(firstRoot, { recursive: true }); await rm(secondRoot, { recursive: true }); }
   });
 
   it('captures main-only files and reports exact same-path content drift without precedence', async () => {

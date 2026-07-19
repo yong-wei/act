@@ -76,7 +76,8 @@ export async function observeInput(location: InputLocation, registry: Registry, 
   let bytes: Buffer;
   try { bytes = await readFile(path.join(location.filesystem_root, logicalPath)); }
   catch (error) {
-    const detail = error instanceof Error ? error.message : String(error);
+    const errorCode = typeof error === 'object' && error !== null && 'code' in error && typeof error.code === 'string' ? error.code : 'UNKNOWN';
+    const detail = `input read failed (${errorCode})`;
     drift.push({ code: 'INPUT_READ_FAILED', scope: logicalPath, observed: location.source_root, detail });
     return { ...location, path: logicalPath, state: 'invalid', codec: 'unreadable', media_type: 'application/octet-stream', size: 0, raw_digest: taggedDigest('unreadable-input/v1', `${location.source_root}:${logicalPath}`), error_code: 'INPUT_READ_FAILED', error_detail: detail };
   }
