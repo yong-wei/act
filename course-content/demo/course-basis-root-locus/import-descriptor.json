@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "course-basis-import-descriptor/v1",
+  "courseBasis": {
+    "courseIdentity": "AUTO-CONTROL-ROOT-LOCUS",
+    "title": "根轨迹法课程依据",
+    "description": "智能备课普通导入路径的可复现实例"
+  },
+  "documents": [
+    {
+      "title": "根轨迹法简明课程标准",
+      "kind": "STANDARD",
+      "sourceType": "MARKDOWN",
+      "path": "course-content/demo/course-basis-root-locus/compact-course-standard.md",
+      "confirmationRequired": true
+    },
+    {
+      "title": "胡寿松习题分析第三版第四章",
+      "kind": "TEXTBOOK",
+      "sourceType": "MARKDOWN",
+      "path": "teacher-local://hu-shousong-exercise-analysis-3rd/chapter-04/textbook.md",
+      "pathEnvironmentVariable": "COURSE_BASIS_RESTRICTED_TEXTBOOK_PATH",
+      "requiredAccess": "authorized-teacher-local",
+      "bundleContent": false,
+      "confirmationRequired": true
+    }
+  ],
+  "workflow": [
+    "POST /api/teacher/course-bases",
+    "POST /api/teacher/course-bases/{courseBasisId}/documents",
+    "POST /api/teacher/course-bases/documents/{documentId}/versions",
+    "PATCH /api/teacher/course-bases/versions/{versionId} with action=confirm"
+  ]
+}

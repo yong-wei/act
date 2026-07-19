@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "course-basis-demo-provenance/v1",
+  "demoId": "root-locus-course-basis",
+  "sources": [
+    {
+      "id": "compact-course-standard",
+      "path": "course-content/demo/course-basis-root-locus/compact-course-standard.md",
+      "rightsBasis": "project-authored-derivative-summary",
+      "derivedFrom": "course-content/syllabus-refactor/blueprint.md",
+      "permittedScope": ["repository", "test", "demonstration"]
+    },
+    {
+      "id": "hu-shousong-chapter-04-runtime",
+      "path": "teacher-local://hu-shousong-exercise-analysis-3rd/chapter-04/textbook.md",
+      "rightsBasis": "authorized-teacher-local-only",
+      "redistribute": false,
+      "permittedScope": ["teacher-local-import", "private-course-basis"],
+      "handling": "Resolve COURSE_BASIS_RESTRICTED_TEXTBOOK_PATH at demonstration time and submit it through the ordinary teacher import API. The demo pack verifier rejects repository-relative restricted paths and restricted content in this directory."
+    }
+  ]
+}

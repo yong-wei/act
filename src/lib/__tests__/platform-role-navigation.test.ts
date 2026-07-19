@@ -409,6 +409,7 @@ describe('platform role navigation', () => {
       '/teacher/resources/resource-nodes',
       '/teacher/history',
       '/teacher/grading-workbench',
+      '/teacher/smart-prep',
       '/teacher/prep-packs',
       '/teacher/arena',
       '/teacher/arena/publications/[publicationId]',
@@ -548,6 +549,12 @@ describe('platform role navigation', () => {
       frame: 'report-ledger',
       owningChange: 'migrate-operations-report-ledger-surfaces',
       roleScope: ['teacher'],
+    });
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/teacher/smart-prep')).toMatchObject({
+      frame: 'operations-console',
+      owningChange: 'add-teacher-course-basis-management',
+      roleScope: ['teacher'],
+      screenshotProfile: 'temporary-exception',
     });
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/admin')).toMatchObject({
       frame: 'operations-console',
