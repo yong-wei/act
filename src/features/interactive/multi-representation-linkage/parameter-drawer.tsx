@@ -7,6 +7,7 @@ import type { WheelEvent as ReactWheelEvent } from 'react';
 import { BlockMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
 
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { CorrectionKind, CorrectionState, LinkageResponseType, PoleZeroPoint } from './model';
 
@@ -32,6 +33,14 @@ interface ParameterDrawerProps {
   onRemoveZero: (pointId: string) => void;
   onReset: () => void;
 }
+
+type ParameterSelectName = 'response' | 'structure';
+
+type SelectLayerLifecycle = {
+  generation: number;
+  select: ParameterSelectName | null;
+  phase: 'idle' | 'open' | 'closing';
+};
 
 function NumberInput({
   label,
@@ -171,11 +180,19 @@ function PointRows({
 function CorrectionControls({
   state,
   disabled,
+  selectOpen,
   onChange,
+  onSelectCloseAutoFocus,
+  onSelectEscapeKeyDown,
+  onSelectOpenChange,
 }: {
   state: CorrectionState;
   disabled: boolean;
+  selectOpen: boolean;
   onChange: (patch: Partial<CorrectionState>) => void;
+  onSelectCloseAutoFocus: (event: Event) => void;
+  onSelectEscapeKeyDown: (event: KeyboardEvent) => void;
+  onSelectOpenChange: (open: boolean) => void;
 }) {
   const isPidFamily = state.kind === 'pi' || state.kind === 'pd' || state.kind === 'pid';
   const hasI = state.kind === 'pi' || state.kind === 'pid';
@@ -199,22 +216,45 @@ function CorrectionControls({
         </label>
       </div>
 
-      <label className="premium-lesson-caption block text-xs">
-        结构
-        <select
+      <div className="premium-lesson-caption block text-xs">
+        <label id="parameter-drawer-structure-label" htmlFor="parameter-drawer-structure-select">
+          结构
+        </label>
+        <Select
+          open={selectOpen}
+          onOpenChange={onSelectOpenChange}
           value={state.kind}
           disabled={disabled || !state.enabled}
-          onChange={(event) => onChange({ kind: event.target.value as CorrectionKind })}
-          className="premium-lesson-select mt-1 w-full"
+          onValueChange={(value) => onChange({ kind: value as CorrectionKind })}
         >
-          <option value="pi">PI</option>
-          <option value="pd">PD</option>
-          <option value="pid">PID</option>
-          <option value="lead">超前</option>
-          <option value="lag">滞后</option>
-          <option value="lead_lag">滞后-超前</option>
-        </select>
-      </label>
+          <SelectTrigger
+            id="parameter-drawer-structure-select"
+            data-testid="parameter-drawer-structure-select"
+            aria-labelledby="parameter-drawer-structure-label"
+            className="premium-lesson-select mt-1 w-full"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent
+            data-testid="parameter-drawer-structure-popup"
+            className="premium-lesson-theme-scope premium-lesson-select-content"
+            onCloseAutoFocus={onSelectCloseAutoFocus}
+            onEscapeKeyDown={onSelectEscapeKeyDown}
+            onKeyDownCapture={(event) => {
+              if (event.key === 'Escape') {
+                onSelectEscapeKeyDown(event.nativeEvent);
+              }
+            }}
+          >
+            <SelectItem className="premium-lesson-select-item" value="pi">PI</SelectItem>
+            <SelectItem className="premium-lesson-select-item" value="pd">PD</SelectItem>
+            <SelectItem className="premium-lesson-select-item" value="pid">PID</SelectItem>
+            <SelectItem className="premium-lesson-select-item" value="lead">超前</SelectItem>
+            <SelectItem className="premium-lesson-select-item" value="lag">滞后</SelectItem>
+            <SelectItem className="premium-lesson-select-item" value="lead_lag">滞后-超前</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
       <div className="rounded-lg border border-cyan-500/20 bg-background/75 px-3 py-2 text-sm [&_.katex-display]:m-0">
         <BlockMath math={buildControllerExpression(state)} />
@@ -309,7 +349,19 @@ export function ParameterDrawer({
   onReset,
 }: ParameterDrawerProps) {
   const wheelCleanupRef = useRef<(() => void) | null>(null);
+  const selectLayerLifecycleRef = useRef<SelectLayerLifecycle>({
+    generation: 0,
+    select: null,
+    phase: 'idle',
+  });
+  const selectEscapeEventRef = useRef<{ generation: number; event: KeyboardEvent } | null>(null);
+  const selectEscapeResetTimerRef = useRef<number | null>(null);
+  const selectClosingGenerationsRef = useRef<Record<ParameterSelectName, number[]>>({
+    response: [],
+    structure: [],
+  });
   const [activeTab, setActiveTab] = useState<'plant' | 'correction'>('plant');
+  const [openSelect, setOpenSelect] = useState<'response' | 'structure' | null>(null);
   const drawerTabBaseClass = 'flex h-10 w-full min-w-0 items-center justify-center overflow-hidden rounded-md border px-3 text-sm font-semibold leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background';
   const drawerTabActiveClass = 'data-[state=active]:border-cyan-600 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-950 data-[state=active]:shadow-sm data-[state=active]:hover:bg-cyan-100 dark:data-[state=active]:border-cyan-300/70 dark:data-[state=active]:bg-cyan-300/20 dark:data-[state=active]:text-cyan-50 dark:data-[state=active]:hover:bg-cyan-300/20';
   const drawerTabInactiveClass = 'border-transparent bg-transparent text-muted-foreground hover:border-cyan-300/70 hover:bg-cyan-50 hover:text-cyan-900 dark:hover:border-cyan-300/40 dark:hover:bg-cyan-300/10 dark:hover:text-cyan-50';
@@ -333,15 +385,140 @@ export function ParameterDrawer({
   useEffect(() => () => {
     wheelCleanupRef.current?.();
     wheelCleanupRef.current = null;
+    if (selectEscapeResetTimerRef.current !== null) {
+      window.clearTimeout(selectEscapeResetTimerRef.current);
+    }
   }, []);
 
+  useEffect(() => {
+    if (!open) {
+      selectLayerLifecycleRef.current = {
+        generation: selectLayerLifecycleRef.current.generation + 1,
+        select: null,
+        phase: 'idle',
+      };
+      if (selectEscapeResetTimerRef.current !== null) {
+        window.clearTimeout(selectEscapeResetTimerRef.current);
+        selectEscapeResetTimerRef.current = null;
+      }
+      selectClosingGenerationsRef.current.response = [];
+      selectClosingGenerationsRef.current.structure = [];
+      selectEscapeEventRef.current = null;
+      setOpenSelect(null);
+    }
+  }, [open]);
+
+  const handleSelectOpenChange = (select: ParameterSelectName, nextOpen: boolean) => {
+    if (nextOpen) {
+      if (selectEscapeResetTimerRef.current !== null) {
+        window.clearTimeout(selectEscapeResetTimerRef.current);
+        selectEscapeResetTimerRef.current = null;
+      }
+      selectLayerLifecycleRef.current = {
+        generation: selectLayerLifecycleRef.current.generation + 1,
+        select,
+        phase: 'open',
+      };
+      selectEscapeEventRef.current = null;
+      setOpenSelect(select);
+      return;
+    }
+    if (
+      selectLayerLifecycleRef.current.select === select
+      && selectLayerLifecycleRef.current.phase === 'open'
+    ) {
+      selectLayerLifecycleRef.current = {
+        ...selectLayerLifecycleRef.current,
+        phase: 'closing',
+      };
+      selectClosingGenerationsRef.current[select].push(selectLayerLifecycleRef.current.generation);
+    }
+    setOpenSelect((current) => current === select ? null : current);
+  };
+
+  const handleSelectEscapeKeyDown = (select: ParameterSelectName, event: KeyboardEvent) => {
+    const lifecycle = selectLayerLifecycleRef.current;
+    if (lifecycle.select !== select || lifecycle.phase !== 'open') {
+      return;
+    }
+    const escapeEvent = { generation: lifecycle.generation, event };
+    selectEscapeEventRef.current = escapeEvent;
+    selectLayerLifecycleRef.current = {
+      ...lifecycle,
+      phase: 'closing',
+    };
+    selectClosingGenerationsRef.current[select].push(lifecycle.generation);
+    setOpenSelect((current) => current === select ? null : current);
+    if (selectEscapeResetTimerRef.current !== null) {
+      window.clearTimeout(selectEscapeResetTimerRef.current);
+    }
+    selectEscapeResetTimerRef.current = window.setTimeout(() => {
+      if (selectEscapeEventRef.current === escapeEvent) {
+        selectEscapeEventRef.current = null;
+      }
+      selectEscapeResetTimerRef.current = null;
+    }, 0);
+  };
+
+  const handleSelectCloseAutoFocus = (select: ParameterSelectName, event: Event) => {
+    event.preventDefault();
+    const closingGeneration = selectClosingGenerationsRef.current[select].shift();
+    const lifecycle = selectLayerLifecycleRef.current;
+    if (
+      closingGeneration !== lifecycle.generation
+      || lifecycle.select !== select
+      || lifecycle.phase !== 'closing'
+    ) {
+      return;
+    }
+    const triggerId = select === 'response'
+      ? 'parameter-drawer-response-select'
+      : 'parameter-drawer-structure-select';
+    document.getElementById(triggerId)?.focus();
+    selectLayerLifecycleRef.current = {
+      ...lifecycle,
+      select: null,
+      phase: 'idle',
+    };
+  };
+
   return (
-    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange} modal={false}>
+    <DialogPrimitive.Root
+      open={open}
+      onOpenChange={(nextOpen) => {
+        const escapeEvent = selectEscapeEventRef.current;
+        if (
+          !nextOpen
+          && (
+            selectLayerLifecycleRef.current.phase !== 'idle'
+            || (
+              escapeEvent
+              && escapeEvent.generation === selectLayerLifecycleRef.current.generation
+            )
+          )
+        ) {
+          return;
+        }
+        onOpenChange(nextOpen);
+      }}
+      modal={false}
+    >
       <DialogPrimitive.Portal>
         <DialogPrimitive.Content
           ref={setContentNode}
-          className="fixed inset-y-0 right-0 left-auto top-0 z-50 grid h-dvh w-full max-w-none translate-x-0 translate-y-0 gap-4 overflow-y-auto overscroll-contain rounded-none border-l border-border bg-background p-5 text-foreground shadow-2xl duration-200 data-[state=closed]:animate-out data-[state=open]:animate-in data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-[420px] sm:rounded-none"
+          data-parameter-drawer="true"
+          className="premium-lesson-theme-scope fixed inset-y-0 right-0 left-auto top-0 z-50 grid h-dvh w-full max-w-none translate-x-0 translate-y-0 gap-4 overflow-y-auto overscroll-contain rounded-none border-l border-border bg-background p-5 text-foreground shadow-2xl duration-200 data-[state=closed]:animate-out data-[state=open]:animate-in data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-[420px] sm:rounded-none"
           onWheelCapture={(event) => containDrawerWheel(event, event.currentTarget)}
+          onEscapeKeyDown={(event) => {
+            const escapeEvent = selectEscapeEventRef.current;
+            if (
+              escapeEvent
+              && escapeEvent.generation === selectLayerLifecycleRef.current.generation
+              && escapeEvent.event === event
+            ) {
+              event.preventDefault();
+            }
+          }}
         >
           <div className="flex items-center justify-between gap-4">
             <DialogPrimitive.Title className="premium-lesson-title text-lg">参数抽屉</DialogPrimitive.Title>
@@ -377,7 +554,11 @@ export function ParameterDrawer({
               <CorrectionControls
                 state={correctionState}
                 disabled={isCourseMode}
+                selectOpen={openSelect === 'structure'}
                 onChange={onCorrectionChange}
+                onSelectCloseAutoFocus={(event) => handleSelectCloseAutoFocus('structure', event)}
+                onSelectEscapeKeyDown={(event) => handleSelectEscapeKeyDown('structure', event)}
+                onSelectOpenChange={(nextOpen) => handleSelectOpenChange('structure', nextOpen)}
               />
             </TabsContent>
 
@@ -388,18 +569,41 @@ export function ParameterDrawer({
               {!correctionState.enabled ? (
                 <NumberInput label="开环增益 K" value={gain} onChange={onGainChange} />
               ) : null}
-              <label className="premium-lesson-caption block text-xs">
-                响应类型
-                <select
+              <div className="premium-lesson-caption block text-xs">
+                <label id="parameter-drawer-response-label" htmlFor="parameter-drawer-response-select">
+                  响应类型
+                </label>
+                <Select
+                  open={openSelect === 'response'}
+                  onOpenChange={(nextOpen) => handleSelectOpenChange('response', nextOpen)}
                   value={responseType}
-                  onChange={(event) => onResponseTypeChange(event.target.value as LinkageResponseType)}
-                  className="premium-lesson-select mt-1 w-full"
+                  onValueChange={(value) => onResponseTypeChange(value as LinkageResponseType)}
                 >
-                  <option value="step">阶跃响应</option>
-                  <option value="impulse">脉冲响应</option>
-                  <option value="ramp">斜坡响应</option>
-                </select>
-              </label>
+                  <SelectTrigger
+                    id="parameter-drawer-response-select"
+                    data-testid="parameter-drawer-response-select"
+                    aria-labelledby="parameter-drawer-response-label"
+                    className="premium-lesson-select mt-1 w-full"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent
+                    data-testid="parameter-drawer-response-popup"
+                    className="premium-lesson-theme-scope premium-lesson-select-content"
+                    onCloseAutoFocus={(event) => handleSelectCloseAutoFocus('response', event)}
+                    onEscapeKeyDown={(event) => handleSelectEscapeKeyDown('response', event)}
+                    onKeyDownCapture={(event) => {
+                      if (event.key === 'Escape') {
+                        handleSelectEscapeKeyDown('response', event.nativeEvent);
+                      }
+                    }}
+                  >
+                    <SelectItem className="premium-lesson-select-item" value="step">阶跃响应</SelectItem>
+                    <SelectItem className="premium-lesson-select-item" value="impulse">脉冲响应</SelectItem>
+                    <SelectItem className="premium-lesson-select-item" value="ramp">斜坡响应</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <label className="inline-flex items-center gap-2 text-sm text-foreground">
                 <input
                   type="checkbox"

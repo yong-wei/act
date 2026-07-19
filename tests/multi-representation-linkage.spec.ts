@@ -1,4 +1,66 @@
 import { expect, test } from '@playwright/test';
+import type { Locator } from '@playwright/test';
+
+type SelectAppearance = {
+  color: string;
+  backgroundColor: string;
+  borderColor: string;
+  boxShadow: string;
+  opacity: string;
+};
+
+async function selectAppearance(locator: Locator): Promise<SelectAppearance> {
+  return locator.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return {
+      color: style.color,
+      backgroundColor: style.backgroundColor,
+      borderColor: style.borderColor,
+      boxShadow: style.boxShadow,
+      opacity: style.opacity,
+    };
+  });
+}
+
+function parseRgb(color: string): [number, number, number] {
+  const channels = color.match(/[\d.]+/g)?.slice(0, 3).map(Number);
+  if (!channels || channels.length !== 3) {
+    throw new Error(`Unsupported computed color: ${color}`);
+  }
+  return channels as [number, number, number];
+}
+
+function relativeLuminance(color: string): number {
+  const linear = parseRgb(color).map((channel) => {
+    const value = channel / 255;
+    return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+}
+
+function contrastRatio(first: string, second: string): number {
+  const firstLuminance = relativeLuminance(first);
+  const secondLuminance = relativeLuminance(second);
+  return (Math.max(firstLuminance, secondLuminance) + 0.05) /
+    (Math.min(firstLuminance, secondLuminance) + 0.05);
+}
+
+function expectReadable(appearance: SelectAppearance, minimum = 4.5): void {
+  expect(contrastRatio(appearance.color, appearance.backgroundColor)).toBeGreaterThanOrEqual(minimum);
+}
+
+async function setTheme(page: import('@playwright/test').Page, theme: 'light' | 'dark'): Promise<void> {
+  await page.evaluate((activeTheme) => {
+    document.documentElement.classList.remove('light', 'dark');
+    document.documentElement.classList.add(activeTheme);
+  }, theme);
+}
+
+async function waitForAnimations(locator: Locator): Promise<void> {
+  await locator.evaluate(async (element) => {
+    await Promise.allSettled(element.getAnimations({ subtree: true }).map((animation) => animation.finished));
+  });
+}
 
 test('multi representation linkage page should not emit chart size warning on first load', async ({ page }) => {
   const chartSizeWarnings: string[] = [];
@@ -64,7 +126,15 @@ test('multi representation linkage page should not emit chart size warning on fi
   expect(Math.abs(Math.round(objectBoxAfter!.width) - Math.round(objectBoxBefore!.width))).toBeLessThanOrEqual(1);
   expect(Math.abs(Math.round(correctionBoxAfter!.width) - Math.round(correctionBoxBefore!.width))).toBeLessThanOrEqual(1);
   await page.getByLabel('启用校正').check();
-  await page.getByLabel('结构').selectOption('lead');
+  const structureSelect = page.getByLabel('结构');
+  await structureSelect.focus();
+  await page.keyboard.press('ArrowDown');
+  await expect(page.getByTestId('parameter-drawer-structure-popup')).toBeVisible();
+  await page.keyboard.press('ArrowDown');
+  await expect(page.getByRole('option', { name: '超前', exact: true })).toHaveAttribute('data-highlighted', '');
+  await page.keyboard.press('Enter');
+  await expect(structureSelect).toContainText('超前');
+  await expect(structureSelect).toBeFocused();
   await page.keyboard.press('Escape');
 
   await expect.poll(async () => {
@@ -95,4 +165,167 @@ test('multi representation linkage page should not emit chart size warning on fi
     linkageRequests,
     `Unexpected /api/linkage requests: ${linkageRequests.join(' | ')}`
   ).toEqual([]);
+});
+
+test('parameter drawer Radix selects expose readable popup and keyboard behavior in both themes', async ({ page }, testInfo) => {
+  await page.goto('/interactive-learning/control-workbench?preset=classic-four-view', { waitUntil: 'domcontentloaded' });
+  await expect(page.getByTestId('metric-PM').locator('.premium-lesson-title')).not.toHaveText('--');
+  await page.getByRole('button', { name: '参数抽屉' }).click();
+
+  const responseSelect = page.getByTestId('parameter-drawer-response-select');
+  const correctionTab = page.getByTestId('parameter-drawer-correction-tab');
+  await expect(responseSelect).toHaveRole('combobox');
+  await expect(responseSelect).toHaveAccessibleName('响应类型');
+  await expect(responseSelect).toContainText('阶跃响应');
+
+  for (const theme of ['dark', 'light'] as const) {
+    await setTheme(page, theme);
+    await responseSelect.click({ force: true });
+    const popup = page.getByTestId('parameter-drawer-response-popup');
+    await expect(popup).toBeVisible();
+    const options = popup.getByRole('option');
+    await expect(options).toHaveCount(3);
+
+    const popupAppearance = await selectAppearance(popup);
+    expectReadable(popupAppearance);
+    for (const option of await options.all()) {
+      expectReadable(await selectAppearance(option));
+    }
+
+    const selectedOption = popup.getByRole('option', { name: '阶跃响应' });
+    await expect(selectedOption).toHaveAttribute('aria-selected', 'true');
+    const selectedAppearance = await selectAppearance(selectedOption);
+    expectReadable(selectedAppearance);
+    expect(contrastRatio(selectedAppearance.backgroundColor, popupAppearance.backgroundColor)).toBeGreaterThanOrEqual(1.2);
+
+    const hoveredOption = popup.getByRole('option', { name: '斜坡响应' });
+    await hoveredOption.hover({ force: true });
+    await expect(hoveredOption).toHaveAttribute('data-highlighted', '');
+    const hoveredAppearance = await selectAppearance(hoveredOption);
+    expectReadable(hoveredAppearance);
+    expect(contrastRatio(hoveredAppearance.backgroundColor, popupAppearance.backgroundColor)).toBeGreaterThanOrEqual(1.15);
+    await waitForAnimations(popup);
+    await page.screenshot({
+      path: testInfo.outputPath(`response-popup-${theme}.png`),
+      fullPage: true,
+    });
+
+    await page.keyboard.press('Escape');
+    await expect(popup).toBeHidden();
+    await expect(page.getByRole('dialog'), `drawer should remain open after closing the ${theme} response popup`).toBeVisible();
+  }
+
+  await responseSelect.focus();
+  await page.keyboard.press('ArrowDown');
+  await expect(page.getByTestId('parameter-drawer-response-popup')).toBeVisible();
+  await page.keyboard.press('ArrowDown');
+  await expect(page.getByRole('option', { name: '脉冲响应' })).toHaveAttribute('data-highlighted', '');
+  await page.keyboard.press('Enter');
+  await expect(responseSelect).toContainText('脉冲响应');
+  await expect(responseSelect).toBeFocused();
+  const responseFocusedAppearance = await selectAppearance(responseSelect);
+  expectReadable(responseFocusedAppearance);
+  expect(contrastRatio(responseFocusedAppearance.borderColor, responseFocusedAppearance.backgroundColor)).toBeGreaterThanOrEqual(1.4);
+  expect(responseFocusedAppearance.boxShadow).not.toBe('none');
+  await page.keyboard.press('Enter');
+  await expect(page.getByTestId('parameter-drawer-response-popup')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByTestId('parameter-drawer-response-popup')).toBeHidden();
+  await expect(responseSelect).toContainText('脉冲响应');
+
+  await correctionTab.click({ force: true });
+  const structureSelect = page.getByTestId('parameter-drawer-structure-select');
+  await expect(structureSelect).toHaveRole('combobox');
+  await expect(structureSelect).toHaveAccessibleName('结构');
+  await expect(structureSelect).toBeDisabled();
+  for (const theme of ['dark', 'light'] as const) {
+    await setTheme(page, theme);
+    const disabledAppearance = await selectAppearance(structureSelect);
+    expectReadable(disabledAppearance, 3);
+    expect(contrastRatio(disabledAppearance.borderColor, disabledAppearance.backgroundColor)).toBeGreaterThanOrEqual(1.2);
+    expect(Number(disabledAppearance.opacity)).toBeLessThan(1);
+  }
+  await expect(structureSelect).toContainText('PID');
+  await structureSelect.click({ force: true });
+  await expect(page.getByTestId('parameter-drawer-structure-popup')).toHaveCount(0);
+  await expect(structureSelect).toContainText('PID');
+
+  await page.getByLabel('启用校正').check({ force: true });
+  await expect(structureSelect).toBeEnabled();
+  for (const theme of ['dark', 'light'] as const) {
+    await setTheme(page, theme);
+    await structureSelect.click({ force: true });
+    const popup = page.getByTestId('parameter-drawer-structure-popup');
+    await expect(popup).toBeVisible();
+    const options = popup.getByRole('option');
+    await expect(options).toHaveCount(6);
+
+    const popupAppearance = await selectAppearance(popup);
+    expectReadable(popupAppearance);
+    for (const option of await options.all()) {
+      expectReadable(await selectAppearance(option));
+    }
+
+    const selectedOption = popup.getByRole('option', { name: 'PID', exact: true });
+    await expect(selectedOption).toHaveAttribute('aria-selected', 'true');
+    const selectedAppearance = await selectAppearance(selectedOption);
+    expectReadable(selectedAppearance);
+    expect(contrastRatio(selectedAppearance.backgroundColor, popupAppearance.backgroundColor)).toBeGreaterThanOrEqual(1.2);
+
+    const hoveredOption = popup.getByRole('option', { name: '滞后', exact: true });
+    await hoveredOption.hover({ force: true });
+    await expect(hoveredOption).toHaveAttribute('data-highlighted', '');
+    const hoveredAppearance = await selectAppearance(hoveredOption);
+    expectReadable(hoveredAppearance);
+    expect(contrastRatio(hoveredAppearance.backgroundColor, popupAppearance.backgroundColor)).toBeGreaterThanOrEqual(1.15);
+    await waitForAnimations(popup);
+    await page.screenshot({
+      path: testInfo.outputPath(`structure-popup-${theme}.png`),
+      fullPage: true,
+    });
+
+    await page.keyboard.press('Escape');
+    await expect(popup).toBeHidden();
+    await expect(page.getByRole('dialog'), `drawer should remain open after closing the ${theme} structure popup`).toBeVisible();
+  }
+
+  await structureSelect.focus();
+  await page.keyboard.press('ArrowDown');
+  await expect(page.getByTestId('parameter-drawer-structure-popup')).toBeVisible();
+  await page.keyboard.press('ArrowDown');
+  await expect(page.getByRole('option', { name: '超前', exact: true })).toHaveAttribute('data-highlighted', '');
+  await page.keyboard.press('Enter');
+  await expect(structureSelect).toContainText('超前');
+  await expect(structureSelect).toBeFocused();
+  const structureFocusedAppearance = await selectAppearance(structureSelect);
+  expectReadable(structureFocusedAppearance);
+  expect(contrastRatio(structureFocusedAppearance.borderColor, structureFocusedAppearance.backgroundColor)).toBeGreaterThanOrEqual(1.4);
+  expect(structureFocusedAppearance.boxShadow).not.toBe('none');
+  await page.keyboard.press('Enter');
+  await expect(page.getByTestId('parameter-drawer-structure-popup')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByTestId('parameter-drawer-structure-popup')).toBeHidden();
+  await expect(structureSelect).toContainText('超前');
+});
+
+test('parameter drawer keeps rapid select Escape cycles isolated from the drawer', async ({ page }) => {
+  await page.goto('/interactive-learning/control-workbench?preset=classic-four-view', { waitUntil: 'domcontentloaded' });
+  await expect(page.getByTestId('metric-PM').locator('.premium-lesson-title')).not.toHaveText('--');
+  await page.getByRole('button', { name: '参数抽屉' }).click();
+
+  const drawer = page.getByRole('dialog');
+  const responseSelect = page.getByTestId('parameter-drawer-response-select');
+  const responsePopup = page.getByTestId('parameter-drawer-response-popup');
+
+  for (let cycle = 0; cycle < 5; cycle += 1) {
+    await responseSelect.click();
+    await expect(responsePopup, `response popup should open in cycle ${cycle + 1}`).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(responsePopup, `response popup should close in cycle ${cycle + 1}`).toBeHidden();
+    await expect(drawer, `drawer should remain open in cycle ${cycle + 1}`).toBeVisible();
+    await expect(responseSelect, `focus should return in cycle ${cycle + 1}`).toBeFocused();
+  }
+
+  await page.keyboard.press('Escape');
+  await expect(drawer).toBeHidden();
 });
