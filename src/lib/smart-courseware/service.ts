@@ -415,13 +415,14 @@ export async function getSmartCoursewareTeacherProjection(db: CoursewareDb, inpu
 export async function getSmartCoursewareStudentProjection(db: CoursewareDb, input: {
   actor: SmartCoursewareActor;
   draftId: string;
-}) {
+}, dependencies: { orderingPermutationSecret: string }) {
   const draft = await getSmartCoursewareDraft(db, input);
   if (!draft.runtimeManifest) throw new SmartCoursewareError('courseware-manifest-not-ready', 409);
   return projectCoursewareForStudent({
     draftId: draft.id,
     version: draft.version,
     runtimeManifest: draft.runtimeManifest as unknown as GeneratedSlideManifest,
+    orderingPermutationSecret: dependencies.orderingPermutationSecret,
   });
 }
 

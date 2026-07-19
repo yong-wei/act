@@ -15,10 +15,14 @@ const mocks = vi.hoisted(() => ({
   resumeJob: vi.fn(), retryJob: vi.fn(), cancelJob: vi.fn(),
   requestRegeneration: vi.fn(), generateCandidate: vi.fn(), acceptCandidate: vi.fn(),
   approveDraft: vi.fn(),
+  orderingSecret: vi.fn(() => 'smart-courseware-route-test-secret-v1'),
 }));
 
 vi.mock('@/lib/auth', () => ({ getServerAuthSession: vi.fn(async () => mocks.session) }));
 vi.mock('@/lib/prisma', () => ({ prisma: { marker: 'prisma' } }));
+vi.mock('@/lib/smart-courseware/student-projection-secret', () => ({
+  resolveSmartCoursewareOrderingSecret: mocks.orderingSecret,
+}));
 vi.mock('@/lib/smart-courseware', async (importOriginal) => ({
   ...await importOriginal<typeof import('@/lib/smart-courseware')>(),
   createSmartCoursewareDraft: mocks.createDraft,
@@ -161,6 +165,7 @@ describe('smart courseware teacher routes', () => {
     expect(mocks.getStudentPreview).toHaveBeenCalledWith(
       { marker: 'prisma' },
       { actor: { id: 'teacher-1', role: 'TEACHER' }, draftId: 'draft-1' },
+      { orderingPermutationSecret: 'smart-courseware-route-test-secret-v1' },
     );
   });
 
@@ -168,6 +173,17 @@ describe('smart courseware teacher routes', () => {
     mocks.session = { user: { id: 'student-1', role: 'STUDENT' } };
     const response = await getStudentPreview(new Request('http://localhost'), context);
     expect(response.status).toBe(403);
+    expect(mocks.getStudentPreview).not.toHaveBeenCalled();
+  });
+
+  it('fails the student projection boundary closed when the server ordering secret is unavailable', async () => {
+    mocks.orderingSecret.mockImplementationOnce(() => {
+      throw new SmartCoursewareError('courseware-ordering-secret-unavailable', 503);
+    });
+
+    const response = await getStudentPreview(new Request('http://localhost'), context);
+
+    expect(response.status).toBe(503);
     expect(mocks.getStudentPreview).not.toHaveBeenCalled();
   });
 

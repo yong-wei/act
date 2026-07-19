@@ -449,6 +449,21 @@ describe('smart courseware selected-module regeneration acceptance', () => {
     expect(race.state.job.state).toBe('CANCELLED');
   });
 
+  it('does not persist a provider candidate that mislabels AI output as teacher-created pending', async () => {
+    const fixture = acceptanceFixture();
+    const race = moduleGenerationRaceDb(fixture);
+    const malicious = providerResult(fixture);
+    (malicious.output.moduleMetadata as { sourceState: string }).sourceState = 'teacher_created_source_pending';
+    const generate = vi.fn().mockResolvedValue(malicious);
+
+    await expect(generateCoursewareModuleCandidate(race.db as never, { actor, jobId: fixture.job.id }, {
+      ...moduleGenerationDependencies(fixture, generate),
+      now: race.now,
+    })).rejects.toMatchObject({ code: 'ai-generated-courseware-source-state-invalid' });
+    expect(race.state.job.candidateRuntimeModule).toBeNull();
+    expect(race.state.job.candidateModuleMetadata).toBeNull();
+  });
+
   it('accepts an AI candidate over a teacher-created module with current and revision provider provenance', async () => {
     const fixture = acceptanceFixture();
     fixture.target.provenance = 'TEACHER_CREATED';
@@ -530,6 +545,24 @@ describe('smart courseware selected-module regeneration acceptance', () => {
     })).rejects.toMatchObject({ code: 'courseware-module-candidate-target-changed' });
     expect(db.updateDraft).not.toHaveBeenCalled();
     expect(db.updateModule).not.toHaveBeenCalled();
+  });
+
+  it('rejects an AI regeneration candidate that claims teacher-created pending source state', async () => {
+    const fixture = acceptanceFixture();
+    (fixture.job.candidateModuleMetadata as { sourceState: string }).sourceState = 'teacher_created_source_pending';
+    fixture.job.candidateHash = contentHash({
+      runtimeModule: fixture.job.candidateRuntimeModule,
+      moduleMetadata: fixture.job.candidateModuleMetadata,
+    });
+    const db = acceptanceDb(fixture.job);
+
+    await expect(acceptCoursewareModuleCandidate(db.value as never, {
+      actor, jobId: fixture.job.id, expectedDraftVersion: fixture.job.draft.version,
+      expectedModuleHash: fixture.target.contentHash, idempotencyKey: 'accept-invalid-ai-source-state',
+    })).rejects.toMatchObject({ code: 'ai-generated-courseware-source-state-invalid' });
+    expect(db.updateDraft).not.toHaveBeenCalled();
+    expect(db.updateModule).not.toHaveBeenCalled();
+    expect(db.createRevision).not.toHaveBeenCalled();
   });
 
   it('rejects stale draft versions and stale module hashes before any mutation', async () => {

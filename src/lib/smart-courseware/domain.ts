@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { createHmac, randomUUID } from 'node:crypto';
 
 import {
   adaptGeneratedSlideManifestToInteractiveRuntime,
@@ -124,6 +124,9 @@ export function deriveCoursewareModuleMetadata(input: {
   newProvenance?: CoursewareModuleMetadata['provenance'];
   originalAttemptId?: string | null;
 }): CoursewareModuleMetadata {
+  if (input.newProvenance?.startsWith('ai_generated')) {
+    assertAiGeneratedCoursewareSourceState(input.requested);
+  }
   const sourceBindings = normalizeSourceBindings(input.requested.sourceBindings);
   const allowed = new Set(input.allowedSourceBindings.map(sourceBindingKey));
   if (sourceBindings.some((binding) => !allowed.has(sourceBindingKey(binding)))) {
@@ -212,15 +215,29 @@ export function projectCoursewareForStudent(input: {
   draftId: string;
   version: number;
   runtimeManifest: GeneratedSlideManifest;
+  orderingPermutationSecret: string;
 }) {
+  const orderingPermutationSecret = requiredOrderingPermutationSecret(input.orderingPermutationSecret);
   const adapted = adaptGeneratedSlideManifestToInteractiveRuntime(input.runtimeManifest);
   return {
     schemaVersion: COURSEWARE_AUTHORING_SCHEMA_VERSION,
     draftId: input.draftId,
     version: input.version,
-    runtimeManifest: studentRuntimeProjection(adapted.runtimeManifest, input.runtimeManifest),
+    runtimeManifest: studentRuntimeProjection(adapted.runtimeManifest, input.runtimeManifest, {
+      draftId: input.draftId,
+      version: input.version,
+      orderingPermutationSecret,
+    }),
     notice: 'ai-assisted-teacher-reviewed' as const,
   };
+}
+
+export function assertAiGeneratedCoursewareSourceState(
+  metadata: Pick<CoursewareModuleMetadataInput, 'sourceState'>,
+) {
+  if (metadata.sourceState === 'teacher_created_source_pending') {
+    throw new SmartCoursewareError('ai-generated-courseware-source-state-invalid', 409);
+  }
 }
 
 export function coursewareManifestHash(manifest: GeneratedSlideManifest) {
@@ -381,6 +398,7 @@ function sourceBindingKey(binding: { citationId: string; sourceVersionId: string
 function studentRuntimeProjection(
   runtime: InteractiveRuntimeManifest,
   generated: GeneratedSlideManifest,
+  identity: { draftId: string; version: number; orderingPermutationSecret: string },
 ): InteractiveRuntimeManifest {
   const sourceSteps = new Map(generated.stages.flatMap((stage) => stage.steps).map((step) => [step.id, step]));
   return {
@@ -389,9 +407,22 @@ function studentRuntimeProjection(
       const source = sourceSteps.get(step.id);
       if (!source) return step;
       const visible = new Set(source.modules.filter((module) => module.roleMetadata.studentVisible).map((module) => module.id));
+      const sourceModules = new Map(source.modules.map((module) => [module.id, module]));
       const activityCards = (step.interactionSpec.activityCards ?? [])
         .filter((card) => visible.has(card.id))
-        .map(({ referenceAnswer: _answer, referenceMatches: _matches, ...card }) => card);
+        .map(({ referenceAnswer: _answer, referenceMatches: _matches, ...card }) => {
+          const sourceModule = sourceModules.get(card.id);
+          if (sourceModule?.responseKind !== 'ordering.sequence') return card;
+          return {
+            ...card,
+            options: keyedDeterministicNonIdentityRotation(card.options, {
+              draftId: identity.draftId,
+              version: identity.version,
+              stepId: step.id,
+              moduleId: card.id,
+            }, identity.orderingPermutationSecret),
+          };
+        });
       const evidencePaths = source.modules
         .filter((module) => visible.has(module.id) && module.canonicalClass === 'activity.panel')
         .flatMap((module) => module.evidencePath ? [module.evidencePath] : []);
@@ -411,4 +442,31 @@ function studentRuntimeProjection(
       };
     }),
   };
+}
+
+function keyedDeterministicNonIdentityRotation<T>(
+  values: readonly T[],
+  identity: { draftId: string; version: number; stepId: string; moduleId: string },
+  secret: string,
+): T[] {
+  if (values.length < 2) return [...values];
+  const prf = createHmac('sha256', secret)
+    .update(contentHash({ ...identity, purpose: 'student-ordering-options' }))
+    .digest();
+  const start = 1 + (prf.readUInt32BE(0)
+    % (values.length - 1));
+  for (let index = 0; index < values.length - 1; index += 1) {
+    const offset = 1 + ((start - 1 + index) % (values.length - 1));
+    const rotated = [...values.slice(offset), ...values.slice(0, offset)];
+    if (contentHash(rotated) !== contentHash(values)) return rotated;
+  }
+  return [...values];
+}
+
+function requiredOrderingPermutationSecret(value: string) {
+  const secret = typeof value === 'string' ? value.trim() : '';
+  if (Buffer.byteLength(secret, 'utf8') < 32) {
+    throw new SmartCoursewareError('courseware-ordering-secret-unavailable', 503);
+  }
+  return secret;
 }

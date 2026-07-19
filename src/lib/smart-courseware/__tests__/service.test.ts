@@ -84,7 +84,11 @@ describe('smart courseware service', () => {
       .rejects.toMatchObject({ code: 'courseware-manifest-identity-mismatch' });
     await expect(getSmartCoursewareTeacherProjection(db as never, { actor: teacher, draftId: corrupted.id }))
       .rejects.toMatchObject({ code: 'courseware-manifest-identity-mismatch' });
-    await expect(getSmartCoursewareStudentProjection(db as never, { actor: teacher, draftId: corrupted.id }))
+    await expect(getSmartCoursewareStudentProjection(
+      db as never,
+      { actor: teacher, draftId: corrupted.id },
+      { orderingPermutationSecret: 'smart-courseware-service-test-secret-v1' },
+    ))
       .rejects.toMatchObject({ code: 'courseware-manifest-identity-mismatch' });
 
     corrupted.runtimeManifest = manifest;

@@ -58,12 +58,40 @@ export const coursewareCompositionInputSchema = z.object({
 export const coursewareGeneratedStageOutputSchema = z.object({
   stage: generatedSlideManifestSchema.shape.stages.element,
   moduleMetadata: z.array(coursewareModuleMetadataInputSchema).min(1).max(12),
-}).strict();
+}).strict().superRefine((value, context) => {
+  requireUniqueOrderingItems(
+    value.stage.steps.flatMap((step) => step.modules),
+    context,
+    ['stage'],
+  );
+});
 
 export const coursewareModuleCandidateOutputSchema = z.object({
   runtimeModule: generatedSlideManifestSchema.shape.stages.element.shape.steps.element.shape.modules.element,
   moduleMetadata: coursewareModuleMetadataInputSchema,
-}).strict();
+}).strict().superRefine((value, context) => {
+  requireUniqueOrderingItems([value.runtimeModule], context, ['runtimeModule']);
+});
+
+function requireUniqueOrderingItems(
+  modules: Array<{ responseKind?: string; payload: unknown }>,
+  context: z.RefinementCtx,
+  path: Array<string | number>,
+) {
+  modules.forEach((module, index) => {
+    if (module.responseKind !== 'ordering.sequence' || !module.payload || typeof module.payload !== 'object') return;
+    const items = (module.payload as { items?: unknown }).items;
+    if (!Array.isArray(items) || !items.every((item) => typeof item === 'string')) return;
+    const normalized = items.map((item) => item.trim().toLowerCase());
+    if (new Set(normalized).size !== normalized.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'ordering items must be unique after normalization',
+        path: [...path, index, 'payload', 'items'],
+      });
+    }
+  });
+}
 
 export const coursewareModuleMetadataSchema = coursewareModuleMetadataInputObjectSchema.extend({
   moduleInstanceLineage: z.string().trim().min(1).max(200),

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { sourceBindingFixture } from '@/lib/smart-lesson-plan/__tests__/fixtures';
+import { contentHash } from '@/lib/smart-lesson-plan/domain';
 
 import {
   SmartCoursewareError,
@@ -14,6 +15,8 @@ import {
 } from '../domain';
 import type { CoursewareModuleMetadataInput } from '../schema';
 import { validCompositionInput, validCoursewareManifest, validPlan } from './fixtures';
+
+const orderingPermutationSecret = 'smart-courseware-ordering-test-secret-v1';
 
 describe('smart courseware domain', () => {
   it('accepts a plan-bound shared-runtime composition with exact metadata coverage', () => {
@@ -147,6 +150,21 @@ describe('smart courseware domain', () => {
 
     const result = validateCoursewareComposition(input, validPlan());
     expect(result.moduleMetadata[2].teacherFields.referenceAnswer).toBe(answer);
+  });
+
+  it('rejects ordering items that collide under scoring normalization', () => {
+    const input = validCompositionInput();
+    const module = input.runtimeManifest.stages[2].steps[0].modules[0];
+    module.responseKind = 'ordering.sequence';
+    module.payload = { prompt: '排序', items: ['First Step', ' first step '] };
+    input.moduleMetadata[2].teacherFields = {
+      referenceAnswer: 'First Step|first step', explanation: '按顺序评分。',
+      scoring: { strategy: 'exact-order', maxPoints: 1 }, inclusionRationale: '该来源支撑步骤顺序。',
+    };
+
+    expect(() => validateCoursewareComposition(input, validPlan())).toThrowError(expect.objectContaining({
+      code: 'runtime-manifest-invalid:module.payload-invalid',
+    }));
   });
 
   it.each([
@@ -314,11 +332,111 @@ describe('smart courseware domain', () => {
       aiReview: { findings: [], suggestions: [] },
       generationAudit: [],
     });
-    const student = projectCoursewareForStudent({ draftId: 'draft-1', version: 2, runtimeManifest: validated.runtimeManifest });
+    const student = projectCoursewareForStudent({
+      draftId: 'draft-1', version: 2, runtimeManifest: validated.runtimeManifest, orderingPermutationSecret,
+    });
     expect(teacher.moduleMetadata[0].teacherFields.inclusionRationale).toBeTruthy();
     expect(JSON.stringify(teacher)).toContain('教师专用解释');
     expect(JSON.stringify(student)).not.toContain('教师专用解释');
     expect(JSON.stringify(student)).not.toContain('referenceAnswer');
+  });
+
+  it('deterministically scrambles student ordering options without changing teacher, choice, or matching semantics', () => {
+    const input = validCompositionInput();
+    const orderingModule = input.runtimeManifest.stages[2].steps[0].modules[0];
+    orderingModule.responseKind = 'ordering.sequence';
+    orderingModule.payload = { prompt: '排序', items: ['第一步', '第二步', '第三步', '第四步'] };
+    input.moduleMetadata[2].teacherFields = {
+      referenceAnswer: '第一步|第二步|第三步|第四步',
+      explanation: '按正确步骤评分。',
+      scoring: { strategy: 'exact-order', maxPoints: 1 },
+      inclusionRationale: '该来源支撑步骤顺序。',
+    };
+    const matchingModule = input.runtimeManifest.stages[3].steps[0].modules[0];
+    matchingModule.responseKind = 'matching.pairs';
+    matchingModule.payload = {
+      prompt: '匹配',
+      left: [{ value: 'l1', label: '左一' }, { value: 'l2', label: '左二' }],
+      right: [{ value: 'r1', label: '右一' }, { value: 'r2', label: '右二' }],
+    };
+    input.moduleMetadata[3].teacherFields = {
+      referenceAnswer: 'l1:r1|l2:r2', explanation: '按正确对应评分。',
+      scoring: { strategy: 'exact-match', maxPoints: 1 }, inclusionRationale: '该来源支撑概念匹配。',
+    };
+    const validated = validateCoursewareComposition(input, validPlan());
+    const moduleMetadata = validated.moduleMetadata.map((requested, index) => deriveCoursewareModuleMetadata({
+      authoringLineageRoot: 'lineage-1',
+      runtimeModule: validated.runtimeManifest.stages[index].steps[0].modules[0],
+      requested,
+      allowedSourceBindings: [sourceBindingFixture],
+    }));
+    const teacher = projectCoursewareForTeacher({
+      draftId: 'draft-1', version: 2, planRevisionId: 'plan-1', planContentHash: 'hash',
+      runtimeManifest: validated.runtimeManifest, moduleMetadata,
+      planLimitations: [], aiReview: null, generationAudit: [],
+    });
+    const first = projectCoursewareForStudent({
+      draftId: 'draft-1', version: 2, runtimeManifest: validated.runtimeManifest, orderingPermutationSecret,
+    });
+    const second = projectCoursewareForStudent({
+      draftId: 'draft-1', version: 2, runtimeManifest: validated.runtimeManifest, orderingPermutationSecret,
+    });
+    const card = (moduleId: string) => first.runtimeManifest.steps
+      .flatMap((step) => step.interactionSpec.activityCards ?? [])
+      .find((candidate) => candidate.id === moduleId)!;
+
+    expect(JSON.stringify(first)).toBe(JSON.stringify(second));
+    expect(JSON.stringify(first)).not.toContain(orderingPermutationSecret);
+    expect(JSON.stringify(first)).not.toContain('orderingPermutationSecret');
+    expect(card(orderingModule.id).options.map((option) => option.value))
+      .not.toEqual(['第一步', '第二步', '第三步', '第四步']);
+    const firstOrdering = card(orderingModule.id).options;
+    const differentSecretOrdering = Array.from({ length: 12 }, (_, index) => projectCoursewareForStudent({
+      draftId: 'draft-1', version: 2, runtimeManifest: validated.runtimeManifest,
+      orderingPermutationSecret: `smart-courseware-ordering-alternate-secret-${index}`,
+    }).runtimeManifest.steps.flatMap((step) => step.interactionSpec.activityCards ?? [])
+      .find((candidate) => candidate.id === orderingModule.id)!)
+      .find((candidate) => JSON.stringify(candidate.options) !== JSON.stringify(firstOrdering))!;
+    expect(differentSecretOrdering).toBeDefined();
+    expect(differentSecretOrdering.options.map((option) => option.value))
+      .not.toEqual(['第一步', '第二步', '第三步', '第四步']);
+    expect(differentSecretOrdering.options).not.toEqual(firstOrdering);
+    expect(card(matchingModule.id)).toMatchObject({
+      matchItems: [{ value: 'l1', label: '左一' }, { value: 'l2', label: '左二' }],
+      matchOptions: [{ value: 'r1', label: '右一' }, { value: 'r2', label: '右二' }],
+    });
+    expect(card(input.runtimeManifest.stages[4].steps[0].modules[0].id).options.map((option) => option.value))
+      .toEqual(['a', 'b']);
+    expect((teacher.runtimeManifest.stages[2].steps[0].modules[0].payload as { items: string[] }).items)
+      .toEqual(['第一步', '第二步', '第三步', '第四步']);
+    expect(teacher.moduleMetadata[2].teacherFields.referenceAnswer).toBe('第一步|第二步|第三步|第四步');
+    expect(JSON.stringify(first)).not.toContain('referenceAnswer');
+  });
+
+  it.each(['', 'short-secret'])('fails closed when the ordering projection secret is unavailable: %j', (secret) => {
+    expect(() => projectCoursewareForStudent({
+      draftId: 'draft-1', version: 2, runtimeManifest: validCoursewareManifest(),
+      orderingPermutationSecret: secret,
+    })).toThrowError(expect.objectContaining({ code: 'courseware-ordering-secret-unavailable', status: 503 }));
+  });
+
+  it.each([
+    ['initial generation', undefined],
+    ['module regeneration', {
+      moduleInstanceLineage: 'lineage-existing', contentHash: 'a'.repeat(64),
+      sourceState: 'TEACHER_CREATED_SOURCE_PENDING', sourceBindingSetHash: contentHash([]),
+      gapIdentity: 'courseware-gap:existing', provenance: 'TEACHER_CREATED', originalAttemptId: null,
+    }],
+  ])('rejects teacher-created pending source state for AI %s', (_label, existing) => {
+    const runtimeModule = validCoursewareManifest().stages[0].steps[0].modules[0];
+    expect(() => deriveCoursewareModuleMetadata({
+      authoringLineageRoot: 'lineage-1', runtimeModule,
+      requested: {
+        moduleId: runtimeModule.id, sourceState: 'teacher_created_source_pending', sourceBindings: [], teacherFields: {},
+      },
+      allowedSourceBindings: [], existing,
+      newProvenance: 'ai_generated', originalAttemptId: 'provider-attempt-1',
+    })).toThrowError(expect.objectContaining({ code: 'ai-generated-courseware-source-state-invalid' }));
   });
 
   it.each([

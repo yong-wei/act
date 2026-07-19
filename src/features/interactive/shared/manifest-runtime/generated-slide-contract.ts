@@ -271,7 +271,15 @@ export const GENERATED_ACTIVITY_PAYLOAD_SCHEMAS = Object.freeze({
   'choice.multi': z.object({ prompt: nonEmptyText, options: z.array(optionSchema).min(2).max(10) }).strict(),
   'text.short': z.object({ prompt: nonEmptyText, placeholder: z.string().max(120).optional() }).strict(),
   'text.long': z.object({ prompt: nonEmptyText, placeholder: z.string().max(200).optional() }).strict(),
-  'ordering.sequence': z.object({ prompt: nonEmptyText, items: z.array(nonEmptyText).min(2).max(10) }).strict(),
+  'ordering.sequence': z.object({
+    prompt: nonEmptyText,
+    items: z.array(nonEmptyText).min(2).max(10).superRefine((items, context) => {
+      const normalized = items.map((item) => item.trim().toLowerCase());
+      if (new Set(normalized).size !== normalized.length) {
+        context.addIssue({ code: z.ZodIssueCode.custom, message: 'ordering items must be unique after normalization' });
+      }
+    }),
+  }).strict(),
   'matching.pairs': z.object({
     prompt: nonEmptyText,
     left: z.array(optionSchema).min(2).max(10),

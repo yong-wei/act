@@ -118,6 +118,50 @@ describe('smart courseware generation worker', () => {
     expect(mocks.failUnit).not.toHaveBeenCalled();
   });
 
+  it('rejects an initial provider unit that mislabels AI output as teacher-created pending', async () => {
+    const plan = validPlanFixture();
+    const context = {
+      id: 'job-invalid-source-state', ownerId: 'teacher-1', draftId: 'draft-1', state: 'QUEUED', firstIncompleteUnitKey: 'bridge-in',
+      deliveryGeneration: 1,
+      draft: { id: 'draft-1', planRevision: { content: plan } },
+      units: [{ id: 'unit-1', unitKey: 'bridge-in', state: 'PENDING', output: null, orderIndex: 0, attemptGeneration: 0 }],
+    };
+    const db = { smartCoursewareGenerationJob: { findUnique: vi.fn().mockResolvedValue(context) } };
+    mocks.buildSar.mockResolvedValue({ selectedVersionIds: [sourceBindingFixture.sourceVersionId] });
+    mocks.buildSourcePack.mockResolvedValue({
+      retrieval: { pack: { items: [{
+        citationTargetId: sourceBindingFixture.citationId,
+        metadata: {
+          versionId: sourceBindingFixture.sourceVersionId,
+          stableAnchor: sourceBindingFixture.anchor,
+          contentHash: sourceBindingFixture.contentHash,
+        },
+      }] } },
+    });
+    mocks.beginAttempt.mockResolvedValue({
+      claimed: true, claimToken: 'claim-invalid', attempt: { id: 'attempt-invalid', idempotencyKey: 'attempt-invalid-key' },
+    });
+    mocks.failUnit.mockResolvedValue({ state: 'FAILED' });
+    const output = createDeterministicCoursewareStage({
+      unitKey: 'bridge-in', durationSeconds: 300, sourceBinding: sourceBindingFixture,
+    });
+    output.moduleMetadata[0].sourceState = 'teacher_created_source_pending';
+    const runtime = {
+      serviceId: 'fixture-service', providerKind: 'fixture', model: 'fixture-model',
+      generate: vi.fn().mockResolvedValue({
+        output, normalizedResponseId: 'fixture-response', inputTokens: 0, outputTokens: 0, costMicros: null,
+      }),
+    };
+
+    await expect(processCoursewareGenerationJob(db as never, context.id, async () => runtime as never))
+      .rejects.toMatchObject({ code: 'ai-generated-courseware-source-state-invalid' });
+    expect(mocks.completeUnit).not.toHaveBeenCalled();
+    expect(mocks.failUnit).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      failureCode: 'ai-generated-courseware-source-state-invalid',
+      retryable: false,
+    }));
+  });
+
   it('fails a crash redelivery with a live unit lease and processes a later reclaimed delivery', async () => {
     const plan = validPlanFixture();
     const context = {

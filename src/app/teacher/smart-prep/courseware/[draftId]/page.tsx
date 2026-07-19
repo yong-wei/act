@@ -15,6 +15,7 @@ import {
   getSmartCoursewareStudentProjection,
   getSmartCoursewareTeacherProjection,
 } from '@/lib/smart-courseware';
+import { resolveSmartCoursewareOrderingSecret } from '@/lib/smart-courseware/student-projection-secret';
 
 export const dynamic = 'force-dynamic';
 
@@ -82,7 +83,11 @@ export default async function SmartCoursewareEditorPage({
 
   const [teacherProjection, studentProjection] = await Promise.all([
     getSmartCoursewareTeacherProjection(prisma, { actor, draftId }),
-    getSmartCoursewareStudentProjection(prisma, { actor, draftId }),
+    getSmartCoursewareStudentProjection(
+      prisma,
+      { actor, draftId },
+      { orderingPermutationSecret: resolveSmartCoursewareOrderingSecret() },
+    ),
   ]);
   return (
     <SmartCoursewareProjectionEditor

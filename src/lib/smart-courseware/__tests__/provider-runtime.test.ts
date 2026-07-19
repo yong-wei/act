@@ -46,6 +46,22 @@ describe('smart courseware provider runtime', () => {
     expect(() => schema.parse(output)).toThrow();
   });
 
+  it('rejects provider ordering output with normalized duplicate items', () => {
+    const output = createDeterministicCoursewareStage({
+      unitKey: 'pre-assessment', durationSeconds: 300, sourceBinding: sourceBindingFixture,
+    });
+    const runtimeModule = output.stage.steps[0].modules[0];
+    runtimeModule.responseKind = 'ordering.sequence';
+    runtimeModule.payload = { prompt: '排序', items: ['Step A', ' step a '] };
+    output.moduleMetadata[0].teacherFields.referenceAnswer = 'Step A|step a';
+
+    expect(() => coursewareGeneratedStageOutputSchema.parse(output)).toThrowError(expect.objectContaining({
+      issues: expect.arrayContaining([
+        expect.objectContaining({ message: 'ordering items must be unique after normalization' }),
+      ]),
+    }));
+  });
+
   it('returns stable fixture identities outside production', async () => {
     vi.stubEnv('NODE_ENV', 'test');
     vi.stubEnv('SMART_COURSEWARE_E2E_FIXTURE_TOKEN', 'smart-courseware-real-browser-v1');

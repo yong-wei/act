@@ -22,6 +22,8 @@ import { projectCoursewareForStudent } from '@/lib/smart-courseware';
 import { validateCoursewareComposition } from '@/lib/smart-courseware';
 import { validCompositionInput, validPlan } from '@/lib/smart-courseware/__tests__/fixtures';
 
+const orderingPermutationSecret = 'smart-courseware-ordering-ui-test-secret-v1';
+
 const manifest: GeneratedSlideManifest = {
   schemaVersion: GENERATED_SLIDE_SCHEMA_VERSION,
   lessonId: 'courseware-editor-test',
@@ -100,7 +102,9 @@ describe('smart courseware role previews', () => {
   });
 
   it('projects a student envelope that cannot carry teacher metadata', () => {
-    const receipt = projectCoursewareForStudent({ draftId: 'draft-1', version: 2, runtimeManifest: manifest });
+    const receipt = projectCoursewareForStudent({
+      draftId: 'draft-1', version: 2, runtimeManifest: manifest, orderingPermutationSecret,
+    });
     const preview = createSmartCoursewareStudentPreviewFromService(teacherEnvelope, receipt);
     expect(preview).not.toBeNull();
     const serialized = JSON.stringify(preview);
@@ -116,6 +120,29 @@ describe('smart courseware role previews', () => {
     expect(html).not.toContain('PRIVATE_');
     expect(html).not.toContain('TEACHER_MANIFEST_SECRET');
     expect(html).toContain(preview!.sourceContentHash);
+  });
+
+  it('renders ordering controls from the stable scrambled student adapter projection', () => {
+    const composition = validCompositionInput();
+    const ordering = composition.runtimeManifest.stages[2].steps[0].modules[0];
+    ordering.responseKind = 'ordering.sequence';
+    ordering.payload = { prompt: '请排序', items: ['ORDER_FIRST', 'ORDER_SECOND', 'ORDER_THIRD'] };
+    const first = projectCoursewareForStudent({
+      draftId: 'draft-1', version: 2, runtimeManifest: composition.runtimeManifest, orderingPermutationSecret,
+    });
+    const second = projectCoursewareForStudent({
+      draftId: 'draft-1', version: 2, runtimeManifest: composition.runtimeManifest, orderingPermutationSecret,
+    });
+    const preview = createSmartCoursewareStudentPreviewFromService(teacherEnvelope, first)!;
+    const card = preview.manifest.steps.flatMap((step) => step.interactionSpec.activityCards ?? [])
+      .find((candidate) => candidate.id === ordering.id)!;
+
+    expect(JSON.stringify(first)).toBe(JSON.stringify(second));
+    expect(card.options.map((option) => option.value)).not.toEqual(['ORDER_FIRST', 'ORDER_SECOND', 'ORDER_THIRD']);
+    const html = renderToStaticMarkup(<StudentCoursewarePreview preview={preview} />);
+    const projectedOrder = card.options.map((option) => html.indexOf(option.label));
+    expect(projectedOrder).toEqual([...projectedOrder].sort((left, right) => left - right));
+    expect(html).not.toContain('referenceAnswer');
   });
 
   it('maps the service teacher projection and requires a matching student receipt', () => {
@@ -153,7 +180,7 @@ describe('smart courseware role previews', () => {
       draftId: 'draft-1', version: 2, runtimeManifest: {}, notice: 'ai-assisted-teacher-reviewed',
     })).toBeNull();
     expect(createSmartCoursewareStudentPreviewFromService(envelope, projectCoursewareForStudent({
-      draftId: 'draft-1', version: 2, runtimeManifest: manifest,
+      draftId: 'draft-1', version: 2, runtimeManifest: manifest, orderingPermutationSecret,
     }))).not.toBeNull();
   });
 
@@ -277,6 +304,21 @@ describe('smart courseware role previews', () => {
         } : metadata
       )),
     }, validPlan()).validation.valid).toBe(true);
+  });
+
+  it('rejects an edited ordering activity with normalized duplicate items', () => {
+    const composition = validCompositionInput();
+    const activity = composition.runtimeManifest.stages[2].steps[0].modules[0];
+    activity.responseKind = 'ordering.sequence';
+    activity.payload = { prompt: '排序', items: ['Step A', ' step a '] };
+    composition.moduleMetadata[2].teacherFields = {
+      referenceAnswer: 'Step A|step a', explanation: '按顺序评分。', scoring: { strategy: 'exact-order', maxPoints: 1 },
+      inclusionRationale: '该来源支撑步骤顺序。',
+    };
+
+    expect(() => validateCoursewareComposition(composition, validPlan())).toThrowError(expect.objectContaining({
+      code: 'runtime-manifest-invalid:module.payload-invalid',
+    }));
   });
 
   it('clears incompatible teacher evidence when switching objective and open response kinds', () => {

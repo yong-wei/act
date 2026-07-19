@@ -9,7 +9,11 @@ import { prisma } from '@/lib/prisma';
 import { normalizeSourceBindings } from '@/lib/smart-lesson-plan/domain';
 import { validateSmartLessonPlan, type SmartLessonPlan } from '@/lib/smart-lesson-plan/schema';
 
-import { SmartCoursewareError, assertPersistedCoursewareManifest } from './domain';
+import {
+  SmartCoursewareError,
+  assertAiGeneratedCoursewareSourceState,
+  assertPersistedCoursewareManifest,
+} from './domain';
 import {
   beginCoursewareProviderAttempt,
   completeCoursewareGenerationUnit,
@@ -212,6 +216,7 @@ function validateUnitOutput(output: unknown, unitKey: CoursewareGenerationUnitKe
   for (const binding of parsed.moduleMetadata.flatMap((metadata) => metadata.sourceBindings)) {
     if (!allowed.has(bindingKey(binding))) throw new SmartCoursewareError('generated-source-binding-unverified', 409);
   }
+  parsed.moduleMetadata.forEach(assertAiGeneratedCoursewareSourceState);
   return parsed;
 }
 

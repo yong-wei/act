@@ -50,6 +50,11 @@ describe('smart lesson plan workspace request contracts', () => {
   });
 
   it('keeps student projection server-owned and exposes complete step controls', () => {
+    expect(coursewarePageSource).toContain('resolveSmartCoursewareOrderingSecret()');
+    expect(coursewarePageSource).toContain('orderingPermutationSecret:');
+    expect(coursewarePageSource).not.toContain('NEXT_PUBLIC_');
+    expect(coursewareEditorSource).not.toContain('orderingPermutationSecret');
+    expect(coursewareEditorSource).not.toContain('SMART_COURSEWARE_ORDERING_SECRET');
     expect(coursewareEditorSource).toContain('createSmartCoursewareStudentPreviewFromService(next, payload.preview)');
     expect(coursewareEditorSource).not.toContain('projectSmartCoursewareStudentPreview');
     for (const label of ['拆分当前步骤', '编辑步骤', '步骤前移', '步骤后移', '合并并删除步骤']) {

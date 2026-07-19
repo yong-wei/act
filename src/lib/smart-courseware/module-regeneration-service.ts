@@ -8,6 +8,7 @@ import { validateSmartLessonPlan } from '@/lib/smart-lesson-plan/schema';
 
 import {
   SmartCoursewareError,
+  assertAiGeneratedCoursewareSourceState,
   assertCoursewareManifestIdentity,
   assertPersistedCoursewareManifest,
   coursewareManifestHash,
@@ -539,6 +540,7 @@ function assertCandidateBoundary(candidate: ReturnType<typeof coursewareModuleCa
   if (candidate.moduleMetadata.sourceBindings.some((binding) => !allowed.has(bindingKey(binding)))) {
     throw new SmartCoursewareError('generated-source-binding-unverified', 409);
   }
+  assertAiGeneratedCoursewareSourceState(candidate.moduleMetadata);
 }
 
 function replaceRuntimeModule(manifest: GeneratedSlideManifest, moduleId: string, replacement: GeneratedSlideModule) {
