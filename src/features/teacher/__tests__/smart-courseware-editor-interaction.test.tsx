@@ -25,6 +25,30 @@ describe('smart courseware editor activity creation', () => {
     vi.unstubAllGlobals();
   });
 
+  it('reports a retryable queue delivery failure instead of claiming the task was queued', async () => {
+    vi.stubGlobal('crypto', { randomUUID: () => '00000000-0000-4000-8000-000000000001' });
+    vi.stubGlobal('fetch', vi.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        job: { id: 'job-1', draftId: 'draft-1', state: 'RETRYABLE', firstIncompleteUnitKey: 'bridge-in', units: [] },
+        delivery: { queued: false, errorCode: 'courseware-queue-unavailable' },
+      }),
+    } as Response)));
+    const envelope: SmartCoursewareTeacherEnvelope = {
+      draftId: 'draft-1', planRevisionId: 'plan-1', state: 'waiting-for-generation', version: 1,
+      manifest: null, stalePlan: false, teacherModules: {}, compositionMetadata: [],
+      planLimitations: [], aiReview: null, generationAudit: [],
+    };
+    await act(async () => root.render(createElement(SmartCoursewareEditor, { initialEnvelope: envelope })));
+    const start = [...container.querySelectorAll('button')].find((button) => button.textContent === '开始生成课件')!;
+    await act(async () => start.click());
+
+    expect(container.textContent).toContain('队列投递失败');
+    expect(container.textContent).toContain('courseware-queue-unavailable');
+    expect(container.textContent).toContain('生成任务 RETRYABLE');
+    expect(container.textContent).not.toContain('已进入队列');
+  });
+
   it('submits a newly added activity with editable teacher evidence accepted by the server contract', async () => {
     const composition = validCompositionInput();
     const runtimeManifest = {
