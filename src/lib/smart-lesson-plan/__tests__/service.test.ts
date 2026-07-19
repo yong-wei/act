@@ -580,6 +580,10 @@ describe('smart lesson aggregate service', () => {
         findUniqueOrThrow: vi.fn(async () => ({})),
       },
       courseBasisProjection: { findMany: findCanonicalProjections },
+      $transaction: vi.fn(async (run) => run({
+        smartLessonDraft: db.smartLessonDraft,
+        smartLessonGenerationJob: { updateMany: vi.fn(async () => ({ count: 0 })) },
+      })),
     };
     const canonicalPlan = () => {
       const plan = validPlanFixture();
@@ -625,6 +629,68 @@ describe('smart lesson aggregate service', () => {
         version: expect.not.objectContaining({ retiredAt: null }),
       }),
     }));
+  });
+
+  it('atomically supersedes recoverable old jobs after a draft edit without touching a concurrent queued job', async () => {
+    const canonicalBinding = {
+      ...binding,
+      citationId: teacherCourseBasisCitationTargetId({ courseBasisId: 'basis-1', versionId: 'version-1', stableAnchor: 'chapter-1' }),
+    };
+    const task = {
+      id: 'task-1', ownerId: teacher.id, courseBasisId: 'basis-1', durationMinutes: 30,
+      topic: '闭环稳定性', audience: '自动化专业本科生', prerequisites: '复数与传递函数',
+      aggregateClassContextRef: null, courseBasis: { title: '自动控制原理' },
+      sources: [{ sourceVersionId: 'version-1' }],
+      knowledgePoints: [{ id: 'kp-1', title: '稳定性判据', sourceState: 'VERIFIED', sourceBindings: [canonicalBinding], gapIdentity: null }],
+      goals: [{ id: 'goal-1', content: '判断闭环系统稳定性', sourceState: 'AI_GENERATED_SOURCE_PENDING', sourceBindings: [], gapIdentity: `smart-goal-gap:${'b'.repeat(64)}` }],
+    };
+    const plan = validPlanFixture();
+    plan.knowledgePoints[0].sourceBindings[0].citationId = canonicalBinding.citationId;
+    plan.sources[0].citationId = canonicalBinding.citationId;
+    for (const stage of Object.values(plan.boppps)) stage.steps[0].sourceBindings[0].citationId = canonicalBinding.citationId;
+    const jobs = [
+      { id: 'job-old', draftId: 'draft-1', state: 'FAILED', activeIdentity: 'draft:draft-1', supersededAt: null as Date | null },
+      { id: 'job-new', draftId: 'draft-1', state: 'QUEUED', activeIdentity: 'draft:draft-1:new', supersededAt: null as Date | null },
+    ];
+    const updateJobs = vi.fn(async ({ where, data }) => {
+      for (const job of jobs) {
+        if (job.draftId === where.draftId && where.state.in.includes(job.state) && job.supersededAt === null) Object.assign(job, data);
+      }
+      return { count: 1 };
+    });
+    const draftStore = {
+      findFirst: vi.fn(async () => ({ id: 'draft-1', ownerId: teacher.id, state: 'READY', version: 1, task })),
+      updateMany: vi.fn(async () => ({ count: 1 })),
+      findUniqueOrThrow: vi.fn(async () => ({ id: 'draft-1', state: 'READY', version: 2 })),
+    };
+    const tx = { smartLessonDraft: draftStore, smartLessonGenerationJob: { updateMany: updateJobs } };
+    const db = {
+      smartLessonDraft: draftStore,
+      courseBasisProjection: { findMany: vi.fn(async () => [{ versionId: 'version-1', segment: { stableAnchor: 'chapter-1', contentHash: 'a'.repeat(64) } }]) },
+      $transaction: vi.fn(async (run) => run(tx)),
+    };
+
+    await expect(updateSmartLessonDraft(db as never, { actor: teacher, draftId: 'draft-1', expectedVersion: 1, content: plan }))
+      .resolves.toMatchObject({ version: 2 });
+    expect(db.$transaction).toHaveBeenCalledWith(expect.any(Function), { isolationLevel: 'Serializable' });
+    expect(updateJobs).toHaveBeenCalledWith({
+      where: {
+        draftId: 'draft-1', state: { in: ['PAUSED', 'RETRYABLE', 'FAILED', 'CANCELLED'] }, supersededAt: null,
+      },
+      data: { activeIdentity: null, supersededAt: expect.any(Date) },
+    });
+    expect(jobs[0]).toMatchObject({ activeIdentity: null, supersededAt: expect.any(Date) });
+    expect(jobs[1]).toMatchObject({ state: 'QUEUED', activeIdentity: 'draft:draft-1:new', supersededAt: null });
+
+    const recoveryDb = {
+      smartLessonGenerationCommand: { findFirst: vi.fn(async () => null) },
+      $transaction: vi.fn(async (run) => run({
+        smartLessonGenerationJob: { findFirst: vi.fn(async () => ({ ...jobs[0], ownerId: teacher.id })) },
+      })),
+    };
+    await expect(retryGenerationJob(recoveryDb as never, {
+      actor: teacher, jobId: 'job-old', idempotencyKey: 'retry-superseded-job',
+    })).rejects.toMatchObject({ code: 'generation-job-retry-invalid' });
   });
 
   it('rejects paused outlines with duplicate stages or a mismatched total duration', async () => {

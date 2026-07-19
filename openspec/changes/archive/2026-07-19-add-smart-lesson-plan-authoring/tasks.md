@@ -36,4 +36,5 @@
 - Current-head Codex feedback on confirmed task facts, canonical source bindings, superseded job recovery, and paused-outline invariants was fixed and independently re-reviewed with no remaining P0-P2 findings.
 - Follow-up current-head feedback on generation idempotency, explicitly selected retired sources, and draft-edit concurrency was fixed and independently re-reviewed with no remaining P0-P2 findings.
 - Final current-head feedback on frozen retired sources, stale-worker draft unlocking, paused-outline concurrency, and atomic Konling confirmation was fixed and independently re-reviewed with no remaining P0-P2 findings.
+- Additional current-head feedback on superseding resumable jobs after draft edits and retryable advisory-review intents was fixed and independently re-reviewed with no remaining P0-P2 findings.
 - `openspec validate add-smart-lesson-plan-authoring --strict` and `git diff --check` passed.

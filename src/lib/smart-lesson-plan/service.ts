@@ -591,12 +591,30 @@ export async function updateSmartLessonDraft(db: SmartLessonDb, input: {
   assertPlanMatchesConfirmedTask(plan, draft.task);
   await assertPlanSourceBindingsCanonical(db, draft.task, plan);
   const planHash = contentHash(plan);
-  const result = await db.smartLessonDraft.updateMany({
-    where: { id: draft.id, ownerId: draft.ownerId, version: input.expectedVersion, state: { notIn: ['APPROVED', 'GENERATING'] } },
-    data: { content: asJson(plan), contentHash: planHash, state: 'READY', version: { increment: 1 }, staleDownstreamAt: new Date() },
-  });
-  if (result.count !== 1) throw new SmartLessonPlanError('draft-version-conflict', 409);
-  return db.smartLessonDraft.findUniqueOrThrow({ where: { id: draft.id } });
+  try {
+    return await db.$transaction(async (tx) => {
+      const now = new Date();
+      const result = await tx.smartLessonDraft.updateMany({
+        where: { id: draft.id, ownerId: draft.ownerId, version: input.expectedVersion, state: { notIn: ['APPROVED', 'GENERATING'] } },
+        data: { content: asJson(plan), contentHash: planHash, state: 'READY', version: { increment: 1 }, staleDownstreamAt: now },
+      });
+      if (result.count !== 1) throw new SmartLessonPlanError('draft-version-conflict', 409);
+      await tx.smartLessonGenerationJob.updateMany({
+        where: {
+          draftId: draft.id,
+          state: { in: ['PAUSED', 'RETRYABLE', 'FAILED', 'CANCELLED'] },
+          supersededAt: null,
+        },
+        data: { activeIdentity: null, supersededAt: now },
+      });
+      return tx.smartLessonDraft.findUniqueOrThrow({ where: { id: draft.id } });
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2034') {
+      throw new SmartLessonPlanError('draft-version-conflict', 409);
+    }
+    throw error;
+  }
 }
 
 export async function deriveDraftFromRevision(db: SmartLessonDb, input: {
@@ -1263,6 +1281,7 @@ async function transitionGenerationJob(
     return await db.$transaction(async (tx) => {
       const job = await tx.smartLessonGenerationJob.findFirst({ where: ownedWhere(actor, { id: validateId(input.jobId) }) });
       if (!job) throw new SmartLessonPlanError('generation-job-not-found', 404);
+      if (job.supersededAt) throw new SmartLessonPlanError(`generation-job-${action.toLowerCase()}-invalid`, 409);
       if (!allowedStates.includes(job.state)) throw new SmartLessonPlanError(`generation-job-${action.toLowerCase()}-invalid`, 409);
       const updated = await transition(tx, job as never, new Date());
       await recordCommand(tx, { ownerId: job.ownerId, jobId: job.id, action, idempotencyKey, requestHash, result: jobSnapshot(updated) });
