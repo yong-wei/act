@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { contentHash } from '@/lib/smart-lesson-plan/domain';
-import { validPlanFixture } from '@/lib/smart-lesson-plan/__tests__/fixtures';
+import { sourceBindingFixture, validPlanFixture } from '@/lib/smart-lesson-plan/__tests__/fixtures';
 
 import {
   COURSEWARE_GENERATION_UNITS,
@@ -15,6 +15,7 @@ import {
 } from '../generation-service';
 import { coursewareManifestHash, coursewareModuleGenerationInputHash } from '../domain';
 import { validCoursewareManifest } from './fixtures';
+import { createDeterministicCoursewareStage } from '../provider-runtime';
 
 const actor = { id: 'teacher-1', role: 'TEACHER' as const };
 
@@ -116,6 +117,38 @@ describe('smart courseware generation service', () => {
     await expect(completeCoursewareGenerationUnit(db as never, {
       actor, jobId: job.id, unitKey: 'bridge-in', claimToken: 'claim', attemptId: 'attempt', output: { accepted: false },
     })).rejects.toMatchObject({ code: 'completed-courseware-unit-output-conflict' });
+  });
+
+  it('fails a stage identity collision before completion and accepts a corrected retry', async () => {
+    const previous = createDeterministicCoursewareStage({ unitKey: 'bridge-in', durationSeconds: 60, sourceBinding: sourceBindingFixture });
+    const corrected = createDeterministicCoursewareStage({ unitKey: 'objective', durationSeconds: 60, sourceBinding: sourceBindingFixture });
+    const conflicting = structuredClone(corrected);
+    conflicting.stage.steps[0].id = previous.stage.steps[0].id;
+    conflicting.stage.steps[0].modules[0].id = previous.stage.steps[0].modules[0].id;
+    conflicting.moduleMetadata[0].moduleId = previous.stage.steps[0].modules[0].id;
+    const current = { id: 'unit-2', unitKey: 'objective', orderIndex: 1, state: 'RUNNING', attempts: [{ id: 'attempt-2', outcome: 'RUNNING' }] };
+    const job = {
+      id: 'job-1', ownerId: actor.id, draftId: 'draft-1', state: 'RUNNING', draft: { state: 'GENERATING' },
+      units: [
+        { id: 'unit-1', unitKey: 'bridge-in', orderIndex: 0, state: 'COMPLETED', output: previous, attempts: [] },
+        current,
+        { id: 'unit-3', unitKey: 'pre-assessment', orderIndex: 2, state: 'PENDING', attempts: [] },
+      ],
+    };
+    const completeUnit = vi.fn().mockResolvedValue({ count: 1 });
+    const updateJob = vi.fn().mockResolvedValue({ ...job, firstIncompleteUnitKey: 'pre-assessment' });
+    const db = { $transaction: vi.fn(async (run: (tx: unknown) => unknown) => run({
+      smartCoursewareGenerationJob: { findFirst: vi.fn().mockResolvedValue(job), update: updateJob },
+      smartCoursewareGenerationUnit: { updateMany: completeUnit },
+      smartCoursewareProviderAttempt: { update: vi.fn() },
+    })) };
+    const command = { actor, jobId: job.id, unitKey: 'objective' as const, claimToken: 'claim', attemptId: 'attempt-2' };
+    await expect(completeCoursewareGenerationUnit(db as never, { ...command, output: conflicting }))
+      .rejects.toMatchObject({ code: 'generated-courseware-global-identity-conflict' });
+    expect(completeUnit).not.toHaveBeenCalled();
+    await expect(completeCoursewareGenerationUnit(db as never, { ...command, output: corrected }))
+      .resolves.toMatchObject({ firstIncompleteUnitKey: 'pre-assessment' });
+    expect(completeUnit).toHaveBeenCalledTimes(1);
   });
 
   it('keeps a failed initial job active and the draft generating until an explicit transition', async () => {

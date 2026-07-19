@@ -423,12 +423,19 @@ function studentRuntimeProjection(
             }, identity.orderingPermutationSecret),
           };
         });
+      const orderingItems = new Map(activityCards
+        .filter((card) => sourceModules.get(card.id)?.responseKind === 'ordering.sequence')
+        .map((card) => [card.id, card.options.map((option) => option.value)]));
       const evidencePaths = source.modules
         .filter((module) => visible.has(module.id) && module.canonicalClass === 'activity.panel')
         .flatMap((module) => module.evidencePath ? [module.evidencePath] : []);
       return {
         ...step,
-        modules: step.modules.filter((module) => visible.has(module.id)),
+        modules: step.modules.filter((module) => visible.has(module.id)).map((module) => {
+          const items = orderingItems.get(module.id);
+          if (!items || !module.payload || typeof module.payload !== 'object') return module;
+          return { ...module, payload: { ...module.payload, items } };
+        }),
         evidenceSequence: evidencePaths,
         interactionSpec: {
           ...step.interactionSpec,

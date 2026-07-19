@@ -390,6 +390,11 @@ describe('smart courseware domain', () => {
     expect(JSON.stringify(first)).not.toContain('orderingPermutationSecret');
     expect(card(orderingModule.id).options.map((option) => option.value))
       .not.toEqual(['第一步', '第二步', '第三步', '第四步']);
+    const projectedOrderingModule = first.runtimeManifest.steps.flatMap((step) => step.modules).find((module) => module.id === orderingModule.id)!;
+    expect((projectedOrderingModule.payload as { items: string[] }).items)
+      .toEqual(card(orderingModule.id).options.map((option) => option.value));
+    expect((projectedOrderingModule.payload as { items: string[] }).items)
+      .not.toEqual(['第一步', '第二步', '第三步', '第四步']);
     const firstOrdering = card(orderingModule.id).options;
     const differentSecretOrdering = Array.from({ length: 12 }, (_, index) => projectCoursewareForStudent({
       draftId: 'draft-1', version: 2, runtimeManifest: validated.runtimeManifest,
