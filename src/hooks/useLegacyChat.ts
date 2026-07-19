@@ -15,9 +15,10 @@ interface UseLegacyChatOptions {
   body?: Record<string, unknown>;
   onError?: (error: Error) => void;
   onFinish?: (event: unknown) => void;
+  onResponse?: (response: Response) => void;
 }
 
-export function useChat({ api, body, onError, onFinish }: UseLegacyChatOptions) {
+export function useChat({ api, body, onError, onFinish, onResponse }: UseLegacyChatOptions) {
   const [input, setInput] = useState('');
   const bodyRef = useRef(body);
 
@@ -30,8 +31,13 @@ export function useChat({ api, body, onError, onFinish }: UseLegacyChatOptions) 
       new DefaultChatTransport({
         api,
         body: () => bodyRef.current ?? {},
+        fetch: async (input, init) => {
+          const response = await fetch(input, init);
+          onResponse?.(response.clone());
+          return response;
+        },
       }),
-    [api],
+    [api, onResponse],
   );
 
   const chat = useAiSdkChat({

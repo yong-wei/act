@@ -34,6 +34,7 @@ import {
 } from '@/lib/konling-agent-runtime';
 import {
   resolveKonlingTeachingAssistantScopeOverride,
+  resolveKonlingSmartPrepSessionBinding,
   resolveKonlingTeachingAssistantServerModeContext,
 } from '@/lib/konling-teaching-assistant-server-context';
 import type { AIContext } from '@/types/ai-context';
@@ -100,6 +101,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     });
 
     const updatedMessages = [...existingMessages, userMessage];
+    const ownedTurnIds = updatedMessages.filter((message) => message.role === 'user').map((message) => message.id).filter(Boolean).slice(-50);
 
     const modeScopeOverride = await resolveKonlingTeachingAssistantScopeOverride({
       db: prisma,
@@ -147,6 +149,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       scope: scope.scope,
       clientContextHints: modeClientContextHints,
     });
+    const smartPrepBinding = resolveKonlingSmartPrepSessionBinding(serverModeContext);
     const runtimeContext = await buildKonlingRuntimeContext(prisma, {
       ...runtimeInput,
       teachingAssistantServerModeContext: serverModeContext,
@@ -200,11 +203,33 @@ export async function POST(request: NextRequest, context: RouteContext) {
       state: {
         route: '/api/ai/sessions/[id]/messages',
         konlingSessionId: sessionId,
+        currentTurnId: userMessage.id,
+        ownedTurnIds,
         teachingAssistantMode: modeContract.mode.id,
         modeStatus: modeContract.status,
       },
       permittedTools: modeContract.permittedTools,
+      smartPrepBinding,
     });
+    const agentSessionStateUpdate = await prisma.agentSession.updateMany({
+      where: { id: agentSession.id, ownerUserId: scope.scope.targetUserId, actorUserId: scope.scope.authenticatedUserId },
+      data: { stateJson: {
+        ...agentSession.state,
+        route: '/api/ai/sessions/[id]/messages',
+        konlingSessionId: sessionId,
+        currentTurnId: userMessage.id,
+        ownedTurnIds,
+        teachingAssistantMode: modeContract.mode.id,
+        ...(smartPrepBinding ? {
+          smartPrepBinding: {
+            taskId: smartPrepBinding.taskId,
+            taskRevision: smartPrepBinding.taskRevision,
+            ownerUserId: scope.scope.targetUserId,
+          },
+        } : {}),
+      } as Prisma.InputJsonObject },
+    });
+    if (agentSessionStateUpdate.count !== 1) throw new KonlingRuntimeScopeError(404, 'AgentSession turn binding persistence failed.');
     const modelRequirements: ModelProviderCapabilityRequirements = {
       tools: true,
       streaming: true,
@@ -284,6 +309,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       scope: scope.scope,
       agentSessionId: agentSession.id,
       phase: 'konling-chat-tool-runtime',
+      smartPrepBinding,
     });
 
     return NextResponse.json({

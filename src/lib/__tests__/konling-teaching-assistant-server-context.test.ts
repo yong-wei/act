@@ -1,5 +1,7 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createHmac } from 'node:crypto';
+
+vi.mock('server-only', () => ({}));
 
 import {
   createKonlingTeachingAssistantServerContextToken,
@@ -597,6 +599,156 @@ describe('Konling teaching-assistant server context', () => {
         goalId: 'control-correction',
       },
     })).resolves.toEqual({});
+  });
+
+  it('projects server-owned smart-task context and clarification readiness for the owning teacher', async () => {
+    const findFirst = async ({ where }: { where: { id: string; ownerId: string } }) =>
+      where.id === 'task-1' && where.ownerId === 'teacher-1'
+        ? {
+            id: 'task-1',
+            ownerUserId: 'teacher-1',
+            revision: 7,
+            selectedCourseBasisVersions: [{ versionId: 'basis-version-2', citationState: 'verified', reviewState: 'CONFIRMED' }],
+            unresolvedAmbiguities: [{
+              id: 'ambiguity-duration',
+              field: 'durationMinutes',
+              question: '本课采用 45 分钟还是 90 分钟？',
+              alternatives: [{ id: '45', label: '45 分钟' }, { id: '90', label: '90 分钟' }],
+            }],
+            confirmedDecisions: [{
+              id: 'decision-topic',
+              field: 'topic',
+              value: '根轨迹校正',
+              confirmedAt: '2026-07-19T03:00:00.000Z',
+              confirmedBy: 'teacher-1',
+            }],
+            citationState: 'partially-verified',
+            reviewState: 'teacher-draft',
+          }
+        : null;
+
+    const context = await resolveKonlingTeachingAssistantServerModeContext({
+      db: { smartLessonTask: { findFirst } },
+      modeId: 'prep-coauthor',
+      scope: scope({ classId: null, pageId: '/teacher/smart-prep' }),
+      clientContextHints: {
+        smartTaskId: 'task-1',
+        smartTaskRevision: '7',
+        reviewState: 'client-approved',
+      },
+    });
+
+    expect(context).toMatchObject({
+      'smart-task': true,
+      'selected-course-basis-versions': true,
+      'teacher-review-state': true,
+      smartPreparation: {
+        taskId: 'task-1',
+        taskRevision: '7',
+        citationState: 'partially-verified',
+        reviewState: 'teacher-draft',
+        clarificationReadiness: {
+          status: 'clarification-required',
+          canGenerate: false,
+          unresolvedAmbiguityIds: ['ambiguity-duration'],
+        },
+        updatePolicy: {
+          suggestionStatus: 'draft',
+          requiresExplicitTeacherConfirmation: true,
+          expectedTaskRevision: '7',
+        },
+      },
+    });
+    expect(context.smartPreparation?.reviewState).not.toBe('client-approved');
+  });
+
+  it('rejects foreign and non-teacher smart-prep task bindings', async () => {
+    const findFirst = async () => null;
+    const base = {
+      db: { smartLessonTask: { findFirst } },
+      modeId: 'prep-coauthor',
+      clientContextHints: { smartTaskId: 'task-1', smartTaskRevision: '6' },
+    };
+
+    await expect(resolveKonlingTeachingAssistantServerModeContext({
+      ...base,
+      scope: scope({ classId: null, pageId: '/teacher/smart-prep' }),
+    })).resolves.toEqual({});
+    await expect(resolveKonlingTeachingAssistantServerModeContext({
+      ...base,
+      scope: scope({ role: 'student', authenticatedUserId: 'student-1', targetUserId: 'student-1', classId: null, pageId: '/teacher/smart-prep' }),
+    })).resolves.toEqual({});
+  });
+
+  it('exposes a teacher-only bootstrap context before a smart task exists', async () => {
+    const findMany = vi.fn(async () => [{
+      id: 'basis-1', title: '自动控制原理',
+      documents: [{ id: 'document-1', title: '教材', versions: [{ id: 'version-1', versionNumber: 2 }] }],
+    }]);
+    await expect(resolveKonlingTeachingAssistantServerModeContext({
+      db: { courseBasis: { findMany } },
+      modeId: 'prep-coauthor',
+      scope: scope({ classId: null, pageId: '/teacher/smart-prep' }),
+      clientContextHints: { smartPrepBootstrap: 'true' },
+    })).resolves.toMatchObject({
+      'prep-pack': true,
+      'clarification-readiness': true,
+      smartPreparation: {
+        bootstrap: true,
+        taskId: null,
+        taskRevision: null,
+        currentTask: { availableCourseBases: [{ id: 'basis-1', title: '自动控制原理' }] },
+        clarificationReadiness: { status: 'clarification-required', canGenerate: false },
+      },
+    });
+    expect(findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: { ownerId: 'teacher-1' },
+      take: 20,
+    }));
+  });
+
+  it('derives confirmed decisions and citation readiness from the persisted smart-task shape', async () => {
+    const findFirst = async () => ({
+      id: 'task-2',
+      ownerId: 'teacher-1',
+      revision: 3,
+      topic: '频域稳定裕度',
+      audience: '自动化专业本科生',
+      durationMinutes: 45,
+      scopeConfirmedAt: new Date('2026-07-19T03:10:00.000Z'),
+      goalsConfirmedAt: new Date('2026-07-19T03:11:00.000Z'),
+      sources: [{
+        sourceVersionId: 'basis-version-3',
+        sourceVersion: { reviewState: 'CONFIRMED', retiredAt: null },
+      }],
+      knowledgePoints: [{ id: 'kp-1', state: 'CONFIRMED', title: '稳定裕度' }],
+      goals: [{ id: 'goal-1', state: 'CONFIRMED', content: '解释稳定裕度' }],
+    });
+
+    const context = await resolveKonlingTeachingAssistantServerModeContext({
+      db: { smartLessonTask: { findFirst } },
+      modeId: 'prep-coauthor',
+      scope: scope({ classId: null, pageId: '/teacher/smart-prep' }),
+      clientContextHints: { smartTaskId: 'task-2', smartTaskRevision: '3' },
+    });
+
+    expect(context.smartPreparation).toMatchObject({
+      taskId: 'task-2',
+      taskRevision: '3',
+      selectedCourseBasisVersions: [{
+        versionId: 'basis-version-3',
+        citationState: 'verified',
+        reviewState: 'CONFIRMED',
+      }],
+      unresolvedAmbiguities: [],
+      citationState: 'verified',
+      reviewState: 'confirmed',
+      clarificationReadiness: { status: 'ready', canGenerate: true },
+    });
+    expect(context.smartPreparation?.confirmedDecisions).toEqual(expect.arrayContaining([
+      expect.objectContaining({ field: 'scope', confirmedBy: 'teacher-1' }),
+      expect.objectContaining({ field: 'goals', value: ['goal-1'] }),
+    ]));
   });
 
   it('resolves class summarizer mode from governed diagnosis report snapshots without a token', async () => {

@@ -1,0 +1,185 @@
+import { generateObject } from 'ai';
+import type { z } from 'zod';
+
+import { createAIProviderFromConfig } from '../ai/provider-registry';
+import {
+  AIProviderCapabilityUnavailableError,
+  resolveConfiguredAIProviderConfig,
+} from '../ai/provider-settings';
+
+import {
+  SmartLessonPlanError,
+  contentHash,
+  createDeterministicFixtureProvider,
+  type SmartLessonFixtureStage,
+} from './domain';
+import {
+  smartLessonAdvisoryReviewSchema,
+  smartLessonReviewProviderAuditSchema,
+} from './schema';
+
+export const SMART_LESSON_PROMPT_VERSION = 'smart-lesson-plan.v1';
+export const SMART_LESSON_REVIEW_PROMPT_VERSION = 'smart-lesson-review.v1';
+
+type GenerateObjectResult<T> = {
+  object: T;
+  usage?: { inputTokens?: number; outputTokens?: number };
+  response?: { id?: string };
+};
+
+type RuntimeDependencies = {
+  resolveConfig?: typeof resolveConfiguredAIProviderConfig;
+  generate?: (input: Record<string, unknown>) => Promise<GenerateObjectResult<unknown>>;
+};
+
+export async function resolveSmartLessonStructuredProvider(dependencies: RuntimeDependencies = {}) {
+  try {
+    if (!dependencies.resolveConfig && !dependencies.generate && smartLessonE2EFixtureRequested()) {
+      return deterministicStructuredFixtureRuntime();
+    }
+    const config = await (dependencies.resolveConfig ?? resolveConfiguredAIProviderConfig)(
+      undefined,
+      undefined,
+      { jsonSchema: true },
+    );
+    if (!config.enabled) throw new SmartLessonPlanError('structured-provider-unavailable', 503);
+    const adapter = createAIProviderFromConfig(config);
+    return {
+      serviceId: config.provider,
+      providerKind: config.providerKind,
+      model: config.model,
+      async generate<T>(input: {
+        schema: z.ZodType<T>;
+        schemaVersion: string;
+        promptVersion: string;
+        system: string;
+        prompt: string;
+        idempotencyKey: string;
+        maxOutputTokens?: number;
+      }) {
+        const generator = dependencies.generate ?? (generateObject as unknown as RuntimeDependencies['generate']);
+        const result = await generator!({
+          model: adapter.getModel(),
+          schema: input.schema,
+          schemaName: input.schemaVersion.replace(/[^A-Za-z0-9_-]/g, '_'),
+          system: input.system,
+          prompt: input.prompt,
+          temperature: 0.1,
+          maxRetries: 0,
+          maxOutputTokens: input.maxOutputTokens ?? 8_000,
+          headers: { 'Idempotency-Key': input.idempotencyKey },
+        }) as GenerateObjectResult<T>;
+        return {
+          output: input.schema.parse(result.object),
+          normalizedResponseId: result.response?.id?.trim() || `sha256:${contentHash(result.object)}`,
+          inputTokens: result.usage?.inputTokens ?? null,
+          outputTokens: result.usage?.outputTokens ?? null,
+          costMicros: null,
+          audit: smartLessonReviewProviderAuditSchema.parse({
+            serviceId: config.provider,
+            providerKind: config.providerKind,
+            model: config.model,
+            promptVersion: input.promptVersion,
+            schemaVersion: input.schemaVersion,
+            normalizedResponseId: result.response?.id?.trim() || `sha256:${contentHash(result.object)}`,
+            inputTokens: result.usage?.inputTokens ?? null,
+            outputTokens: result.usage?.outputTokens ?? null,
+            costMicros: null,
+          }),
+        };
+      },
+    };
+  } catch (error) {
+    if (error instanceof SmartLessonPlanError) throw error;
+    if (error instanceof AIProviderCapabilityUnavailableError) {
+      throw new SmartLessonPlanError('structured-provider-unavailable', 503);
+    }
+    throw error;
+  }
+}
+
+function smartLessonE2EFixtureRequested() {
+  return process.env.SMART_LESSON_E2E_FIXTURE_TOKEN === 'smart-lesson-real-browser-v1';
+}
+
+function deterministicStructuredFixtureRuntime() {
+  const fixture = createDeterministicFixtureProvider(process.env.NODE_ENV);
+  return {
+    serviceId: fixture.serviceId,
+    providerKind: 'fixture',
+    model: 'deterministic-smart-lesson-v1',
+    async generate<T>(input: {
+      schema: z.ZodType<T>;
+      schemaVersion: string;
+      promptVersion: string;
+      system: string;
+      prompt: string;
+      idempotencyKey: string;
+      maxOutputTokens?: number;
+    }) {
+      const output = input.schemaVersion === 'smart-lesson-advisory-review.v1'
+        ? {
+            goalCoverage: '教学目标已在完整教案中得到覆盖。',
+            sourceConsistency: '来源状态和引用边界保持一致。',
+            bopppsStructure: 'BOPPPS 六阶段结构完整。',
+            findings: [{
+              category: 'CONTENT_QUALITY' as const,
+              severity: 'SUGGESTION' as const,
+              message: '可在授课后根据形成性评价结果继续修订。',
+              path: null,
+            }],
+            suggestions: ['保留教师最终判断并记录后续修订。'],
+          }
+        : await fixture.generateStage({
+            mode: 'success',
+            stage: fixtureStageFromSchemaVersion(input.schemaVersion),
+            seed: input.idempotencyKey,
+          });
+      const parsed = input.schema.parse(output);
+      const normalizedResponseId = `fixture:${contentHash({ schemaVersion: input.schemaVersion, output: parsed })}`;
+      return {
+        output: parsed,
+        normalizedResponseId,
+        inputTokens: 0,
+        outputTokens: 0,
+        costMicros: null,
+        audit: smartLessonReviewProviderAuditSchema.parse({
+          serviceId: fixture.serviceId,
+          providerKind: 'fixture',
+          model: 'deterministic-smart-lesson-v1',
+          promptVersion: input.promptVersion,
+          schemaVersion: input.schemaVersion,
+          normalizedResponseId,
+          inputTokens: 0,
+          outputTokens: 0,
+          costMicros: null,
+        }),
+      };
+    },
+  };
+}
+
+function fixtureStageFromSchemaVersion(schemaVersion: string): SmartLessonFixtureStage {
+  if (schemaVersion === 'smart-lesson-outline.v1') return 'OUTLINE';
+  const suffix = schemaVersion.match(/^smart-lesson-boppps-(.+)\.v1$/)?.[1]?.toUpperCase();
+  if (suffix && ['BRIDGE_IN', 'OBJECTIVES', 'PRE_ASSESSMENT', 'PARTICIPATORY_LEARNING', 'POST_ASSESSMENT', 'SUMMARY'].includes(suffix)) {
+    return suffix as SmartLessonFixtureStage;
+  }
+  throw new SmartLessonPlanError('fixture-schema-version-unsupported', 500);
+}
+
+export async function generateSmartLessonAdvisoryReport(input: {
+  plan: unknown;
+  idempotencyKey: string;
+}, dependencies: RuntimeDependencies = {}) {
+  const runtime = await resolveSmartLessonStructuredProvider(dependencies);
+  return runtime.generate({
+    schema: smartLessonAdvisoryReviewSchema,
+    schemaVersion: 'smart-lesson-advisory-review.v1',
+    promptVersion: SMART_LESSON_REVIEW_PROMPT_VERSION,
+    system: '你是教学设计审核助手。仅提供建议，不得给出批准、发布或阻断结论。输出必须符合给定结构。',
+    prompt: `请从目标覆盖、来源一致性、BOPPPS 结构和内容质量审核以下教案：\n${JSON.stringify(input.plan)}`,
+    idempotencyKey: input.idempotencyKey,
+    maxOutputTokens: 4_000,
+  });
+}

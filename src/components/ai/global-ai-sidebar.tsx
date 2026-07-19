@@ -34,6 +34,8 @@ export function GlobalAISidebar() {
   const [sessionId] = useState(() => `global-${Date.now()}`);
   const [knowledgeInspectorAvoidanceActive, setKnowledgeInspectorAvoidanceActive] = useState(false);
   const [actionStatus, setActionStatus] = useState('AI 侧栏已就绪。');
+  const [agentSessionId, setAgentSessionId] = useState<string | null>(null);
+  const [smartPrepContext, setSmartPrepContext] = useState<Record<string, string> | null>(null);
 
   const {
     pageContext,
@@ -53,20 +55,59 @@ export function GlobalAISidebar() {
   }, []);
 
   // 构建请求体
+  const effectiveServerContext = smartPrepContext ?? assistantEntryPoint?.serverContext;
+  const agentSessionStorageKey = useMemo(() => {
+    if (assistantEntryPoint?.mode !== 'prep-coauthor') return null;
+    return `konling:agent-session:smart-prep:${effectiveServerContext?.smartTaskId ?? 'bootstrap'}`;
+  }, [assistantEntryPoint?.mode, effectiveServerContext?.smartTaskId]);
+
+  useEffect(() => {
+    setSmartPrepContext(null);
+  }, [assistantEntryPoint]);
+
+  useEffect(() => {
+    if (!agentSessionStorageKey) {
+      setAgentSessionId(null);
+      return;
+    }
+    setAgentSessionId(window.localStorage.getItem(agentSessionStorageKey));
+  }, [agentSessionStorageKey]);
+
+  useEffect(() => {
+    const handleConfirmed = (event: Event) => {
+      const detail = (event as CustomEvent<{ taskId?: string; taskRevision?: number; agentSessionId?: string }>).detail;
+      if (!detail?.taskId || !detail.agentSessionId) return;
+      const nextContext = { smartTaskId: detail.taskId, smartTaskRevision: String(detail.taskRevision ?? 1) };
+      window.localStorage.setItem(`konling:agent-session:smart-prep:${detail.taskId}`, detail.agentSessionId);
+      setSmartPrepContext(nextContext);
+      setAgentSessionId(detail.agentSessionId);
+    };
+    window.addEventListener('konling:smart-task-confirmed', handleConfirmed);
+    return () => window.removeEventListener('konling:smart-task-confirmed', handleConfirmed);
+  }, []);
+
+  const handleChatResponse = useCallback((response: Response) => {
+    const nextAgentSessionId = response.headers.get('X-Konling-Agent-Session-Id');
+    if (!nextAgentSessionId) return;
+    setAgentSessionId(nextAgentSessionId);
+    if (agentSessionStorageKey) window.localStorage.setItem(agentSessionStorageKey, nextAgentSessionId);
+  }, [agentSessionStorageKey]);
+
   const chatBody = useMemo(() => ({
     pageContext,
     userProfile,
     sessionId,
     courseId: pageContext?.courseId,
     pageId: pageContext?.stepId || pageContext?.courseId,
-    resourceId: assistantEntryPoint?.serverContext.resourceId,
-    pathNodeId: assistantEntryPoint?.serverContext.pathNodeId,
+    resourceId: effectiveServerContext?.resourceId,
+    pathNodeId: effectiveServerContext?.pathNodeId,
     tools, // 传递可用工具列表，让后端过滤
     systemPromptExtension,
     teachingAssistantModeId: assistantEntryPoint?.mode,
-    modeClientContextHints: assistantEntryPoint?.serverContext,
-    knowledgeWorkspaceHint: knowledgeWorkspaceHint ?? assistantEntryPoint?.serverContext,
-  }), [pageContext, userProfile, sessionId, tools, systemPromptExtension, assistantEntryPoint, knowledgeWorkspaceHint]);
+    agentSessionId: agentSessionId ?? undefined,
+    modeClientContextHints: effectiveServerContext,
+    knowledgeWorkspaceHint: knowledgeWorkspaceHint ?? effectiveServerContext,
+  }), [pageContext, userProfile, sessionId, tools, systemPromptExtension, assistantEntryPoint, knowledgeWorkspaceHint, effectiveServerContext, agentSessionId]);
 
   const {
     messages,
@@ -95,6 +136,7 @@ export function GlobalAISidebar() {
         },
       }));
     },
+    onResponse: handleChatResponse,
   });
 
   // 自动滚动到底部

@@ -164,7 +164,7 @@ Konling SHALL use governed simulation and Arena validation summaries when coachi
 - **AND** it SHALL recommend evidence-gathering or fallback actions instead of claiming verified causality.
 
 ### Requirement: Konling supports teaching-assistant modes
-Teaching-assistant modes SHALL expose route-level readiness for the competition assistant workflow, and prep coauthor mode SHALL remain advisory during prep-pack review.
+Teaching-assistant modes SHALL expose route-level readiness for the competition assistant workflow, and prep coauthor mode SHALL remain advisory during prep-pack review and smart lesson preparation.
 
 #### Scenario: Assistant mode readiness is requested
 - **WHEN** diagnosis explainer, path advisor, grading assistant, feedback explainer, class summarizer, or prep coauthor mode is mounted on a supported route
@@ -191,15 +191,26 @@ Teaching-assistant modes SHALL expose route-level readiness for the competition 
 - **AND** it SHALL NOT approve grading or write back profiles without the grading workflow approval action.
 
 #### Scenario: Prep coauthor proposes lesson material
-- **WHEN** the prep coauthor generates insertion candidates, replacement text, or prep-pack updates
+- **WHEN** the prep coauthor generates insertion candidates, replacement text, prep-pack updates, or smart-preparation task changes
 - **THEN** generated suggestions SHALL remain drafts until the authorized teacher approves them
-- **AND** the runtime SHALL NOT insert, publish, or replace prep-pack material from client hints or assistant output alone.
+- **AND** the runtime SHALL NOT insert, publish, replace, or confirm teaching content from client hints or assistant output alone.
 
-#### Scenario: Prep coauthor mode starts
+#### Scenario: Prep coauthor mode starts from prep-pack review
 - **WHEN** a teacher opens prep coauthor mode from a prep-pack review surface
 - **THEN** Konling SHALL receive prep-pack, diagnosis, citation, and teacher-review context
 - **AND** generated suggestions SHALL remain drafts until teacher approval
 - **AND** it SHALL be forbidden from publishing prep items or inserting lesson items directly.
+
+#### Scenario: Prep coauthor mode starts from smart preparation
+- **WHEN** a teacher opens prep coauthor mode from `/teacher/smart-prep`
+- **THEN** Konling SHALL receive the server-owned smart-task revision, selected course-basis versions, unresolved ambiguities, confirmed decisions, citation state, and teacher-review state
+- **AND** session history SHALL remain bound to the owning teacher and exact smart task
+- **AND** proposed task changes SHALL require explicit teacher confirmation through the smart-preparation workflow.
+
+#### Scenario: Smart-preparation ambiguity remains unresolved
+- **WHEN** prep coauthor mode cannot resolve a required smart-task field to one authorized value
+- **THEN** it SHALL expose a clarification turn and structured alternatives
+- **AND** it SHALL NOT invoke lesson-plan generation until the teacher confirms one result.
 
 ### Requirement: Mode fallback is explicit
 Mode fallback SHALL be user-visible and testable.
@@ -597,3 +608,4 @@ personalizing explanations, scope, style, and evidence diagnostics.
 - **WHEN** portrait v2 data is missing or migrated with low confidence
 - **THEN** Konling SHALL still answer with available content citations
 - **AND** it SHALL treat portrait incompleteness as a personalization limitation rather than a retrieval failure.
+

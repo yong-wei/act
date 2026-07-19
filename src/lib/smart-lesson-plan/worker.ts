@@ -1,0 +1,371 @@
+import type { PrismaClient, SmartLessonGenerationStageKind } from '@prisma/client';
+import { Worker, type Job } from 'bullmq';
+import type { Redis } from 'ioredis';
+import { ZodError, type z } from 'zod';
+
+import { prisma } from '../prisma';
+import {
+  buildCourseBasisLessonDesignSar,
+  buildCourseBasisLessonDesignSourcePack,
+} from '../course-basis/lesson-design-source-pack';
+import { CourseBasisError } from '../course-basis/domain';
+
+import { SmartLessonPlanError } from './domain';
+import { resolveSmartLessonStructuredProvider, SMART_LESSON_PROMPT_VERSION } from './provider-runtime';
+import {
+  BOPPPS_STAGE_KEYS,
+  SMART_LESSON_PLAN_SCHEMA_VERSION,
+  bopppsStageSchema,
+  smartLessonOutlineOutputSchema,
+  sourceBindingSchema,
+} from './schema';
+import { beginProviderAttempt, completeGenerationStage, failGenerationStage } from './service';
+
+export const SMART_LESSON_GENERATION_QUEUE = 'smart-lesson-generation';
+
+const STAGE_TO_PLAN_KEY = {
+  BRIDGE_IN: 'bridgeIn',
+  OBJECTIVES: 'objectives',
+  PRE_ASSESSMENT: 'preAssessment',
+  PARTICIPATORY_LEARNING: 'participatoryLearning',
+  POST_ASSESSMENT: 'postAssessment',
+  SUMMARY: 'summary',
+} as const;
+
+type WorkerDb = PrismaClient;
+type ProviderResolver = typeof resolveSmartLessonStructuredProvider;
+type JobContext = Awaited<ReturnType<typeof loadJobContext>>;
+let worker: Worker<{ jobId: string }> | null = null;
+
+export async function ensureSmartLessonGenerationWorker(connection: Redis): Promise<Worker<{ jobId: string }>> {
+  if (worker) {
+    await waitForWorkerReady(worker);
+    return worker;
+  }
+  const workerConnection = connection.duplicate({ maxRetriesPerRequest: null });
+  const candidate = new Worker<{ jobId: string }>(
+    SMART_LESSON_GENERATION_QUEUE,
+    (job) => processSmartLessonGenerationJob(prisma, job.data.jobId),
+    {
+      connection: workerConnection,
+      concurrency: 2,
+      ...(smartLessonQueuePrefix() ? { prefix: smartLessonQueuePrefix() } : {}),
+    },
+  );
+  candidate.on('error', (error) => console.error('[SmartLessonWorker]', error));
+  worker = candidate;
+  try {
+    await waitForWorkerReady(candidate);
+    return candidate;
+  } catch (error) {
+    if (worker === candidate) worker = null;
+    await candidate.close(true).catch(() => undefined);
+    throw error;
+  }
+}
+
+function smartLessonQueuePrefix() {
+  return process.env.SMART_LESSON_REDIS_PREFIX?.trim() || undefined;
+}
+
+export async function closeSmartLessonGenerationWorker() {
+  await worker?.close();
+  worker = null;
+}
+
+async function waitForWorkerReady(candidate: Worker<{ jobId: string }>) {
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  try {
+    await Promise.race([
+      candidate.waitUntilReady(),
+      new Promise<never>((_, reject) => {
+        timeout = setTimeout(() => reject(new Error('smart-lesson-worker-readiness-timeout')), 5_000);
+      }),
+    ]);
+  } finally {
+    if (timeout) clearTimeout(timeout);
+  }
+}
+
+export async function processSmartLessonGenerationJob(
+  db: WorkerDb,
+  jobId: string,
+  resolveProvider: ProviderResolver = resolveSmartLessonStructuredProvider,
+) {
+  for (;;) {
+    const context = await loadJobContext(db, jobId);
+    if (!context) throw new SmartLessonPlanError('generation-job-not-found', 404);
+    if (['PAUSED', 'CANCELLED', 'FAILED', 'RETRYABLE', 'COMPLETED'].includes(context.state)) {
+      return { jobId, state: context.state };
+    }
+    const stage = context.stages.find((candidate) => candidate.kind === context.firstIncompleteStage);
+    if (!stage) throw new SmartLessonPlanError('generation-stage-not-found', 404);
+
+    let runtime;
+    let request;
+    let claim;
+    try {
+      runtime = await resolveProvider();
+      request = await buildStageRequest(db, context, stage.kind);
+      claim = await beginProviderAttempt(db, {
+        actor: { id: context.ownerId, role: 'TEACHER' },
+        jobId: context.id,
+        stage: stage.kind,
+        serviceId: runtime.serviceId,
+        providerKind: runtime.providerKind,
+        model: runtime.model,
+        promptVersion: SMART_LESSON_PROMPT_VERSION,
+        schemaVersion: request.schemaVersion,
+        request: { system: request.system, prompt: request.prompt },
+      });
+    } catch (error) {
+      const state = await markPreProviderFailure(db, context, stage.kind, error);
+      return { jobId, state };
+    }
+    if (!claim.claimed || !claim.attempt || !claim.claimToken) {
+      return { jobId, state: 'RUNNING' as const };
+    }
+
+    try {
+      const generated = await runtime.generate({
+        schema: request.schema,
+        schemaVersion: request.schemaVersion,
+        promptVersion: SMART_LESSON_PROMPT_VERSION,
+        system: request.system,
+        prompt: request.prompt,
+        idempotencyKey: claim.attempt.idempotencyKey,
+      });
+      validateGeneratedStage(context, stage.kind, generated.output, request.allowedBindingKeys);
+      const completedPlan = stage.kind === 'SUMMARY'
+        ? assembleCompletedPlan(context, generated.output)
+        : undefined;
+      const updated = await completeGenerationStage(db, {
+        actor: { id: context.ownerId, role: 'TEACHER' },
+        jobId: context.id,
+        stage: stage.kind,
+        claimToken: claim.claimToken,
+        attemptId: claim.attempt.id,
+        output: generated.output,
+        completedPlan,
+        normalizedResponseId: generated.normalizedResponseId,
+        inputTokens: generated.inputTokens,
+        outputTokens: generated.outputTokens,
+        costMicros: generated.costMicros,
+      });
+      if (['PAUSED', 'COMPLETED'].includes(updated.state)) return { jobId, state: updated.state };
+    } catch (error) {
+      const retryable = isRetryableStageError(error);
+      await failGenerationStage(db, {
+        actor: { id: context.ownerId, role: 'TEACHER' },
+        jobId: context.id,
+        stage: stage.kind,
+        claimToken: claim.claimToken,
+        attemptId: claim.attempt.id,
+        failureCode: errorCode(error),
+        retryable,
+      }).catch(() => undefined);
+      throw error;
+    }
+  }
+}
+
+async function loadJobContext(db: WorkerDb, jobId: string) {
+  return db.smartLessonGenerationJob.findUnique({
+    where: { id: jobId },
+    include: {
+      stages: { orderBy: { orderIndex: 'asc' } },
+      draft: {
+        include: {
+          task: {
+            include: {
+              courseBasis: { select: { title: true } },
+              sources: { where: { state: 'SELECTED' }, select: { sourceVersionId: true } },
+              knowledgePoints: { where: { state: 'CONFIRMED' }, orderBy: { createdAt: 'asc' } },
+              goals: { where: { state: 'CONFIRMED' }, orderBy: { createdAt: 'asc' } },
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
+async function buildStageRequest(db: WorkerDb, context: NonNullable<JobContext>, stage: SmartLessonGenerationStageKind) {
+  const selectedVersionIds = context.draft.task.sources.map((source) => source.sourceVersionId);
+  const task = context.draft.task;
+  const query = [task.topic, ...task.goals.map((goal) => goal.content), ...task.knowledgePoints.map((point) => point.title)]
+    .join('\n')
+    .slice(0, 4_000);
+  let sourcePack;
+  try {
+    const actor = { id: context.ownerId, role: 'TEACHER' as const };
+    const sar = await buildCourseBasisLessonDesignSar(db, { actor, selectedVersionIds, query });
+    sourcePack = await buildCourseBasisLessonDesignSourcePack(db, {
+      actor,
+      selectedVersionIds,
+      sar,
+      retrieval: { query, topK: 8 },
+    });
+  } catch (error) {
+    if (error instanceof CourseBasisError) {
+      throw new SmartLessonPlanError('governed-source-evidence-unavailable', 409);
+    }
+    throw error;
+  }
+  const sourcePackItems = sourcePack.retrieval.pack.items;
+  if (sourcePackItems.length === 0) throw new SmartLessonPlanError('governed-source-evidence-unavailable', 409);
+  const allowedBindings = sourceBindingSchema.array().safeParse(sourcePackItems.map((item) => ({
+    citationId: item.citationTargetId ?? item.citation?.citationTargetId,
+    sourceVersionId: item.metadata?.versionId,
+    anchor: item.metadata?.stableAnchor,
+    contentHash: item.metadata?.contentHash,
+  })));
+  if (!allowedBindings.success) throw new SmartLessonPlanError('governed-source-evidence-invalid', 409);
+  const common = {
+    course: task.courseBasis.title,
+    topic: task.topic,
+    audience: task.audience,
+    prerequisites: task.prerequisites,
+    durationMinutes: task.durationMinutes,
+    goals: task.goals,
+    knowledgePoints: task.knowledgePoints,
+    aggregateClassContext: task.aggregateClassContext,
+    sourcePackItems,
+  };
+  const previous = Object.fromEntries(context.stages
+    .filter((item) => item.state === 'COMPLETED' && item.output !== null)
+    .map((item) => [item.kind, item.output]));
+  const schema: z.ZodTypeAny = stage === 'OUTLINE' ? smartLessonOutlineOutputSchema : bopppsStageSchema;
+  return {
+    schema,
+    schemaVersion: stage === 'OUTLINE' ? 'smart-lesson-outline.v1' : `smart-lesson-boppps-${stage.toLowerCase()}.v1`,
+    system: '你是单课 BOPPPS 教案生成器。只能使用给定的已确认目标、知识点、服务端来源证据和聚合班级上下文；不得创建新的来源绑定。输出必须符合 JSON Schema。',
+    prompt: `生成阶段 ${stage}。任务上下文：${JSON.stringify(common)}。已完成阶段：${JSON.stringify(previous)}。`,
+    allowedBindingKeys: new Set(allowedBindings.data.map(bindingKey)),
+  };
+}
+
+function validateGeneratedStage(
+  context: NonNullable<JobContext>,
+  stage: SmartLessonGenerationStageKind,
+  output: unknown,
+  allowedBindings: ReadonlySet<string>,
+) {
+  if (stage === 'OUTLINE') {
+    const outline = smartLessonOutlineOutputSchema.parse(output);
+    if (outline.coursewareStepOutline.reduce((total, step) => total + step.minutes, 0) !== context.draft.task.durationMinutes) {
+      throw new SmartLessonPlanError('outline-duration-mismatch', 409);
+    }
+    for (const key of BOPPPS_STAGE_KEYS) {
+      if (!outline.coursewareStepOutline.some((step) => step.bopppsStage === key)) {
+        throw new SmartLessonPlanError(`outline-stage-missing:${key}`, 409);
+      }
+    }
+    if ((outline.classAdaptation?.aggregateContextRef ?? null) !== (context.draft.task.aggregateClassContextRef ?? null)) {
+      throw new SmartLessonPlanError('aggregate-context-ref-changed', 409);
+    }
+    return;
+  }
+  const parsed = bopppsStageSchema.parse(output);
+  for (const binding of parsed.steps.flatMap((step) => step.sourceBindings)) {
+    if (!allowedBindings.has(bindingKey(binding))) throw new SmartLessonPlanError('generated-source-binding-unverified', 409);
+  }
+  const outline = smartLessonOutlineOutputSchema.parse(context.stages.find((item) => item.kind === 'OUTLINE')?.output);
+  const planKey = STAGE_TO_PLAN_KEY[stage as keyof typeof STAGE_TO_PLAN_KEY];
+  const expectedMinutes = outline.coursewareStepOutline
+    .filter((step) => step.bopppsStage === planKey)
+    .reduce((total, step) => total + step.minutes, 0);
+  if (parsed.minutes !== expectedMinutes) throw new SmartLessonPlanError('stage-duration-mismatch', 409);
+}
+
+function assembleCompletedPlan(context: NonNullable<JobContext>, summaryOutput: unknown) {
+  const task = context.draft.task;
+  const outline = smartLessonOutlineOutputSchema.parse(context.stages.find((stage) => stage.kind === 'OUTLINE')?.output);
+  const outputFor = (kind: keyof typeof STAGE_TO_PLAN_KEY) => bopppsStageSchema.parse(
+    kind === 'SUMMARY' ? summaryOutput : context.stages.find((stage) => stage.kind === kind)?.output,
+  );
+  const goals = task.goals.map((goal) => ({
+    id: goal.id,
+    content: goal.content,
+    sourceState: goal.sourceState,
+    sourceBindings: sourceBindingSchema.array().parse(goal.sourceBindings),
+    gapIdentity: goal.gapIdentity,
+    standardsMappings: Array.isArray(goal.standardsMappings) ? goal.standardsMappings : [],
+  }));
+  const knowledgePoints = task.knowledgePoints.map((point) => ({
+    id: point.id,
+    title: point.title,
+    sourceState: point.sourceState,
+    sourceBindings: sourceBindingSchema.array().parse(point.sourceBindings),
+    gapIdentity: point.gapIdentity,
+  }));
+  const boppps = Object.fromEntries(Object.entries(STAGE_TO_PLAN_KEY).map(([kind, key]) => [key, outputFor(kind as keyof typeof STAGE_TO_PLAN_KEY)]));
+  const sources = uniqueBindings([
+    ...goals.flatMap((goal) => goal.sourceBindings),
+    ...knowledgePoints.flatMap((point) => point.sourceBindings),
+    ...Object.values(boppps).flatMap((stage) => stage.steps.flatMap((step) => step.sourceBindings)),
+  ]);
+  return {
+    schemaVersion: SMART_LESSON_PLAN_SCHEMA_VERSION,
+    course: task.courseBasis.title,
+    topic: task.topic,
+    audience: task.audience,
+    durationMinutes: task.durationMinutes,
+    prerequisites: task.prerequisites,
+    goals,
+    knowledgePoints,
+    keyContent: outline.keyContent,
+    difficultContent: outline.difficultContent,
+    boppps,
+    sources,
+    limitations: outline.limitations,
+    classAdaptation: outline.classAdaptation,
+    coursewareStepOutline: outline.coursewareStepOutline,
+  };
+}
+
+function uniqueBindings(bindings: Array<ReturnType<typeof sourceBindingSchema.parse>>) {
+  return [...new Map(bindings.map((binding) => [bindingKey(binding), binding])).values()];
+}
+
+function bindingKey(binding: ReturnType<typeof sourceBindingSchema.parse>) {
+  return `${binding.sourceVersionId}\u0000${binding.anchor}\u0000${binding.contentHash}\u0000${binding.citationId}`;
+}
+
+async function markPreProviderFailure(
+  db: WorkerDb,
+  context: NonNullable<JobContext>,
+  stage: SmartLessonGenerationStageKind,
+  error: unknown,
+) {
+  const retryable = isRetryableStageError(error);
+  const state = retryable ? 'RETRYABLE' as const : 'FAILED' as const;
+  await db.$transaction(async (tx) => {
+    await tx.smartLessonGenerationStage.updateMany({
+      where: { jobId: context.id, kind: stage, state: { in: ['PENDING', 'RETRYABLE'] } },
+      data: { state, claimToken: null, claimExpiresAt: null },
+    });
+    await tx.smartLessonGenerationJob.updateMany({
+      where: { id: context.id, state: { in: ['QUEUED', 'RUNNING'] } },
+      data: { state, failureCode: errorCode(error), firstIncompleteStage: stage },
+    });
+    await tx.smartLessonDraft.update({ where: { id: context.draftId }, data: { state: 'EDITABLE' } });
+  });
+  return state;
+}
+
+function errorCode(error: unknown) {
+  if (error instanceof SmartLessonPlanError) return error.code.slice(0, 200);
+  if (error instanceof Error && error.name) return `provider-${error.name}`.slice(0, 200);
+  return 'provider-request-failed';
+}
+
+function isRetryableStageError(error: unknown) {
+  return !(error instanceof SmartLessonPlanError)
+    && !(error instanceof CourseBasisError)
+    && !(error instanceof ZodError);
+}
+
+export async function processSmartLessonBullJob(job: Job<{ jobId: string }>) {
+  return processSmartLessonGenerationJob(prisma, job.data.jobId);
+}
