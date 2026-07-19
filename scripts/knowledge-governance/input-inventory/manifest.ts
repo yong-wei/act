@@ -23,6 +23,63 @@ export async function repositoryRevision(root: string): Promise<string> {
   return revision;
 }
 
+function mergeRepositoryObservations(
+  repository: Awaited<ReturnType<typeof enumerateRepository>>,
+  mainRepository: Awaited<ReturnType<typeof enumerateRepository>>,
+): Awaited<ReturnType<typeof enumerateRepository>> {
+  const roles = repository.roles.map((role) => {
+    const mainRole = mainRepository.roles.find((item) => item.role === role.role);
+    const physicalPaths = sortUnique([...(role.physical_paths as string[]), ...((mainRole?.physical_paths as string[] | undefined) ?? [])]);
+    const rules = (role.rules as Array<Record<string, Json>>).map((rule) => {
+      const pattern = typeof rule.pattern === 'string' ? rule.pattern : null;
+      const exclude = typeof rule.exclude === 'string' ? rule.exclude : null;
+      const hitCount = pattern ? physicalPaths.filter((file) => matchGlob(file, pattern) && !(exclude && matchGlob(file, exclude))).length : 0;
+      return { ...rule, hit_count: hitCount };
+    });
+    return { ...role, rules, physical_paths: physicalPaths, hit_count: physicalPaths.length };
+  });
+  const instructionalPaths = sortUnique([
+    ...(repository.unclassified as string[]),
+    ...(mainRepository.unclassified as string[]),
+    ...roles.flatMap((role) => role.physical_paths as string[]),
+  ]);
+  const classifications = new Map<string, string[]>();
+  for (const role of roles) for (const file of role.physical_paths as string[]) {
+    classifications.set(file, [...(classifications.get(file) ?? []), String(role.role)]);
+  }
+  return {
+    ...repository,
+    sources: repository.sources.map((source) => {
+      const mainSource = mainRepository.sources.find((item) => item.id === source.id);
+      const physicalPaths = sortUnique([...(source.physical_paths as string[]), ...((mainSource?.physical_paths as string[] | undefined) ?? [])]);
+      return { ...source, physical_paths: physicalPaths, hit_count: physicalPaths.length, logical_inputs: (source.logical_inputs as Array<Record<string, Json>>).map((logical) => {
+        const count = physicalPaths.filter((file) => matchGlob(file, String(logical.pattern))).length;
+        return { ...logical, state: count === 0 ? 'missing' : 'present', reason_code: count === 0 ? 'NO_GLOB_HIT' : null, hit_count: count };
+      }) };
+    }),
+    roles,
+    unclassified: instructionalPaths.filter((file) => !classifications.has(file)),
+    multiply_classified: [...classifications]
+      .filter(([, assignedRoles]) => assignedRoles.length > 1)
+      .map(([file, assignedRoles]) => ({ path: file, roles: sortUnique(assignedRoles) })),
+  };
+}
+
+function resolvedRepositoryMissingDrift(drift: Drift[], repository: Awaited<ReturnType<typeof enumerateRepository>>): Drift[] {
+  return drift.filter((item) => {
+    if (item.code === 'REPOSITORY_SOURCE_MISSING') {
+      const source = repository.sources.find((candidate) => candidate.id === item.scope);
+      return !source || Number(source.hit_count) === 0;
+    }
+    if (item.code === 'DECLARED_INPUT_MISSING' && typeof item.expected === 'string') {
+      const source = repository.sources.find((candidate) => candidate.id === item.scope);
+      const logical = (source?.logical_inputs as Array<Record<string, Json>> | undefined)?.find((candidate) => candidate.pattern === item.expected);
+      return !logical || Number(logical.hit_count) === 0;
+    }
+    return true;
+  });
+}
+
 export async function buildManifest(options: InventoryOptions): Promise<Json> {
   const registryPath = options.registryPath ?? DEFAULT_REGISTRY;
   const registry = await loadRegistry(options.root, registryPath);
@@ -52,23 +109,11 @@ export async function buildManifest(options: InventoryOptions): Promise<Json> {
     ))
     : [];
   const fileRecords = await collectInputObservations({ isolatedRoot: options.root, isolatedRevision, isolatedPaths: [...isolatedPaths], ...(mainRepository && authorizedMainRoot && options.mainWorktreeRevision ? { mainRoot: authorizedMainRoot, mainRevision: options.mainWorktreeRevision, mainPaths: mainOnlyOrReplacementPaths, isolatedSymlinkReplacements: symlinks.authorized_main_worktree_replacements } : {}) }, registry, drift);
-  const effectiveRepository = mainRepository ? {
-    ...repository,
-    sources: repository.sources.map((source) => {
-      const mainSource = mainRepository!.sources.find((item) => item.id === source.id);
-      const physicalPaths = sortUnique([...(source.physical_paths as string[]), ...((mainSource?.physical_paths as string[] | undefined) ?? [])]);
-      return { ...source, physical_paths: physicalPaths, hit_count: physicalPaths.length, logical_inputs: (source.logical_inputs as Array<Record<string, Json>>).map((logical) => {
-        const count = physicalPaths.filter((file) => matchGlob(file, String(logical.pattern))).length;
-        return { ...logical, state: count === 0 ? 'missing' : 'present', reason_code: count === 0 ? 'NO_GLOB_HIT' : null, hit_count: count };
-      }) };
-    }),
-    roles: repository.roles.map((role) => {
-      const mainRole = mainRepository!.roles.find((item) => item.role === role.role);
-      const physicalPaths = sortUnique([...(role.physical_paths as string[]), ...((mainRole?.physical_paths as string[] | undefined) ?? [])]);
-      return { ...role, physical_paths: physicalPaths, hit_count: physicalPaths.length };
-    }),
-    unclassified: sortUnique([...(repository.unclassified as string[]), ...(mainRepository.unclassified as string[])]),
-  } : repository;
+  const effectiveRepository = mainRepository ? mergeRepositoryObservations(repository, mainRepository) : repository;
+  if (mainRepository) {
+    const reconciled = resolvedRepositoryMissingDrift(drift, effectiveRepository);
+    drift.splice(0, drift.length, ...reconciled);
+  }
   const sourceDigests = repository.sources.map((source) => {
     const declared = new Set(source.physical_paths as string[]);
     const mainSource = mainRepository?.sources.find((item) => item.id === source.id);

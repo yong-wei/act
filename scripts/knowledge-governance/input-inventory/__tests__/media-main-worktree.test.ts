@@ -5,8 +5,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { collectInputObservations, observeInput } from '../input-codecs';
-import { repositoryRevision } from '../manifest';
-import { classifyRegisteredSymlinks, enumerateRepository, loadRegistry, type Registry } from '../registry';
+import { buildManifest, repositoryRevision } from '../manifest';
+import { classifyRegisteredSymlinks, enumerateRepository, loadRegistry, matchGlob, type Registry } from '../registry';
 import type { Drift } from '../types';
 
 const root = path.resolve(import.meta.dirname, '../../../..');
@@ -173,5 +173,45 @@ describe('closed repository input codecs', () => {
     }, registry, drift);
     expect(drift.filter((item) => ['SYMLINK_INPUT_REJECTED', 'UNKNOWN_INPUT_CODEC', 'DECLARED_INPUT_MISSING'].includes(item.code))).toEqual([]);
     expect(observations.filter((item) => item.absence_reason === 'ISOLATED_SYMLINK_REPLACED_BY_AUTHORIZED_MAIN_WORKTREE_SAME_PATH_REGULAR_FILE')).toHaveLength(173);
-  }, 120_000);
+
+    const manifest = await buildManifest({ root, mainWorktreeRoot: realMainRoot, mainWorktreeRevision: mainRevision, capturedAt: '2026-07-19T00:00:00.000Z' });
+    const effective = manifest.repository as unknown as Awaited<ReturnType<typeof enumerateRepository>>;
+    const manifestDrift = manifest.drift as unknown as Drift[];
+    expect(manifestDrift.filter((item) => ['REPOSITORY_SOURCE_MISSING', 'DECLARED_INPUT_MISSING'].includes(item.code))).toEqual([]);
+    const effectiveLesson = effective.sources.find((item) => item.id === 'lesson-runtime-evidence')!;
+    expect(effectiveLesson.logical_inputs).toContainEqual(expect.objectContaining({ pattern: 'course-content/runtime/lessons/**/media/**', state: 'present', reason_code: null, hit_count: expect.any(Number) }));
+    expect((effectiveLesson.physical_paths as string[]).some((item) => classification.authorized_main_worktree_replacements.includes(item))).toBe(true);
+
+    const isolatedRolePaths = new Map(repository.roles.map((role) => [String(role.role), new Set(role.physical_paths as string[])]));
+    const isolatedInstructionalPaths = new Set([
+      ...(repository.unclassified as string[]),
+      ...repository.roles.flatMap((role) => role.physical_paths as string[]),
+    ]);
+    let mainOnlyRoleHits = 0;
+    const effectiveClassifications = new Map<string, string[]>();
+    for (const role of effective.roles) {
+      const physicalPaths = role.physical_paths as string[];
+      expect(role.hit_count).toBe(physicalPaths.length);
+      for (const rule of role.rules as Array<Record<string, unknown>>) {
+        const pattern = typeof rule.pattern === 'string' ? rule.pattern : null;
+        const exclude = typeof rule.exclude === 'string' ? rule.exclude : null;
+        const expectedHits = pattern ? physicalPaths.filter((file) => matchGlob(file, pattern) && !(exclude && matchGlob(file, exclude))).length : 0;
+        expect(rule.hit_count).toBe(expectedHits);
+      }
+      for (const file of physicalPaths) effectiveClassifications.set(file, [...(effectiveClassifications.get(file) ?? []), String(role.role)]);
+      mainOnlyRoleHits += physicalPaths.filter((file) => !isolatedRolePaths.get(String(role.role))?.has(file)).length;
+    }
+    expect(mainOnlyRoleHits).toBeGreaterThan(0);
+    const effectiveInstructionalPaths = [...new Set([
+      ...(repository.unclassified as string[]),
+      ...(mainRepository.unclassified as string[]),
+      ...effective.roles.flatMap((role) => role.physical_paths as string[]),
+    ])].sort();
+    expect(effective.unclassified).toEqual(effectiveInstructionalPaths.filter((file) => !effectiveClassifications.has(file)));
+    const expectedMultiply = [...effectiveClassifications]
+      .filter(([, roles]) => roles.length > 1)
+      .map(([file, roles]) => ({ path: file, roles: [...new Set(roles)].sort() }));
+    expect(effective.multiply_classified).toEqual(expectedMultiply);
+    expect(expectedMultiply.filter((item) => !isolatedInstructionalPaths.has(item.path)).length).toBeGreaterThan(0);
+  }, 300_000);
 });

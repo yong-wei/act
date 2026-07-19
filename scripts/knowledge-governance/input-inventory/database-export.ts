@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { access, mkdir, readFile, realpath, writeFile } from 'node:fs/promises';
+import { access, lstat, mkdir, readFile, realpath, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Client, type ClientBase } from 'pg';
@@ -339,12 +339,48 @@ function jsonSummaryKey(contract: JsonObservationContract): string {
   return contract.summary === 'path' ? `path:${contract.field}` : `${contract.summary}:${contract.field}:${contract.selector}`;
 }
 
-async function assertOutsideRepository(root: string, target: string): Promise<void> {
+async function prospectiveRealPath(target: string): Promise<string> {
+  const parent = path.dirname(target);
+  const suffix: string[] = [];
+  let candidate = parent;
+  while (true) {
+    try {
+      const existing = await realpath(candidate);
+      return path.join(existing, ...suffix, path.basename(target));
+    } catch {
+      const next = path.dirname(candidate);
+      if (next === candidate) throw new Error(`unable to resolve database export target ancestor: ${target}`);
+      suffix.unshift(path.basename(candidate));
+      candidate = next;
+    }
+  }
+}
+
+interface InspectedExportTarget {
+  resolvedPath: string;
+  exists: boolean;
+  device: number | null;
+  inode: number | null;
+}
+
+async function inspectExportTarget(target: string): Promise<InspectedExportTarget> {
+  try { await lstat(target); }
+  catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+    return { resolvedPath: await prospectiveRealPath(target), exists: false, device: null, inode: null };
+  }
+  let resolvedPath: string;
+  try { resolvedPath = await realpath(target); }
+  catch { throw new Error(`database export target must resolve to an existing file: ${target}`); }
+  const metadata = await stat(target);
+  return { resolvedPath, exists: true, device: metadata.dev, inode: metadata.ino };
+}
+
+async function assertOutsideRepository(root: string, target: string, resolvedTarget: string): Promise<void> {
   if (!path.isAbsolute(target)) throw new Error('database export and proof paths must be absolute');
   const repository = await realpath(root);
-  const parent = await realpath(path.dirname(target));
-  if (parent === repository || parent.startsWith(`${repository}${path.sep}`)) throw new Error(`database export artifact must be outside repository: ${target}`);
-  let ancestor = parent;
+  if (resolvedTarget === repository || resolvedTarget.startsWith(`${repository}${path.sep}`)) throw new Error(`database export artifact must be outside repository: ${target}`);
+  let ancestor = path.dirname(resolvedTarget);
   while (true) {
     try { await access(path.join(ancestor, '.git')); throw new Error(`database export artifact must be outside every Git worktree: ${target}`); }
     catch (error) {
@@ -414,11 +450,17 @@ export function assertAggregateExportShape(exported: AggregateDatabaseExport): v
 }
 
 export async function exportAggregateDatabase(options: ExportOptions): Promise<{ exported: AggregateDatabaseExport; proof: AggregateExportProof }> {
+  if (!path.isAbsolute(options.outputPath) || !path.isAbsolute(options.proofPath)) throw new Error('database export and proof paths must be absolute');
+  const outputTarget = await inspectExportTarget(options.outputPath);
+  const proofTarget = await inspectExportTarget(options.proofPath);
+  await assertOutsideRepository(options.root, options.outputPath, outputTarget.resolvedPath);
+  await assertOutsideRepository(options.root, options.proofPath, proofTarget.resolvedPath);
+  const sameInode = outputTarget.exists && proofTarget.exists
+    && outputTarget.device === proofTarget.device && outputTarget.inode === proofTarget.inode;
+  if (outputTarget.resolvedPath === proofTarget.resolvedPath || sameInode) throw new Error('database export and proof paths must differ');
+  if (outputTarget.exists || proofTarget.exists) throw new Error('database export artifacts already exist; overwrite is forbidden');
   await mkdir(path.dirname(options.outputPath), { recursive: true });
   await mkdir(path.dirname(options.proofPath), { recursive: true });
-  await assertOutsideRepository(options.root, options.outputPath);
-  await assertOutsideRepository(options.root, options.proofPath);
-  if (path.resolve(options.outputPath) === path.resolve(options.proofPath)) throw new Error('database export and proof paths must differ');
 
   const registry = await loadRegistry(options.root, options.registryPath);
   const contracts = contractsFromRegistry(registry);

@@ -1,11 +1,12 @@
-import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises';
+import { link, mkdir, mkdtemp, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { canonicalJson, compareCodePoints, normalizePath, normalizeText, taggedDigest } from '../normalize';
 import { loadImmutableExport, validateDatabaseClosure } from '../database-snapshot';
-import { contractsFromRegistry, DATABASE_EXPORT_FORMAT, deriveProof, latestWatermark, type AggregateDatabaseExport, type AggregateDatasetExport } from '../database-export';
+import { contractsFromRegistry, DATABASE_EXPORT_FORMAT, deriveProof, exportAggregateDatabase, latestWatermark, type AggregateDatabaseExport, type AggregateDatasetExport } from '../database-export';
 import { discoverWriters, discoverWritersInSource } from '../writer-discovery';
 import { validateOutputPrivacy } from '../schema-validation';
 import { sourceFingerprints } from '../manifest';
@@ -133,6 +134,75 @@ describe('filesystem closure', () => {
 });
 
 describe('immutable database privacy boundary', () => {
+  it('rejects unsafe export paths before creating any directory', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-export-paths-'));
+    const repository = path.join(directory, 'repository');
+    const outside = path.join(directory, 'outside');
+    try {
+      await mkdir(repository);
+      await writeFile(path.join(repository, '.git'), 'gitdir: fixture\n');
+      const options = { root: repository, registryPath: 'registry.yaml', databaseUrl: 'postgresql://invalid', outputPath: path.join(outside, 'new', 'export.json'), proofPath: 'relative-proof.json' };
+      await expect(exportAggregateDatabase(options)).rejects.toThrow(/absolute/u);
+      expect(existsSync(path.join(outside, 'new'))).toBe(false);
+
+      const insideParent = path.join(repository, 'not-created', 'nested');
+      await expect(exportAggregateDatabase({ ...options, outputPath: path.join(insideParent, 'export.json'), proofPath: path.join(outside, 'proof.json') })).rejects.toThrow(/outside repository/u);
+      expect(existsSync(insideParent)).toBe(false);
+
+      const alias = path.join(directory, 'repository-alias');
+      await symlink(repository, alias);
+      const escapedParent = path.join(alias, 'escaped', 'nested');
+      await expect(exportAggregateDatabase({ ...options, outputPath: path.join(escapedParent, 'export.json'), proofPath: path.join(outside, 'proof.json') })).rejects.toThrow(/outside repository/u);
+      expect(existsSync(path.join(repository, 'escaped'))).toBe(false);
+      expect(existsSync(outside)).toBe(false);
+    } finally { await rm(directory, { recursive: true }); }
+  });
+
+  it('resolves existing target files and forbids symlink, inode alias and regular-file overwrite side effects', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-export-target-files-'));
+    const repository = path.join(directory, 'repository');
+    const artifacts = path.join(directory, 'artifacts');
+    try {
+      await mkdir(repository);
+      await mkdir(artifacts);
+      await writeFile(path.join(repository, '.git'), 'gitdir: fixture\n');
+      const tracked = path.join(repository, 'tracked.json');
+      await writeFile(tracked, 'repository authority\n');
+      const base = { root: repository, registryPath: 'registry.yaml', databaseUrl: 'postgresql://invalid' };
+
+      const repositoryLink = path.join(artifacts, 'repository-link.json');
+      await symlink(tracked, repositoryLink);
+      const missingProof = path.join(artifacts, 'missing-proof.json');
+      const beforeRepositoryLink = await readdir(artifacts);
+      await expect(exportAggregateDatabase({ ...base, outputPath: repositoryLink, proofPath: missingProof })).rejects.toThrow(/outside repository/u);
+      expect(await readFile(tracked, 'utf8')).toBe('repository authority\n');
+      expect(await readdir(artifacts)).toEqual(beforeRepositoryLink);
+
+      const shared = path.join(artifacts, 'shared.json');
+      await writeFile(shared, 'shared immutable artifact\n');
+      const firstLink = path.join(artifacts, 'first-link.json');
+      const secondLink = path.join(artifacts, 'second-link.json');
+      await symlink(shared, firstLink);
+      await symlink(shared, secondLink);
+      const beforeSameTarget = await readdir(artifacts);
+      await expect(exportAggregateDatabase({ ...base, outputPath: firstLink, proofPath: secondLink })).rejects.toThrow(/paths must differ/u);
+      expect(await readFile(shared, 'utf8')).toBe('shared immutable artifact\n');
+      expect(await readdir(artifacts)).toEqual(beforeSameTarget);
+
+      const firstHardLink = path.join(artifacts, 'first-hard-link.json');
+      const secondHardLink = path.join(artifacts, 'second-hard-link.json');
+      await link(shared, firstHardLink);
+      await link(shared, secondHardLink);
+      await expect(exportAggregateDatabase({ ...base, outputPath: firstHardLink, proofPath: secondHardLink })).rejects.toThrow(/paths must differ/u);
+
+      const existingOutput = path.join(artifacts, 'existing-output.json');
+      await writeFile(existingOutput, 'do not overwrite\n');
+      await expect(exportAggregateDatabase({ ...base, outputPath: existingOutput, proofPath: missingProof })).rejects.toThrow(/overwrite is forbidden/u);
+      expect(await readFile(existingOutput, 'utf8')).toBe('do not overwrite\n');
+      expect(existsSync(missingProof)).toBe(false);
+    } finally { await rm(directory, { recursive: true }); }
+  });
+
   it('derives snapshot id from proof and accepts only already-suppressed 1-4 person cells', async () => {
     const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-export-'));
     try {
