@@ -133,6 +133,7 @@ export type KonlingToolName =
   | 'reject_learning_path_option'
   | 'explain_learning_path_tradeoff'
   | 'record_path_adjustment_outcome'
+  | 'propose_smart_lesson_task_change'
   | 'analyze_attempt';
 
 export type KonlingMemoryType = 'working-summary' | 'session-summary' | 'episodic' | 'intervention-outcome';
@@ -189,7 +190,13 @@ export type KonlingTeachingAssistantContextKey =
   | 'teacher-review-state'
   | 'student-feedback'
   | 'class-report'
-  | 'prep-pack';
+  | 'prep-pack'
+  | 'smart-task'
+  | 'selected-course-basis-versions'
+  | 'task-ambiguities'
+  | 'confirmed-task-decisions'
+  | 'citation-state'
+  | 'clarification-readiness';
 export type KonlingTeachingAssistantStatus = 'ready' | 'degraded' | 'unavailable';
 export type KonlingAnswerIntent =
   | 'fact-explanation'
@@ -245,11 +252,55 @@ export interface KonlingTeachingAssistantRuntimeContract {
   };
   privacyPolicy: KonlingTeachingAssistantModeContract['privacyPolicy'];
   outputContract: KonlingTeachingAssistantModeContract['outputContract'];
+  smartPreparation: KonlingSmartPreparationServerContext | null;
   clientHintsAccepted: string[];
   clientHintsRejected: string[];
 }
 
-export type KonlingTeachingAssistantServerModeContext = Partial<Record<KonlingTeachingAssistantContextKey, boolean>>;
+export interface KonlingSmartPreparationAmbiguity {
+  id: string;
+  field: string;
+  question: string;
+  alternatives: Array<{ id: string; label: string }>;
+}
+
+export interface KonlingSmartPreparationConfirmedDecision {
+  id: string;
+  field: string;
+  value: string | number | boolean | string[] | null;
+  confirmedAt: string;
+  confirmedBy: string;
+}
+
+export interface KonlingSmartPreparationServerContext {
+  taskId: string | null;
+  taskRevision: string | null;
+  bootstrap?: boolean;
+  currentTask?: Record<string, unknown>;
+  selectedCourseBasisVersions: Array<{
+    versionId: string;
+    citationState: string;
+    reviewState: string;
+  }>;
+  unresolvedAmbiguities: KonlingSmartPreparationAmbiguity[];
+  confirmedDecisions: KonlingSmartPreparationConfirmedDecision[];
+  citationState: string;
+  reviewState: string;
+  clarificationReadiness: {
+    status: 'ready' | 'clarification-required';
+    canGenerate: boolean;
+    unresolvedAmbiguityIds: string[];
+  };
+  updatePolicy: {
+    suggestionStatus: 'draft';
+    requiresExplicitTeacherConfirmation: true;
+    expectedTaskRevision: string | null;
+  };
+}
+
+export type KonlingTeachingAssistantServerModeContext = Partial<Record<KonlingTeachingAssistantContextKey, boolean>> & {
+  smartPreparation?: KonlingSmartPreparationServerContext;
+};
 
 export interface KonlingTeachingAssistantEntryPoint {
   mode: Exclude<KonlingTeachingAssistantModeId, 'generic-chat'>;
@@ -619,12 +670,18 @@ export const KONLING_TEACHING_ASSISTANT_MODE_REGISTRY: Record<KonlingTeachingAss
     mountingSurfaces: ['teacher-prep-pack'],
     requiredContext: ['prep-pack', 'diagnosis-view', 'evidence-citations', 'teacher-review-state'],
     optionalContext: ['class-report', 'resource-node'],
-    permittedTools: ['get_page_context', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph'],
+    permittedTools: ['get_page_context', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph', 'propose_smart_lesson_task_change'],
     citationClasses: ['learner-state', 'path-execution', 'content', 'intervention'],
     payload: 'teacher-scoped-summary',
     outputStatus: 'draft-only',
     requiredCitationOwners: ['answer', 'report-explanation'],
-    forbiddenActions: ['publish-prep-item', 'insert-lesson-item'],
+    forbiddenActions: [
+      'publish-prep-item',
+      'insert-lesson-item',
+      'apply-smart-task-change',
+      'confirm-smart-task-change',
+      'start-generation-with-unconfirmed-task',
+    ],
   }),
 };
 
@@ -676,16 +733,38 @@ export function buildKonlingTeachingAssistantRuntimeContract(input: {
   });
   const roleSupported = mode.supportedRoles.includes(input.scope.role);
   const unknownModeReasons = input.modeId && !normalizedModeId ? [`unknown-mode:${input.modeId}`] : [];
+  const smartPreparation = mode.id === 'prep-coauthor' && input.scope.role === 'teacher'
+    ? input.serverModeContext?.smartPreparation ?? null
+    : null;
+  const requiredContext = smartPreparation
+    ? smartPreparation.bootstrap
+      ? [
+          'prep-pack',
+          'task-ambiguities',
+          'teacher-review-state',
+          'clarification-readiness',
+        ] satisfies KonlingTeachingAssistantContextKey[]
+      : [
+        'smart-task',
+        'selected-course-basis-versions',
+        'task-ambiguities',
+        'confirmed-task-decisions',
+        'citation-state',
+        'teacher-review-state',
+        'clarification-readiness',
+        ] satisfies KonlingTeachingAssistantContextKey[]
+    : mode.requiredContext;
+  const requiredCitationClasses = smartPreparation ? [] : mode.citationClasses;
   const missingRequiredContext = mode.id === 'generic-chat'
     ? []
-    : mode.requiredContext.flatMap((contextKey) =>
+    : requiredContext.flatMap((contextKey) =>
       isKonlingModeContextAvailable(contextKey, mode, input.runtimeContext, input.scope, input.serverModeContext)
         ? []
         : [`missing-context:${contextKey}`]
     );
   const missingCitationClasses = mode.id === 'generic-chat'
     ? []
-    : mode.citationClasses.flatMap((citationClass) =>
+    : requiredCitationClasses.flatMap((citationClass) =>
       hasKonlingCitationClass(citationClass, input.runtimeContext.citationContext)
         ? []
         : [`missing-citation:${citationClass}`]
@@ -771,12 +850,13 @@ export function buildKonlingTeachingAssistantRuntimeContract(input: {
     permittedTools: safePermittedTools,
     citationRequirements: {
       required: mode.id !== 'generic-chat' || input.runtimeContext.citationContext?.required === true,
-      classes: mode.citationClasses,
+      classes: requiredCitationClasses,
       requiredOwners: mode.outputContract.requiredCitationOwners,
       missingClasses: missingCitationClasses.map((reason) => reason.replace('missing-citation:', '')),
     },
     privacyPolicy: mode.privacyPolicy,
     outputContract: mode.outputContract,
+    smartPreparation,
     clientHintsAccepted: [],
     clientHintsRejected,
   };
@@ -1228,6 +1308,12 @@ function isKonlingModeContextAvailable(
     case 'student-feedback':
     case 'class-report':
     case 'prep-pack':
+    case 'smart-task':
+    case 'selected-course-basis-versions':
+    case 'task-ambiguities':
+    case 'confirmed-task-decisions':
+    case 'citation-state':
+    case 'clarification-readiness':
       return false;
   }
 }
@@ -1515,6 +1601,12 @@ interface KonlingAgentSessionCreateInput {
   permittedTools?: KonlingToolName[];
   pendingApproval?: Record<string, unknown> | null;
   expiresAt?: Date | null;
+  smartPrepBinding?: KonlingSmartPrepSessionBinding | null;
+}
+
+export interface KonlingSmartPrepSessionBinding {
+  taskId: string;
+  taskRevision: string;
 }
 
 interface KonlingAgentSessionResolveInput extends KonlingAgentSessionCreateInput {
@@ -1525,6 +1617,7 @@ interface KonlingAgentSessionRefInput {
   scope: KonlingRuntimeScope;
   agentSessionId: string;
   phase?: string;
+  smartPrepBinding?: KonlingSmartPrepSessionBinding | null;
 }
 
 interface KonlingToolRunStartInput {
@@ -1683,6 +1776,7 @@ export const KONLING_TOOL_REGISTRY: Record<KonlingToolName, KonlingToolRegistryE
   reject_learning_path_option: toolRegistryEntry('reject_learning_path_option', 'write', 'none', 'reuse'),
   explain_learning_path_tradeoff: toolRegistryEntry('explain_learning_path_tradeoff', 'analyze', 'none', 'reuse'),
   record_path_adjustment_outcome: toolRegistryEntry('record_path_adjustment_outcome', 'write', 'none', 'reuse'),
+  propose_smart_lesson_task_change: toolRegistryEntry('propose_smart_lesson_task_change', 'analyze'),
   analyze_attempt: toolRegistryEntry('analyze_attempt', 'analyze'),
 };
 
@@ -1737,6 +1831,21 @@ const simulationContextParameters = z.object({
   simulationRunId: z.string().min(1).optional(),
   taskSpecId: z.string().min(1).optional(),
   includeTrace: z.boolean().optional(),
+});
+
+const proposeSmartLessonTaskChangeParameters = z.object({
+  operation: z.enum(['bootstrap', 'revise']).optional(),
+  taskId: z.string().min(1).max(200).optional(),
+  expectedRevision: z.number().int().min(1).optional(),
+  proposedTask: z.record(z.string(), z.unknown()).optional(),
+  clarification: z.object({
+    question: z.string().min(1).max(1000),
+    alternatives: z.array(z.string().min(1).max(500)).min(2).max(10),
+  }).strict().optional(),
+}).strict().refine((value) => Boolean(value.proposedTask) !== Boolean(value.clarification), {
+  message: '必须且只能提供 proposedTask 或 clarification。',
+}).refine((value) => value.operation === 'bootstrap' || Boolean(value.taskId && value.expectedRevision), {
+  message: '修订建议必须绑定任务及其预期修订号。',
 });
 
 const runVirtualSimulationParameters = z.object({
@@ -2309,6 +2418,47 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
       runKonlingRuntimeTool(input, 'explain_learning_path_tradeoff', args, async () => buildAdaptivePathTradeoffOutput(input, args)),
     recordPathAdjustmentOutcome: async (args: z.infer<typeof recordPathAdjustmentOutcomeParameters>) =>
       runKonlingRuntimeTool(input, 'record_path_adjustment_outcome', args, async () => buildAdaptivePathToolOutcome(input, args.outcome, args)),
+    proposeSmartLessonTaskChange: async (args: z.infer<typeof proposeSmartLessonTaskChangeParameters>) => {
+      if (!input.agentSessionId) throw new KonlingRuntimeScopeError(403, '智能备课建议必须来自已绑定的 prep-coauthor 会话。');
+      const session = await input.db.agentSession?.findFirst?.({
+        where: { id: input.agentSessionId, ownerUserId: input.scope.targetUserId, actorUserId: input.scope.authenticatedUserId },
+        select: { stateJson: true },
+      });
+      const sessionState = readRecord(getValue(session, 'stateJson'));
+      const turnId = getString(sessionState, 'currentTurnId');
+      if (!turnId) throw new KonlingRuntimeScopeError(409, '智能备课会话没有可绑定的当前对话轮次。');
+      const boundArgs = { ...args, turnId };
+      return runKonlingRuntimeTool(input, 'propose_smart_lesson_task_change', boundArgs, async (toolRun) => {
+        const contract = (input.context as KonlingRuntimeContext & { teachingAssistantMode?: KonlingTeachingAssistantRuntimeContract }).teachingAssistantMode;
+        const smartPreparation = contract?.smartPreparation;
+        if (contract?.mode.id !== 'prep-coauthor' || !smartPreparation) {
+          throw new KonlingRuntimeScopeError(403, '智能备课建议必须来自已绑定的 prep-coauthor 会话。');
+        }
+        const operation = args.operation ?? 'revise';
+        const isBootstrap = operation === 'bootstrap';
+        if (isBootstrap !== Boolean(smartPreparation.bootstrap)) {
+          throw new KonlingRuntimeScopeError(409, '智能备课建议与当前会话阶段不匹配。');
+        }
+        if (!isBootstrap && (args.taskId !== smartPreparation.taskId || String(args.expectedRevision) !== smartPreparation.taskRevision)) {
+          throw new KonlingRuntimeScopeError(409, '智能备课建议绑定的任务修订已过期。');
+        }
+        const binding = readRecord(sessionState.smartPrepBinding);
+        if (
+          getString(sessionState, 'currentTurnId') !== turnId
+          || (!isBootstrap && getString(binding, 'taskId') !== args.taskId)
+          || (!isBootstrap && getString(binding, 'ownerUserId') !== input.scope.targetUserId)
+        ) throw new KonlingRuntimeScopeError(409, '智能备课建议的会话、对话轮次或任务绑定无效。');
+        return {
+          suggestionId: toolRun?.id,
+          operation,
+          ...(args.taskId ? { taskId: args.taskId } : {}),
+          ...(args.expectedRevision ? { expectedRevision: args.expectedRevision } : {}),
+          turnId,
+          status: args.clarification ? 'clarification_required' : 'awaiting_teacher_confirmation',
+          ...(args.clarification ? { clarification: args.clarification } : { proposedTask: args.proposedTask }),
+        };
+      });
+    },
     analyzeAttempt: async (args: { studentState: StudentState }) =>
       runKonlingRuntimeTool(input, 'analyze_attempt', args, async () => analyzeKonlingAttempt(args.studentState)),
   };
@@ -3335,6 +3485,17 @@ export async function createKonlingAgentSession(
   db: KonlingRuntimeDb,
   input: KonlingAgentSessionCreateInput,
 ): Promise<KonlingAgentSessionView> {
+  assertSmartPrepSessionBinding(input.scope, input.smartPrepBinding);
+  const state = {
+    ...(input.state ?? {}),
+    ...(input.smartPrepBinding ? {
+      smartPrepBinding: {
+        taskId: input.smartPrepBinding.taskId,
+        taskRevision: input.smartPrepBinding.taskRevision,
+        ownerUserId: input.scope.targetUserId,
+      },
+    } : {}),
+  };
   const created = await db.agentSession?.create?.({
     data: {
       ownerUserId: input.scope.targetUserId,
@@ -3346,7 +3507,7 @@ export async function createKonlingAgentSession(
       pathNodeId: input.scope.pathNodeId ?? null,
       phase: input.phase,
       status: input.status ?? 'draft',
-      stateJson: redactSensitivePayload(input.state ?? {}),
+      stateJson: redactSensitivePayload(state),
       permittedTools: input.permittedTools ?? DEFAULT_TOOLS,
       pendingApproval: input.pendingApproval ? redactSensitivePayload(input.pendingApproval) : null,
       expiresAt: input.expiresAt ?? null,
@@ -3362,8 +3523,9 @@ export async function resumeKonlingAgentSession(
   db: KonlingRuntimeDb,
   input: KonlingAgentSessionRefInput,
 ): Promise<KonlingAgentSessionView> {
+  assertSmartPrepSessionBinding(input.scope, input.smartPrepBinding);
   const session = await db.agentSession?.findFirst?.({
-    where: buildAgentSessionScopeWhere(input.scope, input.agentSessionId, input.phase),
+    where: buildAgentSessionScopeWhere(input.scope, input.agentSessionId, input.phase, input.smartPrepBinding),
   });
   if (!session) {
     throw new KonlingRuntimeScopeError(404, 'AgentSession 不存在或不属于当前用户作用域。');
@@ -3380,12 +3542,13 @@ export async function getOrCreateKonlingAgentSession(
       scope: input.scope,
       agentSessionId: input.agentSessionId,
       phase: input.phase,
+      smartPrepBinding: input.smartPrepBinding,
     });
   }
 
   const awaitingApprovalSession = await db.agentSession?.findFirst?.({
     where: {
-      ...buildAgentSessionScopeWhere(input.scope),
+      ...buildAgentSessionScopeWhere(input.scope, undefined, undefined, input.smartPrepBinding),
       phase: input.phase,
       status: 'awaiting_approval',
     },
@@ -4820,6 +4983,11 @@ export function buildScopedKonlingAiTools(runtime: ReturnType<typeof buildKonlin
       inputSchema: recordPathAdjustmentOutcomeParameters,
       execute: (args) => runtime.recordPathAdjustmentOutcome(args),
     }),
+    propose_smart_lesson_task_change: tool({
+      description: '将教师本轮自然语言投影为完整结构化单课任务建议。无任务时使用 bootstrap，已有任务时使用 revise 并携带当前 revision；信息不唯一时先提出澄清选项。只保存待确认建议，不直接创建或修改任务。',
+      inputSchema: proposeSmartLessonTaskChangeParameters,
+      execute: (args) => runtime.proposeSmartLessonTaskChange(args),
+    }),
     analyze_attempt: tool({
       description: '分析最近尝试并判断是否需要纠偏或补救干预。',
       inputSchema: z.object({
@@ -5275,7 +5443,12 @@ async function updateKonlingAgentSessionStatus(
   return { success: true, status: input.status };
 }
 
-function buildAgentSessionScopeWhere(scope: KonlingRuntimeScope, agentSessionId?: string, phase?: string) {
+function buildAgentSessionScopeWhere(
+  scope: KonlingRuntimeScope,
+  agentSessionId?: string,
+  phase?: string,
+  smartPrepBinding?: KonlingSmartPrepSessionBinding | null,
+) {
   return {
     ...(agentSessionId ? { id: agentSessionId } : {}),
     ...(phase ? { phase } : {}),
@@ -5285,7 +5458,32 @@ function buildAgentSessionScopeWhere(scope: KonlingRuntimeScope, agentSessionId?
     pageId: scope.pageId,
     resourceId: scope.resourceId ?? null,
     pathNodeId: scope.pathNodeId ?? null,
+    ...(smartPrepBinding ? {
+      stateJson: {
+        path: ['smartPrepBinding', 'taskId'],
+        equals: smartPrepBinding.taskId,
+      },
+    } : {}),
   };
+}
+
+function assertSmartPrepSessionBinding(
+  scope: KonlingRuntimeScope,
+  binding?: KonlingSmartPrepSessionBinding | null,
+) {
+  if (!binding) return;
+  if (
+    scope.role !== 'teacher' ||
+    scope.authenticatedUserId !== scope.targetUserId ||
+    !isKonlingSmartPrepPage(scope.pageId) ||
+    !binding.taskId.trim()
+  ) {
+    throw new KonlingRuntimeScopeError(403, 'Smart-prep AgentSession 必须绑定当前教师和明确的备课任务。');
+  }
+}
+
+function isKonlingSmartPrepPage(pageId: string) {
+  return pageId === '/teacher/smart-prep' || pageId === 'teacher-smart-prep' || pageId === 'smart-prep';
 }
 
 function buildToolRunScopeWhere(scope: KonlingRuntimeScope, toolRunId: string) {

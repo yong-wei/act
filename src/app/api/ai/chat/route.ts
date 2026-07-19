@@ -21,6 +21,7 @@ import {
 import { appendFinalCitationGuardMetadata } from '@/lib/konling-final-citation-metadata-stream';
 import {
   resolveKonlingTeachingAssistantScopeOverride,
+  resolveKonlingSmartPrepSessionBinding,
   resolveKonlingTeachingAssistantServerModeContext,
 } from '@/lib/konling-teaching-assistant-server-context';
 import {
@@ -184,6 +185,7 @@ export async function POST(request: Request) {
 
     const uiMessages = rawMessages.map(toUIMessage);
     const messages = uiMessages.map(toLegacyMessage);
+    const ownedTurnIds = messages.filter((message) => message.role === 'user').map((message) => message.id).filter(Boolean).slice(-50);
 
     const hasRuntimeContext = Boolean(
       (courseId || pageContext?.courseId) &&
@@ -276,6 +278,7 @@ export async function POST(request: Request) {
         scope: scope.scope,
         clientContextHints: modeClientContextHints,
       });
+      const smartPrepBinding = resolveKonlingSmartPrepSessionBinding(serverModeContext);
       const runtimeContext = await buildKonlingRuntimeContext(prisma, {
         ...runtimeInput,
         teachingAssistantServerModeContext: serverModeContext,
@@ -358,12 +361,15 @@ export async function POST(request: Request) {
         status: 'running',
         state: {
           route: '/api/ai/chat',
+          currentTurnId: messages.at(-1)?.id ?? null,
+          ownedTurnIds,
           teachingAssistantMode: modeContract.mode.id,
           modeStatus: modeContract.status,
           konlingCitationGuard: citationGuardMetadataPayload,
           konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload,
         },
         permittedTools: modeContract.permittedTools,
+        smartPrepBinding,
       });
       const agentSessionStateUpdate = await prisma.agentSession.updateMany({
         where: {
@@ -379,10 +385,19 @@ export async function POST(request: Request) {
           stateJson: {
             ...agentSession.state,
             route: '/api/ai/chat',
+            currentTurnId: messages.at(-1)?.id ?? null,
+            ownedTurnIds,
             teachingAssistantMode: modeContract.mode.id,
             modeStatus: modeContract.status,
             konlingCitationGuard: citationGuardMetadataPayload,
             konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload,
+            ...(smartPrepBinding ? {
+              smartPrepBinding: {
+                taskId: smartPrepBinding.taskId,
+                taskRevision: smartPrepBinding.taskRevision,
+                ownerUserId: scope.scope.targetUserId,
+              },
+            } : {}),
           } as Prisma.InputJsonObject,
         },
       });

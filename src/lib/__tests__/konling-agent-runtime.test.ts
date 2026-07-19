@@ -759,9 +759,13 @@ describe('konling agent runtime', () => {
 
     const prepCoauthor = resolveKonlingTeachingAssistantMode('prep-coauthor');
     expect(prepCoauthor.outputContract.status).toBe('draft-only');
+    expect(prepCoauthor.permittedTools).toContain('propose_smart_lesson_task_change');
+    expect(KONLING_TOOL_REGISTRY.propose_smart_lesson_task_change).toMatchObject({ permissionTier: 'analyze', approvalPolicy: 'none' });
     expect(prepCoauthor.outputContract.forbiddenActions).toEqual(expect.arrayContaining([
       'publish-prep-item',
       'insert-lesson-item',
+      'apply-smart-task-change',
+      'confirm-smart-task-change',
     ]));
 
     const mounts = getKonlingTeachingAssistantMountContracts();
@@ -777,6 +781,185 @@ describe('konling agent runtime', () => {
         requiredContext: expect.arrayContaining(['resource-node', 'path-execution-context']),
       }),
     ]));
+  });
+
+  it('exposes server-owned smart-preparation state as a teacher-only draft contract', () => {
+    const smartPreparation = {
+      taskId: 'task-1',
+      taskRevision: '7',
+      selectedCourseBasisVersions: [{ versionId: 'basis-version-2', citationState: 'verified', reviewState: 'CONFIRMED' }],
+      unresolvedAmbiguities: [{
+        id: 'ambiguity-duration',
+        field: 'durationMinutes',
+        question: '本课采用 45 分钟还是 90 分钟？',
+        alternatives: [{ id: '45', label: '45 分钟' }, { id: '90', label: '90 分钟' }],
+      }],
+      confirmedDecisions: [{
+        id: 'decision-topic',
+        field: 'topic',
+        value: '根轨迹校正',
+        confirmedAt: '2026-07-19T03:00:00.000Z',
+        confirmedBy: 'teacher-1',
+      }],
+      citationState: 'partially-verified',
+      reviewState: 'teacher-draft',
+      clarificationReadiness: {
+        status: 'clarification-required' as const,
+        canGenerate: false,
+        unresolvedAmbiguityIds: ['ambiguity-duration'],
+      },
+      updatePolicy: {
+        suggestionStatus: 'draft' as const,
+        requiresExplicitTeacherConfirmation: true as const,
+        expectedTaskRevision: '7',
+      },
+    };
+    const flags = {
+      'smart-task': true,
+      'selected-course-basis-versions': true,
+      'task-ambiguities': true,
+      'confirmed-task-decisions': true,
+      'citation-state': true,
+      'teacher-review-state': true,
+      'clarification-readiness': true,
+    };
+    const contract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'prep-coauthor',
+      runtimeContext: createRuntimeContext({
+        citationContext: {
+          ...createRuntimeContext().citationContext!,
+          lowConfidenceReasons: [],
+        },
+      }),
+      scope: createScope({
+        role: 'teacher',
+        authenticatedUserId: 'teacher-1',
+        targetUserId: 'teacher-1',
+        pageId: '/teacher/smart-prep',
+        resourceId: null,
+        pathNodeId: null,
+        privacyScopes: ['teacher-scoped'],
+      }),
+      serverModeContext: { ...flags, smartPreparation },
+      clientContextHints: { reviewState: 'client-approved' },
+    });
+
+    expect(contract.status).toBe('degraded');
+    expect(contract.unavailableReasons).toEqual([]);
+    expect(contract.smartPreparation).toEqual(smartPreparation);
+    expect(contract.citationRequirements.classes).toEqual([]);
+    expect(contract.outputContract.status).toBe('draft-only');
+    expect(contract.outputContract.forbiddenActions).toContain('confirm-smart-task-change');
+    expect(contract.clientHintsAccepted).toEqual([]);
+
+    const studentContract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'prep-coauthor',
+      runtimeContext: createRuntimeContext(),
+      scope: createScope({ pageId: '/teacher/smart-prep' }),
+      serverModeContext: { ...flags, smartPreparation },
+    });
+    expect(studentContract.status).toBe('unavailable');
+    expect(studentContract.smartPreparation).toBeNull();
+  });
+
+  it('binds a smart lesson proposal to the server-owned session turn without applying it', async () => {
+    const scope = createScope({
+      authenticatedUserId: 'teacher-1', targetUserId: 'teacher-1', role: 'teacher',
+      pageId: '/teacher/smart-prep', privacyScopes: ['teacher-scoped'],
+    });
+    const session = {
+      id: 'agent-session-1', ownerUserId: 'teacher-1', actorUserId: 'teacher-1',
+      permittedTools: ['propose_smart_lesson_task_change'],
+      stateJson: { currentTurnId: 'turn-server-1', smartPrepBinding: { taskId: 'task-1', taskRevision: '3', ownerUserId: 'teacher-1' } },
+    };
+    let createdRun: Record<string, unknown> | null = null;
+    const db = {
+      agentSession: { findFirst: vi.fn(async () => session) },
+      agentToolRun: {
+        create: vi.fn(async ({ data }) => {
+          createdRun = { id: 'suggestion-1', ...data, createdAt: new Date(), updatedAt: new Date() };
+          return createdRun;
+        }),
+        findFirst: vi.fn(async () => createdRun),
+        updateMany: vi.fn(async () => ({ count: 1 })),
+      },
+    };
+    const smartPreparation = {
+      taskId: 'task-1', taskRevision: '3', currentTask: { topic: '旧主题' }, selectedCourseBasisVersions: [],
+      unresolvedAmbiguities: [], confirmedDecisions: [], citationState: 'verified', reviewState: 'confirmed',
+      clarificationReadiness: { status: 'ready' as const, canGenerate: true, unresolvedAmbiguityIds: [] },
+      updatePolicy: { suggestionStatus: 'draft' as const, requiresExplicitTeacherConfirmation: true as const, expectedTaskRevision: '3' },
+    };
+    const mode = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'prep-coauthor', runtimeContext: createRuntimeContext(), scope,
+      serverModeContext: {
+        'smart-task': true, 'selected-course-basis-versions': true, 'task-ambiguities': true,
+        'confirmed-task-decisions': true, 'citation-state': true, 'teacher-review-state': true,
+        'clarification-readiness': true, smartPreparation,
+      },
+    });
+    const runtime = buildKonlingToolRuntime({
+      db, scope, agentSessionId: session.id, permittedTools: session.permittedTools,
+      context: { ...createRuntimeContext(), teachingAssistantMode: mode } as never,
+    });
+    await expect(runtime.proposeSmartLessonTaskChange({
+      taskId: 'task-1', expectedRevision: 3, proposedTask: { topic: '新主题' },
+    })).resolves.toMatchObject({ suggestionId: 'suggestion-1', turnId: 'turn-server-1', status: 'awaiting_teacher_confirmation' });
+    expect(db.agentToolRun.create).toHaveBeenCalledWith({ data: expect.objectContaining({
+      toolName: 'propose_smart_lesson_task_change',
+      inputSummary: expect.objectContaining({ taskId: 'task-1', expectedRevision: 3, turnId: 'turn-server-1' }),
+    }) });
+  });
+
+  it('keeps a bootstrap session through clarification and a later create proposal', async () => {
+    const scope = createScope({
+      authenticatedUserId: 'teacher-1', targetUserId: 'teacher-1', role: 'teacher',
+      pageId: '/teacher/smart-prep', privacyScopes: ['teacher-scoped'],
+    });
+    const session = {
+      id: 'bootstrap-session', ownerUserId: 'teacher-1', actorUserId: 'teacher-1',
+      permittedTools: ['propose_smart_lesson_task_change'],
+      stateJson: { currentTurnId: 'turn-1', ownedTurnIds: ['turn-1'] },
+    };
+    let runNumber = 0;
+    const runs: Array<Record<string, unknown>> = [];
+    const db = {
+      agentSession: { findFirst: vi.fn(async () => session) },
+      agentToolRun: {
+        create: vi.fn(async ({ data }) => {
+          const run = { id: `bootstrap-suggestion-${++runNumber}`, ...data, createdAt: new Date(), updatedAt: new Date() };
+          runs.push(run);
+          return run;
+        }),
+        findFirst: vi.fn(async ({ where }) => runs.find((run) => run.id === where.id) ?? null),
+        updateMany: vi.fn(async () => ({ count: 1 })),
+      },
+    };
+    const smartPreparation = {
+      taskId: null, taskRevision: null, bootstrap: true, currentTask: {}, selectedCourseBasisVersions: [],
+      unresolvedAmbiguities: [], confirmedDecisions: [], citationState: 'unselected', reviewState: 'draft',
+      clarificationReadiness: { status: 'clarification-required' as const, canGenerate: false, unresolvedAmbiguityIds: [] },
+      updatePolicy: { suggestionStatus: 'draft' as const, requiresExplicitTeacherConfirmation: true as const, expectedTaskRevision: null },
+    };
+    const mode = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'prep-coauthor', runtimeContext: createRuntimeContext(), scope,
+      serverModeContext: {
+        'prep-pack': true, 'task-ambiguities': true, 'teacher-review-state': true,
+        'clarification-readiness': true, smartPreparation,
+      },
+    });
+    const runtime = buildKonlingToolRuntime({
+      db, scope, agentSessionId: session.id, permittedTools: session.permittedTools,
+      context: { ...createRuntimeContext(), teachingAssistantMode: mode } as never,
+    });
+    await expect(runtime.proposeSmartLessonTaskChange({
+      operation: 'bootstrap', clarification: { question: '课时是 45 还是 90 分钟？', alternatives: ['45', '90'] },
+    })).resolves.toMatchObject({ turnId: 'turn-1', status: 'clarification_required' });
+    session.stateJson = { currentTurnId: 'turn-2', ownedTurnIds: ['turn-1', 'turn-2'] };
+    await expect(runtime.proposeSmartLessonTaskChange({
+      operation: 'bootstrap', proposedTask: { topic: '根轨迹', durationMinutes: 45 },
+    })).resolves.toMatchObject({ turnId: 'turn-2', status: 'awaiting_teacher_confirmation' });
+    expect(db.agentToolRun.create).toHaveBeenCalledTimes(2);
   });
 
   it('builds explicit mode runtime contracts without allowing client hints to expand scope', () => {
@@ -10530,6 +10713,124 @@ describe('konling agent runtime', () => {
       }),
     }));
     expect(db.konlingSession.findFirst).not.toHaveBeenCalled();
+  });
+
+  it('binds smart-prep agent sessions to the owning teacher and stable task identity', async () => {
+    const scope = createScope({
+      authenticatedUserId: 'teacher-1',
+      targetUserId: 'teacher-1',
+      role: 'teacher',
+      pageId: '/teacher/smart-prep',
+      resourceId: null,
+      pathNodeId: null,
+      privacyScopes: ['teacher-scoped'],
+    });
+    const db = {
+      agentSession: {
+        create: vi.fn().mockImplementation(async ({ data }) => ({
+          id: 'smart-prep-session-1',
+          ...data,
+          createdAt: new Date('2026-07-19T03:00:00.000Z'),
+          updatedAt: new Date('2026-07-19T03:00:00.000Z'),
+        })),
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'smart-prep-session-1',
+          ownerUserId: 'teacher-1',
+          actorUserId: 'teacher-1',
+          phase: 'konling-chat-tool-runtime',
+          status: 'running',
+          stateJson: {
+            smartPrepBinding: { taskId: 'task-1', taskRevision: '7', ownerUserId: 'teacher-1' },
+          },
+          permittedTools: ['get_page_context'],
+          pendingApproval: null,
+          expiresAt: null,
+          createdAt: new Date('2026-07-19T03:00:00.000Z'),
+          updatedAt: new Date('2026-07-19T03:00:00.000Z'),
+        }),
+      },
+    };
+    const smartPrepBinding = { taskId: 'task-1', taskRevision: '7' };
+
+    const created = await createKonlingAgentSession(db, {
+      scope,
+      phase: 'konling-chat-tool-runtime',
+      state: { teachingAssistantMode: 'prep-coauthor' },
+      smartPrepBinding,
+    });
+    await resumeKonlingAgentSession(db, {
+      scope,
+      agentSessionId: created.id,
+      phase: 'konling-chat-tool-runtime',
+      smartPrepBinding,
+    });
+
+    expect(db.agentSession.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        ownerUserId: 'teacher-1',
+        stateJson: expect.objectContaining({
+          smartPrepBinding: { taskId: 'task-1', taskRevision: '7', ownerUserId: 'teacher-1' },
+        }),
+      }),
+    }));
+    expect(db.agentSession.findFirst).toHaveBeenCalledWith({
+      where: expect.objectContaining({
+        id: 'smart-prep-session-1',
+        ownerUserId: 'teacher-1',
+        stateJson: { path: ['smartPrepBinding', 'taskId'], equals: 'task-1' },
+      }),
+    });
+
+    await expect(createKonlingAgentSession(db, {
+      scope: createScope({ pageId: '/teacher/smart-prep' }),
+      phase: 'konling-chat-tool-runtime',
+      smartPrepBinding,
+    })).rejects.toMatchObject({ status: 403 });
+  });
+
+  it('rejects cross-task reuse but allows the same smart-prep session after a revision change', async () => {
+    const scope = createScope({
+      authenticatedUserId: 'teacher-1',
+      targetUserId: 'teacher-1',
+      role: 'teacher',
+      classId: null,
+      pageId: '/teacher/smart-prep',
+    });
+    const session = {
+      id: 'session-for-task-1-revision-7', ownerUserId: 'teacher-1', actorUserId: 'teacher-1',
+      phase: 'konling-chat-tool-runtime', status: 'running', stateJson: { smartPrepBinding: { taskId: 'task-1', taskRevision: '7' } },
+      permittedTools: [], pendingApproval: null, expiresAt: null, createdAt: new Date(), updatedAt: new Date(),
+    };
+    const findFirst = vi.fn()
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(session);
+    const db = { agentSession: { findFirst } };
+
+    await expect(resumeKonlingAgentSession(db, {
+      scope,
+      agentSessionId: 'session-for-task-1-revision-7',
+      phase: 'konling-chat-tool-runtime',
+      smartPrepBinding: { taskId: 'task-2', taskRevision: '7' },
+    })).rejects.toMatchObject({ status: 404 });
+    await expect(resumeKonlingAgentSession(db, {
+      scope,
+      agentSessionId: 'session-for-task-1-revision-7',
+      phase: 'konling-chat-tool-runtime',
+      smartPrepBinding: { taskId: 'task-1', taskRevision: '8' },
+    })).resolves.toMatchObject({ id: 'session-for-task-1-revision-7' });
+
+    expect(findFirst).toHaveBeenNthCalledWith(1, {
+      where: expect.objectContaining({
+        ownerUserId: 'teacher-1',
+        stateJson: { path: ['smartPrepBinding', 'taskId'], equals: 'task-2' },
+      }),
+    });
+    expect(findFirst).toHaveBeenNthCalledWith(2, {
+      where: expect.objectContaining({
+        ownerUserId: 'teacher-1',
+        stateJson: { path: ['smartPrepBinding', 'taskId'], equals: 'task-1' },
+      }),
+    });
   });
 
   it('scopes explicit agent session resume by phase', async () => {
