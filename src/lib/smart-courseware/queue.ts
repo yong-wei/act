@@ -3,6 +3,7 @@ import { Queue } from 'bullmq';
 
 import { redisClient } from '@/lib/redis-client';
 
+import { SmartCoursewareError } from './domain';
 import { COURSEWARE_GENERATION_QUEUE, ensureCoursewareGenerationWorker } from './worker';
 
 type QueueLike = Pick<Queue<{ jobId: string }>, 'add' | 'close'>;
@@ -11,9 +12,14 @@ let queue: Queue<{ jobId: string }> | null = null;
 export async function enqueueCoursewareGenerationJob(db: PrismaClient, jobId: string, override?: QueueLike) {
   const durable = await db.smartCoursewareGenerationJob.findUnique({
     where: { id: jobId },
-    select: { id: true, draftId: true, mode: true, targetModuleId: true, state: true, firstIncompleteUnitKey: true, deliveryGeneration: true },
+    select: {
+      id: true, draftId: true, mode: true, targetModuleId: true, state: true,
+      firstIncompleteUnitKey: true, deliveryGeneration: true,
+      draft: { select: { state: true } },
+    },
   });
   if (!durable) return { queued: false, job: null, errorCode: 'courseware-job-not-found' as const };
+  if (durable.draft?.state === 'ACCEPTED') throw new SmartCoursewareError('accepted-courseware-immutable', 409);
   if (durable.state !== 'QUEUED') return { queued: false, job: durable, errorCode: null };
   if (durable.mode === 'INITIAL') {
     if (!durable.firstIncompleteUnitKey) return deliveryFailure(db, durable.id, durable.draftId, durable.mode, 'courseware-unit-not-found');

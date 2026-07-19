@@ -7,6 +7,8 @@ import { smartLessonAdvisoryReviewSchema, validateSmartLessonPlan } from '@/lib/
 
 import {
   SmartCoursewareError,
+  assertCoursewareManifestIdentity,
+  assertPersistedCoursewareManifest,
   coursewareManifestHash,
   deriveCoursewareModuleMetadata,
   persistenceProvenanceFor,
@@ -83,6 +85,15 @@ export async function getSmartCoursewareDraft(db: CoursewareDb, input: {
     },
   });
   if (!draft) throw new SmartCoursewareError('courseware-draft-not-found', 404);
+  if (draft.runtimeManifest || draft.contentHash) {
+    const plan = validateSmartLessonPlan(draft.planRevision.content);
+    assertPersistedCoursewareManifest({
+      draftId: draft.id,
+      approvedPlanTitle: plan.topic,
+      manifest: draft.runtimeManifest as unknown as GeneratedSlideManifest | null,
+      contentHash: draft.contentHash,
+    });
+  }
   return draft;
 }
 
@@ -111,11 +122,24 @@ export async function updateSmartCoursewareComposition(db: CoursewareDb, input: 
   }
 
   const plan = validateSmartLessonPlan(draft.planRevision.content);
+  if (draft.runtimeManifest || draft.contentHash) {
+    assertPersistedCoursewareManifest({
+      draftId: draft.id,
+      approvedPlanTitle: plan.topic,
+      manifest: draft.runtimeManifest as unknown as GeneratedSlideManifest | null,
+      contentHash: draft.contentHash,
+    });
+  }
   const composition = validateCoursewareComposition({
     expectedVersion: input.expectedVersion,
     runtimeManifest: input.runtimeManifest,
     moduleMetadata: input.moduleMetadata,
   }, plan);
+  assertCoursewareManifestIdentity({
+    draftId: draft.id,
+    approvedPlanTitle: plan.topic,
+    manifest: composition.runtimeManifest,
+  });
   const runtimeModules = allRuntimeModules(composition.runtimeManifest);
   const requestedById = new Map(composition.moduleMetadata.map((metadata) => [metadata.moduleId, metadata]));
   const existingById = new Map(draft.modules.map((module) => [module.runtimeModuleId, module]));
@@ -205,6 +229,11 @@ export async function approveSmartCoursewareDraft(db: CoursewareDb, input: {
       if (draft.state !== 'READY' || !draft.runtimeManifest || !draft.contentHash) {
         throw new SmartCoursewareError('valid-ready-courseware-required', 409);
       }
+      const activeJob = await tx.smartCoursewareGenerationJob.findFirst({
+        where: { draftId: draft.id, state: { in: ['QUEUED', 'RUNNING', 'RETRYABLE'] } },
+        select: { id: true },
+      });
+      if (activeJob) throw new SmartCoursewareError('active-generation-locks-courseware', 409);
       if (draft.planContentHash !== draft.planRevision.contentHash
         || draft.planRevisionNumber !== draft.planRevision.revisionNumber
         || contentHash(draft.planRevision.content) !== draft.planContentHash) {
@@ -212,9 +241,12 @@ export async function approveSmartCoursewareDraft(db: CoursewareDb, input: {
       }
       const plan = validateSmartLessonPlan(draft.planRevision.content);
       const manifest = draft.runtimeManifest as unknown as GeneratedSlideManifest;
-      if (coursewareManifestHash(manifest) !== draft.contentHash) {
-        throw new SmartCoursewareError('courseware-content-hash-mismatch', 409);
-      }
+      assertPersistedCoursewareManifest({
+        draftId: draft.id,
+        approvedPlanTitle: plan.topic,
+        manifest,
+        contentHash: draft.contentHash,
+      });
       const moduleMetadata = draft.modules.map(publicModuleMetadata);
       const validationMetadata = moduleMetadata.map((module) => ({
         moduleId: module.moduleId,
@@ -550,9 +582,17 @@ async function assertCoursewareApprovalReplay<T extends {
   if (revision.draftId !== draftId) throw new SmartCoursewareError('idempotency-key-conflict', 409);
   const draft = await db.smartCoursewareDraft.findFirst({
     where: { id: draftId, ownerId: actor.id },
-    select: { id: true, version: true, contentHash: true, planRevisionId: true, planContentHash: true },
+    include: { planRevision: true },
   });
-  if (!draft?.contentHash || revision.approvalRequestHash !== coursewareApprovalRequestHash({
+  if (!draft?.contentHash || !draft.runtimeManifest) throw new SmartCoursewareError('idempotency-key-conflict', 409);
+  const plan = validateSmartLessonPlan(draft.planRevision.content);
+  assertPersistedCoursewareManifest({
+    draftId: draft.id,
+    approvedPlanTitle: plan.topic,
+    manifest: draft.runtimeManifest as unknown as GeneratedSlideManifest,
+    contentHash: draft.contentHash,
+  });
+  if (revision.approvalRequestHash !== coursewareApprovalRequestHash({
     draftId: draft.id,
     draftVersion: draft.version,
     manifestHash: draft.contentHash,

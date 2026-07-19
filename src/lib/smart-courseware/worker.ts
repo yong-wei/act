@@ -4,11 +4,12 @@ import type { Redis } from 'ioredis';
 import { ZodError } from 'zod';
 
 import { buildCourseBasisLessonDesignSar, buildCourseBasisLessonDesignSourcePack } from '@/lib/course-basis/lesson-design-source-pack';
+import type { GeneratedSlideManifest } from '@/features/interactive/shared/manifest-runtime/generated-slide-contract';
 import { prisma } from '@/lib/prisma';
 import { normalizeSourceBindings } from '@/lib/smart-lesson-plan/domain';
 import { validateSmartLessonPlan, type SmartLessonPlan } from '@/lib/smart-lesson-plan/schema';
 
-import { SmartCoursewareError } from './domain';
+import { SmartCoursewareError, assertPersistedCoursewareManifest } from './domain';
 import {
   beginCoursewareProviderAttempt,
   completeCoursewareGenerationUnit,
@@ -73,6 +74,16 @@ export async function processCoursewareGenerationJob(
   for (;;) {
     const context = await loadContext(db, jobId);
     if (!context) throw new SmartCoursewareError('courseware-job-not-found', 404);
+    if (context.draft.state === 'ACCEPTED') throw new SmartCoursewareError('accepted-courseware-immutable', 409);
+    if (context.draft.planRevision?.content) {
+      const approvedPlan = validateSmartLessonPlan(context.draft.planRevision.content);
+      assertPersistedCoursewareManifest({
+        draftId: context.draft.id,
+        approvedPlanTitle: approvedPlan.topic,
+        manifest: context.draft.runtimeManifest as unknown as GeneratedSlideManifest | null,
+        contentHash: context.draft.contentHash,
+      });
+    }
     if (['RETRYABLE', 'FAILED', 'CANCELLED', 'COMPLETED'].includes(context.state)) return { jobId, state: context.state };
     if (context.mode === 'MODULE') {
       return generateCoursewareModuleCandidate(db, {

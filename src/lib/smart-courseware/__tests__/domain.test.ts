@@ -4,6 +4,9 @@ import { sourceBindingFixture } from '@/lib/smart-lesson-plan/__tests__/fixtures
 
 import {
   SmartCoursewareError,
+  assertCoursewareManifestIdentity,
+  assertPersistedCoursewareManifest,
+  coursewareManifestHash,
   deriveCoursewareModuleMetadata,
   projectCoursewareForStudent,
   projectCoursewareForTeacher,
@@ -62,6 +65,44 @@ describe('smart courseware domain', () => {
     delete openMetadata.teacherFields.reviewPoints;
     expect(() => validateCoursewareComposition(open, validPlan()))
       .toThrowError(expect.objectContaining({ code: 'open-activity-teacher-evidence-required:module-3' }));
+  });
+
+  it('rejects teacher evidence that is not applicable to the module response contract', () => {
+    const objective = validCompositionInput();
+    (objective.moduleMetadata[2] as CoursewareModuleMetadataInput).teacherFields.expectedOutput = '不应保留';
+    expect(() => validateCoursewareComposition(objective, validPlan()))
+      .toThrowError(expect.objectContaining({ code: 'objective-activity-open-evidence-forbidden:module-3' }));
+
+    const open = validCompositionInput();
+    const openModule = open.runtimeManifest.stages[2].steps[0].modules[0];
+    openModule.responseKind = 'text.long';
+    openModule.payload = { prompt: '说明理由。' };
+    (open.moduleMetadata[2] as CoursewareModuleMetadataInput).teacherFields = {
+      expectedOutput: '完整说明。', reviewPoints: ['结论'], referenceAnswer: '旧答案',
+    };
+    expect(() => validateCoursewareComposition(open, validPlan()))
+      .toThrowError(expect.objectContaining({ code: 'open-activity-objective-evidence-forbidden:module-3' }));
+
+    const content = validCompositionInput();
+    (content.moduleMetadata[0] as CoursewareModuleMetadataInput).teacherFields = { explanation: '内容模块不接受答案证据' };
+    expect(() => validateCoursewareComposition(content, validPlan()))
+      .toThrowError(expect.objectContaining({ code: 'content-module-teacher-evidence-forbidden:module-1' }));
+  });
+
+  it('binds persisted manifest identity and hash to the draft and approved plan', () => {
+    const manifest = validCoursewareManifest();
+    expect(() => assertCoursewareManifestIdentity({
+      draftId: manifest.lessonId, approvedPlanTitle: manifest.title, manifest,
+    })).not.toThrow();
+    expect(() => assertCoursewareManifestIdentity({
+      draftId: 'other-draft', approvedPlanTitle: manifest.title, manifest,
+    })).toThrowError(expect.objectContaining({ code: 'courseware-manifest-identity-mismatch' }));
+    expect(() => assertPersistedCoursewareManifest({
+      draftId: manifest.lessonId,
+      approvedPlanTitle: manifest.title,
+      manifest,
+      contentHash: coursewareManifestHash({ ...manifest, title: '篡改标题' }),
+    })).toThrowError(expect.objectContaining({ code: 'courseware-content-hash-mismatch' }));
   });
 
   it.each([

@@ -7,6 +7,8 @@ import { validateSmartLessonPlan } from '@/lib/smart-lesson-plan/schema';
 
 import {
   SmartCoursewareError,
+  assertCoursewareManifestIdentity,
+  assertPersistedCoursewareManifest,
   coursewareManifestHash,
   coursewareModuleGenerationInputHash,
   deriveCoursewareModuleMetadata,
@@ -196,8 +198,12 @@ export async function beginCoursewareProviderAttempt(db: Db, input: {
     schemaVersion: requiredText(input.schemaVersion, 100), requestHash: contentHash(input.request),
   };
   return db.$transaction(async (tx) => {
-    const job = await tx.smartCoursewareGenerationJob.findFirst({ where: { id: validateId(input.jobId), ownerId: actor.id } });
+    const job = await tx.smartCoursewareGenerationJob.findFirst({
+      where: { id: validateId(input.jobId), ownerId: actor.id },
+      include: { draft: { select: { state: true } } },
+    });
     if (!job || !['QUEUED', 'RUNNING'].includes(job.state)) throw new SmartCoursewareError('courseware-job-not-runnable', 409);
+    assertMutableDraftState(job.draft?.state);
     let unit = await tx.smartCoursewareGenerationUnit.findUnique({ where: { jobId_unitKey: { jobId: job.id, unitKey: input.unitKey } } });
     if (!unit || unit.unitKey !== job.firstIncompleteUnitKey || unit.state === 'COMPLETED') {
       throw new SmartCoursewareError('courseware-unit-not-runnable', 409);
@@ -251,6 +257,7 @@ export async function completeCoursewareGenerationUnit(db: Db, input: {
       include: { draft: { include: { planRevision: true, modules: { where: { deletedAt: null } } } }, units: { orderBy: { orderIndex: 'asc' }, include: { attempts: { orderBy: { attemptNumber: 'desc' } } } } },
     });
     if (!job) throw new SmartCoursewareError('courseware-job-not-found', 404);
+    assertMutableDraftState(job.draft?.state);
     const unit = job.units.find((candidate) => candidate.unitKey === input.unitKey);
     if (!unit) throw new SmartCoursewareError('courseware-unit-not-found', 404);
     const outputHash = contentHash(input.output);
@@ -288,8 +295,12 @@ export async function failCoursewareGenerationUnit(db: Db, input: {
 }) {
   const actor = validateActor(input.actor);
   return db.$transaction(async (tx) => {
-    const job = await tx.smartCoursewareGenerationJob.findFirst({ where: { id: input.jobId, ownerId: actor.id } });
+    const job = await tx.smartCoursewareGenerationJob.findFirst({
+      where: { id: input.jobId, ownerId: actor.id },
+      include: { draft: { select: { state: true } } },
+    });
     if (!job) throw new SmartCoursewareError('courseware-job-not-found', 404);
+    assertMutableDraftState(job.draft?.state);
     const unit = await tx.smartCoursewareGenerationUnit.findUnique({ where: { jobId_unitKey: { jobId: job.id, unitKey: input.unitKey } } });
     if (!unit || unit.state !== 'RUNNING') throw new SmartCoursewareError('courseware-unit-not-running', 409);
     const state = input.retryable ? 'RETRYABLE' : 'FAILED';
@@ -318,6 +329,11 @@ async function persistCompletedManifest(tx: Prisma.TransactionClient, actor: Sma
     { expectedVersion: job.draft.version, runtimeManifest: manifest, moduleMetadata: rawMetadata },
     { ...plan, sources: allowed },
   );
+  assertCoursewareManifestIdentity({
+    draftId: job.draft.id,
+    approvedPlanTitle: plan.topic,
+    manifest: composition.runtimeManifest,
+  });
   const metadataById = new Map(composition.moduleMetadata.map((item) => [item.moduleId, item]));
   const attemptByStage = new Map<string, string>([
     ...job.units.flatMap((unit): Array<[string, string]> => unit.attempts[0]?.id ? [[unit.unitKey, unit.attempts[0].id]] : []),
@@ -372,8 +388,12 @@ async function transitionJob(db: Db, input: CommandInput, action: string, allowe
   if (replay) return replay;
   try {
     return await db.$transaction(async (tx) => {
-      const job = await tx.smartCoursewareGenerationJob.findFirst({ where: { id: validateId(input.jobId), ownerId: actor.id } });
+      const job = await tx.smartCoursewareGenerationJob.findFirst({
+        where: { id: validateId(input.jobId), ownerId: actor.id },
+        include: { draft: { select: { state: true } } },
+      });
       if (!job) throw new SmartCoursewareError('courseware-job-not-found', 404);
+      assertMutableDraftState(job.draft?.state);
       if (!allowedStates.includes(job.state)) throw new SmartCoursewareError(`courseware-job-${action.toLowerCase()}-invalid`, 409);
       const updated = await transition(tx, job);
       await recordCommand(tx, job, action, idempotencyKey, requestHash, updated);
@@ -418,8 +438,16 @@ async function assertInputUnchanged(tx: Prisma.TransactionClient, job: {
     include: { planRevision: true, modules: { where: { deletedAt: null } } },
   });
   if (!draft) throw new SmartCoursewareError('courseware-generation-input-changed', 409);
+  assertMutableDraftState(draft.state);
   if (job.mode === 'MODULE') {
     const runtimeManifest = draft.runtimeManifest as unknown as GeneratedSlideManifest | null;
+    const plan = validateSmartLessonPlan(draft.planRevision.content);
+    assertPersistedCoursewareManifest({
+      draftId: draft.id,
+      approvedPlanTitle: plan.topic,
+      manifest: runtimeManifest,
+      contentHash: draft.contentHash,
+    });
     const runtimeModule = runtimeManifest?.stages
       .flatMap((stage) => stage.steps.flatMap((step) => step.modules))
       .find((module) => module.id === job.targetModuleId);
@@ -457,7 +485,12 @@ async function findCommandReplay(db: Db, actor: SmartCoursewareActor, action: st
   const command = await db.smartCoursewareGenerationCommand.findFirst({ where: { ownerId: actor.id, action, idempotencyKey: key } });
   if (!command) return null;
   if (command.requestHash !== requestHash) throw new SmartCoursewareError('idempotency-key-conflict', 409);
-  return db.smartCoursewareGenerationJob.findFirst({ where: { id: command.jobId, ownerId: actor.id } });
+  const job = await db.smartCoursewareGenerationJob.findFirst({
+    where: { id: command.jobId, ownerId: actor.id },
+    include: { draft: { select: { state: true } } },
+  });
+  if (job) assertMutableDraftState(job.draft?.state);
+  return job;
 }
 
 async function recordCommand(tx: Prisma.TransactionClient, job: { id: string; ownerId: string }, action: string, key: string, requestHash: string, result: unknown = job) {
@@ -478,6 +511,9 @@ function requiredText(value: string, max: number) {
   const text = typeof value === 'string' ? value.trim() : '';
   if (!text || text.length > max) throw new SmartCoursewareError('text-invalid');
   return text;
+}
+function assertMutableDraftState(state: string | undefined) {
+  if (state === 'ACCEPTED') throw new SmartCoursewareError('accepted-courseware-immutable', 409);
 }
 function asJson(value: unknown): Prisma.InputJsonValue { return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue; }
 function isTransactionConflict(error: unknown) { return error instanceof Prisma.PrismaClientKnownRequestError && ['P2002', 'P2034'].includes(error.code); }

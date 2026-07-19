@@ -12,7 +12,7 @@ import {
   retryCoursewareGenerationJob,
   startCoursewareGenerationJob,
 } from '../generation-service';
-import { coursewareModuleGenerationInputHash } from '../domain';
+import { coursewareManifestHash, coursewareModuleGenerationInputHash } from '../domain';
 import { validCoursewareManifest } from './fixtures';
 
 const actor = { id: 'teacher-1', role: 'TEACHER' as const };
@@ -255,17 +255,65 @@ describe('smart courseware generation service', () => {
     });
     expect(calls).toEqual(['attempt', 'unit', 'draft', 'job']);
   });
+
+  it.each([
+    ['resume', resumeCoursewareGenerationJob, 'FAILED'],
+    ['retry', retryCoursewareGenerationJob, 'FAILED'],
+    ['cancel', cancelCoursewareGenerationJob, 'RUNNING'],
+  ] as const)('rejects %s after the draft is ACCEPTED', async (name, transition, state) => {
+    const job = {
+      id: `accepted-${name}`, ownerId: actor.id, draftId: 'accepted-draft', mode: 'INITIAL', state,
+      draft: { state: 'ACCEPTED' },
+    };
+    const db = {
+      smartCoursewareGenerationCommand: { findFirst: vi.fn().mockResolvedValue(null) },
+      $transaction: vi.fn(async (run: (tx: unknown) => unknown) => run({
+        smartCoursewareGenerationJob: { findFirst: vi.fn().mockResolvedValue(job) },
+      })),
+    };
+    await expect(transition(db as never, {
+      actor, jobId: job.id, idempotencyKey: `${name}-accepted-1`,
+    })).rejects.toMatchObject({ code: 'accepted-courseware-immutable' });
+  });
+
+  it('rejects an idempotent transition replay after the draft is ACCEPTED', async () => {
+    const job = { id: 'accepted-replay-job', ownerId: actor.id, draftId: 'accepted-draft', state: 'QUEUED', draft: { state: 'ACCEPTED' } };
+    const requestHash = contentHash({ jobId: job.id });
+    const db = {
+      smartCoursewareGenerationCommand: { findFirst: vi.fn().mockResolvedValue({ jobId: job.id, requestHash }) },
+      smartCoursewareGenerationJob: { findFirst: vi.fn().mockResolvedValue(job) },
+      $transaction: vi.fn(),
+    };
+    await expect(resumeCoursewareGenerationJob(db as never, {
+      actor, jobId: job.id, idempotencyKey: 'accepted-replay-1',
+    })).rejects.toMatchObject({ code: 'accepted-courseware-immutable' });
+    expect(db.$transaction).not.toHaveBeenCalled();
+  });
+
+  it('does not claim a provider attempt for an ACCEPTED draft', async () => {
+    const db = { $transaction: vi.fn(async (run: (tx: unknown) => unknown) => run({
+      smartCoursewareGenerationJob: { findFirst: vi.fn().mockResolvedValue({
+        id: 'accepted-provider-job', ownerId: actor.id, state: 'QUEUED', firstIncompleteUnitKey: 'bridge-in',
+        draft: { state: 'ACCEPTED' },
+      }) },
+    })) };
+    await expect(beginCoursewareProviderAttempt(db as never, {
+      actor, jobId: 'accepted-provider-job', unitKey: 'bridge-in', serviceId: 'service', providerKind: 'test',
+      model: 'model', promptVersion: 'v1', schemaVersion: 'v1', request: {},
+    })).rejects.toMatchObject({ code: 'accepted-courseware-immutable' });
+  });
 });
 
 function moduleJobFixture(state: 'FAILED' | 'RUNNING') {
   const runtimeManifest = validCoursewareManifest();
+  runtimeManifest.lessonId = 'draft-module';
   const runtimeModule = runtimeManifest.stages[2].steps[0].modules[0];
   const content = validPlanFixture();
   const planRevision = { id: 'plan-1', revisionNumber: 1, content, contentHash: contentHash(content) };
   const draft = {
     id: 'draft-module', ownerId: actor.id, version: 2, planRevisionId: planRevision.id,
     planRevisionNumber: 1, planContentHash: planRevision.contentHash, authoringLineageRoot: 'lineage-module',
-    runtimeManifest, planRevision,
+    state: 'READY', runtimeManifest, contentHash: coursewareManifestHash(runtimeManifest), planRevision,
     modules: [{ runtimeModuleId: runtimeModule.id, contentHash: contentHash(runtimeModule), deletedAt: null }],
   };
   const targetModuleHash = contentHash(runtimeModule);

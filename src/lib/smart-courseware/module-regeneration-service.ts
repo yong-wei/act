@@ -8,6 +8,8 @@ import { validateSmartLessonPlan } from '@/lib/smart-lesson-plan/schema';
 
 import {
   SmartCoursewareError,
+  assertCoursewareManifestIdentity,
+  assertPersistedCoursewareManifest,
   coursewareManifestHash,
   coursewareModuleGenerationInputHash,
   deriveCoursewareModuleMetadata,
@@ -49,8 +51,15 @@ export async function requestCoursewareModuleRegeneration(db: Db, input: {
   });
   if (!draft) throw new SmartCoursewareError('courseware-draft-not-found', 404);
   if (!draft.runtimeManifest || draft.state === 'GENERATING') throw new SmartCoursewareError('courseware-manifest-not-ready', 409);
-  if (draft.state === 'ACCEPTED') throw new SmartCoursewareError('accepted-courseware-immutable', 409);
+  assertMutableDraftState(draft.state);
   assertBaseline(draft);
+  const plan = validateSmartLessonPlan(draft.planRevision.content);
+  assertPersistedCoursewareManifest({
+    draftId: draft.id,
+    approvedPlanTitle: plan.topic,
+    manifest: draft.runtimeManifest as unknown as GeneratedSlideManifest,
+    contentHash: draft.contentHash,
+  });
   const runtimeModule = findRuntimeModule(draft.runtimeManifest as unknown as GeneratedSlideManifest, moduleId);
   const stored = draft.modules[0];
   if (!runtimeModule || !stored || stored.contentHash !== contentHash(runtimeModule)) {
@@ -59,6 +68,15 @@ export async function requestCoursewareModuleRegeneration(db: Db, input: {
 
   try {
     const created = await db.$transaction(async (tx) => {
+      const currentDraft = await tx.smartCoursewareDraft.findUnique({
+        where: { id: draft.id },
+        select: { state: true, version: true, contentHash: true },
+      });
+      if (!currentDraft) throw new SmartCoursewareError('courseware-draft-not-found', 404);
+      assertMutableDraftState(currentDraft.state);
+      if (currentDraft.version !== draft.version || currentDraft.contentHash !== draft.contentHash) {
+        throw new SmartCoursewareError('courseware-version-conflict', 409);
+      }
       const jobId = randomUUID();
       return tx.smartCoursewareGenerationJob.create({
         data: {
@@ -142,6 +160,7 @@ export async function generateCoursewareModuleCandidate(
       id: jobId,
       ownerId: actor.id,
       mode: 'MODULE',
+      draft: { state: { not: 'ACCEPTED' } },
       OR: [
         { state: 'QUEUED' },
         { state: 'RUNNING', moduleClaimExpiresAt: { lte: now } },
@@ -157,6 +176,12 @@ export async function generateCoursewareModuleCandidate(
   });
   if (claimed.count !== 1) {
     const current = await getCoursewareGenerationJob(db, { actor, jobId });
+    const currentDraft = await db.smartCoursewareDraft.findUnique({
+      where: { id: current.draftId },
+      select: { state: true },
+    });
+    if (!currentDraft) throw new SmartCoursewareError('courseware-draft-not-found', 404);
+    assertMutableDraftState(currentDraft.state);
     if (current.mode === 'MODULE' && current.state === 'RUNNING') {
       throw new SmartCoursewareError('courseware-module-lease-active', 503);
     }
@@ -169,16 +194,23 @@ export async function generateCoursewareModuleCandidate(
       include: { draft: { include: { planRevision: true, modules: { where: { deletedAt: null } } } } },
     });
     assertBaseline(job.draft);
+    assertMutableDraftState(job.draft.state);
     if (job.planRevisionId !== job.draft.planRevisionId || job.planContentHash !== job.draft.planContentHash) {
       throw new SmartCoursewareError('courseware-module-job-baseline-changed', 409);
     }
     const manifest = job.draft.runtimeManifest as unknown as GeneratedSlideManifest | null;
+    const plan = validateSmartLessonPlan(job.draft.planRevision.content);
+    assertPersistedCoursewareManifest({
+      draftId: job.draft.id,
+      approvedPlanTitle: plan.topic,
+      manifest,
+      contentHash: job.draft.contentHash,
+    });
     const location = manifest && findRuntimeLocation(manifest, job.targetModuleId!);
     const stored = job.draft.modules.find((module) => module.runtimeModuleId === job.targetModuleId);
     if (!location || !stored || stored.contentHash !== job.targetModuleHash || contentHash(location.runtimeModule) !== job.targetModuleHash) {
       throw new SmartCoursewareError('courseware-module-baseline-mismatch', 409);
     }
-    const plan = validateSmartLessonPlan(job.draft.planRevision.content);
     const selectedVersionIds = [...new Set(plan.sources.map((binding) => binding.sourceVersionId))];
     if (!selectedVersionIds.length) throw new SmartCoursewareError('governed-source-evidence-unavailable', 409);
     const query = [plan.topic, ...plan.goals.map((goal) => goal.content), location.stage.stage, location.step.title].join('\n').slice(0, 4_000);
@@ -357,7 +389,8 @@ export async function acceptCoursewareModuleCandidate(db: Db, input: {
       }
       const draft = job.draft;
       if (draft.version !== input.expectedDraftVersion) throw new SmartCoursewareError('courseware-version-conflict', 409);
-      if (draft.state === 'GENERATING' || draft.state === 'ACCEPTED' || !draft.runtimeManifest) {
+      assertMutableDraftState(draft.state);
+      if (draft.state === 'GENERATING' || !draft.runtimeManifest) {
         throw new SmartCoursewareError('courseware-module-accept-invalid', 409);
       }
       assertBaseline(draft);
@@ -383,6 +416,12 @@ export async function acceptCoursewareModuleCandidate(db: Db, input: {
       const nextManifest = replaceRuntimeModule(manifest, job.targetModuleId!, candidate.runtimeModule);
       assertOnlyTargetModuleChanged(manifest, nextManifest, job.targetModuleId!);
       const plan = validateSmartLessonPlan(draft.planRevision.content);
+      assertPersistedCoursewareManifest({
+        draftId: draft.id,
+        approvedPlanTitle: plan.topic,
+        manifest,
+        contentHash: draft.contentHash,
+      });
       const selectedVersions = new Set(plan.sources.map((binding) => binding.sourceVersionId));
       if (authoritativeBindings.some((binding) => !selectedVersions.has(binding.sourceVersionId))) {
         throw new SmartCoursewareError('generated-source-binding-unverified', 409);
@@ -394,6 +433,11 @@ export async function acceptCoursewareModuleCandidate(db: Db, input: {
         runtimeManifest: nextManifest,
         moduleMetadata: metadata,
       }, plan);
+      assertCoursewareManifestIdentity({
+        draftId: draft.id,
+        approvedPlanTitle: plan.topic,
+        manifest: composition.runtimeManifest,
+      });
       const derived = deriveCoursewareModuleMetadata({
         authoringLineageRoot: draft.authoringLineageRoot,
         runtimeModule: candidate.runtimeModule,
@@ -574,7 +618,12 @@ async function findCommandReplay(db: Db, actor: SmartCoursewareActor, action: st
   const command = await db.smartCoursewareGenerationCommand.findFirst({ where: { ownerId: actor.id, action, idempotencyKey: key } });
   if (!command) return null;
   if (command.requestHash !== requestHash) throw new SmartCoursewareError('idempotency-key-conflict', 409);
-  return db.smartCoursewareGenerationJob.findFirst({ where: { id: command.jobId, ownerId: actor.id } });
+  const job = await db.smartCoursewareGenerationJob.findFirst({
+    where: { id: command.jobId, ownerId: actor.id },
+    include: { draft: { select: { state: true } } },
+  });
+  if (job) assertMutableDraftState(job.draft?.state);
+  return job;
 }
 
 function validateActor(actor: SmartCoursewareActor) {
@@ -590,6 +639,9 @@ function requiredText(value: string, max: number) {
   const text = typeof value === 'string' ? value.trim() : '';
   if (!text || text.length > max) throw new SmartCoursewareError('text-invalid');
   return text;
+}
+function assertMutableDraftState(state: string | undefined) {
+  if (state === 'ACCEPTED') throw new SmartCoursewareError('accepted-courseware-immutable', 409);
 }
 function bindingKey(binding: { citationId: string; sourceVersionId: string; anchor: string; contentHash: string }) {
   return `${binding.sourceVersionId}\u0000${binding.anchor}\u0000${binding.contentHash}\u0000${binding.citationId}`;

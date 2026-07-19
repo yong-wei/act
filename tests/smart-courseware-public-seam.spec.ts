@@ -50,6 +50,7 @@ test.beforeAll(async () => {
     actor: { id: teacherId, role: 'TEACHER' }, planRevisionId, idempotencyKey: 'courseware-playwright-draft-create',
   });
   const composition = validCompositionInput();
+  composition.runtimeManifest.lessonId = draft.id;
   composition.moduleMetadata = replaceSourceVersion(composition.moduleMetadata, versionId);
   const runtimeModules = composition.runtimeManifest.stages.flatMap((stage) => stage.steps.flatMap((step) => step.modules));
   for (const metadata of composition.moduleMetadata) {

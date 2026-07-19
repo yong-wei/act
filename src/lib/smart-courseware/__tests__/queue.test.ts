@@ -50,4 +50,18 @@ describe('smart courseware queue', () => {
     expect(updateJob).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'job-1', state: 'QUEUED' } }));
     expect(updateDraft).not.toHaveBeenCalled();
   });
+
+  it('never enqueues work for an ACCEPTED draft', async () => {
+    const add = vi.fn();
+    const db = {
+      smartCoursewareGenerationJob: { findUnique: vi.fn().mockResolvedValue({
+        id: 'accepted-job', draftId: 'accepted-draft', mode: 'INITIAL', targetModuleId: null,
+        state: 'QUEUED', firstIncompleteUnitKey: 'bridge-in', deliveryGeneration: 1,
+        draft: { state: 'ACCEPTED' },
+      }) },
+    };
+    await expect(enqueueCoursewareGenerationJob(db as never, 'accepted-job', { add, close: vi.fn() }))
+      .rejects.toMatchObject({ code: 'accepted-courseware-immutable' });
+    expect(add).not.toHaveBeenCalled();
+  });
 });

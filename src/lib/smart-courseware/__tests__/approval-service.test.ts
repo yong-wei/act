@@ -68,8 +68,10 @@ describe('smart courseware whole-course approval', () => {
         id: draft.id,
         version: draft.version,
         contentHash: draft.contentHash,
+        runtimeManifest: draft.runtimeManifest,
         planRevisionId: draft.planRevisionId,
         planContentHash: draft.planContentHash,
+        planRevision: draft.planRevision,
       }) },
       $transaction: transaction,
     };
@@ -96,10 +98,28 @@ describe('smart courseware whole-course approval', () => {
     expect(createRevision).not.toHaveBeenCalled();
     expect(createLinks).not.toHaveBeenCalled();
   });
+
+  it.each(['QUEUED', 'RUNNING', 'RETRYABLE'] as const)('rejects approval while a %s generation job is active', async (state) => {
+    const draft = approvalDraft();
+    const createRevision = vi.fn();
+    const updateDraft = vi.fn();
+    const db = approvalDb(draft, {
+      createRevision,
+      updateDraft,
+      activeJob: { id: `active-${state}`, state },
+    });
+
+    await expect(approveSmartCoursewareDraft(db as never, {
+      actor, draftId: draft.id, idempotencyKey: `approve-active-${state}`,
+    })).rejects.toMatchObject({ code: 'active-generation-locks-courseware' });
+    expect(updateDraft).not.toHaveBeenCalled();
+    expect(createRevision).not.toHaveBeenCalled();
+  });
 });
 
 function approvalDraft() {
   const composition = validCompositionInput();
+  composition.runtimeManifest.lessonId = 'draft-approval';
   const planContent = validPlanFixture();
   const planRevision = {
     id: 'plan-1', revisionNumber: 1, content: planContent, contentHash: contentHash(planContent),
@@ -140,6 +160,7 @@ function approvalDb(draft: ReturnType<typeof approvalDraft>, overrides: {
   createRevision?: ReturnType<typeof vi.fn>;
   createLinks?: ReturnType<typeof vi.fn>;
   updateDraft?: ReturnType<typeof vi.fn>;
+  activeJob?: { id: string; state: string } | null;
 } = {}) {
   const createRevision = overrides.createRevision ?? vi.fn(async ({ data }) => ({ ...data, approvedAt: new Date() }));
   const createLinks = overrides.createLinks ?? vi.fn().mockResolvedValue({ count: 1 });
@@ -148,6 +169,7 @@ function approvalDb(draft: ReturnType<typeof approvalDraft>, overrides: {
     smartCoursewareRevision: { findFirst: vi.fn().mockResolvedValue(null) },
     $transaction: vi.fn(async (run: (tx: unknown) => unknown) => run({
       smartCoursewareDraft: { findFirst: vi.fn().mockResolvedValue(draft), updateMany: updateDraft },
+      smartCoursewareGenerationJob: { findFirst: vi.fn().mockResolvedValue(overrides.activeJob ?? null) },
       smartCoursewareRevision: { create: createRevision },
       courseBasisReferenceLink: { createMany: createLinks },
     })),

@@ -10,6 +10,7 @@ import {
   splitCoursewareStep,
   mergeAndDeleteCoursewareStep,
   TeacherCoursewarePreview,
+  teacherFieldsForResponseKind,
   type SmartCoursewareTeacherEnvelope,
 } from '@/features/teacher/smart-courseware-editor';
 import {
@@ -174,6 +175,24 @@ describe('smart courseware role previews', () => {
     expect(html).not.toContain('acknowledgement');
   });
 
+  it('renders ACCEPTED courseware as preview-only while retaining teacher audit evidence', () => {
+    const html = renderToStaticMarkup(<SmartCoursewareEditor
+      initialEnvelope={{ ...teacherEnvelope, state: 'accepted' }}
+      initialJob={{
+        id: 'job-candidate', draftId: teacherEnvelope.draftId, state: 'COMPLETED', mode: 'MODULE',
+        targetModuleId: 'module-1', targetModuleHash: 'hash-1', candidateRuntimeModule: { id: 'candidate' },
+      }}
+    />);
+    expect(html).toContain('data-courseware-read-only');
+    expect(html).toContain('PRIVATE_CORRECT_ANSWER');
+    expect(html).toContain('PRIVATE_PROVIDER');
+    expect(html).not.toContain('data-courseware-composition-controls');
+    expect(html).not.toContain('重新生成所选模块');
+    expect(html).not.toContain('接受候选模块');
+    expect(html).not.toContain('刷新状态');
+    expect(html).not.toContain('编辑活动');
+  });
+
   it('splits a step without changing total durations and creates non-empty new module instances', () => {
     const composition = validCompositionInput();
     const splittableManifest = composition.runtimeManifest;
@@ -255,5 +274,18 @@ describe('smart courseware role previews', () => {
         index === 2 ? { ...metadata, teacherFields } : metadata
       )),
     }, validPlan()).validation.valid).toBe(true);
+  });
+
+  it('clears incompatible teacher evidence when switching objective and open response kinds', () => {
+    expect(teacherFieldsForResponseKind('text.long', {
+      referenceAnswer: 'a', explanation: '旧解释', scoring: { maxPoints: 1 },
+      expectedOutput: '开放作答', reviewPoints: ['理由'], inclusionRationale: '覆盖目标',
+    })).toEqual({ expectedOutput: '开放作答', reviewPoints: ['理由'], inclusionRationale: '覆盖目标' });
+    expect(teacherFieldsForResponseKind('choice.single', {
+      referenceAnswer: 'a', explanation: '新解释', scoring: { maxPoints: 1 },
+      expectedOutput: '旧开放作答', reviewPoints: ['旧标准'], inclusionRationale: '覆盖目标',
+    })).toEqual({
+      referenceAnswer: 'a', explanation: '新解释', scoring: { maxPoints: 1 }, inclusionRationale: '覆盖目标',
+    });
   });
 });

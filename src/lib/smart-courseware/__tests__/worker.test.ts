@@ -54,6 +54,20 @@ describe('smart courseware generation worker', () => {
     expect(mocks.beginAttempt).not.toHaveBeenCalled();
   });
 
+  it('does not resolve or invoke a provider after the draft is ACCEPTED', async () => {
+    const context = {
+      id: 'accepted-worker-job', ownerId: 'teacher-1', draftId: 'accepted-draft', mode: 'INITIAL',
+      state: 'QUEUED', firstIncompleteUnitKey: 'bridge-in', units: [], draft: { state: 'ACCEPTED' },
+    };
+    const db = { smartCoursewareGenerationJob: { findUnique: vi.fn().mockResolvedValue(context) } };
+    const resolveProvider = vi.fn();
+
+    await expect(processCoursewareGenerationJob(db as never, context.id, resolveProvider as never))
+      .rejects.toMatchObject({ code: 'accepted-courseware-immutable' });
+    expect(resolveProvider).not.toHaveBeenCalled();
+    expect(mocks.generateModule).not.toHaveBeenCalled();
+  });
+
   it('records the same-run server-authoritative Source Pack allowlist on the provider attempt', async () => {
     const plan = validPlanFixture();
     const context = {

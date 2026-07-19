@@ -10,6 +10,7 @@ import {
   generateCoursewareModuleCandidate,
   requestCoursewareModuleRegeneration,
 } from '../module-regeneration-service';
+import { coursewareManifestHash } from '../domain';
 import { validCompositionInput } from './fixtures';
 
 const actor = { id: 'teacher-1', role: 'TEACHER' as const };
@@ -33,6 +34,7 @@ describe('smart courseware selected-module regeneration acceptance', () => {
       }) },
       smartCoursewareGenerationJob: { findFirst: vi.fn().mockResolvedValue(created) },
       $transaction: vi.fn(async (run: (tx: unknown) => unknown) => run({
+        smartCoursewareDraft: { findUnique: vi.fn().mockResolvedValue(fixture.job.draft) },
         smartCoursewareGenerationJob: { create },
       })),
     };
@@ -74,6 +76,53 @@ describe('smart courseware selected-module regeneration acceptance', () => {
     expect(db.smartCoursewareGenerationJob.findFirst).toHaveBeenCalledWith({
       where: { ownerId: actor.id, activeIdentity: `draft:${fixture.job.draft.id}` },
     });
+  });
+
+  it('rejects module request and idempotent replay after the draft is ACCEPTED', async () => {
+    const fixture = acceptanceFixture();
+    const selected = fixture.job.draft.modules[2];
+    const acceptedDraft = { ...fixture.job.draft, state: 'ACCEPTED' };
+    const directDb = {
+      smartCoursewareGenerationCommand: { findFirst: vi.fn().mockResolvedValue(null) },
+      smartCoursewareDraft: { findFirst: vi.fn().mockResolvedValue({ ...acceptedDraft, modules: [selected] }) },
+      $transaction: vi.fn(),
+    };
+    await expect(requestCoursewareModuleRegeneration(directDb as never, {
+      actor, draftId: acceptedDraft.id, moduleId: selected.runtimeModuleId,
+      idempotencyKey: 'accepted-module-request',
+    }, { enqueue: vi.fn() as never })).rejects.toMatchObject({ code: 'accepted-courseware-immutable' });
+    expect(directDb.$transaction).not.toHaveBeenCalled();
+
+    const requestHash = contentHash({ draftId: acceptedDraft.id, moduleId: selected.runtimeModuleId });
+    const replayDb = {
+      smartCoursewareGenerationCommand: { findFirst: vi.fn().mockResolvedValue({ jobId: 'module-replay', requestHash }) },
+      smartCoursewareGenerationJob: { findFirst: vi.fn().mockResolvedValue({
+        id: 'module-replay', state: 'QUEUED', draft: { state: 'ACCEPTED' },
+      }) },
+    };
+    const replayEnqueue = vi.fn();
+    await expect(requestCoursewareModuleRegeneration(replayDb as never, {
+      actor, draftId: acceptedDraft.id, moduleId: selected.runtimeModuleId,
+      idempotencyKey: 'accepted-module-replay',
+    }, { enqueue: replayEnqueue as never })).rejects.toMatchObject({ code: 'accepted-courseware-immutable' });
+    expect(replayEnqueue).not.toHaveBeenCalled();
+  });
+
+  it('does not claim or invoke the module provider for an ACCEPTED draft', async () => {
+    const fixture = acceptanceFixture();
+    const acceptedJob = { ...fixture.job, state: 'QUEUED', draft: { ...fixture.job.draft, state: 'ACCEPTED' } };
+    const resolveProvider = vi.fn();
+    const db = {
+      smartCoursewareGenerationJob: {
+        updateMany: vi.fn().mockResolvedValue({ count: 0 }),
+        findFirst: vi.fn().mockResolvedValue(acceptedJob),
+      },
+      smartCoursewareDraft: { findUnique: vi.fn().mockResolvedValue({ state: 'ACCEPTED' }) },
+    };
+    await expect(generateCoursewareModuleCandidate(db as never, { actor, jobId: acceptedJob.id }, {
+      resolveProvider: resolveProvider as never,
+    })).rejects.toMatchObject({ code: 'accepted-courseware-immutable' });
+    expect(resolveProvider).not.toHaveBeenCalled();
   });
 
   it('builds server-side local context and persists provider output as a candidate without changing the draft', async () => {
@@ -444,6 +493,21 @@ describe('smart courseware selected-module regeneration acceptance', () => {
     }) });
   });
 
+  it('rejects candidate acceptance after whole-course approval', async () => {
+    const fixture = acceptanceFixture();
+    (fixture.job.draft as { state: string }).state = 'ACCEPTED';
+    const db = acceptanceDb(fixture.job);
+    await expect(acceptCoursewareModuleCandidate(db.value as never, {
+      actor,
+      jobId: fixture.job.id,
+      expectedDraftVersion: fixture.job.draft.version,
+      expectedModuleHash: fixture.target.contentHash,
+      idempotencyKey: 'accept-after-approval',
+    })).rejects.toMatchObject({ code: 'accepted-courseware-immutable' });
+    expect(db.updateDraft).not.toHaveBeenCalled();
+    expect(db.updateModule).not.toHaveBeenCalled();
+  });
+
   it('rejects a malicious candidate that targets a sibling module', async () => {
     const fixture = acceptanceFixture();
     fixture.job.candidateRuntimeModule.id = 'module-4';
@@ -589,7 +653,7 @@ function acceptanceFixture() {
   const draft = {
     id: 'draft-1', ownerId: actor.id, planRevisionId: planRevision.id, planRevisionNumber: 1,
     planContentHash: planRevision.contentHash, authoringLineageRoot: 'draft-lineage', state: 'READY', version: 2,
-    runtimeManifest: composition.runtimeManifest, modules, planRevision,
+    runtimeManifest: composition.runtimeManifest, contentHash: coursewareManifestHash(composition.runtimeManifest), modules, planRevision,
   };
   const candidate = { runtimeModule: candidateRuntimeModule, moduleMetadata: candidateModuleMetadata };
   const job = {

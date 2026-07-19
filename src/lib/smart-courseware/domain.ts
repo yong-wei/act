@@ -84,6 +84,36 @@ export function validateCoursewareComposition(
   return { ...input, validation };
 }
 
+export function assertCoursewareManifestIdentity(input: {
+  draftId: string;
+  approvedPlanTitle: string;
+  manifest: GeneratedSlideManifest;
+}) {
+  if (input.manifest.lessonId !== input.draftId || input.manifest.title !== input.approvedPlanTitle) {
+    throw new SmartCoursewareError('courseware-manifest-identity-mismatch', 409);
+  }
+}
+
+export function assertPersistedCoursewareManifest(input: {
+  draftId: string;
+  approvedPlanTitle: string;
+  manifest: GeneratedSlideManifest | null;
+  contentHash: string | null;
+}) {
+  if (!input.manifest) {
+    if (input.contentHash) throw new SmartCoursewareError('courseware-content-hash-mismatch', 409);
+    return;
+  }
+  assertCoursewareManifestIdentity({
+    draftId: input.draftId,
+    approvedPlanTitle: input.approvedPlanTitle,
+    manifest: input.manifest,
+  });
+  if (!input.contentHash || coursewareManifestHash(input.manifest) !== input.contentHash) {
+    throw new SmartCoursewareError('courseware-content-hash-mismatch', 409);
+  }
+}
+
 export function deriveCoursewareModuleMetadata(input: {
   authoringLineageRoot: string;
   runtimeModule: GeneratedSlideModule;
@@ -240,20 +270,39 @@ function assertActivityTeacherEvidence(
 ) {
   const metadataById = new Map(metadata.map((item) => [item.moduleId, item]));
   for (const module of manifest.stages.flatMap((stage) => stage.steps.flatMap((step) => step.modules))) {
-    if (module.canonicalClass !== 'activity.panel') continue;
     const teacherFields = metadataById.get(module.id)!.teacherFields;
+    if (module.canonicalClass !== 'activity.panel') {
+      if (hasAnyTeacherField(teacherFields, ['referenceAnswer', 'explanation', 'scoring', 'expectedOutput', 'reviewPoints'])) {
+        throw new SmartCoursewareError(`content-module-teacher-evidence-forbidden:${module.id}`, 409);
+      }
+      continue;
+    }
     if (isObjectiveInteractiveResponseKind(module.responseKind)) {
+      if (hasAnyTeacherField(teacherFields, ['expectedOutput', 'reviewPoints'])) {
+        throw new SmartCoursewareError(`objective-activity-open-evidence-forbidden:${module.id}`, 409);
+      }
       if (teacherFields.referenceAnswer === undefined || !teacherFields.explanation || !teacherFields.scoring) {
         throw new SmartCoursewareError(`objective-activity-teacher-evidence-required:${module.id}`, 409);
       }
       assertObjectiveReferenceSemantics(module, teacherFields.referenceAnswer);
       continue;
     }
-    if (isSubjectiveInteractiveResponseKind(module.responseKind)
-      && (!teacherFields.expectedOutput || !teacherFields.reviewPoints?.length)) {
-      throw new SmartCoursewareError(`open-activity-teacher-evidence-required:${module.id}`, 409);
+    if (isSubjectiveInteractiveResponseKind(module.responseKind)) {
+      if (hasAnyTeacherField(teacherFields, ['referenceAnswer', 'explanation', 'scoring'])) {
+        throw new SmartCoursewareError(`open-activity-objective-evidence-forbidden:${module.id}`, 409);
+      }
+      if (!teacherFields.expectedOutput || !teacherFields.reviewPoints?.length) {
+        throw new SmartCoursewareError(`open-activity-teacher-evidence-required:${module.id}`, 409);
+      }
     }
   }
+}
+
+function hasAnyTeacherField(
+  fields: CoursewareModuleMetadataInput['teacherFields'],
+  keys: Array<keyof CoursewareModuleMetadataInput['teacherFields']>,
+) {
+  return keys.some((key) => fields[key] !== undefined);
 }
 
 function assertObjectiveReferenceSemantics(module: GeneratedSlideModule, referenceAnswer: string) {

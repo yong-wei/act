@@ -10,7 +10,7 @@ import { validateSmartLessonPlan } from '@/lib/smart-lesson-plan/schema';
 export function validCoursewareManifest(): GeneratedSlideManifest {
   return {
     schemaVersion: GENERATED_SLIDE_SCHEMA_VERSION,
-    lessonId: 'smart-courseware-draft',
+    lessonId: 'draft-1',
     title: '闭环稳定性',
     durationSeconds: 1_800,
     stages: BOPPPS_STAGES.map((stage, index) => ({

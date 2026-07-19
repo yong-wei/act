@@ -7,9 +7,11 @@ import {
   buildSmartCoursewareDraftCreationKey,
   createSmartCoursewareDraft,
   getSmartCoursewareDraft,
+  getSmartCoursewareStudentProjection,
   getSmartCoursewareTeacherProjection,
   updateSmartCoursewareComposition,
 } from '../service';
+import { coursewareManifestHash } from '../domain';
 import { validCompositionInput } from './fixtures';
 
 const teacher = { id: 'teacher-1', role: 'TEACHER' as const };
@@ -66,6 +68,31 @@ describe('smart courseware service', () => {
     expect(findFirst).toHaveBeenCalledWith(expect.objectContaining({ where: { id: row.id } }));
   });
 
+  it('fails closed on raw and projected reads when persisted manifest identity or hash is corrupt', async () => {
+    const plan = validPlanFixture();
+    const manifest = validCompositionInput().runtimeManifest;
+    const corrupted = {
+      id: 'draft-1', ownerId: teacher.id, planRevisionId: 'plan-1', planRevisionNumber: 1,
+      planContentHash: contentHash(plan), state: 'READY', version: 2,
+      runtimeManifest: { ...manifest, lessonId: 'other-draft' },
+      contentHash: coursewareManifestHash(manifest),
+      planRevision: { id: 'plan-1', revisionNumber: 1, content: plan, contentHash: contentHash(plan) },
+      modules: [],
+    };
+    const db = { smartCoursewareDraft: { findFirst: vi.fn().mockResolvedValue(corrupted) } };
+    await expect(getSmartCoursewareDraft(db as never, { actor: teacher, draftId: corrupted.id }))
+      .rejects.toMatchObject({ code: 'courseware-manifest-identity-mismatch' });
+    await expect(getSmartCoursewareTeacherProjection(db as never, { actor: teacher, draftId: corrupted.id }))
+      .rejects.toMatchObject({ code: 'courseware-manifest-identity-mismatch' });
+    await expect(getSmartCoursewareStudentProjection(db as never, { actor: teacher, draftId: corrupted.id }))
+      .rejects.toMatchObject({ code: 'courseware-manifest-identity-mismatch' });
+
+    corrupted.runtimeManifest = manifest;
+    corrupted.contentHash = '0'.repeat(64);
+    await expect(getSmartCoursewareDraft(db as never, { actor: teacher, draftId: corrupted.id }))
+      .rejects.toMatchObject({ code: 'courseware-content-hash-mismatch' });
+  });
+
   it('updates a validated composition through expectedVersion CAS and creates module audit rows', async () => {
     const planContent = validPlanFixture();
     const planRevision = {
@@ -78,7 +105,11 @@ describe('smart courseware service', () => {
       authoringLineageRoot: 'lineage-1', state: 'EDITABLE', version: 1,
       runtimeManifest: null, modules: [], planRevision,
     };
-    const updated = { ...draft, state: 'READY', version: 2, runtimeManifest: validCompositionInput().runtimeManifest };
+    const updatedManifest = validCompositionInput().runtimeManifest;
+    const updated = {
+      ...draft, state: 'READY', version: 2, runtimeManifest: updatedManifest,
+      contentHash: coursewareManifestHash(updatedManifest),
+    };
     const updateMany = vi.fn().mockResolvedValue({ count: 1 });
     const createModule = vi.fn().mockResolvedValue({});
     const db = {
@@ -130,7 +161,7 @@ describe('smart courseware service', () => {
       id: 'draft-1', ownerId: teacher.id, planRevisionId: planRevision.id,
       planRevisionNumber: 1, planContentHash: planRevision.contentHash,
       authoringLineageRoot: 'lineage-1', state: 'READY', version: 1,
-      runtimeManifest: composition.runtimeManifest, modules: [existing], planRevision,
+      runtimeManifest: composition.runtimeManifest, contentHash: coursewareManifestHash(composition.runtimeManifest), modules: [existing], planRevision,
     };
     const updated = { ...draft, version: 2 };
     const db = {
@@ -201,7 +232,7 @@ describe('smart courseware service', () => {
       id: 'draft-1', ownerId: teacher.id, planRevisionId: planRevision.id,
       planRevisionNumber: 1, planContentHash: planRevision.contentHash,
       authoringLineageRoot: 'lineage-1', state: 'READY', version: 1,
-      runtimeManifest: composition.runtimeManifest, modules: [existing], planRevision,
+      runtimeManifest: composition.runtimeManifest, contentHash: coursewareManifestHash(composition.runtimeManifest), modules: [existing], planRevision,
     };
     composition.moduleMetadata[2].teacherFields.explanation = '教师修订解释';
     const updateModule = vi.fn().mockResolvedValue({});
@@ -241,6 +272,7 @@ describe('smart courseware service', () => {
     const draft = {
       id: 'draft-1', ownerId: teacher.id, planRevisionId: 'plan-1', planRevisionNumber: 1,
       planContentHash: contentHash(plan), version: 2, runtimeManifest: composition.runtimeManifest,
+      contentHash: coursewareManifestHash(composition.runtimeManifest),
       planRevision: { id: 'plan-1', draftId: 'plan-draft-1', revisionNumber: 1, content: plan, contentHash: contentHash(plan) },
       modules: composition.moduleMetadata.map((metadata, index) => ({
         runtimeModuleId: metadata.moduleId,
