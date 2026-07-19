@@ -28,9 +28,10 @@
 
 - `npx prisma generate` and `npx prisma validate` passed against the new schema and migration.
 - `npm run typecheck` passed.
-- Smart Lesson module tests: 54 passed, 3 environment-gated tests skipped.
+- Smart Lesson module tests: 56 passed, 3 environment-gated tests skipped.
 - Smart Lesson API and Konling integration tests: 215 passed.
 - Real PostgreSQL and Redis/BullMQ seam tests: 3 passed.
 - Real browser E2E passed through Next.js, production API routes, BullMQ worker, Course Basis Source Pack, deterministic fixture provider, advisory review, and immutable teacher approval without route interception.
 - Focused independent review accepted and verified fixes for bounded, signal-aware E2E resource cleanup; no remaining P0-P2 findings.
+- Current-head Codex feedback on confirmed task facts, canonical source bindings, superseded job recovery, and paused-outline invariants was fixed and independently re-reviewed with no remaining P0-P2 findings.
 - `openspec validate add-smart-lesson-plan-authoring --strict` and `git diff --check` passed.

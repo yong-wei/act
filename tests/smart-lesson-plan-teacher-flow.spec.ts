@@ -194,6 +194,7 @@ test('teacher completes the visible smart lesson authoring flow through version 
   await expect(workspace.getByText('提纲已持久化。可先编辑，或明确确认当前提纲后继续生成。')).toBeVisible();
   await workspace.getByRole('button', { name: '确认当前提纲并继续' }).click();
   await expect(workspace.getByText('SUMMARY: COMPLETED')).toBeVisible();
+  await expect(workspace.getByRole('button', { name: '开始生成' })).toBeEnabled();
 
   await workspace.getByText('查看完整教案').click();
   await expect(workspace.getByText('smart-lesson-plan.boppps.v1')).toBeVisible();

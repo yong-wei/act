@@ -12,6 +12,7 @@ vi.mock('../../course-basis/lesson-design-source-pack', () => ({
 }));
 
 import { contentHash, smartLessonGenerationInputHash } from '../domain';
+import { teacherCourseBasisCitationTargetId } from '../../source-pack/teacher-course-basis';
 import {
   approveSmartLessonDraft,
   beginProviderAttempt,
@@ -24,6 +25,7 @@ import {
   retryGenerationJob,
   startGenerationJob,
   updateSmartLessonDraft,
+  updatePausedGenerationOutline,
   updateSmartLessonTask,
 } from '../service';
 import { validPlanFixture } from './fixtures';
@@ -502,6 +504,9 @@ describe('smart lesson aggregate service', () => {
   it('rejects edits that alter the confirmed goal contract or occur during active generation', async () => {
     const plan = validPlanFixture();
     const task = {
+      id: 'task-1', ownerId: teacher.id, courseBasisId: 'basis-1',
+      topic: '闭环稳定性', audience: '自动化专业本科生', prerequisites: '复数与传递函数',
+      aggregateClassContextRef: null, courseBasis: { title: '自动控制原理' },
       durationMinutes: 30,
       sources: [{ sourceVersionId: 'version-1' }],
       knowledgePoints: [{ id: 'kp-1', title: '稳定性判据', sourceState: 'VERIFIED', sourceBindings: [binding], gapIdentity: null }],
@@ -521,6 +526,92 @@ describe('smart lesson aggregate service', () => {
     db.smartLessonDraft.findFirst.mockResolvedValueOnce({ id: 'draft-1', ownerId: teacher.id, state: 'GENERATING', version: 1, task });
     await expect(updateSmartLessonDraft(db as never, { actor: teacher, draftId: 'draft-1', expectedVersion: 1, content: validPlanFixture() }))
       .rejects.toMatchObject({ code: 'active-generation-locks-draft' });
+  });
+
+  it('rejects edited task facts and non-canonical source bindings', async () => {
+    const canonicalBinding = {
+      ...binding,
+      citationId: teacherCourseBasisCitationTargetId({ courseBasisId: 'basis-1', versionId: 'version-1', stableAnchor: 'chapter-1' }),
+    };
+    const task = {
+      id: 'task-1', ownerId: teacher.id, courseBasisId: 'basis-1', durationMinutes: 30,
+      topic: '闭环稳定性', audience: '自动化专业本科生', prerequisites: '复数与传递函数',
+      aggregateClassContextRef: null, courseBasis: { title: '自动控制原理' },
+      sources: [{ sourceVersionId: 'version-1' }],
+      knowledgePoints: [{ id: 'kp-1', title: '稳定性判据', sourceState: 'VERIFIED', sourceBindings: [canonicalBinding], gapIdentity: null }],
+      goals: [{ id: 'goal-1', content: '判断闭环系统稳定性', sourceState: 'AI_GENERATED_SOURCE_PENDING', sourceBindings: [], gapIdentity: `smart-goal-gap:${'b'.repeat(64)}` }],
+    };
+    const db = {
+      smartLessonDraft: {
+        findFirst: vi.fn(async () => ({ id: 'draft-1', ownerId: teacher.id, state: 'READY', version: 1, task })),
+        updateMany: vi.fn(async () => ({ count: 1 })),
+        findUniqueOrThrow: vi.fn(async () => ({})),
+      },
+      courseBasisProjection: { findMany: vi.fn(async () => [{ versionId: 'version-1', segment: { stableAnchor: 'chapter-1', contentHash: 'a'.repeat(64) } }]) },
+    };
+    const canonicalPlan = () => {
+      const plan = validPlanFixture();
+      plan.knowledgePoints[0].sourceBindings[0].citationId = canonicalBinding.citationId;
+      plan.sources[0].citationId = canonicalBinding.citationId;
+      for (const stage of Object.values(plan.boppps)) stage.steps[0].sourceBindings[0].citationId = canonicalBinding.citationId;
+      return plan;
+    };
+    const basePlan = canonicalPlan();
+    for (const [field, value, code] of [
+      ['course', '伪造课程', 'plan-course-changed'],
+      ['topic', '伪造主题', 'plan-topic-changed'],
+      ['audience', '伪造受众', 'plan-audience-changed'],
+      ['prerequisites', '伪造先修要求', 'plan-prerequisites-changed'],
+    ] as const) {
+      const plan = structuredClone(basePlan);
+      plan[field] = value;
+      await expect(updateSmartLessonDraft(db as never, { actor: teacher, draftId: 'draft-1', expectedVersion: 1, content: plan }))
+        .rejects.toMatchObject({ code });
+    }
+    for (const forge of [
+      (plan: ReturnType<typeof validPlanFixture>) => { plan.sources[0] = { ...plan.sources[0], anchor: 'forged-anchor' }; },
+      (plan: ReturnType<typeof validPlanFixture>) => { plan.sources[0] = { ...plan.sources[0], contentHash: 'f'.repeat(64) }; },
+      (plan: ReturnType<typeof validPlanFixture>) => { plan.sources[0] = { ...plan.sources[0], citationId: 'forged-citation' }; },
+      (plan: ReturnType<typeof validPlanFixture>) => {
+        plan.boppps.bridgeIn.steps[0].sourceBindings[0] = { ...plan.boppps.bridgeIn.steps[0].sourceBindings[0], anchor: 'forged-step-anchor' };
+      },
+    ]) {
+      const forged = canonicalPlan();
+      forge(forged);
+      await expect(updateSmartLessonDraft(db as never, { actor: teacher, draftId: 'draft-1', expectedVersion: 1, content: forged }))
+        .rejects.toMatchObject({ code: 'plan-source-binding-unverified' });
+    }
+  });
+
+  it('rejects paused outlines with duplicate stages or a mismatched total duration', async () => {
+    const outline = {
+      keyContent: ['稳定性'], difficultContent: [], limitations: [], classAdaptation: null,
+      coursewareStepOutline: [
+        ['导入', 'bridgeIn'], ['目标', 'objectives'], ['前测', 'preAssessment'],
+        ['参与', 'participatoryLearning'], ['后测', 'postAssessment'], ['总结', 'summary'],
+      ].map(([title, bopppsStage]) => ({ title, bopppsStage, minutes: 5 })),
+    };
+    const db = {
+      smartLessonGenerationJob: { findFirst: vi.fn(async () => ({
+        id: 'job-1', state: 'PAUSED', draft: { task: { durationMinutes: 30, aggregateClassContextRef: null } },
+        stages: [{ id: 'outline-1', state: 'COMPLETED' }],
+      })) },
+      smartLessonGenerationStage: { update: vi.fn(async () => ({})) },
+    };
+    const duplicate = structuredClone(outline);
+    duplicate.coursewareStepOutline[5].bopppsStage = 'bridgeIn';
+    await expect(updatePausedGenerationOutline(db as never, { actor: teacher, jobId: 'job-1', output: duplicate }))
+      .rejects.toMatchObject({ code: 'outline-stage-missing:summary' });
+    const wrongDuration = structuredClone(outline);
+    wrongDuration.coursewareStepOutline[0].minutes = 10;
+    await expect(updatePausedGenerationOutline(db as never, { actor: teacher, jobId: 'job-1', output: wrongDuration }))
+      .rejects.toMatchObject({ code: 'outline-duration-mismatch' });
+    const forgedContext = {
+      ...structuredClone(outline),
+      classAdaptation: { aggregateContextRef: 'forged-diagnosis', emphasis: [] },
+    };
+    await expect(updatePausedGenerationOutline(db as never, { actor: teacher, jobId: 'job-1', output: forgedContext }))
+      .rejects.toMatchObject({ code: 'aggregate-context-ref-changed' });
   });
 
   it('starts one durable seven-stage job and replays the same command without duplicate creation', async () => {
@@ -767,6 +858,13 @@ describe('smart lesson aggregate service', () => {
 
   it('registers every approved source version as a lesson-plan revision reference', async () => {
     const plan = validPlanFixture();
+    const canonicalBinding = {
+      ...binding,
+      citationId: teacherCourseBasisCitationTargetId({ courseBasisId: 'basis-1', versionId: 'version-1', stableAnchor: 'chapter-1' }),
+    };
+    plan.sources[0].citationId = canonicalBinding.citationId;
+    plan.knowledgePoints[0].sourceBindings[0].citationId = canonicalBinding.citationId;
+    for (const stage of Object.values(plan.boppps)) stage.steps[0].sourceBindings[0].citationId = canonicalBinding.citationId;
     const createReferences = vi.fn(async () => ({ count: 2 }));
     const createRevision = vi.fn(async ({ data }) => ({ id: 'revision-1', ...data }));
     const attempt = {
@@ -783,9 +881,12 @@ describe('smart lesson aggregate service', () => {
           id: 'draft-1', ownerId: teacher.id, taskId: 'task-1', state: 'READY',
           content: plan, contentHash: contentHash(plan),
           task: {
+            id: 'task-1', ownerId: teacher.id, courseBasisId: 'basis-1',
+            topic: '闭环稳定性', audience: '自动化专业本科生', prerequisites: '复数与传递函数',
+            aggregateClassContextRef: null, courseBasis: { title: '自动控制原理' },
             durationMinutes: 30,
             sources: [{ sourceVersionId: 'version-1' }, { sourceVersionId: 'version-2' }],
-            knowledgePoints: [{ id: 'kp-1', title: '稳定性判据', sourceState: 'VERIFIED', sourceBindings: [binding], gapIdentity: null }],
+            knowledgePoints: [{ id: 'kp-1', title: '稳定性判据', sourceState: 'VERIFIED', sourceBindings: [canonicalBinding], gapIdentity: null }],
             goals: [{ id: 'goal-1', content: '判断闭环系统稳定性', sourceState: 'AI_GENERATED_SOURCE_PENDING', sourceBindings: [], gapIdentity: `smart-goal-gap:${'b'.repeat(64)}` }],
           },
           jobs: [{ id: 'job-1', stages: [{ kind: 'OUTLINE', outputHash: 'output-hash', attempts: [attempt] }] }],
@@ -797,6 +898,7 @@ describe('smart lesson aggregate service', () => {
         create: createRevision,
       },
       courseBasisReferenceLink: { createMany: createReferences },
+      courseBasisProjection: { findMany: vi.fn(async () => [{ versionId: 'version-1', segment: { stableAnchor: 'chapter-1', contentHash: 'a'.repeat(64) } }]) },
     };
     const db = {
       smartLessonRevision: { findFirst: vi.fn(async () => null) },

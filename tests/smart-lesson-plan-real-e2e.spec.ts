@@ -41,6 +41,7 @@ test('uses the real browser, API, worker, Source Pack and fixture provider throu
   await card.getByRole('button', { name: '确认当前提纲并继续' }).click();
   await expect(page.getByRole('status').filter({ hasText: '生成任务已恢复' })).toBeVisible();
   await refreshUntil(card, '任务 COMPLETED');
+  await expect(card.getByRole('button', { name: '开始生成' })).toBeEnabled();
   await card.getByText('查看完整教案').click();
   await expect(card).toContainText('smart-lesson-plan.boppps.v1');
   await expect(card).toContainText('PARTICIPATORY_LEARNING: COMPLETED');

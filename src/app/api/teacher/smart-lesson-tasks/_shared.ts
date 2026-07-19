@@ -165,6 +165,7 @@ export function publicJob(job: Record<string, unknown>) {
     startedAt: job.startedAt,
     completedAt: job.completedAt,
     cancelledAt: job.cancelledAt,
+    supersededAt: job.supersededAt,
     createdAt: job.createdAt,
     updatedAt: job.updatedAt,
     stages: optionalArray(job.stages, (stage) => publicStage(recordValue(stage))),
