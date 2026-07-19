@@ -436,6 +436,12 @@ describe('course-basis service', () => {
       projectionKey: 'course-basis-projection:basis-1:version-1:root%2Fparagraph%3A1',
       corpusSourceId: 'teacher-course-basis:basis-1:version-1:root%2Fparagraph%3A1',
     })]);
+    for (const [query] of db.courseBasisDocumentVersion.findUniqueOrThrow.mock.calls) {
+      expect(query.select.originalContent).toBeUndefined();
+      expect(query.select.normalizedText).toBeUndefined();
+      expect(query.select.segments).toBeUndefined();
+      expect(query.select._count).toEqual({ select: { segments: true, projections: true } });
+    }
   });
 
   it('retries an unsupported extraction by creating a new sequential version without mutating the old version', async () => {

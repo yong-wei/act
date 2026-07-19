@@ -321,13 +321,7 @@ export async function confirmCourseBasisVersion(db: CourseBasisDb, input: {
         data: { reviewState: 'CONFIRMED', reviewedById: actor.id, reviewedAt: input.now ?? new Date() },
       });
     }
-    return tx.courseBasisDocumentVersion.findUniqueOrThrow({
-      where: { id: version.id },
-      include: {
-        segments: { orderBy: { orderIndex: 'asc' } },
-        projections: { orderBy: { corpusSourceId: 'asc' } },
-      },
-    });
+    return selectVersionMutationResult(tx as CourseBasisDb, version.id);
   });
 }
 
@@ -342,11 +336,11 @@ export async function rejectCourseBasisVersion(db: CourseBasisDb, input: {
     const version = await findVersionForActor(tx as CourseBasisDb, actor, versionId);
     if (version.retiredAt) throw new CourseBasisError('version-retired');
     if (version.reviewState === 'CONFIRMED') throw new CourseBasisError('confirmed-version-immutable');
-    return tx.courseBasisDocumentVersion.update({
+    await tx.courseBasisDocumentVersion.update({
       where: { id: version.id },
       data: { reviewState: 'REJECTED', reviewedById: actor.id, reviewedAt: input.now ?? new Date() },
-      include: { segments: { orderBy: { orderIndex: 'asc' } } },
     });
+    return selectVersionMutationResult(tx as CourseBasisDb, version.id);
   });
 }
 
@@ -383,11 +377,13 @@ export async function retireCourseBasisVersion(db: CourseBasisDb, input: {
   const versionId = validateId(input.versionId, 'version-id-invalid');
   return withSerializableRetry(db, async (tx) => {
     const version = await findVersionForActor(tx as CourseBasisDb, actor, versionId);
-    if (version.retiredAt) return version;
-    return tx.courseBasisDocumentVersion.update({
-      where: { id: version.id },
-      data: { retiredById: actor.id, retiredAt: input.now ?? new Date() },
-    });
+    if (!version.retiredAt) {
+      await tx.courseBasisDocumentVersion.update({
+        where: { id: version.id },
+        data: { retiredById: actor.id, retiredAt: input.now ?? new Date() },
+      });
+    }
+    return selectVersionMutationResult(tx as CourseBasisDb, version.id);
   });
 }
 
@@ -516,4 +512,31 @@ function hasPrismaCode(error: unknown, code: string) {
 
 function isVersionRace(error: unknown) {
   return hasPrismaCode(error, 'P2002') || hasPrismaCode(error, 'P2034');
+}
+
+async function selectVersionMutationResult(db: CourseBasisDb, versionId: string) {
+  const { _count, ...version } = await db.courseBasisDocumentVersion.findUniqueOrThrow({
+    where: { id: versionId },
+    select: {
+      id: true,
+      documentId: true,
+      versionNumber: true,
+      sourceType: true,
+      sourceName: true,
+      mimeType: true,
+      byteSize: true,
+      contentHash: true,
+      extractionState: true,
+      extractionVersion: true,
+      failureReason: true,
+      reviewState: true,
+      reviewedById: true,
+      reviewedAt: true,
+      retiredById: true,
+      retiredAt: true,
+      createdAt: true,
+      _count: { select: { segments: true, projections: true } },
+    },
+  });
+  return { ...version, segmentCount: _count?.segments ?? 0, projectionCount: _count?.projections ?? 0 };
 }
