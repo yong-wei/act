@@ -171,6 +171,7 @@ export function createSmartCoursewareDraftShell({
 
 export function createSmartCoursewareTeacherEnvelopeFromProjection(
   projection: SmartCoursewareTeacherProjectionInput,
+  stalePlan = false,
 ): SmartCoursewareTeacherEnvelope {
   const validationNotes = projection.validation.issues.map((issue) => {
     if (issue && typeof issue === 'object' && 'message' in issue) return String(issue.message);
@@ -182,7 +183,7 @@ export function createSmartCoursewareTeacherEnvelopeFromProjection(
     state: 'ready',
     version: projection.version,
     manifest: projection.runtimeManifest,
-    stalePlan: false,
+    stalePlan,
     planLimitations: projection.planLimitations,
     aiReview: projection.aiReview,
     generationAudit: projection.generationAudit,
@@ -412,7 +413,7 @@ export function SmartCoursewareEditor({
       });
       const payload = await response.json();
       if (!response.ok) return setMessage(errorMessage(payload));
-      const next = createSmartCoursewareTeacherEnvelopeFromProjection(payload.preview);
+      const next = createSmartCoursewareTeacherEnvelopeFromProjection(payload.preview, envelope.stalePlan);
       setEnvelope(next);
       setStudentPreview(await fetchStudentPreview(next));
       setMessage('组合已保存，并通过服务器共享运行时校验。');
@@ -639,7 +640,7 @@ export function SmartCoursewareEditor({
       });
       const payload = await response.json();
       if (!response.ok) return setMessage(errorMessage(payload));
-      const next = createSmartCoursewareTeacherEnvelopeFromProjection(payload.preview);
+      const next = createSmartCoursewareTeacherEnvelopeFromProjection(payload.preview, envelope.stalePlan);
       setEnvelope(next);
       setStudentPreview(await fetchStudentPreview(next));
       setJob(payload.job);
@@ -734,7 +735,7 @@ export function SmartCoursewareEditor({
           <p className="mt-2 text-sm text-subtle">
             地址和教案修订绑定已建立。生成服务接入后，本页将显示阶段进度、共享校验结果和可编辑课件。
           </p>
-          <button type="button" disabled={busy || Boolean(job && !['FAILED', 'CANCELLED'].includes(job.state))} onClick={() => void startGeneration()} className="mt-4 rounded bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-50">开始生成课件</button>
+          <button type="button" disabled={busy || Boolean(job && job.state !== 'CANCELLED')} onClick={() => void startGeneration()} className="mt-4 rounded bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-50">开始生成课件</button>
         </section>
       ) : previewRole === 'teacher' ? (
         <TeacherCoursewarePreview envelope={envelope} />
@@ -948,7 +949,7 @@ function CoursewareJobPanel({
         <button type="button" onClick={() => void onRefresh()} className="rounded border border-border px-3 py-1.5 text-sm">刷新状态</button>
         {['FAILED', 'RETRYABLE'].includes(job.state) ? <button type="button" onClick={() => void onAction('retry')} className="rounded border border-border px-3 py-1.5 text-sm">重试</button> : null}
         {['FAILED', 'RETRYABLE', 'CANCELLED'].includes(job.state) ? <button type="button" onClick={() => void onAction('resume')} className="rounded border border-border px-3 py-1.5 text-sm">恢复</button> : null}
-        {['QUEUED', 'RUNNING', 'RETRYABLE'].includes(job.state) ? <button type="button" onClick={() => void onAction('cancel')} className="rounded border border-destructive px-3 py-1.5 text-sm text-destructive">取消</button> : null}
+        {['QUEUED', 'RUNNING', 'RETRYABLE', 'FAILED'].includes(job.state) ? <button type="button" onClick={() => void onAction('cancel')} className="rounded border border-destructive px-3 py-1.5 text-sm text-destructive">取消</button> : null}
       </div>
     </div>
     {job.failureCode ? <p className="mt-2 text-sm text-destructive">{job.failureCode}</p> : null}

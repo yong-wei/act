@@ -202,6 +202,31 @@ describe('smart courseware role previews', () => {
     expect(html).not.toContain('acknowledgement');
   });
 
+  it('preserves stale-plan state when rebuilding an envelope after save', () => {
+    const projection = {
+      schemaVersion: 'smart-courseware-authoring.v1' as const,
+      draftId: teacherEnvelope.draftId,
+      version: teacherEnvelope.version,
+      planRevisionId: teacherEnvelope.planRevisionId!,
+      planContentHash: 'plan-hash',
+      runtimeManifest: teacherEnvelope.manifest!,
+      moduleMetadata: [], planLimitations: [], aiReview: null, generationAudit: [], validation: { issues: [] },
+    };
+    expect(createSmartCoursewareTeacherEnvelopeFromProjection(projection, true).stalePlan).toBe(true);
+  });
+
+  it('disables a new start for a FAILED job and exposes recovery controls', () => {
+    const html = renderToStaticMarkup(<SmartCoursewareEditor
+      initialEnvelope={{ ...teacherEnvelope, state: 'waiting-for-generation', manifest: null }}
+      initialJob={{ id: 'job-failed', draftId: teacherEnvelope.draftId, state: 'FAILED', firstIncompleteUnitKey: 'bridge-in' }}
+    />);
+    expect(html).toContain('开始生成课件</button>');
+    expect(html).toContain('disabled=""');
+    expect(html).toContain('重试');
+    expect(html).toContain('恢复');
+    expect(html).toContain('取消');
+  });
+
   it('renders ACCEPTED courseware as preview-only while retaining teacher audit evidence', () => {
     const html = renderToStaticMarkup(<SmartCoursewareEditor
       initialEnvelope={{ ...teacherEnvelope, state: 'accepted' }}
