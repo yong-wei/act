@@ -577,7 +577,7 @@ export async function updateSmartLessonDraft(db: SmartLessonDb, input: {
   await assertPlanSourceBindingsCanonical(db, draft.task, plan);
   const planHash = contentHash(plan);
   const result = await db.smartLessonDraft.updateMany({
-    where: { id: draft.id, ownerId: draft.ownerId, version: input.expectedVersion, state: { not: 'APPROVED' } },
+    where: { id: draft.id, ownerId: draft.ownerId, version: input.expectedVersion, state: { notIn: ['APPROVED', 'GENERATING'] } },
     data: { content: asJson(plan), contentHash: planHash, state: 'READY', version: { increment: 1 }, staleDownstreamAt: new Date() },
   });
   if (result.count !== 1) throw new SmartLessonPlanError('draft-version-conflict', 409);
@@ -1525,7 +1525,6 @@ async function resolveCanonicalSourceBindings(
       versionId: { in: sourceVersionIds },
       version: {
         reviewState: 'CONFIRMED',
-        retiredAt: null,
         document: { courseBasisId: basis.id, courseBasis: { ownerId: basis.ownerId } },
       },
     },

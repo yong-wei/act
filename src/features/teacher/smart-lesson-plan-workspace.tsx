@@ -103,7 +103,7 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
     if (!draft) return;
     const response = await fetch(`/api/teacher/smart-lesson-tasks/drafts/${draft.id}/generation`, {
       method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ idempotencyKey: `smart-prep:${draft.id}:start` }),
+      body: JSON.stringify({ idempotencyKey: `smart-prep:${draft.id}:start:${crypto.randomUUID()}` }),
     });
     const payload = await response.json();
     setMessage(response.ok ? `生成任务已进入队列：${payload.job.id}` : errorText(payload));

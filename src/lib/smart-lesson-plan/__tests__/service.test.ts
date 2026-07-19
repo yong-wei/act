@@ -541,13 +541,16 @@ describe('smart lesson aggregate service', () => {
       knowledgePoints: [{ id: 'kp-1', title: '稳定性判据', sourceState: 'VERIFIED', sourceBindings: [canonicalBinding], gapIdentity: null }],
       goals: [{ id: 'goal-1', content: '判断闭环系统稳定性', sourceState: 'AI_GENERATED_SOURCE_PENDING', sourceBindings: [], gapIdentity: `smart-goal-gap:${'b'.repeat(64)}` }],
     };
+    const findCanonicalProjections = vi.fn(async () => [{
+      versionId: 'version-1', segment: { stableAnchor: 'chapter-1', contentHash: 'a'.repeat(64) },
+    }]);
     const db = {
       smartLessonDraft: {
         findFirst: vi.fn(async () => ({ id: 'draft-1', ownerId: teacher.id, state: 'READY', version: 1, task })),
         updateMany: vi.fn(async () => ({ count: 1 })),
         findUniqueOrThrow: vi.fn(async () => ({})),
       },
-      courseBasisProjection: { findMany: vi.fn(async () => [{ versionId: 'version-1', segment: { stableAnchor: 'chapter-1', contentHash: 'a'.repeat(64) } }]) },
+      courseBasisProjection: { findMany: findCanonicalProjections },
     };
     const canonicalPlan = () => {
       const plan = validPlanFixture();
@@ -581,6 +584,18 @@ describe('smart lesson aggregate service', () => {
       await expect(updateSmartLessonDraft(db as never, { actor: teacher, draftId: 'draft-1', expectedVersion: 1, content: forged }))
         .rejects.toMatchObject({ code: 'plan-source-binding-unverified' });
     }
+    db.smartLessonDraft.updateMany.mockResolvedValueOnce({ count: 0 });
+    await expect(updateSmartLessonDraft(db as never, { actor: teacher, draftId: 'draft-1', expectedVersion: 1, content: canonicalPlan() }))
+      .rejects.toMatchObject({ code: 'draft-version-conflict' });
+    expect(db.smartLessonDraft.updateMany).toHaveBeenLastCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ state: { notIn: ['APPROVED', 'GENERATING'] } }),
+    }));
+    expect(findCanonicalProjections).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        versionId: { in: ['version-1'] },
+        version: expect.not.objectContaining({ retiredAt: null }),
+      }),
+    }));
   });
 
   it('rejects paused outlines with duplicate stages or a mismatched total duration', async () => {
