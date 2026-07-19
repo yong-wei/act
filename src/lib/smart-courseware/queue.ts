@@ -64,7 +64,7 @@ async function deliveryFailure(db: PrismaClient, jobId: string, draftId: string,
   const result = await db.$transaction(async (tx) => {
     const transitioned = await tx.smartCoursewareGenerationJob.updateMany({
       where: { id: jobId, state: 'QUEUED' },
-      data: { state: 'RETRYABLE', ...(mode === 'MODULE' ? { activeIdentity: null } : {}), failureCode },
+      data: { state: 'RETRYABLE', failureCode },
     });
     if (transitioned.count !== 1) {
       return { transitioned: false as const, job: await tx.smartCoursewareGenerationJob.findUniqueOrThrow({ where: { id: jobId } }) };
