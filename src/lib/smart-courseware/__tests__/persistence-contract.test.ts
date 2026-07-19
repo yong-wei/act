@@ -105,6 +105,7 @@ describe('smart courseware persistence contract', () => {
     expect(auditMigration).toContain('SmartCoursewareModuleRevision_generationJobId_fkey');
     expect(auditMigration).toContain('SmartCoursewareModuleRevision_providerAttemptId_fkey');
     expect(auditMigration).toContain('SmartCoursewareModuleRevision_acceptedCommandId_fkey');
+    expect(schema).toMatch(/candidateDiffId\s+String\?\s+@unique/);
     expect(auditMigration).toContain('SmartCoursewareModuleRevision_candidateDiffId_key');
   });
 

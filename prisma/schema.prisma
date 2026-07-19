@@ -985,7 +985,7 @@ model SmartCoursewareModuleRevision {
   generationJobId           String?
   providerAttemptId         String?
   candidateHash             String?
-  candidateDiffId           String?
+  candidateDiffId           String?                    @unique
   acceptedCommandId         String?
   originalAttemptIdSnapshot String?
   actorId                   String
