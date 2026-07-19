@@ -63,6 +63,49 @@ describe('smart courseware generation service', () => {
     })).resolves.toEqual({ claimed: false, claimToken: null, attempt });
   });
 
+  it('reclaims an expired unit lease left by a crashed worker', async () => {
+    const expired = {
+      id: 'unit-1', unitKey: 'bridge-in', state: 'RUNNING', attemptGeneration: 1,
+      claimExpiresAt: new Date(Date.now() - 60_000), startedAt: new Date(Date.now() - 120_000),
+    };
+    const retryable = { ...expired, state: 'RETRYABLE', claimExpiresAt: null };
+    const updateUnit = vi.fn().mockResolvedValue(retryable);
+    const claimUnit = vi.fn().mockResolvedValue({ count: 1 });
+    const updateAttempt = vi.fn().mockResolvedValue({ count: 1 });
+    const createAttempt = vi.fn().mockResolvedValue({ id: 'attempt-2', attemptNumber: 2 });
+    const db = { $transaction: vi.fn(async (run: (tx: unknown) => unknown) => run({
+      smartCoursewareGenerationJob: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'job-1', ownerId: actor.id, state: 'RUNNING', firstIncompleteUnitKey: 'bridge-in', startedAt: new Date(),
+        }),
+        update: vi.fn(),
+      },
+      smartCoursewareGenerationUnit: {
+        findUnique: vi.fn().mockResolvedValue(expired), findUniqueOrThrow: vi.fn().mockResolvedValue(retryable),
+        update: updateUnit, updateMany: claimUnit,
+      },
+      smartCoursewareProviderAttempt: {
+        findFirst: vi.fn().mockResolvedValue({ id: 'attempt-1', attemptNumber: 1 }),
+        updateMany: updateAttempt, create: createAttempt,
+      },
+    })) };
+
+    await expect(beginCoursewareProviderAttempt(db as never, {
+      actor, jobId: 'job-1', unitKey: 'bridge-in', serviceId: 'service', providerKind: 'test',
+      model: 'model', promptVersion: 'v1', schemaVersion: 'v1', request: {},
+    })).resolves.toMatchObject({ claimed: true, attempt: { id: 'attempt-2' } });
+    expect(updateUnit).toHaveBeenCalledWith({
+      where: { id: expired.id }, data: { state: 'RETRYABLE', claimToken: null, claimExpiresAt: null },
+    });
+    expect(updateAttempt).toHaveBeenCalledWith({
+      where: { unitId: expired.id, outcome: 'RUNNING' },
+      data: { outcome: 'RETRYABLE_FAILURE', finishedAt: expect.any(Date) },
+    });
+    expect(claimUnit).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ id: expired.id, state: { in: ['PENDING', 'RETRYABLE'] }, attemptGeneration: 1 }),
+    }));
+  });
+
   it('protects completed unit output from conflicting duplicate delivery', async () => {
     const job = {
       id: 'job-1', ownerId: actor.id, draftId: 'draft-1', state: 'RUNNING',
@@ -177,6 +220,40 @@ describe('smart courseware generation service', () => {
       where: { generationJobId: job.id, outcome: 'RUNNING' },
       data: { outcome: 'CANCELLED', finishedAt: expect.any(Date) },
     });
+  });
+
+  it('cancels the RUNNING provider attempt atomically when an INITIAL job is cancelled in flight', async () => {
+    const job = {
+      id: 'job-initial', ownerId: actor.id, draftId: 'draft-1', mode: 'INITIAL', state: 'RUNNING',
+    };
+    const calls: string[] = [];
+    const updateAttempt = vi.fn(async () => { calls.push('attempt'); return { count: 1 }; });
+    const updateUnit = vi.fn(async () => { calls.push('unit'); return { count: 1 }; });
+    const updateDraft = vi.fn(async () => { calls.push('draft'); return {}; });
+    const updateJob = vi.fn(async () => { calls.push('job'); return { ...job, state: 'CANCELLED' }; });
+    const db = {
+      smartCoursewareGenerationCommand: { findFirst: vi.fn().mockResolvedValue(null) },
+      $transaction: vi.fn(async (run: (tx: unknown) => unknown) => run({
+        smartCoursewareGenerationJob: { findFirst: vi.fn().mockResolvedValue(job), update: updateJob },
+        smartCoursewareGenerationUnit: { updateMany: updateUnit },
+        smartCoursewareProviderAttempt: { updateMany: updateAttempt },
+        smartCoursewareDraft: { update: updateDraft },
+        smartCoursewareGenerationCommand: { create: vi.fn() },
+      })),
+    };
+
+    await expect(cancelCoursewareGenerationJob(db as never, {
+      actor, jobId: job.id, idempotencyKey: 'cancel-initial-in-flight',
+    })).resolves.toMatchObject({ state: 'CANCELLED' });
+    expect(updateAttempt).toHaveBeenCalledWith({
+      where: { generationJobId: job.id, outcome: 'RUNNING' },
+      data: { outcome: 'CANCELLED', finishedAt: expect.any(Date) },
+    });
+    expect(updateUnit).toHaveBeenCalledWith({
+      where: { jobId: job.id, state: { in: ['PENDING', 'RUNNING', 'RETRYABLE'] } },
+      data: { state: 'CANCELLED', claimToken: null, claimExpiresAt: null },
+    });
+    expect(calls).toEqual(['attempt', 'unit', 'draft', 'job']);
   });
 });
 

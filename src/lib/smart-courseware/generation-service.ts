@@ -160,6 +160,10 @@ export async function cancelCoursewareGenerationJob(db: Db, input: CommandInput)
         },
       });
     }
+    await tx.smartCoursewareProviderAttempt.updateMany({
+      where: { generationJobId: job.id, outcome: 'RUNNING' },
+      data: { outcome: 'CANCELLED', finishedAt: new Date() },
+    });
     await tx.smartCoursewareGenerationUnit.updateMany({
       where: { jobId: job.id, state: { in: ['PENDING', 'RUNNING', 'RETRYABLE'] } },
       data: { state: 'CANCELLED', claimToken: null, claimExpiresAt: null },

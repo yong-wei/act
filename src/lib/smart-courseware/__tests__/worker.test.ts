@@ -104,6 +104,52 @@ describe('smart courseware generation worker', () => {
     expect(mocks.failUnit).not.toHaveBeenCalled();
   });
 
+  it('fails a crash redelivery with a live unit lease and processes a later reclaimed delivery', async () => {
+    const plan = validPlanFixture();
+    const context = {
+      id: 'job-1', ownerId: 'teacher-1', draftId: 'draft-1', state: 'RUNNING', firstIncompleteUnitKey: 'bridge-in',
+      deliveryGeneration: 1,
+      draft: { id: 'draft-1', planRevision: { content: plan } },
+      units: [{ id: 'unit-1', unitKey: 'bridge-in', state: 'RUNNING', output: null, orderIndex: 0, attemptGeneration: 1 }],
+    };
+    const db = { smartCoursewareGenerationJob: { findUnique: vi.fn().mockResolvedValue(context) } };
+    mocks.buildSar.mockResolvedValue({ selectedVersionIds: [sourceBindingFixture.sourceVersionId] });
+    mocks.buildSourcePack.mockResolvedValue({
+      retrieval: { pack: { items: [{
+        citationTargetId: sourceBindingFixture.citationId,
+        metadata: {
+          versionId: sourceBindingFixture.sourceVersionId,
+          stableAnchor: sourceBindingFixture.anchor,
+          contentHash: sourceBindingFixture.contentHash,
+        },
+      }] } },
+    });
+    mocks.beginAttempt
+      .mockResolvedValueOnce({ claimed: false, claimToken: null, attempt: { id: 'attempt-1' } })
+      .mockResolvedValueOnce({ claimed: true, claimToken: 'claim-2', attempt: { id: 'attempt-2', idempotencyKey: 'attempt-key-2' } });
+    mocks.completeUnit.mockResolvedValue({ state: 'COMPLETED' });
+    const output = createDeterministicCoursewareStage({
+      unitKey: 'bridge-in', durationSeconds: 300, sourceBinding: sourceBindingFixture,
+    });
+    const runtime = {
+      serviceId: 'fixture-service', providerKind: 'fixture', model: 'fixture-model',
+      generate: vi.fn().mockResolvedValue({
+        output, normalizedResponseId: 'fixture-response', inputTokens: 0, outputTokens: 0, costMicros: null,
+      }),
+    };
+
+    await expect(processCoursewareGenerationJob(db as never, 'job-1', async () => runtime as never))
+      .rejects.toMatchObject({ code: 'courseware-unit-lease-active' });
+    expect(runtime.generate).not.toHaveBeenCalled();
+
+    await expect(processCoursewareGenerationJob(db as never, 'job-1', async () => runtime as never))
+      .resolves.toEqual({ jobId: 'job-1', state: 'COMPLETED' });
+    expect(runtime.generate).toHaveBeenCalledOnce();
+    expect(mocks.completeUnit).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      claimToken: 'claim-2', attemptId: 'attempt-2',
+    }));
+  });
+
   it('does not overwrite cancellation when pre-provider resolution fails', async () => {
     const context = {
       id: 'job-1', ownerId: 'teacher-1', draftId: 'draft-1', state: 'QUEUED', firstIncompleteUnitKey: 'bridge-in',

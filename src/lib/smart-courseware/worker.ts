@@ -112,7 +112,9 @@ export async function processCoursewareGenerationJob(
       }, error);
       return { jobId, state };
     }
-    if (!claim.claimed || !claim.attempt || !claim.claimToken) return { jobId, state: 'RUNNING' as const };
+    if (!claim.claimed || !claim.attempt || !claim.claimToken) {
+      throw new SmartCoursewareError('courseware-unit-lease-active', 409);
+    }
     try {
       const generated = await runtime.generate({
         schema: coursewareGeneratedStageOutputSchema,
