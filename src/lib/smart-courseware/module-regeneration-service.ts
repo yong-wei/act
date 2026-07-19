@@ -294,6 +294,18 @@ export async function generateCoursewareModuleCandidate(
       system: '仅重新生成指定课件模块。不得输出或修改相邻模块、步骤顺序、阶段时长或已批准教案基线。来源只能使用服务端提供的权威绑定；来源状态为 verified 时，teacherFields.inclusionRationale 必须说明引用证据与模块内容的关系。',
       prompt: JSON.stringify(request),
       idempotencyKey: attempt.idempotencyKey,
+      fixtureOutput: {
+        runtimeModule: location.runtimeModule,
+        moduleMetadata: {
+          moduleId: job.targetModuleId!,
+          sourceState: 'verified',
+          sourceBindings: [authoritativeBindings[0]],
+          teacherFields: {
+            ...(stored.teacherMetadata as CoursewareModuleMetadataInput['teacherFields']),
+            inclusionRationale: '确定性测试候选沿用当前模块，并由本次权威来源绑定提供依据。',
+          },
+        },
+      },
     });
     const candidate = coursewareModuleCandidateOutputSchema.parse(generated.output);
     assertCandidateBoundary(candidate, job.targetModuleId!, authoritativeBindings);

@@ -489,7 +489,9 @@ async function assertInputUnchanged(tx: Prisma.TransactionClient, job: {
     }
     return;
   }
-  if (generationInputHash(draft) !== job.inputHash) throw new SmartCoursewareError('courseware-generation-input-changed', 409);
+  if (draft.runtimeManifest || draft.modules.length || generationInputHash(draft) !== job.inputHash) {
+    throw new SmartCoursewareError('courseware-generation-input-changed', 409);
+  }
 }
 
 function assertBaseline(draft: { planRevisionId: string; planRevisionNumber: number; planContentHash: string; planRevision: { id: string; revisionNumber: number; contentHash: string; content: unknown } }) {
@@ -499,8 +501,8 @@ function assertBaseline(draft: { planRevisionId: string; planRevisionNumber: num
   }
 }
 
-function generationInputHash(draft: { id: string; planRevisionId: string; planRevisionNumber: number; planContentHash: string; authoringLineageRoot: string }) {
-  return contentHash({ draftId: draft.id, planRevisionId: draft.planRevisionId, planRevisionNumber: draft.planRevisionNumber, planContentHash: draft.planContentHash, authoringLineageRoot: draft.authoringLineageRoot });
+function generationInputHash(draft: { id: string; version: number; planRevisionId: string; planRevisionNumber: number; planContentHash: string; authoringLineageRoot: string }) {
+  return contentHash({ draftId: draft.id, draftVersion: draft.version, planRevisionId: draft.planRevisionId, planRevisionNumber: draft.planRevisionNumber, planContentHash: draft.planContentHash, authoringLineageRoot: draft.authoringLineageRoot });
 }
 
 async function findCommandReplay(db: Db, actor: SmartCoursewareActor, action: string, key: string, requestHash: string) {

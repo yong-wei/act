@@ -24,7 +24,7 @@ function baselineDraft() {
   const revision = { id: 'plan-1', revisionNumber: 1, content, contentHash: contentHash(content) };
   return {
     id: 'draft-1', ownerId: actor.id, planRevisionId: revision.id, planRevisionNumber: 1,
-    planContentHash: revision.contentHash, authoringLineageRoot: 'lineage-1', state: 'EDITABLE',
+    planContentHash: revision.contentHash, authoringLineageRoot: 'lineage-1', state: 'EDITABLE', version: 1,
     runtimeManifest: null, modules: [], planRevision: revision,
   };
 }
@@ -175,6 +175,51 @@ describe('smart courseware generation service', () => {
     });
     expect(updateDraft).not.toHaveBeenCalled();
     expect(updateJob).toHaveBeenCalledWith({ where: { id: job.id }, data: expect.not.objectContaining({ activeIdentity: expect.anything() }) });
+  });
+
+  it('rejects resuming cancelled INITIAL job A after job B initialized the draft', async () => {
+    const original = baselineDraft();
+    const completedManifest = validCoursewareManifest();
+    completedManifest.lessonId = original.id;
+    const initialized = {
+      ...original,
+      state: 'READY',
+      version: 2,
+      runtimeManifest: completedManifest,
+      contentHash: coursewareManifestHash(completedManifest),
+      modules: [{ runtimeModuleId: completedManifest.stages[0].steps[0].modules[0].id, deletedAt: null }],
+    };
+    const jobA = {
+      id: 'job-a', ownerId: actor.id, draftId: original.id, mode: 'INITIAL', state: 'CANCELLED',
+      inputHash: contentHash({
+        draftId: original.id,
+        draftVersion: original.version,
+        planRevisionId: original.planRevisionId,
+        planRevisionNumber: original.planRevisionNumber,
+        planContentHash: original.planContentHash,
+        authoringLineageRoot: original.authoringLineageRoot,
+      }),
+      draft: { state: initialized.state },
+    };
+    const updateJob = vi.fn();
+    const updateDraft = vi.fn();
+    const updateUnits = vi.fn();
+    const db = {
+      smartCoursewareGenerationCommand: { findFirst: vi.fn().mockResolvedValue(null) },
+      $transaction: vi.fn(async (run: (tx: unknown) => unknown) => run({
+        smartCoursewareGenerationJob: { findFirst: vi.fn().mockResolvedValue(jobA), update: updateJob },
+        smartCoursewareDraft: { findUnique: vi.fn().mockResolvedValue(initialized), update: updateDraft },
+        smartCoursewareGenerationUnit: { updateMany: updateUnits },
+        smartCoursewareGenerationCommand: { create: vi.fn() },
+      })),
+    };
+
+    await expect(resumeCoursewareGenerationJob(db as never, {
+      actor, jobId: jobA.id, idempotencyKey: 'resume-job-a-after-b',
+    })).rejects.toMatchObject({ code: 'courseware-generation-input-changed', status: 409 });
+    expect(updateUnits).not.toHaveBeenCalled();
+    expect(updateDraft).not.toHaveBeenCalled();
+    expect(updateJob).not.toHaveBeenCalled();
   });
 
   it.each([

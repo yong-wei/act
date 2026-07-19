@@ -11,6 +11,7 @@ import {
   requestCoursewareModuleRegeneration,
 } from '../module-regeneration-service';
 import { coursewareManifestHash } from '../domain';
+import { coursewareModuleCandidateOutputSchema } from '../schema';
 import { validCompositionInput } from './fixtures';
 
 const actor = { id: 'teacher-1', role: 'TEACHER' as const };
@@ -221,7 +222,17 @@ describe('smart courseware selected-module regeneration acceptance', () => {
     }) });
     expect(generate).toHaveBeenCalledWith(expect.objectContaining({
       idempotencyKey: `smart-courseware-module:${job.id}:1`,
+      fixtureOutput: {
+        runtimeModule: expect.objectContaining({ id: fixture.job.targetModuleId }),
+        moduleMetadata: expect.objectContaining({
+          moduleId: fixture.job.targetModuleId,
+          sourceState: 'verified',
+          sourceBindings: [sourceBindingFixture],
+          teacherFields: expect.objectContaining({ inclusionRationale: expect.any(String) }),
+        }),
+      },
     }));
+    expect(() => coursewareModuleCandidateOutputSchema.parse(providerInput.fixtureOutput)).not.toThrow();
     const claimWrite = updateJob.mock.calls[0][0];
     const claimToken = claimWrite.data.moduleClaimToken;
     expect(claimWrite).toEqual(expect.objectContaining({
