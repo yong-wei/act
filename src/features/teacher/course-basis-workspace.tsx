@@ -56,11 +56,18 @@ export function CourseBasisWorkspace({ initialCourseBases }: { initialCourseBase
   }
 
   async function loadMoreBases() {
-    const response = await fetch(`/api/teacher/course-bases?offset=${courseBases.length}&limit=50`, { cache: 'no-store' });
-    const payload = await response.json();
-    if (!response.ok) return setMessage(errorText(payload.error));
-    setCourseBases((current) => [...current, ...payload.courseBases]);
-    setHasMoreBases(payload.pagination?.hasMore ?? false);
+    const key = 'course-bases';
+    if (inFlightPages.current.has(key)) return;
+    inFlightPages.current.add(key);
+    try {
+      const response = await fetch(`/api/teacher/course-bases?offset=${courseBases.length}&limit=50`, { cache: 'no-store' });
+      const payload = await response.json();
+      if (!response.ok) return setMessage(errorText(payload.error));
+      setCourseBases((current) => appendUnique(current, payload.courseBases));
+      setHasMoreBases(payload.pagination?.hasMore ?? false);
+    } finally {
+      inFlightPages.current.delete(key);
+    }
   }
 
   async function selectBasis(courseBasisId: string) {
@@ -68,7 +75,9 @@ export function CourseBasisWorkspace({ initialCourseBases }: { initialCourseBase
     const response = await fetch(`/api/teacher/course-bases?courseBasisId=${encodeURIComponent(courseBasisId)}`, { cache: 'no-store' });
     const payload = await response.json();
     if (!response.ok || !payload.courseBases[0]) return setMessage(errorText(payload.error));
-    setCourseBases((current) => current.map((item) => item.id === courseBasisId ? payload.courseBases[0] : item));
+    setCourseBases((current) => current.map((item) => item.id === courseBasisId
+      ? mergeRefreshedBasis(item, payload.courseBases[0])
+      : item));
   }
 
   async function loadMoreDocuments() {

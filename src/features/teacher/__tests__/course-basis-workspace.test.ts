@@ -52,6 +52,36 @@ describe('CourseBasisWorkspace pagination', () => {
     expect(container.querySelector('[class*="border-primary"]')?.textContent).toContain('basis-51');
   });
 
+  it('deduplicates concurrent course-basis page requests', async () => {
+    let resolvePage!: (value: Response) => void;
+    const pageRequest = new Promise<Response>((resolve) => { resolvePage = resolve; });
+    const fetch = vi.fn(() => pageRequest);
+    vi.stubGlobal('fetch', fetch);
+    const bases = Array.from({ length: 50 }, (_, index) => basis(`basis-${index + 1}`));
+    await act(async () => root.render(createElement(CourseBasisWorkspace, { initialCourseBases: bases })));
+
+    act(() => {
+      button('加载更多课程依据').click();
+      button('加载更多课程依据').click();
+    });
+    expect(fetch).toHaveBeenCalledTimes(1);
+    await act(async () => resolvePage(await response([basis('basis-51')])));
+    expect([...container.querySelectorAll('button')].filter((item) => item.textContent?.includes('basis-51'))).toHaveLength(1);
+  });
+
+  it('keeps expanded history when switching away and back', async () => {
+    const expanded = basis('basis-1', [basisDocument('document-1'), basisDocument('document-21')]);
+    const fetch = vi.fn()
+      .mockImplementationOnce(() => response([basis('basis-2')]))
+      .mockImplementationOnce(() => response([basis('basis-1')]));
+    vi.stubGlobal('fetch', fetch);
+    await act(async () => root.render(createElement(CourseBasisWorkspace, { initialCourseBases: [expanded, basis('basis-2')] })));
+
+    await act(async () => button('basis-2').click());
+    await act(async () => button('basis-1').click());
+    expect(container.textContent).toContain('document-21');
+  });
+
   it('loads document and version pages once when buttons are double-clicked', async () => {
     let resolveDocuments!: (value: Response) => void;
     const documentRequest = new Promise<Response>((resolve) => { resolveDocuments = resolve; });
