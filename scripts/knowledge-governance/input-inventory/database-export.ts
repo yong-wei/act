@@ -66,7 +66,7 @@ export interface AggregateExportProof {
   transaction_read_only: true;
   transaction_started_at: string;
   exported_snapshot_token: string;
-  shared_snapshot_import_count: 1;
+  shared_snapshot_import_count: 0;
 }
 
 interface ExportOptions {
@@ -98,7 +98,7 @@ const SAFE_CATEGORY = /^[\p{L}\p{N}_.:+@/\[\]$*-]{1,256}$/u;
 const CANONICAL_WATERMARK = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$/u;
 const PRIVATE_SUMMARY_TOKEN = /^(?:userid|answer|answers|payload|eventpayload|eventspayload|row|rows|rawrowdigest|reversiblekey|description|reasoning|sourceinputdigest)$/iu;
 const SUMMARY_FIELD = '[A-Za-z_][A-Za-z0-9_]*';
-const SUMMARY_LOCATOR = new RegExp(`^${SUMMARY_FIELD}$|^(?:field|path):${SUMMARY_FIELD}$|^(?:version|discriminator|root_type|version_presence|legacy_shape):${SUMMARY_FIELD}:\\$.*$`, 'u');
+const SUMMARY_LOCATOR = new RegExp(`^${SUMMARY_FIELD}$|^(?:field|path):${SUMMARY_FIELD}$|^(?:version|discriminator|root_type|version_presence|legacy_shape):${SUMMARY_FIELD}:selector_[0-9a-f]{64}$`, 'u');
 
 function exactSha256(bytes: Buffer): string {
   return `sha256:${createHash('sha256').update(bytes).digest('hex')}`;
@@ -280,7 +280,8 @@ async function groupedJsonPathSummary(client: ClientBase, table: string, field: 
   const monitored = monitoredKeys.length > 0 ? ` OR terminal_key IN (${monitoredKeys.map(quoteLiteral).join(', ')})` : '';
   const sql = `${jsonWalkSql(table, field, selectors)} SELECT path AS category, count(*)::text AS count FROM walk WHERE terminal_key ~ '(?:Id|Ids)$'${monitored}${declared} GROUP BY 1 ORDER BY 1`;
   const [result, plan] = await Promise.all([client.query(sql), explainDigest(client, sql)]);
-  return { summary: suppressRows(result.rows as Array<{ category: unknown; count: unknown }>), plan };
+  const opaqueRows = (result.rows as Array<{ category: unknown; count: unknown }>).map((row) => ({ ...row, category: jsonPathCategoryKey(String(row.category)) }));
+  return { summary: suppressRows(opaqueRows), plan };
 }
 
 async function groupedJsonValueSummary(client: ClientBase, table: string, field: string, selector: string, accepted: string[]): Promise<{ summary: Record<string, SafeCount>; plan: string }> {
@@ -361,8 +362,21 @@ async function groupedJsonRootTypeSummary(client: ClientBase, table: string, fie
   return { summary: suppressRows(result.rows as Array<{ category: unknown; count: unknown }>), plan };
 }
 
-function jsonSummaryKey(contract: JsonObservationContract): string {
-  return contract.summary === 'path' ? `path:${contract.field}` : `${contract.summary}:${contract.field}:${contract.selector}`;
+export function jsonSummaryKey(contract: Pick<JsonObservationContract, 'summary' | 'field' | 'selector'>): string {
+  const field = fieldSummaryToken(contract.field);
+  if (contract.summary === 'path') return `path:${field}`;
+  const selectorDigest = createHash('sha256').update(contract.selector, 'utf8').digest('hex');
+  return `${contract.summary}:${field}:selector_${selectorDigest}`;
+}
+
+function fieldSummaryToken(field: string): string {
+  return `column_${createHash('sha256').update(field, 'utf8').digest('hex')}`;
+}
+
+export function fieldSummaryKey(field: string): string { return `field:${fieldSummaryToken(field)}`; }
+
+export function jsonPathCategoryKey(category: string): string {
+  return `path_${createHash('sha256').update('json-path-category/v1\0', 'utf8').update(category.normalize('NFC'), 'utf8').digest('hex')}`;
 }
 
 async function prospectiveRealPath(target: string): Promise<string> {
@@ -434,7 +448,7 @@ export function proofCore(exported: AggregateDatabaseExport, exportDigest: strin
     transaction_read_only: exported.transaction_read_only,
     transaction_started_at: exported.transaction_started_at,
     exported_snapshot_token: exported.exported_snapshot_token,
-    shared_snapshot_import_count: 1,
+    shared_snapshot_import_count: 0,
   };
 }
 
@@ -514,10 +528,10 @@ export async function exportAggregateDatabase(options: ExportOptions): Promise<{
   if (jsonObservations.drift.length > 0) throw new Error(`invalid database JSON observation contracts: ${jsonObservations.drift.map((item) => item.code).join(', ')}`);
   if (contracts.length !== 37) throw new Error(`declared database table count mismatch: expected 37, observed ${contracts.length}`);
   for (const contract of contracts) {
-    for (const field of [...contract.versionFields, ...contract.discriminatorFields, ...contract.jsonFields]) assertPublicSummaryLocator(`field:${field}`, contract.table);
+    for (const field of [...contract.versionFields, ...contract.discriminatorFields, ...contract.jsonFields]) assertPublicSummaryLocator(fieldSummaryKey(field), contract.table);
   }
   for (const contract of jsonObservations.contracts) {
-    assertPublicSummaryLocator(contract.summary === 'path' ? `path:${contract.field}` : jsonSummaryKey(contract), contract.table);
+    assertPublicSummaryLocator(jsonSummaryKey(contract), contract.table);
   }
   const registryBytes = await readFile(path.join(options.root, options.registryPath));
   const exporterBytes = await readFile(fileURLToPath(import.meta.url));
@@ -581,16 +595,16 @@ export async function exportAggregateDatabase(options: ExportOptions): Promise<{
       const discriminatorSummaries: Record<string, Record<string, SafeCount>> = {};
       const historicalShapeSummaries: Record<string, Record<string, SafeCount>> = {};
       const jsonObservationSummaries: Record<string, Record<string, SafeCount>> = {};
-      for (const field of contract.versionFields) { const result = await groupedSummary(client, contract.table, field); versionSummaries[`field:${field}`] = result.summary; planDigests.push(result.plan); }
-      for (const field of contract.discriminatorFields) { const result = await groupedSummary(client, contract.table, field); discriminatorSummaries[`field:${field}`] = result.summary; planDigests.push(result.plan); }
-      for (const field of contract.jsonFields) { const result = await groupedSummary(client, contract.table, field, `jsonb_typeof(${quoteIdentifier(field)}::jsonb)`); historicalShapeSummaries[`field:${field}`] = result.summary; planDigests.push(result.plan); }
+      for (const field of contract.versionFields) { const result = await groupedSummary(client, contract.table, field); versionSummaries[fieldSummaryKey(field)] = result.summary; planDigests.push(result.plan); }
+      for (const field of contract.discriminatorFields) { const result = await groupedSummary(client, contract.table, field); discriminatorSummaries[fieldSummaryKey(field)] = result.summary; planDigests.push(result.plan); }
+      for (const field of contract.jsonFields) { const result = await groupedSummary(client, contract.table, field, `jsonb_typeof(${quoteIdentifier(field)}::jsonb)`); historicalShapeSummaries[fieldSummaryKey(field)] = result.summary; planDigests.push(result.plan); }
       const tableJsonContracts = jsonObservations.contracts.filter((item) => item.table === contract.table);
       for (const field of sortUnique(tableJsonContracts.map((item) => item.field))) {
         const fieldContracts = tableJsonContracts.filter((item) => item.field === field);
         const pathSelectors = sortUnique(fieldContracts.filter((item) => item.summary === 'path').flatMap((item) => item.accepted));
         const monitoredKeys = sortUnique(fieldContracts.filter((item) => item.summary === 'version' || item.summary === 'discriminator').map((item) => /\.([A-Za-z_][A-Za-z0-9_]*)$/u.exec(item.selector)?.[1]).filter((item): item is string => Boolean(item)));
         const paths = await groupedJsonPathSummary(client, contract.table, field, pathSelectors, monitoredKeys);
-        jsonObservationSummaries[`path:${field}`] = paths.summary;
+        jsonObservationSummaries[jsonSummaryKey({ summary: 'path', field, selector: '$' })] = paths.summary;
         planDigests.push(paths.plan);
         for (const item of fieldContracts.filter((candidate) => candidate.summary !== 'path')) {
           const applicability = item.applicability ?? 'any';

@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { canonicalJson, sortUnique, taggedDigest } from './normalize';
-import { assertAggregateExportShape, assertNoPrivateSummaryToken, DATABASE_PROOF_FORMAT, deriveProof, type AggregateDatabaseExport, type AggregateExportProof } from './database-export';
+import { assertAggregateExportShape, assertNoPrivateSummaryToken, DATABASE_PROOF_FORMAT, deriveProof, fieldSummaryKey, jsonPathCategoryKey, jsonSummaryKey, type AggregateDatabaseExport, type AggregateExportProof } from './database-export';
 import type { DatabaseDataset, DatabaseSnapshot, Drift, Json, SnapshotProof } from './types';
 import type { Registry } from './registry';
 import { compileDatabaseObservationContracts, compileJsonObservationContracts, type DatabaseSummaryKind, type JsonObservationKind } from './database-observation';
@@ -10,7 +10,6 @@ import type { ShapeFixture } from './decoder-validation';
 const PROOF_KEYS = ['export_digest', 'export_object_id', 'exported_snapshot_token', 'exporter_digest', 'generated_at', 'migration_head', 'profile', 'proof_digest', 'proof_format', 'query_plan_digest', 'registry_digest', 'schema_digest', 'shared_snapshot_import_count', 'source_identity_digest', 'transaction_isolation', 'transaction_read_only', 'transaction_started_at'];
 const EXPORT_KEYS = ['captured_at', 'datasets', 'declared_table_count', 'exported_snapshot_token', 'exporter_digest', 'format_version', 'migration_head', 'postgres_version', 'query_plan_digest', 'registry_digest', 'schema_digest', 'schema_name', 'source_identity_digest', 'transaction_isolation', 'transaction_read_only', 'transaction_started_at'];
 const DATASET_KEYS = ['count', 'discriminator_summaries', 'historical_shape_summaries', 'id', 'json_observation_summaries', 'shape', 'table', 'version_summaries', 'versions', 'watermark', 'watermarks'];
-const LEGACY_DATASET_KEYS = DATASET_KEYS.filter((key) => key !== 'json_observation_summaries' && key !== 'watermarks');
 
 function rejectRowContent(value: Json, pointer = ''): void {
   if (Array.isArray(value)) value.forEach((item, index) => rejectRowContent(item, `${pointer}/${index}`));
@@ -40,12 +39,21 @@ export async function loadImmutableExport(
   rejectRowContent(parsed as unknown as Json);
   if ('proof' in parsed) throw new Error('caller-declared proof embedded in export is rejected');
   exactKeys(parsed, EXPORT_KEYS, 'aggregate database export');
-  parsed.datasets.forEach((dataset) => {
-    const expected = 'watermarks' in dataset || 'json_observation_summaries' in dataset ? DATASET_KEYS : LEGACY_DATASET_KEYS;
-    exactKeys(dataset, expected, `aggregate database dataset ${dataset.table}`);
-  });
+  parsed.datasets.forEach((dataset) => exactKeys(dataset, DATASET_KEYS, `aggregate database dataset ${dataset.table}`));
   if (!Buffer.from(canonicalJson(parsed as unknown as Json), 'utf8').equals(bytes)) throw new Error('aggregate database export is not canonical JSON');
   assertAggregateExportShape(parsed);
+  for (const dataset of parsed.datasets) {
+    const fieldSummaryKeys = [
+      ...Object.keys(dataset.version_summaries),
+      ...Object.keys(dataset.discriminator_summaries),
+      ...Object.keys(dataset.historical_shape_summaries),
+    ];
+    const jsonSummaryKeys = Object.keys(dataset.json_observation_summaries ?? {});
+    if (fieldSummaryKeys.some((key) => !/^field:column_[0-9a-f]{64}$/u.test(key))
+      || jsonSummaryKeys.some((key) => !/^(?:path:column_[0-9a-f]{64}|(?:version|discriminator|root_type|version_presence|legacy_shape):column_[0-9a-f]{64}:selector_[0-9a-f]{64})$/u.test(key))) {
+      throw new Error('current aggregate database export requires opaque summary keys');
+    }
+  }
   if (parsed.registry_digest !== authority.registryDigest) throw new Error('aggregate database export registry authority mismatch');
   if (parsed.exporter_digest !== authority.exporterDigest) throw new Error('aggregate database export implementation authority mismatch');
   const proof = JSON.parse(await readFile(proofFile, 'utf8')) as AggregateExportProof;
@@ -74,6 +82,7 @@ export async function loadImmutableExport(
     snapshot_proof: proof as SnapshotProof,
     datasets,
     dataset_watermarks: Object.fromEntries(datasets.flatMap((dataset) => [[dataset.id, dataset.watermark], ...Object.entries(dataset.watermarks ?? {}).map(([field, value]) => [`${dataset.id}.${field}`, value] as const)])),
+    summary_key_format: 'opaque',
   };
 }
 
@@ -85,6 +94,7 @@ export function noDatabaseSnapshot(capturedAt: string, drift: Drift[]): Database
 
 export function validateDatabaseClosure(snapshot: DatabaseSnapshot, registry: Registry, fixtures: ShapeFixture[] = []): Drift[] {
   const drift: Drift[] = [];
+  const allowLegacySummaryKeys = snapshot.summary_key_format === 'legacy';
   const byTable = new Map(snapshot.datasets.map((dataset) => [dataset.table, dataset]));
   for (const source of registry.database_sources) {
     const fields = source.fields as Record<string, string[]> ?? {};
@@ -108,16 +118,18 @@ export function validateDatabaseClosure(snapshot: DatabaseSnapshot, registry: Re
     const dataset = byTable.get(contract.table);
     if (!dataset) continue;
     const collection = collectionFor(dataset, contract.summary);
-    const key = `field:${contract.field}`;
+    const key = fieldSummaryKey(contract.field);
+    const legacyKey = `field:${contract.field}`;
     const collectionIdentity = `${contract.table}/${contract.summary}`;
     const expected = expectedKeys.get(collectionIdentity) ?? new Set<string>();
-    expected.add(key);
+    const observedKey = key in collection ? key : allowLegacySummaryKeys ? legacyKey : key;
+    expected.add(observedKey);
     expectedKeys.set(collectionIdentity, expected);
-    if (!(key in collection)) {
+    if (!(observedKey in collection)) {
       drift.push({ code: 'DATABASE_OBSERVATION_SUMMARY_MISSING', scope: `${contract.table}.${contract.field}`, expected: contract.summary });
       continue;
     }
-    const summary = collection[key]!;
+    const summary = collection[observedKey]!;
     const categories = Object.keys(summary);
     if (categories.length === 0) {
       if (dataset.count > 0 || contract.zeroObservation === 'forbid') {
@@ -153,11 +165,12 @@ export function validateDatabaseClosure(snapshot: DatabaseSnapshot, registry: Re
   }
   const jsonCompiled = compileJsonObservationContracts(registry, fixtures);
   drift.push(...jsonCompiled.drift);
-  const jsonExpected = new Map<string, { accepted: Set<string>; summary: JsonObservationKind; scope: string }>();
+  const jsonExpected = new Map<string, { accepted: Set<string>; summary: JsonObservationKind; scope: string; legacyKey: string }>();
   for (const contract of jsonCompiled.contracts) {
-    const key = contract.summary === 'path' ? `path:${contract.field}` : `${contract.summary}:${contract.field}:${contract.selector}`;
+    const key = jsonSummaryKey(contract);
+    const legacyKey = contract.summary === 'path' ? `path:${contract.field}` : `${contract.summary}:${contract.field}:${contract.selector}`;
     const identity = `${contract.table}/${key}`;
-    const current = jsonExpected.get(identity) ?? { accepted: new Set<string>(), summary: contract.summary, scope: `${contract.table}.${contract.field}${contract.selector.slice(1)}` };
+    const current = jsonExpected.get(identity) ?? { accepted: new Set<string>(), summary: contract.summary, scope: `${contract.table}.${contract.field}${contract.selector.slice(1)}`, legacyKey };
     contract.accepted.forEach((value) => current.accepted.add(value));
     jsonExpected.set(identity, current);
   }
@@ -166,11 +179,15 @@ export function validateDatabaseClosure(snapshot: DatabaseSnapshot, registry: Re
     for (const [identity, contract] of jsonExpected) {
       const [table, key] = identity.split('/', 2);
       if (table !== dataset.table || !key) continue;
-      if (!(key in summaries)) {
+      const observedKey = key in summaries ? key : allowLegacySummaryKeys && contract.legacyKey in summaries ? contract.legacyKey : null;
+      if (!observedKey) {
         drift.push({ code: 'DATABASE_JSON_OBSERVATION_SUMMARY_MISSING', scope: contract.scope, expected: key });
         continue;
       }
-      for (const category of Object.keys(summaries[key]!)) if (category === '__suppressed__' || !contract.accepted.has(category)) {
+      const accepted = contract.summary === 'path' && !allowLegacySummaryKeys
+        ? new Set([...contract.accepted].map(jsonPathCategoryKey))
+        : contract.accepted;
+      for (const category of Object.keys(summaries[observedKey]!)) if (category === '__suppressed__' || !accepted.has(category)) {
         const code = contract.summary === 'path'
           ? 'DATABASE_JSON_PATH_OUTSIDE_CLOSED_SET'
           : contract.summary === 'root_type'
@@ -194,7 +211,10 @@ export function validateDatabaseClosure(snapshot: DatabaseSnapshot, registry: Re
         drift.push({ code: 'DATABASE_JSON_LEGACY_SHAPE_EVIDENCE_MISSING', scope: `${dataset.table}.${suffix}` });
       }
     }
-    const expected = new Set([...jsonExpected.keys()].filter((identity) => identity.startsWith(`${dataset.table}/`)).map((identity) => identity.slice(dataset.table.length + 1)));
+    const expected = new Set([...jsonExpected.entries()].filter(([identity]) => identity.startsWith(`${dataset.table}/`)).map(([identity, contract]) => {
+      const key = identity.slice(dataset.table.length + 1);
+      return key in summaries ? key : allowLegacySummaryKeys ? contract.legacyKey : key;
+    }));
     for (const key of Object.keys(summaries)) if (!expected.has(key)) drift.push({ code: 'DATABASE_JSON_OBSERVATION_SUMMARY_UNDECLARED', scope: dataset.table, observed: key });
   }
   const observedVersions = sortUnique(snapshot.datasets.flatMap((dataset) => Object.values(dataset.version_summaries ?? {})

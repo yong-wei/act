@@ -49,6 +49,7 @@ export interface DatabaseSnapshot {
   snapshot_proof: SnapshotProof;
   datasets: DatabaseDataset[];
   dataset_watermarks: Record<string, string | null>;
+  summary_key_format?: 'legacy' | 'opaque';
 }
 
 export interface InventoryOptions {

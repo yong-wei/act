@@ -27,7 +27,7 @@ function registry(): Registry {
 
 function snapshot(overrides: Partial<DatabaseSnapshot['datasets'][number]> = {}): DatabaseSnapshot {
   return {
-    snapshot_id: 'snapshot', captured_at: '2026-01-01T00:00:00.000Z', snapshot_proof: { profile: 'immutable_export' }, dataset_watermarks: {},
+    snapshot_id: 'snapshot', captured_at: '2026-01-01T00:00:00.000Z', snapshot_proof: { profile: 'immutable_export' }, dataset_watermarks: {}, summary_key_format: 'legacy',
     datasets: [
       {
         id: 'observed', table: 'Observed', count: 5, watermark: null, shape: ['version', 'kind', 'payload'], versions: ['v1'],

@@ -6,7 +6,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { canonicalJson, compareCodePoints, normalizePath, normalizeText, taggedDigest } from '../normalize';
 import { loadImmutableExport, validateDatabaseClosure } from '../database-snapshot';
-import { assertAggregateExportShape, contractsFromRegistry, DATABASE_EXPORT_FORMAT, deriveProof, exportAggregateDatabase, latestWatermark, publishExportArtifacts, type AggregateDatabaseExport, type AggregateDatasetExport } from '../database-export';
+import { assertAggregateExportShape, contractsFromRegistry, DATABASE_EXPORT_FORMAT, deriveProof, exportAggregateDatabase, fieldSummaryKey, jsonPathCategoryKey, jsonSummaryKey, latestWatermark, publishExportArtifacts, type AggregateDatabaseExport, type AggregateDatasetExport } from '../database-export';
 import { discoverWriters, discoverWritersInSource } from '../writer-discovery';
 import { validateOutputPrivacy } from '../schema-validation';
 import { sourceFingerprints } from '../manifest';
@@ -222,46 +222,68 @@ describe('immutable database privacy boundary', () => {
     } finally { await rm(directory, { recursive: true }); }
   });
 
-  it('writes no artifact when the registry requests a private nested payload summary', async () => {
+  it('passes the real registry summary preflight without exposing controlled selector paths', async () => {
     const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-private-summary-block-'));
     const artifactParent = path.join(directory, 'not-created');
     const outputPath = path.join(artifactParent, 'export.json');
     const proofPath = path.join(artifactParent, 'proof.json');
     try {
-      await expect(exportAggregateDatabase({
-        root,
-        registryPath: 'docs/proposals/course-knowledge-base-governance-source-registry.yaml',
-        databaseUrl: 'postgresql://must-not-connect',
-        outputPath,
-        proofPath,
-      })).rejects.toThrow(/private summary field/u);
+      let failure: unknown;
+      try {
+        await exportAggregateDatabase({
+          root,
+          registryPath: 'docs/proposals/course-knowledge-base-governance-source-registry.yaml',
+          databaseUrl: 'postgresql://127.0.0.1:1/unreachable',
+          outputPath,
+          proofPath,
+        });
+      } catch (error) { failure = error; }
+      expect(failure).toBeInstanceOf(Error);
+      expect((failure as Error).message).not.toMatch(/private summary field|unknown summary locator/u);
       expect(existsSync(outputPath)).toBe(false);
       expect(existsSync(proofPath)).toBe(false);
-      expect(existsSync(artifactParent)).toBe(false);
+      expect(existsSync(artifactParent)).toBe(true);
     } finally { await rm(directory, { recursive: true }); }
   });
 
   it('derives snapshot id from proof and accepts only already-suppressed 1-4 person cells', async () => {
     const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-export-'));
     try {
-      const datasets: AggregateDatasetExport[] = [{ id: 'learner', table: 'Snapshot', count: 9, watermark: '2026-01-01T00:00:00.000000Z', watermarks: { watermark: '2026-01-01T00:00:00.000000Z' }, shape: ['version', 'watermark'], versions: ['v1'], version_summaries: { version: { v1: 5, __suppressed__: 'suppressed' } }, discriminator_summaries: {}, historical_shape_summaries: {}, json_observation_summaries: {} }];
+      const versionSummaryKey = fieldSummaryKey('version');
+      const datasets: AggregateDatasetExport[] = [{ id: 'learner', table: 'Snapshot', count: 9, watermark: '2026-01-01T00:00:00.000000Z', watermarks: { watermark: '2026-01-01T00:00:00.000000Z' }, shape: ['version', 'watermark'], versions: ['v1'], version_summaries: { [versionSummaryKey]: { v1: 5, __suppressed__: 'suppressed' } }, discriminator_summaries: {}, historical_shape_summaries: {}, json_observation_summaries: {} }];
       await writeAggregateExport(directory, aggregateExport(datasets));
       const drift: never[] = [];
       const snapshot = await loadImmutableExport(directory, 'export.json', 'proof.json', drift, authority);
       expect(snapshot.snapshot_id).toMatch(/^sha256:/u);
-      expect(snapshot.datasets[0]!.version_summaries).toEqual({ version: { v1: 5, __suppressed__: 'suppressed' } });
+      expect(snapshot.snapshot_proof).toMatchObject({ shared_snapshot_import_count: 0 });
+      expect(snapshot.datasets[0]!.version_summaries).toEqual({ [versionSummaryKey]: { v1: 5, __suppressed__: 'suppressed' } });
       expect(drift).toEqual([]);
+      const tampered = JSON.parse(await readFile(path.join(directory, 'proof.json'), 'utf8')) as Record<string, unknown>;
+      tampered.shared_snapshot_import_count = 1;
+      await writeFile(path.join(directory, 'proof.json'), canonicalJson(tampered as Json));
+      await expect(loadImmutableExport(directory, 'export.json', 'proof.json', [], authority)).rejects.toThrow(/proof digest or closure mismatch/u);
     } finally { await rm(directory, { recursive: true }); }
   });
 
-  it('continues to verify legacy v1 proofs while withholding new readiness evidence', async () => {
+  it('rejects legacy-shaped external exports even when their proof uses current authority', async () => {
     const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-legacy-export-'));
     try {
       const enhanced: AggregateDatasetExport = { id: 'legacy', table: 'Snapshot', count: 0, watermark: null, watermarks: {}, shape: [], versions: [], version_summaries: {}, discriminator_summaries: {}, historical_shape_summaries: {}, json_observation_summaries: {} };
       const { watermarks: _watermarks, json_observation_summaries: _json, ...legacy } = enhanced;
       await writeAggregateExport(directory, aggregateExport([legacy]));
-      const snapshot = await loadImmutableExport(directory, 'export.json', 'proof.json', [], authority);
-      expect(snapshot.datasets[0]).toMatchObject({ watermarks: {}, json_observation_summaries: {} });
+      await expect(loadImmutableExport(directory, 'export.json', 'proof.json', [], authority)).rejects.toThrow(/caller-authored or missing fields/u);
+    } finally { await rm(directory, { recursive: true }); }
+  });
+
+  it('rejects raw summary keys in a current enhanced export even when its proof is self-consistent', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-current-raw-summary-'));
+    try {
+      const dataset: AggregateDatasetExport = {
+        id: 'current', table: 'Observed', count: 5, watermark: null, watermarks: {}, shape: ['version'], versions: ['v1'],
+        version_summaries: { 'field:version': { v1: 5 } }, discriminator_summaries: {}, historical_shape_summaries: {}, json_observation_summaries: {},
+      };
+      await writeAggregateExport(directory, aggregateExport([dataset]));
+      await expect(loadImmutableExport(directory, 'export.json', 'proof.json', [], authority)).rejects.toThrow(/requires opaque summary keys/u);
     } finally { await rm(directory, { recursive: true }); }
   });
 
@@ -335,7 +357,7 @@ describe('immutable database privacy boundary', () => {
     expect(validateOutputPrivacy({ nested: { [key]: 'forbidden' } } as Json)).toEqual([expect.objectContaining({ code: 'PROHIBITED_OUTPUT_FIELD' })]);
   });
 
-  it('blocks the declared database closure when a nested selector names a private payload field', async () => {
+  it('uses opaque summary keys for the declared nested selector closure', async () => {
     const registry = await loadRegistry(root, 'docs/proposals/course-knowledge-base-governance-source-registry.yaml');
     const fixtureFile = JSON.parse(await readFile(path.join(root, 'scripts/knowledge-governance/input-inventory/fixtures/synthetic-history-payload-shapes.json'), 'utf8')) as { fixtures: ShapeFixture[] };
     const observations = compileDatabaseObservationContracts(registry);
@@ -352,7 +374,7 @@ describe('immutable database privacy boundary', () => {
       const contracts = observations.contracts.filter((contract) => contract.table === table);
       const summaries = (kind: 'version' | 'discriminator' | 'historical_shape') => Object.fromEntries(contracts
         .filter((contract) => contract.summary === kind)
-        .map((contract) => [`field:${contract.field}`, { [contract.accepted[0]!]: 5 }]));
+        .map((contract) => [fieldSummaryKey(contract.field), {}]));
       const versionSummaries = summaries('version');
       return {
         id: `synthetic-${table}`, table, count: 5, watermark: null, watermarks: {}, shape: [...fields],
@@ -360,14 +382,23 @@ describe('immutable database privacy boundary', () => {
         version_summaries: versionSummaries,
         discriminator_summaries: summaries('discriminator'),
         historical_shape_summaries: summaries('historical_shape'),
-        json_observation_summaries: Object.fromEntries(jsonObservations.contracts.filter((item) => item.table === table).map((item) => [item.summary === 'path' ? `path:${item.field}` : `${item.summary}:${item.field}:${item.selector}`, {}])),
+        json_observation_summaries: Object.fromEntries(jsonObservations.contracts.filter((item) => item.table === table).map((item) => [
+          jsonSummaryKey(item),
+          item.summary === 'path' ? { [jsonPathCategoryKey(item.accepted[0]!)]: 5 } : {},
+        ])),
       };
     });
     const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-full-export-'));
     try {
       await writeAggregateExport(directory, aggregateExport(datasets));
-      await expect(loadImmutableExport(directory, 'export.json', 'proof.json', [], authority)).rejects.toThrow(/learner row content/u);
-      expect(() => assertAggregateExportShape(aggregateExport(datasets))).toThrow(/private summary field/u);
+      await expect(loadImmutableExport(directory, 'export.json', 'proof.json', [], authority)).resolves.toBeDefined();
+      expect(() => assertAggregateExportShape(aggregateExport(datasets))).not.toThrow();
+      expect(JSON.stringify(datasets.flatMap((dataset) => Object.keys(dataset.json_observation_summaries ?? {})))).not.toContain('payload');
+      expect(JSON.stringify(datasets.flatMap((dataset) => Object.values(dataset.json_observation_summaries ?? {}).flatMap(Object.keys)))).not.toContain('payload');
+      const opaquePayloadCategory = jsonPathCategoryKey('$.payload');
+      expect(opaquePayloadCategory).toMatch(/^path_[0-9a-f]{64}$/u);
+      expect(opaquePayloadCategory).not.toContain('payload');
+      expect(validateOutputPrivacy({ summary: { [opaquePayloadCategory]: 5 } } as Json)).toEqual([]);
     } finally { await rm(directory, { recursive: true }); }
   });
 
