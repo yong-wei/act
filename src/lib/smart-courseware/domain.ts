@@ -124,8 +124,14 @@ export function deriveCoursewareModuleMetadata(input: {
   newProvenance?: CoursewareModuleMetadata['provenance'];
   originalAttemptId?: string | null;
 }): CoursewareModuleMetadata {
-  if (input.newProvenance?.startsWith('ai_generated')) {
+  const aiLineage = input.newProvenance?.startsWith('ai_generated')
+    || input.existing?.provenance === 'AI_GENERATED'
+    || input.existing?.provenance === 'AI_GENERATED_TEACHER_EDITED'
+    || Boolean(input.originalAttemptId ?? input.existing?.originalAttemptId);
+  if (aiLineage) {
     assertAiGeneratedCoursewareSourceState(input.requested);
+  } else if (input.requested.sourceState === 'ai_generated_source_pending') {
+    throw new SmartCoursewareError('teacher-created-courseware-source-state-invalid', 409);
   }
   const sourceBindings = normalizeSourceBindings(input.requested.sourceBindings);
   const allowed = new Set(input.allowedSourceBindings.map(sourceBindingKey));

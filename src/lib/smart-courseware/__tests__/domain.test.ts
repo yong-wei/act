@@ -223,6 +223,7 @@ describe('smart courseware domain', () => {
     };
     const first = deriveCoursewareModuleMetadata({
       authoringLineageRoot: 'lineage-1', runtimeModule, requested, allowedSourceBindings: [],
+      newProvenance: 'ai_generated', originalAttemptId: 'attempt-1',
     });
     const same = deriveCoursewareModuleMetadata({
       authoringLineageRoot: 'lineage-1', runtimeModule, requested, allowedSourceBindings: [],
@@ -232,8 +233,8 @@ describe('smart courseware domain', () => {
         sourceState: 'AI_GENERATED_SOURCE_PENDING',
         sourceBindingSetHash: first.sourceBindingSetHash,
         gapIdentity: first.gapIdentity,
-        provenance: 'TEACHER_CREATED',
-        originalAttemptId: null,
+        provenance: 'AI_GENERATED',
+        originalAttemptId: 'attempt-1',
       },
     });
     expect(same.gapIdentity).toBe(first.gapIdentity);
@@ -441,6 +442,26 @@ describe('smart courseware domain', () => {
       },
       allowedSourceBindings: [], existing,
       newProvenance: 'ai_generated', originalAttemptId: 'provider-attempt-1',
+    })).toThrowError(expect.objectContaining({ code: 'ai-generated-courseware-source-state-invalid' }));
+  });
+
+  it('rejects pending source states that contradict direct-edit module lineage', () => {
+    const runtimeModule = validCoursewareManifest().stages[0].steps[0].modules[0];
+    expect(() => deriveCoursewareModuleMetadata({
+      authoringLineageRoot: 'lineage-1', runtimeModule,
+      requested: { moduleId: runtimeModule.id, sourceState: 'ai_generated_source_pending', sourceBindings: [], teacherFields: {} },
+      allowedSourceBindings: [],
+    })).toThrowError(expect.objectContaining({ code: 'teacher-created-courseware-source-state-invalid' }));
+
+    expect(() => deriveCoursewareModuleMetadata({
+      authoringLineageRoot: 'lineage-1', runtimeModule,
+      requested: { moduleId: runtimeModule.id, sourceState: 'teacher_created_source_pending', sourceBindings: [], teacherFields: {} },
+      allowedSourceBindings: [],
+      existing: {
+        moduleInstanceLineage: 'ai-lineage', contentHash: 'a'.repeat(64), sourceState: 'AI_GENERATED_SOURCE_PENDING',
+        sourceBindingSetHash: contentHash([]), gapIdentity: 'courseware-gap:ai', provenance: 'AI_GENERATED_TEACHER_EDITED',
+        originalAttemptId: 'provider-attempt-1',
+      },
     })).toThrowError(expect.objectContaining({ code: 'ai-generated-courseware-source-state-invalid' }));
   });
 
