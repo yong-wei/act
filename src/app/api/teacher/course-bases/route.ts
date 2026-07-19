@@ -12,10 +12,16 @@ const createSchema = z.object({
   description: z.string().trim().max(1000).nullish(),
 }).strict();
 
-export async function GET() {
+export async function GET(request: Request) {
   const auth = await requireCourseBasisActor();
   if ('response' in auth) return auth.response;
-  return NextResponse.json({ courseBases: await listCourseBases(prisma, auth.actor) });
+  const url = new URL(request.url);
+  const offset = Math.max(0, Number(url.searchParams.get('offset') ?? 0));
+  const limit = Math.min(50, Math.max(1, Number(url.searchParams.get('limit') ?? 50)));
+  const courseBasisId = url.searchParams.get('courseBasisId') ?? undefined;
+  const fullHistory = url.searchParams.get('fullHistory') === 'true';
+  const courseBases = await listCourseBases(prisma, auth.actor, { offset, limit, courseBasisId, fullHistory });
+  return NextResponse.json({ courseBases, pagination: { offset, limit, hasMore: !courseBasisId && courseBases.length === limit } });
 }
 
 export async function POST(request: Request) {

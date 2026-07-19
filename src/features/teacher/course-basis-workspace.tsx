@@ -26,6 +26,7 @@ type CourseBasis = {
 export function CourseBasisWorkspace({ initialCourseBases }: { initialCourseBases: CourseBasis[] }) {
   const [courseBases, setCourseBases] = useState(initialCourseBases);
   const [selectedId, setSelectedId] = useState(initialCourseBases[0]?.id ?? '');
+  const [hasMoreBases, setHasMoreBases] = useState(initialCourseBases.length === 50);
   const [message, setMessage] = useState('');
   const selected = courseBases.find((item) => item.id === selectedId) ?? null;
 
@@ -34,7 +35,24 @@ export function CourseBasisWorkspace({ initialCourseBases }: { initialCourseBase
     const payload = await response.json();
     if (!response.ok) throw new Error(payload.error ?? '加载失败');
     setCourseBases(payload.courseBases);
+    setHasMoreBases(payload.pagination?.hasMore ?? false);
     setSelectedId(preferredId || payload.courseBases[0]?.id || '');
+  }
+
+  async function loadMoreBases() {
+    const response = await fetch(`/api/teacher/course-bases?offset=${courseBases.length}&limit=50`, { cache: 'no-store' });
+    const payload = await response.json();
+    if (!response.ok) return setMessage(errorText(payload.error));
+    setCourseBases((current) => [...current, ...payload.courseBases]);
+    setHasMoreBases(payload.pagination?.hasMore ?? false);
+  }
+
+  async function selectBasis(courseBasisId: string) {
+    setSelectedId(courseBasisId);
+    const response = await fetch(`/api/teacher/course-bases?courseBasisId=${encodeURIComponent(courseBasisId)}&fullHistory=true`, { cache: 'no-store' });
+    const payload = await response.json();
+    if (!response.ok || !payload.courseBases[0]) return setMessage(errorText(payload.error));
+    setCourseBases((current) => current.map((item) => item.id === courseBasisId ? payload.courseBases[0] : item));
   }
 
   async function createBasis(formData: FormData) {
@@ -127,11 +145,12 @@ export function CourseBasisWorkspace({ initialCourseBases }: { initialCourseBase
       <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
         <aside className="space-y-2">
           {courseBases.length === 0 ? <p className="rounded-xl border border-dashed border-border p-5 text-sm text-subtle">尚无课程依据。</p> : courseBases.map((basis) => (
-            <button key={basis.id} onClick={() => setSelectedId(basis.id)} className={`w-full rounded-xl border p-4 text-left ${basis.id === selectedId ? 'border-primary bg-primary/10' : 'border-border'}`}>
+            <button key={basis.id} onClick={() => void selectBasis(basis.id)} className={`w-full rounded-xl border p-4 text-left ${basis.id === selectedId ? 'border-primary bg-primary/10' : 'border-border'}`}>
               <span className="block text-xs text-subtle">{basis.courseIdentity}</span>
               <span className="mt-1 block font-medium">{basis.title}</span>
             </button>
           ))}
+          {hasMoreBases ? <button type="button" onClick={() => void loadMoreBases()} className="w-full rounded-lg border border-border px-3 py-2 text-sm text-primary">加载更多课程依据</button> : null}
         </aside>
 
         {selected ? <section className="space-y-5">

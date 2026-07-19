@@ -22,7 +22,10 @@ export async function POST(request: Request, context: { params: Promise<{ docume
     if (contentLength === null || !Number.isSafeInteger(contentLength) || contentLength < 0) {
       return NextResponse.json({ error: 'content-length-required' }, { status: 411 });
     }
-    if (contentLength > 10 * 1024 * 1024 + 64 * 1024) {
+    const transportLimit = contentType.includes('multipart/form-data')
+      ? 10 * 1024 * 1024 + 64 * 1024
+      : 64 * 1024 * 1024;
+    if (contentLength > transportLimit) {
       return NextResponse.json({ error: 'source-too-large' }, { status: 413 });
     }
     let source;

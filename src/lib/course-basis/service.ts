@@ -38,12 +38,23 @@ export async function createCourseBasis(db: CourseBasisDb, input: {
   });
 }
 
-export async function listCourseBases(db: CourseBasisDb, actor: CourseBasisActor) {
+export async function listCourseBases(db: CourseBasisDb, actor: CourseBasisActor, options: {
+  offset?: number;
+  limit?: number;
+  courseBasisId?: string;
+  fullHistory?: boolean;
+} = {}) {
   const validatedActor = validateActor(actor);
+  const offset = Math.max(0, Math.trunc(options.offset ?? 0));
+  const limit = Math.min(COURSE_BASIS_LIST_LIMIT, Math.max(1, Math.trunc(options.limit ?? COURSE_BASIS_LIST_LIMIT)));
   const rows = await db.courseBasis.findMany({
-    where: validatedActor.role === 'ADMIN' ? {} : { ownerId: validatedActor.id },
+    where: {
+      ...(validatedActor.role === 'ADMIN' ? {} : { ownerId: validatedActor.id }),
+      ...(options.courseBasisId ? { id: validateId(options.courseBasisId, 'course-basis-id-invalid') } : {}),
+    },
     orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
-    take: COURSE_BASIS_LIST_LIMIT,
+    skip: offset,
+    take: limit,
     select: {
       id: true,
       ownerId: true,
@@ -54,7 +65,7 @@ export async function listCourseBases(db: CourseBasisDb, actor: CourseBasisActor
       updatedAt: true,
       documents: {
         orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
-        take: COURSE_BASIS_DOCUMENT_LIST_LIMIT,
+        ...(!options.fullHistory ? { take: COURSE_BASIS_DOCUMENT_LIST_LIMIT } : {}),
         select: {
           id: true,
           courseBasisId: true,
@@ -64,7 +75,7 @@ export async function listCourseBases(db: CourseBasisDb, actor: CourseBasisActor
           updatedAt: true,
           versions: {
             orderBy: { versionNumber: 'desc' },
-            take: COURSE_BASIS_VERSION_LIST_LIMIT,
+            ...(!options.fullHistory ? { take: COURSE_BASIS_VERSION_LIST_LIMIT } : {}),
             select: {
               id: true,
               documentId: true,
