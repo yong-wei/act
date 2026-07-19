@@ -60,7 +60,13 @@ describe('CourseBasisWorkspace pagination', () => {
       .mockImplementationOnce(() => response([basis('basis-1', [{
         ...basisDocument('document-1', [version('version-2')]),
         versionPagination: page(20, 21, false),
-      }])]));
+      }])]))
+      .mockImplementationOnce(() => response([basis('basis-1', [basisDocument('document-1', [version('version-3')], true)], true)]))
+      .mockImplementationOnce(() => Promise.resolve({
+        ok: true,
+        json: async () => ({ version: { ...version('version-21'), documentId: 'document-2' } }),
+      } as Response))
+      .mockImplementationOnce(() => response([basis('basis-1', [basisDocument('document-1', [version('version-3')], true)], true)]));
     vi.stubGlobal('fetch', fetch);
     await act(async () => root.render(createElement(CourseBasisWorkspace, {
       initialCourseBases: [basis('basis-1', [basisDocument('document-1', [version('version-1')], true)], true)],
@@ -71,7 +77,7 @@ describe('CourseBasisWorkspace pagination', () => {
       button('加载更多文档').click();
     });
     expect(fetch).toHaveBeenCalledTimes(1);
-    await act(async () => resolveDocuments(await response([basis('basis-1', [basisDocument('document-2')], false)])));
+    await act(async () => resolveDocuments(await response([basis('basis-1', [basisDocument('document-2', [version('version-20')])], false)])));
     expect(container.textContent).toContain('document-2');
 
     await act(async () => {
@@ -80,11 +86,26 @@ describe('CourseBasisWorkspace pagination', () => {
     });
     expect(fetch).toHaveBeenCalledTimes(2);
     expect(container.textContent).toContain('version-2.txt');
+
+    await act(async () => button('刷新').click());
+    expect(container.textContent).toContain('document-2');
+    expect(container.textContent).toContain('version-2.txt');
+    expect(container.textContent).toContain('version-3.txt');
+
+    await act(async () => buttonWithin('document-2', '重试为新版本').click());
+    expect(container.textContent).toContain('version-21.txt');
   });
 
   function button(label: string) {
     const match = [...container.querySelectorAll('button')].find((item) => item.textContent?.includes(label));
     if (!match) throw new Error(`button not found: ${label}`);
+    return match;
+  }
+
+  function buttonWithin(containerText: string, label: string) {
+    const scope = [...container.querySelectorAll('article')].find((item) => item.textContent?.includes(containerText));
+    const match = [...(scope?.querySelectorAll('button') ?? [])].find((item) => item.textContent?.includes(label));
+    if (!match) throw new Error(`button not found: ${containerText} / ${label}`);
     return match;
   }
 });

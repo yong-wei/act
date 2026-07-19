@@ -42,10 +42,11 @@ export function CourseBasisWorkspace({ initialCourseBases }: { initialCourseBase
     if (!response.ok) throw new Error(payload.error ?? '加载失败');
     if (targetId && payload.courseBases[0]) {
       setCourseBases((current) => {
-        const exists = current.some((item) => item.id === targetId);
-        return exists
-          ? current.map((item) => item.id === targetId ? payload.courseBases[0] : item)
-          : [payload.courseBases[0], ...current];
+        const existing = current.find((item) => item.id === targetId);
+        const refreshed = existing ? mergeRefreshedBasis(existing, payload.courseBases[0]) : payload.courseBases[0];
+        return existing
+          ? current.map((item) => item.id === targetId ? refreshed : item)
+          : [refreshed, ...current];
       });
     } else {
       setCourseBases(payload.courseBases);
@@ -171,6 +172,15 @@ export function CourseBasisWorkspace({ initialCourseBases }: { initialCourseBase
     });
     const payload = await response.json();
     if (!response.ok) return setMessage(errorText(payload.error));
+    setCourseBases((current) => current.map((basis) => ({
+      ...basis,
+      documents: basis.documents.map((document) => ({
+        ...document,
+        versions: document.id === payload.version.documentId
+          ? upsertVersion(document.versions, payload.version)
+          : document.versions,
+      })),
+    })));
     await refresh();
     setMessage('版本状态已更新。');
   }
@@ -235,6 +245,38 @@ export function CourseBasisWorkspace({ initialCourseBases }: { initialCourseBase
 function appendUnique<T extends { id: string }>(current: T[], next: T[]) {
   const ids = new Set(current.map((item) => item.id));
   return [...current, ...next.filter((item) => !ids.has(item.id))];
+}
+
+function upsertVersion(current: Version[], updated: Version) {
+  return current.some((version) => version.id === updated.id)
+    ? current.map((version) => version.id === updated.id ? { ...version, ...updated } : version)
+    : [updated, ...current];
+}
+
+function mergeRefreshedBasis(existing: CourseBasis, refreshed: CourseBasis): CourseBasis {
+  const existingDocuments = new Map(existing.documents.map((document) => [document.id, document]));
+  const refreshedDocuments = refreshed.documents.map((document) => {
+    const previous = existingDocuments.get(document.id);
+    if (!previous) return document;
+    const versions = appendUnique(document.versions, previous.versions);
+    return {
+      ...document,
+      versions,
+      versionPagination: {
+        ...document.versionPagination,
+        hasMore: versions.length < document.versionPagination.total,
+      },
+    };
+  });
+  const documents = appendUnique(refreshedDocuments, existing.documents);
+  return {
+    ...refreshed,
+    documents,
+    documentPagination: {
+      ...refreshed.documentPagination,
+      hasMore: documents.length < refreshed.documentPagination.total,
+    },
+  };
 }
 
 type PreviewPayload = {
