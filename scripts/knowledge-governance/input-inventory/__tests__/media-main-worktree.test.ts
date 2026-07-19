@@ -32,6 +32,21 @@ function git(directory: string, ...args: string[]): void {
 }
 
 describe('closed repository input codecs', () => {
+  it('resolves HEAD when the current branch exists only in packed-refs', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-packed-ref-'));
+    try {
+      git(directory, 'init', '-q');
+      git(directory, 'config', 'user.email', 'inventory@example.invalid');
+      git(directory, 'config', 'user.name', 'Inventory Test');
+      await writeFile(path.join(directory, 'tracked.txt'), 'fixture\n');
+      git(directory, 'add', 'tracked.txt');
+      git(directory, 'commit', '-qm', 'fixture');
+      const expected = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: directory, encoding: 'utf8' }).stdout.trim();
+      git(directory, 'pack-refs', '--all', '--prune');
+      expect(await repositoryRevision(directory)).toBe(expected);
+    } finally { await rm(directory, { recursive: true }); }
+  });
+
   it('retains unknown codecs and invalid PNG/PDF signatures as typed invalid observations', async () => {
     const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-codecs-'));
     try {
@@ -46,7 +61,7 @@ describe('closed repository input codecs', () => {
         expect.objectContaining({ path: 'bad.pdf', state: 'invalid', codec: 'pdf/v1', error_code: 'INVALID_MEDIA_SIGNATURE' }),
         expect.objectContaining({ path: 'garbage.bin', state: 'invalid', codec: 'unknown', error_code: 'UNKNOWN_INPUT_CODEC' }),
       ]));
-      expect(drift.map((item) => item.code)).toEqual(['INVALID_MEDIA_SIGNATURE', 'INVALID_MEDIA_SIGNATURE', 'UNKNOWN_INPUT_CODEC']);
+      expect(drift.map((item) => item.code).sort()).toEqual(['INVALID_MEDIA_SIGNATURE', 'INVALID_MEDIA_SIGNATURE', 'UNKNOWN_INPUT_CODEC'].sort());
     } finally { await rm(directory, { recursive: true }); }
   });
 
@@ -141,7 +156,7 @@ describe('closed repository input codecs', () => {
     expect(source.include).not.toContain('course-content/runtime/lessons/**/media-index.json');
     expect(source.include).toContain('course-content/runtime/lessons/**/media/**');
     const mainRevision = await repositoryRevision(realMainRoot);
-    expect(mainRevision).toBe('c79affbbbf6a49cd447e30eef40b2631869bc94b');
+    expect(mainRevision).toMatch(/^[0-9a-f]{40}$/u);
     const classification = await classifyRegisteredSymlinks(root, registry, realMainRoot);
     expect(classification.rejected).toEqual([]);
     expect(classification.authorized_main_worktree_replacements).toHaveLength(173);

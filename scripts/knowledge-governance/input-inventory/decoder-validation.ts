@@ -18,15 +18,28 @@ function contractSelectors(contract: Record<string, unknown>): string[] {
   return selectors;
 }
 
-function shape(value: Json): Json {
-  if (Array.isArray(value)) return value.length ? [shape(value[0]!)] : [];
-  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, child]) => [key, shape(child)]));
-  if (value === null) return null;
+function jsonType(value: Json): string {
+  if (Array.isArray(value)) return 'array';
+  if (value === null) return 'null';
+  if (typeof value === 'object') return 'object';
   return typeof value;
 }
 
+export function shapeDescriptors(value: Json): string[] {
+  const descriptors: string[] = [];
+  const visit = (item: Json, pointer: string): void => {
+    descriptors.push(`${pointer}\t${jsonType(item)}`);
+    if (Array.isArray(item)) item.forEach((child) => visit(child, `${pointer}/[]`));
+    else if (item && typeof item === 'object') {
+      for (const [key, child] of Object.entries(item)) visit(child, `${pointer}/${JSON.stringify(key.normalize('NFC'))}`);
+    }
+  };
+  visit(value, '$');
+  return sortUnique(descriptors);
+}
+
 export function shapeDigest(payload: Json): string {
-  return taggedDigest('synthetic-payload-shape/v1', canonicalJson(shape(payload)));
+  return taggedDigest('synthetic-payload-shape/v2', shapeDescriptors(payload).join('\n'));
 }
 
 export function validateSyntheticPayload(contract: Record<string, unknown>, fixture: ShapeFixture, payload: Json, declaredVersion?: string): Drift[] {

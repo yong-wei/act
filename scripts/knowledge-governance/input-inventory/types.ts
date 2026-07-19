@@ -33,12 +33,14 @@ export interface DatabaseDataset {
   table: string;
   count: number;
   watermark: string | null;
+  watermarks?: Record<string, string | null>;
   shape: string[];
   versions: string[];
   dispositions?: Record<string, number | 'suppressed'>;
   version_summaries?: Record<string, Record<string, number | 'suppressed'>>;
   discriminator_summaries?: Record<string, Record<string, number | 'suppressed'>>;
   historical_shape_summaries?: Record<string, Record<string, number | 'suppressed'>>;
+  json_observation_summaries?: Record<string, Record<string, number | 'suppressed'>>;
 }
 
 export interface DatabaseSnapshot {

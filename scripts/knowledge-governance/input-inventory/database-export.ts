@@ -6,6 +6,8 @@ import { Client, type ClientBase } from 'pg';
 import { Prisma } from '@prisma/client';
 import { canonicalJson, sortUnique, taggedDigest } from './normalize';
 import { loadRegistry, type Registry } from './registry';
+import { canonicalJsonSelector, compileDatabaseObservationContracts, compileJsonObservationContracts, type JsonObservationContract } from './database-observation';
+import type { ShapeFixture } from './decoder-validation';
 import type { Json } from './types';
 
 export const DATABASE_EXPORT_FORMAT = 'course-knowledge-database-aggregate-export/v1';
@@ -19,11 +21,13 @@ export interface AggregateDatasetExport {
   table: string;
   count: number;
   watermark: string | null;
+  watermarks?: Record<string, string | null>;
   shape: string[];
   versions: string[];
   version_summaries: Record<string, Record<string, SafeCount>>;
   discriminator_summaries: Record<string, Record<string, SafeCount>>;
   historical_shape_summaries: Record<string, Record<string, SafeCount>>;
+  json_observation_summaries?: Record<string, Record<string, SafeCount>>;
 }
 
 export interface AggregateDatabaseExport {
@@ -76,7 +80,7 @@ interface ExportOptions {
 interface TableContract {
   table: string;
   fields: string[];
-  watermarkField: string | null;
+  watermarkFields: string[];
   versionFields: string[];
   discriminatorFields: string[];
   jsonFields: string[];
@@ -90,7 +94,8 @@ const DISCRIMINATOR_FIELDS = new Set([
 ]);
 
 const DIGEST = /^sha256:[0-9a-f]{64}$/u;
-const SAFE_CATEGORY = /^[\p{L}\p{N}_.:+@/-]{1,128}$/u;
+const SAFE_CATEGORY = /^[\p{L}\p{N}_.:+@/\[\]$*-]{1,256}$/u;
+const CANONICAL_WATERMARK = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$/u;
 
 function exactSha256(bytes: Buffer): string {
   return `sha256:${createHash('sha256').update(bytes).digest('hex')}`;
@@ -111,6 +116,19 @@ function timestamp(value: unknown, context: string): string {
   const date = value instanceof Date ? value : new Date(String(value));
   if (!Number.isFinite(date.valueOf())) throw new Error(`invalid timestamp for ${context}`);
   return date.toISOString();
+}
+
+export function latestWatermark(watermarks: Record<string, string | null>): string | null {
+  return Object.values(watermarks).filter((value): value is string => value !== null).sort().at(-1) ?? null;
+}
+
+function watermarkExpression(column: string, dataType: string): string {
+  const field = quoteIdentifier(column);
+  const format = `'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'`;
+  if (dataType === 'date') return `to_char(max(${field})::timestamp, ${format})`;
+  if (dataType === 'timestamp without time zone') return `to_char(max(${field}), ${format})`;
+  if (dataType === 'timestamp with time zone') return `to_char(max(${field}) AT TIME ZONE 'UTC', ${format})`;
+  throw new Error(`unsupported watermark column type: ${column} (${dataType})`);
 }
 
 function safeCategory(value: unknown): string {
@@ -134,11 +152,18 @@ function suppressRows(rows: Array<{ category: unknown; count: unknown }>): Recor
   return result;
 }
 
-function contractsFromRegistry(registry: Registry): TableContract[] {
+export function contractsFromRegistry(registry: Registry): TableContract[] {
   const fields = new Map<string, Set<string>>();
   const watermarks = new Map<string, Set<string>>();
   const versions = new Map<string, Set<string>>();
   const jsonFields = new Map<string, Set<string>>();
+  const observations = compileDatabaseObservationContracts(registry);
+  if (observations.drift.length > 0) throw new Error(`invalid database observation contracts: ${observations.drift.map((item) => item.code).join(', ')}`);
+  for (const observation of observations.contracts.filter((item) => item.summary === 'version')) {
+    const target = versions.get(observation.table) ?? new Set<string>();
+    target.add(observation.field);
+    versions.set(observation.table, target);
+  }
   for (const source of registry.database_sources) {
     for (const [table, names] of Object.entries((source.fields ?? {}) as Record<string, string[]>)) {
       const target = fields.get(table) ?? new Set<string>();
@@ -169,8 +194,8 @@ function contractsFromRegistry(registry: Registry): TableContract[] {
     return {
       table,
       fields: declaredFields,
-      watermarkField: watermarkCandidates[0] ?? ['updatedAt', 'createdAt', 'snapshotAt', 'submittedAt', 'startedAt'].find((field) => declaredFields.includes(field)) ?? null,
-      versionFields: sortUnique([...(versions.get(table) ?? []), ...declaredFields.filter((field) => /(?:^|_)(?:schema|payload|calculation|migration|materialization|extraction)?version$/iu.test(field))]),
+      watermarkFields: watermarkCandidates.length > 0 ? watermarkCandidates : [['updatedAt', 'createdAt', 'snapshotAt', 'submittedAt', 'startedAt'].find((field) => declaredFields.includes(field))].filter((field): field is string => Boolean(field)),
+      versionFields: sortUnique([...(versions.get(table) ?? []), ...declaredFields.filter((field) => /(?:schema|payload|calculation|migration|materialization|extraction)?version$/iu.test(field))]),
       discriminatorFields: declaredFields.filter((field) => DISCRIMINATOR_FIELDS.has(field)),
       jsonFields: sortUnique([...(jsonFields.get(table) ?? [])]),
     };
@@ -189,6 +214,129 @@ async function groupedSummary(client: ClientBase, table: string, field: string, 
   const sql = `SELECT COALESCE(${category}, '__null__') AS category, count(*)::text AS count FROM ${tableSql} GROUP BY 1 ORDER BY 1`;
   const [result, plan] = await Promise.all([client.query(sql), explainDigest(client, sql)]);
   return { summary: suppressRows(result.rows as Array<{ category: unknown; count: unknown }>), plan };
+}
+
+function quoteLiteral(value: string): string {
+  return `'${value.replaceAll("'", "''")}'`;
+}
+
+function jsonWalkSql(table: string, field: string, selectors: string[]): string {
+  const edges = new Map<string, Set<string>>();
+  for (const selector of selectors) {
+    let parent = '$';
+    for (const segment of selector.slice(1).split('/').filter(Boolean)) {
+      if (segment.startsWith('k:')) {
+        const keys = edges.get(parent) ?? new Set<string>();
+        keys.add(segment.slice(2));
+        edges.set(parent, keys);
+      }
+      parent += `/${segment}`;
+    }
+  }
+  const known = [...edges].map(([parent, keys]) => `(walk.path = ${quoteLiteral(parent)} AND entry.key IN (${[...keys].sort().map(quoteLiteral).join(', ')}))`).join(' OR ') || 'FALSE';
+  return `WITH RECURSIVE walk(path, value, terminal_key) AS (
+    SELECT '$'::text, ${quoteIdentifier(field)}::jsonb, NULL::text FROM ${quoteIdentifier(table)} WHERE ${quoteIdentifier(field)} IS NOT NULL
+    UNION ALL
+    SELECT walk.path || child.segment, child.value, child.terminal_key
+    FROM walk
+    CROSS JOIN LATERAL (
+      SELECT CASE WHEN ${known} THEN '/k:' || entry.key ELSE '/d' END AS segment, entry.value, entry.key AS terminal_key
+      FROM jsonb_each(CASE WHEN jsonb_typeof(walk.value) = 'object' THEN walk.value ELSE '{}'::jsonb END) AS entry
+      UNION ALL
+      SELECT '/a' AS segment, item.value, NULL::text AS terminal_key
+      FROM jsonb_array_elements(CASE WHEN jsonb_typeof(walk.value) = 'array' THEN walk.value ELSE '[]'::jsonb END) AS item(value)
+    ) AS child
+  )`;
+}
+
+async function groupedJsonPathSummary(client: ClientBase, table: string, field: string, selectors: string[], monitoredKeys: string[]): Promise<{ summary: Record<string, SafeCount>; plan: string }> {
+  const declared = selectors.length > 0 ? ` OR path IN (${selectors.map(quoteLiteral).join(', ')})` : '';
+  const monitored = monitoredKeys.length > 0 ? ` OR terminal_key IN (${monitoredKeys.map(quoteLiteral).join(', ')})` : '';
+  const sql = `${jsonWalkSql(table, field, selectors)} SELECT path AS category, count(*)::text AS count FROM walk WHERE terminal_key ~ '(?:Id|Ids)$'${monitored}${declared} GROUP BY 1 ORDER BY 1`;
+  const [result, plan] = await Promise.all([client.query(sql), explainDigest(client, sql)]);
+  return { summary: suppressRows(result.rows as Array<{ category: unknown; count: unknown }>), plan };
+}
+
+async function groupedJsonValueSummary(client: ClientBase, table: string, field: string, selector: string, accepted: string[]): Promise<{ summary: Record<string, SafeCount>; plan: string }> {
+  const allowed = accepted.map(quoteLiteral).join(', ');
+  const scalar = "COALESCE(value #>> '{}', '__null__')";
+  const category = allowed.length > 0 ? `CASE WHEN ${scalar} IN (${allowed}) THEN ${scalar} ELSE '__unknown_value__' END` : "'__unknown_value__'";
+  const canonicalSelector = canonicalJsonSelector(selector);
+  const sql = `${jsonWalkSql(table, field, [canonicalSelector])} SELECT ${category} AS category, count(*)::text AS count FROM walk WHERE path = ${quoteLiteral(canonicalSelector)} GROUP BY 1 ORDER BY 1`;
+  const [result, plan] = await Promise.all([client.query(sql), explainDigest(client, sql)]);
+  return { summary: suppressRows(result.rows as Array<{ category: unknown; count: unknown }>), plan };
+}
+
+function versionSelectorParts(selector: string): { root: string; key: string } {
+  const match = /^(.*)\.([A-Za-z_][A-Za-z0-9_]*)$/u.exec(selector);
+  if (!match) throw new Error(`invalid JSON version selector: ${selector}`);
+  return { root: match[1] || '$', key: match[2]! };
+}
+
+function jsonDecoderRootsSql(table: string, field: string, selector: string, applicability: 'any' | 'object_only' = 'any'): string {
+  const { root } = versionSelectorParts(selector);
+  canonicalJsonSelector(root);
+  const applicabilitySql = applicability === 'object_only' ? " AND jsonb_typeof(target.value) = 'object'" : '';
+  return `SELECT row_number() OVER () AS root_id, target.value AS value
+    FROM ${quoteIdentifier(table)}
+    CROSS JOIN LATERAL jsonb_path_query(${quoteIdentifier(field)}::jsonb, ${quoteLiteral(`strict ${root}`)}::jsonpath, '{}'::jsonb, true) AS target(value)
+    WHERE ${quoteIdentifier(field)} IS NOT NULL${applicabilitySql}`;
+}
+
+async function groupedJsonVersionPresenceSummary(client: ClientBase, table: string, field: string, selector: string, applicability: 'any' | 'object_only'): Promise<{ summary: Record<string, SafeCount>; plan: string }> {
+  const { key } = versionSelectorParts(selector);
+  const sql = `WITH roots AS (${jsonDecoderRootsSql(table, field, selector, applicability)})
+    SELECT CASE WHEN jsonb_typeof(value) <> 'object' THEN '__invalid_root__' WHEN jsonb_typeof(value -> ${quoteLiteral(key)}) = 'string' THEN '__present__' ELSE '__missing__' END AS category, count(*)::text AS count
+    FROM roots GROUP BY 1 ORDER BY 1`;
+  const [result, plan] = await Promise.all([client.query(sql), explainDigest(client, sql)]);
+  return { summary: suppressRows(result.rows as Array<{ category: unknown; count: unknown }>), plan };
+}
+
+async function groupedJsonLegacyShapeSummary(client: ClientBase, table: string, field: string, selector: string, applicability: 'any' | 'object_only'): Promise<{ summary: Record<string, SafeCount>; plan: string }> {
+  const { key } = versionSelectorParts(selector);
+  const tag = 'synthetic-payload-shape/v2';
+  const sql = `WITH RECURSIVE roots AS (${jsonDecoderRootsSql(table, field, selector, applicability)}),
+    missing AS (SELECT root_id, value FROM roots WHERE jsonb_typeof(value) = 'object' AND jsonb_typeof(value -> ${quoteLiteral(key)}) IS DISTINCT FROM 'string'),
+    walk(root_id, path, value) AS (
+      SELECT root_id, '$'::text, value FROM missing
+      UNION ALL
+      SELECT walk.root_id, walk.path || child.segment, child.value
+      FROM walk
+      CROSS JOIN LATERAL (
+        SELECT '/' || to_jsonb(entry.key)::text AS segment, entry.value
+        FROM jsonb_each(CASE WHEN jsonb_typeof(walk.value) = 'object' THEN walk.value ELSE '{}'::jsonb END) AS entry
+        UNION ALL
+        SELECT '/[]' AS segment, item.value
+        FROM jsonb_array_elements(CASE WHEN jsonb_typeof(walk.value) = 'array' THEN walk.value ELSE '[]'::jsonb END) AS item(value)
+      ) AS child
+    ), descriptors AS (
+      SELECT DISTINCT root_id, path || E'\\t' || jsonb_typeof(value) AS descriptor FROM walk
+    ), signatures AS (
+      SELECT root_id, string_agg(descriptor, E'\\n' ORDER BY descriptor COLLATE "C") AS signature FROM descriptors GROUP BY root_id
+    ), shapes AS (
+      SELECT 'sha256:' || encode(sha256(
+        convert_to(${quoteLiteral(tag)}, 'UTF8') || decode('00', 'hex') ||
+        convert_to(octet_length(convert_to(signature, 'UTF8'))::text, 'UTF8') || decode('00', 'hex') ||
+        convert_to(signature, 'UTF8')
+      ), 'hex') AS category
+      FROM signatures
+    ) SELECT category, count(*)::text AS count FROM shapes GROUP BY 1 ORDER BY 1`;
+  const [result, plan] = await Promise.all([client.query(sql), explainDigest(client, sql)]);
+  return { summary: suppressRows(result.rows as Array<{ category: unknown; count: unknown }>), plan };
+}
+
+async function groupedJsonRootTypeSummary(client: ClientBase, table: string, field: string, selector: string): Promise<{ summary: Record<string, SafeCount>; plan: string }> {
+  canonicalJsonSelector(selector);
+  const sql = `SELECT COALESCE(jsonb_typeof(target.value), '__null__') AS category, count(*)::text AS count
+    FROM ${quoteIdentifier(table)}
+    CROSS JOIN LATERAL jsonb_path_query(${quoteIdentifier(field)}::jsonb, ${quoteLiteral(`strict ${selector}`)}::jsonpath, '{}'::jsonb, true) AS target(value)
+    WHERE ${quoteIdentifier(field)} IS NOT NULL GROUP BY 1 ORDER BY 1`;
+  const [result, plan] = await Promise.all([client.query(sql), explainDigest(client, sql)]);
+  return { summary: suppressRows(result.rows as Array<{ category: unknown; count: unknown }>), plan };
+}
+
+function jsonSummaryKey(contract: JsonObservationContract): string {
+  return contract.summary === 'path' ? `path:${contract.field}` : `${contract.summary}:${contract.field}:${contract.selector}`;
 }
 
 async function assertOutsideRepository(root: string, target: string): Promise<void> {
@@ -246,8 +394,12 @@ export function assertAggregateExportShape(exported: AggregateDatabaseExport): v
   if (exported.declared_table_count !== exported.datasets.length || new Set(exported.datasets.map((dataset) => dataset.table)).size !== exported.datasets.length) throw new Error('aggregate database export table closure mismatch');
   for (const dataset of exported.datasets) {
     if (!Number.isSafeInteger(dataset.count) || dataset.count < 0) throw new Error(`invalid dataset count: ${dataset.table}`);
-    if (dataset.watermark !== null && !Number.isFinite(Date.parse(dataset.watermark))) throw new Error(`invalid dataset watermark: ${dataset.table}`);
-    for (const collection of [dataset.version_summaries, dataset.discriminator_summaries, dataset.historical_shape_summaries]) for (const [field, summary] of Object.entries(collection)) {
+    if (dataset.watermarks) {
+      if (dataset.watermark !== null && !CANONICAL_WATERMARK.test(dataset.watermark)) throw new Error(`invalid dataset watermark: ${dataset.table}`);
+      for (const [field, value] of Object.entries(dataset.watermarks)) if (value !== null && !CANONICAL_WATERMARK.test(value)) throw new Error(`invalid dataset watermark: ${dataset.table}.${field}`);
+      if (dataset.watermark !== latestWatermark(dataset.watermarks)) throw new Error(`aggregate database export watermark compatibility mismatch: ${dataset.table}`);
+    } else if (dataset.watermark !== null && !Number.isFinite(Date.parse(dataset.watermark))) throw new Error(`invalid dataset watermark: ${dataset.table}`);
+    for (const collection of [dataset.version_summaries, dataset.discriminator_summaries, dataset.historical_shape_summaries, dataset.json_observation_summaries ?? {}]) for (const [field, summary] of Object.entries(collection)) {
       if (/^(?:userId|user_id|answer|answers|payload|event_payload|events_payload|row|rows|description|reasoning|sourceInputDigest)$/iu.test(field)) throw new Error(`private summary field rejected: ${dataset.table}.${field}`);
       for (const [category, count] of Object.entries(summary)) {
         if (category === '__suppressed__') { if (count !== 'suppressed') throw new Error(`invalid suppression marker: ${dataset.table}.${field}`); continue; }
@@ -270,6 +422,9 @@ export async function exportAggregateDatabase(options: ExportOptions): Promise<{
 
   const registry = await loadRegistry(options.root, options.registryPath);
   const contracts = contractsFromRegistry(registry);
+  const fixtureFile = JSON.parse(await readFile(path.join(options.root, 'scripts/knowledge-governance/input-inventory/fixtures/synthetic-history-payload-shapes.json'), 'utf8')) as { fixtures: ShapeFixture[] };
+  const jsonObservations = compileJsonObservationContracts(registry, fixtureFile.fixtures);
+  if (jsonObservations.drift.length > 0) throw new Error(`invalid database JSON observation contracts: ${jsonObservations.drift.map((item) => item.code).join(', ')}`);
   if (contracts.length !== 37) throw new Error(`declared database table count mismatch: expected 37, observed ${contracts.length}`);
   const registryBytes = await readFile(path.join(options.root, options.registryPath));
   const exporterBytes = await readFile(fileURLToPath(import.meta.url));
@@ -300,7 +455,8 @@ export async function exportAggregateDatabase(options: ExportOptions): Promise<{
       [tableNames],
     );
     const columnsByTable = new Map<string, Set<string>>();
-    for (const row of columns.rows as Array<{ table_name: string; column_name: string }>) { const target = columnsByTable.get(row.table_name) ?? new Set<string>(); target.add(row.column_name); columnsByTable.set(row.table_name, target); }
+    const columnTypes = new Map<string, string>();
+    for (const row of columns.rows as Array<{ table_name: string; column_name: string; data_type: string }>) { const target = columnsByTable.get(row.table_name) ?? new Set<string>(); target.add(row.column_name); columnsByTable.set(row.table_name, target); columnTypes.set(`${row.table_name}.${row.column_name}`, row.data_type); }
     for (const contract of contracts) {
       const actual = columnsByTable.get(contract.table);
       if (!actual) throw new Error(`declared database table missing: ${contract.table}`);
@@ -318,27 +474,57 @@ export async function exportAggregateDatabase(options: ExportOptions): Promise<{
     const planDigests: string[] = [];
     for (const contract of contracts) {
       const tableSql = quoteIdentifier(contract.table);
-      const watermarkSql = contract.watermarkField ? `, max(${quoteIdentifier(contract.watermarkField)})::text AS watermark` : ", NULL::text AS watermark";
+      const watermarkSql = contract.watermarkFields.map((field, index) => {
+        const modelField = prismaModels.get(contract.table)!.fields.find((candidate) => candidate.name === field)!;
+        const column = modelField.dbName ?? field;
+        return `, ${watermarkExpression(column, columnTypes.get(`${contract.table}.${column}`) ?? '')} AS watermark_${index}`;
+      }).join('');
       const countSql = `SELECT count(*)::text AS count${watermarkSql} FROM ${tableSql}`;
       const [aggregate, countPlan] = await Promise.all([client.query(countSql), explainDigest(client, countSql)]);
       planDigests.push(countPlan);
       const versionSummaries: Record<string, Record<string, SafeCount>> = {};
       const discriminatorSummaries: Record<string, Record<string, SafeCount>> = {};
       const historicalShapeSummaries: Record<string, Record<string, SafeCount>> = {};
+      const jsonObservationSummaries: Record<string, Record<string, SafeCount>> = {};
       for (const field of contract.versionFields) { const result = await groupedSummary(client, contract.table, field); versionSummaries[`field:${field}`] = result.summary; planDigests.push(result.plan); }
       for (const field of contract.discriminatorFields) { const result = await groupedSummary(client, contract.table, field); discriminatorSummaries[`field:${field}`] = result.summary; planDigests.push(result.plan); }
       for (const field of contract.jsonFields) { const result = await groupedSummary(client, contract.table, field, `jsonb_typeof(${quoteIdentifier(field)}::jsonb)`); historicalShapeSummaries[`field:${field}`] = result.summary; planDigests.push(result.plan); }
-      const row = aggregate.rows[0] as { count: unknown; watermark: unknown };
+      const tableJsonContracts = jsonObservations.contracts.filter((item) => item.table === contract.table);
+      for (const field of sortUnique(tableJsonContracts.map((item) => item.field))) {
+        const fieldContracts = tableJsonContracts.filter((item) => item.field === field);
+        const pathSelectors = sortUnique(fieldContracts.filter((item) => item.summary === 'path').flatMap((item) => item.accepted));
+        const monitoredKeys = sortUnique(fieldContracts.filter((item) => item.summary === 'version' || item.summary === 'discriminator').map((item) => /\.([A-Za-z_][A-Za-z0-9_]*)$/u.exec(item.selector)?.[1]).filter((item): item is string => Boolean(item)));
+        const paths = await groupedJsonPathSummary(client, contract.table, field, pathSelectors, monitoredKeys);
+        jsonObservationSummaries[`path:${field}`] = paths.summary;
+        planDigests.push(paths.plan);
+        for (const item of fieldContracts.filter((candidate) => candidate.summary !== 'path')) {
+          const applicability = item.applicability ?? 'any';
+          const result = item.summary === 'root_type'
+            ? await groupedJsonRootTypeSummary(client, contract.table, field, item.selector)
+            : item.summary === 'version_presence'
+            ? await groupedJsonVersionPresenceSummary(client, contract.table, field, item.selector, applicability)
+            : item.summary === 'legacy_shape'
+              ? await groupedJsonLegacyShapeSummary(client, contract.table, field, item.selector, applicability)
+              : await groupedJsonValueSummary(client, contract.table, field, item.selector, item.accepted);
+          jsonObservationSummaries[jsonSummaryKey(item)] = result.summary;
+          planDigests.push(result.plan);
+        }
+      }
+      const row = aggregate.rows[0] as Record<string, unknown>;
+      const watermarks = Object.fromEntries(contract.watermarkFields.map((field, index) => [field, row[`watermark_${index}`] == null ? null : String(row[`watermark_${index}`])])) as Record<string, string | null>;
+      const watermark = latestWatermark(watermarks);
       datasets.push({
         id: `postgres-aggregate:${contract.table}`,
         table: contract.table,
         count: integer(row.count, contract.table),
-        watermark: row.watermark == null ? null : String(row.watermark),
+        watermark,
+        watermarks,
         shape: contract.fields,
         versions: sortUnique(Object.values(versionSummaries).flatMap((summary) => Object.keys(summary).filter((value) => !value.startsWith('__')))),
         version_summaries: versionSummaries,
         discriminator_summaries: discriminatorSummaries,
         historical_shape_summaries: historicalShapeSummaries,
+        json_observation_summaries: jsonObservationSummaries,
       });
     }
     const capturedAt = timestamp(tx.transaction_started_at, 'transaction start');

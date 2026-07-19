@@ -4,12 +4,14 @@ import { canonicalJson, sortUnique, taggedDigest } from './normalize';
 import { assertAggregateExportShape, DATABASE_PROOF_FORMAT, deriveProof, type AggregateDatabaseExport, type AggregateExportProof } from './database-export';
 import type { DatabaseDataset, DatabaseSnapshot, Drift, Json, SnapshotProof } from './types';
 import type { Registry } from './registry';
-import { compileDatabaseObservationContracts, type DatabaseSummaryKind } from './database-observation';
+import { compileDatabaseObservationContracts, compileJsonObservationContracts, type DatabaseSummaryKind, type JsonObservationKind } from './database-observation';
+import type { ShapeFixture } from './decoder-validation';
 
 const PROHIBITED = /^(userId|user_id|answer|answers|description|reasoning|payload|row|rows|raw_row_digest|reversible_key|sourceInputDigest)$/iu;
 const PROOF_KEYS = ['export_digest', 'export_object_id', 'exported_snapshot_token', 'exporter_digest', 'generated_at', 'migration_head', 'profile', 'proof_digest', 'proof_format', 'query_plan_digest', 'registry_digest', 'schema_digest', 'shared_snapshot_import_count', 'source_identity_digest', 'transaction_isolation', 'transaction_read_only', 'transaction_started_at'];
 const EXPORT_KEYS = ['captured_at', 'datasets', 'declared_table_count', 'exported_snapshot_token', 'exporter_digest', 'format_version', 'migration_head', 'postgres_version', 'query_plan_digest', 'registry_digest', 'schema_digest', 'schema_name', 'source_identity_digest', 'transaction_isolation', 'transaction_read_only', 'transaction_started_at'];
-const DATASET_KEYS = ['count', 'discriminator_summaries', 'historical_shape_summaries', 'id', 'shape', 'table', 'version_summaries', 'versions', 'watermark'];
+const DATASET_KEYS = ['count', 'discriminator_summaries', 'historical_shape_summaries', 'id', 'json_observation_summaries', 'shape', 'table', 'version_summaries', 'versions', 'watermark', 'watermarks'];
+const LEGACY_DATASET_KEYS = DATASET_KEYS.filter((key) => key !== 'json_observation_summaries' && key !== 'watermarks');
 
 function rejectRowContent(value: Json, pointer = ''): void {
   if (Array.isArray(value)) value.forEach((item, index) => rejectRowContent(item, `${pointer}/${index}`));
@@ -32,7 +34,10 @@ export async function loadImmutableExport(root: string, relativePath: string, pr
   rejectRowContent(parsed as unknown as Json);
   if ('proof' in parsed) throw new Error('caller-declared proof embedded in export is rejected');
   exactKeys(parsed, EXPORT_KEYS, 'aggregate database export');
-  parsed.datasets.forEach((dataset) => exactKeys(dataset, DATASET_KEYS, `aggregate database dataset ${dataset.table}`));
+  parsed.datasets.forEach((dataset) => {
+    const expected = 'watermarks' in dataset || 'json_observation_summaries' in dataset ? DATASET_KEYS : LEGACY_DATASET_KEYS;
+    exactKeys(dataset, expected, `aggregate database dataset ${dataset.table}`);
+  });
   if (!Buffer.from(canonicalJson(parsed as unknown as Json), 'utf8').equals(bytes)) throw new Error('aggregate database export is not canonical JSON');
   assertAggregateExportShape(parsed);
   const proof = JSON.parse(await readFile(proofFile, 'utf8')) as AggregateExportProof;
@@ -46,11 +51,13 @@ export async function loadImmutableExport(root: string, relativePath: string, pr
     table: dataset.table,
     count: dataset.count,
     watermark: dataset.watermark,
+    watermarks: dataset.watermarks ?? {},
     shape: sortUnique(dataset.shape),
     versions: sortUnique(dataset.versions),
     version_summaries: dataset.version_summaries,
     discriminator_summaries: dataset.discriminator_summaries,
     historical_shape_summaries: dataset.historical_shape_summaries,
+    json_observation_summaries: dataset.json_observation_summaries ?? {},
   })).sort((a, b) => a.id.localeCompare(b.id));
   const snapshotId = taggedDigest('database-snapshot-proof/v1', proof.proof_digest);
   return {
@@ -58,7 +65,7 @@ export async function loadImmutableExport(root: string, relativePath: string, pr
     captured_at: proof.generated_at,
     snapshot_proof: proof as SnapshotProof,
     datasets,
-    dataset_watermarks: Object.fromEntries(datasets.map((dataset) => [dataset.id, dataset.watermark])),
+    dataset_watermarks: Object.fromEntries(datasets.flatMap((dataset) => [[dataset.id, dataset.watermark], ...Object.entries(dataset.watermarks ?? {}).map(([field, value]) => [`${dataset.id}.${field}`, value] as const)])),
   };
 }
 
@@ -68,7 +75,7 @@ export function noDatabaseSnapshot(capturedAt: string, drift: Drift[]): Database
   return { snapshot_id: taggedDigest('database-snapshot-proof/v1', canonicalJson(proof as unknown as Json)), captured_at: capturedAt, snapshot_proof: proof, datasets: [], dataset_watermarks: {} };
 }
 
-export function validateDatabaseClosure(snapshot: DatabaseSnapshot, registry: Registry): Drift[] {
+export function validateDatabaseClosure(snapshot: DatabaseSnapshot, registry: Registry, fixtures: ShapeFixture[] = []): Drift[] {
   const drift: Drift[] = [];
   const byTable = new Map(snapshot.datasets.map((dataset) => [dataset.table, dataset]));
   for (const source of registry.database_sources) {
@@ -135,6 +142,52 @@ export function validateDatabaseClosure(snapshot: DatabaseSnapshot, registry: Re
         drift.push({ code: 'DATABASE_OBSERVATION_SUMMARY_UNDECLARED', scope: dataset.table, expected: summary, observed: key });
       }
     }
+  }
+  const jsonCompiled = compileJsonObservationContracts(registry, fixtures);
+  drift.push(...jsonCompiled.drift);
+  const jsonExpected = new Map<string, { accepted: Set<string>; summary: JsonObservationKind; scope: string }>();
+  for (const contract of jsonCompiled.contracts) {
+    const key = contract.summary === 'path' ? `path:${contract.field}` : `${contract.summary}:${contract.field}:${contract.selector}`;
+    const identity = `${contract.table}/${key}`;
+    const current = jsonExpected.get(identity) ?? { accepted: new Set<string>(), summary: contract.summary, scope: `${contract.table}.${contract.field}${contract.selector.slice(1)}` };
+    contract.accepted.forEach((value) => current.accepted.add(value));
+    jsonExpected.set(identity, current);
+  }
+  for (const dataset of snapshot.datasets) {
+    const summaries = dataset.json_observation_summaries ?? {};
+    for (const [identity, contract] of jsonExpected) {
+      const [table, key] = identity.split('/', 2);
+      if (table !== dataset.table || !key) continue;
+      if (!(key in summaries)) {
+        drift.push({ code: 'DATABASE_JSON_OBSERVATION_SUMMARY_MISSING', scope: contract.scope, expected: key });
+        continue;
+      }
+      for (const category of Object.keys(summaries[key]!)) if (category === '__suppressed__' || !contract.accepted.has(category)) {
+        const code = contract.summary === 'path'
+          ? 'DATABASE_JSON_PATH_OUTSIDE_CLOSED_SET'
+          : contract.summary === 'root_type'
+            ? 'DATABASE_JSON_ROOT_TYPE_OUTSIDE_CLOSED_SET'
+          : contract.summary === 'version'
+            ? 'DATABASE_JSON_VERSION_OUTSIDE_CLOSED_SET'
+            : contract.summary === 'discriminator'
+              ? 'DATABASE_JSON_DISCRIMINATOR_OUTSIDE_CLOSED_SET'
+              : contract.summary === 'legacy_shape'
+                ? 'DATABASE_JSON_LEGACY_SHAPE_OUTSIDE_CLOSED_SET'
+                : 'DATABASE_JSON_VERSION_PRESENCE_INVALID';
+        drift.push({ code, scope: contract.scope, expected: [...contract.accepted].sort(), observed: category });
+      }
+    }
+    for (const [key, presence] of Object.entries(summaries).filter(([key]) => key.startsWith('version_presence:'))) {
+      const suffix = key.slice('version_presence:'.length);
+      if ('__present__' in presence && Object.keys(summaries[`version:${suffix}`] ?? {}).length === 0) {
+        drift.push({ code: 'DATABASE_JSON_VERSION_EVIDENCE_MISSING', scope: `${dataset.table}.${suffix}` });
+      }
+      if ('__missing__' in presence && Object.keys(summaries[`legacy_shape:${suffix}`] ?? {}).length === 0) {
+        drift.push({ code: 'DATABASE_JSON_LEGACY_SHAPE_EVIDENCE_MISSING', scope: `${dataset.table}.${suffix}` });
+      }
+    }
+    const expected = new Set([...jsonExpected.keys()].filter((identity) => identity.startsWith(`${dataset.table}/`)).map((identity) => identity.slice(dataset.table.length + 1)));
+    for (const key of Object.keys(summaries)) if (!expected.has(key)) drift.push({ code: 'DATABASE_JSON_OBSERVATION_SUMMARY_UNDECLARED', scope: dataset.table, observed: key });
   }
   const observedVersions = sortUnique(snapshot.datasets.flatMap((dataset) => Object.values(dataset.version_summaries ?? {})
     .flatMap((summary) => Object.keys(summary).filter((category) => !category.startsWith('__')))));

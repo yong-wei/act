@@ -5,7 +5,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { canonicalJson, compareCodePoints, normalizePath, normalizeText, taggedDigest } from '../normalize';
 import { loadImmutableExport, validateDatabaseClosure } from '../database-snapshot';
-import { DATABASE_EXPORT_FORMAT, deriveProof, type AggregateDatabaseExport, type AggregateDatasetExport } from '../database-export';
+import { contractsFromRegistry, DATABASE_EXPORT_FORMAT, deriveProof, latestWatermark, type AggregateDatabaseExport, type AggregateDatasetExport } from '../database-export';
 import { discoverWriters, discoverWritersInSource } from '../writer-discovery';
 import { validateOutputPrivacy } from '../schema-validation';
 import { sourceFingerprints } from '../manifest';
@@ -14,7 +14,7 @@ import type { Json } from '../types';
 import { effectiveDecoderContract, validateFixtureClosure, validateSyntheticPayload, type ShapeFixture } from '../decoder-validation';
 import { makeAnchor, typedDedupe } from '../records';
 import { auditIdBearingPaths, selectJson } from '../json-selector';
-import { compileDatabaseObservationContracts } from '../database-observation';
+import { compileDatabaseObservationContracts, compileJsonObservationContracts } from '../database-observation';
 
 const root = path.resolve(import.meta.dirname, '../../../..');
 const digest = `sha256:${'0'.repeat(64)}`;
@@ -136,13 +136,24 @@ describe('immutable database privacy boundary', () => {
   it('derives snapshot id from proof and accepts only already-suppressed 1-4 person cells', async () => {
     const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-export-'));
     try {
-      const datasets: AggregateDatasetExport[] = [{ id: 'learner', table: 'Snapshot', count: 9, watermark: '2026-01-01T00:00:00Z', shape: ['version', 'watermark'], versions: ['v1'], version_summaries: { version: { v1: 5, __suppressed__: 'suppressed' } }, discriminator_summaries: {}, historical_shape_summaries: {} }];
+      const datasets: AggregateDatasetExport[] = [{ id: 'learner', table: 'Snapshot', count: 9, watermark: '2026-01-01T00:00:00.000000Z', watermarks: { watermark: '2026-01-01T00:00:00.000000Z' }, shape: ['version', 'watermark'], versions: ['v1'], version_summaries: { version: { v1: 5, __suppressed__: 'suppressed' } }, discriminator_summaries: {}, historical_shape_summaries: {}, json_observation_summaries: {} }];
       await writeAggregateExport(directory, aggregateExport(datasets));
       const drift: never[] = [];
       const snapshot = await loadImmutableExport(directory, 'export.json', 'proof.json', drift);
       expect(snapshot.snapshot_id).toMatch(/^sha256:/u);
       expect(snapshot.datasets[0]!.version_summaries).toEqual({ version: { v1: 5, __suppressed__: 'suppressed' } });
       expect(drift).toEqual([]);
+    } finally { await rm(directory, { recursive: true }); }
+  });
+
+  it('continues to verify legacy v1 proofs while withholding new readiness evidence', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-legacy-export-'));
+    try {
+      const enhanced: AggregateDatasetExport = { id: 'legacy', table: 'Snapshot', count: 0, watermark: null, watermarks: {}, shape: [], versions: [], version_summaries: {}, discriminator_summaries: {}, historical_shape_summaries: {}, json_observation_summaries: {} };
+      const { watermarks: _watermarks, json_observation_summaries: _json, ...legacy } = enhanced;
+      await writeAggregateExport(directory, aggregateExport([legacy]));
+      const snapshot = await loadImmutableExport(directory, 'export.json', 'proof.json', []);
+      expect(snapshot.datasets[0]).toMatchObject({ watermarks: {}, json_observation_summaries: {} });
     } finally { await rm(directory, { recursive: true }); }
   });
 
@@ -167,7 +178,7 @@ describe('immutable database privacy boundary', () => {
   it('rejects unsuppressed small cells, private row material and caller-authored proof labels', async () => {
     const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-private-export-'));
     try {
-      const baseDataset: AggregateDatasetExport = { id: 'learner', table: 'Snapshot', count: 4, watermark: null, shape: ['version'], versions: [], version_summaries: { version: { v1: 4 } }, discriminator_summaries: {}, historical_shape_summaries: {} };
+      const baseDataset: AggregateDatasetExport = { id: 'learner', table: 'Snapshot', count: 4, watermark: null, watermarks: {}, shape: ['version'], versions: [], version_summaries: { version: { v1: 4 } }, discriminator_summaries: {}, historical_shape_summaries: {}, json_observation_summaries: {} };
       await writeAggregateExport(directory, aggregateExport([baseDataset]));
       await expect(loadImmutableExport(directory, 'export.json', 'proof.json', [])).rejects.toThrow(/unsuppressed small cell/u);
 
@@ -192,8 +203,11 @@ describe('immutable database privacy boundary', () => {
 
   it('proves the full declared database table/field closure from one immutable export', async () => {
     const registry = await loadRegistry(root, 'docs/proposals/course-knowledge-base-governance-source-registry.yaml');
+    const fixtureFile = JSON.parse(await readFile(path.join(root, 'scripts/knowledge-governance/input-inventory/fixtures/synthetic-history-payload-shapes.json'), 'utf8')) as { fixtures: ShapeFixture[] };
     const observations = compileDatabaseObservationContracts(registry);
+    const jsonObservations = compileJsonObservationContracts(registry, fixtureFile.fixtures);
     expect(observations.drift).toEqual([]);
+    expect(jsonObservations.drift).toEqual([]);
     const tableFields = new Map<string, Set<string>>();
     for (const source of registry.database_sources) for (const [table, fields] of Object.entries(source.fields as Record<string, string[]>)) {
       const current = tableFields.get(table) ?? new Set<string>();
@@ -207,11 +221,12 @@ describe('immutable database privacy boundary', () => {
         .map((contract) => [`field:${contract.field}`, { [contract.accepted[0]!]: 5 }]));
       const versionSummaries = summaries('version');
       return {
-        id: `synthetic-${table}`, table, count: 5, watermark: null, shape: [...fields],
+        id: `synthetic-${table}`, table, count: 5, watermark: null, watermarks: {}, shape: [...fields],
         versions: [...new Set(Object.values(versionSummaries).flatMap((summary) => Object.keys(summary).filter((value) => !value.startsWith('__'))))].sort(),
         version_summaries: versionSummaries,
         discriminator_summaries: summaries('discriminator'),
         historical_shape_summaries: summaries('historical_shape'),
+        json_observation_summaries: Object.fromEntries(jsonObservations.contracts.filter((item) => item.table === table).map((item) => [item.summary === 'path' ? `path:${item.field}` : `${item.summary}:${item.field}:${item.selector}`, {}])),
       };
     });
     const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-full-export-'));
@@ -219,8 +234,27 @@ describe('immutable database privacy boundary', () => {
       await writeAggregateExport(directory, aggregateExport(datasets));
       const drift: never[] = [];
       const snapshot = await loadImmutableExport(directory, 'export.json', 'proof.json', drift);
-      expect(validateDatabaseClosure(snapshot, registry)).toEqual([]);
+      expect(validateDatabaseClosure(snapshot, registry, fixtureFile.fixtures)).toEqual([]);
     } finally { await rm(directory, { recursive: true }); }
+  });
+
+  it('derives camelCase observation versions and retains every declared watermark', async () => {
+    const registry = await loadRegistry(root, 'docs/proposals/course-knowledge-base-governance-source-registry.yaml');
+    const contracts = contractsFromRegistry(registry);
+    expect(contracts.find((item) => item.table === 'CourseBasisDocumentVersion')?.versionFields).toContain('extractionVersion');
+    expect(contracts.find((item) => item.table === 'LearningEventBatch')?.watermarkFields).toEqual(['batchDate', 'processedAt']);
+  });
+
+  it('selects the compatibility watermark independently of the host timezone', () => {
+    const original = process.env.TZ;
+    const watermarks = { batchDate: '2026-07-19T00:00:00.000000Z', processedAt: '2026-07-19T15:30:00.000000Z' };
+    try {
+      process.env.TZ = 'UTC';
+      const utc = latestWatermark(watermarks);
+      process.env.TZ = 'Asia/Shanghai';
+      expect(latestWatermark(watermarks)).toBe(utc);
+      expect(utc).toBe(watermarks.processedAt);
+    } finally { process.env.TZ = original; }
   });
 });
 

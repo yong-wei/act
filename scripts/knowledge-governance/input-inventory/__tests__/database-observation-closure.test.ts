@@ -2,6 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { validateDatabaseClosure } from '../database-snapshot';
 import type { Registry } from '../registry';
 import type { DatabaseSnapshot } from '../types';
+import { shapeDigest, type ShapeFixture } from '../decoder-validation';
+import { canonicalJsonSelector, compileJsonObservationContracts } from '../database-observation';
+
+const fixtures: ShapeFixture[] = [{ decoder_id: 'payload/v1', accepted_versions: ['v1'], legacy_shape_digests: [], samples: [{ version: 'v1', payload: { id: 'safe' } }] }];
 
 function registry(): Registry {
   return {
@@ -16,7 +20,7 @@ function registry(): Registry {
         'Empty.version': { versions: ['v1'], zero_observation: 'allow_if_table_empty' },
       },
     }],
-    decoder_contracts: { 'payload/v1': { root_type: 'object', selectors: ['$.id'], reference_namespace: 'test' } },
+    decoder_contracts: { 'payload/v1': { root_type: 'object', selectors: ['$.id', '$.versionRefs.*'], reference_namespace: 'test', discriminator_selectors: ['$.targetType'], discriminator_namespaces: { known: 'test' } } },
     field_decoders: [{ source_field: 'Observed.payload', json_decoder: 'payload/v1', identity_namespace: 'test' }],
   } as unknown as Registry;
 }
@@ -28,6 +32,14 @@ function snapshot(overrides: Partial<DatabaseSnapshot['datasets'][number]> = {})
       {
         id: 'observed', table: 'Observed', count: 5, watermark: null, shape: ['version', 'kind', 'payload'], versions: ['v1'],
         version_summaries: { 'field:version': { v1: 5 } }, discriminator_summaries: { 'field:kind': { known: 5 } }, historical_shape_summaries: { 'field:payload': { object: 5 } },
+        json_observation_summaries: {
+          'path:payload': { '$/k:id': 5, '$/k:versionRefs/d': 5 },
+          'root_type:payload:$': { object: 5 },
+          'version:payload:$.schemaVersion': { v1: 5 },
+          'version_presence:payload:$.schemaVersion': { __present__: 5 },
+          'legacy_shape:payload:$.schemaVersion': {},
+          'discriminator:payload:$.targetType': { known: 5 },
+        },
         ...overrides,
       },
       { id: 'empty', table: 'Empty', count: 0, watermark: null, shape: ['version'], versions: [], version_summaries: { 'field:version': {} }, discriminator_summaries: {}, historical_shape_summaries: {} },
@@ -36,8 +48,101 @@ function snapshot(overrides: Partial<DatabaseSnapshot['datasets'][number]> = {})
 }
 
 describe('database decoder observation closure', () => {
+  it.each([
+    ['$[*].nodeId', '$/a/k:nodeId'],
+    ['$[*].nodeIds[*]', '$/a/k:nodeIds'],
+    ['$.versionRefs.*', '$/k:versionRefs/d'],
+  ])('canonically encodes normalized JSON selector %s as %s', (selector, observed) => {
+    const effective = selector.endsWith('[*]') ? selector.slice(0, -3) : selector;
+    expect(canonicalJsonSelector(effective)).toBe(observed);
+  });
+
+  it('keeps nested keys distinct from a dotted dynamic key and rejects bracket-key syntax', () => {
+    expect(canonicalJsonSelector('$.evidenceGovernance.knowledgeNodeIds')).toBe('$/k:evidenceGovernance/k:knowledgeNodeIds');
+    expect(canonicalJsonSelector('$.evidenceGovernance.knowledgeNodeIds')).not.toBe('$/d');
+    expect(() => canonicalJsonSelector('$.bracket[key].nodeId')).toThrow(/invalid JSON selector/u);
+  });
+
   it('accepts a closed snapshot and an explicitly permitted empty-table observation', () => {
-    expect(validateDatabaseClosure(snapshot(), registry())).toEqual([]);
+    expect(validateDatabaseClosure(snapshot(), registry(), fixtures)).toEqual([]);
+  });
+
+  it.each([
+    ['object', ['$.schemaVersion'], ['$.targetType']],
+    ['array', ['$[*].schemaVersion'], ['$[*].targetType']],
+    ['array_or_object', ['$.schemaVersion', '$[*].schemaVersion'], ['$.targetType', '$[*].targetType']],
+  ] as const)('places version and discriminator selectors at the %s decoder root', (rootType, versions, discriminators) => {
+    const candidate = registry();
+    candidate.decoder_contracts['payload/v1']!.root_type = rootType;
+    const compiled = compileJsonObservationContracts(candidate, fixtures).contracts;
+    expect(compiled.filter((item) => item.summary === 'version').map((item) => item.selector)).toEqual(versions);
+    expect(compiled.filter((item) => item.summary === 'discriminator').map((item) => item.selector)).toEqual(discriminators);
+  });
+
+  it.each(['number', 'null', 'array'])('rejects a %s where an array item decoder requires an object', (observedType) => {
+    const candidate = registry();
+    candidate.decoder_contracts['payload/v1'] = { root_type: 'array', item_decoder: 'item/v1', selectors: ['$.id'], reference_namespace: 'test' };
+    candidate.decoder_contracts['item/v1'] = { root_type: 'object', selectors: ['$.id'], reference_namespace: 'test' };
+    const candidateFixtures: ShapeFixture[] = [
+      fixtures[0]!,
+      { decoder_id: 'item/v1', accepted_versions: ['v1'], legacy_shape_digests: [], samples: [{ version: 'v1', payload: { id: 'safe' } }] },
+    ];
+    const summaries = {
+      ...snapshot().datasets[0]!.json_observation_summaries!,
+      'root_type:payload:$': { array: 5 },
+      'root_type:payload:$[*]': { [observedType]: 5 },
+      'version_presence:payload:$[*].schemaVersion': { __invalid_root__: 5 },
+    };
+    const drift = validateDatabaseClosure(snapshot({ json_observation_summaries: summaries }), candidate, candidateFixtures);
+    expect(drift).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'DATABASE_JSON_ROOT_TYPE_OUTSIDE_CLOSED_SET', observed: observedType }),
+      expect.objectContaining({ code: 'DATABASE_JSON_VERSION_PRESENCE_INVALID', observed: '__invalid_root__' }),
+    ]));
+  });
+
+  it('distinguishes an absent SQL value from a JSON null for object_or_null decoders', () => {
+    const candidate = registry();
+    candidate.decoder_contracts['payload/v1']!.root_type = 'object_or_null';
+    const base = snapshot().datasets[0]!.json_observation_summaries!;
+    const sqlNull = validateDatabaseClosure(snapshot({
+      historical_shape_summaries: { 'field:payload': { __null__: 5 } },
+      json_observation_summaries: { ...base, 'root_type:payload:$': {}, 'version:payload:$.schemaVersion': {}, 'version_presence:payload:$.schemaVersion': {}, 'legacy_shape:payload:$.schemaVersion': {} },
+    }), candidate, fixtures);
+    const jsonNull = validateDatabaseClosure(snapshot({
+      historical_shape_summaries: { 'field:payload': { null: 5 } },
+      json_observation_summaries: { ...base, 'root_type:payload:$': { null: 5 }, 'version:payload:$.schemaVersion': {}, 'version_presence:payload:$.schemaVersion': {}, 'legacy_shape:payload:$.schemaVersion': {} },
+    }), candidate, fixtures);
+    for (const drift of [sqlNull, jsonNull]) {
+      expect(drift).not.toEqual(expect.arrayContaining([expect.objectContaining({ code: expect.stringMatching(/(?:ROOT_TYPE|HISTORICAL_SHAPE)_OUTSIDE_CLOSED_SET/u) })]));
+    }
+  });
+
+  it('rejects a missing version unless its exact legacy shape digest is enumerated', () => {
+    const digest = shapeDigest({ id: 'legacy' });
+    const summaries = {
+      'path:payload': { '$/k:id': 5, '$/k:versionRefs/d': 5 },
+      'version:payload:$.schemaVersion': {},
+      'version_presence:payload:$.schemaVersion': { __missing__: 5 },
+      'legacy_shape:payload:$.schemaVersion': { [digest]: 5 },
+      'discriminator:payload:$.targetType': { known: 5 },
+    };
+    const rejected = validateDatabaseClosure(snapshot({ json_observation_summaries: summaries }), registry(), fixtures);
+    expect(rejected).toEqual(expect.arrayContaining([expect.objectContaining({ code: 'DATABASE_JSON_LEGACY_SHAPE_OUTSIDE_CLOSED_SET', observed: digest })]));
+
+    const acceptedFixtures = [{ ...fixtures[0]!, legacy_shape_digests: [digest] }];
+    expect(validateDatabaseClosure(snapshot({ json_observation_summaries: summaries }), registry(), acceptedFixtures))
+      .not.toEqual(expect.arrayContaining([expect.objectContaining({ code: expect.stringContaining('LEGACY_SHAPE') })]));
+  });
+
+  it('rejects missing-version presence without legacy shape evidence', () => {
+    const summaries = {
+      ...snapshot().datasets[0]!.json_observation_summaries!,
+      'version:payload:$.schemaVersion': {},
+      'version_presence:payload:$.schemaVersion': { __missing__: 5 },
+      'legacy_shape:payload:$.schemaVersion': {},
+    };
+    expect(validateDatabaseClosure(snapshot({ json_observation_summaries: summaries }), registry(), fixtures))
+      .toEqual(expect.arrayContaining([expect.objectContaining({ code: 'DATABASE_JSON_LEGACY_SHAPE_EVIDENCE_MISSING' })]));
   });
 
   it.each([
@@ -45,7 +150,7 @@ describe('database decoder observation closure', () => {
     ['discriminator_summaries', { 'field:kind': { unknown: 5 } }, ['v1'], 'DATABASE_DISCRIMINATOR_OUTSIDE_CLOSED_SET'],
     ['historical_shape_summaries', { 'field:payload': { array: 5 } }, ['v1'], 'DATABASE_HISTORICAL_SHAPE_OUTSIDE_CLOSED_SET'],
   ] as const)('rejects unknown %s evidence', (collection, summary, versions, code) => {
-    const drift = validateDatabaseClosure(snapshot({ [collection]: summary, versions }), registry());
+    const drift = validateDatabaseClosure(snapshot({ [collection]: summary, versions }), registry(), fixtures);
     expect(drift).toEqual(expect.arrayContaining([expect.objectContaining({ code, scope: expect.stringContaining('Observed.') })]));
   });
 
@@ -53,7 +158,7 @@ describe('database decoder observation closure', () => {
     const drift = validateDatabaseClosure(snapshot({
       version_summaries: {},
       discriminator_summaries: { 'field:kind': { __suppressed__: 'suppressed' }, 'field:other': { known: 5 } },
-    }), registry());
+    }), registry(), fixtures);
     expect(drift).toEqual(expect.arrayContaining([
       expect.objectContaining({ code: 'DATABASE_OBSERVATION_SUMMARY_MISSING', scope: 'Observed.version' }),
       expect.objectContaining({ code: 'DATABASE_SUPPRESSED_CATEGORY_UNCLASSIFIED', scope: 'Observed.kind' }),
@@ -62,7 +167,17 @@ describe('database decoder observation closure', () => {
   });
 
   it('does not treat an empty summary on a non-empty table as allowed zero observation', () => {
-    expect(validateDatabaseClosure(snapshot({ version_summaries: { 'field:version': {} }, versions: [] }), registry()))
+    expect(validateDatabaseClosure(snapshot({ version_summaries: { 'field:version': {} }, versions: [] }), registry(), fixtures))
       .toEqual(expect.arrayContaining([expect.objectContaining({ code: 'DATABASE_OBSERVATION_EVIDENCE_MISSING', scope: 'Observed.version' })]));
+  });
+
+  it.each([
+    [{ 'path:payload': { '$/d': 5 }, 'version:payload:$.schemaVersion': { v1: 5 }, 'discriminator:payload:$.targetType': { known: 5 } }, 'DATABASE_JSON_PATH_OUTSIDE_CLOSED_SET'],
+    [{ 'path:payload': { '$/k:id': 5, '$/d/k:schemaVersion': 5 }, 'version:payload:$.schemaVersion': { v1: 5 }, 'discriminator:payload:$.targetType': { known: 5 } }, 'DATABASE_JSON_PATH_OUTSIDE_CLOSED_SET'],
+    [{ 'path:payload': { '$/k:id': 5 }, 'version:payload:$.schemaVersion': { v999: 5 }, 'discriminator:payload:$.targetType': { known: 5 } }, 'DATABASE_JSON_VERSION_OUTSIDE_CLOSED_SET'],
+    [{ 'path:payload': { '$/k:id': 5 }, 'version:payload:$.schemaVersion': { v1: 5 }, 'discriminator:payload:$.targetType': { unknown: 5 } }, 'DATABASE_JSON_DISCRIMINATOR_OUTSIDE_CLOSED_SET'],
+  ] as const)('rejects unknown nested JSON path or value exactly', (json_observation_summaries, code) => {
+    expect(validateDatabaseClosure(snapshot({ json_observation_summaries }), registry(), fixtures))
+      .toEqual(expect.arrayContaining([expect.objectContaining({ code })]));
   });
 });

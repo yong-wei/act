@@ -1,5 +1,6 @@
-import { lstat, readFile, stat } from 'node:fs/promises';
+import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { canonicalJson, normalizedFile, sortUnique, taggedDigest } from './normalize';
 import { classifyRegisteredSymlinks, enumerateRepository, loadRegistry, matchGlob } from './registry';
 import { validateOutputPrivacy, validateRegistrySchema } from './schema-validation';
@@ -16,19 +17,10 @@ import { collectInputObservations, publicObservation } from './input-codecs';
 const DEFAULT_REGISTRY = 'docs/proposals/course-knowledge-base-governance-source-registry.yaml';
 
 export async function repositoryRevision(root: string): Promise<string> {
-  const dotGitPath = path.join(root, '.git');
-  const gitDirectory = (await lstat(dotGitPath)).isDirectory()
-    ? dotGitPath
-    : path.resolve(root, (await readFile(dotGitPath, 'utf8')).slice(8).trim());
-  const head = (await readFile(path.join(gitDirectory, 'HEAD'), 'utf8')).trim();
-  if (!head.startsWith('ref: ')) return head;
-  const ref = head.slice(5);
-  try { return (await readFile(path.join(gitDirectory, ref), 'utf8')).trim(); }
-  catch {
-    const commonDirText = await readFile(path.join(gitDirectory, 'commondir'), 'utf8').catch(() => '.');
-    const commonDir = path.resolve(gitDirectory, commonDirText.trim());
-    return (await readFile(path.join(commonDir, ref), 'utf8')).trim();
-  }
+  const result = spawnSync('git', ['rev-parse', '--verify', 'HEAD'], { cwd: root, encoding: 'utf8' });
+  const revision = result.stdout.trim();
+  if (result.status !== 0 || !/^[0-9a-f]{40}$/u.test(revision)) throw new Error(`unable to resolve repository HEAD: ${result.stderr.trim()}`);
+  return revision;
 }
 
 export async function buildManifest(options: InventoryOptions): Promise<Json> {
@@ -112,7 +104,7 @@ export async function buildManifest(options: InventoryOptions): Promise<Json> {
   if (options.databaseExportPath && options.databaseExportProofPath) database = await loadImmutableExport(options.root, options.databaseExportPath, options.databaseExportProofPath, drift);
   else if (options.databaseExportPath || options.databaseExportProofPath) throw new Error('database export and external proof paths must be supplied together');
   else database = noDatabaseSnapshot(capturedAt, drift);
-  if (options.databaseExportPath && options.databaseExportProofPath) drift.push(...validateDatabaseClosure(database, registry));
+  if (options.databaseExportPath && options.databaseExportProofPath) drift.push(...validateDatabaseClosure(database, registry, fixtureFile.fixtures));
   const effectiveCapturedAt = options.databaseExportPath && options.databaseExportProofPath ? database.captured_at : capturedAt;
   const recordSets = await extractRecordSets(effectiveRepository, database, registry, fileRecords);
   drift.push(...recordSets.drift);

@@ -272,7 +272,7 @@
     },
     "databaseDataset": {
       "type": "object", "additionalProperties": false, "required": ["id", "table", "count", "watermark", "shape", "versions"],
-      "properties": { "id": { "$ref": "#/$defs/nonEmptyString" }, "table": { "$ref": "#/$defs/nonEmptyString" }, "count": { "$ref": "#/$defs/count" }, "watermark": { "$ref": "#/$defs/nullableString" }, "shape": { "$ref": "#/$defs/stringArray" }, "versions": { "$ref": "#/$defs/stringArray" }, "dispositions": { "$ref": "#/$defs/dispositions" }, "version_summaries": { "$ref": "#/$defs/summaryCollection" }, "discriminator_summaries": { "$ref": "#/$defs/summaryCollection" }, "historical_shape_summaries": { "$ref": "#/$defs/summaryCollection" } }
+      "properties": { "id": { "$ref": "#/$defs/nonEmptyString" }, "table": { "$ref": "#/$defs/nonEmptyString" }, "count": { "$ref": "#/$defs/count" }, "watermark": { "$ref": "#/$defs/nullableString" }, "watermarks": { "$ref": "#/$defs/nullableStringMap" }, "shape": { "$ref": "#/$defs/stringArray" }, "versions": { "$ref": "#/$defs/stringArray" }, "dispositions": { "$ref": "#/$defs/dispositions" }, "version_summaries": { "$ref": "#/$defs/summaryCollection" }, "discriminator_summaries": { "$ref": "#/$defs/summaryCollection" }, "historical_shape_summaries": { "$ref": "#/$defs/summaryCollection" }, "json_observation_summaries": { "$ref": "#/$defs/summaryCollection" } }
     },
     "summaryCollection": {
       "type": "object", "propertyNames": { "$ref": "#/$defs/safePropertyName" }, "additionalProperties": { "$ref": "#/$defs/dispositions" }
