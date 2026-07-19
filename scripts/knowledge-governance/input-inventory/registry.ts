@@ -1,4 +1,4 @@
-import { lstat, readdir, readFile } from 'node:fs/promises';
+import { lstat, readlink, readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { parse } from 'yaml';
 import { compareCodePoints, normalizePath, normalizeText, sortUnique } from './normalize';
@@ -23,6 +23,7 @@ export interface Registry {
   algorithm_version: string;
   anchor_record_contract: Record<string, unknown>;
   instructional_source_role_matrix: Record<string, { sources: Array<string | Record<string, unknown>> }>;
+  repository_codec_contract: { unknown_codec: 'invalid'; codecs: Array<Record<string, unknown>> };
   repository_sources: RepositorySource[];
   database_snapshot: Record<string, unknown>;
   database_sources: Array<Record<string, unknown>>;
@@ -80,6 +81,31 @@ export function matchGlob(file: string, glob: string): boolean {
   return globRegex(glob).test(normalizePath(file));
 }
 
+export interface RegisteredSymlinkClassification {
+  authorized_main_worktree_replacements: string[];
+  rejected: string[];
+}
+
+export async function classifyRegisteredSymlinks(root: string, registry: Registry, mainWorktreeRoot?: string): Promise<RegisteredSymlinkClassification> {
+  const symlinks = (await walk(root)).symlinks;
+  const registered = symlinks.filter((file) => registry.repository_sources.some((source) =>
+    (source.include ?? []).some((glob) => matchGlob(file, glob))
+      && !(source.exclude ?? []).some((glob) => matchGlob(file, glob)),
+  ));
+  const authorized: string[] = [];
+  const rejected: string[] = [];
+  for (const relative of registered) {
+    if (!mainWorktreeRoot) { rejected.push(relative); continue; }
+    const symlinkPath = path.join(root, relative);
+    const resolvedTarget = path.resolve(path.dirname(symlinkPath), await readlink(symlinkPath));
+    const expectedTarget = path.resolve(mainWorktreeRoot, relative);
+    const target = await lstat(expectedTarget).catch(() => null);
+    if (resolvedTarget === expectedTarget && target?.isFile() && !target.isSymbolicLink()) authorized.push(relative);
+    else rejected.push(relative);
+  }
+  return { authorized_main_worktree_replacements: sortUnique(authorized), rejected: sortUnique(rejected) };
+}
+
 async function adrPaths(root: string, source: RepositorySource, drift: Drift[]): Promise<string[]> {
   if (!source.index_path || !source.required_number_range) return [];
   const text = normalizeText(await readFile(path.join(root, normalizePath(source.index_path))));
@@ -98,15 +124,17 @@ async function adrPaths(root: string, source: RepositorySource, drift: Drift[]):
   return sortUnique([...byNumber.values()].flat());
 }
 
-export async function enumerateRepository(root: string, registry: Registry, drift: Drift[]) {
+export async function enumerateRepository(root: string, registry: Registry, drift: Drift[], authorizedMainWorktreeRoot?: string) {
   const walked = await walk(root);
+  const symlinkClassification = authorizedMainWorktreeRoot ? await classifyRegisteredSymlinks(root, registry, authorizedMainWorktreeRoot) : undefined;
   const files = walked.files;
   const records: Array<Record<string, Json>> = [];
   for (const source of registry.repository_sources) {
     const includes = [...(source.include ?? [])];
     const indexed = await adrPaths(root, source, drift);
     const hits = sortUnique([...files.filter((file) => includes.some((glob) => matchGlob(file, glob)) && !(source.exclude ?? []).some((glob) => matchGlob(file, glob))), ...indexed]);
-    for (const symlink of walked.symlinks.filter((file) => includes.some((glob) => matchGlob(file, glob)))) drift.push({ code: 'SYMLINK_INPUT_REJECTED', scope: symlink });
+    const rejectedSymlinks = symlinkClassification?.rejected ?? walked.symlinks;
+    for (const symlink of rejectedSymlinks.filter((file) => includes.some((glob) => matchGlob(file, glob)) && !(source.exclude ?? []).some((glob) => matchGlob(file, glob)))) drift.push({ code: 'SYMLINK_INPUT_REJECTED', scope: symlink });
     if (hits.length === 0) drift.push({ code: 'REPOSITORY_SOURCE_MISSING', scope: source.id, expected: source.missing, observed: 0 });
     const logicalInputs = includes.map((pattern) => {
       const patternHits = hits.filter((file) => matchGlob(file, pattern));

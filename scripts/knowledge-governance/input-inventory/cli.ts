@@ -11,14 +11,17 @@ async function main(): Promise<void> {
   const root = option('--root') ?? process.cwd();
   const manifest = await buildManifest({
     root,
+    mainWorktreeRoot: option('--main-worktree-root'),
+    mainWorktreeRevision: option('--main-worktree-revision'),
     registryPath: option('--registry'),
     databaseExportPath: option('--database-export'),
     databaseExportProofPath: option('--database-export-proof'),
     capturedAt: option('--captured-at'),
-    anchorFixturePath: option('--anchor-fixture'),
+    anchorReviewAttestationPath: option('--anchor-review-attestation'),
   });
   process.stdout.write(canonicalJson(manifest));
-  if (manifest.readiness !== true && !process.argv.includes('--allow-blocked')) process.exitCode = 2;
+  const readiness = manifest && typeof manifest === 'object' && !Array.isArray(manifest) ? manifest.readiness : false;
+  if (readiness !== true && !process.argv.includes('--allow-blocked')) process.exitCode = 2;
 }
 
 main().catch((error: unknown) => {

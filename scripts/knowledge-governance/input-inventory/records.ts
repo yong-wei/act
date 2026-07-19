@@ -35,6 +35,63 @@ export interface AnchorRecord {
   text_digest: string;
 }
 
+export type AnchorType = AnchorRecord['anchor_type'];
+export type AnchorScope = AnchorRecord['anchor_scope'];
+
+export interface AnchorSourceEvidence {
+  source_root: string;
+  logical_path: string;
+  repository_revision: string;
+  source_digest: string;
+  heading_locator: string;
+  row_locator: string;
+  quote_normalized: string;
+  quote_digest: string;
+}
+
+export interface AnchorCandidate {
+  candidate_digest: string;
+  anchor_scope: AnchorScope;
+  anchor_type: AnchorType;
+  course_id: string;
+  module_id: string | null;
+  lesson_id: string | null;
+  identity_basis: {
+    course_name: string;
+    course_number: string | null;
+    module_number: string | null;
+    lesson_number: string | null;
+  };
+  source: AnchorSourceEvidence;
+  contract_version: string;
+  model_version: string;
+  rule_version: string;
+  extraction_run: string;
+}
+
+export interface AnchorReviewEvidence {
+  provenance: string;
+  type: string;
+  scope: string;
+  fidelity: string;
+}
+
+export interface AnchorReviewDecision {
+  decision_digest: string;
+  candidate_digest: string;
+  decision: 'ACCEPT' | 'REJECT';
+  evidence: AnchorReviewEvidence;
+  reason: string;
+  review_run: string;
+}
+
+export interface AdmittedAnchor extends AnchorRecord {
+  candidate_digest: string;
+  review_decision_digest: string;
+  extraction_run: string;
+  review_run: string;
+}
+
 export function makeAnchor(input: Omit<AnchorRecord, 'anchor_id'>): AnchorRecord {
   const valid = input.course_id !== '' && input.source_locator !== '' && input.text_digest.startsWith('sha256:');
   const matrix = input.anchor_scope === 'course'

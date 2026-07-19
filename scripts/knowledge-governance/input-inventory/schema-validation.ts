@@ -4,6 +4,8 @@ import ts from 'typescript';
 import { Prisma } from '@prisma/client';
 import type { Registry } from './registry';
 import type { Drift, Json } from './types';
+import { compileDecoderGraph } from './decoder-validation';
+import { compileDatabaseObservationContracts } from './database-observation';
 
 const JSON_SELECTOR = /^\$(?:(?:\.(?:[A-Za-z_][A-Za-z0-9_]*|\*))|(?:\[\*\]))*$/u;
 
@@ -100,7 +102,7 @@ export async function validateRegistrySchema(root: string, registry: Registry): 
     ];
     if (selectors.length === 0 && !decoder.item_decoder) drift.push({ code: 'DECODER_EMPTY_SELECTORS', scope: id });
     for (const selector of selectors) if (!JSON_SELECTOR.test(selector)) drift.push({ code: 'SELECTOR_OUTSIDE_CLOSED_LANGUAGE', scope: id, observed: selector });
-    const namespaceValues = [decoder.reference_namespace, ...Object.values((decoder.namespace_by_field as Record<string, string>) ?? {}), ...Object.values((decoder.field_namespace_overrides as Record<string, string>) ?? {}), ...Object.values((decoder.discriminator_namespaces as Record<string, string>) ?? {})].filter((value): value is string => typeof value === 'string');
+    const namespaceValues = [decoder.reference_namespace, ...Object.values((decoder.field_namespaces as Record<string, string>) ?? {}), ...Object.values((decoder.namespace_by_field as Record<string, string>) ?? {}), ...Object.values((decoder.field_namespace_overrides as Record<string, string>) ?? {}), ...Object.values((decoder.discriminator_namespaces as Record<string, string>) ?? {})].filter((value): value is string => typeof value === 'string');
     if (namespaceValues.length === 0 && !decoder.item_decoder && !decoder.payload_decoder) drift.push({ code: 'DECODER_NAMESPACE_MISSING', scope: id });
     for (const namespace of namespaceValues) if (!namespaces.has(namespace)) drift.push({ code: 'UNKNOWN_NAMESPACE', scope: id, observed: namespace });
     if (decoder.parent_join) validateJoin(String(decoder.parent_join), models, declared, id, drift);
@@ -109,6 +111,8 @@ export async function validateRegistrySchema(root: string, registry: Registry): 
     const sources = Array.isArray(decoder.schema_source) ? decoder.schema_source : [decoder.schema_source];
     for (const source of sources) if (typeof source !== 'string' || !await symbolExists(root, source)) drift.push({ code: 'SCHEMA_SOURCE_UNRESOLVED', scope: id, observed: String(source) });
   }
+  drift.push(...compileDecoderGraph(registry).drift);
+  drift.push(...compileDatabaseObservationContracts(registry).drift);
   return drift;
 }
 

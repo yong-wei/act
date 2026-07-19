@@ -1,6 +1,6 @@
 import { taggedDigest, canonicalJson, sortUnique } from './normalize';
 import type { Drift, Json } from './types';
-import { auditIdBearingPaths } from './json-selector';
+import { auditIdBearingPaths, selectJson } from './json-selector';
 import type { Registry } from './registry';
 
 export interface ShapeFixture {
@@ -61,6 +61,113 @@ export function validateFixtureClosure(decoderIds: string[], fixtures: ShapeFixt
   for (const id of sortUnique(decoderIds.filter((item) => !ids.includes(item)))) drift.push({ code: 'DECODER_FIXTURE_MISSING', scope: id });
   for (const id of sortUnique(ids.filter((item) => !decoderIds.includes(item)))) drift.push({ code: 'FIXTURE_DECODER_UNKNOWN', scope: id });
   for (const fixture of fixtures) if (fixture.accepted_versions.length === 0 || fixture.samples.length === 0) drift.push({ code: 'DECODER_FIXTURE_INCOMPLETE', scope: fixture.decoder_id });
+  return drift;
+}
+
+export interface DecoderGraph {
+  roots: string[];
+  reachable: string[];
+  drift: Drift[];
+}
+
+function decoderChildren(contract: Record<string, unknown>): Array<{ edge: 'item_decoder' | 'payload_decoder'; id: string }> {
+  return (['item_decoder', 'payload_decoder'] as const)
+    .filter((edge) => typeof contract[edge] === 'string')
+    .map((edge) => ({ edge, id: String(contract[edge]) }));
+}
+
+function validateContractClosure(id: string, contract: Record<string, unknown>, drift: Drift[]): void {
+  const selectors = [
+    ...(contract.selectors as string[] ?? []),
+    ...(contract.reference_selectors as string[] ?? []),
+  ];
+  const discriminatorSelectors = contract.discriminator_selectors as string[] ?? [];
+  const namespaces = [
+    contract.reference_namespace,
+    ...Object.values((contract.field_namespaces as Record<string, string>) ?? {}),
+    ...Object.values((contract.namespace_by_field as Record<string, string>) ?? {}),
+    ...Object.values((contract.field_namespace_overrides as Record<string, string>) ?? {}),
+    ...Object.values((contract.discriminator_namespaces as Record<string, string>) ?? {}),
+  ].filter((value): value is string => typeof value === 'string' && value.length > 0);
+  if (selectors.length === 0 && decoderChildren(contract).length === 0) drift.push({ code: 'DECODER_SELECTOR_CLOSURE_MISSING', scope: id });
+  if (namespaces.length === 0 && decoderChildren(contract).length === 0) drift.push({ code: 'DECODER_NAMESPACE_CLOSURE_MISSING', scope: id });
+  if (discriminatorSelectors.length > 0 && Object.keys((contract.discriminator_namespaces as Record<string, string>) ?? {}).length === 0) drift.push({ code: 'DECODER_DISCRIMINATOR_CLOSURE_MISSING', scope: id });
+  if (!contract.schema_source || (Array.isArray(contract.schema_source) && contract.schema_source.length === 0)) drift.push({ code: 'DECODER_SCHEMA_SOURCE_CLOSURE_MISSING', scope: id });
+  if (!contract.parent_join && !contract.source_joins && !contract.join_applicability) drift.push({ code: 'DECODER_JOIN_CLOSURE_MISSING', scope: id });
+  if (typeof contract.payload_decoder === 'string' && typeof contract.payload_selector !== 'string') drift.push({ code: 'DECODER_CHILD_SELECTOR_MISSING', scope: `${id}.payload_decoder`, observed: contract.payload_decoder });
+}
+
+export function compileDecoderGraph(registry: Registry): DecoderGraph {
+  const drift: Drift[] = [];
+  const roots = sortUnique(registry.field_decoders
+    .map((decoder) => decoder.json_decoder)
+    .filter((value): value is string => typeof value === 'string'));
+  const visited = new Set<string>();
+  const active: string[] = [];
+  const visit = (id: string): void => {
+    const contract = registry.decoder_contracts[id];
+    if (!contract) {
+      drift.push({ code: 'DECODER_GRAPH_UNKNOWN_CHILD', scope: active.at(-1) ?? 'field_decoders', observed: id });
+      return;
+    }
+    const activeIndex = active.indexOf(id);
+    if (activeIndex >= 0) {
+      drift.push({ code: 'DECODER_GRAPH_CYCLE', scope: id, observed: [...active.slice(activeIndex), id] });
+      return;
+    }
+    if (visited.has(id)) return;
+    active.push(id);
+    validateContractClosure(id, contract, drift);
+    for (const child of decoderChildren(contract)) {
+      if (!registry.decoder_contracts[child.id]) drift.push({ code: 'DECODER_GRAPH_UNKNOWN_CHILD', scope: `${id}.${child.edge}`, observed: child.id });
+      else visit(child.id);
+    }
+    active.pop();
+    visited.add(id);
+  };
+  roots.forEach(visit);
+  for (const id of Object.keys(registry.decoder_contracts)) if (!visited.has(id)) drift.push({ code: 'DECODER_GRAPH_ORPHAN', scope: id });
+  return { roots, reachable: sortUnique([...visited]), drift };
+}
+
+function declaredPayloadVersion(value: Json): string | undefined {
+  return value && typeof value === 'object' && !Array.isArray(value) && typeof value.schemaVersion === 'string'
+    ? value.schemaVersion
+    : undefined;
+}
+
+export function validateSyntheticDecoderGraph(
+  registry: Registry,
+  fixtures: ShapeFixture[],
+  rootId: string,
+  payload: Json,
+  declaredVersion?: string,
+): Drift[] {
+  const graph = compileDecoderGraph(registry);
+  if (graph.drift.length > 0) return graph.drift;
+  const fixturesById = new Map(fixtures.map((fixture) => [fixture.decoder_id, fixture]));
+  const drift: Drift[] = [];
+  const visit = (id: string, value: Json, path: string, version?: string): void => {
+    const contract = registry.decoder_contracts[id];
+    const fixture = fixturesById.get(id);
+    if (!contract || !fixture) {
+      drift.push({ code: contract ? 'DECODER_FIXTURE_MISSING' : 'DECODER_GRAPH_UNKNOWN_CHILD', scope: path, observed: id });
+      return;
+    }
+    for (const item of validateSyntheticPayload(effectiveDecoderContract(registry, id), fixture, value, version)) {
+      drift.push({ ...item, scope: `${path}:${item.scope}` });
+    }
+    if (typeof contract.item_decoder === 'string') {
+      if (!Array.isArray(value)) drift.push({ code: 'DECODER_CHILD_TYPE_MISMATCH', scope: path, expected: 'array', observed: typeof value });
+      else value.forEach((child, index) => visit(contract.item_decoder as string, child, `${path}[${index}]`, declaredPayloadVersion(child)));
+    }
+    if (typeof contract.payload_decoder === 'string' && typeof contract.payload_selector === 'string') {
+      const selected = selectJson(value, contract.payload_selector);
+      if (selected.length === 0) drift.push({ code: 'DECODER_CHILD_PAYLOAD_MISSING', scope: `${path}${contract.payload_selector.slice(1)}`, observed: contract.payload_decoder });
+      for (const child of selected) visit(contract.payload_decoder, child.value, `${path}${child.path.slice(1)}`, declaredPayloadVersion(child.value));
+    }
+  };
+  visit(rootId, payload, '$', declaredVersion ?? declaredPayloadVersion(payload));
   return drift;
 }
 

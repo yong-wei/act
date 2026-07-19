@@ -1,22 +1,15 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { canonicalJson, sortUnique, taggedDigest } from './normalize';
+import { assertAggregateExportShape, DATABASE_PROOF_FORMAT, deriveProof, type AggregateDatabaseExport, type AggregateExportProof } from './database-export';
 import type { DatabaseDataset, DatabaseSnapshot, Drift, Json, SnapshotProof } from './types';
 import type { Registry } from './registry';
+import { compileDatabaseObservationContracts, type DatabaseSummaryKind } from './database-observation';
 
-interface ExportDataset {
-  id: string;
-  table: string;
-  count: number;
-  watermark?: string | null;
-  shape: string[];
-  versions?: string[];
-  dispositions?: Record<string, number>;
-}
-
-interface ImmutableExport { datasets: ExportDataset[]; proof?: never }
-
-const PROHIBITED = /^(userId|description|reasoning|payload|row|rows|raw_row_digest|sourceInputDigest)$/iu;
+const PROHIBITED = /^(userId|user_id|answer|answers|description|reasoning|payload|row|rows|raw_row_digest|reversible_key|sourceInputDigest)$/iu;
+const PROOF_KEYS = ['export_digest', 'export_object_id', 'exported_snapshot_token', 'exporter_digest', 'generated_at', 'migration_head', 'profile', 'proof_digest', 'proof_format', 'query_plan_digest', 'registry_digest', 'schema_digest', 'shared_snapshot_import_count', 'source_identity_digest', 'transaction_isolation', 'transaction_read_only', 'transaction_started_at'];
+const EXPORT_KEYS = ['captured_at', 'datasets', 'declared_table_count', 'exported_snapshot_token', 'exporter_digest', 'format_version', 'migration_head', 'postgres_version', 'query_plan_digest', 'registry_digest', 'schema_digest', 'schema_name', 'source_identity_digest', 'transaction_isolation', 'transaction_read_only', 'transaction_started_at'];
+const DATASET_KEYS = ['count', 'discriminator_summaries', 'historical_shape_summaries', 'id', 'shape', 'table', 'version_summaries', 'versions', 'watermark'];
 
 function rejectRowContent(value: Json, pointer = ''): void {
   if (Array.isArray(value)) value.forEach((item, index) => rejectRowContent(item, `${pointer}/${index}`));
@@ -26,35 +19,44 @@ function rejectRowContent(value: Json, pointer = ''): void {
   }
 }
 
-function suppress(dispositions: Record<string, number> | undefined): Record<string, number | 'suppressed'> | undefined {
-  if (!dispositions) return undefined;
-  for (const key of Object.keys(dispositions)) if (/[|/×]/u.test(key)) throw new Error(`cross-dimension aggregate rejected: ${key}`);
-  return Object.fromEntries(Object.entries(dispositions).sort(([a], [b]) => a.localeCompare(b)).map(([key, count]) => [key, count < 5 ? 'suppressed' : count]));
+function exactKeys(value: object, expected: string[], context: string): void {
+  const observed = Object.keys(value).sort();
+  if (observed.length !== expected.length || observed.some((key, index) => key !== expected[index])) throw new Error(`${context} contains caller-authored or missing fields`);
 }
 
 export async function loadImmutableExport(root: string, relativePath: string, proofPath: string, _drift: Drift[]): Promise<DatabaseSnapshot> {
-  const bytes = await readFile(path.join(root, relativePath));
-  const parsed = JSON.parse(bytes.toString('utf8')) as ImmutableExport;
+  const exportFile = path.isAbsolute(relativePath) ? relativePath : path.join(root, relativePath);
+  const proofFile = path.isAbsolute(proofPath) ? proofPath : path.join(root, proofPath);
+  const bytes = await readFile(exportFile);
+  const parsed = JSON.parse(bytes.toString('utf8')) as AggregateDatabaseExport;
   rejectRowContent(parsed as unknown as Json);
   if ('proof' in parsed) throw new Error('caller-declared proof embedded in export is rejected');
-  const proof = JSON.parse(await readFile(path.join(root, proofPath), 'utf8')) as SnapshotProof;
-  if (proof.profile !== 'immutable_export' || !proof.export_object_id || !proof.generated_at || !proof.export_digest) throw new Error('incomplete immutable_export proof');
-  const observedDigest = taggedDigest('immutable-database-export/v1', canonicalJson({ datasets: parsed.datasets } as unknown as Json));
-  if (proof.export_digest !== observedDigest) throw new Error(`external immutable export digest mismatch for ${proof.export_object_id}`);
+  exactKeys(parsed, EXPORT_KEYS, 'aggregate database export');
+  parsed.datasets.forEach((dataset) => exactKeys(dataset, DATASET_KEYS, `aggregate database dataset ${dataset.table}`));
+  if (!Buffer.from(canonicalJson(parsed as unknown as Json), 'utf8').equals(bytes)) throw new Error('aggregate database export is not canonical JSON');
+  assertAggregateExportShape(parsed);
+  const proof = JSON.parse(await readFile(proofFile, 'utf8')) as AggregateExportProof;
+  rejectRowContent(proof as unknown as Json);
+  exactKeys(proof, PROOF_KEYS, 'aggregate database export proof');
+  if (proof.proof_format !== DATABASE_PROOF_FORMAT || proof.profile !== 'repeatable_read_read_only') throw new Error('unsupported aggregate database export proof');
+  const expectedProof = deriveProof(parsed, bytes);
+  if (canonicalJson(proof as unknown as Json) !== canonicalJson(expectedProof as unknown as Json)) throw new Error('aggregate database export proof digest or closure mismatch');
   const datasets: DatabaseDataset[] = parsed.datasets.map((dataset) => ({
     id: dataset.id,
     table: dataset.table,
     count: dataset.count,
-    watermark: dataset.watermark ?? null,
+    watermark: dataset.watermark,
     shape: sortUnique(dataset.shape),
-    versions: sortUnique(dataset.versions ?? []),
-    dispositions: suppress(dataset.dispositions),
+    versions: sortUnique(dataset.versions),
+    version_summaries: dataset.version_summaries,
+    discriminator_summaries: dataset.discriminator_summaries,
+    historical_shape_summaries: dataset.historical_shape_summaries,
   })).sort((a, b) => a.id.localeCompare(b.id));
-  const snapshotId = taggedDigest('database-snapshot-proof/v1', canonicalJson(proof as unknown as Json));
+  const snapshotId = taggedDigest('database-snapshot-proof/v1', proof.proof_digest);
   return {
     snapshot_id: snapshotId,
     captured_at: proof.generated_at,
-    snapshot_proof: proof,
+    snapshot_proof: proof as SnapshotProof,
     datasets,
     dataset_watermarks: Object.fromEntries(datasets.map((dataset) => [dataset.id, dataset.watermark])),
   };
@@ -79,5 +81,66 @@ export function validateDatabaseClosure(snapshot: DatabaseSnapshot, registry: Re
   }
   const declared = new Set(registry.database_sources.flatMap((source) => source.tables as string[] ?? []));
   for (const dataset of snapshot.datasets) if (!declared.has(dataset.table)) drift.push({ code: 'DATABASE_SNAPSHOT_TABLE_UNDECLARED', scope: dataset.id, observed: dataset.table });
+  const compiled = compileDatabaseObservationContracts(registry);
+  drift.push(...compiled.drift);
+  const collectionFor = (dataset: DatabaseDataset, summary: DatabaseSummaryKind) => summary === 'version'
+    ? dataset.version_summaries ?? {}
+    : summary === 'discriminator'
+      ? dataset.discriminator_summaries ?? {}
+      : dataset.historical_shape_summaries ?? {};
+  const expectedKeys = new Map<string, Set<string>>();
+  for (const contract of compiled.contracts) {
+    const dataset = byTable.get(contract.table);
+    if (!dataset) continue;
+    const collection = collectionFor(dataset, contract.summary);
+    const key = `field:${contract.field}`;
+    const collectionIdentity = `${contract.table}/${contract.summary}`;
+    const expected = expectedKeys.get(collectionIdentity) ?? new Set<string>();
+    expected.add(key);
+    expectedKeys.set(collectionIdentity, expected);
+    if (!(key in collection)) {
+      drift.push({ code: 'DATABASE_OBSERVATION_SUMMARY_MISSING', scope: `${contract.table}.${contract.field}`, expected: contract.summary });
+      continue;
+    }
+    const summary = collection[key]!;
+    const categories = Object.keys(summary);
+    if (categories.length === 0) {
+      if (dataset.count > 0 || contract.zeroObservation === 'forbid') {
+        drift.push({ code: 'DATABASE_OBSERVATION_EVIDENCE_MISSING', scope: `${contract.table}.${contract.field}`, expected: contract.summary, observed: dataset.count });
+      }
+      continue;
+    }
+    const accepted = new Set(contract.accepted);
+    for (const category of categories) {
+      if (category === '__suppressed__') {
+        drift.push({ code: 'DATABASE_SUPPRESSED_CATEGORY_UNCLASSIFIED', scope: `${contract.table}.${contract.field}`, expected: contract.summary, observed: category });
+      } else if (!accepted.has(category)) {
+        const code = contract.summary === 'version'
+          ? 'DATABASE_VERSION_OUTSIDE_CLOSED_SET'
+          : contract.summary === 'discriminator'
+            ? 'DATABASE_DISCRIMINATOR_OUTSIDE_CLOSED_SET'
+            : 'DATABASE_HISTORICAL_SHAPE_OUTSIDE_CLOSED_SET';
+        drift.push({ code, scope: `${contract.table}.${contract.field}`, expected: contract.accepted, observed: category });
+      }
+    }
+  }
+  for (const dataset of snapshot.datasets) {
+    for (const [summary, collection] of [
+      ['version', dataset.version_summaries ?? {}],
+      ['discriminator', dataset.discriminator_summaries ?? {}],
+      ['historical_shape', dataset.historical_shape_summaries ?? {}],
+    ] as const) {
+      const expected = expectedKeys.get(`${dataset.table}/${summary}`) ?? new Set<string>();
+      for (const key of Object.keys(collection)) if (!expected.has(key)) {
+        drift.push({ code: 'DATABASE_OBSERVATION_SUMMARY_UNDECLARED', scope: dataset.table, expected: summary, observed: key });
+      }
+    }
+  }
+  const observedVersions = sortUnique(snapshot.datasets.flatMap((dataset) => Object.values(dataset.version_summaries ?? {})
+    .flatMap((summary) => Object.keys(summary).filter((category) => !category.startsWith('__')))));
+  const listedVersions = sortUnique(snapshot.datasets.flatMap((dataset) => dataset.versions));
+  if (canonicalJson(observedVersions as unknown as Json) !== canonicalJson(listedVersions as unknown as Json)) {
+    drift.push({ code: 'DATABASE_VERSION_INDEX_MISMATCH', scope: 'database_snapshot', expected: observedVersions, observed: listedVersions });
+  }
   return drift;
 }

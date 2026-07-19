@@ -1,40 +1,292 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "course-knowledge-input-inventory/v1",
+  "$id": "https://act.just.edu.cn/schemas/course-knowledge-input-inventory-v1.json",
   "type": "object",
+  "propertyNames": { "$ref": "#/$defs/safePropertyName" },
   "additionalProperties": false,
   "required": ["schema_version", "algorithm_version", "registry_id", "normalization_profile", "captured_at", "repository_revision", "repository", "repository_files", "record_sets", "source_digests", "database_source_digests", "decoder_digests", "governance_contract_digest", "source_snapshot_digest", "upstream_manifest_digests", "anchors", "contracts", "dated_audit_baseline", "writer_discovery", "database_snapshot", "drift", "readiness", "snapshot_digest"],
   "properties": {
     "schema_version": { "const": "course-knowledge-input-inventory/v1" },
-    "algorithm_version": { "type": "string" },
-    "registry_id": { "type": "string" },
-    "normalization_profile": { "type": "string" },
-    "captured_at": { "type": "string", "format": "date-time" },
+    "algorithm_version": { "$ref": "#/$defs/nonEmptyString" },
+    "registry_id": { "$ref": "#/$defs/nonEmptyString" },
+    "normalization_profile": { "$ref": "#/$defs/nonEmptyString" },
+    "captured_at": { "$ref": "#/$defs/timestamp" },
     "repository_revision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
-    "repository": { "$ref": "#/$defs/jsonObject" },
-    "repository_files": { "type": "array", "items": { "$ref": "#/$defs/file" } },
-    "record_sets": { "$ref": "#/$defs/jsonObject" },
+    "repository": { "$ref": "#/$defs/repository" },
+    "repository_files": { "type": "array", "items": { "$ref": "#/$defs/fileObservation" } },
+    "record_sets": { "$ref": "#/$defs/recordSets" },
     "source_digests": { "type": "array", "items": { "$ref": "#/$defs/sourceDigest" } },
-    "database_source_digests": { "type": "array", "items": { "$ref": "#/$defs/jsonObject" } },
-    "decoder_digests": { "type": "array", "items": { "$ref": "#/$defs/jsonObject" } },
+    "database_source_digests": { "type": "array", "items": { "$ref": "#/$defs/databaseSourceDigest" } },
+    "decoder_digests": { "type": "array", "items": { "$ref": "#/$defs/decoderDigest" } },
     "governance_contract_digest": { "$ref": "#/$defs/digest" },
     "source_snapshot_digest": { "$ref": "#/$defs/digest" },
-    "upstream_manifest_digests": { "type": "array", "items": { "$ref": "#/$defs/jsonObject" } },
-    "anchors": { "$ref": "#/$defs/jsonObject" },
-    "contracts": { "$ref": "#/$defs/jsonObject" },
-    "dated_audit_baseline": { "$ref": "#/$defs/jsonObject" },
-    "writer_discovery": { "type": "array", "items": { "$ref": "#/$defs/jsonObject" } },
-    "database_snapshot": { "$ref": "#/$defs/jsonObject" },
+    "upstream_manifest_digests": { "type": "array", "items": { "$ref": "#/$defs/safeObject" } },
+    "anchors": { "$ref": "#/$defs/anchors" },
+    "contracts": { "$ref": "#/$defs/contracts" },
+    "dated_audit_baseline": { "$ref": "#/$defs/auditBaseline" },
+    "writer_discovery": { "type": "array", "items": { "$ref": "#/$defs/writerEvidence" } },
+    "database_snapshot": { "$ref": "#/$defs/databaseSnapshot" },
     "drift": { "type": "array", "items": { "$ref": "#/$defs/drift" } },
     "readiness": { "type": "boolean" },
     "snapshot_digest": { "$ref": "#/$defs/digest" }
   },
   "$defs": {
-    "json": { "oneOf": [{ "type": "null" }, { "type": "boolean" }, { "type": "number" }, { "type": "string" }, { "type": "array", "items": { "$ref": "#/$defs/json" } }, { "$ref": "#/$defs/jsonObject" }] },
-    "jsonObject": { "type": "object", "propertyNames": { "not": { "pattern": "^(userId|row|rows|payload|raw_row_digest|sourceInputDigest|identity|domain|relation|binding|candidate|assignment)$" } }, "additionalProperties": { "$ref": "#/$defs/json" } },
+    "safePropertyName": {
+      "not": {
+        "type": "string",
+        "pattern": "^(?:[Uu][Ss][Ee][Rr]_?[Ii][Dd][Ss]?|[Rr][Oo][Ww][Ss]?|[Pp][Aa][Yy][Ll][Oo][Aa][Dd]|[Rr][Aa][Ww]_?[Rr][Oo][Ww]_?[Dd][Ii][Gg][Ee][Ss][Tt]|[Rr][Oo][Ww]_?[Dd][Ii][Gg][Ee][Ss][Tt]|[Ss][Oo][Uu][Rr][Cc][Ee]_?[Ii][Nn][Pp][Uu][Tt]_?[Dd][Ii][Gg][Ee][Ss][Tt]|[Ii][Dd][Ee][Nn][Tt][Ii][Tt][Yy]|[Dd][Oo][Mm][Aa][Ii][Nn]|[Rr][Ee][Ll][Aa][Tt][Ii][Oo][Nn]|[Bb][Ii][Nn][Dd][Ii][Nn][Gg]|[Cc][Aa][Nn][Dd][Ii][Dd][Aa][Tt][Ee]|[Aa][Ss][Ss][Ii][Gg][Nn][Mm][Ee][Nn][Tt]|[Uu][Nn][Ii][Qq][Uu][Ee]_?[Ss][Ee][Mm][Aa][Nn][Tt][Ii][Cc]_?[Nn][Aa][Mm][Ee]|[Dd][Oo][Mm][Aa][Ii][Nn]_?[Mm][Ee][Mm][Bb][Ee][Rr][Ss][Hh][Ii][Pp]|[Rr][Ee][Ll][Aa][Tt][Ii][Oo][Nn]_?[Aa][Pp][Pp][Rr][Oo][Vv][Aa][Ll]|[Rr][Ee][Ss][Oo][Uu][Rr][Cc][Ee]_?[Bb][Ii][Nn][Dd][Ii][Nn][Gg]_?[Aa][Pp][Pp][Rr][Oo][Vv][Aa][Ll])$"
+      }
+    },
+    "nonEmptyString": { "type": "string", "minLength": 1 },
+    "nullableString": { "type": ["string", "null"] },
+    "timestamp": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$" },
     "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
-    "file": { "type": "object", "additionalProperties": false, "required": ["path", "digest", "size", "encoding"], "properties": { "path": { "type": "string" }, "digest": { "$ref": "#/$defs/digest" }, "size": { "type": "integer", "minimum": 0 }, "encoding": { "enum": ["utf8-nfc-lf", "binary"] } } },
-    "sourceDigest": { "type": "object", "additionalProperties": false, "required": ["source_id", "source_locator", "item_kind", "identity_namespace", "schema_version", "digest", "item_count"], "properties": { "source_id": { "type": "string" }, "source_locator": { "type": "string" }, "item_kind": { "type": "string" }, "identity_namespace": { "type": "string" }, "schema_version": { "type": "string" }, "digest": { "$ref": "#/$defs/digest" }, "item_count": { "type": "integer", "minimum": 0 } } },
-    "drift": { "type": "object", "additionalProperties": false, "required": ["code", "scope"], "properties": { "code": { "type": "string" }, "scope": { "type": "string" }, "expected": { "$ref": "#/$defs/json" }, "observed": { "$ref": "#/$defs/json" }, "detail": { "type": "string" } } }
+    "safeJson": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "boolean" },
+        { "type": "number" },
+        { "type": "string" },
+        { "type": "array", "items": { "$ref": "#/$defs/safeJson" } },
+        { "$ref": "#/$defs/safeObject" }
+      ]
+    },
+    "safeObject": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/safePropertyName" },
+      "additionalProperties": { "$ref": "#/$defs/safeJson" }
+    },
+    "repository": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/safePropertyName" },
+      "additionalProperties": false,
+      "required": ["sources", "roles", "unclassified", "multiply_classified"],
+      "properties": {
+        "sources": { "type": "array", "items": { "$ref": "#/$defs/repositorySource" } },
+        "roles": { "type": "array", "items": { "$ref": "#/$defs/repositoryRole" } },
+        "unclassified": { "$ref": "#/$defs/stringArray" },
+        "multiply_classified": { "type": "array", "items": { "$ref": "#/$defs/multipleClassification" } }
+      }
+    },
+    "repositorySource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "item_kind", "identity_namespace", "declared_patterns", "logical_inputs", "physical_paths", "hit_count", "missing_policy"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "item_kind": { "$ref": "#/$defs/nonEmptyString" },
+        "identity_namespace": { "$ref": "#/$defs/nonEmptyString" },
+        "declared_patterns": { "$ref": "#/$defs/stringArray" },
+        "logical_inputs": { "type": "array", "items": { "$ref": "#/$defs/logicalInput" } },
+        "physical_paths": { "$ref": "#/$defs/stringArray" },
+        "hit_count": { "$ref": "#/$defs/count" },
+        "missing_policy": { "enum": ["fail", "record"] }
+      }
+    },
+    "logicalInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pattern", "state", "reason_code", "hit_count"],
+      "properties": {
+        "pattern": { "$ref": "#/$defs/nonEmptyString" },
+        "state": { "enum": ["present", "missing"] },
+        "reason_code": { "$ref": "#/$defs/nullableString" },
+        "hit_count": { "$ref": "#/$defs/count" }
+      }
+    },
+    "repositoryRole": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role", "declared_patterns", "rules", "physical_paths", "hit_count"],
+      "properties": {
+        "role": { "$ref": "#/$defs/nonEmptyString" },
+        "declared_patterns": { "$ref": "#/$defs/stringArray" },
+        "rules": { "type": "array", "items": { "$ref": "#/$defs/roleRule" } },
+        "physical_paths": { "$ref": "#/$defs/stringArray" },
+        "hit_count": { "$ref": "#/$defs/count" }
+      }
+    },
+    "roleRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pattern", "exclude", "audience", "derived", "hit_count"],
+      "properties": {
+        "pattern": { "$ref": "#/$defs/nullableString" },
+        "exclude": { "$ref": "#/$defs/nullableString" },
+        "audience": { "$ref": "#/$defs/nullableString" },
+        "derived": { "$ref": "#/$defs/nullableString" },
+        "hit_count": { "$ref": "#/$defs/count" }
+      }
+    },
+    "multipleClassification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "roles"],
+      "properties": { "path": { "$ref": "#/$defs/nonEmptyString" }, "roles": { "$ref": "#/$defs/stringArray" } }
+    },
+    "fileObservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "source_root", "capture_revision", "vcs_state", "state", "codec", "media_type", "size", "raw_digest"],
+      "properties": {
+        "path": { "$ref": "#/$defs/nonEmptyString" },
+        "source_root": { "enum": ["isolated-worktree", "main-worktree"] },
+        "capture_revision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "vcs_state": { "enum": ["tracked", "ignored", "untracked"] },
+        "absence_reason": { "$ref": "#/$defs/nonEmptyString" },
+        "isolated_path_state": { "const": "symbolic-link" },
+        "replacement_target_source_root": { "const": "main-worktree" },
+        "replacement_target_path": { "$ref": "#/$defs/nonEmptyString" },
+        "replacement_target_type": { "const": "regular-file" },
+        "state": { "enum": ["observed", "invalid"] },
+        "codec": { "enum": ["markdown-utf8/v1", "json-utf8/v1", "yaml-utf8/v1", "source-utf8/v1", "matlab-utf8/v1", "tex-utf8/v1", "png/v1", "pdf/v1", "jpeg/v1", "gif/v1", "webp/v1", "mp4/v1", "webm/v1", "audio/v1", "m4a/v1", "ppm/v1", "zip/v1", "tex-build-artifact/v1", "python-bytecode/v1", "macos-desktop-metadata/v1", "unreadable", "unknown"] },
+        "media_type": { "$ref": "#/$defs/nonEmptyString" },
+        "size": { "$ref": "#/$defs/count" },
+        "raw_digest": { "$ref": "#/$defs/digest" },
+        "normalized_digest": { "$ref": "#/$defs/digest" },
+        "error_code": { "$ref": "#/$defs/nonEmptyString" },
+        "error_detail": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "recordSets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["physical", "logical", "drift"],
+      "properties": {
+        "physical": { "type": "array", "items": { "$ref": "#/$defs/typedRecord" } },
+        "logical": { "type": "array", "items": { "$ref": "#/$defs/typedRecord" } },
+        "drift": { "type": "array", "items": { "$ref": "#/$defs/drift" } }
+      }
+    },
+    "typedRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["item_kind", "identity_namespace", "source_id", "source_locator", "schema_version", "digest"],
+      "properties": {
+        "item_kind": { "$ref": "#/$defs/nonEmptyString" },
+        "identity_namespace": { "$ref": "#/$defs/nonEmptyString" },
+        "source_id": { "$ref": "#/$defs/nonEmptyString" },
+        "source_locator": { "$ref": "#/$defs/nonEmptyString" },
+        "schema_version": { "$ref": "#/$defs/nonEmptyString" },
+        "digest": { "$ref": "#/$defs/digest" },
+        "cardinality": { "$ref": "#/$defs/count" },
+        "state": { "$ref": "#/$defs/nonEmptyString" },
+        "codec": { "$ref": "#/$defs/nonEmptyString" },
+        "media_type": { "$ref": "#/$defs/nonEmptyString" },
+        "size": { "$ref": "#/$defs/count" },
+        "raw_digest": { "$ref": "#/$defs/digest" },
+        "normalized_digest": { "$ref": "#/$defs/digest" },
+        "source_root": { "enum": ["isolated-worktree", "main-worktree"] },
+        "capture_revision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "vcs_state": { "enum": ["tracked", "ignored", "untracked"] },
+        "absence_reason": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "sourceDigest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_id", "source_locator", "item_kind", "identity_namespace", "schema_version", "digest", "item_count"],
+      "properties": {
+        "source_id": { "$ref": "#/$defs/nonEmptyString" }, "source_locator": { "$ref": "#/$defs/nonEmptyString" }, "item_kind": { "$ref": "#/$defs/nonEmptyString" }, "identity_namespace": { "$ref": "#/$defs/nonEmptyString" }, "schema_version": { "$ref": "#/$defs/nonEmptyString" }, "digest": { "$ref": "#/$defs/digest" }, "item_count": { "$ref": "#/$defs/count" }
+      }
+    },
+    "databaseSourceDigest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_id", "source_locator", "item_kind", "schema_version", "digest", "dataset_count"],
+      "properties": {
+        "source_id": { "$ref": "#/$defs/nonEmptyString" }, "source_locator": { "$ref": "#/$defs/nonEmptyString" }, "item_kind": { "$ref": "#/$defs/nonEmptyString" }, "schema_version": { "$ref": "#/$defs/nonEmptyString" }, "digest": { "$ref": "#/$defs/digest" }, "dataset_count": { "$ref": "#/$defs/count" }
+      }
+    },
+    "decoderDigest": {
+      "type": "object", "additionalProperties": false, "required": ["decoder_id", "digest"],
+      "properties": { "decoder_id": { "$ref": "#/$defs/nonEmptyString" }, "digest": { "$ref": "#/$defs/digest" } }
+    },
+    "anchors": {
+      "type": "object", "additionalProperties": false, "required": ["records", "nullable_scope_matrix", "observed_count", "candidate_artifact_digest", "candidate_count", "review_artifact_digest", "review_count", "admitted_artifact_digest", "admitted_count"],
+      "properties": {
+        "records": { "type": "array", "items": { "$ref": "#/$defs/anchor" } },
+        "nullable_scope_matrix": { "$ref": "#/$defs/safeObject" },
+        "observed_count": { "$ref": "#/$defs/count" },
+        "candidate_artifact_digest": { "$ref": "#/$defs/digest" },
+        "candidate_count": { "$ref": "#/$defs/count" },
+        "review_artifact_digest": { "oneOf": [{ "$ref": "#/$defs/digest" }, { "type": "null" }] },
+        "review_count": { "$ref": "#/$defs/count" },
+        "admitted_artifact_digest": { "oneOf": [{ "$ref": "#/$defs/digest" }, { "type": "null" }] },
+        "admitted_count": { "$ref": "#/$defs/count" }
+      }
+    },
+    "anchor": {
+      "type": "object", "additionalProperties": false,
+      "required": ["anchor_id", "anchor_scope", "anchor_type", "course_id", "module_id", "lesson_id", "source_locator", "text_digest"],
+      "properties": {
+        "anchor_id": { "$ref": "#/$defs/digest" }, "anchor_scope": { "enum": ["course", "module", "lesson"] }, "anchor_type": { "enum": ["formal_objective", "necessary_prerequisite", "explicit_extension"] }, "course_id": { "$ref": "#/$defs/nonEmptyString" }, "module_id": { "$ref": "#/$defs/nullableString" }, "lesson_id": { "$ref": "#/$defs/nullableString" }, "source_locator": { "$ref": "#/$defs/nonEmptyString" }, "text_digest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "contracts": {
+      "type": "object", "additionalProperties": false,
+      "required": ["repository_sources", "database_sources", "decoder_contracts", "field_decoders", "namespaces", "declared_writer_paths", "digest"],
+      "properties": {
+        "repository_sources": { "$ref": "#/$defs/count" }, "database_sources": { "$ref": "#/$defs/count" }, "decoder_contracts": { "$ref": "#/$defs/count" }, "field_decoders": { "$ref": "#/$defs/count" }, "namespaces": { "$ref": "#/$defs/count" }, "declared_writer_paths": { "$ref": "#/$defs/count" }, "digest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "auditBaseline": {
+      "type": "object", "additionalProperties": false, "required": ["source", "evidence_date", "observations"],
+      "properties": {
+        "source": { "$ref": "#/$defs/nonEmptyString" }, "evidence_date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" }, "observations": { "type": "array", "items": { "$ref": "#/$defs/auditObservation" } }
+      }
+    },
+    "auditObservation": {
+      "type": "object", "additionalProperties": false, "required": ["metric", "expected", "observed"],
+      "properties": { "metric": { "$ref": "#/$defs/nonEmptyString" }, "expected": { "$ref": "#/$defs/count" }, "observed": { "$ref": "#/$defs/count" } }
+    },
+    "writerEvidence": {
+      "type": "object", "additionalProperties": false, "required": ["path", "mutations", "dynamic_raw", "targets", "calls", "imports", "call_paths"],
+      "properties": {
+        "path": { "$ref": "#/$defs/nonEmptyString" }, "mutations": { "$ref": "#/$defs/stringArray" }, "dynamic_raw": { "type": "boolean" }, "targets": { "type": "array", "items": { "$ref": "#/$defs/writerTarget" } }, "calls": { "$ref": "#/$defs/stringArray" }, "imports": { "$ref": "#/$defs/stringMap" }, "call_paths": { "type": "array", "items": { "$ref": "#/$defs/writerCallPath" } }
+      }
+    },
+    "writerTarget": {
+      "type": "object", "additionalProperties": false, "required": ["model", "operation", "nested_relation"],
+      "properties": { "model": { "$ref": "#/$defs/nonEmptyString" }, "operation": { "$ref": "#/$defs/nonEmptyString" }, "nested_relation": { "$ref": "#/$defs/nullableString" } }
+    },
+    "writerCallPath": {
+      "type": "object", "additionalProperties": false, "required": ["symbols", "target"],
+      "properties": { "symbols": { "$ref": "#/$defs/stringArray" }, "target": { "$ref": "#/$defs/writerTarget" } }
+    },
+    "databaseSnapshot": {
+      "type": "object", "additionalProperties": false, "required": ["snapshot_id", "captured_at", "snapshot_proof", "datasets", "dataset_watermarks"],
+      "properties": {
+        "snapshot_id": { "$ref": "#/$defs/digest" }, "captured_at": { "$ref": "#/$defs/timestamp" }, "snapshot_proof": { "$ref": "#/$defs/snapshotProof" }, "datasets": { "type": "array", "items": { "$ref": "#/$defs/databaseDataset" } }, "dataset_watermarks": { "$ref": "#/$defs/nullableStringMap" }
+      }
+    },
+    "snapshotProof": {
+      "type": "object", "additionalProperties": false, "required": ["profile"],
+      "properties": {
+        "profile": { "enum": ["immutable_export", "repeatable_read_read_only"] }, "proof_format": { "$ref": "#/$defs/nonEmptyString" }, "export_object_id": { "$ref": "#/$defs/nonEmptyString" }, "generated_at": { "$ref": "#/$defs/timestamp" }, "export_digest": { "oneOf": [{ "$ref": "#/$defs/digest" }, { "const": "missing" }] }, "proof_digest": { "$ref": "#/$defs/digest" }, "source_identity_digest": { "$ref": "#/$defs/digest" }, "schema_digest": { "$ref": "#/$defs/digest" }, "migration_head": { "$ref": "#/$defs/nonEmptyString" }, "registry_digest": { "$ref": "#/$defs/digest" }, "exporter_digest": { "$ref": "#/$defs/digest" }, "query_plan_digest": { "$ref": "#/$defs/digest" }, "transaction_isolation": { "$ref": "#/$defs/nonEmptyString" }, "transaction_read_only": { "type": "boolean" }, "transaction_started_at": { "$ref": "#/$defs/timestamp" }, "exported_snapshot_token": { "$ref": "#/$defs/nonEmptyString" }, "shared_snapshot_import_count": { "$ref": "#/$defs/count" }
+      },
+      "allOf": [
+        { "if": { "properties": { "profile": { "const": "immutable_export" } }, "required": ["profile"] }, "then": { "required": ["export_object_id", "generated_at", "export_digest"] } },
+        { "if": { "properties": { "profile": { "const": "repeatable_read_read_only" } }, "required": ["profile"] }, "then": { "required": ["proof_format", "export_object_id", "generated_at", "export_digest", "proof_digest", "source_identity_digest", "schema_digest", "migration_head", "registry_digest", "exporter_digest", "query_plan_digest", "transaction_isolation", "transaction_read_only", "transaction_started_at", "exported_snapshot_token", "shared_snapshot_import_count"] } }
+      ]
+    },
+    "databaseDataset": {
+      "type": "object", "additionalProperties": false, "required": ["id", "table", "count", "watermark", "shape", "versions"],
+      "properties": { "id": { "$ref": "#/$defs/nonEmptyString" }, "table": { "$ref": "#/$defs/nonEmptyString" }, "count": { "$ref": "#/$defs/count" }, "watermark": { "$ref": "#/$defs/nullableString" }, "shape": { "$ref": "#/$defs/stringArray" }, "versions": { "$ref": "#/$defs/stringArray" }, "dispositions": { "$ref": "#/$defs/dispositions" }, "version_summaries": { "$ref": "#/$defs/summaryCollection" }, "discriminator_summaries": { "$ref": "#/$defs/summaryCollection" }, "historical_shape_summaries": { "$ref": "#/$defs/summaryCollection" } }
+    },
+    "summaryCollection": {
+      "type": "object", "propertyNames": { "$ref": "#/$defs/safePropertyName" }, "additionalProperties": { "$ref": "#/$defs/dispositions" }
+    },
+    "dispositions": {
+      "type": "object", "propertyNames": { "$ref": "#/$defs/safePropertyName" }, "additionalProperties": { "oneOf": [{ "$ref": "#/$defs/count" }, { "const": "suppressed" }] }
+    },
+    "drift": {
+      "type": "object", "additionalProperties": false, "required": ["code", "scope"],
+      "properties": { "code": { "$ref": "#/$defs/nonEmptyString" }, "scope": { "$ref": "#/$defs/nonEmptyString" }, "expected": { "$ref": "#/$defs/safeJson" }, "observed": { "$ref": "#/$defs/safeJson" }, "detail": { "$ref": "#/$defs/nonEmptyString" } }
+    },
+    "count": { "type": "integer", "minimum": 0 },
+    "stringArray": { "type": "array", "items": { "type": "string" } },
+    "stringMap": { "type": "object", "propertyNames": { "$ref": "#/$defs/safePropertyName" }, "additionalProperties": { "type": "string" } },
+    "nullableStringMap": { "type": "object", "propertyNames": { "$ref": "#/$defs/safePropertyName" }, "additionalProperties": { "$ref": "#/$defs/nullableString" } }
   }
 }

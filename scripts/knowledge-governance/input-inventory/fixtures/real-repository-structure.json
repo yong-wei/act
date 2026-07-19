@@ -1,5 +1,5 @@
 {
   "schema_version": "course-knowledge-real-repository-structure/v1",
-  "registry_contract": { "repository_sources": 14, "database_sources": 9, "decoder_contracts": 16, "field_decoders": 41, "namespaces": 45, "declared_writer_paths": 45 },
+  "registry_contract": { "repository_sources": 14, "database_sources": 9, "decoder_contracts": 16, "field_decoders": 41, "namespaces": 45, "declared_writer_paths": 47 },
   "dated_audit_evidence": { "source": "docs/knowledge-graph-current-state-audit-2026-07-18.md", "runtime_active_knowledge_nodes": 838, "runtime_bound_knowledge_cards": 297 }
 }
