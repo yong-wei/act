@@ -62,8 +62,10 @@ describe('smart lesson task routes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.session.mockResolvedValue(teacher);
+    mocks.toolRunUpdateMany.mockResolvedValue({ count: 1 });
+    mocks.agentSessionUpdateMany.mockResolvedValue({ count: 1 });
     mocks.transaction.mockImplementation(async (run) => run({
-      agentToolRun: { updateMany: mocks.toolRunUpdateMany, update: mocks.toolRunUpdate },
+      agentToolRun: { findFirst: mocks.toolRunFindFirst, updateMany: mocks.toolRunUpdateMany, update: mocks.toolRunUpdate },
       agentSession: { updateMany: mocks.agentSessionUpdateMany },
     }));
     mocks.enqueue.mockImplementation(async (_db, jobId) => ({ queued: true, job: { id: jobId, draftId: 'draft-1', state: 'QUEUED' }, errorCode: null }));
@@ -172,7 +174,48 @@ describe('smart lesson task routes', () => {
       taskId: 'task-1', expectedRevision: 3, agentSessionId: 'agent-session-1', confirmingTurnId: 'turn-9',
       aggregateClassContextRef: { classId: 'class-1', diagnosisRef: 'diagnosis-1' },
     }));
-    expect(mocks.toolRunUpdateMany).toHaveBeenCalled();
+    expect(mocks.updateTask.mock.calls[0]?.[0]).toMatchObject({
+      agentToolRun: { findFirst: mocks.toolRunFindFirst, updateMany: mocks.toolRunUpdateMany },
+      agentSession: { updateMany: mocks.agentSessionUpdateMany },
+    });
+    expect(mocks.toolRunUpdateMany).toHaveBeenNthCalledWith(1, expect.objectContaining({
+      where: expect.objectContaining({ approvalState: { notIn: ['approved', 'confirmation_in_progress'] } }),
+      data: { approvalState: 'confirmation_in_progress' },
+    }));
+    expect(mocks.toolRunUpdateMany).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      where: { id: 'suggestion-1', approvalState: 'confirmation_in_progress' },
+      data: { approvalState: 'approved' },
+    }));
+    expect(mocks.transaction).toHaveBeenCalledWith(expect.any(Function), {
+      isolationLevel: 'Serializable',
+    });
+  });
+
+  it('does not revise a task when the Konling approval claim loses a race', async () => {
+    const proposedTask = {
+      topic: '新主题', audience: '本科生', prerequisites: '', durationMinutes: 45, outlineConfirmationRequired: false,
+      sourceVersionIds: ['version-1'],
+      knowledgePoints: [{ content: '稳定性', title: '稳定性', origin: 'TEACHER_CREATED', sourceState: 'teacher_created_source_pending', sourceBindings: [] }],
+      goals: [{ content: '判断稳定性', sourceState: 'teacher_created_source_pending', sourceBindings: [], standardsMappings: [] }],
+      confirmScope: true, confirmGoals: true,
+    };
+    mocks.toolRunFindFirst.mockResolvedValue({
+      id: 'suggestion-1', agentSessionId: 'agent-session-1',
+      inputSummary: { taskId: 'task-1', expectedRevision: 3, turnId: 'turn-9', proposedTask },
+      agentSession: {
+        ownerUserId: 'teacher-1', actorUserId: 'teacher-1',
+        stateJson: { ownedTurnIds: ['turn-9'], smartPrepBinding: { taskId: 'task-1', taskRevision: '3', ownerUserId: 'teacher-1' } },
+      },
+    });
+    mocks.toolRunUpdateMany.mockResolvedValueOnce({ count: 0 });
+    const { POST } = await import('../[taskId]/konling-suggestions/[suggestionId]/confirm/route');
+    const response = await POST(new Request('http://localhost', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ agentSessionId: 'agent-session-1', turnId: 'turn-9' }),
+    }), { params: Promise.resolve({ taskId: 'task-1', suggestionId: 'suggestion-1' }) });
+    expect(response.status).toBe(409);
+    expect(mocks.updateTask).not.toHaveBeenCalled();
+    expect(mocks.agentSessionUpdateMany).not.toHaveBeenCalled();
   });
 
   it('rejects a Konling suggestion from a different conversation turn', async () => {
@@ -186,6 +229,25 @@ describe('smart lesson task routes', () => {
       method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ agentSessionId: 'agent-session-1', turnId: 'turn-old' }),
     }), { params: Promise.resolve({ taskId: 'task-1', suggestionId: 'suggestion-1' }) });
     expect(response.status).toBe(409);
+    expect(mocks.updateTask).not.toHaveBeenCalled();
+  });
+
+  it('rejects a Konling suggestion whose session is bound to another task revision', async () => {
+    mocks.toolRunFindFirst.mockResolvedValue({
+      id: 'suggestion-1', agentSessionId: 'agent-session-1',
+      inputSummary: { taskId: 'task-1', expectedRevision: 3, turnId: 'turn-9', proposedTask: { topic: 'ignored' } },
+      agentSession: {
+        ownerUserId: 'teacher-1', actorUserId: 'teacher-1',
+        stateJson: { ownedTurnIds: ['turn-9'], smartPrepBinding: { taskId: 'task-1', taskRevision: '4', ownerUserId: 'teacher-1' } },
+      },
+    });
+    const { POST } = await import('../[taskId]/konling-suggestions/[suggestionId]/confirm/route');
+    const response = await POST(new Request('http://localhost', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ agentSessionId: 'agent-session-1', turnId: 'turn-9' }),
+    }), { params: Promise.resolve({ taskId: 'task-1', suggestionId: 'suggestion-1' }) });
+    expect(response.status).toBe(409);
+    expect(mocks.toolRunUpdateMany).not.toHaveBeenCalled();
     expect(mocks.updateTask).not.toHaveBeenCalled();
   });
 

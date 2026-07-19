@@ -193,6 +193,7 @@ export async function createSmartLessonTask(db: SmartLessonDb, input: CreateSmar
     db,
     ownerId,
     sourceVersionIds,
+    [],
     [
       ...input.knowledgePoints.map((item) => ({
         content: item.title ?? item.content,
@@ -286,7 +287,10 @@ export async function createSmartLessonTask(db: SmartLessonDb, input: CreateSmar
   });
 }
 
-export async function updateSmartLessonTask(db: SmartLessonDb, input: UpdateSmartLessonTaskInput) {
+export async function updateSmartLessonTask(
+  db: SmartLessonDb | Prisma.TransactionClient,
+  input: UpdateSmartLessonTaskInput,
+) {
   const actor = validateActor(input.actor);
   const taskId = validateId(input.taskId);
   if (!Number.isSafeInteger(input.expectedRevision) || input.expectedRevision < 1) {
@@ -301,8 +305,7 @@ export async function updateSmartLessonTask(db: SmartLessonDb, input: UpdateSmar
   if (sourceVersionIds.length === 0 || input.knowledgePoints.length === 0 || input.goals.length === 0) {
     throw new SmartLessonPlanError('confirmed-task-scope-required');
   }
-  try {
-    return await db.$transaction(async (tx) => {
+  const update = async (tx: Prisma.TransactionClient) => {
     const task = await tx.smartLessonTask.findFirst({
       where: ownedWhere(actor, { id: taskId }),
       include: {
@@ -324,11 +327,17 @@ export async function updateSmartLessonTask(db: SmartLessonDb, input: UpdateSmar
       select: { id: true, ownerId: true },
     });
     if (!basis || basis.ownerId !== task.ownerId) throw new SmartLessonPlanError('course-basis-not-found', 404);
+    const retainedRetiredVersionIds = sourceVersionIds.filter((sourceVersionId) => task.sources.some(
+      (source) => source.sourceVersionId === sourceVersionId && source.state === 'SELECTED',
+    ));
     const versions = await tx.courseBasisDocumentVersion.findMany({
       where: {
         id: { in: sourceVersionIds },
         reviewState: 'CONFIRMED',
-        retiredAt: null,
+        OR: [
+          { retiredAt: null },
+          { id: { in: retainedRetiredVersionIds } },
+        ],
         document: { courseBasisId: basis.id, courseBasis: { ownerId: task.ownerId } },
       },
       select: { id: true },
@@ -344,6 +353,7 @@ export async function updateSmartLessonTask(db: SmartLessonDb, input: UpdateSmar
       tx as unknown as SmartLessonDb,
       task.ownerId,
       sourceVersionIds,
+      retainedRetiredVersionIds,
       [
         ...input.knowledgePoints.map((item) => ({
           content: item.title ?? item.content,
@@ -540,7 +550,12 @@ export async function updateSmartLessonTask(db: SmartLessonDb, input: UpdateSmar
       },
     });
     return updatedTask;
-    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+  };
+  try {
+    if ('$transaction' in db) {
+      return await db.$transaction(update, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+    }
+    return await update(db);
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2034') {
       throw new SmartLessonPlanError('task-revision-conflict', 409);
@@ -744,21 +759,31 @@ export async function updatePausedGenerationOutline(db: SmartLessonDb, input: {
 }) {
   const actor = validateActor(input.actor);
   const output = smartLessonOutlineOutputSchema.parse(input.output);
-  const job = await db.smartLessonGenerationJob.findFirst({
-    where: ownedWhere(actor, { id: validateId(input.jobId) }),
-    include: {
-      stages: { where: { kind: 'OUTLINE' }, take: 1 },
-      draft: { select: { task: { select: { durationMinutes: true, aggregateClassContextRef: true } } } },
-    },
-  });
-  if (!job) throw new SmartLessonPlanError('generation-job-not-found', 404);
-  if (job.state !== 'PAUSED' || job.stages[0]?.state !== 'COMPLETED') {
-    throw new SmartLessonPlanError('paused-outline-required', 409);
-  }
-  assertOutlineMatchesTask(output, job.draft.task.durationMinutes, job.draft.task.aggregateClassContextRef);
-  return db.smartLessonGenerationStage.update({
-    where: { id: job.stages[0].id },
-    data: { output: asJson(output), outputHash: contentHash(output), updatedAt: new Date() },
+  return db.$transaction(async (tx) => {
+    const job = await tx.smartLessonGenerationJob.findFirst({
+      where: ownedWhere(actor, { id: validateId(input.jobId) }),
+      include: {
+        stages: { where: { kind: 'OUTLINE' }, take: 1 },
+        draft: { select: { task: { select: { durationMinutes: true, aggregateClassContextRef: true } } } },
+      },
+    });
+    if (!job) throw new SmartLessonPlanError('generation-job-not-found', 404);
+    const outline = job.stages[0];
+    if (job.state !== 'PAUSED' || outline?.state !== 'COMPLETED') {
+      throw new SmartLessonPlanError('paused-outline-required', 409);
+    }
+    assertOutlineMatchesTask(output, job.draft.task.durationMinutes, job.draft.task.aggregateClassContextRef);
+    const updated = await tx.smartLessonGenerationStage.updateMany({
+      where: {
+        id: outline.id,
+        state: 'COMPLETED',
+        outputHash: outline.outputHash,
+        job: { id: job.id, state: 'PAUSED' },
+      },
+      data: { output: asJson(output), outputHash: contentHash(output), updatedAt: new Date() },
+    });
+    if (updated.count !== 1) throw new SmartLessonPlanError('paused-outline-conflict', 409);
+    return tx.smartLessonGenerationStage.findUniqueOrThrow({ where: { id: outline.id } });
   });
 }
 
@@ -1554,6 +1579,7 @@ async function resolveSourcePackVerifiedBindingKeys(
   db: SmartLessonDb,
   ownerId: string,
   sourceVersionIds: string[],
+  explicitRetiredVersionIds: string[],
   items: Array<{ content: string; bindings: SmartLessonSourceBinding[] }>,
 ) {
   const result = new Map<string, ReadonlySet<string>>();
@@ -1567,11 +1593,13 @@ async function resolveSourcePackVerifiedBindingKeys(
       const sar = await buildCourseBasisLessonDesignSar(db, {
         actor,
         selectedVersionIds: sourceVersionIds,
+        explicitRetiredVersionIds,
         query: content,
       });
       const sourcePack = await buildCourseBasisLessonDesignSourcePack(db, {
         actor,
         selectedVersionIds: sourceVersionIds,
+        explicitRetiredVersionIds,
         sar,
         retrieval: { query: content, topK: 8 },
       });

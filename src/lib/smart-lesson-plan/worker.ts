@@ -199,10 +199,16 @@ async function buildStageRequest(db: WorkerDb, context: NonNullable<JobContext>,
   let sourcePack;
   try {
     const actor = { id: context.ownerId, role: 'TEACHER' as const };
-    const sar = await buildCourseBasisLessonDesignSar(db, { actor, selectedVersionIds, query });
+    const sar = await buildCourseBasisLessonDesignSar(db, {
+      actor,
+      selectedVersionIds,
+      explicitRetiredVersionIds: selectedVersionIds,
+      query,
+    });
     sourcePack = await buildCourseBasisLessonDesignSourcePack(db, {
       actor,
       selectedVersionIds,
+      explicitRetiredVersionIds: selectedVersionIds,
       sar,
       retrieval: { query, topK: 8 },
     });
@@ -341,15 +347,23 @@ async function markPreProviderFailure(
   const retryable = isRetryableStageError(error);
   const state = retryable ? 'RETRYABLE' as const : 'FAILED' as const;
   await db.$transaction(async (tx) => {
+    const transitioned = await tx.smartLessonGenerationJob.updateMany({
+      where: {
+        id: context.id,
+        state: { in: ['QUEUED', 'RUNNING'] },
+        activeIdentity: `draft:${context.draftId}`,
+      },
+      data: { state, failureCode: errorCode(error), firstIncompleteStage: stage },
+    });
+    if (transitioned.count !== 1) return;
     await tx.smartLessonGenerationStage.updateMany({
       where: { jobId: context.id, kind: stage, state: { in: ['PENDING', 'RETRYABLE'] } },
       data: { state, claimToken: null, claimExpiresAt: null },
     });
-    await tx.smartLessonGenerationJob.updateMany({
-      where: { id: context.id, state: { in: ['QUEUED', 'RUNNING'] } },
-      data: { state, failureCode: errorCode(error), firstIncompleteStage: stage },
+    await tx.smartLessonDraft.updateMany({
+      where: { id: context.draftId, state: 'GENERATING' },
+      data: { state: 'EDITABLE' },
     });
-    await tx.smartLessonDraft.update({ where: { id: context.draftId }, data: { state: 'EDITABLE' } });
   });
   return state;
 }

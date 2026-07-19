@@ -394,6 +394,35 @@ describe('smart lesson aggregate service', () => {
     expect(update).toMatchObject({ sourceState: 'VERIFIED', gapIdentity: null });
   });
 
+  it('retains a selected source version that retired after the task selected it', async () => {
+    const fixture = taskRevisionFixture();
+
+    await expect(updateSmartLessonTask(fixture.db as never, taskRevisionInput()))
+      .resolves.toMatchObject({ id: 'task-1', revision: 3 });
+    expect(fixture.tx.courseBasisDocumentVersion.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        id: { in: ['version-1'] },
+        reviewState: 'CONFIRMED',
+        OR: [{ retiredAt: null }, { id: { in: ['version-1'] } }],
+      }),
+    }));
+  });
+
+  it('rejects adding a retired source version that the task had not selected', async () => {
+    const fixture = taskRevisionFixture();
+    fixture.tx.courseBasisDocumentVersion.findMany.mockResolvedValueOnce([]);
+    const input = { ...taskRevisionInput(), sourceVersionIds: ['version-retired'] };
+
+    await expect(updateSmartLessonTask(fixture.db as never, input))
+      .rejects.toMatchObject({ code: 'source-version-ineligible' });
+    expect(fixture.tx.courseBasisDocumentVersion.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        id: { in: ['version-retired'] },
+        OR: [{ retiredAt: null }, { id: { in: [] } }],
+      }),
+    }));
+  });
+
   it.each(['FAILED', 'CANCELLED', 'COMPLETED'] as const)(
     'supersedes a %s generation job when the task revision changes',
     async (state) => {
@@ -606,13 +635,17 @@ describe('smart lesson aggregate service', () => {
         ['参与', 'participatoryLearning'], ['后测', 'postAssessment'], ['总结', 'summary'],
       ].map(([title, bopppsStage]) => ({ title, bopppsStage, minutes: 5 })),
     };
-    const db = {
+    const tx = {
       smartLessonGenerationJob: { findFirst: vi.fn(async () => ({
         id: 'job-1', state: 'PAUSED', draft: { task: { durationMinutes: 30, aggregateClassContextRef: null } },
-        stages: [{ id: 'outline-1', state: 'COMPLETED' }],
+        stages: [{ id: 'outline-1', state: 'COMPLETED', outputHash: 'old-outline-hash' }],
       })) },
-      smartLessonGenerationStage: { update: vi.fn(async () => ({})) },
+      smartLessonGenerationStage: {
+        updateMany: vi.fn(async () => ({ count: 0 })),
+        findUniqueOrThrow: vi.fn(async () => ({})),
+      },
     };
+    const db = { $transaction: vi.fn(async (run) => run(tx)) };
     const duplicate = structuredClone(outline);
     duplicate.coursewareStepOutline[5].bopppsStage = 'bridgeIn';
     await expect(updatePausedGenerationOutline(db as never, { actor: teacher, jobId: 'job-1', output: duplicate }))
@@ -627,6 +660,45 @@ describe('smart lesson aggregate service', () => {
     };
     await expect(updatePausedGenerationOutline(db as never, { actor: teacher, jobId: 'job-1', output: forgedContext }))
       .rejects.toMatchObject({ code: 'aggregate-context-ref-changed' });
+    await expect(updatePausedGenerationOutline(db as never, { actor: teacher, jobId: 'job-1', output: outline }))
+      .rejects.toMatchObject({ code: 'paused-outline-conflict' });
+    expect(tx.smartLessonGenerationStage.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        id: 'outline-1', state: 'COMPLETED', outputHash: 'old-outline-hash',
+        job: { id: 'job-1', state: 'PAUSED' },
+      },
+    }));
+  });
+
+  it('updates a paused outline through the job-state and old-hash CAS', async () => {
+    const outline = {
+      keyContent: ['稳定性'], difficultContent: [], limitations: [], classAdaptation: null,
+      coursewareStepOutline: [
+        ['导入', 'bridgeIn'], ['目标', 'objectives'], ['前测', 'preAssessment'],
+        ['参与', 'participatoryLearning'], ['后测', 'postAssessment'], ['总结', 'summary'],
+      ].map(([title, bopppsStage]) => ({ title, bopppsStage, minutes: 5 })),
+    };
+    const persisted = { id: 'outline-1', state: 'COMPLETED', outputHash: contentHash(outline) };
+    const tx = {
+      smartLessonGenerationJob: { findFirst: vi.fn(async () => ({
+        id: 'job-1', state: 'PAUSED', draft: { task: { durationMinutes: 30, aggregateClassContextRef: null } },
+        stages: [{ id: 'outline-1', state: 'COMPLETED', outputHash: 'old-outline-hash' }],
+      })) },
+      smartLessonGenerationStage: {
+        updateMany: vi.fn(async () => ({ count: 1 })),
+        findUniqueOrThrow: vi.fn(async () => persisted),
+      },
+    };
+    const db = { $transaction: vi.fn(async (run) => run(tx)) };
+
+    await expect(updatePausedGenerationOutline(db as never, { actor: teacher, jobId: 'job-1', output: outline }))
+      .resolves.toBe(persisted);
+    expect(tx.smartLessonGenerationStage.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        id: 'outline-1', state: 'COMPLETED', outputHash: 'old-outline-hash', job: { id: 'job-1', state: 'PAUSED' },
+      }),
+      data: expect.objectContaining({ outputHash: contentHash(outline) }),
+    }));
   });
 
   it('starts one durable seven-stage job and replays the same command without duplicate creation', async () => {

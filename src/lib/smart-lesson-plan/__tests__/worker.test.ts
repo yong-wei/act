@@ -40,11 +40,11 @@ const sourcePackItem = {
   },
 };
 
-function persistenceDb(context: object) {
+function persistenceDb(context: object, transitionedCount = 1) {
   const tx = {
     smartLessonGenerationStage: { updateMany: vi.fn(async () => ({ count: 1 })) },
-    smartLessonGenerationJob: { updateMany: vi.fn(async () => ({ count: 1 })) },
-    smartLessonDraft: { update: vi.fn(async () => ({})) },
+    smartLessonGenerationJob: { updateMany: vi.fn(async () => ({ count: transitionedCount })) },
+    smartLessonDraft: { updateMany: vi.fn(async () => ({ count: 1 })) },
   };
   return {
     db: {
@@ -93,9 +93,10 @@ describe('smart lesson BullMQ worker', () => {
     })) as never)).resolves.toEqual({ jobId: 'job-1', state: 'PAUSED' });
     expect(serviceMocks.begin).toHaveBeenCalledBefore(generate);
     expect(sourcePackMocks.sar).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
-      selectedVersionIds: ['version-1'], query: '稳定性',
+      selectedVersionIds: ['version-1'], explicitRetiredVersionIds: ['version-1'], query: '稳定性',
     }));
     expect(sourcePackMocks.pack).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      explicitRetiredVersionIds: ['version-1'],
       retrieval: { query: '稳定性', topK: 8 },
     }));
     expect(generate).toHaveBeenCalledWith(expect.objectContaining({
@@ -198,12 +199,13 @@ describe('smart lesson BullMQ worker', () => {
       data: expect.objectContaining({ state: 'FAILED' }),
     }));
     expect(tx.smartLessonGenerationJob.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ activeIdentity: 'draft:draft-1' }),
       data: expect.objectContaining({
         state: 'FAILED', failureCode: 'governed-source-evidence-unavailable', firstIncompleteStage: 'OUTLINE',
       }),
     }));
-    expect(tx.smartLessonDraft.update).toHaveBeenCalledWith({
-      where: { id: 'draft-1' }, data: { state: 'EDITABLE' },
+    expect(tx.smartLessonDraft.updateMany).toHaveBeenCalledWith({
+      where: { id: 'draft-1', state: 'GENERATING' }, data: { state: 'EDITABLE' },
     });
     expect(serviceMocks.begin).not.toHaveBeenCalled();
   });
@@ -231,8 +233,32 @@ describe('smart lesson BullMQ worker', () => {
     expect(tx.smartLessonGenerationJob.updateMany).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({ state: 'RETRYABLE', firstIncompleteStage: 'OUTLINE' }),
     }));
-    expect(tx.smartLessonDraft.update).toHaveBeenCalledWith({
-      where: { id: 'draft-1' }, data: { state: 'EDITABLE' },
+    expect(tx.smartLessonDraft.updateMany).toHaveBeenCalledWith({
+      where: { id: 'draft-1', state: 'GENERATING' }, data: { state: 'EDITABLE' },
     });
+  });
+
+  it('does not let a stale worker unlock a draft owned by a newer job', async () => {
+    const context = {
+      id: 'job-old', ownerId: 'teacher-1', draftId: 'draft-1', state: 'QUEUED', firstIncompleteStage: 'OUTLINE',
+      stages: [{ id: 'stage-old', kind: 'OUTLINE', orderIndex: 0, state: 'PENDING', output: null }],
+      draft: { task: {
+        courseBasis: { title: '自动控制原理' }, topic: '稳定性', audience: '本科生', prerequisites: '', durationMinutes: 30,
+        aggregateClassContext: null, aggregateClassContextRef: null,
+        sources: [{ sourceVersionId: 'version-1' }], knowledgePoints: [], goals: [],
+      } },
+    };
+    sourcePackMocks.pack.mockResolvedValue({ retrieval: { pack: { items: [] } } });
+    const { db, tx } = persistenceDb(context, 0);
+
+    await processSmartLessonGenerationJob(db as never, 'job-old', vi.fn(async () => ({
+      serviceId: 'provider-1', providerKind: 'openai-compatible', model: 'model-1', generate: vi.fn(),
+    })) as never);
+
+    expect(tx.smartLessonGenerationJob.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ id: 'job-old', activeIdentity: 'draft:draft-1' }),
+    }));
+    expect(tx.smartLessonGenerationStage.updateMany).not.toHaveBeenCalled();
+    expect(tx.smartLessonDraft.updateMany).not.toHaveBeenCalled();
   });
 });
