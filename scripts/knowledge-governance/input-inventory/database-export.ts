@@ -96,9 +96,35 @@ const DISCRIMINATOR_FIELDS = new Set([
 const DIGEST = /^sha256:[0-9a-f]{64}$/u;
 const SAFE_CATEGORY = /^[\p{L}\p{N}_.:+@/\[\]$*-]{1,256}$/u;
 const CANONICAL_WATERMARK = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$/u;
+const PRIVATE_SUMMARY_TOKEN = /^(?:userid|answer|answers|payload|eventpayload|eventspayload|row|rows|rawrowdigest|reversiblekey|description|reasoning|sourceinputdigest)$/iu;
+const SUMMARY_FIELD = '[A-Za-z_][A-Za-z0-9_]*';
+const SUMMARY_LOCATOR = new RegExp(`^${SUMMARY_FIELD}$|^(?:field|path):${SUMMARY_FIELD}$|^(?:version|discriminator|root_type|version_presence|legacy_shape):${SUMMARY_FIELD}:\\$.*$`, 'u');
 
 function exactSha256(bytes: Buffer): string {
   return `sha256:${createHash('sha256').update(bytes).digest('hex')}`;
+}
+
+export async function currentDatabaseExportAuthority(root: string, registryPath: string): Promise<{ registryDigest: string; exporterDigest: string }> {
+  return {
+    registryDigest: exactSha256(await readFile(path.join(root, registryPath))),
+    exporterDigest: exactSha256(await readFile(fileURLToPath(import.meta.url))),
+  };
+}
+
+export function assertPublicSummaryLocator(locator: string, context: string): void {
+  if (!SUMMARY_LOCATOR.test(locator)) throw new Error(`unknown summary locator rejected: ${context}.${locator}`);
+  assertNoPrivateSummaryToken(locator, context);
+}
+
+export function assertNoPrivateSummaryToken(value: string, context: string): void {
+  const tokens = value
+    .replace(/([a-z0-9])([A-Z])/gu, '$1 $2')
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter(Boolean)
+    .map((token) => token.toLowerCase());
+  const compact = tokens.join('');
+  const locatorPayload = tokens.length > 1 && ['field', 'path', 'version', 'discriminator', 'root', 'root_type', 'version_presence', 'legacy_shape'].includes(tokens[0]!) ? tokens.slice(1).join('') : compact;
+  if (tokens.some((token) => PRIVATE_SUMMARY_TOKEN.test(token)) || PRIVATE_SUMMARY_TOKEN.test(compact) || PRIVATE_SUMMARY_TOKEN.test(locatorPayload)) throw new Error(`private summary field rejected: ${context}.${value}`);
 }
 
 function quoteIdentifier(value: string): string {
@@ -436,9 +462,10 @@ export function assertAggregateExportShape(exported: AggregateDatabaseExport): v
       if (dataset.watermark !== latestWatermark(dataset.watermarks)) throw new Error(`aggregate database export watermark compatibility mismatch: ${dataset.table}`);
     } else if (dataset.watermark !== null && !Number.isFinite(Date.parse(dataset.watermark))) throw new Error(`invalid dataset watermark: ${dataset.table}`);
     for (const collection of [dataset.version_summaries, dataset.discriminator_summaries, dataset.historical_shape_summaries, dataset.json_observation_summaries ?? {}]) for (const [field, summary] of Object.entries(collection)) {
-      if (/^(?:userId|user_id|answer|answers|payload|event_payload|events_payload|row|rows|description|reasoning|sourceInputDigest)$/iu.test(field)) throw new Error(`private summary field rejected: ${dataset.table}.${field}`);
+      assertPublicSummaryLocator(field, dataset.table);
       for (const [category, count] of Object.entries(summary)) {
         if (category === '__suppressed__') { if (count !== 'suppressed') throw new Error(`invalid suppression marker: ${dataset.table}.${field}`); continue; }
+        assertNoPrivateSummaryToken(category, `${dataset.table}.${field}`);
         if (!SAFE_CATEGORY.test(category) && category !== '__null__' && category !== '__non_public_category__') throw new Error(`unsafe summary category: ${dataset.table}.${field}`);
         if (count !== 'suppressed' && (!Number.isSafeInteger(count) || count < MIN_GROUP_SIZE)) throw new Error(`unsuppressed small cell rejected: ${dataset.table}.${field}`);
       }
@@ -459,15 +486,18 @@ export async function exportAggregateDatabase(options: ExportOptions): Promise<{
     && outputTarget.device === proofTarget.device && outputTarget.inode === proofTarget.inode;
   if (outputTarget.resolvedPath === proofTarget.resolvedPath || sameInode) throw new Error('database export and proof paths must differ');
   if (outputTarget.exists || proofTarget.exists) throw new Error('database export artifacts already exist; overwrite is forbidden');
-  await mkdir(path.dirname(options.outputPath), { recursive: true });
-  await mkdir(path.dirname(options.proofPath), { recursive: true });
-
   const registry = await loadRegistry(options.root, options.registryPath);
   const contracts = contractsFromRegistry(registry);
   const fixtureFile = JSON.parse(await readFile(path.join(options.root, 'scripts/knowledge-governance/input-inventory/fixtures/synthetic-history-payload-shapes.json'), 'utf8')) as { fixtures: ShapeFixture[] };
   const jsonObservations = compileJsonObservationContracts(registry, fixtureFile.fixtures);
   if (jsonObservations.drift.length > 0) throw new Error(`invalid database JSON observation contracts: ${jsonObservations.drift.map((item) => item.code).join(', ')}`);
   if (contracts.length !== 37) throw new Error(`declared database table count mismatch: expected 37, observed ${contracts.length}`);
+  for (const contract of contracts) {
+    for (const field of [...contract.versionFields, ...contract.discriminatorFields, ...contract.jsonFields]) assertPublicSummaryLocator(`field:${field}`, contract.table);
+  }
+  for (const contract of jsonObservations.contracts) {
+    assertPublicSummaryLocator(contract.summary === 'path' ? `path:${contract.field}` : jsonSummaryKey(contract), contract.table);
+  }
   const registryBytes = await readFile(path.join(options.root, options.registryPath));
   const exporterBytes = await readFile(fileURLToPath(import.meta.url));
   const prismaModels = new Map(Prisma.dmmf.datamodel.models.map((model) => [model.name, model]));
@@ -476,6 +506,8 @@ export async function exportAggregateDatabase(options: ExportOptions): Promise<{
     if (!model) throw new Error(`declared database model missing from Prisma DMMF: ${contract.table}`);
     for (const field of contract.fields) if (!model.fields.some((candidate) => candidate.name === field)) throw new Error(`declared database field missing from Prisma DMMF: ${contract.table}.${field}`);
   }
+  await mkdir(path.dirname(options.outputPath), { recursive: true });
+  await mkdir(path.dirname(options.proofPath), { recursive: true });
   const client = new Client({ connectionString: options.databaseUrl, application_name: 'course-knowledge-aggregate-exporter' });
   await client.connect();
   let began = false;

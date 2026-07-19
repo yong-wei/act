@@ -1,13 +1,12 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { canonicalJson, sortUnique, taggedDigest } from './normalize';
-import { assertAggregateExportShape, DATABASE_PROOF_FORMAT, deriveProof, type AggregateDatabaseExport, type AggregateExportProof } from './database-export';
+import { assertAggregateExportShape, assertNoPrivateSummaryToken, DATABASE_PROOF_FORMAT, deriveProof, type AggregateDatabaseExport, type AggregateExportProof } from './database-export';
 import type { DatabaseDataset, DatabaseSnapshot, Drift, Json, SnapshotProof } from './types';
 import type { Registry } from './registry';
 import { compileDatabaseObservationContracts, compileJsonObservationContracts, type DatabaseSummaryKind, type JsonObservationKind } from './database-observation';
 import type { ShapeFixture } from './decoder-validation';
 
-const PROHIBITED = /^(userId|user_id|answer|answers|description|reasoning|payload|row|rows|raw_row_digest|reversible_key|sourceInputDigest)$/iu;
 const PROOF_KEYS = ['export_digest', 'export_object_id', 'exported_snapshot_token', 'exporter_digest', 'generated_at', 'migration_head', 'profile', 'proof_digest', 'proof_format', 'query_plan_digest', 'registry_digest', 'schema_digest', 'shared_snapshot_import_count', 'source_identity_digest', 'transaction_isolation', 'transaction_read_only', 'transaction_started_at'];
 const EXPORT_KEYS = ['captured_at', 'datasets', 'declared_table_count', 'exported_snapshot_token', 'exporter_digest', 'format_version', 'migration_head', 'postgres_version', 'query_plan_digest', 'registry_digest', 'schema_digest', 'schema_name', 'source_identity_digest', 'transaction_isolation', 'transaction_read_only', 'transaction_started_at'];
 const DATASET_KEYS = ['count', 'discriminator_summaries', 'historical_shape_summaries', 'id', 'json_observation_summaries', 'shape', 'table', 'version_summaries', 'versions', 'watermark', 'watermarks'];
@@ -16,7 +15,8 @@ const LEGACY_DATASET_KEYS = DATASET_KEYS.filter((key) => key !== 'json_observati
 function rejectRowContent(value: Json, pointer = ''): void {
   if (Array.isArray(value)) value.forEach((item, index) => rejectRowContent(item, `${pointer}/${index}`));
   else if (value && typeof value === 'object') for (const [key, child] of Object.entries(value)) {
-    if (PROHIBITED.test(key)) throw new Error(`learner row content rejected at ${pointer}/${key}`);
+    try { assertNoPrivateSummaryToken(key, pointer || 'export'); }
+    catch { throw new Error(`learner row content rejected at ${pointer}/${key}`); }
     rejectRowContent(child, `${pointer}/${key}`);
   }
 }
@@ -26,7 +26,13 @@ function exactKeys(value: object, expected: string[], context: string): void {
   if (observed.length !== expected.length || observed.some((key, index) => key !== expected[index])) throw new Error(`${context} contains caller-authored or missing fields`);
 }
 
-export async function loadImmutableExport(root: string, relativePath: string, proofPath: string, _drift: Drift[]): Promise<DatabaseSnapshot> {
+export async function loadImmutableExport(
+  root: string,
+  relativePath: string,
+  proofPath: string,
+  _drift: Drift[],
+  authority: { registryDigest: string; exporterDigest: string },
+): Promise<DatabaseSnapshot> {
   const exportFile = path.isAbsolute(relativePath) ? relativePath : path.join(root, relativePath);
   const proofFile = path.isAbsolute(proofPath) ? proofPath : path.join(root, proofPath);
   const bytes = await readFile(exportFile);
@@ -40,6 +46,8 @@ export async function loadImmutableExport(root: string, relativePath: string, pr
   });
   if (!Buffer.from(canonicalJson(parsed as unknown as Json), 'utf8').equals(bytes)) throw new Error('aggregate database export is not canonical JSON');
   assertAggregateExportShape(parsed);
+  if (parsed.registry_digest !== authority.registryDigest) throw new Error('aggregate database export registry authority mismatch');
+  if (parsed.exporter_digest !== authority.exporterDigest) throw new Error('aggregate database export implementation authority mismatch');
   const proof = JSON.parse(await readFile(proofFile, 'utf8')) as AggregateExportProof;
   rejectRowContent(proof as unknown as Json);
   exactKeys(proof, PROOF_KEYS, 'aggregate database export proof');

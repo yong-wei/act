@@ -6,7 +6,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { canonicalJson, compareCodePoints, normalizePath, normalizeText, taggedDigest } from '../normalize';
 import { loadImmutableExport, validateDatabaseClosure } from '../database-snapshot';
-import { contractsFromRegistry, DATABASE_EXPORT_FORMAT, deriveProof, exportAggregateDatabase, latestWatermark, type AggregateDatabaseExport, type AggregateDatasetExport } from '../database-export';
+import { assertAggregateExportShape, contractsFromRegistry, DATABASE_EXPORT_FORMAT, deriveProof, exportAggregateDatabase, latestWatermark, type AggregateDatabaseExport, type AggregateDatasetExport } from '../database-export';
 import { discoverWriters, discoverWritersInSource } from '../writer-discovery';
 import { validateOutputPrivacy } from '../schema-validation';
 import { sourceFingerprints } from '../manifest';
@@ -19,6 +19,7 @@ import { compileDatabaseObservationContracts, compileJsonObservationContracts } 
 
 const root = path.resolve(import.meta.dirname, '../../../..');
 const digest = `sha256:${'0'.repeat(64)}`;
+const authority = { registryDigest: digest, exporterDigest: digest };
 
 function aggregateExport(datasets: AggregateDatasetExport[]): AggregateDatabaseExport {
   return {
@@ -203,13 +204,32 @@ describe('immutable database privacy boundary', () => {
     } finally { await rm(directory, { recursive: true }); }
   });
 
+  it('writes no artifact when the registry requests a private nested payload summary', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-private-summary-block-'));
+    const artifactParent = path.join(directory, 'not-created');
+    const outputPath = path.join(artifactParent, 'export.json');
+    const proofPath = path.join(artifactParent, 'proof.json');
+    try {
+      await expect(exportAggregateDatabase({
+        root,
+        registryPath: 'docs/proposals/course-knowledge-base-governance-source-registry.yaml',
+        databaseUrl: 'postgresql://must-not-connect',
+        outputPath,
+        proofPath,
+      })).rejects.toThrow(/private summary field/u);
+      expect(existsSync(outputPath)).toBe(false);
+      expect(existsSync(proofPath)).toBe(false);
+      expect(existsSync(artifactParent)).toBe(false);
+    } finally { await rm(directory, { recursive: true }); }
+  });
+
   it('derives snapshot id from proof and accepts only already-suppressed 1-4 person cells', async () => {
     const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-export-'));
     try {
       const datasets: AggregateDatasetExport[] = [{ id: 'learner', table: 'Snapshot', count: 9, watermark: '2026-01-01T00:00:00.000000Z', watermarks: { watermark: '2026-01-01T00:00:00.000000Z' }, shape: ['version', 'watermark'], versions: ['v1'], version_summaries: { version: { v1: 5, __suppressed__: 'suppressed' } }, discriminator_summaries: {}, historical_shape_summaries: {}, json_observation_summaries: {} }];
       await writeAggregateExport(directory, aggregateExport(datasets));
       const drift: never[] = [];
-      const snapshot = await loadImmutableExport(directory, 'export.json', 'proof.json', drift);
+      const snapshot = await loadImmutableExport(directory, 'export.json', 'proof.json', drift, authority);
       expect(snapshot.snapshot_id).toMatch(/^sha256:/u);
       expect(snapshot.datasets[0]!.version_summaries).toEqual({ version: { v1: 5, __suppressed__: 'suppressed' } });
       expect(drift).toEqual([]);
@@ -222,7 +242,7 @@ describe('immutable database privacy boundary', () => {
       const enhanced: AggregateDatasetExport = { id: 'legacy', table: 'Snapshot', count: 0, watermark: null, watermarks: {}, shape: [], versions: [], version_summaries: {}, discriminator_summaries: {}, historical_shape_summaries: {}, json_observation_summaries: {} };
       const { watermarks: _watermarks, json_observation_summaries: _json, ...legacy } = enhanced;
       await writeAggregateExport(directory, aggregateExport([legacy]));
-      const snapshot = await loadImmutableExport(directory, 'export.json', 'proof.json', []);
+      const snapshot = await loadImmutableExport(directory, 'export.json', 'proof.json', [], authority);
       expect(snapshot.datasets[0]).toMatchObject({ watermarks: {}, json_observation_summaries: {} });
     } finally { await rm(directory, { recursive: true }); }
   });
@@ -240,8 +260,8 @@ describe('immutable database privacy boundary', () => {
       await writeFile(path.join(directory, 'proof.json'), canonicalJson({ ...proof, export_object_id: digest } as unknown as Json));
       await writeFile(path.join(directory, 'embedded.json'), canonicalJson({ ...exported, proof } as unknown as Json));
       await writeFile(path.join(directory, 'export.json'), bytes);
-      await expect(loadImmutableExport(directory, 'embedded.json', 'proof.json', [])).rejects.toThrow(/embedded/u);
-      await expect(loadImmutableExport(directory, 'export.json', 'proof.json', [])).rejects.toThrow(/proof digest or closure mismatch/u);
+      await expect(loadImmutableExport(directory, 'embedded.json', 'proof.json', [], authority)).rejects.toThrow(/embedded/u);
+      await expect(loadImmutableExport(directory, 'export.json', 'proof.json', [], authority)).rejects.toThrow(/proof digest or closure mismatch/u);
     } finally { await rm(directory, { recursive: true }); }
   });
 
@@ -250,20 +270,46 @@ describe('immutable database privacy boundary', () => {
     try {
       const baseDataset: AggregateDatasetExport = { id: 'learner', table: 'Snapshot', count: 4, watermark: null, watermarks: {}, shape: ['version'], versions: [], version_summaries: { version: { v1: 4 } }, discriminator_summaries: {}, historical_shape_summaries: {}, json_observation_summaries: {} };
       await writeAggregateExport(directory, aggregateExport([baseDataset]));
-      await expect(loadImmutableExport(directory, 'export.json', 'proof.json', [])).rejects.toThrow(/unsuppressed small cell/u);
+      await expect(loadImmutableExport(directory, 'export.json', 'proof.json', [], authority)).rejects.toThrow(/unsuppressed small cell/u);
 
       const privateExport = { ...aggregateExport([{ ...baseDataset, version_summaries: { version: { __suppressed__: 'suppressed' } } }]), userId: 'private-user' };
       const privateBytes = Buffer.from(canonicalJson(privateExport as unknown as Json));
       await writeFile(path.join(directory, 'private.json'), privateBytes);
       await writeFile(path.join(directory, 'private-proof.json'), canonicalJson(deriveProof(privateExport, privateBytes) as unknown as Json));
-      await expect(loadImmutableExport(directory, 'private.json', 'private-proof.json', [])).rejects.toThrow(/learner row content/u);
+      await expect(loadImmutableExport(directory, 'private.json', 'private-proof.json', [], authority)).rejects.toThrow(/learner row content/u);
+
+      const prefixedPrivate = aggregateExport([{ ...baseDataset, version_summaries: { 'field:userId': { value: 5 } } }]);
+      const prefixedBytes = Buffer.from(canonicalJson(prefixedPrivate as unknown as Json));
+      await writeFile(path.join(directory, 'prefixed-private.json'), prefixedBytes);
+      await writeFile(path.join(directory, 'prefixed-private-proof.json'), canonicalJson(deriveProof(prefixedPrivate, prefixedBytes) as unknown as Json));
+      await expect(loadImmutableExport(directory, 'prefixed-private.json', 'prefixed-private-proof.json', [], authority)).rejects.toThrow(/learner row content/u);
+      expect(() => assertAggregateExportShape(prefixedPrivate)).toThrow(/private summary field/u);
+
+      for (const locator of ['field-userId', 'field_user_id', 'field:payload.reasoning']) {
+        const malformed = aggregateExport([{ ...baseDataset, version_summaries: { [locator]: { value: 5 } } }]);
+        expect(() => assertAggregateExportShape(malformed)).toThrow(/summary (?:locator|field)/u);
+      }
 
       const safeExport = aggregateExport([]);
       const safeBytes = Buffer.from(canonicalJson(safeExport as unknown as Json));
       const freeLabelProof = { ...deriveProof(safeExport, safeBytes), label: 'trusted-by-caller' };
       await writeFile(path.join(directory, 'safe.json'), safeBytes);
       await writeFile(path.join(directory, 'free-label-proof.json'), canonicalJson(freeLabelProof as unknown as Json));
-      await expect(loadImmutableExport(directory, 'safe.json', 'free-label-proof.json', [])).rejects.toThrow(/caller-authored/u);
+      await expect(loadImmutableExport(directory, 'safe.json', 'free-label-proof.json', [], authority)).rejects.toThrow(/caller-authored/u);
+    } finally { await rm(directory, { recursive: true }); }
+  });
+
+  it.each([
+    ['registry', { registry_digest: `sha256:${'1'.repeat(64)}` }, /registry authority mismatch/u],
+    ['exporter', { exporter_digest: `sha256:${'1'.repeat(64)}` }, /implementation authority mismatch/u],
+  ])('rejects a self-consistent proof from an old %s authority', async (_label, replacement, expected) => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-old-authority-'));
+    try {
+      const exported = { ...aggregateExport([]), ...replacement };
+      const bytes = Buffer.from(canonicalJson(exported as unknown as Json));
+      await writeFile(path.join(directory, 'export.json'), bytes);
+      await writeFile(path.join(directory, 'proof.json'), canonicalJson(deriveProof(exported, bytes) as unknown as Json));
+      await expect(loadImmutableExport(directory, 'export.json', 'proof.json', [], authority)).rejects.toThrow(expected);
     } finally { await rm(directory, { recursive: true }); }
   });
 
@@ -271,7 +317,7 @@ describe('immutable database privacy boundary', () => {
     expect(validateOutputPrivacy({ nested: { [key]: 'forbidden' } } as Json)).toEqual([expect.objectContaining({ code: 'PROHIBITED_OUTPUT_FIELD' })]);
   });
 
-  it('proves the full declared database table/field closure from one immutable export', async () => {
+  it('blocks the declared database closure when a nested selector names a private payload field', async () => {
     const registry = await loadRegistry(root, 'docs/proposals/course-knowledge-base-governance-source-registry.yaml');
     const fixtureFile = JSON.parse(await readFile(path.join(root, 'scripts/knowledge-governance/input-inventory/fixtures/synthetic-history-payload-shapes.json'), 'utf8')) as { fixtures: ShapeFixture[] };
     const observations = compileDatabaseObservationContracts(registry);
@@ -302,9 +348,8 @@ describe('immutable database privacy boundary', () => {
     const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-full-export-'));
     try {
       await writeAggregateExport(directory, aggregateExport(datasets));
-      const drift: never[] = [];
-      const snapshot = await loadImmutableExport(directory, 'export.json', 'proof.json', drift);
-      expect(validateDatabaseClosure(snapshot, registry, fixtureFile.fixtures)).toEqual([]);
+      await expect(loadImmutableExport(directory, 'export.json', 'proof.json', [], authority)).rejects.toThrow(/learner row content/u);
+      expect(() => assertAggregateExportShape(aggregateExport(datasets))).toThrow(/private summary field/u);
     } finally { await rm(directory, { recursive: true }); }
   });
 

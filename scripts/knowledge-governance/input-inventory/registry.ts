@@ -28,6 +28,7 @@ export interface Registry {
   database_snapshot: Record<string, unknown>;
   database_sources: Array<Record<string, unknown>>;
   evidence_deduplication_contract: Record<string, unknown>;
+  knowledge_truth_revision_contract?: Record<string, unknown>;
   decoder_common_contract: Record<string, unknown>;
   decoder_contracts: Record<string, Record<string, unknown>>;
   field_decoders: Array<Record<string, unknown>>;

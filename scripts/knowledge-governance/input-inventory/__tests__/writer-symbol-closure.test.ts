@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { loadRegistry, type Registry } from '../registry';
-import { discoverWriters } from '../writer-discovery';
+import { discoverWriters, validateLearningFactProducerContracts, type WriterEvidence } from '../writer-discovery';
 
 function registry(include: string[]): Registry {
   return {
@@ -25,6 +25,133 @@ async function put(root: string, file: string, text: string): Promise<void> {
 }
 
 describe('symbol-level writer and producer closure', () => {
+  it.each([
+    ['qualified', "await db.$transaction(async (tx: any) => { const activeKnowledgeRevision = await resolveActiveKnowledgeRevision(tx); const sourceEventId = `arena-official:${id}`; await tx.learningFact.create({ data: { sourceEventId, contextJson: { knowledgeRevisionRef: activeKnowledgeRevision.id } } }); });", []],
+    ['same revision on declared paths', "await db.$transaction(async (tx: any) => { const activeKnowledgeRevision = await resolveActiveKnowledgeRevision(tx); await tx.learningFact.create({ data: { sourceEventId: `arena-official:${id}`, contextJson: { knowledgeRevisionRef: activeKnowledgeRevision.id, evidenceGovernance: { knowledgeRevisionRef: activeKnowledgeRevision.id } } } }); });", []],
+    ['single-item revision array', "await db.$transaction(async (tx: any) => { const activeKnowledgeRevision = await resolveActiveKnowledgeRevision(tx); await tx.learningFact.create({ data: { sourceEventId: `arena-official:${id}`, contextJson: { knowledgeRevisionRefs: [activeKnowledgeRevision.id] } } }); });", []],
+    ['unnamespaced source', "await db.$transaction(async (tx: any) => { const activeKnowledgeRevision = await resolveActiveKnowledgeRevision(tx); await tx.learningFact.create({ data: { sourceEventId: id, contextJson: { knowledgeRevisionRef: activeKnowledgeRevision.id } } }); });", ['LEARNING_FACT_PRODUCER_SOURCE_NAMESPACE_UNRESOLVED']],
+    ['unknown prefix', "await db.$transaction(async (tx: any) => { const activeKnowledgeRevision = await resolveActiveKnowledgeRevision(tx); await tx.learningFact.create({ data: { sourceEventId: `evil:${id}`, contextJson: { knowledgeRevisionRef: activeKnowledgeRevision.id } } }); });", ['LEARNING_FACT_PRODUCER_SOURCE_NAMESPACE_UNRESOLVED']],
+    ['fake namespace helper', "function classifyLearningFactSource(value: string) { return `arena-official:${value}`; } await db.$transaction(async (tx: any) => { const activeKnowledgeRevision = await resolveActiveKnowledgeRevision(tx); await tx.learningFact.create({ data: { sourceEventId: classifyLearningFactSource(id), contextJson: { knowledgeRevisionRef: activeKnowledgeRevision.id } } }); });", ['LEARNING_FACT_PRODUCER_SOURCE_NAMESPACE_UNRESOLVED']],
+    ['missing source identity', "await db.$transaction(async (tx: any) => { const activeKnowledgeRevision = await resolveActiveKnowledgeRevision(tx); await tx.learningFact.create({ data: { contextJson: { knowledgeRevisionRef: activeKnowledgeRevision.id } } }); });", ['LEARNING_FACT_PRODUCER_SOURCE_ID_MISSING']],
+    ['nested source forgery', "await db.$transaction(async (tx: any) => { const activeKnowledgeRevision = await resolveActiveKnowledgeRevision(tx); await tx.learningFact.create({ data: { metadata: { sourceEventId: `arena-official:${id}` }, contextJson: { knowledgeRevisionRef: activeKnowledgeRevision.id } } }); });", ['LEARNING_FACT_PRODUCER_SOURCE_ID_MISSING']],
+    ['nested revision forgery', "await db.$transaction(async (tx: any) => { await tx.learningFact.create({ data: { sourceEventId: `arena-official:${id}`, metadata: { knowledgeRevisionRef: 'forged' } } }); });", ['LEARNING_FACT_PRODUCER_KNOWLEDGE_REVISION_MISSING']],
+    ['wrong callback client', "await db.$transaction(async (tx: any) => { const activeKnowledgeRevision = await resolveActiveKnowledgeRevision(tx); await db.learningFact.create({ data: { sourceEventId: `arena-official:${id}`, contextJson: { knowledgeRevisionRef: activeKnowledgeRevision.id } } }); });", ['LEARNING_FACT_PRODUCER_ACTIVE_REVISION_UNRESOLVED', 'LEARNING_FACT_PRODUCER_NON_ATOMIC']],
+    ['multiple revisions', "await db.$transaction(async (tx: any) => { const activeKnowledgeRevision = await resolveActiveKnowledgeRevision(tx); const sourceLogId = `interaction-log:${id}`; await tx.learningFact.create({ data: { sourceLogId, contextJson: { knowledgeRevisionRefs: [activeKnowledgeRevision.id, otherRevision] } } }); });", ['LEARNING_FACT_PRODUCER_MULTIPLE_REVISIONS_POSSIBLE']],
+  ])('validates LearningFact producer revision and source namespace contract: %s', async (_label, body, expectedCodes) => {
+    const root = await mkdtemp(path.join(os.tmpdir(), 'writer-producer-contract-'));
+    try {
+      await put(root, 'src/lib/data-governance/knowledge-truth-revision.ts', `export async function resolveActiveKnowledgeRevision(tx: any) { return { id: 'revision-1' }; }`);
+      await put(root, 'src/producer.ts', `import { resolveActiveKnowledgeRevision } from './lib/data-governance/knowledge-truth-revision'; export async function persist(db: any, id: string, otherRevision: string) { ${body} }`);
+      const evidence: WriterEvidence[] = [{
+        path: 'src/producer.ts', mutations: ['LearningFact.create'], dynamic_raw: false,
+        targets: [{ model: 'LearningFact', operation: 'create', nested_relation: null }], calls: [], imports: {},
+        call_paths: [{ symbols: ['src/producer.ts#persist', 'src/producer.ts#db.$transaction[callback:0]'], target: { model: 'LearningFact', operation: 'create', nested_relation: null } }],
+      }];
+      const sourceRegistry = { knowledge_truth_revision_contract: { producer_source_prefixes: ['arena-official', 'interaction-log'], learning_fact_fields: ['LearningFact.contextJson.knowledgeRevisionRef', 'LearningFact.contextJson.knowledgeRevisionRefs', 'LearningFact.contextJson.evidenceGovernance.knowledgeRevisionRef', 'LearningFact.contextJson.evidenceGovernance.knowledgeRevisionRefs'] } } as unknown as Registry;
+      const drift = await validateLearningFactProducerContracts(root, sourceRegistry, evidence);
+      expect(drift.map((item) => item.code)).toEqual(expectedCodes);
+    } finally { await rm(root, { recursive: true }); }
+  });
+
+  it('rejects comments, unrelated helpers, transaction-external revision resolution and raw inserts as producer proof', async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), 'writer-producer-bypass-'));
+    try {
+      await put(root, 'src/producer.ts', `
+        async function unused() { /* sourceEventId arena: knowledgeRevisionRef */ await resolveActiveKnowledgeRevision(db); return db.$transaction(() => 1); }
+        export async function persist(db: any, id: string) {
+          const active = await resolveActiveKnowledgeRevision(db);
+          return db.$transaction((tx: any) => tx.learningFact.create({ data: { sourceEventId: id, contextJson: { knowledgeRevisionRef: active.id } } }));
+        }
+        export async function raw(db: any) { return db.$executeRaw\`INSERT INTO "LearningFact" (id) VALUES ('x')\`; }
+      `);
+      await put(root, 'src/nested.ts', `export async function nested(db: any) { return db.user.update({ where: { id: 'u' }, data: { learningFacts: { create: { sourceEventId: 'arena:x' } } } }); }`);
+      const contract = { knowledge_truth_revision_contract: { producer_source_prefixes: ['arena-official'], learning_fact_fields: ['LearningFact.contextJson.knowledgeRevisionRef'] } } as unknown as Registry;
+      const evidence: WriterEvidence[] = [{
+        path: 'src/producer.ts', mutations: [], dynamic_raw: false, targets: [], calls: [], imports: {},
+        call_paths: [
+          { symbols: ['src/producer.ts#persist', 'src/producer.ts#db.$transaction[callback:0]'], target: { model: 'LearningFact', operation: 'create', nested_relation: null } },
+          { symbols: ['src/producer.ts#raw'], target: { model: 'LearningFact', operation: 'raw_insert', nested_relation: null } },
+        ],
+      }, { path: 'src/nested.ts', mutations: [], dynamic_raw: false, targets: [], calls: [], imports: {}, call_paths: [{ symbols: ['src/nested.ts#nested'], target: { model: 'LearningFact', operation: 'create', nested_relation: 'learningFacts' } }] }];
+      const codes = (await validateLearningFactProducerContracts(root, contract, evidence)).map((item) => item.code);
+      expect(codes).toContain('LEARNING_FACT_PRODUCER_ACTIVE_REVISION_UNRESOLVED');
+      expect(codes).toContain('LEARNING_FACT_PRODUCER_SOURCE_ID_MISSING');
+      expect(codes).toContain('LEARNING_FACT_PRODUCER_NON_ATOMIC');
+    } finally { await rm(root, { recursive: true }); }
+  });
+
+  it('accepts an actual transaction callback call path into a helper that resolves and writes through the same tx', async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), 'writer-producer-helper-'));
+    try {
+      await put(root, 'src/lib/data-governance/knowledge-truth-revision.ts', `export async function resolveActiveKnowledgeRevision(tx: any) { return { id: 'revision-1' }; } export function classifyLearningFactSource(id: string) { return \`arena-official:\${id}\`; }`);
+      await put(root, 'src/producer.ts', `
+        import { classifyLearningFactSource, resolveActiveKnowledgeRevision } from './lib/data-governance/knowledge-truth-revision';
+        async function persist(tx: any, id: string) {
+          const resolverClient = tx;
+          const sinkClient = tx;
+          const active = await resolveActiveKnowledgeRevision(resolverClient);
+          const firstRevision = active.id;
+          const secondRevision = firstRevision;
+          return sinkClient.learningFact.create({ data: { sourceEventId: classifyLearningFactSource(id), contextJson: { knowledgeRevisionRef: firstRevision, evidenceGovernance: { knowledgeRevisionRef: secondRevision } } } });
+        }
+        export async function run(db: any, id: string) { return db.$transaction((tx: any) => { const callbackClient = tx; return persist(callbackClient, id); }); }
+      `);
+      const contract = { knowledge_truth_revision_contract: { producer_source_prefixes: ['arena-official'], learning_fact_fields: ['LearningFact.contextJson.knowledgeRevisionRef', 'LearningFact.contextJson.evidenceGovernance.knowledgeRevisionRef'] } } as unknown as Registry;
+      const evidence: WriterEvidence[] = [{ path: 'src/producer.ts', mutations: [], dynamic_raw: false, targets: [], calls: [], imports: {}, call_paths: [{ symbols: ['src/producer.ts#run', 'src/producer.ts#db.$transaction[callback:0]', 'src/producer.ts#persist'], target: { model: 'LearningFact', operation: 'create', nested_relation: null } }] }];
+      expect(await validateLearningFactProducerContracts(root, contract, evidence)).toEqual([]);
+    } finally { await rm(root, { recursive: true }); }
+  });
+
+  it('discovers nested LearningFact relation creates and sends them through the producer gate', async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), 'writer-nested-learning-fact-'));
+    try {
+      await put(root, 'prisma/schema.prisma', `
+        datasource db { provider = "postgresql" url = env("DATABASE_URL") }
+        generator client { provider = "prisma-client-js" }
+        model Parent {
+          id String @id
+          facts LearningFact[]
+        }
+        model LearningFact {
+          id String @id
+          parentId String
+          parent Parent @relation(fields: [parentId], references: [id])
+        }
+      `);
+      await put(root, 'src/nested.ts', `
+        export async function persist(db: any) { return db.parent.create({ data: { id: 'p', facts: { create: { id: 'f' } } } }); }
+        export async function connect(db: any) { return db.parent.create({ data: { id: 'p2', facts: { connectOrCreate: { where: { id: 'f2' }, create: { id: 'f2' } } } } }); }
+      `);
+      const sourceRegistry = registry(['src/nested.ts']);
+      sourceRegistry.knowledge_truth_revision_contract = { producer_source_prefixes: ['arena-official'], learning_fact_fields: ['LearningFact.contextJson.knowledgeRevisionRef'] };
+      const result = await discoverWriters(root, sourceRegistry);
+      expect(result.evidence[0]?.targets).toContainEqual({ model: 'LearningFact', operation: 'create', nested_relation: null });
+      expect(result.evidence[0]?.targets).toContainEqual({ model: 'LearningFact', operation: 'connectOrCreate', nested_relation: null });
+      expect(result.drift.map((item) => item.code)).toEqual(expect.arrayContaining([
+        'LEARNING_FACT_PRODUCER_SOURCE_ID_MISSING',
+        'LEARNING_FACT_PRODUCER_KNOWLEDGE_REVISION_MISSING',
+        'LEARNING_FACT_PRODUCER_NON_ATOMIC',
+      ]));
+    } finally { await rm(root, { recursive: true }); }
+  });
+
+  it('rejects a same-named active revision resolver imported from the wrong module', async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), 'writer-producer-wrong-resolver-'));
+    try {
+      await put(root, 'src/fake-revision.ts', `export async function resolveActiveKnowledgeRevision(tx: any) { return { id: 'forged' }; }`);
+      await put(root, 'src/producer.ts', `
+        import { resolveActiveKnowledgeRevision } from './fake-revision';
+        export async function persist(db: any, id: string) { return db.$transaction(async (tx: any) => {
+          const active = await resolveActiveKnowledgeRevision(tx);
+          return tx.learningFact.create({ data: { sourceEventId: \`arena-official:\${id}\`, contextJson: { knowledgeRevisionRef: active.id } } });
+        }); }
+      `);
+      const contract = { knowledge_truth_revision_contract: { producer_source_prefixes: ['arena-official'], learning_fact_fields: ['LearningFact.contextJson.knowledgeRevisionRef'] } } as unknown as Registry;
+      const evidence: WriterEvidence[] = [{ path: 'src/producer.ts', mutations: [], dynamic_raw: false, targets: [], calls: [], imports: {}, call_paths: [{ symbols: ['src/producer.ts#persist', 'src/producer.ts#db.$transaction[callback:0]'], target: { model: 'LearningFact', operation: 'create', nested_relation: null } }] }];
+      expect((await validateLearningFactProducerContracts(root, contract, evidence)).map((item) => item.code)).toEqual(['LEARNING_FACT_PRODUCER_ACTIVE_REVISION_UNRESOLVED']);
+    } finally { await rm(root, { recursive: true }); }
+  });
+
   it('follows aliases, relative and alias re-exports, same-file calls and multiple hops without contaminating unrelated symbols', async () => {
     const root = await mkdtemp(path.join(os.tmpdir(), 'writer-symbols-'));
     try {

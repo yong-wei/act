@@ -13,6 +13,7 @@ import { extractAuthoritativeAnchorCandidates, verifyAnchorReviewAttestation } f
 import { assertManifestSchema } from './output-validation';
 import type { Drift, InventoryOptions, Json } from './types';
 import { collectInputObservations, publicObservation } from './input-codecs';
+import { currentDatabaseExportAuthority } from './database-export';
 
 const DEFAULT_REGISTRY = 'docs/proposals/course-knowledge-base-governance-source-registry.yaml';
 
@@ -146,7 +147,13 @@ export async function buildManifest(options: InventoryOptions): Promise<Json> {
   for (const observation of auditBaseline.observations) if (observation.expected !== observation.observed) drift.push({ code: 'DATED_AUDIT_BASELINE_DRIFT', scope: observation.metric, expected: observation.expected, observed: observation.observed });
   const capturedAt = options.capturedAt ?? '1970-01-01T00:00:00.000Z';
   let database;
-  if (options.databaseExportPath && options.databaseExportProofPath) database = await loadImmutableExport(options.root, options.databaseExportPath, options.databaseExportProofPath, drift);
+  if (options.databaseExportPath && options.databaseExportProofPath) database = await loadImmutableExport(
+    options.root,
+    options.databaseExportPath,
+    options.databaseExportProofPath,
+    drift,
+    await currentDatabaseExportAuthority(options.root, registryPath),
+  );
   else if (options.databaseExportPath || options.databaseExportProofPath) throw new Error('database export and external proof paths must be supplied together');
   else database = noDatabaseSnapshot(capturedAt, drift);
   if (options.databaseExportPath && options.databaseExportProofPath) drift.push(...validateDatabaseClosure(database, registry, fixtureFile.fixtures));

@@ -6,8 +6,11 @@ import { matchGlob, type Registry } from './registry';
 import type { Drift } from './types';
 
 const MUTATIONS = new Set(['create', 'createMany', 'createManyAndReturn', 'update', 'updateMany', 'upsert', 'delete', 'deleteMany']);
+const NESTED_CREATE_OPERATIONS = new Set(['create', 'createMany', 'upsert', 'connectOrCreate']);
 const CLIENT_NAME = /^(?:prisma|db|tx|transaction|client)$/iu;
 const RAW_METHODS = new Set(['$executeRaw', '$executeRawUnsafe', '$queryRaw', '$queryRawUnsafe']);
+const ACTIVE_REVISION_RESOLVER_FILE = 'src/lib/data-governance/knowledge-truth-revision.ts';
+const ACTIVE_REVISION_RESOLVER_EXPORT = 'resolveActiveKnowledgeRevision';
 
 export interface WriterTarget { model: string; operation: string; nested_relation: string | null }
 export interface WriterCallPath { symbols: string[]; target: WriterTarget }
@@ -19,6 +22,297 @@ export interface WriterEvidence {
   calls: string[];
   imports: Record<string, string>;
   call_paths: WriterCallPath[];
+}
+
+export async function validateLearningFactProducerContracts(root: string, registry: Registry, evidence: WriterEvidence[]): Promise<Drift[]> {
+  const contract = registry.knowledge_truth_revision_contract;
+  if (!contract) return [];
+  const requiredFields = contract.learning_fact_fields;
+  if (!Array.isArray(requiredFields) || !requiredFields.some((field) => String(field).endsWith('.knowledgeRevisionRef'))) {
+    return [{ code: 'LEARNING_FACT_PRODUCER_CONTRACT_INVALID', scope: 'knowledge_truth_revision_contract.learning_fact_fields' }];
+  }
+  const producers = new Map<string, WriterCallPath[]>();
+  for (const item of evidence) for (const callPath of item.call_paths) {
+    if (callPath.target.model !== 'LearningFact' || !['create', 'createMany', 'createManyAndReturn', 'update', 'updateMany', 'upsert', 'connectOrCreate', 'raw_insert'].includes(callPath.target.operation)) continue;
+    const sinkSymbol = callPath.symbols.at(-1);
+    const producerPath = sinkSymbol?.split('#')[0];
+    if (!producerPath) continue;
+    producers.set(producerPath, [...(producers.get(producerPath) ?? []), callPath]);
+  }
+  const files = sortUnique([...producers.values()].flat().flatMap((callPath) => callPath.symbols.map((symbol) => symbol.split('#')[0]!))).map((file) => path.join(root, file));
+  const program = ts.createProgram({ rootNames: files, options: { allowJs: true, checkJs: false, noEmit: true, target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext, moduleResolution: ts.ModuleResolutionKind.Bundler } });
+  const checker = program.getTypeChecker();
+  const drift: Drift[] = [];
+  for (const [producerPath, producerCallPaths] of [...producers].sort(([left], [right]) => compareCodePoints(left, right))) {
+    const scope = producerPath;
+    const sourceFile = program.getSourceFile(path.join(root, producerPath));
+    const contractPaths = requiredFields.map((field) => String(field).split('.').slice(1));
+    const allowedPrefixes = new Set(((contract.producer_source_prefixes ?? []) as unknown[]).map(String));
+    const proofs = sourceFile ? learningFactSinkProofs(sourceFile, checker, program, producerCallPaths.map((item) => item.symbols), contractPaths, allowedPrefixes) : [];
+    for (const callPath of producerCallPaths.filter((item) => item.target.operation === 'raw_insert')) proofs.push({ sourcePresent: false, sourceNamespaced: false, revisionPresent: false, multipleRevisions: false, activeRevision: false, atomic: false });
+    if (!proofs.length || proofs.some((proof) => !proof.sourcePresent)) drift.push({ code: 'LEARNING_FACT_PRODUCER_SOURCE_ID_MISSING', scope });
+    else if (proofs.some((proof) => !proof.sourceNamespaced)) drift.push({ code: 'LEARNING_FACT_PRODUCER_SOURCE_NAMESPACE_UNRESOLVED', scope });
+    if (!proofs.length || proofs.some((proof) => !proof.revisionPresent)) drift.push({ code: 'LEARNING_FACT_PRODUCER_KNOWLEDGE_REVISION_MISSING', scope });
+    if (proofs.some((proof) => proof.multipleRevisions)) drift.push({ code: 'LEARNING_FACT_PRODUCER_MULTIPLE_REVISIONS_POSSIBLE', scope });
+    if (proofs.some((proof) => proof.revisionPresent && !proof.multipleRevisions && !proof.activeRevision)) drift.push({ code: 'LEARNING_FACT_PRODUCER_ACTIVE_REVISION_UNRESOLVED', scope });
+    if (!proofs.length || proofs.some((proof) => !proof.atomic)) drift.push({ code: 'LEARNING_FACT_PRODUCER_NON_ATOMIC', scope });
+  }
+  return drift;
+}
+
+interface LearningFactSinkProof { sourcePresent: boolean; sourceNamespaced: boolean; revisionPresent: boolean; multipleRevisions: boolean; activeRevision: boolean; atomic: boolean }
+
+function resolvedExpression(node: ts.Expression, checker: ts.TypeChecker, seen = new Set<ts.Symbol>()): ts.Expression {
+  if (ts.isIdentifier(node)) {
+    const symbol = aliasSymbol(checker, node);
+    if (symbol && !seen.has(symbol)) {
+      seen.add(symbol);
+      const declaration = symbol.valueDeclaration ?? symbol.declarations?.[0];
+      if (declaration && ts.isVariableDeclaration(declaration) && declaration.initializer) return resolvedExpression(declaration.initializer, checker, seen);
+      const callable = declaration && declarationCallable(declaration);
+      if (callable?.body && ts.isBlock(callable.body)) {
+        const returns = callable.body.statements.filter(ts.isReturnStatement).map((item) => item.expression).filter((item): item is ts.Expression => Boolean(item));
+        if (returns.length === 1) return resolvedExpression(returns[0]!, checker, seen);
+      }
+    }
+  }
+  if (ts.isCallExpression(node)) {
+    const symbol = aliasSymbol(checker, ts.isPropertyAccessExpression(node.expression) ? node.expression.name : node.expression);
+    const declaration = symbol?.valueDeclaration ?? symbol?.declarations?.[0];
+    const callable = declaration && declarationCallable(declaration);
+    if (callable?.body && ts.isBlock(callable.body)) {
+      const returns = callable.body.statements.filter(ts.isReturnStatement).map((item) => item.expression).filter((item): item is ts.Expression => Boolean(item));
+      if (returns.length === 1) return resolvedExpression(returns[0]!, checker, seen);
+    }
+  }
+  return node;
+}
+
+function namedProperty(node: ts.Expression, name: string, checker: ts.TypeChecker): ts.Expression | null {
+  const value = resolvedExpression(node, checker);
+  if (!ts.isObjectLiteralExpression(value)) return null;
+  for (const property of value.properties) {
+    const propertyName = property.name && (ts.isIdentifier(property.name) || ts.isStringLiteral(property.name)) ? property.name.text : null;
+    if (propertyName !== name) continue;
+    if (ts.isPropertyAssignment(property)) return property.initializer;
+    if (ts.isShorthandPropertyAssignment(property)) return property.name;
+  }
+  return null;
+}
+
+function propertyAtPath(node: ts.Expression, names: string[], checker: ts.TypeChecker): ts.Expression | null {
+  let current: ts.Expression | null = node;
+  for (const name of names) current = current && namedProperty(current, name, checker);
+  return current;
+}
+
+function revisionValues(node: ts.Expression, plural: boolean, checker: ts.TypeChecker): { values: ts.Expression[]; unresolved: boolean } {
+  const resolved = resolvedExpression(node, checker);
+  if (!plural) return { values: [node], unresolved: false };
+  if (!ts.isArrayLiteralExpression(resolved)) return { values: [], unresolved: true };
+  return { values: [...resolved.elements].filter(ts.isExpression), unresolved: resolved.elements.some(ts.isSpreadElement) };
+}
+
+function revisionIdentity(node: ts.Expression, checker: ts.TypeChecker, seen = new Set<ts.Symbol>()): ts.Symbol | string | null {
+  if (ts.isPropertyAccessExpression(node) || ts.isElementAccessExpression(node) || ts.isAwaitExpression(node)) return revisionIdentity(node.expression, checker, seen);
+  if (ts.isIdentifier(node)) {
+    const symbol = aliasSymbol(checker, node);
+    if (!symbol || seen.has(symbol)) return symbol ?? null;
+    seen.add(symbol);
+    for (const declaration of symbol.declarations ?? []) if (ts.isVariableDeclaration(declaration) && declaration.initializer) return revisionIdentity(declaration.initializer, checker, seen);
+    return symbol;
+  }
+  if (ts.isCallExpression(node) && canonicalActiveResolver(node, checker)) return `${node.getSourceFile().fileName}:${node.pos}`;
+  return `${node.getSourceFile().fileName}:${node.pos}`;
+}
+
+function namespaceClassified(node: ts.Expression, checker: ts.TypeChecker, allowedPrefixes: Set<string>): boolean {
+  const resolveValue = (current: ts.Expression, seen = new Set<ts.Symbol>()): ts.Expression => {
+    if (!ts.isIdentifier(current)) return current;
+    const symbol = aliasSymbol(checker, current);
+    if (!symbol || seen.has(symbol)) return current;
+    seen.add(symbol);
+    for (const declaration of symbol.declarations ?? []) if (ts.isVariableDeclaration(declaration) && declaration.initializer) return resolveValue(declaration.initializer, seen);
+    return current;
+  };
+  const value = resolveValue(node);
+  if (ts.isStringLiteral(value) || ts.isNoSubstitutionTemplateLiteral(value)) return [...allowedPrefixes].some((prefix) => value.text.startsWith(`${prefix}:`) && value.text.length > prefix.length + 1);
+  if (ts.isTemplateExpression(value)) return [...allowedPrefixes].some((prefix) => value.head.text === `${prefix}:`);
+  if (ts.isCallExpression(value)) {
+    const location = ts.isPropertyAccessExpression(value.expression) ? value.expression.name : value.expression;
+    const symbol = aliasSymbol(checker, location);
+    return Boolean(symbol?.declarations?.some((declaration) => declaration.getSourceFile().fileName.replaceAll('\\', '/').endsWith(`/${ACTIVE_REVISION_RESOLVER_FILE}`)
+      && declaration.name && ts.isIdentifier(declaration.name) && declaration.name.text === 'classifyLearningFactSource'));
+  }
+  return false;
+}
+
+function canonicalActiveResolver(node: ts.CallExpression, checker: ts.TypeChecker): boolean {
+  const location = ts.isPropertyAccessExpression(node.expression) ? node.expression.name : node.expression;
+  const symbol = aliasSymbol(checker, location);
+  return Boolean(symbol?.declarations?.some((declaration) => declaration.getSourceFile().fileName.replaceAll('\\', '/').endsWith(`/${ACTIVE_REVISION_RESOLVER_FILE}`)
+    && ((declaration.name && ts.isIdentifier(declaration.name) && declaration.name.text === ACTIVE_REVISION_RESOLVER_EXPORT) || ts.isExportSpecifier(declaration))));
+}
+
+function derivesFromActiveRevision(node: ts.Expression, checker: ts.TypeChecker, seen = new Set<ts.Symbol>()): boolean {
+  if (ts.isPropertyAccessExpression(node) || ts.isElementAccessExpression(node)) return derivesFromActiveRevision(node.expression, checker, seen);
+  if (ts.isCallExpression(node)) return canonicalActiveResolver(node, checker);
+  if (ts.isIdentifier(node)) {
+    const symbol = aliasSymbol(checker, node);
+    if (!symbol || seen.has(symbol)) return false;
+    seen.add(symbol);
+    for (const declaration of symbol.declarations ?? []) if (ts.isVariableDeclaration(declaration) && declaration.initializer && derivesFromActiveRevision(declaration.initializer, checker, seen)) return true;
+  }
+  if (ts.isAwaitExpression(node)) return derivesFromActiveRevision(node.expression, checker, seen);
+  return false;
+}
+
+function inTransactionCallback(node: ts.Node): boolean {
+  for (let current: ts.Node | undefined = node; current; current = current.parent) {
+    if ((ts.isArrowFunction(current) || ts.isFunctionExpression(current)) && ts.isCallExpression(current.parent)
+      && accessParts(current.parent.expression)?.at(-1) === '$transaction' && current.parent.arguments.includes(current)) return true;
+  }
+  return false;
+}
+
+function rootSymbol(node: ts.Expression, checker: ts.TypeChecker, seen = new Set<ts.Symbol>()): ts.Symbol | null {
+  const root = accessParts(node)?.[0];
+  if (!root) return null;
+  let identifier: ts.Identifier | null = null;
+  const find = (current: ts.Expression): void => {
+    if (ts.isIdentifier(current)) identifier = current;
+    else if (ts.isPropertyAccessExpression(current) || ts.isElementAccessExpression(current)) find(current.expression);
+  };
+  find(node);
+  if (!identifier) return null;
+  const symbol = aliasSymbol(checker, identifier);
+  if (!symbol || seen.has(symbol)) return symbol ?? null;
+  seen.add(symbol);
+  for (const declaration of symbol.declarations ?? []) if (ts.isVariableDeclaration(declaration) && declaration.initializer) return rootSymbol(declaration.initializer, checker, seen);
+  return symbol;
+}
+
+function directTransactionClient(sink: ts.CallExpression, checker: ts.TypeChecker): boolean {
+  const callback = transactionCallback(sink);
+  if (!callback) return false;
+  const sinkSymbol = rootSymbol(sink.expression, checker);
+  return callback.parameters.some((parameter) => ts.isIdentifier(parameter.name) && aliasSymbol(checker, parameter.name) === sinkSymbol);
+}
+
+function transactionCallback(node: ts.Node): ts.FunctionLikeDeclaration | null {
+  for (let current: ts.Node | undefined = node; current; current = current.parent) {
+    if ((ts.isArrowFunction(current) || ts.isFunctionExpression(current)) && ts.isCallExpression(current.parent)
+      && accessParts(current.parent.expression)?.at(-1) === '$transaction' && current.parent.arguments.includes(current)) return current;
+  }
+  return null;
+}
+
+function activeRevisionInSameTransaction(node: ts.Expression, sink: ts.Node, checker: ts.TypeChecker): boolean {
+  const expected = transactionCallback(sink);
+  if (!expected) return false;
+  const visit = (current: ts.Expression, seen = new Set<ts.Symbol>()): ts.CallExpression | null => {
+    if (ts.isPropertyAccessExpression(current) || ts.isElementAccessExpression(current)) return visit(current.expression, seen);
+    if (ts.isAwaitExpression(current)) return visit(current.expression, seen);
+    if (ts.isCallExpression(current) && canonicalActiveResolver(current, checker)) return current;
+    if (ts.isIdentifier(current)) {
+      const symbol = aliasSymbol(checker, current);
+      if (!symbol || seen.has(symbol)) return null;
+      seen.add(symbol);
+      for (const declaration of symbol.declarations ?? []) if (ts.isVariableDeclaration(declaration) && declaration.initializer) {
+        const found = visit(declaration.initializer, seen); if (found) return found;
+      }
+    }
+    return null;
+  };
+  const resolver = visit(node);
+  const sinkCall = (() => { for (let current: ts.Node | undefined = sink; current; current = current.parent) if (ts.isCallExpression(current)) return current; return null; })();
+  const sinkClient = sinkCall ? rootSymbol(sinkCall.expression, checker) : null;
+  return Boolean(resolver && transactionCallback(resolver) === expected && sinkClient
+    && resolver.arguments.some((argument) => rootSymbol(argument, checker) === sinkClient));
+}
+
+function activeRevisionInSinkOwner(node: ts.Expression, sink: ts.Node, checker: ts.TypeChecker): boolean {
+  const ownerOf = (value: ts.Node): ts.FunctionLikeDeclaration | null => {
+    for (let current: ts.Node | undefined = value; current; current = current.parent) if (isCallableImplementation(current)) return current;
+    return null;
+  };
+  const find = (current: ts.Expression, seen = new Set<ts.Symbol>()): ts.CallExpression | null => {
+    if (ts.isPropertyAccessExpression(current) || ts.isElementAccessExpression(current)) return find(current.expression, seen);
+    if (ts.isAwaitExpression(current)) return find(current.expression, seen);
+    if (ts.isCallExpression(current) && canonicalActiveResolver(current, checker)) return current;
+    if (ts.isIdentifier(current)) {
+      const symbol = aliasSymbol(checker, current); if (!symbol || seen.has(symbol)) return null; seen.add(symbol);
+      for (const declaration of symbol.declarations ?? []) if (ts.isVariableDeclaration(declaration) && declaration.initializer) { const found = find(declaration.initializer, seen); if (found) return found; }
+    }
+    return null;
+  };
+  const resolver = find(node);
+  const sinkClient = ts.isCallExpression(sink) ? rootSymbol(sink.expression, checker) : null;
+  return Boolean(resolver && ownerOf(resolver) === ownerOf(sink) && sinkClient
+    && resolver.arguments.some((argument) => rootSymbol(argument, checker) === sinkClient));
+}
+
+function transactionClientFlowsToSink(program: ts.Program, checker: ts.TypeChecker, sink: ts.CallExpression, owner: ts.FunctionLikeDeclaration, callPaths: string[][]): boolean {
+  const sinkClient = rootSymbol(sink.expression, checker);
+  const parameterIndex = owner.parameters.findIndex((parameter) => ts.isIdentifier(parameter.name) && aliasSymbol(checker, parameter.name) === sinkClient);
+  if (parameterIndex < 0) return false;
+  for (const sourceFile of program.getSourceFiles().filter((item) => !item.isDeclarationFile)) {
+    let proven = false;
+    const visit = (node: ts.Node): void => {
+      if (proven || !ts.isCallExpression(node)) { if (!proven) ts.forEachChild(node, visit); return; }
+      const symbol = aliasSymbol(checker, ts.isPropertyAccessExpression(node.expression) ? node.expression.name : node.expression);
+      const callsOwner = (symbol?.declarations ?? []).some((declaration) => declarationCallable(declaration) === owner || declaration === owner);
+      const argument = node.arguments[parameterIndex];
+      const callback = transactionCallback(node);
+      if (callsOwner && callback && argument && callback.parameters.some((parameter) => ts.isIdentifier(parameter.name) && aliasSymbol(checker, parameter.name) === rootSymbol(argument, checker))) {
+        const callbackName = functionName(callback, sourceFile);
+        proven = callPaths.some((symbols) => symbols.some((entry) => entry.endsWith(`#${callbackName}`)) && symbols.at(-1)?.endsWith(`#${functionName(owner, owner.getSourceFile())}`));
+      }
+      if (!proven) ts.forEachChild(node, visit);
+    };
+    visit(sourceFile);
+    if (proven) return true;
+  }
+  return false;
+}
+
+function learningFactSinkProofs(source: ts.SourceFile, checker: ts.TypeChecker, program: ts.Program, callPaths: string[][], sourceFileContractPaths: string[][], allowedPrefixes: Set<string>): LearningFactSinkProof[] {
+  const sinkOwners = new Set(callPaths.map((item) => item.at(-1)?.split('#')[1]).filter(Boolean));
+  const proofs: LearningFactSinkProof[] = [];
+  const visit = (node: ts.Node): void => {
+    if (ts.isCallExpression(node)) {
+      const parts = accessParts(node.expression);
+      if (parts?.at(-2) === 'learningFact' && ['create', 'createMany', 'createManyAndReturn', 'upsert'].includes(parts.at(-1) ?? '')) {
+        const owner = (() => { for (let current: ts.Node | undefined = node; current; current = current.parent) if (isCallableImplementation(current)) return functionName(current, source); return '<module>'; })();
+        if (sinkOwners.has(owner) || [...sinkOwners].some((id) => id?.endsWith(owner))) {
+          const options = node.arguments[0];
+          const data = options && (namedProperty(options, 'data', checker) ?? namedProperty(options, 'create', checker));
+          const sourceValue = data && (namedProperty(data, 'sourceEventId', checker) ?? namedProperty(data, 'sourceLogId', checker));
+          const declaredPaths = (sourceFileContractPaths ?? []).filter((path) => path.at(-1) === 'knowledgeRevisionRef');
+          const pluralPaths = (sourceFileContractPaths ?? []).filter((path) => path.at(-1) === 'knowledgeRevisionRefs');
+          const revisions = data ? declaredPaths.map((path) => propertyAtPath(data, path, checker)).filter((value): value is ts.Expression => Boolean(value)) : [];
+          const plurals = data ? pluralPaths.map((path) => propertyAtPath(data, path, checker)).filter((value): value is ts.Expression => Boolean(value)) : [];
+          const collected = [
+            ...revisions.map((value) => revisionValues(value, false, checker)),
+            ...plurals.map((value) => revisionValues(value, true, checker)),
+          ];
+          const revisionCandidates = collected.flatMap((item) => item.values);
+          const identities = revisionCandidates.map((value) => revisionIdentity(value, checker));
+          const unresolvedRevision = collected.some((item) => item.unresolved) || identities.some((identity) => identity === null);
+          const distinctRevisionCount = new Set(identities.filter((identity): identity is ts.Symbol | string => identity !== null)).size;
+          const revision = revisionCandidates[0] ?? null;
+          const ownerNode = (() => { for (let current: ts.Node | undefined = node; current; current = current.parent) if (isCallableImplementation(current)) return current; return null; })();
+          const pathAtomic = Boolean(ownerNode && transactionClientFlowsToSink(program, checker, node, ownerNode, callPaths));
+          const allActive = revisionCandidates.length > 0 && revisionCandidates.every((value) => derivesFromActiveRevision(value, checker)
+            && (activeRevisionInSameTransaction(value, node, checker) || (pathAtomic && activeRevisionInSinkOwner(value, node, checker))));
+          proofs.push({ sourcePresent: Boolean(sourceValue), sourceNamespaced: Boolean(sourceValue && namespaceClassified(sourceValue, checker, allowedPrefixes)), revisionPresent: revisionCandidates.length > 0 || plurals.length > 0, multipleRevisions: unresolvedRevision || distinctRevisionCount > 1, activeRevision: allActive && !unresolvedRevision && distinctRevisionCount === 1, atomic: directTransactionClient(node, checker) || pathAtomic });
+        }
+      }
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(source);
+  return proofs;
 }
 
 interface SinkContract { model: string; delegate: string; fields: Set<string>; allFields: boolean; tableNames: Set<string> }
@@ -133,6 +427,7 @@ function nestedTargets(
     const name = node.name && (ts.isIdentifier(node.name) || ts.isStringLiteral(node.name)) ? node.name.text : '';
     const contract = contracts.find((item) => item.model === currentModel);
     if (contract?.fields.has(name)) output.push({ model: currentModel, operation, nested_relation: name });
+    if (contract?.allFields && NESTED_CREATE_OPERATIONS.has(name)) output.push({ model: currentModel, operation: name, nested_relation: null });
     const relationModel = [...models.values()].find((item) => item.model === currentModel)?.relations.get(name);
     const child = ts.isPropertyAssignment(node) ? node.initializer : node.name;
     nestedTargets(child, relationModel ?? currentModel, operation, models, contracts, checker, output, seen);
@@ -266,6 +561,10 @@ function declarationCallable(declaration: ts.Declaration): ts.FunctionLikeDeclar
 }
 
 function aliasSymbol(checker: ts.TypeChecker, node: ts.Node): ts.Symbol | undefined {
+  if (ts.isIdentifier(node) && ts.isShorthandPropertyAssignment(node.parent)) {
+    const value = checker.getShorthandAssignmentValueSymbol(node.parent);
+    if (value) return value;
+  }
   let symbol = checker.getSymbolAtLocation(node);
   if (symbol?.flags && (symbol.flags & ts.SymbolFlags.Alias)) symbol = checker.getAliasedSymbol(symbol);
   return symbol;
@@ -458,5 +757,6 @@ export async function discoverWriters(root: string, registry: Registry): Promise
   for (const file of sortUnique([...discovered].filter((item) => !declared.has(item)))) drift.push({ code: 'DISCOVERED_WRITER_UNDECLARED', scope: file });
   for (const file of sortUnique([...declared].filter((item) => !discovered.has(item)))) drift.push({ code: 'DECLARED_WRITER_NOT_DISCOVERED', scope: file });
   for (const item of evidence.filter((entry) => entry.dynamic_raw)) drift.push({ code: 'DYNAMIC_RAW_SQL_UNRESOLVED', scope: item.path });
+  drift.push(...await validateLearningFactProducerContracts(root, registry, evidence));
   return { evidence, drift };
 }

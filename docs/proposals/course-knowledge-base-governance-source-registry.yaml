@@ -139,6 +139,7 @@ knowledge_truth_revision_contract:
   learning_fact_fields: [LearningFact.contextJson.knowledgeRevisionRef, LearningFact.contextJson.knowledgeRevisionRefs, LearningFact.contextJson.evidenceGovernance.knowledgeRevisionRef, LearningFact.contextJson.evidenceGovernance.knowledgeRevisionRefs]
   decoded_cardinality_rule: merge and deduplicate all declared learning_fact_fields; every fact must resolve to exactly one immutable knowledge_revision_id, while zero or multiple distinct revisions fail readiness
   producer_rule: every LearningFact producer must resolve and persist the active knowledge_revision_id atomically with fact generation; unknown or missing revision fails the producer readiness gate
+  producer_source_prefixes: [adaptive-assessment, arena-official, control-correction-path, historical, interaction-log, learning-path, simulation-agent-evidence]
   historical_rule: pre-contract facts without provable revision bind to an immutable legacy-unversioned revision record tied to the governed source snapshot and remain explicitly uncertain; they must never be relabeled as the current revision
   cutover_rule: every affected fact resolves to one valid immutable revision or cutover fails
 
