@@ -425,6 +425,16 @@ export async function acceptCoursewareModuleCandidate(db: Db, input: {
         || target.contentHash !== job.targetModuleHash || contentHash(currentLocation.runtimeModule) !== expectedModuleHash) {
         throw new SmartCoursewareError('courseware-module-hash-conflict', 409);
       }
+      if (coursewareModuleGenerationInputHash({
+        draftId: draft.id,
+        draftVersion: draft.version,
+        planRevisionId: draft.planRevisionId,
+        planContentHash: draft.planContentHash,
+        moduleId: target.runtimeModuleId,
+        moduleHash: target.contentHash,
+      }) !== job.inputHash) {
+        throw new SmartCoursewareError('courseware-generation-input-changed', 409);
+      }
       const candidate = coursewareModuleCandidateOutputSchema.parse({
         runtimeModule: job.candidateRuntimeModule,
         moduleMetadata: job.candidateModuleMetadata,

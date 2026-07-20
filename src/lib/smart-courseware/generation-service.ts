@@ -466,7 +466,8 @@ function authoritativeBindingsFromAttempts(job: JobWithContext, selectedVersionI
       return Array.isArray(bindings) ? bindings : [];
     }));
   const normalized = normalizeSourceBindings(snapshots);
-  if (!normalized.length || normalized.some((binding) => !selected.has(binding.sourceVersionId))) {
+  if ((selected.size > 0 && !normalized.length)
+    || normalized.some((binding) => !selected.has(binding.sourceVersionId))) {
     throw new SmartCoursewareError('governed-source-evidence-unavailable', 409);
   }
   return normalized;

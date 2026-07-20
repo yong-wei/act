@@ -10,11 +10,19 @@ import {
   generateCoursewareModuleCandidate,
   requestCoursewareModuleRegeneration,
 } from '../module-regeneration-service';
-import { coursewareManifestHash } from '../domain';
+import { coursewareManifestHash, coursewareModuleGenerationInputHash } from '../domain';
 import { coursewareModuleCandidateOutputSchema } from '../schema';
 import { validCompositionInput } from './fixtures';
 
 const actor = { id: 'teacher-1', role: 'TEACHER' as const };
+type MutableAcceptanceTarget = Omit<
+  ReturnType<typeof acceptanceFixture>['target'],
+  'gapIdentity' | 'sourceBindings' | 'teacherMetadata'
+> & {
+  gapIdentity: string | null;
+  sourceBindings: unknown[];
+  teacherMetadata: Record<string, unknown>;
+};
 
 describe('smart courseware selected-module regeneration acceptance', () => {
   it('persists a draft-exclusive MODULE job, enqueues it, and returns before provider work begins', async () => {
@@ -665,6 +673,34 @@ describe('smart courseware selected-module regeneration acceptance', () => {
     expect(staleHashDb.updateDraft).not.toHaveBeenCalled();
   });
 
+  it.each([
+    ['source state and bindings', (target: MutableAcceptanceTarget) => {
+      target.sourceState = 'AI_GENERATED_SOURCE_PENDING';
+      target.sourceBindings = [];
+      target.sourceBindingSetHash = contentHash([]);
+      target.gapIdentity = 'courseware-gap:teacher-reclassified';
+    }],
+    ['teacher metadata', (target: MutableAcceptanceTarget) => {
+      target.teacherMetadata = { ...target.teacherMetadata, explanation: '候选生成后教师修改的解释' };
+    }],
+  ] as const)('rejects a stale candidate after the teacher changes only %s at the latest draft version', async (_label, mutate) => {
+    const fixture = acceptanceFixture();
+    mutate(fixture.target as MutableAcceptanceTarget);
+    fixture.job.draft.version += 1;
+    const db = acceptanceDb(fixture.job);
+
+    await expect(acceptCoursewareModuleCandidate(db.value as never, {
+      actor,
+      jobId: fixture.job.id,
+      expectedDraftVersion: fixture.job.draft.version,
+      expectedModuleHash: fixture.target.contentHash,
+      idempotencyKey: `accept-after-teacher-change-${_label === 'teacher metadata' ? 'metadata' : 'source'}`,
+    })).rejects.toMatchObject({ code: 'courseware-generation-input-changed', status: 409 });
+    expect(db.updateJob).not.toHaveBeenCalled();
+    expect(db.updateDraft).not.toHaveBeenCalled();
+    expect(db.updateModule).not.toHaveBeenCalled();
+  });
+
   it('aborts the transaction without revision or command evidence when the module CAS loses', async () => {
     const fixture = acceptanceFixture();
     const db = acceptanceDb(fixture.job, { moduleClaimCount: 0 });
@@ -782,6 +818,11 @@ function acceptanceFixture() {
   const job = {
     id: 'module-job-1', ownerId: actor.id, draftId: draft.id, mode: 'MODULE', state: 'COMPLETED',
     targetModuleId: target.runtimeModuleId, targetModuleHash: target.contentHash,
+    inputHash: coursewareModuleGenerationInputHash({
+      draftId: draft.id, draftVersion: draft.version,
+      planRevisionId: draft.planRevisionId, planContentHash: draft.planContentHash,
+      moduleId: target.runtimeModuleId, moduleHash: target.contentHash,
+    }),
     planRevisionId: draft.planRevisionId, planContentHash: draft.planContentHash,
     sourceBindingsSnapshot: [sourceBindingFixture], candidateRuntimeModule, candidateModuleMetadata,
     candidateHash: contentHash(candidate), acceptedAt: null, draft, moduleAttemptGeneration: 1,

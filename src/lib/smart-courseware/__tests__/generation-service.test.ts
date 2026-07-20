@@ -197,6 +197,57 @@ describe('smart courseware generation service', () => {
     expect(completeUnit).toHaveBeenCalledTimes(1);
   });
 
+  it('finalizes a no-source generation as READY with source-pending module gaps', async () => {
+    const fixture = initialCompletionFixture(false);
+    const createModule = vi.fn().mockResolvedValue({});
+    const updateDraft = vi.fn().mockResolvedValue({});
+    const updateJob = vi.fn().mockResolvedValue({ ...fixture.job, state: 'COMPLETED' });
+    const db = { $transaction: vi.fn(async (run: (tx: unknown) => unknown) => run({
+      smartCoursewareGenerationJob: { findFirst: vi.fn().mockResolvedValue(fixture.job), update: updateJob },
+      smartCoursewareGenerationUnit: { updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
+      smartCoursewareProviderAttempt: { update: vi.fn().mockResolvedValue({}) },
+      smartCoursewareModule: { create: createModule },
+      smartCoursewareDraft: { update: updateDraft },
+    })) };
+
+    await expect(completeCoursewareGenerationUnit(db as never, {
+      actor, jobId: fixture.job.id, unitKey: 'summary', claimToken: 'summary-claim',
+      attemptId: 'attempt-summary', output: fixture.summary,
+      completedManifest: fixture.manifest, completedModuleMetadata: fixture.metadata,
+    })).resolves.toMatchObject({ state: 'COMPLETED' });
+    expect(createModule).toHaveBeenCalledTimes(fixture.metadata.length);
+    expect(createModule.mock.calls.every(([call]) => (
+      call.data.sourceState === 'AI_GENERATED_SOURCE_PENDING'
+      && typeof call.data.gapIdentity === 'string'
+      && call.data.gapIdentity.startsWith('courseware-gap:')
+    ))).toBe(true);
+    expect(updateDraft).toHaveBeenCalledWith({
+      where: { id: fixture.job.draftId },
+      data: expect.objectContaining({ state: 'READY', version: { increment: 1 } }),
+    });
+  });
+
+  it('still rejects finalization when an approved source has no attempt evidence', async () => {
+    const fixture = initialCompletionFixture(true);
+    const createModule = vi.fn();
+    const updateDraft = vi.fn();
+    const db = { $transaction: vi.fn(async (run: (tx: unknown) => unknown) => run({
+      smartCoursewareGenerationJob: { findFirst: vi.fn().mockResolvedValue(fixture.job) },
+      smartCoursewareGenerationUnit: { updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
+      smartCoursewareProviderAttempt: { update: vi.fn().mockResolvedValue({}) },
+      smartCoursewareModule: { create: createModule },
+      smartCoursewareDraft: { update: updateDraft },
+    })) };
+
+    await expect(completeCoursewareGenerationUnit(db as never, {
+      actor, jobId: fixture.job.id, unitKey: 'summary', claimToken: 'summary-claim',
+      attemptId: 'attempt-summary', output: fixture.summary,
+      completedManifest: fixture.manifest, completedModuleMetadata: fixture.metadata,
+    })).rejects.toMatchObject({ code: 'governed-source-evidence-unavailable', status: 409 });
+    expect(createModule).not.toHaveBeenCalled();
+    expect(updateDraft).not.toHaveBeenCalled();
+  });
+
   it('keeps a failed initial job active and the draft generating until an explicit transition', async () => {
     const job = { id: 'job-1', ownerId: actor.id, draftId: 'draft-1', state: 'RUNNING', activeIdentity: 'draft:draft-1', draft: { state: 'GENERATING' } };
     const updateJob = vi.fn().mockResolvedValue({ ...job, state: 'FAILED' });
@@ -605,6 +656,53 @@ function baselineDraftWithStepCount(stepCount: number) {
   draft.planRevision.contentHash = planContentHash;
   draft.planContentHash = planContentHash;
   return draft;
+}
+
+function initialCompletionFixture(withApprovedSource: boolean) {
+  const plan = validPlanFixture();
+  if (!withApprovedSource) {
+    plan.sources = [];
+    Object.assign(plan.knowledgePoints[0], {
+      sourceState: 'AI_GENERATED_SOURCE_PENDING', sourceBindings: [],
+      gapIdentity: `smart-knowledge-gap:${'d'.repeat(64)}`,
+    });
+  }
+  const planContentHash = contentHash(plan);
+  const planRevision = { id: 'plan-completion', revisionNumber: 1, content: plan, contentHash: planContentHash };
+  const outputs = COURSEWARE_GENERATION_UNITS.map((unitKey) => createDeterministicCoursewareStage({
+    unitKey, durationSeconds: 300, approvedPlan: plan,
+  }));
+  const manifest = {
+    schemaVersion: 'generated-slide-v1' as const,
+    lessonId: 'draft-completion', title: plan.topic, durationSeconds: 1_800,
+    stages: outputs.map((output) => output.stage),
+  };
+  const units = COURSEWARE_GENERATION_UNITS.map((unitKey, index) => ({
+    id: `unit-${unitKey}`, unitKey, orderIndex: index,
+    state: unitKey === 'summary' ? 'RUNNING' : 'COMPLETED',
+    output: unitKey === 'summary' ? null : outputs[index],
+    outputHash: unitKey === 'summary' ? null : contentHash(outputs[index]),
+    attempts: [{
+      id: `attempt-${unitKey}`, outcome: unitKey === 'summary' ? 'RUNNING' : 'SUCCEEDED',
+      schemaVersion: `smart-courseware-stage-${unitKey}.v2`,
+      requestSnapshot: { authoritativeSourceBindings: [] },
+    }],
+  }));
+  const job = {
+    id: 'job-completion', ownerId: actor.id, draftId: 'draft-completion', state: 'RUNNING',
+    firstIncompleteUnitKey: 'summary', activeIdentity: 'draft:draft-completion', units,
+    draft: {
+      id: 'draft-completion', ownerId: actor.id, state: 'GENERATING', version: 1,
+      planRevisionId: planRevision.id, planRevisionNumber: 1, planContentHash,
+      authoringLineageRoot: 'lineage-completion', runtimeManifest: null, modules: [], planRevision,
+    },
+  };
+  return {
+    job,
+    summary: outputs.at(-1)!,
+    manifest,
+    metadata: outputs.flatMap((output) => output.moduleMetadata),
+  };
 }
 
 function moduleJobFixture(state: 'FAILED' | 'RETRYABLE' | 'RUNNING') {
