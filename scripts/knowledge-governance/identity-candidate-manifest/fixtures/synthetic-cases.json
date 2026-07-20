@@ -1,0 +1,34 @@
+{
+  "schema_version": "knowledge-identity-candidate-input/v1",
+  "expected_inventory_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "concepts": [
+    { "source_concept_id": "concept-a", "identity_namespace": "runtime-node", "normalized_name": "稳定性", "source_locator": "runtime:a" },
+    { "source_concept_id": "concept-b", "identity_namespace": "legacy-node", "normalized_name": "稳定性", "source_locator": "legacy:b" },
+    { "source_concept_id": "concept-c", "identity_namespace": "resource-concept", "normalized_name": "系统稳定", "source_locator": "resource:c" },
+    { "source_concept_id": "concept-d", "identity_namespace": "runtime-node", "normalized_name": "稳定边界", "source_locator": "runtime:d" }
+  ],
+  "reviewed_aliases": [
+    { "left": "concept-b", "right": "concept-c", "decision": "ACCEPT", "review_id": "alias-review-1", "evidence_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111" }
+  ],
+  "near_similar": [
+    { "left": "concept-c", "right": "concept-d", "review_id": "near-review-1", "evidence_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222", "algorithm_version": "reviewed-near-similar/v1" }
+  ],
+  "pending_splits": [
+    {
+      "source_concept_id": "concept-c",
+      "review_id": "split-review-1",
+      "evidence_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "alternatives": [
+        { "alternative_id": "alternative-stability", "proposed_member_ids": ["concept-a", "concept-c"] },
+        { "alternative_id": "alternative-system", "proposed_member_ids": ["concept-b", "concept-c"] }
+      ]
+    }
+  ],
+  "history_ambiguities": [
+    { "source_concept_id": "concept-c", "history_locator": "history:legacy-c", "review_id": "history-review-1", "candidate_alternative_ids": ["alternative-stability", "alternative-system"] }
+  ],
+  "anchor_bindings": [
+    { "source_concept_id": "concept-a", "anchor_id": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" }
+  ],
+  "expected": { "concept_count": 4, "reviewed_alias_count": 1, "near_similar_count": 1 }
+}

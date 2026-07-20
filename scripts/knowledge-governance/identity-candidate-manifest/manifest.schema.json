@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "algorithm_version", "normalization_profile", "source_digests", "governance_contract_digest", "source_snapshot_digest", "upstream_manifest_digests", "drift", "readiness", "current", "snapshot_digest"],
+  "allOf": [
+    { "if": { "properties": { "readiness": { "const": true } }, "required": ["readiness"] }, "then": { "properties": { "current": { "type": "object" }, "drift": { "type": "array", "maxItems": 0 } } } },
+    { "if": { "properties": { "readiness": { "const": false } }, "required": ["readiness"] }, "then": { "properties": { "current": { "type": "null" } } } }
+  ],
+  "properties": {
+    "schema_version": { "const": "knowledge-identity-candidate-manifest/v1" },
+    "algorithm_version": { "const": "global-exact-reviewed-alias-union-find/v1" },
+    "normalization_profile": { "$ref": "#/$defs/nonEmpty" },
+    "source_digests": { "type": "array", "items": { "$ref": "#/$defs/sourceDigest" } },
+    "governance_contract_digest": { "$ref": "#/$defs/digest" },
+    "source_snapshot_digest": { "$ref": "#/$defs/digest" },
+    "upstream_manifest_digests": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/upstreamDigest" } },
+    "observations": { "$ref": "#/$defs/observations" },
+    "drift": { "type": "array", "items": { "$ref": "#/$defs/drift" } },
+    "readiness": { "type": "boolean" },
+    "current": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["components", "near_similar_review_edges"],
+          "properties": {
+            "components": { "type": "array", "items": { "$ref": "#/$defs/component" } },
+            "near_similar_review_edges": { "type": "array", "items": { "$ref": "#/$defs/edge" } }
+          }
+        }
+      ]
+    },
+    "snapshot_digest": { "$ref": "#/$defs/digest" }
+  },
+  "$defs": {
+    "nonEmpty": { "type": "string", "minLength": 1 },
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "json": { "oneOf": [{ "type": "null" }, { "type": "boolean" }, { "type": "number" }, { "type": "string" }, { "type": "array" }, { "type": "object" }] },
+    "sourceDigest": {
+      "oneOf": [
+        { "type": "object", "additionalProperties": false, "required": ["source_id", "digest"], "properties": { "source_id": { "enum": ["identity-candidate-input", "input-inventory-file"] }, "digest": { "$ref": "#/$defs/digest" } } },
+        { "type": "object", "additionalProperties": false, "required": ["source_id", "source_locator", "item_kind", "identity_namespace", "schema_version", "digest", "item_count"], "properties": { "source_id": { "$ref": "#/$defs/nonEmpty" }, "source_locator": { "$ref": "#/$defs/nonEmpty" }, "item_kind": { "$ref": "#/$defs/nonEmpty" }, "identity_namespace": { "$ref": "#/$defs/nonEmpty" }, "schema_version": { "$ref": "#/$defs/nonEmpty" }, "digest": { "$ref": "#/$defs/digest" }, "item_count": { "type": "integer", "minimum": 0 } } },
+        { "type": "object", "additionalProperties": false, "required": ["source_id", "source_locator", "item_kind", "schema_version", "digest", "dataset_count"], "properties": { "source_id": { "$ref": "#/$defs/nonEmpty" }, "source_locator": { "$ref": "#/$defs/nonEmpty" }, "item_kind": { "$ref": "#/$defs/nonEmpty" }, "schema_version": { "$ref": "#/$defs/nonEmpty" }, "digest": { "$ref": "#/$defs/digest" }, "dataset_count": { "type": "integer", "minimum": 0 } } }
+      ]
+    },
+    "upstreamDigest": { "type": "object", "additionalProperties": false, "required": ["manifest", "expected", "observed"], "properties": { "manifest": { "$ref": "#/$defs/nonEmpty" }, "expected": { "$ref": "#/$defs/digest" }, "observed": { "$ref": "#/$defs/digest" } } },
+    "drift": { "type": "object", "additionalProperties": false, "required": ["code", "scope"], "properties": { "code": { "$ref": "#/$defs/nonEmpty" }, "scope": { "$ref": "#/$defs/nonEmpty" }, "expected": { "$ref": "#/$defs/json" }, "observed": { "$ref": "#/$defs/json" }, "detail": { "$ref": "#/$defs/nonEmpty" } } },
+    "countSet": { "type": "object", "additionalProperties": false, "required": ["concept_count", "reviewed_alias_count", "near_similar_count"], "properties": { "concept_count": { "type": "integer", "minimum": 0 }, "reviewed_alias_count": { "type": "integer", "minimum": 0 }, "near_similar_count": { "type": "integer", "minimum": 0 } } },
+    "observedCountSet": { "type": "object", "additionalProperties": false, "required": ["concept_count", "component_count", "reviewed_alias_count", "near_similar_count"], "properties": { "concept_count": { "type": "integer", "minimum": 0 }, "component_count": { "type": "integer", "minimum": 0 }, "reviewed_alias_count": { "type": "integer", "minimum": 0 }, "near_similar_count": { "type": "integer", "minimum": 0 } } },
+    "observations": { "type": "object", "additionalProperties": false, "required": ["expected", "observed"], "properties": { "expected": { "$ref": "#/$defs/countSet" }, "observed": { "$ref": "#/$defs/observedCountSet" } } },
+    "exactEvidence": { "type": "object", "additionalProperties": false, "required": ["source_concept_id", "identity_namespace", "normalized_name", "source_locator"], "properties": { "source_concept_id": { "$ref": "#/$defs/nonEmpty" }, "identity_namespace": { "$ref": "#/$defs/nonEmpty" }, "normalized_name": { "$ref": "#/$defs/nonEmpty" }, "source_locator": { "$ref": "#/$defs/nonEmpty" } } },
+    "aliasEvidence": { "type": "object", "additionalProperties": false, "required": ["left", "right", "decision", "review_id", "evidence_digest"], "properties": { "left": { "$ref": "#/$defs/nonEmpty" }, "right": { "$ref": "#/$defs/nonEmpty" }, "decision": { "const": "ACCEPT" }, "review_id": { "$ref": "#/$defs/nonEmpty" }, "evidence_digest": { "$ref": "#/$defs/digest" } } },
+    "splitAlternative": { "type": "object", "additionalProperties": false, "required": ["alternative_id", "proposed_member_ids"], "properties": { "alternative_id": { "$ref": "#/$defs/nonEmpty" }, "proposed_member_ids": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/nonEmpty" } } } },
+    "pendingSplit": { "type": "object", "additionalProperties": false, "required": ["source_concept_id", "review_id", "evidence_digest", "alternatives"], "properties": { "source_concept_id": { "$ref": "#/$defs/nonEmpty" }, "review_id": { "$ref": "#/$defs/nonEmpty" }, "evidence_digest": { "$ref": "#/$defs/digest" }, "alternatives": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/splitAlternative" } } } },
+    "historyAmbiguity": { "type": "object", "additionalProperties": false, "required": ["source_concept_id", "history_locator", "review_id", "candidate_alternative_ids"], "properties": { "source_concept_id": { "$ref": "#/$defs/nonEmpty" }, "history_locator": { "$ref": "#/$defs/nonEmpty" }, "review_id": { "$ref": "#/$defs/nonEmpty" }, "candidate_alternative_ids": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/nonEmpty" } } } },
+    "component": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["component_id", "indivisible", "members", "exact_name_evidence", "reviewed_alias_evidence", "pending_splits", "history_ambiguities", "scope_anchor_evidence"],
+      "properties": {
+        "component_id": { "$ref": "#/$defs/digest" },
+        "indivisible": { "const": true },
+        "members": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/nonEmpty" } },
+        "exact_name_evidence": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/exactEvidence" } },
+        "reviewed_alias_evidence": { "type": "array", "items": { "$ref": "#/$defs/aliasEvidence" } },
+        "pending_splits": { "type": "array", "items": { "$ref": "#/$defs/pendingSplit" } },
+        "history_ambiguities": { "type": "array", "items": { "$ref": "#/$defs/historyAmbiguity" } },
+        "scope_anchor_evidence": {
+          "oneOf": [
+            { "type": "object", "additionalProperties": false, "required": ["status", "anchor_ids"], "properties": { "status": { "const": "resolved" }, "anchor_ids": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/digest" } } } },
+            { "type": "object", "additionalProperties": false, "required": ["status", "finding"], "properties": { "status": { "const": "missing" }, "finding": { "const": "SCOPE_ANCHOR_EVIDENCE_MISSING" } } }
+          ]
+        }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["edge_id", "left_component_id", "right_component_id", "review_id", "evidence_digest", "algorithm_version"],
+      "properties": {
+        "edge_id": { "$ref": "#/$defs/digest" },
+        "left_component_id": { "$ref": "#/$defs/digest" },
+        "right_component_id": { "$ref": "#/$defs/digest" },
+        "review_id": { "$ref": "#/$defs/nonEmpty" },
+        "evidence_digest": { "$ref": "#/$defs/digest" },
+        "algorithm_version": { "$ref": "#/$defs/nonEmpty" }
+      }
+    }
+  }
+}

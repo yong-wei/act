@@ -91,6 +91,8 @@
     "inventory:course-knowledge-inputs": "tsx ./scripts/knowledge-governance/input-inventory/cli.ts",
     "inventory:export-course-knowledge-db": "tsx ./scripts/knowledge-governance/input-inventory/database-export-cli.ts",
     "test:course-knowledge-input-inventory": "vitest run --config scripts/knowledge-governance/input-inventory/vitest.config.ts",
+    "manifest:course-knowledge-identity-candidates": "tsx ./scripts/knowledge-governance/identity-candidate-manifest/cli.ts",
+    "test:course-knowledge-identity-candidates": "vitest run --config scripts/knowledge-governance/identity-candidate-manifest/vitest.config.ts",
     "test:admin-states": "npx --yes tsx ./scripts/tests/test-admin-states-mock-data.ts",
     "seed:fixed-passwords": "node ./scripts/db/update-fixed-account-passwords.mjs",
     "seed:semester-usage": "node ./scripts/db/seed-semester-usage-for-test-students.mjs",
