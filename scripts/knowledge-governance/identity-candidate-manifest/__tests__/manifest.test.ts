@@ -4,13 +4,27 @@ import os from 'node:os';
 import path from 'node:path';
 import Ajv2020 from 'ajv/dist/2020';
 import { describe, expect, it } from 'vitest';
-import { canonicalJson, taggedDigest } from '../../input-inventory/normalize';
+import { canonicalJson, compareCodePoints, taggedDigest } from '../../input-inventory/normalize';
 import { makeAnchor } from '../../input-inventory/records';
 import { buildIdentityCandidateManifest } from '../manifest';
 import type { IdentityCandidateInput, InventoryManifest, Json } from '../types';
 
 const fixturePath = path.join(import.meta.dirname, '..', 'fixtures', 'synthetic-cases.json');
 const digest = (character: string): string => `sha256:${character.repeat(64)}`;
+const syntheticConcepts = [
+  { source_concept_id: 'concept-a', identity_namespace: 'runtime-node', normalized_name: '稳定性', source_locator: 'runtime:a' },
+  { source_concept_id: 'concept-b', identity_namespace: 'legacy-node', normalized_name: '稳定性', source_locator: 'legacy:b' },
+  { source_concept_id: 'concept-c', identity_namespace: 'resource-concept', normalized_name: '系统稳定', source_locator: 'resource:c' },
+  { source_concept_id: 'concept-d', identity_namespace: 'runtime-node', normalized_name: '稳定边界', source_locator: 'runtime:d' },
+];
+
+function syntheticAuthoritativeSet() {
+  const records = syntheticConcepts.map((concept) => {
+    const body = { concept_key: `${concept.identity_namespace}:${concept.source_concept_id}`, ...concept };
+    return { ...body, record_digest: taggedDigest('knowledge-identity-candidate-record/v1', canonicalJson(body as unknown as Json)) };
+  }).sort((a, b) => compareCodePoints(a.concept_key, b.concept_key));
+  return { records, count: records.length, set_digest: taggedDigest('knowledge-identity-candidate-record-set/v1', canonicalJson(records as unknown as Json)) };
+}
 
 function readyInventory(): InventoryManifest {
   const anchor = makeAnchor({
@@ -25,6 +39,7 @@ function readyInventory(): InventoryManifest {
     source_snapshot_digest: digest('d'),
     readiness: true,
     anchors: { records: [anchor] },
+    identity_candidate_records: syntheticAuthoritativeSet(),
     snapshot_digest: '',
   };
   return {
@@ -133,6 +148,42 @@ describe('identity candidate manifest', () => {
     const mismatched = build(inventory, { ...input, expected_inventory_digest: digest('0') });
     expect(mismatched.readiness).toBe(false);
     expect(mismatched.current).toBeNull();
+  });
+
+  it('requires an upstream authoritative set and exact input concept closure', async () => {
+    const inventory = readyInventory();
+    const input = await fixture(inventory);
+    const assertBlocked = (candidateInventory: InventoryManifest, candidateInput: IdentityCandidateInput, code: string): void => {
+      const manifest = build(candidateInventory, candidateInput);
+      expect(manifest.readiness).toBe(false);
+      expect(manifest.current).toBeNull();
+      expect(manifest.drift).toEqual(expect.arrayContaining([expect.objectContaining({ code })]));
+    };
+    const withoutSet = rehashInventory({ ...inventory, identity_candidate_records: undefined });
+    assertBlocked(withoutSet, { ...input, expected_inventory_digest: withoutSet.snapshot_digest }, 'AUTHORITATIVE_IDENTITY_CANDIDATE_SET_MISSING');
+
+    const malformedSet = structuredClone(inventory.identity_candidate_records!);
+    malformedSet.records[0]!.record_digest = digest('0');
+    const malformedInventory = rehashInventory({ ...inventory, identity_candidate_records: malformedSet });
+    assertBlocked(malformedInventory, { ...input, expected_inventory_digest: malformedInventory.snapshot_digest }, 'AUTHORITATIVE_IDENTITY_CANDIDATE_RECORD_INVALID');
+
+    const wrongCountSet = { ...inventory.identity_candidate_records!, count: inventory.identity_candidate_records!.count - 1 };
+    const wrongCountInventory = rehashInventory({ ...inventory, identity_candidate_records: wrongCountSet });
+    assertBlocked(wrongCountInventory, { ...input, expected_inventory_digest: wrongCountInventory.snapshot_digest }, 'AUTHORITATIVE_IDENTITY_CANDIDATE_COUNT_MISMATCH');
+    const wrongDigestSet = { ...inventory.identity_candidate_records!, set_digest: digest('0') };
+    const wrongDigestInventory = rehashInventory({ ...inventory, identity_candidate_records: wrongDigestSet });
+    assertBlocked(wrongDigestInventory, { ...input, expected_inventory_digest: wrongDigestInventory.snapshot_digest }, 'AUTHORITATIVE_IDENTITY_CANDIDATE_SET_DIGEST_MISMATCH');
+
+    const cases: IdentityCandidateInput[] = [
+      { ...input, concepts: [] },
+      { ...input, concepts: input.concepts.slice(1) },
+      { ...input, concepts: [...input.concepts, { source_concept_id: 'extra', identity_namespace: 'runtime-node', normalized_name: '额外', source_locator: 'runtime:extra' }] },
+      { ...input, concepts: input.concepts.map((concept, index) => index === 0 ? { ...concept, normalized_name: '更名' } : concept) },
+      { ...input, concepts: input.concepts.map((concept, index) => index === 0 ? { ...concept, identity_namespace: 'other' } : concept) },
+      { ...input, concepts: input.concepts.map((concept, index) => index === 0 ? { ...concept, source_locator: 'runtime:changed' } : concept) },
+    ];
+    for (const candidate of cases) assertBlocked(inventory, candidate, 'IDENTITY_INPUT_NOT_EXHAUSTIVE');
+    expect(build(inventory, { ...input, expected: { concept_count: 0, reviewed_alias_count: 0, near_similar_count: 0 } }).readiness).toBe(true);
   });
 
   it('rejects near-similar merges, external pending splits, and invalid anchor evidence', async () => {

@@ -7,6 +7,8 @@ import {
 import { makeAnchor } from '../input-inventory/records';
 import type {
   Drift,
+  AuthoritativeIdentityCandidateRecord,
+  AuthoritativeIdentityCandidateRecordSet,
   IdentityCandidateInput,
   InventoryAnchor,
   InventoryManifest,
@@ -15,6 +17,8 @@ import type {
 
 export const SCHEMA_VERSION = 'knowledge-identity-candidate-manifest/v1';
 export const ALGORITHM_VERSION = 'global-exact-reviewed-alias-union-find/v1';
+const RECORD_VERSION = 'knowledge-identity-candidate-record/v1';
+const RECORD_SET_VERSION = 'knowledge-identity-candidate-record-set/v1';
 
 interface BuildOptions {
   inventory: InventoryManifest;
@@ -58,6 +62,51 @@ function conceptKey(value: { identity_namespace: string; source_concept_id: stri
 
 function validateDigest(value: string, field: string): void {
   if (!/^sha256:[0-9a-f]{64}$/u.test(value)) throw new Error(`${field} must be a sha256 digest`);
+}
+
+function recordBody(concept: { source_concept_id: string; identity_namespace: string; normalized_name: string; source_locator: string }): Omit<AuthoritativeIdentityCandidateRecord, 'record_digest'> {
+  return {
+    concept_key: `${concept.identity_namespace}:${concept.source_concept_id}`,
+    source_concept_id: concept.source_concept_id,
+    identity_namespace: concept.identity_namespace,
+    normalized_name: concept.normalized_name,
+    source_locator: concept.source_locator,
+  };
+}
+
+function validateAuthoritativeRecordSet(value: AuthoritativeIdentityCandidateRecordSet | undefined): { records: AuthoritativeIdentityCandidateRecord[]; drift: Drift[] } {
+  if (!value || !Array.isArray(value.records) || !Number.isSafeInteger(value.count) || typeof value.set_digest !== 'string') {
+    return { records: [], drift: [{ code: 'AUTHORITATIVE_IDENTITY_CANDIDATE_SET_MISSING', scope: 'input-inventory', expected: 'records + count + set_digest', observed: value === undefined ? 'missing' : 'malformed' }] };
+  }
+  const drift: Drift[] = [];
+  if (canonicalJson(Object.keys(value as unknown as Record<string, unknown>).sort(compareCodePoints) as Json) !== canonicalJson(['count', 'records', 'set_digest'] as Json)) {
+    drift.push({ code: 'AUTHORITATIVE_IDENTITY_CANDIDATE_SET_INVALID', scope: 'input-inventory.identity_candidate_records', detail: 'record set must contain exactly records, count, and set_digest' });
+  }
+  const records: AuthoritativeIdentityCandidateRecord[] = [];
+  for (const [index, record] of value.records.entries()) {
+    try {
+      const recordKeys = Object.keys(record as unknown as Record<string, unknown>).sort(compareCodePoints);
+      if (canonicalJson(recordKeys as Json) !== canonicalJson(['concept_key', 'identity_namespace', 'normalized_name', 'record_digest', 'source_concept_id', 'source_locator'] as Json)) throw new Error('record contains missing or caller-authored fields');
+      const sourceConceptId = requiredString(record.source_concept_id, 'identity record source_concept_id');
+      const namespace = requiredString(record.identity_namespace, 'identity record identity_namespace');
+      const normalizedName = requiredString(record.normalized_name, 'identity record normalized_name');
+      const sourceLocator = requiredString(record.source_locator, 'identity record source_locator');
+      const expectedBody = recordBody({ source_concept_id: sourceConceptId, identity_namespace: namespace, normalized_name: normalizedName, source_locator: sourceLocator });
+      if (record.concept_key !== expectedBody.concept_key) throw new Error('concept_key mismatch');
+      validateDigest(record.record_digest, 'identity record record_digest');
+      const expectedRecordDigest = taggedDigest(RECORD_VERSION, canonicalJson(expectedBody as unknown as Json));
+      if (record.record_digest !== expectedRecordDigest) throw new Error('record_digest mismatch');
+      records.push(record);
+    } catch (error) {
+      drift.push({ code: 'AUTHORITATIVE_IDENTITY_CANDIDATE_RECORD_INVALID', scope: `input-inventory.identity_candidate_records.records[${index}]`, detail: error instanceof Error ? error.message : String(error) });
+    }
+  }
+  records.sort((a, b) => compareCodePoints(a.concept_key, b.concept_key));
+  if (new Set(records.map((record) => record.concept_key)).size !== records.length) drift.push({ code: 'AUTHORITATIVE_IDENTITY_CANDIDATE_KEY_COLLISION', scope: 'input-inventory.identity_candidate_records', expected: records.length, observed: new Set(records.map((record) => record.concept_key)).size });
+  if (value.count !== records.length) drift.push({ code: 'AUTHORITATIVE_IDENTITY_CANDIDATE_COUNT_MISMATCH', scope: 'input-inventory.identity_candidate_records', expected: records.length, observed: value.count });
+  const expectedSetDigest = taggedDigest(RECORD_SET_VERSION, canonicalJson(records as unknown as Json));
+  if (value.set_digest !== expectedSetDigest) drift.push({ code: 'AUTHORITATIVE_IDENTITY_CANDIDATE_SET_DIGEST_MISMATCH', scope: 'input-inventory.identity_candidate_records', expected: expectedSetDigest, observed: value.set_digest });
+  return { records, drift };
 }
 
 function validateAnchor(anchor: InventoryAnchor): void {
@@ -149,6 +198,20 @@ export function buildIdentityCandidateManifest(options: BuildOptions): Record<st
   if (recomputed !== inventory.snapshot_digest) upstreamDrift.push({ code: 'UPSTREAM_INVENTORY_SELF_DIGEST_MISMATCH', scope: 'input-inventory', expected: recomputed, observed: inventory.snapshot_digest });
   if (input.expected_inventory_digest !== inventory.snapshot_digest) upstreamDrift.push({ code: 'UPSTREAM_INVENTORY_DIGEST_MISMATCH', scope: 'input-inventory', expected: input.expected_inventory_digest, observed: inventory.snapshot_digest });
   if (upstreamDrift.length > 0) return blockedManifest(options, upstreamDrift);
+
+  const authoritative = validateAuthoritativeRecordSet(inventory.identity_candidate_records);
+  if (authoritative.drift.length > 0) return blockedManifest(options, authoritative.drift);
+  const inputConceptSet = [...input.concepts].map(recordBody).sort((a, b) => compareCodePoints(a.concept_key, b.concept_key));
+  const authoritativeConceptSet = authoritative.records.map(recordBody);
+  if (canonicalJson(inputConceptSet as unknown as Json) !== canonicalJson(authoritativeConceptSet as unknown as Json)) {
+    return blockedManifest(options, [{
+      code: 'IDENTITY_INPUT_NOT_EXHAUSTIVE',
+      scope: 'identity-candidate-input.concepts',
+      expected: taggedDigest('knowledge-identity-candidate-key-set/v1', canonicalJson(authoritativeConceptSet as unknown as Json)),
+      observed: taggedDigest('knowledge-identity-candidate-key-set/v1', canonicalJson(inputConceptSet as unknown as Json)),
+      detail: 'input concepts must exactly equal the authoritative upstream identity candidate set',
+    }]);
+  }
 
   const orderedConcepts = [...input.concepts].map((concept) => ({
     ...concept,
@@ -259,11 +322,7 @@ export function buildIdentityCandidateManifest(options: BuildOptions): Record<st
     return { edge_id: taggedDigest('knowledge-near-similar-edge/v1', key), left_component_id: leftComponentId!, right_component_id: rightComponentId!, review_id: edge.review_id, evidence_digest: edge.evidence_digest, algorithm_version: edge.algorithm_version };
   }).sort((a, b) => compareCodePoints(a.edge_id, b.edge_id));
 
-  const drift: Drift[] = [
-    { code: 'OBSERVED_COUNT', scope: 'concepts', expected: input.expected.concept_count, observed: orderedConcepts.length },
-    { code: 'OBSERVED_COUNT', scope: 'reviewed_aliases', expected: input.expected.reviewed_alias_count, observed: aliases.length },
-    { code: 'OBSERVED_COUNT', scope: 'near_similar', expected: input.expected.near_similar_count, observed: input.near_similar.length },
-  ].filter((item) => item.expected !== item.observed);
+  const drift: Drift[] = [];
   const current = { components, near_similar_review_edges: nearSimilarEdges };
   const base: Record<string, Json> = {
     schema_version: SCHEMA_VERSION,

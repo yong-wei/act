@@ -66,6 +66,21 @@ export interface InventoryAnchor {
   text_digest: string;
 }
 
+export interface AuthoritativeIdentityCandidateRecord {
+  concept_key: string;
+  source_concept_id: string;
+  identity_namespace: string;
+  normalized_name: string;
+  source_locator: string;
+  record_digest: string;
+}
+
+export interface AuthoritativeIdentityCandidateRecordSet {
+  records: AuthoritativeIdentityCandidateRecord[];
+  count: number;
+  set_digest: string;
+}
+
 export interface InventoryManifest {
   schema_version: string;
   normalization_profile: string;
@@ -76,4 +91,5 @@ export interface InventoryManifest {
   snapshot_digest: string;
   readiness: boolean;
   anchors: { records: InventoryAnchor[] };
+  identity_candidate_records?: AuthoritativeIdentityCandidateRecordSet;
 }
