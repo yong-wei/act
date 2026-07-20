@@ -287,11 +287,12 @@ export function verifyAndAdmitAnchors(candidateArtifact: AnchorCandidateArtifact
   return { ...base, artifact_digest: digestArtifact(base) };
 }
 
-export async function verifyAnchorReviewAttestation(root: string, attestationPath: string): Promise<{ candidates: AnchorCandidateArtifact; review: AnchorReviewArtifact; admitted: AdmittedAnchorArtifact }> {
+export async function verifyAnchorReviewAttestation(root: string, attestationPath: string, expectedSourceRevision?: string): Promise<{ candidates: AnchorCandidateArtifact; review: AnchorReviewArtifact; admitted: AdmittedAnchorArtifact }> {
   const safePath = normalizePath(attestationPath);
   const attestation = JSON.parse(normalizeText(await readFile(path.join(root, safePath)))) as AnchorReviewAttestation;
   if (attestation.schema_version !== 'course-scope-anchor-review-attestation/v1') throw new Error('unsupported anchor review attestation');
   if (!/^[0-9a-f]{40}$/u.test(attestation.source_revision) || !attestation.extraction_run.trim() || !attestation.review_run.trim()) throw new Error('invalid anchor review attestation provenance');
+  if (expectedSourceRevision !== undefined && attestation.source_revision !== expectedSourceRevision) throw new Error('anchor review attestation source revision does not match current repository revision');
   const expectedDigests = [attestation.candidate_artifact_digest, attestation.review_artifact_digest, attestation.admitted_artifact_digest];
   if (expectedDigests.some((digest) => !/^sha256:[0-9a-f]{64}$/u.test(digest))) throw new Error('invalid anchor review attestation digest');
   if (!Array.isArray(attestation.accepted_candidate_digests) || new Set(attestation.accepted_candidate_digests).size !== attestation.accepted_candidate_digests.length) throw new Error('duplicate accepted anchor candidate');

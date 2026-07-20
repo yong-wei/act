@@ -106,6 +106,7 @@ describe('authoritative anchor pipeline', () => {
     expect(verified.review.artifact_digest).toBe('sha256:de57075b69ccc3634041eb1058ef42ad784c77dcbe6cd3bc4c75c0e6af0c58e6');
     expect(verified.admitted.artifact_digest).toBe('sha256:592773c45df8b24e6e97d0ba3a2f660ca2a8715a6c55c3347809ab4fea05610e');
     expect(verified.admitted.admitted).toHaveLength(32);
+    await expect(verifyAnchorReviewAttestation(root, 'scripts/knowledge-governance/input-inventory/fixtures/anchor-review-attestation.json', await repositoryRevision(root))).rejects.toThrow(/does not match current repository revision/u);
     const directory = await mkdtemp(path.join(os.tmpdir(), 'anchor-attestation-'));
     try {
       const cloneRoot = path.join(directory, 'repo');
@@ -141,7 +142,7 @@ describe('authoritative anchor pipeline', () => {
         review_artifact_digest: review.artifact_digest, admitted_artifact_digest: admitted.artifact_digest,
         accepted_candidate_digests: accepted, rejected_candidate_digests: rejected, evidence, reason: 'reviewed independently',
       }));
-      const verified = await verifyAnchorReviewAttestation(directory, 'attestation.json');
+      const verified = await verifyAnchorReviewAttestation(directory, 'attestation.json', sourceRevision);
       expect(verified.admitted.rejected_candidate_digests).toEqual(rejected);
       expect(verified.admitted.pending_candidate_digests).toEqual([]);
     } finally { await rm(directory, { recursive: true }); }

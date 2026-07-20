@@ -165,7 +165,7 @@ export async function buildManifest(options: InventoryOptions): Promise<Json> {
   let anchorAdmittedCount = 0;
   if (options.anchorReviewAttestationPath) {
     try {
-      const verified = await verifyAnchorReviewAttestation(options.root, options.anchorReviewAttestationPath);
+      const verified = await verifyAnchorReviewAttestation(options.root, options.anchorReviewAttestationPath, isolatedRevision);
       anchorCandidateDigest = verified.candidates.artifact_digest;
       anchorCandidateCount = verified.candidates.candidates.length;
       anchorReviewDigest = verified.review.artifact_digest;

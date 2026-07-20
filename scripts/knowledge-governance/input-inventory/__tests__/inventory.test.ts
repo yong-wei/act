@@ -562,13 +562,12 @@ describe('registry and real repository fixed integration', () => {
     expect(parsed.drift.some((item) => item.code === 'DATABASE_SNAPSHOT_REQUIRED')).toBe(true);
   }, 120_000);
 
-  it('admits only independently reviewed authoritative anchors through an exact attestation', () => {
+  it('rejects an independently valid attestation from an older repository revision', () => {
     const result = spawnSync(process.execPath, ['--import', 'tsx', 'scripts/knowledge-governance/input-inventory/cli.ts', '--captured-at', '2026-07-19T00:00:00.000Z', '--anchor-review-attestation', 'scripts/knowledge-governance/input-inventory/fixtures/anchor-review-attestation.json', '--allow-blocked'], { cwd: root, encoding: 'utf8', maxBuffer: 128 * 1024 * 1024 });
     expect(result.status).toBe(0);
-    const manifest = JSON.parse(result.stdout) as { anchors: { records: Array<{ anchor_id: string }>; observed_count: number; candidate_count: number; review_count: number; admitted_count: number; candidate_artifact_digest: string; review_artifact_digest: string; admitted_artifact_digest: string }; drift: Array<{ code: string }> };
-    expect(manifest.anchors).toMatchObject({ observed_count: 32, candidate_count: 32, review_count: 32, admitted_count: 32, candidate_artifact_digest: 'sha256:523ce88e050b4eb7de9af279b290bed503caf51363cf617e0e754cb7ee757e85', review_artifact_digest: 'sha256:de57075b69ccc3634041eb1058ef42ad784c77dcbe6cd3bc4c75c0e6af0c58e6', admitted_artifact_digest: 'sha256:592773c45df8b24e6e97d0ba3a2f660ca2a8715a6c55c3347809ab4fea05610e' });
-    expect(manifest.anchors.records.every((anchor) => /^sha256:/u.test(anchor.anchor_id))).toBe(true);
-    expect(manifest.drift.some((item) => item.code.startsWith('ANCHOR_REVIEW_ATTESTATION_'))).toBe(false);
+    const manifest = JSON.parse(result.stdout) as { anchors: { records: Array<{ anchor_id: string }>; observed_count: number; candidate_count: number; review_count: number; admitted_count: number; review_artifact_digest: string | null; admitted_artifact_digest: string | null }; drift: Array<{ code: string; detail?: string }> };
+    expect(manifest.anchors).toMatchObject({ records: [], observed_count: 0, candidate_count: 32, review_count: 0, admitted_count: 0, review_artifact_digest: null, admitted_artifact_digest: null });
+    expect(manifest.drift).toContainEqual(expect.objectContaining({ code: 'ANCHOR_REVIEW_ATTESTATION_INVALID', detail: expect.stringMatching(/does not match current repository revision/u) }));
   }, 120_000);
 
   it('CLI is stdout-only with transport/write traps and preserves tracked, untracked, ignored, runtime and inventoried fingerprints', async () => {
