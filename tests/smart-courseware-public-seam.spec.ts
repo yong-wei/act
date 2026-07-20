@@ -293,6 +293,7 @@ test('real courseware editor renders the shared student activity seam and submit
         draftId, version: 3, planRevisionId: 'fixture-plan-revision',
         runtimeManifest: patchBody.runtimeManifest,
         moduleMetadata: patchBody.moduleMetadata,
+        generationAudit: [],
         validation: { valid: true, issues: [] },
       },
     });
