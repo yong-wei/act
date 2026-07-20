@@ -1,4 +1,5 @@
 import { lstat, readlink, readdir, readFile } from 'node:fs/promises';
+import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { parse } from 'yaml';
 import { compareCodePoints, normalizePath, normalizeText, sortUnique } from './normalize';
@@ -36,8 +37,15 @@ export interface Registry {
   expected_inventory?: Record<string, unknown>;
 }
 
-export async function loadRegistry(root: string, registryPath: string): Promise<Registry> {
-  const bytes = await readFile(path.join(root, normalizePath(registryPath)));
+export async function loadRegistry(root: string, registryPath: string, revision?: string): Promise<Registry> {
+  const safePath = normalizePath(registryPath);
+  let bytes: Buffer;
+  if (revision) {
+    if (!/^[0-9a-f]{40}$/u.test(revision)) throw new Error(`invalid registry revision: ${revision}`);
+    const result = spawnSync('git', ['show', `${revision}:${safePath}`], { cwd: root, encoding: 'buffer', maxBuffer: 128 * 1024 * 1024 });
+    if (result.status !== 0) throw new Error(`unable to read registry at ${revision}:${safePath}`);
+    bytes = result.stdout;
+  } else bytes = await readFile(path.join(root, safePath));
   const value = parse(normalizeText(bytes), { uniqueKeys: true, strict: true }) as Registry;
   const required = ['schema_version', 'registry_id', 'repository_sources', 'database_sources', 'decoder_contracts', 'field_decoders', 'closed_namespaces'];
   for (const key of required) if (!(key in value)) throw new Error(`registry missing key: ${key}`);
@@ -59,6 +67,43 @@ async function walk(root: string, relative = ''): Promise<{ files: string[]; sym
     } else if (entry.isFile()) output.files.push(child);
   }
   return output;
+}
+
+function gitNullRecords(root: string, args: string[]): string[] {
+  const result = spawnSync('git', args, { cwd: root, encoding: 'buffer', maxBuffer: 128 * 1024 * 1024 });
+  if (result.status !== 0) throw new Error(`unable to enumerate repository paths: ${result.stderr.toString('utf8').trim()}`);
+  return result.stdout.toString('utf8').split('\0').filter(Boolean);
+}
+
+function gitPaths(root: string, args: string[]): string[] {
+  return gitNullRecords(root, args).map(normalizePath);
+}
+
+function revisionTree(root: string, revision: string): { files: string[]; symlinks: string[]; gitlinks: string[] } {
+  const entries = gitNullRecords(root, ['ls-tree', '-r', '-z', revision]);
+  const files: string[] = [];
+  const symlinks: string[] = [];
+  const gitlinks: string[] = [];
+  for (const entry of entries) {
+    const match = /^(\d{6})\s+\S+\s+[0-9a-f]+\t(.+)$/u.exec(entry);
+    if (!match) throw new Error(`unable to parse repository tree entry at ${revision}`);
+    const target = match[1] === '120000' ? symlinks : match[1] === '160000' ? gitlinks : files;
+    target.push(normalizePath(match[2]!));
+  }
+  return { files: sortUnique(files), symlinks: sortUnique(symlinks), gitlinks: sortUnique(gitlinks) };
+}
+
+function indexGitlinks(root: string): string[] {
+  return gitNullRecords(root, ['ls-files', '--stage', '-z']).flatMap((entry) => {
+    const match = /^160000\s+[0-9a-f]+\s+\d+\t(.+)$/u.exec(entry);
+    return match ? [normalizePath(match[1]!)] : [];
+  });
+}
+
+function revisionFile(root: string, revision: string, relativePath: string): Buffer {
+  const result = spawnSync('git', ['show', `${revision}:${normalizePath(relativePath)}`], { cwd: root, encoding: 'buffer', maxBuffer: 128 * 1024 * 1024 });
+  if (result.status !== 0) throw new Error(`unable to read repository tree file at ${revision}:${relativePath}`);
+  return result.stdout;
 }
 
 function globRegex(glob: string): RegExp {
@@ -107,9 +152,9 @@ export async function classifyRegisteredSymlinks(root: string, registry: Registr
   return { authorized_main_worktree_replacements: sortUnique(authorized), rejected: sortUnique(rejected) };
 }
 
-async function adrPaths(root: string, source: RepositorySource, drift: Drift[]): Promise<string[]> {
+async function adrPaths(root: string, source: RepositorySource, drift: Drift[], revision?: string): Promise<string[]> {
   if (!source.index_path || !source.required_number_range) return [];
-  const text = normalizeText(await readFile(path.join(root, normalizePath(source.index_path))));
+  const text = normalizeText(revision ? revisionFile(root, revision, source.index_path) : await readFile(path.join(root, normalizePath(source.index_path))));
   const paths = [...text.matchAll(/\]\((\.\/)?(\d{4}[^)#]*\.md)(?:#[^)]+)?\)/gu)]
     .map((match) => normalizePath(path.posix.join(path.posix.dirname(source.index_path!), match[2]!)));
   const [start, end] = source.required_number_range;
@@ -125,17 +170,30 @@ async function adrPaths(root: string, source: RepositorySource, drift: Drift[]):
   return sortUnique([...byNumber.values()].flat());
 }
 
-export async function enumerateRepository(root: string, registry: Registry, drift: Drift[], authorizedMainWorktreeRoot?: string) {
+export async function enumerateRepository(root: string, registry: Registry, drift: Drift[], authorizedMainWorktreeRoot?: string, revision?: string) {
   const walked = await walk(root);
+  const tree = revision ? revisionTree(root, revision) : { ...walked, gitlinks: [] as string[] };
+  const indexedPaths = revision ? gitPaths(root, ['ls-files', '-z']) : [];
+  const stagedGitlinks = revision ? indexGitlinks(root) : [];
+  const untrackedPaths = revision ? gitPaths(root, ['ls-files', '--others', '--exclude-standard', '-z']) : [];
+  const ignoredPaths = revision ? gitPaths(root, ['ls-files', '--others', '--ignored', '--exclude-standard', '-z']) : [];
   const symlinkClassification = authorizedMainWorktreeRoot ? await classifyRegisteredSymlinks(root, registry, authorizedMainWorktreeRoot) : undefined;
-  const files = walked.files;
+  const worktreeFiles = new Set(walked.files);
+  const untrackedFiles = untrackedPaths.filter((file) => worktreeFiles.has(file));
+  const ignoredFiles = ignoredPaths.filter((file) => worktreeFiles.has(file));
+  const gitlinks = new Set([...tree.gitlinks, ...stagedGitlinks]);
+  const capturedPaths = new Set([...tree.files, ...tree.symlinks, ...gitlinks]);
+  const stagedAddedFiles = indexedPaths.filter((file) => !capturedPaths.has(file) && !gitlinks.has(file) && worktreeFiles.has(file));
+  const files = sortUnique([...tree.files, ...stagedAddedFiles, ...untrackedFiles, ...ignoredFiles]);
   const records: Array<Record<string, Json>> = [];
   for (const source of registry.repository_sources) {
     const includes = [...(source.include ?? [])];
-    const indexed = await adrPaths(root, source, drift);
+    const indexed = await adrPaths(root, source, drift, revision);
     const hits = sortUnique([...files.filter((file) => includes.some((glob) => matchGlob(file, glob)) && !(source.exclude ?? []).some((glob) => matchGlob(file, glob))), ...indexed]);
-    const rejectedSymlinks = symlinkClassification?.rejected ?? walked.symlinks;
+    const authorizedSymlinks = new Set(symlinkClassification?.authorized_main_worktree_replacements ?? []);
+    const rejectedSymlinks = sortUnique([...(symlinkClassification?.rejected ?? walked.symlinks), ...tree.symlinks.filter((file) => !authorizedSymlinks.has(file))]);
     for (const symlink of rejectedSymlinks.filter((file) => includes.some((glob) => matchGlob(file, glob)) && !(source.exclude ?? []).some((glob) => matchGlob(file, glob)))) drift.push({ code: 'SYMLINK_INPUT_REJECTED', scope: symlink });
+    for (const gitlink of [...gitlinks].filter((file) => includes.some((glob) => matchGlob(file, glob)) && !(source.exclude ?? []).some((glob) => matchGlob(file, glob)))) drift.push({ code: 'GITLINK_INPUT_REJECTED', scope: gitlink, observed: revision && tree.gitlinks.includes(gitlink) ? 'captured-revision' : 'index-only' });
     if (hits.length === 0) drift.push({ code: 'REPOSITORY_SOURCE_MISSING', scope: source.id, expected: source.missing, observed: 0 });
     const logicalInputs = includes.map((pattern) => {
       const patternHits = hits.filter((file) => matchGlob(file, pattern));

@@ -132,7 +132,7 @@
         "path": { "$ref": "#/$defs/nonEmptyString" },
         "source_root": { "enum": ["isolated-worktree", "main-worktree"] },
         "capture_revision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
-        "vcs_state": { "enum": ["tracked", "ignored", "untracked"] },
+        "vcs_state": { "enum": ["tracked", "staged-added", "ignored", "untracked"] },
         "absence_reason": { "$ref": "#/$defs/nonEmptyString" },
         "isolated_path_state": { "const": "symbolic-link" },
         "replacement_target_source_root": { "const": "main-worktree" },
@@ -178,7 +178,7 @@
         "normalized_digest": { "$ref": "#/$defs/digest" },
         "source_root": { "enum": ["isolated-worktree", "main-worktree"] },
         "capture_revision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
-        "vcs_state": { "enum": ["tracked", "ignored", "untracked"] },
+        "vcs_state": { "enum": ["tracked", "staged-added", "ignored", "untracked"] },
         "absence_reason": { "$ref": "#/$defs/nonEmptyString" }
       }
     },

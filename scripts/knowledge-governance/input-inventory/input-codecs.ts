@@ -11,7 +11,7 @@ export interface InputLocation {
   source_root: 'isolated-worktree' | 'main-worktree';
   filesystem_root: string;
   capture_revision: string;
-  vcs_state: 'tracked' | 'ignored' | 'untracked';
+  vcs_state: 'tracked' | 'staged-added' | 'ignored' | 'untracked';
   absence_reason?: string;
   isolated_path_state?: 'symbolic-link';
   replacement_target_source_root?: 'main-worktree';
@@ -39,7 +39,7 @@ function listed(root: string, args: string[]): Set<string> {
 
 function states(root: string): Map<string, InputLocation['vcs_state']> {
   const output = new Map<string, InputLocation['vcs_state']>();
-  for (const item of listed(root, ['ls-files', '-z'])) output.set(item, 'tracked');
+  for (const item of listed(root, ['ls-files', '-z'])) output.set(item, 'staged-added');
   for (const item of listed(root, ['ls-files', '--others', '--ignored', '--exclude-standard', '-z'])) output.set(item, 'ignored');
   for (const item of listed(root, ['ls-files', '--others', '--exclude-standard', '-z'])) output.set(item, 'untracked');
   return output;
@@ -167,15 +167,20 @@ export async function collectInputObservations(input: {
   const isolatedPaths = new Set(input.isolatedPaths.map(normalizePath));
   const symlinkReplacements = new Set((input.isolatedSymlinkReplacements ?? []).map(normalizePath));
   const isolatedStates = states(input.isolatedRoot);
-  const locations: InputLocation[] = sortUnique([...isolatedPaths]).map((relative) => ({ path: relative, source_root: 'isolated-worktree', filesystem_root: input.isolatedRoot, capture_revision: input.isolatedRevision, vcs_state: isolatedStates.get(relative) ?? 'untracked' }));
+  const isolatedRevisionBlobs = trackedBlobs(input.isolatedRoot, input.isolatedRevision, [...isolatedPaths]);
+  const locations: InputLocation[] = sortUnique([...isolatedPaths]).map((relative) => ({ path: relative, source_root: 'isolated-worktree', filesystem_root: input.isolatedRoot, capture_revision: input.isolatedRevision, vcs_state: isolatedRevisionBlobs.get(relative) !== null ? 'tracked' : isolatedStates.get(relative) ?? 'untracked' }));
+  const blobCaches = new Map<string, Map<string, Buffer | null>>([[`${input.isolatedRoot}\0${input.isolatedRevision}`, isolatedRevisionBlobs]]);
   if (input.mainRoot && input.mainRevision) {
     const mainStates = states(input.mainRoot);
-    for (const relative of sortUnique((input.mainPaths ?? []).map(normalizePath))) locations.push({
+    const mainPaths = sortUnique((input.mainPaths ?? []).map(normalizePath));
+    const mainRevisionBlobs = trackedBlobs(input.mainRoot, input.mainRevision, mainPaths);
+    blobCaches.set(`${input.mainRoot}\0${input.mainRevision}`, mainRevisionBlobs);
+    for (const relative of mainPaths) locations.push({
       path: relative,
       source_root: 'main-worktree',
       filesystem_root: input.mainRoot,
       capture_revision: input.mainRevision,
-      vcs_state: mainStates.get(relative) ?? 'untracked',
+      vcs_state: mainRevisionBlobs.get(relative) !== null ? 'tracked' : mainStates.get(relative) ?? 'untracked',
       ...(symlinkReplacements.has(relative)
         ? {
             absence_reason: 'ISOLATED_SYMLINK_REPLACED_BY_AUTHORIZED_MAIN_WORKTREE_SAME_PATH_REGULAR_FILE',
@@ -188,11 +193,6 @@ export async function collectInputObservations(input: {
     });
   }
   const observedWithDrift: Array<{ observation: FileObservation; drift: Drift[] }> = [];
-  const blobCaches = new Map<string, Map<string, Buffer | null>>();
-  for (const location of locations.filter((item) => item.vcs_state === 'tracked')) {
-    const key = `${location.filesystem_root}\0${location.capture_revision}`;
-    if (!blobCaches.has(key)) blobCaches.set(key, trackedBlobs(location.filesystem_root, location.capture_revision, locations.filter((item) => item.vcs_state === 'tracked' && item.filesystem_root === location.filesystem_root && item.capture_revision === location.capture_revision).map((item) => item.path)));
-  }
   for (const location of locations) {
     const observationDrift: Drift[] = [];
     const cache = blobCaches.get(`${location.filesystem_root}\0${location.capture_revision}`);

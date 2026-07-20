@@ -1,9 +1,10 @@
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readdir, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { describe, expect, it } from 'vitest';
 import { loadRegistry, type Registry } from '../registry';
-import { discoverWriters, validateLearningFactProducerContracts, type WriterEvidence } from '../writer-discovery';
+import { discoverWriters, discoverWritersAtRevision, validateLearningFactProducerContracts, type WriterEvidence } from '../writer-discovery';
 
 function registry(include: string[]): Registry {
   return {
@@ -25,6 +26,34 @@ async function put(root: string, file: string, text: string): Promise<void> {
 }
 
 describe('symbol-level writer and producer closure', () => {
+  it('keeps writer evidence bound to the captured revision when a tracked source is dirty', async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), 'writer-revision-bound-'));
+    const tempTag = `failure-${process.pid}`;
+    const tempPrefix = `knowledge-writer-revision-${tempTag}-`;
+    const tempBefore = new Set((await readdir(os.tmpdir())).filter((item) => item.startsWith(tempPrefix)));
+    try {
+      for (const args of [['init', '-q'], ['config', 'user.email', 'inventory@example.test'], ['config', 'user.name', 'Inventory Test']]) spawnSync('git', args, { cwd: root });
+      await put(root, 'prisma/schema.prisma', 'model KnowledgeNode { id String @id }\n');
+      await put(root, 'src/writer.ts', 'export async function persist(db: any) { return db.knowledgeNode.create({ data: { id: "captured" } }); }\n');
+      await put(root, 'src/large.json', JSON.stringify({ payload: 'x'.repeat(4 * 1024 * 1024) }));
+      await put(root, 'unrelated/large.bin', Buffer.alloc(4 * 1024 * 1024, 0x7f).toString('binary'));
+      spawnSync('git', ['add', '.'], { cwd: root }); spawnSync('git', ['commit', '-qm', 'captured'], { cwd: root });
+      const revision = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).stdout.trim();
+      const sourceRegistry = registry(['src/writer.ts']);
+      const before = await discoverWritersAtRevision(root, revision, sourceRegistry);
+      await writeFile(path.join(root, 'src/writer.ts'), 'export const dirtyReadOnly = true;\n');
+      expect(await discoverWritersAtRevision(root, revision, sourceRegistry)).toEqual(before);
+      expect((await discoverWriters(root, sourceRegistry)).evidence).toEqual([]);
+      await expect(discoverWritersAtRevision(root, revision, sourceRegistry, { archive: process.execPath, tempTag })).rejects.toThrow(/git archive writer revision failed/u);
+      await expect(discoverWritersAtRevision(root, revision, sourceRegistry, { extract: process.execPath, tempTag })).rejects.toThrow(/tar extract writer revision failed/u);
+      await expect(Promise.race([
+        discoverWritersAtRevision(root, revision, sourceRegistry, { extract: '/usr/bin/true', tempTag }),
+        new Promise((_, reject) => { const timer = setTimeout(() => reject(new Error('successful early extract hung')), 5_000); timer.unref(); }),
+      ])).rejects.toThrow(/writer revision pipe failed/u);
+      expect(new Set((await readdir(os.tmpdir())).filter((item) => item.startsWith(tempPrefix)))).toEqual(tempBefore);
+    } finally { await rm(root, { recursive: true }); }
+  });
+
   it.each([
     ['qualified', "await db.$transaction(async (tx: any) => { const activeKnowledgeRevision = await resolveActiveKnowledgeRevision(tx); const sourceEventId = `arena-official:${id}`; await tx.learningFact.create({ data: { sourceEventId, contextJson: { knowledgeRevisionRef: activeKnowledgeRevision.id } } }); });", []],
     ['same revision on declared paths', "await db.$transaction(async (tx: any) => { const activeKnowledgeRevision = await resolveActiveKnowledgeRevision(tx); await tx.learningFact.create({ data: { sourceEventId: `arena-official:${id}`, contextJson: { knowledgeRevisionRef: activeKnowledgeRevision.id, evidenceGovernance: { knowledgeRevisionRef: activeKnowledgeRevision.id } } } }); });", []],

@@ -4,7 +4,7 @@ import { spawnSync } from 'node:child_process';
 import { canonicalJson, normalizedFile, normalizePath, normalizeText, sortUnique, taggedDigest } from './normalize';
 import { classifyRegisteredSymlinks, enumerateRepository, loadRegistry, matchGlob } from './registry';
 import { validateOutputPrivacy, validateRegistrySchema } from './schema-validation';
-import { discoverWriters } from './writer-discovery';
+import { discoverWritersAtRevision } from './writer-discovery';
 import { loadImmutableExport, noDatabaseSnapshot, validateDatabaseClosure } from './database-snapshot';
 import { decoderContractDigest, validateFixtureClosure, validateSyntheticDecoderGraph, type ShapeFixture } from './decoder-validation';
 import { extractRecordSets } from './extract-records';
@@ -109,9 +109,9 @@ function resolvedRepositoryMissingDrift(drift: Drift[], repository: Awaited<Retu
 
 export async function buildManifest(options: InventoryOptions): Promise<Json> {
   const registryPath = options.registryPath ?? DEFAULT_REGISTRY;
-  const registry = await loadRegistry(options.root, registryPath);
-  const drift: Drift[] = [];
   const isolatedRevision = await repositoryRevision(options.root);
+  const registry = await loadRegistry(options.root, registryPath, isolatedRevision);
+  const drift: Drift[] = [];
   if (Boolean(options.mainWorktreeRoot) !== Boolean(options.mainWorktreeRevision)) throw new Error('--main-worktree-root and --main-worktree-revision must be supplied together');
   let authorizedMainRoot: string | undefined;
   let mainRepository: Awaited<ReturnType<typeof enumerateRepository>> | null = null;
@@ -121,14 +121,14 @@ export async function buildManifest(options: InventoryOptions): Promise<Json> {
     else authorizedMainRoot = options.mainWorktreeRoot;
   }
   const symlinks = await classifyRegisteredSymlinks(options.root, registry, authorizedMainRoot);
-  const repository = await enumerateRepository(options.root, registry, drift, authorizedMainRoot);
-  if (authorizedMainRoot) mainRepository = await enumerateRepository(authorizedMainRoot, registry, []);
+  const repository = await enumerateRepository(options.root, registry, drift, authorizedMainRoot, isolatedRevision);
+  if (authorizedMainRoot) mainRepository = await enumerateRepository(authorizedMainRoot, registry, [], undefined, options.mainWorktreeRevision);
   drift.push(...await validateRegistrySchema(options.root, registry, (file) => normalizeText(revisionBoundFile(options.root, isolatedRevision, file, []))));
   const fixturePath = 'scripts/knowledge-governance/input-inventory/fixtures/synthetic-history-payload-shapes.json';
   const fixtureFile = JSON.parse(revisionBoundFile(options.root, isolatedRevision, fixturePath, []).toString('utf8')) as { fixtures: ShapeFixture[] };
   drift.push(...validateFixtureClosure(Object.keys(registry.decoder_contracts), fixtureFile.fixtures));
   for (const fixture of fixtureFile.fixtures) for (const sample of fixture.samples) drift.push(...validateSyntheticDecoderGraph(registry, fixtureFile.fixtures, fixture.decoder_id, sample.payload, sample.version));
-  const writers = await discoverWriters(options.root, registry);
+  const writers = await discoverWritersAtRevision(options.root, isolatedRevision, registry);
   drift.push(...writers.drift);
   const isolatedPaths = new Set(repository.sources.flatMap((source) => source.physical_paths as string[]));
   const mainPaths = mainRepository ? mainRepository.sources.flatMap((source) => source.physical_paths as string[]) : [];
@@ -258,7 +258,7 @@ export async function buildManifest(options: InventoryOptions): Promise<Json> {
       field_decoders: registry.field_decoders.length,
       namespaces: registry.closed_namespaces.length,
       declared_writer_paths: registry.repository_sources.find((source) => source.id === 'knowledge-direct-writers')?.include?.length ?? 0,
-      digest: taggedDigest('inventory-contract/v1', canonicalJson({ registry_path: registryPath, registry_file: await normalizedFile(options.root, registryPath) } as unknown as Json)),
+      digest: taggedDigest('inventory-contract/v1', canonicalJson({ registry_path: registryPath, registry_file: revisionBoundNormalizedFile(options.root, isolatedRevision, registryPath, fileRecords) } as unknown as Json)),
     },
     dated_audit_baseline: auditBaseline as unknown as Json,
     writer_discovery: writers.evidence as unknown as Json,

@@ -17,7 +17,7 @@ import { decoderContractDigest, effectiveDecoderContract, validateFixtureClosure
 import { makeAnchor, typedDedupe } from '../records';
 import { auditIdBearingPaths, selectJson } from '../json-selector';
 import { compileDatabaseObservationContracts, compileJsonObservationContracts } from '../database-observation';
-import { parseGitBatchBlobs } from '../input-codecs';
+import { collectInputObservations, parseGitBatchBlobs } from '../input-codecs';
 
 const root = path.resolve(import.meta.dirname, '../../../..');
 const digest = `sha256:${'0'.repeat(64)}`;
@@ -100,6 +100,21 @@ describe('normalization contract', () => {
       const revisionDrift = await validateRegistrySchema(directory, registry, (file) => normalizeText(revisionBoundFile(directory, revision, file, [])));
       expect(revisionDrift).not.toContainEqual(expect.objectContaining({ code: 'SCHEMA_SOURCE_UNRESOLVED' }));
       expect(await validateRegistrySchema(directory, registry)).toContainEqual(expect.objectContaining({ code: 'SCHEMA_SOURCE_UNRESOLVED' }));
+    } finally { await rm(directory, { recursive: true }); }
+  });
+
+  it('loads a tracked registry from the captured revision when the worktree is dirty', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-revision-registry-'));
+    try {
+      for (const args of [['init', '-q'], ['config', 'user.email', 'inventory@example.test'], ['config', 'user.name', 'Inventory Test']]) spawnSync('git', args, { cwd: directory });
+      const registryPath = 'registry.yaml';
+      const captured = { schema_version: 'captured/v1', registry_id: 'fixture', repository_sources: [], database_sources: [], decoder_contracts: {}, field_decoders: [], closed_namespaces: [] };
+      await writeFile(path.join(directory, registryPath), JSON.stringify(captured));
+      spawnSync('git', ['add', registryPath], { cwd: directory }); spawnSync('git', ['commit', '-qm', 'registry'], { cwd: directory });
+      const revision = await repositoryRevision(directory);
+      await writeFile(path.join(directory, registryPath), JSON.stringify({ ...captured, schema_version: 'dirty/v2' }));
+      expect((await loadRegistry(directory, registryPath, revision)).schema_version).toBe('captured/v1');
+      expect((await loadRegistry(directory, registryPath)).schema_version).toBe('dirty/v2');
     } finally { await rm(directory, { recursive: true }); }
   });
 
@@ -218,6 +233,61 @@ describe('writer AST discovery', () => {
 });
 
 describe('filesystem closure', () => {
+  it('enumerates tracked paths from the captured revision after worktree deletion', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-tree-enumeration-'));
+    try {
+      spawnSync('git', ['init', '-q'], { cwd: directory });
+      spawnSync('git', ['config', 'user.email', 'inventory@example.test'], { cwd: directory });
+      spawnSync('git', ['config', 'user.name', 'Inventory Test'], { cwd: directory });
+      await writeFile(path.join(directory, 'tracked.md'), '# captured\n');
+      spawnSync('git', ['add', 'tracked.md'], { cwd: directory });
+      spawnSync('git', ['commit', '-qm', 'captured tree'], { cwd: directory });
+      const revision = await repositoryRevision(directory);
+      await rm(path.join(directory, 'tracked.md'));
+      spawnSync('git', ['add', '-u'], { cwd: directory });
+      await writeFile(path.join(directory, 'untracked.md'), '# untracked\n');
+      await writeFile(path.join(directory, 'staged-added.md'), '# staged added\n');
+      spawnSync('git', ['add', 'staged-added.md'], { cwd: directory });
+      await writeFile(path.join(directory, '.gitignore'), 'ignored.md\n');
+      await writeFile(path.join(directory, 'ignored.md'), '# ignored\n');
+      const registry = {
+        repository_sources: [{ id: 'source', item_kind: 'doc', identity_namespace: 'repository_path', include: ['*.md'], missing: 'fail' }], instructional_source_role_matrix: {},
+        repository_codec_contract: { unknown_codec: 'invalid', codecs: [{ id: 'markdown/v1', media_type: 'text/markdown', kind: 'text', include: ['*.md'] }] },
+      } as unknown as Registry;
+
+      const repository = await enumerateRepository(directory, registry, [], undefined, revision);
+
+      expect(repository.sources[0]?.physical_paths).toEqual(['ignored.md', 'staged-added.md', 'tracked.md', 'untracked.md']);
+      const observationDrift: import('../types').Drift[] = [];
+      const observations = await collectInputObservations({ isolatedRoot: directory, isolatedRevision: revision, isolatedPaths: repository.sources[0]!.physical_paths as string[] }, registry, observationDrift);
+      expect(observations).toContainEqual(expect.objectContaining({ path: 'tracked.md', vcs_state: 'tracked', state: 'observed', content_bytes: Buffer.from('# captured\n') }));
+      expect(observations).toContainEqual(expect.objectContaining({ path: 'staged-added.md', vcs_state: 'staged-added', state: 'observed', content_bytes: Buffer.from('# staged added\n') }));
+      expect(observationDrift).not.toContainEqual(expect.objectContaining({ code: 'INPUT_READ_FAILED' }));
+    } finally { await rm(directory, { recursive: true }); }
+  });
+
+  it('rejects captured and index-only gitlinks without depending on submodule initialization', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-gitlinks-'));
+    try {
+      for (const args of [['init', '-q'], ['config', 'user.email', 'inventory@example.test'], ['config', 'user.name', 'Inventory Test']]) spawnSync('git', args, { cwd: directory });
+      await writeFile(path.join(directory, 'base.txt'), 'base\n');
+      spawnSync('git', ['add', 'base.txt'], { cwd: directory }); spawnSync('git', ['commit', '-qm', 'base'], { cwd: directory });
+      const target = (await repositoryRevision(directory));
+      spawnSync('git', ['update-index', '--add', '--cacheinfo', `160000,${target},captured-link`], { cwd: directory });
+      spawnSync('git', ['commit', '-qm', 'captured gitlink'], { cwd: directory });
+      const revision = await repositoryRevision(directory);
+      spawnSync('git', ['update-index', '--add', '--cacheinfo', `160000,${target},staged-link`], { cwd: directory });
+      const registry = { repository_sources: [{ id: 'links', item_kind: 'doc', identity_namespace: 'repository_path', include: ['*link'], missing: 'record' }], instructional_source_role_matrix: {} } as unknown as Registry;
+      const drift: import('../types').Drift[] = [];
+      const repository = await enumerateRepository(directory, registry, drift, undefined, revision);
+      expect(repository.sources[0]?.physical_paths).toEqual([]);
+      expect(drift).toEqual(expect.arrayContaining([
+        expect.objectContaining({ code: 'GITLINK_INPUT_REJECTED', scope: 'captured-link', observed: 'captured-revision' }),
+        expect.objectContaining({ code: 'GITLINK_INPUT_REJECTED', scope: 'staged-link', observed: 'index-only' }),
+      ]));
+    } finally { await rm(directory, { recursive: true }); }
+  });
+
   it('reports allowlisted symlinks instead of silently skipping them', async () => {
     const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-symlink-'));
     try {
@@ -659,6 +729,7 @@ describe('registry and real repository fixed integration', () => {
     const fingerprintPaths = [...new Set([...inventoried, 'scripts/knowledge-governance/input-inventory/manifest.ts', 'scripts/knowledge-governance/input-inventory/manifest.schema.json'])];
     const fingerprintsBefore = await sourceFingerprints(root, fingerprintPaths);
     const gitBefore = spawnSync('git', ['status', '--porcelain=v1', '--untracked-files=all'], { cwd: root, encoding: 'utf8' }).stdout;
+    const writerTempsBefore = new Set((await readdir(os.tmpdir())).filter((item) => item.startsWith('knowledge-writer-revision-')));
     const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-trap-'));
     try {
       const trap = `const net=require('node:net'),http=require('node:http'),https=require('node:https'),fs=require('node:fs'); const deny=()=>{throw new Error('transport/write trap');}; net.Socket.prototype.connect=deny; http.request=deny; https.request=deny; global.fetch=deny; for(const k of ['writeFile','appendFile','createWriteStream','rename','unlink']) fs[k]=deny;`;
@@ -675,5 +746,6 @@ describe('registry and real repository fixed integration', () => {
     } finally { await rm(directory, { recursive: true }); }
     expect(await sourceFingerprints(root, fingerprintPaths)).toEqual(fingerprintsBefore);
     expect(spawnSync('git', ['status', '--porcelain=v1', '--untracked-files=all'], { cwd: root, encoding: 'utf8' }).stdout).toBe(gitBefore);
+    expect(new Set((await readdir(os.tmpdir())).filter((item) => item.startsWith('knowledge-writer-revision-')))).toEqual(writerTempsBefore);
   }, 120_000);
 });

@@ -1,9 +1,72 @@
 import { readdir, readFile } from 'node:fs/promises';
+import { spawn, spawnSync } from 'node:child_process';
+import os from 'node:os';
 import path from 'node:path';
 import ts from 'typescript';
 import { compareCodePoints, normalizePath, sortUnique } from './normalize';
 import { matchGlob, type Registry } from './registry';
 import type { Drift } from './types';
+
+interface RevisionPipelineCommands { archive?: string; extract?: string; tempTag?: string }
+
+async function materializeRevisionFiles(root: string, revision: string, directory: string, files: string[], commands: RevisionPipelineCommands = {}): Promise<void> {
+  if (files.length === 0) return;
+  const settle = (child: ReturnType<typeof spawn>): Promise<{ code: number | null; signal: NodeJS.Signals | null; error: Error | null; stderr: string }> => new Promise((resolve) => {
+    const stderr: Buffer[] = [];
+    child.stderr.on('data', (chunk: Buffer) => stderr.push(chunk));
+    let processError: Error | null = null;
+    child.once('error', (error) => { processError = error; });
+    child.once('close', (code, signal) => resolve({ code, signal, error: processError, stderr: Buffer.concat(stderr).toString('utf8').trim() }));
+  });
+  for (let offset = 0; offset < files.length; offset += 128) {
+    const chunk = files.slice(offset, offset + 128);
+    const archive = spawn(commands.archive ?? 'git', ['archive', '--format=tar', revision, '--', ...chunk], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] });
+    const extract = spawn(commands.extract ?? 'tar', ['-xf', '-', '-C', directory], { stdio: ['pipe', 'ignore', 'pipe'] });
+    const archiveSettled = settle(archive);
+    const extractSettled = settle(extract);
+    let firstFailure: 'archive' | 'extract' | 'pipe' | null = null;
+    let pipelineError: Error | null = null;
+    let pipeTriggered = false;
+    let archiveOutputEnded = false;
+    const terminatePeer = (peer: ReturnType<typeof spawn>) => {
+      if (peer.exitCode !== null || peer.signalCode !== null) return;
+      peer.kill('SIGTERM');
+      const timer = setTimeout(() => { if (peer.exitCode === null && peer.signalCode === null) peer.kill('SIGKILL'); }, 2_000);
+      timer.unref();
+    };
+    const failPipe = (error: Error) => {
+      pipelineError ??= error;
+      pipeTriggered = true;
+      terminatePeer(archive);
+    };
+    archive.stdout.once('end', () => { archiveOutputEnded = true; });
+    archive.stdout.on('error', failPipe);
+    extract.stdin.on('error', failPipe);
+    archive.stdout.pipe(extract.stdin);
+    archiveSettled.then((result) => { if (result.code !== 0 || result.signal || result.error) { if (!pipeTriggered) firstFailure ??= 'archive'; terminatePeer(extract); } });
+    extractSettled.then((result) => {
+      if (result.code !== 0 || result.signal || result.error) { firstFailure ??= 'extract'; terminatePeer(archive); }
+      else if (!archiveOutputEnded && !archive.stdout.readableEnded) {
+        const timer = setTimeout(() => {
+          if (!archiveOutputEnded && !archive.stdout.readableEnded && archive.exitCode === null && archive.signalCode === null) failPipe(new Error('extract exited successfully before archive output ended'));
+        }, 50);
+        timer.unref();
+      }
+    });
+    const [archiveResult, extractResult] = await Promise.all([archiveSettled, extractSettled]);
+    if (!firstFailure && pipeTriggered) firstFailure = 'pipe';
+    const failure = firstFailure === 'extract'
+      ? { label: 'tar extract writer revision', result: extractResult }
+      : firstFailure === 'pipe'
+        ? { label: 'writer revision pipe', result: { code: null, signal: null, error: pipelineError, stderr: '' } }
+      : archiveResult.code !== 0 || archiveResult.signal || archiveResult.error
+      ? { label: 'git archive writer revision', result: archiveResult }
+      : extractResult.code !== 0 || extractResult.signal || extractResult.error
+        ? { label: 'tar extract writer revision', result: extractResult }
+        : null;
+    if (failure) throw new Error(`${failure.label} failed (${failure.result.signal ?? failure.result.code ?? failure.result.error?.name ?? 'stream'}): ${failure.result.stderr || failure.result.error?.message || 'no detail'}`);
+  }
+}
 
 const MUTATIONS = new Set(['create', 'createMany', 'createManyAndReturn', 'update', 'updateMany', 'upsert', 'delete', 'deleteMany']);
 const NESTED_CREATE_OPERATIONS = new Set(['create', 'createMany', 'upsert', 'connectOrCreate']);
@@ -759,4 +822,37 @@ export async function discoverWriters(root: string, registry: Registry): Promise
   for (const item of evidence.filter((entry) => entry.dynamic_raw)) drift.push({ code: 'DYNAMIC_RAW_SQL_UNRESOLVED', scope: item.path });
   drift.push(...await validateLearningFactProducerContracts(root, registry, evidence));
   return { evidence, drift };
+}
+
+export async function discoverWritersAtRevision(root: string, revision: string, registry: Registry, pipelineCommands: RevisionPipelineCommands = {}): Promise<{ evidence: WriterEvidence[]; drift: Drift[] }> {
+  if (!/^[0-9a-f]{40}$/u.test(revision)) throw new Error(`invalid writer discovery revision: ${revision}`);
+  const tempTag = pipelineCommands.tempTag && /^[A-Za-z0-9_-]{1,48}$/u.test(pipelineCommands.tempTag) ? `${pipelineCommands.tempTag}-` : '';
+  const created = spawnSync('mktemp', ['-d', path.join(os.tmpdir(), `knowledge-writer-revision-${tempTag}XXXXXX`)], { encoding: 'utf8' });
+  const directory = created.stdout.trim();
+  if (created.status !== 0 || path.dirname(directory) !== os.tmpdir() || !path.basename(directory).startsWith('knowledge-writer-revision-')) throw new Error('unable to create controlled writer revision directory');
+  let primaryError: unknown;
+  try {
+    const source = registry.repository_sources.find((item) => item.id === 'knowledge-direct-writers');
+    const roots = ((source?.static_discovery as { roots?: string[] } | undefined)?.roots ?? ['src', 'scripts', 'course-content']).map((item) => normalizePath(item));
+    const listed = spawnSync('git', ['ls-tree', '-r', '--name-only', '-z', revision], { cwd: root, encoding: 'buffer', maxBuffer: 128 * 1024 * 1024 });
+    if (listed.status !== 0) throw new Error(`unable to list writer discovery revision: ${listed.stderr.toString('utf8').trim()}`);
+    const support = new Set(['package.json', 'tsconfig.json', 'prisma/schema.prisma']);
+    const files = sortUnique(listed.stdout.toString('utf8').split('\0').filter(Boolean).map(normalizePath).filter((file) =>
+      support.has(file) || (roots.some((candidate) => file === candidate || file.startsWith(`${candidate}/`)) && /\.(?:[cm]?[jt]sx?|json|prisma)$/iu.test(file)),
+    ));
+    await materializeRevisionFiles(root, revision, directory, files, pipelineCommands);
+    const linked = spawnSync('ln', ['-s', path.join(root, 'node_modules'), path.join(directory, 'node_modules')], { encoding: 'utf8' });
+    if (linked.status !== 0) throw new Error(`unable to link writer discovery dependencies: ${linked.stderr.trim()}`);
+    return await discoverWriters(directory, registry);
+  } catch (error) {
+    primaryError = error;
+    throw error;
+  } finally {
+    const cleaned = spawnSync('rm', ['-rf', '--', directory], { encoding: 'utf8' });
+    if (cleaned.status !== 0) {
+      const detail = `writer revision cleanup failed: ${cleaned.stderr.trim()}`;
+      if (primaryError instanceof Error) primaryError.message = `${primaryError.message}; ${detail}`;
+      else throw new Error(detail);
+    }
+  }
 }
