@@ -266,6 +266,158 @@ describe('smart courseware selected-module regeneration acceptance', () => {
     expect((db as Record<string, unknown>).smartCoursewareDraft).toBeUndefined();
   });
 
+  it('regenerates and accepts a pending module when the approved plan has no sources', async () => {
+    const fixture = acceptanceFixture();
+    const plan = structuredClone(fixture.job.draft.planRevision.content);
+    plan.sources = [];
+    const planContentHash = contentHash(plan);
+    fixture.job.planContentHash = planContentHash;
+    fixture.job.draft.planContentHash = planContentHash;
+    fixture.job.draft.planRevision = {
+      ...fixture.job.draft.planRevision,
+      content: plan,
+      contentHash: planContentHash,
+    };
+    fixture.job.inputHash = coursewareModuleGenerationInputHash({
+      draftId: fixture.job.draft.id,
+      draftVersion: fixture.job.draft.version,
+      planRevisionId: fixture.job.draft.planRevisionId,
+      planContentHash,
+      moduleId: fixture.job.targetModuleId,
+      moduleHash: fixture.job.targetModuleHash,
+    });
+    const runningJob = {
+      ...fixture.job,
+      state: 'RUNNING',
+      moduleAttemptGeneration: 1,
+      candidateRuntimeModule: null,
+      candidateModuleMetadata: null,
+      candidateHash: null,
+      sourceBindingsSnapshot: null,
+    };
+    const updateJob = vi.fn().mockResolvedValue({ count: 1 });
+    const updateAttempt = vi.fn().mockResolvedValue({ count: 1 });
+    const createAttempt = vi.fn().mockResolvedValue({
+      id: 'pending-module-attempt', attemptNumber: 1,
+      idempotencyKey: `smart-courseware-module:${fixture.job.id}:1`,
+    });
+    const generate = vi.fn(async (input: LooseRecord) => ({
+      output: input.fixtureOutput,
+      normalizedResponseId: 'pending-module-response', inputTokens: 1, outputTokens: 1, costMicros: null,
+    }));
+    const buildSar = vi.fn();
+    const buildSourcePack = vi.fn();
+    const generationDb = {
+      smartCoursewareGenerationJob: {
+        updateMany: updateJob,
+        findFirstOrThrow: vi.fn().mockResolvedValue(runningJob),
+        findFirst: vi.fn().mockResolvedValue({ ...runningJob, state: 'COMPLETED' }),
+      },
+      smartCoursewareProviderAttempt: { create: createAttempt, updateMany: updateAttempt },
+      $transaction: vi.fn(async (run: (tx: unknown) => unknown) => run({
+        smartCoursewareGenerationJob: { updateMany: updateJob },
+        smartCoursewareProviderAttempt: { create: createAttempt, updateMany: updateAttempt },
+      })),
+    };
+
+    await generateCoursewareModuleCandidate(generationDb as never, { actor, jobId: fixture.job.id }, {
+      buildSar: buildSar as never,
+      buildSourcePack: buildSourcePack as never,
+      resolveProvider: vi.fn().mockResolvedValue(providerRuntime(generate)) as never,
+    });
+
+    expect(buildSar).not.toHaveBeenCalled();
+    expect(buildSourcePack).not.toHaveBeenCalled();
+    const providerInput = generate.mock.calls[0][0];
+    expect(JSON.parse(providerInput.prompt).authoritativeSourceBindings).toEqual([]);
+    expect(providerInput.fixtureOutput.moduleMetadata).toEqual(expect.objectContaining({
+      sourceState: 'ai_generated_source_pending',
+      sourceBindings: [],
+    }));
+    const completedWrite = updateJob.mock.calls.at(-1)?.[0].data;
+    Object.assign(fixture.job, {
+      state: 'COMPLETED',
+      sourceBindingsSnapshot: completedWrite.sourceBindingsSnapshot,
+      candidateRuntimeModule: completedWrite.candidateRuntimeModule,
+      candidateModuleMetadata: completedWrite.candidateModuleMetadata,
+      candidateHash: completedWrite.candidateHash,
+      providerAttempt: { id: 'pending-module-attempt', attemptNumber: 1, outcome: 'SUCCEEDED' },
+    });
+    const acceptance = acceptanceDb(fixture.job);
+
+    await acceptCoursewareModuleCandidate(acceptance.value as never, {
+      actor,
+      jobId: fixture.job.id,
+      expectedDraftVersion: fixture.job.draft.version,
+      expectedModuleHash: fixture.target.contentHash,
+      idempotencyKey: 'accept-no-source-pending-module',
+    });
+
+    expect(acceptance.updateModule.mock.calls[0][0].data).toEqual(expect.objectContaining({
+      sourceState: 'AI_GENERATED_SOURCE_PENDING',
+      sourceBindings: [],
+      gapIdentity: expect.stringMatching(/^courseware-gap:/),
+    }));
+  });
+
+  it('rejects a provider candidate that claims verified state without authoritative bindings', async () => {
+    const fixture = noSourceGenerationFixture();
+    const generate = vi.fn().mockResolvedValue({
+      output: {
+        runtimeModule: fixture.job.candidateRuntimeModule,
+        moduleMetadata: {
+          ...fixture.job.candidateModuleMetadata,
+          sourceState: 'verified',
+          sourceBindings: [],
+        },
+      },
+      normalizedResponseId: 'false-verified-response', inputTokens: 1, outputTokens: 1, costMicros: null,
+    });
+    const race = moduleGenerationRaceDb(fixture);
+
+    await expect(generateCoursewareModuleCandidate(race.db as never, { actor, jobId: fixture.job.id }, {
+      buildSar: vi.fn() as never,
+      buildSourcePack: vi.fn() as never,
+      resolveProvider: vi.fn().mockResolvedValue(providerRuntime(generate)) as never,
+      now: race.now,
+    })).rejects.toMatchObject({ code: 'verified-source-binding-required', status: 409 });
+  });
+
+  it('rejects verified provider output with empty bindings even when authoritative evidence exists', async () => {
+    const fixture = acceptanceFixture();
+    const generate = vi.fn().mockResolvedValue({
+      output: {
+        runtimeModule: fixture.job.candidateRuntimeModule,
+        moduleMetadata: {
+          ...fixture.job.candidateModuleMetadata,
+          sourceState: 'verified',
+          sourceBindings: [],
+        },
+      },
+      normalizedResponseId: 'empty-verified-response', inputTokens: 1, outputTokens: 1, costMicros: null,
+    });
+    const race = moduleGenerationRaceDb(fixture);
+
+    await expect(generateCoursewareModuleCandidate(race.db as never, { actor, jobId: fixture.job.id }, {
+      ...moduleGenerationDependencies(fixture, generate),
+      now: race.now,
+    })).rejects.toMatchObject({ code: 'verified-source-binding-required', status: 409 });
+  });
+
+  it('fails before provider invocation when selected sources yield no authoritative evidence', async () => {
+    const fixture = acceptanceFixture();
+    const race = moduleGenerationRaceDb(fixture);
+    const generate = vi.fn();
+
+    await expect(generateCoursewareModuleCandidate(race.db as never, { actor, jobId: fixture.job.id }, {
+      buildSar: vi.fn().mockResolvedValue({ selectedVersionIds: [sourceBindingFixture.sourceVersionId] }) as never,
+      buildSourcePack: vi.fn().mockResolvedValue({ retrieval: { pack: { items: [] } } }) as never,
+      resolveProvider: vi.fn().mockResolvedValue(providerRuntime(generate)) as never,
+      now: race.now,
+    })).rejects.toMatchObject({ code: 'governed-source-evidence-unavailable', status: 409 });
+    expect(generate).not.toHaveBeenCalled();
+  });
+
   it('lets a new worker reclaim an expired MODULE lease after a hard interruption', async () => {
     const fixture = acceptanceFixture();
     const now = new Date('2026-07-19T12:00:00Z');
@@ -829,6 +981,37 @@ function acceptanceFixture() {
     providerAttempt: { id: 'module-provider-attempt-1', attemptNumber: 1, outcome: 'SUCCEEDED' },
   };
   return { job, target };
+}
+
+function noSourceGenerationFixture() {
+  const fixture = acceptanceFixture();
+  const plan = structuredClone(fixture.job.draft.planRevision.content);
+  plan.sources = [];
+  const planContentHash = contentHash(plan);
+  fixture.job.planContentHash = planContentHash;
+  fixture.job.draft.planContentHash = planContentHash;
+  fixture.job.draft.planRevision = {
+    ...fixture.job.draft.planRevision,
+    content: plan,
+    contentHash: planContentHash,
+  };
+  fixture.job.inputHash = coursewareModuleGenerationInputHash({
+    draftId: fixture.job.draft.id,
+    draftVersion: fixture.job.draft.version,
+    planRevisionId: fixture.job.draft.planRevisionId,
+    planContentHash,
+    moduleId: fixture.job.targetModuleId,
+    moduleHash: fixture.job.targetModuleHash,
+  });
+  Object.assign(fixture.job.candidateModuleMetadata as { sourceState: string; sourceBindings: unknown[] }, {
+    sourceState: 'ai_generated_source_pending',
+    sourceBindings: [],
+  });
+  fixture.job.candidateHash = contentHash({
+    runtimeModule: fixture.job.candidateRuntimeModule,
+    moduleMetadata: fixture.job.candidateModuleMetadata,
+  });
+  return fixture;
 }
 
 function acceptanceDb(job: ReturnType<typeof acceptanceFixture>['job'], options: { moduleClaimCount?: number } = {}) {

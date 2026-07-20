@@ -219,23 +219,25 @@ export async function generateCoursewareModuleCandidate(
       throw new SmartCoursewareError('courseware-module-baseline-mismatch', 409);
     }
     const selectedVersionIds = [...new Set(plan.sources.map((binding) => binding.sourceVersionId))];
-    if (!selectedVersionIds.length) throw new SmartCoursewareError('governed-source-evidence-unavailable', 409);
     const query = [plan.topic, ...plan.goals.map((goal) => goal.content), location.stage.stage, location.step.title].join('\n').slice(0, 4_000);
     const sourceActor = { id: job.ownerId, role: 'TEACHER' as const };
-    const sar = await (dependencies.buildSar ?? buildCourseBasisLessonDesignSar)(db, {
-      actor: sourceActor, selectedVersionIds, explicitRetiredVersionIds: selectedVersionIds, query,
-    });
-    const sourcePack = await (dependencies.buildSourcePack ?? buildCourseBasisLessonDesignSourcePack)(db, {
-      actor: sourceActor, selectedVersionIds, explicitRetiredVersionIds: selectedVersionIds, sar,
-      retrieval: { query, topK: 12 },
-    });
-    const authoritativeBindings = normalizeSourceBindings(sourcePack.retrieval.pack.items.map((item) => ({
-      citationId: item.citationTargetId ?? item.citation?.citationTargetId,
-      sourceVersionId: item.metadata?.versionId,
-      anchor: item.metadata?.stableAnchor,
-      contentHash: item.metadata?.contentHash,
-    })));
-    if (!authoritativeBindings.length) throw new SmartCoursewareError('governed-source-evidence-unavailable', 409);
+    let authoritativeBindings: ReturnType<typeof normalizeSourceBindings> = [];
+    if (selectedVersionIds.length) {
+      const sar = await (dependencies.buildSar ?? buildCourseBasisLessonDesignSar)(db, {
+        actor: sourceActor, selectedVersionIds, explicitRetiredVersionIds: selectedVersionIds, query,
+      });
+      const sourcePack = await (dependencies.buildSourcePack ?? buildCourseBasisLessonDesignSourcePack)(db, {
+        actor: sourceActor, selectedVersionIds, explicitRetiredVersionIds: selectedVersionIds, sar,
+        retrieval: { query, topK: 12 },
+      });
+      authoritativeBindings = normalizeSourceBindings(sourcePack.retrieval.pack.items.map((item) => ({
+        citationId: item.citationTargetId ?? item.citation?.citationTargetId,
+        sourceVersionId: item.metadata?.versionId,
+        anchor: item.metadata?.stableAnchor,
+        contentHash: item.metadata?.contentHash,
+      })));
+      if (!authoritativeBindings.length) throw new SmartCoursewareError('governed-source-evidence-unavailable', 409);
+    }
     const request = {
       planBaseline: { revisionId: job.planRevisionId, contentHash: job.planContentHash },
       goals: plan.goals,
@@ -298,11 +300,13 @@ export async function generateCoursewareModuleCandidate(
         runtimeModule: location.runtimeModule,
         moduleMetadata: {
           moduleId: job.targetModuleId!,
-          sourceState: 'verified',
-          sourceBindings: [authoritativeBindings[0]],
+          sourceState: authoritativeBindings.length ? 'verified' : 'ai_generated_source_pending',
+          sourceBindings: authoritativeBindings.length ? [authoritativeBindings[0]] : [],
           teacherFields: {
             ...(stored.teacherMetadata as CoursewareModuleMetadataInput['teacherFields']),
-            inclusionRationale: '确定性测试候选沿用当前模块，并由本次权威来源绑定提供依据。',
+            ...(authoritativeBindings.length
+              ? { inclusionRationale: '确定性测试候选沿用当前模块，并由本次权威来源绑定提供依据。' }
+              : {}),
           },
         },
       },
@@ -567,9 +571,13 @@ function assertCandidateBoundary(candidate: ReturnType<typeof coursewareModuleCa
   if (candidate.runtimeModule.id !== moduleId || candidate.moduleMetadata.moduleId !== moduleId) {
     throw new SmartCoursewareError('courseware-module-candidate-target-changed', 409);
   }
-  const allowed = new Set(normalizeSourceBindings(allowedBindings).map(bindingKey));
+  const normalizedAllowedBindings = normalizeSourceBindings(allowedBindings);
+  const allowed = new Set(normalizedAllowedBindings.map(bindingKey));
   if (candidate.moduleMetadata.sourceBindings.some((binding) => !allowed.has(bindingKey(binding)))) {
     throw new SmartCoursewareError('generated-source-binding-unverified', 409);
+  }
+  if (candidate.moduleMetadata.sourceState === 'verified' && !candidate.moduleMetadata.sourceBindings.length) {
+    throw new SmartCoursewareError('verified-source-binding-required', 409);
   }
   assertAiGeneratedCoursewareSourceState(candidate.moduleMetadata);
 }
