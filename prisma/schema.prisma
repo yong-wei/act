@@ -1065,11 +1065,15 @@ model SmartCoursewarePublicationRevision {
   publishedById                    String
   publishedAt                      DateTime @default(now())
 
-  series         SmartCoursewarePublicationSeries      @relation(fields: [seriesId], references: [id], onDelete: Restrict)
-  sourceRevision SmartCoursewareRevision               @relation(fields: [sourceRevisionId], references: [id], onDelete: Restrict)
-  planRevision   SmartLessonRevision                   @relation("SmartCoursewarePublicationPlanRevision", fields: [planRevisionId], references: [id], onDelete: Restrict)
-  publishedBy    User                                  @relation("SmartCoursewarePublicationActor", fields: [publishedById], references: [id], onDelete: Restrict)
-  operations     SmartCoursewarePublicationOperation[]
+  series               SmartCoursewarePublicationSeries      @relation(fields: [seriesId], references: [id], onDelete: Restrict)
+  sourceRevision       SmartCoursewareRevision               @relation(fields: [sourceRevisionId], references: [id], onDelete: Restrict)
+  planRevision         SmartLessonRevision                   @relation("SmartCoursewarePublicationPlanRevision", fields: [planRevisionId], references: [id], onDelete: Restrict)
+  publishedBy          User                                  @relation("SmartCoursewarePublicationActor", fields: [publishedById], references: [id], onDelete: Restrict)
+  operations           SmartCoursewarePublicationOperation[]
+  projectedLessonPlans LessonPlan[]                          @relation("GeneratedCoursewareLessonPlan")
+  projectedLessonItems LessonItem[]                          @relation("GeneratedCoursewareLessonItem")
+  projectedResources   TeachingResource[]                    @relation("GeneratedCoursewareTeachingResource")
+  classSessions        ClassSession[]
 
   @@unique([seriesId, revisionNumber])
   @@index([ownerId, publishedAt])
@@ -3160,6 +3164,9 @@ model TeachingResource {
   authorId String
   author   User   @relation(fields: [authorId], references: [id])
 
+  generatedCoursewarePublicationId String?
+  generatedCoursewarePublication   SmartCoursewarePublicationRevision? @relation("GeneratedCoursewareTeachingResource", fields: [generatedCoursewarePublicationId], references: [id], onDelete: Restrict)
+
   // 关联知识点 (多对多)
   knowledgeNodes KnowledgeNode[]
 
@@ -3170,6 +3177,8 @@ model TeachingResource {
 
   // 互动埋点日志
   interactionLogs InteractionLog[]
+
+  @@index([generatedCoursewarePublicationId])
 }
 
 enum BopppsStage {
@@ -3199,6 +3208,10 @@ model LessonPlan {
   isPreset  Boolean @default(false) // 系统预置教案
   presetKey String? @unique // 预置教案唯一标识 (如 "cruise-comfort-v1")
 
+  generatedCoursewarePublicationId String?                             @unique
+  generatedCoursewareManifestHash  String?
+  generatedCoursewarePublication   SmartCoursewarePublicationRevision? @relation("GeneratedCoursewareLessonPlan", fields: [generatedCoursewarePublicationId], references: [id], onDelete: Restrict)
+
   // BOPPPS 结构化环节
   items LessonItem[]
 
@@ -3227,6 +3240,9 @@ model LessonItem {
 
   duration Int? // 预计时长 (分钟)
 
+  generatedCoursewarePublicationId String?
+  generatedCoursewarePublication   SmartCoursewarePublicationRevision? @relation("GeneratedCoursewareLessonItem", fields: [generatedCoursewarePublicationId], references: [id], onDelete: Restrict)
+
   // 环节级配置覆盖（仅在本教案中生效）
   overrideConfig Json? @default("{}") // { titleOverride?: string, descriptionOverride?: string }
 
@@ -3236,6 +3252,7 @@ model LessonItem {
   @@index([resourceId])
   @@index([knowledgeNodeId])
   @@index([itemType])
+  @@index([generatedCoursewarePublicationId])
 }
 
 // 课堂会话 (实时状态管理)
@@ -3262,6 +3279,12 @@ model ClassSession {
   manifestHash  String?
   totalSteps    Int?
 
+  coursewarePublicationRevisionId String?
+  coursewarePublicationRevision   SmartCoursewarePublicationRevision? @relation(fields: [coursewarePublicationRevisionId], references: [id], onDelete: Restrict)
+  coursewareDisplayName           String?
+  coursewareRevisionNumber        Int?
+  coursewarePlanRevisionNumber    Int?
+
   startTime DateTime  @default(now())
   endTime   DateTime?
   updatedAt DateTime? @updatedAt
@@ -3270,8 +3293,27 @@ model ClassSession {
   studentStepResponses  StudentStepResponse[]
   classSessionReports   ClassSessionReport[]
   studentSessionReports StudentSessionReport[]
+  integrityIncidents    ClassSessionIntegrityIncident[]
 
   @@index([classId])
+  @@index([coursewarePublicationRevisionId])
+}
+
+model ClassSessionIntegrityIncident {
+  id              String   @id @default(cuid())
+  sessionId       String
+  code            String
+  fingerprint     String
+  expected        Json     @default("{}")
+  observed        Json     @default("{}")
+  firstDetectedAt DateTime @default(now())
+  lastDetectedAt  DateTime @updatedAt
+  occurrenceCount Int      @default(1)
+
+  session ClassSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, fingerprint])
+  @@index([sessionId, firstDetectedAt])
 }
 
 // 教师审核后的课程运行时增强包

@@ -18,6 +18,10 @@ import {
   resolveInteractiveResourceConfig,
 } from './resource-renderer-config';
 import { useGlobalAI } from '@/components/providers/global-ai-provider';
+import {
+  GeneratedCoursewareResource,
+  resolveGeneratedCoursewareResourceConfig,
+} from './generated-courseware-resource';
 
 interface ResourceRendererProps {
   resource?: TeachingResource | null;
@@ -207,6 +211,28 @@ export function ResourceRenderer({
   const descriptionOverride = typeof rawOverride.descriptionOverride === 'string' ? rawOverride.descriptionOverride : null;
   const effectiveTitle = titleOverride ?? resource.title;
   const effectiveDescription = descriptionOverride ?? resource.description;
+  if (resource.generatedCoursewarePublicationId) {
+    const generatedCoursewareConfig = resolveGeneratedCoursewareResourceConfig(resource.config);
+    if (!generatedCoursewareConfig
+      || generatedCoursewareConfig.publicationRevisionId !== resource.generatedCoursewarePublicationId) {
+      return (
+        <div
+          className="flex h-full items-center justify-center bg-platform-canvas p-8 text-platform-fg-primary"
+          data-generated-courseware-resource-integrity="invalid"
+          role="alert"
+        >
+          互动课件资源完整性校验失败，请教师重新创建课堂。
+        </div>
+      );
+    }
+    return (
+      <GeneratedCoursewareResource
+        config={generatedCoursewareConfig}
+        onComplete={onComplete}
+        onStateChange={onStateChange}
+      />
+    );
+  }
 
   // 1. Static Text (Markdown)
   if (resource.type === 'STATIC_TEXT') {

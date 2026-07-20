@@ -31,7 +31,51 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { planId, classId, duplicateAction, sourcePresetKey } = body;
+    const {
+      planId: requestedPlanId,
+      coursewarePublicationRevisionId: requestedPublicationRevisionId,
+      classId,
+      duplicateAction,
+      sourcePresetKey,
+    } = body;
+    const publicationRevisionId = typeof requestedPublicationRevisionId === 'string'
+      ? requestedPublicationRevisionId.trim()
+      : '';
+    let planId = typeof requestedPlanId === 'string' ? requestedPlanId.trim() : '';
+    let generatedBinding: {
+      id: string;
+      ownerId: string;
+      manifestHash: string;
+      displayName: string;
+      revisionNumber: number;
+      planRevisionNumber: number;
+      projectedLessonPlanId: string;
+    } | null = null;
+
+    if (publicationRevisionId) {
+      const publication = await prisma.smartCoursewarePublicationRevision.findUnique({
+        where: { id: publicationRevisionId },
+        select: {
+          id: true,
+          ownerId: true,
+          manifestHash: true,
+          displayName: true,
+          revisionNumber: true,
+          planRevisionNumber: true,
+          projectedLessonPlans: { select: { id: true, generatedCoursewareManifestHash: true } },
+        },
+      });
+      const projection = publication?.projectedLessonPlans[0];
+      if (!publication || publication.projectedLessonPlans.length !== 1 || !projection
+        || projection.generatedCoursewareManifestHash !== publication.manifestHash) {
+        return NextResponse.json({ error: '已发布互动课件投影不可用' }, { status: 409 });
+      }
+      if (user.role !== UserRole.ADMIN && publication.ownerId !== user.id) {
+        return NextResponse.json({ error: '无权启动此互动课件版本' }, { status: 403 });
+      }
+      planId = projection.id;
+      generatedBinding = { ...publication, projectedLessonPlanId: projection.id };
+    }
 
     if (!planId && sourcePresetKey && !classId && duplicateAction !== 'new-session') {
       const preset = ALL_PRESETS.find((item) => item.key === sourcePresetKey);
@@ -100,6 +144,17 @@ export async function POST(request: Request) {
         title: true,
         authorId: true,
         isPublic: true,
+        generatedCoursewareManifestHash: true,
+        generatedCoursewarePublication: {
+          select: {
+            id: true,
+            ownerId: true,
+            manifestHash: true,
+            displayName: true,
+            revisionNumber: true,
+            planRevisionNumber: true,
+          },
+        },
         _count: { select: { items: true } },
       },
     });
@@ -112,6 +167,17 @@ export async function POST(request: Request) {
     }
     if (plan._count.items === 0) {
       return NextResponse.json({ error: EMPTY_LESSON_PLAN_MESSAGE }, { status: 400 });
+    }
+
+    if (!generatedBinding && plan.generatedCoursewarePublication) {
+      const publication = plan.generatedCoursewarePublication;
+      if (user.role !== UserRole.ADMIN && publication.ownerId !== user.id) {
+        return NextResponse.json({ error: '无权启动此互动课件版本' }, { status: 403 });
+      }
+      if (plan.generatedCoursewareManifestHash !== publication.manifestHash) {
+        return NextResponse.json({ error: '已发布互动课件投影完整性校验失败' }, { status: 409 });
+      }
+      generatedBinding = { ...publication, projectedLessonPlanId: planId };
     }
 
     if (duplicateAction !== 'new-session') {
@@ -153,7 +219,11 @@ export async function POST(request: Request) {
     }
 
     const joinCode = await generateUniqueJoinCode(prisma);
-    const lessonSnapshot = loadSessionLessonSnapshot(plan.title);
+    const lessonSnapshot = generatedBinding ? {
+      lessonVersion: generatedBinding.displayName,
+      manifestHash: generatedBinding.manifestHash,
+      totalSteps: plan._count.items,
+    } : loadSessionLessonSnapshot(plan.title);
 
     const newSession = await prisma.classSession.create({
       data: {
@@ -166,7 +236,13 @@ export async function POST(request: Request) {
         currentItemId: undefined,
         lessonVersion: lessonSnapshot.lessonVersion,
         manifestHash: lessonSnapshot.manifestHash,
-        totalSteps: lessonSnapshot.totalSteps
+        totalSteps: lessonSnapshot.totalSteps,
+        ...(generatedBinding ? {
+          coursewarePublicationRevisionId: generatedBinding.id,
+          coursewareDisplayName: generatedBinding.displayName,
+          coursewareRevisionNumber: generatedBinding.revisionNumber,
+          coursewarePlanRevisionNumber: generatedBinding.planRevisionNumber,
+        } : {}),
       },
       include: {
         plan: { select: { title: true } },
@@ -183,6 +259,8 @@ export async function POST(request: Request) {
       planId,
       classId: classId ?? null,
       sourcePresetKey: typeof sourcePresetKey === 'string' ? sourcePresetKey : null,
+      coursewarePublicationRevisionId: generatedBinding?.id ?? null,
+      coursewareManifestHash: generatedBinding?.manifestHash ?? null,
       classroomEvent: buildClassroomLifecycleEvidenceFields({
         eventType: 'start-class',
         actorRole: 'teacher',

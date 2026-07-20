@@ -21,6 +21,7 @@ const actor = { id: 'teacher-1', role: 'TEACHER' as const };
 const browserLaunch = vi.hoisted(() => vi.fn());
 vi.mock('playwright', () => ({ chromium: { launch: browserLaunch } }));
 const validationProfile = SMART_COURSEWARE_PUBLICATION_VALIDATION_PROFILE;
+process.env.SMART_COURSEWARE_ORDERING_SECRET = 'smart-courseware-publication-test-secret-v1';
 
 describe('smart courseware publication persistence', () => {
   it('keeps receipts, acknowledgements, operations, and published revisions immutable in PostgreSQL', () => {
@@ -47,6 +48,14 @@ describe('smart courseware publication persistence', () => {
     expect(reviewPage).toContain("projection !== 'student' && projection !== 'teacher'");
     expect(reviewPage).toContain("process.env.NODE_ENV !== 'development' && !sourceRevisionId");
     expect(reviewPage).toContain('searchParams: Promise<{ sourceRevisionId?: string }>');
+    const bindingMigration = readFileSync(
+      'prisma/migrations/20260720150000_bind_generated_courseware_classrooms/migration.sql', 'utf8',
+    );
+    expect(bindingMigration).toContain('LessonPlan_generated_courseware_immutable');
+    expect(bindingMigration).toContain('TeachingResource_generated_courseware_immutable');
+    expect(bindingMigration).toContain('ClassSession_coursewarePublicationRevisionId_fkey');
+    expect(bindingMigration).toContain('ClassSession_courseware_binding_immutable');
+    expect(bindingMigration).toContain('TeachingResource_generated_courseware_student_safe_check');
   });
 
   it('runs STATIC and BROWSER validation from fixed server-side execution paths', async () => {
@@ -194,6 +203,17 @@ describe('smart courseware publication persistence', () => {
     expect(createOperation).toHaveBeenCalledWith({ data: expect.objectContaining({
       ownerId: actor.id, idempotencyKey: 'publish-courseware-1', publicationRevisionId: published.id,
     }) });
+    expect(db.lessonPlanCreate).toHaveBeenCalledWith({ data: expect.objectContaining({
+      generatedCoursewarePublicationId: published.id,
+      generatedCoursewareManifestHash: revision.manifestHash,
+      authorId: actor.id,
+    }) });
+    expect(db.lessonItemCreate).toHaveBeenCalled();
+    const resources = db.teachingResourceCreate.mock.calls.map(([call]) => call.data);
+    expect(resources.length).toBeGreaterThan(0);
+    expect(resources.every((resource) => resource.generatedCoursewarePublicationId === published.id)).toBe(true);
+    expect(JSON.stringify(resources)).not.toContain('referenceAnswer');
+    expect(JSON.stringify(resources)).not.toContain('providerKind');
   });
 
   it('requires an acknowledgement of the exact latest stale-plan comparison', async () => {
@@ -345,6 +365,9 @@ function publicationDb(revision: ReturnType<typeof publicationSource>, overrides
   const createPublication = overrides.createPublication ?? vi.fn(async ({ data }) => data);
   const createOperation = overrides.createOperation ?? vi.fn().mockResolvedValue({});
   const seriesUpdate = vi.fn().mockResolvedValue({ nextRevisionNumber: 2 });
+  const lessonPlanCreate = vi.fn(async ({ data }) => data);
+  const teachingResourceCreate = vi.fn(async ({ data }) => data);
+  const lessonItemCreate = vi.fn(async ({ data }) => data);
   const tx = {
     smartCoursewareRevision: { findFirst: vi.fn().mockResolvedValue(revision) },
     smartCoursewarePublicationRevision: {
@@ -366,11 +389,17 @@ function publicationDb(revision: ReturnType<typeof publicationSource>, overrides
       update: seriesUpdate,
     },
     smartCoursewarePublicationOperation: { create: createOperation },
+    lessonPlan: { create: lessonPlanCreate },
+    teachingResource: { create: teachingResourceCreate },
+    lessonItem: { create: lessonItemCreate },
   };
   return {
     smartCoursewarePublicationOperation: { findUnique: vi.fn().mockResolvedValue(null) },
     $transaction: vi.fn(async (run: (client: typeof tx) => unknown) => run(tx)),
     seriesUpdate,
+    lessonPlanCreate,
+    teachingResourceCreate,
+    lessonItemCreate,
   };
 }
 

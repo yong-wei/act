@@ -31,6 +31,7 @@ import {
   SmartCoursewareError,
   assertPersistedCoursewareManifest,
   coursewareManifestHash,
+  projectCoursewareForStudent,
   validateCoursewareComposition,
   type SmartCoursewareActor,
 } from './domain';
@@ -336,6 +337,7 @@ export async function publishSmartCoursewareRevision(db: PublicationDb, input: {
         stalePlanAcknowledgementSnapshot: staleAcknowledgement ? asJson(staleAcknowledgement) : Prisma.JsonNull,
         contentHash: publicationContentHash, publishedById: actor.id,
       } });
+      await createGovernedPublicationProjection(tx, publication, revision);
       await createPublicationOperation(tx, actor.id, idempotencyKey, requestHash, revision.id, publication.id);
       return publication;
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
@@ -347,6 +349,99 @@ export async function publishSmartCoursewareRevision(db: PublicationDb, input: {
     }
     throw error;
   }
+}
+
+async function createGovernedPublicationProjection(
+  tx: Prisma.TransactionClient,
+  publication: {
+    id: string;
+    displayName: string;
+    revisionNumber: number;
+    manifestHash: string;
+    planRevisionNumber: number;
+  },
+  sourceRevision: Awaited<ReturnType<typeof loadOwnedRevision>>,
+) {
+  const manifest = sourceRevision.manifestSnapshot as unknown as GeneratedSlideManifest;
+  const studentProjection = projectCoursewareForStudent({
+    draftId: sourceRevision.draftId,
+    version: publication.revisionNumber,
+    runtimeManifest: manifest,
+    orderingPermutationSecret: requiredServerEnvironment('SMART_COURSEWARE_ORDERING_SECRET'),
+  });
+  const studentSteps = new Map(studentProjection.runtimeManifest.steps.map((step) => [step.id, step]));
+  const lessonPlan = await tx.lessonPlan.create({
+    data: {
+      id: randomUUID(),
+      title: publication.displayName,
+      description: `已发布互动课件，固定基于教案第${publication.planRevisionNumber}版。`,
+      authorId: sourceRevision.ownerId,
+      isPublic: false,
+      isPreset: false,
+      generatedCoursewarePublicationId: publication.id,
+      generatedCoursewareManifestHash: publication.manifestHash,
+    },
+  });
+
+  for (const [stageIndex, stage] of manifest.stages.entries()) {
+    for (const [stepIndex, step] of stage.steps.entries()) {
+      const runtimeStep = studentSteps.get(step.id);
+      if (!runtimeStep) throw new SmartCoursewareError('courseware-student-projection-incomplete', 409);
+      const resource = await tx.teachingResource.create({
+        data: {
+          id: randomUUID(),
+          title: step.title,
+          description: `${publication.displayName} · ${step.title}`,
+          type: 'STATIC_TEXT',
+          content: `## ${step.title}`,
+          displayName: step.title,
+          displayOrder: stageIndex * 100 + stepIndex,
+          teacherOnly: false,
+          config: asJson({
+            kind: 'generated-courseware-student-runtime-v1',
+            publicationRevisionId: publication.id,
+            manifestHash: publication.manifestHash,
+            stepId: step.id,
+            runtimeManifest: studentProjection.runtimeManifest,
+          }),
+          authorId: sourceRevision.ownerId,
+          generatedCoursewarePublicationId: publication.id,
+        },
+      });
+      await tx.lessonItem.create({
+        data: {
+          id: randomUUID(),
+          planId: lessonPlan.id,
+          itemType: 'RESOURCE',
+          resourceId: resource.id,
+          stage: projectionStage(stage.stage),
+          order: stepIndex,
+          duration: Math.max(1, Math.ceil(step.durationSeconds / 60)),
+          overrideConfig: asJson({
+            titleOverride: step.title,
+            generatedCoursewareStepId: step.id,
+            publicationRevisionId: publication.id,
+            manifestHash: publication.manifestHash,
+          }),
+          generatedCoursewarePublicationId: publication.id,
+        },
+      });
+    }
+  }
+}
+
+function projectionStage(stage: GeneratedSlideManifest['stages'][number]['stage']) {
+  const stages = {
+    'bridge-in': 'BRIDGE_IN',
+    objective: 'OBJECTIVE',
+    'pre-assessment': 'PRE_ASSESSMENT',
+    'participatory-learning': 'PARTICIPATORY',
+    'post-assessment': 'POST_ASSESSMENT',
+    summary: 'SUMMARY',
+  } as const;
+  const projected = stages[stage as keyof typeof stages];
+  if (!projected) throw new SmartCoursewareError('courseware-projection-stage-invalid', 409);
+  return projected;
 }
 
 async function loadOwnedRevision(db: PublicationDb, ownerId: string, id: string) {

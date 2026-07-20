@@ -1202,6 +1202,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/classroom/teacher/[sessionId]',
     routeFile: 'src/app/classroom/teacher/[sessionId]/page.tsx',
+    coveredRouteGlob: 'src/app/classroom/teacher/[sessionId]/*/page.tsx',
     frame: 'mission-workspace',
     roleScope: ['teacher', 'admin'],
     authState: 'protected-redirect',

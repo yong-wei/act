@@ -8,15 +8,15 @@
 
 ## 2. Catalog projection and classroom binding
 
-- [ ] 2.1 Transactionally project published revisions into governed `LessonPlan`, `LessonItem`, and `TeachingResource` records.
-- [ ] 2.2 Add exact generated-courseware revision and manifest-hash binding to `ClassSession` while preserving legacy `planId` launch behavior.
-- [ ] 2.3 Make student runtime resolve the bound immutable revision and fail with integrity recovery rather than substituting the newest version.
-- [ ] 2.4 Add teacher/class ownership, preparation, active-class, finalization, and session-integrity tests for generated sessions.
+- [x] 2.1 Transactionally project published revisions into governed `LessonPlan`, `LessonItem`, and `TeachingResource` records.
+- [x] 2.2 Add exact generated-courseware revision and manifest-hash binding to `ClassSession` while preserving legacy `planId` launch behavior.
+- [x] 2.3 Make student runtime resolve the bound immutable revision and fail with integrity recovery rather than substituting the newest version.
+- [x] 2.4 Add teacher/class ownership, preparation, active-class, finalization, and session-integrity tests for generated sessions.
 
 ## 3. P0 demonstration and acceptance
 
 - [ ] 3.1 Add deterministic end-to-end acceptance from Konling natural-language task creation through ambiguity clarification, multi-turn constraint revision, demo source import, plan, courseware, zero unresolved source gaps, three authoritative content-quality comparisons, validation, publication, catalog, classroom, and student interaction.
 - [ ] 3.2 Record a manual real-provider 45-minute root-locus demonstration with the same natural-language and source-completeness path, and identify any fallback revision as previously generated.
 - [ ] 3.3 Add desktop/mobile and light/dark teacher/student browser acceptance for publication and classroom states.
-- [ ] 3.4 Update project, operator, provider, privacy, and contest-demonstration documentation for P0.
+- [x] 3.4 Update project, operator, provider, privacy, and contest-demonstration documentation for P0.
 - [ ] 3.5 Run targeted API/Playwright/migration tests, typecheck, relevant build gates, and strict OpenSpec validation; record AC evidence.
