@@ -15,8 +15,15 @@
 
 ## 3. P0 demonstration and acceptance
 
-- [ ] 3.1 Add deterministic end-to-end acceptance from Konling natural-language task creation through ambiguity clarification, multi-turn constraint revision, demo source import, plan, courseware, zero unresolved source gaps, three authoritative content-quality comparisons, validation, publication, catalog, classroom, and student interaction.
+- [x] 3.1 Add deterministic end-to-end acceptance from Konling natural-language task creation through ambiguity clarification, multi-turn constraint revision, demo source import, plan, courseware, zero unresolved source gaps, three authoritative content-quality comparisons, validation, publication, catalog, classroom, and student interaction.
 - [ ] 3.2 Record a manual real-provider 45-minute root-locus demonstration with the same natural-language and source-completeness path, and identify any fallback revision as previously generated.
-- [ ] 3.3 Add desktop/mobile and light/dark teacher/student browser acceptance for publication and classroom states.
+- [x] 3.3 Add desktop/mobile and light/dark teacher/student browser acceptance for publication and classroom states.
 - [x] 3.4 Update project, operator, provider, privacy, and contest-demonstration documentation for P0.
-- [ ] 3.5 Run targeted API/Playwright/migration tests, typecheck, relevant build gates, and strict OpenSpec validation; record AC evidence.
+- [x] 3.5 Run targeted API/Playwright/migration tests, typecheck, relevant build gates, and strict OpenSpec validation; record AC evidence.
+
+### Acceptance evidence
+
+- Deterministic public-seam run: 5/5 Playwright cases pass against an isolated PostgreSQL schema and Redis namespace, with no route interception in the ordinary root-locus chain. The run covers the public course-basis, Konling, plan-worker, courseware-worker, publication, catalog, classroom, student-interaction, and finalization seams; publication validation reports zero pending goal/module source gaps.
+- Content and browser evidence: three claims are independently parsed from the imported authoritative source and matched against the immutable publication manifest; deletion and tampering counterexamples fail. Publication, teacher, and student surfaces pass independent desktop/mobile and light/dark contexts with applied-theme, overflow, computed-color, and distinct-screenshot-hash assertions.
+- Gates: all 59 migrations apply in the isolated browser runners; focused API/domain tests, the 5-case public seam, the 3-case classroom lifecycle suite, TypeScript typecheck, Prisma validation, production build, strict OpenSpec validation, and `git diff --check` pass.
+- Manual boundary: 3.2 remains unchecked because no administrator-configured external Provider and contest-network session was available. Deterministic fixture evidence is not treated as real-provider evidence.

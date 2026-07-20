@@ -30,6 +30,7 @@ import { renderInteractiveManifestStep } from '@/features/interactive/shared/man
 import { useManifestSubmissionController } from '@/features/interactive/shared/manifest-runtime/submission-controller';
 import type { InteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest';
 import { isObjectiveInteractiveResponseKind, isSubjectiveInteractiveResponseKind } from '@/lib/interactive-response-contracts';
+import { SmartCoursewarePublicationPanel } from './smart-courseware-publication-panel';
 
 export type SmartCoursewareSourceState =
   | 'verified'
@@ -245,12 +246,14 @@ export function SmartCoursewareProjectionEditor({
   state,
   stalePlan,
   initialJob,
+  sourceRevisionId,
 }: {
   teacherProjection: SmartCoursewareTeacherProjectionInput;
   studentProjection: SmartCoursewareStudentProjectionReceipt | null;
   state: SmartCoursewareTeacherEnvelope['state'];
   stalePlan: boolean;
   initialJob?: SmartCoursewareJobView | null;
+  sourceRevisionId?: string | null;
 }) {
   const initialEnvelope = createSmartCoursewareTeacherEnvelopeFromProjection(teacherProjection);
   initialEnvelope.state = state;
@@ -264,6 +267,7 @@ export function SmartCoursewareProjectionEditor({
       initialEnvelope={initialEnvelope}
       initialStudentPreview={initialStudentPreview}
       initialJob={initialJob}
+      sourceRevisionId={sourceRevisionId}
     />
   );
 }
@@ -351,15 +355,18 @@ export function SmartCoursewareEditor({
   initialEnvelope,
   initialStudentPreview,
   initialJob = null,
+  sourceRevisionId = null,
 }: {
   initialEnvelope: SmartCoursewareTeacherEnvelope;
   initialStudentPreview?: SmartCoursewareStudentPreviewEnvelope | null;
   initialJob?: SmartCoursewareJobView | null;
+  sourceRevisionId?: string | null;
 }) {
   const [envelope, setEnvelope] = useState(initialEnvelope);
   const [previewRole, setPreviewRole] = useState<'teacher' | 'student'>('teacher');
   const [studentPreview, setStudentPreview] = useState(initialStudentPreview ?? null);
   const [job, setJob] = useState<SmartCoursewareJobView | null>(initialJob);
+  const [approvedRevisionId, setApprovedRevisionId] = useState(sourceRevisionId);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const [selectedStepId, setSelectedStepId] = useState(initialEnvelope.manifest?.stages[0]?.steps[0]?.id ?? '');
@@ -685,6 +692,7 @@ export function SmartCoursewareEditor({
       const payload = await response.json();
       if (!response.ok) return setMessage(errorMessage(payload));
       setEnvelope((current) => ({ ...current, state: 'accepted' }));
+      setApprovedRevisionId(payload.revision.id);
       const pendingGapCount = Object.values(envelope.teacherModules).filter((module) => module.sourceState !== 'verified').length;
       setMessage(`课件版本 ${payload.revision.revisionNumber} 已批准；${pendingGapCount} 个来源待补项继续保留。`);
     } finally {
@@ -747,6 +755,10 @@ export function SmartCoursewareEditor({
           已批准课件为只读版本；教师与学生预览及审计记录继续保留。
         </p>
       ) : null}
+
+      {envelope.state === 'accepted' && approvedRevisionId
+        ? <SmartCoursewarePublicationPanel sourceRevisionId={approvedRevisionId} />
+        : null}
 
       {envelope.state !== 'accepted' && job ? <CoursewareJobPanel job={job} onRefresh={refreshJob} onAction={runJobAction} /> : null}
       {envelope.state !== 'accepted' && job?.mode === 'MODULE' && job.candidateRuntimeModule ? <CoursewareModuleCandidateDiff

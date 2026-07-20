@@ -66,6 +66,72 @@ const STATIC_PROFILE_HASH = contentHash({
 });
 const BROWSER_PROFILE_HASH = contentHash(SMART_COURSEWARE_PUBLICATION_VALIDATION_PROFILE);
 
+export async function getSmartCoursewarePublicationState(db: PublicationDb, input: {
+  actor: SmartCoursewareActor;
+  sourceRevisionId: string;
+}) {
+  const actor = validateActor(input.actor);
+  const revision = await loadOwnedRevision(db, actor.id, validateId(input.sourceRevisionId));
+  const gaps = publicationGaps(revision);
+  const [receipts, acknowledgements, staleAcknowledgements, publication, latestPlan] = await Promise.all([
+    db.smartCoursewarePublicationReceipt.findMany({
+      where: { ownerId: actor.id, sourceRevisionId: revision.id, contentHash: revision.contentHash },
+      orderBy: { completedAt: 'desc' },
+    }),
+    db.smartCoursewareGapAcknowledgement.findMany({
+      where: {
+        ownerId: actor.id,
+        ...(gaps.length ? { OR: gaps.map((gap) => ({ scope: gap.scope, gapIdentity: gap.gapIdentity })) } : { id: { in: [] } }),
+      },
+      orderBy: { acknowledgedAt: 'desc' },
+    }),
+    db.smartCoursewareStalePlanAcknowledgement.findMany({
+      where: { ownerId: actor.id, sourceRevisionId: revision.id },
+      orderBy: { acknowledgedAt: 'desc' },
+    }),
+    db.smartCoursewarePublicationRevision.findFirst({
+      where: { ownerId: actor.id, sourceRevisionId: revision.id },
+      select: { id: true, revisionNumber: true, displayName: true, manifestHash: true, publishedAt: true },
+    }),
+    db.smartLessonRevision.findFirst({
+      where: { ownerId: actor.id, taskId: revision.planRevision.taskId },
+      orderBy: { revisionNumber: 'desc' },
+      select: { id: true, revisionNumber: true, contentHash: true },
+    }),
+  ]);
+  const acknowledgedGapIdentities = new Set(acknowledgements.map((item) => `${item.scope}:${item.gapIdentity}`));
+  const stalePlan = latestPlan && latestPlan.revisionNumber > revision.planRevisionNumber
+    ? {
+        baselineRevisionNumber: revision.planRevisionNumber,
+        newestPlanRevisionId: latestPlan.id,
+        newestRevisionNumber: latestPlan.revisionNumber,
+        acknowledged: staleAcknowledgements.some((item) => item.newestPlanRevisionId === latestPlan.id
+          && item.baselineRevisionNumber === revision.planRevisionNumber
+          && item.baselinePlanContentHash === revision.planContentHash
+          && item.newestRevisionNumber === latestPlan.revisionNumber
+          && item.newestPlanContentHash === latestPlan.contentHash),
+      }
+    : null;
+  return {
+    sourceRevisionId: revision.id,
+    sourceContentHash: revision.contentHash,
+    planRevisionNumber: revision.planRevisionNumber,
+    receipts: {
+      static: receipts.some((item) => item.kind === 'STATIC' && item.profileHash === STATIC_PROFILE_HASH),
+      browser: receipts.some((item) => item.kind === 'BROWSER' && item.profileHash === BROWSER_PROFILE_HASH),
+    },
+    pendingGaps: gaps.map((gap) => ({
+      scope: gap.scope,
+      targetId: gap.targetId,
+      gapIdentity: gap.gapIdentity,
+      sourceState: gap.sourceState.toLowerCase(),
+      acknowledged: acknowledgedGapIdentities.has(`${gap.scope}:${gap.gapIdentity}`),
+    })),
+    stalePlan,
+    publication: publication ? { ...publication, publishedAt: publication.publishedAt.toISOString() } : null,
+  };
+}
+
 export async function runSmartCoursewareStaticPublicationValidation(db: PublicationDb, input: {
   actor: SmartCoursewareActor;
   sourceRevisionId: string;

@@ -3,6 +3,7 @@ export * from './generation-service';
 export * from './module-regeneration-service';
 export * from './provider-runtime';
 export * from './publication-domain';
+export * from './publication-service';
 export * from './queue';
 export * from './schema';
 export * from './service';

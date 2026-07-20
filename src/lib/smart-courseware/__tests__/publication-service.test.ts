@@ -10,6 +10,7 @@ import {
   SMART_COURSEWARE_PUBLICATION_VALIDATION_PROFILE,
   acknowledgeSmartCoursewarePublicationGap,
   acknowledgeSmartCoursewareStalePlan,
+  getSmartCoursewarePublicationState,
   publishSmartCoursewareRevision,
   runSmartCoursewareBrowserPublicationValidation,
   runSmartCoursewareStaticPublicationValidation,
@@ -24,6 +25,32 @@ const validationProfile = SMART_COURSEWARE_PUBLICATION_VALIDATION_PROFILE;
 process.env.SMART_COURSEWARE_ORDERING_SECRET = 'smart-courseware-publication-test-secret-v1';
 
 describe('smart courseware publication persistence', () => {
+  it('reports unchanged stable-gap acknowledgements created against an earlier draft revision', async () => {
+    const revision = publicationSource();
+    const findAcknowledgements = vi.fn().mockResolvedValue([
+      { ...goalAcknowledgement(), sourceRevisionId: 'earlier-revision', acknowledgedAt: new Date('2026-07-20T00:00:00Z') },
+      { ...moduleAcknowledgement(), sourceRevisionId: 'earlier-revision', acknowledgedAt: new Date('2026-07-20T00:00:00Z') },
+    ]);
+    const db = {
+      smartCoursewareRevision: { findFirst: vi.fn().mockResolvedValue(revision) },
+      smartCoursewarePublicationReceipt: { findMany: vi.fn().mockResolvedValue([]) },
+      smartCoursewareGapAcknowledgement: { findMany: findAcknowledgements },
+      smartCoursewareStalePlanAcknowledgement: { findMany: vi.fn().mockResolvedValue([]) },
+      smartCoursewarePublicationRevision: { findFirst: vi.fn().mockResolvedValue(null) },
+      smartLessonRevision: { findFirst: vi.fn().mockResolvedValue({ id: revision.planRevisionId, revisionNumber: 1, contentHash: revision.planContentHash }) },
+    };
+
+    const state = await getSmartCoursewarePublicationState(db as never, { actor, sourceRevisionId: revision.id });
+
+    expect(state.pendingGaps).toEqual(expect.arrayContaining([
+      expect.objectContaining({ scope: 'GOAL', acknowledged: true }),
+      expect.objectContaining({ scope: 'MODULE', acknowledged: true }),
+    ]));
+    expect(findAcknowledgements).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ ownerId: actor.id, OR: expect.any(Array) }),
+    }));
+  });
+
   it('keeps receipts, acknowledgements, operations, and published revisions immutable in PostgreSQL', () => {
     const migration = readFileSync('prisma/migrations/20260720090000_add_smart_courseware_publication/migration.sql', 'utf8');
     for (const table of [

@@ -2153,6 +2153,10 @@ export async function buildKonlingRuntimeContext(
     name: input.authenticatedUserName || '同学',
     learnerState,
   });
+  const citationMode = resolveKonlingTeachingAssistantMode(input.teachingAssistantModeId);
+  const runtimePermittedTools: KonlingToolName[] = citationMode.id === 'prep-coauthor'
+    ? [...DEFAULT_TOOLS, 'propose_smart_lesson_task_change']
+    : DEFAULT_TOOLS;
   const preCitationRuntimeContext: KonlingRuntimeContext = {
     pageContext,
     userProfile,
@@ -2161,7 +2165,7 @@ export async function buildKonlingRuntimeContext(
     memory,
     knowledgeWorkspace,
     citationContext: undefined,
-    permittedTools: DEFAULT_TOOLS,
+    permittedTools: runtimePermittedTools,
     missingContext: [],
     featureFlags: {
       learnerState: learnerStateEnabled,
@@ -2169,7 +2173,6 @@ export async function buildKonlingRuntimeContext(
       strategyMemory: process.env.KONLING_STRATEGY_MEMORY_ENABLED === 'true',
     },
   };
-  const citationMode = resolveKonlingTeachingAssistantMode(input.teachingAssistantModeId);
   const citationAnswerIntent = classifyKonlingAnswerIntent(
     citationMode,
     preCitationRuntimeContext,
@@ -2202,7 +2205,7 @@ export async function buildKonlingRuntimeContext(
     knowledgeWorkspace,
     sarAssociatedGrounding: preCitationGroundingContext.sarAssociatedGrounding,
     citationContext,
-    permittedTools: DEFAULT_TOOLS,
+    permittedTools: runtimePermittedTools,
     missingContext: [],
     featureFlags: {
       learnerState: learnerStateEnabled,
@@ -2240,7 +2243,7 @@ export async function buildKonlingRuntimeContext(
     sarAssociatedGrounding: knowledgeCapabilityContext.sarAssociatedGrounding,
     graphContext,
     citationContext,
-    permittedTools: DEFAULT_TOOLS,
+    permittedTools: runtimePermittedTools,
     missingContext: buildMissingContext({ learnerStateEnabled, learnerState, planContext, memory, citationContext, pageContext, knowledgeWorkspace, graphContext }),
     featureFlags: {
       learnerState: learnerStateEnabled,

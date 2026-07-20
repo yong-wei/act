@@ -88,6 +88,15 @@ export function createDeterministicCoursewareStage(input: {
   const approvedPlan = validateSmartLessonPlan(input.approvedPlan);
   const stepExpectations = deriveCoursewareApprovedStepExpectations(approvedPlan, input.unitKey);
   const activity = ['pre-assessment', 'participatory-learning', 'post-assessment'].includes(input.unitKey);
+  const knowledgeIndex = ({
+    'bridge-in': 0,
+    objective: 0,
+    'pre-assessment': 1,
+    'participatory-learning': 1,
+    'post-assessment': 2,
+    summary: 2,
+  } as const)[input.unitKey];
+  const knowledgeText = approvedPlan.knowledgePoints[knowledgeIndex]?.title ?? approvedPlan.topic;
   const generatedSteps = stepExpectations.map((expectation, index) => {
     const suffix = index === 0 ? '' : `-${index + 1}`;
     const moduleId = `generated-${input.unitKey}${suffix}`;
@@ -99,7 +108,7 @@ export function createDeterministicCoursewareStage(input: {
       responseKind: 'choice.single',
       evidencePath: `responses.${input.unitKey}.${moduleId}`,
       payload: {
-        prompt: `${input.unitKey} 学习活动`,
+        prompt: `${knowledgeText} 学习活动`,
         options: [{ value: 'a', label: '选项 A' }, { value: 'b', label: '选项 B' }],
       },
       roleMetadata: { studentVisible: true, teacherVisible: true, referenceAnswerVisibility: 'teacher-only' },
@@ -108,7 +117,7 @@ export function createDeterministicCoursewareStage(input: {
       canonicalClass: 'content.rich',
       slotId: 'main',
       sizeId: 'full',
-      payload: { text: `${input.unitKey} 教学内容` },
+      payload: { text: knowledgeText },
       roleMetadata: { studentVisible: true, teacherVisible: true, referenceAnswerVisibility: 'none' },
     };
     return {
