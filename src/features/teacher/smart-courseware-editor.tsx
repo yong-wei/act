@@ -137,7 +137,7 @@ export type SmartCoursewareTeacherProjectionInput = {
     jobId: string;
     mode: string;
     state: string;
-    attempts: Array<{ attemptNumber: number; serviceId: string; providerKind: string; model: string; outcome: string }>;
+    attempts: Array<{ attemptId: string; attemptNumber: number; serviceId: string; providerKind: string; model: string; outcome: string }>;
   }>;
   validation: { issues: unknown[] };
 };
@@ -827,7 +827,7 @@ export function TeacherCoursewarePreview({
           {envelope.generationAudit.length ? envelope.generationAudit.map((job) => (
             <div key={job.jobId}>
               <p>{job.mode} · {job.state}</p>
-              {job.attempts.map((attempt) => <p key={`${job.jobId}:${attempt.attemptNumber}`} className="text-subtle">
+              {job.attempts.map((attempt) => <p key={attempt.attemptId} data-generation-attempt-id={attempt.attemptId} className="text-subtle">
                 {attempt.serviceId} / {attempt.providerKind} / {attempt.model} · {attempt.outcome}
               </p>)}
             </div>

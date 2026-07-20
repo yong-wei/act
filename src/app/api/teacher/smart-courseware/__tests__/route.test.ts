@@ -188,7 +188,14 @@ describe('smart courseware teacher routes', () => {
       moduleMetadata: [{ moduleId: 'module-1', teacherFields: { referenceAnswer: 'PRIVATE_ANSWER' } }],
       planLimitations: ['PRIVATE_PLAN_LIMITATION'],
       aiReview: { findings: [{ message: 'PRIVATE_AI_FINDING' }], suggestions: [] },
-      generationAudit: [{ jobId: 'job-1', attempts: [{ serviceId: 'PRIVATE_PROVIDER', model: 'PRIVATE_MODEL' }] }],
+      generationAudit: [{
+        jobId: 'job-1', mode: 'INITIAL', state: 'COMPLETED',
+        attempts: [{
+          attemptId: 'attempt-1', attemptNumber: 1, serviceId: 'PRIVATE_PROVIDER',
+          providerKind: 'openai-compatible', model: 'PRIVATE_MODEL', outcome: 'SUCCEEDED',
+          requestSnapshot: 'PRIVATE_REQUEST', ownerId: 'PRIVATE_OWNER',
+        }],
+      }],
       validation: { valid: true, contentHash: 'hash', issues: [] },
       providerAudit: 'PRIVATE_PROVIDER',
     });
@@ -204,6 +211,9 @@ describe('smart courseware teacher routes', () => {
     expect(teacherJson).toContain('PRIVATE_PLAN_LIMITATION');
     expect(teacherJson).toContain('PRIVATE_AI_FINDING');
     expect(teacherJson).toContain('PRIVATE_MODEL');
+    expect(teacherJson).toContain('attempt-1');
+    expect(teacherJson).not.toContain('PRIVATE_REQUEST');
+    expect(teacherJson).not.toContain('PRIVATE_OWNER');
     expect(JSON.stringify(await getStudentPreview(new Request('http://localhost'), context).then((response) => response.json())))
       .not.toContain('PRIVATE_');
     expect(mocks.getStudentPreview).toHaveBeenCalledWith(

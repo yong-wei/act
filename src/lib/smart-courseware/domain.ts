@@ -212,7 +212,7 @@ export function projectCoursewareForTeacher(input: {
     jobId: string;
     mode: string;
     state: string;
-    attempts: Array<{ attemptNumber: number; serviceId: string; providerKind: string; model: string; outcome: string }>;
+    attempts: Array<{ attemptId: string; attemptNumber: number; serviceId: string; providerKind: string; model: string; outcome: string }>;
   }>;
 }) {
   return coursewareTeacherProjectionSchema.parse({

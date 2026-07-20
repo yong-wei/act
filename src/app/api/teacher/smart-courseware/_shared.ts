@@ -102,7 +102,25 @@ export function publicCoursewareTeacherPreview(value: unknown) {
     moduleMetadata: projection.moduleMetadata,
     planLimitations: projection.planLimitations,
     aiReview: projection.aiReview,
-    generationAudit: projection.generationAudit,
+    generationAudit: Array.isArray(projection.generationAudit) ? projection.generationAudit.map((value) => {
+      const job = record(value);
+      return compact({
+        jobId: job.jobId,
+        mode: job.mode,
+        state: job.state,
+        attempts: Array.isArray(job.attempts) ? job.attempts.map((value) => {
+          const attempt = record(value);
+          return compact({
+            attemptId: attempt.attemptId,
+            attemptNumber: attempt.attemptNumber,
+            serviceId: attempt.serviceId,
+            providerKind: attempt.providerKind,
+            model: attempt.model,
+            outcome: attempt.outcome,
+          });
+        }) : [],
+      });
+    }) : [],
     validation: projection.validation,
   });
 }

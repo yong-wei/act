@@ -71,7 +71,10 @@ const teacherEnvelope: SmartCoursewareTeacherEnvelope & { manifest: GeneratedSli
   },
   generationAudit: [{
     jobId: 'job-1', mode: 'INITIAL', state: 'COMPLETED',
-    attempts: [{ attemptNumber: 1, serviceId: 'PRIVATE_SERVICE', providerKind: 'PRIVATE_PROVIDER', model: 'PRIVATE_MODEL', outcome: 'SUCCEEDED' }],
+    attempts: [
+      { attemptId: 'attempt-unit-1', attemptNumber: 1, serviceId: 'PRIVATE_SERVICE', providerKind: 'PRIVATE_PROVIDER', model: 'PRIVATE_MODEL', outcome: 'SUCCEEDED' },
+      { attemptId: 'attempt-unit-2', attemptNumber: 1, serviceId: 'PRIVATE_SERVICE_2', providerKind: 'PRIVATE_PROVIDER', model: 'PRIVATE_MODEL', outcome: 'SUCCEEDED' },
+    ],
   }],
   compositionMetadata: [],
   teacherModules: {
@@ -100,6 +103,9 @@ describe('smart courseware role previews', () => {
     expect(html).toContain('PRIVATE_AI_FINDING');
     expect(html).toContain('PRIVATE_VALIDATION_NOTE');
     expect(html).toContain('data-courseware-preview="teacher"');
+    expect(html).toContain('data-generation-attempt-id="attempt-unit-1"');
+    expect(html).toContain('data-generation-attempt-id="attempt-unit-2"');
+    expect(html.match(/data-generation-attempt-id=/g)).toHaveLength(2);
   });
 
   it('projects a student envelope that cannot carry teacher metadata', () => {
@@ -164,7 +170,7 @@ describe('smart courseware role previews', () => {
       aiReview: { findings: [], suggestions: ['补充形成性评价'] },
       generationAudit: [{
         jobId: 'job-1', mode: 'INITIAL', state: 'COMPLETED',
-        attempts: [{ attemptNumber: 1, serviceId: 'service-1', providerKind: 'openai-compatible', model: 'model-1', outcome: 'SUCCEEDED' }],
+        attempts: [{ attemptId: 'attempt-1', attemptNumber: 1, serviceId: 'service-1', providerKind: 'openai-compatible', model: 'model-1', outcome: 'SUCCEEDED' }],
       }],
     });
     expect(envelope.teacherModules['module-1']).toMatchObject({

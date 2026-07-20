@@ -181,6 +181,7 @@ export const coursewareTeacherProjectionSchema = z.object({
     mode: z.string().trim().min(1),
     state: z.string().trim().min(1),
     attempts: z.array(z.object({
+      attemptId: z.string().trim().min(1),
       attemptNumber: z.number().int().positive(),
       serviceId: z.string().trim().min(1),
       providerKind: z.string().trim().min(1),

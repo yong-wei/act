@@ -415,7 +415,10 @@ describe('smart courseware service', () => {
     });
     const findJobs = vi.fn().mockResolvedValue([{
       id: 'job-1', mode: 'INITIAL', state: 'COMPLETED',
-      providerAttempts: [{ attemptNumber: 1, serviceId: 'provider-service', providerKind: 'openai-compatible', model: 'courseware-model', outcome: 'SUCCEEDED' }],
+      providerAttempts: [
+        { id: 'attempt-unit-1', attemptNumber: 1, serviceId: 'provider-service', providerKind: 'openai-compatible', model: 'courseware-model', outcome: 'SUCCEEDED' },
+        { id: 'attempt-unit-2', attemptNumber: 1, serviceId: 'provider-service', providerKind: 'openai-compatible', model: 'courseware-model', outcome: 'SUCCEEDED' },
+      ],
     }]);
     const db = {
       smartCoursewareDraft: { findFirst: vi.fn().mockResolvedValue(draft) },
@@ -429,7 +432,10 @@ describe('smart courseware service', () => {
     expect(projection.aiReview?.findings[0].message).toBe('补充课堂误区说明');
     expect(projection.generationAudit[0]).toMatchObject({
       jobId: 'job-1',
-      attempts: [expect.objectContaining({ serviceId: 'provider-service', model: 'courseware-model' })],
+      attempts: [
+        expect.objectContaining({ attemptId: 'attempt-unit-1', attemptNumber: 1, serviceId: 'provider-service', model: 'courseware-model' }),
+        expect.objectContaining({ attemptId: 'attempt-unit-2', attemptNumber: 1, serviceId: 'provider-service', model: 'courseware-model' }),
+      ],
     });
     expect(findReview).toHaveBeenCalledWith(expect.objectContaining({
       where: expect.objectContaining({ draftId: 'plan-draft-1', contentHash: contentHash(plan), state: 'COMPLETED' }),

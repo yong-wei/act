@@ -413,6 +413,7 @@ export async function getSmartCoursewareTeacherProjection(db: CoursewareDb, inpu
           orderBy: { attemptNumber: 'asc' },
           take: 100,
           select: {
+            id: true,
             attemptNumber: true,
             serviceId: true,
             providerKind: true,
@@ -439,7 +440,7 @@ export async function getSmartCoursewareTeacherProjection(db: CoursewareDb, inpu
       jobId: job.id,
       mode: job.mode,
       state: job.state,
-      attempts: job.providerAttempts,
+      attempts: job.providerAttempts.map(({ id, ...attempt }) => ({ attemptId: id, ...attempt })),
     })),
   });
 }
