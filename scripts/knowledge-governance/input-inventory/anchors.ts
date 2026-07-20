@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises';
+import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { canonicalJson, compareCodePoints, normalizePath, normalizeText, taggedDigest } from './normalize';
 import { makeAnchor, type AdmittedAnchor, type AnchorCandidate, type AnchorReviewDecision, type AnchorReviewEvidence, type AnchorScope, type AnchorType } from './records';
@@ -157,7 +158,14 @@ function candidateWithoutDigest(candidate: Omit<AnchorCandidate, 'candidate_dige
 
 export async function extractAuthoritativeAnchorCandidates(options: { root: string; repositoryRevision: string; extractionRun: string }): Promise<AnchorCandidateArtifact> {
   if (!options.repositoryRevision.trim() || !options.extractionRun.trim()) throw new Error('repositoryRevision and extractionRun are required');
-  const blueprint = normalizeText(await readFile(path.join(options.root, AUTHORITATIVE_ANCHOR_MARKDOWN[0])));
+  const revision = spawnSync('git', ['rev-parse', '--verify', `${options.repositoryRevision}^{commit}`], { cwd: options.root, encoding: 'utf8' });
+  if (revision.status !== 0 || revision.stdout.trim() !== options.repositoryRevision) throw new Error('authoritative anchor source revision does not exist');
+  const readRevisionFile = (logicalPath: string): Buffer => {
+    const result = spawnSync('git', ['show', `${options.repositoryRevision}:${logicalPath}`], { cwd: options.root, encoding: 'buffer', maxBuffer: 32 * 1024 * 1024 });
+    if (result.status !== 0) throw new Error(`authoritative anchor source is missing from revision: ${logicalPath}`);
+    return result.stdout;
+  };
+  const blueprint = normalizeText(readRevisionFile(AUTHORITATIVE_ANCHOR_MARKDOWN[0]));
   const courseName = /^\|\s*\*\*课程名称\*\*\s*\|\s*(.+?)\s*\|\s*$/mu.exec(blueprint)?.[1];
   const courseNumber = /^\|\s*\*\*(?:课程编号|课程代码)\*\*\s*\|\s*(.+?)\s*\|\s*$/mu.exec(blueprint)?.[1];
   if (!courseName) throw new Error('authoritative blueprint has no explicit course name');
@@ -165,7 +173,7 @@ export async function extractAuthoritativeAnchorCandidates(options: { root: stri
   const candidates: AnchorCandidate[] = [];
   for (const registeredPath of AUTHORITATIVE_ANCHOR_MARKDOWN) {
     const logicalPath = normalizePath(registeredPath);
-    const text = normalizeText(await readFile(path.join(options.root, logicalPath)));
+    const text = normalizeText(readRevisionFile(logicalPath));
     const sourceDigest = taggedDigest('repository-text-file/v1', Buffer.from(text, 'utf8'));
     for (const selected of selectMarkdown(logicalPath, text)) {
       const module_id = selected.module_number ? identity('course-module-identity/v1', { course_id, module_number: selected.module_number }) : null;

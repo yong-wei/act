@@ -5,6 +5,7 @@ import path from 'node:path';
 import type { Json } from './types';
 
 export function normalizePath(value: string): string {
+  if (/[\u0000-\u001f\u007f]/u.test(value)) throw new Error('path contains forbidden ASCII control characters');
   const posix = value.replaceAll('\\', '/').normalize('NFC');
   if (posix.startsWith('/') || /^[A-Za-z]:\//.test(posix)) throw new Error(`absolute path rejected: ${value}`);
   const normalized = path.posix.normalize(posix);

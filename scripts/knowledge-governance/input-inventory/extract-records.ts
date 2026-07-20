@@ -47,14 +47,16 @@ export async function extractRecordSets(repository: { sources: Array<Record<stri
   const physical: TypedRecord[] = [];
   const logical: TypedRecord[] = [];
   const drift: Drift[] = [];
+  const metadataByPath = new Map<string, FileObservation[]>();
+  for (const metadata of fileMetadata) metadataByPath.set(metadata.path, [...(metadataByPath.get(metadata.path) ?? []), metadata]);
   for (const source of repository.sources) {
     for (const relative of source.physical_paths as string[]) {
-    const observations = fileMetadata.filter((item) => item.path === relative);
+    const observations = metadataByPath.get(relative) ?? [];
     for (const metadata of observations) physical.push({ item_kind: String(source.item_kind), identity_namespace: String(source.identity_namespace), source_id: `${source.id}:${metadata.source_root}:${relative}`, source_locator: relative, schema_version: 'declared-file-observation/v1', digest: observationDigest(metadata), state: metadata.state, codec: metadata.codec, media_type: metadata.media_type, size: metadata.size, raw_digest: metadata.raw_digest, ...(metadata.normalized_digest ? { normalized_digest: metadata.normalized_digest } : {}), source_root: metadata.source_root, capture_revision: metadata.capture_revision, vcs_state: metadata.vcs_state, ...(metadata.absence_reason ? { absence_reason: metadata.absence_reason } : {}) });
     const metadata = observations.find((item) => item.source_root === 'isolated-worktree') ?? observations.find((item) => item.source_root === 'main-worktree');
     if (!metadata || metadata.state === 'invalid') continue;
     if (!/\.(?:json|jsonl|ya?ml|md)$/iu.test(relative)) continue;
-    const bytes = await readFile(path.join(metadata.filesystem_root, relative));
+    const bytes = metadata.content_bytes ?? await readFile(path.join(metadata.filesystem_root, relative));
     let text: string | null = null;
     try { text = normalizeText(bytes); }
     catch (error) {

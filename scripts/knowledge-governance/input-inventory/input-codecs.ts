@@ -28,6 +28,7 @@ export interface FileObservation extends InputLocation {
   normalized_digest?: string;
   error_code?: string;
   error_detail?: string;
+  content_bytes?: Buffer;
 }
 
 function listed(root: string, args: string[]): Set<string> {
@@ -71,10 +72,20 @@ function signatureValid(bytes: Buffer, signature: CodecRule['signature']): boole
   return true;
 }
 
-export async function observeInput(location: InputLocation, registry: Registry, drift: Drift[]): Promise<FileObservation> {
+export async function observeInput(location: InputLocation, registry: Registry, drift: Drift[], trackedBlob?: Buffer | null): Promise<FileObservation> {
   const logicalPath = normalizePath(location.path);
   let bytes: Buffer;
-  try { bytes = await readFile(path.join(location.filesystem_root, logicalPath)); }
+  try {
+    if (location.vcs_state === 'tracked') {
+      if (trackedBlob === null) throw Object.assign(new Error('tracked revision blob unavailable'), { code: 'GIT_BLOB_UNAVAILABLE' });
+      if (trackedBlob !== undefined) bytes = trackedBlob;
+      else {
+        const result = spawnSync('git', ['show', `${location.capture_revision}:${logicalPath}`], { cwd: location.filesystem_root, encoding: 'buffer', maxBuffer: 128 * 1024 * 1024 });
+        if (result.status !== 0) throw Object.assign(new Error('tracked revision blob unavailable'), { code: 'GIT_BLOB_UNAVAILABLE' });
+        bytes = result.stdout;
+      }
+    } else bytes = await readFile(path.join(location.filesystem_root, logicalPath));
+  }
   catch (error) {
     const errorCode = typeof error === 'object' && error !== null && 'code' in error && typeof error.code === 'string' ? error.code : 'UNKNOWN';
     const detail = `input read failed (${errorCode})`;
@@ -97,15 +108,51 @@ export async function observeInput(location: InputLocation, registry: Registry, 
     drift.push({ code: 'INVALID_MEDIA_SIGNATURE', scope: logicalPath, expected: codec.signature!, observed: rawDigest });
     return { ...location, path: logicalPath, state: 'invalid', codec: codec.id, media_type: codec.media_type, size: bytes.byteLength, raw_digest: rawDigest, error_code: 'INVALID_MEDIA_SIGNATURE' };
   }
-  if (codec.kind === 'binary') return { ...location, path: logicalPath, state: 'observed', codec: codec.id, media_type: codec.media_type, size: bytes.byteLength, raw_digest: rawDigest };
+  if (codec.kind === 'binary') return { ...location, path: logicalPath, state: 'observed', codec: codec.id, media_type: codec.media_type, size: bytes.byteLength, raw_digest: rawDigest, content_bytes: bytes };
   try {
     const normalized = normalizeText(bytes);
-    return { ...location, path: logicalPath, state: 'observed', codec: codec.id, media_type: codec.media_type, size: bytes.byteLength, raw_digest: rawDigest, normalized_digest: taggedDigest('repository-text-file/v1', normalized) };
+    return { ...location, path: logicalPath, state: 'observed', codec: codec.id, media_type: codec.media_type, size: bytes.byteLength, raw_digest: rawDigest, normalized_digest: taggedDigest('repository-text-file/v1', normalized), content_bytes: bytes };
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
     drift.push({ code: 'TEXT_NORMALIZATION_FAILED', scope: logicalPath, observed: rawDigest, detail });
     return { ...location, path: logicalPath, state: 'invalid', codec: codec.id, media_type: codec.media_type, size: bytes.byteLength, raw_digest: rawDigest, error_code: 'TEXT_NORMALIZATION_FAILED', error_detail: detail };
   }
+}
+
+export function parseGitBatchBlobs(paths: string[], output: Buffer): Map<string, Buffer | null> {
+  const ordered = sortUnique(paths.map(normalizePath));
+  const blobs = new Map<string, Buffer | null>();
+  let offset = 0;
+  for (const relative of ordered) {
+    const newline = output.indexOf(0x0a, offset);
+    if (newline < 0) throw new Error('truncated git cat-file batch header');
+    const header = output.subarray(offset, newline).toString('utf8');
+    offset = newline + 1;
+    if (header.endsWith(' missing')) { blobs.set(relative, null); continue; }
+    const match = /^[0-9a-f]{40,64} blob (\d+)$/u.exec(header);
+    if (!match) throw new Error('invalid git cat-file batch header');
+    const size = Number(match[1]);
+    if (!Number.isSafeInteger(size) || size < 0 || offset + size >= output.length) throw new Error('truncated git cat-file batch blob');
+    blobs.set(relative, Buffer.from(output.subarray(offset, offset + size)));
+    offset += size + 1;
+    if (output[offset - 1] !== 0x0a) throw new Error('invalid git cat-file batch blob delimiter');
+  }
+  if (offset !== output.length) throw new Error('unexpected trailing git cat-file batch output');
+  return blobs;
+}
+
+function trackedBlobs(root: string, revision: string, paths: string[]): Map<string, Buffer | null> {
+  const ordered = sortUnique(paths.map(normalizePath));
+  const blobs = new Map<string, Buffer | null>();
+  for (let offset = 0; offset < ordered.length; offset += 128) {
+    const chunk = ordered.slice(offset, offset + 128);
+    const specs = chunk.map((relative) => `${revision}:${relative}`);
+    const result = spawnSync('git', ['cat-file', '--batch'], { cwd: root, input: Buffer.from(`${specs.join('\n')}\n`), encoding: 'buffer', maxBuffer: 512 * 1024 * 1024 });
+    if (result.status !== 0) { chunk.forEach((relative) => blobs.set(relative, null)); continue; }
+    try { for (const [relative, bytes] of parseGitBatchBlobs(chunk, result.stdout)) blobs.set(relative, bytes); }
+    catch { chunk.forEach((relative) => blobs.set(relative, null)); }
+  }
+  return blobs;
 }
 
 export async function collectInputObservations(input: {
@@ -141,9 +188,15 @@ export async function collectInputObservations(input: {
     });
   }
   const observedWithDrift: Array<{ observation: FileObservation; drift: Drift[] }> = [];
+  const blobCaches = new Map<string, Map<string, Buffer | null>>();
+  for (const location of locations.filter((item) => item.vcs_state === 'tracked')) {
+    const key = `${location.filesystem_root}\0${location.capture_revision}`;
+    if (!blobCaches.has(key)) blobCaches.set(key, trackedBlobs(location.filesystem_root, location.capture_revision, locations.filter((item) => item.vcs_state === 'tracked' && item.filesystem_root === location.filesystem_root && item.capture_revision === location.capture_revision).map((item) => item.path)));
+  }
   for (const location of locations) {
     const observationDrift: Drift[] = [];
-    observedWithDrift.push({ observation: await observeInput(location, registry, observationDrift), drift: observationDrift });
+    const cache = blobCaches.get(`${location.filesystem_root}\0${location.capture_revision}`);
+    observedWithDrift.push({ observation: await observeInput(location, registry, observationDrift, cache ? cache.get(location.path) ?? null : undefined), drift: observationDrift });
   }
   const observations = observedWithDrift.map((item) => item.observation);
   const byPath = new Map<string, FileObservation[]>();
@@ -168,6 +221,6 @@ export function observationDigest(observation: FileObservation): string {
 }
 
 export function publicObservation(observation: FileObservation): Record<string, Json> {
-  const { filesystem_root: _filesystemRoot, ...result } = observation;
+  const { filesystem_root: _filesystemRoot, content_bytes: _contentBytes, ...result } = observation;
   return result as unknown as Record<string, Json>;
 }

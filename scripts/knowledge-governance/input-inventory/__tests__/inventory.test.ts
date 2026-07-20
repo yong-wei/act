@@ -17,6 +17,7 @@ import { effectiveDecoderContract, validateFixtureClosure, validateSyntheticPayl
 import { makeAnchor, typedDedupe } from '../records';
 import { auditIdBearingPaths, selectJson } from '../json-selector';
 import { compileDatabaseObservationContracts, compileJsonObservationContracts } from '../database-observation';
+import { parseGitBatchBlobs } from '../input-codecs';
 
 const root = path.resolve(import.meta.dirname, '../../../..');
 const digest = `sha256:${'0'.repeat(64)}`;
@@ -53,6 +54,25 @@ async function writeAggregateExport(directory: string, exported: AggregateDataba
 }
 
 describe('normalization contract', () => {
+  it('rejects control characters in every logical path and parses git batch blobs by exact byte size', () => {
+    for (const control of ['\n', '\r', '\0', '\u001f', '\u007f']) expect(() => normalizePath(`safe${control}injected.txt`)).toThrow(/control/u);
+    expect(() => parseGitBatchBlobs(['safe.txt\nsecond.txt'], Buffer.alloc(0))).toThrow(/control/u);
+    const first = Buffer.from([0x00, 0x0a, 0x00, 0x0d]);
+    const last = Buffer.from([0x74, 0x61, 0x69, 0x6c, 0x0a, 0x00]);
+    const output = Buffer.concat([
+      Buffer.from(`${'a'.repeat(40)} blob ${first.length}\n`), first, Buffer.from('\n'),
+      Buffer.from('fixture:missing.bin missing\n'),
+      Buffer.from(`${'b'.repeat(40)} blob ${last.length}\n`), last, Buffer.from('\n'),
+    ]);
+    const parsed = parseGitBatchBlobs(['a.bin', 'missing.bin', 'z.bin'], output);
+    expect(parsed.get('a.bin')).toEqual(first);
+    expect(parsed.get('missing.bin')).toBeNull();
+    expect(parsed.get('z.bin')).toEqual(last);
+    const malformed = Buffer.from(output);
+    malformed[`${'a'.repeat(40)} blob ${first.length}\n`.length + first.length] = 0x00;
+    expect(() => parseGitBatchBlobs(['a.bin', 'missing.bin', 'z.bin'], malformed)).toThrow(/delimiter/u);
+  });
+
   it('aggregates normalized summary categories before applying small-cell suppression', () => {
     expect(suppressRows([{ category: 'e\u0301', count: 6 }, { category: 'é', count: 7 }])).toEqual({ é: 13 });
     expect(suppressRows([{ category: 'é', count: 2 }, { category: 'e\u0301', count: 6 }])).toEqual({ é: 8 });

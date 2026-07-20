@@ -4,7 +4,7 @@ import { existsSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { collectInputObservations, observeInput } from '../input-codecs';
+import { collectInputObservations, observeInput, publicObservation } from '../input-codecs';
 import { buildManifest, repositoryRevision } from '../manifest';
 import { classifyRegisteredSymlinks, enumerateRepository, loadRegistry, matchGlob, type Registry } from '../registry';
 import type { Drift } from '../types';
@@ -102,11 +102,33 @@ describe('closed repository input codecs', () => {
       git(main, 'add', 'media/shared.png', '.gitignore'); git(main, 'commit', '-qm', 'fixture');
       expect(await repositoryRevision(main)).toMatch(/^[0-9a-f]{40}$/u);
       const drift: Drift[] = [];
-      const observations = await collectInputObservations({ isolatedRoot: isolated, isolatedRevision: revision, isolatedPaths: ['media/shared.png'], mainRoot: main, mainRevision: revision, mainPaths: ['media/shared.png', 'media/only.pdf'] }, fixtureRegistry(), drift);
+      const observations = await collectInputObservations({ isolatedRoot: isolated, isolatedRevision: await repositoryRevision(isolated), isolatedPaths: ['media/shared.png'], mainRoot: main, mainRevision: await repositoryRevision(main), mainPaths: ['media/shared.png', 'media/only.pdf'] }, fixtureRegistry(), drift);
       expect(observations.filter((item) => item.path === 'media/shared.png')).toHaveLength(2);
       expect(observations).toContainEqual(expect.objectContaining({ path: 'media/only.pdf', source_root: 'main-worktree', vcs_state: 'ignored', absence_reason: 'NOT_PRESENT_IN_ISOLATED_WORKTREE', state: 'observed' }));
       expect(drift).toContainEqual(expect.objectContaining({ code: 'SAME_PATH_CONTENT_DRIFT', scope: 'media/shared.png', expected: expect.objectContaining({ raw_digest: expect.stringMatching(/^sha256:/u) }), observed: expect.objectContaining({ raw_digest: expect.stringMatching(/^sha256:/u) }) }));
     } finally { await rm(isolated, { recursive: true }); await rm(main, { recursive: true }); }
+  });
+
+  it('reads tracked isolated and main-worktree inputs from their declared capture revision', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-dirty-tracked-'));
+    try {
+      git(directory, 'init', '-q'); git(directory, 'config', 'user.email', 'inventory@example.invalid'); git(directory, 'config', 'user.name', 'Inventory Test');
+      await writeFile(path.join(directory, 'tracked.txt'), 'committed\n');
+      git(directory, 'add', 'tracked.txt'); git(directory, 'commit', '-qm', 'fixture');
+      const captureRevision = await repositoryRevision(directory);
+      const registry = fixtureRegistry();
+      const before = await observeInput({ path: 'tracked.txt', source_root: 'isolated-worktree', filesystem_root: directory, capture_revision: captureRevision, vcs_state: 'tracked' }, registry, []);
+      await writeFile(path.join(directory, 'tracked.txt'), 'dirty workspace bytes\n');
+      const isolated = await observeInput({ path: 'tracked.txt', source_root: 'isolated-worktree', filesystem_root: directory, capture_revision: captureRevision, vcs_state: 'tracked' }, registry, []);
+      const main = await observeInput({ path: 'tracked.txt', source_root: 'main-worktree', filesystem_root: directory, capture_revision: captureRevision, vcs_state: 'tracked' }, registry, []);
+      expect(isolated.raw_digest).toBe(before.raw_digest);
+      expect(main.raw_digest).toBe(before.raw_digest);
+      expect(isolated.size).toBe(Buffer.byteLength('committed\n'));
+      expect(main.size).toBe(Buffer.byteLength('committed\n'));
+      expect(isolated.content_bytes?.toString('utf8')).toBe('committed\n');
+      expect(publicObservation(isolated)).not.toHaveProperty('content_bytes');
+      expect(JSON.stringify(publicObservation(isolated))).not.toContain('committed');
+    } finally { await rm(directory, { recursive: true }); }
   });
 
   it('preserves conflicting same-path observations through the --main-worktree-root CLI entrypoint', async () => {
