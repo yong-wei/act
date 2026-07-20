@@ -117,6 +117,9 @@ function deterministicStructuredFixtureRuntime() {
       idempotencyKey: string;
       maxOutputTokens?: number;
     }) {
+      const fixtureStage = input.schemaVersion === 'smart-lesson-advisory-review.v1'
+        ? null
+        : fixtureStageFromSchemaVersion(input.schemaVersion);
       const output = input.schemaVersion === 'smart-lesson-advisory-review.v1'
         ? {
             goalCoverage: '教学目标已在完整教案中得到覆盖。',
@@ -130,11 +133,11 @@ function deterministicStructuredFixtureRuntime() {
             }],
             suggestions: ['保留教师最终判断并记录后续修订。'],
           }
-        : await fixture.generateStage({
+        : adaptFixtureDuration(await fixture.generateStage({
             mode: 'success',
-            stage: fixtureStageFromSchemaVersion(input.schemaVersion),
+            stage: fixtureStage!,
             seed: input.idempotencyKey,
-          });
+          }), fixtureStage!, requestedFixtureDuration(input.prompt));
       const parsed = input.schema.parse(output);
       const normalizedResponseId = `fixture:${contentHash({ schemaVersion: input.schemaVersion, output: parsed })}`;
       return {
@@ -157,6 +160,30 @@ function deterministicStructuredFixtureRuntime() {
       };
     },
   };
+}
+
+function requestedFixtureDuration(prompt: string) {
+  const match = prompt.match(/"durationMinutes"\s*:\s*(\d{2,3})/);
+  return match ? Number(match[1]) : 30;
+}
+
+function adaptFixtureDuration(output: unknown, stage: SmartLessonFixtureStage, durationMinutes: number) {
+  if (durationMinutes === 30) return output;
+  const stageMinutes = stage === 'PARTICIPATORY_LEARNING'
+    ? durationMinutes - 25
+    : 5;
+  if (stage === 'OUTLINE') {
+    const outline = structuredClone(output) as { coursewareStepOutline: Array<{ bopppsStage: string; minutes: number }> };
+    outline.coursewareStepOutline = outline.coursewareStepOutline.map((step) => ({
+      ...step,
+      minutes: step.bopppsStage === 'participatoryLearning' ? durationMinutes - 25 : 5,
+    }));
+    return outline;
+  }
+  const boppps = structuredClone(output) as { minutes: number; steps: Array<{ minutes: number }> };
+  boppps.minutes = stageMinutes;
+  boppps.steps = boppps.steps.map((step, index) => ({ ...step, minutes: index === 0 ? stageMinutes : 0 }));
+  return boppps;
 }
 
 function fixtureStageFromSchemaVersion(schemaVersion: string): SmartLessonFixtureStage {

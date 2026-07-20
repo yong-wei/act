@@ -65,6 +65,12 @@ export default async function SmartCoursewareEditorPage({
     draft.planRevisionNumber !== latestApprovedRevision.revisionNumber
     || draft.planContentHash !== latestApprovedRevision.contentHash
   ));
+  const approvedCoursewareRevision = draft.state === 'ACCEPTED'
+    ? await prisma.smartCoursewareRevision.findFirst({
+        where: { ownerId: actor.id, draftId: draft.id },
+        select: { id: true },
+      })
+    : null;
   if (!draft.runtimeManifest) {
     const initialEnvelope = {
       draftId: draft.id,
@@ -100,6 +106,7 @@ export default async function SmartCoursewareEditorPage({
       state={draft.state === 'ACCEPTED' ? 'accepted' : 'ready'}
       stalePlan={stalePlan}
       initialJob={initialJob}
+      sourceRevisionId={approvedCoursewareRevision?.id ?? null}
     />
   );
 }

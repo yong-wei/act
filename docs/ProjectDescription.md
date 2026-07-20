@@ -111,6 +111,8 @@ AppShell 折叠导航合同已经归档：桌面展开态为 248px 侧栏，收�
 
 ## 课堂与资源编排
 
+智能课件发布的双回执、不可变版本、课堂绑定实施状态和 P0 验收边界见 [智能课件发布 P0 运行手册](./operations/smart-courseware-p0-runbook.md)。
+
 统一课堂主线是：
 
 `TeachingResource -> LessonPlan/LessonItem -> ClassSession -> StudentPlayer/ResourceRenderer`

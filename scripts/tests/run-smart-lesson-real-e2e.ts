@@ -16,7 +16,10 @@ const teacherId = `smart-lesson-real-e2e-teacher-${process.pid}`;
 const baseDatabaseUrl = process.env.SMART_LESSON_TEST_DATABASE_BASE_URL ?? process.env.DATABASE_URL;
 const redisUrl = process.env.SMART_LESSON_TEST_REDIS_URL ?? process.env.REDIS_URL ?? 'redis://127.0.0.1:6379';
 const nextAuthSecret = `smart-lesson-real-e2e-secret-${randomBytes(24).toString('hex')}`;
+const publicationReviewSecret = `smart-courseware-review-${randomBytes(24).toString('hex')}`;
+const coursewareOrderingSecret = `smart-courseware-ordering-${randomBytes(24).toString('hex')}`;
 let nextServer: ChildProcess | undefined;
+let coursewareWorkerConnection: Redis | undefined;
 let scopedDatabaseUrl = '';
 let cleanupPromise: Promise<void> | undefined;
 let shutdownPromise: Promise<never> | undefined;
@@ -30,8 +33,16 @@ async function main() {
   try {
     scopedDatabaseUrl = await createIsolatedDatabase();
     process.env.DATABASE_URL = scopedDatabaseUrl;
+    process.env.REDIS_URL = redisUrl;
+    process.env.SMART_LESSON_REDIS_PREFIX = redisPrefix;
+    process.env.SMART_COURSEWARE_REDIS_PREFIX = redisPrefix;
+    process.env.SMART_LESSON_E2E_FIXTURE_TOKEN = 'smart-lesson-real-browser-v1';
+    process.env.SMART_COURSEWARE_E2E_FIXTURE_TOKEN = 'smart-courseware-real-browser-v1';
     deployMigrations();
-    await seedCourseBasis();
+    await seedActor();
+    coursewareWorkerConnection = new Redis(redisUrl, { maxRetriesPerRequest: null });
+    const { ensureCoursewareGenerationWorker } = await import('../../src/lib/smart-courseware/worker');
+    await ensureCoursewareGenerationWorker(coursewareWorkerConnection);
 
     const port = await availablePort();
     const baseURL = `http://127.0.0.1:${port}`;
@@ -44,30 +55,41 @@ async function main() {
       DATABASE_URL: scopedDatabaseUrl,
       REDIS_URL: redisUrl,
       SMART_LESSON_REDIS_PREFIX: redisPrefix,
+      SMART_COURSEWARE_REDIS_PREFIX: redisPrefix,
       SMART_LESSON_E2E_FIXTURE_TOKEN: 'smart-lesson-real-browser-v1',
+      SMART_COURSEWARE_E2E_FIXTURE_TOKEN: 'smart-courseware-real-browser-v1',
       NEXTAUTH_SECRET: nextAuthSecret,
       NEXTAUTH_URL: baseURL,
+      SMART_COURSEWARE_PUBLICATION_REVIEW_BASE_URL: baseURL,
+      SMART_COURSEWARE_PUBLICATION_REVIEW_SECRET: publicationReviewSecret,
+      SMART_COURSEWARE_ORDERING_SECRET: coursewareOrderingSecret,
     },
   });
     nextServer.stdout?.on('data', (chunk) => process.stdout.write(`[smart-lesson-next] ${chunk}`));
     nextServer.stderr?.on('data', (chunk) => process.stderr.write(`[smart-lesson-next] ${chunk}`));
     await waitForServer(`${baseURL}/api/auth/session`, nextServer);
 
-    const result = spawnSync('npx', ['playwright', 'test', '--config', 'playwright.smart-lesson-real.config.ts'], {
-    cwd: process.cwd(),
-    env: {
+    const playwrightExitCode = await runPlaywright({
+      env: {
       ...process.env,
       DATABASE_URL: scopedDatabaseUrl,
       REDIS_URL: redisUrl,
       SMART_LESSON_REDIS_PREFIX: redisPrefix,
+      SMART_COURSEWARE_REDIS_PREFIX: redisPrefix,
+      SMART_LESSON_E2E_FIXTURE_TOKEN: 'smart-lesson-real-browser-v1',
+      SMART_COURSEWARE_E2E_FIXTURE_TOKEN: 'smart-courseware-real-browser-v1',
       SMART_LESSON_E2E_BASE_URL: baseURL,
       SMART_LESSON_E2E_TEACHER_ID: teacherId,
       NEXTAUTH_SECRET: nextAuthSecret,
       NEXTAUTH_URL: baseURL,
-    },
-    stdio: 'inherit',
-  });
-    if (result.status !== 0) process.exitCode = result.status ?? 1;
+      SMART_COURSEWARE_PUBLICATION_REVIEW_BASE_URL: baseURL,
+      SMART_COURSEWARE_PUBLICATION_REVIEW_SECRET: publicationReviewSecret,
+      SMART_COURSEWARE_ORDERING_SECRET: coursewareOrderingSecret,
+      },
+      stdio: 'inherit',
+      cwd: process.cwd(),
+    });
+    if (playwrightExitCode !== 0) process.exitCode = playwrightExitCode;
     else console.log(JSON.stringify({
       evidence: 'smart-lesson-real-browser-e2e',
       schema: schemaName,
@@ -79,6 +101,14 @@ async function main() {
   } finally {
     await cleanup();
   }
+}
+
+async function runPlaywright(options: { cwd: string; env: NodeJS.ProcessEnv; stdio: 'inherit' }) {
+  return new Promise<number>((resolve, reject) => {
+    const child = spawn('npx', ['playwright', 'test', '--config', 'playwright.smart-lesson-real.config.ts'], options);
+    child.once('error', reject);
+    child.once('exit', (code, signal) => resolve(code ?? (signal ? 1 : 0)));
+  });
 }
 
 void main().catch((error) => {
@@ -109,54 +139,11 @@ function deployMigrations() {
   if (result.status !== 0) throw new Error('smart-lesson-migration-deploy-failed');
 }
 
-async function seedCourseBasis() {
+async function seedActor() {
   const prisma = createPrismaClient({ log: ['warn', 'error'] });
   try {
     await prisma.user.create({
       data: { id: teacherId, email: 'smart-lesson-real-e2e@example.test', name: '智能教案真实验收教师', role: 'TEACHER' },
-    });
-    const basis = await prisma.courseBasis.create({
-      data: { ownerId: teacherId, courseIdentity: 'AUTO-CONTROL-E2E', title: '自动控制原理' },
-    });
-    const document = await prisma.courseBasisDocument.create({
-      data: { courseBasisId: basis.id, title: '课程标准', kind: 'STANDARD' },
-    });
-    const version = await prisma.courseBasisDocumentVersion.create({
-      data: {
-        documentId: document.id,
-        versionNumber: 1,
-        sourceType: 'PLAIN_TEXT',
-        sourceName: '真实端到端课程标准.txt',
-        mimeType: 'text/plain',
-        byteSize: 96,
-        contentHash: 'a'.repeat(64),
-        originalContent: Buffer.from('闭环系统稳定性判据、特征方程与稳定域。'),
-        normalizedText: '闭环系统稳定性判据、特征方程与稳定域。',
-        extractionState: 'EXTRACTED',
-        extractionVersion: 'smart-lesson-real-e2e.v1',
-        reviewState: 'CONFIRMED',
-        reviewedById: teacherId,
-        reviewedAt: new Date(),
-      },
-    });
-    const segment = await prisma.courseBasisSegment.create({
-      data: {
-        versionId: version.id,
-        orderIndex: 0,
-        stableAnchor: 'chapter-1-stability',
-        headingPath: ['第一章', '闭环稳定性'],
-        paragraphNumber: 1,
-        text: '闭环系统稳定性由特征方程根的位置决定，可使用稳定性判据判断参数变化下的稳定域。',
-        contentHash: 'b'.repeat(64),
-      },
-    });
-    await prisma.courseBasisProjection.create({
-      data: {
-        versionId: version.id,
-        segmentId: segment.id,
-        projectionKey: `smart-lesson-real-e2e:${segment.id}`,
-        corpusSourceId: `teacher-course-basis:${basis.id}:${version.id}:${segment.stableAnchor}`,
-      },
     });
   } finally {
     await prisma.$disconnect();
@@ -195,6 +182,13 @@ async function cleanup() {
 
 async function cleanupResources() {
   const errors: unknown[] = [];
+  try {
+    const { closeCoursewareGenerationWorker } = await import('../../src/lib/smart-courseware/worker');
+    await closeCoursewareGenerationWorker();
+  } catch (error) {
+    errors.push(error);
+  }
+  await coursewareWorkerConnection?.quit().catch((error) => errors.push(error));
   if (nextServer?.pid) {
     try { process.kill(-nextServer.pid, 'SIGTERM'); } catch {}
     await new Promise((resolve) => setTimeout(resolve, 500));

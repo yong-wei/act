@@ -29,6 +29,11 @@ import {
   canManageClassroomSession,
   normalizeClassroomActorRole,
 } from '@/lib/classroom-session-access';
+import {
+  generatedCoursewareRedisFields,
+  generatedCoursewareRedisIdentityMatches,
+  resolveGeneratedCoursewareSessionBinding,
+} from '@/lib/smart-courseware/classroom-runtime';
 
 export const dynamic = 'force-dynamic';
 
@@ -175,7 +180,18 @@ export async function PATCH(request: Request, props: { params: Promise<{ session
     // 验证课堂存在且属于当前教师
     const existingSession = await prisma.classSession.findUnique({
       where: { id: sessionId },
-      select: { teacherId: true, status: true, classId: true }
+      select: {
+        id: true,
+        planId: true,
+        teacherId: true,
+        status: true,
+        classId: true,
+        coursewarePublicationRevisionId: true,
+        coursewareDisplayName: true,
+        coursewareRevisionNumber: true,
+        coursewarePlanRevisionNumber: true,
+        manifestHash: true,
+      }
     });
 
     if (!existingSession) {
@@ -184,6 +200,10 @@ export async function PATCH(request: Request, props: { params: Promise<{ session
 
     if (!canManageClassroomSession(existingSession, session.user)) {
       return NextResponse.json({ error: '无权限修改此课堂' }, { status: 403 });
+    }
+    const generatedResolution = await resolveGeneratedCoursewareSessionBinding(prisma, existingSession);
+    if (!generatedResolution.ok) {
+      return NextResponse.json(generatedResolution.recovery, { status: 409 });
     }
 
     const body = await request.json();
@@ -259,6 +279,7 @@ export async function PATCH(request: Request, props: { params: Promise<{ session
         currentStage: updatedSession.currentStage,
         status: updatedSession.status,
         planTitle: updatedSession.plan.title,
+        ...generatedCoursewareRedisFields(generatedResolution.identity),
         updatedAt: updatedSession.updatedAt?.getTime() || Date.now(),
       };
 
@@ -280,6 +301,8 @@ export async function PATCH(request: Request, props: { params: Promise<{ session
         currentItemId: currentItemId ?? null,
         currentStage: currentStage ?? null,
         status: status ?? null,
+        coursewarePublicationRevisionId: generatedResolution.identity?.publicationRevisionId ?? null,
+        coursewareManifestHash: generatedResolution.identity?.manifestHash ?? null,
         classroomEvent,
       });
     }
@@ -323,8 +346,15 @@ export async function GET(request: Request, props: { params: Promise<{ sessionId
           prisma.classSession.findUnique({
               where: { id: sessionId },
               select: {
+                  id: true,
+                  planId: true,
                   teacherId: true,
                   classId: true,
+                  coursewarePublicationRevisionId: true,
+                  coursewareDisplayName: true,
+                  coursewareRevisionNumber: true,
+                  coursewarePlanRevisionNumber: true,
+                  manifestHash: true,
               },
           }),
       ]);
@@ -342,11 +372,17 @@ export async function GET(request: Request, props: { params: Promise<{ sessionId
       })) {
           return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
+      const generatedResolution = await resolveGeneratedCoursewareSessionBinding(prisma, sessionAccess);
+      if (!generatedResolution.ok) {
+          return NextResponse.json(generatedResolution.recovery, { status: 409 });
+      }
 
       // 优先从 Redis 读取会话状态（高性能缓存）
       if (redisClient.isReady()) {
           const cachedState = await redisClient.getSessionState(sessionId);
-          if (cachedState) {
+          const cacheHasExactGeneratedIdentity = !generatedResolution.identity
+              || generatedCoursewareRedisIdentityMatches(cachedState ?? {}, generatedResolution.identity);
+          if (cachedState && cacheHasExactGeneratedIdentity) {
               return NextResponse.json({
                   id: sessionId,
                   joinCode: typeof cachedState.joinCode === 'string' ? cachedState.joinCode : '',
@@ -357,6 +393,7 @@ export async function GET(request: Request, props: { params: Promise<{ sessionId
                   status: cachedState.status ?? 'ACTIVE',
                   updatedAt: cachedState.updatedAt ?? Date.now(),
                   planTitle: typeof cachedState.planTitle === 'string' ? cachedState.planTitle : '',
+                  ...generatedCoursewareRedisFields(generatedResolution.identity),
                   classroomIdentity: buildClassroomIdentityPayload({
                       id: sessionId,
                       joinCode: typeof cachedState.joinCode === 'string' ? cachedState.joinCode : '',
@@ -379,6 +416,12 @@ export async function GET(request: Request, props: { params: Promise<{ sessionId
               currentItemId: true,
               currentStage: true,
               updatedAt: true, // 添加updatedAt用于前端版本控制
+              planId: true,
+              manifestHash: true,
+              coursewarePublicationRevisionId: true,
+              coursewareDisplayName: true,
+              coursewareRevisionNumber: true,
+              coursewarePlanRevisionNumber: true,
               // Include minimal plan info for student check
               plan: {
                   select: { title: true }
@@ -401,6 +444,7 @@ export async function GET(request: Request, props: { params: Promise<{ sessionId
               currentStage: session.currentStage,
               status: session.status,
               planTitle: session.plan.title,
+              ...generatedCoursewareRedisFields(generatedResolution.identity),
               updatedAt: session.updatedAt?.getTime() || Date.now(),
           });
       }

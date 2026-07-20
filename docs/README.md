@@ -10,6 +10,7 @@
 - [arena.md](./arena.md)：Arena 控制竞技场设计与评测边界。
 - [interactive-lesson-modularization-status-and-refactor-plan.md](./interactive-lesson-modularization-status-and-refactor-plan.md)：互动课程 manifest 化改造现状与计划。
 - [provider-runtime-compatibility.md](./provider-runtime-compatibility.md)：AI provider 运行时兼容边界。
+- [operations/smart-courseware-p0-runbook.md](./operations/smart-courseware-p0-runbook.md)：智能课件确定性发布、隐私边界与根轨迹 P0 验收口径。
 - [submission-object-operations.md](./submission-object-operations.md)：提交对象的操作合同。
 - [data-completeness-audit.md](./data-completeness-audit.md)：数据完整性审计口径。
 

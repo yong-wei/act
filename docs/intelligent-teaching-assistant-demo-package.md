@@ -201,6 +201,8 @@ The package must not store plaintext API keys. Provider capability checks requir
 
 ## Privacy And Citation Controls
 
+智能课件的学生投影、教师答案与 provider audit 隔离，以及真实 provider 录制边界见 [智能课件发布 P0 运行手册](./operations/smart-courseware-p0-runbook.md)。
+
 The package rejects:
 
 - Raw secrets and bearer tokens.

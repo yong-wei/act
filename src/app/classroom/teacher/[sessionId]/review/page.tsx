@@ -22,6 +22,8 @@ import { getClassExtracurricularAnalytics } from '@/lib/extracurricular-analytic
 import { normalizeInteractiveRuntimeManifest, type InteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest'
 import { prisma } from '@/lib/prisma'
 import { buildTeacherReportDeliveryHref } from '@/lib/teacher-report-grading-contracts'
+import { resolveGeneratedCoursewareSessionBinding } from '@/lib/smart-courseware/classroom-runtime'
+import { GeneratedCoursewareRecoveryState } from '@/features/lesson-engine/generated-courseware-recovery'
 
 interface PageProps {
   params: Promise<{ sessionId: string }>
@@ -500,8 +502,14 @@ export default async function TeacherSessionReviewPage(props: PageProps) {
     where: { id: params.sessionId },
     select: {
       id: true,
+      planId: true,
       classId: true,
       teacherId: true,
+      manifestHash: true,
+      coursewarePublicationRevisionId: true,
+      coursewareDisplayName: true,
+      coursewareRevisionNumber: true,
+      coursewarePlanRevisionNumber: true,
       startTime: true,
       endTime: true,
       status: true,
@@ -575,6 +583,10 @@ export default async function TeacherSessionReviewPage(props: PageProps) {
 
   if (auth.user.role !== 'ADMIN' && auth.user.id !== session.teacherId) {
     redirect('/teacher/classes')
+  }
+  const generatedResolution = await resolveGeneratedCoursewareSessionBinding(prisma, session)
+  if (!generatedResolution.ok) {
+    return <GeneratedCoursewareRecoveryState recovery={generatedResolution.recovery} />
   }
 
   const studentStepResponses = session.studentStepResponses ?? []

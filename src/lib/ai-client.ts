@@ -11,6 +11,7 @@ import {
   resolveConfiguredAIProviderConfig,
 } from '@/lib/ai/provider-settings';
 import type { ModelProviderCapabilityRequirements } from '@/lib/ai/model-provider-compatibility';
+import { resolveKonlingE2EChatModel } from '@/lib/ai/konling-e2e-chat-model';
 
 // 默认模型
 export const DEFAULT_MODEL = resolveAIProviderConfig().model;
@@ -25,6 +26,8 @@ export function isAIServiceConfigured(): boolean {
 }
 
 export async function getConfiguredAIModel(modelId?: string, requirements?: ModelProviderCapabilityRequirements) {
+  const fixture = resolveKonlingE2EChatModel();
+  if (fixture && requirements?.tools && requirements.streaming) return fixture;
   const config = await resolveConfiguredAIProviderConfig(undefined, modelId, requirements);
   return createAIProviderFromConfig(config).getModel(modelId || config.model);
 }
