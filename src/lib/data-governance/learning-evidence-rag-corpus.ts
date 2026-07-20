@@ -9,6 +9,7 @@ export const LEARNING_EVIDENCE_RAG_CORPUS_VERSION = 'learning-evidence-rag-corpu
 
 export type LearningEvidenceCorpusSourceType =
   | 'course-content'
+  | 'teacher-course-basis'
   | 'knowledge-card'
   | 'runtime-handout'
   | 'path-summary'
@@ -150,6 +151,12 @@ export interface LearningEvidenceCorpusChunk {
     classId?: string | null;
     goalId?: string | null;
     resourceId?: string | null;
+    courseBasisId?: string | null;
+    documentId?: string | null;
+    versionId?: string | null;
+    documentSourceType?: string | null;
+    reviewState?: string | null;
+    versionState?: string | null;
   };
   spanRef: {
     kind: 'text-range' | 'node' | 'record' | 'summary';
@@ -194,6 +201,11 @@ export interface LearningEvidenceRetrievalScope {
   allowedSourceTypes?: LearningEvidenceCorpusSourceType[];
   useCase?: LearningEvidenceCitationUseCase;
   includePrivateText?: boolean;
+  teacherCourseBasis?: {
+    selectedVersionIds: string[];
+    explicitRetiredVersionIds?: string[];
+    verifiedSarRetrievalChunkIds: string[];
+  };
 }
 
 export interface LearningEvidenceRetrievalQuery {
@@ -287,7 +299,7 @@ export interface LearningEvidenceCitationAuditPayload {
 }
 
 export const LEARNING_EVIDENCE_CORPUS_FAMILY_SOURCE_TYPES: Record<LearningEvidenceCorpusFamily, LearningEvidenceCorpusSourceType[]> = {
-  'course-content': ['course-content'],
+  'course-content': ['course-content', 'teacher-course-basis'],
   'knowledge-card': ['knowledge-card'],
   'runtime-handout': ['runtime-handout'],
   'path-evidence': ['path-summary'],
@@ -313,10 +325,10 @@ const USE_CASE_SOURCE_TYPES: Record<LearningEvidenceCitationUseCase, Set<Learnin
   konling: new Set(['course-content', 'knowledge-card', 'runtime-handout', 'path-summary', 'simulation-summary', 'arena-summary', 'diagnosis']),
   recommendation: new Set(['course-content', 'knowledge-card', 'runtime-handout', 'path-summary', 'simulation-summary', 'arena-summary', 'teacher-report']),
   'teacher-report': new Set(['path-summary', 'diagnosis', 'grading-artifact', 'simulation-summary', 'arena-summary', 'teacher-report']),
-  'prep-pack': new Set(['course-content', 'knowledge-card', 'runtime-handout', 'diagnosis', 'grading-artifact', 'teacher-report']),
+  'prep-pack': new Set(['course-content', 'teacher-course-basis', 'knowledge-card', 'runtime-handout', 'diagnosis', 'grading-artifact', 'teacher-report']),
 };
 
-const KNOWLEDGE_SOURCE_TYPES = new Set<LearningEvidenceCorpusSourceType>(['course-content', 'knowledge-card', 'runtime-handout']);
+const KNOWLEDGE_SOURCE_TYPES = new Set<LearningEvidenceCorpusSourceType>(['course-content', 'teacher-course-basis', 'knowledge-card', 'runtime-handout']);
 const LEARNER_EVIDENCE_SOURCE_TYPES = new Set<LearningEvidenceCorpusSourceType>([
   'path-summary',
   'diagnosis',
@@ -327,6 +339,7 @@ const LEARNER_EVIDENCE_SOURCE_TYPES = new Set<LearningEvidenceCorpusSourceType>(
 ]);
 const SOURCE_AUTHORITY_LEVELS: Record<LearningEvidenceCorpusSourceType, Set<LearningEvidenceAuthorityLevel>> = {
   'course-content': new Set(['canonical', 'verified', 'contextual']),
+  'teacher-course-basis': new Set(['teacher-authored', 'verified', 'contextual']),
   'knowledge-card': new Set(['canonical', 'verified', 'contextual']),
   'runtime-handout': new Set(['canonical', 'verified', 'contextual']),
   'path-summary': new Set(['learner-evidence', 'verified', 'service-internal']),
@@ -847,8 +860,27 @@ function matchesRetrievalScope(chunk: LearningEvidenceCorpusChunk, scope: Learni
     (!scope.allowedSourceTypes || scope.allowedSourceTypes.includes(chunk.sourceType)) &&
     (!scope.useCase || chunk.retrieval.useCases.includes(scope.useCase)) &&
     (!scope.useCase || isUseCaseSourceCompatible(scope.useCase, chunk.sourceType)) &&
+    matchesTeacherCourseBasisRetrievalScope(chunk, scope) &&
     matchesResourceProjectionSceneAvailability(chunk, scope.useCase) &&
     isChunkVisible(chunk, scope);
+}
+
+export function matchesTeacherCourseBasisRetrievalScope(
+  chunk: LearningEvidenceCorpusChunk,
+  scope: LearningEvidenceRetrievalScope,
+): boolean {
+  if (chunk.sourceType !== 'teacher-course-basis') return true;
+  const basisScope = scope.teacherCourseBasis;
+  const versionId = chunk.sourceRef.versionId;
+  if (!basisScope || !versionId) return false;
+  if (chunk.sourceRef.reviewState !== 'confirmed') return false;
+  if (!basisScope.selectedVersionIds.includes(versionId)) return false;
+  if (
+    chunk.sourceRef.versionState === 'retired'
+    && !basisScope.explicitRetiredVersionIds?.includes(versionId)
+  ) return false;
+  if (chunk.sourceRef.versionState !== 'active' && chunk.sourceRef.versionState !== 'retired') return false;
+  return basisScope.verifiedSarRetrievalChunkIds.includes(chunk.id);
 }
 
 function matchesAuthorityScopeRule(chunk: LearningEvidenceCorpusChunk, scope: LearningEvidenceRetrievalScope) {
@@ -885,6 +917,7 @@ function defaultAuthorityLevel(
   privacyClass: LearningEvidenceCorpusPrivacyClass,
 ): LearningEvidenceAuthorityLevel {
   if (privacyClass === 'service-only') return 'service-internal';
+  if (sourceType === 'teacher-course-basis') return 'teacher-authored';
   if (KNOWLEDGE_SOURCE_TYPES.has(sourceType)) return 'canonical';
   if (sourceType === 'grading-artifact' || sourceType === 'teacher-report') return 'teacher-authored';
   return 'learner-evidence';
@@ -916,6 +949,7 @@ function matchesClassScope(chunk: LearningEvidenceCorpusChunk, scope: LearningEv
 function matchesOwnerScope(chunk: LearningEvidenceCorpusChunk, scope: LearningEvidenceRetrievalScope) {
   const ownerUserId = chunk.sourceRef.ownerUserId;
   if (!ownerUserId) return chunk.privacyClass !== 'student-visible';
+  if (chunk.sourceType === 'teacher-course-basis' && (scope.role === 'admin' || scope.role === 'service')) return true;
   if (scope.role === 'student') return Boolean(scope.userId && ownerUserId === scope.userId);
   if (!scope.targetUserId) return true;
   return ownerUserId === scope.targetUserId;
@@ -926,6 +960,9 @@ function isChunkVisible(chunk: LearningEvidenceCorpusChunk, scope: LearningEvide
   if (chunk.privacyClass === 'admin-only') return scope.role === 'admin' || scope.role === 'service';
   if (chunk.privacyClass === 'teacher-visible') {
     if (scope.role === 'admin' || scope.role === 'service') return true;
+    if (chunk.sourceType === 'teacher-course-basis') {
+      return scope.role === 'teacher' && scope.userId === chunk.sourceRef.ownerUserId;
+    }
     return scope.role === 'teacher' && Boolean(chunk.sourceRef.classId && scope.classIds?.includes(chunk.sourceRef.classId));
   }
   if (chunk.privacyClass === 'student-visible') {

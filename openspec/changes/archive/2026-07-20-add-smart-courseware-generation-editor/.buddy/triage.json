@@ -1,0 +1,14 @@
+{
+  "subject": { "issue": null, "change_id": "add-smart-courseware-generation-editor" },
+  "truth": {
+    "problem_reproduced": "yes",
+    "evidence": [
+      "The platform has preset interactive lessons but no teacher workflow that generates editable interactive courseware from an approved lesson-plan revision.",
+      "Existing manifest rendering, module registry, response contracts, citation UI, and Provider adapters can be reused after the plan and generated-slide runtime dependencies are available.",
+      "The interview requires executable BOPPPS activities, module-level citations and provenance, selected-module regeneration, and paired teacher/student previews."
+    ]
+  },
+  "duplication": { "existing_implementation": "partial", "conflicting_specs": [], "active_changes": [], "superseded_by": null },
+  "readiness": { "information": "sufficient", "disposition": "executable", "reason": "Approved-plan binding, progressive generation, activity contracts, evidence, privacy, editing, local regeneration, role views, and durable jobs are specified with two explicit blockers." },
+  "binding": { "issue_updated_at": null, "base_sha": "c18e40372e0f444ec3ad08a5385f0ad854825d23", "generated_at": "2026-07-18T15:57:40Z" }
+}

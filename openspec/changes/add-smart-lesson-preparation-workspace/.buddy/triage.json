@@ -1,0 +1,18 @@
+{
+  "subject": { "issue": null, "change_id": "add-smart-lesson-preparation-workspace" },
+  "truth": {
+    "problem_reproduced": "yes",
+    "evidence": [
+      "The original parent contained 61 implementation tasks and five product capability deltas spanning ingestion, generation, runtime, publication, classroom, and export boundaries.",
+      "The completed interview and ADRs 0001-0014 define one coherent scenario but also identify independently deliverable source, plan, runtime, editor, publication, and PDF boundaries.",
+      "The six child OpenSpec directories now assign each executable product capability to one owner and declare an acyclic dependency graph."
+    ]
+  },
+  "duplication": { "existing_implementation": "none", "conflicting_specs": [], "active_changes": [], "superseded_by": null },
+  "readiness": {
+    "information": "sufficient",
+    "disposition": "series-parent",
+    "reason": "This change is a tracking-only series parent; its six executable children contain the implementation contracts and dependency-ready claim units."
+  },
+  "binding": { "issue_updated_at": null, "base_sha": "c18e40372e0f444ec3ad08a5385f0ad854825d23", "generated_at": "2026-07-18T15:57:40Z" }
+}

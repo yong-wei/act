@@ -4,7 +4,7 @@
 
 本文用于帮助维护者、协作代理和外部审阅者快速理解本项目当前的产品形态、架构边界、主要运行链路和近期工程重点。它不是提交日志；具体变更应以 `openspec/changes/`、`openspec/specs/`、专题设计文档和 `docs/memory/` 为准。
 
-当前项目已经从“精品互动课 + 基础画像”的阶段，推进到“统一平台壳层、标准互动课、控制仿真、Arena、学习路径、智能助教和数据治理共同构成教学闭环”的阶段。控制校正、智能助教、React Doctor 错误清理、AppShell 折叠导航合同、学生二级路线壳层迁移、知识图谱壳层迁移和数据中心角色可见性已经进入 `openspec/specs/`、Prisma 模型、数据治理实现或 UI 治理证据；当前仍在推进的 OpenSpec 重点主要是二级导航视觉治理。后续判断项目现状时，应优先使用本文、`docs/memory/02-recent-summary.md`、`docs/memory/10-project/10-current-state.md`、当前 `openspec list --json` 和已归档 specs，而不是早期课程制作记录。
+当前项目已经从“精品互动课 + 基础画像”的阶段，推进到“统一平台壳层、标准互动课、控制仿真、Arena、学习路径、智能助教和数据治理共同构成教学闭环”的阶段。控制校正、智能助教、React Doctor 治理、统一壳层、资源语义闭环和知识图谱交互治理已经进入 `openspec/specs/`、Prisma 模型、数据治理实现或 UI 验收证据。2026-07-18 的 `openspec list --json` 没有未完成任务；列表中的四个 change 均已完成任务，尚未全部归档。后续判断项目现状时，应优先使用本文、`docs/memory/02-recent-summary.md`、`docs/memory/10-project/10-current-state.md`、当前 OpenSpec 状态和已归档 specs，而不是早期课程制作或 PR 执行记录。
 
 ## 项目概览
 
@@ -88,7 +88,7 @@ AppShell 折叠导航合同已经归档：桌面展开态为 248px 侧栏，收�
 
 数据中心角色可见性已经完成实现：`/data-center` 只面向教师和管理员，学生直接访问默认进入 `/profile/evidence`；普通数据中心 UI 的“演示数据”来源标签默认隐藏，由管理员配置控制，管理员审计和治理视图仍保留来源可见性。`artifacts/commercial-ui/data-center-operations-roles-416/` 保存学生重定向、教师标签关闭/开启和管理员审计来源可见证据。
 
-当前 active OpenSpec 中，剩余 UI 系列主要负责固化二级导航视觉治理。React Doctor 系列中，server、aria role、shared state/effect、interactive state/effect 和 resource state/effect 已归档到 specs。
+统一 UI 治理已经覆盖二级导航、知识图谱壳层和角色可见性。知识图谱近期又完成根节点气泡布局、边界几何和 inspector 持久化治理；React Doctor 系列中的 server、aria role、shared state/effect、interactive state/effect 和 resource state/effect 已归档到 specs。
 
 ## 课程内容与 runtime
 
@@ -199,14 +199,9 @@ AI 可以解释、提示、总结和建议，但不能伪造学习事实、不�
 
 ## OpenSpec 与工作树协作
 
-本项目使用 OpenSpec 管理功能开发。已完成变更会归档到 `openspec/specs/`，进行中变更位于 `openspec/changes/`。新功能、治理、UI 重构、依赖迁移和智能助教能力都应先形成 proposal、design、tasks 和 spec delta，再进入实现。当前 active changes 主要是二级导航视觉治理；AppShell 折叠导航合同、学生二级路线壳层迁移、知识图谱壳层迁移和数据中心角色可见性已经完成，不应再作为待实现项重复提案。
+本项目使用 OpenSpec 管理功能开发。已完成变更会归档到 `openspec/specs/`，尚未归档的变更位于 `openspec/changes/`。新功能、治理、UI 重构、依赖迁移和智能助教能力都应先形成 proposal、design、tasks 和 spec delta，再进入实现。当前列表中的知识图谱根节点与 inspector、评估检查点资源语义、教师审核与学生反馈闭环、互动课组件样式统一四项任务均已完成；后续应先完成验收与归档，不应把它们误记为未实现功能。
 
-当前固定工作树职责：
-
-- 主工作树绑定 `integration`，用于 OpenSpec 提案、集成验证和协调登记。
-- `act-dev1` 绑定 `dev1`，用于功能实现。
-- `act-dev2` 绑定 `dev2`，用于另一条功能实现。
-- `act-resource` 绑定 `resource`，用于课程资源制作和资源相关开发；该永久工作树跟踪 `origin/integration`，在其中工作时不再创建第二层工作树。
+工作树是长期隔离边界。基线分支为 `integration`，发布分支为 `main`；具体工作树、分支与授权范围以当前任务上下文和 `git worktree` 实际状态为准，不在长期文档中固化易变化的本机分工。进入永久工作树后，不再为同一任务创建第二层工作树。
 
 Buddy issue 是跨工作树协调记录。一个可执行 change 对应一个 GitHub issue、一个 claim branch、一个 OpenSpec change 和一个 PR。提案批次应设置父 issue、子 issue、Project 状态和依赖关系；实现批次应在 claim 成功后按 issue 边界执行。
 

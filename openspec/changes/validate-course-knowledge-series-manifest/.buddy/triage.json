@@ -1,0 +1,15 @@
+{
+  "subject": { "issue": null, "change_id": "validate-course-knowledge-series-manifest" },
+  "truth": {
+    "problem_reproduced": "yes",
+    "evidence": [
+      "Source contract: docs/contexts/course-knowledge-base/CONTEXT.md, docs/adr/README.md indexed ADR 0015-0044 files, and docs/knowledge-graph-current-state-audit-2026-07-18.md.",
+      "The future rebuild series has no validated exact manifest and therefore cannot yet declare truthful child IDs, counts, ownership, endpoints, or dependencies.",
+      "Prototype block names, provisional cross-block counts, and mutable endpoint signatures cannot satisfy Buddy claim boundaries.",
+      "All required closure checks and the discriminated future-child record are explicit and can be validated without governing content or releasing production data."
+    ]
+  },
+  "duplication": { "existing_implementation": "none", "conflicting_specs": [], "active_changes": [], "superseded_by": null },
+  "readiness": { "information": "sufficient", "disposition": "executable", "reason": "The upstream manifests, closure rules, prohibited placeholders and waivers, exact output schema, and no-release boundary are explicit." },
+  "binding": { "issue_updated_at": null, "base_sha": "ce1d37742066038e164f05baa3a2cb077844353c", "generated_at": "2026-07-19T03:20:50Z" }
+}

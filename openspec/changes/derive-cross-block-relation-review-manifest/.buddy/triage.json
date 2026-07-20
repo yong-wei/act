@@ -1,0 +1,15 @@
+{
+  "subject": { "issue": null, "change_id": "derive-cross-block-relation-review-manifest" },
+  "truth": {
+    "problem_reproduced": "yes",
+    "evidence": [
+      "Source contract: docs/contexts/course-knowledge-base/CONTEXT.md, docs/adr/README.md indexed ADR 0015-0044 files, and docs/knowledge-graph-current-state-audit-2026-07-18.md.",
+      "The audit demonstrates that raw provenance and deduplicated adjudication units have distinct cardinalities that must be re-derived from the bound snapshot.",
+      "Provisional cross-block units can change when identity owners move, so prototype counts cannot define future children.",
+      "A provenance-complete queue can be independently derived after partition and cross-block identity inputs without approving relation outcomes."
+    ]
+  },
+  "duplication": { "existing_implementation": "none", "conflicting_specs": [], "active_changes": [], "superseded_by": null },
+  "readiness": { "information": "sufficient", "disposition": "executable", "reason": "The raw-to-unit derivation, endpoint dependencies, three candidate families, and no-approval boundary are explicit." },
+  "binding": { "issue_updated_at": null, "base_sha": "ce1d37742066038e164f05baa3a2cb077844353c", "generated_at": "2026-07-19T03:20:50Z" }
+}

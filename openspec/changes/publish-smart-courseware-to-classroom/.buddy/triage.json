@@ -1,0 +1,14 @@
+{
+  "subject": { "issue": null, "change_id": "publish-smart-courseware-to-classroom" },
+  "truth": {
+    "problem_reproduced": "yes",
+    "evidence": [
+      "Existing classroom sessions bind legacy lesson plans but do not freeze generated-courseware revision identity and manifest hash through finalization.",
+      "The catalog and classroom runtime are reusable, while generated publication receipts, sequential courseware versions, source-gap acknowledgements, and integrity recovery are absent.",
+      "The contest P0 acceptance requires a real-provider root-locus lesson to travel through ordinary publication and classroom execution."
+    ]
+  },
+  "duplication": { "existing_implementation": "partial", "conflicting_specs": [], "active_changes": [], "superseded_by": null },
+  "readiness": { "information": "sufficient", "disposition": "executable", "reason": "Deterministic receipts, acknowledgement rules, immutable versions, transactional projection, exact classroom binding, compatibility, and manual demonstration evidence are specified." },
+  "binding": { "issue_updated_at": null, "base_sha": "c18e40372e0f444ec3ad08a5385f0ad854825d23", "generated_at": "2026-07-18T15:57:40Z" }
+}
