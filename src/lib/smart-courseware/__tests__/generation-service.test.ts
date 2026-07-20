@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { describe, expect, it, vi } from 'vitest';
 
 import { contentHash } from '@/lib/smart-lesson-plan/domain';
@@ -250,6 +251,107 @@ describe('smart courseware generation service', () => {
     }) });
     expect(updateUnit).not.toHaveBeenCalled();
     expect(updateDraft).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['resume', resumeCoursewareGenerationJob, 'P2002'],
+    ['retry', retryCoursewareGenerationJob, 'P2034'],
+  ] as const)('maps an active sibling created concurrently with %s to the stable conflict', async (name, transition, code) => {
+    const conflict = new Prisma.PrismaClientKnownRequestError('transition conflict', {
+      code, clientVersion: 'test', meta: {},
+    });
+    const findJob = vi.fn()
+      .mockResolvedValueOnce({ id: 'job-a', draftId: 'draft-1' })
+      .mockResolvedValueOnce({ id: 'job-b' });
+    const db = {
+      smartCoursewareGenerationCommand: { findFirst: vi.fn().mockResolvedValue(null) },
+      smartCoursewareGenerationJob: { findFirst: findJob },
+      $transaction: vi.fn().mockRejectedValue(conflict),
+    };
+
+    await expect(transition(db as never, {
+      actor, jobId: 'job-a', idempotencyKey: `${name}-concurrent-active`,
+    })).rejects.toMatchObject({ code: 'courseware-generation-active', status: 409 });
+    expect(findJob).toHaveBeenLastCalledWith({
+      where: {
+        id: { not: 'job-a' }, ownerId: actor.id, draftId: 'draft-1', activeIdentity: 'draft:draft-1',
+      },
+      select: { id: true },
+    });
+  });
+
+  it('preserves a same-command replay after a transition conflict', async () => {
+    const conflict = new Prisma.PrismaClientKnownRequestError('transition conflict', {
+      code: 'P2002', clientVersion: 'test', meta: {},
+    });
+    const replay = { id: 'job-a', ownerId: actor.id, draftId: 'draft-1', state: 'QUEUED', draft: { state: 'GENERATING' } };
+    const requestHash = contentHash({ jobId: replay.id });
+    const findCommand = vi.fn()
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ jobId: replay.id, requestHash });
+    const findJob = vi.fn().mockResolvedValue(replay);
+    const db = {
+      smartCoursewareGenerationCommand: { findFirst: findCommand },
+      smartCoursewareGenerationJob: { findFirst: findJob },
+      $transaction: vi.fn().mockRejectedValue(conflict),
+    };
+
+    await expect(resumeCoursewareGenerationJob(db as never, {
+      actor, jobId: replay.id, idempotencyKey: 'resume-replay-conflict',
+    })).resolves.toBe(replay);
+    expect(findJob).toHaveBeenCalledTimes(1);
+  });
+
+  it('preserves the transaction conflict when no sibling job is active', async () => {
+    const conflict = new Prisma.PrismaClientKnownRequestError('transition conflict', {
+      code: 'P2034', clientVersion: 'test', meta: {},
+    });
+    const findJob = vi.fn()
+      .mockResolvedValueOnce({ id: 'job-a', draftId: 'draft-1' })
+      .mockResolvedValueOnce(null);
+    const db = {
+      smartCoursewareGenerationCommand: { findFirst: vi.fn().mockResolvedValue(null) },
+      smartCoursewareGenerationJob: { findFirst: findJob },
+      $transaction: vi.fn().mockRejectedValue(conflict),
+    };
+
+    await expect(retryCoursewareGenerationJob(db as never, {
+      actor, jobId: 'job-a', idempotencyKey: 'retry-no-active-conflict',
+    })).rejects.toBe(conflict);
+  });
+
+  it('does not map unrelated Prisma failures to an active-job conflict', async () => {
+    const failure = new Prisma.PrismaClientKnownRequestError('missing record', {
+      code: 'P2025', clientVersion: 'test', meta: {},
+    });
+    const findJob = vi.fn();
+    const db = {
+      smartCoursewareGenerationCommand: { findFirst: vi.fn().mockResolvedValue(null) },
+      smartCoursewareGenerationJob: { findFirst: findJob },
+      $transaction: vi.fn().mockRejectedValue(failure),
+    };
+
+    await expect(resumeCoursewareGenerationJob(db as never, {
+      actor, jobId: 'job-a', idempotencyKey: 'resume-unrelated-prisma',
+    })).rejects.toBe(failure);
+    expect(findJob).not.toHaveBeenCalled();
+  });
+
+  it('does not map a cancel transaction conflict to an active-job conflict', async () => {
+    const conflict = new Prisma.PrismaClientKnownRequestError('transition conflict', {
+      code: 'P2034', clientVersion: 'test', meta: {},
+    });
+    const findJob = vi.fn();
+    const db = {
+      smartCoursewareGenerationCommand: { findFirst: vi.fn().mockResolvedValue(null) },
+      smartCoursewareGenerationJob: { findFirst: findJob },
+      $transaction: vi.fn().mockRejectedValue(conflict),
+    };
+
+    await expect(cancelCoursewareGenerationJob(db as never, {
+      actor, jobId: 'job-a', idempotencyKey: 'cancel-transition-conflict',
+    })).rejects.toBe(conflict);
+    expect(findJob).not.toHaveBeenCalled();
   });
 
   it('rejects MODULE resume when its draft-version or target-module input changed', async () => {

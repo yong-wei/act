@@ -425,6 +425,23 @@ async function transitionJob(db: Db, input: CommandInput, action: string, allowe
     if (isTransactionConflict(error)) {
       const replayAfterConflict = await findCommandReplay(db, actor, action, idempotencyKey, requestHash);
       if (replayAfterConflict) return replayAfterConflict;
+      if (action !== 'RESUME' && action !== 'RETRY') throw error;
+      const conflictedJob = await db.smartCoursewareGenerationJob.findFirst({
+        where: { id: validateId(input.jobId), ownerId: actor.id },
+        select: { id: true, draftId: true },
+      });
+      if (conflictedJob) {
+        const activeJob = await db.smartCoursewareGenerationJob.findFirst({
+          where: {
+            id: { not: conflictedJob.id },
+            ownerId: actor.id,
+            draftId: conflictedJob.draftId,
+            activeIdentity: `draft:${conflictedJob.draftId}`,
+          },
+          select: { id: true },
+        });
+        if (activeJob) throw new SmartCoursewareError('courseware-generation-active', 409);
+      }
     }
     throw error;
   }
