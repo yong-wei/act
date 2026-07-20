@@ -54,6 +54,7 @@ describe('smart courseware queue', () => {
   it('keeps an INITIAL delivery failure active and leaves its draft generating', async () => {
     const updateDraft = vi.fn();
     const updateJob = vi.fn().mockResolvedValue({ count: 1 });
+    const updateUnit = vi.fn().mockResolvedValue({ count: 1 });
     const retryable = {
       id: 'job-1', draftId: 'draft-1', mode: 'INITIAL', state: 'RETRYABLE',
       activeIdentity: 'draft:draft-1', firstIncompleteUnitKey: 'bridge-in', deliveryGeneration: 1,
@@ -63,6 +64,7 @@ describe('smart courseware queue', () => {
       smartCoursewareGenerationUnit: { findUnique: vi.fn().mockResolvedValue({ id: 'unit-1' }) },
       $transaction: vi.fn(async (run: (tx: unknown) => unknown) => run({
         smartCoursewareGenerationJob: { updateMany: updateJob, findUniqueOrThrow: vi.fn().mockResolvedValue(retryable) },
+        smartCoursewareGenerationUnit: { updateMany: updateUnit },
         smartCoursewareDraft: { updateMany: updateDraft },
       })),
     };
@@ -73,6 +75,10 @@ describe('smart courseware queue', () => {
     expect(updateJob).toHaveBeenCalledWith({
       where: { id: 'job-1', state: 'QUEUED' },
       data: { state: 'RETRYABLE', failureCode: 'courseware-queue-unavailable' },
+    });
+    expect(updateUnit).toHaveBeenCalledWith({
+      where: { jobId: 'job-1', unitKey: 'bridge-in', state: 'PENDING' },
+      data: { state: 'RETRYABLE' },
     });
     expect(updateDraft).not.toHaveBeenCalled();
   });

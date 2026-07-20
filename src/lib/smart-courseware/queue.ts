@@ -22,13 +22,13 @@ export async function enqueueCoursewareGenerationJob(db: PrismaClient, jobId: st
   if (durable.draft?.state === 'ACCEPTED') throw new SmartCoursewareError('accepted-courseware-immutable', 409);
   if (durable.state !== 'QUEUED') return { queued: false, job: durable, errorCode: null };
   if (durable.mode === 'INITIAL') {
-    if (!durable.firstIncompleteUnitKey) return deliveryFailure(db, durable.id, durable.draftId, durable.mode, 'courseware-unit-not-found');
+    if (!durable.firstIncompleteUnitKey) return deliveryFailure(db, durable.id, durable.draftId, durable.mode, null, 'courseware-unit-not-found');
     const unit = await db.smartCoursewareGenerationUnit.findUnique({
       where: { jobId_unitKey: { jobId: durable.id, unitKey: durable.firstIncompleteUnitKey } }, select: { id: true },
     });
-    if (!unit) return deliveryFailure(db, durable.id, durable.draftId, durable.mode, 'courseware-unit-not-found');
+    if (!unit) return deliveryFailure(db, durable.id, durable.draftId, durable.mode, durable.firstIncompleteUnitKey, 'courseware-unit-not-found');
   } else if (!durable.targetModuleId) {
-    return deliveryFailure(db, durable.id, durable.draftId, durable.mode, 'courseware-module-target-not-found');
+    return deliveryFailure(db, durable.id, durable.draftId, durable.mode, null, 'courseware-module-target-not-found');
   }
   try {
     let active = override;
@@ -51,7 +51,7 @@ export async function enqueueCoursewareGenerationJob(db: PrismaClient, jobId: st
     });
     return { queued: true, job: durable, errorCode: null };
   } catch {
-    return deliveryFailure(db, durable.id, durable.draftId, durable.mode, 'courseware-queue-unavailable');
+    return deliveryFailure(db, durable.id, durable.draftId, durable.mode, durable.firstIncompleteUnitKey, 'courseware-queue-unavailable');
   }
 }
 
@@ -60,7 +60,7 @@ export async function closeCoursewareGenerationQueue() {
   queue = null;
 }
 
-async function deliveryFailure(db: PrismaClient, jobId: string, draftId: string, mode: 'INITIAL' | 'MODULE', failureCode: string) {
+async function deliveryFailure(db: PrismaClient, jobId: string, draftId: string, mode: 'INITIAL' | 'MODULE', unitKey: string | null, failureCode: string) {
   const result = await db.$transaction(async (tx) => {
     const transitioned = await tx.smartCoursewareGenerationJob.updateMany({
       where: { id: jobId, state: 'QUEUED' },
@@ -68,6 +68,13 @@ async function deliveryFailure(db: PrismaClient, jobId: string, draftId: string,
     });
     if (transitioned.count !== 1) {
       return { transitioned: false as const, job: await tx.smartCoursewareGenerationJob.findUniqueOrThrow({ where: { id: jobId } }) };
+    }
+    if (mode === 'INITIAL' && unitKey) {
+      const unitTransitioned = await tx.smartCoursewareGenerationUnit.updateMany({
+        where: { jobId, unitKey, state: 'PENDING' },
+        data: { state: 'RETRYABLE' },
+      });
+      if (unitTransitioned.count !== 1) throw new SmartCoursewareError('courseware-unit-not-found', 409);
     }
     return { transitioned: true as const, job: await tx.smartCoursewareGenerationJob.findUniqueOrThrow({ where: { id: jobId } }) };
   });
