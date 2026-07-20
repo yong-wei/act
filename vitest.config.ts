@@ -41,6 +41,7 @@ export default defineConfig({
       'src/features/interactive/__tests__/**/*.test.ts',
       'src/features/interactive/__tests__/**/*.test.tsx',
       'src/features/teacher/__tests__/**/*.test.ts',
+      'src/features/teacher/__tests__/**/*.test.tsx',
       'src/features/assignment-authoring/__tests__/**/*.test.ts',
     ],
   },

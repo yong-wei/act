@@ -185,6 +185,7 @@ export const generatedSlideManifestSchema = z.object({
 export type GeneratedSlideManifest = z.infer<typeof generatedSlideManifestSchema>;
 export type GeneratedSlideManifestStep = GeneratedSlideManifest['stages'][number]['steps'][number];
 export type GeneratedSlideModule = GeneratedSlideManifest['stages'][number]['steps'][number]['modules'][number];
+export const GENERATED_SLIDE_MAX_STEPS = 24;
 
 export type GeneratedSlideTypographyFitState = 'normal' | 'adapted' | 'unfit';
 
@@ -266,16 +267,32 @@ export const GENERATED_CONTENT_PAYLOAD_SCHEMAS = Object.freeze({
 } as const satisfies Record<GeneratedContentClass, z.ZodTypeAny>);
 
 const optionSchema = z.object({ value: nonEmptyText, label: nonEmptyText }).strict();
+const uniqueOptionsSchema = (maximum: number) => z.array(optionSchema).min(2).max(maximum).superRefine((options, context) => {
+  for (const field of ['value', 'label'] as const) {
+    const normalized = options.map((option) => option[field].trim().toLowerCase());
+    if (new Set(normalized).size !== normalized.length) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: `option ${field}s must be unique after normalization` });
+    }
+  }
+});
 export const GENERATED_ACTIVITY_PAYLOAD_SCHEMAS = Object.freeze({
-  'choice.single': z.object({ prompt: nonEmptyText, options: z.array(optionSchema).min(2).max(8) }).strict(),
-  'choice.multi': z.object({ prompt: nonEmptyText, options: z.array(optionSchema).min(2).max(10) }).strict(),
+  'choice.single': z.object({ prompt: nonEmptyText, options: uniqueOptionsSchema(8) }).strict(),
+  'choice.multi': z.object({ prompt: nonEmptyText, options: uniqueOptionsSchema(10) }).strict(),
   'text.short': z.object({ prompt: nonEmptyText, placeholder: z.string().max(120).optional() }).strict(),
   'text.long': z.object({ prompt: nonEmptyText, placeholder: z.string().max(200).optional() }).strict(),
-  'ordering.sequence': z.object({ prompt: nonEmptyText, items: z.array(nonEmptyText).min(2).max(10) }).strict(),
+  'ordering.sequence': z.object({
+    prompt: nonEmptyText,
+    items: z.array(nonEmptyText).min(2).max(10).superRefine((items, context) => {
+      const normalized = items.map((item) => item.trim().toLowerCase());
+      if (new Set(normalized).size !== normalized.length) {
+        context.addIssue({ code: z.ZodIssueCode.custom, message: 'ordering items must be unique after normalization' });
+      }
+    }),
+  }).strict(),
   'matching.pairs': z.object({
     prompt: nonEmptyText,
-    left: z.array(optionSchema).min(2).max(10),
-    right: z.array(optionSchema).min(2).max(10),
+    left: uniqueOptionsSchema(10),
+    right: uniqueOptionsSchema(10),
   }).strict(),
 } as const satisfies Record<GeneratedResponseKind, z.ZodTypeAny>);
 
@@ -365,8 +382,8 @@ export function validateGeneratedSlideManifest(value: unknown): GeneratedSlideVa
   }
 
   const steps = manifest.stages.flatMap((stage) => stage.steps);
-  if (steps.length < 6 || steps.length > 24) {
-    add('hierarchy.step-count', 'error', 'A complete manifest must contain 6 through 24 steps.', {});
+  if (steps.length < 6 || steps.length > GENERATED_SLIDE_MAX_STEPS) {
+    add('hierarchy.step-count', 'error', `A complete manifest must contain 6 through ${GENERATED_SLIDE_MAX_STEPS} steps.`, {});
   }
 
   const seenStepIds = new Set<string>();

@@ -90,6 +90,10 @@ import { createMathDocumentGradingWorker } from './math-document-grading-worker'
 import { createTeacherAssignmentReviewOutboxWorker } from './teacher-assignment-review-outbox-worker';
 import { createDefaultReviewedDerivativeRenderer } from '@/lib/data-governance/teacher-assignment-review-derivative-storage';
 import { defaultReviewedDerivativeOptions } from '@/lib/data-governance/teacher-assignment-review-derivative';
+import {
+  closeCoursewareGenerationWorker,
+  ensureCoursewareGenerationWorker,
+} from '@/lib/smart-courseware/worker';
 
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
 const WORKER_CONCURRENCY = parseInt(process.env.WORKER_CONCURRENCY || '2', 10);
@@ -1176,6 +1180,8 @@ async function startWorkers() {
 
   redis = new Redis(REDIS_URL, { maxRetriesPerRequest: null });
   prisma = createPrismaClient();
+  await ensureCoursewareGenerationWorker(redis);
+  console.log('[Worker] Smart courseware generation worker started');
   if (isMathDocumentGradingWorkerRequired()) {
     mathDocumentGradingController = await createMathDocumentGradingWorker({
       db: prisma,
@@ -1290,6 +1296,7 @@ async function shutdown(exitCode: number) {
   if (evidenceFeatureCacheWorker) cleanupTasks.push(evidenceFeatureCacheWorker.close());
   if (mathDocumentGradingController) cleanupTasks.push(mathDocumentGradingController.close());
   if (teacherAssignmentReviewController) cleanupTasks.push(teacherAssignmentReviewController.close());
+  cleanupTasks.push(closeCoursewareGenerationWorker());
   if (eventQueue) cleanupTasks.push(eventQueue.close());
   if (studentQueue) cleanupTasks.push(studentQueue.close());
   if (classQueue) cleanupTasks.push(classQueue.close());

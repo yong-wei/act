@@ -51,7 +51,7 @@ export function validPlanFixture() {
       { title: '导入', bopppsStage: 'bridgeIn', minutes: 5 },
       { title: '目标', bopppsStage: 'objectives', minutes: 5 },
       { title: '前测', bopppsStage: 'preAssessment', minutes: 5 },
-      { title: '参与', bopppsStage: 'participatoryLearning', minutes: 5 },
+      { title: '参与式学习', bopppsStage: 'participatoryLearning', minutes: 5 },
       { title: '后测', bopppsStage: 'postAssessment', minutes: 5 },
       { title: '总结', bopppsStage: 'summary', minutes: 5 },
     ],

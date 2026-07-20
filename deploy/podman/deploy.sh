@@ -149,6 +149,7 @@ NEXT_TELEMETRY_DISABLED="${NEXT_TELEMETRY_DISABLED:-1}"
 WORKER_CONCURRENCY="${WORKER_CONCURRENCY:-2}"
 MATH_DOCUMENT_GRADING_WORKER_REQUIRED="${MATH_DOCUMENT_GRADING_WORKER_REQUIRED:-true}"
 ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED="${ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED:-true}"
+SMART_COURSEWARE_ORDERING_SECRET="${SMART_COURSEWARE_ORDERING_SECRET:-}"
 MATHPIX_IMAGE_ENDPOINT="${MATHPIX_IMAGE_ENDPOINT:-https://api.mathpix.com/v3/text}"
 MATHPIX_DOCUMENT_ENDPOINT="${MATHPIX_DOCUMENT_ENDPOINT:-https://api.mathpix.com/v3/pdf}"
 MATHPIX_CREDENTIAL_REF="${MATHPIX_CREDENTIAL_REF:-env:MATHPIX_APP_KEY}"
@@ -215,6 +216,25 @@ require_grading_audit_secret() {
         exit 1
         ;;
     esac
+  fi
+}
+
+require_smart_courseware_ordering_secret() {
+  if [ "$NODE_ENV" != "production" ]; then
+    return 0
+  fi
+  SMART_COURSEWARE_ORDERING_SECRET="$(printf '%s' "$SMART_COURSEWARE_ORDERING_SECRET" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+  case "$SMART_COURSEWARE_ORDERING_SECRET" in
+    ''|replace-with*|your-*|change-me*|sk-your*)
+      echo "ERROR: production 课件学生排序投影必须配置真实的 SMART_COURSEWARE_ORDERING_SECRET。" >&2
+      exit 1
+      ;;
+  esac
+  local secret_bytes
+  secret_bytes="$(printf '%s' "$SMART_COURSEWARE_ORDERING_SECRET" | wc -c | tr -d '[:space:]')"
+  if [ "$secret_bytes" -lt 32 ]; then
+    echo "ERROR: production SMART_COURSEWARE_ORDERING_SECRET 必须至少为 32 bytes。" >&2
+    exit 1
   fi
 }
 
@@ -590,6 +610,7 @@ if [ "$MODE" != "--db-only" ]; then
   require_konling_mode_context_secret
   require_grading_audit_secret
   require_grading_lifecycle_lookup_secret
+  require_smart_courseware_ordering_secret
   require_submission_security_pipeline
 
   REDIS_URL_DEFAULT="redis://${REDIS_HOST_ALIAS}:6379"
@@ -733,6 +754,7 @@ APP_ENV_ARGS=(
   "${SHARED_ENV_ARGS[@]}"
   "${GRADING_AUDIT_ENV_ARGS[@]}"
   "${APP_STORAGE_ENV_ARGS[@]}"
+  -e SMART_COURSEWARE_ORDERING_SECRET="$SMART_COURSEWARE_ORDERING_SECRET"
   -e GRADING_MATHPIX_ENABLED="${GRADING_MATHPIX_ENABLED:-false}"
   -e GRADING_MATHPIX_POLICY_VERSION="$GRADING_MATHPIX_POLICY_VERSION"
   -e RUN_MIGRATIONS_ON_START=0

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Bot, CheckCircle2, LoaderCircle, Plus } from 'lucide-react';
 import { KonlingEntryPointButton } from '@/components/ai/konling-entry-point-button';
 
@@ -44,6 +44,7 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
   const [busy, setBusy] = useState(false);
   const [suggestions, setSuggestions] = useState<Record<string, KonlingSuggestion[]>>({});
   const [bootstrapSuggestions, setBootstrapSuggestions] = useState<KonlingSuggestion[]>([]);
+  const coursewareCreationInFlight = useRef(false);
   const sourceOptions = useMemo<SourceOption[]>(() => courseBases.flatMap((basis) => basis.documents.flatMap((document: any) =>
     document.versions.flatMap((version: any) => {
       const segment = version.segments?.[0];
@@ -63,6 +64,13 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
     }),
   )), [courseBases]);
   const selected = sourceOptions.find((option) => option.versionId === selectedSource) ?? sourceOptions[0];
+
+  function createCourseware(planRevisionId: string) {
+    if (coursewareCreationInFlight.current) return;
+    coursewareCreationInFlight.current = true;
+    const query = new URLSearchParams({ planRevisionId, creationIntentId: crypto.randomUUID() });
+    window.location.assign(`/teacher/smart-prep/courseware/new?${query.toString()}`);
+  }
 
   async function createTask(formData: FormData) {
     if (!selected) return setMessage('请先在上方确认至少一个可检索的课程依据版本。');
@@ -322,6 +330,7 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
             <button onClick={() => void requestAdvisoryReview(task)} disabled={!draft?.content || draft.state !== 'READY'} className="rounded border border-border px-3 py-1.5 text-sm disabled:opacity-50">AI 建议</button>
             <button onClick={() => void approve(task)} disabled={!draft || draft.state !== 'READY'} className="inline-flex items-center gap-1 rounded border border-primary px-3 py-1.5 text-sm text-primary disabled:opacity-50"><CheckCircle2 className="h-4 w-4" />批准版本</button>
             {task.revisions?.[0] ? <button onClick={() => void deriveDraft(task, task.revisions![0].id)} className="rounded border border-border px-3 py-1.5 text-sm">基于{task.revisions[0].displayName}继续修订</button> : null}
+            {task.revisions?.[0] ? <button type="button" onClick={() => createCourseware(task.revisions![0].id)} className="rounded border border-primary px-3 py-1.5 text-sm text-primary">生成互动课件</button> : null}
           </div>
         </div>
         <div className="grid gap-2 md:grid-cols-2">

@@ -105,6 +105,56 @@ enum SmartLessonProviderAttemptOutcome {
   CANCELLED
 }
 
+enum SmartCoursewareDraftState {
+  EDITABLE
+  READY
+  GENERATING
+  ACCEPTED
+}
+
+enum SmartCoursewareSourceState {
+  VERIFIED
+  AI_GENERATED_SOURCE_PENDING
+  TEACHER_CREATED_SOURCE_PENDING
+}
+
+enum SmartCoursewareProvenance {
+  AI_GENERATED
+  AI_GENERATED_TEACHER_EDITED
+  TEACHER_CREATED
+}
+
+enum SmartCoursewareGenerationJobState {
+  QUEUED
+  RUNNING
+  RETRYABLE
+  FAILED
+  CANCELLED
+  COMPLETED
+}
+
+enum SmartCoursewareGenerationJobMode {
+  INITIAL
+  MODULE
+}
+
+enum SmartCoursewareGenerationUnitState {
+  PENDING
+  RUNNING
+  RETRYABLE
+  FAILED
+  CANCELLED
+  COMPLETED
+}
+
+enum SmartCoursewareProviderAttemptOutcome {
+  RUNNING
+  SUCCEEDED
+  RETRYABLE_FAILURE
+  PERMANENT_FAILURE
+  CANCELLED
+}
+
 enum AssignmentLifecycleState {
   DRAFT
   PUBLISHED
@@ -431,28 +481,31 @@ model User {
   learningMaterializationOutbox         LearningMaterializationOutbox[]
 
   // Arena mode
-  arenaControllerArtifacts       ArenaControllerArtifact[]
-  arenaSubmissions               ArenaSubmission[]
-  arenaBlackBoxExperiments       ArenaBlackBoxExperiment[]
-  arenaIdentificationModels      ArenaIdentificationModel[]
-  arenaVirtualSimulationRuns     ArenaVirtualSimulationRun[]
-  simulationRuns                 SimulationRun[]
-  arenaChallengePublications     ArenaChallengePublication[]          @relation("ArenaChallengePublications")
-  authoredAssignments            Assignment[]                         @relation("AssignmentAuthor")
-  assignmentReviewGrants         AssignmentReviewGrant[]              @relation("AssignmentReviewGrantee")
-  issuedAssignmentReviewGrants   AssignmentReviewGrant[]              @relation("AssignmentReviewGrantIssuer")
-  assignmentHistoricalOwnerships AssignmentHistoricalOwnership[]
-  assignmentSubmissions          AssignmentSubmission[]
-  requestedGradingBatches        GradingBatch[]                       @relation("GradingBatchRequester")
-  teacherAssignmentReviews       TeacherAssignmentReview[]            @relation("TeacherAssignmentReviewReviewer")
-  teacherApprovalSnapshots       TeacherAssignmentApprovalSnapshot[]  @relation("TeacherAssignmentApprovalReviewer")
-  teacherResubmissionGrants      TeacherAssignmentResubmissionGrant[] @relation("TeacherAssignmentResubmissionGrantTeacher")
-  teacherQuestionExemptions      TeacherAssignmentQuestionExemption[] @relation("TeacherAssignmentQuestionExemptionActor")
-  ownedCourseBases               CourseBasis[]                        @relation("CourseBasisOwner")
-  reviewedCourseBasisVersions    CourseBasisDocumentVersion[]         @relation("CourseBasisVersionReviewer")
-  retiredCourseBasisVersions     CourseBasisDocumentVersion[]         @relation("CourseBasisVersionRetirer")
-  ownedSmartLessonTasks          SmartLessonTask[]                    @relation("SmartLessonTaskOwner")
-  approvedSmartLessonRevisions   SmartLessonRevision[]                @relation("SmartLessonRevisionApprover")
+  arenaControllerArtifacts         ArenaControllerArtifact[]
+  arenaSubmissions                 ArenaSubmission[]
+  arenaBlackBoxExperiments         ArenaBlackBoxExperiment[]
+  arenaIdentificationModels        ArenaIdentificationModel[]
+  arenaVirtualSimulationRuns       ArenaVirtualSimulationRun[]
+  simulationRuns                   SimulationRun[]
+  arenaChallengePublications       ArenaChallengePublication[]          @relation("ArenaChallengePublications")
+  authoredAssignments              Assignment[]                         @relation("AssignmentAuthor")
+  assignmentReviewGrants           AssignmentReviewGrant[]              @relation("AssignmentReviewGrantee")
+  issuedAssignmentReviewGrants     AssignmentReviewGrant[]              @relation("AssignmentReviewGrantIssuer")
+  assignmentHistoricalOwnerships   AssignmentHistoricalOwnership[]
+  assignmentSubmissions            AssignmentSubmission[]
+  requestedGradingBatches          GradingBatch[]                       @relation("GradingBatchRequester")
+  teacherAssignmentReviews         TeacherAssignmentReview[]            @relation("TeacherAssignmentReviewReviewer")
+  teacherApprovalSnapshots         TeacherAssignmentApprovalSnapshot[]  @relation("TeacherAssignmentApprovalReviewer")
+  teacherResubmissionGrants        TeacherAssignmentResubmissionGrant[] @relation("TeacherAssignmentResubmissionGrantTeacher")
+  teacherQuestionExemptions        TeacherAssignmentQuestionExemption[] @relation("TeacherAssignmentQuestionExemptionActor")
+  ownedCourseBases                 CourseBasis[]                        @relation("CourseBasisOwner")
+  reviewedCourseBasisVersions      CourseBasisDocumentVersion[]         @relation("CourseBasisVersionReviewer")
+  retiredCourseBasisVersions       CourseBasisDocumentVersion[]         @relation("CourseBasisVersionRetirer")
+  ownedSmartLessonTasks            SmartLessonTask[]                    @relation("SmartLessonTaskOwner")
+  approvedSmartLessonRevisions     SmartLessonRevision[]                @relation("SmartLessonRevisionApprover")
+  approvedSmartCoursewareRevisions SmartCoursewareRevision[]            @relation("SmartCoursewareRevisionApprover")
+  ownedSmartCoursewareDrafts       SmartCoursewareDraft[]               @relation("SmartCoursewareDraftOwner")
+  smartCoursewareModuleRevisions   SmartCoursewareModuleRevision[]      @relation("SmartCoursewareModuleRevisionActor")
 }
 
 model CourseBasis {
@@ -702,10 +755,11 @@ model SmartLessonRevision {
   approvedById           String
   approvedAt             DateTime @default(now())
 
-  task          SmartLessonTask    @relation(fields: [taskId], references: [id], onDelete: Restrict)
-  draft         SmartLessonDraft   @relation("SmartLessonApprovedDraft", fields: [draftId], references: [id], onDelete: Restrict)
-  approvedBy    User               @relation("SmartLessonRevisionApprover", fields: [approvedById], references: [id], onDelete: Restrict)
-  derivedDrafts SmartLessonDraft[] @relation("SmartLessonDraftBaseRevision")
+  task             SmartLessonTask        @relation(fields: [taskId], references: [id], onDelete: Restrict)
+  draft            SmartLessonDraft       @relation("SmartLessonApprovedDraft", fields: [draftId], references: [id], onDelete: Restrict)
+  approvedBy       User                   @relation("SmartLessonRevisionApprover", fields: [approvedById], references: [id], onDelete: Restrict)
+  derivedDrafts    SmartLessonDraft[]     @relation("SmartLessonDraftBaseRevision")
+  coursewareDrafts SmartCoursewareDraft[]
 
   @@unique([taskId, revisionNumber])
   @@unique([ownerId, approvalIdempotencyKey])
@@ -827,6 +881,237 @@ model SmartLessonAdvisoryReview {
 
   @@unique([ownerId, idempotencyKey])
   @@index([ownerId, draftId, createdAt])
+}
+
+model SmartCoursewareDraft {
+  id                     String                    @id @default(cuid())
+  ownerId                String
+  planRevisionId         String
+  planRevisionNumber     Int
+  planContentHash        String
+  authoringLineageRoot   String                    @unique @default(cuid())
+  state                  SmartCoursewareDraftState @default(EDITABLE)
+  version                Int                       @default(1)
+  runtimeManifest        Json?
+  contentHash            String?
+  validationSnapshot     Json?
+  creationIdempotencyKey String
+  creationRequestHash    String
+  createdAt              DateTime                  @default(now())
+  updatedAt              DateTime                  @updatedAt
+
+  owner            User                           @relation("SmartCoursewareDraftOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  planRevision     SmartLessonRevision            @relation(fields: [planRevisionId], references: [id], onDelete: Restrict)
+  modules          SmartCoursewareModule[]
+  jobs             SmartCoursewareGenerationJob[]
+  approvedRevision SmartCoursewareRevision?
+
+  @@unique([ownerId, creationIdempotencyKey])
+  @@index([ownerId, updatedAt])
+  @@index([ownerId, planRevisionId])
+}
+
+model SmartCoursewareRevision {
+  id                     String   @id @default(cuid())
+  ownerId                String
+  draftId                String   @unique
+  revisionNumber         Int      @default(1)
+  planRevisionId         String
+  planRevisionNumber     Int
+  planContentHash        String
+  manifestSnapshot       Json
+  manifestHash           String
+  moduleMetadataSnapshot Json
+  moduleMetadataHash     String
+  gapsSnapshot           Json
+  provenanceSnapshot     Json
+  validationSnapshot     Json
+  contentHash            String
+  approvalIdempotencyKey String
+  approvalRequestHash    String
+  approvedById           String
+  approvedAt             DateTime @default(now())
+
+  draft      SmartCoursewareDraft @relation(fields: [draftId], references: [id], onDelete: Restrict)
+  approvedBy User                 @relation("SmartCoursewareRevisionApprover", fields: [approvedById], references: [id], onDelete: Restrict)
+
+  @@unique([draftId, revisionNumber])
+  @@unique([ownerId, approvalIdempotencyKey])
+  @@index([ownerId, approvedAt])
+  @@index([planRevisionId])
+}
+
+model SmartCoursewareModule {
+  id                    String                     @id @default(cuid())
+  ownerId               String
+  draftId               String
+  runtimeModuleId       String
+  moduleInstanceLineage String                     @unique @default(cuid())
+  activeIdentity        String?                    @unique
+  contentHash           String
+  sourceState           SmartCoursewareSourceState
+  sourceBindings        Json                       @default("[]")
+  sourceBindingSetHash  String
+  gapIdentity           String?
+  provenance            SmartCoursewareProvenance
+  originalAttemptId     String?
+  teacherMetadata       Json                       @default("{}")
+  currentRevisionNumber Int                        @default(1)
+  deletedAt             DateTime?
+  createdAt             DateTime                   @default(now())
+  updatedAt             DateTime                   @updatedAt
+
+  draft     SmartCoursewareDraft            @relation(fields: [draftId], references: [id], onDelete: Restrict)
+  revisions SmartCoursewareModuleRevision[]
+
+  @@index([ownerId, draftId, runtimeModuleId])
+  @@index([draftId, gapIdentity])
+}
+
+model SmartCoursewareModuleRevision {
+  id                        String                     @id @default(cuid())
+  ownerId                   String
+  moduleRecordId            String
+  revisionNumber            Int
+  changeKind                String
+  runtimeModuleSnapshot     Json
+  teacherMetadataSnapshot   Json
+  contentHash               String
+  sourceState               SmartCoursewareSourceState
+  sourceBindings            Json                       @default("[]")
+  sourceBindingSetHash      String
+  gapIdentity               String?
+  provenance                SmartCoursewareProvenance
+  generationJobId           String?
+  providerAttemptId         String?
+  candidateHash             String?
+  candidateDiffId           String?                    @unique
+  acceptedCommandId         String?
+  originalAttemptIdSnapshot String?
+  actorId                   String
+  createdAt                 DateTime                   @default(now())
+
+  module          SmartCoursewareModule             @relation(fields: [moduleRecordId], references: [id], onDelete: Restrict)
+  actor           User                              @relation("SmartCoursewareModuleRevisionActor", fields: [actorId], references: [id], onDelete: Restrict)
+  generationJob   SmartCoursewareGenerationJob?     @relation(fields: [generationJobId], references: [id], onDelete: Restrict)
+  providerAttempt SmartCoursewareProviderAttempt?   @relation(fields: [providerAttemptId], references: [id], onDelete: Restrict)
+  acceptedCommand SmartCoursewareGenerationCommand? @relation(fields: [acceptedCommandId], references: [id], onDelete: Restrict)
+
+  @@unique([moduleRecordId, revisionNumber])
+  @@index([ownerId, moduleRecordId, createdAt])
+}
+
+model SmartCoursewareGenerationJob {
+  id                      String                            @id @default(cuid())
+  ownerId                 String
+  draftId                 String
+  planRevisionId          String
+  planContentHash         String
+  inputHash               String
+  mode                    SmartCoursewareGenerationJobMode  @default(INITIAL)
+  targetModuleId          String?
+  targetModuleHash        String?
+  sourceBindingsSnapshot  Json?
+  candidateRuntimeModule  Json?
+  candidateModuleMetadata Json?
+  candidateHash           String?
+  providerAudit           Json?
+  moduleAttemptGeneration Int                               @default(0)
+  moduleClaimToken        String?
+  moduleClaimExpiresAt    DateTime?
+  deliveryGeneration      Int                               @default(1)
+  state                   SmartCoursewareGenerationJobState @default(QUEUED)
+  activeIdentity          String?                           @unique
+  firstIncompleteUnitKey  String?                           @default("bridge-in")
+  failureCode             String?
+  startedAt               DateTime?
+  completedAt             DateTime?
+  cancelledAt             DateTime?
+  acceptedAt              DateTime?
+  createdAt               DateTime                          @default(now())
+  updatedAt               DateTime                          @updatedAt
+
+  draft            SmartCoursewareDraft               @relation(fields: [draftId], references: [id], onDelete: Restrict)
+  units            SmartCoursewareGenerationUnit[]
+  providerAttempts SmartCoursewareProviderAttempt[]
+  commands         SmartCoursewareGenerationCommand[]
+  moduleRevisions  SmartCoursewareModuleRevision[]
+
+  @@index([ownerId, draftId, createdAt])
+}
+
+model SmartCoursewareGenerationUnit {
+  id                String                             @id @default(cuid())
+  ownerId           String
+  jobId             String
+  unitKey           String
+  orderIndex        Int
+  state             SmartCoursewareGenerationUnitState @default(PENDING)
+  attemptGeneration Int                                @default(0)
+  claimToken        String?
+  claimExpiresAt    DateTime?
+  output            Json?
+  outputHash        String?
+  startedAt         DateTime?
+  completedAt       DateTime?
+  createdAt         DateTime                           @default(now())
+  updatedAt         DateTime                           @updatedAt
+
+  job      SmartCoursewareGenerationJob     @relation(fields: [jobId], references: [id], onDelete: Restrict)
+  attempts SmartCoursewareProviderAttempt[]
+
+  @@unique([jobId, unitKey])
+  @@unique([jobId, orderIndex])
+  @@index([ownerId, jobId, state])
+}
+
+model SmartCoursewareProviderAttempt {
+  id                   String                                @id @default(cuid())
+  ownerId              String
+  generationJobId      String
+  unitId               String?
+  attemptNumber        Int
+  idempotencyKey       String
+  serviceId            String
+  providerKind         String
+  model                String
+  promptVersion        String
+  schemaVersion        String
+  requestHash          String
+  requestSnapshot      Json
+  normalizedResponseId String?
+  outcome              SmartCoursewareProviderAttemptOutcome @default(RUNNING)
+  inputTokens          Int?
+  outputTokens         Int?
+  costMicros           BigInt?
+  startedAt            DateTime                              @default(now())
+  finishedAt           DateTime?
+
+  generationJob   SmartCoursewareGenerationJob    @relation(fields: [generationJobId], references: [id], onDelete: Restrict)
+  unit            SmartCoursewareGenerationUnit?  @relation(fields: [unitId], references: [id], onDelete: Restrict)
+  moduleRevisions SmartCoursewareModuleRevision[]
+
+  @@unique([ownerId, idempotencyKey])
+  @@unique([unitId, attemptNumber])
+  @@index([generationJobId, attemptNumber])
+  @@index([ownerId, unitId, startedAt])
+}
+
+model SmartCoursewareGenerationCommand {
+  id             String   @id @default(cuid())
+  ownerId        String
+  jobId          String
+  action         String
+  idempotencyKey String
+  requestHash    String
+  resultSnapshot Json
+  createdAt      DateTime @default(now())
+
+  job             SmartCoursewareGenerationJob    @relation(fields: [jobId], references: [id], onDelete: Restrict)
+  moduleRevisions SmartCoursewareModuleRevision[]
+
+  @@unique([ownerId, action, idempotencyKey])
+  @@index([ownerId, jobId, createdAt])
 }
 
 model StudentProfile {
