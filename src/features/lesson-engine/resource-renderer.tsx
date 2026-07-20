@@ -44,6 +44,8 @@ interface ResourceRendererProps {
   stage?: string | null;
   /** 是否启用 AI 面板 */
   enableAIPanel?: boolean;
+  /** 仅学生课堂运行态可以写入课堂作答。 */
+  classroomActorRole?: 'student' | 'teacher';
 }
 
 // Temporary accessibility exception: legacy static media resources only store one content URL.
@@ -96,6 +98,7 @@ export function ResourceRenderer({
   classId,
   stage,
   enableAIPanel = true,
+  classroomActorRole,
 }: ResourceRendererProps) {
   // Get lesson context for AI integration
   const lessonContext = useLessonContext();
@@ -233,6 +236,7 @@ export function ResourceRenderer({
         sessionId={sessionId}
         lessonItemId={lessonItemId}
         resourceId={resource.id}
+        runtimeMode={classroomActorRole === 'student' ? 'student' : 'preview'}
       />
     );
   }

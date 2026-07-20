@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Prisma } from '@prisma/client';
 
 import { useInteractiveTracking } from '@/features/interactive/hooks/useInteractiveTracking';
@@ -96,6 +96,7 @@ export function GeneratedCoursewareResource({
   sessionId,
   lessonItemId,
   resourceId,
+  runtimeMode = 'preview',
 }: {
   config: GeneratedCoursewareResourceConfig;
   onComplete?: (result?: WidgetResult) => void;
@@ -103,27 +104,32 @@ export function GeneratedCoursewareResource({
   sessionId?: string;
   lessonItemId?: string;
   resourceId?: string;
+  runtimeMode?: 'student' | 'preview';
 }) {
   const step = config.runtimeManifest.steps.find((candidate) => candidate.id === config.stepId);
+  const liveStudentSessionId = runtimeMode === 'student' ? sessionId : undefined;
   const [response, setResponse] = useState<ManifestStepResponse>();
   const [courseState, setCourseState] = useState<unknown>();
   const [hydrationState, setHydrationState] = useState<'loading' | 'ready' | 'error'>(
-    sessionId ? 'loading' : 'ready',
+    liveStudentSessionId ? 'loading' : 'ready',
   );
+  const responseRef = useRef<ManifestStepResponse | undefined>(undefined);
+  const courseStateRef = useRef<unknown>(undefined);
+  const submissionQueueRef = useRef<Promise<void>>(Promise.resolve());
   const { fetchSelfStates, postState } = useSessionStateChannel({
-    sessionId: sessionId ?? 'generated-courseware-preview',
-    isDemo: !sessionId,
+    sessionId: liveStudentSessionId ?? 'generated-courseware-preview',
+    isDemo: !liveStudentSessionId,
     currentStepId: lessonItemId ?? config.stepId,
   });
   const interactiveTracking = useInteractiveTracking({
     resourceId,
     resourceKey: `generated-courseware:${config.publicationRevisionId}`,
-    sessionId,
+    sessionId: liveStudentSessionId,
   });
   const { trackCourseEvent } = useCourseEventTracking({
     resourceKey: `generated-courseware:${config.publicationRevisionId}`,
     resourceId,
-    sessionId,
+    sessionId: liveStudentSessionId,
     lessonKey: config.publicationRevisionId,
     actorRole: 'student',
     emit: interactiveTracking.emit,
@@ -139,7 +145,7 @@ export function GeneratedCoursewareResource({
   );
 
   useEffect(() => {
-    if (!sessionId) {
+    if (!liveStudentSessionId) {
       setHydrationState('ready');
       return;
     }
@@ -148,8 +154,11 @@ export function GeneratedCoursewareResource({
     void fetchSelfStates().then((payload) => {
       if (!active) return;
       const savedState = payload.courseStates[0]?.data;
+      const savedResponse = readGeneratedResponse(savedState, config.publicationRevisionId, config.stepId);
+      courseStateRef.current = savedState;
+      responseRef.current = savedResponse;
       setCourseState(savedState);
-      setResponse(readGeneratedResponse(savedState, config.publicationRevisionId, config.stepId));
+      setResponse(savedResponse);
       setHydrationState('ready');
     }).catch(() => {
       if (active) setHydrationState('error');
@@ -157,44 +166,55 @@ export function GeneratedCoursewareResource({
     return () => {
       active = false;
     };
-  }, [config.publicationRevisionId, config.stepId, fetchSelfStates, sessionId]);
+  }, [config.publicationRevisionId, config.stepId, fetchSelfStates, liveStudentSessionId]);
 
   const handleSubmit = useCallback(async (submitted: ManifestStepResponse) => {
-    const submittedAt = submitManifestStepResponse({
-      stepId: config.stepId,
-      isResubmit: Boolean(response),
-      response: submitted,
-      stepManifest: step,
-      dataOverrides: {
-        publicationRevisionId: config.publicationRevisionId,
-        manifestHash: config.manifestHash,
-        lessonItemId: lessonItemId ?? null,
-      },
-    });
-    const persistedResponse = { ...submitted, submittedAt };
-    const nextState = mergeGeneratedCoursewareResponse(
-      courseState,
-      config.publicationRevisionId,
-      config.stepId,
-      persistedResponse,
-    );
-    if (sessionId) {
-      await postState({
-        itemId: lessonItemId ?? config.stepId,
-        lessonKey: config.publicationRevisionId,
-        data: nextState,
+    const queuedSubmission = submissionQueueRef.current.catch(() => undefined).then(async () => {
+      const previousResponse = responseRef.current;
+      const mergedResponse = {
+        ...submitted,
+        answers: { ...(previousResponse?.answers ?? {}), ...submitted.answers },
+      };
+      const submittedAt = submitManifestStepResponse({
+        stepId: config.stepId,
+        isResubmit: Boolean(previousResponse),
+        response: mergedResponse,
+        stepManifest: step,
+        dataOverrides: {
+          publicationRevisionId: config.publicationRevisionId,
+          manifestHash: config.manifestHash,
+          lessonItemId: lessonItemId ?? null,
+        },
       });
-    }
-    setCourseState(nextState);
-    setResponse(persistedResponse);
-    onStateChange?.({
-      phase: 'submitted',
-      progress: 100,
-      data: { stepId: config.stepId, response: persistedResponse },
-      timestamp: Date.now(),
+      const persistedResponse = { ...mergedResponse, submittedAt };
+      const nextState = mergeGeneratedCoursewareResponse(
+        courseStateRef.current,
+        config.publicationRevisionId,
+        config.stepId,
+        persistedResponse,
+      );
+      if (liveStudentSessionId) {
+        await postState({
+          itemId: lessonItemId ?? config.stepId,
+          lessonKey: config.publicationRevisionId,
+          data: nextState,
+        });
+      }
+      courseStateRef.current = nextState;
+      responseRef.current = persistedResponse;
+      setCourseState(nextState);
+      setResponse(persistedResponse);
+      onStateChange?.({
+        phase: 'submitted',
+        progress: 100,
+        data: { stepId: config.stepId, response: persistedResponse },
+        timestamp: Date.now(),
+      });
+      onComplete?.({ success: true, data: { stepId: config.stepId, response: persistedResponse } });
     });
-    onComplete?.({ success: true, data: { stepId: config.stepId, response: persistedResponse } });
-  }, [config.manifestHash, config.publicationRevisionId, config.stepId, courseState, lessonItemId, onComplete, onStateChange, postState, response, sessionId, step, submitManifestStepResponse]);
+    submissionQueueRef.current = queuedSubmission.then(() => undefined, () => undefined);
+    return queuedSubmission;
+  }, [config.manifestHash, config.publicationRevisionId, config.stepId, lessonItemId, liveStudentSessionId, onComplete, onStateChange, postState, step, submitManifestStepResponse]);
   if (!step) return null;
 
   return (
@@ -228,6 +248,7 @@ export function GeneratedCoursewareResource({
           browseEnabled: true,
           answerVisible: false,
           revealProgress: 0,
+          readOnly: runtimeMode === 'preview',
           onSubmit: handleSubmit,
         })}
       </div>
