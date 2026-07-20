@@ -112,11 +112,45 @@ describe('database decoder observation closure', () => {
     }), candidate, fixtures);
     const jsonNull = validateDatabaseClosure(snapshot({
       historical_shape_summaries: { 'field:payload': { null: 5 } },
-      json_observation_summaries: { ...base, 'root_type:payload:$': { null: 5 }, 'version:payload:$.schemaVersion': {}, 'version_presence:payload:$.schemaVersion': {}, 'legacy_shape:payload:$.schemaVersion': {} },
+      json_observation_summaries: {
+        ...base,
+        'path:payload': {},
+        'root_type:payload:$': { null: 5 },
+        'version:payload:$.schemaVersion': {},
+        'version_presence:payload:$.schemaVersion': {},
+        'legacy_shape:payload:$.schemaVersion': {},
+        'discriminator:payload:$.targetType': {},
+      },
     }), candidate, fixtures);
     for (const drift of [sqlNull, jsonNull]) {
       expect(drift).not.toEqual(expect.arrayContaining([expect.objectContaining({ code: expect.stringMatching(/(?:ROOT_TYPE|HISTORICAL_SHAPE)_OUTSIDE_CLOSED_SET/u) })]));
     }
+
+    const scalar = validateDatabaseClosure(snapshot({
+      historical_shape_summaries: { 'field:payload': { number: 5 } },
+      json_observation_summaries: { ...base, 'root_type:payload:$': { number: 5 } },
+    }), candidate, fixtures);
+    expect(scalar).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'DATABASE_HISTORICAL_SHAPE_OUTSIDE_CLOSED_SET', observed: 'number' }),
+      expect.objectContaining({ code: 'DATABASE_JSON_ROOT_TYPE_OUTSIDE_CLOSED_SET', observed: 'number' }),
+    ]));
+  });
+
+  it('limits object_or_null child observations to object roots', () => {
+    const candidate = registry();
+    candidate.decoder_contracts['payload/v1']!.root_type = 'object_or_null';
+    const observations = compileJsonObservationContracts(candidate, fixtures);
+
+    expect(observations.drift).toEqual([]);
+    expect(observations.contracts.filter((item) =>
+      item.decoderId === 'payload/v1'
+      && ['version', 'version_presence', 'legacy_shape', 'discriminator'].includes(item.summary)
+    )).toEqual(expect.arrayContaining([
+      expect.objectContaining({ summary: 'version', applicability: 'object_only' }),
+      expect.objectContaining({ summary: 'version_presence', applicability: 'object_only' }),
+      expect.objectContaining({ summary: 'legacy_shape', applicability: 'object_only' }),
+      expect.objectContaining({ summary: 'discriminator', applicability: 'object_only' }),
+    ]));
   });
 
   it('rejects a missing version unless its exact legacy shape digest is enumerated', () => {

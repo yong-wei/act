@@ -2,6 +2,7 @@ import { createHash, createPrivateKey, createPublicKey, randomUUID, sign } from 
 import { access, link, lstat, mkdir, readFile, realpath, stat, unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
 import { Client, type ClientBase } from 'pg';
 import { Prisma } from '@prisma/client';
 import { canonicalJson, sortUnique, taggedDigest } from './normalize';
@@ -13,6 +14,7 @@ import type { Json } from './types';
 export const DATABASE_EXPORT_FORMAT = 'course-knowledge-database-aggregate-export/v1';
 export const DATABASE_PROOF_FORMAT = 'course-knowledge-database-export-proof/v1';
 export const MIN_GROUP_SIZE = 5;
+const DATABASE_EXPORTER_PATH = 'scripts/knowledge-governance/input-inventory/database-export.ts';
 
 type SafeCount = number | 'suppressed';
 
@@ -113,10 +115,17 @@ function exactSha256(bytes: Buffer): string {
   return `sha256:${createHash('sha256').update(bytes).digest('hex')}`;
 }
 
-export async function currentDatabaseExportAuthority(root: string, registryPath: string): Promise<{ registryDigest: string; exporterDigest: string }> {
+function revisionAuthorityFile(root: string, revision: string, relativePath: string): Buffer {
+  if (!/^[0-9a-f]{40}$/u.test(revision)) throw new Error(`invalid database authority revision: ${revision}`);
+  const result = spawnSync('git', ['show', `${revision}:${relativePath}`], { cwd: root, encoding: 'buffer', maxBuffer: 128 * 1024 * 1024 });
+  if (result.status !== 0) throw new Error(`unable to read database authority at ${revision}:${relativePath}`);
+  return result.stdout;
+}
+
+export async function currentDatabaseExportAuthority(root: string, registryPath: string, revision?: string): Promise<{ registryDigest: string; exporterDigest: string }> {
   return {
-    registryDigest: exactSha256(await readFile(path.join(root, registryPath))),
-    exporterDigest: exactSha256(await readFile(fileURLToPath(import.meta.url))),
+    registryDigest: exactSha256(revision ? revisionAuthorityFile(root, revision, registryPath) : await readFile(path.join(root, registryPath))),
+    exporterDigest: exactSha256(revision ? revisionAuthorityFile(root, revision, DATABASE_EXPORTER_PATH) : await readFile(path.join(root, DATABASE_EXPORTER_PATH))),
   };
 }
 
@@ -348,7 +357,7 @@ function versionSelectorParts(selector: string): { root: string; key: string } {
   return { root: match[1] || '$', key: match[2]! };
 }
 
-function jsonDecoderRootsSql(table: string, field: string, selector: string, applicability: 'any' | 'object_only' = 'any', learnerIdentityField?: string): string {
+export function jsonDecoderRootsSql(table: string, field: string, selector: string, applicability: 'any' | 'object_only' = 'any', learnerIdentityField?: string): string {
   const { root } = versionSelectorParts(selector);
   canonicalJsonSelector(root);
   const applicabilitySql = applicability === 'object_only' ? " AND jsonb_typeof(target.value) = 'object'" : '';

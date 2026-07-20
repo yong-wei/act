@@ -150,6 +150,7 @@ export function compileJsonObservationContracts(registry: Registry, fixtures: Sh
         { selector, applicability: 'object_only' },
         { selector: `$[*]${selector.slice(1)}`, applicability: 'any' },
       ];
+      if (decoder.root_type === 'object_or_null') return [{ selector, applicability: 'object_only' }];
       return [{ selector, applicability: 'any' }];
     };
     const selectors = [

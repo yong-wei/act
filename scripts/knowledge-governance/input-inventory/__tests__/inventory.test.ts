@@ -7,7 +7,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { canonicalJson, compareCodePoints, normalizePath, normalizeText, taggedDigest } from '../normalize';
 import { loadImmutableExport, validateDatabaseClosure } from '../database-snapshot';
-import { assertAggregateExportShape, contractsFromRegistry, currentDatabaseExportAuthority, DATABASE_EXPORT_FORMAT, deriveProof, exportAggregateDatabase, fieldSummaryKey, groupedRelationSummary, groupedSummary, jsonPathCategoryKey, jsonSummaryKey, latestWatermark, publishExportArtifacts, suppressRows, type AggregateDatabaseExport, type AggregateDatasetExport } from '../database-export';
+import { assertAggregateExportShape, contractsFromRegistry, currentDatabaseExportAuthority, DATABASE_EXPORT_FORMAT, deriveProof, exportAggregateDatabase, fieldSummaryKey, groupedRelationSummary, groupedSummary, jsonDecoderRootsSql, jsonPathCategoryKey, jsonSummaryKey, latestWatermark, publishExportArtifacts, suppressRows, type AggregateDatabaseExport, type AggregateDatasetExport } from '../database-export';
 import { discoverWriters, discoverWritersInSource } from '../writer-discovery';
 import { validateOutputPrivacy, validateRegistrySchema } from '../schema-validation';
 import { buildManifest, repositoryRevision, revisionBoundFile, revisionBoundNormalizedFile, sourceFingerprints } from '../manifest';
@@ -115,6 +115,25 @@ describe('normalization contract', () => {
       await writeFile(path.join(directory, registryPath), JSON.stringify({ ...captured, schema_version: 'dirty/v2' }));
       expect((await loadRegistry(directory, registryPath, revision)).schema_version).toBe('captured/v1');
       expect((await loadRegistry(directory, registryPath)).schema_version).toBe('dirty/v2');
+    } finally { await rm(directory, { recursive: true }); }
+  });
+
+  it('binds database proof authority to the captured registry and exporter revision', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-database-authority-'));
+    try {
+      for (const args of [['init', '-q'], ['config', 'user.email', 'inventory@example.test'], ['config', 'user.name', 'Inventory Test']]) spawnSync('git', args, { cwd: directory });
+      const registryPath = 'registry.yaml';
+      const exporterPath = 'scripts/knowledge-governance/input-inventory/database-export.ts';
+      await mkdir(path.dirname(path.join(directory, exporterPath)), { recursive: true });
+      await writeFile(path.join(directory, registryPath), 'captured registry\n');
+      await writeFile(path.join(directory, exporterPath), 'captured exporter\n');
+      spawnSync('git', ['add', '.'], { cwd: directory }); spawnSync('git', ['commit', '-qm', 'authority'], { cwd: directory });
+      const revision = await repositoryRevision(directory);
+      const captured = await currentDatabaseExportAuthority(directory, registryPath, revision);
+      await writeFile(path.join(directory, registryPath), 'dirty registry\n');
+      await writeFile(path.join(directory, exporterPath), 'dirty exporter\n');
+      expect(await currentDatabaseExportAuthority(directory, registryPath, revision)).toEqual(captured);
+      expect(await currentDatabaseExportAuthority(directory, registryPath)).not.toEqual(captured);
     } finally { await rm(directory, { recursive: true }); }
   });
 
@@ -302,6 +321,12 @@ describe('filesystem closure', () => {
 });
 
 describe('immutable database privacy boundary', () => {
+  it('excludes JSON null roots from object-only decoder child summaries', () => {
+    const sql = jsonDecoderRootsSql('Observed', 'payload', '$.schemaVersion', 'object_only');
+    expect(sql).toContain("jsonb_typeof(target.value) = 'object'");
+    expect(jsonDecoderRootsSql('Observed', 'payload', '$.schemaVersion', 'any')).not.toContain("jsonb_typeof(target.value) = 'object'");
+  });
+
   it('rolls back a newly published export when proof publication loses a no-overwrite race', async () => {
     const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-atomic-publish-'));
     const outputPath = path.join(directory, 'export.json');
@@ -489,7 +514,7 @@ describe('immutable database privacy boundary', () => {
   it('builds a schema-valid manifest from a real current-authority database export', async () => {
     const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-manifest-database-export-'));
     try {
-      const currentAuthority = await currentDatabaseExportAuthority(root, 'docs/proposals/course-knowledge-base-governance-source-registry.yaml');
+      const currentAuthority = await currentDatabaseExportAuthority(root, 'docs/proposals/course-knowledge-base-governance-source-registry.yaml', await repositoryRevision(root));
       const exported = { ...aggregateExport([]), registry_digest: currentAuthority.registryDigest, exporter_digest: currentAuthority.exporterDigest };
       await writeAggregateExport(directory, exported);
       const publicKeyPath = path.join(directory, 'proof-public-key.pem');
