@@ -203,8 +203,8 @@ describe('AI chat route Konling runtime guard', () => {
     expect(globalAIProviderSource).toContain('assistantEntryPoint: entryPoint');
     expect(globalAIProviderSource).toContain('assistantEntryPoint: null');
     expect(globalAISidebarSource).toContain('teachingAssistantModeId: assistantEntryPoint?.mode');
-    expect(globalAISidebarSource).toContain('modeClientContextHints: assistantEntryPoint?.serverContext');
-    expect(globalAISidebarSource).toContain('resourceId: assistantEntryPoint?.serverContext.resourceId');
+    expect(globalAISidebarSource).toContain('modeClientContextHints: effectiveServerContext');
+    expect(globalAISidebarSource).toContain('resourceId: effectiveServerContext?.resourceId');
     expect(documentGradingUiSource).toContain('KonlingEntryPointButton');
     expect(documentGradingUiSource).toContain('entryPoint={view.konlingEntryPoint}');
     expect(resourceRendererSource).toContain("mode: 'resource-coach'");

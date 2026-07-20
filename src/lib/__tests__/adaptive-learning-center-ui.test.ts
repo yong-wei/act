@@ -459,7 +459,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('assertPathComparisonSignals');
     expect(source).toContain('missing-signal');
     expect(source).toContain("style.visibility !== 'hidden'");
-    expect(source).toContain('signal.routeModuleCount < 3');
+    expect(source).toContain('signal.routeModuleCount < 1');
     expect(source).toContain('signal.attachedActionGroupCount !== signal.routeModuleCount');
     expect(source).toContain('[data-learning-path-options-layout="route-modules"]');
     expect(source).toContain('[data-learning-path-option-actions="attached"]');

@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { readBoundedAssignmentJson, requireAssignmentActor, requireAssignmentMutation } from '@/lib/assignments/assignment-route-guards';
 import { createTeacherAssignmentReview, getTeacherAssignmentReview, saveTeacherAssignmentReview } from '@/lib/data-governance/teacher-assignment-review';
 import { teacherAssignmentReviewErrorResponse } from '@/lib/data-governance/teacher-assignment-review-api';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
@@ -55,6 +56,7 @@ export async function GET(request: Request, context: { params: Promise<{ assignm
     const review = await getTeacherAssignmentReview(prisma, { actor: auth.actor, assignmentId, submissionId, reviewId: query.reviewId, gradingRunId: query.gradingRunId });
     return NextResponse.json({ review });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     return teacherAssignmentReviewErrorResponse(error);
   }
 }
@@ -70,6 +72,7 @@ export async function POST(request: Request, context: { params: Promise<{ assign
     const result = await createTeacherAssignmentReview(prisma, { actor: auth.actor, assignmentId, submissionId, gradingRunId: body.gradingRunId });
     return NextResponse.json(result, { status: result.replay ? 200 : 201 });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     return teacherAssignmentReviewErrorResponse(error);
   }
 }
@@ -85,6 +88,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ assig
     const review = await saveTeacherAssignmentReview(prisma, { actor: auth.actor, assignmentId, submissionId, ...body });
     return NextResponse.json({ review });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     return teacherAssignmentReviewErrorResponse(error);
   }
 }

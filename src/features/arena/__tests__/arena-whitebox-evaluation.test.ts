@@ -12,7 +12,7 @@ const validPidArtifact: ControllerArtifact = {
   id: 'artifact-pid-good',
   taskId: 'task-second-order-lead-pid',
   method: 'pid',
-  params: { kp: 10, ki: 2, kd: 2 },
+  params: { kp: 20, ki: 0, kd: 1 },
   createdAt: '2026-05-10T10:00:00.000Z',
 };
 

@@ -107,6 +107,7 @@ import {
   getPerspectiveCameraFitDistance,
   placeKnowledgeGraphLabels,
   projectKnowledgeWorldPoint,
+  type KnowledgeViewportNode,
 } from './viewport-fit';
 import { getKnowledgeGraphEndpointArrow } from './edge-geometry';
 import {
@@ -168,6 +169,8 @@ interface KnowledgeGraphCanvasProps {
   collapsingNodeId?: string | null;
   onCollapsePresentationComplete?: (nodeId: string) => void;
 }
+
+const EMPTY_LESSON_ORDER_NODE_IDS: readonly string[] = [];
 
 type RuntimeKnowledgeGraphNode = KnowledgeGraphPositionedNode & {
   vx?: number;
@@ -260,6 +263,158 @@ function getKnowledgeGraph3DRenderedNodeRadius(
     : getKnowledgeGraph3DNodePresentationRadius(naturalRadius, projectedScale);
 }
 
+export function getKnowledgeGraphProjectedSphereBounds(input: {
+  camera: THREE.PerspectiveCamera;
+  center: { x: number; y: number; z: number };
+  radius: number;
+  width: number;
+  height: number;
+}) {
+  const cameraPoint = new THREE.Vector3(input.center.x, input.center.y, input.center.z)
+    .applyMatrix4(input.camera.matrixWorldInverse);
+  const depth = -cameraPoint.z;
+  if (!Number.isFinite(depth) || !Number.isFinite(input.radius) || input.radius < 0 || depth <= input.radius) {
+    return null;
+  }
+  const projectedExtrema = (center: number, projectionScale: number) => {
+    const denominator = depth * depth - input.radius * input.radius;
+    const tangent = input.radius * Math.sqrt(depth * depth + center * center - input.radius * input.radius);
+    return [
+      (center * depth - tangent) / denominator * projectionScale,
+      (center * depth + tangent) / denominator * projectionScale,
+    ] as const;
+  };
+  const [leftNdc, rightNdc] = projectedExtrema(cameraPoint.x, input.camera.projectionMatrix.elements[0]);
+  const [bottomNdc, topNdc] = projectedExtrema(cameraPoint.y, input.camera.projectionMatrix.elements[5]);
+  return {
+    left: (leftNdc + 1) * input.width / 2,
+    top: (1 - topNdc) * input.height / 2,
+    right: (rightNdc + 1) * input.width / 2,
+    bottom: (1 - bottomNdc) * input.height / 2,
+  };
+}
+
+function getKnowledgeGraph3DSafeFitCameraDistance(input: {
+  nodes: Array<KnowledgeViewportNode & { name: string; z: number }>;
+  width: number;
+  height: number;
+  initialDistance: number;
+  cameraCenterX: number;
+  cameraCenterY: number;
+  fovDegrees: number;
+  zoom: number;
+  labelMode: KnowledgeGraphLabelMode;
+  selectedNodeId?: string;
+  hoveredNodeId?: string;
+  margin: number;
+}): number {
+  const camera = new THREE.PerspectiveCamera(
+    input.fovDegrees,
+    input.width / Math.max(1, input.height),
+    0.1,
+    Math.max(2000, input.initialDistance * 4),
+  );
+  camera.zoom = input.zoom;
+
+  const hasSafeBounds = (distance: number) => {
+    camera.position.set(input.cameraCenterX, input.cameraCenterY, distance);
+    camera.lookAt(input.cameraCenterX, input.cameraCenterY, 0);
+    camera.far = Math.max(2000, distance * 4);
+    camera.updateProjectionMatrix();
+    camera.updateMatrixWorld(true);
+    const project = (point: { x: number; y: number; z: number }) => {
+      const projected = new THREE.Vector3(point.x, point.y, point.z).project(camera);
+      return { x: projected.x, y: projected.y, z: projected.z };
+    };
+    const projectedNodes = input.nodes.map((node) => {
+      const center = { x: node.x, y: node.y, z: node.z };
+      const screen = projectKnowledgeWorldPoint({
+        ...center,
+        width: input.width,
+        height: input.height,
+        project,
+      });
+      const projectedScale = getKnowledgeProjectionScale({
+        center,
+        right: new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion),
+        up: new THREE.Vector3(0, 1, 0).applyQuaternion(camera.quaternion),
+        width: input.width,
+        height: input.height,
+        project,
+      });
+      return {
+        ...node,
+        screenX: screen.x,
+        screenY: screen.y,
+        projectedScale,
+        bodyRadius: node.isRootBubble
+          ? node.bodyRadius
+          : getKnowledgeGraph3DRenderedNodeRadius(node, node.bodyRadius, projectedScale),
+      };
+    });
+    const placements = placeKnowledgeGraphLabels({
+      nodes: projectedNodes,
+      scale: 1,
+      labelMode: input.labelMode,
+      width: input.width,
+      height: input.height,
+      padding: getKnowledgeGraphViewportSafeInsets({ width: input.width, height: input.height }),
+      enforceViewport: true,
+      selectedNodeId: input.selectedNodeId,
+      hoveredNodeId: input.hoveredNodeId,
+    });
+    return projectedNodes.every((node) => {
+      const bodyBounds = getKnowledgeGraphProjectedSphereBounds({
+        camera,
+        center: { x: node.x, y: node.y, z: node.z },
+        radius: node.bodyRadius,
+        width: input.width,
+        height: input.height,
+      });
+      if (!bodyBounds) return false;
+      const placement = placements.get(node.id);
+      let labelBounds: typeof bodyBounds | null = null;
+      if (placement?.visible) {
+        const layout = node.isRootBubble
+          ? layoutKnowledgeRootLabel(node.name)
+          : layoutKnowledgeNodeLabel(node.name);
+        const policyFontSize = 'fontSize' in layout
+          ? Number(layout.fontSize)
+          : KNOWLEDGE_NODE_LABEL_POLICY.fontSize;
+        const centerX = node.screenX! + (node.isRootBubble ? 0 : placement.offsetX);
+        const centerY = node.screenY! + (node.isRootBubble ? 0 : placement.offsetY);
+        const halfWidth = layout.width * placement.fontSize / policyFontSize / 2;
+        const halfHeight = layout.height * placement.fontSize / policyFontSize / 2;
+        labelBounds = {
+          left: centerX - halfWidth,
+          top: centerY - halfHeight,
+          right: centerX + halfWidth,
+          bottom: centerY + halfHeight,
+        };
+      }
+      return Math.min(bodyBounds.left, labelBounds?.left ?? Number.POSITIVE_INFINITY) >= input.margin
+        && Math.min(bodyBounds.top, labelBounds?.top ?? Number.POSITIVE_INFINITY) >= input.margin
+        && Math.max(bodyBounds.right, labelBounds?.right ?? Number.NEGATIVE_INFINITY) <= input.width - input.margin
+        && Math.max(bodyBounds.bottom, labelBounds?.bottom ?? Number.NEGATIVE_INFINITY) <= input.height - input.margin;
+    });
+  };
+
+  const initialDistance = Math.max(0.0001, input.initialDistance);
+  if (hasSafeBounds(initialDistance)) return initialDistance;
+  let low = initialDistance;
+  let high = initialDistance * 2;
+  for (let index = 0; index < 24 && !hasSafeBounds(high); index += 1) {
+    high *= 2;
+  }
+  if (!hasSafeBounds(high)) return initialDistance;
+  for (let index = 0; index < 48; index += 1) {
+    const candidate = (low + high) / 2;
+    if (hasSafeBounds(candidate)) high = candidate;
+    else low = candidate;
+  }
+  return high;
+}
+
 // ========== 几何体创建函数 ==========
 
 /**
@@ -308,7 +463,7 @@ export function KnowledgeGraphCanvas({
   activationSequenceByCenterId,
   materializedNodeIds,
   graphVersion,
-  lessonOrderNodeIds = [],
+  lessonOrderNodeIds = EMPTY_LESSON_ORDER_NODE_IDS,
   teachingOrderLinks = links,
   selectedCorridorEmphasis = selectedNode ? {
     selectedNodeId: selectedNode.id,
@@ -804,16 +959,16 @@ export function KnowledgeGraphCanvas({
   }, [graphData.nodes, rememberRuntimeNodePosition]);
   const handleEngineStop = useCallback(() => {
     snapshotRuntimePositions();
-    setCameraProjectionRevision((revision) => revision + 1);
     if (settledLayoutSignatureRef.current === layoutSignature) return;
     settledLayoutSignatureRef.current = layoutSignature;
+    setCameraProjectionRevision((revision) => revision + 1);
     setLayoutSettledRevision((revision) => revision + 1);
   }, [layoutSignature, snapshotRuntimePositions]);
 
   useEffect(() => {
     const qaWindow = window as Window & {
       __knowledgeGraphQaNodePoints?: (nodeId?: string) => Array<{ x: number; y: number }>;
-      __knowledgeGraphQaNodeDebug?: (nodeId?: string) => Array<Record<string, number | string | null>>;
+      __knowledgeGraphQaNodeDebug?: (nodeId?: string) => Array<Record<string, unknown>>;
       __knowledgeGraphQaPresentationDebug?: () => Record<string, unknown>;
       __knowledgeGraphQaResetViewport?: () => void;
       __knowledgeGraphQaCenterNode?: (nodeId: string) => void;
@@ -905,6 +1060,51 @@ export function KnowledgeGraphCanvas({
           const point = fgRef.current?.graph2ScreenCoords && [node.x, node.y, node.z ?? 0].every(Number.isFinite)
             ? fgRef.current.graph2ScreenCoords(node.x!, node.y!, node.z ?? 0)
             : null;
+          const placement = labelPlacementsRef.current.get(node.id);
+          const focused = selectedNode?.id === node.id
+            || hoveredNode?.id === node.id
+            || Boolean(selectedCorridorEmphasis?.nodeIds.includes(node.id));
+          const rootPacking = (node as KnowledgeNodeData & {
+            __knowledgeRootPacking?: { collisionRadius?: number };
+          }).__knowledgeRootPacking;
+          const naturalRadius = rootPacking?.collisionRadius ?? getKnowledgeNodeScale({
+            metadata: node.metadata,
+            degree: node.graphDegree,
+            focused,
+            importanceScore: node.graphImportanceScore,
+          }).radius;
+          const renderedBodyRadius = placement
+            ? getKnowledgeGraph3DRenderedNodeRadius(node, naturalRadius, placement.projectedScale)
+            : Number.NaN;
+          const labelElement = Array.from(
+            document.querySelectorAll<HTMLElement>('[data-knowledge-3d-node-label]'),
+          ).find((element) => element.getAttribute('data-knowledge-3d-node-label') === node.id);
+          const canvasElement = document.querySelector<HTMLCanvasElement>(
+            '[data-knowledge-canvas-primary="true"] canvas',
+          );
+          const canvasRect = canvasElement?.getBoundingClientRect();
+          const labelRect = labelElement?.getBoundingClientRect();
+          const bodyBounds = camera && Number.isFinite(renderedBodyRadius)
+            ? getKnowledgeGraphProjectedSphereBounds({
+                camera,
+                center: { x: worldPoint.x, y: worldPoint.y, z: worldPoint.z },
+                radius: renderedBodyRadius,
+                width: canvasRect?.width ?? width ?? 800,
+                height: canvasRect?.height ?? height ?? 600,
+              })
+            : null;
+          const labelBounds = labelRect && canvasRect ? {
+            left: labelRect.left - canvasRect.left,
+            top: labelRect.top - canvasRect.top,
+            right: labelRect.right - canvasRect.left,
+            bottom: labelRect.bottom - canvasRect.top,
+          } : null;
+          const projectedBounds = bodyBounds || labelBounds ? {
+            left: Math.min(bodyBounds?.left ?? Number.POSITIVE_INFINITY, labelBounds?.left ?? Number.POSITIVE_INFINITY),
+            top: Math.min(bodyBounds?.top ?? Number.POSITIVE_INFINITY, labelBounds?.top ?? Number.POSITIVE_INFINITY),
+            right: Math.max(bodyBounds?.right ?? Number.NEGATIVE_INFINITY, labelBounds?.right ?? Number.NEGATIVE_INFINITY),
+            bottom: Math.max(bodyBounds?.bottom ?? Number.NEGATIVE_INFINITY, labelBounds?.bottom ?? Number.NEGATIVE_INFINITY),
+          } : null;
           return {
             id: node.id,
             x: Number.isFinite(node.x) ? node.x! : null,
@@ -929,6 +1129,9 @@ export function KnowledgeGraphCanvas({
             renderTriangles: Number.isFinite(renderTriangles) ? Number(renderTriangles) : null,
             rendererWidth: Number.isFinite(rendererWidth) ? Number(rendererWidth) : null,
             rendererHeight: Number.isFinite(rendererHeight) ? Number(rendererHeight) : null,
+            bodyBounds,
+            labelBounds,
+            projectedBounds,
           };
         });
     };
@@ -1014,6 +1217,8 @@ export function KnowledgeGraphCanvas({
   }, [
     expandedNodeIds,
     graphData,
+    height,
+    hoveredNode?.id,
     laneCurvatureByLinkKey,
     materializedNodeIds,
     presentation.animatedNodeIds,
@@ -1021,6 +1226,8 @@ export function KnowledgeGraphCanvas({
     presentation.elapsedMs,
     presentation.phase,
     selectedNode?.id,
+    selectedCorridorEmphasis,
+    width,
   ]);
 
   const labelPlacements = useMemo(() => {
@@ -1694,18 +1901,27 @@ export function KnowledgeGraphCanvas({
     if (!shouldAutoFit && !shouldExplicitlyFit) return;
     if (graphData.nodes.length > 1 && settledLayoutSignatureRef.current !== layoutSignature) return;
     const effectiveWidth = Math.min(width ?? 800, (height ?? 600) * aspect);
-    const positionedNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes).map((node: any) => ({
-      id: node.id,
-      x: node.x ?? 0,
-      y: node.y ?? 0,
-      bodyRadius: getKnowledgeNodeMaximumPresentationRadius(node),
-      isRootBubble: Boolean(node.__knowledgeRootPacking),
-      importance: node.importance,
-      labelBounds: getKnowledgeNodeLabelBounds({
+    const positionedNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes).map((node: any) => {
+      const rootPacking = node.__knowledgeRootPacking as {
+        collisionRadius: number;
+        labelBounds: ReturnType<typeof getKnowledgeNodeLabelBounds>;
+      } | undefined;
+      const bodyRadius = rootPacking?.collisionRadius ?? getKnowledgeNodeMaximumPresentationRadius(node);
+      return {
+        id: node.id,
         name: node.name,
-        bodyRadius: getKnowledgeNodeMaximumPresentationRadius(node),
-      }),
-    }));
+        x: node.x ?? 0,
+        y: node.y ?? 0,
+        z: node.z ?? 0,
+        bodyRadius,
+        isRootBubble: Boolean(rootPacking),
+        importance: node.importance,
+        labelBounds: rootPacking?.labelBounds ?? getKnowledgeNodeLabelBounds({
+          name: node.name,
+          bodyRadius,
+        }),
+      };
+    });
     const fit = getKnowledgeGraphViewportFit({
       nodes: positionedNodes,
       width: effectiveWidth,
@@ -1718,11 +1934,25 @@ export function KnowledgeGraphCanvas({
     const effectiveFitScale = compactRootView
       ? Math.max(fit.scale, KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE)
       : fit.scale;
-    const distance = getPerspectiveCameraFitDistance({
+    const initialDistance = getPerspectiveCameraFitDistance({
       viewportHeight: height ?? 600,
       pixelsPerWorldUnit: effectiveFitScale,
       fovDegrees: fov,
       zoom,
+    });
+    const distance = getKnowledgeGraph3DSafeFitCameraDistance({
+      nodes: positionedNodes,
+      width: effectiveWidth,
+      height: height ?? 600,
+      initialDistance,
+      cameraCenterX: fit.centerX,
+      cameraCenterY: fit.cameraCenterY,
+      fovDegrees: fov,
+      zoom,
+      labelMode,
+      selectedNodeId: selectedNode?.id,
+      hoveredNodeId: hoveredNode?.id,
+      margin: 8,
     });
     if (fitTimerRef.current !== null) window.clearTimeout(fitTimerRef.current);
     fitTimerRef.current = window.setTimeout(() => {

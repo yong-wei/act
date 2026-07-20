@@ -62,7 +62,7 @@ describe('evidence browser entry points', () => {
     expect(source).toContain('ActionStatusPanel');
     expect(source).toContain('data-teacher-evidence-remediation="context-status"');
     expect(source).toContain('data-teacher-evidence-next-steps');
-    expect(source).toContain('data-teacher-evidence-remediation-task="disabled"');
+    expect(source).toContain('data-teacher-evidence-remediation-task={interventionAction.status}');
     expect(source).toContain("data-teacher-evidence-report-handoff={hasCompleteReportContext ? 'available' : undefined}");
     expect(source).toContain("data-teacher-evidence-browse-return={hasCompleteReportContext ? undefined : 'available'}");
     expect(source).toContain('data-teacher-evidence-mobile-actions="fixed"');

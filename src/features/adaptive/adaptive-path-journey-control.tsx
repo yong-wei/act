@@ -301,7 +301,7 @@ export function AdaptivePathOwnedResourceAction({
 export function AdaptivePathJourneyControlFromRoute() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const search = searchParams.toString();
+  const search = searchParams?.toString() ?? '';
   const launchContext = useMemo(() => resolveJourneyRouteContext({
     pathname,
     search,

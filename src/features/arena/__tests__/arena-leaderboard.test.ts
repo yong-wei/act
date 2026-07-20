@@ -327,8 +327,10 @@ describe('arena submissions and leaderboards', () => {
       existingSubmissions: [highScoreHighEnergy],
     });
     highScoreHighEnergy.evaluation.score = 95;
+    highScoreHighEnergy.evaluation.valid = true;
     highScoreHighEnergy.evaluation.metrics.controlEnergy = 14;
     lowScoreLowEnergy.evaluation.score = 78;
+    lowScoreLowEnergy.evaluation.valid = true;
     lowScoreLowEnergy.evaluation.metrics.controlEnergy = 3;
 
     const leaderboard = buildArenaLeaderboard([highScoreHighEnergy, lowScoreLowEnergy], {
@@ -890,9 +892,11 @@ describe('arena submissions and leaderboards', () => {
     firstPass.evaluation.metrics.controlEnergy = 8;
     firstPass.evaluation.metrics.settlingTime = 4.5;
     firstPass.evaluation.score = 82;
+    firstPass.evaluation.valid = true;
     lowEnergy.evaluation.metrics.controlEnergy = 2.4;
     lowEnergy.evaluation.metrics.settlingTime = 3.2;
     lowEnergy.evaluation.score = 88;
+    lowEnergy.evaluation.valid = true;
 
     const honors = buildArenaLeaderboardHonors([draft, late, zero, lowEnergy, firstPass], {
       taskId: 'task-second-order-lead-pid',

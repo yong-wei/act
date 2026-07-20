@@ -1318,7 +1318,7 @@ export function KnowledgeGraphSystem({
         )}
         {navigation.view.kind === 'domain' && (teachingOrderLayout?.unorderedNodeIds.length ?? 0) > 0 && (
           <div
-            className="pointer-events-none absolute bottom-4 right-4 z-20 rounded-md border border-slate-700/70 bg-slate-950/75 px-2.5 py-1.5 text-xs text-slate-300"
+            className="pointer-events-none absolute bottom-4 right-4 z-20 rounded-md border border-platform-border bg-platform-surface/95 px-2.5 py-1.5 text-xs text-platform-fg-secondary shadow-sm backdrop-blur"
             data-knowledge-layout-region="unordered"
           >
             尚无可验证的先后关系 · {teachingOrderLayout?.unorderedNodeIds.length}

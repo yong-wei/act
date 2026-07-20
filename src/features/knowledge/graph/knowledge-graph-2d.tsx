@@ -137,6 +137,8 @@ interface KnowledgeGraph2DProps {
 
 export const KNOWLEDGE_GRAPH_2D_LIBRARY_DEFAULT_MIN_ZOOM = 0.01;
 
+const EMPTY_LESSON_ORDER_NODE_IDS: readonly string[] = [];
+
 type RuntimeKnowledgeGraphNode = KnowledgeGraphPositionedNode & {
   vx?: number;
   vy?: number;
@@ -276,7 +278,7 @@ export function KnowledgeGraph2D({
   activationSequenceByCenterId,
   materializedNodeIds,
   graphVersion,
-  lessonOrderNodeIds = [],
+  lessonOrderNodeIds = EMPTY_LESSON_ORDER_NODE_IDS,
   teachingOrderLinks = links,
   selectedCorridorEmphasis = selectedNode ? {
     selectedNodeId: selectedNode.id,

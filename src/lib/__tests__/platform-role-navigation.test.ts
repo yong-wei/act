@@ -1348,7 +1348,7 @@ describe('platform role navigation', () => {
     expect(knowledgeGraphSource).toContain('data-knowledge-mobile-panel-toggle="true"');
     expect(knowledgeGraphSource).toContain('{mobileToolPanelOpen && (');
     expect(knowledgeGraphSource).toContain('data-knowledge-mobile-tool-panel={mobileActiveTool}');
-    expect(knowledgeGraphSource).toContain('data-knowledge-relation-family-control="compact-bottom-left"');
+    expect(knowledgeGraphSource).toContain('<RelationFamilyControl');
     expect(knowledgeGraphSource).toContain('data-knowledge-local-tool="view-layout"');
     expect(knowledgeGraphSource).toContain('data-knowledge-local-panel="view-layout-controls"');
   });

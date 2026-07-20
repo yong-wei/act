@@ -1,203 +1,79 @@
 {
-  "capturedAt": "2026-06-14T12:00:52.925Z",
+  "capturedAt": "2026-07-20T18:37:38.915Z",
   "change": "refine-knowledge-graph-semantic-map-presentation",
   "route": "/knowledge",
-  "viewport": {
-    "width": 1425,
-    "height": 900
-  },
   "sourceEvidence": {
     "legendSharedContract": true,
     "rendererUsesSemanticMapContract": true,
     "semanticRegionEvidence": true,
     "defaultEdgeBounds": true,
-    "nonColorDifferentiation": true,
-    "conceptReferences": [
-      "layered-research-atlas",
-      "night-bridge-semantic-map",
-      "daylight-engineering-atlas"
-    ]
+    "nonColorDifferentiation": true
   },
   "browserStates": {
     "defaultSemanticMap": {
       "canvasRendered": true,
-      "canvasSize": {
-        "height": "1800",
-        "width": "2068"
-      },
-      "clarityText": "1301 条可见关系 · 2.15 边/点 · 弱关系 0%",
-      "densityButtons": [
-        {
-          "pressed": "true",
-          "text": "结构优先"
-        },
-        {
-          "pressed": "false",
-          "text": "焦点邻域"
-        },
-        {
-          "pressed": "false",
-          "text": "全部关系"
-        }
-      ],
-      "filterPanelState": "open",
-      "key": "defaultSemanticMap",
-      "legendVisible": true,
-      "relationLegendSamples": 23,
-      "rootClass": "dark",
-      "selectedFocusControl": "set-focus-node",
-      "selectedFocusEnabled": false,
-      "theme": "dark",
-      "url": "http://localhost:3001/knowledge",
-      "workspace": "canvas-first",
-      "screenshot": "artifacts/knowledge-graph-semantic-map-486/01-default-semantic-map.jpg",
+      "relationFamilyControlVisible": true,
+      "relationFamilySamples": 3,
+      "relationFamilyState": "post-requisite,association",
       "noGlobalEdgeSaturation": true,
-      "nonColorRelationGrammar": true
+      "nonColorRelationGrammar": true,
+      "theme": "dark",
+      "url": "http://localhost:3003/knowledge?qa=knowledge-product",
+      "workspace": "canvas-first",
+      "screenshot": "artifacts/knowledge-graph-semantic-map-486/01-default-semantic-map.png"
     },
     "selectedNeighborhood": {
       "canvasRendered": true,
-      "canvasSize": {
-        "height": "1800",
-        "width": "2068"
-      },
-      "clarityText": "3385 条可见关系 · 4.39 边/点 · 邻域 0%",
-      "densityButtons": [
-        {
-          "pressed": "false",
-          "text": "结构优先"
-        },
-        {
-          "pressed": "true",
-          "text": "焦点邻域"
-        },
-        {
-          "pressed": "false",
-          "text": "全部关系"
-        }
-      ],
-      "filterPanelState": "open",
-      "key": "selectedNeighborhood",
-      "legendVisible": true,
-      "relationLegendSamples": 23,
-      "rootClass": "dark",
-      "selectedFocusControl": "set-focus-node",
-      "selectedFocusEnabled": true,
-      "theme": "dark",
-      "url": "http://localhost:3001/knowledge",
-      "workspace": "canvas-first",
-      "screenshot": "artifacts/knowledge-graph-semantic-map-486/02-selected-neighborhood.jpg",
+      "relationFamilyControlVisible": true,
+      "relationFamilySamples": 3,
+      "relationFamilyState": "post-requisite,association",
       "noGlobalEdgeSaturation": true,
-      "nonColorRelationGrammar": true
+      "nonColorRelationGrammar": true,
+      "theme": "dark",
+      "url": "http://localhost:3003/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "workspace": "canvas-first",
+      "screenshot": "artifacts/knowledge-graph-semantic-map-486/02-selected-neighborhood.png"
     },
-    "denseAllRelations": {
+    "allRelationFamilies": {
       "canvasRendered": true,
-      "canvasSize": {
-        "height": "1800",
-        "width": "2228"
-      },
-      "clarityText": "17335 条可见关系 · 21.17 边/点 · 弱关系 43%",
-      "densityButtons": [
-        {
-          "pressed": "false",
-          "text": "结构优先"
-        },
-        {
-          "pressed": "false",
-          "text": "焦点邻域"
-        },
-        {
-          "pressed": "true",
-          "text": "全部关系"
-        }
-      ],
-      "filterPanelState": "open",
-      "key": "denseAllRelations",
-      "legendVisible": true,
-      "relationLegendSamples": 23,
-      "rootClass": "dark",
-      "selectedFocusControl": null,
-      "selectedFocusEnabled": false,
-      "theme": "dark",
-      "url": "http://localhost:3001/knowledge",
-      "workspace": "canvas-first",
-      "screenshot": "artifacts/knowledge-graph-semantic-map-486/03-dense-all-relations.jpg",
+      "relationFamilyControlVisible": true,
+      "relationFamilySamples": 3,
+      "relationFamilyState": "child,post-requisite,association",
       "noGlobalEdgeSaturation": true,
-      "nonColorRelationGrammar": true
+      "nonColorRelationGrammar": true,
+      "theme": "dark",
+      "url": "http://localhost:3003/knowledge?qa=knowledge-product",
+      "workspace": "canvas-first",
+      "screenshot": "artifacts/knowledge-graph-semantic-map-486/03-all-relation-families.png"
     },
     "darkTheme": {
       "canvasRendered": true,
-      "canvasSize": {
-        "height": "1800",
-        "width": "2228"
-      },
-      "clarityText": "1301 条可见关系 · 2.15 边/点 · 弱关系 0%",
-      "densityButtons": [
-        {
-          "pressed": "true",
-          "text": "结构优先"
-        },
-        {
-          "pressed": "false",
-          "text": "焦点邻域"
-        },
-        {
-          "pressed": "false",
-          "text": "全部关系"
-        }
-      ],
-      "filterPanelState": "open",
-      "key": "darkTheme",
-      "legendVisible": true,
-      "relationLegendSamples": 23,
-      "rootClass": "dark",
-      "selectedFocusControl": null,
-      "selectedFocusEnabled": false,
-      "theme": "dark",
-      "url": "http://localhost:3001/knowledge",
-      "workspace": "canvas-first",
-      "screenshot": "artifacts/knowledge-graph-semantic-map-486/04-dark-theme.jpg",
+      "relationFamilyControlVisible": true,
+      "relationFamilySamples": 3,
+      "relationFamilyState": "post-requisite,association",
       "noGlobalEdgeSaturation": true,
-      "nonColorRelationGrammar": true
+      "nonColorRelationGrammar": true,
+      "theme": "dark",
+      "url": "http://localhost:3003/knowledge?qa=knowledge-product",
+      "workspace": "canvas-first",
+      "screenshot": "artifacts/knowledge-graph-semantic-map-486/04-dark-theme.png"
     },
     "lightTheme": {
       "canvasRendered": true,
-      "canvasSize": {
-        "height": "1800",
-        "width": "2228"
-      },
-      "clarityText": "1301 条可见关系 · 2.15 边/点 · 弱关系 0%",
-      "densityButtons": [
-        {
-          "pressed": "true",
-          "text": "结构优先"
-        },
-        {
-          "pressed": "false",
-          "text": "焦点邻域"
-        },
-        {
-          "pressed": "false",
-          "text": "全部关系"
-        }
-      ],
-      "filterPanelState": "open",
-      "key": "lightTheme",
-      "legendVisible": true,
-      "relationLegendSamples": 23,
-      "rootClass": "light",
-      "selectedFocusControl": null,
-      "selectedFocusEnabled": false,
-      "theme": "light",
-      "url": "http://localhost:3001/knowledge",
-      "workspace": "canvas-first",
-      "screenshot": "artifacts/knowledge-graph-semantic-map-486/05-light-theme.jpg",
+      "relationFamilyControlVisible": true,
+      "relationFamilySamples": 3,
+      "relationFamilyState": "post-requisite,association",
       "noGlobalEdgeSaturation": true,
-      "nonColorRelationGrammar": true
+      "nonColorRelationGrammar": true,
+      "theme": "light",
+      "url": "http://localhost:3003/knowledge?qa=knowledge-product",
+      "workspace": "canvas-first",
+      "screenshot": "artifacts/knowledge-graph-semantic-map-486/05-light-theme.png"
     }
   },
   "notes": [
-    "Screenshots were captured in the Codex in-app browser against http://localhost:3001/knowledge from this worktree.",
-    "The relation filter panel is open in evidence states so graphical legend samples and relation-density controls are visible with the graph.",
-    "Source evidence is enforced by scripts/tests/test-commercial-ui-governance.ts against current visual-config and renderers."
+    "Browser states were captured from the current revision by capture-knowledge-workspace-product-qa.ts.",
+    "Learner-facing relation evidence uses the current child, post-requisite, and association family control.",
+    "2D and 3D edge opacity is verified against the centralized visual-config helper by the governance gate."
   ]
 }
