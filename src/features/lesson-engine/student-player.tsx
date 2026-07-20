@@ -195,6 +195,7 @@ export function StudentPlayer({ session: initialSession, items }: StudentPlayerP
             lessonPlanId={initialSession.plan.id}
             classId={initialSession.classId}
             stage={currentItem.stage}
+            classroomActorRole="student"
           />
         ) : (
           <div className="flex h-full flex-col items-center justify-center text-platform-fg-secondary">

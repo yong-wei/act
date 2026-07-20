@@ -158,6 +158,78 @@ describe('generated courseware public classroom persistence', () => {
       },
     });
   });
+
+  it('serializes different card submissions and preserves both answers in the later state write', async () => {
+    const firstStateWrite = deferred<Response>();
+    const stateBodies: Array<Record<string, unknown>> = [];
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.endsWith('/state?scope=self')) {
+        return jsonResponse({ states: [], courseStates: [], teacherStates: [], summary: { totalStudents: 0, latestUpdate: null } });
+      }
+      if (url.endsWith('/state') && init?.method === 'POST') {
+        stateBodies.push(JSON.parse(String(init.body)));
+        return stateBodies.length === 1 ? firstStateWrite.promise : jsonResponse({ id: 'state-2' });
+      }
+      if (url === '/api/interactive/events') return jsonResponse({ success: true });
+      throw new Error(`Unexpected fetch: ${url}`);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const runtimeManifest = structuredClone(studentProjection.runtimeManifest);
+    const step = runtimeManifest.steps.find((candidate) => candidate.id === 'step-3')!;
+    const activityCards = step.interactionSpec.activityCards;
+    const submitFields = step.interactionSpec.submitFields;
+    if (!activityCards || !submitFields) throw new Error('Expected activity cards fixture');
+    const firstCard = activityCards[0]!;
+    activityCards.push({ ...firstCard, id: 'module-3b', prompt: 'Prompt module-3b' });
+    submitFields.push('responses.module-3b');
+
+    await act(async () => root.render(renderClassroomResource({ runtimeManifest })));
+    await act(async () => Promise.resolve());
+
+    const cardButtons = Array.from(container.querySelectorAll<HTMLButtonElement>('button'))
+      .filter((button) => button.textContent?.includes('提交答案'));
+    const cards = cardButtons.map((button) => button.closest('.premium-lesson-panel')!);
+    expect(cards).toHaveLength(2);
+    await act(async () => cards[0]!.querySelector<HTMLInputElement>('input[value="a"]')!.click());
+    await act(async () => cards[1]!.querySelector<HTMLInputElement>('input[value="b"]')!.click());
+    act(() => cardButtons[0]!.click());
+    act(() => cardButtons[1]!.click());
+    await act(async () => Promise.resolve());
+
+    expect(stateBodies).toHaveLength(1);
+    firstStateWrite.resolve(jsonResponse({ id: 'state-1' }));
+    await act(async () => Promise.resolve());
+    await act(async () => Promise.resolve());
+
+    expect(stateBodies).toHaveLength(2);
+    expect(stateBodies[1]).toMatchObject({
+      data: {
+        generatedCoursewareResponses: {
+          'publication-v1': {
+            'step-3': { answers: { 'module-3': 'a', 'module-3b': 'b' } },
+          },
+        },
+      },
+    });
+  });
+
+  it('keeps teacher previews local even when a real classroom session id is present', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+
+    await act(async () => root.render(renderClassroomResource({ runtimeMode: 'preview' })));
+    expect(container.textContent).toContain('演示模式');
+    const option = container.querySelector<HTMLInputElement>('input[value="a"]')!;
+    await act(async () => option.click());
+    const submit = Array.from(container.querySelectorAll('button'))
+      .find((button) => button.textContent?.includes('提交'))!;
+    await act(async () => submit.click());
+    await act(async () => Promise.resolve());
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
 });
 
 function jsonResponse(body: unknown) {
@@ -167,7 +239,13 @@ function jsonResponse(body: unknown) {
   });
 }
 
-function renderClassroomResource() {
+function renderClassroomResource({
+  runtimeManifest = studentProjection.runtimeManifest,
+  runtimeMode = 'student',
+}: {
+  runtimeManifest?: typeof studentProjection.runtimeManifest;
+  runtimeMode?: 'student' | 'preview';
+} = {}) {
   return (
     <GeneratedCoursewareResource
       config={{
@@ -175,11 +253,12 @@ function renderClassroomResource() {
         publicationRevisionId: 'publication-v1',
         manifestHash: 'manifest-v1',
         stepId: 'step-3',
-        runtimeManifest: studentProjection.runtimeManifest,
+        runtimeManifest,
       }}
       sessionId="session-public"
       lessonItemId="lesson-item-3"
       resourceId="resource-v1"
+      runtimeMode={runtimeMode}
     />
   );
 }

@@ -318,6 +318,7 @@ export function TeacherPlayer({ session, initialItems }: TeacherPlayerProps) {
                   lessonPlanId={session.plan?.id}
                   classId={session.classId ?? null}
                   stage={currentItem.stage}
+                  classroomActorRole="teacher"
                 />
             ) : (
                 <div className="flex h-full items-center justify-center text-platform-fg-muted">

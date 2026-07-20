@@ -405,6 +405,20 @@ test('ordinary publication API projects to catalog, binds a generated classroom,
   }, { sessionId: createdSession.body.id, itemId: activityItem.id });
   expect(released).toBe(200);
 
+  await page.goto(`/classroom/teacher/${createdSession.body.id}`);
+  const teacherPreview = page.locator(`[data-generated-courseware-resource="${publication.id}"]`);
+  await expect(teacherPreview).toBeVisible();
+  const teacherControl = teacherPreview.locator('input:visible, textarea:visible').first();
+  if (await teacherControl.getAttribute('type') === 'radio') await teacherControl.check();
+  const teacherSubmit = teacherPreview.getByRole('button', { name: /提交|确认/ }).first();
+  if (await teacherSubmit.count()) await teacherSubmit.click();
+  await expect.poll(() => prisma.studentState.count({
+    where: { sessionId: createdSession.body.id, userId: teacherId, stateKey: 'course' },
+  })).toBe(0);
+  await expect.poll(() => prisma.studentStepResponse.count({
+    where: { sessionId: createdSession.body.id, userId: teacherId, lessonKey: publication.id },
+  })).toBe(0);
+
   const studentContext = await browser.newContext({ viewport: { width: 390, height: 844 }, colorScheme: 'dark' });
   await addStudentSession(studentContext);
   const studentPage = await studentContext.newPage();
