@@ -1,7 +1,7 @@
-import { readFile, stat } from 'node:fs/promises';
+import { stat } from 'node:fs/promises';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { canonicalJson, normalizedFile, sortUnique, taggedDigest } from './normalize';
+import { canonicalJson, normalizedFile, normalizePath, normalizeText, sortUnique, taggedDigest } from './normalize';
 import { classifyRegisteredSymlinks, enumerateRepository, loadRegistry, matchGlob } from './registry';
 import { validateOutputPrivacy, validateRegistrySchema } from './schema-validation';
 import { discoverWriters } from './writer-discovery';
@@ -10,7 +10,8 @@ import { decoderContractDigest, validateFixtureClosure, validateSyntheticDecoder
 import { extractRecordSets } from './extract-records';
 import type { AnchorRecord } from './records';
 import { extractAuthoritativeAnchorCandidates, verifyAnchorReviewAttestation } from './anchors';
-import { assertManifestSchema } from './output-validation';
+import { assertManifestSchemaValue } from './output-validation';
+import type { AnySchema } from 'ajv/dist/2020';
 import type { Drift, InventoryOptions, Json } from './types';
 import { collectInputObservations, publicObservation, type FileObservation } from './input-codecs';
 import { currentDatabaseExportAuthority } from './database-export';
@@ -41,6 +42,12 @@ export function revisionBoundFile(
   const result = spawnSync('git', ['show', `${revision}:${relativePath}`], { cwd: root, encoding: 'buffer', maxBuffer: 128 * 1024 * 1024 });
   if (result.status !== 0) throw new Error(`unable to read tracked baseline at ${revision}:${relativePath}`);
   return result.stdout;
+}
+
+export function revisionBoundNormalizedFile(root: string, revision: string, relativePath: string, observations: FileObservation[]): { path: string; digest: string; size: number; encoding: 'utf8-nfc-lf' } {
+  const safePath = normalizePath(relativePath);
+  const normalized = Buffer.from(normalizeText(revisionBoundFile(root, revision, safePath, observations)), 'utf8');
+  return { path: safePath, digest: taggedDigest('repository-text-file/v1', normalized), size: normalized.byteLength, encoding: 'utf8-nfc-lf' };
 }
 
 function mergeRepositoryObservations(
@@ -116,8 +123,9 @@ export async function buildManifest(options: InventoryOptions): Promise<Json> {
   const symlinks = await classifyRegisteredSymlinks(options.root, registry, authorizedMainRoot);
   const repository = await enumerateRepository(options.root, registry, drift, authorizedMainRoot);
   if (authorizedMainRoot) mainRepository = await enumerateRepository(authorizedMainRoot, registry, []);
-  drift.push(...await validateRegistrySchema(options.root, registry));
-  const fixtureFile = JSON.parse(await readFile(path.join(options.root, 'scripts/knowledge-governance/input-inventory/fixtures/synthetic-history-payload-shapes.json'), 'utf8')) as { fixtures: ShapeFixture[] };
+  drift.push(...await validateRegistrySchema(options.root, registry, (file) => normalizeText(revisionBoundFile(options.root, isolatedRevision, file, []))));
+  const fixturePath = 'scripts/knowledge-governance/input-inventory/fixtures/synthetic-history-payload-shapes.json';
+  const fixtureFile = JSON.parse(revisionBoundFile(options.root, isolatedRevision, fixturePath, []).toString('utf8')) as { fixtures: ShapeFixture[] };
   drift.push(...validateFixtureClosure(Object.keys(registry.decoder_contracts), fixtureFile.fixtures));
   for (const fixture of fixtureFile.fixtures) for (const sample of fixture.samples) drift.push(...validateSyntheticDecoderGraph(registry, fixtureFile.fixtures, fixture.decoder_id, sample.payload, sample.version));
   const writers = await discoverWriters(options.root, registry);
@@ -144,7 +152,7 @@ export async function buildManifest(options: InventoryOptions): Promise<Json> {
     const schemaSources = [];
     for (const locator of locators) {
       const sourcePath = locator.split('#')[0]!;
-      try { schemaSources.push({ locator, digest: (await normalizedFile(options.root, sourcePath, { allowBinary: false })).digest }); }
+      try { schemaSources.push({ locator, digest: revisionBoundNormalizedFile(options.root, isolatedRevision, sourcePath, fileRecords).digest }); }
       catch { /* unresolved source already has structured registry drift */ }
     }
     decoderDigests.push({ decoder_id: id, digest: decoderContractDigest(id, contract, schemaSources) });
@@ -263,7 +271,9 @@ export async function buildManifest(options: InventoryOptions): Promise<Json> {
   manifest.drift = drift as unknown as Json;
   manifest.readiness = drift.length === 0;
   manifest.snapshot_digest = taggedDigest('course-knowledge-input-inventory/v1', canonicalJson({ ...manifest, snapshot_digest: null } as unknown as Json));
-  await assertManifestSchema(options.root, manifest);
+  const manifestSchemaPath = 'scripts/knowledge-governance/input-inventory/manifest.schema.json';
+  const manifestSchema = JSON.parse(revisionBoundFile(options.root, isolatedRevision, manifestSchemaPath, fileRecords).toString('utf8')) as AnySchema;
+  assertManifestSchemaValue(manifestSchema, manifest);
   return manifest;
 }
 

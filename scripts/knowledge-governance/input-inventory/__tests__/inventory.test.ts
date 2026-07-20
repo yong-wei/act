@@ -9,11 +9,11 @@ import { canonicalJson, compareCodePoints, normalizePath, normalizeText, taggedD
 import { loadImmutableExport, validateDatabaseClosure } from '../database-snapshot';
 import { assertAggregateExportShape, contractsFromRegistry, currentDatabaseExportAuthority, DATABASE_EXPORT_FORMAT, deriveProof, exportAggregateDatabase, fieldSummaryKey, groupedRelationSummary, groupedSummary, jsonPathCategoryKey, jsonSummaryKey, latestWatermark, publishExportArtifacts, suppressRows, type AggregateDatabaseExport, type AggregateDatasetExport } from '../database-export';
 import { discoverWriters, discoverWritersInSource } from '../writer-discovery';
-import { validateOutputPrivacy } from '../schema-validation';
-import { buildManifest, repositoryRevision, revisionBoundFile, sourceFingerprints } from '../manifest';
+import { validateOutputPrivacy, validateRegistrySchema } from '../schema-validation';
+import { buildManifest, repositoryRevision, revisionBoundFile, revisionBoundNormalizedFile, sourceFingerprints } from '../manifest';
 import { enumerateRepository, loadRegistry, matchGlob, type Registry } from '../registry';
 import type { Json } from '../types';
-import { effectiveDecoderContract, validateFixtureClosure, validateSyntheticPayload, type ShapeFixture } from '../decoder-validation';
+import { decoderContractDigest, effectiveDecoderContract, validateFixtureClosure, validateSyntheticPayload, type ShapeFixture } from '../decoder-validation';
 import { makeAnchor, typedDedupe } from '../records';
 import { auditIdBearingPaths, selectJson } from '../json-selector';
 import { compileDatabaseObservationContracts, compileJsonObservationContracts } from '../database-observation';
@@ -72,6 +72,34 @@ describe('normalization contract', () => {
         capture_revision: revision, vcs_state: 'tracked', state: 'observed', codec: 'json-utf8/v1',
         media_type: 'application/json', size: 25, raw_digest: digest, content_bytes: Buffer.from('captured observation'),
       }]).toString('utf8')).toBe('captured observation');
+    } finally { await rm(directory, { recursive: true }); }
+  });
+
+  it('keeps decoder schema digests and symbol locators bound to the captured revision', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-revision-decoder-'));
+    try {
+      spawnSync('git', ['init', '-q'], { cwd: directory });
+      spawnSync('git', ['config', 'user.email', 'inventory@example.test'], { cwd: directory });
+      spawnSync('git', ['config', 'user.name', 'Inventory Test'], { cwd: directory });
+      await writeFile(path.join(directory, 'decoder.ts'), 'export const capturedSchema = 1;\n');
+      spawnSync('git', ['add', 'decoder.ts'], { cwd: directory });
+      spawnSync('git', ['commit', '-qm', 'decoder'], { cwd: directory });
+      const revision = await repositoryRevision(directory);
+      const locator = 'decoder.ts#capturedSchema';
+      const contract = { schema_source: locator } as unknown as Record<string, Json>;
+      const captured = revisionBoundNormalizedFile(directory, revision, 'decoder.ts', []);
+      const before = decoderContractDigest('fixture/v1', contract, [{ locator, digest: captured.digest }]);
+      await writeFile(path.join(directory, 'decoder.ts'), 'export const dirtySchema = 2;\n');
+      const after = revisionBoundNormalizedFile(directory, revision, 'decoder.ts', []);
+      expect(after).toEqual(captured);
+      expect(decoderContractDigest('fixture/v1', contract, [{ locator, digest: after.digest }])).toBe(before);
+      const registry = {
+        database_sources: [], field_decoders: [], closed_namespaces: ['canonical_knowledge_node'],
+        decoder_contracts: { 'fixture/v1': { schema_source: locator, selectors: ['$.nodeId'], reference_namespace: 'canonical_knowledge_node' } },
+      } as unknown as Registry;
+      const revisionDrift = await validateRegistrySchema(directory, registry, (file) => normalizeText(revisionBoundFile(directory, revision, file, [])));
+      expect(revisionDrift).not.toContainEqual(expect.objectContaining({ code: 'SCHEMA_SOURCE_UNRESOLVED' }));
+      expect(await validateRegistrySchema(directory, registry)).toContainEqual(expect.objectContaining({ code: 'SCHEMA_SOURCE_UNRESOLVED' }));
     } finally { await rm(directory, { recursive: true }); }
   });
 

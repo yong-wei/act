@@ -32,12 +32,12 @@ function validateJoin(join: string, models: Map<string, Set<string>>, declared: 
   }
 }
 
-async function symbolExists(root: string, locator: string): Promise<boolean> {
+async function symbolExists(root: string, locator: string, readText?: (file: string) => Promise<string> | string): Promise<boolean> {
   const separator = locator.lastIndexOf('#');
   const file = separator < 1 ? locator : locator.slice(0, separator);
   const symbol = separator < 1 ? null : locator.slice(separator + 1);
   try {
-    const text = await readFile(path.join(root, file), 'utf8');
+    const text = readText ? await readText(file) : await readFile(path.join(root, file), 'utf8');
     if (!symbol) return true;
     if (file.endsWith('.prisma')) {
       const [model, field] = symbol.split('.');
@@ -60,7 +60,7 @@ async function symbolExists(root: string, locator: string): Promise<boolean> {
   } catch { return false; }
 }
 
-export async function validateRegistrySchema(root: string, registry: Registry): Promise<Drift[]> {
+export async function validateRegistrySchema(root: string, registry: Registry, readTrackedText?: (file: string) => Promise<string> | string): Promise<Drift[]> {
   const drift: Drift[] = [];
   const models = new Map(Prisma.dmmf.datamodel.models.map((model) => [model.name, new Set(model.fields.map((field) => field.name))]));
   const modelDefinitions = new Map(Prisma.dmmf.datamodel.models.map((model) => [model.name, model]));
@@ -109,7 +109,7 @@ export async function validateRegistrySchema(root: string, registry: Registry): 
     for (const join of (decoder.source_joins as string[] ?? [])) validateJoin(join, models, declared, id, drift);
     for (const child of [decoder.item_decoder, decoder.payload_decoder].filter(Boolean)) if (!registry.decoder_contracts[String(child)]) drift.push({ code: 'UNKNOWN_DECODER', scope: id, observed: String(child) });
     const sources = Array.isArray(decoder.schema_source) ? decoder.schema_source : [decoder.schema_source];
-    for (const source of sources) if (typeof source !== 'string' || !await symbolExists(root, source)) drift.push({ code: 'SCHEMA_SOURCE_UNRESOLVED', scope: id, observed: String(source) });
+    for (const source of sources) if (typeof source !== 'string' || !await symbolExists(root, source, readTrackedText)) drift.push({ code: 'SCHEMA_SOURCE_UNRESOLVED', scope: id, observed: String(source) });
   }
   drift.push(...compileDecoderGraph(registry).drift);
   drift.push(...compileDatabaseObservationContracts(registry).drift);
