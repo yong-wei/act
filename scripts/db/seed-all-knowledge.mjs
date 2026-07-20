@@ -305,7 +305,7 @@ async function main() {
   const result = await prisma.$transaction(async (tx) => {
     await upsertNodes(tx, nodes);
     return upsertRelations(tx, relations, new Set(nodes.map((node) => node.id)));
-  });
+  }, { timeout: 120_000 });
 
   console.log(`已同步 ${nodes.length} 个知识节点`);
   console.log(`已同步 ${result.written} 条知识关系，删除 ${result.deleted} 条过期关系`);

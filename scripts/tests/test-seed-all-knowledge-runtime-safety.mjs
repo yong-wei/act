@@ -102,6 +102,11 @@ assert.throws(
 
 const schema = fs.readFileSync('prisma/schema.prisma', 'utf8');
 const seedScript = fs.readFileSync('scripts/db/seed-all-knowledge.mjs', 'utf8');
+assert.match(
+  seedScript,
+  /\$transaction\([\s\S]*\{ timeout: 120_000 \}\)/,
+  '知识图谱全量同步事务应显式允许生产数据规模所需的执行时间',
+);
 const migration = fs.readFileSync(
   'prisma/migrations/20260714150000_preserve_knowledge_link_relations/migration.sql',
   'utf8',
