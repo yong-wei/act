@@ -272,6 +272,43 @@ describe('smart courseware domain', () => {
     expect(changed.originalAttemptId).toBe('attempt-1');
   });
 
+  it('refreshes a pending gap when only canonical teacher metadata changes', () => {
+    const runtimeModule = validCoursewareManifest().stages[0].steps[0].modules[0];
+    const requested = {
+      moduleId: runtimeModule.id,
+      sourceState: 'ai_generated_source_pending' as const,
+      sourceBindings: [],
+      teacherFields: { explanation: '原教师说明', reviewPoints: ['检查原结论'] },
+    };
+    const first = deriveCoursewareModuleMetadata({
+      authoringLineageRoot: 'lineage-1', runtimeModule, requested, allowedSourceBindings: [],
+      newProvenance: 'ai_generated', originalAttemptId: 'attempt-1',
+    });
+    const changed = deriveCoursewareModuleMetadata({
+      authoringLineageRoot: 'lineage-1', runtimeModule,
+      requested: {
+        ...requested,
+        teacherFields: { explanation: '新教师说明', reviewPoints: ['检查新结论'] },
+      },
+      allowedSourceBindings: [],
+      existing: {
+        moduleInstanceLineage: first.moduleInstanceLineage,
+        contentHash: first.moduleContentHash,
+        sourceState: 'AI_GENERATED_SOURCE_PENDING',
+        sourceBindingSetHash: first.sourceBindingSetHash,
+        gapIdentity: first.gapIdentity,
+        provenance: 'AI_GENERATED',
+        originalAttemptId: 'attempt-1',
+        teacherMetadata: requested.teacherFields,
+      },
+    });
+
+    expect(changed.moduleContentHash).toBe(first.moduleContentHash);
+    expect(changed.sourceBindingSetHash).toBe(first.sourceBindingSetHash);
+    expect(changed.gapIdentity).not.toBe(first.gapIdentity);
+    expect(new Set([first.gapIdentity]).has(changed.gapIdentity)).toBe(false);
+  });
+
   it('rejects verified bindings outside the approved plan', () => {
     const runtimeModule = validCoursewareManifest().stages[0].steps[0].modules[0];
     expect(() => deriveCoursewareModuleMetadata({

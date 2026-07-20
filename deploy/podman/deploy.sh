@@ -219,6 +219,25 @@ require_grading_audit_secret() {
   fi
 }
 
+require_smart_courseware_ordering_secret() {
+  if [ "$NODE_ENV" != "production" ]; then
+    return 0
+  fi
+  SMART_COURSEWARE_ORDERING_SECRET="$(printf '%s' "$SMART_COURSEWARE_ORDERING_SECRET" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+  case "$SMART_COURSEWARE_ORDERING_SECRET" in
+    ''|replace-with*|your-*|change-me*|sk-your*)
+      echo "ERROR: production 课件学生排序投影必须配置真实的 SMART_COURSEWARE_ORDERING_SECRET。" >&2
+      exit 1
+      ;;
+  esac
+  local secret_bytes
+  secret_bytes="$(printf '%s' "$SMART_COURSEWARE_ORDERING_SECRET" | wc -c | tr -d '[:space:]')"
+  if [ "$secret_bytes" -lt 32 ]; then
+    echo "ERROR: production SMART_COURSEWARE_ORDERING_SECRET 必须至少为 32 bytes。" >&2
+    exit 1
+  fi
+}
+
 require_grading_lifecycle_lookup_secret() {
   if [ "$NODE_ENV" = "production" ]; then
     case "${GRADING_LIFECYCLE_LOOKUP_SECRET:-}" in
@@ -591,6 +610,7 @@ if [ "$MODE" != "--db-only" ]; then
   require_konling_mode_context_secret
   require_grading_audit_secret
   require_grading_lifecycle_lookup_secret
+  require_smart_courseware_ordering_secret
   require_submission_security_pipeline
 
   REDIS_URL_DEFAULT="redis://${REDIS_HOST_ALIAS}:6379"

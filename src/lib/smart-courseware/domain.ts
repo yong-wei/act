@@ -145,13 +145,15 @@ export function deriveCoursewareModuleMetadata(input: {
 
   const moduleContentHash = contentHash(input.runtimeModule);
   const sourceBindingSetHash = contentHash(sourceBindings);
+  const teacherMetadataHash = contentHash(input.requested.teacherFields);
   const persistenceSourceState = persistenceSourceStateFor(input.requested.sourceState);
   const existing = input.existing;
   const moduleInstanceLineage = existing?.moduleInstanceLineage ?? randomUUID();
   const definingStateUnchanged = existing
     && existing.contentHash === moduleContentHash
     && existing.sourceState === persistenceSourceState
-    && existing.sourceBindingSetHash === sourceBindingSetHash;
+    && existing.sourceBindingSetHash === sourceBindingSetHash
+    && contentHash(existing.teacherMetadata ?? {}) === teacherMetadataHash;
   const gapIdentity = input.requested.sourceState === 'verified'
     ? null
     : !input.forceNewGapIdentity && definingStateUnchanged && existing.gapIdentity
@@ -163,6 +165,7 @@ export function deriveCoursewareModuleMetadata(input: {
           moduleContentHash,
           sourceState: input.requested.sourceState,
           sourceBindingSetHash,
+          teacherMetadataHash,
           ...(input.forceNewGapIdentity ? { regenerationAttemptId: input.originalAttemptId ?? null } : {}),
         })}`;
   const auditableStateChanged = existing && (
