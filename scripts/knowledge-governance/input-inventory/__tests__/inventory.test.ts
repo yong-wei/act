@@ -1,0 +1,776 @@
+import { link, mkdir, mkdtemp, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { generateKeyPairSync } from 'node:crypto';
+import os from 'node:os';
+import path from 'node:path';
+import { describe, expect, it } from 'vitest';
+import { canonicalJson, compareCodePoints, normalizePath, normalizeText, taggedDigest } from '../normalize';
+import { loadImmutableExport, validateDatabaseClosure } from '../database-snapshot';
+import { assertAggregateExportShape, contractsFromRegistry, currentDatabaseExportAuthority, DATABASE_EXPORT_FORMAT, deriveProof, exportAggregateDatabase, fieldSummaryKey, groupedRelationSummary, groupedSummary, jsonDecoderRootsSql, jsonPathCategoryKey, jsonSummaryKey, latestWatermark, publishExportArtifacts, suppressRows, type AggregateDatabaseExport, type AggregateDatasetExport } from '../database-export';
+import { discoverWriters, discoverWritersInSource } from '../writer-discovery';
+import { validateOutputPrivacy, validateRegistrySchema } from '../schema-validation';
+import { buildManifest, repositoryRevision, revisionBoundFile, revisionBoundNormalizedFile, sourceFingerprints } from '../manifest';
+import { enumerateRepository, loadRegistry, matchGlob, type Registry } from '../registry';
+import type { Json } from '../types';
+import { decoderContractDigest, effectiveDecoderContract, validateFixtureClosure, validateSyntheticPayload, type ShapeFixture } from '../decoder-validation';
+import { makeAnchor, typedDedupe } from '../records';
+import { auditIdBearingPaths, selectJson } from '../json-selector';
+import { compileDatabaseObservationContracts, compileJsonObservationContracts } from '../database-observation';
+import { collectInputObservations, parseGitBatchBlobs } from '../input-codecs';
+
+const root = path.resolve(import.meta.dirname, '../../../..');
+const digest = `sha256:${'0'.repeat(64)}`;
+const proofKeys = generateKeyPairSync('ed25519');
+const proofKeyId = 'inventory-test-key-v1';
+const proofSigner = { privateKey: proofKeys.privateKey.export({ type: 'pkcs8', format: 'pem' }), keyId: proofKeyId };
+const authority = { registryDigest: digest, exporterDigest: digest, proofPublicKey: proofKeys.publicKey.export({ type: 'spki', format: 'pem' }), proofKeyId };
+
+function aggregateExport(datasets: AggregateDatasetExport[]): AggregateDatabaseExport {
+  return {
+    format_version: DATABASE_EXPORT_FORMAT,
+    captured_at: '2026-01-01T00:00:00.000Z',
+    source_identity_digest: digest,
+    postgres_version: '16.1',
+    schema_name: 'public',
+    schema_digest: digest,
+    migration_head: '20260101000000_fixture',
+    registry_digest: digest,
+    exporter_digest: digest,
+    query_plan_digest: digest,
+    transaction_isolation: 'repeatable read',
+    transaction_read_only: true,
+    transaction_started_at: '2026-01-01T00:00:00.000Z',
+    exported_snapshot_token: '00000003-00000001-1',
+    declared_table_count: datasets.length,
+    datasets: datasets.map((dataset) => ({ ...dataset, relation_summaries: dataset.relation_summaries ?? {} })),
+  };
+}
+
+async function writeAggregateExport(directory: string, exported: AggregateDatabaseExport): Promise<void> {
+  const bytes = Buffer.from(canonicalJson(exported as unknown as Json));
+  await writeFile(path.join(directory, 'export.json'), bytes);
+  await writeFile(path.join(directory, 'proof.json'), canonicalJson(deriveProof(exported, bytes, proofSigner) as unknown as Json));
+}
+
+describe('normalization contract', () => {
+  it('reads tracked audit baselines from the captured revision when the worktree is dirty', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-revision-baseline-'));
+    try {
+      spawnSync('git', ['init', '-q'], { cwd: directory });
+      spawnSync('git', ['config', 'user.email', 'inventory@example.test'], { cwd: directory });
+      spawnSync('git', ['config', 'user.name', 'Inventory Test'], { cwd: directory });
+      await writeFile(path.join(directory, 'baseline.json'), '{"nodes":["captured"]}\n');
+      spawnSync('git', ['add', 'baseline.json'], { cwd: directory });
+      spawnSync('git', ['commit', '-qm', 'baseline'], { cwd: directory });
+      const revision = await repositoryRevision(directory);
+      await writeFile(path.join(directory, 'baseline.json'), '{"nodes":["dirty"]}\n');
+
+      expect(revisionBoundFile(directory, revision, 'baseline.json', []).toString('utf8')).toBe('{"nodes":["captured"]}\n');
+      expect(revisionBoundFile(directory, revision, 'baseline.json', [{
+        path: 'baseline.json', source_root: 'isolated-worktree', filesystem_root: directory,
+        capture_revision: revision, vcs_state: 'tracked', state: 'observed', codec: 'json-utf8/v1',
+        media_type: 'application/json', size: 25, raw_digest: digest, content_bytes: Buffer.from('captured observation'),
+      }]).toString('utf8')).toBe('captured observation');
+    } finally { await rm(directory, { recursive: true }); }
+  });
+
+  it('keeps decoder schema digests and symbol locators bound to the captured revision', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-revision-decoder-'));
+    try {
+      spawnSync('git', ['init', '-q'], { cwd: directory });
+      spawnSync('git', ['config', 'user.email', 'inventory@example.test'], { cwd: directory });
+      spawnSync('git', ['config', 'user.name', 'Inventory Test'], { cwd: directory });
+      await writeFile(path.join(directory, 'decoder.ts'), 'export const capturedSchema = 1;\n');
+      spawnSync('git', ['add', 'decoder.ts'], { cwd: directory });
+      spawnSync('git', ['commit', '-qm', 'decoder'], { cwd: directory });
+      const revision = await repositoryRevision(directory);
+      const locator = 'decoder.ts#capturedSchema';
+      const contract = { schema_source: locator } as unknown as Record<string, Json>;
+      const captured = revisionBoundNormalizedFile(directory, revision, 'decoder.ts', []);
+      const before = decoderContractDigest('fixture/v1', contract, [{ locator, digest: captured.digest }]);
+      await writeFile(path.join(directory, 'decoder.ts'), 'export const dirtySchema = 2;\n');
+      const after = revisionBoundNormalizedFile(directory, revision, 'decoder.ts', []);
+      expect(after).toEqual(captured);
+      expect(decoderContractDigest('fixture/v1', contract, [{ locator, digest: after.digest }])).toBe(before);
+      const registry = {
+        database_sources: [], field_decoders: [], closed_namespaces: ['canonical_knowledge_node'],
+        decoder_contracts: { 'fixture/v1': { schema_source: locator, selectors: ['$.nodeId'], reference_namespace: 'canonical_knowledge_node' } },
+      } as unknown as Registry;
+      const revisionDrift = await validateRegistrySchema(directory, registry, (file) => normalizeText(revisionBoundFile(directory, revision, file, [])));
+      expect(revisionDrift).not.toContainEqual(expect.objectContaining({ code: 'SCHEMA_SOURCE_UNRESOLVED' }));
+      expect(await validateRegistrySchema(directory, registry)).toContainEqual(expect.objectContaining({ code: 'SCHEMA_SOURCE_UNRESOLVED' }));
+    } finally { await rm(directory, { recursive: true }); }
+  });
+
+  it('loads a tracked registry from the captured revision when the worktree is dirty', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-revision-registry-'));
+    try {
+      for (const args of [['init', '-q'], ['config', 'user.email', 'inventory@example.test'], ['config', 'user.name', 'Inventory Test']]) spawnSync('git', args, { cwd: directory });
+      const registryPath = 'registry.yaml';
+      const captured = { schema_version: 'captured/v1', registry_id: 'fixture', repository_sources: [], database_sources: [], decoder_contracts: {}, field_decoders: [], closed_namespaces: [] };
+      await writeFile(path.join(directory, registryPath), JSON.stringify(captured));
+      spawnSync('git', ['add', registryPath], { cwd: directory }); spawnSync('git', ['commit', '-qm', 'registry'], { cwd: directory });
+      const revision = await repositoryRevision(directory);
+      await writeFile(path.join(directory, registryPath), JSON.stringify({ ...captured, schema_version: 'dirty/v2' }));
+      expect((await loadRegistry(directory, registryPath, revision)).schema_version).toBe('captured/v1');
+      expect((await loadRegistry(directory, registryPath)).schema_version).toBe('dirty/v2');
+    } finally { await rm(directory, { recursive: true }); }
+  });
+
+  it('binds database proof authority to the captured registry and exporter revision', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-database-authority-'));
+    try {
+      for (const args of [['init', '-q'], ['config', 'user.email', 'inventory@example.test'], ['config', 'user.name', 'Inventory Test']]) spawnSync('git', args, { cwd: directory });
+      const registryPath = 'registry.yaml';
+      const exporterPath = 'scripts/knowledge-governance/input-inventory/database-export.ts';
+      await mkdir(path.dirname(path.join(directory, exporterPath)), { recursive: true });
+      await writeFile(path.join(directory, registryPath), 'captured registry\n');
+      await writeFile(path.join(directory, exporterPath), 'captured exporter\n');
+      spawnSync('git', ['add', '.'], { cwd: directory }); spawnSync('git', ['commit', '-qm', 'authority'], { cwd: directory });
+      const revision = await repositoryRevision(directory);
+      const captured = await currentDatabaseExportAuthority(directory, registryPath, revision);
+      await writeFile(path.join(directory, registryPath), 'dirty registry\n');
+      await writeFile(path.join(directory, exporterPath), 'dirty exporter\n');
+      expect(await currentDatabaseExportAuthority(directory, registryPath, revision)).toEqual(captured);
+      expect(await currentDatabaseExportAuthority(directory, registryPath)).not.toEqual(captured);
+    } finally { await rm(directory, { recursive: true }); }
+  });
+
+  it('rejects control characters in every logical path and parses git batch blobs by exact byte size', () => {
+    for (const control of ['\n', '\r', '\0', '\u001f', '\u007f']) expect(() => normalizePath(`safe${control}injected.txt`)).toThrow(/control/u);
+    expect(() => parseGitBatchBlobs(['safe.txt\nsecond.txt'], Buffer.alloc(0))).toThrow(/control/u);
+    const first = Buffer.from([0x00, 0x0a, 0x00, 0x0d]);
+    const last = Buffer.from([0x74, 0x61, 0x69, 0x6c, 0x0a, 0x00]);
+    const output = Buffer.concat([
+      Buffer.from(`${'a'.repeat(40)} blob ${first.length}\n`), first, Buffer.from('\n'),
+      Buffer.from('fixture:missing.bin missing\n'),
+      Buffer.from(`${'b'.repeat(40)} blob ${last.length}\n`), last, Buffer.from('\n'),
+    ]);
+    const parsed = parseGitBatchBlobs(['a.bin', 'missing.bin', 'z.bin'], output);
+    expect(parsed.get('a.bin')).toEqual(first);
+    expect(parsed.get('missing.bin')).toBeNull();
+    expect(parsed.get('z.bin')).toEqual(last);
+    const malformed = Buffer.from(output);
+    malformed[`${'a'.repeat(40)} blob ${first.length}\n`.length + first.length] = 0x00;
+    expect(() => parseGitBatchBlobs(['a.bin', 'missing.bin', 'z.bin'], malformed)).toThrow(/delimiter/u);
+  });
+
+  it('aggregates normalized summary categories before applying small-cell suppression', () => {
+    expect(suppressRows([{ category: 'e\u0301', count: 6 }, { category: 'é', count: 7 }])).toEqual({ é: 13 });
+    expect(suppressRows([{ category: 'é', count: 2 }, { category: 'e\u0301', count: 6 }])).toEqual({ é: 8 });
+    expect(suppressRows([{ category: 'é', count: 2 }, { category: 'e\u0301', count: 2 }])).toEqual({ é: 'suppressed' });
+    expect(suppressRows(['a b', 'c d', 'e f', 'g h', 'i j'].map((category) => ({ category, count: 1 })))).toEqual({ __non_public_category__: 'suppressed' });
+  });
+
+  it('suppresses one learner with five rows and publishes a category only for five learners', async () => {
+    const statements: string[] = [];
+    let distinctLearners = 1;
+    const client = { query: async (statement: string) => {
+      statements.push(statement);
+      return statement.startsWith('EXPLAIN') ? { rows: [] } : { rows: [{ category: 'view', count: String(distinctLearners) }] };
+    } };
+    expect((await groupedSummary(client as never, 'InteractionLog', 'eventType', undefined, 'userId')).summary).toEqual({ view: 'suppressed' });
+    expect(statements[0]).toContain('count(DISTINCT "userId")');
+    distinctLearners = 5;
+    expect((await groupedSummary(client as never, 'InteractionLog', 'eventType', undefined, 'userId')).summary).toEqual({ view: 5 });
+    statements.length = 0;
+    await groupedRelationSummary(client as never, '_OwnerToTarget', 'B', 'A', 'InteractionLog', 'userId');
+    expect(statements[0]).toContain('count(DISTINCT owners."userId")');
+    expect(statements[0]).toContain('JOIN "InteractionLog" AS owners');
+  });
+
+  it('normalizes NFC and LF, rejects BOM, and sorts by Unicode code point', () => {
+    expect(normalizeText(Buffer.from('e\u0301\r\n'))).toBe('é\n');
+    expect(() => normalizeText(Buffer.from('\ufefftext'))).toThrow(/BOM/u);
+    expect(['😀', '中', 'a'].sort(compareCodePoints)).toEqual(['a', '中', '😀']);
+    expect(() => normalizePath('../escape')).toThrow(/escaping/u);
+    expect(taggedDigest('a', 'bc')).not.toBe(taggedDigest('ab', 'c'));
+  });
+
+  it('keeps equal IDs in separate namespaces and detects same-type collisions', () => {
+    const base = { item_kind: 'reference', source_id: 'same', source_locator: 'fixture' };
+    const result = typedDedupe([
+      { ...base, identity_namespace: 'canonical_knowledge_node' },
+      { ...base, identity_namespace: 'resource_node_ref' },
+      { ...base, identity_namespace: 'canonical_knowledge_node', source_locator: 'different' },
+    ]);
+    expect(result.records).toHaveLength(2);
+    expect(result.drift).toEqual([expect.objectContaining({ code: 'TYPED_RECORD_COLLISION' })]);
+  });
+
+  it('covers nullable course/module/lesson anchors without synthetic hierarchy IDs', () => {
+    const text_digest = taggedDigest('text/v1', 'objective');
+    expect(makeAnchor({ anchor_scope: 'course', anchor_type: 'formal_objective', course_id: 'course', module_id: null, lesson_id: null, source_locator: 'fixture#1', text_digest }).module_id).toBeNull();
+    expect(makeAnchor({ anchor_scope: 'module', anchor_type: 'necessary_prerequisite', course_id: 'course', module_id: 'm1', lesson_id: null, source_locator: 'fixture#2', text_digest }).lesson_id).toBeNull();
+    expect(makeAnchor({ anchor_scope: 'lesson', anchor_type: 'explicit_extension', course_id: 'course', module_id: 'm1', lesson_id: 'l1', source_locator: 'fixture#3', text_digest }).lesson_id).toBe('l1');
+    expect(() => makeAnchor({ anchor_scope: 'course', anchor_type: 'formal_objective', course_id: 'course', module_id: 'synthetic', lesson_id: null, source_locator: 'fixture', text_digest })).toThrow();
+  });
+
+  it('treats bracketed route segments literally, not as globs', () => {
+    expect(matchGlob('src/app/[id]/route.ts', 'src/app/[id]/route.ts')).toBe(true);
+    expect(matchGlob('src/app/i/route.ts', 'src/app/[id]/route.ts')).toBe(false);
+  });
+
+  it('emits canonical byte-identical JSON', () => {
+    const first = canonicalJson({ é: 'e\u0301', a: 1 } as Json);
+    const second = canonicalJson({ a: 1, 'e\u0301': 'é' } as Json);
+    expect(first).toBe(second);
+  });
+});
+
+describe('writer AST discovery', () => {
+  it('covers delegate alias, transaction, createManyAndReturn, nested writes and external/dynamic raw', () => {
+    const source = `
+      const node = prisma.knowledgeNode;
+      await node.createManyAndReturn({ data: [{ links: { create: [] } }] });
+      await prisma.$transaction(async (tx) => tx.learningFact.create({ data: input }));
+      const { knowledgeLink: links } = tx;
+      await links.upsert({ where: key, create: data, update: data });
+      await prisma.$executeRaw(sqlFromOutside);
+    `;
+    const result = discoverWritersInSource('external/writer.ts', source)!;
+    expect(result.mutations).toEqual(expect.arrayContaining(['knowledgeNode.createManyAndReturn', 'learningFact.create', 'knowledgeLink.upsert', 'nested.links', 'raw.$executeRaw']));
+    expect(result.dynamic_raw).toBe(true);
+  });
+
+  it('propagates a target mutation through an imported producer helper chain', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-writers-'));
+    try {
+      await mkdir(path.join(directory, 'src'), { recursive: true });
+      await writeFile(path.join(directory, 'src/helper.ts'), 'export async function persist() { return prisma.learningFact.create({ data: input }); }');
+      await writeFile(path.join(directory, 'src/route.ts'), "import { persist } from './helper'; export async function POST() { return persist(); }");
+      const registry = { repository_sources: [{ id: 'knowledge-direct-writers', include: ['src/helper.ts', 'src/route.ts'], static_discovery: { roots: ['src'], exclude: [], prisma_mutations: ['LearningFact'] } }] } as unknown as Registry;
+      const result = await discoverWriters(directory, registry);
+      expect(result.evidence.find((item) => item.path === 'src/route.ts')?.call_paths).toContainEqual({
+        symbols: ['src/route.ts#POST', 'src/helper.ts#persist'],
+        target: { model: 'LearningFact', operation: 'create', nested_relation: null },
+      });
+      expect(result.drift).toEqual([]);
+    } finally { await rm(directory, { recursive: true }); }
+  });
+});
+
+describe('filesystem closure', () => {
+  it('enumerates tracked paths from the captured revision after worktree deletion', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-tree-enumeration-'));
+    try {
+      spawnSync('git', ['init', '-q'], { cwd: directory });
+      spawnSync('git', ['config', 'user.email', 'inventory@example.test'], { cwd: directory });
+      spawnSync('git', ['config', 'user.name', 'Inventory Test'], { cwd: directory });
+      await writeFile(path.join(directory, 'tracked.md'), '# captured\n');
+      spawnSync('git', ['add', 'tracked.md'], { cwd: directory });
+      spawnSync('git', ['commit', '-qm', 'captured tree'], { cwd: directory });
+      const revision = await repositoryRevision(directory);
+      await rm(path.join(directory, 'tracked.md'));
+      spawnSync('git', ['add', '-u'], { cwd: directory });
+      await writeFile(path.join(directory, 'untracked.md'), '# untracked\n');
+      await writeFile(path.join(directory, 'staged-added.md'), '# staged added\n');
+      spawnSync('git', ['add', 'staged-added.md'], { cwd: directory });
+      await writeFile(path.join(directory, '.gitignore'), 'ignored.md\n');
+      await writeFile(path.join(directory, 'ignored.md'), '# ignored\n');
+      const registry = {
+        repository_sources: [{ id: 'source', item_kind: 'doc', identity_namespace: 'repository_path', include: ['*.md'], missing: 'fail' }], instructional_source_role_matrix: {},
+        repository_codec_contract: { unknown_codec: 'invalid', codecs: [{ id: 'markdown/v1', media_type: 'text/markdown', kind: 'text', include: ['*.md'] }] },
+      } as unknown as Registry;
+
+      const repository = await enumerateRepository(directory, registry, [], undefined, revision);
+
+      expect(repository.sources[0]?.physical_paths).toEqual(['ignored.md', 'staged-added.md', 'tracked.md', 'untracked.md']);
+      const observationDrift: import('../types').Drift[] = [];
+      const observations = await collectInputObservations({ isolatedRoot: directory, isolatedRevision: revision, isolatedPaths: repository.sources[0]!.physical_paths as string[] }, registry, observationDrift);
+      expect(observations).toContainEqual(expect.objectContaining({ path: 'tracked.md', vcs_state: 'tracked', state: 'observed', content_bytes: Buffer.from('# captured\n') }));
+      expect(observations).toContainEqual(expect.objectContaining({ path: 'staged-added.md', vcs_state: 'staged-added', state: 'observed', content_bytes: Buffer.from('# staged added\n') }));
+      expect(observationDrift).not.toContainEqual(expect.objectContaining({ code: 'INPUT_READ_FAILED' }));
+    } finally { await rm(directory, { recursive: true }); }
+  });
+
+  it('rejects captured and index-only gitlinks without depending on submodule initialization', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-gitlinks-'));
+    try {
+      for (const args of [['init', '-q'], ['config', 'user.email', 'inventory@example.test'], ['config', 'user.name', 'Inventory Test']]) spawnSync('git', args, { cwd: directory });
+      await writeFile(path.join(directory, 'base.txt'), 'base\n');
+      spawnSync('git', ['add', 'base.txt'], { cwd: directory }); spawnSync('git', ['commit', '-qm', 'base'], { cwd: directory });
+      const target = (await repositoryRevision(directory));
+      spawnSync('git', ['update-index', '--add', '--cacheinfo', `160000,${target},captured-link`], { cwd: directory });
+      spawnSync('git', ['commit', '-qm', 'captured gitlink'], { cwd: directory });
+      const revision = await repositoryRevision(directory);
+      spawnSync('git', ['update-index', '--add', '--cacheinfo', `160000,${target},staged-link`], { cwd: directory });
+      const registry = { repository_sources: [{ id: 'links', item_kind: 'doc', identity_namespace: 'repository_path', include: ['*link'], missing: 'record' }], instructional_source_role_matrix: {} } as unknown as Registry;
+      const drift: import('../types').Drift[] = [];
+      const repository = await enumerateRepository(directory, registry, drift, undefined, revision);
+      expect(repository.sources[0]?.physical_paths).toEqual([]);
+      expect(drift).toEqual(expect.arrayContaining([
+        expect.objectContaining({ code: 'GITLINK_INPUT_REJECTED', scope: 'captured-link', observed: 'captured-revision' }),
+        expect.objectContaining({ code: 'GITLINK_INPUT_REJECTED', scope: 'staged-link', observed: 'index-only' }),
+      ]));
+    } finally { await rm(directory, { recursive: true }); }
+  });
+
+  it('reports allowlisted symlinks instead of silently skipping them', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-symlink-'));
+    try {
+      await writeFile(path.join(directory, 'target.md'), '# target');
+      await symlink('target.md', path.join(directory, 'linked.md'));
+      const registry = { repository_sources: [{ id: 'source', item_kind: 'doc', identity_namespace: 'repository_path', include: ['*.md'], missing: 'fail' }], instructional_source_role_matrix: {} } as unknown as Registry;
+      const drift: never[] = [];
+      await enumerateRepository(directory, registry, drift);
+      expect(drift).toEqual([expect.objectContaining({ code: 'SYMLINK_INPUT_REJECTED', scope: 'linked.md' })]);
+    } finally { await rm(directory, { recursive: true }); }
+  });
+});
+
+describe('immutable database privacy boundary', () => {
+  it('excludes JSON null roots from object-only decoder child summaries', () => {
+    const sql = jsonDecoderRootsSql('Observed', 'payload', '$.schemaVersion', 'object_only');
+    expect(sql).toContain("jsonb_typeof(target.value) = 'object'");
+    expect(jsonDecoderRootsSql('Observed', 'payload', '$.schemaVersion', 'any')).not.toContain("jsonb_typeof(target.value) = 'object'");
+  });
+
+  it('rolls back a newly published export when proof publication loses a no-overwrite race', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-atomic-publish-'));
+    const outputPath = path.join(directory, 'export.json');
+    const proofPath = path.join(directory, 'proof.json');
+    try {
+      await writeFile(proofPath, 'pre-existing proof');
+      await expect(publishExportArtifacts(outputPath, Buffer.from('export'), proofPath, Buffer.from('proof'))).rejects.toThrow();
+      expect(existsSync(outputPath)).toBe(false);
+      expect(await readFile(proofPath, 'utf8')).toBe('pre-existing proof');
+      expect((await readdir(directory)).filter((name) => name.endsWith('.tmp'))).toEqual([]);
+
+      await rm(proofPath);
+      await publishExportArtifacts(outputPath, Buffer.from('export'), proofPath, Buffer.from('proof'));
+      expect(await readFile(outputPath, 'utf8')).toBe('export');
+      expect(await readFile(proofPath, 'utf8')).toBe('proof');
+    } finally { await rm(directory, { recursive: true }); }
+  });
+
+  it('rejects unsafe export paths before creating any directory', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-export-paths-'));
+    const repository = path.join(directory, 'repository');
+    const outside = path.join(directory, 'outside');
+    try {
+      await mkdir(repository);
+      await writeFile(path.join(repository, '.git'), 'gitdir: fixture\n');
+      const options = { root: repository, registryPath: 'registry.yaml', databaseUrl: 'postgresql://invalid', outputPath: path.join(outside, 'new', 'export.json'), proofPath: 'relative-proof.json' };
+      await expect(exportAggregateDatabase(options)).rejects.toThrow(/absolute/u);
+      expect(existsSync(path.join(outside, 'new'))).toBe(false);
+
+      const insideParent = path.join(repository, 'not-created', 'nested');
+      await expect(exportAggregateDatabase({ ...options, outputPath: path.join(insideParent, 'export.json'), proofPath: path.join(outside, 'proof.json') })).rejects.toThrow(/outside repository/u);
+      expect(existsSync(insideParent)).toBe(false);
+
+      const alias = path.join(directory, 'repository-alias');
+      await symlink(repository, alias);
+      const escapedParent = path.join(alias, 'escaped', 'nested');
+      await expect(exportAggregateDatabase({ ...options, outputPath: path.join(escapedParent, 'export.json'), proofPath: path.join(outside, 'proof.json') })).rejects.toThrow(/outside repository/u);
+      expect(existsSync(path.join(repository, 'escaped'))).toBe(false);
+      expect(existsSync(outside)).toBe(false);
+    } finally { await rm(directory, { recursive: true }); }
+  });
+
+  it('resolves existing target files and forbids symlink, inode alias and regular-file overwrite side effects', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-export-target-files-'));
+    const repository = path.join(directory, 'repository');
+    const artifacts = path.join(directory, 'artifacts');
+    try {
+      await mkdir(repository);
+      await mkdir(artifacts);
+      await writeFile(path.join(repository, '.git'), 'gitdir: fixture\n');
+      const tracked = path.join(repository, 'tracked.json');
+      await writeFile(tracked, 'repository authority\n');
+      const base = { root: repository, registryPath: 'registry.yaml', databaseUrl: 'postgresql://invalid' };
+
+      const repositoryLink = path.join(artifacts, 'repository-link.json');
+      await symlink(tracked, repositoryLink);
+      const missingProof = path.join(artifacts, 'missing-proof.json');
+      const beforeRepositoryLink = await readdir(artifacts);
+      await expect(exportAggregateDatabase({ ...base, outputPath: repositoryLink, proofPath: missingProof })).rejects.toThrow(/outside repository/u);
+      expect(await readFile(tracked, 'utf8')).toBe('repository authority\n');
+      expect(await readdir(artifacts)).toEqual(beforeRepositoryLink);
+
+      const shared = path.join(artifacts, 'shared.json');
+      await writeFile(shared, 'shared immutable artifact\n');
+      const firstLink = path.join(artifacts, 'first-link.json');
+      const secondLink = path.join(artifacts, 'second-link.json');
+      await symlink(shared, firstLink);
+      await symlink(shared, secondLink);
+      const beforeSameTarget = await readdir(artifacts);
+      await expect(exportAggregateDatabase({ ...base, outputPath: firstLink, proofPath: secondLink })).rejects.toThrow(/paths must differ/u);
+      expect(await readFile(shared, 'utf8')).toBe('shared immutable artifact\n');
+      expect(await readdir(artifacts)).toEqual(beforeSameTarget);
+
+      const firstHardLink = path.join(artifacts, 'first-hard-link.json');
+      const secondHardLink = path.join(artifacts, 'second-hard-link.json');
+      await link(shared, firstHardLink);
+      await link(shared, secondHardLink);
+      await expect(exportAggregateDatabase({ ...base, outputPath: firstHardLink, proofPath: secondHardLink })).rejects.toThrow(/paths must differ/u);
+
+      const existingOutput = path.join(artifacts, 'existing-output.json');
+      await writeFile(existingOutput, 'do not overwrite\n');
+      await expect(exportAggregateDatabase({ ...base, outputPath: existingOutput, proofPath: missingProof })).rejects.toThrow(/overwrite is forbidden/u);
+      expect(await readFile(existingOutput, 'utf8')).toBe('do not overwrite\n');
+      expect(existsSync(missingProof)).toBe(false);
+    } finally { await rm(directory, { recursive: true }); }
+  });
+
+  it('passes the real registry summary preflight without exposing controlled selector paths', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-private-summary-block-'));
+    const artifactParent = path.join(directory, 'not-created');
+    const outputPath = path.join(artifactParent, 'export.json');
+    const proofPath = path.join(artifactParent, 'proof.json');
+    try {
+      let failure: unknown;
+      try {
+        await exportAggregateDatabase({
+          root,
+          registryPath: 'docs/proposals/course-knowledge-base-governance-source-registry.yaml',
+          databaseUrl: 'postgresql://127.0.0.1:1/unreachable',
+          outputPath,
+          proofPath,
+        });
+      } catch (error) { failure = error; }
+      expect(failure).toBeInstanceOf(Error);
+      expect((failure as Error).message).not.toMatch(/private summary field|unknown summary locator/u);
+      expect((failure as Error).message).toMatch(/connect ECONNREFUSED 127\.0\.0\.1:1/u);
+      expect(existsSync(outputPath)).toBe(false);
+      expect(existsSync(proofPath)).toBe(false);
+      expect(existsSync(artifactParent)).toBe(true);
+    } finally { await rm(directory, { recursive: true }); }
+  });
+
+  it('derives snapshot id from proof and accepts only already-suppressed 1-4 person cells', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-export-'));
+    try {
+      const versionSummaryKey = fieldSummaryKey('version');
+      const datasets: AggregateDatasetExport[] = [{ id: 'learner', table: 'Snapshot', count: 9, watermark: '2026-01-01T00:00:00.000000Z', watermarks: { watermark: '2026-01-01T00:00:00.000000Z' }, shape: ['version', 'watermark'], versions: ['v1'], version_summaries: { [versionSummaryKey]: { v1: 5, __suppressed__: 'suppressed' } }, discriminator_summaries: {}, historical_shape_summaries: {}, json_observation_summaries: {} }];
+      await writeAggregateExport(directory, aggregateExport(datasets));
+      const drift: never[] = [];
+      const snapshot = await loadImmutableExport(directory, 'export.json', 'proof.json', drift, authority);
+      expect(snapshot.snapshot_id).toMatch(/^sha256:/u);
+      expect(snapshot.snapshot_proof).toMatchObject({ shared_snapshot_import_count: 0 });
+      expect(snapshot.datasets[0]!.version_summaries).toEqual({ [versionSummaryKey]: { v1: 5, __suppressed__: 'suppressed' } });
+      expect(drift).toEqual([]);
+      const tampered = JSON.parse(await readFile(path.join(directory, 'proof.json'), 'utf8')) as Record<string, unknown>;
+      tampered.shared_snapshot_import_count = 1;
+      await writeFile(path.join(directory, 'proof.json'), canonicalJson(tampered as Json));
+      await expect(loadImmutableExport(directory, 'export.json', 'proof.json', [], authority)).rejects.toThrow(/proof digest or closure mismatch/u);
+    } finally { await rm(directory, { recursive: true }); }
+  });
+
+  it('rejects legacy-shaped external exports even when their proof uses current authority', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-legacy-export-'));
+    try {
+      const enhanced: AggregateDatasetExport = { id: 'legacy', table: 'Snapshot', count: 0, watermark: null, watermarks: {}, shape: [], versions: [], version_summaries: {}, discriminator_summaries: {}, historical_shape_summaries: {}, json_observation_summaries: {} };
+      const { watermarks: _watermarks, json_observation_summaries: _json, ...legacy } = enhanced;
+      await writeAggregateExport(directory, aggregateExport([legacy]));
+      await expect(loadImmutableExport(directory, 'export.json', 'proof.json', [], authority)).rejects.toThrow(/caller-authored or missing fields/u);
+    } finally { await rm(directory, { recursive: true }); }
+  });
+
+  it('rejects raw summary keys in a current enhanced export even when its proof is self-consistent', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-current-raw-summary-'));
+    try {
+      const dataset: AggregateDatasetExport = {
+        id: 'current', table: 'Observed', count: 5, watermark: null, watermarks: {}, shape: ['version'], versions: ['v1'],
+        version_summaries: { 'field:version': { v1: 5 } }, discriminator_summaries: {}, historical_shape_summaries: {}, json_observation_summaries: {},
+      };
+      await writeAggregateExport(directory, aggregateExport([dataset]));
+      await expect(loadImmutableExport(directory, 'export.json', 'proof.json', [], authority)).rejects.toThrow(/requires opaque summary keys/u);
+    } finally { await rm(directory, { recursive: true }); }
+  });
+
+  it('accepts only a proof signed by the explicitly trusted Ed25519 key and key id', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-proof-signature-'));
+    try {
+      const exported = aggregateExport([]);
+      const bytes = Buffer.from(canonicalJson(exported as unknown as Json));
+      await writeFile(path.join(directory, 'export.json'), bytes);
+      const trusted = deriveProof(exported, bytes, proofSigner);
+      await writeFile(path.join(directory, 'proof.json'), canonicalJson(trusted as unknown as Json));
+      await expect(loadImmutableExport(directory, 'export.json', 'proof.json', [], authority)).resolves.toMatchObject({ summary_key_format: 'opaque' });
+      await expect(loadImmutableExport(directory, 'export.json', 'proof.json', [], { registryDigest: digest, exporterDigest: digest })).rejects.toThrow(/trusted database proof public key/u);
+
+      const rogueKeys = generateKeyPairSync('ed25519');
+      await expect(loadImmutableExport(directory, 'export.json', 'proof.json', [], { ...authority, proofPublicKey: rogueKeys.publicKey.export({ type: 'spki', format: 'pem' }) })).rejects.toThrow(/signing authority mismatch/u);
+
+      const { signature: _signature, signature_algorithm: _algorithm, signing_key_id: _keyId, signing_key_fingerprint: _fingerprint, ...unsigned } = trusted;
+      await writeFile(path.join(directory, 'proof.json'), canonicalJson(unsigned as unknown as Json));
+      await expect(loadImmutableExport(directory, 'export.json', 'proof.json', [], authority)).rejects.toThrow(/caller-authored or missing fields/u);
+
+      const rogue = deriveProof(exported, bytes, { privateKey: rogueKeys.privateKey.export({ type: 'pkcs8', format: 'pem' }), keyId: proofKeyId });
+      await writeFile(path.join(directory, 'proof.json'), canonicalJson(rogue as unknown as Json));
+      await expect(loadImmutableExport(directory, 'export.json', 'proof.json', [], authority)).rejects.toThrow(/signing authority mismatch/u);
+
+      const wrongId = deriveProof(exported, bytes, { ...proofSigner, keyId: 'wrong-key-id' });
+      await writeFile(path.join(directory, 'proof.json'), canonicalJson(wrongId as unknown as Json));
+      await expect(loadImmutableExport(directory, 'export.json', 'proof.json', [], authority)).rejects.toThrow(/signing authority mismatch/u);
+
+      await writeFile(path.join(directory, 'proof.json'), canonicalJson({ ...trusted, signature: `${trusted.signature.slice(0, -4)}AAAA` } as unknown as Json));
+      await expect(loadImmutableExport(directory, 'export.json', 'proof.json', [], authority)).rejects.toThrow(/signature verification failed/u);
+    } finally { await rm(directory, { recursive: true }); }
+  });
+
+  it('builds a schema-valid manifest from a real current-authority database export', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-manifest-database-export-'));
+    try {
+      const currentAuthority = await currentDatabaseExportAuthority(root, 'docs/proposals/course-knowledge-base-governance-source-registry.yaml', await repositoryRevision(root));
+      const exported = { ...aggregateExport([]), registry_digest: currentAuthority.registryDigest, exporter_digest: currentAuthority.exporterDigest };
+      await writeAggregateExport(directory, exported);
+      const publicKeyPath = path.join(directory, 'proof-public-key.pem');
+      await writeFile(publicKeyPath, authority.proofPublicKey);
+      const manifest = await buildManifest({
+        root, capturedAt: '2026-01-01T00:00:00.000Z',
+        databaseExportPath: path.join(directory, 'export.json'), databaseExportProofPath: path.join(directory, 'proof.json'),
+        databaseProofPublicKeyPath: publicKeyPath, databaseProofKeyId: proofKeyId,
+      }) as Record<string, unknown>;
+      expect(manifest.database_snapshot).toMatchObject({ summary_key_format: 'opaque' });
+      expect(manifest.drift).toEqual(expect.arrayContaining([expect.objectContaining({ code: 'DATABASE_TABLE_SNAPSHOT_MISSING' })]));
+    } finally { await rm(directory, { recursive: true }); }
+  }, 120_000);
+
+  it('rejects rows, users, payloads and row digests recursively', () => {
+    expect(validateOutputPrivacy({ safe: { payload: 'secret' } } as Json)).toEqual([expect.objectContaining({ code: 'PROHIBITED_OUTPUT_FIELD' })]);
+  });
+
+  it('rejects caller-embedded proof and inconsistent external object metadata', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-proof-reject-'));
+    try {
+      const exported = aggregateExport([]);
+      const bytes = Buffer.from(canonicalJson(exported as unknown as Json));
+      const proof = deriveProof(exported, bytes, proofSigner);
+      await writeFile(path.join(directory, 'proof.json'), canonicalJson({ ...proof, export_object_id: digest } as unknown as Json));
+      await writeFile(path.join(directory, 'embedded.json'), canonicalJson({ ...exported, proof } as unknown as Json));
+      await writeFile(path.join(directory, 'export.json'), bytes);
+      await expect(loadImmutableExport(directory, 'embedded.json', 'proof.json', [], authority)).rejects.toThrow(/embedded/u);
+      await expect(loadImmutableExport(directory, 'export.json', 'proof.json', [], authority)).rejects.toThrow(/proof digest or closure mismatch/u);
+    } finally { await rm(directory, { recursive: true }); }
+  });
+
+  it('rejects unsuppressed small cells, private row material and caller-authored proof labels', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-private-export-'));
+    try {
+      const baseDataset: AggregateDatasetExport = { id: 'learner', table: 'Snapshot', count: 4, watermark: null, watermarks: {}, shape: ['version'], versions: [], version_summaries: { version: { v1: 4 } }, discriminator_summaries: {}, historical_shape_summaries: {}, json_observation_summaries: {} };
+      await writeAggregateExport(directory, aggregateExport([baseDataset]));
+      await expect(loadImmutableExport(directory, 'export.json', 'proof.json', [], authority)).rejects.toThrow(/unsuppressed small cell/u);
+
+      const privateExport = { ...aggregateExport([{ ...baseDataset, version_summaries: { version: { __suppressed__: 'suppressed' } } }]), userId: 'private-user' };
+      const privateBytes = Buffer.from(canonicalJson(privateExport as unknown as Json));
+      await writeFile(path.join(directory, 'private.json'), privateBytes);
+      await writeFile(path.join(directory, 'private-proof.json'), canonicalJson(deriveProof(privateExport, privateBytes, proofSigner) as unknown as Json));
+      await expect(loadImmutableExport(directory, 'private.json', 'private-proof.json', [], authority)).rejects.toThrow(/learner row content/u);
+
+      const prefixedPrivate = aggregateExport([{ ...baseDataset, version_summaries: { 'field:userId': { value: 5 } } }]);
+      const prefixedBytes = Buffer.from(canonicalJson(prefixedPrivate as unknown as Json));
+      await writeFile(path.join(directory, 'prefixed-private.json'), prefixedBytes);
+      await writeFile(path.join(directory, 'prefixed-private-proof.json'), canonicalJson(deriveProof(prefixedPrivate, prefixedBytes, proofSigner) as unknown as Json));
+      await expect(loadImmutableExport(directory, 'prefixed-private.json', 'prefixed-private-proof.json', [], authority)).rejects.toThrow(/learner row content/u);
+      expect(() => assertAggregateExportShape(prefixedPrivate)).toThrow(/private summary field/u);
+
+      for (const locator of ['field-userId', 'field_user_id', 'field:payload.reasoning']) {
+        const malformed = aggregateExport([{ ...baseDataset, version_summaries: { [locator]: { value: 5 } } }]);
+        expect(() => assertAggregateExportShape(malformed)).toThrow(/summary (?:locator|field)/u);
+      }
+
+      const safeExport = aggregateExport([]);
+      const safeBytes = Buffer.from(canonicalJson(safeExport as unknown as Json));
+      const freeLabelProof = { ...deriveProof(safeExport, safeBytes, proofSigner), label: 'trusted-by-caller' };
+      await writeFile(path.join(directory, 'safe.json'), safeBytes);
+      await writeFile(path.join(directory, 'free-label-proof.json'), canonicalJson(freeLabelProof as unknown as Json));
+      await expect(loadImmutableExport(directory, 'safe.json', 'free-label-proof.json', [], authority)).rejects.toThrow(/caller-authored/u);
+    } finally { await rm(directory, { recursive: true }); }
+  });
+
+  it.each([
+    ['registry', { registry_digest: `sha256:${'1'.repeat(64)}` }, /registry authority mismatch/u],
+    ['exporter', { exporter_digest: `sha256:${'1'.repeat(64)}` }, /implementation authority mismatch/u],
+  ])('rejects a self-consistent proof from an old %s authority', async (_label, replacement, expected) => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-old-authority-'));
+    try {
+      const exported = { ...aggregateExport([]), ...replacement };
+      const bytes = Buffer.from(canonicalJson(exported as unknown as Json));
+      await writeFile(path.join(directory, 'export.json'), bytes);
+      await writeFile(path.join(directory, 'proof.json'), canonicalJson(deriveProof(exported, bytes, proofSigner) as unknown as Json));
+      await expect(loadImmutableExport(directory, 'export.json', 'proof.json', [], authority)).rejects.toThrow(expected);
+    } finally { await rm(directory, { recursive: true }); }
+  });
+
+  it.each(['unique_semantic_name', 'domain_membership', 'relation_approval', 'resource_binding_approval', 'user_id', 'payload', 'raw_row_digest'])(`rejects prohibited output key %s`, (key) => {
+    expect(validateOutputPrivacy({ nested: { [key]: 'forbidden' } } as Json)).toEqual([expect.objectContaining({ code: 'PROHIBITED_OUTPUT_FIELD' })]);
+  });
+
+  it('uses opaque summary keys for the declared nested selector closure', async () => {
+    const registry = await loadRegistry(root, 'docs/proposals/course-knowledge-base-governance-source-registry.yaml');
+    const fixtureFile = JSON.parse(await readFile(path.join(root, 'scripts/knowledge-governance/input-inventory/fixtures/synthetic-history-payload-shapes.json'), 'utf8')) as { fixtures: ShapeFixture[] };
+    const observations = compileDatabaseObservationContracts(registry);
+    const jsonObservations = compileJsonObservationContracts(registry, fixtureFile.fixtures);
+    expect(observations.drift).toEqual([]);
+    expect(jsonObservations.drift).toEqual([]);
+    const tableFields = new Map<string, Set<string>>();
+    for (const source of registry.database_sources) for (const [table, fields] of Object.entries(source.fields as Record<string, string[]>)) {
+      const current = tableFields.get(table) ?? new Set<string>();
+      fields.forEach((field) => current.add(field));
+      tableFields.set(table, current);
+    }
+    const datasets: AggregateDatasetExport[] = [...tableFields].map(([table, fields]) => {
+      const contracts = observations.contracts.filter((contract) => contract.table === table);
+      const summaries = (kind: 'version' | 'discriminator' | 'historical_shape') => Object.fromEntries(contracts
+        .filter((contract) => contract.summary === kind)
+        .map((contract) => [fieldSummaryKey(contract.field), {}]));
+      const versionSummaries = summaries('version');
+      return {
+        id: `synthetic-${table}`, table, count: 5, watermark: null, watermarks: {}, shape: [...fields],
+        versions: [...new Set(Object.values(versionSummaries).flatMap((summary) => Object.keys(summary).filter((value) => !value.startsWith('__'))))].sort(),
+        version_summaries: versionSummaries,
+        discriminator_summaries: summaries('discriminator'),
+        historical_shape_summaries: summaries('historical_shape'),
+        json_observation_summaries: Object.fromEntries(jsonObservations.contracts.filter((item) => item.table === table).map((item) => [
+          jsonSummaryKey(item),
+          item.summary === 'path' ? { [jsonPathCategoryKey(item.accepted[0]!)]: 5 } : {},
+        ])),
+      };
+    });
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-full-export-'));
+    try {
+      await writeAggregateExport(directory, aggregateExport(datasets));
+      await expect(loadImmutableExport(directory, 'export.json', 'proof.json', [], authority)).resolves.toBeDefined();
+      expect(() => assertAggregateExportShape(aggregateExport(datasets))).not.toThrow();
+      expect(JSON.stringify(datasets.flatMap((dataset) => Object.keys(dataset.json_observation_summaries ?? {})))).not.toContain('payload');
+      expect(JSON.stringify(datasets.flatMap((dataset) => Object.values(dataset.json_observation_summaries ?? {}).flatMap(Object.keys)))).not.toContain('payload');
+      const opaquePayloadCategory = jsonPathCategoryKey('$.payload');
+      expect(opaquePayloadCategory).toMatch(/^path_[0-9a-f]{64}$/u);
+      expect(opaquePayloadCategory).not.toContain('payload');
+      expect(validateOutputPrivacy({ summary: { [opaquePayloadCategory]: 5 } } as Json)).toEqual([]);
+    } finally { await rm(directory, { recursive: true }); }
+  });
+
+  it('derives camelCase observation versions and retains every declared watermark', async () => {
+    const registry = await loadRegistry(root, 'docs/proposals/course-knowledge-base-governance-source-registry.yaml');
+    const contracts = contractsFromRegistry(registry);
+    expect(contracts.find((item) => item.table === 'CourseBasisDocumentVersion')?.versionFields).toContain('extractionVersion');
+    expect(contracts.find((item) => item.table === 'LearningEventBatch')?.watermarkFields).toEqual(['batchDate', 'processedAt']);
+  });
+
+  it('selects the compatibility watermark independently of the host timezone', () => {
+    const original = process.env.TZ;
+    const watermarks = { batchDate: '2026-07-19T00:00:00.000000Z', processedAt: '2026-07-19T15:30:00.000000Z' };
+    try {
+      process.env.TZ = 'UTC';
+      const utc = latestWatermark(watermarks);
+      process.env.TZ = 'Asia/Shanghai';
+      expect(latestWatermark(watermarks)).toBe(utc);
+      expect(utc).toBe(watermarks.processedAt);
+    } finally { process.env.TZ = original; }
+  });
+});
+
+describe('closed decoder fixtures', () => {
+  it('covers every decoder and fails closed on unknown version, discriminator and ID-bearing field', async () => {
+    const registry = await loadRegistry(root, 'docs/proposals/course-knowledge-base-governance-source-registry.yaml');
+    const file = JSON.parse(await readFile(path.join(root, 'scripts/knowledge-governance/input-inventory/fixtures/synthetic-history-payload-shapes.json'), 'utf8')) as { fixtures: ShapeFixture[] };
+    expect(validateFixtureClosure(Object.keys(registry.decoder_contracts), file.fixtures)).toEqual([]);
+    const fixture = file.fixtures.find((item) => item.decoder_id === 'learning-event-payload/v1')!;
+    const contract = effectiveDecoderContract(registry, fixture.decoder_id);
+    expect(validateSyntheticPayload(contract, fixture, { schemaVersion: 'v999', targetType: 'new-kind', secretNodeId: 'x' })).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'UNKNOWN_PAYLOAD_VERSION' }),
+      expect.objectContaining({ code: 'UNKNOWN_DISCRIMINATOR' }),
+      expect.objectContaining({ code: 'UNKNOWN_ID_BEARING_PATH' }),
+    ]));
+    for (const item of file.fixtures) {
+      expect(item.accepted_versions.length).toBeGreaterThan(0);
+      expect(item.samples.length).toBeGreaterThan(0);
+      expect((registry.decoder_contracts[item.decoder_id]!.selectors as string[] | undefined)?.length
+        ?? (registry.decoder_contracts[item.decoder_id]!.reference_selectors as string[] | undefined)?.length
+        ?? Number(Boolean(registry.decoder_contracts[item.decoder_id]!.item_decoder))).toBeTruthy();
+    }
+  });
+
+  it('matches complete selector paths through arrays/wildcards and rejects unknown nested IDs', () => {
+    const payload = { events: [{ payload: { evidenceGovernance: { knowledgeNodeIds: ['n1'] } }, totallyUnknown: { nodeId: 'n2' } }] } as Json;
+    expect(selectJson(payload, '$.events[*].payload.evidenceGovernance.knowledgeNodeIds[*]')).toEqual([{ path: '$.events[0].payload.evidenceGovernance.knowledgeNodeIds[0]', value: 'n1' }]);
+    expect(auditIdBearingPaths(payload, ['$.events[*].payload.evidenceGovernance.knowledgeNodeIds[*]'], 'nested')).toEqual([expect.objectContaining({ code: 'UNKNOWN_ID_BEARING_PATH', observed: '$.events[0].totallyUnknown.nodeId' })]);
+  });
+});
+
+describe('registry and real repository fixed integration', () => {
+  it('has the complete declared contract cardinalities without freezing snapshot counts', async () => {
+    const registry = await loadRegistry(root, 'docs/proposals/course-knowledge-base-governance-source-registry.yaml');
+    expect(registry.repository_sources).toHaveLength(14);
+    expect(registry.database_sources).toHaveLength(9);
+    expect(Object.keys(registry.decoder_contracts)).toHaveLength(16);
+    expect(registry.field_decoders).toHaveLength(41);
+    expect(registry.closed_namespaces).toHaveLength(45);
+    expect(registry.repository_sources.find((source) => source.id === 'knowledge-direct-writers')?.include).toHaveLength(47);
+    const expected = JSON.parse(await readFile(path.join(root, 'scripts/knowledge-governance/input-inventory/fixtures/real-repository-structure.json'), 'utf8')) as { registry_contract: Record<string, number> };
+    expect(expected.registry_contract).toEqual({ repository_sources: 14, database_sources: 9, decoder_contracts: 16, field_decoders: 41, namespaces: 45, declared_writer_paths: 47 });
+  });
+
+  it('derives the database table set from registry additions and removals and rejects dangling dependencies', async () => {
+    const registry = await loadRegistry(root, 'docs/proposals/course-knowledge-base-governance-source-registry.yaml');
+    const baseline = contractsFromRegistry(registry);
+    const added = structuredClone(registry);
+    added.database_sources.push({ id: 'dynamic-fixture', tables: ['User'], fields: { User: ['id'] }, privacy: 'non_learner' });
+    expect(contractsFromRegistry(added)).toHaveLength(baseline.length + 1);
+    added.database_sources.pop();
+    expect(contractsFromRegistry(added)).toHaveLength(baseline.length);
+    const dangling = structuredClone(registry);
+    dangling.database_sources.push({ id: 'dangling-fixture', tables: [], fields: { User: ['id'] }, privacy: 'non_learner' });
+    expect(() => contractsFromRegistry(dangling)).toThrow(/outside declared table closure/u);
+  });
+
+  it('is repeatable for a fixed real repository snapshot and preserves inventoried inputs', async () => {
+    const registryBefore = await readFile(path.join(root, 'docs/proposals/course-knowledge-base-governance-source-registry.yaml'));
+    const gitBefore = await readFile(path.join(root, '.git'));
+    const args = ['--import', 'tsx', 'scripts/knowledge-governance/input-inventory/cli.ts', '--captured-at', '2026-07-19T00:00:00.000Z', '--allow-blocked'];
+    const first = spawnSync(process.execPath, args, { cwd: root, encoding: 'utf8', maxBuffer: 128 * 1024 * 1024 });
+    const second = spawnSync(process.execPath, args, { cwd: root, encoding: 'utf8', maxBuffer: 128 * 1024 * 1024 });
+    expect(first.status).toBe(0);
+    expect(second.stdout).toBe(first.stdout);
+    expect(await readFile(path.join(root, 'docs/proposals/course-knowledge-base-governance-source-registry.yaml'))).toEqual(registryBefore);
+    expect(await readFile(path.join(root, '.git'))).toEqual(gitBefore);
+    const parsed = JSON.parse(first.stdout) as { readiness: boolean; repository_revision: string; anchors: { records: unknown[]; candidate_count: number; review_count: number; admitted_count: number; review_artifact_digest: string | null; admitted_artifact_digest: string | null }; record_sets: { physical: unknown[]; logical: unknown[] }; drift: Array<{ code: string }> };
+    expect(parsed.repository_revision).toMatch(/^[0-9a-f]{40}$/u);
+    expect(parsed.record_sets.physical.length).toBeGreaterThan(0);
+    expect(parsed.record_sets.logical.length).toBeGreaterThan(0);
+    expect(parsed.anchors).toMatchObject({ records: [], candidate_count: 32, review_count: 0, admitted_count: 0, review_artifact_digest: null, admitted_artifact_digest: null });
+    expect(parsed.drift.some((item) => item.code === 'ANCHOR_REVIEW_ATTESTATION_MISSING')).toBe(true);
+    expect(parsed.readiness).toBe(false);
+    expect(parsed.drift.some((item) => item.code === 'DATABASE_SNAPSHOT_REQUIRED')).toBe(true);
+  }, 120_000);
+
+  it('rejects an independently valid attestation from an older repository revision', () => {
+    const result = spawnSync(process.execPath, ['--import', 'tsx', 'scripts/knowledge-governance/input-inventory/cli.ts', '--captured-at', '2026-07-19T00:00:00.000Z', '--anchor-review-attestation', 'scripts/knowledge-governance/input-inventory/fixtures/anchor-review-attestation.json', '--allow-blocked'], { cwd: root, encoding: 'utf8', maxBuffer: 128 * 1024 * 1024 });
+    expect(result.status).toBe(0);
+    const manifest = JSON.parse(result.stdout) as { anchors: { records: Array<{ anchor_id: string }>; observed_count: number; candidate_count: number; review_count: number; admitted_count: number; review_artifact_digest: string | null; admitted_artifact_digest: string | null }; drift: Array<{ code: string; detail?: string }> };
+    expect(manifest.anchors).toMatchObject({ records: [], observed_count: 0, candidate_count: 32, review_count: 0, admitted_count: 0, review_artifact_digest: null, admitted_artifact_digest: null });
+    expect(manifest.drift).toContainEqual(expect.objectContaining({ code: 'ANCHOR_REVIEW_ATTESTATION_INVALID', detail: expect.stringMatching(/does not match current repository revision/u) }));
+  }, 120_000);
+
+  it('CLI is stdout-only with transport/write traps and preserves tracked, untracked, ignored, runtime and inventoried fingerprints', async () => {
+    const registry = await loadRegistry(root, 'docs/proposals/course-knowledge-base-governance-source-registry.yaml');
+    const inventoryDrift: never[] = [];
+    const repository = await enumerateRepository(root, registry, inventoryDrift);
+    const inventoried = repository.sources.flatMap((source) => source.physical_paths as string[]);
+    const fingerprintPaths = [...new Set([...inventoried, 'scripts/knowledge-governance/input-inventory/manifest.ts', 'scripts/knowledge-governance/input-inventory/manifest.schema.json'])];
+    const fingerprintsBefore = await sourceFingerprints(root, fingerprintPaths);
+    const gitBefore = spawnSync('git', ['status', '--porcelain=v1', '--untracked-files=all'], { cwd: root, encoding: 'utf8' }).stdout;
+    const writerTempsBefore = new Set((await readdir(os.tmpdir())).filter((item) => item.startsWith('knowledge-writer-revision-')));
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-trap-'));
+    try {
+      const trap = `const net=require('node:net'),http=require('node:http'),https=require('node:https'),fs=require('node:fs'); const deny=()=>{throw new Error('transport/write trap');}; net.Socket.prototype.connect=deny; http.request=deny; https.request=deny; global.fetch=deny; for(const k of ['writeFile','appendFile','createWriteStream','rename','unlink']) fs[k]=deny;`;
+      const trapPath = path.join(directory, 'trap.cjs');
+      await writeFile(trapPath, trap);
+      const env = { ...process.env, NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ''} --require=${trapPath}`, GH_TOKEN: 'transport-trap', GITHUB_TOKEN: 'transport-trap', DATABASE_URL: 'postgresql://transport-trap.invalid/db' };
+      const blocked = spawnSync(process.execPath, ['--import', 'tsx', 'scripts/knowledge-governance/input-inventory/cli.ts', '--captured-at', '2026-07-19T00:00:00.000Z'], { cwd: root, encoding: 'utf8', env, maxBuffer: 128 * 1024 * 1024 });
+      expect(blocked.status).toBe(2);
+      expect(blocked.stderr).toBe('');
+      expect(JSON.parse(blocked.stdout).readiness).toBe(false);
+      const inspect = spawnSync(process.execPath, ['--import', 'tsx', 'scripts/knowledge-governance/input-inventory/cli.ts', '--captured-at', '2026-07-19T00:00:00.000Z', '--allow-blocked'], { cwd: root, encoding: 'utf8', env, maxBuffer: 128 * 1024 * 1024 });
+      expect(inspect.status).toBe(0);
+      expect(inspect.stdout).toBe(blocked.stdout);
+    } finally { await rm(directory, { recursive: true }); }
+    expect(await sourceFingerprints(root, fingerprintPaths)).toEqual(fingerprintsBefore);
+    expect(spawnSync('git', ['status', '--porcelain=v1', '--untracked-files=all'], { cwd: root, encoding: 'utf8' }).stdout).toBe(gitBefore);
+    expect(new Set((await readdir(os.tmpdir())).filter((item) => item.startsWith('knowledge-writer-revision-')))).toEqual(writerTempsBefore);
+  }, 120_000);
+});

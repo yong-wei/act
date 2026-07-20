@@ -1,0 +1,8 @@
+{
+  "schema_version": "synthetic-course-scope-anchors/v1",
+  "anchors": [
+    { "anchor_scope": "course", "anchor_type": "formal_objective", "course_id": "synthetic-course", "module_id": null, "lesson_id": null, "source_locator": "fixture.md#course", "text": "Synthetic course objective" },
+    { "anchor_scope": "module", "anchor_type": "necessary_prerequisite", "course_id": "synthetic-course", "module_id": "module-1", "lesson_id": null, "source_locator": "fixture.md#module", "text": "Synthetic module prerequisite" },
+    { "anchor_scope": "lesson", "anchor_type": "explicit_extension", "course_id": "synthetic-course", "module_id": "module-1", "lesson_id": "lesson-1", "source_locator": "fixture.md#lesson", "text": "Synthetic lesson extension" }
+  ]
+}
