@@ -604,6 +604,10 @@ const NON_PRIMARY_APP_PAGE_LEDGER_EXEMPTIONS = new Map<string, string>([
     'src/app/review/annotated-media-activity-564/page.tsx',
     'issue 564 annotated media activity is an internal visual acceptance surface launched from the review hub',
   ],
+  [
+    'src/app/review/generated-slide-runtime-938/[projection]/page.tsx',
+    'issue 938 generated slide runtime is an authenticated internal validation surface, not a primary product route',
+  ],
 ]);
 
 function appPageRouteHref(file: string) {
@@ -667,6 +671,10 @@ function assertCoveredRouteGlobDoesNotHideStaticPages() {
   const issue562ReviewHref = appPageRouteHref('src/app/review/derivation-stage-runtime-562/page.tsx');
   if (issue562ReviewHref !== undefined) {
     throw new Error('issue 562 review page must remain a non-primary route-ledger exception');
+  }
+  const issue938ReviewHref = appPageRouteHref('src/app/review/generated-slide-runtime-938/[projection]/page.tsx');
+  if (issue938ReviewHref !== undefined) {
+    throw new Error('issue 938 review page must remain a non-primary route-ledger exception');
   }
 }
 

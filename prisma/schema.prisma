@@ -155,6 +155,16 @@ enum SmartCoursewareProviderAttemptOutcome {
   CANCELLED
 }
 
+enum SmartCoursewarePublicationReceiptKind {
+  STATIC
+  BROWSER
+}
+
+enum SmartCoursewarePublicationGapScope {
+  GOAL
+  MODULE
+}
+
 enum AssignmentLifecycleState {
   DRAFT
   PUBLISHED
@@ -481,31 +491,35 @@ model User {
   learningMaterializationOutbox         LearningMaterializationOutbox[]
 
   // Arena mode
-  arenaControllerArtifacts         ArenaControllerArtifact[]
-  arenaSubmissions                 ArenaSubmission[]
-  arenaBlackBoxExperiments         ArenaBlackBoxExperiment[]
-  arenaIdentificationModels        ArenaIdentificationModel[]
-  arenaVirtualSimulationRuns       ArenaVirtualSimulationRun[]
-  simulationRuns                   SimulationRun[]
-  arenaChallengePublications       ArenaChallengePublication[]          @relation("ArenaChallengePublications")
-  authoredAssignments              Assignment[]                         @relation("AssignmentAuthor")
-  assignmentReviewGrants           AssignmentReviewGrant[]              @relation("AssignmentReviewGrantee")
-  issuedAssignmentReviewGrants     AssignmentReviewGrant[]              @relation("AssignmentReviewGrantIssuer")
-  assignmentHistoricalOwnerships   AssignmentHistoricalOwnership[]
-  assignmentSubmissions            AssignmentSubmission[]
-  requestedGradingBatches          GradingBatch[]                       @relation("GradingBatchRequester")
-  teacherAssignmentReviews         TeacherAssignmentReview[]            @relation("TeacherAssignmentReviewReviewer")
-  teacherApprovalSnapshots         TeacherAssignmentApprovalSnapshot[]  @relation("TeacherAssignmentApprovalReviewer")
-  teacherResubmissionGrants        TeacherAssignmentResubmissionGrant[] @relation("TeacherAssignmentResubmissionGrantTeacher")
-  teacherQuestionExemptions        TeacherAssignmentQuestionExemption[] @relation("TeacherAssignmentQuestionExemptionActor")
-  ownedCourseBases                 CourseBasis[]                        @relation("CourseBasisOwner")
-  reviewedCourseBasisVersions      CourseBasisDocumentVersion[]         @relation("CourseBasisVersionReviewer")
-  retiredCourseBasisVersions       CourseBasisDocumentVersion[]         @relation("CourseBasisVersionRetirer")
-  ownedSmartLessonTasks            SmartLessonTask[]                    @relation("SmartLessonTaskOwner")
-  approvedSmartLessonRevisions     SmartLessonRevision[]                @relation("SmartLessonRevisionApprover")
-  approvedSmartCoursewareRevisions SmartCoursewareRevision[]            @relation("SmartCoursewareRevisionApprover")
-  ownedSmartCoursewareDrafts       SmartCoursewareDraft[]               @relation("SmartCoursewareDraftOwner")
-  smartCoursewareModuleRevisions   SmartCoursewareModuleRevision[]      @relation("SmartCoursewareModuleRevisionActor")
+  arenaControllerArtifacts             ArenaControllerArtifact[]
+  arenaSubmissions                     ArenaSubmission[]
+  arenaBlackBoxExperiments             ArenaBlackBoxExperiment[]
+  arenaIdentificationModels            ArenaIdentificationModel[]
+  arenaVirtualSimulationRuns           ArenaVirtualSimulationRun[]
+  simulationRuns                       SimulationRun[]
+  arenaChallengePublications           ArenaChallengePublication[]               @relation("ArenaChallengePublications")
+  authoredAssignments                  Assignment[]                              @relation("AssignmentAuthor")
+  assignmentReviewGrants               AssignmentReviewGrant[]                   @relation("AssignmentReviewGrantee")
+  issuedAssignmentReviewGrants         AssignmentReviewGrant[]                   @relation("AssignmentReviewGrantIssuer")
+  assignmentHistoricalOwnerships       AssignmentHistoricalOwnership[]
+  assignmentSubmissions                AssignmentSubmission[]
+  requestedGradingBatches              GradingBatch[]                            @relation("GradingBatchRequester")
+  teacherAssignmentReviews             TeacherAssignmentReview[]                 @relation("TeacherAssignmentReviewReviewer")
+  teacherApprovalSnapshots             TeacherAssignmentApprovalSnapshot[]       @relation("TeacherAssignmentApprovalReviewer")
+  teacherResubmissionGrants            TeacherAssignmentResubmissionGrant[]      @relation("TeacherAssignmentResubmissionGrantTeacher")
+  teacherQuestionExemptions            TeacherAssignmentQuestionExemption[]      @relation("TeacherAssignmentQuestionExemptionActor")
+  ownedCourseBases                     CourseBasis[]                             @relation("CourseBasisOwner")
+  reviewedCourseBasisVersions          CourseBasisDocumentVersion[]              @relation("CourseBasisVersionReviewer")
+  retiredCourseBasisVersions           CourseBasisDocumentVersion[]              @relation("CourseBasisVersionRetirer")
+  ownedSmartLessonTasks                SmartLessonTask[]                         @relation("SmartLessonTaskOwner")
+  approvedSmartLessonRevisions         SmartLessonRevision[]                     @relation("SmartLessonRevisionApprover")
+  approvedSmartCoursewareRevisions     SmartCoursewareRevision[]                 @relation("SmartCoursewareRevisionApprover")
+  ownedSmartCoursewareDrafts           SmartCoursewareDraft[]                    @relation("SmartCoursewareDraftOwner")
+  smartCoursewareModuleRevisions       SmartCoursewareModuleRevision[]           @relation("SmartCoursewareModuleRevisionActor")
+  smartCoursewarePublicationReceipts   SmartCoursewarePublicationReceipt[]       @relation("SmartCoursewarePublicationReceiptActor")
+  smartCoursewareGapAcknowledgements   SmartCoursewareGapAcknowledgement[]       @relation("SmartCoursewareGapAcknowledgementActor")
+  smartCoursewareStaleAcknowledgements SmartCoursewareStalePlanAcknowledgement[] @relation("SmartCoursewareStalePlanAcknowledgementActor")
+  publishedSmartCoursewareRevisions    SmartCoursewarePublicationRevision[]      @relation("SmartCoursewarePublicationActor")
 }
 
 model CourseBasis {
@@ -637,13 +651,14 @@ model SmartLessonTask {
   createdAt                   DateTime  @default(now())
   updatedAt                   DateTime  @updatedAt
 
-  owner           User                         @relation("SmartLessonTaskOwner", fields: [ownerId], references: [id], onDelete: Restrict)
-  courseBasis     CourseBasis                  @relation(fields: [courseBasisId], references: [id], onDelete: Restrict)
-  sources         SmartLessonSourceSelection[]
-  knowledgePoints SmartLessonKnowledgePoint[]
-  goals           SmartLessonGoal[]
-  drafts          SmartLessonDraft[]
-  revisions       SmartLessonRevision[]
+  owner                       User                              @relation("SmartLessonTaskOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  courseBasis                 CourseBasis                       @relation(fields: [courseBasisId], references: [id], onDelete: Restrict)
+  sources                     SmartLessonSourceSelection[]
+  knowledgePoints             SmartLessonKnowledgePoint[]
+  goals                       SmartLessonGoal[]
+  drafts                      SmartLessonDraft[]
+  revisions                   SmartLessonRevision[]
+  coursewarePublicationSeries SmartCoursewarePublicationSeries?
 
   @@index([ownerId, updatedAt])
   @@index([ownerId, courseBasisId])
@@ -755,11 +770,14 @@ model SmartLessonRevision {
   approvedById           String
   approvedAt             DateTime @default(now())
 
-  task             SmartLessonTask        @relation(fields: [taskId], references: [id], onDelete: Restrict)
-  draft            SmartLessonDraft       @relation("SmartLessonApprovedDraft", fields: [draftId], references: [id], onDelete: Restrict)
-  approvedBy       User                   @relation("SmartLessonRevisionApprover", fields: [approvedById], references: [id], onDelete: Restrict)
-  derivedDrafts    SmartLessonDraft[]     @relation("SmartLessonDraftBaseRevision")
-  coursewareDrafts SmartCoursewareDraft[]
+  task                            SmartLessonTask                           @relation(fields: [taskId], references: [id], onDelete: Restrict)
+  draft                           SmartLessonDraft                          @relation("SmartLessonApprovedDraft", fields: [draftId], references: [id], onDelete: Restrict)
+  approvedBy                      User                                      @relation("SmartLessonRevisionApprover", fields: [approvedById], references: [id], onDelete: Restrict)
+  derivedDrafts                   SmartLessonDraft[]                        @relation("SmartLessonDraftBaseRevision")
+  coursewareDrafts                SmartCoursewareDraft[]
+  approvedCoursewareRevisions     SmartCoursewareRevision[]                 @relation("SmartCoursewareApprovalPlanRevision")
+  coursewarePublications          SmartCoursewarePublicationRevision[]      @relation("SmartCoursewarePublicationPlanRevision")
+  staleCoursewareAcknowledgements SmartCoursewareStalePlanAcknowledgement[] @relation("SmartCoursewareStalePlanAcknowledgementNewestRevision")
 
   @@unique([taskId, revisionNumber])
   @@unique([ownerId, approvalIdempotencyKey])
@@ -932,13 +950,146 @@ model SmartCoursewareRevision {
   approvedById           String
   approvedAt             DateTime @default(now())
 
-  draft      SmartCoursewareDraft @relation(fields: [draftId], references: [id], onDelete: Restrict)
-  approvedBy User                 @relation("SmartCoursewareRevisionApprover", fields: [approvedById], references: [id], onDelete: Restrict)
+  draft                     SmartCoursewareDraft                      @relation(fields: [draftId], references: [id], onDelete: Restrict)
+  approvedBy                User                                      @relation("SmartCoursewareRevisionApprover", fields: [approvedById], references: [id], onDelete: Restrict)
+  planRevision              SmartLessonRevision                       @relation("SmartCoursewareApprovalPlanRevision", fields: [planRevisionId], references: [id], onDelete: Restrict)
+  publicationReceipts       SmartCoursewarePublicationReceipt[]
+  gapAcknowledgements       SmartCoursewareGapAcknowledgement[]
+  stalePlanAcknowledgements SmartCoursewareStalePlanAcknowledgement[]
+  publication               SmartCoursewarePublicationRevision?
+  publicationOperations     SmartCoursewarePublicationOperation[]
 
   @@unique([draftId, revisionNumber])
   @@unique([ownerId, approvalIdempotencyKey])
   @@index([ownerId, approvedAt])
   @@index([planRevisionId])
+}
+
+model SmartCoursewarePublicationSeries {
+  id                 String   @id @default(cuid())
+  ownerId            String
+  taskId             String   @unique
+  nextRevisionNumber Int      @default(1)
+  createdAt          DateTime @default(now())
+
+  task      SmartLessonTask                      @relation(fields: [taskId], references: [id], onDelete: Restrict)
+  revisions SmartCoursewarePublicationRevision[]
+
+  @@index([ownerId, createdAt])
+}
+
+model SmartCoursewarePublicationReceipt {
+  id               String                                @id @default(cuid())
+  ownerId          String
+  sourceRevisionId String
+  kind             SmartCoursewarePublicationReceiptKind
+  contentHash      String
+  validatorVersion String
+  profileHash      String
+  browserVersion   String?
+  fontVersion      String?
+  evidence         Json                                  @default("{}")
+  completedById    String
+  completedAt      DateTime                              @default(now())
+
+  sourceRevision SmartCoursewareRevision @relation(fields: [sourceRevisionId], references: [id], onDelete: Restrict)
+  completedBy    User                    @relation("SmartCoursewarePublicationReceiptActor", fields: [completedById], references: [id], onDelete: Restrict)
+
+  @@unique([sourceRevisionId, kind, contentHash, validatorVersion, profileHash])
+  @@index([ownerId, sourceRevisionId, kind, completedAt])
+}
+
+model SmartCoursewareGapAcknowledgement {
+  id                   String                             @id @default(cuid())
+  ownerId              String
+  sourceRevisionId     String
+  scope                SmartCoursewarePublicationGapScope
+  targetId             String
+  gapIdentity          String
+  targetContentHash    String
+  sourceState          String
+  sourceBindingSetHash String
+  reason               String                             @db.Text
+  acknowledgedById     String
+  acknowledgedAt       DateTime                           @default(now())
+
+  sourceRevision SmartCoursewareRevision @relation(fields: [sourceRevisionId], references: [id], onDelete: Restrict)
+  acknowledgedBy User                    @relation("SmartCoursewareGapAcknowledgementActor", fields: [acknowledgedById], references: [id], onDelete: Restrict)
+
+  @@unique([ownerId, scope, gapIdentity])
+  @@index([sourceRevisionId, scope, targetId])
+}
+
+model SmartCoursewareStalePlanAcknowledgement {
+  id                      String   @id @default(cuid())
+  ownerId                 String
+  sourceRevisionId        String
+  baselinePlanRevisionId  String
+  baselineRevisionNumber  Int
+  baselinePlanContentHash String
+  newestPlanRevisionId    String
+  newestRevisionNumber    Int
+  newestPlanContentHash   String
+  reason                  String   @db.Text
+  acknowledgedById        String
+  acknowledgedAt          DateTime @default(now())
+
+  sourceRevision     SmartCoursewareRevision @relation(fields: [sourceRevisionId], references: [id], onDelete: Restrict)
+  newestPlanRevision SmartLessonRevision     @relation("SmartCoursewareStalePlanAcknowledgementNewestRevision", fields: [newestPlanRevisionId], references: [id], onDelete: Restrict)
+  acknowledgedBy     User                    @relation("SmartCoursewareStalePlanAcknowledgementActor", fields: [acknowledgedById], references: [id], onDelete: Restrict)
+
+  @@unique([ownerId, sourceRevisionId, newestPlanRevisionId])
+  @@index([sourceRevisionId, newestRevisionNumber])
+}
+
+model SmartCoursewarePublicationRevision {
+  id                               String   @id @default(cuid())
+  ownerId                          String
+  seriesId                         String
+  revisionNumber                   Int
+  displayName                      String
+  sourceRevisionId                 String   @unique
+  sourceContentHash                String
+  planRevisionId                   String
+  planRevisionNumber               Int
+  manifestSnapshot                 Json
+  manifestHash                     String
+  moduleMetadataSnapshot           Json
+  gapsSnapshot                     Json
+  provenanceSnapshot               Json
+  validationSnapshot               Json
+  receiptSnapshot                  Json
+  acknowledgementSnapshot          Json
+  stalePlanAcknowledgementSnapshot Json?
+  contentHash                      String
+  publishedById                    String
+  publishedAt                      DateTime @default(now())
+
+  series         SmartCoursewarePublicationSeries      @relation(fields: [seriesId], references: [id], onDelete: Restrict)
+  sourceRevision SmartCoursewareRevision               @relation(fields: [sourceRevisionId], references: [id], onDelete: Restrict)
+  planRevision   SmartLessonRevision                   @relation("SmartCoursewarePublicationPlanRevision", fields: [planRevisionId], references: [id], onDelete: Restrict)
+  publishedBy    User                                  @relation("SmartCoursewarePublicationActor", fields: [publishedById], references: [id], onDelete: Restrict)
+  operations     SmartCoursewarePublicationOperation[]
+
+  @@unique([seriesId, revisionNumber])
+  @@index([ownerId, publishedAt])
+  @@index([planRevisionId])
+}
+
+model SmartCoursewarePublicationOperation {
+  id                    String   @id @default(cuid())
+  ownerId               String
+  idempotencyKey        String
+  requestHash           String
+  sourceRevisionId      String
+  publicationRevisionId String
+  createdAt             DateTime @default(now())
+
+  publicationRevision SmartCoursewarePublicationRevision @relation(fields: [publicationRevisionId], references: [id], onDelete: Restrict)
+  sourceRevision      SmartCoursewareRevision            @relation(fields: [sourceRevisionId], references: [id], onDelete: Restrict)
+
+  @@unique([ownerId, idempotencyKey])
+  @@index([sourceRevisionId, createdAt])
 }
 
 model SmartCoursewareModule {

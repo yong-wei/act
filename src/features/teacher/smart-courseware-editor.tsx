@@ -1,8 +1,12 @@
 'use client';
 
-import { useMemo, useState, type ReactNode } from 'react';
+import { useMemo, useState } from 'react';
 
 import { createManifestContentModuleRegistry } from '@/features/interactive/shared/manifest-runtime/content-renderers';
+import {
+  createGeneratedSlideMarkedContentRegistry,
+  GeneratedSlideMarkedActivityPanel,
+} from '@/features/interactive/shared/manifest-runtime/generated-slide-marked-renderers';
 import {
   createManifestStudentActivityRegistry,
   renderStudentInteractiveActivity,
@@ -919,11 +923,15 @@ function CoursewareManifestPreview({
   projection: 'teacher' | 'student';
 }) {
   const extra = useMemo(() => ({ revealProgress: 0, allowInlineReveal: false, interactionMode: 'readonly' as const }), []);
-  const moduleRegistry = useMemo(() => createManifestContentModuleRegistry(extra), [extra]);
-  const activityRenderer: GeneratedSlideActivityRenderer<typeof extra> = ({ module }) => (
+  const moduleRegistry = useMemo(() => createGeneratedSlideMarkedContentRegistry(manifest), [manifest]);
+  const activityRenderer: GeneratedSlideActivityRenderer<typeof extra> = ({ module, projection: activityProjection }) => (
     <div className="space-y-2" data-courseware-preview-activity={module.id}>
-      <p>{String(module.payload.prompt ?? '')}</p>
-      <ActivityControl payload={module.payload} />
+      <GeneratedSlideMarkedActivityPanel
+        moduleId={module.id}
+        responseKind={module.payload.responseKind}
+        payload={module.payload}
+        projection={activityProjection}
+      />
     </div>
   );
 
@@ -943,17 +951,6 @@ function CoursewareManifestPreview({
       ))}
     </div>
   );
-}
-
-function ActivityControl({ payload }: { payload: Record<string, unknown> }): ReactNode {
-  const options = Array.isArray(payload.options) ? payload.options : [];
-  if (options.length) {
-    return <div className="flex flex-wrap gap-2">{options.map((option, index) => {
-      const item = option as { value?: unknown; label?: unknown };
-      return <button type="button" disabled key={`${String(item.value)}:${index}`} className="rounded border border-border px-2 py-1 text-sm">{String(item.label ?? item.value ?? '')}</button>;
-    })}</div>;
-  }
-  return <textarea aria-label="学生作答预览" disabled rows={2} className="w-full rounded border border-border bg-background p-2" />;
 }
 
 function CoursewareJobPanel({
