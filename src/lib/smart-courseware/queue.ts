@@ -4,7 +4,7 @@ import { Queue } from 'bullmq';
 import { redisClient } from '@/lib/redis-client';
 
 import { SmartCoursewareError } from './domain';
-import { COURSEWARE_GENERATION_QUEUE, ensureCoursewareGenerationWorker } from './worker';
+import { COURSEWARE_GENERATION_QUEUE } from './worker';
 
 type QueueLike = Pick<Queue<{ jobId: string }>, 'add' | 'close'>;
 let queue: Queue<{ jobId: string }> | null = null;
@@ -36,7 +36,6 @@ export async function enqueueCoursewareGenerationJob(db: PrismaClient, jobId: st
       const connection = redisClient.getClient();
       if (!connection) throw new Error('redis-unavailable');
       await connection.ping();
-      await ensureCoursewareGenerationWorker(connection);
       queue ??= new Queue(COURSEWARE_GENERATION_QUEUE, {
         connection,
         ...(queuePrefix() ? { prefix: queuePrefix() } : {}),
