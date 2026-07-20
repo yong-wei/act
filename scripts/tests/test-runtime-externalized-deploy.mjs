@@ -72,6 +72,13 @@ assert.equal(
 );
 
 assert.equal(
+  dockerignore.includes('!scripts/knowledge/**') &&
+    dockerfile.includes('COPY --from=builder /app/scripts/knowledge ./scripts/knowledge'),
+  true,
+  '生产镜像必须包含知识图谱同步使用的严格关系校验脚本',
+);
+
+assert.equal(
   deployScript.includes('-v "${RUNTIME_CONTENT_DIR}:/app/course-content/runtime:ro"'),
   true,
   'Podman 部署脚本应把外部 runtime 目录只读挂载到容器内 /app/course-content/runtime',

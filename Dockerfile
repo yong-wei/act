@@ -97,6 +97,7 @@ COPY --from=builder /app/package-lock.json ./package-lock.json
 COPY --from=builder /app/tsconfig.json ./tsconfig.json
 COPY --from=builder /app/src ./src
 COPY --from=builder /app/scripts/db ./scripts/db
+COPY --from=builder /app/scripts/knowledge ./scripts/knowledge
 COPY --from=builder /app/scripts/assignments ./scripts/assignments
 COPY --from=builder /app/scripts/lib ./scripts/lib
 COPY --from=builder /app/scripts/workers ./scripts/workers
