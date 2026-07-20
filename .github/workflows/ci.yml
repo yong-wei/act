@@ -39,6 +39,9 @@ jobs:
       - name: Generate Prisma Client
         run: npx prisma generate
 
+      - name: Build control engine WASM
+        run: npm run wasm:build:control-engine
+
       - name: Lint
         run: npm run lint
 
