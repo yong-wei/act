@@ -35,7 +35,31 @@ export async function requireSmartCoursewareActor(): Promise<
 export async function readCoursewareJson(request: Request) {
   const length = Number(request.headers.get('content-length') ?? 0);
   if (Number.isFinite(length) && length > 1_000_000) throw new SmartCoursewareError('request-too-large', 413);
-  return request.json();
+  if (!request.body) return request.json();
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let totalBytes = 0;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      totalBytes += value.byteLength;
+      if (totalBytes > 1_000_000) {
+        await reader.cancel().catch(() => undefined);
+        throw new SmartCoursewareError('request-too-large', 413);
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  const body = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    body.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return JSON.parse(new TextDecoder().decode(body));
 }
 
 export function smartCoursewareErrorResponse(error: unknown): NextResponse {

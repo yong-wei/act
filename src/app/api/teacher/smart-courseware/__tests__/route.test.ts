@@ -51,6 +51,7 @@ import { POST as transitionJob } from '../jobs/[jobId]/route';
 import { POST as regenerateModule } from '../drafts/[draftId]/modules/[moduleId]/regeneration/route';
 import { POST as acceptCandidate } from '../jobs/[jobId]/accept/route';
 import { POST as approveDraft } from '../drafts/[draftId]/approve/route';
+import { readCoursewareJson } from '../_shared';
 
 const context = { params: Promise.resolve({ draftId: 'draft-1' }) };
 
@@ -58,6 +59,49 @@ describe('smart courseware teacher routes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.session = { user: { id: 'teacher-1', role: 'TEACHER' } };
+  });
+
+  it('reads a normal JSON request without Content-Length', async () => {
+    const request = new Request('http://localhost', {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'resume' }),
+    });
+    expect(request.headers.get('content-length')).toBeNull();
+    await expect(readCoursewareJson(request)).resolves.toEqual({ action: 'resume' });
+  });
+
+  it('rejects actual bytes above the limit when Content-Length is forged smaller', async () => {
+    const request = new Request('http://localhost', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'content-length': '12' },
+      body: JSON.stringify({ value: 'x'.repeat(1_000_000) }),
+    });
+    await expect(readCoursewareJson(request)).rejects.toMatchObject({ code: 'request-too-large', status: 413 });
+  });
+
+  it('cancels a chunked body as soon as its actual bytes exceed the limit', async () => {
+    const cancel = vi.fn();
+    const chunks = [new Uint8Array(600_000), new Uint8Array(400_001), new Uint8Array(100)];
+    const stream = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        const chunk = chunks.shift();
+        if (chunk) controller.enqueue(chunk);
+        else controller.close();
+      },
+      cancel,
+    });
+    const request = new Request('http://localhost', {
+      method: 'POST', body: stream, duplex: 'half',
+    } as RequestInit & { duplex: 'half' });
+    expect(request.headers.get('content-length')).toBeNull();
+
+    await expect(readCoursewareJson(request)).rejects.toMatchObject({ code: 'request-too-large', status: 413 });
+    expect(cancel).toHaveBeenCalledTimes(1);
+    expect(chunks).toHaveLength(1);
+  });
+
+  it('keeps invalid JSON mapped to the existing SyntaxError semantics', async () => {
+    const request = new Request('http://localhost', { method: 'POST', body: '{invalid' });
+    await expect(readCoursewareJson(request)).rejects.toBeInstanceOf(SyntaxError);
   });
 
   it('creates an approved-plan-bound draft with an idempotency key', async () => {
