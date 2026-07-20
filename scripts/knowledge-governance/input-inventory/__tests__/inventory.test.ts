@@ -7,7 +7,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { canonicalJson, compareCodePoints, normalizePath, normalizeText, taggedDigest } from '../normalize';
 import { loadImmutableExport, validateDatabaseClosure } from '../database-snapshot';
-import { assertAggregateExportShape, contractsFromRegistry, currentDatabaseExportAuthority, DATABASE_EXPORT_FORMAT, deriveProof, exportAggregateDatabase, fieldSummaryKey, jsonPathCategoryKey, jsonSummaryKey, latestWatermark, publishExportArtifacts, suppressRows, type AggregateDatabaseExport, type AggregateDatasetExport } from '../database-export';
+import { assertAggregateExportShape, contractsFromRegistry, currentDatabaseExportAuthority, DATABASE_EXPORT_FORMAT, deriveProof, exportAggregateDatabase, fieldSummaryKey, groupedRelationSummary, groupedSummary, jsonPathCategoryKey, jsonSummaryKey, latestWatermark, publishExportArtifacts, suppressRows, type AggregateDatabaseExport, type AggregateDatasetExport } from '../database-export';
 import { discoverWriters, discoverWritersInSource } from '../writer-discovery';
 import { validateOutputPrivacy } from '../schema-validation';
 import { buildManifest, sourceFingerprints } from '../manifest';
@@ -77,6 +77,24 @@ describe('normalization contract', () => {
     expect(suppressRows([{ category: 'e\u0301', count: 6 }, { category: 'é', count: 7 }])).toEqual({ é: 13 });
     expect(suppressRows([{ category: 'é', count: 2 }, { category: 'e\u0301', count: 6 }])).toEqual({ é: 8 });
     expect(suppressRows([{ category: 'é', count: 2 }, { category: 'e\u0301', count: 2 }])).toEqual({ é: 'suppressed' });
+    expect(suppressRows(['a b', 'c d', 'e f', 'g h', 'i j'].map((category) => ({ category, count: 1 })))).toEqual({ __non_public_category__: 'suppressed' });
+  });
+
+  it('suppresses one learner with five rows and publishes a category only for five learners', async () => {
+    const statements: string[] = [];
+    let distinctLearners = 1;
+    const client = { query: async (statement: string) => {
+      statements.push(statement);
+      return statement.startsWith('EXPLAIN') ? { rows: [] } : { rows: [{ category: 'view', count: String(distinctLearners) }] };
+    } };
+    expect((await groupedSummary(client as never, 'InteractionLog', 'eventType', undefined, 'userId')).summary).toEqual({ view: 'suppressed' });
+    expect(statements[0]).toContain('count(DISTINCT "userId")');
+    distinctLearners = 5;
+    expect((await groupedSummary(client as never, 'InteractionLog', 'eventType', undefined, 'userId')).summary).toEqual({ view: 5 });
+    statements.length = 0;
+    await groupedRelationSummary(client as never, '_OwnerToTarget', 'B', 'A', 'InteractionLog', 'userId');
+    expect(statements[0]).toContain('count(DISTINCT owners."userId")');
+    expect(statements[0]).toContain('JOIN "InteractionLog" AS owners');
   });
 
   it('normalizes NFC and LF, rejects BOM, and sorts by Unicode code point', () => {
@@ -270,6 +288,7 @@ describe('immutable database privacy boundary', () => {
       } catch (error) { failure = error; }
       expect(failure).toBeInstanceOf(Error);
       expect((failure as Error).message).not.toMatch(/private summary field|unknown summary locator/u);
+      expect((failure as Error).message).toMatch(/connect ECONNREFUSED 127\.0\.0\.1:1/u);
       expect(existsSync(outputPath)).toBe(false);
       expect(existsSync(proofPath)).toBe(false);
       expect(existsSync(artifactParent)).toBe(true);
@@ -540,6 +559,19 @@ describe('registry and real repository fixed integration', () => {
     expect(registry.repository_sources.find((source) => source.id === 'knowledge-direct-writers')?.include).toHaveLength(47);
     const expected = JSON.parse(await readFile(path.join(root, 'scripts/knowledge-governance/input-inventory/fixtures/real-repository-structure.json'), 'utf8')) as { registry_contract: Record<string, number> };
     expect(expected.registry_contract).toEqual({ repository_sources: 14, database_sources: 9, decoder_contracts: 16, field_decoders: 41, namespaces: 45, declared_writer_paths: 47 });
+  });
+
+  it('derives the database table set from registry additions and removals and rejects dangling dependencies', async () => {
+    const registry = await loadRegistry(root, 'docs/proposals/course-knowledge-base-governance-source-registry.yaml');
+    const baseline = contractsFromRegistry(registry);
+    const added = structuredClone(registry);
+    added.database_sources.push({ id: 'dynamic-fixture', tables: ['User'], fields: { User: ['id'] }, privacy: 'non_learner' });
+    expect(contractsFromRegistry(added)).toHaveLength(baseline.length + 1);
+    added.database_sources.pop();
+    expect(contractsFromRegistry(added)).toHaveLength(baseline.length);
+    const dangling = structuredClone(registry);
+    dangling.database_sources.push({ id: 'dangling-fixture', tables: [], fields: { User: ['id'] }, privacy: 'non_learner' });
+    expect(() => contractsFromRegistry(dangling)).toThrow(/outside declared table closure/u);
   });
 
   it('is repeatable for a fixed real repository snapshot and preserves inventoried inputs', async () => {

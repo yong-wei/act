@@ -10,17 +10,6 @@ export const ANCHOR_MODEL_VERSION = 'course-scope-anchor-review/v1';
 export const ANCHOR_RULE_VERSION = 'authoritative-markdown-selectors/v1';
 export const ANCHOR_ARTIFACT_VERSION = 'course-scope-anchor-artifact/v1';
 
-export const AUTHORITATIVE_ANCHOR_MARKDOWN = [
-  'course-content/syllabus-refactor/blueprint.md',
-  'course-content/syllabus-refactor/main.md',
-  'course-content/syllabus-refactor/module-skeletons.md',
-  'course-content/syllabus-refactor/unit-design-details/module1.md',
-  'course-content/syllabus-refactor/unit-design-details/module2.md',
-  'course-content/syllabus-refactor/unit-design-details/module3.md',
-  'course-content/syllabus-refactor/unit-design-details/module4.md',
-  'course-content/syllabus-refactor/unit-design-details/module5.md',
-] as const;
-
 interface Selection {
   anchor_type: AnchorType;
   anchor_scope: AnchorScope;
@@ -156,8 +145,10 @@ function candidateWithoutDigest(candidate: Omit<AnchorCandidate, 'candidate_dige
   return candidate;
 }
 
-export async function extractAuthoritativeAnchorCandidates(options: { root: string; repositoryRevision: string; extractionRun: string }): Promise<AnchorCandidateArtifact> {
+export async function extractAuthoritativeAnchorCandidates(options: { root: string; repositoryRevision: string; extractionRun: string; authoritativeMarkdownPaths: string[] }): Promise<AnchorCandidateArtifact> {
   if (!options.repositoryRevision.trim() || !options.extractionRun.trim()) throw new Error('repositoryRevision and extractionRun are required');
+  const authoritativeMarkdownPaths = [...new Set(options.authoritativeMarkdownPaths.map(normalizePath))].sort(compareCodePoints);
+  if (authoritativeMarkdownPaths.length === 0) throw new Error('authoritative anchor registry is empty');
   const revision = spawnSync('git', ['rev-parse', '--verify', `${options.repositoryRevision}^{commit}`], { cwd: options.root, encoding: 'utf8' });
   if (revision.status !== 0 || revision.stdout.trim() !== options.repositoryRevision) throw new Error('authoritative anchor source revision does not exist');
   const readRevisionFile = (logicalPath: string): Buffer => {
@@ -165,13 +156,15 @@ export async function extractAuthoritativeAnchorCandidates(options: { root: stri
     if (result.status !== 0) throw new Error(`authoritative anchor source is missing from revision: ${logicalPath}`);
     return result.stdout;
   };
-  const blueprint = normalizeText(readRevisionFile(AUTHORITATIVE_ANCHOR_MARKDOWN[0]));
+  const blueprintPath = authoritativeMarkdownPaths.find((item) => item.endsWith('/blueprint.md'));
+  if (!blueprintPath) throw new Error('authoritative anchor registry has no blueprint');
+  const blueprint = normalizeText(readRevisionFile(blueprintPath));
   const courseName = /^\|\s*\*\*课程名称\*\*\s*\|\s*(.+?)\s*\|\s*$/mu.exec(blueprint)?.[1];
   const courseNumber = /^\|\s*\*\*(?:课程编号|课程代码)\*\*\s*\|\s*(.+?)\s*\|\s*$/mu.exec(blueprint)?.[1];
   if (!courseName) throw new Error('authoritative blueprint has no explicit course name');
   const course_id = identity('course-identity/v1', { course_name: normalizeQuote(courseName), course_number: courseNumber ? normalizeQuote(courseNumber) : null });
   const candidates: AnchorCandidate[] = [];
-  for (const registeredPath of AUTHORITATIVE_ANCHOR_MARKDOWN) {
+  for (const registeredPath of authoritativeMarkdownPaths) {
     const logicalPath = normalizePath(registeredPath);
     const text = normalizeText(readRevisionFile(logicalPath));
     const sourceDigest = taggedDigest('repository-text-file/v1', Buffer.from(text, 'utf8'));
@@ -209,10 +202,10 @@ export async function extractAuthoritativeAnchorCandidates(options: { root: stri
   return { ...base, artifact_digest: digestArtifact(base) };
 }
 
-function verifyCandidate(candidate: AnchorCandidate, extractionRun: string): void {
+function verifyCandidate(candidate: AnchorCandidate, extractionRun: string, authoritativeMarkdownPaths: Set<string>): void {
   if (candidate.extraction_run !== extractionRun) throw new Error('candidate extraction run mismatch');
   if (candidate.contract_version !== ANCHOR_CONTRACT_VERSION || candidate.model_version !== ANCHOR_MODEL_VERSION || candidate.rule_version !== ANCHOR_RULE_VERSION) throw new Error('candidate contract version mismatch');
-  if (candidate.source.source_root !== '.' || !AUTHORITATIVE_ANCHOR_MARKDOWN.includes(candidate.source.logical_path as typeof AUTHORITATIVE_ANCHOR_MARKDOWN[number])) throw new Error('candidate source is outside the authoritative registry');
+  if (candidate.source.source_root !== '.' || !authoritativeMarkdownPaths.has(candidate.source.logical_path)) throw new Error('candidate source is outside the authoritative registry');
   if (!candidate.source.repository_revision.trim() || !candidate.source.heading_locator.trim() || !candidate.source.row_locator.trim() || !candidate.source.quote_normalized.trim()) throw new Error('candidate provenance is incomplete');
   if (!/^sha256:[0-9a-f]{64}$/u.test(candidate.source.source_digest)) throw new Error('invalid source digest');
   if (candidate.source.quote_digest !== taggedDigest('anchor-quote/v1', candidate.source.quote_normalized)) throw new Error('candidate quote digest mismatch');
@@ -245,13 +238,14 @@ export function makeAnchorReviewArtifact(reviewRun: string, decisions: AnchorRev
   return { ...base, artifact_digest: digestArtifact(base) };
 }
 
-export function verifyAndAdmitAnchors(candidateArtifact: AnchorCandidateArtifact, reviewArtifact: AnchorReviewArtifact): AdmittedAnchorArtifact {
+export function verifyAndAdmitAnchors(candidateArtifact: AnchorCandidateArtifact, reviewArtifact: AnchorReviewArtifact, authoritativeMarkdownPaths: string[]): AdmittedAnchorArtifact {
   if (candidateArtifact.schema_version !== ANCHOR_ARTIFACT_VERSION || candidateArtifact.artifact_kind !== 'candidate') throw new Error('invalid candidate artifact contract');
   if (reviewArtifact.schema_version !== ANCHOR_ARTIFACT_VERSION || reviewArtifact.artifact_kind !== 'review') throw new Error('invalid review artifact contract');
   const candidateBase = { schema_version: candidateArtifact.schema_version, artifact_kind: candidateArtifact.artifact_kind, extraction_run: candidateArtifact.extraction_run, candidates: candidateArtifact.candidates };
   if (candidateArtifact.artifact_digest !== digestArtifact(candidateBase)) throw new Error('candidate artifact digest mismatch');
   if (new Set(candidateArtifact.candidates.map((item) => item.candidate_digest)).size !== candidateArtifact.candidates.length) throw new Error('duplicate anchor candidate');
-  for (const candidate of candidateArtifact.candidates) verifyCandidate(candidate, candidateArtifact.extraction_run);
+  const authoritativePathSet = new Set(authoritativeMarkdownPaths.map(normalizePath));
+  for (const candidate of candidateArtifact.candidates) verifyCandidate(candidate, candidateArtifact.extraction_run, authoritativePathSet);
   const reviewBase = { schema_version: reviewArtifact.schema_version, artifact_kind: reviewArtifact.artifact_kind, review_run: reviewArtifact.review_run, decisions: reviewArtifact.decisions };
   if (reviewArtifact.artifact_digest !== digestArtifact(reviewBase)) throw new Error('review artifact digest mismatch');
   if (reviewArtifact.review_run === candidateArtifact.extraction_run) throw new Error('review and extraction runs must differ');
@@ -287,7 +281,7 @@ export function verifyAndAdmitAnchors(candidateArtifact: AnchorCandidateArtifact
   return { ...base, artifact_digest: digestArtifact(base) };
 }
 
-export async function verifyAnchorReviewAttestation(root: string, attestationPath: string, expectedSourceRevision?: string): Promise<{ candidates: AnchorCandidateArtifact; review: AnchorReviewArtifact; admitted: AdmittedAnchorArtifact }> {
+export async function verifyAnchorReviewAttestation(root: string, attestationPath: string, authoritativeMarkdownPaths: string[], expectedSourceRevision?: string): Promise<{ candidates: AnchorCandidateArtifact; review: AnchorReviewArtifact; admitted: AdmittedAnchorArtifact }> {
   const safePath = normalizePath(attestationPath);
   const attestation = JSON.parse(normalizeText(await readFile(path.join(root, safePath)))) as AnchorReviewAttestation;
   if (attestation.schema_version !== 'course-scope-anchor-review-attestation/v1') throw new Error('unsupported anchor review attestation');
@@ -297,7 +291,7 @@ export async function verifyAnchorReviewAttestation(root: string, attestationPat
   if (expectedDigests.some((digest) => !/^sha256:[0-9a-f]{64}$/u.test(digest))) throw new Error('invalid anchor review attestation digest');
   if (!Array.isArray(attestation.accepted_candidate_digests) || new Set(attestation.accepted_candidate_digests).size !== attestation.accepted_candidate_digests.length) throw new Error('duplicate accepted anchor candidate');
   if (!Array.isArray(attestation.rejected_candidate_digests) || new Set(attestation.rejected_candidate_digests).size !== attestation.rejected_candidate_digests.length) throw new Error('duplicate rejected anchor candidate');
-  const candidates = await extractAuthoritativeAnchorCandidates({ root, repositoryRevision: attestation.source_revision, extractionRun: attestation.extraction_run });
+  const candidates = await extractAuthoritativeAnchorCandidates({ root, repositoryRevision: attestation.source_revision, extractionRun: attestation.extraction_run, authoritativeMarkdownPaths });
   if (candidates.artifact_digest !== attestation.candidate_artifact_digest) throw new Error('attested candidate artifact digest mismatch');
   const observed = candidates.candidates.map((item) => item.candidate_digest).sort(compareCodePoints);
   const accepted = [...attestation.accepted_candidate_digests].sort(compareCodePoints);
@@ -311,7 +305,7 @@ export async function verifyAnchorReviewAttestation(root: string, attestationPat
   }));
   const review = makeAnchorReviewArtifact(attestation.review_run, decisions);
   if (review.artifact_digest !== attestation.review_artifact_digest) throw new Error('attested review artifact digest mismatch');
-  const admitted = verifyAndAdmitAnchors(candidates, review);
+  const admitted = verifyAndAdmitAnchors(candidates, review, authoritativeMarkdownPaths);
   if (admitted.artifact_digest !== attestation.admitted_artifact_digest) throw new Error('attested admitted artifact digest mismatch');
   return { candidates, review, admitted };
 }

@@ -12,7 +12,9 @@ function argument(name: string): string {
 async function main(): Promise<void> {
   const candidates = JSON.parse(await readFile(argument('--candidates'), 'utf8')) as AnchorCandidateArtifact;
   const reviews = JSON.parse(await readFile(argument('--reviews'), 'utf8')) as AnchorReviewArtifact;
-  process.stdout.write(canonicalJson(verifyAndAdmitAnchors(candidates, reviews) as unknown as import('./types').Json));
+  const authoritativeMarkdownPaths = JSON.parse(await readFile(argument('--authoritative-paths'), 'utf8')) as unknown;
+  if (!Array.isArray(authoritativeMarkdownPaths) || authoritativeMarkdownPaths.some((item) => typeof item !== 'string')) throw new Error('--authoritative-paths must contain a JSON string array');
+  process.stdout.write(canonicalJson(verifyAndAdmitAnchors(candidates, reviews, authoritativeMarkdownPaths) as unknown as import('./types').Json));
 }
 
 main().catch((error: unknown) => {

@@ -453,6 +453,8 @@ database_sources:
     privacy: non_learner
   - id: replayable-learning-events
     tables: [InteractionLog, LearningEventBatch]
+    learner_identity_fields:
+      InteractionLog: userId
     fields:
       InteractionLog: [id, userId, resourceId, resourceKey, sessionId, lessonKey, stepId, actorRole, attemptKey, eventType, clientEventId, learningContext, eventData, clientEventAt, createdAt]
       LearningEventBatch: [id, batchDate, events, eventCount, processedAt, createdAt]
@@ -487,6 +489,11 @@ database_sources:
     required_future_disposition: replay_after_reference_remap_or_retire
   - id: historical-knowledge-references
     tables: [KnowledgeProgress, LearningPath, LearningPathExecution, LearningPathDeviation, LearningPathIntervention, LearningNote, LearningFact]
+    learner_identity_fields:
+      KnowledgeProgress: userId
+      LearningPath: userId
+      LearningNote: userId
+      LearningFact: userId
     fields:
       KnowledgeProgress: [nodeId]
       LearningPath: [id, nodeIds, currentNodeId, entryNodeId, pathPayload, alternativePayload, explanationPayload, legacySummaryPayload, terminalValidation, lastExecutionMetadata]
@@ -547,6 +554,15 @@ database_sources:
     privacy: schema_count_aggregate_only
   - id: learning-fact-source-lineage
     tables: [SimulationLog, UserAnswer, AIIntervention, PromptAssessment, SimulationRun, AgentToolRun, ArenaSubmission, AdaptiveAssessmentAnswer]
+    learner_identity_fields:
+      SimulationLog: userId
+      UserAnswer: userId
+      AIIntervention: userId
+      PromptAssessment: userId
+      SimulationRun: ownerUserId
+      AgentToolRun: ownerUserId
+      ArenaSubmission: userId
+      AdaptiveAssessmentAnswer: userId
     fields:
       SimulationLog: [id, userId, createdAt]
       UserAnswer: [id, userId, createdAt]
@@ -562,6 +578,16 @@ database_sources:
     required_future_disposition: preserve_lineage_or_unresolved
   - id: learner-derived-state
     tables: [StudentCompetencySnapshot, StudentPortraitV2Snapshot, StudentEvidenceFeatureCache, DiagnosisReportSnapshot, StudentProfileSummary, ClassCompetencySnapshot, StudentRiskFlag, GrowthRecord, LearningRecommendation, ArenaSubmission]
+    learner_identity_fields:
+      StudentCompetencySnapshot: userId
+      StudentPortraitV2Snapshot: userId
+      StudentEvidenceFeatureCache: userId
+      DiagnosisReportSnapshot: userId
+      StudentProfileSummary: userId
+      StudentRiskFlag: userId
+      GrowthRecord: userId
+      LearningRecommendation: userId
+      ArenaSubmission: userId
     fields:
       StudentCompetencySnapshot: [snapshotAt, calculationVersion, factCount]
       StudentPortraitV2Snapshot: [snapshotAt, payloadVersion, calculationVersion, migrationVersion, derivationKind, createdAt]
