@@ -427,6 +427,31 @@ test('ordinary publication API projects to catalog, binds a generated classroom,
   if (await control.getAttribute('type') === 'radio') await control.check();
   const submit = generatedResource.getByRole('button', { name: /提交|确认/ }).first();
   if (await submit.count()) await submit.click();
+
+  await expect.poll(async () => {
+    const state = await prisma.studentState.findUnique({
+      where: {
+        sessionId_userId_stateKey: {
+          sessionId: createdSession.body.id,
+          userId: studentId,
+          stateKey: 'course',
+        },
+      },
+      select: { data: true },
+    });
+    const data = state?.data as { generatedCoursewareResponses?: Record<string, Record<string, unknown>> } | undefined;
+    return Object.keys(data?.generatedCoursewareResponses?.[publication.id] ?? {}).length;
+  }).toBeGreaterThan(0);
+  await expect.poll(() => prisma.studentStepResponse.count({
+    where: {
+      sessionId: createdSession.body.id,
+      userId: studentId,
+      lessonKey: publication.id,
+    },
+  })).toBeGreaterThan(0);
+
+  await studentPage.reload();
+  await expect(studentPage.locator(`[data-generated-courseware-resource="${publication.id}"] input:checked`).first()).toBeVisible();
   await studentContext.close();
 
   const finalized = await page.evaluate(async (sessionId) => {

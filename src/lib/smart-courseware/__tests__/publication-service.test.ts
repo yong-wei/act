@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client';
 import { readFileSync } from 'node:fs';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { contentHash } from '@/lib/smart-lesson-plan/domain';
 import { validPlanFixture } from '@/lib/smart-lesson-plan/__tests__/fixtures';
@@ -19,12 +19,20 @@ import { coursewareManifestHash } from '../domain';
 import { validCompositionInput } from './fixtures';
 
 const actor = { id: 'teacher-1', role: 'TEACHER' as const };
-const browserLaunch = vi.hoisted(() => vi.fn());
+const { browserLaunch, fileAccess } = vi.hoisted(() => ({
+  browserLaunch: vi.fn(),
+  fileAccess: vi.fn(),
+}));
 vi.mock('playwright', () => ({ chromium: { launch: browserLaunch } }));
+vi.mock('node:fs/promises', () => ({ access: fileAccess }));
 const validationProfile = SMART_COURSEWARE_PUBLICATION_VALIDATION_PROFILE;
 process.env.SMART_COURSEWARE_ORDERING_SECRET = 'smart-courseware-publication-test-secret-v1';
 
 describe('smart courseware publication persistence', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it('reports unchanged stable-gap acknowledgements created against an earlier draft revision', async () => {
     const revision = publicationSource();
     const findAcknowledgements = vi.fn().mockResolvedValue([
@@ -110,7 +118,9 @@ describe('smart courseware publication persistence', () => {
     expect(upsert).toHaveBeenLastCalledWith(expect.objectContaining({ create: expect.objectContaining({
       kind: 'BROWSER', profileHash: expect.any(String), contentHash: revision.contentHash,
     }) }));
-    expect(browserLaunch).toHaveBeenCalledWith({ headless: true });
+    expect(browserLaunch).toHaveBeenCalledWith({
+      headless: true, executablePath: undefined, args: undefined,
+    });
     expect(browser.newContext).toHaveBeenCalledWith({
       viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1,
       extraHTTPHeaders: {
@@ -121,6 +131,51 @@ describe('smart courseware publication persistence', () => {
     expect(browser.page.goto).toHaveBeenCalledWith(expect.stringContaining(
       '/review/generated-slide-runtime-938/student',
     ), { waitUntil: 'networkidle' });
+    vi.unstubAllEnvs();
+  });
+
+  it('uses the configured system Chromium with container-safe launch arguments', async () => {
+    const revision = publicationSource();
+    const db = {
+      smartCoursewareRevision: { findFirst: vi.fn().mockResolvedValue(revision) },
+      smartCoursewarePublicationReceipt: { upsert: vi.fn(async ({ create }) => create) },
+    };
+    vi.stubEnv('SMART_COURSEWARE_PUBLICATION_REVIEW_BASE_URL', 'http://127.0.0.1:3100');
+    vi.stubEnv('SMART_COURSEWARE_PUBLICATION_REVIEW_SECRET', 'server-only-review-secret');
+    vi.stubEnv('PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH', '/usr/bin/chromium');
+    fileAccess.mockResolvedValueOnce(undefined);
+    browserLaunch.mockResolvedValueOnce(fakeBrowser(false));
+
+    await runSmartCoursewareBrowserPublicationValidation(db as never, {
+      actor, sourceRevisionId: revision.id,
+    });
+
+    expect(fileAccess).toHaveBeenCalledWith('/usr/bin/chromium');
+    expect(browserLaunch).toHaveBeenCalledWith({
+      headless: true,
+      executablePath: '/usr/bin/chromium',
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+    });
+    vi.unstubAllEnvs();
+  });
+
+  it('fails closed when the configured Chromium executable is unavailable', async () => {
+    const revision = publicationSource();
+    const upsert = vi.fn();
+    const db = {
+      smartCoursewareRevision: { findFirst: vi.fn().mockResolvedValue(revision) },
+      smartCoursewarePublicationReceipt: { upsert },
+    };
+    vi.stubEnv('SMART_COURSEWARE_PUBLICATION_REVIEW_BASE_URL', 'http://127.0.0.1:3100');
+    vi.stubEnv('SMART_COURSEWARE_PUBLICATION_REVIEW_SECRET', 'server-only-review-secret');
+    vi.stubEnv('PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH', '/missing/chromium');
+    fileAccess.mockRejectedValueOnce(new Error('ENOENT'));
+
+    await expect(runSmartCoursewareBrowserPublicationValidation(db as never, {
+      actor, sourceRevisionId: revision.id,
+    })).rejects.toMatchObject({ code: 'publication-browser-runner-unavailable', status: 503 });
+    expect(browserLaunch).not.toHaveBeenCalled();
+    expect(upsert).not.toHaveBeenCalled();
     vi.unstubAllEnvs();
   });
 

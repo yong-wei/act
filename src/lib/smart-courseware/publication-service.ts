@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { access } from 'node:fs/promises';
 import { Prisma, type PrismaClient } from '@prisma/client';
 import {
   buildGeneratedSlideBrowserExpectation,
@@ -178,7 +179,14 @@ export async function runSmartCoursewareBrowserPublicationValidation(db: Publica
   const baseUrl = validatedPublicationReviewOrigin();
   const secret = requiredServerEnvironment('SMART_COURSEWARE_PUBLICATION_REVIEW_SECRET');
   const { chromium } = await import('playwright');
-  const browser = await chromium.launch({ headless: true });
+  const executablePath = await resolvePublicationChromiumExecutablePath();
+  const browser = await chromium.launch({
+    headless: true,
+    executablePath,
+    args: executablePath
+      ? ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+      : undefined,
+  });
   const results: Array<ReturnType<typeof validateGeneratedSlideBrowserSnapshot>> = [];
   try {
     const context = await browser.newContext({
@@ -740,6 +748,17 @@ function requiredServerEnvironment(name: string) {
   const value = process.env[name]?.trim();
   if (!value) throw new SmartCoursewareError('publication-browser-runner-unavailable', 503);
   return value;
+}
+
+async function resolvePublicationChromiumExecutablePath() {
+  const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH?.trim();
+  if (!executablePath) return undefined;
+  try {
+    await access(executablePath);
+    return executablePath;
+  } catch {
+    throw new SmartCoursewareError('publication-browser-runner-unavailable', 503);
+  }
 }
 
 function validatedPublicationReviewOrigin() {

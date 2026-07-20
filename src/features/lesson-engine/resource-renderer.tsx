@@ -230,6 +230,9 @@ export function ResourceRenderer({
         config={generatedCoursewareConfig}
         onComplete={onComplete}
         onStateChange={onStateChange}
+        sessionId={sessionId}
+        lessonItemId={lessonItemId}
+        resourceId={resource.id}
       />
     );
   }
