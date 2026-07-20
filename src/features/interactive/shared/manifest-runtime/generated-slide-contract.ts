@@ -185,6 +185,7 @@ export const generatedSlideManifestSchema = z.object({
 export type GeneratedSlideManifest = z.infer<typeof generatedSlideManifestSchema>;
 export type GeneratedSlideManifestStep = GeneratedSlideManifest['stages'][number]['steps'][number];
 export type GeneratedSlideModule = GeneratedSlideManifest['stages'][number]['steps'][number]['modules'][number];
+export const GENERATED_SLIDE_MAX_STEPS = 24;
 
 export type GeneratedSlideTypographyFitState = 'normal' | 'adapted' | 'unfit';
 
@@ -381,8 +382,8 @@ export function validateGeneratedSlideManifest(value: unknown): GeneratedSlideVa
   }
 
   const steps = manifest.stages.flatMap((stage) => stage.steps);
-  if (steps.length < 6 || steps.length > 24) {
-    add('hierarchy.step-count', 'error', 'A complete manifest must contain 6 through 24 steps.', {});
+  if (steps.length < 6 || steps.length > GENERATED_SLIDE_MAX_STEPS) {
+    add('hierarchy.step-count', 'error', `A complete manifest must contain 6 through ${GENERATED_SLIDE_MAX_STEPS} steps.`, {});
   }
 
   const seenStepIds = new Set<string>();

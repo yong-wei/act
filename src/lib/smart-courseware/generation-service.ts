@@ -1,7 +1,10 @@
 import { randomUUID } from 'node:crypto';
 import { Prisma, type PrismaClient } from '@prisma/client';
 
-import type { GeneratedSlideManifest } from '@/features/interactive/shared/manifest-runtime/generated-slide-contract';
+import {
+  GENERATED_SLIDE_MAX_STEPS,
+  type GeneratedSlideManifest,
+} from '@/features/interactive/shared/manifest-runtime/generated-slide-contract';
 import { contentHash, normalizeSourceBindings } from '@/lib/smart-lesson-plan/domain';
 import { validateSmartLessonPlan } from '@/lib/smart-lesson-plan/schema';
 
@@ -49,6 +52,10 @@ export async function startCoursewareGenerationJob(db: Db, input: {
       if (draft.state === 'ACCEPTED') throw new SmartCoursewareError('accepted-courseware-immutable', 409);
       if (draft.runtimeManifest || draft.modules.length) throw new SmartCoursewareError('courseware-already-initialized', 409);
       assertBaseline(draft);
+      const plan = validateSmartLessonPlan(draft.planRevision.content);
+      if (plan.coursewareStepOutline.length > GENERATED_SLIDE_MAX_STEPS) {
+        throw new SmartCoursewareError('approved-plan-courseware-step-count-unsupported', 409);
+      }
       const active = await tx.smartCoursewareGenerationJob.findFirst({
         where: { draftId: draft.id, activeIdentity: `draft:${draft.id}` },
       });

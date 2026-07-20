@@ -370,7 +370,9 @@ export async function generateCoursewareModuleCandidate(
         moduleClaimExpiresAt: { gt: failureNow },
       },
       data: {
-        state: retryable ? 'RETRYABLE' : 'FAILED', activeIdentity: null, failureCode: errorCode(error),
+        state: retryable ? 'RETRYABLE' : 'FAILED',
+        ...(retryable ? {} : { activeIdentity: null }),
+        failureCode: errorCode(error),
         moduleClaimToken: null, moduleClaimExpiresAt: null,
         providerAudit: providerAttemptId ? asJson({
           latestAttemptId: providerAttemptId,

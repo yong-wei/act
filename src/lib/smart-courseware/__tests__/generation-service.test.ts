@@ -53,6 +53,46 @@ describe('smart courseware generation service', () => {
     expect(updateDraft).toHaveBeenCalledWith({ where: { id: draft.id }, data: { state: 'GENERATING' } });
   });
 
+  it('rejects a 25-step approved plan before creating a job or mutating its draft', async () => {
+    const draft = baselineDraftWithStepCount(25);
+    const create = vi.fn();
+    const updateDraft = vi.fn();
+    const findActive = vi.fn();
+    const db = {
+      smartCoursewareGenerationCommand: { findFirst: vi.fn().mockResolvedValue(null) },
+      $transaction: vi.fn(async (run: (tx: unknown) => unknown) => run({
+        smartCoursewareDraft: { findFirst: vi.fn().mockResolvedValue(draft), update: updateDraft },
+        smartCoursewareGenerationJob: { findFirst: findActive, create },
+      })),
+    };
+
+    await expect(startCoursewareGenerationJob(db as never, {
+      actor, draftId: draft.id, idempotencyKey: 'start-25-step-plan',
+    })).rejects.toMatchObject({ code: 'approved-plan-courseware-step-count-unsupported', status: 409 });
+    expect(findActive).not.toHaveBeenCalled();
+    expect(create).not.toHaveBeenCalled();
+    expect(updateDraft).not.toHaveBeenCalled();
+  });
+
+  it('allows the shared-runtime maximum of 24 approved steps', async () => {
+    const draft = baselineDraftWithStepCount(24);
+    const create = vi.fn(async ({ data }) => ({ id: data.id, draftId: draft.id, state: 'QUEUED' }));
+    const updateDraft = vi.fn();
+    const db = {
+      smartCoursewareGenerationCommand: { findFirst: vi.fn().mockResolvedValue(null) },
+      $transaction: vi.fn(async (run: (tx: unknown) => unknown) => run({
+        smartCoursewareDraft: { findFirst: vi.fn().mockResolvedValue(draft), update: updateDraft },
+        smartCoursewareGenerationJob: { findFirst: vi.fn().mockResolvedValue(null), create },
+      })),
+    };
+
+    await expect(startCoursewareGenerationJob(db as never, {
+      actor, draftId: draft.id, idempotencyKey: 'start-24-step-plan',
+    })).resolves.toMatchObject({ draftId: draft.id, state: 'QUEUED' });
+    expect(create).toHaveBeenCalledTimes(1);
+    expect(updateDraft).toHaveBeenCalledTimes(1);
+  });
+
   it('does not double-claim a live unit lease', async () => {
     const attempt = { id: 'attempt-1', outcome: 'RUNNING' };
     const db = { $transaction: vi.fn(async (run: (tx: unknown) => unknown) => run({
@@ -224,10 +264,10 @@ describe('smart courseware generation service', () => {
   });
 
   it.each([
-    ['resume', resumeCoursewareGenerationJob],
-    ['retry', retryCoursewareGenerationJob],
-  ])('restores MODULE jobs without touching INITIAL units or draft generation state (%s)', async (_name, transition) => {
-    const { draft, job } = moduleJobFixture('FAILED');
+    ['resume', resumeCoursewareGenerationJob, 'RETRYABLE'],
+    ['retry', retryCoursewareGenerationJob, 'FAILED'],
+  ] as const)('restores MODULE jobs without touching INITIAL units or draft generation state (%s)', async (_name, transition, state) => {
+    const { draft, job } = moduleJobFixture(state);
     const updateJob = vi.fn().mockResolvedValue({ ...job, state: 'QUEUED' });
     const updateUnit = vi.fn();
     const updateDraft = vi.fn();
@@ -536,7 +576,38 @@ describe('smart courseware generation service', () => {
   });
 });
 
-function moduleJobFixture(state: 'FAILED' | 'RUNNING') {
+function baselineDraftWithStepCount(stepCount: number) {
+  const draft = baselineDraft();
+  const plan = structuredClone(draft.planRevision.content);
+  const stageKeys = [
+    'bridgeIn', 'objectives', 'preAssessment',
+    'participatoryLearning', 'postAssessment', 'summary',
+  ] as const;
+  let remaining = stepCount;
+  plan.coursewareStepOutline = [];
+  stageKeys.forEach((stageKey, stageIndex) => {
+    const stagesRemaining = stageKeys.length - stageIndex - 1;
+    const count = Math.min(5, remaining - stagesRemaining);
+    const steps = Array.from({ length: count }, (_, index) => ({
+      title: `${stageKey}-${index + 1}`,
+      minutes: index === 0 ? 6 - count : 1,
+      teacherActivity: '讲解', studentActivity: '练习', assessment: '检查',
+      sourceBindings: [sourceBindingFixture],
+    }));
+    plan.boppps[stageKey].steps = steps;
+    plan.coursewareStepOutline.push(...steps.map((step) => ({
+      title: step.title, bopppsStage: stageKey, minutes: step.minutes,
+    })));
+    remaining -= count;
+  });
+  const planContentHash = contentHash(plan);
+  draft.planRevision.content = plan;
+  draft.planRevision.contentHash = planContentHash;
+  draft.planContentHash = planContentHash;
+  return draft;
+}
+
+function moduleJobFixture(state: 'FAILED' | 'RETRYABLE' | 'RUNNING') {
   const runtimeManifest = validCoursewareManifest();
   runtimeManifest.lessonId = 'draft-module';
   const runtimeModule = runtimeManifest.stages[2].steps[0].modules[0];

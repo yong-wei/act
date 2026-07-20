@@ -87,7 +87,7 @@ describe('smart courseware selected-module regeneration acceptance', () => {
     const selected = fixture.job.draft.modules[3];
     const active = {
       id: 'active-module-job', ownerId: actor.id, draftId: fixture.job.draft.id,
-      mode: 'MODULE', state: 'RUNNING', targetModuleId: selected.runtimeModuleId,
+      mode: 'MODULE', state: 'RETRYABLE', targetModuleId: selected.runtimeModuleId,
       activeIdentity: `draft:${fixture.job.draft.id}`,
     };
     const db = {
@@ -724,6 +724,7 @@ describe('smart courseware selected-module regeneration acceptance', () => {
       failureCode: 'courseware-module-provider-failed',
       providerAudit: { latestAttemptId: 'failed-attempt', outcome: 'RETRYABLE_FAILURE' },
     }) }));
+    expect(updateJob.mock.calls.at(-1)?.[0].data).not.toHaveProperty('activeIdentity');
     expect(updateAttempt).toHaveBeenLastCalledWith({
       where: { id: 'failed-attempt', generationJobId: job.id, outcome: 'RUNNING' },
       data: { outcome: 'RETRYABLE_FAILURE', finishedAt: expect.any(Date) },
