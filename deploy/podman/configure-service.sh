@@ -90,6 +90,7 @@ REDIS_URL="$(printf '%s' "$REDIS_URL" | sed "s#redis://${REDIS_CONTAINER}:#redis
 REDIS_URL="$(printf '%s' "$REDIS_URL" | sed "s#redis://${REDIS_CONTAINER}\\.dns\\.podman:#redis://${REDIS_HOST_ALIAS}:#")"
 REDIS_URL="$(printf '%s' "$REDIS_URL" | sed "s#redis://localhost:#redis://${REDIS_HOST_ALIAS}:#")"
 WORKER_CONCURRENCY="${WORKER_CONCURRENCY:-2}"
+MATH_DOCUMENT_GRADING_WORKER_REQUIRED="${MATH_DOCUMENT_GRADING_WORKER_REQUIRED:-true}"
 DATABASE_URL="${DATABASE_URL:-postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST_ALIAS}:5432/${DB_NAME}?connection_limit=10&pool_timeout=20}"
 DATABASE_URL="$(printf '%s' "$DATABASE_URL" | sed "s#@${DB_CONTAINER}:#@${DB_HOST_ALIAS}:#")"
 DATABASE_URL="$(printf '%s' "$DATABASE_URL" | sed "s#@${DB_CONTAINER}\\.dns\\.podman:#@${DB_HOST_ALIAS}:#")"
@@ -185,6 +186,12 @@ NODE_TCP_PROBE="const net = require(\"node:net\"); const host = process.argv[1];
 WAIT_DB_TCP_CMD="/bin/sh -lc 'for i in \$(seq 1 30); do /usr/bin/podman run --rm --network ${NETWORK_NAME} --entrypoint node ${APP_IMAGE} -e '\\''${NODE_TCP_PROBE}'\\'' ${DB_HOST_ALIAS} 5432 >/dev/null 2>&1 && exit 0; sleep 2; done; exit 1'"
 WAIT_REDIS_TCP_CMD="/bin/sh -lc 'for i in \$(seq 1 30); do /usr/bin/podman run --rm --network ${NETWORK_NAME} --entrypoint node ${APP_IMAGE} -e '\\''${NODE_TCP_PROBE}'\\'' ${REDIS_HOST_ALIAS} 6379 >/dev/null 2>&1 && exit 0; sleep 2; done; exit 1'"
 
+SUBMISSION_EXEC_STOP_LINES=""
+if [[ "$MATH_DOCUMENT_GRADING_WORKER_REQUIRED" =~ ^(1|true|yes)$ ]]; then
+  SUBMISSION_EXEC_STOP_LINES="ExecStop=/usr/bin/podman stop -t 20 ${SUBMISSION_GC_CONTAINER}
+ExecStop=/usr/bin/podman stop -t 20 ${SUBMISSION_SCANNER_CONTAINER}"
+fi
+
 cat > "$SERVICE_FILE" <<UNIT
 [Unit]
 Description=ACT OBE Podman Stack
@@ -199,8 +206,7 @@ Delegate=yes
 ExecStart=/usr/bin/podman start ${DB_CONTAINER}
 ExecStart=/bin/sh -lc 'until /usr/bin/podman exec -e PGPASSWORD="${DB_PASSWORD}" ${DB_CONTAINER} pg_isready -U "${DB_USER}" -d "${DB_NAME}" >/dev/null 2>&1; do sleep 2; done'
 ExecStart=/bin/sh -lc '"${APP_DEPLOY_SCRIPT}" --app-only'
-ExecStop=/usr/bin/podman stop -t 20 ${SUBMISSION_GC_CONTAINER}
-ExecStop=/usr/bin/podman stop -t 20 ${SUBMISSION_SCANNER_CONTAINER}
+${SUBMISSION_EXEC_STOP_LINES}
 ExecStop=/usr/bin/podman stop -t 20 ${WORKER_CONTAINER}
 ExecStop=/usr/bin/podman stop -t 20 ${APP_CONTAINER}
 ExecStop=/usr/bin/podman stop -t 20 ${REDIS_CONTAINER}
@@ -235,11 +241,13 @@ if ! podman ps --format '{{.Names}}' | grep -Fxq "$WORKER_CONTAINER"; then
   echo "ERROR: systemd 启动后 worker 容器未运行: $WORKER_CONTAINER" >&2
   exit 1
 fi
-if ! podman ps --format '{{.Names}}' | grep -Fxq "$SUBMISSION_SCANNER_CONTAINER"; then
-  echo "ERROR: systemd 启动后学生作业扫描 worker 未运行: $SUBMISSION_SCANNER_CONTAINER" >&2; exit 1
-fi
-if ! podman ps --format '{{.Names}}' | grep -Fxq "$SUBMISSION_GC_CONTAINER"; then
-  echo "ERROR: systemd 启动后学生作业 GC worker 未运行: $SUBMISSION_GC_CONTAINER" >&2; exit 1
+if [[ "$MATH_DOCUMENT_GRADING_WORKER_REQUIRED" =~ ^(1|true|yes)$ ]]; then
+  if ! podman ps --format '{{.Names}}' | grep -Fxq "$SUBMISSION_SCANNER_CONTAINER"; then
+    echo "ERROR: systemd 启动后学生作业扫描 worker 未运行: $SUBMISSION_SCANNER_CONTAINER" >&2; exit 1
+  fi
+  if ! podman ps --format '{{.Names}}' | grep -Fxq "$SUBMISSION_GC_CONTAINER"; then
+    echo "ERROR: systemd 启动后学生作业 GC worker 未运行: $SUBMISSION_GC_CONTAINER" >&2; exit 1
+  fi
 fi
 
 app_ready=0

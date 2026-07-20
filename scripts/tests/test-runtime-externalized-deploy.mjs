@@ -127,6 +127,16 @@ assert.equal(
 );
 
 assert.equal(
+  serviceScript.includes('if [[ "$MATH_DOCUMENT_GRADING_WORKER_REQUIRED" =~ ^(1|true|yes)$ ]]') &&
+    serviceScript.includes('SUBMISSION_EXEC_STOP_LINES=""') &&
+    serviceScript.includes('podman ps --format') &&
+    serviceScript.includes('$SUBMISSION_SCANNER_CONTAINER') &&
+    serviceScript.includes('$SUBMISSION_GC_CONTAINER'),
+  true,
+  'systemd 配置脚本仅在数学文档批改 worker 启用时要求并停止作业扫描与 GC 容器',
+);
+
+assert.equal(
   remoteDeployScript.includes('deploy/podman/configure-service.sh') &&
     remoteDeployScript.includes('${REMOTE_PROJECT_DIR}/scripts/5-configure-service.sh'),
   true,
