@@ -551,6 +551,51 @@ describe('smart courseware selected-module regeneration acceptance', () => {
     }) });
   });
 
+  it('creates a new pending gap for a same-content regeneration and isolates the old confirmation', async () => {
+    const fixture = acceptanceFixture();
+    const oldGapIdentity = 'courseware-gap:previous-attempt';
+    const currentModule = findModule(
+      fixture.job.draft.runtimeManifest as GeneratedSlideManifest,
+      fixture.job.targetModuleId,
+    )!;
+    Object.assign(fixture.target, {
+      sourceState: 'AI_GENERATED_SOURCE_PENDING',
+      sourceBindings: [],
+      sourceBindingSetHash: contentHash([]),
+      gapIdentity: oldGapIdentity,
+    });
+    const candidateRuntimeModule = structuredClone(currentModule);
+    const candidateModuleMetadata = {
+      moduleId: fixture.job.targetModuleId,
+      sourceState: 'ai_generated_source_pending' as const,
+      sourceBindings: [],
+      teacherFields: structuredClone(fixture.target.teacherMetadata),
+    };
+    Object.assign(fixture.job, {
+      candidateRuntimeModule,
+      candidateModuleMetadata,
+      candidateHash: contentHash({ runtimeModule: candidateRuntimeModule, moduleMetadata: candidateModuleMetadata }),
+    });
+    const db = acceptanceDb(fixture.job);
+
+    await acceptCoursewareModuleCandidate(db.value as never, {
+      actor,
+      jobId: fixture.job.id,
+      expectedDraftVersion: fixture.job.draft.version,
+      expectedModuleHash: fixture.target.contentHash,
+      idempotencyKey: 'accept-same-content-pending-module',
+    });
+
+    const moduleWrite = db.updateModule.mock.calls[0][0].data;
+    const revisionWrite = db.createRevision.mock.calls[0][0].data;
+    expect(moduleWrite.contentHash).toBe(fixture.target.contentHash);
+    expect(moduleWrite.sourceState).toBe('AI_GENERATED_SOURCE_PENDING');
+    expect(moduleWrite.gapIdentity).toMatch(/^courseware-gap:/);
+    expect(moduleWrite.gapIdentity).not.toBe(oldGapIdentity);
+    expect(revisionWrite.gapIdentity).toBe(moduleWrite.gapIdentity);
+    expect(new Set([oldGapIdentity]).has(moduleWrite.gapIdentity)).toBe(false);
+  });
+
   it('rejects candidate acceptance after whole-course approval', async () => {
     const fixture = acceptanceFixture();
     (fixture.job.draft as { state: string }).state = 'ACCEPTED';

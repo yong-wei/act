@@ -123,6 +123,7 @@ export function deriveCoursewareModuleMetadata(input: {
   existing?: PersistedModuleState;
   newProvenance?: CoursewareModuleMetadata['provenance'];
   originalAttemptId?: string | null;
+  forceNewGapIdentity?: boolean;
 }): CoursewareModuleMetadata {
   const aiLineage = input.newProvenance?.startsWith('ai_generated')
     || input.existing?.provenance === 'AI_GENERATED'
@@ -153,7 +154,7 @@ export function deriveCoursewareModuleMetadata(input: {
     && existing.sourceBindingSetHash === sourceBindingSetHash;
   const gapIdentity = input.requested.sourceState === 'verified'
     ? null
-    : definingStateUnchanged && existing.gapIdentity
+    : !input.forceNewGapIdentity && definingStateUnchanged && existing.gapIdentity
       ? existing.gapIdentity
       : `courseware-gap:${contentHash({
           authoringLineageRoot: input.authoringLineageRoot,
@@ -162,6 +163,7 @@ export function deriveCoursewareModuleMetadata(input: {
           moduleContentHash,
           sourceState: input.requested.sourceState,
           sourceBindingSetHash,
+          ...(input.forceNewGapIdentity ? { regenerationAttemptId: input.originalAttemptId ?? null } : {}),
         })}`;
   const auditableStateChanged = existing && (
     existing.contentHash !== moduleContentHash

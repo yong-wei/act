@@ -473,6 +473,7 @@ export async function acceptCoursewareModuleCandidate(db: Db, input: {
         existing: target,
         newProvenance: 'ai_generated',
         originalAttemptId: providerAttempt.id,
+        forceNewGapIdentity: true,
       });
 
       const accepted = await tx.smartCoursewareGenerationJob.updateMany({

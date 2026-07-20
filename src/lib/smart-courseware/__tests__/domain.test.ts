@@ -239,6 +239,21 @@ describe('smart courseware domain', () => {
     });
     expect(same.gapIdentity).toBe(first.gapIdentity);
 
+    const regenerated = deriveCoursewareModuleMetadata({
+      authoringLineageRoot: 'lineage-1', runtimeModule, requested, allowedSourceBindings: [],
+      existing: {
+        moduleInstanceLineage: first.moduleInstanceLineage,
+        contentHash: first.moduleContentHash,
+        sourceState: 'AI_GENERATED_SOURCE_PENDING',
+        sourceBindingSetHash: first.sourceBindingSetHash,
+        gapIdentity: first.gapIdentity,
+        provenance: 'AI_GENERATED',
+        originalAttemptId: 'attempt-1',
+      },
+      newProvenance: 'ai_generated', originalAttemptId: 'attempt-2', forceNewGapIdentity: true,
+    });
+    expect(regenerated.gapIdentity).not.toBe(first.gapIdentity);
+
     runtimeModule.payload = { text: 'Teacher changed content' };
     const changed = deriveCoursewareModuleMetadata({
       authoringLineageRoot: 'lineage-1', runtimeModule, requested, allowedSourceBindings: [],
