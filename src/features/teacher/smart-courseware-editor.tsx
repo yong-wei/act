@@ -57,6 +57,7 @@ export type SmartCoursewareDraftShell = {
 
 export type SmartCoursewareCompositionMetadata = {
   moduleId: string;
+  readonly moduleContentHash?: string;
   copiedFromModuleId?: string;
   sourceState: SmartCoursewareSourceState;
   sourceBindings: Array<{ sourceVersionId: string; anchor: string; contentHash: string; citationId: string }>;
@@ -415,9 +416,13 @@ export function SmartCoursewareEditor({
   ) {
     setBusy(true);
     try {
+      const writableModuleMetadata = moduleMetadata.map(({
+        moduleContentHash: _moduleContentHash,
+        ...metadata
+      }) => metadata);
       const response = await fetch(`/api/teacher/smart-courseware/drafts/${envelope.draftId}`, {
         method: 'PATCH', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ expectedVersion: envelope.version, runtimeManifest, moduleMetadata }),
+        body: JSON.stringify({ expectedVersion: envelope.version, runtimeManifest, moduleMetadata: writableModuleMetadata }),
       });
       const payload = await response.json();
       if (!response.ok) return setMessage(errorMessage(payload));

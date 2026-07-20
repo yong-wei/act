@@ -8,6 +8,10 @@ import { SmartCoursewareEditor, type SmartCoursewareTeacherEnvelope } from '../s
 import { validateCoursewareComposition } from '@/lib/smart-courseware';
 import { validCompositionInput, validPlan } from '@/lib/smart-courseware/__tests__/fixtures';
 
+function withReadOnlyModuleHashes(metadata: ReturnType<typeof validCompositionInput>['moduleMetadata']) {
+  return metadata.map((item) => ({ ...item, moduleContentHash: `readonly-${item.moduleId}` }));
+}
+
 describe('smart courseware editor activity creation', () => {
   let container: HTMLDivElement;
   let root: Root;
@@ -62,7 +66,7 @@ describe('smart courseware editor activity creation', () => {
     const envelope: SmartCoursewareTeacherEnvelope = {
       draftId: 'draft-1', planRevisionId: 'plan-1', state: 'ready', version: 1,
       manifest: composition.runtimeManifest, stalePlan: false, teacherModules: {},
-      compositionMetadata: composition.moduleMetadata,
+      compositionMetadata: withReadOnlyModuleHashes(composition.moduleMetadata),
       planLimitations: [], aiReview: null, generationAudit: [],
     };
     await act(async () => root.render(createElement(SmartCoursewareEditor, { initialEnvelope: envelope })));
@@ -112,7 +116,7 @@ describe('smart courseware editor activity creation', () => {
     const envelope: SmartCoursewareTeacherEnvelope = {
       draftId: 'draft-1', planRevisionId: 'plan-1', state: 'ready', version: 1,
       manifest: runtimeManifest, stalePlan: false, teacherModules: {},
-      compositionMetadata: composition.moduleMetadata,
+      compositionMetadata: withReadOnlyModuleHashes(composition.moduleMetadata),
       planLimitations: [], aiReview: null, generationAudit: [],
     };
     await act(async () => root.render(createElement(SmartCoursewareEditor, { initialEnvelope: envelope })));
@@ -127,6 +131,8 @@ describe('smart courseware editor activity creation', () => {
     await act(async () => add.click());
 
     const added = submitted!.moduleMetadata.find((metadata) => !composition.moduleMetadata.some((item) => item.moduleId === metadata.moduleId));
+    expect(submitted!.moduleMetadata.every((metadata) => !('moduleContentHash' in metadata))).toBe(true);
+    expect(submitted!.moduleMetadata[0]).toEqual(composition.moduleMetadata[0]);
     expect(added?.teacherFields).toMatchObject({
       expectedOutput: expect.any(String),
       reviewPoints: [expect.any(String)],
@@ -169,7 +175,7 @@ describe('smart courseware editor activity creation', () => {
     const envelope: SmartCoursewareTeacherEnvelope = {
       draftId: 'draft-1', planRevisionId: 'plan-1', state: 'ready', version: 1,
       manifest: composition.runtimeManifest, stalePlan: false, teacherModules: {},
-      compositionMetadata: composition.moduleMetadata,
+      compositionMetadata: withReadOnlyModuleHashes(composition.moduleMetadata),
       planLimitations: [], aiReview: null, generationAudit: [],
     };
     await act(async () => root.render(createElement(SmartCoursewareEditor, { initialEnvelope: envelope })));
@@ -223,7 +229,7 @@ describe('smart courseware editor activity creation', () => {
     const envelope: SmartCoursewareTeacherEnvelope = {
       draftId: 'draft-1', planRevisionId: 'plan-1', state: 'ready', version: 1,
       manifest: composition.runtimeManifest, stalePlan: false, teacherModules: {},
-      compositionMetadata: composition.moduleMetadata,
+      compositionMetadata: withReadOnlyModuleHashes(composition.moduleMetadata),
       planLimitations: [], aiReview: null, generationAudit: [],
     };
     await act(async () => root.render(createElement(SmartCoursewareEditor, { initialEnvelope: envelope })));
@@ -272,7 +278,7 @@ describe('smart courseware editor activity creation', () => {
     const envelope: SmartCoursewareTeacherEnvelope = {
       draftId: 'draft-1', planRevisionId: 'plan-1', state: 'ready', version,
       manifest: composition.runtimeManifest, stalePlan: false, teacherModules: {},
-      compositionMetadata: composition.moduleMetadata,
+      compositionMetadata: withReadOnlyModuleHashes(composition.moduleMetadata),
       planLimitations: [], aiReview: null, generationAudit: [],
     };
     await act(async () => root.render(createElement(SmartCoursewareEditor, { initialEnvelope: envelope })));
@@ -293,6 +299,11 @@ describe('smart courseware editor activity creation', () => {
     expect(selectFor('slot').value).toBe('main');
     expect(selectFor('注册尺寸').value).toBe('full');
     expect(selectFor('注册尺寸').disabled).toBe(true);
+
+    const move = [...container.querySelectorAll('button')].find((button) => button.textContent === '步骤后移')!;
+    await act(async () => move.click());
+    expect(submissions).toHaveLength(1);
+    expect(submissions[0].moduleMetadata.every((metadata) => !('moduleContentHash' in metadata))).toBe(true);
 
     await change(selectFor('布局'), 'main-sidebar');
     expect(placement(submissions.at(-1)!)).toEqual({ layoutId: 'main-sidebar', slotId: 'main', sizeId: 'two-thirds' });
@@ -327,5 +338,8 @@ describe('smart courseware editor activity creation', () => {
     expect(placement(submissions.at(-1)!)).toEqual({ layoutId: 'two-column', slotId: 'left', sizeId: 'half' });
     expect(selectFor('slot').value).toBe('right');
     expect(selectFor('注册尺寸').value).toBe('half');
+    expect(submissions.every((submission) => submission.moduleMetadata.every(
+      (metadata) => !('moduleContentHash' in metadata),
+    ))).toBe(true);
   });
 });
