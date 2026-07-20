@@ -1,4 +1,4 @@
-import { mkdtemp, mkdir, rm, symlink, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import os from 'node:os';
@@ -168,6 +168,7 @@ describe('closed repository input codecs', () => {
   it('preserves conflicting same-path observations through the --main-worktree-root CLI entrypoint', async () => {
     const main = await mkdtemp(path.join(os.tmpdir(), 'inventory-main-entrypoint-'));
     const relative = 'docs/knowledge-graph-current-state-audit-2026-07-18.md';
+    const conflictingAnchor = 'course-content/syllabus-refactor/blueprint.md';
     const mainOnlyAnchor = 'course-content/syllabus-refactor/unit-design-details/main-only.md';
     try {
       git(main, 'init', '-q');
@@ -177,8 +178,9 @@ describe('closed repository input codecs', () => {
       await mkdir(path.join(main, path.dirname(mainOnlyAnchor)), { recursive: true });
       await writeFile(path.join(main, relative), '# conflicting main-worktree audit\n');
       await writeFile(path.join(main, 'docs/adr/README.md'), '# ADR fixture\n');
+      await writeFile(path.join(main, conflictingAnchor), `${await readFile(path.join(root, conflictingAnchor), 'utf8')}\n# 模块 5\n\n模块 5 拓展：仅存在于 main worktree 的同路径冲突版本。\n`);
       await writeFile(path.join(main, mainOnlyAnchor), '# 模块 5\n\n模块 5 拓展：仅存在于 main worktree 的权威锚点。\n');
-      git(main, 'add', relative, 'docs/adr/README.md', mainOnlyAnchor);
+      git(main, 'add', relative, 'docs/adr/README.md', conflictingAnchor, mainOnlyAnchor);
       git(main, 'commit', '-qm', 'fixture base');
       await mkdir(path.join(main, 'course-content/authoring/resources'), { recursive: true });
       await symlink('missing-target.md', path.join(main, 'course-content/authoring/resources/rejected-link.md'));
@@ -197,7 +199,7 @@ describe('closed repository input codecs', () => {
       const manifest = JSON.parse(result.stdout) as {
         repository: { sources: Array<{ id: string; physical_paths: string[] }> };
         repository_files: Array<{ path: string; source_root: 'isolated-worktree' | 'main-worktree'; capture_revision: string; raw_digest: string }>;
-        anchors: { candidate_artifact_digest: string; candidate_count: number };
+        anchors: { candidate_artifact_digest: string; candidate_count: number; review_count: number; admitted_count: number };
         drift: Drift[];
       };
       const records = manifest.repository_files.filter((item) => item.path === relative);
@@ -216,16 +218,17 @@ describe('closed repository input codecs', () => {
         expect.objectContaining({ code: 'ANCHOR_REVIEW_ATTESTATION_SOURCE_SET_UNSUPPORTED', observed: 'mixed or main-worktree authoritative sources' }),
       ]));
       const authoritativePaths = manifest.repository.sources.find((item) => item.id === 'formal-course-basis')!.physical_paths;
-      const authoritativeMarkdownSources = authoritativePaths.map((logicalPath): AuthoritativeMarkdownSource => {
+      const authoritativeMarkdownSources = authoritativePaths.flatMap((logicalPath): AuthoritativeMarkdownSource[] => {
         const observations = manifest.repository_files.filter((item) => item.path === logicalPath);
-        const selected = observations.find((item) => item.source_root === 'isolated-worktree') ?? observations.find((item) => item.source_root === 'main-worktree')!;
-        return { root: selected.source_root === 'isolated-worktree' ? root : main, repositoryRevision: selected.capture_revision, logicalPath, sourceRoot: selected.source_root };
+        return observations.map((selected) => ({ root: selected.source_root === 'isolated-worktree' ? root : main, repositoryRevision: selected.capture_revision, logicalPath, sourceRoot: selected.source_root }));
       });
       const candidates = await extractAuthoritativeAnchorCandidates({
         root, repositoryRevision: await repositoryRevision(root), extractionRun: 'unattested-anchor-extraction/v1', authoritativeMarkdownPaths: authoritativePaths, authoritativeMarkdownSources,
       });
       expect(candidates.candidates).toContainEqual(expect.objectContaining({ source: expect.objectContaining({ logical_path: mainOnlyAnchor, source_root: 'main-worktree', repository_revision: mainRevision }) }));
+      expect(candidates.candidates).toContainEqual(expect.objectContaining({ source: expect.objectContaining({ logical_path: conflictingAnchor, source_root: 'main-worktree', repository_revision: mainRevision }) }));
       expect(manifest.anchors).toMatchObject({ candidate_artifact_digest: candidates.artifact_digest, candidate_count: candidates.candidates.length });
+      expect(manifest.anchors).toMatchObject({ review_count: 0, admitted_count: 0 });
     } finally { await rm(main, { recursive: true }); }
   }, 120_000);
 

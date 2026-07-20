@@ -140,10 +140,16 @@ export async function buildManifest(options: InventoryOptions): Promise<Json> {
   const effectiveRepository = mainRepository ? mergeRepositoryObservations(repository, mainRepository) : repository;
   const authoritativeMarkdownPaths = (effectiveRepository.sources.find((source) => source.id === 'formal-course-basis')?.physical_paths as string[] | undefined) ?? [];
   const authoritativeMarkdownSources = authoritativeMarkdownPaths.flatMap((logicalPath): AuthoritativeMarkdownSource[] => {
-    const observations = fileRecords.filter((item) => item.path === logicalPath && item.state === 'observed');
-    const selected = observations.find((item) => item.source_root === 'isolated-worktree') ?? observations.find((item) => item.source_root === 'main-worktree');
-    if (!selected) return [];
-    return [{ root: selected.filesystem_root, repositoryRevision: selected.capture_revision, logicalPath, sourceRoot: selected.source_root }];
+    const observations = fileRecords
+      .filter((item) => item.path === logicalPath && item.state === 'observed')
+      .sort((left, right) => left.source_root === right.source_root ? 0 : left.source_root === 'isolated-worktree' ? -1 : 1);
+    const observedDigests = new Set<string>();
+    return observations.flatMap((item) => {
+      const digest = item.normalized_digest ?? item.raw_digest;
+      if (observedDigests.has(digest)) return [];
+      observedDigests.add(digest);
+      return [{ root: item.filesystem_root, repositoryRevision: item.capture_revision, logicalPath, sourceRoot: item.source_root }];
+    });
   });
   if (mainRepository) {
     const reconciled = resolvedRepositoryMissingDrift(drift, effectiveRepository);
