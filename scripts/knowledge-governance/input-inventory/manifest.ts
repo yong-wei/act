@@ -12,7 +12,7 @@ import type { AnchorRecord } from './records';
 import { extractAuthoritativeAnchorCandidates, verifyAnchorReviewAttestation } from './anchors';
 import { assertManifestSchema } from './output-validation';
 import type { Drift, InventoryOptions, Json } from './types';
-import { collectInputObservations, publicObservation } from './input-codecs';
+import { collectInputObservations, publicObservation, type FileObservation } from './input-codecs';
 import { currentDatabaseExportAuthority } from './database-export';
 
 const DEFAULT_REGISTRY = 'docs/proposals/course-knowledge-base-governance-source-registry.yaml';
@@ -22,6 +22,25 @@ export async function repositoryRevision(root: string): Promise<string> {
   const revision = result.stdout.trim();
   if (result.status !== 0 || !/^[0-9a-f]{40}$/u.test(revision)) throw new Error(`unable to resolve repository HEAD: ${result.stderr.trim()}`);
   return revision;
+}
+
+export function revisionBoundFile(
+  root: string,
+  revision: string,
+  relativePath: string,
+  observations: FileObservation[],
+): Buffer {
+  const observed = observations.find((item) =>
+    item.source_root === 'isolated-worktree'
+    && item.capture_revision === revision
+    && item.path === relativePath
+    && item.vcs_state === 'tracked'
+    && item.content_bytes !== undefined,
+  );
+  if (observed?.content_bytes) return observed.content_bytes;
+  const result = spawnSync('git', ['show', `${revision}:${relativePath}`], { cwd: root, encoding: 'buffer', maxBuffer: 128 * 1024 * 1024 });
+  if (result.status !== 0) throw new Error(`unable to read tracked baseline at ${revision}:${relativePath}`);
+  return result.stdout;
 }
 
 function mergeRepositoryObservations(
@@ -131,10 +150,11 @@ export async function buildManifest(options: InventoryOptions): Promise<Json> {
     decoderDigests.push({ decoder_id: id, digest: decoderContractDigest(id, contract, schemaSources) });
   }
   const auditPath = 'docs/knowledge-graph-current-state-audit-2026-07-18.md';
-  const auditText = await readFile(path.join(options.root, auditPath), 'utf8');
+  const auditText = revisionBoundFile(options.root, isolatedRevision, auditPath, fileRecords).toString('utf8');
   const expectedNodes = Number(/\| 活动知识节点 \| ([\d,]+) \|/u.exec(auditText)?.[1]?.replaceAll(',', ''));
   const expectedCards = Number(/\| 绑定 runtime 知识卡 \| ([\d,]+) \|/u.exec(auditText)?.[1]?.replaceAll(',', ''));
-  const nodes = JSON.parse(await readFile(path.join(options.root, 'course-content/runtime/knowledge/graph/nodes.json'), 'utf8')) as unknown[];
+  const nodesPath = 'course-content/runtime/knowledge/graph/nodes.json';
+  const nodes = JSON.parse(revisionBoundFile(options.root, isolatedRevision, nodesPath, fileRecords).toString('utf8')) as unknown[];
   const observedNodes = Array.isArray(nodes) ? nodes.length : 0;
   const observedCards = new Set(fileRecords.filter((record) => /^course-content\/runtime\/knowledge\/cards\/nodes\/.*\.md$/u.test(record.path)).map((record) => record.path)).size;
   const auditBaseline = { source: auditPath, evidence_date: '2026-07-18', observations: [

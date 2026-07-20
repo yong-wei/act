@@ -10,7 +10,7 @@ import { loadImmutableExport, validateDatabaseClosure } from '../database-snapsh
 import { assertAggregateExportShape, contractsFromRegistry, currentDatabaseExportAuthority, DATABASE_EXPORT_FORMAT, deriveProof, exportAggregateDatabase, fieldSummaryKey, groupedRelationSummary, groupedSummary, jsonPathCategoryKey, jsonSummaryKey, latestWatermark, publishExportArtifacts, suppressRows, type AggregateDatabaseExport, type AggregateDatasetExport } from '../database-export';
 import { discoverWriters, discoverWritersInSource } from '../writer-discovery';
 import { validateOutputPrivacy } from '../schema-validation';
-import { buildManifest, sourceFingerprints } from '../manifest';
+import { buildManifest, repositoryRevision, revisionBoundFile, sourceFingerprints } from '../manifest';
 import { enumerateRepository, loadRegistry, matchGlob, type Registry } from '../registry';
 import type { Json } from '../types';
 import { effectiveDecoderContract, validateFixtureClosure, validateSyntheticPayload, type ShapeFixture } from '../decoder-validation';
@@ -54,6 +54,27 @@ async function writeAggregateExport(directory: string, exported: AggregateDataba
 }
 
 describe('normalization contract', () => {
+  it('reads tracked audit baselines from the captured revision when the worktree is dirty', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-revision-baseline-'));
+    try {
+      spawnSync('git', ['init', '-q'], { cwd: directory });
+      spawnSync('git', ['config', 'user.email', 'inventory@example.test'], { cwd: directory });
+      spawnSync('git', ['config', 'user.name', 'Inventory Test'], { cwd: directory });
+      await writeFile(path.join(directory, 'baseline.json'), '{"nodes":["captured"]}\n');
+      spawnSync('git', ['add', 'baseline.json'], { cwd: directory });
+      spawnSync('git', ['commit', '-qm', 'baseline'], { cwd: directory });
+      const revision = await repositoryRevision(directory);
+      await writeFile(path.join(directory, 'baseline.json'), '{"nodes":["dirty"]}\n');
+
+      expect(revisionBoundFile(directory, revision, 'baseline.json', []).toString('utf8')).toBe('{"nodes":["captured"]}\n');
+      expect(revisionBoundFile(directory, revision, 'baseline.json', [{
+        path: 'baseline.json', source_root: 'isolated-worktree', filesystem_root: directory,
+        capture_revision: revision, vcs_state: 'tracked', state: 'observed', codec: 'json-utf8/v1',
+        media_type: 'application/json', size: 25, raw_digest: digest, content_bytes: Buffer.from('captured observation'),
+      }]).toString('utf8')).toBe('captured observation');
+    } finally { await rm(directory, { recursive: true }); }
+  });
+
   it('rejects control characters in every logical path and parses git batch blobs by exact byte size', () => {
     for (const control of ['\n', '\r', '\0', '\u001f', '\u007f']) expect(() => normalizePath(`safe${control}injected.txt`)).toThrow(/control/u);
     expect(() => parseGitBatchBlobs(['safe.txt\nsecond.txt'], Buffer.alloc(0))).toThrow(/control/u);

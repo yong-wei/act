@@ -10,6 +10,9 @@ import { classifyRegisteredSymlinks, enumerateRepository, loadRegistry, matchGlo
 import type { Drift } from '../types';
 import type { Json } from '../types';
 import { canonicalJson, taggedDigest } from '../normalize';
+import { extractRecordSets } from '../extract-records';
+import type { FileObservation } from '../input-codecs';
+import type { DatabaseSnapshot } from '../types';
 
 const root = path.resolve(import.meta.dirname, '../../../..');
 const realMainRoot = '/Users/YW/Documents/Site/act.just.edu.cn';
@@ -34,6 +37,21 @@ function git(directory: string, ...args: string[]): void {
 }
 
 describe('closed repository input codecs', () => {
+  it('preserves distinct logical records for conflicting same-path JSON observations', async () => {
+    const relative = 'fixture/shared.json';
+    const observation = (source_root: 'isolated-worktree' | 'main-worktree', text: string): FileObservation => ({
+      path: relative, source_root, filesystem_root: '/unused', capture_revision: revision, vcs_state: 'tracked', state: 'observed', codec: 'json/v1', media_type: 'application/json', size: Buffer.byteLength(text), raw_digest: taggedDigest('fixture/v1', text), content_bytes: Buffer.from(text),
+    });
+    const repository = { sources: [{ id: 'fixture', item_kind: 'fixture', identity_namespace: 'fixture_path', physical_paths: [relative] }] } as unknown as { sources: Array<Record<string, Json>> };
+    const registry = { field_decoders: [] } as unknown as Registry;
+    const database = { datasets: [] } as unknown as DatabaseSnapshot;
+    const records = await extractRecordSets(repository, database, registry, [observation('isolated-worktree', '{"value":"isolated"}\n'), observation('main-worktree', '{"value":"main"}\n')]);
+    const logical = records.logical.filter((item) => item.source_locator === `${relative}#records`);
+    expect(logical).toHaveLength(2);
+    expect(logical.map((item) => item.source_id).sort()).toEqual([`fixture:isolated-worktree:${relative}#records`, `fixture:main-worktree:${relative}#records`]);
+    expect(new Set(logical.map((item) => item.digest)).size).toBe(2);
+  });
+
   it('resolves HEAD when the current branch exists only in packed-refs', async () => {
     const directory = await mkdtemp(path.join(os.tmpdir(), 'inventory-packed-ref-'));
     try {
