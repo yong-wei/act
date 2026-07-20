@@ -298,6 +298,7 @@ describe('smart courseware generation service', () => {
     const updateUnits = vi.fn();
     const db = {
       smartCoursewareGenerationCommand: { findFirst: vi.fn().mockResolvedValue(null) },
+      smartCoursewareGenerationJob: { findFirst: vi.fn().mockResolvedValue(jobA) },
       $transaction: vi.fn(async (run: (tx: unknown) => unknown) => run({
         smartCoursewareGenerationJob: { findFirst: vi.fn().mockResolvedValue(jobA), update: updateJob },
         smartCoursewareDraft: { findUnique: vi.fn().mockResolvedValue(initialized), update: updateDraft },
@@ -324,6 +325,7 @@ describe('smart courseware generation service', () => {
     const updateDraft = vi.fn();
     const db = {
       smartCoursewareGenerationCommand: { findFirst: vi.fn().mockResolvedValue(null) },
+      smartCoursewareGenerationJob: { findFirst: vi.fn().mockResolvedValue(job) },
       $transaction: vi.fn(async (run: (tx: unknown) => unknown) => run({
         smartCoursewareGenerationJob: { findFirst: vi.fn().mockResolvedValue(job), update: updateJob },
         smartCoursewareDraft: { findUnique: vi.fn().mockResolvedValue(draft), update: updateDraft },
@@ -351,8 +353,11 @@ describe('smart courseware generation service', () => {
     const conflict = new Prisma.PrismaClientKnownRequestError('transition conflict', {
       code, clientVersion: 'test', meta: {},
     });
-    const findJob = vi.fn()
-      .mockResolvedValueOnce({ id: 'job-a', draftId: 'draft-1' })
+    const findJob = vi.fn();
+    if (name === 'resume') {
+      findJob.mockResolvedValueOnce({ id: 'job-a', mode: 'INITIAL', deliveryGeneration: 1 });
+    }
+    findJob.mockResolvedValueOnce({ id: 'job-a', draftId: 'draft-1' })
       .mockResolvedValueOnce({ id: 'job-b' });
     const db = {
       smartCoursewareGenerationCommand: { findFirst: vi.fn().mockResolvedValue(null) },
@@ -390,7 +395,7 @@ describe('smart courseware generation service', () => {
     await expect(resumeCoursewareGenerationJob(db as never, {
       actor, jobId: replay.id, idempotencyKey: 'resume-replay-conflict',
     })).resolves.toBe(replay);
-    expect(findJob).toHaveBeenCalledTimes(1);
+    expect(findJob).toHaveBeenCalledTimes(2);
   });
 
   it('preserves the transaction conflict when no sibling job is active', async () => {
@@ -411,6 +416,63 @@ describe('smart courseware generation service', () => {
     })).rejects.toBe(conflict);
   });
 
+  it.each(['RUNNING', 'RETRYABLE'] as const)('maps a lost INITIAL resume race after the winner advances to %s', async (state) => {
+    const conflict = new Prisma.PrismaClientKnownRequestError('serialization conflict', {
+      code: 'P2034', clientVersion: 'test', meta: {},
+    });
+    const baseline = { id: 'job-a', mode: 'INITIAL', deliveryGeneration: 4 };
+    const recovered = { ...baseline, draftId: 'draft-1', state, deliveryGeneration: 5 };
+    const findJob = vi.fn().mockResolvedValueOnce(baseline).mockResolvedValueOnce(recovered);
+    const db = {
+      smartCoursewareGenerationCommand: { findFirst: vi.fn().mockResolvedValue(null) },
+      smartCoursewareGenerationJob: { findFirst: findJob },
+      $transaction: vi.fn().mockRejectedValue(conflict),
+    };
+
+    await expect(resumeCoursewareGenerationJob(db as never, {
+      actor, jobId: recovered.id, idempotencyKey: `resume-lost-expired-race-${state.toLowerCase()}`,
+    })).rejects.toMatchObject({ code: 'courseware-job-resume-invalid', status: 409 });
+    expect(findJob).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not hide an INITIAL serialization conflict when delivery generation did not advance', async () => {
+    const conflict = new Prisma.PrismaClientKnownRequestError('serialization conflict', {
+      code: 'P2034', clientVersion: 'test', meta: {},
+    });
+    const baseline = { id: 'job-a', mode: 'INITIAL', deliveryGeneration: 4 };
+    const stillRunning = { ...baseline, draftId: 'draft-1', state: 'RUNNING' };
+    const db = {
+      smartCoursewareGenerationCommand: { findFirst: vi.fn().mockResolvedValue(null) },
+      smartCoursewareGenerationJob: {
+        findFirst: vi.fn().mockResolvedValueOnce(baseline).mockResolvedValueOnce(stillRunning).mockResolvedValueOnce(null),
+      },
+      $transaction: vi.fn().mockRejectedValue(conflict),
+    };
+
+    await expect(resumeCoursewareGenerationJob(db as never, {
+      actor, jobId: stillRunning.id, idempotencyKey: 'resume-unrelated-serialization',
+    })).rejects.toBe(conflict);
+  });
+
+  it('does not map a MODULE serialization conflict from an increased generation', async () => {
+    const conflict = new Prisma.PrismaClientKnownRequestError('serialization conflict', {
+      code: 'P2034', clientVersion: 'test', meta: {},
+    });
+    const baseline = { id: 'job-module', mode: 'MODULE', deliveryGeneration: 2 };
+    const recovered = { ...baseline, draftId: 'draft-1', state: 'RUNNING', deliveryGeneration: 3 };
+    const db = {
+      smartCoursewareGenerationCommand: { findFirst: vi.fn().mockResolvedValue(null) },
+      smartCoursewareGenerationJob: {
+        findFirst: vi.fn().mockResolvedValueOnce(baseline).mockResolvedValueOnce(recovered).mockResolvedValueOnce(null),
+      },
+      $transaction: vi.fn().mockRejectedValue(conflict),
+    };
+
+    await expect(resumeCoursewareGenerationJob(db as never, {
+      actor, jobId: recovered.id, idempotencyKey: 'resume-module-serialization',
+    })).rejects.toBe(conflict);
+  });
+
   it('does not map unrelated Prisma failures to an active-job conflict', async () => {
     const failure = new Prisma.PrismaClientKnownRequestError('missing record', {
       code: 'P2025', clientVersion: 'test', meta: {},
@@ -425,7 +487,7 @@ describe('smart courseware generation service', () => {
     await expect(resumeCoursewareGenerationJob(db as never, {
       actor, jobId: 'job-a', idempotencyKey: 'resume-unrelated-prisma',
     })).rejects.toBe(failure);
-    expect(findJob).not.toHaveBeenCalled();
+    expect(findJob).toHaveBeenCalledTimes(1);
   });
 
   it('does not map a cancel transaction conflict to an active-job conflict', async () => {
@@ -451,6 +513,7 @@ describe('smart courseware generation service', () => {
     const updateJob = vi.fn();
     const db = {
       smartCoursewareGenerationCommand: { findFirst: vi.fn().mockResolvedValue(null) },
+      smartCoursewareGenerationJob: { findFirst: vi.fn().mockResolvedValue(job) },
       $transaction: vi.fn(async (run: (tx: unknown) => unknown) => run({
         smartCoursewareGenerationJob: { findFirst: vi.fn().mockResolvedValue(job), update: updateJob },
         smartCoursewareDraft: { findUnique: vi.fn().mockResolvedValue(changed) },
@@ -472,6 +535,7 @@ describe('smart courseware generation service', () => {
     const updateJob = vi.fn().mockResolvedValue({ ...job, state: 'QUEUED' });
     const db = {
       smartCoursewareGenerationCommand: { findFirst: vi.fn().mockResolvedValue(null) },
+      smartCoursewareGenerationJob: { findFirst: vi.fn().mockResolvedValue(job) },
       $transaction: vi.fn(async (run: (tx: unknown) => unknown) => run({
         smartCoursewareGenerationJob: { findFirst: vi.fn().mockResolvedValue(job), update: updateJob },
         smartCoursewareDraft: { findUnique: vi.fn().mockResolvedValue(draft) },
@@ -487,6 +551,112 @@ describe('smart courseware generation service', () => {
       moduleClaimExpiresAt: null,
       deliveryGeneration: { increment: 1 },
     }) });
+  });
+
+  it('resumes an INITIAL job after its current worker lease expires without resetting completed units', async () => {
+    const { job } = initialCompletionFixture(true);
+    Object.assign(job, {
+      mode: 'INITIAL',
+      inputHash: contentHash({
+        draftId: job.draft.id, draftVersion: job.draft.version,
+        planRevisionId: job.draft.planRevisionId, planRevisionNumber: job.draft.planRevisionNumber,
+        planContentHash: job.draft.planContentHash, authoringLineageRoot: job.draft.authoringLineageRoot,
+      }),
+    });
+    const current = job.units.at(-1)!;
+    Object.assign(current, { claimToken: 'abandoned-token', claimExpiresAt: new Date(Date.now() - 60_000) });
+    const updateUnits = vi.fn().mockResolvedValue({ count: 1 });
+    const updateAttempts = vi.fn().mockResolvedValue({ count: 1 });
+    const updateJob = vi.fn().mockResolvedValue({ ...job, state: 'QUEUED' });
+    const db = {
+      smartCoursewareGenerationCommand: { findFirst: vi.fn().mockResolvedValue(null) },
+      smartCoursewareGenerationJob: { findFirst: vi.fn().mockResolvedValue(job) },
+      $transaction: vi.fn(async (run: (tx: unknown) => unknown) => run({
+        smartCoursewareGenerationJob: { findFirst: vi.fn().mockResolvedValue(job), update: updateJob },
+        smartCoursewareDraft: { findUnique: vi.fn().mockResolvedValue(job.draft), update: vi.fn() },
+        smartCoursewareGenerationUnit: { findUnique: vi.fn().mockResolvedValue(current), updateMany: updateUnits },
+        smartCoursewareProviderAttempt: { updateMany: updateAttempts },
+        smartCoursewareGenerationCommand: { create: vi.fn() },
+      })),
+    };
+
+    await expect(resumeCoursewareGenerationJob(db as never, {
+      actor, jobId: job.id, idempotencyKey: 'resume-expired-initial',
+    })).resolves.toMatchObject({ state: 'QUEUED', firstIncompleteUnitKey: current.unitKey });
+    expect(updateUnits).toHaveBeenNthCalledWith(1, {
+      where: { id: current.id, jobId: job.id, state: 'RUNNING', claimExpiresAt: { lte: expect.any(Date) } },
+      data: { state: 'PENDING', claimToken: null, claimExpiresAt: null },
+    });
+    expect(updateAttempts).toHaveBeenCalledWith({
+      where: { unitId: current.id, outcome: 'RUNNING' },
+      data: { outcome: 'RETRYABLE_FAILURE', finishedAt: expect.any(Date) },
+    });
+    expect(updateJob).toHaveBeenCalledWith({ where: { id: job.id }, data: expect.objectContaining({
+      state: 'QUEUED', deliveryGeneration: { increment: 1 },
+    }) });
+  });
+
+  it('rejects INITIAL resume while the current worker lease is live', async () => {
+    const { job } = initialCompletionFixture(true);
+    Object.assign(job, {
+      mode: 'INITIAL',
+      inputHash: contentHash({
+        draftId: job.draft.id, draftVersion: job.draft.version,
+        planRevisionId: job.draft.planRevisionId, planRevisionNumber: job.draft.planRevisionNumber,
+        planContentHash: job.draft.planContentHash, authoringLineageRoot: job.draft.authoringLineageRoot,
+      }),
+    });
+    const current = job.units.at(-1)!;
+    Object.assign(current, { claimToken: 'live-token', claimExpiresAt: new Date(Date.now() + 60_000) });
+    const updateUnits = vi.fn();
+    const updateJob = vi.fn();
+    const db = {
+      smartCoursewareGenerationCommand: { findFirst: vi.fn().mockResolvedValue(null) },
+      smartCoursewareGenerationJob: { findFirst: vi.fn().mockResolvedValue(job) },
+      $transaction: vi.fn(async (run: (tx: unknown) => unknown) => run({
+        smartCoursewareGenerationJob: { findFirst: vi.fn().mockResolvedValue(job), update: updateJob },
+        smartCoursewareDraft: { findUnique: vi.fn().mockResolvedValue(job.draft) },
+        smartCoursewareGenerationUnit: { findUnique: vi.fn().mockResolvedValue(current), updateMany: updateUnits },
+        smartCoursewareGenerationCommand: { create: vi.fn() },
+      })),
+    };
+
+    await expect(resumeCoursewareGenerationJob(db as never, {
+      actor, jobId: job.id, idempotencyKey: 'resume-live-initial',
+    })).rejects.toMatchObject({ code: 'courseware-job-resume-invalid', status: 409 });
+    expect(updateUnits).not.toHaveBeenCalled();
+    expect(updateJob).not.toHaveBeenCalled();
+  });
+
+  it('allows only one INITIAL resume caller to release an expired unit lease', async () => {
+    const { job } = initialCompletionFixture(true);
+    Object.assign(job, {
+      mode: 'INITIAL',
+      inputHash: contentHash({
+        draftId: job.draft.id, draftVersion: job.draft.version,
+        planRevisionId: job.draft.planRevisionId, planRevisionNumber: job.draft.planRevisionNumber,
+        planContentHash: job.draft.planContentHash, authoringLineageRoot: job.draft.authoringLineageRoot,
+      }),
+    });
+    const current = job.units.at(-1)!;
+    Object.assign(current, { claimToken: 'abandoned-token', claimExpiresAt: new Date(Date.now() - 60_000) });
+    const updateUnits = vi.fn().mockResolvedValue({ count: 0 });
+    const updateJob = vi.fn();
+    const db = {
+      smartCoursewareGenerationCommand: { findFirst: vi.fn().mockResolvedValue(null) },
+      smartCoursewareGenerationJob: { findFirst: vi.fn().mockResolvedValue(job) },
+      $transaction: vi.fn(async (run: (tx: unknown) => unknown) => run({
+        smartCoursewareGenerationJob: { findFirst: vi.fn().mockResolvedValue(job), update: updateJob },
+        smartCoursewareDraft: { findUnique: vi.fn().mockResolvedValue(job.draft) },
+        smartCoursewareGenerationUnit: { findUnique: vi.fn().mockResolvedValue(current), updateMany: updateUnits },
+        smartCoursewareGenerationCommand: { create: vi.fn() },
+      })),
+    };
+
+    await expect(resumeCoursewareGenerationJob(db as never, {
+      actor, jobId: job.id, idempotencyKey: 'resume-raced-initial',
+    })).rejects.toMatchObject({ code: 'courseware-job-resume-invalid', status: 409 });
+    expect(updateJob).not.toHaveBeenCalled();
   });
 
   it('cancels MODULE jobs without cancelling units or changing the draft state', async () => {
@@ -590,6 +760,7 @@ describe('smart courseware generation service', () => {
     };
     const db = {
       smartCoursewareGenerationCommand: { findFirst: vi.fn().mockResolvedValue(null) },
+      smartCoursewareGenerationJob: { findFirst: vi.fn().mockResolvedValue(job) },
       $transaction: vi.fn(async (run: (tx: unknown) => unknown) => run({
         smartCoursewareGenerationJob: { findFirst: vi.fn().mockResolvedValue(job) },
       })),

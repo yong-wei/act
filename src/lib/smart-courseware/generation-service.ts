@@ -117,7 +117,24 @@ export async function resumeCoursewareGenerationJob(db: Db, input: CommandInput)
         },
       });
     }
-    if (job.state === 'RUNNING') throw new SmartCoursewareError('courseware-job-resume-invalid', 409);
+    if (job.state === 'RUNNING') {
+      const now = new Date();
+      const unit = await tx.smartCoursewareGenerationUnit.findUnique({
+        where: { jobId_unitKey: { jobId: job.id, unitKey: job.firstIncompleteUnitKey } },
+      });
+      if (!unit || unit.state !== 'RUNNING' || !unit.claimExpiresAt || unit.claimExpiresAt > now) {
+        throw new SmartCoursewareError('courseware-job-resume-invalid', 409);
+      }
+      const released = await tx.smartCoursewareGenerationUnit.updateMany({
+        where: { id: unit.id, jobId: job.id, state: 'RUNNING', claimExpiresAt: { lte: now } },
+        data: { state: 'PENDING', claimToken: null, claimExpiresAt: null },
+      });
+      if (released.count !== 1) throw new SmartCoursewareError('courseware-job-resume-invalid', 409);
+      await tx.smartCoursewareProviderAttempt.updateMany({
+        where: { unitId: unit.id, outcome: 'RUNNING' },
+        data: { outcome: 'RETRYABLE_FAILURE', finishedAt: now },
+      });
+    }
     await tx.smartCoursewareGenerationUnit.updateMany({
       where: { jobId: job.id, state: { in: ['RETRYABLE', 'FAILED', 'CANCELLED'] } },
       data: { state: 'PENDING', claimToken: null, claimExpiresAt: null },
@@ -415,6 +432,12 @@ async function transitionJob(db: Db, input: CommandInput, action: string, allowe
   const requestHash = contentHash({ jobId: input.jobId });
   const replay = await findCommandReplay(db, actor, action, idempotencyKey, requestHash);
   if (replay) return replay;
+  const resumeBaseline = action === 'RESUME'
+    ? await db.smartCoursewareGenerationJob.findFirst({
+      where: { id: validateId(input.jobId), ownerId: actor.id },
+      select: { id: true, mode: true, deliveryGeneration: true },
+    })
+    : null;
   try {
     return await db.$transaction(async (tx) => {
       const job = await tx.smartCoursewareGenerationJob.findFirst({
@@ -435,9 +458,15 @@ async function transitionJob(db: Db, input: CommandInput, action: string, allowe
       if (action !== 'RESUME' && action !== 'RETRY') throw error;
       const conflictedJob = await db.smartCoursewareGenerationJob.findFirst({
         where: { id: validateId(input.jobId), ownerId: actor.id },
-        select: { id: true, draftId: true },
+        select: { id: true, draftId: true, mode: true, deliveryGeneration: true },
       });
       if (conflictedJob) {
+        if (action === 'RESUME' && error instanceof Prisma.PrismaClientKnownRequestError
+          && error.code === 'P2034' && resumeBaseline?.mode === 'INITIAL'
+          && conflictedJob.id === resumeBaseline.id
+          && conflictedJob.deliveryGeneration > resumeBaseline.deliveryGeneration) {
+          throw new SmartCoursewareError('courseware-job-resume-invalid', 409);
+        }
         const activeJob = await db.smartCoursewareGenerationJob.findFirst({
           where: {
             id: { not: conflictedJob.id },
