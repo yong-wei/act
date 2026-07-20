@@ -26,19 +26,24 @@ function logicalUnits(relative: string, text: string, drift: Drift[], scope = re
       for (const [index, line] of text.split('\n').entries()) {
         if (line.trim().length === 0) continue;
         try { records.push(JSON.parse(line) as Json); }
-        catch (error) {
+        catch {
           if (!reportedInvalid) drift.push({
             code: 'LOGICAL_RECORD_PARSE_FAILED', scope,
             expected: 'valid JSON on every non-empty JSONL line',
             observed: { line_number: index + 1, line_locator: `${relative}#L${index + 1}` },
-            detail: error instanceof Error ? error.message : String(error),
+            detail: 'INVALID_JSONL_RECORD',
           });
           reportedInvalid = true;
         }
       }
       return [{ locator: `${relative}#records`, schema: 'jsonl-record-set/v1', value: { aggregate_digest: taggedDigest('jsonl-record-set/v1', canonicalJson(records as unknown as Json)) }, cardinality: records.length }];
     }
-    const value = JSON.parse(text) as Json;
+    let value: Json;
+    try { value = JSON.parse(text) as Json; }
+    catch {
+      drift.push({ code: 'LOGICAL_RECORD_PARSE_FAILED', scope, expected: 'valid JSON document', observed: { document_locator: `${relative}#document` }, detail: 'INVALID_JSON_DOCUMENT' });
+      return [];
+    }
     const cardinality = Array.isArray(value) ? value.length : value && typeof value === 'object' ? Object.keys(value).length : 1;
     return [{ locator: `${relative}#records`, schema: 'json-record-set/v1', value: { aggregate_digest: taggedDigest('json-record-set/v1', canonicalJson(value)) }, cardinality }];
   }
@@ -76,7 +81,7 @@ export async function extractRecordSets(repository: { sources: Array<Record<stri
         }
         try {
           for (const unit of logicalUnits(relative, text, drift, scope)) logical.push({ item_kind: `${source.item_kind}_logical`, identity_namespace: String(source.identity_namespace), source_id: `${source.id}:${metadata.source_root}:${unit.locator}`, source_locator: unit.locator, schema_version: unit.schema, digest: taggedDigest(unit.schema, canonicalJson(unit.value)), cardinality: unit.cardinality, source_root: metadata.source_root, capture_revision: metadata.capture_revision });
-        } catch (error) { drift.push({ code: 'LOGICAL_RECORD_PARSE_FAILED', scope, detail: error instanceof Error ? error.message : String(error) }); }
+        } catch { drift.push({ code: 'LOGICAL_RECORD_PARSE_FAILED', scope, detail: 'LOGICAL_DOCUMENT_PARSE_FAILED' }); }
       }
     }
   }

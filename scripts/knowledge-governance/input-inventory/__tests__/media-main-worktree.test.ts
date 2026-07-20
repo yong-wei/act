@@ -11,6 +11,8 @@ import type { Drift } from '../types';
 import type { Json } from '../types';
 import { canonicalJson, taggedDigest } from '../normalize';
 import { extractRecordSets } from '../extract-records';
+import { extractAuthoritativeAnchorCandidates, type AuthoritativeMarkdownSource } from '../anchors';
+import { validateOutputPrivacy } from '../schema-validation';
 import type { FileObservation } from '../input-codecs';
 import type { DatabaseSnapshot } from '../types';
 
@@ -31,12 +33,26 @@ function fixtureRegistry(): Registry {
   } as unknown as Registry;
 }
 
-function git(directory: string, ...args: string[]): void {
+function git(directory: string, ...args: string[]): string {
   const result = spawnSync('git', args, { cwd: directory, encoding: 'utf8' });
   if (result.status !== 0) throw new Error(result.stderr);
+  return result.stdout.trim();
 }
 
 describe('closed repository input codecs', () => {
+  it('reports a safe location for multiline JSON without retaining parser context', async () => {
+    const relative = 'fixture/invalid.json';
+    const secret = '{"ok":1,\n"SUPER_SECRET": line 999}\n';
+    const metadata: FileObservation = {
+      path: relative, source_root: 'isolated-worktree', filesystem_root: '/unused', capture_revision: revision, vcs_state: 'tracked', state: 'observed', codec: 'json/v1', media_type: 'application/json', size: Buffer.byteLength(secret), raw_digest: taggedDigest('fixture/v1', secret), content_bytes: Buffer.from(secret),
+    };
+    const repository = { sources: [{ id: 'fixture', item_kind: 'fixture', identity_namespace: 'fixture_path', physical_paths: [relative] }] } as unknown as { sources: Array<Record<string, Json>> };
+    const result = await extractRecordSets(repository, { datasets: [] } as unknown as DatabaseSnapshot, { field_decoders: [] } as unknown as Registry, [metadata]);
+    expect(result.drift).toContainEqual(expect.objectContaining({ code: 'LOGICAL_RECORD_PARSE_FAILED', observed: { document_locator: `${relative}#document` }, detail: 'INVALID_JSON_DOCUMENT' }));
+    expect(JSON.stringify(result)).not.toContain('SUPER_SECRET');
+    expect(JSON.stringify(result)).not.toContain('#L999');
+  });
+
   it('preserves distinct logical records for conflicting same-path JSON observations', async () => {
     const relative = 'fixture/shared.json';
     const observation = (source_root: 'isolated-worktree' | 'main-worktree', text: string): FileObservation => ({
@@ -152,24 +168,38 @@ describe('closed repository input codecs', () => {
   it('preserves conflicting same-path observations through the --main-worktree-root CLI entrypoint', async () => {
     const main = await mkdtemp(path.join(os.tmpdir(), 'inventory-main-entrypoint-'));
     const relative = 'docs/knowledge-graph-current-state-audit-2026-07-18.md';
+    const mainOnlyAnchor = 'course-content/syllabus-refactor/unit-design-details/main-only.md';
     try {
       git(main, 'init', '-q');
       git(main, 'config', 'user.email', 'inventory@example.invalid');
       git(main, 'config', 'user.name', 'Inventory Test');
       await mkdir(path.join(main, 'docs/adr'), { recursive: true });
+      await mkdir(path.join(main, path.dirname(mainOnlyAnchor)), { recursive: true });
       await writeFile(path.join(main, relative), '# conflicting main-worktree audit\n');
       await writeFile(path.join(main, 'docs/adr/README.md'), '# ADR fixture\n');
-      git(main, 'add', relative, 'docs/adr/README.md');
-      git(main, 'commit', '-qm', 'fixture');
+      await writeFile(path.join(main, mainOnlyAnchor), '# 模块 5\n\n模块 5 拓展：仅存在于 main worktree 的权威锚点。\n');
+      git(main, 'add', relative, 'docs/adr/README.md', mainOnlyAnchor);
+      git(main, 'commit', '-qm', 'fixture base');
+      await mkdir(path.join(main, 'course-content/authoring/resources'), { recursive: true });
+      await symlink('missing-target.md', path.join(main, 'course-content/authoring/resources/rejected-link.md'));
+      git(main, 'add', 'course-content/authoring/resources/rejected-link.md');
+      git(main, 'update-index', '--add', '--cacheinfo', `160000,${git(main, 'rev-parse', 'HEAD')},course-content/authoring/resources/rejected-gitlink`);
+      git(main, 'commit', '-qm', 'fixture rejected inputs');
       const mainRevision = await repositoryRevision(main);
       const result = spawnSync(process.execPath, [
         '--import', 'tsx', 'scripts/knowledge-governance/input-inventory/cli.ts',
         '--captured-at', '2026-07-19T00:00:00.000Z', '--allow-blocked',
+        '--anchor-review-attestation', 'scripts/knowledge-governance/input-inventory/fixtures/anchor-review-attestation.json',
         '--main-worktree-root', main, '--main-worktree-revision', mainRevision,
       ], { cwd: root, encoding: 'utf8', maxBuffer: 128 * 1024 * 1024 });
       expect(result.stderr).toBe('');
       expect(result.status).toBe(0);
-      const manifest = JSON.parse(result.stdout) as { repository_files: Array<{ path: string; source_root: string; raw_digest: string }>; drift: Drift[] };
+      const manifest = JSON.parse(result.stdout) as {
+        repository: { sources: Array<{ id: string; physical_paths: string[] }> };
+        repository_files: Array<{ path: string; source_root: 'isolated-worktree' | 'main-worktree'; capture_revision: string; raw_digest: string }>;
+        anchors: { candidate_artifact_digest: string; candidate_count: number };
+        drift: Drift[];
+      };
       const records = manifest.repository_files.filter((item) => item.path === relative);
       expect(records).toHaveLength(2);
       expect(records.map((item) => item.source_root).sort()).toEqual(['isolated-worktree', 'main-worktree']);
@@ -179,6 +209,23 @@ describe('closed repository input codecs', () => {
         expected: expect.objectContaining({ source_root: 'isolated-worktree', raw_digest: records.find((item) => item.source_root === 'isolated-worktree')!.raw_digest }),
         observed: expect.objectContaining({ source_root: 'main-worktree', raw_digest: records.find((item) => item.source_root === 'main-worktree')!.raw_digest }),
       }));
+      expect(manifest.drift).toEqual(expect.arrayContaining([
+        expect.objectContaining({ code: 'ADR_INDEX_CARDINALITY' }),
+        expect.objectContaining({ code: 'SYMLINK_INPUT_REJECTED', scope: 'course-content/authoring/resources/rejected-link.md' }),
+        expect.objectContaining({ code: 'GITLINK_INPUT_REJECTED', scope: 'course-content/authoring/resources/rejected-gitlink' }),
+        expect.objectContaining({ code: 'ANCHOR_REVIEW_ATTESTATION_SOURCE_SET_UNSUPPORTED', observed: 'mixed or main-worktree authoritative sources' }),
+      ]));
+      const authoritativePaths = manifest.repository.sources.find((item) => item.id === 'formal-course-basis')!.physical_paths;
+      const authoritativeMarkdownSources = authoritativePaths.map((logicalPath): AuthoritativeMarkdownSource => {
+        const observations = manifest.repository_files.filter((item) => item.path === logicalPath);
+        const selected = observations.find((item) => item.source_root === 'isolated-worktree') ?? observations.find((item) => item.source_root === 'main-worktree')!;
+        return { root: selected.source_root === 'isolated-worktree' ? root : main, repositoryRevision: selected.capture_revision, logicalPath, sourceRoot: selected.source_root };
+      });
+      const candidates = await extractAuthoritativeAnchorCandidates({
+        root, repositoryRevision: await repositoryRevision(root), extractionRun: 'unattested-anchor-extraction/v1', authoritativeMarkdownPaths: authoritativePaths, authoritativeMarkdownSources,
+      });
+      expect(candidates.candidates).toContainEqual(expect.objectContaining({ source: expect.objectContaining({ logical_path: mainOnlyAnchor, source_root: 'main-worktree', repository_revision: mainRevision }) }));
+      expect(manifest.anchors).toMatchObject({ candidate_artifact_digest: candidates.artifact_digest, candidate_count: candidates.candidates.length });
     } finally { await rm(main, { recursive: true }); }
   }, 120_000);
 
@@ -192,7 +239,7 @@ describe('closed repository input codecs', () => {
       await mkdir(path.join(main, 'docs/adr'), { recursive: true });
       await mkdir(path.join(main, 'course-content/authoring/resources'), { recursive: true });
       await writeFile(path.join(main, 'docs/adr/README.md'), '# ADR fixture\n');
-      await writeFile(path.join(main, relative), '{"id":1}\nnot-json\n\n{"id":2}\n');
+      await writeFile(path.join(main, relative), '{"id":1}\n{"secret":"SUPER_SECRET"\n\n{"id":2}\n');
       git(main, 'add', 'docs/adr/README.md', relative);
       git(main, 'commit', '-qm', 'fixture');
       const mainRevision = await repositoryRevision(main);
@@ -209,8 +256,11 @@ describe('closed repository input codecs', () => {
         code: 'LOGICAL_RECORD_PARSE_FAILED', scope: relative,
         expected: 'valid JSON on every non-empty JSONL line',
         observed: { line_number: 2, line_locator: `${relative}#L2` },
+        detail: 'INVALID_JSONL_RECORD',
       }));
       expect(manifest.record_sets.logical).toContainEqual(expect.objectContaining({ source_locator: `${relative}#records`, cardinality: 2 }));
+      expect(result.stdout).not.toContain('SUPER_SECRET');
+      expect(validateOutputPrivacy(manifest as unknown as Json)).toEqual([]);
     } finally { await rm(main, { recursive: true }); }
   }, 120_000);
 

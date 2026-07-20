@@ -9,7 +9,7 @@ import { loadImmutableExport, noDatabaseSnapshot, validateDatabaseClosure } from
 import { decoderContractDigest, validateFixtureClosure, validateSyntheticDecoderGraph, type ShapeFixture } from './decoder-validation';
 import { extractRecordSets } from './extract-records';
 import type { AnchorRecord } from './records';
-import { extractAuthoritativeAnchorCandidates, verifyAnchorReviewAttestation } from './anchors';
+import { extractAuthoritativeAnchorCandidates, verifyAnchorReviewAttestation, type AuthoritativeMarkdownSource } from './anchors';
 import { assertManifestSchemaValue } from './output-validation';
 import type { AnySchema } from 'ajv/dist/2020';
 import type { Drift, InventoryOptions, Json } from './types';
@@ -115,6 +115,7 @@ export async function buildManifest(options: InventoryOptions): Promise<Json> {
   if (Boolean(options.mainWorktreeRoot) !== Boolean(options.mainWorktreeRevision)) throw new Error('--main-worktree-root and --main-worktree-revision must be supplied together');
   let authorizedMainRoot: string | undefined;
   let mainRepository: Awaited<ReturnType<typeof enumerateRepository>> | null = null;
+  const mainRepositoryDrift: Drift[] = [];
   if (options.mainWorktreeRoot && options.mainWorktreeRevision) {
     const observedRevision = await repositoryRevision(options.mainWorktreeRoot);
     if (observedRevision !== options.mainWorktreeRevision) drift.push({ code: 'MAIN_WORKTREE_REVISION_MISMATCH', scope: 'main-worktree', expected: options.mainWorktreeRevision, observed: observedRevision });
@@ -122,7 +123,10 @@ export async function buildManifest(options: InventoryOptions): Promise<Json> {
   }
   const symlinks = await classifyRegisteredSymlinks(options.root, registry, authorizedMainRoot);
   const repository = await enumerateRepository(options.root, registry, drift, authorizedMainRoot, isolatedRevision);
-  if (authorizedMainRoot) mainRepository = await enumerateRepository(authorizedMainRoot, registry, [], undefined, options.mainWorktreeRevision);
+  if (authorizedMainRoot) {
+    mainRepository = await enumerateRepository(authorizedMainRoot, registry, mainRepositoryDrift, undefined, options.mainWorktreeRevision);
+    drift.push(...mainRepositoryDrift);
+  }
   drift.push(...await validateRegistrySchema(options.root, registry, (file) => normalizeText(revisionBoundFile(options.root, isolatedRevision, file, []))));
   const fixturePath = 'scripts/knowledge-governance/input-inventory/fixtures/synthetic-history-payload-shapes.json';
   const fixtureFile = JSON.parse(revisionBoundFile(options.root, isolatedRevision, fixturePath, []).toString('utf8')) as { fixtures: ShapeFixture[] };
@@ -135,6 +139,12 @@ export async function buildManifest(options: InventoryOptions): Promise<Json> {
   const fileRecords = await collectInputObservations({ isolatedRoot: options.root, isolatedRevision, isolatedPaths: [...isolatedPaths], ...(mainRepository && authorizedMainRoot && options.mainWorktreeRevision ? { mainRoot: authorizedMainRoot, mainRevision: options.mainWorktreeRevision, mainPaths, isolatedSymlinkReplacements: symlinks.authorized_main_worktree_replacements } : {}) }, registry, drift);
   const effectiveRepository = mainRepository ? mergeRepositoryObservations(repository, mainRepository) : repository;
   const authoritativeMarkdownPaths = (effectiveRepository.sources.find((source) => source.id === 'formal-course-basis')?.physical_paths as string[] | undefined) ?? [];
+  const authoritativeMarkdownSources = authoritativeMarkdownPaths.flatMap((logicalPath): AuthoritativeMarkdownSource[] => {
+    const observations = fileRecords.filter((item) => item.path === logicalPath && item.state === 'observed');
+    const selected = observations.find((item) => item.source_root === 'isolated-worktree') ?? observations.find((item) => item.source_root === 'main-worktree');
+    if (!selected) return [];
+    return [{ root: selected.filesystem_root, repositoryRevision: selected.capture_revision, logicalPath, sourceRoot: selected.source_root }];
+  });
   if (mainRepository) {
     const reconciled = resolvedRepositoryMissingDrift(drift, effectiveRepository);
     drift.splice(0, drift.length, ...reconciled);
@@ -192,7 +202,13 @@ export async function buildManifest(options: InventoryOptions): Promise<Json> {
   let anchorReviewCount = 0;
   let anchorAdmittedDigest: string | null = null;
   let anchorAdmittedCount = 0;
-  if (options.anchorReviewAttestationPath) {
+  const hasMainWorktreeAnchorSource = authoritativeMarkdownSources.some((item) => item.sourceRoot === 'main-worktree');
+  if (options.anchorReviewAttestationPath && hasMainWorktreeAnchorSource) {
+    drift.push({ code: 'ANCHOR_REVIEW_ATTESTATION_SOURCE_SET_UNSUPPORTED', scope: options.anchorReviewAttestationPath, expected: 'one isolated-worktree revision', observed: 'mixed or main-worktree authoritative sources' });
+    const candidates = await extractAuthoritativeAnchorCandidates({ root: options.root, repositoryRevision: isolatedRevision, extractionRun: 'unattested-anchor-extraction/v1', authoritativeMarkdownPaths, authoritativeMarkdownSources });
+    anchorCandidateDigest = candidates.artifact_digest;
+    anchorCandidateCount = candidates.candidates.length;
+  } else if (options.anchorReviewAttestationPath) {
     try {
       const verified = await verifyAnchorReviewAttestation(options.root, options.anchorReviewAttestationPath, authoritativeMarkdownPaths, isolatedRevision);
       anchorCandidateDigest = verified.candidates.artifact_digest;
@@ -207,13 +223,13 @@ export async function buildManifest(options: InventoryOptions): Promise<Json> {
         source_locator: item.source_locator, text_digest: item.text_digest,
       }));
     } catch (error) {
-      const candidates = await extractAuthoritativeAnchorCandidates({ root: options.root, repositoryRevision: isolatedRevision, extractionRun: 'unattested-anchor-extraction/v1', authoritativeMarkdownPaths });
+      const candidates = await extractAuthoritativeAnchorCandidates({ root: options.root, repositoryRevision: isolatedRevision, extractionRun: 'unattested-anchor-extraction/v1', authoritativeMarkdownPaths, authoritativeMarkdownSources });
       anchorCandidateDigest = candidates.artifact_digest;
       anchorCandidateCount = candidates.candidates.length;
       drift.push({ code: 'ANCHOR_REVIEW_ATTESTATION_INVALID', scope: 'anchor_record_contract', detail: error instanceof Error ? error.message : String(error) });
     }
   } else {
-    const candidates = await extractAuthoritativeAnchorCandidates({ root: options.root, repositoryRevision: isolatedRevision, extractionRun: 'unattested-anchor-extraction/v1', authoritativeMarkdownPaths });
+    const candidates = await extractAuthoritativeAnchorCandidates({ root: options.root, repositoryRevision: isolatedRevision, extractionRun: 'unattested-anchor-extraction/v1', authoritativeMarkdownPaths, authoritativeMarkdownSources });
     anchorCandidateDigest = candidates.artifact_digest;
     anchorCandidateCount = candidates.candidates.length;
     drift.push({ code: 'ANCHOR_REVIEW_ATTESTATION_MISSING', scope: 'anchor_record_contract', detail: 'independent review attestation is required before anchor admission' });

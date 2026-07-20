@@ -59,6 +59,13 @@ export interface AnchorReviewAttestation {
   reason: string;
 }
 
+export interface AuthoritativeMarkdownSource {
+  root: string;
+  repositoryRevision: string;
+  logicalPath: string;
+  sourceRoot: string;
+}
+
 function digestArtifact(value: Omit<AnchorCandidateArtifact | AnchorReviewArtifact | AdmittedAnchorArtifact, 'artifact_digest'>): string {
   return taggedDigest('course-scope-anchor-artifact/v1', canonicalJson(value as unknown as Json));
 }
@@ -145,28 +152,34 @@ function candidateWithoutDigest(candidate: Omit<AnchorCandidate, 'candidate_dige
   return candidate;
 }
 
-export async function extractAuthoritativeAnchorCandidates(options: { root: string; repositoryRevision: string; extractionRun: string; authoritativeMarkdownPaths: string[] }): Promise<AnchorCandidateArtifact> {
-  if (!options.repositoryRevision.trim() || !options.extractionRun.trim()) throw new Error('repositoryRevision and extractionRun are required');
-  const authoritativeMarkdownPaths = [...new Set(options.authoritativeMarkdownPaths.map(normalizePath))].sort(compareCodePoints);
-  if (authoritativeMarkdownPaths.length === 0) throw new Error('authoritative anchor registry is empty');
-  const revision = spawnSync('git', ['rev-parse', '--verify', `${options.repositoryRevision}^{commit}`], { cwd: options.root, encoding: 'utf8' });
-  if (revision.status !== 0 || revision.stdout.trim() !== options.repositoryRevision) throw new Error('authoritative anchor source revision does not exist');
-  const readRevisionFile = (logicalPath: string): Buffer => {
-    const result = spawnSync('git', ['show', `${options.repositoryRevision}:${logicalPath}`], { cwd: options.root, encoding: 'buffer', maxBuffer: 32 * 1024 * 1024 });
-    if (result.status !== 0) throw new Error(`authoritative anchor source is missing from revision: ${logicalPath}`);
+export async function extractAuthoritativeAnchorCandidates(options: { root: string; repositoryRevision: string; extractionRun: string; authoritativeMarkdownPaths: string[]; authoritativeMarkdownSources?: AuthoritativeMarkdownSource[] }): Promise<AnchorCandidateArtifact> {
+  if (!options.extractionRun.trim()) throw new Error('extractionRun is required');
+  const sources = (options.authoritativeMarkdownSources ?? options.authoritativeMarkdownPaths.map((logicalPath) => ({
+    root: options.root, repositoryRevision: options.repositoryRevision, logicalPath, sourceRoot: '.',
+  }))).map((source) => ({ ...source, logicalPath: normalizePath(source.logicalPath) }))
+    .sort((a, b) => compareCodePoints(`${a.logicalPath}\0${a.sourceRoot}`, `${b.logicalPath}\0${b.sourceRoot}`));
+  if (sources.length === 0) throw new Error('authoritative anchor registry is empty');
+  for (const source of sources) {
+    if (!source.repositoryRevision.trim() || !source.sourceRoot.trim()) throw new Error('authoritative anchor source provenance is incomplete');
+    const revision = spawnSync('git', ['rev-parse', '--verify', `${source.repositoryRevision}^{commit}`], { cwd: source.root, encoding: 'utf8' });
+    if (revision.status !== 0 || revision.stdout.trim() !== source.repositoryRevision) throw new Error('authoritative anchor source revision does not exist');
+  }
+  const readRevisionFile = (source: AuthoritativeMarkdownSource): Buffer => {
+    const result = spawnSync('git', ['show', `${source.repositoryRevision}:${source.logicalPath}`], { cwd: source.root, encoding: 'buffer', maxBuffer: 32 * 1024 * 1024 });
+    if (result.status !== 0) throw new Error(`authoritative anchor source is missing from revision: ${source.logicalPath}`);
     return result.stdout;
   };
-  const blueprintPath = authoritativeMarkdownPaths.find((item) => item.endsWith('/blueprint.md'));
-  if (!blueprintPath) throw new Error('authoritative anchor registry has no blueprint');
-  const blueprint = normalizeText(readRevisionFile(blueprintPath));
+  const blueprintSource = sources.find((item) => item.logicalPath.endsWith('/blueprint.md'));
+  if (!blueprintSource) throw new Error('authoritative anchor registry has no blueprint');
+  const blueprint = normalizeText(readRevisionFile(blueprintSource));
   const courseName = /^\|\s*\*\*课程名称\*\*\s*\|\s*(.+?)\s*\|\s*$/mu.exec(blueprint)?.[1];
   const courseNumber = /^\|\s*\*\*(?:课程编号|课程代码)\*\*\s*\|\s*(.+?)\s*\|\s*$/mu.exec(blueprint)?.[1];
   if (!courseName) throw new Error('authoritative blueprint has no explicit course name');
   const course_id = identity('course-identity/v1', { course_name: normalizeQuote(courseName), course_number: courseNumber ? normalizeQuote(courseNumber) : null });
   const candidates: AnchorCandidate[] = [];
-  for (const registeredPath of authoritativeMarkdownPaths) {
-    const logicalPath = normalizePath(registeredPath);
-    const text = normalizeText(readRevisionFile(logicalPath));
+  for (const source of sources) {
+    const logicalPath = source.logicalPath;
+    const text = normalizeText(readRevisionFile(source));
     const sourceDigest = taggedDigest('repository-text-file/v1', Buffer.from(text, 'utf8'));
     for (const selected of selectMarkdown(logicalPath, text)) {
       const module_id = selected.module_number ? identity('course-module-identity/v1', { course_id, module_number: selected.module_number }) : null;
@@ -185,7 +198,7 @@ export async function extractAuthoritativeAnchorCandidates(options: { root: stri
           lesson_number: selected.lesson_number,
         },
         source: {
-          source_root: '.', logical_path: logicalPath, repository_revision: options.repositoryRevision,
+          source_root: source.sourceRoot, logical_path: logicalPath, repository_revision: source.repositoryRevision,
           source_digest: sourceDigest, heading_locator: selected.heading_locator,
           row_locator: selected.row_locator, quote_normalized: selected.quote, quote_digest: quoteDigest,
         },
