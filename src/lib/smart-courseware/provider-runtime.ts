@@ -172,20 +172,13 @@ export function deriveCoursewareApprovedStepExpectations(
   unitKey: CoursewareGenerationUnitKey,
 ) {
   const stageKey = COURSEWARE_PLAN_STAGE_KEYS[unitKey];
-  const stageSteps = plan.boppps[stageKey].steps;
   const outlineSteps = plan.coursewareStepOutline
     .map((step, approvedOutlineIndex) => ({ ...step, approvedOutlineIndex }))
     .filter((step) => step.bopppsStage === stageKey);
-  const consistent = stageSteps.length === outlineSteps.length
-    && stageSteps.every((step, index) => (
-      step.title === outlineSteps[index]?.title
-      && step.minutes === outlineSteps[index]?.minutes
-    ));
-  if (!consistent) throw new SmartCoursewareError('approved-plan-courseware-outline-inconsistent', 409);
   const goalIds = plan.goals.map((goal) => goal.id);
-  return stageSteps.map((step, approvedStageStepIndex) => ({
+  return outlineSteps.map((step, approvedStageStepIndex) => ({
     approvedStageStepIndex,
-    approvedOutlineIndex: outlineSteps[approvedStageStepIndex].approvedOutlineIndex,
+    approvedOutlineIndex: step.approvedOutlineIndex,
     approvedTitle: step.title,
     approvedDurationSeconds: step.minutes * 60,
     goalIds,

@@ -39,22 +39,33 @@ describe('smart courseware provider runtime', () => {
     });
   });
 
-  it('retains every legal outline title but rejects a plan whose two step outlines cannot map one-to-one', () => {
+  it('generates courseware steps from a finer approved outline than the lesson-stage steps', () => {
     const plan = validPlanFixture();
-    plan.durationMinutes = 60;
-    plan.boppps.bridgeIn.minutes = 35;
-    plan.boppps.bridgeIn.steps[0].minutes = 35;
     plan.coursewareStepOutline = [
-      ...Array.from({ length: 30 }, (_, index) => ({ title: `导入 ${index + 1}`, bopppsStage: 'bridgeIn', minutes: 1 })),
-      { title: '导入 31', bopppsStage: 'bridgeIn', minutes: 5 },
+      { title: '情境导入', bopppsStage: 'bridgeIn', minutes: 2 },
+      { title: '问题聚焦', bopppsStage: 'bridgeIn', minutes: 3 },
       ...plan.coursewareStepOutline.filter((step) => step.bopppsStage !== 'bridgeIn'),
     ];
     const approved = validateSmartLessonPlan(plan);
 
-    expect(deriveCoursewareApprovedPlanAlignment(approved, 'bridge-in').stageOutlineTitles).toHaveLength(31);
-    expect(() => createDeterministicCoursewareStage({
-      unitKey: 'bridge-in', durationSeconds: 2_100, approvedPlan: approved, sourceBinding: sourceBindingFixture,
-    })).toThrowError(expect.objectContaining({ code: 'approved-plan-courseware-outline-inconsistent' }));
+    const output = createDeterministicCoursewareStage({
+      unitKey: 'bridge-in', durationSeconds: 300, approvedPlan: approved, sourceBinding: sourceBindingFixture,
+    });
+    expect(approved.boppps.bridgeIn.steps).toHaveLength(1);
+    expect(output.stage.steps.map((step) => [step.title, step.durationSeconds])).toEqual([
+      ['情境导入', 120], ['问题聚焦', 180],
+    ]);
+    expect(output.stepPlanBindings.map((binding) => binding.approvedOutlineIndex)).toEqual([0, 1]);
+  });
+
+  it('still rejects a courseware outline whose stage and total minutes do not match the plan', () => {
+    const plan = validPlanFixture();
+    plan.coursewareStepOutline = [
+      { title: '情境导入', bopppsStage: 'bridgeIn', minutes: 2 },
+      { title: '问题聚焦', bopppsStage: 'bridgeIn', minutes: 4 },
+      ...plan.coursewareStepOutline.filter((step) => step.bopppsStage !== 'bridgeIn'),
+    ];
+    expect(() => validateSmartLessonPlan(plan)).toThrow();
   });
 
   it('fails closed when the fixture provider is requested in production', async () => {

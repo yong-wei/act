@@ -30,6 +30,7 @@ vi.mock('../module-regeneration-service', () => ({
 }));
 
 import { createDeterministicCoursewareStage } from '../provider-runtime';
+import { deriveCoursewareModuleMetadata } from '../domain';
 import { processCoursewareGenerationJob } from '../worker';
 
 describe('smart courseware generation worker', () => {
@@ -129,6 +130,100 @@ describe('smart courseware generation worker', () => {
       unitKey: 'bridge-in', output,
     }));
     expect(mocks.failUnit).not.toHaveBeenCalled();
+  });
+
+  it('generates source-pending output when the approved plan has no verified source bindings', async () => {
+    const plan = validPlanFixture();
+    plan.sources = [];
+    Object.assign(plan.knowledgePoints[0], {
+      sourceState: 'AI_GENERATED_SOURCE_PENDING', sourceBindings: [],
+      gapIdentity: `smart-knowledge-gap:${'c'.repeat(64)}`,
+    });
+    const context = {
+      id: 'job-pending', ownerId: 'teacher-1', draftId: 'draft-pending', state: 'QUEUED', firstIncompleteUnitKey: 'bridge-in',
+      deliveryGeneration: 1,
+      draft: { id: 'draft-pending', planRevision: { content: plan } },
+      units: [{ id: 'unit-pending', unitKey: 'bridge-in', state: 'PENDING', output: null, orderIndex: 0, attemptGeneration: 0 }],
+    };
+    const db = { smartCoursewareGenerationJob: { findUnique: vi.fn().mockResolvedValue(context) } };
+    mocks.beginAttempt.mockResolvedValue({
+      claimed: true, claimToken: 'claim-pending', attempt: { id: 'attempt-pending', idempotencyKey: 'attempt-pending-key' },
+    });
+    mocks.completeUnit.mockResolvedValue({ state: 'COMPLETED' });
+    const output = createDeterministicCoursewareStage({
+      unitKey: 'bridge-in', durationSeconds: 300, approvedPlan: plan,
+    });
+    const runtime = {
+      serviceId: 'fixture-service', providerKind: 'fixture', model: 'fixture-model',
+      generate: vi.fn().mockResolvedValue({
+        output, normalizedResponseId: 'pending-response', inputTokens: 0, outputTokens: 0, costMicros: null,
+      }),
+    };
+
+    await expect(processCoursewareGenerationJob(db as never, context.id, async () => runtime as never))
+      .resolves.toEqual({ jobId: context.id, state: 'COMPLETED' });
+    expect(mocks.buildSar).not.toHaveBeenCalled();
+    expect(mocks.buildSourcePack).not.toHaveBeenCalled();
+    expect(mocks.beginAttempt).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      request: expect.objectContaining({ authoritativeSourceBindings: [] }),
+    }));
+    expect(output.moduleMetadata).toEqual(expect.arrayContaining([expect.objectContaining({
+      sourceState: 'ai_generated_source_pending', sourceBindings: [],
+    })]));
+    const pending = deriveCoursewareModuleMetadata({
+      authoringLineageRoot: 'lineage-pending',
+      runtimeModule: output.stage.steps[0].modules[0],
+      requested: output.moduleMetadata[0],
+      allowedSourceBindings: [],
+      newProvenance: 'ai_generated',
+      originalAttemptId: 'attempt-pending',
+    });
+    expect(pending.gapIdentity).toMatch(/^courseware-gap:/);
+    expect(mocks.failUnit).not.toHaveBeenCalled();
+  });
+
+  it('rejects provider-claimed verified output with no binding when the server allowlist is empty', async () => {
+    const plan = validPlanFixture();
+    plan.sources = [];
+    Object.assign(plan.knowledgePoints[0], {
+      sourceState: 'AI_GENERATED_SOURCE_PENDING', sourceBindings: [],
+      gapIdentity: `smart-knowledge-gap:${'d'.repeat(64)}`,
+    });
+    const context = {
+      id: 'job-false-verified', ownerId: 'teacher-1', draftId: 'draft-false-verified', state: 'QUEUED', firstIncompleteUnitKey: 'bridge-in',
+      deliveryGeneration: 1,
+      draft: { id: 'draft-false-verified', planRevision: { content: plan } },
+      units: [{ id: 'unit-false-verified', unitKey: 'bridge-in', state: 'PENDING', output: null, orderIndex: 0, attemptGeneration: 0 }],
+    };
+    const db = { smartCoursewareGenerationJob: { findUnique: vi.fn().mockResolvedValue(context) } };
+    mocks.beginAttempt.mockResolvedValue({
+      claimed: true, claimToken: 'claim-false-verified',
+      attempt: { id: 'attempt-false-verified', idempotencyKey: 'attempt-false-verified-key' },
+    });
+    mocks.failUnit.mockResolvedValue({ state: 'FAILED' });
+    const output = createDeterministicCoursewareStage({
+      unitKey: 'bridge-in', durationSeconds: 300, approvedPlan: plan,
+    });
+    output.moduleMetadata.forEach((metadata) => {
+      metadata.sourceState = 'verified';
+      metadata.sourceBindings = [];
+      metadata.teacherFields.inclusionRationale = '伪造的已验证声明';
+    });
+    const runtime = {
+      serviceId: 'fixture-service', providerKind: 'fixture', model: 'fixture-model',
+      generate: vi.fn().mockResolvedValue({
+        output, normalizedResponseId: 'false-verified-response', inputTokens: 0, outputTokens: 0, costMicros: null,
+      }),
+    };
+
+    await expect(processCoursewareGenerationJob(db as never, context.id, async () => runtime as never))
+      .rejects.toMatchObject({ code: 'verified-source-binding-required', status: 409 });
+    expect(mocks.buildSar).not.toHaveBeenCalled();
+    expect(mocks.buildSourcePack).not.toHaveBeenCalled();
+    expect(mocks.completeUnit).not.toHaveBeenCalled();
+    expect(mocks.failUnit).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      jobId: context.id, unitKey: 'bridge-in', failureCode: 'verified-source-binding-required', retryable: false,
+    }));
   });
 
   it.each([

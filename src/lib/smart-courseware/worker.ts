@@ -179,21 +179,23 @@ async function loadContext(db: Db, jobId: string) {
 async function buildUnitRequest(db: Db, context: NonNullable<Awaited<ReturnType<typeof loadContext>>>, unitKey: CoursewareGenerationUnitKey) {
   const plan = validateSmartLessonPlan(context.draft.planRevision.content);
   const selectedVersionIds = [...new Set(plan.sources.map((binding) => binding.sourceVersionId))];
-  if (!selectedVersionIds.length) throw new SmartCoursewareError('governed-source-evidence-unavailable', 409);
   const query = [plan.topic, ...plan.goals.map((goal) => goal.content), ...plan.knowledgePoints.map((point) => point.title)].join('\n').slice(0, 4_000);
   const actor = { id: context.ownerId, role: 'TEACHER' as const };
-  const sar = await buildCourseBasisLessonDesignSar(db, { actor, selectedVersionIds, explicitRetiredVersionIds: selectedVersionIds, query });
-  const sourcePack = await buildCourseBasisLessonDesignSourcePack(db, {
-    actor, selectedVersionIds, explicitRetiredVersionIds: selectedVersionIds, sar,
-    retrieval: { query, topK: 12 },
-  });
-  const authoritativeBindings = normalizeSourceBindings(sourcePack.retrieval.pack.items.map((item) => ({
-    citationId: item.citationTargetId ?? item.citation?.citationTargetId,
-    sourceVersionId: item.metadata?.versionId,
-    anchor: item.metadata?.stableAnchor,
-    contentHash: item.metadata?.contentHash,
-  })));
-  if (!authoritativeBindings.length) throw new SmartCoursewareError('governed-source-evidence-unavailable', 409);
+  let authoritativeBindings: ReturnType<typeof normalizeSourceBindings> = [];
+  if (selectedVersionIds.length) {
+    const sar = await buildCourseBasisLessonDesignSar(db, { actor, selectedVersionIds, explicitRetiredVersionIds: selectedVersionIds, query });
+    const sourcePack = await buildCourseBasisLessonDesignSourcePack(db, {
+      actor, selectedVersionIds, explicitRetiredVersionIds: selectedVersionIds, sar,
+      retrieval: { query, topK: 12 },
+    });
+    authoritativeBindings = normalizeSourceBindings(sourcePack.retrieval.pack.items.map((item) => ({
+      citationId: item.citationTargetId ?? item.citation?.citationTargetId,
+      sourceVersionId: item.metadata?.versionId,
+      anchor: item.metadata?.stableAnchor,
+      contentHash: item.metadata?.contentHash,
+    })));
+    if (!authoritativeBindings.length) throw new SmartCoursewareError('governed-source-evidence-unavailable', 409);
+  }
   const planStage = plan.boppps[COURSEWARE_PLAN_STAGE_KEYS[unitKey]];
   const expectedPlanAlignment = deriveCoursewareApprovedPlanAlignment(plan, unitKey);
   const expectedStepExpectations = deriveCoursewareApprovedStepExpectations(plan, unitKey);
@@ -256,6 +258,11 @@ function validateUnitOutput(
   if (new Set(moduleIds).size !== moduleIds.length || parsed.moduleMetadata.length !== moduleIds.length
     || parsed.moduleMetadata.some((metadata) => !moduleIds.includes(metadata.moduleId))) {
     throw new SmartCoursewareError('generated-courseware-metadata-coverage-invalid', 409);
+  }
+  if (parsed.moduleMetadata.some((metadata) => (
+    metadata.sourceState === 'verified' && metadata.sourceBindings.length === 0
+  ))) {
+    throw new SmartCoursewareError('verified-source-binding-required', 409);
   }
   for (const binding of parsed.moduleMetadata.flatMap((metadata) => metadata.sourceBindings)) {
     if (!allowed.has(bindingKey(binding))) throw new SmartCoursewareError('generated-source-binding-unverified', 409);
