@@ -33,14 +33,14 @@ describe('smart courseware domain', () => {
       .toThrowError(expect.objectContaining({ code: 'plan-duration-changed' }));
 
     const missingActivity = validCompositionInput();
-    const module = missingActivity.runtimeManifest.stages[2].steps[0].modules[0];
-    Object.assign(module, {
+    const activityModule = missingActivity.runtimeManifest.stages[2].steps[0].modules[0];
+    Object.assign(activityModule, {
       canonicalClass: 'content.rich',
       payload: { text: '仅有活动建议' },
       roleMetadata: { studentVisible: true, teacherVisible: true, referenceAnswerVisibility: 'none' },
     });
-    delete module.responseKind;
-    delete module.evidencePath;
+    delete activityModule.responseKind;
+    delete activityModule.evidencePath;
     expect(() => validateCoursewareComposition(missingActivity, validPlan()))
       .toThrowError(expect.objectContaining({ code: 'required-activity-missing:pre-assessment' }));
   });
@@ -143,9 +143,9 @@ describe('smart courseware domain', () => {
     }, 'l1:r1|l2:r2'],
   ] as const)('normalizes bounded string referenceAnswer for objective kind %s', (responseKind, payload, answer) => {
     const input = validCompositionInput();
-    const module = input.runtimeManifest.stages[2].steps[0].modules[0];
-    module.responseKind = responseKind;
-    module.payload = payload;
+    const activityModule = input.runtimeManifest.stages[2].steps[0].modules[0];
+    activityModule.responseKind = responseKind;
+    activityModule.payload = payload;
     input.moduleMetadata[2].teacherFields.referenceAnswer = `  ${answer}  `;
 
     const result = validateCoursewareComposition(input, validPlan());
@@ -154,9 +154,9 @@ describe('smart courseware domain', () => {
 
   it('rejects ordering items that collide under scoring normalization', () => {
     const input = validCompositionInput();
-    const module = input.runtimeManifest.stages[2].steps[0].modules[0];
-    module.responseKind = 'ordering.sequence';
-    module.payload = { prompt: '排序', items: ['First Step', ' first step '] };
+    const activityModule = input.runtimeManifest.stages[2].steps[0].modules[0];
+    activityModule.responseKind = 'ordering.sequence';
+    activityModule.payload = { prompt: '排序', items: ['First Step', ' first step '] };
     input.moduleMetadata[2].teacherFields = {
       referenceAnswer: 'First Step|first step', explanation: '按顺序评分。',
       scoring: { strategy: 'exact-order', maxPoints: 1 }, inclusionRationale: '该来源支撑步骤顺序。',
@@ -205,9 +205,9 @@ describe('smart courseware domain', () => {
     }, 'l1:r1|l2:not-an-option'],
   ] as const)('rejects semantically invalid objective reference: %s', (_label, responseKind, payload, referenceAnswer) => {
     const input = validCompositionInput();
-    const module = input.runtimeManifest.stages[2].steps[0].modules[0];
-    module.responseKind = responseKind;
-    module.payload = payload;
+    const activityModule = input.runtimeManifest.stages[2].steps[0].modules[0];
+    activityModule.responseKind = responseKind;
+    activityModule.payload = payload;
     input.moduleMetadata[2].teacherFields.referenceAnswer = referenceAnswer;
     expect(() => validateCoursewareComposition(input, validPlan()))
       .toThrowError(expect.objectContaining({ code: 'objective-reference-invalid:module-3' }));

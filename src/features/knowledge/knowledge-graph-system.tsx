@@ -569,7 +569,7 @@ export function KnowledgeGraphSystem({
     } finally {
       clearOwnedLoadingShard(expectedShardKey, requestId);
     }
-  }, [clearOwnedLoadingShard, fetchGraphPayload, graphCache.domainShardKeysByDomainId, graphCache.graphVersion, graphCache.loadedShardKeys, graphCache.nodesById, inspection.pendingNavigationTarget?.nodeId, navigation.view, registerLoadingShard, rootCatalogNodes]);
+  }, [clearOwnedLoadingShard, fetchGraphPayload, graphCache.domainShardKeysByDomainId, graphCache.graphVersion, graphCache.loadedShardKeys, graphCache.nodesById, inspection.pendingNavigationTarget?.nodeId, navigation.view, registerLoadingShard]);
 
   const returnToRoot = useCallback(() => {
     navigationRequestSequenceRef.current += 1;

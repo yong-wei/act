@@ -460,16 +460,16 @@ export function SmartCoursewareEditor({
     const slot = layout?.slots.find((candidate) => !occupied.has(candidate.id));
     if (!slot) return setMessage('当前布局没有可用 slot；请先切换布局或删除模块。');
     const id = `module-${crypto.randomUUID()}`;
-    const module = defaultGeneratedModule(id, newModuleClass, slot.id, slot.sizeId);
-    const nextManifest = replaceSelectedStep((step) => ({ ...step, modules: [...step.modules, module] }));
+    const newModule = defaultGeneratedModule(id, newModuleClass, slot.id, slot.sizeId);
+    const nextManifest = replaceSelectedStep((step) => ({ ...step, modules: [...step.modules, newModule] }));
     if (!nextManifest) return;
     setSelectedModuleId(id);
     await persistComposition(nextManifest, [...envelope.compositionMetadata, {
       moduleId: id,
       sourceState: 'teacher_created_source_pending',
       sourceBindings: [],
-      teacherFields: module.canonicalClass === GENERATED_ACTIVITY_CLASS
-        ? defaultTeacherFieldsForActivity(module)
+      teacherFields: newModule.canonicalClass === GENERATED_ACTIVITY_CLASS
+        ? defaultTeacherFieldsForActivity(newModule)
         : {},
     }]);
   }
@@ -1027,17 +1027,17 @@ function CoursewareCompositionControls({
 }) {
   const steps = manifest.stages.flatMap((stage) => stage.steps);
   const step = steps.find((candidate) => candidate.id === selectedStepId) ?? steps[0];
-  const module = step?.modules.find((candidate) => candidate.id === selectedModuleId) ?? step?.modules[0];
+  const selectedModule = step?.modules.find((candidate) => candidate.id === selectedModuleId) ?? step?.modules[0];
   const layout = step ? GENERATED_SLIDE_LAYOUT_REGISTRY[step.layoutId as keyof typeof GENERATED_SLIDE_LAYOUT_REGISTRY] : null;
-  const registeredSizeId = layout?.slots.find((slot) => slot.id === module?.slotId)?.sizeId ?? module?.sizeId ?? '';
+  const registeredSizeId = layout?.slots.find((slot) => slot.id === selectedModule?.slotId)?.sizeId ?? selectedModule?.sizeId ?? '';
   return <section className="space-y-3 rounded-xl border border-border p-4" data-courseware-composition-controls>
     <h2 className="font-semibold">组合编辑</h2>
     <p className="text-sm text-subtle">所有动作提交到服务器，并由共享 slide runtime 校验；无效组合不会写入。</p>
     <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
       <label className="grid gap-1 text-sm">步骤<select value={step?.id ?? ''} onChange={(event) => onSelectStep(event.target.value)} className="rounded border border-border bg-background px-2 py-1.5">{steps.map((candidate) => <option key={candidate.id} value={candidate.id}>{candidate.title}</option>)}</select></label>
-      <label className="grid gap-1 text-sm">模块<select value={module?.id ?? ''} onChange={(event) => onSelectModule(event.target.value)} className="rounded border border-border bg-background px-2 py-1.5">{step?.modules.map((candidate) => <option key={candidate.id} value={candidate.id}>{candidate.id}</option>)}</select></label>
+      <label className="grid gap-1 text-sm">模块<select value={selectedModule?.id ?? ''} onChange={(event) => onSelectModule(event.target.value)} className="rounded border border-border bg-background px-2 py-1.5">{step?.modules.map((candidate) => <option key={candidate.id} value={candidate.id}>{candidate.id}</option>)}</select></label>
       <label className="grid gap-1 text-sm">布局<select value={step?.layoutId ?? ''} disabled={busy} onChange={(event) => void onLayout(event.target.value as keyof typeof GENERATED_SLIDE_LAYOUT_REGISTRY)} className="rounded border border-border bg-background px-2 py-1.5">{Object.keys(GENERATED_SLIDE_LAYOUT_REGISTRY).map((id) => <option key={id} value={id}>{id}</option>)}</select></label>
-      <label className="grid gap-1 text-sm">slot<select value={module?.slotId ?? ''} disabled={!module || busy} onChange={(event) => void onSlot(event.target.value)} className="rounded border border-border bg-background px-2 py-1.5">{layout?.slots.map((slot) => <option key={slot.id} value={slot.id}>{slot.id}</option>)}</select></label>
+      <label className="grid gap-1 text-sm">slot<select value={selectedModule?.slotId ?? ''} disabled={!selectedModule || busy} onChange={(event) => void onSlot(event.target.value)} className="rounded border border-border bg-background px-2 py-1.5">{layout?.slots.map((slot) => <option key={slot.id} value={slot.id}>{slot.id}</option>)}</select></label>
       <label className="grid gap-1 text-sm">注册尺寸<select aria-label="注册尺寸（随 slot）" value={registeredSizeId} disabled className="rounded border border-border bg-background px-2 py-1.5"><option value={registeredSizeId}>{registeredSizeId}</option></select></label>
       <label className="grid gap-1 text-sm">新增模块类型<select value={newModuleClass} onChange={(event) => onNewModuleClass(event.target.value)} className="rounded border border-border bg-background px-2 py-1.5">{[...GENERATED_CONTENT_CLASSES, GENERATED_ACTIVITY_CLASS].map((id) => <option key={id} value={id}>{id}</option>)}</select></label>
     </div>
@@ -1048,11 +1048,11 @@ function CoursewareCompositionControls({
       <button type="button" disabled={!step || busy} onClick={() => void onMoveStep(1)} className="rounded border border-border px-3 py-1.5 text-sm">步骤后移</button>
       <button type="button" disabled={!step || busy} onClick={() => void onDeleteStep()} className="rounded border border-destructive px-3 py-1.5 text-sm text-destructive">合并并删除步骤</button>
       <button type="button" disabled={busy} onClick={() => void onAdd()} className="rounded border border-primary px-3 py-1.5 text-sm text-primary">添加模块</button>
-      <button type="button" disabled={!module || busy} onClick={() => void onEdit()} className="rounded border border-border px-3 py-1.5 text-sm">{module?.canonicalClass === GENERATED_ACTIVITY_CLASS ? '编辑活动' : '编辑内容'}</button>
-      <button type="button" disabled={!module || busy} onClick={() => void onMove(-1)} className="rounded border border-border px-3 py-1.5 text-sm">前移</button>
-      <button type="button" disabled={!module || busy} onClick={() => void onMove(1)} className="rounded border border-border px-3 py-1.5 text-sm">后移</button>
-      <button type="button" disabled={!module || busy} onClick={() => void onDelete()} className="rounded border border-destructive px-3 py-1.5 text-sm text-destructive">删除模块</button>
-      <button type="button" disabled={!module || busy} onClick={() => void onRegenerate()} className="rounded bg-primary px-3 py-1.5 text-sm text-primary-foreground">重新生成所选模块</button>
+      <button type="button" disabled={!selectedModule || busy} onClick={() => void onEdit()} className="rounded border border-border px-3 py-1.5 text-sm">{selectedModule?.canonicalClass === GENERATED_ACTIVITY_CLASS ? '编辑活动' : '编辑内容'}</button>
+      <button type="button" disabled={!selectedModule || busy} onClick={() => void onMove(-1)} className="rounded border border-border px-3 py-1.5 text-sm">前移</button>
+      <button type="button" disabled={!selectedModule || busy} onClick={() => void onMove(1)} className="rounded border border-border px-3 py-1.5 text-sm">后移</button>
+      <button type="button" disabled={!selectedModule || busy} onClick={() => void onDelete()} className="rounded border border-destructive px-3 py-1.5 text-sm text-destructive">删除模块</button>
+      <button type="button" disabled={!selectedModule || busy} onClick={() => void onRegenerate()} className="rounded bg-primary px-3 py-1.5 text-sm text-primary-foreground">重新生成所选模块</button>
     </div>
   </section>;
 }
