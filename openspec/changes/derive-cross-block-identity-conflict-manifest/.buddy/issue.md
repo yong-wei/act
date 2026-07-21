@@ -73,3 +73,6 @@ Freeze a deduplicated cross-block near-similar review queue and hard-fail exact/
 - Do not approve identity outcomes or modify canonical identities.
 - Stop if dependency, coupling group, or branch constraints fail.
 - Stop if GitHub blockedBy relationships still contain open blockers.
+## ADR 0045 Boundary
+
+Historical facts/events, completed paths, learner-derived state, replay, deduplication, backfill, and full-history decoder/writer closure are out of scope.

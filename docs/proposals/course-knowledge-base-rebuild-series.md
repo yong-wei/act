@@ -1,6 +1,8 @@
 # 课程知识基座重建两阶段系列
 
-课程知识基座重建采用两阶段 Buddy propose。共同来源为课程知识上下文、`docs/adr/README.md` 的 ADR 0015–0044 真实逐文件索引、版本化现状审计、[来源与派生契约](course-knowledge-base-governance-source-derivation-contract.md)和[机器可读来源注册表](course-knowledge-base-governance-source-registry.yaml)。
+课程知识基座重建采用两阶段 Buddy propose。共同来源为课程知识上下文、`docs/adr/README.md` 的 ADR 0015–0045 真实逐文件索引、版本化现状审计、[来源与派生契约](course-knowledge-base-governance-source-derivation-contract.md)和[机器可读来源注册表](course-knowledge-base-governance-source-registry.yaml)。
+
+阶段一权威输入限定为当前正式课程与已审核范围锚点、当前 authoring 内容/卡片/媒体/资源、当前发布图谱及绑定迁移比对、活跃知识引用，以及经审核的 active legacy ID 到 canonical ID 映射。历史学习事实、事件和派生状态保留原图谱修订；本系列不生成、不消费、不验证相关诊断目录，外部独立治理不属于本系列工件或输入。
 
 ## 阶段一：清单制备
 
@@ -75,7 +77,7 @@ scope_anchor_ids: [<anchor-id>]
 - `cross-relation-governance/v1`：依赖全部端点 `semantic_block` 的语义档案验收和相关 `cross_identity`，只审核三类规范关系。
 - `resource-binding-governance/v1`：依赖全部目标端点 `semantic_block` 的语义档案验收和相关 `cross_identity`，输出原子资源角色绑定裁定。
 - `global-closeout-governance/v1`：依赖全部块、跨块身份、跨块关系和资源绑定 child。
-- `cutover-governance/v1`：只依赖已通过的 global closeout，覆盖全部迁移和写入口处置。
+- `cutover-governance/v1`：只依赖已通过的 global closeout，覆盖新投影、审核映射、活跃引用迁移、legacy 解析兼容和切换后新事实的唯一活动修订绑定。
 
 `cross_identity`、`cross_relation` 与 `resource_binding` 的 `blockedBy` 必须逐一包含其每个 `endpoint_block` 对应的 `semantic_block` change ID；只存在一般拓扑闭包而缺少端点依赖时验证失败。语义档案验收输出必须作为具名 `required_outputs` 和上游摘要进入后续 child，不能以自由文本状态替代。
 
@@ -85,9 +87,11 @@ scope_anchor_ids: [<anchor-id>]
 
 - 语义块内身份、领域、关系、规范卡和迁移输入治理；
 - 跨块 near-similar 身份审核、关系审核和原子资源绑定审核；
-- 历史身份及路径迁移，覆盖路径执行、偏离、干预和学习证据引用；
+- 经审核的 active legacy 身份映射，以及仍被读取或继续执行的课程、资源、进度、笔记和未完成路径引用迁移；
 - authoring 投影生成、数据库整体导入与 DB-only read model 切换；
-- 停用直接写入口，明确 `/api/knowledge/nodes/[id]` 和 runtime-first loader 的迁移与退役归属；
+- 约束切换后新事实写入必须绑定唯一活动的新图谱修订，并明确 `/api/knowledge/nodes/[id]` 和 runtime-first loader 的迁移与退役归属；
 - 全图收尾和一次性生产切换。
+
+历史 `LearningFact`、事件、诊断、画像、风险、成长、推荐、班级聚合、Arena 记录和已完成路径不逐行重解释、不重放、不去重、不回填。无可证修订的旧事实通过 `legacy-unversioned` 或 legacy snapshot 兼容解析；全库 producer/decoder/writer closure 不是阶段一或切换门槛。
 
 阶段二 child 数量、名称和 owner 不预设，也不沿用原型块数。

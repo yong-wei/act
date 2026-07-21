@@ -10,3 +10,4 @@
 - [ ] 2.1 Add synthetic provenance, duplicate-signature, stale-endpoint, unknown-family, missing-owner, and no-approval fixtures.
 - [ ] 2.2 Add a fixed real-snapshot integration test.
 - [ ] 2.3 Prove byte-identical repeated runs and no writes.
+- [ ] 0.1 Exclude historical facts/events, learner-derived state, and inactive references from relation-candidate evidence.

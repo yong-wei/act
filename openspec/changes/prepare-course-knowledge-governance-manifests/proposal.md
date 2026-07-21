@@ -35,3 +35,6 @@ The child changes are:
 - Adds only OpenSpec and Buddy coordination artifacts; it changes no runtime, authoring data, Prisma model, production database, or GitHub state.
 - The parent is a `series-parent` record and SHALL NOT be claimed as product implementation.
 - The second-stage rebuild series remains intentionally absent until all eight children freeze and validate exact future-child manifests.
+## ADR 0045 Boundary
+
+This tracking parent coordinates only current governed truth, reviewed mappings, active references, legacy compatibility, and the post-cutover new-fact revision boundary. Historical fact/event replay, backfill, learner-derived-state reconciliation, full-history decoder closure, and full-root writer equality are out of scope. The #947–#955 dependency topology is unchanged.

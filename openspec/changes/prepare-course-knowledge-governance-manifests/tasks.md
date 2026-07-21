@@ -11,3 +11,4 @@
 
 - [ ] 2.1 Verify all children use the indexed ADR source contract, typed future-child schema, digest layers, privacy rules, and change-ID `blockedBy`.
 - [ ] 2.2 Keep stage two unproposed until exact owners, endpoints, items, dependencies, outputs, acceptance profiles, and scope anchors are frozen and independently reviewed.
+- [ ] 0.1 Apply ADR 0045 scope to every child manifest without changing the #947–#955 dependency topology; do not generate, consume, or validate historical and learner-state catalogs, and reject them as out-of-scope inputs.

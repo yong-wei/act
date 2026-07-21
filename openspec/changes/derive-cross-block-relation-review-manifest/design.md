@@ -1,6 +1,6 @@
 ## Context
 
-The audit records raw relations, but deduplicated adjudication-unit and cross-block counts are not yet reproducible contract inputs and cannot be frozen before partition and cross-identity manifests. Relation constraints are defined by `docs/contexts/course-knowledge-base/CONTEXT.md`, ADRs 0019–0024 and 0028–0029 within the ADR 0015-0044 files indexed by `docs/adr/README.md`, and `docs/knowledge-graph-current-state-audit-2026-07-18.md`.
+The audit records raw relations, but deduplicated adjudication-unit and cross-block counts are not yet reproducible contract inputs and cannot be frozen before partition and cross-identity manifests. Relation constraints are defined by `docs/contexts/course-knowledge-base/CONTEXT.md`, ADRs 0019–0024, 0028–0029, and 0045 within the ADR 0015-0045 files indexed by `docs/adr/README.md`, and `docs/knowledge-graph-current-state-audit-2026-07-18.md`.
 
 ## Existing entry point
 
@@ -58,3 +58,6 @@ Existing seam reused: none for the governance manifest CLI; implementation must 
 AC coverage: AC-1: synthetic fixtures preserve every raw source ID while deduplicating typed signatures whose endpoints reference candidate component IDs; AC-2: a fixed real-snapshot integration test reports observed raw and deduplicated counts with derivation metadata, without assuming unsupported expected totals; AC-3: repeated runs are byte-identical and no-write assertions reject stale endpoints, unknown families, missing owners, duplicates, placeholders, and approved outcomes.
 Manual-only acceptance: none
 Rationale: The emitted queue is the public review handoff, so full provenance reconciliation and negative fixture validation directly cover completeness, ownership freshness, and the no-approval boundary.
+## ADR 0045 Boundary
+
+This series does not generate, consume, or validate historical lineage. Relation input containing it is rejected as out of scope before endpoint, evidence, exact-closure, or readiness evaluation.

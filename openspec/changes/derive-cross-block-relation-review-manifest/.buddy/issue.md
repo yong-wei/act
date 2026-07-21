@@ -72,3 +72,6 @@ Freeze a provenance-complete cross-block relation review queue after endpoint ow
 - Do not approve or publish relations.
 - Stop if dependency, coupling group, or branch constraints fail.
 - Stop if GitHub blockedBy relationships still contain open blockers.
+## ADR 0045 Boundary
+
+Historical facts/events, learner-derived state, inactive references, replay, backfill, and full-history decoder/writer closure are out of scope.

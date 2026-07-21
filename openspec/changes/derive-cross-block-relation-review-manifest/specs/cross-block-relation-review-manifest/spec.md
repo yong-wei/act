@@ -21,3 +21,9 @@ Records SHALL follow the shared future-child schema and include typed exact item
 #### Scenario: An endpoint or upstream digest is stale
 - **WHEN** validation compares expected and observed values
 - **THEN** readiness SHALL fail and no relation outcome SHALL be serialized.
+### Requirement: Relation candidates use current governed evidence
+Cross-block relation records SHALL derive from current candidate semantics and current published-graph comparison. Historical facts, events, learner-derived state, and inactive references SHALL NOT influence relation readiness.
+
+#### Scenario: A historical event implies an edge
+- **WHEN** no current governed source supports that edge
+- **THEN** no relation candidate SHALL be emitted.

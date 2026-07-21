@@ -45,3 +45,10 @@ The manifest SHALL include `schema_version`, `algorithm_version`, `normalization
 #### Scenario: The inventory digest changes
 - **WHEN** identity derivation compares the bound upstream digest
 - **THEN** readiness SHALL fail before components or review edges are serialized as current.
+### Requirement: Legacy mapping candidates are active-reference only
+The manifest SHALL include legacy-to-canonical mapping candidates only when a reviewed legacy ID is still used by a current course, resource, progress, note, or incomplete path. It SHALL NOT remap historical facts, events, or completed paths.
+
+#### Scenario: A legacy ID appears only in a historical fact
+- **WHEN** identity candidates are derived
+- **THEN** that occurrence SHALL remain on its original or legacy revision
+- **AND** it SHALL NOT create a migration mapping candidate.

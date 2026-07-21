@@ -75,3 +75,6 @@ Assign every indivisible identity equivalence component to one deterministic 40â
 - Do not split identity equivalence components, adjudicate content, or create second-stage changes.
 - Stop if dependency, coupling group, or branch constraints fail.
 - Stop if GitHub blockedBy relationships still contain open blockers.
+## ADR 0045 Boundary
+
+Only active-reference migration items and reviewed active legacy mappings enter block ownership. Historical facts/events, completed paths, learner-derived state, replay, deduplication, and backfill are out of scope.

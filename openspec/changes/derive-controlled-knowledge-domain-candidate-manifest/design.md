@@ -1,6 +1,6 @@
 ## Context
 
-The current graph presents labels across incompatible dimensions, while the target governance model requires a flat controlled vocabulary. The terminology and constraints are in `docs/contexts/course-knowledge-base/CONTEXT.md`, ADRs 0017, 0018, 0032, and 0041 within the ADR 0015-0044 files indexed by `docs/adr/README.md`, and the mixed-dimension evidence is in `docs/knowledge-graph-current-state-audit-2026-07-18.md`.
+The current graph presents labels across incompatible dimensions, while the target governance model requires a flat controlled vocabulary. The terminology and constraints are in `docs/contexts/course-knowledge-base/CONTEXT.md`, ADRs 0017, 0018, 0032, 0041, and 0045 within the ADR 0015-0045 files indexed by `docs/adr/README.md`, and the mixed-dimension evidence is in `docs/knowledge-graph-current-state-audit-2026-07-18.md`.
 
 ## Existing entry point
 
@@ -58,3 +58,6 @@ Existing seam reused: none for the governance manifest CLI; implementation must 
 AC coverage: AC-1: synthetic fixtures prove candidate-name uniqueness, flatness, pollution classification, and rejection of concept membership/owner fields; AC-2: a fixed real-snapshot test derives observed labels and records any declared seeds only as dated non-binding evidence; AC-3: repeated runs are byte-identical and no-write assertions cover authoring, runtime, database, Git, and GitHub.
 Manual-only acceptance: none
 Rationale: The vocabulary manifest is the complete public input to partitioning, so direct schema and observed-label fixture validation covers its cardinality, boundaries, migration semantics, and no-assignment boundary.
+## ADR 0045 Boundary
+
+Historical evidence may not expand the controlled vocabulary or admit a candidate. Only current governed course truth and reviewed anchors participate in derivation.

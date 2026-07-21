@@ -1,6 +1,6 @@
 ## Context
 
-ADRs 0028 and 0029 require review blocks sized for roughly 40–80 identity equivalence components and prohibit splitting those components. Prototype block counts are non-gating exploratory evidence. The source contract is `docs/contexts/course-knowledge-base/CONTEXT.md`, the ADR 0015-0044 files indexed by `docs/adr/README.md`, and `docs/knowledge-graph-current-state-audit-2026-07-18.md`.
+ADRs 0028, 0029, and 0045 define review blocks and their active-reference migration boundary. Prototype block counts are non-gating exploratory evidence. The source contract is `docs/contexts/course-knowledge-base/CONTEXT.md`, the ADR 0015-0045 files indexed by `docs/adr/README.md`, and `docs/knowledge-graph-current-state-audit-2026-07-18.md`.
 
 ## Existing entry point
 
@@ -58,3 +58,6 @@ Existing seam reused: none for the governance manifest CLI; implementation must 
 AC coverage: AC-1: synthetic exact-leak and alias-leak fixtures fail while near-similar edges may cross blocks and pending splits stay internal; AC-2: `candidate_concept_count` enforces 40–80 owned components, counts pending split once, remains independent of `exact_count`, or records a valid exception; AC-3: a fixed real-snapshot test, byte-identical repeated runs, and no-write assertions verify typed exact items, owners/endpoints, change-ID dependencies, scope anchors, and layered digests.
 Manual-only acceptance: none
 Rationale: The block manifest is the public scheduling boundary for all later queues, and fixed-input command tests directly verify ownership, capacity, determinism, and exact record completeness.
+## ADR 0045 Boundary
+
+Partitioning treats active-reference migration inputs as typed items. Historical fact/event lineage and inactive legacy references remain outside ownership, capacity, exact closure, and readiness.

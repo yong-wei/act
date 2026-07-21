@@ -68,10 +68,10 @@ Role evidence SHALL be discriminated: `teaches` cites a definition, explanation,
 - **THEN** raw files SHALL be provenance only, processed files SHALL be authoring binding content, and runtime files SHALL be projection-consistency evidence
 - **AND** a runtime projection SHALL NOT replace missing processed authoring truth.
 
-### Requirement: Resource queue output is private and reproducible
-Records SHALL follow the shared future-child schema, including `schema_version`, `algorithm_version`, `normalization_profile`, typed exact items, structured `source_digests`, `governance_contract_digest`, `source_snapshot_digest`, structured `upstream_manifest_digests`, dependencies, owners/endpoints, required outputs, acceptance profile, and scope anchors. They SHALL follow privacy minimization rules, use synthetic fixtures, and provide deterministic/no-write tests.
+### Requirement: Resource queue output is reproducible and excludes learner data
+Records SHALL follow the shared future-child schema, including `schema_version`, `algorithm_version`, `normalization_profile`, typed exact items, structured `source_digests`, `governance_contract_digest`, `source_snapshot_digest`, structured `upstream_manifest_digests`, dependencies, owners/endpoints, required outputs, acceptance profile, and scope anchors. They SHALL use synthetic fixtures and provide deterministic/no-write tests. Historical facts/events, learner-derived datasets, completed paths, privacy aggregation, and reconciliation outputs SHALL NOT be inputs.
 
-#### Scenario: A learner-linked source is inventoried
-- **WHEN** resource evidence references learner datasets
-- **THEN** only dataset-level schema, counts, and small-cell-suppressed aggregate disposition statistics SHALL enter repository artifacts
-- **AND** no raw row or row digest SHALL be committed.
+#### Scenario: A learner-linked source is encountered
+- **WHEN** resource queue derivation encounters a learner-linked dataset
+- **THEN** it SHALL exclude that source from the queue
+- **AND** it SHALL NOT inherit learner privacy or reconciliation work.

@@ -70,3 +70,6 @@ Produce exhaustive global identity equivalence components and review-only near-s
 - Do not adjudicate candidate identities or modify canonical data.
 - Stop if dependency, coupling group, or branch constraints fail.
 - Stop if GitHub blockedBy relationships still contain open blockers.
+## ADR 0045 Boundary
+
+Only reviewed active legacy mappings enter this change. Historical fact/event lineage, completed paths, replay, deduplication, and backfill are out of scope.

@@ -10,3 +10,4 @@
 - [ ] 2.1 Add synthetic uniqueness, flatness, pollution, seed-drift, forbidden-membership, and forbidden-owner fixtures.
 - [ ] 2.2 Add a fixed real-snapshot integration test and observed-label reconciliation.
 - [ ] 2.3 Prove byte-identical repeated runs and no writes.
+- [ ] 0.1 Reject historical facts/events, learner-derived state, and inactive legacy references as domain-candidate evidence.

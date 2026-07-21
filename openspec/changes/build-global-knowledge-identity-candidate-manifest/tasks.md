@@ -10,3 +10,4 @@
 - [ ] 2.1 Add synthetic hard-equivalence closure, forbidden-owner, near-similar queue, pending-split, scope-anchor-evidence, namespace, and history-ambiguity fixtures.
 - [ ] 2.2 Add a fixed real-snapshot integration test that reports observed counts as versioned evidence.
 - [ ] 2.3 Prove input-order independence, byte-identical repeated runs, and no writes.
+- [ ] 0.1 Limit mapping candidates to reviewed active legacy references and prove that historical facts, events, and completed paths are excluded.

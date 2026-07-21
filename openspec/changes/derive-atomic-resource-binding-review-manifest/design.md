@@ -1,6 +1,6 @@
 ## Context
 
-Knowledge-reference projection and resource-endpoint totals are inventory outputs rather than assumed audit constants. The source model must separate twelve entity types, mutually exclusive atomic boundaries, derived container summaries, four canonical instructional-role values, unresolved boundaries, and external identity namespaces under `docs/contexts/course-knowledge-base/CONTEXT.md`, ADRs 0025–0026, 0033, and 0043 within the ADR 0015-0044 files indexed by `docs/adr/README.md`, plus `docs/knowledge-graph-current-state-audit-2026-07-18.md`.
+Knowledge-reference projection and resource-endpoint totals are inventory outputs rather than assumed audit constants. The source model must separate twelve entity types, mutually exclusive atomic boundaries, derived container summaries, four canonical instructional-role values, unresolved boundaries, and external identity namespaces under `docs/contexts/course-knowledge-base/CONTEXT.md`, ADRs 0025–0026, 0033, 0043, and 0045 within the ADR 0015-0045 files indexed by `docs/adr/README.md`, plus `docs/knowledge-graph-current-state-audit-2026-07-18.md`.
 
 ## Existing entry point
 
@@ -36,7 +36,11 @@ Candidates use only `teaches`, `practices`, `assesses`, or `references`, with do
 
 ### 3. Preserve typed identity namespaces and projection truth boundaries
 
-Course/module, lesson/item, resource/container, registry/runtime, assessment/activity, and citation/source identities remain typed external endpoints. Equal strings in different namespaces remain distinct. Authoring cards and multimedia designs are editable truth; runtime cards, sequence, media indexes and service files provide projection-consistency evidence. Candidate component IDs are endpoints only and are not finalized canonical identities. Learner-linked repository artifacts contain only schema, counts, and small-cell-suppressed aggregate dispositions; raw rows and row digests remain database-side.
+Course/module, lesson/item, resource/container, registry/runtime, assessment/activity, and citation/source identities remain typed external endpoints. Equal strings in different namespaces remain distinct. Authoring cards and multimedia designs are editable truth; runtime cards, sequence, media indexes and service files provide projection-consistency evidence. Candidate component IDs are endpoints only and are not finalized canonical identities.
+
+### 4. Do not inherit learner-data governance
+
+This queue reads current authoring/resource truth and current published binding comparison only. Historical facts/events, learner-derived datasets, completed paths, privacy aggregation, reconciliation, evidence deduplication, and backfill are outside its input and readiness contracts.
 
 ## Risks / Trade-offs
 
@@ -56,8 +60,8 @@ None.
 Change class: medium-risk
 Seam status: required
 Public behavior: A complete resource review manifest separates typed atomic units from derived container summaries, preserves unresolved boundaries, and emits only canonical role candidates against candidate component endpoints.
-Public seam: Run the new resource manifest CLI on synthetic split-matrix/privacy fixtures and a fixed real snapshot.
+Public seam: Run the new resource manifest CLI on synthetic split-matrix fixtures and a fixed current-source snapshot.
 Existing seam reused: none for the governance manifest CLI; implementation must add a new read-only manifest CLI. Existing OpenSpec/Buddy validators may be reused only for proposal shape.
-AC coverage: AC-1: synthetic fixtures cover all entity types, recursive sibling splits, mixed teaching/activity/checkpoint steps, canonical role evidence, interaction feedback/progression, namespace collisions, unresolved boundaries, container derivation, card/media consistency, and privacy rejection; AC-2: a fixed real-snapshot integration test reports observed projection/endpoint counts with derivation metadata; AC-3: repeated runs are byte-identical and no-write assertions reject stale candidate endpoints, independent container truth, unresolved-as-complete records, placeholders, and approved outcomes.
+AC coverage: AC-1: synthetic fixtures cover all entity types, recursive sibling splits, mixed teaching/activity/checkpoint steps, canonical role evidence, interaction feedback/progression, namespace collisions, unresolved boundaries, container derivation, and card/media consistency; AC-2: a fixed current-source snapshot integration test reports observed projection/endpoint counts with derivation metadata; AC-3: repeated runs are byte-identical and no-write assertions reject stale candidate endpoints, independent container truth, unresolved-as-complete records, placeholders, and approved outcomes.
 Manual-only acceptance: none
 Rationale: The emitted manifest is the public scheduling input for resource review children, so command-level reconciliation and negative fixtures directly verify coverage, identity isolation, role semantics, and the no-approval boundary.

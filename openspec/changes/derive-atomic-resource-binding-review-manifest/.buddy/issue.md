@@ -73,3 +73,6 @@ Freeze an exact atomic resource-binding review manifest that separates twelve en
 - Do not approve bindings or modify resource/runtime data.
 - Stop if dependency, coupling group, or branch constraints fail.
 - Stop if GitHub blockedBy relationships still contain open blockers.
+## ADR 0045 Boundary
+
+This change reads current authoring/resource truth and current published binding comparison only. Historical facts/events, learner-derived datasets, completed paths, privacy aggregation, reconciliation, evidence deduplication, and backfill are out of scope.

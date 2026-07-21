@@ -29,3 +29,9 @@ The manifest SHALL include `schema_version`, `algorithm_version`, `normalization
 #### Scenario: Input order changes without semantic drift
 - **WHEN** the same normalized inventory is processed twice
 - **THEN** the candidate manifest SHALL be byte-identical.
+### Requirement: Domain derivation uses current governed truth
+Domain candidates SHALL derive only from current formal-course anchors and current authoring sources. Historical facts, events, learner-derived state, and inactive legacy references SHALL NOT affect the candidate set or readiness.
+
+#### Scenario: A historical diagnosis contains a domain label
+- **WHEN** domain candidates are derived
+- **THEN** the label SHALL be ignored as non-authoritative historical evidence.
