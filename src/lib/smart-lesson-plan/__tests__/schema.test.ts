@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { validateSmartLessonPlan } from '../schema';
+import { createBopppsStageSchemaForAllowedBindings, validateSmartLessonPlan } from '../schema';
 import { sourceBindingFixture as binding, validPlanFixture as validPlan } from './fixtures';
 
 describe('complete BOPPPS lesson plan contract', () => {
@@ -43,5 +43,20 @@ describe('complete BOPPPS lesson plan contract', () => {
     const misplacedOutlineTime = validPlan();
     misplacedOutlineTime.coursewareStepOutline[0].bopppsStage = 'objectives';
     expect(() => validateSmartLessonPlan(misplacedOutlineTime)).toThrow(/courseware-stage-duration-mismatch/);
+  });
+
+  it('exposes only complete server-authoritative source bindings to a provider stage', () => {
+    const schema = createBopppsStageSchemaForAllowedBindings([binding]);
+    const stage = {
+      minutes: 5, teacherActivity: '讲授', studentActivity: '参与', assessment: '观察',
+      steps: [{
+        title: '导入', minutes: 5, teacherActivity: '展示', studentActivity: '回答', assessment: '提问', sourceBindings: [binding],
+      }],
+    };
+    expect(schema.safeParse(stage).success).toBe(true);
+    expect(schema.safeParse({
+      ...stage,
+      steps: [{ ...stage.steps[0], sourceBindings: [{ ...binding, citationId: 'provider-rephrased-citation' }] }],
+    }).success).toBe(false);
   });
 });
