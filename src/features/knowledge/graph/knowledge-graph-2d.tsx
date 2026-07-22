@@ -543,7 +543,10 @@ export function KnowledgeGraph2D({
     visibleEdgeIds: graphData.links.map((link) => getKnowledgeGraphPresentationLinkKey(link)),
   }), [graphData.links, structuralForegroundEdgeIdSet]);
   const ambientFlowEdgeIdSet = useMemo(() => new Set(ambientFlowSelection.edgeIds), [ambientFlowSelection]);
-  const activeMotionMarkerCount = motionMarkerEdgeIds.length + ambientFlowSelection.edgeIds.length;
+  // 并发计数与绘制同口径：环境流层会排除已选走廊边，重叠边只按走廊标记计一次，
+  // 否则快照、属性与性能预算都在高报真实并发标记数。
+  const activeMotionMarkerCount = motionMarkerEdgeIds.length
+    + ambientFlowSelection.edgeIds.filter((edgeId) => !motionMarkerEdgeIdSet.has(edgeId)).length;
 
   // 根气泡入场错峰：按稳定排序的气泡 id 计算每个气泡的淡入延迟（纯绘制层）。
   // 必须从打包后的 graphData.nodes 计算——__knowledgeRootPacking 由本组件

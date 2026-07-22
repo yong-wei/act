@@ -506,3 +506,21 @@ describe('root entrance lifecycle closure', () => {
     expect(stopSection).toContain('setEntranceDone(true)');
   });
 });
+
+
+describe('motion marker concurrency counting', () => {
+  const renderers: Array<[string, string]> = [
+    ['2D', 'knowledge-graph-2d.tsx'],
+    ['3D', 'knowledge-graph-canvas.tsx'],
+  ];
+
+  it.each(renderers)('%s counts concurrent motion markers after corridor dedup so telemetry matches painted markers', (_label, file) => {
+    const source = readFileSync(
+      path.join(process.cwd(), `src/features/knowledge/graph/${file}`), 'utf8'
+    );
+    // 环境流绘制层已排除已选走廊边，计数必须与绘制同口径：
+    // 重叠边只画一个走廊标记，若按两集合长度直接相加会被计为两个，
+    // 快照、data-knowledge-motion-marker-count 与性能预算都会高报真实并发数。
+    expect(source).toContain('ambientFlowSelection.edgeIds.filter((edgeId) => !motionMarkerEdgeIdSet.has(edgeId))');
+  });
+});
