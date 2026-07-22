@@ -1,4 +1,5 @@
 import {
+  deriveKnowledgeGraphRelationEvidenceState,
   KNOWLEDGE_GRAPH_RELATION_CONTRACTS,
   projectKnowledgeGraphRelations,
   type ContributingKnowledgeGraphRelation,
@@ -540,11 +541,21 @@ export function inspectRuntimeKnowledgeRelationCoverage(
     const contributing = [...edge.contributingRelations]
       .sort((left, right) => stableStringCompare(left.relationId, right.relationId));
     const representative = relationById.get(contributing[0]!.relationId)!;
+    // A visual edge merges every contributing relation on the same endpoints and
+    // family; its evidence state aggregates across all of them so a merged edge
+    // never reports "unavailable" while one contribution has inspectable evidence.
+    const edgeEvidenceState: 'available' | 'unavailable' = contributing
+      .some((relation) => relation.evidenceState === 'available') ? 'available' : 'unavailable';
     return {
       ...representative,
       id: edge.key,
       motionEligible: edge.family === 'post-requisite'
         && contributing.every((relation) => !cycleRelationIds.has(relation.relationId)),
+      provenance: {
+        ...representative.provenance,
+        evidenceState: edgeEvidenceState,
+        evidenceText: edgeEvidenceState === 'available' ? '关系依据可用' : '关系依据未提供',
+      },
       sourceId: edge.sourceId,
       strength: edge.strength ?? 1,
       targetId: edge.targetId,
@@ -605,9 +616,7 @@ export function buildRuntimeKnowledgeRelationInspectionItems<T extends {
           ? 'follows'
           : 'prerequisite';
     const evidenceSummary = buildAllowedEvidenceSummary(link.provenance.rawRelation);
-    const evidenceState: RuntimeKnowledgeRelationInspectionItem['evidenceState'] = Object.keys(evidenceSummary).length > 0
-      ? 'available'
-      : 'unavailable';
+    const evidenceState = deriveKnowledgeGraphRelationEvidenceState(link.provenance.rawRelation);
     return [{
       canonicalType: contract.canonicalType,
       ...(link.motionEligible === false && family === 'post-requisite'
