@@ -116,6 +116,7 @@ export interface PortraitV2SnapshotRow {
 export interface PortraitV2SnapshotReadDb {
   studentPortraitV2Snapshot?: {
     findFirst?: (args: any) => PromiseLike<unknown | null>;
+    findMany?: (args: any) => PromiseLike<unknown[]>;
   };
 }
 
@@ -370,28 +371,65 @@ export async function readLatestPortraitV2Snapshot(
   });
   if (rawRow === null || rawRow === undefined) return null;
   try {
-    const row = asRecord(rawRow);
-    validatePortraitV2Payload(row.payload, options);
-    const payload = markPersistable(row.payload);
-    const normalizedSnapshotAt = normalizedIsoTimestamp(row.snapshotAt);
-    const normalizedGeneratedAt = normalizedIsoTimestamp(payload.generatedAt);
-    if (
-      row.userId !== userId ||
-      payload.userId !== userId ||
-      normalizedSnapshotAt === null ||
-      !isWithinFutureBoundary(normalizedSnapshotAt, options.now) ||
-      normalizedSnapshotAt !== normalizedGeneratedAt ||
-      row.payloadVersion !== payload.payloadVersion ||
-      row.calculationVersion !== PORTRAIT_V2_CALCULATION_VERSION ||
-      row.migrationVersion !== payload.migrationVersion ||
-      row.derivationKind !== payload.derivation.kind
-    ) {
-      throw new Error('Persisted portrait metadata does not match the requested learner or payload.');
-    }
-    return projectPortraitV2ForConsumer(payload, consumer, options);
+    return projectPersistedPortraitV2Row(rawRow, userId, consumer, options);
   } catch (error) {
     throw new PortraitV2SnapshotValidationError('Invalid persisted portrait v2 snapshot.', { cause: error });
   }
+}
+
+export async function readLatestValidNativePortraitV2Snapshots(
+  db: PortraitV2SnapshotReadDb,
+  userIds: string[],
+  consumer: PortraitV2Consumer,
+  options: PortraitV2ClockOptions = {},
+): Promise<Map<string, PortraitV2ProjectedPayload>> {
+  const findMany = db.studentPortraitV2Snapshot?.findMany;
+  const uniqueUserIds = [...new Set(userIds)].sort();
+  if (!findMany || uniqueUserIds.length === 0) return new Map();
+  const rows = await findMany({
+    where: { userId: { in: uniqueUserIds }, derivationKind: 'native' },
+    orderBy: [{ userId: 'asc' }, { snapshotAt: 'desc' }, { id: 'desc' }],
+  });
+  const selected = new Map<string, PortraitV2ProjectedPayload>();
+  for (const rawRow of rows) {
+    const row = asRecord(rawRow);
+    const userId = typeof row.userId === 'string' ? row.userId : '';
+    if (!userId || selected.has(userId)) continue;
+    try {
+      const payload = projectPersistedPortraitV2Row(rawRow, userId, consumer, options);
+      if (payload.derivation.kind === 'native') selected.set(userId, payload);
+    } catch {
+      // A corrupt newest row must not hide an older canonical native portrait.
+    }
+  }
+  return selected;
+}
+
+function projectPersistedPortraitV2Row(
+  rawRow: unknown,
+  userId: string,
+  consumer: PortraitV2Consumer,
+  options: PortraitV2ClockOptions,
+): PortraitV2ProjectedPayload {
+  const row = asRecord(rawRow);
+  validatePortraitV2Payload(row.payload, options);
+  const payload = markPersistable(row.payload);
+  const normalizedSnapshotAt = normalizedIsoTimestamp(row.snapshotAt);
+  const normalizedGeneratedAt = normalizedIsoTimestamp(payload.generatedAt);
+  if (
+    row.userId !== userId ||
+    payload.userId !== userId ||
+    normalizedSnapshotAt === null ||
+    !isWithinFutureBoundary(normalizedSnapshotAt, options.now) ||
+    normalizedSnapshotAt !== normalizedGeneratedAt ||
+    row.payloadVersion !== payload.payloadVersion ||
+    row.calculationVersion !== PORTRAIT_V2_CALCULATION_VERSION ||
+    row.migrationVersion !== payload.migrationVersion ||
+    row.derivationKind !== payload.derivation.kind
+  ) {
+    throw new Error('Persisted portrait metadata does not match the requested learner or payload.');
+  }
+  return projectPortraitV2ForConsumer(payload, consumer, options);
 }
 
 export async function readLatestPortraitV2SnapshotForUpdate(

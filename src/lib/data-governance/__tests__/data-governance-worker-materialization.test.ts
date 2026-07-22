@@ -38,6 +38,12 @@ vi.mock('../competency-engine', () => ({
 
 import { configureDataGovernanceWorkerForTest, processClassSnapshotJob, processEventIngestionJob, processStudentSnapshotJob } from '../../../../scripts/workers/data-governance-worker';
 import { dispatchGrowthRecomputeOutbox } from '../derived-learning-materialization';
+import { hasPortraitV2Evidence, resolvePrimaryPortraitV2 } from '../portrait-v2-consumer';
+import {
+  PORTRAIT_V2_CALCULATION_VERSION,
+  PORTRAIT_V2_DIMENSION_IDS,
+  createPortraitV2Payload,
+} from '../portrait-v2-model';
 
 function fact(id: string) {
   return { id, userId: 'student-1', sourceLogId: null, factType: 'assessment', outcome: 'success', score: 1, startedAt: new Date('2026-07-15T00:00:00Z'), createdAt: new Date('2026-07-15T00:00:01Z'), contextJson: {} };
@@ -110,6 +116,75 @@ describe('data governance worker materialization recovery', () => {
     expect(creates[0]).toMatchObject({ classId: 'class-a', materializationVersion: 'class-competency.v2' });
   });
 
+  it('aggregates the current roster latest valid native portraits without touching recent snapshots', async () => {
+    const generatedAt = '2026-07-01T00:00:00.000Z';
+    const payload = createPortraitV2Payload({
+      userId: 'student-1',
+      generatedAt,
+      now: generatedAt,
+      dimensions: PORTRAIT_V2_DIMENSION_IDS.map((id) => ({
+        id,
+        score: 78,
+        confidence: 0.8,
+        freshness: { state: 'current' as const, asOf: generatedAt, evidenceAgeDays: 0 },
+        evidenceSummary: { totalCount: 2, sourceFamilyCounts: { LearningFact: 2 } },
+        lastPositiveEvidenceAt: generatedAt,
+        lastNegativeEvidenceAt: null,
+        rationale: 'Governed evidence supports the current score.',
+        limitations: [],
+        sourceLineage: [{ kind: 'evidence-family' as const, ref: 'LearningFact', privacyScope: 'student-visible' as const }],
+        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+      })),
+    });
+    const nativeRow = {
+      id: 'portrait-valid', userId: 'student-1', snapshotAt: new Date(generatedAt),
+      payloadVersion: payload.payloadVersion, calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+      migrationVersion: payload.migrationVersion, derivationKind: 'native', payload,
+    };
+    const creates: any[] = [];
+    const classSessionFindMany = vi.fn();
+    const learningFactFindMany = vi.fn();
+    const db: any = {
+      studentProfile: { findMany: async () => [{ userId: 'student-1' }, { userId: 'student-2' }] },
+      studentPortraitV2Snapshot: { findMany: async () => [
+        { ...nativeRow, id: 'portrait-corrupt-newest', snapshotAt: new Date('2026-07-02T00:00:00Z'), payload: { invalid: true } },
+        nativeRow,
+      ] },
+      classSession: { findMany: classSessionFindMany },
+      learningFact: { findMany: learningFactFindMany },
+      classCompetencySnapshot: {
+        findFirst: vi.fn(async () => null),
+        create: vi.fn(async ({ data }: any) => { creates.push(data); return { id: 'cumulative-1', ...data }; }),
+      },
+    };
+    configureDataGovernanceWorkerForTest({ db });
+
+    const result = await processClassSnapshotJob({ data: {
+      classId: 'class-a',
+      scope: 'cumulative',
+      runRef: 'run-opaque-1',
+      requestedAfter: '2026-07-22T00:00:00.000Z',
+    } } as any);
+
+    expect(result).toMatchObject({ scope: 'cumulative', studentCount: 1, totalStudentCount: 2 });
+    expect(classSessionFindMany).not.toHaveBeenCalled();
+    expect(learningFactFindMany).not.toHaveBeenCalled();
+    expect(db.classCompetencySnapshot.findFirst).not.toHaveBeenCalled();
+    expect(creates[0]).toMatchObject({
+      classId: 'class-a',
+      materializationVersion: 'class-competency.cumulative.v1',
+      activeStudentCount: 1,
+      totalStudentCount: 2,
+      aggregateJson: {
+        scope: 'cumulative',
+        coverage: { validNativePortraits: 1, totalRoster: 2, ratio: 0.5 },
+        _materialization: { runRef: 'run-opaque-1', requestedAfter: '2026-07-22T00:00:00.000Z' },
+      },
+      trendJson: { _derivation: { state: 'not-applicable' } },
+      riskSummaryJson: { _derivation: { state: 'not-applicable' } },
+    });
+  });
+
   it('returns before compatibility and dependent writes for first-run context-only evidence', async () => {
     mocks.portrait.mockResolvedValueOnce({ written: false, mappingIssues: [], evidenceCount: 0, affectedDimensions: [] });
     const contextOnlyFact = {
@@ -153,6 +228,105 @@ describe('data governance worker materialization recovery', () => {
     expect(mocks.prepareGrowth).not.toHaveBeenCalled();
     expect(outboxUpsert).not.toHaveBeenCalled();
     expect(classAdd).not.toHaveBeenCalled();
+  });
+
+  it('revokes old native and cached derived state when a full rebuild has only context evidence', async () => {
+    const generatedAt = '2026-07-01T00:00:00.000Z';
+    const oldPayload = createPortraitV2Payload({
+      userId: 'student-1',
+      generatedAt,
+      now: generatedAt,
+      dimensions: PORTRAIT_V2_DIMENSION_IDS.map((id) => ({
+        id,
+        score: 78,
+        confidence: 0.8,
+        freshness: { state: 'current' as const, asOf: generatedAt, evidenceAgeDays: 0 },
+        evidenceSummary: { totalCount: 1, sourceFamilyCounts: { LearningFact: 1 } },
+        lastPositiveEvidenceAt: generatedAt,
+        lastNegativeEvidenceAt: null,
+        rationale: 'Governed evidence supports the current score.',
+        limitations: [],
+        sourceLineage: [{ kind: 'evidence-family' as const, ref: 'LearningFact', privacyScope: 'student-visible' as const }],
+        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+      })),
+    });
+    let nativeRow: any = {
+      id: 'old-native', userId: 'student-1', snapshotAt: new Date(generatedAt),
+      payloadVersion: oldPayload.payloadVersion, calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+      migrationVersion: oldPayload.migrationVersion, derivationKind: 'native', payload: oldPayload,
+    };
+    let featureCache: any = { userId: 'student-1', featureJson: { portraitV2: oldPayload } };
+    let rebuildRequest: any = {
+      userId: 'student-1', classIds: [], generation: 4, status: 'PENDING',
+      claimToken: null, claimExpiresAt: null, claimedGeneration: null,
+    };
+    let compatibilitySnapshot: any = null;
+    const contextFact = {
+      ...fact('context-only-full-rebuild'),
+      contextJson: { evidenceGovernance: { skipProfileContribution: true, profileWeight: 0 } },
+    };
+    const db: any = {
+      $transaction: async (callback: any) => callback(db),
+      $executeRaw: async () => undefined,
+      learningMaterializationRebuildRequest: {
+        findUnique: async () => rebuildRequest,
+        updateMany: async ({ data }: any) => {
+          if (!rebuildRequest) return { count: 0 };
+          rebuildRequest = { ...rebuildRequest, ...data };
+          return { count: 1 };
+        },
+        deleteMany: async () => { rebuildRequest = null; return { count: 1 }; },
+      },
+      learningMaterializationGeneration: { findUnique: async () => ({ generation: 4 }) },
+      learningFact: { findMany: async () => [contextFact] },
+      interactionLog: { findMany: async () => [] },
+      studentPortraitV2Snapshot: {
+        findFirst: async () => nativeRow,
+        deleteMany: async () => { nativeRow = null; return { count: 1 }; },
+      },
+      studentEvidenceFeatureCache: {
+        findUnique: async () => featureCache,
+        deleteMany: async () => { featureCache = null; return { count: 1 }; },
+      },
+      studentCompetencySnapshot: {
+        findFirst: async () => compatibilitySnapshot,
+        create: async ({ data }: any) => (compatibilitySnapshot = { id: 'no-evidence-current', ...data }),
+      },
+      studentProfile: { findUnique: async () => ({ classId: 'class-1' }), findMany: async () => [{ classId: 'class-1' }] },
+      studentProfileSummary: { deleteMany: vi.fn(async () => ({ count: 1 })) },
+      growthRecord: { deleteMany: vi.fn(async () => ({ count: 1 })) },
+      diagnosisReportSnapshot: { deleteMany: vi.fn(async () => ({ count: 1 })) },
+      studentRiskFlag: { updateMany: vi.fn(async () => ({ count: 1 })) },
+    };
+    mocks.prepareGrowth.mockResolvedValueOnce(null);
+    mocks.portrait
+      .mockResolvedValueOnce({ written: false, mappingIssues: [], evidenceCount: 0, affectedDimensions: [] })
+      .mockImplementationOnce(async () => {
+        await db.studentPortraitV2Snapshot.deleteMany();
+        return { written: false, mappingIssues: [], evidenceCount: 0, affectedDimensions: [] };
+      });
+    configureDataGovernanceWorkerForTest({ db });
+
+    const result = await processStudentSnapshotJob({ data: {
+      userId: 'student-1', fullRebuild: true, rebuildGeneration: 4,
+    } } as any);
+    const resolution = await resolvePrimaryPortraitV2(db, 'student-1', 'student', { now: new Date() });
+
+    expect(result).toMatchObject({ attainmentOutcome: 'no-evidence', reason: 'no_portrait_evidence' });
+    expect(nativeRow).toBeNull();
+    expect(featureCache).toBeNull();
+    expect(compatibilitySnapshot).toMatchObject({
+      factCount: 0,
+      evidenceSummary: { _derivation: { state: 'no-evidence-after-revocation', reason: 'no-governed-portrait-contribution' } },
+    });
+    expect(hasPortraitV2Evidence(resolution.primaryPortrait)).toBe(false);
+    expect(db.diagnosisReportSnapshot.deleteMany).toHaveBeenCalledTimes(1);
+    expect(db.diagnosisReportSnapshot.deleteMany).toHaveBeenCalledWith({ where: {
+      userId: { in: ['student-1'] },
+      subjectKind: { not: 'class' },
+    } });
+    expect(db.studentRiskFlag.updateMany).not.toHaveBeenCalled();
+    expect(db.learningFact.findMany()).resolves.toEqual([contextFact]);
   });
 
   it('immediately enqueues the class when a late portrait fact leaves the compatibility window empty', async () => {

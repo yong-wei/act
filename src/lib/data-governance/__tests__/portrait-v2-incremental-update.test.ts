@@ -396,7 +396,7 @@ describe('portrait v2 incremental updates', () => {
     expect(create).not.toHaveBeenCalled();
   });
 
-  it('keeps full-rebuild dry-run eligible without writing a context-only portrait', async () => {
+  it('reports full-rebuild context-only input as explicit no-evidence without writing a portrait', async () => {
     const contextFact = fact('context-rebuild-dry-run', { controlModeling: 1 }, {
       evidenceGovernance: { skipProfileContribution: true, profileWeight: 0 },
     });
@@ -414,27 +414,31 @@ describe('portrait v2 incremental updates', () => {
       dryRun: true,
     });
 
-    expect(result).toMatchObject({ written: true, evidenceCount: 0, affectedDimensions: [] });
+    expect(result).toMatchObject({ written: false, evidenceCount: 0, affectedDimensions: [] });
     expect(db.$transaction).toHaveBeenCalledTimes(1);
     expect(db.studentPortraitV2Snapshot.findFirst).not.toHaveBeenCalled();
     expect(create).not.toHaveBeenCalled();
   });
 
-  it('retains the full-rebuild baseline contract for context-only facts', async () => {
+  it('does not create a synthetic zero portrait for full-rebuild context-only facts', async () => {
     const contextFact = fact('context-rebuild', { controlModeling: 1 }, {
       evidenceGovernance: { skipProfileContribution: true, profileWeight: 0 },
     });
     const create = vi.fn(async ({ data }: { data: Record<string, unknown> }) => ({ id: 'portrait-rebuilt-empty', ...data }));
+    const deleteMany = vi.fn(async () => ({ count: 1 }));
     const result = await materializeIncrementalPortraitV2({
-      studentPortraitV2Snapshot: { findFirst: vi.fn(async () => null), create },
+      studentPortraitV2Snapshot: { findFirst: vi.fn(async () => null), create, deleteMany },
       learningFact: { findMany: vi.fn(async () => [contextFact]) },
     }, 'student-context-rebuild', {
       now: new Date('2026-05-02T00:00:02.000Z'),
       fullRebuild: true,
     });
 
-    expect(result).toMatchObject({ written: true, evidenceCount: 0, affectedDimensions: [] });
-    expect(create).toHaveBeenCalledTimes(1);
+    expect(result).toMatchObject({ written: false, evidenceCount: 0, affectedDimensions: [] });
+    expect(create).not.toHaveBeenCalled();
+    expect(deleteMany).toHaveBeenCalledWith({
+      where: { userId: 'student-context-rebuild', derivationKind: 'native' },
+    });
   });
 
   it('full rebuild resets the cursor and derives the portrait from all remaining mixed-source facts', async () => {

@@ -14,6 +14,9 @@ export interface StudentSnapshotJob {
 export interface ClassSnapshotJob {
   classId?: string;
   coordinator?: boolean;
+  scope?: 'recent' | 'cumulative';
+  requestedAfter?: string;
+  runRef?: string;
 }
 
 export interface SessionReportJob {
