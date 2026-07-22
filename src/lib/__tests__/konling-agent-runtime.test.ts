@@ -3152,6 +3152,33 @@ describe('konling agent runtime', () => {
     expect(prompt).toContain('basis-root-locus');
     expect(prompt).toContain('version-root-locus');
 
+    const manyBasesPrompt = buildKonlingSystemPrompt({
+      page: {
+        courseId: 'basis-1', courseTitle: '自动控制原理', pageType: 'workspace', stepId: 'teacher-smart-prep', topic: '根轨迹', learningObjectives: [], knowledgeType: 'X',
+      },
+      user: {
+        id: 'teacher-1', name: '验收教师', learningStyle: 'TEXTUAL', cognitiveLevel: 3,
+        abilityVector: { computational: 0.5, crossDomain: 0.5, design: 0.5, analysis: 0.5, evaluation: 0.5 },
+      },
+      adaptiveRuntime: {
+        teachingAssistantMode: {
+          mode: { id: 'prep-coauthor', label: '教师备课共创' }, status: 'available', unavailableReasons: [], degradedReasons: [],
+          privacyPolicy: { payload: 'teacher-scoped-summary', forbiddenContent: [] }, outputContract: { status: 'draft-only', requiredCitationOwners: [], forbiddenActions: [] },
+          citationRequirements: { required: false, classes: [], requiredOwners: [], missingClasses: [] },
+          smartPreparation: {
+            bootstrap: true,
+            currentTask: {
+              availableCourseBases: Array.from({ length: 6 }, (_, index) => ({
+                id: `basis-${index + 1}`, title: `课程依据${index + 1}`,
+                documents: [{ versions: [{ id: `version-${index + 1}`, versionNumber: 1 }] }],
+              })),
+            },
+          },
+        },
+      },
+    });
+    expect(manyBasesPrompt).toContain('courseBasisId=basis-6；sourceVersionIds=[version-6]');
+
     const revisionPrompt = buildKonlingSystemPrompt({
       page: {
         courseId: 'basis-root-locus', courseTitle: '自动控制原理', pageType: 'workspace', stepId: 'teacher-smart-prep', topic: '根轨迹', learningObjectives: [], knowledgeType: 'X',

@@ -355,7 +355,7 @@ function buildSmartPreparationInstructions(value: unknown): string[] {
       .map(formatAvailableCourseBasis)
       .filter((item): item is string => Boolean(item));
     if (availableCourseBases.length) {
-      lines.push(`  - 可选课程依据及已确认版本（只能使用这些 ID，不得编造）：${availableCourseBases.slice(0, 5).join('；')}`);
+      lines.push(`  - 可选课程依据及已确认版本（只能使用这些 ID，不得编造）：${availableCourseBases.join('；')}`);
     } else {
       lines.push('  - 当前没有可选的已确认课程依据版本；先调用该工具提出依据选择澄清，不得编造 courseBasisId 或 sourceVersionIds。');
     }
@@ -387,7 +387,7 @@ function formatAvailableCourseBasis(value: unknown): string | null {
     .flatMap((document) => array(record(document).versions))
     .map((version) => string(record(version).id))
     .filter((version): version is string => Boolean(version));
-  return `课程依据「${title}」：courseBasisId=${id}；sourceVersionIds=${versions.length ? `[${versions.slice(0, 5).join(', ')}]` : '[]（无已确认版本）'}`;
+  return `课程依据「${title}」：courseBasisId=${id}；sourceVersionIds=${versions.length ? `[${versions.join(', ')}]` : '[]（无已确认版本）'}`;
 }
 
 function formatCurrentTaskCollections(value: unknown): string | null {
