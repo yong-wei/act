@@ -16,6 +16,7 @@ interface GraphApiResponse {
     nodeType: KnowledgeNodeData['nodeType'];
     domainId: string;
     chapterName: string;
+    candidate?: boolean;
   }>;
   lessonContext?: SanitizedKnowledgeLessonContext | null;
 }
