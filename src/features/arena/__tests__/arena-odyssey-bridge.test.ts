@@ -71,7 +71,7 @@ describe('Control Odyssey Arena bridge', () => {
 
     expect(result).toEqual({
       ok: false,
-      reason: '缺少通关遥测：通关时间、操作强度。',
+      reason: '缺少通关遥测：调节时间、操作强度。',
       gameScorePreserved: true,
     });
     expect(createSubmission).not.toHaveBeenCalled();
