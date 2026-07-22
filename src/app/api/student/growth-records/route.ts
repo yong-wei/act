@@ -52,13 +52,15 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1', 10);
     const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 50);
+    const startIdx = (page - 1) * limit;
+    const endIdx = startIdx + limit;
 
-    // Fetch growth records from database
+    // Read the records needed for the requested merged timeline page. At most
+    // ten generated learning activities can be inserted ahead of them.
     const records = await prisma.growthRecord.findMany({
       where: { userId },
       orderBy: { occurredAt: 'desc' },
-      skip: (page - 1) * limit,
-      take: limit,
+      take: endIdx,
     });
 
     const total = await prisma.growthRecord.count({
@@ -76,12 +78,10 @@ export async function GET(request: NextRequest) {
       icon: getIconForType(record.recordType as GrowthRecordType),
     }));
 
-    // If no records exist yet, generate from other data sources
-    if (mappedRecords.length === 0) {
+    // If no persisted records exist yet, retain the existing broader fallback
+    // timeline (milestones, simulations, risks, achievements, and activities).
+    if (total === 0) {
       const generatedRecords = await generateGrowthRecords(userId);
-      const startIdx = (page - 1) * limit;
-      const endIdx = startIdx + limit;
-      
       return NextResponse.json({
         records: generatedRecords.slice(startIdx, endIdx),
         total: generatedRecords.length,
@@ -89,10 +89,14 @@ export async function GET(request: NextRequest) {
       } as GrowthRecordsResponse);
     }
 
+    const learningActivities = await generateLearningActivityGrowthRecords(userId);
+    const mergedRecords = [...mappedRecords, ...learningActivities]
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
     const response: GrowthRecordsResponse = {
-      records: mappedRecords,
-      total,
-      hasMore: (page - 1) * limit + records.length < total,
+      records: mergedRecords.slice(startIdx, endIdx),
+      total: total + learningActivities.length,
+      hasMore: endIdx < total + learningActivities.length,
     };
 
     return NextResponse.json(response);
@@ -207,6 +211,15 @@ async function generateGrowthRecords(userId: string): Promise<GrowthRecord[]> {
     });
   }
 
+  records.push(...await generateLearningActivityGrowthRecords(userId));
+
+  // Sort by date descending
+  records.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  return records;
+}
+
+async function generateLearningActivityGrowthRecords(userId: string): Promise<GrowthRecord[]> {
   // Keep only facts that the canonical portrait mapper rejects as contribution
   // evidence. The timeline wording stays generic and omits private context.
   const learningFacts = await prisma.learningFact.findMany({
@@ -230,6 +243,7 @@ async function generateGrowthRecords(userId: string): Promise<GrowthRecord[]> {
       .map((evidence) => evidence.id),
   );
 
+  const records: GrowthRecord[] = [];
   for (const activity of learningFacts) {
     if (!noPortraitContributionIds.has(activity.id)) continue;
     records.push({
@@ -242,9 +256,6 @@ async function generateGrowthRecords(userId: string): Promise<GrowthRecord[]> {
       icon: 'BookOpen',
     });
   }
-
-  // Sort by date descending
-  records.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return records;
 }
