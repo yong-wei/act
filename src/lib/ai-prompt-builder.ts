@@ -367,7 +367,7 @@ function buildSmartPreparationInstructions(value: unknown): string[] {
   lines.push(`  - 当前处于既有单课修订阶段：调用该工具时使用 revise、taskId=${taskId ?? 'unknown'}、expectedRevision=${taskRevision ?? 'unknown'}，仅在 proposedTask 提交本轮修改的普通字段；服务端会携带其余当前任务字段并形成完整待确认建议。不得提交 courseBasisId 或 sourceVersionIds，服务端始终使用当前任务绑定。`);
   const currentCollections = formatCurrentTaskCollections(preparation.currentTask);
   if (currentCollections) {
-    lines.push(`  - 修改 knowledgePoints 或 goals 时，不得重传完整数组；分别使用 knowledgePointPatches 或 goalPatches。update 只提交稳定 id 与 changes，且 changes 不得包含 id 或 sourceBindings；remove 只提交稳定 id；add 只提交不含 id 的完整 item。可用现有条目 ID：${currentCollections}`);
+    lines.push(`  - 修改 knowledgePoints 或 goals 时，不得重传完整数组；分别使用 knowledgePointPatches 或 goalPatches。update 只提交稳定 id 与 changes，且 changes 不得包含 id 或 sourceBindings；remove 只提交稳定 id；add 只提交不含 id 的完整 item。可用现有条目定位清单：${currentCollections}`);
   }
   const selectedVersions = array(preparation.selectedCourseBasisVersions)
     .map((item) => string(record(item).versionId))
@@ -393,13 +393,21 @@ function formatAvailableCourseBasis(value: unknown): string | null {
 function formatCurrentTaskCollections(value: unknown): string | null {
   const currentTask = record(value);
   const knowledgePoints = array(currentTask.knowledgePoints)
-    .map((item) => string(record(item).id))
-    .filter((item): item is string => Boolean(item));
+    .flatMap((item) => {
+      const entry = record(item);
+      const id = string(entry.id);
+      if (!id) return [];
+      return [{ id, title: string(entry.title) ?? string(entry.content) ?? id }];
+    });
   const goals = array(currentTask.goals)
-    .map((item) => string(record(item).id))
-    .filter((item): item is string => Boolean(item));
+    .flatMap((item) => {
+      const entry = record(item);
+      const id = string(entry.id);
+      if (!id) return [];
+      return [{ id, content: string(entry.content) ?? id }];
+    });
   if (!knowledgePoints.length && !goals.length) return null;
-  return JSON.stringify({ knowledgePointIds: knowledgePoints, goalIds: goals });
+  return JSON.stringify({ knowledgePoints, goals });
 }
 
 function record(value: unknown): Record<string, unknown> {

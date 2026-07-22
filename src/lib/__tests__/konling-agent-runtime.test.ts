@@ -3197,8 +3197,8 @@ describe('konling agent runtime', () => {
             bootstrap: false, taskId: 'task-1', taskRevision: '3',
             currentTask: {
               topic: '根轨迹',
-              knowledgePoints: [{ id: 'kp-1', content: '相角条件', sourceState: 'ai_generated_source_pending', sourceBindings: [], origin: 'SUGGESTED' }],
-              goals: [{ id: 'goal-1', content: '判断根轨迹', sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
+              knowledgePoints: [{ id: 'kp-1', title: '相角条件', content: '相角条件', sourceState: 'ai_generated_source_pending', sourceBindings: [{ citationId: 'SECRET-CITATION' }], origin: 'SUGGESTED' }],
+              goals: [{ id: 'goal-1', content: '判断根轨迹', sourceState: 'ai_generated_source_pending', sourceBindings: [{ citationId: 'SECRET-CITATION' }] }],
             },
             selectedCourseBasisVersions: [],
           },
@@ -3207,10 +3207,10 @@ describe('konling agent runtime', () => {
     });
     expect(revisionPrompt).toContain('仅在 proposedTask 提交本轮修改的普通字段；服务端会携带其余当前任务字段');
     expect(revisionPrompt).toContain('不得重传完整数组；分别使用 knowledgePointPatches 或 goalPatches');
-    expect(revisionPrompt).toContain('"knowledgePointIds":["kp-1"]');
-    expect(revisionPrompt).toContain('"goalIds":["goal-1"]');
+    expect(revisionPrompt).toContain('"knowledgePoints":[{"id":"kp-1","title":"相角条件"}]');
+    expect(revisionPrompt).toContain('"goals":[{"id":"goal-1","content":"判断根轨迹"}]');
     expect(revisionPrompt).not.toContain('"sourceBindings"');
-    expect(revisionPrompt).not.toContain('"content":"相角条件"');
+    expect(revisionPrompt).not.toContain('SECRET-CITATION');
   });
 
   it('does not turn client-only page hints into high-confidence content citations', async () => {
