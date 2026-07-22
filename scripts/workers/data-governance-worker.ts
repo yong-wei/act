@@ -766,10 +766,6 @@ export async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
         state: 'no-evidence-after-revocation',
         reason: 'no-governed-portrait-contribution',
       });
-      await tx.studentRiskFlag.updateMany({
-        where: { userId, isResolved: false },
-        data: { isResolved: true, resolvedAt: snapshotAt, resolutionNote: 'No governed portrait contribution in full rebuild' },
-      });
       return snapshot;
     });
     return { skipped: false, reason: 'no_portrait_evidence', userId, snapshotId: emptySnapshot.id, featureCacheRefreshed: false, portraitV2 };

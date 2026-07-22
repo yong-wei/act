@@ -325,6 +325,7 @@ describe('data governance worker materialization recovery', () => {
       userId: { in: ['student-1'] },
       subjectKind: { not: 'class' },
     } });
+    expect(db.studentRiskFlag.updateMany).not.toHaveBeenCalled();
     expect(db.learningFact.findMany()).resolves.toEqual([contextFact]);
   });
 
