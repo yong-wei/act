@@ -77,6 +77,7 @@ import {
 } from '@/lib/data-governance/adaptive-learner-state-service';
 import { buildKonlingKaqGraphContext } from '@/lib/konling-kaq-graph-context';
 import { getRegisteredAdaptiveLearningPathGoal } from '@/lib/adaptive-learning-path-planner';
+import { updateTaskSchema } from '@/app/api/teacher/smart-lesson-tasks/_shared';
 import {
   applyKonlingCitationFallback,
   buildKonlingCitationGuard,
@@ -889,9 +890,9 @@ describe('konling agent runtime', () => {
         topic: '旧主题', courseBasisId: 'basis-1', audience: '自动化专业本科生', durationMinutes: 45,
         sourceVersionIds: ['version-1', 'version-2'],
         knowledgePoints: [
-          { id: 'kp-1', content: '幅值条件', sourceState: 'verified', sourceBindings: [{ citationId: 'citation-1' }], origin: 'SUGGESTED' },
-          { id: 'kp-2', title: '旧相角条件', content: '旧相角条件', sourceState: 'verified', sourceBindings: [{ citationId: 'citation-2' }], origin: 'SUGGESTED' },
-          { id: 'kp-3', content: '分离点', sourceState: 'verified', sourceBindings: [{ citationId: 'citation-3' }], origin: 'SUGGESTED' },
+          { id: 'kp-1', content: '幅值条件', sourceState: 'verified', sourceBindings: [{ citationId: 'citation-1', sourceVersionId: 'version-1', anchor: '幅值条件', contentHash: '1111111111111111' }], origin: 'SUGGESTED' },
+          { id: 'kp-2', title: '旧相角条件', content: '旧相角条件', sourceState: 'verified', sourceBindings: [{ citationId: 'citation-2', sourceVersionId: 'version-1', anchor: '相角条件', contentHash: '2222222222222222' }], origin: 'SUGGESTED' },
+          { id: 'kp-3', content: '分离点', sourceState: 'verified', sourceBindings: [{ citationId: 'citation-3', sourceVersionId: 'version-2', anchor: '分离点', contentHash: '3333333333333333' }], origin: 'SUGGESTED' },
         ],
         goals: [{ id: 'goal-1', content: '旧目标', sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
       },
@@ -980,6 +981,45 @@ describe('konling agent runtime', () => {
       proposedTask: { knowledgePoints: [] },
       knowledgePointPatches: [{ operation: 'remove', id: 'kp-1' }],
     })).rejects.toThrow('knowledgePoints 完整数组与增量补丁不能同时提交');
+
+    const runCountBeforeRejectedAdds = db.agentToolRun.create.mock.calls.length;
+    await expect(runtime.proposeSmartLessonTaskChange({
+      taskId: 'task-1', expectedRevision: 3, proposedTask: {},
+      knowledgePointPatches: [{ operation: 'add', item: {
+        content: '新增知识点', sourceState: 'ai_generated_source_pending', sourceBindings: [],
+      } }] as never,
+    })).rejects.toThrow();
+    await expect(runtime.proposeSmartLessonTaskChange({
+      taskId: 'task-1', expectedRevision: 3, proposedTask: {},
+      goalPatches: [{ operation: 'add', item: {
+        content: '新增目标', sourceState: 'ai_generated_source_pending',
+      } }] as never,
+    })).rejects.toThrow();
+    expect(db.agentToolRun.create).toHaveBeenCalledTimes(runCountBeforeRejectedAdds);
+
+    const additions = await runtime.proposeSmartLessonTaskChange({
+      taskId: 'task-1', expectedRevision: 3, proposedTask: {},
+      knowledgePointPatches: [{ operation: 'add', item: {
+        content: '新增知识点', sourceState: 'ai_generated_source_pending', sourceBindings: [], origin: 'ai_generated',
+      } }],
+      goalPatches: [{ operation: 'add', item: {
+        content: '新增目标', sourceState: 'teacher_created_source_pending', sourceBindings: [],
+      } }],
+    });
+    const addedTask = (additions as { proposedTask: { knowledgePoints: unknown[]; goals: unknown[] } }).proposedTask;
+    expect(addedTask.knowledgePoints).toEqual(expect.arrayContaining([
+      expect.objectContaining({ content: '新增知识点', origin: 'SUGGESTED', sourceBindings: [] }),
+    ]));
+    expect(addedTask.goals).toEqual(expect.arrayContaining([
+      expect.objectContaining({ content: '新增目标', sourceBindings: [] }),
+    ]));
+    const proposedTask = db.agentToolRun.create.mock.calls.at(-1)?.[0].data.inputSummary.proposedTask;
+    expect(updateTaskSchema.safeParse({
+      ...proposedTask,
+      expectedRevision: 3,
+      confirmingTurnId: 'turn-server-1',
+      agentSessionId: session.id,
+    }).success).toBe(true);
   });
 
   it('keeps a bootstrap session through clarification and a later create proposal', async () => {
@@ -3207,6 +3247,7 @@ describe('konling agent runtime', () => {
     });
     expect(revisionPrompt).toContain('仅在 proposedTask 提交本轮修改的普通字段；服务端会携带其余当前任务字段');
     expect(revisionPrompt).toContain('不得重传完整数组；分别使用 knowledgePointPatches 或 goalPatches');
+    expect(revisionPrompt).toContain('content、sourceState、sourceBindings，知识点另须含 origin');
     expect(revisionPrompt).toContain('"knowledgePoints":[{"id":"kp-1","title":"相角条件"}]');
     expect(revisionPrompt).toContain('"goals":[{"id":"goal-1","content":"判断根轨迹"}]');
     expect(revisionPrompt).not.toContain('"sourceBindings"');
