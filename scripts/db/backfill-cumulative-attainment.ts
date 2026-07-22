@@ -17,7 +17,7 @@ const WAIT_TIMEOUT_MS = Number(process.env.CUMULATIVE_ATTAINMENT_WAIT_TIMEOUT_MS
 const WAIT_POLL_MS = Number(process.env.CUMULATIVE_ATTAINMENT_WAIT_POLL_MS ?? 2_000);
 const RUN_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]{2,63}$/;
 const JOB_HISTORY_OPTIONS = {
-  removeOnComplete: { count: 50 },
+  removeOnComplete: { count: 500 },
   removeOnFail: { count: 200 },
 } as const;
 
@@ -175,6 +175,7 @@ async function allRequestedPortraitsCompleted(
     const queuedJob = await queue.getJob(candidate.jobId);
     const queuedJobState = queuedJob ? await queuedJob.getState() : null;
     if (queuedJobState === 'failed') return 'failed';
+    if (queuedJobState === 'completed') continue;
     const portrait = portraits.get(candidate.userId);
     if (portrait
       && hasPortraitV2Evidence(portrait)

@@ -257,6 +257,45 @@ describe('cumulative attainment backfill command', () => {
     expect(db.studentPortraitV2Snapshot.findMany).toHaveBeenCalled();
   });
 
+  it('accepts a completed learner job when duplicate output suppresses a new snapshot', async () => {
+    const { db, requests } = backfillDb();
+    const studentAdd = vi.fn(async () => {
+      requests.delete('student-with-history');
+    });
+    const classAdd = vi.fn(async (_name: string, data: any) => {
+      db.classCompetencySnapshot.findFirst.mockResolvedValue({
+        id: 'class-suppressed-learner-run',
+        aggregateJson: { _materialization: { runRef: data.runRef } },
+      });
+    });
+
+    const result = await runCumulativeBackfill(
+      db,
+      {
+        student: {
+          add: studentAdd,
+          getJob: vi.fn(async () => ({ getState: async () => 'completed' })),
+        } as any,
+        class: {
+          add: classAdd,
+          getJob: vi.fn(async () => ({
+            getState: async () => 'completed',
+            returnvalue: { snapshotId: 'class-suppressed-learner-run' },
+          })),
+        } as any,
+      },
+      { apply: true, runId: 'suppressed-duplicate-2026', wait: true, limit: null },
+      { waitOptions: { timeoutMs: 0 }, classWaitOptions: { timeoutMs: 0 } },
+    );
+
+    expect(result).toMatchObject({ learnerJobsEnqueued: 1, classJobsEnqueued: 1 });
+    expect(studentAdd).toHaveBeenCalledWith(
+      'cumulative-attainment-full-rebuild',
+      expect.any(Object),
+      expect.objectContaining({ removeOnComplete: { count: 500 } }),
+    );
+  });
+
   it('does not accept an older cumulative snapshot as completion for the current class job', async () => {
     const db: any = {
       classCompetencySnapshot: { findFirst: vi.fn(async () => null) },
