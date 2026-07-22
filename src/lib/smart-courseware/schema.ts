@@ -121,7 +121,7 @@ export function createCoursewareGeneratedStageProviderOutputSchema(expectedStepC
       context.addIssue({ code: z.ZodIssueCode.custom, message: 'choice labels must be distinct' });
     }
   });
-  const module = requireActivity
+  const moduleSchema = requireActivity
     ? z.object({
       id,
       canonicalClass: z.literal(GENERATED_ACTIVITY_CLASS),
@@ -149,7 +149,7 @@ export function createCoursewareGeneratedStageProviderOutputSchema(expectedStepC
     }).strict();
   const step = z.object({
     id, title: text, durationSeconds: z.number().int().positive(), layoutId: z.literal('single'),
-    modules: z.array(module).length(1),
+    modules: z.array(moduleSchema).length(1),
   }).strict();
   return z.object({
     stage: z.object({ stage: text, durationSeconds: z.number().int().positive(), steps: z.array(step).length(expectedStepCount) }).strict(),
