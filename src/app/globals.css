@@ -186,6 +186,19 @@
     }
   }
 
+  [data-course-entry-shell="app-shell"] [data-knowledge-map="lesson-entry"] {
+    --premium-lesson-graph-edge: var(--border);
+    --premium-lesson-graph-edge-active: var(--primary);
+    --premium-lesson-graph-node-fill: var(--card);
+    --premium-lesson-graph-node-stroke: var(--border);
+    --premium-lesson-graph-node-active-fill: var(--accent);
+    --premium-lesson-graph-node-active-stroke: var(--primary);
+    --premium-lesson-graph-node-text: var(--foreground);
+    --premium-lesson-graph-label-bg: var(--popover);
+    --premium-lesson-graph-label-stroke: var(--border);
+    --premium-lesson-graph-label-text: var(--popover-foreground);
+  }
+
   [data-route-family="learner-data-pathway"] {
     --learner-floating-dock-safe-inline: 0rem;
     --learner-floating-dock-safe-block: 8rem;
