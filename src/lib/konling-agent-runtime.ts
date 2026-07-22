@@ -1833,19 +1833,47 @@ const simulationContextParameters = z.object({
   includeTrace: z.boolean().optional(),
 });
 
+const smartLessonCollectionPatch = z.discriminatedUnion('operation', [
+  z.object({
+    operation: z.literal('update'),
+    id: z.string().min(1).max(200),
+    changes: z.record(z.string(), z.unknown()),
+  }).strict(),
+  z.object({
+    operation: z.literal('remove'),
+    id: z.string().min(1).max(200),
+  }).strict(),
+  z.object({
+    operation: z.literal('add'),
+    item: z.record(z.string(), z.unknown()),
+  }).strict(),
+]);
+
 const proposeSmartLessonTaskChangeParameters = z.object({
   operation: z.enum(['bootstrap', 'revise']).optional(),
   taskId: z.string().min(1).max(200).optional(),
   expectedRevision: z.number().int().min(1).optional(),
   proposedTask: z.record(z.string(), z.unknown()).optional(),
+  knowledgePointPatches: z.array(smartLessonCollectionPatch).optional(),
+  goalPatches: z.array(smartLessonCollectionPatch).optional(),
   clarification: z.object({
     question: z.string().min(1).max(1000),
     alternatives: z.array(z.string().min(1).max(500)).min(2).max(10),
   }).strict().optional(),
-}).strict().refine((value) => Boolean(value.proposedTask) !== Boolean(value.clarification), {
+}).strict().refine((value) => Boolean(
+  value.proposedTask || value.knowledgePointPatches?.length || value.goalPatches?.length,
+) !== Boolean(value.clarification), {
   message: '必须且只能提供 proposedTask 或 clarification。',
 }).refine((value) => value.operation === 'bootstrap' || Boolean(value.taskId && value.expectedRevision), {
   message: '修订建议必须绑定任务及其预期修订号。',
+}).superRefine((value, context) => {
+  const hasPatches = Boolean(value.knowledgePointPatches?.length || value.goalPatches?.length);
+  if (value.clarification && hasPatches) {
+    context.addIssue({ code: 'custom', message: '澄清请求不能携带任务集合补丁。' });
+  }
+  if (value.operation === 'bootstrap' && hasPatches) {
+    context.addIssue({ code: 'custom', message: '新建任务必须提交完整 knowledgePoints 和 goals。' });
+  }
 });
 
 const runVirtualSimulationParameters = z.object({
@@ -2432,9 +2460,13 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
       if (!turnId) throw new KonlingRuntimeScopeError(409, '智能备课会话没有可绑定的当前对话轮次。');
       const smartPreparation = (input.context as KonlingRuntimeContext & { teachingAssistantMode?: KonlingTeachingAssistantRuntimeContract })
         .teachingAssistantMode?.smartPreparation;
+      const { knowledgePointPatches, goalPatches, ...proposalArgs } = args;
       const boundArgs = {
-        ...args,
-        proposedTask: normalizeSuggestedSmartLessonTask(args.proposedTask, smartPreparation),
+        ...proposalArgs,
+        proposedTask: normalizeSuggestedSmartLessonTask(args.proposedTask, smartPreparation, {
+          knowledgePoints: knowledgePointPatches,
+          goals: goalPatches,
+        }),
         turnId,
       };
       return runKonlingRuntimeTool(input, 'propose_smart_lesson_task_change', boundArgs, async (toolRun) => {
@@ -2476,18 +2508,47 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
 function normalizeSuggestedSmartLessonTask(
   value: Record<string, unknown> | undefined,
   preparation: KonlingSmartPreparationServerContext | null | undefined,
+  patches: {
+    knowledgePoints?: Array<z.infer<typeof smartLessonCollectionPatch>>;
+    goals?: Array<z.infer<typeof smartLessonCollectionPatch>>;
+  } = {},
 ) {
-  if (!value) return value;
+  if (!value && !patches.knowledgePoints?.length && !patches.goals?.length) return value;
+  value ??= {};
   const currentTask = readRecord(preparation?.currentTask);
-  const proposedTask = preparation && !preparation.bootstrap ? { ...currentTask, ...value } : value;
-  const courseBasisId = getString(currentTask, 'courseBasisId');
-  const selectedVersionIds = new Set((preparation?.selectedCourseBasisVersions ?? [])
-    .map((source) => source.versionId)
-    .filter(Boolean));
-  const requestedCourseBasisId = getString(proposedTask, 'courseBasisId');
-  const normalizedCourseBasisId = courseBasisId && requestedCourseBasisId && selectedVersionIds.has(requestedCourseBasisId)
-    ? courseBasisId
-    : requestedCourseBasisId;
+  const isRevision = Boolean(preparation && !preparation.bootstrap);
+  if (!isRevision && (patches.knowledgePoints?.length || patches.goals?.length)) {
+    throw new KonlingRuntimeScopeError(400, '新建任务必须提交完整 knowledgePoints 和 goals。');
+  }
+  if (isRevision && patches.knowledgePoints?.length && Object.hasOwn(value, 'knowledgePoints')) {
+    throw new KonlingRuntimeScopeError(400, 'knowledgePoints 完整数组与增量补丁不能同时提交。');
+  }
+  if (isRevision && patches.goals?.length && Object.hasOwn(value, 'goals')) {
+    throw new KonlingRuntimeScopeError(400, 'goals 完整数组与增量补丁不能同时提交。');
+  }
+  if (isRevision && Object.hasOwn(value, 'knowledgePoints')) {
+    throw new KonlingRuntimeScopeError(400, '既有任务的 knowledgePoints 必须使用增量补丁修改。');
+  }
+  if (isRevision && Object.hasOwn(value, 'goals')) {
+    throw new KonlingRuntimeScopeError(400, '既有任务的 goals 必须使用增量补丁修改。');
+  }
+  const proposedTask = isRevision ? { ...currentTask, ...value } : value;
+  if (isRevision) {
+    if (patches.knowledgePoints?.length) {
+      proposedTask.knowledgePoints = applySmartLessonCollectionPatches(
+        currentTask.knowledgePoints,
+        patches.knowledgePoints,
+        'knowledgePoints',
+      );
+    }
+    if (patches.goals?.length) {
+      proposedTask.goals = applySmartLessonCollectionPatches(currentTask.goals, patches.goals, 'goals');
+    }
+    proposedTask.courseBasisId = getString(currentTask, 'courseBasisId') ?? undefined;
+    proposedTask.sourceVersionIds = (preparation?.selectedCourseBasisVersions ?? [])
+      .map((source) => source.versionId)
+      .filter(Boolean);
+  }
   const knowledgePoints = Array.isArray(proposedTask.knowledgePoints)
     ? proposedTask.knowledgePoints.map((item) => {
       if (!item || typeof item !== 'object' || Array.isArray(item)) return item;
@@ -2497,9 +2558,65 @@ function normalizeSuggestedSmartLessonTask(
     : proposedTask.knowledgePoints;
   return {
     ...proposedTask,
-    ...(normalizedCourseBasisId ? { courseBasisId: normalizedCourseBasisId } : {}),
     ...(knowledgePoints ? { knowledgePoints } : {}),
   };
+}
+
+function applySmartLessonCollectionPatches(
+  currentValue: unknown,
+  patches: Array<z.infer<typeof smartLessonCollectionPatch>>,
+  field: 'knowledgePoints' | 'goals',
+): unknown[] {
+  const current = Array.isArray(currentValue) ? currentValue : [];
+  const currentById = new Map<string, Record<string, unknown>>();
+  for (const item of current) {
+    const record = readRecord(item);
+    const id = getString(record, 'id');
+    if (!id) throw new KonlingRuntimeScopeError(400, `${field} 的现有条目缺少稳定 ID，不能应用增量补丁。`);
+    if (currentById.has(id)) throw new KonlingRuntimeScopeError(400, `${field} 存在重复 ID：${id}。`);
+    currentById.set(id, record);
+  }
+
+  const targetedIds = new Set<string>();
+  const additions: Record<string, unknown>[] = [];
+  const updates = new Map<string, Record<string, unknown>>();
+  const removals = new Set<string>();
+  for (const patch of patches) {
+    if (patch.operation === 'add') {
+      if (getString(patch.item, 'id')) {
+        throw new KonlingRuntimeScopeError(400, `${field} 新增条目不能指定既有 ID。`);
+      }
+      additions.push(patch.item);
+      continue;
+    }
+    if (targetedIds.has(patch.id)) {
+      throw new KonlingRuntimeScopeError(400, `${field} 补丁包含重复或冲突 ID：${patch.id}。`);
+    }
+    targetedIds.add(patch.id);
+    if (!currentById.has(patch.id)) {
+      throw new KonlingRuntimeScopeError(400, `${field} 补丁引用未知 ID：${patch.id}。`);
+    }
+    if (patch.operation === 'remove') {
+      removals.add(patch.id);
+      continue;
+    }
+    if (Object.hasOwn(patch.changes, 'id')) {
+      throw new KonlingRuntimeScopeError(400, `${field} 补丁不能修改稳定 ID：${patch.id}。`);
+    }
+    if (Object.hasOwn(patch.changes, 'sourceBindings')) {
+      throw new KonlingRuntimeScopeError(400, `${field} 补丁不能修改服务端保留的 sourceBindings：${patch.id}。`);
+    }
+    updates.set(patch.id, patch.changes);
+  }
+
+  return current
+    .filter((item) => !removals.has(getString(readRecord(item), 'id') ?? ''))
+    .map((item) => {
+      const record = readRecord(item);
+      const id = getString(record, 'id')!;
+      return updates.has(id) ? { ...record, ...updates.get(id), id } : item;
+    })
+    .concat(additions);
 }
 
 async function buildAdaptivePathToolOutput(

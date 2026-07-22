@@ -345,10 +345,11 @@ function buildSmartPreparationInstructions(value: unknown): string[] {
 
   const lines = [
     '  - 智能备课任务协议: 创建、确认或修订单课任务时，必须调用 propose_smart_lesson_task_change；不得仅在文本中声称“已生成”或“已保存”建议。该工具只保存待教师确认的建议，不得直接创建、修改、发布任务或课件。',
-    '  - proposedTask 是严格对象，不得使用 title、courseId、curriculumBasisId、duration、learningObjectives、outline、references 或 teachingMethods 等替代字段。必填字段为：courseBasisId、topic、audience、durationMinutes、sourceVersionIds、knowledgePoints、goals；可选字段只有 prerequisites、outlineConfirmationRequired、aggregateClassContextRef、confirmScope、confirmGoals。',
-    '  - knowledgePoints 的每项必须含 content、sourceState、sourceBindings、origin、可选 title；goals 的每项必须含 content、sourceState、sourceBindings、可选 standardsMappings。sourceState 只能是 ai_generated_source_pending 或 teacher_created_source_pending。没有服务端提供的完整 citationId、anchor、contentHash 时，sourceBindings 使用 []，不得伪造锚点。',
+    '  - proposedTask 不得使用 title、courseId、curriculumBasisId、duration、learningObjectives、outline、references 或 teachingMethods 等替代字段。',
   ];
   if (preparation.bootstrap) {
+    lines.push('  - 新建任务的 proposedTask 必填字段为：courseBasisId、topic、audience、durationMinutes、sourceVersionIds、knowledgePoints、goals；可选字段只有 prerequisites、outlineConfirmationRequired、aggregateClassContextRef、confirmScope、confirmGoals。');
+    lines.push('  - knowledgePoints 的每项必须含 content、sourceState、sourceBindings、origin、可选 title；goals 的每项必须含 content、sourceState、sourceBindings、可选 standardsMappings。sourceState 只能是 ai_generated_source_pending 或 teacher_created_source_pending。没有服务端提供的完整 citationId、anchor、contentHash 时，sourceBindings 使用 []，不得伪造锚点。');
     lines.push('  - 当前处于新建单课阶段：信息仍不唯一时，调用该工具并以 bootstrap + clarification 提出一个问题和至少两个选项；教师已明确范围时，调用该工具并以 bootstrap + 完整 proposedTask 形成待确认建议。');
     const availableCourseBases = array(record(preparation.currentTask).availableCourseBases)
       .map(formatAvailableCourseBasis)
@@ -363,10 +364,10 @@ function buildSmartPreparationInstructions(value: unknown): string[] {
 
   const taskId = string(preparation.taskId);
   const taskRevision = string(preparation.taskRevision);
-  lines.push(`  - 当前处于既有单课修订阶段：调用该工具时使用 revise、taskId=${taskId ?? 'unknown'}、expectedRevision=${taskRevision ?? 'unknown'}，仅提交本轮修改字段；服务端会携带其余当前任务字段并形成完整待确认建议。若修改 knowledgePoints 或 goals，必须提交该字段修改后的完整数组，保留未修改项，不得只提交单个改动项。`);
+  lines.push(`  - 当前处于既有单课修订阶段：调用该工具时使用 revise、taskId=${taskId ?? 'unknown'}、expectedRevision=${taskRevision ?? 'unknown'}，仅在 proposedTask 提交本轮修改的普通字段；服务端会携带其余当前任务字段并形成完整待确认建议。不得提交 courseBasisId 或 sourceVersionIds，服务端始终使用当前任务绑定。`);
   const currentCollections = formatCurrentTaskCollections(preparation.currentTask);
   if (currentCollections) {
-    lines.push(`  - 当前任务的 knowledgePoints 与 goals（用于完整重提修改后的数组）：${currentCollections}`);
+    lines.push(`  - 修改 knowledgePoints 或 goals 时，不得重传完整数组；分别使用 knowledgePointPatches 或 goalPatches。update 只提交稳定 id 与 changes，且 changes 不得包含 id 或 sourceBindings；remove 只提交稳定 id；add 只提交不含 id 的完整 item。可用现有条目 ID：${currentCollections}`);
   }
   const selectedVersions = array(preparation.selectedCourseBasisVersions)
     .map((item) => string(record(item).versionId))
@@ -391,10 +392,14 @@ function formatAvailableCourseBasis(value: unknown): string | null {
 
 function formatCurrentTaskCollections(value: unknown): string | null {
   const currentTask = record(value);
-  const knowledgePoints = array(currentTask.knowledgePoints);
-  const goals = array(currentTask.goals);
+  const knowledgePoints = array(currentTask.knowledgePoints)
+    .map((item) => string(record(item).id))
+    .filter((item): item is string => Boolean(item));
+  const goals = array(currentTask.goals)
+    .map((item) => string(record(item).id))
+    .filter((item): item is string => Boolean(item));
   if (!knowledgePoints.length && !goals.length) return null;
-  return JSON.stringify({ knowledgePoints, goals });
+  return JSON.stringify({ knowledgePointIds: knowledgePoints, goalIds: goals });
 }
 
 function record(value: unknown): Record<string, unknown> {

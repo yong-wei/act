@@ -887,9 +887,18 @@ describe('konling agent runtime', () => {
     const smartPreparation = {
       taskId: 'task-1', taskRevision: '3', currentTask: {
         topic: '旧主题', courseBasisId: 'basis-1', audience: '自动化专业本科生', durationMinutes: 45,
-        sourceVersionIds: ['version-1'], goals: [{ content: '旧目标', sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
+        sourceVersionIds: ['version-1', 'version-2'],
+        knowledgePoints: [
+          { id: 'kp-1', content: '幅值条件', sourceState: 'verified', sourceBindings: [{ citationId: 'citation-1' }], origin: 'SUGGESTED' },
+          { id: 'kp-2', content: '旧相角条件', sourceState: 'verified', sourceBindings: [{ citationId: 'citation-2' }], origin: 'SUGGESTED' },
+          { id: 'kp-3', content: '分离点', sourceState: 'verified', sourceBindings: [{ citationId: 'citation-3' }], origin: 'SUGGESTED' },
+        ],
+        goals: [{ id: 'goal-1', content: '旧目标', sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
       },
-      selectedCourseBasisVersions: [{ versionId: 'version-1', citationState: 'verified', reviewState: 'CONFIRMED' }],
+      selectedCourseBasisVersions: [
+        { versionId: 'version-1', citationState: 'verified', reviewState: 'CONFIRMED' },
+        { versionId: 'version-2', citationState: 'verified', reviewState: 'CONFIRMED' },
+      ],
       unresolvedAmbiguities: [], confirmedDecisions: [], citationState: 'verified', reviewState: 'confirmed',
       clarificationReadiness: { status: 'ready' as const, canGenerate: true, unresolvedAmbiguityIds: [] },
       updatePolicy: { suggestionStatus: 'draft' as const, requiresExplicitTeacherConfirmation: true as const, expectedTaskRevision: '3' },
@@ -906,23 +915,71 @@ describe('konling agent runtime', () => {
       db, scope, agentSessionId: session.id, permittedTools: session.permittedTools,
       context: { ...createRuntimeContext(), teachingAssistantMode: mode } as never,
     });
-    await expect(runtime.proposeSmartLessonTaskChange({
+    const result = await runtime.proposeSmartLessonTaskChange({
       taskId: 'task-1', expectedRevision: 3, proposedTask: {
         topic: '新主题',
-        courseBasisId: 'version-1',
-        knowledgePoints: [{ content: '相角条件', sourceState: 'ai_generated_source_pending', sourceBindings: [], origin: 'ai_generated' }],
+        courseBasisId: 'foreign-basis',
+        sourceVersionIds: ['foreign-version'],
       },
-    })).resolves.toMatchObject({ suggestionId: 'suggestion-1', turnId: 'turn-server-1', status: 'awaiting_teacher_confirmation' });
+      knowledgePointPatches: [{ operation: 'update', id: 'kp-2', changes: { content: '相角条件' } }],
+    });
+    expect(result).toMatchObject({
+      suggestionId: 'suggestion-1', turnId: 'turn-server-1', status: 'awaiting_teacher_confirmation',
+      proposedTask: {
+        courseBasisId: 'basis-1', sourceVersionIds: ['version-1', 'version-2'],
+        knowledgePoints: [
+          { id: 'kp-1', content: '幅值条件', sourceBindings: [{ citationId: 'citation-1' }] },
+          { id: 'kp-2', content: '相角条件', sourceBindings: [{ citationId: 'citation-2' }] },
+          { id: 'kp-3', content: '分离点', sourceBindings: [{ citationId: 'citation-3' }] },
+        ],
+      },
+    });
     expect(db.agentToolRun.create).toHaveBeenCalledWith({ data: expect.objectContaining({
       toolName: 'propose_smart_lesson_task_change',
       inputSummary: expect.objectContaining({ taskId: 'task-1', expectedRevision: 3, turnId: 'turn-server-1' }),
     }) });
     expect(db.agentToolRun.create.mock.calls[0]?.[0].data.inputSummary).toMatchObject({
       proposedTask: {
-        courseBasisId: 'basis-1', audience: '自动化专业本科生', durationMinutes: 45, sourceVersionIds: ['version-1'],
-        goals: [{ content: '旧目标' }], knowledgePoints: [{ origin: 'SUGGESTED' }],
+        courseBasisId: 'basis-1', audience: '自动化专业本科生', durationMinutes: 45, sourceVersionIds: ['version-1', 'version-2'],
+        goals: [{ id: 'goal-1', content: '旧目标' }],
+        knowledgePoints: [
+          { id: 'kp-1', content: '幅值条件', sourceBindings: [{ citationId: 'citation-1' }] },
+          { id: 'kp-2', content: '相角条件', sourceBindings: [{ citationId: 'citation-2' }] },
+          { id: 'kp-3', content: '分离点', sourceBindings: [{ citationId: 'citation-3' }] },
+        ],
       },
     });
+
+    await expect(runtime.proposeSmartLessonTaskChange({
+      taskId: 'task-1', expectedRevision: 3, proposedTask: { durationMinutes: 90 },
+    })).resolves.toMatchObject({
+      proposedTask: {
+        durationMinutes: 90, courseBasisId: 'basis-1', sourceVersionIds: ['version-1', 'version-2'],
+        knowledgePoints: [{ id: 'kp-1' }, { id: 'kp-2' }, { id: 'kp-3' }],
+        goals: [{ id: 'goal-1' }],
+      },
+    });
+
+    await expect(runtime.proposeSmartLessonTaskChange({
+      taskId: 'task-1', expectedRevision: 3, proposedTask: {},
+      knowledgePointPatches: [{ operation: 'update', id: 'kp-unknown', changes: { content: '未知' } }],
+    })).rejects.toThrow('knowledgePoints 补丁引用未知 ID：kp-unknown');
+    await expect(runtime.proposeSmartLessonTaskChange({
+      taskId: 'task-1', expectedRevision: 3, proposedTask: {},
+      knowledgePointPatches: [
+        { operation: 'update', id: 'kp-1', changes: { content: '修改' } },
+        { operation: 'remove', id: 'kp-1' },
+      ],
+    })).rejects.toThrow('knowledgePoints 补丁包含重复或冲突 ID：kp-1');
+    await expect(runtime.proposeSmartLessonTaskChange({
+      taskId: 'task-1', expectedRevision: 3, proposedTask: {},
+      knowledgePointPatches: [{ operation: 'update', id: 'kp-1', changes: { id: 'kp-3' } }],
+    })).rejects.toThrow('knowledgePoints 补丁不能修改稳定 ID：kp-1');
+    await expect(runtime.proposeSmartLessonTaskChange({
+      taskId: 'task-1', expectedRevision: 3,
+      proposedTask: { knowledgePoints: [] },
+      knowledgePointPatches: [{ operation: 'remove', id: 'kp-1' }],
+    })).rejects.toThrow('knowledgePoints 完整数组与增量补丁不能同时提交');
   });
 
   it('keeps a bootstrap session through clarification and a later create proposal', async () => {
@@ -3121,10 +3178,12 @@ describe('konling agent runtime', () => {
         },
       },
     });
-    expect(revisionPrompt).toContain('仅提交本轮修改字段；服务端会携带其余当前任务字段');
-    expect(revisionPrompt).toContain('必须提交该字段修改后的完整数组，保留未修改项，不得只提交单个改动项');
-    expect(revisionPrompt).toContain('"id":"kp-1"');
-    expect(revisionPrompt).toContain('"id":"goal-1"');
+    expect(revisionPrompt).toContain('仅在 proposedTask 提交本轮修改的普通字段；服务端会携带其余当前任务字段');
+    expect(revisionPrompt).toContain('不得重传完整数组；分别使用 knowledgePointPatches 或 goalPatches');
+    expect(revisionPrompt).toContain('"knowledgePointIds":["kp-1"]');
+    expect(revisionPrompt).toContain('"goalIds":["goal-1"]');
+    expect(revisionPrompt).not.toContain('"sourceBindings"');
+    expect(revisionPrompt).not.toContain('"content":"相角条件"');
   });
 
   it('does not turn client-only page hints into high-confidence content citations', async () => {
