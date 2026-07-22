@@ -1058,7 +1058,14 @@ describe('konling agent runtime', () => {
       },
     };
     const smartPreparation = {
-      taskId: null, taskRevision: null, bootstrap: true, currentTask: {}, selectedCourseBasisVersions: [],
+      taskId: null, taskRevision: null, bootstrap: true,
+      currentTask: {
+        availableCourseBases: [
+          { id: 'basis-1', documents: [{ versions: [{ id: 'version-1' }] }] },
+          { id: 'basis-2', documents: [{ versions: [{ id: 'version-2' }] }] },
+        ],
+      },
+      selectedCourseBasisVersions: [],
       unresolvedAmbiguities: [], confirmedDecisions: [], citationState: 'unselected', reviewState: 'draft',
       clarificationReadiness: { status: 'clarification-required' as const, canGenerate: false, unresolvedAmbiguityIds: [] },
       updatePolicy: { suggestionStatus: 'draft' as const, requiresExplicitTeacherConfirmation: true as const, expectedTaskRevision: null },
@@ -1087,7 +1094,6 @@ describe('konling agent runtime', () => {
     })).rejects.toThrow('智能备课建议不符合确认要求');
     expect(db.agentToolRun.create).toHaveBeenCalledTimes(1);
     await expect(runtime.proposeSmartLessonTaskChange({
-      operation: 'bootstrap',
       proposedTask: {
         courseBasisId: 'basis-1', topic: '根轨迹', audience: '自动化专业本科生', durationMinutes: 45,
         sourceVersionIds: ['version-1'],
@@ -1099,6 +1105,18 @@ describe('konling agent runtime', () => {
       status: 'awaiting_teacher_confirmation',
       proposedTask: { knowledgePoints: [{ origin: 'SUGGESTED' }] },
     });
+    expect(db.agentToolRun.create).toHaveBeenCalledTimes(2);
+
+    const invalidProposal = (courseBasisId: string, sourceVersionIds: string[]) => runtime.proposeSmartLessonTaskChange({
+      proposedTask: {
+        courseBasisId, topic: '根轨迹', audience: '自动化专业本科生', durationMinutes: 45, sourceVersionIds,
+        knowledgePoints: [{ content: '相角条件', sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
+        goals: [{ content: '判断根轨迹', sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
+      },
+    });
+    await expect(invalidProposal('unknown-basis', ['version-1'])).rejects.toThrow('引用了不可用的课程依据');
+    await expect(invalidProposal('basis-1', ['version-2'])).rejects.toThrow('引用了不属于所选课程依据的版本');
+    await expect(invalidProposal('basis-1', ['unknown-version'])).rejects.toThrow('引用了不属于所选课程依据的版本');
     expect(db.agentToolRun.create).toHaveBeenCalledTimes(2);
   });
 

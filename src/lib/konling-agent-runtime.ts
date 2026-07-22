@@ -2451,7 +2451,12 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
     recordPathAdjustmentOutcome: async (args: z.infer<typeof recordPathAdjustmentOutcomeParameters>) =>
       runKonlingRuntimeTool(input, 'record_path_adjustment_outcome', args, async () => buildAdaptivePathToolOutcome(input, args.outcome, args)),
     proposeSmartLessonTaskChange: async (args: z.infer<typeof proposeSmartLessonTaskChangeParameters>) => {
-      args = proposeSmartLessonTaskChangeParameters.parse(args);
+      const smartPreparation = (input.context as KonlingRuntimeContext & { teachingAssistantMode?: KonlingTeachingAssistantRuntimeContract })
+        .teachingAssistantMode?.smartPreparation;
+      args = proposeSmartLessonTaskChangeParameters.parse({
+        ...args,
+        operation: args.operation ?? (smartPreparation?.bootstrap ? 'bootstrap' : 'revise'),
+      });
       if (!input.agentSessionId) throw new KonlingRuntimeScopeError(403, '智能备课建议必须来自已绑定的 prep-coauthor 会话。');
       const session = await input.db.agentSession?.findFirst?.({
         where: { id: input.agentSessionId, ownerUserId: input.scope.targetUserId, actorUserId: input.scope.authenticatedUserId },
@@ -2460,8 +2465,6 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
       const sessionState = readRecord(getValue(session, 'stateJson'));
       const turnId = getString(sessionState, 'currentTurnId');
       if (!turnId) throw new KonlingRuntimeScopeError(409, '智能备课会话没有可绑定的当前对话轮次。');
-      const smartPreparation = (input.context as KonlingRuntimeContext & { teachingAssistantMode?: KonlingTeachingAssistantRuntimeContract })
-        .teachingAssistantMode?.smartPreparation;
       const { knowledgePointPatches, goalPatches, ...proposalArgs } = args;
       const boundArgs = {
         ...proposalArgs,
@@ -2483,6 +2486,20 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
             agentSessionId: input.agentSessionId,
           });
         if (!validation.success) throw new KonlingRuntimeScopeError(400, '智能备课建议不符合确认要求。');
+        if (operation === 'bootstrap') {
+          const courseBasisId = getString(proposedTask, 'courseBasisId');
+          const availableCourseBases = arrayOfRecords(readRecord(smartPreparation?.currentTask).availableCourseBases);
+          const courseBasis = availableCourseBases.find((basis) => getString(basis, 'id') === courseBasisId);
+          if (!courseBasis) throw new KonlingRuntimeScopeError(400, '智能备课建议引用了不可用的课程依据。');
+          const availableVersionIds = new Set(
+            arrayOfRecords(courseBasis.documents).flatMap((document) =>
+              arrayOfRecords(document.versions).map((version) => getString(version, 'id')).filter(Boolean)
+            ),
+          );
+          if (arrayOfStrings(readRecord(proposedTask).sourceVersionIds).some((versionId) => !availableVersionIds.has(versionId))) {
+            throw new KonlingRuntimeScopeError(400, '智能备课建议引用了不属于所选课程依据的版本。');
+          }
+        }
       }
       return runKonlingRuntimeTool(input, 'propose_smart_lesson_task_change', boundArgs, async (toolRun) => {
         const contract = (input.context as KonlingRuntimeContext & { teachingAssistantMode?: KonlingTeachingAssistantRuntimeContract }).teachingAssistantMode;
