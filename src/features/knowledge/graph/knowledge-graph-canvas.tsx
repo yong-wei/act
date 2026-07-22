@@ -2309,9 +2309,12 @@ export function KnowledgeGraphCanvas({
             || selectedNode?.id === node.id
             || hoveredNode?.id === node.id,
           importanceScore: node.graphImportanceScore,
+          sourceCoverageCount: node.sourceCoverageCount,
         }).radius) * getKnowledgeGraphPresentationNodeScale({ ...presentation, nodeId: node.id }),
         labelPlacementsRef.current.get(node.id)?.projectedScale ?? viewportScaleRef.current,
       );
+      // 命中测试必须与渲染路径共享同一形状与半径输入，否则新形状节点上的
+      // 可见边会被误判为画布空白。
       const path = createKnowledgeGraphRendererEdgePath({
         renderer: '3d',
         link,
@@ -2319,6 +2322,8 @@ export function KnowledgeGraphCanvas({
         target,
         sourceNodeType: source.nodeType,
         targetNodeType: target.nodeType,
+        sourceShape: getKnowledgeConceptNodeShape(source),
+        targetShape: getKnowledgeConceptNodeShape(target),
         sourcePresentationRadius: getRadius(source),
         targetPresentationRadius: getRadius(target),
         laneCurvature: laneCurvatureByLinkKey.get(getKnowledgeGraphPresentationLinkKey(link)) ?? 0,

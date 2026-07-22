@@ -279,6 +279,17 @@ describe('renderer modulation and legend wiring', () => {
     expect(threeDimensional).toContain('getKnowledgeGraphEffectiveEdgeOpacity(style, strength, focusState)');
   });
 
+  it('shares shape and coverage inputs between 3D render and pointer hit-test paths', () => {
+    const source = readFileSync(
+      path.join(process.cwd(), 'src/features/knowledge/graph/knowledge-graph-canvas.tsx'), 'utf8'
+    );
+    const pointerSection = source.slice(source.indexOf('const handleCanvasPointerDown'));
+
+    expect(pointerSection).toContain('sourceShape: getKnowledgeConceptNodeShape(source)');
+    expect(pointerSection).toContain('targetShape: getKnowledgeConceptNodeShape(target)');
+    expect(pointerSection).toContain('sourceCoverageCount: node.sourceCoverageCount');
+  });
+
   it('matches the legend evidence swatch pair to the canvas modulation', () => {
     const legendSource = readFileSync(
       path.join(process.cwd(), 'src/features/knowledge/graph/relation-family-control.tsx'), 'utf8'
