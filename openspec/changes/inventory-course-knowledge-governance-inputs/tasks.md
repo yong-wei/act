@@ -1,17 +1,12 @@
-## 1. Implement the read-only inventory contract
+## 1. Implement the bounded inventory
 
-- [x] 1.1 Add the new versioned read-only manifest CLI and enumerate the complete input closure from the source derivation contract.
-- [x] 1.2 Encode authoring truth, canonical card and sequence sources, raw/processed/runtime multimedia roles, audience, and runtime review projection evidence separately; report every source-role glob hit count plus unclassified and multiply classified files, and emit stable course-scope anchor records without assigning candidates.
-- [x] 1.3 Inventory all historical reference datasets, nested LearningFact governance references, replayable interaction/event-batch payloads, diagnosis snapshots, separate entity namespaces, consumers, loaders, workers, migrations, and seed/sync scripts under one database snapshot with transaction/export proof.
-  Boundary: external database proof admission now requires an explicitly trusted Ed25519 public key and key ID, while export signing requires a separately supplied private key; no production signing key or production attestation is included in this change.
-- [x] 1.4 Implement Unicode, path, newline, sorting, deduplication, missing-file, per-source, aggregate, and expected/observed drift rules.
-- [ ] 1.5 Validate every registry table/field and every decoder join endpoint against both Prisma DMMF and declared database-source fields, resolve every schema-source fragment to a real symbol/schema key, validate every versioned decoder against wholly synthetic shape-equivalent fixtures plus controlled database-side historical shape classes, and reconcile the full-root AST-discovered Prisma writer/producer set bidirectionally with direct-write entries.
-  Boundary: real database evidence still contains unresolved knowledge, provenance, and ambiguous entity ID paths that require explicit namespace or non-governance adjudication; missing-version and array-root decoder evidence remains under repair.
-- [x] 1.6 Enforce repository privacy minimization, five-person small-cell suppression, and database-side-only row migration audit boundaries.
+- [ ] 1.1 Implement the read-only inventory for current formal-course/reviewed-anchor, current authoring, current published graph/binding, active-reference, and reviewed active legacy-mapping inputs.
+- [ ] 1.2 Classify course, resource, progress, note, and path references as active only when current business behavior still reads or continues them; exclude completed paths and historical events.
+- [ ] 1.3 Emit deterministic typed records, source/snapshot digests, missing-input findings, and expected/observed drift for readiness inputs.
+- [ ] 1.4 Reject historical facts/events, derived learner state, lineage, decoder coverage, evidence deduplication, and full-root writer discovery as out-of-scope inputs without generating a diagnostic catalog.
 
-## 2. Verify the deliverable
+## 2. Verify the revised contract
 
-- [ ] 2.1 Add wholly synthetic fixtures for source variants, nullable anchor scopes, knowledge/lesson authoring-runtime projection, event replay, nested evidence governance, immutable knowledge-revision refs, polymorphic LearningFact source namespaces, path decoder joins, missing inputs, namespace collisions, schema drift, unknown ID-bearing JSON, root-external writer mismatch, privacy rejection, 1–4-person suppression, and drift. Add a table-driven assertion for every declared decoder covering resolvable schema sources, non-empty selectors, namespace mapping, explicit join or justified non-applicability, version/legacy shape handling, and fail-closed unknown versions, discriminators, and ID-bearing fields; no catch-all discriminator mapping is allowed. Recursively compare every known persisted `*NodeId`/`*NodeIds` path shape, every LearningFact source-ID/revision producer shape, and every statically or database-side observed event/evidence discriminator against the closed selector and namespace registries in both directions.
-  Boundary: the fail-closed real snapshot currently reports unresolved namespace and legacy-version evidence; this task remains incomplete until those paths are adjudicated without blanket selector exceptions.
-- [x] 2.2 Add a fixed real-repository snapshot integration test without turning snapshot counts into spec constants.
-- [x] 2.3 Prove byte-identical repeated runs and no writes to sources, database, Git, runtime, or GitHub.
+- [ ] 2.1 Add synthetic fixtures covering all authoritative classes, reviewed mapping, legacy snapshot compatibility, namespace collisions, missing inputs, and out-of-scope input rejection; prove nested prerequisite/readiness/pathOptions/policyBundle legacy IDs are inventoried for admitted incomplete paths while identical payloads on completed paths are wholly excluded, without adding historical trajectory fixtures.
+- [ ] 2.2 Add a fixed current-repository and active-reference snapshot test with proof metadata and no historical learner-data export requirement.
+- [ ] 2.3 Prove input-order independence, byte-identical repeated runs, and no writes to repository, database, Git, or GitHub.

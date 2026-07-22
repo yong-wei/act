@@ -39,3 +39,9 @@ Each block SHALL target 40–80 owned identity equivalence components in `candid
 #### Scenario: A block is outside the target range
 - **WHEN** `candidate_concept_count` is below 40 or above 80
 - **THEN** a machine-readable indivisible-component or semantic-connectivity exception SHALL be required.
+### Requirement: Migration items are active references
+Semantic-block exact closure SHALL include only reviewed active legacy mappings and current course, resource, progress, note, or incomplete-path references. Historical facts, events, completed paths, and learner-derived state SHALL NOT be owned by a block.
+
+#### Scenario: A historical event carries a knowledge ID
+- **WHEN** exact items are partitioned
+- **THEN** the event SHALL remain outside block closure and readiness.

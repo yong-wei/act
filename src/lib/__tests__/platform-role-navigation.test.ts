@@ -1050,6 +1050,17 @@ describe('platform role navigation', () => {
     });
   });
 
+  it('keeps classroom teacher review inside the exact teacher session workspace route family', () => {
+    expect(
+      PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/classroom/teacher/[sessionId]'),
+    ).toMatchObject({
+      routeFile: 'src/app/classroom/teacher/[sessionId]/page.tsx',
+      coveredRouteGlob: 'src/app/classroom/teacher/[sessionId]/*/page.tsx',
+      frame: 'mission-workspace',
+      roleScope: ['teacher', 'admin'],
+    });
+  });
+
   it('records route-level legacy shell and dock dispositions for primary routes that still use adapters', () => {
     const shellRoutes = PLATFORM_PRIMARY_ROUTE_INVENTORY.filter((route) => route.legacyShell);
     expect(shellRoutes.map((route) => [route.href, route.legacyShell?.component])).toEqual(

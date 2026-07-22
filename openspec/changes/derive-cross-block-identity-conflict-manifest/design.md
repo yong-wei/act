@@ -1,6 +1,6 @@
 ## Context
 
-Partitioning owns indivisible exact-name/reviewed-alias equivalence components. Any such component crossing owner blocks is leakage and must fail; only near-similar evidence between distinct components may become a cross-block review edge. The governing identity and review rules are in `docs/contexts/course-knowledge-base/CONTEXT.md`, the ADR 0015-0044 files indexed by `docs/adr/README.md`, and the observed duplicate evidence is in `docs/knowledge-graph-current-state-audit-2026-07-18.md`.
+Partitioning owns indivisible exact-name/reviewed-alias equivalence components. Any such component crossing owner blocks is leakage and must fail; only near-similar evidence between distinct components may become a cross-block review edge. The governing identity and review rules are in `docs/contexts/course-knowledge-base/CONTEXT.md`, the ADR 0015-0045 files indexed by `docs/adr/README.md`, and the observed duplicate evidence is in `docs/knowledge-graph-current-state-audit-2026-07-18.md`.
 
 ## Existing entry point
 
@@ -58,3 +58,6 @@ Existing seam reused: none for the governance manifest CLI; implementation must 
 AC coverage: AC-1: synthetic exact-leak and reviewed-alias-leak fixtures fail instead of queueing; AC-2: synthetic near-similar fixtures enqueue one deterministic edge between distinct components with one coordinator and complete endpoint blocks; AC-3: a fixed real-snapshot integration test, byte-identical repeated runs, and no-write assertions reject stale ownership, duplicates, placeholders, and approved dispositions.
 Manual-only acceptance: none
 Rationale: Future children consume this queue directly, so command-level reconciliation and negative fixtures verify exhaustiveness, scheduling metadata, freshness, and the no-approval boundary at the public handoff.
+## ADR 0045 Boundary
+
+This series does not generate, consume, or validate historical lineage, event replay, historical backfill, learner-state reconciliation, or full-history decoder/writer analysis. Conflict input containing those item kinds is rejected as out of scope.

@@ -22,3 +22,9 @@ Stage-one deliverables SHALL be manifests, reports, a new read-only manifest CLI
 #### Scenario: A child CLI is exercised
 - **WHEN** the child runs against a fixed snapshot
 - **THEN** no-write assertions SHALL prove that all governed sources and external systems remain unchanged.
+### Requirement: Series tracking preserves the bounded knowledge-rebuild scope
+The parent SHALL preserve the existing eight-child topology and SHALL NOT generate, consume, or validate historical fact/event replay, backfill, learner-derived-state reconciliation, full-history decoder closure, or full-root writer equality.
+
+#### Scenario: A child supplies a historical input
+- **WHEN** parent metadata is validated
+- **THEN** validation SHALL reject the input as out of scope without cataloging it or changing the dependency graph.

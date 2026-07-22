@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client';
 
 import {
+  isPortraitV2ProfileEvidence,
   mapLearningFactsToPortraitEvidence,
   updatePortraitV2Incrementally,
   type PortraitLearningFactDelta,
@@ -15,7 +16,7 @@ import {
 interface PortraitV2MaterializationDb {
   studentPortraitV2Snapshot?: NonNullable<PortraitV2SnapshotReadDb['studentPortraitV2Snapshot']> &
     NonNullable<PortraitV2SnapshotWriteDb['studentPortraitV2Snapshot']> & {
-      deleteMany?: (args: { where: { userId: string } }) => Promise<unknown>;
+      deleteMany?: (args: { where: { userId: string; derivationKind?: 'native' } }) => Promise<unknown>;
     };
   learningFact: {
     findMany: (args: Record<string, unknown>) => Promise<PortraitLearningFactDelta[]>;
@@ -32,7 +33,7 @@ const PORTRAIT_V2_MATERIALIZATION_TRANSACTION_TIMEOUT_MS = 120_000;
 export async function materializeIncrementalPortraitV2(
   db: PortraitV2MaterializationDb,
   userId: string,
-  options: { now?: Date; fullRebuild?: boolean } = {},
+  options: { now?: Date; fullRebuild?: boolean; dryRun?: boolean } = {},
 ): Promise<{
   written: boolean;
   snapshotId?: string;
@@ -76,9 +77,28 @@ export async function materializeIncrementalPortraitV2(
       lastFactCreatedAt: lastFact.createdAt.toISOString(),
       lastFactId: lastFact.id,
     } : previous?.updateCursor;
-    const profileEvidence = mapped.evidence.filter((item) =>
-      item.outcome !== 'context-only' && Object.values(item.contributions).some((value) => value !== 0 || item.normalizedPerformance),
-    );
+    const profileEvidence = mapped.evidence.filter(isPortraitV2ProfileEvidence);
+    if (profileEvidence.length === 0) {
+      if (options.fullRebuild && !options.dryRun) {
+        await transactionDb.studentPortraitV2Snapshot?.deleteMany?.({
+          where: { userId, derivationKind: 'native' },
+        });
+      }
+      return {
+        written: false,
+        evidenceCount: 0,
+        affectedDimensions: [],
+        mappingIssues: mapped.mappingIssues,
+      };
+    }
+    if (options.dryRun) {
+      return {
+        written: true,
+        evidenceCount: profileEvidence.length,
+        affectedDimensions: [],
+        mappingIssues: mapped.mappingIssues,
+      };
+    }
     const updated = updatePortraitV2Incrementally({
       userId,
       previous,

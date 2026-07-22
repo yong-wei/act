@@ -11,3 +11,4 @@
 - [ ] 2.1 Add synthetic exact/alias leakage, ownership gap, duplicate ownership, pollution, missing-card/visual-work, capacity-exception, and prototype-rejection fixtures.
 - [ ] 2.2 Add a fixed real-snapshot integration test without fixing block count.
 - [ ] 2.3 Prove deterministic repeated runs and no writes.
+- [ ] 0.1 Restrict migration items to reviewed active legacy mappings and active course/resource/progress/note or incomplete-path references.

@@ -33,7 +33,7 @@ src/features/arena/__tests__/arena-controller-artifact.test.ts
 - [ ] Odyssey 指标映射：
 
 ```text
-settlingTime：通关时间或收敛时间；
+settlingTime：调节时间；
 overshoot：偏离峰值；
 steadyStateError：终点误差；
 controlEnergy：操作强度。

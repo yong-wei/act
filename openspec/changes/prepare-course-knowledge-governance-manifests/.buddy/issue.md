@@ -22,7 +22,7 @@ Track eight preparation changes that freeze the exact manifests required to prop
 ## Scope
 
 - Maintain the exact eight-child inventory and declared dependency graph.
-- Coordinate shared evidence from `docs/contexts/course-knowledge-base/CONTEXT.md`, the ADR 0015-0044 files indexed by `docs/adr/README.md`, and `docs/knowledge-graph-current-state-audit-2026-07-18.md`.
+- Coordinate shared evidence from `docs/contexts/course-knowledge-base/CONTEXT.md`, the ADR 0015-0045 files indexed by `docs/adr/README.md`, and `docs/knowledge-graph-current-state-audit-2026-07-18.md`.
 - Gate future-series creation on the discriminated record contract: `change_id`, work kind, schema/algorithm/normalization versions, typed counts/items, applicable capacity/owner fields, complete cross-block endpoints, change-ID `blockedBy`, structured per-source/upstream digests, `governance_contract_digest`, `source_snapshot_digest`, required outputs, acceptance profile, and scope-anchor evidence.
 
 ## Out of Scope
@@ -69,3 +69,6 @@ Track eight preparation changes that freeze the exact manifests required to prop
 - Do not create GitHub state or second-stage OpenSpec changes from this preparation parent.
 - Stop if dependency, coupling group, or branch constraints fail.
 - Stop if GitHub blockedBy relationships still contain open blockers.
+## ADR 0045 Boundary
+
+Historical facts/events and learner-derived state stay on their original revisions and do not enter readiness. Full-history decoder and full-root writer closure are out of scope. The existing dependency frontmatter is unchanged.

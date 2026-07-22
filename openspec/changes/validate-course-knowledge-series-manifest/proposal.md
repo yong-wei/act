@@ -1,19 +1,18 @@
 ## Why
 
-The second-stage Buddy series can be created only from a complete exact owner manifest, not from prototype blocks or provisional snapshot counts. The final preparation child validates all manifests against the indexed source derivation contract.
+The preparation series needs one exact, placeholder-free manifest before stage two can be proposed. ADR 0045 narrows cutover evidence to current truth, active references, legacy compatibility, and the new-fact write boundary.
 
 ## What Changes
 
-- Validate manifest completeness, schema versions, source digests, exact counts and IDs, dependency closure, and owner/endpoint coverage.
-- Reject placeholders, unresolved ownership, omitted inventory records, duplicate ownership, stale signatures, and undeclared dependencies.
-- Require the discriminated future-child schema, algorithm/normalization versions, typed counts/items, namespace-aware deduplication, field applicability, governance/source-snapshot/per-source/upstream digest layers, outputs, acceptance profiles, and scope-anchor evidence.
-- Emit the validated second-stage creation input only; do not create the parent or any content-block changes and do not release a production knowledge base.
+- Validate exact child records, ownership, endpoints, dependencies, digests, acceptance profiles, and scope anchors without changing the #947–#955 topology.
+- Validate cutover inputs for new projections, reviewed legacy mappings, active-reference migration, legacy parsing compatibility, and post-cutover new-fact revision binding.
+- Exclude historical fact backfill, event replay/deduplication, learner-state reconciliation, and full-root writer equality from readiness.
 
 ## Capabilities
 
 ### New Capabilities
 
-- `knowledge-rebuild-series-manifest`: defines the complete, closed, placeholder-free contract required before future Buddy child creation.
+- `knowledge-rebuild-series-manifest`: defines exact future-child and bounded cutover-readiness validation.
 
 ### Modified Capabilities
 
@@ -21,5 +20,5 @@ The second-stage Buddy series can be created only from a complete exact owner ma
 
 ## Impact
 
-- Produces validation evidence and a frozen future-series manifest only.
-- Changes no governed content, runtime behavior, authoring source, database projection, or GitHub state.
+- Produces only a validated manifest and reports.
+- Does not create stage-two changes, migrate data, or modify production behavior.

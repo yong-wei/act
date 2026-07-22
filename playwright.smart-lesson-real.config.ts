@@ -2,7 +2,7 @@ import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests',
-  testMatch: 'smart-lesson-plan-real-e2e.spec.ts',
+  testMatch: process.env.SMART_LESSON_E2E_SPEC ?? 'smart-lesson-plan-real-e2e.spec.ts',
   fullyParallel: false,
   workers: 1,
   timeout: 120_000,

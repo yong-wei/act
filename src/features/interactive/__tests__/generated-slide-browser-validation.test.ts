@@ -290,19 +290,11 @@ describe('generated slide browser validator', () => {
       .toContain('text.unexpected');
   });
 
-  it('rejects a visible module without text measurements and text attributed to an unknown module', () => {
+  it('rejects text attributed to an unknown module while allowing formula-only modules', () => {
     const measured = snapshot();
     measured.text = [{ ...measured.text[0], moduleId: 'unknown-module' }];
 
     expect(validateGeneratedSlideBrowserSnapshot(measured, expectation()).issues).toEqual(expect.arrayContaining([
-      {
-        code: 'text.missing-module-measurement',
-        location: {
-          projection: 'student',
-          selector: '[data-generated-slide-module="explanation"]',
-          moduleId: 'explanation',
-        },
-      },
       {
         code: 'text.unknown-module',
         location: {

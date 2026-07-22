@@ -23,3 +23,6 @@ The dated audit and prototype record raw, deduplicated, and provisional cross-bl
 
 - Produces an offline queue only; no relation is written to authoring, runtime, or database projections.
 - Does not create second-stage relation-review changes before exact records are frozen.
+## ADR 0045 Boundary
+
+Relation review derives only from current candidate semantics and current published-graph comparison. Historical facts/events and learner-derived state cannot propose or validate relations.

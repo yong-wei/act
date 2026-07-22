@@ -29,6 +29,8 @@ const mocks = vi.hoisted(() => ({
       update: vi.fn(),
       updateMany: vi.fn(),
     },
+    smartCoursewarePublicationRevision: { findUnique: vi.fn() },
+    classSessionIntegrityIncident: { upsert: vi.fn() },
     lessonPlan: {
       create: vi.fn(),
       findUnique: vi.fn(),
@@ -95,6 +97,7 @@ describe('lesson plan empty-item guards', () => {
     mocks.prisma.user.findUnique.mockResolvedValue({ id: 'teacher-1', role: 'TEACHER' });
     mocks.generateUniqueJoinCode.mockResolvedValue('123456');
     mocks.prisma.classSession.findFirst.mockResolvedValue(null);
+    mocks.prisma.smartCoursewarePublicationRevision.findUnique.mockResolvedValue(null);
     mocks.redisClient.isReady.mockReturnValue(false);
     mocks.redisClient.getSessionState.mockResolvedValue(null);
     mocks.classroomRateLimiter.check.mockReturnValue({ allowed: true });
@@ -186,6 +189,110 @@ describe('lesson plan empty-item guards', () => {
     expect(response.status).toBe(403);
     expect(payload.error).toContain('无权启动');
     expect(mocks.prisma.classSession.create).not.toHaveBeenCalled();
+  });
+
+  it('rejects a teacher launching another teacher generated publication', async () => {
+    mocks.prisma.smartCoursewarePublicationRevision.findUnique.mockResolvedValue({
+      id: 'publication-other',
+      ownerId: 'teacher-2',
+      manifestHash: 'manifest-other',
+      displayName: '互动课件第1版（基于教案第1版）',
+      revisionNumber: 1,
+      planRevisionNumber: 1,
+      projectedLessonPlans: [{ id: 'projection-other', generatedCoursewareManifestHash: 'manifest-other' }],
+    });
+
+    const response = await startSession(new Request('http://localhost/api/session', {
+      method: 'POST',
+      body: JSON.stringify({ coursewarePublicationRevisionId: 'publication-other' }),
+    }));
+
+    expect(response.status).toBe(403);
+    expect(mocks.prisma.lessonPlan.findUnique).not.toHaveBeenCalled();
+    expect(mocks.prisma.classSession.create).not.toHaveBeenCalled();
+  });
+
+  it('derives every generated classroom identity field from the owned publication', async () => {
+    mocks.prisma.smartCoursewarePublicationRevision.findUnique.mockResolvedValue({
+      id: 'publication-v1',
+      ownerId: 'teacher-1',
+      manifestHash: 'manifest-v1',
+      displayName: '互动课件第1版（基于教案第2版）',
+      revisionNumber: 1,
+      planRevisionNumber: 2,
+      projectedLessonPlans: [{ id: 'projection-v1', generatedCoursewareManifestHash: 'manifest-v1' }],
+    });
+    mocks.prisma.lessonPlan.findUnique.mockResolvedValue({
+      title: '互动课件第1版（基于教案第2版）',
+      authorId: 'teacher-1',
+      isPublic: false,
+      generatedCoursewareManifestHash: 'manifest-v1',
+      generatedCoursewarePublication: null,
+      _count: { items: 8 },
+    });
+    mocks.prisma.classSession.create.mockResolvedValue({
+      id: 'generated-session-v1',
+      joinCode: '123456',
+      classId: null,
+      startTime: new Date('2026-07-20T12:00:00.000Z'),
+      plan: { title: '互动课件第1版（基于教案第2版）' },
+      class: null,
+    });
+
+    const response = await startSession(new Request('http://localhost/api/session', {
+      method: 'POST',
+      body: JSON.stringify({
+        planId: 'forged-client-plan',
+        manifestHash: 'forged-client-hash',
+        coursewareRevisionNumber: 999,
+        coursewarePublicationRevisionId: 'publication-v1',
+      }),
+    }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.lessonPlan.findUnique).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'projection-v1' },
+    }));
+    expect(mocks.prisma.classSession.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({
+      planId: 'projection-v1',
+      manifestHash: 'manifest-v1',
+      lessonVersion: '互动课件第1版（基于教案第2版）',
+      totalSteps: 8,
+      coursewarePublicationRevisionId: 'publication-v1',
+      coursewareDisplayName: '互动课件第1版（基于教案第2版）',
+      coursewareRevisionNumber: 1,
+      coursewarePlanRevisionNumber: 2,
+    }) }));
+    expect(mocks.loadSessionLessonSnapshot).not.toHaveBeenCalled();
+  });
+
+  it('automatically binds catalog planId launches to their generated publication', async () => {
+    mocks.prisma.lessonPlan.findUnique.mockResolvedValue({
+      title: '互动课件第1版（基于教案第2版）',
+      authorId: 'teacher-1',
+      isPublic: false,
+      generatedCoursewareManifestHash: 'manifest-v1',
+      generatedCoursewarePublication: {
+        id: 'publication-v1', ownerId: 'teacher-1', manifestHash: 'manifest-v1',
+        displayName: '互动课件第1版（基于教案第2版）', revisionNumber: 1, planRevisionNumber: 2,
+      },
+      _count: { items: 8 },
+    });
+    mocks.prisma.classSession.create.mockResolvedValue({
+      id: 'generated-session-v1', joinCode: '123456', classId: null,
+      startTime: new Date('2026-07-20T12:00:00.000Z'),
+      plan: { title: '互动课件第1版（基于教案第2版）' }, class: null,
+    });
+
+    const response = await startSession(new Request('http://localhost/api/session', {
+      method: 'POST',
+      body: JSON.stringify({ planId: 'projection-v1' }),
+    }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.classSession.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({
+      planId: 'projection-v1', coursewarePublicationRevisionId: 'publication-v1', manifestHash: 'manifest-v1',
+    }) }));
   });
 
   it('creates temporary classrooms with a shared identity payload', async () => {
@@ -441,6 +548,68 @@ describe('lesson plan empty-item guards', () => {
     }));
   });
 
+  it('finalizes only after resolving the exact generated revision and preserves it in Redis', async () => {
+    const identity = {
+      id: 'publication-v1',
+      displayName: '互动课件第1版（基于教案第2版）',
+      revisionNumber: 1,
+      planRevisionNumber: 2,
+      manifestHash: 'manifest-v1',
+      projectedLessonPlans: [{ id: 'projection-v1', generatedCoursewareManifestHash: 'manifest-v1' }],
+    };
+    mocks.prisma.smartCoursewarePublicationRevision.findUnique.mockResolvedValue(identity);
+    mocks.prisma.classSession.findUnique.mockResolvedValue({
+      id: 'session-v1',
+      planId: 'projection-v1',
+      teacherId: 'teacher-1',
+      status: 'ACTIVE',
+      classId: 'class-1',
+      manifestHash: 'manifest-v1',
+      coursewarePublicationRevisionId: 'publication-v1',
+      coursewareDisplayName: identity.displayName,
+      coursewareRevisionNumber: 1,
+      coursewarePlanRevisionNumber: 2,
+    });
+    mocks.prisma.classSession.update.mockResolvedValue({
+      id: 'session-v1',
+      joinCode: '123456',
+      planId: 'projection-v1',
+      classId: 'class-1',
+      teacherId: 'teacher-1',
+      currentItemId: 'step-8',
+      currentStage: 'SUMMARY',
+      status: 'FINISHED',
+      manifestHash: 'manifest-v1',
+      coursewarePublicationRevisionId: 'publication-v1',
+      coursewareDisplayName: identity.displayName,
+      coursewareRevisionNumber: 1,
+      coursewarePlanRevisionNumber: 2,
+      updatedAt: new Date('2026-07-20T12:30:00.000Z'),
+      plan: { title: identity.displayName },
+      class: { name: '2026 控制班' },
+    });
+    mocks.redisClient.isReady.mockReturnValue(true);
+
+    const response = await updateSession(
+      new Request('http://localhost/api/session/session-v1', {
+        method: 'PATCH',
+        body: JSON.stringify({ status: 'FINISHED' }),
+      }),
+      { params: Promise.resolve({ sessionId: 'session-v1' }) },
+    );
+
+    expect(response.status).toBe(200);
+    expect(mocks.redisClient.setSessionState).toHaveBeenCalledWith('session-v1', expect.objectContaining({
+      coursewarePublicationRevisionId: 'publication-v1',
+      manifestHash: 'manifest-v1',
+      coursewareRevisionNumber: 1,
+      coursewarePlanRevisionNumber: 2,
+      planId: 'projection-v1',
+    }));
+    expect(mocks.enqueueSessionFinalizationEventIngestion).toHaveBeenCalledWith('session-v1');
+    expect(mocks.enqueueSessionFinalizationSnapshots).toHaveBeenCalledWith('session-v1', 'class-1');
+  });
+
   it('derives session patch lifecycle actor role from the authenticated user', async () => {
     const updatedAt = new Date('2026-06-25T10:00:00.000Z');
     mocks.prisma.classSession.findUnique.mockResolvedValue({
@@ -635,5 +804,63 @@ describe('lesson plan empty-item guards', () => {
       kind: 'class-bound',
       label: '2026 控制班 · 班级课堂',
     });
+  });
+
+  it('does not let a stale Redis entry substitute another generated revision', async () => {
+    const access = {
+      id: 'session-v1',
+      planId: 'projection-v1',
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      manifestHash: 'manifest-v1',
+      coursewarePublicationRevisionId: 'publication-v1',
+      coursewareDisplayName: '互动课件第1版（基于教案第2版）',
+      coursewareRevisionNumber: 1,
+      coursewarePlanRevisionNumber: 2,
+    };
+    mocks.getServerSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    mocks.prisma.user.findUnique.mockResolvedValue({ id: 'teacher-1', role: 'TEACHER', profile: null });
+    mocks.prisma.classSession.findUnique
+      .mockResolvedValueOnce(access)
+      .mockResolvedValueOnce({
+        ...access,
+        joinCode: '123456',
+        currentItemId: 'step-1',
+        currentStage: 'BRIDGE_IN',
+        status: 'ACTIVE',
+        updatedAt: new Date('2026-07-20T12:00:00.000Z'),
+        plan: { title: access.coursewareDisplayName },
+        class: { name: '2026 控制班' },
+      });
+    mocks.prisma.smartCoursewarePublicationRevision.findUnique.mockResolvedValue({
+      id: 'publication-v1',
+      displayName: access.coursewareDisplayName,
+      revisionNumber: 1,
+      planRevisionNumber: 2,
+      manifestHash: 'manifest-v1',
+      projectedLessonPlans: [{ id: 'projection-v1', generatedCoursewareManifestHash: 'manifest-v1' }],
+    });
+    mocks.redisClient.isReady.mockReturnValue(true);
+    mocks.redisClient.getSessionState.mockResolvedValue({
+      coursewarePublicationRevisionId: 'publication-v2',
+      manifestHash: 'manifest-v2',
+      planId: 'projection-v2',
+      status: 'ACTIVE',
+    });
+
+    const response = await getSession(
+      new Request('http://localhost/api/session/session-v1'),
+      { params: Promise.resolve({ sessionId: 'session-v1' }) },
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.coursewarePublicationRevisionId).toBe('publication-v1');
+    expect(payload.manifestHash).toBe('manifest-v1');
+    expect(mocks.prisma.classSession.findUnique).toHaveBeenCalledTimes(2);
+    expect(mocks.redisClient.setSessionState).toHaveBeenCalledWith('session-v1', expect.objectContaining({
+      coursewarePublicationRevisionId: 'publication-v1',
+      manifestHash: 'manifest-v1',
+    }));
   });
 });

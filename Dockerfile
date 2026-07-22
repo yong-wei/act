@@ -76,6 +76,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV RUN_MIGRATIONS_ON_START=1
+ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
 
 RUN (apk add --no-cache chromium libreoffice \
   || (sed -i "s|https://mirrors.aliyun.com/alpine|https://dl-cdn.alpinelinux.org/alpine|g" /etc/apk/repositories \

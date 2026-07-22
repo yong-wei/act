@@ -23,3 +23,6 @@ After indivisible identity equivalence components receive one owner, exact-name 
 
 - Produces an offline review queue consumed by relation, resource, and final validation work.
 - Does not change canonical IDs, semantic names, historical mappings, or production data.
+## ADR 0045 Boundary
+
+Cross-block identity review may use current truth and reviewed active legacy mappings only. Historical facts/events and learner-derived state cannot create, prioritize, or resolve conflicts.

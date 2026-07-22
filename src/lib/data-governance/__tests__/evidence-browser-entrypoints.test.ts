@@ -98,6 +98,15 @@ describe('evidence browser entry points', () => {
     expect(source).toContain('href={emptyBackHref ?? backHref}');
   });
 
+  it('keeps native evidence filter options readable across light and dark themes', () => {
+    const source = readSource('src/features/data-governance/evidence-timeline-browser.tsx');
+    const themedSelects = source.match(/className={EVIDENCE_FILTER_SELECT_CLASS_NAME}/g) ?? [];
+
+    expect(themedSelects).toHaveLength(3);
+    expect(source).toContain('bg-background px-3 py-2 text-foreground');
+    expect(source).toContain('[&>option]:bg-background [&>option]:text-foreground');
+  });
+
   it('initializes the student evidence browser from lessonId query parameters', () => {
     const pageSource = readSource('src/app/(main)/profile/evidence/page.tsx');
     const browserSource = readSource('src/features/data-governance/evidence-timeline-browser.tsx');

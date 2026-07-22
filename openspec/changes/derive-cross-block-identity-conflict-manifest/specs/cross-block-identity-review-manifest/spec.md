@@ -22,3 +22,9 @@ Each record SHALL follow the shared future-child schema and include typed exact 
 #### Scenario: Upstream ownership changes
 - **WHEN** an upstream manifest digest no longer matches
 - **THEN** validation SHALL report expected/observed drift and fail readiness.
+### Requirement: Cross-block identity evidence respects the historical boundary
+The manifest SHALL use current governed truth and reviewed active legacy mappings only. Historical facts, events, completed paths, and learner-derived state SHALL NOT create or resolve a conflict record.
+
+#### Scenario: Historical lineage is the only conflict evidence
+- **WHEN** conflict candidates are derived
+- **THEN** no readiness item SHALL be emitted from that evidence.

@@ -10,3 +10,4 @@
 - [ ] 2.1 Add exact-fail, alias-fail, near-similar-queue, stale-owner, duplicate-edge, and placeholder synthetic fixtures.
 - [ ] 2.2 Add a fixed real-snapshot reconciliation integration test.
 - [ ] 2.3 Prove byte-identical repeated runs and no writes.
+- [ ] 0.1 Prove that only current truth and reviewed active legacy mappings influence cross-block identity conflicts.

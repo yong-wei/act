@@ -71,3 +71,6 @@ Derive a reviewable flat domain-candidate manifest and dimension-pollution queue
 - Do not assign concepts or change runtime domain metadata.
 - Stop if dependency, coupling group, or branch constraints fail.
 - Stop if GitHub blockedBy relationships still contain open blockers.
+## ADR 0045 Boundary
+
+Historical facts/events, learner-derived state, and inactive legacy references are out of scope and cannot establish domain membership or readiness.

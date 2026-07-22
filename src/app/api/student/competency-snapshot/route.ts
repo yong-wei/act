@@ -20,6 +20,7 @@ import {
   type PortraitV2DimensionId,
 } from '@/lib/data-governance/kaq-objective-taxonomy';
 import {
+  hasAuthoritativePortraitV2Evidence,
   hasPortraitV2Evidence,
   resolvePrimaryPortraitV2,
   summarizePortraitV2,
@@ -231,11 +232,14 @@ export async function GET(_request: NextRequest) {
     // Get evidence summary from current snapshot
     const rawEvidenceSummary = (currentSnapshot.evidenceSummary as unknown as Record<string, unknown>) || {};
     const derivation = rawEvidenceSummary._derivation && typeof rawEvidenceSummary._derivation === 'object' ? rawEvidenceSummary._derivation as Record<string, unknown> : null;
-    const noEvidenceAfterRevocation = derivation?.state === 'no-evidence-after-revocation'
-      || derivation?.state === 'no-recent-evidence';
+    const noRecentEvidence = derivation?.state === 'no-recent-evidence';
+    const noEvidenceAfterRevocation = derivation?.state === 'no-evidence-after-revocation';
     const derivationState = derivation?.state === 'no-recent-evidence' || derivation?.state === 'no-evidence-after-revocation'
       ? derivation.state
       : 'current';
+    const shouldSuppressPortrait = noEvidenceAfterRevocation
+      || (noRecentEvidence && !hasAuthoritativePortraitV2Evidence(portraitResolution.primaryPortrait));
+    const hasNoRecentState = noEvidenceAfterRevocation || noRecentEvidence;
     const evidenceSummary = sanitizeEvidenceSummary(
       (currentSnapshot.evidenceSummary as unknown as Record<string, EvidenceSummaryItem[]>) || {}
     );
@@ -247,14 +251,14 @@ export async function GET(_request: NextRequest) {
     // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: vector remains for trend and deprecated response compatibility only.
     const currentVector = currentSnapshot.competencyVector as unknown as CompetencyVector;
     const previousVector = previousSnapshot?.competencyVector as unknown as CompetencyVector | undefined;
-    const trendVector = noEvidenceAfterRevocation ? null : previousVector
+    const trendVector = hasNoRecentState ? null : previousVector
       ? calculateTrendVector(currentVector, previousVector)
       : (Object.fromEntries(
           Object.keys(currentVector).map((k) => [k, 'stable'])
         ) as unknown as TrendVector);
 
     // Generate basic recommendations based on snapshot data
-    const recommendations = noEvidenceAfterRevocation
+    const recommendations = hasNoRecentState
       ? []
       : withPortraitRecommendationRationale(
           generateSnapshotRecommendations(
@@ -266,7 +270,7 @@ export async function GET(_request: NextRequest) {
           ),
           portrait,
         );
-    const responsePortrait = noEvidenceAfterRevocation
+    const responsePortrait = shouldSuppressPortrait
       ? summarizePortraitV2({
           userId,
           payloadVersion: 'learner-portrait.v2',
@@ -282,7 +286,7 @@ export async function GET(_request: NextRequest) {
 
     const response: StudentSnapshotResponse = {
       derivationState,
-      evidenceState: noEvidenceAfterRevocation ? 'empty' : 'current',
+      evidenceState: shouldSuppressPortrait ? 'empty' : 'current',
       currentSnapshot: {
         portrait: responsePortrait,
         legacyCompatibility: {
@@ -304,7 +308,7 @@ export async function GET(_request: NextRequest) {
         : null,
       trendVector,
       evidenceSummary: portraitEvidenceSummary,
-      riskFlags: noEvidenceAfterRevocation ? [] : riskFlags,
+      riskFlags: hasNoRecentState ? [] : riskFlags,
       recommendations,
       diagnosis: materializeRoleBasedLearningDiagnosis({
         view: 'student',

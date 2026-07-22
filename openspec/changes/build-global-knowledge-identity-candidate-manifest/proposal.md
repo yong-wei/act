@@ -23,3 +23,6 @@ The dated audit records exact-name conflicts and unresolved near-similar evidenc
 
 - Produces an offline candidate manifest consumed by semantic partitioning.
 - Does not modify canonical identities, runtime nodes, resources, learning evidence, or production projections.
+## ADR 0045 Boundary
+
+Historical mapping input is limited to reviewed active legacy knowledge IDs needed by current course/resource/progress/note or incomplete-path references. Historical facts and completed paths are not remapped, replayed, deduplicated, or backfilled.

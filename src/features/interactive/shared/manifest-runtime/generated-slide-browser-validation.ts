@@ -1,7 +1,7 @@
 export const GENERATED_SLIDE_BROWSER_VALIDATOR_VERSION = 'generated-slide-browser-validator-v1' as const;
 export const GENERATED_SLIDE_BROWSER_VIEWPORT_VERSION = 'chromium-1280x720-dpr1-v1' as const;
 export const GENERATED_SLIDE_BROWSER_FONT_VERSION = 'noto-sans-sc-variable-5.2.10-v1' as const;
-export const GENERATED_SLIDE_BROWSER_FONT_FAMILY = '"ACT Noto Sans SC", sans-serif' as const;
+export const GENERATED_SLIDE_BROWSER_FONT_FAMILY = '"Noto Sans SC Variable", sans-serif' as const;
 export const GENERATED_SLIDE_BROWSER_FONT_SHA256 = 'sha256:7bbe2b6d0d7cdbf81ec18cff889c8fe336bd5acf4c1e32b456f8164bea890e51' as const;
 export const GENERATED_SLIDE_BROWSER_VERSION = '148.0.7778.96' as const;
 export const GENERATED_SLIDE_BROWSER_GLYPH_SAMPLE = '课件门禁闭环系统稳定性 | ACT Browser Gate 938 | ABC xyz 0123456789' as const;
@@ -231,12 +231,6 @@ export function validateGeneratedSlideBrowserSnapshot(
   const expectedModuleIds = new Set(expectation.expectedModuleIds);
   const measuredModulesById = new Map(snapshot.modules.map((module) => [module.moduleId, module]));
   const measuredSlotsById = new Map(snapshot.slots.map((slot) => [slot.slotId, slot]));
-  const modulesWithText = new Set(snapshot.text.map((measurement) => measurement.moduleId));
-  for (const moduleId of expectation.expectedModuleIds) {
-    if (!modulesWithText.has(moduleId)) {
-      add('text.missing-module-measurement', `[data-generated-slide-module="${moduleId}"]`, { moduleId });
-    }
-  }
   for (const measurement of snapshot.text) {
     if (!expectedModuleIds.has(measurement.moduleId)) {
       add('text.unknown-module', measurement.selector, { moduleId: measurement.moduleId });
@@ -448,9 +442,9 @@ function validateExactIds<T>({
   for (const expectedId of expectedIds) {
     const count = counts.get(expectedId) ?? 0;
     const expectedSelector = kind === 'formula'
-      ? `[data-validation-formula="${expectedId}"]`
+      ? `[data-generated-slide-formula-marker="${expectedId}"] .katex`
       : kind === 'text'
-        ? `[data-generated-slide-text-id="${expectedId}"]`
+        ? `[data-generated-slide-text-marker="${expectedId}"]`
         : kind === 'module'
           ? `[data-generated-slide-module-root="${expectedId}"]`
           : `[data-generated-slide-${kind}="${expectedId}"]`;

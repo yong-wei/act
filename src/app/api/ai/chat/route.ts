@@ -224,6 +224,7 @@ export async function POST(request: Request) {
     let citationGuardMetadataPayload: ReturnType<typeof buildCitationGuardMetadataPayload> | null = null;
     let sarAssociatedGroundingMetadataPayload: ReturnType<typeof buildKonlingSarAssociatedGroundingMetadataPayload> | null = null;
     let buildFinalCitationGuardMetadataPayload: ((assistantContent: string) => ReturnType<typeof buildCitationGuardMetadataPayload>) | null = null;
+    let forceStructuredSmartPrepTool = false;
     let modelRequirements: ModelProviderCapabilityRequirements = {
       tools: true,
       streaming: true,
@@ -307,6 +308,8 @@ export async function POST(request: Request) {
           },
         });
       }
+      forceStructuredSmartPrepTool = modeContract.mode.id === 'prep-coauthor'
+        && Boolean(modeContract.smartPreparation);
       const modeRuntimeContext = {
         ...runtimeContext,
         knowledgeCapabilityContext: modeContract.groundingContext,
@@ -451,8 +454,18 @@ export async function POST(request: Request) {
       system: systemPrompt,
       messages: await toModelMessages(uiMessages),
       tools,
-      stopWhen: stepCountIs(5), // 允许最多5轮工具调用
-      toolChoice: 'auto',
+      ...(forceStructuredSmartPrepTool ? {
+        stopWhen: stepCountIs(2),
+        prepareStep: ({ stepNumber }: { stepNumber: number }) => stepNumber === 0
+          ? {
+            activeTools: ['propose_smart_lesson_task_change'],
+            toolChoice: { type: 'tool' as const, toolName: 'propose_smart_lesson_task_change' },
+          }
+          : { activeTools: [], toolChoice: 'none' as const },
+      } : {
+        stopWhen: stepCountIs(5), // 允许最多5轮工具调用
+        toolChoice: 'auto' as const,
+      }),
       temperature: 0.7,
       maxOutputTokens: 2000,
     });

@@ -23,3 +23,6 @@ The current graph mixes course modules, navigation constructs, and semantic doma
 
 - Produces an offline vocabulary manifest used by semantic partitioning.
 - Does not change UI navigation, node metadata, runtime projections, course structure, or database records.
+## ADR 0045 Boundary
+
+Domain candidates derive only from current formal-course anchors and current authoring truth. Historical learner facts, events, derived state, and inactive legacy references cannot establish domain membership or readiness.

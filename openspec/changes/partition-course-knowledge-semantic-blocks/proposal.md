@@ -23,3 +23,6 @@ Future governance children must own exact, non-overlapping review material. The 
 
 - Produces the ownership substrate for all cross-block review queues.
 - Replaces no production graph and does not create future content-block OpenSpec changes.
+## ADR 0045 Boundary
+
+Migration exact items contain only reviewed active legacy mappings and current course/resource/progress/note or incomplete-path references. Historical facts, events, completed paths, and learner-derived state do not enter semantic blocks.

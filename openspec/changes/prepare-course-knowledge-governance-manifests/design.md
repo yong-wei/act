@@ -1,6 +1,6 @@
 ## Context
 
-The audit records a large node and relation corpus with exact-name conflicts; derived identity, relation-review, resource-endpoint, domain-seed, and block counts are not yet reproducible contract inputs. Prototype blocks are therefore not an execution plan, and endpoint signatures can move with component ownership. `docs/contexts/course-knowledge-base/CONTEXT.md`, the ADR 0015-0044 files indexed by `docs/adr/README.md`, `docs/proposals/course-knowledge-base-governance-source-registry.yaml`, and `docs/knowledge-graph-current-state-audit-2026-07-18.md` are the shared decision and evidence sources.
+The audit records a large node and relation corpus with exact-name conflicts; derived identity, relation-review, resource-endpoint, domain-seed, and block counts are not yet reproducible contract inputs. Prototype blocks are therefore not an execution plan, and endpoint signatures can move with component ownership. `docs/contexts/course-knowledge-base/CONTEXT.md`, the ADR 0015-0045 files indexed by `docs/adr/README.md`, `docs/proposals/course-knowledge-base-governance-source-registry.yaml`, and `docs/knowledge-graph-current-state-audit-2026-07-18.md` are the shared decision and evidence sources.
 
 ## Existing entry point
 
@@ -58,3 +58,6 @@ Existing seam reused: OpenSpec/Buddy validators for the tracking parent and chil
 AC coverage: AC-1: proposal-shape and strict validation verify the exact eight-child inventory and exclusive capability ownership; AC-2: issue metadata and proposal review manifests verify the declared dependency graph; AC-3: strict specs and issue guardrails verify that second-stage changes are forbidden until a complete exact manifest exists.
 Manual-only acceptance: none
 Rationale: This tracking-only parent does not execute a CLI. Its validation covers only child declarations, dependency and proposal shape, and OpenSpec/Buddy artifacts. Synthetic fixtures, the fixed real-snapshot integration test, byte-identical repeated runs, and no-write assertions are executable-child requirements.
+## ADR 0045 Boundary
+
+Stage-one coordination does not generate, consume, or validate historical fact/event replay or backfill, learner-derived-state reconciliation, full-history decoder closure, or full-root writer equality. Such inputs are rejected as out of scope, and the declared dependency graph remains unchanged.

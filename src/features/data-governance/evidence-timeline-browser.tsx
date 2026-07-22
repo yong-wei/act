@@ -7,6 +7,8 @@ import { ArrowLeft, ChevronRight, Filter, RefreshCw } from 'lucide-react';
 import { PORTRAIT_V2_DIMENSIONS } from '@/lib/data-governance/kaq-objective-taxonomy';
 import type { EvidenceTimelineItem } from '@/lib/data-governance/evidence-timeline';
 
+const EVIDENCE_FILTER_SELECT_CLASS_NAME = 'mt-2 w-full rounded-lg border border-input bg-background px-3 py-2 text-foreground [&>option]:bg-background [&>option]:text-foreground';
+
 interface EvidenceTimelineBrowserPayload {
   items: EvidenceTimelineItem[];
   nextCursor: string | null;
@@ -221,7 +223,7 @@ export function EvidenceTimelineBrowser({
               <select
                 value={dimension}
                 onChange={(event) => setDimension(event.target.value)}
-                className="input-themed mt-2 w-full rounded-lg px-3 py-2"
+                className={EVIDENCE_FILTER_SELECT_CLASS_NAME}
               >
                 <option value="">全部维度</option>
                 {PORTRAIT_V2_DIMENSIONS.map((item) => (
@@ -243,7 +245,7 @@ export function EvidenceTimelineBrowser({
               <select
                 value={factType}
                 onChange={(event) => setFactType(event.target.value)}
-                className="input-themed mt-2 w-full rounded-lg px-3 py-2"
+                className={EVIDENCE_FILTER_SELECT_CLASS_NAME}
               >
                 <option value="">全部类型</option>
                 <option value="question">课堂作答</option>
@@ -257,7 +259,7 @@ export function EvidenceTimelineBrowser({
               <select
                 value={outcome}
                 onChange={(event) => setOutcome(event.target.value)}
-                className="input-themed mt-2 w-full rounded-lg px-3 py-2"
+                className={EVIDENCE_FILTER_SELECT_CLASS_NAME}
               >
                 <option value="">全部结果</option>
                 <option value="success">成功</option>

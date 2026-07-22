@@ -111,6 +111,8 @@ AppShell 折叠导航合同已经归档：桌面展开态为 248px 侧栏，收�
 
 ## 课堂与资源编排
 
+智能课件发布的双回执、不可变版本、课堂绑定实施状态和 P0 验收边界见 [智能课件发布 P0 运行手册](./operations/smart-courseware-p0-runbook.md)。
+
 统一课堂主线是：
 
 `TeachingResource -> LessonPlan/LessonItem -> ClassSession -> StudentPlayer/ResourceRenderer`
@@ -199,7 +201,7 @@ AI 可以解释、提示、总结和建议，但不能伪造学习事实、不�
 
 ## OpenSpec 与工作树协作
 
-本项目使用 OpenSpec 管理功能开发。已完成变更会归档到 `openspec/specs/`，尚未归档的变更位于 `openspec/changes/`。新功能、治理、UI 重构、依赖迁移和智能助教能力都应先形成 proposal、design、tasks 和 spec delta，再进入实现。当前列表中的知识图谱根节点与 inspector、评估检查点资源语义、教师审核与学生反馈闭环、互动课组件样式统一四项任务均已完成；后续应先完成验收与归档，不应把它们误记为未实现功能。
+本项目使用 OpenSpec 管理功能开发。已完成变更会归档到 `openspec/specs/`，尚未归档的变更位于 `openspec/changes/`。新功能、治理、UI 重构、依赖迁移和智能助教能力都应先形成 proposal、design、tasks 和 spec delta，再进入实现。课程知识基座重建准备系列当前采用 ADR 0045 的边界：只治理当前课程真源、发布图谱、审核映射和活跃引用；历史事实与派生状态保留原图谱修订，切换后新事实才绑定唯一活动的新修订。该系列不以历史事件重放、画像对账或全库 writer 闭包作为 readiness 条件。
 
 工作树是长期隔离边界。基线分支为 `integration`，发布分支为 `main`；具体工作树、分支与授权范围以当前任务上下文和 `git worktree` 实际状态为准，不在长期文档中固化易变化的本机分工。进入永久工作树后，不再为同一任务创建第二层工作树。
 

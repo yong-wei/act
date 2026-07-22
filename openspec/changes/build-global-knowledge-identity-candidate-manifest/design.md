@@ -1,6 +1,6 @@
 ## Context
 
-The audit records exact-name conflict groups, while reviewed aliases and near-similar edges are not frozen. Identity rules are defined in `docs/contexts/course-knowledge-base/CONTEXT.md` and ADRs 0015, 0029, 0030, 0034, 0035, and 0040 within the ADR 0015-0044 files indexed by `docs/adr/README.md`; audit evidence is in `docs/knowledge-graph-current-state-audit-2026-07-18.md`.
+The audit records exact-name conflict groups, while reviewed aliases and near-similar edges are not frozen. Identity rules are defined in `docs/contexts/course-knowledge-base/CONTEXT.md` and ADRs 0015, 0029, 0030, 0034, 0035, 0040, and 0045 within the ADR 0015-0045 files indexed by `docs/adr/README.md`; audit evidence is in `docs/knowledge-graph-current-state-audit-2026-07-18.md`.
 
 ## Existing entry point
 
@@ -59,3 +59,6 @@ Existing seam reused: none for the governance manifest CLI; implementation must 
 AC coverage: AC-1: synthetic closure fixtures keep exact/alias-equivalent records in one stable component and reject any pre-partition `owner_block`; AC-2: near-similar fixtures enqueue one deterministic edge between distinct components without merging, pending splits remain internal, and scope anchors remain evidence rather than admission truth; AC-3: a fixed real-snapshot test records observed counts as dated evidence, repeated runs are byte-identical, and no-write assertions cover all governed surfaces.
 Manual-only acceptance: none
 Rationale: Consumers use the emitted manifest, making command-level fixed-input validation the highest seam for exhaustiveness, determinism, and preservation of unresolved identity decisions.
+## ADR 0045 Boundary
+
+Identity candidates may carry reviewed active legacy-to-canonical mapping slots only. This series does not generate, consume, or validate historical fact/event lineage or inactive-mapping catalogs; such inputs are rejected as out of scope.

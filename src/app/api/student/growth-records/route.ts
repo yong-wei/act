@@ -6,6 +6,10 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
+import {
+  isPortraitV2ProfileEvidence,
+  mapLearningFactsToPortraitEvidence,
+} from '@/lib/data-governance/portrait-v2-incremental-update';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 
@@ -17,7 +21,8 @@ export type GrowthRecordType =
   | 'risk_resolved'
   | 'excellent_design'
   | 'achievement'
-  | 'competency_evaluation';
+  | 'competency_evaluation'
+  | 'learning_activity';
 
 export interface GrowthRecord {
   id: string;
@@ -47,13 +52,15 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1', 10);
     const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 50);
+    const startIdx = (page - 1) * limit;
+    const endIdx = startIdx + limit;
 
-    // Fetch growth records from database
+    // Read the records needed for the requested merged timeline page. At most
+    // ten generated learning activities can be inserted ahead of them.
     const records = await prisma.growthRecord.findMany({
       where: { userId },
       orderBy: { occurredAt: 'desc' },
-      skip: (page - 1) * limit,
-      take: limit,
+      take: endIdx,
     });
 
     const total = await prisma.growthRecord.count({
@@ -71,12 +78,10 @@ export async function GET(request: NextRequest) {
       icon: getIconForType(record.recordType as GrowthRecordType),
     }));
 
-    // If no records exist yet, generate from other data sources
-    if (mappedRecords.length === 0) {
+    // If no persisted records exist yet, retain the existing broader fallback
+    // timeline (milestones, simulations, risks, achievements, and activities).
+    if (total === 0) {
       const generatedRecords = await generateGrowthRecords(userId);
-      const startIdx = (page - 1) * limit;
-      const endIdx = startIdx + limit;
-      
       return NextResponse.json({
         records: generatedRecords.slice(startIdx, endIdx),
         total: generatedRecords.length,
@@ -84,10 +89,14 @@ export async function GET(request: NextRequest) {
       } as GrowthRecordsResponse);
     }
 
+    const learningActivities = await generateLearningActivityGrowthRecords(userId);
+    const mergedRecords = [...mappedRecords, ...learningActivities]
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
     const response: GrowthRecordsResponse = {
-      records: mappedRecords,
-      total,
-      hasMore: (page - 1) * limit + records.length < total,
+      records: mergedRecords.slice(startIdx, endIdx),
+      total: total + learningActivities.length,
+      hasMore: endIdx < total + learningActivities.length,
     };
 
     return NextResponse.json(response);
@@ -109,6 +118,7 @@ function getIconForType(type: GrowthRecordType): string {
     excellent_design: 'Award',
     achievement: 'Trophy',
     competency_evaluation: 'Sparkles',
+    learning_activity: 'BookOpen',
   };
   return icons[type] || 'Star';
 }
@@ -201,8 +211,51 @@ async function generateGrowthRecords(userId: string): Promise<GrowthRecord[]> {
     });
   }
 
+  records.push(...await generateLearningActivityGrowthRecords(userId));
+
   // Sort by date descending
   records.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  return records;
+}
+
+async function generateLearningActivityGrowthRecords(userId: string): Promise<GrowthRecord[]> {
+  // Keep only facts that the canonical portrait mapper rejects as contribution
+  // evidence. The timeline wording stays generic and omits private context.
+  const learningFacts = await prisma.learningFact.findMany({
+    where: { userId },
+    select: {
+      id: true,
+      startedAt: true,
+      outcome: true,
+      score: true,
+      competencyContribution: true,
+      contextJson: true,
+      createdAt: true,
+    },
+    orderBy: { startedAt: 'desc' },
+    take: 10,
+  });
+  const noPortraitContributionIds = new Set(
+    mapLearningFactsToPortraitEvidence(learningFacts)
+      .evidence
+      .filter((evidence) => !isPortraitV2ProfileEvidence(evidence))
+      .map((evidence) => evidence.id),
+  );
+
+  const records: GrowthRecord[] = [];
+  for (const activity of learningFacts) {
+    if (!noPortraitContributionIds.has(activity.id)) continue;
+    records.push({
+      id: `learning-activity-${activity.id}`,
+      type: 'learning_activity',
+      title: '已记录学习活动',
+      description: '系统已记录一项学习活动；该活动暂未形成可展示的能力画像证据。',
+      date: activity.startedAt.toISOString(),
+      metadata: { source: 'learning-fact' },
+      icon: 'BookOpen',
+    });
+  }
 
   return records;
 }
