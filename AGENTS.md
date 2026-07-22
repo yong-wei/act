@@ -73,6 +73,7 @@
 
 ## 常用命令与验证
 
+- 在 Codex Cloud 或 GitHub Review 环境中，不使用 `rtk` 前缀
 在仓库根目录运行：
 
 - `rtk npm run dev` / `rtk npm run startup` / `rtk npm run shutdown`
