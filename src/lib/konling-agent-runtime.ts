@@ -2614,7 +2614,16 @@ function applySmartLessonCollectionPatches(
     .map((item) => {
       const record = readRecord(item);
       const id = getString(record, 'id')!;
-      return updates.has(id) ? { ...record, ...updates.get(id), id } : item;
+      const changes = updates.get(id);
+      if (!changes) return item;
+      return {
+        ...record,
+        ...changes,
+        ...(field === 'knowledgePoints' && Object.hasOwn(changes, 'content') && !Object.hasOwn(changes, 'title')
+          ? { title: changes.content }
+          : {}),
+        id,
+      };
     })
     .concat(additions);
 }

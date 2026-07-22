@@ -890,7 +890,7 @@ describe('konling agent runtime', () => {
         sourceVersionIds: ['version-1', 'version-2'],
         knowledgePoints: [
           { id: 'kp-1', content: '幅值条件', sourceState: 'verified', sourceBindings: [{ citationId: 'citation-1' }], origin: 'SUGGESTED' },
-          { id: 'kp-2', content: '旧相角条件', sourceState: 'verified', sourceBindings: [{ citationId: 'citation-2' }], origin: 'SUGGESTED' },
+          { id: 'kp-2', title: '旧相角条件', content: '旧相角条件', sourceState: 'verified', sourceBindings: [{ citationId: 'citation-2' }], origin: 'SUGGESTED' },
           { id: 'kp-3', content: '分离点', sourceState: 'verified', sourceBindings: [{ citationId: 'citation-3' }], origin: 'SUGGESTED' },
         ],
         goals: [{ id: 'goal-1', content: '旧目标', sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
@@ -929,7 +929,7 @@ describe('konling agent runtime', () => {
         courseBasisId: 'basis-1', sourceVersionIds: ['version-1', 'version-2'],
         knowledgePoints: [
           { id: 'kp-1', content: '幅值条件', sourceBindings: [{ citationId: 'citation-1' }] },
-          { id: 'kp-2', content: '相角条件', sourceBindings: [{ citationId: 'citation-2' }] },
+          { id: 'kp-2', title: '相角条件', content: '相角条件', sourceBindings: [{ citationId: 'citation-2' }] },
           { id: 'kp-3', content: '分离点', sourceBindings: [{ citationId: 'citation-3' }] },
         ],
       },
