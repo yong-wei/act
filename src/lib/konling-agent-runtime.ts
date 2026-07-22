@@ -1850,32 +1850,98 @@ const smartLessonCollectionPatch = z.discriminatedUnion('operation', [
   }).strict(),
 ]);
 
-const proposeSmartLessonTaskChangeParameters = z.object({
-  operation: z.enum(['bootstrap', 'revise']).optional(),
-  taskId: z.string().min(1).max(200).optional(),
-  expectedRevision: z.number().int().min(1).optional(),
-  proposedTask: z.record(z.string(), z.unknown()).optional(),
-  knowledgePointPatches: z.array(smartLessonCollectionPatch).optional(),
-  goalPatches: z.array(smartLessonCollectionPatch).optional(),
-  clarification: z.object({
-    question: z.string().min(1).max(1000),
-    alternatives: z.array(z.string().min(1).max(500)).min(2).max(10),
-  }).strict().optional(),
-}).strict().refine((value) => Boolean(
-  value.proposedTask || value.knowledgePointPatches?.length || value.goalPatches?.length,
-) !== Boolean(value.clarification), {
-  message: '必须且只能提供 proposedTask 或 clarification。',
-}).refine((value) => value.operation === 'bootstrap' || Boolean(value.taskId && value.expectedRevision), {
-  message: '修订建议必须绑定任务及其预期修订号。',
-}).superRefine((value, context) => {
-  const hasPatches = Boolean(value.knowledgePointPatches?.length || value.goalPatches?.length);
-  if (value.clarification && hasPatches) {
-    context.addIssue({ code: 'custom', message: '澄清请求不能携带任务集合补丁。' });
-  }
-  if (value.operation === 'bootstrap' && hasPatches) {
-    context.addIssue({ code: 'custom', message: '新建任务必须提交完整 knowledgePoints 和 goals。' });
-  }
-});
+function smartLessonTaskChangeParameters(proposedTask: z.ZodTypeAny) {
+  return z.object({
+    operation: z.enum(['bootstrap', 'revise']).optional(),
+    taskId: z.string().min(1).max(200).optional(),
+    expectedRevision: z.number().int().min(1).optional(),
+    proposedTask: proposedTask.optional(),
+    knowledgePointPatches: z.array(smartLessonCollectionPatch).optional(),
+    goalPatches: z.array(smartLessonCollectionPatch).optional(),
+    clarification: z.object({
+      question: z.string().min(1).max(1000),
+      alternatives: z.array(z.string().min(1).max(500)).min(2).max(10),
+    }).strict().optional(),
+  }).strict().refine((value) => Boolean(
+    value.proposedTask || value.knowledgePointPatches?.length || value.goalPatches?.length,
+  ) !== Boolean(value.clarification), {
+    message: '必须且只能提供 proposedTask 或 clarification。',
+  }).refine((value) => value.operation === 'bootstrap' || Boolean(value.taskId && value.expectedRevision), {
+    message: '修订建议必须绑定任务及其预期修订号。',
+  }).superRefine((value, context) => {
+    const hasPatches = Boolean(value.knowledgePointPatches?.length || value.goalPatches?.length);
+    if (value.clarification && hasPatches) {
+      context.addIssue({ code: 'custom', message: '澄清请求不能携带任务集合补丁。' });
+    }
+    if (value.operation === 'bootstrap' && hasPatches) {
+      context.addIssue({ code: 'custom', message: '新建任务必须提交完整 knowledgePoints 和 goals。' });
+    }
+  });
+}
+
+const proposeSmartLessonTaskChangeParameters = smartLessonTaskChangeParameters(z.record(z.string(), z.unknown()));
+const proposedSmartLessonRevisionParameters = z.object({
+  topic: z.string().min(1).max(500).optional(),
+  audience: z.string().min(1).max(1000).optional(),
+  prerequisites: z.string().max(5000).optional(),
+  durationMinutes: z.number().int().min(30).max(120).optional(),
+  outlineConfirmationRequired: z.boolean().optional(),
+  confirmScope: z.boolean().optional(),
+  confirmGoals: z.boolean().optional(),
+}).strict();
+
+const smartLessonToolCollectionPatch = z.discriminatedUnion('operation', [
+  z.object({
+    operation: z.literal('update'),
+    id: z.string().min(1).max(200),
+    changes: z.object({
+      content: z.string().min(1).max(2000).optional(),
+      title: z.string().min(1).max(500).optional(),
+      sourceState: z.enum(['verified', 'ai_generated_source_pending', 'teacher_created_source_pending']).optional(),
+      origin: z.enum(['SUGGESTED', 'TEACHER_CREATED', 'ai_generated']).optional(),
+    }).strict(),
+  }).strict(),
+  z.object({
+    operation: z.literal('remove'),
+    id: z.string().min(1).max(200),
+  }).strict(),
+  z.object({
+    operation: z.literal('add'),
+    item: z.object({
+      content: z.string().min(1).max(2000),
+      sourceState: z.enum(['verified', 'ai_generated_source_pending', 'teacher_created_source_pending']),
+      sourceBindings: z.array(z.unknown()).max(100),
+      title: z.string().min(1).max(500).optional(),
+      origin: z.enum(['SUGGESTED', 'TEACHER_CREATED', 'ai_generated']).optional(),
+    }).strict(),
+  }).strict(),
+]);
+
+// This schema is emitted to the provider. It distinguishes a complete
+// bootstrap task from a revision, so a revision cannot be expressed with
+// lesson-plan-only fields or by retransmitting the task collections.
+const proposeSmartLessonTaskChangeToolParameters = z.discriminatedUnion('operation', [
+  z.object({
+    operation: z.literal('bootstrap'),
+    proposedTask: createTaskSchema.optional(),
+    clarification: z.object({
+      question: z.string().min(1).max(1000),
+      alternatives: z.array(z.string().min(1).max(500)).min(2).max(10),
+    }).strict().optional(),
+  }).strict(),
+  z.object({
+    operation: z.literal('revise'),
+    taskId: z.string().min(1).max(200),
+    expectedRevision: z.number().int().min(1),
+    proposedTask: proposedSmartLessonRevisionParameters.optional(),
+    knowledgePointPatches: z.array(smartLessonToolCollectionPatch).optional(),
+    goalPatches: z.array(smartLessonToolCollectionPatch).optional(),
+    clarification: z.object({
+      question: z.string().min(1).max(1000),
+      alternatives: z.array(z.string().min(1).max(500)).min(2).max(10),
+    }).strict().optional(),
+  }).strict(),
+]);
 
 const runVirtualSimulationParameters = z.object({
   idempotencyKey: KONLING_REQUIRED_IDEMPOTENCY_KEY_PARAMETER,
@@ -2468,7 +2534,7 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
       const { knowledgePointPatches, goalPatches, ...proposalArgs } = args;
       const boundArgs = {
         ...proposalArgs,
-        proposedTask: normalizeSuggestedSmartLessonTask(args.proposedTask, smartPreparation, {
+        proposedTask: normalizeSuggestedSmartLessonTask(args.proposedTask as Record<string, unknown> | undefined, smartPreparation, {
           knowledgePoints: knowledgePointPatches,
           goals: goalPatches,
         }),
@@ -5182,7 +5248,7 @@ export function buildScopedKonlingAiTools(runtime: ReturnType<typeof buildKonlin
     }),
     propose_smart_lesson_task_change: tool({
       description: '将教师本轮自然语言投影为完整结构化单课任务建议。无任务时使用 bootstrap，已有任务时使用 revise 并携带当前 revision。信息不唯一时只提交 clarification，且不得同时提交 proposedTask、knowledgePointPatches 或 goalPatches；范围已明确时提交 proposedTask 或补丁，且不得携带 clarification。只保存待确认建议，不直接创建或修改任务。',
-      inputSchema: proposeSmartLessonTaskChangeParameters,
+      inputSchema: proposeSmartLessonTaskChangeToolParameters,
       execute: (args) => runtime.proposeSmartLessonTaskChange(args),
     }),
     analyze_attempt: tool({

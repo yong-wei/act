@@ -364,7 +364,8 @@ function buildSmartPreparationInstructions(value: unknown): string[] {
 
   const taskId = string(preparation.taskId);
   const taskRevision = string(preparation.taskRevision);
-  lines.push(`  - 当前处于既有单课修订阶段：调用该工具时使用 revise、taskId=${taskId ?? 'unknown'}、expectedRevision=${taskRevision ?? 'unknown'}，仅在 proposedTask 提交本轮修改的普通字段；服务端会携带其余当前任务字段并形成完整待确认建议。不得提交 courseBasisId 或 sourceVersionIds，服务端始终使用当前任务绑定。`);
+  lines.push(`  - 当前处于既有单课修订阶段：调用该工具时使用 revise、taskId=${taskId ?? 'unknown'}、expectedRevision=${taskRevision ?? 'unknown'}。proposedTask 仅可提交 topic、audience、prerequisites、durationMinutes、outlineConfirmationRequired、confirmScope 或 confirmGoals；服务端会携带其余当前任务字段并形成完整待确认建议。不得提交 courseBasisId 或 sourceVersionIds，服务端始终使用当前任务绑定。`);
+  lines.push('  - 教学活动或流程约束必须转换为对现有目标的 goalPatches.update（例如把“至少20分钟参与式学习并完成判断活动”写入目标内容）；教师给出的量化下限必须逐字保留，不得弱化或省略。不得重传 goals 完整数组，也不得使用 duration、outline、teachingMethods、learningObjectives、references 或其他教案字段。');
   const currentCollections = formatCurrentTaskCollections(preparation.currentTask);
   if (currentCollections) {
     lines.push(`  - 修改 knowledgePoints 或 goals 时，不得重传完整数组；分别使用 knowledgePointPatches 或 goalPatches。update 只提交稳定 id 与 changes，且 changes 不得包含 id 或 sourceBindings；remove 只提交稳定 id；add 必须提交不含 id 的完整可确认 item：两类都必须含 content、sourceState、sourceBindings，知识点另须含 origin；无可用来源绑定时使用 sourceBindings=[] 与 sourceState=ai_generated_source_pending。可用现有条目定位清单：${currentCollections}`);
