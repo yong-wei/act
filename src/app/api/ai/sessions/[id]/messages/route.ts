@@ -235,6 +235,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
       streaming: true,
       citationNormalization: true,
     };
+    const isStructuredSmartPrepTurn = modeContract.mode.id === 'prep-coauthor'
+      && Boolean(modeContract.smartPreparation);
 
     // 调用AI
     const result = await streamText({
@@ -248,7 +250,13 @@ export async function POST(request: NextRequest, context: RouteContext) {
         agentSessionId: agentSession.id,
         permittedTools: modeContract.permittedTools,
       })),
-      stopWhen: stepCountIs(5),
+      ...(isStructuredSmartPrepTurn ? {
+        activeTools: ['propose_smart_lesson_task_change'],
+        toolChoice: { type: 'tool' as const, toolName: 'propose_smart_lesson_task_change' },
+        stopWhen: stepCountIs(1),
+      } : {
+        stopWhen: stepCountIs(5),
+      }),
       maxOutputTokens: 1000,
       temperature: 0.7,
     });

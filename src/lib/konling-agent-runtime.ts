@@ -2430,19 +2430,25 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
       const sessionState = readRecord(getValue(session, 'stateJson'));
       const turnId = getString(sessionState, 'currentTurnId');
       if (!turnId) throw new KonlingRuntimeScopeError(409, '智能备课会话没有可绑定的当前对话轮次。');
-      const boundArgs = { ...args, turnId };
+      const smartPreparation = (input.context as KonlingRuntimeContext & { teachingAssistantMode?: KonlingTeachingAssistantRuntimeContract })
+        .teachingAssistantMode?.smartPreparation;
+      const boundArgs = {
+        ...args,
+        proposedTask: normalizeSuggestedSmartLessonTask(args.proposedTask, smartPreparation),
+        turnId,
+      };
       return runKonlingRuntimeTool(input, 'propose_smart_lesson_task_change', boundArgs, async (toolRun) => {
         const contract = (input.context as KonlingRuntimeContext & { teachingAssistantMode?: KonlingTeachingAssistantRuntimeContract }).teachingAssistantMode;
-        const smartPreparation = contract?.smartPreparation;
-        if (contract?.mode.id !== 'prep-coauthor' || !smartPreparation) {
+        const activeSmartPreparation = contract?.smartPreparation;
+        if (contract?.mode.id !== 'prep-coauthor' || !activeSmartPreparation) {
           throw new KonlingRuntimeScopeError(403, '智能备课建议必须来自已绑定的 prep-coauthor 会话。');
         }
         const operation = args.operation ?? 'revise';
         const isBootstrap = operation === 'bootstrap';
-        if (isBootstrap !== Boolean(smartPreparation.bootstrap)) {
+        if (isBootstrap !== Boolean(activeSmartPreparation.bootstrap)) {
           throw new KonlingRuntimeScopeError(409, '智能备课建议与当前会话阶段不匹配。');
         }
-        if (!isBootstrap && (args.taskId !== smartPreparation.taskId || String(args.expectedRevision) !== smartPreparation.taskRevision)) {
+        if (!isBootstrap && (args.taskId !== activeSmartPreparation.taskId || String(args.expectedRevision) !== activeSmartPreparation.taskRevision)) {
           throw new KonlingRuntimeScopeError(409, '智能备课建议绑定的任务修订已过期。');
         }
         const binding = readRecord(sessionState.smartPrepBinding);
@@ -2458,12 +2464,41 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
           ...(args.expectedRevision ? { expectedRevision: args.expectedRevision } : {}),
           turnId,
           status: args.clarification ? 'clarification_required' : 'awaiting_teacher_confirmation',
-          ...(args.clarification ? { clarification: args.clarification } : { proposedTask: args.proposedTask }),
+          ...(args.clarification ? { clarification: args.clarification } : { proposedTask: boundArgs.proposedTask }),
         };
       });
     },
     analyzeAttempt: async (args: { studentState: StudentState }) =>
       runKonlingRuntimeTool(input, 'analyze_attempt', args, async () => analyzeKonlingAttempt(args.studentState)),
+  };
+}
+
+function normalizeSuggestedSmartLessonTask(
+  value: Record<string, unknown> | undefined,
+  preparation: KonlingSmartPreparationServerContext | null | undefined,
+) {
+  if (!value) return value;
+  const currentTask = readRecord(preparation?.currentTask);
+  const proposedTask = preparation && !preparation.bootstrap ? { ...currentTask, ...value } : value;
+  const courseBasisId = getString(currentTask, 'courseBasisId');
+  const selectedVersionIds = new Set((preparation?.selectedCourseBasisVersions ?? [])
+    .map((source) => source.versionId)
+    .filter(Boolean));
+  const requestedCourseBasisId = getString(proposedTask, 'courseBasisId');
+  const normalizedCourseBasisId = courseBasisId && requestedCourseBasisId && selectedVersionIds.has(requestedCourseBasisId)
+    ? courseBasisId
+    : requestedCourseBasisId;
+  const knowledgePoints = Array.isArray(proposedTask.knowledgePoints)
+    ? proposedTask.knowledgePoints.map((item) => {
+      if (!item || typeof item !== 'object' || Array.isArray(item)) return item;
+      const point = item as Record<string, unknown>;
+      return point.origin === 'SUGGESTED' || point.origin === 'TEACHER_CREATED' ? point : { ...point, origin: 'SUGGESTED' };
+    })
+    : proposedTask.knowledgePoints;
+  return {
+    ...proposedTask,
+    ...(normalizedCourseBasisId ? { courseBasisId: normalizedCourseBasisId } : {}),
+    ...(knowledgePoints ? { knowledgePoints } : {}),
   };
 }
 

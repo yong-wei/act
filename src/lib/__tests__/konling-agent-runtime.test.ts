@@ -885,7 +885,11 @@ describe('konling agent runtime', () => {
       },
     };
     const smartPreparation = {
-      taskId: 'task-1', taskRevision: '3', currentTask: { topic: '旧主题' }, selectedCourseBasisVersions: [],
+      taskId: 'task-1', taskRevision: '3', currentTask: {
+        topic: '旧主题', courseBasisId: 'basis-1', audience: '自动化专业本科生', durationMinutes: 45,
+        sourceVersionIds: ['version-1'], goals: [{ content: '旧目标', sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
+      },
+      selectedCourseBasisVersions: [{ versionId: 'version-1', citationState: 'verified', reviewState: 'CONFIRMED' }],
       unresolvedAmbiguities: [], confirmedDecisions: [], citationState: 'verified', reviewState: 'confirmed',
       clarificationReadiness: { status: 'ready' as const, canGenerate: true, unresolvedAmbiguityIds: [] },
       updatePolicy: { suggestionStatus: 'draft' as const, requiresExplicitTeacherConfirmation: true as const, expectedTaskRevision: '3' },
@@ -903,12 +907,22 @@ describe('konling agent runtime', () => {
       context: { ...createRuntimeContext(), teachingAssistantMode: mode } as never,
     });
     await expect(runtime.proposeSmartLessonTaskChange({
-      taskId: 'task-1', expectedRevision: 3, proposedTask: { topic: '新主题' },
+      taskId: 'task-1', expectedRevision: 3, proposedTask: {
+        topic: '新主题',
+        courseBasisId: 'version-1',
+        knowledgePoints: [{ content: '相角条件', sourceState: 'ai_generated_source_pending', sourceBindings: [], origin: 'ai_generated' }],
+      },
     })).resolves.toMatchObject({ suggestionId: 'suggestion-1', turnId: 'turn-server-1', status: 'awaiting_teacher_confirmation' });
     expect(db.agentToolRun.create).toHaveBeenCalledWith({ data: expect.objectContaining({
       toolName: 'propose_smart_lesson_task_change',
       inputSummary: expect.objectContaining({ taskId: 'task-1', expectedRevision: 3, turnId: 'turn-server-1' }),
     }) });
+    expect(db.agentToolRun.create.mock.calls[0]?.[0].data.inputSummary).toMatchObject({
+      proposedTask: {
+        courseBasisId: 'basis-1', audience: '自动化专业本科生', durationMinutes: 45, sourceVersionIds: ['version-1'],
+        goals: [{ content: '旧目标' }], knowledgePoints: [{ origin: 'SUGGESTED' }],
+      },
+    });
   });
 
   it('keeps a bootstrap session through clarification and a later create proposal', async () => {
@@ -957,8 +971,16 @@ describe('konling agent runtime', () => {
     })).resolves.toMatchObject({ turnId: 'turn-1', status: 'clarification_required' });
     session.stateJson = { currentTurnId: 'turn-2', ownedTurnIds: ['turn-1', 'turn-2'] };
     await expect(runtime.proposeSmartLessonTaskChange({
-      operation: 'bootstrap', proposedTask: { topic: '根轨迹', durationMinutes: 45 },
-    })).resolves.toMatchObject({ turnId: 'turn-2', status: 'awaiting_teacher_confirmation' });
+      operation: 'bootstrap',
+      proposedTask: {
+        topic: '根轨迹', durationMinutes: 45,
+        knowledgePoints: [{ content: '相角条件', sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
+      },
+    })).resolves.toMatchObject({
+      turnId: 'turn-2',
+      status: 'awaiting_teacher_confirmation',
+      proposedTask: { knowledgePoints: [{ origin: 'SUGGESTED' }] },
+    });
     expect(db.agentToolRun.create).toHaveBeenCalledTimes(2);
   });
 
@@ -3022,6 +3044,87 @@ describe('konling agent runtime', () => {
       expect.objectContaining({ sourceType: 'path-execution' }),
     ]));
     expect(recommendation.citationSupport.readiness).toBe('low-confidence');
+  });
+
+  it('gives prep coauthor a structured task protocol and server-owned source IDs', () => {
+    const prompt = buildKonlingSystemPrompt({
+      page: {
+        courseId: 'basis-root-locus',
+        courseTitle: '自动控制原理',
+        pageType: 'workspace',
+        stepId: 'teacher-smart-prep',
+        topic: '根轨迹',
+        learningObjectives: [],
+        knowledgeType: 'X',
+      },
+      user: {
+        id: 'teacher-1',
+        name: '验收教师',
+        learningStyle: 'TEXTUAL',
+        cognitiveLevel: 3,
+        abilityVector: { computational: 0.5, crossDomain: 0.5, design: 0.5, analysis: 0.5, evaluation: 0.5 },
+      },
+      adaptiveRuntime: {
+        teachingAssistantMode: {
+          mode: { id: 'prep-coauthor', label: '教师备课共创' },
+          status: 'available',
+          unavailableReasons: [],
+          degradedReasons: [],
+          privacyPolicy: { payload: 'teacher-scoped-summary', forbiddenContent: [] },
+          outputContract: { status: 'draft-only', requiredCitationOwners: [], forbiddenActions: [] },
+          citationRequirements: { required: false, classes: [], requiredOwners: [], missingClasses: [] },
+          smartPreparation: {
+            bootstrap: true,
+            currentTask: {
+              availableCourseBases: [{
+                id: 'basis-root-locus',
+                title: '自动控制原理',
+                documents: [{ versions: [{ id: 'version-root-locus', versionNumber: 1 }] }],
+              }],
+            },
+          },
+        },
+      },
+    });
+
+    expect(prompt).toContain('必须调用 propose_smart_lesson_task_change');
+    expect(prompt).toContain('不得仅在文本中声称“已生成”或“已保存”建议');
+    expect(prompt).toContain('courseBasisId、topic、audience、durationMinutes、sourceVersionIds、knowledgePoints、goals');
+    expect(prompt).toContain('不得使用 title、courseId、curriculumBasisId、duration');
+    expect(prompt).toContain('courseBasisId=basis-root-locus；sourceVersionIds=[version-root-locus]');
+    expect(prompt).toContain('basis-root-locus');
+    expect(prompt).toContain('version-root-locus');
+
+    const revisionPrompt = buildKonlingSystemPrompt({
+      page: {
+        courseId: 'basis-root-locus', courseTitle: '自动控制原理', pageType: 'workspace', stepId: 'teacher-smart-prep', topic: '根轨迹', learningObjectives: [], knowledgeType: 'X',
+      },
+      user: {
+        id: 'teacher-1', name: '验收教师', learningStyle: 'TEXTUAL', cognitiveLevel: 3,
+        abilityVector: { computational: 0.5, crossDomain: 0.5, design: 0.5, analysis: 0.5, evaluation: 0.5 },
+      },
+      adaptiveRuntime: {
+        teachingAssistantMode: {
+          mode: { id: 'prep-coauthor', label: '教师备课共创' }, status: 'available', unavailableReasons: [], degradedReasons: [],
+          privacyPolicy: { payload: 'teacher-scoped-summary', forbiddenContent: [] },
+          outputContract: { status: 'draft-only', requiredCitationOwners: [], forbiddenActions: [] },
+          citationRequirements: { required: false, classes: [], requiredOwners: [], missingClasses: [] },
+          smartPreparation: {
+            bootstrap: false, taskId: 'task-1', taskRevision: '3',
+            currentTask: {
+              topic: '根轨迹',
+              knowledgePoints: [{ id: 'kp-1', content: '相角条件', sourceState: 'ai_generated_source_pending', sourceBindings: [], origin: 'SUGGESTED' }],
+              goals: [{ id: 'goal-1', content: '判断根轨迹', sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
+            },
+            selectedCourseBasisVersions: [],
+          },
+        },
+      },
+    });
+    expect(revisionPrompt).toContain('仅提交本轮修改字段；服务端会携带其余当前任务字段');
+    expect(revisionPrompt).toContain('必须提交该字段修改后的完整数组，保留未修改项，不得只提交单个改动项');
+    expect(revisionPrompt).toContain('"id":"kp-1"');
+    expect(revisionPrompt).toContain('"id":"goal-1"');
   });
 
   it('does not turn client-only page hints into high-confidence content citations', async () => {

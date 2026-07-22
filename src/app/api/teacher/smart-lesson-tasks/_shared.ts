@@ -29,6 +29,10 @@ const canonicalItemSchema = z.object({
   sourceBindings: z.array(sourceBindingSchema).max(100),
 }).strict();
 
+const knowledgePointOriginSchema = z.enum(['SUGGESTED', 'TEACHER_CREATED', 'ai_generated']).transform((value) => (
+  value === 'ai_generated' ? 'SUGGESTED' as const : value
+));
+
 export const createTaskSchema = z.object({
   courseBasisId: idSchema,
   topic: z.string().trim().min(1).max(500),
@@ -39,7 +43,7 @@ export const createTaskSchema = z.object({
   sourceVersionIds: z.array(idSchema).min(1).max(500),
   knowledgePoints: z.array(canonicalItemSchema.extend({
     title: z.string().trim().min(1).max(500).optional(),
-    origin: z.enum(['SUGGESTED', 'TEACHER_CREATED']),
+    origin: knowledgePointOriginSchema,
     supersedesIds: z.array(idSchema).max(100).optional(),
   }).strict()).min(1).max(100),
   goals: z.array(canonicalItemSchema.extend({
