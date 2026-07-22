@@ -77,7 +77,7 @@ import {
 } from '@/lib/data-governance/adaptive-learner-state-service';
 import { buildKonlingKaqGraphContext } from '@/lib/konling-kaq-graph-context';
 import { getRegisteredAdaptiveLearningPathGoal } from '@/lib/adaptive-learning-path-planner';
-import { updateTaskSchema } from '@/app/api/teacher/smart-lesson-tasks/_shared';
+import { updateTaskSchema } from '@/lib/smart-lesson-plan/task-input-schema';
 import {
   applyKonlingCitationFallback,
   buildKonlingCitationGuard,
@@ -984,9 +984,12 @@ describe('konling agent runtime', () => {
 
     const runCountBeforeRejectedAdds = db.agentToolRun.create.mock.calls.length;
     await expect(runtime.proposeSmartLessonTaskChange({
+      taskId: 'task-1', expectedRevision: 3,
+    })).rejects.toThrow('必须且只能提供 proposedTask 或 clarification');
+    await expect(runtime.proposeSmartLessonTaskChange({
       taskId: 'task-1', expectedRevision: 3, proposedTask: {},
       knowledgePointPatches: [{ operation: 'add', item: {
-        content: '新增知识点', sourceState: 'ai_generated_source_pending', sourceBindings: [],
+        content: '新增知识点', sourceState: 'ai_generated_source_pending',
       } }] as never,
     })).rejects.toThrow();
     await expect(runtime.proposeSmartLessonTaskChange({
@@ -995,6 +998,14 @@ describe('konling agent runtime', () => {
         content: '新增目标', sourceState: 'ai_generated_source_pending',
       } }] as never,
     })).rejects.toThrow();
+    await expect(runtime.proposeSmartLessonTaskChange({
+      taskId: 'task-1', expectedRevision: 3, proposedTask: {},
+      goalPatches: [{ operation: 'update', id: 'goal-1', changes: { content: '' } }],
+    })).rejects.toThrow('智能备课建议不符合确认要求');
+    await expect(runtime.proposeSmartLessonTaskChange({
+      taskId: 'task-1', expectedRevision: 3, proposedTask: {},
+      goalPatches: [{ operation: 'remove', id: 'goal-1' }],
+    })).rejects.toThrow('智能备课建议不符合确认要求');
     expect(db.agentToolRun.create).toHaveBeenCalledTimes(runCountBeforeRejectedAdds);
 
     const additions = await runtime.proposeSmartLessonTaskChange({

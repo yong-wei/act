@@ -62,7 +62,7 @@ import {
 } from '@/lib/source-pack';
 import { getLearningGoalResourceBaselineForPlanner } from '@/lib/learning-goal-resource-baseline-runtime';
 import { getLearningGoalAssessmentCoverageForPlanner } from '@/lib/learning-goal-assessment-coverage-runtime';
-import { sourceBindingSchema } from '@/lib/smart-lesson-plan/schema';
+import { updateTaskSchema } from '@/lib/smart-lesson-plan/task-input-schema';
 import type { GraphCenterClassOverlayInput } from '@/lib/data-governance/graph-center';
 import {
   type ResourceNode,
@@ -1834,60 +1834,29 @@ const simulationContextParameters = z.object({
   includeTrace: z.boolean().optional(),
 });
 
-const smartLessonCollectionUpdatePatch = z.object({
-  operation: z.literal('update'),
-  id: z.string().min(1).max(200),
-  changes: z.record(z.string(), z.unknown()),
-}).strict();
-
-const smartLessonCollectionRemovePatch = z.object({
-  operation: z.literal('remove'),
-  id: z.string().min(1).max(200),
-}).strict();
-
-const smartLessonCollectionAddItem = z.object({
-  lineageId: z.string().min(1).max(200).optional(),
-  content: z.string().trim().min(1).max(2000),
-  sourceState: z.enum(['verified', 'ai_generated_source_pending', 'teacher_created_source_pending']),
-  sourceBindings: z.array(sourceBindingSchema).max(100),
-}).strict();
-
-const smartLessonKnowledgePointPatch = z.discriminatedUnion('operation', [
-  smartLessonCollectionUpdatePatch,
-  smartLessonCollectionRemovePatch,
+const smartLessonCollectionPatch = z.discriminatedUnion('operation', [
+  z.object({
+    operation: z.literal('update'),
+    id: z.string().min(1).max(200),
+    changes: z.record(z.string(), z.unknown()),
+  }).strict(),
+  z.object({
+    operation: z.literal('remove'),
+    id: z.string().min(1).max(200),
+  }).strict(),
   z.object({
     operation: z.literal('add'),
-    item: smartLessonCollectionAddItem.extend({
-      title: z.string().trim().min(1).max(500).optional(),
-      origin: z.enum(['SUGGESTED', 'TEACHER_CREATED', 'ai_generated']),
-      supersedesIds: z.array(z.string().min(1).max(200)).max(100).optional(),
-    }).strict(),
+    item: z.record(z.string(), z.unknown()),
   }).strict(),
 ]);
-
-const smartLessonGoalPatch = z.discriminatedUnion('operation', [
-  smartLessonCollectionUpdatePatch,
-  smartLessonCollectionRemovePatch,
-  z.object({
-    operation: z.literal('add'),
-    item: smartLessonCollectionAddItem.extend({
-      standardsMappings: z.array(z.object({
-        standardId: z.string().min(1).max(200),
-        label: z.string().trim().min(1).max(500),
-      }).strict()).max(100).optional(),
-    }).strict(),
-  }).strict(),
-]);
-
-type SmartLessonCollectionPatch = z.infer<typeof smartLessonKnowledgePointPatch> | z.infer<typeof smartLessonGoalPatch>;
 
 const proposeSmartLessonTaskChangeParameters = z.object({
   operation: z.enum(['bootstrap', 'revise']).optional(),
   taskId: z.string().min(1).max(200).optional(),
   expectedRevision: z.number().int().min(1).optional(),
   proposedTask: z.record(z.string(), z.unknown()).optional(),
-  knowledgePointPatches: z.array(smartLessonKnowledgePointPatch).optional(),
-  goalPatches: z.array(smartLessonGoalPatch).optional(),
+  knowledgePointPatches: z.array(smartLessonCollectionPatch).optional(),
+  goalPatches: z.array(smartLessonCollectionPatch).optional(),
   clarification: z.object({
     question: z.string().min(1).max(1000),
     alternatives: z.array(z.string().min(1).max(500)).min(2).max(10),
@@ -2502,6 +2471,16 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
         }),
         turnId,
       };
+      const proposedTask = boundArgs.proposedTask;
+      if ((args.operation ?? 'revise') === 'revise' && !args.clarification && proposedTask) {
+        const validation = updateTaskSchema.safeParse({
+          ...proposedTask,
+          expectedRevision: args.expectedRevision,
+          confirmingTurnId: turnId,
+          agentSessionId: input.agentSessionId,
+        });
+        if (!validation.success) throw new KonlingRuntimeScopeError(400, '智能备课建议不符合确认要求。');
+      }
       return runKonlingRuntimeTool(input, 'propose_smart_lesson_task_change', boundArgs, async (toolRun) => {
         const contract = (input.context as KonlingRuntimeContext & { teachingAssistantMode?: KonlingTeachingAssistantRuntimeContract }).teachingAssistantMode;
         const activeSmartPreparation = contract?.smartPreparation;
@@ -2542,8 +2521,8 @@ function normalizeSuggestedSmartLessonTask(
   value: Record<string, unknown> | undefined,
   preparation: KonlingSmartPreparationServerContext | null | undefined,
   patches: {
-    knowledgePoints?: Array<z.infer<typeof smartLessonKnowledgePointPatch>>;
-    goals?: Array<z.infer<typeof smartLessonGoalPatch>>;
+    knowledgePoints?: Array<z.infer<typeof smartLessonCollectionPatch>>;
+    goals?: Array<z.infer<typeof smartLessonCollectionPatch>>;
   } = {},
 ) {
   if (!value && !patches.knowledgePoints?.length && !patches.goals?.length) return value;
@@ -2597,7 +2576,7 @@ function normalizeSuggestedSmartLessonTask(
 
 function applySmartLessonCollectionPatches(
   currentValue: unknown,
-  patches: SmartLessonCollectionPatch[],
+  patches: Array<z.infer<typeof smartLessonCollectionPatch>>,
   field: 'knowledgePoints' | 'goals',
 ): unknown[] {
   const current = Array.isArray(currentValue) ? currentValue : [];
