@@ -78,9 +78,13 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV RUN_MIGRATIONS_ON_START=1
 ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
 
+# BuildKit otherwise installs the large browser/office runtime in parallel with
+# the memory-intensive Next.js build. This copy is an explicit stage barrier.
+COPY --from=builder /app/package.json /tmp/builder-package.json
 RUN (apk add --no-cache chromium libreoffice \
   || (sed -i "s|https://mirrors.aliyun.com/alpine|https://dl-cdn.alpinelinux.org/alpine|g" /etc/apk/repositories \
-    && apk add --no-cache chromium libreoffice))
+    && apk add --no-cache chromium libreoffice)) \
+  && rm /tmp/builder-package.json
 
 # Create nextjs user
 RUN addgroup --system --gid 1001 nodejs
