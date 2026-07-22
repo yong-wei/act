@@ -251,9 +251,13 @@ export async function POST(request: NextRequest, context: RouteContext) {
         permittedTools: modeContract.permittedTools,
       })),
       ...(isStructuredSmartPrepTurn ? {
-        activeTools: ['propose_smart_lesson_task_change'],
-        toolChoice: { type: 'tool' as const, toolName: 'propose_smart_lesson_task_change' },
-        stopWhen: stepCountIs(1),
+        stopWhen: stepCountIs(2),
+        prepareStep: ({ stepNumber }: { stepNumber: number }) => stepNumber === 0
+          ? {
+            activeTools: ['propose_smart_lesson_task_change'],
+            toolChoice: { type: 'tool' as const, toolName: 'propose_smart_lesson_task_change' },
+          }
+          : { activeTools: [], toolChoice: 'none' as const },
       } : {
         stopWhen: stepCountIs(5),
       }),

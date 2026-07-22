@@ -35,6 +35,12 @@ describe('Konling deterministic browser acceptance model gate', () => {
         execute: async (input) => { calls.push(input); return { saved: true }; },
       }) },
       stopWhen: ({ steps }) => steps.length >= 2,
+      prepareStep: ({ stepNumber }) => stepNumber === 0
+        ? {
+          activeTools: ['propose_smart_lesson_task_change'],
+          toolChoice: { type: 'tool', toolName: 'propose_smart_lesson_task_change' },
+        }
+        : { activeTools: [], toolChoice: 'none' },
     });
     await expect(result.text).resolves.toBe('建议已保存，等待教师确认。');
     expect(calls).toEqual([expect.objectContaining({ operation: 'bootstrap', clarification: expect.any(Object) })]);

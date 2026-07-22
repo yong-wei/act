@@ -140,6 +140,17 @@ const serverContext = {
   },
 };
 
+function expectStructuredProposalSteps(streamTextCall: Record<string, unknown>) {
+  expect(streamTextCall.stopWhen).toEqual(expect.any(Function));
+  expect(streamTextCall.prepareStep).toEqual(expect.any(Function));
+  const prepareStep = streamTextCall.prepareStep as (input: { stepNumber: number }) => unknown;
+  expect(prepareStep({ stepNumber: 0 })).toEqual({
+    activeTools: ['propose_smart_lesson_task_change'],
+    toolChoice: { type: 'tool', toolName: 'propose_smart_lesson_task_change' },
+  });
+  expect(prepareStep({ stepNumber: 1 })).toEqual({ activeTools: [], toolChoice: 'none' });
+}
+
 describe('Konling smart-prep production routes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -182,10 +193,7 @@ describe('Konling smart-prep production routes', () => {
       agentSessionId: 'agent-from-client',
       smartPrepBinding: { taskId: 'server-task', taskRevision: '7' },
     }));
-    expect(mocks.streamText).toHaveBeenCalledWith(expect.objectContaining({
-      activeTools: ['propose_smart_lesson_task_change'],
-      toolChoice: { type: 'tool', toolName: 'propose_smart_lesson_task_change' },
-    }));
+    expectStructuredProposalSteps(mocks.streamText.mock.calls[0]?.[0]);
   });
 
   it('session message route applies the same server binding to create and resume', async () => {
@@ -208,6 +216,7 @@ describe('Konling smart-prep production routes', () => {
       agentSessionId: 'agent-1',
       smartPrepBinding: { taskId: 'server-task', taskRevision: '7' },
     }));
+    expectStructuredProposalSteps(mocks.streamText.mock.calls[0]?.[0]);
   });
 
   it('uses the task identity to resolve the current server revision', async () => {
