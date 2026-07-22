@@ -317,19 +317,22 @@ export async function GET(
       studentEvidenceFeatureCaches.map((cache) => [cache.userId, cache])
     );
     const snapshotMap = new Map(latestSnapshots.map((snapshot) => [snapshot.userId, snapshot]));
-    const classScopedProjectionMap = buildClassScopedStudentProjections(
-      studentIds,
-      classScopedSimulationArenaFacts as any,
-    );
+    const classScopedProjectionMap = scope === 'recent'
+      ? buildClassScopedStudentProjections(
+          studentIds,
+          classScopedSimulationArenaFacts as any,
+        )
+      : new Map();
     // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: class-scoped legacy vectors are non-authoritative v2 projections.
     const scopedPortraitByUserId = new Map([...classScopedProjectionMap].map(([studentId, projection]) => {
+      const projectionClock = new Date();
       const projected = projectPortraitV2ForConsumer(derivePortraitV2Compatibility({
         userId: studentId,
-        snapshotAt: now.toISOString(),
+        snapshotAt: projectionClock.toISOString(),
         // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: source and vector are compatibility-only.
         sourceFamily: 'StudentCompetencySnapshot',
         vector: projection.competencyVector,
-        now,
+        now: projectionClock,
       }), 'reviewer');
       return [studentId, summarizePortraitV2(projected)] as const;
     }));
