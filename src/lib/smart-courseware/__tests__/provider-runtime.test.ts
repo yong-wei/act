@@ -10,6 +10,7 @@ import {
   resolveSmartCoursewareStructuredProvider,
 } from '../provider-runtime';
 import {
+  createCoursewareGeneratedStageProviderOutputSchema,
   coursewareGeneratedStageOutputSchema,
   coursewareModuleCandidateOutputSchema,
   legacyCoursewareGeneratedStageOutputSchema,
@@ -120,6 +121,50 @@ describe('smart courseware provider runtime', () => {
     const { approvedPlanAlignment: _alignment, stepPlanBindings: _bindings, ...legacy } = current;
     legacy.moduleMetadata = legacy.moduleMetadata.slice(0, 13);
     expect(() => legacyCoursewareGeneratedStageOutputSchema.parse(legacy)).toThrow();
+  });
+
+  it('accepts only stage content from the provider and strips server-owned fields', () => {
+    const output = createDeterministicCoursewareStage({
+      unitKey: 'summary', durationSeconds: 300, approvedPlan, sourceBinding: sourceBindingFixture,
+    });
+    const schema = createCoursewareGeneratedStageProviderOutputSchema(1);
+    expect(schema.parse(output)).toEqual({ stage: output.stage, teacherActivityEvidence: [] });
+    output.moduleMetadata[0].sourceBindings[0].citationId = 'provider-rewritten-citation';
+    expect(schema.parse(output)).toEqual({ stage: output.stage, teacherActivityEvidence: [] });
+    output.stage.steps.push(structuredClone(output.stage.steps[0]));
+    expect(() => schema.parse(output)).toThrow();
+    output.stage.steps.pop();
+    output.stage.steps[0].layoutId = 'slide';
+    expect(() => schema.parse(output)).toThrow();
+    output.stage.steps[0].layoutId = 'single';
+    output.stage.steps[0].modules[0].canonicalClass = 'text';
+    expect(() => schema.parse(output)).toThrow();
+    const activitySchema = createCoursewareGeneratedStageProviderOutputSchema(1, true);
+    expect(() => activitySchema.parse(createDeterministicCoursewareStage({
+      unitKey: 'bridge-in', durationSeconds: 300, approvedPlan, sourceBinding: sourceBindingFixture,
+    }))).toThrow();
+    const activity = createDeterministicCoursewareStage({
+      unitKey: 'pre-assessment', durationSeconds: 300, approvedPlan, sourceBinding: sourceBindingFixture,
+    });
+    expect(activitySchema.parse({
+      stage: activity.stage,
+      teacherActivityEvidence: [{
+        moduleId: activity.stage.steps[0].modules[0].id,
+        referenceAnswer: 'a', explanation: '教师专用说明', scoring: { strategy: 'exact-match' },
+      }],
+    })).toMatchObject({ stage: activity.stage });
+    const placeholderOption = {
+      stage: activity.stage,
+      teacherActivityEvidence: [{
+        moduleId: activity.stage.steps[0].modules[0].id,
+        referenceAnswer: 'a', explanation: '教师专用说明', scoring: { strategy: 'exact-match' },
+      }],
+    };
+    const placeholderModule = placeholderOption.stage.steps[0].modules[0] as unknown as {
+      payload: { options: Array<{ label: string }> };
+    };
+    placeholderModule.payload.options[0].label = 'A';
+    expect(() => activitySchema.parse(placeholderOption)).toThrow();
   });
 
   it.each([

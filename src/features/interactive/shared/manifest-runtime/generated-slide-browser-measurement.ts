@@ -44,7 +44,7 @@ export async function captureGeneratedSlideBrowserSnapshot(input: {
 }): Promise<GeneratedSlideBrowserMeasurementSnapshot> {
   const { page, browser, projection, stepId } = input;
   const canvasSelector = `[data-generated-slide-canvas="${stepId}"]`;
-  await page.evaluate(async ({ canvasSelector, family, sample }) => {
+  const prepareCanvas = async ({ canvasSelector, family, sample }: { canvasSelector: string; family: string; sample: string }) => {
     const element = document.querySelector(canvasSelector);
     if (!(element instanceof HTMLElement)) throw new Error(`browser-measurement-canvas-missing:${canvasSelector}`);
     await document.fonts.load(`16px ${family.split(',')[0]}`, sample);
@@ -52,14 +52,23 @@ export async function captureGeneratedSlideBrowserSnapshot(input: {
     const left = window.scrollX;
     const top = element.getBoundingClientRect().top + window.scrollY;
     window.scrollTo({ left, top, behavior: 'instant' });
-  }, {
+  };
+  await page.evaluate(prepareCanvas, {
     canvasSelector,
     family: GENERATED_SLIDE_BROWSER_FONT_FAMILY,
     sample: GENERATED_SLIDE_BROWSER_GLYPH_SAMPLE,
   });
-  const data = await page.evaluate(({ canvasSelector, family, sample, size, fontSha }) => {
-    const toRect = (r: DOMRect) => ({ x: r.x, y: r.y, width: r.width, height: r.height, top: r.top, right: r.right, bottom: r.bottom, left: r.left });
-    const measure = (element: Element, selector: string) => {
+  const collectMeasurements = ({ canvasSelector, family, sample, size, fontSha }: {
+    canvasSelector: string;
+    family: string;
+    sample: string;
+    size: number;
+    fontSha: string;
+  }) => {
+    function toRect(r: DOMRect) {
+      return { x: r.x, y: r.y, width: r.width, height: r.height, top: r.top, right: r.right, bottom: r.bottom, left: r.left };
+    }
+    function measure(element: Element, selector: string) {
       const node = element as HTMLElement;
       const style = getComputedStyle(node);
       const fontSize = Number.parseFloat(style.fontSize);
@@ -71,14 +80,15 @@ export async function captureGeneratedSlideBrowserSnapshot(input: {
         clipPath: style.clipPath, maskImage: style.maskImage, textOverflow: style.textOverflow,
         nativeFormControl: node.matches('button,input,textarea,select'),
       };
-    };
+    }
     const canvas = document.querySelector(canvasSelector);
     if (!(canvas instanceof HTMLElement)) throw new Error(`browser-measurement-canvas-missing:${canvasSelector}`);
-    const required = (selector: string) => {
-      const node = canvas.querySelector(selector);
+    const activeCanvas = canvas;
+    function required(selector: string) {
+      const node = activeCanvas.querySelector(selector);
       if (!node) throw new Error(`browser-measurement-element-missing:${selector}`);
       return node;
-    };
+    }
     const contentHash = document.querySelector('[data-publication-manifest-hash]')?.getAttribute('data-publication-manifest-hash')
       ?? canvas.getAttribute('data-generated-slide-content-hash');
     if (!contentHash) throw new Error('browser-measurement-content-hash-missing');
@@ -134,6 +144,13 @@ export async function captureGeneratedSlideBrowserSnapshot(input: {
       canvas: measure(canvas, canvasSelector), titleSlot: measure(required('[data-generated-slide-title-slot]'), '[data-generated-slide-title-slot]'), titleContent: measure(required('[data-manifest-step-title]'), '[data-manifest-step-title]'),
       slots, modules, formulas, containers, text,
     };
-  }, { canvasSelector, family: GENERATED_SLIDE_BROWSER_FONT_FAMILY, sample: GENERATED_SLIDE_BROWSER_GLYPH_SAMPLE, size: GENERATED_SLIDE_BROWSER_GLYPH_FONT_SIZE_PX, fontSha: GENERATED_SLIDE_BROWSER_FONT_SHA256 });
+  };
+  const data = await page.evaluate(collectMeasurements, {
+    canvasSelector,
+    family: GENERATED_SLIDE_BROWSER_FONT_FAMILY,
+    sample: GENERATED_SLIDE_BROWSER_GLYPH_SAMPLE,
+    size: GENERATED_SLIDE_BROWSER_GLYPH_FONT_SIZE_PX,
+    fontSha: GENERATED_SLIDE_BROWSER_FONT_SHA256,
+  });
   return { identity: { contentHash: data.contentHash, validatorVersion: GENERATED_SLIDE_BROWSER_VALIDATOR_VERSION, browserVersion: browser.version(), fontVersion: GENERATED_SLIDE_BROWSER_FONT_VERSION, fontSha256: GENERATED_SLIDE_BROWSER_FONT_SHA256, viewportVersion: GENERATED_SLIDE_BROWSER_VIEWPORT_VERSION, projection }, ...data };
 }
