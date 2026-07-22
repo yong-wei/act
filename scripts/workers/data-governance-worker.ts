@@ -644,6 +644,52 @@ export async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
   const db = getPrismaClient();
   const { userId } = job.data;
   const snapshotAt = new Date();
+  if (job.data.growthRecomputeForSnapshot) {
+    const growthSnapshot = await db.studentCompetencySnapshot.findFirst({
+      where: { id: job.data.growthRecomputeForSnapshot, userId },
+    });
+    if (!growthSnapshot) {
+      return { skipped: true, reason: 'stale_growth_recompute_snapshot', userId, featureCacheRefreshed: false };
+    }
+    const latestGrowthSnapshot = await db.studentCompetencySnapshot.findFirst({
+      where: { userId },
+      orderBy: { snapshotAt: 'desc' },
+    });
+    if (!latestGrowthSnapshot || latestGrowthSnapshot.id !== growthSnapshot.id) {
+      return { skipped: true, reason: 'stale_growth_recompute_snapshot', userId, featureCacheRefreshed: false };
+    }
+
+    const growthTargetProfile = await db.studentProfile.findUnique({ where: { userId }, select: { classId: true } });
+    const preparedGrowthDescription = await prepareGrowthEvaluationDescription(db as any, {
+      snapshot: growthSnapshot,
+      targetContext: { classId: growthTargetProfile?.classId ?? null, institutionId: process.env.ACT_INSTITUTION_ID?.trim() || null },
+    });
+    if (!preparedGrowthDescription) {
+      return { skipped: true, reason: 'growth_no_evidence', userId, snapshotId: growthSnapshot.id, featureCacheRefreshed: false };
+    }
+    const observedGeneration = await readLearningMaterializationGeneration(db, userId);
+    return runLearningMaterializationBarrierStage(db, { userId, observedGeneration }, async (tx) => {
+      const currentSnapshot = await tx.studentCompetencySnapshot.findFirst({
+        where: { userId },
+        orderBy: { snapshotAt: 'desc' },
+      });
+      if (!currentSnapshot || currentSnapshot.id !== growthSnapshot.id) {
+        return { skipped: true, reason: 'stale_growth_recompute_snapshot', userId, featureCacheRefreshed: false };
+      }
+      const growthEvaluation = await refreshStudentGrowthEvaluation(tx as any, {
+        snapshot: growthSnapshot,
+        preparedDescription: preparedGrowthDescription,
+      });
+      return {
+        skipped: growthEvaluation.action.startsWith('skipped'),
+        reason: `growth_${growthEvaluation.action}`,
+        userId,
+        snapshotId: growthSnapshot.id,
+        featureCacheRefreshed: false,
+        growthEvaluation,
+      };
+    });
+  }
   const rebuildClaim = job.data.fullRebuild && job.data.rebuildGeneration
     ? await claimLearningMaterializationRebuild(db, { userId, expectedGeneration: job.data.rebuildGeneration, now: snapshotAt })
     : null;

@@ -241,6 +241,12 @@ describe('data governance worker materialization recovery', () => {
     const growthCreates: any[] = [];
     const outboxRows: any[] = [];
     const classAdd = vi.fn(async () => undefined);
+    const snapshotCreate = vi.fn(async ({ data }: any) => (latestSnapshot = { id: 'snapshot-b', ...data }));
+    const profileUpsert = vi.fn(async () => undefined);
+    const riskUpdate = vi.fn(async () => ({ count: 0 }));
+    const riskCreate = vi.fn(async () => ({ count: 0 }));
+    const outboxUpsert = vi.fn(async ({ create }: any) => { const existing = outboxRows.find((row) => row.dedupeKey === create.dedupeKey); if (existing) return existing; outboxRows.push({ ...create }); return create; });
+    const outboxUpdate = vi.fn(async ({ where, data }: any) => { const row = outboxRows.find((item) => item.id === where.id); if (!row || (where.status && row.status !== where.status)) return { count: 0 }; Object.assign(row, data); return { count: 1 }; });
     let transactionDepth = 0;
     const db: any = {
       $transaction: async (callback: any) => {
@@ -258,10 +264,10 @@ describe('data governance worker materialization recovery', () => {
       interactionLog: { findMany: async () => [] },
       studentCompetencySnapshot: {
         findFirst: async () => latestSnapshot,
-        create: async ({ data }: any) => (latestSnapshot = { id: 'snapshot-b', ...data }),
+        create: snapshotCreate,
       },
       studentProfile: { findUnique: async () => ({ classId: 'class-1' }), findMany: async () => [] },
-      user: { findUnique: async () => ({ name: null, profile: { studentNumber: null } }) },
+      user: { findUnique: async () => { expect(transactionDepth).toBe(0); return { name: null, profile: { studentNumber: null } }; } },
       gradingProviderPolicy: { findFirst: async () => null },
       growthRecord: {
         findUnique: async () => null,
@@ -269,13 +275,13 @@ describe('data governance worker materialization recovery', () => {
         create: async ({ data }: any) => { growthCreates.push(data); return data; },
         updateMany: async () => ({ count: 0 }),
       },
-      studentProfileSummary: { upsert: async () => undefined },
-      studentRiskFlag: { updateMany: async () => ({ count: 0 }), createMany: async () => ({ count: 0 }) },
+      studentProfileSummary: { upsert: profileUpsert },
+      studentRiskFlag: { updateMany: riskUpdate, createMany: riskCreate },
       learningMaterializationOutbox: {
-        upsert: async ({ create }: any) => { const existing = outboxRows.find((row) => row.dedupeKey === create.dedupeKey); if (existing) return existing; outboxRows.push({ ...create }); return create; },
+        upsert: outboxUpsert,
         deleteMany: async () => ({ count: 0 }),
         findMany: async ({ where }: any) => outboxRows.filter((row) => row.kind === where.kind && ['PENDING', 'CLAIMED'].includes(row.status)),
-        updateMany: async ({ where, data }: any) => { const row = outboxRows.find((item) => item.id === where.id); if (!row || (where.status && row.status !== where.status)) return { count: 0 }; Object.assign(row, data); return { count: 1 }; },
+        updateMany: outboxUpdate,
       },
     };
     configureDataGovernanceWorkerForTest({ db, classJobQueue: { add: classAdd } as any });
@@ -305,9 +311,61 @@ describe('data governance worker materialization recovery', () => {
     const queued: any[] = [];
     await dispatchGrowthRecomputeOutbox(db, async (userId, snapshotId) => queued.push({ data: { userId, growthRecomputeForSnapshot: snapshotId } }), new Date('2026-07-15T00:01:00Z'));
     expect(queued).toHaveLength(1);
-    await processStudentSnapshotJob(queued[0]);
+    factsB.push({
+      ...fact('context-only-after-snapshot'),
+      contextJson: { evidenceGovernance: { skipProfileContribution: true, profileWeight: 0 } },
+    });
+    const factReadsBeforeRetry = factReads;
+    const writesBeforeRetry = {
+      snapshot: snapshotCreate.mock.calls.length,
+      profile: profileUpsert.mock.calls.length,
+      riskUpdate: riskUpdate.mock.calls.length,
+      riskCreate: riskCreate.mock.calls.length,
+      outboxUpsert: outboxUpsert.mock.calls.length,
+      outboxUpdate: outboxUpdate.mock.calls.length,
+      classAdd: classAdd.mock.calls.length,
+    };
+    mocks.portrait.mockClear();
+    mocks.refreshCache.mockClear();
+    mocks.prepareGrowth.mockClear();
+    mocks.portrait.mockResolvedValueOnce({ written: false, mappingIssues: [], evidenceCount: 0, affectedDimensions: [] });
+    const recomputeResult = await processStudentSnapshotJob(queued[0]);
+    expect(recomputeResult).toMatchObject({ skipped: false, reason: 'growth_created', snapshotId: 'snapshot-b', featureCacheRefreshed: false });
     expect(growthCreates).toHaveLength(1);
     expect(growthCreates[0]).toMatchObject({ userId: 'student-1', recordType: 'competency_evaluation' });
+    expect(mocks.prepareGrowth).toHaveBeenCalledWith(db, expect.objectContaining({
+      snapshot: expect.objectContaining({ id: 'snapshot-b', factCount: 2, evidenceSummary: { controlModeling: [{ id: 'fact-a' }, { id: 'fact-b' }] } }),
+    }));
+    expect(factReads).toBe(factReadsBeforeRetry);
+    expect(mocks.portrait).not.toHaveBeenCalled();
+    expect(mocks.refreshCache).not.toHaveBeenCalled();
+    expect(snapshotCreate).toHaveBeenCalledTimes(writesBeforeRetry.snapshot);
+    expect(profileUpsert).toHaveBeenCalledTimes(writesBeforeRetry.profile);
+    expect(riskUpdate).toHaveBeenCalledTimes(writesBeforeRetry.riskUpdate);
+    expect(riskCreate).toHaveBeenCalledTimes(writesBeforeRetry.riskCreate);
+    expect(outboxUpsert).toHaveBeenCalledTimes(writesBeforeRetry.outboxUpsert);
+    expect(outboxUpdate).toHaveBeenCalledTimes(writesBeforeRetry.outboxUpdate);
+    expect(classAdd).toHaveBeenCalledTimes(writesBeforeRetry.classAdd);
+  });
+
+  it('skips a Growth retry when its specified snapshot is no longer current', async () => {
+    const specifiedSnapshot = { id: 'snapshot-old', userId: 'student-1', snapshotAt: new Date('2026-07-15T00:00:00Z'), factCount: 1, competencyVector: {}, evidenceSummary: {} };
+    const latestSnapshot = { id: 'snapshot-current', userId: 'student-1', snapshotAt: new Date('2026-07-15T00:01:00Z'), factCount: 1, competencyVector: {}, evidenceSummary: {} };
+    const snapshotFindFirst = vi.fn()
+      .mockResolvedValueOnce(specifiedSnapshot)
+      .mockResolvedValueOnce(latestSnapshot);
+    const db: any = {
+      studentCompetencySnapshot: { findFirst: snapshotFindFirst },
+    };
+    configureDataGovernanceWorkerForTest({ db });
+
+    const result = await processStudentSnapshotJob({ data: { userId: 'student-1', growthRecomputeForSnapshot: 'snapshot-old' } } as any);
+
+    expect(result).toEqual({ skipped: true, reason: 'stale_growth_recompute_snapshot', userId: 'student-1', featureCacheRefreshed: false });
+    expect(snapshotFindFirst).toHaveBeenNthCalledWith(1, { where: { id: 'snapshot-old', userId: 'student-1' } });
+    expect(snapshotFindFirst).toHaveBeenNthCalledWith(2, { where: { userId: 'student-1' }, orderBy: { snapshotAt: 'desc' } });
+    expect(mocks.prepareGrowth).not.toHaveBeenCalled();
+    expect(mocks.portrait).not.toHaveBeenCalled();
   });
 
   it('keeps repeated active no-recent jobs idempotent while retaining one delivered class transition', async () => {
