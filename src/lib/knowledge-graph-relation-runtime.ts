@@ -1,4 +1,5 @@
 import {
+  deriveKnowledgeGraphRelationEvidenceState,
   KNOWLEDGE_GRAPH_RELATION_CONTRACTS,
   projectKnowledgeGraphRelations,
   type ContributingKnowledgeGraphRelation,
@@ -605,9 +606,7 @@ export function buildRuntimeKnowledgeRelationInspectionItems<T extends {
           ? 'follows'
           : 'prerequisite';
     const evidenceSummary = buildAllowedEvidenceSummary(link.provenance.rawRelation);
-    const evidenceState: RuntimeKnowledgeRelationInspectionItem['evidenceState'] = Object.keys(evidenceSummary).length > 0
-      ? 'available'
-      : 'unavailable';
+    const evidenceState = deriveKnowledgeGraphRelationEvidenceState(link.provenance.rawRelation);
     return [{
       canonicalType: contract.canonicalType,
       ...(link.motionEligible === false && family === 'post-requisite'

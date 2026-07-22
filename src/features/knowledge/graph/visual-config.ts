@@ -390,6 +390,7 @@ export const RELATION_SEMANTICS: Record<string, RelationSemantic> = {
   provides_context: { type: 'provides_context', label: '提供语境', visualFamily: 'relation-family-association', direction: 'undirected', density: 'context', legendExplanation: '提供与当前节点相关的补充语义。' },
   refined_by: { type: 'refined_by', label: '被精化', visualFamily: 'relation-family-association', direction: 'undirected', density: 'context', legendExplanation: '提供与当前节点相关的补充语义。' },
   refines: { type: 'refines', label: '精化概念', visualFamily: 'relation-family-association', direction: 'undirected', density: 'context', legendExplanation: '提供与当前节点相关的补充语义。' },
+  association: { type: 'association', label: '语义关联', visualFamily: 'relation-family-association', direction: 'undirected', density: 'context', legendExplanation: '提供与当前节点相关的补充语义。' },
 };
 
 const FAMILY_SEMANTICS: Record<KnowledgeGraphPresentationFamily, Pick<RelationSemantic, 'visualFamily' | 'direction' | 'density' | 'legendExplanation'>> = {
