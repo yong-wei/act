@@ -21,6 +21,7 @@ import {
 } from '@/lib/knowledge-graph-source';
 import {
   buildRuntimeKnowledgeRelationInspectionItems,
+  inspectRuntimeKnowledgeRelationCoverage,
   RuntimeKnowledgeRelationCoverageError,
   type RuntimeKnowledgeRelationLink,
 } from '@/lib/knowledge-graph-relation-runtime';
@@ -370,6 +371,19 @@ describe('ActKG projection adapter', () => {
     );
   });
 
+  it('fails closed when the projection declares an unpinned schema_version', async () => {
+    await installActkgGate(buildActkgProjectionDocument({ schema_version: '999.0.0' }));
+
+    const failure = await loadKnowledgeGraphData().catch((error: unknown) => error);
+
+    expect(failure).toBeInstanceOf(RuntimeKnowledgeRelationCoverageError);
+    expect((failure as RuntimeKnowledgeRelationCoverageError).report.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'UNSUPPORTED_ACTKG_SCHEMA_VERSION', blocking: true }),
+      ])
+    );
+  });
+
   it.each([
     ['missing version_digest', { ...actkgGraphProjectionFixture, version_digest: undefined } as unknown as ActkgGraphProjectionDocument],
     ['unknown relation_type', buildActkgProjectionDocument({
@@ -429,5 +443,54 @@ describe('projection-shaped node attributes on unified payloads', () => {
       expect('candidate' in node).toBe(false);
       expect('sourceCoverageCount' in node).toBe(false);
     }
+  });
+});
+
+describe('merged visual edge evidence aggregation', () => {
+  function node(id: string) {
+    return {
+      id,
+      name: id,
+      nodeType: 'THEORY' as const,
+      description: '',
+      positionX: 0,
+      positionY: 0,
+      positionZ: 0,
+    };
+  }
+  function jsonl(...rows: Record<string, unknown>[]) {
+    return `${rows.map((row) => JSON.stringify(row)).join('\n')}\n`;
+  }
+
+  it('reports available when any contributing relation of a merged edge has evidence', () => {
+    const runtime = inspectRuntimeKnowledgeRelationCoverage(jsonl(
+      { id: 'aaa-unavailable', source_id: 'node-a', target_id: 'node-b', relation_type: 'supports' },
+      { id: 'zzz-available', source_id: 'node-a', target_id: 'node-b', relation_type: 'supports', rationale: '作者依据' },
+    ));
+
+    expect(runtime.runtimeLinks).toHaveLength(1);
+    // The representative keeps the first relation id, but the edge-level state
+    // must aggregate over every contributing relation so the canvas and the
+    // inspector never disagree about evidence availability.
+    expect(runtime.runtimeLinks[0]?.provenance.relationId).toBe('aaa-unavailable');
+    expect(runtime.runtimeLinks[0]?.provenance.evidenceState).toBe('available');
+
+    const payload = toPublicKnowledgeGraphPayload({
+      nodes: [node('node-a'), node('node-b')],
+      links: runtime.runtimeLinks,
+      inspectionLinks: runtime.inspectionLinks,
+      source: 'file',
+    });
+    expect(payload.links[0]?.evidenceState).toBe('available');
+  });
+
+  it('stays unavailable when no contributing relation carries evidence', () => {
+    const runtime = inspectRuntimeKnowledgeRelationCoverage(jsonl(
+      { id: 'aaa-unavailable', source_id: 'node-a', target_id: 'node-b', relation_type: 'supports' },
+      { id: 'zzz-unavailable', source_id: 'node-b', target_id: 'node-a', relation_type: 'supports' },
+    ));
+
+    expect(runtime.runtimeLinks).toHaveLength(1);
+    expect(runtime.runtimeLinks[0]?.provenance.evidenceState).toBe('unavailable');
   });
 });

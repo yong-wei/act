@@ -864,6 +864,10 @@ function loadKnowledgeGraphFromFiles(snapshot: FileGraphSnapshot): UnifiedKnowle
 
 const ACTKG_PROJECTION_PATH_ENV = 'KNOWLEDGE_GRAPH_ACTKG_PROJECTION_PATH';
 const MAX_ACTKG_VERSION_DIGEST_LENGTH = 200;
+// Pinned to the vendored schema snapshot (src/lib/knowledge-graph-actkg, ActKG
+// release 3f7c58760aa70011990af28977cd03e51ba7c985). A projection authored
+// against any other schema version fails closed as schema drift.
+const ACTKG_PINNED_SCHEMA_VERSION = '0.1.0';
 
 const ACTKG_DIRECTION_BY_PROJECTION = {
   parent_to_child: 'parent-to-child',
@@ -965,7 +969,14 @@ function parseActkgGraphProjection(snapshot: ActkgProjectionSnapshot): ActkgGrap
       `ActKG projection failed schema validation at ${snapshot.projectionPath}: ${detail}`
     );
   }
-  return document as ActkgGraphProjectionDocument;
+  const projection = document as ActkgGraphProjectionDocument;
+  if (projection.schema_version !== ACTKG_PINNED_SCHEMA_VERSION) {
+    throw runtimeLoadingError(
+      'UNSUPPORTED_ACTKG_SCHEMA_VERSION',
+      `ActKG projection schema_version "${projection.schema_version}" does not match the pinned vendored schema version "${ACTKG_PINNED_SCHEMA_VERSION}": ${snapshot.projectionPath}`
+    );
+  }
+  return projection;
 }
 
 function loadKnowledgeGraphFromActkgProjection(snapshot: ActkgProjectionSnapshot): UnifiedKnowledgeGraphPayload {
