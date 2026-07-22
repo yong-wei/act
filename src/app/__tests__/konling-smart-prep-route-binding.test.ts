@@ -93,6 +93,7 @@ vi.mock('@/lib/konling-agent-runtime', async (importOriginal) => {
       clientHintsRejected: [],
       groundingContext: { missingContext: [], sarAssociatedGrounding: null },
       permittedTools: [],
+      smartPreparation: { bootstrap: false },
     })),
     buildKonlingToolRuntime: vi.fn(() => ({})),
     buildScopedKonlingAiTools: vi.fn(() => ({})),
@@ -180,6 +181,10 @@ describe('Konling smart-prep production routes', () => {
     expect(mocks.getOrCreateAgentSession).toHaveBeenCalledWith(mocks.prisma, expect.objectContaining({
       agentSessionId: 'agent-from-client',
       smartPrepBinding: { taskId: 'server-task', taskRevision: '7' },
+    }));
+    expect(mocks.streamText).toHaveBeenCalledWith(expect.objectContaining({
+      activeTools: ['propose_smart_lesson_task_change'],
+      toolChoice: { type: 'tool', toolName: 'propose_smart_lesson_task_change' },
     }));
   });
 
