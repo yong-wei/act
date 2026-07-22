@@ -1097,15 +1097,26 @@ describe('konling agent runtime', () => {
       proposedTask: {
         courseBasisId: 'basis-1', topic: '根轨迹', audience: '自动化专业本科生', durationMinutes: 45,
         sourceVersionIds: ['version-1'],
-        knowledgePoints: [{ content: '相角条件', sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
-        goals: [{ content: '判断根轨迹', sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
+        knowledgePoints: [{ content: '相角条件', sourceState: 'ai_generated_source_pending', sourceBindings: [{
+          citationId: 'unselected-version-citation', sourceVersionId: 'version-2', anchor: 'chapter-2', contentHash: '2'.repeat(16),
+        }] }],
+        goals: [{ content: '判断根轨迹', sourceState: 'ai_generated_source_pending', sourceBindings: [{
+          citationId: 'forged-citation', sourceVersionId: 'version-1', anchor: 'forged-anchor', contentHash: 'f'.repeat(16),
+        }] }],
       },
     })).resolves.toMatchObject({
       turnId: 'turn-2',
       status: 'awaiting_teacher_confirmation',
-      proposedTask: { knowledgePoints: [{ origin: 'SUGGESTED' }] },
+      proposedTask: {
+        knowledgePoints: [{ origin: 'SUGGESTED', sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
+        goals: [{ sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
+      },
     });
     expect(db.agentToolRun.create).toHaveBeenCalledTimes(2);
+    expect(db.agentToolRun.create.mock.calls.at(-1)?.[0].data.inputSummary.proposedTask).toMatchObject({
+      knowledgePoints: [{ sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
+      goals: [{ sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
+    });
 
     const invalidProposal = (courseBasisId: string, sourceVersionIds: string[]) => runtime.proposeSmartLessonTaskChange({
       proposedTask: {

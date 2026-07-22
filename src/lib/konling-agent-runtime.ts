@@ -2499,6 +2499,8 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
           if (arrayOfStrings(readRecord(proposedTask).sourceVersionIds).some((versionId) => !availableVersionIds.has(versionId))) {
             throw new KonlingRuntimeScopeError(400, '智能备课建议引用了不属于所选课程依据的版本。');
           }
+          for (const point of arrayOfRecords(readRecord(proposedTask).knowledgePoints)) point.sourceBindings = [];
+          for (const goal of arrayOfRecords(readRecord(proposedTask).goals)) goal.sourceBindings = [];
         }
       }
       return runKonlingRuntimeTool(input, 'propose_smart_lesson_task_change', boundArgs, async (toolRun) => {
