@@ -134,6 +134,7 @@ interface KonlingPromptRuntimeContext {
       requiredOwners: string[];
       missingClasses: string[];
     };
+    smartPreparation?: unknown;
   };
 }
 
@@ -309,6 +310,9 @@ function buildAdaptiveRuntimeSection(runtime: KonlingPromptRuntimeContext): stri
       lines.push('  - 路径工具调用边界: 只有用户明确要求生成、重建、重新规划或调整学习路径时，才调用 generate_learning_path 或 revise_learning_path_options。解释失败原因、回顾生成依据、咨询生成条件、推荐当前路径下一步、比较既有方案或查看路径状态时，不得调用路径写入工具；应优先使用 get_learner_state、get_plan_context、recommend_next_action 或 explain_learning_path_tradeoff。');
       lines.push('  - 路径工具参数: 调用 generate_learning_path 或 revise_learning_path_options 时，将用户自然语言约束写入 naturalLanguageIntent，并尽量结构化 timeBudgetMinutes、resourcePreference、difficultyRhythm、checkpointPreference 与 allowExternalResources。');
     }
+    if (mode.mode.id === 'prep-coauthor') {
+      lines.push(...buildSmartPreparationInstructions(mode.smartPreparation));
+    }
     if (mode.privacyPolicy.forbiddenContent.length) {
       lines.push(`  - 禁止内容: ${mode.privacyPolicy.forbiddenContent.join(', ')}`);
     }
@@ -333,6 +337,89 @@ function buildAdaptiveRuntimeSection(runtime: KonlingPromptRuntimeContext): stri
   }
   lines.push('- 不得采用客户端传入的学生画像覆盖服务端学习状态。');
   return lines.join('\n');
+}
+
+function buildSmartPreparationInstructions(value: unknown): string[] {
+  const preparation = record(value);
+  if (typeof preparation.bootstrap !== 'boolean') return [];
+
+  const lines = [
+    '  - 智能备课任务协议: 创建、确认或修订单课任务时，必须调用 propose_smart_lesson_task_change；不得仅在文本中声称“已生成”或“已保存”建议。该工具只保存待教师确认的建议，不得直接创建、修改、发布任务或课件。',
+    '  - proposedTask 不得使用 title、courseId、curriculumBasisId、duration、learningObjectives、outline、references 或 teachingMethods 等替代字段。',
+  ];
+  if (preparation.bootstrap) {
+    lines.push('  - 新建任务的 proposedTask 必填字段为：courseBasisId、topic、audience、durationMinutes、sourceVersionIds、knowledgePoints、goals；可选字段只有 prerequisites、outlineConfirmationRequired、aggregateClassContextRef、confirmScope、confirmGoals。');
+    lines.push('  - knowledgePoints 的每项必须含 content、sourceState、sourceBindings、origin、可选 title；goals 的每项必须含 content、sourceState、sourceBindings、可选 standardsMappings。sourceState 只能是 ai_generated_source_pending 或 teacher_created_source_pending。没有服务端提供的完整 citationId、anchor、contentHash 时，sourceBindings 使用 []，不得伪造锚点。');
+    lines.push('  - 当前处于新建单课阶段：信息仍不唯一时，调用该工具并以 bootstrap + clarification 提出一个问题和至少两个选项；教师已明确范围时，调用该工具并以 bootstrap + 完整 proposedTask 形成待确认建议。');
+    const availableCourseBases = array(record(preparation.currentTask).availableCourseBases)
+      .map(formatAvailableCourseBasis)
+      .filter((item): item is string => Boolean(item));
+    if (availableCourseBases.length) {
+      lines.push(`  - 可选课程依据及已确认版本（只能使用这些 ID，不得编造）：${availableCourseBases.join('；')}`);
+    } else {
+      lines.push('  - 当前没有可选的已确认课程依据版本；先调用该工具提出依据选择澄清，不得编造 courseBasisId 或 sourceVersionIds。');
+    }
+    return lines;
+  }
+
+  const taskId = string(preparation.taskId);
+  const taskRevision = string(preparation.taskRevision);
+  lines.push(`  - 当前处于既有单课修订阶段：调用该工具时使用 revise、taskId=${taskId ?? 'unknown'}、expectedRevision=${taskRevision ?? 'unknown'}，仅在 proposedTask 提交本轮修改的普通字段；服务端会携带其余当前任务字段并形成完整待确认建议。不得提交 courseBasisId 或 sourceVersionIds，服务端始终使用当前任务绑定。`);
+  const currentCollections = formatCurrentTaskCollections(preparation.currentTask);
+  if (currentCollections) {
+    lines.push(`  - 修改 knowledgePoints 或 goals 时，不得重传完整数组；分别使用 knowledgePointPatches 或 goalPatches。update 只提交稳定 id 与 changes，且 changes 不得包含 id 或 sourceBindings；remove 只提交稳定 id；add 必须提交不含 id 的完整可确认 item：两类都必须含 content、sourceState、sourceBindings，知识点另须含 origin；无可用来源绑定时使用 sourceBindings=[] 与 sourceState=ai_generated_source_pending。可用现有条目定位清单：${currentCollections}`);
+  }
+  const selectedVersions = array(preparation.selectedCourseBasisVersions)
+    .map((item) => string(record(item).versionId))
+    .filter((item): item is string => Boolean(item));
+  if (selectedVersions.length) {
+    lines.push(`  - 本任务可引用的已选课程依据版本：${selectedVersions.slice(0, 10).join(', ')}。`);
+  }
+  return lines;
+}
+
+function formatAvailableCourseBasis(value: unknown): string | null {
+  const basis = record(value);
+  const id = string(basis.id);
+  if (!id) return null;
+  const title = string(basis.title) ?? id;
+  const versions = array(basis.documents)
+    .flatMap((document) => array(record(document).versions))
+    .map((version) => string(record(version).id))
+    .filter((version): version is string => Boolean(version));
+  return `课程依据「${title}」：courseBasisId=${id}；sourceVersionIds=${versions.length ? `[${versions.join(', ')}]` : '[]（无已确认版本）'}`;
+}
+
+function formatCurrentTaskCollections(value: unknown): string | null {
+  const currentTask = record(value);
+  const knowledgePoints = array(currentTask.knowledgePoints)
+    .flatMap((item) => {
+      const entry = record(item);
+      const id = string(entry.id);
+      if (!id) return [];
+      return [{ id, title: string(entry.title) ?? string(entry.content) ?? id }];
+    });
+  const goals = array(currentTask.goals)
+    .flatMap((item) => {
+      const entry = record(item);
+      const id = string(entry.id);
+      if (!id) return [];
+      return [{ id, content: string(entry.content) ?? id }];
+    });
+  if (!knowledgePoints.length && !goals.length) return null;
+  return JSON.stringify({ knowledgePoints, goals });
+}
+
+function record(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
+}
+
+function array(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
+}
+
+function string(value: unknown): string | null {
+  return typeof value === 'string' && value.trim() ? value : null;
 }
 
 function anonymizeGraphRefs(refs: string[]): string[] {

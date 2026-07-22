@@ -227,6 +227,7 @@ async function buildStageRequest(db: WorkerDb, context: NonNullable<JobContext>,
     contentHash: item.metadata?.contentHash,
   })));
   if (!allowedBindings.success) throw new SmartLessonPlanError('governed-source-evidence-invalid', 409);
+  const allowedSourceBindings = allowedBindings.data;
   const common = {
     course: task.courseBasis.title,
     topic: task.topic,
@@ -245,9 +246,9 @@ async function buildStageRequest(db: WorkerDb, context: NonNullable<JobContext>,
   return {
     schema,
     schemaVersion: stage === 'OUTLINE' ? 'smart-lesson-outline.v1' : `smart-lesson-boppps-${stage.toLowerCase()}.v1`,
-    system: '你是单课 BOPPPS 教案生成器。只能使用给定的已确认目标、知识点、服务端来源证据和聚合班级上下文；不得创建新的来源绑定。输出必须符合 JSON Schema。',
-    prompt: `生成阶段 ${stage}。任务上下文：${JSON.stringify(common)}。已完成阶段：${JSON.stringify(previous)}。`,
-    allowedBindingKeys: new Set(allowedBindings.data.map(bindingKey)),
+    system: '你是单课 BOPPPS 教案生成器。只能使用给定的已确认目标、知识点、服务端来源证据和聚合班级上下文；不得创建新的来源绑定。sourceBindings 只能逐字使用下方给出的可用来源绑定；没有适用项时使用 []。输出必须符合 JSON Schema。',
+    prompt: `生成阶段 ${stage}。任务上下文：${JSON.stringify(common)}。可用来源绑定（逐字复制，不得改写）：${JSON.stringify(allowedSourceBindings)}。已完成阶段：${JSON.stringify(previous)}。`,
+    allowedBindingKeys: new Set(allowedSourceBindings.map(bindingKey)),
   };
 }
 

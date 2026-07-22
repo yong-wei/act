@@ -102,6 +102,10 @@ describe('smart lesson BullMQ worker', () => {
     expect(generate).toHaveBeenCalledWith(expect.objectContaining({
       prompt: expect.stringContaining('有界 Source Pack 摘录'),
     }));
+    expect(generate).toHaveBeenCalledWith(expect.objectContaining({
+      system: expect.stringContaining('sourceBindings 只能逐字使用'),
+      prompt: expect.stringContaining('teacher-course-basis-citation:basis-1:version-1:chapter-1'),
+    }));
     expect(serviceMocks.complete).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
       stage: 'OUTLINE', claimToken: 'claim-1', attemptId: 'attempt-1', output: outline,
     }));
