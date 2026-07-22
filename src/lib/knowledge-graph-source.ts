@@ -120,6 +120,8 @@ export interface KnowledgeGraphRootCatalogEntry {
   nodeType: NodeType;
   domainId: string;
   chapterName: string;
+  /** Present only when the node is a governance candidate. */
+  candidate?: boolean;
 }
 
 export interface KnowledgeGraphProgressivePayload {
@@ -1437,6 +1439,7 @@ export function buildKnowledgeGraphRootPayload(graph: UnifiedKnowledgeGraphPaylo
       nodeType: node.nodeType,
       domainId,
       chapterName: group.chapterName,
+      ...(node.candidate === true ? { candidate: true as const } : {}),
     }));
   });
 

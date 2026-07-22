@@ -14,14 +14,17 @@ import type { KnowledgeNodeData, KnowledgeLinkData } from '../knowledge-graph-sy
 import {
   getNodeColor,
   getGlowColor,
-  getNodeTypeConfig,
+  getKnowledgeConceptNodeShape,
+  getKnowledgeGraphEdgeRenderModulation,
   getKnowledgeNodeScale,
   getKnowledgeSemanticRegionStyle,
   getKnowledgeNodeMaximumPresentationRadius,
   getKnowledgeGraphEffectiveEdgeOpacity,
   getKnowledgeGraphEffectiveEdgeWidth,
   hexToRgba,
+  KNOWLEDGE_GRAPH_CANDIDATE_PRESENTATION,
   KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT,
+  type KnowledgeConceptNodeShape,
 } from './visual-config';
 import {
   getKnowledgeNodeLabelPresentation,
@@ -186,6 +189,9 @@ export function getKnowledgeGraphNodeVisualDataSignature(node: any): string {
     node.nodeType,
     node.knowledgeDim,
     node.bloomLevel,
+    node.conceptKind,
+    node.candidate === true,
+    node.sourceCoverageCount ?? null,
     node.graphDegree,
     node.graphImportanceScore,
     node.importance,
@@ -418,20 +424,55 @@ function getKnowledgeGraph3DSafeFitCameraDistance(input: {
 // ========== 几何体创建函数 ==========
 
 /**
- * 根据节点类型创建几何体
+ * 根据概念宏类目形状创建几何体
  */
-function createGeometryByType(nodeType?: string): THREE.BufferGeometry {
-  const config = getNodeTypeConfig(nodeType);
-  switch (config.shape) {
-    case 'circle': // sphere for 3D
+function createGeometryByConceptShape(shape: KnowledgeConceptNodeShape): THREE.BufferGeometry {
+  switch (shape) {
+    case 'circle':
       return new THREE.SphereGeometry(4, 32, 32);
-    case 'square': // box for 3D
+    case 'square':
       return new THREE.BoxGeometry(7, 7, 7);
-    case 'hexagon': // icosahedron for 3D
+    case 'hexagon':
       return new THREE.IcosahedronGeometry(5, 0);
+    case 'triangle':
+      return new THREE.TetrahedronGeometry(5, 0);
+    case 'diamond':
+      return new THREE.OctahedronGeometry(5, 0);
+    case 'pentagon':
+      return new THREE.CylinderGeometry(4.5, 4.5, 4.5, 5, 1);
     default:
       return new THREE.SphereGeometry(4, 32, 32);
   }
+}
+
+// 候选徽标：共享画布纹理 + 候选文案，所有节点复用一份。
+let candidateBadgeTexture: THREE.CanvasTexture | null = null;
+
+function getKnowledgeGraphCandidateBadgeTexture(): THREE.CanvasTexture {
+  if (!candidateBadgeTexture) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 128;
+    canvas.height = 64;
+    const context = canvas.getContext('2d')!;
+    context.font = '600 40px sans-serif';
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.fillStyle = hexToRgba(KNOWLEDGE_GRAPH_CANDIDATE_PRESENTATION.color, 1);
+    context.fillText(KNOWLEDGE_GRAPH_CANDIDATE_PRESENTATION.label, 64, 34);
+    candidateBadgeTexture = new THREE.CanvasTexture(canvas);
+  }
+  return candidateBadgeTexture;
+}
+
+function createKnowledgeGraphCandidateBadge(opacity: number): THREE.Sprite {
+  const badge = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: getKnowledgeGraphCandidateBadgeTexture(),
+    transparent: true,
+    opacity,
+    depthWrite: false,
+  }));
+  badge.scale.set(6.4, 3.2, 1);
+  return badge;
 }
 
 export function KnowledgeGraphCanvas({
@@ -1072,6 +1113,7 @@ export function KnowledgeGraphCanvas({
             degree: node.graphDegree,
             focused,
             importanceScore: node.graphImportanceScore,
+            sourceCoverageCount: node.sourceCoverageCount,
           }).radius;
           const renderedBodyRadius = placement
             ? getKnowledgeGraph3DRenderedNodeRadius(node, naturalRadius, placement.projectedScale)
@@ -1462,6 +1504,7 @@ export function KnowledgeGraphCanvas({
       degree: node.graphDegree,
       focused: isActive,
       importanceScore: node.graphImportanceScore,
+      sourceCoverageCount: node.sourceCoverageCount,
     });
     const presentationScale = getKnowledgeGraphPresentationNodeScale({
       ...visualState.presentation, nodeId: node.id,
@@ -1503,7 +1546,7 @@ export function KnowledgeGraphCanvas({
     // 1. 创建节点几何体
     const geometry = isRootBubble
       ? new THREE.SphereGeometry(5, 40, 40)
-      : createGeometryByType(node.nodeType);
+      : createGeometryByConceptShape(getKnowledgeConceptNodeShape(node));
 
     // 2. 创建材质（带发光效果）
     const material = new THREE.MeshPhongMaterial({
@@ -1568,6 +1611,30 @@ export function KnowledgeGraphCanvas({
     ring.visible = isSelected;
     group.add(ring);
     group.userData.knowledgeSelectionRing = ring;
+
+    // 候选节点：虚线轮廓环 + 候选徽标，绝不被误认为已审知识
+    if (!isRootBubble && node.candidate === true) {
+      const candidateRingRadius = presentationRadius + 1.1;
+      const candidateRing = new THREE.LineLoop(
+        new THREE.BufferGeometry().setFromPoints(
+          new THREE.EllipseCurve(0, 0, candidateRingRadius, candidateRingRadius, 0, Math.PI * 2).getPoints(48)
+        ),
+        new THREE.LineDashedMaterial({
+          color: new THREE.Color(hexToRgba(KNOWLEDGE_GRAPH_CANDIDATE_PRESENTATION.color, 1)),
+          dashSize: 1.6,
+          gapSize: 1.1,
+          transparent: true,
+          opacity: 0.95 * presentationOpacity,
+        })
+      );
+      candidateRing.computeLineDistances();
+      candidateRing.rotation.x = Math.PI / 2;
+      group.add(candidateRing);
+
+      const badge = createKnowledgeGraphCandidateBadge(0.95 * presentationOpacity);
+      badge.position.set(0, presentationRadius + 2.2, 0);
+      group.add(badge);
+    }
 
     group.userData.knowledgePresentationRadius = presentationRadius;
     group.userData.knowledgeOwnedChildren = [...group.children];
@@ -1644,6 +1711,7 @@ export function KnowledgeGraphCanvas({
         degree: entry.node.graphDegree,
         focused: isActive,
         importanceScore: entry.node.graphImportanceScore,
+        sourceCoverageCount: entry.node.sourceCoverageCount,
       });
       const presentationScale = getKnowledgeGraphPresentationNodeScale({ ...presentation, nodeId });
       const naturalRadius = (entry.node.__knowledgeRootPacking?.collisionRadius ?? nodeScale.radius)
@@ -1686,7 +1754,14 @@ export function KnowledgeGraphCanvas({
         emphasis: selectedCorridorEmphasis,
         structuralForegroundEdgeIds: structuralForegroundEdgeIdSet,
       });
+    const sourceNode = typeof link.source === 'object' ? link.source : null;
+    const targetNode = typeof link.target === 'object' ? link.target : null;
+    const renderModulation = getKnowledgeGraphEdgeRenderModulation({
+      candidate: sourceNode?.candidate === true || targetNode?.candidate === true,
+      evidenceState: link.evidenceState,
+    });
     const opacity = getKnowledgeGraphEffectiveEdgeOpacity(style, strength, focusState)
+      * renderModulation.opacityFactor
       * getKnowledgeGraphPresentationLinkOpacity({
         ...presentation,
         sourceId,
@@ -1695,7 +1770,8 @@ export function KnowledgeGraphCanvas({
     return {
       color: isLightTheme ? style.lightColor : style.darkColor,
       opacity,
-      width: getKnowledgeGraphEffectiveEdgeWidth(style, strength, focusState, '3d'),
+      width: getKnowledgeGraphEffectiveEdgeWidth(style, strength, focusState, '3d')
+        * renderModulation.widthFactor,
     };
   }, [hoveredNode?.id, isLightTheme, presentation, selectedCorridorEmphasis, structuralForegroundEdgeIdSet]);
 
@@ -1743,6 +1819,7 @@ export function KnowledgeGraphCanvas({
           || selectedNode?.id === node?.id
           || hoveredNode?.id === node?.id,
         importanceScore: node?.graphImportanceScore,
+        sourceCoverageCount: node?.sourceCoverageCount,
       }).radius) * getKnowledgeGraphPresentationNodeScale({ ...presentation, nodeId: node?.id }),
       labelPlacementsRef.current.get(node?.id)?.projectedScale ?? viewportScaleRef.current,
     );
@@ -1768,6 +1845,8 @@ export function KnowledgeGraphCanvas({
       coordinates.end.z,
       sourcePresentationRadius,
       targetPresentationRadius,
+      sourceNode ? getKnowledgeConceptNodeShape(sourceNode) : '',
+      targetNode ? getKnowledgeConceptNodeShape(targetNode) : '',
       laneCurvature,
       progress,
       appearance.color,
@@ -1788,6 +1867,8 @@ export function KnowledgeGraphCanvas({
         target: coordinates.end,
         sourceNodeType: sourceNode?.nodeType,
         targetNodeType: targetNode?.nodeType,
+        sourceShape: sourceNode ? getKnowledgeConceptNodeShape(sourceNode) : undefined,
+        targetShape: targetNode ? getKnowledgeConceptNodeShape(targetNode) : undefined,
         sourcePresentationRadius,
         targetPresentationRadius,
         laneCurvature,
@@ -2353,6 +2434,7 @@ export function KnowledgeGraphCanvas({
           degree: node.graphDegree,
           focused,
           importanceScore: node.graphImportanceScore,
+          sourceCoverageCount: node.sourceCoverageCount,
         }).radius) * getKnowledgeGraphPresentationNodeScale({ ...presentationRef.current, nodeId: node.id });
         const radius = getKnowledgeGraph3DRenderedNodeRadius(node, naturalRadius, placement.projectedScale)
           * placement.projectedScale;
@@ -2489,6 +2571,7 @@ export function KnowledgeGraphCanvas({
           || selectedNode?.id === node.id
           || hoveredNode?.id === node.id,
         importanceScore: node.graphImportanceScore,
+        sourceCoverageCount: node.sourceCoverageCount,
       }).radius) * getKnowledgeGraphPresentationNodeScale({ ...presentation, nodeId: node.id }),
       labelPlacementsRef.current.get(node.id)?.projectedScale ?? viewportScaleRef.current,
     );
@@ -2499,6 +2582,8 @@ export function KnowledgeGraphCanvas({
       target,
       sourceNodeType: source.nodeType,
       targetNodeType: target.nodeType,
+      sourceShape: getKnowledgeConceptNodeShape(source),
+      targetShape: getKnowledgeConceptNodeShape(target),
       sourcePresentationRadius: getRadius(source),
       targetPresentationRadius: getRadius(target),
       laneCurvature: laneCurvatureByLinkKey.get(id) ?? 0,

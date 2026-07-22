@@ -227,6 +227,7 @@ export function calculateGraphClarityMetrics(
       metadata: node.metadata,
       degree: statistics.degreeByNodeId.get(node.id) ?? 0,
       focused: focusNeighborhood?.focusNodeId === node.id,
+      sourceCoverageCount: node.sourceCoverageCount,
     }).radius
   );
   const neighborhoodLinkCount = visibleLinks.filter((link) => {

@@ -18,14 +18,17 @@ import {
 import {
   getNodeColor,
   getGlowColor,
-  getNodeTypeConfig,
+  getKnowledgeConceptNodeShape,
+  getKnowledgeGraphEdgeRenderModulation,
   getKnowledgeNodeScale,
   getKnowledgeSemanticRegionStyle,
   getKnowledgeNodeMaximumPresentationRadius,
   getKnowledgeGraphEffectiveEdgeOpacity,
   getKnowledgeGraphEffectiveEdgeWidth,
   hexToRgba,
+  KNOWLEDGE_GRAPH_CANDIDATE_PRESENTATION,
   KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT,
+  type KnowledgeConceptNodeShape,
 } from './visual-config';
 import {
   getKnowledgeNodeLabelPresentation,
@@ -98,6 +101,7 @@ import {
   getKnowledgeGraphPartialEdgePath,
   getKnowledgeGraphPresentationLinkKey,
   getKnowledgeGraphPresentationFamily,
+  getKnowledgeGraphRendererNodeBoundary,
   selectKnowledgeGraphStructuralForegroundEdgeIds,
   sampleKnowledgeGraphEdgePath,
   type KnowledgeGraphSelectedCorridorEmphasis,
@@ -198,17 +202,41 @@ function drawHexagon(
 }
 
 /**
- * 根据节点类型选择绘制函数
+ * 绘制正多边形（三角形/菱形/五边形等，canvas y 轴向下，-π/2 即顶点朝上）
+ */
+function drawRegularPolygon(
+  ctx: CanvasRenderingContext2D,
+  sides: number,
+  x: number,
+  y: number,
+  radius: number
+) {
+  ctx.beginPath();
+  for (let i = 0; i < sides; i++) {
+    const angle = (Math.PI * 2 * i) / sides - Math.PI / 2;
+    const px = x + radius * Math.cos(angle);
+    const py = y + radius * Math.sin(angle);
+    if (i === 0) {
+      ctx.moveTo(px, py);
+    } else {
+      ctx.lineTo(px, py);
+    }
+  }
+  ctx.closePath();
+  ctx.fill();
+}
+
+/**
+ * 根据概念形状选择绘制函数
  */
 function drawShape(
   ctx: CanvasRenderingContext2D,
-  nodeType: string | undefined,
+  shape: KnowledgeConceptNodeShape,
   x: number,
   y: number,
   size: number
 ) {
-  const config = getNodeTypeConfig(nodeType);
-  switch (config.shape) {
+  switch (shape) {
     case 'circle':
       drawCircle(ctx, x, y, size);
       break;
@@ -218,43 +246,85 @@ function drawShape(
     case 'hexagon':
       drawHexagon(ctx, x, y, size * 1.2);
       break;
+    case 'triangle':
+      drawRegularPolygon(ctx, 3, x, y, size * 1.2);
+      break;
+    case 'diamond':
+      drawRegularPolygon(ctx, 4, x, y, size * 1.2);
+      break;
+    case 'pentagon':
+      drawRegularPolygon(ctx, 5, x, y, size * 1.2);
+      break;
     default:
       drawCircle(ctx, x, y, size);
   }
 }
 
 function getNodePointerBoundary(
-  nodeType: string | undefined,
+  shape: KnowledgeConceptNodeShape,
   presentationRadius: number,
 ): KnowledgeGraphNodeBoundary {
-  switch (getNodeTypeConfig(nodeType).shape) {
-    case 'square':
-      return { shape: 'square', presentationRadius };
-    case 'hexagon':
-      return { shape: 'regular-hexagon', presentationRadius };
-    default:
-      return { shape: 'circle', presentationRadius };
-  }
+  return getKnowledgeGraphRendererNodeBoundary({ renderer: '2d', shape, presentationRadius });
 }
 
 function drawNodePointerShape(
   ctx: CanvasRenderingContext2D,
-  nodeType: string | undefined,
+  shape: KnowledgeConceptNodeShape,
   x: number,
   y: number,
   presentationRadius: number,
   tolerance: number,
 ) {
-  switch (getNodeTypeConfig(nodeType).shape) {
+  switch (shape) {
     case 'square':
       drawSquare(ctx, x, y, presentationRadius * 1.6 + tolerance * 2);
       break;
     case 'hexagon':
       drawHexagon(ctx, x, y, presentationRadius * 1.2 + tolerance);
       break;
+    case 'triangle':
+      drawRegularPolygon(ctx, 3, x, y, presentationRadius * 1.2 + tolerance);
+      break;
+    case 'diamond':
+      drawRegularPolygon(ctx, 4, x, y, presentationRadius * 1.2 + tolerance);
+      break;
+    case 'pentagon':
+      drawRegularPolygon(ctx, 5, x, y, presentationRadius * 1.2 + tolerance);
+      break;
     default:
       drawCircle(ctx, x, y, presentationRadius + tolerance);
   }
+}
+
+function traceNodeShapeOutline(
+  ctx: CanvasRenderingContext2D,
+  shape: KnowledgeConceptNodeShape,
+  x: number,
+  y: number,
+  baseRadius: number
+) {
+  if (shape === 'circle') {
+    ctx.arc(x, y, baseRadius, 0, 2 * Math.PI);
+    return;
+  }
+  if (shape === 'square') {
+    const size = baseRadius * 1.6;
+    ctx.rect(x - size / 2, y - size / 2, size, size);
+    return;
+  }
+  const sides = shape === 'triangle' ? 3 : shape === 'diamond' ? 4 : shape === 'pentagon' ? 5 : 6;
+  const radius = baseRadius * 1.2;
+  for (let i = 0; i < sides; i += 1) {
+    const angle = (Math.PI * 2 * i) / sides - Math.PI / 2;
+    const px = x + radius * Math.cos(angle);
+    const py = y + radius * Math.sin(angle);
+    if (i === 0) {
+      ctx.moveTo(px, py);
+    } else {
+      ctx.lineTo(px, py);
+    }
+  }
+  ctx.closePath();
 }
 
 export function KnowledgeGraph2D({
@@ -880,13 +950,15 @@ export function KnowledgeGraph2D({
     const isActive = isSelected || isHovered
       || Boolean(selectedCorridorEmphasis?.nodeIds.includes(node.id));
 
-    // 节点尺寸：显式教学重要性优先，连接度只作为封顶的辅助信号。
+    // 节点尺寸：显式教学重要性优先，连接度只作为封顶的辅助信号，覆盖度为第三级封顶信号。
     const nodeScale = getKnowledgeNodeScale({
       metadata: node.metadata,
       degree: node.graphDegree,
       focused: isActive,
       importanceScore: node.graphImportanceScore,
+      sourceCoverageCount: node.sourceCoverageCount,
     });
+    const nodeShape = getKnowledgeConceptNodeShape(node);
     const presentationScale = getKnowledgeGraphPresentationNodeScale({ ...presentation, nodeId: node.id });
     const rootPacking = node.__knowledgeRootPacking;
     const isRootBubble = Boolean(rootPacking);
@@ -937,13 +1009,37 @@ export function KnowledgeGraph2D({
       ctx.restore();
     } else if (glowColor) {
       ctx.fillStyle = hexToRgba(glowColor, isActive ? 0.34 : 0.18);
-      drawShape(ctx, node.nodeType, node.x, node.y, glowRadius);
+      drawShape(ctx, nodeShape, node.x, node.y, glowRadius);
     }
 
     // 绘制节点核心
     if (!isRootBubble) {
       ctx.fillStyle = hexToRgba(fillColor, 1);
-      drawShape(ctx, node.nodeType, node.x, node.y, baseRadius);
+      drawShape(ctx, nodeShape, node.x, node.y, baseRadius);
+    }
+
+    // 候选节点：虚线轮廓与候选徽标，绝不被误认为已审知识
+    if (!isRootBubble && node.candidate === true) {
+      ctx.save();
+      ctx.strokeStyle = hexToRgba(KNOWLEDGE_GRAPH_CANDIDATE_PRESENTATION.color, 0.95);
+      ctx.lineWidth = 1.6 / Math.max(0.0001, globalScale);
+      ctx.setLineDash([4 / globalScale, 3 / globalScale]);
+      ctx.beginPath();
+      traceNodeShapeOutline(ctx, nodeShape, node.x, node.y, baseRadius + 3 / globalScale);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.font = `600 ${10 / Math.max(0.0001, globalScale)}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = isLightTheme ? 'rgba(255, 255, 255, 0.95)' : 'rgba(2, 8, 23, 0.85)';
+      ctx.lineWidth = 2.4 / Math.max(0.0001, globalScale);
+      const badgeX = node.x;
+      const badgeY = node.y - baseRadius - 4 / Math.max(0.0001, globalScale);
+      ctx.strokeText(KNOWLEDGE_GRAPH_CANDIDATE_PRESENTATION.label, badgeX, badgeY);
+      ctx.fillStyle = hexToRgba(KNOWLEDGE_GRAPH_CANDIDATE_PRESENTATION.color, 1);
+      ctx.fillText(KNOWLEDGE_GRAPH_CANDIDATE_PRESENTATION.label, badgeX, badgeY);
+      ctx.restore();
     }
 
     // 绘制选中环
@@ -951,24 +1047,7 @@ export function KnowledgeGraph2D({
       ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 2 / globalScale;
       ctx.beginPath();
-      const config = getNodeTypeConfig(node.nodeType);
-      if (isRootBubble || config.shape === 'circle') {
-        ctx.arc(node.x, node.y, baseRadius + 4, 0, 2 * Math.PI);
-      } else if (config.shape === 'square') {
-        const ringSize = baseRadius * 1.6 + 6;
-        ctx.rect(node.x - ringSize / 2, node.y - ringSize / 2, ringSize, ringSize);
-      } else {
-        // hexagon ring
-        const ringRadius = baseRadius * 1.2 + 4;
-        for (let i = 0; i < 6; i++) {
-          const angle = (Math.PI / 3) * i - Math.PI / 2;
-          const px = node.x + ringRadius * Math.cos(angle);
-          const py = node.y + ringRadius * Math.sin(angle);
-          if (i === 0) ctx.moveTo(px, py);
-          else ctx.lineTo(px, py);
-        }
-        ctx.closePath();
-      }
+      traceNodeShapeOutline(ctx, isRootBubble ? 'circle' : nodeShape, node.x, node.y, baseRadius + 4);
       ctx.stroke();
     }
 
@@ -1017,12 +1096,13 @@ export function KnowledgeGraph2D({
       degree: node.graphDegree,
       focused: selectedNode?.id === node.id || hoveredNode?.id === node.id,
       importanceScore: node.graphImportanceScore,
+      sourceCoverageCount: node.sourceCoverageCount,
     });
     const presentationScale = getKnowledgeGraphPresentationNodeScale({ ...presentation, nodeId: node.id });
     ctx.fillStyle = color;
     drawNodePointerShape(
       ctx,
-      node.__knowledgeRootPacking ? 'THEORY' : node.nodeType,
+      node.__knowledgeRootPacking ? 'circle' : getKnowledgeConceptNodeShape(node),
       node.x,
       node.y,
       (node.__knowledgeRootPacking?.collisionRadius ?? nodeScale.radius) * presentationScale,
@@ -1052,7 +1132,12 @@ export function KnowledgeGraph2D({
         emphasis: selectedCorridorEmphasis,
         structuralForegroundEdgeIds: structuralForegroundEdgeIdSet,
       });
+    const renderModulation = getKnowledgeGraphEdgeRenderModulation({
+      candidate: source.candidate === true || target.candidate === true,
+      evidenceState: link.evidenceState,
+    });
     const alpha = getKnowledgeGraphEffectiveEdgeOpacity(style, strength, focusState)
+      * renderModulation.opacityFactor
       * getKnowledgeGraphPresentationLinkOpacity({
         ...presentation,
         sourceId: source.id,
@@ -1064,7 +1149,8 @@ export function KnowledgeGraph2D({
       targetId: target.id,
     });
     if (linkProgress <= 0) return;
-    const lineWidth = getKnowledgeGraphEffectiveEdgeWidth(style, strength, focusState, '2d');
+    const lineWidth = getKnowledgeGraphEffectiveEdgeWidth(style, strength, focusState, '2d')
+      * renderModulation.widthFactor;
 
     const getPresentationRadius = (node: any) => (
       node.__knowledgeRootPacking?.collisionRadius ?? getKnowledgeNodeScale({
@@ -1074,6 +1160,7 @@ export function KnowledgeGraph2D({
           || selectedNode?.id === node.id
           || hoveredNode?.id === node.id,
         importanceScore: node.graphImportanceScore,
+        sourceCoverageCount: node.sourceCoverageCount,
       }).radius
     ) * getKnowledgeGraphPresentationNodeScale({ ...presentation, nodeId: node.id });
     const fullPath = createKnowledgeGraphRendererEdgePath({
@@ -1083,6 +1170,8 @@ export function KnowledgeGraph2D({
       target,
       sourceNodeType: source.nodeType,
       targetNodeType: target.nodeType,
+      sourceShape: getKnowledgeConceptNodeShape(source),
+      targetShape: getKnowledgeConceptNodeShape(target),
       sourcePresentationRadius: getPresentationRadius(source),
       targetPresentationRadius: getPresentationRadius(target),
       laneCurvature: laneCurvatureByLinkKey.get(getKnowledgeGraphPresentationLinkKey(link)) ?? 0,
@@ -1198,12 +1287,13 @@ export function KnowledgeGraph2D({
         degree: node.graphDegree,
         focused: selectedNode?.id === node.id || hoveredNode?.id === node.id,
         importanceScore: node.graphImportanceScore,
+        sourceCoverageCount: node.sourceCoverageCount,
       });
       const presentationScale = getKnowledgeGraphPresentationNodeScale({ ...presentation, nodeId: node.id });
       return isKnowledgeGraphPointInsideNodeBoundary(
         graphPoint,
         { x: nodeX, y: nodeY },
-        getNodePointerBoundary(node.nodeType, nodeScale.radius * presentationScale),
+        getNodePointerBoundary(getKnowledgeConceptNodeShape(node), nodeScale.radius * presentationScale),
         graphTolerance,
       );
     });
@@ -1219,6 +1309,7 @@ export function KnowledgeGraph2D({
           || selectedNode?.id === node.id
           || hoveredNode?.id === node.id,
         importanceScore: node.graphImportanceScore,
+        sourceCoverageCount: node.sourceCoverageCount,
       }).radius * getKnowledgeGraphPresentationNodeScale({ ...presentation, nodeId: node.id });
       const path = createKnowledgeGraphRendererEdgePath({
         renderer: '2d',
@@ -1227,6 +1318,8 @@ export function KnowledgeGraph2D({
         target,
         sourceNodeType: source.nodeType,
         targetNodeType: target.nodeType,
+        sourceShape: getKnowledgeConceptNodeShape(source),
+        targetShape: getKnowledgeConceptNodeShape(target),
         sourcePresentationRadius: getRadius(source),
         targetPresentationRadius: getRadius(target),
         laneCurvature: laneCurvatureByLinkKey.get(getKnowledgeGraphPresentationLinkKey(link)) ?? 0,
@@ -1478,6 +1571,7 @@ export function KnowledgeGraph2D({
           degree: node.graphDegree,
           focused,
           importanceScore: node.graphImportanceScore,
+          sourceCoverageCount: node.sourceCoverageCount,
         }).radius * getKnowledgeGraphPresentationNodeScale({ ...presentationRef.current, nodeId: node.id });
         const radius = naturalRadius * scale;
         if (point.x + radius < 0 || point.x - radius > currentWidth || point.y + radius < 0 || point.y - radius > currentHeight) return [];
