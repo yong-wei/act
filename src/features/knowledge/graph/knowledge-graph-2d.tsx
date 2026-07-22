@@ -546,30 +546,40 @@ export function KnowledgeGraph2D({
   const activeMotionMarkerCount = motionMarkerEdgeIds.length + ambientFlowSelection.edgeIds.length;
 
   // 根气泡入场错峰：按稳定排序的气泡 id 计算每个气泡的淡入延迟（纯绘制层）。
+  // 必须从打包后的 graphData.nodes 计算——__knowledgeRootPacking 由本组件
+  // packKnowledgeGraphRootNodes 注入，props.nodes 不携带该字段。
   const rootEntranceDelayByNodeId = useMemo(() => {
-    const rootBubbleIds = nodes
+    const rootBubbleIds = graphData.nodes
       .filter((node: any) => Boolean(node.__knowledgeRootPacking))
-      .map((node) => node.id)
+      .map((node: any) => node.id)
       .sort();
     const span = KNOWLEDGE_ROOT_BUBBLE_VITALITY.entrance.staggerSpanMs;
     return new Map(rootBubbleIds.map((nodeId, index) => [
       nodeId,
       rootBubbleIds.length > 1 ? (index * span) / (rootBubbleIds.length - 1) : 0,
     ]));
-  }, [nodes]);
+  }, [graphData.nodes]);
   const rootEntranceStartMsRef = useRef<number | null>(null);
+  // 入场结束态用 state 收敛：布防 ref 只服务 paintNode 的淡入采样，
+  // entranceDone 让 entranceActive 在错峰播完后关闭，重绘门控才能随之冻结。
+  const [entranceDone, setEntranceDone] = useState(false);
   const entranceScopeKey = `${graphVersion}:${[...rootEntranceDelayByNodeId.keys()].join('|')}:${reducedMotion ? 'rm' : 'full'}`;
   const entranceScopeKeyRef = useRef('');
   if (entranceScopeKeyRef.current !== entranceScopeKey) {
     entranceScopeKeyRef.current = entranceScopeKey;
+    setEntranceDone(false);
     rootEntranceStartMsRef.current = rootEntranceDelayByNodeId.size > 0 && !reducedMotion
       ? performance.now()
       : null;
   }
-  const entranceActive = rootEntranceStartMsRef.current !== null;
-  const rootBreathingActive = !reducedMotion && nodes.some((node: any) => (
+  const entranceActive = rootEntranceStartMsRef.current !== null && !entranceDone;
+  const rootBreathingActive = !reducedMotion && graphData.nodes.some((node: any) => (
     Boolean(node.__knowledgeRootPacking) && (selectedNode?.id === node.id || hoveredNode?.id === node.id)
   ));
+  // autoPauseRedraw=false 只在运动活动时逐帧重绘（force-graph 的 ref 没有 refresh()，
+  // 默认 autoPauseRedraw=true 会在引擎冷却后冻结一切绘制）；空闲时恢复冻结与指针交互。
+  const motionPaintActive = motionEnvironmentActive && !reducedMotion
+    && (activeMotionMarkerCount > 0 || rootBreathingActive || entranceActive);
   const motionScopeKey = createKnowledgeGraphMotionScopeKey({
     graphVersion,
     selectedNodeId: selectedCorridorEmphasis?.selectedNodeId ?? null,
@@ -633,6 +643,7 @@ export function KnowledgeGraph2D({
         const entranceStartMs = rootEntranceStartMsRef.current;
         if (entranceStartMs === null
           || performance.now() - entranceStartMs >= KNOWLEDGE_ROOT_BUBBLE_VITALITY.entrance.totalDurationMs) {
+          setEntranceDone(true);
           motionFrameLoopRef.current?.stop();
         }
       }
@@ -1298,8 +1309,12 @@ export function KnowledgeGraph2D({
     }
 
     const linkKey = getKnowledgeGraphPresentationLinkKey(link);
-    // 环境流层：走廊之外的可见结构前景边渲染弱化的族色方向标记（先于走廊绘制）。
-    const ambientEdgeEligible = ambientFlowEdgeIdSet.has(linkKey)
+    const motionEdgeEligible = motionMarkerEdgeIdSet.has(linkKey)
+      || (typeof link.id === 'string' && motionMarkerEdgeIdSet.has(link.id));
+    // 环境流层：走廊之外的可见结构前景边渲染弱化的族色方向标记（先于走廊绘制，
+    // 与 3D 同口径排除已选走廊边，避免同边双标记）。
+    const ambientEdgeEligible = !motionEdgeEligible
+      && ambientFlowEdgeIdSet.has(linkKey)
       && linkProgress >= 0.999
       && motionEnvironmentActive
       && !reducedMotion;
@@ -1326,8 +1341,6 @@ export function KnowledgeGraph2D({
       }
     }
 
-    const motionEdgeEligible = motionMarkerEdgeIdSet.has(linkKey)
-      || (typeof link.id === 'string' && motionMarkerEdgeIdSet.has(link.id));
     if (motionEdgeEligible && linkProgress >= 0.999 && motionEnvironmentActive && !reducedMotion) {
       const markerFrame = getKnowledgeGraphMotionMarkerFrame(motionElapsedMsRef.current);
       if (markerFrame.visible) {
@@ -1785,6 +1798,7 @@ export function KnowledgeGraph2D({
         width={width}
         height={height}
         graphData={graphData}
+        autoPauseRedraw={!motionPaintActive}
         minZoom={compactRootView
           ? KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE
           : KNOWLEDGE_GRAPH_2D_LIBRARY_DEFAULT_MIN_ZOOM}

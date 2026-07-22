@@ -234,8 +234,10 @@ describe('renderer ambient flow wiring parity', () => {
       path.join(process.cwd(), 'src/features/knowledge/graph/knowledge-graph-canvas.tsx'), 'utf8'
     );
 
-    // 2D：环境流标记块位于走廊标记块之前（绘制顺序即突出顺序）。
-    expect(twoDimensional.indexOf('ambientEdgeEligible')).toBeLessThan(twoDimensional.indexOf('motionEdgeEligible'));
+    // 2D：环境流标记绘制块位于走廊标记绘制块之前（绘制顺序即突出顺序）。
+    expect(twoDimensional.indexOf('const ambientEdgeEligible')).toBeLessThan(
+      twoDimensional.indexOf('if (motionEdgeEligible && linkProgress >= 0.999')
+    );
     // 3D：走廊优先的帧选择与突出参数。
     expect(threeDimensional).toContain('const activeFrame = corridorFrame ?? ambientFrame');
     expect(threeDimensional).toContain("!motionEdgeEligible && ambientFlowEdgeIdSet.has(linkKey)");
@@ -424,5 +426,83 @@ describe('3D vitality frame corridor emphasis parity', () => {
     expect(frame).toContain('getKnowledgeGraphNodeEmphasisOpacity(nodeId, selectedCorridorEmphasis)');
     expect(frame).toContain('selectedCorridorEmphasis?.nodeIds.includes(nodeId)');
     expect(frame).toContain('getKnowledgeGraphPresentationNodeOpacity({ ...presentationRef.current, nodeId })\n        * getKnowledgeGraphNodeEmphasisOpacity');
+  });
+});
+
+describe('root bubble vitality data sources and corridor dedup', () => {
+  it('derives entrance and breathing inputs from the packed node collection in both renderers', () => {
+    const twoDimensional = readFileSync(
+      path.join(process.cwd(), 'src/features/knowledge/graph/knowledge-graph-2d.tsx'), 'utf8'
+    );
+    const threeDimensional = readFileSync(
+      path.join(process.cwd(), 'src/features/knowledge/graph/knowledge-graph-canvas.tsx'), 'utf8'
+    );
+
+    for (const source of [twoDimensional, threeDimensional]) {
+      // __knowledgeRootPacking 只在打包后的 graphData.nodes 上存在；
+      // 从 props.nodes 读取会让入场与呼吸永不启动。
+      expect(source).toContain('graphData.nodes\n      .filter((node: any) => Boolean(node.__knowledgeRootPacking))');
+      expect(source).toContain('graphData.nodes.some((node: any) => (');
+      expect(source).not.toContain('const rootBubbleIds = nodes');
+    }
+  });
+
+  it('excludes selected corridor edges from the 2D ambient layer like the 3D path', () => {
+    const twoDimensional = readFileSync(
+      path.join(process.cwd(), 'src/features/knowledge/graph/knowledge-graph-2d.tsx'), 'utf8'
+    );
+
+    expect(twoDimensional).toContain('const ambientEdgeEligible = !motionEdgeEligible');
+    expect(twoDimensional.indexOf('const motionEdgeEligible')).toBeLessThan(
+      twoDimensional.indexOf('const ambientEdgeEligible')
+    );
+  });
+});
+
+describe('render pump lifecycle for continuous motion', () => {
+  it('toggles autoPauseRedraw in 2D and uses the real refresh() in 3D so repaints run only while motion is active', () => {
+    const twoDimensional = readFileSync(
+      path.join(process.cwd(), 'src/features/knowledge/graph/knowledge-graph-2d.tsx'), 'utf8'
+    );
+    const threeDimensional = readFileSync(
+      path.join(process.cwd(), 'src/features/knowledge/graph/knowledge-graph-canvas.tsx'), 'utf8'
+    );
+
+    // force-graph-2d 的 ref 句柄没有 refresh()，历史上 refresh?.() 在 2D 是静默空操作；
+    // autoPauseRedraw=false 只在运动活动时逐帧重绘，空闲时恢复冻结与指针交互。
+    expect(twoDimensional).toContain('autoPauseRedraw={!motionPaintActive}');
+    expect(twoDimensional).toContain('activeMotionMarkerCount > 0 || rootBreathingActive || entranceActive');
+    // react-force-graph-3d 的 ref 暴露真实 refresh()，帧循环活动时按需重绘。
+    const loopSection = threeDimensional.slice(
+      threeDimensional.indexOf('loop.start(motionScopeKey'),
+      threeDimensional.indexOf('loop.start(motionScopeKey') + 1_400
+    );
+    expect(loopSection).toContain('fgRef.current?.refresh?.()');
+  });
+});
+
+
+describe('root entrance lifecycle closure', () => {
+  const renderers: Array<[string, string]> = [
+    ['2D', 'knowledge-graph-2d.tsx'],
+    ['3D', 'knowledge-graph-canvas.tsx'],
+  ];
+
+  it.each(renderers)('%s closes the entrance gate after the stagger finishes so the render pump can freeze', (_label, file) => {
+    const source = readFileSync(
+      path.join(process.cwd(), `src/features/knowledge/graph/${file}`), 'utf8'
+    );
+    // 入场活动态必须能收敛：rootEntranceStartMsRef 布防后永不清除的话，
+    // entranceActive 会永远为真，motionPaintActive 随之卡真，
+    // autoPauseRedraw 门控失效，空闲时画布仍在逐帧重绘。
+    expect(source).toContain('rootEntranceStartMsRef.current !== null && !entranceDone');
+    const armIndex = source.indexOf('entranceScopeKeyRef.current !== entranceScopeKey');
+    expect(armIndex).toBeGreaterThan(-1);
+    const armSection = source.slice(armIndex, armIndex + 400);
+    expect(armSection).toContain('setEntranceDone(false)');
+    const stopIndex = source.indexOf('KNOWLEDGE_ROOT_BUBBLE_VITALITY.entrance.totalDurationMs');
+    expect(stopIndex).toBeGreaterThan(-1);
+    const stopSection = source.slice(stopIndex, stopIndex + 400);
+    expect(stopSection).toContain('setEntranceDone(true)');
   });
 });
