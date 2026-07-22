@@ -44,7 +44,13 @@ export async function POST(request: Request, context: { params: Promise<{ sugges
     if (!Object.keys(proposedTask).length) {
       return NextResponse.json({ error: { code: 'konling-clarification-requires-answer' } }, { status: 409 });
     }
-    const parsed = createTaskSchema.parse(proposedTask);
+    // This endpoint is the teacher's explicit acceptance action. Model output
+    // must not be allowed to downgrade that human confirmation into a draft.
+    const parsed = createTaskSchema.parse({
+      ...proposedTask,
+      confirmScope: true,
+      confirmGoals: true,
+    });
     const task = await prisma.$transaction(async (tx) => {
       const claimed = await tx.agentToolRun.updateMany({
         where: { id: suggestionId, approvalState: { notIn: ['approved', 'confirmation_in_progress'] } },

@@ -3238,6 +3238,7 @@ describe('konling agent runtime', () => {
     expect(prompt).toContain('不得仅在文本中声称“已生成”或“已保存”建议');
     expect(prompt).toContain('courseBasisId、topic、audience、durationMinutes、sourceVersionIds、knowledgePoints、goals');
     expect(prompt).toContain('不得使用 title、courseId、curriculumBasisId、duration');
+    expect(prompt).toContain('不得同时提交 proposedTask、knowledgePointPatches 或 goalPatches');
     expect(prompt).toContain('courseBasisId=basis-root-locus；sourceVersionIds=[version-root-locus]');
     expect(prompt).toContain('basis-root-locus');
     expect(prompt).toContain('version-root-locus');
@@ -3295,7 +3296,9 @@ describe('konling agent runtime', () => {
         },
       },
     });
-    expect(revisionPrompt).toContain('仅在 proposedTask 提交本轮修改的普通字段；服务端会携带其余当前任务字段');
+    expect(revisionPrompt).toContain('proposedTask 仅可提交 topic、audience、prerequisites、durationMinutes、outlineConfirmationRequired、confirmScope 或 confirmGoals');
+    expect(revisionPrompt).toContain('教学活动或流程约束必须转换为对现有目标的 goalPatches.update');
+    expect(revisionPrompt).toContain('教师给出的量化下限必须逐字保留，不得弱化或省略');
     expect(revisionPrompt).toContain('不得重传完整数组；分别使用 knowledgePointPatches 或 goalPatches');
     expect(revisionPrompt).toContain('content、sourceState、sourceBindings，知识点另须含 origin');
     expect(revisionPrompt).toContain('"knowledgePoints":[{"id":"kp-1","title":"相角条件"}]');
@@ -7421,6 +7424,28 @@ describe('konling agent runtime', () => {
 
     expect((tools.set_simulation_params.inputSchema as any).shape).toHaveProperty('idempotencyKey');
     expect((tools.record_intervention_result.inputSchema as any).shape).toHaveProperty('idempotencyKey');
+  });
+
+  it('exposes only persisted smart-lesson task fields to the coauthor tool', () => {
+    const tools = buildScopedKonlingAiTools({} as ReturnType<typeof buildKonlingToolRuntime>);
+    const schema = tools.propose_smart_lesson_task_change.inputSchema as any;
+
+    expect(schema.safeParse({
+      operation: 'revise', taskId: 'task-1', expectedRevision: 1,
+      proposedTask: { durationMinutes: 45 },
+    }).success).toBe(true);
+    expect(schema.safeParse({
+      operation: 'revise', taskId: 'task-1', expectedRevision: 1,
+      proposedTask: { teachingMethods: '参与式教学' },
+    }).success).toBe(false);
+    expect(schema.safeParse({
+      operation: 'revise', taskId: 'task-1', expectedRevision: 1,
+      proposedTask: { goals: [] },
+    }).success).toBe(false);
+    expect(schema.safeParse({
+      operation: 'revise', taskId: 'task-1', expectedRevision: 1,
+      goalPatches: [{ operation: 'update', id: 'goal-1', changes: { content: '参与式学习至少20分钟' } }],
+    }).success).toBe(true);
   });
 
   it('exposes governed adaptive path tool schemas with idempotency keys', () => {

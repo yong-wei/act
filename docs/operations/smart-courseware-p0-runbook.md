@@ -48,7 +48,7 @@ rtk openspec validate publish-smart-courseware-to-classroom --strict
 
 ## 45 分钟根轨迹人工证据
 
-task 3.2 的真实 provider 证据尚未录制。完成时应记录一次连续的 45 分钟根轨迹课程：在 Konling `prep-coauthor` 中以自然语言创建任务，完成一次歧义澄清和后续轮次约束修订，导入普通课程依据，形成幅值条件、相角条件和基本绘制规则的来源锚点，生成六个 BOPPPS 环节，完成静态与浏览器验证、发布、目录选择、课堂启动和学生交互。
+2026-07-22 的本地真实 Provider 运行记录见 [根轨迹真实 Provider 验证记录](evidence/2026-07-22-smart-courseware-real-provider-root-locus.md)。该运行已验证 Konling 自然语言创建、歧义澄清、约束修订、普通课程依据和教师确认；真实 Provider 在教案 OUTLINE 阶段进入 `RETRYABLE`，因此 task 3.2 仍未完成。恢复后仍须记录一次连续的 45 分钟根轨迹课程：生成六个 BOPPPS 环节，完成静态与浏览器验证、发布、目录选择、课堂启动和学生交互。
 
 录制证据还应包括三项内容质量对照、零个未处理的目标/模块来源缺口、逐项确认记录和真实 provider audit 的教师或管理员视图。若现场使用预生成 revision，画面和证据清单必须明确标记“备份：非本次生成”。确定性 fixture、测试 provider 或先前录制片段不能冒充本次真实 provider 运行。
 
