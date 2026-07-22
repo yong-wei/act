@@ -194,6 +194,9 @@ describe('teacher cumulative attainment delivery', () => {
     expect(growth).toContain('这里不会显示零分、学习阶段或正向能力结论');
     expect(growth).not.toContain('portrait?.overallScore ?? 0');
     expect(growth).toContain("const hasPortrait = snapshot?.evidenceState === 'current'");
+    expect(growth).toContain('const portraitEvidenceCount = portraitDimensions.reduce');
+    expect(growth).toContain('&& portraitEvidenceCount > 0');
+    expect(growth).toContain('累计 {portraitEvidenceCount} 条学习证据');
     expect(growth).toContain('{hasPortrait ? <div className="surface-card p-5" data-portrait-recommendation>');
     expect(growth).toContain('{hasPortrait ? <div className="mb-8" data-portrait-diagnosis>');
     expect(growth).toContain("record.type === 'learning_activity'");

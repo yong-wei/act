@@ -249,9 +249,10 @@ export default function GrowthPage() {
   }));
   const hasPortrait = snapshot?.evidenceState === 'current'
     && portraitDimensions.some((dimension) => dimension.evidenceCount > 0);
+  const portraitEvidenceCount = portraitDimensions.reduce((sum, dimension) => sum + dimension.evidenceCount, 0);
   const hasCompetencyChartData = hasPortrait
     && portraitDimensions.length === 7
-    && (snapshot?.currentSnapshot?.factCount ?? 0) > 0
+    && portraitEvidenceCount > 0
     && barData.some((entry) => entry.score > 0 || entry.confidence > 0);
   const groupedGrowthRecords = groupGrowthTimelineRecords(growthRecords);
 
@@ -318,7 +319,7 @@ export default function GrowthPage() {
               </div>
             </div>
             <p className="mt-2 text-xs text-subtle">
-              综合得分 {overallScore} 分 · {snapshot?.currentSnapshot?.factCount || 0} 条学习记录
+              综合得分 {overallScore} 分 · 累计 {portraitEvidenceCount} 条学习证据
             </p>
           </div> : null}
 
