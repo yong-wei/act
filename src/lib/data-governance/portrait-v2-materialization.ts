@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client';
 
 import {
+  isPortraitV2ProfileEvidence,
   mapLearningFactsToPortraitEvidence,
   updatePortraitV2Incrementally,
   type PortraitLearningFactDelta,
@@ -76,9 +77,7 @@ export async function materializeIncrementalPortraitV2(
       lastFactCreatedAt: lastFact.createdAt.toISOString(),
       lastFactId: lastFact.id,
     } : previous?.updateCursor;
-    const profileEvidence = mapped.evidence.filter((item) =>
-      item.outcome !== 'context-only' && Object.values(item.contributions).some((value) => value !== 0 || item.normalizedPerformance),
-    );
+    const profileEvidence = mapped.evidence.filter(isPortraitV2ProfileEvidence);
     if (profileEvidence.length === 0) {
       if (options.fullRebuild && !options.dryRun) {
         await transactionDb.studentPortraitV2Snapshot?.deleteMany?.({

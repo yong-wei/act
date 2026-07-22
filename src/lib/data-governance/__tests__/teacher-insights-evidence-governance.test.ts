@@ -741,10 +741,10 @@ describe('teacher evidence governance insights', () => {
     mocks.prisma.classCompetencySnapshot.findFirst.mockResolvedValue({
       aggregateJson: {
         dimensions: {
-          controlModelingRepresentation: { mean: 72, stdDev: 0 },
+          controlModelingRepresentation: { mean: 10, stdDev: 0 },
         },
       },
-      levelDistribution: { excellent: 0, good: 1, average: 0, needsImprovement: 0, atRisk: 0 },
+      levelDistribution: { excellent: 1, good: 0, average: 0, needsImprovement: 0, atRisk: 0 },
       snapshotAt: new Date('2026-05-20T09:00:00.000Z'),
     });
     mocks.prisma.studentCompetencySnapshot.findMany.mockResolvedValue([{
@@ -782,6 +782,10 @@ describe('teacher evidence governance insights', () => {
       recentTrend: null,
       portraitV2: { derivationKind: 'native' },
     });
+    expect(body.ability.dimensions).toEqual(expect.arrayContaining([
+      expect.objectContaining({ dimension: 'controlModelingRepresentation', mean: 72, stdDev: 0 }),
+    ]));
+    expect(body.ability.levelDistribution).toMatchObject({ good: 1, excellent: 0 });
     expect(mocks.prisma.classCompetencySnapshot.findFirst).toHaveBeenCalledWith({
       where: {
         classId: 'class-1',

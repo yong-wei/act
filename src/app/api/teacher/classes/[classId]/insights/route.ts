@@ -487,14 +487,26 @@ export async function GET(
       return {
         dimension,
         label,
-        mean: noClassEvidence ? null : classMean ?? (fallbackScores.length > 0 ? fallbackMean : null),
-        stdDev: classStdDev ?? 0,
+        mean: noClassEvidence
+          ? null
+          : scope === 'cumulative'
+            ? fallbackScores.length > 0 ? fallbackMean : null
+            : classMean ?? (fallbackScores.length > 0 ? fallbackMean : null),
+        stdDev: scope === 'cumulative' ? calculateScoreStdDev(fallbackScores) : classStdDev ?? 0,
       };
     });
 
     const levelDistribution = noClassEvidence
       ? createEmptyLevelDistribution()
-      : normalizeLevelDistribution(classSnapshot?.levelDistribution) ||
+      : scope === 'cumulative'
+        ? students.reduce<LevelDistribution>(
+          (accumulator, student) => {
+            if (student.overallScore !== null) accumulator[getCompetencyLevelKey(student.overallScore)] += 1;
+            return accumulator;
+          },
+          createEmptyLevelDistribution(),
+        )
+        : normalizeLevelDistribution(classSnapshot?.levelDistribution) ||
         students.reduce<LevelDistribution>(
           (accumulator, student) => {
             if (student.overallScore !== null) accumulator[getCompetencyLevelKey(student.overallScore)] += 1;
@@ -678,6 +690,12 @@ function normalizeLevelDistribution(value: unknown): LevelDistribution | null {
 function roundTo(value: number, digits: number) {
   const factor = 10 ** digits;
   return Math.round(value * factor) / factor;
+}
+
+function calculateScoreStdDev(scores: number[]) {
+  if (scores.length === 0) return 0;
+  const mean = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+  return roundTo(Math.sqrt(scores.reduce((sum, score) => sum + (score - mean) ** 2, 0) / scores.length), 1);
 }
 
 function toCount(value: unknown) {

@@ -49,6 +49,11 @@ export interface PortraitLearningFactDelta {
   createdAt: Date;
 }
 
+export function isPortraitV2ProfileEvidence(evidence: PortraitV2IncrementalEvidence): boolean {
+  return evidence.outcome !== 'context-only'
+    && Object.values(evidence.contributions).some((value) => value !== 0 || evidence.normalizedPerformance);
+}
+
 export function updatePortraitV2Incrementally(input: {
   userId: string;
   previous: PortraitV2PayloadShape | null;
@@ -65,7 +70,7 @@ export function updatePortraitV2Incrementally(input: {
     const previous = previousById.get(id) ?? missingDimension(id);
     const aged = ageDimension(previous, generatedAt, input.previous?.generatedAt ?? generatedAt);
     const relevant = uniqueEvidence.filter((item) =>
-      item.outcome !== 'context-only' &&
+      isPortraitV2ProfileEvidence(item) &&
       Number.isFinite(item.contributions[id]) &&
       (item.contributions[id] !== 0 || item.normalizedPerformance === true),
     );

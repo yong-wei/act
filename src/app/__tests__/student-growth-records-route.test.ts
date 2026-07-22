@@ -35,6 +35,11 @@ describe('student growth records route', () => {
     mocks.prisma.learningFact.findMany.mockResolvedValue([{
       id: 'context-only-fact',
       startedAt: new Date('2026-05-01T08:00:00.000Z'),
+      outcome: 'success',
+      score: null,
+      competencyContribution: { controlModeling: 1 },
+      contextJson: { evidenceGovernance: { skipProfileContribution: true, profileWeight: 0 } },
+      createdAt: new Date('2026-05-01T08:00:01.000Z'),
     }]);
 
     const response = await GET(new NextRequest('http://localhost/api/student/growth-records?limit=10'));
@@ -55,9 +60,34 @@ describe('student growth records route', () => {
     });
     expect(mocks.prisma.learningFact.findMany).toHaveBeenCalledWith({
       where: { userId: 'student-1' },
-      select: { id: true, startedAt: true },
+      select: {
+        id: true,
+        startedAt: true,
+        outcome: true,
+        score: true,
+        competencyContribution: true,
+        contextJson: true,
+        createdAt: true,
+      },
       orderBy: { startedAt: 'desc' },
       take: 10,
     });
+  });
+
+  it('does not label profile-contributing facts as no-evidence activity', async () => {
+    mocks.prisma.learningFact.findMany.mockResolvedValue([{
+      id: 'profile-fact',
+      startedAt: new Date('2026-05-01T08:00:00.000Z'),
+      outcome: 'success',
+      score: 0.8,
+      competencyContribution: { controlModeling: 0.8 },
+      contextJson: {},
+      createdAt: new Date('2026-05-01T08:00:01.000Z'),
+    }]);
+
+    const response = await GET(new NextRequest('http://localhost/api/student/growth-records?limit=10'));
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({ records: [], total: 0, hasMore: false });
   });
 });

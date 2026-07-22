@@ -6,6 +6,10 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
+import {
+  isPortraitV2ProfileEvidence,
+  mapLearningFactsToPortraitEvidence,
+} from '@/lib/data-governance/portrait-v2-incremental-update';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 
@@ -203,17 +207,31 @@ async function generateGrowthRecords(userId: string): Promise<GrowthRecord[]> {
     });
   }
 
-  // Context-only facts still record genuine participation even when they cannot
-  // form a governed capability portrait. Keep the timeline entry generic so it
-  // does not expose the fact's private context.
-  const learningActivities = await prisma.learningFact.findMany({
+  // Keep only facts that the canonical portrait mapper rejects as contribution
+  // evidence. The timeline wording stays generic and omits private context.
+  const learningFacts = await prisma.learningFact.findMany({
     where: { userId },
-    select: { id: true, startedAt: true },
+    select: {
+      id: true,
+      startedAt: true,
+      outcome: true,
+      score: true,
+      competencyContribution: true,
+      contextJson: true,
+      createdAt: true,
+    },
     orderBy: { startedAt: 'desc' },
     take: 10,
   });
+  const noPortraitContributionIds = new Set(
+    mapLearningFactsToPortraitEvidence(learningFacts)
+      .evidence
+      .filter((evidence) => !isPortraitV2ProfileEvidence(evidence))
+      .map((evidence) => evidence.id),
+  );
 
-  for (const activity of learningActivities) {
+  for (const activity of learningFacts) {
+    if (!noPortraitContributionIds.has(activity.id)) continue;
     records.push({
       id: `learning-activity-${activity.id}`,
       type: 'learning_activity',
