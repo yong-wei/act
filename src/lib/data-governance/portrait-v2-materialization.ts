@@ -15,7 +15,7 @@ import {
 interface PortraitV2MaterializationDb {
   studentPortraitV2Snapshot?: NonNullable<PortraitV2SnapshotReadDb['studentPortraitV2Snapshot']> &
     NonNullable<PortraitV2SnapshotWriteDb['studentPortraitV2Snapshot']> & {
-      deleteMany?: (args: { where: { userId: string } }) => Promise<unknown>;
+      deleteMany?: (args: { where: { userId: string; derivationKind?: 'native' } }) => Promise<unknown>;
     };
   learningFact: {
     findMany: (args: Record<string, unknown>) => Promise<PortraitLearningFactDelta[]>;
@@ -79,7 +79,12 @@ export async function materializeIncrementalPortraitV2(
     const profileEvidence = mapped.evidence.filter((item) =>
       item.outcome !== 'context-only' && Object.values(item.contributions).some((value) => value !== 0 || item.normalizedPerformance),
     );
-    if (!options.fullRebuild && profileEvidence.length === 0) {
+    if (profileEvidence.length === 0) {
+      if (options.fullRebuild && !options.dryRun) {
+        await transactionDb.studentPortraitV2Snapshot?.deleteMany?.({
+          where: { userId, derivationKind: 'native' },
+        });
+      }
       return {
         written: false,
         evidenceCount: 0,

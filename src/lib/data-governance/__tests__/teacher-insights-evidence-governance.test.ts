@@ -58,6 +58,7 @@ const mocks = vi.hoisted(() => {
       },
       studentPortraitV2Snapshot: {
         findFirst: vi.fn(),
+        findMany: vi.fn(),
       },
       classSessionReport: {
         findMany: vi.fn(),
@@ -438,6 +439,7 @@ describe('teacher evidence governance insights', () => {
     mocks.prisma.diagnosisReportSnapshot.findMany.mockResolvedValue([]);
     mocks.prisma.studentEvidenceFeatureCache.findMany.mockResolvedValue([]);
     mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue(null);
+    mocks.prisma.studentPortraitV2Snapshot.findMany.mockResolvedValue([]);
   });
 
   afterEach(() => {
@@ -674,7 +676,7 @@ describe('teacher evidence governance insights', () => {
     ]);
 
     const response = await getClassHeatmap(
-      new NextRequest('http://localhost/api/teacher/classes/class-1/heatmap'),
+      new NextRequest('http://localhost/api/teacher/classes/class-1/heatmap?scope=recent'),
       { params: Promise.resolve({ classId: 'class-1' }) },
     );
     const body = await response.json();
@@ -715,7 +717,7 @@ describe('teacher evidence governance insights', () => {
     );
 
     const response = await getClassHeatmap(
-      new NextRequest('http://localhost/api/teacher/classes/class-1/heatmap'),
+      new NextRequest('http://localhost/api/teacher/classes/class-1/heatmap?scope=recent'),
       { params: Promise.resolve({ classId: 'class-1' }) },
     );
     const body = await response.json();
@@ -723,6 +725,70 @@ describe('teacher evidence governance insights', () => {
     expect(response.status).toBe(200);
     expect(body.matrix).toEqual([]);
     expect(mocks.prisma.studentPortraitV2Snapshot.findFirst).not.toHaveBeenCalled();
+  });
+
+  it('defaults class insights to the cumulative snapshot and evidence-bearing native portrait', async () => {
+    mocks.prisma.class.findUnique.mockResolvedValue({
+      id: 'class-1',
+      name: '自动控制 1 班',
+      code: 'AC101',
+      description: null,
+      semester: '春季',
+      year: '2026',
+      teacherId: 'teacher-1',
+      students: [enrolledStudent('student-cumulative', '累计画像学生')],
+    });
+    mocks.prisma.classCompetencySnapshot.findFirst.mockResolvedValue({
+      aggregateJson: {
+        dimensions: {
+          controlModelingRepresentation: { mean: 72, stdDev: 0 },
+        },
+      },
+      levelDistribution: { excellent: 0, good: 1, average: 0, needsImprovement: 0, atRisk: 0 },
+      snapshotAt: new Date('2026-05-20T09:00:00.000Z'),
+    });
+    mocks.prisma.studentCompetencySnapshot.findMany.mockResolvedValue([{
+      userId: 'student-cumulative',
+      competencyVector: competencyVector(99),
+    }]);
+    mocks.prisma.studentPortraitV2Snapshot.findMany.mockResolvedValue([
+      nativePortraitSnapshot('student-cumulative', '2026-05-20T08:00:00.000Z'),
+    ]);
+    mocks.prisma.classSession.findMany.mockResolvedValue([]);
+    mocks.prisma.learningFact.findMany.mockResolvedValue([]);
+    mocks.prisma.learningFact.groupBy.mockResolvedValue([]);
+    mocks.prisma.classSessionReport.findMany.mockResolvedValue([]);
+
+    const response = await getClassInsights(
+      new Request('http://localhost/api/teacher/classes/class-1/insights'),
+      { params: Promise.resolve({ classId: 'class-1' }) },
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toMatchObject({
+      scope: 'cumulative',
+      scopeLabel: '累计能力达成',
+      nearStageChangeApplicable: false,
+      recentSignalsApplicable: false,
+      overview: { highRiskStudents: null, mediumRiskStudents: null, attentionStudents: null },
+      ability: { state: 'ready' },
+    });
+    expect(body.students[0]).toMatchObject({
+      overallScore: 72,
+      overallScoreSource: 'native-portrait-v2',
+      riskLevel: null,
+      riskLabel: null,
+      recentTrend: null,
+      portraitV2: { derivationKind: 'native' },
+    });
+    expect(mocks.prisma.classCompetencySnapshot.findFirst).toHaveBeenCalledWith({
+      where: {
+        classId: 'class-1',
+        materializationVersion: 'class-competency.cumulative.v1',
+      },
+      orderBy: { snapshotAt: 'desc' },
+    });
   });
 
   it('returns class evidence coverage counts and per-student cache state', async () => {
@@ -880,7 +946,7 @@ describe('teacher evidence governance insights', () => {
     ]);
 
     const response = await getClassInsights(
-      new Request('http://localhost/api/teacher/classes/class-1/insights'),
+      new Request('http://localhost/api/teacher/classes/class-1/insights?scope=recent'),
       { params: Promise.resolve({ classId: 'class-1' }) },
     );
     const body = await response.json();
@@ -1010,7 +1076,7 @@ describe('teacher evidence governance insights', () => {
     mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue(nativePortraitSnapshot());
 
     const response = await getClassInsights(
-      new Request('http://localhost/api/teacher/classes/class-1/insights'),
+      new Request('http://localhost/api/teacher/classes/class-1/insights?scope=recent'),
       { params: Promise.resolve({ classId: 'class-1' }) },
     );
     const body = await response.json();
@@ -1068,7 +1134,7 @@ describe('teacher evidence governance insights', () => {
     );
 
     const response = await getClassInsights(
-      new Request('http://localhost/api/teacher/classes/class-1/insights'),
+      new Request('http://localhost/api/teacher/classes/class-1/insights?scope=recent'),
       { params: Promise.resolve({ classId: 'class-1' }) },
     );
     const body = await response.json();
@@ -1112,7 +1178,7 @@ describe('teacher evidence governance insights', () => {
     mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue(null);
 
     const response = await getClassInsights(
-      new Request('http://localhost/api/teacher/classes/class-1/insights'),
+      new Request('http://localhost/api/teacher/classes/class-1/insights?scope=recent'),
       { params: Promise.resolve({ classId: 'class-1' }) },
     );
     const body = await response.json();
@@ -1158,7 +1224,7 @@ describe('teacher evidence governance insights', () => {
       );
 
       const response = await getClassInsights(
-        new Request('http://localhost/api/teacher/classes/class-1/insights'),
+        new Request('http://localhost/api/teacher/classes/class-1/insights?scope=recent'),
         { params: Promise.resolve({ classId: 'class-1' }) },
       );
       const body = await response.json();
@@ -1244,7 +1310,7 @@ describe('teacher evidence governance insights', () => {
     mocks.prisma.classSessionReport.findMany.mockResolvedValue([]);
 
     const response = await getClassInsights(
-      new Request('http://localhost/api/teacher/classes/class-1/insights'),
+      new Request('http://localhost/api/teacher/classes/class-1/insights?scope=recent'),
       { params: Promise.resolve({ classId: 'class-1' }) },
     );
     const body = await response.json();
@@ -1314,7 +1380,7 @@ describe('teacher evidence governance insights', () => {
     mocks.prisma.classSessionReport.findMany.mockResolvedValue([]);
 
     const response = await getClassInsights(
-      new Request('http://localhost/api/teacher/classes/class-1/insights'),
+      new Request('http://localhost/api/teacher/classes/class-1/insights?scope=recent'),
       { params: Promise.resolve({ classId: 'class-1' }) },
     );
     const body = await response.json();
@@ -1385,7 +1451,7 @@ describe('teacher evidence governance insights', () => {
     mocks.prisma.classSessionReport.findMany.mockResolvedValue([]);
 
     const response = await getClassInsights(
-      new Request('http://localhost/api/teacher/classes/class-1/insights'),
+      new Request('http://localhost/api/teacher/classes/class-1/insights?scope=recent'),
       { params: Promise.resolve({ classId: 'class-1' }) },
     );
     const body = await response.json();
@@ -1439,7 +1505,7 @@ describe('teacher evidence governance insights', () => {
     mocks.prisma.classSessionReport.findMany.mockResolvedValue([]);
 
     const response = await getClassInsights(
-      new Request('http://localhost/api/teacher/classes/class-1/insights'),
+      new Request('http://localhost/api/teacher/classes/class-1/insights?scope=recent'),
       { params: Promise.resolve({ classId: 'class-1' }) },
     );
     const body = await response.json();
@@ -1487,7 +1553,7 @@ describe('teacher evidence governance insights', () => {
     mocks.prisma.learningFact.groupBy.mockResolvedValue([]);
     mocks.prisma.classSessionReport.findMany.mockResolvedValue([]);
 
-    const response = await getClassInsights(new Request('http://localhost/api/teacher/classes/class-a/insights'), { params: Promise.resolve({ classId: 'class-a' }) });
+    const response = await getClassInsights(new Request('http://localhost/api/teacher/classes/class-a/insights?scope=recent'), { params: Promise.resolve({ classId: 'class-a' }) });
     const body = await response.json();
     expect(body.ability.state).toBe('no-evidence');
     expect(body.ability.levelDistribution).toEqual({
