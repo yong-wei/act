@@ -3238,6 +3238,7 @@ describe('konling agent runtime', () => {
     expect(prompt).toContain('不得仅在文本中声称“已生成”或“已保存”建议');
     expect(prompt).toContain('courseBasisId、topic、audience、durationMinutes、sourceVersionIds、knowledgePoints、goals');
     expect(prompt).toContain('不得使用 title、courseId、curriculumBasisId、duration');
+    expect(prompt).toContain('不得同时提交 proposedTask、knowledgePointPatches 或 goalPatches');
     expect(prompt).toContain('courseBasisId=basis-root-locus；sourceVersionIds=[version-root-locus]');
     expect(prompt).toContain('basis-root-locus');
     expect(prompt).toContain('version-root-locus');

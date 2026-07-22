@@ -350,7 +350,7 @@ function buildSmartPreparationInstructions(value: unknown): string[] {
   if (preparation.bootstrap) {
     lines.push('  - 新建任务的 proposedTask 必填字段为：courseBasisId、topic、audience、durationMinutes、sourceVersionIds、knowledgePoints、goals；可选字段只有 prerequisites、outlineConfirmationRequired、aggregateClassContextRef、confirmScope、confirmGoals。');
     lines.push('  - knowledgePoints 的每项必须含 content、sourceState、sourceBindings、origin、可选 title；goals 的每项必须含 content、sourceState、sourceBindings、可选 standardsMappings。sourceState 只能是 ai_generated_source_pending 或 teacher_created_source_pending。没有服务端提供的完整 citationId、anchor、contentHash 时，sourceBindings 使用 []，不得伪造锚点。');
-    lines.push('  - 当前处于新建单课阶段：信息仍不唯一时，调用该工具并以 bootstrap + clarification 提出一个问题和至少两个选项；教师已明确范围时，调用该工具并以 bootstrap + 完整 proposedTask 形成待确认建议。');
+    lines.push('  - 当前处于新建单课阶段：信息仍不唯一时，只能提交 operation=bootstrap 与 clarification（不得同时提交 proposedTask、knowledgePointPatches 或 goalPatches）；教师已明确范围时，提交 operation=bootstrap 与完整 proposedTask，且不得携带 clarification。');
     const availableCourseBases = array(record(preparation.currentTask).availableCourseBases)
       .map(formatAvailableCourseBasis)
       .filter((item): item is string => Boolean(item));

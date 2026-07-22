@@ -5181,7 +5181,7 @@ export function buildScopedKonlingAiTools(runtime: ReturnType<typeof buildKonlin
       execute: (args) => runtime.recordPathAdjustmentOutcome(args),
     }),
     propose_smart_lesson_task_change: tool({
-      description: '将教师本轮自然语言投影为完整结构化单课任务建议。无任务时使用 bootstrap，已有任务时使用 revise 并携带当前 revision；信息不唯一时先提出澄清选项。只保存待确认建议，不直接创建或修改任务。',
+      description: '将教师本轮自然语言投影为完整结构化单课任务建议。无任务时使用 bootstrap，已有任务时使用 revise 并携带当前 revision。信息不唯一时只提交 clarification，且不得同时提交 proposedTask、knowledgePointPatches 或 goalPatches；范围已明确时提交 proposedTask 或补丁，且不得携带 clarification。只保存待确认建议，不直接创建或修改任务。',
       inputSchema: proposeSmartLessonTaskChangeParameters,
       execute: (args) => runtime.proposeSmartLessonTaskChange(args),
     }),
