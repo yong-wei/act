@@ -186,7 +186,12 @@ describe('data governance worker materialization recovery', () => {
     expect(classAdd).toHaveBeenCalledWith(
       'class-snapshot-class-1',
       { classId: 'class-1' },
-      expect.objectContaining({ jobId: 'learning-materialization-outbox:student-1:class-1:late-empty-snapshot' }),
+      expect.objectContaining({ jobId: 'learning-materialization-outbox-f4021ce06a107fd95fb36daa5a959d4703ae4bc9079427b55841333f9e064350' }),
+    );
+    expect(classAdd).toHaveBeenCalledWith(
+      'class-snapshot-class-1',
+      { classId: 'class-1' },
+      expect.objectContaining({ jobId: expect.not.stringContaining(':') }),
     );
     expect(outboxRows).toEqual([
       expect.objectContaining({ snapshotId: 'late-empty-snapshot', status: 'DELIVERED' }),
@@ -266,7 +271,12 @@ describe('data governance worker materialization recovery', () => {
     expect(classAdd).toHaveBeenCalledWith(
       'class-snapshot-class-1',
       { classId: 'class-1' },
-      expect.objectContaining({ jobId: 'learning-materialization-outbox:student-1:class-1:snapshot-b' }),
+      expect.objectContaining({ jobId: 'learning-materialization-outbox-6591f8e358f41edb8d5280b05c671f0a0ddb1fb7408e8b5c819db3484c3bde72' }),
+    );
+    expect(classAdd).toHaveBeenCalledWith(
+      'class-snapshot-class-1',
+      { classId: 'class-1' },
+      expect.objectContaining({ jobId: expect.not.stringContaining(':') }),
     );
 
     const queued: any[] = [];

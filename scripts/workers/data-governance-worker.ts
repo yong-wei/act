@@ -405,7 +405,8 @@ async function enqueueClassSnapshot(classId: string, triggerId: string) {
 
 async function enqueueClassSnapshotOutbox(classId: string, jobId: string) {
   if (!classQueue) throw new Error('class queue is not initialized');
-  await classQueue.add(`class-snapshot-${classId}`, { classId }, { attempts: 2, backoff: { type: 'exponential', delay: 15000 }, jobId, ...JOB_HISTORY_OPTIONS });
+  const queueJobId = `learning-materialization-outbox-${createHash('sha256').update(jobId).digest('hex')}`;
+  await classQueue.add(`class-snapshot-${classId}`, { classId }, { attempts: 2, backoff: { type: 'exponential', delay: 15000 }, jobId: queueJobId, ...JOB_HISTORY_OPTIONS });
 }
 
 async function enqueueGrowthRecomputeOutbox(userId: string, snapshotId: string, jobId: string) {
