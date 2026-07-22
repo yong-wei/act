@@ -32,7 +32,7 @@ const PORTRAIT_V2_MATERIALIZATION_TRANSACTION_TIMEOUT_MS = 120_000;
 export async function materializeIncrementalPortraitV2(
   db: PortraitV2MaterializationDb,
   userId: string,
-  options: { now?: Date; fullRebuild?: boolean } = {},
+  options: { now?: Date; fullRebuild?: boolean; dryRun?: boolean } = {},
 ): Promise<{
   written: boolean;
   snapshotId?: string;
@@ -79,6 +79,22 @@ export async function materializeIncrementalPortraitV2(
     const profileEvidence = mapped.evidence.filter((item) =>
       item.outcome !== 'context-only' && Object.values(item.contributions).some((value) => value !== 0 || item.normalizedPerformance),
     );
+    if (!options.fullRebuild && profileEvidence.length === 0) {
+      return {
+        written: false,
+        evidenceCount: 0,
+        affectedDimensions: [],
+        mappingIssues: mapped.mappingIssues,
+      };
+    }
+    if (options.dryRun) {
+      return {
+        written: true,
+        evidenceCount: profileEvidence.length,
+        affectedDimensions: [],
+        mappingIssues: mapped.mappingIssues,
+      };
+    }
     const updated = updatePortraitV2Incrementally({
       userId,
       previous,
