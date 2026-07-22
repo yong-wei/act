@@ -62,7 +62,7 @@ import {
 } from '@/lib/source-pack';
 import { getLearningGoalResourceBaselineForPlanner } from '@/lib/learning-goal-resource-baseline-runtime';
 import { getLearningGoalAssessmentCoverageForPlanner } from '@/lib/learning-goal-assessment-coverage-runtime';
-import { updateTaskSchema } from '@/lib/smart-lesson-plan/task-input-schema';
+import { createTaskSchema, updateTaskSchema } from '@/lib/smart-lesson-plan/task-input-schema';
 import type { GraphCenterClassOverlayInput } from '@/lib/data-governance/graph-center';
 import {
   type ResourceNode,
@@ -2472,13 +2472,16 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
         turnId,
       };
       const proposedTask = boundArgs.proposedTask;
-      if ((args.operation ?? 'revise') === 'revise' && !args.clarification && proposedTask) {
-        const validation = updateTaskSchema.safeParse({
-          ...proposedTask,
-          expectedRevision: args.expectedRevision,
-          confirmingTurnId: turnId,
-          agentSessionId: input.agentSessionId,
-        });
+      const operation = args.operation ?? 'revise';
+      if (!args.clarification && proposedTask) {
+        const validation = operation === 'bootstrap'
+          ? createTaskSchema.safeParse(proposedTask)
+          : updateTaskSchema.safeParse({
+            ...proposedTask,
+            expectedRevision: args.expectedRevision,
+            confirmingTurnId: turnId,
+            agentSessionId: input.agentSessionId,
+          });
         if (!validation.success) throw new KonlingRuntimeScopeError(400, '智能备课建议不符合确认要求。');
       }
       return runKonlingRuntimeTool(input, 'propose_smart_lesson_task_change', boundArgs, async (toolRun) => {
@@ -2487,7 +2490,6 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
         if (contract?.mode.id !== 'prep-coauthor' || !activeSmartPreparation) {
           throw new KonlingRuntimeScopeError(403, '智能备课建议必须来自已绑定的 prep-coauthor 会话。');
         }
-        const operation = args.operation ?? 'revise';
         const isBootstrap = operation === 'bootstrap';
         if (isBootstrap !== Boolean(activeSmartPreparation.bootstrap)) {
           throw new KonlingRuntimeScopeError(409, '智能备课建议与当前会话阶段不匹配。');

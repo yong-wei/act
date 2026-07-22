@@ -1084,6 +1084,16 @@ describe('konling agent runtime', () => {
         topic: '根轨迹', durationMinutes: 45,
         knowledgePoints: [{ content: '相角条件', sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
       },
+    })).rejects.toThrow('智能备课建议不符合确认要求');
+    expect(db.agentToolRun.create).toHaveBeenCalledTimes(1);
+    await expect(runtime.proposeSmartLessonTaskChange({
+      operation: 'bootstrap',
+      proposedTask: {
+        courseBasisId: 'basis-1', topic: '根轨迹', audience: '自动化专业本科生', durationMinutes: 45,
+        sourceVersionIds: ['version-1'],
+        knowledgePoints: [{ content: '相角条件', sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
+        goals: [{ content: '判断根轨迹', sourceState: 'ai_generated_source_pending', sourceBindings: [] }],
+      },
     })).resolves.toMatchObject({
       turnId: 'turn-2',
       status: 'awaiting_teacher_confirmation',
