@@ -24,6 +24,7 @@ import {
   hexToRgba,
   KNOWLEDGE_GRAPH_CANDIDATE_PRESENTATION,
   KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT,
+  KNOWLEDGE_ROOT_BUBBLE_VITALITY,
   type KnowledgeConceptNodeShape,
 } from './visual-config';
 import {
@@ -52,8 +53,11 @@ import {
   createKnowledgeGraphMotionScopeKey,
   bindKnowledgeGraphMotionEnvironment,
   createKnowledgeGraphRevealPlan,
+  getKnowledgeGraphBreathingIntensity,
+  getKnowledgeGraphEntranceFade,
   getKnowledgeGraphMotionMarkerFrame,
   getKnowledgeGraphMotionMarkerPlacement,
+  getKnowledgeGraphMotionPhasedMarkerFrame,
   getKnowledgeGraphPresentationLinkOpacity,
   getKnowledgeGraphPresentationLinkProgress,
   getKnowledgeGraphPresentationNodeScale,
@@ -61,6 +65,8 @@ import {
   IDLE_KNOWLEDGE_GRAPH_PRESENTATION,
   KnowledgeGraphMotionFrameLoop,
   KnowledgeGraphTransitionGate,
+  KNOWLEDGE_GRAPH_MOTION_TRANSITION_EVENT,
+  resolveFlowMarkerSet,
   type KnowledgeGraphPresentationState,
   KNOWLEDGE_GRAPH_MOTION,
   prefersReducedKnowledgeGraphMotion,
@@ -596,6 +602,7 @@ export function KnowledgeGraphCanvas({
   }, []);
   const presentationRef = useRef(IDLE_KNOWLEDGE_GRAPH_PRESENTATION);
   presentationRef.current = presentation;
+  const rootRef = useRef<HTMLDivElement | null>(null);
   const [isLightTheme, setIsLightTheme] = useState(false);
   const laneCurvatureByLinkKey = useMemo(
     () => buildKnowledgeGraphEdgeLaneCurvatures(presentationLinks),
@@ -743,6 +750,42 @@ export function KnowledgeGraphCanvas({
     visibleEdgeIds: graphData.links.map((link) => getKnowledgeGraphPresentationLinkKey(link)),
   }), [graphData.links, selectedCorridorEmphasis]);
   const motionMarkerEdgeIdSet = useMemo(() => new Set(motionMarkerEdgeIds), [motionMarkerEdgeIds]);
+  // 环境流层：同一可见 post-requisite 结构前景集合上的确定性预算标记。
+  const ambientFlowSelection = useMemo(() => resolveFlowMarkerSet({
+    scope: 'ambient',
+    active: true,
+    motionEligibleEdgeIds: [...structuralForegroundEdgeIdSet],
+    motionSuppressedEdgeIds: [],
+    visibleEdgeIds: graphData.links.map((link) => getKnowledgeGraphPresentationLinkKey(link)),
+  }), [graphData.links, structuralForegroundEdgeIdSet]);
+  const ambientFlowEdgeIdSet = useMemo(() => new Set(ambientFlowSelection.edgeIds), [ambientFlowSelection]);
+  const activeMotionMarkerCount = motionMarkerEdgeIds.length + ambientFlowSelection.edgeIds.length;
+
+  // 根气泡入场错峰：按稳定排序的气泡 id 计算每个气泡的淡入延迟（纯绘制层）。
+  const rootEntranceDelayByNodeId = useMemo(() => {
+    const rootBubbleIds = nodes
+      .filter((node: any) => Boolean(node.__knowledgeRootPacking))
+      .map((node) => node.id)
+      .sort();
+    const span = KNOWLEDGE_ROOT_BUBBLE_VITALITY.entrance.staggerSpanMs;
+    return new Map(rootBubbleIds.map((nodeId, index) => [
+      nodeId,
+      rootBubbleIds.length > 1 ? (index * span) / (rootBubbleIds.length - 1) : 0,
+    ]));
+  }, [nodes]);
+  const rootEntranceStartMsRef = useRef<number | null>(null);
+  const entranceScopeKey = `${graphVersion}:${[...rootEntranceDelayByNodeId.keys()].join('|')}:${reducedMotion ? 'rm' : 'full'}`;
+  const entranceScopeKeyRef = useRef('');
+  if (entranceScopeKeyRef.current !== entranceScopeKey) {
+    entranceScopeKeyRef.current = entranceScopeKey;
+    rootEntranceStartMsRef.current = rootEntranceDelayByNodeId.size > 0 && !reducedMotion
+      ? performance.now()
+      : null;
+  }
+  const entranceActive = rootEntranceStartMsRef.current !== null;
+  const rootBreathingActive = !reducedMotion && nodes.some((node: any) => (
+    Boolean(node.__knowledgeRootPacking) && (selectedNode?.id === node.id || hoveredNode?.id === node.id)
+  ));
   const motionScopeKey = createKnowledgeGraphMotionScopeKey({
     graphVersion,
     selectedNodeId: selectedCorridorEmphasis?.selectedNodeId ?? null,
@@ -760,6 +803,11 @@ export function KnowledgeGraphCanvas({
     return bindKnowledgeGraphMotionEnvironment({
       documentTarget: document,
       mediaQuery,
+      offscreenTarget: rootRef.current,
+      transitionEvent: {
+        eventTarget: document,
+        isActive: () => presentationRef.current.phase !== 'idle',
+      },
       suspend: () => {
         motionFrameLoopRef.current?.stop();
         motionElapsedMsRef.current = 0;
@@ -775,9 +823,54 @@ export function KnowledgeGraphCanvas({
   }, []);
 
   useEffect(() => {
+    document.dispatchEvent(new CustomEvent(KNOWLEDGE_GRAPH_MOTION_TRANSITION_EVENT));
+  }, [presentation.phase]);
+
+  // 根气泡活力帧：呼吸光晕、轮缘光弧与入场淡入（只写材质透明度，纯绘制层）。
+  const applyRootBubbleVitalityFrame = useCallback((nowMs: number) => {
+    const breathingWave = getKnowledgeGraphBreathingIntensity(nowMs, KNOWLEDGE_ROOT_BUBBLE_VITALITY.breathing);
+    const entranceStartMs = rootEntranceStartMsRef.current;
+    nodeObjectsByIdRef.current.forEach((entry, nodeId) => {
+      if (!entry.node.__knowledgeRootPacking) return;
+      // 与 builder 同口径：激活含选中、悬停与走廊成员，透明度含走廊强调因子，
+      // 否则逐帧覆写会抹掉走廊聚焦的变暗对比。
+      const isActive = selectedNode?.id === nodeId
+        || hoveredNode?.id === nodeId
+        || Boolean(selectedCorridorEmphasis?.nodeIds.includes(nodeId));
+      const entranceFade = reducedMotion || entranceStartMs === null
+        ? 1
+        : getKnowledgeGraphEntranceFade(
+          nowMs - entranceStartMs,
+          rootEntranceDelayByNodeId.get(nodeId) ?? 0,
+          KNOWLEDGE_ROOT_BUBBLE_VITALITY.entrance.fadeDurationMs
+        );
+      const presentationOpacity = getKnowledgeGraphPresentationNodeOpacity({ ...presentationRef.current, nodeId })
+        * getKnowledgeGraphNodeEmphasisOpacity(nodeId, selectedCorridorEmphasis);
+      const halo = entry.object.userData.knowledgeVitalityHalo as THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial> | undefined;
+      if (halo) {
+        const haloAlpha = isActive && !reducedMotion
+          ? KNOWLEDGE_ROOT_BUBBLE_VITALITY.halo.alphaMin
+            + (KNOWLEDGE_ROOT_BUBBLE_VITALITY.halo.alphaMax - KNOWLEDGE_ROOT_BUBBLE_VITALITY.halo.alphaMin) * breathingWave
+          : KNOWLEDGE_ROOT_BUBBLE_VITALITY.halo.alphaMin;
+        halo.material.opacity = haloAlpha * entranceFade * presentationOpacity;
+      }
+      const rimArc = entry.object.userData.knowledgeVitalityRimArc as THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial> | undefined;
+      if (rimArc) {
+        rimArc.material.opacity = (isActive
+          ? KNOWLEDGE_ROOT_BUBBLE_VITALITY.rimArc.activeAlpha
+          : KNOWLEDGE_ROOT_BUBBLE_VITALITY.rimArc.inactiveAlpha) * entranceFade * presentationOpacity;
+      }
+      const body = entry.object.userData.knowledgeBodyMesh as THREE.Mesh<THREE.BufferGeometry, THREE.MeshPhongMaterial> | undefined;
+      if (body) {
+        body.material.opacity = (isActive ? 1 : 0.9) * presentationOpacity * entranceFade;
+      }
+    });
+  }, [hoveredNode?.id, reducedMotion, rootEntranceDelayByNodeId, selectedCorridorEmphasis, selectedNode?.id]);
+
+  useEffect(() => {
     const motionDisabled = !motionEnvironmentActive || reducedMotion || prefersReducedKnowledgeGraphMotion();
-    if (motionDisabled || motionMarkerEdgeIds.length === 0) {
-      const shouldRefresh = motionElapsedMsRef.current > 0 || motionMarkerEdgeIds.length > 0;
+    if (motionDisabled || (activeMotionMarkerCount === 0 && !rootBreathingActive && !entranceActive)) {
+      const shouldRefresh = motionElapsedMsRef.current > 0 || activeMotionMarkerCount > 0;
       motionFrameLoopRef.current?.stop();
       motionElapsedMsRef.current = 0;
       if (shouldRefresh) fgRef.current?.refresh?.();
@@ -792,9 +885,18 @@ export function KnowledgeGraphCanvas({
     loop.start(motionScopeKey, (elapsedMs) => {
       motionElapsedMsRef.current = elapsedMs;
       fgRef.current?.refresh?.();
+      applyRootBubbleVitalityFrame(performance.now());
+      // 入场结束后且无走廊/环境流/呼吸活动时自动停摆，避免空转。
+      if (activeMotionMarkerCount === 0 && !rootBreathingActive) {
+        const entranceStartMs = rootEntranceStartMsRef.current;
+        if (entranceStartMs === null
+          || performance.now() - entranceStartMs >= KNOWLEDGE_ROOT_BUBBLE_VITALITY.entrance.totalDurationMs) {
+          motionFrameLoopRef.current?.stop();
+        }
+      }
     });
     return () => loop.stop();
-  }, [motionEnvironmentActive, motionMarkerEdgeIds.length, motionScopeKey, reducedMotion]);
+  }, [activeMotionMarkerCount, applyRootBubbleVitalityFrame, entranceActive, motionEnvironmentActive, motionScopeKey, reducedMotion, rootBreathingActive]);
 
   useEffect(() => {
     const activeLinkIds = new Set(graphData.links.map((link) => getKnowledgeGraphPresentationLinkKey(link)));
@@ -1636,6 +1738,45 @@ export function KnowledgeGraphCanvas({
       group.add(badge);
     }
 
+    // 根气泡活力：外晕 halo + 轮缘光弧（透明材质，活力帧只写透明度）。
+    if (isRootBubble) {
+      const vitalityHalo = new THREE.Mesh(
+        new THREE.SphereGeometry(presentationRadius * KNOWLEDGE_ROOT_BUBBLE_VITALITY.halo.radiusGain, 24, 24),
+        new THREE.MeshBasicMaterial({
+          color: new THREE.Color(hexToRgba(KNOWLEDGE_ROOT_BUBBLE_VITALITY.halo.color, 1)),
+          transparent: true,
+          opacity: KNOWLEDGE_ROOT_BUBBLE_VITALITY.halo.alphaMin * presentationOpacity,
+          depthWrite: false,
+        })
+      );
+      vitalityHalo.renderOrder = 1;
+      group.add(vitalityHalo);
+      group.userData.knowledgeVitalityHalo = vitalityHalo;
+
+      const rimArcConfig = KNOWLEDGE_ROOT_BUBBLE_VITALITY.rimArc;
+      const rimArcMesh = new THREE.Mesh(
+        new THREE.RingGeometry(
+          presentationRadius * 0.88,
+          presentationRadius * rimArcConfig.radiusGain,
+          32,
+          1,
+          rimArcConfig.startAngle,
+          rimArcConfig.endAngle - rimArcConfig.startAngle
+        ),
+        new THREE.MeshBasicMaterial({
+          color: new THREE.Color(hexToRgba(rimArcConfig.color, 1)),
+          transparent: true,
+          opacity: (isActive ? rimArcConfig.activeAlpha : rimArcConfig.inactiveAlpha) * presentationOpacity,
+          side: THREE.DoubleSide,
+          depthWrite: false,
+        })
+      );
+      rimArcMesh.renderOrder = 3;
+      rimArcMesh.rotation.x = Math.PI / 2;
+      group.add(rimArcMesh);
+      group.userData.knowledgeVitalityRimArc = rimArcMesh;
+    }
+
     group.userData.knowledgePresentationRadius = presentationRadius;
     group.userData.knowledgeOwnedChildren = [...group.children];
   }, [isLightTheme]);
@@ -1915,25 +2056,34 @@ export function KnowledgeGraphCanvas({
     if (!group.visible) return true;
     const motionEdgeEligible = motionMarkerEdgeIdSet.has(linkKey)
       || (typeof link.id === 'string' && motionMarkerEdgeIdSet.has(link.id));
-    const markerFrame = getKnowledgeGraphMotionMarkerFrame(motionElapsedMsRef.current);
-    motionMarkerMesh.visible = motionEdgeEligible
+    const ambientEdgeEligible = !motionEdgeEligible && ambientFlowEdgeIdSet.has(linkKey);
+    const corridorFrame = motionEdgeEligible ? getKnowledgeGraphMotionMarkerFrame(motionElapsedMsRef.current) : null;
+    const ambientFrame = ambientEdgeEligible
+      ? getKnowledgeGraphMotionPhasedMarkerFrame(
+        motionElapsedMsRef.current,
+        ambientFlowSelection.phaseOffsetByEdgeId[linkKey] ?? 0
+      )
+      : null;
+    const activeFrame = corridorFrame ?? ambientFrame;
+    motionMarkerMesh.visible = (motionEdgeEligible || ambientEdgeEligible)
       && progress >= 0.999
       && motionEnvironmentActive
       && !reducedMotion
-      && markerFrame.visible;
-    if (motionMarkerMesh.visible) {
-      const marker = getKnowledgeGraphMotionMarkerPlacement(fullPath, markerFrame.progress);
+      && Boolean(activeFrame?.visible);
+    if (motionMarkerMesh.visible && activeFrame) {
+      const marker = getKnowledgeGraphMotionMarkerPlacement(fullPath, activeFrame.progress);
       updateKnowledgeGraph3DMotionMarker(motionMarkerMesh, {
         visible: marker.visible,
         point: marker.point,
         tangent: marker.tangent,
-        color: KNOWLEDGE_GRAPH_3D_MARKER_COLOR,
-        opacity: 1,
+        color: motionEdgeEligible ? KNOWLEDGE_GRAPH_3D_MARKER_COLOR : appearance.color,
+        opacity: motionEdgeEligible ? 1 : Math.min(0.82, appearance.opacity * 0.72),
         pixelsPerWorldUnit,
+        sizeScale: motionEdgeEligible ? 1 : 0.72,
       });
     }
     return true;
-  }, [getLinkAppearance, height, hoveredNode?.id, laneCurvatureByLinkKey, motionEnvironmentActive, motionMarkerEdgeIdSet, presentation, reducedMotion, selectedCorridorEmphasis, selectedNode?.id, structuralForegroundEdgeIdSet, width]);
+  }, [ambientFlowSelection, getLinkAppearance, height, hoveredNode?.id, laneCurvatureByLinkKey, motionEnvironmentActive, motionMarkerEdgeIdSet, presentation, reducedMotion, selectedCorridorEmphasis, selectedNode?.id, structuralForegroundEdgeIdSet, width]);
   const updatePresentationLinkObjectRef = useRef(updatePresentationLinkObjectImpl);
   updatePresentationLinkObjectRef.current = updatePresentationLinkObjectImpl;
   const updatePresentationLinkObject = useCallback((
@@ -2508,7 +2658,7 @@ export function KnowledgeGraphCanvas({
           nodeIds: [...(selectedCorridorEmphasis?.nodeIds ?? [])].sort(),
           edgeIds: [...(selectedCorridorEmphasis?.edgeIds ?? [])].sort(),
         },
-        markerCount: !motionEnvironmentActive || reducedMotion ? 0 : motionMarkerEdgeIds.length,
+        markerCount: !motionEnvironmentActive || reducedMotion ? 0 : activeMotionMarkerCount,
         viewportCoverage: {
           declared: nodes.length,
           body: bodyBounds.length,
@@ -2529,7 +2679,7 @@ export function KnowledgeGraphCanvas({
     height,
     hoveredNode?.id,
     motionEnvironmentActive,
-    motionMarkerEdgeIds.length,
+    activeMotionMarkerCount,
     reducedMotion,
     selectedCorridorEmphasis,
     selectedNode?.id,
@@ -2608,6 +2758,7 @@ export function KnowledgeGraphCanvas({
 
   return (
     <div
+      ref={rootRef}
       className="relative h-full w-full"
       data-knowledge-graph-renderer="3D"
       data-knowledge-render-layer-order="edge,node,label"
@@ -2626,7 +2777,7 @@ export function KnowledgeGraphCanvas({
       data-knowledge-restored-camera-pose={restoredCameraPose ? JSON.stringify(restoredCameraPose) : ''}
       data-knowledge-graph-animated-node-count={String(presentation.animatedNodeIds?.length ?? 0)}
       data-knowledge-graph-animated-relation-count={String(presentation.animatedRelationIds?.length ?? 0)}
-      data-knowledge-motion-marker-count={!motionEnvironmentActive || reducedMotion ? '0' : String(motionMarkerEdgeIds.length)}
+      data-knowledge-motion-marker-count={!motionEnvironmentActive || reducedMotion ? '0' : String(activeMotionMarkerCount)}
       onPointerDownCapture={handleCanvasPointerDown}
       onPointerMoveCapture={handleCanvasPointerMove}
       onPointerUpCapture={handleCanvasPointerUp}

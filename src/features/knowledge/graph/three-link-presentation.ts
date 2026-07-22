@@ -118,6 +118,7 @@ export function updateKnowledgeGraph3DMotionMarker(
     color?: THREE.ColorRepresentation;
     opacity?: number;
     pixelsPerWorldUnit?: number;
+    sizeScale?: number;
   },
 ) {
   marker.visible = state.visible;
@@ -133,7 +134,7 @@ export function updateKnowledgeGraph3DMotionMarker(
   const pixelsPerWorldUnit = Math.max(0.0001, state.pixelsPerWorldUnit ?? 1);
   const naturalScreenWidth = KNOWLEDGE_GRAPH_CORRIDOR_MARKER_GEOMETRY.halfWidth
     * 2 * pixelsPerWorldUnit;
-  marker.scale.setScalar(Math.max(1, 14 / naturalScreenWidth));
+  marker.scale.setScalar(Math.max(1, 14 / naturalScreenWidth) * (state.sizeScale ?? 1));
 }
 
 export function disposeKnowledgeGraphPresentationLinkGroup(group: THREE.Group) {

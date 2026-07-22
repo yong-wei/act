@@ -321,6 +321,32 @@ export const KNOWLEDGE_GRAPH_CANDIDATE_PRESENTATION = {
   label: '候选',
 } as const;
 
+// ========== 根气泡活力（纯绘制层，platform tokens） ==========
+export const KNOWLEDGE_ROOT_BUBBLE_VITALITY = {
+  halo: {
+    color: platformToken('platform-brand-focus-ring'),
+    radiusGain: 1.38,
+    alphaMin: 0.1,
+    alphaMax: 0.22,
+  },
+  rimArc: {
+    color: platformToken('platform-fg-inverse'),
+    startAngle: (-140 * Math.PI) / 180,
+    endAngle: (-40 * Math.PI) / 180,
+    radiusGain: 0.94,
+    inactiveAlpha: 0.4,
+    activeAlpha: 0.72,
+  },
+  breathing: {
+    periodMs: 2400,
+  },
+  entrance: {
+    totalDurationMs: 400,
+    fadeDurationMs: 200,
+    staggerSpanMs: 200,
+  },
+} as const;
+
 // ========== 关系类型样式与语义 ==========
 export const RELATION_STYLES: Record<string, RelationStyle> = {
   prerequisite: relationStyle({ color: platformToken('platform-chart-4'), lightColor: platformToken('platform-chart-4'), darkColor: platformToken('platform-chart-4'), dash: [], width: 1.6, hasArrow: true, endpoint: 'arrow', curvature: 0.04, opacity: 0.78 }),
