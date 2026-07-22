@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
     affectedDimensions?: string[];
   }> => ({ written: true, mappingIssues: [] })),
   refreshCache: vi.fn(async () => undefined),
+  prepareGrowth: vi.fn(),
   events: [] as any[],
   markEventsProcessed: vi.fn(async () => undefined),
 }));
@@ -22,6 +23,11 @@ vi.mock('../student-evidence-feature-cache', () => ({
   rebuildStudentEvidenceFeatureCache: vi.fn(),
   refreshStudentEvidenceFeatureCache: mocks.refreshCache,
 }));
+vi.mock('../growth-evaluation', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../growth-evaluation')>();
+  mocks.prepareGrowth.mockImplementation(actual.prepareGrowthEvaluationDescription);
+  return { ...actual, prepareGrowthEvaluationDescription: mocks.prepareGrowth };
+});
 vi.mock('../risk-detector', () => ({ detectRisks: () => [], getRecommendedScaffolding: () => [], getRiskLevelDescription: () => 'none' }));
 vi.mock('../competency-engine', () => ({
   calculateCompetencyVector: () => ({ controlModeling: { score: 80, trend: 'stable', confidence: 1, evidenceCount: 1, lastUpdated: '' }, parameterDesign: { score: 0, trend: 'stable', confidence: 0, evidenceCount: 0, lastUpdated: '' }, crossDomainTransfer: { score: 0, trend: 'stable', confidence: 0, evidenceCount: 0, lastUpdated: '' }, engineeringDecision: { score: 0, trend: 'stable', confidence: 0, evidenceCount: 0, lastUpdated: '' }, inquiryReflection: { score: 0, trend: 'stable', confidence: 0, evidenceCount: 0, lastUpdated: '' }, selfDirectedLearning: { score: 0, trend: 'stable', confidence: 0, evidenceCount: 0, lastUpdated: '' } }),
@@ -116,12 +122,13 @@ describe('data governance worker materialization recovery', () => {
     const riskUpdate = vi.fn();
     const outboxUpsert = vi.fn();
     const classAdd = vi.fn(async () => undefined);
+    const learningFactFindMany = vi.fn(async () => [contextOnlyFact]);
     const db: any = {
       $transaction: async (callback: any) => callback(db),
       $executeRaw: async () => undefined,
       learningMaterializationGeneration: { findUnique: async () => null },
       learningMaterializationRebuildRequest: { findUnique: async () => null },
-      learningFact: { findMany: async () => [contextOnlyFact] },
+      learningFact: { findMany: learningFactFindMany },
       studentProfile: { findUnique: async () => ({ classId: 'class-1' }) },
       user: { findUnique: async () => ({ name: null, profile: { studentNumber: null } }) },
       gradingProviderPolicy: { findFirst: async () => null },
@@ -136,10 +143,14 @@ describe('data governance worker materialization recovery', () => {
     const result = await processStudentSnapshotJob({ data: { userId: 'student-1' } } as any);
 
     expect(result).toMatchObject({ skipped: true, reason: 'no_portrait_state_change', featureCacheRefreshed: false });
+    expect(mocks.portrait).toHaveBeenCalledTimes(1);
+    expect(mocks.portrait).toHaveBeenCalledWith(db, 'student-1', expect.objectContaining({ dryRun: true }));
+    expect(learningFactFindMany).not.toHaveBeenCalled();
     expect(snapshotCreate).not.toHaveBeenCalled();
     expect(profileUpsert).not.toHaveBeenCalled();
     expect(riskUpdate).not.toHaveBeenCalled();
     expect(mocks.refreshCache).not.toHaveBeenCalled();
+    expect(mocks.prepareGrowth).not.toHaveBeenCalled();
     expect(outboxUpsert).not.toHaveBeenCalled();
     expect(classAdd).not.toHaveBeenCalled();
   });
@@ -230,8 +241,16 @@ describe('data governance worker materialization recovery', () => {
     const growthCreates: any[] = [];
     const outboxRows: any[] = [];
     const classAdd = vi.fn(async () => undefined);
+    let transactionDepth = 0;
     const db: any = {
-      $transaction: async (callback: any) => callback(db),
+      $transaction: async (callback: any) => {
+        transactionDepth += 1;
+        try {
+          return await callback(db);
+        } finally {
+          transactionDepth -= 1;
+        }
+      },
       $executeRaw: async () => undefined,
       learningMaterializationGeneration: { findUnique: async () => null },
       learningMaterializationRebuildRequest: { findUnique: async () => null },
@@ -260,6 +279,10 @@ describe('data governance worker materialization recovery', () => {
       },
     };
     configureDataGovernanceWorkerForTest({ db, classJobQueue: { add: classAdd } as any });
+    mocks.prepareGrowth.mockImplementationOnce(async () => {
+      expect(transactionDepth).toBe(0);
+      return null;
+    });
 
     await processStudentSnapshotJob({ data: { userId: 'student-1' } } as any);
     expect(growthCreates).toHaveLength(0);

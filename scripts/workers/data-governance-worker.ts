@@ -651,6 +651,21 @@ export async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
     return { skipped: true, reason: 'stale_rebuild_generation', userId };
   }
   const observedGeneration = rebuildClaim ? rebuildClaim.generation : await readLearningMaterializationGeneration(db, userId);
+  const portraitPreflight = await materializeIncrementalPortraitV2(db as any, userId, {
+    now: snapshotAt,
+    fullRebuild: job.data.fullRebuild,
+    dryRun: true,
+  });
+  if (!job.data.fullRebuild && !portraitPreflight.written) {
+    if (portraitPreflight.mappingIssues.length > 0) {
+      logWithThrottle(
+        `student-snapshot:${userId}:portrait-v2-mapping`,
+        'warn',
+        `[StudentSnapshot] Portrait v2 mapping issues for ${userId}: ${portraitPreflight.mappingIssues.join(', ')}`,
+      );
+    }
+    return { skipped: true, reason: 'no_portrait_state_change', userId, featureCacheRefreshed: false, portraitV2: portraitPreflight };
+  }
   const growthWindowStart = new Date(snapshotAt.getTime() - 30 * 24 * 60 * 60 * 1000);
   const growthPreparationFacts = await db.learningFact.findMany({ where: { userId, startedAt: { gte: growthWindowStart } }, orderBy: { startedAt: 'desc' } });
   const growthPreparationVector = calculateCompetencyVector(growthPreparationFacts, '1m');

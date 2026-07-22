@@ -374,6 +374,52 @@ describe('portrait v2 incremental updates', () => {
     expect(create).not.toHaveBeenCalled();
   });
 
+  it('dry-runs state-changing evidence under the advisory lock without writing a portrait', async () => {
+    const create = vi.fn();
+    const executeRaw = vi.fn(async () => 1);
+    const db: any = {
+      $executeRaw: executeRaw,
+      $transaction: vi.fn(async (callback: (tx: unknown) => Promise<unknown>) => callback(db)),
+      studentPortraitV2Snapshot: { findFirst: vi.fn(async () => null), create },
+      learningFact: { findMany: vi.fn(async () => [fact('dry-run-state-change', { controlModeling: 1 }, {})]) },
+    };
+
+    const result = await materializeIncrementalPortraitV2(db, 'student-dry-run', {
+      now: new Date('2026-05-02T00:00:02.000Z'),
+      dryRun: true,
+    });
+
+    expect(result).toMatchObject({ written: true, evidenceCount: 1, affectedDimensions: [] });
+    expect(result).not.toHaveProperty('snapshotId');
+    expect(db.$transaction).toHaveBeenCalledTimes(1);
+    expect(executeRaw).toHaveBeenCalledTimes(1);
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it('keeps full-rebuild dry-run eligible without writing a context-only portrait', async () => {
+    const contextFact = fact('context-rebuild-dry-run', { controlModeling: 1 }, {
+      evidenceGovernance: { skipProfileContribution: true, profileWeight: 0 },
+    });
+    const create = vi.fn();
+    const db: any = {
+      $executeRaw: vi.fn(async () => 1),
+      $transaction: vi.fn(async (callback: (tx: unknown) => Promise<unknown>) => callback(db)),
+      studentPortraitV2Snapshot: { findFirst: vi.fn(), create },
+      learningFact: { findMany: vi.fn(async () => [contextFact]) },
+    };
+
+    const result = await materializeIncrementalPortraitV2(db, 'student-context-rebuild', {
+      now: new Date('2026-05-02T00:00:02.000Z'),
+      fullRebuild: true,
+      dryRun: true,
+    });
+
+    expect(result).toMatchObject({ written: true, evidenceCount: 0, affectedDimensions: [] });
+    expect(db.$transaction).toHaveBeenCalledTimes(1);
+    expect(db.studentPortraitV2Snapshot.findFirst).not.toHaveBeenCalled();
+    expect(create).not.toHaveBeenCalled();
+  });
+
   it('retains the full-rebuild baseline contract for context-only facts', async () => {
     const contextFact = fact('context-rebuild', { controlModeling: 1 }, {
       evidenceGovernance: { skipProfileContribution: true, profileWeight: 0 },
