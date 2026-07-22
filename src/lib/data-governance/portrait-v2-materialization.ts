@@ -79,6 +79,14 @@ export async function materializeIncrementalPortraitV2(
     const profileEvidence = mapped.evidence.filter((item) =>
       item.outcome !== 'context-only' && Object.values(item.contributions).some((value) => value !== 0 || item.normalizedPerformance),
     );
+    if (!options.fullRebuild && profileEvidence.length === 0) {
+      return {
+        written: false,
+        evidenceCount: 0,
+        affectedDimensions: [],
+        mappingIssues: mapped.mappingIssues,
+      };
+    }
     const updated = updatePortraitV2Incrementally({
       userId,
       previous,
