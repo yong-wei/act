@@ -173,14 +173,19 @@ describe('teacher cumulative attainment delivery', () => {
     const analytics = readSource('src/app/teacher/classes/[classId]/analytics-v2/page.tsx');
     const classPage = readSource('src/app/teacher/classes/[classId]/page.tsx');
     const growth = readSource('src/app/(main)/profile/growth/page.tsx');
+    const growthRecordsRoute = readSource('src/app/api/student/growth-records/route.ts');
     const insightsRoute = readSource('src/app/api/teacher/classes/[classId]/insights/route.ts');
 
-    expect(analytics).toContain("useState<TeacherAttainmentScope>('cumulative')");
+    expect(analytics).toContain("normalizeTeacherAttainmentScope(searchParams.get('scope'))");
+    expect(analytics).toContain('useState<TeacherAttainmentScope>(() => queryScope)');
+    expect(analytics).toContain('setScope(queryScope)');
     expect(analytics).toContain('insights?scope=${scope}');
     expect(analytics).toContain('heatmap?scope=${scope}');
     expect(analytics).toContain("不适用");
     expect(classPage).toContain('/insights?scope=cumulative');
     expect(classPage).toContain('口径：{insights.scopeLabel}');
+    expect(classPage).toContain('data-recent-session-quality-not-applicable');
+    expect(classPage).not.toContain('recentSessionQuality?.green');
     expect(insightsRoute).toContain("parseTeacherAttainmentScope(new URL(request.url).searchParams.get('scope'))");
     expect(insightsRoute).toContain('CUMULATIVE_CLASS_COMPETENCY_MATERIALIZATION_VERSION');
     expect(insightsRoute).toContain('readLatestValidNativePortraitV2Snapshots');
@@ -191,6 +196,9 @@ describe('teacher cumulative attainment delivery', () => {
     expect(growth).toContain("const hasPortrait = snapshot?.evidenceState === 'current'");
     expect(growth).toContain('{hasPortrait ? <div className="surface-card p-5" data-portrait-recommendation>');
     expect(growth).toContain('{hasPortrait ? <div className="mb-8" data-portrait-diagnosis>');
+    expect(growth).toContain("record.type === 'learning_activity'");
+    expect(growthRecordsRoute).toContain("type: 'learning_activity'");
+    expect(growthRecordsRoute).toContain("metadata: { source: 'learning-fact' }");
     expect(analytics).toContain('data-cumulative-coverage-state');
     expect(analytics).toContain("coverageState === 'no-evidence' ? '无证据' : '-'");
     expect(analytics).toContain('切换近阶段学情查看近期风险、课堂质量与趋势');

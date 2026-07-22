@@ -320,6 +320,11 @@ describe('data governance worker materialization recovery', () => {
       evidenceSummary: { _derivation: { state: 'no-evidence-after-revocation', reason: 'no-governed-portrait-contribution' } },
     });
     expect(hasPortraitV2Evidence(resolution.primaryPortrait)).toBe(false);
+    expect(db.diagnosisReportSnapshot.deleteMany).toHaveBeenCalledTimes(1);
+    expect(db.diagnosisReportSnapshot.deleteMany).toHaveBeenCalledWith({ where: {
+      userId: { in: ['student-1'] },
+      subjectKind: { not: 'class' },
+    } });
     expect(db.learningFact.findMany()).resolves.toEqual([contextFact]);
   });
 

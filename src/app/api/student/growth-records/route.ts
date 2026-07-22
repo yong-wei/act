@@ -17,7 +17,8 @@ export type GrowthRecordType =
   | 'risk_resolved'
   | 'excellent_design'
   | 'achievement'
-  | 'competency_evaluation';
+  | 'competency_evaluation'
+  | 'learning_activity';
 
 export interface GrowthRecord {
   id: string;
@@ -109,6 +110,7 @@ function getIconForType(type: GrowthRecordType): string {
     excellent_design: 'Award',
     achievement: 'Trophy',
     competency_evaluation: 'Sparkles',
+    learning_activity: 'BookOpen',
   };
   return icons[type] || 'Star';
 }
@@ -198,6 +200,28 @@ async function generateGrowthRecords(userId: string): Promise<GrowthRecord[]> {
       date: achievement.earnedAt.toISOString(),
       metadata: { achievementId: achievement.id },
       icon: 'Trophy',
+    });
+  }
+
+  // Context-only facts still record genuine participation even when they cannot
+  // form a governed capability portrait. Keep the timeline entry generic so it
+  // does not expose the fact's private context.
+  const learningActivities = await prisma.learningFact.findMany({
+    where: { userId },
+    select: { id: true, startedAt: true },
+    orderBy: { startedAt: 'desc' },
+    take: 10,
+  });
+
+  for (const activity of learningActivities) {
+    records.push({
+      id: `learning-activity-${activity.id}`,
+      type: 'learning_activity',
+      title: '已记录学习活动',
+      description: '系统已记录一项学习活动；该活动暂未形成可展示的能力画像证据。',
+      date: activity.startedAt.toISOString(),
+      metadata: { source: 'learning-fact' },
+      icon: 'BookOpen',
     });
   }
 

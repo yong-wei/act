@@ -80,7 +80,7 @@ interface GrowthSnapshotData {
 
 interface GrowthRecord {
   id: string;
-  type: 'milestone' | 'simulation' | 'risk_resolved' | 'excellent_design' | 'achievement' | 'competency_evaluation';
+  type: 'milestone' | 'simulation' | 'risk_resolved' | 'excellent_design' | 'achievement' | 'competency_evaluation' | 'learning_activity';
   title: string;
   description: string;
   date: string;
@@ -662,6 +662,8 @@ export default function GrowthPage() {
                           ? 'bg-green-500/20 text-green-500'
                           : record.type === 'achievement'
                           ? 'bg-amber-500/20 text-amber-500'
+                          : record.type === 'learning_activity'
+                          ? 'bg-sky-500/20 text-sky-500'
                           : 'bg-violet-500/20 text-violet-500'
                       }`}
                     >
@@ -693,6 +695,11 @@ export default function GrowthPage() {
                       {record.type === 'competency_evaluation' && (
                         <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4.5l1.5 3.5 3.5 1.5-3.5 1.5L11 14.5 9.5 11 6 9.5 9.5 8 11 4.5zM17.5 13l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9.9-2.1zM5.5 15l.7 1.6 1.6.7-1.6.7-.7 1.6-.7-1.6-1.6-.7 1.6-.7.7-1.6z" />
+                        </svg>
+                      )}
+                      {record.type === 'learning_activity' && (
+                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5V5a2 2 0 012-2h14v14M8 7h8M8 11h6" />
                         </svg>
                       )}
                     </div>

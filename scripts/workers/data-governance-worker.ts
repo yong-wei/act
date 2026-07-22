@@ -756,11 +756,10 @@ export async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
     return { skipped: true, reason: 'no_portrait_state_change', userId, featureCacheRefreshed: false, portraitV2 };
   }
   if (job.data.fullRebuild && !portraitV2.written) {
-    const memberships = await executeStage<Array<{ classId: string }>>((tx) => tx.studentProfile.findMany({ where: { userId }, select: { classId: true } }));
     const emptySnapshot = await executeStage(async (tx) => {
       await revokeDerivedLearningMaterializations(tx, {
         userIds: [userId],
-        classIds: memberships.map((row: { classId: string }) => row.classId),
+        classIds: [],
         scheduleRebuild: false,
       });
       const snapshot = await appendEmptyStudentCompatibilitySnapshot(tx, userId, snapshotAt, {

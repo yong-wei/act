@@ -456,7 +456,6 @@ export default function ClassDetailPage() {
   const displayedSessions = statusFilter === 'ACTIVE' ? sessions.filter(s => s.status === 'ACTIVE') : sessions.filter(s => s.status === 'FINISHED');
   const governance = insights?.governance;
   const evidenceCoverage = governance?.evidenceCoverage;
-  const recentSessionQuality = governance?.recentSessionQuality;
   const studentInsightMap = new Map(insights?.students.map((student) => [student.id, student]) || []);
   const classDetailStatus = `${announcement} 当前显示 ${displayedSessions.length} 条课堂历史，${classData?.students.length ?? 0} 名学生。`;
 
@@ -758,11 +757,10 @@ export default function ClassDetailPage() {
               {evidenceCoverage?.staleStudents ?? 0} 名待刷新，{evidenceCoverage?.missingStudents ?? 0} 名缺少证据。
             </p>
           </div>
-          <div className="teacher-insight-metric">
-            <p className="text-sm text-subtle">近期会话质量（近阶段）</p>
-            <p className="mt-2 text-3xl font-semibold text-foreground">{recentSessionQuality?.green ?? 0}/{recentSessionQuality?.totalReports ?? 0}</p>
+          <div className="teacher-insight-metric" data-recent-session-quality-not-applicable>
+            <p className="text-sm font-medium text-foreground">近期会话质量不适用</p>
             <p className="mt-2 text-xs text-subtle">
-              黄灯 {recentSessionQuality?.yellow ?? 0}，红灯 {recentSessionQuality?.red ?? 0}。
+              此页展示累计能力达成；切换近阶段学情查看近期会话质量、风险与趋势。
             </p>
           </div>
         </section>

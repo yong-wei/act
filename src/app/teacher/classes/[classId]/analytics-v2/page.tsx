@@ -42,6 +42,10 @@ function normalizeGraphCenterClassView(view: string | null): GraphCenterClassVie
   return view === 'population' ? 'population' : 'diagnosis';
 }
 
+function normalizeTeacherAttainmentScope(scope: string | null): TeacherAttainmentScope {
+  return scope === 'recent' ? 'recent' : 'cumulative';
+}
+
 function resolveGraphCenterTraceDomain(nodeId: string | null): 'knowledge' | 'capability' | 'quality' {
   if (nodeId?.startsWith('cap:')) return 'capability';
   if (nodeId?.startsWith('qual:')) return 'quality';
@@ -61,10 +65,11 @@ export default function ClassAnalyticsV2Page() {
   const graphCenterPopulationActive = Boolean(graphCenterNodeId && graphCenterView === 'population');
   const graphCenterViewLabel = graphCenterPopulationActive ? '影响学生' : '薄弱节点诊断';
   const graphCenterTraceDomain = resolveGraphCenterTraceDomain(graphCenterNodeId);
+  const queryScope = normalizeTeacherAttainmentScope(searchParams.get('scope'));
 
   const [insights, setInsights] = useState<TeacherClassInsightsPayload | null>(null);
   const [heatmap, setHeatmap] = useState<HeatmapData | null>(null);
-  const [scope, setScope] = useState<TeacherAttainmentScope>('cumulative');
+  const [scope, setScope] = useState<TeacherAttainmentScope>(() => queryScope);
   const [heatmapView, setHeatmapView] = useState<HeatmapView>(() => graphCenterPopulationActive ? 'risk' : 'score');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -114,6 +119,10 @@ export default function ClassAnalyticsV2Page() {
       setHeatmapView('risk');
     }
   }, [graphCenterPopulationActive]);
+
+  useEffect(() => {
+    setScope(queryScope);
+  }, [queryScope]);
 
   useEffect(() => {
     if (scope === 'cumulative' && heatmapView === 'risk') {
