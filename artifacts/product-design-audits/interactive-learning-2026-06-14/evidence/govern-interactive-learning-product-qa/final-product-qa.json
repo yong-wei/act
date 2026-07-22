@@ -270,8 +270,8 @@
     "compactSpacingAuxiliaryCollisionFree": true
   },
   "temporaryExceptions": [],
-  "generatedAt": "2026-07-21T00:00:00.000Z",
-  "sourceCommit": "worktree:8b968e0a81e90555956ec2ffe3c6192c6a696cc8+unified-courseware-annotated-media-title",
+  "generatedAt": "2026-07-22T11:25:17.000Z",
+  "sourceCommit": "worktree:4ff31f79c12d+release-lint-only-renderer-identifiers",
   "designHandoffSha256": "227cc9c1f7ecc4299a4d483be75b538e5b82a45c4df73ec4e697797de5088058",
   "handoffMatrixSha256": "240e2e0e54a99525417c6f013590e3df3ddc878627a4555024e04897579e10bc",
   "conceptImageSha256": {

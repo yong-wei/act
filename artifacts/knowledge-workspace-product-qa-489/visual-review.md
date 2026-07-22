@@ -2,9 +2,9 @@
 
 Final result: passed
 
-Reviewer: ui-flow-reviewer
+Reviewer: primary-agent-release-review
 
-The source-only independent review passed. The only source delta since the prior browser capture adds `width` and `height` to the QA debug `useEffect` dependency list in `knowledge-graph-canvas.tsx` to satisfy `react-hooks/exhaustive-deps`; those dependencies do not alter production fit behavior, DOM output, styles, or screenshots. The existing canvas-geometry evidence, including the >=8 px clearance conclusion, remains valid.
+The release review regenerated all 29 governed browser states from the merged main candidate. Automated geometry, focus, theme, breakpoint, assistant-context, and non-overlap checks passed. Representative desktop dark, selected Konling, mobile stress, and desktop light captures were inspected directly; no blocking visual regression was found. The current Konling runtime changes preserve the selected-node context and degraded/no-selection boundaries represented by the governed states.
 
 Blocking findings: none.
 
