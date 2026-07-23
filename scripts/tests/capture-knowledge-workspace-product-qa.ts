@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -62,6 +63,32 @@ interface CaptureState {
 
 function sha256(relativePath: string) {
   return createHash('sha256').update(readFileSync(path.join(repoRoot, relativePath))).digest('hex');
+}
+
+function readCleanCaptureRevision() {
+  const status = execFileSync(
+    'git',
+    ['status', '--porcelain=v1', '--untracked-files=all'],
+    { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+  ).trim();
+  if (status) {
+    throw new Error(
+      `knowledge workspace product QA capture requires a clean Git worktree; commit or remove these changes first:\n${status}`,
+    );
+  }
+
+  return {
+    commitSha: execFileSync(
+      'git',
+      ['rev-parse', '--verify', 'HEAD^{commit}'],
+      { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+    ).trim(),
+    treeSha: execFileSync(
+      'git',
+      ['rev-parse', '--verify', 'HEAD^{tree}'],
+      { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+    ).trim(),
+  };
 }
 
 function ensureOutputDir() {
@@ -1123,6 +1150,7 @@ function writeKnowledgeGraphGovernanceEvidence(stateMatrix: Array<Record<string,
 }
 
 async function main() {
+  const captureRevision = readCleanCaptureRevision();
   ensureOutputDir();
   const states: CaptureState[] = [
     {
@@ -1584,6 +1612,7 @@ async function main() {
       change: 'govern-knowledge-workspace-product-qa',
       issue: 489,
       capturedAt: new Date().toISOString(),
+      captureRevision,
       baseUrl,
       selectedNodeId,
       designSourceOfTruth: {

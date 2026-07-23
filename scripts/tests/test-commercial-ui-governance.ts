@@ -81,6 +81,21 @@ function gitRequired(args: string[], message: string) {
   }
 }
 
+function gitResult(args: string[]) {
+  try {
+    return {
+      ok: true as const,
+      output: execFileSync('git', args, {
+        cwd: repoRoot,
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'pipe'],
+      }),
+    };
+  } catch {
+    return { ok: false as const, output: '' };
+  }
+}
+
 function hasGitRef(ref: string) {
   return git(['rev-parse', '--verify', ref]).trim().length > 0;
 }
@@ -2361,6 +2376,69 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
   const sourceEvidence = objectRecord(evidence.sourceEvidence);
   const sourceHashes = objectRecord(evidence.currentSourceSha256);
   const currentSourceSha256 = stringRecord(evidence.currentSourceSha256);
+  const captureRevision = objectRecord(evidence.captureRevision);
+  const captureCommitSha = typeof captureRevision.commitSha === 'string' ? captureRevision.commitSha : '';
+  const captureTreeSha = typeof captureRevision.treeSha === 'string' ? captureRevision.treeSha : '';
+  const fullGitShaPattern = /^[0-9a-f]{40}$/;
+  const captureCommitResult = fullGitShaPattern.test(captureCommitSha)
+    ? gitResult(['rev-parse', '--verify', `${captureCommitSha}^{commit}`])
+    : { ok: false as const, output: '' };
+  const captureTreeResult = fullGitShaPattern.test(captureTreeSha)
+    ? gitResult(['rev-parse', '--verify', `${captureTreeSha}^{tree}`])
+    : { ok: false as const, output: '' };
+  const captureCommitTreeResult = captureCommitResult.ok
+    ? gitResult(['rev-parse', '--verify', `${captureCommitSha}^{tree}`])
+    : { ok: false as const, output: '' };
+  const currentHeadResult = gitResult(['rev-parse', '--verify', 'HEAD^{commit}']);
+  const captureCommitValid = captureCommitResult.ok
+    && captureCommitResult.output.trim() === captureCommitSha;
+  const captureTreeValid = captureTreeResult.ok
+    && captureTreeResult.output.trim() === captureTreeSha;
+  const captureTreeMatchesCommit = captureCommitTreeResult.ok
+    && captureCommitTreeResult.output.trim() === captureTreeSha;
+  const captureIsCurrentHeadAncestor = captureCommitValid
+    && currentHeadResult.ok
+    && isAncestorCommit(captureCommitSha, currentHeadResult.output.trim());
+  const productQaSourceHistoryResult = captureIsCurrentHeadAncestor
+    ? gitResult([
+      'log',
+      '--format=',
+      '--name-only',
+      '--full-history',
+      `${captureCommitSha}..${currentHeadResult.output.trim()}`,
+      '--',
+      ...productQaSourcePaths,
+    ])
+    : { ok: false as const, output: '' };
+  const productQaSourceChanges = productQaSourceHistoryResult.ok
+    ? lines(productQaSourceHistoryResult.output)
+    : [];
+  const captureRevisionProblems = [
+    captureCommitSha ? null : 'capture-revision:commit-missing',
+    captureCommitSha && !fullGitShaPattern.test(captureCommitSha)
+      ? 'capture-revision:commit-not-full-sha'
+      : null,
+    captureCommitSha && fullGitShaPattern.test(captureCommitSha) && !captureCommitValid
+      ? 'capture-revision:commit-invalid'
+      : null,
+    captureTreeSha ? null : 'capture-revision:tree-missing',
+    captureTreeSha && !fullGitShaPattern.test(captureTreeSha)
+      ? 'capture-revision:tree-not-full-sha'
+      : null,
+    captureTreeSha && fullGitShaPattern.test(captureTreeSha) && !captureTreeValid
+      ? 'capture-revision:tree-invalid'
+      : null,
+    captureCommitValid && captureTreeValid && !captureTreeMatchesCommit
+      ? 'capture-revision:tree-mismatch'
+      : null,
+    captureCommitValid && (!currentHeadResult.ok || !captureIsCurrentHeadAncestor)
+      ? 'capture-revision:not-current-head-ancestor'
+      : null,
+    captureIsCurrentHeadAncestor && !productQaSourceHistoryResult.ok
+      ? 'capture-revision:source-history-failed'
+      : null,
+    ...productQaSourceChanges.map((sourcePath) => `capture-revision:source-changed:${sourcePath}`),
+  ].filter((entry): entry is string => Boolean(entry));
   const sourceProblems = [
     ...productQaSourcePaths.map((sourcePath) => (
       typeof sourceHashes[sourcePath] === 'string' ? null : `${sourcePath}:sha-missing`
@@ -2524,6 +2602,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
   if (
     designProblems.length > 0
     || stateProblems.length > 0
+    || captureRevisionProblems.length > 0
     || sourceProblems.length > 0
     || focusProblems.length > 0
     || handoffProblems.length > 0
@@ -2533,6 +2612,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     return [knowledgeGraphGovernanceViolation('Knowledge workspace product QA evidence is incomplete.', [
       `design=${designProblems.join(',') || 'none'}`,
       `states=${stateProblems.join(',') || 'none'}`,
+      `captureRevision=${captureRevisionProblems.join(',') || 'none'}`,
       `source=${sourceProblems.join(',') || 'none'}`,
       `focus=${focusProblems.join(',') || 'none'}`,
       `handoff=${handoffProblems.join(',') || 'none'}`,
