@@ -1,11 +1,13 @@
 'use client';
 
 import { Lock, Unlock } from 'lucide-react';
+import { InlineMath } from 'react-katex';
 import { useMemo } from 'react';
+import 'katex/dist/katex.min.css';
 
 import { ARENA_CHALLENGE_OBJECTS, getArenaChallengeObject } from '../data/seed-challenges';
 import { inferArenaObjectCapabilities } from './capabilities';
-import type { ChallengeObject, WorkspaceMode } from '../types';
+import type { ChallengeObject, TransferFunctionModel, WorkspaceMode } from '../types';
 
 interface ModelSelectorPanelProps {
   currentObjectId?: string;
@@ -21,6 +23,10 @@ const SOURCE_GROUPS: Array<{ label: string; source: string }> = [
   { label: '虚拟仿真对象', source: 'virtual-simulation' },
   { label: '前沿拓展对象', source: 'frontier' },
 ];
+
+function ModelFormula({ model }: { model: TransferFunctionModel }) {
+  return model.latex ? <InlineMath math={model.latex} /> : model.display;
+}
 
 function isCompatibleWithMultiRepresentation(caps: ReturnType<typeof inferArenaObjectCapabilities>): boolean {
   return caps.isLti && caps.isSiso && caps.hasTransferFunction && caps.supportsRootLocus && caps.supportsBode;
@@ -68,7 +74,9 @@ export function ArenaModelSelectorPanel({
         </div>
         <div className="mt-3 space-y-1">
           <p className="premium-lesson-title text-lg">{currentObject.name}</p>
-          <p className="premium-lesson-muted text-sm">{currentObject.model?.display ?? '无传递函数'}</p>
+          <p className="premium-lesson-muted text-sm">
+            {currentObject.model ? <ModelFormula model={currentObject.model} /> : '无传递函数'}
+          </p>
           <p className="premium-lesson-muted text-sm">
             来源：{currentObject.source} | {currentObject.visibility} | {currentObject.modelType ?? 'unknown'}
           </p>
@@ -104,7 +112,7 @@ export function ArenaModelSelectorPanel({
                   <>
                     <div className="text-sm font-medium">{obj.name}</div>
                     <div className="mt-1 text-xs text-muted-foreground">
-                      {obj.model?.display ?? '无传函数据'}
+                      {obj.model ? <ModelFormula model={obj.model} /> : '无传函数据'}
                     </div>
                     <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
                       <span>{obj.visibility}</span>

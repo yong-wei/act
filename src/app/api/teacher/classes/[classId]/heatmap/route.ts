@@ -12,32 +12,49 @@ import { PORTRAIT_V2_DIMENSIONS, type PortraitV2DimensionId } from '@/lib/data-g
 import {
   hasPortraitV2Evidence,
 } from '@/lib/data-governance/portrait-v2-consumer';
-import { buildClassScopedStudentProjections } from '@/lib/data-governance/class-scoped-learning-materialization';
+import {
+  buildClassScopedStudentProjections,
+  CUMULATIVE_CLASS_COMPETENCY_MATERIALIZATION_VERSION,
+} from '@/lib/data-governance/class-scoped-learning-materialization';
 import { buildTeacherScopedLearningFactScopeFilters } from '@/lib/data-governance/teacher-evidence-governance';
 // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: the scoped legacy vector is a non-authoritative v2 projection input.
 import type { CompetencyVector } from '@/lib/data-governance/competency-model';
 import {
   derivePortraitV2Compatibility,
   projectPortraitV2ForConsumer,
+  readLatestValidNativePortraitV2Snapshots,
 } from '@/lib/data-governance/portrait-v2-model';
 import { createDatabaseUnavailableResponse, isDatabaseConnectivityError } from '@/lib/service-availability';
+import {
+  getTeacherAttainmentScopeLabel,
+  parseTeacherAttainmentScope,
+  type TeacherAttainmentScope,
+} from '@/lib/data-governance/teacher-attainment-scope';
 
 export const dynamic = 'force-dynamic';
 
 export interface HeatmapData {
+  scope: TeacherAttainmentScope;
+  scopeLabel: string;
+  nearStageChangeApplicable: boolean;
+  coverage: {
+    rosterStudents: number;
+    coveredStudents: number;
+  };
   students: Array<{
     id: string;
     name: string | null;
     avatar: string | null;
     studentNumber: string | null;
+    coverageState: 'covered' | 'no-evidence';
   }>;
   dimensions: string[];
   matrix: Array<{
     studentId: string;
     dimension: string;
     score: number;
-    change: number;
-    riskLevel: 'none' | 'low' | 'medium' | 'high';
+    change: number | null;
+    riskLevel: 'none' | 'low' | 'medium' | 'high' | null;
   }>;
   lastUpdated: string;
 }
@@ -102,6 +119,10 @@ export async function GET(
 
     const { classId } = await params;
     const { searchParams } = new URL(request.url);
+    const scope = parseTeacherAttainmentScope(searchParams.get('scope'));
+    if (!scope) {
+      return NextResponse.json({ error: '无效的学情范围' }, { status: 400 });
+    }
     const requestedDimension = searchParams.get('dimension');
     const dimensionFilter = PORTRAIT_V2_DIMENSIONS.some((dimension) => dimension.id === requestedDimension)
       ? requestedDimension as PortraitV2DimensionId
@@ -139,6 +160,10 @@ export async function GET(
 
     if (studentIds.length === 0) {
       return NextResponse.json({
+        scope,
+        scopeLabel: getTeacherAttainmentScopeLabel(scope),
+        nearStageChangeApplicable: scope === 'recent',
+        coverage: { rosterStudents: 0, coveredStudents: 0 },
         students: [],
         dimensions: PORTRAIT_V2_DIMENSIONS.map((dimension) => dimension.id),
         matrix: [],
@@ -147,6 +172,67 @@ export async function GET(
     }
 
     const now = new Date();
+    if (scope === 'cumulative') {
+      const [classSnapshot, portraitByUserId] = await Promise.all([
+        prisma.classCompetencySnapshot.findFirst({
+          where: {
+            classId,
+            materializationVersion: CUMULATIVE_CLASS_COMPETENCY_MATERIALIZATION_VERSION,
+          },
+          orderBy: { snapshotAt: 'desc' },
+        }),
+        readLatestValidNativePortraitV2Snapshots(prisma, studentIds, 'reviewer', { now }),
+      ]);
+      const dimensions: PortraitV2DimensionId[] = dimensionFilter
+        ? [dimensionFilter]
+        : PORTRAIT_V2_DIMENSIONS.map((dimension) => dimension.id);
+      const matrix: HeatmapData['matrix'] = [];
+
+      for (const studentId of studentIds) {
+        const portrait = portraitByUserId.get(studentId);
+        if (!portrait || !hasPortraitV2Evidence(portrait)) continue;
+        for (const dimension of dimensions) {
+          const value = portrait.dimensions.find((item) => item.id === dimension);
+          if (!value || value.evidenceSummary.totalCount <= 0) continue;
+          matrix.push({
+            studentId,
+            dimension,
+            score: Math.round(value.score),
+            change: null,
+            riskLevel: null,
+          });
+        }
+      }
+
+      const response: HeatmapData = {
+        scope,
+        scopeLabel: getTeacherAttainmentScopeLabel(scope),
+        nearStageChangeApplicable: false,
+        coverage: {
+          rosterStudents: studentIds.length,
+          coveredStudents: [...portraitByUserId.values()].filter(hasPortraitV2Evidence).length,
+        },
+        students: classStudents.map((student) => ({
+          id: student.user.id,
+          name: student.user.name,
+          avatar: student.user.image,
+          studentNumber: student.studentNumber,
+          coverageState: portraitByUserId.get(student.userId)
+            && hasPortraitV2Evidence(portraitByUserId.get(student.userId)!)
+            ? 'covered'
+            : 'no-evidence',
+        })),
+        dimensions,
+        matrix,
+        lastUpdated: classSnapshot?.snapshotAt.toISOString()
+          ?? [...portraitByUserId.values()].map((portrait) => portrait.generatedAt).sort().at(-1)
+          ?? now.toISOString(),
+      };
+      const headers = new Headers();
+      headers.set('Cache-Control', `private, max-age=${CACHE_TTL}`);
+      return NextResponse.json(response, { headers });
+    }
+
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60_000);
     const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60_000);
     const classSessionIds = (await prisma.classSession.findMany({
@@ -222,11 +308,19 @@ export async function GET(
 
     // Build response
     const response: HeatmapData = {
+      scope,
+      scopeLabel: getTeacherAttainmentScopeLabel(scope),
+      nearStageChangeApplicable: true,
+      coverage: {
+        rosterStudents: studentIds.length,
+        coveredStudents: currentPortraitByUserId.size,
+      },
       students: classStudents.map(cs => ({
         id: cs.user.id,
         name: cs.user.name,
         avatar: cs.user.image,
         studentNumber: cs.studentNumber,
+        coverageState: currentPortraitByUserId.has(cs.userId) ? 'covered' : 'no-evidence',
       })),
       dimensions,
       matrix,

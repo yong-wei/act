@@ -1,11 +1,20 @@
 {
   "change": "govern-adaptive-path-product-qa",
-  "generatedAt": "2026-07-11T09:05:21.151Z",
-  "sourceCommit": "worktree:87bb12ab20c4d3086dcf9ead",
+  "generatedAt": "2026-07-21T00:00:00.000Z",
+  "sourceCommit": "worktree:8b968e0a81e90555956ec2ffe3c6192c6a696cc8+adaptive-path-null-search-params",
+  "currentSourceRefresh": {
+    "capturedAt": "2026-07-21T00:00:00.000Z",
+    "sourcePath": "src/features/adaptive/adaptive-path-journey-control.tsx",
+    "sourceSha256": "0d3abb64029192cdebe340b6805d48d94f9303070e97af3595b42588f2f54dc9",
+    "classification": "source-only",
+    "visualImpact": "none",
+    "reason": "The optional searchParams guard only preserves an empty query string when router search parameters are null; rendered layout and styling are unchanged.",
+    "targetedTest": "npm run test:unit -- src/lib/__tests__/adaptive-path-journey-control.test.ts"
+  },
   "designHandoff": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/design-handoff.md",
   "designHandoffSha256": "9fab1b0d68434d2d025fa170daaabbb22852126995759c24ab145dfee57c30af",
   "handoffMatrix": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/evidence/govern-adaptive-path-product-qa/handoff-to-implementation-matrix.md",
-  "handoffMatrixSha256": "e1f27e07a86a8b9c1699b7d9ec9b6a10ecc04c6d656fabae94177d8e01bc44bd",
+  "handoffMatrixSha256": "4518ad34dc92bf23554dc6c7d59a7c1662424a73ef96269546fb06775d06468f",
   "captureManifest": "artifacts/commercial-ui/adaptive-path-product-qa-516/capture-manifest.json",
   "captureManifestSha256": "dbf85a21062570051924c4b6c95bb1667c28ee869eb4d31ad3e7c78671310594",
   "visualSignals": "artifacts/commercial-ui/adaptive-path-product-qa-516/visual-signals.json",

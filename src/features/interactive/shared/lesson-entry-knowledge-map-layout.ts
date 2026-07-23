@@ -59,6 +59,29 @@ const COLUMN_GAP = 44;
 const ROW_GAP = 22;
 const MAP_PADDING = 24;
 const HEADER_HEIGHT = 58;
+const RELATION_LABEL_HALF_WIDTH = 23;
+const RELATION_LABEL_TOP_OFFSET = 12;
+const RELATION_LABEL_BOTTOM_OFFSET = 8;
+
+export function getKnowledgeMapRelationLabelPoint(
+  link: Pick<KnowledgeMapVisibleLink, 'x1' | 'y1' | 'x2' | 'y2' | 'relationLabel'>,
+  bounds: Pick<KnowledgeMapLayout, 'width' | 'height'>,
+) {
+  const dx = link.x2 - link.x1;
+  const dy = link.y2 - link.y1;
+  const distance = Math.hypot(dx, dy) || 1;
+  const isPrerequisite = link.relationLabel === '前置';
+  const direction = isPrerequisite ? -1 : 1;
+  const progress = isPrerequisite ? 0.68 : 0.32;
+  const perpendicularOffset = Math.abs(dx) < 80 ? 118 : 46;
+  const x = link.x1 + dx * progress + (-dy / distance) * perpendicularOffset * direction;
+  const y = link.y1 + dy * progress + (dx / distance) * perpendicularOffset * direction;
+
+  return {
+    x: Math.min(Math.max(x, RELATION_LABEL_HALF_WIDTH), bounds.width - RELATION_LABEL_HALF_WIDTH),
+    y: Math.min(Math.max(y, RELATION_LABEL_TOP_OFFSET), bounds.height - RELATION_LABEL_BOTTOM_OFFSET),
+  };
+}
 
 function compareByCardOrder(cardOrderIndex: Map<string, number>, originalIndex: Map<string, number>) {
   return (left: string, right: string) => {

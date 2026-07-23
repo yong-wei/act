@@ -81,14 +81,32 @@ describe('derived learning materialization revocation', () => {
     const db = rebuildRequestDb();
     const request = (materialization as any).requestLearningMaterializationRebuild;
 
-    await request(db, { userId: 'student-1', classIds: ['class-1'], reason: 'first' });
-    await request(db, { userId: 'student-1', classIds: ['class-2', 'class-1'], reason: 'second' });
+    await expect(request(db, { userId: 'student-1', classIds: ['class-1'], reason: 'first' })).resolves.toBe(1);
+    await expect(request(db, { userId: 'student-1', classIds: ['class-2', 'class-1'], reason: 'second' })).resolves.toBe(2);
 
     expect(db.rows.get('student-1')).toEqual(expect.objectContaining({
       classIds: ['class-1', 'class-2'],
       generation: 2,
       status: 'PENDING',
       reason: 'second',
+    }));
+  });
+
+  it('returns the fenced generation without discarding inherited class refresh responsibility', async () => {
+    const db = rebuildRequestDb();
+    const request = (materialization as any).requestLearningMaterializationRebuild;
+    await request(db, { userId: 'student-1', classIds: ['recent-class'], reason: 'recent' });
+
+    await expect(request(db, {
+      userId: 'student-1',
+      classIds: [],
+      reason: 'cumulative',
+    })).resolves.toBe(2);
+
+    expect(db.rows.get('student-1')).toEqual(expect.objectContaining({
+      classIds: ['recent-class'],
+      generation: 2,
+      status: 'PENDING',
     }));
   });
 
@@ -204,8 +222,9 @@ describe('derived learning materialization revocation', () => {
     expect(schema).toMatch(/materializationVersion\s+String\?\s*\n/);
     expect(schema).not.toMatch(/materializationVersion\s+String\?\s+@default/);
     expect(migration).not.toContain('ALTER COLUMN "materializationVersion" SET DEFAULT');
-    expect(worker.match(/classCompetencySnapshot\.create\(/g)).toHaveLength(2);
+    expect(worker.match(/classCompetencySnapshot\.create\(/g)).toHaveLength(3);
     expect(worker.match(/materializationVersion:\s*CLASS_COMPETENCY_MATERIALIZATION_VERSION/g)).toHaveLength(3);
+    expect(worker.match(/materializationVersion:\s*CUMULATIVE_CLASS_COMPETENCY_MATERIALIZATION_VERSION/g)).toHaveLength(1);
     for (const file of ['repair-unit-4-4-incomplete-backfill.ts', 'backfill-unit-4-1-growth-governance.ts', 'backfill-unit-4-4-governance.ts']) {
       const source = readFileSync(new URL(`scripts/db/${file}`, root), 'utf8');
       expect(source).not.toContain('classCompetencySnapshot.create(');

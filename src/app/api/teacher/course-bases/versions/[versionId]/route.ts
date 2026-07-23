@@ -11,7 +11,10 @@ import {
   retireCourseBasisVersion,
   retryCourseBasisExtraction,
 } from '@/lib/course-basis';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
+
+export const dynamic = 'force-dynamic';
 
 const actionSchema = z.object({ action: z.enum(['confirm', 'reject', 'retry', 'retire']) }).strict();
 
@@ -29,6 +32,7 @@ export async function GET(request: Request, context: { params: Promise<{ version
     });
     return NextResponse.json({ preview });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     return courseBasisErrorResponse(error);
   }
 }
@@ -49,6 +53,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ versi
           : await retireCourseBasisVersion(prisma, input);
     return NextResponse.json({ version });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     return courseBasisErrorResponse(error);
   }
 }
@@ -61,6 +66,7 @@ export async function DELETE(_request: Request, context: { params: Promise<{ ver
     await deleteCourseBasisVersion(prisma, { actor: auth.actor, versionId });
     return new NextResponse(null, { status: 204 });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     return courseBasisErrorResponse(error);
   }
 }

@@ -174,12 +174,12 @@ describe('smart courseware publication domain', () => {
     (change) => {
       const fixture = publicationFixture();
       const revision = structuredClone(fixture.revision);
-      const module = revision.moduleMetadataSnapshot[0];
-      if (change === 'content') module.moduleContentHash = contentHash('changed module');
-      if (change === 'source-state') module.sourceState = 'TEACHER_CREATED_SOURCE_PENDING';
-      if (change === 'source-bindings') module.sourceBindingSetHash = contentHash([sourceBindingFixture]);
-      if (change === 'delete-recreate') module.moduleInstanceLineage = 'module-lineage-recreated';
-      module.gapIdentity = `courseware-gap:${change}`;
+      const coursewareModule = revision.moduleMetadataSnapshot[0];
+      if (change === 'content') coursewareModule.moduleContentHash = contentHash('changed module');
+      if (change === 'source-state') coursewareModule.sourceState = 'TEACHER_CREATED_SOURCE_PENDING';
+      if (change === 'source-bindings') coursewareModule.sourceBindingSetHash = contentHash([sourceBindingFixture]);
+      if (change === 'delete-recreate') coursewareModule.moduleInstanceLineage = 'module-lineage-recreated';
+      coursewareModule.gapIdentity = `courseware-gap:${change}`;
 
       expect(validatePublicationEligibility({ ...fixture.input, revision }).issues)
         .toContainEqual(expect.objectContaining({

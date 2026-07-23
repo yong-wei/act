@@ -143,6 +143,20 @@ function main() {
 
   assert.match(
     dockerfile,
+    /ENV NODE_OPTIONS=--max-old-space-size=4096/,
+    'Dockerfile builder 阶段必须提高 Node heap，避免容器内 Next 构建因默认堆内存不足失败'
+  );
+
+  const packageBuildScript = packageJson.scripts.build;
+  const wasmBuildIndex = Math.min(
+    ...[
+      packageBuildScript.indexOf('wasm:build:control-engine'),
+      packageBuildScript.indexOf('scripts/wasm/build-control-engine.mjs'),
+    ].filter((index) => index >= 0),
+  );
+
+  assert.match(
+    dockerfile,
     /RUN --mount=type=secret,id=database_url,required=false/,
     'Dockerfile builder 阶段必须通过 BuildKit secret 接收真实构建期 DATABASE_URL'
   );
@@ -171,9 +185,12 @@ function main() {
     'Dockerfile 不得用 ENV 固化假 DATABASE_URL，避免覆盖真实构建期数据库'
   );
 
-  assert.match(
-    packageJson.scripts.build,
-    /(?:wasm:build:control-engine|scripts\/wasm\/build-control-engine\.mjs)/,
+  const prismaGenerateIndex = packageBuildScript.indexOf('prisma generate');
+  const nextBuildIndex = packageBuildScript.indexOf('scripts/build-next-with-trace-check.mjs');
+  assert.ok(
+    wasmBuildIndex >= 0
+      && prismaGenerateIndex > wasmBuildIndex
+      && nextBuildIndex > wasmBuildIndex,
     '统一 build 脚本必须先构建控制分析内核的 Wasm 产物'
   );
 
@@ -268,7 +285,7 @@ function main() {
   }
 
   const deployScript = read('deploy/podman/deploy.sh');
-  const buildScript = read('scripts/build.sh');
+  const localImageBuildScript = read('scripts/build.sh');
   const startWrapperScript = read('deploy/podman/container-start-wrapper.sh');
   assert.match(
     deployScript,
@@ -355,61 +372,61 @@ function main() {
   );
 
   assert.doesNotMatch(
-    buildScript,
+    localImageBuildScript,
     /RUSTUP_DIST_SERVER|RUSTUP_UPDATE_ROOT/,
     '构建脚本不应再向 Docker 构建传入 Rust 下载源；Docker 阶段不负责重复编译 Wasm'
   );
 
   assert.match(
-    buildScript,
+    localImageBuildScript,
     /rm -rf "\$\{ROOT_DIR\}\/\.next"/,
     '构建脚本应在本地 Next 构建前清理 .next，避免增量产物导致部署构建卡住'
   );
 
   assert.match(
-    buildScript,
+    localImageBuildScript,
     /BUILD_ARGS=\(/,
     '构建脚本必须集中维护 Docker build args'
   );
 
   assert.match(
-    buildScript,
+    localImageBuildScript,
     /DATABASE_URL_FOR_BUILD="\$\{DATABASE_URL:-\}"/,
     '构建脚本必须优先使用已导出的宿主 DATABASE_URL'
   );
 
   assert.match(
-    buildScript,
+    localImageBuildScript,
     /require\("dotenv"\)\.config\(\{ path: "\.env", quiet: true \}\)/,
     '构建脚本必须在宿主 DATABASE_URL 未导出时从 .env 读取构建期数据库 URL'
   );
 
   assert.match(
-    buildScript,
+    localImageBuildScript,
     /if \[\[ -n "\$\{DATABASE_URL_FOR_BUILD\}" \]\]; then/,
     '构建脚本必须在解析到构建期 DATABASE_URL 后传入 Docker 构建 secret'
   );
 
   assert.match(
-    buildScript,
+    localImageBuildScript,
     /BUILD_ARGS\+=\(--secret "id=database_url,env=DATABASE_URL"\)/,
     '构建脚本必须把构建期 DATABASE_URL 作为 BuildKit secret 传给 builder'
   );
 
   assert.match(
-    buildScript,
+    localImageBuildScript,
     /DATABASE_URL="\$\{DATABASE_URL_FOR_BUILD\}" docker buildx build/,
     '构建脚本必须只在 docker buildx 调用环境中暴露 DATABASE_URL secret 来源'
   );
 
   assert.doesNotMatch(
-    buildScript,
+    localImageBuildScript,
     /--build-arg "DATABASE_URL=/,
     '构建脚本不得把真实 DATABASE_URL 作为 Docker build arg 传递'
   );
 
   assert.match(
-    buildScript,
+    localImageBuildScript,
     /"\$\{BUILD_ARGS\[@\]\}"/,
     'docker buildx build 必须使用集中维护的 BUILD_ARGS'
   );

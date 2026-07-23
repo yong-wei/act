@@ -54,12 +54,13 @@ interface EvidenceSummaryItem {
 }
 
 interface GrowthSnapshotData {
+  evidenceState: 'current' | 'empty';
   currentSnapshot: {
     portrait: PortraitV2ConsumerSummary;
     vector: CompetencyVector;
     snapshotAt: string;
     factCount: number;
-  };
+  } | null;
   previousSnapshot: {
     vector: CompetencyVector;
     snapshotAt: string;
@@ -79,7 +80,7 @@ interface GrowthSnapshotData {
 
 interface GrowthRecord {
   id: string;
-  type: 'milestone' | 'simulation' | 'risk_resolved' | 'excellent_design' | 'achievement' | 'competency_evaluation';
+  type: 'milestone' | 'simulation' | 'risk_resolved' | 'excellent_design' | 'achievement' | 'competency_evaluation' | 'learning_activity';
   title: string;
   description: string;
   date: string;
@@ -229,7 +230,7 @@ export default function GrowthPage() {
 
   const portrait = snapshot?.currentSnapshot?.portrait;
   const portraitDimensions = portrait?.dimensions ?? [];
-  const overallScore = portrait?.overallScore ?? 0;
+  const overallScore = portrait?.overallScore ?? null;
 
   // Prepare radar chart data
   const radarData = portraitDimensions.map((dimension) => ({
@@ -246,8 +247,12 @@ export default function GrowthPage() {
     confidence: Math.round(dimension.confidence * 100),
     trend: dimension.trend,
   }));
-  const hasCompetencyChartData = portraitDimensions.length === 7
-    && (snapshot?.currentSnapshot?.factCount ?? 0) > 0
+  const hasPortrait = snapshot?.evidenceState === 'current'
+    && portraitDimensions.some((dimension) => dimension.evidenceCount > 0);
+  const portraitEvidenceCount = portraitDimensions.reduce((sum, dimension) => sum + dimension.evidenceCount, 0);
+  const hasCompetencyChartData = hasPortrait
+    && portraitDimensions.length === 7
+    && portraitEvidenceCount > 0
     && barData.some((entry) => entry.score > 0 || entry.confidence > 0);
   const groupedGrowthRecords = groupGrowthTimelineRecords(growthRecords);
 
@@ -289,10 +294,17 @@ export default function GrowthPage() {
         data-learner-record-missing-source={hasCompetencyChartData ? 'complete' : 'missing-evidence'}
       >
         <StudentFeedbackTaskPanel context={feedbackContext} surface="growth" className="mb-6" />
+        {!hasPortrait ? (
+          <div className="mb-8 rounded-xl border border-border bg-muted/40 p-5 text-sm text-subtle" data-portrait-no-evidence>
+            <p className="font-medium text-foreground">暂无可形成能力画像的历史学习证据</p>
+            <p className="mt-2">这里不会显示零分、学习阶段或正向能力结论。完成真实学习活动后再生成画像。</p>
+            <Link href="/courses" className="mt-3 inline-flex font-medium text-primary hover:underline">进入课程与学习活动</Link>
+          </div>
+        ) : null}
         {/* Top Cards */}
         <div className="mb-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {/* Learning Stage Card */}
-          <div className="surface-card p-5">
+          {hasPortrait && overallScore !== null ? <div className="surface-card p-5">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-subtle">当前学习阶段</p>
@@ -307,12 +319,12 @@ export default function GrowthPage() {
               </div>
             </div>
             <p className="mt-2 text-xs text-subtle">
-              综合得分 {overallScore} 分 · {snapshot?.currentSnapshot?.factCount || 0} 条学习记录
+              综合得分 {overallScore} 分 · 累计 {portraitEvidenceCount} 条学习证据
             </p>
-          </div>
+          </div> : null}
 
           {/* Weekly Activity Card */}
-          <div className="surface-card p-5">
+          {hasPortrait ? <div className="surface-card p-5">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-subtle">本周学习热度</p>
@@ -330,10 +342,10 @@ export default function GrowthPage() {
             <p className="mt-2 text-xs text-subtle">
               最近7天活跃记录
             </p>
-          </div>
+          </div> : null}
 
           {/* Progress Summary Card */}
-          <div className="surface-card p-5">
+          {hasPortrait ? <div className="surface-card p-5">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-subtle">本周进步</p>
@@ -352,10 +364,10 @@ export default function GrowthPage() {
                 ? `有 ${snapshot.riskFlags.length} 个待关注事项`
                 : '各项能力均衡发展'}
             </p>
-          </div>
+          </div> : null}
 
           {/* AI Suggestion Card */}
-          <div className="surface-card p-5">
+          {hasPortrait ? <div className="surface-card p-5" data-portrait-recommendation>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-subtle">控灵建议</p>
@@ -374,19 +386,26 @@ export default function GrowthPage() {
                 ? `还有 ${snapshot.recommendations.length} 条建议`
                 : '暂无新建议'}
             </p>
-          </div>
+          </div> : null}
         </div>
 
-        <div className="mb-8">
+        {hasPortrait ? <div className="mb-8" data-portrait-diagnosis>
           <DiagnosisSurfacePanel
             diagnosis={snapshot?.diagnosis}
             mode="student"
             title="控制校正个人诊断"
             description="把诊断快照转化为学生可理解的维度状态、证据引用和下一步行动。"
           />
-        </div>
+        </div> : null}
 
-        {portrait && (portrait.derivationKind !== 'native' || portrait.limitations.length > 0) ? (
+        {hasPortrait && portrait ? (
+          <div className="mb-8 rounded-xl border border-border bg-muted/40 p-4 text-sm text-subtle" data-portrait-generated-at={portrait.generatedAt}>
+            <span className="font-medium text-foreground">画像生成时间：</span>
+            {new Date(portrait.generatedAt).toLocaleString('zh-CN')}
+          </div>
+        ) : null}
+
+        {hasPortrait && portrait && (portrait.derivationKind !== 'native' || portrait.limitations.length > 0) ? (
           <div className="mb-8 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-subtle" data-portrait-v2-limitation>
             <p className="font-medium text-foreground">画像来源说明</p>
             <p className="mt-1">
@@ -644,6 +663,8 @@ export default function GrowthPage() {
                           ? 'bg-green-500/20 text-green-500'
                           : record.type === 'achievement'
                           ? 'bg-amber-500/20 text-amber-500'
+                          : record.type === 'learning_activity'
+                          ? 'bg-sky-500/20 text-sky-500'
                           : 'bg-violet-500/20 text-violet-500'
                       }`}
                     >
@@ -675,6 +696,11 @@ export default function GrowthPage() {
                       {record.type === 'competency_evaluation' && (
                         <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4.5l1.5 3.5 3.5 1.5-3.5 1.5L11 14.5 9.5 11 6 9.5 9.5 8 11 4.5zM17.5 13l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9.9-2.1zM5.5 15l.7 1.6 1.6.7-1.6.7-.7 1.6-.7-1.6-1.6-.7 1.6-.7.7-1.6z" />
+                        </svg>
+                      )}
+                      {record.type === 'learning_activity' && (
+                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5V5a2 2 0 012-2h14v14M8 7h8M8 11h6" />
                         </svg>
                       )}
                     </div>

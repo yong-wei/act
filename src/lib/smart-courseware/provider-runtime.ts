@@ -109,7 +109,7 @@ export function createDeterministicCoursewareStage(input: {
       evidencePath: `responses.${input.unitKey}.${moduleId}`,
       payload: {
         prompt: `${knowledgeText} 学习活动`,
-        options: [{ value: 'a', label: '选项 A' }, { value: 'b', label: '选项 B' }],
+        options: [{ value: 'a', label: `${knowledgeText}的正确判断` }, { value: 'b', label: `${knowledgeText}的错误判断` }],
       },
       roleMetadata: { studentVisible: true, teacherVisible: true, referenceAnswerVisibility: 'teacher-only' },
     } : {

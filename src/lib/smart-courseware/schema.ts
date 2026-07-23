@@ -1,6 +1,9 @@
 import { z } from 'zod';
 
-import { generatedSlideManifestSchema } from '@/features/interactive/shared/manifest-runtime/generated-slide-contract';
+import {
+  GENERATED_ACTIVITY_CLASS,
+  generatedSlideManifestSchema,
+} from '@/features/interactive/shared/manifest-runtime/generated-slide-contract';
 import { sourceBindingSchema } from '@/lib/smart-lesson-plan/schema';
 
 export const COURSEWARE_AUTHORING_SCHEMA_VERSION = 'smart-courseware-authoring.v1' as const;
@@ -100,6 +103,70 @@ export const coursewareGeneratedStageOutputSchema = z.object({
     ['stage'],
   );
 });
+
+export function createCoursewareGeneratedStageProviderOutputSchema(expectedStepCount: number, requireActivity = false) {
+  const id = z.string().trim().min(1).max(96).regex(/^[a-z0-9]+(?:[._-][a-z0-9]+)*$/);
+  const text = z.string().trim().min(1);
+  const choiceLabel = text.refine((value) => !new Set([
+    'a', 'b', 'option a', 'option b', '选项a', '选项b',
+  ]).has(value.replaceAll(/\s+/g, '').toLowerCase()), 'choice label must contain answer content');
+  const choiceOptions = z.array(z.union([
+    z.object({ value: z.literal('a'), label: choiceLabel }).strict(),
+    z.object({ value: z.literal('b'), label: choiceLabel }).strict(),
+  ])).length(2).superRefine((options, context) => {
+    if (new Set(options.map((option) => option.value)).size !== 2) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: 'choice values must be distinct' });
+    }
+    if (new Set(options.map((option) => option.label.replaceAll(/\s+/g, '').toLowerCase())).size !== 2) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: 'choice labels must be distinct' });
+    }
+  });
+  const moduleSchema = requireActivity
+    ? z.object({
+      id,
+      canonicalClass: z.literal(GENERATED_ACTIVITY_CLASS),
+      slotId: z.literal('main'),
+      sizeId: z.literal('full'),
+      responseKind: z.literal('choice.single'),
+      evidencePath: z.string().trim().regex(/^responses\.[a-z0-9]+(?:[._-][a-z0-9]+)*$/),
+      payload: z.object({
+        prompt: text,
+        options: choiceOptions,
+      }).strict(),
+      roleMetadata: z.object({
+        studentVisible: z.literal(true), teacherVisible: z.literal(true), referenceAnswerVisibility: z.literal('teacher-only'),
+      }).strict(),
+    }).strict()
+    : z.object({
+      id,
+      canonicalClass: z.literal('content.rich'),
+      slotId: z.literal('main'),
+      sizeId: z.literal('full'),
+      payload: z.object({ text, bullets: z.array(text).max(8).optional() }).strict(),
+      roleMetadata: z.object({
+        studentVisible: z.boolean(), teacherVisible: z.literal(true), referenceAnswerVisibility: z.literal('none'),
+      }).strict(),
+    }).strict();
+  const step = z.object({
+    id, title: text, durationSeconds: z.number().int().positive(), layoutId: z.literal('single'),
+    modules: z.array(moduleSchema).length(1),
+  }).strict();
+  return z.object({
+    stage: z.object({ stage: text, durationSeconds: z.number().int().positive(), steps: z.array(step).length(expectedStepCount) }).strict(),
+    teacherActivityEvidence: z.array(z.object({
+      moduleId: z.string().trim().min(1).max(96),
+      referenceAnswer: z.enum(['a', 'b']),
+      explanation: z.string().trim().min(1).max(5_000),
+      scoring: z.record(z.unknown()).refine((value) => Object.keys(value).length > 0, 'scoring must not be empty'),
+    }).strict()).min(requireActivity ? 1 : 0).max(72).default([]),
+  }).superRefine((value, context) => {
+    requireUniqueOrderingItems(
+      value.stage.steps.flatMap((step) => step.modules),
+      context,
+      ['stage'],
+    );
+  });
+}
 
 export const coursewareModuleCandidateOutputSchema = z.object({
   runtimeModule: generatedSlideManifestSchema.shape.stages.element.shape.steps.element.shape.modules.element,

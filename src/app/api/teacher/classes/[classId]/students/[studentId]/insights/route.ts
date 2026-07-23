@@ -14,13 +14,11 @@ import {
   type PortraitV2DimensionId,
 } from '@/lib/data-governance/kaq-objective-taxonomy';
 import {
+  hasPortraitV2Evidence,
   summarizePortraitV2,
   type PortraitV2ConsumerSummary,
 } from '@/lib/data-governance/portrait-v2-consumer';
-import {
-  derivePortraitV2Compatibility,
-  projectPortraitV2ForConsumer,
-} from '@/lib/data-governance/portrait-v2-model';
+import { readLatestValidNativePortraitV2Snapshots } from '@/lib/data-governance/portrait-v2-model';
 import {
   generateRecommendations,
   type RecommendationRationale,
@@ -52,7 +50,10 @@ import {
   materializeRoleBasedLearningDiagnosis,
   type RoleBasedLearningDiagnosis,
 } from '@/lib/data-governance/role-based-learning-diagnosis';
-import { buildClassScopedStudentProjections, CLASS_COMPETENCY_MATERIALIZATION_VERSION } from '@/lib/data-governance/class-scoped-learning-materialization';
+import {
+  buildClassScopedStudentProjections,
+  CUMULATIVE_CLASS_COMPETENCY_MATERIALIZATION_VERSION,
+} from '@/lib/data-governance/class-scoped-learning-materialization';
 import { generateEvidenceSummary } from '@/lib/data-governance/competency-engine';
 
 export const dynamic = 'force-dynamic';
@@ -173,7 +174,7 @@ export interface TeacherStudentInsightsPayload {
   overview: {
     overallScore: number | null;
     evidenceState: 'current' | 'empty';
-    portraitV2: PortraitV2ConsumerSummary;
+    portraitV2: PortraitV2ConsumerSummary | null;
     riskLevel: 'none' | 'low' | 'medium' | 'high';
     riskLabel: string;
     latestSnapshotAt: string | null;
@@ -184,7 +185,7 @@ export interface TeacherStudentInsightsPayload {
     derivationState: 'current' | 'no-evidence' | 'no-recent-evidence' | 'no-evidence-after-revocation';
     current: {
       portrait: PortraitV2ConsumerSummary;
-      vector: CompetencyVector;
+      vector: CompetencyVector | null;
       // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: source identifies compatibility metadata only.
       legacyCompatibility: {
         authority: 'legacy-compatibility-only';
@@ -283,7 +284,8 @@ export async function GET(
       select: { id: true },
     });
     const scopedSessionIds = scopedClassSessions.map((session) => session.id);
-    const currentEvidenceSince = new Date(Date.now() - 30 * 24 * 60 * 60_000);
+    const now = new Date();
+    const currentEvidenceSince = new Date(now.getTime() - 30 * 24 * 60 * 60_000);
 
     const [
       currentSnapshot,
@@ -297,6 +299,7 @@ export async function GET(
       scopedFeatureFactCandidates,
       durableSubmissions,
       studentSessionReports,
+      nativePortraitByUserId,
     ] = await Promise.all([
       prisma.studentCompetencySnapshot.findFirst({
         where: { userId: studentId },
@@ -308,7 +311,10 @@ export async function GET(
       Promise.resolve([]),
       Promise.resolve([]),
       prisma.classCompetencySnapshot.findFirst({
-        where: { classId, materializationVersion: CLASS_COMPETENCY_MATERIALIZATION_VERSION },
+        where: {
+          classId,
+          materializationVersion: CUMULATIVE_CLASS_COMPETENCY_MATERIALIZATION_VERSION,
+        },
         orderBy: { snapshotAt: 'desc' },
       }),
       readStudentEvidenceFeatures(prisma, studentId),
@@ -375,68 +381,41 @@ export async function GET(
           },
         },
       }),
+      readLatestValidNativePortraitV2Snapshots(prisma, [studentId], 'reviewer', { now }),
     ]);
 
     const scopedFeatureFacts = scopedFeatureFactCandidates.filter(
       (fact) => fact.startedAt >= currentEvidenceSince,
     );
     const scopedProjection = buildClassScopedStudentProjections([studentId], scopedFeatureFacts as any).get(studentId);
+    const nativePortrait = nativePortraitByUserId.get(studentId) ?? null;
     const lifecycleState = readObject(readObject(currentSnapshot?.evidenceSummary)._derivation).state;
-    const lifecycleBoundary = !scopedProjection
+    const hasRevokedEvidence = lifecycleState === 'no-evidence-after-revocation';
+    const hasCumulativeEvidence = !hasRevokedEvidence
+      && Boolean(nativePortrait && hasPortraitV2Evidence(nativePortrait));
+    const hasScopedEvidence = Boolean(scopedProjection && scopedProjection.factCount > 0);
+    const lifecycleBoundary = !hasCumulativeEvidence
       && (lifecycleState === 'no-recent-evidence' || lifecycleState === 'no-evidence-after-revocation')
       ? lifecycleState
       : null;
-    const scopedSnapshotAt = scopedProjection
-      ? new Date(Math.max(...scopedFeatureFacts.map((fact) =>
-          (fact.finishedAt ?? fact.startedAt).getTime()
-        )))
-      : null;
-    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: scoped vectors are non-authoritative inputs to the v2 projection.
-    const selectedPortrait = scopedProjection && scopedSnapshotAt
-      ? projectPortraitV2ForConsumer(derivePortraitV2Compatibility({
-          userId: studentId,
-          snapshotAt: scopedSnapshotAt.toISOString(),
-          // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: source and vector are compatibility-only.
-          sourceFamily: 'StudentCompetencySnapshot',
-          vector: scopedProjection.competencyVector,
-          now: new Date(),
-        }), 'reviewer')
-      : null;
-    const hasCurrentEvidence = !lifecycleBoundary && Boolean(scopedProjection);
-    const derivationState = lifecycleBoundary ?? (hasCurrentEvidence ? 'current' : 'no-evidence');
+    const hasCurrentEvidence = hasCumulativeEvidence;
+    const derivationState = hasCurrentEvidence ? 'current' : lifecycleBoundary ?? 'no-evidence';
     const trendVector = null;
-    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: retain the scoped legacy vector only in compatibility output.
+    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: retain the scoped vector only for recent diagnostics.
     const currentVector = scopedProjection?.competencyVector ?? null;
-    const portraitV2 = lifecycleBoundary
-      ? summarizePortraitV2({
-          userId: studentId,
-          payloadVersion: 'learner-portrait.v2',
-          migrationVersion: 'portrait-v2-migration.v1',
-          generatedAt: currentSnapshot?.snapshotAt.toISOString() ?? new Date().toISOString(),
-          derivation: {
-            kind: 'compatibility-derived',
-            limitations: [`lifecycle-boundary:${lifecycleBoundary}`],
-          },
-          dimensions: [],
-        })
-      : selectedPortrait && hasCurrentEvidence
-      ? summarizePortraitV2(selectedPortrait)
-      : summarizePortraitV2({
-          userId: studentId,
-          payloadVersion: 'learner-portrait.v2',
-          migrationVersion: 'portrait-v2-migration.v1',
-          generatedAt: new Date().toISOString(),
-          derivation: { kind: 'compatibility-derived', limitations: ['missing-current-class-scoped-evidence'] },
-          dimensions: [],
-        });
+    const portraitV2 = nativePortrait && hasCurrentEvidence
+      ? summarizePortraitV2(nativePortrait)
+      : null;
     const snapshotVector = currentVector;
-    const overallScore = currentVector && hasCurrentEvidence
-      ? roundTo(calculateOverallScore(currentVector), 1)
+    const overallScore = hasCurrentEvidence
+      ? roundTo(portraitV2!.overallScore, 1)
       : null;
     const snapshotAt = hasCurrentEvidence
-      ? classSnapshot?.snapshotAt.toISOString() ?? scopedSnapshotAt?.toISOString() ?? null
+      ? portraitV2!.generatedAt
       : null;
-    const factCount = hasCurrentEvidence ? scopedProjection?.factCount ?? 0 : 0;
+    const factCount = hasCurrentEvidence
+      ? portraitV2!.dimensions.reduce((sum, dimension) => sum + dimension.evidenceCount, 0)
+      : 0;
     const riskLevel = normalizeInsightRiskLevel(
       null
     );
@@ -545,18 +524,22 @@ export async function GET(
         latestSnapshotAt: snapshotAt,
         factCount,
         recommendedScaffolding:
-          hasCurrentEvidence ? '班级范围暂无可靠派生脚手架建议。' : '当前无近期证据，暂不生成脚手架建议。',
+          hasCurrentEvidence
+            ? scopedProjection
+              ? '班级范围暂无可靠派生脚手架建议。'
+              : '累计画像已生成；暂无近期本班证据，暂不生成脚手架建议。'
+            : '当前无累计画像，暂不生成脚手架建议。',
       },
       snapshot: {
         derivationState,
-        current: snapshotVector && hasCurrentEvidence
+        current: hasCurrentEvidence
           ? {
-              portrait: portraitV2,
+              portrait: portraitV2!,
               vector: snapshotVector,
               // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: provenance labels this legacy payload non-authoritative.
               legacyCompatibility: {
                 authority: 'legacy-compatibility-only',
-                source: 'StudentCompetencySnapshot',
+                source: snapshotVector ? 'StudentCompetencySnapshot' : 'fallback-empty',
               },
               snapshotAt: snapshotAt!,
               factCount,
@@ -567,17 +550,19 @@ export async function GET(
       },
       profileSummary: null,
       classComparison: PORTRAIT_V2_DIMENSIONS.map(({ id: dimension, label }) => {
-        if (!hasCurrentEvidence) {
+        const studentDimension = portraitV2?.dimensions.find((item) => item.id === dimension);
+        const classAverage = extractClassMean(classAggregate, dimension);
+        if (!hasCurrentEvidence || !studentDimension || studentDimension.evidenceCount === 0 || classAverage === null) {
           return { dimension, label, studentScore: null, classAverage: null, gap: null };
         }
-        const studentScore = portraitV2.dimensions.find((item) => item.id === dimension)?.score ?? 0;
-        const classAverage = roundTo(extractClassMean(classAggregate, dimension) ?? 0, 1);
+        const studentScore = studentDimension.score;
+        const roundedClassAverage = roundTo(classAverage, 1);
         return {
           dimension,
           label,
           studentScore: roundTo(studentScore, 1),
-          classAverage,
-          gap: roundTo(studentScore - classAverage, 1),
+          classAverage: roundedClassAverage,
+          gap: roundTo(studentScore - roundedClassAverage, 1),
         };
       }),
       riskFlags: [],
@@ -586,7 +571,7 @@ export async function GET(
       evidenceSummary: PORTRAIT_V2_DIMENSIONS.map(({ id: dimension, label }) => ({
         dimension,
         label,
-        items: hasCurrentEvidence ? portraitEvidenceSummary[dimension] ?? [] : [],
+        items: hasScopedEvidence ? portraitEvidenceSummary[dimension] ?? [] : [],
       })),
       evidenceDrawer,
       diagnosis,

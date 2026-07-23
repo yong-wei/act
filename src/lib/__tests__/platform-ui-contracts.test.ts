@@ -702,7 +702,7 @@ describe('platform UI contracts', () => {
     expect(teacherDashboardSource).toContain('data-report-ledger-surface="assistant-effect-report-export"');
     expect(teacherGradingSource).toContain('data-report-ledger-surface="document-grading-workbench-ledger"');
     expect(teacherGradingSource).toContain('data-report-ledger-privacy-scope="teacher-review"');
-    expect(teacherGradingSource).toContain('状态图例：草稿需人工审批');
+    expect(teacherGradingSource).toContain('状态图例：等待选择');
     expect(teacherGradingPageSource).toContain(
       'session.user.role !== UserRole.TEACHER && session.user.role !== UserRole.ADMIN',
     );
@@ -824,7 +824,7 @@ describe('platform UI contracts', () => {
     expect(knowledgeSidebarSource).not.toContain('w-[240px]');
     expect(knowledgeSidebarSource).not.toContain('bg-[#091540]');
     expect(knowledgeSystemSource).toContain('data-knowledge-local-panel="node-filters"');
-    expect(knowledgeSystemSource).toContain('data-knowledge-relation-family-control="compact-bottom-left"');
+    expect(knowledgeSystemSource).toContain('<RelationFamilyControl');
     expect(knowledgeSystemSource).toContain('data-knowledge-desktop-command-system="compact"');
     expect(knowledgeSystemSource).toContain('data-knowledge-local-panel="view-layout-controls"');
     expect(knowledgeSystemSource).toContain('data-knowledge-local-panel="node-hover-preview"');

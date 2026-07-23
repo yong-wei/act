@@ -75,22 +75,25 @@ export const smartLessonOutlineOutputSchema = z.object({
   }).strict()).min(6).max(100),
 }).strict();
 
-const timedStepSchema = z.object({
-  title: z.string().trim().min(1).max(500),
-  minutes: z.number().int().positive().max(120),
-  teacherActivity: z.string().trim().min(1).max(10_000),
-  studentActivity: z.string().trim().min(1).max(10_000),
-  assessment: z.string().trim().min(1).max(5000),
-  sourceBindings: z.array(sourceBindingSchema).max(100),
-}).strict();
+function createTimedStepSchema(sourceBinding: z.ZodTypeAny) {
+  return z.object({
+    title: z.string().trim().min(1).max(500),
+    minutes: z.number().int().positive().max(120),
+    teacherActivity: z.string().trim().min(1).max(10_000),
+    studentActivity: z.string().trim().min(1).max(10_000),
+    assessment: z.string().trim().min(1).max(5000),
+    sourceBindings: z.array(sourceBinding).max(100),
+  }).strict();
+}
 
-export const bopppsStageSchema = z.object({
-  minutes: z.number().int().positive().max(120),
-  teacherActivity: z.string().trim().min(1).max(20_000),
-  studentActivity: z.string().trim().min(1).max(20_000),
-  assessment: z.string().trim().min(1).max(10_000),
-  steps: z.array(timedStepSchema).min(1).max(30),
-}).strict().superRefine((stage, context) => {
+function createBopppsStageSchema(sourceBinding: z.ZodTypeAny) {
+  return z.object({
+    minutes: z.number().int().positive().max(120),
+    teacherActivity: z.string().trim().min(1).max(20_000),
+    studentActivity: z.string().trim().min(1).max(20_000),
+    assessment: z.string().trim().min(1).max(10_000),
+    steps: z.array(createTimedStepSchema(sourceBinding)).min(1).max(30),
+  }).strict().superRefine((stage, context) => {
   const stepMinutes = stage.steps.reduce((total, step) => total + step.minutes, 0);
   if (stepMinutes !== stage.minutes) {
     context.addIssue({
@@ -99,7 +102,33 @@ export const bopppsStageSchema = z.object({
       message: `stage-step-duration-mismatch:${stepMinutes}:${stage.minutes}`,
     });
   }
-});
+  });
+}
+
+export const bopppsStageSchema = createBopppsStageSchema(sourceBindingSchema);
+
+export function createSourceBindingSchemaForAllowedBindings(bindings: Array<z.infer<typeof sourceBindingSchema>>) {
+  const variants = [...new Map(bindings.map((binding) => [
+    `${binding.sourceVersionId}\u0000${binding.anchor}\u0000${binding.contentHash}\u0000${binding.citationId}`,
+    z.object({
+      citationId: z.literal(binding.citationId),
+      sourceVersionId: z.literal(binding.sourceVersionId),
+      anchor: z.literal(binding.anchor),
+      contentHash: z.literal(binding.contentHash),
+    }).strict(),
+  ])).values()];
+  const bindingSchema = variants.length === 0
+    ? sourceBindingSchema
+    : variants.length === 1
+      ? variants[0]
+      : z.union(variants as unknown as [z.ZodTypeAny, z.ZodTypeAny, ...z.ZodTypeAny[]]);
+  return bindingSchema;
+}
+
+export function createBopppsStageSchemaForAllowedBindings(bindings: Array<z.infer<typeof sourceBindingSchema>>) {
+  const bindingSchema = createSourceBindingSchemaForAllowedBindings(bindings);
+  return createBopppsStageSchema(bindingSchema);
+}
 
 export const BOPPPS_STAGE_KEYS = [
   'bridgeIn',

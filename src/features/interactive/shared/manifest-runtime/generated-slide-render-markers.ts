@@ -74,41 +74,41 @@ export function deriveGeneratedSlideStepRenderContract(input: {
     }
   };
 
-  for (const module of modules) {
-    const payload = module.payload;
-    switch (module.canonicalClass) {
+  for (const slideModule of modules) {
+    const payload = slideModule.payload;
+    switch (slideModule.canonicalClass) {
       case 'content.rich':
-        addInline(module.id, 'text', requiredString(payload.text));
-        optionalStringArray(payload.bullets).forEach((value, index) => addInline(module.id, `bullets.${index}`, value));
+        addInline(slideModule.id, 'text', requiredString(payload.text));
+        optionalStringArray(payload.bullets).forEach((value, index) => addInline(slideModule.id, `bullets.${index}`, value));
         break;
       case 'content.cardSet':
         requiredRecordArray(payload.items).forEach((item, index) => {
-          addInline(module.id, `items.${index}.title`, requiredString(item.title));
-          addInline(module.id, `items.${index}.body`, requiredString(item.body));
+          addInline(slideModule.id, `items.${index}.title`, requiredString(item.title));
+          addInline(slideModule.id, `items.${index}.body`, requiredString(item.body));
         });
         break;
       case 'content.formula':
-        requiredStringArray(payload.formulas).forEach((value, index) => addInline(module.id, `formulas.${index}`, value, true));
-        optionalStringArray(payload.notes).forEach((value, index) => addInline(module.id, `notes.${index}`, value));
+        requiredStringArray(payload.formulas).forEach((value, index) => addInline(slideModule.id, `formulas.${index}`, value, true));
+        optionalStringArray(payload.notes).forEach((value, index) => addInline(slideModule.id, `notes.${index}`, value));
         break;
       case 'content.table':
-        requiredStringArray(payload.columns).forEach((value, index) => addInline(module.id, `columns.${index}`, value));
+        requiredStringArray(payload.columns).forEach((value, index) => addInline(slideModule.id, `columns.${index}`, value));
         requiredArray(payload.rows).forEach((row, rowIndex) => {
           requiredArray(row).forEach((cell, cellIndex) => {
             const path = `rows.${rowIndex}.${cellIndex}`;
-            if (typeof cell === 'string') addInline(module.id, path, cell);
+            if (typeof cell === 'string') addInline(slideModule.id, path, cell);
             else {
               const record = requiredRecord(cell);
-              if (record.kind !== 'math') throw new Error(`unsupported-generated-slide-table-cell:${module.id}:${path}`);
-              formulaIds.push(generatedSlideFormulaMarkerId(module.id, path));
+              if (record.kind !== 'math') throw new Error(`unsupported-generated-slide-table-cell:${slideModule.id}:${path}`);
+              formulaIds.push(generatedSlideFormulaMarkerId(slideModule.id, path));
             }
           });
         });
         break;
       case 'content.code':
-        textIds.push(generatedSlideTextMarkerId(module.id, 'language'));
-        textIds.push(generatedSlideTextMarkerId(module.id, 'code'));
-        if (typeof payload.note === 'string') addInline(module.id, 'note', payload.note);
+        textIds.push(generatedSlideTextMarkerId(slideModule.id, 'language'));
+        textIds.push(generatedSlideTextMarkerId(slideModule.id, 'code'));
+        if (typeof payload.note === 'string') addInline(slideModule.id, 'note', payload.note);
         break;
       case 'content.reveal':
         requiredRecordArray(payload.items)
@@ -117,16 +117,16 @@ export function deriveGeneratedSlideStepRenderContract(input: {
             input.revealProgress ?? 8,
           ))
           .forEach((item, index) => {
-          if (typeof item.title === 'string') addInline(module.id, `items.${index}.title`, item.title);
-          addInline(module.id, `items.${index}.body`, requiredString(item.body));
-          if (typeof item.formula === 'string') addInline(module.id, `items.${index}.formula`, item.formula, true);
+          if (typeof item.title === 'string') addInline(slideModule.id, `items.${index}.title`, item.title);
+          addInline(slideModule.id, `items.${index}.body`, requiredString(item.body));
+          if (typeof item.formula === 'string') addInline(slideModule.id, `items.${index}.formula`, item.formula, true);
         });
         break;
       case GENERATED_ACTIVITY_CLASS:
-        deriveActivityMarkers(module.id, module.responseKind, payload, textIds);
+        deriveActivityMarkers(slideModule.id, slideModule.responseKind, payload, textIds);
         break;
       default:
-        throw new Error(`unsupported-generated-slide-module-kind:${module.canonicalClass}`);
+        throw new Error(`unsupported-generated-slide-module-kind:${slideModule.canonicalClass}`);
     }
   }
   return { moduleIds: modules.map((module) => module.id), textIds, formulaIds };

@@ -28,6 +28,9 @@ describe('2-1 mainline replacement', () => {
     expect(lessonIds).toEqual([
       'unit-1-1-see-the-full-picture',
       'unit-1-2-modeling-from-object-to-system',
+      'unit-1-3-parameter-pole-migration',
+      'unit-1-4-time-frequency-views',
+      'unit-1-5-three-domain-gain-sweep',
       'cruise-comfort-boppps',
     ]);
     expect(lessonIds).not.toContain('unit-2-1-modeling-language');
@@ -102,10 +105,12 @@ describe('2-1 mainline replacement', () => {
     });
   });
 
-  it('keeps the central AI context registry free of retired legacy module 1 imports', () => {
+  it('keeps the central AI context registry aligned with current module 1 imports', () => {
     const source = readFileSync(join(repoRoot, 'src/lib/course-ai-contexts.ts'), 'utf8');
 
-    expect(source).not.toContain("./unit-1-3-ai-contexts");
+    expect(source).toContain("./unit-1-3-ai-contexts");
+    expect(source).toContain("./unit-1-4-ai-contexts");
+    expect(source).toContain("./unit-1-5-ai-contexts");
     expect(source).not.toContain("./l2a-ai-contexts");
     expect(source).not.toContain("./l2b-ai-contexts");
     expect(source).not.toContain("./l2c-ai-contexts");

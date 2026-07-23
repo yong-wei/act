@@ -1,5 +1,7 @@
 import 'server-only';
 
+import fs from 'node:fs';
+import path from 'node:path';
 import { prisma } from '@/lib/prisma';
 import {
   loadAllLessonRuntimeResourceCatalogEntries,
@@ -36,7 +38,14 @@ import {
   teachingResourceWhereForGraphCenter,
   type GraphCenterViewerRole,
 } from './graph-center-source-scope';
-import resourceFieldCompletionSummary from '../../../course-content/runtime/resource-governance/resource-field-completion-summary.json';
+
+const RESOURCE_FIELD_COMPLETION_SUMMARY_PATH = path.join(
+  process.cwd(),
+  'course-content',
+  'runtime',
+  'resource-governance',
+  'resource-field-completion-summary.json',
+);
 
 export interface GraphCenterCoverageSources {
   resourceRegistry: ResourceNodeRegistry;
@@ -90,9 +99,18 @@ export async function buildGraphCenterCoverageSources(input: {
       runtimeResourceProjections,
     ),
     evidenceCorpus: textbookSearchDocumentsToLearningEvidenceCorpus(textbookDocuments),
-    resourceFieldCompletionSummary: resourceFieldCompletionSummary as unknown as ResourceFieldCompletionGraphSummary,
+    resourceFieldCompletionSummary: loadResourceFieldCompletionSummary(),
     ...overlays,
   };
+}
+
+function loadResourceFieldCompletionSummary(): ResourceFieldCompletionGraphSummary | undefined {
+  try {
+    if (!fs.existsSync(RESOURCE_FIELD_COMPLETION_SUMMARY_PATH)) return undefined;
+    return JSON.parse(fs.readFileSync(RESOURCE_FIELD_COMPLETION_SUMMARY_PATH, 'utf8')) as ResourceFieldCompletionGraphSummary;
+  } catch {
+    return undefined;
+  }
 }
 
 async function buildGraphCenterOverlaySources(input: {

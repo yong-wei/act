@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { courseBasisErrorResponse, createCourseBasis, listCourseBases, requireCourseBasisActor } from '@/lib/course-basis';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
@@ -37,6 +38,7 @@ export async function GET(request: Request) {
       },
     });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     return courseBasisErrorResponse(error);
   }
 }
@@ -48,6 +50,7 @@ export async function POST(request: Request) {
     const courseBasis = await createCourseBasis(prisma, { actor: auth.actor, ...createSchema.parse(await request.json()) });
     return NextResponse.json({ courseBasis }, { status: 201 });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     return courseBasisErrorResponse(error);
   }
 }

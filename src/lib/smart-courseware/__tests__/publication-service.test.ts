@@ -128,6 +128,7 @@ describe('smart courseware publication persistence', () => {
         'x-act-publication-owner': actor.id,
       },
     });
+    expect(browser.context.addInitScript).toHaveBeenCalledWith('globalThis.__name ??= (target) => target;');
     expect(browser.page.goto).toHaveBeenCalledWith(expect.stringContaining(
       '/review/generated-slide-runtime-938/student',
     ), { waitUntil: 'networkidle' });
@@ -497,7 +498,7 @@ function fakeBrowser(invalid: boolean) {
   });
   const page = {
     goto: vi.fn().mockImplementation(async (url: string) => ({ ok: () => true, url: () => url })),
-    locator: vi.fn().mockReturnValue({ scrollIntoViewIfNeeded: vi.fn() }),
+    locator: vi.fn().mockReturnValue({ scrollIntoViewIfNeeded: vi.fn(), waitFor: vi.fn() }),
     evaluate: vi.fn().mockImplementation(async (_collector, args: { canvasSelector: string }) => {
       const stepId = args.canvasSelector.match(/canvas=\"([^\"]+)/)?.[1] ?? 'step-1';
       const moduleId = stepId.replace('step', 'module');
@@ -536,11 +537,12 @@ function fakeBrowser(invalid: boolean) {
     }),
     close: vi.fn(),
   };
-  const context = { newPage: vi.fn().mockResolvedValue(page), close: vi.fn() };
+  const context = { newPage: vi.fn().mockResolvedValue(page), addInitScript: vi.fn(), close: vi.fn() };
   return {
     version: () => validationProfile.browser.version,
     newContext: vi.fn().mockResolvedValue(context),
     close: vi.fn(),
+    context,
     page,
   };
 }

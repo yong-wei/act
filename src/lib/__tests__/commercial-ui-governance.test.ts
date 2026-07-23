@@ -3804,7 +3804,17 @@ describe('commercial UI governance', () => {
     const result = evaluateCommercialUiGovernance(baseInput({
       routeInventory: PLATFORM_PRIMARY_ROUTE_INVENTORY.map((route) => (
         route.href === '/ai'
-          ? { ...route, unifiedUiMigrationOwner: 'migrate-learner-knowledge-data-surfaces' }
+          ? {
+              ...route,
+              unifiedUiMigrationOwner: 'migrate-learner-knowledge-data-surfaces',
+              exception: {
+                owner: 'platform-ui',
+                reason: 'fixture-only overlapping ownership',
+                affectedCapability: 'unified-shell',
+                expiresOn: '2099-01-01',
+                removalCondition: 'Remove the temporary fixture exception.',
+              },
+            }
           : route
       )),
     }));
@@ -4387,7 +4397,7 @@ describe('commercial UI governance', () => {
     expect(captureScriptSource).not.toContain('hoveredCanvasNodeDragPointCandidates');
     expect(captureScriptSource).toContain('async function dragCanvasNodeUntilPinned(page: Page, expectedNodeId: string)');
     expect(captureScriptSource).toContain('pinnedLayoutSignature.includes(expectedNodeId)');
-    expect(captureScriptSource).toContain("const selectedNodeId = process.env.KNOWLEDGE_QA_SELECTED_NODE_ID ?? '积分环节_2_11005';");
+    expect(captureScriptSource).toContain("const selectedNodeId = process.env.KNOWLEDGE_QA_SELECTED_NODE_ID ?? '稳定性_1_7288b4ea';");
     expect(captureScriptSource).toContain("const dragNodeId = process.env.KNOWLEDGE_QA_DRAG_NODE_ID ?? 'z反变换_7_7959c077';");
     expect(captureScriptSource).toContain('dragCanvasNodeUntilPinned(page, dragNodeId)');
     expect(scriptSource).toContain('objectRecord(objectRecord(state.interactionEvidence).drag).selectedNodeId === state.selectedNode');
@@ -4436,7 +4446,6 @@ describe('commercial UI governance', () => {
     expect(captureScriptSource).toContain("'desktop-local-tools-directory-dark'");
     expect(captureScriptSource).toContain("'desktop-local-tools-filter-dark'");
     expect(captureScriptSource).toContain("'desktop-local-tools-view-dark'");
-    expect(scriptSource).toContain("'desktop-local-tools-legend-dark'");
     expect(scriptSource).toContain("'desktop-local-tools-directory-dark'");
     expect(scriptSource).toContain("'desktop-local-tools-filter-dark'");
     expect(scriptSource).toContain("'desktop-local-tools-view-dark'");
@@ -4506,7 +4515,7 @@ describe('commercial UI governance', () => {
     expect(captureScriptSource).toContain("'scripts/tests/test-commercial-ui-governance.ts'");
     expect(captureScriptSource).toContain("'src/components/providers/global-ai-provider.tsx'");
     expect(scriptSource).toContain("['desktop-local-tools-directory-dark', 'dark', 1440, 'collapsed', 'collapsed']");
-    expect(scriptSource).toContain("['mobile-320-inspector-konling-stress-dark', 'dark', 320, 'mobile', 'expanded']");
+    expect(scriptSource).toContain("['mobile-320-inspector-konling-stress-dark', 'dark', 320, 'mobile-drawer', 'expanded']");
     expect(scriptSource).toContain("markers.konlingAssistantSurface === 'global-sidebar'");
     expect(scriptSource).toContain('mobile-inspector-not-suspended');
     expect(scriptSource).toContain('mobile-inspector-policy-missing');

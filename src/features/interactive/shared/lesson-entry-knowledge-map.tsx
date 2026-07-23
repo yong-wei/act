@@ -11,6 +11,7 @@ import {
 } from '@/features/interactive/shared/interactive-svg-markers';
 import {
   createLessonKnowledgeMapLayout,
+  getKnowledgeMapRelationLabelPoint,
   getVisibleKnowledgeMapLinks,
   type KnowledgeMapInputNode,
 } from '@/features/interactive/shared/lesson-entry-knowledge-map-layout';
@@ -52,19 +53,6 @@ function getNodeTone(node: KnowledgeMapInputNode) {
   return NODE_TONES[String(node.nodeType ?? '').toUpperCase()] ?? {
     bar: 'hsl(var(--premium-lesson-graph-node-stroke))',
     badge: 'hsl(var(--premium-lesson-surface-muted) / 0.94)',
-  };
-}
-
-function getRelationLabelPoint(link: { x1: number; y1: number; x2: number; y2: number; relationLabel: string | null }) {
-  const dx = link.x2 - link.x1;
-  const dy = link.y2 - link.y1;
-  const distance = Math.hypot(dx, dy) || 1;
-  const direction = link.relationLabel === '前置' ? -1 : 1;
-  const progress = link.relationLabel === '前置' ? 0.68 : 0.32;
-  const perpendicularOffset = Math.abs(dx) < 80 ? 118 : 46;
-  return {
-    x: link.x1 + dx * progress + (-dy / distance) * perpendicularOffset * direction,
-    y: link.y1 + dy * progress + (dx / distance) * perpendicularOffset * direction,
   };
 }
 
@@ -157,7 +145,7 @@ export function LessonEntryKnowledgeMap({
                   {link.relationLabel ? (
                     <g>
                       {(() => {
-                        const labelPoint = getRelationLabelPoint(link);
+                        const labelPoint = getKnowledgeMapRelationLabelPoint(link, layout);
                         return (
                           <>
                             <rect

@@ -18,6 +18,8 @@ vi.mock('@/lib/prisma', () => ({
   prisma: mocks.prisma,
 }));
 
+vi.mock('server-only', () => ({}));
+
 import { GET } from '../route';
 
 const params = { params: Promise.resolve({ classId: 'class-1' }) };

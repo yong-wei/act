@@ -4623,7 +4623,7 @@ function AnnotatedMediaPanel({ manifest, step, module, onPanelSubmit, interactio
               disabled={!canInteract || !isSelectable}
             >
               <p className="premium-lesson-caption">候选证据 {index + 1}</p>
-              <p className="premium-lesson-title text-sm font-semibold">{annotation.label}</p>
+              <p className="premium-lesson-title interactive-courseware-title-level-3 font-semibold">{annotation.label}</p>
               <p className="interactive-courseware-body mt-1">{annotation.body}</p>
             </button>
           );

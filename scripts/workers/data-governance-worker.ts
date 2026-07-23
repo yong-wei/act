@@ -68,6 +68,7 @@ import type {
 import {
   derivePortraitV2Compatibility,
   projectPortraitV2ForConsumer,
+  readLatestValidNativePortraitV2Snapshots,
   type PortraitV2PayloadShape,
 } from '@/lib/data-governance/portrait-v2-model';
 import type { LearningEvent } from '@/lib/data-governance/event-protocol';
@@ -77,7 +78,11 @@ import {
   getRiskLevelDescription,
 } from '@/lib/data-governance/risk-detector';
 import { buildTeacherScopedLearningFactScopeFilters } from '@/lib/data-governance/teacher-evidence-governance';
-import { buildClassScopedStudentProjections, CLASS_COMPETENCY_MATERIALIZATION_VERSION } from '@/lib/data-governance/class-scoped-learning-materialization';
+import {
+  buildClassScopedStudentProjections,
+  CLASS_COMPETENCY_MATERIALIZATION_VERSION,
+  CUMULATIVE_CLASS_COMPETENCY_MATERIALIZATION_VERSION,
+} from '@/lib/data-governance/class-scoped-learning-materialization';
 import type {
   ClassSnapshotJob,
   EventIngestionJob,
@@ -750,6 +755,21 @@ export async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
   if (!job.data.fullRebuild && !portraitV2.written) {
     return { skipped: true, reason: 'no_portrait_state_change', userId, featureCacheRefreshed: false, portraitV2 };
   }
+  if (job.data.fullRebuild && !portraitV2.written) {
+    const emptySnapshot = await executeStage(async (tx) => {
+      await revokeDerivedLearningMaterializations(tx, {
+        userIds: [userId],
+        classIds: [],
+        scheduleRebuild: false,
+      });
+      const snapshot = await appendEmptyStudentCompatibilitySnapshot(tx, userId, snapshotAt, {
+        state: 'no-evidence-after-revocation',
+        reason: 'no-governed-portrait-contribution',
+      });
+      return snapshot;
+    });
+    return { skipped: false, reason: 'no_portrait_evidence', userId, snapshotId: emptySnapshot.id, featureCacheRefreshed: false, portraitV2 };
+  }
 
   const thirtyDaysAgo = new Date(snapshotAt.getTime() - 30 * 24 * 60 * 60 * 1000);
   const facts = await executeStage<any[]>((tx) => tx.learningFact.findMany({
@@ -920,7 +940,9 @@ export async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
         const result = await materialize(tx, true);
         for (const classId of rebuildClaim.classIds) await stageClassSnapshotOutbox(tx, { userId, classId, generation: rebuildClaim.generation, now: snapshotAt });
         if (!(await completeLearningMaterializationRebuild(tx, rebuildClaim))) throw new Error('learning-materialization-rebuild-fenced');
-        return result;
+        return result.portraitV2.written
+          ? { ...result, attainmentOutcome: 'portrait' as const }
+          : { ...result, attainmentOutcome: 'no-evidence' as const };
       });
     } catch (error) {
       await failLearningMaterializationRebuild(db, rebuildClaim, 'student-materialization-failed');
@@ -1066,6 +1088,13 @@ export async function processClassSnapshotJob(job: Job<ClassSnapshotJob>) {
     select: { userId: true },
   });
 
+  if (job.data.scope === 'cumulative') {
+    return materializeCumulativeClassSnapshot(db, classId, students.map((student) => student.userId), {
+      runRef: job.data.runRef,
+      requestedAfter: job.data.requestedAfter,
+    });
+  }
+
   const classSessionIds = (await db.classSession.findMany({
     where: { classId },
     select: { id: true },
@@ -1189,6 +1218,73 @@ export async function processClassSnapshotJob(job: Job<ClassSnapshotJob>) {
   return {
     snapshotId: snapshot.id,
     studentCount: portraitRows.length,
+  };
+}
+
+async function materializeCumulativeClassSnapshot(
+  db: PrismaClient,
+  classId: string,
+  rosterUserIds: string[],
+  marker: { runRef?: string; requestedAfter?: string } = {},
+) {
+  const now = new Date();
+  const portraitsByUser = await readLatestValidNativePortraitV2Snapshots(
+    db,
+    rosterUserIds,
+    'reviewer',
+    { now },
+  );
+  const portraits = rosterUserIds.flatMap((userId) => {
+    const payload = portraitsByUser.get(userId);
+    return payload && hasPortraitV2Evidence(payload) ? [payload] : [];
+  });
+  const aggregate = aggregatePortraitV2(portraits);
+  const coverage = {
+    validNativePortraits: portraits.length,
+    totalRoster: rosterUserIds.length,
+    ratio: rosterUserIds.length === 0 ? 0 : portraits.length / rosterUserIds.length,
+  };
+  const aggregateJson = {
+    ...aggregate,
+    scope: 'cumulative',
+    coverage,
+    ...(marker.runRef ? {
+      _materialization: {
+        runRef: marker.runRef,
+        requestedAfter: marker.requestedAfter ?? null,
+      },
+    } : {}),
+  };
+  const distribution = calculatePortraitLevelDistribution(portraits);
+  const snapshot = await db.classCompetencySnapshot.create({
+    data: {
+      classId,
+      materializationVersion: CUMULATIVE_CLASS_COMPETENCY_MATERIALIZATION_VERSION,
+      snapshotAt: now,
+      aggregateJson: aggregateJson as unknown as Prisma.InputJsonValue,
+      distributionJson: distribution as unknown as Prisma.InputJsonValue,
+      trendJson: {
+        _derivation: {
+          state: 'not-applicable',
+          reason: 'cumulative-attainment-has-no-near-stage-comparison',
+        },
+      },
+      riskSummaryJson: {
+        _derivation: {
+          state: 'not-applicable',
+          reason: 'recent-risk-is-not-cumulative-attainment',
+        },
+      },
+      levelDistribution: distribution as unknown as Prisma.InputJsonValue,
+      activeStudentCount: portraits.length,
+      totalStudentCount: rosterUserIds.length,
+    },
+  });
+  return {
+    snapshotId: snapshot.id,
+    studentCount: portraits.length,
+    totalStudentCount: rosterUserIds.length,
+    scope: 'cumulative' as const,
   };
 }
 

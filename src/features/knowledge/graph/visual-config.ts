@@ -83,6 +83,8 @@ export const KNOWLEDGE_NODE_SCALE_CONTRACT = {
   focusRadiusGain: 1.22,
   focusMaxRadius: 12,
   degreeCap: 24,
+  coverageCap: 3,
+  coverageWeight: 0.08,
   classes: ['knowledge-node-scale-supporting', 'knowledge-node-scale-standard', 'knowledge-node-scale-core'],
 } as const;
 
@@ -91,6 +93,7 @@ export interface KnowledgeNodeScaleInput {
   degree?: number | null;
   focused?: boolean;
   importanceScore?: number | null;
+  sourceCoverageCount?: number | null;
 }
 
 export interface KnowledgeNodeScale {
@@ -267,6 +270,83 @@ export function getKnowledgeGraphCompositeContrastRatio(
   return (lighter + 0.05) / (darker + 0.05);
 }
 
+// ========== 证据态与候选边调制 ==========
+// Evidence and candidate muting is an intra-family modulation: family pattern,
+// arrow behavior, and curvature are preserved; only opacity and width change.
+// The opacity factor 0.84 is the floor-safe value validated against the >= 3:1
+// composite contrast contract across every family and both themes.
+
+export interface KnowledgeGraphEdgeRenderModulation {
+  opacityFactor: number;
+  widthFactor: number;
+}
+
+const KNOWLEDGE_GRAPH_MUTED_EDGE_OPACITY_FACTOR = 0.84;
+const KNOWLEDGE_GRAPH_EVIDENCE_MUTED_WIDTH_FACTOR = 0.6;
+const KNOWLEDGE_GRAPH_CANDIDATE_MUTED_WIDTH_FACTOR = 0.7;
+
+const IDENTITY_EDGE_MODULATION: KnowledgeGraphEdgeRenderModulation = { opacityFactor: 1, widthFactor: 1 };
+
+export function getKnowledgeGraphEvidenceEdgeModulation(
+  evidenceState?: 'available' | 'unavailable' | null
+): KnowledgeGraphEdgeRenderModulation {
+  return evidenceState === 'unavailable'
+    ? {
+      opacityFactor: KNOWLEDGE_GRAPH_MUTED_EDGE_OPACITY_FACTOR,
+      widthFactor: KNOWLEDGE_GRAPH_EVIDENCE_MUTED_WIDTH_FACTOR,
+    }
+    : IDENTITY_EDGE_MODULATION;
+}
+
+export function getKnowledgeGraphEdgeRenderModulation({
+  candidate = false,
+  evidenceState,
+}: {
+  candidate?: boolean;
+  evidenceState?: 'available' | 'unavailable' | null;
+}): KnowledgeGraphEdgeRenderModulation {
+  const evidenceMuted = evidenceState === 'unavailable';
+  if (!evidenceMuted && !candidate) return IDENTITY_EDGE_MODULATION;
+  return {
+    opacityFactor: KNOWLEDGE_GRAPH_MUTED_EDGE_OPACITY_FACTOR,
+    widthFactor: (evidenceMuted ? KNOWLEDGE_GRAPH_EVIDENCE_MUTED_WIDTH_FACTOR : 1)
+      * (candidate ? KNOWLEDGE_GRAPH_CANDIDATE_MUTED_WIDTH_FACTOR : 1),
+  };
+}
+
+// Candidate nodes are governance candidates, never mistaken for reviewed
+// knowledge: dashed outline + badge in every renderer, candidate-muted edges.
+export const KNOWLEDGE_GRAPH_CANDIDATE_PRESENTATION = {
+  color: platformToken('platform-evaluation-preview'),
+  label: '候选',
+} as const;
+
+// ========== 根气泡活力（纯绘制层，platform tokens） ==========
+export const KNOWLEDGE_ROOT_BUBBLE_VITALITY = {
+  halo: {
+    color: platformToken('platform-brand-focus-ring'),
+    radiusGain: 1.38,
+    alphaMin: 0.1,
+    alphaMax: 0.22,
+  },
+  rimArc: {
+    color: platformToken('platform-fg-inverse'),
+    startAngle: (-140 * Math.PI) / 180,
+    endAngle: (-40 * Math.PI) / 180,
+    radiusGain: 0.94,
+    inactiveAlpha: 0.4,
+    activeAlpha: 0.72,
+  },
+  breathing: {
+    periodMs: 2400,
+  },
+  entrance: {
+    totalDurationMs: 400,
+    fadeDurationMs: 200,
+    staggerSpanMs: 200,
+  },
+} as const;
+
 // ========== 关系类型样式与语义 ==========
 export const RELATION_STYLES: Record<string, RelationStyle> = {
   prerequisite: relationStyle({ color: platformToken('platform-chart-4'), lightColor: platformToken('platform-chart-4'), darkColor: platformToken('platform-chart-4'), dash: [], width: 1.6, hasArrow: true, endpoint: 'arrow', curvature: 0.04, opacity: 0.78 }),
@@ -390,6 +470,7 @@ export const RELATION_SEMANTICS: Record<string, RelationSemantic> = {
   provides_context: { type: 'provides_context', label: '提供语境', visualFamily: 'relation-family-association', direction: 'undirected', density: 'context', legendExplanation: '提供与当前节点相关的补充语义。' },
   refined_by: { type: 'refined_by', label: '被精化', visualFamily: 'relation-family-association', direction: 'undirected', density: 'context', legendExplanation: '提供与当前节点相关的补充语义。' },
   refines: { type: 'refines', label: '精化概念', visualFamily: 'relation-family-association', direction: 'undirected', density: 'context', legendExplanation: '提供与当前节点相关的补充语义。' },
+  association: { type: 'association', label: '语义关联', visualFamily: 'relation-family-association', direction: 'undirected', density: 'context', legendExplanation: '提供与当前节点相关的补充语义。' },
 };
 
 const FAMILY_SEMANTICS: Record<KnowledgeGraphPresentationFamily, Pick<RelationSemantic, 'visualFamily' | 'direction' | 'density' | 'legendExplanation'>> = {
@@ -432,6 +513,92 @@ export const NODE_TYPE_CONFIGS: Record<string, NodeTypeConfig> = {
   SCENARIO: { shape: 'square', label: '船舶场景', legendColor: platformToken('platform-evaluation-preview') },
   ETHICS: { shape: 'hexagon', label: '伦理决策', legendColor: platformToken('platform-replay-ready') },
 };
+
+// ========== 概念宏类目 (ActKG concept_kind 15 → 6, nodeType/knowledgeDim 回退) ==========
+export type KnowledgeConceptMacroCategory =
+  | 'systems'
+  | 'models'
+  | 'methods'
+  | 'criteria-and-metrics'
+  | 'phenomena-and-objects'
+  | 'constraints-and-tasks'
+  | 'neutral';
+
+export type KnowledgeConceptNodeShape = 'circle' | 'square' | 'hexagon' | 'triangle' | 'diamond' | 'pentagon';
+
+const CONCEPT_KIND_MACRO_CATEGORY: Record<string, Exclude<KnowledgeConceptMacroCategory, 'neutral'>> = {
+  system_kind: 'systems',
+  system_component: 'systems',
+  signal_role: 'systems',
+  model_kind: 'models',
+  representation_kind: 'models',
+  mathematical_object: 'models',
+  theoretical_construct: 'models',
+  analysis_method: 'methods',
+  design_method: 'methods',
+  criterion: 'criteria-and-metrics',
+  performance_metric: 'criteria-and-metrics',
+  phenomenon: 'phenomena-and-objects',
+  system_property: 'phenomena-and-objects',
+  constraint: 'constraints-and-tasks',
+  task_kind: 'constraints-and-tasks',
+};
+
+export const CONCEPT_MACRO_CATEGORY_SHAPES: Record<Exclude<KnowledgeConceptMacroCategory, 'neutral'>, KnowledgeConceptNodeShape> = {
+  systems: 'hexagon',
+  models: 'square',
+  methods: 'triangle',
+  'criteria-and-metrics': 'diamond',
+  'phenomena-and-objects': 'circle',
+  'constraints-and-tasks': 'pentagon',
+};
+
+export const CONCEPT_MACRO_CATEGORY_LABELS: Record<Exclude<KnowledgeConceptMacroCategory, 'neutral'>, string> = {
+  systems: '系统',
+  models: '模型',
+  methods: '方法',
+  'criteria-and-metrics': '判据指标',
+  'phenomena-and-objects': '现象对象',
+  'constraints-and-tasks': '约束任务',
+};
+
+const unknownConceptKindsWarned = new Set<string>();
+
+export function resolveConceptMacroCategory(node: {
+  conceptKind?: string | null;
+  knowledgeDim?: string | null;
+  nodeType?: string | null;
+}): KnowledgeConceptMacroCategory {
+  const kind = typeof node.conceptKind === 'string' ? node.conceptKind.trim() : '';
+  if (kind) {
+    const category = CONCEPT_KIND_MACRO_CATEGORY[kind];
+    if (category) return category;
+    if (!unknownConceptKindsWarned.has(kind)) {
+      unknownConceptKindsWarned.add(kind);
+      console.warn(`Unknown knowledge conceptKind "${kind}" renders neutral pending contract review.`);
+    }
+    return 'neutral';
+  }
+  if (node.nodeType === 'SCENARIO') return 'phenomena-and-objects';
+  if (node.nodeType === 'ETHICS') return 'constraints-and-tasks';
+  if (node.nodeType === 'THEORY') {
+    if (node.knowledgeDim === 'PROCEDURAL') return 'methods';
+    if (node.knowledgeDim === 'METACOGNITIVE') return 'criteria-and-metrics';
+    if (node.knowledgeDim === 'FACTUAL') return 'phenomena-and-objects';
+    if (node.knowledgeDim === 'CONCEPTUAL') return 'models';
+  }
+  return 'neutral';
+}
+
+export function getKnowledgeConceptNodeShape(node: {
+  conceptKind?: string | null;
+  knowledgeDim?: string | null;
+  nodeType?: string | null;
+}): KnowledgeConceptNodeShape {
+  const category = resolveConceptMacroCategory(node);
+  if (category === 'neutral') return getNodeTypeConfig(node.nodeType).shape;
+  return CONCEPT_MACRO_CATEGORY_SHAPES[category];
+}
 
 export function getNodeColor(knowledgeDim?: string | null): string {
   if (!knowledgeDim) return KNOWLEDGE_DIM_COLORS.DEFAULT;
@@ -496,6 +663,7 @@ export function getKnowledgeNodeScale({
   degree,
   focused,
   importanceScore,
+  sourceCoverageCount,
 }: KnowledgeNodeScaleInput): KnowledgeNodeScale {
   const safeMetadata = metadata ?? {};
   const boundedImportanceScore = typeof importanceScore === 'number' && Number.isFinite(importanceScore)
@@ -503,7 +671,18 @@ export function getKnowledgeNodeScale({
     : getTeachingImportanceScore(safeMetadata);
   const degreeScore = Math.min(Math.max(degree ?? 0, 0), KNOWLEDGE_NODE_SCALE_CONTRACT.degreeCap)
     / KNOWLEDGE_NODE_SCALE_CONTRACT.degreeCap;
-  const score = Math.min(1, boundedImportanceScore * 0.82 + degreeScore * 0.18);
+  // Coverage is a capped tertiary bonus after teaching importance and degree;
+  // absence is exactly neutral and never shrinks a node.
+  const coverageScore = typeof sourceCoverageCount === 'number' && Number.isFinite(sourceCoverageCount)
+    ? Math.min(Math.max(sourceCoverageCount, 0), KNOWLEDGE_NODE_SCALE_CONTRACT.coverageCap)
+      / KNOWLEDGE_NODE_SCALE_CONTRACT.coverageCap
+    : 0;
+  const score = Math.min(
+    1,
+    boundedImportanceScore * 0.82
+      + degreeScore * 0.18
+      + coverageScore * KNOWLEDGE_NODE_SCALE_CONTRACT.coverageWeight
+  );
   const baseRadius = KNOWLEDGE_NODE_SCALE_CONTRACT.minRadius
     + (KNOWLEDGE_NODE_SCALE_CONTRACT.maxRadius - KNOWLEDGE_NODE_SCALE_CONTRACT.minRadius) * score;
   const radius = focused
@@ -556,13 +735,14 @@ export function getKnowledgeSemanticRegionStyle(
 }
 
 export function getKnowledgeNodeMaximumPresentationRadius(
-  node: { id?: string; metadata?: Record<string, unknown> | null; graphDegree?: number | null; graphImportanceScore?: number | null }
+  node: { id?: string; metadata?: Record<string, unknown> | null; graphDegree?: number | null; graphImportanceScore?: number | null; sourceCoverageCount?: number | null }
 ): number {
   const scale = getKnowledgeNodeScale({
     metadata: node.metadata,
     degree: node.graphDegree ?? 0,
     focused: true,
     importanceScore: node.graphImportanceScore,
+    sourceCoverageCount: node.sourceCoverageCount,
   });
   const semantic = getKnowledgeSemanticRegionStyle(node);
   const territoryRadius = semantic.enabled

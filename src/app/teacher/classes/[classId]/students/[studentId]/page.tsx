@@ -145,10 +145,10 @@ export default function TeacherStudentInsightsPage() {
               </div>
               <div className="grid gap-4 md:grid-cols-3">
                 <MetricCard title="综合指数" value={data.overview.overallScore ?? '暂无当前证据'} detail="七维 portrait v2 平均值" />
-                <MetricCard title="学习事实" value={data.overview.factCount} detail="已沉淀的治理证据数量" />
+                <MetricCard title="维度证据" value={data.overview.factCount} detail="累计画像的分维度证据计数" />
                 <MetricCard
-                  title="最近画像"
-                  value={data.snapshot.current ? 1 : 0}
+                  title="累计画像"
+                  value={data.overview.evidenceState === 'current' ? 1 : 0}
                   detail={data.overview.latestSnapshotAt ? new Date(data.overview.latestSnapshotAt).toLocaleString('zh-CN') : '暂无快照'}
                 />
               </div>
@@ -449,8 +449,8 @@ export default function TeacherStudentInsightsPage() {
         <section className="surface-card p-6">
           <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-foreground">证据摘要</h2>
-              <p className="mt-1 text-sm text-subtle">按能力维度查看当前画像背后的证据，便于教师理解判断来源。</p>
+              <h2 className="text-lg font-semibold text-foreground">近期本班诊断证据</h2>
+              <p className="mt-1 text-sm text-subtle">按能力维度汇总近 30 天的本班诊断证据，不代表累计画像的完整来源。</p>
             </div>
             <Link
               href={`/teacher/classes/${classId}/students/${studentId}/evidence`}

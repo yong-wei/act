@@ -31,13 +31,20 @@ const deckFiles = [
 
 describe('resource React Doctor regressions', () => {
   it('keeps deck visit tracking event-driven without duplicate progress entries', () => {
+    const sharedDeckSource = readSource('src/resources/interactive-learning/shared/knowledge-deck.tsx');
+    expect(sharedDeckSource).toContain('const recordVisit = useCallback((nextActiveIndex: number) => {');
+    expect(sharedDeckSource).toContain('recordKnowledgeDeckVisit(current, nextActiveIndex)');
+    expect(sharedDeckSource).not.toMatch(/setVisited(?:Ids)?\(nextVisited\)/);
+
     for (const file of deckFiles) {
       const source = readSource(file);
-
-      expect(source, file).toContain('useState<string[]>(() => [initialActiveId])');
-      expect(source, file).toContain('const recordVisit = useCallback((nextActiveId: string) => {');
-      expect(source, file).toContain('current.includes(nextActiveId) ? current : [...current, nextActiveId]');
-      expect(source, file).not.toMatch(/setVisited(?:Ids)?\(nextVisited\)/);
+      if (source.includes('<KnowledgeDeck')) {
+        expect(source, file).toContain('<KnowledgeDeck');
+      } else {
+        expect(source, file).toContain('useState<string[]>(() => [initialActiveId])');
+        expect(source, file).toContain('const recordVisit = useCallback((nextActiveId: string) => {');
+        expect(source, file).toContain('current.includes(nextActiveId) ? current : [...current, nextActiveId]');
+      }
     }
   });
 
