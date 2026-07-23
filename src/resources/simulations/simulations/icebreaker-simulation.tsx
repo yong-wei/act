@@ -1250,7 +1250,7 @@ export default function IcebreakerSimulation() {
 
       <CameraViewSwitcher
         currentMode={cameraMode}
-        onModeChange={setCameraMode}
+        onModeChange={(mode) => setCameraMode(mode as CameraMode)}
         gridEnabled={showGrid}
         onToggleGrid={() => setShowGrid((previous) => !previous)}
         speedScale={speedScale}

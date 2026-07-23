@@ -95,3 +95,4 @@ Scene teaching annotations SHALL default to minimal: the actual path trail is vi
 - **WHEN** a simulation scene loads with default settings
 - **THEN** only the actual path trail SHALL be visible
 - **AND** enabling the teaching-annotation toggle SHALL reveal the remaining annotations
+- **AND** task content intrinsic to an experiment (task guide route, grid, HUD) SHALL NOT be treated as teaching annotations

@@ -1,6 +1,6 @@
 'use client'
 
-import { Html } from '@react-three/drei'
+import { Html, useProgress } from '@react-three/drei'
 import { simulationScenePalette } from './simulation-theme'
 
 export function ModelLoadingPlaceholder({
@@ -10,6 +10,9 @@ export function ModelLoadingPlaceholder({
   label?: string
   sublabel?: string
 }) {
+  const { progress, active } = useProgress()
+  const percent = Math.round(progress)
+
   return (
     <group position={[0, 20, 0]}>
       <mesh position={[0, -8, 0]}>
@@ -18,8 +21,20 @@ export function ModelLoadingPlaceholder({
       </mesh>
       <Html center distanceFactor={22}>
         <div className="rounded-xl border border-platform-border-strong bg-platform-surface-overlay/86 px-4 py-3 text-center text-platform-fg-primary shadow-lg">
-          <div className="mx-auto mb-2 h-5 w-5 animate-spin rounded-full border-2 border-platform-border border-t-[hsl(var(--platform-brand-evidence))]" />
-          <p className="text-xs font-medium">{label}</p>
+          <div
+            className="mx-auto mb-2 h-1.5 w-32 overflow-hidden rounded-full bg-platform-border"
+            role="progressbar"
+            aria-valuenow={percent}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            data-loading-progress={percent}
+          >
+            <div
+              className="h-full rounded-full bg-platform-action-primary transition-[width] duration-200"
+              style={{ width: `${percent}%` }}
+            />
+          </div>
+          <p className="text-xs font-medium">{active ? `${label} ${percent}%` : label}</p>
           <p className="mt-1 text-[11px] text-platform-fg-secondary">{sublabel}</p>
         </div>
       </Html>
