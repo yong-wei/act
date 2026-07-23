@@ -12,7 +12,10 @@ import {
 import {
   isPortraitV2ProfileEvidence,
   mapLearningFactsToPortraitEvidence,
+  orderAndDedupePortraitV2Evidence,
   updatePortraitV2Incrementally,
+  type PortraitV2IncrementalEvidence,
+  type PortraitV2IncrementalResult,
   type PortraitLearningFactDelta,
 } from './portrait-v2-incremental-update';
 import {
@@ -277,12 +280,12 @@ export async function materializeIncrementalPortraitV2(
     const comparisonPayload = rebuildRequired && current
       ? buildPortraitFromFacts(userId, currentReduction.activeFacts as PortraitRiskFactDelta[])
       : currentPayload;
-    const updated = updatePortraitV2Incrementally({
+    const updated = foldPortraitEvidence(
       userId,
-      previous: rebuildRequired ? null : currentPayload,
-      evidence: updateEvidence,
-      generatedAt: evidenceAt,
-    });
+      rebuildRequired ? null : currentPayload,
+      updateEvidence,
+      evidenceAt,
+    );
     const meaningfulStateChange = !comparisonPayload ||
       portraitStateDigest(updated.payload) !== portraitStateDigest(comparisonPayload);
     const summary = summarizeCumulativePortraitV2(updated.payload, comparisonPayload);
@@ -708,12 +711,46 @@ function buildPortraitFromFacts(
   if (evidence.length === 0) return null;
   const generatedAt = facts.reduce<Date | null>((latest, fact) =>
     !latest || fact.startedAt > latest ? fact.startedAt : latest, null) ?? new Date(0);
-  return updatePortraitV2Incrementally({
-    userId,
-    previous: null,
-    evidence,
-    generatedAt,
-  }).payload;
+  return foldPortraitEvidence(userId, null, evidence, generatedAt).payload;
+}
+
+function foldPortraitEvidence(
+  userId: string,
+  initial: PortraitV2PayloadShape | null,
+  evidence: PortraitV2IncrementalEvidence[],
+  generatedAt: Date | string,
+): PortraitV2IncrementalResult {
+  let previous = initial;
+  let payload: PortraitV2IncrementalResult['payload'] | null = null;
+  const affectedDimensions = new Set<PortraitV2IncrementalResult['affectedDimensions'][number]>();
+  const mappingIssues = new Set<string>();
+  for (const item of orderAndDedupePortraitV2Evidence(evidence)) {
+    const updated = updatePortraitV2Incrementally({
+      userId,
+      previous,
+      evidence: [item],
+      generatedAt,
+    });
+    previous = updated.payload;
+    payload = updated.payload;
+    updated.affectedDimensions.forEach((dimension) => affectedDimensions.add(dimension));
+    updated.mappingIssues.forEach((issue) => mappingIssues.add(issue));
+  }
+  if (!payload) {
+    return updatePortraitV2Incrementally({
+      userId,
+      previous: initial,
+      evidence: [],
+      generatedAt,
+    });
+  }
+  return {
+    payload,
+    affectedDimensions: payload.dimensions
+      .map((dimension) => dimension.id)
+      .filter((dimension) => affectedDimensions.has(dimension)),
+    mappingIssues: [...mappingIssues],
+  };
 }
 
 function portraitStateDigest(payload: PortraitV2PayloadShape): string {

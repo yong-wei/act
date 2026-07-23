@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
 
 import {
@@ -80,6 +81,129 @@ describe('cumulative class snapshot jobs', () => {
 });
 
 describe('cumulative learner reconciliation requests', () => {
+  it('declares the pgcrypto migration required by the atomic digest SQL', () => {
+    const migration = readFileSync(
+      'prisma/migrations/20260723221000_enable_pgcrypto_for_cumulative_reconciliation/migration.sql',
+      'utf8',
+    );
+
+    expect(migration.trim()).toBe('CREATE EXTENSION IF NOT EXISTS pgcrypto;');
+  });
+
+  it('atomically merges concurrent class requests and advances generation on the transaction client', async () => {
+    let generation = 0;
+    const queries: any[] = [];
+    const queryRaw = vi.fn(async (query: any) => {
+      queries.push(query);
+      generation += 1;
+      return [{ generation }];
+    });
+    const db: any = {
+      $queryRaw: queryRaw,
+      cumulativePortraitCutoverFence: {
+        findUnique: vi.fn(async () => fence),
+      },
+      learningMaterializationRebuildRequest: {
+        findUnique: vi.fn(),
+        create: vi.fn(),
+        updateMany: vi.fn(),
+      },
+    };
+
+    const generations = await Promise.all([
+      requestCumulativeLearnerReconciliation(db, {
+        userId: 'student-concurrent',
+        classIds: ['class-b'],
+        reason: 'member-change-b',
+        now: new Date('2026-07-23T01:00:00Z'),
+      }),
+      requestCumulativeLearnerReconciliation(db, {
+        userId: 'student-concurrent',
+        classIds: ['class-a'],
+        reason: 'member-change-a',
+        now: new Date('2026-07-23T01:00:01Z'),
+      }),
+    ]);
+
+    expect(generations).toEqual([1, 2]);
+    expect(queryRaw).toHaveBeenCalledTimes(2);
+    expect(db.learningMaterializationRebuildRequest.findUnique).not.toHaveBeenCalled();
+    const sql = queries.map((query) => query.strings.join('?')).join('\n');
+    expect(sql).toContain('pg_advisory_xact_lock');
+    expect(sql).toContain('request_generation AS');
+    expect(sql).toContain('INSERT INTO "LearningMaterializationGeneration"');
+    expect(sql).toContain(
+      'GREATEST(',
+    );
+    expect(sql).toContain('"LearningMaterializationGeneration"."generation"');
+    expect(sql).toContain('(SELECT "generation" FROM request_generation)');
+    expect(sql).toContain('ON CONFLICT ("userId") DO UPDATE');
+    expect(sql).toContain('jsonb_array_elements_text');
+    expect(sql).toContain('SELECT DISTINCT value');
+    expect(sql).toContain("digest(");
+    expect(sql).toContain("'sha256'");
+    expect(sql).not.toContain('sha256(string_agg');
+    expect(sql).toContain('"generation" = EXCLUDED."generation"');
+    expect(sql).not.toContain(
+      '"generation" = "LearningMaterializationRebuildRequest"."generation" + 1',
+    );
+    const parameters = queries.flatMap((query) => query.values);
+    expect(parameters).toEqual(expect.arrayContaining([
+      '["class-a"]',
+      '["class-b"]',
+      'member-change-a',
+      'member-change-b',
+      fence.activeMigrationRunId,
+      fence.calculationVersion,
+      'learning-materialization:student-concurrent',
+    ]));
+  });
+
+  it.each([
+    { requestGeneration: 10, counterGeneration: null, expected: 11 },
+    { requestGeneration: 10, counterGeneration: 5, expected: 11 },
+    { requestGeneration: 5, counterGeneration: 10, expected: 11 },
+  ])(
+    'upgrades seeded request $requestGeneration and counter $counterGeneration to $expected',
+    async ({ requestGeneration, counterGeneration, expected }) => {
+      let request: any = {
+        userId: 'student-upgrade',
+        classIds: ['class-old'],
+        generation: requestGeneration,
+      };
+      let counter = counterGeneration;
+      const db: any = {
+        cumulativePortraitCutoverFence: {
+          findUnique: vi.fn(async () => fence),
+        },
+        learningMaterializationGeneration: {
+          upsert: vi.fn(async ({ create }: any) => {
+            counter = counter === null ? create.generation : counter + 1;
+            return { generation: counter };
+          }),
+        },
+        learningMaterializationRebuildRequest: {
+          findUnique: vi.fn(async () => request),
+          create: vi.fn(),
+          updateMany: vi.fn(async ({ data }: any) => {
+            request = { ...request, ...data };
+            return { count: 1 };
+          }),
+        },
+      };
+
+      await expect(requestCumulativeLearnerReconciliation(db, {
+        userId: request.userId,
+        classIds: ['class-new'],
+        reason: 'upgrade-seeded-request',
+      })).resolves.toBe(expected);
+      expect(request).toEqual(expect.objectContaining({
+        generation: expected,
+        classIds: ['class-new', 'class-old'],
+      }));
+    },
+  );
+
   it('creates, claims, and CAS-completes a request bound to the active fence', async () => {
     let request: any = null;
     const db: any = {

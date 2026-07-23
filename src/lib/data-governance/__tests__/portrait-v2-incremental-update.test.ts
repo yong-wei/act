@@ -2,7 +2,9 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   PORTRAIT_V2_INCREMENTAL_NEGATIVE_LIMITATION,
   PORTRAIT_V2_INCREMENTAL_NEGATIVE_RATIONALE,
+  isPortraitV2ProfileEvidence,
   mapLearningFactsToPortraitEvidence,
+  orderAndDedupePortraitV2Evidence,
   updatePortraitV2Incrementally,
 } from '../portrait-v2-incremental-update';
 import { materializeIncrementalPortraitV2 } from '../portrait-v2-materialization';
@@ -705,6 +707,85 @@ describe('portrait v2 incremental updates', () => {
 
     expect(result.rebuildRequired).toBe(true);
   });
+
+  it('folds an ordinary multi-fact materialization like consecutive single-fact updates', async () => {
+    const previous = baseline();
+    const existing = {
+      ...fact('fact-existing', { engineeringDecision: 0.2 }, {}),
+      startedAt: new Date('2026-05-01T00:00:00.000Z'),
+    };
+    const negative = {
+      ...fact('fact-z-negative', { controlModeling: 1 }, {}),
+      outcome: 'failure',
+    };
+    const positive = fact('fact-a-positive', { controlModeling: 1 }, {});
+    const { db, snapshotCreate } = cumulativeMaterializationDb(
+      previous,
+      [existing, negative, positive],
+    );
+
+    const result = await materializeIncrementalPortraitV2(db, previous.userId, {
+      now: new Date('2026-05-02T00:00:02.000Z'),
+    });
+
+    expect(result.rebuildRequired).toBe(false);
+    const materialized = snapshotCreate.mock.calls[0][0].data.payload as PortraitV2Payload;
+    const evidence = orderAndDedupePortraitV2Evidence(
+      mapLearningFactsToPortraitEvidence([negative, positive]).evidence
+        .filter(isPortraitV2ProfileEvidence),
+    );
+    let expected = previous;
+    for (const item of evidence) {
+      expected = updatePortraitV2Incrementally({
+        userId: previous.userId,
+        previous: expected,
+        evidence: [item],
+        generatedAt: '2026-05-02T00:00:00.000Z',
+      }).payload;
+    }
+
+    expect(evidence.map((item) => item.id)).toEqual([
+      'fact-a-positive',
+      'fact-z-negative',
+    ]);
+    expect(materialized).toEqual(expected);
+  });
+
+  it('folds a full rebuild one stable mixed-sign fact at a time', async () => {
+    const negative = {
+      ...fact('fact-z-negative', { controlModeling: 1 }, {}),
+      outcome: 'failure',
+    };
+    const positive = fact('fact-a-positive', { controlModeling: 1 }, {});
+    const facts = [negative, positive];
+    const { db, snapshotCreate } = cumulativeMaterializationDb(baseline(), facts);
+
+    await materializeIncrementalPortraitV2(db, 'student-1', {
+      now: new Date('2026-05-02T00:00:02.000Z'),
+      fullRebuild: true,
+    });
+
+    const rebuilt = snapshotCreate.mock.calls[0][0].data.payload as PortraitV2Payload;
+    const evidence = orderAndDedupePortraitV2Evidence(
+      mapLearningFactsToPortraitEvidence(facts).evidence
+        .filter(isPortraitV2ProfileEvidence),
+    );
+    let expected: PortraitV2Payload | null = null;
+    for (const item of evidence) {
+      expected = updatePortraitV2Incrementally({
+        userId: 'student-1',
+        previous: expected,
+        evidence: [item],
+        generatedAt: '2026-05-02T00:00:00.000Z',
+      }).payload;
+    }
+
+    expect(evidence.map((item) => item.id)).toEqual([
+      'fact-a-positive',
+      'fact-z-negative',
+    ]);
+    expect(rebuilt).toEqual(expected);
+  });
 });
 
 function fact(id: string, contribution: Record<string, number>, contextJson: unknown) {
@@ -736,6 +817,7 @@ function cumulativeMaterializationDb(previous: PortraitV2Payload, facts: ReturnT
     id: 'portrait-incremental',
     ...data,
   }));
+  let lastSequence = BigInt(1);
   const db: any = {
     $executeRaw: vi.fn(async () => 1),
     $transaction: vi.fn(async (callback: (tx: unknown) => Promise<unknown>) => callback(db)),
@@ -754,7 +836,7 @@ function cumulativeMaterializationDb(previous: PortraitV2Payload, facts: ReturnT
     },
     learnerFactTransitionSequence: {
       upsert: vi.fn(async () => ({})),
-      update: vi.fn(async () => ({ lastSequence: BigInt(2) })),
+      update: vi.fn(async () => ({ lastSequence: ++lastSequence })),
     },
     cumulativePortraitCutoverFence: {
       findUnique: vi.fn(async () => ({

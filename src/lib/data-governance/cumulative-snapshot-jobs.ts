@@ -1,4 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
+import { Prisma } from '@prisma/client';
 import { Queue } from 'bullmq';
 
 import { prisma } from '@/lib/prisma';
@@ -59,11 +60,18 @@ interface FenceReader {
 }
 
 interface LearnerReconciliationDb extends FenceReader {
+  $queryRaw?: <T = unknown>(
+    query: TemplateStringsArray | Prisma.Sql,
+    ...values: any[]
+  ) => PromiseLike<T>;
   learningMaterializationRebuildRequest: {
     findUnique(args: any): PromiseLike<any>;
     findMany?(args: any): PromiseLike<any[]>;
     create(args: any): PromiseLike<any>;
     updateMany(args: any): PromiseLike<{ count: number }>;
+  };
+  learningMaterializationGeneration?: {
+    upsert(args: any): PromiseLike<{ generation: number }>;
   };
 }
 
@@ -141,14 +149,160 @@ export async function requestCumulativeLearnerReconciliation(
   if (!fence) {
     throw new Error('No active cumulative portrait publication fence is available.');
   }
+  const requestedClassIds = normalizedClassIds(input.classIds);
+  if (typeof db.$queryRaw === 'function') {
+    const requestedClassIdsJson = Prisma.sql`${JSON.stringify(requestedClassIds)}::jsonb`;
+    const mergedClassIds = Prisma.sql`(
+      SELECT COALESCE(jsonb_agg(value ORDER BY value), '[]'::jsonb)
+      FROM (
+        SELECT DISTINCT value
+        FROM jsonb_array_elements_text(
+          COALESCE("LearningMaterializationRebuildRequest"."classIds", '[]'::jsonb)
+          || EXCLUDED."classIds"
+        ) AS merged(value)
+      ) AS unique_values
+    )`;
+    const digestFor = (
+      classIds: Prisma.Sql,
+      generation: Prisma.Sql,
+    ) => Prisma.sql`(
+      SELECT encode(
+        digest(
+          string_agg(
+            convert_to(value, 'UTF8'),
+            decode('00', 'hex')
+            ORDER BY ordinal
+          ),
+          'sha256'
+        ),
+        'hex'
+      )
+      FROM jsonb_array_elements_text(
+        jsonb_build_array(${input.userId}::text, ${input.reason}::text)
+        || ${classIds}
+        || jsonb_build_array(
+          ${fence.calculationVersion}::text,
+          ${fence.learnerGeneration.toString()}::text,
+          ${fence.queueGeneration.toString()}::text,
+          ${fence.fence.toString()}::text,
+          ${fence.activeMigrationRunId}::text,
+          ${generation}
+        )
+      ) WITH ORDINALITY AS digest_input(value, ordinal)
+    )`;
+    const rows = await db.$queryRaw<Array<{ generation: number }>>(Prisma.sql`
+      WITH request_lock AS (
+        SELECT pg_advisory_xact_lock(hashtext(${
+          'learning-materialization:' + input.userId
+        }))
+      ), request_generation AS (
+        SELECT COALESCE((
+          SELECT "generation"
+          FROM "LearningMaterializationRebuildRequest"
+          WHERE "userId" = ${input.userId}
+        ), 0) AS "generation"
+        FROM request_lock
+      ), next_generation AS (
+        INSERT INTO "LearningMaterializationGeneration"
+          ("userId", "generation", "updatedAt")
+        SELECT
+          ${input.userId},
+          CASE
+            WHEN request_generation."generation" > 0
+              THEN request_generation."generation" + 1
+            ELSE 1
+          END,
+          ${now}
+        FROM request_generation
+        ON CONFLICT ("userId") DO UPDATE SET
+          "generation" = GREATEST(
+            "LearningMaterializationGeneration"."generation",
+            (SELECT "generation" FROM request_generation)
+          ) + 1,
+          "updatedAt" = EXCLUDED."updatedAt"
+        RETURNING "generation"
+      )
+      INSERT INTO "LearningMaterializationRebuildRequest"
+        (
+          "userId", "classIds", "reason", "kind", "migrationRunId",
+          "calculationVersion", "learnerGeneration", "queueGeneration",
+          "cutoverFence", "inputDigest", "status", "generation",
+          "claimedGeneration", "claimToken", "claimExpiresAt", "attemptCount",
+          "lastErrorCode", "completedAt", "createdAt", "updatedAt"
+        )
+      SELECT
+        ${input.userId},
+        ${requestedClassIdsJson},
+        ${input.reason},
+        ${CUMULATIVE_LEARNER_RECONCILIATION_KIND},
+        ${fence.activeMigrationRunId},
+        ${fence.calculationVersion},
+        ${fence.learnerGeneration},
+        ${fence.queueGeneration},
+        ${fence.fence},
+        ${digestFor(requestedClassIdsJson, Prisma.sql`next_generation."generation"`)},
+        'PENDING',
+        next_generation."generation",
+        NULL,
+        NULL,
+        NULL,
+        0,
+        NULL,
+        NULL,
+        ${now},
+        ${now}
+      FROM next_generation
+      ON CONFLICT ("userId") DO UPDATE SET
+        "classIds" = ${mergedClassIds},
+        "reason" = EXCLUDED."reason",
+        "kind" = EXCLUDED."kind",
+        "migrationRunId" = EXCLUDED."migrationRunId",
+        "calculationVersion" = EXCLUDED."calculationVersion",
+        "learnerGeneration" = EXCLUDED."learnerGeneration",
+        "queueGeneration" = EXCLUDED."queueGeneration",
+        "cutoverFence" = EXCLUDED."cutoverFence",
+        "inputDigest" = ${digestFor(
+          mergedClassIds,
+          Prisma.sql`EXCLUDED."generation"`,
+        )},
+        "status" = 'PENDING',
+        "generation" = EXCLUDED."generation",
+        "claimedGeneration" = NULL,
+        "claimToken" = NULL,
+        "claimExpiresAt" = NULL,
+        "attemptCount" = 0,
+        "lastErrorCode" = NULL,
+        "completedAt" = NULL,
+        "updatedAt" = EXCLUDED."updatedAt"
+      RETURNING "generation"
+    `);
+    const generation = rows[0]?.generation;
+    if (!Number.isInteger(generation)) {
+      throw new Error('Cumulative learner reconciliation request did not return a generation.');
+    }
+    return generation;
+  }
   const current = await db.learningMaterializationRebuildRequest.findUnique({
     where: { userId: input.userId },
   });
+  const generationRow = await db.learningMaterializationGeneration?.upsert({
+    where: { userId: input.userId },
+    create: {
+      userId: input.userId,
+      generation: Math.max((current?.generation ?? 0) + 1, 1),
+      updatedAt: now,
+    },
+    update: { generation: { increment: 1 }, updatedAt: now },
+  });
   const classIds = normalizedClassIds([
     ...normalizedClassIds(current?.classIds),
-    ...normalizedClassIds(input.classIds),
+    ...requestedClassIds,
   ]);
-  const generation = (current?.generation ?? 0) + 1;
+  const generation = Math.max(
+    generationRow?.generation ?? 0,
+    (current?.generation ?? 0) + 1,
+    1,
+  );
   const inputDigest = createHash('sha256').update([
     input.userId,
     input.reason,
