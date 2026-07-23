@@ -294,7 +294,7 @@ async function drawWrappedText(
 async function wrapLines(values: readonly string[], width: number, fontSize: number, fonts: PdfFontResolver) {
   const lines: string[] = [];
   for (const rawValue of values) {
-    for (const value of rawValue.split(/\r?\n/)) {
+    for (const value of rawValue.replace(/\t/g, '    ').split(/\r?\n/)) {
       let current = '';
       for (const character of value) {
         const candidate = current + character;

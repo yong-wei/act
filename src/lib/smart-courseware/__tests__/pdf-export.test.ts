@@ -71,6 +71,19 @@ describe('smart courseware PDF export', () => {
     });
   });
 
+  it('normalizes tab-indented code before routing ASCII text to the standard font', async () => {
+    const manifest = validCoursewareManifest();
+    manifest.stages[0].steps[0].modules[0] = {
+      ...manifest.stages[0].steps[0].modules[0],
+      canonicalClass: 'content.code',
+      payload: { language: 'typescript', code: 'function stable() {\n\treturn 1;\n}' },
+    };
+
+    await expect(createPublishedCoursewarePdf(input(manifest))).resolves.toMatchObject({
+      artifact: { pageCount: 6 },
+    });
+  });
+
   it('fails closed when a slide no longer fits the fixed student projection', () => {
     const manifest = validCoursewareManifest();
     manifest.stages[0].steps[0].modules[0] = {
