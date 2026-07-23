@@ -520,6 +520,7 @@ model User {
   smartCoursewareGapAcknowledgements   SmartCoursewareGapAcknowledgement[]       @relation("SmartCoursewareGapAcknowledgementActor")
   smartCoursewareStaleAcknowledgements SmartCoursewareStalePlanAcknowledgement[] @relation("SmartCoursewareStalePlanAcknowledgementActor")
   publishedSmartCoursewareRevisions    SmartCoursewarePublicationRevision[]      @relation("SmartCoursewarePublicationActor")
+  smartCoursewarePdfExports            SmartCoursewarePdfExport[]                @relation("SmartCoursewarePdfExportActor")
 }
 
 model CourseBasis {
@@ -1070,6 +1071,7 @@ model SmartCoursewarePublicationRevision {
   planRevision         SmartLessonRevision                   @relation("SmartCoursewarePublicationPlanRevision", fields: [planRevisionId], references: [id], onDelete: Restrict)
   publishedBy          User                                  @relation("SmartCoursewarePublicationActor", fields: [publishedById], references: [id], onDelete: Restrict)
   operations           SmartCoursewarePublicationOperation[]
+  pdfExports           SmartCoursewarePdfExport[]
   projectedLessonPlans LessonPlan[]                          @relation("GeneratedCoursewareLessonPlan")
   projectedLessonItems LessonItem[]                          @relation("GeneratedCoursewareLessonItem")
   projectedResources   TeachingResource[]                    @relation("GeneratedCoursewareTeachingResource")
@@ -1094,6 +1096,31 @@ model SmartCoursewarePublicationOperation {
 
   @@unique([ownerId, idempotencyKey])
   @@index([sourceRevisionId, createdAt])
+}
+
+model SmartCoursewarePdfExport {
+  id                    String   @id @default(cuid())
+  ownerId               String
+  publicationRevisionId String
+  idempotencyKey        String
+  requestHash           String
+  rendererVersion       String
+  manifestHash          String
+  contentHash           String
+  projectionHash        String
+  pageCount             Int
+  artifactHash          String
+  artifactBytes         Bytes
+  artifactSizeBytes     Int
+  createdById           String
+  createdAt             DateTime @default(now())
+
+  publicationRevision SmartCoursewarePublicationRevision @relation(fields: [publicationRevisionId], references: [id], onDelete: Restrict)
+  createdBy          User                                @relation("SmartCoursewarePdfExportActor", fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@unique([ownerId, idempotencyKey])
+  @@unique([publicationRevisionId, rendererVersion])
+  @@index([ownerId, publicationRevisionId, createdAt])
 }
 
 model SmartCoursewareModule {
