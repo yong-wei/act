@@ -4,7 +4,9 @@ Final result: passed
 
 Reviewer: ui-flow-reviewer
 
-Independent review verified all 29 governed browser states against the current main-candidate source hashes and screenshot hashes. Desktop dark/light, local tools, selected inspector, Konling selected/no-selection/degraded, mobile and tablet stress states, and the refreshed pointer-drag persistence evidence were inspected. No blocking visual, responsive, focus-management, navigation, interaction-stability, or governed-surface overlap regression was found.
+Capture revision: 97349a2f63f2e70881d2e83615dab00f2dc4f59e / 142bd70e35d09864f849b0f9030c8cb78145b3b5
+
+Independent review verified all 29 governed browser states against the clean captured revision, its source hashes, and screenshot hashes. Desktop dark/light, local tools, selected inspector, Konling selected/no-selection/degraded, mobile and tablet stress states, and the refreshed pointer-drag persistence evidence were inspected. No blocking visual, responsive, focus-management, navigation, interaction-stability, or governed-surface overlap regression was found.
 
 Blocking findings: none.
 
