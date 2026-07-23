@@ -133,6 +133,22 @@ test.describe('simulation scene visual pipeline performance', () => {
     expect(stats.p95).toBeLessThan(ENV_CATASTROPHIC_FRAME_MS);
   });
 
+  test('icebreaker route mounts the pipeline with quality contracts', async ({ page }) => {
+    await page.goto('/simulations/icebreaker', { waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('canvas', { timeout: 60_000 });
+    await page.waitForSelector('[data-scene-quality-tier]', { state: 'attached', timeout: 60_000 });
+    await page.waitForTimeout(4_000);
+
+    await expect(page.locator('[data-scene-environment-switcher]')).toBeVisible();
+    await expect(page.locator('[data-scene-quality-select]')).toBeVisible();
+    await expect(page.locator('[data-soundscape-muted]')).toBeVisible();
+    await expect(page.locator('[data-teaching-annotations]')).toBeVisible();
+
+    const stats = await sampleFrameStats(page, 2);
+    expect(stats.samples).toBeGreaterThan(10);
+    expect(stats.p95).toBeLessThan(ENV_CATASTROPHIC_FRAME_MS);
+  });
+
   test('cruise scene geometry matches lng at the same viewport', async ({ page }) => {
     const measure = async (route: string) => {
       await page.goto(route, { waitUntil: 'domcontentloaded' });

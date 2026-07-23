@@ -11,10 +11,10 @@ Simulation detail scenes SHALL mount a shared scene visual pipeline (water, wake
 - **THEN** the scene modules SHALL resolve their parameters from that experiment's ship profile
 - **AND** no pipeline module SHALL reference an experiment id, route, or profile directly in its implementation
 
-#### Scenario: Pipeline is reused by a fifth experiment without module changes
-- **WHEN** the drilling detail route mounts its scene through the same pipeline modules after destroyer, lng, container, and cruise
+#### Scenario: Pipeline is reused by a sixth experiment without module changes
+- **WHEN** the icebreaker detail route mounts its scene through the same pipeline modules after destroyer, lng, container, cruise, and drilling
 - **THEN** the integration SHALL require only the experiment's ship profile, mounting glue, and model assets
-- **AND** no scene pipeline module SHALL be edited to accommodate drilling
+- **AND** no scene pipeline module SHALL be edited to accommodate icebreaker
 
 #### Scenario: Cruise scene geometry matches the other simulations
 - **WHEN** the cruise detail route is rendered at the same viewport as another pipeline-mounted simulation route
