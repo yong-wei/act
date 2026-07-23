@@ -269,6 +269,8 @@ async function selectedNodeHoverDragPointCandidates(page: Page, expectedNodeId: 
 async function dragCanvasNodeUntilPinned(page: Page, expectedNodeId: string) {
   const candidates = await selectedNodeHoverDragPointCandidates(page, expectedNodeId);
   for (const [x, y] of candidates) {
+    await page.mouse.move(x, y);
+    await page.waitForTimeout(120);
     await page.mouse.down();
     await page.mouse.move(x + 80, y + 36, { steps: 8 });
     await page.mouse.up();

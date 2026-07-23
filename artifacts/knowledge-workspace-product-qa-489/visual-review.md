@@ -2,9 +2,9 @@
 
 Final result: passed
 
-Reviewer: primary-agent-release-review
+Reviewer: ui-flow-reviewer
 
-The release review regenerated all 29 governed browser states from the merged main candidate. Automated geometry, focus, theme, breakpoint, assistant-context, and non-overlap checks passed. Representative desktop dark, selected Konling, mobile stress, and desktop light captures were inspected directly; no blocking visual regression was found. The current Konling runtime changes preserve the selected-node context and degraded/no-selection boundaries represented by the governed states.
+Independent review verified all 29 governed browser states against the current main-candidate source hashes and screenshot hashes. Desktop dark/light, local tools, selected inspector, Konling selected/no-selection/degraded, mobile and tablet stress states, and the refreshed pointer-drag persistence evidence were inspected. No blocking visual, responsive, focus-management, navigation, interaction-stability, or governed-surface overlap regression was found.
 
 Blocking findings: none.
 
