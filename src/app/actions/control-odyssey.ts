@@ -105,6 +105,7 @@ const buildOdysseyReplaySnapshot = (
   difficultyScale: context.difficultyScale ?? 1,
   controllerLevels,
   arenaTaskId: context.arenaTaskId,
+  arenaAssigned: context.arenaAssigned ?? false,
   publicationId: context.publicationId,
 });
 
@@ -126,6 +127,16 @@ const readOdysseyReplaySnapshot = (value: unknown) => {
     return null;
   }
   return value;
+};
+
+const isPersistedArenaAssignedRun = (value: unknown): boolean => {
+  if (!isRecord(value)
+    || value.arenaAssigned !== true
+    || typeof value.levelId !== 'string'
+    || typeof value.arenaTaskId !== 'string') {
+    return false;
+  }
+  return getArenaTaskForOdysseyLevel(value.levelId) === value.arenaTaskId.trim();
 };
 
 type ControlTierProgress = Record<string, LevelTier>;
@@ -621,6 +632,7 @@ export async function submitGameScore(
     enableSmithPredictor?: boolean;
     difficultyScale?: number;
     arenaTaskId?: string;
+    arenaAssigned?: boolean;
     publicationId?: string;
   }
 ) {
@@ -802,6 +814,7 @@ export async function submitGameScore(
     const creditLevelId = isRecord(log.inputParams) && typeof log.inputParams.levelId === 'string'
       ? log.inputParams.levelId
       : levelId;
+    const isArenaAssignedRun = isPersistedArenaAssignedRun(log.inputParams);
     const completedTier = isLevelTier(bridgeContext?.tier)
       ? bridgeContext.tier
       : undefined;
@@ -811,7 +824,7 @@ export async function submitGameScore(
     const persistedScore = typeof log.score === 'number' && Number.isFinite(log.score) ? log.score : 0;
     const creditsEarned = Math.floor(persistedScore / 100);
 
-    if (ownsRunClaim && !log.odysseyCreditAppliedAt) {
+    if (!isArenaAssignedRun && ownsRunClaim && !log.odysseyCreditAppliedAt) {
       const creditAppliedAt = new Date();
       const claimedLogId = log.id;
       await prisma.$transaction(async (tx) => {
@@ -853,16 +866,16 @@ export async function submitGameScore(
     const persistedLevelId = isRecord(log.inputParams) && typeof log.inputParams.levelId === 'string'
       ? log.inputParams.levelId
       : levelId;
-    const expectedArenaTaskId = runId ? getArenaTaskForOdysseyLevel(persistedLevelId) : undefined;
+    const expectedArenaTaskIdForBridge = runId ? getArenaTaskForOdysseyLevel(persistedLevelId) : undefined;
     const requestedArenaTaskId = typeof bridgeContext?.arenaTaskId === 'string'
       ? bridgeContext.arenaTaskId.trim()
       : undefined;
     const shouldSubmitArenaBridge = Boolean(
       runId
-      && expectedArenaTaskId
-      && requestedArenaTaskId === expectedArenaTaskId
+      && expectedArenaTaskIdForBridge
+      && requestedArenaTaskId === expectedArenaTaskIdForBridge
     );
-    if (shouldSubmitArenaBridge && expectedArenaTaskId) {
+    if (shouldSubmitArenaBridge && expectedArenaTaskIdForBridge) {
       const officialReplaySnapshot = readOdysseyReplaySnapshot(log.inputParams);
       if (!officialReplaySnapshot) {
         return {
@@ -875,7 +888,7 @@ export async function submitGameScore(
         };
       }
       bridgeContext = officialReplaySnapshot as typeof context;
-      const arenaTaskId = expectedArenaTaskId;
+      const arenaTaskId = expectedArenaTaskIdForBridge;
       let officialMetrics: Record<string, unknown> | null = isRecord(log.odysseyOfficialMetrics)
         ? log.odysseyOfficialMetrics
         : null;
