@@ -1,6 +1,6 @@
 {
   "name": "ai-obe-platform",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "packageManager": "npm@11.12.1",
   "engines": {
@@ -9,7 +9,8 @@
   },
   "scripts": {
     "dev": "node ./scripts/ops/clear-logs.mjs && next dev",
-    "build": "export PRISMA_GENERATE_SKIP_AUTOINSTALL=1; export NODE_OPTIONS=\"${NODE_OPTIONS:-} --disable-warning=DEP0205 --max-old-space-size=4096\"; node ./scripts/wasm/build-control-engine.mjs && npm run db:export-textbook-resources && prisma generate && node ./scripts/build-next-with-trace-check.mjs",
+    "build": "export PRISMA_GENERATE_SKIP_AUTOINSTALL=1; export NODE_OPTIONS=\"${NODE_OPTIONS:-} --disable-warning=DEP0205 --max-old-space-size=${NODE_MAX_OLD_SPACE_SIZE:-4096}\"; node ./scripts/wasm/build-control-engine.mjs && npm run db:export-textbook-resources && prisma generate && npm run models:optimize && node ./scripts/build-next-with-trace-check.mjs",
+    "models:optimize": "node ./scripts/build-optimized-models.mjs",
     "start": "node ./scripts/ops/clear-logs.mjs && next start -p 3001",
     "typecheck": "tsc --noEmit --pretty false",
     "verify:commit": "npm run typecheck && npm run verify:new-resource-semantics -- --staged && npm run verify:portrait-v2-primary -- --staged && npm run test:portrait-v2-primary-usage-command",
@@ -98,6 +99,8 @@
     "test:memory-framework": "node ./scripts/tests/test-memory-framework-contract.mjs",
     "db:sync-remote": "bash ./scripts/db/sync-remote-db-to-local.sh",
     "db:backfill-facts": "npx tsx ./scripts/db/backfill-learning-facts-from-event-batches.ts",
+    "db:backfill-cumulative-attainment": "tsx ./scripts/db/backfill-cumulative-attainment.ts",
+    "test:cumulative-attainment-postgres-redis": "tsx ./scripts/tests/test-cumulative-attainment-postgres-redis.mts",
     "db:backfill-growth-evaluations": "npx tsx ./scripts/db/backfill-growth-evaluations.ts",
     "db:backfill-unit-4-1-growth": "npx tsx ./scripts/db/backfill-unit-4-1-growth-governance.ts",
     "db:backfill-class-attribution": "tsx ./scripts/db/backfill-class-session-attribution.ts",
@@ -145,6 +148,9 @@
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
+    "@fontsource-variable/noto-sans-sc": "^5.2.10",
+    "@fontsource/noto-sans-math": "^5.3.0",
+    "@pdf-lib/fontkit": "^1.1.1",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "@radix-ui/react-dialog": "^1.1.15",
@@ -156,6 +162,7 @@
     "@radix-ui/react-tabs": "^1.1.13",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
+    "@react-three/postprocessing": "^3.0.4",
     "@tailwindcss/postcss": "^4.3.0",
     "@types/d3": "^7.4.3",
     "@types/node": "^20.19.41",
@@ -213,6 +220,9 @@
   },
   "devDependencies": {
     "@fontsource-variable/noto-sans-sc": "5.2.10",
+    "@gltf-transform/core": "^4.4.1",
+    "@gltf-transform/extensions": "^4.4.1",
+    "@gltf-transform/functions": "^4.4.1",
     "@playwright/test": "^1.60.0",
     "@testing-library/dom": "10.4.0",
     "@testing-library/user-event": "14.6.1",
@@ -223,6 +233,7 @@
     "eslint": "^9.39.4",
     "eslint-config-next": "^16.2.7",
     "jsdom": "^26.1.0",
+    "meshoptimizer": "^1.2.0",
     "tailwindcss-animate": "^1.0.7",
     "vitest": "^4.1.8"
   },

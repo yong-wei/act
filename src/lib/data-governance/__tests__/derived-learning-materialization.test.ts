@@ -77,18 +77,93 @@ describe('derived learning materialization revocation', () => {
     expect(delegates.learningMaterializationRebuildRequest.upsert).toHaveBeenCalledWith(expect.objectContaining({ where: { userId: 'student-1' }, create: expect.objectContaining({ status: 'PENDING' }) }));
   });
 
+  it('routes revocation through the cumulative request contract while its fence is active', async () => {
+    const db = rebuildRequestDb();
+    db.cumulativePortraitCutoverFence = {
+      findUnique: vi.fn(async () => ({
+        calculationVersion: 'portrait-v2.cumulative.v2',
+        learnerGeneration: BigInt(3),
+        classGeneration: BigInt(5),
+        queueGeneration: BigInt(7),
+        fence: BigInt(11),
+        activeMigrationRunId: 'migration-989',
+      })),
+    };
+
+    await revokeDerivedLearningMaterializations(db, {
+      userIds: ['student-1'],
+      classIds: ['class-1'],
+    });
+
+    expect(db.rows.get('student-1')).toEqual(expect.objectContaining({
+      classIds: ['class-1'],
+      reason: 'governed-fact-revoked',
+      kind: 'CUMULATIVE_RECONCILIATION',
+      migrationRunId: 'migration-989',
+      calculationVersion: 'portrait-v2.cumulative.v2',
+      learnerGeneration: BigInt(3),
+      queueGeneration: BigInt(7),
+      cutoverFence: BigInt(11),
+      generation: 1,
+      inputDigest: expect.stringMatching(/^[0-9a-f]{64}$/),
+    }));
+  });
+
+  it('keeps legacy SQL on the shared monotonic generation source and clears cumulative proof fields', async () => {
+    const queries: any[] = [];
+    const db: any = {
+      $queryRaw: vi.fn(async (query: any) => {
+        queries.push(query);
+        return [{ generation: 8 }];
+      }),
+    };
+
+    await expect((materialization as any).requestLearningMaterializationRebuild(db, {
+      userId: 'student-legacy',
+      classIds: ['class-legacy'],
+      reason: 'legacy-rebuild',
+    })).resolves.toBe(8);
+
+    const sql = queries[0].strings.join('?');
+    expect(queries[0].values).toContain('learning-materialization:student-legacy');
+    expect(sql).toContain('request_generation AS');
+    expect(sql).toContain('INSERT INTO "LearningMaterializationGeneration"');
+    expect(sql).toContain('GREATEST(');
+    expect(sql).toContain('"kind" = \'LEGACY\'');
+    expect(sql).toContain('"migrationRunId" = NULL');
+    expect(sql).toContain('"inputDigest" = NULL');
+  });
+
   it('merges class ids and advances the request generation', async () => {
     const db = rebuildRequestDb();
     const request = (materialization as any).requestLearningMaterializationRebuild;
 
-    await request(db, { userId: 'student-1', classIds: ['class-1'], reason: 'first' });
-    await request(db, { userId: 'student-1', classIds: ['class-2', 'class-1'], reason: 'second' });
+    await expect(request(db, { userId: 'student-1', classIds: ['class-1'], reason: 'first' })).resolves.toBe(1);
+    await expect(request(db, { userId: 'student-1', classIds: ['class-2', 'class-1'], reason: 'second' })).resolves.toBe(2);
 
     expect(db.rows.get('student-1')).toEqual(expect.objectContaining({
       classIds: ['class-1', 'class-2'],
       generation: 2,
       status: 'PENDING',
       reason: 'second',
+    }));
+  });
+
+  it('returns the fenced generation without discarding inherited class refresh responsibility', async () => {
+    const db = rebuildRequestDb();
+    const request = (materialization as any).requestLearningMaterializationRebuild;
+    await request(db, { userId: 'student-1', classIds: ['recent-class'], reason: 'recent' });
+
+    await expect(request(db, {
+      userId: 'student-1',
+      classIds: [],
+      reason: 'cumulative',
+    })).resolves.toBe(2);
+
+    expect(db.rows.get('student-1')).toEqual(expect.objectContaining({
+      classIds: ['recent-class'],
+      generation: 2,
+      status: 'PENDING',
     }));
   });
 
@@ -204,8 +279,9 @@ describe('derived learning materialization revocation', () => {
     expect(schema).toMatch(/materializationVersion\s+String\?\s*\n/);
     expect(schema).not.toMatch(/materializationVersion\s+String\?\s+@default/);
     expect(migration).not.toContain('ALTER COLUMN "materializationVersion" SET DEFAULT');
-    expect(worker.match(/classCompetencySnapshot\.create\(/g)).toHaveLength(2);
+    expect(worker.match(/classCompetencySnapshot\.create\(/g)).toHaveLength(3);
     expect(worker.match(/materializationVersion:\s*CLASS_COMPETENCY_MATERIALIZATION_VERSION/g)).toHaveLength(3);
+    expect(worker.match(/materializationVersion:\s*CUMULATIVE_CLASS_COMPETENCY_MATERIALIZATION_VERSION/g)).toHaveLength(1);
     for (const file of ['repair-unit-4-4-incomplete-backfill.ts', 'backfill-unit-4-1-growth-governance.ts', 'backfill-unit-4-4-governance.ts']) {
       const source = readFileSync(new URL(`scripts/db/${file}`, root), 'utf8');
       expect(source).not.toContain('classCompetencySnapshot.create(');

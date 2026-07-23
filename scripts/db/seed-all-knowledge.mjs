@@ -12,6 +12,9 @@ const RUNTIME_KNOWLEDGE_ROOT = process.env.KNOWLEDGE_RUNTIME_ROOT
   : path.join(ROOT, 'course-content', 'runtime', 'knowledge');
 const RUNTIME_NODES_PATH = path.join(RUNTIME_KNOWLEDGE_ROOT, 'graph', 'nodes.json');
 const RUNTIME_RELS_PATH = path.join(RUNTIME_KNOWLEDGE_ROOT, 'graph', 'relations.jsonl');
+const RELATION_AUDIT_INPUT_PATH = process.env.KNOWLEDGE_RELATION_AUDIT_INPUT
+  ? path.resolve(process.env.KNOWLEDGE_RELATION_AUDIT_INPUT)
+  : path.join(ROOT, 'course-content', 'contracts', 'knowledge-relation-coverage-audit.json');
 const RUNTIME_SOURCE_MARKER = 'course-content/runtime/knowledge/graph/nodes.json';
 const RUNTIME_RELATION_SOURCE_MARKER = 'course-content/runtime/knowledge/graph/relations.jsonl';
 
@@ -77,12 +80,17 @@ async function readJsonl(filePath) {
     .map((line) => JSON.parse(line));
 }
 
-export function validateRelationsStrict(relationsPath = RUNTIME_RELS_PATH, nodesPath = RUNTIME_NODES_PATH) {
+export function validateRelationsStrict(
+  relationsPath = RUNTIME_RELS_PATH,
+  nodesPath = RUNTIME_NODES_PATH,
+  auditInputPath = RELATION_AUDIT_INPUT_PATH,
+) {
   const result = spawnSync(process.execPath, [
     path.join(ROOT, 'node_modules', 'tsx', 'dist', 'cli.mjs'),
     path.join(ROOT, 'scripts', 'knowledge', 'check-runtime-relation-coverage.ts'),
     '--relations', relationsPath,
     '--nodes', nodesPath,
+    '--audit-input', auditInputPath,
   ], { cwd: ROOT, encoding: 'utf8' });
   if (result.status !== 0) {
     throw new Error(`Strict runtime relation validation failed before database sync:\n${result.stdout || result.stderr}`);
@@ -297,7 +305,7 @@ async function main() {
   const result = await prisma.$transaction(async (tx) => {
     await upsertNodes(tx, nodes);
     return upsertRelations(tx, relations, new Set(nodes.map((node) => node.id)));
-  });
+  }, { timeout: 120_000 });
 
   console.log(`已同步 ${nodes.length} 个知识节点`);
   console.log(`已同步 ${result.written} 条知识关系，删除 ${result.deleted} 条过期关系`);

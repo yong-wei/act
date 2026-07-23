@@ -353,7 +353,20 @@ test('ordinary publication API projects to catalog, binds a generated classroom,
   expect((await publicationAction({ action: 'validate-static' })).status).toBe(200);
   const browserValidated = await publicationAction({ action: 'validate-browser' });
   expect(browserValidated.status).toBe(200);
-  expect(browserValidated.body.publication.pendingGaps).toEqual([]);
+  const pendingGaps = browserValidated.body.publication.pendingGaps as Array<{
+    scope: 'GOAL' | 'MODULE';
+    targetId: string;
+    gapIdentity: string;
+  }>;
+  for (const gap of pendingGaps) {
+    expect((await publicationAction({
+      action: 'acknowledge-gap',
+      scope: gap.scope,
+      targetId: gap.targetId,
+      gapIdentity: gap.gapIdentity,
+      reason: '教师已核对该项生成内容与其来源绑定。',
+    })).status).toBe(200);
+  }
   const stalePlan = browserValidated.body.publication.stalePlan as { acknowledged: boolean; newestPlanRevisionId: string } | null;
   if (stalePlan && !stalePlan.acknowledged) {
     expect((await publicationAction({

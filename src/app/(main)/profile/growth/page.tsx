@@ -33,10 +33,8 @@ import { buildLearnerDataRouteShell } from '@/features/adaptive/adaptive-learnin
 import { getPlatformCockpitHref } from '@/lib/platform-role-navigation';
 import { DiagnosisSurfacePanel } from '@/features/adaptive/diagnosis-surface-panel';
 import { buildFeedbackTaskContext } from '@/lib/student-feedback-task-contract';
-import type { CompetencyVector, TrendVector } from '@/lib/data-governance/competency-model';
 import type { PortraitV2ConsumerSummary } from '@/lib/data-governance/portrait-v2-consumer';
 import type { RoleBasedLearningDiagnosis } from '@/lib/data-governance/role-based-learning-diagnosis';
-import type { RiskFlag } from '@/lib/data-governance/risk-detector';
 
 interface EvidenceSummaryItem {
   factType: string;
@@ -54,32 +52,50 @@ interface EvidenceSummaryItem {
 }
 
 interface GrowthSnapshotData {
+  evidenceState: 'current' | 'empty' | 'unavailable';
+  availabilityReason:
+    | 'available'
+    | 'no-eligible-evidence'
+    | 'no-evidence-after-revocation'
+    | 'migration-in-progress'
+    | 'current-state-unavailable'
+    | 'current-state-version-mismatch'
+    | 'invalid-current-snapshot';
   currentSnapshot: {
     portrait: PortraitV2ConsumerSummary;
-    vector: CompetencyVector;
-    snapshotAt: string;
+    snapshotAt: string | null;
+    overallScore: number | null;
+    dimensionCoverage: {
+      evidencedDimensionIds: string[];
+      missingDimensionIds: string[];
+    };
+    evidenceAsOf: string | null;
+    confidence: number | null;
     factCount: number;
-  };
-  previousSnapshot: {
-    vector: CompetencyVector;
-    snapshotAt: string;
   } | null;
-  trendVector: TrendVector;
+  previousSnapshot: null;
+  trendVector: null;
+  lastTrend: 'up' | 'stable' | 'down' | 'not-comparable' | null;
   evidenceSummary: Record<string, EvidenceSummaryItem[]>;
-  riskFlags: RiskFlag[];
+  riskFlags: Array<{
+    type: 'constraint' | 'stagnation' | 'cross_domain';
+    severity: 'low' | 'medium' | 'high';
+    occurredAt: string | null;
+    description: string;
+  }>;
   recommendations: Array<{
-    type: 'immediate' | 'weekly' | 'challenge';
+    type: 'immediate' | 'weekly';
     title: string;
     description: string;
     actionUrl?: string;
     priority: number;
   }>;
-  diagnosis: RoleBasedLearningDiagnosis;
+  diagnosis: RoleBasedLearningDiagnosis | null;
 }
 
 interface GrowthRecord {
   id: string;
-  type: 'milestone' | 'simulation' | 'risk_resolved' | 'excellent_design' | 'achievement' | 'competency_evaluation';
+  type: string;
   title: string;
   description: string;
   date: string;
@@ -105,7 +121,7 @@ function GrowthFallback({
     <AppShell
       viewerRole="student"
       title="成长中枢"
-      subtitle="能力趋势、证据覆盖与下一步路径"
+      subtitle="累计能力达成、证据覆盖与成长记录"
       activeHref="/profile/growth"
       breadcrumbs={[
         { label: '首页', href: '/' },
@@ -138,7 +154,6 @@ export default function GrowthPage() {
   const [growthRecords, setGrowthRecords] = useState<GrowthRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('30d');
   const localFeedbackContext = buildFeedbackTaskContext({
     assignment: searchParams.get('assignment'),
     criterion: searchParams.get('criterion'),
@@ -157,7 +172,7 @@ export default function GrowthPage() {
       setLoading(true);
       setError(null);
       const [snapshotRes, recordsRes] = await Promise.all([
-        fetch(`/api/student/competency-snapshot?timeRange=${timeRange}`),
+        fetch('/api/student/competency-snapshot'),
         fetch('/api/student/growth-records?limit=10'),
       ]);
 
@@ -178,7 +193,7 @@ export default function GrowthPage() {
     } finally {
       setLoading(false);
     }
-  }, [timeRange]);
+  }, []);
 
   useEffect(() => {
     if (status === 'authenticated' && session?.user?.id) {
@@ -227,12 +242,15 @@ export default function GrowthPage() {
     );
   }
 
-  const portrait = snapshot?.currentSnapshot?.portrait;
+  const currentSnapshot = snapshot?.currentSnapshot;
+  const portrait = currentSnapshot?.portrait;
   const portraitDimensions = portrait?.dimensions ?? [];
-  const overallScore = portrait?.overallScore ?? 0;
+  const evidencedDimensions = portraitDimensions.filter((dimension) => dimension.evidenceCount > 0);
+  const missingDimensions = portraitDimensions.filter((dimension) => dimension.evidenceCount === 0);
+  const overallScore = currentSnapshot?.overallScore ?? portrait?.overallScore ?? null;
 
   // Prepare radar chart data
-  const radarData = portraitDimensions.map((dimension) => ({
+  const radarData = evidencedDimensions.map((dimension) => ({
     dimension: dimension.label.slice(0, 4),
     fullDimension: dimension.label,
     score: Math.round(dimension.score),
@@ -240,41 +258,32 @@ export default function GrowthPage() {
   }));
 
   // Prepare bar chart data
-  const barData = portraitDimensions.map((dimension) => ({
+  const barData = evidencedDimensions.map((dimension) => ({
     dimension: dimension.label,
     score: Math.round(dimension.score),
     confidence: Math.round(dimension.confidence * 100),
     trend: dimension.trend,
   }));
-  const hasCompetencyChartData = portraitDimensions.length === 7
-    && (snapshot?.currentSnapshot?.factCount ?? 0) > 0
-    && barData.some((entry) => entry.score > 0 || entry.confidence > 0);
+  const hasPortrait = snapshot?.evidenceState === 'current' && evidencedDimensions.length > 0;
+  const portraitEvidenceCount = portraitDimensions.reduce((sum, dimension) => sum + dimension.evidenceCount, 0);
+  const hasCompetencyChartData = hasPortrait
+    && barData.length > 0;
+  const hasCompleteRadarData = hasPortrait && evidencedDimensions.length === 7;
   const groupedGrowthRecords = groupGrowthTimelineRecords(growthRecords);
+  const strengthLabels = portrait?.strengths
+    .map((id) => portraitDimensions.find((dimension) => dimension.id === id)?.label)
+    .filter((label): label is string => Boolean(label)) ?? [];
+  const improvementLabels = portrait?.weaknesses
+    .map((id) => portraitDimensions.find((dimension) => dimension.id === id)?.label)
+    .filter((label): label is string => Boolean(label)) ?? [];
 
   return (
     <AppShell
       viewerRole="student"
       title="成长中枢"
-      subtitle="能力趋势、证据覆盖与下一步路径"
+      subtitle="累计能力达成、证据覆盖与成长记录"
       activeHref="/profile/growth"
       breadcrumbs={[{ label: '首页', href: '/' }, { label: '个人中心', href: '/profile' }, { label: '成长中枢' }]}
-      actions={(
-        <div className="flex rounded-lg bg-platform-action-subtle p-1">
-          {(['7d', '30d', '90d'] as const).map((range) => (
-            <button type="button"
-              key={range}
-              onClick={() => setTimeRange(range)}
-              className={`rounded-md px-3 py-1 text-sm transition ${
-                timeRange === range
-                  ? 'bg-platform-action-primary text-platform-canvas'
-                  : 'text-platform-fg-secondary hover:text-platform-fg-primary'
-              }`}
-            >
-              {range === '7d' ? '近7天' : range === '30d' ? '近30天' : '近90天'}
-            </button>
-          ))}
-        </div>
-      )}
       userMenu={session?.user ? <UserMenu user={{ name: session.user.name, email: session.user.email, role: session.user.role }} /> : undefined}
       className="surface-page"
     >
@@ -289,13 +298,28 @@ export default function GrowthPage() {
         data-learner-record-missing-source={hasCompetencyChartData ? 'complete' : 'missing-evidence'}
       >
         <StudentFeedbackTaskPanel context={feedbackContext} surface="growth" className="mb-6" />
+        {!hasPortrait ? (
+          <div
+            className="mb-8 rounded-xl border border-border bg-muted/40 p-5 text-sm text-subtle"
+            data-portrait-availability={snapshot?.availabilityReason ?? 'current-state-unavailable'}
+          >
+            <p className="font-medium text-foreground">
+              {formatPortraitAvailabilityTitle(snapshot?.availabilityReason)}
+            </p>
+            <p className="mt-2">
+              {formatPortraitAvailabilityDescription(snapshot?.availabilityReason)}
+            </p>
+            <Link href="/profile/evidence" className="mt-3 inline-flex font-medium text-primary hover:underline">
+              查看累计学习证据
+            </Link>
+          </div>
+        ) : null}
         {/* Top Cards */}
         <div className="mb-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {/* Learning Stage Card */}
-          <div className="surface-card p-5">
+          {hasPortrait && overallScore !== null ? <div className="surface-card p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-subtle">当前学习阶段</p>
+                <p className="text-sm text-subtle">累计达成等级</p>
                 <p className="mt-1 text-2xl font-bold text-foreground">
                   {overallScore >= 75 ? '进阶期' : overallScore >= 55 ? '成长期' : '起步期'}
                 </p>
@@ -307,19 +331,15 @@ export default function GrowthPage() {
               </div>
             </div>
             <p className="mt-2 text-xs text-subtle">
-              综合得分 {overallScore} 分 · {snapshot?.currentSnapshot?.factCount || 0} 条学习记录
+              综合得分 {overallScore} 分 · 累计 {portraitEvidenceCount} 条学习证据
             </p>
-          </div>
+          </div> : null}
 
-          {/* Weekly Activity Card */}
-          <div className="surface-card p-5">
+          {hasPortrait ? <div className="surface-card p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-subtle">本周学习热度</p>
-                <p className="mt-1 text-2xl font-bold text-foreground">
-                  {growthRecords.filter((r) => new Date(r.date) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length}
-                  <span className="text-base font-normal text-subtle"> 次活动</span>
-                </p>
+                <p className="text-sm text-subtle">七维证据覆盖</p>
+                <p className="mt-1 text-2xl font-bold text-foreground">{evidencedDimensions.length} / 7</p>
               </div>
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/20 text-amber-500">
                 <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -328,17 +348,18 @@ export default function GrowthPage() {
               </div>
             </div>
             <p className="mt-2 text-xs text-subtle">
-              最近7天活跃记录
+              {missingDimensions.length > 0
+                ? `${missingDimensions.length} 个维度缺少合格证据，不计为零分`
+                : '七个维度均有合格证据'}
             </p>
-          </div>
+          </div> : null}
 
-          {/* Progress Summary Card */}
-          <div className="surface-card p-5">
+          {hasPortrait ? <div className="surface-card p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-subtle">本周进步</p>
+                <p className="text-sm text-subtle">最后能力趋势</p>
                 <p className="mt-1 text-2xl font-bold text-foreground">
-                  {snapshot?.riskFlags?.length === 0 ? '稳步提升' : '需要关注'}
+                  {formatTrend(snapshot?.lastTrend)}
                 </p>
               </div>
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-500">
@@ -348,19 +369,18 @@ export default function GrowthPage() {
               </div>
             </div>
             <p className="mt-2 text-xs text-subtle">
-              {snapshot?.riskFlags?.length
-                ? `有 ${snapshot.riskFlags.length} 个待关注事项`
-                : '各项能力均衡发展'}
+              仅在新增合格证据改变累计状态时更新
             </p>
-          </div>
+          </div> : null}
 
-          {/* AI Suggestion Card */}
-          <div className="surface-card p-5">
+          {hasPortrait ? <div className="surface-card p-5" data-portrait-last-risk>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-subtle">控灵建议</p>
+                <p className="text-sm text-subtle">最后证据风险</p>
                 <p className="mt-1 line-clamp-1 text-lg font-medium text-foreground">
-                  {snapshot?.recommendations?.[0]?.title || '继续保持'}
+                  {snapshot?.riskFlags?.length
+                    ? formatRiskType(snapshot.riskFlags[0].type)
+                    : '未触发风险'}
                 </p>
               </div>
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-violet-500/20 text-violet-500">
@@ -370,28 +390,58 @@ export default function GrowthPage() {
               </div>
             </div>
             <p className="mt-2 text-xs text-subtle">
-              {snapshot?.recommendations?.length
-                ? `还有 ${snapshot.recommendations.length} 条建议`
-                : '暂无新建议'}
+              {snapshot?.riskFlags?.length
+                ? `共 ${snapshot.riskFlags.length} 个由累计证据触发的关注项`
+                : '未从累计证据推断额外风险'}
+            </p>
+          </div> : null}
+        </div>
+
+        {hasPortrait && (strengthLabels.length > 0 || improvementLabels.length > 0) ? (
+          <div className="mb-8 grid gap-4 md:grid-cols-2" data-portrait-strengths-improvements>
+            <div className="surface-card-soft p-5">
+              <p className="text-sm font-medium text-foreground">累计优势</p>
+              <p className="mt-2 text-sm text-subtle">
+                {strengthLabels.length > 0 ? strengthLabels.join('、') : '尚无足够证据形成优势判断'}
+              </p>
+            </div>
+            <div className="surface-card-soft p-5">
+              <p className="text-sm font-medium text-foreground">待提升维度</p>
+              <p className="mt-2 text-sm text-subtle">
+                {improvementLabels.length > 0 ? improvementLabels.join('、') : '尚无证据支持明确的待提升判断'}
+              </p>
+            </div>
+          </div>
+        ) : null}
+
+        {hasPortrait && snapshot?.diagnosis ? <div className="mb-8" data-portrait-diagnosis>
+          <DiagnosisSurfacePanel
+            diagnosis={snapshot.diagnosis}
+            mode="student"
+            scoreScale="points"
+            title="累计能力整体诊断"
+            description="依据七维累计画像呈现当前能力判断、证据覆盖与下一步行动。"
+          />
+        </div> : null}
+
+        {hasPortrait && currentSnapshot ? (
+          <div className="mb-8 rounded-xl border border-border bg-muted/40 p-4 text-sm text-subtle" data-portrait-generated-at={currentSnapshot.snapshotAt ?? undefined}>
+            <p>
+              <span className="font-medium text-foreground">累计画像生成时间：</span>
+              {formatTimestamp(currentSnapshot.snapshotAt)}
+            </p>
+            <p className="mt-1" data-portrait-evidence-as-of={currentSnapshot.evidenceAsOf ?? undefined}>
+              <span className="font-medium text-foreground">累计证据截止：</span>
+              {formatTimestamp(currentSnapshot.evidenceAsOf)}
             </p>
           </div>
-        </div>
+        ) : null}
 
-        <div className="mb-8">
-          <DiagnosisSurfacePanel
-            diagnosis={snapshot?.diagnosis}
-            mode="student"
-            title="控制校正个人诊断"
-            description="把诊断快照转化为学生可理解的维度状态、证据引用和下一步行动。"
-          />
-        </div>
-
-        {portrait && (portrait.derivationKind !== 'native' || portrait.limitations.length > 0) ? (
+        {hasPortrait && portrait && portrait.limitations.length > 0 ? (
           <div className="mb-8 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-subtle" data-portrait-v2-limitation>
             <p className="font-medium text-foreground">画像来源说明</p>
             <p className="mt-1">
-              当前为 {portrait.derivationKind === 'compatibility-derived' ? '历史数据兼容投影' : '迁移后的 portrait v2'}；
-              置信度、时效性和限制信息已保留。
+              当前为规范累计 portrait v2；置信度、证据截止时间和限制信息已保留。
             </p>
             {portrait.limitations.length > 0 ? (
               <p className="mt-1">限制：{portrait.limitations.join('；')}</p>
@@ -403,8 +453,8 @@ export default function GrowthPage() {
         <div className="mb-8 grid gap-6 lg:grid-cols-2">
           {/* Radar Chart */}
           <div className="surface-card min-w-0 p-6">
-            <h3 className="mb-4 text-lg font-semibold text-foreground">七维 portrait v2 雷达</h3>
-            {hasCompetencyChartData ? (
+            <h3 className="mb-4 text-lg font-semibold text-foreground">七维累计达成雷达</h3>
+            {hasCompleteRadarData ? (
               <div className="h-[320px] min-h-[320px] min-w-0">
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
@@ -451,7 +501,11 @@ export default function GrowthPage() {
               </div>
             ) : (
               <div className="flex min-h-[320px] min-w-0 flex-col items-center justify-center rounded-xl border border-dashed border-border/70 bg-muted/30 p-6 text-center">
-                <p className="text-sm text-subtle">暂无足够证据生成能力雷达。</p>
+                <p className="text-sm text-subtle">
+                  {hasCompetencyChartData
+                    ? '部分维度缺少合格证据，暂不绘制完整七维雷达。'
+                    : '尚无合格证据生成七维累计达成雷达。'}
+                </p>
                 <Link
                   href="/assessment/adaptive-practice?intent=practice"
                   className="btn-ghost-themed mt-4 rounded-lg px-4 py-2 text-sm"
@@ -465,7 +519,7 @@ export default function GrowthPage() {
 
           {/* Bar Chart */}
           <div className="surface-card min-w-0 p-6">
-            <h3 className="mb-4 text-lg font-semibold text-foreground">七维画像详情</h3>
+            <h3 className="mb-4 text-lg font-semibold text-foreground">累计达成维度详情</h3>
             {hasCompetencyChartData ? (
               <div className="h-[320px] min-h-[320px] min-w-0">
                 <ResponsiveContainer width="100%" height="100%">
@@ -506,7 +560,7 @@ export default function GrowthPage() {
               </div>
             ) : (
               <div className="flex min-h-[320px] min-w-0 flex-col items-center justify-center rounded-xl border border-dashed border-border/70 bg-muted/30 p-6 text-center">
-                <p className="text-sm text-subtle">暂无足够证据生成能力详情。</p>
+                <p className="text-sm text-subtle">没有合格累计证据可用于展示维度详情。</p>
                 <Link href="/profile/evidence" className="btn-ghost-themed mt-4 rounded-lg px-4 py-2 text-sm">
                   查看证据
                 </Link>
@@ -514,6 +568,15 @@ export default function GrowthPage() {
             )}
           </div>
         </div>
+
+        {hasPortrait && missingDimensions.length > 0 ? (
+          <div className="mb-8 rounded-xl border border-border bg-muted/40 p-5" data-portrait-missing-dimensions>
+            <p className="font-medium text-foreground">缺少合格证据的维度</p>
+            <p className="mt-2 text-sm text-subtle">
+              {missingDimensions.map((dimension) => dimension.label).join('、')}。这些维度不参与累计总分，也不会显示为零分。
+            </p>
+          </div>
+        ) : null}
 
         {/* Risk Flags Section */}
         {snapshot?.riskFlags && snapshot.riskFlags.length > 0 && (
@@ -551,20 +614,11 @@ export default function GrowthPage() {
                       </svg>
                     </div>
                     <div className="flex-1">
-                      <p className="font-medium text-foreground">
-                        {risk.type === 'ai_misuse'
-                          ? 'AI使用方式'
-                          : risk.type === 'participation'
-                          ? '学习活跃度'
-                          : risk.type === 'constraint'
-                          ? '工程约束'
-                          : risk.type === 'cross_domain'
-                          ? '跨域迁移'
-                          : risk.type === 'stagnation'
-                          ? '学习停滞'
-                          : '其他'}
-                      </p>
+                      <p className="font-medium text-foreground">{formatRiskType(risk.type)}</p>
                       <p className="mt-1 text-sm text-subtle">{risk.description}</p>
+                      {risk.occurredAt ? (
+                        <p className="mt-2 text-xs text-subtle">证据发生于 {formatTimestamp(risk.occurredAt)}</p>
+                      ) : null}
                     </div>
                   </div>
                 </div>
@@ -590,12 +644,10 @@ export default function GrowthPage() {
                         className={`rounded px-2 py-0.5 text-xs ${
                           rec.type === 'immediate'
                             ? 'bg-red-500/20 text-red-500'
-                            : rec.type === 'weekly'
-                            ? 'bg-blue-500/20 text-blue-500'
-                            : 'bg-purple-500/20 text-purple-500'
+                            : 'bg-blue-500/20 text-blue-500'
                         }`}
                       >
-                        {rec.type === 'immediate' ? '立即' : rec.type === 'weekly' ? '本周' : '挑战'}
+                        {rec.type === 'immediate' ? '优先关注' : '持续建议'}
                       </span>
                       <span className="text-xs text-subtle">优先级 {rec.priority}</span>
                     </div>
@@ -623,9 +675,9 @@ export default function GrowthPage() {
           <h3 className="mb-4 text-lg font-semibold text-foreground">成长档案时间线</h3>
           {groupedGrowthRecords.length === 0 ? (
             <div className="surface-card-soft p-8 text-center">
-              <p className="text-subtle">暂无成长记录，开始学习之旅吧！</p>
-              <Link href="/missions" className="cta-primary mt-4 inline-block rounded-lg px-6 py-2">
-                开始任务
+              <p className="text-subtle">尚无持久、有效的累计成长事件。</p>
+              <Link href="/profile/evidence" className="cta-primary mt-4 inline-block rounded-lg px-6 py-2">
+                查看累计学习证据
               </Link>
             </div>
           ) : (
@@ -694,7 +746,7 @@ export default function GrowthPage() {
                         ) : null}
                       </div>
                       <span className="text-xs text-subtle">
-                        {formatRelativeDate(record.date)}
+                        {formatTimestamp(record.date)}
                       </span>
                     </div>
                   </div>
@@ -708,7 +760,7 @@ export default function GrowthPage() {
         {snapshot?.evidenceSummary && Object.keys(snapshot.evidenceSummary).length > 0 && (
           <div>
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <h3 className="text-lg font-semibold text-foreground">能力证据链</h3>
+              <h3 className="text-lg font-semibold text-foreground">累计能力证据摘要</h3>
               <Link href="/profile/evidence" className="btn-ghost-themed inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm">
                 查看全部证据
               </Link>
@@ -794,17 +846,51 @@ function lowSignalGrowthRecordKey(record: GrowthRecord): string | null {
   return [record.type, record.title, record.description].join('|');
 }
 
-function formatRelativeDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+function formatTimestamp(value: string | null | undefined): string {
+  if (!value) return '未提供';
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? '时间格式不可用' : parsed.toLocaleString('zh-CN');
+}
 
-  if (diffDays === 0) return '今天';
-  if (diffDays === 1) return '昨天';
-  if (diffDays < 7) return `${diffDays}天前`;
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)}周前`;
-  return `${Math.floor(diffDays / 30)}月前`;
+function formatTrend(
+  trend: GrowthSnapshotData['lastTrend'] | undefined,
+): string {
+  if (trend === 'up') return '上升';
+  if (trend === 'down') return '下降';
+  if (trend === 'stable') return '稳定';
+  return '尚无可比状态';
+}
+
+function formatRiskType(type: GrowthSnapshotData['riskFlags'][number]['type']): string {
+  if (type === 'constraint') return '工程约束';
+  if (type === 'cross_domain') return '跨域迁移';
+  return '能力停滞';
+}
+
+function formatPortraitAvailabilityTitle(
+  reason: GrowthSnapshotData['availabilityReason'] | undefined,
+): string {
+  if (reason === 'no-eligible-evidence') return '没有合格的累计学习证据';
+  if (reason === 'no-evidence-after-revocation') return '原有证据已撤销，当前没有合格累计证据';
+  if (reason === 'migration-in-progress') return '累计画像迁移尚未完成';
+  if (reason === 'current-state-version-mismatch') return '累计画像版本尚未完成切换';
+  if (reason === 'invalid-current-snapshot') return '累计画像校验未通过';
+  return '累计画像当前不可用';
+}
+
+function formatPortraitAvailabilityDescription(
+  reason: GrowthSnapshotData['availabilityReason'] | undefined,
+): string {
+  if (reason === 'no-eligible-evidence' || reason === 'no-evidence-after-revocation') {
+    return '页面不会把缺失证据显示为零分、能力阶段或趋势。可前往证据页核对已记录的学习事实。';
+  }
+  if (reason === 'migration-in-progress' || reason === 'current-state-version-mismatch') {
+    return '系统正在切换到规范累计画像。在迁移闭合前，不会展示旧画像或推断结果。';
+  }
+  if (reason === 'invalid-current-snapshot') {
+    return '当前画像未通过版本与内容校验，因此不会显示可能失真的分数、趋势或风险。';
+  }
+  return '当前状态指针尚未提供可验证的累计画像，请稍后重试或联系教师核对。';
 }
 
 function formatEvidenceTitle(item: EvidenceSummaryItem): string {
@@ -819,6 +905,7 @@ function formatEvidenceTitle(item: EvidenceSummaryItem): string {
 }
 
 function formatOutcome(outcome: string): string {
+  if (outcome === 'cumulative') return '累计';
   if (outcome === 'success') return '成功';
   if (outcome === 'failure') return '失败';
   if (outcome === 'partial') return '部分';

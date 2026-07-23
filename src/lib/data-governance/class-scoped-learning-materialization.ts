@@ -5,6 +5,7 @@ import { calculateCompetencyVector, type TimeWindow } from './competency-engine'
 import type { CompetencyVector } from './competency-model';
 
 export const CLASS_COMPETENCY_MATERIALIZATION_VERSION = 'class-competency.v2';
+export const CUMULATIVE_CLASS_COMPETENCY_MATERIALIZATION_VERSION = 'class-competency.cumulative.v1';
 
 export interface ClassScopedStudentProjection {
   userId: string;

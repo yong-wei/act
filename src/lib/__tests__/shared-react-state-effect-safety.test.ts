@@ -16,7 +16,7 @@ describe('shared React state/effect safety contracts', () => {
     expect(source).toContain('function ResourcePanelContent');
     expect(source).toContain('nodeDetailOwnerId');
     expect(source).toContain('nodeDetailOwnerId === selectedNode.id ? nodeDetail : null');
-    expect(source).toContain('const selectedNodeId = selectedNode.id');
+    expect(source).toContain('const selectedNodeId = selectedNodeRef.current.id');
     expect(source).toContain('const controller = new AbortController();');
     expect(source).toContain('controller.abort();');
     expect(source).toContain('data?.id === selectedNodeId');
@@ -67,9 +67,8 @@ describe('shared React state/effect safety contracts', () => {
     const source = readRepoFile('src/features/knowledge/knowledge-graph-system.tsx');
 
     expect(source).toContain('const initialRequestedNodeIdRef = useRef(initialRequestedNodeId)');
-    expect(source).toContain('const requestedNode = fetchedNodes.find((item) => item.id === requestedNodeId)');
-    expect(source).toContain('setSelectedNode(requestedNode)');
-    expect(source).toContain('setIsPanelOpen(true)');
+    expect(source).toContain('const requestedNode = graphCache.nodesById[requestedNodeId]');
+    expect(source).toContain('activateNodeById(requestedNodeId)');
   });
 
   it('cleans up admin notice timers when status feedback unmounts or changes', () => {
@@ -87,8 +86,8 @@ describe('shared React state/effect safety contracts', () => {
     const orchestratorSource = readRepoFile('src/features/lesson-engine/orchestrator-builder.tsx');
 
     expect(graphSource).toContain('const controller = new AbortController();');
-    expect(graphSource).toContain('cancelled = true;');
-    expect(graphSource).toContain('controller.abort();');
+    expect(graphSource).toContain('navigationRequestControllerRef.current?.abort();');
+    expect(graphSource).toContain('navigationRequestControllerRef.current = controller;');
     expect(orchestratorSource).toContain("fetch('/api/resources?includeTeacherOnly=true', { signal: controller.signal })");
     expect(orchestratorSource).toContain("fetch('/api/knowledge/nodes', { signal: controller.signal })");
     expect(orchestratorSource.split('return () => controller.abort();').length - 1).toBeGreaterThanOrEqual(2);

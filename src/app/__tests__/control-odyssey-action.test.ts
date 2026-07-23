@@ -716,6 +716,26 @@ describe('submitGameScore Arena publication bridge', () => {
     expect(mocks.prisma.studentProfile.upsert).toHaveBeenCalled();
   });
 
+  it('keeps an Arena-assigned run out of ordinary Odyssey progression', async () => {
+    await submitGameScore('level-1', 820, {
+      settlingTime: 2.8,
+      maxOvershoot: 7,
+      steadyError: 3,
+      controlEnergy: 5,
+    }, {
+      runId: 'run-arena-assigned',
+      arenaTaskId: 'task-odyssey-level-one-growth',
+      arenaAssigned: true,
+      tier: 'gold',
+      controllerId: 'PID',
+      pidParams: { kp: 2.1, ki: 0.4, kd: 0.12 },
+      publicationId: 'publication-1',
+    });
+
+    expect(mocks.bridgeOdysseyRunToArenaSubmission).toHaveBeenCalledTimes(1);
+    expect(mocks.prisma.studentProfile.upsert).not.toHaveBeenCalled();
+  });
+
   it('does not trust season scope from the Odyssey score submission context', async () => {
     await submitGameScore('level-1', 820, {
       settlingTime: 2.8,

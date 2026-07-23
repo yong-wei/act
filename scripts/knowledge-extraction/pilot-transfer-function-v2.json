@@ -1,0 +1,32 @@
+{
+  "pack_id": "transfer-function-pilot-v1",
+  "model": "deepseek-ai/DeepSeek-V4-Flash",
+  "prompt_prefix_path": "prompt-prefix-v1.md",
+  "enable_thinking": false,
+  "temperature": 0,
+  "max_tokens": 12000,
+  "task_prompt": "请重新执行节点提取，并严格遵守以下裁决约束：1）每个 quote 只能复制对应来源中的一个连续短原文片段，禁止省略号、跨句拼接、转述、符号替换或标点改写；2）aliases 只放严格同义名称，子类、实例、不同输入输出、不同模型形式和不同适用条件不得作为 alias；3）性质集合、关系命题、适用条件、图形表示和计算步骤不得成为节点；4）教材以独立小节讲解的物理元件可以成为节点，但统一使用元件名称，不命名为“元件名+传递函数”；5）主权威与次级来源冲突时，由胡寿松第7版决定中文规范名称和语义边界，次级来源只补充严格同义词与证据；6）零点与极点、有延迟与无延迟对象若定义或适用条件不同，分别裁决，不得为减少数量强行合并；7）rejected_items 只列实际存在语义歧义的条目，最多20项。返回前逐条在上下文中核对 quote 是否可直接连续检索，并按既有 JSON 合同输出。",
+  "sources": [
+    {
+      "source_id": "hu-shousong-auto-control-7th:chapter-02:complex-domain-model",
+      "authority": "primary_semantic_authority",
+      "path": "course-content/authoring/resources/textbooks/hu-shousong-auto-control-7th/chapter-02/textbook.md",
+      "start_heading": "## 2－2 控制系统的复数域数学模型",
+      "end_heading": "## 2－3 控制系统的结构图与信号流图"
+    },
+    {
+      "source_id": "feedback-control-of-dynamic-systems-7th:chapter-03:transfer-functions",
+      "authority": "secondary_semantic_authority",
+      "path": "course-content/authoring/resources/textbooks/feedback-control-of-dynamic-systems/chapter-03/textbook.md",
+      "start_heading": "### 3.1.2 Transfer Functions and Frequency Response",
+      "end_heading": "### 3.1.3 The $\\mathcal{L}_{-}$Laplace Transform"
+    },
+    {
+      "source_id": "liu-sheng-auto-control-2015:chapter-03:complex-domain-model",
+      "authority": "secondary_semantic_authority",
+      "path": "course-content/authoring/resources/textbooks/liu-sheng-auto-control-2015/chapter-03/textbook.md",
+      "start_heading": "## 3.3 控制系统的复数域数学模型",
+      "end_heading": "## 3.4 控制系统的结构图和信号流图"
+    }
+  ]
+}

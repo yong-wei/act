@@ -7,13 +7,32 @@ export interface StudentSnapshotJob {
   userId?: string;
   coordinator?: boolean;
   fullRebuild?: boolean;
+  /** @deprecated Ignored by the cumulative worker; retained until old producers are removed. */
   rebuildGeneration?: number;
-  growthRecomputeForSnapshot?: string;
+  calculationVersion?: string;
+  learnerGeneration?: string;
+  queueGeneration?: string;
+  cutoverFence?: string;
+  migrationRunId?: string;
+  reconciliationRequestGeneration?: number;
+  reconciliationClaimToken?: string;
+  reconciliationClassIds?: string[];
 }
 
 export interface ClassSnapshotJob {
   classId?: string;
   coordinator?: boolean;
+  scope?: 'cumulative';
+  calculationVersion?: string;
+  learnerGeneration?: string;
+  classGeneration?: string;
+  queueGeneration?: string;
+  cutoverFence?: string;
+  migrationRunId?: string;
+  /** @deprecated Ignored by the cumulative worker; retained until old producers are removed. */
+  requestedAfter?: string;
+  /** @deprecated Ignored by the cumulative worker; retained until old producers are removed. */
+  runRef?: string;
 }
 
 export interface SessionReportJob {

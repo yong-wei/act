@@ -15,6 +15,7 @@ const read = (file: string) => readFileSync(join(process.cwd(), file), 'utf8');
 describe('math-document grading production entrypoint contract', () => {
   it('provisions the local conversion toolchain and starts the math worker from the production worker entrypoint', () => {
     const dockerfile = read('Dockerfile');
+    const dockerignore = read('.dockerignore');
     const worker = read('scripts/workers/data-governance-worker.ts');
     const mathWorker = read('scripts/workers/math-document-grading-worker.ts');
     const gc = read('scripts/assignments/gc-submission-objects.ts');
@@ -23,8 +24,9 @@ describe('math-document grading production entrypoint contract', () => {
 
     expect(dockerfile).toMatch(/apk add[^\n]*unzip/);
     expect(dockerfile).toMatch(/apk add[^\n]*libreoffice/);
-    expect(dockerfile).toContain('markitdown==');
+    expect(dockerfile).not.toContain('markitdown==');
     expect(dockerfile).toContain('scripts/assignments');
+    expect(dockerignore).toContain('!scripts/assignments/**');
     expect(worker).toContain('math-document-grading-worker');
     expect(mathWorker).toContain('assertMathDocumentGradingWorkerConfig');
     expect(mathWorker).toContain('MATH_DOCUMENT_GRADING_WORKER_CAPABILITY_KEY');
@@ -59,7 +61,8 @@ describe('math-document grading production entrypoint contract', () => {
     expect(deploy.lastIndexOf('require_math_document_grading_worker_config', removal)).toBeGreaterThan(-1);
     expect(deploy.lastIndexOf('require_math_document_grading_worker_config', removal)).toBeLessThan(removal);
     expect(preflight).toBeGreaterThan(-1);
-    expect(preflightBlock).toContain('\n  validate_grading_policy_seed_config\n');
+    expect(preflightBlock).toContain('\n    validate_grading_policy_seed_config\n');
+    expect(preflightBlock).toContain('数学文档批改 worker 已禁用，跳过其专用安全配置预检');
     expect(deploy.slice(0, preflight)).toContain('ensure-grading-policies.ts --dry-run');
     expect(preflightBlock).toContain('require_math_document_grading_worker_config');
     expect(deploy).toContain('AI_PROVIDER_ENABLED=false 与数学文档批改 worker 不兼容');

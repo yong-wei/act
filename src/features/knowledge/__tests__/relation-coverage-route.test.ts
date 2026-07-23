@@ -21,6 +21,7 @@ vi.mock('@/lib/prisma', () => ({
 import { GET as getGraph } from '@/app/api/knowledge/graph/route';
 import { GET as getNode } from '@/app/api/knowledge/nodes/[id]/route';
 import { resetKnowledgeGraphSourceCacheForTests } from '@/lib/knowledge-graph-source';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 
 const tempRoots: string[] = [];
 
@@ -126,6 +127,17 @@ describe('knowledge relation coverage route observability', () => {
     expect(await response.json()).toEqual(expect.objectContaining({
       diagnostics: expect.arrayContaining([expect.objectContaining({ code: 'INCOMPLETE_RUNTIME_GRAPH_SOURCE' })]),
     }));
+  });
+
+  it('passes graph load failures through the Next.js dynamic error gate before translating them', async () => {
+    installRuntime('{bad-json\n');
+    const dynamicError = new Error('next-dynamic-error');
+    vi.mocked(rethrowIfNextDynamicError).mockImplementationOnce(() => {
+      throw dynamicError;
+    });
+
+    await expect(getGraph(new Request('http://localhost/api/knowledge/graph?mode=root')))
+      .rejects.toBe(dynamicError);
   });
 
   it('rejects an unknown graph mode before loading graph data', async () => {

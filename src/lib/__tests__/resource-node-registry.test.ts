@@ -1069,7 +1069,7 @@ describe('resource node registry', () => {
             reviewStatus: 'human-confirmed',
             sourceFamily: 'arena_task',
             stableSourceRef: 'task-cruise-roll-blackbox-identification',
-            sourceVersionRef: 'resource-node-registry.v1',
+            sourceVersionRef: 'arena-path-target-integrity.v1',
           },
           readiness: {
             fallbackNodeIds: ['registry:lesson15-series-precheck'],

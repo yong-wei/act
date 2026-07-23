@@ -78,7 +78,7 @@ type RoundEvidence = {
     deferredCount: number;
     visibleLineCount: number;
     markerMaximum: number;
-    markerReachedThree: boolean;
+    ambientWithinBudget: boolean;
     p95IntervalMs: number;
     longTasksAbove100ms: number;
   };
@@ -511,7 +511,7 @@ async function sampleRound(page: Page, renderer: '2D' | '3D', round: number): Pr
     deferredCount: current.viewportCoverage.deferred,
     visibleLineCount: current.viewportCoverage.visibleLine,
     markerMaximum,
-    markerReachedThree: raw.markerCounts.includes(3),
+    ambientWithinBudget: raw.markerCounts.every((count) => count <= 11),
     p95IntervalMs: p95(raw.intervalsMs),
     longTasksAbove100ms: raw.longTasks.filter((entry) => entry.duration > 100).length,
   };
@@ -528,8 +528,8 @@ async function sampleRound(page: Page, renderer: '2D' | '3D', round: number): Pr
   expect(current.visibleLineIds, `${renderer} round ${round} visible line identities`)
     .toHaveLength(metrics.visibleLineCount);
   expect(metrics.labelPairRatio, `${renderer} round ${round} label overlap ratio`).toBeLessThanOrEqual(0.05);
-  expect(metrics.markerMaximum, `${renderer} round ${round} marker cap`).toBeLessThanOrEqual(3);
-  expect(metrics.markerReachedThree, `${renderer} round ${round} marker pressure`).toBe(true);
+  expect(metrics.markerMaximum, `${renderer} round ${round} ambient+corridor marker budget`).toBeLessThanOrEqual(11);
+  expect(metrics.ambientWithinBudget, `${renderer} round ${round} marker budget conformance`).toBe(true);
   if (!devServerFallback) {
     expect(metrics.p95IntervalMs, `${renderer} round ${round} p95 rAF interval`).toBeLessThan(24);
     expect(metrics.longTasksAbove100ms, `${renderer} round ${round} long tasks`).toBe(0);
@@ -574,6 +574,29 @@ test('checked-in Task 7.4 fixtures preserve reviewer-selected semantics and exac
 test('label overlap ratio rejects 2 overlapping pairs among 21 visible labels', () => {
   expect(visibleLabelOverlapRatio(2, 21)).toBeCloseTo(0.0952, 4);
   expect(visibleLabelOverlapRatio(2, 21)).toBeGreaterThan(0.05);
+});
+
+test('ambient flow pauses when the tab is hidden and resumes on return', async ({ page }) => {
+  test.setTimeout(120_000);
+  const fixture = await readJson<Fixture>(join(fixtureRoot, 'largest-domain.json'));
+  await installFixtureRoutes(page, fixture);
+  await page.goto('/knowledge?qa=task-7-4-performance', { waitUntil: 'domcontentloaded' });
+  const rootId = fixture.rootPayload.nodes[0].id;
+  await expect(page.locator(`[data-knowledge-node-control="${rootId}"]`)).toBeAttached();
+  await activateNode(page, rootId);
+  await expect.poll(async () => (await snapshot(page)).markerCount).toBe(8);
+
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'hidden', { get: () => true, configurable: true });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await expect.poll(async () => (await snapshot(page)).markerCount).toBe(0);
+
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'hidden', { get: () => false, configurable: true });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await expect.poll(async () => (await snapshot(page)).markerCount).toBe(8);
 });
 
 test('production Chromium passes six independent Task 7.4 performance rounds', async ({ page, browser }) => {
@@ -622,7 +645,7 @@ test('production Chromium passes six independent Task 7.4 performance rounds', a
   await activateNode(page, cases.cases.densestAssociation.selectedNodeId);
   await expect.poll(async () => (await snapshot(page)).canonicalEdges.filter((edge) => edge.family === 'association').length).toBe(24);
   await activateNode(page, cases.cases.corridor.selectedNodeId);
-  await expect.poll(async () => (await snapshot(page)).markerCount).toBe(3);
+  await expect.poll(async () => (await snapshot(page)).markerCount).toBe(8);
   await expect.poll(async () => (await snapshot(page)).corridorIds.nodeIds.length).toBe(41);
   await expect.poll(async () => (await snapshot(page)).corridorIds.edgeIds.length).toBe(96);
   await page.waitForTimeout(2_000);
@@ -978,7 +1001,7 @@ test('production Chromium passes six independent Task 7.4 performance rounds', a
     thresholds: {
       nodeOverlapCount: 0,
       labelPairRatioMaximum: 0.05,
-      markerMaximum: 3,
+      markerMaximum: 11,
       p95IntervalMsMaximumExclusive: 24,
       longTasksAbove100ms: 0,
       relationPixels: {

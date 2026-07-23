@@ -8,7 +8,7 @@ interface GraphApiResponse {
   corridorLinks?: KnowledgeLinkData[];
   corridorCycleEdgeIds?: string[];
   membershipLinks?: KnowledgeLinkData[];
-  source?: 'file' | 'database';
+  source?: 'file' | 'database' | 'actkg-projection';
   truncated?: { nodes?: boolean; links?: boolean; membershipLinks?: boolean; corridorLinks?: boolean };
   rootCatalog?: Array<{
     nodeId: string;
@@ -16,6 +16,7 @@ interface GraphApiResponse {
     nodeType: KnowledgeNodeData['nodeType'];
     domainId: string;
     chapterName: string;
+    candidate?: boolean;
   }>;
   lessonContext?: SanitizedKnowledgeLessonContext | null;
 }

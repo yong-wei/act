@@ -1,121 +1,387 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
-  portrait: vi.fn(async () => ({ mappingIssues: [] })),
-  refreshCache: vi.fn(async () => undefined),
+  portrait: vi.fn(async () => ({
+    written: true,
+    mappingIssues: [],
+    evidenceCount: 1,
+    affectedDimensions: ['modeling'],
+  })),
+  classPortrait: vi.fn(async () => ({
+    written: true,
+    versionId: 'class-version-1',
+    inputDigest: 'input-digest',
+    memberSetDigest: 'member-digest',
+    activeStudentCount: 1,
+    totalStudentCount: 1,
+  })),
+  events: [] as Array<{ id: string; userId: string }>,
+  markEventsProcessed: vi.fn(async () => undefined),
 }));
 
-vi.mock('../portrait-v2-materialization', () => ({ materializeIncrementalPortraitV2: mocks.portrait }));
+vi.mock('../portrait-v2-materialization', () => ({
+  materializeIncrementalPortraitV2: mocks.portrait,
+}));
+vi.mock('../cumulative-class-materialization', () => ({
+  materializeCumulativeClassPortrait: mocks.classPortrait,
+}));
+vi.mock('../event-buffer', () => ({
+  fetchSecondaryEvents: vi.fn(async () => mocks.events),
+  markEventsProcessed: mocks.markEventsProcessed,
+}));
+vi.mock('../learning-fact-materialization', () => ({
+  eventToLearningFactInput: (event: unknown) => event,
+}));
 vi.mock('../student-evidence-feature-cache', () => ({
   rebuildStudentEvidenceFeatureCache: vi.fn(),
-  refreshStudentEvidenceFeatureCache: mocks.refreshCache,
-}));
-vi.mock('../risk-detector', () => ({ detectRisks: () => [], getRecommendedScaffolding: () => [], getRiskLevelDescription: () => 'none' }));
-vi.mock('../competency-engine', () => ({
-  calculateCompetencyVector: () => ({ controlModeling: { score: 80, trend: 'stable', confidence: 1, evidenceCount: 1, lastUpdated: '' }, parameterDesign: { score: 0, trend: 'stable', confidence: 0, evidenceCount: 0, lastUpdated: '' }, crossDomainTransfer: { score: 0, trend: 'stable', confidence: 0, evidenceCount: 0, lastUpdated: '' }, engineeringDecision: { score: 0, trend: 'stable', confidence: 0, evidenceCount: 0, lastUpdated: '' }, inquiryReflection: { score: 0, trend: 'stable', confidence: 0, evidenceCount: 0, lastUpdated: '' }, selfDirectedLearning: { score: 0, trend: 'stable', confidence: 0, evidenceCount: 0, lastUpdated: '' } }),
-  calculateTrendVector: (value: unknown) => value,
-  generateEvidenceSummary: (facts: any[]) => ({ controlModeling: facts.map((fact) => ({ id: fact.id })) }),
-  identifyStrengths: () => [], identifyWeaknesses: () => [],
+  refreshStudentEvidenceFeatureCache: vi.fn(),
 }));
 
-import { configureDataGovernanceWorkerForTest, processClassSnapshotJob, processStudentSnapshotJob } from '../../../../scripts/workers/data-governance-worker';
-import { dispatchGrowthRecomputeOutbox } from '../derived-learning-materialization';
+import {
+  configureDataGovernanceWorkerForTest,
+  processClassSnapshotJob,
+  processEventIngestionJob,
+  processStudentSnapshotJob,
+} from '../../../../scripts/workers/data-governance-worker';
 
-function fact(id: string) {
-  return { id, userId: 'student-1', sourceLogId: null, factType: 'assessment', outcome: 'success', score: 1, startedAt: new Date('2026-07-15T00:00:00Z'), createdAt: new Date('2026-07-15T00:00:01Z'), contextJson: {} };
+const publication = {
+  calculationVersion: 'portrait-v2.cumulative.v2',
+  learnerGeneration: '11',
+  classGeneration: '13',
+  queueGeneration: '17',
+  cutoverFence: '19',
+  migrationRunId: 'run-989',
+} as const;
+
+function fence() {
+  return {
+    calculationVersion: publication.calculationVersion,
+    learnerGeneration: BigInt(publication.learnerGeneration),
+    classGeneration: BigInt(publication.classGeneration),
+    queueGeneration: BigInt(publication.queueGeneration),
+    fence: BigInt(publication.cutoverFence),
+    activeMigrationRunId: publication.migrationRunId,
+  };
 }
 
-describe('data governance worker materialization recovery', () => {
-  beforeEach(() => vi.clearAllMocks());
+function dbWithFence(overrides: Record<string, unknown> = {}) {
+  return {
+    cumulativePortraitCutoverFence: {
+      findUnique: vi.fn(async () => fence()),
+    },
+    learningMaterializationRebuildRequest: {
+      findMany: vi.fn(async () => []),
+      updateMany: vi.fn(async () => ({ count: 0 })),
+    },
+    ...overrides,
+  } as any;
+}
 
-  it('queries real Prisma facts with the target class/session scope and ignores legacy class snapshots', async () => {
-    const factQueries: any[] = [];
-    const snapshotReads: any[] = [];
-    const creates: any[] = [];
-    const db: any = {
-      studentProfile: { findMany: async () => [{ userId: 'student-1' }] },
-      classSession: { findMany: async () => [{ id: 'session-a' }] },
-      learningFact: { findMany: async (args: any) => { factQueries.push(args); return [{ ...fact('a-low'), competencyContribution: { controlModeling: 0.2 }, contextJson: { classId: 'class-a' } }]; } },
-      classCompetencySnapshot: {
-        findFirst: async (args: any) => { snapshotReads.push(args); return null; },
-        create: async ({ data }: any) => { creates.push(data); return { id: 'class-v2', ...data }; },
-      },
-    };
-    configureDataGovernanceWorkerForTest({ db });
-    await processClassSnapshotJob({ data: { classId: 'class-a' } } as any);
-    expect(factQueries[0].where.OR).toEqual(expect.arrayContaining([{ sessionId: { in: ['session-a'] } }, { contextJson: { path: ['arena', 'classId'], equals: 'class-a' } }]));
-    expect(snapshotReads[0].where).toEqual({ classId: 'class-a', materializationVersion: 'class-competency.v2' });
-    expect(creates[0]).toMatchObject({ classId: 'class-a', materializationVersion: 'class-competency.v2' });
+describe('data governance cumulative materialization worker', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.events = [];
   });
 
-  it('durably reschedules a Growth digest mismatch and the real worker eventually writes Growth', async () => {
-    const factsA = [fact('fact-a')];
-    const factsB = [fact('fact-a'), fact('fact-b')];
-    let factReads = 0;
-    let latestSnapshot: any = null;
-    const growthCreates: any[] = [];
-    const outboxRows: any[] = [];
-    const db: any = {
-      $transaction: async (callback: any) => callback(db),
-      $executeRaw: async () => undefined,
-      learningMaterializationGeneration: { findUnique: async () => null },
-      learningMaterializationRebuildRequest: { findUnique: async () => null },
-      learningFact: { findMany: async () => (++factReads === 1 ? factsA : factsB) },
-      interactionLog: { findMany: async () => [] },
-      studentCompetencySnapshot: {
-        findFirst: async () => latestSnapshot,
-        create: async ({ data }: any) => (latestSnapshot = { id: 'snapshot-b', ...data }),
-      },
-      studentProfile: { findUnique: async () => ({ classId: 'class-1' }), findMany: async () => [] },
-      user: { findUnique: async () => ({ name: null, profile: { studentNumber: null } }) },
-      gradingProviderPolicy: { findFirst: async () => null },
-      growthRecord: {
-        findUnique: async () => null,
-        findFirst: async () => null,
-        create: async ({ data }: any) => { growthCreates.push(data); return data; },
-        updateMany: async () => ({ count: 0 }),
-      },
-      studentProfileSummary: { upsert: async () => undefined },
-      studentRiskFlag: { updateMany: async () => ({ count: 0 }), createMany: async () => ({ count: 0 }) },
-      learningMaterializationOutbox: {
-        upsert: async ({ create }: any) => { const existing = outboxRows.find((row) => row.dedupeKey === create.dedupeKey); if (existing) return existing; outboxRows.push({ ...create }); return create; },
-        deleteMany: async () => ({ count: 0 }),
-        findMany: async ({ where }: any) => outboxRows.filter((row) => row.kind === where.kind && row.status === 'PENDING'),
-        updateMany: async ({ where, data }: any) => { const row = outboxRows.find((item) => item.id === where.id); if (!row || (where.status && row.status !== where.status)) return { count: 0 }; Object.assign(row, data); return { count: 1 }; },
-      },
-    };
-    configureDataGovernanceWorkerForTest({ db });
+  it('adds the active cutover fence to student jobs created by event ingestion', async () => {
+    mocks.events = [
+      { id: 'fact-1', userId: 'student-1' },
+      { id: 'fact-2', userId: 'student-1' },
+      { id: 'fact-3', userId: 'student-2' },
+    ];
+    const add = vi.fn(async (_name: string, _data: unknown, _options: unknown) => undefined);
+    const db = dbWithFence({
+      learningEventBatch: { create: vi.fn(async () => undefined) },
+      learningFact: { createMany: vi.fn(async () => ({ count: 3 })) },
+    });
+    configureDataGovernanceWorkerForTest({ db, studentJobQueue: { add } as any });
 
-    await processStudentSnapshotJob({ data: { userId: 'student-1' } } as any);
-    expect(growthCreates).toHaveLength(0);
-    expect(outboxRows).toEqual([expect.objectContaining({ kind: 'GROWTH_RECOMPUTE', snapshotId: 'snapshot-b', status: 'PENDING' })]);
+    await processEventIngestionJob({
+      id: 'batch-1',
+      data: { batchDate: '2026-07-23' },
+    } as any);
 
-    const queued: any[] = [];
-    await dispatchGrowthRecomputeOutbox(db, async (userId, snapshotId) => queued.push({ data: { userId, growthRecomputeForSnapshot: snapshotId } }), new Date('2026-07-15T00:01:00Z'));
-    expect(queued).toHaveLength(1);
-    await processStudentSnapshotJob(queued[0]);
-    expect(growthCreates).toHaveLength(1);
-    expect(growthCreates[0]).toMatchObject({ userId: 'student-1', recordType: 'competency_evaluation' });
+    expect(add).toHaveBeenCalledTimes(2);
+    expect(add.mock.calls.map((call) => call[1])).toEqual([
+      {
+        userId: 'student-1',
+        calculationVersion: publication.calculationVersion,
+        learnerGeneration: publication.learnerGeneration,
+        queueGeneration: publication.queueGeneration,
+        cutoverFence: publication.cutoverFence,
+        migrationRunId: publication.migrationRunId,
+      },
+      {
+        userId: 'student-2',
+        calculationVersion: publication.calculationVersion,
+        learnerGeneration: publication.learnerGeneration,
+        queueGeneration: publication.queueGeneration,
+        cutoverFence: publication.cutoverFence,
+        migrationRunId: publication.migrationRunId,
+      },
+    ]);
   });
 
-  it('keeps repeated active no-recent jobs idempotent while retaining one delivered class transition', async () => {
-    const latestSnapshot = { id: 'empty-transition-1', userId: 'student-1', snapshotAt: new Date('2026-07-15T00:00:00Z'), factCount: 0, competencyVector: {}, evidenceSummary: { _derivation: { state: 'no-recent-evidence' } } };
-    const creates: any[] = [];
-    const outboxRows: any[] = [];
-    const db: any = {
-      $transaction: async (callback: any) => callback(db), $executeRaw: async () => undefined,
-      learningMaterializationGeneration: { findUnique: async () => null },
-      learningMaterializationRebuildRequest: { findUnique: async () => null },
-      learningFact: { findMany: async () => [] }, interactionLog: { findMany: async () => [] },
-      studentCompetencySnapshot: { findFirst: async () => latestSnapshot, create: async ({ data }: any) => { creates.push(data); return data; } },
-      studentProfile: { findMany: async () => [{ classId: 'class-1' }], findUnique: async () => ({ classId: 'class-1' }) },
-      studentRiskFlag: { updateMany: async () => ({ count: 0 }) },
-      learningMaterializationOutbox: { upsert: async ({ create }: any) => { const existing = outboxRows.find((row) => row.dedupeKey === create.dedupeKey); if (existing) return existing; outboxRows.push({ ...create, status: 'DELIVERED' }); return create; } },
-    };
+  it('drops a legacy student job before reading or writing portrait state', async () => {
+    const db = dbWithFence();
     configureDataGovernanceWorkerForTest({ db });
-    await processStudentSnapshotJob({ data: { userId: 'student-1' } } as any);
-    await processStudentSnapshotJob({ data: { userId: 'student-1' } } as any);
-    expect(creates).toEqual([]);
-    expect(outboxRows).toEqual([expect.objectContaining({ snapshotId: 'empty-transition-1', status: 'DELIVERED' })]);
+
+    const result = await processStudentSnapshotJob({
+      data: { userId: 'student-1' },
+    } as any);
+
+    expect(result).toEqual({
+      skipped: true,
+      reason: 'missing_cumulative_publication_fence',
+      userId: 'student-1',
+    });
+    expect(db.cumulativePortraitCutoverFence.findUnique).not.toHaveBeenCalled();
+    expect(mocks.portrait).not.toHaveBeenCalled();
+  });
+
+  it('drops a stale student job and never publishes it', async () => {
+    const db = dbWithFence();
+    configureDataGovernanceWorkerForTest({ db });
+
+    const result = await processStudentSnapshotJob({
+      data: {
+        userId: 'student-1',
+        ...publication,
+        queueGeneration: '16',
+      },
+    } as any);
+
+    expect(result).toEqual({
+      skipped: true,
+      reason: 'stale_cumulative_publication_fence',
+      userId: 'student-1',
+    });
+    expect(mocks.portrait).not.toHaveBeenCalled();
+  });
+
+  it('passes the complete publication fence to the learner materializer and class job', async () => {
+    const classAdd = vi.fn(async () => undefined);
+    const db = dbWithFence({
+      studentProfile: {
+        findUnique: vi.fn(async () => ({ classId: 'class-1' })),
+      },
+    });
+    configureDataGovernanceWorkerForTest({
+      db,
+      classJobQueue: { add: classAdd } as any,
+    });
+
+    const result = await processStudentSnapshotJob({
+      data: {
+        userId: 'student-1',
+        ...publication,
+      },
+    } as any);
+
+    expect(result).toMatchObject({
+      skipped: false,
+      reason: 'cumulative_portrait_materialized',
+    });
+    expect(mocks.portrait).toHaveBeenCalledWith(
+      db,
+      'student-1',
+      expect.objectContaining({
+        publication: {
+          calculationVersion: publication.calculationVersion,
+          generation: BigInt(publication.learnerGeneration),
+          queueGeneration: BigInt(publication.queueGeneration),
+          cutoverFence: BigInt(publication.cutoverFence),
+          migrationRunId: publication.migrationRunId,
+        },
+      }),
+    );
+    expect(classAdd).toHaveBeenCalledWith(
+      'class-snapshot-class-1',
+      {
+        classId: 'class-1',
+        scope: 'cumulative',
+        ...publication,
+      },
+      expect.objectContaining({
+        jobId: expect.stringMatching(/^class-reconcile-[0-9a-f]{64}$/),
+      }),
+    );
+  });
+
+  it('rejects the removed recent class scope without reading the cutover fence', async () => {
+    const db = dbWithFence();
+    configureDataGovernanceWorkerForTest({ db });
+
+    const result = await processClassSnapshotJob({
+      data: {
+        classId: 'class-1',
+        scope: 'recent',
+        ...publication,
+      },
+    } as any);
+
+    expect(result).toEqual({
+      skipped: true,
+      reason: 'unsupported_scope',
+      classId: 'class-1',
+      scope: 'recent',
+    });
+    expect(db.cumulativePortraitCutoverFence.findUnique).not.toHaveBeenCalled();
+    expect(mocks.classPortrait).not.toHaveBeenCalled();
+  });
+
+  it('passes the complete publication fence to the cumulative class materializer', async () => {
+    const db = dbWithFence();
+    configureDataGovernanceWorkerForTest({ db });
+
+    await processClassSnapshotJob({
+      data: {
+        classId: 'class-1',
+        scope: 'cumulative',
+        ...publication,
+      },
+    } as any);
+
+    expect(mocks.classPortrait).toHaveBeenCalledWith(
+      db,
+      'class-1',
+      expect.objectContaining({
+        publication: {
+          calculationVersion: publication.calculationVersion,
+          learnerGeneration: BigInt(publication.learnerGeneration),
+          generation: BigInt(publication.classGeneration),
+          queueGeneration: BigInt(publication.queueGeneration),
+          cutoverFence: BigInt(publication.cutoverFence),
+          migrationRunId: publication.migrationRunId,
+        },
+      }),
+    );
+  });
+
+  it('coordinators only create fully fenced cumulative jobs', async () => {
+    const studentAdd = vi.fn(async (_name: string, _data: unknown) => undefined);
+    const classAdd = vi.fn(async () => undefined);
+    const db = dbWithFence({
+      interactionLog: {
+        findMany: vi.fn(async () => [{ userId: 'student-1' }]),
+      },
+      learningFact: {
+        findMany: vi.fn(async () => []),
+      },
+      studentProfile: {
+        findMany: vi.fn(async () => [{ userId: 'student-1' }]),
+      },
+      class: {
+        findMany: vi.fn(async () => [{ id: 'class-1' }]),
+      },
+    });
+    configureDataGovernanceWorkerForTest({
+      db,
+      studentJobQueue: { add: studentAdd } as any,
+      classJobQueue: { add: classAdd } as any,
+    });
+
+    await processStudentSnapshotJob({ data: { coordinator: true } } as any);
+    await processClassSnapshotJob({ data: { coordinator: true } } as any);
+
+    expect(studentAdd).toHaveBeenCalledWith(
+      'student-snapshot-student-1',
+      {
+        userId: 'student-1',
+        calculationVersion: publication.calculationVersion,
+        learnerGeneration: publication.learnerGeneration,
+        queueGeneration: publication.queueGeneration,
+        cutoverFence: publication.cutoverFence,
+        migrationRunId: publication.migrationRunId,
+      },
+      expect.any(Object),
+    );
+    expect(classAdd).toHaveBeenCalledWith(
+      'class-snapshot-class-1',
+      {
+        classId: 'class-1',
+        scope: 'cumulative',
+        ...publication,
+      },
+      expect.any(Object),
+    );
+  });
+
+  it('claims a durable cumulative request, dispatches its fenced generation, and completes it after class enqueue', async () => {
+    let request: any = {
+      userId: 'student-1',
+      classIds: ['class-1'],
+      kind: 'CUMULATIVE_RECONCILIATION',
+      migrationRunId: publication.migrationRunId,
+      calculationVersion: publication.calculationVersion,
+      learnerGeneration: BigInt(publication.learnerGeneration),
+      queueGeneration: BigInt(publication.queueGeneration),
+      cutoverFence: BigInt(publication.cutoverFence),
+      status: 'PENDING',
+      generation: 3,
+      attemptCount: 0,
+      updatedAt: new Date('2026-07-23T00:00:00Z'),
+    };
+    const requestDelegate = {
+      findMany: vi.fn(async () => [request]),
+      updateMany: vi.fn(async ({ where, data }: any) => {
+        if (
+          request.userId !== where.userId ||
+          request.generation !== where.generation ||
+          (where.status && request.status !== where.status) ||
+          (where.claimToken && request.claimToken !== where.claimToken)
+        ) return { count: 0 };
+        request = {
+          ...request,
+          ...data,
+          attemptCount: data.attemptCount?.increment
+            ? request.attemptCount + data.attemptCount.increment
+            : request.attemptCount,
+        };
+        return { count: 1 };
+      }),
+    };
+    const studentAdd = vi.fn<(name: string, data: unknown) => Promise<undefined>>(
+      async () => undefined,
+    );
+    const classAdd = vi.fn(async () => undefined);
+    const db = dbWithFence({
+      learningMaterializationRebuildRequest: requestDelegate,
+      interactionLog: { findMany: vi.fn(async () => []) },
+      learningFact: { findMany: vi.fn(async () => []) },
+      studentProfile: {
+        findMany: vi.fn(async () => []),
+        findUnique: vi.fn(async () => ({ classId: 'class-1' })),
+      },
+    });
+    configureDataGovernanceWorkerForTest({
+      db,
+      studentJobQueue: { add: studentAdd } as any,
+      classJobQueue: { add: classAdd } as any,
+    });
+
+    await processStudentSnapshotJob({ data: { coordinator: true } } as any);
+    const learnerJob = studentAdd.mock.calls[0][1] as any;
+    expect(learnerJob).toMatchObject({
+      userId: 'student-1',
+      fullRebuild: true,
+      calculationVersion: publication.calculationVersion,
+      learnerGeneration: publication.learnerGeneration,
+      queueGeneration: publication.queueGeneration,
+      cutoverFence: publication.cutoverFence,
+      migrationRunId: publication.migrationRunId,
+      reconciliationRequestGeneration: 3,
+      reconciliationClaimToken: expect.any(String),
+      reconciliationClassIds: ['class-1'],
+    });
+
+    await processStudentSnapshotJob({ id: 'request-job-3', data: learnerJob } as any);
+
+    expect(classAdd).toHaveBeenCalled();
+    expect(request).toMatchObject({
+      status: 'COMPLETED',
+      generation: 3,
+      claimToken: null,
+    });
   });
 });

@@ -5,7 +5,7 @@
  * 使用 3DOF 耦合模型 + 解耦控制 + 8台推进器推力分配
  */
 
-import { Suspense, useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import { Component, Suspense, useState, useRef, useCallback, useEffect, useMemo, type ReactNode, type RefObject } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import {
   OrbitControls,
@@ -17,17 +17,40 @@ import {
 } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
-import { MaritimeEnvironment } from '../environment/maritime-environment';
 import { SimulationClock } from '@/lib/simulation';
-import {
-  UnifiedCameraController,
-  RightClickFreeModeBridge,
-  type CameraMode,
-} from '../components/camera-controller';
+import { RightClickFreeModeBridge } from '../components/camera-controller';
+import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
 import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder';
 import { SimulationTopBar, SimulationDock, SimulationAssessmentPanel, simulationUi } from '../components/simulation-ui';
 import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
+import {
+  EnvironmentPresetSwitcher,
+  EnvironmentScene,
+  SceneEnvironmentProvider,
+  useEnvironmentWaterColors,
+} from '../scene/environment';
+import { computeGerstnerDisplacement, GERSTNER_WAVE_SETS, GerstnerWater } from '../scene/water';
+import { WakeTrail } from '../scene/wake';
+import {
+  SceneSoundscapeProvider,
+  SoundscapeAmbienceDriver,
+  SoundscapeMuteToggle,
+} from '../scene/audio';
+import {
+  TeachingAnnotationsProvider,
+  TeachingAnnotationsToggle,
+  useTeachingAnnotations,
+} from '../scene/annotations';
+import {
+  SceneQualityDriver,
+  SceneQualityProvider,
+  SceneQualitySelect,
+  useSceneQuality,
+} from '../scene/quality';
+import { ScenePostEffects } from '../scene/post';
+import { drillingHysy981SceneVisual } from '../profiles/drilling-hysy981-scene';
+import { platformHeadingToSceneRad } from '../scene/heading';
 import {
   Play,
   Pause,
@@ -42,6 +65,10 @@ import {
   Gauge,
   Target,
   AlertCircle,
+  Video,
+  Orbit,
+  Undo2,
+  ArrowDownFromLine,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -185,14 +212,44 @@ function Ocean({ sceneTheme }: { sceneTheme: SimulationSceneTheme }) {
 }
 
 /** 钻井平台模型 */
-function DrillingPlatformModel({
-  position,
-  heading,
-}: {
+const OPTIMIZED_MODEL_URL = '/assets/models-opt/drilling-rig.glb';
+const ORIGINAL_MODEL_URL = '/assets/drilling-rig.glb';
+
+/** meshopt 模型加载失败的回退边界：回退到原始 GLB（构建期 fallback 的运行时对偶）。 */
+class ModelAssetErrorBoundary extends Component<
+  { fallback: ReactNode; children: ReactNode },
+  { failed: boolean }
+> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  render() {
+    return this.state.failed ? this.props.fallback : this.props.children;
+  }
+}
+
+function DrillingPlatformModel(props: {
   position: Vector2;
   heading: number;
 }) {
-  const { scene } = useGLTF('/assets/drilling-rig.glb');
+  return (
+    <ModelAssetErrorBoundary fallback={<DrillingPlatformModelScene url={ORIGINAL_MODEL_URL} {...props} />}>
+      <DrillingPlatformModelScene url={OPTIMIZED_MODEL_URL} {...props} />
+    </ModelAssetErrorBoundary>
+  );
+}
+
+function DrillingPlatformModelScene({
+  url,
+  position,
+  heading,
+}: {
+  url: string;
+  position: Vector2;
+  heading: number;
+}) {
+  const { scene } = useGLTF(url, true, true);
   const groupRef = useRef<THREE.Group>(null);
 
   const { model, scale, modelHeight } = useMemo(() => {
@@ -211,6 +268,8 @@ function DrillingPlatformModel({
       if (child instanceof THREE.Mesh) {
         child.castShadow = true;
         child.receiveShadow = true;
+        // meshopt 量化解码后几何包围球处于量化空间，按视锥剔除会在多数视角误剔除（样板同口径）。
+        child.frustumCulled = false;
       }
     });
 
@@ -248,8 +307,8 @@ function DrillingPlatformModel({
   );
 }
 
-// 预加载模型
-useGLTF.preload('/assets/drilling-rig.glb');
+// 预加载模型（仅压缩件，避免双份下载）
+useGLTF.preload(OPTIMIZED_MODEL_URL);
 
 /** 目标位置标记 */
 function TargetMarker({ position, heading }: { position: Vector2; heading: number }) {
@@ -706,6 +765,97 @@ function ControlPanel({
   );
 }
 
+// ============ 管线桥接组件 ============
+
+const CAMERA_SHOT_VIEWS = [
+  { id: SCENE_CAMERA_SHOTS.chase.id, label: '跟船', shortLabel: '跟', icon: Video, description: SCENE_CAMERA_SHOTS.chase.description },
+  { id: SCENE_CAMERA_SHOTS.orbit.id, label: '环绕', shortLabel: '环', icon: Orbit, description: SCENE_CAMERA_SHOTS.orbit.description },
+  { id: SCENE_CAMERA_SHOTS.retreat.id, label: '退却', shortLabel: '退', icon: Undo2, description: SCENE_CAMERA_SHOTS.retreat.description },
+  { id: SCENE_CAMERA_SHOTS.topDown.id, label: '顶视', shortLabel: '顶', icon: ArrowDownFromLine, description: SCENE_CAMERA_SHOTS.topDown.description },
+];
+
+/** QA 钩子：把质量档位与派生预算暴露为 DOM 属性（性能 spec 与视觉 QA 消费）。 */
+function SceneQualityAttributes() {
+  const { tier, override, params } = useSceneQuality();
+  return (
+    <span
+      hidden
+      data-scene-quality-tier={tier}
+      data-scene-quality-override={override ?? ''}
+      data-wake-particle-cap={Math.round(2200 * params.particleScale)}
+      data-water-tier={params.waterTier}
+      data-post-enabled={params.postEnabled}
+    />
+  );
+}
+
+/** 海面颜色随环境预设、细分随质量档位的桥接组件（DP 平台位置直读 ref）。 */
+function DrillingWater({
+  platformStateRef,
+}: {
+  platformStateRef: RefObject<SemiSubmersible3DOFState>;
+}) {
+  const water = useEnvironmentWaterColors();
+  const { params } = useSceneQuality();
+  return (
+    <GerstnerWater
+      tier={params.waterTier}
+      positionSampler={() => ({ x: platformStateRef.current.x, z: platformStateRef.current.y })}
+      waterColor={water.waterColor}
+      deepColor={water.deepColor}
+      horizonColor={water.horizonColor}
+      foamColor="#f4fbff"
+    />
+  );
+}
+
+/** 尾迹粒子场桥接：逐帧直读 platformStateRef 喂入船位/航向与 Gerstner 波面高度。 */
+function WakeTrailRig({
+  platformStateRef,
+  playing,
+  resetToken,
+}: {
+  platformStateRef: RefObject<SemiSubmersible3DOFState>;
+  playing: boolean;
+  resetToken: number;
+}) {
+  const transformRef = useRef({ position: [0, 0, 0] as [number, number, number], heading: 0 });
+  const waterYRef = useRef(0);
+  const { tier, params } = useSceneQuality();
+
+  useFrame((frameState) => {
+    transformRef.current.position = [platformStateRef.current.x, 0, platformStateRef.current.y];
+    transformRef.current.heading = platformHeadingToSceneRad(toDegrees(platformStateRef.current.psi));
+    const time = frameState.clock.getElapsedTime();
+    waterYRef.current = -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], 0, 0, time).y;
+  });
+
+  return (
+    <WakeTrail
+      key={resetToken}
+      profile={drillingHysy981SceneVisual}
+      shipTransform={transformRef.current}
+      qualityTier={tier}
+      playing={playing}
+      waterYSampler={() => waterYRef.current}
+      worldSpeedSampler={() => Math.hypot(platformStateRef.current.u, platformStateRef.current.v)}
+    />
+  );
+}
+
+/** 教学标注开关门控：默认关闭，开启时显示 DP 目标点标记。 */
+function TeachingAnnotationsGate({
+  position,
+  heading,
+}: {
+  position: Vector2;
+  heading: number;
+}) {
+  const { showAnnotations } = useTeachingAnnotations();
+  if (!showAnnotations) return null;
+  return <TargetMarker position={position} heading={heading} />;
+}
+
 // ============ 主组件 ============
 
 export function DrillingSimulation() {
@@ -756,9 +906,10 @@ export function DrillingSimulation() {
     })
   );
   const controlsRef = useRef<OrbitControlsImpl>(null);
-  const [cameraMode, setCameraMode] = useState<CameraMode>('chase');
+  const [cameraMode, setCameraMode] = useState<string>('chase');
   const [showGrid, setShowGrid] = useState(true);
   const [speedScale, setSpeedScale] = useState(1);
+  const [resetCount, setResetCount] = useState(0);
   const sceneTheme = useSimulationSceneTheme();
 
   // 船舶配置
@@ -977,6 +1128,7 @@ export function DrillingSimulation() {
       totalPower: 0,
       time: 0,
     });
+    setResetCount((previous) => previous + 1);
   };
 
   const handleConfigChange = (updates: Partial<SimulationConfig>) => {
@@ -991,7 +1143,12 @@ export function DrillingSimulation() {
   const platformHeading = platformStateRef.current.psi;
 
   return (
+    <SceneEnvironmentProvider>
+    <SceneSoundscapeProvider>
+    <TeachingAnnotationsProvider>
+    <SceneQualityProvider>
     <div className={simulationUi.root} data-sim-ui>
+      <SceneQualityAttributes />
       {/* 3D 场景 */}
       <Canvas shadows={{ type: THREE.PCFShadowMap }}>
         <PerspectiveCamera makeDefault position={[400, 300, 400]} fov={60} near={1} far={50000} />
@@ -1006,12 +1163,14 @@ export function DrillingSimulation() {
         />
         <RightClickFreeModeBridge onRequestFreeMode={() => setCameraMode('free')} />
 
-        {/* 环境 */}
-        <ambientLight intensity={sceneTheme.ambientLightIntensity} />
-        <directionalLight position={[200, 300, 200]} intensity={sceneTheme.directionalLightIntensity} castShadow />
-
-        {/* 天空+云层+海面 */}
-        <MaritimeEnvironment shipPosition={platformPosition} seaState={3} sceneTheme={sceneTheme} />
+        <Suspense fallback={null}>
+          <EnvironmentScene />
+        </Suspense>
+        <SoundscapeAmbienceDriver />
+        <SceneQualityDriver />
+        <Suspense fallback={null}>
+          <DrillingWater platformStateRef={platformStateRef} />
+        </Suspense>
 
         {/* 网格 */}
         {showGrid ? (
@@ -1029,8 +1188,8 @@ export function DrillingSimulation() {
           />
         ) : null}
 
-        {/* 目标标记 */}
-        <TargetMarker position={config.targetPosition} heading={config.targetHeading} />
+        {/* 目标标记（教学标注门控，默认关闭；坐标在控制面板数值可读） */}
+        <TeachingAnnotationsGate position={config.targetPosition} heading={config.targetHeading} />
 
         {/* 钻井平台 */}
         <Suspense
@@ -1050,18 +1209,22 @@ export function DrillingSimulation() {
         {/* 航迹 */}
         {trajectory.length > 1 && <TrajectoryLine points={trajectory} />}
 
-        {/* 统一相机控制器 */}
-        <UnifiedCameraController
-          position={platformPosition}
-          headingRad={platformHeading}
-          cameraMode={cameraMode}
+        <WakeTrailRig platformStateRef={platformStateRef} playing={isRunning} resetToken={resetCount} />
+
+        <StayPutCameraController
+          view={cameraMode}
+          positionSampler={() => ({ x: platformStateRef.current.x, z: platformStateRef.current.y })}
+          headingSampler={() => platformHeadingToSceneRad(toDegrees(platformStateRef.current.psi))}
+          shipLength={drillingHysy981SceneVisual.shipLengthMeters}
           controlsRef={controlsRef}
         />
+        <ScenePostEffects />
       </Canvas>
 
       <CameraViewSwitcher
         currentMode={cameraMode}
         onModeChange={setCameraMode}
+        views={CAMERA_SHOT_VIEWS}
         gridEnabled={showGrid}
         onToggleGrid={() => setShowGrid((previous) => !previous)}
         speedScale={speedScale}
@@ -1131,7 +1294,16 @@ export function DrillingSimulation() {
         badge="Drilling / OBE"
       />
 
+      <EnvironmentPresetSwitcher className="absolute bottom-32 left-1/2 z-20 flex -translate-x-1/2 gap-1 rounded-lg border border-platform-border bg-platform-canvas/70 px-1 py-0.5 backdrop-blur" />
+      <SoundscapeMuteToggle className="absolute bottom-32 right-4 z-20 rounded-md border border-platform-border bg-platform-canvas/70 px-2 py-1 text-xs text-platform-fg-muted backdrop-blur hover:text-platform-fg-primary" />
+      <TeachingAnnotationsToggle className="absolute bottom-32 right-24 z-20 rounded-md border border-platform-border bg-platform-canvas/70 px-2 py-1 text-xs text-platform-fg-muted backdrop-blur hover:text-platform-fg-primary" />
+      <SceneQualitySelect className="absolute bottom-32 left-4 z-20 flex gap-1 rounded-lg border border-platform-border bg-platform-canvas/70 px-1 py-0.5 backdrop-blur" />
+
     </div>
+    </SceneQualityProvider>
+    </TeachingAnnotationsProvider>
+    </SceneSoundscapeProvider>
+    </SceneEnvironmentProvider>
   );
 }
 

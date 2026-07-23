@@ -17,6 +17,7 @@ import {
   resolveChapterName,
 } from '@/lib/knowledge-labels';
 import { isChapterNodeId } from '../graph/filter-utils';
+import { RelationEvidenceSwatch } from '../graph/relation-evidence-swatch';
 import type { PlatformRole } from '@/components/platform/platform-ui-contracts';
 import type { KnowledgeGraphAdjacentDomainNavigation } from '../graph/selected-corridor';
 import {
@@ -82,6 +83,7 @@ interface ResourcePanelProps {
   adjacentDomainNavigations?: AdjacentDomainNavigation[];
   canonicalCorridor?: CanonicalCorridorContext | null;
   viewerRole?: PlatformRole;
+  isLightTheme?: boolean;
   mobileHeaderControl?: ReactNode;
   mobileToolPanelOpen?: boolean;
 }
@@ -313,6 +315,7 @@ export function ResourcePanel({
   adjacentDomainNavigations = [],
   canonicalCorridor = null,
   viewerRole = 'student',
+  isLightTheme = false,
   mobileHeaderControl,
   mobileToolPanelOpen = false,
 }: ResourcePanelProps) {
@@ -326,6 +329,7 @@ export function ResourcePanel({
         adjacentDomainNavigations={adjacentDomainNavigations}
         canonicalCorridor={canonicalCorridor}
         viewerRole={viewerRole}
+        isLightTheme={isLightTheme}
         mobileHeaderControl={mobileHeaderControl}
         mobileToolPanelOpen={mobileToolPanelOpen}
       />
@@ -339,6 +343,7 @@ function ResourcePanelContent({
   adjacentDomainNavigations = [],
   canonicalCorridor = null,
   viewerRole = 'student',
+  isLightTheme = false,
   mobileHeaderControl,
   mobileToolPanelOpen = false,
 }: Omit<ResourcePanelProps, 'isOpen' | 'selectedNode'> & { selectedNode: KnowledgeNodeData }) {
@@ -823,6 +828,11 @@ function ResourcePanelContent({
                             <li key={`${node.id}-${node.relationId ?? node.canonicalType ?? node.relation}`}>
                               <button type="button" onClick={() => onNodeClick?.(node.id)} className="group w-full rounded-md bg-platform-canvas-muted p-2 text-left text-platform-fg-secondary transition-colors hover:bg-platform-action-subtle hover:text-platform-fg-primary">
                                 <span className="flex items-center gap-2">
+                                  <RelationEvidenceSwatch
+                                    evidenceState={node.evidenceState}
+                                    family={node.family}
+                                    isLightTheme={isLightTheme}
+                                  />
                                   <span className={`shrink-0 rounded border px-1.5 py-0.5 text-xs ${node.category === 'prerequisite' ? 'border-platform-evidence-context/40 bg-platform-evidence-context/10 text-platform-evidence-context' : node.category === 'follows' ? 'border-platform-evidence-eligible/40 bg-platform-evidence-eligible/10 text-platform-evidence-eligible' : 'border-platform-action-primary/40 bg-platform-action-subtle text-platform-action-primary'}`}>
                                     {getRelationLabel(node.canonicalType ?? node.relation)}
                                     {node.rawType && node.rawType !== node.canonicalType ? ` · ${node.rawType}` : ''}

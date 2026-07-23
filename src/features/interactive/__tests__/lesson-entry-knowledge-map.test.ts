@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   createLessonKnowledgeMapLayout,
+  getKnowledgeMapRelationLabelPoint,
   getVisibleKnowledgeMapLinks,
 } from '@/features/interactive/shared/lesson-entry-knowledge-map-layout';
 
@@ -31,6 +32,9 @@ type RawKnowledgeGroup = {
 };
 
 const repoRoot = process.cwd();
+
+const COURSE_ENTRY_GRAPH_SELECTOR =
+  '[data-course-entry-shell="app-shell"] [data-knowledge-map="lesson-entry"]';
 
 function loadOverlay(lessonId: string): RawGraphOverlay {
   return JSON.parse(
@@ -69,6 +73,32 @@ function sortByRuntimeCardOrder(nodeIds: string[], overlay: RawGraphOverlay) {
 }
 
 describe('lesson entry knowledge map layout', () => {
+  it('defines readable semantic graph colors inside the course entry shell', () => {
+    const componentSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/lesson-entry-knowledge-map.tsx'),
+      'utf8',
+    );
+    const globalsSource = readFileSync(join(repoRoot, 'src/app/globals.css'), 'utf8');
+    const selectorStart = globalsSource.indexOf(`${COURSE_ENTRY_GRAPH_SELECTOR} {`);
+
+    expect(componentSource).toContain('data-knowledge-map="lesson-entry"');
+    expect(selectorStart).toBeGreaterThanOrEqual(0);
+
+    const selectorEnd = globalsSource.indexOf('\n  }', selectorStart);
+    const scopedGraphTokens = globalsSource.slice(selectorStart, selectorEnd);
+
+    expect(scopedGraphTokens).toContain('--premium-lesson-graph-edge: var(--border);');
+    expect(scopedGraphTokens).toContain('--premium-lesson-graph-edge-active: var(--primary);');
+    expect(scopedGraphTokens).toContain('--premium-lesson-graph-node-fill: var(--card);');
+    expect(scopedGraphTokens).toContain('--premium-lesson-graph-node-stroke: var(--border);');
+    expect(scopedGraphTokens).toContain('--premium-lesson-graph-node-active-fill: var(--accent);');
+    expect(scopedGraphTokens).toContain('--premium-lesson-graph-node-active-stroke: var(--primary);');
+    expect(scopedGraphTokens).toContain('--premium-lesson-graph-node-text: var(--foreground);');
+    expect(scopedGraphTokens).toContain('--premium-lesson-graph-label-bg: var(--popover);');
+    expect(scopedGraphTokens).toContain('--premium-lesson-graph-label-stroke: var(--border);');
+    expect(scopedGraphTokens).toContain('--premium-lesson-graph-label-text: var(--popover-foreground);');
+  });
+
   it.each(['2-2', '2-3', '4-3', '5-2', '5-3'])('creates stable non-overlapping roadmap positions for lesson %s', (lessonId) => {
     const overlay = loadOverlay(lessonId);
     const layout = createLessonKnowledgeMapLayout({
@@ -180,6 +210,26 @@ describe('lesson entry knowledge map layout', () => {
       expect(startProjection).toBeGreaterThanOrEqual(0);
       expect(endProjection).toBeLessThanOrEqual(distanceSquared);
       expect(startProjection).toBeLessThan(endProjection);
+    }
+  });
+
+  it('keeps relation labels inside the knowledge map bounds', () => {
+    const overlay = loadOverlay('1-1');
+    const layout = createLessonKnowledgeMapLayout({
+      nodes: overlay.nodes,
+      links: overlay.links,
+      groups: overlay.groups ?? [],
+      cardOrder: overlay.card_order ?? [],
+    });
+    const selectedNodeId = overlay.nodes.find((node) => node.name === '反馈')?.id ?? overlay.nodes[0].id;
+    const visibleLinks = getVisibleKnowledgeMapLinks(layout, selectedNodeId, false);
+
+    for (const link of visibleLinks.filter((item) => item.relationLabel)) {
+      const point = getKnowledgeMapRelationLabelPoint(link, layout);
+      expect(point.x - 23).toBeGreaterThanOrEqual(0);
+      expect(point.x + 23).toBeLessThanOrEqual(layout.width);
+      expect(point.y - 12).toBeGreaterThanOrEqual(0);
+      expect(point.y + 8).toBeLessThanOrEqual(layout.height);
     }
   });
 });

@@ -1,27 +1,17 @@
 /**
- * Student Growth Records API
- *
- * Returns growth timeline records for the current student.
+ * Canonical cumulative student growth records API.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+
 import { getServerAuthSession } from '@/lib/auth';
+import { PORTRAIT_V2_DIMENSION_IDS } from '@/lib/data-governance/kaq-objective-taxonomy';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 
-export const dynamic = 'force-dynamic';
-
-export type GrowthRecordType =
-  | 'milestone'
-  | 'simulation'
-  | 'risk_resolved'
-  | 'excellent_design'
-  | 'achievement'
-  | 'competency_evaluation';
-
 export interface GrowthRecord {
   id: string;
-  type: GrowthRecordType;
+  type: string;
   title: string;
   description: string;
   date: string;
@@ -35,61 +25,45 @@ export interface GrowthRecordsResponse {
   hasMore: boolean;
 }
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerAuthSession();
-
     if (!session?.user?.id) {
       return NextResponse.json({ error: '未授权' }, { status: 401 });
     }
 
-    const userId = session.user.id;
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1', 10);
-    const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 50);
-
-    // Fetch growth records from database
-    const records = await prisma.growthRecord.findMany({
-      where: { userId },
-      orderBy: { occurredAt: 'desc' },
-      skip: (page - 1) * limit,
-      take: limit,
-    });
-
-    const total = await prisma.growthRecord.count({
-      where: { userId },
-    });
-
-    // Map to response format
-    const mappedRecords: GrowthRecord[] = records.map(record => ({
-      id: record.id,
-      type: record.recordType as GrowthRecordType,
-      title: record.title,
-      description: record.description,
-      date: record.occurredAt.toISOString(),
-      metadata: record.evidenceJson as unknown as Record<string, unknown>,
-      icon: getIconForType(record.recordType as GrowthRecordType),
-    }));
-
-    // If no records exist yet, generate from other data sources
-    if (mappedRecords.length === 0) {
-      const generatedRecords = await generateGrowthRecords(userId);
-      const startIdx = (page - 1) * limit;
-      const endIdx = startIdx + limit;
-      
-      return NextResponse.json({
-        records: generatedRecords.slice(startIdx, endIdx),
-        total: generatedRecords.length,
-        hasMore: endIdx < generatedRecords.length,
-      } as GrowthRecordsResponse);
-    }
+    const page = positiveInteger(searchParams.get('page'), 1);
+    const limit = Math.min(positiveInteger(searchParams.get('limit'), 20), 50);
+    const where = {
+      userId: session.user.id,
+      invalidations: { none: {} },
+    };
+    const [records, total] = await Promise.all([
+      prisma.growthRecord.findMany({
+        where,
+        orderBy: [{ occurredAt: 'desc' }, { id: 'desc' }],
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.growthRecord.count({ where }),
+    ]);
 
     const response: GrowthRecordsResponse = {
-      records: mappedRecords,
+      records: records.map((record) => ({
+        id: record.id,
+        type: record.recordType,
+        title: record.title,
+        description: record.description,
+        date: record.occurredAt.toISOString(),
+        metadata: publicGrowthMetadata(record.evidenceJson),
+        icon: getIconForType(record.recordType),
+      })),
       total,
-      hasMore: (page - 1) * limit + records.length < total,
+      hasMore: page * limit < total,
     };
-
     return NextResponse.json(response);
   } catch (error) {
     rethrowIfNextDynamicError(error);
@@ -98,111 +72,73 @@ export async function GET(request: NextRequest) {
   }
 }
 
-/**
- * Get icon name for record type
- */
-function getIconForType(type: GrowthRecordType): string {
-  const icons: Record<GrowthRecordType, string> = {
+function publicGrowthMetadata(value: unknown): Record<string, unknown> {
+  if (!isRecord(value)) return {};
+  const metadata: Record<string, unknown> = {};
+  copyFiniteNumber(value, metadata, 'overallScore');
+  copyFiniteNumber(value, metadata, 'confidence');
+  copyEnum(value, metadata, 'trend', ['up', 'stable', 'down', 'not-comparable']);
+  copyEnum(value, metadata, 'riskType', ['constraint', 'stagnation', 'cross_domain']);
+  copyEnum(value, metadata, 'severity', ['low', 'medium', 'high']);
+  copyDimensionIds(value, metadata, 'evidencedDimensionIds');
+  copyDimensionIds(value, metadata, 'missingDimensionIds');
+  return metadata;
+}
+
+function copyFiniteNumber(
+  source: Record<string, unknown>,
+  target: Record<string, unknown>,
+  key: string,
+) {
+  if (typeof source[key] === 'number' && Number.isFinite(source[key])) {
+    target[key] = source[key];
+  }
+}
+
+function copyEnum(
+  source: Record<string, unknown>,
+  target: Record<string, unknown>,
+  key: string,
+  allowed: readonly string[],
+) {
+  if (typeof source[key] === 'string' && allowed.includes(source[key])) {
+    target[key] = source[key];
+  }
+}
+
+function copyDimensionIds(
+  source: Record<string, unknown>,
+  target: Record<string, unknown>,
+  key: string,
+) {
+  if (!Array.isArray(source[key])) return;
+  const allowed = new Set<string>(PORTRAIT_V2_DIMENSION_IDS);
+  target[key] = source[key].filter(
+    (item): item is string => typeof item === 'string' && allowed.has(item),
+  );
+}
+
+function positiveInteger(value: string | null, fallback: number): number {
+  if (value === null) return fallback;
+  const parsed = Number.parseInt(value, 10);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function getIconForType(type: string): string {
+  const icons: Record<string, string> = {
     milestone: 'Flag',
     simulation: 'Ship',
     risk_resolved: 'ShieldCheck',
     excellent_design: 'Award',
     achievement: 'Trophy',
     competency_evaluation: 'Sparkles',
+    'portrait-state-change': 'LineChart',
+    'strength-change': 'TrendingUp',
+    'risk-state-change': 'ShieldAlert',
   };
-  return icons[type] || 'Star';
+  return icons[type] ?? 'Star';
 }
 
-/**
- * Generate growth records from existing data sources
- */
-async function generateGrowthRecords(userId: string): Promise<GrowthRecord[]> {
-  const records: GrowthRecord[] = [];
-
-  // Get milestones
-  const milestones = await prisma.learningMilestone.findMany({
-    where: { userId, status: 'COMPLETED' },
-    orderBy: { completedAt: 'desc' },
-    take: 10,
-  });
-
-  for (const milestone of milestones) {
-    records.push({
-      id: `milestone-${milestone.id}`,
-      type: 'milestone',
-      title: milestone.title,
-      description: milestone.description || `完成学习目标: ${milestone.title}`,
-      date: milestone.completedAt?.toISOString() || milestone.createdAt.toISOString(),
-      metadata: { milestoneId: milestone.id },
-      icon: 'Flag',
-    });
-  }
-
-  // Get simulation breakthroughs
-  const simulations = await prisma.simulationLog.findMany({
-    where: {
-      userId,
-      score: { gte: 85 },
-    },
-    orderBy: { createdAt: 'desc' },
-    take: 10,
-  });
-
-  for (const sim of simulations) {
-    records.push({
-      id: `simulation-${sim.id}`,
-      type: 'simulation',
-      title: '仿真突破',
-      description: `在仿真中取得 ${Math.round(sim.score || 0)} 分的好成绩`,
-      date: sim.createdAt.toISOString(),
-      metadata: { simulationId: sim.id, score: sim.score },
-      icon: 'Ship',
-    });
-  }
-
-  // Get resolved risks
-  const resolvedRisks = await prisma.studentRiskFlag.findMany({
-    where: {
-      userId,
-      isResolved: true,
-    },
-    orderBy: { resolvedAt: 'desc' },
-    take: 5,
-  });
-
-  for (const risk of resolvedRisks) {
-    records.push({
-      id: `risk-${risk.id}`,
-      type: 'risk_resolved',
-      title: '风险预警解除',
-      description: risk.resolutionNote || `成功改进: ${risk.description}`,
-      date: risk.resolvedAt?.toISOString() || risk.triggeredAt.toISOString(),
-      metadata: { riskType: risk.flagType },
-      icon: 'ShieldCheck',
-    });
-  }
-
-  // Get achievements
-  const achievements = await prisma.achievement.findMany({
-    where: { userId },
-    orderBy: { earnedAt: 'desc' },
-    take: 10,
-  });
-
-  for (const achievement of achievements) {
-    records.push({
-      id: `achievement-${achievement.id}`,
-      type: 'achievement',
-      title: achievement.title,
-      description: achievement.description,
-      date: achievement.earnedAt.toISOString(),
-      metadata: { achievementId: achievement.id },
-      icon: 'Trophy',
-    });
-  }
-
-  // Sort by date descending
-  records.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-  return records;
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
 }

@@ -13,6 +13,43 @@ enum UserRole {
   ADMIN
 }
 
+enum LearnerFactTransitionOperation {
+  UPSERT
+  CORRECT
+  REVOKE
+}
+
+enum LearnerPortraitStateKind {
+  SNAPSHOT
+  NO_EVIDENCE
+}
+
+enum LearnerEvidenceRiskType {
+  CONSTRAINT   @map("constraint")
+  STAGNATION   @map("stagnation")
+  CROSS_DOMAIN @map("cross_domain")
+}
+
+enum CumulativePortraitMigrationMode {
+  DRY_RUN
+  APPLY
+}
+
+enum CumulativePortraitMigrationStatus {
+  PLANNED
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+enum CumulativePortraitMigrationReceiptStatus {
+  RECORDED
+  VERIFIED
+  SKIPPED
+  FAILED
+  INVALIDATED
+}
+
 enum CourseBasisDocumentKind {
   STANDARD
   TEXTBOOK
@@ -520,6 +557,7 @@ model User {
   smartCoursewareGapAcknowledgements   SmartCoursewareGapAcknowledgement[]       @relation("SmartCoursewareGapAcknowledgementActor")
   smartCoursewareStaleAcknowledgements SmartCoursewareStalePlanAcknowledgement[] @relation("SmartCoursewareStalePlanAcknowledgementActor")
   publishedSmartCoursewareRevisions    SmartCoursewarePublicationRevision[]      @relation("SmartCoursewarePublicationActor")
+  smartCoursewarePdfExports            SmartCoursewarePdfExport[]                @relation("SmartCoursewarePdfExportActor")
 }
 
 model CourseBasis {
@@ -1070,6 +1108,7 @@ model SmartCoursewarePublicationRevision {
   planRevision         SmartLessonRevision                   @relation("SmartCoursewarePublicationPlanRevision", fields: [planRevisionId], references: [id], onDelete: Restrict)
   publishedBy          User                                  @relation("SmartCoursewarePublicationActor", fields: [publishedById], references: [id], onDelete: Restrict)
   operations           SmartCoursewarePublicationOperation[]
+  pdfExports           SmartCoursewarePdfExport[]
   projectedLessonPlans LessonPlan[]                          @relation("GeneratedCoursewareLessonPlan")
   projectedLessonItems LessonItem[]                          @relation("GeneratedCoursewareLessonItem")
   projectedResources   TeachingResource[]                    @relation("GeneratedCoursewareTeachingResource")
@@ -1094,6 +1133,31 @@ model SmartCoursewarePublicationOperation {
 
   @@unique([ownerId, idempotencyKey])
   @@index([sourceRevisionId, createdAt])
+}
+
+model SmartCoursewarePdfExport {
+  id                    String   @id @default(cuid())
+  ownerId               String
+  publicationRevisionId String
+  idempotencyKey        String
+  requestHash           String
+  rendererVersion       String
+  manifestHash          String
+  contentHash           String
+  projectionHash        String
+  pageCount             Int
+  artifactHash          String
+  artifactBytes         Bytes
+  artifactSizeBytes     Int
+  createdById           String
+  createdAt             DateTime @default(now())
+
+  publicationRevision SmartCoursewarePublicationRevision @relation(fields: [publicationRevisionId], references: [id], onDelete: Restrict)
+  createdBy          User                                @relation("SmartCoursewarePdfExportActor", fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@unique([ownerId, idempotencyKey])
+  @@unique([publicationRevisionId, rendererVersion])
+  @@index([ownerId, publicationRevisionId, createdAt])
 }
 
 model SmartCoursewareModule {
@@ -1679,22 +1743,30 @@ model GradingRequestIdempotency {
 }
 
 model LearningMaterializationRebuildRequest {
-  userId            String    @id
-  classIds          Json
-  reason            String
-  status            String    @default("PENDING")
-  generation        Int       @default(1)
-  claimedGeneration Int?
-  claimToken        String?
-  claimExpiresAt    DateTime?
-  attemptCount      Int       @default(0)
-  lastErrorCode     String?
-  completedAt       DateTime?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId             String    @id
+  classIds           Json
+  reason             String
+  kind               String    @default("LEGACY")
+  migrationRunId     String?
+  calculationVersion String?
+  learnerGeneration  BigInt?
+  queueGeneration    BigInt?
+  cutoverFence       BigInt?
+  inputDigest        String?
+  status             String    @default("PENDING")
+  generation         Int       @default(1)
+  claimedGeneration  Int?
+  claimToken         String?
+  claimExpiresAt     DateTime?
+  attemptCount       Int       @default(0)
+  lastErrorCode      String?
+  completedAt        DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([status, claimExpiresAt, updatedAt], map: "LMRebuild_status_claim_exp_updated_idx")
+  @@index([kind, migrationRunId, cutoverFence], map: "LMRebuild_kind_run_fence_idx")
 }
 
 model LearningMaterializationGeneration {
@@ -1705,27 +1777,33 @@ model LearningMaterializationGeneration {
 }
 
 model LearningMaterializationOutbox {
-  id             String    @id @default(cuid())
-  dedupeKey      String    @unique
-  userId         String
-  kind           String    @default("CLASS_SNAPSHOT")
-  classId        String?
-  generation     Int
-  snapshotId     String?
-  status         String    @default("PENDING")
-  attemptCount   Int       @default(0)
-  claimToken     String?
-  claimExpiresAt DateTime?
-  availableAt    DateTime  @default(now())
-  deliveredAt    DateTime?
-  expiresAt      DateTime
-  lastErrorCode  String?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  id                 String    @id @default(cuid())
+  dedupeKey          String    @unique
+  userId             String
+  kind               String    @default("CLASS_SNAPSHOT")
+  classId            String?
+  generation         Int
+  snapshotId         String?
+  migrationRunId     String?
+  calculationVersion String?
+  queueGeneration    BigInt?
+  cutoverFence       BigInt?
+  inputDigest        String?
+  status             String    @default("PENDING")
+  attemptCount       Int       @default(0)
+  claimToken         String?
+  claimExpiresAt     DateTime?
+  availableAt        DateTime  @default(now())
+  deliveredAt        DateTime?
+  expiresAt          DateTime
+  lastErrorCode      String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([status, availableAt, claimExpiresAt], map: "LMOutbox_status_available_claim_idx")
+  @@index([kind, status, cutoverFence, queueGeneration, availableAt], map: "LMOutbox_cumulative_dispatch_idx")
   @@index([expiresAt], map: "LMOutbox_expiresAt_idx")
 }
 
@@ -4066,6 +4144,8 @@ model LearningFact {
 
   createdAt DateTime @default(now())
 
+  portraitTransitions LearnerFactTransition[]
+
   @@index([userId, factType])
   @@index([userId, startedAt])
   @@index([sessionId])
@@ -4393,11 +4473,183 @@ model StudentPortraitV2Snapshot {
   payload                Json
   createdAt              DateTime @default(now())
 
+  learnerStateVersions LearnerPortraitStateVersion[]
+
   @@unique([userId, sourceLegacySnapshotId])
   @@index([userId, snapshotAt])
   @@index([snapshotAt])
   @@index([payloadVersion, calculationVersion])
   @@index([derivationKind, snapshotAt])
+}
+
+// Append-only governed transitions over immutable LearningFact rows.
+model LearnerFactTransition {
+  id                   String                         @id @default(cuid())
+  userId               String
+  sequence             BigInt
+  factId               String
+  operation            LearnerFactTransitionOperation
+  occurredAt           DateTime
+  transitionPayload    Json?
+  sourceReference      String?
+  correctionOfSequence BigInt?
+  createdAt            DateTime                       @default(now())
+
+  fact                LearningFact                 @relation(fields: [factId], references: [id], onDelete: Restrict)
+  riskStates          LearnerEvidenceRiskState[]
+  growthInvalidations GrowthRecordInvalidation[]
+
+  @@unique([userId, sequence])
+  @@index([userId, factId, sequence])
+  @@index([factId, sequence])
+}
+
+// Mutable allocator only; journal rows remain append-only.
+model LearnerFactTransitionSequence {
+  userId       String   @id
+  lastSequence BigInt   @default(0)
+  updatedAt    DateTime @updatedAt
+}
+
+// Immutable versioned learner state. NO_EVIDENCE rows are current tombstones,
+// not replacements or deletions of prior portrait snapshots.
+model LearnerPortraitStateVersion {
+  id                       String                   @id @default(cuid())
+  userId                   String
+  calculationVersion       String
+  generation               BigInt
+  queueGeneration          BigInt
+  stateWatermark           BigInt
+  stateKind                LearnerPortraitStateKind
+  snapshotId               String?
+  overallScore             Float?
+  dimensionCoverage        Json
+  evidenceAsOf             DateTime?
+  confidence               Float?
+  lastTrend                String?
+  lastRisk                 Json?
+  availabilityReason       String
+  generatedAt              DateTime
+  cutoverFence             BigInt
+  migrationRunId           String?
+  createdAt                DateTime                 @default(now())
+
+  snapshot       StudentPortraitV2Snapshot?      @relation(fields: [snapshotId], references: [id], onDelete: Restrict)
+  migrationRun   CumulativePortraitMigrationRun? @relation(fields: [migrationRunId], references: [id], onDelete: Restrict)
+  currentPointer LearnerPortraitCurrentState?
+
+  @@unique([userId, calculationVersion, generation, stateWatermark], map: "LearnerPortraitState_user_calc_generation_watermark_key")
+  @@index([userId, stateWatermark])
+  @@index([calculationVersion, generation, queueGeneration], map: "LearnerPortraitState_calc_generation_queue_idx")
+  @@index([migrationRunId, generation, queueGeneration], map: "LearnerPortraitState_run_generation_queue_idx")
+  @@index([stateKind, generatedAt])
+}
+
+// Single current pointer per learner, advanced only by a matching version/fence.
+model LearnerPortraitCurrentState {
+  userId             String   @id
+  stateVersionId     String   @unique
+  calculationVersion String
+  generation         BigInt
+  queueGeneration    BigInt
+  stateWatermark     BigInt
+  cutoverFence       BigInt
+  updatedAt          DateTime @updatedAt
+
+  stateVersion LearnerPortraitStateVersion @relation(fields: [stateVersionId], references: [id], onDelete: Restrict)
+
+  @@index([calculationVersion, generation, queueGeneration], map: "LearnerPortraitCurrent_calc_generation_queue_idx")
+  @@index([cutoverFence, queueGeneration], map: "LearnerPortraitCurrent_fence_queue_idx")
+}
+
+// Singleton global fence used by learner/class guarded publication.
+model CumulativePortraitCutoverFence {
+  id                          String   @id
+  fence                       BigInt
+  calculationVersion          String
+  learnerGeneration           BigInt
+  classMaterializationVersion String
+  classGeneration             BigInt
+  queueGeneration             BigInt
+  activeMigrationRunId        String?  @unique
+  advancedAt                  DateTime
+  updatedAt                   DateTime @updatedAt
+
+  activeMigrationRun CumulativePortraitMigrationRun? @relation("ActiveCumulativePortraitMigrationRun", fields: [activeMigrationRunId], references: [id], onDelete: Restrict)
+}
+
+// Evidence risk history is independent from teacher disposition fields on
+// StudentRiskFlag. Current state is selected by the greatest transition sequence.
+model LearnerEvidenceRiskState {
+  id                       String   @id @default(cuid())
+  userId                   String
+  riskKey                  String
+  riskType                 LearnerEvidenceRiskType
+  severity                 String
+  isActive                 Boolean
+  supportFactIds           Json
+  calculationVersion       String
+  stateGeneration          BigInt
+  sourceTransitionSequence BigInt
+  occurredAt               DateTime
+  createdAt                DateTime @default(now())
+
+  sourceTransition LearnerFactTransition @relation(fields: [userId, sourceTransitionSequence], references: [userId, sequence], onDelete: Restrict)
+
+  @@unique([userId, riskKey, sourceTransitionSequence], map: "LearnerEvidenceRisk_user_key_transition_key")
+  @@index([userId, sourceTransitionSequence])
+  @@index([calculationVersion, stateGeneration])
+  @@index([riskType, isActive])
+}
+
+// Durable dry-run/apply identity for the maintenance-window cutover.
+model CumulativePortraitMigrationRun {
+  id                          String                            @id
+  sourceDryRunId              String?
+  mode                        CumulativePortraitMigrationMode
+  status                      CumulativePortraitMigrationStatus
+  calculationVersion          String
+  classMaterializationVersion String
+  learnerGeneration           BigInt
+  classGeneration             BigInt
+  queueGeneration             BigInt
+  cutoverFence                BigInt
+  inputDigest                 String
+  verificationDigest          String?
+  summary                     Json                              @default("{}")
+  startedAt                   DateTime
+  completedAt                 DateTime?
+  createdAt                   DateTime                          @default(now())
+  updatedAt                   DateTime                          @updatedAt
+
+  learnerStates      LearnerPortraitStateVersion[]
+  classVersions      ClassCumulativePortraitVersion[]
+  receipts           CumulativePortraitMigrationReceipt[]
+  activeCutoverFence CumulativePortraitCutoverFence?           @relation("ActiveCumulativePortraitMigrationRun")
+
+  @@index([status, startedAt])
+  @@index([sourceDryRunId])
+  @@index([cutoverFence, queueGeneration])
+}
+
+// Append-only stage and subject receipts make migration retries auditable.
+model CumulativePortraitMigrationReceipt {
+  id          String                                    @id @default(cuid())
+  runId       String
+  stage       String
+  subjectKind String
+  subjectKey  String
+  attempt     Int                                       @default(1)
+  status      CumulativePortraitMigrationReceiptStatus
+  inputDigest String
+  counts      Json                                      @default("{}")
+  details     Json                                      @default("{}")
+  createdAt   DateTime                                  @default(now())
+
+  run CumulativePortraitMigrationRun @relation(fields: [runId], references: [id], onDelete: Restrict)
+
+  @@unique([runId, stage, subjectKind, subjectKey, attempt], map: "CumulativePortraitReceipt_run_stage_subject_attempt_key")
+  @@index([runId, status])
 }
 
 model StudentEvidenceFeatureCache {
@@ -4489,6 +4741,59 @@ model ClassCompetencySnapshot {
   @@index([classId, materializationVersion, snapshotAt], map: "ClassCompetency_class_version_snapshot_idx")
 }
 
+// Immutable class-competency.cumulative.v2 history. Legacy v1 rows remain in
+// ClassCompetencySnapshot and are not eligible for this model's current pointer.
+model ClassCumulativePortraitVersion {
+  id                     String   @id @default(cuid())
+  classId                String
+  materializationVersion String
+  calculationVersion     String
+  generation             BigInt
+  queueGeneration        BigInt
+  migrationRunId         String
+  inputDigest            String
+  memberSetDigest        String
+  sourcePortraitVersions Json
+  evidenceAsOf           DateTime?
+  aggregateJson          Json
+  dimensionCoverage      Json
+  trendDistribution      Json
+  riskDistribution       Json
+  diagnosis              Json
+  activeStudentCount     Int
+  totalStudentCount      Int
+  cutoverFence           BigInt
+  generatedAt            DateTime
+  createdAt              DateTime @default(now())
+
+  migrationRun   CumulativePortraitMigrationRun  @relation(fields: [migrationRunId], references: [id], onDelete: Restrict)
+  currentPointer ClassCumulativePortraitCurrentState?
+
+  @@unique([classId, migrationRunId, inputDigest], map: "ClassCumulativePortrait_class_run_input_key")
+  @@index([classId, materializationVersion, generation, queueGeneration], map: "ClassCumulativePortrait_class_version_generation_queue_idx")
+  @@index([migrationRunId, generation, queueGeneration], map: "ClassCumulativePortrait_run_generation_queue_idx")
+}
+
+// One protected current class pointer; all copied fence inputs are revalidated
+// against the immutable version and the global cutover fence before publication.
+model ClassCumulativePortraitCurrentState {
+  classId                String   @id
+  versionId              String   @unique
+  materializationVersion String
+  calculationVersion     String
+  generation             BigInt
+  queueGeneration        BigInt
+  migrationRunId         String
+  inputDigest            String
+  cutoverFence           BigInt
+  updatedAt              DateTime @updatedAt
+
+  version ClassCumulativePortraitVersion @relation(fields: [versionId], references: [id], onDelete: Restrict)
+
+  @@index([materializationVersion, generation, queueGeneration], map: "ClassCumulativeCurrent_version_generation_queue_idx")
+  @@index([migrationRunId, cutoverFence, queueGeneration], map: "ClassCumulativeCurrent_run_fence_queue_idx")
+}
+
 // Student risk flags
 model StudentRiskFlag {
   id          String @id @default(cuid())
@@ -4515,29 +4820,54 @@ model StudentRiskFlag {
 
 // Growth records for portfolio
 model GrowthRecord {
-  id          String  @id @default(cuid())
-  userId      String
-  businessKey String? @unique(map: "GrowthRecord_businessKey_key")
+  id                 String  @id @default(cuid())
+  userId             String
+  businessKey        String? @unique(map: "GrowthRecord_businessKey_key")
 
-  recordType  String // milestone, breakthrough, remediation, reflection, portfolio
-  title       String
-  description String
+  recordType         String // milestone, breakthrough, remediation, reflection, portfolio
+  title              String
+  description        String
 
-  evidenceJson Json
-  mediaUrls    String[]
+  evidenceJson       Json
+  mediaUrls          String[]
 
-  occurredAt DateTime
-  courseId   String?
-  isPublic   Boolean  @default(false)
+  occurredAt         DateTime
+  courseId           String?
+  isPublic           Boolean  @default(false)
 
-  createdAt         DateTime  @default(now())
-  sourceSnapshotAt  DateTime?
-  sourceInputDigest String?
-  expiresAt         DateTime?
+  createdAt          DateTime  @default(now())
+  sourceSnapshotAt   DateTime?
+  sourceInputDigest  String?
+  expiresAt          DateTime?
+  calculationVersion String?
+  stateGeneration     BigInt?
+  derivedIdentity     String?   @unique
+
+  invalidations GrowthRecordInvalidation[]
 
   @@index([userId, recordType])
   @@index([userId, occurredAt])
   @@index([recordType, expiresAt], map: "GrowthRecord_recordType_expiresAt_idx")
+}
+
+// Append-only invalidation history; public reads exclude records with a current
+// invalidation while retaining the original event and provenance for audit.
+model GrowthRecordInvalidation {
+  id                       String   @id @default(cuid())
+  growthRecordId           String
+  userId                   String
+  reason                   String
+  calculationVersion       String
+  stateGeneration          BigInt
+  sourceTransitionSequence BigInt
+  createdAt                DateTime @default(now())
+
+  growthRecord     GrowthRecord          @relation(fields: [growthRecordId], references: [id], onDelete: Restrict)
+  sourceTransition LearnerFactTransition @relation(fields: [userId, sourceTransitionSequence], references: [userId, sequence], onDelete: Restrict)
+
+  @@unique([growthRecordId, sourceTransitionSequence])
+  @@index([growthRecordId, createdAt])
+  @@index([calculationVersion, stateGeneration])
 }
 
 // Learning recommendations

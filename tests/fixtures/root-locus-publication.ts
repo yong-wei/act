@@ -89,8 +89,8 @@ export function rootLocusCoursewareFixture() {
     const seconds = plan.coursewareStepOutline[index].minutes * 60;
     stage.durationSeconds = seconds;
     stage.steps[0].durationSeconds = seconds;
-    const module = stage.steps[0].modules[0];
-    if (module.canonicalClass === 'content.rich') module.payload = { text: ROOT_LOCUS_GENERATED_COURSEWARE_COPY[Math.min(index, 2)] };
+    const coursewareModule = stage.steps[0].modules[0];
+    if (coursewareModule.canonicalClass === 'content.rich') coursewareModule.payload = { text: ROOT_LOCUS_GENERATED_COURSEWARE_COPY[Math.min(index, 2)] };
   });
   composition.moduleMetadata = composition.moduleMetadata.map((metadata, index) => ({
     ...metadata,

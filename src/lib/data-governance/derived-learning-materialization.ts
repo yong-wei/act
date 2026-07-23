@@ -1,6 +1,10 @@
 import { Prisma } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
 import { createEmptyCompetencyVector } from './competency-model';
+import {
+  readActiveCumulativePublicationFence,
+  requestCumulativeLearnerReconciliation,
+} from './cumulative-snapshot-jobs';
 
 type MaterializationDb = Record<string, any>;
 
@@ -75,29 +79,17 @@ function normalizedClassIds(classIds: unknown): string[] {
 
 export async function requestLearningMaterializationRebuild(
   db: MaterializationDb,
-  input: { userId: string; classIds?: string[]; reason: string; now?: Date },
-): Promise<void> {
+  input: {
+    userId: string;
+    classIds?: string[];
+    reason: string;
+    now?: Date;
+  },
+): Promise<number> {
   const classIds = normalizedClassIds(input.classIds);
   const now = input.now ?? new Date();
-  if (typeof db.$executeRaw === 'function') {
-    await db.$executeRaw(Prisma.sql`
-      WITH request_lock AS (
-        SELECT pg_advisory_xact_lock(hashtext(${'learning-materialization:' + input.userId}))
-      ), next_generation AS (
-        INSERT INTO "LearningMaterializationGeneration" ("userId", "generation", "updatedAt")
-        SELECT ${input.userId}, 1, ${now} FROM request_lock
-        ON CONFLICT ("userId") DO UPDATE SET
-          "generation" = "LearningMaterializationGeneration"."generation" + 1,
-          "updatedAt" = EXCLUDED."updatedAt"
-        RETURNING "generation"
-      )
-      INSERT INTO "LearningMaterializationRebuildRequest"
-        ("userId", "classIds", "reason", "status", "generation", "attemptCount", "createdAt", "updatedAt")
-      SELECT
-        ${input.userId}, ${JSON.stringify(classIds)}::jsonb, ${input.reason}, 'PENDING', next_generation."generation", 0, ${now}, ${now}
-      FROM next_generation
-      ON CONFLICT ("userId") DO UPDATE SET
-        "classIds" = (
+  if (typeof db.$queryRaw === 'function') {
+    const classIdsUpdate = Prisma.sql`(
           SELECT COALESCE(jsonb_agg(value ORDER BY value), '[]'::jsonb)
           FROM (
             SELECT DISTINCT value
@@ -106,8 +98,59 @@ export async function requestLearningMaterializationRebuild(
               || EXCLUDED."classIds"
             ) AS merged(value)
           ) AS unique_values
-        ),
+        )`;
+    const rows = await db.$queryRaw(Prisma.sql`
+      WITH request_lock AS (
+        SELECT pg_advisory_xact_lock(hashtext(${'learning-materialization:' + input.userId}))
+      ), request_generation AS (
+        SELECT COALESCE((
+          SELECT "generation"
+          FROM "LearningMaterializationRebuildRequest"
+          WHERE "userId" = ${input.userId}
+        ), 0) AS "generation"
+        FROM request_lock
+      ), next_generation AS (
+        INSERT INTO "LearningMaterializationGeneration" ("userId", "generation", "updatedAt")
+        SELECT
+          ${input.userId},
+          CASE
+            WHEN request_generation."generation" > 0
+              THEN request_generation."generation" + 1
+            ELSE 1
+          END,
+          ${now}
+        FROM request_generation
+        ON CONFLICT ("userId") DO UPDATE SET
+          "generation" = GREATEST(
+            "LearningMaterializationGeneration"."generation",
+            (SELECT "generation" FROM request_generation)
+          ) + 1,
+          "updatedAt" = EXCLUDED."updatedAt"
+        RETURNING "generation"
+      )
+      , upserted_request AS (
+      INSERT INTO "LearningMaterializationRebuildRequest"
+        (
+          "userId", "classIds", "reason", "kind", "migrationRunId",
+          "calculationVersion", "learnerGeneration", "queueGeneration",
+          "cutoverFence", "inputDigest", "status", "generation",
+          "attemptCount", "createdAt", "updatedAt"
+        )
+      SELECT
+        ${input.userId}, ${JSON.stringify(classIds)}::jsonb, ${input.reason},
+        'LEGACY', NULL, NULL, NULL, NULL, NULL, NULL,
+        'PENDING', next_generation."generation", 0, ${now}, ${now}
+      FROM next_generation
+      ON CONFLICT ("userId") DO UPDATE SET
+        "classIds" = ${classIdsUpdate},
         "reason" = EXCLUDED."reason",
+        "kind" = 'LEGACY',
+        "migrationRunId" = NULL,
+        "calculationVersion" = NULL,
+        "learnerGeneration" = NULL,
+        "queueGeneration" = NULL,
+        "cutoverFence" = NULL,
+        "inputDigest" = NULL,
         "status" = 'PENDING',
         "generation" = EXCLUDED."generation",
         "claimToken" = NULL,
@@ -116,35 +159,60 @@ export async function requestLearningMaterializationRebuild(
         "completedAt" = NULL,
         "lastErrorCode" = NULL,
         "updatedAt" = EXCLUDED."updatedAt"
-    `);
-    return;
+      RETURNING "generation"
+      )
+      SELECT "generation" FROM upserted_request
+    `) as Array<{ generation: number }>;
+    const generation = rows[0]?.generation;
+    if (!Number.isInteger(generation)) {
+      throw new Error('Fenced learner rebuild request did not return a generation.');
+    }
+    return generation;
   }
 
   const delegate = db.learningMaterializationRebuildRequest;
+  const current = await delegate?.findUnique?.({ where: { userId: input.userId } });
   const generationRow = await db.learningMaterializationGeneration?.upsert?.({
     where: { userId: input.userId },
-    create: { userId: input.userId, generation: 1, updatedAt: now },
+    create: {
+      userId: input.userId,
+      generation: Math.max((current?.generation ?? 0) + 1, 1),
+      updatedAt: now,
+    },
     update: { generation: { increment: 1 }, updatedAt: now },
   });
-  const current = await delegate?.findUnique?.({ where: { userId: input.userId } });
-  const nextGeneration = generationRow?.generation ?? ((current?.generation ?? 0) + 1);
+  const nextGeneration = Math.max(
+    generationRow?.generation ?? 0,
+    (current?.generation ?? 0) + 1,
+    1,
+  );
+  const legacyData = {
+    kind: 'LEGACY',
+    migrationRunId: null,
+    calculationVersion: null,
+    learnerGeneration: null,
+    queueGeneration: null,
+    cutoverFence: null,
+    inputDigest: null,
+  };
   if (!current) {
     if (delegate?.create) {
-      await delegate.create({ data: { userId: input.userId, classIds, reason: input.reason, status: 'PENDING', generation: nextGeneration, attemptCount: 0, createdAt: now, updatedAt: now } });
-      return;
+      await delegate.create({ data: { userId: input.userId, classIds, reason: input.reason, ...legacyData, status: 'PENDING', generation: nextGeneration, attemptCount: 0, createdAt: now, updatedAt: now } });
+      return nextGeneration;
     }
     await delegate?.upsert?.({
       where: { userId: input.userId },
-      create: { userId: input.userId, classIds, reason: input.reason, status: 'PENDING', generation: nextGeneration },
-      update: { classIds, reason: input.reason, status: 'PENDING', generation: { increment: 1 }, claimToken: null, claimExpiresAt: null, claimedGeneration: null, completedAt: null, lastErrorCode: null },
+      create: { userId: input.userId, classIds, reason: input.reason, ...legacyData, status: 'PENDING', generation: nextGeneration },
+      update: { classIds, reason: input.reason, ...legacyData, status: 'PENDING', generation: nextGeneration, claimToken: null, claimExpiresAt: null, claimedGeneration: null, completedAt: null, lastErrorCode: null },
     });
-    return;
+    return nextGeneration;
   }
   await delegate.updateMany({
     where: { userId: input.userId, generation: current.generation },
     data: {
       classIds: normalizedClassIds([...normalizedClassIds(current.classIds), ...classIds]),
       reason: input.reason,
+      ...legacyData,
       status: 'PENDING',
       generation: nextGeneration,
       claimToken: null,
@@ -155,6 +223,7 @@ export async function requestLearningMaterializationRebuild(
       updatedAt: now,
     },
   });
+  return nextGeneration;
 }
 
 export async function claimLearningMaterializationRebuild(
@@ -224,7 +293,15 @@ export async function runLearningMaterializationBarrierStage<T>(
   return typeof db.$transaction === 'function' ? db.$transaction(run) : run(db);
 }
 
-export async function appendEmptyStudentCompatibilitySnapshot(db: MaterializationDb, userId: string, now = new Date()) {
+export async function appendEmptyStudentCompatibilitySnapshot(
+  db: MaterializationDb,
+  userId: string,
+  now = new Date(),
+  derivation: { state: string; reason: string } = {
+    state: 'no-evidence-after-revocation',
+    reason: 'governed-facts-revoked',
+  },
+) {
   // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: this empty vector is a lifecycle compatibility tombstone.
   const competencyVector = createEmptyCompetencyVector();
   for (const value of Object.values(competencyVector)) value.lastUpdated = now.toISOString();
@@ -234,7 +311,7 @@ export async function appendEmptyStudentCompatibilitySnapshot(db: Materializatio
       snapshotAt: now,
       // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: non-authoritative lifecycle tombstone.
       competencyVector,
-      evidenceSummary: { _derivation: { state: 'no-evidence-after-revocation', reason: 'governed-facts-revoked' } },
+      evidenceSummary: { _derivation: derivation },
       riskFlags: [],
       factCount: 0,
     },
@@ -454,8 +531,26 @@ export async function revokeDerivedLearningMaterializations(
     await db.growthRecord?.deleteMany?.({ where: { ...userWhere, recordType: 'competency_evaluation', courseId: 'profile:growth-evaluation' } });
     await db.diagnosisReportSnapshot?.deleteMany?.({ where: { ...userWhere, subjectKind: { not: 'class' } } });
     if (input.scheduleRebuild !== false) {
+      const cumulativeDb = db as Parameters<
+        typeof requestCumulativeLearnerReconciliation
+      >[0];
+      const activeFence = db.cumulativePortraitCutoverFence?.findUnique
+        ? await readActiveCumulativePublicationFence(cumulativeDb)
+        : null;
       for (const userId of userIds) {
-        await requestLearningMaterializationRebuild(db, { userId, classIds, reason: 'governed-fact-revoked' });
+        if (activeFence) {
+          await requestCumulativeLearnerReconciliation(cumulativeDb, {
+            userId,
+            classIds,
+            reason: 'governed-fact-revoked',
+          });
+        } else {
+          await requestLearningMaterializationRebuild(db, {
+            userId,
+            classIds,
+            reason: 'governed-fact-revoked',
+          });
+        }
       }
     }
   }

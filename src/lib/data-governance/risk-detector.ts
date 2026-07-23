@@ -5,8 +5,10 @@
  */
 
 import type { LearningFact } from '@prisma/client';
-import type { CompetencyVector, TrendDirection } from './competency-model';
-import { COMPETENCY_DIMENSIONS, calculateOverallScore } from './competency-model';
+// portrait-v2-legacy-compatibility-adapter: old six-dimension input is non-authoritative.
+import type { CompetencyVector } from './competency-model';
+import { calculateOverallScore } from './competency-model';
+import type { PortraitV2PayloadShape } from './portrait-v2-model';
 
 export type RiskType =
   | 'participation'
@@ -16,6 +18,7 @@ export type RiskType =
   | 'cross_domain';
 
 export type RiskSeverity = 'low' | 'medium' | 'high';
+export type CumulativeRiskType = Extract<RiskType, 'constraint' | 'stagnation' | 'cross_domain'>;
 
 export interface RiskFlag {
   type: RiskType;
@@ -31,224 +34,284 @@ export interface RiskDetectionContext {
   competencyVector: CompetencyVector;
   previousSnapshot?: CompetencyVector;
   classAverage?: CompetencyVector;
+  portraitEvidenceAt?: Date | string;
 }
 
-// Risk detection rules
-const RISK_RULES: Array<{
-  type: RiskType;
-  detect: (ctx: RiskDetectionContext) => Omit<RiskFlag, 'type' | 'triggeredAt'> | null;
-}> = [
-  {
-    type: 'participation',
-    detect: (ctx) => {
-      // Check for low activity in recent period
-      const recentFacts = ctx.facts.filter(
-        f => f.startedAt > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-      );
+export interface CumulativeRiskFact {
+  id: string;
+  factType?: string;
+  startedAt: Date;
+  outcome: string;
+  competencyContribution: unknown;
+}
 
-      if (recentFacts.length < 3) {
-        return {
-          severity: 'high',
-          description: '近一周学习活跃度极低，可能已停止学习',
-          evidence: { recentFactCount: recentFacts.length },
-        };
-      }
+export interface CumulativePortraitRiskDetectionContext {
+  userId: string;
+  facts: CumulativeRiskFact[];
+  currentPortrait: PortraitV2PayloadShape;
+  previousPortrait?: PortraitV2PayloadShape | null;
+}
 
-      if (recentFacts.length < 5) {
-        return {
-          severity: 'medium',
-          description: '近一周学习活跃度较低',
-          evidence: { recentFactCount: recentFacts.length },
-        };
-      }
-
-      return null;
-    },
-  },
-  {
-    type: 'stagnation',
-    detect: (ctx) => {
-      if (!ctx.previousSnapshot) return null;
-
-      const currentOverall = calculateOverallScore(ctx.competencyVector);
-      const previousOverall = calculateOverallScore(ctx.previousSnapshot);
-      const change = currentOverall - previousOverall;
-
-      if (change < -10) {
-        return {
-          severity: 'high',
-          description: '能力值出现明显下滑',
-          evidence: { currentScore: currentOverall, previousScore: previousOverall, change },
-        };
-      }
-
-      if (change < -5) {
-        return {
-          severity: 'medium',
-          description: '能力值出现下滑趋势',
-          evidence: { currentScore: currentOverall, previousScore: previousOverall, change },
-        };
-      }
-
-      // Check for no improvement over 2 weeks
-      const twoWeeksAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
-      const recentImprovement = ctx.facts.some(f => f.startedAt > twoWeeksAgo && f.outcome === 'success');
-
-      if (!recentImprovement && currentOverall < 70) {
-        return {
-          severity: 'medium',
-          description: '近两周无成功学习记录，能力值停滞',
-          evidence: { currentScore: currentOverall },
-        };
-      }
-
-      return null;
-    },
-  },
-  {
-    type: 'ai_misuse',
-    detect: (ctx) => {
-      const aiFacts = ctx.facts.filter(f => f.factType === 'ai_intervention');
-
-      if (aiFacts.length < 5) return null;
-
-      const recentAIFacts = aiFacts.filter(
-        f => f.startedAt > new Date(Date.now() - 14 * 24 * 60 * 60 * 1000)
-      );
-
-      if (recentAIFacts.length < 5) return null;
-
-      // High frequency but low success rate
-      const failureRate = recentAIFacts.filter(f => f.outcome === 'failure').length / recentAIFacts.length;
-
-      if (failureRate > 0.7) {
-        return {
-          severity: 'high',
-          description: '高频使用AI助手但问题解决率低，可能存在依赖或误用',
-          evidence: { totalCalls: recentAIFacts.length, failureRate },
-        };
-      }
-
-      if (failureRate > 0.5) {
-        return {
-          severity: 'medium',
-          description: '使用AI助手但效果不佳',
-          evidence: { totalCalls: recentAIFacts.length, failureRate },
-        };
-      }
-
-      return null;
-    },
-  },
-  {
-    type: 'constraint',
-    detect: (ctx) => {
-      const ethicalFacts = ctx.facts.filter(f => f.factType === 'ethical');
-      const violations = ethicalFacts.filter(f => f.outcome === 'failure');
-
-      if (violations.length >= 5) {
-        return {
-          severity: 'high',
-          description: '多次违反工程约束或伦理规范',
-          evidence: { violationCount: violations.length },
-        };
-      }
-
-      if (violations.length >= 3) {
-        return {
-          severity: 'medium',
-          description: '存在多次约束违规记录',
-          evidence: { violationCount: violations.length },
-        };
-      }
-
-      // Check simulation constraint violations
-      const simFacts = ctx.facts.filter(f => f.factType === 'simulation');
-      const poorConstraintScore = simFacts.filter(
-        f => {
-          const contribution = f.competencyContribution as Record<string, number> || {};
-          return contribution.engineeringDecision < 0;
-        }
-      ).length;
-
-      if (poorConstraintScore >= 3) {
-        return {
-          severity: 'medium',
-          description: '仿真中多次忽视工程约束',
-          evidence: { poorConstraintCount: poorConstraintScore },
-        };
-      }
-
-      return null;
-    },
-  },
-  {
-    type: 'cross_domain',
-    detect: (ctx) => {
-      const controlScore = ctx.competencyVector.controlModeling.score;
-      const crossDomainScore = ctx.competencyVector.crossDomainTransfer.score;
-
-      // High in single domain but low in cross-domain
-      if (controlScore > 75 && crossDomainScore < 50) {
-        return {
-          severity: 'high',
-          description: '单点知识掌握较好但跨域迁移能力薄弱',
-          evidence: { controlScore, crossDomainScore },
-        };
-      }
-
-      if (controlScore > 65 && crossDomainScore < 45) {
-        return {
-          severity: 'medium',
-          description: '跨域知识迁移能力有待提升',
-          evidence: { controlScore, crossDomainScore },
-        };
-      }
-
-      // Check for assessment pattern: single domain success, cross-domain failure
-      const assessmentFacts = ctx.facts.filter(f => f.factType === 'question');
-      const crossDomainAssessments = assessmentFacts.filter(f => {
-        const contribution = f.competencyContribution as Record<string, number> || {};
-        return contribution.crossDomainTransfer !== undefined;
-      });
-
-      if (crossDomainAssessments.length >= 3) {
-        const crossDomainSuccess = crossDomainAssessments.filter(f => f.outcome === 'success').length;
-        const crossDomainRate = crossDomainSuccess / crossDomainAssessments.length;
-
-        if (crossDomainRate < 0.3) {
-          return {
-            severity: 'high',
-            description: '跨域题目正确率极低，知识迁移存在明显障碍',
-            evidence: { crossDomainRate, totalAttempts: crossDomainAssessments.length },
-          };
-        }
-      }
-
-      return null;
-    },
-  },
-];
-
-/**
- * Detect all risks for a student
- */
+// portrait-v2-legacy-compatibility-adapter: preserve the non-authoritative legacy caller contract only.
 export function detectRisks(context: RiskDetectionContext): RiskFlag[] {
-  const risks: RiskFlag[] = [];
-  const now = new Date();
+  return detectRiskSet({
+    facts: context.facts,
+    // portrait-v2-legacy-compatibility-adapter: this input remains non-authoritative.
+    currentScores: legacyScores(context.competencyVector),
+    previousScores: context.previousSnapshot ? legacyScores(context.previousSnapshot) : null,
+    portraitEvidenceAt: context.portraitEvidenceAt,
+  });
+}
 
-  for (const rule of RISK_RULES) {
-    const detection = rule.detect(context);
-    if (detection) {
-      risks.push({
-        type: rule.type,
-        ...detection,
-        triggeredAt: now,
-      });
-    }
+export function detectCumulativePortraitRisks(
+  context: CumulativePortraitRiskDetectionContext,
+): RiskFlag[] {
+  return detectRiskSet({
+    facts: context.facts,
+    currentScores: portraitScores(context.currentPortrait),
+    previousScores: context.previousPortrait ? portraitScores(context.previousPortrait) : null,
+    portraitEvidenceAt: latestPortraitEvidenceAt(context.currentPortrait),
+  });
+}
+
+export interface EvidenceRiskStateChange {
+  riskKey: CumulativeRiskType;
+  type: CumulativeRiskType;
+  isActive: boolean;
+  severity: RiskSeverity;
+  evidence: Record<string, unknown>;
+  supportFactIds: string[];
+  occurredAt: Date;
+}
+
+export function buildEvidenceRiskStateChanges(input: {
+  previous: RiskFlag[];
+  current: RiskFlag[];
+  clearAt?: Date;
+}): EvidenceRiskStateChange[] {
+  const previous = new Map(input.previous
+    .filter(isCumulativeRisk)
+    .map((risk) => [risk.type, risk]));
+  const current = new Map(input.current
+    .filter(isCumulativeRisk)
+    .map((risk) => [risk.type, risk]));
+  const types: CumulativeRiskType[] = ['constraint', 'stagnation', 'cross_domain'];
+  return types.flatMap((type) => {
+    const next = current.get(type);
+    const prior = previous.get(type);
+    if (!next && !prior) return [];
+    if (next && prior && sameRiskState(prior, next)) return [];
+    const risk = next ?? prior!;
+    return [{
+      riskKey: type,
+      type,
+      isActive: Boolean(next),
+      severity: risk.severity,
+      evidence: { ...risk.evidence },
+      supportFactIds: readSupportFactIds(risk.evidence),
+      occurredAt: next
+        ? new Date(next.triggeredAt)
+        : new Date(input.clearAt ?? prior!.triggeredAt),
+    }];
+  });
+}
+
+interface RiskScoreSet {
+  overall: number | null;
+  controlModelingRepresentation: number | null;
+  transferIntegratedApplication: number | null;
+}
+
+interface NormalizedRiskDetectionContext {
+  facts: CumulativeRiskFact[];
+  currentScores: RiskScoreSet;
+  previousScores: RiskScoreSet | null;
+  portraitEvidenceAt?: Date | string;
+}
+
+function detectRiskSet(context: NormalizedRiskDetectionContext): RiskFlag[] {
+  return [
+    detectConstraintRisk(context),
+    detectStagnationRisk(context),
+    detectCrossDomainRisk(context),
+  ].filter((risk): risk is RiskFlag => risk !== null);
+}
+
+function detectConstraintRisk(context: NormalizedRiskDetectionContext): RiskFlag | null {
+  const ethicalViolations = context.facts.filter((fact) =>
+    fact.factType === 'ethical' && fact.outcome === 'failure');
+  const simulationViolations = context.facts.filter((fact) => {
+    if (fact.factType !== 'simulation') return false;
+    const contribution = asRecord(fact.competencyContribution);
+    return typeof contribution.engineeringDecision === 'number' && contribution.engineeringDecision < 0;
+  });
+  const support = [...ethicalViolations, ...simulationViolations];
+  if (ethicalViolations.length < 3 && simulationViolations.length < 3) return null;
+  const high = ethicalViolations.length >= 5;
+  return {
+    type: 'constraint',
+    severity: high ? 'high' : 'medium',
+    description: high ? '多次违反工程约束或伦理规范' : '存在持续支持的工程约束违规证据',
+    evidence: {
+      violationCount: ethicalViolations.length,
+      poorConstraintCount: simulationViolations.length,
+      supportFactIds: orderedFactIds(support),
+    },
+    triggeredAt: latestEvidenceTime(context, support),
+  };
+}
+
+function detectStagnationRisk(context: NormalizedRiskDetectionContext): RiskFlag | null {
+  if (!context.previousScores) return null;
+  const currentScore = context.currentScores.overall;
+  const previousScore = context.previousScores.overall;
+  if (currentScore === null || previousScore === null) return null;
+  const change = currentScore - previousScore;
+  if (change >= -5) return null;
+  const supportingFacts = factsWithProfileContribution(context.facts);
+  return {
+    type: 'stagnation',
+    severity: change < -10 ? 'high' : 'medium',
+    description: change < -10 ? '能力值出现明显下滑' : '能力值出现下滑趋势',
+    evidence: { currentScore, previousScore, change, supportFactIds: orderedFactIds(supportingFacts) },
+    triggeredAt: latestEvidenceTime(context, supportingFacts),
+  };
+}
+
+function detectCrossDomainRisk(context: NormalizedRiskDetectionContext): RiskFlag | null {
+  const controlScore = context.currentScores.controlModelingRepresentation;
+  const crossDomainScore = context.currentScores.transferIntegratedApplication;
+  if (controlScore === null || crossDomainScore === null) return null;
+  const assessments = context.facts.filter((fact) =>
+    fact.factType === 'question' &&
+    hasCrossDomainContribution(fact.competencyContribution));
+  const crossDomainRate = assessments.length === 0
+    ? null
+    : assessments.filter((fact) => fact.outcome === 'success').length / assessments.length;
+  const high = (controlScore > 75 && crossDomainScore < 50) ||
+    (assessments.length >= 3 && crossDomainRate !== null && crossDomainRate < 0.3);
+  const medium = controlScore > 65 && crossDomainScore < 45;
+  if (!high && !medium) return null;
+  return {
+    type: 'cross_domain',
+    severity: high ? 'high' : 'medium',
+    description: high ? '跨域知识迁移存在明显障碍' : '跨域知识迁移能力有待提升',
+    evidence: {
+      controlScore,
+      crossDomainScore,
+      ...(crossDomainRate === null ? {} : { crossDomainRate, totalAttempts: assessments.length }),
+      supportFactIds: orderedFactIds(assessments),
+    },
+    triggeredAt: latestEvidenceTime(context, assessments),
+  };
+}
+
+function latestEvidenceTime(
+  context: Pick<NormalizedRiskDetectionContext, 'currentScores' | 'previousScores' | 'portraitEvidenceAt'>,
+  supportingFacts: CumulativeRiskFact[],
+): Date {
+  const candidates = supportingFacts.map((fact) => fact.startedAt.getTime());
+  if (candidates.length > 0) return new Date(Math.max(...candidates));
+  const portraitEvidenceAt = normalizeTime(context.portraitEvidenceAt);
+  if (portraitEvidenceAt !== null) candidates.push(portraitEvidenceAt);
+  return new Date(candidates.length === 0 ? 0 : Math.max(...candidates));
+}
+
+function orderedFactIds(facts: CumulativeRiskFact[]): string[] {
+  return [...new Map([...facts]
+    .sort((left, right) => left.startedAt.getTime() - right.startedAt.getTime() || left.id.localeCompare(right.id))
+    .map((fact) => [fact.id, fact.id])).values()];
+}
+
+function readSupportFactIds(evidence: Record<string, unknown>): string[] {
+  return Array.isArray(evidence.supportFactIds)
+    ? evidence.supportFactIds.filter((value): value is string => typeof value === 'string')
+    : [];
+}
+
+function isCumulativeRisk(risk: RiskFlag): risk is RiskFlag & { type: CumulativeRiskType } {
+  return risk.type === 'constraint' || risk.type === 'stagnation' || risk.type === 'cross_domain';
+}
+
+function sameRiskState(left: RiskFlag, right: RiskFlag): boolean {
+  return left.severity === right.severity &&
+    stableJson(left.evidence) === stableJson(right.evidence);
+}
+
+function stableJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(',')}]`;
+  if (value && typeof value === 'object') {
+    return `{${Object.entries(value as Record<string, unknown>)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, item]) => `${JSON.stringify(key)}:${stableJson(item)}`)
+      .join(',')}}`;
   }
+  return JSON.stringify(value);
+}
 
-  return risks;
+function portraitScores(payload: PortraitV2PayloadShape): RiskScoreSet {
+  const evidenced = payload.dimensions.filter((dimension) =>
+    dimension.evidenceSummary.totalCount > 0);
+  return {
+    overall: average(evidenced.map((dimension) => dimension.score)),
+    controlModelingRepresentation: dimensionScore(payload, 'controlModelingRepresentation'),
+    transferIntegratedApplication: dimensionScore(payload, 'transferIntegratedApplication'),
+  };
+}
+
+// portrait-v2-legacy-compatibility-adapter: translate legacy scores without changing cumulative portrait semantics.
+function legacyScores(vector: CompetencyVector): RiskScoreSet {
+  return {
+    overall: calculateOverallScore(vector),
+    controlModelingRepresentation: vector.controlModeling.score,
+    transferIntegratedApplication: vector.crossDomainTransfer.score,
+  };
+}
+
+function dimensionScore(payload: PortraitV2PayloadShape, id: string): number | null {
+  const dimension = payload.dimensions.find((item) =>
+    item.id === id && item.evidenceSummary.totalCount > 0);
+  return dimension?.score ?? null;
+}
+
+function latestPortraitEvidenceAt(payload: PortraitV2PayloadShape): string | undefined {
+  const values = payload.dimensions.flatMap((dimension) =>
+    dimension.evidenceSummary.totalCount > 0 && dimension.freshness.asOf
+      ? [dimension.freshness.asOf]
+      : []);
+  return values.length === 0
+    ? undefined
+    : values.reduce((latest, value) => Date.parse(value) > Date.parse(latest) ? value : latest);
+}
+
+function factsWithProfileContribution(facts: CumulativeRiskFact[]): CumulativeRiskFact[] {
+  return facts.filter((fact) =>
+    Object.values(asRecord(fact.competencyContribution))
+      .some((value) => typeof value === 'number' && Number.isFinite(value) && value !== 0));
+}
+
+function hasCrossDomainContribution(value: unknown): boolean {
+  const contribution = asRecord(value);
+  return Object.prototype.hasOwnProperty.call(contribution, 'crossDomainTransfer') ||
+    Object.prototype.hasOwnProperty.call(contribution, 'transferIntegratedApplication');
+}
+
+function average(values: number[]): number | null {
+  return values.length === 0
+    ? null
+    : values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function normalizeTime(value: Date | string | undefined): number | null {
+  if (value === undefined) return null;
+  const timestamp = value instanceof Date ? value.getTime() : Date.parse(value);
+  return Number.isNaN(timestamp) ? null : timestamp;
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
 }
 
 /**

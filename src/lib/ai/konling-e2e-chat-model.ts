@@ -81,7 +81,10 @@ function fixtureContent(options: LanguageModelV3CallOptions): LanguageModelV3Con
   if (query.includes('修订约束')) {
     input = {
       operation: 'revise', taskId: ids.taskId, expectedRevision: 1,
-      proposedTask: taskInput(ids.courseBasisId!, ids.sourceVersionId!, sourceMetadata, { participatoryConstraint: true }),
+      goalPatches: [{
+        operation: 'update', id: currentGoalId(options),
+        changes: { content: participatoryGoalContent() },
+      }],
     };
   } else if (query.includes('选择幅值与相角条件')) {
     input = { operation: 'bootstrap', proposedTask: taskInput(ids.courseBasisId!, ids.sourceVersionId!, sourceMetadata) };
@@ -97,11 +100,31 @@ function fixtureContent(options: LanguageModelV3CallOptions): LanguageModelV3Con
   }];
 }
 
+function currentGoalId(options: LanguageModelV3CallOptions): string {
+  const promptText = options.prompt.flatMap((message) => {
+    if (typeof message.content === 'string') return [message.content];
+    return message.content.flatMap((part) => part.type === 'text' ? [part.text] : []);
+  }).join('\n');
+  const encoded = promptText.match(/可用现有条目定位清单：(\{[^\n]+\})/)?.[1];
+  if (!encoded) throw new Error('konling-e2e-fixture-current-task-collections-required');
+  try {
+    const collections = JSON.parse(encoded) as { goals?: Array<{ id?: unknown }> };
+    const goalId = collections.goals?.[0]?.id;
+    if (typeof goalId !== 'string' || !goalId) throw new Error('missing-goal-id');
+    return goalId;
+  } catch {
+    throw new Error('konling-e2e-fixture-current-goal-id-required');
+  }
+}
+
+function participatoryGoalContent() {
+  return '根轨迹上的点满足开环相角为奇数倍180度；学生在至少20分钟参与式学习中运用此条件完成可执行判断活动。';
+}
+
 function taskInput(
   courseBasisId: string,
   sourceVersionId: string,
   metadata: E2ESourceBindingMetadata | null,
-  options: { participatoryConstraint?: boolean } = {},
 ) {
   const bindings = metadata?.sourceVersionId === sourceVersionId
     ? metadata.bindings.slice(0, 3).map((binding) => ({
@@ -122,9 +145,7 @@ function taskInput(
       { title: '分支起于开环极点并终止于开环零点或无穷远。', content: '基本绘图规则', sourceState: 'ai_generated_source_pending', sourceBindings: bindings.slice(2, 3), origin: 'SUGGESTED' },
     ],
     goals: [{
-      content: options.participatoryConstraint
-        ? '根轨迹上的点满足开环相角为奇数倍180度；学生在至少20分钟参与式学习中运用此条件完成可执行判断活动。'
-        : '根轨迹上的点满足开环相角为奇数倍180度；学生运用此条件判断候选点。',
+      content: '根轨迹上的点满足开环相角为奇数倍180度；学生运用此条件判断候选点。',
       sourceState: 'ai_generated_source_pending', sourceBindings: bindings.slice(0, 1), standardsMappings: [],
     }],
     confirmScope: true, confirmGoals: true,

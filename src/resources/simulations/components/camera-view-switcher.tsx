@@ -9,13 +9,23 @@ import { Video, Eye, Compass, Move3d, Minus, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import type { CameraMode, CameraView } from './camera-controller';
+import type { CameraView } from './camera-controller';
+
+export interface CameraViewOption {
+  readonly id: string;
+  readonly label: string;
+  readonly shortLabel: string;
+  readonly icon: typeof Video;
+  readonly description: string;
+}
 
 export interface CameraViewSwitcherProps {
   /** 当前相机模式 */
-  currentMode: CameraMode;
+  currentMode: string;
   /** 模式变化回调 */
-  onModeChange: (mode: CameraMode) => void;
+  onModeChange: (mode: string) => void;
+  /** 预设视角按钮列表（缺省为 主视角/俯瞰/战术 三档） */
+  views?: readonly CameraViewOption[];
   /** 自定义样式类名 */
   className?: string;
   /** 是否显示自由视角标签 */
@@ -77,6 +87,7 @@ const commandValueClass = 'text-platform-fg-primary';
 export function CameraViewSwitcher({
   currentMode,
   onModeChange,
+  views,
   className,
   showFreeLabel = true,
   size = 'sm',
@@ -87,6 +98,7 @@ export function CameraViewSwitcher({
   minSpeedScale = 0.5,
   maxSpeedScale = 8,
 }: CameraViewSwitcherProps) {
+  const modes = views ?? viewModes;
   const speedPresets = [0.5, 1, 2, 4, 8].filter((value) => value >= minSpeedScale && value <= maxSpeedScale);
 
   const findNextSpeed = (direction: -1 | 1): number => {
@@ -128,7 +140,7 @@ export function CameraViewSwitcher({
         data-simulation-local-bottom-tool-segment="view-switcher"
         data-command-deck-bottom-tools="edge-adjacent"
       >
-        {viewModes.map((mode) => {
+        {modes.map((mode) => {
           const Icon = mode.icon;
           const isActive = currentMode === mode.id;
 

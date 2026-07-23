@@ -196,6 +196,7 @@ export async function runSmartCoursewareBrowserPublicationValidation(db: Publica
         'x-act-publication-owner': actor.id,
       },
     });
+    await context.addInitScript('globalThis.__name ??= (target) => target;');
     const manifest = revision.manifestSnapshot as unknown as GeneratedSlideManifest;
     for (const projection of ['student', 'teacher'] as const) {
       const page = await context.newPage();
@@ -206,6 +207,7 @@ export async function runSmartCoursewareBrowserPublicationValidation(db: Publica
         || new URL(response.url()).pathname !== url.pathname) {
         throw new SmartCoursewareError('browser-publication-review-route-unavailable', 503);
       }
+      await page.locator('[data-publication-review="ready"]').waitFor({ state: 'attached', timeout: 15_000 });
       const steps = manifest.stages.flatMap((stage) => stage.steps);
       for (const step of steps) {
         const snapshot = await captureGeneratedSlideBrowserSnapshot({ page, browser, projection, stepId: step.id });

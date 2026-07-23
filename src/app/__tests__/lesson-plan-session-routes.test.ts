@@ -6,7 +6,6 @@ const mocks = vi.hoisted(() => ({
   loadSessionLessonSnapshot: vi.fn(),
   logClassroomEvent: vi.fn(),
   enqueueSessionFinalizationEventIngestion: vi.fn(),
-  enqueueSessionFinalizationSnapshots: vi.fn(),
   enqueueSessionFinalizationEvidenceFeatureCacheRefresh: vi.fn(),
   enqueueSessionSummaryReportRefresh: vi.fn(),
   generateSessionSummaryReports: vi.fn(),
@@ -75,7 +74,6 @@ vi.mock('@/lib/rate-limiter', () => ({
 
 vi.mock('@/lib/data-governance/session-finalization-snapshots', () => ({
   enqueueSessionFinalizationEventIngestion: mocks.enqueueSessionFinalizationEventIngestion,
-  enqueueSessionFinalizationSnapshots: mocks.enqueueSessionFinalizationSnapshots,
   enqueueSessionFinalizationEvidenceFeatureCacheRefresh: mocks.enqueueSessionFinalizationEvidenceFeatureCacheRefresh,
   enqueueSessionSummaryReportRefresh: mocks.enqueueSessionSummaryReportRefresh,
 }));
@@ -607,7 +605,6 @@ describe('lesson plan empty-item guards', () => {
       planId: 'projection-v1',
     }));
     expect(mocks.enqueueSessionFinalizationEventIngestion).toHaveBeenCalledWith('session-v1');
-    expect(mocks.enqueueSessionFinalizationSnapshots).toHaveBeenCalledWith('session-v1', 'class-1');
   });
 
   it('derives session patch lifecycle actor role from the authenticated user', async () => {

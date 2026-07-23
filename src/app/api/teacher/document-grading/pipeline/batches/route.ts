@@ -7,6 +7,7 @@ import { enforceGradingQuota } from '@/lib/data-governance/math-document-grading
 import { enqueueMathDocumentGradingJob } from '@/lib/data-governance/math-document-grading-queue';
 import { createQuestionScopedGradingBatch } from '@/lib/data-governance/math-document-grading-batch';
 import { assertPipelineActorScope } from '@/lib/data-governance/math-document-grading-persistence';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
@@ -47,6 +48,7 @@ export async function POST(request: Request) {
     const queueResult = result.batch.job ? await enqueueMathDocumentGradingJob({ kind: 'batch', jobId: result.batch.job.id, batchId: result.batch.id }, prisma) : { queued: true, queueJobId: null, state: 'QUEUED' as const, retryable: false };
     return NextResponse.json({ status: queueResult.queued ? result.batch.state : queueResult.state, batchId: result.batch.id, totalItems: result.items.length, queue: queueResult, replay: result.replay, questionScoped: true }, { status: queueResult.queued ? (result.replay ? 200 : 202) : 503 });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     return gradingApiError(error);
   }
 }
@@ -67,6 +69,7 @@ export async function GET(request: Request) {
     }
     return NextResponse.json({ batchId: batch.id, assignmentRevisionId: batch.assignmentRevisionId, questionId: batch.questionId, classId: batch.classId, state: batch.state, progress: { total: batch.totalItems, completed: batch.completedItems, failed: batch.failedItems, blocked: batch.blockedItems, percent: batch.progress }, job: batch.jobs[0] ?? null, items: batch.items });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     return gradingApiError(error);
   }
 }

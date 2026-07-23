@@ -131,12 +131,14 @@ describe('knowledge graph public DTO boundary', () => {
 
     const dto = toPublicKnowledgeGraphPayload(graph);
     expect(Object.keys(dto.links[0]).sort()).toEqual([
+      'evidenceState',
       'id',
       'motionEligible',
       'relation',
       'sourceId',
       'targetId',
     ]);
+    expect(dto.links[0].evidenceState).toBe('available');
     expect(JSON.stringify(dto)).not.toMatch(/raw-secret|token-secret|do-not-leak|rawRelation|provenance/);
 
     const detail = buildKnowledgeNodeDetailFromGraph(graph, 'node-a');

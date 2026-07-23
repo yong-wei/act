@@ -11,7 +11,6 @@ import {
   Database,
   RefreshCw,
   ShieldAlert,
-  Sparkles,
   TrendingUp,
 } from 'lucide-react';
 
@@ -23,10 +22,7 @@ export default function TeacherStudentInsightsPage() {
   const params = useParams();
   const classId = params?.classId as string;
   const studentId = params?.studentId as string;
-  const sessionData = useSession();
-  const session = sessionData?.data;
-  const status = sessionData?.status ?? 'loading';
-
+  const { data: session, status } = useSession();
   const [data, setData] = useState<TeacherStudentInsightsPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -36,61 +32,34 @@ export default function TeacherStudentInsightsPage() {
       setLoading(true);
       setError(null);
       const response = await fetch(`/api/teacher/classes/${classId}/students/${studentId}/insights`);
-      if (!response.ok) {
-        throw new Error('获取学生学情失败');
-      }
-      const payload = (await response.json()) as TeacherStudentInsightsPayload;
-      setData(payload);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '未知错误');
+      if (!response.ok) throw new Error('获取学生学情失败');
+      setData(await response.json() as TeacherStudentInsightsPayload);
+    } catch (fetchError) {
+      setError(fetchError instanceof Error ? fetchError.message : '未知错误');
     } finally {
       setLoading(false);
     }
   }, [classId, studentId]);
 
   useEffect(() => {
-    if (status === 'authenticated' && session?.user?.id && classId && studentId) {
-      if (session.user.role !== 'TEACHER' && session.user.role !== 'ADMIN') {
-        router.replace('/dashboard');
-        return;
-      }
-      void fetchData();
+    if (status !== 'authenticated' || !session?.user?.id || !classId || !studentId) return;
+    if (session.user.role !== 'TEACHER' && session.user.role !== 'ADMIN') {
+      router.replace('/dashboard');
+      return;
     }
+    void fetchData();
   }, [classId, fetchData, router, session, status, studentId]);
 
   if (status === 'loading' || loading) {
-    return (
-      <div
-        className="teacher-insight-shell flex items-center justify-center"
-        data-intelligent-teaching-assistant-demo-surface="teacher-student-insights"
-        data-commercial-operations-workspace="teacher-operations"
-        data-commercial-workspace-zone="instrument-area"
-        data-operations-status-semantics="loading"
-      >
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-sky-500 border-t-transparent" />
-          <p className="text-subtle">加载学生学情...</p>
-        </div>
-      </div>
-    );
+    return <StatusShell message="加载累计能力达成..." />;
   }
-
   if (error || !data) {
     return (
-      <div
-        className="teacher-insight-shell flex items-center justify-center"
-        data-intelligent-teaching-assistant-demo-surface="teacher-student-insights"
-        data-commercial-operations-workspace="teacher-operations"
-        data-commercial-workspace-zone="instrument-area"
-        data-operations-status-semantics="error"
-      >
-        <div className="text-center">
-          <p className="text-xl text-red-500">{error || '加载失败'}</p>
-          <button type="button" onClick={fetchData} className="btn-ghost-themed mt-4 rounded-lg px-6 py-2">
-            重试
-          </button>
-        </div>
-      </div>
+      <StatusShell message={error || '加载失败'}>
+        <button type="button" onClick={fetchData} className="btn-ghost-themed mt-4 rounded-lg px-6 py-2">
+          重试
+        </button>
+      </StatusShell>
     );
   }
 
@@ -110,7 +79,7 @@ export default function TeacherStudentInsightsPage() {
             </Link>
             <div>
               <p className="text-sm text-subtle">{data.student.className}</p>
-              <h1 className="text-xl font-bold text-foreground">{data.student.name} 的个体学情</h1>
+              <h1 className="text-xl font-bold text-foreground">{data.student.name} 的累计能力达成</h1>
             </div>
           </div>
           <button type="button" onClick={fetchData} className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm">
@@ -120,483 +89,309 @@ export default function TeacherStudentInsightsPage() {
         </div>
       </header>
 
-      <main className="px-6 py-8">
-        <section className="teacher-insight-hero mb-8">
-          <div className="grid gap-4 xl:grid-cols-[1.25fr,0.75fr]">
-            <div className="space-y-4">
+      <main className="space-y-8 px-6 py-8">
+        <section className="teacher-insight-hero">
+          <div className="grid gap-6 xl:grid-cols-[1.25fr,0.75fr]">
+            <div>
               <div className="flex items-start gap-4">
                 <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-sky-500/15 text-2xl font-bold text-sky-500 dark:text-sky-300">
                   {data.student.name.charAt(0)}
                 </div>
                 <div>
-                  <div className="flex flex-wrap items-center gap-3">
-                    <h2 className="text-2xl font-semibold text-foreground">{data.student.name}</h2>
-                    <span className={`teacher-insight-chip ${data.overview.evidenceState === 'current' ? `teacher-insight-risk-${data.overview.riskLevel}` : 'teacher-insight-chip-pending'}`}>
-                      {data.overview.evidenceState === 'current' ? data.overview.riskLabel : '暂无证据'}
-                    </span>
-                  </div>
+                  <h2 className="text-2xl font-semibold text-foreground">{data.student.name}</h2>
                   <p className="mt-1 text-sm text-subtle">
                     {data.student.studentNumber || data.student.email || '暂无学号信息'}
                   </p>
-                  <p className="mt-2 max-w-3xl text-sm leading-6 text-subtle">
-                    {data.overview.recommendedScaffolding}
-                  </p>
+                  <p className="mt-3 text-sm leading-6 text-subtle">{data.overallDiagnosis.conclusion}</p>
                 </div>
               </div>
-              <div className="grid gap-4 md:grid-cols-3">
-                <MetricCard title="综合指数" value={data.overview.overallScore ?? '暂无当前证据'} detail="七维 portrait v2 平均值" />
-                <MetricCard title="学习事实" value={data.overview.factCount} detail="已沉淀的治理证据数量" />
+              <div className="mt-6 grid gap-4 md:grid-cols-3">
                 <MetricCard
-                  title="最近画像"
-                  value={data.snapshot.current ? 1 : 0}
-                  detail={data.overview.latestSnapshotAt ? new Date(data.overview.latestSnapshotAt).toLocaleString('zh-CN') : '暂无快照'}
+                  title="累计综合分"
+                  value={data.overview.overallScore ?? '不可用'}
+                  detail={data.overview.overallLevel ?? formatAvailability(data.overview.availabilityReason)}
+                />
+                <MetricCard
+                  title="证据覆盖"
+                  value={`${data.overview.evidencedDimensionCount}/7`}
+                  detail={`缺失 ${data.overview.missingDimensionCount} 个维度`}
+                />
+                <MetricCard
+                  title="证据截止"
+                  value={data.overview.evidenceAsOf ? formatDate(data.overview.evidenceAsOf) : '不可用'}
+                  detail={data.overview.generatedAt ? `画像生成 ${formatDate(data.overview.generatedAt)}` : formatAvailability(data.overview.availabilityReason)}
                 />
               </div>
             </div>
-
             <div className="teacher-insight-metric">
-              <p className="text-sm font-medium text-foreground">画像摘要</p>
-              <div className="mt-4 space-y-4 text-sm text-subtle">
-                <div>
-                  <p className="font-medium text-foreground">整体等级</p>
-                  <p className="mt-1">{data.profileSummary?.overallLevel || '待生成'}</p>
-                </div>
-                <div>
-                  <p className="font-medium text-foreground">近期趋势</p>
-                  <p className="mt-1">{data.profileSummary?.recentTrend || '暂无趋势信息'}</p>
-                </div>
-                <div>
-                  <p className="font-medium text-foreground">优势</p>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {(data.profileSummary?.strengths || []).length > 0 ? (
-                      data.profileSummary?.strengths.map((item) => (
-                        <span key={item} className="teacher-insight-chip teacher-insight-chip-healthy">
-                          {item}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="teacher-insight-chip teacher-insight-chip-pending">暂无优势标签</span>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <p className="font-medium text-foreground">待提升点</p>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {(data.profileSummary?.weaknesses || []).length > 0 ? (
-                      data.profileSummary?.weaknesses.map((item) => (
-                        <span key={item} className="teacher-insight-chip teacher-insight-chip-warning">
-                          {item}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="teacher-insight-chip teacher-insight-chip-pending">暂无弱项标签</span>
-                    )}
-                  </div>
-                </div>
-              </div>
+              <p className="text-sm font-medium text-foreground">最后证据状态</p>
+              <dl className="mt-4 space-y-4 text-sm">
+                <SummaryRow label="趋势" value={formatTrend(data.overview.lastTrend)} />
+                <SummaryRow
+                  label="风险"
+                  value={data.overview.lastRisk.length > 0
+                    ? data.overview.lastRisk.map((risk) => `${formatRiskType(risk.type)}（${formatSeverity(risk.severity)}）`).join('、')
+                    : '无当前证据风险'}
+                />
+                <SummaryRow
+                  label="置信度"
+                  value={data.overview.confidence === null ? '不可用' : `${Math.round(data.overview.confidence * 100)}%`}
+                />
+              </dl>
             </div>
           </div>
         </section>
 
-        <div className="mb-8">
-          <DiagnosisSurfacePanel
-            diagnosis={data.diagnosis}
-            mode="teacher-student"
-            title={`${data.student.name} 的控制校正诊断`}
-            description="展示教师可见的个体维度诊断、证据摘要、路径状态和干预入口。"
-          />
-        </div>
+        <section className="grid gap-4 lg:grid-cols-2">
+          <SummaryList title="累计优势" items={data.overview.strengths} empty="暂无达到优势阈值的维度" />
+          <SummaryList title="待提升点" items={data.overview.improvementAreas} empty="暂无低于提升阈值的维度" warning />
+        </section>
 
-        <section className="mb-8 grid gap-4 lg:grid-cols-[0.95fr,1.05fr]">
-          <div className="surface-card p-6">
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold text-foreground">证据治理</h2>
-              <p className="mt-1 text-sm text-subtle">只展示画像诊断所需的近期摘要和缓存置信度。</p>
-            </div>
-            <div className="grid gap-3 md:grid-cols-2">
-              <div className="teacher-insight-metric">
-                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                  <Database className="h-4 w-4 text-sky-500 dark:text-sky-300" />
-                  证据缓存
-                </div>
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <span className={getEvidenceStateChipClass(data.evidenceDrawer.featureCache)}>
-                    {formatEvidenceState(data.evidenceDrawer.featureCache)}
-                  </span>
-                  <span className="teacher-insight-chip teacher-insight-chip-pending">
-                    {formatEvidenceConfidence(data.evidenceDrawer.featureCache)}
-                  </span>
-                </div>
-                <p className="mt-3 text-xs text-subtle">
-                  最近证据 {data.evidenceDrawer.featureCache.lastEvidenceAt
-                    ? new Date(data.evidenceDrawer.featureCache.lastEvidenceAt).toLocaleString('zh-CN')
-                    : '暂无'}
-                </p>
-              </div>
-              <div className="teacher-insight-metric">
-                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                  <ClipboardList className="h-4 w-4 text-emerald-500" />
-                  持久提交
-                </div>
-                <p className="mt-3 text-2xl font-semibold text-foreground">
-                  {data.evidenceDrawer.durableSubmissions.length}
-                </p>
-                <p className="mt-2 text-xs text-subtle">
-                  最近 {data.evidenceDrawer.limits.durableSubmissions} 条内，富证据 {data.evidenceDrawer.durableSubmissions.filter((item) => item.quality === 'rich').length} 条。
-                </p>
-              </div>
-            </div>
-            <div className="mt-4 space-y-3">
-              {data.evidenceDrawer.recentFacts.length > 0 ? (
-                data.evidenceDrawer.recentFacts.slice(0, 4).map((fact) => (
-                  <div key={fact.id} className="rounded-xl border border-border/70 bg-card/80 p-3">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <p className="text-sm font-medium text-foreground">{formatFactTitle(fact)}</p>
-                      <span className={getOutcomeBadgeClass(fact.outcome)}>{formatOutcome(fact.outcome)}</span>
-                    </div>
-                    <p className="mt-2 text-xs text-subtle">
-                      {new Date(fact.startedAt).toLocaleString('zh-CN')}
-                      {typeof fact.score === 'number' ? ` · 评分 ${fact.score}` : ''}
+        <section className="surface-card p-6">
+          <div className="mb-4">
+            <h2 className="text-lg font-semibold text-foreground">七维累计能力与班级对比</h2>
+            <p className="mt-1 text-sm text-subtle">缺失证据不计为零；班级维度没有有效分母时不计算均值和差距。</p>
+          </div>
+          <div className="grid gap-4 lg:grid-cols-2">
+            {data.classComparison.map((item) => (
+              <div key={item.dimension} className="teacher-insight-metric">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="font-medium text-foreground">{item.label}</p>
+                    <p className="mt-1 text-xs text-subtle">
+                      {item.availabilityReason === 'available'
+                        ? `班级纳入 ${item.includedCount} 人，缺失 ${item.missingCount} 人`
+                        : formatComparisonAvailability(item.availabilityReason)}
                     </p>
                   </div>
-                ))
-              ) : (
-                <p className="text-sm text-subtle">暂无近期治理事实。</p>
-              )}
-            </div>
-          </div>
-
-          <div className="surface-card p-6">
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold text-foreground">近期会话质量</h2>
-              <p className="mt-1 text-sm text-subtle">按课堂报告展示证据质量状态和该学生在课堂中的持久记录。</p>
-            </div>
-            <div className="space-y-3">
-              {data.evidenceDrawer.sessionQuality.length > 0 ? (
-                data.evidenceDrawer.sessionQuality.map((session) => (
-                  <div key={session.sessionId} className="teacher-insight-entry">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="font-medium text-foreground">{session.title}</p>
-                          <span className={getSessionQualityChipClass(session.qualityStatus)}>
-                            {formatSessionQuality(session.qualityStatus)}
-                          </span>
-                        </div>
-                        <p className="mt-2 text-xs text-subtle">
-                          学习事实 {session.studentReport.learningFacts} · 持久提交 {session.studentReport.durableSubmissions}
-                        </p>
-                      </div>
-                      <span className="text-xs text-subtle">
-                        {session.updatedAt ? new Date(session.updatedAt).toLocaleDateString('zh-CN') : '待更新'}
-                      </span>
-                    </div>
+                  <div className="text-right">
+                    <p className="text-xl font-semibold text-foreground">{item.studentScore ?? '—'}</p>
+                    <p className="text-xs text-subtle">班级均值 {item.classAverage ?? '—'}</p>
                   </div>
-                ))
-              ) : (
-                <div className="teacher-insight-metric">
-                  <p className="text-sm text-subtle">暂无可展示的近期课堂质量报告。</p>
                 </div>
-              )}
-            </div>
+                {item.gap !== null && (
+                  <p className="mt-3 text-sm text-subtle">
+                    较班级均值{item.gap >= 0 ? '高' : '低'} {Math.abs(item.gap)}
+                  </p>
+                )}
+              </div>
+            ))}
           </div>
         </section>
 
-        <section className="mb-8 grid gap-4 lg:grid-cols-[1.2fr,0.8fr]">
+        <section className="grid gap-4 lg:grid-cols-[0.9fr,1.1fr]">
           <div className="surface-card p-6">
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold text-foreground">能力画像与班级对比</h2>
-              <p className="mt-1 text-sm text-subtle">逐项对比学生当前能力与班级均值，帮助教师决定补强重点。</p>
+            <div className="flex items-center gap-2">
+              <ShieldAlert className="h-5 w-5 text-rose-500" />
+              <h2 className="text-lg font-semibold text-foreground">当前风险</h2>
             </div>
-            <div className="space-y-4">
-              {data.classComparison.map((item) => (
-                <div key={item.dimension} className="teacher-insight-metric">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-medium text-foreground">{item.label}</p>
-                      <p className="mt-1 text-xs text-subtle">
-                        {item.gap === null ? '暂无当前证据，暂不计算班级差距' : `与班级均值 ${item.classAverage} 相比 ${item.gap >= 0 ? '领先' : '落后'} ${Math.abs(item.gap)}`}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xl font-semibold text-foreground">{item.studentScore ?? '—'}</p>
-                      <p className="text-xs text-subtle">班级均值 {item.classAverage ?? '—'}</p>
-                    </div>
+            <div className="mt-4 space-y-3">
+              {data.overview.lastRisk.length > 0 ? data.overview.lastRisk.map((risk) => (
+                <div key={`${risk.type}-${risk.occurredAt}`} className="teacher-insight-metric">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="font-medium text-foreground">{formatRiskType(risk.type)}</p>
+                    <span className={`teacher-insight-chip teacher-insight-risk-${risk.severity}`}>
+                      {formatSeverity(risk.severity)}
+                    </span>
                   </div>
-                  <div className="teacher-insight-track mt-4">
-                    <div className="teacher-insight-fill" style={{ width: `${Math.min(item.studentScore ?? 0, 100)}%` }} />
-                  </div>
+                  <p className="mt-2 text-sm text-subtle">{risk.description}</p>
+                  {risk.occurredAt && <p className="mt-2 text-xs text-subtle">证据触发于 {formatDate(risk.occurredAt)}</p>}
                 </div>
-              ))}
+              )) : <p className="text-sm text-subtle">当前没有证据支持的风险状态。</p>}
             </div>
           </div>
-
           <div className="surface-card p-6">
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold text-foreground">风险与近期活动</h2>
-              <p className="mt-1 text-sm text-subtle">把治理风险与近期学习动向并排看，判断是否需要即时干预。</p>
-            </div>
-            <div className="space-y-4">
-              <div className="teacher-insight-metric">
-                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                  <ShieldAlert className="h-4 w-4 text-rose-500" />
-                  风险标记
-                </div>
-                <div className="mt-3 space-y-3">
-                  {data.riskFlags.length > 0 ? (
-                    data.riskFlags.map((risk) => (
-                      <div key={`${risk.type}-${risk.triggeredAt}`} className="rounded-xl border border-border/70 bg-card/80 p-3">
-                        <div className="flex flex-wrap items-center justify-between gap-3">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className={`teacher-insight-chip teacher-insight-risk-${risk.severity}`}>
-                              {risk.severity === 'high' ? '高风险' : risk.severity === 'medium' ? '中风险' : '低风险'}
-                            </span>
-                            {risk.occurrenceCount > 1 && (
-                              <span className="teacher-insight-chip teacher-insight-chip-pending">
-                                重复 {risk.occurrenceCount} 次
-                              </span>
-                            )}
-                          </div>
-                          <span className="text-xs text-subtle">最近一次 {new Date(risk.triggeredAt).toLocaleString('zh-CN')}</span>
-                        </div>
-                        <p className="mt-2 text-sm text-foreground">{risk.description}</p>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-sm text-subtle">当前没有未解决的风险标记。</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="teacher-insight-metric">
-                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                  <TrendingUp className="h-4 w-4 text-sky-500 dark:text-sky-300" />
-                  近期活动
-                </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {(data.profileSummary?.recentActivities || []).length > 0 ? (
-                    data.profileSummary?.recentActivities.map((item) => (
-                      <span key={item} className="teacher-insight-chip teacher-insight-chip-pending">
-                        {item}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="teacher-insight-chip teacher-insight-chip-pending">暂无近期活动摘要</span>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="mb-8 grid gap-4 lg:grid-cols-[0.95fr,1.05fr]">
-          <div className="surface-card p-6">
-            <div className="mb-4">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-sky-500" />
               <h2 className="text-lg font-semibold text-foreground">成长档案</h2>
-              <p className="mt-1 text-sm text-subtle">记录可复盘的成长节点，用于教师访谈与个别指导。</p>
             </div>
-            <div className="teacher-insight-timeline">
-              {data.growthRecords.length > 0 ? (
-                data.growthRecords.map((record) => (
-                  <div key={record.id} className="teacher-insight-timeline-item">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <p className="font-medium text-foreground">{record.title}</p>
-                      <span className="text-xs text-subtle">{new Date(record.occurredAt).toLocaleDateString('zh-CN')}</span>
-                    </div>
-                    <p className="mt-2 text-sm text-subtle">{record.description}</p>
-                    <p className="mt-3 text-xs uppercase tracking-[0.16em] text-subtle">{record.recordType}</p>
+            <div className="teacher-insight-timeline mt-4">
+              {data.growthRecords.length > 0 ? data.growthRecords.map((record) => (
+                <div key={record.id} className="teacher-insight-timeline-item">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="font-medium text-foreground">{record.title}</p>
+                    <span className="text-xs text-subtle">{formatDate(record.occurredAt)}</span>
                   </div>
-                ))
-              ) : (
-                <div className="teacher-insight-metric">
-                  <p className="text-sm text-subtle">当前还没有生成成长档案记录。</p>
+                  <p className="mt-2 text-sm text-subtle">{record.description}</p>
                 </div>
-              )}
-            </div>
-          </div>
-
-          <div className="surface-card p-6">
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold text-foreground">推荐动作</h2>
-              <p className="mt-1 text-sm text-subtle">把数据治理结果转成教师可立即执行的干预建议。</p>
-            </div>
-            <div className="space-y-3">
-              {data.recommendations.length > 0 ? (
-                data.recommendations.map((recommendation) => (
-                  <div key={recommendation.id} className="teacher-insight-entry">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="font-medium text-foreground">{recommendation.title}</p>
-                          <span className="teacher-insight-chip teacher-insight-chip-warning">{recommendation.type}</span>
-                        </div>
-                        <p className="mt-2 text-sm text-subtle">{recommendation.description}</p>
-                        <p className="mt-2 text-xs text-subtle">{recommendation.reason}</p>
-                      </div>
-                      <BookOpen className="h-5 w-5 text-amber-500" />
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="teacher-insight-metric">
-                  <p className="text-sm text-subtle">当前没有新的推荐动作。</p>
-                </div>
-              )}
+              )) : <p className="text-sm text-subtle">暂无累计成长事件。</p>}
             </div>
           </div>
         </section>
 
         <section className="surface-card p-6">
-          <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="text-lg font-semibold text-foreground">证据摘要</h2>
-              <p className="mt-1 text-sm text-subtle">按能力维度查看当前画像背后的证据，便于教师理解判断来源。</p>
+              <h2 className="text-lg font-semibold text-foreground">最新活动</h2>
+              <p className="mt-1 text-sm text-subtle">活动按发生时间倒序展示，不作为另一套画像或诊断口径。</p>
             </div>
             <Link
               href={`/teacher/classes/${classId}/students/${studentId}/evidence`}
-              className="btn-ghost-themed inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm"
+              className="btn-ghost-themed inline-flex items-center rounded-lg px-4 py-2 text-sm"
             >
+              <Database className="mr-2 h-4 w-4" />
               查看完整证据
             </Link>
           </div>
-          <div className="grid gap-4 lg:grid-cols-2">
-            {data.evidenceSummary.map((group) => (
-              <div key={group.dimension} className="teacher-insight-metric">
-                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                  <Sparkles className="h-4 w-4 text-sky-500 dark:text-sky-300" />
-                  {group.label}
-                </div>
-                <div className="mt-3 space-y-2">
-                  {group.items.length > 0 ? (
-                    group.items.slice(0, 3).map((item, index) => (
-                      <div key={`${group.dimension}-${index}`} className="rounded-xl border border-border/70 bg-card/80 p-3">
-                        <div className="flex items-start justify-between gap-3">
-                          <p className="text-sm font-medium text-foreground">{formatEvidenceTitle(item)}</p>
-                          <span className={getOutcomeBadgeClass(item.outcome)}>{formatOutcome(item.outcome)}</span>
-                        </div>
-                        {typeof item.score === 'number' && (
-                          <p className="mt-2 text-xs text-subtle">评分 {item.score}</p>
-                        )}
-                        {item.questionSummaries?.slice(0, 2).map((question, questionIndex) => (
-                          <p key={`${question.questionId ?? questionIndex}`} className="mt-2 text-xs text-subtle">
-                            {question.prompt ?? question.questionId ?? '题目'}：{question.studentAnswerRedacted ? '作答已脱敏' : '未记录作答'}
-                            {question.referenceAnswer ? `，参考 ${question.referenceAnswer}` : ''}
-                            {typeof question.isCorrect === 'boolean' ? `，${question.isCorrect ? '正确' : '需修正'}` : ''}
-                          </p>
-                        ))}
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-sm text-subtle">当前维度暂无直接证据。</p>
-                  )}
-                </div>
-              </div>
-            ))}
+          <div className="grid gap-4 lg:grid-cols-3">
+            <ActivityColumn
+              icon={<TrendingUp className="h-4 w-4" />}
+              title="学习事实"
+              items={data.latestActivity.facts.map((fact) => ({
+                id: fact.id,
+                title: fact.lessonId || fact.moduleId || fact.factType,
+                detail: `${fact.outcome}${fact.score === null ? '' : ` · ${fact.score} 分`}`,
+                at: fact.startedAt,
+              }))}
+            />
+            <ActivityColumn
+              icon={<ClipboardList className="h-4 w-4" />}
+              title="持久提交"
+              items={data.latestActivity.durableSubmissions.map((submission) => ({
+                id: submission.id,
+                title: submission.sessionTitle,
+                detail: `${submission.answerCount} 项作答 · ${submission.quality}`,
+                at: submission.submittedAt,
+              }))}
+            />
+            <ActivityColumn
+              icon={<BookOpen className="h-4 w-4" />}
+              title="学习报告"
+              items={data.latestActivity.sessionReports.map((report) => ({
+                id: `${report.sessionId}-${report.updatedAt}`,
+                title: report.title,
+                detail: report.summary || report.status,
+                at: report.updatedAt,
+              }))}
+            />
           </div>
+        </section>
+
+        <section>
+          <DiagnosisSurfacePanel
+            diagnosis={data.goalSpecificDiagnosis}
+            mode="teacher-student"
+            title={`${data.student.name} 的专项学习目标诊断`}
+            description="专项诊断是累计七维能力达成的从属入口，不替代整体画像。"
+          />
         </section>
       </main>
     </div>
   );
 }
 
-function MetricCard({
-  title,
-  value,
-  detail,
-}: {
-  title: string;
-  value: number | string;
-  detail: string;
-}) {
+function StatusShell({ message, children }: { message: string; children?: React.ReactNode }) {
+  return (
+    <div className="teacher-insight-shell flex items-center justify-center">
+      <div className="text-center">
+        <p className="text-subtle">{message}</p>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function MetricCard({ title, value, detail }: { title: string; value: number | string; detail: string }) {
   return (
     <div className="teacher-insight-metric">
       <p className="text-sm text-subtle">{title}</p>
-      <p className="mt-2 text-3xl font-semibold text-foreground">{value}</p>
+      <p className="mt-2 text-2xl font-semibold text-foreground">{value}</p>
       <p className="mt-2 text-xs text-subtle">{detail}</p>
     </div>
   );
 }
 
-type EvidenceSummaryItem = TeacherStudentInsightsPayload['evidenceSummary'][number]['items'][number];
-type EvidenceDrawerFeatureCache = TeacherStudentInsightsPayload['evidenceDrawer']['featureCache'];
-type RecentFactItem = TeacherStudentInsightsPayload['evidenceDrawer']['recentFacts'][number];
-type SessionQualityStatus = TeacherStudentInsightsPayload['evidenceDrawer']['sessionQuality'][number]['qualityStatus'];
-
-function formatEvidenceState(status: EvidenceDrawerFeatureCache): string {
-  if (status.state === 'missing') return '缺少证据';
-  if (status.state === 'stale') return '待刷新';
-  if (status.confidence.level === 'low' || status.statusMarkers.includes('low-confidence')) {
-    return '低置信';
-  }
-  return '可使用';
+function SummaryRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <dt className="text-subtle">{label}</dt>
+      <dd className="mt-1 font-medium text-foreground">{value}</dd>
+    </div>
+  );
 }
 
-function getEvidenceStateChipClass(status: EvidenceDrawerFeatureCache): string {
-  const base = 'teacher-insight-chip';
-  if (status.state === 'missing') return `${base} teacher-insight-chip-pending`;
-  if (status.state === 'stale') return `${base} teacher-insight-chip-warning`;
-  if (status.confidence.level === 'low' || status.statusMarkers.includes('low-confidence')) {
-    return `${base} teacher-insight-chip-warning`;
-  }
-  return `${base} teacher-insight-chip-healthy`;
+function SummaryList({ title, items, empty, warning = false }: {
+  title: string;
+  items: string[];
+  empty: string;
+  warning?: boolean;
+}) {
+  return (
+    <div className="surface-card p-6">
+      <h2 className="text-lg font-semibold text-foreground">{title}</h2>
+      <div className="mt-4 flex flex-wrap gap-2">
+        {items.length > 0 ? items.map((item) => (
+          <span key={item} className={`teacher-insight-chip ${warning ? 'teacher-insight-chip-warning' : 'teacher-insight-chip-healthy'}`}>
+            {item}
+          </span>
+        )) : <p className="text-sm text-subtle">{empty}</p>}
+      </div>
+    </div>
+  );
 }
 
-function formatEvidenceConfidence(status: EvidenceDrawerFeatureCache): string {
-  const label = status.confidence.level === 'high'
-    ? '高置信'
-    : status.confidence.level === 'medium'
-      ? '中置信'
-      : status.confidence.level === 'low'
-        ? '低置信'
-        : '无置信';
-  return `${label} · ${status.confidence.evidenceCount} 条`;
+function ActivityColumn({ icon, title, items }: {
+  icon: React.ReactNode;
+  title: string;
+  items: Array<{ id: string; title: string; detail: string; at: string }>;
+}) {
+  return (
+    <div className="teacher-insight-metric">
+      <div className="flex items-center gap-2 font-medium text-foreground">{icon}{title}</div>
+      <div className="mt-3 space-y-3">
+        {items.length > 0 ? items.map((item) => (
+          <div key={item.id} className="rounded-xl border border-border/70 bg-card/80 p-3">
+            <p className="text-sm font-medium text-foreground">{item.title}</p>
+            <p className="mt-1 text-xs text-subtle">{item.detail}</p>
+            <p className="mt-1 text-xs text-subtle">{formatDate(item.at)}</p>
+          </div>
+        )) : <p className="text-sm text-subtle">暂无活动。</p>}
+      </div>
+    </div>
+  );
 }
 
-function formatFactTitle(fact: RecentFactItem): string {
-  if (fact.lessonId) return fact.lessonId;
-  if (fact.moduleId) return fact.moduleId;
-  if (fact.factType === 'course-evidence') return '课堂证据';
-  if (fact.factType === 'question') return '题目证据';
-  if (fact.factType === 'simulation') return '仿真证据';
-  return fact.factType;
+function formatDate(value: string): string {
+  return new Date(value).toLocaleString('zh-CN');
 }
 
-function formatSessionQuality(status: SessionQualityStatus): string {
-  if (status === 'green') return '绿灯';
-  if (status === 'yellow') return '黄灯';
-  if (status === 'red') return '红灯';
-  return '待判定';
+function formatTrend(value: TeacherStudentInsightsPayload['overview']['lastTrend']): string {
+  if (value === 'up') return '上升';
+  if (value === 'down') return '下降';
+  if (value === 'stable') return '稳定';
+  if (value === 'not-comparable') return '尚无可比状态';
+  return '不可用';
 }
 
-function getSessionQualityChipClass(status: SessionQualityStatus): string {
-  const base = 'teacher-insight-chip';
-  if (status === 'green') return `${base} teacher-insight-chip-healthy`;
-  if (status === 'yellow') return `${base} teacher-insight-chip-warning`;
-  if (status === 'red') return `${base} teacher-insight-risk-high`;
-  return `${base} teacher-insight-chip-pending`;
+function formatRiskType(value: 'constraint' | 'stagnation' | 'cross_domain'): string {
+  if (value === 'constraint') return '约束风险';
+  if (value === 'stagnation') return '停滞风险';
+  return '跨域迁移风险';
 }
 
-function formatEvidenceTitle(item: EvidenceSummaryItem): string {
-  if (item.evidenceTitle) {
-    return item.evidenceTitle;
-  }
-  if (item.factType === 'simulation') return '仿真操作证据';
-  if (item.factType === 'question') return item.stepId ? `课堂作答 ${item.stepId}` : '课堂作答证据';
-  if (item.factType === 'ai_intervention') return 'AI 交互证据';
-  if (item.factType === 'ethical') return '工程伦理证据';
-  return item.factType;
+function formatSeverity(value: 'low' | 'medium' | 'high'): string {
+  if (value === 'high') return '高';
+  if (value === 'medium') return '中';
+  return '低';
 }
 
-function formatOutcome(outcome: string): string {
-  if (outcome === 'success') return '成功';
-  if (outcome === 'failure') return '失败';
-  if (outcome === 'partial') return '部分';
-  return '进行中';
+function formatAvailability(value: string): string {
+  const labels: Record<string, string> = {
+    'no-eligible-evidence': '无合格累计证据',
+    'no-evidence-after-revocation': '证据撤销后无有效画像',
+    'migration-in-progress': '累计画像迁移中',
+    'current-state-unavailable': '累计画像尚未物化',
+    'current-state-version-mismatch': '累计画像版本不匹配',
+    'invalid-current-snapshot': '累计画像校验失败',
+  };
+  return labels[value] ?? value;
 }
 
-function getOutcomeBadgeClass(outcome: string): string {
-  const base = 'shrink-0 rounded px-2 py-0.5 text-xs';
-  if (outcome === 'success') return `${base} bg-emerald-500/20 text-emerald-500`;
-  if (outcome === 'failure') return `${base} bg-red-500/20 text-red-500`;
-  return `${base} bg-amber-500/20 text-amber-500`;
+function formatComparisonAvailability(
+  value: TeacherStudentInsightsPayload['classComparison'][number]['availabilityReason'],
+): string {
+  if (value === 'student-no-evidence') return '学生在该维度无合格证据';
+  if (value === 'class-no-evidence') return '班级在该维度无有效分母';
+  if (value === 'class-portrait-unavailable') return '班级累计画像不可用';
+  return '可比较';
 }
