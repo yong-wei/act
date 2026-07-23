@@ -73,6 +73,12 @@ export function SceneSoundscapeProvider({ children }: { readonly children: React
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unlocked]);
 
+  useEffect(() => () => {
+    // provider 卸载：停止永久环境声源并关闭音频上下文（否则离开页面后声音继续、重进叠加）。
+    busRef.current?.dispose();
+    busRef.current = null;
+  }, []);
+
   const value = useMemo<SceneSoundscapeContextValue>(() => ({
     unlocked,
     muted,

@@ -405,9 +405,11 @@ function TeachingAnnotationsGate({
 function WakeTrailRig({
   simRef,
   playing,
+  resetToken,
 }: {
   simRef: React.MutableRefObject<SimulationState>;
   playing: boolean;
+  resetToken: number;
 }) {
   const transformRef = useRef({ position: [0, 0, 0] as [number, number, number], heading: 0 });
   const waterYRef = useRef(0);
@@ -423,11 +425,13 @@ function WakeTrailRig({
 
   return (
     <WakeTrail
+      key={resetToken}
       profile={destroyer055SceneVisual}
       shipTransform={transformRef.current}
       qualityTier={tier}
       playing={playing}
       waterYSampler={() => waterYRef.current}
+      worldSpeedSampler={() => simRef.current.speedMps}
     />
   );
 }
@@ -1254,7 +1258,7 @@ export default function DestroyerSimulation() {
           simRef={simRef}
           targetHeadingSampler={() => toRadians(scenarioLogic.getDesiredHeading(hudState.time))}
         />
-        <WakeTrailRig simRef={simRef} playing={isRunning} />
+        <WakeTrailRig simRef={simRef} playing={isRunning} resetToken={resetToken} />
         <Suspense
           fallback={(
             <ModelLoadingPlaceholder

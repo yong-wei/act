@@ -20,14 +20,19 @@ function createFakeContext() {
     oscillator: 0,
     biquad: 0,
     resume: 0,
+    sourceStop: 0,
+    close: 0,
   };
-  const context: SoundscapeAudioContextLike & { calls: typeof calls } = {
+  const context: SoundscapeAudioContextLike & { calls: typeof calls; close: () => void } = {
     calls,
     currentTime: 0,
     sampleRate: 44100,
     destination: {},
     resume() {
       calls.resume += 1;
+    },
+    close() {
+      calls.close += 1;
     },
     createGain() {
       calls.gain += 1;
@@ -43,7 +48,9 @@ function createFakeContext() {
         loop: false,
         connect: () => undefined,
         start: () => undefined,
-        stop: () => undefined,
+        stop: () => {
+          calls.sourceStop += 1;
+        },
       };
     },
     createOscillator() {
@@ -129,6 +136,19 @@ describe('soundscape bus', () => {
     expect(context.calls.oscillator).toBe(1);
     bus.playAlert('warning');
     expect(context.calls.oscillator).toBe(3);
+  });
+
+  it('stops the ambience source and closes the audio context on dispose', () => {
+    const context = createFakeContext();
+    const bus = createSoundscapeBus(context);
+    bus.setAmbience('calm-sea');
+    bus.unlock();
+    expect(context.calls.bufferSource).toBeGreaterThan(0);
+    bus.dispose();
+    expect(context.calls.sourceStop).toBe(1);
+    expect(context.calls.close).toBe(1);
+    expect(bus.state).toBe('locked');
+    expect(bus.ambienceKey).toBeNull();
   });
 });
 

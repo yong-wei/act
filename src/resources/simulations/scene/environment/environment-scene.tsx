@@ -6,10 +6,12 @@ import { useFrame } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 
 import { useSceneEnvironment } from './environment-state';
+import { useSceneQuality } from '../quality/quality-state';
 
 /** 平台尺度的环境组成（天空球体/地平线剪影带/云层/光照/雾），全部由当前环境预设驱动。 */
 export function EnvironmentScene() {
   const { preset } = useSceneEnvironment();
+  const { params } = useSceneQuality();
 
   const [skyTexture, horizonTexture, cloudTexture] = useTexture([
     preset.skyTexture,
@@ -49,10 +51,12 @@ export function EnvironmentScene() {
         args={[preset.hemisphere.skyColor, preset.hemisphere.groundColor, preset.hemisphere.intensity]}
       />
       <directionalLight
+        key={`sun-${params.shadowMapSize}`}
         color={preset.sun.color}
         intensity={preset.sun.intensity}
         position={sunPosition}
-        castShadow
+        castShadow={params.shadowsEnabled}
+        shadow-mapSize={params.shadowMapSize}
       />
       <directionalLight color={preset.fill.color} intensity={preset.fill.intensity} position={fillPosition} />
 

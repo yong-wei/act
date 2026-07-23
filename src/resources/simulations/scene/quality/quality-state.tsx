@@ -9,7 +9,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 
 import {
   createQualityGovernor,
@@ -96,8 +96,17 @@ export function useSceneQuality(): SceneQualityContextValue {
 
 /** Canvas 内的帧时间上报驱动：推动 governor 的自动降档并同步回 context（挂一次即可）。 */
 export function SceneQualityDriver({ onTierChange }: { readonly onTierChange?: (tier: QualityTierId) => void }) {
-  const { governor, syncTierFromGovernor } = useSceneQuality();
+  const { governor, syncTierFromGovernor, params } = useSceneQuality();
+  const setDpr = useThree((state) => state.setDpr);
+  const gl = useThree((state) => state.gl);
   const lastRef = useRef(0);
+
+  // 档位渲染器消费：DPR 上限与阴影开关随档位/降档生效。
+  useEffect(() => {
+    setDpr(Math.min(window.devicePixelRatio, params.dprCap));
+    gl.shadowMap.enabled = params.shadowsEnabled;
+    gl.shadowMap.needsUpdate = true;
+  }, [setDpr, gl, params.dprCap, params.shadowsEnabled]);
 
   useFrame(() => {
     const now = performance.now();

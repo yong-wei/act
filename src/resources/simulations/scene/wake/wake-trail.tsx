@@ -42,6 +42,8 @@ export interface WakeTrailProps {
   readonly waterY?: number;
   /** 逐帧采样水面高度的回调（优先级高于 waterY；用于让尾迹随几何涌浪起伏）。 */
   readonly waterYSampler?: () => number;
+  /** 显式航速采样（米/秒，模型语义）：提供时替代位姿差分，保证播放倍率不改变 Froude 活跃度。 */
+  readonly worldSpeedSampler?: () => number;
   /** 是否发射开尔文臂粒子（源默认模式为含开尔文）。 */
   readonly includeKelvin?: boolean;
   /** 样式覆盖：挂载时定型，运行期变更不生效（切档重建除外）。 */
@@ -129,6 +131,7 @@ export function WakeTrail({
   worldShipLength,
   waterY,
   waterYSampler,
+  worldSpeedSampler,
   includeKelvin = true,
   style,
 }: WakeTrailProps) {
@@ -182,11 +185,15 @@ export function WakeTrail({
     state.simTime += dt;
 
     const { position, heading } = shipTransform;
-    let worldSpeed = 0;
+    let worldSpeed = worldSpeedSampler?.() ?? 0;
+    if (worldSpeedSampler === undefined) {
+      if (state.lastX !== null && state.lastZ !== null && dt > 1e-6) {
+        const distance = Math.hypot(position[0] - state.lastX, position[2] - state.lastZ);
+        worldSpeed = distance / dt;
+      }
+    }
     if (state.lastX !== null && state.lastZ !== null && dt > 1e-6) {
-      const distance = Math.hypot(position[0] - state.lastX, position[2] - state.lastZ);
-      worldSpeed = distance / dt;
-      state.pathLength += distance;
+      state.pathLength += Math.hypot(position[0] - state.lastX, position[2] - state.lastZ);
     }
     state.lastX = position[0];
     state.lastZ = position[2];

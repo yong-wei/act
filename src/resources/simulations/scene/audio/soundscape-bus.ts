@@ -177,6 +177,15 @@ export function createSoundscapeBus(context: SoundscapeAudioContextLike) {
       muted = false;
       masterGain?.gain.setTargetAtTime(1, context.currentTime, 0.02);
     },
+    /** 释放环境声源与音频上下文（provider 卸载时调用；释放后回到未解锁态）。 */
+    dispose() {
+      ambienceChain?.source.stop();
+      ambienceChain = null;
+      ambienceKey = null;
+      masterGain = null;
+      (context as SoundscapeAudioContextLike & { close?: () => void }).close?.();
+      state = 'locked';
+    },
   };
 }
 
