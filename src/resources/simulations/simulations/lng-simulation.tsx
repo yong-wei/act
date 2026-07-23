@@ -760,7 +760,7 @@ export function LNGSimulation() {
       {/* 视角切换器 */}
       <CameraViewSwitcher
         currentMode={cameraMode}
-        onModeChange={setCameraMode}
+        onModeChange={(mode) => setCameraMode(mode as CameraMode)}
         gridEnabled={showGrid}
         onToggleGrid={() => setShowGrid((previous) => !previous)}
         speedScale={speedScale}

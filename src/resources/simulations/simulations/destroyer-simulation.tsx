@@ -5,9 +5,9 @@
  * 模块化重构版本 - 使用统一物理引擎和控制器
  */
 
-import { Suspense, useState, useRef, useCallback, useEffect, useMemo, useLayoutEffect } from 'react';
-import { Canvas, useFrame, useThree, extend, type ReactThreeFiber } from '@react-three/fiber';
-import { Line, useGLTF, PerspectiveCamera, shaderMaterial, OrbitControls } from '@react-three/drei';
+import { Suspense, Component, useState, useRef, useCallback, useEffect, useMemo, type ReactNode } from 'react';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { Line, useGLTF, PerspectiveCamera, OrbitControls } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 import { SimulationClock } from '@/lib/simulation';
@@ -22,6 +22,10 @@ import {
   Compass,
   Gauge,
   Timer,
+  Video,
+  Orbit,
+  Undo2,
+  ArrowDownFromLine,
 } from 'lucide-react';
 import { Chart, registerables } from 'chart.js';
 
@@ -33,6 +37,34 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 
 import { destroyer055Profile } from '../profiles/destroyer-055';
+import { destroyer055SceneVisual } from '../profiles/destroyer-055-scene';
+import { computeGerstnerDisplacement, GERSTNER_WAVE_SETS, GerstnerWater } from '../scene/water';
+import { WakeTrail } from '../scene/wake';
+import {
+  EnvironmentPresetSwitcher,
+  EnvironmentScene,
+  SceneEnvironmentProvider,
+  useEnvironmentWaterColors,
+} from '../scene/environment';
+import {
+  SceneSoundscapeProvider,
+  SoundscapeAmbienceDriver,
+  SoundscapeMuteToggle,
+} from '../scene/audio';
+import {
+  ActualPathTrail,
+  TeachingAnnotations,
+  TeachingAnnotationsProvider,
+  TeachingAnnotationsToggle,
+  useTeachingAnnotations,
+} from '../scene/annotations';
+import {
+  SceneQualityDriver,
+  SceneQualityProvider,
+  SceneQualitySelect,
+  useSceneQuality,
+} from '../scene/quality';
+import { ScenePostEffects } from '../scene/post';
 import type { ControlMode, PIDGains } from '../core/types';
 import {
   clamp,
@@ -41,11 +73,8 @@ import {
   DEFAULT_NOMOTO_PARAMS,
   DEFAULT_PID_GAINS,
 } from '../core/constants';
-import {
-  UnifiedCameraController,
-  RightClickFreeModeBridge,
-  type CameraMode,
-} from '../components/camera-controller';
+import { RightClickFreeModeBridge } from '../components/camera-controller';
+import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
 import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder';
 import { SimulationTopBar, SimulationDock, SimulationAssessmentPanel, simulationUi } from '../components/simulation-ui';
@@ -129,6 +158,13 @@ const shipDimensions = {
   width: destroyer055Profile.dimensions.beam,
   draft: destroyer055Profile.dimensions.draft,
 };
+
+const CAMERA_SHOT_VIEWS = [
+  { id: SCENE_CAMERA_SHOTS.chase.id, label: '跟船', shortLabel: '跟', icon: Video, description: SCENE_CAMERA_SHOTS.chase.description },
+  { id: SCENE_CAMERA_SHOTS.orbit.id, label: '环绕', shortLabel: '环', icon: Orbit, description: SCENE_CAMERA_SHOTS.orbit.description },
+  { id: SCENE_CAMERA_SHOTS.retreat.id, label: '退却', shortLabel: '退', icon: Undo2, description: SCENE_CAMERA_SHOTS.retreat.description },
+  { id: SCENE_CAMERA_SHOTS.topDown.id, label: '顶视', shortLabel: '顶', icon: ArrowDownFromLine, description: SCENE_CAMERA_SHOTS.topDown.description },
+];
 
 const waveParams = [
   { amplitude: 1.2, frequency: 0.018, speed: 0.9, direction: { x: 1.0, z: 0.1 } },
@@ -254,248 +290,21 @@ const getCrossTrackError = (position: THREE.Vector3, guidePath: THREE.Vector3[])
   return minDist;
 };
 
-// ============ 着色器材质 ============
-
-const WaterShaderMaterial = shaderMaterial(
-  {
-    uTime: 0,
-    uColor: new THREE.Color(simulationScenePalette.destroyerWater),
-    uFoamColor: new THREE.Color(simulationScenePalette.white),
-    uSunPosition: new THREE.Vector3(200, 150, 200),
-  },
-  // Vertex Shader
-  `
-    uniform float uTime;
-    varying vec2 vUv;
-    varying float vElevation;
-    varying vec3 vNormal;
-    varying vec3 vViewPosition;
-
-    const int WAVE_COUNT = 5;
-
-    const float waves[25] = float[](
-      1.2, 0.018, 0.9, 1.0, 0.1,
-      0.9, 0.035, 1.1, 0.4, 0.9,
-      0.6, 0.06,  1.3, -0.6, 0.5,
-      0.35, 0.12, 1.6, 0.3, -0.7,
-      0.15, 0.25, 2.0, -0.5, -0.6
-    );
-
-    void main() {
-      vUv = uv;
-      vec3 pos = position;
-      float elevation = 0.0;
-      float dHdx = 0.0;
-      float dHdz = 0.0;
-
-      for(int i = 0; i < WAVE_COUNT; i++) {
-        int idx = i * 5;
-        float amp = waves[idx];
-        float freq = waves[idx + 1];
-        float speed = waves[idx + 2];
-        float dx = waves[idx + 3];
-        float dz = waves[idx + 4];
-
-        float phase = (pos.x * dx + pos.z * dz) * freq + uTime * speed;
-        elevation += amp * sin(phase);
-
-        float derivative = amp * cos(phase) * freq;
-        dHdx += derivative * dx;
-        dHdz += derivative * dz;
-      }
-
-      pos.y += elevation;
-      vElevation = elevation;
-
-      vec3 normal = normalize(vec3(-dHdx, 1.0, -dHdz));
-      vNormal = normalMatrix * normal;
-
-      vec4 modelPosition = modelMatrix * vec4(pos, 1.0);
-      vec4 viewPosition = viewMatrix * modelPosition;
-      vViewPosition = viewPosition.xyz;
-
-      gl_Position = projectionMatrix * viewPosition;
-    }
-  `,
-  // Fragment Shader
-  `
-    uniform vec3 uColor;
-    uniform vec3 uFoamColor;
-    uniform vec3 uSunPosition;
-
-    varying float vElevation;
-    varying vec3 vNormal;
-    varying vec3 vViewPosition;
-    varying vec2 vUv;
-
-    float random(vec2 st) {
-      return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
-    }
-
-    float noise(vec2 st) {
-      vec2 i = floor(st);
-      vec2 f = fract(st);
-      float a = random(i);
-      float b = random(i + vec2(1.0, 0.0));
-      float c = random(i + vec2(0.0, 1.0));
-      float d = random(i + vec2(1.0, 1.0));
-      vec2 u = f * f * (3.0 - 2.0 * f);
-      return mix(a, b, u.x) + (c - a)* u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
-    }
-
-    void main() {
-      vec3 viewDirection = normalize(-vViewPosition);
-      vec3 normal = normalize(vNormal);
-      vec3 sunDir = normalize(uSunPosition);
-
-      float light = max(dot(normal, sunDir), 0.0);
-      float specular = pow(max(dot(reflect(-sunDir, normal), viewDirection), 0.0), 64.0);
-      float fresnel = pow(1.0 - max(dot(viewDirection, normal), 0.0), 3.0);
-
-      float noiseVal = noise(vUv * 300.0);
-      float foamThreshold = 0.9;
-      float foamFactor = smoothstep(foamThreshold, foamThreshold + 0.3, vElevation + noiseVal * 0.4);
-
-      vec3 waterColor = mix(uColor * 0.5, uColor * 1.3, light * 0.7 + 0.3);
-      vec3 finalColor = mix(waterColor, vec3(0.7, 0.85, 0.95), fresnel * 0.4);
-      finalColor += vec3(specular * 0.4);
-      finalColor = mix(finalColor, uFoamColor, foamFactor * 0.85);
-
-      gl_FragColor = vec4(finalColor, 0.92);
-
-      #include <tonemapping_fragment>
-      #include <colorspace_fragment>
-    }
-  `
-);
-
-extend({ WaterShaderMaterial });
-
-// 类型声明在 environment/wave-water.tsx 中定义
-
 // ============ 3D 组件 ============
 
-function seededRandom(seed: number) {
-  let value = seed;
-  return () => {
-    value = (value * 9301 + 49297) % 233280;
-    return value / 233280;
-  };
-}
-
-function SkyDome({ sceneTheme }: { sceneTheme: SimulationSceneTheme }) {
-  const geometry = useMemo(() => {
-    const geo = new THREE.SphereGeometry(10000, 64, 64);
-    const colors: number[] = [];
-    const positions = geo.attributes.position;
-
-    for (let i = 0; i < positions.count; i++) {
-      const y = positions.getY(i);
-      const normalizedY = (y / 10000 + 1) / 2;
-
-      const horizonColor = new THREE.Color(sceneTheme.skyHorizonColor);
-      const zenithColor = new THREE.Color(sceneTheme.skyZenithColor);
-      const blendFactor = Math.pow(Math.max(0, normalizedY - 0.5) * 2, 0.6);
-      const color = horizonColor.clone().lerp(zenithColor, blendFactor);
-
-      colors.push(color.r, color.g, color.b);
-    }
-
-    geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-    return geo;
-  }, [sceneTheme.skyHorizonColor, sceneTheme.skyZenithColor]);
-
+/** 海面颜色随环境预设驱动、水面细分随质量档位驱动的桥接组件（Canvas 内消费 provider 状态）。 */
+function PresetWater({ simRef }: { simRef: React.MutableRefObject<SimulationState> }) {
+  const water = useEnvironmentWaterColors();
+  const { params } = useSceneQuality();
   return (
-    <mesh geometry={geometry}>
-      <meshBasicMaterial vertexColors side={THREE.BackSide} />
-    </mesh>
-  );
-}
-
-function ProceduralClouds() {
-  const cloudsRef = useRef<THREE.InstancedMesh>(null);
-
-  const cloudInstances = useMemo(() => {
-    const random = seededRandom(42);
-    const instances: Array<{
-      position: THREE.Vector3;
-      scale: THREE.Vector3;
-      rotation: number;
-    }> = [];
-
-    for (let i = 0; i < 50; i++) {
-      const angle = random() * Math.PI * 2;
-      const distance = 3000 + random() * 4000;
-      const height = 800 + random() * 600;
-      const size = 80 + random() * 150;
-
-      instances.push({
-        position: new THREE.Vector3(
-          Math.cos(angle) * distance,
-          height,
-          Math.sin(angle) * distance
-        ),
-        scale: new THREE.Vector3(size, size * 0.4, size * 0.7),
-        rotation: random() * Math.PI * 2,
-      });
-    }
-
-    return instances;
-  }, []);
-
-  useLayoutEffect(() => {
-    if (!cloudsRef.current) return;
-
-    const tempMatrix = new THREE.Matrix4();
-    cloudInstances.forEach((cloud, i) => {
-      tempMatrix.makeRotationY(cloud.rotation);
-      tempMatrix.setPosition(cloud.position);
-      tempMatrix.scale(cloud.scale);
-      cloudsRef.current!.setMatrixAt(i, tempMatrix);
-    });
-
-    cloudsRef.current.instanceMatrix.needsUpdate = true;
-  }, [cloudInstances]);
-
-  return (
-    <instancedMesh ref={cloudsRef} args={[undefined, undefined, 50]}>
-      <sphereGeometry args={[1, 8, 8]} />
-      <meshBasicMaterial color={simulationScenePalette.white} transparent opacity={0.8} side={THREE.DoubleSide} />
-    </instancedMesh>
-  );
-}
-
-function WaveWater({
-  simRef,
-  sceneTheme,
-}: {
-  simRef: React.MutableRefObject<SimulationState>;
-  sceneTheme: SimulationSceneTheme;
-}) {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const materialRef = useRef<THREE.ShaderMaterial>(null);
-
-  const geometry = useMemo(() => new THREE.PlaneGeometry(60000, 60000, 512, 512), []);
-
-  useFrame((state) => {
-    const time = state.clock.getElapsedTime();
-
-    if (meshRef.current) {
-      meshRef.current.position.x = simRef.current.position.x;
-      meshRef.current.position.z = simRef.current.position.z;
-    }
-
-    if (materialRef.current) {
-      materialRef.current.uniforms.uTime.value = time;
-      materialRef.current.uniforms.uColor.value.set(sceneTheme.waterColor);
-      materialRef.current.uniforms.uFoamColor.value.set(sceneTheme.foamColor);
-    }
-  });
-
-  return (
-    <mesh ref={meshRef} geometry={geometry} rotation={[-Math.PI / 2, 0, 0]} position={[0, -1, 0]}>
-      <waterShaderMaterial ref={materialRef} side={THREE.DoubleSide} transparent />
-    </mesh>
+    <GerstnerWater
+      tier={params.waterTier}
+      positionSampler={() => ({ x: simRef.current.position.x, z: simRef.current.position.z })}
+      waterColor={water.waterColor}
+      deepColor={water.deepColor}
+      horizonColor={water.horizonColor}
+      foamColor="#f4fbff"
+    />
   );
 }
 
@@ -556,110 +365,112 @@ function GuideRoute({ points }: { points: THREE.Vector3[] }) {
   return <Line points={points} color={simulationScenePalette.danger} lineWidth={3} dashed={false} />;
 }
 
-function ShipTrail({
-  simRef,
-  resetToken,
-}: {
-  simRef: React.MutableRefObject<SimulationState>;
-  resetToken: number;
-}) {
-  return <ShipTrailContent key={resetToken} simRef={simRef} />;
-}
-
-function ShipTrailContent({
-  simRef,
-}: {
-  simRef: React.MutableRefObject<SimulationState>;
-}) {
-  const [points, setPoints] = useState<THREE.Vector3[]>([]);
-  const lastRecordRef = useRef(0);
-
-  useFrame((state) => {
-    const time = state.clock.getElapsedTime();
-    if (time - lastRecordRef.current < 0.25) return;
-    lastRecordRef.current = time;
-
-    setPoints((prev) => {
-      const next = [...prev, simRef.current.position.clone().setY(0.7)];
-      return next.length > 4000 ? next.slice(-4000) : next;
-    });
-  });
-
-  if (points.length < 2) return null;
-
-  return <Line points={points} color={simulationScenePalette.success} lineWidth={2} />;
-}
-
-function ShipWake({ simRef }: { simRef: React.MutableRefObject<SimulationState> }) {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const wakeLength = 150;
-  const wakeWidth = 35;
-  const segments = 12;
-
-  const { geometry } = useMemo(() => {
-    const positions: number[] = [];
-    const colors: number[] = [];
-    const indices: number[] = [];
-
-    positions.push(0, 0.5, 0);
-    colors.push(1, 1, 1, 0.85);
-
-    for (let i = 1; i <= segments; i++) {
-      const t = i / segments;
-      const x = -t * wakeLength;
-      const spreadHalf = t * wakeWidth * 0.5;
-      const alpha = (1 - t) * 0.7;
-
-      positions.push(x, 0.3, spreadHalf);
-      colors.push(1, 1, 1, alpha);
-
-      positions.push(x, 0.3, -spreadHalf);
-      colors.push(1, 1, 1, alpha);
-    }
-
-    indices.push(0, 1, 2);
-
-    for (let i = 1; i < segments; i++) {
-      const leftCurr = i * 2 - 1;
-      const rightCurr = i * 2;
-      const leftNext = (i + 1) * 2 - 1;
-      const rightNext = (i + 1) * 2;
-
-      indices.push(leftCurr, leftNext, rightNext);
-      indices.push(leftCurr, rightNext, rightCurr);
-    }
-
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 4));
-    geo.setIndex(indices);
-    geo.computeVertexNormals();
-
-    return { geometry: geo };
-  }, []);
-
-  useFrame(() => {
-    if (!meshRef.current) return;
-    const sim = simRef.current;
-
-    meshRef.current.position.set(sim.position.x, 0, sim.position.z);
-    meshRef.current.rotation.y = -sim.headingRad + Math.PI / 2 + Math.PI;
-  });
-
+/** QA 钩子：把质量档位与派生预算暴露为 DOM 属性（性能 spec 与视觉 QA 消费）。 */
+function SceneQualityAttributes() {
+  const { tier, override, params } = useSceneQuality();
   return (
-    <mesh ref={meshRef} geometry={geometry}>
-      <meshBasicMaterial vertexColors transparent side={THREE.DoubleSide} />
-    </mesh>
+    <span
+      hidden
+      data-scene-quality-tier={tier}
+      data-scene-quality-override={override ?? ''}
+      data-wake-particle-cap={Math.round(2200 * params.particleScale)}
+      data-water-tier={params.waterTier}
+      data-post-enabled={params.postEnabled}
+    />
   );
 }
 
-/** 驱逐舰3D模型 */
+/** 教学标注开关门控：默认关闭，开启时显示航向弧线/目标航线/方向箭头/世界标签。 */
+function TeachingAnnotationsGate({
+  simRef,
+  targetHeadingSampler,
+}: {
+  simRef: React.MutableRefObject<SimulationState>;
+  targetHeadingSampler: () => number | undefined;
+}) {
+  const { showAnnotations } = useTeachingAnnotations();
+  if (!showAnnotations) return null;
+  return (
+    <TeachingAnnotations
+      positionSampler={() => simRef.current.position}
+      headingSampler={() => simRef.current.headingRad}
+      targetHeadingSampler={targetHeadingSampler}
+      shipLength={shipDimensions.length}
+      label="055型驱逐舰"
+    />
+  );
+}
+
+/** 尾迹粒子场桥接：逐帧喂入船位/航向与 Gerstner 波面高度（采样点=船位=海面跟随中心）。 */
+function WakeTrailRig({
+  simRef,
+  playing,
+}: {
+  simRef: React.MutableRefObject<SimulationState>;
+  playing: boolean;
+}) {
+  const transformRef = useRef({ position: [0, 0, 0] as [number, number, number], heading: 0 });
+  const waterYRef = useRef(0);
+  const { tier, params } = useSceneQuality();
+
+  useFrame((state) => {
+    const sim = simRef.current;
+    transformRef.current.position = [sim.position.x, sim.position.y, sim.position.z];
+    transformRef.current.heading = sim.headingRad;
+    const time = state.clock.getElapsedTime();
+    waterYRef.current = -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], 0, 0, time).y;
+  });
+
+  return (
+    <WakeTrail
+      profile={destroyer055SceneVisual}
+      shipTransform={transformRef.current}
+      qualityTier={tier}
+      playing={playing}
+      waterYSampler={() => waterYRef.current}
+    />
+  );
+}
+
+// drei 的 useGLTF 第三参 useMeshopt=true 时内部装配 three-stdlib MeshoptDecoder（运行时解码）。
+const OPTIMIZED_MODEL_URL = '/assets/models-opt/destroyer.glb';
+const ORIGINAL_MODEL_URL = '/assets/destroyer.glb';
+
+/** meshopt 模型加载失败的回退边界：回退到原始 GLB（构建期 fallback 的运行时对偶）。 */
+class ModelAssetErrorBoundary extends Component<
+  { fallback: ReactNode; children: ReactNode },
+  { failed: boolean }
+> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  render() {
+    return this.state.failed ? this.props.fallback : this.props.children;
+  }
+}
+
+/** 驱逐舰3D模型（优先 meshopt 压缩资产，失败回退原始 GLB） */
 function DestroyerModel({
   simRef,
 }: {
   simRef: React.MutableRefObject<SimulationState>;
 }) {
-  const { scene } = useGLTF('/assets/destroyer.glb');
+  return (
+    <ModelAssetErrorBoundary fallback={<DestroyerModelScene url={ORIGINAL_MODEL_URL} simRef={simRef} />}>
+      <DestroyerModelScene url={OPTIMIZED_MODEL_URL} simRef={simRef} />
+    </ModelAssetErrorBoundary>
+  );
+}
+
+function DestroyerModelScene({
+  url,
+  simRef,
+}: {
+  url: string;
+  simRef: React.MutableRefObject<SimulationState>;
+}) {
+  const { scene } = useGLTF(url, true, true);
   const groupRef = useRef<THREE.Group>(null);
 
   const { model, scale, modelHeight } = useMemo(() => {
@@ -676,6 +487,9 @@ function DestroyerModel({
       if (child instanceof THREE.Mesh) {
         child.castShadow = true;
         child.receiveShadow = true;
+        // meshopt 量化解码后几何包围球处于量化空间，按视锥剔除会在多数视角误剔除；
+        // 主模型关闭 frustumCulled（单艘船的成本可忽略，见 change design 第 7 节）。
+        child.frustumCulled = false;
       }
     });
 
@@ -705,7 +519,7 @@ function DestroyerModel({
   );
 }
 
-useGLTF.preload('/assets/destroyer.glb');
+useGLTF.preload(OPTIMIZED_MODEL_URL);
 
 
 /** 仿真物理引擎 */
@@ -1300,7 +1114,7 @@ export default function DestroyerSimulation() {
   const [isRunning, setIsRunning] = useState(false);
   const [controlMode, setControlMode] = useState<ControlMode>('pid');
   const [pidGains, setPidGains] = useState<PIDGains>(DEFAULT_PID_GAINS);
-  const [cameraMode, setCameraMode] = useState<CameraMode>('chase');
+  const [cameraMode, setCameraMode] = useState<string>('chase');
   const [showGrid, setShowGrid] = useState(true);
   const [speedScale, setSpeedScale] = useState(1);
   const sceneTheme = useSimulationSceneTheme();
@@ -1416,21 +1230,31 @@ export default function DestroyerSimulation() {
   }
 
   return (
+    <SceneEnvironmentProvider>
+    <SceneSoundscapeProvider>
+    <TeachingAnnotationsProvider>
+    <SceneQualityProvider>
     <div className={simulationUi.root} data-sim-ui>
+      <SceneQualityAttributes />
       <Canvas shadows={{ type: THREE.PCFShadowMap }}>
         <PerspectiveCamera makeDefault position={[0, 200, 500]} fov={60} near={1} far={50000} />
 
-        <ambientLight intensity={sceneTheme.ambientLightIntensity} />
-        <directionalLight position={[200, 300, 200]} intensity={sceneTheme.directionalLightIntensity} castShadow />
-
-        <fog attach="fog" args={[sceneTheme.fogColor, 4500, 18000]} />
-        <SkyDome sceneTheme={sceneTheme} />
-        <ProceduralClouds />
-        <WaveWater simRef={simRef} sceneTheme={sceneTheme} />
+        <Suspense fallback={null}>
+          <EnvironmentScene />
+        </Suspense>
+        <SoundscapeAmbienceDriver />
+        <SceneQualityDriver />
+        <Suspense fallback={null}>
+          <PresetWater simRef={simRef} />
+        </Suspense>
         {showGrid ? <GridHelper simRef={simRef} sceneTheme={sceneTheme} /> : null}
         <GuideRoute points={guidePath} />
-        <ShipTrail simRef={simRef} resetToken={resetToken} />
-        <ShipWake simRef={simRef} />
+        <ActualPathTrail positionSampler={() => simRef.current.position} resetToken={resetToken} />
+        <TeachingAnnotationsGate
+          simRef={simRef}
+          targetHeadingSampler={() => toRadians(scenarioLogic.getDesiredHeading(hudState.time))}
+        />
+        <WakeTrailRig simRef={simRef} playing={isRunning} />
         <Suspense
           fallback={(
             <ModelLoadingPlaceholder
@@ -1452,10 +1276,11 @@ export default function DestroyerSimulation() {
           maxPolarAngle={Math.PI / 2.1}
         />
         <RightClickFreeModeBridge onRequestFreeMode={() => setCameraMode('free')} />
-        <UnifiedCameraController
-          position={{ x: simRef.current.position.x, z: simRef.current.position.z }}
-          headingRad={simRef.current.headingRad}
-          cameraMode={cameraMode}
+        <StayPutCameraController
+          view={cameraMode}
+          positionSampler={() => ({ x: simRef.current.position.x, z: simRef.current.position.z })}
+          headingSampler={() => simRef.current.headingRad}
+          shipLength={shipDimensions.length}
           controlsRef={controlsRef}
         />
         <SimulationEngine
@@ -1472,6 +1297,7 @@ export default function DestroyerSimulation() {
           onHudUpdate={setHudState}
           onChartDataUpdate={handleChartDataUpdate}
         />
+        <ScenePostEffects />
       </Canvas>
 
       <SimulationDock
@@ -1531,6 +1357,7 @@ export default function DestroyerSimulation() {
       <CameraViewSwitcher
         currentMode={cameraMode}
         onModeChange={setCameraMode}
+        views={CAMERA_SHOT_VIEWS}
         gridEnabled={showGrid}
         onToggleGrid={() => setShowGrid((previous) => !previous)}
         speedScale={speedScale}
@@ -1539,11 +1366,20 @@ export default function DestroyerSimulation() {
         className={simulationUi.cameraSwitcherPosition}
       />
 
+      <EnvironmentPresetSwitcher className="absolute bottom-32 left-1/2 z-20 flex -translate-x-1/2 gap-1 rounded-lg border border-platform-border bg-platform-canvas/70 px-1 py-0.5 backdrop-blur" />
+      <SoundscapeMuteToggle className="absolute bottom-32 right-4 z-20 rounded-md border border-platform-border bg-platform-canvas/70 px-2 py-1 text-xs text-platform-fg-muted backdrop-blur hover:text-platform-fg-primary" />
+      <TeachingAnnotationsToggle className="absolute bottom-32 right-24 z-20 rounded-md border border-platform-border bg-platform-canvas/70 px-2 py-1 text-xs text-platform-fg-muted backdrop-blur hover:text-platform-fg-primary" />
+      <SceneQualitySelect className="absolute bottom-32 left-4 z-20 flex gap-1 rounded-lg border border-platform-border bg-platform-canvas/70 px-1 py-0.5 backdrop-blur" />
+
       <SimulationTopBar
         title="055型驱逐舰战术机动仿真"
         subtitle="高保真航向控制 · 任务场景切换"
         badge="Destroyer / OBE"
       />
     </div>
+    </SceneQualityProvider>
+    </TeachingAnnotationsProvider>
+    </SceneSoundscapeProvider>
+    </SceneEnvironmentProvider>
   );
 }

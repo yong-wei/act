@@ -87,3 +87,6 @@ unit41-step*.png
 
 # SkillOpt-Sleep local runtime
 /.skillopt-sleep/
+
+# GLB meshopt 压缩产物：由 npm run models:optimize 在构建链路生成，运行时缺失自动回退原始 GLB
+public/assets/models-opt/
