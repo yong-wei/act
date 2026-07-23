@@ -62,6 +62,15 @@ describe('smart courseware PDF export', () => {
     });
   });
 
+  it('reserves a distinct label area when a valid step title spans two lines', async () => {
+    const manifest = validCoursewareManifest();
+    manifest.stages[0].steps[0].title = '二阶控制系统阻尼比自然频率与动态响应特性的综合分析和工程应用'.repeat(2);
+
+    await expect(createPublishedCoursewarePdf(input(manifest))).resolves.toMatchObject({
+      artifact: { pageCount: 6 },
+    });
+  });
+
   it('fails closed when a slide no longer fits the fixed student projection', () => {
     const manifest = validCoursewareManifest();
     manifest.stages[0].steps[0].modules[0] = {

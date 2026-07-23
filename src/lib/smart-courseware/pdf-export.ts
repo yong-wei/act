@@ -23,7 +23,7 @@ export const SMART_COURSEWARE_PDF_RENDERER_VERSION = 'smart-courseware-pdf-expor
 export const SMART_COURSEWARE_PDF_PAGE = Object.freeze({ width: 960, height: 540, aspectRatio: '16:9' as const });
 
 const PDF_PAGE_PADDING = 24;
-const PDF_HEADER_HEIGHT = 54;
+const PDF_HEADER_HEIGHT = 76;
 const PDF_FOOTER_HEIGHT = 22;
 const PDF_CONTENT_HEIGHT = SMART_COURSEWARE_PDF_PAGE.height - PDF_HEADER_HEIGHT - PDF_FOOTER_HEIGHT - PDF_PAGE_PADDING * 2;
 const PDF_CONTENT_WIDTH = SMART_COURSEWARE_PDF_PAGE.width - PDF_PAGE_PADDING * 2;
@@ -235,7 +235,7 @@ function assertStudentPdfProjection(projection: StudentPdfProjection, manifest: 
 async function drawStudentPdfSlide(page: PDFPage, slide: StudentPdfSlideProjection, fonts: PdfFontResolver) {
   page.drawRectangle({ x: 0, y: 0, width: SMART_COURSEWARE_PDF_PAGE.width, height: SMART_COURSEWARE_PDF_PAGE.height, color: rgb(0.975, 0.98, 0.99) });
   await drawWrappedText(page, slide.title, PDF_PAGE_PADDING, SMART_COURSEWARE_PDF_PAGE.height - PDF_PAGE_PADDING - 18, PDF_CONTENT_WIDTH * 0.65, 18, 22, rgb(0.08, 0.12, 0.2), fonts, 2);
-  await drawWrappedText(page, slide.coursewareLabel, PDF_PAGE_PADDING, SMART_COURSEWARE_PDF_PAGE.height - PDF_PAGE_PADDING - 39, PDF_CONTENT_WIDTH, 10, 13, rgb(0.24, 0.32, 0.45), fonts, 1);
+  await drawWrappedText(page, slide.coursewareLabel, PDF_PAGE_PADDING, SMART_COURSEWARE_PDF_PAGE.height - PDF_PAGE_PADDING - 61, PDF_CONTENT_WIDTH, 10, 13, rgb(0.24, 0.32, 0.45), fonts, 1);
   await drawWrappedText(page, slide.notice, PDF_PAGE_PADDING, PDF_PAGE_PADDING + 5, PDF_CONTENT_WIDTH, 9, 12, rgb(0.24, 0.32, 0.45), fonts, 1);
 
   const layout = GENERATED_SLIDE_LAYOUT_REGISTRY[slide.layoutId as keyof typeof GENERATED_SLIDE_LAYOUT_REGISTRY];
