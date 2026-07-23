@@ -48,6 +48,35 @@ export function SmartCoursewarePublicationPanel({ sourceRevisionId }: { sourceRe
     }
   }
 
+  async function exportPdf() {
+    if (!state?.publication) return;
+    setBusyAction('pdf');
+    setMessage('');
+    try {
+      const response = await fetch(`/api/teacher/smart-courseware/publications/${encodeURIComponent(state.publication.id)}/pdf`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ idempotencyKey: `courseware-pdf:${state.publication.id}:${crypto.randomUUID()}` }),
+      });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.error?.code ?? 'courseware-pdf-export-failed');
+      }
+      const artifact = await response.blob();
+      const url = URL.createObjectURL(artifact);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = `${state.publication.displayName}.pdf`;
+      anchor.click();
+      URL.revokeObjectURL(url);
+      setMessage('学生安全版 PDF 已生成。');
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'courseware-pdf-export-failed');
+    } finally {
+      setBusyAction(null);
+    }
+  }
+
   return <section className="rounded-xl border border-border bg-background p-4 sm:p-5" data-courseware-publication data-publication-theme-surface="adaptive" aria-labelledby="courseware-publication-heading">
     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
       <div><p className="text-xs font-medium text-primary">发布到课堂</p><h2 id="courseware-publication-heading" className="mt-1 text-lg font-semibold">确定性发布检查</h2><p className="mt-1 break-all text-sm text-subtle">批准版本 {sourceRevisionId}</p></div>
@@ -66,7 +95,7 @@ export function SmartCoursewarePublicationPanel({ sourceRevisionId }: { sourceRe
         return <div key={key} className="min-w-0 rounded-lg border border-border p-3" data-publication-gap={gap.scope.toLowerCase()}><p className="break-all text-sm font-medium">{gap.scope === 'GOAL' ? '教学目标' : '课件模块'} · {gap.targetId}</p><p className="mt-1 text-xs text-subtle">{gap.sourceState}</p>{gap.acknowledged ? <p className="mt-2 text-sm text-emerald-700 dark:text-emerald-300">已由当前教师确认</p> : <div className="mt-2 flex flex-col gap-2 sm:flex-row"><input aria-label={`${gap.targetId} 确认理由`} value={reasons[key] ?? ''} onChange={(event) => setReasons((current) => ({ ...current, [key]: event.target.value }))} className="min-w-0 flex-1 rounded border border-border bg-background px-3 py-2 text-sm" placeholder="填写该待补项仍可发布的理由" /><button type="button" disabled={Boolean(busyAction) || !(reasons[key] ?? '').trim()} onClick={() => void act({ action: 'acknowledge-gap', scope: gap.scope, targetId: gap.targetId, gapIdentity: gap.gapIdentity, reason: reasons[key] }, key)} className="shrink-0 rounded border border-border px-3 py-2 text-sm disabled:opacity-50">逐项确认</button></div>}</div>;
       })}</div> : <p className="text-sm text-emerald-700 dark:text-emerald-300" data-publication-gaps="resolved">没有未解决的来源待补项。</p>}
       {state.stalePlan ? <div className="rounded-lg border border-amber-500/40 p-3" data-publication-stale-plan><p className="text-sm">当前课件基于教案第 {state.stalePlan.baselineRevisionNumber} 版，最新为第 {state.stalePlan.newestRevisionNumber} 版。</p>{state.stalePlan.acknowledged ? <p className="mt-2 text-sm text-emerald-700 dark:text-emerald-300">版本差异已确认</p> : <div className="mt-2 flex flex-col gap-2 sm:flex-row"><input aria-label="旧教案基线确认理由" value={reasons.stale ?? ''} onChange={(event) => setReasons((current) => ({ ...current, stale: event.target.value }))} className="min-w-0 flex-1 rounded border border-border bg-background px-3 py-2 text-sm" placeholder="填写仍使用旧教案版本的理由" /><button type="button" disabled={Boolean(busyAction) || !(reasons.stale ?? '').trim()} onClick={() => void act({ action: 'acknowledge-stale-plan', newestPlanRevisionId: state.stalePlan!.newestPlanRevisionId, reason: reasons.stale }, 'stale')} className="shrink-0 rounded border border-border px-3 py-2 text-sm disabled:opacity-50">确认版本差异</button></div>}</div> : null}
-      <button type="button" disabled={Boolean(busyAction) || !ready || state.publication !== null} onClick={() => void act({ action: 'publish', idempotencyKey: `courseware-publish:${sourceRevisionId}:${crypto.randomUUID()}` }, 'publish')} className="w-full rounded bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground disabled:opacity-50 sm:w-auto" data-publication-submit>{state.publication ? '已发布' : busyAction === 'publish' ? '正在发布…' : '发布到课程目录'}</button>
+      <div className="flex flex-wrap gap-3"><button type="button" disabled={Boolean(busyAction) || !ready || state.publication !== null} onClick={() => void act({ action: 'publish', idempotencyKey: `courseware-publish:${sourceRevisionId}:${crypto.randomUUID()}` }, 'publish')} className="w-full rounded bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground disabled:opacity-50 sm:w-auto" data-publication-submit>{state.publication ? '已发布' : busyAction === 'publish' ? '正在发布…' : '发布到课程目录'}</button>{state.publication ? <button type="button" disabled={Boolean(busyAction)} onClick={() => void exportPdf()} className="rounded border border-border px-4 py-2.5 text-sm font-medium disabled:opacity-50" data-courseware-pdf-export>{busyAction === 'pdf' ? '正在生成 PDF…' : '导出学生版 PDF'}</button> : null}</div>
     </div>}
   </section>;
 }
