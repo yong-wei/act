@@ -110,7 +110,9 @@ interface Inventory extends Record<string, unknown> {
 }
 
 export interface QueueInvalidationFacade {
-  getJobs(states: QueueState[]): Promise<Array<Pick<Job, 'id' | 'remove' | 'getState'>>>;
+  getJobs(states: QueueState[]): Promise<Array<
+    Pick<Job, 'id' | 'remove' | 'getState'> & { data?: { coordinator?: boolean } }
+  >>;
 }
 
 interface Runtime {
@@ -510,6 +512,7 @@ async function loadOrCaptureQueueInventory(
   for (const queueName of ['student', 'class'] as const) {
     const jobs = await queues[queueName].getJobs([...QUEUE_STATES]);
     for (const job of jobs) {
+      if (job.data?.coordinator === true) continue;
       if (job.id === undefined || job.id === null) throw new Error('queue-job-id-required');
       const state = normalizeQueueState(await job.getState());
       items.push({ queue: queueName, state, jobRef: queueJobRef(queueName, String(job.id)) });

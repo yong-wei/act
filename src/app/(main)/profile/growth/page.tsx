@@ -418,6 +418,7 @@ export default function GrowthPage() {
           <DiagnosisSurfacePanel
             diagnosis={snapshot.diagnosis}
             mode="student"
+            scoreScale="points"
             title="累计能力整体诊断"
             description="依据七维累计画像呈现当前能力判断、证据覆盖与下一步行动。"
           />

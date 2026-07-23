@@ -144,6 +144,16 @@ function queue(states: Array<'wait' | 'waiting' | 'paused' | 'prioritized' | 'de
   return { facade: { getJobs: vi.fn(async () => jobs) }, jobs };
 }
 
+function coordinatorQueue(state: 'wait' | 'paused' | 'prioritized' | 'delayed' | 'active' = 'delayed') {
+  const job = {
+    id: 'coordinator-job',
+    data: { coordinator: true },
+    remove: vi.fn(async () => undefined),
+    getState: vi.fn(async () => state),
+  };
+  return { facade: { getJobs: vi.fn(async () => [job]) }, job };
+}
+
 function interruptibleQueue() {
   let removeAttempts = 0;
   let failSecondRemoval = true;
@@ -347,6 +357,22 @@ describe('cumulative attainment stopped-service migration', () => {
     expect(JSON.stringify(db._state.receipts)).not.toContain('student-1');
     expect(JSON.stringify(db._state.receipts)).not.toContain('class-1');
     expect(JSON.stringify(db._state.receipts)).not.toContain('raw-fact-must-not-appear');
+  });
+
+  it('keeps recurring coordinator jobs outside the superseded materialization inventory', async () => {
+    const db = createDb();
+    const digest = await plan(db);
+    const student = coordinatorQueue();
+    const classes = queue(['wait']);
+
+    await apply(db, digest, { student: student.facade, class: classes.facade });
+
+    expect(student.job.remove).not.toHaveBeenCalled();
+    expect(classes.jobs[0].remove).toHaveBeenCalledOnce();
+    expect(db._state.receipts.find((receipt: any) =>
+      receipt.stage === 'queue-invalidation-inventory')).toMatchObject({
+      counts: { expectedTotal: 1, 'class.wait': 1, 'student.delayed': 0 },
+    });
   });
 
   it('publishes an explicit NO_EVIDENCE current state without inventing a snapshot', async () => {
