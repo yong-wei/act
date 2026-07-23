@@ -49,6 +49,19 @@ describe('smart courseware PDF export', () => {
     }
   });
 
+  it('embeds a math-font fallback for valid Greek and mathematical notation', async () => {
+    const manifest = validCoursewareManifest();
+    manifest.stages[0].steps[0].modules[0] = {
+      ...manifest.stages[0].steps[0].modules[0],
+      canonicalClass: 'content.formula',
+      payload: { formulas: ['ω_n = √(1 - ζ²)', 'σ ≤ ∑ω'] },
+    };
+
+    await expect(createPublishedCoursewarePdf(input(manifest))).resolves.toMatchObject({
+      artifact: { pageCount: 6 },
+    });
+  });
+
   it('fails closed when a slide no longer fits the fixed student projection', () => {
     const manifest = validCoursewareManifest();
     manifest.stages[0].steps[0].modules[0] = {

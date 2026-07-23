@@ -27,7 +27,9 @@ const PDF_HEADER_HEIGHT = 54;
 const PDF_FOOTER_HEIGHT = 22;
 const PDF_CONTENT_HEIGHT = SMART_COURSEWARE_PDF_PAGE.height - PDF_HEADER_HEIGHT - PDF_FOOTER_HEIGHT - PDF_PAGE_PADDING * 2;
 const PDF_CONTENT_WIDTH = SMART_COURSEWARE_PDF_PAGE.width - PDF_PAGE_PADDING * 2;
-const FONT_PACKAGE_ROOT = dirname(createRequire(import.meta.url).resolve('@fontsource-variable/noto-sans-sc/package.json'));
+const require = createRequire(import.meta.url);
+const NOTO_SANS_SC_FONT_PACKAGE_ROOT = dirname(require.resolve('@fontsource-variable/noto-sans-sc/package.json'));
+const NOTO_SANS_MATH_FONT_PATH = require.resolve('@fontsource/noto-sans-math/files/noto-sans-math-latin-400-normal.woff2');
 
 type PdfTextModule = {
   id: string;
@@ -373,13 +375,16 @@ class PdfFontResolver {
 
 async function loadNotoFontSources() {
   notoFontSources ??= (async () => {
-    const directory = join(FONT_PACKAGE_ROOT, 'files');
+    const directory = join(NOTO_SANS_SC_FONT_PACKAGE_ROOT, 'files');
     const files = (await readdir(directory)).filter((file) => /^noto-sans-sc-\d+-wght-normal\.woff2$/.test(file)).sort();
-    return Promise.all(files.map(async (file) => {
+    const chineseSources = await Promise.all(files.map(async (file) => {
       const bytes = await readFile(join(directory, file));
       const font = fontkit.create(bytes);
       return { bytes, characters: new Set(font.characterSet) };
     }));
+    const mathBytes = await readFile(NOTO_SANS_MATH_FONT_PATH);
+    const mathFont = fontkit.create(mathBytes);
+    return [...chineseSources, { bytes: mathBytes, characters: new Set(mathFont.characterSet) }];
   })();
   return notoFontSources;
 }
