@@ -96,6 +96,36 @@ test.describe('simulation scene visual pipeline performance', () => {
     expect(stats.p95).toBeLessThan(ENV_CATASTROPHIC_FRAME_MS);
   });
 
+  test('cruise route mounts the pipeline with quality contracts', async ({ page }) => {
+    await page.goto('/simulations/cruise', { waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('canvas', { timeout: 60_000 });
+    await page.waitForSelector('[data-scene-quality-tier]', { state: 'attached', timeout: 60_000 });
+    await page.waitForTimeout(4_000);
+
+    await expect(page.locator('[data-scene-environment-switcher]')).toBeVisible();
+    await expect(page.locator('[data-scene-quality-select]')).toBeVisible();
+    await expect(page.locator('[data-soundscape-muted]')).toBeVisible();
+    await expect(page.locator('[data-teaching-annotations]')).toBeVisible();
+
+    const stats = await sampleFrameStats(page, 2);
+    expect(stats.samples).toBeGreaterThan(10);
+    expect(stats.p95).toBeLessThan(ENV_CATASTROPHIC_FRAME_MS);
+  });
+
+  test('cruise scene geometry matches lng at the same viewport', async ({ page }) => {
+    const measure = async (route: string) => {
+      await page.goto(route, { waitUntil: 'domcontentloaded' });
+      await page.waitForSelector('[data-sim-ui]', { timeout: 60_000 });
+      const box = await page.locator('[data-sim-ui]').boundingBox();
+      if (!box) throw new Error(`missing [data-sim-ui] bounding box on ${route}`);
+      return box;
+    };
+    const cruise = await measure('/simulations/cruise');
+    const lng = await measure('/simulations/lng');
+    expect(Math.abs(cruise.width - lng.width)).toBeLessThanOrEqual(2);
+    expect(Math.abs(cruise.height - lng.height)).toBeLessThanOrEqual(2);
+  });
+
   test('destroyer scene mounts pipeline chrome and quality contracts', async ({ page }) => {
     await gotoDestroyer(page);
 
