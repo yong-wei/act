@@ -52,20 +52,28 @@ assert.equal(fs.existsSync(path.join(root, handoutPath)), true, `应导出 ${les
 const nodes = readJson(nodesPath);
 const coverage = readJson(coveragePath);
 assert.equal(Array.isArray(nodes), true, 'runtime 节点文件应为数组');
-assert.deepEqual(
-  coverage.summary,
-  { total: nodes.length, linked: nodes.length, missing_authoring: 0, invalid_mapping_or_runtime: 0, excluded: 0 },
-  '知识卡片覆盖清单不得包含未分类节点或失效映射',
+assert.equal(coverage.summary.total, nodes.length, '知识卡片覆盖总数应与 runtime 节点数一致');
+assert.equal(coverage.summary.missing_authoring, 0, '知识卡片覆盖不得缺少 authoring 卡片');
+assert.equal(coverage.summary.invalid_mapping_or_runtime, 0, '知识卡片覆盖不得包含失效映射或 runtime 投影');
+assert.equal(
+  coverage.summary.linked + coverage.summary.excluded,
+  coverage.summary.total,
+  'linked 与 excluded 应完整分类每个 runtime 图谱节点',
 );
 assert.equal(coverage.items.length, nodes.length, '覆盖清单应覆盖每个 runtime 图谱节点');
+const linkedNodeIds = new Set(
+  coverage.items
+    .filter((item: { disposition?: string }) => item.disposition === 'linked')
+    .map((item: { node_id?: string }) => item.node_id),
+);
 assert.equal(
-  nodes.every((node: { id?: string; resources?: unknown[] }) => (
+  nodes.filter((node: { id?: string }) => linkedNodeIds.has(node.id)).every((node: { id?: string; resources?: unknown[] }) => (
     Array.isArray(node.resources)
       && node.resources.includes(`course-content/runtime/knowledge/cards/nodes/${node.id}.md`)
       && fs.existsSync(path.join(root, `course-content/runtime/knowledge/cards/nodes/${node.id}.md`))
   )),
   true,
-  '每个 runtime 图谱节点都必须指向存在且同 node_id 的知识卡片',
+  '每个 linked runtime 图谱节点都必须指向存在且同 node_id 的知识卡片',
 );
 assert.equal(
   nodes.some((node: { id?: string; resources?: unknown[] }) => node.id === runtimeNodeId && Array.isArray(node.resources)),

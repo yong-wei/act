@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import importlib.util
+import argparse
 import sys
 from pathlib import Path
 
@@ -22,6 +23,17 @@ from knowledge_card_coverage import (
 def load_export_module():
     path = ROOT / 'course-content' / 'scripts' / 'export_runtime.py'
     spec = importlib.util.spec_from_file_location('knowledge_card_coverage_export_test', path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f'Unable to load module from {path}')
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def load_materializer_module():
+    path = ROOT / 'course-content' / 'scripts' / 'materialize_base_knowledge_cards.py'
+    spec = importlib.util.spec_from_file_location('knowledge_card_materializer_test', path)
     if spec is None or spec.loader is None:
         raise RuntimeError(f'Unable to load module from {path}')
     module = importlib.util.module_from_spec(spec)
@@ -160,6 +172,28 @@ def test_materialize_missing_cards_uses_authoring_graph_fields_without_overwriti
     assert '## 详情' in generated
 
 
+def test_materializer_dry_run_ignores_excluded_nodes(tmp_path: Path, monkeypatch, capsys) -> None:
+    module = load_materializer_module()
+    authoring_cards = tmp_path / 'cards' / 'nodes'
+    exclusions_path = tmp_path / 'card-exclusions.json'
+    exclusions_path.write_text(json.dumps({
+        'schema_version': 1,
+        'exclusions': [{'node_id': 'n-excluded', 'reason': 'Navigation-only node.'}],
+    }), encoding='utf-8')
+
+    monkeypatch.setattr(module, 'AUTHORING_CARDS', authoring_cards)
+    monkeypatch.setattr(module, 'EXCLUSIONS', exclusions_path)
+    monkeypatch.setattr(module, 'load_canonical_base_nodes', lambda: {
+        'n-missing': knowledge_nodes()['n-missing'],
+        'n-excluded': knowledge_nodes()['n-excluded'],
+    })
+    monkeypatch.setattr(module, 'load_canonical_index', lambda: CanonicalNodeIndex())
+    monkeypatch.setattr(module, 'parse_args', lambda: argparse.Namespace(write=False))
+
+    assert module.main() == 1
+    assert json.loads(capsys.readouterr().out) == {'missing_base_cards': 1}
+
+
 def test_global_export_writes_complete_card_coverage_manifest(tmp_path: Path, monkeypatch) -> None:
     module = load_export_module()
     authoring_root = tmp_path / 'course-content' / 'authoring'
@@ -201,3 +235,49 @@ def test_global_export_writes_complete_card_coverage_manifest(tmp_path: Path, mo
     assert runtime_nodes[0]['resources'] == [
         'course-content/runtime/knowledge/cards/nodes/n1.md',
     ]
+
+
+def test_global_export_allows_excluded_node_without_card_projection(tmp_path: Path, monkeypatch) -> None:
+    module = load_export_module()
+    authoring_root = tmp_path / 'course-content' / 'authoring'
+    runtime_root = tmp_path / 'course-content' / 'runtime'
+    nodes = {
+        'n-linked': {'id': 'n-linked', 'name': 'Linked', 'definition': 'Has a card.'},
+        'n-excluded': {'id': 'n-excluded', 'name': 'Excluded', 'definition': 'Navigation only.'},
+    }
+    write_card(
+        authoring_root / 'knowledge' / 'cards' / 'nodes' / 'n-linked.md',
+        'n-linked',
+    )
+    exclusions_path = authoring_root / 'knowledge' / 'card-exclusions.json'
+    exclusions_path.parent.mkdir(parents=True, exist_ok=True)
+    exclusions_path.write_text(json.dumps({
+        'schema_version': 1,
+        'exclusions': [{'node_id': 'n-excluded', 'reason': 'Navigation-only node.'}],
+    }), encoding='utf-8')
+
+    monkeypatch.setattr(module, 'AUTHORING_ROOT', authoring_root)
+    monkeypatch.setattr(module, 'RUNTIME_ROOT', runtime_root)
+    monkeypatch.setattr(module, 'REPO_ROOT', tmp_path)
+    monkeypatch.setattr(module, 'load_combined_authoring_graph', lambda: (nodes, []))
+    monkeypatch.setattr(module, 'load_canonical_index', lambda: CanonicalNodeIndex())
+    monkeypatch.setattr(module, 'copy_reviewed_infographs', lambda: {})
+    monkeypatch.setattr(module, 'build_runtime_relations', lambda _nodes, _relations: [])
+
+    runtime_nodes, _ = module.export_global_knowledge()
+
+    coverage = json.loads(
+        (runtime_root / 'knowledge' / 'cards' / 'coverage.json').read_text(encoding='utf-8')
+    )
+    assert coverage['summary'] == {
+        'total': 2,
+        'linked': 1,
+        'missing_authoring': 0,
+        'invalid_mapping_or_runtime': 0,
+        'excluded': 1,
+    }
+    nodes_by_id = {node['id']: node for node in runtime_nodes}
+    assert nodes_by_id['n-linked']['resources'] == [
+        'course-content/runtime/knowledge/cards/nodes/n-linked.md',
+    ]
+    assert nodes_by_id['n-excluded'].get('resources', []) == []

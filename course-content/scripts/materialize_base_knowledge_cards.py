@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from canonical_nodes import load_canonical_index
-from knowledge_card_coverage import materialize_missing_knowledge_cards
+from knowledge_card_coverage import _read_exclusions, materialize_missing_knowledge_cards
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -51,10 +51,15 @@ def main() -> int:
     args = parse_args()
     nodes_by_id = load_canonical_base_nodes()
     canonical_index = load_canonical_index()
+    exclusions = _read_exclusions(EXCLUSIONS)
+    unknown_exclusions = sorted(set(exclusions) - set(nodes_by_id))
+    if unknown_exclusions:
+        raise ValueError(f'Unknown knowledge-card exclusions: {", ".join(unknown_exclusions)}')
     missing = [
         node_id
         for node_id in sorted(nodes_by_id)
-        if not (AUTHORING_CARDS / f'{canonical_index.selected_card_node_id(node_id)}.md').exists()
+        if node_id not in exclusions
+        and not (AUTHORING_CARDS / f'{canonical_index.selected_card_node_id(node_id)}.md').exists()
         and not (AUTHORING_CARDS / f'{node_id}.md').exists()
     ]
     if not args.write:
