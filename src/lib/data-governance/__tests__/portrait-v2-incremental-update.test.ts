@@ -751,6 +751,58 @@ describe('portrait v2 incremental updates', () => {
     expect(materialized).toEqual(expected);
   });
 
+  it('publishes the same last fact trend for one batch and consecutive materializations', async () => {
+    const allDimensions = Object.fromEntries(
+      PORTRAIT_V2_DIMENSION_IDS.map((id) => [id, 1]),
+    );
+    const positive = fact('fact-a-positive', allDimensions, {});
+    const negative = {
+      ...fact('fact-z-negative', allDimensions, {}),
+      outcome: 'failure',
+    };
+    const evidence = orderAndDedupePortraitV2Evidence(
+      mapLearningFactsToPortraitEvidence([positive, negative]).evidence
+        .filter(isPortraitV2ProfileEvidence),
+    );
+    let finalPayload: PortraitV2Payload | null = null;
+    for (const item of evidence) {
+      finalPayload = updatePortraitV2Incrementally({
+        userId: 'student-1',
+        previous: finalPayload,
+        evidence: [item],
+        generatedAt: '2026-05-02T00:00:00.000Z',
+      }).payload;
+    }
+    const batched = cumulativeMaterializationDb(
+      finalPayload!,
+      [positive, negative],
+      2,
+      BigInt(6),
+    );
+
+    await materializeIncrementalPortraitV2(batched.db, 'student-1', {
+      now: new Date('2026-05-02T00:00:02.000Z'),
+      fullRebuild: true,
+    });
+
+    const afterPositive = updatePortraitV2Incrementally({
+      userId: 'student-1',
+      previous: null,
+      evidence: [evidence[0]],
+      generatedAt: '2026-05-02T00:00:00.000Z',
+    }).payload;
+    const second = cumulativeMaterializationDb(afterPositive, [positive, negative]);
+    await materializeIncrementalPortraitV2(second.db, 'student-1', {
+      now: new Date('2026-05-02T00:00:02.000Z'),
+    });
+
+    expect(batched.snapshotCreate).not.toHaveBeenCalled();
+    expect(second.stateCreate.mock.calls[0][0].data.lastTrend).toBe('down');
+    expect(batched.stateCreate.mock.calls[0][0].data.lastTrend).toBe(
+      second.stateCreate.mock.calls[0][0].data.lastTrend,
+    );
+  });
+
   it('folds a full rebuild one stable mixed-sign fact at a time', async () => {
     const negative = {
       ...fact('fact-z-negative', { controlModeling: 1 }, {}),
@@ -800,24 +852,33 @@ function fact(id: string, contribution: Record<string, number>, contextJson: unk
   };
 }
 
-function cumulativeMaterializationDb(previous: PortraitV2Payload, facts: ReturnType<typeof fact>[]) {
-  const journal = [{
-    id: 'transition-existing',
+function cumulativeMaterializationDb(
+  previous: PortraitV2Payload,
+  facts: ReturnType<typeof fact>[],
+  processedFactCount = 1,
+  currentGeneration = BigInt(7),
+) {
+  const journal = facts.slice(0, processedFactCount).map((item, index) => ({
+    id: `transition-${item.id}`,
     userId: previous.userId,
-    sequence: BigInt(1),
-    factId: facts[0].id,
+    sequence: BigInt(index + 1),
+    factId: item.id,
     operation: 'UPSERT' as const,
-    occurredAt: facts[0].startedAt,
+    occurredAt: item.startedAt,
     transitionPayload: null,
     sourceReference: null,
     correctionOfSequence: null,
-    createdAt: facts[0].createdAt,
-  }];
+    createdAt: item.createdAt,
+  }));
   const snapshotCreate = vi.fn(async ({ data }: { data: Record<string, unknown> }) => ({
     id: 'portrait-incremental',
     ...data,
   }));
-  let lastSequence = BigInt(1);
+  const stateCreate = vi.fn(async ({ data }: { data: Record<string, unknown> }) => ({
+    id: 'state-incremental',
+    ...data,
+  }));
+  let lastSequence = BigInt(processedFactCount);
   const db: any = {
     $executeRaw: vi.fn(async () => 1),
     $transaction: vi.fn(async (callback: (tx: unknown) => Promise<unknown>) => callback(db)),
@@ -849,9 +910,9 @@ function cumulativeMaterializationDb(previous: PortraitV2Payload, facts: ReturnT
     },
     learnerPortraitCurrentState: {
       findUnique: vi.fn(async () => ({
-        stateWatermark: BigInt(1),
+        stateWatermark: BigInt(processedFactCount),
         calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
-        generation: BigInt(7),
+        generation: currentGeneration,
         queueGeneration: BigInt(11),
         cutoverFence: BigInt(4),
         stateVersion: {
@@ -859,15 +920,15 @@ function cumulativeMaterializationDb(previous: PortraitV2Payload, facts: ReturnT
           lastTrend: 'stable',
           lastRisk: null,
           stateKind: 'SNAPSHOT',
-          snapshot: { payload: structuredClone(previous) },
+          snapshot: { id: 'portrait-existing', payload: structuredClone(previous) },
         },
       })),
       upsert: vi.fn(async () => ({})),
     },
     learnerPortraitStateVersion: {
-      create: vi.fn(async () => ({ id: 'state-incremental' })),
+      create: stateCreate,
     },
     studentPortraitV2Snapshot: { create: snapshotCreate },
   };
-  return { db, snapshotCreate };
+  return { db, snapshotCreate, stateCreate };
 }

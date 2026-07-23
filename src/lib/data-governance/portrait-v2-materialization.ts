@@ -330,8 +330,8 @@ export async function materializeIncrementalPortraitV2(
       stateKind: 'SNAPSHOT',
       snapshotId: persisted.id,
       summary,
-      lastTrend: meaningfulStateChange
-        ? summary.trend
+      lastTrend: updateEvidence.length > 0
+        ? updated.lastTrend
         : current?.stateVersion.lastTrend ?? summary.trend,
       lastRisk,
       availabilityReason: 'available',
@@ -719,9 +719,12 @@ function foldPortraitEvidence(
   initial: PortraitV2PayloadShape | null,
   evidence: PortraitV2IncrementalEvidence[],
   generatedAt: Date | string,
-): PortraitV2IncrementalResult {
+): PortraitV2IncrementalResult & {
+  lastTrend: ReturnType<typeof summarizeCumulativePortraitV2>['trend'];
+} {
   let previous = initial;
   let payload: PortraitV2IncrementalResult['payload'] | null = null;
+  let lastTrend: ReturnType<typeof summarizeCumulativePortraitV2>['trend'] = 'not-comparable';
   const affectedDimensions = new Set<PortraitV2IncrementalResult['affectedDimensions'][number]>();
   const mappingIssues = new Set<string>();
   for (const item of orderAndDedupePortraitV2Evidence(evidence)) {
@@ -731,21 +734,29 @@ function foldPortraitEvidence(
       evidence: [item],
       generatedAt,
     });
+    lastTrend = summarizeCumulativePortraitV2(updated.payload, previous).trend;
     previous = updated.payload;
     payload = updated.payload;
     updated.affectedDimensions.forEach((dimension) => affectedDimensions.add(dimension));
     updated.mappingIssues.forEach((issue) => mappingIssues.add(issue));
   }
   if (!payload) {
-    return updatePortraitV2Incrementally({
+    const updated = updatePortraitV2Incrementally({
       userId,
       previous: initial,
       evidence: [],
       generatedAt,
     });
+    return {
+      ...updated,
+      lastTrend: initial
+        ? summarizeCumulativePortraitV2(updated.payload, initial).trend
+        : 'not-comparable',
+    };
   }
   return {
     payload,
+    lastTrend,
     affectedDimensions: payload.dimensions
       .map((dimension) => dimension.id)
       .filter((dimension) => affectedDimensions.has(dimension)),
