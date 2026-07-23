@@ -15,6 +15,6 @@
 ## 3. 验证与验收
 
 - [x] 3.1 `rtk npm run typecheck` 零错误；`rtk openspec validate rollout-scene-visual-pipeline-cruise --type change --strict` 通过；vitest 相关套件通过。
-- [ ] 3.2 Playwright：cruise 路由冒烟（canvas、质量属性、预设切换器、帧时间灾难上限）+ cruise 与 lng 场景容器几何一致性断言通过。
+- [x] 3.2 Playwright：cruise 路由冒烟（canvas、质量属性、预设切换器、帧时间灾难上限）+ cruise 与 lng 场景容器几何一致性断言通过。
 - [x] 3.3 浏览器 QA：cruise 跟船/顶视可见、尾迹位于舰艉沿航迹、五套预设、档位、标注开关、期望航线常驻、390×844 移动端、与 lng 同视口几何对照一致。
 - [x] 3.4 独立审查清场：范围限本变更 diff 与验收条件，finding 按 ACCEPT/REJECT/DEFER 裁决。
