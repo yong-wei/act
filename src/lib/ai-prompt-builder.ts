@@ -94,12 +94,14 @@ interface KonlingPromptRuntimeContext {
   citationContext?: {
     required?: boolean;
     contentCitations?: Array<{
+      id?: string;
       sourceType: string;
       displayTitle: string;
       confidence: string;
       evidenceBasis: string;
     }>;
     evidenceCitations?: Array<{
+      id?: string;
       sourceType: string;
       displayTitle: string;
       confidence: string;
@@ -134,6 +136,17 @@ interface KonlingPromptRuntimeContext {
       requiredOwners: string[];
       missingClasses: string[];
     };
+    studyQuestion?: {
+      intent: string;
+      requiredSections: string[];
+      normativeGuidance: 'not-applicable' | 'verified' | 'verification-required';
+      preferences: {
+        depth: string;
+        format: string;
+        hintStrength: string;
+        exampleContext: string | null;
+      };
+    } | null;
   };
 }
 
@@ -318,6 +331,24 @@ function buildAdaptiveRuntimeSection(runtime: KonlingPromptRuntimeContext): stri
     if (mode.citationRequirements.required) {
       lines.push(`  - 模式引用要求: ${mode.citationRequirements.classes.join(', ')}；责任归属 ${mode.citationRequirements.requiredOwners.join(', ')}`);
     }
+    if (mode.studyQuestion) {
+      const study = mode.studyQuestion;
+      lines.push(`  - 专业问答类型: ${study.intent}`);
+      lines.push(`  - 必须覆盖: ${study.requiredSections.join('、')}`);
+      lines.push(`  - 表达偏好: 深度=${study.preferences.depth}，格式=${study.preferences.format}，引导=${study.preferences.hintStrength}${study.preferences.exampleContext ? `，示例=${study.preferences.exampleContext}` : ''}`);
+      lines.push('  - 每个关键结论、关键推导变形或修复建议后，只能使用可用内容引用的 ID 标注 `[证据: citation-id]`；不得编造 ID、链接或脚注。');
+      const studyCitationIds = runtime.citationContext?.contentCitations
+        ?.map((citation) => citation.id)
+        .filter((id): id is string => Boolean(id));
+      if (studyCitationIds?.length) {
+        lines.push(`  - 可用于步骤证据绑定的内容引用 ID: ${studyCitationIds.slice(0, 6).join(', ')}`);
+      }
+      if (study.normativeGuidance === 'verification-required') {
+        lines.push('  - 当前规范性内容缺少可用的服务端验证权威来源：必须明确标为“需核验”，不得写成确定的官方规则、法定要求或标准格式。');
+      } else if (study.normativeGuidance === 'verified') {
+        lines.push('  - 当前规范性结论只能以可用的服务端验证权威来源为依据，并在结论后标注对应证据 ID。');
+      }
+    }
     if (mode.unavailableReasons.length || mode.degradedReasons.length) {
       lines.push(`  - 模式限制: ${[...mode.unavailableReasons, ...mode.degradedReasons].join(', ')}`);
     }
@@ -356,6 +387,7 @@ function normalizeGraphRefType(ref: string): string | null {
 }
 
 function formatCitationHint(citation: {
+  id?: string;
   sourceType: string;
   displayTitle: string;
   confidence: string;

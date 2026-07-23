@@ -11472,4 +11472,153 @@ describe('konling agent runtime', () => {
     expect(result.pack.items).toEqual([]);
     expect(result.pack.limitations.map((limitation) => limitation.code)).toContain('profile-filtered-citation-readiness');
   });
+
+  it('classifies governed study-question forms and keeps presentation preferences below the answer contract', () => {
+    const runtime = createRuntimeContext();
+    const expectations = [
+      ['请推导闭环传递函数', 'formula-derivation', ['前提与符号', '关键变形']],
+      ['这段 TypeScript 报错，帮我调试', 'code-debugging', ['故障定位', '最小修复']],
+      ['比较开环和闭环控制的区别', 'concept-comparison', ['判别维度', '边界或反例']],
+      ['请用生活化例子解释，并换一种格式', 'open-ended-explanation', ['核心结论', '定制化讲解']],
+    ] as const;
+
+    for (const [currentUserQuery, intent, sections] of expectations) {
+      const contract = buildKonlingTeachingAssistantRuntimeContract({
+        modeId: 'generic-chat',
+        runtimeContext: runtime,
+        scope: createScope(),
+        currentUserQuery,
+        studyAnswerPreferences: {
+          depth: 'detailed',
+          format: 'steps',
+          hintStrength: 'guided',
+          exampleContext: '自动控制系统',
+        },
+      });
+
+      expect(contract.answerIntent).toBe(intent);
+      expect(contract.studyQuestion).toMatchObject({
+        intent,
+        preferences: {
+          depth: 'detailed',
+          format: 'steps',
+          hintStrength: 'guided',
+          exampleContext: '自动控制系统',
+        },
+      });
+      expect(contract.studyQuestion?.requiredSections).toEqual(expect.arrayContaining([...sections]));
+    }
+  });
+
+  it('derives answer presentation preferences from a learner request when no structured preference payload exists', () => {
+    const contract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'generic-chat',
+      runtimeContext: createRuntimeContext(),
+      scope: createScope(),
+      currentUserQuery: '请简洁地用表格比较开环与闭环控制，只给我逐步提示。',
+    });
+
+    expect(contract.studyQuestion).toMatchObject({
+      intent: 'concept-comparison',
+      preferences: {
+        depth: 'concise',
+        format: 'table',
+        hintStrength: 'guided',
+      },
+    });
+  });
+
+  it('requires a verified official citation before marking normative guidance as verified', () => {
+    const verifiedRuntime = createRuntimeContext({
+      citationContext: {
+        required: true,
+        contentCitations: [{
+          id: 'content:official:chemistry-standard',
+          sourceType: 'content',
+          displayTitle: '化学方程式书写规范',
+          href: 'https://example.gov.cn/chemistry-standard',
+          confidence: 'high',
+          evidenceBasis: 'source-pack:konling-answer:official',
+          owner: 'answer',
+          citationTargetId: 'official:chemistry-standard',
+          verified: true,
+          resolver: 'official-reference',
+        }],
+        evidenceCitations: [],
+        missingCitationClasses: [],
+        lowConfidenceReasons: [],
+        responseProtocol: {
+          requiredOwners: ['answer'],
+          minimum: { content: 1, evidenceWhenAvailable: 0 },
+          fallbackWhenMissing: 'low-confidence',
+        },
+      },
+    });
+    const verified = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'generic-chat',
+      runtimeContext: verifiedRuntime,
+      scope: createScope(),
+      currentUserQuery: '化学方程式的规范书写格式是什么？',
+    });
+    const unverified = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'generic-chat',
+      runtimeContext: createRuntimeContext(),
+      scope: createScope(),
+      currentUserQuery: '化学方程式的规范书写格式是什么？',
+    });
+
+    expect(verified.studyQuestion).toMatchObject({
+      intent: 'normative-content',
+      normativeGuidance: 'verified',
+    });
+    expect(unverified.studyQuestion).toMatchObject({
+      intent: 'normative-content',
+      normativeGuidance: 'verification-required',
+    });
+  });
+
+  it('binds only server-known citations from material answer markers', () => {
+    const citationContext: KonlingCitationContext = {
+      required: true,
+      contentCitations: [{
+        id: 'content:formula:derivation',
+        sourceType: 'content',
+        displayTitle: '闭环传递函数教材片段',
+        href: '/course-runtime/resources/control.md#closed-loop',
+        confidence: 'high',
+        evidenceBasis: 'source-pack:konling-answer:test',
+        owner: 'answer',
+        citationTargetId: 'formula:derivation',
+        verified: true,
+        resolver: 'course-runtime',
+      }],
+      evidenceCitations: [],
+      missingCitationClasses: [],
+      lowConfidenceReasons: [],
+      responseProtocol: {
+        requiredOwners: ['answer'],
+        minimum: { content: 1, evidenceWhenAvailable: 0 },
+        fallbackWhenMissing: 'low-confidence',
+      },
+    };
+    const modeContract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'generic-chat',
+      runtimeContext: createRuntimeContext({ citationContext }),
+      scope: createScope(),
+      currentUserQuery: '请推导闭环传递函数',
+    });
+    const runtime = { citationContext, teachingAssistantMode: modeContract };
+
+    const guarded = buildKonlingCitationGuard(runtime, [
+      '关键变形：分母为 1 + G(s)H(s) [证据: content:formula:derivation]',
+      '伪造来源 [证据: content:unknown]',
+    ].join('\n'));
+
+    expect(guarded.answerUnits).toEqual([{
+      unit: '关键变形：分母为 1 + G(s)H(s)',
+      citationId: 'content:formula:derivation',
+      citationTargetId: 'formula:derivation',
+      limitation: null,
+    }]);
+  });
 });

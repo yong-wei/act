@@ -22,6 +22,7 @@ describe('Konling verified citation presentation', () => {
     );
     expect(html).toContain('href="/course-runtime/resources/unit.md"');
     expect(html).not.toContain('href="#user-content-fn');
+    expect(sanitizeVerifiedCitationMarkdown('关键变形 [证据: content:formula:derivation]')).toBe('关键变形');
   });
 
   it('renders final verified citations from server-owned metadata', () => {
@@ -419,5 +420,50 @@ describe('Konling verified citation presentation', () => {
     expect(html).toContain('data-konling-citation-status="missing"');
     expect(html).toContain('content');
     expect(html).not.toContain('href=');
+  });
+
+  it('renders the study-question contract and material answer evidence bindings from server metadata', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(KonlingCitationPanel, {
+        metadata: {
+          konlingCitationGuard: {
+            status: 'low-confidence',
+            lowConfidenceReasons: ['normative-guidance-verification-required'],
+            studyQuestion: {
+              intent: 'normative-content',
+              requiredSections: ['适用范围', '规范结论', '核验来源'],
+              normativeGuidance: 'verification-required',
+            },
+            citations: [{
+              id: 'content:formula:derivation',
+              citationTargetId: 'formula:derivation',
+              sourceType: 'content',
+              displayTitle: '闭环传递函数教材片段',
+              href: '/course-runtime/resources/control.md#closed-loop',
+              confidence: 'high',
+              evidenceBasis: 'source-pack',
+            }],
+            answerUnits: [{
+              unit: '关键变形：分母为 1 + G(s)H(s)',
+              citationId: 'content:formula:derivation',
+              citationTargetId: 'formula:derivation',
+              limitation: null,
+            }, {
+              unit: '伪造来源',
+              citationId: 'content:unknown',
+              citationTargetId: 'unknown',
+              limitation: null,
+            }],
+          },
+        },
+      }),
+    );
+
+    expect(html).toContain('data-konling-study-question-contract');
+    expect(html).toContain('规范内容需核验');
+    expect(html).toContain('data-konling-answer-unit-bindings');
+    expect(html).toContain('关键变形：分母为 1 + G(s)H(s)');
+    expect(html).toContain('闭环传递函数教材片段');
+    expect(html).not.toContain('伪造来源');
   });
 });

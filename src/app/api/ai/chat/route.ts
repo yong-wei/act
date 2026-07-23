@@ -105,10 +105,16 @@ function buildCitationGuardMetadataPayload(
     lowConfidenceReasons: citationGuardMetadata.lowConfidenceReasons,
     diagnosticReasons: citationGuardMetadata.diagnosticReasons ?? [],
     personalizationAvailability: citationGuardMetadata.personalizationAvailability,
+    studyQuestion: asPrismaJsonValue(citationGuardMetadata.studyQuestion ?? null),
+    answerUnits: asPrismaJsonValue(citationGuardMetadata.answerUnits ?? []),
     missingContext,
     retrievalSources: buildKonlingCitationRetrievalSources(citationGuardMetadata),
     citations: citationGuardMetadata.citations.map(serializeKonlingCitationMetadata),
   };
+}
+
+function asPrismaJsonValue(value: unknown): Prisma.InputJsonValue {
+  return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
 }
 
 export async function POST(request: Request) {
@@ -129,6 +135,7 @@ export async function POST(request: Request) {
       teachingAssistantModeId,
       modeClientContextHints,
       knowledgeWorkspaceHint,
+      studyAnswerPreferences,
     } = body as {
       messages: IncomingMessage[];
       simulationState?: Record<string, unknown>;
@@ -144,6 +151,7 @@ export async function POST(request: Request) {
       teachingAssistantModeId?: string;
       modeClientContextHints?: Record<string, unknown>;
       knowledgeWorkspaceHint?: Record<string, unknown>;
+      studyAnswerPreferences?: unknown;
     };
 
     // 验证用户身份
@@ -289,6 +297,8 @@ export async function POST(request: Request) {
         scope: scope.scope,
         serverModeContext,
         clientContextHints: modeClientContextHints,
+        currentUserQuery: runtimeInput.currentUserQuery,
+        studyAnswerPreferences,
       });
       if (modeContract.status === 'unavailable') {
         return new Response(JSON.stringify({
