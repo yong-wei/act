@@ -10,7 +10,6 @@ import {
 import {
   enqueueSessionFinalizationEvidenceFeatureCacheRefresh,
   enqueueSessionFinalizationEventIngestion,
-  enqueueSessionFinalizationSnapshots,
   enqueueSessionSummaryReportRefresh,
 } from '@/lib/data-governance/session-finalization-snapshots';
 import { generateSessionSummaryReports } from '@/lib/data-governance/session-reports';
@@ -310,7 +309,6 @@ export async function PATCH(request: Request, props: { params: Promise<{ session
     if (status === 'FINISHED') {
       await Promise.all([
         enqueueSessionFinalizationEventIngestion(sessionId),
-        enqueueSessionFinalizationSnapshots(sessionId, updatedSession.classId),
         enqueueSessionFinalizationEvidenceFeatureCacheRefresh(sessionId),
         enqueueSessionSummaryReportRefresh(sessionId),
         generateSessionSummaryReportsSafely(sessionId),

@@ -5,6 +5,7 @@ The system SHALL materialize student, teacher, and service views from one
 canonical cumulative diagnosis. Personal and class overview surfaces SHALL
 default to an overall diagnosis across the seven portrait v2 dimensions;
 goal-specific and graph-aware diagnoses SHALL remain subordinate drilldowns.
+It SHALL NOT materialize a 30-day or other calendar-window diagnosis.
 
 #### Scenario: Student diagnosis is requested
 - **WHEN** a student opens their profile or growth overview
@@ -71,7 +72,10 @@ portrait v2 dimensions with valid governed evidence.
 ### Requirement: Trend and risk preserve the last evidence-triggered state
 Personal diagnosis SHALL derive trend and risk from consecutive cumulative
 states produced by relevant governed evidence. Class diagnosis SHALL aggregate
-the current members' last personal states.
+the current members' last personal states. Activity age and calendar windows
+SHALL be descriptive only and SHALL NOT create an alternative trend or risk.
+Evidence-derived risk SHALL remain distinct from teacher attention,
+intervention, completion, or other human disposition.
 
 #### Scenario: Personal cumulative score changes
 - **WHEN** a new evidence-triggered cumulative overall score differs from the previous score by more than `+5`, less than `-5`, or within those bounds
@@ -82,6 +86,16 @@ the current members' last personal states.
 - **WHEN** no new eligible fact affects a learner's trend or a risk type
 - **THEN** the last personal trend and risk SHALL remain unchanged
 - **AND** calendar time or an unrelated fact SHALL NOT clear or replace either state.
+
+#### Scenario: Teacher disposition changes
+- **WHEN** a teacher acknowledges, intervenes on, or completes handling of a current evidence risk
+- **THEN** diagnosis views SHALL update the human disposition independently
+- **AND** they SHALL retain the evidence risk until a governed fact transition changes it.
+
+#### Scenario: Unsupported legacy risk is requested
+- **WHEN** a legacy `participation` or `ai_misuse` risk remains in audit storage
+- **THEN** cumulative personal and class diagnosis SHALL exclude it from current risk output
+- **AND** `constraint`, `stagnation`, and `cross_domain` SHALL follow their governed deterministic transition rules.
 
 #### Scenario: Class trend is displayed
 - **WHEN** a teacher opens class trend

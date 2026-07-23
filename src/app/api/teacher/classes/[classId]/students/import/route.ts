@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { loadFirstWorksheetRows } from '@/lib/server-spreadsheet';
+import { requestCumulativeLearnerReconciliation } from '@/lib/data-governance/cumulative-snapshot-jobs';
 
 export const dynamic = 'force-dynamic';
 
@@ -132,13 +133,36 @@ export async function POST(
 
       // 添加到班级
       try {
-        await prisma.studentProfile.update({
-          where: { id: studentProfile.id },
-          data: {
-            classId,
-            className: classInfo.name,
-          },
+        const imported = await prisma.$transaction(async (tx) => {
+          const currentProfile = await tx.studentProfile.findUnique({
+            where: { id: studentProfile.id },
+            select: { classId: true },
+          });
+          if (!currentProfile || currentProfile.classId === classId) return false;
+
+          await tx.studentProfile.update({
+            where: { id: studentProfile.id },
+            data: {
+              classId,
+              className: classInfo.name,
+            },
+          });
+          await requestCumulativeLearnerReconciliation(tx, {
+            userId: studentProfile.user.id,
+            classIds: [currentProfile.classId, classId].filter(
+              (candidate): candidate is string => candidate !== null,
+            ),
+            reason: 'class-membership:teacher-import',
+          });
+          return true;
         });
+        if (!imported) {
+          results.failed.push({
+            studentNumber,
+            reason: '已在本班级中',
+          });
+          continue;
+        }
         results.success.push(studentNumber);
       } catch {
         results.failed.push({

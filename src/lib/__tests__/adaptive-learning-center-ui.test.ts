@@ -901,6 +901,30 @@ describe('adaptive learning center UI contracts', () => {
   it('binds growth center to grouped learner timeline and stable chart containers', () => {
     const source = readFileSync(join(repoRoot, 'src/app/(main)/profile/growth/page.tsx'), 'utf8');
 
+    expect(source).toContain("fetch('/api/student/competency-snapshot')");
+    expect(source).not.toContain('timeRange');
+    expect(source).not.toContain("'7d'");
+    expect(source).not.toContain("'30d'");
+    expect(source).not.toContain("'90d'");
+    expect(source).not.toContain('learning_activity');
+    expect(source).not.toContain('本周学习热度');
+    expect(source).not.toContain('本周进步');
+    expect(source).not.toContain('Date.now()');
+    expect(source).not.toContain('ai_misuse');
+    expect(source).not.toContain('participation');
+    expect(source).toContain('累计能力达成、证据覆盖与成长记录');
+    expect(source).toContain('累计画像生成时间');
+    expect(source).toContain('累计证据截止');
+    expect(source).toContain("if (outcome === 'cumulative') return '累计'");
+    expect(source).toContain('data-portrait-evidence-as-of');
+    expect(source).toContain('currentSnapshot.evidenceAsOf');
+    expect(source).toContain('最后能力趋势');
+    expect(source).toContain('snapshot?.lastTrend');
+    expect(source).toContain('最后证据风险');
+    expect(source).toContain('七维证据覆盖');
+    expect(source).toContain('这些维度不参与累计总分，也不会显示为零分');
+    expect(source).toContain('data-portrait-availability');
+    expect(source).toContain('尚无持久、有效的累计成长事件');
     expect(source).toContain('groupGrowthTimelineRecords');
     expect(source).toContain('groupedGrowthRecords');
     expect(source).toContain('重复记录');

@@ -25,6 +25,7 @@ type DiagnosisSurfaceMode = 'student' | 'teacher-class' | 'teacher-student';
 interface DiagnosisSurfacePanelProps {
   diagnosis: RoleBasedLearningDiagnosis | null | undefined;
   mode: DiagnosisSurfaceMode;
+  scoreScale?: 'proportion' | 'points';
   title?: string;
   description?: string;
 }
@@ -60,6 +61,7 @@ const LIMITATION_LABELS: Record<RoleBasedLearningDiagnosisLimitation['reason'], 
 export function DiagnosisSurfacePanel({
   diagnosis,
   mode,
+  scoreScale = 'proportion',
   title = '控制校正诊断',
   description = '基于治理证据、诊断快照与角色权限生成的可行动视图。',
 }: DiagnosisSurfacePanelProps) {
@@ -115,7 +117,7 @@ export function DiagnosisSurfacePanel({
 
       <div className="mt-5 grid gap-4 lg:grid-cols-2">
         {claims.map((claim) => (
-          <DiagnosisClaimCard key={claim.id} claim={claim} mode={mode} />
+          <DiagnosisClaimCard key={claim.id} claim={claim} mode={mode} scoreScale={scoreScale} />
         ))}
       </div>
 
@@ -157,7 +159,15 @@ export function DiagnosisSurfacePanel({
   );
 }
 
-function DiagnosisClaimCard({ claim, mode }: { claim: RoleBasedLearningDiagnosisClaim; mode: DiagnosisSurfaceMode }) {
+function DiagnosisClaimCard({
+  claim,
+  mode,
+  scoreScale,
+}: {
+  claim: RoleBasedLearningDiagnosisClaim;
+  mode: DiagnosisSurfaceMode;
+  scoreScale: 'proportion' | 'points';
+}) {
   const explanation = mode === 'student'
     ? claim.studentExplanation ?? claim.explanation
     : claim.teacherExplanation ?? claim.explanation;
@@ -176,7 +186,7 @@ function DiagnosisClaimCard({ claim, mode }: { claim: RoleBasedLearningDiagnosis
       </div>
 
       <div className="mt-4 grid gap-2 sm:grid-cols-4">
-        <MetricPill label="得分" value={formatScore(claim.metrics.score)} />
+        <MetricPill label="得分" value={formatScore(claim.metrics.score, scoreScale)} />
         <MetricPill label="百分位" value={formatPercentile(claim.metrics.percentile)} />
         <MetricPill label="成长" value={formatGrowthPercentile(claim.metrics.growthPercentile)} />
         <MetricPill label="置信度" value={CONFIDENCE_LABELS[claim.confidence.state]} />
@@ -297,8 +307,10 @@ function formatPriority(priority: RoleBasedLearningDiagnosisRootCauseCluster['in
   return '低';
 }
 
-function formatScore(value: number | null) {
-  return value === null ? '暂无' : `${Math.round(value * 100)}%`;
+function formatScore(value: number | null, scoreScale: 'proportion' | 'points') {
+  if (value === null) return '暂无';
+  if (scoreScale === 'proportion') return `${Math.round(value * 100)}%`;
+  return `${Number(value.toFixed(2))} 分`;
 }
 
 function formatPercentile(value: RoleBasedLearningDiagnosisClaim['metrics']['percentile']) {

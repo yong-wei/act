@@ -6,10 +6,10 @@ portrait, overall diagnosis, last trend, last risk, cumulative evidence
 summary, newest activity, and meaningful growth events from one learner-state
 response.
 
-#### Scenario: Learner has cumulative evidence but no recent activity
-- **WHEN** a learner with a valid cumulative portrait opens profile or growth after a period without new facts
+#### Scenario: Learner has cumulative evidence without newer activity
+- **WHEN** a learner with a valid cumulative portrait opens profile or growth without newer facts
 - **THEN** the page SHALL display the existing portrait values, overall level, diagnosis, trend, risk, and evidence cutoff
-- **AND** it SHALL NOT replace them with a recent-window empty or stale state.
+- **AND** it SHALL NOT create an activity-window portrait, empty state, risk, trend, or diagnosis.
 
 #### Scenario: Learner has partial dimension coverage
 - **WHEN** a learner has valid evidence for only some portrait dimensions
@@ -20,6 +20,11 @@ response.
 - **WHEN** meaningful cumulative growth events exist
 - **THEN** the growth surface SHALL show those events in newest-first order with evidence type and occurrence time
 - **AND** ordinary activity records SHALL remain available through the paginated evidence or activity view rather than being duplicated as growth events.
+
+#### Scenario: Removed recent portrait route or control is requested
+- **WHEN** a client requests a removed recent portrait API, query scope, route, or UI control
+- **THEN** the system SHALL return an explicit unsupported-scope or removed-contract outcome
+- **AND** it SHALL NOT silently render the cumulative portrait as if the recent request were accepted.
 
 ### Requirement: Learning portrait surfaces use explicit availability states
 Student and teacher learning portrait surfaces SHALL preserve every available
