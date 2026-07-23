@@ -19,5 +19,5 @@
 ## 4. Verification and Delivery
 
 - [x] 4.1 Run focused Arena routing, assignment, Control Odyssey client, and score-action tests.
-- [ ] 4.2 Run TypeScript checking and strict OpenSpec validation; inspect the final diff for accidental scope expansion.
-- [ ] 4.3 Create the Arena GitHub Issue and a pull request to `integration`, request Codex review in Chinese, and do not merge the pull request.
+- [x] 4.2 Run TypeScript checking and strict OpenSpec validation; inspect the final diff for accidental scope expansion.
+- [x] 4.3 Create the Arena GitHub Issue and a pull request to `integration`, request Codex review in Chinese, and do not merge the pull request.
