@@ -189,6 +189,7 @@ describe('teacher cumulative attainment delivery', () => {
     expect(insightsRoute).toContain("parseTeacherAttainmentScope(new URL(request.url).searchParams.get('scope'))");
     expect(insightsRoute).toContain('CUMULATIVE_CLASS_COMPETENCY_MATERIALIZATION_VERSION');
     expect(insightsRoute).toContain('readLatestValidNativePortraitV2Snapshots');
+    expect(insightsRoute).toContain("const classScopedProjectionMap = scope === 'recent'");
     expect(growth).toContain('画像生成时间：');
     expect(growth).toContain('data-portrait-no-evidence');
     expect(growth).toContain('这里不会显示零分、学习阶段或正向能力结论');
