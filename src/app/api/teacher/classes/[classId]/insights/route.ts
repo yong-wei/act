@@ -7,11 +7,13 @@ import {
 import { PORTRAIT_V2_DIMENSIONS, type PortraitV2DimensionId } from '@/lib/data-governance/kaq-objective-taxonomy';
 import {
   summarizePortraitV2,
+  hasPortraitV2Evidence,
   type PortraitV2ConsumerSummary,
 } from '@/lib/data-governance/portrait-v2-consumer';
 import {
   derivePortraitV2Compatibility,
   projectPortraitV2ForConsumer,
+  readLatestValidNativePortraitV2Snapshots,
 } from '@/lib/data-governance/portrait-v2-model';
 import { getServerAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
@@ -22,7 +24,11 @@ import {
   summarizeGovernanceState,
 } from '@/features/teacher/teacher-insights';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
-import { buildClassScopedStudentProjections, CLASS_COMPETENCY_MATERIALIZATION_VERSION } from '@/lib/data-governance/class-scoped-learning-materialization';
+import {
+  buildClassScopedStudentProjections,
+  CLASS_COMPETENCY_MATERIALIZATION_VERSION,
+  CUMULATIVE_CLASS_COMPETENCY_MATERIALIZATION_VERSION,
+} from '@/lib/data-governance/class-scoped-learning-materialization';
 import {
   buildArenaClassEvidenceSummary,
   type ArenaClassEvidenceSummary,
@@ -47,6 +53,11 @@ import {
   materializeRoleBasedLearningDiagnosis,
   type RoleBasedLearningDiagnosis,
 } from '@/lib/data-governance/role-based-learning-diagnosis';
+import {
+  getTeacherAttainmentScopeLabel,
+  parseTeacherAttainmentScope,
+  type TeacherAttainmentScope,
+} from '@/lib/data-governance/teacher-attainment-scope';
 
 export const dynamic = 'force-dynamic';
 
@@ -73,11 +84,11 @@ interface TeacherClassInsightStudent {
   studentNumber: string | null;
   overallScore: number | null;
   overallLevel: string | null;
-  overallScoreSource: 'class-scoped-compatibility' | null;
-  riskLevel: 'none' | 'low' | 'medium' | 'high';
-  riskLabel: string;
-  trendDirection: 'up' | 'stable' | 'down';
-  recentTrend: string;
+  overallScoreSource: 'class-scoped-compatibility' | 'native-portrait-v2' | null;
+  riskLevel: 'none' | 'low' | 'medium' | 'high' | null;
+  riskLabel: string | null;
+  trendDirection: 'up' | 'stable' | 'down' | null;
+  recentTrend: string | null;
   strengths: string[];
   weaknesses: string[];
   riskBadges: string[];
@@ -85,11 +96,16 @@ interface TeacherClassInsightStudent {
   recommendationCount: number;
   factCount: number;
   lastSnapshotAt: string | null;
-  portraitV2: PortraitV2ConsumerSummary;
+  portraitV2: PortraitV2ConsumerSummary | null;
   evidenceStatus: TeacherStudentEvidenceStatus;
 }
 
 export interface TeacherClassInsightsPayload {
+  scope: TeacherAttainmentScope;
+  scopeLabel: string;
+  nearStageChangeApplicable: boolean;
+  recentSignalsApplicable: boolean;
+  recentOnlySignals: Array<'activity' | 'risk' | 'classroom-quality' | 'trend'>;
   classInfo: {
     id: string;
     name: string;
@@ -110,9 +126,9 @@ export interface TeacherClassInsightsPayload {
   };
   overview: {
     overallIndex: number | null;
-    highRiskStudents: number;
-    mediumRiskStudents: number;
-    attentionStudents: number;
+    highRiskStudents: number | null;
+    mediumRiskStudents: number | null;
+    attentionStudents: number | null;
     averageFactCount: number;
   };
   ability: {
@@ -132,7 +148,7 @@ export interface TeacherClassInsightsPayload {
 }
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ classId: string }> }
 ) {
   try {
@@ -142,6 +158,10 @@ export async function GET(
     }
 
     const { classId } = await params;
+    const scope = parseTeacherAttainmentScope(new URL(request.url).searchParams.get('scope'));
+    if (!scope) {
+      return NextResponse.json({ error: '无效的学情范围' }, { status: 400 });
+    }
 
     const classData = await prisma.class.findUnique({
       where: { id: classId },
@@ -189,9 +209,15 @@ export async function GET(
       classScopedEvidenceFactGroups,
       classScopedSimulationArenaFacts,
       recentSessionQualityReports,
+      nativePortraitByUserId,
     ] = await Promise.all([
       prisma.classCompetencySnapshot.findFirst({
-        where: { classId, materializationVersion: CLASS_COMPETENCY_MATERIALIZATION_VERSION },
+        where: {
+          classId,
+          materializationVersion: scope === 'cumulative'
+            ? CUMULATIVE_CLASS_COMPETENCY_MATERIALIZATION_VERSION
+            : CLASS_COMPETENCY_MATERIALIZATION_VERSION,
+        },
         orderBy: { snapshotAt: 'desc' },
       }),
       studentIds.length
@@ -282,28 +308,41 @@ export async function GET(
           },
         },
       }),
+      scope === 'cumulative'
+        ? readLatestValidNativePortraitV2Snapshots(prisma, studentIds, 'reviewer', { now })
+        : Promise.resolve(new Map()),
     ]);
 
     const cacheHealthByUserId = new Map(
       studentEvidenceFeatureCaches.map((cache) => [cache.userId, cache])
     );
     const snapshotMap = new Map(latestSnapshots.map((snapshot) => [snapshot.userId, snapshot]));
-    const classScopedProjectionMap = buildClassScopedStudentProjections(
-      studentIds,
-      classScopedSimulationArenaFacts as any,
-    );
+    const classScopedProjectionMap = scope === 'recent'
+      ? buildClassScopedStudentProjections(
+          studentIds,
+          classScopedSimulationArenaFacts as any,
+        )
+      : new Map();
     // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: class-scoped legacy vectors are non-authoritative v2 projections.
     const scopedPortraitByUserId = new Map([...classScopedProjectionMap].map(([studentId, projection]) => {
+      const projectionClock = new Date();
       const projected = projectPortraitV2ForConsumer(derivePortraitV2Compatibility({
         userId: studentId,
-        snapshotAt: now.toISOString(),
+        snapshotAt: projectionClock.toISOString(),
         // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: source and vector are compatibility-only.
         sourceFamily: 'StudentCompetencySnapshot',
         vector: projection.competencyVector,
-        now,
+        now: projectionClock,
       }), 'reviewer');
       return [studentId, summarizePortraitV2(projected)] as const;
     }));
+    const nativePortraitSummaryByUserId = new Map([...nativePortraitByUserId].map(([studentId, portrait]) => [
+      studentId,
+      summarizePortraitV2(portrait),
+    ] as const));
+    const attainmentPortraitByUserId = scope === 'cumulative'
+      ? nativePortraitSummaryByUserId
+      : scopedPortraitByUserId;
     const lifecycleBoundaryByUserId = new Map(studentIds.map((studentId) => [
       studentId,
       classScopedProjectionMap.has(studentId)
@@ -339,14 +378,20 @@ export async function GET(
       )
       : null;
 
-    const hasCurrentClassEvidence = classScopedEvidenceFactGroups.some((group) => group._count._all > 0)
+    const hasRecentClassEvidence = classScopedEvidenceFactGroups.some((group) => group._count._all > 0)
       || classScopedSimulationArenaFacts.length > 0;
-    const noClassEvidence = !hasCurrentClassEvidence;
+    const hasAttainmentEvidence = scope === 'cumulative'
+      ? [...nativePortraitByUserId.values()].some(hasPortraitV2Evidence)
+      : hasRecentClassEvidence;
+    const noClassEvidence = !hasAttainmentEvidence;
     const students: TeacherClassInsightStudent[] = classData.students.map((studentProfile) => {
       const scopedProjection = classScopedProjectionMap.get(studentProfile.userId);
-      const resolvedPortrait = scopedPortraitByUserId.get(studentProfile.userId);
+      const resolvedPortrait = attainmentPortraitByUserId.get(studentProfile.userId);
       const lifecycleBoundary = lifecycleBoundaryByUserId.get(studentProfile.userId) ?? null;
-      const hasCurrentEvidence = Boolean(scopedProjection && scopedProjection.factCount > 0);
+      const hasCurrentEvidence = scope === 'cumulative'
+        ? Boolean(nativePortraitByUserId.get(studentProfile.userId)
+          && hasPortraitV2Evidence(nativePortraitByUserId.get(studentProfile.userId)!))
+        : Boolean(scopedProjection && scopedProjection.factCount > 0);
       // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: this vector only supplies class-scoped compatibility scoring.
       const vector = scopedProjection?.competencyVector;
       const emptyPortrait = summarizePortraitV2({
@@ -363,9 +408,11 @@ export async function GET(
         dimensions: [],
       });
       const portraitV2 = hasCurrentEvidence
-        ? resolvedPortrait ?? emptyPortrait
-        : emptyPortrait;
-      const fallbackScore = vector ? calculateOverallScore(vector) : 0;
+        ? resolvedPortrait ?? (scope === 'recent' ? emptyPortrait : null)
+        : scope === 'recent' ? emptyPortrait : null;
+      const fallbackScore = scope === 'cumulative'
+        ? resolvedPortrait?.overallScore ?? 0
+        : vector ? calculateOverallScore(vector) : 0;
       const overallScore = hasCurrentEvidence
         ? Math.round(fallbackScore * 10) / 10
         : null;
@@ -377,34 +424,50 @@ export async function GET(
         email: studentProfile.user.email,
         studentNumber: studentProfile.studentNumber,
         overallScore,
-        overallScoreSource: hasCurrentEvidence ? 'class-scoped-compatibility' : null,
+        overallScoreSource: hasCurrentEvidence
+          ? scope === 'cumulative' ? 'native-portrait-v2' : 'class-scoped-compatibility'
+          : null,
         overallLevel:
           hasCurrentEvidence && overallScore !== null
             ? COMPETENCY_LEVELS[getCompetencyLevelKey(overallScore)].label
             : null,
-        riskLevel,
-        riskLabel: getRiskLabel(riskLevel),
-        trendDirection:
-          'stable',
-        recentTrend: hasCurrentEvidence ? '班级范围内暂无可比趋势' : '暂无当前证据',
+        riskLevel: scope === 'cumulative' ? null : riskLevel,
+        riskLabel: scope === 'cumulative' ? null : getRiskLabel(riskLevel),
+        trendDirection: scope === 'cumulative' ? null : 'stable',
+        recentTrend: scope === 'cumulative'
+          ? null
+          : hasCurrentEvidence ? '班级范围内暂无可比趋势' : '暂无当前证据',
         strengths: [],
         weaknesses: [],
         riskBadges: [],
         growthRecordCount: 0,
         recommendationCount: 0,
-        factCount: hasCurrentEvidence ? scopedProjection?.factCount ?? 0 : 0,
-        lastSnapshotAt: hasCurrentEvidence ? classSnapshot?.snapshotAt.toISOString() ?? null : null,
+        factCount: hasCurrentEvidence
+          ? scope === 'cumulative'
+            ? resolvedPortrait?.dimensions.reduce((sum, dimension) => sum + dimension.evidenceCount, 0) ?? 0
+            : scopedProjection?.factCount ?? 0
+          : 0,
+        lastSnapshotAt: hasCurrentEvidence
+          ? scope === 'cumulative'
+            ? resolvedPortrait?.generatedAt ?? null
+            : classSnapshot?.snapshotAt.toISOString() ?? null
+          : null,
         portraitV2,
         evidenceStatus: evidenceStatusMap.get(studentProfile.userId)!,
       };
     });
 
-    const coverageStudents = [...classScopedProjectionMap.values()].filter(
-      (projection) => projection.factCount > 0,
-    ).length;
-    const latestStudentSnapshotAt = hasCurrentClassEvidence
-      ? classSnapshot?.snapshotAt.toISOString() ?? null
-      : null;
+    const coverageStudents = scope === 'cumulative'
+      ? [...nativePortraitByUserId.values()].filter(hasPortraitV2Evidence).length
+      : [...classScopedProjectionMap.values()].filter((projection) => projection.factCount > 0).length;
+    const latestStudentSnapshotAt = scope === 'cumulative'
+      ? [...nativePortraitSummaryByUserId.values()]
+          .map((portrait) => portrait.generatedAt)
+          .sort()
+          .at(-1) ?? null
+      : hasRecentClassEvidence
+        ? classSnapshot?.snapshotAt.toISOString() ?? null
+        : null;
     const governanceBase = summarizeGovernanceState({
       totalStudents,
       coveredStudents: coverageStudents,
@@ -415,7 +478,7 @@ export async function GET(
     const dimensionStats = PORTRAIT_V2_DIMENSIONS.map(({ id: dimension, label }) => {
       const classMean = noClassEvidence ? null : extractClassMean(classSnapshot?.aggregateJson, dimension);
       const classStdDev = extractClassStdDev(classSnapshot?.aggregateJson, dimension);
-      const fallbackScores = [...scopedPortraitByUserId.values()].flatMap((portrait) => {
+      const fallbackScores = [...attainmentPortraitByUserId.values()].flatMap((portrait) => {
         const portraitDimension = portrait.dimensions.find((item) => item.id === dimension);
         return portraitDimension && portraitDimension.evidenceCount > 0 && Number.isFinite(portraitDimension.score)
           ? [portraitDimension.score]
@@ -427,14 +490,26 @@ export async function GET(
       return {
         dimension,
         label,
-        mean: noClassEvidence ? null : classMean ?? (fallbackScores.length > 0 ? fallbackMean : null),
-        stdDev: classStdDev ?? 0,
+        mean: noClassEvidence
+          ? null
+          : scope === 'cumulative'
+            ? fallbackScores.length > 0 ? fallbackMean : null
+            : classMean ?? (fallbackScores.length > 0 ? fallbackMean : null),
+        stdDev: scope === 'cumulative' ? calculateScoreStdDev(fallbackScores) : classStdDev ?? 0,
       };
     });
 
     const levelDistribution = noClassEvidence
       ? createEmptyLevelDistribution()
-      : normalizeLevelDistribution(classSnapshot?.levelDistribution) ||
+      : scope === 'cumulative'
+        ? students.reduce<LevelDistribution>(
+          (accumulator, student) => {
+            if (student.overallScore !== null) accumulator[getCompetencyLevelKey(student.overallScore)] += 1;
+            return accumulator;
+          },
+          createEmptyLevelDistribution(),
+        )
+        : normalizeLevelDistribution(classSnapshot?.levelDistribution) ||
         students.reduce<LevelDistribution>(
           (accumulator, student) => {
             if (student.overallScore !== null) accumulator[getCompetencyLevelKey(student.overallScore)] += 1;
@@ -468,7 +543,7 @@ export async function GET(
       },
       diagnosisReportSnapshot,
     });
-    const spotlightStudents = noClassEvidence ? [] : rankStudentsByAttention(
+    const spotlightStudents = noClassEvidence || scope === 'cumulative' ? [] : rankStudentsByAttention(
       students
         .filter((student): student is TeacherClassInsightStudent & { overallScore: number } => student.overallScore !== null)
         .map((student) => ({
@@ -476,9 +551,9 @@ export async function GET(
           name: student.name,
           overallScore: student.overallScore,
           overallLevel: student.overallLevel ?? COMPETENCY_LEVELS[getCompetencyLevelKey(student.overallScore)].label,
-          riskLevel: student.riskLevel,
-          trendDirection: student.trendDirection,
-          recentTrend: student.recentTrend,
+          riskLevel: student.riskLevel!,
+          trendDirection: student.trendDirection!,
+          recentTrend: student.recentTrend!,
           strengths: student.strengths,
           weaknesses: student.weaknesses,
           growthRecordCount: student.growthRecordCount,
@@ -490,6 +565,11 @@ export async function GET(
     );
 
     const payload: TeacherClassInsightsPayload = {
+      scope,
+      scopeLabel: getTeacherAttainmentScopeLabel(scope),
+      nearStageChangeApplicable: scope === 'recent',
+      recentSignalsApplicable: scope === 'recent',
+      recentOnlySignals: ['activity', 'risk', 'classroom-quality', 'trend'],
       classInfo: {
         id: classData.id,
         name: classData.name,
@@ -516,9 +596,9 @@ export async function GET(
               coveredDimensionMeans.reduce((sum, mean) => sum + mean, 0) / coveredDimensionMeans.length,
               1,
             ),
-        highRiskStudents: noClassEvidence ? 0 : students.filter((student) => student.riskLevel === 'high').length,
-        mediumRiskStudents: noClassEvidence ? 0 : students.filter((student) => student.riskLevel === 'medium').length,
-        attentionStudents: noClassEvidence ? 0 : students.filter((student) =>
+        highRiskStudents: scope === 'cumulative' ? null : noClassEvidence ? 0 : students.filter((student) => student.riskLevel === 'high').length,
+        mediumRiskStudents: scope === 'cumulative' ? null : noClassEvidence ? 0 : students.filter((student) => student.riskLevel === 'medium').length,
+        attentionStudents: scope === 'cumulative' ? null : noClassEvidence ? 0 : students.filter((student) =>
           student.riskLevel === 'high' ||
           student.riskLevel === 'medium' ||
           (student.overallScore ?? Number.POSITIVE_INFINITY) < COMPETENCY_LEVELS.average.min
@@ -613,6 +693,12 @@ function normalizeLevelDistribution(value: unknown): LevelDistribution | null {
 function roundTo(value: number, digits: number) {
   const factor = 10 ** digits;
   return Math.round(value * factor) / factor;
+}
+
+function calculateScoreStdDev(scores: number[]) {
+  if (scores.length === 0) return 0;
+  const mean = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+  return roundTo(Math.sqrt(scores.reduce((sum, score) => sum + (score - mean) ** 2, 0) / scores.length), 1);
 }
 
 function toCount(value: unknown) {

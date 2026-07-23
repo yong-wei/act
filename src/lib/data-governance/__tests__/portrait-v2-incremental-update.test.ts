@@ -292,7 +292,7 @@ describe('portrait v2 incremental updates', () => {
     expect(result.payload.dimensions.map((item) => item.score)).toEqual(previous.dimensions.map((item) => item.score));
   });
 
-  it('materializes from facts newer than the prior portrait and writes an aged snapshot when the delta is empty', async () => {
+  it('does not replace an existing portrait when the incremental delta is empty', async () => {
     const previous = baseline();
     previous.updateCursor = { lastFactCreatedAt: baselineAt, lastFactId: 'fact-boundary-001' };
     const create = vi.fn(async ({ data }: { data: Record<string, unknown> }) => ({ id: 'portrait-next', ...data }));
@@ -318,7 +318,7 @@ describe('portrait v2 incremental updates', () => {
       now: new Date('2026-06-15T00:00:00.000Z'),
     });
 
-    expect(result).toMatchObject({ written: true, evidenceCount: 0, affectedDimensions: [] });
+    expect(result).toMatchObject({ written: false, evidenceCount: 0, affectedDimensions: [] });
     expect(findMany).toHaveBeenCalledWith(expect.objectContaining({
       where: {
         userId: previous.userId,
@@ -329,17 +329,38 @@ describe('portrait v2 incremental updates', () => {
         ],
       },
     }));
-    const written = create.mock.calls[0][0].data.payload as PortraitV2Payload;
-    expect(written.dimensions.map((item) => item.score)).toEqual(previous.dimensions.map((item) => item.score));
-    expect(written.dimensions[0].freshness.state).toBe('partial');
-    expect(written.dimensions[0].sourceLineage).toContainEqual({
-      kind: 'raw-source',
-      ref: `raw-source:${written.dimensions[0].id}`,
-      privacyScope: 'system-internal',
-    });
+    expect(create).not.toHaveBeenCalled();
   });
 
-  it('persists an empty seven-dimension cursor baseline for context-only first-run facts', async () => {
+  it('does not replace an existing portrait for context-only input', async () => {
+    const previous = baseline();
+    previous.updateCursor = { lastFactCreatedAt: baselineAt, lastFactId: 'fact-boundary-001' };
+    const contextFact = fact('context-next', { controlModeling: 1 }, {
+      evidenceGovernance: { skipProfileContribution: true, profileWeight: 0 },
+    });
+    const create = vi.fn();
+    const result = await materializeIncrementalPortraitV2({
+      studentPortraitV2Snapshot: {
+        findFirst: vi.fn(async () => ({
+          id: 'portrait-old',
+          userId: previous.userId,
+          snapshotAt: new Date(previous.generatedAt),
+          payloadVersion: previous.payloadVersion,
+          calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+          migrationVersion: previous.migrationVersion,
+          derivationKind: previous.derivation.kind,
+          payload: structuredClone(previous),
+        })),
+        create,
+      },
+      learningFact: { findMany: vi.fn(async () => [contextFact]) },
+    }, previous.userId, { now: new Date('2026-05-02T00:00:02.000Z') });
+
+    expect(result).toMatchObject({ written: false, evidenceCount: 0, affectedDimensions: [] });
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it('does not create an empty portrait for context-only first-run facts', async () => {
     const contextFact = fact('context-first', { controlModeling: 1 }, {
       evidenceGovernance: { skipProfileContribution: true, profileWeight: 0 },
     });
@@ -349,14 +370,75 @@ describe('portrait v2 incremental updates', () => {
       learningFact: { findMany: vi.fn(async () => [contextFact]) },
     }, 'student-context', { now: new Date('2026-05-02T00:00:02.000Z') });
 
-    expect(result).toMatchObject({ written: true, evidenceCount: 0, affectedDimensions: [] });
-    const payload = create.mock.calls[0][0].data.payload as PortraitV2Payload;
-    expect(payload.updateCursor).toEqual({
-      lastFactCreatedAt: contextFact.createdAt.toISOString(),
-      lastFactId: contextFact.id,
+    expect(result).toMatchObject({ written: false, evidenceCount: 0, affectedDimensions: [] });
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it('dry-runs state-changing evidence under the advisory lock without writing a portrait', async () => {
+    const create = vi.fn();
+    const executeRaw = vi.fn(async () => 1);
+    const db: any = {
+      $executeRaw: executeRaw,
+      $transaction: vi.fn(async (callback: (tx: unknown) => Promise<unknown>) => callback(db)),
+      studentPortraitV2Snapshot: { findFirst: vi.fn(async () => null), create },
+      learningFact: { findMany: vi.fn(async () => [fact('dry-run-state-change', { controlModeling: 1 }, {})]) },
+    };
+
+    const result = await materializeIncrementalPortraitV2(db, 'student-dry-run', {
+      now: new Date('2026-05-02T00:00:02.000Z'),
+      dryRun: true,
     });
-    expect(payload.dimensions).toHaveLength(7);
-    expect(payload.dimensions.every((item) => item.score === 0)).toBe(true);
+
+    expect(result).toMatchObject({ written: true, evidenceCount: 1, affectedDimensions: [] });
+    expect(result).not.toHaveProperty('snapshotId');
+    expect(db.$transaction).toHaveBeenCalledTimes(1);
+    expect(executeRaw).toHaveBeenCalledTimes(1);
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it('reports full-rebuild context-only input as explicit no-evidence without writing a portrait', async () => {
+    const contextFact = fact('context-rebuild-dry-run', { controlModeling: 1 }, {
+      evidenceGovernance: { skipProfileContribution: true, profileWeight: 0 },
+    });
+    const create = vi.fn();
+    const db: any = {
+      $executeRaw: vi.fn(async () => 1),
+      $transaction: vi.fn(async (callback: (tx: unknown) => Promise<unknown>) => callback(db)),
+      studentPortraitV2Snapshot: { findFirst: vi.fn(), create },
+      learningFact: { findMany: vi.fn(async () => [contextFact]) },
+    };
+
+    const result = await materializeIncrementalPortraitV2(db, 'student-context-rebuild', {
+      now: new Date('2026-05-02T00:00:02.000Z'),
+      fullRebuild: true,
+      dryRun: true,
+    });
+
+    expect(result).toMatchObject({ written: false, evidenceCount: 0, affectedDimensions: [] });
+    expect(db.$transaction).toHaveBeenCalledTimes(1);
+    expect(db.studentPortraitV2Snapshot.findFirst).not.toHaveBeenCalled();
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it('does not create a synthetic zero portrait for full-rebuild context-only facts', async () => {
+    const contextFact = fact('context-rebuild', { controlModeling: 1 }, {
+      evidenceGovernance: { skipProfileContribution: true, profileWeight: 0 },
+    });
+    const create = vi.fn(async ({ data }: { data: Record<string, unknown> }) => ({ id: 'portrait-rebuilt-empty', ...data }));
+    const deleteMany = vi.fn(async () => ({ count: 1 }));
+    const result = await materializeIncrementalPortraitV2({
+      studentPortraitV2Snapshot: { findFirst: vi.fn(async () => null), create, deleteMany },
+      learningFact: { findMany: vi.fn(async () => [contextFact]) },
+    }, 'student-context-rebuild', {
+      now: new Date('2026-05-02T00:00:02.000Z'),
+      fullRebuild: true,
+    });
+
+    expect(result).toMatchObject({ written: false, evidenceCount: 0, affectedDimensions: [] });
+    expect(create).not.toHaveBeenCalled();
+    expect(deleteMany).toHaveBeenCalledWith({
+      where: { userId: 'student-context-rebuild', derivationKind: 'native' },
+    });
   });
 
   it('full rebuild resets the cursor and derives the portrait from all remaining mixed-source facts', async () => {

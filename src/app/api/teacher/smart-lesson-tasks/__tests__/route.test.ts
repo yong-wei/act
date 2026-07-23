@@ -156,7 +156,7 @@ describe('smart lesson task routes', () => {
       sourceVersionIds: ['version-1'], aggregateClassContextRef: { classId: 'class-1', diagnosisRef: 'diagnosis-1' },
       knowledgePoints: [{ content: '稳定性', title: '稳定性', origin: 'TEACHER_CREATED', sourceState: 'teacher_created_source_pending', sourceBindings: [] }],
       goals: [{ content: '判断稳定性', sourceState: 'teacher_created_source_pending', sourceBindings: [], standardsMappings: [] }],
-      confirmScope: true, confirmGoals: true,
+      confirmScope: false, confirmGoals: false,
     };
     mocks.toolRunFindFirst.mockResolvedValue({
       id: 'suggestion-1', agentSessionId: 'agent-session-1',
@@ -173,6 +173,7 @@ describe('smart lesson task routes', () => {
     expect(mocks.updateTask).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
       taskId: 'task-1', expectedRevision: 3, agentSessionId: 'agent-session-1', confirmingTurnId: 'turn-9',
       aggregateClassContextRef: { classId: 'class-1', diagnosisRef: 'diagnosis-1' },
+      confirmScope: true, confirmGoals: true,
     }));
     expect(mocks.updateTask.mock.calls[0]?.[0]).toMatchObject({
       agentToolRun: { findFirst: mocks.toolRunFindFirst, updateMany: mocks.toolRunUpdateMany },
@@ -197,7 +198,7 @@ describe('smart lesson task routes', () => {
       sourceVersionIds: ['version-1'],
       knowledgePoints: [{ content: '稳定性', title: '稳定性', origin: 'TEACHER_CREATED', sourceState: 'teacher_created_source_pending', sourceBindings: [] }],
       goals: [{ content: '判断稳定性', sourceState: 'teacher_created_source_pending', sourceBindings: [], standardsMappings: [] }],
-      confirmScope: true, confirmGoals: true,
+      confirmScope: false, confirmGoals: false,
     };
     mocks.toolRunFindFirst.mockResolvedValue({
       id: 'suggestion-1', agentSessionId: 'agent-session-1',
@@ -257,7 +258,7 @@ describe('smart lesson task routes', () => {
       outlineConfirmationRequired: false, sourceVersionIds: ['version-1'],
       knowledgePoints: [{ content: '稳定性', title: '稳定性', origin: 'TEACHER_CREATED', sourceState: 'teacher_created_source_pending', sourceBindings: [] }],
       goals: [{ content: '判断稳定性', sourceState: 'teacher_created_source_pending', sourceBindings: [], standardsMappings: [] }],
-      confirmScope: true, confirmGoals: true,
+      confirmScope: false, confirmGoals: false,
     };
     const sessionState = { currentTurnId: 'turn-2', ownedTurnIds: ['turn-1', 'turn-2'], teachingAssistantMode: 'prep-coauthor' };
     mocks.toolRunFindFirst.mockResolvedValue({
@@ -276,6 +277,10 @@ describe('smart lesson task routes', () => {
     const response = await POST(request(), params);
     expect(response.status).toBe(201);
     expect(mocks.createTask).toHaveBeenCalledTimes(1);
+    expect(mocks.createTask).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      confirmScope: true,
+      confirmGoals: true,
+    }));
     expect(mocks.agentSessionUpdateMany).toHaveBeenCalledWith(expect.objectContaining({
       data: { stateJson: expect.objectContaining({ smartPrepBinding: { taskId: 'task-created', taskRevision: '1', ownerUserId: 'teacher-1' } }) },
     }));

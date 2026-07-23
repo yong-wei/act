@@ -58,6 +58,7 @@ const mocks = vi.hoisted(() => {
       },
       studentPortraitV2Snapshot: {
         findFirst: vi.fn(),
+        findMany: vi.fn(),
       },
       classSessionReport: {
         findMany: vi.fn(),
@@ -438,6 +439,7 @@ describe('teacher evidence governance insights', () => {
     mocks.prisma.diagnosisReportSnapshot.findMany.mockResolvedValue([]);
     mocks.prisma.studentEvidenceFeatureCache.findMany.mockResolvedValue([]);
     mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue(null);
+    mocks.prisma.studentPortraitV2Snapshot.findMany.mockResolvedValue([]);
   });
 
   afterEach(() => {
@@ -674,7 +676,7 @@ describe('teacher evidence governance insights', () => {
     ]);
 
     const response = await getClassHeatmap(
-      new NextRequest('http://localhost/api/teacher/classes/class-1/heatmap'),
+      new NextRequest('http://localhost/api/teacher/classes/class-1/heatmap?scope=recent'),
       { params: Promise.resolve({ classId: 'class-1' }) },
     );
     const body = await response.json();
@@ -715,7 +717,7 @@ describe('teacher evidence governance insights', () => {
     );
 
     const response = await getClassHeatmap(
-      new NextRequest('http://localhost/api/teacher/classes/class-1/heatmap'),
+      new NextRequest('http://localhost/api/teacher/classes/class-1/heatmap?scope=recent'),
       { params: Promise.resolve({ classId: 'class-1' }) },
     );
     const body = await response.json();
@@ -723,6 +725,124 @@ describe('teacher evidence governance insights', () => {
     expect(response.status).toBe(200);
     expect(body.matrix).toEqual([]);
     expect(mocks.prisma.studentPortraitV2Snapshot.findFirst).not.toHaveBeenCalled();
+  });
+
+  it('defaults class insights to the cumulative snapshot and evidence-bearing native portrait', async () => {
+    mocks.prisma.class.findUnique.mockResolvedValue({
+      id: 'class-1',
+      name: '自动控制 1 班',
+      code: 'AC101',
+      description: null,
+      semester: '春季',
+      year: '2026',
+      teacherId: 'teacher-1',
+      students: [enrolledStudent('student-cumulative', '累计画像学生')],
+    });
+    mocks.prisma.classCompetencySnapshot.findFirst.mockResolvedValue({
+      aggregateJson: {
+        dimensions: {
+          controlModelingRepresentation: { mean: 10, stdDev: 0 },
+        },
+      },
+      levelDistribution: { excellent: 1, good: 0, average: 0, needsImprovement: 0, atRisk: 0 },
+      snapshotAt: new Date('2026-05-20T09:00:00.000Z'),
+    });
+    mocks.prisma.studentCompetencySnapshot.findMany.mockResolvedValue([{
+      userId: 'student-cumulative',
+      competencyVector: competencyVector(99),
+    }]);
+    mocks.prisma.studentPortraitV2Snapshot.findMany.mockResolvedValue([
+      nativePortraitSnapshot('student-cumulative', '2026-05-20T08:00:00.000Z'),
+    ]);
+    mocks.prisma.classSession.findMany.mockResolvedValue([]);
+    mocks.prisma.learningFact.findMany.mockResolvedValue([]);
+    mocks.prisma.learningFact.groupBy.mockResolvedValue([]);
+    mocks.prisma.classSessionReport.findMany.mockResolvedValue([]);
+
+    const response = await getClassInsights(
+      new Request('http://localhost/api/teacher/classes/class-1/insights'),
+      { params: Promise.resolve({ classId: 'class-1' }) },
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toMatchObject({
+      scope: 'cumulative',
+      scopeLabel: '累计能力达成',
+      nearStageChangeApplicable: false,
+      recentSignalsApplicable: false,
+      overview: { highRiskStudents: null, mediumRiskStudents: null, attentionStudents: null },
+      ability: { state: 'ready' },
+    });
+    expect(body.students[0]).toMatchObject({
+      overallScore: 72,
+      overallScoreSource: 'native-portrait-v2',
+      riskLevel: null,
+      riskLabel: null,
+      recentTrend: null,
+      portraitV2: { derivationKind: 'native' },
+    });
+    expect(body.ability.dimensions).toEqual(expect.arrayContaining([
+      expect.objectContaining({ dimension: 'controlModelingRepresentation', mean: 72, stdDev: 0 }),
+    ]));
+    expect(body.ability.levelDistribution).toMatchObject({ good: 1, excellent: 0 });
+    expect(mocks.prisma.classCompetencySnapshot.findFirst).toHaveBeenCalledWith({
+      where: {
+        classId: 'class-1',
+        materializationVersion: 'class-competency.cumulative.v1',
+      },
+      orderBy: { snapshotAt: 'desc' },
+    });
+  });
+
+  it('returns cumulative insights when scoped evidence advances after the request clock', async () => {
+    mocks.prisma.class.findUnique.mockResolvedValue({
+      id: 'class-1',
+      name: '自动控制 1 班',
+      code: 'AC101',
+      description: null,
+      semester: '春季',
+      year: '2026',
+      teacherId: 'teacher-1',
+      students: [enrolledStudent('student-cumulative', '累计画像学生')],
+    });
+    mocks.prisma.classCompetencySnapshot.findFirst.mockResolvedValue({
+      aggregateJson: {},
+      levelDistribution: {},
+      snapshotAt: new Date('2026-05-20T09:00:00.000Z'),
+    });
+    mocks.prisma.studentCompetencySnapshot.findMany.mockResolvedValue([]);
+    mocks.prisma.studentPortraitV2Snapshot.findMany.mockResolvedValue([
+      nativePortraitSnapshot('student-cumulative', '2026-05-20T08:00:00.000Z'),
+    ]);
+    mocks.prisma.classSession.findMany.mockResolvedValue([{ id: 'session-current' }]);
+    mocks.prisma.learningFact.findMany
+      .mockImplementationOnce(async () => {
+        vi.setSystemTime(new Date('2026-05-21T00:01:00.000Z'));
+        return [];
+      })
+      .mockResolvedValueOnce([
+        scopedSimulationArenaFact('student-cumulative', { sessionId: 'session-current' }),
+      ]);
+    mocks.prisma.studentEvidenceFeatureCache.findMany.mockResolvedValue([]);
+    mocks.prisma.learningFact.groupBy.mockResolvedValue([]);
+    mocks.prisma.classSessionReport.findMany.mockResolvedValue([]);
+
+    const response = await getClassInsights(
+      new Request('http://localhost/api/teacher/classes/class-1/insights?scope=cumulative'),
+      { params: Promise.resolve({ classId: 'class-1' }) },
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toMatchObject({
+      scope: 'cumulative',
+      students: [{
+        id: 'student-cumulative',
+        overallScore: 72,
+        overallScoreSource: 'native-portrait-v2',
+      }],
+    });
   });
 
   it('returns class evidence coverage counts and per-student cache state', async () => {
@@ -880,7 +1000,7 @@ describe('teacher evidence governance insights', () => {
     ]);
 
     const response = await getClassInsights(
-      new Request('http://localhost/api/teacher/classes/class-1/insights'),
+      new Request('http://localhost/api/teacher/classes/class-1/insights?scope=recent'),
       { params: Promise.resolve({ classId: 'class-1' }) },
     );
     const body = await response.json();
@@ -1010,7 +1130,7 @@ describe('teacher evidence governance insights', () => {
     mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue(nativePortraitSnapshot());
 
     const response = await getClassInsights(
-      new Request('http://localhost/api/teacher/classes/class-1/insights'),
+      new Request('http://localhost/api/teacher/classes/class-1/insights?scope=recent'),
       { params: Promise.resolve({ classId: 'class-1' }) },
     );
     const body = await response.json();
@@ -1068,7 +1188,7 @@ describe('teacher evidence governance insights', () => {
     );
 
     const response = await getClassInsights(
-      new Request('http://localhost/api/teacher/classes/class-1/insights'),
+      new Request('http://localhost/api/teacher/classes/class-1/insights?scope=recent'),
       { params: Promise.resolve({ classId: 'class-1' }) },
     );
     const body = await response.json();
@@ -1112,7 +1232,7 @@ describe('teacher evidence governance insights', () => {
     mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue(null);
 
     const response = await getClassInsights(
-      new Request('http://localhost/api/teacher/classes/class-1/insights'),
+      new Request('http://localhost/api/teacher/classes/class-1/insights?scope=recent'),
       { params: Promise.resolve({ classId: 'class-1' }) },
     );
     const body = await response.json();
@@ -1158,7 +1278,7 @@ describe('teacher evidence governance insights', () => {
       );
 
       const response = await getClassInsights(
-        new Request('http://localhost/api/teacher/classes/class-1/insights'),
+        new Request('http://localhost/api/teacher/classes/class-1/insights?scope=recent'),
         { params: Promise.resolve({ classId: 'class-1' }) },
       );
       const body = await response.json();
@@ -1244,7 +1364,7 @@ describe('teacher evidence governance insights', () => {
     mocks.prisma.classSessionReport.findMany.mockResolvedValue([]);
 
     const response = await getClassInsights(
-      new Request('http://localhost/api/teacher/classes/class-1/insights'),
+      new Request('http://localhost/api/teacher/classes/class-1/insights?scope=recent'),
       { params: Promise.resolve({ classId: 'class-1' }) },
     );
     const body = await response.json();
@@ -1314,7 +1434,7 @@ describe('teacher evidence governance insights', () => {
     mocks.prisma.classSessionReport.findMany.mockResolvedValue([]);
 
     const response = await getClassInsights(
-      new Request('http://localhost/api/teacher/classes/class-1/insights'),
+      new Request('http://localhost/api/teacher/classes/class-1/insights?scope=recent'),
       { params: Promise.resolve({ classId: 'class-1' }) },
     );
     const body = await response.json();
@@ -1385,7 +1505,7 @@ describe('teacher evidence governance insights', () => {
     mocks.prisma.classSessionReport.findMany.mockResolvedValue([]);
 
     const response = await getClassInsights(
-      new Request('http://localhost/api/teacher/classes/class-1/insights'),
+      new Request('http://localhost/api/teacher/classes/class-1/insights?scope=recent'),
       { params: Promise.resolve({ classId: 'class-1' }) },
     );
     const body = await response.json();
@@ -1439,7 +1559,7 @@ describe('teacher evidence governance insights', () => {
     mocks.prisma.classSessionReport.findMany.mockResolvedValue([]);
 
     const response = await getClassInsights(
-      new Request('http://localhost/api/teacher/classes/class-1/insights'),
+      new Request('http://localhost/api/teacher/classes/class-1/insights?scope=recent'),
       { params: Promise.resolve({ classId: 'class-1' }) },
     );
     const body = await response.json();
@@ -1487,7 +1607,7 @@ describe('teacher evidence governance insights', () => {
     mocks.prisma.learningFact.groupBy.mockResolvedValue([]);
     mocks.prisma.classSessionReport.findMany.mockResolvedValue([]);
 
-    const response = await getClassInsights(new Request('http://localhost/api/teacher/classes/class-a/insights'), { params: Promise.resolve({ classId: 'class-a' }) });
+    const response = await getClassInsights(new Request('http://localhost/api/teacher/classes/class-a/insights?scope=recent'), { params: Promise.resolve({ classId: 'class-a' }) });
     const body = await response.json();
     expect(body.ability.state).toBe('no-evidence');
     expect(body.ability.levelDistribution).toEqual({
@@ -1684,12 +1804,10 @@ describe('teacher evidence governance insights', () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body.overview.overallScore).toBe(0);
-    expect(body.overview.portraitV2).toMatchObject({
-      derivationKind: 'compatibility-derived',
-    });
-    expect(body.snapshot.current.portrait).toEqual(body.overview.portraitV2);
-    expect(body.classComparison.every((dimension: { studentScore: number }) => dimension.studentScore === 0)).toBe(true);
+    expect(body.overview.overallScore).toBeNull();
+    expect(body.overview.portraitV2).toBeNull();
+    expect(body.snapshot.current).toBeNull();
+    expect(body.classComparison.every((dimension: { studentScore: number | null }) => dimension.studentScore === null)).toBe(true);
     expect(mocks.prisma.classSession.findMany).toHaveBeenCalledWith({
       where: { classId },
       select: { id: true },
@@ -1792,7 +1910,86 @@ describe('teacher evidence governance insights', () => {
     expect(body.evidenceSummary[4].items[0]).not.toHaveProperty('privateKonlingMemory');
   });
 
-  it('preserves feature-cache snapshot time and fact count for compatibility-only student insights', async () => {
+  it('returns a native cumulative portrait when recent class evidence is absent', async () => {
+    mocks.prisma.class.findUnique.mockResolvedValue({
+      id: 'class-1',
+      name: '自动控制 1 班',
+      teacherId: 'teacher-1',
+    });
+    mocks.prisma.studentProfile.findFirst.mockResolvedValue({
+      id: 'profile-1',
+      userId: 'student-1',
+      studentNumber: 'S001',
+      user: { id: 'student-1', name: '学生甲', email: 'student@example.test' },
+    });
+    mocks.prisma.studentCompetencySnapshot.findFirst.mockResolvedValue({
+      userId: 'student-1',
+      snapshotAt: new Date('2026-05-20T00:00:00.000Z'),
+      evidenceSummary: { _derivation: { state: 'no-recent-evidence' } },
+    });
+    mocks.prisma.studentPortraitV2Snapshot.findMany.mockResolvedValue([
+      nativePortraitSnapshot('student-1', '2026-05-20T00:00:00.000Z'),
+    ]);
+    mocks.prisma.classCompetencySnapshot.findFirst.mockResolvedValue({
+      aggregateJson: {
+        dimensions: {
+          controlModelingRepresentation: { mean: 72 },
+        },
+      },
+      snapshotAt: new Date('2026-05-20T00:00:00.000Z'),
+    });
+    mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(null);
+    mocks.prisma.classSession.findMany.mockResolvedValue([]);
+    mocks.prisma.learningFact.findMany.mockResolvedValue([]);
+    mocks.prisma.studentStepResponse.findMany.mockResolvedValue([]);
+    mocks.prisma.studentSessionReport.findMany.mockResolvedValue([]);
+
+    const response = await getStudentInsights(
+      new Request('http://localhost/api/teacher/classes/class-1/students/student-1/insights'),
+      { params: Promise.resolve({ classId: 'class-1', studentId: 'student-1' }) },
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.overview).toMatchObject({
+      overallScore: 72,
+      evidenceState: 'current',
+      factCount: 7,
+      latestSnapshotAt: '2026-05-20T00:00:00.000Z',
+      portraitV2: { derivationKind: 'native', overallScore: 72 },
+    });
+    expect(body.overview.recommendedScaffolding).toContain('暂无近期本班证据');
+    expect(body.snapshot.current).toMatchObject({
+      portrait: { derivationKind: 'native' },
+      vector: null,
+      legacyCompatibility: { source: 'fallback-empty' },
+    });
+    expect(body.snapshot.derivationState).toBe('current');
+    expect(body.evidenceDrawer.featureCache.state).toBe('missing');
+    expect(body.classComparison).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        dimension: 'controlModelingRepresentation',
+        studentScore: 72,
+        classAverage: 72,
+        gap: 0,
+      }),
+      expect.objectContaining({
+        dimension: 'systemAnalysisInterpretation',
+        studentScore: null,
+        classAverage: null,
+        gap: null,
+      }),
+    ]));
+    expect(mocks.prisma.classCompetencySnapshot.findFirst).toHaveBeenCalledWith({
+      where: {
+        classId: 'class-1',
+        materializationVersion: 'class-competency.cumulative.v1',
+      },
+      orderBy: { snapshotAt: 'desc' },
+    });
+  });
+
+  it('returns no cumulative portrait when no valid native portrait exists', async () => {
     const cachedVector = competencyVector(70);
     Object.values(cachedVector).forEach((dimension) => {
       dimension.lastUpdated = '2026-05-19T09:00:00.000Z';
@@ -1809,9 +2006,9 @@ describe('teacher evidence governance insights', () => {
       user: { id: 'student-1', name: '学生甲', email: 'student@example.test' },
     });
     mocks.prisma.studentCompetencySnapshot.findFirst.mockResolvedValue(null);
-    mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue(
+    mocks.prisma.studentPortraitV2Snapshot.findMany.mockResolvedValue([
       nativePortraitSnapshot('student-1', '2026-05-20T00:00:00.000Z', false),
-    );
+    ]);
     mocks.prisma.studentProfileSummary.findUnique.mockResolvedValue(null);
     mocks.prisma.studentRiskFlag.findMany.mockResolvedValue([]);
     mocks.prisma.growthRecord.findMany.mockResolvedValue([]);
@@ -1844,18 +2041,21 @@ describe('teacher evidence governance insights', () => {
       overallScore: null,
       latestSnapshotAt: null,
       factCount: 0,
-      portraitV2: { derivationKind: 'compatibility-derived', overallScore: 0 },
+      portraitV2: null,
     });
-    expect(body.overview.portraitV2.dimensions.every(
-      (dimension: { evidenceCount: number }) => dimension.evidenceCount === 0,
-    )).toBe(true);
-    expect(mocks.prisma.studentPortraitV2Snapshot.findFirst).not.toHaveBeenCalled();
+    expect(mocks.prisma.studentPortraitV2Snapshot.findMany).toHaveBeenCalledWith({
+      where: { userId: { in: ['student-1'] }, derivationKind: 'native' },
+      orderBy: [{ userId: 'asc' }, { snapshotAt: 'desc' }, { id: 'desc' }],
+    });
     expect(body.snapshot.current).toBeNull();
   });
 
-  it.each(['no-recent-evidence', 'no-evidence-after-revocation'] as const)(
-    'does not revive %s teacher insights from an older native portrait',
-    async (state) => {
+  it.each([
+    { state: 'no-recent-evidence' as const, preservesPortrait: true },
+    { state: 'no-evidence-after-revocation' as const, preservesPortrait: false },
+  ])(
+    'handles a native cumulative portrait when legacy state is $state',
+    async ({ state, preservesPortrait }) => {
       mocks.prisma.class.findUnique.mockResolvedValue({
         id: 'class-1',
         name: '自动控制 1 班',
@@ -1874,9 +2074,9 @@ describe('teacher evidence governance insights', () => {
         factCount: 0,
         evidenceSummary: { _derivation: { state, reason: 'lifecycle-boundary' } },
       });
-      mocks.prisma.studentPortraitV2Snapshot.findFirst.mockResolvedValue(
+      mocks.prisma.studentPortraitV2Snapshot.findMany.mockResolvedValue([
         nativePortraitSnapshot('student-1', '2026-05-20T00:00:00.000Z', true),
-      );
+      ]);
       mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(null);
       mocks.prisma.classCompetencySnapshot.findFirst.mockResolvedValue(null);
       mocks.prisma.classSession.findMany.mockResolvedValue([{ id: 'session-historical' }]);
@@ -1898,14 +2098,26 @@ describe('teacher evidence governance insights', () => {
       const body = await response.json();
 
       expect(response.status).toBe(200);
-      expect(body.overview).toMatchObject({
-        overallScore: null,
-        evidenceState: 'empty',
-        factCount: 0,
-      });
-      expect(body.overview.portraitV2.overallScore).toBe(0);
-      expect(body.overview.portraitV2.limitations).toContain(`lifecycle-boundary:${state}`);
-      expect(body.snapshot).toMatchObject({ derivationState: state, current: null });
+      if (preservesPortrait) {
+        expect(body.overview).toMatchObject({
+          overallScore: 72,
+          evidenceState: 'current',
+          factCount: 7,
+          portraitV2: { derivationKind: 'native', overallScore: 72 },
+        });
+        expect(body.snapshot).toMatchObject({ derivationState: 'current' });
+      } else {
+        expect(body.overview).toMatchObject({
+          overallScore: null,
+          evidenceState: 'empty',
+          factCount: 0,
+          portraitV2: null,
+        });
+        expect(body.snapshot).toMatchObject({
+          derivationState: 'no-evidence-after-revocation',
+          current: null,
+        });
+      }
       expect(mocks.prisma.learningFact.findMany).toHaveBeenCalledWith(expect.objectContaining({
         where: expect.objectContaining({ startedAt: { gte: expect.any(Date) } }),
       }));
@@ -1951,6 +2163,9 @@ describe('teacher evidence governance insights', () => {
     expect(studentPage).toContain('evidenceDrawer');
     expect(studentPage).toContain('证据治理');
     expect(studentPage).toContain('近期会话质量');
+    expect(studentPage).toContain('近期本班诊断证据');
+    expect(studentPage).toContain('不代表累计画像的完整来源');
+    expect(studentPage).toContain('累计画像的分维度证据计数');
     expect(studentPage).toContain('持久提交');
     expect(analyticsPage).toContain("student.overallScore ?? '暂无证据'");
   });

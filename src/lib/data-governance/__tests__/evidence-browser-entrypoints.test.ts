@@ -62,7 +62,7 @@ describe('evidence browser entry points', () => {
     expect(source).toContain('ActionStatusPanel');
     expect(source).toContain('data-teacher-evidence-remediation="context-status"');
     expect(source).toContain('data-teacher-evidence-next-steps');
-    expect(source).toContain('data-teacher-evidence-remediation-task="disabled"');
+    expect(source).toContain('data-teacher-evidence-remediation-task={interventionAction.status}');
     expect(source).toContain("data-teacher-evidence-report-handoff={hasCompleteReportContext ? 'available' : undefined}");
     expect(source).toContain("data-teacher-evidence-browse-return={hasCompleteReportContext ? undefined : 'available'}");
     expect(source).toContain('data-teacher-evidence-mobile-actions="fixed"');
@@ -96,6 +96,15 @@ describe('evidence browser entry points', () => {
     expect(source).toContain('requestId !== requestSequenceRef.current');
     expect(source).toContain('emptyBackHref?: string;');
     expect(source).toContain('href={emptyBackHref ?? backHref}');
+  });
+
+  it('keeps native evidence filter options readable across light and dark themes', () => {
+    const source = readSource('src/features/data-governance/evidence-timeline-browser.tsx');
+    const themedSelects = source.match(/className={EVIDENCE_FILTER_SELECT_CLASS_NAME}/g) ?? [];
+
+    expect(themedSelects).toHaveLength(3);
+    expect(source).toContain('bg-background px-3 py-2 text-foreground');
+    expect(source).toContain('[&>option]:bg-background [&>option]:text-foreground');
   });
 
   it('initializes the student evidence browser from lessonId query parameters', () => {

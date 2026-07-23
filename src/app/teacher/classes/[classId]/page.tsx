@@ -162,7 +162,7 @@ export default function ClassDetailPage() {
   const fetchInsights = useCallback(async () => {
     if (!classId) return;
     try {
-      const res = await fetch(`/api/teacher/classes/${classId}/insights`);
+      const res = await fetch(`/api/teacher/classes/${classId}/insights?scope=cumulative`);
       if (res.ok) {
         const data = await res.json();
         setInsights(data);
@@ -456,7 +456,6 @@ export default function ClassDetailPage() {
   const displayedSessions = statusFilter === 'ACTIVE' ? sessions.filter(s => s.status === 'ACTIVE') : sessions.filter(s => s.status === 'FINISHED');
   const governance = insights?.governance;
   const evidenceCoverage = governance?.evidenceCoverage;
-  const recentSessionQuality = governance?.recentSessionQuality;
   const studentInsightMap = new Map(insights?.students.map((student) => [student.id, student]) || []);
   const classDetailStatus = `${announcement} 当前显示 ${displayedSessions.length} 条课堂历史，${classData?.students.length ?? 0} 名学生。`;
 
@@ -611,6 +610,7 @@ export default function ClassDetailPage() {
                     {classData._count.students} 名学生
                   </span>
                   {governance && <span>{governance.lastUpdatedLabel}</span>}
+                  {insights && <span className="font-medium text-foreground">口径：{insights.scopeLabel}</span>}
                 </div>
               </div>
             </div>
@@ -672,9 +672,9 @@ export default function ClassDetailPage() {
         <Link href={buildTeacherClassInsightsHref(classId)} className="teacher-insight-entry">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold text-foreground">班级学情总览</p>
+              <p className="text-sm font-semibold text-foreground">累计能力达成</p>
               <p className="mt-2 text-sm text-subtle">
-                查看能力矩阵、风险分层和治理覆盖情况。
+                查看全历史能力矩阵与当前名册覆盖情况。
               </p>
             </div>
             <BarChart3 className="h-5 w-5 text-sky-500 dark:text-sky-300" />
@@ -702,14 +702,12 @@ export default function ClassDetailPage() {
             <GraduationCap className="h-5 w-5 text-emerald-500" />
           </div>
         </Link>
-        <div className="teacher-insight-entry">
+        <div className="teacher-insight-entry" data-recent-signals-not-applicable>
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold text-foreground">重点关注</p>
+              <p className="text-sm font-semibold text-foreground">近阶段风险与重点学生</p>
               <p className="mt-2 text-sm text-subtle">
-                {insights
-                  ? `${insights.overview.attentionStudents} 名学生处于需重点跟进状态。`
-                  : '等待治理结果生成后自动显示重点学生。'}
+                切换近阶段学情查看近期风险、课堂质量与趋势。
               </p>
             </div>
             <ShieldAlert className="h-5 w-5 text-rose-500" />
@@ -735,24 +733,18 @@ export default function ClassDetailPage() {
       {insights && (
         <section className="mb-8 grid gap-4 md:grid-cols-2 xl:grid-cols-6">
           <div className="teacher-insight-metric">
-            <p className="text-sm text-subtle">班级总体指数</p>
+            <p className="text-sm text-subtle">累计能力达成指数</p>
             <p className="mt-2 text-3xl font-semibold text-foreground">
               {insights.overview.overallIndex ?? '暂无证据'}
             </p>
-            <p className="mt-2 text-xs text-subtle">来自最新班级快照与学生画像聚合。</p>
+            <p className="mt-2 text-xs text-subtle">来自全历史原生画像与累计班级快照。</p>
+          </div>
+          <div className="teacher-insight-metric" data-recent-risk-not-applicable>
+            <p className="text-sm font-medium text-foreground">近阶段风险不适用</p>
+            <p className="mt-2 text-xs text-subtle">切换近阶段学情查看近期风险、课堂质量与趋势。</p>
           </div>
           <div className="teacher-insight-metric">
-            <p className="text-sm text-subtle">高风险学生</p>
-            <p className="mt-2 text-3xl font-semibold text-rose-500">{insights.overview.highRiskStudents}</p>
-            <p className="mt-2 text-xs text-subtle">需要优先干预的个体数量。</p>
-          </div>
-          <div className="teacher-insight-metric">
-            <p className="text-sm text-subtle">中风险学生</p>
-            <p className="mt-2 text-3xl font-semibold text-amber-500">{insights.overview.mediumRiskStudents}</p>
-            <p className="mt-2 text-xs text-subtle">建议在课堂中持续观察的学生。</p>
-          </div>
-          <div className="teacher-insight-metric">
-            <p className="text-sm text-subtle">人均学习事实</p>
+            <p className="text-sm text-subtle">人均累计证据</p>
             <p className="mt-2 text-3xl font-semibold text-foreground">{insights.overview.averageFactCount}</p>
             <p className="mt-2 text-xs text-subtle">反映治理链路沉淀下来的过程证据密度。</p>
           </div>
@@ -765,11 +757,10 @@ export default function ClassDetailPage() {
               {evidenceCoverage?.staleStudents ?? 0} 名待刷新，{evidenceCoverage?.missingStudents ?? 0} 名缺少证据。
             </p>
           </div>
-          <div className="teacher-insight-metric">
-            <p className="text-sm text-subtle">近期会话质量</p>
-            <p className="mt-2 text-3xl font-semibold text-foreground">{recentSessionQuality?.green ?? 0}/{recentSessionQuality?.totalReports ?? 0}</p>
+          <div className="teacher-insight-metric" data-recent-session-quality-not-applicable>
+            <p className="text-sm font-medium text-foreground">近期会话质量不适用</p>
             <p className="mt-2 text-xs text-subtle">
-              黄灯 {recentSessionQuality?.yellow ?? 0}，红灯 {recentSessionQuality?.red ?? 0}。
+              此页展示累计能力达成；切换近阶段学情查看近期会话质量、风险与趋势。
             </p>
           </div>
         </section>
@@ -988,11 +979,11 @@ export default function ClassDetailPage() {
               <thead className="sticky top-0 z-10 bg-card/95 backdrop-blur">
                 <tr className="border-b border-border/60 text-left text-xs uppercase tracking-[0.16em] text-subtle">
                   <th className="px-4 py-3 font-medium">学生</th>
-                  <th className="px-4 py-3 font-medium">画像等级</th>
-                  <th className="px-4 py-3 font-medium">综合指数</th>
-                  <th className="px-4 py-3 font-medium">证据状态</th>
-                  <th className="px-4 py-3 font-medium">风险状态</th>
-                  <th className="px-4 py-3 font-medium">近期趋势</th>
+                  <th className="px-4 py-3 font-medium">累计画像等级</th>
+                  <th className="px-4 py-3 font-medium">累计达成指数</th>
+                  <th className="px-4 py-3 font-medium">证据状态（近阶段）</th>
+                  <th className="px-4 py-3 font-medium">风险状态（近阶段）</th>
+                  <th className="px-4 py-3 font-medium">近阶段趋势</th>
                   <th className="px-4 py-3 font-medium">成长档案</th>
                   <th className="px-4 py-3 font-medium">操作</th>
                 </tr>
@@ -1053,16 +1044,12 @@ export default function ClassDetailPage() {
                         )}
                       </td>
                       <td className="px-4 py-4 align-top" data-label="风险状态">
-                        {insight ? (
-                          <span className={`teacher-insight-chip teacher-insight-risk-${insight.riskLevel}`}>
-                            {insight.riskLabel}
-                          </span>
-                        ) : (
-                          <span className="teacher-insight-chip teacher-insight-chip-pending">待生成</span>
-                        )}
+                        <span className="text-sm text-subtle">累计口径不适用</span>
                       </td>
                       <td className="px-4 py-4 align-top text-foreground" data-label="近期趋势">
-                        {insight ? insight.recentTrend : '治理结果待生成'}
+                        <Link href={`${buildTeacherClassInsightsHref(classId)}?scope=recent`} className="text-sm text-primary hover:underline">
+                          切换近阶段学情查看
+                        </Link>
                       </td>
                       <td className="px-4 py-4 align-top" data-label="成长档案">
                         {insight ? (

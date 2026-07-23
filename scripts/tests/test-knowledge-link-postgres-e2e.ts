@@ -31,7 +31,35 @@ const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'knowledge-link-e2e-'));
 const graphRoot = path.join(tempRoot, 'graph');
 const nodesPath = path.join(graphRoot, 'nodes.json');
 const relationsPath = path.join(graphRoot, 'relations.jsonl');
+const auditInputPath = path.join(tempRoot, 'knowledge-relation-coverage-audit.json');
 fs.mkdirSync(graphRoot, { recursive: true });
+
+const auditNodeRows = [
+  { id: 'audit-source', name: 'Audit Source', nodeType: 'THEORY', description: 'Audit source', metadata: {} },
+  { id: 'audit-target', name: 'Audit Target', nodeType: 'THEORY', description: 'Audit target', metadata: {} },
+];
+const auditRelationRows = [
+  {
+    id: 'audit-order', source_id: 'audit-source', target_id: 'audit-target', relation_type: 'leads_to',
+    strength: 1, sourceDocument: 'isolated-postgres-e2e.md',
+  },
+  {
+    id: 'audit-association', source_id: 'audit-source', target_id: 'audit-target', relation_type: 'supports',
+    strength: 0.7, rationale: 'isolated association density fixture',
+  },
+];
+const auditRelationIds = new Set(auditRelationRows.map((row) => row.id));
+fs.writeFileSync(auditInputPath, JSON.stringify({
+  schemaVersion: 1,
+  orderSource: { relationIds: ['audit-order'] },
+  density: { selectedNodeId: 'audit-source', visibleAssociationRelationIds: ['audit-association'] },
+  provenance: [{
+    relationId: 'audit-order', sourceId: 'audit-source', targetId: 'audit-target', canonicalType: 'leads_to',
+  }],
+  overlayTripleEligibility: [{
+    relationId: 'audit-order', sourceId: 'audit-source', targetId: 'audit-target', normalizedType: 'leads_to',
+  }],
+}));
 
 const cleanChildEnv = (extra: Record<string, string>) => {
   const env = { ...process.env, ...extra };
@@ -55,7 +83,7 @@ function writeNodes(name = 'Node A') {
 }
 
 function writeNodeRows(rows: unknown[]) {
-  fs.writeFileSync(nodesPath, JSON.stringify(rows));
+  fs.writeFileSync(nodesPath, JSON.stringify([...rows, ...auditNodeRows]));
 }
 
 const relationRows = [
@@ -70,13 +98,15 @@ const relationRows = [
 ];
 
 function writeRelations(rows: unknown[]) {
-  fs.writeFileSync(relationsPath, `${rows.map((row) => JSON.stringify(row)).join('\n')}\n`);
+  const relations = rows.length > 0 ? [...rows, ...auditRelationRows] : rows;
+  fs.writeFileSync(relationsPath, `${relations.map((row) => JSON.stringify(row)).join('\n')}\n`);
 }
 
 function seed() {
   return run(process.execPath, ['scripts/db/seed-all-knowledge.mjs'], {
     DATABASE_URL: testUrl.toString(),
     KNOWLEDGE_RUNTIME_ROOT: tempRoot,
+    KNOWLEDGE_RELATION_AUDIT_INPUT: auditInputPath,
   });
 }
 
@@ -86,6 +116,7 @@ function productionFallbackProbe(expectedCode?: string) {
   ], {
     DATABASE_URL: testUrl.toString(),
     KNOWLEDGE_DB_FALLBACK_PROBE: '1',
+    KNOWLEDGE_DB_FALLBACK_AUDIT_SCAFFOLD: '1',
     KNOWLEDGE_EXPECTED_RUNTIME_ROOT: tempRoot,
     KNOWLEDGE_RUNTIME_ROOT: path.join(tempRoot, 'unavailable-runtime'),
     ...(expectedCode ? { KNOWLEDGE_DB_FALLBACK_EXPECT_422: expectedCode } : {}),
@@ -98,6 +129,7 @@ function productionConcurrencyProbe() {
   ], {
     DATABASE_URL: testUrl.toString(),
     KNOWLEDGE_DB_FALLBACK_PROBE: '1',
+    KNOWLEDGE_DB_FALLBACK_AUDIT_SCAFFOLD: '1',
     KNOWLEDGE_DB_CONCURRENCY_PROBE: '1',
     KNOWLEDGE_EXPECTED_RUNTIME_ROOT: tempRoot,
     KNOWLEDGE_RUNTIME_ROOT: path.join(tempRoot, 'unavailable-runtime'),
@@ -204,7 +236,10 @@ try {
     SELECT "id", "sourceId", "targetId", "relation", "strength", "metadata"
     FROM "KnowledgeLink" ORDER BY "id" ASC
   `)).rows;
-  const runtimeRows = firstRows.filter((row) => row.metadata.runtimeSource === 'course-content/runtime/knowledge/graph/relations.jsonl');
+  const allRuntimeRows = firstRows.filter((row) => (
+    row.metadata.runtimeSource === 'course-content/runtime/knowledge/graph/relations.jsonl'
+  ));
+  const runtimeRows = allRuntimeRows.filter((row) => !auditRelationIds.has(row.id));
   assert.equal(runtimeRows.length, 2);
   assert.equal(runtimeRows.every((row) => row.sourceId === 'node-a' && row.targetId === 'node-b'), true);
   assert.equal(runtimeRows[1].metadata.rationale, '依据');
@@ -286,8 +321,9 @@ try {
   assert.equal(foreignKeys, 2);
 
   const fileContent = fs.readFileSync(relationsPath, 'utf8');
-  const fileRuntime = inspectRuntimeKnowledgeRelationCoverage(fileContent, { nodeIds: new Set(['node-a', 'node-b']) });
-  const dbContent = `${runtimeRows.map((row) => JSON.stringify({
+  const fixtureNodeIds = new Set(['node-a', 'node-b', 'audit-source', 'audit-target']);
+  const fileRuntime = inspectRuntimeKnowledgeRelationCoverage(fileContent, { nodeIds: fixtureNodeIds });
+  const dbContent = `${allRuntimeRows.map((row) => JSON.stringify({
     ...row.metadata,
     id: row.id,
     sourceId: row.sourceId,
@@ -295,10 +331,10 @@ try {
     type: row.relation,
     strength: row.strength,
   })).join('\n')}\n`;
-  const dbRuntime = inspectRuntimeKnowledgeRelationCoverage(dbContent, { nodeIds: new Set(['node-a', 'node-b']) });
+  const dbRuntime = inspectRuntimeKnowledgeRelationCoverage(dbContent, { nodeIds: fixtureNodeIds });
   assert.deepEqual(
-    dbRuntime.projection.visualEdges.map((edge) => edge.key),
-    fileRuntime.projection.visualEdges.map((edge) => edge.key),
+    dbRuntime.projection.visualEdges.map((edge) => edge.key).filter((key) => !key.includes('audit-')),
+    fileRuntime.projection.visualEdges.map((edge) => edge.key).filter((key) => !key.includes('audit-')),
   );
   const nodeMap = new Map([
     ['node-a', { id: 'node-a', name: 'Node A', nodeType: 'THEORY' }],
@@ -310,7 +346,11 @@ try {
 
   writeRelations([relationRows[1]]);
   assert.equal(seed().status, 0);
-  assert.deepEqual((await db.query(`SELECT "id" FROM "KnowledgeLink" WHERE "metadata"->>'runtimeSource' = 'course-content/runtime/knowledge/graph/relations.jsonl' ORDER BY "id"`)).rows, [{ id: 'relation-supports' }]);
+  assert.deepEqual(
+    (await db.query(`SELECT "id" FROM "KnowledgeLink" WHERE "metadata"->>'runtimeSource' = 'course-content/runtime/knowledge/graph/relations.jsonl' ORDER BY "id"`)).rows
+      .filter((row) => !auditRelationIds.has(row.id)),
+    [{ id: 'relation-supports' }],
+  );
 
   const beforeInvalid = (await db.query(`SELECT count(*)::int AS count FROM "KnowledgeLink"`)).rows[0].count;
   const invalidRelationSets = [
@@ -382,7 +422,11 @@ try {
   const rollbackSeed = seed();
   assert.notEqual(rollbackSeed.status, 0);
   assert.equal((await db.query(`SELECT "name" FROM "KnowledgeNode" WHERE "id" = 'node-a'`)).rows[0].name, 'Node A');
-  assert.deepEqual((await db.query(`SELECT "id" FROM "KnowledgeLink" WHERE "metadata"->>'runtimeSource' = 'course-content/runtime/knowledge/graph/relations.jsonl' ORDER BY "id"`)).rows, [{ id: 'relation-supports' }]);
+  assert.deepEqual(
+    (await db.query(`SELECT "id" FROM "KnowledgeLink" WHERE "metadata"->>'runtimeSource' = 'course-content/runtime/knowledge/graph/relations.jsonl' ORDER BY "id"`)).rows
+      .filter((row) => !auditRelationIds.has(row.id)),
+    [{ id: 'relation-supports' }],
+  );
 
   console.log('knowledge link isolated PostgreSQL E2E passed');
 } finally {

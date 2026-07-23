@@ -220,8 +220,20 @@
     "reportSha256": "40c4f5ca2fccc05138a634f066bc92c9f7f99be97a29617c1b5a893f0b6cd374"
   },
   "currentSourceRefresh": {
-    "capturedAt": "2026-07-11T00:00:00.000Z",
-    "baseUrl": "fresh local Next server",
+    "capturedAt": "2026-07-21T00:00:00.000Z",
+    "baseUrl": "http://localhost:3211",
+    "sourcePath": "src/features/interactive/shared/manifest-runtime/content-renderers.tsx",
+    "sourceSha256": "d1f089cd2ab727927b05122934d9b762d681b2ab56d6bb0b8ca52be72db0ccde",
+    "implementationAcceptance": "artifacts/interactive-learning/unified-courseware-style-final-2026-07-21/implementation-acceptance.json",
+    "browserAudit": "artifacts/interactive-learning/unified-courseware-style-final-2026-07-21/browser-audit.json",
+    "representativeState": {
+      "route": "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/student/demo?step=step-11",
+      "componentId": "three-ships-response-evidence",
+      "theme": "dark",
+      "viewport": "desktop",
+      "screenshot": "artifacts/interactive-learning/unified-courseware-style-final-2026-07-21/screenshots/unit-1-2-step-11-annotated-media-desktop-dark.png",
+      "result": "passed"
+    },
     "routeStates": [
       {
         "id": "atlas-desktop-light",
@@ -258,10 +270,10 @@
     "compactSpacingAuxiliaryCollisionFree": true
   },
   "temporaryExceptions": [],
-  "generatedAt": "2026-07-11T00:00:00.000Z",
-  "sourceCommit": "worktree:redesign-adaptive-path-continuous-journey@252155470034",
+  "generatedAt": "2026-07-22T11:25:17.000Z",
+  "sourceCommit": "worktree:4ff31f79c12d+release-lint-only-renderer-identifiers",
   "designHandoffSha256": "227cc9c1f7ecc4299a4d483be75b538e5b82a45c4df73ec4e697797de5088058",
-  "handoffMatrixSha256": "29a6492e6c70b0e9e22959e38c1c62d25f15e30196c4f15ad40d10ac1a3129d8",
+  "handoffMatrixSha256": "240e2e0e54a99525417c6f013590e3df3ddc878627a4555024e04897579e10bc",
   "conceptImageSha256": {
     "artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/01-learning-atlas-course-catalog.png": "eb6960134c4be24726775fd041d8eb461d1442e557d6e07a599901e77ac3b6bd",
     "artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/02-course-entry-shell.png": "24bf8b8f33879594652bcaabcd118bafe3656643e61d17adf56a0e833e3b32d4",

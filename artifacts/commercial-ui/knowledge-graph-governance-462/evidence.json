@@ -2,34 +2,26 @@
   "issue": 462,
   "change": "govern-knowledge-graph-navigation-and-visual-qa",
   "route": "/knowledge",
-  "capturedAt": "2026-06-13T00:00:00.000Z",
-  "sourceEvidence": {
-    "shellManifest": "artifacts/commercial-ui/knowledge-map-unified-shell-415/manifest.json",
-    "visualLanguage": "artifacts/commercial-ui/knowledge-graph-visual-language-460/evidence.json",
-    "layoutClarity": "artifacts/commercial-ui/knowledge-graph-layout-clarity-461/evidence.json",
-    "runtimeRelations": "course-content/runtime/knowledge/graph/relations.jsonl"
-  },
+  "capturedAt": "2026-07-22T13:33:08.126Z",
   "localToolEvidence": {
     "desktopDefault": {
       "width": 1440,
       "canvasPrimary": true,
       "chapterDirectory": "compact",
-      "relationFilters": "compact",
-      "legend": "compact",
-      "viewModeSwitch": "compact",
+      "nodeFilters": "compact",
+      "relationFamilyControl": "compact-bottom-left",
+      "viewLayout": "compact",
       "resourcePanel": "closed-until-node-selection",
       "activeFilterSummaryWhenCollapsed": true
     },
     "desktopOpenClose": {
       "chapterDirectoryOpenClosed": true,
-      "relationFiltersOpenClosed": true,
-      "legendOpenClosed": true,
-      "viewModeSwitchOpenClosed": true,
+      "nodeFiltersOpenClosed": true,
+      "viewLayoutOpenClosed": true,
       "resourcePanelOpenClosed": true,
       "selectedNodePreserved": true,
       "activeFiltersPreserved": true,
-      "densityModePreserved": true,
-      "legendStatePreserved": true,
+      "relationFamilyStatePreserved": true,
       "visibleSummariesPreserved": true
     },
     "tabletDefault": {
@@ -38,8 +30,7 @@
       "canvasPrimary": true,
       "permanentPanelsForbidden": [
         "chapter-directory",
-        "relation-filters",
-        "graph-legend",
+        "node-filters",
         "resource-panel"
       ],
       "noCanvasSqueeze": true
@@ -54,55 +45,171 @@
     }
   },
   "runtimeRelationEvidence": {
-    "samplePolicy": "include every runtime relation type present at capture time",
-    "countPolicy": "counts are report-only; governance blocks on relation type coverage and current visual semantics, not on unchanged edge counts",
+    "samplePolicy": "include every runtime relation type present at capture time; raw types project into learner-facing families",
     "commonSamples": [
       "applies_to",
-      "contains",
-      "leads_to",
-      "prerequisite",
-      "related"
-    ],
-    "lowFrequencySamples": [
+      "causes",
       "complements",
+      "contains",
       "contrasts_with",
       "cross_domain",
+      "demonstrates",
       "derives",
       "describes_migration_of",
       "determines",
       "embodies",
       "enables",
+      "equivalent_to",
+      "exemplifies",
+      "extends",
       "generalizes",
+      "has_stage",
       "informs",
       "instance_of",
+      "leads_to",
       "opposite",
+      "precedes",
+      "prerequisite",
+      "produces",
+      "provides_context",
+      "provides_foundation",
       "quantified_by",
+      "refined_by",
+      "related",
       "supports",
       "uses",
       "visualized_by"
     ],
+    "lowFrequencySamples": [],
     "types": [
-      { "type": "applies_to", "count": 5381 },
-      { "type": "complements", "count": 1 },
-      { "type": "contains", "count": 1541 },
-      { "type": "contrasts_with", "count": 1 },
-      { "type": "cross_domain", "count": 67 },
-      { "type": "derives", "count": 1 },
-      { "type": "describes_migration_of", "count": 1 },
-      { "type": "determines", "count": 2 },
-      { "type": "embodies", "count": 1 },
-      { "type": "enables", "count": 4 },
-      { "type": "generalizes", "count": 11 },
-      { "type": "informs", "count": 1 },
-      { "type": "instance_of", "count": 7 },
-      { "type": "leads_to", "count": 1128 },
-      { "type": "opposite", "count": 179 },
-      { "type": "prerequisite", "count": 752 },
-      { "type": "quantified_by", "count": 1 },
-      { "type": "related", "count": 7444 },
-      { "type": "supports", "count": 5 },
-      { "type": "uses", "count": 1 },
-      { "type": "visualized_by", "count": 1 }
+      {
+        "type": "applies_to",
+        "count": 5383
+      },
+      {
+        "type": "causes",
+        "count": 1
+      },
+      {
+        "type": "complements",
+        "count": 3
+      },
+      {
+        "type": "contains",
+        "count": 1547
+      },
+      {
+        "type": "contrasts_with",
+        "count": 4
+      },
+      {
+        "type": "cross_domain",
+        "count": 66
+      },
+      {
+        "type": "demonstrates",
+        "count": 1
+      },
+      {
+        "type": "derives",
+        "count": 4
+      },
+      {
+        "type": "describes_migration_of",
+        "count": 1
+      },
+      {
+        "type": "determines",
+        "count": 2
+      },
+      {
+        "type": "embodies",
+        "count": 1
+      },
+      {
+        "type": "enables",
+        "count": 5
+      },
+      {
+        "type": "equivalent_to",
+        "count": 1
+      },
+      {
+        "type": "exemplifies",
+        "count": 1
+      },
+      {
+        "type": "extends",
+        "count": 1
+      },
+      {
+        "type": "generalizes",
+        "count": 10
+      },
+      {
+        "type": "has_stage",
+        "count": 3
+      },
+      {
+        "type": "informs",
+        "count": 1
+      },
+      {
+        "type": "instance_of",
+        "count": 8
+      },
+      {
+        "type": "leads_to",
+        "count": 1132
+      },
+      {
+        "type": "opposite",
+        "count": 179
+      },
+      {
+        "type": "precedes",
+        "count": 1
+      },
+      {
+        "type": "prerequisite",
+        "count": 754
+      },
+      {
+        "type": "produces",
+        "count": 1
+      },
+      {
+        "type": "provides_context",
+        "count": 1
+      },
+      {
+        "type": "provides_foundation",
+        "count": 1
+      },
+      {
+        "type": "quantified_by",
+        "count": 1
+      },
+      {
+        "type": "refined_by",
+        "count": 1
+      },
+      {
+        "type": "related",
+        "count": 7444
+      },
+      {
+        "type": "supports",
+        "count": 7
+      },
+      {
+        "type": "uses",
+        "count": 1
+      },
+      {
+        "type": "visualized_by",
+        "count": 5
+      }
     ]
   },
   "graphClarityEvidence": {

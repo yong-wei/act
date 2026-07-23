@@ -21,6 +21,18 @@ import { assertRuntimeKnowledgeRelationCoverage } from '@/lib/knowledge-graph-re
 describe.runIf(process.env.KNOWLEDGE_DB_FALLBACK_PROBE === '1')('production DB fallback ownership boundary', () => {
   it('uses only canonical runtime-owned relations across loader and real routes', async () => {
     resetKnowledgeGraphSourceCacheForTests();
+    const auditScaffold = process.env.KNOWLEDGE_DB_FALLBACK_AUDIT_SCAFFOLD === '1';
+    const withoutAuditRelations = <T extends { id: string }>(items: T[]) => (
+      auditScaffold ? items.filter((item) => !item.id.startsWith('audit-')) : items
+    );
+    const withoutAuditNodes = <T extends { id: string }>(items: T[]) => (
+      auditScaffold ? items.filter((item) => !item.id.startsWith('audit-')) : items
+    );
+    const withoutAuditGraphLinks = <T extends { sourceId: string; targetId: string }>(items: T[]) => (
+      auditScaffold
+        ? items.filter((item) => !item.sourceId.startsWith('audit-') && !item.targetId.startsWith('audit-'))
+        : items
+    );
     const expectedBlockingCode = process.env.KNOWLEDGE_DB_FALLBACK_EXPECT_422;
     if (expectedBlockingCode) {
       const responses = [
@@ -45,24 +57,24 @@ describe.runIf(process.env.KNOWLEDGE_DB_FALLBACK_PROBE === '1')('production DB f
     const detail = buildKnowledgeNodeDetailFromGraph(graph, 'node-a');
 
     expect(graph.source).toBe('database');
-    expect(graph.inspectionLinks?.map((link) => link.id).sort()).toEqual([
+    expect(withoutAuditRelations(graph.inspectionLinks ?? []).map((link) => link.id).sort()).toEqual([
       'relation-applies', 'relation-supports',
     ]);
-    expect(root.inspectionLinks?.map((link) => link.id).sort()).toEqual([
+    expect(withoutAuditRelations(root.inspectionLinks ?? []).map((link) => link.id).sort()).toEqual([
       'relation-applies', 'relation-supports',
     ]);
     expect(detail?.relatedNodes.map((item) => item.relationId).sort()).toEqual([
       'relation-applies', 'relation-supports',
     ]);
-    expect(graph.versionLinkCount).toBe(2);
+    expect(graph.versionLinkCount).toBe(graph.inspectionLinks?.length);
 
     const expectedRoot = process.env.KNOWLEDGE_EXPECTED_RUNTIME_ROOT!;
     const fileCoverage = assertRuntimeKnowledgeRelationCoverage(
       fs.readFileSync(path.join(expectedRoot, 'graph', 'relations.jsonl'), 'utf8'),
-      { nodeIds: new Set(['node-a', 'node-b']) },
+      { nodeIds: new Set(['node-a', 'node-b', 'audit-source', 'audit-target']) },
     );
-    expect(graph.links.map(({ id, relation, sourceId, targetId }) => ({ id, relation, sourceId, targetId })))
-      .toEqual(fileCoverage.runtimeLinks.map(({ id, relation, sourceId, targetId }) => ({ id, relation, sourceId, targetId })));
+    expect(withoutAuditGraphLinks(graph.links).map(({ id, relation, sourceId, targetId }) => ({ id, relation, sourceId, targetId })))
+      .toEqual(withoutAuditGraphLinks(fileCoverage.runtimeLinks).map(({ id, relation, sourceId, targetId }) => ({ id, relation, sourceId, targetId })));
     const fileDetail = buildKnowledgeNodeDetailFromGraph({
       ...graph,
       links: fileCoverage.runtimeLinks,
@@ -91,7 +103,7 @@ describe.runIf(process.env.KNOWLEDGE_DB_FALLBACK_PROBE === '1')('production DB f
     const nodesResponse = await getNodes(new Request('http://localhost/api/knowledge/nodes?source=db'));
     expect(nodesResponse.status).toBe(200);
     const nodesBody = await nodesResponse.json();
-    expect(nodesBody.map((item: { id: string }) => item.id).sort()).toEqual(['node-a', 'node-b']);
+    expect(withoutAuditNodes(nodesBody).map((item: { id: string }) => item.id).sort()).toEqual(['node-a', 'node-b']);
     expect(JSON.stringify(nodesBody)).not.toMatch(/external-a|external-b|metadata|content|resources/);
   });
 

@@ -292,8 +292,8 @@ describe('smart courseware editor activity creation', () => {
       });
     };
     const placement = (submission: ReturnType<typeof validCompositionInput>) => {
-      const module = submission.runtimeManifest.stages[0].steps[0].modules[0];
-      return { layoutId: submission.runtimeManifest.stages[0].steps[0].layoutId, slotId: module.slotId, sizeId: module.sizeId };
+      const runtimeModule = submission.runtimeManifest.stages[0].steps[0].modules[0];
+      return { layoutId: submission.runtimeManifest.stages[0].steps[0].layoutId, slotId: runtimeModule.slotId, sizeId: runtimeModule.sizeId };
     };
 
     expect(selectFor('slot').value).toBe('main');

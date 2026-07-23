@@ -16,7 +16,9 @@ interface KnowledgeGraphBoundaryBase {
 }
 
 interface KnowledgeGraphRadialBoundary extends KnowledgeGraphBoundaryBase {
-  shape: 'circle' | 'sphere' | 'regular-hexagon' | 'icosahedron';
+  shape: 'circle' | 'sphere' | 'regular-hexagon' | 'icosahedron'
+    | 'regular-triangle' | 'regular-diamond' | 'regular-pentagon'
+    | 'tetrahedron' | 'octahedron' | 'pentagonal-prism';
 }
 
 interface KnowledgeGraphPlanarBoundary extends KnowledgeGraphBoundaryBase {
@@ -205,14 +207,18 @@ function getAxisAlignedBoundaryDistance(
   return Math.min(...candidates);
 }
 
-function getRegularHexagonBoundaryDistance(
+// Concept-shape regular polygons: canvas y 轴向下，-π/2 即顶点朝上；
+// 画布绘制与边裁剪边界共享同一朝向。
+function getRegularPolygonBoundaryDistance(
   direction: KnowledgeGraphPoint,
   circumradius: number,
+  sides: number,
 ): number {
   let distance = Infinity;
-  for (let index = 0; index < 6; index += 1) {
-    const fromAngle = Math.PI / 3 * index - Math.PI / 2;
-    const toAngle = Math.PI / 3 * (index + 1) - Math.PI / 2;
+  const step = (Math.PI * 2) / sides;
+  for (let index = 0; index < sides; index += 1) {
+    const fromAngle = step * index - Math.PI / 2;
+    const toAngle = step * (index + 1) - Math.PI / 2;
     const from = { x: Math.cos(fromAngle), y: Math.sin(fromAngle), z: 0 };
     const to = { x: Math.cos(toAngle), y: Math.sin(toAngle), z: 0 };
     const edge = subtract(to, from);
@@ -226,15 +232,81 @@ function getRegularHexagonBoundaryDistance(
   return distance;
 }
 
-function getIcosahedronBoundaryDistance(
+interface KnowledgeGraphPolyhedron {
+  readonly vertices: readonly KnowledgeGraphPoint[];
+  readonly faces: readonly (readonly [number, number, number])[];
+}
+
+function buildUnitPolyhedron(
+  vertices: readonly KnowledgeGraphPoint[],
+  faces: readonly (readonly [number, number, number])[],
+): KnowledgeGraphPolyhedron {
+  return { vertices: vertices.map((vertex) => normalize(vertex)), faces };
+}
+
+const ICOSAHEDRON = buildUnitPolyhedron(ICOSAHEDRON_VERTICES, ICOSAHEDRON_FACES);
+
+const TETRAHEDRON = buildUnitPolyhedron(
+  [
+    { x: 1, y: 1, z: 1 },
+    { x: 1, y: -1, z: -1 },
+    { x: -1, y: 1, z: -1 },
+    { x: -1, y: -1, z: 1 },
+  ],
+  [
+    [0, 1, 2], [0, 3, 1], [0, 2, 3], [1, 3, 2],
+  ],
+);
+
+const OCTAHEDRON = buildUnitPolyhedron(
+  [
+    { x: 1, y: 0, z: 0 },
+    { x: -1, y: 0, z: 0 },
+    { x: 0, y: 1, z: 0 },
+    { x: 0, y: -1, z: 0 },
+    { x: 0, y: 0, z: 1 },
+    { x: 0, y: 0, z: -1 },
+  ],
+  [
+    [0, 2, 4], [2, 1, 4], [1, 3, 4], [3, 0, 4],
+    [2, 0, 5], [1, 2, 5], [3, 1, 5], [0, 3, 5],
+  ],
+);
+
+// Matches THREE.CylinderGeometry(r, r, r, 5): ring radius 1, half-height 0.5,
+// pentagon ring in the XZ plane with a vertex at +Z (point-up after rotation).
+const PENTAGONAL_PRISM_RING = [0, 1, 2, 3, 4].map((index) => {
+  const angle = (Math.PI * 2 * index) / 5 + Math.PI / 2;
+  return { x: Math.cos(angle), z: Math.sin(angle) };
+});
+const PENTAGONAL_PRISM = buildUnitPolyhedron(
+  [
+    ...PENTAGONAL_PRISM_RING.map(({ x, z }) => ({ x, y: 0.5, z })),
+    ...PENTAGONAL_PRISM_RING.map(({ x, z }) => ({ x, y: -0.5, z })),
+  ],
+  [
+    ...[0, 1, 2, 3, 4].flatMap((index): [number, number, number][] => {
+      const next = (index + 1) % 5;
+      return [
+        [index, next, 5 + next],
+        [index, 5 + next, 5 + index],
+      ];
+    }),
+    [0, 2, 1], [0, 3, 2], [0, 4, 3],
+    [5, 6, 7], [5, 7, 8], [5, 8, 9],
+  ],
+);
+
+function getPolyhedronBoundaryDistance(
   direction: KnowledgeGraphPoint,
   circumradius: number,
+  polyhedron: KnowledgeGraphPolyhedron,
 ): number {
   let distance = Infinity;
-  for (const [firstIndex, secondIndex, thirdIndex] of ICOSAHEDRON_FACES) {
-    const first = ICOSAHEDRON_VERTICES[firstIndex];
-    const second = ICOSAHEDRON_VERTICES[secondIndex];
-    const third = ICOSAHEDRON_VERTICES[thirdIndex];
+  for (const [firstIndex, secondIndex, thirdIndex] of polyhedron.faces) {
+    const first = polyhedron.vertices[firstIndex];
+    const second = polyhedron.vertices[secondIndex];
+    const third = polyhedron.vertices[thirdIndex];
     let normal = normalize(cross(subtract(second, first), subtract(third, first)));
     if (dot(normal, first) < 0) normal = addScaled({ x: 0, y: 0, z: 0 }, normal, -1);
     const directionalGain = dot(normal, direction);
@@ -266,7 +338,13 @@ function getBoundaryDistance(
       });
     }
     case 'regular-hexagon':
-      return getRegularHexagonBoundaryDistance(direction, radius * 1.2);
+      return getRegularPolygonBoundaryDistance(direction, radius * 1.2, 6);
+    case 'regular-triangle':
+      return getRegularPolygonBoundaryDistance(direction, radius * 1.2, 3);
+    case 'regular-diamond':
+      return getRegularPolygonBoundaryDistance(direction, radius * 1.2, 4);
+    case 'regular-pentagon':
+      return getRegularPolygonBoundaryDistance(direction, radius * 1.2, 5);
     case 'box': {
       const ratios = boundary.halfExtentRatios ?? { x: 0.7, y: 0.7, z: 0.7 };
       return getAxisAlignedBoundaryDistance(direction, {
@@ -276,7 +354,13 @@ function getBoundaryDistance(
       });
     }
     case 'icosahedron':
-      return getIcosahedronBoundaryDistance(direction, radius);
+      return getPolyhedronBoundaryDistance(direction, radius, ICOSAHEDRON);
+    case 'tetrahedron':
+      return getPolyhedronBoundaryDistance(direction, radius, TETRAHEDRON);
+    case 'octahedron':
+      return getPolyhedronBoundaryDistance(direction, radius, OCTAHEDRON);
+    case 'pentagonal-prism':
+      return getPolyhedronBoundaryDistance(direction, radius, PENTAGONAL_PRISM);
   }
 }
 

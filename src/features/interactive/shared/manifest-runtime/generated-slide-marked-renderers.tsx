@@ -25,9 +25,9 @@ export function createGeneratedSlideMarkedContentRegistry(
   const modules = new Map(manifest.stages.flatMap((stage) => stage.steps)
     .flatMap((step) => step.modules).map((module) => [module.id, module]));
   const source = (moduleId: string) => {
-    const module = modules.get(moduleId);
-    if (!module) throw new Error(`generated-slide-marker-module-missing:${moduleId}`);
-    return module;
+    const slideModule = modules.get(moduleId);
+    if (!slideModule) throw new Error(`generated-slide-marker-module-missing:${moduleId}`);
+    return slideModule;
   };
   return {
     'content.rich': ({ module }) => {

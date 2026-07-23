@@ -2,8 +2,8 @@
   "change": "redesign-knowledge-workspace-tools-and-inspector",
   "issue": 487,
   "refreshedBy": "standardize-knowledge-graph-floating-panels",
-  "capturedAt": "2026-07-12T18:26:58.590Z",
-  "baseUrl": "http://localhost:3001",
+  "capturedAt": "2026-07-22T13:33:08.096Z",
+  "baseUrl": "http://localhost:3002",
   "selectedNodeId": "稳定性_1_7288b4ea",
   "designSourceOfTruth": {
     "handoff": "artifacts/product-design-audits/knowledge-graph-2026-06-14/design-handoff.md",
@@ -22,13 +22,7 @@
         "focusReturnedToTrigger": true
       },
       {
-        "tool": "relation-filters",
-        "openedFocusWithinPanel": true,
-        "escapeClosed": true,
-        "focusReturnedToTrigger": true
-      },
-      {
-        "tool": "legend",
+        "tool": "node-filters",
         "openedFocusWithinPanel": true,
         "escapeClosed": true,
         "focusReturnedToTrigger": true
@@ -65,7 +59,7 @@
     {
       "name": "desktop-default-compact-dark",
       "screenshotPath": "artifacts/knowledge-workspace-tools-inspector-487/desktop-default-compact-dark.png",
-      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3002/knowledge?qa=knowledge-product",
       "state": "desktop default compact tools",
       "theme": "dark",
       "viewport": "1440x960",
@@ -81,6 +75,7 @@
         "inspectorFocusContract": null,
         "inspectorDockSafeArea": null,
         "inspectorSections": [],
+        "inspectorAccordion": [],
         "mobileToolState": "closed",
         "mobileLayoutControls": [],
         "selectedNodeId": "",
@@ -94,22 +89,23 @@
     {
       "name": "desktop-open-filters-dark",
       "screenshotPath": "artifacts/knowledge-workspace-tools-inspector-487/desktop-open-filters-dark.png",
-      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
-      "state": "desktop opened relation filters",
+      "url": "http://localhost:3002/knowledge?qa=knowledge-product",
+      "state": "desktop opened node filters",
       "theme": "dark",
       "viewport": "1440x960",
       "handoff": "design-handoff.md#Knowledge Workspace Floating Panels",
       "concept": "knowledge graph floating panel standardization",
       "markers": {
         "commandSystemState": "open",
-        "activeDesktopTool": "relation-filters",
+        "activeDesktopTool": "node-filters",
         "activeMobileTool": "chapter-directory",
-        "desktopToolPanel": "relation-filters",
+        "desktopToolPanel": "node-filters",
         "inspectorMode": null,
         "inspectorResponsive": null,
         "inspectorFocusContract": null,
         "inspectorDockSafeArea": null,
         "inspectorSections": [],
+        "inspectorAccordion": [],
         "mobileToolState": "closed",
         "mobileLayoutControls": [],
         "selectedNodeId": "",
@@ -123,7 +119,7 @@
     {
       "name": "desktop-selected-inspector-light",
       "screenshotPath": "artifacts/knowledge-workspace-tools-inspector-487/desktop-selected-inspector-light.png",
-      "url": "http://localhost:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://localhost:3002/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "state": "desktop selected direct leaf inspector",
       "theme": "light",
       "viewport": "1440x960",
@@ -136,20 +132,27 @@
         "desktopToolPanel": null,
         "inspectorMode": "floating-right-edge",
         "inspectorResponsive": "desktop-floating-mobile-sheet",
-        "inspectorFocusContract": "mobile-trap-escape-return",
+        "inspectorFocusContract": "mobile-initial-focus-escape-return",
         "inspectorDockSafeArea": "bottom-padding",
         "inspectorSections": [
           "header",
           "semantic-metadata",
           "summary",
+          "domain-membership",
           "evidence-sources",
           "learning-actions"
+        ],
+        "inspectorAccordion": [
+          {
+            "section": "learning-actions",
+            "expanded": "false"
+          }
         ],
         "mobileToolState": "closed",
         "mobileLayoutControls": [],
         "selectedNodeId": "稳定性_1_7288b4ea",
-        "visibleNodeCount": "16",
-        "visibleLinkCount": "0",
+        "visibleNodeCount": "80",
+        "visibleLinkCount": "52",
         "width": 1440,
         "height": 960,
         "htmlClass": "light"
@@ -158,7 +161,7 @@
     {
       "name": "mobile-320-selected-sheet-dark",
       "screenshotPath": "artifacts/knowledge-workspace-tools-inspector-487/mobile-320-selected-sheet-dark.png",
-      "url": "http://localhost:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://localhost:3002/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "state": "mobile selected node sheet with graph reachable above collapsed tools",
       "theme": "dark",
       "viewport": "320x800",
@@ -171,20 +174,27 @@
         "desktopToolPanel": null,
         "inspectorMode": "floating-right-edge",
         "inspectorResponsive": "desktop-floating-mobile-sheet",
-        "inspectorFocusContract": "mobile-trap-escape-return",
+        "inspectorFocusContract": "mobile-initial-focus-escape-return",
         "inspectorDockSafeArea": "bottom-padding",
         "inspectorSections": [
           "header",
           "semantic-metadata",
           "summary",
+          "domain-membership",
           "evidence-sources",
           "learning-actions"
+        ],
+        "inspectorAccordion": [
+          {
+            "section": "learning-actions",
+            "expanded": "false"
+          }
         ],
         "mobileToolState": "closed",
         "mobileLayoutControls": [],
         "selectedNodeId": "稳定性_1_7288b4ea",
-        "visibleNodeCount": "16",
-        "visibleLinkCount": "0",
+        "visibleNodeCount": "80",
+        "visibleLinkCount": "52",
         "width": 320,
         "height": 800,
         "htmlClass": "dark"
@@ -193,7 +203,7 @@
     {
       "name": "mobile-320-view-layout-dark",
       "screenshotPath": "artifacts/knowledge-workspace-tools-inspector-487/mobile-320-view-layout-dark.png",
-      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3002/knowledge?qa=knowledge-product",
       "state": "mobile view and layout tool opened with graph controls available",
       "theme": "dark",
       "viewport": "320x800",
@@ -209,6 +219,7 @@
         "inspectorFocusContract": null,
         "inspectorDockSafeArea": null,
         "inspectorSections": [],
+        "inspectorAccordion": [],
         "mobileToolState": "open",
         "mobileLayoutControls": [
           "fit-view",

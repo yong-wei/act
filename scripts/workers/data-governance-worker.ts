@@ -44,7 +44,6 @@ import {
   dispatchClassSnapshotOutbox,
   dispatchGrowthRecomputeOutbox,
   failLearningMaterializationRebuild,
-  findAgingStudentSnapshotCandidates,
   resolveCompatibilityNoFactsAction,
   revokeDerivedLearningMaterializations,
   readLearningMaterializationGeneration,
@@ -69,6 +68,7 @@ import type {
 import {
   derivePortraitV2Compatibility,
   projectPortraitV2ForConsumer,
+  readLatestValidNativePortraitV2Snapshots,
   type PortraitV2PayloadShape,
 } from '@/lib/data-governance/portrait-v2-model';
 import type { LearningEvent } from '@/lib/data-governance/event-protocol';
@@ -78,7 +78,11 @@ import {
   getRiskLevelDescription,
 } from '@/lib/data-governance/risk-detector';
 import { buildTeacherScopedLearningFactScopeFilters } from '@/lib/data-governance/teacher-evidence-governance';
-import { buildClassScopedStudentProjections, CLASS_COMPETENCY_MATERIALIZATION_VERSION } from '@/lib/data-governance/class-scoped-learning-materialization';
+import {
+  buildClassScopedStudentProjections,
+  CLASS_COMPETENCY_MATERIALIZATION_VERSION,
+  CUMULATIVE_CLASS_COMPETENCY_MATERIALIZATION_VERSION,
+} from '@/lib/data-governance/class-scoped-learning-materialization';
 import type {
   ClassSnapshotJob,
   EventIngestionJob,
@@ -153,9 +157,14 @@ function getPrismaClient(): PrismaClient {
   return prisma;
 }
 
-export function configureDataGovernanceWorkerForTest(input: { db: PrismaClient; studentJobQueue?: Pick<Queue<StudentSnapshotJob>, 'add'> }) {
+export function configureDataGovernanceWorkerForTest(input: {
+  db: PrismaClient;
+  studentJobQueue?: Pick<Queue<StudentSnapshotJob>, 'add'>;
+  classJobQueue?: Pick<Queue<ClassSnapshotJob>, 'add'>;
+}) {
   prisma = input.db;
-  if (input.studentJobQueue) studentQueue = input.studentJobQueue as Queue<StudentSnapshotJob>;
+  studentQueue = input.studentJobQueue ? input.studentJobQueue as Queue<StudentSnapshotJob> : null;
+  classQueue = input.classJobQueue ? input.classJobQueue as Queue<ClassSnapshotJob> : null;
 }
 
 function logWithThrottle(
@@ -401,7 +410,8 @@ async function enqueueClassSnapshot(classId: string, triggerId: string) {
 
 async function enqueueClassSnapshotOutbox(classId: string, jobId: string) {
   if (!classQueue) throw new Error('class queue is not initialized');
-  await classQueue.add(`class-snapshot-${classId}`, { classId }, { attempts: 2, backoff: { type: 'exponential', delay: 15000 }, jobId, ...JOB_HISTORY_OPTIONS });
+  const queueJobId = `learning-materialization-outbox-${createHash('sha256').update(jobId).digest('hex')}`;
+  await classQueue.add(`class-snapshot-${classId}`, { classId }, { attempts: 2, backoff: { type: 'exponential', delay: 15000 }, jobId: queueJobId, ...JOB_HISTORY_OPTIONS });
 }
 
 async function enqueueGrowthRecomputeOutbox(userId: string, snapshotId: string, jobId: string) {
@@ -432,7 +442,7 @@ async function getActiveStudentIds(): Promise<string[]> {
   const db = getPrismaClient();
   const activeSince = new Date(Date.now() - ACTIVE_WINDOW_MINUTES * 60 * 1000);
 
-  const [interactionUsers, factUsers, agingStudentIds] = await Promise.all([
+  const [interactionUsers, factUsers] = await Promise.all([
     db.interactionLog.findMany({
       where: {
         createdAt: { gte: activeSince },
@@ -447,11 +457,10 @@ async function getActiveStudentIds(): Promise<string[]> {
       select: { userId: true },
       distinct: ['userId'],
     }),
-    findAgingStudentSnapshotCandidates(db, new Date(), 500),
   ]);
 
   const candidateIds = Array.from(
-    new Set([...interactionUsers.map((item) => item.userId), ...factUsers.map((item) => item.userId), ...agingStudentIds]),
+    new Set([...interactionUsers.map((item) => item.userId), ...factUsers.map((item) => item.userId)]),
   );
 
   if (candidateIds.length === 0) {
@@ -466,7 +475,7 @@ async function getActiveStudentIds(): Promise<string[]> {
   return studentProfiles.map((item) => item.userId);
 }
 
-async function processEventIngestionJob(job: Job<EventIngestionJob>) {
+export async function processEventIngestionJob(job: Job<EventIngestionJob>) {
   if (job.data.coordinator) {
     const bufferedDates = await listBufferedDates();
     if (bufferedDates.length === 0) {
@@ -525,6 +534,10 @@ async function processEventIngestionJob(job: Job<EventIngestionJob>) {
       skipDuplicates: true,
     });
     factsCreated = result.count;
+    const triggerId = String(job.id ?? batchDate);
+    for (const userId of new Set(facts.map((fact) => fact.userId))) {
+      await enqueueStudentSnapshot(userId, triggerId);
+    }
   }
 
   await markEventsProcessed(events.length, batchDate);
@@ -636,6 +649,52 @@ export async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
   const db = getPrismaClient();
   const { userId } = job.data;
   const snapshotAt = new Date();
+  if (job.data.growthRecomputeForSnapshot) {
+    const growthSnapshot = await db.studentCompetencySnapshot.findFirst({
+      where: { id: job.data.growthRecomputeForSnapshot, userId },
+    });
+    if (!growthSnapshot) {
+      return { skipped: true, reason: 'stale_growth_recompute_snapshot', userId, featureCacheRefreshed: false };
+    }
+    const latestGrowthSnapshot = await db.studentCompetencySnapshot.findFirst({
+      where: { userId },
+      orderBy: { snapshotAt: 'desc' },
+    });
+    if (!latestGrowthSnapshot || latestGrowthSnapshot.id !== growthSnapshot.id) {
+      return { skipped: true, reason: 'stale_growth_recompute_snapshot', userId, featureCacheRefreshed: false };
+    }
+
+    const growthTargetProfile = await db.studentProfile.findUnique({ where: { userId }, select: { classId: true } });
+    const preparedGrowthDescription = await prepareGrowthEvaluationDescription(db as any, {
+      snapshot: growthSnapshot,
+      targetContext: { classId: growthTargetProfile?.classId ?? null, institutionId: process.env.ACT_INSTITUTION_ID?.trim() || null },
+    });
+    if (!preparedGrowthDescription) {
+      return { skipped: true, reason: 'growth_no_evidence', userId, snapshotId: growthSnapshot.id, featureCacheRefreshed: false };
+    }
+    const observedGeneration = await readLearningMaterializationGeneration(db, userId);
+    return runLearningMaterializationBarrierStage(db, { userId, observedGeneration }, async (tx) => {
+      const currentSnapshot = await tx.studentCompetencySnapshot.findFirst({
+        where: { userId },
+        orderBy: { snapshotAt: 'desc' },
+      });
+      if (!currentSnapshot || currentSnapshot.id !== growthSnapshot.id) {
+        return { skipped: true, reason: 'stale_growth_recompute_snapshot', userId, featureCacheRefreshed: false };
+      }
+      const growthEvaluation = await refreshStudentGrowthEvaluation(tx as any, {
+        snapshot: growthSnapshot,
+        preparedDescription: preparedGrowthDescription,
+      });
+      return {
+        skipped: growthEvaluation.action.startsWith('skipped'),
+        reason: `growth_${growthEvaluation.action}`,
+        userId,
+        snapshotId: growthSnapshot.id,
+        featureCacheRefreshed: false,
+        growthEvaluation,
+      };
+    });
+  }
   const rebuildClaim = job.data.fullRebuild && job.data.rebuildGeneration
     ? await claimLearningMaterializationRebuild(db, { userId, expectedGeneration: job.data.rebuildGeneration, now: snapshotAt })
     : null;
@@ -643,6 +702,21 @@ export async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
     return { skipped: true, reason: 'stale_rebuild_generation', userId };
   }
   const observedGeneration = rebuildClaim ? rebuildClaim.generation : await readLearningMaterializationGeneration(db, userId);
+  const portraitPreflight = await materializeIncrementalPortraitV2(db as any, userId, {
+    now: snapshotAt,
+    fullRebuild: job.data.fullRebuild,
+    dryRun: true,
+  });
+  if (!job.data.fullRebuild && !portraitPreflight.written) {
+    if (portraitPreflight.mappingIssues.length > 0) {
+      logWithThrottle(
+        `student-snapshot:${userId}:portrait-v2-mapping`,
+        'warn',
+        `[StudentSnapshot] Portrait v2 mapping issues for ${userId}: ${portraitPreflight.mappingIssues.join(', ')}`,
+      );
+    }
+    return { skipped: true, reason: 'no_portrait_state_change', userId, featureCacheRefreshed: false, portraitV2: portraitPreflight };
+  }
   const growthWindowStart = new Date(snapshotAt.getTime() - 30 * 24 * 60 * 60 * 1000);
   const growthPreparationFacts = await db.learningFact.findMany({ where: { userId, startedAt: { gte: growthWindowStart } }, orderBy: { startedAt: 'desc' } });
   const growthPreparationVector = calculateCompetencyVector(growthPreparationFacts, '1m');
@@ -678,6 +752,24 @@ export async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
       `[StudentSnapshot] Portrait v2 mapping issues for ${userId}: ${portraitV2.mappingIssues.join(', ')}`,
     );
   }
+  if (!job.data.fullRebuild && !portraitV2.written) {
+    return { skipped: true, reason: 'no_portrait_state_change', userId, featureCacheRefreshed: false, portraitV2 };
+  }
+  if (job.data.fullRebuild && !portraitV2.written) {
+    const emptySnapshot = await executeStage(async (tx) => {
+      await revokeDerivedLearningMaterializations(tx, {
+        userIds: [userId],
+        classIds: [],
+        scheduleRebuild: false,
+      });
+      const snapshot = await appendEmptyStudentCompatibilitySnapshot(tx, userId, snapshotAt, {
+        state: 'no-evidence-after-revocation',
+        reason: 'no-governed-portrait-contribution',
+      });
+      return snapshot;
+    });
+    return { skipped: false, reason: 'no_portrait_evidence', userId, snapshotId: emptySnapshot.id, featureCacheRefreshed: false, portraitV2 };
+  }
 
   const thirtyDaysAgo = new Date(snapshotAt.getTime() - 30 * 24 * 60 * 60 * 1000);
   const facts = await executeStage<any[]>((tx) => tx.learningFact.findMany({
@@ -705,12 +797,13 @@ export async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
       // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: historical vectors only seed a no-recent-evidence compatibility snapshot.
       const historicalVector = previousSnapshot?.competencyVector ?? calculateCompetencyVector(historicalFacts, 'all');
       const memberships = await executeStage<Array<{ classId: string }>>((tx) => tx.studentProfile.findMany({ where: { userId }, select: { classId: true } }));
-      await executeStage(async (tx) => {
+      const emptySnapshot = await executeStage(async (tx) => {
         const emptySnapshot = await appendNoRecentEvidenceCompatibilitySnapshot(tx, userId, historicalVector, snapshotAt);
         await tx.studentRiskFlag.updateMany({ where: { userId, isResolved: false }, data: { isResolved: true, resolvedAt: snapshotAt, resolutionNote: 'No governed facts in current compatibility window' } });
         for (const membership of memberships) await stageClassSnapshotOutbox(tx, { userId, classId: membership.classId, generation: observedGeneration, snapshotId: emptySnapshot.id, now: snapshotAt });
+        return emptySnapshot;
       });
-      return { skipped: false, reason: 'no_recent_evidence', userId, featureCacheRefreshed: false, portraitV2 };
+      return { skipped: false, reason: 'no_recent_evidence', userId, snapshotId: emptySnapshot.id, featureCacheRefreshed: false, portraitV2 };
     }
     const anyRemainingFact = await executeStage<{ id: string } | null>((tx) => tx.learningFact.findFirst({ where: { userId }, select: { id: true } }));
     if (resolveCompatibilityNoFactsAction({ fullRebuild: true, hasAnyRemainingFact: Boolean(anyRemainingFact) }) === 'revoke') {
@@ -847,14 +940,37 @@ export async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
         const result = await materialize(tx, true);
         for (const classId of rebuildClaim.classIds) await stageClassSnapshotOutbox(tx, { userId, classId, generation: rebuildClaim.generation, now: snapshotAt });
         if (!(await completeLearningMaterializationRebuild(tx, rebuildClaim))) throw new Error('learning-materialization-rebuild-fenced');
-        return result;
+        return result.portraitV2.written
+          ? { ...result, attainmentOutcome: 'portrait' as const }
+          : { ...result, attainmentOutcome: 'no-evidence' as const };
       });
     } catch (error) {
       await failLearningMaterializationRebuild(db, rebuildClaim, 'student-materialization-failed');
       throw error;
     }
   }
-  return runLearningMaterializationBarrierStage(db, { userId, observedGeneration }, (tx) => materialize(tx, true));
+  const result = await runLearningMaterializationBarrierStage(db, { userId, observedGeneration }, async (tx) => {
+    const materialized = await materialize(tx, true);
+    if (!materialized.snapshotId || !materialized.portraitV2.written) return materialized;
+    const profile = await tx.studentProfile.findUnique({ where: { userId }, select: { classId: true } });
+    if (!profile?.classId) return materialized;
+    const outbox = await stageClassSnapshotOutbox(tx, {
+      userId,
+      classId: profile.classId,
+      generation: observedGeneration,
+      snapshotId: materialized.snapshotId,
+      now: snapshotAt,
+    });
+    return { ...materialized, classSnapshot: { classId: profile.classId, outboxId: outbox.id } };
+  });
+  if ('classSnapshot' in result && result.classSnapshot) {
+    await enqueueClassSnapshotOutbox(result.classSnapshot.classId, result.classSnapshot.outboxId);
+    await db.learningMaterializationOutbox.updateMany({
+      where: { id: result.classSnapshot.outboxId, status: 'PENDING' },
+      data: { status: 'DELIVERED', deliveredAt: new Date(), lastErrorCode: null, updatedAt: new Date() },
+    });
+  }
+  return result;
 }
 
 async function updateProfileSummary(
@@ -971,6 +1087,13 @@ export async function processClassSnapshotJob(job: Job<ClassSnapshotJob>) {
     where: { classId },
     select: { userId: true },
   });
+
+  if (job.data.scope === 'cumulative') {
+    return materializeCumulativeClassSnapshot(db, classId, students.map((student) => student.userId), {
+      runRef: job.data.runRef,
+      requestedAfter: job.data.requestedAfter,
+    });
+  }
 
   const classSessionIds = (await db.classSession.findMany({
     where: { classId },
@@ -1095,6 +1218,73 @@ export async function processClassSnapshotJob(job: Job<ClassSnapshotJob>) {
   return {
     snapshotId: snapshot.id,
     studentCount: portraitRows.length,
+  };
+}
+
+async function materializeCumulativeClassSnapshot(
+  db: PrismaClient,
+  classId: string,
+  rosterUserIds: string[],
+  marker: { runRef?: string; requestedAfter?: string } = {},
+) {
+  const now = new Date();
+  const portraitsByUser = await readLatestValidNativePortraitV2Snapshots(
+    db,
+    rosterUserIds,
+    'reviewer',
+    { now },
+  );
+  const portraits = rosterUserIds.flatMap((userId) => {
+    const payload = portraitsByUser.get(userId);
+    return payload && hasPortraitV2Evidence(payload) ? [payload] : [];
+  });
+  const aggregate = aggregatePortraitV2(portraits);
+  const coverage = {
+    validNativePortraits: portraits.length,
+    totalRoster: rosterUserIds.length,
+    ratio: rosterUserIds.length === 0 ? 0 : portraits.length / rosterUserIds.length,
+  };
+  const aggregateJson = {
+    ...aggregate,
+    scope: 'cumulative',
+    coverage,
+    ...(marker.runRef ? {
+      _materialization: {
+        runRef: marker.runRef,
+        requestedAfter: marker.requestedAfter ?? null,
+      },
+    } : {}),
+  };
+  const distribution = calculatePortraitLevelDistribution(portraits);
+  const snapshot = await db.classCompetencySnapshot.create({
+    data: {
+      classId,
+      materializationVersion: CUMULATIVE_CLASS_COMPETENCY_MATERIALIZATION_VERSION,
+      snapshotAt: now,
+      aggregateJson: aggregateJson as unknown as Prisma.InputJsonValue,
+      distributionJson: distribution as unknown as Prisma.InputJsonValue,
+      trendJson: {
+        _derivation: {
+          state: 'not-applicable',
+          reason: 'cumulative-attainment-has-no-near-stage-comparison',
+        },
+      },
+      riskSummaryJson: {
+        _derivation: {
+          state: 'not-applicable',
+          reason: 'recent-risk-is-not-cumulative-attainment',
+        },
+      },
+      levelDistribution: distribution as unknown as Prisma.InputJsonValue,
+      activeStudentCount: portraits.length,
+      totalStudentCount: rosterUserIds.length,
+    },
+  });
+  return {
+    snapshotId: snapshot.id,
+    studentCount: portraits.length,
+    totalStudentCount: rosterUserIds.length,
+    scope: 'cumulative' as const,
   };
 }
 

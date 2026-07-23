@@ -91,6 +91,14 @@
       "removalCondition": "Permanent media-preview exception."
     },
     {
+      "path": "src/features/interactive/shared/manifest-runtime/content-renderers.tsx",
+      "owner": "unify-interactive-lesson-component-style",
+      "scope": "Annotated media image display measure inside the shared courseware panel",
+      "classification": "component-intrinsic-exception",
+      "reason": "The compact and medium maximum widths preserve a readable media display size inside the component.",
+      "removalCondition": "Permanent media display measure unless the annotated media component is replaced."
+    },
+    {
       "path": "src/features/lesson-engine/**, src/resources/interactive-learning/**",
       "owner": "standardize-sitewide-compact-spacing",
       "scope": "Legacy resource widgets and lesson-engine local components",

@@ -192,9 +192,10 @@ describe('shared knowledge graph edge presentation', () => {
     expect(system.match(/presentationLinks=\{canonicalPresentationLinks\}/g)).toHaveLength(2);
     expect(system.match(/selectedCorridorEmphasis=\{selectedCorridorEmphasis\}/g)).toHaveLength(2);
     expect(system).toContain('deriveSelectedKnowledgeGraphCorridor');
-    expect(system).toContain('adjacentDomainNavigations={(selectedCorridor?.adjacentDomainNavigations ?? []).map');
+    expect(system).toContain('adjacentDomainNavigations={(selectedCorridor?.adjacentDomainNavigations ?? [])');
+    expect(system).toContain('isKnowledgeGraphTeacherReviewRole(viewerRole)');
     const inspector = readFileSync(join(process.cwd(), 'src/features/knowledge/resource-panel/resource-panel.tsx'), 'utf8');
-    expect(inspector).toContain('data-knowledge-corridor-adjacent-navigation="true"');
+    expect(inspector).toContain("data-knowledge-corridor-adjacent-navigation={adjacentNavigation ? 'true' : undefined}");
   });
 
   it('keeps canonical lane input complete while visible associations retain the Task 4.1 cap', () => {

@@ -4,6 +4,8 @@ export * from './module-regeneration-service';
 export * from './provider-runtime';
 export * from './publication-domain';
 export * from './publication-service';
+export * from './pdf-export';
+export * from './pdf-export-service';
 export * from './queue';
 export * from './schema';
 export * from './service';

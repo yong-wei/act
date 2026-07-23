@@ -102,6 +102,11 @@ describe('smart lesson BullMQ worker', () => {
     expect(generate).toHaveBeenCalledWith(expect.objectContaining({
       prompt: expect.stringContaining('有界 Source Pack 摘录'),
     }));
+    expect(generate).toHaveBeenCalledWith(expect.objectContaining({
+      system: expect.stringContaining('sourceBindings 只能从 JSON Schema 枚举的可用来源绑定中完整选择'),
+      prompt: expect.stringContaining('teacher-course-basis-citation:basis-1:version-1:chapter-1'),
+      maxOutputTokens: 2048,
+    }));
     expect(serviceMocks.complete).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
       stage: 'OUTLINE', claimToken: 'claim-1', attemptId: 'attempt-1', output: outline,
     }));
@@ -175,6 +180,85 @@ describe('smart lesson BullMQ worker', () => {
 
     expect(serviceMocks.fail).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
       stage: 'BRIDGE_IN', attemptId: 'attempt-1', retryable: false,
+    }));
+  });
+
+  it('canonicalizes an otherwise exact source binding when the provider changes only its opaque citation id', async () => {
+    const outline = {
+      keyContent: ['稳定性'], difficultContent: [], limitations: [], classAdaptation: null,
+      coursewareStepOutline: [
+        ['bridgeIn', 5], ['objectives', 5], ['preAssessment', 5], ['participatoryLearning', 5], ['postAssessment', 5], ['summary', 5],
+      ].map(([bopppsStage, minutes]) => ({ title: String(bopppsStage), bopppsStage, minutes })),
+    };
+    const context = {
+      id: 'job-1', ownerId: 'teacher-1', draftId: 'draft-1', state: 'RUNNING', firstIncompleteStage: 'BRIDGE_IN',
+      stages: [
+        { id: 'stage-outline', kind: 'OUTLINE', orderIndex: 0, state: 'COMPLETED', output: outline },
+        { id: 'stage-bridge', kind: 'BRIDGE_IN', orderIndex: 1, state: 'PENDING', output: null },
+      ],
+      draft: { task: {
+        courseBasis: { title: '自动控制原理' }, topic: '稳定性', audience: '本科生', prerequisites: '', durationMinutes: 30,
+        aggregateClassContext: null, aggregateClassContextRef: null,
+        sources: [{ sourceVersionId: 'version-1' }], knowledgePoints: [], goals: [],
+      } },
+    };
+    const db = { smartLessonGenerationJob: { findUnique: vi.fn(async () => context) } };
+    serviceMocks.begin.mockResolvedValue({
+      claimed: true, claimToken: 'claim-1', attempt: { id: 'attempt-1', idempotencyKey: 'attempt-key-1' },
+    });
+    serviceMocks.complete.mockResolvedValue({ state: 'PAUSED' });
+    const generate = vi.fn(async () => ({
+      output: {
+        minutes: 5, teacherActivity: '讲授', studentActivity: '参与', assessment: '观察',
+        steps: [{
+          title: '导入', minutes: 5, teacherActivity: '展示', studentActivity: '回答', assessment: '提问',
+          sourceBindings: [{
+            citationId: 'provider-rephrased-citation', sourceVersionId: 'version-1', anchor: 'chapter-1', contentHash: 'a'.repeat(64),
+          }],
+        }],
+      },
+      normalizedResponseId: 'response-1', inputTokens: 10, outputTokens: 20, costMicros: null,
+    }));
+
+    await expect(processSmartLessonGenerationJob(db as never, 'job-1', vi.fn(async () => ({
+      serviceId: 'provider-1', providerKind: 'openai-compatible', model: 'model-1',
+      generate,
+    })) as never)).resolves.toEqual({ jobId: 'job-1', state: 'PAUSED' });
+
+    expect(serviceMocks.complete).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      output: expect.objectContaining({
+        steps: [expect.objectContaining({
+          sourceBindings: [expect.objectContaining({ citationId: sourcePackItem.citationTargetId })],
+        })],
+      }),
+    }));
+    expect(generate).toHaveBeenCalledWith(expect.objectContaining({ maxOutputTokens: 4096 }));
+    expect(serviceMocks.complete).toHaveBeenCalledTimes(1);
+    expect(serviceMocks.fail).not.toHaveBeenCalled();
+  });
+
+  it('records a zero-byte SiliconFlow timeout with a stable retryable failure code', async () => {
+    const context = {
+      id: 'job-1', ownerId: 'teacher-1', draftId: 'draft-1', state: 'QUEUED', firstIncompleteStage: 'OUTLINE',
+      stages: [{ id: 'stage-1', kind: 'OUTLINE', orderIndex: 0, state: 'PENDING', output: null }],
+      draft: { task: {
+        courseBasis: { title: '自动控制原理' }, topic: '稳定性', audience: '本科生', prerequisites: '', durationMinutes: 30,
+        aggregateClassContext: null, aggregateClassContextRef: null,
+        sources: [{ sourceVersionId: 'version-1' }], knowledgePoints: [], goals: [],
+      } },
+    };
+    const db = { smartLessonGenerationJob: { findUnique: vi.fn(async () => context) } };
+    serviceMocks.begin.mockResolvedValue({
+      claimed: true, claimToken: 'claim-1', attempt: { id: 'attempt-1', idempotencyKey: 'attempt-key-1' },
+    });
+
+    await expect(processSmartLessonGenerationJob(db as never, 'job-1', vi.fn(async () => ({
+      serviceId: 'provider-1', providerKind: 'openai-compatible', model: 'model-1',
+      generate: vi.fn(async () => { throw new Error('curl: (28) Operation timed out after 240000 milliseconds with 0 bytes received'); }),
+    })) as never)).rejects.toThrow(/timed out/);
+
+    expect(serviceMocks.fail).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      failureCode: 'provider-timeout', retryable: true,
     }));
   });
 

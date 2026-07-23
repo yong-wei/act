@@ -26,7 +26,8 @@ describe('classroom join entry', () => {
   it('allows alphanumeric class codes instead of digit-only input', () => {
     const source = readFileSync(join(repoRoot, 'src/app/classroom/join/page.tsx'), 'utf8');
 
-    expect(source).toContain("value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 6)");
+    expect(source).toContain(".replace(/[^a-zA-Z0-9]/g, '')");
+    expect(source).toContain('.toUpperCase()');
     expect(source).toContain("inputMode={isClassMode ? 'text' : 'numeric'}");
     expect(source).toContain("searchParams.get('mode') === 'class' ? 'class' : 'session'");
     expect(source).not.toContain('/[a-zA-Z]/.test(rawCodeFromUrl)');

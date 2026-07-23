@@ -30,7 +30,10 @@ import {
   resolveSmartCoursewareStructuredProvider,
   SMART_COURSEWARE_PROMPT_VERSION,
 } from './provider-runtime';
-import { coursewareGeneratedStageOutputSchema } from './schema';
+import {
+  createCoursewareGeneratedStageProviderOutputSchema,
+  coursewareGeneratedStageOutputSchema,
+} from './schema';
 
 export const COURSEWARE_GENERATION_QUEUE = 'smart-courseware-generation';
 
@@ -129,7 +132,7 @@ export async function processCoursewareGenerationJob(
     }
     try {
       const generated = await runtime.generate({
-        schema: coursewareGeneratedStageOutputSchema,
+        schema: request.providerOutputSchema,
         schemaVersion: `smart-courseware-stage-${unit.unitKey}.v2`,
         system: request.system,
         prompt: request.prompt,
@@ -137,7 +140,13 @@ export async function processCoursewareGenerationJob(
         fixtureOutput: request.fixtureOutput,
       });
       const output = validateUnitOutput(
-        generated.output,
+        attachServerOwnedPlanBindings(
+          request.providerOutputSchema.parse(generated.output),
+          unit.unitKey as CoursewareGenerationUnitKey,
+          request.expectedPlanAlignment,
+          request.expectedStepExpectations,
+          request.authoritativeSourceBindings,
+        ),
         unit.unitKey as CoursewareGenerationUnitKey,
         request.expectedDurationSeconds,
         request.allowedBindingKeys,
@@ -207,20 +216,146 @@ async function buildUnitRequest(db: Db, context: NonNullable<Awaited<ReturnType<
       schemaVersion: unit.attempts.find((attempt) => attempt.outcome === 'SUCCEEDED')?.schemaVersion,
     }),
   ]));
+  const providerPlan = {
+    course: plan.course,
+    topic: plan.topic,
+    audience: plan.audience,
+    prerequisites: plan.prerequisites,
+    goals: plan.goals,
+    knowledgePoints: plan.knowledgePoints,
+    keyContent: plan.keyContent,
+    difficultContent: plan.difficultContent,
+    limitations: plan.limitations,
+    classAdaptation: plan.classAdaptation,
+    coursewareStepOutline: plan.coursewareStepOutline,
+    currentStageTeachingIntent: {
+      minutes: planStage.minutes,
+      teacherActivity: planStage.teacherActivity,
+      studentActivity: planStage.studentActivity,
+      assessment: planStage.assessment,
+    },
+  };
   return {
-    system: '你是单课互动课件生成器。只能按已批准教案、注册版式、注册模块、服务端来源证据生成当前 BOPPPS 阶段；不得改写、遗漏或新增目标、当前阶段内容或批准的课件纲要。必须逐字返回 approvedPlanAlignment，并按 approvedStepExpectations 的数量和顺序生成 stage.steps；每个 stepPlanBindings 必须引用对应的 generatedStepId 并完整返回 goalIds。来源状态为 verified 时，teacherFields.inclusionRationale 必须说明引用证据与模块内容的关系。输出严格符合 JSON Schema。',
-    prompt: `当前阶段：${unitKey}。已批准教案：${JSON.stringify(plan)}。必须精确返回的 approvedPlanAlignment：${JSON.stringify(expectedPlanAlignment)}。必须逐项绑定的 approvedStepExpectations：${JSON.stringify(expectedStepExpectations)}。权威来源：${JSON.stringify(authoritativeBindings)}。已完成阶段：${JSON.stringify(previous)}。`,
+    providerOutputSchema: createCoursewareGeneratedStageProviderOutputSchema(
+      expectedStepExpectations.length,
+      ['pre-assessment', 'participatory-learning', 'post-assessment'].includes(unitKey),
+    ),
+    system: `你是单课互动课件生成器。只能按已批准教案、注册版式、注册模块、服务端来源证据生成当前 BOPPPS 阶段；不得改写、遗漏或新增当前阶段内容或批准的课件纲要。按批准纲要的数量和顺序生成 stage.steps；layoutId、slotId、sizeId、canonicalClass 必须从 JSON Schema 的注册枚举中选择。${['pre-assessment', 'participatory-learning', 'post-assessment'].includes(unitKey) ? '当前阶段必须生成至少一个 activity.panel 互动模块，并在 teacherActivityEvidence 中为每个互动模块提供 moduleId、referenceAnswer、explanation 和 scoring。每个 choice.single 选项的 label 必须是能独立判别的完整答案文本，不得只写 A/B、选项 A/B 或编号。' : ''}来源绑定、来源状态、目标对齐和步骤绑定均由服务端写入，禁止输出这些字段。数学表达使用纯文本，例如 K/(s(s+2))；不得输出未转义反斜杠或 LaTex 命令。输出严格符合 JSON Schema。`,
+    prompt: `当前阶段：${unitKey}。已批准课程上下文：${JSON.stringify(providerPlan)}。批准课件纲要：${JSON.stringify(expectedStepExpectations.map(({ approvedTitle, approvedDurationSeconds }) => ({ approvedTitle, approvedDurationSeconds })))}。权威来源：${JSON.stringify(authoritativeBindings)}。已完成阶段：${JSON.stringify(previous)}。`,
     expectedDurationSeconds: planStage.minutes * 60,
     expectedPlanAlignment,
     expectedStepExpectations,
     authoritativeSourceBindings: authoritativeBindings,
     allowedBindingKeys: new Set(authoritativeBindings.map(bindingKey)),
-    fixtureOutput: createDeterministicCoursewareStage({
+    fixtureOutput: toProviderFixtureOutput(createDeterministicCoursewareStage({
       unitKey,
       durationSeconds: planStage.minutes * 60,
       approvedPlan: plan,
       sourceBinding: authoritativeBindings[0],
+    })),
+  };
+}
+
+function toProviderFixtureOutput(output: ReturnType<typeof createDeterministicCoursewareStage>) {
+  return {
+    stage: output.stage,
+    teacherActivityEvidence: output.moduleMetadata.flatMap((metadata) => (
+      metadata.teacherFields.referenceAnswer
+      && metadata.teacherFields.explanation
+      && metadata.teacherFields.scoring
+        ? [{
+          moduleId: metadata.moduleId,
+          referenceAnswer: metadata.teacherFields.referenceAnswer,
+          explanation: metadata.teacherFields.explanation,
+          scoring: metadata.teacherFields.scoring,
+        }]
+        : []
+    )),
+  };
+}
+
+function attachServerOwnedPlanBindings(
+  providerOutput: {
+    stage: { steps: Array<{ id: string; title: string; durationSeconds: number; modules: Array<{ id: string; canonicalClass: string }> }> };
+    teacherActivityEvidence: Array<{ moduleId: string; referenceAnswer: string; explanation: string; scoring: Record<string, unknown> }>;
+  },
+  unitKey: CoursewareGenerationUnitKey,
+  expectedPlanAlignment: ReturnType<typeof deriveCoursewareApprovedPlanAlignment>,
+  expectedStepExpectations: ReturnType<typeof deriveCoursewareApprovedStepExpectations>,
+  authoritativeSourceBindings: ReturnType<typeof normalizeSourceBindings>,
+) {
+  const { teacherActivityEvidence, ...providerStageOutput } = providerOutput;
+  if (providerStageOutput.stage.steps.length !== expectedStepExpectations.length) {
+    throw new SmartCoursewareError('generated-courseware-step-plan-binding-changed', 409);
+  }
+  const evidenceByModuleId = new Map(teacherActivityEvidence.map((evidence) => [evidence.moduleId, evidence]));
+  if (evidenceByModuleId.size !== teacherActivityEvidence.length) {
+    throw new SmartCoursewareError('generated-courseware-activity-evidence-duplicated', 409);
+  }
+  const consumedActivityEvidenceIds = new Set<string>();
+  const teacherFieldsByServerModuleId = new Map<string, { referenceAnswer: string; explanation: string; scoring: Record<string, unknown> }>();
+  const stage = {
+    ...providerStageOutput.stage,
+    stage: unitKey,
+    durationSeconds: expectedStepExpectations.reduce((total, step) => total + step.approvedDurationSeconds, 0),
+    steps: providerStageOutput.stage.steps.map((step, stepIndex) => {
+      const stepId = `generated-${unitKey}-step-${stepIndex + 1}`;
+      return {
+        ...step,
+        id: stepId,
+        title: expectedStepExpectations[stepIndex]!.approvedTitle,
+        durationSeconds: expectedStepExpectations[stepIndex]!.approvedDurationSeconds,
+        modules: step.modules.map((module, moduleIndex) => {
+          const moduleId = `generated-${unitKey}-module-${stepIndex + 1}-${moduleIndex + 1}`;
+          const activityEvidence = module.canonicalClass === 'activity.panel'
+            ? evidenceByModuleId.get(module.id)
+            : undefined;
+          if (module.canonicalClass === 'activity.panel' && !activityEvidence) {
+            throw new SmartCoursewareError(`generated-courseware-activity-evidence-required:${module.id}`, 409);
+          }
+          if (activityEvidence) {
+            consumedActivityEvidenceIds.add(module.id);
+            teacherFieldsByServerModuleId.set(moduleId, {
+              referenceAnswer: activityEvidence.referenceAnswer,
+              explanation: activityEvidence.explanation,
+              scoring: activityEvidence.scoring,
+            });
+          }
+          return {
+            ...module,
+            id: moduleId,
+            ...(module.canonicalClass === 'activity.panel' ? { evidencePath: `responses.${unitKey}.${moduleId}` } : {}),
+          };
+        }),
+      };
     }),
+  };
+  // Only activity stages consume provider evidence. Some providers add a
+  // harmless evidence array to explanatory stages despite the contract; it
+  // must not turn an otherwise valid non-interactive stage into a retry.
+  if (['pre-assessment', 'participatory-learning', 'post-assessment'].includes(unitKey)
+    && consumedActivityEvidenceIds.size !== evidenceByModuleId.size) {
+    throw new SmartCoursewareError('generated-courseware-activity-evidence-unmatched', 409);
+  }
+  return {
+    ...providerStageOutput,
+    stage,
+    moduleMetadata: stage.steps.flatMap((step) => step.modules.map((module) => ({
+      moduleId: module.id,
+      sourceState: authoritativeSourceBindings.length ? 'verified' : 'ai_generated_source_pending',
+      sourceBindings: authoritativeSourceBindings,
+      teacherFields: {
+        ...(authoritativeSourceBindings.length
+          ? { inclusionRationale: '该模块由已批准教案生成，并以当前阶段权威来源作为可核验依据。' }
+          : {}),
+        ...(teacherFieldsByServerModuleId.get(module.id) ?? {}),
+      },
+    }))),
+    approvedPlanAlignment: expectedPlanAlignment,
+    stepPlanBindings: stage.steps.map((step, index) => ({
+      generatedStepId: step.id,
+      ...expectedStepExpectations[index]!,
+    })),
   };
 }
 

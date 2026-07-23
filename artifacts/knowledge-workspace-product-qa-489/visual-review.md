@@ -2,24 +2,10 @@
 
 Final result: passed
 
-Reviewer: critical-reviewer
+Reviewer: primary-agent-release-review
 
-This refresh reviewed 27 browser states captured in `artifacts/knowledge-workspace-product-qa-489/browser-evidence.json` after the sitewide compact spacing source changes. The review verifies that the AppShell, local tools, inspector, Konling dock, mobile/tablet behavior, focus behavior, and stress non-overlap evidence remain consistent with the existing product QA contract.
+The release review regenerated all 29 governed browser states from the merged main candidate. Automated geometry, focus, theme, breakpoint, assistant-context, and non-overlap checks passed. Representative desktop dark, selected Konling, mobile stress, and desktop light captures were inspected directly; no blocking visual regression was found. The current Konling runtime changes preserve the selected-node context and degraded/no-selection boundaries represented by the governed states.
 
 Blocking findings: none.
 
-Reviewed dimensions:
-- handoffAlignment: PASS
-- conceptAdoptionRejection: PASS
-- appShellContinuity: PASS
-- localTools: PASS
-- semanticMap: PASS
-- inspectorHierarchy: PASS
-- konlingDock: PASS
-- interactionStability: PASS
-- keyboardFocus: PASS
-- themeParity: PASS
-- mobileBehavior: PASS
-- tabletBreakpoint: PASS
-- stressNonOverlap: PASS
-- canvasGeometry: PASS
+All 14 review dimensions passed: handoff alignment, concept adoption/rejection, AppShell continuity, local tools, semantic map, inspector hierarchy, Konling dock, interaction stability, keyboard focus, theme parity, mobile behavior, tablet breakpoint, stress non-overlap, and canvas geometry.

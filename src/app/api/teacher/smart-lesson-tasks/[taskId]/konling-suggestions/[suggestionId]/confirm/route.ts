@@ -46,6 +46,10 @@ export async function POST(request: Request, context: { params: Promise<{ taskId
       if (!Object.keys(proposedTask).length) throw new SmartLessonPlanError('konling-clarification-requires-answer', 409);
       const parsed = updateTaskSchema.parse({
         ...proposedTask,
+        // The teacher has explicitly accepted this revision in this endpoint.
+        // Confirmation state is therefore server-owned, not model-owned.
+        confirmScope: true,
+        confirmGoals: true,
         expectedRevision: input.expectedRevision,
         confirmingTurnId: confirmation.turnId,
         agentSessionId: confirmation.agentSessionId,

@@ -16,6 +16,7 @@ import {
   BOPPPS_STAGE_KEYS,
   SMART_LESSON_PLAN_SCHEMA_VERSION,
   bopppsStageSchema,
+  createBopppsStageSchemaForAllowedBindings,
   smartLessonOutlineOutputSchema,
   sourceBindingSchema,
 } from './schema';
@@ -134,10 +135,12 @@ export async function processSmartLessonGenerationJob(
         system: request.system,
         prompt: request.prompt,
         idempotencyKey: claim.attempt.idempotencyKey,
+        maxOutputTokens: request.maxOutputTokens,
       });
-      validateGeneratedStage(context, stage.kind, generated.output, request.allowedBindingKeys);
+      const output = canonicalizeGeneratedStageOutput(stage.kind, generated.output, request.allowedSourceBindings);
+      validateGeneratedStage(context, stage.kind, output, request.allowedBindingKeys);
       const completedPlan = stage.kind === 'SUMMARY'
-        ? assembleCompletedPlan(context, generated.output)
+        ? assembleCompletedPlan(context, output)
         : undefined;
       const updated = await completeGenerationStage(db, {
         actor: { id: context.ownerId, role: 'TEACHER' },
@@ -145,7 +148,7 @@ export async function processSmartLessonGenerationJob(
         stage: stage.kind,
         claimToken: claim.claimToken,
         attemptId: claim.attempt.id,
-        output: generated.output,
+        output,
         completedPlan,
         normalizedResponseId: generated.normalizedResponseId,
         inputTokens: generated.inputTokens,
@@ -227,6 +230,7 @@ async function buildStageRequest(db: WorkerDb, context: NonNullable<JobContext>,
     contentHash: item.metadata?.contentHash,
   })));
   if (!allowedBindings.success) throw new SmartLessonPlanError('governed-source-evidence-invalid', 409);
+  const allowedSourceBindings = allowedBindings.data;
   const common = {
     course: task.courseBasis.title,
     topic: task.topic,
@@ -241,13 +245,43 @@ async function buildStageRequest(db: WorkerDb, context: NonNullable<JobContext>,
   const previous = Object.fromEntries(context.stages
     .filter((item) => item.state === 'COMPLETED' && item.output !== null)
     .map((item) => [item.kind, item.output]));
-  const schema: z.ZodTypeAny = stage === 'OUTLINE' ? smartLessonOutlineOutputSchema : bopppsStageSchema;
+  const schema: z.ZodTypeAny = stage === 'OUTLINE'
+    ? smartLessonOutlineOutputSchema
+    : createBopppsStageSchemaForAllowedBindings(allowedSourceBindings);
   return {
     schema,
     schemaVersion: stage === 'OUTLINE' ? 'smart-lesson-outline.v1' : `smart-lesson-boppps-${stage.toLowerCase()}.v1`,
-    system: '你是单课 BOPPPS 教案生成器。只能使用给定的已确认目标、知识点、服务端来源证据和聚合班级上下文；不得创建新的来源绑定。输出必须符合 JSON Schema。',
-    prompt: `生成阶段 ${stage}。任务上下文：${JSON.stringify(common)}。已完成阶段：${JSON.stringify(previous)}。`,
-    allowedBindingKeys: new Set(allowedBindings.data.map(bindingKey)),
+    maxOutputTokens: stage === 'OUTLINE' ? 2_048 : 4_096,
+    system: '你是单课 BOPPPS 教案生成器。只能使用给定的已确认目标、知识点、服务端来源证据和聚合班级上下文；不得创建新的来源绑定。sourceBindings 只能从 JSON Schema 枚举的可用来源绑定中完整选择；没有适用项时使用 []。输出必须符合 JSON Schema。',
+    prompt: `生成阶段 ${stage}。任务上下文：${JSON.stringify(common)}。可用来源绑定（逐字复制，不得改写）：${JSON.stringify(allowedSourceBindings)}。已完成阶段：${JSON.stringify(previous)}。`,
+    allowedSourceBindings,
+    allowedBindingKeys: new Set(allowedSourceBindings.map(bindingKey)),
+  };
+}
+
+type SourceBinding = z.infer<typeof sourceBindingSchema>;
+
+function canonicalizeGeneratedStageOutput(
+  stage: SmartLessonGenerationStageKind,
+  output: unknown,
+  allowedSourceBindings: SourceBinding[],
+) {
+  if (stage === 'OUTLINE') return output;
+  const parsed = bopppsStageSchema.parse(output);
+  const bindingsByEvidenceIdentity = new Map<string, SourceBinding[]>();
+  for (const binding of allowedSourceBindings) {
+    const identity = evidenceIdentity(binding);
+    bindingsByEvidenceIdentity.set(identity, [...(bindingsByEvidenceIdentity.get(identity) ?? []), binding]);
+  }
+  return {
+    ...parsed,
+    steps: parsed.steps.map((step) => ({
+      ...step,
+      sourceBindings: step.sourceBindings.map((binding) => {
+        const matches = bindingsByEvidenceIdentity.get(evidenceIdentity(binding)) ?? [];
+        return matches.length === 1 ? matches[0] : binding;
+      }),
+    })),
   };
 }
 
@@ -338,6 +372,10 @@ function bindingKey(binding: ReturnType<typeof sourceBindingSchema.parse>) {
   return `${binding.sourceVersionId}\u0000${binding.anchor}\u0000${binding.contentHash}\u0000${binding.citationId}`;
 }
 
+function evidenceIdentity(binding: SourceBinding) {
+  return `${binding.sourceVersionId}\u0000${binding.anchor}\u0000${binding.contentHash}`;
+}
+
 async function markPreProviderFailure(
   db: WorkerDb,
   context: NonNullable<JobContext>,
@@ -370,6 +408,10 @@ async function markPreProviderFailure(
 
 function errorCode(error: unknown) {
   if (error instanceof SmartLessonPlanError) return error.code.slice(0, 200);
+  if (error instanceof ZodError) return 'provider-schema-invalid';
+  if (error instanceof Error && /(?:curl:\s*\(28\)|\b(?:timed out|timeout)\b)/i.test(error.message)) {
+    return 'provider-timeout';
+  }
   if (error instanceof Error && error.name) return `provider-${error.name}`.slice(0, 200);
   return 'provider-request-failed';
 }

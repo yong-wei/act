@@ -60,6 +60,29 @@ vi.mock('@/lib/teacher-resource-node-data', async (importOriginal) => {
 
 import { PATCH } from '../route';
 
+const reviewedPathPlanningMetadata = {
+  evidenceInstrumentation: ['answer_submit'],
+  readiness: {
+    minimumCompetency: { controlModeling: 0.1 },
+    minimumEvidenceCount: 0,
+    requiredCompletedNodeIds: [],
+    requiredOutcomeRefs: [],
+    unlockMessage: 'Reviewed fixture is ready for path planning.',
+    fallbackNodeIds: [],
+  },
+  pathDisposition: {
+    kind: 'path-plannable',
+    reviewStatus: 'human-confirmed',
+    rationale: 'Reviewed ResourceNode PATCH fixture for path planning.',
+    sourceFamily: 'teaching_resource',
+    stableSourceRef: 'owned-quiz',
+    sourceVersionRef: 'resource-node-registry.v1',
+    parentResourceNodeId: null,
+    reviewedAt: '2026-07-03T00:00:00.000Z',
+    reviewerId: 'resource-node-api-test-review',
+  },
+};
+
 const ownedResource = {
   id: 'owned-quiz',
   title: 'Bode 后测',
@@ -74,6 +97,7 @@ const ownedResource = {
     existing: true,
     resourceNodePlanning: {
       estimatedTimeMinutes: 18,
+      ...reviewedPathPlanningMetadata,
     },
   },
   knowledgeNodes: [
@@ -137,6 +161,7 @@ describe('PATCH /api/teacher/resource-nodes/[nodeId]', () => {
       ...ownedResource,
       config: {
         resourceNodePlanning: {
+          ...reviewedPathPlanningMetadata,
           teacherPolicy: 'blocked',
         },
       },
@@ -146,6 +171,7 @@ describe('PATCH /api/teacher/resource-nodes/[nodeId]', () => {
         ...ownedResource,
         config: {
           resourceNodePlanning: {
+            ...reviewedPathPlanningMetadata,
             teacherPolicy: 'blocked',
           },
         },
@@ -155,6 +181,7 @@ describe('PATCH /api/teacher/resource-nodes/[nodeId]', () => {
       ...ownedResource,
       config: {
         resourceNodePlanning: {
+          ...reviewedPathPlanningMetadata,
           teacherPolicy: 'allowed',
         },
       },
@@ -177,11 +204,11 @@ describe('PATCH /api/teacher/resource-nodes/[nodeId]', () => {
     expect(response.status).toBe(200);
     expect(mocks.prisma.teachingResource.update).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
-        config: {
-          resourceNodePlanning: {
+        config: expect.objectContaining({
+          resourceNodePlanning: expect.objectContaining({
             teacherPolicy: 'allowed',
-          },
-        },
+          }),
+        }),
       }),
     }));
     expect(payload.node).toEqual(expect.objectContaining({
@@ -190,11 +217,49 @@ describe('PATCH /api/teacher/resource-nodes/[nodeId]', () => {
     }));
   });
 
+  it('keeps an excluded disposition fail-closed when pathEligible=true is requested', async () => {
+    const excludedPlanningMetadata = {
+      ...reviewedPathPlanningMetadata,
+      pathDisposition: {
+        ...reviewedPathPlanningMetadata.pathDisposition,
+        kind: 'excluded-with-rationale',
+        rationale: 'Reviewed as supporting material, not an independent planning unit.',
+      },
+    };
+    mocks.prisma.teachingResource.findFirst.mockResolvedValue({
+      ...ownedResource,
+      config: { resourceNodePlanning: excludedPlanningMetadata },
+    });
+    mocks.prisma.teachingResource.findMany.mockResolvedValue([
+      { ...ownedResource, config: { resourceNodePlanning: excludedPlanningMetadata } },
+    ]);
+    mocks.prisma.teachingResource.update.mockResolvedValue({
+      ...ownedResource,
+      config: { resourceNodePlanning: excludedPlanningMetadata },
+    });
+
+    const response = await PATCH(
+      new Request('http://localhost/api/teacher/resource-nodes/teaching-resource%3Aowned-quiz', {
+        method: 'PATCH',
+        body: JSON.stringify({ planningMetadata: { pathEligible: true } }),
+      }),
+      { params: Promise.resolve({ nodeId: 'teaching-resource:owned-quiz' }) }
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.node).toEqual(expect.objectContaining({
+      pathEligible: false,
+      pathExclusionReasons: expect.arrayContaining(['invalid-path-disposition-promotion']),
+    }));
+  });
+
   it('audits patched prerequisites against the full teacher resource scope', async () => {
     mocks.prisma.teachingResource.update.mockResolvedValue({
       ...ownedResource,
       config: {
         resourceNodePlanning: {
+          ...reviewedPathPlanningMetadata,
           prerequisites: ['teaching-resource:owned-prerequisite'],
         },
       },
@@ -228,6 +293,7 @@ describe('PATCH /api/teacher/resource-nodes/[nodeId]', () => {
       ...ownedResource,
       config: {
         resourceNodePlanning: {
+          ...reviewedPathPlanningMetadata,
           prerequisites: ['registry:registered-quiz'],
         },
       },
@@ -286,6 +352,7 @@ describe('PATCH /api/teacher/resource-nodes/[nodeId]', () => {
       ...ownedResource,
       config: {
         resourceNodePlanning: {
+          ...reviewedPathPlanningMetadata,
           prerequisites: ['runtime-media:2-4:slides'],
         },
       },
@@ -333,24 +400,24 @@ describe('PATCH /api/teacher/resource-nodes/[nodeId]', () => {
     expect(mocks.prisma.teachingResource.findFirst).toHaveBeenCalledWith(expect.objectContaining({
       where: { id: 'owned-quiz', authorId: 'teacher-1' },
     }));
-    expect(mocks.prisma.teachingResource.update).toHaveBeenCalledWith({
+    expect(mocks.prisma.teachingResource.update).toHaveBeenCalledWith(expect.objectContaining({
       where: { id: 'owned-quiz' },
-      data: {
+      data: expect.objectContaining({
         displayName: '课堂使用的 Bode 后测',
         description: '用于频域单元。',
-        config: {
+        config: expect.objectContaining({
           existing: true,
-          resourceNodePlanning: {
+          resourceNodePlanning: expect.objectContaining({
             estimatedTimeMinutes: 20,
             teacherPolicy: 'blocked',
             knowledgeCoverage: ['kn-bode', 'kn-frequency-response'],
-          },
-        },
-      },
+          }),
+        }),
+      }),
       include: expect.objectContaining({
         knowledgeNodes: expect.any(Object),
       }),
-    });
+    }));
     expect(payload.node).toEqual(expect.objectContaining({
       id: 'teaching-resource:owned-quiz',
       title: '课堂使用的 Bode 后测',
@@ -406,9 +473,9 @@ describe('PATCH /api/teacher/resource-nodes/[nodeId]', () => {
     expect(response.status).toBe(200);
     expect(mocks.prisma.teachingResource.update).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
-        config: {
+        config: expect.objectContaining({
           existing: true,
-          resourceNodePlanning: {
+          resourceNodePlanning: expect.objectContaining({
             estimatedTimeMinutes: 18,
             readiness: {
               minimumCompetency: {
@@ -420,8 +487,8 @@ describe('PATCH /api/teacher/resource-nodes/[nodeId]', () => {
               unlockMessage: '完成准备资源后解锁。',
               fallbackNodeIds: ['knowledge-card:kn-bode'],
             },
-          },
-        },
+          }),
+        }),
       }),
     }));
     expect(payload.node.readiness).toEqual({
@@ -461,12 +528,12 @@ describe('PATCH /api/teacher/resource-nodes/[nodeId]', () => {
     expect(response.status).toBe(200);
     expect(mocks.prisma.teachingResource.update).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
-        config: {
+        config: expect.objectContaining({
           existing: true,
-          resourceNodePlanning: {
+          resourceNodePlanning: expect.objectContaining({
             estimatedTimeMinutes: 18,
-          },
-        },
+          }),
+        }),
       }),
     }));
     expect(payload.node).toEqual(expect.objectContaining({
