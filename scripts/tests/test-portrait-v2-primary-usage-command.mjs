@@ -6,10 +6,11 @@ import path from 'node:path';
 
 const repoRoot = process.cwd();
 const gateScript = path.join(repoRoot, 'scripts/data-governance/check-portrait-v2-primary-usage.ts');
-const tsx = path.join(repoRoot, 'node_modules/.bin/tsx');
+const tsxCli = path.join(repoRoot, 'node_modules/tsx/dist/cli.mjs');
 const tempRoot = mkdtempSync(path.join(os.tmpdir(), 'act-portrait-v2-primary-gate-'));
 const isolatedHooksPath = path.join(tempRoot, 'hooks');
 const globalHooksPath = path.join(tempRoot, 'global-hooks');
+const globalHooksConfigPath = globalHooksPath.split(path.sep).join('/');
 const globalConfigPath = path.join(tempRoot, 'global.gitconfig');
 mkdirSync(isolatedHooksPath);
 mkdirSync(globalHooksPath);
@@ -18,7 +19,7 @@ writeFileSync(
   '#!/bin/sh\nprintf "%s\\n" "isolated global pre-commit hook invoked" >&2\nexit 97\n',
   { mode: 0o755 },
 );
-writeFileSync(globalConfigPath, `[core]\n\thooksPath = ${globalHooksPath}\n`);
+writeFileSync(globalConfigPath, `[core]\n\thooksPath = ${globalHooksConfigPath}\n`);
 const gitLocalEnvVars = new Set([
   'GIT_ALTERNATE_OBJECT_DIRECTORIES',
   'GIT_CONFIG',
@@ -62,7 +63,7 @@ function writeFixture(relativePath, content) {
 
 function runGate(args) {
   try {
-    const stdout = execFileSync(tsx, [gateScript, ...args], {
+    const stdout = execFileSync(process.execPath, [tsxCli, gateScript, ...args], {
       cwd: tempRoot,
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],
@@ -87,7 +88,7 @@ try {
   runGit(['config', '--local', 'core.hooksPath', isolatedHooksPath], globalHookGitEnv);
   assert.equal(
     runGit(['config', '--global', '--get', 'core.hooksPath'], globalHookGitEnv).trim(),
-    globalHooksPath,
+    globalHooksConfigPath,
     'the test must use the temporary failing global hooks path',
   );
   assert.equal(

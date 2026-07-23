@@ -3706,7 +3706,7 @@ export function runtimeLessonMediaSemanticFormalReviewOverlaysForRows(
     ) {
       throw new Error(`Runtime lesson/media semantic parent PlanningUnit is not promoted: ${row.resourceId}`);
     }
-    if (JSON.stringify(source.graphNodeRefs) !== JSON.stringify(row.graphNodeRefs)) {
+    if (!graphNodeRefsEqual(source.graphNodeRefs, row.graphNodeRefs)) {
       throw new Error(`Runtime lesson/media semantic graph decision mismatch: ${row.resourceId}`);
     }
     if (source.estimatedTimeMinutes !== row.estimatedTimeMinutes) {
@@ -3802,6 +3802,15 @@ export function runtimeLessonMediaSemanticFormalReviewOverlaysForRows(
       },
     };
   });
+}
+
+function graphNodeRefsEqual(
+  left: ResourceFieldCompletionAuditRow['graphNodeRefs'],
+  right: ResourceFieldCompletionAuditRow['graphNodeRefs'],
+) {
+  return (['knowledge', 'capability', 'quality'] as const).every((key) => (
+    JSON.stringify([...left[key]].sort()) === JSON.stringify([...right[key]].sort())
+  ));
 }
 
 function coreSemanticFormalReviewOverlaysForRows(
@@ -4323,7 +4332,7 @@ async function collectRuntimeMediaCandidates() {
       const relativePath = projectPath(absolutePath);
       const basename = path.basename(absolutePath);
       const mediaRelativePath = path.relative(mediaDir, absolutePath).split(path.sep).join('/');
-      const contentHash = `sha256:${sha256(await fs.readFile(absolutePath))}`;
+      const contentHash = await readLocalFileHash(absolutePath);
       candidates.push({
         id: `runtime-media:${lessonKey}:${mediaRelativePath}`,
         title: basename,
@@ -4367,14 +4376,14 @@ async function collectRuntimeLessonCatalogEntries(): Promise<RuntimeLessonCatalo
     if (!lesson || !graphOverlay) continue;
     const sourceLessonId = lesson.lesson_id ?? graphOverlay.lesson_id ?? lessonKey;
     const registryLessonId = lessonKey.includes('/') ? lessonKey : sourceLessonId;
-    const handoutSourcePath = path.join('course-content/runtime/lessons', lessonKey, `${sourceLessonId}-handout.md`);
-    const fallbackHandoutSourcePath = path.join('course-content/runtime/lessons', lessonKey, 'handout.md');
+    const handoutSourcePath = path.posix.join('course-content/runtime/lessons', lessonKey, `${sourceLessonId}-handout.md`);
+    const fallbackHandoutSourcePath = path.posix.join('course-content/runtime/lessons', lessonKey, 'handout.md');
     const resolvedHandoutSourcePath = await fileExists(path.join(process.cwd(), handoutSourcePath))
       ? handoutSourcePath
       : fallbackHandoutSourcePath;
     const hasContentClearance = await fileExists(path.join(lessonDir, 'review', 'content-clearance.json'));
     const handoutPath = lesson.handout_path ?? `/course-runtime/lessons/${lessonKey}/${sourceLessonId}-handout.md`;
-    const handoutPdfSourcePath = path.join('course-content/runtime/lessons', lessonKey, `${sourceLessonId}-handout.pdf`);
+    const handoutPdfSourcePath = path.posix.join('course-content/runtime/lessons', lessonKey, `${sourceLessonId}-handout.pdf`);
     const handoutPdfPath = await fileExists(path.join(process.cwd(), handoutPdfSourcePath)) && isGitTrackedFile(handoutPdfSourcePath)
       ? lesson.handout_pdf_path ?? `/course-runtime/lessons/${lessonKey}/${sourceLessonId}-handout.pdf`
       : null;
@@ -4776,7 +4785,15 @@ async function readLocalFileHash(sourcePath: string) {
     const absolutePath = path.isAbsolute(sourcePath)
       ? sourcePath
       : path.join(process.cwd(), sourcePath);
-    return `sha256:${sha256(await fs.readFile(absolutePath))}`;
+    const content = await fs.readFile(absolutePath);
+    const textExtensions = new Set([
+      '.cjs', '.css', '.csv', '.html', '.js', '.json', '.jsonl', '.md', '.mdx',
+      '.mjs', '.svg', '.ts', '.tsx', '.txt', '.xml', '.yaml', '.yml',
+    ]);
+    const hashInput = textExtensions.has(path.extname(absolutePath).toLowerCase())
+      ? content.toString('utf8').replace(/\r\n?/g, '\n')
+      : content;
+    return `sha256:${sha256(hashInput)}`;
   } catch {
     return null;
   }
@@ -4792,14 +4809,14 @@ async function readJson<T>(filePath: string): Promise<T | null> {
 
 async function readText(filePath: string): Promise<string | null> {
   try {
-    return await fs.readFile(filePath, 'utf8');
+    return (await fs.readFile(filePath, 'utf8')).replace(/\r\n?/g, '\n');
   } catch {
     return null;
   }
 }
 
 function projectPath(absolutePath: string) {
-  return path.relative(process.cwd(), absolutePath);
+  return path.relative(process.cwd(), absolutePath).split(path.sep).join('/');
 }
 
 async function resolveCitationTargets(baseDir: string, sources: Array<string | null | undefined>) {

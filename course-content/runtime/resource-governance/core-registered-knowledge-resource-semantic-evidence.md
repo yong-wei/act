@@ -6,10 +6,10 @@ Reviewed at: 2026-07-09T16:30:00.000Z
 
 ## Scope
 
-Scoped resources: 624
-Workqueue items: 624
+Scoped resources: 1165
+Workqueue items: 1165
 Reviewed resources: 606
-Starting rows with blockers: 622
+Starting rows with blockers: 1163
 Unexplained remaining items: 0
 Privacy minimized: true
 Raw content included: false
@@ -40,9 +40,9 @@ Raw content included: false
 
 ## Evidence Files
 
-Workqueue items: course-content/runtime/resource-governance/core-registered-knowledge-resource-semantic-workqueue-items.jsonl
-Review source: course-content/runtime/resource-governance/core-registered-knowledge-resource-semantic-review-source.jsonl
-Review items: course-content/runtime/resource-governance/core-registered-knowledge-resource-semantic-review-items.jsonl
-Source audit: course-content/runtime/resource-governance/resource-field-completion-audit.jsonl
+Workqueue items: course-content\runtime\resource-governance\core-registered-knowledge-resource-semantic-workqueue-items.jsonl
+Review source: course-content\runtime\resource-governance\core-registered-knowledge-resource-semantic-review-source.jsonl
+Review items: course-content\runtime\resource-governance\core-registered-knowledge-resource-semantic-review-items.jsonl
+Source audit: course-content\runtime\resource-governance\resource-field-completion-audit.jsonl
 
 The tracked review source is applied to formal audit rows before summary, workqueue, projection, baseline, and path-readiness artifacts are derived. The sidecar workqueue preserves the original row blockers as before-state; concrete source identity, dependency, evidence-contract, readiness, and non-path limitations remain visible after semantic review.

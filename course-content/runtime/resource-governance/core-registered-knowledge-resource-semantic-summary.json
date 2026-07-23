@@ -4,10 +4,10 @@
   "reviewerId": "core-registered-knowledge-resource-implementing-agent",
   "reviewedAt": "2026-07-09T16:30:00.000Z",
   "totals": {
-    "scopedResources": 624,
-    "workqueueItems": 624,
+    "scopedResources": 1165,
+    "workqueueItems": 1165,
     "reviewedResources": 606,
-    "remainingSemanticReviewBlockers": 622,
+    "remainingSemanticReviewBlockers": 1163,
     "unexplainedRemainingItems": 0,
     "rawContentIncluded": false,
     "privacyMinimized": true
@@ -19,8 +19,8 @@
   },
   "byDisposition": {
     "embedded-asset": 161,
-    "path-plannable": 2,
     "supporting-citation": 277,
+    "path-plannable": 2,
     "evidence-producing": 166
   },
   "residualLimitations": {
@@ -34,21 +34,21 @@
     "registered-route-source-identity-limited": 166
   },
   "startingBlockers": {
+    "missing-capability-target": 995,
     "missing-evidence-contract": 161,
     "missing-evidence-instrumentation": 161,
-    "missing-path-profile": 456,
-    "missing-path-target": 2,
-    "missing-capability-target": 454,
-    "missing-human-review": 454,
+    "missing-human-review": 995,
+    "missing-path-profile": 997,
     "missing-segment-ref": 159,
-    "provisional-metadata": 454,
+    "provisional-metadata": 995,
+    "missing-path-target": 2,
     "blocked-by-dependency": 49,
     "missing-content-hash": 166
   },
   "evidence": {
-    "workqueueItemsPath": "course-content/runtime/resource-governance/core-registered-knowledge-resource-semantic-workqueue-items.jsonl",
-    "reviewSourcePath": "course-content/runtime/resource-governance/core-registered-knowledge-resource-semantic-review-source.jsonl",
-    "reviewItemsPath": "course-content/runtime/resource-governance/core-registered-knowledge-resource-semantic-review-items.jsonl",
-    "sourceAuditPath": "course-content/runtime/resource-governance/resource-field-completion-audit.jsonl"
+    "workqueueItemsPath": "course-content\\runtime\\resource-governance\\core-registered-knowledge-resource-semantic-workqueue-items.jsonl",
+    "reviewSourcePath": "course-content\\runtime\\resource-governance\\core-registered-knowledge-resource-semantic-review-source.jsonl",
+    "reviewItemsPath": "course-content\\runtime\\resource-governance\\core-registered-knowledge-resource-semantic-review-items.jsonl",
+    "sourceAuditPath": "course-content\\runtime\\resource-governance\\resource-field-completion-audit.jsonl"
   }
 }

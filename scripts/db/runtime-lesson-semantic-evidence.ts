@@ -204,7 +204,12 @@ function projectPath(relativePath: string): string {
 function fileHash(relativePath: string): string {
   const absolutePath = projectPath(relativePath);
   assert(existsSync(absolutePath), `Runtime semantic evidence file does not exist: ${relativePath}`);
-  return `sha256:${createHash('sha256').update(readFileSync(absolutePath)).digest('hex')}`;
+  const content = readFileSync(absolutePath);
+  const textExtensions = new Set(['.csv', '.json', '.jsonl', '.md', '.mdx', '.svg', '.txt', '.xml', '.yaml', '.yml']);
+  const hashInput = textExtensions.has(path.extname(absolutePath).toLowerCase())
+    ? content.toString('utf8').replace(/\r\n?/g, '\n')
+    : content;
+  return `sha256:${createHash('sha256').update(hashInput).digest('hex')}`;
 }
 
 function isGitIndexPath(relativePath: string): boolean {
@@ -975,9 +980,9 @@ export function buildRuntimeLessonSemanticDecisionFacts(
         .filter((target: unknown): target is string => typeof target === 'string' && !/^https?:\/\//i.test(target))
         .sort(),
       graphNodeRefs: {
-        knowledge: [...(row.graphNodeRefs?.knowledge ?? [])],
-        capability: [...(row.graphNodeRefs?.capability ?? [])],
-        quality: [...(row.graphNodeRefs?.quality ?? [])],
+        knowledge: [...(source.graphNodeRefs?.knowledge ?? [])],
+        capability: [...(source.graphNodeRefs?.capability ?? [])],
+        quality: [...(source.graphNodeRefs?.quality ?? [])],
       },
       evidenceDecision: facts.evidence.decision,
       evidenceContractComplete: row.evidenceContract?.complete === true,
