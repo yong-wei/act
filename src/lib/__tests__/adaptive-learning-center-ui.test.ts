@@ -434,6 +434,9 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain("submitPathChoice('helpfulness'");
     expect(source).toContain('data-adaptive-path-status-region={showSelectionWorkspace ?');
     expect(source).toContain('data-learning-path-option-feedback={option.writeOption.optionId}');
+    expect(source).toContain('data-learning-path-route-preview');
+    expect(source).toContain('data-learning-path-diversity-notice="limited"');
+    expect(source).toContain('data-learning-path-example={option.isGenerated ? undefined : option.id}');
   });
 
   it('keeps desktop path option actions inside each comparable option module', () => {
@@ -442,7 +445,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('data-learning-path-options-layout="route-modules"');
     expect(source).toContain('data-learning-path-option-actions="attached"');
     expect(source).toContain("key={`${option.id}:mobile`}");
-    expect(source).toContain('data-learning-path-option-module="route"');
+    expect(source).toContain("data-learning-path-option-module={option.isGenerated ? 'route' : undefined}");
     expect(source).toContain('aria-label={`选择${option.title}`');
     expect(source).toContain('aria-label={`请控灵调整${option.title}`');
     expect(source).toContain('aria-label={`解释${option.title}差异`');
@@ -459,7 +462,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('assertPathComparisonSignals');
     expect(source).toContain('missing-signal');
     expect(source).toContain("style.visibility !== 'hidden'");
-    expect(source).toContain('signal.routeModuleCount < 3');
+    expect(source).toContain('signal.routeModuleCount < 1');
     expect(source).toContain('signal.attachedActionGroupCount !== signal.routeModuleCount');
     expect(source).toContain('[data-learning-path-options-layout="route-modules"]');
     expect(source).toContain('[data-learning-path-option-actions="attached"]');
@@ -472,7 +475,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).not.toContain('realPathOption');
     expect(source).not.toContain('pathOptions[index] ??');
     expect(source).not.toContain('pathOptions[index]');
-    expect(source).toContain('const visiblePathOptions = useMemo(() => buildAdaptivePathOptionDisplays(pathOptions), [pathOptions]);');
+    expect(source).toContain('buildAdaptivePathOptionDisplays(pathOptions, { diversityLimited: pathComparisonDiversityLimited })');
     expect(source).toContain('const optionForWrite = option.writeOption;');
     expect(source).toContain('disabled={!option.writeOption || Boolean(pathChoicePending)}');
     expect(source).toContain("setPathChoiceMessage('请先登录并生成路径后再记录选择。')");
@@ -525,6 +528,71 @@ describe('adaptive learning center UI contracts', () => {
     expect(displays[1].readiness).toBe('包含后续解锁节点');
     expect(preview).toHaveLength(3);
     expect(preview.every((option) => option.writeOption === undefined)).toBe(true);
+  });
+
+  it('preserves ordered nodes, readiness, and cross-option resource differences for generated path comparison', () => {
+    const options: AdaptivePathOptionWriteOption[] = [
+      {
+        optionId: 'foundation-route',
+        label: '基础路径',
+        nodeIds: ['card:shared', 'quiz:locked', 'simulation:unique', 'checkpoint:review', 'arena:final'],
+        nodeSummaries: [
+          { nodeId: 'card:shared', title: '相位裕度知识卡', pathNodeType: 'knowledge_card', estimatedTimeMinutes: 8, status: 'current' },
+          { nodeId: 'quiz:locked', title: '相位裕度练习', pathNodeType: 'adaptive_quiz', estimatedTimeMinutes: 12, status: 'locked' },
+          { nodeId: 'simulation:unique', title: '校正仿真', pathNodeType: 'simulation', estimatedTimeMinutes: 18, status: 'next' },
+          { nodeId: 'checkpoint:review', title: '阶段检查', pathNodeType: 'checkpoint', estimatedTimeMinutes: 6, status: 'next' },
+          { nodeId: 'arena:final', title: 'Arena 验证', pathNodeType: 'arena_task', estimatedTimeMinutes: 25, status: 'next' },
+        ],
+        lockedNodeIds: ['quiz:locked'],
+        readinessSummary: [{ nodeId: 'quiz:locked', state: 'locked', message: '完成知识卡后解锁。' }],
+        targetDeficits: [],
+        evidenceBasis: ['近期练习记录'],
+        resourceMix: { knowledge_card: 1, adaptive_quiz: 1, simulation: 1, checkpoint: 1, arena_task: 1 },
+        effort: { estimatedMinutes: 69, relative: 'medium' },
+        expectedTargetLift: 1.2,
+        terminalValidationNodeIds: ['arena:final'],
+        terminalValidationStrategy: { summary: 'Arena 验证' },
+        limitations: [],
+      },
+      {
+        optionId: 'practice-route',
+        label: '实践路径',
+        nodeIds: ['card:shared', 'workbench:unique'],
+        nodeSummaries: [
+          { nodeId: 'card:shared', title: '相位裕度知识卡', pathNodeType: 'knowledge_card', estimatedTimeMinutes: 8, status: 'current' },
+          { nodeId: 'workbench:unique', title: '控制工作台', pathNodeType: 'control_workbench', estimatedTimeMinutes: 20, status: 'next' },
+        ],
+        lockedNodeIds: [],
+        readinessSummary: [],
+        targetDeficits: [],
+        evidenceBasis: ['近期练习记录'],
+        resourceMix: { knowledge_card: 1, control_workbench: 1 },
+        effort: { estimatedMinutes: 28, relative: 'short' },
+        terminalValidationNodeIds: [],
+        terminalValidationStrategy: {},
+        limitations: [],
+      },
+    ];
+
+    const displays = buildAdaptivePathOptionDisplays(options, { diversityLimited: true });
+    const foundationNodes = displays[0].orderedNodes;
+
+    expect(displays.every((option) => option.isGenerated)).toBe(true);
+    expect(displays[0].diversityLimited).toBe(true);
+    expect(displays[0].expectedAbilityImprovement).toBe('约 +1.2');
+    expect(foundationNodes?.map((node) => node.title)).toEqual([
+      '相位裕度知识卡',
+      '相位裕度练习',
+      '校正仿真',
+      '阶段检查',
+      'Arena 验证',
+    ]);
+    expect(foundationNodes?.[0]).toMatchObject({ comparisonLabel: '所有方案均包含', statusLabel: '建议从这里开始' });
+    expect(foundationNodes?.[1]).toMatchObject({ statusLabel: '稍后解锁', unlockMessage: '完成知识卡后解锁。', comparisonLabel: '本方案特有' });
+    expect(foundationNodes?.[2]).toMatchObject({ comparisonLabel: '本方案特有', resourceLabel: '虚拟仿真' });
+
+    const examples = buildAdaptivePathOptionDisplays([]);
+    expect(examples.every((option) => !option.isGenerated && option.orderedNodes === undefined)).toBe(true);
   });
 
   it('keeps productized path option writes compatible with server style evidence', () => {
