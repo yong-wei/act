@@ -226,10 +226,6 @@ function assertStudentPdfProjection(projection: StudentPdfProjection, manifest: 
       }
     }
   });
-  const serialized = JSON.stringify(projection);
-  for (const prohibited of ['referenceAnswer', 'referenceMatches', 'reviewPoints', 'generationAudit', 'provenanceSnapshot', 'sourceBinding']) {
-    if (serialized.includes(prohibited)) throw new SmartCoursewareError(`pdf-export-teacher-content-leak:${prohibited}`, 409);
-  }
 }
 
 async function drawStudentPdfSlide(page: PDFPage, slide: StudentPdfSlideProjection, fonts: PdfFontResolver) {
@@ -294,7 +290,7 @@ async function drawWrappedText(
 async function wrapLines(values: readonly string[], width: number, fontSize: number, fonts: PdfFontResolver) {
   const lines: string[] = [];
   for (const rawValue of values) {
-    for (const value of rawValue.replace(/\t/g, '    ').split(/\r?\n/)) {
+    for (const value of normalizePdfText(rawValue).split('\n')) {
       let current = '';
       for (const character of value) {
         const candidate = current + character;
@@ -309,6 +305,13 @@ async function wrapLines(values: readonly string[], width: number, fontSize: num
     }
   }
   return lines;
+}
+
+function normalizePdfText(value: string) {
+  return value
+    .replace(/\r\n?/g, '\n')
+    .replace(/\t/g, '    ')
+    .replace(/[\u0000-\u0008\u000B-\u001F\u007F]/g, ' ');
 }
 
 async function textWidth(value: string, fontSize: number, fonts: PdfFontResolver) {

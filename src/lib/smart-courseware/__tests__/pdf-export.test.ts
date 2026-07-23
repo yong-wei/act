@@ -76,7 +76,19 @@ describe('smart courseware PDF export', () => {
     manifest.stages[0].steps[0].modules[0] = {
       ...manifest.stages[0].steps[0].modules[0],
       canonicalClass: 'content.code',
-      payload: { language: 'typescript', code: 'function stable() {\n\treturn 1;\n}' },
+      payload: { language: 'typescript', code: 'function stable() {\r\n\treturn 1;\f}' },
+    };
+
+    await expect(createPublishedCoursewarePdf(input(manifest))).resolves.toMatchObject({
+      artifact: { pageCount: 6 },
+    });
+  });
+
+  it('permits student-visible text that names teacher-only fields', async () => {
+    const manifest = validCoursewareManifest();
+    manifest.stages[0].steps[0].modules[0] = {
+      ...manifest.stages[0].steps[0].modules[0],
+      payload: { text: '讲解 JSON 契约中的 referenceAnswer 与 reviewPoints 字段。' },
     };
 
     await expect(createPublishedCoursewarePdf(input(manifest))).resolves.toMatchObject({
