@@ -79,6 +79,9 @@ const mocks = vi.hoisted(() => ({
     studentEvidenceFeatureCache: {
       deleteMany: vi.fn(),
     },
+    cumulativePortraitCutoverFence: {
+      findUnique: vi.fn(),
+    },
     learningMaterializationRebuildRequest: {
       findUnique: vi.fn(),
       create: vi.fn(),
@@ -365,6 +368,14 @@ describe('document rubric grading routes', () => {
     mocks.prisma.assignmentRevision.findUnique.mockResolvedValue({ assignment: { authorId: 'teacher-author', reviewGrants: [] } });
     mocks.prisma.learningFact.createMany.mockResolvedValue({ count: 1 });
     mocks.prisma.studentEvidenceFeatureCache.deleteMany.mockResolvedValue({ count: 1 });
+    mocks.prisma.cumulativePortraitCutoverFence.findUnique.mockResolvedValue({
+      calculationVersion: 'portrait-v2.cumulative.v2',
+      learnerGeneration: BigInt(3),
+      classGeneration: BigInt(5),
+      queueGeneration: BigInt(7),
+      fence: BigInt(11),
+      activeMigrationRunId: 'migration-989',
+    });
     mocks.prisma.learningMaterializationRebuildRequest.findUnique.mockResolvedValue(null);
     mocks.prisma.learningMaterializationRebuildRequest.create.mockResolvedValue({});
     mocks.prisma.teachingResource.findFirst.mockResolvedValue(null);
@@ -1673,7 +1684,16 @@ describe('document rubric grading routes', () => {
     expect(JSON.stringify(auditMetadata)).not.toContain('feedbackDigest');
     expect(mocks.prisma.learningEvidenceDraft.create).not.toHaveBeenCalled();
     expect(mocks.prisma.learningMaterializationRebuildRequest.create).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({ userId: 'student-1', classIds: ['class-1'], status: 'PENDING' }),
+      data: expect.objectContaining({
+        userId: 'student-1',
+        classIds: ['class-1'],
+        kind: 'CUMULATIVE_RECONCILIATION',
+        migrationRunId: 'migration-989',
+        learnerGeneration: BigInt(3),
+        queueGeneration: BigInt(7),
+        cutoverFence: BigInt(11),
+        status: 'PENDING',
+      }),
     }));
     expect(mocks.prisma.$transaction.mock.calls.at(-1)?.[1]).toEqual({ isolationLevel: 'Serializable' });
   });
@@ -2273,7 +2293,14 @@ describe('document rubric grading routes', () => {
       where: expect.objectContaining({ id: draft.id, reviewerState: 'pending' }),
       data: expect.objectContaining({ reviewerState: 'approved' }),
     }));
-    expect(mocks.prisma.learningMaterializationRebuildRequest.create).toHaveBeenCalledWith({ data: expect.objectContaining({ userId: 'student-1', classIds: ['class-1'], reason: 'legacy-document-grading-approved' }) });
+    expect(mocks.prisma.learningMaterializationRebuildRequest.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        userId: 'student-1',
+        classIds: ['class-1'],
+        reason: 'document-grading-approved',
+        kind: 'CUMULATIVE_RECONCILIATION',
+      }),
+    });
   });
 
   it('keeps a full-score low-weight criterion at full performance in both portrait engines', () => {

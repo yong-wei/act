@@ -28,7 +28,7 @@ import {
 import { writeGradingAudit } from '@/lib/data-governance/math-document-grading-persistence';
 import { gradingRequestScope, pseudonymousAuditId, sha256, stableStringify } from '@/lib/data-governance/math-document-grading-contracts';
 import { createSubmissionObjectStore } from '@/lib/assignments/submission-object-store';
-import { requestLearningMaterializationRebuild } from '@/lib/data-governance/derived-learning-materialization';
+import { requestCumulativeLearnerReconciliation } from '@/lib/data-governance/cumulative-snapshot-jobs';
 
 export const dynamic = 'force-dynamic';
 
@@ -238,10 +238,10 @@ export async function POST(request: Request) {
         studentId: draft.ownerUserId,
         goalContext: parsed.goalContext,
       });
-      await requestLearningMaterializationRebuild(tx, {
+      await requestCumulativeLearnerReconciliation(tx, {
         userId: draft.ownerUserId,
         classIds: parsed.goalContext.classId ? [parsed.goalContext.classId] : [],
-        reason: 'legacy-document-grading-approved',
+        reason: 'document-grading-approved',
       });
       return result;
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
@@ -386,7 +386,7 @@ async function approvePipelineRun(input: {
     if (facts.length > 0) {
       if (!scope.studentId || !scope.classId) throw new GradingMutationError('grading-review-scope-changed', 409);
       await tx.studentEvidenceFeatureCache.deleteMany({ where: { userId: scope.studentId } });
-      await requestLearningMaterializationRebuild(tx, {
+      await requestCumulativeLearnerReconciliation(tx, {
         userId: scope.studentId,
         classIds: [scope.classId],
         reason: 'document-rubric-grading-approved',

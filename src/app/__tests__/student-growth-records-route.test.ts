@@ -4,147 +4,149 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
   getServerAuthSession: vi.fn(),
   prisma: {
-    growthRecord: { findMany: vi.fn(), count: vi.fn() },
-    learningMilestone: { findMany: vi.fn() },
-    simulationLog: { findMany: vi.fn() },
-    studentRiskFlag: { findMany: vi.fn() },
-    achievement: { findMany: vi.fn() },
-    learningFact: { findMany: vi.fn() },
+    growthRecord: {
+      findMany: vi.fn(),
+      count: vi.fn(),
+    },
   },
 }));
 
-vi.mock('@/lib/auth', () => ({ getServerAuthSession: mocks.getServerAuthSession }));
-vi.mock('@/lib/prisma', () => ({ prisma: mocks.prisma }));
-vi.mock('@/lib/nextjs-dynamic-error', () => ({ rethrowIfNextDynamicError: vi.fn() }));
+vi.mock('@/lib/auth', () => ({
+  getServerAuthSession: mocks.getServerAuthSession,
+}));
+vi.mock('@/lib/prisma', () => ({
+  prisma: mocks.prisma,
+}));
+vi.mock('@/lib/nextjs-dynamic-error', () => ({
+  rethrowIfNextDynamicError: vi.fn(),
+}));
 
 import { GET } from '@/app/api/student/growth-records/route';
 
 describe('student growth records route', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1' } });
+    mocks.getServerAuthSession.mockResolvedValue({
+      user: { id: 'student-1', role: 'STUDENT' },
+    });
     mocks.prisma.growthRecord.findMany.mockResolvedValue([]);
     mocks.prisma.growthRecord.count.mockResolvedValue(0);
-    mocks.prisma.learningMilestone.findMany.mockResolvedValue([]);
-    mocks.prisma.simulationLog.findMany.mockResolvedValue([]);
-    mocks.prisma.studentRiskFlag.findMany.mockResolvedValue([]);
-    mocks.prisma.achievement.findMany.mockResolvedValue([]);
   });
 
-  it('projects a generic learning activity when historical facts have no growth record', async () => {
-    mocks.prisma.learningFact.findMany.mockResolvedValue([{
-      id: 'context-only-fact',
-      startedAt: new Date('2026-05-01T08:00:00.000Z'),
-      outcome: 'success',
-      score: null,
-      competencyContribution: { controlModeling: 1 },
-      contextJson: { evidenceGovernance: { skipProfileContribution: true, profileWeight: 0 } },
-      createdAt: new Date('2026-05-01T08:00:01.000Z'),
+  it('reads only non-invalidated persisted growth events and applies the same count filter', async () => {
+    mocks.prisma.growthRecord.findMany.mockResolvedValue([{
+      id: 'growth-1',
+      recordType: 'portrait-state-change',
+      title: '累计能力画像更新',
+      description: '累计能力状态发生证据支持的变化。',
+      occurredAt: new Date('2026-07-23T08:00:00.000Z'),
+      evidenceJson: {
+        overallScore: 78,
+        confidence: 0.82,
+        trend: 'up',
+        evidencedDimensionIds: ['controlModelingRepresentation'],
+        factHashes: ['private-support-hash'],
+        stateDigest: 'private-state-digest',
+        stateWatermark: '19',
+        supportFactIds: ['fact-1'],
+        providerInput: 'private-provider-input',
+        rawAnswer: 'private-answer',
+      },
     }]);
+    mocks.prisma.growthRecord.count.mockResolvedValue(1);
 
-    const response = await GET(new NextRequest('http://localhost/api/student/growth-records?limit=10'));
+    const response = await GET(new NextRequest(
+      'http://localhost/api/student/growth-records?page=1&limit=10',
+    ));
+    const body = await response.json();
+    const where = {
+      userId: 'student-1',
+      invalidations: { none: {} },
+    };
 
     expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toEqual({
+    expect(mocks.prisma.growthRecord.findMany).toHaveBeenCalledWith({
+      where,
+      orderBy: [{ occurredAt: 'desc' }, { id: 'desc' }],
+      skip: 0,
+      take: 10,
+    });
+    expect(mocks.prisma.growthRecord.count).toHaveBeenCalledWith({ where });
+    expect(body).toEqual({
       records: [{
-        id: 'learning-activity-context-only-fact',
-        type: 'learning_activity',
-        title: '已记录学习活动',
-        description: '系统已记录一项学习活动；该活动暂未形成可展示的能力画像证据。',
-        date: '2026-05-01T08:00:00.000Z',
-        metadata: { source: 'learning-fact' },
-        icon: 'BookOpen',
+        id: 'growth-1',
+        type: 'portrait-state-change',
+        title: '累计能力画像更新',
+        description: '累计能力状态发生证据支持的变化。',
+        date: '2026-07-23T08:00:00.000Z',
+        metadata: {
+          overallScore: 78,
+          confidence: 0.82,
+          trend: 'up',
+          evidencedDimensionIds: ['controlModelingRepresentation'],
+        },
+        icon: 'LineChart',
       }],
       total: 1,
       hasMore: false,
     });
-    expect(mocks.prisma.learningFact.findMany).toHaveBeenCalledWith({
-      where: { userId: 'student-1' },
-      select: {
-        id: true,
-        startedAt: true,
-        outcome: true,
-        score: true,
-        competencyContribution: true,
-        contextJson: true,
-        createdAt: true,
-      },
-      orderBy: { startedAt: 'desc' },
-      take: 10,
-    });
+    expect(JSON.stringify(body)).not.toContain('private-support-hash');
+    expect(JSON.stringify(body)).not.toContain('fact-1');
+    expect(JSON.stringify(body)).not.toContain('private-provider-input');
+    expect(JSON.stringify(body)).not.toContain('private-answer');
+    expect(body.records[0].metadata).not.toHaveProperty('stateDigest');
+    expect(body.records[0].metadata).not.toHaveProperty('stateWatermark');
   });
 
-  it('does not label profile-contributing facts as no-evidence activity', async () => {
-    mocks.prisma.learningFact.findMany.mockResolvedValue([{
-      id: 'profile-fact',
-      startedAt: new Date('2026-05-01T08:00:00.000Z'),
-      outcome: 'success',
-      score: 0.8,
-      competencyContribution: { controlModeling: 0.8 },
-      contextJson: {},
-      createdAt: new Date('2026-05-01T08:00:01.000Z'),
-    }]);
-
-    const response = await GET(new NextRequest('http://localhost/api/student/growth-records?limit=10'));
+  it('returns an empty cumulative growth history without risk or learning-fact fallback', async () => {
+    const response = await GET(new NextRequest(
+      'http://localhost/api/student/growth-records?limit=10',
+    ));
 
     expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toEqual({ records: [], total: 0, hasMore: false });
-  });
-
-  it('merges no-evidence learning activity with persisted growth records under one pagination', async () => {
-    mocks.prisma.growthRecord.findMany.mockResolvedValue([{
-      id: 'milestone-1',
-      recordType: 'milestone',
-      title: '完成控制建模',
-      description: '已完成课程里程碑',
-      occurredAt: new Date('2026-04-01T08:00:00.000Z'),
-      evidenceJson: { source: 'milestone' },
-    }]);
-    mocks.prisma.growthRecord.count.mockResolvedValue(1);
-    mocks.prisma.learningFact.findMany.mockResolvedValue([{
-      id: 'context-only-fact',
-      startedAt: new Date('2026-05-01T08:00:00.000Z'),
-      outcome: 'success',
-      score: null,
-      competencyContribution: { controlModeling: 1 },
-      contextJson: { evidenceGovernance: { skipProfileContribution: true, profileWeight: 0 } },
-      createdAt: new Date('2026-05-01T08:00:01.000Z'),
-    }]);
-
-    const firstPage = await GET(new NextRequest('http://localhost/api/student/growth-records?limit=1'));
-
-    expect(firstPage.status).toBe(200);
-    await expect(firstPage.json()).resolves.toEqual({
-      records: [
-        {
-          id: 'learning-activity-context-only-fact',
-          type: 'learning_activity',
-          title: '已记录学习活动',
-          description: '系统已记录一项学习活动；该活动暂未形成可展示的能力画像证据。',
-          date: '2026-05-01T08:00:00.000Z',
-          metadata: { source: 'learning-fact' },
-          icon: 'BookOpen',
-        },
-      ],
-      total: 2,
-      hasMore: true,
-    });
-
-    const secondPage = await GET(new NextRequest('http://localhost/api/student/growth-records?page=2&limit=1'));
-
-    expect(secondPage.status).toBe(200);
-    await expect(secondPage.json()).resolves.toEqual({
-      records: [{
-        id: 'milestone-1',
-        type: 'milestone',
-        title: '完成控制建模',
-        description: '已完成课程里程碑',
-        date: '2026-04-01T08:00:00.000Z',
-        metadata: { source: 'milestone' },
-        icon: 'Flag',
-      }],
-      total: 2,
+    await expect(response.json()).resolves.toEqual({
+      records: [],
+      total: 0,
       hasMore: false,
     });
+    expect(Object.keys(mocks.prisma)).toEqual(['growthRecord']);
+  });
+
+  it('paginates the persisted valid record set directly', async () => {
+    mocks.prisma.growthRecord.findMany.mockResolvedValue([{
+      id: 'growth-2',
+      recordType: 'strength-change',
+      title: '优势维度变化',
+      description: '累计能力优势发生变化。',
+      occurredAt: new Date('2026-07-22T08:00:00.000Z'),
+      evidenceJson: {},
+    }]);
+    mocks.prisma.growthRecord.count.mockResolvedValue(3);
+
+    const body = await (await GET(new NextRequest(
+      'http://localhost/api/student/growth-records?page=2&limit=2',
+    ))).json();
+
+    expect(mocks.prisma.growthRecord.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      skip: 2,
+      take: 2,
+    }));
+    expect(body).toMatchObject({
+      total: 3,
+      hasMore: false,
+      records: [{ id: 'growth-2', icon: 'TrendingUp' }],
+    });
+  });
+
+  it('preserves authentication before growth record lookup', async () => {
+    mocks.getServerAuthSession.mockResolvedValue(null);
+
+    const response = await GET(new NextRequest(
+      'http://localhost/api/student/growth-records',
+    ));
+
+    expect(response.status).toBe(401);
+    expect(mocks.prisma.growthRecord.findMany).not.toHaveBeenCalled();
+    expect(mocks.prisma.growthRecord.count).not.toHaveBeenCalled();
   });
 });

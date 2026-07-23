@@ -59,3 +59,89 @@ Teacher-facing report APIs SHALL expose scoped control-correction path outcome m
 - **WHEN** an authorized teacher exports the control-correction report
 - **THEN** the export SHALL include report metrics, chart-ready data, methodology notes, confidence markers, and redaction policy notes
 - **AND** it SHALL preserve the same class-scope authorization as the report API.
+
+### Requirement: Teacher attainment views default to cumulative scope
+Teacher class insight and heatmap APIs SHALL accept `scope=cumulative|recent`
+and SHALL use `cumulative` when scope is omitted. They SHALL preserve existing
+class authorization for both scopes.
+
+#### Scenario: Teacher opens an attainment view without scope
+- **WHEN** an authorized teacher requests class insights or heatmap without a
+  scope query parameter
+- **THEN** the API SHALL return cumulative attainment based on the separately
+  versioned cumulative class snapshot and current native portraits.
+
+#### Scenario: Teacher explicitly requests recent scope
+- **WHEN** an authorized teacher requests `scope=recent`
+- **THEN** the API SHALL retain the existing recent evidence window and its
+  activity, risk, classroom-quality, and trend semantics.
+
+### Requirement: Cumulative teacher views distinguish attainment from recent signals
+Teacher pages and API payloads SHALL label cumulative capability results as
+"累计能力达成" and SHALL not manufacture a near-stage change for that scope.
+
+#### Scenario: Cumulative heatmap is shown
+- **WHEN** a teacher views the cumulative heatmap
+- **THEN** it SHALL show all-history capability values and coverage state
+- **AND** it SHALL represent near-stage change as not applicable.
+
+#### Scenario: Recent indicators accompany cumulative attainment
+- **WHEN** a cumulative class insight includes risk, classroom-quality, or
+  activity indicators
+- **THEN** those fields SHALL be explicitly not applicable in the cumulative
+  API payload and their risk or spotlight conclusions SHALL be hidden
+- **AND** the page SHALL direct the teacher to switch to recent scope for
+  recent risk, classroom quality, activity, and trend conclusions.
+
+### Requirement: Teacher student detail preserves cumulative attainment
+An authorized teacher student detail SHALL use the learner's latest valid
+native portrait v2 as its primary capability result. It SHALL keep recent
+class-scoped facts limited to diagnostic evidence, activity, and risk
+semantics; lack of recent scoped facts SHALL NOT suppress a valid cumulative
+portrait.
+
+#### Scenario: Completed-course learner opens in teacher detail
+- **WHEN** an authorized teacher opens a learner with a valid native portrait
+  v2 and no recent evidence scoped to the current class
+- **THEN** the response includes that cumulative portrait and its generated
+  timestamp as the primary capability result
+- **AND** the recent diagnostic evidence state remains explicitly empty.
+
+#### Scenario: Learner has no valid native portrait
+- **WHEN** an authorized teacher opens a learner without a valid native
+  portrait v2
+- **THEN** the response SHALL remain an explicit no-evidence result
+- **AND** it SHALL NOT fabricate a zero-valued or compatibility-derived
+  cumulative portrait.
+
+#### Scenario: Revoked evidence suppresses an older portrait
+- **WHEN** the latest learner snapshot records
+  `no-evidence-after-revocation` and an older native portrait v2 remains in
+  storage
+- **THEN** the response SHALL remain an explicit no-evidence result
+- **AND** it SHALL NOT expose the revoked portrait as current cumulative
+  attainment.
+
+### Requirement: Teacher class comparisons preserve missing cumulative values
+Teacher student details SHALL calculate a class comparison only when the
+learner dimension has evidence and the cumulative class aggregate supplies a
+finite mean for that dimension. Missing values SHALL NOT be represented as
+zero scores, zero class means, or leading/lagging conclusions.
+
+#### Scenario: A cumulative class mean is missing
+- **WHEN** a learner has a cumulative portrait dimension but the cumulative
+  class snapshot has no mean for that dimension
+- **THEN** the student score, class mean, and gap for that comparison SHALL be
+  unavailable
+- **AND** the teacher view SHALL NOT report the learner as ahead or behind.
+
+### Requirement: Cumulative class insights avoid recent compatibility projection
+The cumulative teacher class-insights route SHALL select its native portrait
+summaries without constructing recent class-scoped compatibility portraits.
+
+#### Scenario: Cumulative request includes current scoped facts
+- **WHEN** an authorized teacher requests cumulative class insights for a
+  class that has current scoped LearningFacts
+- **THEN** the request SHALL return its cumulative class response
+- **AND** recent compatibility timestamp validation SHALL NOT affect that
+  response.

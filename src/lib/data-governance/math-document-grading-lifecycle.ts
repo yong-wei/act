@@ -3,7 +3,11 @@ import { Prisma } from '@prisma/client';
 
 import { buildPipelineDedupeKey, pseudonymousAuditId } from './math-document-grading-contracts';
 import type { SubmissionObjectStore } from '@/lib/assignments/submission-object-store';
-import { revokeDerivedLearningMaterializations } from './derived-learning-materialization';
+import {
+  appendLearnerFactTransition,
+  buildLearnerFactTransitionDraft,
+} from './cumulative-learner-state';
+import { requestCumulativeLearnerReconciliation } from './cumulative-snapshot-jobs';
 
 type MathGradingDb = Record<string, any>;
 
@@ -646,7 +650,7 @@ export async function runGradingRetentionGc(input: {
       if (!(await casGradingRunContentUnavailable(tx, run.id, 'run-content-unavailable', now, run.state))) throw new Error('grading-run-content-unavailable-cas-lost');
       await tx.gradingCriterionAssessment.updateMany({ where: { gradingRunId: run.id }, data: { rationale: '[deleted-by-retention-policy]', teacherComment: null, teacherLevelId: null, teacherScore: null, teacherReviewedAt: null, confidence: 0, limitationState: 'content-deleted', updatedAt: now } });
       await tx.gradingAnnotation.updateMany({ where: { gradingRunId: run.id }, data: { excerpt: '[deleted-by-retention-policy]', comment: '[deleted-by-retention-policy]', pageNumber: null, spanStart: null, spanEnd: null, bbox: null } });
-      await deleteDocumentRubricFactsForRuns(tx, [run.id]);
+      await revokeDocumentRubricFactsForRuns(tx, [run.id], now);
       await tx.gradingJob.updateMany({ where: { gradingRunId: run.id, state: { in: ['QUEUED', 'RUNNING', 'RETRYABLE'] } }, data: { state: 'CONTENT_UNAVAILABLE', lastErrorCode: 'retention-expired', updatedAt: now } });
       await ensureGradingTombstone(tx, { ...frozenLifecycleTombstoneFields(policy), id: `grading-tombstone:${resourceKey}`, resourceType: 'GradingRun', resourceId: run.id, resourceKey, reason: 'retention-expired', checksum: run.inputHash, lifecyclePolicyId: policy.id, lifecyclePolicyVersion: policy.version, lifecycleDeleteStrategy: policy.deleteStrategy, lifecycleRetentionSeconds: policy.retentionSeconds ?? null, providerRetentionSeconds: policy.providerRetentionSeconds ?? 0, provider: run.provider ?? run.policy?.provider ?? null, providerRequestId: run.providerRequestId ?? null, providerDeletionHandle: run.providerDeletionHandle ?? null, providerRetentionStartedAt: run.providerProcessedAt ?? run.providerRequestedAt ?? null, contentDeletedAt: existingTombstone?.contentDeletedAt ?? null, lineageRetained: policy.deleteStrategy !== 'delete-content', createdAt: now });
       await writeLifecycleAudit(tx as never, { action: 'grading-retention.run-delete-intent', resourceType: 'GradingRun', resourceId: run.id, actorId: 'grading-gc', actorRole: 'SERVICE', metadata: { reason: 'retention-expired', tombstonePending: !existingTombstone?.contentDeletedAt } });
@@ -865,14 +869,76 @@ export async function redactTextNativeEvidenceForAttempt(db: any, attemptId: str
   }
 }
 
-async function deleteDocumentRubricFactsForRuns(db: any, runIds: string[]): Promise<void> {
+async function revokeDocumentRubricFactsForRuns(
+  db: any,
+  runIds: string[],
+  occurredAt: Date,
+): Promise<void> {
   for (const runId of [...new Set(runIds.filter(Boolean))]) {
     const prefix = `adaptive-assessment:document-rubric-grading:${encodeURIComponent(runId)}:`;
-    const facts = await db.learningFact?.findMany?.({ where: { factType: 'document_rubric_grading', sourceEventId: { startsWith: prefix } }, select: { userId: true, contextJson: true } }) ?? [];
-    await db.learningFact?.deleteMany?.({ where: { factType: 'document_rubric_grading', sourceEventId: { startsWith: prefix } } });
-    const users = [...new Set<string>(facts.map((fact: any) => fact.userId).filter((value: unknown): value is string => typeof value === 'string' && value.length > 0))];
-    const classIds = [...new Set(facts.map((fact: any) => fact.contextJson?.classId).filter(Boolean))] as string[];
-    await revokeDerivedLearningMaterializations(db, { userIds: users, classIds });
+    const facts = await db.learningFact?.findMany?.({
+      where: {
+        factType: 'document_rubric_grading',
+        sourceEventId: { startsWith: prefix },
+      },
+      select: {
+        id: true,
+        userId: true,
+        startedAt: true,
+        outcome: true,
+        score: true,
+        competencyContribution: true,
+        contextJson: true,
+        createdAt: true,
+      },
+    }) ?? [];
+    const classIdsByUser = new Map<string, Set<string>>();
+    for (const fact of facts) {
+      const latest = await db.learnerFactTransition.findFirst({
+        where: { userId: fact.userId, factId: fact.id },
+        orderBy: { sequence: 'desc' },
+      });
+      if (latest?.operation === 'REVOKE') continue;
+      const correctionOfSequence = latest?.sequence ?? (
+        await appendLearnerFactTransition(
+          db,
+          buildLearnerFactTransitionDraft({
+            userId: fact.userId,
+            fact,
+            operation: 'UPSERT',
+            sourceReference: `grading-retention:${runId}`,
+          }),
+        )
+      ).sequence;
+      await appendLearnerFactTransition(
+        db,
+        buildLearnerFactTransitionDraft({
+          userId: fact.userId,
+          fact,
+          operation: 'REVOKE',
+          correctionOfSequence,
+          occurredAt,
+          sourceReference: `grading-retention:${runId}`,
+        }),
+      );
+      const classId = fact.contextJson?.classId;
+      if (typeof classId === 'string' && classId.length > 0) {
+        const classIds = classIdsByUser.get(fact.userId) ?? new Set<string>();
+        classIds.add(classId);
+        classIdsByUser.set(fact.userId, classIds);
+      } else if (!classIdsByUser.has(fact.userId)) {
+        classIdsByUser.set(fact.userId, new Set());
+      }
+    }
+    for (const [userId, classIds] of classIdsByUser) {
+      await db.studentEvidenceFeatureCache?.deleteMany?.({ where: { userId } });
+      await requestCumulativeLearnerReconciliation(db, {
+        userId,
+        classIds: [...classIds],
+        reason: 'document-grading-retention-revoked',
+        now: occurredAt,
+      });
+    }
   }
 }
 

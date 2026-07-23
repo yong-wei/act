@@ -6,19 +6,23 @@ const mocks = vi.hoisted(() => {
   const studentProfileFindUnique = vi.fn();
   const studentProfileCreate = vi.fn();
   const studentProfileUpdate = vi.fn();
+  const requestCumulativeLearnerReconciliation = vi.fn();
+  const prisma = {
+    class: {
+      findUnique: classFindUnique,
+    },
+    studentProfile: {
+      findUnique: studentProfileFindUnique,
+      create: studentProfileCreate,
+      update: studentProfileUpdate,
+    },
+    $transaction: vi.fn(),
+  };
 
   return {
-    prisma: {
-      class: {
-        findUnique: classFindUnique,
-      },
-      studentProfile: {
-        findUnique: studentProfileFindUnique,
-        create: studentProfileCreate,
-        update: studentProfileUpdate,
-      },
-    },
+    prisma,
     getServerAuthSession,
+    requestCumulativeLearnerReconciliation,
   };
 });
 
@@ -28,6 +32,10 @@ vi.mock('@/lib/prisma', () => ({
 
 vi.mock('@/lib/auth', () => ({
   getServerAuthSession: mocks.getServerAuthSession,
+}));
+
+vi.mock('@/lib/data-governance/cumulative-snapshot-jobs', () => ({
+  requestCumulativeLearnerReconciliation: mocks.requestCumulativeLearnerReconciliation,
 }));
 
 import { POST } from '../route';
@@ -45,11 +53,17 @@ describe('POST /api/classes/join', () => {
       isActive: true,
       teacher: { name: '王老师' },
     });
+    mocks.prisma.$transaction.mockImplementation(async (callback) => callback(mocks.prisma));
+    mocks.requestCumulativeLearnerReconciliation.mockResolvedValue(1);
   });
 
   it('accepts a lower-case class code by uppercasing it before lookup', async () => {
     mocks.prisma.studentProfile.findUnique.mockResolvedValue(null);
-    mocks.prisma.studentProfile.create.mockResolvedValue({ id: 'profile-1' });
+    mocks.prisma.studentProfile.create.mockResolvedValue({
+      id: 'profile-1',
+      classId: 'class-1',
+      updatedAt: new Date('2026-07-23T09:00:00.000Z'),
+    });
 
     const response = await POST(
       new Request('http://localhost/api/classes/join', {
@@ -80,11 +94,27 @@ describe('POST /api/classes/join', () => {
       state: 'ready-to-enter',
       recoveryAction: '班级绑定已完成，可返回学习首页继续学习。',
     });
+    expect(mocks.requestCumulativeLearnerReconciliation).toHaveBeenCalledWith(
+      mocks.prisma,
+      {
+        userId: 'student-1',
+        classIds: ['class-1'],
+        reason: 'class-membership:student-join',
+      },
+    );
+    expect(mocks.prisma.$transaction).toHaveBeenCalledTimes(1);
   });
 
   it('updates an existing student profile to the joined class', async () => {
-    mocks.prisma.studentProfile.findUnique.mockResolvedValue({ id: 'profile-1' });
-    mocks.prisma.studentProfile.update.mockResolvedValue({ id: 'profile-1' });
+    mocks.prisma.studentProfile.findUnique.mockResolvedValue({
+      id: 'profile-1',
+      classId: 'class-old',
+    });
+    mocks.prisma.studentProfile.update.mockResolvedValue({
+      id: 'profile-1',
+      classId: 'class-1',
+      updatedAt: new Date('2026-07-23T09:05:00.000Z'),
+    });
 
     const response = await POST(
       new Request('http://localhost/api/classes/join', {
@@ -102,6 +132,40 @@ describe('POST /api/classes/join', () => {
         className: '2024自动化',
       },
     });
+    expect(mocks.requestCumulativeLearnerReconciliation).toHaveBeenCalledWith(
+      mocks.prisma,
+      {
+        userId: 'student-1',
+        classIds: ['class-old', 'class-1'],
+        reason: 'class-membership:student-join',
+      },
+    );
+  });
+
+  it('fails class joining when the durable reconciliation request cannot be written', async () => {
+    mocks.prisma.studentProfile.findUnique.mockResolvedValue({
+      id: 'profile-1',
+      classId: 'class-1',
+    });
+    mocks.prisma.studentProfile.update.mockResolvedValue({
+      id: 'profile-1',
+      classId: 'class-1',
+      updatedAt: new Date('2026-07-23T09:10:00.000Z'),
+    });
+    mocks.requestCumulativeLearnerReconciliation.mockRejectedValue(
+      new Error('durable request unavailable'),
+    );
+
+    const response = await POST(
+      new Request('http://localhost/api/classes/join', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: 'B78429' }),
+      }),
+    );
+
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({ error: '加入班级失败' });
   });
 
   it('returns a recoverable invalid-code state before looking up malformed class codes', async () => {

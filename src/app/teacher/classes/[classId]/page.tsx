@@ -28,7 +28,6 @@ import {
 import { ActionStatusPanel } from '@/components/platform/action-status';
 import { AddStudentsModal } from '@/components/teacher/add-students-modal';
 import type { TeacherClassInsightsPayload } from '@/app/api/teacher/classes/[classId]/insights/route';
-import { DiagnosisSurfacePanel } from '@/features/adaptive/diagnosis-surface-panel';
 import {
   requestClassroomActionConfirmation,
   requestClassroomConflictChoice,
@@ -162,7 +161,7 @@ export default function ClassDetailPage() {
   const fetchInsights = useCallback(async () => {
     if (!classId) return;
     try {
-      const res = await fetch(`/api/teacher/classes/${classId}/insights?scope=cumulative`);
+      const res = await fetch(`/api/teacher/classes/${classId}/insights`);
       if (res.ok) {
         const data = await res.json();
         setInsights(data);
@@ -455,7 +454,6 @@ export default function ClassDetailPage() {
   const activeSession = sessions.find(s => s.status === 'ACTIVE');
   const displayedSessions = statusFilter === 'ACTIVE' ? sessions.filter(s => s.status === 'ACTIVE') : sessions.filter(s => s.status === 'FINISHED');
   const governance = insights?.governance;
-  const evidenceCoverage = governance?.evidenceCoverage;
   const studentInsightMap = new Map(insights?.students.map((student) => [student.id, student]) || []);
   const classDetailStatus = `${announcement} 当前显示 ${displayedSessions.length} 条课堂历史，${classData?.students.length ?? 0} 名学生。`;
 
@@ -610,7 +608,7 @@ export default function ClassDetailPage() {
                     {classData._count.students} 名学生
                   </span>
                   {governance && <span>{governance.lastUpdatedLabel}</span>}
-                  {insights && <span className="font-medium text-foreground">口径：{insights.scopeLabel}</span>}
+                  {insights && <span className="font-medium text-foreground">{insights.scopeLabel}</span>}
                 </div>
               </div>
             </div>
@@ -702,17 +700,17 @@ export default function ClassDetailPage() {
             <GraduationCap className="h-5 w-5 text-emerald-500" />
           </div>
         </Link>
-        <div className="teacher-insight-entry" data-recent-signals-not-applicable>
+        <Link href={`${buildTeacherClassInsightsHref(classId)}#graph-center-affected-population`} className="teacher-insight-entry">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold text-foreground">近阶段风险与重点学生</p>
+              <p className="text-sm font-semibold text-foreground">累计风险与重点学生</p>
               <p className="mt-2 text-sm text-subtle">
-                切换近阶段学情查看近期风险、课堂质量与趋势。
+                查看最后一次证据触发的趋势、风险与重点学生。
               </p>
             </div>
             <ShieldAlert className="h-5 w-5 text-rose-500" />
           </div>
-        </div>
+        </Link>
         <Link
           href={`/teacher/prep-packs?classId=${encodeURIComponent(classId)}`}
           className="teacher-insight-entry"
@@ -731,17 +729,20 @@ export default function ClassDetailPage() {
       </section>
 
       {insights && (
-        <section className="mb-8 grid gap-4 md:grid-cols-2 xl:grid-cols-6">
+        <section className="mb-8 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
           <div className="teacher-insight-metric">
             <p className="text-sm text-subtle">累计能力达成指数</p>
             <p className="mt-2 text-3xl font-semibold text-foreground">
-              {insights.overview.overallIndex ?? '暂无证据'}
+              {insights.overview.overallIndex ?? '不可用'}
             </p>
-            <p className="mt-2 text-xs text-subtle">来自全历史原生画像与累计班级快照。</p>
+            <p className="mt-2 text-xs text-subtle">来自当前成员全部有效学习事实形成的累计画像。</p>
           </div>
-          <div className="teacher-insight-metric" data-recent-risk-not-applicable>
-            <p className="text-sm font-medium text-foreground">近阶段风险不适用</p>
-            <p className="mt-2 text-xs text-subtle">切换近阶段学情查看近期风险、课堂质量与趋势。</p>
+          <div className="teacher-insight-metric">
+            <p className="text-sm text-subtle">累计证据风险</p>
+            <p className="mt-2 text-3xl font-semibold text-rose-500">
+              {insights.overview.highRiskStudents}/{insights.overview.attentionStudents}
+            </p>
+            <p className="mt-2 text-xs text-subtle">高风险人数 / 重点关注人数。</p>
           </div>
           <div className="teacher-insight-metric">
             <p className="text-sm text-subtle">人均累计证据</p>
@@ -749,32 +750,48 @@ export default function ClassDetailPage() {
             <p className="mt-2 text-xs text-subtle">反映治理链路沉淀下来的过程证据密度。</p>
           </div>
           <div className="teacher-insight-metric">
-            <p className="text-sm text-subtle">证据充分</p>
+            <p className="text-sm text-subtle">有效累计画像覆盖</p>
             <p className="mt-2 text-3xl font-semibold text-emerald-500">
-              {evidenceCoverage?.readyStudents ?? 0}/{evidenceCoverage?.totalStudents ?? 0}
+              {governance?.coveredStudents ?? 0}/{governance?.totalStudents ?? 0}
             </p>
             <p className="mt-2 text-xs text-subtle">
-              {evidenceCoverage?.staleStudents ?? 0} 名待刷新，{evidenceCoverage?.missingStudents ?? 0} 名缺少证据。
+              {governance?.pendingStudents ?? 0} 名无合格证据、迁移中或当前不可用。
             </p>
           </div>
-          <div className="teacher-insight-metric" data-recent-session-quality-not-applicable>
-            <p className="text-sm font-medium text-foreground">近期会话质量不适用</p>
+          <div className="teacher-insight-metric">
+            <p className="text-sm font-medium text-foreground">累计趋势分布</p>
             <p className="mt-2 text-xs text-subtle">
-              此页展示累计能力达成；切换近阶段学情查看近期会话质量、风险与趋势。
+              上升 {insights.trendDistribution?.up ?? 0} · 稳定 {insights.trendDistribution?.stable ?? 0} ·
+              下降 {insights.trendDistribution?.down ?? 0} · 尚无可比 {insights.trendDistribution?.['not-comparable'] ?? 0}
             </p>
           </div>
         </section>
       )}
 
       {insights && (
-        <div className="mb-8">
-          <DiagnosisSurfacePanel
-            diagnosis={insights.diagnosis}
-            mode="teacher-class"
-            title="控制校正班级诊断"
-            description="聚合班级诊断快照、弱点聚类、证据覆盖与备课入口状态。"
-          />
-        </div>
+        <section className="surface-card mb-8 p-6">
+          <h2 className="text-lg font-semibold text-foreground">七维累计班级诊断</h2>
+          {insights.diagnosis ? (
+            <div className="mt-4 grid gap-4 md:grid-cols-3">
+              <div className="teacher-insight-metric">
+                <p className="text-sm font-medium text-foreground">优势维度</p>
+                <p className="mt-2 text-sm text-subtle">{formatDimensionList(insights, insights.diagnosis.strengths)}</p>
+              </div>
+              <div className="teacher-insight-metric">
+                <p className="text-sm font-medium text-foreground">待提升维度</p>
+                <p className="mt-2 text-sm text-subtle">{formatDimensionList(insights, insights.diagnosis.improvementClusters)}</p>
+              </div>
+              <div className="teacher-insight-metric">
+                <p className="text-sm font-medium text-foreground">诊断限制</p>
+                <p className="mt-2 text-sm text-subtle">
+                  {insights.diagnosis.limitations.length > 0 ? insights.diagnosis.limitations.join('；') : '无额外限制'}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <p className="mt-3 text-sm text-subtle">{formatAvailabilityReason(insights.availability.reason)}</p>
+          )}
+        </section>
       )}
 
       {/* 进行中的课堂 */}
@@ -981,10 +998,10 @@ export default function ClassDetailPage() {
                   <th className="px-4 py-3 font-medium">学生</th>
                   <th className="px-4 py-3 font-medium">累计画像等级</th>
                   <th className="px-4 py-3 font-medium">累计达成指数</th>
-                  <th className="px-4 py-3 font-medium">证据状态（近阶段）</th>
-                  <th className="px-4 py-3 font-medium">风险状态（近阶段）</th>
-                  <th className="px-4 py-3 font-medium">近阶段趋势</th>
-                  <th className="px-4 py-3 font-medium">成长档案</th>
+                  <th className="px-4 py-3 font-medium">累计证据状态</th>
+                  <th className="px-4 py-3 font-medium">最后证据风险</th>
+                  <th className="px-4 py-3 font-medium">最后累计趋势</th>
+                  <th className="px-4 py-3 font-medium">证据截至</th>
                   <th className="px-4 py-3 font-medium">操作</th>
                 </tr>
               </thead>
@@ -1017,12 +1034,12 @@ export default function ClassDetailPage() {
                         </Link>
                       </td>
                       <td className="px-4 py-4 align-top text-foreground" data-label="画像等级">
-                        {insight ? insight.overallLevel ?? '暂无证据' : '待生成'}
+                        {insight ? insight.overallLevel ?? formatAvailabilityReason(insight.availabilityReason) : '当前不可用'}
                       </td>
                       <td className="px-4 py-4 align-top" data-label="综合指数">
                         {insight ? (
                           <span className="font-semibold text-sky-600 dark:text-sky-300">
-                            {insight.overallScore ?? '暂无证据'}
+                            {insight.overallScore ?? '不可用'}
                           </span>
                         ) : (
                           <span className="text-subtle">-</span>
@@ -1040,23 +1057,28 @@ export default function ClassDetailPage() {
                             </p>
                           </div>
                         ) : (
-                          <span className="teacher-insight-chip teacher-insight-chip-pending">待生成</span>
+                          <span className="teacher-insight-chip teacher-insight-chip-pending">当前不可用</span>
                         )}
                       </td>
                       <td className="px-4 py-4 align-top" data-label="风险状态">
-                        <span className="text-sm text-subtle">累计口径不适用</span>
-                      </td>
-                      <td className="px-4 py-4 align-top text-foreground" data-label="近期趋势">
-                        <Link href={`${buildTeacherClassInsightsHref(classId)}?scope=recent`} className="text-sm text-primary hover:underline">
-                          切换近阶段学情查看
-                        </Link>
-                      </td>
-                      <td className="px-4 py-4 align-top" data-label="成长档案">
                         {insight ? (
-                          <span className="font-semibold text-foreground">{insight.growthRecordCount}</span>
+                          <div className="min-w-[120px]">
+                            <span className={`teacher-insight-chip teacher-insight-risk-${insight.riskLevel}`}>
+                              {insight.riskLabel}
+                            </span>
+                            {insight.riskBadges.length > 0 ? (
+                              <p className="mt-2 text-xs text-subtle">{insight.riskBadges.join('、')}</p>
+                            ) : null}
+                          </div>
                         ) : (
-                          <span className="text-subtle">-</span>
+                          <span className="text-sm text-subtle">不可用</span>
                         )}
+                      </td>
+                      <td className="px-4 py-4 align-top text-foreground" data-label="累计趋势">
+                        {insight ? formatTrendDirection(insight.trendDirection) : '不可用'}
+                      </td>
+                      <td className="px-4 py-4 align-top text-subtle" data-label="证据截至">
+                        {insight ? formatEvidenceCutoff(insight.evidenceStatus.lastEvidenceAt) : '不可用'}
                       </td>
                       <td className="px-4 py-4 align-top" data-label="操作">
                         <div className="flex items-center gap-2">
@@ -1196,8 +1218,7 @@ export default function ClassDetailPage() {
 type TeacherEvidenceStatus = TeacherClassInsightsPayload['students'][number]['evidenceStatus'];
 
 function formatTeacherEvidenceState(status: TeacherEvidenceStatus): string {
-  if (status.state === 'missing') return '缺少证据';
-  if (status.state === 'stale') return '待刷新';
+  if (status.state === 'missing') return '缺少合格证据';
   if (status.confidence.level === 'low' || status.statusMarkers.includes('low-confidence')) {
     return '低置信';
   }
@@ -1207,7 +1228,6 @@ function formatTeacherEvidenceState(status: TeacherEvidenceStatus): string {
 function getTeacherEvidenceStateChipClass(status: TeacherEvidenceStatus): string {
   const base = 'teacher-insight-chip';
   if (status.state === 'missing') return `${base} teacher-insight-chip-pending`;
-  if (status.state === 'stale') return `${base} teacher-insight-chip-warning`;
   if (status.confidence.level === 'low' || status.statusMarkers.includes('low-confidence')) {
     return `${base} teacher-insight-chip-warning`;
   }
@@ -1223,4 +1243,37 @@ function formatTeacherEvidenceConfidence(status: TeacherEvidenceStatus): string 
         ? '低'
         : '无';
   return `${levelLabel}置信 · ${status.confidence.evidenceCount} 条证据`;
+}
+
+function formatTrendDirection(direction: TeacherClassInsightsPayload['students'][number]['trendDirection']) {
+  if (direction === 'up') return '上升';
+  if (direction === 'down') return '下降';
+  if (direction === 'stable') return '稳定';
+  return '尚无可比';
+}
+
+function formatEvidenceCutoff(value: string | null) {
+  if (!value) return '不可用';
+  return new Date(value).toLocaleString('zh-CN');
+}
+
+function formatAvailabilityReason(reason: string) {
+  if (reason === 'available') return '可使用';
+  if (reason === 'no-eligible-evidence') return '无合格证据';
+  if (reason === 'no-evidence-after-revocation') return '支持证据已撤销';
+  if (reason === 'migration-in-progress') return '累计画像迁移中';
+  if (reason === 'processing-failed') return '累计画像处理失败';
+  return '累计画像当前不可用';
+}
+
+function formatDimensionList(
+  insights: TeacherClassInsightsPayload,
+  dimensions: NonNullable<TeacherClassInsightsPayload['diagnosis']>['strengths'],
+) {
+  if (dimensions.length === 0) return '尚无';
+  const labels = new Map(insights.ability.dimensions.map((dimension) => [
+    dimension.dimension,
+    dimension.label,
+  ]));
+  return dimensions.map((dimension) => labels.get(dimension) ?? dimension).join('、');
 }

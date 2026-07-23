@@ -1397,7 +1397,8 @@ describe('graph center payload service', () => {
     expect(teacherAnalyticsV2Source).toContain("searchParams.get('graphNodeId')");
     expect(teacherAnalyticsV2Source).toContain("searchParams.get('view')");
     expect(teacherAnalyticsV2Source).toContain('data-graph-center-class-action-context');
-    expect(teacherAnalyticsV2Source).toContain("setHeatmapView('risk')");
+    expect(teacherAnalyticsV2Source).toContain('id="graph-center-affected-population"');
+    expect(teacherAnalyticsV2Source).toContain('依据当前累计能力、最后趋势和仍有效的证据风险排序');
     expect(teacherAnalyticsV2Source).toContain('data-graph-center-population-view');
     expect(adminDataGovernancePageSource).toContain('graphNodeId?: string');
     expect(adminDataGovernancePageSource).toContain('audit?: string');

@@ -4,14 +4,17 @@ import writeXlsxFile from 'write-excel-file/node';
 const mocks = vi.hoisted(() => ({
   getServerSession: vi.fn(),
   rethrowIfNextDynamicError: vi.fn(),
+  requestCumulativeLearnerReconciliation: vi.fn(),
   prisma: {
     class: {
       findFirst: vi.fn(),
     },
     studentProfile: {
       findFirst: vi.fn(),
+      findUnique: vi.fn(),
       update: vi.fn(),
     },
+    $transaction: vi.fn(),
   },
 }));
 
@@ -29,6 +32,10 @@ vi.mock('@/lib/prisma', () => ({
 
 vi.mock('@/lib/nextjs-dynamic-error', () => ({
   rethrowIfNextDynamicError: mocks.rethrowIfNextDynamicError,
+}));
+
+vi.mock('@/lib/data-governance/cumulative-snapshot-jobs', () => ({
+  requestCumulativeLearnerReconciliation: mocks.requestCumulativeLearnerReconciliation,
 }));
 
 import { POST } from '../route';
@@ -76,6 +83,12 @@ describe('POST /api/teacher/classes/[classId]/students/import', () => {
     mocks.prisma.studentProfile.update.mockResolvedValue({
       id: 'profile-1',
     });
+    mocks.prisma.studentProfile.findUnique.mockResolvedValue({
+      id: 'profile-1',
+      classId: null,
+    });
+    mocks.prisma.$transaction.mockImplementation(async (callback) => callback(mocks.prisma));
+    mocks.requestCumulativeLearnerReconciliation.mockResolvedValue(1);
   });
 
   it('imports students from a valid xlsx workbook', async () => {
@@ -104,6 +117,44 @@ describe('POST /api/teacher/classes/[classId]/students/import', () => {
         className: '自动化2401',
       },
     });
+    expect(mocks.requestCumulativeLearnerReconciliation).toHaveBeenCalledWith(
+      mocks.prisma,
+      {
+        userId: 'student-1',
+        classIds: ['class-1'],
+        reason: 'class-membership:teacher-import',
+      },
+    );
+  });
+
+  it('rolls back the imported row when its durable reconciliation request fails', async () => {
+    mocks.prisma.studentProfile.findUnique.mockResolvedValue({
+      id: 'profile-1',
+      classId: 'class-old',
+    });
+    mocks.requestCumulativeLearnerReconciliation.mockRejectedValue(
+      new Error('durable request unavailable'),
+    );
+    const file = await buildWorkbookFile([
+      ['学号'],
+      ['20240001'],
+    ]);
+
+    const response = await POST(buildImportRequest(file), routeContext);
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      success: [],
+      failed: [{ studentNumber: '20240001', reason: '添加失败' }],
+    });
+    expect(mocks.requestCumulativeLearnerReconciliation).toHaveBeenCalledWith(
+      mocks.prisma,
+      {
+        userId: 'student-1',
+        classIds: ['class-old', 'class-1'],
+        reason: 'class-membership:teacher-import',
+      },
+    );
   });
 
   it('rejects unsupported file extensions before parsing', async () => {

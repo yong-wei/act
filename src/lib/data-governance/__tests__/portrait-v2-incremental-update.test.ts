@@ -90,7 +90,7 @@ describe('portrait v2 incremental updates', () => {
     expect(mapped.mappingIssues).toContain('invalid-rubric-weight:invalid-weight');
     expect(mapped.evidence[0].rubricWeight).toBe(1);
   });
-  it('preserves all scores without new evidence while aging freshness and confidence', () => {
+  it('preserves the complete evidence-backed state when only calendar time advances', () => {
     const previous = baseline();
     const result = updatePortraitV2Incrementally({
       userId: previous.userId,
@@ -100,8 +100,9 @@ describe('portrait v2 incremental updates', () => {
     });
 
     expect(result.payload.dimensions.map((item) => item.score)).toEqual(previous.dimensions.map((item) => item.score));
-    expect(result.payload.dimensions.every((item) => item.freshness.state === 'stale')).toBe(true);
-    expect(result.payload.dimensions[0].confidence).toBeLessThan(previous.dimensions[0].confidence);
+    expect(result.payload.dimensions.map((item) => item.freshness)).toEqual(previous.dimensions.map((item) => item.freshness));
+    expect(result.payload.dimensions.map((item) => item.confidence)).toEqual(previous.dimensions.map((item) => item.confidence));
+    expect(result.payload.generatedAt).toBe(previous.generatedAt);
   });
 
   it('updates only the dimension named by sparse evidence', () => {
@@ -181,7 +182,7 @@ describe('portrait v2 incremental updates', () => {
     )).toHaveLength(1);
   });
 
-  it('ages confidence before applying the first new evidence after worker downtime', () => {
+  it('does not decay confidence before applying the first new evidence after worker downtime', () => {
     const previous = baseline();
     const result = updatePortraitV2Incrementally({
       userId: previous.userId,
@@ -197,7 +198,7 @@ describe('portrait v2 incremental updates', () => {
     });
     const dimension = result.payload.dimensions.find((item) => item.id === 'controllerDesignSynthesis')!;
 
-    expect(dimension.confidence).toBe(0.77);
+    expect(dimension.confidence).toBe(0.88);
     expect(dimension.freshness.state).toBe('current');
   });
 
@@ -269,8 +270,8 @@ describe('portrait v2 incremental updates', () => {
       fact('known', { parameterDesign: 0.8 }, {}),
     ]);
 
-    expect(mapped.evidence[0].outcome).toBe('context-only');
-    expect(mapped.evidence[2].contributions.controllerDesignSynthesis).toBe(0.8);
+    expect(mapped.evidence.find((item) => item.id === 'path-only')?.outcome).toBe('context-only');
+    expect(mapped.evidence.find((item) => item.id === 'known')?.contributions.controllerDesignSynthesis).toBe(0.8);
     expect(mapped.mappingIssues).toEqual(['unknown-portrait-dimension:futureDimension']);
   });
 
@@ -320,14 +321,8 @@ describe('portrait v2 incremental updates', () => {
 
     expect(result).toMatchObject({ written: false, evidenceCount: 0, affectedDimensions: [] });
     expect(findMany).toHaveBeenCalledWith(expect.objectContaining({
-      where: {
-        userId: previous.userId,
-        createdAt: { lte: new Date('2026-06-15T00:00:00.000Z') },
-        OR: [
-          { createdAt: { gt: new Date(baselineAt) } },
-          { createdAt: new Date(baselineAt), id: { gt: 'fact-boundary-001' } },
-        ],
-      },
+      where: { userId: previous.userId },
+      orderBy: [{ startedAt: 'asc' }, { id: 'asc' }],
     }));
     expect(create).not.toHaveBeenCalled();
   });
@@ -436,9 +431,7 @@ describe('portrait v2 incremental updates', () => {
 
     expect(result).toMatchObject({ written: false, evidenceCount: 0, affectedDimensions: [] });
     expect(create).not.toHaveBeenCalled();
-    expect(deleteMany).toHaveBeenCalledWith({
-      where: { userId: 'student-context-rebuild', derivationKind: 'native' },
-    });
+    expect(deleteMany).not.toHaveBeenCalled();
   });
 
   it('full rebuild resets the cursor and derives the portrait from all remaining mixed-source facts', async () => {
@@ -451,9 +444,12 @@ describe('portrait v2 incremental updates', () => {
       learningFact: { findMany },
     }, 'student-1', { now: new Date('2026-05-03T00:00:00.000Z'), fullRebuild: true });
     expect(deleteMany).not.toHaveBeenCalled();
-    expect(findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { userId: 'student-1', createdAt: { lte: new Date('2026-05-03T00:00:00.000Z') } } }));
+    expect(findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: { userId: 'student-1' },
+      orderBy: [{ startedAt: 'asc' }, { id: 'asc' }],
+    }));
     const payload = create.mock.calls[0][0].data.payload as PortraitV2Payload;
-    expect(payload.updateCursor?.lastFactId).toBe(remaining.id);
+    expect(payload.updateCursor).toBeUndefined();
     expect(payload.dimensions.some((dimension) => dimension.score > 0)).toBe(true);
   });
 
@@ -476,7 +472,7 @@ describe('portrait v2 incremental updates', () => {
     expect(db.$transaction).toHaveBeenCalledTimes(1);
     expect(db.$transaction).toHaveBeenCalledWith(expect.any(Function), { timeout: 120_000 });
     expect(executeRaw).toHaveBeenCalledTimes(1);
-    expect(callOrder).toEqual(['lock', 'read']);
+    expect(callOrder).toEqual(['lock']);
     expect(db.$executeRaw).toHaveBeenCalledWith(expect.anything());
   });
 
@@ -507,6 +503,208 @@ describe('portrait v2 incremental updates', () => {
     expect(findFirst).not.toHaveBeenCalled();
     expect(create).not.toHaveBeenCalled();
   });
+
+  it('publishes an explicit no-evidence state without deleting historical snapshots', async () => {
+    const stateCreate = vi.fn(async () => ({ id: 'state-no-evidence' }));
+    const pointerUpsert = vi.fn(async () => ({}));
+    const snapshotCreate = vi.fn();
+    const db: any = {
+      $executeRaw: vi.fn(async () => 1),
+      $transaction: vi.fn(async (callback: (tx: unknown) => Promise<unknown>) => callback(db)),
+      learningFact: { findMany: vi.fn(async () => []) },
+      learnerFactTransition: {
+        findMany: vi.fn(async () => []),
+        create: vi.fn(),
+      },
+      learnerFactTransitionSequence: {
+        upsert: vi.fn(),
+        update: vi.fn(),
+      },
+      cumulativePortraitCutoverFence: {
+        findUnique: vi.fn(async () => ({
+          fence: BigInt(4),
+          calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+          learnerGeneration: BigInt(7),
+          queueGeneration: BigInt(11),
+          activeMigrationRunId: 'migration-1',
+        })),
+      },
+      learnerPortraitCurrentState: {
+        findUnique: vi.fn(async () => null),
+        upsert: pointerUpsert,
+      },
+      learnerPortraitStateVersion: { create: stateCreate },
+      studentPortraitV2Snapshot: { create: snapshotCreate },
+    };
+
+    const result = await materializeIncrementalPortraitV2(db, 'student-no-evidence', {
+      now: new Date('2026-05-02T00:00:00.000Z'),
+    });
+
+    expect(result).toMatchObject({
+      written: true,
+      stateKind: 'NO_EVIDENCE',
+      stateVersionId: 'state-no-evidence',
+    });
+    expect(stateCreate).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        stateKind: 'NO_EVIDENCE',
+        snapshotId: null,
+        queueGeneration: BigInt(11),
+      }),
+    }));
+    expect(pointerUpsert).toHaveBeenCalledWith(expect.objectContaining({
+      create: expect.objectContaining({ queueGeneration: BigInt(11) }),
+      update: expect.objectContaining({ queueGeneration: BigInt(11) }),
+    }));
+    expect(snapshotCreate).not.toHaveBeenCalled();
+  });
+
+  it('rejects a stale publication fence before writing state or pointer', async () => {
+    const stateCreate = vi.fn();
+    const pointerUpsert = vi.fn();
+    const db: any = {
+      $executeRaw: vi.fn(async () => 1),
+      $transaction: vi.fn(async (callback: (tx: unknown) => Promise<unknown>) => callback(db)),
+      learningFact: { findMany: vi.fn(async () => []) },
+      learnerFactTransition: {
+        findMany: vi.fn(async () => []),
+        create: vi.fn(),
+      },
+      learnerFactTransitionSequence: {
+        upsert: vi.fn(),
+        update: vi.fn(),
+      },
+      cumulativePortraitCutoverFence: {
+        findUnique: vi.fn(async () => ({
+          fence: BigInt(4),
+          calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+          learnerGeneration: BigInt(7),
+          queueGeneration: BigInt(11),
+          activeMigrationRunId: 'migration-1',
+        })),
+      },
+      learnerPortraitCurrentState: {
+        findUnique: vi.fn(async () => null),
+        upsert: pointerUpsert,
+      },
+      learnerPortraitStateVersion: { create: stateCreate },
+      studentPortraitV2Snapshot: { create: vi.fn() },
+    };
+
+    await expect(materializeIncrementalPortraitV2(db, 'student-stale-fence', {
+      publication: {
+        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+        generation: BigInt(6),
+        queueGeneration: BigInt(11),
+        cutoverFence: BigInt(3),
+        migrationRunId: 'migration-1',
+      },
+    })).rejects.toThrow('publication fence is stale');
+    expect(stateCreate).not.toHaveBeenCalled();
+    expect(pointerUpsert).not.toHaveBeenCalled();
+  });
+
+  it('rejects a stale queue generation before writing state or pointer', async () => {
+    const stateCreate = vi.fn();
+    const pointerUpsert = vi.fn();
+    const db: any = {
+      $executeRaw: vi.fn(async () => 1),
+      $transaction: vi.fn(async (callback: (tx: unknown) => Promise<unknown>) => callback(db)),
+      learningFact: { findMany: vi.fn(async () => []) },
+      learnerFactTransition: {
+        findMany: vi.fn(async () => []),
+        create: vi.fn(),
+      },
+      learnerFactTransitionSequence: {
+        upsert: vi.fn(),
+        update: vi.fn(),
+      },
+      cumulativePortraitCutoverFence: {
+        findUnique: vi.fn(async () => ({
+          fence: BigInt(4),
+          calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+          learnerGeneration: BigInt(7),
+          queueGeneration: BigInt(12),
+          activeMigrationRunId: 'migration-1',
+        })),
+      },
+      learnerPortraitCurrentState: {
+        findUnique: vi.fn(async () => null),
+        upsert: pointerUpsert,
+      },
+      learnerPortraitStateVersion: { create: stateCreate },
+      studentPortraitV2Snapshot: { create: vi.fn() },
+    };
+
+    await expect(materializeIncrementalPortraitV2(db, 'student-stale-queue-generation', {
+      publication: {
+        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+        generation: BigInt(7),
+        queueGeneration: BigInt(11),
+        cutoverFence: BigInt(4),
+        migrationRunId: 'migration-1',
+      },
+    })).rejects.toThrow('publication fence is stale');
+    await expect(materializeIncrementalPortraitV2(db, 'student-missing-queue-generation', {
+      publication: {
+        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+        generation: BigInt(7),
+        cutoverFence: BigInt(4),
+        migrationRunId: 'migration-1',
+      } as any,
+    })).rejects.toThrow('publication fence is stale');
+    expect(stateCreate).not.toHaveBeenCalled();
+    expect(pointerUpsert).not.toHaveBeenCalled();
+  });
+
+  it('incrementally applies an on-time UPSERT without rebuilding unrelated dimensions', async () => {
+    const previous = baseline();
+    const untouched = previous.dimensions.find((dimension) =>
+      dimension.id === 'engineeringConstraintSafety')!;
+    untouched.score = 87;
+    const existing = {
+      ...fact('fact-existing', { engineeringDecision: 0.2 }, {}),
+      startedAt: new Date('2026-05-01T00:00:00.000Z'),
+    };
+    const appended = {
+      ...fact('fact-on-time', { controlModeling: 1 }, {}),
+      startedAt: new Date('2026-05-03T00:00:00.000Z'),
+    };
+    const { db, snapshotCreate } = cumulativeMaterializationDb(previous, [existing, appended]);
+
+    const result = await materializeIncrementalPortraitV2(db, previous.userId, {
+      now: new Date('2026-05-03T00:00:01.000Z'),
+    });
+
+    expect(result.rebuildRequired).toBe(false);
+    const payload = snapshotCreate.mock.calls[0][0].data.payload as PortraitV2Payload;
+    expect(payload.dimensions.find((dimension) =>
+      dimension.id === 'engineeringConstraintSafety')?.score).toBe(87);
+    expect(result.affectedDimensions).toEqual([
+      'controlModelingRepresentation',
+      'systemAnalysisInterpretation',
+    ]);
+  });
+
+  it('requires a learner-scoped rebuild for a late UPSERT', async () => {
+    const previous = baseline();
+    const existing = {
+      ...fact('fact-existing', { engineeringDecision: 0.2 }, {}),
+      startedAt: new Date('2026-05-03T00:00:00.000Z'),
+    };
+    const late = {
+      ...fact('fact-late', { controlModeling: 1 }, {}),
+      startedAt: new Date('2026-05-02T00:00:00.000Z'),
+    };
+    const { db } = cumulativeMaterializationDb(previous, [existing, late]);
+
+    const result = await materializeIncrementalPortraitV2(db, previous.userId, {
+      now: new Date('2026-05-03T00:00:01.000Z'),
+    });
+
+    expect(result.rebuildRequired).toBe(true);
+  });
 });
 
 function fact(id: string, contribution: Record<string, number>, contextJson: unknown) {
@@ -519,4 +717,75 @@ function fact(id: string, contribution: Record<string, number>, contextJson: unk
     contextJson,
     createdAt: new Date('2026-05-02T00:00:01.000Z'),
   };
+}
+
+function cumulativeMaterializationDb(previous: PortraitV2Payload, facts: ReturnType<typeof fact>[]) {
+  const journal = [{
+    id: 'transition-existing',
+    userId: previous.userId,
+    sequence: BigInt(1),
+    factId: facts[0].id,
+    operation: 'UPSERT' as const,
+    occurredAt: facts[0].startedAt,
+    transitionPayload: null,
+    sourceReference: null,
+    correctionOfSequence: null,
+    createdAt: facts[0].createdAt,
+  }];
+  const snapshotCreate = vi.fn(async ({ data }: { data: Record<string, unknown> }) => ({
+    id: 'portrait-incremental',
+    ...data,
+  }));
+  const db: any = {
+    $executeRaw: vi.fn(async () => 1),
+    $transaction: vi.fn(async (callback: (tx: unknown) => Promise<unknown>) => callback(db)),
+    learningFact: { findMany: vi.fn(async () => facts) },
+    learnerFactTransition: {
+      findMany: vi.fn(async () => journal),
+      create: vi.fn(async ({ data }: { data: Record<string, unknown> }) => {
+        const row = {
+          id: `transition-${String(data.factId)}`,
+          createdAt: new Date(),
+          ...data,
+        };
+        journal.push(row as typeof journal[number]);
+        return row;
+      }),
+    },
+    learnerFactTransitionSequence: {
+      upsert: vi.fn(async () => ({})),
+      update: vi.fn(async () => ({ lastSequence: BigInt(2) })),
+    },
+    cumulativePortraitCutoverFence: {
+      findUnique: vi.fn(async () => ({
+        fence: BigInt(4),
+        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+        learnerGeneration: BigInt(7),
+        queueGeneration: BigInt(11),
+        activeMigrationRunId: null,
+      })),
+    },
+    learnerPortraitCurrentState: {
+      findUnique: vi.fn(async () => ({
+        stateWatermark: BigInt(1),
+        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+        generation: BigInt(7),
+        queueGeneration: BigInt(11),
+        cutoverFence: BigInt(4),
+        stateVersion: {
+          overallScore: 70,
+          lastTrend: 'stable',
+          lastRisk: null,
+          stateKind: 'SNAPSHOT',
+          snapshot: { payload: structuredClone(previous) },
+        },
+      })),
+      upsert: vi.fn(async () => ({})),
+    },
+    learnerPortraitStateVersion: {
+      create: vi.fn(async () => ({ id: 'state-incremental' })),
+    },
+    studentPortraitV2Snapshot: { create: snapshotCreate },
+  };
+  return { db, snapshotCreate };
 }

@@ -123,10 +123,10 @@ describe('PATCH /api/session/[sessionId]', () => {
     expect(payload.classId).toBe('class-2024');
   });
 
-  it('schedules student and class snapshots when a classroom session is finished', () => {
+  it('uses event ingestion instead of direct snapshot jobs when a classroom session is finished', () => {
     const routeSource = readFileSync(join(process.cwd(), 'src/app/api/session/[sessionId]/route.ts'), 'utf8');
 
-    expect(routeSource).toContain('enqueueSessionFinalizationSnapshots');
+    expect(routeSource).not.toContain('enqueueSessionFinalizationSnapshots');
     expect(routeSource).toContain('enqueueSessionFinalizationEventIngestion');
     expect(routeSource).toContain('enqueueSessionSummaryReportRefresh');
     expect(routeSource).toContain("status === 'FINISHED'");

@@ -9,8 +9,10 @@ import {
 export { PORTRAIT_V2_DIMENSION_IDS } from './kaq-objective-taxonomy';
 
 export const PORTRAIT_V2_PAYLOAD_VERSION = 'learner-portrait.v2';
-export const PORTRAIT_V2_CALCULATION_VERSION = 'portrait-v2-primary.v1';
-export const PORTRAIT_V2_MIGRATION_VERSION = 'portrait-v2-migration.v1';
+export const PORTRAIT_V2_CALCULATION_VERSION = 'portrait-v2-cumulative.v2';
+export const PORTRAIT_V2_MIGRATION_VERSION: string = 'portrait-v2-cumulative-migration.v2';
+// Compatibility-only thresholds for legacy consumers. Canonical cumulative
+// portrait availability is evidence-backed and does not use calendar age.
 export const PORTRAIT_V2_FRESHNESS_CURRENT_MAX_AGE_DAYS = 30;
 export const PORTRAIT_V2_FRESHNESS_PARTIAL_MAX_AGE_DAYS = 90;
 export const PORTRAIT_V2_MAX_FUTURE_SKEW_MS = 0;
@@ -24,6 +26,7 @@ const PERSISTABLE_PORTRAIT_V2_PAYLOADS = new WeakSet<object>();
 
 export type PortraitV2FreshnessState = 'current' | 'partial' | 'stale' | 'missing';
 export type PortraitV2Trend = 'up' | 'stable' | 'down';
+export type PortraitV2OverallTrend = PortraitV2Trend | 'not-comparable';
 export type PortraitV2DerivationKind = 'native' | 'migrated' | 'compatibility-derived';
 export type PortraitV2Consumer = 'student' | 'konling' | 'planner' | 'reviewer' | 'admin';
 export type PortraitV2CompatibilitySourceFamily =
@@ -92,6 +95,15 @@ export interface PortraitV2PayloadShape {
     lastFactId: string;
   };
   dimensions: PortraitV2DimensionState[];
+}
+
+export interface PortraitV2CumulativeSummary {
+  overallScore: number | null;
+  confidence: number | null;
+  evidenceAsOf: string | null;
+  trend: PortraitV2OverallTrend;
+  evidencedDimensionIds: PortraitV2DimensionId[];
+  missingDimensionIds: PortraitV2DimensionId[];
 }
 
 export type PortraitV2Payload = PortraitV2PayloadShape & {
@@ -229,6 +241,33 @@ export function createPortraitV2Payload(input: {
   };
   validatePortraitV2Payload(payload, { now: input.now });
   return markPersistable(payload);
+}
+
+export function summarizeCumulativePortraitV2(
+  payload: PortraitV2PayloadShape,
+  previous: PortraitV2PayloadShape | null = null,
+): PortraitV2CumulativeSummary {
+  const evidenced = payload.dimensions.filter((dimension) => dimension.evidenceSummary.totalCount > 0);
+  const previousEvidenced = previous?.dimensions.filter((dimension) => dimension.evidenceSummary.totalCount > 0) ?? [];
+  const overallScore = averageOrNull(evidenced.map((dimension) => dimension.score));
+  const previousOverallScore = averageOrNull(previousEvidenced.map((dimension) => dimension.score));
+  return {
+    overallScore,
+    confidence: averageOrNull(evidenced.map((dimension) => dimension.confidence)),
+    evidenceAsOf: latestTimestamp(evidenced
+      .map((dimension) => dimension.freshness.asOf)
+      .filter((value): value is string => value !== null)),
+    trend: overallScore === null || previousOverallScore === null
+      ? 'not-comparable'
+      : overallScore - previousOverallScore > 5
+        ? 'up'
+        : overallScore - previousOverallScore < -5
+          ? 'down'
+          : 'stable',
+    evidencedDimensionIds: evidenced.map((dimension) => dimension.id),
+    missingDimensionIds: PORTRAIT_V2_DIMENSION_IDS.filter((id) =>
+      !evidenced.some((dimension) => dimension.id === id)),
+  };
 }
 
 export function validatePortraitV2Payload(
@@ -774,6 +813,10 @@ function average(values: number[]): number {
   return values.length === 0 ? 0 : Math.round((values.reduce((sum, value) => sum + value, 0) / values.length) * 100) / 100;
 }
 
+function averageOrNull(values: number[]): number | null {
+  return values.length === 0 ? null : average(values);
+}
+
 function clockTimestamp(now: Date | string | undefined): string {
   const value = now ?? new Date();
   return value instanceof Date ? value.toISOString() : new Date(value).toISOString();
@@ -835,14 +878,11 @@ function hasConsistentFreshness(freshness: Record<string, unknown>, generatedAt:
   const ageMilliseconds = Date.parse(generatedAt) - Date.parse(freshness.asOf);
   if (ageMilliseconds < 0) return false;
   const evidenceAgeDays = Math.floor(ageMilliseconds / 86_400_000);
-  return freshness.evidenceAgeDays === evidenceAgeDays &&
-    freshness.state === freshnessStateForAge(evidenceAgeDays);
+  return freshness.evidenceAgeDays === evidenceAgeDays;
 }
 
-function freshnessStateForAge(evidenceAgeDays: number): Exclude<PortraitV2FreshnessState, 'missing'> {
-  if (evidenceAgeDays <= PORTRAIT_V2_FRESHNESS_CURRENT_MAX_AGE_DAYS) return 'current';
-  if (evidenceAgeDays <= PORTRAIT_V2_FRESHNESS_PARTIAL_MAX_AGE_DAYS) return 'partial';
-  return 'stale';
+function freshnessStateForAge(_evidenceAgeDays: number): Exclude<PortraitV2FreshnessState, 'missing'> {
+  return 'current';
 }
 
 function hasConsistentEvidenceTimestamps(
