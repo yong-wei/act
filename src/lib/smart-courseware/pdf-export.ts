@@ -19,7 +19,7 @@ import {
 
 import { SmartCoursewareError } from './domain';
 
-export const SMART_COURSEWARE_PDF_RENDERER_VERSION = 'smart-courseware-pdf-export-v1' as const;
+export const SMART_COURSEWARE_PDF_RENDERER_VERSION = 'smart-courseware-pdf-export-v2' as const;
 export const SMART_COURSEWARE_PDF_PAGE = Object.freeze({ width: 960, height: 540, aspectRatio: '16:9' as const });
 
 const PDF_PAGE_PADDING = 24;
@@ -45,7 +45,7 @@ export type StudentPdfSlideProjection = {
   layoutId: string;
   title: string;
   coursewareLabel: string;
-  notice: 'AI 辅助生成，教师已审核';
+  notice?: 'AI 辅助生成，教师已审核';
   modules: PdfTextModule[];
 };
 
@@ -72,17 +72,19 @@ export function projectPublishedCoursewareForPdf(input: {
   planRevisionNumber: number;
   manifestHash: string;
   contentHash: string;
+  provenanceSnapshot: unknown;
   manifest: unknown;
 }): StudentPdfProjection {
   const manifest = assertPublishedManifest(input.manifest, input.manifestHash);
   const coursewareLabel = `互动课件第${positive(input.revisionNumber, 'pdf-export-revision-invalid')}版（基于教案第${positive(input.planRevisionNumber, 'pdf-export-plan-revision-invalid')}版）`;
+  const notice = hasAiGeneratedLineage(input.provenanceSnapshot) ? 'AI 辅助生成，教师已审核' as const : undefined;
   const slides = manifest.stages.flatMap((stage) => stage.steps).map((step, order) => ({
     stepId: step.id,
     order: order + 1,
     layoutId: step.layoutId,
     title: step.title,
     coursewareLabel,
-    notice: 'AI 辅助生成，教师已审核' as const,
+    ...(notice ? { notice } : {}),
     modules: step.modules
       .filter((module) => module.roleMetadata.studentVisible)
       .map((module) => projectStudentPdfModule(module, `${input.manifestHash}:${step.id}`)),
@@ -232,7 +234,7 @@ async function drawStudentPdfSlide(page: PDFPage, slide: StudentPdfSlideProjecti
   page.drawRectangle({ x: 0, y: 0, width: SMART_COURSEWARE_PDF_PAGE.width, height: SMART_COURSEWARE_PDF_PAGE.height, color: rgb(0.975, 0.98, 0.99) });
   await drawWrappedText(page, slide.title, PDF_PAGE_PADDING, SMART_COURSEWARE_PDF_PAGE.height - PDF_PAGE_PADDING - 18, PDF_CONTENT_WIDTH * 0.65, 18, 22, rgb(0.08, 0.12, 0.2), fonts, 2);
   await drawWrappedText(page, slide.coursewareLabel, PDF_PAGE_PADDING, SMART_COURSEWARE_PDF_PAGE.height - PDF_PAGE_PADDING - 61, PDF_CONTENT_WIDTH, 10, 13, rgb(0.24, 0.32, 0.45), fonts, 1);
-  await drawWrappedText(page, slide.notice, PDF_PAGE_PADDING, PDF_PAGE_PADDING + 5, PDF_CONTENT_WIDTH, 9, 12, rgb(0.24, 0.32, 0.45), fonts, 1);
+  if (slide.notice) await drawWrappedText(page, slide.notice, PDF_PAGE_PADDING, PDF_PAGE_PADDING + 5, PDF_CONTENT_WIDTH, 9, 12, rgb(0.24, 0.32, 0.45), fonts, 1);
 
   const layout = GENERATED_SLIDE_LAYOUT_REGISTRY[slide.layoutId as keyof typeof GENERATED_SLIDE_LAYOUT_REGISTRY];
   for (const module of slide.modules) {
@@ -414,6 +416,17 @@ function requiredText(value: string, code: string) {
 function positive(value: number, code: string) {
   if (!Number.isInteger(value) || value < 1) throw new SmartCoursewareError(code, 409);
   return value;
+}
+
+function hasAiGeneratedLineage(value: unknown) {
+  if (!Array.isArray(value)) throw new SmartCoursewareError('pdf-export-provenance-invalid', 409);
+  return value.some((entry) => {
+    if (!entry || typeof entry !== 'object' || !('provenance' in entry)) throw new SmartCoursewareError('pdf-export-provenance-invalid', 409);
+    const provenance = entry.provenance;
+    if (provenance === 'ai_generated' || provenance === 'ai_generated_teacher_edited' || provenance === 'AI_GENERATED' || provenance === 'AI_GENERATED_TEACHER_EDITED') return true;
+    if (provenance === 'teacher_created' || provenance === 'TEACHER_CREATED') return false;
+    throw new SmartCoursewareError('pdf-export-provenance-invalid', 409);
+  });
 }
 
 function sha256(value: Uint8Array | string) {

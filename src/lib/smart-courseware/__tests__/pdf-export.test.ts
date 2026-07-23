@@ -11,14 +11,16 @@ import {
 
 import { validCoursewareManifest } from './fixtures';
 
-function input(manifest = validCoursewareManifest()) {
+function input(manifest = validCoursewareManifest(), overrides: { provenanceSnapshot?: unknown } = {}) {
   return {
     publicationRevisionId: 'publication-1',
     revisionNumber: 3,
     planRevisionNumber: 2,
     manifestHash: computeGeneratedSlideContentHash(manifest),
     contentHash: 'a'.repeat(64),
+    provenanceSnapshot: [{ moduleId: 'module-1', provenance: 'ai_generated' }],
     manifest,
+    ...overrides,
   };
 }
 
@@ -47,6 +49,14 @@ describe('smart courseware PDF export', () => {
     for (const page of pdf.getPages()) {
       expect(page.getSize()).toEqual({ width: SMART_COURSEWARE_PDF_PAGE.width, height: SMART_COURSEWARE_PDF_PAGE.height });
     }
+  });
+
+  it('shows the AI-assisted notice only when the immutable publication lineage contains AI-generated content', () => {
+    const projection = projectPublishedCoursewareForPdf(input(validCoursewareManifest(), {
+      provenanceSnapshot: [{ moduleId: 'module-1', provenance: 'teacher_created' }],
+    }));
+
+    expect(projection.slides.every((slide) => slide.notice === undefined)).toBe(true);
   });
 
   it('embeds a math-font fallback for valid Greek and mathematical notation', async () => {

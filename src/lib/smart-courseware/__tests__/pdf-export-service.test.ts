@@ -13,6 +13,7 @@ function publication() {
   return {
     id: 'published-1', ownerId: actor.id, revisionNumber: 2, planRevisionNumber: 1,
     manifestSnapshot: manifest, manifestHash: computeGeneratedSlideContentHash(manifest), contentHash: 'a'.repeat(64),
+    provenanceSnapshot: [{ moduleId: 'module-1', provenance: 'ai_generated' }],
   };
 }
 
@@ -44,12 +45,38 @@ describe('smart courseware PDF export service', () => {
     expect(create).toHaveBeenCalledOnce();
     expect(exported).toMatchObject({
       publicationRevisionId: record.id,
-      rendererVersion: 'smart-courseware-pdf-export-v1',
+      rendererVersion: 'smart-courseware-pdf-export-v2',
       manifestHash: record.manifestHash,
       contentHash: record.contentHash,
       pageCount: 6,
       artifactHash: expect.stringMatching(/^[a-f0-9]{64}$/),
     });
     expect(exported.artifactBytes.byteLength).toBe(exported.artifactSizeBytes);
+  });
+
+  it('creates a v2 artifact instead of reusing a legacy v1 export', async () => {
+    const record = publication();
+    const create = vi.fn(async ({ data }) => data);
+    const legacy = {
+      publicationRevisionId: record.id,
+      rendererVersion: 'smart-courseware-pdf-export-v1',
+      artifactHash: 'legacy', artifactBytes: new Uint8Array([1]), artifactSizeBytes: 1,
+    };
+    const findFirst = vi.fn(({ where }) => where.rendererVersion === legacy.rendererVersion ? legacy : null);
+    const db = {
+      smartCoursewarePdfExport: { findUnique: vi.fn().mockResolvedValue(null), create, findFirst },
+      smartCoursewarePublicationRevision: { findFirst: vi.fn().mockResolvedValue(record) },
+    };
+
+    await exportSmartCoursewarePdf(db as never, {
+      actor, publicationRevisionId: record.id, idempotencyKey: 'pdf-export-key-v2',
+    });
+
+    expect(create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({
+      rendererVersion: 'smart-courseware-pdf-export-v2',
+    }) }));
+    expect(findFirst).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({
+      rendererVersion: 'smart-courseware-pdf-export-v2',
+    }) }));
   });
 });

@@ -35,6 +35,7 @@ export async function exportSmartCoursewarePdf(db: PdfExportDb, input: {
       manifestSnapshot: true,
       manifestHash: true,
       contentHash: true,
+      provenanceSnapshot: true,
     },
   });
   if (!publication) throw new SmartCoursewareError('pdf-export-published-revision-not-found', 404);
@@ -60,6 +61,7 @@ export async function exportSmartCoursewarePdf(db: PdfExportDb, input: {
     planRevisionNumber: publication.planRevisionNumber,
     manifestHash: publication.manifestHash,
     contentHash: publication.contentHash,
+    provenanceSnapshot: publication.provenanceSnapshot,
     manifest: publication.manifestSnapshot,
   });
 
