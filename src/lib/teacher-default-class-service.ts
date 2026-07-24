@@ -30,6 +30,14 @@ export interface CreateTeacherClassInput {
   semester?: string | null;
 }
 
+export interface UpdateTeacherClassInput {
+  name?: string;
+  description?: string | null;
+  year?: string | null;
+  semester?: string | null;
+  isActive?: boolean;
+}
+
 type TeacherDefaultClassDb = PrismaClient;
 
 export function createTeacherDefaultClassService(
@@ -39,6 +47,34 @@ export function createTeacherDefaultClassService(
   if (!Number.isInteger(transactionAttempts) || transactionAttempts < 1) {
     throw new TypeError('transactionAttempts must be a positive integer');
   }
+
+  const updateClass = (
+    teacherId: string,
+    classId: string,
+    input: UpdateTeacherClassInput,
+  ) => withSerializableRetry(db, transactionAttempts, async (tx) => {
+    await requireTeacher(tx, teacherId);
+    if (input.isActive === false) {
+      await lockClassSessionBinding(tx, classId);
+    }
+    await findOwnedClass(tx, teacherId, classId);
+    const updated = await tx.class.update({
+      where: { id: classId },
+      data: {
+        ...(input.name !== undefined && { name: input.name }),
+        ...(input.description !== undefined && { description: input.description }),
+        ...(input.year !== undefined && { year: input.year }),
+        ...(input.semester !== undefined && { semester: input.semester }),
+        ...(input.isActive !== undefined && { isActive: input.isActive }),
+      },
+    });
+    if (input.isActive === true) {
+      await assignCandidateWhenDefaultInvalid(tx, teacherId, classId);
+    } else if (input.isActive === false) {
+      await replaceDefaultWhenInvalid(tx, teacherId, classId);
+    }
+    return updated;
+  });
 
   return {
     createClass(input: CreateTeacherClassInput) {
@@ -75,31 +111,14 @@ export function createTeacherDefaultClassService(
     },
 
     activateClass(teacherId: string, classId: string) {
-      return withSerializableRetry(db, transactionAttempts, async (tx) => {
-        await requireTeacher(tx, teacherId);
-        await findOwnedClass(tx, teacherId, classId);
-        const activated = await tx.class.update({
-          where: { id: classId },
-          data: { isActive: true },
-        });
-        await assignCandidateWhenDefaultInvalid(tx, teacherId, classId);
-        return activated;
-      });
+      return updateClass(teacherId, classId, { isActive: true });
     },
 
     deactivateClass(teacherId: string, classId: string) {
-      return withSerializableRetry(db, transactionAttempts, async (tx) => {
-        await requireTeacher(tx, teacherId);
-        await lockClassSessionBinding(tx, classId);
-        await findOwnedClass(tx, teacherId, classId);
-        const deactivated = await tx.class.update({
-          where: { id: classId },
-          data: { isActive: false },
-        });
-        await replaceDefaultWhenInvalid(tx, teacherId, classId);
-        return deactivated;
-      });
+      return updateClass(teacherId, classId, { isActive: false });
     },
+
+    updateClass,
 
     deleteClass(teacherId: string, classId: string) {
       return withSerializableRetry(db, transactionAttempts, async (tx) => {

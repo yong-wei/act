@@ -103,15 +103,22 @@ export function PlaylistPlayLauncher({
               </Link>
             ) : null}
             {canStartClass ? (
-              <button
-                type="button"
-                onClick={(event) => startClass(event.currentTarget)}
-                disabled={status === 'starting' || itemCount === 0}
-                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {status === 'starting' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
-                开始上课
-              </button>
+              <div className="flex flex-col items-end gap-2">
+                <button
+                  type="button"
+                  onClick={(event) => startClass(event.currentTarget)}
+                  disabled={status === 'starting' || itemCount === 0}
+                  className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {status === 'starting' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+                  {launchActor === 'admin' ? '开始临时课堂' : '开始上课'}
+                </button>
+                {launchActor === 'admin' ? (
+                  <p className="max-w-56 text-right text-xs leading-5 text-slate-400">
+                    管理员将启动不绑定班级的临时课堂。
+                  </p>
+                ) : null}
+              </div>
             ) : null}
           </div>
         </div>

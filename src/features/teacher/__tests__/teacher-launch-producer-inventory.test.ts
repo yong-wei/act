@@ -40,9 +40,13 @@ describe('teacher launch producer inventory', () => {
     expect(lessonPlansPage).toContain('launchActor="teacher"');
     expect(lessonList).toContain("if (launchActor === 'teacher')");
     expect(lessonList).toContain('teacherLauncher.launch');
+    expect(lessonList).toContain("launchActor === 'admin' ? '开始临时课堂' : '开始上课'");
+    expect(lessonList).toContain('不绑定班级的临时课堂');
     expect(playlistPage).toContain("launchActor={viewerRole === UserRole.TEACHER ? 'teacher' : 'admin'}");
     expect(playlist).toContain("if (launchActor === 'teacher')");
     expect(playlist).toContain('teacherLauncher.launch');
+    expect(playlist).toContain("launchActor === 'admin' ? '开始临时课堂' : '开始上课'");
+    expect(playlist).toContain('管理员将启动不绑定班级的临时课堂。');
     expect(classDetail).toContain('teacherLauncher.launch');
     expect(classDetail).not.toContain("fetch('/api/session'");
     for (const interactiveEntry of [courseEntry, premiumEntry]) {

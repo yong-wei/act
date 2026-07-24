@@ -110,7 +110,7 @@ describe('teacher default class service', () => {
     expect(tx.user.update).not.toHaveBeenCalled();
   });
 
-  it('replaces a deactivated default by newest createdAt then id', async () => {
+  it('atomically updates metadata and replaces a deactivated default by newest createdAt then id', async () => {
     const replacement = { id: 'class-z' };
     const findFirst = vi.fn()
       .mockResolvedValueOnce(activeClass)
@@ -126,11 +126,25 @@ describe('teacher default class service', () => {
         update: vi.fn().mockResolvedValue({ ...activeClass, isActive: false }),
       },
     });
+    const db = database(tx);
 
-    await createTeacherDefaultClassService(database(tx) as never)
-      .deactivateClass(teacher.id, activeClass.id);
+    await createTeacherDefaultClassService(db as never)
+      .updateClass(teacher.id, activeClass.id, {
+        name: '控制工程 1 班',
+        description: '更新后的班级',
+        isActive: false,
+      });
 
+    expect(db.$transaction).toHaveBeenCalledTimes(1);
     expect(tx.$executeRaw).toHaveBeenCalledTimes(1);
+    expect(tx.class.update).toHaveBeenCalledWith({
+      where: { id: activeClass.id },
+      data: {
+        name: '控制工程 1 班',
+        description: '更新后的班级',
+        isActive: false,
+      },
+    });
     expect(findFirst).toHaveBeenLastCalledWith({
       where: { teacherId: teacher.id, isActive: true },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
@@ -139,6 +153,37 @@ describe('teacher default class service', () => {
     expect(tx.user.update).toHaveBeenCalledWith({
       where: { id: teacher.id },
       data: { defaultTeachingClassId: replacement.id },
+    });
+  });
+
+  it('keeps activateClass and deactivateClass as compatible lifecycle entry points', async () => {
+    const tx = transaction({
+      user: {
+        findFirst: vi.fn().mockResolvedValue(teacher),
+        findUnique: vi.fn()
+          .mockResolvedValueOnce({ defaultTeachingClassId: activeClass.id })
+          .mockResolvedValueOnce({ defaultTeachingClassId: activeClass.id }),
+        update: vi.fn(),
+      },
+      class: {
+        findFirst: vi.fn().mockResolvedValue(activeClass),
+        update: vi.fn()
+          .mockResolvedValueOnce(activeClass)
+          .mockResolvedValueOnce({ ...activeClass, isActive: false }),
+      },
+    });
+    const service = createTeacherDefaultClassService(database(tx) as never);
+
+    await service.activateClass(teacher.id, activeClass.id);
+    await service.deactivateClass(teacher.id, activeClass.id);
+
+    expect(tx.class.update).toHaveBeenNthCalledWith(1, {
+      where: { id: activeClass.id },
+      data: { isActive: true },
+    });
+    expect(tx.class.update).toHaveBeenNthCalledWith(2, {
+      where: { id: activeClass.id },
+      data: { isActive: false },
     });
   });
 

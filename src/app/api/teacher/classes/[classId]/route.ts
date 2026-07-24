@@ -72,33 +72,38 @@ export async function PATCH(
   }
 
   try {
-    const body = await request.json();
-    const { name, description, year, semester, isActive } = body;
+    const body = await request.json() as unknown;
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+      return NextResponse.json({ error: '班级信息无效' }, { status: 400 });
+    }
+    const { name, description, year, semester, isActive } = body as Record<string, unknown>;
 
     if (isActive !== undefined && typeof isActive !== 'boolean') {
       return NextResponse.json({ error: '班级状态无效' }, { status: 400 });
     }
-
-    let updatedClass = classData;
-    if (isActive !== undefined) {
-      if (isActive) {
-        updatedClass = await teacherDefaultClassService.activateClass(session.user.id, classId);
-      } else {
-        updatedClass = await teacherDefaultClassService.deactivateClass(session.user.id, classId);
-      }
+    if (name !== undefined && typeof name !== 'string') {
+      return NextResponse.json({ error: '班级名称无效' }, { status: 400 });
+    }
+    if (description !== undefined && description !== null && typeof description !== 'string') {
+      return NextResponse.json({ error: '班级描述无效' }, { status: 400 });
+    }
+    if (year !== undefined && year !== null && typeof year !== 'string') {
+      return NextResponse.json({ error: '学年无效' }, { status: 400 });
+    }
+    if (semester !== undefined && semester !== null && typeof semester !== 'string') {
+      return NextResponse.json({ error: '学期无效' }, { status: 400 });
     }
 
-    if (name || description !== undefined || year !== undefined || semester !== undefined) {
-      updatedClass = await prisma.class.update({
-        where: { id: classId },
-        data: {
-          ...(name && { name: name.trim() }),
-          ...(description !== undefined && { description: description?.trim() || null }),
-          ...(year !== undefined && { year: year?.trim() || null }),
-          ...(semester !== undefined && { semester: semester?.trim() || null }),
-        },
-      });
-    }
+    const update = {
+      ...(typeof name === 'string' && name.trim() && { name: name.trim() }),
+      ...(description !== undefined && { description: description?.trim() || null }),
+      ...(year !== undefined && { year: year?.trim() || null }),
+      ...(semester !== undefined && { semester: semester?.trim() || null }),
+      ...(isActive !== undefined && { isActive }),
+    };
+    const updatedClass = Object.keys(update).length === 0
+      ? classData
+      : await teacherDefaultClassService.updateClass(session.user.id, classId, update);
 
     return NextResponse.json(updatedClass);
   } catch (error) {

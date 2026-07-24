@@ -274,17 +274,24 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
                       编辑
                   </button>
                 )}
-                <button type="button"
-                    onClick={(event) => canStart
-                      ? startSession(plan.id, event.currentTarget)
-                      : setOperationMessage(EMPTY_LESSON_PLAN_MESSAGE)}
-                    disabled={!!loadingId || !canStart}
-                    className="flex items-center gap-1 bg-cyan-600 hover:bg-cyan-500 text-white text-xs px-3 py-1.5 rounded transition-all disabled:opacity-50"
-                    title={!canStart ? EMPTY_LESSON_PLAN_MESSAGE : undefined}
-                >
-                    {loadingId === plan.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Play className="h-3 w-3" />}
-                    开始上课
-                </button>
+                <div className="flex flex-col items-end gap-1">
+                  <button type="button"
+                      onClick={(event) => canStart
+                        ? startSession(plan.id, event.currentTarget)
+                        : setOperationMessage(EMPTY_LESSON_PLAN_MESSAGE)}
+                      disabled={!!loadingId || !canStart}
+                      className="flex items-center gap-1 bg-cyan-600 hover:bg-cyan-500 text-white text-xs px-3 py-1.5 rounded transition-all disabled:opacity-50"
+                      title={!canStart ? EMPTY_LESSON_PLAN_MESSAGE : undefined}
+                  >
+                      {loadingId === plan.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Play className="h-3 w-3" />}
+                      {launchActor === 'admin' ? '开始临时课堂' : '开始上课'}
+                  </button>
+                  {launchActor === 'admin' ? (
+                    <p className="max-w-40 text-right text-[11px] leading-4 text-slate-500">
+                      不绑定班级的临时课堂
+                    </p>
+                  ) : null}
+                </div>
              </div>
           </div>
         </div>

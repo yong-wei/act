@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
   service: {
     createClass: vi.fn(),
     setDefaultClass: vi.fn(),
+    updateClass: vi.fn(),
     activateClass: vi.fn(),
     deactivateClass: vi.fn(),
     deleteClass: vi.fn(),
@@ -84,21 +85,55 @@ describe('teacher default-class routes', () => {
     }));
   });
 
-  it('routes lifecycle transitions through the shared service', async () => {
+  it('updates lifecycle state and metadata through one shared service transaction', async () => {
     mocks.prisma.class.findUnique.mockResolvedValue(activeClass);
-    mocks.service.deactivateClass.mockResolvedValue({ ...activeClass, isActive: false });
-    mocks.prisma.class.update.mockResolvedValue({ ...activeClass, isActive: false });
+    mocks.service.updateClass.mockResolvedValue({
+      ...activeClass,
+      name: '自动化一班',
+      description: null,
+      isActive: false,
+    });
 
     const response = await updateClass(
       new Request('http://localhost/api/teacher/classes/class-1', {
         method: 'PATCH',
-        body: JSON.stringify({ isActive: false }),
+        body: JSON.stringify({
+          name: ' 自动化一班 ',
+          description: '',
+          isActive: false,
+        }),
       }),
       { params: Promise.resolve({ classId: activeClass.id }) },
     );
 
     expect(response.status).toBe(200);
-    expect(mocks.service.deactivateClass).toHaveBeenCalledWith('teacher-1', activeClass.id);
+    expect(mocks.service.updateClass).toHaveBeenCalledWith('teacher-1', activeClass.id, {
+      name: '自动化一班',
+      description: null,
+      isActive: false,
+    });
+    expect(mocks.prisma.class.update).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['name', 1],
+    ['description', false],
+    ['year', {}],
+    ['semester', []],
+  ])('rejects invalid %s before applying a lifecycle transition', async (field, value) => {
+    mocks.prisma.class.findUnique.mockResolvedValue(activeClass);
+
+    const response = await updateClass(
+      new Request('http://localhost/api/teacher/classes/class-1', {
+        method: 'PATCH',
+        body: JSON.stringify({ isActive: false, [field]: value }),
+      }),
+      { params: Promise.resolve({ classId: activeClass.id }) },
+    );
+
+    expect(response.status).toBe(400);
+    expect(mocks.service.updateClass).not.toHaveBeenCalled();
+    expect(mocks.service.deactivateClass).not.toHaveBeenCalled();
   });
 
   it('routes deletion through the shared service', async () => {
