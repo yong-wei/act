@@ -86,6 +86,10 @@ describe('design snapshots', () => {
     expect(pageSource).toContain('comparisonSeries={visibleSnapshotSeries}');
     expect(pageSource).toContain('NyquistPanel result={selectedNyquistSource.result} comparisonSeries={visibleSnapshotSeries}');
     expect(chartSource).toContain('staticComparisonSeries');
+    expect(chartSource).toContain('staticComparisonMarkerSeries');
+    expect(chartSource).toContain('snapshotOpenLoopPoles');
+    expect(chartSource).toContain('snapshotOpenLoopZeros');
+    expect(chartSource).toContain('snapshotCurrentPoles');
     expect(chartSource).toContain('silent: true');
   });
 

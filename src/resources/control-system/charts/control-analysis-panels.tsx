@@ -1133,6 +1133,50 @@ export function buildRootLocusOption(
       data: branch.map((point) => [point.re, point.im, point.gain ?? null]),
     } satisfies ChartSeriesItem));
   });
+  const staticComparisonMarkerSeries = comparisonSeries.flatMap((comparison) => {
+    const snapshotRootLocus = comparison.result.rootLocus;
+    const snapshotOpenLoopPoles = normalizeConjugatePointSet(snapshotRootLocus.openLoopPoles);
+    const snapshotOpenLoopZeros = normalizeConjugatePointSet(snapshotRootLocus.openLoopZeros);
+    const snapshotCurrentPoles = normalizeConjugatePointSet(snapshotRootLocus.currentPoles);
+    return [
+      {
+        type: 'scatter',
+        silent: true,
+        showSymbol: false,
+        ...getInteractiveSvgEChartsPointMarker('pole-cross', {
+          size: 11,
+          color: comparison.color,
+          strokeWidth: 1.4,
+        }),
+        z: 8,
+        data: snapshotOpenLoopPoles.map((pole) => [pole.re, pole.im]),
+      },
+      {
+        type: 'scatter',
+        silent: true,
+        showSymbol: false,
+        ...getInteractiveSvgEChartsPointMarker('dot-hollow', {
+          size: 13,
+          color: comparison.color,
+          fillColor: 'rgba(255, 255, 255, 0)',
+          strokeWidth: ROOT_LOCUS_OPEN_ZERO_STROKE_WIDTH,
+        }),
+        z: 8,
+        data: snapshotOpenLoopZeros.map((zero) => [zero.re, zero.im]),
+      },
+      {
+        type: 'scatter',
+        silent: true,
+        showSymbol: false,
+        ...getInteractiveSvgEChartsPointMarker('dot-filled', {
+          size: 13,
+          color: comparison.color,
+        }),
+        z: 9,
+        data: snapshotCurrentPoles.map((pole) => [pole.re, pole.im]),
+      },
+    ] satisfies ChartSeriesItem[];
+  });
   const series: ChartSeriesArray = [
     {
       name: '实轴',
@@ -1153,6 +1197,7 @@ export function buildRootLocusOption(
     ...(showFeasible ? buildFeasibleRegionSeries(rootLocus, axisPreset) : []),
     ...rootLineSegments,
     ...staticComparisonSeries,
+    ...staticComparisonMarkerSeries,
     ...((rootLocus.stationaryPoints?.length ?? 0) > 0
       ? [{
           name: '分离/会合点',
