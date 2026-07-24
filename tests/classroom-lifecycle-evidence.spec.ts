@@ -174,9 +174,26 @@ test('class-bound classroom launch displays the classroom identity before start'
       body: JSON.stringify([{ id: 'plan-1', title: '班级课堂教案', description: null }]),
     });
   });
+  await page.route('**/api/teacher/classes/launch-options', async (route) => {
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({
+        classes: [
+          { id: 'class-1', name: '2026 控制班', code: 'CTRL26' },
+          { id: 'class-2', name: '2026 控制二班', code: 'CTRL27' },
+        ],
+        defaultClassId: 'class-2',
+      }),
+    });
+  });
   await page.goto('/teacher/classes/class-1');
   await page.getByRole('button', { name: '打开开始上课对话框' }).click();
-  await expect(page.getByText('班级课堂：2026 控制班')).toBeVisible();
+  const launchDialog = page.getByRole('dialog', { name: '选择班级并开始上课' });
+  await expect(launchDialog).toBeVisible();
+  const classSelect = launchDialog.getByRole('combobox', { name: '本次课堂班级' });
+  await expect(classSelect).toBeFocused();
+  await expect(classSelect).toHaveValue('class-1');
+  await expect(classSelect.locator('option:checked')).toHaveText('2026 控制班（CTRL26）');
 
   const screenshotPath = join(evidenceDir, 'class-bound-launch-dialog.png');
   mkdirSync(evidenceDir, { recursive: true });
@@ -185,7 +202,12 @@ test('class-bound classroom launch displays the classroom identity before start'
   recordEvidence('class-bound-launch-dialog.json', {
     route: '/teacher/classes/class-1',
     screenshotPath,
-    visibleIdentity: '班级课堂：2026 控制班',
+    visibleDialog: '选择班级并开始上课',
+    selectedClass: {
+      id: 'class-1',
+      label: '2026 控制班（CTRL26）',
+      precedence: 'current class before persistent default',
+    },
     duplicateHandling: 'covered-by-src/app/__tests__/lesson-plan-session-routes.test.ts',
     capturedAt: new Date().toISOString(),
   });

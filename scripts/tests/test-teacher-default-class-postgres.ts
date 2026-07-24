@@ -140,7 +140,7 @@ async function main() {
       teacherId,
       createdAt: new Date('2026-07-04T00:00:00.000Z'),
     } });
-    const createDuplicateCheckedSession = () => createClassBoundSession(db, {
+    const createDuplicateCheckedSession = (joinCode: string) => createClassBoundSession(db, {
       actorId: teacherId,
       actorRole: UserRole.TEACHER,
       classId: classDuplicateRaceId,
@@ -157,7 +157,7 @@ async function main() {
         if (active) throw new Error('duplicate-active-classroom');
         return tx.classSession.create({
           data: {
-            joinCode: `D${nonce}`.slice(0, 6),
+            joinCode,
             planId,
             teacherId,
             classId: classDuplicateRaceId,
@@ -166,8 +166,8 @@ async function main() {
       },
     });
     const duplicateCreateRace = await Promise.allSettled([
-      createDuplicateCheckedSession(),
-      createDuplicateCheckedSession(),
+      createDuplicateCheckedSession(`D1${nonce}`.slice(0, 6)),
+      createDuplicateCheckedSession(`D2${nonce}`.slice(0, 6)),
     ]);
     assert(
       duplicateCreateRace.filter((result) => result.status === 'fulfilled').length === 1,

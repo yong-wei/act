@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { Prisma } from '@prisma/client';
 
 import {
   DefaultClassReconciliationError,
@@ -85,6 +86,50 @@ describe('teacher default class reconciliation', () => {
       teacherClassBindingEnabled: false,
     });
     expect(db.tx.$executeRaw).toHaveBeenCalledTimes(1);
+  });
+
+  it('accepts safe non-negative Prisma Decimal invariant counts', async () => {
+    const db = database({
+      queryResults: [
+        [{
+          invalidDefaultCount: new Prisma.Decimal(0),
+          missingDefaultCount: new Prisma.Decimal(0),
+          defaultWithoutActiveClassCount: new Prisma.Decimal(0),
+          duplicateDefaultCount: new Prisma.Decimal(0),
+        }],
+        [],
+      ],
+    });
+
+    await expect(reconcileTeacherDefaultClasses(db as never, {
+      mode: 'dry-run',
+      writerDrained: false,
+    })).resolves.toMatchObject({
+      invariant: {
+        invalidDefaultCount: 0,
+        missingDefaultCount: 0,
+        defaultWithoutActiveClassCount: 0,
+        duplicateDefaultCount: 0,
+      },
+    });
+  });
+
+  it.each([
+    new Prisma.Decimal('-1'),
+    new Prisma.Decimal('0.5'),
+    new Prisma.Decimal('9007199254740992'),
+  ])('rejects unsafe Prisma Decimal invariant count %s', async (invalidCount) => {
+    const db = database({
+      queryResults: [[{
+        ...cleanInvariant[0],
+        duplicateDefaultCount: invalidCount,
+      }]],
+    });
+
+    await expect(reconcileTeacherDefaultClasses(db as never, {
+      mode: 'verify',
+      writerDrained: false,
+    })).rejects.toThrowError(new DefaultClassReconciliationError('invalid-invariant-count'));
   });
 
   it('applies the idempotent plan and verifies the zero-violation gate in one transaction', async () => {

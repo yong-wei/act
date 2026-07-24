@@ -346,6 +346,12 @@ function toCount(value: unknown): number {
   if (typeof value === 'bigint' && value >= BigInt(0) && value <= BigInt(Number.MAX_SAFE_INTEGER)) {
     return Number(value);
   }
+  if (Prisma.Decimal.isDecimal(value)
+    && value.isInteger()
+    && !value.isNegative()
+    && value.lessThanOrEqualTo(Number.MAX_SAFE_INTEGER)) {
+    return value.toNumber();
+  }
   if (typeof value === 'string' && /^\d+$/.test(value)) {
     const parsed = Number(value);
     if (Number.isSafeInteger(parsed)) return parsed;
