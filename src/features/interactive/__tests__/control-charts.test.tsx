@@ -41,6 +41,7 @@ const repoRoot = process.cwd();
 
 type ChartSeriesLike = {
   name?: string;
+  type?: string;
   data?: unknown[];
   lineStyle?: { color?: string; type?: string; width?: number };
   itemStyle?: { color?: string; borderColor?: string; borderWidth?: number };
@@ -50,6 +51,7 @@ type ChartSeriesLike = {
   xAxisIndex?: number;
   yAxisIndex?: number;
   z?: number;
+  silent?: boolean;
 };
 
 function getTooltipFormatter(option: unknown): unknown {
@@ -419,6 +421,41 @@ describe('control chart shared presets and themes', () => {
       expect.objectContaining({ icon: 'path://M2 6 L26 6' }),
     ]));
     expect(legendItems).not.toContain('实轴根轨迹段');
+  });
+
+  it('renders static root-locus snapshot markers from saved analysis results', () => {
+    const snapshotColor = '#d946ef';
+    const option = buildRootLocusOption(
+      MARGIN_RESULT.rootLocus,
+      undefined,
+      'full',
+      undefined,
+      undefined,
+      [{ label: '方案 1', color: snapshotColor, result: MARGIN_RESULT }],
+    );
+    const series = getChartSeries(option);
+    const snapshotOpenLoopPoles = series.find((item) =>
+      item.type === 'scatter' && item.silent === true && item.z === 8 && item.symbolSize === 11,
+    );
+    const snapshotOpenLoopZeros = series.find((item) =>
+      item.type === 'scatter' && item.silent === true && item.z === 8 && item.symbolSize === 13,
+    );
+    const snapshotCurrentPoles = series.find((item) =>
+      item.type === 'scatter' && item.silent === true && item.z === 9 && item.symbolSize === 13,
+    );
+
+    expect(snapshotOpenLoopPoles).toMatchObject({
+      itemStyle: { color: snapshotColor },
+      data: MARGIN_RESULT.rootLocus.openLoopPoles.map((point) => [point.re, point.im]),
+    });
+    expect(snapshotOpenLoopZeros).toMatchObject({
+      itemStyle: { color: 'rgba(255, 255, 255, 0)', borderColor: snapshotColor },
+      data: MARGIN_RESULT.rootLocus.openLoopZeros.map((point) => [point.re, point.im]),
+    });
+    expect(snapshotCurrentPoles).toMatchObject({
+      itemStyle: { color: snapshotColor },
+      data: MARGIN_RESULT.rootLocus.currentPoles.map((point) => [point.re, point.im]),
+    });
   });
 
   it('keeps near-zero root-locus endpoints in feature view while hiding asymptotic tails', () => {
