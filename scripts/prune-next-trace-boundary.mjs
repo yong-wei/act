@@ -8,6 +8,7 @@ const traceRoots = [
 ];
 
 const blockedTraceFragments = [
+  'artifacts/',
   'course-content/authoring/knowledge/',
   'course-content/authoring/lessons/',
   'course-content/authoring/shared/',
@@ -43,6 +44,7 @@ const blockedTraceEntries = new Set([
 ]);
 
 const blockedStandalonePaths = [
+  'artifacts',
   path.join('course-content', '.codex'),
   path.join('course-content', 'authoring', 'knowledge'),
   path.join('course-content', 'authoring', 'lessons'),
