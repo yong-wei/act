@@ -1,3 +1,5 @@
+import { readFile } from 'node:fs/promises';
+
 import { PDFDocument } from 'pdf-lib';
 import { describe, expect, it } from 'vitest';
 
@@ -25,6 +27,13 @@ function input(manifest = validCoursewareManifest(), overrides: { provenanceSnap
 }
 
 describe('smart courseware PDF export', () => {
+  it('keeps font package paths out of module-resolution transforms', async () => {
+    const source = await readFile(new URL('../pdf-export.ts', import.meta.url), 'utf8');
+
+    expect(source).not.toContain('createRequire');
+    expect(source).not.toContain('require.resolve');
+  });
+
   it('projects one student-safe static page per step with immutable revision labels', () => {
     const projection = projectPublishedCoursewareForPdf(input());
 
