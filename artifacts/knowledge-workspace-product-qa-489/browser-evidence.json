@@ -1,10 +1,10 @@
 {
   "change": "govern-knowledge-workspace-product-qa",
   "issue": 489,
-  "capturedAt": "2026-07-24T04:28:35.034Z",
+  "capturedAt": "2026-07-24T04:51:55.995Z",
   "captureRevision": {
-    "commitSha": "7e920993ef5b70187cf0ac807a9334db9454ee11",
-    "treeSha": "13917be76269a2fc7769d1d608c8e6bbaeb29d8b"
+    "commitSha": "b26ed0fb0485d74bf3286a859bdbbde43b62eed1",
+    "treeSha": "fe4adaed8fd2993e68c815eba66f88aeb37bd0e0"
   },
   "baseUrl": "http://localhost:3002",
   "selectedNodeId": "稳定性_1_7288b4ea",
@@ -71,7 +71,7 @@
       "interactionState": "default graph",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-default-collapsed-dark.png",
-      "screenshotSha256": "e8c9b971acdb2302b45b09e02f91e923d44064503a10ac22a3235c1e8abd924e",
+      "screenshotSha256": "93793f972a9e1a0510d16681bb5baa5007f1f0b04e80cedef0d060f58bbd3515",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -187,7 +187,7 @@
       "interactionState": "navigation preference persisted",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-expanded-persisted-dark.png",
-      "screenshotSha256": "b2786529473baefc77263ed62a68dd702af24d03a0e0697672a865d58a701fdd",
+      "screenshotSha256": "7c6c91dfe3bd33dd122fc957794d176fcffa3622ac8d4bd26875878ab16155e0",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -303,7 +303,7 @@
       "interactionState": "local chapter directory opened",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-local-tools-directory-dark.png",
-      "screenshotSha256": "0d52dd4050fb7d3b02d5701c3ac7e5d88c14a663dad2945587f36cf8296de57b",
+      "screenshotSha256": "8b11ec2ea36662cdba3da8dabdbd8fc0211a74dd22bac5c81e53e70fa3ef0d2c",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -426,7 +426,7 @@
       "interactionState": "local node filter opened",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-local-tools-filter-dark.png",
-      "screenshotSha256": "4c8aa1c9cead566cf4274b850aee812392f6945e85705de2b7ab5c79f350db91",
+      "screenshotSha256": "981f6401b7e27e4cc3431889c904903238247ad09148da0d5cf0568f6eeb0706",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -549,7 +549,7 @@
       "interactionState": "local view controls opened",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-local-tools-view-dark.png",
-      "screenshotSha256": "b337700d2212f0a89b70d92a182c7426a25efcc47500ae7b90b490d351faefbc",
+      "screenshotSha256": "8c20df509c45ebc2206f6636b74b72e52f908e89075a71c1bcb3ed4299231f98",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -678,7 +678,7 @@
       "interactionState": "selected node explicit focus with centralized edge emphasis",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-selected-focus-dark.png",
-      "screenshotSha256": "c0828b916ee242175d2b57b091756ea7372d600604b16461861c333174daf469",
+      "screenshotSha256": "2035b2a30f2986a1dfd79015f8b906d47e626f74ff8539927526558d5d4299b5",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -826,7 +826,7 @@
       "interactionState": "all learner-facing relation families enabled",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-all-relation-families-dark.png",
-      "screenshotSha256": "1167b787bd4ca83a61b4f5a1a94d0ba0c5b1e644b53e0971b45f4492cb3ab820",
+      "screenshotSha256": "09e2c4af4777b88c34707d51052a837c9d259457283e94f44b14b91070f672e8",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -942,7 +942,7 @@
       "interactionState": "selected inspector",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-selected-inspector-light.png",
-      "screenshotSha256": "fe14d63d28438ee4dcb829217222d06e52edae2f0e54ffe160a3396d6dff9590",
+      "screenshotSha256": "3e49365a7a8feb5703ccc2fd2c4e434d2a056df9bc52f33726489dcfb25df3b2",
       "markers": {
         "htmlClass": "light",
         "workspace": "canvas-first",
@@ -1077,7 +1077,7 @@
       "interactionState": "hover click drag persistence evidence",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-hover-click-drag-dark.png",
-      "screenshotSha256": "25a7c266bfe190eb84c9691e17d57bbc00981562924574882e111a504f0de747",
+      "screenshotSha256": "b947a7def24e72112bbe657859cc1bb622c8926028ce86e7f25d1c494c6f6c35",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -1236,11 +1236,11 @@
         "drag": {
           "method": "pointer-drag",
           "dragFrom": {
-            "x": 873.8525757585924,
+            "x": 873.8525757585921,
             "y": 489.4692690712605
           },
           "dragTo": {
-            "x": 953.8525757585924,
+            "x": 953.8525757585921,
             "y": 525.4692690712604
           },
           "pinned": true,
@@ -1280,7 +1280,7 @@
       "interactionState": "adaptive practice page tool menu expanded",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-selected-page-tools-menu-dark.png",
-      "screenshotSha256": "b95a5551e0700991c151a9175add878f132929e1776256186e8a0dcbafd03ec2",
+      "screenshotSha256": "3276323060e9d73627980e467fedeb6ee57dba50b266733ef54cf19c77763a30",
       "markers": {
         "htmlClass": "dark",
         "workspace": null,
@@ -1376,7 +1376,7 @@
       "interactionState": "explicit relayout control visible",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-explicit-relayout-dark.png",
-      "screenshotSha256": "fa595787f51b03a1323477d42545903c81b39d28bd023089b5add80c2373cd74",
+      "screenshotSha256": "debb407d713c12c58ef9ee128d8b8a7c42fb81e50ae76ceb549433350825d199",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -1524,7 +1524,7 @@
       "interactionState": "3D first fit and repeated deterministic relayout",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-3d-fit-relayout-dark.png",
-      "screenshotSha256": "5b66fac38dbfd8e66f9ee48d21d27d49030e92e1ae20252c349d1b7ead8b084a",
+      "screenshotSha256": "d2ce6f9e107ee68a701887dc1bb0d971611d07fadf6a22577ad24f96d084800a",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -1647,383 +1647,383 @@
           "nodePositions": [
             {
               "id": "chapter-node:前沿拓展",
-              "x": -217.824539,
-              "y": -82.287845,
+              "x": 173.109869,
+              "y": 64.374134,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 633.9966746623297,
-                "top": 425.2257376060082,
-                "right": 728.380773293499,
-                "bottom": 519.7755679267462
+                "left": 1048.6525037971157,
+                "top": 257.31927512050993,
+                "right": 1169.8414170812205,
+                "bottom": 366.3005175755672
               },
               "labelBounds": {
-                "left": 654.4375,
-                "top": 454.359375,
-                "right": 707.8125,
-                "bottom": 490.296875
+                "left": 1076.9921875,
+                "top": 291.59375,
+                "right": 1138.1953125,
+                "bottom": 332.78125
               },
               "projectedBounds": {
-                "left": 633.9966746623297,
-                "top": 425.2257376060082,
-                "right": 728.380773293499,
-                "bottom": 519.7755679267462
+                "left": 1048.6525037971157,
+                "top": 257.31927512050993,
+                "right": 1169.8414170812205,
+                "bottom": 366.3005175755672
               }
             },
             {
               "id": "chapter-node:基本概念",
-              "x": 2.714534,
-              "y": -9.558772,
+              "x": -48.460001,
+              "y": 23.276552,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 859.2488971250463,
-                "top": 350.4426775409676,
-                "right": 957.189305662099,
-                "bottom": 444.8190950584916
+                "left": 792.1419127548743,
+                "top": 306.1392921143054,
+                "right": 902.7561881946352,
+                "bottom": 414.59894969392843
               },
               "labelBounds": {
-                "left": 880.828125,
-                "top": 379.703125,
-                "right": 934.203125,
-                "bottom": 415.640625
+                "left": 816.1484375,
+                "top": 339.96875,
+                "right": 877.3515625,
+                "bottom": 381.15625
               },
               "projectedBounds": {
-                "left": 859.2488971250463,
-                "top": 350.4426775409676,
-                "right": 957.189305662099,
-                "bottom": 444.8190950584916
+                "left": 792.1419127548743,
+                "top": 306.1392921143054,
+                "right": 902.7561881946352,
+                "bottom": 414.59894969392843
               }
             },
             {
               "id": "chapter-node:建模专题速通",
-              "x": 217.066317,
-              "y": -98.97757,
+              "x": -239.115036,
+              "y": -105.312727,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 1062.704873559514,
-                "top": 430.35795698968735,
-                "right": 1196.5668528363801,
-                "bottom": 549.2444301870912
+                "left": 554.0575918382098,
+                "top": 444.1312052120702,
+                "right": 690.1395354452108,
+                "bottom": 580.8896962044244
               },
               "labelBounds": {
-                "left": 1087.53125,
-                "top": 471.5,
-                "right": 1167.59375,
-                "bottom": 507.4375
+                "left": 576.40625,
+                "top": 491.34375,
+                "right": 668.21875,
+                "bottom": 532.53125
               },
               "projectedBounds": {
-                "left": 1062.704873559514,
-                "top": 430.35795698968735,
-                "right": 1196.5668528363801,
-                "bottom": 549.2444301870912
+                "left": 554.0575918382098,
+                "top": 444.1312052120702,
+                "right": 690.1395354452108,
+                "bottom": 580.8896962044244
               }
             },
             {
               "id": "chapter-node:时域分析",
-              "x": -127.859704,
-              "y": -13.271027,
+              "x": -172.379138,
+              "y": 2.742763,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 726.2406576676137,
-                "top": 354.2678114990964,
-                "right": 821.3624753910758,
-                "bottom": 448.63700269157465
+                "left": 646.8474084131343,
+                "top": 330.4719510924833,
+                "right": 755.2151091495746,
+                "bottom": 438.7900637707265
               },
               "labelBounds": {
-                "left": 746.78125,
-                "top": 383.515625,
-                "right": 800.15625,
-                "bottom": 419.453125
+                "left": 670.2734375,
+                "top": 364.140625,
+                "right": 731.4765625,
+                "bottom": 405.328125
               },
               "projectedBounds": {
-                "left": 726.2406576676137,
-                "top": 354.2678114990964,
-                "right": 821.3624753910758,
-                "bottom": 448.63700269157465
+                "left": 646.8474084131343,
+                "top": 330.4719510924833,
+                "right": 755.2151091495746,
+                "bottom": 438.7900637707265
               }
             },
             {
               "id": "chapter-node:根轨迹分析",
-              "x": 44.915169,
-              "y": 101.895573,
+              "x": -101.64061,
+              "y": 128.551575,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 895.9883412806208,
-                "top": 229.0888525500673,
-                "right": 1007.7722791079218,
-                "bottom": 336.5045437102908
+                "left": 723.1895726863955,
+                "top": 173.62720043849512,
+                "right": 846.2822080125972,
+                "bottom": 297.97967196165513
               },
               "labelBounds": {
-                "left": 917.484375,
-                "top": 265.296875,
-                "right": 984.203125,
-                "bottom": 301.234375
+                "left": 745.8828125,
+                "top": 216.03125,
+                "right": 822.3984375,
+                "bottom": 257.21875
               },
               "projectedBounds": {
-                "left": 895.9883412806208,
-                "top": 229.0888525500673,
-                "right": 1007.7722791079218,
-                "bottom": 336.5045437102908
+                "left": 723.1895726863955,
+                "top": 173.62720043849512,
+                "right": 846.2822080125972,
+                "bottom": 297.97967196165513
               }
             },
             {
               "id": "chapter-node:状态空间",
-              "x": -215.896291,
-              "y": 64.382151,
+              "x": -284.806728,
+              "y": 27.501743,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 635.9790701098144,
-                "top": 274.0738550518678,
-                "right": 730.3683852033138,
-                "bottom": 368.95334589731397
+                "left": 513.7792042166885,
+                "top": 301.12747880600637,
+                "right": 622.6036152504626,
+                "bottom": 409.62613672609666
               },
               "labelBounds": {
-                "left": 656.40625,
-                "top": 303.796875,
-                "right": 709.78125,
-                "bottom": 339.734375
+                "left": 537.9140625,
+                "top": 335,
+                "right": 599.1171875,
+                "bottom": 376.1875
               },
               "projectedBounds": {
-                "left": 635.9790701098144,
-                "top": 274.0738550518678,
-                "right": 730.3683852033138,
-                "bottom": 368.95334589731397
+                "left": 513.7792042166885,
+                "top": 301.12747880600637,
+                "right": 622.6036152504626,
+                "bottom": 409.62613672609666
               }
             },
             {
               "id": "chapter-node:知识边界与方法迁移层",
-              "x": 313.590832,
-              "y": 31.837901,
+              "x": 263.608728,
+              "y": -35.936212,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 1148.125942686502,
-                "top": 285.5829251406471,
-                "right": 1311.9999999999995,
-                "bottom": 424.0617103441759
+                "left": 1125.0405179803531,
+                "top": 351.0901682590698,
+                "right": 1311.9999999999989,
+                "bottom": 509.69983961610893
               },
               "labelBounds": {
-                "left": 1179.953125,
-                "top": 328.21875,
-                "right": 1273.359375,
-                "bottom": 382.125
+                "left": 1160.5625,
+                "top": 399.375,
+                "right": 1267.6875,
+                "bottom": 461.15625
               },
               "projectedBounds": {
-                "left": 1148.125942686502,
-                "top": 285.5829251406471,
-                "right": 1311.9999999999995,
-                "bottom": 424.0617103441759
+                "left": 1125.0405179803531,
+                "top": 351.0901682590698,
+                "right": 1311.9999999999989,
+                "bottom": 509.69983961610893
               }
             },
             {
               "id": "chapter-node:离散系统",
-              "x": -88.920867,
-              "y": -128.046931,
+              "x": -221.216821,
+              "y": 120.842111,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 766.0112887978443,
-                "top": 472.1078242800123,
-                "right": 861.7617546534296,
-                "bottom": 567.1053814249674
+                "left": 589.1905021040552,
+                "top": 189.9855338594905,
+                "right": 697.4627918407984,
+                "bottom": 300.1937476468787
               },
               "labelBounds": {
-                "left": 786.765625,
-                "top": 501.34375,
-                "right": 840.140625,
-                "bottom": 537.28125
+                "left": 612.7734375,
+                "top": 225.109375,
+                "right": 673.9765625,
+                "bottom": 266.296875
               },
               "projectedBounds": {
-                "left": 766.0112887978443,
-                "top": 472.1078242800123,
-                "right": 861.7617546534296,
-                "bottom": 567.1053814249674
+                "left": 589.1905021040552,
+                "top": 189.9855338594905,
+                "right": 697.4627918407984,
+                "bottom": 300.1937476468787
               }
             },
             {
               "id": "chapter-node:系统校正",
-              "x": -98.900027,
-              "y": 108.838264,
+              "x": 113.951756,
+              "y": -58.702627,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 755.82771906457,
-                "top": 227.9950843047879,
-                "right": 851.3995550563752,
-                "bottom": 323.5028653826626
+                "left": 980.536950059354,
+                "top": 403.0465520448737,
+                "right": 1098.1593499525839,
+                "bottom": 511.4181898763812
               },
               "labelBounds": {
-                "left": 776.515625,
-                "top": 258.15625,
-                "right": 829.890625,
-                "bottom": 294.09375
+                "left": 1007.3515625,
+                "top": 436.484375,
+                "right": 1068.5546875,
+                "bottom": 477.671875
               },
               "projectedBounds": {
-                "left": 755.82771906457,
-                "top": 227.9950843047879,
-                "right": 851.3995550563752,
-                "bottom": 323.5028653826626
+                "left": 980.536950059354,
+                "top": 403.0465520448737,
+                "right": 1098.1593499525839,
+                "bottom": 511.4181898763812
               }
             },
             {
               "id": "chapter-node:系统模型",
-              "x": 116.160337,
-              "y": -23.983175,
+              "x": 61.889811,
+              "y": 52.616435,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 974.0306142662414,
-                "top": 365.3008348387051,
-                "right": 1075.9774781641092,
-                "bottom": 459.6588739363137
+                "left": 920.3787917145552,
+                "top": 271.30244657433803,
+                "right": 1035.288972064706,
+                "bottom": 380.1021800812542
               },
               "labelBounds": {
-                "left": 997.28125,
-                "top": 394.515625,
-                "right": 1050.65625,
-                "bottom": 430.453125
+                "left": 946.0546875,
+                "top": 305.4375,
+                "right": 1007.2578125,
+                "bottom": 346.625
               },
               "projectedBounds": {
-                "left": 974.0306142662414,
-                "top": 365.3008348387051,
-                "right": 1075.9774781641092,
-                "bottom": 459.6588739363137
+                "left": 920.3787917145552,
+                "top": 271.30244657433803,
+                "right": 1035.288972064706,
+                "bottom": 380.1021800812542
               }
             },
             {
               "id": "chapter-node:约束设计层",
-              "x": -329.024832,
-              "y": -28.962956,
+              "x": -112.326401,
+              "y": -184.008449,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 513.2317846017003,
-                "top": 364.48364970294375,
-                "right": 620.0592451740157,
-                "bottom": 470.73192390459434
+                "left": 710.664596760168,
+                "top": 543.157347514575,
+                "right": 833.5304956820627,
+                "bottom": 667.7941637779127
               },
               "labelBounds": {
-                "left": 533.609375,
-                "top": 399.625,
-                "right": 600.328125,
-                "bottom": 435.5625
+                "left": 733.3046875,
+                "top": 583.984375,
+                "right": 809.8203125,
+                "bottom": 625.171875
               },
               "projectedBounds": {
-                "left": 513.2317846017003,
-                "top": 364.48364970294375,
-                "right": 620.0592451740157,
-                "bottom": 470.73192390459434
+                "left": 710.664596760168,
+                "top": 543.157347514575,
+                "right": 833.5304956820627,
+                "bottom": 667.7941637779127
               }
             },
             {
               "id": "chapter-node:结构机理层",
-              "x": -9.679507,
-              "y": 222.104098,
+              "x": 178.187719,
+              "y": 184.008449,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 840.6927849096521,
-                "top": 103.68280544369838,
-                "right": 950.5804376212863,
-                "bottom": 214.23178459843515
+                "left": 1047.2651723606923,
+                "top": 107.00152322414083,
+                "right": 1184.1261084991754,
+                "bottom": 233.42496994226636
               },
               "labelBounds": {
-                "left": 861.4375,
-                "top": 141.890625,
-                "right": 928.15625,
-                "bottom": 177.828125
+                "left": 1075.3046875,
+                "top": 150.75,
+                "right": 1151.8203125,
+                "bottom": 191.9375
               },
               "projectedBounds": {
-                "left": 840.6927849096521,
-                "top": 103.68280544369838,
-                "right": 950.5804376212863,
-                "bottom": 214.23178459843515
+                "left": 1047.2651723606923,
+                "top": 107.00152322414083,
+                "right": 1184.1261084991754,
+                "bottom": 233.42496994226636
               }
             },
             {
               "id": "chapter-node:课程全景",
-              "x": 2.918599,
-              "y": -227.868098,
+              "x": 70.569558,
+              "y": -173.281196,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 859.4559905613215,
-                "top": 573.9358417024412,
-                "right": 957.4023550452989,
-                "bottom": 670.7959318445414
+                "left": 930.4228763902764,
+                "top": 537.4319643071091,
+                "right": 1045.7561565757194,
+                "bottom": 647.795493599973
               },
               "labelBounds": {
-                "left": 881.046875,
-                "top": 603.8125,
-                "right": 934.421875,
-                "bottom": 639.75
+                "left": 956.2734375,
+                "top": 571.359375,
+                "right": 1017.4765625,
+                "bottom": 612.546875
               },
               "projectedBounds": {
-                "left": 859.4559905613215,
-                "top": 573.9358417024412,
-                "right": 957.4023550452989,
-                "bottom": 670.7959318445414
+                "left": 930.4228763902764,
+                "top": 537.4319643071091,
+                "right": 1045.7561565757194,
+                "bottom": 647.795493599973
               }
             },
             {
               "id": "chapter-node:非线性系统",
-              "x": 180.325432,
-              "y": 76.82323,
+              "x": 38.618896,
+              "y": 168.902477,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 1032.3782573042893,
-                "top": 255.1229417567583,
-                "right": 1150.3829771383382,
-                "bottom": 362.1297522392126
+                "left": 886.5235526190605,
+                "top": 125.17965444995241,
+                "right": 1014.7248656923852,
+                "bottom": 250.97923747470983
               },
               "labelBounds": {
-                "left": 1056.484375,
-                "top": 291.03125,
-                "right": 1123.203125,
-                "bottom": 326.96875
+                "left": 911.0078125,
+                "top": 168.53125,
+                "right": 987.5234375,
+                "bottom": 209.71875
               },
               "projectedBounds": {
-                "left": 1032.3782573042893,
-                "top": 255.1229417567583,
-                "right": 1150.3829771383382,
-                "bottom": 362.1297522392126
+                "left": 886.5235526190605,
+                "top": 125.17965444995241,
+                "right": 1014.7248656923852,
+                "bottom": 250.97923747470983
               }
             },
             {
               "id": "chapter-node:频域分析",
-              "x": 38.909504,
-              "y": -117.393052,
+              "x": -11.199146,
+              "y": -90.678474,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 895.9448509421015,
-                "top": 461.20406595761057,
-                "right": 995.0140033365681,
-                "bottom": 556.0742133199715
+                "left": 835.5581794442827,
+                "top": 440.67272736017463,
+                "right": 947.391730738017,
+                "bottom": 549.3547245445437
               },
               "labelBounds": {
-                "left": 917.984375,
-                "top": 490.40625,
-                "right": 971.359375,
-                "bottom": 526.34375
+                "left": 860.0078125,
+                "top": 474.125,
+                "right": 921.2109375,
+                "bottom": 515.3125
               },
               "projectedBounds": {
-                "left": 895.9448509421015,
-                "top": 461.20406595761057,
-                "right": 995.0140033365681,
-                "bottom": 556.0742133199715
+                "left": 835.5581794442827,
+                "top": 440.67272736017463,
+                "right": 947.391730738017,
+                "bottom": 549.3547245445437
               }
             }
           ],
           "allNodesInFrustum": true,
           "projectedBoundsSafetyMargin": 8,
-          "minimumProjectedMargin": 8.000000000000455,
+          "minimumProjectedMargin": 8.000000000001137,
           "allProjectedBoundsInsideCanvas": true
         },
         "afterFirstFit": {
@@ -2043,383 +2043,383 @@
           "nodePositions": [
             {
               "id": "chapter-node:前沿拓展",
-              "x": -217.824539,
-              "y": -82.287845,
+              "x": 173.109869,
+              "y": 64.374134,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 633.9966746623297,
-                "top": 425.2257376060082,
-                "right": 728.380773293499,
-                "bottom": 519.7755679267462
+                "left": 1048.6525037971157,
+                "top": 257.31927512050993,
+                "right": 1169.8414170812205,
+                "bottom": 366.3005175755672
               },
               "labelBounds": {
-                "left": 654.4375,
-                "top": 454.359375,
-                "right": 707.8125,
-                "bottom": 490.296875
+                "left": 1076.9921875,
+                "top": 291.59375,
+                "right": 1138.1953125,
+                "bottom": 332.78125
               },
               "projectedBounds": {
-                "left": 633.9966746623297,
-                "top": 425.2257376060082,
-                "right": 728.380773293499,
-                "bottom": 519.7755679267462
+                "left": 1048.6525037971157,
+                "top": 257.31927512050993,
+                "right": 1169.8414170812205,
+                "bottom": 366.3005175755672
               }
             },
             {
               "id": "chapter-node:基本概念",
-              "x": 2.714534,
-              "y": -9.558772,
+              "x": -48.460001,
+              "y": 23.276552,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 859.2488971250463,
-                "top": 350.4426775409676,
-                "right": 957.189305662099,
-                "bottom": 444.8190950584916
+                "left": 792.1419127548743,
+                "top": 306.1392921143054,
+                "right": 902.7561881946352,
+                "bottom": 414.59894969392843
               },
               "labelBounds": {
-                "left": 880.828125,
-                "top": 379.703125,
-                "right": 934.203125,
-                "bottom": 415.640625
+                "left": 816.1484375,
+                "top": 339.96875,
+                "right": 877.3515625,
+                "bottom": 381.15625
               },
               "projectedBounds": {
-                "left": 859.2488971250463,
-                "top": 350.4426775409676,
-                "right": 957.189305662099,
-                "bottom": 444.8190950584916
+                "left": 792.1419127548743,
+                "top": 306.1392921143054,
+                "right": 902.7561881946352,
+                "bottom": 414.59894969392843
               }
             },
             {
               "id": "chapter-node:建模专题速通",
-              "x": 217.066317,
-              "y": -98.97757,
+              "x": -239.115036,
+              "y": -105.312727,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 1062.704873559514,
-                "top": 430.35795698968735,
-                "right": 1196.5668528363801,
-                "bottom": 549.2444301870912
+                "left": 554.0575918382098,
+                "top": 444.1312052120702,
+                "right": 690.1395354452108,
+                "bottom": 580.8896962044244
               },
               "labelBounds": {
-                "left": 1087.53125,
-                "top": 471.5,
-                "right": 1167.59375,
-                "bottom": 507.4375
+                "left": 576.40625,
+                "top": 491.34375,
+                "right": 668.21875,
+                "bottom": 532.53125
               },
               "projectedBounds": {
-                "left": 1062.704873559514,
-                "top": 430.35795698968735,
-                "right": 1196.5668528363801,
-                "bottom": 549.2444301870912
+                "left": 554.0575918382098,
+                "top": 444.1312052120702,
+                "right": 690.1395354452108,
+                "bottom": 580.8896962044244
               }
             },
             {
               "id": "chapter-node:时域分析",
-              "x": -127.859704,
-              "y": -13.271027,
+              "x": -172.379138,
+              "y": 2.742763,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 726.2406576676137,
-                "top": 354.2678114990964,
-                "right": 821.3624753910758,
-                "bottom": 448.63700269157465
+                "left": 646.8474084131343,
+                "top": 330.4719510924833,
+                "right": 755.2151091495746,
+                "bottom": 438.7900637707265
               },
               "labelBounds": {
-                "left": 746.78125,
-                "top": 383.515625,
-                "right": 800.15625,
-                "bottom": 419.453125
+                "left": 670.2734375,
+                "top": 364.140625,
+                "right": 731.4765625,
+                "bottom": 405.328125
               },
               "projectedBounds": {
-                "left": 726.2406576676137,
-                "top": 354.2678114990964,
-                "right": 821.3624753910758,
-                "bottom": 448.63700269157465
+                "left": 646.8474084131343,
+                "top": 330.4719510924833,
+                "right": 755.2151091495746,
+                "bottom": 438.7900637707265
               }
             },
             {
               "id": "chapter-node:根轨迹分析",
-              "x": 44.915169,
-              "y": 101.895573,
+              "x": -101.64061,
+              "y": 128.551575,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 895.9883412806208,
-                "top": 229.0888525500673,
-                "right": 1007.7722791079218,
-                "bottom": 336.5045437102908
+                "left": 723.1895726863955,
+                "top": 173.62720043849512,
+                "right": 846.2822080125972,
+                "bottom": 297.97967196165513
               },
               "labelBounds": {
-                "left": 917.484375,
-                "top": 265.296875,
-                "right": 984.203125,
-                "bottom": 301.234375
+                "left": 745.8828125,
+                "top": 216.03125,
+                "right": 822.3984375,
+                "bottom": 257.21875
               },
               "projectedBounds": {
-                "left": 895.9883412806208,
-                "top": 229.0888525500673,
-                "right": 1007.7722791079218,
-                "bottom": 336.5045437102908
+                "left": 723.1895726863955,
+                "top": 173.62720043849512,
+                "right": 846.2822080125972,
+                "bottom": 297.97967196165513
               }
             },
             {
               "id": "chapter-node:状态空间",
-              "x": -215.896291,
-              "y": 64.382151,
+              "x": -284.806728,
+              "y": 27.501743,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 635.9790701098144,
-                "top": 274.0738550518678,
-                "right": 730.3683852033138,
-                "bottom": 368.95334589731397
+                "left": 513.7792042166885,
+                "top": 301.12747880600637,
+                "right": 622.6036152504626,
+                "bottom": 409.62613672609666
               },
               "labelBounds": {
-                "left": 656.40625,
-                "top": 303.796875,
-                "right": 709.78125,
-                "bottom": 339.734375
+                "left": 537.9140625,
+                "top": 335,
+                "right": 599.1171875,
+                "bottom": 376.1875
               },
               "projectedBounds": {
-                "left": 635.9790701098144,
-                "top": 274.0738550518678,
-                "right": 730.3683852033138,
-                "bottom": 368.95334589731397
+                "left": 513.7792042166885,
+                "top": 301.12747880600637,
+                "right": 622.6036152504626,
+                "bottom": 409.62613672609666
               }
             },
             {
               "id": "chapter-node:知识边界与方法迁移层",
-              "x": 313.590832,
-              "y": 31.837901,
+              "x": 263.608728,
+              "y": -35.936212,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 1148.125942686502,
-                "top": 285.5829251406471,
-                "right": 1311.9999999999995,
-                "bottom": 424.0617103441759
+                "left": 1125.0405179803531,
+                "top": 351.0901682590698,
+                "right": 1311.9999999999989,
+                "bottom": 509.69983961610893
               },
               "labelBounds": {
-                "left": 1179.953125,
-                "top": 328.21875,
-                "right": 1273.359375,
-                "bottom": 382.125
+                "left": 1160.5625,
+                "top": 399.375,
+                "right": 1267.6875,
+                "bottom": 461.15625
               },
               "projectedBounds": {
-                "left": 1148.125942686502,
-                "top": 285.5829251406471,
-                "right": 1311.9999999999995,
-                "bottom": 424.0617103441759
+                "left": 1125.0405179803531,
+                "top": 351.0901682590698,
+                "right": 1311.9999999999989,
+                "bottom": 509.69983961610893
               }
             },
             {
               "id": "chapter-node:离散系统",
-              "x": -88.920867,
-              "y": -128.046931,
+              "x": -221.216821,
+              "y": 120.842111,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 766.0112887978443,
-                "top": 472.1078242800123,
-                "right": 861.7617546534296,
-                "bottom": 567.1053814249674
+                "left": 589.1905021040552,
+                "top": 189.9855338594905,
+                "right": 697.4627918407984,
+                "bottom": 300.1937476468787
               },
               "labelBounds": {
-                "left": 786.765625,
-                "top": 501.34375,
-                "right": 840.140625,
-                "bottom": 537.28125
+                "left": 612.7734375,
+                "top": 225.109375,
+                "right": 673.9765625,
+                "bottom": 266.296875
               },
               "projectedBounds": {
-                "left": 766.0112887978443,
-                "top": 472.1078242800123,
-                "right": 861.7617546534296,
-                "bottom": 567.1053814249674
+                "left": 589.1905021040552,
+                "top": 189.9855338594905,
+                "right": 697.4627918407984,
+                "bottom": 300.1937476468787
               }
             },
             {
               "id": "chapter-node:系统校正",
-              "x": -98.900027,
-              "y": 108.838264,
+              "x": 113.951756,
+              "y": -58.702627,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 755.82771906457,
-                "top": 227.9950843047879,
-                "right": 851.3995550563752,
-                "bottom": 323.5028653826626
+                "left": 980.536950059354,
+                "top": 403.0465520448737,
+                "right": 1098.1593499525839,
+                "bottom": 511.4181898763812
               },
               "labelBounds": {
-                "left": 776.515625,
-                "top": 258.15625,
-                "right": 829.890625,
-                "bottom": 294.09375
+                "left": 1007.3515625,
+                "top": 436.484375,
+                "right": 1068.5546875,
+                "bottom": 477.671875
               },
               "projectedBounds": {
-                "left": 755.82771906457,
-                "top": 227.9950843047879,
-                "right": 851.3995550563752,
-                "bottom": 323.5028653826626
+                "left": 980.536950059354,
+                "top": 403.0465520448737,
+                "right": 1098.1593499525839,
+                "bottom": 511.4181898763812
               }
             },
             {
               "id": "chapter-node:系统模型",
-              "x": 116.160337,
-              "y": -23.983175,
+              "x": 61.889811,
+              "y": 52.616435,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 974.0306142662414,
-                "top": 365.3008348387051,
-                "right": 1075.9774781641092,
-                "bottom": 459.6588739363137
+                "left": 920.3787917145552,
+                "top": 271.30244657433803,
+                "right": 1035.288972064706,
+                "bottom": 380.1021800812542
               },
               "labelBounds": {
-                "left": 997.28125,
-                "top": 394.515625,
-                "right": 1050.65625,
-                "bottom": 430.453125
+                "left": 946.0546875,
+                "top": 305.4375,
+                "right": 1007.2578125,
+                "bottom": 346.625
               },
               "projectedBounds": {
-                "left": 974.0306142662414,
-                "top": 365.3008348387051,
-                "right": 1075.9774781641092,
-                "bottom": 459.6588739363137
+                "left": 920.3787917145552,
+                "top": 271.30244657433803,
+                "right": 1035.288972064706,
+                "bottom": 380.1021800812542
               }
             },
             {
               "id": "chapter-node:约束设计层",
-              "x": -329.024832,
-              "y": -28.962956,
+              "x": -112.326401,
+              "y": -184.008449,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 513.2317846017003,
-                "top": 364.48364970294375,
-                "right": 620.0592451740157,
-                "bottom": 470.73192390459434
+                "left": 710.664596760168,
+                "top": 543.157347514575,
+                "right": 833.5304956820627,
+                "bottom": 667.7941637779127
               },
               "labelBounds": {
-                "left": 533.609375,
-                "top": 399.625,
-                "right": 600.328125,
-                "bottom": 435.5625
+                "left": 733.3046875,
+                "top": 583.984375,
+                "right": 809.8203125,
+                "bottom": 625.171875
               },
               "projectedBounds": {
-                "left": 513.2317846017003,
-                "top": 364.48364970294375,
-                "right": 620.0592451740157,
-                "bottom": 470.73192390459434
+                "left": 710.664596760168,
+                "top": 543.157347514575,
+                "right": 833.5304956820627,
+                "bottom": 667.7941637779127
               }
             },
             {
               "id": "chapter-node:结构机理层",
-              "x": -9.679507,
-              "y": 222.104098,
+              "x": 178.187719,
+              "y": 184.008449,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 840.6927849096521,
-                "top": 103.68280544369838,
-                "right": 950.5804376212863,
-                "bottom": 214.23178459843515
+                "left": 1047.2651723606923,
+                "top": 107.00152322414083,
+                "right": 1184.1261084991754,
+                "bottom": 233.42496994226636
               },
               "labelBounds": {
-                "left": 861.4375,
-                "top": 141.890625,
-                "right": 928.15625,
-                "bottom": 177.828125
+                "left": 1075.3046875,
+                "top": 150.75,
+                "right": 1151.8203125,
+                "bottom": 191.9375
               },
               "projectedBounds": {
-                "left": 840.6927849096521,
-                "top": 103.68280544369838,
-                "right": 950.5804376212863,
-                "bottom": 214.23178459843515
+                "left": 1047.2651723606923,
+                "top": 107.00152322414083,
+                "right": 1184.1261084991754,
+                "bottom": 233.42496994226636
               }
             },
             {
               "id": "chapter-node:课程全景",
-              "x": 2.918599,
-              "y": -227.868098,
+              "x": 70.569558,
+              "y": -173.281196,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 859.4559905613215,
-                "top": 573.9358417024412,
-                "right": 957.4023550452989,
-                "bottom": 670.7959318445414
+                "left": 930.4228763902764,
+                "top": 537.4319643071091,
+                "right": 1045.7561565757194,
+                "bottom": 647.795493599973
               },
               "labelBounds": {
-                "left": 881.046875,
-                "top": 603.8125,
-                "right": 934.421875,
-                "bottom": 639.75
+                "left": 956.2734375,
+                "top": 571.359375,
+                "right": 1017.4765625,
+                "bottom": 612.546875
               },
               "projectedBounds": {
-                "left": 859.4559905613215,
-                "top": 573.9358417024412,
-                "right": 957.4023550452989,
-                "bottom": 670.7959318445414
+                "left": 930.4228763902764,
+                "top": 537.4319643071091,
+                "right": 1045.7561565757194,
+                "bottom": 647.795493599973
               }
             },
             {
               "id": "chapter-node:非线性系统",
-              "x": 180.325432,
-              "y": 76.82323,
+              "x": 38.618896,
+              "y": 168.902477,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 1032.3782573042893,
-                "top": 255.1229417567583,
-                "right": 1150.3829771383382,
-                "bottom": 362.1297522392126
+                "left": 886.5235526190605,
+                "top": 125.17965444995241,
+                "right": 1014.7248656923852,
+                "bottom": 250.97923747470983
               },
               "labelBounds": {
-                "left": 1056.484375,
-                "top": 291.03125,
-                "right": 1123.203125,
-                "bottom": 326.96875
+                "left": 911.0078125,
+                "top": 168.53125,
+                "right": 987.5234375,
+                "bottom": 209.71875
               },
               "projectedBounds": {
-                "left": 1032.3782573042893,
-                "top": 255.1229417567583,
-                "right": 1150.3829771383382,
-                "bottom": 362.1297522392126
+                "left": 886.5235526190605,
+                "top": 125.17965444995241,
+                "right": 1014.7248656923852,
+                "bottom": 250.97923747470983
               }
             },
             {
               "id": "chapter-node:频域分析",
-              "x": 38.909504,
-              "y": -117.393052,
+              "x": -11.199146,
+              "y": -90.678474,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 895.9448509421015,
-                "top": 461.20406595761057,
-                "right": 995.0140033365681,
-                "bottom": 556.0742133199715
+                "left": 835.5581794442827,
+                "top": 440.67272736017463,
+                "right": 947.391730738017,
+                "bottom": 549.3547245445437
               },
               "labelBounds": {
-                "left": 917.984375,
-                "top": 490.40625,
-                "right": 971.359375,
-                "bottom": 526.34375
+                "left": 860.0078125,
+                "top": 474.125,
+                "right": 921.2109375,
+                "bottom": 515.3125
               },
               "projectedBounds": {
-                "left": 895.9448509421015,
-                "top": 461.20406595761057,
-                "right": 995.0140033365681,
-                "bottom": 556.0742133199715
+                "left": 835.5581794442827,
+                "top": 440.67272736017463,
+                "right": 947.391730738017,
+                "bottom": 549.3547245445437
               }
             }
           ],
           "allNodesInFrustum": true,
           "projectedBoundsSafetyMargin": 8,
-          "minimumProjectedMargin": 8.000000000000455,
+          "minimumProjectedMargin": 8.000000000001137,
           "allProjectedBoundsInsideCanvas": true
         },
         "afterFirstRelayout": {
@@ -2439,383 +2439,383 @@
           "nodePositions": [
             {
               "id": "chapter-node:前沿拓展",
-              "x": -217.824539,
-              "y": -82.287845,
+              "x": 173.109869,
+              "y": 64.374134,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 633.9966746623297,
-                "top": 425.2257376060082,
-                "right": 728.380773293499,
-                "bottom": 519.7755679267462
+                "left": 1048.6525037971157,
+                "top": 257.31927512050993,
+                "right": 1169.8414170812205,
+                "bottom": 366.3005175755672
               },
               "labelBounds": {
-                "left": 654.4375,
-                "top": 454.359375,
-                "right": 707.8125,
-                "bottom": 490.296875
+                "left": 1076.9921875,
+                "top": 291.59375,
+                "right": 1138.1953125,
+                "bottom": 332.78125
               },
               "projectedBounds": {
-                "left": 633.9966746623297,
-                "top": 425.2257376060082,
-                "right": 728.380773293499,
-                "bottom": 519.7755679267462
+                "left": 1048.6525037971157,
+                "top": 257.31927512050993,
+                "right": 1169.8414170812205,
+                "bottom": 366.3005175755672
               }
             },
             {
               "id": "chapter-node:基本概念",
-              "x": 2.714534,
-              "y": -9.558772,
+              "x": -48.460001,
+              "y": 23.276552,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 859.2488971250463,
-                "top": 350.4426775409676,
-                "right": 957.189305662099,
-                "bottom": 444.8190950584916
+                "left": 792.1419127548743,
+                "top": 306.1392921143054,
+                "right": 902.7561881946352,
+                "bottom": 414.59894969392843
               },
               "labelBounds": {
-                "left": 880.828125,
-                "top": 379.703125,
-                "right": 934.203125,
-                "bottom": 415.640625
+                "left": 816.1484375,
+                "top": 339.96875,
+                "right": 877.3515625,
+                "bottom": 381.15625
               },
               "projectedBounds": {
-                "left": 859.2488971250463,
-                "top": 350.4426775409676,
-                "right": 957.189305662099,
-                "bottom": 444.8190950584916
+                "left": 792.1419127548743,
+                "top": 306.1392921143054,
+                "right": 902.7561881946352,
+                "bottom": 414.59894969392843
               }
             },
             {
               "id": "chapter-node:建模专题速通",
-              "x": 217.066317,
-              "y": -98.97757,
+              "x": -239.115036,
+              "y": -105.312727,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 1062.704873559514,
-                "top": 430.35795698968735,
-                "right": 1196.5668528363801,
-                "bottom": 549.2444301870912
+                "left": 554.0575918382098,
+                "top": 444.1312052120702,
+                "right": 690.1395354452108,
+                "bottom": 580.8896962044244
               },
               "labelBounds": {
-                "left": 1087.53125,
-                "top": 471.5,
-                "right": 1167.59375,
-                "bottom": 507.4375
+                "left": 576.40625,
+                "top": 491.34375,
+                "right": 668.21875,
+                "bottom": 532.53125
               },
               "projectedBounds": {
-                "left": 1062.704873559514,
-                "top": 430.35795698968735,
-                "right": 1196.5668528363801,
-                "bottom": 549.2444301870912
+                "left": 554.0575918382098,
+                "top": 444.1312052120702,
+                "right": 690.1395354452108,
+                "bottom": 580.8896962044244
               }
             },
             {
               "id": "chapter-node:时域分析",
-              "x": -127.859704,
-              "y": -13.271027,
+              "x": -172.379138,
+              "y": 2.742763,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 726.2406576676137,
-                "top": 354.2678114990964,
-                "right": 821.3624753910758,
-                "bottom": 448.63700269157465
+                "left": 646.8474084131343,
+                "top": 330.4719510924833,
+                "right": 755.2151091495746,
+                "bottom": 438.7900637707265
               },
               "labelBounds": {
-                "left": 746.78125,
-                "top": 383.515625,
-                "right": 800.15625,
-                "bottom": 419.453125
+                "left": 670.2734375,
+                "top": 364.140625,
+                "right": 731.4765625,
+                "bottom": 405.328125
               },
               "projectedBounds": {
-                "left": 726.2406576676137,
-                "top": 354.2678114990964,
-                "right": 821.3624753910758,
-                "bottom": 448.63700269157465
+                "left": 646.8474084131343,
+                "top": 330.4719510924833,
+                "right": 755.2151091495746,
+                "bottom": 438.7900637707265
               }
             },
             {
               "id": "chapter-node:根轨迹分析",
-              "x": 44.915169,
-              "y": 101.895573,
+              "x": -101.64061,
+              "y": 128.551575,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 895.9883412806208,
-                "top": 229.0888525500673,
-                "right": 1007.7722791079218,
-                "bottom": 336.5045437102908
+                "left": 723.1895726863955,
+                "top": 173.62720043849512,
+                "right": 846.2822080125972,
+                "bottom": 297.97967196165513
               },
               "labelBounds": {
-                "left": 917.484375,
-                "top": 265.296875,
-                "right": 984.203125,
-                "bottom": 301.234375
+                "left": 745.8828125,
+                "top": 216.03125,
+                "right": 822.3984375,
+                "bottom": 257.21875
               },
               "projectedBounds": {
-                "left": 895.9883412806208,
-                "top": 229.0888525500673,
-                "right": 1007.7722791079218,
-                "bottom": 336.5045437102908
+                "left": 723.1895726863955,
+                "top": 173.62720043849512,
+                "right": 846.2822080125972,
+                "bottom": 297.97967196165513
               }
             },
             {
               "id": "chapter-node:状态空间",
-              "x": -215.896291,
-              "y": 64.382151,
+              "x": -284.806728,
+              "y": 27.501743,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 635.9790701098144,
-                "top": 274.0738550518678,
-                "right": 730.3683852033138,
-                "bottom": 368.95334589731397
+                "left": 513.7792042166885,
+                "top": 301.12747880600637,
+                "right": 622.6036152504626,
+                "bottom": 409.62613672609666
               },
               "labelBounds": {
-                "left": 656.40625,
-                "top": 303.796875,
-                "right": 709.78125,
-                "bottom": 339.734375
+                "left": 537.9140625,
+                "top": 335,
+                "right": 599.1171875,
+                "bottom": 376.1875
               },
               "projectedBounds": {
-                "left": 635.9790701098144,
-                "top": 274.0738550518678,
-                "right": 730.3683852033138,
-                "bottom": 368.95334589731397
+                "left": 513.7792042166885,
+                "top": 301.12747880600637,
+                "right": 622.6036152504626,
+                "bottom": 409.62613672609666
               }
             },
             {
               "id": "chapter-node:知识边界与方法迁移层",
-              "x": 313.590832,
-              "y": 31.837901,
+              "x": 263.608728,
+              "y": -35.936212,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 1148.125942686502,
-                "top": 285.5829251406471,
-                "right": 1311.9999999999995,
-                "bottom": 424.0617103441759
+                "left": 1125.0405179803531,
+                "top": 351.0901682590698,
+                "right": 1311.9999999999989,
+                "bottom": 509.69983961610893
               },
               "labelBounds": {
-                "left": 1179.953125,
-                "top": 328.21875,
-                "right": 1273.359375,
-                "bottom": 382.125
+                "left": 1160.5625,
+                "top": 399.375,
+                "right": 1267.6875,
+                "bottom": 461.15625
               },
               "projectedBounds": {
-                "left": 1148.125942686502,
-                "top": 285.5829251406471,
-                "right": 1311.9999999999995,
-                "bottom": 424.0617103441759
+                "left": 1125.0405179803531,
+                "top": 351.0901682590698,
+                "right": 1311.9999999999989,
+                "bottom": 509.69983961610893
               }
             },
             {
               "id": "chapter-node:离散系统",
-              "x": -88.920867,
-              "y": -128.046931,
+              "x": -221.216821,
+              "y": 120.842111,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 766.0112887978443,
-                "top": 472.1078242800123,
-                "right": 861.7617546534296,
-                "bottom": 567.1053814249674
+                "left": 589.1905021040552,
+                "top": 189.9855338594905,
+                "right": 697.4627918407984,
+                "bottom": 300.1937476468787
               },
               "labelBounds": {
-                "left": 786.765625,
-                "top": 501.34375,
-                "right": 840.140625,
-                "bottom": 537.28125
+                "left": 612.7734375,
+                "top": 225.109375,
+                "right": 673.9765625,
+                "bottom": 266.296875
               },
               "projectedBounds": {
-                "left": 766.0112887978443,
-                "top": 472.1078242800123,
-                "right": 861.7617546534296,
-                "bottom": 567.1053814249674
+                "left": 589.1905021040552,
+                "top": 189.9855338594905,
+                "right": 697.4627918407984,
+                "bottom": 300.1937476468787
               }
             },
             {
               "id": "chapter-node:系统校正",
-              "x": -98.900027,
-              "y": 108.838264,
+              "x": 113.951756,
+              "y": -58.702627,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 755.82771906457,
-                "top": 227.9950843047879,
-                "right": 851.3995550563752,
-                "bottom": 323.5028653826626
+                "left": 980.536950059354,
+                "top": 403.0465520448737,
+                "right": 1098.1593499525839,
+                "bottom": 511.4181898763812
               },
               "labelBounds": {
-                "left": 776.515625,
-                "top": 258.15625,
-                "right": 829.890625,
-                "bottom": 294.09375
+                "left": 1007.3515625,
+                "top": 436.484375,
+                "right": 1068.5546875,
+                "bottom": 477.671875
               },
               "projectedBounds": {
-                "left": 755.82771906457,
-                "top": 227.9950843047879,
-                "right": 851.3995550563752,
-                "bottom": 323.5028653826626
+                "left": 980.536950059354,
+                "top": 403.0465520448737,
+                "right": 1098.1593499525839,
+                "bottom": 511.4181898763812
               }
             },
             {
               "id": "chapter-node:系统模型",
-              "x": 116.160337,
-              "y": -23.983175,
+              "x": 61.889811,
+              "y": 52.616435,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 974.0306142662414,
-                "top": 365.3008348387051,
-                "right": 1075.9774781641092,
-                "bottom": 459.6588739363137
+                "left": 920.3787917145552,
+                "top": 271.30244657433803,
+                "right": 1035.288972064706,
+                "bottom": 380.1021800812542
               },
               "labelBounds": {
-                "left": 997.28125,
-                "top": 394.515625,
-                "right": 1050.65625,
-                "bottom": 430.453125
+                "left": 946.0546875,
+                "top": 305.4375,
+                "right": 1007.2578125,
+                "bottom": 346.625
               },
               "projectedBounds": {
-                "left": 974.0306142662414,
-                "top": 365.3008348387051,
-                "right": 1075.9774781641092,
-                "bottom": 459.6588739363137
+                "left": 920.3787917145552,
+                "top": 271.30244657433803,
+                "right": 1035.288972064706,
+                "bottom": 380.1021800812542
               }
             },
             {
               "id": "chapter-node:约束设计层",
-              "x": -329.024832,
-              "y": -28.962956,
+              "x": -112.326401,
+              "y": -184.008449,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 513.2317846017003,
-                "top": 364.48364970294375,
-                "right": 620.0592451740157,
-                "bottom": 470.73192390459434
+                "left": 710.664596760168,
+                "top": 543.157347514575,
+                "right": 833.5304956820627,
+                "bottom": 667.7941637779127
               },
               "labelBounds": {
-                "left": 533.609375,
-                "top": 399.625,
-                "right": 600.328125,
-                "bottom": 435.5625
+                "left": 733.3046875,
+                "top": 583.984375,
+                "right": 809.8203125,
+                "bottom": 625.171875
               },
               "projectedBounds": {
-                "left": 513.2317846017003,
-                "top": 364.48364970294375,
-                "right": 620.0592451740157,
-                "bottom": 470.73192390459434
+                "left": 710.664596760168,
+                "top": 543.157347514575,
+                "right": 833.5304956820627,
+                "bottom": 667.7941637779127
               }
             },
             {
               "id": "chapter-node:结构机理层",
-              "x": -9.679507,
-              "y": 222.104098,
+              "x": 178.187719,
+              "y": 184.008449,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 840.6927849096521,
-                "top": 103.68280544369838,
-                "right": 950.5804376212863,
-                "bottom": 214.23178459843515
+                "left": 1047.2651723606923,
+                "top": 107.00152322414083,
+                "right": 1184.1261084991754,
+                "bottom": 233.42496994226636
               },
               "labelBounds": {
-                "left": 861.4375,
-                "top": 141.890625,
-                "right": 928.15625,
-                "bottom": 177.828125
+                "left": 1075.3046875,
+                "top": 150.75,
+                "right": 1151.8203125,
+                "bottom": 191.9375
               },
               "projectedBounds": {
-                "left": 840.6927849096521,
-                "top": 103.68280544369838,
-                "right": 950.5804376212863,
-                "bottom": 214.23178459843515
+                "left": 1047.2651723606923,
+                "top": 107.00152322414083,
+                "right": 1184.1261084991754,
+                "bottom": 233.42496994226636
               }
             },
             {
               "id": "chapter-node:课程全景",
-              "x": 2.918599,
-              "y": -227.868098,
+              "x": 70.569558,
+              "y": -173.281196,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 859.4559905613215,
-                "top": 573.9358417024412,
-                "right": 957.4023550452989,
-                "bottom": 670.7959318445414
+                "left": 930.4228763902764,
+                "top": 537.4319643071091,
+                "right": 1045.7561565757194,
+                "bottom": 647.795493599973
               },
               "labelBounds": {
-                "left": 881.046875,
-                "top": 603.8125,
-                "right": 934.421875,
-                "bottom": 639.75
+                "left": 956.2734375,
+                "top": 571.359375,
+                "right": 1017.4765625,
+                "bottom": 612.546875
               },
               "projectedBounds": {
-                "left": 859.4559905613215,
-                "top": 573.9358417024412,
-                "right": 957.4023550452989,
-                "bottom": 670.7959318445414
+                "left": 930.4228763902764,
+                "top": 537.4319643071091,
+                "right": 1045.7561565757194,
+                "bottom": 647.795493599973
               }
             },
             {
               "id": "chapter-node:非线性系统",
-              "x": 180.325432,
-              "y": 76.82323,
+              "x": 38.618896,
+              "y": 168.902477,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 1032.3782573042893,
-                "top": 255.1229417567583,
-                "right": 1150.3829771383382,
-                "bottom": 362.1297522392126
+                "left": 886.5235526190605,
+                "top": 125.17965444995241,
+                "right": 1014.7248656923852,
+                "bottom": 250.97923747470983
               },
               "labelBounds": {
-                "left": 1056.484375,
-                "top": 291.03125,
-                "right": 1123.203125,
-                "bottom": 326.96875
+                "left": 911.0078125,
+                "top": 168.53125,
+                "right": 987.5234375,
+                "bottom": 209.71875
               },
               "projectedBounds": {
-                "left": 1032.3782573042893,
-                "top": 255.1229417567583,
-                "right": 1150.3829771383382,
-                "bottom": 362.1297522392126
+                "left": 886.5235526190605,
+                "top": 125.17965444995241,
+                "right": 1014.7248656923852,
+                "bottom": 250.97923747470983
               }
             },
             {
               "id": "chapter-node:频域分析",
-              "x": 38.909504,
-              "y": -117.393052,
+              "x": -11.199146,
+              "y": -90.678474,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 895.9448509421015,
-                "top": 461.20406595761057,
-                "right": 995.0140033365681,
-                "bottom": 556.0742133199715
+                "left": 835.5581794442827,
+                "top": 440.67272736017463,
+                "right": 947.391730738017,
+                "bottom": 549.3547245445437
               },
               "labelBounds": {
-                "left": 917.984375,
-                "top": 490.40625,
-                "right": 971.359375,
-                "bottom": 526.34375
+                "left": 860.0078125,
+                "top": 474.125,
+                "right": 921.2109375,
+                "bottom": 515.3125
               },
               "projectedBounds": {
-                "left": 895.9448509421015,
-                "top": 461.20406595761057,
-                "right": 995.0140033365681,
-                "bottom": 556.0742133199715
+                "left": 835.5581794442827,
+                "top": 440.67272736017463,
+                "right": 947.391730738017,
+                "bottom": 549.3547245445437
               }
             }
           ],
           "allNodesInFrustum": true,
           "projectedBoundsSafetyMargin": 8,
-          "minimumProjectedMargin": 8.000000000000455,
+          "minimumProjectedMargin": 8.000000000001137,
           "allProjectedBoundsInsideCanvas": true
         },
         "afterRepeatedRelayout": {
@@ -2835,383 +2835,383 @@
           "nodePositions": [
             {
               "id": "chapter-node:前沿拓展",
-              "x": -217.824539,
-              "y": -82.287845,
+              "x": 173.109869,
+              "y": 64.374134,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 633.9966746623297,
-                "top": 425.2257376060082,
-                "right": 728.380773293499,
-                "bottom": 519.7755679267462
+                "left": 1048.6525037971157,
+                "top": 257.31927512050993,
+                "right": 1169.8414170812205,
+                "bottom": 366.3005175755672
               },
               "labelBounds": {
-                "left": 654.4375,
-                "top": 454.359375,
-                "right": 707.8125,
-                "bottom": 490.296875
+                "left": 1076.9921875,
+                "top": 291.59375,
+                "right": 1138.1953125,
+                "bottom": 332.78125
               },
               "projectedBounds": {
-                "left": 633.9966746623297,
-                "top": 425.2257376060082,
-                "right": 728.380773293499,
-                "bottom": 519.7755679267462
+                "left": 1048.6525037971157,
+                "top": 257.31927512050993,
+                "right": 1169.8414170812205,
+                "bottom": 366.3005175755672
               }
             },
             {
               "id": "chapter-node:基本概念",
-              "x": 2.714534,
-              "y": -9.558772,
+              "x": -48.460001,
+              "y": 23.276552,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 859.2488971250463,
-                "top": 350.4426775409676,
-                "right": 957.189305662099,
-                "bottom": 444.8190950584916
+                "left": 792.1419127548743,
+                "top": 306.1392921143054,
+                "right": 902.7561881946352,
+                "bottom": 414.59894969392843
               },
               "labelBounds": {
-                "left": 880.828125,
-                "top": 379.703125,
-                "right": 934.203125,
-                "bottom": 415.640625
+                "left": 816.1484375,
+                "top": 339.96875,
+                "right": 877.3515625,
+                "bottom": 381.15625
               },
               "projectedBounds": {
-                "left": 859.2488971250463,
-                "top": 350.4426775409676,
-                "right": 957.189305662099,
-                "bottom": 444.8190950584916
+                "left": 792.1419127548743,
+                "top": 306.1392921143054,
+                "right": 902.7561881946352,
+                "bottom": 414.59894969392843
               }
             },
             {
               "id": "chapter-node:建模专题速通",
-              "x": 217.066317,
-              "y": -98.97757,
+              "x": -239.115036,
+              "y": -105.312727,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 1062.704873559514,
-                "top": 430.35795698968735,
-                "right": 1196.5668528363801,
-                "bottom": 549.2444301870912
+                "left": 554.0575918382098,
+                "top": 444.1312052120702,
+                "right": 690.1395354452108,
+                "bottom": 580.8896962044244
               },
               "labelBounds": {
-                "left": 1087.53125,
-                "top": 471.5,
-                "right": 1167.59375,
-                "bottom": 507.4375
+                "left": 576.40625,
+                "top": 491.34375,
+                "right": 668.21875,
+                "bottom": 532.53125
               },
               "projectedBounds": {
-                "left": 1062.704873559514,
-                "top": 430.35795698968735,
-                "right": 1196.5668528363801,
-                "bottom": 549.2444301870912
+                "left": 554.0575918382098,
+                "top": 444.1312052120702,
+                "right": 690.1395354452108,
+                "bottom": 580.8896962044244
               }
             },
             {
               "id": "chapter-node:时域分析",
-              "x": -127.859704,
-              "y": -13.271027,
+              "x": -172.379138,
+              "y": 2.742763,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 726.2406576676137,
-                "top": 354.2678114990964,
-                "right": 821.3624753910758,
-                "bottom": 448.63700269157465
+                "left": 646.8474084131343,
+                "top": 330.4719510924833,
+                "right": 755.2151091495746,
+                "bottom": 438.7900637707265
               },
               "labelBounds": {
-                "left": 746.78125,
-                "top": 383.515625,
-                "right": 800.15625,
-                "bottom": 419.453125
+                "left": 670.2734375,
+                "top": 364.140625,
+                "right": 731.4765625,
+                "bottom": 405.328125
               },
               "projectedBounds": {
-                "left": 726.2406576676137,
-                "top": 354.2678114990964,
-                "right": 821.3624753910758,
-                "bottom": 448.63700269157465
+                "left": 646.8474084131343,
+                "top": 330.4719510924833,
+                "right": 755.2151091495746,
+                "bottom": 438.7900637707265
               }
             },
             {
               "id": "chapter-node:根轨迹分析",
-              "x": 44.915169,
-              "y": 101.895573,
+              "x": -101.64061,
+              "y": 128.551575,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 895.9883412806208,
-                "top": 229.0888525500673,
-                "right": 1007.7722791079218,
-                "bottom": 336.5045437102908
+                "left": 723.1895726863955,
+                "top": 173.62720043849512,
+                "right": 846.2822080125972,
+                "bottom": 297.97967196165513
               },
               "labelBounds": {
-                "left": 917.484375,
-                "top": 265.296875,
-                "right": 984.203125,
-                "bottom": 301.234375
+                "left": 745.8828125,
+                "top": 216.03125,
+                "right": 822.3984375,
+                "bottom": 257.21875
               },
               "projectedBounds": {
-                "left": 895.9883412806208,
-                "top": 229.0888525500673,
-                "right": 1007.7722791079218,
-                "bottom": 336.5045437102908
+                "left": 723.1895726863955,
+                "top": 173.62720043849512,
+                "right": 846.2822080125972,
+                "bottom": 297.97967196165513
               }
             },
             {
               "id": "chapter-node:状态空间",
-              "x": -215.896291,
-              "y": 64.382151,
+              "x": -284.806728,
+              "y": 27.501743,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 635.9790701098144,
-                "top": 274.0738550518678,
-                "right": 730.3683852033138,
-                "bottom": 368.95334589731397
+                "left": 513.7792042166885,
+                "top": 301.12747880600637,
+                "right": 622.6036152504626,
+                "bottom": 409.62613672609666
               },
               "labelBounds": {
-                "left": 656.40625,
-                "top": 303.796875,
-                "right": 709.78125,
-                "bottom": 339.734375
+                "left": 537.9140625,
+                "top": 335,
+                "right": 599.1171875,
+                "bottom": 376.1875
               },
               "projectedBounds": {
-                "left": 635.9790701098144,
-                "top": 274.0738550518678,
-                "right": 730.3683852033138,
-                "bottom": 368.95334589731397
+                "left": 513.7792042166885,
+                "top": 301.12747880600637,
+                "right": 622.6036152504626,
+                "bottom": 409.62613672609666
               }
             },
             {
               "id": "chapter-node:知识边界与方法迁移层",
-              "x": 313.590832,
-              "y": 31.837901,
+              "x": 263.608728,
+              "y": -35.936212,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 1148.125942686502,
-                "top": 285.5829251406471,
-                "right": 1311.9999999999995,
-                "bottom": 424.0617103441759
+                "left": 1125.0405179803531,
+                "top": 351.0901682590698,
+                "right": 1311.9999999999989,
+                "bottom": 509.69983961610893
               },
               "labelBounds": {
-                "left": 1179.953125,
-                "top": 328.21875,
-                "right": 1273.359375,
-                "bottom": 382.125
+                "left": 1160.5625,
+                "top": 399.375,
+                "right": 1267.6875,
+                "bottom": 461.15625
               },
               "projectedBounds": {
-                "left": 1148.125942686502,
-                "top": 285.5829251406471,
-                "right": 1311.9999999999995,
-                "bottom": 424.0617103441759
+                "left": 1125.0405179803531,
+                "top": 351.0901682590698,
+                "right": 1311.9999999999989,
+                "bottom": 509.69983961610893
               }
             },
             {
               "id": "chapter-node:离散系统",
-              "x": -88.920867,
-              "y": -128.046931,
+              "x": -221.216821,
+              "y": 120.842111,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 766.0112887978443,
-                "top": 472.1078242800123,
-                "right": 861.7617546534296,
-                "bottom": 567.1053814249674
+                "left": 589.1905021040552,
+                "top": 189.9855338594905,
+                "right": 697.4627918407984,
+                "bottom": 300.1937476468787
               },
               "labelBounds": {
-                "left": 786.765625,
-                "top": 501.34375,
-                "right": 840.140625,
-                "bottom": 537.28125
+                "left": 612.7734375,
+                "top": 225.109375,
+                "right": 673.9765625,
+                "bottom": 266.296875
               },
               "projectedBounds": {
-                "left": 766.0112887978443,
-                "top": 472.1078242800123,
-                "right": 861.7617546534296,
-                "bottom": 567.1053814249674
+                "left": 589.1905021040552,
+                "top": 189.9855338594905,
+                "right": 697.4627918407984,
+                "bottom": 300.1937476468787
               }
             },
             {
               "id": "chapter-node:系统校正",
-              "x": -98.900027,
-              "y": 108.838264,
+              "x": 113.951756,
+              "y": -58.702627,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 755.82771906457,
-                "top": 227.9950843047879,
-                "right": 851.3995550563752,
-                "bottom": 323.5028653826626
+                "left": 980.536950059354,
+                "top": 403.0465520448737,
+                "right": 1098.1593499525839,
+                "bottom": 511.4181898763812
               },
               "labelBounds": {
-                "left": 776.515625,
-                "top": 258.15625,
-                "right": 829.890625,
-                "bottom": 294.09375
+                "left": 1007.3515625,
+                "top": 436.484375,
+                "right": 1068.5546875,
+                "bottom": 477.671875
               },
               "projectedBounds": {
-                "left": 755.82771906457,
-                "top": 227.9950843047879,
-                "right": 851.3995550563752,
-                "bottom": 323.5028653826626
+                "left": 980.536950059354,
+                "top": 403.0465520448737,
+                "right": 1098.1593499525839,
+                "bottom": 511.4181898763812
               }
             },
             {
               "id": "chapter-node:系统模型",
-              "x": 116.160337,
-              "y": -23.983175,
+              "x": 61.889811,
+              "y": 52.616435,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 974.0306142662414,
-                "top": 365.3008348387051,
-                "right": 1075.9774781641092,
-                "bottom": 459.6588739363137
+                "left": 920.3787917145552,
+                "top": 271.30244657433803,
+                "right": 1035.288972064706,
+                "bottom": 380.1021800812542
               },
               "labelBounds": {
-                "left": 997.28125,
-                "top": 394.515625,
-                "right": 1050.65625,
-                "bottom": 430.453125
+                "left": 946.0546875,
+                "top": 305.4375,
+                "right": 1007.2578125,
+                "bottom": 346.625
               },
               "projectedBounds": {
-                "left": 974.0306142662414,
-                "top": 365.3008348387051,
-                "right": 1075.9774781641092,
-                "bottom": 459.6588739363137
+                "left": 920.3787917145552,
+                "top": 271.30244657433803,
+                "right": 1035.288972064706,
+                "bottom": 380.1021800812542
               }
             },
             {
               "id": "chapter-node:约束设计层",
-              "x": -329.024832,
-              "y": -28.962956,
+              "x": -112.326401,
+              "y": -184.008449,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 513.2317846017003,
-                "top": 364.48364970294375,
-                "right": 620.0592451740157,
-                "bottom": 470.73192390459434
+                "left": 710.664596760168,
+                "top": 543.157347514575,
+                "right": 833.5304956820627,
+                "bottom": 667.7941637779127
               },
               "labelBounds": {
-                "left": 533.609375,
-                "top": 399.625,
-                "right": 600.328125,
-                "bottom": 435.5625
+                "left": 733.3046875,
+                "top": 583.984375,
+                "right": 809.8203125,
+                "bottom": 625.171875
               },
               "projectedBounds": {
-                "left": 513.2317846017003,
-                "top": 364.48364970294375,
-                "right": 620.0592451740157,
-                "bottom": 470.73192390459434
+                "left": 710.664596760168,
+                "top": 543.157347514575,
+                "right": 833.5304956820627,
+                "bottom": 667.7941637779127
               }
             },
             {
               "id": "chapter-node:结构机理层",
-              "x": -9.679507,
-              "y": 222.104098,
+              "x": 178.187719,
+              "y": 184.008449,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 840.6927849096521,
-                "top": 103.68280544369838,
-                "right": 950.5804376212863,
-                "bottom": 214.23178459843515
+                "left": 1047.2651723606923,
+                "top": 107.00152322414083,
+                "right": 1184.1261084991754,
+                "bottom": 233.42496994226636
               },
               "labelBounds": {
-                "left": 861.4375,
-                "top": 141.890625,
-                "right": 928.15625,
-                "bottom": 177.828125
+                "left": 1075.3046875,
+                "top": 150.75,
+                "right": 1151.8203125,
+                "bottom": 191.9375
               },
               "projectedBounds": {
-                "left": 840.6927849096521,
-                "top": 103.68280544369838,
-                "right": 950.5804376212863,
-                "bottom": 214.23178459843515
+                "left": 1047.2651723606923,
+                "top": 107.00152322414083,
+                "right": 1184.1261084991754,
+                "bottom": 233.42496994226636
               }
             },
             {
               "id": "chapter-node:课程全景",
-              "x": 2.918599,
-              "y": -227.868098,
+              "x": 70.569558,
+              "y": -173.281196,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 859.4559905613215,
-                "top": 573.9358417024412,
-                "right": 957.4023550452989,
-                "bottom": 670.7959318445414
+                "left": 930.4228763902764,
+                "top": 537.4319643071091,
+                "right": 1045.7561565757194,
+                "bottom": 647.795493599973
               },
               "labelBounds": {
-                "left": 881.046875,
-                "top": 603.8125,
-                "right": 934.421875,
-                "bottom": 639.75
+                "left": 956.2734375,
+                "top": 571.359375,
+                "right": 1017.4765625,
+                "bottom": 612.546875
               },
               "projectedBounds": {
-                "left": 859.4559905613215,
-                "top": 573.9358417024412,
-                "right": 957.4023550452989,
-                "bottom": 670.7959318445414
+                "left": 930.4228763902764,
+                "top": 537.4319643071091,
+                "right": 1045.7561565757194,
+                "bottom": 647.795493599973
               }
             },
             {
               "id": "chapter-node:非线性系统",
-              "x": 180.325432,
-              "y": 76.82323,
+              "x": 38.618896,
+              "y": 168.902477,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 1032.3782573042893,
-                "top": 255.1229417567583,
-                "right": 1150.3829771383382,
-                "bottom": 362.1297522392126
+                "left": 886.5235526190605,
+                "top": 125.17965444995241,
+                "right": 1014.7248656923852,
+                "bottom": 250.97923747470983
               },
               "labelBounds": {
-                "left": 1056.484375,
-                "top": 291.03125,
-                "right": 1123.203125,
-                "bottom": 326.96875
+                "left": 911.0078125,
+                "top": 168.53125,
+                "right": 987.5234375,
+                "bottom": 209.71875
               },
               "projectedBounds": {
-                "left": 1032.3782573042893,
-                "top": 255.1229417567583,
-                "right": 1150.3829771383382,
-                "bottom": 362.1297522392126
+                "left": 886.5235526190605,
+                "top": 125.17965444995241,
+                "right": 1014.7248656923852,
+                "bottom": 250.97923747470983
               }
             },
             {
               "id": "chapter-node:频域分析",
-              "x": 38.909504,
-              "y": -117.393052,
+              "x": -11.199146,
+              "y": -90.678474,
               "z": 0,
               "isInFrustum": 1,
               "bodyBounds": {
-                "left": 895.9448509421015,
-                "top": 461.20406595761057,
-                "right": 995.0140033365681,
-                "bottom": 556.0742133199715
+                "left": 835.5581794442827,
+                "top": 440.67272736017463,
+                "right": 947.391730738017,
+                "bottom": 549.3547245445437
               },
               "labelBounds": {
-                "left": 917.984375,
-                "top": 490.40625,
-                "right": 971.359375,
-                "bottom": 526.34375
+                "left": 860.0078125,
+                "top": 474.125,
+                "right": 921.2109375,
+                "bottom": 515.3125
               },
               "projectedBounds": {
-                "left": 895.9448509421015,
-                "top": 461.20406595761057,
-                "right": 995.0140033365681,
-                "bottom": 556.0742133199715
+                "left": 835.5581794442827,
+                "top": 440.67272736017463,
+                "right": 947.391730738017,
+                "bottom": 549.3547245445437
               }
             }
           ],
           "allNodesInFrustum": true,
           "projectedBoundsSafetyMargin": 8,
-          "minimumProjectedMargin": 8.000000000000455,
+          "minimumProjectedMargin": 8.000000000001137,
           "allProjectedBoundsInsideCanvas": true
         },
         "initialFitCompleted": true,
@@ -3363,7 +3363,7 @@
       "interactionState": "konling no-selection context",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-konling-no-selection-dark.png",
-      "screenshotSha256": "a48236b13a55836713e66f4474c716ed60244a7d44db8ba19a37f0fae4555d68",
+      "screenshotSha256": "4f5c1a6476ec08acc50aa38854c175b8f1b49804e4c97b7c2f2b3ddb5ea762af",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -3486,7 +3486,7 @@
       "interactionState": "konling degraded unresolved node context",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-konling-degraded-dark.png",
-      "screenshotSha256": "965de5aa7ff950d440b6c57f57956c9f1f811e1dc3fd3c2023865652f9bec5bb",
+      "screenshotSha256": "220ad9b53fd589b59db13800cdeef4b74ed5f0e5fdb58f30aed739653b3635c1",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -3609,7 +3609,7 @@
       "interactionState": "expanded shell local tool inspector konling stress state",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-stress-expanded-tool-inspector-konling-dark.png",
-      "screenshotSha256": "cca81cc4a1ea9c5c86f14dda971fc20914f2453f4f400ff5fca41c264e338b17",
+      "screenshotSha256": "5f8f3585a0a9474aa33f166cbd0e028a5a1d33c5fed7f1382a106443abf8345c",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -3758,7 +3758,7 @@
       "interactionState": "wide desktop default graph",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-wide-default-dark.png",
-      "screenshotSha256": "1fc02d56d1f28dd624359625a1cf4ca5549b9e298fe1ab39599de1281ea8d102",
+      "screenshotSha256": "7a3f5e9bea8036eda3fa0e16f58430c36a8f1a86e761f445c9535e56267e97df",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -3874,7 +3874,7 @@
       "interactionState": "wide desktop floating local tool and inspector",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-wide-inspector-tools-dark.png",
-      "screenshotSha256": "1524ce5e26b80d2f15555cb7c1491863a5b947014eee8988c00e29bed32f5327",
+      "screenshotSha256": "ef8216132792196c620e51a1d2a9bed4adab4a9f3089de879c9fcb937b57c02a",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -4016,7 +4016,7 @@
       "interactionState": "xl breakpoint lower bound workspace containment",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1100-default-dark.png",
-      "screenshotSha256": "09cab0f398d46ae1b698ef62c9aa5b0bf3bf26da31ec650587d4b1c6b959bd53",
+      "screenshotSha256": "9ae10dbe54c3b0300d24ff7500ff856dc6f1cb692edfc36ef06637d43af6b947",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -4132,7 +4132,7 @@
       "interactionState": "xl breakpoint lower bound relation filter containment",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1100-local-tools-filter-dark.png",
-      "screenshotSha256": "e9e74132b5fe54303ddc13ae7b420efb7479f3bff6f9b32a82e89bbbbc755f6d",
+      "screenshotSha256": "217749c0f8700eb8c00fcde0959276e109b337c7d0481092866851018ebf917d",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -4255,7 +4255,7 @@
       "interactionState": "tablet breakpoint selected inspector below mobile navigation",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1100-selected-inspector-dark.png",
-      "screenshotSha256": "b7dadf10a90e298d9bf6c50a500985cd55012a782b97d1a4e55034c9acfce662",
+      "screenshotSha256": "ea57482cb28f061e5e8cccfeb5ee1ede1b0d343c1ba54fc96df20238d777540b",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -4390,7 +4390,7 @@
       "interactionState": "tablet lower boundary inspector konling local tool suspension",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1024-inspector-tools-konling-dark.png",
-      "screenshotSha256": "05da03665fa280a7f4588616af4f69961b06d84172b268641c91edc247d3892a",
+      "screenshotSha256": "181463f9f07bc864b5b9bfc4c62ef153ae3e55331f0baac913fe6a543d892b27",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -4518,7 +4518,7 @@
       "interactionState": "tablet breakpoint inspector konling local tool suspension",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1100-inspector-tools-konling-dark.png",
-      "screenshotSha256": "7349361304ea5eba42b7579c3cc84a48b0bd263a4bf49ad5b0ff1fdcc0406740",
+      "screenshotSha256": "dfd66013f4f7573594411304ca1be5cb30c90d9234b230618a84765fa6d68357",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -4653,7 +4653,7 @@
       "interactionState": "tablet upper boundary inspector konling local tool suspension",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1279-inspector-tools-konling-dark.png",
-      "screenshotSha256": "c70972d4e3fbd2ee28dfb9019ffb050c3365c3cceec085801c60e4f8eceaf2a6",
+      "screenshotSha256": "1e6497d73c771dca94cd3310e119a5878c42884a2c58a59855fe8f2d27bd889d",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -4788,7 +4788,7 @@
       "interactionState": "mobile local tools sheet",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/mobile-320-local-tools-dark.png",
-      "screenshotSha256": "85a68704ed24b2a3dcfe7167c9da7e81bcfa18bf64d5839322609d5f2823487a",
+      "screenshotSha256": "8ca2e6d27b28465c6170a026eb788344cbb9e8aac76a3554cf261a1d66764934",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -4910,7 +4910,7 @@
       "interactionState": "mobile selected inspector sheet",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/mobile-320-selected-inspector-dark.png",
-      "screenshotSha256": "5d16cfef3795194f6fe015e709ef5cdcacd3d7afcd5d762c096731d58aeaf23c",
+      "screenshotSha256": "6882b4ef2f9a538e761df870719f0b01788dcff449c6c79d9fec43134bdc7cbc",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -5263,7 +5263,7 @@
       "interactionState": "light theme default graph",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/light-theme-default.png",
-      "screenshotSha256": "499d7d028d79b9eeeef1798b479644effd3edd494429ec88ab055ef17f1e12e7",
+      "screenshotSha256": "2ca3c73fe5b44a6a4e92785816ffb1792067ec64f5a4acfdf6eeb2b214900411",
       "markers": {
         "htmlClass": "light",
         "workspace": "canvas-first",
@@ -5448,35 +5448,35 @@
       "canvasGeometry": "PASS"
     },
     "reviewedStateSha256": {
-      "desktop-default-collapsed-dark": "e8c9b971acdb2302b45b09e02f91e923d44064503a10ac22a3235c1e8abd924e",
-      "desktop-expanded-persisted-dark": "b2786529473baefc77263ed62a68dd702af24d03a0e0697672a865d58a701fdd",
-      "desktop-local-tools-directory-dark": "0d52dd4050fb7d3b02d5701c3ac7e5d88c14a663dad2945587f36cf8296de57b",
-      "desktop-local-tools-filter-dark": "4c8aa1c9cead566cf4274b850aee812392f6945e85705de2b7ab5c79f350db91",
-      "desktop-local-tools-view-dark": "b337700d2212f0a89b70d92a182c7426a25efcc47500ae7b90b490d351faefbc",
-      "desktop-selected-focus-dark": "c0828b916ee242175d2b57b091756ea7372d600604b16461861c333174daf469",
-      "desktop-all-relation-families-dark": "1167b787bd4ca83a61b4f5a1a94d0ba0c5b1e644b53e0971b45f4492cb3ab820",
-      "desktop-selected-inspector-light": "fe14d63d28438ee4dcb829217222d06e52edae2f0e54ffe160a3396d6dff9590",
-      "desktop-hover-click-drag-dark": "25a7c266bfe190eb84c9691e17d57bbc00981562924574882e111a504f0de747",
-      "desktop-selected-page-tools-menu-dark": "b95a5551e0700991c151a9175add878f132929e1776256186e8a0dcbafd03ec2",
-      "desktop-explicit-relayout-dark": "fa595787f51b03a1323477d42545903c81b39d28bd023089b5add80c2373cd74",
-      "desktop-3d-fit-relayout-dark": "5b66fac38dbfd8e66f9ee48d21d27d49030e92e1ae20252c349d1b7ead8b084a",
+      "desktop-default-collapsed-dark": "93793f972a9e1a0510d16681bb5baa5007f1f0b04e80cedef0d060f58bbd3515",
+      "desktop-expanded-persisted-dark": "7c6c91dfe3bd33dd122fc957794d176fcffa3622ac8d4bd26875878ab16155e0",
+      "desktop-local-tools-directory-dark": "8b11ec2ea36662cdba3da8dabdbd8fc0211a74dd22bac5c81e53e70fa3ef0d2c",
+      "desktop-local-tools-filter-dark": "981f6401b7e27e4cc3431889c904903238247ad09148da0d5cf0568f6eeb0706",
+      "desktop-local-tools-view-dark": "8c20df509c45ebc2206f6636b74b72e52f908e89075a71c1bcb3ed4299231f98",
+      "desktop-selected-focus-dark": "2035b2a30f2986a1dfd79015f8b906d47e626f74ff8539927526558d5d4299b5",
+      "desktop-all-relation-families-dark": "09e2c4af4777b88c34707d51052a837c9d259457283e94f44b14b91070f672e8",
+      "desktop-selected-inspector-light": "3e49365a7a8feb5703ccc2fd2c4e434d2a056df9bc52f33726489dcfb25df3b2",
+      "desktop-hover-click-drag-dark": "b947a7def24e72112bbe657859cc1bb622c8926028ce86e7f25d1c494c6f6c35",
+      "desktop-selected-page-tools-menu-dark": "3276323060e9d73627980e467fedeb6ee57dba50b266733ef54cf19c77763a30",
+      "desktop-explicit-relayout-dark": "debb407d713c12c58ef9ee128d8b8a7c42fb81e50ae76ceb549433350825d199",
+      "desktop-3d-fit-relayout-dark": "d2ce6f9e107ee68a701887dc1bb0d971611d07fadf6a22577ad24f96d084800a",
       "desktop-konling-selected-expanded-dark": "61ecb3e7ce5a5e42456331a8f1b779034106b6b66e096f8a3dd299cbdbe5c05e",
-      "desktop-konling-no-selection-dark": "a48236b13a55836713e66f4474c716ed60244a7d44db8ba19a37f0fae4555d68",
-      "desktop-konling-degraded-dark": "965de5aa7ff950d440b6c57f57956c9f1f811e1dc3fd3c2023865652f9bec5bb",
-      "desktop-stress-expanded-tool-inspector-konling-dark": "cca81cc4a1ea9c5c86f14dda971fc20914f2453f4f400ff5fca41c264e338b17",
-      "desktop-wide-default-dark": "1fc02d56d1f28dd624359625a1cf4ca5549b9e298fe1ab39599de1281ea8d102",
-      "desktop-wide-inspector-tools-dark": "1524ce5e26b80d2f15555cb7c1491863a5b947014eee8988c00e29bed32f5327",
-      "tablet-1100-default-dark": "09cab0f398d46ae1b698ef62c9aa5b0bf3bf26da31ec650587d4b1c6b959bd53",
-      "tablet-1100-local-tools-filter-dark": "e9e74132b5fe54303ddc13ae7b420efb7479f3bff6f9b32a82e89bbbbc755f6d",
-      "tablet-1100-selected-inspector-dark": "b7dadf10a90e298d9bf6c50a500985cd55012a782b97d1a4e55034c9acfce662",
-      "tablet-1024-inspector-tools-konling-dark": "05da03665fa280a7f4588616af4f69961b06d84172b268641c91edc247d3892a",
-      "tablet-1100-inspector-tools-konling-dark": "7349361304ea5eba42b7579c3cc84a48b0bd263a4bf49ad5b0ff1fdcc0406740",
-      "tablet-1279-inspector-tools-konling-dark": "c70972d4e3fbd2ee28dfb9019ffb050c3365c3cceec085801c60e4f8eceaf2a6",
-      "mobile-320-local-tools-dark": "85a68704ed24b2a3dcfe7167c9da7e81bcfa18bf64d5839322609d5f2823487a",
-      "mobile-320-selected-inspector-dark": "5d16cfef3795194f6fe015e709ef5cdcacd3d7afcd5d762c096731d58aeaf23c",
+      "desktop-konling-no-selection-dark": "4f5c1a6476ec08acc50aa38854c175b8f1b49804e4c97b7c2f2b3ddb5ea762af",
+      "desktop-konling-degraded-dark": "220ad9b53fd589b59db13800cdeef4b74ed5f0e5fdb58f30aed739653b3635c1",
+      "desktop-stress-expanded-tool-inspector-konling-dark": "5f8f3585a0a9474aa33f166cbd0e028a5a1d33c5fed7f1382a106443abf8345c",
+      "desktop-wide-default-dark": "7a3f5e9bea8036eda3fa0e16f58430c36a8f1a86e761f445c9535e56267e97df",
+      "desktop-wide-inspector-tools-dark": "ef8216132792196c620e51a1d2a9bed4adab4a9f3089de879c9fcb937b57c02a",
+      "tablet-1100-default-dark": "9ae10dbe54c3b0300d24ff7500ff856dc6f1cb692edfc36ef06637d43af6b947",
+      "tablet-1100-local-tools-filter-dark": "217749c0f8700eb8c00fcde0959276e109b337c7d0481092866851018ebf917d",
+      "tablet-1100-selected-inspector-dark": "ea57482cb28f061e5e8cccfeb5ee1ede1b0d343c1ba54fc96df20238d777540b",
+      "tablet-1024-inspector-tools-konling-dark": "181463f9f07bc864b5b9bfc4c62ef153ae3e55331f0baac913fe6a543d892b27",
+      "tablet-1100-inspector-tools-konling-dark": "dfd66013f4f7573594411304ca1be5cb30c90d9234b230618a84765fa6d68357",
+      "tablet-1279-inspector-tools-konling-dark": "1e6497d73c771dca94cd3310e119a5878c42884a2c58a59855fe8f2d27bd889d",
+      "mobile-320-local-tools-dark": "8ca2e6d27b28465c6170a026eb788344cbb9e8aac76a3554cf261a1d66764934",
+      "mobile-320-selected-inspector-dark": "6882b4ef2f9a538e761df870719f0b01788dcff449c6c79d9fec43134bdc7cbc",
       "mobile-320-konling-expanded-dark": "4ecdf875b37d80403ac5aca1bcc24752aa4437e625af7b4bb8cd0829b796cc2b",
       "mobile-320-inspector-konling-stress-dark": "4ecdf875b37d80403ac5aca1bcc24752aa4437e625af7b4bb8cd0829b796cc2b",
-      "light-theme-default": "499d7d028d79b9eeeef1798b479644effd3edd494429ec88ab055ef17f1e12e7"
+      "light-theme-default": "2ca3c73fe5b44a6a4e92785816ffb1792067ec64f5a4acfdf6eeb2b214900411"
     },
     "reviewedSourceSha256": {
       "src/features/knowledge/knowledge-graph-system.tsx": "186e7c5bf74192bbb9669611231a3e05f08d598e5ad3fdc185eb226633a7e585",
