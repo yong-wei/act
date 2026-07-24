@@ -48,6 +48,7 @@
 - `openspec validate add-default-teacher-class-launch-selection --type change --strict` 通过；
 - `npm run test:teacher-default-class-postgres` 在临时 PostgreSQL 中应用全部迁移后通过，覆盖默认班级生命周期、并发变更及并发开课；
 - 班级绑定启动对话框、学生加入入口和教师移动端启动路径的定向 Playwright 验证通过，覆盖焦点恢复、键盘选择、班级绑定请求与无班级恢复。
+- `npm run build` 在干净隔离工作树中通过，包含教材资源导出、Prisma 生成、模型优化、Wasm 与 Next 生产构建。
 
 这些记录仅证明实现候选可进入评审，生产环境仍须按本页发布顺序执行 writer drain、回填和 gate receipt。
 
