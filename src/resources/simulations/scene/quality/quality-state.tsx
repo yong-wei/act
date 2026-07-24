@@ -10,6 +10,9 @@ import {
   type ReactNode,
 } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
+import { Gauge } from 'lucide-react';
+
+import { ChromePopoverButton } from '../chrome';
 
 import {
   createQualityGovernor,
@@ -123,28 +126,25 @@ export function SceneQualityDriver({ onTierChange }: { readonly onTierChange?: (
   return null;
 }
 
-/** 场景 chrome 中的手动质量覆盖选择器。 */
+/** 场景 chrome 中的手动质量覆盖选择器（底部 chrome 家族弹出式按钮）。 */
 export function SceneQualitySelect({ className }: { readonly className?: string }) {
   const { override, tier, setOverride } = useSceneQuality();
+  const labelOf = (candidate: QualityTierId) => (candidate === 'high' ? '高' : candidate === 'medium' ? '中' : '低');
+  const currentLabel = override ? labelOf(override) : `自动·${labelOf(tier)}`;
   return (
-    <div className={className} role="radiogroup" aria-label="画质档位" data-scene-quality-select="true">
-      {(['high', 'medium', 'low'] as const).map((candidate) => (
-        <button
-          key={candidate}
-          type="button"
-          role="radio"
-          aria-checked={override === candidate || (override === null && tier === candidate)}
-          data-quality-tier={candidate}
-          onClick={() => setOverride(override === candidate ? null : candidate)}
-          className={
-            override === candidate || (override === null && tier === candidate)
-              ? 'rounded-md border border-platform-border bg-platform-action-subtle px-2 py-1 text-xs font-medium text-platform-fg-primary'
-              : 'rounded-md border border-transparent px-2 py-1 text-xs text-platform-fg-muted hover:text-platform-fg-primary'
-          }
-        >
-          {candidate === 'high' ? '高' : candidate === 'medium' ? '中' : '低'}
-        </button>
-      ))}
+    <div className={className} data-scene-quality-select="true">
+      <ChromePopoverButton
+        icon={<Gauge className="h-4 w-4" />}
+        label="画质"
+        currentLabel={currentLabel}
+        tooltip={`画质档位：后处理/粒子/阴影/水面分级（当前：${currentLabel}；再次点选取消手动覆盖）`}
+        options={(['high', 'medium', 'low'] as const).map((candidate) => ({ id: candidate, label: labelOf(candidate) }))}
+        currentId={override}
+        onSelect={(candidate) => setOverride(override === candidate ? null : candidate)}
+        dataHook="quality"
+        ariaLabel="画质档位"
+        optionDataHook="quality-tier"
+      />
     </div>
   );
 }

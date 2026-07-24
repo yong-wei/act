@@ -70,7 +70,10 @@ describe('environment scene body is theme-decoupled', () => {
       path.join(process.cwd(), 'src/resources/simulations/simulations/destroyer-simulation.tsx'), 'utf8'
     );
     expect(destroyer).toContain('<EnvironmentScene');
-    expect(destroyer).toContain('EnvironmentPresetSwitcher');
+    const switcher = readFileSync(
+      path.join(process.cwd(), 'src/resources/simulations/components/camera-view-switcher.tsx'), 'utf8'
+    );
+    expect(switcher).toContain('<EnvironmentPresetSwitcher');
     expect(destroyer).not.toContain('function SkyDome(');
     expect(destroyer).not.toContain('function ProceduralClouds(');
   });

@@ -25,32 +25,30 @@ import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder
 import { SimulationTopBar, SimulationDock, SimulationAssessmentPanel, simulationUi } from '../components/simulation-ui';
 import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
 import {
-  EnvironmentPresetSwitcher,
   EnvironmentScene,
   SceneEnvironmentProvider,
   useEnvironmentWaterColors,
+  useSceneEnvironment,
 } from '../scene/environment';
 import { computeGerstnerDisplacement, GERSTNER_WAVE_SETS, GerstnerWater } from '../scene/water';
 import { WakeTrail } from '../scene/wake';
 import {
   SceneSoundscapeProvider,
   SoundscapeAmbienceDriver,
-  SoundscapeMuteToggle,
 } from '../scene/audio';
 import {
   TeachingAnnotationsProvider,
-  TeachingAnnotationsToggle,
   useTeachingAnnotations,
 } from '../scene/annotations';
 import {
   SceneQualityDriver,
   SceneQualityProvider,
-  SceneQualitySelect,
   useSceneQuality,
 } from '../scene/quality';
 import { ScenePostEffects } from '../scene/post';
 import { dredgerTianjingSceneVisual } from '../profiles/dredger-tianjing-scene';
 import { platformHeadingToSceneRad } from '../scene/heading';
+import { WaterHuggingLine } from '../scene/lines';
 import {
   Play,
   Pause,
@@ -62,9 +60,9 @@ import {
   Crosshair,
   Wind,
   Waves,
+  Compass,
   Video,
   Orbit,
-  Undo2,
   ArrowDownFromLine,
 } from 'lucide-react';
 
@@ -328,20 +326,8 @@ function TargetMarker({ position, heading }: { position: Vector2; heading: numbe
 
 /** 航迹线 */
 function TrajectoryLine({ points }: { points: Vector2[] }) {
-  const linePoints = useMemo(() => {
-    return points.map((p) => [p.x, 0.5, p.z] as [number, number, number]);
-  }, [points]);
-
-  if (linePoints.length < 2) return null;
-
-  return (
-    <Line
-      points={linePoints}
-      color={simulationScenePalette.dredgerPrimary}
-      lineWidth={2}
-      dashed={false}
-    />
-  );
+  if (points.length < 2) return null;
+  return <WaterHuggingLine points={points} color={simulationScenePalette.dredgerPrimary} lineWidth={2} />;
 }
 
 /** 相机控制器 */
@@ -451,7 +437,7 @@ function ControlPanel({
       <CardContent className="space-y-4">
         {/* 播放控制 */}
         <div className="flex gap-2">
-          <Button
+          <Button data-sound-start
             variant={isRunning ? 'secondary' : 'default'}
             size="sm"
             onClick={isRunning ? onPause : onStart}
@@ -609,7 +595,7 @@ function ControlPanel({
 const CAMERA_SHOT_VIEWS = [
   { id: SCENE_CAMERA_SHOTS.chase.id, label: '跟船', shortLabel: '跟', icon: Video, description: SCENE_CAMERA_SHOTS.chase.description },
   { id: SCENE_CAMERA_SHOTS.orbit.id, label: '环绕', shortLabel: '环', icon: Orbit, description: SCENE_CAMERA_SHOTS.orbit.description },
-  { id: SCENE_CAMERA_SHOTS.retreat.id, label: '退却', shortLabel: '退', icon: Undo2, description: SCENE_CAMERA_SHOTS.retreat.description },
+  { id: SCENE_CAMERA_SHOTS.tactical.id, label: '战术', shortLabel: '战', icon: Compass, description: SCENE_CAMERA_SHOTS.tactical.description },
   { id: SCENE_CAMERA_SHOTS.topDown.id, label: '顶视', shortLabel: '顶', icon: ArrowDownFromLine, description: SCENE_CAMERA_SHOTS.topDown.description },
 ];
 
@@ -643,7 +629,7 @@ function DredgerWater({
       waterColor={water.waterColor}
       deepColor={water.deepColor}
       horizonColor={water.horizonColor}
-      foamColor="#f4fbff"
+      foamColor={simulationScenePalette.waterFoam}
     />
   );
 }
@@ -658,17 +644,18 @@ function WakeTrailRig({
   playing: boolean;
   resetToken: number;
 }) {
+  const { wakeVisible } = useSceneEnvironment();
   const transformRef = useRef({ position: [0, 0, 0] as [number, number, number], heading: 0 });
-  const waterYRef = useRef(0);
+  const timeRef = useRef(0);
   const { tier, params } = useSceneQuality();
 
   useFrame((frameState) => {
     transformRef.current.position = [mmgStateRef.current.x, 0, mmgStateRef.current.y];
     transformRef.current.heading = platformHeadingToSceneRad(toDegrees(mmgStateRef.current.psi));
-    const time = frameState.clock.getElapsedTime();
-    waterYRef.current = -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], 0, 0, time).y;
+    timeRef.current = frameState.clock.getElapsedTime();
   });
 
+  if (!wakeVisible) return null;
   return (
     <WakeTrail
       key={resetToken}
@@ -676,7 +663,7 @@ function WakeTrailRig({
       shipTransform={transformRef.current}
       qualityTier={tier}
       playing={playing}
-      waterYSampler={() => waterYRef.current}
+      waterYSampler={(x, z) => -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], x ?? 0, z ?? 0, timeRef.current).y}
       worldSpeedSampler={() => Math.hypot(mmgStateRef.current.u, mmgStateRef.current.v)}
     />
   );
@@ -743,6 +730,7 @@ export function DredgerSimulation() {
   const [showGrid, setShowGrid] = useState(true);
   const [speedScale, setSpeedScale] = useState(1);
   const [resetCount, setResetCount] = useState(0);
+  const [viewResetCount, setViewResetCount] = useState(0);
   const sceneTheme = useSimulationSceneTheme();
 
   // 船舶配置
@@ -1005,6 +993,7 @@ export function DredgerSimulation() {
           headingSampler={() => platformHeadingToSceneRad(toDegrees(mmgStateRef.current.psi))}
           shipLength={dredgerTianjingSceneVisual.shipLengthMeters}
           controlsRef={controlsRef}
+        resetSignal={viewResetCount}
         />
         <ScenePostEffects />
       </Canvas>
@@ -1012,6 +1001,7 @@ export function DredgerSimulation() {
       <CameraViewSwitcher
         currentMode={cameraMode}
         onModeChange={setCameraMode}
+        onViewReset={() => setViewResetCount((previous) => previous + 1)}
         views={CAMERA_SHOT_VIEWS}
         gridEnabled={showGrid}
         onToggleGrid={() => setShowGrid((previous) => !previous)}
@@ -1074,11 +1064,6 @@ export function DredgerSimulation() {
         subtitle="MMG 3-DOF 高保真模型 · 定位精度 < 0.1m"
         badge="Dredger / OBE"
       />
-
-      <EnvironmentPresetSwitcher className="absolute bottom-32 left-1/2 z-20 flex -translate-x-1/2 gap-1 rounded-lg border border-platform-border bg-platform-canvas/70 px-1 py-0.5 backdrop-blur" />
-      <SoundscapeMuteToggle className="absolute bottom-32 right-4 z-20 rounded-md border border-platform-border bg-platform-canvas/70 px-2 py-1 text-xs text-platform-fg-muted backdrop-blur hover:text-platform-fg-primary" />
-      <TeachingAnnotationsToggle className="absolute bottom-32 right-24 z-20 rounded-md border border-platform-border bg-platform-canvas/70 px-2 py-1 text-xs text-platform-fg-muted backdrop-blur hover:text-platform-fg-primary" />
-      <SceneQualitySelect className="absolute bottom-32 left-4 z-20 flex gap-1 rounded-lg border border-platform-border bg-platform-canvas/70 px-1 py-0.5 backdrop-blur" />
     </div>
     </SceneQualityProvider>
     </TeachingAnnotationsProvider>

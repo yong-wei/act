@@ -6,8 +6,8 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import {
   AMBIENCE_PROGRAMS,
   createSoundscapeBus,
-  readSoundscapeMutedPreference,
-  writeSoundscapeMutedPreference,
+  readSoundChannelPreference,
+  writeSoundChannelPreference,
   type SoundscapeAudioContextLike,
 } from '../scene/audio/soundscape-bus';
 
@@ -77,7 +77,7 @@ function createFakeContext() {
   return context;
 }
 
-describe('soundscape muted preference', () => {
+describe('sound channel preferences', () => {
   const createFakeStorage = () => {
     const map = new Map<string, string>();
     return {
@@ -88,13 +88,43 @@ describe('soundscape muted preference', () => {
     };
   };
 
-  it('defaults to unmuted (default-on) and persists mute across reads', () => {
+  it('returns null for new users (default off) and persists each channel independently', () => {
     const storage = createFakeStorage();
-    expect(readSoundscapeMutedPreference(storage)).toBe(false);
-    writeSoundscapeMutedPreference(storage, true);
-    expect(readSoundscapeMutedPreference(storage)).toBe(true);
-    writeSoundscapeMutedPreference(storage, false);
-    expect(readSoundscapeMutedPreference(storage)).toBe(false);
+    expect(readSoundChannelPreference(storage, 'scene')).toBeNull();
+    expect(readSoundChannelPreference(storage, 'ui')).toBeNull();
+    writeSoundChannelPreference(storage, 'scene', true);
+    expect(readSoundChannelPreference(storage, 'scene')).toBe(true);
+    expect(readSoundChannelPreference(storage, 'ui')).toBeNull();
+    writeSoundChannelPreference(storage, 'ui', true);
+    writeSoundChannelPreference(storage, 'scene', false);
+    expect(readSoundChannelPreference(storage, 'scene')).toBe(false);
+    expect(readSoundChannelPreference(storage, 'ui')).toBe(true);
+  });
+});
+
+describe('soundscape bus channels', () => {
+  it('creates separate scene and ui gains on unlock and toggles them independently', () => {
+    const context = createFakeContext();
+    const bus = createSoundscapeBus(context);
+    bus.unlock();
+    // unlock 时创建场景与界面两个增益节点（另有一个环境声链增益）
+    expect(context.calls.gain).toBeGreaterThanOrEqual(2);
+    bus.setChannelEnabled('scene', true);
+    bus.setChannelEnabled('ui', true);
+    bus.playFeedback('button');
+    expect(context.calls.oscillator).toBe(1);
+    bus.playAlert('warning');
+    expect(context.calls.oscillator).toBe(3);
+  });
+
+  it('uses a distinct start feedback program', () => {
+    const context = createFakeContext();
+    const bus = createSoundscapeBus(context);
+    bus.unlock();
+    bus.setChannelEnabled('ui', true);
+    bus.playFeedback('start');
+    bus.playFeedback('button');
+    expect(context.calls.oscillator).toBe(2);
   });
 });
 
@@ -159,7 +189,10 @@ describe('sample experiment soundscape wiring', () => {
     );
     expect(destroyer).toContain('SceneSoundscapeProvider');
     expect(destroyer).toContain('SoundscapeAmbienceDriver');
-    expect(destroyer).toContain('SoundscapeMuteToggle');
+    const switcher = readFileSync(
+      path.join(process.cwd(), 'src/resources/simulations/components/camera-view-switcher.tsx'), 'utf8'
+    );
+    expect(switcher).toContain('<SoundscapeMuteToggle');
   });
 
   it('synthesizes placeholder sounds without audio asset files', () => {

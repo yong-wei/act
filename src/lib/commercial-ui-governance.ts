@@ -328,7 +328,7 @@ export interface CommercialSimulationCommandDeckCruiseComparisonEvidence {
 }
 
 export interface CommercialSimulationCommandDeckGeometryEvidence {
-  change: 'normalize-simulation-command-deck-layout';
+  change: 'normalize-simulation-command-deck-layout' | 'unify-simulation-chrome-and-camera-views';
   generatedAt?: string;
   sourceSha256?: Record<string, string>;
   currentSourceSha256?: Record<string, string>;
@@ -2950,8 +2950,11 @@ function buildSimulationVisualQaViolations(
       if (!commandDeckGeometry) {
         missing.push('commandDeckGeometry');
       } else {
-        if (commandDeckGeometry.change !== 'normalize-simulation-command-deck-layout') {
-          missing.push('commandDeckGeometry.change=normalize-simulation-command-deck-layout');
+        if (
+          commandDeckGeometry.change !== 'normalize-simulation-command-deck-layout'
+          && commandDeckGeometry.change !== 'unify-simulation-chrome-and-camera-views'
+        ) {
+          missing.push('commandDeckGeometry.change=normalize-simulation-command-deck-layout|unify-simulation-chrome-and-camera-views');
         }
         for (const sourcePath of commandDeckGeometrySourcePaths(route.routeFile)) {
           if (!commandDeckGeometry.sourceSha256?.[sourcePath]) {
@@ -3015,7 +3018,12 @@ function buildSimulationVisualQaViolations(
             }
             if (viewport.bottomToolsUnobscured !== true) missing.push(`${key}:bottomToolsUnobscured`);
             if (viewport.bottomToolsWithinViewport !== true) missing.push(`${key}:bottomToolsWithinViewport`);
-            for (const role of ['view-switcher', 'grid-toggle', 'speed-controls']) {
+            // 段集合随证据所属变更演进：旧布局要求独立网格开关段；
+            // unify-simulation-chrome-and-camera-views 将网格并入标注合并控件，段标记同步迁移。
+            const requiredBottomToolSegmentRoles = commandDeckGeometry.change === 'unify-simulation-chrome-and-camera-views'
+              ? ['view-switcher', 'speed-controls', 'annotations-grid-toggle']
+              : ['view-switcher', 'grid-toggle', 'speed-controls'];
+            for (const role of requiredBottomToolSegmentRoles) {
               if (!viewport.bottomToolSegmentRoles?.includes(role)) {
                 missing.push(`${key}:bottomToolSegmentRoles.${role}`);
               }

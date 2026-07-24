@@ -18,10 +18,10 @@ export const simulationUi = {
   badge:
     'rounded-md border border-platform-border bg-platform-surface-overlay/86 px-2.5 py-1 text-[11px] font-medium text-platform-fg-secondary shadow-sm backdrop-blur',
   panel: 'simulation-light-panel',
-  controlPanelPosition: 'absolute inset-x-4 bottom-20 z-20 max-h-[46vh] overflow-y-auto pointer-events-auto lg:inset-auto lg:right-4 lg:top-4 lg:bottom-24 lg:w-[22rem] lg:max-h-none',
-  statusPanelPosition: 'absolute inset-x-4 top-4 z-20 max-h-[30vh] overflow-y-auto pointer-events-auto lg:inset-auto lg:left-4 lg:top-4 lg:bottom-24 lg:w-[20rem] lg:max-h-none',
+  controlPanelPosition: 'absolute inset-x-4 bottom-20 z-20 max-h-[46vh] overflow-y-auto pointer-events-auto lg:inset-auto lg:right-4 lg:top-4 lg:bottom-auto lg:w-[22rem] lg:max-h-[calc(100%-5.25rem)]',
+  statusPanelPosition: 'absolute inset-x-4 top-4 z-20 max-h-[30vh] overflow-y-auto pointer-events-auto lg:inset-auto lg:left-4 lg:top-4 lg:bottom-auto lg:w-[20rem] lg:max-h-[calc(100%-5.25rem)]',
   cameraSwitcherPosition:
-    'absolute bottom-4 left-4 right-4 z-20 max-w-[calc(100vw-2rem)] justify-center lg:left-1/2 lg:right-auto lg:max-w-none lg:-translate-x-1/2',
+    'absolute bottom-4 left-4 right-4 z-40 max-w-[calc(100vw-2rem)] justify-center lg:left-1/2 lg:right-auto lg:max-w-none lg:-translate-x-1/2',
   sectionTitle: 'text-xs font-semibold tracking-wide text-platform-fg-primary',
   mutedText: 'text-xs text-platform-fg-secondary',
   valueText: 'font-mono text-platform-fg-primary',
@@ -32,7 +32,7 @@ export const simulationUi = {
   tabsList: 'border border-platform-border bg-platform-canvas-muted',
   tabsTrigger:
     'text-platform-fg-secondary data-[state=active]:bg-platform-fg-primary data-[state=active]:text-platform-fg-inverse data-[state=active]:shadow-sm',
-  dockBody: 'max-h-[calc(100vh-11.5rem)] overflow-y-auto',
+  dockBody: 'max-h-[calc(100vh-11.5rem)] overflow-y-auto [&>*]:w-full',
   dockHeader: 'mb-3 flex items-center justify-between border-b border-platform-border pb-2',
   dockTitle: 'text-sm font-semibold text-platform-fg-primary',
   dockToggle:

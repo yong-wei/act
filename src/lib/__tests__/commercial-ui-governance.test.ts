@@ -2225,6 +2225,60 @@ describe('commercial UI governance', () => {
     ]));
   });
 
+  it('passes when command-deck evidence uses the unify-chrome change with merged annotation segments', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (!entry.simulationVisualQa?.commandDeckGeometry) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          commandDeckGeometry: {
+            ...entry.simulationVisualQa.commandDeckGeometry,
+            change: 'unify-simulation-chrome-and-camera-views' as const,
+            viewports: entry.simulationVisualQa.commandDeckGeometry.viewports.map((viewport) => ({
+              ...viewport,
+              bottomToolSegmentRoles: ['view-switcher', 'speed-controls', 'annotations-grid-toggle'],
+            })),
+          },
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: visualEvidence as CommercialVisualAcceptanceEvidence[],
+    }));
+
+    expect(result.passed).toBe(true);
+  });
+
+  it('fails when unify-chrome command-deck evidence misses the merged annotations segment', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations/destroyer' || !entry.simulationVisualQa?.commandDeckGeometry) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          commandDeckGeometry: {
+            ...entry.simulationVisualQa.commandDeckGeometry,
+            change: 'unify-simulation-chrome-and-camera-views' as const,
+            viewports: entry.simulationVisualQa.commandDeckGeometry.viewports.map((viewport) => (
+              viewport.theme === 'dark' && viewport.width === 320
+                ? { ...viewport, bottomToolSegmentRoles: ['view-switcher', 'speed-controls'] }
+                : { ...viewport, bottomToolSegmentRoles: ['view-switcher', 'speed-controls', 'annotations-grid-toggle'] }
+            )),
+          },
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: visualEvidence as CommercialVisualAcceptanceEvidence[],
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.violations.flatMap((violation) => violation.evidence)).toEqual(expect.arrayContaining([
+      'commandDeckGeometry:theme=dark:width=320:bottomToolSegmentRoles.annotations-grid-toggle',
+    ]));
+  });
+
   it('fails when cruise command-deck evidence does not compare scene-first geometry', () => {
     const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
       if (entry.href !== '/simulations/cruise' || !entry.simulationVisualQa?.commandDeckGeometry) return entry;
@@ -4323,8 +4377,11 @@ describe('commercial UI governance', () => {
     expect(governanceSource).toContain('themeApplied');
     expect(governanceSource).toContain('bottomToolSegmentRoles');
     expect(governanceSource).toContain("['view-switcher', 'grid-toggle', 'speed-controls']");
+    expect(governanceSource).toContain("['view-switcher', 'speed-controls', 'annotations-grid-toggle']");
+    expect(governanceSource).toContain("'unify-simulation-chrome-and-camera-views'");
     expect(governanceSource).toContain('bottomToolSegmentRoles.${role}');
     expect(simulationCaptureScriptSource).toContain('[data-simulation-local-bottom-tool-segment]');
+    expect(simulationCaptureScriptSource).toContain("change: 'unify-simulation-chrome-and-camera-views'");
     expect(simulationCaptureScriptSource).toContain('bottomToolSegmentRoles');
     expect(simulationCaptureScriptSource).toContain('waitForThemeApplied');
     expect(simulationCaptureScriptSource).toContain('inspectCommandDeck(page, theme)');
