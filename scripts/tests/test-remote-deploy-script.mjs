@@ -10,6 +10,13 @@ function read(file) {
 
 function main() {
   const script = read('scripts/remote-deploy.sh');
+  const buildScript = read('scripts/build.sh');
+
+  assert.equal(
+    buildScript.includes('IMAGE_TAG="${IMAGE_TAG:-localhost/act-obe-platform:20260301-amd64}"'),
+    true,
+    '本地镜像导出必须保留 Podman 部署脚本使用的 localhost 标签，避免远端继续复用同名旧镜像',
+  );
 
   assert.match(
     script,

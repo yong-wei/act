@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${ROOT_DIR}"
 
-IMAGE_TAG="${IMAGE_TAG:-act-obe-platform:20260301-amd64}"
+IMAGE_TAG="${IMAGE_TAG:-localhost/act-obe-platform:20260301-amd64}"
 OUTPUT_TAR="${OUTPUT_TAR:-deploy/images/act-obe.tar}"
 PLATFORM="${PLATFORM:-linux/amd64}"
 NPM_REGISTRY="${NPM_REGISTRY:-https://registry.npmmirror.com}"
