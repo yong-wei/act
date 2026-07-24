@@ -1248,6 +1248,7 @@ writeFile(
     },
   }),
 );
+fs.rmSync(path.join(source, 'public/assets/models-opt'), { recursive: true });
 const invalidOptimizedAssets = spawnSync(
   'bash',
   [
@@ -1273,7 +1274,7 @@ assert.match(
 assert.equal(
   fs.existsSync(path.join(target, 'public/assets/models-opt/demo.glb')),
   false,
-  '失败优化模型不得同步到隔离工作树',
+  '正式目录缺失时，失败优化模型也不得同步到隔离工作树',
 );
 
 fs.rmSync(path.join(source, 'public/assets/models-opt.failed-manifest.json'));

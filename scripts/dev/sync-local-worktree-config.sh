@@ -910,6 +910,13 @@ for (const name of expected) {
 NODE
 }
 
+optimized_model_assets_require_validation() {
+  [[ -d "$SOURCE/$OPTIMIZED_MODEL_ASSET_ROOT" ]] \
+    || [[ -e "$SOURCE/public/assets/models-opt.failed-manifest.json" ]] \
+    || [[ -e "$SOURCE/public/assets/models-opt.in-progress.json" ]] \
+    || compgen -G "$SOURCE/public/assets/*.glb" >/dev/null
+}
+
 target_worktree_id() {
   local tail
   case "$TARGET" in
@@ -1643,7 +1650,7 @@ if [[ "$LINK_OPENWOLF_KNOWLEDGE" -eq 1 ]]; then
 fi
 
 sync_real_file_directory "$RUNTIME_LINK_ROOT" "runtime"
-if [[ -d "$SOURCE/$OPTIMIZED_MODEL_ASSET_ROOT" ]]; then
+if optimized_model_assets_require_validation; then
   validate_optimized_model_asset_source
 fi
 sync_real_file_directory "$OPTIMIZED_MODEL_ASSET_ROOT" "optimized model asset"
