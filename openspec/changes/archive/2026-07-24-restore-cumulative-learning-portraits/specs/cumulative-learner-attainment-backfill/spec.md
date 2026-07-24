@@ -58,6 +58,8 @@ cutoff, member set, and generation identity.
 - **THEN** the migration SHALL report the incomplete aggregate state
 - **AND** it SHALL NOT publish a class materialization for that run.
 
+## ADDED Requirements
+
 ### Requirement: Cumulative class materialization is complete and immutable
 The class worker SHALL write immutable `class-competency.cumulative.v2`
 materializations containing overall and per-dimension coverage, equal-weight

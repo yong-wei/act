@@ -26,7 +26,7 @@
 - [x] 4.1 Add the minimal Prisma schema/data migration for the append-only transition journal, immutable snapshot current/no-evidence state, growth-event invalidation, protected class publication, global cutover fence, and durable migration receipts; extend the cumulative backfill with idempotent dry-run/apply receipts and prohibit v1/v2 online dual reads.
 - [x] 4.2 Restore the latest production export locally and complete a full rehearsal, including incremental-versus-rebuild equivalence and representative students/classes with full, partial, and absent eligible evidence.
 - [x] 4.3 Record the maintenance-window runbook: stop app/worker/scheduler, create and verify a recoverable database backup, deploy the matching version, run the rehearsed identical migration, atomically advance the global cutover fence, invalidate every superseded BullMQ pending/retry/delayed/in-flight migration job, verify durable receipts/counts/pages, and restore the backup plus previous app/worker/scheduler version on failure.
-- [ ] 4.4 Execute the production migration only after the local rehearsal passes; prove superseded queue jobs cannot publish, verify representative student, teacher-student, and class pages read only the new cumulative materialization, then reopen the service.
+- [x] 4.4 Execute the production migration only after the local rehearsal passes; prove superseded queue jobs cannot publish, verify representative student, teacher-student, and class pages read only the new cumulative materialization, then reopen the service.
 
 ## 5. Regression and acceptance
 
