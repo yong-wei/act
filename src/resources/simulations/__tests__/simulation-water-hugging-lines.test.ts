@@ -18,6 +18,12 @@ describe('water-hugging line module', () => {
     expect(source).toContain('epsilon');
     expect(source).toContain("waterTier === 'low'");
   });
+
+  it('includes the Gerstner water mesh base height so lines hug the actual surface', () => {
+    const source = read(LINES_INDEX);
+    expect(source).toContain('GERSTNER_WATER_BASE_Y');
+    expect(source).toContain('GERSTNER_WATER_BASE_Y + computeGerstnerDisplacement');
+  });
 });
 
 describe('experiment line overlays migrated to water hugging', () => {

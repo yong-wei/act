@@ -10,7 +10,7 @@ import { Line } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 
 import { useSceneQuality } from '../quality';
-import { computeGerstnerDisplacement, GERSTNER_WAVE_SETS } from '../water';
+import { computeGerstnerDisplacement, GERSTNER_WAVE_SETS, GERSTNER_WATER_BASE_Y } from '../water';
 
 export interface WaterHuggingLineProps {
   /** 世界 XZ 顶点序列（顺序即连线顺序）。 */
@@ -48,10 +48,10 @@ export function WaterHuggingLine({
     const time = frameState.clock.getElapsedTime();
     const waveSet = GERSTNER_WAVE_SETS[params.waterTier];
     const stride = params.waterTier === 'low' ? 2 : 1;
-    let lastY = epsilon;
+    let lastY = GERSTNER_WATER_BASE_Y + epsilon;
     const next: [number, number, number][] = points.map((point, index) => {
       if (index % stride === 0) {
-        lastY = computeGerstnerDisplacement(waveSet, point.x, point.z, time).y + epsilon;
+        lastY = GERSTNER_WATER_BASE_Y + computeGerstnerDisplacement(waveSet, point.x, point.z, time).y + epsilon;
       }
       return [point.x, lastY, point.z];
     });

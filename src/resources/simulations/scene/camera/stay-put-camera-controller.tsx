@@ -207,9 +207,11 @@ export function StayPutCameraController({
 
     // 环绕自动圆周：无用户偏移且非交互时按周期推进方位角（俯视顺时针）；
     // 用户拖拽即停（交互结束捕获偏移后不再旋转，取景保留），再次点选环绕经 clear 恢复旋转。
+    // wasInteractingRef 仍置位时（刚松开、尚未捕获偏移）不得进入自动旋转，
+    // 否则会用自动机位覆盖用户取景并在捕获时写回错误偏移。
     if (view === 'orbit' && initializedRef.current) {
       const hasUserOffset = store.get('orbit') !== ZERO_ORBIT_OFFSET;
-      if (!hasUserOffset && !interactingRef.current && !pointerActiveRef.current) {
+      if (!hasUserOffset && !interactingRef.current && !pointerActiveRef.current && !wasInteractingRef.current) {
         orbitAzimuthRef.current += (delta * Math.PI * 2) / ORBIT_PERIOD_SECONDS;
         const orbitCenter = new THREE.Vector3(ship.x, 0, ship.z);
         const frame = orbitFrameAt(orbitCenter, orbitAzimuthRef.current, shipLength);

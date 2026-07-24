@@ -91,4 +91,9 @@ describe('view popover and controller wiring', () => {
     expect(controller).toContain('resetSignal');
     expect(controller).toContain('store.clear');
   });
+
+  it('pauses orbit auto-rotation on the release frame until the drag offset is captured', () => {
+    const controller = readFileSync(path.join(CAMERA_DIR, 'stay-put-camera-controller.tsx'), 'utf8');
+    expect(controller).toContain('if (!hasUserOffset && !interactingRef.current && !pointerActiveRef.current && !wasInteractingRef.current)');
+  });
 });

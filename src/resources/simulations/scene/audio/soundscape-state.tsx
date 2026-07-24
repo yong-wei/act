@@ -40,6 +40,19 @@ interface SceneSoundscapeContextValue {
 const SceneSoundscapeContext = createContext<SceneSoundscapeContextValue | null>(null);
 
 /**
+ * 首次解锁手势自身的界面音效补播：委托监听器要等 React 提交 unlocked=true 后才注册，
+ * 触发解锁的该次 pointerdown 已结束分发；已启用界面音效的用户首次点击（尤其「开始」）不能静默。
+ */
+function playUnlockingGestureFeedback(bus: SoundscapeBus, event: PointerEvent | KeyboardEvent, uiEnabled: boolean) {
+  if (!uiEnabled || !(event instanceof PointerEvent)) return;
+  const target = event.target as Element | null;
+  if (!target?.closest?.('[data-sim-ui]')) return;
+  const button = target.closest('button, [role="button"]');
+  if (!button) return;
+  bus.playFeedback(button.hasAttribute('data-sound-start') ? 'start' : 'button');
+}
+
+/**
  * 音景状态：场景/界面双通道（新用户默认关闭、分通道 localStorage 持久化）、
  * 首次用户手势解锁（autoplay 策略）；AudioContext 延迟到解锁时创建。
  */
@@ -65,7 +78,7 @@ export function SceneSoundscapeProvider({ children }: { readonly children: React
 
   useEffect(() => {
     if (unlocked) return;
-    const unlock = () => {
+    const unlock = (event: PointerEvent | KeyboardEvent) => {
       const bus = getBus();
       if (!bus) return;
       // 新用户（无持久化记录）默认双通道关闭；有记录按记录恢复
@@ -77,6 +90,7 @@ export function SceneSoundscapeProvider({ children }: { readonly children: React
       setSceneEnabled(scenePref);
       setUiEnabled(uiPref);
       setUnlocked(true);
+      playUnlockingGestureFeedback(bus, event, uiPref);
     };
     window.addEventListener('pointerdown', unlock, { once: true });
     window.addEventListener('keydown', unlock, { once: true });

@@ -201,4 +201,12 @@ describe('sample experiment soundscape wiring', () => {
     expect(bus).not.toContain('.wav');
     expect(bus).not.toContain('.ogg');
   });
+
+  it('plays the enabled ui feedback within the first unlocking gesture itself', () => {
+    const state = readFileSync(path.join(AUDIO_DIR, 'soundscape-state.tsx'), 'utf8');
+    // 解锁处理器必须在同一次 pointerdown 内处理触发事件（委托监听器要等 React 提交 unlocked 后才注册）。
+    expect(state).toContain('const unlock = (event: PointerEvent | KeyboardEvent)');
+    expect(state).toContain('playUnlockingGestureFeedback');
+    expect(state).toContain("window.addEventListener('pointerdown', unlock, { once: true })");
+  });
 });
