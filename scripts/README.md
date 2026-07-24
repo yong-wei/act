@@ -47,12 +47,24 @@ npm run shutdown
 npm run seed:knowledge
 npm run seed:fixed-passwords
 npm run db:backfill-facts
-npm run db:backfill-class-attribution
+npm run db:repair-class-session-attribution -- --session-id=<session-id> --class-id=<class-id>
 ```
 
 `npm run seed:knowledge` 以 `course-content/runtime/knowledge/graph/nodes.json` 与
 `relations.jsonl` 为唯一真源，同步 `KnowledgeNode` / `KnowledgeLink` 到数据库；
 它不再读取已废弃的根目录 `content/` 或 MDX concepts 卡片。
+
+课堂历史归属修复必须由审核人员提供单个已结束课堂与班级的显式映射。命令默认
+仅校验并输出脱敏摘要；确认 dry-run 后追加 `--apply` 才会写入：
+
+```bash
+npm run db:repair-class-session-attribution -- --session-id=<session-id> --class-id=<class-id>
+npm run db:repair-class-session-attribution -- --session-id=<session-id> --class-id=<class-id> --apply
+```
+
+兼容入口 `db:backfill-class-attribution` 调用同一安全命令，不再按参与者画像或当前
+默认班级自动推断，也不支持批量筛选。可选 `--teacher-id=<teacher-id>` 仅用于复核
+课堂教师是否与审核记录一致。
 
 直接运行脚本时使用 `node`、`npx tsx` 或 `bash`，保持与 `package.json` 中的调用方式一致。
 

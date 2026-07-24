@@ -1,5 +1,5 @@
 
-import { UserRole } from '@prisma/client';
+import { Prisma, UserRole } from '@prisma/client';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
@@ -14,8 +14,30 @@ import {
   buildClassroomLifecycleEvidenceFields,
 } from '@/lib/classroom-lifecycle-contract';
 import { logClassroomEvent } from '@/lib/classroom-observability';
+import {
+  createClassBoundSession,
+  SessionClassBindingError,
+} from '@/lib/session-class-binding';
+import { isTeacherClassBindingEnforced } from '@/lib/teacher-class-binding-enforcement';
 
 export const dynamic = 'force-dynamic';
+
+type ActiveClassroomSession = Prisma.ClassSessionGetPayload<{
+  include: {
+    plan: { select: { title: true } };
+    class: { select: { name: true } };
+  };
+}>;
+
+class DuplicateClassroomSessionError extends Error {
+  constructor(
+    public readonly session: ActiveClassroomSession,
+    public readonly reuseExistingSession: boolean,
+  ) {
+    super('duplicate-classroom-session');
+    this.name = 'DuplicateClassroomSessionError';
+  }
+}
 
 export async function POST(request: Request) {
   try {
@@ -34,10 +56,19 @@ export async function POST(request: Request) {
     const {
       planId: requestedPlanId,
       coursewarePublicationRevisionId: requestedPublicationRevisionId,
-      classId,
+      classId: requestedClassId,
       duplicateAction,
       sourcePresetKey,
     } = body;
+    const classId = typeof requestedClassId === 'string' ? requestedClassId.trim() : '';
+    if (requestedClassId !== undefined && !classId) {
+      return NextResponse.json({ error: '请选择一个已启用的班级' }, { status: 400 });
+    }
+    if (user.role === UserRole.TEACHER
+      && await isTeacherClassBindingEnforced()
+      && !classId) {
+      return NextResponse.json({ error: '请选择一个已启用的班级' }, { status: 400 });
+    }
     const publicationRevisionId = typeof requestedPublicationRevisionId === 'string'
       ? requestedPublicationRevisionId.trim()
       : '';
@@ -77,7 +108,7 @@ export async function POST(request: Request) {
       generatedBinding = { ...publication, projectedLessonPlanId: projection.id };
     }
 
-    if (!planId && sourcePresetKey && !classId && duplicateAction !== 'new-session') {
+    if (!planId && sourcePresetKey && duplicateAction !== 'new-session') {
       const preset = ALL_PRESETS.find((item) => item.key === sourcePresetKey);
       if (!preset) {
         return NextResponse.json({ error: 'Preset not found' }, { status: 404 });
@@ -85,7 +116,7 @@ export async function POST(request: Request) {
       const activeSession = await prisma.classSession.findFirst({
         where: {
           teacherId: user.id,
-          classId: null,
+          classId: classId || null,
           status: 'ACTIVE',
           plan: { is: { title: `${preset.title} (副本)` } },
         },
@@ -106,7 +137,9 @@ export async function POST(request: Request) {
         }
 
         return NextResponse.json({
-          error: '该教案已有进行中的临时课堂，请选择进入已有课堂或确认新开课堂。',
+          error: classId
+            ? '该班级已有进行中的预置互动课堂，请选择进入已有课堂或确认新开课堂。'
+            : '该教案已有进行中的临时课堂，请选择进入已有课堂或确认新开课堂。',
           existingSessionId: activeSession.id,
           requiresExplicitChoice: true,
           allowedActions: ['reuse', 'new-session'],
@@ -117,25 +150,6 @@ export async function POST(request: Request) {
 
     if (!planId) {
       return NextResponse.json({ error: '请选择教案' }, { status: 400 });
-    }
-
-    let classData: { id: string; teacherId: string; name: string } | null = null;
-
-    if (classId) {
-      // 验证班级存在且属于当前教师
-      classData = await prisma.class.findUnique({
-        where: { id: classId },
-        select: { id: true, teacherId: true, name: true }
-      });
-
-      if (!classData) {
-        return NextResponse.json({ error: '班级不存在' }, { status: 404 });
-      }
-
-      if (classData.teacherId !== user.id && user.role !== 'ADMIN') {
-        return NextResponse.json({ error: '无权在此班级开始课堂' }, { status: 403 });
-      }
-
     }
 
     const plan = await prisma.lessonPlan.findUnique({
@@ -180,13 +194,13 @@ export async function POST(request: Request) {
       generatedBinding = { ...publication, projectedLessonPlanId: planId };
     }
 
-    if (duplicateAction !== 'new-session') {
+    if (!classId && duplicateAction !== 'new-session') {
       const activeSession = await prisma.classSession.findFirst({
         where: {
           teacherId: user.id,
           classId: classId || null,
           status: 'ACTIVE',
-          ...(sourcePresetKey && !classId
+          ...(sourcePresetKey
             ? { plan: { is: { title: plan.title } } }
             : { planId }),
         },
@@ -225,7 +239,7 @@ export async function POST(request: Request) {
       totalSteps: plan._count.items,
     } : loadSessionLessonSnapshot(plan.title);
 
-    const newSession = await prisma.classSession.create({
+    const createSession = (db: Pick<Prisma.TransactionClient, 'classSession'>) => db.classSession.create({
       data: {
         joinCode,
         planId,
@@ -246,9 +260,38 @@ export async function POST(request: Request) {
       },
       include: {
         plan: { select: { title: true } },
-        class: { select: { name: true } }
-      }
+        class: { select: { name: true } },
+      },
     });
+    const newSession = classId
+      ? await createClassBoundSession(prisma, {
+        actorId: user.id,
+        actorRole: user.role,
+        classId,
+        create: async (tx) => {
+          if (duplicateAction !== 'new-session') {
+            const activeSession = await tx.classSession.findFirst({
+              where: {
+                teacherId: user.id,
+                classId,
+                status: 'ACTIVE',
+                ...(sourcePresetKey
+                  ? { plan: { is: { title: plan.title } } }
+                  : { planId }),
+              },
+              include: {
+                plan: { select: { title: true } },
+                class: { select: { name: true } },
+              },
+            });
+            if (activeSession) {
+              throw new DuplicateClassroomSessionError(activeSession, duplicateAction === 'reuse');
+            }
+          }
+          return createSession(tx);
+        },
+      })
+      : await createSession(prisma);
 
     const sessionStartEventAt = newSession.startTime instanceof Date
       ? newSession.startTime.toISOString()
@@ -278,6 +321,35 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     rethrowIfNextDynamicError(error);
+    if (error instanceof DuplicateClassroomSessionError) {
+      const classroomIdentity = buildClassroomIdentityPayload(error.session);
+      if (error.reuseExistingSession) {
+        return NextResponse.json({
+          ...error.session,
+          classroomIdentity,
+          reusedExistingSession: true,
+        });
+      }
+      return NextResponse.json({
+        error: '该班级和教案已有进行中的课堂，请选择进入已有课堂或确认新开课堂。',
+        existingSessionId: error.session.id,
+        requiresExplicitChoice: true,
+        allowedActions: ['reuse', 'new-session'],
+        classroomIdentity,
+      }, { status: 409 });
+    }
+    if (error instanceof SessionClassBindingError) {
+      if (error.code === 'class-not-found') {
+        return NextResponse.json({ error: '班级不存在' }, { status: 404 });
+      }
+      if (error.code === 'class-not-active') {
+        return NextResponse.json({ error: '班级未启用，请刷新后重新选择。' }, { status: 409 });
+      }
+      if (error.code === 'class-not-owned') {
+        return NextResponse.json({ error: '无权在此班级开始课堂' }, { status: 403 });
+      }
+      return NextResponse.json({ error: '班级状态正在更新，请刷新后重试。' }, { status: 409 });
+    }
     console.error('Error creating session:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
