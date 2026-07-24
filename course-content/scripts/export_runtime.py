@@ -38,6 +38,10 @@ from lesson_artifacts import (  # noqa: E402
     with_lesson_prefix,
 )
 from canonical_nodes import load_canonical_index  # noqa: E402
+from knowledge_card_coverage import (  # noqa: E402
+    assert_complete_knowledge_card_coverage,
+    audit_knowledge_card_coverage,
+)
 from runtime_media_index import ensure_runtime_media_index  # noqa: E402
 from lesson_graph_order import (  # noqa: E402
     build_lesson_overlay_payload,
@@ -1208,8 +1212,21 @@ def copy_reviewed_infographs() -> dict[str, dict[str, str]]:
 
 def export_global_knowledge() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     nodes_by_id, relation_records = load_combined_authoring_graph()
+    canonical_index = load_canonical_index()
+    authoring_cards_nodes = AUTHORING_ROOT / 'knowledge' / 'cards' / 'nodes'
     runtime_cards_nodes = RUNTIME_ROOT / 'knowledge' / 'cards' / 'nodes'
     runtime_cards_concepts = RUNTIME_ROOT / 'knowledge' / 'cards' / 'concepts'
+    exclusions_path = AUTHORING_ROOT / 'knowledge' / 'card-exclusions.json'
+
+    authoring_coverage = audit_knowledge_card_coverage(
+        nodes_by_id,
+        authoring_cards=authoring_cards_nodes,
+        runtime_cards=runtime_cards_nodes,
+        exclusions_path=exclusions_path,
+        canonical_index=canonical_index,
+        require_runtime=False,
+    )
+    assert_complete_knowledge_card_coverage(authoring_coverage)
 
     reset_directory(runtime_cards_nodes)
     if runtime_cards_concepts.exists():
@@ -1219,8 +1236,19 @@ def export_global_knowledge() -> tuple[list[dict[str, Any]], list[dict[str, Any]
     runtime_relations = build_runtime_relations(nodes_by_id, relation_records)
     runtime_nodes = build_runtime_nodes(nodes_by_id, infograph_resource_by_node_id)
 
+    runtime_coverage = audit_knowledge_card_coverage(
+        nodes_by_id,
+        authoring_cards=authoring_cards_nodes,
+        runtime_cards=runtime_cards_nodes,
+        exclusions_path=exclusions_path,
+        canonical_index=canonical_index,
+        require_runtime=True,
+    )
+    assert_complete_knowledge_card_coverage(runtime_coverage)
+
     write_json(RUNTIME_ROOT / 'knowledge' / 'graph' / 'nodes.json', runtime_nodes)
     write_jsonl(RUNTIME_ROOT / 'knowledge' / 'graph' / 'relations.jsonl', runtime_relations)
+    write_json(RUNTIME_ROOT / 'knowledge' / 'cards' / 'coverage.json', runtime_coverage)
 
     return runtime_nodes, runtime_relations
 

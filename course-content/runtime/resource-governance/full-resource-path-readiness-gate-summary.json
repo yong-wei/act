@@ -1,7 +1,7 @@
 {
   "artifactVersion": "full-resource-path-readiness-gate.v1",
-  "generatedAt": "2026-07-18T05:00:00.000Z",
-  "status": "passed",
+  "generatedAt": "2026-07-23T08:30:00.000Z",
+  "status": "failed",
   "sourceArtifacts": {
     "resourceFieldCompletion": "course-content/runtime/resource-governance/resource-field-completion-summary.json",
     "dispositionReview": "course-content/runtime/resource-governance/resource-disposition-backlog-review-summary.json",
@@ -10,14 +10,14 @@
     "learningGoalReviewedBindings": "course-content/runtime/resource-governance/learning-goal-resource-baseline-reviewed-bindings.jsonl"
   },
   "resourceCoverage": {
-    "totalResources": 6509,
+    "totalResources": 7050,
     "familyTotals": {
       "arena": 2,
       "authoring-textbook-caption": 535,
       "authoring-textbook-chapter": 10,
       "authoring-textbook-figure": 535,
       "authoring-textbook-section": 25,
-      "knowledge-card": 297,
+      "knowledge-card": 838,
       "knowledge-infograph": 161,
       "registered-resource": 166,
       "runtime-handout": 39,
@@ -33,24 +33,26 @@
       "supporting-citation": 1914,
       "excluded-with-rationale": 2061,
       "embedded-asset": 1907,
-      "evidence-producing": 396
+      "evidence-producing": 937
     },
-    "unaccountedCount": 0,
+    "unaccountedCount": 541,
     "invalidPromotionCount": 0,
-    "unreviewedSemanticCount": 0,
+    "unreviewedSemanticCount": 541,
     "unresolvedGraphNodeResourceMissingCount": 0,
-    "downstreamBlockers": {},
-    "unresolvedDownstreamPathBlockers": 0,
+    "downstreamBlockers": {
+      "path-readiness": 1082
+    },
+    "unresolvedDownstreamPathBlockers": 1082,
     "evidenceLineageBlockerCount": 0,
     "followupBuckets": {
       "blocked-resource-completion-dependencies": 1069,
       "complete-analysis-design-graph-resource-bindings": 7121,
       "complete-citation-and-rag-bindings": 2034,
       "complete-evidence-lineage-bindings": 6850,
-      "complete-foundation-graph-resource-bindings": 436,
+      "complete-foundation-graph-resource-bindings": 977,
       "repair-resource-identity-bindings": 318,
-      "review-runtime-lesson-planning-units": 8672,
-      "review-runtime-media-handout-dispositions": 2362
+      "review-runtime-lesson-planning-units": 9213,
+      "review-runtime-media-handout-dispositions": 3444
     },
     "yangFanFixtureBlockers": {
       "blocked": false,
@@ -481,6 +483,33 @@
     ]
   },
   "findings": [
+    {
+      "id": "unaccounted-resource-disposition",
+      "severity": "blocking",
+      "count": 541,
+      "message": "Resources are missing a reviewed path-planning disposition.",
+      "evidenceRefs": [
+        "resource-disposition-backlog-review-summary.json"
+      ]
+    },
+    {
+      "id": "unresolved-downstream-path-blockers",
+      "severity": "blocking",
+      "count": 1082,
+      "message": "Reviewed disposition output still carries downstream path-readiness, runtime-identity, or dependency blockers.",
+      "evidenceRefs": [
+        "resource-disposition-backlog-review-summary.json"
+      ]
+    },
+    {
+      "id": "unreviewed-resource-semantics",
+      "severity": "blocking",
+      "count": 541,
+      "message": "Resources still require reviewed semantic fields or reviewed limitations.",
+      "evidenceRefs": [
+        "resource-field-completion-summary.json"
+      ]
+    },
     {
       "id": "yang-fan-fixture-limited-coverage",
       "severity": "warning",

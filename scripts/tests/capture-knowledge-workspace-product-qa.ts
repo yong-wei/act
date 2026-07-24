@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -17,6 +18,7 @@ const sourceFiles = [
   'src/app/assessment/adaptive-practice/page.tsx',
   'src/features/knowledge/graph/knowledge-graph-2d.tsx',
   'src/features/knowledge/graph/knowledge-graph-canvas.tsx',
+  'src/features/knowledge/graph/relation-family-control.tsx',
   'src/features/knowledge/graph/visual-config.ts',
   'src/features/knowledge/resource-panel/resource-panel.tsx',
   'src/components/ai/global-ai-button.tsx',
@@ -62,6 +64,32 @@ interface CaptureState {
 
 function sha256(relativePath: string) {
   return createHash('sha256').update(readFileSync(path.join(repoRoot, relativePath))).digest('hex');
+}
+
+function readCleanCaptureRevision() {
+  const status = execFileSync(
+    'git',
+    ['status', '--porcelain=v1', '--untracked-files=all'],
+    { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+  ).trim();
+  if (status) {
+    throw new Error(
+      `knowledge workspace product QA capture requires a clean Git worktree; commit or remove these changes first:\n${status}`,
+    );
+  }
+
+  return {
+    commitSha: execFileSync(
+      'git',
+      ['rev-parse', '--verify', 'HEAD^{commit}'],
+      { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+    ).trim(),
+    treeSha: execFileSync(
+      'git',
+      ['rev-parse', '--verify', 'HEAD^{tree}'],
+      { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+    ).trim(),
+  };
 }
 
 function ensureOutputDir() {
@@ -269,6 +297,8 @@ async function selectedNodeHoverDragPointCandidates(page: Page, expectedNodeId: 
 async function dragCanvasNodeUntilPinned(page: Page, expectedNodeId: string) {
   const candidates = await selectedNodeHoverDragPointCandidates(page, expectedNodeId);
   for (const [x, y] of candidates) {
+    await page.mouse.move(x, y);
+    await page.waitForTimeout(120);
     await page.mouse.down();
     await page.mouse.move(x + 80, y + 36, { steps: 8 });
     await page.mouse.up();
@@ -663,13 +693,14 @@ async function captureFocusEvidence(browser: Browser) {
   ];
 }
 
-async function captureMarkers(page: Page) {
+async function captureMarkers(page: Page, stateName: string) {
   const markers = await page.evaluate(`(() => {
     const root = document.querySelector('[data-knowledge-workspace]');
     const canvas = document.querySelector('[data-knowledge-canvas-primary]');
     const desktopTools = document.querySelector('[data-knowledge-desktop-command-system]');
     const mobileTools = document.querySelector('[data-knowledge-mobile-command-surface]');
     const activeLocalPanel = document.querySelector('[data-knowledge-local-tool-panel]');
+    const relationFamilyControl = document.querySelector('[data-knowledge-relation-family-control]');
      const inspector = document.querySelector('[data-knowledge-inspector]');
      const dock = document.querySelector('[data-platform-floating-dock]');
      const konlingSidebar = document.querySelector('[data-global-ai-sidebar="open"]');
@@ -694,8 +725,10 @@ async function captureMarkers(page: Page) {
      const mobileToolsRect = rectFor(mobileTools);
      const canvasRect = rectFor(canvas);
      const activeLocalPanelRect = rectFor(activeLocalPanel);
+     const relationFamilyControlRect = rectFor(relationFamilyControl);
      const inspectorRect = rectFor(inspector);
      const dockRect = rectFor(dock);
+     const konlingSidebarRect = rectFor(konlingSidebar);
      const expandedDockRect = rectFor(konlingSidebar ?? expandedDock);
     return {
       htmlClass: document.documentElement.className,
@@ -736,6 +769,8 @@ async function captureMarkers(page: Page) {
         }))
         .filter((entry) => entry.section) : [],
       relationFamilyControlVisible: Boolean(document.querySelector('[data-knowledge-relation-family-control]')),
+      relationFamilyControlPlacement: relationFamilyControl?.getAttribute('data-knowledge-relation-family-control') ?? null,
+      relationFamilyCollisionPolicy: relationFamilyControl?.getAttribute('data-knowledge-relation-family-collision-policy') ?? null,
       relationFamilyState: document.querySelector('[data-knowledge-relation-family-control]')?.getAttribute('data-knowledge-relation-family-state') ?? null,
       relationFamilySamples: document.querySelectorAll('[data-knowledge-relation-family-sample]').length,
       mobileLayoutControls: Array.from(document.querySelectorAll('[data-knowledge-layout-control]'))
@@ -754,8 +789,10 @@ async function captureMarkers(page: Page) {
         desktopTools: desktopToolsRect,
         mobileTools: mobileToolsRect,
         activeLocalPanel: activeLocalPanelRect,
+        relationFamilyControl: relationFamilyControlRect,
         inspector: inspectorRect,
         dock: dockRect,
+        konlingSidebar: konlingSidebarRect,
         expandedDock: expandedDockRect,
       },
       documentScroll: {
@@ -773,10 +810,24 @@ async function captureMarkers(page: Page) {
     desktopTools: EvidenceRect | null;
     mobileTools: EvidenceRect | null;
     activeLocalPanel: EvidenceRect | null;
+    relationFamilyControl: EvidenceRect | null;
     inspector: EvidenceRect | null;
     dock: EvidenceRect | null;
+    konlingSidebar: EvidenceRect | null;
     expandedDock: EvidenceRect | null;
   };
+  const konlingSidebarOverlapsRelationFamilyControl = doRectsOverlap(
+    rects.konlingSidebar as never,
+    rects.relationFamilyControl as never,
+  );
+  if (markers.relationFamilyControlPlacement === 'compact-bottom-left'
+    && konlingSidebarOverlapsRelationFamilyControl) {
+    throw new Error(
+      `expanded Konling overlaps the canvas relation-family control in ${stateName}: `
+      + `Konling=${JSON.stringify(rects.konlingSidebar)}, `
+      + `relationFamily=${JSON.stringify(rects.relationFamilyControl)}`,
+    );
+  }
   return {
     ...markers,
     overlaps: {
@@ -785,6 +836,7 @@ async function captureMarkers(page: Page) {
       inspectorOverlapsActiveLocalPanel: doRectsOverlap(rects.inspector as never, rects.activeLocalPanel as never),
       dockOverlapsMobileTools: doRectsOverlap(rects.dock as never, rects.mobileTools as never),
       expandedDockOverlapsMobileTools: doRectsOverlap(rects.expandedDock as never, rects.mobileTools as never),
+      konlingSidebarOverlapsRelationFamilyControl,
       dockOverlapsInspector: doRectsOverlap(rects.dock as never, rects.inspector as never),
       expandedDockOverlapsInspector: doRectsOverlap(rects.expandedDock as never, rects.inspector as never),
     },
@@ -804,7 +856,7 @@ async function captureState(browser: Browser, state: CaptureState) {
     const screenshotPath = path.join(outputDir, screenshotName);
     await page.screenshot({ path: screenshotPath, fullPage: false });
     const screenshotRelativePath = path.relative(repoRoot, screenshotPath);
-    const markers = await captureMarkers(page);
+    const markers = await captureMarkers(page, state.name);
     return {
       name: state.name,
       route: state.route ?? '/knowledge',
@@ -1121,6 +1173,7 @@ function writeKnowledgeGraphGovernanceEvidence(stateMatrix: Array<Record<string,
 }
 
 async function main() {
+  const captureRevision = readCleanCaptureRevision();
   ensureOutputDir();
   const states: CaptureState[] = [
     {
@@ -1582,6 +1635,7 @@ async function main() {
       change: 'govern-knowledge-workspace-product-qa',
       issue: 489,
       capturedAt: new Date().toISOString(),
+      captureRevision,
       baseUrl,
       selectedNodeId,
       designSourceOfTruth: {

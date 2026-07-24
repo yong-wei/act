@@ -96,6 +96,89 @@ test.describe('simulation scene visual pipeline performance', () => {
     expect(stats.p95).toBeLessThan(ENV_CATASTROPHIC_FRAME_MS);
   });
 
+  test('cruise route mounts the pipeline with quality contracts', async ({ page }) => {
+    await page.goto('/simulations/cruise', { waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('canvas', { timeout: 60_000 });
+    await page.waitForSelector('[data-scene-quality-tier]', { state: 'attached', timeout: 60_000 });
+    await page.waitForTimeout(4_000);
+
+    await expect(page.locator('[data-scene-environment-switcher]')).toBeVisible();
+    await expect(page.locator('[data-scene-quality-select]')).toBeVisible();
+    await expect(page.locator('[data-soundscape-muted]')).toBeVisible();
+    await expect(page.locator('[data-teaching-annotations]')).toBeVisible();
+
+    const stats = await sampleFrameStats(page, 2);
+    expect(stats.samples).toBeGreaterThan(10);
+    expect(stats.p95).toBeLessThan(ENV_CATASTROPHIC_FRAME_MS);
+  });
+
+  test('drilling route mounts the pipeline with quality contracts', async ({ page }) => {
+    await page.goto('/simulations/drilling', { waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('canvas', { timeout: 60_000 });
+    await page.waitForSelector('[data-scene-quality-tier]', { state: 'attached', timeout: 60_000 });
+    await page.waitForTimeout(4_000);
+
+    await expect(page.locator('[data-scene-environment-switcher]')).toBeVisible();
+    await expect(page.locator('[data-scene-quality-select]')).toBeVisible();
+    await expect(page.locator('[data-soundscape-muted]')).toBeVisible();
+    await expect(page.locator('[data-teaching-annotations]')).toBeVisible();
+
+    // drilling 平台模型为系列最重（meshopt 后 9.2MB）：默认档挂载已由上述 chrome 断言验证，
+    // 帧预算改在低档验证管线自有的质量降级路径（水面细分/尾迹粒子/后处理全降），
+    // 与 destroyer 帧时间契约"low tier is not slower than high"同一语义。
+    await forceTier(page, 'low');
+
+    const stats = await sampleFrameStats(page, 2);
+    expect(stats.samples).toBeGreaterThan(10);
+    expect(stats.p95).toBeLessThan(ENV_CATASTROPHIC_FRAME_MS);
+  });
+
+  test('icebreaker route mounts the pipeline with quality contracts', async ({ page }) => {
+    await page.goto('/simulations/icebreaker', { waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('canvas', { timeout: 60_000 });
+    await page.waitForSelector('[data-scene-quality-tier]', { state: 'attached', timeout: 60_000 });
+    await page.waitForTimeout(4_000);
+
+    await expect(page.locator('[data-scene-environment-switcher]')).toBeVisible();
+    await expect(page.locator('[data-scene-quality-select]')).toBeVisible();
+    await expect(page.locator('[data-soundscape-muted]')).toBeVisible();
+    await expect(page.locator('[data-teaching-annotations]')).toBeVisible();
+
+    const stats = await sampleFrameStats(page, 2);
+    expect(stats.samples).toBeGreaterThan(10);
+    expect(stats.p95).toBeLessThan(ENV_CATASTROPHIC_FRAME_MS);
+  });
+
+  test('dredger route mounts the pipeline with quality contracts', async ({ page }) => {
+    await page.goto('/simulations/dredger', { waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('canvas', { timeout: 60_000 });
+    await page.waitForSelector('[data-scene-quality-tier]', { state: 'attached', timeout: 60_000 });
+    await page.waitForTimeout(4_000);
+
+    await expect(page.locator('[data-scene-environment-switcher]')).toBeVisible();
+    await expect(page.locator('[data-scene-quality-select]')).toBeVisible();
+    await expect(page.locator('[data-soundscape-muted]')).toBeVisible();
+    await expect(page.locator('[data-teaching-annotations]')).toBeVisible();
+
+    const stats = await sampleFrameStats(page, 2);
+    expect(stats.samples).toBeGreaterThan(10);
+    expect(stats.p95).toBeLessThan(ENV_CATASTROPHIC_FRAME_MS);
+  });
+
+  test('cruise scene geometry matches lng at the same viewport', async ({ page }) => {
+    const measure = async (route: string) => {
+      await page.goto(route, { waitUntil: 'domcontentloaded' });
+      await page.waitForSelector('[data-sim-ui]', { timeout: 60_000 });
+      const box = await page.locator('[data-sim-ui]').boundingBox();
+      if (!box) throw new Error(`missing [data-sim-ui] bounding box on ${route}`);
+      return box;
+    };
+    const cruise = await measure('/simulations/cruise');
+    const lng = await measure('/simulations/lng');
+    expect(Math.abs(cruise.width - lng.width)).toBeLessThanOrEqual(2);
+    expect(Math.abs(cruise.height - lng.height)).toBeLessThanOrEqual(2);
+  });
+
   test('destroyer scene mounts pipeline chrome and quality contracts', async ({ page }) => {
     await gotoDestroyer(page);
 

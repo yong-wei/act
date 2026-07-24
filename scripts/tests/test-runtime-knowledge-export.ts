@@ -14,6 +14,7 @@ function readText(relativePath: string) {
 
 const nodesPath = 'course-content/runtime/knowledge/graph/nodes.json';
 const relationsPath = 'course-content/runtime/knowledge/graph/relations.jsonl';
+const coveragePath = 'course-content/runtime/knowledge/cards/coverage.json';
 const lessonId = '3-6';
 const runtimeNodeId = '目标驱动PD校正_3_36002';
 const runtimeNodeWithKnowledgeTypeId = '展示解与Pareto最小取舍_4_44006';
@@ -27,6 +28,7 @@ const handoutPath = `course-content/runtime/lessons/${lessonId}/${lessonId}-hand
 
 assert.equal(fs.existsSync(path.join(root, nodesPath)), true, '应导出 runtime 全局知识节点文件 nodes.json');
 assert.equal(fs.existsSync(path.join(root, relationsPath)), true, '应导出 runtime 全局关系文件 relations.jsonl');
+assert.equal(fs.existsSync(path.join(root, coveragePath)), true, '应导出知识卡片覆盖清单');
 assert.equal(fs.existsSync(path.join(root, runtimeNodeCardPath)), true, '应导出 runtime 节点卡片 Markdown');
 assert.equal(
   fs.existsSync(path.join(root, migratedConceptNodeCardPath)),
@@ -48,7 +50,31 @@ assert.equal(fs.existsSync(path.join(root, graphOverlayPath)), true, `应导出 
 assert.equal(fs.existsSync(path.join(root, handoutPath)), true, `应导出 ${lessonId} handout.md`);
 
 const nodes = readJson(nodesPath);
+const coverage = readJson(coveragePath);
 assert.equal(Array.isArray(nodes), true, 'runtime 节点文件应为数组');
+assert.equal(coverage.summary.total, nodes.length, '知识卡片覆盖总数应与 runtime 节点数一致');
+assert.equal(coverage.summary.missing_authoring, 0, '知识卡片覆盖不得缺少 authoring 卡片');
+assert.equal(coverage.summary.invalid_mapping_or_runtime, 0, '知识卡片覆盖不得包含失效映射或 runtime 投影');
+assert.equal(
+  coverage.summary.linked + coverage.summary.excluded,
+  coverage.summary.total,
+  'linked 与 excluded 应完整分类每个 runtime 图谱节点',
+);
+assert.equal(coverage.items.length, nodes.length, '覆盖清单应覆盖每个 runtime 图谱节点');
+const linkedNodeIds = new Set(
+  coverage.items
+    .filter((item: { disposition?: string }) => item.disposition === 'linked')
+    .map((item: { node_id?: string }) => item.node_id),
+);
+assert.equal(
+  nodes.filter((node: { id?: string }) => linkedNodeIds.has(node.id)).every((node: { id?: string; resources?: unknown[] }) => (
+    Array.isArray(node.resources)
+      && node.resources.includes(`course-content/runtime/knowledge/cards/nodes/${node.id}.md`)
+      && fs.existsSync(path.join(root, `course-content/runtime/knowledge/cards/nodes/${node.id}.md`))
+  )),
+  true,
+  '每个 linked runtime 图谱节点都必须指向存在且同 node_id 的知识卡片',
+);
 assert.equal(
   nodes.some((node: { id?: string; resources?: unknown[] }) => node.id === runtimeNodeId && Array.isArray(node.resources)),
   true,

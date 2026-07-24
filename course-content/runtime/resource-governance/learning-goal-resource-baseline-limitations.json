@@ -1,9 +1,9 @@
 {
   "artifactVersion": "learning-goal-resource-baseline.v1",
-  "generatedAt": "2026-07-18T05:00:00.000Z",
+  "generatedAt": "2026-07-23T08:30:00.000Z",
   "sourceWindow": {
     "from": null,
-    "to": "2026-07-18T05:00:00.000Z"
+    "to": "2026-07-23T08:30:00.000Z"
   },
   "versionRefs": {
     "artifactVersioningVersion": "kaq-artifact-versioning.v1",
@@ -80,7 +80,7 @@
         "reviewedBindingCount": 5,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-18T05:00:00.000Z"
+          "to": "2026-07-23T08:30:00.000Z"
         }
       }
     },
@@ -107,7 +107,7 @@
         "reviewedBindingCount": 3,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-18T05:00:00.000Z"
+          "to": "2026-07-23T08:30:00.000Z"
         }
       }
     },
@@ -124,24 +124,27 @@
         "remediation"
       ],
       "provisionalResourceIds": [
-        "knowledge-card:Bode与Nyquist同源表征_1_4",
-        "knowledge-card:三域证据链_1_5",
-        "knowledge-card:临界增益与虚轴极点_1_5",
-        "knowledge-card:临界阻尼_1_3",
-        "knowledge-card:共轭复极点_1_3",
-        "knowledge-card:参数连续性_1_3",
-        "knowledge-card:增益扫描稳定区间_1_5",
-        "knowledge-card:多表征一致性读图_1_4",
-        "knowledge-card:实极点_1_3",
-        "knowledge-card:开环增益_1_3",
-        "knowledge-card:时域频域通道区分_1_4",
-        "knowledge-card:极点迁移_1_3",
-        "knowledge-card:根轨迹雏形_1_3",
-        "knowledge-card:衰减振荡_1_3",
-        "knowledge-card:速度指标分辨_1_5",
-        "knowledge-card:重实极点_1_3",
         "knowledge-card:闭环带宽与环路穿越频率_1_4",
         "knowledge-card:闭环特征方程_1_3",
+        "knowledge-card:参数连续性_1_3",
+        "knowledge-card:多表征一致性读图_1_4",
+        "knowledge-card:反馈控制系统_1_98dc667a",
+        "knowledge-card:负反馈_1_0cffeeab",
+        "knowledge-card:负反馈控制原理_1_5a06114b",
+        "knowledge-card:根轨迹雏形_1_3",
+        "knowledge-card:共轭复极点_1_3",
+        "knowledge-card:极点迁移_1_3",
+        "knowledge-card:开环增益_1_3",
+        "knowledge-card:临界增益与虚轴极点_1_5",
+        "knowledge-card:临界阻尼_1_3",
+        "knowledge-card:三域证据链_1_5",
+        "knowledge-card:时域频域通道区分_1_4",
+        "knowledge-card:实极点_1_3",
+        "knowledge-card:衰减振荡_1_3",
+        "knowledge-card:速度指标分辨_1_5",
+        "knowledge-card:增益扫描稳定区间_1_5",
+        "knowledge-card:重实极点_1_3",
+        "knowledge-card:Bode与Nyquist同源表征_1_4",
         "runtime-step:1-1:step-09",
         "runtime-step:1-1:step-10",
         "runtime-step:1-2:step-04",
@@ -173,7 +176,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-18T05:00:00.000Z"
+          "to": "2026-07-23T08:30:00.000Z"
         }
       }
     },
@@ -190,24 +193,25 @@
         "remediation"
       ],
       "provisionalResourceIds": [
-        "knowledge-card:Bode与Nyquist同源表征_1_4",
-        "knowledge-card:三域证据链_1_5",
-        "knowledge-card:临界增益与虚轴极点_1_5",
-        "knowledge-card:临界阻尼_1_3",
-        "knowledge-card:共轭复极点_1_3",
-        "knowledge-card:参数连续性_1_3",
-        "knowledge-card:增益扫描稳定区间_1_5",
-        "knowledge-card:多表征一致性读图_1_4",
-        "knowledge-card:实极点_1_3",
-        "knowledge-card:开环增益_1_3",
-        "knowledge-card:时域频域通道区分_1_4",
-        "knowledge-card:极点迁移_1_3",
-        "knowledge-card:根轨迹雏形_1_3",
-        "knowledge-card:衰减振荡_1_3",
-        "knowledge-card:速度指标分辨_1_5",
-        "knowledge-card:重实极点_1_3",
         "knowledge-card:闭环带宽与环路穿越频率_1_4",
         "knowledge-card:闭环特征方程_1_3",
+        "knowledge-card:参数连续性_1_3",
+        "knowledge-card:传递函数_2_2c5e2589",
+        "knowledge-card:多表征一致性读图_1_4",
+        "knowledge-card:根轨迹雏形_1_3",
+        "knowledge-card:共轭复极点_1_3",
+        "knowledge-card:极点迁移_1_3",
+        "knowledge-card:开环增益_1_3",
+        "knowledge-card:临界增益与虚轴极点_1_5",
+        "knowledge-card:临界阻尼_1_3",
+        "knowledge-card:三域证据链_1_5",
+        "knowledge-card:时域频域通道区分_1_4",
+        "knowledge-card:实极点_1_3",
+        "knowledge-card:衰减振荡_1_3",
+        "knowledge-card:速度指标分辨_1_5",
+        "knowledge-card:增益扫描稳定区间_1_5",
+        "knowledge-card:重实极点_1_3",
+        "knowledge-card:Bode与Nyquist同源表征_1_4",
         "runtime-step:1-2:step-04",
         "runtime-step:1-2:step-05",
         "runtime-step:2-2:step-09",
@@ -237,7 +241,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-18T05:00:00.000Z"
+          "to": "2026-07-23T08:30:00.000Z"
         }
       }
     },
@@ -254,24 +258,25 @@
         "remediation"
       ],
       "provisionalResourceIds": [
-        "knowledge-card:Bode与Nyquist同源表征_1_4",
-        "knowledge-card:三域证据链_1_5",
-        "knowledge-card:临界增益与虚轴极点_1_5",
-        "knowledge-card:临界阻尼_1_3",
-        "knowledge-card:共轭复极点_1_3",
-        "knowledge-card:参数连续性_1_3",
-        "knowledge-card:增益扫描稳定区间_1_5",
-        "knowledge-card:多表征一致性读图_1_4",
-        "knowledge-card:实极点_1_3",
-        "knowledge-card:开环增益_1_3",
-        "knowledge-card:时域频域通道区分_1_4",
-        "knowledge-card:极点迁移_1_3",
-        "knowledge-card:根轨迹雏形_1_3",
-        "knowledge-card:衰减振荡_1_3",
-        "knowledge-card:速度指标分辨_1_5",
-        "knowledge-card:重实极点_1_3",
         "knowledge-card:闭环带宽与环路穿越频率_1_4",
         "knowledge-card:闭环特征方程_1_3",
+        "knowledge-card:参数连续性_1_3",
+        "knowledge-card:多表征一致性读图_1_4",
+        "knowledge-card:根轨迹雏形_1_3",
+        "knowledge-card:共轭复极点_1_3",
+        "knowledge-card:极点迁移_1_3",
+        "knowledge-card:开环增益_1_3",
+        "knowledge-card:临界增益与虚轴极点_1_5",
+        "knowledge-card:临界阻尼_1_3",
+        "knowledge-card:三域证据链_1_5",
+        "knowledge-card:时域分析法_3_0f0489e0",
+        "knowledge-card:时域频域通道区分_1_4",
+        "knowledge-card:实极点_1_3",
+        "knowledge-card:衰减振荡_1_3",
+        "knowledge-card:速度指标分辨_1_5",
+        "knowledge-card:增益扫描稳定区间_1_5",
+        "knowledge-card:重实极点_1_3",
+        "knowledge-card:Bode与Nyquist同源表征_1_4",
         "runtime-step:1-2:step-04",
         "runtime-step:1-2:step-05",
         "runtime-step:2-2:step-09",
@@ -307,7 +312,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-18T05:00:00.000Z"
+          "to": "2026-07-23T08:30:00.000Z"
         }
       }
     },
@@ -323,24 +328,24 @@
         "remediation"
       ],
       "provisionalResourceIds": [
-        "knowledge-card:Bode与Nyquist同源表征_1_4",
-        "knowledge-card:三域证据链_1_5",
-        "knowledge-card:临界增益与虚轴极点_1_5",
-        "knowledge-card:临界阻尼_1_3",
-        "knowledge-card:共轭复极点_1_3",
-        "knowledge-card:参数连续性_1_3",
-        "knowledge-card:增益扫描稳定区间_1_5",
-        "knowledge-card:多表征一致性读图_1_4",
-        "knowledge-card:实极点_1_3",
-        "knowledge-card:开环增益_1_3",
-        "knowledge-card:时域频域通道区分_1_4",
-        "knowledge-card:极点迁移_1_3",
-        "knowledge-card:根轨迹雏形_1_3",
-        "knowledge-card:衰减振荡_1_3",
-        "knowledge-card:速度指标分辨_1_5",
-        "knowledge-card:重实极点_1_3",
         "knowledge-card:闭环带宽与环路穿越频率_1_4",
         "knowledge-card:闭环特征方程_1_3",
+        "knowledge-card:参数连续性_1_3",
+        "knowledge-card:多表征一致性读图_1_4",
+        "knowledge-card:根轨迹雏形_1_3",
+        "knowledge-card:共轭复极点_1_3",
+        "knowledge-card:极点迁移_1_3",
+        "knowledge-card:开环增益_1_3",
+        "knowledge-card:临界增益与虚轴极点_1_5",
+        "knowledge-card:临界阻尼_1_3",
+        "knowledge-card:三域证据链_1_5",
+        "knowledge-card:时域频域通道区分_1_4",
+        "knowledge-card:实极点_1_3",
+        "knowledge-card:衰减振荡_1_3",
+        "knowledge-card:速度指标分辨_1_5",
+        "knowledge-card:增益扫描稳定区间_1_5",
+        "knowledge-card:重实极点_1_3",
+        "knowledge-card:Bode与Nyquist同源表征_1_4",
         "runtime-step:1-2:step-04",
         "runtime-step:1-2:step-05",
         "runtime-step:2-2:step-09",
@@ -374,7 +379,7 @@
         "reviewedBindingCount": 3,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-18T05:00:00.000Z"
+          "to": "2026-07-23T08:30:00.000Z"
         }
       }
     },
@@ -416,7 +421,7 @@
         "reviewedBindingCount": 3,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-18T05:00:00.000Z"
+          "to": "2026-07-23T08:30:00.000Z"
         }
       }
     },
@@ -458,7 +463,7 @@
         "reviewedBindingCount": 0,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-18T05:00:00.000Z"
+          "to": "2026-07-23T08:30:00.000Z"
         }
       }
     },
@@ -474,6 +479,8 @@
         "remediation"
       ],
       "provisionalResourceIds": [
+        "knowledge-card:鲁棒控制_3_a7fa1491",
+        "knowledge-card:现代控制理论_9_0b54b9a0",
         "runtime-step:4-7:step-03",
         "runtime-step:4-7:step-04",
         "runtime-step:5-3:step-09",
@@ -498,7 +505,7 @@
         "reviewedBindingCount": 3,
         "sourceWindow": {
           "from": null,
-          "to": "2026-07-18T05:00:00.000Z"
+          "to": "2026-07-23T08:30:00.000Z"
         }
       }
     }
