@@ -85,4 +85,34 @@ describe('class-bound session creation', () => {
     })).resolves.toEqual({ id: 'session-1' });
     expect(db.$transaction).toHaveBeenCalledTimes(2);
   });
+
+  it('maps an exhausted P2034 conflict to the stable retryable error', async () => {
+    const retryable = Object.assign(new Error('serialization failure'), { code: 'P2034' });
+    const db = {
+      $transaction: vi.fn().mockRejectedValue(retryable),
+    };
+
+    await expect(createClassBoundSession(db as never, {
+      actorId: 'teacher-1',
+      actorRole: UserRole.TEACHER,
+      classId: 'class-1',
+      create: vi.fn(),
+    })).rejects.toEqual(new SessionClassBindingError('transaction-conflict-retryable'));
+    expect(db.$transaction).toHaveBeenCalledTimes(3);
+  });
+
+  it('preserves non-P2034 transaction errors', async () => {
+    const fatal = Object.assign(new Error('database unavailable'), { code: 'P1001' });
+    const db = {
+      $transaction: vi.fn().mockRejectedValue(fatal),
+    };
+
+    await expect(createClassBoundSession(db as never, {
+      actorId: 'teacher-1',
+      actorRole: UserRole.TEACHER,
+      classId: 'class-1',
+      create: vi.fn(),
+    })).rejects.toBe(fatal);
+    expect(db.$transaction).toHaveBeenCalledTimes(1);
+  });
 });

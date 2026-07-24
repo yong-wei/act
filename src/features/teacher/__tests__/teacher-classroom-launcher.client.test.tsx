@@ -146,6 +146,41 @@ describe('teacher classroom launcher', () => {
     expect(onSessionReady).toHaveBeenCalledWith('session-created');
   });
 
+  it('can launch with the first active class before default reconciliation completes', async () => {
+    const fetchMock = vi.mocked(fetch);
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse({
+        classes: [
+          { id: 'class-first', name: '迁移期可用班级', code: '100001' },
+          { id: 'class-second', name: '另一可用班级', code: '100002' },
+        ],
+        defaultClassId: null,
+      }))
+      .mockResolvedValueOnce(jsonResponse({ id: 'session-created' }));
+
+    await act(async () => {
+      root.render(
+        <TeacherClassroomLaunchDialog
+          request={{ planId: 'plan-1', onSessionReady: vi.fn() }}
+          onClose={vi.fn()}
+        />,
+      );
+    });
+    await flush();
+
+    expect((getByRole(document.body, 'combobox', {
+      name: '本次课堂班级',
+    }) as HTMLSelectElement).value).toBe('class-first');
+
+    await act(async () => getByRole(document.body, 'button', { name: '开始上课' }).click());
+    await flush();
+
+    expect(JSON.parse(String((fetchMock.mock.calls[1]?.[1] as RequestInit).body))).toMatchObject({
+      classId: 'class-first',
+      launchContext: 'class-bound',
+    });
+  });
+
   it('provides a stable accessible name, deterministic focus, and Escape dismissal', async () => {
     vi.mocked(fetch).mockResolvedValueOnce(jsonResponse({
       classes: [{ id: 'class-default', name: '默认班', code: '100001' }],

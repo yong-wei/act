@@ -130,6 +130,7 @@ describe('teacher default class service', () => {
     await createTeacherDefaultClassService(database(tx) as never)
       .deactivateClass(teacher.id, activeClass.id);
 
+    expect(tx.$executeRaw).toHaveBeenCalledTimes(1);
     expect(findFirst).toHaveBeenLastCalledWith({
       where: { teacherId: teacher.id, isActive: true },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],

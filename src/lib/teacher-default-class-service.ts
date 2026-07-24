@@ -90,6 +90,7 @@ export function createTeacherDefaultClassService(
     deactivateClass(teacherId: string, classId: string) {
       return withSerializableRetry(db, transactionAttempts, async (tx) => {
         await requireTeacher(tx, teacherId);
+        await lockClassSessionBinding(tx, classId);
         await findOwnedClass(tx, teacherId, classId);
         const deactivated = await tx.class.update({
           where: { id: classId },

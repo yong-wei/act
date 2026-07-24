@@ -49,7 +49,10 @@ export async function createClassBoundSession<T>(
         return input.create(tx);
       }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
     } catch (error) {
-      if (!hasPrismaCode(error, 'P2034') || attempt === transactionAttempts - 1) throw error;
+      if (!hasPrismaCode(error, 'P2034')) throw error;
+      if (attempt === transactionAttempts - 1) {
+        throw new SessionClassBindingError('transaction-conflict-retryable');
+      }
     }
   }
   throw new SessionClassBindingError('transaction-conflict-retryable');

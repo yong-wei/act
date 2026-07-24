@@ -13,6 +13,7 @@ const teacherId = `teacher-${nonce}`;
 const classAId = `class-a-${nonce}`;
 const classBId = `class-b-${nonce}`;
 const classRaceId = `class-race-${nonce}`;
+const classDeactivateRaceId = `class-deactivate-race-${nonce}`;
 const classDuplicateRaceId = `class-duplicate-race-${nonce}`;
 const planId = `plan-${nonce}`;
 
@@ -90,6 +91,12 @@ async function main() {
       await db.classSession.count({ where: { id: session.id, classId: classBId } }) === 1,
       'rejected deletion must preserve historical class attribution',
     );
+    await service.deactivateClass(teacherId, classBId);
+    assert(
+      await db.classSession.count({ where: { id: session.id, classId: classBId } }) === 1,
+      'deactivation after classroom creation must preserve historical class attribution',
+    );
+    await service.activateClass(teacherId, classBId);
 
     await db.class.create({ data: {
       id: classRaceId,
@@ -129,6 +136,57 @@ async function main() {
       assert(
         await db.class.count({ where: { id: classRaceId } }) === 0,
         'a winning deletion must prevent any subsequent class-bound creation',
+      );
+    }
+    await assertDefaultInvariant();
+
+    await db.class.create({ data: {
+      id: classDeactivateRaceId,
+      code: `X${nonce}`.slice(0, 30),
+      name: '默认班级停用开课并发班',
+      teacherId,
+      createdAt: new Date('2026-07-03T12:00:00.000Z'),
+    } });
+    const deactivateAndCreate = await Promise.allSettled([
+      service.deactivateClass(teacherId, classDeactivateRaceId),
+      createClassBoundSession(db, {
+        actorId: teacherId,
+        actorRole: UserRole.TEACHER,
+        classId: classDeactivateRaceId,
+        create: (tx) => tx.classSession.create({
+          data: {
+            joinCode: `X${nonce}`.slice(0, 6),
+            planId,
+            teacherId,
+            classId: classDeactivateRaceId,
+          },
+        }),
+      }),
+    ]);
+    assert(deactivateAndCreate[0].status === 'fulfilled', 'class deactivation must complete');
+    assert(
+      !(await db.class.findUniqueOrThrow({
+        where: { id: classDeactivateRaceId },
+        select: { isActive: true },
+      })).isActive,
+      'deactivation and class-bound creation must leave the class inactive',
+    );
+    const deactivateRaceSession = deactivateAndCreate[1];
+    if (deactivateRaceSession.status === 'fulfilled') {
+      assert(
+        await db.classSession.count({
+          where: { id: deactivateRaceSession.value.id, classId: classDeactivateRaceId },
+        }) === 1,
+        'creation serialized before deactivation must retain historical class attribution',
+      );
+    } else {
+      assert(
+        deactivateRaceSession.reason?.code === 'class-not-active',
+        'creation serialized after deactivation must reject the inactive class',
+      );
+      assert(
+        await db.classSession.count({ where: { classId: classDeactivateRaceId } }) === 0,
+        'rejected creation must not persist a session',
       );
     }
     await assertDefaultInvariant();

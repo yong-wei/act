@@ -57,7 +57,7 @@ export function chooseTeacherLaunchClassId(input: {
   if (input.previousClassId && available.has(input.previousClassId)) return input.previousClassId;
   if (input.currentClassId && available.has(input.currentClassId)) return input.currentClassId;
   if (input.defaultClassId && available.has(input.defaultClassId)) return input.defaultClassId;
-  return '';
+  return input.classes[0]?.id ?? '';
 }
 
 export function isTeacherLaunchDuplicateConflict(
