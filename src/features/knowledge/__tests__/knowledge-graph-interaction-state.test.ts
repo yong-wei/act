@@ -424,6 +424,10 @@ describe('knowledge graph interaction state stability', () => {
       'utf8'
     );
     expect(familyControlSource).toContain("placement === 'canvas' ? 'compact-bottom-left' : `${placement}-header`");
+    expect(familyControlSource).toContain("avoidExpandedKonling = false");
+    expect(familyControlSource).toContain("vertical-clear-of-expanded-konling");
+    expect(systemSource).toContain("avoidExpandedKonling={aiSidebarOpen}");
+    expect(systemSource).toContain("!mobileKonlingModalOpen && !mobileInspectorControlVisible && !mobileToolControlVisible");
     expect(familyControlSource).toContain('data-knowledge-mobile-equivalent="same-state-same-control"');
     expect(systemSource).toContain('mobileHeaderControl={mobileInspectorControlVisible');
     expect(systemSource).toContain("relationFamilyControlPlacement === 'tool-panel'");

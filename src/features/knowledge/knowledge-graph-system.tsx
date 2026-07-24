@@ -1903,11 +1903,12 @@ export function KnowledgeGraphSystem({
           </div>
         )}
 
-        {!mobileInspectorControlVisible && !mobileToolControlVisible && (
+        {!mobileKonlingModalOpen && !mobileInspectorControlVisible && !mobileToolControlVisible && (
           <RelationFamilyControl
             enabledFamilies={enabledRelationFamilies}
             isLightTheme={isLightTheme}
             placement="canvas"
+            avoidExpandedKonling={aiSidebarOpen}
             onToggleAll={toggleAllFamilies}
             onToggleFamily={toggleFamily}
           />
