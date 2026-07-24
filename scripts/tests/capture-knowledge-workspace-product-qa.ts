@@ -693,7 +693,7 @@ async function captureFocusEvidence(browser: Browser) {
   ];
 }
 
-async function captureMarkers(page: Page) {
+async function captureMarkers(page: Page, stateName: string) {
   const markers = await page.evaluate(`(() => {
     const root = document.querySelector('[data-knowledge-workspace]');
     const canvas = document.querySelector('[data-knowledge-canvas-primary]');
@@ -822,7 +822,11 @@ async function captureMarkers(page: Page) {
   );
   if (markers.relationFamilyControlPlacement === 'compact-bottom-left'
     && konlingSidebarOverlapsRelationFamilyControl) {
-    throw new Error('expanded Konling overlaps the canvas relation-family control');
+    throw new Error(
+      `expanded Konling overlaps the canvas relation-family control in ${stateName}: `
+      + `Konling=${JSON.stringify(rects.konlingSidebar)}, `
+      + `relationFamily=${JSON.stringify(rects.relationFamilyControl)}`,
+    );
   }
   return {
     ...markers,
@@ -852,7 +856,7 @@ async function captureState(browser: Browser, state: CaptureState) {
     const screenshotPath = path.join(outputDir, screenshotName);
     await page.screenshot({ path: screenshotPath, fullPage: false });
     const screenshotRelativePath = path.relative(repoRoot, screenshotPath);
-    const markers = await captureMarkers(page);
+    const markers = await captureMarkers(page, state.name);
     return {
       name: state.name,
       route: state.route ?? '/knowledge',

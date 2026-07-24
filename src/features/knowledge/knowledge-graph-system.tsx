@@ -1903,7 +1903,7 @@ export function KnowledgeGraphSystem({
           </div>
         )}
 
-        {!mobileInspectorControlVisible && !mobileToolControlVisible && (
+        {!mobileKonlingModalOpen && !mobileInspectorControlVisible && !mobileToolControlVisible && (
           <RelationFamilyControl
             enabledFamilies={enabledRelationFamilies}
             isLightTheme={isLightTheme}
