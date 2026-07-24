@@ -78,10 +78,20 @@ export function shouldRefreshTeacherLaunchOptions(
 
 export function useTeacherClassroomLauncher() {
   const [request, setRequest] = useState<TeacherClassroomLaunchRequest | null>(null);
+  const launchElementRef = useRef<HTMLElement | null>(null);
 
-  const launch = useCallback((nextRequest: TeacherClassroomLaunchRequest) => {
+  const launch = useCallback((
+    nextRequest: TeacherClassroomLaunchRequest,
+    launchElement: HTMLElement,
+  ) => {
+    launchElementRef.current = launchElement;
     setRequest(nextRequest);
   }, []);
+
+  useEffect(() => {
+    if (request || !launchElementRef.current) return;
+    launchElementRef.current.focus();
+  }, [request]);
 
   return {
     launch,

@@ -187,7 +187,7 @@ export default function ClassDetailPage() {
     }
   }, [statusFilter, searchTerm, classId, fetchSessions, loading]);
 
-  const openStartDialog = useCallback(() => {
+  const openStartDialog = useCallback((launchElement: HTMLElement) => {
     teacherLauncher.launch({
       currentClassId: classId,
       lessonOptions: lessonPlans,
@@ -195,7 +195,7 @@ export default function ClassDetailPage() {
         setAnnouncement('课堂已创建，正在进入教师课堂。');
         router.push(`/classroom/teacher/${sessionId}`);
       },
-    });
+    }, launchElement);
   }, [classId, lessonPlans, router, teacherLauncher]);
 
   const copyCode = async () => {
@@ -523,7 +523,7 @@ export default function ClassDetailPage() {
             </div>
 
             <button type="button"
-              onClick={openStartDialog}
+              onClick={(event) => openStartDialog(event.currentTarget)}
               className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-green-600 px-6 py-4 font-medium text-white transition hover:from-emerald-500 hover:to-green-500"
               aria-label="打开开始上课对话框"
             >

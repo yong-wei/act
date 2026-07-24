@@ -147,7 +147,7 @@ export function CourseEntryShell({
   const routeSteps = manifestSteps.slice(0, 3);
   const bopppsRows = buildBopppsRows(manifestSteps);
 
-  const createClassroom = async () => {
+  const createClassroom = async (launchElement: HTMLElement) => {
     setError(null);
     if (!canCreateAsTeacher) {
       setError('请使用教师账号登录后再创建课堂。');
@@ -171,7 +171,7 @@ export function CourseEntryShell({
         onSessionReady: (sessionId) => {
           router.push(`/interactive-learning/courses/${config.routeSegment}/teacher/${sessionId}/waiting`);
         },
-      });
+      }, launchElement);
       return;
     }
 
@@ -421,7 +421,7 @@ export function CourseEntryShell({
               </p>
               <button
                 type="button"
-                onClick={() => void createClassroom()}
+                onClick={(event) => void createClassroom(event.currentTarget)}
                 disabled={isCreating}
                 className="mt-5 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-md bg-platform-action-primary px-4 text-sm font-semibold text-platform-fg-inverse transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                 data-course-entry-action="teacher-launch"

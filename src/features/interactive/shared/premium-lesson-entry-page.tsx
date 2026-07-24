@@ -88,7 +88,7 @@ export function PremiumLessonEntryPage({
   const showMediaHub = config.showMediaHub !== false && Boolean(lessonRuntime);
   const showRuntimeSections = config.showRuntimeSections !== false && Boolean(lessonRuntime);
 
-  const createClassroom = async () => {
+  const createClassroom = async (launchElement: HTMLElement) => {
     setError(null);
     if (!canCreateAsTeacher) {
       setError('请使用教师账号登录后再创建课堂。');
@@ -112,7 +112,7 @@ export function PremiumLessonEntryPage({
         onSessionReady: (sessionId) => {
           router.push(`/interactive-learning/courses/${config.routeSegment}/teacher/${sessionId}`);
         },
-      });
+      }, launchElement);
       return;
     }
 
@@ -238,7 +238,7 @@ export function PremiumLessonEntryPage({
               </p>
               <button
                 type="button"
-                onClick={() => void createClassroom()}
+                onClick={(event) => void createClassroom(event.currentTarget)}
                 disabled={isCreating}
                 className="premium-lesson-action-primary mt-5 flex w-full"
                 data-course-entry-action="teacher-launch"

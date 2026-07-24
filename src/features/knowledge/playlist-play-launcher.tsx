@@ -58,7 +58,7 @@ export function PlaylistPlayLauncher({
     }
   };
 
-  const startClass = () => {
+  const startClass = (launchElement: HTMLElement) => {
     if (launchActor === 'teacher') {
       teacherLauncher.launch({
         planId,
@@ -66,7 +66,7 @@ export function PlaylistPlayLauncher({
           router.push(`/classroom/teacher/${sessionId}`);
           router.refresh();
         },
-      });
+      }, launchElement);
       return;
     }
     void startTemporaryClass();
@@ -105,7 +105,7 @@ export function PlaylistPlayLauncher({
             {canStartClass ? (
               <button
                 type="button"
-                onClick={startClass}
+                onClick={(event) => startClass(event.currentTarget)}
                 disabled={status === 'starting' || itemCount === 0}
                 className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
               >

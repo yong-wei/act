@@ -117,12 +117,12 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
     }
   };
 
-  const startSession = (planId: string) => {
+  const startSession = (planId: string, launchElement: HTMLElement) => {
     if (launchActor === 'teacher') {
       teacherLauncher.launch({
         planId,
         onSessionReady: (sessionId) => router.push(`/classroom/teacher/${sessionId}`),
-      });
+      }, launchElement);
       return;
     }
     void startTemporarySession(planId);
@@ -275,7 +275,9 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
                   </button>
                 )}
                 <button type="button"
-                    onClick={() => canStart ? startSession(plan.id) : setOperationMessage(EMPTY_LESSON_PLAN_MESSAGE)}
+                    onClick={(event) => canStart
+                      ? startSession(plan.id, event.currentTarget)
+                      : setOperationMessage(EMPTY_LESSON_PLAN_MESSAGE)}
                     disabled={!!loadingId || !canStart}
                     className="flex items-center gap-1 bg-cyan-600 hover:bg-cyan-500 text-white text-xs px-3 py-1.5 rounded transition-all disabled:opacity-50"
                     title={!canStart ? EMPTY_LESSON_PLAN_MESSAGE : undefined}
