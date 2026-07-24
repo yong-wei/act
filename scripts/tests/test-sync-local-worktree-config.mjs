@@ -132,6 +132,7 @@ writeFile('.wolf/hooks/shared.js', '// shared\n');
 writeFile('.wolf/hooks/_session.json', '{ "session_id": "source" }\n');
 writeFile('course-content/runtime/resources/textbooks/demo/chunks/ch01.md', 'primary resource v1\n');
 writeFile('course-content/runtime/knowledge/media-untracked/asset.txt', 'primary untracked asset\n');
+writeFile('course-content/runtime/local-note.txt', 'primary local note\n');
 fs.symlinkSync(
   path.join(source, 'course-content/runtime/resources'),
   path.join(target, 'course-content/runtime/resources'),
@@ -142,6 +143,7 @@ writeTargetFile('.codex/agents/starter.toml', 'name = "old-starter"\n');
 writeTargetFile('AGENTS.md', '# Old agents\n');
 writeTargetFile('GEMINI.md', '# Target Gemini\n');
 writeTargetFile('.github/workflows/ci.yml', 'name: old-ci\n');
+writeTargetFile('course-content/runtime/local-note.txt', 'target local note\n');
 
 const dryRun = run(
   'bash',
@@ -276,6 +278,11 @@ assert.equal(
   fs.readFileSync(path.join(target, 'course-content/runtime/resources/textbooks/demo/chunks/ch01.md'), 'utf8'),
   'primary resource v1\n',
   '未跟踪 runtime 资源应从主工作树复制到隔离工作树',
+);
+assert.equal(
+  fs.readFileSync(path.join(target, 'course-content/runtime/local-note.txt'), 'utf8'),
+  'primary local note\n',
+  '未跟踪 runtime 单文件应以主工作树内容覆盖并保留备份',
 );
 
 fs.writeFileSync(path.join(target, 'course-content/runtime/resources/stale.txt'), 'stale\n');

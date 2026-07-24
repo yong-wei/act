@@ -663,7 +663,8 @@ sync_runtime_path() {
     mkdir -p "$BACKUP_ROOT/$rel"
     rsync "${rsync_args[@]}" "$src/" "$dest/"
   else
-    rsync "${rsync_args[@]}" --backup "--backup-dir=$BACKUP_ROOT/$rel" "$src" "$dest"
+    mkdir -p "$(dirname "$BACKUP_ROOT/$rel")"
+    rsync "${rsync_args[@]}" --backup "--backup-dir=$(dirname "$BACKUP_ROOT/$rel")" "$src" "$dest"
   fi
   echo "synchronized untracked $label from primary worktree: $rel"
 }
