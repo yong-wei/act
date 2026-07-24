@@ -1,7 +1,6 @@
 import { createHash } from 'node:crypto';
 import { readdir, readFile } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
-import { createRequire } from 'node:module';
+import { join } from 'node:path';
 
 import fontkit from '@pdf-lib/fontkit';
 import { PDFDocument, StandardFonts, rgb, type PDFPage, type PDFFont } from 'pdf-lib';
@@ -27,9 +26,6 @@ const PDF_HEADER_HEIGHT = 76;
 const PDF_FOOTER_HEIGHT = 22;
 const PDF_CONTENT_HEIGHT = SMART_COURSEWARE_PDF_PAGE.height - PDF_HEADER_HEIGHT - PDF_FOOTER_HEIGHT - PDF_PAGE_PADDING * 2;
 const PDF_CONTENT_WIDTH = SMART_COURSEWARE_PDF_PAGE.width - PDF_PAGE_PADDING * 2;
-const require = createRequire(import.meta.url);
-const NOTO_SANS_SC_FONT_PACKAGE_ROOT = dirname(require.resolve('@fontsource-variable/noto-sans-sc/package.json'));
-const NOTO_SANS_MATH_FONT_PATH = require.resolve('@fontsource/noto-sans-math/files/noto-sans-math-latin-400-normal.woff2');
 
 type PdfTextModule = {
   id: string;
@@ -380,14 +376,21 @@ class PdfFontResolver {
 
 async function loadNotoFontSources() {
   notoFontSources ??= (async () => {
-    const directory = join(NOTO_SANS_SC_FONT_PACKAGE_ROOT, 'files');
+    const directory = join(process.cwd(), 'node_modules', '@fontsource-variable', 'noto-sans-sc', 'files');
     const files = (await readdir(directory)).filter((file) => /^noto-sans-sc-\d+-wght-normal\.woff2$/.test(file)).sort();
     const chineseSources = await Promise.all(files.map(async (file) => {
       const bytes = await readFile(join(directory, file));
       const font = fontkit.create(bytes);
       return { bytes, characters: new Set(font.characterSet) };
     }));
-    const mathBytes = await readFile(NOTO_SANS_MATH_FONT_PATH);
+    const mathBytes = await readFile(join(
+      process.cwd(),
+      'node_modules',
+      '@fontsource',
+      'noto-sans-math',
+      'files',
+      'noto-sans-math-latin-400-normal.woff2',
+    ));
     const mathFont = fontkit.create(mathBytes);
     return [...chineseSources, { bytes: mathBytes, characters: new Set(mathFont.characterSet) }];
   })();
