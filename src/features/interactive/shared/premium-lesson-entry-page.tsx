@@ -81,6 +81,7 @@ export function PremiumLessonEntryPage({
   );
   const canCreateAsTeacher = userRole === 'TEACHER' || userRole === 'ADMIN';
   const canJoinAsStudent = userRole === 'STUDENT';
+  const isAdministrator = userRole === 'ADMIN';
   const roleResolved = Boolean(userRole);
   const showTeacherSection = roleResolved ? canCreateAsTeacher : true;
   const showStudentSection = roleResolved ? canJoinAsStudent : true;
@@ -227,14 +228,21 @@ export function PremiumLessonEntryPage({
       <main className="premium-lesson-main py-4 sm:py-8">
         <div className="mt-4 grid gap-4 md:grid-cols-3" data-commercial-workspace-zone="command-bar">
           {showTeacherSection ? (
-            <section className="premium-lesson-panel p-5">
+            <section
+              className="premium-lesson-panel p-5"
+              data-course-entry-role-panel={isAdministrator ? 'admin-temporary' : 'teacher'}
+            >
               <div className="premium-lesson-title mb-3 inline-flex items-center gap-2 text-sm">
                 <Presentation className="h-4 w-4" />
-                教师入口
+                {isAdministrator ? '管理员临时课堂' : '教师入口'}
               </div>
-              <h3 className="premium-lesson-title text-xl font-semibold">创建课堂并进入教师端</h3>
+              <h3 className="premium-lesson-title text-xl font-semibold">
+                {isAdministrator ? '创建临时课堂并进入管理端' : '创建课堂并进入教师端'}
+              </h3>
               <p className="premium-lesson-muted mt-2">
-                {config.teacherDescription ?? '自动克隆预置教案，生成课堂码并进入精品课堂。'}
+                {isAdministrator
+                  ? '本次课堂不绑定班级，将以临时课堂创建并生成课堂码。'
+                  : config.teacherDescription ?? '自动克隆预置教案，生成课堂码并进入精品课堂。'}
               </p>
               <button
                 type="button"
@@ -244,7 +252,7 @@ export function PremiumLessonEntryPage({
                 data-course-entry-action="teacher-launch"
               >
                 {isCreating ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                开始上课（教师）
+                {isAdministrator ? '开始临时课堂' : '开始上课（教师）'}
               </button>
             </section>
           ) : null}

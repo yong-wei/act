@@ -134,6 +134,7 @@ export function CourseEntryShell({
   );
   const canCreateAsTeacher = userRole === 'TEACHER' || userRole === 'ADMIN';
   const canJoinAsStudent = userRole === 'STUDENT';
+  const isAdministrator = userRole === 'ADMIN';
   const shellRole = userRole === 'TEACHER' ? 'teacher' : userRole === 'ADMIN' ? 'admin' : 'student';
   const roleResolved = Boolean(userRole);
   const showTeacherSection = canCreateAsTeacher;
@@ -410,14 +411,22 @@ export function CourseEntryShell({
 
         <section className="grid gap-4 lg:grid-cols-3" data-commercial-workspace-zone="command-bar">
           {showTeacherSection ? (
-            <PlatformSurface variant="default" className="p-5" data-course-entry-role-panel="teacher">
+            <PlatformSurface
+              variant="default"
+              className="p-5"
+              data-course-entry-role-panel={isAdministrator ? 'admin-temporary' : 'teacher'}
+            >
               <div className="flex items-center gap-2 text-sm font-semibold text-platform-fg-primary">
                 <Presentation className="h-4 w-4 text-platform-action-primary" />
-                教师入口
+                {isAdministrator ? '管理员临时课堂' : '教师入口'}
               </div>
-              <h3 className="mt-3 text-lg font-semibold text-platform-fg-primary">创建课堂并进入等待页</h3>
+              <h3 className="mt-3 text-lg font-semibold text-platform-fg-primary">
+                {isAdministrator ? '创建临时课堂并进入等待页' : '创建课堂并进入等待页'}
+              </h3>
               <p className="mt-2 text-sm leading-6 text-platform-fg-secondary">
-                {config.teacherDescription ?? '自动克隆预置教案，生成课堂码，等待学生加入后再开始上课。'}
+                {isAdministrator
+                  ? '本次课堂不绑定班级，将以临时课堂创建并生成课堂码。'
+                  : config.teacherDescription ?? '自动克隆预置教案，生成课堂码，等待学生加入后再开始上课。'}
               </p>
               <button
                 type="button"
@@ -427,7 +436,7 @@ export function CourseEntryShell({
                 data-course-entry-action="teacher-launch"
               >
                 {isCreating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Presentation className="h-4 w-4" />}
-                创建课堂
+                {isAdministrator ? '创建临时课堂' : '创建课堂'}
               </button>
             </PlatformSurface>
           ) : null}

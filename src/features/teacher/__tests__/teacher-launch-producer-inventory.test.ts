@@ -56,7 +56,14 @@ describe('teacher launch producer inventory', () => {
       expect(interactiveEntry.indexOf('teacherLauncher.launch')).toBeGreaterThan(teacherBranch);
       expect(directSessionRequest).toBeGreaterThan(teacherBranch);
       expect(interactiveEntry.slice(teacherBranch, directSessionRequest)).toContain('return;');
+      expect(interactiveEntry).toContain("isAdministrator = userRole === 'ADMIN'");
+      expect(interactiveEntry).toContain("isAdministrator ? '管理员临时课堂' : '教师入口'");
+      expect(interactiveEntry).toContain('本次课堂不绑定班级，将以临时课堂创建并生成课堂码。');
     }
+    expect(courseEntry).toContain("isAdministrator ? '创建临时课堂' : '创建课堂'");
+    expect(courseEntry).toContain("isAdministrator ? '创建临时课堂并进入等待页' : '创建课堂并进入等待页'");
+    expect(premiumEntry).toContain("isAdministrator ? '开始临时课堂' : '开始上课（教师）'");
+    expect(premiumEntry).toContain("isAdministrator ? '创建临时课堂并进入管理端' : '创建课堂并进入教师端'");
   });
 
   it('keeps direct session creation constrained to the shared launcher and explicit administrator exceptions', () => {
