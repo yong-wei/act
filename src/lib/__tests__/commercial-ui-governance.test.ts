@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -36,6 +37,7 @@ import {
   buildSecondaryRouteGovernanceMatrixFromEvidence,
   hydrateInteractiveLearningProductQaEvidence,
   interactiveLearningReviewHasNoUnresolvedBlocks,
+  knowledgeWorkspaceProductQaCaptureRevisionProblems,
 } from '../../../scripts/tests/test-commercial-ui-governance';
 import {
   resolveSimulationSceneThemeMode,
@@ -131,6 +133,35 @@ function tempChangedFiles(repo: string) {
   }
   for (const file of tempGitLines(repo, ['ls-files', '--others', '--exclude-standard'])) files.add(file);
   return Array.from(files);
+}
+
+function tempFileSha256(repo: string, file: string) {
+  return createHash('sha256').update(readFileSync(join(repo, file))).digest('hex');
+}
+
+function initSyntheticProductQaRepo() {
+  const repo = initTempGitRepo('knowledge-product-qa-synthetic-');
+  const sourceA = 'src/features/knowledge/source-a.ts';
+  const sourceB = 'src/app/knowledge/source-b.ts';
+  commitTempFile(repo, sourceA, 'export const sourceA = 1;\n', 'source a');
+  const baseCommit = commitTempFile(repo, sourceB, 'export const sourceB = 1;\n', 'source b');
+  runTempGit(repo, ['checkout', '-b', 'capture', baseCommit]);
+  const captureCommitSha = commitTempFile(repo, 'capture-marker.txt', 'capture\n', 'capture');
+  const captureTreeSha = runTempGit(repo, ['rev-parse', `${captureCommitSha}^{tree}`]);
+  runTempGit(repo, ['checkout', 'main']);
+  commitTempFile(repo, 'head-marker.txt', 'synthetic checkout\n', 'synthetic checkout');
+  return {
+    repo,
+    sourceA,
+    sourceB,
+    sourcePaths: [sourceA, sourceB],
+    captureCommitSha,
+    captureTreeSha,
+    currentSourceSha256: {
+      [sourceA]: tempFileSha256(repo, sourceA),
+      [sourceB]: tempFileSha256(repo, sourceB),
+    },
+  };
 }
 
 function tempHasUncommittedPathChange(repo: string, file: string) {
@@ -4644,6 +4675,83 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain("execFileSync('git', ['merge-base', '--is-ancestor', ancestor, descendant]");
     expect(scriptSource).toContain('latestSourceCommits.every((sourceCommit)');
     expect(scriptSource).toContain('interactiveLearningProductQaEvidenceCoversLatestSource(files)');
+  });
+
+  it('validates synthetic product QA capture topology by exact source blob bytes', () => {
+    const sameBlobs = initSyntheticProductQaRepo();
+    expect(knowledgeWorkspaceProductQaCaptureRevisionProblems({
+      repositoryRoot: sameBlobs.repo,
+      captureCommitSha: sameBlobs.captureCommitSha,
+      captureTreeSha: sameBlobs.captureTreeSha,
+      currentSourceSha256: sameBlobs.currentSourceSha256,
+      productQaSourcePaths: sameBlobs.sourcePaths,
+    })).toEqual([]);
+
+    const missingSourcePath = 'src/features/knowledge/missing.ts';
+    expect(knowledgeWorkspaceProductQaCaptureRevisionProblems({
+      repositoryRoot: sameBlobs.repo,
+      captureCommitSha: sameBlobs.captureCommitSha,
+      captureTreeSha: sameBlobs.captureTreeSha,
+      currentSourceSha256: {
+        ...sameBlobs.currentSourceSha256,
+        [missingSourcePath]: '0'.repeat(64),
+      },
+      productQaSourcePaths: [...sameBlobs.sourcePaths, missingSourcePath],
+    })).toContain(`capture-revision:synthetic-capture-blob-missing:${missingSourcePath}`);
+
+    commitTempFile(
+      sameBlobs.repo,
+      sameBlobs.sourceA,
+      'export const sourceA = 2;\n',
+      'source a changed in synthetic checkout',
+    );
+    expect(knowledgeWorkspaceProductQaCaptureRevisionProblems({
+      repositoryRoot: sameBlobs.repo,
+      captureCommitSha: sameBlobs.captureCommitSha,
+      captureTreeSha: sameBlobs.captureTreeSha,
+      currentSourceSha256: sameBlobs.currentSourceSha256,
+      productQaSourcePaths: sameBlobs.sourcePaths,
+    })).toContain(`capture-revision:synthetic-evidence-head-mismatch:${sameBlobs.sourceA}`);
+
+    expect(knowledgeWorkspaceProductQaCaptureRevisionProblems({
+      repositoryRoot: sameBlobs.repo,
+      captureCommitSha: sameBlobs.captureCommitSha,
+      captureTreeSha: sameBlobs.captureTreeSha,
+      currentSourceSha256: {
+        ...sameBlobs.currentSourceSha256,
+        [sameBlobs.sourceA]: tempFileSha256(sameBlobs.repo, sameBlobs.sourceA),
+      },
+      productQaSourcePaths: sameBlobs.sourcePaths,
+    })).toContain(`capture-revision:synthetic-capture-evidence-mismatch:${sameBlobs.sourceA}`);
+
+    const dirtySource = initSyntheticProductQaRepo();
+    writeFileSync(join(dirtySource.repo, dirtySource.sourceB), 'export const sourceB = 2;\n');
+    expect(knowledgeWorkspaceProductQaCaptureRevisionProblems({
+      repositoryRoot: dirtySource.repo,
+      captureCommitSha: dirtySource.captureCommitSha,
+      captureTreeSha: dirtySource.captureTreeSha,
+      currentSourceSha256: dirtySource.currentSourceSha256,
+      productQaSourcePaths: dirtySource.sourcePaths,
+    })).toContain(`capture-revision:synthetic-head-working-tree-mismatch:${dirtySource.sourceB}`);
+
+    const ancestorRepo = initTempGitRepo('knowledge-product-qa-ancestor-');
+    const ancestorSource = 'src/features/knowledge/source.ts';
+    const captureCommitSha = commitTempFile(
+      ancestorRepo,
+      ancestorSource,
+      'export const source = 1;\n',
+      'captured source',
+    );
+    const captureTreeSha = runTempGit(ancestorRepo, ['rev-parse', `${captureCommitSha}^{tree}`]);
+    const capturedSourceSha256 = tempFileSha256(ancestorRepo, ancestorSource);
+    commitTempFile(ancestorRepo, ancestorSource, 'export const source = 2;\n', 'source after capture');
+    expect(knowledgeWorkspaceProductQaCaptureRevisionProblems({
+      repositoryRoot: ancestorRepo,
+      captureCommitSha,
+      captureTreeSha,
+      currentSourceSha256: { [ancestorSource]: capturedSourceSha256 },
+      productQaSourcePaths: [ancestorSource],
+    })).toContain(`capture-revision:source-changed:${ancestorSource}`);
   });
 
   it('keeps interactive visual acceptance script triggers and real artifact path checks wired', () => {

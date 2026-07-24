@@ -81,21 +81,6 @@ function gitRequired(args: string[], message: string) {
   }
 }
 
-function gitResult(args: string[]) {
-  try {
-    return {
-      ok: true as const,
-      output: execFileSync('git', args, {
-        cwd: repoRoot,
-        encoding: 'utf8',
-        stdio: ['ignore', 'pipe', 'pipe'],
-      }),
-    };
-  } catch {
-    return { ok: false as const, output: '' };
-  }
-}
-
 function hasGitRef(ref: string) {
   return git(['rev-parse', '--verify', ref]).trim().length > 0;
 }
@@ -110,6 +95,167 @@ function isAncestorCommit(ancestor: string, descendant: string) {
   } catch {
     return false;
   }
+}
+
+function isAncestorCommitAtRepository(repositoryRoot: string, ancestor: string, descendant: string) {
+  try {
+    execFileSync('git', ['merge-base', '--is-ancestor', ancestor, descendant], {
+      cwd: repositoryRoot,
+      stdio: ['ignore', 'ignore', 'ignore'],
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function gitBlobSha256AtRevision(repositoryRoot: string, revision: string, file: string) {
+  try {
+    const entry = execFileSync('git', ['ls-tree', '-z', revision, '--', file], {
+      cwd: repositoryRoot,
+      encoding: null,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    const nulIndex = entry.indexOf(0);
+    const tabIndex = entry.indexOf(9);
+    if (nulIndex !== entry.length - 1 || tabIndex < 0) return undefined;
+    const metadata = entry.subarray(0, tabIndex).toString('ascii').split(' ');
+    const entryPath = entry.subarray(tabIndex + 1, nulIndex).toString('utf8');
+    const [, objectType, objectSha] = metadata;
+    if (objectType !== 'blob' || !/^[0-9a-f]{40}$/.test(objectSha ?? '') || entryPath !== file) {
+      return undefined;
+    }
+    const blob = execFileSync('git', ['cat-file', 'blob', objectSha], {
+      cwd: repositoryRoot,
+      encoding: null,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    return createHash('sha256').update(blob).digest('hex');
+  } catch {
+    return undefined;
+  }
+}
+
+export function knowledgeWorkspaceProductQaCaptureRevisionProblems({
+  repositoryRoot,
+  captureCommitSha,
+  captureTreeSha,
+  currentSourceSha256,
+  productQaSourcePaths,
+}: {
+  repositoryRoot: string;
+  captureCommitSha: string;
+  captureTreeSha: string;
+  currentSourceSha256: Record<string, string>;
+  productQaSourcePaths: readonly string[];
+}) {
+  const gitAtRepository = (args: string[]) => {
+    try {
+      return {
+        ok: true as const,
+        output: execFileSync('git', args, {
+          cwd: repositoryRoot,
+          encoding: 'utf8',
+          stdio: ['ignore', 'pipe', 'pipe'],
+        }),
+      };
+    } catch {
+      return { ok: false as const, output: '' };
+    }
+  };
+  const fullGitShaPattern = /^[0-9a-f]{40}$/;
+  const captureCommitResult = fullGitShaPattern.test(captureCommitSha)
+    ? gitAtRepository(['rev-parse', '--verify', `${captureCommitSha}^{commit}`])
+    : { ok: false as const, output: '' };
+  const captureTreeResult = fullGitShaPattern.test(captureTreeSha)
+    ? gitAtRepository(['rev-parse', '--verify', `${captureTreeSha}^{tree}`])
+    : { ok: false as const, output: '' };
+  const captureCommitTreeResult = captureCommitResult.ok
+    ? gitAtRepository(['rev-parse', '--verify', `${captureCommitSha}^{tree}`])
+    : { ok: false as const, output: '' };
+  const currentHeadResult = gitAtRepository(['rev-parse', '--verify', 'HEAD^{commit}']);
+  const captureCommitValid = captureCommitResult.ok
+    && captureCommitResult.output.trim() === captureCommitSha;
+  const captureTreeValid = captureTreeResult.ok
+    && captureTreeResult.output.trim() === captureTreeSha;
+  const captureTreeMatchesCommit = captureCommitTreeResult.ok
+    && captureCommitTreeResult.output.trim() === captureTreeSha;
+  const currentHeadSha = currentHeadResult.output.trim();
+  const captureIsCurrentHeadAncestor = captureCommitValid
+    && currentHeadResult.ok
+    && isAncestorCommitAtRepository(repositoryRoot, captureCommitSha, currentHeadSha);
+  const productQaSourceHistoryResult = captureIsCurrentHeadAncestor
+    ? gitAtRepository([
+      'log',
+      '--format=',
+      '--name-only',
+      '--full-history',
+      `${captureCommitSha}..${currentHeadSha}`,
+      '--',
+      ...productQaSourcePaths,
+    ])
+    : { ok: false as const, output: '' };
+  const productQaSourceChanges = productQaSourceHistoryResult.ok
+    ? lines(productQaSourceHistoryResult.output)
+    : [];
+  const syntheticSourceProblems = captureCommitValid
+    && captureTreeValid
+    && captureTreeMatchesCommit
+    && currentHeadResult.ok
+    && !captureIsCurrentHeadAncestor
+    ? productQaSourcePaths.flatMap((sourcePath) => {
+      const captureBlobSha256 = gitBlobSha256AtRevision(repositoryRoot, captureTreeSha, sourcePath);
+      const headBlobSha256 = gitBlobSha256AtRevision(repositoryRoot, currentHeadSha, sourcePath);
+      const evidenceSha256 = currentSourceSha256[sourcePath];
+      const workingTreePath = path.join(repositoryRoot, sourcePath);
+      const workingTreeSha256 = existsSync(workingTreePath)
+        ? createHash('sha256').update(readFileSync(workingTreePath)).digest('hex')
+        : undefined;
+      return [
+        captureBlobSha256 ? null : `capture-revision:synthetic-capture-blob-missing:${sourcePath}`,
+        headBlobSha256 ? null : `capture-revision:synthetic-head-blob-missing:${sourcePath}`,
+        evidenceSha256 ? null : `capture-revision:synthetic-evidence-sha-missing:${sourcePath}`,
+        workingTreeSha256 ? null : `capture-revision:synthetic-working-tree-source-missing:${sourcePath}`,
+        captureBlobSha256 && evidenceSha256 && captureBlobSha256 !== evidenceSha256
+          ? `capture-revision:synthetic-capture-evidence-mismatch:${sourcePath}`
+          : null,
+        evidenceSha256 && headBlobSha256 && evidenceSha256 !== headBlobSha256
+          ? `capture-revision:synthetic-evidence-head-mismatch:${sourcePath}`
+          : null,
+        headBlobSha256 && workingTreeSha256 && headBlobSha256 !== workingTreeSha256
+          ? `capture-revision:synthetic-head-working-tree-mismatch:${sourcePath}`
+          : null,
+      ].filter((entry): entry is string => Boolean(entry));
+    })
+    : [];
+
+  return [
+    captureCommitSha ? null : 'capture-revision:commit-missing',
+    captureCommitSha && !fullGitShaPattern.test(captureCommitSha)
+      ? 'capture-revision:commit-not-full-sha'
+      : null,
+    captureCommitSha && fullGitShaPattern.test(captureCommitSha) && !captureCommitValid
+      ? 'capture-revision:commit-invalid'
+      : null,
+    captureTreeSha ? null : 'capture-revision:tree-missing',
+    captureTreeSha && !fullGitShaPattern.test(captureTreeSha)
+      ? 'capture-revision:tree-not-full-sha'
+      : null,
+    captureTreeSha && fullGitShaPattern.test(captureTreeSha) && !captureTreeValid
+      ? 'capture-revision:tree-invalid'
+      : null,
+    captureCommitValid && captureTreeValid && !captureTreeMatchesCommit
+      ? 'capture-revision:tree-mismatch'
+      : null,
+    captureCommitValid && !currentHeadResult.ok
+      ? 'capture-revision:current-head-invalid'
+      : null,
+    captureIsCurrentHeadAncestor && !productQaSourceHistoryResult.ok
+      ? 'capture-revision:source-history-failed'
+      : null,
+    ...productQaSourceChanges.map((sourcePath) => `capture-revision:source-changed:${sourcePath}`),
+    ...syntheticSourceProblems,
+  ].filter((entry): entry is string => Boolean(entry));
 }
 
 function latestCommitForPath(file: string) {
@@ -2379,66 +2525,13 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
   const captureRevision = objectRecord(evidence.captureRevision);
   const captureCommitSha = typeof captureRevision.commitSha === 'string' ? captureRevision.commitSha : '';
   const captureTreeSha = typeof captureRevision.treeSha === 'string' ? captureRevision.treeSha : '';
-  const fullGitShaPattern = /^[0-9a-f]{40}$/;
-  const captureCommitResult = fullGitShaPattern.test(captureCommitSha)
-    ? gitResult(['rev-parse', '--verify', `${captureCommitSha}^{commit}`])
-    : { ok: false as const, output: '' };
-  const captureTreeResult = fullGitShaPattern.test(captureTreeSha)
-    ? gitResult(['rev-parse', '--verify', `${captureTreeSha}^{tree}`])
-    : { ok: false as const, output: '' };
-  const captureCommitTreeResult = captureCommitResult.ok
-    ? gitResult(['rev-parse', '--verify', `${captureCommitSha}^{tree}`])
-    : { ok: false as const, output: '' };
-  const currentHeadResult = gitResult(['rev-parse', '--verify', 'HEAD^{commit}']);
-  const captureCommitValid = captureCommitResult.ok
-    && captureCommitResult.output.trim() === captureCommitSha;
-  const captureTreeValid = captureTreeResult.ok
-    && captureTreeResult.output.trim() === captureTreeSha;
-  const captureTreeMatchesCommit = captureCommitTreeResult.ok
-    && captureCommitTreeResult.output.trim() === captureTreeSha;
-  const captureIsCurrentHeadAncestor = captureCommitValid
-    && currentHeadResult.ok
-    && isAncestorCommit(captureCommitSha, currentHeadResult.output.trim());
-  const productQaSourceHistoryResult = captureIsCurrentHeadAncestor
-    ? gitResult([
-      'log',
-      '--format=',
-      '--name-only',
-      '--full-history',
-      `${captureCommitSha}..${currentHeadResult.output.trim()}`,
-      '--',
-      ...productQaSourcePaths,
-    ])
-    : { ok: false as const, output: '' };
-  const productQaSourceChanges = productQaSourceHistoryResult.ok
-    ? lines(productQaSourceHistoryResult.output)
-    : [];
-  const captureRevisionProblems = [
-    captureCommitSha ? null : 'capture-revision:commit-missing',
-    captureCommitSha && !fullGitShaPattern.test(captureCommitSha)
-      ? 'capture-revision:commit-not-full-sha'
-      : null,
-    captureCommitSha && fullGitShaPattern.test(captureCommitSha) && !captureCommitValid
-      ? 'capture-revision:commit-invalid'
-      : null,
-    captureTreeSha ? null : 'capture-revision:tree-missing',
-    captureTreeSha && !fullGitShaPattern.test(captureTreeSha)
-      ? 'capture-revision:tree-not-full-sha'
-      : null,
-    captureTreeSha && fullGitShaPattern.test(captureTreeSha) && !captureTreeValid
-      ? 'capture-revision:tree-invalid'
-      : null,
-    captureCommitValid && captureTreeValid && !captureTreeMatchesCommit
-      ? 'capture-revision:tree-mismatch'
-      : null,
-    captureCommitValid && (!currentHeadResult.ok || !captureIsCurrentHeadAncestor)
-      ? 'capture-revision:not-current-head-ancestor'
-      : null,
-    captureIsCurrentHeadAncestor && !productQaSourceHistoryResult.ok
-      ? 'capture-revision:source-history-failed'
-      : null,
-    ...productQaSourceChanges.map((sourcePath) => `capture-revision:source-changed:${sourcePath}`),
-  ].filter((entry): entry is string => Boolean(entry));
+  const captureRevisionProblems = knowledgeWorkspaceProductQaCaptureRevisionProblems({
+    repositoryRoot: repoRoot,
+    captureCommitSha,
+    captureTreeSha,
+    currentSourceSha256,
+    productQaSourcePaths,
+  });
   const sourceProblems = [
     ...productQaSourcePaths.map((sourcePath) => (
       typeof sourceHashes[sourcePath] === 'string' ? null : `${sourcePath}:sha-missing`
