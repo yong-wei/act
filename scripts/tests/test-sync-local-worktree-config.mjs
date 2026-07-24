@@ -46,14 +46,34 @@ function gitHookPath(repo, hookName) {
   return path.isAbsolute(rawPath) ? rawPath : path.join(repo, rawPath);
 }
 
+function createIsolatedWorktree(name) {
+  const worktree = path.join(tmpRoot, name);
+  run('git', ['worktree', 'add', '--detach', worktree, 'HEAD'], source);
+  return worktree;
+}
+
 mkdirp(source);
-mkdirp(target);
 run('git', ['init'], source);
-run('git', ['init'], target);
+run('git', ['config', 'user.email', 'test@example.com'], source);
+run('git', ['config', 'user.name', 'Test User'], source);
+fs.writeFileSync(path.join(source, 'README.md'), 'source\n');
+fs.writeFileSync(path.join(source, '.gitignore'), 'AGENTS.md\n.codex/\n');
+writeFile('GEMINI.md', '# Source Gemini\n');
+writeFile('course-content/runtime/lessons/demo/manifest.json', '{ "id": "demo" }\n');
+writeFile('course-content/runtime/knowledge/tracked.json', '{ "tracked": true }\n');
+writeFile('course-content/runtime/knowledge/media/asset.txt', 'tracked asset\n');
+run('git', ['add', 'README.md', '.gitignore', 'GEMINI.md', 'course-content/runtime'], source);
+run('git', ['commit', '-m', 'initial source'], source);
+run('git', ['worktree', 'add', '--detach', target, 'HEAD'], source);
+const canonicalSource = fs.realpathSync(source);
+const canonicalTarget = fs.realpathSync(target);
+const primaryExcludePath = path.join(source, '.git/info/exclude');
+const primaryExcludeBefore = fs.readFileSync(primaryExcludePath, 'utf8');
 
 writeFile('.codex/agents/starter.toml', 'name = "starter"\n');
 writeFile('.codex/config.toml', '[tools]\n');
 writeFile('.codex/environments/environment.toml', '[environment]\n');
+writeFile('.env', 'SOURCE_ENV=1\n');
 writeFile('AGENTS.md', '# Source agents\n');
 writeFile(
   '.codex/hooks.json',
@@ -107,12 +127,20 @@ writeFile('.wolf/hooks/post-write.js', '// post-write\n');
 writeFile('.wolf/hooks/stop.js', '// stop\n');
 writeFile('.wolf/hooks/shared.js', '// shared\n');
 writeFile('.wolf/hooks/_session.json', '{ "session_id": "source" }\n');
-writeFile('course-content/runtime/lessons/demo/manifest.json', '{ "id": "demo" }\n');
-writeFile('course-content/runtime/knowledge/tracked.json', '{ "tracked": true }\n');
-writeFile('course-content/runtime/knowledge/media/asset.txt', 'asset\n');
+writeFile('course-content/runtime/resources/textbooks/demo/chunks/ch01.md', 'primary resource v1\n');
+writeFile('course-content/runtime/knowledge/media-untracked/asset.txt', 'primary untracked asset\n');
+writeFile('course-content/runtime/local-note.txt', 'primary local note\n');
+fs.symlinkSync(
+  path.join(source, 'course-content/runtime/resources'),
+  path.join(target, 'course-content/runtime/resources'),
+  'dir',
+);
+fs.symlinkSync(path.join(source, '.env'), path.join(target, '.env'));
 writeTargetFile('.codex/agents/starter.toml', 'name = "old-starter"\n');
 writeTargetFile('AGENTS.md', '# Old agents\n');
+writeTargetFile('GEMINI.md', '# Target Gemini\n');
 writeTargetFile('.github/workflows/ci.yml', 'name: old-ci\n');
+writeTargetFile('course-content/runtime/local-note.txt', 'target local note\n');
 
 const dryRun = run(
   'bash',
@@ -141,6 +169,11 @@ assert.match(
   /would sync dir: \.github\//,
   '工作树配置同步应默认包含 .github/',
 );
+assert.match(
+  dryRun.stdout,
+  /skip Git-managed file: GEMINI\.md/,
+  'Git 跟踪文件应完全交由 Git 管理，不参与工作树同步',
+);
 assert.doesNotMatch(
   dryRun.stdout,
   /\.codex\/tmp|runtime\.txt|\.codex\/cache|index\.db/,
@@ -163,8 +196,8 @@ assert.match(
 );
 assert.match(
   dryRun.stdout,
-  /would link runtime directory: course-content\/runtime -> /,
-  'dry-run 应说明会把 source runtime 目录软链接到目标工作树',
+  /would replace existing runtime directory with real files: course-content\/runtime\/resources/,
+  'dry-run 应说明会以真实文件替换旧 runtime 软链接',
 );
 
 const apply = run(
@@ -195,9 +228,36 @@ assert.equal(
   '# Source agents\n',
   'apply 模式应同步本地 AGENTS.md',
 );
-const targetLocalExclude = fs.readFileSync(path.join(target, '.git/info/exclude'), 'utf8');
-assert.match(targetLocalExclude, /^AGENTS\.md$/m, '同步脚本应在隔离工作树本地忽略 AGENTS.md');
-assert.match(targetLocalExclude, /^\.codex\/$/m, '同步脚本应在隔离工作树本地忽略 .codex/');
+assert.equal(
+  fs.lstatSync(path.join(target, '.env')).isSymbolicLink(),
+  false,
+  'apply 模式应以真实文件替换旧环境配置链接',
+);
+assert.equal(
+  fs.readFileSync(path.join(target, '.env'), 'utf8'),
+  'SOURCE_ENV=1\n',
+  '替换旧环境配置链接后应保留主工作树内容',
+);
+assert.equal(
+  fs.readFileSync(path.join(target, 'GEMINI.md'), 'utf8'),
+  '# Target Gemini\n',
+  'apply 模式不得覆盖 Git 管理的目标文件',
+);
+assert.equal(
+  spawnSync('git', ['-C', target, 'check-ignore', '-q', 'AGENTS.md'], { cwd: root }).status,
+  0,
+  '同步后的 AGENTS.md 应由仓库规则忽略',
+);
+assert.equal(
+  spawnSync('git', ['-C', target, 'check-ignore', '-q', '.codex/'], { cwd: root }).status,
+  0,
+  '同步后的 .codex/ 应由仓库规则忽略',
+);
+assert.equal(
+  fs.readFileSync(primaryExcludePath, 'utf8'),
+  primaryExcludeBefore,
+  '隔离工作树同步不得修改主工作树共享的 Git exclude 元数据',
+);
 assert.equal(
   fs.readdirSync(path.join(target, '.codex/agents')).some((name) => name.includes('.bak.')),
   false,
@@ -219,25 +279,177 @@ assert.equal(
   'apply 模式不应创建 node_modules 软链接或目录',
 );
 assert.equal(
-  fs.lstatSync(path.join(target, 'course-content/runtime')).isSymbolicLink(),
-  true,
-  'apply 模式应把 runtime 目录软链接到 source runtime',
+  fs.lstatSync(path.join(target, 'course-content/runtime/resources')).isSymbolicLink(),
+  false,
+  'apply 模式应将未跟踪 runtime 资源保存为真实目录',
 );
 assert.equal(
-  fs.readlinkSync(path.join(target, 'course-content/runtime')),
-  path.join(source, 'course-content/runtime'),
-  'runtime 目录软链接应指向 source runtime',
+  fs.readFileSync(path.join(target, 'course-content/runtime/resources/textbooks/demo/chunks/ch01.md'), 'utf8'),
+  'primary resource v1\n',
+  '未跟踪 runtime 资源应从主工作树复制到隔离工作树',
+);
+assert.equal(
+  fs.readFileSync(path.join(target, 'course-content/runtime/local-note.txt'), 'utf8'),
+  'primary local note\n',
+  '未跟踪 runtime 单文件应以主工作树内容覆盖并保留备份',
 );
 
-const trackedRuntimeTarget = path.join(tmpRoot, 'tracked-runtime-target');
-mkdirp(path.join(trackedRuntimeTarget, 'course-content/runtime/knowledge'));
-run('git', ['init'], trackedRuntimeTarget);
+fs.writeFileSync(path.join(target, 'course-content/runtime/resources/stale.txt'), 'stale\n');
+writeFile('course-content/runtime/resources/textbooks/demo/chunks/ch01.md', 'primary resource v2\n');
+run(
+  'bash',
+  [
+    path.join(root, 'scripts/dev/sync-local-worktree-config.sh'),
+    '--source',
+    source,
+    '--target',
+    target,
+    '--apply',
+  ],
+  root,
+);
+assert.equal(
+  fs.readFileSync(path.join(target, 'course-content/runtime/resources/textbooks/demo/chunks/ch01.md'), 'utf8'),
+  'primary resource v2\n',
+  '重同步应以主工作树的未跟踪资源为准',
+);
+assert.equal(
+  fs.existsSync(path.join(target, 'course-content/runtime/resources/stale.txt')),
+  false,
+  '重同步应移除隔离工作树中主工作树已不存在的未跟踪资源',
+);
+
+const noOverwriteRuntimeTarget = createIsolatedWorktree('no-overwrite-runtime-target');
+fs.mkdirSync(
+  path.join(noOverwriteRuntimeTarget, 'course-content/runtime/resources/textbooks/demo/chunks'),
+  { recursive: true },
+);
+fs.writeFileSync(
+  path.join(noOverwriteRuntimeTarget, 'course-content/runtime/resources/textbooks/demo/chunks/ch01.md'),
+  'target resource\n',
+);
+writeFile('course-content/runtime/resources/textbooks/demo/chunks/ch02.md', 'new primary resource\n');
+writeFile(
+  'course-content/runtime/resources/textbooks/demo/chunks/source-directory/child.md',
+  'source directory child\n',
+);
+writeFile(
+  'course-content/runtime/resources/textbooks/demo/chunks/source-file.md',
+  'source file\n',
+);
+fs.writeFileSync(
+  path.join(
+    noOverwriteRuntimeTarget,
+    'course-content/runtime/resources/textbooks/demo/chunks/source-directory',
+  ),
+  'target file conflict\n',
+);
+fs.mkdirSync(
+  path.join(
+    noOverwriteRuntimeTarget,
+    'course-content/runtime/resources/textbooks/demo/chunks/source-file.md',
+  ),
+);
+run(
+  'bash',
+  [
+    path.join(root, 'scripts/dev/sync-local-worktree-config.sh'),
+    '--source',
+    source,
+    '--target',
+    noOverwriteRuntimeTarget,
+    '--apply',
+    '--no-overwrite',
+  ],
+  root,
+);
+assert.equal(
+  fs.readFileSync(
+    path.join(noOverwriteRuntimeTarget, 'course-content/runtime/resources/textbooks/demo/chunks/ch01.md'),
+    'utf8',
+  ),
+  'target resource\n',
+  '--no-overwrite 应保留已有 runtime 目录中的文件',
+);
+assert.equal(
+  fs.readFileSync(
+    path.join(noOverwriteRuntimeTarget, 'course-content/runtime/resources/textbooks/demo/chunks/ch02.md'),
+    'utf8',
+  ),
+  'new primary resource\n',
+  '--no-overwrite 应向已有 runtime 目录补充缺失文件',
+);
+assert.equal(
+  fs.readFileSync(
+    path.join(
+      noOverwriteRuntimeTarget,
+      'course-content/runtime/resources/textbooks/demo/chunks/source-directory',
+    ),
+    'utf8',
+  ),
+  'target file conflict\n',
+  '--no-overwrite 应保留目标文件与源目录之间的类型冲突',
+);
+assert.equal(
+  fs.lstatSync(
+    path.join(
+      noOverwriteRuntimeTarget,
+      'course-content/runtime/resources/textbooks/demo/chunks/source-file.md',
+    ),
+  ).isDirectory(),
+  true,
+  '--no-overwrite 应保留目标目录与源文件之间的类型冲突',
+);
+
+const trackedRuntimeTarget = createIsolatedWorktree('tracked-runtime-target');
 fs.writeFileSync(
   path.join(trackedRuntimeTarget, 'course-content/runtime/knowledge/tracked.json'),
   '{ "target": true }\n',
 );
-run('git', ['-C', trackedRuntimeTarget, 'add', 'course-content/runtime/knowledge/tracked.json'], root);
+fs.mkdirSync(path.join(trackedRuntimeTarget, 'course-content/runtime/knowledge/stale-untracked'), { recursive: true });
+fs.writeFileSync(
+  path.join(trackedRuntimeTarget, 'course-content/runtime/knowledge/stale-untracked/file.txt'),
+  'stale target-only resource\n',
+);
+fs.mkdirSync(path.join(trackedRuntimeTarget, 'course-content/runtime/knowledge/legacy-mixed'), { recursive: true });
+fs.writeFileSync(
+  path.join(trackedRuntimeTarget, 'course-content/runtime/knowledge/legacy-mixed/tracked.txt'),
+  'target-only tracked resource\n',
+);
+fs.writeFileSync(
+  path.join(trackedRuntimeTarget, 'course-content/runtime/knowledge/legacy-mixed/stale.txt'),
+  'target-only stale resource\n',
+);
 run(
+  'git',
+  ['-C', trackedRuntimeTarget, 'add', 'course-content/runtime/knowledge/legacy-mixed/tracked.txt'],
+  root,
+);
+writeFile('course-content/runtime/knowledge/tracked-link/child.txt', 'must not traverse tracked link\n');
+writeFile('course-content/runtime/knowledge/tracked-file/child.txt', 'must not replace tracked file\n');
+const trackedLinkDestination = path.join(tmpRoot, 'tracked-link-destination');
+mkdirp(trackedLinkDestination);
+fs.symlinkSync(
+  trackedLinkDestination,
+  path.join(trackedRuntimeTarget, 'course-content/runtime/knowledge/tracked-link'),
+  'dir',
+);
+fs.writeFileSync(
+  path.join(trackedRuntimeTarget, 'course-content/runtime/knowledge/tracked-file'),
+  'tracked target file\n',
+);
+run(
+  'git',
+  [
+    '-C',
+    trackedRuntimeTarget,
+    'add',
+    'course-content/runtime/knowledge/tracked-link',
+    'course-content/runtime/knowledge/tracked-file',
+  ],
+  root,
+);
+const trackedRuntimeApply = run(
   'bash',
   [
     path.join(root, 'scripts/dev/sync-local-worktree-config.sh'),
@@ -256,18 +468,74 @@ assert.equal(
 );
 assert.equal(
   fs.lstatSync(path.join(trackedRuntimeTarget, 'course-content/runtime/lessons')).isSymbolicLink(),
-  true,
-  '无 tracked 内容的 runtime 子目录应直接软链接',
-);
-assert.equal(
-  fs.lstatSync(path.join(trackedRuntimeTarget, 'course-content/runtime/knowledge/tracked.json')).isSymbolicLink(),
   false,
-  'tracked runtime 文件应保留目标工作树本地文件',
+  '已跟踪 runtime 子目录应保留 Git 工作树目录',
 );
 assert.equal(
-  fs.lstatSync(path.join(trackedRuntimeTarget, 'course-content/runtime/knowledge/media')).isSymbolicLink(),
+  fs.readFileSync(path.join(trackedRuntimeTarget, 'course-content/runtime/knowledge/tracked.json'), 'utf8'),
+  '{ "target": true }\n',
+  'tracked runtime 文件应保留隔离工作树的 Git 管理内容',
+);
+assert.equal(
+  fs.lstatSync(path.join(trackedRuntimeTarget, 'course-content/runtime/knowledge/tracked-link')).isSymbolicLink(),
   true,
-  'tracked runtime 目录下未跟踪的子目录应递归软链接',
+  '目标中的 tracked runtime 软链接应原样保留',
+);
+assert.equal(
+  fs.existsSync(path.join(trackedLinkDestination, 'child.txt')),
+  false,
+  'runtime 同步不得穿透目标中的 tracked 软链接写入',
+);
+assert.equal(
+  fs.readFileSync(
+    path.join(trackedRuntimeTarget, 'course-content/runtime/knowledge/tracked-file'),
+    'utf8',
+  ),
+  'tracked target file\n',
+  '目标中的 tracked runtime 普通文件不应被目录同步替换',
+);
+assert.equal(
+  fs.lstatSync(path.join(trackedRuntimeTarget, 'course-content/runtime/knowledge/media-untracked')).isSymbolicLink(),
+  false,
+  'tracked runtime 目录下未跟踪的子目录应递归复制为真实目录',
+);
+assert.equal(
+  fs.readFileSync(path.join(trackedRuntimeTarget, 'course-content/runtime/knowledge/media-untracked/asset.txt'), 'utf8'),
+  'primary untracked asset\n',
+  '递归同步应复制未跟踪子目录的内容',
+);
+assert.equal(
+  fs.existsSync(path.join(trackedRuntimeTarget, 'course-content/runtime/knowledge/stale-untracked')),
+  false,
+  'tracked runtime 祖先目录下目标独有的未跟踪路径应被清除',
+);
+const staleBackupMatch = trackedRuntimeApply.stdout.match(
+  /backup existing path: (\.tmp\/local-config-backups\/[^\n]+\/course-content\/runtime\/knowledge\/stale-untracked)/,
+);
+assert.ok(staleBackupMatch, '清除目标独有的未跟踪路径前应写入本地备份');
+assert.equal(
+  fs.existsSync(path.join(trackedRuntimeTarget, staleBackupMatch[1], 'file.txt')),
+  true,
+  '目标独有的未跟踪资源应保留在本地备份中',
+);
+assert.equal(
+  fs.readFileSync(path.join(trackedRuntimeTarget, 'course-content/runtime/knowledge/legacy-mixed/tracked.txt'), 'utf8'),
+  'target-only tracked resource\n',
+  '目标独有目录中的 Git 跟踪文件应保留',
+);
+assert.equal(
+  fs.existsSync(path.join(trackedRuntimeTarget, 'course-content/runtime/knowledge/legacy-mixed/stale.txt')),
+  false,
+  '目标独有混合目录中的未跟踪陈旧文件应被清除',
+);
+const mixedStaleBackupMatch = trackedRuntimeApply.stdout.match(
+  /backup existing path: (\.tmp\/local-config-backups\/[^\n]+\/course-content\/runtime\/knowledge\/legacy-mixed\/stale\.txt)/,
+);
+assert.ok(mixedStaleBackupMatch, '混合目录中的陈旧文件清除前应写入本地备份');
+assert.equal(
+  fs.existsSync(path.join(trackedRuntimeTarget, mixedStaleBackupMatch[1])),
+  true,
+  '混合目录中的陈旧文件应保留在本地备份中',
 );
 
 const openwolfDryRun = run(
@@ -320,7 +588,7 @@ for (const rel of [
 ]) {
   const fullPath = path.join(target, rel);
   assert.equal(fs.lstatSync(fullPath).isSymbolicLink(), true, `${rel} 应软链接到主工作树 .wolf`);
-  assert.equal(fs.readlinkSync(fullPath), path.join(source, rel), `${rel} 应指向 source .wolf`);
+  assert.equal(fs.readlinkSync(fullPath), path.join(canonicalSource, rel), `${rel} 应指向 source .wolf`);
 }
 
 for (const rel of [
@@ -344,8 +612,8 @@ assert.equal(
 
 const worktreeSource = JSON.parse(fs.readFileSync(path.join(target, '.wolf/worktree-source.json'), 'utf8'));
 assert.equal(worktreeSource.id, 'target', '非 .codex worktree 的 OpenWolf 来源 id 应使用目标目录名');
-assert.equal(worktreeSource.path, target, 'OpenWolf 来源应记录目标工作树路径');
-assert.equal(worktreeSource.sharedWolf, path.join(source, '.wolf'), 'OpenWolf 来源应记录共享 .wolf 路径');
+assert.equal(worktreeSource.path, canonicalTarget, 'OpenWolf 来源应记录目标工作树路径');
+assert.equal(worktreeSource.sharedWolf, path.join(canonicalSource, '.wolf'), 'OpenWolf 来源应记录共享 .wolf 路径');
 
 const sourceMemorySize = Buffer.byteLength(fs.readFileSync(path.join(source, '.wolf/memory.md'), 'utf8'));
 const stampState = JSON.parse(fs.readFileSync(path.join(target, '.wolf/source-stamp-state.json'), 'utf8'));
@@ -368,9 +636,7 @@ assert.match(
   '同步脚本应安装 stop 来源 stamp hook',
 );
 
-const freshLinkTarget = path.join(tmpRoot, 'fresh-link-target');
-mkdirp(freshLinkTarget);
-run('git', ['init'], freshLinkTarget);
+const freshLinkTarget = createIsolatedWorktree('fresh-link-target');
 run(
   'bash',
   [
@@ -428,9 +694,8 @@ assert.match(
   'source stamp session-start hook 应追加在原 OpenWolf hook 后面',
 );
 
-const noOverwriteTarget = path.join(tmpRoot, 'no-overwrite-target');
+const noOverwriteTarget = createIsolatedWorktree('no-overwrite-target');
 mkdirp(path.join(noOverwriteTarget, '.wolf'));
-run('git', ['init'], noOverwriteTarget);
 fs.writeFileSync(path.join(noOverwriteTarget, '.wolf/cerebrum.md'), 'local cerebrum\n');
 run(
   'bash',
@@ -457,11 +722,10 @@ assert.equal(
   '--no-overwrite 应保留已有 OpenWolf 长期知识内容',
 );
 
-const trackedWolfTarget = path.join(tmpRoot, 'tracked-wolf-target');
+const trackedWolfTarget = createIsolatedWorktree('tracked-wolf-target');
 mkdirp(path.join(trackedWolfTarget, '.wolf'));
-run('git', ['init'], trackedWolfTarget);
 fs.writeFileSync(path.join(trackedWolfTarget, '.wolf/cerebrum.md'), 'tracked cerebrum\n');
-run('git', ['-C', trackedWolfTarget, 'add', '.wolf/cerebrum.md'], root);
+run('git', ['-C', trackedWolfTarget, 'add', '-f', '.wolf/cerebrum.md'], root);
 run(
   'bash',
   [
@@ -481,9 +745,7 @@ assert.equal(
   '已被 Git 跟踪的 OpenWolf 长期知识文件不应被替换为软链接',
 );
 
-const peerTarget = path.join(tmpRoot, 'target-peer');
-mkdirp(peerTarget);
-run('git', ['init'], peerTarget);
+const peerTarget = createIsolatedWorktree('target-peer');
 run(
   'bash',
   [
@@ -585,17 +847,17 @@ run(
 const graphCalls = fs.readFileSync(graphCallLog, 'utf8');
 assert.match(
   graphCalls,
-  new RegExp(`codegraph init --index ${target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`),
+  new RegExp(`codegraph init --index ${canonicalTarget.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`),
   'apply 模式应初始化并索引 codegraph',
 );
 assert.match(
   graphCalls,
-  new RegExp(`code-review-graph register ${target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} --alias test-alias`),
+  new RegExp(`code-review-graph register ${canonicalTarget.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} --alias test-alias`),
   'apply 模式应按指定 alias 注册 CRG',
 );
 assert.match(
   graphCalls,
-  new RegExp(`code-review-graph build --repo ${target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`),
+  new RegExp(`code-review-graph build --repo ${canonicalTarget.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`),
   'apply 模式应构建 CRG',
 );
 
@@ -863,17 +1125,17 @@ run(
 const depCalls = fs.readFileSync(depCallLog, 'utf8');
 assert.match(
   depCalls,
-  new RegExp(`cwd=${target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} args=ci`),
+  new RegExp(`cwd=${canonicalTarget.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} args=ci`),
   'install-deps 应在目标工作树执行 npm ci',
 );
 assert.match(
   depCalls,
-  new RegExp(`cwd=${target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} args=prisma generate`),
+  new RegExp(`cwd=${canonicalTarget.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} args=prisma generate`),
   'install-deps 应在目标工作树生成 Prisma Client',
 );
 assert.match(
   depCalls,
-  new RegExp(`cwd=${target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} args=run wasm:build:control-engine`),
+  new RegExp(`cwd=${canonicalTarget.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} args=run wasm:build:control-engine`),
   'install-deps 应在目标工作树生成控制引擎 Wasm 包',
 );
 
@@ -898,28 +1160,89 @@ assert.match(bootstrapDryRun.stdout, /Git hooks: enabled/, 'bootstrap 应启用 
 assert.match(bootstrapDryRun.stdout, /Dependency install: enabled/, 'bootstrap 应启用依赖安装');
 assert.match(bootstrapDryRun.stdout, /OpenWolf knowledge links: enabled/, 'bootstrap 应启用 OpenWolf 长期知识链接');
 
-const selfHooksDryRun = run(
+const primaryPreCommitPath = gitHookPath(source, 'pre-commit');
+fs.writeFileSync(
+  primaryPreCommitPath,
+  '#!/bin/sh\n# Managed by sync-local-worktree-config.sh\n# stale hook\n',
+);
+const primaryHooksOnly = run(
   'bash',
   [
     path.join(root, 'scripts/dev/sync-local-worktree-config.sh'),
     '--source',
-    target,
+    source,
     '--target',
-    target,
+    source,
+    '--apply',
     '--install-hooks',
   ],
   root,
 );
 
 assert.match(
-  selfHooksDryRun.stdout,
-  /would install managed Git hook(?: with backup)?: pre-push/,
-  'source=target 且仅安装 hooks 时应允许 dry-run 并包含 pre-push 门禁',
+  primaryHooksOnly.stdout,
+  /installed managed Git hook: pre-commit/,
+  '主工作树仅请求 --install-hooks 时应恢复 managed hooks',
 );
 assert.doesNotMatch(
-  selfHooksDryRun.stdout,
+  primaryHooksOnly.stdout,
   /Files:/,
-  'source=target hooks-only 路径不应执行文件同步',
+  '主工作树 hooks-only 路径不应执行配置或 runtime 同步',
+);
+assert.match(
+  fs.readFileSync(primaryPreCommitPath, 'utf8'),
+  /typecheck_run "pre-commit"/,
+  '主工作树 hooks-only 路径应写入当前 managed hook 内容',
+);
+
+fs.writeFileSync(
+  primaryPreCommitPath,
+  '#!/bin/sh\n# Managed by sync-local-worktree-config.sh\n# keep no-op hook\n',
+);
+const primaryNoOp = run(
+  'bash',
+  [
+    path.join(root, 'scripts/dev/sync-local-worktree-config.sh'),
+    '--source',
+    source,
+    '--target',
+    source,
+    '--apply',
+    '--install-hooks',
+    '--link-config',
+  ],
+  root,
+);
+assert.match(
+  primaryNoOp.stdout,
+  /Primary worktree detected; no synchronization performed:/,
+  '主工作树请求 hooks 之外的动作时仍应成功无操作退出',
+);
+assert.match(
+  fs.readFileSync(primaryPreCommitPath, 'utf8'),
+  /keep no-op hook/,
+  '主工作树非 hooks-only 调用不应改写 hooks',
+);
+
+const unrelatedTarget = path.join(tmpRoot, 'unrelated-target');
+mkdirp(unrelatedTarget);
+run('git', ['init'], unrelatedTarget);
+const unrelatedResult = spawnSync(
+  'bash',
+  [
+    path.join(root, 'scripts/dev/sync-local-worktree-config.sh'),
+    '--source',
+    source,
+    '--target',
+    unrelatedTarget,
+  ],
+  { cwd: root, encoding: 'utf8' },
+);
+assert.equal(unrelatedResult.status, 2, '非主仓库派生的目录不应执行同步');
+assert.match(
+  unrelatedResult.stderr,
+  /Target is not a registered isolated worktree of source/,
+  '脚本应拒绝非隔离工作树目标',
 );
 
 const linkedMain = path.join(tmpRoot, 'linked-main');
@@ -938,7 +1261,7 @@ run(
   [
     path.join(root, 'scripts/dev/sync-local-worktree-config.sh'),
     '--source',
-    source,
+    linkedMain,
     '--target',
     linkedTarget,
     '--apply',
