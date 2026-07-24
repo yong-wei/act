@@ -1,7 +1,7 @@
 ## 1. Default-Class Persistence and Invariants
 
-- [ ] 1.1 Add the nullable teacher-owned default-class Prisma relation as an expand migration and prove existing `ClassSession.classId` values remain unchanged.
-- [ ] 1.2 Implement the shared serializable default-class service for create, set-default, activate, deactivate, and delete operations with bounded write-conflict retries.
+- [x] 1.1 Add the nullable teacher-owned default-class Prisma relation as an expand migration and prove existing `ClassSession.classId` values remain unchanged.
+- [x] 1.2 Implement the shared serializable default-class service for create, set-default, activate, deactivate, and delete operations with bounded write-conflict retries.
 - [ ] 1.3 Route every teacher class lifecycle mutation through the shared service, drain old writers, and add an advisory-locked idempotent reconciliation plus a zero-violation invariant gate for ownership, activity, uniqueness, and missing defaults when active classes exist.
 - [ ] 1.4 Add migration and real-PostgreSQL concurrency tests for first class, additional class, reactivation, default replacement, deletion, competing mutations, and class changes between schema expansion and final reconciliation.
 

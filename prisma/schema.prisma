@@ -495,7 +495,9 @@ model User {
   studentStates    StudentState[]
 
   // 教师班级管理
-  teacherClasses Class[] @relation("TeacherClasses")
+  teacherClasses          Class[] @relation("TeacherClasses")
+  defaultTeachingClassId  String? @unique
+  defaultTeachingClass    Class?  @relation("DefaultTeachingClass", fields: [defaultTeachingClassId], references: [id], onDelete: SetNull)
 
   // 互动埋点日志
   interactionLogs      InteractionLog[]
@@ -1375,6 +1377,7 @@ model Class {
   code      String @unique // 6位班级码，学生通过此码加入班级
   teacherId String
   teacher   User   @relation("TeacherClasses", fields: [teacherId], references: [id])
+  defaultForTeacher User? @relation("DefaultTeachingClass")
 
   description String?
   year        String? // 学年

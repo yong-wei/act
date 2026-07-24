@@ -590,35 +590,9 @@ export default async function TeacherSessionReviewPage(props: PageProps) {
   }
 
   const studentStepResponses = session.studentStepResponses ?? []
-  const participantClassIds = session.studentStates.map((state) => state.user.profile?.classId)
-
-  const directClassContext = resolveSessionClassContext({
-    sessionClassId: session.classId,
-    sessionClass: session.class,
-    participantClassIds,
-  })
-  const inferredClass = directClassContext.classId && !directClassContext.class
-    ? await prisma.class.findUnique({
-      where: { id: directClassContext.classId },
-      select: {
-        id: true,
-        name: true,
-        code: true,
-        teacherId: true,
-      },
-    })
-    : null
-  const effectiveClass = inferredClass
-    && (auth.user.role === 'ADMIN' || inferredClass.teacherId === session.teacherId)
-    ? inferredClass
-    : directClassContext.class
   const classContext = resolveSessionClassContext({
     sessionClassId: session.classId,
     sessionClass: session.class,
-    participantClassIds,
-    classesById: effectiveClass
-      ? new Map([[effectiveClass.id, effectiveClass]])
-      : undefined,
   })
 
   if (!classContext.classId || !classContext.class) {

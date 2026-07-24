@@ -65,23 +65,11 @@ describe('PATCH /api/session/[sessionId]', () => {
     mocks.redisClient.isReady.mockReturnValue(false);
   });
 
-  it('persists inferred class attribution when a direct-start session is finished', async () => {
-    mocks.prisma.classSession.findUnique
-      .mockResolvedValueOnce({
-        teacherId: 'teacher-1',
-        status: 'ACTIVE',
-      })
-      .mockResolvedValueOnce({
-        classId: null,
-        studentStates: [
-          { user: { profile: { classId: 'class-2024' } } },
-          { user: { profile: { classId: 'class-2024' } } },
-          { user: { profile: { classId: 'class-2024' } } },
-          { user: { profile: { classId: 'class-2024' } } },
-          { user: { profile: { classId: 'class-2024' } } },
-          { user: { profile: { classId: null } } },
-        ],
-      });
+  it('keeps a classless direct-start session unattributed when it is finished', async () => {
+    mocks.prisma.classSession.findUnique.mockResolvedValue({
+      teacherId: 'teacher-1',
+      status: 'ACTIVE',
+    });
     mocks.prisma.classSession.update.mockResolvedValue({
       id: 'session-1',
       joinCode: '187470',
@@ -95,16 +83,6 @@ describe('PATCH /api/session/[sessionId]', () => {
       endTime: new Date('2026-04-28T02:03:12.410Z'),
       updatedAt: new Date('2026-04-28T02:03:12.410Z'),
     });
-    mocks.prisma.class.findMany.mockResolvedValue([
-      {
-        id: 'class-2024',
-        name: '2024自动化',
-        code: 'AUTO2024',
-        teacherId: 'teacher-1',
-      },
-    ]);
-    mocks.prisma.classSession.updateMany.mockResolvedValue({ count: 1 });
-
     const response = await PATCH(
       new Request('http://localhost/api/session/session-1', {
         method: 'PATCH',
@@ -116,11 +94,8 @@ describe('PATCH /api/session/[sessionId]', () => {
     const payload = await response.json();
 
     expect(response.status).toBe(200);
-    expect(mocks.prisma.classSession.updateMany).toHaveBeenCalledWith({
-      where: { id: 'session-1', classId: null },
-      data: { classId: 'class-2024' },
-    });
-    expect(payload.classId).toBe('class-2024');
+    expect(mocks.prisma.classSession.updateMany).not.toHaveBeenCalled();
+    expect(payload.classId).toBeNull();
   });
 
   it('uses event ingestion instead of direct snapshot jobs when a classroom session is finished', () => {
