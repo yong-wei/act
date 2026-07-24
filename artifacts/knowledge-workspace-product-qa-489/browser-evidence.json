@@ -1,10 +1,10 @@
 {
   "change": "govern-knowledge-workspace-product-qa",
   "issue": 489,
-  "capturedAt": "2026-07-23T16:18:48.501Z",
+  "capturedAt": "2026-07-24T04:28:35.034Z",
   "captureRevision": {
-    "commitSha": "97349a2f63f2e70881d2e83615dab00f2dc4f59e",
-    "treeSha": "142bd70e35d09864f849b0f9030c8cb78145b3b5"
+    "commitSha": "7e920993ef5b70187cf0ac807a9334db9454ee11",
+    "treeSha": "13917be76269a2fc7769d1d608c8e6bbaeb29d8b"
   },
   "baseUrl": "http://localhost:3002",
   "selectedNodeId": "稳定性_1_7288b4ea",
@@ -36,11 +36,12 @@
     "rawSearchExcludedFromAssistantContext": true
   },
   "currentSourceSha256": {
-    "src/features/knowledge/knowledge-graph-system.tsx": "72ed44549697fd0910563b2cf7fc774942e41ed58a39e3ce1866241e6d01f786",
+    "src/features/knowledge/knowledge-graph-system.tsx": "186e7c5bf74192bbb9669611231a3e05f08d598e5ad3fdc185eb226633a7e585",
     "src/app/knowledge/page.tsx": "c0c81981fed923a6c8607c6da4e32b86bffd9bb025298ee243751085bcb7d4aa",
     "src/app/assessment/adaptive-practice/page.tsx": "175e2fbf081c49dd683a88addc35e63c2d1de57343e0c692992d2f1d6f4d1412",
     "src/features/knowledge/graph/knowledge-graph-2d.tsx": "ccf78f6a0ac090e270cea9a47c57d65f5d0bfde781397c092ed360884161a0ba",
     "src/features/knowledge/graph/knowledge-graph-canvas.tsx": "a7d20520cbbcb40a4c9b20d3352c61818b27681068c5efffff85e02eab731a62",
+    "src/features/knowledge/graph/relation-family-control.tsx": "6525e3ae4d5071f0db149c9acdba60de088b30db1f45ec3ff8bd24b622139f24",
     "src/features/knowledge/graph/visual-config.ts": "41d44ca2ff04a4ea5a058a6534421c51ea56ecb9fd2dfbf0c9a11d98c45bc9c5",
     "src/features/knowledge/resource-panel/resource-panel.tsx": "faf13a2e238c4316799e19c49a9efba4120c058aecbf9f4726a8dea445c1f11e",
     "src/components/ai/global-ai-button.tsx": "6243083863a81d41f891dbf3bf5217967af28b7f302a20361b2254d366f2715b",
@@ -50,8 +51,8 @@
     "src/components/shared/page-floating-controls.tsx": "261ee875cb2df8fc0a1f6f801b4b1830548998a7b2932ca51ad49462e6fa8541",
     "src/app/globals.css": "630c78643e94f9e11afa425494354e0c1efea43bc6eb766c966b10ff7b4e6fbc",
     "src/lib/konling-agent-runtime.ts": "467918d7a2673995a3f79e462ee47b39fc422f6483bb8585e61bf6e209847afc",
-    "scripts/tests/capture-knowledge-workspace-product-qa.ts": "272a39d0be70a676204bc0c0c21c8dd0df9199ef5ac33233704dbaa7d7a2982b",
-    "scripts/tests/test-commercial-ui-governance.ts": "151ec3a35dd86cce869356f39ed98ccd86e579aa481e6ecf976e3d1da29157bb"
+    "scripts/tests/capture-knowledge-workspace-product-qa.ts": "0359adf58a2fae7d5dfc5a8de6a1da1bb2793ffa366173c1655b589b2326fae0",
+    "scripts/tests/test-commercial-ui-governance.ts": "3d504d0b6017d01d9f11a9b51573aaa8f34753474aae4b6e6550ca27ad258e46"
   },
   "stateMatrix": [
     {
@@ -98,6 +99,8 @@
         "inspectorSections": [],
         "inspectorAccordion": [],
         "relationFamilyControlVisible": true,
+        "relationFamilyControlPlacement": "compact-bottom-left",
+        "relationFamilyCollisionPolicy": "default",
         "relationFamilyState": "post-requisite,association",
         "relationFamilySamples": 3,
         "mobileLayoutControls": [],
@@ -128,6 +131,14 @@
           },
           "mobileTools": null,
           "activeLocalPanel": null,
+          "relationFamilyControl": {
+            "left": 108,
+            "top": 882,
+            "right": 426,
+            "bottom": 928,
+            "width": 318,
+            "height": 46
+          },
           "inspector": null,
           "dock": {
             "left": 1326,
@@ -137,6 +148,7 @@
             "width": 90,
             "height": 40
           },
+          "konlingSidebar": null,
           "expandedDock": null
         },
         "documentScroll": {
@@ -153,6 +165,7 @@
           "inspectorOverlapsActiveLocalPanel": false,
           "dockOverlapsMobileTools": false,
           "expandedDockOverlapsMobileTools": false,
+          "konlingSidebarOverlapsRelationFamilyControl": false,
           "dockOverlapsInspector": false,
           "expandedDockOverlapsInspector": false
         }
@@ -202,6 +215,8 @@
         "inspectorSections": [],
         "inspectorAccordion": [],
         "relationFamilyControlVisible": true,
+        "relationFamilyControlPlacement": "compact-bottom-left",
+        "relationFamilyCollisionPolicy": "default",
         "relationFamilyState": "post-requisite,association",
         "relationFamilySamples": 3,
         "mobileLayoutControls": [],
@@ -232,6 +247,14 @@
           },
           "mobileTools": null,
           "activeLocalPanel": null,
+          "relationFamilyControl": {
+            "left": 284,
+            "top": 882,
+            "right": 602,
+            "bottom": 928,
+            "width": 318,
+            "height": 46
+          },
           "inspector": null,
           "dock": {
             "left": 1326,
@@ -241,6 +264,7 @@
             "width": 90,
             "height": 40
           },
+          "konlingSidebar": null,
           "expandedDock": null
         },
         "documentScroll": {
@@ -257,6 +281,7 @@
           "inspectorOverlapsActiveLocalPanel": false,
           "dockOverlapsMobileTools": false,
           "expandedDockOverlapsMobileTools": false,
+          "konlingSidebarOverlapsRelationFamilyControl": false,
           "dockOverlapsInspector": false,
           "expandedDockOverlapsInspector": false
         }
@@ -306,6 +331,8 @@
         "inspectorSections": [],
         "inspectorAccordion": [],
         "relationFamilyControlVisible": true,
+        "relationFamilyControlPlacement": "compact-bottom-left",
+        "relationFamilyCollisionPolicy": "default",
         "relationFamilyState": "post-requisite,association",
         "relationFamilySamples": 3,
         "mobileLayoutControls": [],
@@ -343,6 +370,14 @@
             "width": 448,
             "height": 576
           },
+          "relationFamilyControl": {
+            "left": 108,
+            "top": 882,
+            "right": 426,
+            "bottom": 928,
+            "width": 318,
+            "height": 46
+          },
           "inspector": null,
           "dock": {
             "left": 1326,
@@ -352,6 +387,7 @@
             "width": 90,
             "height": 40
           },
+          "konlingSidebar": null,
           "expandedDock": null
         },
         "documentScroll": {
@@ -368,6 +404,7 @@
           "inspectorOverlapsActiveLocalPanel": false,
           "dockOverlapsMobileTools": false,
           "expandedDockOverlapsMobileTools": false,
+          "konlingSidebarOverlapsRelationFamilyControl": false,
           "dockOverlapsInspector": false,
           "expandedDockOverlapsInspector": false
         }
@@ -417,6 +454,8 @@
         "inspectorSections": [],
         "inspectorAccordion": [],
         "relationFamilyControlVisible": true,
+        "relationFamilyControlPlacement": "compact-bottom-left",
+        "relationFamilyCollisionPolicy": "default",
         "relationFamilyState": "post-requisite,association",
         "relationFamilySamples": 3,
         "mobileLayoutControls": [],
@@ -454,6 +493,14 @@
             "width": 448,
             "height": 347
           },
+          "relationFamilyControl": {
+            "left": 108,
+            "top": 882,
+            "right": 426,
+            "bottom": 928,
+            "width": 318,
+            "height": 46
+          },
           "inspector": null,
           "dock": {
             "left": 1326,
@@ -463,6 +510,7 @@
             "width": 90,
             "height": 40
           },
+          "konlingSidebar": null,
           "expandedDock": null
         },
         "documentScroll": {
@@ -479,6 +527,7 @@
           "inspectorOverlapsActiveLocalPanel": false,
           "dockOverlapsMobileTools": false,
           "expandedDockOverlapsMobileTools": false,
+          "konlingSidebarOverlapsRelationFamilyControl": false,
           "dockOverlapsInspector": false,
           "expandedDockOverlapsInspector": false
         }
@@ -528,6 +577,8 @@
         "inspectorSections": [],
         "inspectorAccordion": [],
         "relationFamilyControlVisible": true,
+        "relationFamilyControlPlacement": "compact-bottom-left",
+        "relationFamilyCollisionPolicy": "default",
         "relationFamilyState": "post-requisite,association",
         "relationFamilySamples": 3,
         "mobileLayoutControls": [
@@ -571,6 +622,14 @@
             "width": 448,
             "height": 241
           },
+          "relationFamilyControl": {
+            "left": 108,
+            "top": 882,
+            "right": 426,
+            "bottom": 928,
+            "width": 318,
+            "height": 46
+          },
           "inspector": null,
           "dock": {
             "left": 1326,
@@ -580,6 +639,7 @@
             "width": 90,
             "height": 40
           },
+          "konlingSidebar": null,
           "expandedDock": null
         },
         "documentScroll": {
@@ -596,6 +656,7 @@
           "inspectorOverlapsActiveLocalPanel": false,
           "dockOverlapsMobileTools": false,
           "expandedDockOverlapsMobileTools": false,
+          "konlingSidebarOverlapsRelationFamilyControl": false,
           "dockOverlapsInspector": false,
           "expandedDockOverlapsInspector": false
         }
@@ -657,6 +718,8 @@
           }
         ],
         "relationFamilyControlVisible": true,
+        "relationFamilyControlPlacement": "compact-bottom-left",
+        "relationFamilyCollisionPolicy": "default",
         "relationFamilyState": "post-requisite,association",
         "relationFamilySamples": 3,
         "mobileLayoutControls": [
@@ -700,6 +763,14 @@
             "width": 448,
             "height": 241
           },
+          "relationFamilyControl": {
+            "left": 108,
+            "top": 882,
+            "right": 426,
+            "bottom": 928,
+            "width": 318,
+            "height": 46
+          },
           "inspector": {
             "left": 992,
             "top": 88,
@@ -716,6 +787,7 @@
             "width": 90,
             "height": 40
           },
+          "konlingSidebar": null,
           "expandedDock": null
         },
         "documentScroll": {
@@ -732,6 +804,7 @@
           "inspectorOverlapsActiveLocalPanel": false,
           "dockOverlapsMobileTools": false,
           "expandedDockOverlapsMobileTools": false,
+          "konlingSidebarOverlapsRelationFamilyControl": false,
           "dockOverlapsInspector": false,
           "expandedDockOverlapsInspector": false
         }
@@ -781,6 +854,8 @@
         "inspectorSections": [],
         "inspectorAccordion": [],
         "relationFamilyControlVisible": true,
+        "relationFamilyControlPlacement": "compact-bottom-left",
+        "relationFamilyCollisionPolicy": "default",
         "relationFamilyState": "child,post-requisite,association",
         "relationFamilySamples": 3,
         "mobileLayoutControls": [],
@@ -811,6 +886,14 @@
           },
           "mobileTools": null,
           "activeLocalPanel": null,
+          "relationFamilyControl": {
+            "left": 108,
+            "top": 882,
+            "right": 426,
+            "bottom": 928,
+            "width": 318,
+            "height": 46
+          },
           "inspector": null,
           "dock": {
             "left": 1326,
@@ -820,6 +903,7 @@
             "width": 90,
             "height": 40
           },
+          "konlingSidebar": null,
           "expandedDock": null
         },
         "documentScroll": {
@@ -836,6 +920,7 @@
           "inspectorOverlapsActiveLocalPanel": false,
           "dockOverlapsMobileTools": false,
           "expandedDockOverlapsMobileTools": false,
+          "konlingSidebarOverlapsRelationFamilyControl": false,
           "dockOverlapsInspector": false,
           "expandedDockOverlapsInspector": false
         }
@@ -897,6 +982,8 @@
           }
         ],
         "relationFamilyControlVisible": true,
+        "relationFamilyControlPlacement": "compact-bottom-left",
+        "relationFamilyCollisionPolicy": "default",
         "relationFamilyState": "post-requisite,association",
         "relationFamilySamples": 3,
         "mobileLayoutControls": [],
@@ -927,6 +1014,14 @@
           },
           "mobileTools": null,
           "activeLocalPanel": null,
+          "relationFamilyControl": {
+            "left": 108,
+            "top": 882,
+            "right": 426,
+            "bottom": 928,
+            "width": 318,
+            "height": 46
+          },
           "inspector": {
             "left": 992,
             "top": 88,
@@ -943,6 +1038,7 @@
             "width": 90,
             "height": 40
           },
+          "konlingSidebar": null,
           "expandedDock": null
         },
         "documentScroll": {
@@ -959,6 +1055,7 @@
           "inspectorOverlapsActiveLocalPanel": false,
           "dockOverlapsMobileTools": false,
           "expandedDockOverlapsMobileTools": false,
+          "konlingSidebarOverlapsRelationFamilyControl": false,
           "dockOverlapsInspector": false,
           "expandedDockOverlapsInspector": false
         }
@@ -980,7 +1077,7 @@
       "interactionState": "hover click drag persistence evidence",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-hover-click-drag-dark.png",
-      "screenshotSha256": "05d302973c64de6cafca839e046fb4e2846c4ebb8982e047297e35852960a709",
+      "screenshotSha256": "25a7c266bfe190eb84c9691e17d57bbc00981562924574882e111a504f0de747",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -1035,6 +1132,8 @@
           }
         ],
         "relationFamilyControlVisible": true,
+        "relationFamilyControlPlacement": "compact-bottom-left",
+        "relationFamilyCollisionPolicy": "default",
         "relationFamilyState": "post-requisite,association",
         "relationFamilySamples": 3,
         "mobileLayoutControls": [
@@ -1078,6 +1177,14 @@
             "width": 448,
             "height": 241
           },
+          "relationFamilyControl": {
+            "left": 108,
+            "top": 882,
+            "right": 426,
+            "bottom": 928,
+            "width": 318,
+            "height": 46
+          },
           "inspector": {
             "left": 992,
             "top": 88,
@@ -1094,6 +1201,7 @@
             "width": 90,
             "height": 40
           },
+          "konlingSidebar": null,
           "expandedDock": null
         },
         "documentScroll": {
@@ -1110,6 +1218,7 @@
           "inspectorOverlapsActiveLocalPanel": false,
           "dockOverlapsMobileTools": false,
           "expandedDockOverlapsMobileTools": false,
+          "konlingSidebarOverlapsRelationFamilyControl": false,
           "dockOverlapsInspector": false,
           "expandedDockOverlapsInspector": false
         }
@@ -1193,6 +1302,8 @@
         "inspectorSections": [],
         "inspectorAccordion": [],
         "relationFamilyControlVisible": false,
+        "relationFamilyControlPlacement": null,
+        "relationFamilyCollisionPolicy": null,
         "relationFamilyState": null,
         "relationFamilySamples": 0,
         "mobileLayoutControls": [],
@@ -1209,6 +1320,7 @@
           "desktopTools": null,
           "mobileTools": null,
           "activeLocalPanel": null,
+          "relationFamilyControl": null,
           "inspector": null,
           "dock": {
             "left": 1192,
@@ -1218,6 +1330,7 @@
             "width": 224,
             "height": 158
           },
+          "konlingSidebar": null,
           "expandedDock": {
             "left": 1192,
             "top": 786,
@@ -1241,6 +1354,7 @@
           "inspectorOverlapsActiveLocalPanel": false,
           "dockOverlapsMobileTools": false,
           "expandedDockOverlapsMobileTools": false,
+          "konlingSidebarOverlapsRelationFamilyControl": false,
           "dockOverlapsInspector": false,
           "expandedDockOverlapsInspector": false
         }
@@ -1302,6 +1416,8 @@
           }
         ],
         "relationFamilyControlVisible": true,
+        "relationFamilyControlPlacement": "compact-bottom-left",
+        "relationFamilyCollisionPolicy": "default",
         "relationFamilyState": "post-requisite,association",
         "relationFamilySamples": 3,
         "mobileLayoutControls": [
@@ -1345,6 +1461,14 @@
             "width": 448,
             "height": 241
           },
+          "relationFamilyControl": {
+            "left": 108,
+            "top": 882,
+            "right": 426,
+            "bottom": 928,
+            "width": 318,
+            "height": 46
+          },
           "inspector": {
             "left": 992,
             "top": 88,
@@ -1361,6 +1485,7 @@
             "width": 90,
             "height": 40
           },
+          "konlingSidebar": null,
           "expandedDock": null
         },
         "documentScroll": {
@@ -1377,6 +1502,7 @@
           "inspectorOverlapsActiveLocalPanel": false,
           "dockOverlapsMobileTools": false,
           "expandedDockOverlapsMobileTools": false,
+          "konlingSidebarOverlapsRelationFamilyControl": false,
           "dockOverlapsInspector": false,
           "expandedDockOverlapsInspector": false
         }
@@ -1431,6 +1557,8 @@
         "inspectorSections": [],
         "inspectorAccordion": [],
         "relationFamilyControlVisible": true,
+        "relationFamilyControlPlacement": "compact-bottom-left",
+        "relationFamilyCollisionPolicy": "default",
         "relationFamilyState": "post-requisite,association",
         "relationFamilySamples": 3,
         "mobileLayoutControls": [],
@@ -1461,6 +1589,14 @@
           },
           "mobileTools": null,
           "activeLocalPanel": null,
+          "relationFamilyControl": {
+            "left": 108,
+            "top": 882,
+            "right": 426,
+            "bottom": 928,
+            "width": 318,
+            "height": 46
+          },
           "inspector": null,
           "dock": {
             "left": 1326,
@@ -1470,6 +1606,7 @@
             "width": 90,
             "height": 40
           },
+          "konlingSidebar": null,
           "expandedDock": null
         },
         "documentScroll": {
@@ -1486,6 +1623,7 @@
           "inspectorOverlapsActiveLocalPanel": false,
           "dockOverlapsMobileTools": false,
           "expandedDockOverlapsMobileTools": false,
+          "konlingSidebarOverlapsRelationFamilyControl": false,
           "dockOverlapsInspector": false,
           "expandedDockOverlapsInspector": false
         }
@@ -3102,7 +3240,7 @@
       "interactionState": "konling selected context expanded",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-konling-selected-expanded-dark.png",
-      "screenshotSha256": "a1138235786bdc025d1244224f67f47f6cd4678a23b00e1d74cfef8cc4f8453f",
+      "screenshotSha256": "61ecb3e7ce5a5e42456331a8f1b779034106b6b66e096f8a3dd299cbdbe5c05e",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -3130,6 +3268,8 @@
         "inspectorSections": [],
         "inspectorAccordion": [],
         "relationFamilyControlVisible": true,
+        "relationFamilyControlPlacement": "compact-bottom-left",
+        "relationFamilyCollisionPolicy": "vertical-clear-of-expanded-konling",
         "relationFamilyState": "post-requisite,association",
         "relationFamilySamples": 3,
         "mobileLayoutControls": [],
@@ -3160,8 +3300,24 @@
           },
           "mobileTools": null,
           "activeLocalPanel": null,
+          "relationFamilyControl": {
+            "left": 176,
+            "top": 774,
+            "right": 288,
+            "bottom": 928,
+            "width": 112,
+            "height": 154
+          },
           "inspector": null,
           "dock": null,
+          "konlingSidebar": {
+            "left": 1020,
+            "top": 0,
+            "right": 1440,
+            "bottom": 960,
+            "width": 420,
+            "height": 960
+          },
           "expandedDock": {
             "left": 1020,
             "top": 0,
@@ -3185,6 +3341,7 @@
           "inspectorOverlapsActiveLocalPanel": false,
           "dockOverlapsMobileTools": false,
           "expandedDockOverlapsMobileTools": false,
+          "konlingSidebarOverlapsRelationFamilyControl": false,
           "dockOverlapsInspector": false,
           "expandedDockOverlapsInspector": false
         }
@@ -3206,7 +3363,7 @@
       "interactionState": "konling no-selection context",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-konling-no-selection-dark.png",
-      "screenshotSha256": "65fdf51723ed2b591ca7cb661442352f35f0b00ca59a98a7843e0ef3b694c23a",
+      "screenshotSha256": "a48236b13a55836713e66f4474c716ed60244a7d44db8ba19a37f0fae4555d68",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -3234,6 +3391,8 @@
         "inspectorSections": [],
         "inspectorAccordion": [],
         "relationFamilyControlVisible": true,
+        "relationFamilyControlPlacement": "compact-bottom-left",
+        "relationFamilyCollisionPolicy": "vertical-clear-of-expanded-konling",
         "relationFamilyState": "post-requisite,association",
         "relationFamilySamples": 3,
         "mobileLayoutControls": [],
@@ -3264,8 +3423,24 @@
           },
           "mobileTools": null,
           "activeLocalPanel": null,
+          "relationFamilyControl": {
+            "left": 176,
+            "top": 774,
+            "right": 288,
+            "bottom": 928,
+            "width": 112,
+            "height": 154
+          },
           "inspector": null,
           "dock": null,
+          "konlingSidebar": {
+            "left": 1020,
+            "top": 0,
+            "right": 1440,
+            "bottom": 960,
+            "width": 420,
+            "height": 960
+          },
           "expandedDock": {
             "left": 1020,
             "top": 0,
@@ -3289,6 +3464,7 @@
           "inspectorOverlapsActiveLocalPanel": false,
           "dockOverlapsMobileTools": false,
           "expandedDockOverlapsMobileTools": false,
+          "konlingSidebarOverlapsRelationFamilyControl": false,
           "dockOverlapsInspector": false,
           "expandedDockOverlapsInspector": false
         }
@@ -3310,7 +3486,7 @@
       "interactionState": "konling degraded unresolved node context",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-konling-degraded-dark.png",
-      "screenshotSha256": "f1c6559dc087a9cc2eeb5051fa282e60f7dc257640095514ed28db5b77894c5f",
+      "screenshotSha256": "965de5aa7ff950d440b6c57f57956c9f1f811e1dc3fd3c2023865652f9bec5bb",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -3338,6 +3514,8 @@
         "inspectorSections": [],
         "inspectorAccordion": [],
         "relationFamilyControlVisible": true,
+        "relationFamilyControlPlacement": "compact-bottom-left",
+        "relationFamilyCollisionPolicy": "vertical-clear-of-expanded-konling",
         "relationFamilyState": "post-requisite,association",
         "relationFamilySamples": 3,
         "mobileLayoutControls": [],
@@ -3368,8 +3546,24 @@
           },
           "mobileTools": null,
           "activeLocalPanel": null,
+          "relationFamilyControl": {
+            "left": 176,
+            "top": 774,
+            "right": 288,
+            "bottom": 928,
+            "width": 112,
+            "height": 154
+          },
           "inspector": null,
           "dock": null,
+          "konlingSidebar": {
+            "left": 1020,
+            "top": 0,
+            "right": 1440,
+            "bottom": 960,
+            "width": 420,
+            "height": 960
+          },
           "expandedDock": {
             "left": 1020,
             "top": 0,
@@ -3393,6 +3587,7 @@
           "inspectorOverlapsActiveLocalPanel": false,
           "dockOverlapsMobileTools": false,
           "expandedDockOverlapsMobileTools": false,
+          "konlingSidebarOverlapsRelationFamilyControl": false,
           "dockOverlapsInspector": false,
           "expandedDockOverlapsInspector": false
         }
@@ -3414,7 +3609,7 @@
       "interactionState": "expanded shell local tool inspector konling stress state",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-stress-expanded-tool-inspector-konling-dark.png",
-      "screenshotSha256": "9abde6a0c121c667114a7b4e6391a9b52e660042e901270b4ccd822835c273d5",
+      "screenshotSha256": "cca81cc4a1ea9c5c86f14dda971fc20914f2453f4f400ff5fca41c264e338b17",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -3454,6 +3649,8 @@
           }
         ],
         "relationFamilyControlVisible": true,
+        "relationFamilyControlPlacement": "compact-bottom-left",
+        "relationFamilyCollisionPolicy": "vertical-clear-of-expanded-konling",
         "relationFamilyState": "post-requisite,association",
         "relationFamilySamples": 3,
         "mobileLayoutControls": [],
@@ -3491,6 +3688,14 @@
             "width": 256,
             "height": 347
           },
+          "relationFamilyControl": {
+            "left": 352,
+            "top": 774,
+            "right": 464,
+            "bottom": 928,
+            "width": 112,
+            "height": 154
+          },
           "inspector": {
             "left": 992,
             "top": 88,
@@ -3500,6 +3705,14 @@
             "height": 792
           },
           "dock": null,
+          "konlingSidebar": {
+            "left": 564,
+            "top": 112,
+            "right": 984,
+            "bottom": 944,
+            "width": 420,
+            "height": 832
+          },
           "expandedDock": {
             "left": 564,
             "top": 112,
@@ -3523,6 +3736,7 @@
           "inspectorOverlapsActiveLocalPanel": false,
           "dockOverlapsMobileTools": false,
           "expandedDockOverlapsMobileTools": false,
+          "konlingSidebarOverlapsRelationFamilyControl": false,
           "dockOverlapsInspector": false,
           "expandedDockOverlapsInspector": false
         }
@@ -3572,6 +3786,8 @@
         "inspectorSections": [],
         "inspectorAccordion": [],
         "relationFamilyControlVisible": true,
+        "relationFamilyControlPlacement": "compact-bottom-left",
+        "relationFamilyCollisionPolicy": "default",
         "relationFamilyState": "post-requisite,association",
         "relationFamilySamples": 3,
         "mobileLayoutControls": [],
@@ -3602,6 +3818,14 @@
           },
           "mobileTools": null,
           "activeLocalPanel": null,
+          "relationFamilyControl": {
+            "left": 108,
+            "top": 1002,
+            "right": 426,
+            "bottom": 1048,
+            "width": 318,
+            "height": 46
+          },
           "inspector": null,
           "dock": {
             "left": 1806,
@@ -3611,6 +3835,7 @@
             "width": 90,
             "height": 40
           },
+          "konlingSidebar": null,
           "expandedDock": null
         },
         "documentScroll": {
@@ -3627,6 +3852,7 @@
           "inspectorOverlapsActiveLocalPanel": false,
           "dockOverlapsMobileTools": false,
           "expandedDockOverlapsMobileTools": false,
+          "konlingSidebarOverlapsRelationFamilyControl": false,
           "dockOverlapsInspector": false,
           "expandedDockOverlapsInspector": false
         }
@@ -3688,6 +3914,8 @@
           }
         ],
         "relationFamilyControlVisible": true,
+        "relationFamilyControlPlacement": "compact-bottom-left",
+        "relationFamilyCollisionPolicy": "default",
         "relationFamilyState": "post-requisite,association",
         "relationFamilySamples": 3,
         "mobileLayoutControls": [],
@@ -3725,6 +3953,14 @@
             "width": 448,
             "height": 347
           },
+          "relationFamilyControl": {
+            "left": 108,
+            "top": 1002,
+            "right": 426,
+            "bottom": 1048,
+            "width": 318,
+            "height": 46
+          },
           "inspector": {
             "left": 1444,
             "top": 88,
@@ -3741,6 +3977,7 @@
             "width": 90,
             "height": 40
           },
+          "konlingSidebar": null,
           "expandedDock": null
         },
         "documentScroll": {
@@ -3757,6 +3994,7 @@
           "inspectorOverlapsActiveLocalPanel": false,
           "dockOverlapsMobileTools": false,
           "expandedDockOverlapsMobileTools": false,
+          "konlingSidebarOverlapsRelationFamilyControl": false,
           "dockOverlapsInspector": false,
           "expandedDockOverlapsInspector": false
         }
@@ -3806,6 +4044,8 @@
         "inspectorSections": [],
         "inspectorAccordion": [],
         "relationFamilyControlVisible": true,
+        "relationFamilyControlPlacement": "compact-bottom-left",
+        "relationFamilyCollisionPolicy": "default",
         "relationFamilyState": "post-requisite,association",
         "relationFamilySamples": 3,
         "mobileLayoutControls": [],
@@ -3836,6 +4076,14 @@
           },
           "mobileTools": null,
           "activeLocalPanel": null,
+          "relationFamilyControl": {
+            "left": 36,
+            "top": 822,
+            "right": 354,
+            "bottom": 868,
+            "width": 318,
+            "height": 46
+          },
           "inspector": null,
           "dock": {
             "left": 986,
@@ -3845,6 +4093,7 @@
             "width": 90,
             "height": 40
           },
+          "konlingSidebar": null,
           "expandedDock": null
         },
         "documentScroll": {
@@ -3861,6 +4110,7 @@
           "inspectorOverlapsActiveLocalPanel": false,
           "dockOverlapsMobileTools": false,
           "expandedDockOverlapsMobileTools": false,
+          "konlingSidebarOverlapsRelationFamilyControl": false,
           "dockOverlapsInspector": false,
           "expandedDockOverlapsInspector": false
         }
@@ -3910,6 +4160,8 @@
         "inspectorSections": [],
         "inspectorAccordion": [],
         "relationFamilyControlVisible": true,
+        "relationFamilyControlPlacement": "compact-bottom-left",
+        "relationFamilyCollisionPolicy": "default",
         "relationFamilyState": "post-requisite,association",
         "relationFamilySamples": 3,
         "mobileLayoutControls": [],
@@ -3947,6 +4199,14 @@
             "width": 448,
             "height": 347
           },
+          "relationFamilyControl": {
+            "left": 36,
+            "top": 822,
+            "right": 354,
+            "bottom": 868,
+            "width": 318,
+            "height": 46
+          },
           "inspector": null,
           "dock": {
             "left": 986,
@@ -3956,6 +4216,7 @@
             "width": 90,
             "height": 40
           },
+          "konlingSidebar": null,
           "expandedDock": null
         },
         "documentScroll": {
@@ -3972,6 +4233,7 @@
           "inspectorOverlapsActiveLocalPanel": false,
           "dockOverlapsMobileTools": false,
           "expandedDockOverlapsMobileTools": false,
+          "konlingSidebarOverlapsRelationFamilyControl": false,
           "dockOverlapsInspector": false,
           "expandedDockOverlapsInspector": false
         }
@@ -4033,6 +4295,8 @@
           }
         ],
         "relationFamilyControlVisible": true,
+        "relationFamilyControlPlacement": "compact-bottom-left",
+        "relationFamilyCollisionPolicy": "default",
         "relationFamilyState": "post-requisite,association",
         "relationFamilySamples": 3,
         "mobileLayoutControls": [],
@@ -4063,6 +4327,14 @@
           },
           "mobileTools": null,
           "activeLocalPanel": null,
+          "relationFamilyControl": {
+            "left": 36,
+            "top": 822,
+            "right": 354,
+            "bottom": 868,
+            "width": 318,
+            "height": 46
+          },
           "inspector": {
             "left": 724,
             "top": 314,
@@ -4079,6 +4351,7 @@
             "width": 90,
             "height": 40
           },
+          "konlingSidebar": null,
           "expandedDock": null
         },
         "documentScroll": {
@@ -4095,6 +4368,7 @@
           "inspectorOverlapsActiveLocalPanel": false,
           "dockOverlapsMobileTools": false,
           "expandedDockOverlapsMobileTools": false,
+          "konlingSidebarOverlapsRelationFamilyControl": false,
           "dockOverlapsInspector": false,
           "expandedDockOverlapsInspector": false
         }
@@ -4116,7 +4390,7 @@
       "interactionState": "tablet lower boundary inspector konling local tool suspension",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1024-inspector-tools-konling-dark.png",
-      "screenshotSha256": "64d9fec2848915d6c938e78851a2513949a9009aa45119ea46d99c8207d05969",
+      "screenshotSha256": "05da03665fa280a7f4588616af4f69961b06d84172b268641c91edc247d3892a",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -4156,6 +4430,8 @@
           }
         ],
         "relationFamilyControlVisible": true,
+        "relationFamilyControlPlacement": "inspector-header",
+        "relationFamilyCollisionPolicy": "default",
         "relationFamilyState": "post-requisite,association",
         "relationFamilySamples": 3,
         "mobileLayoutControls": [],
@@ -4179,6 +4455,7 @@
           "desktopTools": null,
           "mobileTools": null,
           "activeLocalPanel": null,
+          "relationFamilyControl": null,
           "inspector": {
             "left": 648,
             "top": 314,
@@ -4188,6 +4465,14 @@
             "height": 506
           },
           "dock": null,
+          "konlingSidebar": {
+            "left": 220,
+            "top": 112,
+            "right": 640,
+            "bottom": 884,
+            "width": 420,
+            "height": 772
+          },
           "expandedDock": {
             "left": 220,
             "top": 112,
@@ -4211,6 +4496,7 @@
           "inspectorOverlapsActiveLocalPanel": false,
           "dockOverlapsMobileTools": false,
           "expandedDockOverlapsMobileTools": false,
+          "konlingSidebarOverlapsRelationFamilyControl": false,
           "dockOverlapsInspector": false,
           "expandedDockOverlapsInspector": false
         }
@@ -4232,7 +4518,7 @@
       "interactionState": "tablet breakpoint inspector konling local tool suspension",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1100-inspector-tools-konling-dark.png",
-      "screenshotSha256": "2d9dfcca452af96857bb5be21f4e093b62d13363a0f3f33c0ac083026ca5b0ba",
+      "screenshotSha256": "7349361304ea5eba42b7579c3cc84a48b0bd263a4bf49ad5b0ff1fdcc0406740",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -4272,6 +4558,8 @@
           }
         ],
         "relationFamilyControlVisible": true,
+        "relationFamilyControlPlacement": "compact-bottom-left",
+        "relationFamilyCollisionPolicy": "vertical-clear-of-expanded-konling",
         "relationFamilyState": "post-requisite,association",
         "relationFamilySamples": 3,
         "mobileLayoutControls": [],
@@ -4295,6 +4583,14 @@
           "desktopTools": null,
           "mobileTools": null,
           "activeLocalPanel": null,
+          "relationFamilyControl": {
+            "left": 104,
+            "top": 714,
+            "right": 216,
+            "bottom": 868,
+            "width": 112,
+            "height": 154
+          },
           "inspector": {
             "left": 724,
             "top": 314,
@@ -4304,6 +4600,14 @@
             "height": 506
           },
           "dock": null,
+          "konlingSidebar": {
+            "left": 296,
+            "top": 112,
+            "right": 716,
+            "bottom": 884,
+            "width": 420,
+            "height": 772
+          },
           "expandedDock": {
             "left": 296,
             "top": 112,
@@ -4327,6 +4631,7 @@
           "inspectorOverlapsActiveLocalPanel": false,
           "dockOverlapsMobileTools": false,
           "expandedDockOverlapsMobileTools": false,
+          "konlingSidebarOverlapsRelationFamilyControl": false,
           "dockOverlapsInspector": false,
           "expandedDockOverlapsInspector": false
         }
@@ -4348,7 +4653,7 @@
       "interactionState": "tablet upper boundary inspector konling local tool suspension",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1279-inspector-tools-konling-dark.png",
-      "screenshotSha256": "cd33751c4c9b9c5b3df55c21a9a5a8d096d550a3d84876d7309a4d69f5c16902",
+      "screenshotSha256": "c70972d4e3fbd2ee28dfb9019ffb050c3365c3cceec085801c60e4f8eceaf2a6",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -4388,6 +4693,8 @@
           }
         ],
         "relationFamilyControlVisible": true,
+        "relationFamilyControlPlacement": "compact-bottom-left",
+        "relationFamilyCollisionPolicy": "vertical-clear-of-expanded-konling",
         "relationFamilyState": "post-requisite,association",
         "relationFamilySamples": 3,
         "mobileLayoutControls": [],
@@ -4411,6 +4718,14 @@
           "desktopTools": null,
           "mobileTools": null,
           "activeLocalPanel": null,
+          "relationFamilyControl": {
+            "left": 104,
+            "top": 714,
+            "right": 216,
+            "bottom": 868,
+            "width": 112,
+            "height": 154
+          },
           "inspector": {
             "left": 879,
             "top": 314,
@@ -4420,6 +4735,14 @@
             "height": 506
           },
           "dock": null,
+          "konlingSidebar": {
+            "left": 451,
+            "top": 112,
+            "right": 871,
+            "bottom": 884,
+            "width": 420,
+            "height": 772
+          },
           "expandedDock": {
             "left": 451,
             "top": 112,
@@ -4443,6 +4766,7 @@
           "inspectorOverlapsActiveLocalPanel": false,
           "dockOverlapsMobileTools": false,
           "expandedDockOverlapsMobileTools": false,
+          "konlingSidebarOverlapsRelationFamilyControl": false,
           "dockOverlapsInspector": false,
           "expandedDockOverlapsInspector": false
         }
@@ -4492,6 +4816,8 @@
         "inspectorSections": [],
         "inspectorAccordion": [],
         "relationFamilyControlVisible": true,
+        "relationFamilyControlPlacement": "tool-panel-header",
+        "relationFamilyCollisionPolicy": "default",
         "relationFamilyState": "post-requisite,association",
         "relationFamilySamples": 3,
         "mobileLayoutControls": [
@@ -4528,6 +4854,14 @@
             "height": 359
           },
           "activeLocalPanel": null,
+          "relationFamilyControl": {
+            "left": 41,
+            "top": 247,
+            "right": 279,
+            "bottom": 289,
+            "width": 238,
+            "height": 42
+          },
           "inspector": null,
           "dock": {
             "left": 206,
@@ -4537,6 +4871,7 @@
             "width": 90,
             "height": 40
           },
+          "konlingSidebar": null,
           "expandedDock": null
         },
         "documentScroll": {
@@ -4553,6 +4888,7 @@
           "inspectorOverlapsActiveLocalPanel": false,
           "dockOverlapsMobileTools": false,
           "expandedDockOverlapsMobileTools": false,
+          "konlingSidebarOverlapsRelationFamilyControl": false,
           "dockOverlapsInspector": false,
           "expandedDockOverlapsInspector": false
         }
@@ -4574,7 +4910,7 @@
       "interactionState": "mobile selected inspector sheet",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/mobile-320-selected-inspector-dark.png",
-      "screenshotSha256": "120ef99ec5be1a72a9dc2473b00bbfb5b01bf917478d4ceed634299ae886ab63",
+      "screenshotSha256": "5d16cfef3795194f6fe015e709ef5cdcacd3d7afcd5d762c096731d58aeaf23c",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -4614,6 +4950,8 @@
           }
         ],
         "relationFamilyControlVisible": true,
+        "relationFamilyControlPlacement": "inspector-header",
+        "relationFamilyCollisionPolicy": "default",
         "relationFamilyState": "post-requisite,association",
         "relationFamilySamples": 3,
         "mobileLayoutControls": [],
@@ -4644,6 +4982,14 @@
             "height": 48
           },
           "activeLocalPanel": null,
+          "relationFamilyControl": {
+            "left": 25,
+            "top": 265,
+            "right": 295,
+            "bottom": 307,
+            "width": 270,
+            "height": 42
+          },
           "inspector": {
             "left": 8,
             "top": 216,
@@ -4660,6 +5006,7 @@
             "width": 90,
             "height": 40
           },
+          "konlingSidebar": null,
           "expandedDock": null
         },
         "documentScroll": {
@@ -4676,6 +5023,7 @@
           "inspectorOverlapsActiveLocalPanel": false,
           "dockOverlapsMobileTools": false,
           "expandedDockOverlapsMobileTools": false,
+          "konlingSidebarOverlapsRelationFamilyControl": false,
           "dockOverlapsInspector": false,
           "expandedDockOverlapsInspector": false
         }
@@ -4724,9 +5072,11 @@
         "inspectorDockSafeArea": null,
         "inspectorSections": [],
         "inspectorAccordion": [],
-        "relationFamilyControlVisible": true,
-        "relationFamilyState": "post-requisite,association",
-        "relationFamilySamples": 3,
+        "relationFamilyControlVisible": false,
+        "relationFamilyControlPlacement": null,
+        "relationFamilyCollisionPolicy": null,
+        "relationFamilyState": null,
+        "relationFamilySamples": 0,
         "mobileLayoutControls": [],
         "dockState": null,
         "dockInspectorAvoidance": null,
@@ -4748,8 +5098,17 @@
           "desktopTools": null,
           "mobileTools": null,
           "activeLocalPanel": null,
+          "relationFamilyControl": null,
           "inspector": null,
           "dock": null,
+          "konlingSidebar": {
+            "left": 0,
+            "top": 0,
+            "right": 320,
+            "bottom": 800,
+            "width": 320,
+            "height": 800
+          },
           "expandedDock": {
             "left": 0,
             "top": 0,
@@ -4773,6 +5132,7 @@
           "inspectorOverlapsActiveLocalPanel": false,
           "dockOverlapsMobileTools": false,
           "expandedDockOverlapsMobileTools": false,
+          "konlingSidebarOverlapsRelationFamilyControl": false,
           "dockOverlapsInspector": false,
           "expandedDockOverlapsInspector": false
         }
@@ -4822,6 +5182,8 @@
         "inspectorSections": [],
         "inspectorAccordion": [],
         "relationFamilyControlVisible": true,
+        "relationFamilyControlPlacement": "inspector-header",
+        "relationFamilyCollisionPolicy": "default",
         "relationFamilyState": "post-requisite,association",
         "relationFamilySamples": 3,
         "mobileLayoutControls": [],
@@ -4845,8 +5207,17 @@
           "desktopTools": null,
           "mobileTools": null,
           "activeLocalPanel": null,
+          "relationFamilyControl": null,
           "inspector": null,
           "dock": null,
+          "konlingSidebar": {
+            "left": 0,
+            "top": 0,
+            "right": 320,
+            "bottom": 800,
+            "width": 320,
+            "height": 800
+          },
           "expandedDock": {
             "left": 0,
             "top": 0,
@@ -4870,6 +5241,7 @@
           "inspectorOverlapsActiveLocalPanel": false,
           "dockOverlapsMobileTools": false,
           "expandedDockOverlapsMobileTools": false,
+          "konlingSidebarOverlapsRelationFamilyControl": false,
           "dockOverlapsInspector": false,
           "expandedDockOverlapsInspector": false
         }
@@ -4919,6 +5291,8 @@
         "inspectorSections": [],
         "inspectorAccordion": [],
         "relationFamilyControlVisible": true,
+        "relationFamilyControlPlacement": "compact-bottom-left",
+        "relationFamilyCollisionPolicy": "default",
         "relationFamilyState": "post-requisite,association",
         "relationFamilySamples": 3,
         "mobileLayoutControls": [],
@@ -4949,6 +5323,14 @@
           },
           "mobileTools": null,
           "activeLocalPanel": null,
+          "relationFamilyControl": {
+            "left": 108,
+            "top": 882,
+            "right": 426,
+            "bottom": 928,
+            "width": 318,
+            "height": 46
+          },
           "inspector": null,
           "dock": {
             "left": 1326,
@@ -4958,6 +5340,7 @@
             "width": 90,
             "height": 40
           },
+          "konlingSidebar": null,
           "expandedDock": null
         },
         "documentScroll": {
@@ -4974,6 +5357,7 @@
           "inspectorOverlapsActiveLocalPanel": false,
           "dockOverlapsMobileTools": false,
           "expandedDockOverlapsMobileTools": false,
+          "konlingSidebarOverlapsRelationFamilyControl": false,
           "dockOverlapsInspector": false,
           "expandedDockOverlapsInspector": false
         }
@@ -5072,34 +5456,35 @@
       "desktop-selected-focus-dark": "c0828b916ee242175d2b57b091756ea7372d600604b16461861c333174daf469",
       "desktop-all-relation-families-dark": "1167b787bd4ca83a61b4f5a1a94d0ba0c5b1e644b53e0971b45f4492cb3ab820",
       "desktop-selected-inspector-light": "fe14d63d28438ee4dcb829217222d06e52edae2f0e54ffe160a3396d6dff9590",
-      "desktop-hover-click-drag-dark": "05d302973c64de6cafca839e046fb4e2846c4ebb8982e047297e35852960a709",
+      "desktop-hover-click-drag-dark": "25a7c266bfe190eb84c9691e17d57bbc00981562924574882e111a504f0de747",
       "desktop-selected-page-tools-menu-dark": "b95a5551e0700991c151a9175add878f132929e1776256186e8a0dcbafd03ec2",
       "desktop-explicit-relayout-dark": "fa595787f51b03a1323477d42545903c81b39d28bd023089b5add80c2373cd74",
       "desktop-3d-fit-relayout-dark": "5b66fac38dbfd8e66f9ee48d21d27d49030e92e1ae20252c349d1b7ead8b084a",
-      "desktop-konling-selected-expanded-dark": "a1138235786bdc025d1244224f67f47f6cd4678a23b00e1d74cfef8cc4f8453f",
-      "desktop-konling-no-selection-dark": "65fdf51723ed2b591ca7cb661442352f35f0b00ca59a98a7843e0ef3b694c23a",
-      "desktop-konling-degraded-dark": "f1c6559dc087a9cc2eeb5051fa282e60f7dc257640095514ed28db5b77894c5f",
-      "desktop-stress-expanded-tool-inspector-konling-dark": "9abde6a0c121c667114a7b4e6391a9b52e660042e901270b4ccd822835c273d5",
+      "desktop-konling-selected-expanded-dark": "61ecb3e7ce5a5e42456331a8f1b779034106b6b66e096f8a3dd299cbdbe5c05e",
+      "desktop-konling-no-selection-dark": "a48236b13a55836713e66f4474c716ed60244a7d44db8ba19a37f0fae4555d68",
+      "desktop-konling-degraded-dark": "965de5aa7ff950d440b6c57f57956c9f1f811e1dc3fd3c2023865652f9bec5bb",
+      "desktop-stress-expanded-tool-inspector-konling-dark": "cca81cc4a1ea9c5c86f14dda971fc20914f2453f4f400ff5fca41c264e338b17",
       "desktop-wide-default-dark": "1fc02d56d1f28dd624359625a1cf4ca5549b9e298fe1ab39599de1281ea8d102",
       "desktop-wide-inspector-tools-dark": "1524ce5e26b80d2f15555cb7c1491863a5b947014eee8988c00e29bed32f5327",
       "tablet-1100-default-dark": "09cab0f398d46ae1b698ef62c9aa5b0bf3bf26da31ec650587d4b1c6b959bd53",
       "tablet-1100-local-tools-filter-dark": "e9e74132b5fe54303ddc13ae7b420efb7479f3bff6f9b32a82e89bbbbc755f6d",
       "tablet-1100-selected-inspector-dark": "b7dadf10a90e298d9bf6c50a500985cd55012a782b97d1a4e55034c9acfce662",
-      "tablet-1024-inspector-tools-konling-dark": "64d9fec2848915d6c938e78851a2513949a9009aa45119ea46d99c8207d05969",
-      "tablet-1100-inspector-tools-konling-dark": "2d9dfcca452af96857bb5be21f4e093b62d13363a0f3f33c0ac083026ca5b0ba",
-      "tablet-1279-inspector-tools-konling-dark": "cd33751c4c9b9c5b3df55c21a9a5a8d096d550a3d84876d7309a4d69f5c16902",
+      "tablet-1024-inspector-tools-konling-dark": "05da03665fa280a7f4588616af4f69961b06d84172b268641c91edc247d3892a",
+      "tablet-1100-inspector-tools-konling-dark": "7349361304ea5eba42b7579c3cc84a48b0bd263a4bf49ad5b0ff1fdcc0406740",
+      "tablet-1279-inspector-tools-konling-dark": "c70972d4e3fbd2ee28dfb9019ffb050c3365c3cceec085801c60e4f8eceaf2a6",
       "mobile-320-local-tools-dark": "85a68704ed24b2a3dcfe7167c9da7e81bcfa18bf64d5839322609d5f2823487a",
-      "mobile-320-selected-inspector-dark": "120ef99ec5be1a72a9dc2473b00bbfb5b01bf917478d4ceed634299ae886ab63",
+      "mobile-320-selected-inspector-dark": "5d16cfef3795194f6fe015e709ef5cdcacd3d7afcd5d762c096731d58aeaf23c",
       "mobile-320-konling-expanded-dark": "4ecdf875b37d80403ac5aca1bcc24752aa4437e625af7b4bb8cd0829b796cc2b",
       "mobile-320-inspector-konling-stress-dark": "4ecdf875b37d80403ac5aca1bcc24752aa4437e625af7b4bb8cd0829b796cc2b",
       "light-theme-default": "499d7d028d79b9eeeef1798b479644effd3edd494429ec88ab055ef17f1e12e7"
     },
     "reviewedSourceSha256": {
-      "src/features/knowledge/knowledge-graph-system.tsx": "72ed44549697fd0910563b2cf7fc774942e41ed58a39e3ce1866241e6d01f786",
+      "src/features/knowledge/knowledge-graph-system.tsx": "186e7c5bf74192bbb9669611231a3e05f08d598e5ad3fdc185eb226633a7e585",
       "src/app/knowledge/page.tsx": "c0c81981fed923a6c8607c6da4e32b86bffd9bb025298ee243751085bcb7d4aa",
       "src/app/assessment/adaptive-practice/page.tsx": "175e2fbf081c49dd683a88addc35e63c2d1de57343e0c692992d2f1d6f4d1412",
       "src/features/knowledge/graph/knowledge-graph-2d.tsx": "ccf78f6a0ac090e270cea9a47c57d65f5d0bfde781397c092ed360884161a0ba",
       "src/features/knowledge/graph/knowledge-graph-canvas.tsx": "a7d20520cbbcb40a4c9b20d3352c61818b27681068c5efffff85e02eab731a62",
+      "src/features/knowledge/graph/relation-family-control.tsx": "6525e3ae4d5071f0db149c9acdba60de088b30db1f45ec3ff8bd24b622139f24",
       "src/features/knowledge/graph/visual-config.ts": "41d44ca2ff04a4ea5a058a6534421c51ea56ecb9fd2dfbf0c9a11d98c45bc9c5",
       "src/features/knowledge/resource-panel/resource-panel.tsx": "faf13a2e238c4316799e19c49a9efba4120c058aecbf9f4726a8dea445c1f11e",
       "src/components/ai/global-ai-button.tsx": "6243083863a81d41f891dbf3bf5217967af28b7f302a20361b2254d366f2715b",
@@ -5109,8 +5494,8 @@
       "src/components/shared/page-floating-controls.tsx": "261ee875cb2df8fc0a1f6f801b4b1830548998a7b2932ca51ad49462e6fa8541",
       "src/app/globals.css": "630c78643e94f9e11afa425494354e0c1efea43bc6eb766c966b10ff7b4e6fbc",
       "src/lib/konling-agent-runtime.ts": "467918d7a2673995a3f79e462ee47b39fc422f6483bb8585e61bf6e209847afc",
-      "scripts/tests/capture-knowledge-workspace-product-qa.ts": "272a39d0be70a676204bc0c0c21c8dd0df9199ef5ac33233704dbaa7d7a2982b",
-      "scripts/tests/test-commercial-ui-governance.ts": "151ec3a35dd86cce869356f39ed98ccd86e579aa481e6ecf976e3d1da29157bb"
+      "scripts/tests/capture-knowledge-workspace-product-qa.ts": "0359adf58a2fae7d5dfc5a8de6a1da1bb2793ffa366173c1655b589b2326fae0",
+      "scripts/tests/test-commercial-ui-governance.ts": "3d504d0b6017d01d9f11a9b51573aaa8f34753474aae4b6e6550ca27ad258e46"
     }
   },
   "temporaryExceptions": []

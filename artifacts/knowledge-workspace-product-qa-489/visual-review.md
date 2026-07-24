@@ -4,9 +4,9 @@ Final result: passed
 
 Reviewer: ui-flow-reviewer
 
-Capture revision: 97349a2f63f2e70881d2e83615dab00f2dc4f59e / 142bd70e35d09864f849b0f9030c8cb78145b3b5
+Capture revision: 7e920993ef5b70187cf0ac807a9334db9454ee11 / 13917be76269a2fc7769d1d608c8e6bbaeb29d8b
 
-Independent review verified all 29 governed browser states against the clean captured revision, its source hashes, and screenshot hashes. Desktop dark/light, local tools, selected inspector, Konling selected/no-selection/degraded, mobile and tablet stress states, and the refreshed pointer-drag persistence evidence were inspected. No blocking visual, responsive, focus-management, navigation, interaction-stability, or governed-surface overlap regression was found.
+Independent review verified all 29 governed browser states and 17 source hashes against the clean captured revision. The scope covered desktop dark/light, local tools, selected inspector, Konling selected/no-selection/degraded states, 1024/1100/1279 tablet breakpoints, 320 mobile states, expanded-shell stress composition, pointer-drag persistence, focus management, and canvas geometry. No blocking visual, responsive, navigation, interaction-stability, or governed-surface overlap regression was found.
 
 Blocking findings: none.
 
