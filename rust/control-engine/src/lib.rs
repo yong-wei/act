@@ -420,7 +420,15 @@ struct ControlMetrics {
     gain_margin_db: Option<f64>,
     gain_crossover_rad_per_sec: Option<f64>,
     phase_crossover_rad_per_sec: Option<f64>,
+    phase_crossover_status: Option<PhaseCrossoverStatus>,
     bandwidth_rad_per_sec: Option<f64>,
+}
+
+#[derive(Debug, Serialize, Clone, Copy, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+enum PhaseCrossoverStatus {
+    Finite,
+    NotObservedInFrequencyRange,
 }
 
 #[derive(Debug, Serialize)]
@@ -1015,6 +1023,7 @@ fn compute_time_metrics(
             gain_margin_db: None,
             gain_crossover_rad_per_sec: None,
             phase_crossover_rad_per_sec: None,
+            phase_crossover_status: None,
             bandwidth_rad_per_sec: None,
         };
     }
@@ -1033,6 +1042,7 @@ fn compute_time_metrics(
             gain_margin_db: None,
             gain_crossover_rad_per_sec: None,
             phase_crossover_rad_per_sec: None,
+            phase_crossover_status: None,
             bandwidth_rad_per_sec: None,
         };
     }
@@ -1086,6 +1096,7 @@ fn compute_time_metrics(
         gain_margin_db: None,
         gain_crossover_rad_per_sec: None,
         phase_crossover_rad_per_sec: None,
+        phase_crossover_status: None,
         bandwidth_rad_per_sec: None,
     }
 }
@@ -1366,6 +1377,7 @@ fn default_control_metrics() -> ControlMetrics {
         gain_margin_db: None,
         gain_crossover_rad_per_sec: None,
         phase_crossover_rad_per_sec: None,
+        phase_crossover_status: None,
         bandwidth_rad_per_sec: None,
     }
 }
@@ -3931,6 +3943,11 @@ fn compute_analysis_inner(request: &ControlAnalysisRequest) -> ControlAnalysisRe
         metrics.gain_margin_db = gain_margin_db;
         metrics.gain_crossover_rad_per_sec = gain_cross;
         metrics.phase_crossover_rad_per_sec = phase_cross;
+        metrics.phase_crossover_status = Some(if phase_cross.is_some() {
+            PhaseCrossoverStatus::Finite
+        } else {
+            PhaseCrossoverStatus::NotObservedInFrequencyRange
+        });
         metrics.bandwidth_rad_per_sec = bandwidth;
     }
     let root_locus_data = if needs_root_locus {
@@ -5488,6 +5505,33 @@ mod tests {
         assert!(!result.step_response.points.is_empty());
         assert!(result.metrics.final_value > 0.4);
         assert!(result.metrics.final_value < 0.6);
+    }
+
+    #[test]
+    fn marks_phase_crossover_outside_the_requested_range_as_unobserved() {
+        let request: ControlAnalysisRequest = serde_json::from_value(serde_json::json!({
+            "runtimeMode": "analysis",
+            "plant": {
+                "numerator": [1_000_000_000.0],
+                "denominator": [1.0, 3_000.0, 3_000_000.0, 1_000_000_000.0],
+                "coefficientOrder": "descending"
+            },
+            "structures": [],
+            "outputs": ["bode"],
+            "timeRange": { "start": 0.0, "end": 1.0, "samples": 8 },
+            "frequencyRange": { "min": 0.1, "max": 100.0, "samples": 240 },
+            "rootLocus": { "minGain": 0.0, "maxGain": 2.0, "samples": 2, "currentGain": 1.0 }
+        }))
+        .expect("frequency-range request should deserialize");
+
+        let result = compute_analysis_inner(&request);
+
+        assert!(result.metrics.phase_crossover_rad_per_sec.is_none());
+        assert!(result.metrics.gain_margin_db.is_none());
+        assert_eq!(
+            result.metrics.phase_crossover_status,
+            Some(PhaseCrossoverStatus::NotObservedInFrequencyRange)
+        );
     }
 
     fn unit_1_5_gain_request(gain: f64) -> ControlAnalysisRequest {

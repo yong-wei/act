@@ -75,6 +75,7 @@ const SAMPLE_RESULT: ControlAnalysisResult = {
     gainMarginDb: null,
     gainCrossoverRadPerSec: null,
     phaseCrossoverRadPerSec: null,
+    phaseCrossoverStatus: 'notObservedInFrequencyRange',
     bandwidthRadPerSec: null,
   },
   stepResponse: { points: [] },
@@ -109,6 +110,7 @@ const MARGIN_RESULT: ControlAnalysisResult = {
     gainMarginDb: 12,
     gainCrossoverRadPerSec: 2,
     phaseCrossoverRadPerSec: 8,
+    phaseCrossoverStatus: 'finite',
   },
   nyquist: {
     mode: 'full',
@@ -357,7 +359,7 @@ describe('control chart shared presets and themes', () => {
     expect(series.some((item) => item.label?.formatter === 'GM ∞')).toBe(true);
   });
 
-  it('distinguishes infinite gain margin from unavailable frequency response data', () => {
+  it('distinguishes an unobserved phase crossover from unavailable frequency response data', () => {
     const noCrossoverMarkup = renderToStaticMarkup(<ControlPerformanceBar result={SAMPLE_RESULT} />);
     const finiteMarkup = renderToStaticMarkup(<ControlPerformanceBar result={MARGIN_RESULT} />);
     const unavailableResult = {
@@ -381,16 +383,16 @@ describe('control chart shared presets and themes', () => {
       </ThemeProvider>,
     );
 
-    expect(noCrossoverMarkup).toContain('>∞<');
-    expect(noCrossoverMarkup).toContain('无相位交叉');
+    expect(noCrossoverMarkup).toContain('>--<');
+    expect(noCrossoverMarkup).toContain('未在当前频率范围内观测到');
     expect(finiteMarkup).toContain('12.00 dB');
     expect(finiteMarkup).toContain('8.00 rad/s');
     expect(unavailableMarkup).toContain('>--<');
-    expect(unavailableMarkup).not.toContain('无相位交叉');
-    expect(bodeMarkup).toContain('GM ∞');
-    expect(bodeMarkup).toContain('ωg 无相位交叉');
-    expect(nyquistMarkup).toContain('GM ∞');
-    expect(nyquistMarkup).toContain('ωg 无相位交叉');
+    expect(unavailableMarkup).not.toContain('未在当前频率范围内观测到');
+    expect(bodeMarkup).toContain('GM --');
+    expect(bodeMarkup).toContain('ωg 未在当前频率范围内观测到');
+    expect(nyquistMarkup).toContain('GM --');
+    expect(nyquistMarkup).toContain('ωg 未在当前频率范围内观测到');
   });
 
   it('renders root-locus analysis metadata from the shared Rust result', () => {

@@ -113,6 +113,7 @@ export interface ControlMetrics {
   gainMarginDb: number | null;
   gainCrossoverRadPerSec: number | null;
   phaseCrossoverRadPerSec: number | null;
+  phaseCrossoverStatus?: 'finite' | 'notObservedInFrequencyRange';
   bandwidthRadPerSec: number | null;
 }
 

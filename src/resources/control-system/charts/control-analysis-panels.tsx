@@ -615,15 +615,15 @@ function getGainMarginPresentation(result: ControlAnalysisResult): {
     };
   }
 
-  const { gainMarginDb, phaseCrossoverRadPerSec } = result.metrics;
-  const isInfinite = gainMarginDb === Number.POSITIVE_INFINITY
-    || (gainMarginDb == null && phaseCrossoverRadPerSec == null);
+  const { gainMarginDb, phaseCrossoverRadPerSec, phaseCrossoverStatus } = result.metrics;
+  const hasFiniteCrossover = phaseCrossoverStatus === 'finite'
+    || (phaseCrossoverStatus == null && phaseCrossoverRadPerSec != null);
 
   return {
-    gainMargin: isInfinite ? '∞' : formatFixed(gainMarginDb, ' dB'),
-    phaseCrossover: isInfinite && phaseCrossoverRadPerSec == null
-      ? '无相位交叉'
-      : formatFixed(phaseCrossoverRadPerSec, ' rad/s'),
+    gainMargin: hasFiniteCrossover ? formatFixed(gainMarginDb, ' dB') : '--',
+    phaseCrossover: hasFiniteCrossover
+      ? formatFixed(phaseCrossoverRadPerSec, ' rad/s')
+      : '未在当前频率范围内观测到',
   };
 }
 
