@@ -16,4 +16,4 @@
 - [x] 3.2 Run focused NextAuth contract tests, simulation asset tests, typecheck, dependency governance tests, and OpenSpec strict validation.
 - [x] 3.3 Run the independent producer for all seven GLB resources and confirm a failed production run exits nonzero.
 - [x] 3.4 Capture the final audit result showing no new finding and only the linked Next/PostCSS/Sharp production blockers plus owned moderate residuals.
-- [ ] 3.5 Complete final changed-scope review and the repository commit/push gates without claiming that the blocked parent remediation is complete.
+- [x] 3.5 Complete final changed-scope review and the repository commit/push gates without claiming that the blocked parent remediation is complete.
