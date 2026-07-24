@@ -728,6 +728,7 @@ async function captureMarkers(page: Page) {
      const relationFamilyControlRect = rectFor(relationFamilyControl);
      const inspectorRect = rectFor(inspector);
      const dockRect = rectFor(dock);
+     const konlingSidebarRect = rectFor(konlingSidebar);
      const expandedDockRect = rectFor(konlingSidebar ?? expandedDock);
     return {
       htmlClass: document.documentElement.className,
@@ -791,6 +792,7 @@ async function captureMarkers(page: Page) {
         relationFamilyControl: relationFamilyControlRect,
         inspector: inspectorRect,
         dock: dockRect,
+        konlingSidebar: konlingSidebarRect,
         expandedDock: expandedDockRect,
       },
       documentScroll: {
@@ -811,14 +813,15 @@ async function captureMarkers(page: Page) {
     relationFamilyControl: EvidenceRect | null;
     inspector: EvidenceRect | null;
     dock: EvidenceRect | null;
+    konlingSidebar: EvidenceRect | null;
     expandedDock: EvidenceRect | null;
   };
-  const expandedDockOverlapsRelationFamilyControl = doRectsOverlap(
-    rects.expandedDock as never,
+  const konlingSidebarOverlapsRelationFamilyControl = doRectsOverlap(
+    rects.konlingSidebar as never,
     rects.relationFamilyControl as never,
   );
   if (markers.relationFamilyControlPlacement === 'compact-bottom-left'
-    && expandedDockOverlapsRelationFamilyControl) {
+    && konlingSidebarOverlapsRelationFamilyControl) {
     throw new Error('expanded Konling overlaps the canvas relation-family control');
   }
   return {
@@ -829,7 +832,7 @@ async function captureMarkers(page: Page) {
       inspectorOverlapsActiveLocalPanel: doRectsOverlap(rects.inspector as never, rects.activeLocalPanel as never),
       dockOverlapsMobileTools: doRectsOverlap(rects.dock as never, rects.mobileTools as never),
       expandedDockOverlapsMobileTools: doRectsOverlap(rects.expandedDock as never, rects.mobileTools as never),
-      expandedDockOverlapsRelationFamilyControl,
+      konlingSidebarOverlapsRelationFamilyControl,
       dockOverlapsInspector: doRectsOverlap(rects.dock as never, rects.inspector as never),
       expandedDockOverlapsInspector: doRectsOverlap(rects.expandedDock as never, rects.inspector as never),
     },
