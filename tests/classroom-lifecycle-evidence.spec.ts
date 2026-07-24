@@ -145,6 +145,30 @@ test('class-bound classroom launch displays the classroom identity before start'
     await route.fulfill({
       contentType: 'application/json',
       body: JSON.stringify({
+        scope: 'cumulative',
+        scopeLabel: '累计能力达成',
+        availability: { state: 'available', reason: 'available' },
+        classInfo: {
+          id: 'class-1',
+          name: '2026 控制班',
+          code: 'CTRL26',
+          description: '课堂生命周期审计班级',
+          semester: '春',
+          year: '2026',
+          studentCount: 2,
+        },
+        governance: {
+          tone: 'healthy',
+          label: '治理结果可用',
+          detail: '当前班级累计画像可用。',
+          coveredStudents: 2,
+          totalStudents: 2,
+          coverageRatio: 1,
+          lastUpdatedLabel: '刚刚更新',
+          pendingStudents: 0,
+          classSnapshotAt: '2026-06-21T08:00:00.000Z',
+          latestStudentSnapshotAt: '2026-06-21T08:00:00.000Z',
+        },
         overview: {
           overallIndex: 72,
           highRiskStudents: 0,
@@ -152,19 +176,43 @@ test('class-bound classroom launch displays the classroom identity before start'
           attentionStudents: 1,
           averageFactCount: 4,
         },
-        diagnosis: {
-          status: 'ready',
-          summary: 'mocked',
-          groups: [],
-          claims: [],
-          limitations: [],
-          rootCauseClusters: [],
-          materialization: {
-            inputs: ['control-correction-diagnosis'],
-          },
+        ability: {
+          state: 'ready',
+          dimensions: [
+            {
+              dimension: 'controlModelingRepresentation',
+              label: '控制建模与表征',
+              mean: 82,
+              meanConfidence: 0.9,
+              includedCount: 2,
+              missingCount: 0,
+            },
+            {
+              dimension: 'engineeringConstraintSafety',
+              label: '工程约束与安全',
+              mean: 68,
+              meanConfidence: 0.8,
+              includedCount: 2,
+              missingCount: 0,
+            },
+          ],
+          levelDistribution: { excellent: 0, good: 1, fair: 1, weak: 0 },
         },
+        trendDistribution: { up: 0, stable: 1, down: 1, 'not-comparable': 0 },
+        riskDistribution: {
+          membersWithRisk: 1,
+          membersWithoutRisk: 1,
+          byType: { stagnation: 1 },
+          bySeverity: { high: 0, medium: 1, low: 0 },
+        },
+        diagnosis: {
+          strengths: ['controlModelingRepresentation'],
+          improvementClusters: ['engineeringConstraintSafety'],
+          limitations: [],
+        },
+        arena: null,
+        spotlightStudents: [],
         students: [],
-        governance: null,
       }),
     });
   });
