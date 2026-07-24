@@ -80,6 +80,8 @@ export interface AdaptivePathOptionDisplay {
 const resourceLabels: Record<string, { kind: AdaptivePathResourceKind; label: string }> = {
   interactive_lesson: { kind: 'interactive_lesson', label: '互动课程' },
   knowledge_card: { kind: 'knowledge_card', label: '知识卡' },
+  textbook_section: { kind: 'external_resource', label: '教材节' },
+  slides: { kind: 'external_resource', label: '课件' },
   adaptive_quiz: { kind: 'adaptive_quiz', label: '自适应练习' },
   quiz: { kind: 'adaptive_quiz', label: '自适应练习' },
   control_workbench: { kind: 'control_workbench', label: '控制工作台' },
@@ -209,7 +211,7 @@ function buildOrderedNodes(
     return {
       nodeId,
       title,
-      ...resourceDisplayForNode(summary.pathNodeType),
+      ...resourceDisplayForNode(summary.pathNodeType, summary.displayName),
       estimatedTime: formatNodeEstimatedTime(summary.estimatedTimeMinutes),
       statusLabel: formatNodeStatus(summary.status, readinessItem?.state, isLocked),
       unlockMessage: isLocked || readinessItem?.state !== 'ready' ? readinessItem?.message || undefined : undefined,
@@ -219,7 +221,10 @@ function buildOrderedNodes(
   return nodes.every((node): node is AdaptivePathOptionPreviewNode => node !== null) ? nodes : undefined;
 }
 
-function resourceDisplayForNode(pathNodeType?: string): Pick<AdaptivePathOptionPreviewNode, 'kind' | 'resourceLabel'> {
+function resourceDisplayForNode(
+  pathNodeType?: string,
+  displayName?: string,
+): Pick<AdaptivePathOptionPreviewNode, 'kind' | 'resourceLabel'> {
   const resource = pathNodeType ? resourceLabels[pathNodeType] : undefined;
   if (resource) {
     return {
@@ -228,8 +233,8 @@ function resourceDisplayForNode(pathNodeType?: string): Pick<AdaptivePathOptionP
     };
   }
   return {
-    kind: 'checkpoint',
-    resourceLabel: pathNodeType?.replaceAll('_', ' ') ?? '学习节点',
+    kind: 'external_resource',
+    resourceLabel: displayName || pathNodeType?.replaceAll('_', ' ') || '学习节点',
   };
 }
 

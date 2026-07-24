@@ -535,19 +535,20 @@ describe('adaptive learning center UI contracts', () => {
       {
         optionId: 'foundation-route',
         label: '基础路径',
-        nodeIds: ['card:shared', 'quiz:locked', 'simulation:unique', 'checkpoint:review', 'arena:final'],
+        nodeIds: ['card:shared', 'quiz:locked', 'simulation:unique', 'checkpoint:review', 'arena:final', 'textbook:unique'],
         nodeSummaries: [
           { nodeId: 'card:shared', title: '相位裕度知识卡', pathNodeType: 'knowledge_card', estimatedTimeMinutes: 8, status: 'current' },
           { nodeId: 'quiz:locked', title: '相位裕度练习', pathNodeType: 'adaptive_quiz', estimatedTimeMinutes: 12, status: 'locked' },
           { nodeId: 'simulation:unique', title: '校正仿真', pathNodeType: 'simulation', estimatedTimeMinutes: 18, status: 'next' },
           { nodeId: 'checkpoint:review', title: '阶段检查', pathNodeType: 'checkpoint', estimatedTimeMinutes: 6, status: 'next' },
           { nodeId: 'arena:final', title: 'Arena 验证', pathNodeType: 'arena_task', estimatedTimeMinutes: 25, status: 'next' },
+          { nodeId: 'textbook:unique', title: '相位裕度教材节', pathNodeType: 'textbook_section', estimatedTimeMinutes: 10, status: 'next' },
         ],
         lockedNodeIds: ['quiz:locked'],
         readinessSummary: [{ nodeId: 'quiz:locked', state: 'locked', message: '完成知识卡后解锁。' }],
         targetDeficits: [],
         evidenceBasis: ['近期练习记录'],
-        resourceMix: { knowledge_card: 1, adaptive_quiz: 1, simulation: 1, checkpoint: 1, arena_task: 1 },
+        resourceMix: { knowledge_card: 1, adaptive_quiz: 1, simulation: 1, checkpoint: 1, arena_task: 1, textbook_section: 1 },
         effort: { estimatedMinutes: 69, relative: 'medium' },
         expectedTargetLift: 1.2,
         terminalValidationNodeIds: ['arena:final'],
@@ -557,16 +558,17 @@ describe('adaptive learning center UI contracts', () => {
       {
         optionId: 'practice-route',
         label: '实践路径',
-        nodeIds: ['card:shared', 'workbench:unique'],
+        nodeIds: ['card:shared', 'workbench:unique', 'slides:unique'],
         nodeSummaries: [
           { nodeId: 'card:shared', title: '相位裕度知识卡', pathNodeType: 'knowledge_card', estimatedTimeMinutes: 8, status: 'current' },
           { nodeId: 'workbench:unique', title: '控制工作台', pathNodeType: 'control_workbench', estimatedTimeMinutes: 20, status: 'next' },
+          { nodeId: 'slides:unique', title: '频域课件', pathNodeType: 'slides', estimatedTimeMinutes: 15, status: 'next' },
         ],
         lockedNodeIds: [],
         readinessSummary: [],
         targetDeficits: [],
         evidenceBasis: ['近期练习记录'],
-        resourceMix: { knowledge_card: 1, control_workbench: 1 },
+        resourceMix: { knowledge_card: 1, control_workbench: 1, slides: 1 },
         effort: { estimatedMinutes: 28, relative: 'short' },
         terminalValidationNodeIds: [],
         terminalValidationStrategy: {},
@@ -586,13 +588,46 @@ describe('adaptive learning center UI contracts', () => {
       '校正仿真',
       '阶段检查',
       'Arena 验证',
+      '相位裕度教材节',
     ]);
     expect(foundationNodes?.[0]).toMatchObject({ comparisonLabel: '所有方案均包含', statusLabel: '建议从这里开始' });
     expect(foundationNodes?.[1]).toMatchObject({ statusLabel: '稍后解锁', unlockMessage: '完成知识卡后解锁。', comparisonLabel: '本方案特有' });
     expect(foundationNodes?.[2]).toMatchObject({ comparisonLabel: '本方案特有', resourceLabel: '虚拟仿真' });
+    expect(foundationNodes?.[5]).toMatchObject({ kind: 'external_resource', resourceLabel: '教材节' });
+    expect(displays[1].orderedNodes?.[2]).toMatchObject({ kind: 'external_resource', resourceLabel: '课件' });
 
     const examples = buildAdaptivePathOptionDisplays([]);
     expect(examples.every((option) => !option.isGenerated && option.orderedNodes === undefined)).toBe(true);
+  });
+
+  it('uses Planner display names for unclassified path node types', () => {
+    const [display] = buildAdaptivePathOptionDisplays([{
+      optionId: 'legacy-resource-route',
+      label: '自定义资源路径',
+      nodeIds: ['resource:legacy'],
+      nodeSummaries: [{
+        nodeId: 'resource:legacy',
+        title: '复习根轨迹与超调关系',
+        pathNodeType: 'resource',
+        displayName: '知识卡',
+        estimatedTimeMinutes: 25,
+        status: 'current',
+      }],
+      lockedNodeIds: [],
+      readinessSummary: [],
+      targetDeficits: [],
+      evidenceBasis: [],
+      resourceMix: {},
+      effort: {},
+      terminalValidationNodeIds: [],
+      terminalValidationStrategy: {},
+      limitations: [],
+    }]);
+
+    expect(display.orderedNodes?.[0]).toMatchObject({
+      kind: 'external_resource',
+      resourceLabel: '知识卡',
+    });
   });
 
   it('keeps productized path option writes compatible with server style evidence', () => {
