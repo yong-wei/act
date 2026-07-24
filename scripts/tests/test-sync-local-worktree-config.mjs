@@ -76,6 +76,7 @@ const canonicalTarget = fs.realpathSync(target);
 writeFile('.codex/agents/starter.toml', 'name = "starter"\n');
 writeFile('.codex/config.toml', '[tools]\n');
 writeFile('.codex/environments/environment.toml', '[environment]\n');
+writeFile('.env', 'SOURCE_ENV=1\n');
 writeFile('AGENTS.md', '# Source agents\n');
 writeFile(
   '.codex/hooks.json',
@@ -136,6 +137,7 @@ fs.symlinkSync(
   path.join(target, 'course-content/runtime/resources'),
   'dir',
 );
+fs.symlinkSync(path.join(source, '.env'), path.join(target, '.env'));
 writeTargetFile('.codex/agents/starter.toml', 'name = "old-starter"\n');
 writeTargetFile('AGENTS.md', '# Old agents\n');
 writeTargetFile('GEMINI.md', '# Target Gemini\n');
@@ -226,6 +228,16 @@ assert.equal(
   fs.readFileSync(path.join(target, 'AGENTS.md'), 'utf8'),
   '# Source agents\n',
   'apply 模式应同步本地 AGENTS.md',
+);
+assert.equal(
+  fs.lstatSync(path.join(target, '.env')).isSymbolicLink(),
+  false,
+  'apply 模式应以真实文件替换旧环境配置链接',
+);
+assert.equal(
+  fs.readFileSync(path.join(target, '.env'), 'utf8'),
+  'SOURCE_ENV=1\n',
+  '替换旧环境配置链接后应保留主工作树内容',
 );
 assert.equal(
   fs.readFileSync(path.join(target, 'GEMINI.md'), 'utf8'),

@@ -437,14 +437,12 @@ copy_file() {
   fi
 
   ensure_parent_dir "$dest"
-  if [[ -e "$dest" ]]; then
+  if [[ -e "$dest" || -L "$dest" ]]; then
     if [[ "$NO_OVERWRITE" -eq 1 ]]; then
       echo "skip existing file: $rel"
       return
     fi
-    mkdir -p "$(dirname "$BACKUP_ROOT/$rel")"
-    cp -p "$dest" "$BACKUP_ROOT/$rel"
-    echo "backup existing file: .tmp/local-config-backups/$TIMESTAMP/$rel"
+    backup_existing_path "$rel"
   fi
 
   cp -p "$src" "$dest"
