@@ -18,6 +18,7 @@ const sourceFiles = [
   'src/app/assessment/adaptive-practice/page.tsx',
   'src/features/knowledge/graph/knowledge-graph-2d.tsx',
   'src/features/knowledge/graph/knowledge-graph-canvas.tsx',
+  'src/features/knowledge/graph/relation-family-control.tsx',
   'src/features/knowledge/graph/visual-config.ts',
   'src/features/knowledge/resource-panel/resource-panel.tsx',
   'src/components/ai/global-ai-button.tsx',
@@ -699,6 +700,7 @@ async function captureMarkers(page: Page) {
     const desktopTools = document.querySelector('[data-knowledge-desktop-command-system]');
     const mobileTools = document.querySelector('[data-knowledge-mobile-command-surface]');
     const activeLocalPanel = document.querySelector('[data-knowledge-local-tool-panel]');
+    const relationFamilyControl = document.querySelector('[data-knowledge-relation-family-control]');
      const inspector = document.querySelector('[data-knowledge-inspector]');
      const dock = document.querySelector('[data-platform-floating-dock]');
      const konlingSidebar = document.querySelector('[data-global-ai-sidebar="open"]');
@@ -723,6 +725,7 @@ async function captureMarkers(page: Page) {
      const mobileToolsRect = rectFor(mobileTools);
      const canvasRect = rectFor(canvas);
      const activeLocalPanelRect = rectFor(activeLocalPanel);
+     const relationFamilyControlRect = rectFor(relationFamilyControl);
      const inspectorRect = rectFor(inspector);
      const dockRect = rectFor(dock);
      const expandedDockRect = rectFor(konlingSidebar ?? expandedDock);
@@ -765,6 +768,8 @@ async function captureMarkers(page: Page) {
         }))
         .filter((entry) => entry.section) : [],
       relationFamilyControlVisible: Boolean(document.querySelector('[data-knowledge-relation-family-control]')),
+      relationFamilyControlPlacement: relationFamilyControl?.getAttribute('data-knowledge-relation-family-control') ?? null,
+      relationFamilyCollisionPolicy: relationFamilyControl?.getAttribute('data-knowledge-relation-family-collision-policy') ?? null,
       relationFamilyState: document.querySelector('[data-knowledge-relation-family-control]')?.getAttribute('data-knowledge-relation-family-state') ?? null,
       relationFamilySamples: document.querySelectorAll('[data-knowledge-relation-family-sample]').length,
       mobileLayoutControls: Array.from(document.querySelectorAll('[data-knowledge-layout-control]'))
@@ -783,6 +788,7 @@ async function captureMarkers(page: Page) {
         desktopTools: desktopToolsRect,
         mobileTools: mobileToolsRect,
         activeLocalPanel: activeLocalPanelRect,
+        relationFamilyControl: relationFamilyControlRect,
         inspector: inspectorRect,
         dock: dockRect,
         expandedDock: expandedDockRect,
@@ -802,10 +808,19 @@ async function captureMarkers(page: Page) {
     desktopTools: EvidenceRect | null;
     mobileTools: EvidenceRect | null;
     activeLocalPanel: EvidenceRect | null;
+    relationFamilyControl: EvidenceRect | null;
     inspector: EvidenceRect | null;
     dock: EvidenceRect | null;
     expandedDock: EvidenceRect | null;
   };
+  const expandedDockOverlapsRelationFamilyControl = doRectsOverlap(
+    rects.expandedDock as never,
+    rects.relationFamilyControl as never,
+  );
+  if (markers.relationFamilyControlPlacement === 'compact-bottom-left'
+    && expandedDockOverlapsRelationFamilyControl) {
+    throw new Error('expanded Konling overlaps the canvas relation-family control');
+  }
   return {
     ...markers,
     overlaps: {
@@ -814,6 +829,7 @@ async function captureMarkers(page: Page) {
       inspectorOverlapsActiveLocalPanel: doRectsOverlap(rects.inspector as never, rects.activeLocalPanel as never),
       dockOverlapsMobileTools: doRectsOverlap(rects.dock as never, rects.mobileTools as never),
       expandedDockOverlapsMobileTools: doRectsOverlap(rects.expandedDock as never, rects.mobileTools as never),
+      expandedDockOverlapsRelationFamilyControl,
       dockOverlapsInspector: doRectsOverlap(rects.dock as never, rects.inspector as never),
       expandedDockOverlapsInspector: doRectsOverlap(rects.expandedDock as never, rects.inspector as never),
     },

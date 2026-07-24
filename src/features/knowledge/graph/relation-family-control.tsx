@@ -6,6 +6,7 @@ interface RelationFamilyControlProps {
   enabledFamilies: readonly KnowledgeGraphRelationFamily[];
   isLightTheme: boolean;
   placement: 'canvas' | 'inspector' | 'tool-panel';
+  avoidExpandedKonling?: boolean;
   onToggleAll: () => void;
   onToggleFamily: (family: KnowledgeGraphRelationFamily) => void;
 }
@@ -70,15 +71,27 @@ function RelationFamilySample({ family, isLightTheme }: {
   );
 }
 
-export function RelationFamilyControl({ enabledFamilies, isLightTheme, placement, onToggleAll, onToggleFamily }: RelationFamilyControlProps) {
+export function RelationFamilyControl({
+  enabledFamilies,
+  isLightTheme,
+  placement,
+  avoidExpandedKonling = false,
+  onToggleAll,
+  onToggleFamily,
+}: RelationFamilyControlProps) {
+  const canvasClassName = avoidExpandedKonling
+    ? 'absolute bottom-3 left-20 z-40 grid w-28 min-w-0 grid-cols-1 items-center gap-1 rounded-xl border border-platform-border bg-platform-surface/95 p-1.5 shadow-lg backdrop-blur-md'
+    : 'absolute bottom-3 left-3 z-40 grid w-[calc(100%-1.5rem)] min-w-0 grid-cols-[auto_repeat(3,minmax(0,1fr))] items-center gap-1 rounded-xl border border-platform-border bg-platform-surface/95 p-1 shadow-lg backdrop-blur-md sm:w-auto sm:grid-cols-none sm:grid-flow-col sm:p-1.5';
+
   return (
     <div
       role="group"
       aria-label="关系族显示"
       className={placement === 'canvas'
-        ? 'absolute bottom-3 left-3 z-40 grid w-[calc(100%-1.5rem)] min-w-0 grid-cols-[auto_repeat(3,minmax(0,1fr))] items-center gap-1 rounded-xl border border-platform-border bg-platform-surface/95 p-1 shadow-lg backdrop-blur-md sm:w-auto sm:grid-cols-none sm:grid-flow-col sm:p-1.5'
+        ? canvasClassName
         : 'grid w-full min-w-0 grid-cols-[auto_repeat(3,minmax(0,1fr))] items-center gap-1 rounded-lg border border-platform-border bg-platform-canvas-muted p-1 sm:p-1.5'}
       data-knowledge-relation-family-control={placement === 'canvas' ? 'compact-bottom-left' : `${placement}-header`}
+      data-knowledge-relation-family-collision-policy={avoidExpandedKonling ? 'vertical-clear-of-expanded-konling' : 'default'}
       data-knowledge-mobile-equivalent="same-state-same-control"
       data-knowledge-relation-family-state={enabledFamilies.join(',') || 'none'}
     >

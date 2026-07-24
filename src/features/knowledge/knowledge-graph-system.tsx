@@ -1908,6 +1908,7 @@ export function KnowledgeGraphSystem({
             enabledFamilies={enabledRelationFamilies}
             isLightTheme={isLightTheme}
             placement="canvas"
+            avoidExpandedKonling={aiSidebarOpen}
             onToggleAll={toggleAllFamilies}
             onToggleFamily={toggleFamily}
           />
