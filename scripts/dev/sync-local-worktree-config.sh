@@ -233,12 +233,10 @@ if [[ "$SOURCE" != "$PRIMARY_WORKTREE" ]]; then
   exit 2
 fi
 
+SAME_WORKTREE=0
 if [[ "$SOURCE" == "$TARGET" ]]; then
-  echo "Primary worktree detected; no synchronization performed: $TARGET"
-  exit 0
-fi
-
-if ! git -C "$SOURCE" worktree list --porcelain | awk '$1 == "worktree" { sub(/^worktree /, ""); print }' | grep -Fxq "$TARGET"; then
+  SAME_WORKTREE=1
+elif ! git -C "$SOURCE" worktree list --porcelain | awk '$1 == "worktree" { sub(/^worktree /, ""); print }' | grep -Fxq "$TARGET"; then
   echo "Target is not a registered isolated worktree of source: $TARGET" >&2
   exit 2
 fi
@@ -555,6 +553,11 @@ path_has_tracked_content() {
   [[ -n "$(git -C "$SOURCE" ls-files -- "$rel" "$rel/" ":(glob)$rel/**")" || -n "$(git -C "$TARGET" ls-files -- "$rel" "$rel/" ":(glob)$rel/**")" ]]
 }
 
+target_path_is_tracked() {
+  local rel="$1"
+  git -C "$TARGET" ls-files --error-unmatch -- "$rel" >/dev/null 2>&1
+}
+
 link_config_path() {
   local rel="$1"
   local src="$SOURCE/$rel"
@@ -611,6 +614,37 @@ runtime_path_label() {
   fi
 }
 
+copy_missing_runtime_tree() {
+  local src="$1"
+  local dest="$2"
+  local child
+  local base
+
+  base="$(basename "$src")"
+  case "$base" in
+    .DS_Store|__pycache__|*.pyc)
+      return
+      ;;
+  esac
+
+  if [[ -e "$dest" || -L "$dest" ]]; then
+    if [[ ! -d "$src" || ! -d "$dest" || -L "$dest" ]]; then
+      return
+    fi
+  elif [[ -d "$src" ]]; then
+    mkdir -p "$dest"
+  else
+    mkdir -p "$(dirname "$dest")"
+    cp -pL "$src" "$dest"
+    return
+  fi
+
+  for child in "$src"/* "$src"/.[!.]* "$src"/..?*; do
+    [[ -e "$child" || -L "$child" ]] || continue
+    copy_missing_runtime_tree "$child" "$dest/$(basename "$child")"
+  done
+}
+
 sync_runtime_path() {
   local rel="$1"
   local src="$SOURCE/$rel"
@@ -633,11 +667,13 @@ sync_runtime_path() {
 
   if [[ -e "$dest" || -L "$dest" ]]; then
     if [[ "$NO_OVERWRITE" -eq 1 ]]; then
-      echo "skip existing $label: $rel"
-      return
+      if [[ ! -d "$src" || ! -d "$dest" || -L "$dest" ]]; then
+        echo "skip existing $label: $rel"
+        return
+      fi
     fi
 
-    if [[ -L "$dest" || ( -d "$src" && ! -d "$dest" ) || ( ! -d "$src" && -d "$dest" ) ]]; then
+    if [[ "$NO_OVERWRITE" -ne 1 && ( -L "$dest" || ( -d "$src" && ! -d "$dest" ) || ( ! -d "$src" && -d "$dest" ) ) ]]; then
       if [[ "$APPLY" -ne 1 ]]; then
         echo "would replace existing $label with real files: $rel"
         return
@@ -655,9 +691,13 @@ sync_runtime_path() {
   ensure_parent_dir "$dest"
   if [[ -d "$src" ]]; then
     mkdir -p "$dest"
-    rsync_args+=(--delete --backup "--backup-dir=$BACKUP_ROOT/$rel")
-    mkdir -p "$BACKUP_ROOT/$rel"
-    rsync "${rsync_args[@]}" "$src/" "$dest/"
+    if [[ "$NO_OVERWRITE" -eq 1 ]]; then
+      copy_missing_runtime_tree "$src" "$dest"
+    else
+      rsync_args+=(--delete --backup "--backup-dir=$BACKUP_ROOT/$rel")
+      mkdir -p "$BACKUP_ROOT/$rel"
+      rsync "${rsync_args[@]}" "$src/" "$dest/"
+    fi
   else
     mkdir -p "$(dirname "$BACKUP_ROOT/$rel")"
     rsync "${rsync_args[@]}" --backup "--backup-dir=$(dirname "$BACKUP_ROOT/$rel")" "$src" "$dest"
@@ -731,6 +771,11 @@ sync_runtime_tree() {
 
   if [[ ! -d "$src" ]]; then
     RUNTIME_SKIPPED_TRACKED_PATHS=$((RUNTIME_SKIPPED_TRACKED_PATHS + 1))
+    return
+  fi
+
+  if target_path_is_tracked "$rel" && [[ ! -d "$dest" || -L "$dest" ]]; then
+    RUNTIME_PRESERVED_TARGET_TRACKED_PATHS=$((RUNTIME_PRESERVED_TARGET_TRACKED_PATHS + 1))
     return
   fi
 
@@ -1454,6 +1499,18 @@ install_dependencies() {
   (cd "$TARGET" && npm run wasm:build:control-engine)
   echo "generated control-engine Wasm package in target: $TARGET"
 }
+
+if [[ "$SAME_WORKTREE" -eq 1 ]]; then
+  if [[ "$INSTALL_HOOKS" -eq 1 && "$LINK_CONFIG" -eq 0 && "$LINK_ENV" -eq 0 && "$INSTALL_DEPS" -eq 0 && "$INIT_GRAPHS" -eq 0 && "$LINK_OPENWOLF_KNOWLEDGE" -eq 0 ]]; then
+    echo "Source: $SOURCE"
+    echo "Target: $TARGET"
+    print_mode
+    install_git_hooks
+  else
+    echo "Primary worktree detected; no synchronization performed: $TARGET"
+  fi
+  exit 0
+fi
 
 echo "Source: $SOURCE"
 echo "Target: $TARGET"
