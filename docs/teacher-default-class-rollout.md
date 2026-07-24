@@ -41,6 +41,16 @@
 
 回填总是按 `createdAt DESC, id DESC` 选择最新启用班级，但保留仍然有效的既有默认选择。
 
+## 合并前验证记录
+
+2026-07-24 已在隔离环境完成以下实现验证：
+
+- `openspec validate add-default-teacher-class-launch-selection --type change --strict` 通过；
+- `npm run test:teacher-default-class-postgres` 在临时 PostgreSQL 中应用全部迁移后通过，覆盖默认班级生命周期、并发变更及并发开课；
+- 班级绑定启动对话框、学生加入入口和教师移动端启动路径的定向 Playwright 验证通过，覆盖焦点恢复、键盘选择、班级绑定请求与无班级恢复。
+
+这些记录仅证明实现候选可进入评审，生产环境仍须按本页发布顺序执行 writer drain、回填和 gate receipt。
+
 ## 回退
 
 出现启动器或强制校验异常时，先部署将教师会话绑定视为未启用的上一应用版本；原始班级、默认偏好和已有 `ClassSession.classId` 无需回滚或重写。禁止通过默认偏好推断或回填历史 classless 会话。

@@ -3,7 +3,7 @@
 - [x] 1.1 Add the nullable teacher-owned default-class Prisma relation as an expand migration and prove existing `ClassSession.classId` values remain unchanged.
 - [x] 1.2 Implement the shared serializable default-class service for create, set-default, activate, deactivate, and delete operations with bounded write-conflict retries.
 - [ ] 1.3 Route every teacher class lifecycle mutation through the shared service, drain old writers, and add an advisory-locked idempotent reconciliation plus a zero-violation invariant gate for ownership, activity, uniqueness, and missing defaults when active classes exist.
-- [ ] 1.4 Add migration and real-PostgreSQL concurrency tests for first class, additional class, reactivation, default replacement, deletion, competing mutations, and class changes between schema expansion and final reconciliation.
+- [x] 1.4 Add migration and real-PostgreSQL concurrency tests for first class, additional class, reactivation, default replacement, deletion, competing mutations, and class changes between schema expansion and final reconciliation.
 
 ## 2. Class and Session APIs
 
@@ -25,4 +25,4 @@
 - [ ] 4.2 Run the focused migration, class API, session route, launch-dialog, interactive-entry, lesson-plan, playlist, and class-detail test suites, then run typecheck, lint, unit/smoke suites, affected Playwright coverage, and the final build.
 - [ ] 4.3 Verify existing class-bound sessions, historical classless sessions, administrator temporary sessions, generated-courseware sessions, waiting rooms, student join authorization, finalization, and report attribution retain their intended behavior.
 - [x] 4.4 Update project/operator documentation for the teacher default-class invariant, administrator temporary exception, migration, rollback, and launch-entry extension rule.
-- [ ] 4.5 Run `openspec validate add-default-teacher-class-launch-selection --type change --strict` and record final implementation and browser evidence before review.
+- [x] 4.5 Run `openspec validate add-default-teacher-class-launch-selection --type change --strict` and record final implementation and browser evidence before review.

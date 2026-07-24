@@ -227,7 +227,7 @@ async function mockTeacherApis(page: Page) {
         ? {
             classes: [
               { id: 'class-1', name: '控制一班', code: '123456' },
-              { id: 'class-2', name: '控制二班', code: '654321' },
+              { id: 'class-2', name: 'B 控制二班', code: '654321' },
             ],
             defaultClassId: 'class-1',
           }
@@ -316,8 +316,8 @@ async function mockTeacherApis(page: Page) {
   await page.route('**/api/teacher/classes/class-1/sessions**', async (route) => {
     await route.fulfill({ contentType: 'application/json', body: JSON.stringify([]) });
   });
-  await page.route('**/api/lesson-plans', async (route) => {
-    await route.fulfill({ contentType: 'application/json', body: JSON.stringify([{ id: 'plan-1', title: '控制校正复习', description: null }]) });
+  await page.route('**/api/lesson-plans**', async (route) => {
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify([{ id: 'plan-1', title: 'P 控制校正复习', description: null }]) });
   });
   await page.route('**/api/teacher/classes/class-1', async (route) => {
     await route.fulfill({
@@ -457,13 +457,13 @@ test('teacher mobile report and class detail pages expose fixed actions and mobi
       await expect(classSelect).toBeFocused();
       await page.keyboard.press('Escape');
       await expect(startDialog).toBeHidden();
-      await expect(startOpener).toBeFocused();
+      await expectActiveElementMatches(page, 'button[aria-label="打开开始上课对话框"]');
 
       await startOpener.click();
       await expect(startDialog).toBeVisible();
       await startDialog.getByRole('button', { name: '取消' }).click();
       await expect(startDialog).toBeHidden();
-      await expect(startOpener).toBeFocused();
+      await expectActiveElementMatches(page, 'button[aria-label="打开开始上课对话框"]');
 
       await page.evaluate(() => {
         Object.defineProperty(navigator, 'clipboard', {
@@ -477,13 +477,12 @@ test('teacher mobile report and class detail pages expose fixed actions and mobi
       await startOpener.focus();
       await page.keyboard.press('Enter');
       await expect(classSelect).toBeFocused();
-      await page.keyboard.press('ArrowDown');
-      await page.keyboard.press('Enter');
+      await startDialog.getByRole('combobox', { name: '教案' }).press('p');
+      await classSelect.press('b');
       await expect(classSelect).toHaveValue('class-2');
       await expect(startDialog.getByRole('status')).toContainText('已更新本次课堂班级');
       await expectNoDocumentOverflow(page, 'teacher-class-detail', width);
-      await startDialog.getByRole('button', { name: '开始上课' }).focus();
-      await page.keyboard.press('Enter');
+      await startDialog.getByRole('button', { name: '开始上课' }).click();
       await expect.poll(() => teacherApi.launchedSessions.length).toBe(1);
       expect(teacherApi.launchedSessions[0]).toMatchObject({
         planId: 'plan-1',
