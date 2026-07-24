@@ -39,7 +39,10 @@ import {
 } from '@/features/arena/domain';
 import { getArenaChallengeObject } from '@/features/arena/data/seed-challenges';
 import { buildArenaWorkbenchPreviewSummary } from '@/features/arena/workbench/metric-mapping';
-import type { MultiRepresentationDesignState } from './design-snapshots';
+import {
+  getRestoredPointIdentityCounters,
+  type MultiRepresentationDesignState,
+} from './design-snapshots';
 
 export interface MultiRepresentationInitialParams {
   courseMode?: boolean;
@@ -994,6 +997,9 @@ export function useMultiRepresentationLinkageModel(initialParams: MultiRepresent
 
   const restoreDesignState = useCallback((state: MultiRepresentationDesignState) => {
     if (isCourseMode) return;
+    const counters = getRestoredPointIdentityCounters(state);
+    idRef.current = counters.id;
+    pairRef.current = counters.pair;
     setSelectedObjectId(isArenaChallengeMode ? arenaContext?.object.id ?? null : state.objectId);
     setModelPoles(state.modelPoles.map((point) => ({ ...point })));
     setModelZeros(state.modelZeros.map((point) => ({ ...point })));

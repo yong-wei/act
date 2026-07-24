@@ -22,6 +22,22 @@ export interface MultiRepresentationDesignState {
   frequencyRange: { min: number; max: number; samples: number };
 }
 
+export function getRestoredPointIdentityCounters(
+  state: Pick<MultiRepresentationDesignState, 'modelPoles' | 'modelZeros'>,
+): { id: number; pair: number } {
+  const points = [...state.modelPoles, ...state.modelZeros];
+  const nextCounter = (pattern: RegExp) => points.reduce((next, point) => {
+    const match = pattern.exec(point.id) ?? (point.pairKey ? pattern.exec(point.pairKey) : null);
+    const value = match?.[1] ? Number(match[1]) : Number.NaN;
+    return Number.isInteger(value) && value >= next ? value + 1 : next;
+  }, 100);
+
+  return {
+    id: nextCounter(/^(?:pole|zero)-(\d+)$/),
+    pair: nextCounter(/^(?:pole|zero)-pair-(\d+)$/),
+  };
+}
+
 export interface DesignSnapshot {
   id: string;
   name: string;

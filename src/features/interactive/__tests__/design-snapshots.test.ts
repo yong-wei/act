@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 import {
   cloneDesignState,
   createDesignSnapshot,
+  getRestoredPointIdentityCounters,
   readDesignSnapshots,
   writeDesignSnapshots,
   type MultiRepresentationDesignState,
@@ -69,6 +70,17 @@ describe('design snapshots', () => {
 
     expect(readDesignSnapshots(storage, 'workbench-a')).toEqual([]);
     expect(cloneDesignState(createDesign()).objectId).toBe('object-a');
+  });
+
+  it('advances editable point identity counters beyond restored snapshot points', () => {
+    const design = createDesign();
+    design.modelPoles = [
+      { id: 'pole-102', re: -1, im: 1, pairKey: 'pole-pair-104' },
+      { id: 'pole-103', re: -1, im: -1, pairKey: 'pole-pair-104' },
+    ];
+    design.modelZeros = [{ id: 'zero-118', re: -2, im: 0, pairKey: null }];
+
+    expect(getRestoredPointIdentityCounters(design)).toEqual({ id: 119, pair: 105 });
   });
 
   it('connects visible snapshots to all four classic comparison views as static series', () => {
