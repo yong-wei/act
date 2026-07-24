@@ -19,6 +19,7 @@ import {
   buildLineOption,
   buildNyquistOption,
   buildPhaseOption,
+  BodePanel,
   buildRootLocusOption,
   ControlPerformanceBar,
   CONTROL_SIGNAL_CURVE_STYLES,
@@ -27,6 +28,7 @@ import {
   calculateCartesianDragRange,
   calculateEqualAspectCartesianRange,
   formatFrequencyResponseReading,
+  NyquistPanel,
 } from '@/resources/control-system/charts/control-analysis-panels';
 import { applyControlChartTheme } from '@/resources/control-system/charts/control-chart-theme';
 import { ControlFigureWorkspace } from '@/resources/control-system/charts/control-figure-workspace';
@@ -353,6 +355,42 @@ describe('control chart shared presets and themes', () => {
       return !Number.isFinite(point[1]);
     }))).toBe(false);
     expect(series.some((item) => item.label?.formatter === 'GM ∞')).toBe(true);
+  });
+
+  it('distinguishes infinite gain margin from unavailable frequency response data', () => {
+    const noCrossoverMarkup = renderToStaticMarkup(<ControlPerformanceBar result={SAMPLE_RESULT} />);
+    const finiteMarkup = renderToStaticMarkup(<ControlPerformanceBar result={MARGIN_RESULT} />);
+    const unavailableResult = {
+      ...SAMPLE_RESULT,
+      metrics: {
+        ...SAMPLE_RESULT.metrics,
+        gainMarginDb: Number.POSITIVE_INFINITY,
+      },
+      magnitude: { points: [] },
+      phase: { points: [] },
+    };
+    const unavailableMarkup = renderToStaticMarkup(<ControlPerformanceBar result={unavailableResult} />);
+    const bodeMarkup = renderToStaticMarkup(
+      <ThemeProvider>
+        <BodePanel result={SAMPLE_RESULT} />
+      </ThemeProvider>,
+    );
+    const nyquistMarkup = renderToStaticMarkup(
+      <ThemeProvider>
+        <NyquistPanel result={SAMPLE_RESULT} />
+      </ThemeProvider>,
+    );
+
+    expect(noCrossoverMarkup).toContain('>∞<');
+    expect(noCrossoverMarkup).toContain('无相位交叉');
+    expect(finiteMarkup).toContain('12.00 dB');
+    expect(finiteMarkup).toContain('8.00 rad/s');
+    expect(unavailableMarkup).toContain('>--<');
+    expect(unavailableMarkup).not.toContain('无相位交叉');
+    expect(bodeMarkup).toContain('GM ∞');
+    expect(bodeMarkup).toContain('ωg 无相位交叉');
+    expect(nyquistMarkup).toContain('GM ∞');
+    expect(nyquistMarkup).toContain('ωg 无相位交叉');
   });
 
   it('renders root-locus analysis metadata from the shared Rust result', () => {

@@ -599,11 +599,32 @@ function formatFixed(value: number | null | undefined, suffix = ''): string {
   return `${value.toFixed(2)}${suffix}`;
 }
 
-function formatGainMargin(value: number | null | undefined): string {
-  if (value === Number.POSITIVE_INFINITY) {
-    return 'GM ∞';
+function hasFrequencyResponseData(result: ControlAnalysisResult): boolean {
+  return result.magnitude.points.some((point) => Number.isFinite(point.x) && Number.isFinite(point.y))
+    && result.phase.points.some((point) => Number.isFinite(point.x) && Number.isFinite(point.y));
+}
+
+function getGainMarginPresentation(result: ControlAnalysisResult): {
+  gainMargin: string;
+  phaseCrossover: string;
+} {
+  if (!hasFrequencyResponseData(result)) {
+    return {
+      gainMargin: '--',
+      phaseCrossover: '--',
+    };
   }
-  return `GM ${formatFixed(value, ' dB')}`;
+
+  const { gainMarginDb, phaseCrossoverRadPerSec } = result.metrics;
+  const isInfinite = gainMarginDb === Number.POSITIVE_INFINITY
+    || (gainMarginDb == null && phaseCrossoverRadPerSec == null);
+
+  return {
+    gainMargin: isInfinite ? '∞' : formatFixed(gainMarginDb, ' dB'),
+    phaseCrossover: isInfinite && phaseCrossoverRadPerSec == null
+      ? '无相位交叉'
+      : formatFixed(phaseCrossoverRadPerSec, ' rad/s'),
+  };
 }
 
 function formatComplex(point: ComplexPoint): string {
@@ -651,12 +672,14 @@ function buildMetricText(metrics: ControlMetrics): ReactNode {
   ].join(' | ');
 }
 
-function buildMarginText(metrics: ControlMetrics): ReactNode {
+function buildMarginText(result: ControlAnalysisResult): ReactNode {
+  const { metrics } = result;
+  const gainMargin = getGainMarginPresentation(result);
   return [
     `PM ${formatFixed(metrics.phaseMarginDeg, '°')}`,
-    formatGainMargin(metrics.gainMarginDb),
+    `GM ${gainMargin.gainMargin}`,
     `ωc ${formatFixed(metrics.gainCrossoverRadPerSec, ' rad/s')}`,
-    `ωg ${formatFixed(metrics.phaseCrossoverRadPerSec, ' rad/s')}`,
+    `ωg ${gainMargin.phaseCrossover}`,
   ].join(' | ');
 }
 
@@ -696,7 +719,7 @@ function buildNyquistCriterionText(result: ControlAnalysisResult): string | null
 }
 
 function buildNyquistMetaText(result: ControlAnalysisResult): ReactNode {
-  return [buildMarginText(result.metrics), buildNyquistCriterionText(result)]
+  return [buildMarginText(result), buildNyquistCriterionText(result)]
     .filter((item): item is string => Boolean(item))
     .join(' | ');
 }
@@ -2057,7 +2080,7 @@ export function MagnitudePanel({
   return (
     <ControlChartPanel
       title="幅频特性"
-      meta={showFrequencyReadings ? buildFrequencyResponseMetaText(result, buildMarginText(result.metrics)) : buildMarginText(result.metrics)}
+      meta={showFrequencyReadings ? buildFrequencyResponseMetaText(result, buildMarginText(result)) : buildMarginText(result)}
       option={option}
       fallback={fallbackNode(result)}
       isFallback={Boolean(result.isFallback)}
@@ -2093,7 +2116,7 @@ export function PhasePanel({
   return (
     <ControlChartPanel
       title="相频特性"
-      meta={showFrequencyReadings ? buildFrequencyResponseMetaText(result, buildMarginText(result.metrics)) : buildMarginText(result.metrics)}
+      meta={showFrequencyReadings ? buildFrequencyResponseMetaText(result, buildMarginText(result)) : buildMarginText(result)}
       option={option}
       fallback={fallbackNode(result)}
       isFallback={Boolean(result.isFallback)}
@@ -2601,7 +2624,7 @@ export function BodePanel({
   return (
     <ControlChartPanel
       title="组合 Bode 图"
-      meta={showFrequencyReadings ? buildFrequencyResponseMetaText(result, buildMarginText(result.metrics)) : buildMarginText(result.metrics)}
+      meta={showFrequencyReadings ? buildFrequencyResponseMetaText(result, buildMarginText(result)) : buildMarginText(result)}
       option={option}
       fallback={fallbackNode(result)}
       isFallback={Boolean(result.isFallback)}
@@ -2688,18 +2711,19 @@ export function ControlPerformanceBar({ result }: { result: ControlAnalysisResul
       : Math.abs(maxClosedLoopPoleRealPart) <= 1e-4
         ? '临界稳定'
         : '稳定';
+  const gainMargin = getGainMarginPresentation(result);
   const items = [
     ['Mp', formatFixed(metrics.overshootPct, '%')],
     ['tr', formatFixed(metrics.riseTimeSec, ' s')],
     ['ts', formatFixed(metrics.settlingTimeSec, ' s')],
     ['ess', formatFixed(Math.abs(1 - metrics.finalValue))],
     ['PM', formatFixed(metrics.phaseMarginDeg, '°')],
-    ['GM', metrics.gainMarginDb === Number.POSITIVE_INFINITY ? '∞' : formatFixed(metrics.gainMarginDb, ' dB')],
+    ['GM', gainMargin.gainMargin],
     ['N', result.nyquist.criterion ? String(result.nyquist.criterion.n) : '--'],
     ['P', result.nyquist.criterion ? String(result.nyquist.criterion.p) : '--'],
     ['Z', result.nyquist.criterion ? String(result.nyquist.criterion.z) : '--'],
     ['ωc', formatFixed(metrics.gainCrossoverRadPerSec, ' rad/s')],
-    ['ωg', formatFixed(metrics.phaseCrossoverRadPerSec, ' rad/s')],
+    ['ωg', gainMargin.phaseCrossover],
     ['闭环稳定性', closedLoopStability],
   ];
 
