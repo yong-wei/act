@@ -21,6 +21,11 @@ RUNTIME_LINK_ROOT="course-content/runtime"
 TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
 BACKUP_ROOT=""
 MANAGED_HOOK_MARKER="# Managed by sync-local-worktree-config.sh"
+RUNTIME_SCANNED_DIRECTORIES=0
+RUNTIME_SKIPPED_TRACKED_PATHS=0
+RUNTIME_PRESERVED_TARGET_TRACKED_PATHS=0
+RUNTIME_SYNCED_UNTRACKED_PATHS=0
+RUNTIME_REMOVED_STALE_PATHS=0
 
 usage() {
   cat <<'USAGE'
@@ -666,7 +671,7 @@ sync_runtime_path() {
     mkdir -p "$(dirname "$BACKUP_ROOT/$rel")"
     rsync "${rsync_args[@]}" --backup "--backup-dir=$(dirname "$BACKUP_ROOT/$rel")" "$src" "$dest"
   fi
-  echo "synchronized untracked $label from primary worktree: $rel"
+  RUNTIME_SYNCED_UNTRACKED_PATHS=$((RUNTIME_SYNCED_UNTRACKED_PATHS + 1))
 }
 
 remove_stale_runtime_path() {
@@ -684,6 +689,7 @@ remove_stale_runtime_path() {
   fi
 
   backup_existing_path "$rel"
+  RUNTIME_REMOVED_STALE_PATHS=$((RUNTIME_REMOVED_STALE_PATHS + 1))
 }
 
 prune_stale_runtime_tree() {
@@ -698,7 +704,7 @@ prune_stale_runtime_tree() {
   fi
 
   if [[ ! -d "$dest" || -L "$dest" ]]; then
-    echo "preserve target-only tracked runtime path: $rel"
+    RUNTIME_PRESERVED_TARGET_TRACKED_PATHS=$((RUNTIME_PRESERVED_TARGET_TRACKED_PATHS + 1))
     return
   fi
 
@@ -733,15 +739,13 @@ sync_runtime_tree() {
   fi
 
   if [[ ! -d "$src" ]]; then
-    echo "skip tracked runtime path: $rel"
+    RUNTIME_SKIPPED_TRACKED_PATHS=$((RUNTIME_SKIPPED_TRACKED_PATHS + 1))
     return
   fi
 
-  if [[ "$APPLY" -ne 1 ]]; then
-    echo "would scan tracked runtime directory: $rel/"
-  else
+  RUNTIME_SCANNED_DIRECTORIES=$((RUNTIME_SCANNED_DIRECTORIES + 1))
+  if [[ "$APPLY" -eq 1 ]]; then
     mkdir -p "$dest"
-    echo "scanned tracked runtime directory: $rel/"
   fi
 
   for child in "$src"/* "$src"/.[!.]* "$src"/..?*; do
@@ -774,7 +778,13 @@ sync_runtime_directory() {
     return
   fi
 
+  RUNTIME_SCANNED_DIRECTORIES=0
+  RUNTIME_SKIPPED_TRACKED_PATHS=0
+  RUNTIME_PRESERVED_TARGET_TRACKED_PATHS=0
+  RUNTIME_SYNCED_UNTRACKED_PATHS=0
+  RUNTIME_REMOVED_STALE_PATHS=0
   sync_runtime_tree "$RUNTIME_LINK_ROOT"
+  echo "runtime sync summary: scannedDirectories=$RUNTIME_SCANNED_DIRECTORIES skippedTrackedPaths=$RUNTIME_SKIPPED_TRACKED_PATHS preservedTargetTrackedPaths=$RUNTIME_PRESERVED_TARGET_TRACKED_PATHS synchronizedUntrackedPaths=$RUNTIME_SYNCED_UNTRACKED_PATHS removedStalePaths=$RUNTIME_REMOVED_STALE_PATHS"
 }
 
 target_worktree_id() {
