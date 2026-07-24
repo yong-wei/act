@@ -6825,6 +6825,9 @@ export function buildKonlingCitationGuard(
     ...citationContext.contentCitations,
     ...citationContext.evidenceCitations,
   ];
+  const answerUnits = assistantMessage === undefined
+    ? []
+    : buildKonlingAnswerUnitCitationBindings(assistantMessage, citations);
   const missingCitationClasses = [...citationContext.missingCitationClasses];
   const lowConfidenceReasons = [...citationContext.lowConfidenceReasons];
   if (modeContract) {
@@ -6848,6 +6851,14 @@ export function buildKonlingCitationGuard(
     }
     if (modeContract.studyQuestion?.normativeGuidance === 'verification-required') {
       lowConfidenceReasons.push('normative-guidance-verification-required');
+    }
+    if (
+      assistantMessage !== undefined
+      && modeContract.studyQuestion
+      && citationContext.contentCitations.some(isBindableAnswerUnitCitation)
+      && answerUnits.length === 0
+    ) {
+      lowConfidenceReasons.push('assistant-answer-unit-citations-missing');
     }
   }
   if (assistantMessage !== undefined && citations.length > 0) {
@@ -6908,10 +6919,12 @@ export function buildKonlingCitationGuard(
       personalizationLowConfidenceReasons,
     ),
     studyQuestion: modeContract?.studyQuestion ?? null,
-    answerUnits: assistantMessage === undefined
-      ? []
-      : buildKonlingAnswerUnitCitationBindings(assistantMessage, citations),
+    answerUnits,
   };
+}
+
+function isBindableAnswerUnitCitation(citation: KonlingCitation): boolean {
+  return citation.verified === true && Boolean(citation.citationTargetId);
 }
 
 function buildKonlingAnswerUnitCitationBindings(

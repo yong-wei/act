@@ -11946,5 +11946,15 @@ describe('konling agent runtime', () => {
       citationTargetId: 'formula:derivation',
       limitation: null,
     }]);
+
+    const missingBinding = buildKonlingCitationGuard(
+      runtime,
+      '关键变形使用闭环传递函数教材片段（content:formula:derivation）。',
+    );
+
+    expect(missingBinding.answerUnits).toEqual([]);
+    expect(missingBinding.status).toBe('low-confidence');
+    expect(missingBinding.fallbackRequired).toBe(true);
+    expect(missingBinding.lowConfidenceReasons).toContain('assistant-answer-unit-citations-missing');
   });
 });
