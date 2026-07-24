@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { requestClassroomConflictChoice } from '@/features/classroom/classroom-lifecycle-dialog';
+import { useTeacherClassroomLauncher } from '@/features/teacher/teacher-classroom-launcher';
 import { AuthoringApiTaskStrip } from '@/features/teacher/resources/authoring-api-task-strip';
 import { buildLessonPlanAuthoringTasks } from '@/lib/authoring-api-task-consumption';
 import { EMPTY_LESSON_PLAN_MESSAGE } from '@/lib/lesson-plan-readiness';
@@ -22,6 +23,7 @@ interface LessonPlanListProps {
   basePath?: string; // 默认 /admin/lesson-plans
   currentUserId?: string;
   returnTo?: string;
+  launchActor?: 'teacher' | 'admin';
 }
 
 const dateFormatter = new Intl.DateTimeFormat('zh-CN', {
@@ -37,8 +39,9 @@ function formatStableDate(value: string | Date) {
   return dateFormatter.format(date);
 }
 
-export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', currentUserId, returnTo }: LessonPlanListProps) {
+export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', currentUserId, returnTo, launchActor = 'admin' }: LessonPlanListProps) {
   const router = useRouter();
+  const teacherLauncher = useTeacherClassroomLauncher();
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [localPlans, setLocalPlans] = useState(plans);
   const [searchQuery, setSearchQuery] = useState('');
@@ -62,7 +65,7 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
     ].filter(Boolean).join(' ').toLowerCase().includes(keyword));
   }, [localPlans, searchQuery]);
 
-  const startSession = async (planId: string) => {
+  const startTemporarySession = async (planId: string) => {
     setLoadingId(planId);
     setOperationMessage(null);
     try {
@@ -112,6 +115,17 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
       setOperationMessage(e instanceof Error ? e.message : '无法开始上课');
       setLoadingId(null);
     }
+  };
+
+  const startSession = (planId: string) => {
+    if (launchActor === 'teacher') {
+      teacherLauncher.launch({
+        planId,
+        onSessionReady: (sessionId) => router.push(`/classroom/teacher/${sessionId}`),
+      });
+      return;
+    }
+    void startTemporarySession(planId);
   };
 
   const handleDeleteConfirm = async () => {
@@ -322,6 +336,7 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {teacherLauncher.dialog}
     </div>
   );
 }

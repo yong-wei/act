@@ -13,6 +13,7 @@ import {
 } from '@/features/classroom/classroom-lifecycle-dialog';
 import { LessonEntryMediaHub } from '@/features/interactive/shared/lesson-entry-media-hub';
 import { LessonEntryRuntimeSections } from '@/features/interactive/shared/lesson-entry-runtime-sections';
+import { useTeacherClassroomLauncher } from '@/features/teacher/teacher-classroom-launcher';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 
 type NormalizedRole = 'STUDENT' | 'TEACHER' | 'ADMIN' | null;
@@ -68,6 +69,7 @@ export function PremiumLessonEntryPage({
 }) {
   const { data: authSession } = useSession();
   const router = useRouter();
+  const teacherLauncher = useTeacherClassroomLauncher();
   const [joinCode, setJoinCode] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
@@ -90,6 +92,27 @@ export function PremiumLessonEntryPage({
     setError(null);
     if (!canCreateAsTeacher) {
       setError('请使用教师账号登录后再创建课堂。');
+      return;
+    }
+    if (userRole === 'TEACHER') {
+      teacherLauncher.launch({
+        sourcePresetKey: config.presetKey,
+        preparePlanId: async () => {
+          const cloneRes = await fetch('/api/teacher/preset-lessons/clone', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ presetKey: config.presetKey }),
+          });
+          const cloneData = await cloneRes.json();
+          if (!cloneRes.ok || !cloneData.lessonPlanId) {
+            throw new Error(cloneData.error || '预置教案克隆失败');
+          }
+          return cloneData.lessonPlanId as string;
+        },
+        onSessionReady: (sessionId) => {
+          router.push(`/interactive-learning/courses/${config.routeSegment}/teacher/${sessionId}`);
+        },
+      });
       return;
     }
 
@@ -275,6 +298,7 @@ export function PremiumLessonEntryPage({
         </div>
 
         {error ? <div className="premium-lesson-tone-block premium-tone-rose mt-4">{error}</div> : null}
+        {teacherLauncher.dialog}
 
         <section className="premium-lesson-panel mt-4 px-5 py-5" data-commercial-workspace-zone="instrument-area">
           <div className="premium-lesson-kicker">{config.overviewKicker ?? config.mediaCourseLabel ?? lessonRuntime?.lesson.lesson_id ?? 'Course Entry'}</div>

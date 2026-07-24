@@ -29,6 +29,7 @@ import {
 } from '@/features/classroom/classroom-lifecycle-dialog';
 import { LessonEntryMediaHub } from '@/features/interactive/shared/lesson-entry-media-hub';
 import { LessonEntryRuntimeSections } from '@/features/interactive/shared/lesson-entry-runtime-sections';
+import { useTeacherClassroomLauncher } from '@/features/teacher/teacher-classroom-launcher';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 
 type NormalizedRole = 'STUDENT' | 'TEACHER' | 'ADMIN' | null;
@@ -117,6 +118,7 @@ export function CourseEntryShell({
 }) {
   const { data: authSession } = useSession();
   const router = useRouter();
+  const teacherLauncher = useTeacherClassroomLauncher();
   const searchParams = useSearchParams();
   const restoredJoinCode = searchParams.get('code')?.replace(/\D/g, '').slice(0, 6) ?? '';
   const [joinCode, setJoinCode] = useState(restoredJoinCode);
@@ -149,6 +151,27 @@ export function CourseEntryShell({
     setError(null);
     if (!canCreateAsTeacher) {
       setError('请使用教师账号登录后再创建课堂。');
+      return;
+    }
+    if (userRole === 'TEACHER') {
+      teacherLauncher.launch({
+        sourcePresetKey: config.presetKey,
+        preparePlanId: async () => {
+          const cloneRes = await fetch('/api/teacher/preset-lessons/clone', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ presetKey: config.presetKey }),
+          });
+          const cloneData = await cloneRes.json();
+          if (!cloneRes.ok || !cloneData.lessonPlanId) {
+            throw new Error(cloneData.error || '预置教案克隆失败');
+          }
+          return cloneData.lessonPlanId as string;
+        },
+        onSessionReady: (sessionId) => {
+          router.push(`/interactive-learning/courses/${config.routeSegment}/teacher/${sessionId}/waiting`);
+        },
+      });
       return;
     }
 
@@ -503,6 +526,7 @@ export function CourseEntryShell({
             ) : null}
           </div>
         ) : null}
+        {teacherLauncher.dialog}
 
         {showMediaHub && lessonRuntime ? (
           <section data-commercial-workspace-zone="support-drawer" data-course-entry-region="self-study">

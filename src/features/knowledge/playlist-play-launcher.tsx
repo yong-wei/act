@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Loader2, Play, ArrowLeft, Edit } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useTeacherClassroomLauncher } from '@/features/teacher/teacher-classroom-launcher';
 
 interface PlaylistPlayLauncherProps {
   planId: string;
@@ -13,6 +14,7 @@ interface PlaylistPlayLauncherProps {
   intent?: string | null;
   editHref?: string | null;
   canStartClass?: boolean;
+  launchActor?: 'teacher' | 'admin';
 }
 
 export function PlaylistPlayLauncher({
@@ -23,12 +25,14 @@ export function PlaylistPlayLauncher({
   intent,
   editHref,
   canStartClass = false,
+  launchActor = 'admin',
 }: PlaylistPlayLauncherProps) {
   const router = useRouter();
+  const teacherLauncher = useTeacherClassroomLauncher();
   const [status, setStatus] = useState<'idle' | 'starting' | 'error'>('idle');
   const [message, setMessage] = useState<string | null>(null);
 
-  const startClass = async () => {
+  const startTemporaryClass = async () => {
     setStatus('starting');
     setMessage(null);
     try {
@@ -54,8 +58,22 @@ export function PlaylistPlayLauncher({
     }
   };
 
+  const startClass = () => {
+    if (launchActor === 'teacher') {
+      teacherLauncher.launch({
+        planId,
+        onSessionReady: (sessionId) => {
+          router.push(`/classroom/teacher/${sessionId}`);
+          router.refresh();
+        },
+      });
+      return;
+    }
+    void startTemporaryClass();
+  };
+
   return (
-    <section className="mx-auto w-full max-w-5xl text-slate-100">
+    <section className="w-full text-platform-fg-primary">
       <div className="mb-6">
         <Link href="/playlists" className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-blue-300">
           <ArrowLeft className="h-4 w-4" />
@@ -116,6 +134,7 @@ export function PlaylistPlayLauncher({
           </div>
         ) : null}
       </section>
+      {teacherLauncher.dialog}
     </section>
   );
 }

@@ -3,6 +3,7 @@ import 'server-only';
 import { type Class, Prisma, type PrismaClient } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
+import { lockClassSessionBinding } from '@/lib/class-session-binding-lock';
 
 const DEFAULT_TRANSACTION_ATTEMPTS = 3;
 
@@ -102,6 +103,7 @@ export function createTeacherDefaultClassService(
     deleteClass(teacherId: string, classId: string) {
       return withSerializableRetry(db, transactionAttempts, async (tx) => {
         await requireTeacher(tx, teacherId);
+        await lockClassSessionBinding(tx, classId);
         await findOwnedClass(tx, teacherId, classId);
         const referencedSession = await tx.classSession.findFirst({
           where: { classId },

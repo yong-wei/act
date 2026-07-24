@@ -269,6 +269,7 @@ describe('teacher default class service', () => {
 
 function transaction(overrides: Record<string, unknown>) {
   return {
+    $executeRaw: vi.fn().mockResolvedValue(0),
     user: {},
     class: {},
     classSession: {},
