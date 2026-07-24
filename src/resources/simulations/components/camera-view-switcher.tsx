@@ -5,10 +5,14 @@
  * 提供三种预设视角按钮和自由视角状态显示
  */
 
-import { Video, Eye, Compass, Move3d, Minus, Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Video, Eye, Compass, Move3d, Minus, Plus, Gauge } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { ChromePopoverButton } from '../scene/chrome';
+import { EnvironmentPresetSwitcher } from '../scene/environment';
+import { SceneQualitySelect } from '../scene/quality';
+import { SoundscapeMuteToggle } from '../scene/audio';
+import { AnnotationsGridToggle } from '../scene/annotations';
 import type { CameraView } from './camera-controller';
 
 export interface CameraViewOption {
@@ -24,6 +28,8 @@ export interface CameraViewSwitcherProps {
   currentMode: string;
   /** 模式变化回调 */
   onModeChange: (mode: string) => void;
+  /** 再次点选当前视图时的复位回调（清空用户偏移、回到标准机位） */
+  onViewReset?: () => void;
   /** 预设视角按钮列表（缺省为 主视角/俯瞰/战术 三档） */
   views?: readonly CameraViewOption[];
   /** 自定义样式类名 */
@@ -87,10 +93,10 @@ const commandValueClass = 'text-platform-fg-primary';
 export function CameraViewSwitcher({
   currentMode,
   onModeChange,
+  onViewReset,
   views,
   className,
   showFreeLabel = true,
-  size = 'sm',
   gridEnabled,
   onToggleGrid,
   speedScale = 1,
@@ -99,6 +105,7 @@ export function CameraViewSwitcher({
   maxSpeedScale = 8,
 }: CameraViewSwitcherProps) {
   const modes = views ?? viewModes;
+  const viewOptions = [...modes, { id: 'free', label: '自由', shortLabel: '自', icon: Move3d, description: '自由观察（不以船为中心）' }];
   const speedPresets = [0.5, 1, 2, 4, 8].filter((value) => value >= minSpeedScale && value <= maxSpeedScale);
 
   const findNextSpeed = (direction: -1 | 1): number => {
@@ -133,37 +140,22 @@ export function CameraViewSwitcher({
 
   return (
     <div className={cn('flex items-center gap-1 max-[360px]:gap-0', className)} data-simulation-local-bottom-tool-strip="camera-controls">
-      {/* 视角按钮组 */}
-      <div
-        className="simulation-command-restore-handle flex shrink-0 p-1"
-        data-simulation-local-bottom-toolbar
-        data-simulation-local-bottom-tool-segment="view-switcher"
-        data-command-deck-bottom-tools="edge-adjacent"
-      >
-        {modes.map((mode) => {
-          const Icon = mode.icon;
-          const isActive = currentMode === mode.id;
-
-          return (
-            <Button
-              key={mode.id}
-              variant={isActive ? 'secondary' : 'ghost'}
-              size={size}
-              onClick={() => onModeChange(mode.id)}
-              className={cn(
-                'transition-all',
-                isActive
-                  ? 'bg-platform-fg-primary text-platform-fg-inverse'
-                  : commandButtonInactiveClass
-              )}
-              title={`${mode.label} - ${mode.description}`}
-            >
-              <Icon className="h-4 w-4 mr-1 max-[360px]:mr-0" />
-              <span className="hidden sm:inline">{mode.label}</span>
-              <span className="sm:hidden max-[360px]:hidden">{mode.shortLabel}</span>
-            </Button>
-          );
-        })}
+      {/* 视图弹出按钮（底部 chrome 家族；网格开关在弹出层内） */}
+      <div data-simulation-local-bottom-toolbar data-simulation-local-bottom-tool-segment="view-switcher" data-command-deck-bottom-tools="edge-adjacent">
+        <ChromePopoverButton
+          icon={<Video className="h-4 w-4" />}
+          label="视图"
+          currentLabel={viewOptions.find((mode) => mode.id === currentMode)?.label ?? ''}
+          tooltip={`视图：切换观察机位（当前：${viewOptions.find((mode) => mode.id === currentMode)?.label ?? ''}；再次点选当前视图复位标准机位）`}
+          options={viewOptions.map((mode) => ({ id: mode.id, label: mode.label, description: mode.description }))}
+          currentId={currentMode}
+          onSelect={(selected) => {
+            if (selected === currentMode) onViewReset?.();
+            else onModeChange(selected);
+          }}
+          dataHook="view"
+          ariaLabel="视图"
+        />
       </div>
 
       {/* 自由视角状态标签 */}
@@ -177,55 +169,38 @@ export function CameraViewSwitcher({
         </Badge>
       )}
 
-      {onToggleGrid ? (
-        <Button
-          variant={gridEnabled ? 'secondary' : 'ghost'}
-          size={size}
-          onClick={onToggleGrid}
-          className={cn(
-            'shrink-0 rounded-xl border border-platform-border-strong bg-platform-surface-overlay/86 shadow-lg backdrop-blur-sm transition-all max-[360px]:px-2',
-            gridEnabled
-              ? 'bg-platform-fg-primary text-platform-fg-inverse'
-              : commandButtonInactiveClass
-          )}
-          title={gridEnabled ? '关闭网格' : '开启网格'}
-          aria-label={gridEnabled ? '关闭网格' : '开启网格'}
-          data-simulation-local-bottom-tool-segment="grid-toggle"
-        >
-          <span className="mr-1 text-xs">#</span>
-          <span className="hidden sm:inline">{gridEnabled ? '网格开' : '网格关'}</span>
-          <span className="sm:hidden">网</span>
-        </Button>
-      ) : null}
-
       {onSpeedChange ? (
-        <div
-          className="simulation-command-restore-handle flex shrink-0 items-center gap-1 p-1 max-[360px]:gap-0 max-[360px]:p-0"
-          data-simulation-local-bottom-tool-segment="speed-controls"
-        >
-          <Button
-            variant="ghost"
-            size={size}
-            onClick={handleDecrease}
-            className={commandButtonInactiveClass}
-            title="减速"
-            aria-label="减速"
-          >
-            <Minus className="h-4 w-4" />
-          </Button>
-          <span className={cn('min-w-11 text-center text-xs font-semibold max-[360px]:min-w-8', commandValueClass)}>{speedScale.toFixed(1)}x</span>
-          <Button
-            variant="ghost"
-            size={size}
-            onClick={handleIncrease}
-            className={commandButtonInactiveClass}
-            title="加速"
-            aria-label="加速"
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
+        <div data-simulation-local-bottom-tool-segment="speed-controls">
+          <ChromePopoverButton
+            icon={<Gauge className="h-4 w-4" />}
+            label="速率"
+            currentLabel={`${speedScale.toFixed(1)}x`}
+            tooltip={`仿真速率：调整播放倍率（当前：${speedScale.toFixed(1)}x）`}
+            options={[]}
+            currentId={null}
+            onSelect={() => undefined}
+            dataHook="rate"
+            ariaLabel="速率"
+            tail={(
+              <div className="flex items-center gap-1 px-2 py-1.5">
+                <button type="button" aria-label="减速" onClick={handleDecrease} className="rounded-md border border-platform-border px-2 py-1 text-xs text-platform-fg-muted hover:text-platform-fg-primary">
+                  <Minus className="h-4 w-4" />
+                </button>
+                <span className={cn('min-w-11 text-center text-xs font-semibold', commandValueClass)}>{speedScale.toFixed(1)}x</span>
+                <button type="button" aria-label="加速" onClick={handleIncrease} className="rounded-md border border-platform-border px-2 py-1 text-xs text-platform-fg-muted hover:text-platform-fg-primary">
+                  <Plus className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+          />
         </div>
       ) : null}
+
+      {/* 底部 chrome 家族单排：环境/画质/音效/标注（网格+教学标注合并控件） */}
+      <EnvironmentPresetSwitcher />
+      <SceneQualitySelect />
+      <SoundscapeMuteToggle />
+      <AnnotationsGridToggle gridEnabled={gridEnabled} onToggleGrid={onToggleGrid} />
     </div>
   );
 }

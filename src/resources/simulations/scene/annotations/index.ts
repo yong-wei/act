@@ -7,8 +7,8 @@ export {
   TRAIL_SAMPLE_INTERVAL_SECONDS,
 } from './annotation-logic';
 export {
+  AnnotationsGridToggle,
   TeachingAnnotationsProvider,
-  TeachingAnnotationsToggle,
   useTeachingAnnotations,
 } from './annotations-state';
 export { ActualPathTrail } from './actual-path-trail';

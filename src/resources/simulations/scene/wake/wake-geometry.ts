@@ -80,7 +80,8 @@ const familyAtPlanIndex = (
 export const resolveWakeParticleVisual = (
   slot: WakeParticleSlot,
   style: ResolvedWakeTrailStyle,
-  now: number
+  now: number,
+  waterYSampler?: (x: number, z: number) => number
 ): WakeParticleVisual | null => {
   if (!slot.active || slot.lifetime <= 0) {
     return null;
@@ -149,7 +150,8 @@ export const resolveWakeParticleVisual = (
 
   const centerX = anchor[0] + rightX * sideSign * laneWidth + backwardX * longitudinalOffset;
   const centerZ = anchor[2] + rightZ * sideSign * laneWidth + backwardZ * longitudinalOffset;
-  const centerY = slot.waterY + style.surfaceBias + liftNoise * (isCore ? 0.008 : 0.004);
+  // 逐粒子按自身 (x,z) 采样波面高度：尾迹随涌浪连续贴水，不再被移动波峰周期性淹没。
+  const centerY = (waterYSampler ? waterYSampler(centerX, centerZ) : slot.waterY) + style.surfaceBias + liftNoise * (isCore ? 0.008 : 0.004);
 
   const wakeDirection = isCore
     ? rotateHorizontal(backwardX, backwardZ, angleNoise * wakeHalfAngle * 0.12)
@@ -284,7 +286,8 @@ const writeDegenerateQuad = (positions: Float32Array, colors: Float32Array, quad
 export const updateWakeTrailGeometry = (
   handle: WakeTrailGeometryHandle,
   buffer: WakeTrailBuffer,
-  now: number
+  now: number,
+  waterYSampler?: (x: number, z: number) => number
 ): number => {
   const positionAttribute = handle.geometry.getAttribute('position') as THREE.BufferAttribute;
   const colorAttribute = handle.geometry.getAttribute('color') as THREE.BufferAttribute;
@@ -294,7 +297,7 @@ export const updateWakeTrailGeometry = (
 
   for (let index = 0; index < handle.capacity; index += 1) {
     const slot = buffer.slots[index];
-    const visual = slot ? resolveWakeParticleVisual(slot, buffer.style, now) : null;
+    const visual = slot ? resolveWakeParticleVisual(slot, buffer.style, now, waterYSampler) : null;
     if (visual) {
       writeQuad(positions, colors, index, visual);
       visible += 1;

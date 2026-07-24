@@ -621,9 +621,7 @@ describe('platform UI contracts', () => {
     expect(simulationLocalToolsSource).toContain('data-simulation-local-workspace={template.id}');
     expect(simulationLocalToolsSource).toContain('data-simulation-theme-template="local-tools"');
     expect(simulationLocalToolsSource).toContain('data-simulation-state-role="hint"');
-    expect(simulationLocalToolsSource).toContain('data-simulation-state-role="replay"');
     expect(simulationLocalToolsSource).toContain('data-simulation-local-panel-layout={panelLayout}');
-    expect(simulationLocalToolsSource).toContain('data-simulation-local-bottom-toolbar');
     expect(simulationLocalToolsSource).toContain('data-simulation-local-hint-strip');
     expect(simulationLocalToolsSource).toContain('data-simulation-panel-collapsible="true"');
     expect(simulationLocalToolsSource).toContain('data-simulation-mobile-secondary-controls="stacked-sheets"');
@@ -640,7 +638,8 @@ describe('platform UI contracts', () => {
     expect(simulationLocalToolsSource).toContain('focus-visible:ring-2 focus-visible:ring-platform-action-primary');
     expect(simulationLocalToolsSource).not.toContain('platform-action-ring');
     expect(simulationLocalToolsSource).not.toContain('platform-fg-tertiary');
-    expect(simulationLocalToolsSource).not.toContain('<button');
+    // 唯一的按钮是提示条关闭钮（占位命令条已移除，其余均为非交互结构）。
+    expect(simulationLocalToolsSource.match(/<button/g)?.length ?? 0).toBe(1);
     expect(simulationLocalToolsSource).not.toContain('sticky bottom-3');
     expect(simulationLocalToolsSource).toContain('data-simulation-local-panel-zone={side ===');
     expect(simulationLocalToolsSource).toContain('data-task-workspace-zone={side ===');
@@ -1852,7 +1851,6 @@ describe('platform UI contracts', () => {
     expect(simulationShellSource).toContain('data-simulation-dock-collision-policy="avoid-local-tools"');
     expect(simulationShellSource).not.toContain('KonlingEntryPointButton');
     expect(simulationShellSource).not.toContain('fixed bottom-');
-    expect(simulationLocalToolsSource).toContain('data-simulation-dock-offset-anchor="bottom-toolbar"');
     expect(simulationLocalToolsSource).toContain('data-simulation-dock-offset-anchor="hint-strip"');
     expect(pageFloatingControlsSource).toContain('data-platform-floating-dock-safe-area="bottom-right"');
     expect(pageFloatingControlsSource).toContain('data-platform-floating-dock-expanded-panel');

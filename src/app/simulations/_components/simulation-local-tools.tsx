@@ -1,6 +1,8 @@
-import type { ReactNode } from 'react';
+'use client';
 
-import { ChevronDown } from 'lucide-react';
+import { useState, type ReactNode } from 'react';
+
+import { ChevronDown, X } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
@@ -22,7 +24,6 @@ interface SimulationLocalToolTemplate {
   leftPanel: SimulationLocalPanelConfig;
   rightPanel: SimulationLocalPanelConfig;
   hints: string[];
-  commands: string[];
 }
 
 const simulationLocalToolTemplates: Record<SimulationLocalToolTemplateId, SimulationLocalToolTemplate> = {
@@ -40,7 +41,6 @@ const simulationLocalToolTemplates: Record<SimulationLocalToolTemplateId, Simula
       items: ['参数调节', '稳定裕度', '响应质量'],
     },
     hints: ['先确认航向误差收敛，再观察扰动后的恢复过程。'],
-    commands: ['重置场景', '记录观察', '导出片段'],
   },
   'dp-positioning': {
     id: 'dp-positioning',
@@ -56,7 +56,6 @@ const simulationLocalToolTemplates: Record<SimulationLocalToolTemplateId, Simula
       items: ['推力分配', '前馈补偿', '能耗边界'],
     },
     hints: ['先收起非当前面板，保证定位误差曲线和场景姿态同屏可见。'],
-    commands: ['锁定目标', '切换扰动', '保存工况'],
   },
   'comfort-frequency': {
     id: 'comfort-frequency',
@@ -72,7 +71,6 @@ const simulationLocalToolTemplates: Record<SimulationLocalToolTemplateId, Simula
       items: ['频域响应', '减摇效果', '舒适性指标'],
     },
     hints: ['先观察公开海况下的横摇响应，再比较频域指标和舒适性变化。'],
-    commands: ['切换海况', '观察频域', '记录结论'],
   },
   'ice-propulsion': {
     id: 'ice-propulsion',
@@ -88,7 +86,6 @@ const simulationLocalToolTemplates: Record<SimulationLocalToolTemplateId, Simula
       items: ['推进角', '推力余量', '鲁棒性观察'],
     },
     hints: ['破冰场景先观察阻力突变，再比较推进角调整后的航速恢复。'],
-    commands: ['切换冰况', '冻结视角', '记录恢复'],
   },
 };
 
@@ -104,6 +101,7 @@ export function SimulationLocalToolWorkspace({
   panelLayout?: 'side-rails' | 'stacked';
 }) {
   const template = simulationLocalToolTemplates[templateId];
+  const [hintVisible, setHintVisible] = useState(true);
 
   return (
     <div
@@ -130,38 +128,28 @@ export function SimulationLocalToolWorkspace({
           data-command-deck-scene-primacy="true"
         >
           {children}
-          <div
-            className="absolute inset-x-3 bottom-[4.75rem] z-30 rounded-lg border border-platform-border-strong bg-platform-action-subtle/90 px-4 py-3 text-xs leading-5 text-platform-fg-primary shadow-lg backdrop-blur lg:inset-x-[min(24rem,26vw)]"
-            data-simulation-local-hint-strip
-            data-simulation-dock-offset-anchor="hint-strip"
-            data-simulation-state-role="hint"
-            data-command-deck-hint-placement="above-bottom-toolbar"
-          >
-            {template.hints.map((hint) => (
-              <p key={hint}>{hint}</p>
-            ))}
-          </div>
-        </section>
-        <div
-          role="group"
-          aria-label="仿真局部工具"
-          className="order-2 mt-3 flex min-h-10 flex-wrap items-center gap-2 rounded-lg border border-platform-border-strong bg-platform-surface/92 px-3 py-2 shadow-lg"
-          data-simulation-local-bottom-toolbar
-          data-simulation-local-bottom-toolbar-status="visible"
-          data-simulation-dock-offset-anchor="bottom-toolbar"
-          data-simulation-state-role="replay"
-          data-task-workspace-zone="bottom-tools"
-          data-command-deck-bottom-tools="edge-adjacent"
-        >
-          {template.commands.map((command) => (
-            <span
-              key={command}
-              className="inline-flex h-8 items-center rounded-md border border-platform-border bg-platform-surface px-3 text-xs font-medium text-platform-fg-secondary"
+          {hintVisible ? (
+            <div
+              className="absolute inset-x-3 bottom-[4.75rem] z-30 rounded-lg border border-platform-border-strong bg-platform-action-subtle/90 px-4 py-3 text-xs leading-5 text-platform-fg-primary shadow-lg backdrop-blur lg:inset-x-[min(24rem,26vw)]"
+              data-simulation-local-hint-strip
+              data-simulation-dock-offset-anchor="hint-strip"
+              data-simulation-state-role="hint"
+              data-command-deck-hint-placement="above-bottom-toolbar"
             >
-              {command}
-            </span>
-          ))}
-        </div>
+              <button
+                type="button"
+                aria-label="关闭提示"
+                onClick={() => setHintVisible(false)}
+                className="absolute right-1.5 top-1.5 inline-flex h-5 w-5 items-center justify-center rounded text-platform-fg-muted transition hover:text-platform-fg-primary"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+              {template.hints.map((hint) => (
+                <p key={hint}>{hint}</p>
+              ))}
+            </div>
+          ) : null}
+        </section>
       </div>
       <SimulationLocalPanel side="left" config={template.leftPanel} panelLayout={panelLayout} />
       <SimulationLocalPanel side="right" config={template.rightPanel} panelLayout={panelLayout} />

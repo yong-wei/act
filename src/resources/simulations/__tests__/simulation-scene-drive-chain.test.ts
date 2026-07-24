@@ -13,8 +13,14 @@ const DRIVE_CHAIN_PREFIXES = [
 ];
 
 const PANEL_FILES = [
-  'src/resources/simulations/components/simulation-ui.tsx',
   'src/app/simulations/_components/simulation-shell.tsx',
+];
+
+// 面板控制逻辑守卫：dock 布局（自然高度/卡片占满）已由 unify-simulation-chrome-and-camera-views
+// 的 ADDED requirement 显式授权，不再列入不可触碰集；控制逻辑（SimulationDock 行为/标签页）仍不得改动。
+const PANEL_LOGIC_MARKERS = [
+  'function SimulationDock',
+  'SimulationAssessmentPanel',
 ];
 
 function diffNameOnly(): string[] {
@@ -33,10 +39,16 @@ describe('visual pipeline preserves the simulation drive chain', () => {
     }
   });
 
-  it('leaves panel and dock structure files untouched', () => {
+  it('leaves panel structure files untouched and keeps dock control logic markers', () => {
     const changed = diffNameOnly();
     for (const file of PANEL_FILES) {
       expect(changed, `panel structure changed: ${file}`).not.toContain(file);
+    }
+    const dockSource = readFileSync(
+      path.join(process.cwd(), 'src/resources/simulations/components/simulation-ui.tsx'), 'utf8'
+    );
+    for (const marker of PANEL_LOGIC_MARKERS) {
+      expect(dockSource, `dock control logic marker lost: ${marker}`).toContain(marker);
     }
   });
 
