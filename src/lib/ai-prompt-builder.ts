@@ -99,6 +99,8 @@ interface KonlingPromptRuntimeContext {
       displayTitle: string;
       confidence: string;
       evidenceBasis: string;
+      citationTargetId?: string | null;
+      verified?: boolean;
     }>;
     evidenceCitations?: Array<{
       id?: string;
@@ -342,6 +344,7 @@ function buildAdaptiveRuntimeSection(runtime: KonlingPromptRuntimeContext): stri
       lines.push(`  - 表达偏好: 深度=${study.preferences.depth}，格式=${study.preferences.format}，引导=${study.preferences.hintStrength}${study.preferences.exampleContext ? `，示例=${study.preferences.exampleContext}` : ''}`);
       lines.push('  - 每个关键结论、关键推导变形或修复建议后，只能使用可用内容引用的 ID 标注 `[证据: citation-id]`；不得编造 ID、链接或脚注。');
       const studyCitationIds = runtime.citationContext?.contentCitations
+        ?.filter((citation) => citation.verified === true && Boolean(citation.citationTargetId))
         ?.map((citation) => citation.id)
         .filter((id): id is string => Boolean(id));
       if (studyCitationIds?.length) {

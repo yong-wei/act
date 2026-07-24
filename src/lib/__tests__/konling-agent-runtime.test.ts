@@ -11922,6 +11922,18 @@ describe('konling agent runtime', () => {
     });
     const runtime = { citationContext, teachingAssistantMode: modeContract };
 
+    const promptRuntime = createRuntimeContext({ citationContext });
+    const prompt = buildKonlingSystemPrompt({
+      page: promptRuntime.pageContext,
+      user: promptRuntime.userProfile,
+      adaptiveRuntime: {
+        ...promptRuntime,
+        teachingAssistantMode: modeContract,
+      },
+    });
+    expect(prompt).toContain('content:formula:derivation');
+    expect(prompt).not.toContain('content:unverified:related');
+
     const guarded = buildKonlingCitationGuard(runtime, [
       '关键变形：分母为 1 + G(s)H(s) [证据: content:formula:derivation]',
       '不应绑定的相关结论 [证据: content:unverified:related]',
