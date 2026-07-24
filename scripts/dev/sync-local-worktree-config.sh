@@ -21,7 +21,6 @@ RUNTIME_LINK_ROOT="course-content/runtime"
 TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
 BACKUP_ROOT=""
 MANAGED_HOOK_MARKER="# Managed by sync-local-worktree-config.sh"
-SELF_INSTALL_HOOKS_ONLY=0
 
 usage() {
   cat <<'USAGE'
@@ -57,7 +56,7 @@ Options:
   --graph-alias ALIAS        CRG alias to use with --init-graphs. Defaults to a target-based alias.
   -h, --help                 Show this help.
 
-Copied by default:
+Copied by default when not managed by Git in either worktree:
   .env
   .env.openspec-buddy
   .envrc
@@ -71,7 +70,7 @@ Copied by default:
   .serena/project.yml
   .serena/memories/
 
-Linked with --link-config:
+Linked with --link-config when not managed by Git in either worktree:
   AGENTS.md
   GEMINI.md
   .claude/settings.local.json
@@ -101,8 +100,14 @@ Linked with --link-openwolf-knowledge:
   .wolf/reframe-frameworks.md
   .wolf/cron-manifest.json
 
-Linked by default when present:
-  course-content/runtime
+Synchronized from the main worktree by default:
+  Untracked content below course-content/runtime/ is copied as real files.
+  Tracked runtime paths remain under Git management and are never overwritten.
+
+Safety:
+  The source must be the repository's primary worktree and the target must be
+  one of its registered secondary worktrees. Invoking this script in the
+  primary worktree is a successful no-op.
 
 Never copied by this script:
   .next, node_modules, .cache, .tmp, .logs, .code-review-graph, Rust target,
@@ -190,19 +195,9 @@ if [[ -z "$TARGET" ]]; then
   fi
 fi
 
-SOURCE="$(cd "$SOURCE" && pwd)"
-TARGET="$(cd "$TARGET" && pwd)"
+SOURCE="$(cd "$SOURCE" && pwd -P)"
+TARGET="$(cd "$TARGET" && pwd -P)"
 BACKUP_ROOT="$TARGET/.tmp/local-config-backups/$TIMESTAMP"
-
-if [[ "$SOURCE" == "$TARGET" ]]; then
-  if [[ "$INSTALL_HOOKS" -eq 1 && "$LINK_CONFIG" -eq 0 && "$LINK_ENV" -eq 0 && "$INSTALL_DEPS" -eq 0 && "$INIT_GRAPHS" -eq 0 && "$LINK_OPENWOLF_KNOWLEDGE" -eq 0 ]]; then
-    SELF_INSTALL_HOOKS_ONLY=1
-  else
-    echo "Source and target are the same path: $SOURCE" >&2
-    echo "Only --install-hooks may target the source checkout itself." >&2
-    exit 2
-  fi
-fi
 
 if [[ "$LINK_ENV" -eq 1 && "$LINK_CONFIG" -ne 1 ]]; then
   LINK_CONFIG=1
@@ -224,6 +219,22 @@ fi
 
 if [[ ! -d "$TARGET/.git" && ! -f "$TARGET/.git" ]]; then
   echo "Target is not a git checkout: $TARGET" >&2
+  exit 2
+fi
+
+PRIMARY_WORKTREE="$(git -C "$SOURCE" worktree list --porcelain | awk '$1 == "worktree" { sub(/^worktree /, ""); print; exit }')"
+if [[ "$SOURCE" != "$PRIMARY_WORKTREE" ]]; then
+  echo "Source must be the repository's primary worktree: $SOURCE" >&2
+  exit 2
+fi
+
+if [[ "$SOURCE" == "$TARGET" ]]; then
+  echo "Primary worktree detected; no synchronization performed: $TARGET"
+  exit 0
+fi
+
+if ! git -C "$SOURCE" worktree list --porcelain | awk '$1 == "worktree" { sub(/^worktree /, ""); print }' | grep -Fxq "$TARGET"; then
+  echo "Target is not a registered isolated worktree of source: $TARGET" >&2
   exit 2
 fi
 
@@ -323,7 +334,7 @@ print_mode() {
   if [[ "$LINK_OPENWOLF_KNOWLEDGE" -eq 1 ]]; then
     echo "OpenWolf knowledge links: enabled"
   fi
-  echo "Runtime link: enabled"
+  echo "Runtime sync: enabled (untracked paths only)"
 }
 
 sanitize_graph_alias() {
@@ -411,6 +422,11 @@ copy_file() {
     return
   fi
 
+  if path_has_tracked_content "$rel"; then
+    echo "skip Git-managed file: $rel"
+    return
+  fi
+
   if [[ "$APPLY" -ne 1 ]]; then
     if [[ -e "$dest" ]]; then
       echo "would copy file with backup: $rel"
@@ -455,6 +471,11 @@ copy_dir() {
 
   if [[ ! -d "$src" ]]; then
     echo "skip missing dir: $rel"
+    return
+  fi
+
+  if path_has_tracked_content "$rel"; then
+    echo "skip Git-managed directory: $rel/"
     return
   fi
 
@@ -537,7 +558,7 @@ backup_existing_path() {
 
 path_has_tracked_content() {
   local rel="$1"
-  [[ -n "$(git -C "$TARGET" ls-files -- "$rel" "$rel/" ":(glob)$rel/**")" ]]
+  [[ -n "$(git -C "$SOURCE" ls-files -- "$rel" "$rel/" ":(glob)$rel/**")" || -n "$(git -C "$TARGET" ls-files -- "$rel" "$rel/" ":(glob)$rel/**")" ]]
 }
 
 link_config_path() {
@@ -596,11 +617,18 @@ runtime_path_label() {
   fi
 }
 
-link_runtime_path() {
+sync_runtime_path() {
   local rel="$1"
   local src="$SOURCE/$rel"
   local dest="$TARGET/$rel"
   local label
+  local rsync_args=(
+    -a
+    --copy-links
+    --exclude ".DS_Store"
+    --exclude "__pycache__/"
+    --exclude "*.pyc"
+  )
 
   if [[ ! -e "$src" ]]; then
     echo "skip missing runtime source: $rel"
@@ -609,34 +637,81 @@ link_runtime_path() {
 
   label="$(runtime_path_label "$src")"
 
-  if same_link_target "$dest" "$src"; then
-    echo "$label link already exists: $rel -> $src"
-    return
-  fi
-
   if [[ -e "$dest" || -L "$dest" ]]; then
     if [[ "$NO_OVERWRITE" -eq 1 ]]; then
       echo "skip existing $label: $rel"
       return
     fi
 
-    if [[ "$APPLY" -ne 1 ]]; then
-      echo "would backup and link $label: $rel -> $src"
+    if [[ -L "$dest" || ( -d "$src" && ! -d "$dest" ) || ( ! -d "$src" && -d "$dest" ) ]]; then
+      if [[ "$APPLY" -ne 1 ]]; then
+        echo "would replace existing $label with real files: $rel"
+        return
+      fi
+      backup_existing_path "$rel"
+    elif [[ "$APPLY" -ne 1 ]]; then
+      echo "would synchronize untracked $label from primary worktree: $rel"
       return
     fi
-
-    backup_existing_path "$rel"
   elif [[ "$APPLY" -ne 1 ]]; then
-    echo "would link $label: $rel -> $src"
+    echo "would synchronize untracked $label from primary worktree: $rel"
     return
   fi
 
   ensure_parent_dir "$dest"
-  ln -s "$src" "$dest"
-  echo "linked $label: $rel -> $src"
+  if [[ -d "$src" ]]; then
+    mkdir -p "$dest"
+    rsync_args+=(--delete --backup "--backup-dir=$BACKUP_ROOT/$rel")
+    mkdir -p "$BACKUP_ROOT/$rel"
+    rsync "${rsync_args[@]}" "$src/" "$dest/"
+  else
+    rsync "${rsync_args[@]}" --backup "--backup-dir=$BACKUP_ROOT/$rel" "$src" "$dest"
+  fi
+  echo "synchronized untracked $label from primary worktree: $rel"
 }
 
-link_runtime_tree() {
+remove_stale_runtime_path() {
+  local rel="$1"
+  local dest="$TARGET/$rel"
+
+  if [[ "$NO_OVERWRITE" -eq 1 ]]; then
+    echo "skip stale runtime path because --no-overwrite is set: $rel"
+    return
+  fi
+
+  if [[ "$APPLY" -ne 1 ]]; then
+    echo "would remove stale untracked runtime path with backup: $rel"
+    return
+  fi
+
+  backup_existing_path "$rel"
+}
+
+prune_stale_runtime_tree() {
+  local rel="$1"
+  local dest="$TARGET/$rel"
+  local child
+  local base
+
+  if ! path_has_tracked_content "$rel"; then
+    remove_stale_runtime_path "$rel"
+    return
+  fi
+
+  if [[ ! -d "$dest" || -L "$dest" ]]; then
+    echo "preserve target-only tracked runtime path: $rel"
+    return
+  fi
+
+  for child in "$dest"/* "$dest"/.[!.]* "$dest"/..?*; do
+    [[ -e "$child" || -L "$child" ]] || continue
+    base="$(basename "$child")"
+    [[ "$base" == ".DS_Store" ]] && continue
+    prune_stale_runtime_tree "$rel/$base"
+  done
+}
+
+sync_runtime_tree() {
   local rel="$1"
   local src="$SOURCE/$rel"
   local dest="$TARGET/$rel"
@@ -654,7 +729,7 @@ link_runtime_tree() {
   fi
 
   if ! path_has_tracked_content "$rel"; then
-    link_runtime_path "$rel"
+    sync_runtime_path "$rel"
     return
   fi
 
@@ -671,23 +746,36 @@ link_runtime_tree() {
   fi
 
   for child in "$src"/* "$src"/.[!.]* "$src"/..?*; do
-    [[ -e "$child" ]] || continue
+    [[ -e "$child" || -L "$child" ]] || continue
     base="$(basename "$child")"
     [[ "$base" == ".DS_Store" ]] && continue
-    link_runtime_tree "$rel/$base"
+    sync_runtime_tree "$rel/$base"
+  done
+
+  for child in "$dest"/* "$dest"/.[!.]* "$dest"/..?*; do
+    [[ -e "$child" || -L "$child" ]] || continue
+    base="$(basename "$child")"
+    [[ "$base" == ".DS_Store" ]] && continue
+    if [[ -e "$src/$base" || -L "$src/$base" ]]; then
+      continue
+    fi
+    if path_has_tracked_content "$rel/$base"; then
+      prune_stale_runtime_tree "$rel/$base"
+      continue
+    fi
+    remove_stale_runtime_path "$rel/$base"
   done
 }
 
-link_runtime_directory() {
+sync_runtime_directory() {
   echo
-  echo "Runtime link:"
+  echo "Runtime sync:"
   if [[ ! -d "$SOURCE/$RUNTIME_LINK_ROOT" ]]; then
     echo "skip missing runtime source: $RUNTIME_LINK_ROOT"
     return
   fi
 
-  ensure_local_exclude "$RUNTIME_LINK_ROOT/"
-  link_runtime_tree "$RUNTIME_LINK_ROOT"
+  sync_runtime_tree "$RUNTIME_LINK_ROOT"
 }
 
 target_worktree_id() {
@@ -1371,11 +1459,6 @@ echo "Source: $SOURCE"
 echo "Target: $TARGET"
 print_mode
 
-if [[ "$SELF_INSTALL_HOOKS_ONLY" -eq 1 ]]; then
-  install_git_hooks
-  exit 0
-fi
-
 echo
 echo "Files:"
 for rel in "${FILES[@]}"; do
@@ -1415,7 +1498,7 @@ if [[ "$LINK_OPENWOLF_KNOWLEDGE" -eq 1 ]]; then
   link_openwolf_knowledge
 fi
 
-link_runtime_directory
+sync_runtime_directory
 
 echo
 echo "Ignore/tracking check:"
