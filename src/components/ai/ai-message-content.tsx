@@ -161,6 +161,7 @@ export function sanitizeVerifiedCitationMarkdown(content: string): string {
     .replace(/^[ \t]*\[\^[^\]\n]+\]:[^\n]*(?:\n[ \t]{2,}[^\n]*)*/gm, '')
     .replace(/\[([^\]\n]+)\]\((?:\/knowledge)?#user-content-fn(?:ref)?[^)]*\)/gi, '')
     .replace(/\[\^[^\]\n]+\]/g, '')
+    .replace(/[ \t]*\[证据:\s*[A-Za-z0-9:_-]+\]/g, '')
     .replace(/[ \t]+\n/g, '\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
