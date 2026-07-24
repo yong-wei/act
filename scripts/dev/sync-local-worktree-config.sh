@@ -508,24 +508,15 @@ copy_dir() {
 
 ensure_local_exclude() {
   local rel="$1"
-  local exclude_file
-  exclude_file="$(git -C "$TARGET" rev-parse --git-path info/exclude)"
-  if [[ "$exclude_file" != /* ]]; then
-    exclude_file="$TARGET/$exclude_file"
-  fi
-
-  if grep -Fxq "$rel" "$exclude_file" 2>/dev/null; then
+  if path_has_tracked_content "$rel"; then
     return
   fi
 
-  if [[ "$APPLY" -ne 1 ]]; then
-    echo "would add local exclude: $rel"
+  if git -C "$TARGET" check-ignore -q -- "$rel"; then
     return
   fi
 
-  mkdir -p "$(dirname "$exclude_file")"
-  printf '%s\n' "$rel" >> "$exclude_file"
-  echo "added local exclude: $rel"
+  echo "warning: untracked synchronized path is not ignored by repository rules: $rel"
 }
 
 same_link_target() {

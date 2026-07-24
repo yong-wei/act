@@ -46,12 +46,6 @@ function gitHookPath(repo, hookName) {
   return path.isAbsolute(rawPath) ? rawPath : path.join(repo, rawPath);
 }
 
-function gitPath(repo, relativePath) {
-  const result = run('git', ['-C', repo, 'rev-parse', '--git-path', relativePath], root);
-  const rawPath = result.stdout.trim();
-  return path.isAbsolute(rawPath) ? rawPath : path.join(repo, rawPath);
-}
-
 function createIsolatedWorktree(name) {
   const worktree = path.join(tmpRoot, name);
   run('git', ['worktree', 'add', '--detach', worktree, 'HEAD'], source);
@@ -63,15 +57,18 @@ run('git', ['init'], source);
 run('git', ['config', 'user.email', 'test@example.com'], source);
 run('git', ['config', 'user.name', 'Test User'], source);
 fs.writeFileSync(path.join(source, 'README.md'), 'source\n');
+fs.writeFileSync(path.join(source, '.gitignore'), 'AGENTS.md\n.codex/\n');
 writeFile('GEMINI.md', '# Source Gemini\n');
 writeFile('course-content/runtime/lessons/demo/manifest.json', '{ "id": "demo" }\n');
 writeFile('course-content/runtime/knowledge/tracked.json', '{ "tracked": true }\n');
 writeFile('course-content/runtime/knowledge/media/asset.txt', 'tracked asset\n');
-run('git', ['add', 'README.md', 'GEMINI.md', 'course-content/runtime'], source);
+run('git', ['add', 'README.md', '.gitignore', 'GEMINI.md', 'course-content/runtime'], source);
 run('git', ['commit', '-m', 'initial source'], source);
 run('git', ['worktree', 'add', '--detach', target, 'HEAD'], source);
 const canonicalSource = fs.realpathSync(source);
 const canonicalTarget = fs.realpathSync(target);
+const primaryExcludePath = path.join(source, '.git/info/exclude');
+const primaryExcludeBefore = fs.readFileSync(primaryExcludePath, 'utf8');
 
 writeFile('.codex/agents/starter.toml', 'name = "starter"\n');
 writeFile('.codex/config.toml', '[tools]\n');
@@ -246,9 +243,21 @@ assert.equal(
   '# Target Gemini\n',
   'apply 模式不得覆盖 Git 管理的目标文件',
 );
-const targetLocalExclude = fs.readFileSync(gitPath(target, 'info/exclude'), 'utf8');
-assert.match(targetLocalExclude, /^AGENTS\.md$/m, '同步脚本应在隔离工作树本地忽略 AGENTS.md');
-assert.match(targetLocalExclude, /^\.codex\/$/m, '同步脚本应在隔离工作树本地忽略 .codex/');
+assert.equal(
+  spawnSync('git', ['-C', target, 'check-ignore', '-q', 'AGENTS.md'], { cwd: root }).status,
+  0,
+  '同步后的 AGENTS.md 应由仓库规则忽略',
+);
+assert.equal(
+  spawnSync('git', ['-C', target, 'check-ignore', '-q', '.codex/'], { cwd: root }).status,
+  0,
+  '同步后的 .codex/ 应由仓库规则忽略',
+);
+assert.equal(
+  fs.readFileSync(primaryExcludePath, 'utf8'),
+  primaryExcludeBefore,
+  '隔离工作树同步不得修改主工作树共享的 Git exclude 元数据',
+);
 assert.equal(
   fs.readdirSync(path.join(target, '.codex/agents')).some((name) => name.includes('.bak.')),
   false,
