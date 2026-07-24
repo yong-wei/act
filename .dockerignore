@@ -61,11 +61,11 @@ scripts/*
 !scripts/knowledge/**
 !scripts/assignments/
 !scripts/assignments/**
-!scripts/build-optimized-models.mjs
 !scripts/lib/
 !scripts/lib/**
 !scripts/workers/
 !scripts/workers/**
+tools/glb-model-optimizer/
 *.tsbuildinfo
 deploy/images
 deploy
