@@ -1,0 +1,16 @@
+{
+  "name": "@act/glb-model-optimizer",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "produce": "node ./optimize-models.mjs --source ../../public/assets --output ../../public/assets/models-opt",
+    "test": "node ./test-failure.mjs"
+  },
+  "dependencies": {
+    "@gltf-transform/core": "^4.4.1",
+    "@gltf-transform/extensions": "^4.4.1",
+    "@gltf-transform/functions": "^4.4.1",
+    "meshoptimizer": "^1.2.0"
+  }
+}

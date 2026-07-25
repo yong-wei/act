@@ -54,8 +54,9 @@ describe('review remediation: quality tier renderer consumption', () => {
 });
 
 describe('review remediation: production build boundary', () => {
-  it('allows the model optimization script through the docker build context', () => {
+  it('keeps the independent model optimizer out of the docker build context', () => {
     const dockerignore = readFileSync(path.join(process.cwd(), '.dockerignore'), 'utf8');
-    expect(dockerignore).toContain('!scripts/build-optimized-models.mjs');
+    expect(dockerignore).toContain('tools/glb-model-optimizer/');
+    expect(dockerignore).not.toContain('!scripts/build-optimized-models.mjs');
   });
 });
