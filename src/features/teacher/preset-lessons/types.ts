@@ -8,6 +8,8 @@ import { BopppsStage, LessonItemType, ResourceType } from '@prisma/client';
  * 预置教案环节配置
  */
 export interface PresetLessonItem {
+  /** 对应互动课 runtime manifest 的稳定环节 ID */
+  runtimeStepId?: string;
   /** BOPPPS 阶段 */
   stage: BopppsStage;
   /** 环节顺序 */

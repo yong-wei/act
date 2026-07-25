@@ -190,6 +190,12 @@ export function getSimulationCourseCompletionEventType(
     : 'simulation_finish';
 }
 
+export function requiresPersistedSimulationRun(
+  config: SimulationCourseResourceConfig,
+): boolean {
+  return config.resourceKind === 'simulation-scene' && config.sceneId === 'cruise';
+}
+
 export function buildSimulationCourseEvidencePayload(
   config: SimulationCourseResourceConfig,
   launchContext: ResourceRendererLaunchContext,

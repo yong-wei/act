@@ -29,6 +29,8 @@ const mocks = vi.hoisted(() => ({
   persistCoreLearningFact: vi.fn(),
   generateSessionSummaryReports: vi.fn(),
   enqueueSessionSummaryReportRefresh: vi.fn(),
+  resolveTrustedControlWorkbenchContext: vi.fn(),
+  persistedControlWorkbenchRunMatchesContext: vi.fn(),
 }));
 
 vi.mock('next-auth', () => ({
@@ -61,6 +63,11 @@ vi.mock('@/lib/data-governance/session-reports', () => ({
 
 vi.mock('@/lib/data-governance/session-finalization-snapshots', () => ({
   enqueueSessionSummaryReportRefresh: mocks.enqueueSessionSummaryReportRefresh,
+}));
+
+vi.mock('@/lib/data-governance/control-workbench-run-context', () => ({
+  resolveTrustedControlWorkbenchContext: mocks.resolveTrustedControlWorkbenchContext,
+  persistedControlWorkbenchRunMatchesContext: mocks.persistedControlWorkbenchRunMatchesContext,
 }));
 
 vi.mock('@/lib/nextjs-dynamic-error', () => ({
@@ -114,6 +121,18 @@ describe('POST /api/interactive/events', () => {
       reportRefreshJobs: 1,
       skipped: false,
     });
+    mocks.resolveTrustedControlWorkbenchContext.mockResolvedValue({
+      sessionId: 'cmoxloe52000uq5bcojma7r78',
+      classId: 'class-1',
+      lessonPlanId: 'plan-1',
+      manifestHash: 'manifest-hash-1',
+      lessonId: '4-2',
+      stepId: 'step-04',
+      moduleId: 'frequency-workbench',
+      capabilityId: 'control-frequency-reading-workbench',
+      registryId: 'classroom-objective',
+    });
+    mocks.persistedControlWorkbenchRunMatchesContext.mockReturnValue(true);
   });
 
   it('deduplicates client events and removes invalid session ids before writing logs', async () => {
@@ -826,6 +845,16 @@ describe('POST /api/interactive/events', () => {
       'SimulationRun:workbench-simulation-run',
       'SimulationRun:workbench-simulation-run-2',
     ]);
+    expect(mocks.resolveTrustedControlWorkbenchContext).toHaveBeenCalledWith({
+      user: { id: 'student-1', role: 'STUDENT' },
+      sessionId: 'cmoxloe52000uq5bcojma7r78',
+      lessonId: 'unit-4-2-controller-selection-first-start-v1',
+      stepId: 'step-04',
+      moduleId: 'frequency-workbench',
+      capabilityId: 'control-frequency-reading-workbench',
+      requireActive: false,
+    });
+    expect(mocks.persistedControlWorkbenchRunMatchesContext).toHaveBeenCalledTimes(3);
     const persistedLogData = mocks.prisma.interactionLog.createManyAndReturn.mock.calls[0][0].data[0];
     const persistedDraft = JSON.parse(persistedLogData.eventData.answerDigest['parameter.set']);
     const routedLearningEvent = mocks.routeEvent.mock.calls[0][0];

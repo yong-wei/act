@@ -16,6 +16,7 @@ export const UNIT_1_3_PARAMETER_POLE_MIGRATION_PRESET: PresetLessonConfig = {
   totalDuration: 90,
   tags: ['精品课程', '模块1', '极点迁移', '根轨迹', '时域响应'],
   items: UNIT_1_3_LESSON_STEPS.map((step, index) => ({
+    runtimeStepId: step.id,
     stage: UNIT_1_3_STAGE_MAP[step.stage],
     order: index + 1,
     registryId: isUNIT_1_3InteractivePageType(step.pageType) ? 'classroom-assessment' : 'classroom-objective',

@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 
 import { authOptions } from '@/lib/auth';
 import { canAccessClassroomSession } from '@/lib/classroom-session-access';
+import { resolveTrustedControlWorkbenchContext } from '@/lib/data-governance/control-workbench-run-context';
 import {
   persistControlWorkbenchSimulationRun,
   persistSceneTraceSimulationRun,
@@ -163,8 +164,32 @@ export async function POST(request: NextRequest) {
     if (kind === 'control-workbench') {
       const clientRunId = text(body.clientRunId);
       const capabilityId = text(body.capabilityId);
-      if (!clientRunId || !capabilityId || !isControlAnalysisRequest(body.request)) {
+      const untrustedLaunchContext = record(body.launchContext);
+      const sessionId = text(untrustedLaunchContext.sessionId);
+      const lessonId = text(untrustedLaunchContext.lessonId);
+      const stepId = text(untrustedLaunchContext.stepId);
+      const moduleId = text(untrustedLaunchContext.moduleId);
+      if (
+        !clientRunId
+        || !capabilityId
+        || !sessionId
+        || !lessonId
+        || !stepId
+        || !moduleId
+        || !isControlAnalysisRequest(body.request)
+      ) {
         return NextResponse.json({ error: 'Invalid control workbench run' }, { status: 400 });
+      }
+      const trustedContext = await resolveTrustedControlWorkbenchContext({
+        user: session.user,
+        sessionId,
+        lessonId,
+        stepId,
+        moduleId,
+        capabilityId,
+      });
+      if (!trustedContext) {
+        return NextResponse.json({ error: 'Untrusted control workbench context' }, { status: 403 });
       }
       const result = await persistControlWorkbenchSimulationRun(
         prisma,
@@ -173,7 +198,7 @@ export async function POST(request: NextRequest) {
           clientRunId,
           capabilityId,
           request: body.request,
-          launchContext: launchContext(body.launchContext),
+          launchContext: trustedContext,
         },
         computeControlAnalysisServer,
       );

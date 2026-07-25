@@ -45,6 +45,10 @@ import {
   hashSemanticFingerprintValue,
   hashSimulationTaskSpecKeyInputs,
 } from '@/lib/data-governance/simulation-task-evidence';
+import {
+  persistedControlWorkbenchRunMatchesContext,
+  resolveTrustedControlWorkbenchContext,
+} from '@/lib/data-governance/control-workbench-run-context';
 
 export const dynamic = 'force-dynamic';
 
@@ -475,6 +479,21 @@ async function persistControlWorkbenchTaskEvidenceRows(
         })
       : [];
     const capabilityId = typeof payload.capabilityId === 'string' ? payload.capabilityId : '';
+    const moduleId = typeof evidence.moduleId === 'string' ? evidence.moduleId : '';
+    const sessionId = typeof row.sessionId === 'string' ? row.sessionId : '';
+    const lessonId = typeof row.lessonKey === 'string' ? row.lessonKey : '';
+    const stepId = typeof row.stepId === 'string' ? row.stepId : '';
+    if (!capabilityId || !moduleId || !sessionId || !lessonId || !stepId) continue;
+    const trustedContext = await resolveTrustedControlWorkbenchContext({
+      user: { id: userId, role: actorRole.toUpperCase() },
+      sessionId,
+      lessonId,
+      stepId,
+      moduleId,
+      capabilityId,
+      requireActive: false,
+    });
+    if (!trustedContext) continue;
     const verifiedRuns = [];
     for (const value of simulationRunRefs) {
       const runId = readPayloadString(readRecord(value), 'id');
@@ -490,6 +509,7 @@ async function persistControlWorkbenchTaskEvidenceRows(
         },
         select: {
           id: true,
+          sessionId: true,
           resourceId: true,
           taskSpecSnapshot: true,
           controllerSnapshotRef: true,
@@ -498,7 +518,12 @@ async function persistControlWorkbenchTaskEvidenceRows(
           completedAt: true,
         },
       });
-      if (run?.completedAt) verifiedRuns.push(run);
+      if (
+        run?.completedAt
+        && persistedControlWorkbenchRunMatchesContext(run, trustedContext)
+      ) {
+        verifiedRuns.push(run);
+      }
     }
     for (const resultRun of verifiedRuns) {
       const completedAt = resultRun.completedAt;

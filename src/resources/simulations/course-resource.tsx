@@ -12,6 +12,7 @@ import {
   buildSimulationCourseLaunchHref,
   getSimulationCourseCompletionEventType,
   getSimulationCourseLaunchEventType,
+  requiresPersistedSimulationRun,
   resolveSimulationCourseResourceConfig,
 } from './course-resource-config';
 
@@ -39,6 +40,7 @@ function fallbackLaunchContext(props: SimulationCourseResourceProps): ResourceRe
 export function SimulationCourseResource(props: SimulationCourseResourceProps) {
   const interactive = useOptionalInteractiveContext();
   const config = useMemo(() => resolveSimulationCourseResourceConfig(props), [props]);
+  const persistedRunRequired = requiresPersistedSimulationRun(config);
   const launchContext = props.launchContext ?? fallbackLaunchContext(props);
   const [completionChannelId, setCompletionChannelId] = useState<string | null>(null);
   const [simulationRunId, setSimulationRunId] = useState<string | null>(null);
@@ -96,7 +98,7 @@ export function SimulationCourseResource(props: SimulationCourseResourceProps) {
   };
 
   const recordCompletion = () => {
-    if (config.resourceKind === 'simulation-scene' && !simulationRunId) return;
+    if (persistedRunRequired && !simulationRunId) return;
     interactive?.progress.markComplete({
       success: true,
       score: 100,
@@ -161,10 +163,10 @@ export function SimulationCourseResource(props: SimulationCourseResourceProps) {
             type="button"
             variant="outline"
             onClick={recordCompletion}
-            disabled={config.resourceKind === 'simulation-scene' && !simulationRunId}
+            disabled={persistedRunRequired && !simulationRunId}
           >
             <CheckCircle2 className="mr-2 h-4 w-4" />
-            {config.resourceKind === 'simulation-scene' && !simulationRunId
+            {persistedRunRequired && !simulationRunId
               ? '完成仿真后记录'
               : '标记完成'}
           </Button>

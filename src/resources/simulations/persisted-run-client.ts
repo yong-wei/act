@@ -7,6 +7,12 @@ interface PersistedRunResponse {
   simulationRunId: string;
 }
 
+export function resolveClassroomSessionIdFromPathname(pathname: string): string | undefined {
+  const match = pathname.match(/\/student\/([^/?#]+)/);
+  const sessionId = match?.[1] ? decodeURIComponent(match[1]).trim() : '';
+  return sessionId && sessionId !== 'demo' ? sessionId : undefined;
+}
+
 async function persistRun(payload: Record<string, unknown>): Promise<PersistedRunResponse> {
   const response = await fetch('/api/simulation/runs', {
     method: 'POST',
@@ -29,9 +35,16 @@ export function persistControlWorkbenchRun(input: {
   request: ControlAnalysisRequest;
   launchContext: Record<string, string | undefined>;
 }) {
+  const sessionId = typeof window === 'undefined'
+    ? undefined
+    : resolveClassroomSessionIdFromPathname(window.location.pathname);
   return persistRun({
     kind: 'control-workbench',
     ...input,
+    launchContext: {
+      ...input.launchContext,
+      sessionId: input.launchContext.sessionId ?? sessionId,
+    },
   });
 }
 

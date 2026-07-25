@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
   computeControlAnalysisServer: vi.fn(),
   classSessionFindUnique: vi.fn(),
   studentProfileFindUnique: vi.fn(),
+  resolveTrustedControlWorkbenchContext: vi.fn(),
 }));
 
 vi.mock('next-auth', () => ({
@@ -28,6 +29,10 @@ vi.mock('@/lib/prisma', () => ({
 vi.mock('@/lib/data-governance/simulation-scene-run-persistence', () => ({
   persistControlWorkbenchSimulationRun: mocks.persistControlWorkbenchSimulationRun,
   persistSceneTraceSimulationRun: mocks.persistSceneTraceSimulationRun,
+}));
+
+vi.mock('@/lib/data-governance/control-workbench-run-context', () => ({
+  resolveTrustedControlWorkbenchContext: mocks.resolveTrustedControlWorkbenchContext,
 }));
 
 vi.mock('@/resources/control-system/analysis/control-engine-server-runtime', () => ({
@@ -75,6 +80,17 @@ describe('POST /api/simulation/runs', () => {
       teacherId: 'teacher-1',
     });
     mocks.studentProfileFindUnique.mockResolvedValue({ classId: 'class-1' });
+    mocks.resolveTrustedControlWorkbenchContext.mockResolvedValue({
+      sessionId: 'cmoxloe52000uq5bcojma7r78',
+      classId: 'class-1',
+      lessonPlanId: 'plan-1',
+      manifestHash: 'manifest-hash-1',
+      lessonId: '1-4',
+      stepId: 'step-1',
+      moduleId: 'module-1',
+      capabilityId: 'control-linked-comparison',
+      registryId: 'classroom-objective',
+    });
   });
 
   it('persists a valid control workbench request under the authenticated student', async () => {
@@ -92,7 +108,10 @@ describe('POST /api/simulation/runs', () => {
         rootLocus: { minGain: 0, maxGain: 10, samples: 10, currentGain: 1 },
       },
       launchContext: {
-        lessonId: 'lesson-1',
+        sessionId: 'cmoxloe52000uq5bcojma7r78',
+        stepId: 'step-1',
+        moduleId: 'module-1',
+        lessonId: 'forged-lesson',
         ignored: 'untrusted',
       },
     }));
@@ -103,10 +122,47 @@ describe('POST /api/simulation/runs', () => {
       expect.anything(),
       'student-1',
       expect.objectContaining({
-        launchContext: { lessonId: 'lesson-1' },
+        launchContext: {
+          sessionId: 'cmoxloe52000uq5bcojma7r78',
+          classId: 'class-1',
+          lessonPlanId: 'plan-1',
+          manifestHash: 'manifest-hash-1',
+          lessonId: '1-4',
+          stepId: 'step-1',
+          moduleId: 'module-1',
+          capabilityId: 'control-linked-comparison',
+          registryId: 'classroom-objective',
+        },
       }),
       mocks.computeControlAnalysisServer,
     );
+  });
+
+  it('rejects a control workbench run when the server cannot resolve its classroom task', async () => {
+    mocks.resolveTrustedControlWorkbenchContext.mockResolvedValue(null);
+    const response = await POST(request({
+      kind: 'control-workbench',
+      clientRunId: 'step-1:module-1:1',
+      capabilityId: 'control-linked-comparison',
+      request: {
+        runtimeMode: 'analysis',
+        plant: { numerator: [1], denominator: [1, 1] },
+        structures: [],
+        outputs: ['step_response'],
+        timeRange: { start: 0, end: 10, samples: 10 },
+        frequencyRange: { min: 0.1, max: 10, samples: 10 },
+        rootLocus: { minGain: 0, maxGain: 10, samples: 10, currentGain: 1 },
+      },
+      launchContext: {
+        sessionId: 'cmoxloe52000uq5bcojma7r78',
+        lessonId: 'forged-lesson',
+        stepId: 'step-1',
+        moduleId: 'module-1',
+      },
+    }));
+
+    expect(response.status).toBe(403);
+    expect(mocks.persistControlWorkbenchSimulationRun).not.toHaveBeenCalled();
   });
 
   it('rejects non-student writers', async () => {

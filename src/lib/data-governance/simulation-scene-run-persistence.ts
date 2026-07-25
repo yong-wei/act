@@ -21,9 +21,12 @@ interface SimulationRunPersistenceDb {
 }
 
 export interface SimulationRunLaunchContext {
+  capabilityId?: string;
   classId?: string;
   courseId?: string;
+  lessonPlanId?: string;
   lessonId?: string;
+  manifestHash?: string;
   moduleId?: string;
   publicationId?: string;
   registryId?: string;
