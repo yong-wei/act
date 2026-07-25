@@ -444,6 +444,18 @@ export const prismaArenaVirtualSimulationRunStore: ArenaVirtualSimulationRunStor
         update: {},
       });
       const previewBoundary = getArenaPreviewBoundaryMetadata(input.preview);
+      const arenaTraining = {
+        taskId: input.taskId,
+        scenarioId: input.scenarioId,
+        evaluationVisibility: previewBoundary.evaluationVisibility,
+        officialEligible: previewBoundary.officialEligible,
+        replay: {
+          sceneId: input.preview.replay?.sceneId,
+          scenarioId: input.preview.replay?.scenarioId,
+          checksum: input.preview.replay?.checksum,
+          protocolVersion: input.preview.replay?.protocolVersion,
+        },
+      };
       const canonicalRunData = {
           ownerUserId: input.userId,
           classId: owner?.profile?.classId ?? null,
@@ -459,6 +471,7 @@ export const prismaArenaVirtualSimulationRunStore: ArenaVirtualSimulationRunStor
           summary: {
             ...input.preview.summary,
             previewBoundary,
+            arenaTraining,
           } as unknown as Prisma.InputJsonValue,
           replayToken: input.preview.replay?.checksum ?? null,
           seed: input.preview.replay?.seed ?? null,

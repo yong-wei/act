@@ -166,6 +166,7 @@ function buildSimulationRunEvidenceDraft(
   if (!runId || !ownerUserId || !isCompletedStatus(run.status)) return null;
 
   const summary = readObject(run.summary);
+  const safeSummary = buildSafeSimulationSummary(summary, trace);
   const traceId = readString(trace?.id);
   const summaryProvenance = readObject(summary.provenance);
   const agentSessionId = readString(summary.agentSessionId) ?? readString(summaryProvenance.agentSessionId);
@@ -194,13 +195,14 @@ function buildSimulationRunEvidenceDraft(
       agentToolRunId,
     }),
     factType: 'simulation',
-    summary: buildSafeSimulationSummary(summary, trace),
+    summary: safeSummary,
     evidenceRefs: compactObject({
       simulationRunId: runId,
       simulationTraceId: traceId,
       agentSessionId,
       agentToolRunId,
       taskSpecId: readString(run.taskSpecId),
+      taskId: readString(safeSummary.taskId),
       traceReference: traceId ? `SimulationTrace:${traceId}` : `SimulationRun:${runId}`,
     }),
     provenance,
@@ -327,6 +329,9 @@ function draftToLearningFactInput(
             agentAssisted: draft.provenance.agentAssisted === true,
             preview: draft.provenance.preview === true,
             official: draft.provenance.official === true,
+            officialEligible: readBoolean(draft.summary.officialEligible),
+            taskId: readString(draft.summary.taskId),
+            arenaTraining: readObject(draft.summary.arenaTraining),
             launchMode: draft.provenance.standalone === true ? 'standalone' : 'course-resource',
             governanceContext: compactObject({
               classId: draft.classId,
@@ -441,11 +446,16 @@ function draftToOutboxEvent(
 
 function buildSafeSimulationSummary(summary: JsonRecord, trace: JsonRecord | null): Prisma.InputJsonObject {
   const metrics = resolveSimulationSummaryMetrics(summary);
+  const arenaTraining = buildSafeArenaTrainingSummary(summary);
   return compactObject({
     score: readNumber(summary.score) ?? deriveSimulationSummaryScore(metrics),
     valid: typeof summary.valid === 'boolean' ? summary.valid : deriveSimulationSummaryValid(metrics),
     replayConfidence: readNumber(summary.replayConfidence),
     durationSeconds: readNumber(summary.durationSeconds),
+    taskId: readString(arenaTraining.taskId),
+    scenarioId: readString(arenaTraining.scenarioId),
+    officialEligible: readBoolean(arenaTraining.officialEligible),
+    arenaTraining: Object.keys(arenaTraining).length > 0 ? arenaTraining : undefined,
     metrics,
     satisfaction: sanitizeObject(readObject(summary.satisfaction)),
     weakMetrics: sanitizeArray(summary.weakMetrics),
@@ -456,6 +466,25 @@ function buildSafeSimulationSummary(summary: JsonRecord, trace: JsonRecord | nul
       sampleCadence: readNumber(trace.sampleCadence),
       summaryMetrics: sanitizeObject(readObject(trace.summaryMetrics)),
     }) : undefined,
+  });
+}
+
+function buildSafeArenaTrainingSummary(summary: JsonRecord): Prisma.InputJsonObject {
+  const arenaTraining = readObject(summary.arenaTraining);
+  const previewBoundary = readObject(summary.previewBoundary);
+  const replay = readObject(arenaTraining.replay);
+
+  return compactObject({
+    taskId: readString(arenaTraining.taskId),
+    scenarioId: readString(arenaTraining.scenarioId),
+    evaluationVisibility: readString(arenaTraining.evaluationVisibility) ?? readString(previewBoundary.evaluationVisibility),
+    officialEligible: readBoolean(arenaTraining.officialEligible) ?? readBoolean(previewBoundary.officialEligible),
+    replay: compactObject({
+      sceneId: readString(replay.sceneId),
+      scenarioId: readString(replay.scenarioId),
+      checksum: readString(replay.checksum),
+      protocolVersion: readString(replay.protocolVersion),
+    }),
   });
 }
 
@@ -506,7 +535,8 @@ function resolveFactTimeSpent(draft: SimulationAgentEvidenceDraft): number | und
 
 function resolveCompetencyContribution(draft: SimulationAgentEvidenceDraft): Prisma.InputJsonValue {
   const score = readNumber(draft.summary.score);
-  const contribution = score === undefined ? 0.2 : Math.max(Math.min((score - 50) / 100, 0.6), -0.3);
+  const baseContribution = score === undefined ? 0.2 : Math.max(Math.min((score - 50) / 100, 0.6), -0.3);
+  const contribution = draft.provenance.preview === true ? baseContribution * 0.35 : baseContribution;
   return {
     parameterDesign: round(contribution),
     systemAnalysis: round(contribution * 0.8),
@@ -557,6 +587,10 @@ function readString(value: unknown): string | undefined {
 
 function readNumber(value: unknown): number | undefined {
   return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+}
+
+function readBoolean(value: unknown): boolean | undefined {
+  return typeof value === 'boolean' ? value : undefined;
 }
 
 function readDate(value: unknown): Date | undefined {

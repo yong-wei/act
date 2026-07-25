@@ -71,6 +71,31 @@ function submission(input: {
   };
 }
 
+function virtualTraining(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 'training-1',
+    userId: targetUserId,
+    taskId: 'task-cruise-roll-blackbox-identification',
+    scenarioId: 'cruise-roll-controller-preview',
+    simulationRunId: 'canonical-run-1',
+    payload: {
+      summary: {
+        trackingError: 0.2,
+        maxDeviation: 0.3,
+        controlEnergy: 0.4,
+        safetyViolations: 0,
+        smoothness: 0.8,
+      },
+      metadata: {
+        evaluationVisibility: 'preview',
+        officialEligible: false,
+      },
+    },
+    createdAt: '2026-05-11T08:45:00.000Z',
+    ...overrides,
+  };
+}
+
 describe('arena student portfolio', () => {
   it('summarizes controllers, identification models, ranks, failures, and metric improvement from real submissions', () => {
     const earlyPid = submission({
@@ -329,13 +354,54 @@ describe('arena student portfolio', () => {
 
     expect(routeSource).toContain('prismaArenaSubmissionStore.listSubmissions({ userId })');
     expect(routeSource).toContain('prismaArenaSubmissionStore.listSubmissions({ taskIds: arenaTaskIds })');
-    expect(routeSource).toContain('buildArenaStudentPortfolio(arenaPortfolioSubmissions, userId)');
+    expect(routeSource).toContain('prisma.arenaVirtualSimulationRun.findMany');
+    expect(routeSource).toContain('buildArenaStudentPortfolio(arenaPortfolioSubmissions, userId, userArenaVirtualSimulationRuns)');
     expect(routeSource).toContain('arenaPortfolio:');
     expect(pageSource).toContain('arenaPortfolio');
+    expect(pageSource).toContain('trainingSummary');
+    expect(pageSource).toContain('recentRuns');
     expect(pageSource).toContain('竞技场画像');
     expect(pageSource).toContain('能力成长');
     expect(pageSource).toContain('下一项挑战');
     expect(pageSource).toContain('growth.nextChallenges');
+  });
+
+  it('summarizes virtual training separately without inventing official Arena evidence', () => {
+    const portfolio = buildArenaStudentPortfolio(
+      [],
+      targetUserId,
+      [virtualTraining()],
+    );
+
+    expect(portfolio.submissionSummary).toEqual({
+      total: 0,
+      valid: 0,
+      invalid: 0,
+      latestSubmittedAt: undefined,
+    });
+    expect(portfolio.growth).toMatchObject({
+      evidenceAvailable: false,
+      capabilityCoverage: { covered: 0 },
+    });
+    expect(portfolio.trainingSummary).toEqual({
+      total: 1,
+      previewCount: 1,
+      latestTrainedAt: '2026-05-11T08:45:00.000Z',
+      averageQualityScore: 82.4,
+      recentRuns: [
+        {
+          id: 'training-1',
+          taskId: 'task-cruise-roll-blackbox-identification',
+          taskTitle: '邮轮黑箱辨识与闭环控制挑战',
+          scenarioId: 'cruise-roll-controller-preview',
+          simulationRunId: 'canonical-run-1',
+          qualityScore: 82.4,
+          preview: true,
+          officialEligible: false,
+          trainedAt: '2026-05-11T08:45:00.000Z',
+        },
+      ],
+    });
   });
 
   it('returns an empty portfolio without inventing controller or leaderboard data', () => {
@@ -355,6 +421,12 @@ describe('arena student portfolio', () => {
       personalBestByTask: [],
       frequentFailureObjects: [],
       improvingMetrics: [],
+      trainingSummary: {
+        total: 0,
+        previewCount: 0,
+        averageQualityScore: null,
+        recentRuns: [],
+      },
     });
     expect(portfolio.growth).toMatchObject({
       evidenceAvailable: false,

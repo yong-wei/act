@@ -623,6 +623,36 @@ export default function ProfilePage() {
                   </>
                 )}
 
+                {profile.arenaPortfolio.trainingSummary.total > 0 && (
+                  <div className="border-t border-border/70 pt-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-xs text-subtle">虚拟仿真训练</p>
+                        <p className="mt-1 text-sm text-foreground">
+                          已记录 {profile.arenaPortfolio.trainingSummary.total} 次训练
+                          {profile.arenaPortfolio.trainingSummary.averageQualityScore !== null && (
+                            <> · 平均质量 {Math.round(profile.arenaPortfolio.trainingSummary.averageQualityScore)} 分</>
+                          )}
+                        </p>
+                      </div>
+                      <span className="rounded-full bg-sky-500/10 px-3 py-1 text-xs text-sky-700 dark:text-sky-300">
+                        非官方预览
+                      </span>
+                    </div>
+                    <div className="mt-3 grid gap-2">
+                      {profile.arenaPortfolio.trainingSummary.recentRuns.map((run) => (
+                        <div key={run.id} className="border-b border-border/60 pb-2 text-sm last:border-b-0 last:pb-0">
+                          <p className="font-medium text-foreground">{run.taskTitle}</p>
+                          <p className="mt-1 text-xs text-subtle">
+                            {run.qualityScore === null ? '质量待评估' : `质量 ${Math.round(run.qualityScore)} 分`}
+                            {' · '}预览训练
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="surface-card-soft p-4">
                   <div className="flex items-center justify-between gap-3">
                     <div>

@@ -113,6 +113,36 @@ export interface ArenaPortfolioGrowthSummary {
   nextChallenges: ArenaNextChallengeRecommendation[];
 }
 
+export interface ArenaVirtualTrainingRunRecord {
+  id: string;
+  userId: string;
+  taskId: string;
+  scenarioId: string;
+  simulationRunId?: string | null;
+  payload: unknown;
+  createdAt: Date | string;
+}
+
+export interface ArenaPortfolioRecentTrainingRun {
+  id: string;
+  taskId: string;
+  taskTitle: string;
+  scenarioId: string;
+  simulationRunId?: string | null;
+  qualityScore: number | null;
+  preview: boolean;
+  officialEligible: boolean;
+  trainedAt: string;
+}
+
+export interface ArenaPortfolioTrainingSummary {
+  total: number;
+  previewCount: number;
+  latestTrainedAt?: string;
+  averageQualityScore: number | null;
+  recentRuns: ArenaPortfolioRecentTrainingRun[];
+}
+
 export interface ArenaStudentPortfolio {
   userId: string;
   controllerCount: number;
@@ -124,6 +154,7 @@ export interface ArenaStudentPortfolio {
   frequentFailureObjects: ArenaPortfolioFailureObject[];
   improvingMetrics: ArenaPortfolioImprovingMetric[];
   growth: ArenaPortfolioGrowthSummary;
+  trainingSummary: ArenaPortfolioTrainingSummary;
 }
 
 function sortBySubmittedAtAsc(left: ArenaSubmissionRecord, right: ArenaSubmissionRecord): number {
@@ -134,12 +165,87 @@ function sortBySubmittedAtDesc(left: { submittedAt: string }, right: { submitted
   return Date.parse(right.submittedAt) - Date.parse(left.submittedAt);
 }
 
+function sortByTrainedAtDesc(
+  left: ArenaPortfolioRecentTrainingRun,
+  right: ArenaPortfolioRecentTrainingRun,
+): number {
+  return Date.parse(right.trainedAt) - Date.parse(left.trainedAt);
+}
+
 function roundSignal(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
+function readRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+function readFiniteNumber(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+}
+
+function toIsoString(value: Date | string): string {
+  return value instanceof Date ? value.toISOString() : value;
+}
+
 function taskTitle(taskId: string): string {
   return getArenaChallengeTask(taskId)?.title ?? taskId;
+}
+
+function deriveTrainingQualityScore(summary: Record<string, unknown>): number | null {
+  const trackingError = readFiniteNumber(summary.trackingError);
+  const maxDeviation = readFiniteNumber(summary.maxDeviation);
+  const safetyViolations = readFiniteNumber(summary.safetyViolations);
+  if (trackingError === undefined && maxDeviation === undefined && safetyViolations === undefined) {
+    return null;
+  }
+
+  return roundSignal(Math.max(0, Math.min(
+    100,
+    100 - (trackingError ?? 0) * 70 - (maxDeviation ?? 0) * 12 - (safetyViolations ?? 0) * 4,
+  )));
+}
+
+function buildTrainingSummary(
+  trainingRuns: readonly ArenaVirtualTrainingRunRecord[],
+  userId: string,
+): ArenaPortfolioTrainingSummary {
+  const recentRuns = trainingRuns
+    .filter((run) => run.userId === userId)
+    .map((run) => {
+      const payload = readRecord(run.payload);
+      const metadata = readRecord(payload.metadata);
+      const preview = metadata.evaluationVisibility !== 'official';
+      const qualityScore = deriveTrainingQualityScore(readRecord(payload.summary));
+
+      return {
+        id: run.id,
+        taskId: run.taskId,
+        taskTitle: taskTitle(run.taskId),
+        scenarioId: run.scenarioId,
+        simulationRunId: run.simulationRunId ?? null,
+        qualityScore,
+        preview,
+        officialEligible: false,
+        trainedAt: toIsoString(run.createdAt),
+      };
+    })
+    .sort(sortByTrainedAtDesc);
+  const qualityScores = recentRuns
+    .map((run) => run.qualityScore)
+    .filter((score): score is number => score !== null);
+
+  return {
+    total: recentRuns.length,
+    previewCount: recentRuns.filter((run) => run.preview).length,
+    latestTrainedAt: recentRuns[0]?.trainedAt,
+    averageQualityScore: qualityScores.length > 0
+      ? roundSignal(qualityScores.reduce((sum, score) => sum + score, 0) / qualityScores.length)
+      : null,
+    recentRuns: recentRuns.slice(0, PORTFOLIO_RECENT_LIMIT),
+  };
 }
 
 function metricLabel(taskId: string, metricId: string): string {
@@ -498,6 +604,7 @@ function buildGrowthSummary(submissions: ArenaSubmissionRecord[]): ArenaPortfoli
 export function buildArenaStudentPortfolio(
   submissions: readonly ArenaSubmissionRecord[],
   userId: string,
+  trainingRuns: readonly ArenaVirtualTrainingRunRecord[] = [],
 ): ArenaStudentPortfolio {
   const userSubmissions = submissions
     .filter((submission) => submission.userId === userId)
@@ -508,6 +615,7 @@ export function buildArenaStudentPortfolio(
   const methodDistribution = buildMethodDistribution(userSubmissions);
   const identificationModels = buildIdentificationModels(userSubmissions);
   const improvingMetrics = buildImprovingMetrics(userSubmissions);
+  const trainingSummary = buildTrainingSummary(trainingRuns, userId);
 
   return {
     userId,
@@ -537,5 +645,6 @@ export function buildArenaStudentPortfolio(
     frequentFailureObjects: buildFailureObjects(userSubmissions),
     improvingMetrics,
     growth: buildGrowthSummary(userSubmissions),
+    trainingSummary,
   };
 }

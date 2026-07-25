@@ -66,6 +66,9 @@ const mocks = vi.hoisted(() => {
       learningFact: {
         findMany: vi.fn(),
       },
+      arenaVirtualSimulationRun: {
+        findMany: vi.fn(),
+      },
       studentEvidenceFeatureCache: {
         findUnique: vi.fn(),
       },
@@ -599,6 +602,30 @@ describe('GET /api/user/profile', () => {
       }),
     ]);
 
+    mocks.prisma.arenaVirtualSimulationRun.findMany.mockResolvedValue([
+      {
+        id: 'arena-training-1',
+        userId: 'student-1',
+        taskId: 'task-cruise-roll-blackbox-identification',
+        scenarioId: 'cruise-roll-controller-preview',
+        simulationRunId: 'canonical-run-1',
+        payload: {
+          summary: {
+            trackingError: 0.2,
+            maxDeviation: 0.3,
+            controlEnergy: 0.4,
+            safetyViolations: 0,
+            smoothness: 0.8,
+          },
+          metadata: {
+            evaluationVisibility: 'preview',
+            officialEligible: false,
+          },
+        },
+        createdAt: new Date('2026-05-16T08:40:00.000Z'),
+      },
+    ]);
+
     mocks.prisma.studentEvidenceFeatureCache.findUnique.mockResolvedValue(profileEvidenceCache());
 
     mocks.prisma.studentState.findMany.mockResolvedValue([
@@ -796,6 +823,31 @@ describe('GET /api/user/profile', () => {
       actionUrl: '/assessment/adaptive-practice?intent=practice',
     });
     expect(body.arenaPortfolio.submissionSummary.total).toBe(2);
+    expect(mocks.prisma.arenaVirtualSimulationRun.findMany).toHaveBeenCalledWith({
+      where: { userId: 'student-1' },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        userId: true,
+        taskId: true,
+        scenarioId: true,
+        simulationRunId: true,
+        payload: true,
+        createdAt: true,
+      },
+    });
+    expect(body.arenaPortfolio.trainingSummary).toMatchObject({
+      total: 1,
+      previewCount: 1,
+      averageQualityScore: 82.4,
+      recentRuns: [
+        expect.objectContaining({
+          taskId: 'task-cruise-roll-blackbox-identification',
+          preview: true,
+          officialEligible: false,
+        }),
+      ],
+    });
     expect(body.arenaPortfolio.growth).toMatchObject({
       evidenceAvailable: true,
       capabilityCoverage: {
