@@ -14,6 +14,7 @@ import {
   buildGovernedTaskEvidence,
   buildSemanticFingerprint,
   hashSemanticFingerprintValue,
+  hashSimulationTaskSpecKeyInputs,
   higherTier,
   isDistinctRun,
   isGovernedTaskEvidence,
@@ -170,6 +171,34 @@ describe('simulation-task-evidence', () => {
     expect(isDistinctRun(fpA, fpB)).toBe(true);
     expect(isDistinctRun(fpA, fpC)).toBe(false);
     expect(buildSemanticFingerprint(fpA)).toBe('plant-1||cfg-a|');
+  });
+
+  it('excludes launch context and task-spec wrapper metadata from key inputs', () => {
+    const base = {
+      schemaVersion: 'simulation-task-spec-v1',
+      sceneId: 'ship-heading',
+      scenarioId: 'course-keeping',
+      disturbancePolicy: { wave: 2 },
+      allowedControllers: ['pid'],
+    };
+    const first = hashSimulationTaskSpecKeyInputs({
+      ...base,
+      specHash: 'sha256:first',
+      launchContext: { sessionId: 'session-a', pageId: '/first' },
+    });
+    const replay = hashSimulationTaskSpecKeyInputs({
+      ...base,
+      specHash: 'sha256:second',
+      launchContext: { sessionId: 'session-b', pageId: '/second' },
+    });
+    const changedInput = hashSimulationTaskSpecKeyInputs({
+      ...base,
+      disturbancePolicy: { wave: 3 },
+      launchContext: { sessionId: 'session-b' },
+    });
+
+    expect(replay).toBe(first);
+    expect(changedInput).not.toBe(first);
   });
 
   it('hashes semantically identical object values independent of key order', () => {

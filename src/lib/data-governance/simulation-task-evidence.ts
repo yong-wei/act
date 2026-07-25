@@ -105,6 +105,24 @@ export function hashSemanticFingerprintValue(value: unknown): string {
     .digest('hex');
 }
 
+/**
+ * Hashes only task-spec fields that describe the simulation itself.
+ * Launch ownership and wrapper metadata must not make an otherwise identical
+ * run count as a distinct semantic result.
+ */
+export function hashSimulationTaskSpecKeyInputs(value: unknown): string {
+  const record = value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+  const {
+    launchContext: _launchContext,
+    schemaVersion: _schemaVersion,
+    specHash: _specHash,
+    ...semanticInputs
+  } = record;
+  return hashSemanticFingerprintValue(semanticInputs);
+}
+
 export function buildSemanticFingerprint(input: SemanticFingerprintInput): string {
   const parts = [
     input.plantRef ?? '',

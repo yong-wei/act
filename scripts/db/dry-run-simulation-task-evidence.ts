@@ -5,7 +5,10 @@ import {
   runHistoricalTaskEvidenceDryRun,
   type HistoricalRecord,
 } from '../../src/lib/data-governance/simulation-task-historical-dryrun';
-import { hashSemanticFingerprintValue } from '../../src/lib/data-governance/simulation-task-evidence';
+import {
+  hashSemanticFingerprintValue,
+  hashSimulationTaskSpecKeyInputs,
+} from '../../src/lib/data-governance/simulation-task-evidence';
 
 const prisma = createPrismaClient();
 
@@ -113,7 +116,7 @@ async function collectHistoricalRecords(): Promise<HistoricalRecord[]> {
         controllerConfigHash: run.controllerSnapshotRef
           ? hashSemanticFingerprintValue(run.controllerSnapshotRef)
           : undefined,
-        keyInputHash: hashSemanticFingerprintValue(taskSpec),
+        keyInputHash: hashSimulationTaskSpecKeyInputs(taskSpec),
       },
     };
   });
@@ -131,36 +134,41 @@ async function collectHistoricalRecords(): Promise<HistoricalRecord[]> {
           return readString(ref, 'kind') === 'SimulationRun' && readString(ref, 'id') !== null;
         })
       : [];
-    const verifiedRun = simulationRunRefs
+    const verifiedRuns = simulationRunRefs
       .map((value) => readString(readRecord(value), 'id'))
       .filter((value): value is string => value !== null)
       .map((runId) => simulationRunById.get(runId))
       .filter((run) => run?.ownerUserId === response.userId && run.completedAt !== null)
-      .find((run) => run !== undefined);
-    const taskSpec = readRecord(verifiedRun?.taskSpecSnapshot);
-    records.push({
-      id: `StudentStepResponse:${response.id}`,
-      userId: response.userId,
-      actorRole: readRole(response.user.role),
-      occurredAt: response.submittedAt.toISOString(),
-      source: 'control-workbench',
-      eventType: 'workspace_submission',
-      sourceArtifactId: verifiedRun?.id ?? response.sourceLogId,
-      tier: 'submission',
-      hasPersistedDesign: Object.keys(selectedDesignState).length > 0
-        && verifiedRun !== undefined,
-      fingerprint: {
-        plantRef: readString(taskSpec, 'plantRef')
-          ?? readString(taskSpec, 'sceneId')
-          ?? verifiedRun?.resourceId
-          ?? undefined,
-        modelRef: verifiedRun?.modelVersion,
-        controllerConfigHash: verifiedRun?.controllerSnapshotRef
-          ? hashSemanticFingerprintValue(verifiedRun.controllerSnapshotRef)
-          : undefined,
-        keyInputHash: hashSemanticFingerprintValue(taskSpec),
-      },
-    });
+      .filter((run) => run !== undefined);
+    const runsForRecord = verifiedRuns.length > 0 ? verifiedRuns : [undefined];
+    for (const verifiedRun of runsForRecord) {
+      const taskSpec = readRecord(verifiedRun?.taskSpecSnapshot);
+      records.push({
+        id: verifiedRun
+          ? `StudentStepResponse:${response.id}:SimulationRun:${verifiedRun.id}`
+          : `StudentStepResponse:${response.id}`,
+        userId: response.userId,
+        actorRole: readRole(response.user.role),
+        occurredAt: verifiedRun?.completedAt?.toISOString() ?? response.submittedAt.toISOString(),
+        source: 'control-workbench',
+        eventType: 'workspace_submission',
+        sourceArtifactId: verifiedRun?.id ?? response.sourceLogId,
+        tier: 'submission',
+        hasPersistedDesign: Object.keys(selectedDesignState).length > 0
+          && verifiedRun !== undefined,
+        fingerprint: {
+          plantRef: readString(taskSpec, 'plantRef')
+            ?? readString(taskSpec, 'sceneId')
+            ?? verifiedRun?.resourceId
+            ?? undefined,
+          modelRef: verifiedRun?.modelVersion,
+          controllerConfigHash: verifiedRun?.controllerSnapshotRef
+            ? hashSemanticFingerprintValue(verifiedRun.controllerSnapshotRef)
+            : undefined,
+          keyInputHash: hashSimulationTaskSpecKeyInputs(taskSpec),
+        },
+      });
+    }
   }
 
   records.push(...arenaSubmissions.map((submission): HistoricalRecord => ({

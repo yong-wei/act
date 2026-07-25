@@ -40,7 +40,10 @@ import {
   materializeVirtualSimulationTaskEvidence,
 } from '@/lib/data-governance/simulation-task-materialization';
 import { persistAcceptedSimulationTaskEvidence } from '@/lib/data-governance/simulation-task-learning-fact';
-import { hashSemanticFingerprintValue } from '@/lib/data-governance/simulation-task-evidence';
+import {
+  hashSemanticFingerprintValue,
+  hashSimulationTaskSpecKeyInputs,
+} from '@/lib/data-governance/simulation-task-evidence';
 
 export const dynamic = 'force-dynamic';
 
@@ -496,48 +499,48 @@ async function persistControlWorkbenchTaskEvidenceRows(
       });
       if (run?.completedAt) verifiedRuns.push(run);
     }
-    const resultRun = verifiedRuns[0];
-    const completedAt = resultRun?.completedAt;
-    if (!resultRun || !completedAt) continue;
-    const taskSpec = readRecord(resultRun.taskSpecSnapshot);
-    const metrics = buildSafeSimulationMetrics(resultRun.summary);
-    const taskEvidence = materializeControlWorkbenchTaskEvidence({
-      actor: { userId, role: 'student' },
-      eventType: 'workspace_submission',
-      sourceArtifactId: resultRun.id,
-      occurredAt: completedAt.toISOString(),
-      tier: 'submission',
-      fingerprint: {
-        plantRef: readPayloadString(taskSpec, 'plantRef')
-          ?? readPayloadString(taskSpec, 'sceneId')
-          ?? resultRun.resourceId
-          ?? undefined,
-        modelRef: resultRun.modelVersion,
-        controllerConfigHash: resultRun.controllerSnapshotRef
-          ? hashSemanticFingerprintValue(resultRun.controllerSnapshotRef)
-          : undefined,
-        keyInputHash: hashSemanticFingerprintValue(taskSpec),
-      },
-      summary: {
-        sourceRef: `SimulationRun:${resultRun.id}`,
-        qualityBand: Object.keys(metrics).length > 0 ? 'full' : 'partial',
-        metrics: {
-          ...metrics,
-          visiblePanelCount: Array.isArray(payload.visiblePanelIds) ? payload.visiblePanelIds.length : 0,
-          verifiedResultCount: verifiedRuns.length,
+    for (const resultRun of verifiedRuns) {
+      const completedAt = resultRun.completedAt;
+      if (!completedAt) continue;
+      const taskSpec = readRecord(resultRun.taskSpecSnapshot);
+      const metrics = buildSafeSimulationMetrics(resultRun.summary);
+      const taskEvidence = materializeControlWorkbenchTaskEvidence({
+        actor: { userId, role: 'student' },
+        eventType: 'workspace_submission',
+        sourceArtifactId: resultRun.id,
+        occurredAt: completedAt.toISOString(),
+        tier: 'submission',
+        fingerprint: {
+          plantRef: readPayloadString(taskSpec, 'plantRef')
+            ?? readPayloadString(taskSpec, 'sceneId')
+            ?? resultRun.resourceId
+            ?? undefined,
+          modelRef: resultRun.modelVersion,
+          controllerConfigHash: resultRun.controllerSnapshotRef
+            ? hashSemanticFingerprintValue(resultRun.controllerSnapshotRef)
+            : undefined,
+          keyInputHash: hashSimulationTaskSpecKeyInputs(taskSpec),
         },
-        label: 'Control workbench persisted submission',
-      },
-      hasPersistedDesign: Object.keys(selectedDesignState).length > 0
-        && verifiedRuns.length > 0,
-      capabilityMappingTags: capabilityId ? [capabilityId] : [],
-    });
-    await persistAcceptedSimulationTaskEvidence(prisma, taskEvidence, {
-      userId,
-      sourceLogId,
-      sessionId: row.sessionId,
-      lessonId: row.lessonKey ?? null,
-    });
+        summary: {
+          sourceRef: `SimulationRun:${resultRun.id}`,
+          qualityBand: Object.keys(metrics).length > 0 ? 'full' : 'partial',
+          metrics: {
+            ...metrics,
+            visiblePanelCount: Array.isArray(payload.visiblePanelIds) ? payload.visiblePanelIds.length : 0,
+            verifiedResultCount: verifiedRuns.length,
+          },
+          label: 'Control workbench persisted submission',
+        },
+        hasPersistedDesign: Object.keys(selectedDesignState).length > 0,
+        capabilityMappingTags: capabilityId ? [capabilityId] : [],
+      });
+      await persistAcceptedSimulationTaskEvidence(prisma, taskEvidence, {
+        userId,
+        sourceLogId,
+        sessionId: row.sessionId,
+        lessonId: row.lessonKey ?? null,
+      });
+    }
   }
 }
 
@@ -630,7 +633,7 @@ async function persistVirtualSimulationTaskEvidenceEvents(
         controllerConfigHash: run.controllerSnapshotRef
           ? hashSemanticFingerprintValue(run.controllerSnapshotRef)
           : undefined,
-        keyInputHash: hashSemanticFingerprintValue(taskSpec),
+        keyInputHash: hashSimulationTaskSpecKeyInputs(taskSpec),
       },
       summary: {
         sourceRef: `SimulationRun:${run.id}`,

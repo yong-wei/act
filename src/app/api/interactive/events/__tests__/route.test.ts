@@ -720,23 +720,28 @@ describe('POST /api/interactive/events', () => {
     mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([
       { id: 'actual-workbench-log-id', clientEventId: 'client-workbench', eventData: { clientEventId: 'client-workbench' } },
     ]);
-    mocks.prisma.simulationRun.findFirst.mockResolvedValue({
-      id: 'workbench-simulation-run',
-      resourceId: 'frequency-workbench',
-      taskSpecSnapshot: {
-        sceneId: 'frequency-workbench',
-        plantRef: 'second-order-plant',
-      },
-      controllerSnapshotRef: 'lead-controller-snapshot',
-      summary: {
-        metrics: {
-          settlingTime: 2.5,
-          stable: true,
+    mocks.prisma.simulationRun.findFirst.mockImplementation(
+      async (args: { where?: { id?: string } }) => ({
+        id: args.where?.id ?? 'workbench-simulation-run',
+        resourceId: 'frequency-workbench',
+        taskSpecSnapshot: {
+          sceneId: 'frequency-workbench',
+          plantRef: 'second-order-plant',
+          disturbancePolicy: {
+            wave: args.where?.id === 'workbench-simulation-run-2' ? 2 : 1,
+          },
         },
-      },
-      modelVersion: 'second-order-v1',
-      completedAt: new Date('2026-06-18T00:00:00.000Z'),
-    });
+        controllerSnapshotRef: 'lead-controller-snapshot',
+        summary: {
+          metrics: {
+            settlingTime: 2.5,
+            stable: true,
+          },
+        },
+        modelVersion: 'second-order-v1',
+        completedAt: new Date('2026-06-18T00:00:00.000Z'),
+      }),
+    );
 
     const workbenchDraft = {
       eventType: 'lesson_submit',
@@ -755,7 +760,10 @@ describe('POST /api/interactive/events', () => {
         visiblePanelIds: ['bode', 'root-locus'],
         parameterSnapshot: { 'gain.k': 1 },
         selectedDesignState: { controller: 'lead', gain: 2 },
-        derivedResultRefs: [{ kind: 'SimulationRun', id: 'workbench-simulation-run' }],
+        derivedResultRefs: [
+          { kind: 'SimulationRun', id: 'workbench-simulation-run' },
+          { kind: 'SimulationRun', id: 'workbench-simulation-run-2' },
+        ],
         answerPayload: { responseContractId: 'parameter.set' },
         releaseState: 'released',
         fallbackState: 'supported',
@@ -808,6 +816,13 @@ describe('POST /api/interactive/events', () => {
         }),
       ],
     }));
+    expect(mocks.prisma.learningFact.createMany).toHaveBeenCalledTimes(2);
+    expect(mocks.prisma.learningFact.createMany.mock.calls.map(
+      ([call]) => call.data[0].contextJson.simulationTaskEvidence.summary.sourceRef,
+    )).toEqual([
+      'SimulationRun:workbench-simulation-run',
+      'SimulationRun:workbench-simulation-run-2',
+    ]);
     const persistedLogData = mocks.prisma.interactionLog.createManyAndReturn.mock.calls[0][0].data[0];
     const persistedDraft = JSON.parse(persistedLogData.eventData.answerDigest['parameter.set']);
     const routedLearningEvent = mocks.routeEvent.mock.calls[0][0];
