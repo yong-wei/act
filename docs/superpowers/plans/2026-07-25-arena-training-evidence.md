@@ -142,6 +142,6 @@ Mark each completed task in `tasks.md`, then run: `openspec validate surface-are
 
 Expected: strict validation passes.
 
-- [ ] **Step 3: Inspect scope and prepare delivery**
+- [x] **Step 3: Inspect scope and prepare delivery**
 
 Run: `git diff --check`, `git diff --stat origin/integration...HEAD`, and inspect the staged diff. Commit only the OpenSpec records, plan, tests, and implementation. Push `codex/arena-training-evidence`, create a draft PR to `integration` containing `Closes #1040`, and do not request `@codex review` or merge.
