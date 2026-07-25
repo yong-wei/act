@@ -2,6 +2,7 @@ export type EvidenceSourceId =
   | 'InteractionLog'
   | 'StudentStepResponse'
   | 'SimulationSession'
+  | 'SimulationRun'
   | 'SimulationLog'
   | 'UserAnswer'
   | 'AbilityAssessment'
@@ -54,6 +55,15 @@ export interface EvidenceSourceCatalogEntry {
   timestampField?: string;
   traceabilityFields: string[];
   provenancePolicy: string;
+  taskEvidencePolicy?: {
+    sourceFamily: 'virtual-simulation' | 'control-workbench' | 'arena' | 'odyssey';
+    eligibleEventTypes: string[];
+    ineligibleEventTypes: string[];
+    taskIdentityFields: string[];
+    summaryFields: string[];
+    requiresStudentOwnership: boolean;
+    linkedSourceOnly?: boolean;
+  };
 }
 
 export interface EvidenceCoverageRow {
@@ -142,7 +152,7 @@ export interface BuildEvidenceSourceCoverageReportInput {
   rowsBySource: Partial<Record<EvidenceSourceId, EvidenceCoverageRow[]>>;
 }
 
-const CATALOG_VERSION = '2026-05-25';
+const CATALOG_VERSION = '2026-07-25';
 
 const HIGH_VALUE_INTERACTION_EVENTS = new Set([
   'answer_submit',
@@ -198,6 +208,14 @@ const CATALOG: EvidenceSourceCatalogEntry[] = [
     timestampField: 'createdAt',
     traceabilityFields: ['id', 'clientEventId', 'sessionId', 'lessonKey', 'stepId', 'resourceKey'],
     provenancePolicy: 'Infer from eventData source fields when present; unknown provenance is reported separately.',
+    taskEvidencePolicy: {
+      sourceFamily: 'control-workbench',
+      eligibleEventTypes: ['design_session_complete', 'workspace_submission'],
+      ineligibleEventTypes: ['page_view', 'view', 'param_change', 'arena_result_view'],
+      taskIdentityFields: ['resourceKey', 'lessonKey', 'stepId'],
+      summaryFields: ['sourceLogId', 'capabilityId', 'visiblePanelIds', 'derivedResultRefs'],
+      requiresStudentOwnership: true,
+    },
   },
   {
     id: 'StudentStepResponse',
@@ -226,6 +244,27 @@ const CATALOG: EvidenceSourceCatalogEntry[] = [
     provenancePolicy: 'Sessions inherit provenance from module context and input params payload.',
   },
   {
+    id: 'SimulationRun',
+    tableName: 'SimulationRun',
+    description: 'Canonical completed virtual-simulation runs with task, model, trace, and owner identity.',
+    learningScope: 'mixed',
+    defaultValueLevel: 'high',
+    defaultEligibility: 'eligible',
+    materializationReadiness: 'ready',
+    userIdField: 'ownerUserId',
+    timestampField: 'completedAt',
+    traceabilityFields: ['id', 'ownerUserId', 'resourceId', 'taskSpecId', 'sourceDomain', 'sourceRefId'],
+    provenancePolicy: 'Run provenance follows sourceDomain and immutable task-spec snapshots.',
+    taskEvidencePolicy: {
+      sourceFamily: 'virtual-simulation',
+      eligibleEventTypes: ['simulation_finish', 'simulation_session_complete'],
+      ineligibleEventTypes: ['simulation_scene_view', 'simulation_help_open', 'param_change'],
+      taskIdentityFields: ['resourceId', 'taskSpecId', 'taskSpecSnapshot.sceneId'],
+      summaryFields: ['id', 'modelVersion', 'controllerSnapshotRef', 'summary'],
+      requiresStudentOwnership: true,
+    },
+  },
+  {
     id: 'SimulationLog',
     tableName: 'SimulationLog',
     description: 'Simulation attempts and game-like control practice records.',
@@ -237,6 +276,14 @@ const CATALOG: EvidenceSourceCatalogEntry[] = [
     timestampField: 'createdAt',
     traceabilityFields: ['id', 'missionId', 'sessionId'],
     provenancePolicy: 'Infer from payload markers when present; historical rows without markers remain unknown.',
+    taskEvidencePolicy: {
+      sourceFamily: 'odyssey',
+      eligibleEventTypes: ['odyssey_level_clear', 'odyssey_persistent_clear'],
+      ineligibleEventTypes: ['view', 'param_change'],
+      taskIdentityFields: ['missionId', 'inputParams.levelId', 'inputParams.arenaTaskId'],
+      summaryFields: ['id', 'score', 'metrics', 'odysseyCompletedAt'],
+      requiresStudentOwnership: true,
+    },
   },
   {
     id: 'UserAnswer',
@@ -328,6 +375,14 @@ const CATALOG: EvidenceSourceCatalogEntry[] = [
     timestampField: 'submittedAt',
     traceabilityFields: ['id', 'taskId', 'classId', 'seasonId', 'publicationId', 'evaluationRunId'],
     provenancePolicy: 'Challenge publication and task metadata distinguish classroom-bound from standalone usage.',
+    taskEvidencePolicy: {
+      sourceFamily: 'arena',
+      eligibleEventTypes: ['arena_submit'],
+      ineligibleEventTypes: ['arena_challenge_open', 'arena_result_view', 'arena_leaderboard_view'],
+      taskIdentityFields: ['taskId', 'evaluationRunId'],
+      summaryFields: ['id', 'taskId', 'artifactHash', 'score', 'valid'],
+      requiresStudentOwnership: true,
+    },
   },
   {
     id: 'ArenaEvaluationRun',
@@ -340,6 +395,15 @@ const CATALOG: EvidenceSourceCatalogEntry[] = [
     timestampField: 'completedAt',
     traceabilityFields: ['id', 'taskId', 'artifactHash', 'protocolVersion'],
     provenancePolicy: 'Evaluation runs lack user ownership; user attribution comes through a linked ArenaSubmission. Kept unsupported until submission-to-evaluation linking is materialized.',
+    taskEvidencePolicy: {
+      sourceFamily: 'arena',
+      eligibleEventTypes: ['arena_evaluation_complete'],
+      ineligibleEventTypes: [],
+      taskIdentityFields: ['taskId', 'artifactHash', 'protocolVersion'],
+      summaryFields: ['id', 'taskId', 'protocolVersion', 'valid', 'score'],
+      requiresStudentOwnership: true,
+      linkedSourceOnly: true,
+    },
   },
   {
     id: 'LearningFact',
