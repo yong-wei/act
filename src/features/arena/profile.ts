@@ -143,6 +143,10 @@ export interface ArenaPortfolioTrainingSummary {
   recentRuns: ArenaPortfolioRecentTrainingRun[];
 }
 
+export interface ArenaPortfolioTrainingStats {
+  total?: number;
+}
+
 export interface ArenaStudentPortfolio {
   userId: string;
   controllerCount: number;
@@ -211,6 +215,7 @@ function deriveTrainingQualityScore(summary: Record<string, unknown>): number | 
 function buildTrainingSummary(
   trainingRuns: readonly ArenaVirtualTrainingRunRecord[],
   userId: string,
+  stats: ArenaPortfolioTrainingStats = {},
 ): ArenaPortfolioTrainingSummary {
   const recentRuns = trainingRuns
     .filter((run) => run.userId === userId)
@@ -238,7 +243,7 @@ function buildTrainingSummary(
     .filter((score): score is number => score !== null);
 
   return {
-    total: recentRuns.length,
+    total: stats.total ?? recentRuns.length,
     previewCount: recentRuns.filter((run) => run.preview).length,
     latestTrainedAt: recentRuns[0]?.trainedAt,
     averageQualityScore: qualityScores.length > 0
@@ -605,6 +610,7 @@ export function buildArenaStudentPortfolio(
   submissions: readonly ArenaSubmissionRecord[],
   userId: string,
   trainingRuns: readonly ArenaVirtualTrainingRunRecord[] = [],
+  trainingStats: ArenaPortfolioTrainingStats = {},
 ): ArenaStudentPortfolio {
   const userSubmissions = submissions
     .filter((submission) => submission.userId === userId)
@@ -615,7 +621,7 @@ export function buildArenaStudentPortfolio(
   const methodDistribution = buildMethodDistribution(userSubmissions);
   const identificationModels = buildIdentificationModels(userSubmissions);
   const improvingMetrics = buildImprovingMetrics(userSubmissions);
-  const trainingSummary = buildTrainingSummary(trainingRuns, userId);
+  const trainingSummary = buildTrainingSummary(trainingRuns, userId, trainingStats);
 
   return {
     userId,

@@ -67,6 +67,7 @@ const mocks = vi.hoisted(() => {
         findMany: vi.fn(),
       },
       arenaVirtualSimulationRun: {
+        count: vi.fn(),
         findMany: vi.fn(),
       },
       studentEvidenceFeatureCache: {
@@ -602,6 +603,7 @@ describe('GET /api/user/profile', () => {
       }),
     ]);
 
+    mocks.prisma.arenaVirtualSimulationRun.count.mockResolvedValue(12);
     mocks.prisma.arenaVirtualSimulationRun.findMany.mockResolvedValue([
       {
         id: 'arena-training-1',
@@ -826,6 +828,7 @@ describe('GET /api/user/profile', () => {
     expect(mocks.prisma.arenaVirtualSimulationRun.findMany).toHaveBeenCalledWith({
       where: { userId: 'student-1' },
       orderBy: { createdAt: 'desc' },
+      take: 5,
       select: {
         id: true,
         userId: true,
@@ -836,8 +839,11 @@ describe('GET /api/user/profile', () => {
         createdAt: true,
       },
     });
+    expect(mocks.prisma.arenaVirtualSimulationRun.count).toHaveBeenCalledWith({
+      where: { userId: 'student-1' },
+    });
     expect(body.arenaPortfolio.trainingSummary).toMatchObject({
-      total: 1,
+      total: 12,
       previewCount: 1,
       averageQualityScore: 82.4,
       recentRuns: [

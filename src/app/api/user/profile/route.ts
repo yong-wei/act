@@ -280,6 +280,7 @@ export async function GET() {
       learningFacts,
       studentStates,
       userArenaSubmissions,
+      userArenaVirtualSimulationRunCount,
       userArenaVirtualSimulationRuns,
     ] = await Promise.all([
       prisma.studentProfile.findUnique({
@@ -373,9 +374,13 @@ export async function GET() {
         },
       }),
       prismaArenaSubmissionStore.listSubmissions({ userId }),
+      prisma.arenaVirtualSimulationRun.count({
+        where: { userId },
+      }),
       prisma.arenaVirtualSimulationRun.findMany({
         where: { userId },
         orderBy: { createdAt: 'desc' },
+        take: 5,
         select: {
           id: true,
           userId: true,
@@ -590,7 +595,12 @@ export async function GET() {
           recommendedFocus: adaptiveDiagnostic?.recommendedFocus ?? [],
         }),
       },
-      arenaPortfolio: buildArenaStudentPortfolio(arenaPortfolioSubmissions, userId, userArenaVirtualSimulationRuns),
+      arenaPortfolio: buildArenaStudentPortfolio(
+        arenaPortfolioSubmissions,
+        userId,
+        userArenaVirtualSimulationRuns,
+        { total: userArenaVirtualSimulationRunCount },
+      ),
       arenaSummary: buildArenaStudentEvidenceSummary({
         userId,
         submissions: userArenaSubmissions,
