@@ -83,6 +83,22 @@ const INFERENCE_RULES: InferenceRule[] = [
     tools: ['general_assistance'],
   },
   {
+    pattern: /^\/arena$/,
+    courseId: 'arena',
+    courseTitle: '控制竞技场',
+    pageType: 'workspace',
+    getTopic: () => '控制竞技场',
+    tools: ['general_assistance'],
+  },
+  {
+    pattern: /^\/data-center$/,
+    courseId: 'data-center',
+    courseTitle: '学习数据中心',
+    pageType: 'workspace',
+    getTopic: () => '学习数据中心',
+    tools: ['general_assistance'],
+  },
+  {
     pattern: /\/interactive-learning\//,
     courseId: 'interactive',
     courseTitle: '互动学习',

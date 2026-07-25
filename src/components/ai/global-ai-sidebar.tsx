@@ -33,6 +33,7 @@ import {
   useKonlingConversationLibrary,
   visibleKonlingMessages,
 } from '@/hooks/useKonlingConversationLibrary';
+import { resolveRegisteredAIContextFromPath } from '@/lib/ai-context-resolver';
 
 const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
@@ -59,6 +60,7 @@ export function GlobalAISidebar() {
   const {
     pageContext,
     userProfile,
+    enabled,
     isOpen,
     closeSidebar,
     tools,
@@ -67,6 +69,7 @@ export function GlobalAISidebar() {
     knowledgeWorkspaceHint,
     quickQuestions,
     clearUnread,
+    pathname,
   } = useGlobalAI();
 
   useEffect(() => {
@@ -75,6 +78,12 @@ export function GlobalAISidebar() {
 
   // 构建请求体
   const effectiveServerContext = smartPrepContext ?? assistantEntryPoint?.serverContext;
+  const conversationPageId = useMemo(() => {
+    const registeredRoute = resolveRegisteredAIContextFromPath(pathname);
+    return registeredRoute?.courseId === pageContext?.courseId
+      ? pathname
+      : pageContext?.stepId || pageContext?.courseId;
+  }, [pageContext?.courseId, pageContext?.stepId, pathname]);
   const {
     conversations,
     activeConversationId,
@@ -93,9 +102,9 @@ export function GlobalAISidebar() {
     setConversationPinned,
     deleteConversation,
   } = useKonlingConversationLibrary({
-    enabled: mounted,
+    enabled: mounted && enabled,
     courseId: pageContext?.courseId,
-    pageId: pageContext?.stepId || pageContext?.courseId,
+    pageId: conversationPageId,
     pageContext: pageContext ?? undefined,
     classId: effectiveServerContext?.classId,
     resourceId: effectiveServerContext?.resourceId,
@@ -143,7 +152,7 @@ export function GlobalAISidebar() {
     userProfile,
     conversationId: activeConversationId ?? undefined,
     courseId: pageContext?.courseId,
-    pageId: pageContext?.stepId || pageContext?.courseId,
+    pageId: conversationPageId,
     resourceId: effectiveServerContext?.resourceId,
     pathNodeId: effectiveServerContext?.pathNodeId,
     tools, // 传递可用工具列表，让后端过滤
@@ -152,7 +161,7 @@ export function GlobalAISidebar() {
     agentSessionId: agentSessionId ?? undefined,
     modeClientContextHints: effectiveServerContext,
     knowledgeWorkspaceHint: knowledgeWorkspaceHint ?? effectiveServerContext,
-  }), [pageContext, userProfile, activeConversationId, tools, systemPromptExtension, assistantEntryPoint, knowledgeWorkspaceHint, effectiveServerContext, agentSessionId]);
+  }), [pageContext, userProfile, activeConversationId, conversationPageId, tools, systemPromptExtension, assistantEntryPoint, knowledgeWorkspaceHint, effectiveServerContext, agentSessionId]);
 
   const {
     messages,

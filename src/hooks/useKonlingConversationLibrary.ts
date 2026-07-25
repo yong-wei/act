@@ -69,15 +69,19 @@ export function useKonlingConversationLibrary({
   const [isLoading, setIsLoading] = useState(false);
   const [isMutating, setIsMutating] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const listRequestRef = useRef(0);
   const activeRequestRef = useRef(0);
   const selectedConversationIdRef = useRef<string | null>(null);
 
   const refreshConversations = useCallback(async () => {
     if (!enabled) return [];
+    const requestId = listRequestRef.current + 1;
+    listRequestRef.current = requestId;
     setIsLoading(true);
     try {
       const response = await fetch(buildKonlingConversationListUrl(search));
       const body = await readJson<{ conversations: KonlingConversationSummary[] }>(response);
+      if (listRequestRef.current !== requestId) return body.conversations;
       setConversations(body.conversations);
       setError(null);
       setActiveConversationId((current) => {
@@ -87,11 +91,12 @@ export function useKonlingConversationLibrary({
       });
       return body.conversations;
     } catch (cause) {
+      if (listRequestRef.current !== requestId) return [];
       const nextError = cause instanceof Error ? cause : new Error('控灵会话列表加载失败');
       setError(nextError);
       throw nextError;
     } finally {
-      setIsLoading(false);
+      if (listRequestRef.current === requestId) setIsLoading(false);
     }
   }, [enabled, search]);
 

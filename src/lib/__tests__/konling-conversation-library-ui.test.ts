@@ -21,6 +21,10 @@ const legacyChatSource = readFileSync(
   join(process.cwd(), 'src/hooks/useLegacyChat.ts'),
   'utf8',
 );
+const providerSource = readFileSync(
+  join(process.cwd(), 'src/components/providers/global-ai-provider.tsx'),
+  'utf8',
+);
 
 describe('Konling conversation library UI contracts', () => {
   it('builds title-only list searches and hides server context records from restored chat state', () => {
@@ -43,7 +47,17 @@ describe('Konling conversation library UI contracts', () => {
     expect(libraryHookSource).toContain("method: 'PATCH'");
     expect(libraryHookSource).toContain("method: 'DELETE'");
     expect(libraryHookSource).toContain('body: JSON.stringify({ confirmed: true })');
+    expect(libraryHookSource).toContain('listRequestRef.current !== requestId');
     expect(libraryHookSource).not.toContain('messages: pageContext');
+  });
+
+  it('shows persistent conversations only on server-authorized page contexts', () => {
+    expect(providerSource).toContain('resolveRegisteredAIContextFromPath(pathname)');
+    expect(providerSource).toContain("pathname === '/teacher/smart-prep'");
+    expect(providerSource).toContain('if (!persistentConversationEnabled) setIsOpen(false)');
+    expect(sidebarSource).toContain('const conversationPageId = useMemo(() =>');
+    expect(sidebarSource).toContain('enabled: mounted && enabled');
+    expect(sidebarSource).toContain('pageId: conversationPageId');
   });
 
   it('restores selected history into AI SDK state and sends the canonical conversation identity', () => {

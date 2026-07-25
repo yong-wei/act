@@ -90,15 +90,19 @@ describe('Konling conversation library', () => {
   });
 
   it('accepts registered routes and rejects arbitrary inferred page contexts', async () => {
-    await expect(resolveKonlingContextEventScope({} as never, {
-      authenticatedUserId: 'user-1',
-      role: 'student',
-      courseId: 'knowledge',
-      pageId: '/knowledge',
-    })).resolves.toMatchObject({
-      courseId: 'knowledge',
-      pageId: '/knowledge',
-    });
+    for (const [courseId, pageId] of [
+      ['knowledge', '/knowledge'],
+      ['arena', '/arena'],
+      ['data-center', '/data-center'],
+      ['simulation', '/simulations/cruise'],
+    ]) {
+      await expect(resolveKonlingContextEventScope({} as never, {
+        authenticatedUserId: 'user-1',
+        role: 'student',
+        courseId,
+        pageId,
+      })).resolves.toMatchObject({ courseId, pageId: pageId === '/simulations/cruise' ? 'cruise' : pageId });
+    }
     await expect(resolveKonlingContextEventScope({} as never, {
       authenticatedUserId: 'user-1',
       role: 'student',

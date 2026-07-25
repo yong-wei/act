@@ -20,6 +20,7 @@ import type { PageContext, UserProfile } from '@/types/ai-context';
 import type { KonlingKnowledgeWorkspaceHint, KonlingTeachingAssistantEntryPoint } from '@/lib/konling-agent-runtime';
 import {
   resolveAIContext,
+  resolveRegisteredAIContextFromPath,
   isPathExcluded,
   type ResolvedContext,
 } from '@/lib/ai-context-resolver';
@@ -141,7 +142,13 @@ export function GlobalAIProvider({ children }: GlobalAIProviderProps) {
 
     // 解析当前路径的AI上下文
     const resolved = resolveAIContext(pathname);
-    setResolvedContext(resolved);
+    const registeredContext = resolveRegisteredAIContextFromPath(pathname);
+    const persistentConversationEnabled = Boolean(registeredContext)
+      || pathname === '/teacher/smart-prep';
+    setResolvedContext(persistentConversationEnabled
+      ? resolved
+      : { ...resolved, enabled: false });
+    if (!persistentConversationEnabled) setIsOpen(false);
     setDynamicContext({
       pageContext: null,
       tools: [],
