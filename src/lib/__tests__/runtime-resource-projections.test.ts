@@ -27,7 +27,7 @@ describe('runtime resource projections', () => {
     expect(auditOnlyRegistry.nodes).toEqual([]);
     expect(auditOnlyRegistry.edges).toEqual([]);
     expect(fullRegistry.nodes.map((node) => node.id)).toEqual(runtimeRegistry.nodes.map((node) => node.id));
-    expect(fullRegistry.nodes).toHaveLength(3_259);
+    expect(fullRegistry.nodes).toHaveLength(3_800);
   });
 
   it('builds sidecar rows for runtime lessons, knowledge cards, and infographs', () => {
