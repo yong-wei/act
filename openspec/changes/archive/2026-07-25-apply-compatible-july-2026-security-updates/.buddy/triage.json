@@ -1,0 +1,32 @@
+{
+  "subject": {
+    "issue": 1036,
+    "change_id": "apply-compatible-july-2026-security-updates"
+  },
+  "truth": {
+    "problem_reproduced": "yes",
+    "evidence": [
+      "Official-registry baseline records 14 findings; verified candidate records 6 with no new finding.",
+      "NextAuth 4.24.15, Next 16.2.11, compatible tooling locks, and isolated GLB production are committed on origin/remediate-2026-07-dependency-security-findings.",
+      "OpenSpec strict validation passes for apply-compatible-july-2026-security-updates at integration commit 0a7edfdec79ef8fbf065679fb80fe47980dc9de2."
+    ]
+  },
+  "duplication": {
+    "existing_implementation": "partial",
+    "conflicting_specs": [],
+    "active_changes": [
+      "remediate-2026-07-dependency-security-findings (#1032), which this change intentionally splits at the upstream blocker boundary"
+    ],
+    "superseded_by": null
+  },
+  "readiness": {
+    "information": "sufficient",
+    "disposition": "executable",
+    "reason": "The compatible subset has a bounded diff, verified commits, explicit remaining blockers, and no dependency on unavailable upstream releases."
+  },
+  "binding": {
+    "issue_updated_at": "2026-07-24T15:39:22Z",
+    "base_sha": "0a7edfdec79ef8fbf065679fb80fe47980dc9de2",
+    "generated_at": "2026-07-24T15:40:49Z"
+  }
+}

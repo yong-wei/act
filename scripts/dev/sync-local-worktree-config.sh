@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIRECTORY="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEFAULT_SOURCE="/Users/YW/Documents/Site/act.just.edu.cn"
 SOURCE="$DEFAULT_SOURCE"
 TARGET=""
@@ -18,6 +19,7 @@ LINK_OPENWOLF_KNOWLEDGE=0
 GRAPH_ALIAS=""
 ENV_LINKS=()
 RUNTIME_LINK_ROOT="course-content/runtime"
+OPTIMIZED_MODEL_ASSET_ROOT="public/assets/models-opt"
 TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
 BACKUP_ROOT=""
 MANAGED_HOOK_MARKER="# Managed by sync-local-worktree-config.sh"
@@ -108,6 +110,7 @@ Linked with --link-openwolf-knowledge:
 Synchronized from the main worktree by default:
   Untracked content below course-content/runtime/ is copied as real files.
   Tracked runtime paths remain under Git management and are never overwritten.
+  Ignored files below public/assets/models-opt/ are copied as real files.
 
 Safety:
   The source must be the repository's primary worktree and the target must be
@@ -338,6 +341,7 @@ print_mode() {
     echo "OpenWolf knowledge links: enabled"
   fi
   echo "Runtime sync: enabled (untracked paths only)"
+  echo "Optimized model asset sync: enabled (ignored real files)"
 }
 
 sanitize_graph_alias() {
@@ -605,12 +609,12 @@ link_config_path() {
   ensure_local_exclude "$rel"
 }
 
-runtime_path_label() {
+real_file_path_label() {
   local src="$1"
   if [[ -d "$src" ]]; then
-    printf '%s\n' "runtime directory"
+    printf '%s\n' "directory"
   else
-    printf '%s\n' "runtime file"
+    printf '%s\n' "file"
   fi
 }
 
@@ -659,32 +663,32 @@ sync_runtime_path() {
   )
 
   if [[ ! -e "$src" ]]; then
-    echo "skip missing runtime source: $rel"
+    echo "skip missing synchronization source: $rel"
     return
   fi
 
-  label="$(runtime_path_label "$src")"
+  label="$(real_file_path_label "$src")"
 
   if [[ -e "$dest" || -L "$dest" ]]; then
     if [[ "$NO_OVERWRITE" -eq 1 ]]; then
       if [[ ! -d "$src" || ! -d "$dest" || -L "$dest" ]]; then
-        echo "skip existing $label: $rel"
+        echo "skip existing synchronized $label: $rel"
         return
       fi
     fi
 
     if [[ "$NO_OVERWRITE" -ne 1 && ( -L "$dest" || ( -d "$src" && ! -d "$dest" ) || ( ! -d "$src" && -d "$dest" ) ) ]]; then
       if [[ "$APPLY" -ne 1 ]]; then
-        echo "would replace existing $label with real files: $rel"
+        echo "would replace existing synchronized $label with real files: $rel"
         return
       fi
       backup_existing_path "$rel"
     elif [[ "$APPLY" -ne 1 ]]; then
-      echo "would synchronize untracked $label from primary worktree: $rel"
+      echo "would synchronize $label as real files from primary worktree: $rel"
       return
     fi
   elif [[ "$APPLY" -ne 1 ]]; then
-    echo "would synchronize untracked $label from primary worktree: $rel"
+    echo "would synchronize $label as real files from primary worktree: $rel"
     return
   fi
 
@@ -710,12 +714,12 @@ remove_stale_runtime_path() {
   local dest="$TARGET/$rel"
 
   if [[ "$NO_OVERWRITE" -eq 1 ]]; then
-    echo "skip stale runtime path because --no-overwrite is set: $rel"
+    echo "skip stale synchronized path because --no-overwrite is set: $rel"
     return
   fi
 
   if [[ "$APPLY" -ne 1 ]]; then
-    echo "would remove stale untracked runtime path with backup: $rel"
+    echo "would remove stale synchronized path with backup: $rel"
     return
   fi
 
@@ -755,7 +759,7 @@ sync_runtime_tree() {
   local base
 
   if [[ ! -e "$src" ]]; then
-    echo "skip missing runtime source: $rel"
+    echo "skip missing synchronization source: $rel"
     return
   fi
 
@@ -806,11 +810,15 @@ sync_runtime_tree() {
   done
 }
 
-sync_runtime_directory() {
+sync_real_file_directory() {
+  local root="$1"
+  local summary_label="$2"
+  RUNTIME_LINK_ROOT="$root"
+
   echo
-  echo "Runtime sync:"
+  echo "$summary_label sync:"
   if [[ ! -d "$SOURCE/$RUNTIME_LINK_ROOT" ]]; then
-    echo "skip missing runtime source: $RUNTIME_LINK_ROOT"
+    echo "skip missing synchronization source: $RUNTIME_LINK_ROOT"
     return
   fi
 
@@ -820,7 +828,24 @@ sync_runtime_directory() {
   RUNTIME_SYNCED_UNTRACKED_PATHS=0
   RUNTIME_REMOVED_STALE_PATHS=0
   sync_runtime_tree "$RUNTIME_LINK_ROOT"
-  echo "runtime sync summary: scannedDirectories=$RUNTIME_SCANNED_DIRECTORIES skippedTrackedPaths=$RUNTIME_SKIPPED_TRACKED_PATHS preservedTargetTrackedPaths=$RUNTIME_PRESERVED_TARGET_TRACKED_PATHS synchronizedUntrackedPaths=$RUNTIME_SYNCED_UNTRACKED_PATHS removedStalePaths=$RUNTIME_REMOVED_STALE_PATHS"
+  echo "$summary_label sync summary: root=$RUNTIME_LINK_ROOT scannedDirectories=$RUNTIME_SCANNED_DIRECTORIES skippedTrackedPaths=$RUNTIME_SKIPPED_TRACKED_PATHS preservedTargetTrackedPaths=$RUNTIME_PRESERVED_TARGET_TRACKED_PATHS synchronizedRealFilePaths=$RUNTIME_SYNCED_UNTRACKED_PATHS removedStalePaths=$RUNTIME_REMOVED_STALE_PATHS"
+}
+
+validate_optimized_model_asset_source() {
+  local source_asset_root="$SOURCE/public/assets"
+  local optimized_root="$SOURCE/$OPTIMIZED_MODEL_ASSET_ROOT"
+
+  node "$SCRIPT_DIRECTORY/../assets/validate-optimized-models.mjs" \
+    --source-root "$source_asset_root" \
+    --optimized-root "$optimized_root" \
+    --target-source-root "$TARGET/public/assets"
+}
+
+optimized_model_assets_require_validation() {
+  [[ -d "$SOURCE/$OPTIMIZED_MODEL_ASSET_ROOT" ]] \
+    || [[ -e "$SOURCE/public/assets/models-opt.failed-manifest.json" ]] \
+    || [[ -e "$SOURCE/public/assets/models-opt.in-progress.json" ]] \
+    || compgen -G "$SOURCE/public/assets/*.glb" >/dev/null
 }
 
 target_worktree_id() {
@@ -1555,7 +1580,11 @@ if [[ "$LINK_OPENWOLF_KNOWLEDGE" -eq 1 ]]; then
   link_openwolf_knowledge
 fi
 
-sync_runtime_directory
+sync_real_file_directory "$RUNTIME_LINK_ROOT" "runtime"
+if optimized_model_assets_require_validation; then
+  validate_optimized_model_asset_source
+fi
+sync_real_file_directory "$OPTIMIZED_MODEL_ASSET_ROOT" "optimized model asset"
 
 echo
 echo "Ignore/tracking check:"

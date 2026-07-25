@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
@@ -93,15 +93,49 @@ describe('sample experiment quality wiring', () => {
 });
 
 describe('model optimization pipeline', () => {
-  it('encodes GLB assets with meshopt in the build chain and wires the decoder at runtime', () => {
-    const script = readFileSync(
-      path.join(process.cwd(), 'scripts/build-optimized-models.mjs'), 'utf8'
+  it('isolates GLB production dependencies from the application build', () => {
+    const pkg = JSON.parse(readFileSync(path.join(process.cwd(), 'package.json'), 'utf8'));
+    const rootDependencies = { ...pkg.dependencies, ...pkg.devDependencies };
+    expect(pkg.scripts.build).not.toContain('models:produce');
+    expect(pkg.scripts.build).toContain('models:validate');
+    expect(pkg.scripts['models:produce']).toContain('tools/glb-model-optimizer');
+    expect(pkg.scripts['models:validate']).toContain('validate-optimized-models.mjs');
+    expect(rootDependencies).not.toHaveProperty('@gltf-transform/core');
+    expect(rootDependencies).not.toHaveProperty('@gltf-transform/extensions');
+    expect(rootDependencies).not.toHaveProperty('@gltf-transform/functions');
+    expect(rootDependencies).not.toHaveProperty('meshoptimizer');
+
+    const toolPkg = JSON.parse(readFileSync(
+      path.join(process.cwd(), 'tools/glb-model-optimizer/package.json'), 'utf8'
+    ));
+    expect(toolPkg.dependencies).toMatchObject({
+      '@gltf-transform/core': expect.any(String),
+      '@gltf-transform/extensions': expect.any(String),
+      '@gltf-transform/functions': expect.any(String),
+      meshoptimizer: expect.any(String),
+    });
+
+    const syncScript = readFileSync(
+      path.join(process.cwd(), 'scripts/dev/sync-local-worktree-config.sh'), 'utf8'
     );
-    expect(script).toContain('meshopt');
-    const pkg = readFileSync(path.join(process.cwd(), 'package.json'), 'utf8');
-    expect(pkg).toContain('models:optimize');
+    expect(syncScript).toContain('public/assets/models-opt');
+  });
+
+  it('uses independently produced meshopt assets and wires the decoder at runtime', () => {
+    const simulationDirectory = path.join(process.cwd(), 'src/resources/simulations/simulations');
+    const runtimeSources = readdirSync(simulationDirectory)
+      .filter((name) => name.endsWith('.tsx'))
+      .map((name) => readFileSync(path.join(simulationDirectory, name), 'utf8'))
+      .join('\n');
+    const modelNames = readdirSync(path.join(process.cwd(), 'public/assets'))
+      .filter((name) => name.endsWith('.glb'));
+
+    for (const modelName of modelNames) {
+      expect(runtimeSources).toContain(`/assets/models-opt/${modelName}`);
+    }
+
     const destroyer = readFileSync(
-      path.join(process.cwd(), 'src/resources/simulations/simulations/destroyer-simulation.tsx'), 'utf8'
+      path.join(simulationDirectory, 'destroyer-simulation.tsx'), 'utf8'
     );
     expect(destroyer).toContain('models-opt/destroyer.glb');
     expect(destroyer).toContain('useGLTF(url, true, true)');
@@ -110,7 +144,7 @@ describe('model optimization pipeline', () => {
 
   it('keeps the original GLB as a documented fallback when optimization fails', () => {
     const script = readFileSync(
-      path.join(process.cwd(), 'scripts/build-optimized-models.mjs'), 'utf8'
+      path.join(process.cwd(), 'tools/glb-model-optimizer/optimize-models.mjs'), 'utf8'
     );
     expect(script).toContain('fallback');
   });
