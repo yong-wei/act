@@ -10,10 +10,12 @@ const mocks = vi.hoisted(() => ({
   streamText: vi.fn(),
   useActualResolver: false,
   prisma: {
-    agentSession: { updateMany: vi.fn() },
+    agentSession: { findFirst: vi.fn(), updateMany: vi.fn() },
     smartLessonTask: { findFirst: vi.fn() },
     konlingSession: {
+      findFirst: vi.fn(),
       findUnique: vi.fn(),
+      updateMany: vi.fn(),
       update: vi.fn(),
     },
   },
@@ -35,6 +37,16 @@ vi.mock('@/lib/ai-client', () => ({
 vi.mock('@/lib/ai-prompt-builder', () => ({ buildKonlingSystemPrompt: vi.fn(() => 'system') }));
 vi.mock('@/lib/ai-tools', () => ({ aiTools: {}, updateSimulationState: vi.fn() }));
 vi.mock('@/lib/nextjs-dynamic-error', () => ({ rethrowIfNextDynamicError: vi.fn() }));
+vi.mock('@/lib/course-ai-contexts', () => ({
+  getStepAIContext: vi.fn((courseId: string, stepId: string) => ({
+    courseId,
+    stepId,
+    courseTitle: '受控课程',
+  })),
+}));
+vi.mock('@/lib/ai-context-resolver', () => ({
+  resolveRegisteredAIContextFromPath: vi.fn(() => null),
+}));
 vi.mock('@/lib/konling-streaming-citation-fallback', () => ({
   buildStreamingCitationFallbackNotice: vi.fn(() => null),
   insertStreamingCitationFallbackNotice: vi.fn((stream) => stream),
@@ -152,7 +164,7 @@ function expectStructuredProposalSteps(streamTextCall: Record<string, unknown>) 
 }
 
 describe('Konling smart-prep production routes', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
     mocks.useActualResolver = false;
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER', name: 'Teacher' } });
@@ -161,14 +173,27 @@ describe('Konling smart-prep production routes', () => {
     mocks.getOrCreateAgentSession.mockResolvedValue({ id: 'agent-1', state: {}, pendingApproval: null });
     mocks.resumeAgentSession.mockResolvedValue({ id: 'agent-1', pendingApproval: null });
     mocks.prisma.agentSession.updateMany.mockResolvedValue({ count: 1 });
-    mocks.prisma.konlingSession.findUnique.mockResolvedValue({
+    let currentConversation = {
       id: 'session-1',
       userId: 'teacher-1',
       courseId: 'course-1',
       pageId: '/teacher/smart-prep',
+      title: '新对话',
+      titleIsManual: false,
       messages: [],
-    });
+      libraryVisible: true,
+      activeTurnId: null,
+      activeTurnClaimedAt: null,
+      updatedAt: new Date('2026-07-26T00:00:00.000Z'),
+      expiresAt: new Date('2026-08-02T00:00:00.000Z'),
+    };
+    mocks.prisma.konlingSession.findUnique.mockImplementation(async () => ({ ...currentConversation }));
+    mocks.prisma.konlingSession.findFirst.mockImplementation(async () => ({ ...currentConversation }));
     mocks.prisma.konlingSession.update.mockResolvedValue({});
+    mocks.prisma.konlingSession.updateMany.mockImplementation(async ({ data }) => {
+      currentConversation = { ...currentConversation, ...data };
+      return { count: 1 };
+    });
     mocks.streamText.mockResolvedValue({
       textStream: (async function* () { yield 'answer'; })(),
       toUIMessageStream: () => new ReadableStream(),
@@ -243,5 +268,108 @@ describe('Konling smart-prep production routes', () => {
     expect(mocks.getOrCreateAgentSession).toHaveBeenCalledWith(mocks.prisma, expect.objectContaining({
       smartPrepBinding: { taskId: 'server-task', taskRevision: '7' },
     }));
+  });
+
+  it('keeps conversationId separate from AgentSession and persists a cross-page exchange after stream completion', async () => {
+    const createdAt = new Date('2026-07-26T00:00:00.000Z');
+    const initialContext = {
+      id: 'context-a',
+      role: 'system',
+      content: '[控灵当前页面上下文]\ncourseId=course-1\npageId=page-a',
+      parts: [{ type: 'text', text: '[控灵当前页面上下文]\ncourseId=course-1\npageId=page-a' }],
+      metadata: {
+        konlingContextEvent: {
+          version: 1,
+          identity: 'course-1\u001fpage-a\u001f\u001f\u001f',
+          courseId: 'course-1',
+          pageId: 'page-a',
+          classId: null,
+          resourceId: null,
+          pathNodeId: null,
+        },
+      },
+    };
+    const conversation = {
+      id: 'conversation-1',
+      userId: 'teacher-1',
+      courseId: 'course-1',
+      pageId: 'page-a',
+      title: '新对话',
+      titleIsManual: false,
+      pinnedAt: null,
+      lastActivityAt: createdAt,
+      libraryVisible: true,
+      migrationSourceId: null,
+      activeTurnId: null,
+      activeTurnClaimedAt: null,
+      messages: [initialContext],
+      createdAt,
+      updatedAt: createdAt,
+      expiresAt: new Date('2026-08-02T00:00:00.000Z'),
+    };
+    let currentConversation = { ...conversation };
+    mocks.prisma.konlingSession.findFirst.mockImplementation(async () => ({ ...currentConversation }));
+    mocks.prisma.konlingSession.findUnique.mockImplementation(async () => ({ ...currentConversation }));
+    mocks.prisma.konlingSession.updateMany.mockImplementation(async ({ data }) => {
+      currentConversation = { ...currentConversation, ...data };
+      return { count: 1 };
+    });
+    mocks.prisma.agentSession.findFirst.mockResolvedValue(null);
+    mocks.streamText.mockResolvedValue({
+      toUIMessageStream: (options: {
+        onFinish?: (event: Record<string, unknown>) => Promise<void>;
+      }) => {
+        void options.onFinish?.({
+          responseMessage: {
+            id: 'assistant-1',
+            role: 'assistant',
+            content: '跨页答案',
+            parts: [{ type: 'text', text: '跨页答案' }],
+          },
+          isAborted: false,
+        });
+        return new ReadableStream();
+      },
+    });
+
+    const response = await chatPOST(new Request('http://localhost/api/ai/chat', {
+      method: 'POST',
+      body: JSON.stringify({
+        conversationId: 'conversation-1',
+        agentSessionId: 'agent-from-another-context',
+        messages: [{ id: 'user-cross-page', role: 'user', content: '结合当前页继续' }],
+        courseId: 'course-1',
+        pageId: 'page-b',
+        teachingAssistantModeId: 'prep-coauthor',
+        modeClientContextHints: { smartTaskId: 'client-task', smartTaskRevision: '999' },
+      }),
+    }));
+    await vi.waitFor(() => expect(mocks.prisma.konlingSession.updateMany).toHaveBeenCalled());
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('X-Konling-Conversation-Id')).toBe('conversation-1');
+    expect(mocks.getOrCreateAgentSession).toHaveBeenCalledWith(mocks.prisma, expect.objectContaining({
+      agentSessionId: undefined,
+      konlingSessionId: 'conversation-1',
+    }));
+    const persistedMessages = mocks.prisma.konlingSession.updateMany.mock.calls
+      .filter((call) => Array.isArray(call[0].data.messages))
+      .at(-1)?.[0].data.messages;
+    expect(persistedMessages).toBeDefined();
+    expect(persistedMessages.map((message: { role: string }) => message.role)).toEqual([
+      'system',
+      'system',
+      'user',
+      'assistant',
+    ]);
+    expect(persistedMessages[1]).toMatchObject({
+      metadata: {
+        konlingContextEvent: {
+          courseId: 'course-1',
+          pageId: 'page-b',
+        },
+      },
+    });
+    expect(conversation.messages).toEqual([initialContext]);
   });
 });

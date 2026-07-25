@@ -40,6 +40,15 @@ import {
 import type { AIContext } from '@/types/ai-context';
 import type { Message } from '@/types/ai-message';
 import { redactProviderError, type ModelProviderCapabilityRequirements } from '@/lib/ai/model-provider-compatibility';
+import {
+  claimKonlingConversationTurn,
+  completeKonlingConversationTurn,
+  createKonlingMessageId,
+  KonlingConversationTurnConflictError,
+  prepareKonlingConversationTurn,
+  releaseKonlingConversationTurn,
+  resolveKonlingContextEventScope,
+} from '@/lib/konling-conversation-library';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300;
@@ -54,6 +63,11 @@ interface RouteContext {
  * 发送消息并获取AI回复
  */
 export async function POST(request: NextRequest, context: RouteContext) {
+  let claimedTurn: {
+    conversationId: string;
+    ownerUserId: string;
+    turnId: string;
+  } | null = null;
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -72,8 +86,13 @@ export async function POST(request: NextRequest, context: RouteContext) {
     }
 
     // 获取会话
-    const konlingSession = await prisma.konlingSession.findUnique({
-      where: { id: sessionId },
+    const konlingSession = await prisma.konlingSession.findFirst({
+      where: {
+        id: sessionId,
+        userId: session.user.id,
+        libraryVisible: true,
+        expiresAt: { gt: new Date() },
+      },
     });
 
     if (!konlingSession) {
@@ -83,25 +102,18 @@ export async function POST(request: NextRequest, context: RouteContext) {
       );
     }
 
-    if (konlingSession.userId !== session.user.id) {
-      return NextResponse.json(
-        { error: 'Forbidden' },
-        { status: 403 }
-      );
-    }
-
     // 获取现有消息
     const existingMessages = ((konlingSession.messages as unknown as Message[]) || []).map(toLegacyMessage);
 
     // 添加用户消息
     const userMessage: Message = toLegacyMessage({
-      id: Date.now().toString(),
+      id: createKonlingMessageId(),
       role: 'user',
       content,
     });
 
-    const updatedMessages = [...existingMessages, userMessage];
-    const ownedTurnIds = updatedMessages.filter((message) => message.role === 'user').map((message) => message.id).filter(Boolean).slice(-50);
+    let updatedMessages = [...existingMessages, userMessage];
+    let ownedTurnIds = updatedMessages.filter((message) => message.role === 'user').map((message) => message.id).filter(Boolean).slice(-50);
 
     const modeScopeOverride = await resolveKonlingTeachingAssistantScopeOverride({
       db: prisma,
@@ -118,8 +130,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
       role: session.user.role,
       targetUserId: runtimeTargetUserId,
       classId: runtimeClassId,
-      courseId: konlingSession.courseId,
-      pageId: konlingSession.pageId,
+      courseId: pageContext?.courseId || konlingSession.courseId,
+      pageId: pageContext?.stepId || konlingSession.pageId,
       resourceId,
       pathNodeId,
       pageContextHint: pageContext,
@@ -127,17 +139,32 @@ export async function POST(request: NextRequest, context: RouteContext) {
     if (!scope.ok) {
       return NextResponse.json({ error: scope.error }, { status: scope.status });
     }
+    const contextEventScope = await resolveKonlingContextEventScope(prisma, scope.scope);
+    if (!contextEventScope) {
+      return NextResponse.json({ error: 'Page context is not registered for Konling.' }, { status: 400 });
+    }
+    const authorizedScope = { ...scope.scope, ...contextEventScope };
+    const preparedTurn = prepareKonlingConversationTurn({
+      conversation: konlingSession,
+      currentScope: authorizedScope,
+      userMessage,
+    });
+    updatedMessages = preparedTurn.modelMessages;
+    ownedTurnIds = updatedMessages
+      .filter((message) => message.role === 'user')
+      .map((message) => message.id)
+      .filter(Boolean)
+      .slice(-50);
     const runtimeInput = {
       authenticatedUserId: session.user.id,
       authenticatedUserName: session.user.name,
       role: session.user.role,
       targetUserId: runtimeTargetUserId,
       classId: runtimeClassId,
-      courseId: scope.scope.courseId,
-      pageId: scope.scope.pageId,
-      resourceId,
-      pathNodeId,
-      pageContextHint: pageContext,
+      courseId: authorizedScope.courseId,
+      pageId: authorizedScope.pageId,
+      resourceId: authorizedScope.resourceId,
+      pathNodeId: authorizedScope.pathNodeId,
       knowledgeWorkspaceHint: normalizeKonlingKnowledgeWorkspaceHint(knowledgeWorkspaceHint ?? modeClientContextHints),
       teachingAssistantModeId,
       currentUserQuery: userMessage.content,
@@ -146,7 +173,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const serverModeContext = await resolveKonlingTeachingAssistantServerModeContext({
       db: prisma,
       modeId: teachingAssistantModeId,
-      scope: scope.scope,
+      scope: authorizedScope,
       clientContextHints: modeClientContextHints,
     });
     const smartPrepBinding = resolveKonlingSmartPrepSessionBinding(serverModeContext);
@@ -157,7 +184,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const modeContract = buildKonlingTeachingAssistantRuntimeContract({
       modeId: teachingAssistantModeId,
       runtimeContext,
-      scope: scope.scope,
+      scope: authorizedScope,
       serverModeContext,
       clientContextHints: modeClientContextHints,
     });
@@ -182,12 +209,32 @@ export async function POST(request: NextRequest, context: RouteContext) {
       knowledgeCapabilityContext: modeContract.groundingContext,
       teachingAssistantMode: modeContract,
     };
+    const claimedConversationTurn = await claimKonlingConversationTurn(prisma, {
+      conversationId: sessionId,
+      ownerUserId: session.user.id,
+      currentScope: authorizedScope,
+      userMessage,
+    });
+    if (!claimedConversationTurn) {
+      return NextResponse.json({ error: 'Session not found' }, { status: 404 });
+    }
+    claimedTurn = {
+      conversationId: sessionId,
+      ownerUserId: session.user.id,
+      turnId: claimedConversationTurn.turnId,
+    };
+    updatedMessages = claimedConversationTurn.modelMessages;
+    ownedTurnIds = updatedMessages
+      .filter((message) => message.role === 'user')
+      .map((message) => message.id)
+      .filter(Boolean)
+      .slice(-50);
 
     // 构建AI上下文
     const aiContext: AIContext = {
       page: runtimeContext.pageContext,
       user: runtimeContext.userProfile,
-      sessionHistory: existingMessages,
+      sessionHistory: updatedMessages.slice(0, -1),
     };
 
     // 生成系统提示词
@@ -196,8 +243,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
       adaptiveRuntime: modeRuntimeContext,
     });
     const agentSession = await getOrCreateKonlingAgentSession(prisma, {
-      scope: scope.scope,
+      scope: authorizedScope,
       agentSessionId,
+      konlingSessionId: sessionId,
       phase: 'konling-chat-tool-runtime',
       status: 'running',
       state: {
@@ -212,7 +260,12 @@ export async function POST(request: NextRequest, context: RouteContext) {
       smartPrepBinding,
     });
     const agentSessionStateUpdate = await prisma.agentSession.updateMany({
-      where: { id: agentSession.id, ownerUserId: scope.scope.targetUserId, actorUserId: scope.scope.authenticatedUserId },
+      where: {
+        id: agentSession.id,
+        ownerUserId: authorizedScope.targetUserId,
+        actorUserId: authorizedScope.authenticatedUserId,
+        konlingSessionId: sessionId,
+      },
       data: { stateJson: {
         ...agentSession.state,
         route: '/api/ai/sessions/[id]/messages',
@@ -224,10 +277,12 @@ export async function POST(request: NextRequest, context: RouteContext) {
           smartPrepBinding: {
             taskId: smartPrepBinding.taskId,
             taskRevision: smartPrepBinding.taskRevision,
-            ownerUserId: scope.scope.targetUserId,
+            ownerUserId: authorizedScope.targetUserId,
           },
         } : {}),
-      } as Prisma.InputJsonObject },
+      } as Prisma.InputJsonObject,
+      konlingSessionId: sessionId,
+      },
     });
     if (agentSessionStateUpdate.count !== 1) throw new KonlingRuntimeScopeError(404, 'AgentSession turn binding persistence failed.');
     const modelRequirements: ModelProviderCapabilityRequirements = {
@@ -245,7 +300,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       messages: await toModelMessages(updatedMessages),
       tools: buildScopedKonlingAiTools(buildKonlingToolRuntime({
         db: prisma,
-        scope: scope.scope,
+        scope: authorizedScope,
         context: { ...modeRuntimeContext, permittedTools: modeContract.permittedTools },
         agentSessionId: agentSession.id,
         permittedTools: modeContract.permittedTools,
@@ -278,7 +333,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     // 添加助手回复
     const assistantMessage: Message = toLegacyMessage({
-      id: (Date.now() + 1).toString(),
+      id: createKonlingMessageId(),
       role: 'assistant',
       content: guardedAssistantContent,
       metadata: {
@@ -296,30 +351,31 @@ export async function POST(request: NextRequest, context: RouteContext) {
       },
     });
 
-    const finalMessages = [...updatedMessages, assistantMessage];
-
-    // 更新会话
-    await prisma.konlingSession.update({
-      where: { id: sessionId },
-      data: {
-        messages: finalMessages as unknown as Prisma.InputJsonValue,
-        updatedAt: new Date(),
-      },
+    const persistedConversation = await completeKonlingConversationTurn(prisma, {
+      conversationId: sessionId,
+      ownerUserId: session.user.id,
+      turnId: claimedConversationTurn.turnId,
+      assistantMessage,
     });
+    if (!persistedConversation) {
+      return NextResponse.json({ error: 'Session not found' }, { status: 404 });
+    }
+    const finalMessages = ((persistedConversation.messages as unknown as Message[]) || []).map(toLegacyMessage);
     await persistKonlingSessionMemories(prisma, {
       userId: konlingSession.userId,
       sessionId,
-      courseId: konlingSession.courseId,
-      pageId: konlingSession.pageId,
-      classId: scope.scope.classId,
-      resourceId: scope.scope.resourceId,
-      pathNodeId: scope.scope.pathNodeId,
+      courseId: authorizedScope.courseId,
+      pageId: authorizedScope.pageId,
+      classId: authorizedScope.classId,
+      resourceId: authorizedScope.resourceId,
+      pathNodeId: authorizedScope.pathNodeId,
       userMessage: content,
       assistantMessage: guardedAssistantContent,
     });
     const refreshedAgentSession = await resumeKonlingAgentSession(prisma, {
-      scope: scope.scope,
+      scope: authorizedScope,
       agentSessionId: agentSession.id,
+      konlingSessionId: sessionId,
       phase: 'konling-chat-tool-runtime',
       smartPrepBinding,
     });
@@ -332,7 +388,13 @@ export async function POST(request: NextRequest, context: RouteContext) {
       pendingApproval: refreshedAgentSession.pendingApproval,
     });
   } catch (error) {
+    if (claimedTurn) {
+      await releaseKonlingConversationTurn(prisma, claimedTurn).catch(() => undefined);
+    }
     rethrowIfNextDynamicError(error);
+    if (error instanceof KonlingConversationTurnConflictError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     if (error instanceof KonlingRuntimeScopeError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
@@ -365,51 +427,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
  * 更新会话消息（批量替换）
  */
 export async function PUT(request: NextRequest, context: RouteContext) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const { id: sessionId } = await context.params;
-    const body = await request.json();
-    const { messages } = body;
-
-    // 验证会话所有权
-    const konlingSession = await prisma.konlingSession.findUnique({
-      where: { id: sessionId },
-    });
-
-    if (!konlingSession) {
-      return NextResponse.json(
-        { error: 'Session not found' },
-        { status: 404 }
-      );
-    }
-
-    if (konlingSession.userId !== session.user.id) {
-      return NextResponse.json(
-        { error: 'Forbidden' },
-        { status: 403 }
-      );
-    }
-
-    // 更新消息
-    await prisma.konlingSession.update({
-      where: { id: sessionId },
-      data: {
-        messages: messages as unknown as Prisma.InputJsonValue,
-        updatedAt: new Date(),
-      },
-    });
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    rethrowIfNextDynamicError(error);
-    console.error('Error in PUT /api/ai/sessions/[id]/messages:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
+  void request;
+  void context;
+  return NextResponse.json(
+    { error: 'Conversation history is append-only' },
+    { status: 405, headers: { Allow: 'POST' } },
+  );
 }

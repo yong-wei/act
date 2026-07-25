@@ -54,21 +54,33 @@ export function useChat({ api, body, onError, onFinish, onResponse }: UseLegacyC
   );
 
   const append = useCallback(
-    async (message: Pick<Message, 'role' | 'content'>) => {
-      await chat.sendMessage({ text: message.content });
+    async (
+      message: Pick<Message, 'role' | 'content'>,
+      requestBody?: Record<string, unknown>,
+    ) => {
+      await chat.sendMessage(
+        { text: message.content },
+        requestBody ? { body: { ...bodyRef.current, ...requestBody } } : undefined,
+      );
     },
     [chat],
   );
 
   const handleSubmit = useCallback(
-    async (event?: { preventDefault?: () => void }) => {
+    async (
+      event?: { preventDefault?: () => void },
+      requestBody?: Record<string, unknown>,
+    ) => {
       event?.preventDefault?.();
       const text = input.trim();
       if (!text || chat.status === 'submitted' || chat.status === 'streaming') {
         return;
       }
       setInput('');
-      await chat.sendMessage({ text });
+      await chat.sendMessage(
+        { text },
+        requestBody ? { body: { ...bodyRef.current, ...requestBody } } : undefined,
+      );
     },
     [chat, input],
   );

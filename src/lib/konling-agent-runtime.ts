@@ -1764,6 +1764,7 @@ type ApplyControllerPatchInput = z.infer<typeof applyControllerPatchParameters>;
 
 interface KonlingAgentSessionCreateInput {
   scope: KonlingRuntimeScope;
+  konlingSessionId?: string | null;
   phase: string;
   status?: KonlingAgentSessionStatus;
   state?: Record<string, unknown>;
@@ -1785,6 +1786,7 @@ interface KonlingAgentSessionResolveInput extends KonlingAgentSessionCreateInput
 interface KonlingAgentSessionRefInput {
   scope: KonlingRuntimeScope;
   agentSessionId: string;
+  konlingSessionId?: string | null;
   phase?: string;
   smartPrepBinding?: KonlingSmartPrepSessionBinding | null;
 }
@@ -2410,7 +2412,7 @@ export async function buildKonlingRuntimeContext(
         })
       : Promise.resolve(null),
   ]);
-  const pageContext = buildServerOwnedPageContext(scope, input.pageContextHint);
+  const pageContext = buildServerOwnedPageContext(scope);
   const userProfile = buildServerOwnedUserProfile({
     userId: scope.targetUserId,
     name: input.authenticatedUserName || '同学',
@@ -3930,6 +3932,7 @@ export async function createKonlingAgentSession(
   };
   const created = await db.agentSession?.create?.({
     data: {
+      konlingSessionId: input.konlingSessionId ?? null,
       ownerUserId: input.scope.targetUserId,
       actorUserId: input.scope.authenticatedUserId,
       classId: input.scope.classId ?? null,
@@ -3957,7 +3960,13 @@ export async function resumeKonlingAgentSession(
 ): Promise<KonlingAgentSessionView> {
   assertSmartPrepSessionBinding(input.scope, input.smartPrepBinding);
   const session = await db.agentSession?.findFirst?.({
-    where: buildAgentSessionScopeWhere(input.scope, input.agentSessionId, input.phase, input.smartPrepBinding),
+    where: buildAgentSessionScopeWhere(
+      input.scope,
+      input.agentSessionId,
+      input.phase,
+      input.smartPrepBinding,
+      input.konlingSessionId,
+    ),
   });
   if (!session) {
     throw new KonlingRuntimeScopeError(404, 'AgentSession 不存在或不属于当前用户作用域。');
@@ -3973,6 +3982,7 @@ export async function getOrCreateKonlingAgentSession(
     return resumeKonlingAgentSession(db, {
       scope: input.scope,
       agentSessionId: input.agentSessionId,
+      konlingSessionId: input.konlingSessionId,
       phase: input.phase,
       smartPrepBinding: input.smartPrepBinding,
     });
@@ -3980,7 +3990,13 @@ export async function getOrCreateKonlingAgentSession(
 
   const awaitingApprovalSession = await db.agentSession?.findFirst?.({
     where: {
-      ...buildAgentSessionScopeWhere(input.scope, undefined, undefined, input.smartPrepBinding),
+      ...buildAgentSessionScopeWhere(
+        input.scope,
+        undefined,
+        undefined,
+        input.smartPrepBinding,
+        input.konlingSessionId,
+      ),
       phase: input.phase,
       status: 'awaiting_approval',
     },
@@ -5880,11 +5896,14 @@ function buildAgentSessionScopeWhere(
   agentSessionId?: string,
   phase?: string,
   smartPrepBinding?: KonlingSmartPrepSessionBinding | null,
+  konlingSessionId?: string | null,
 ) {
   return {
     ...(agentSessionId ? { id: agentSessionId } : {}),
     ...(phase ? { phase } : {}),
+    ...(konlingSessionId !== undefined ? { konlingSessionId } : {}),
     ownerUserId: scope.targetUserId,
+    actorUserId: scope.authenticatedUserId,
     classId: scope.classId ?? null,
     courseId: scope.courseId,
     pageId: scope.pageId,
@@ -7325,19 +7344,17 @@ function analyzeKonlingAttempt(studentState: StudentState) {
   };
 }
 
-function buildServerOwnedPageContext(scope: KonlingRuntimeScope, hint?: Partial<PageContext> | null): PageContext {
+function buildServerOwnedPageContext(scope: KonlingRuntimeScope): PageContext {
   const stepContext = getStepAIContext(scope.courseId, scope.pageId);
   const simulationContext = buildServerOwnedSimulationPageContext(scope);
   return {
     courseId: scope.courseId,
-    courseTitle: stepContext?.courseTitle || hint?.courseTitle || scope.courseId,
-    pageType: stepContext?.pageType || hint?.pageType || 'theory',
+    courseTitle: stepContext?.courseTitle || scope.courseId,
+    pageType: stepContext?.pageType || 'theory',
     stepId: scope.pageId,
-    topic: stepContext?.topic || hint?.topic || scope.pageId,
-    learningObjectives: stepContext?.learningObjectives || hint?.learningObjectives || [],
-    knowledgeType: stepContext?.knowledgeType || hint?.knowledgeType || 'C',
-    stage: hint?.stage,
-    url: hint?.url,
+    topic: stepContext?.topic || scope.pageId,
+    learningObjectives: stepContext?.learningObjectives || [],
+    knowledgeType: stepContext?.knowledgeType || 'C',
     ...simulationContext,
   };
 }
