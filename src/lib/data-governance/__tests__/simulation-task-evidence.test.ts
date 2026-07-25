@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -42,6 +44,7 @@ import type { GovernedTaskEvidenceContext } from '../simulation-task-evidence';
 import {
   buildSimulationTaskLearningFact,
   persistSimulationTaskEvidence,
+  SIMULATION_TASK_EVIDENCE_FACT_IDENTITY_VERSION,
 } from '../simulation-task-learning-fact';
 
 // ─── Task Catalog Tests ──────────────────────────────────────────────────────
@@ -225,6 +228,7 @@ describe('simulation-task-evidence', () => {
       normalizedSourceArtifactId: 'a1',
       semanticFingerprint: {},
       summary: { sourceRef: 'a1', qualityBand: 'full' },
+      completionAuthority: 'arena-accepted-submission',
     });
     const incoming = buildGovernedTaskEvidence({
       studentUserId: 's1',
@@ -235,6 +239,7 @@ describe('simulation-task-evidence', () => {
       normalizedSourceArtifactId: 'a1',
       semanticFingerprint: {},
       summary: { sourceRef: 'a1', qualityBand: 'partial' },
+      completionAuthority: 'arena-accepted-submission',
     });
     const result = selectHighestTierEvidence(existing, incoming);
     expect(result).toBe(existing);
@@ -250,6 +255,7 @@ describe('simulation-task-evidence', () => {
       normalizedSourceArtifactId: 'run-1',
       semanticFingerprint: { plantRef: 'p1' },
       summary: { sourceRef: 'run-1', qualityBand: 'full' },
+      completionAuthority: 'odyssey-persistent-clear',
     });
     expect(isGovernedTaskEvidence(evidence)).toBe(true);
     expect(isGovernedTaskEvidence({})).toBe(false);
@@ -278,6 +284,7 @@ describe('simulation-task-learning-fact', () => {
     normalizedSourceArtifactId: 'run-1',
     semanticFingerprint: { modelRef: 'level-1' },
     summary: { sourceRef: 'run-1', qualityBand: 'full' },
+    completionAuthority: 'odyssey-persistent-clear',
   });
 
   it('builds an immutable zero-contribution learning fact', () => {
@@ -288,7 +295,7 @@ describe('simulation-task-learning-fact', () => {
     });
     expect(fact.factType).toBe('simulation_task_evidence');
     expect(fact.competencyContribution).toEqual({});
-    expect(fact.sourceEventId).toMatch(/^simulation-task-evidence:[a-f0-9]{64}$/);
+    expect(fact.sourceEventId).toMatch(/^simulation-task-evidence:v2:[a-f0-9]{64}$/);
     expect(fact.contextJson).toEqual({ simulationTaskEvidence: evidence });
   });
 
@@ -308,6 +315,35 @@ describe('simulation-task-learning-fact', () => {
     });
     expect(capturedSkipDuplicates).toBe(true);
     expect(result).toEqual({ created: 0, skipped: true });
+  });
+
+  it('uses a versioned identity for authoritative upgrades of legacy facts', () => {
+    const fact = buildSimulationTaskLearningFact({
+      userId: 'student-1',
+      evidence,
+      sourceLogId: 'authoritative-source:run-1',
+    });
+    const legacyDigest = createHash('sha256')
+      .update(`${evidence.artifactKey}\u001f${evidence.tier}`)
+      .digest('hex');
+
+    expect(fact.sourceEventId).toMatch(
+      new RegExp(`^${SIMULATION_TASK_EVIDENCE_FACT_IDENTITY_VERSION.replace('.', '\\.')}:[a-f0-9]{64}$`),
+    );
+    expect(fact.sourceEventId).not.toBe(`simulation-task-evidence:${legacyDigest}`);
+    expect((fact.contextJson as any).simulationTaskEvidence.completionAuthority)
+      .toBe('odyssey-persistent-clear');
+  });
+
+  it('refuses to rewrite a legacy fact without authoritative reconstruction', () => {
+    const legacyEvidence: GovernedTaskEvidenceContext = { ...evidence };
+    delete legacyEvidence.completionAuthority;
+
+    expect(() => buildSimulationTaskLearningFact({
+      userId: 'student-1',
+      evidence: legacyEvidence,
+      sourceLogId: 'legacy-fact-only',
+    })).toThrow('simulation-task-evidence-completion-authority-required');
   });
 });
 
@@ -440,7 +476,7 @@ describe('simulation-task-materialization', () => {
     expect(result.reason).toBe('not-persistent-clear');
   });
 
-  it('routes arena-assigned odyssey to arena task', () => {
+  it('rejects arena-assigned Odyssey clear and requires the Arena submission writer', () => {
     const result = materializeOdysseyTaskEvidence({
       actor: studentActor,
       eventType: 'odyssey_persistent_clear',
@@ -453,9 +489,10 @@ describe('simulation-task-materialization', () => {
       fingerprint: {},
       summary: { sourceRef: 'run-1', qualityBand: 'full' },
     });
-    expect(result.status).toBe('accepted');
-    expect(result.evidence!.taskKey).toBe('arena:task-odyssey-level-one-growth');
-    expect(result.evidence!.source).toBe('arena');
+    expect(result).toEqual({
+      status: 'rejected',
+      reason: 'arena-assignment-requires-arena-submission',
+    });
   });
 
   it('rejects an Arena-assigned Odyssey run whose persisted task id does not match', () => {
@@ -473,7 +510,7 @@ describe('simulation-task-materialization', () => {
     });
     expect(result).toMatchObject({
       status: 'rejected',
-      reason: 'arena-assignment-task-mismatch',
+      reason: 'arena-assignment-requires-arena-submission',
     });
   });
 
@@ -502,6 +539,7 @@ describe('simulation-task-materialization', () => {
       normalizedSourceArtifactId: 'log-1',
       semanticFingerprint: {},
       summary: { sourceRef: 'log-1', qualityBand: 'full' },
+      completionAuthority: 'validated-distinct-runs',
     });
     const result = materializeVirtualSimulationTaskEvidence({
       actor: studentActor,
@@ -529,6 +567,7 @@ describe('simulation-task-completion', () => {
       semanticFingerprint: `fp-${Math.random()}`,
       summary: { sourceRef: 'x', qualityBand: 'full' },
       sourceValidity: 'valid',
+      completionAuthority: 'validated-distinct-runs',
       portraitWeight: 0,
       portraitDimensionMapping: 'simulationValidationEvidence',
       capabilityMappingTags: [],
@@ -574,9 +613,27 @@ describe('simulation-task-completion', () => {
     expect(result.attained).toBe(false);
   });
 
+  it('does not count process-only artifacts as validated runs', () => {
+    const evidence = ['a', 'b', 'c'].map((fingerprint) =>
+      makeEvidence({
+        taskKey: GENERIC_VIRTUAL_SIMULATION_TASK_KEY,
+        tier: 'process',
+        semanticFingerprint: `${fingerprint}|||`,
+      }));
+    expect(evaluateTaskCompletion(
+      GENERIC_VIRTUAL_SIMULATION_TASK_KEY,
+      evidence,
+    ).attained).toBe(false);
+  });
+
   it('evaluates arena task as attained with submission tier', () => {
     const evidence = [
-      makeEvidence({ taskKey: 'arena:task-second-order-lead-pid', tier: 'submission', source: 'arena' }),
+      makeEvidence({
+        taskKey: 'arena:task-second-order-lead-pid',
+        tier: 'submission',
+        source: 'arena',
+        completionAuthority: 'arena-accepted-submission',
+      }),
     ];
     const result = evaluateTaskCompletion('arena:task-second-order-lead-pid', evidence);
     expect(result.attained).toBe(true);
@@ -584,7 +641,12 @@ describe('simulation-task-completion', () => {
 
   it('evaluates odyssey task as attained with clear tier', () => {
     const evidence = [
-      makeEvidence({ taskKey: 'odyssey:level-1', tier: 'clear', source: 'odyssey' }),
+      makeEvidence({
+        taskKey: 'odyssey:level-1',
+        tier: 'clear',
+        source: 'odyssey',
+        completionAuthority: 'odyssey-persistent-clear',
+      }),
     ];
     const result = evaluateTaskCompletion('odyssey:level-1', evidence);
     expect(result.attained).toBe(true);

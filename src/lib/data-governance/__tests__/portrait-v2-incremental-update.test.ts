@@ -8,6 +8,12 @@ import {
   updatePortraitV2Incrementally,
 } from '../portrait-v2-incremental-update';
 import { materializeIncrementalPortraitV2 } from '../portrait-v2-materialization';
+import { buildGovernedTaskEvidence } from '../simulation-task-evidence';
+import {
+  buildSimulationTaskInputIdentity,
+  computeSimulationTaskCatalogDigest,
+  deriveHistoricalSimulationTaskPlanDigest,
+} from '../simulation-task-portrait-projection';
 import {
   PORTRAIT_V2_CALCULATION_VERSION,
   PORTRAIT_V2_DIMENSION_IDS,
@@ -562,6 +568,66 @@ describe('portrait v2 incremental updates', () => {
     expect(snapshotCreate).not.toHaveBeenCalled();
   });
 
+  it('publishes the requested task input identity for a learner without simulation task evidence', async () => {
+    const stateCreate = vi.fn(async () => ({ id: 'state-no-task-evidence' }));
+    const pointerUpsert = vi.fn(async () => ({}));
+    const simulationTaskInput = buildSimulationTaskInputIdentity({
+      factWatermark: BigInt(0),
+      catalogDigest: computeSimulationTaskCatalogDigest(),
+      historicalCandidatePlanDigest: null,
+    });
+    const db: any = {
+      $executeRaw: vi.fn(async () => 1),
+      $transaction: vi.fn(async (callback: (tx: unknown) => Promise<unknown>) => callback(db)),
+      learningFact: { findMany: vi.fn(async () => []) },
+      learnerFactTransition: {
+        findMany: vi.fn(async () => []),
+        create: vi.fn(),
+      },
+      learnerFactTransitionSequence: {
+        upsert: vi.fn(),
+        update: vi.fn(),
+      },
+      cumulativePortraitCutoverFence: {
+        findUnique: vi.fn(async () => ({
+          fence: BigInt(4),
+          calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+          learnerGeneration: BigInt(7),
+          queueGeneration: BigInt(11),
+          activeMigrationRunId: 'migration-1',
+        })),
+      },
+      learnerPortraitCurrentState: {
+        findUnique: vi.fn(async () => null),
+        upsert: pointerUpsert,
+      },
+      learnerPortraitStateVersion: { create: stateCreate },
+      studentPortraitV2Snapshot: { create: vi.fn() },
+    };
+
+    await materializeIncrementalPortraitV2(db, 'student-no-task-evidence', {
+      now: new Date('2026-05-02T00:00:00.000Z'),
+      simulationTaskInput: {
+        expectedInputDigest: simulationTaskInput.inputDigest,
+      },
+    });
+
+    expect(stateCreate).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        stateKind: 'NO_EVIDENCE',
+        taskInputDigest: simulationTaskInput.inputDigest,
+      }),
+    }));
+    expect(pointerUpsert).toHaveBeenCalledWith(expect.objectContaining({
+      create: expect.objectContaining({
+        taskInputDigest: simulationTaskInput.inputDigest,
+      }),
+      update: expect.objectContaining({
+        taskInputDigest: simulationTaskInput.inputDigest,
+      }),
+    }));
+  });
+
   it('rejects a stale publication fence before writing state or pointer', async () => {
     const stateCreate = vi.fn();
     const pointerUpsert = vi.fn();
@@ -687,6 +753,147 @@ describe('portrait v2 incremental updates', () => {
       'controlModelingRepresentation',
       'systemAnalysisInterpretation',
     ]);
+  });
+
+  it('projects governed task evidence into only the seventh dimension in the fenced learner lane', async () => {
+    const previous = baseline();
+    const existing = {
+      ...fact('fact-existing', { engineeringDecision: 0.2 }, {}),
+      startedAt: new Date('2026-05-01T00:00:00.000Z'),
+    };
+    const taskFact = fact('fact-task-complete', {}, {
+      evidenceGovernance: { skipProfileContribution: true, profileWeight: 0 },
+      simulationTaskEvidence: buildGovernedTaskEvidence({
+        studentUserId: previous.userId,
+        taskKey: 'odyssey:level-1',
+        source: 'odyssey',
+        tier: 'clear',
+        occurredAt: '2026-05-03T00:00:00.000Z',
+        normalizedSourceArtifactId: 'odyssey-clear-1',
+        semanticFingerprint: { keyInputHash: 'odyssey-clear-1' },
+        summary: {
+          sourceRef: 'odyssey-clear-1',
+          qualityBand: 'full',
+        },
+        completionAuthority: 'odyssey-persistent-clear',
+      }),
+    });
+    taskFact.startedAt = new Date('2026-05-03T00:00:00.000Z');
+    const { db, snapshotCreate, stateCreate } = cumulativeMaterializationDb(
+      previous,
+      [existing, taskFact],
+    );
+
+    const result = await materializeIncrementalPortraitV2(db, previous.userId, {
+      now: new Date('2026-05-03T00:00:01.000Z'),
+    });
+
+    const payload = snapshotCreate.mock.calls[0][0].data.payload as PortraitV2Payload;
+    const simulation = payload.dimensions.find((dimension) =>
+      dimension.id === 'simulationValidationEvidence')!;
+    expect(result.affectedDimensions).toEqual(['simulationValidationEvidence']);
+    expect(simulation.taskAttainment).toMatchObject({
+      state: 'EVIDENCE',
+      completedTaskCount: 1,
+      relatedTaskCount: expect.any(Number),
+      score: expect.any(Number),
+    });
+    expect(stateCreate).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        taskInputDigest: expect.stringMatching(/^[0-9a-f]{64}$/),
+      }),
+    }));
+    for (const dimension of payload.dimensions) {
+      if (dimension.id === 'simulationValidationEvidence') continue;
+      expect(dimension.score).toBe(
+        previous.dimensions.find((item) => item.id === dimension.id)?.score,
+      );
+    }
+  });
+
+  it('recomputes an existing task projection when only its durable input identity drifts', async () => {
+    const previous = baseline();
+    const taskFact = fact('fact-task-current', {}, {
+      evidenceGovernance: { skipProfileContribution: true, profileWeight: 0 },
+      simulationTaskEvidence: buildGovernedTaskEvidence({
+        studentUserId: previous.userId,
+        taskKey: 'odyssey:level-1',
+        source: 'odyssey',
+        tier: 'clear',
+        occurredAt: '2026-05-03T00:00:00.000Z',
+        normalizedSourceArtifactId: 'odyssey-clear-current',
+        semanticFingerprint: { keyInputHash: 'odyssey-clear-current' },
+        summary: {
+          sourceRef: 'odyssey-clear-current',
+          qualityBand: 'full',
+        },
+        completionAuthority: 'odyssey-persistent-clear',
+      }),
+    });
+    taskFact.startedAt = new Date('2026-05-03T00:00:00.000Z');
+    const initial = cumulativeMaterializationDb(previous, [taskFact], 0);
+    await materializeIncrementalPortraitV2(initial.db, previous.userId, {
+      now: new Date('2026-05-03T00:00:01.000Z'),
+    });
+    const projected = initial.snapshotCreate.mock.calls[0][0].data.payload as PortraitV2Payload;
+    const drifted = cumulativeMaterializationDb(projected, [taskFact], 1);
+    drifted.currentState.taskInputDigest = 'stale-catalog-input';
+
+    const result = await materializeIncrementalPortraitV2(drifted.db, previous.userId, {
+      now: new Date('2026-05-03T00:00:01.000Z'),
+    });
+
+    expect(result).toMatchObject({
+      written: true,
+      stateWatermark: BigInt(1),
+      affectedDimensions: ['simulationValidationEvidence'],
+    });
+    expect(drifted.stateCreate).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        stateWatermark: BigInt(1),
+        taskInputDigest: expect.not.stringMatching(/^stale-catalog-input$/),
+      }),
+    }));
+  });
+
+  it('derives historical plan identity from active facts on an ordinary snapshot', async () => {
+    const previous = baseline();
+    const planDigest = 'a'.repeat(64);
+    const taskFact = fact('fact-task-historical', {}, {
+      evidenceGovernance: { skipProfileContribution: true, profileWeight: 0 },
+      simulationTaskHistoricalCandidate: {
+        schemaVersion: 'simulation-task-historical-candidate.v1',
+        planDigest,
+      },
+      simulationTaskEvidence: buildGovernedTaskEvidence({
+        studentUserId: previous.userId,
+        taskKey: 'odyssey:level-1',
+        source: 'odyssey',
+        tier: 'clear',
+        occurredAt: '2026-05-03T00:00:00.000Z',
+        normalizedSourceArtifactId: 'historical-clear-1',
+        semanticFingerprint: { keyInputHash: 'historical-clear-1' },
+        summary: { sourceRef: 'historical-clear-1', qualityBand: 'full' },
+        completionAuthority: 'odyssey-persistent-clear',
+      }),
+    });
+    const fixture = cumulativeMaterializationDb(previous, [taskFact], 0);
+    const historicalPlanSetDigest = deriveHistoricalSimulationTaskPlanDigest([taskFact]);
+    const expectedIdentity = buildSimulationTaskInputIdentity({
+      factWatermark: BigInt(1),
+      catalogDigest: computeSimulationTaskCatalogDigest(),
+      historicalCandidatePlanDigest: historicalPlanSetDigest,
+    });
+
+    await materializeIncrementalPortraitV2(fixture.db, previous.userId, {
+      now: new Date('2026-05-03T00:00:01.000Z'),
+    });
+
+    expect(fixture.stateCreate).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        taskInputDigest: expectedIdentity.inputDigest,
+      }),
+    }));
   });
 
   it('requires a learner-scoped rebuild for a late UPSERT', async () => {
@@ -879,6 +1086,21 @@ function cumulativeMaterializationDb(
     ...data,
   }));
   let lastSequence = BigInt(processedFactCount);
+  const currentState: any = {
+    stateWatermark: BigInt(processedFactCount),
+    taskInputDigest: '',
+    calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+    generation: currentGeneration,
+    queueGeneration: BigInt(11),
+    cutoverFence: BigInt(4),
+    stateVersion: {
+      overallScore: 70,
+      lastTrend: 'stable',
+      lastRisk: null,
+      stateKind: 'SNAPSHOT',
+      snapshot: { id: 'portrait-existing', payload: structuredClone(previous) },
+    },
+  };
   const db: any = {
     $executeRaw: vi.fn(async () => 1),
     $transaction: vi.fn(async (callback: (tx: unknown) => Promise<unknown>) => callback(db)),
@@ -909,20 +1131,7 @@ function cumulativeMaterializationDb(
       })),
     },
     learnerPortraitCurrentState: {
-      findUnique: vi.fn(async () => ({
-        stateWatermark: BigInt(processedFactCount),
-        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
-        generation: currentGeneration,
-        queueGeneration: BigInt(11),
-        cutoverFence: BigInt(4),
-        stateVersion: {
-          overallScore: 70,
-          lastTrend: 'stable',
-          lastRisk: null,
-          stateKind: 'SNAPSHOT',
-          snapshot: { id: 'portrait-existing', payload: structuredClone(previous) },
-        },
-      })),
+      findUnique: vi.fn(async () => currentState),
       upsert: vi.fn(async () => ({})),
     },
     learnerPortraitStateVersion: {
@@ -930,5 +1139,5 @@ function cumulativeMaterializationDb(
     },
     studentPortraitV2Snapshot: { create: snapshotCreate },
   };
-  return { db, snapshotCreate, stateCreate };
+  return { db, snapshotCreate, stateCreate, currentState };
 }

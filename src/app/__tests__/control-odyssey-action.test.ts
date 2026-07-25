@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   bridgeOdysseyRunToArenaSubmission: vi.fn(),
   getArenaTaskForOdysseyLevel: vi.fn(),
   resolveAccessibleArenaPublicationForStudent: vi.fn(),
+  requestRealtimeSimulationTaskReconciliation: vi.fn(),
   computeOfficialOdysseyTelemetry: vi.fn(),
   listSubmissions: vi.fn(),
   prisma: {
@@ -68,6 +69,10 @@ vi.mock('@/resources/interactive-learning/control-odyssey/engine/official-simula
   computeOfficialOdysseyTelemetry: mocks.computeOfficialOdysseyTelemetry,
 }));
 
+vi.mock('@/lib/data-governance/simulation-task-reconciliation', () => ({
+  requestRealtimeSimulationTaskReconciliation: mocks.requestRealtimeSimulationTaskReconciliation,
+}));
+
 import { getControlProfile, getLevelLeaderboard, submitGameScore } from '../actions/control-odyssey';
 
 const officialSnapshot = (runId: string, overrides: Record<string, unknown> = {}) => ({
@@ -115,6 +120,7 @@ describe('submitGameScore Arena publication bridge', () => {
     mocks.prisma.studentProfile.update.mockResolvedValue({});
     mocks.prisma.studentProfile.upsert.mockResolvedValue({});
     mocks.prisma.learningFact.createMany.mockResolvedValue({ count: 1 });
+    mocks.requestRealtimeSimulationTaskReconciliation.mockResolvedValue(1);
     mocks.getArenaTaskForOdysseyLevel.mockReturnValue('task-odyssey-level-one-growth');
     mocks.computeOfficialOdysseyTelemetry.mockReturnValue({
       settlingTime: 4.2,
@@ -172,6 +178,13 @@ describe('submitGameScore Arena publication bridge', () => {
         }),
       ],
     }));
+    expect(mocks.requestRealtimeSimulationTaskReconciliation).toHaveBeenCalledWith(
+      expect.anything(),
+      {
+        userId: 'student-1',
+        reason: 'odyssey-task-evidence',
+      },
+    );
   });
 
   it('repairs missing task evidence when an already completed ordinary run is retried', async () => {
@@ -203,6 +216,29 @@ describe('submitGameScore Arena publication bridge', () => {
       skipDuplicates: true,
     }));
     expect(mocks.prisma.simulationLog.create).not.toHaveBeenCalled();
+  });
+
+  it('re-enters the idempotent reconciliation helper for duplicate ordinary Odyssey evidence', async () => {
+    mocks.getArenaTaskForOdysseyLevel.mockReturnValue(undefined);
+    mocks.prisma.learningFact.createMany.mockResolvedValueOnce({ count: 0 });
+    mocks.prisma.simulationLog.findFirst.mockResolvedValueOnce({
+      id: 'completed-ordinary-log',
+      createdAt: new Date('2026-05-15T10:00:00.000Z'),
+      inputParams: officialSnapshot('ordinary-run-duplicate', {
+        levelId: 'level-2',
+        arenaTaskId: undefined,
+        arenaAssigned: false,
+      }),
+      score: 760,
+      odysseyCompletedAt: new Date('2026-05-15T10:05:00.000Z'),
+    });
+
+    await submitGameScore('level-2', 760, {}, {
+      runId: 'ordinary-run-duplicate',
+    });
+
+    expect(mocks.prisma.learningFact.createMany).toHaveBeenCalledTimes(1);
+    expect(mocks.requestRealtimeSimulationTaskReconciliation).toHaveBeenCalledTimes(1);
   });
 
   it('returns the deterministic existing Arena submission id when an Odyssey run is replayed', async () => {
@@ -794,6 +830,7 @@ describe('submitGameScore Arena publication bridge', () => {
 
     expect(mocks.bridgeOdysseyRunToArenaSubmission).toHaveBeenCalledTimes(1);
     expect(mocks.prisma.studentProfile.upsert).not.toHaveBeenCalled();
+    expect(mocks.requestRealtimeSimulationTaskReconciliation).not.toHaveBeenCalled();
   });
 
   it('does not trust season scope from the Odyssey score submission context', async () => {

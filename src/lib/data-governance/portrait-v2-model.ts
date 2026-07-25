@@ -5,6 +5,7 @@ import {
   PORTRAIT_V2_DIMENSION_IDS,
   type PortraitV2DimensionId,
 } from './kaq-objective-taxonomy';
+import type { SimulationTaskAttainmentProjection } from './simulation-task-portrait-projection';
 
 export { PORTRAIT_V2_DIMENSION_IDS } from './kaq-objective-taxonomy';
 
@@ -75,6 +76,7 @@ export interface PortraitV2DimensionState {
   limitations: string[];
   sourceLineage: PortraitV2SourceLineageRef[];
   calculationVersion: string;
+  taskAttainment?: SimulationTaskAttainmentProjection;
 }
 
 export interface PortraitV2PayloadShape {
@@ -237,6 +239,9 @@ export function createPortraitV2Payload(input: {
       freshness: { ...dimension.freshness },
       limitations: [...dimension.limitations],
       sourceLineage: dimension.sourceLineage.map((ref) => ({ ...ref })),
+      ...(dimension.taskAttainment
+        ? { taskAttainment: structuredClone(dimension.taskAttainment) }
+        : {}),
     })),
   };
   validatePortraitV2Payload(payload, { now: input.now });
@@ -562,6 +567,15 @@ export function projectPortraitV2ForConsumer(
           privacyScope: ref.privacyScope,
         })),
       calculationVersion: dimension.calculationVersion,
+      ...(dimension.taskAttainment
+        ? {
+            taskAttainment: {
+              ...structuredClone(dimension.taskAttainment),
+              sourceLineage: dimension.taskAttainment.sourceLineage.filter((ref) =>
+                ref.privacyScope === 'student-visible'),
+            },
+          }
+        : {}),
     })),
   };
   validatePortraitV2Projection(projected, consumer, options);
@@ -697,6 +711,7 @@ function validateDimension(
     'limitations',
     'sourceLineage',
     'calculationVersion',
+    'taskAttainment',
   ], 'Portrait v2 dimension');
   const id = dimension.id as PortraitV2DimensionId;
   if (!PORTRAIT_V2_DIMENSION_IDS.includes(id) || dimension.label !== LABELS.get(id)) {
@@ -771,6 +786,81 @@ function validateDimension(
   }
   if (!hasConsistentDimensionSummary(dimension, freshness.state, derivation.kind)) {
     throw new Error(`Portrait v2 dimension ${id} with missing evidence must use the canonical zero-value summary.`);
+  }
+  validateSimulationTaskAttainment(dimension, id);
+}
+
+function validateSimulationTaskAttainment(
+  dimension: Record<string, unknown>,
+  id: PortraitV2DimensionId,
+): void {
+  if (dimension.taskAttainment === undefined) return;
+  if (id !== 'simulationValidationEvidence') {
+    throw new Error('Only the simulation validation dimension may contain task attainment.');
+  }
+  const taskAttainment = asRecord(dimension.taskAttainment);
+  assertExactKeys(taskAttainment, [
+    'state',
+    'score',
+    'completedTaskCount',
+    'relatedTaskCount',
+    'groupedTaskSummary',
+    'evidenceAsOf',
+    'sourceLineage',
+    'calculationVersion',
+    'catalogDigest',
+    'limitations',
+    'hasGovernedTaskEvidence',
+  ], 'Simulation task attainment');
+  const completedTaskCount = Number(taskAttainment.completedTaskCount);
+  const relatedTaskCount = Number(taskAttainment.relatedTaskCount);
+  const groups = Array.isArray(taskAttainment.groupedTaskSummary)
+    ? taskAttainment.groupedTaskSummary
+    : [];
+  const groupCountsAreValid = groups.every((value) => {
+    const group = asRecord(value);
+    const tasks = Array.isArray(group.tasks) ? group.tasks : [];
+    return typeof group.source === 'string' &&
+      typeof group.displayGroup === 'string' &&
+      isNonNegativeInteger(group.completedTaskCount) &&
+      isNonNegativeInteger(group.relatedTaskCount) &&
+      Number(group.completedTaskCount) <= Number(group.relatedTaskCount) &&
+      tasks.length === Number(group.relatedTaskCount) &&
+      tasks.every((taskValue) => {
+        const task = asRecord(taskValue);
+        return isNonEmptyString(task.taskKey) &&
+          isNonEmptyString(task.displayName) &&
+          typeof task.completed === 'boolean';
+      });
+  });
+  const completedFromGroups = groups.reduce((sum, value) =>
+    sum + Number(asRecord(value).completedTaskCount), 0);
+  const relatedFromGroups = groups.reduce((sum, value) =>
+    sum + Number(asRecord(value).relatedTaskCount), 0);
+  if (
+    (taskAttainment.state !== 'EVIDENCE' && taskAttainment.state !== 'NO_EVIDENCE') ||
+    !isNonNegativeInteger(completedTaskCount) ||
+    !isNonNegativeInteger(relatedTaskCount) ||
+    completedTaskCount > relatedTaskCount ||
+    completedFromGroups !== completedTaskCount ||
+    relatedFromGroups !== relatedTaskCount ||
+    !groupCountsAreValid ||
+    !isNullableIsoTimestamp(taskAttainment.evidenceAsOf) ||
+    !isStringArray(taskAttainment.limitations) ||
+    !isNonEmptyString(taskAttainment.calculationVersion) ||
+    !/^[0-9a-f]{64}$/u.test(String(taskAttainment.catalogDigest)) ||
+    typeof taskAttainment.hasGovernedTaskEvidence !== 'boolean' ||
+    !Array.isArray(taskAttainment.sourceLineage) ||
+    !taskAttainment.sourceLineage.every(isLineageRef) ||
+    (taskAttainment.state === 'EVIDENCE'
+      ? !inRange(taskAttainment.score, 0, 100) ||
+        completedTaskCount === 0 ||
+        taskAttainment.evidenceAsOf === null
+      : taskAttainment.score !== null ||
+        completedTaskCount !== 0 ||
+        taskAttainment.evidenceAsOf !== null)
+  ) {
+    throw new Error('Simulation task attainment metadata is invalid.');
   }
 }
 

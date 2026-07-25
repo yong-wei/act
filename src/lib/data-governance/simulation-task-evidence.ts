@@ -170,6 +170,11 @@ export interface GovernedTaskEvidenceContext {
   summary: TaskEvidenceSummary;
   /** 来源有效性状态 */
   sourceValidity: TaskEvidenceSourceValidity;
+  /**
+   * 可形成任务完成结论的来源权威。
+   * 旧 v1 事实可能缺失该字段；消费端必须将其视为仅可审计、不可贡献完成。
+   */
+  completionAuthority?: TaskEvidenceCompletionAuthority;
   /** 画像权重（本变更内固定为 0） */
   portraitWeight: 0;
   /** 并行携带的仿真验证与证据映射 */
@@ -182,6 +187,11 @@ export type TaskEvidenceSourceValidity =
   | 'valid'
   | 'degraded'
   | 'unresolved';
+
+export type TaskEvidenceCompletionAuthority =
+  | 'arena-accepted-submission'
+  | 'odyssey-persistent-clear'
+  | 'validated-distinct-runs';
 
 /**
  * 脱敏摘要：仅保存来源标识、质量摘要与脱敏指标。
@@ -210,6 +220,7 @@ export interface BuildTaskEvidenceInput {
   semanticFingerprint: SemanticFingerprintInput;
   summary: TaskEvidenceSummary;
   sourceValidity?: TaskEvidenceSourceValidity;
+  completionAuthority: TaskEvidenceCompletionAuthority;
   capabilityMappingTags?: string[];
 }
 
@@ -231,6 +242,7 @@ export function buildGovernedTaskEvidence(input: BuildTaskEvidenceInput): Govern
     semanticFingerprint: buildSemanticFingerprint(input.semanticFingerprint),
     summary: input.summary,
     sourceValidity: input.sourceValidity ?? 'valid',
+    completionAuthority: input.completionAuthority,
     portraitWeight: 0,
     portraitDimensionMapping: 'simulationValidationEvidence',
     capabilityMappingTags: input.capabilityMappingTags ?? [],

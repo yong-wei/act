@@ -56,6 +56,8 @@ export function countDistinctValidRuns(
   for (const evidence of evidenceList) {
     if (evidence.portraitWeight !== 0) continue; // 安全检查
     if (evidence.sourceValidity !== 'valid') continue;
+    if (evidence.completionAuthority !== 'validated-distinct-runs') continue;
+    if (evidence.tier === 'process') continue;
     seenFingerprints.add(evidence.semanticFingerprint);
   }
   return seenFingerprints.size;
@@ -116,7 +118,8 @@ export function evaluateTaskCompletion(
     case 'arena-accepted-submission': {
       // Arena 任务由已接受提交决定
       const hasSubmission = taskEvidence.some(
-        (e) => e.tier === 'submission' || e.tier === 'clear',
+        (e) => e.completionAuthority === 'arena-accepted-submission'
+          && e.tier === 'submission',
       );
       return {
         taskKey,
@@ -127,7 +130,10 @@ export function evaluateTaskCompletion(
 
     case 'odyssey-persistent-clear': {
       // 奥德赛任务由持久化通关决定
-      const hasClear = taskEvidence.some((e) => e.tier === 'clear');
+      const hasClear = taskEvidence.some(
+        (e) => e.completionAuthority === 'odyssey-persistent-clear'
+          && e.tier === 'clear',
+      );
       return {
         taskKey,
         attained: hasClear,
@@ -137,7 +143,9 @@ export function evaluateTaskCompletion(
 
     case 'distinct-valid-runs': {
       const required = entry.completionRule.requiredCount;
-      const distinct = countDistinctValidRuns(taskEvidence);
+      const distinct = countDistinctValidRuns(taskEvidence.filter(
+        (evidence) => evidence.completionAuthority === 'validated-distinct-runs',
+      ));
       return {
         taskKey,
         attained: distinct >= required,

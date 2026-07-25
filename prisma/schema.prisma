@@ -1756,6 +1756,7 @@ model LearningMaterializationRebuildRequest {
   queueGeneration    BigInt?
   cutoverFence       BigInt?
   inputDigest        String?
+  simulationTaskInput Json?
   status             String    @default("PENDING")
   generation         Int       @default(1)
   claimedGeneration  Int?
@@ -4523,6 +4524,7 @@ model LearnerPortraitStateVersion {
   generation               BigInt
   queueGeneration          BigInt
   stateWatermark           BigInt
+  taskInputDigest          String                   @default("")
   stateKind                LearnerPortraitStateKind
   snapshotId               String?
   overallScore             Float?
@@ -4541,7 +4543,7 @@ model LearnerPortraitStateVersion {
   migrationRun   CumulativePortraitMigrationRun? @relation(fields: [migrationRunId], references: [id], onDelete: Restrict)
   currentPointer LearnerPortraitCurrentState?
 
-  @@unique([userId, calculationVersion, generation, stateWatermark], map: "LearnerPortraitState_user_calc_generation_watermark_key")
+  @@unique([userId, calculationVersion, generation, stateWatermark, taskInputDigest], map: "LearnerPortraitState_user_calc_generation_watermark_task_key")
   @@index([userId, stateWatermark])
   @@index([calculationVersion, generation, queueGeneration], map: "LearnerPortraitState_calc_generation_queue_idx")
   @@index([migrationRunId, generation, queueGeneration], map: "LearnerPortraitState_run_generation_queue_idx")
@@ -4556,6 +4558,7 @@ model LearnerPortraitCurrentState {
   generation         BigInt
   queueGeneration    BigInt
   stateWatermark     BigInt
+  taskInputDigest    String   @default("")
   cutoverFence       BigInt
   updatedAt          DateTime @updatedAt
 
