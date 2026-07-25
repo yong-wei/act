@@ -11,6 +11,9 @@ const sourceRoot = path.join(temporaryRoot, 'source');
 const targetRoot = path.join(temporaryRoot, 'target');
 const optimizedRoot = path.join(temporaryRoot, 'models-opt');
 const validator = path.join(root, 'scripts/assets/validate-optimized-models.mjs');
+const dockerignore = fs.readFileSync(path.join(root, '.dockerignore'), 'utf8');
+const ciWorkflow = fs.readFileSync(path.join(root, '.github/workflows/ci.yml'), 'utf8');
+const buildScript = fs.readFileSync(path.join(root, 'scripts/build.sh'), 'utf8');
 
 function runValidator(extraArgs = []) {
   return spawnSync(
@@ -68,6 +71,27 @@ try {
   const missingOutput = runValidator();
   assert.notEqual(missingOutput.status, 0);
   assert.match(missingOutput.stderr, /missing .*models-opt\/manifest\.json/);
+
+  assert.match(
+    dockerignore,
+    /!scripts\/assets\/\*\*/,
+    'Docker build context must include the optimized-model validator',
+  );
+  assert.match(
+    buildScript,
+    /scripts\/assets\/validate-optimized-models\.mjs/,
+    'image build preflight must require the validator in Docker context',
+  );
+  assert.match(
+    ciWorkflow,
+    /model-assets:[\s\S]*npm run produce --prefix tools\/glb-model-optimizer[\s\S]*actions\/upload-artifact@v4/,
+    'CI must produce and upload optimized models in an independent job',
+  );
+  assert.match(
+    ciWorkflow,
+    /needs: model-assets[\s\S]*actions\/download-artifact@v4[\s\S]*path: public\/assets\/models-opt/,
+    'application quality job must download optimized models before build',
+  );
 } finally {
   fs.rmSync(temporaryRoot, { recursive: true, force: true });
 }

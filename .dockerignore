@@ -53,6 +53,8 @@ scripts/
 scripts/*
 !scripts/build-next-with-trace-check.mjs
 !scripts/prune-next-trace-boundary.mjs
+!scripts/assets/
+!scripts/assets/**
 !scripts/wasm/
 !scripts/wasm/**
 !scripts/db/
