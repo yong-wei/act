@@ -16,6 +16,7 @@ export const UNIT_1_5_THREE_DOMAIN_GAIN_SWEEP_PRESET: PresetLessonConfig = {
   totalDuration: 90,
   tags: ['精品课程', '模块1', '三域联动', '根轨迹', '阶跃响应', '稳定裕度'],
   items: UNIT_1_5_LESSON_STEPS.map((step, index) => ({
+    runtimeStepId: step.id,
     stage: UNIT_1_5_STAGE_MAP[step.stage],
     order: index + 1,
     registryId: isUNIT_1_5InteractivePageType(step.pageType) ? 'classroom-assessment' : 'classroom-objective',

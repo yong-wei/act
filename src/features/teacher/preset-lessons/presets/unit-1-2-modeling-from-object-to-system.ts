@@ -17,6 +17,7 @@ export const UNIT_1_2_MODELING_FROM_OBJECT_TO_SYSTEM_PRESET: PresetLessonConfig 
   totalDuration: 90,
   tags: ['精品课程', '模块1', '建模', '传递函数', '极点'],
   items: UNIT_1_2_LESSON_STEPS.map((step, index) => ({
+    runtimeStepId: step.id,
     stage: UNIT_1_2_STAGE_MAP[step.stage],
     order: index + 1,
     registryId: isUNIT_1_2InteractivePageType(step.pageType) ? 'classroom-assessment' : 'classroom-objective',

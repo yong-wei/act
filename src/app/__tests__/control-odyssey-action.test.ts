@@ -26,6 +26,9 @@ const mocks = vi.hoisted(() => ({
       update: vi.fn(),
       upsert: vi.fn(),
     },
+    learningFact: {
+      createMany: vi.fn(),
+    },
   },
 }));
 
@@ -89,7 +92,7 @@ const officialSnapshot = (runId: string, overrides: Record<string, unknown> = {}
 describe('submitGameScore Arena publication bridge', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.getServerSession.mockResolvedValue({ user: { id: 'student-1', name: '学生甲' } });
+    mocks.getServerSession.mockResolvedValue({ user: { id: 'student-1', name: '学生甲', role: 'STUDENT' } });
     mocks.prisma.mission.findUnique.mockResolvedValue({ id: 'level-1' });
     mocks.prisma.simulationLog.findFirst.mockResolvedValue(null);
     mocks.prisma.simulationLog.findUnique.mockResolvedValue(null);
@@ -111,6 +114,7 @@ describe('submitGameScore Arena publication bridge', () => {
     mocks.prisma.studentProfile.create.mockResolvedValue({});
     mocks.prisma.studentProfile.update.mockResolvedValue({});
     mocks.prisma.studentProfile.upsert.mockResolvedValue({});
+    mocks.prisma.learningFact.createMany.mockResolvedValue({ count: 1 });
     mocks.getArenaTaskForOdysseyLevel.mockReturnValue('task-odyssey-level-one-growth');
     mocks.computeOfficialOdysseyTelemetry.mockReturnValue({
       settlingTime: 4.2,
@@ -142,6 +146,62 @@ describe('submitGameScore Arena publication bridge', () => {
 
     expect(result).toMatchObject({ status: 'failed', errorCode: 'AUTH_REQUIRED' });
     expect(mocks.prisma.mission.findUnique).not.toHaveBeenCalled();
+    expect(mocks.prisma.simulationLog.create).not.toHaveBeenCalled();
+  });
+
+  it('writes task evidence after an ordinary Odyssey run is persistently completed', async () => {
+    mocks.getArenaTaskForOdysseyLevel.mockReturnValue(undefined);
+
+    const result = await submitGameScore('level-2', 760, { settlingTime: 3.1 }, {
+      runId: 'ordinary-run-1',
+      tier: 'gold',
+      controllerId: 'PID',
+      pidParams: { kp: 1.8, ki: 0.3, kd: 0.1 },
+    });
+
+    expect(result).toMatchObject({ id: 'log-1' });
+    expect(mocks.prisma.learningFact.createMany).toHaveBeenCalledWith(expect.objectContaining({
+      skipDuplicates: true,
+      data: [
+        expect.objectContaining({
+          userId: 'student-1',
+          factType: 'simulation_task_evidence',
+          moduleId: 'odyssey:level-2',
+          sourceLogId: 'odyssey-simulation-log:log-1',
+          competencyContribution: {},
+        }),
+      ],
+    }));
+  });
+
+  it('repairs missing task evidence when an already completed ordinary run is retried', async () => {
+    mocks.getArenaTaskForOdysseyLevel.mockReturnValue(undefined);
+    mocks.prisma.simulationLog.findFirst.mockResolvedValueOnce({
+      id: 'completed-ordinary-log',
+      createdAt: new Date('2026-05-15T10:00:00.000Z'),
+      inputParams: officialSnapshot('ordinary-run-retry', {
+        levelId: 'level-2',
+        arenaTaskId: undefined,
+        arenaAssigned: false,
+      }),
+      score: 760,
+      odysseyCompletedAt: new Date('2026-05-15T10:05:00.000Z'),
+    });
+
+    const result = await submitGameScore('level-2', 999, {}, {
+      runId: 'ordinary-run-retry',
+    });
+
+    expect(result).toMatchObject({ id: 'completed-ordinary-log' });
+    expect(mocks.prisma.learningFact.createMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: [
+        expect.objectContaining({
+          moduleId: 'odyssey:level-2',
+          sourceLogId: 'odyssey-simulation-log:completed-ordinary-log',
+        }),
+      ],
+      skipDuplicates: true,
+    }));
     expect(mocks.prisma.simulationLog.create).not.toHaveBeenCalled();
   });
 

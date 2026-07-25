@@ -3,9 +3,10 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { BopppsStage, LessonItemType } from '@prisma/client';
+import { BopppsStage, LessonItemType, Prisma } from '@prisma/client';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { EMPTY_LESSON_PLAN_MESSAGE, hasLaunchableLessonItems } from '@/lib/lesson-plan-readiness';
+import { stripPresetRuntimeStepBinding } from '@/lib/lesson-plan-runtime-binding';
 
 export const dynamic = 'force-dynamic';
 
@@ -90,7 +91,7 @@ export async function POST(request: Request) {
         stage: item.stage as BopppsStage,
         order: item.order,
         duration: item.duration,
-        overrideConfig: item.overrideConfig || {},
+        overrideConfig: stripPresetRuntimeStepBinding(item.overrideConfig) as Prisma.InputJsonValue,
       };
     });
 

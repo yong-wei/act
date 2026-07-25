@@ -15,6 +15,12 @@ const mocks = vi.hoisted(() => ({
       createMany: vi.fn(),
       findMany: vi.fn(),
     },
+    simulationRun: {
+      findFirst: vi.fn(),
+    },
+    learningFact: {
+      createMany: vi.fn(),
+    },
   },
   eventRateLimiter: {
     check: vi.fn(),
@@ -23,6 +29,8 @@ const mocks = vi.hoisted(() => ({
   persistCoreLearningFact: vi.fn(),
   generateSessionSummaryReports: vi.fn(),
   enqueueSessionSummaryReportRefresh: vi.fn(),
+  resolveTrustedControlWorkbenchContext: vi.fn(),
+  persistedControlWorkbenchRunMatchesContext: vi.fn(),
 }));
 
 vi.mock('next-auth', () => ({
@@ -55,6 +63,11 @@ vi.mock('@/lib/data-governance/session-reports', () => ({
 
 vi.mock('@/lib/data-governance/session-finalization-snapshots', () => ({
   enqueueSessionSummaryReportRefresh: mocks.enqueueSessionSummaryReportRefresh,
+}));
+
+vi.mock('@/lib/data-governance/control-workbench-run-context', () => ({
+  resolveTrustedControlWorkbenchContext: mocks.resolveTrustedControlWorkbenchContext,
+  persistedControlWorkbenchRunMatchesContext: mocks.persistedControlWorkbenchRunMatchesContext,
 }));
 
 vi.mock('@/lib/nextjs-dynamic-error', () => ({
@@ -95,6 +108,8 @@ describe('POST /api/interactive/events', () => {
     ]);
     mocks.prisma.studentStepResponse.createMany.mockResolvedValue({ count: 0 });
     mocks.prisma.studentStepResponse.findMany.mockResolvedValue([]);
+    mocks.prisma.simulationRun.findFirst.mockResolvedValue(null);
+    mocks.prisma.learningFact.createMany.mockResolvedValue({ count: 1 });
     mocks.routeEvent.mockResolvedValue({ destination: 'postgresql' });
     mocks.persistCoreLearningFact.mockResolvedValue({ created: 0, actionType: 'page_view' });
     mocks.generateSessionSummaryReports.mockResolvedValue({
@@ -106,6 +121,18 @@ describe('POST /api/interactive/events', () => {
       reportRefreshJobs: 1,
       skipped: false,
     });
+    mocks.resolveTrustedControlWorkbenchContext.mockResolvedValue({
+      sessionId: 'cmoxloe52000uq5bcojma7r78',
+      classId: 'class-1',
+      lessonPlanId: 'plan-1',
+      manifestHash: 'manifest-hash-1',
+      lessonId: '4-2',
+      stepId: 'step-04',
+      moduleId: 'frequency-workbench',
+      capabilityId: 'control-frequency-reading-workbench',
+      registryId: 'classroom-objective',
+    });
+    mocks.persistedControlWorkbenchRunMatchesContext.mockReturnValue(true);
   });
 
   it('deduplicates client events and removes invalid session ids before writing logs', async () => {
@@ -712,6 +739,30 @@ describe('POST /api/interactive/events', () => {
     mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([
       { id: 'actual-workbench-log-id', clientEventId: 'client-workbench', eventData: { clientEventId: 'client-workbench' } },
     ]);
+    mocks.prisma.simulationRun.findFirst.mockImplementation(
+      async (args: { where?: { id?: string } }) => ({
+        id: args.where?.id ?? 'workbench-simulation-run',
+        resourceId: 'frequency-workbench',
+        taskSpecSnapshot: {
+          sceneId: 'frequency-workbench',
+          plantRef: 'second-order-plant',
+          disturbancePolicy: {
+            wave: args.where?.id === 'workbench-simulation-run' ? 1 : 2,
+          },
+          evaluationSpecRef: { id: 'frequency-workbench-quality-v1' },
+        },
+        controllerSnapshotRef: 'lead-controller-snapshot',
+        summary: {
+          qualityTargetMet: args.where?.id !== 'workbench-simulation-run-invalid',
+          metrics: {
+            settlingTime: 2.5,
+            stable: true,
+          },
+        },
+        modelVersion: 'second-order-v1',
+        completedAt: new Date('2026-06-18T00:00:00.000Z'),
+      }),
+    );
 
     const workbenchDraft = {
       eventType: 'lesson_submit',
@@ -729,8 +780,12 @@ describe('POST /api/interactive/events', () => {
         capabilityId: 'control-frequency-reading-workbench',
         visiblePanelIds: ['bode', 'root-locus'],
         parameterSnapshot: { 'gain.k': 1 },
-        selectedDesignState: null,
-        derivedResultRefs: [],
+        selectedDesignState: { controller: 'lead', gain: 2 },
+        derivedResultRefs: [
+          { kind: 'SimulationRun', id: 'workbench-simulation-run' },
+          { kind: 'SimulationRun', id: 'workbench-simulation-run-2' },
+          { kind: 'SimulationRun', id: 'workbench-simulation-run-invalid' },
+        ],
         answerPayload: { responseContractId: 'parameter.set' },
         releaseState: 'released',
         fallbackState: 'supported',
@@ -771,6 +826,35 @@ describe('POST /api/interactive/events', () => {
         serverRecordedAt: '2026-06-18T01:00:00.000Z',
       },
     });
+    expect(mocks.prisma.learningFact.createMany).toHaveBeenCalledWith(expect.objectContaining({
+      skipDuplicates: true,
+      data: [
+        expect.objectContaining({
+          userId: 'student-1',
+          factType: 'simulation_task_evidence',
+          moduleId: 'control-workbench:free',
+          sourceLogId: 'actual-workbench-log-id',
+          competencyContribution: {},
+        }),
+      ],
+    }));
+    expect(mocks.prisma.learningFact.createMany).toHaveBeenCalledTimes(2);
+    expect(mocks.prisma.learningFact.createMany.mock.calls.map(
+      ([call]) => call.data[0].contextJson.simulationTaskEvidence.summary.sourceRef,
+    )).toEqual([
+      'SimulationRun:workbench-simulation-run',
+      'SimulationRun:workbench-simulation-run-2',
+    ]);
+    expect(mocks.resolveTrustedControlWorkbenchContext).toHaveBeenCalledWith({
+      user: { id: 'student-1', role: 'STUDENT' },
+      sessionId: 'cmoxloe52000uq5bcojma7r78',
+      lessonId: 'unit-4-2-controller-selection-first-start-v1',
+      stepId: 'step-04',
+      moduleId: 'frequency-workbench',
+      capabilityId: 'control-frequency-reading-workbench',
+      requireActive: false,
+    });
+    expect(mocks.persistedControlWorkbenchRunMatchesContext).toHaveBeenCalledTimes(3);
     const persistedLogData = mocks.prisma.interactionLog.createManyAndReturn.mock.calls[0][0].data[0];
     const persistedDraft = JSON.parse(persistedLogData.eventData.answerDigest['parameter.set']);
     const routedLearningEvent = mocks.routeEvent.mock.calls[0][0];
@@ -778,6 +862,264 @@ describe('POST /api/interactive/events', () => {
     expect(persistedDraft.actorRole).toBe('student');
     expect(routedDraft.actorRole).toBe('student');
     vi.useRealTimers();
+  });
+
+  it('does not promote a control workbench submission with a client-invented result reference', async () => {
+    mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
+    mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([
+      {
+        id: 'design-only-workbench-log',
+        clientEventId: 'design-only-workbench',
+        eventData: { clientEventId: 'design-only-workbench' },
+      },
+    ]);
+
+    const response = await POST(createPostRequest({
+      events: [
+        {
+          id: 'design-only-workbench',
+          type: 'submit',
+          timestamp: Date.parse('2026-06-18T00:00:00.000Z'),
+          resourceKey: 'unit-4-2-controller-selection-first-start-v1',
+          lessonKey: 'unit-4-2-controller-selection-first-start-v1',
+          sessionId: 'cmoxloe52000uq5bcojma7r78',
+          stepId: 'step-04',
+          data: {
+            clientEventId: 'design-only-workbench',
+            eventType: 'lesson_submit',
+            answerDigest: {
+              'parameter.set': JSON.stringify({
+                eventType: 'lesson_submit',
+                clientEventId: 'design-only-workbench',
+                attemptKey: 'step-04:response:1',
+                lessonKey: 'unit-4-2-controller-selection-first-start-v1',
+                stepId: 'step-04',
+                moduleId: 'frequency-workbench',
+                componentKind: 'compute.panel',
+                componentId: 'frequency-workbench',
+                actorRole: 'student',
+                clientEventAt: '2026-06-18T00:00:00.000Z',
+                schemaVersion: 'control-workbench-evidence-v1',
+                payload: {
+                  capabilityId: 'control-frequency-reading-workbench',
+                  visiblePanelIds: ['bode'],
+                  parameterSnapshot: { 'gain.k': 1 },
+                  selectedDesignState: { controller: 'lead', gain: 2 },
+                  derivedResultRefs: [{ kind: 'fake', id: 'fake-result-1' }],
+                  answerPayload: null,
+                  releaseState: 'released',
+                  fallbackState: 'supported',
+                  classification: ['InteractionLog', 'StudentStepResponse'],
+                  serverRecordedAt: null,
+                },
+              }),
+            },
+          },
+        },
+      ],
+    }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.studentStepResponse.createMany).toHaveBeenCalled();
+    expect(mocks.prisma.learningFact.createMany).not.toHaveBeenCalled();
+  });
+
+  it('materializes a student-owned completed virtual simulation run', async () => {
+    mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
+    mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([
+      {
+        id: 'simulation-log-1',
+        clientEventId: 'client-simulation-finish',
+        eventData: { clientEventId: 'client-simulation-finish' },
+      },
+    ]);
+    mocks.prisma.simulationRun.findFirst.mockResolvedValue({
+      id: 'canonical-simulation-run-1',
+      resourceId: 'sim-pid-v1',
+      taskSpecSnapshot: {
+        sceneId: 'sim-pid-v1',
+        plantRef: 'ship',
+        initialConditions: { heading: 0 },
+      },
+      controllerSnapshotRef: 'controller-snapshot-1',
+      summary: {
+        metrics: {
+          settlingTime: 3.2,
+          stable: true,
+          rawAnswer: 'must-not-be-copied',
+        },
+      },
+      modelVersion: 'ship-v1',
+      completedAt: new Date('2026-06-18T00:00:00.000Z'),
+    });
+
+    const response = await POST(createPostRequest({
+      events: [
+        {
+          id: 'client-simulation-finish',
+          type: 'complete',
+          timestamp: Date.parse('2026-06-18T00:00:00.000Z'),
+          resourceKey: 'sim-pid-v1',
+          data: {
+            clientEventId: 'client-simulation-finish',
+            eventType: 'simulation_finish',
+            registryId: 'sim-pid-v1',
+            simulationRunId: 'canonical-simulation-run-1',
+            modelVersion: 'ship-v1',
+            controllerConfig: { kp: 2, ki: 0.4, kd: 0.1 },
+            input: { setpoint: 1 },
+            metrics: { settlingTime: 3.2, stable: true },
+          },
+        },
+      ],
+    }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.learningFact.createMany).toHaveBeenCalledWith(expect.objectContaining({
+      skipDuplicates: true,
+      data: [
+        expect.objectContaining({
+          userId: 'student-1',
+          factType: 'simulation_task_evidence',
+          moduleId: 'virtual-simulation:sim-pid-v1',
+          sourceLogId: 'simulation-log-1',
+          competencyContribution: {},
+        }),
+      ],
+    }));
+    const taskContext = mocks.prisma.learningFact.createMany.mock.calls[0][0].data[0].contextJson;
+    expect(taskContext.simulationTaskEvidence.summary).toEqual({
+      sourceRef: 'SimulationRun:canonical-simulation-run-1',
+      qualityBand: 'full',
+      metrics: {
+        settlingTime: 3.2,
+        stable: true,
+      },
+      label: 'Virtual simulation completed run',
+    });
+  });
+
+  it('repairs virtual-simulation task evidence from an existing interaction log on retry', async () => {
+    mocks.prisma.interactionLog.findMany.mockResolvedValue([
+      { id: 'existing-simulation-log', clientEventId: 'retry-simulation-finish' },
+    ]);
+    mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([]);
+    mocks.prisma.simulationRun.findFirst.mockResolvedValue({
+      id: 'canonical-existing-run',
+      resourceId: 'sim-pid-v1',
+      taskSpecSnapshot: { sceneId: 'sim-pid-v1' },
+      controllerSnapshotRef: 'controller-snapshot-existing',
+      summary: {},
+      modelVersion: 'ship-v1',
+      completedAt: new Date('2026-06-18T00:00:00.000Z'),
+    });
+
+    const response = await POST(createPostRequest({
+      events: [
+        {
+          id: 'retry-simulation-finish',
+          type: 'complete',
+          timestamp: Date.parse('2026-06-18T00:00:00.000Z'),
+          resourceKey: 'sim-pid-v1',
+          data: {
+            clientEventId: 'retry-simulation-finish',
+            eventType: 'simulation_finish',
+            registryId: 'sim-pid-v1',
+            simulationRunId: 'canonical-existing-run',
+            modelVersion: 'ship-v1',
+            controllerConfig: { kp: 2, ki: 0.4, kd: 0.1 },
+            input: { setpoint: 1 },
+          },
+        },
+      ],
+    }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.interactionLog.createManyAndReturn).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningFact.createMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: [
+        expect.objectContaining({
+          moduleId: 'virtual-simulation:sim-pid-v1',
+          sourceLogId: 'existing-simulation-log',
+        }),
+      ],
+      skipDuplicates: true,
+    }));
+  });
+
+  it('does not reuse a completed simulation run in a different classroom session', async () => {
+    mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
+    mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([
+      {
+        id: 'cross-session-log',
+        clientEventId: 'cross-session-finish',
+        eventData: { clientEventId: 'cross-session-finish' },
+      },
+    ]);
+    mocks.prisma.simulationRun.findFirst.mockResolvedValue({
+      id: 'run-from-another-session',
+      sessionId: 'cmoxloe52000uq5bcojma7r79',
+      resourceId: 'sim-pid-v1',
+      taskSpecSnapshot: { sceneId: 'sim-pid-v1' },
+      controllerSnapshotRef: 'controller-snapshot-cross-session',
+      summary: {},
+      modelVersion: 'ship-v1',
+      completedAt: new Date('2026-06-18T00:00:00.000Z'),
+    });
+
+    const response = await POST(createPostRequest({
+      events: [
+        {
+          id: 'cross-session-finish',
+          type: 'complete',
+          timestamp: Date.parse('2026-06-18T00:00:00.000Z'),
+          resourceKey: 'sim-pid-v1',
+          sessionId: 'cmoxloe52000uq5bcojma7r78',
+          data: {
+            clientEventId: 'cross-session-finish',
+            eventType: 'simulation_finish',
+            registryId: 'sim-pid-v1',
+            simulationRunId: 'run-from-another-session',
+          },
+        },
+      ],
+    }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.learningFact.createMany).not.toHaveBeenCalled();
+  });
+
+  it('does not materialize virtual task evidence without an owned durable completed run', async () => {
+    mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
+    mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([
+      {
+        id: 'untrusted-simulation-log',
+        clientEventId: 'untrusted-simulation-finish',
+        eventData: { clientEventId: 'untrusted-simulation-finish' },
+      },
+    ]);
+
+    const response = await POST(createPostRequest({
+      events: [
+        {
+          id: 'untrusted-simulation-finish',
+          type: 'complete',
+          timestamp: Date.parse('2026-06-18T00:00:00.000Z'),
+          resourceKey: 'sim-pid-v1',
+          data: {
+            clientEventId: 'untrusted-simulation-finish',
+            eventType: 'simulation_finish',
+            registryId: 'sim-pid-v1',
+            controllerConfig: { kp: 999 },
+            metrics: { rawAnswer: 'client-controlled', score: 100 },
+          },
+        },
+      ],
+    }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.simulationRun.findFirst).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningFact.createMany).not.toHaveBeenCalled();
   });
 
   it('materializes annotated media evidence with trusted source log fields', async () => {

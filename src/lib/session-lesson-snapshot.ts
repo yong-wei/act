@@ -11,6 +11,11 @@ export interface SessionLessonSnapshot {
   totalSteps: number | null;
 }
 
+export interface RuntimeLessonManifestSnapshot {
+  manifest: unknown;
+  snapshot: SessionLessonSnapshot;
+}
+
 export function resolveRuntimeLessonKeyFromRouteSegment(routeSegment: string | null): string | null {
   const resolved = resolveInteractiveLessonIdentity({ kind: 'routeSegment', value: routeSegment });
   return resolved.status === 'resolved' ? resolved.record.runtimeLessonDir : null;
@@ -35,6 +40,32 @@ export function summarizeRuntimeLessonManifest(manifestContent: string): Session
     lessonVersion: version,
     manifestHash: createHash('sha256').update(manifestContent).digest('hex'),
     totalSteps: steps,
+  };
+}
+
+export function loadRuntimeLessonManifestSnapshot(
+  runtimeLessonDir: string | null | undefined,
+): RuntimeLessonManifestSnapshot | null {
+  const identity = resolveInteractiveLessonIdentity({
+    kind: 'runtimeLessonDir',
+    value: runtimeLessonDir,
+  });
+  if (identity.status !== 'resolved') return null;
+
+  const manifestPath = join(
+    process.cwd(),
+    'course-content',
+    'runtime',
+    'lessons',
+    identity.record.runtimeLessonDir,
+    'interactive-manifest.json',
+  );
+  if (!existsSync(manifestPath)) return null;
+
+  const manifestContent = readFileSync(manifestPath, 'utf8');
+  return {
+    manifest: JSON.parse(manifestContent) as unknown,
+    snapshot: summarizeRuntimeLessonManifest(manifestContent),
   };
 }
 
