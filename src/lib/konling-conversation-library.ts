@@ -9,7 +9,7 @@ export const KONLING_CONVERSATION_TITLE_MAX_LENGTH = 64;
 export const KONLING_CONVERSATION_TURN_LEASE_MS = 5 * 60 * 1000;
 
 type ConversationDb = Pick<PrismaClient, 'konlingSession' | '$transaction'>;
-type ConversationContextDb = Pick<PrismaClient, 'teachingResource' | 'knowledgeNode'>;
+type ConversationContextDb = Pick<PrismaClient, 'courseBasis' | 'teachingResource' | 'knowledgeNode'>;
 
 type PersistedConversation = {
   id: string;
@@ -40,23 +40,38 @@ export interface KonlingAuthorizedPageScope {
 }
 
 export async function resolveKonlingContextEventScope(
-  _db: ConversationContextDb,
+  db: ConversationContextDb,
   scope: KonlingAuthorizedPageScope,
 ): Promise<KonlingAuthorizedPageScope | null> {
   const registeredStep = getStepAIContext(scope.courseId, scope.pageId);
+  const smartPrepCourseBasis = !registeredStep
+    && scope.pageId === '/teacher/smart-prep'
+    && (scope.role === 'teacher' || scope.role === 'admin')
+    && scope.authenticatedUserId
+    ? await db.courseBasis.findFirst({
+        where: scope.role === 'admin'
+          ? { id: scope.courseId }
+          : { id: scope.courseId, ownerId: scope.authenticatedUserId },
+        select: { id: true },
+      })
+    : null;
   const resolvedRoute = scope.pageId.startsWith('/')
     ? resolveAIContext(scope.pageId)
     : null;
   const registeredRoute = resolvedRoute?.enabled ? resolvedRoute.pageContext : null;
-  if (!registeredStep && (!registeredRoute || registeredRoute.courseId !== scope.courseId)) {
+  if (
+    !registeredStep
+    && !smartPrepCourseBasis
+    && (!registeredRoute || registeredRoute.courseId !== scope.courseId)
+  ) {
     return null;
   }
 
   return {
     authenticatedUserId: scope.authenticatedUserId,
     role: scope.role,
-    courseId: registeredStep ? scope.courseId : registeredRoute!.courseId!,
-    pageId: registeredStep ? scope.pageId : registeredRoute!.stepId!,
+    courseId: registeredStep || smartPrepCourseBasis ? scope.courseId : registeredRoute!.courseId!,
+    pageId: registeredStep || smartPrepCourseBasis ? scope.pageId : registeredRoute!.stepId!,
     classId: scope.classId ?? null,
     // The current schema has no authoritative page-to-resource or
     // page-to-knowledge-node relation. Fail closed instead of treating a

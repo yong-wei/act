@@ -357,7 +357,10 @@ describe('Konling smart-prep production routes', () => {
       agentSessionId: undefined,
       konlingSessionId: 'conversation-1',
     }));
-    const persistedMessages = mocks.prisma.konlingSession.updateMany.mock.calls.at(-1)?.[0].data.messages;
+    const persistedMessages = mocks.prisma.konlingSession.updateMany.mock.calls
+      .filter((call) => Array.isArray(call[0].data.messages))
+      .at(-1)?.[0].data.messages;
+    expect(persistedMessages).toBeDefined();
     expect(persistedMessages.map((message: { role: string }) => message.role)).toEqual([
       'system',
       'system',

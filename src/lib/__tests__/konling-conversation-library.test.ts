@@ -9,6 +9,7 @@ import {
   KonlingConversationTurnConflictError,
   prepareKonlingConversationTurn,
   releaseKonlingConversationTurn,
+  resolveKonlingContextEventScope,
 } from '@/lib/konling-conversation-library';
 
 const now = new Date('2026-07-26T00:00:00.000Z');
@@ -65,6 +66,29 @@ function statefulConversationDb(initial = conversation()) {
 }
 
 describe('Konling conversation library', () => {
+  it('authorizes smart-prep conversations against the server-owned course basis', async () => {
+    const findFirst = vi.fn(async ({ where }) => (
+      where.id === 'basis-1' && where.ownerId === 'teacher-1' ? { id: 'basis-1' } : null
+    ));
+    const db = { courseBasis: { findFirst } };
+
+    await expect(resolveKonlingContextEventScope(db as never, {
+      authenticatedUserId: 'teacher-1',
+      role: 'teacher',
+      courseId: 'basis-1',
+      pageId: '/teacher/smart-prep',
+    })).resolves.toMatchObject({
+      courseId: 'basis-1',
+      pageId: '/teacher/smart-prep',
+    });
+    await expect(resolveKonlingContextEventScope(db as never, {
+      authenticatedUserId: 'teacher-2',
+      role: 'teacher',
+      courseId: 'basis-1',
+      pageId: '/teacher/smart-prep',
+    })).resolves.toBeNull();
+  });
+
   it('does not duplicate same-page context and appends cross-page context immediately before the user message', () => {
     const original = conversation();
     const originalSnapshot = JSON.stringify(original.messages);
