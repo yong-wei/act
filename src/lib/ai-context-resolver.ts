@@ -75,6 +75,14 @@ const INFERENCE_RULES: InferenceRule[] = [
     tools: ['general_assistance'],
   },
   {
+    pattern: /^\/knowledge$/,
+    courseId: 'knowledge',
+    courseTitle: '知识图谱',
+    pageType: 'workspace',
+    getTopic: () => '知识图谱',
+    tools: ['general_assistance'],
+  },
+  {
     pattern: /\/interactive-learning\//,
     courseId: 'interactive',
     courseTitle: '互动学习',

@@ -89,6 +89,24 @@ describe('Konling conversation library', () => {
     })).resolves.toBeNull();
   });
 
+  it('accepts registered routes and rejects arbitrary inferred page contexts', async () => {
+    await expect(resolveKonlingContextEventScope({} as never, {
+      authenticatedUserId: 'user-1',
+      role: 'student',
+      courseId: 'knowledge',
+      pageId: '/knowledge',
+    })).resolves.toMatchObject({
+      courseId: 'knowledge',
+      pageId: '/knowledge',
+    });
+    await expect(resolveKonlingContextEventScope({} as never, {
+      authenticatedUserId: 'user-1',
+      role: 'student',
+      courseId: 'forged-page',
+      pageId: '/forged-page',
+    })).resolves.toBeNull();
+  });
+
   it('does not duplicate same-page context and appends cross-page context immediately before the user message', () => {
     const original = conversation();
     const originalSnapshot = JSON.stringify(original.messages);

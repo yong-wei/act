@@ -1,6 +1,6 @@
 import type { Prisma, PrismaClient } from '@prisma/client';
 import { getMessageContent, toLegacyMessage, toUIMessage, type IncomingMessage } from '@/lib/ai-message-compat';
-import { resolveAIContext } from '@/lib/ai-context-resolver';
+import { resolveRegisteredAIContextFromPath } from '@/lib/ai-context-resolver';
 import { getStepAIContext } from '@/lib/course-ai-contexts';
 import type { Message } from '@/types/ai-message';
 
@@ -55,10 +55,9 @@ export async function resolveKonlingContextEventScope(
         select: { id: true },
       })
     : null;
-  const resolvedRoute = scope.pageId.startsWith('/')
-    ? resolveAIContext(scope.pageId)
+  const registeredRoute = scope.pageId.startsWith('/')
+    ? resolveRegisteredAIContextFromPath(scope.pageId)
     : null;
-  const registeredRoute = resolvedRoute?.enabled ? resolvedRoute.pageContext : null;
   if (
     !registeredStep
     && !smartPrepCourseBasis

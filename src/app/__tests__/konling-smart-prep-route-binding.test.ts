@@ -45,12 +45,7 @@ vi.mock('@/lib/course-ai-contexts', () => ({
   })),
 }));
 vi.mock('@/lib/ai-context-resolver', () => ({
-  resolveAIContext: vi.fn(() => ({
-    pageContext: null,
-    enabled: false,
-    tools: [],
-    quickQuestions: [],
-  })),
+  resolveRegisteredAIContextFromPath: vi.fn(() => null),
 }));
 vi.mock('@/lib/konling-streaming-citation-fallback', () => ({
   buildStreamingCitationFallbackNotice: vi.fn(() => null),

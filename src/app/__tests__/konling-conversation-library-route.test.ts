@@ -44,12 +44,7 @@ vi.mock('@/lib/course-ai-contexts', () => ({
   })),
 }));
 vi.mock('@/lib/ai-context-resolver', () => ({
-  resolveAIContext: vi.fn(() => ({
-    pageContext: null,
-    enabled: false,
-    tools: [],
-    quickQuestions: [],
-  })),
+  resolveRegisteredAIContextFromPath: vi.fn(() => null),
 }));
 
 import { GET as listConversations, POST as createConversation } from '@/app/api/ai/sessions/route';
