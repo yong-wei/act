@@ -13,7 +13,9 @@ import {
   Check,
   History,
   Loader2,
+  Maximize2,
   MessageSquare,
+  Minimize2,
   Pencil,
   Pin,
   Plus,
@@ -34,21 +36,42 @@ import {
   visibleKonlingMessages,
 } from '@/hooks/useKonlingConversationLibrary';
 import { resolveRegisteredAIContextFromPath } from '@/lib/ai-context-resolver';
+import { platformLayerStyle } from '@/components/platform/platform-layers';
+import { useOptionalPageFloatingControls } from '@/components/shared/page-floating-controls';
 
 const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+const MOBILE_HISTORY_QUERY = '(max-width: 767px)';
 
 function getFocusableElements(container: HTMLElement) {
   return Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR))
-    .filter((item) => !item.hasAttribute('disabled') && item.offsetParent !== null);
+    .filter((item) => !item.hasAttribute('disabled') && !item.closest('[inert]') && item.offsetParent !== null);
+}
+
+function useMediaQuery(query: string) {
+  const [matches, setMatches] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(query);
+    const updateMatches = () => setMatches(mediaQuery.matches);
+    updateMatches();
+    mediaQuery.addEventListener('change', updateMatches);
+    return () => mediaQuery.removeEventListener('change', updateMatches);
+  }, [query]);
+
+  return matches;
 }
 
 export function GlobalAISidebar() {
   const styles = useAIThemeStyles();
   const panelRef = useRef<HTMLDivElement>(null);
+  const maximizeControlRef = useRef<HTMLButtonElement>(null);
+  const historyControlRef = useRef<HTMLButtonElement>(null);
+  const librarySearchRef = useRef<HTMLInputElement>(null);
   const openerElementRef = useRef<HTMLElement | null>(null);
   const wasOpenRef = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
+  const [isMaximized, setIsMaximized] = useState(false);
   const [knowledgeInspectorAvoidanceActive, setKnowledgeInspectorAvoidanceActive] = useState(false);
   const [actionStatus, setActionStatus] = useState('AI 侧栏已就绪。');
   const [agentSessionId, setAgentSessionId] = useState<string | null>(null);
@@ -56,6 +79,9 @@ export function GlobalAISidebar() {
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [editingConversationId, setEditingConversationId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
+  const floatingControls = useOptionalPageFloatingControls();
+  const isNarrowViewport = useMediaQuery(MOBILE_HISTORY_QUERY);
+  const isMobileHistoryDrawerOpen = isMaximized && isNarrowViewport && libraryOpen;
 
   const {
     pageContext,
@@ -208,16 +234,46 @@ export function GlobalAISidebar() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // ESC键关闭
+  const handleRestore = useCallback(() => {
+    setLibraryOpen(false);
+    setIsMaximized(false);
+    window.requestAnimationFrame(() => maximizeControlRef.current?.focus());
+  }, []);
+
+  const closeMobileHistoryDrawer = useCallback(() => {
+    setLibraryOpen(false);
+    window.requestAnimationFrame(() => historyControlRef.current?.focus());
+  }, []);
+
+  const handleClose = useCallback(() => {
+    setLibraryOpen(false);
+    setIsMaximized(false);
+    closeSidebar();
+  }, [closeSidebar]);
+
+  useEffect(() => {
+    if (isOpen) return;
+    setIsMaximized(false);
+    setLibraryOpen(false);
+  }, [isOpen]);
+
+  // ESC键按当前呈现层级关闭
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        closeSidebar();
+      if (e.key !== 'Escape' || !isOpen) return;
+      if (isMobileHistoryDrawerOpen) {
+        closeMobileHistoryDrawer();
+        return;
       }
+      if (isMaximized) {
+        handleRestore();
+        return;
+      }
+      handleClose();
     };
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
-  }, [isOpen, closeSidebar]);
+  }, [closeMobileHistoryDrawer, handleClose, handleRestore, isMaximized, isMobileHistoryDrawerOpen, isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -263,6 +319,7 @@ export function GlobalAISidebar() {
       const focusPanel = () => {
         const panel = panelRef.current;
         if (!panel) return;
+        if (panel.contains(document.activeElement)) return;
         getFocusableElements(panel)[0]?.focus() ?? panel.focus();
       };
       const focusFrame = window.requestAnimationFrame(focusPanel);
@@ -286,7 +343,7 @@ export function GlobalAISidebar() {
   }, [isOpen]);
 
   useEffect(() => {
-    if (!isOpen) {
+    if (!isOpen || isMaximized) {
       setKnowledgeInspectorAvoidanceActive(false);
       return;
     }
@@ -311,7 +368,18 @@ export function GlobalAISidebar() {
       window.removeEventListener('resize', updateAvoidance);
       observer.disconnect();
     };
-  }, [isOpen]);
+  }, [isMaximized, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || !isMaximized || !floatingControls) return;
+    return floatingControls.setWorkspaceDockSuppressed(true);
+  }, [floatingControls, isMaximized, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || !isMobileHistoryDrawerOpen) return;
+    const frame = window.requestAnimationFrame(() => librarySearchRef.current?.focus());
+    return () => window.cancelAnimationFrame(frame);
+  }, [isMobileHistoryDrawerOpen, isOpen]);
 
   // 处理快捷问题
   const handleQuickQuestion = useCallback(
@@ -452,10 +520,11 @@ export function GlobalAISidebar() {
   return (
     <>
       {/* 遮罩层 - 仅在移动端显示 */}
-      {isOpen && (
+      {isOpen && !isMaximized && (
         <div aria-label="关闭 AI 侧栏" tabIndex={0} role="button" onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.currentTarget.click(); } }}
-          className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm animate-in fade-in duration-200 sm:hidden"
-          onClick={closeSidebar}
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm animate-in fade-in duration-200 sm:hidden"
+          style={platformLayerStyle('overlay')}
+          onClick={handleClose}
         />
       )}
 
@@ -463,18 +532,25 @@ export function GlobalAISidebar() {
       <div
         ref={panelRef}
         tabIndex={-1}
-        style={knowledgeInspectorAvoidanceActive ? {
-          top: '7rem',
-          right: 'calc(1.5rem + clamp(22.5rem, 30vw, 28.75rem))',
-          height: 'calc(100vh - 8rem)',
-        } : undefined}
+        style={{
+          ...platformLayerStyle(isMaximized ? 'konlingWorkspace' : 'konlingSide'),
+          paddingTop: 'env(safe-area-inset-top)',
+          paddingBottom: 'env(safe-area-inset-bottom)',
+          ...(knowledgeInspectorAvoidanceActive ? {
+            top: '7rem',
+            right: 'calc(1.5rem + clamp(22.5rem, 30vw, 28.75rem))',
+            height: 'calc(100vh - 8rem)',
+          } : {}),
+        }}
         className={`
-          fixed right-0 top-0 z-50 flex flex-col
-          h-screen w-screen
-          sm:w-[380px]
-          lg:w-[420px]
+          fixed flex min-h-0 flex-col overflow-hidden
+          ${isMaximized
+            ? 'inset-0 h-[100dvh] w-screen'
+            : 'right-0 top-0 h-[100dvh] w-screen sm:w-[380px] lg:w-[420px]'
+          }
           ${styles.container}
           ${TRANSITION_CLASSES.panel}
+          motion-reduce:transition-none
           ${isOpen
             ? 'visible translate-x-0 opacity-100'
             : 'invisible translate-x-0 opacity-0 pointer-events-none'
@@ -483,6 +559,9 @@ export function GlobalAISidebar() {
         `}
         data-global-ai-sidebar={isOpen ? 'open' : 'closed'}
         data-konling-assistant-surface="global-sidebar"
+        data-konling-presentation-mode={isMaximized ? 'maximized' : 'side'}
+        data-platform-layer={isMaximized ? 'konlingWorkspace' : 'konlingSide'}
+        data-konling-motion-policy="geometry motion-reduce"
         role={isOpen ? 'dialog' : undefined}
         aria-modal={isOpen ? 'true' : undefined}
         aria-hidden={isOpen ? undefined : 'true'}
@@ -490,7 +569,7 @@ export function GlobalAISidebar() {
         aria-label="控灵全局 AI 侧栏"
         data-konling-inspector-avoidance={knowledgeInspectorAvoidanceActive ? 'active' : 'inactive'}
         data-knowledge-mobile-inspector-policy={
-          pageContext?.courseId === 'knowledge' || pageContext?.stepId === '/knowledge'
+          !isMaximized && (pageContext?.courseId === 'knowledge' || pageContext?.stepId === '/knowledge')
             ? 'suspend'
             : undefined
         }
@@ -512,11 +591,12 @@ export function GlobalAISidebar() {
           </div>
           <div className="flex items-center gap-1">
             <button
+              ref={historyControlRef}
               type="button"
               onClick={() => setLibraryOpen((current) => !current)}
               aria-label="打开控灵会话库"
               aria-expanded={libraryOpen}
-              className={`rounded p-2 transition-colors ${styles.text.muted} hover:bg-slate-700/30`}
+              className={`rounded p-2 transition-colors ${styles.text.muted} hover:bg-slate-700/30 ${isMaximized ? 'md:hidden' : ''}`}
               title="会话库"
             >
               <History className="h-4 w-4" />
@@ -531,8 +611,26 @@ export function GlobalAISidebar() {
             >
               <Plus className="h-4 w-4" />
             </button>
+            <button
+              ref={maximizeControlRef}
+              type="button"
+              onClick={() => {
+                if (isMaximized) {
+                  handleRestore();
+                  return;
+                }
+                setLibraryOpen(false);
+                setIsMaximized(true);
+              }}
+              aria-label={isMaximized ? '恢复控灵侧栏' : '最大化控灵工作区'}
+              className={`rounded p-2 transition-colors ${styles.text.muted} hover:bg-slate-700/30`}
+              title={isMaximized ? '恢复侧栏' : '最大化'}
+              data-konling-presentation-control={isMaximized ? 'restore' : 'maximize'}
+            >
+              {isMaximized ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+            </button>
             <button type="button"
-              onClick={closeSidebar}
+              onClick={handleClose}
               aria-label="关闭 AI 侧栏"
               className={`rounded p-2 transition-colors ${styles.text.muted} hover:bg-slate-700/30`}
               title="关闭 (ESC)"
@@ -542,11 +640,31 @@ export function GlobalAISidebar() {
           </div>
         </div>
 
-        {libraryOpen && (
+        <div
+          className={`relative flex min-h-0 flex-1 overflow-hidden ${isMaximized ? '' : 'flex-col'}`}
+          data-konling-workspace-body
+        >
+        {isMobileHistoryDrawerOpen && (
+          <button
+            type="button"
+            aria-label="关闭控灵会话库"
+            className="absolute inset-0 z-10 bg-black/30 md:hidden"
+            onClick={closeMobileHistoryDrawer}
+          />
+        )}
+        {(libraryOpen || isMaximized) && (
           <section
             aria-label="控灵会话库"
-            className={`border-b p-3 ${styles.border}`}
+            className={[
+              `p-3 ${styles.border}`,
+              isMaximized
+                ? `absolute inset-y-0 left-0 z-20 flex w-[min(86vw,20rem)] shrink-0 flex-col border-r shadow-2xl md:static md:z-auto md:flex md:w-80 md:shadow-none ${styles.container}`
+                : 'w-full border-b',
+              isMaximized && !libraryOpen ? 'hidden md:flex' : '',
+            ].join(' ')}
             data-konling-conversation-library
+            data-konling-conversation-library-mode={isMaximized ? 'workspace-rail' : 'side-disclosure'}
+            data-konling-mobile-history-drawer={isMobileHistoryDrawerOpen ? 'open' : 'closed'}
           >
             <div className="relative">
               <Search
@@ -554,6 +672,7 @@ export function GlobalAISidebar() {
                 className={`absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 ${styles.text.muted}`}
               />
               <input
+                ref={librarySearchRef}
                 type="search"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
@@ -562,7 +681,10 @@ export function GlobalAISidebar() {
                 className={`w-full rounded-md border py-2 pl-8 pr-3 text-xs focus:outline-none focus:ring-2 ${styles.input}`}
               />
             </div>
-            <div className="mt-2 max-h-52 space-y-1 overflow-y-auto">
+            <div
+              className={`mt-2 space-y-1 overflow-y-auto ${isMaximized ? 'min-h-0 flex-1' : 'max-h-52'}`}
+              data-konling-conversation-list
+            >
               {isConversationLoading && conversations.length === 0 ? (
                 <p className={`px-2 py-3 text-center text-xs ${styles.text.muted}`}>正在加载会话...</p>
               ) : conversations.length === 0 ? (
@@ -657,8 +779,16 @@ export function GlobalAISidebar() {
           </section>
         )}
 
+        <div
+          className="flex min-w-0 flex-1 flex-col overflow-hidden"
+          data-konling-active-conversation
+          inert={isMobileHistoryDrawerOpen}
+        >
         {/* 消息列表 */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div
+          className="min-w-0 flex-1 space-y-4 overflow-x-hidden overflow-y-auto p-4"
+          data-konling-message-scroll-container
+        >
           <div className="sr-only" role="status" aria-live="polite" data-ai-task-status="global-sidebar">
             {isLoading ? '控灵正在思考。' : error ? `AI 对话失败：${error.message}` : actionStatus}
           </div>
@@ -746,7 +876,7 @@ export function GlobalAISidebar() {
         </div>
 
         {/* 输入区 */}
-        <form onSubmit={handleConversationSubmit} className={`border-t p-4 ${styles.border}`}>
+        <form onSubmit={handleConversationSubmit} className={`shrink-0 border-t p-4 ${styles.border}`}>
           <div className="flex gap-2">
             <input
               type="text"
@@ -786,9 +916,11 @@ export function GlobalAISidebar() {
             )}
           </div>
           <p className={`mt-2 text-center text-xs ${styles.text.muted}`}>
-            按 Enter 发送，ESC 关闭面板
+            按 Enter 发送，ESC {isMaximized ? '恢复侧栏' : '关闭面板'}
           </p>
         </form>
+        </div>
+        </div>
       </div>
     </>
   );

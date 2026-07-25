@@ -20,6 +20,7 @@ export default defineConfig({
       'src/features/admin/__tests__/**/*.test.ts',
       'src/features/admin/__tests__/**/*.test.tsx',
       'src/features/ai/__tests__/**/*.test.ts',
+      'src/features/ai/__tests__/**/*.test.tsx',
       'src/features/adaptive-assessment/__tests__/**/*.test.ts',
       'src/features/adaptive-learning/__tests__/**/*.test.ts',
       'src/features/assessment/__tests__/**/*.test.ts',
