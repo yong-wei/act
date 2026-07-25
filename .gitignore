@@ -59,6 +59,8 @@ my-next-app/prisma/dev.db
 
 $ Playwright temp
 .playwright-mcp/
+.playwright-cli/
+.kimi-code/
 scripts/**/__pycache__/
 scripts/**/*.pyc
 **/__pycache__/
