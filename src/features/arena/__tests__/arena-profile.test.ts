@@ -361,6 +361,8 @@ describe('arena student portfolio', () => {
     expect(routeSource).toContain('arenaPortfolio:');
     expect(pageSource).toContain('arenaPortfolio');
     expect(pageSource).toContain('trainingSummary');
+    expect(pageSource).toContain('最近');
+    expect(pageSource).toContain('recentAverageQualityScore');
     expect(pageSource).toContain('recentRuns');
     expect(pageSource).toContain('竞技场画像');
     expect(pageSource).toContain('能力成长');
@@ -387,9 +389,10 @@ describe('arena student portfolio', () => {
     });
     expect(portfolio.trainingSummary).toEqual({
       total: 1,
-      previewCount: 1,
+      recentWindowSize: 5,
+      recentPreviewCount: 1,
       latestTrainedAt: '2026-05-11T08:45:00.000Z',
-      averageQualityScore: 82.4,
+      recentAverageQualityScore: 82.4,
       recentRuns: [
         {
           id: 'training-1',
@@ -425,8 +428,9 @@ describe('arena student portfolio', () => {
       improvingMetrics: [],
       trainingSummary: {
         total: 0,
-        previewCount: 0,
-        averageQualityScore: null,
+        recentWindowSize: 5,
+        recentPreviewCount: 0,
+        recentAverageQualityScore: null,
         recentRuns: [],
       },
     });

@@ -630,8 +630,11 @@ export default function ProfilePage() {
                         <p className="text-xs text-subtle">虚拟仿真训练</p>
                         <p className="mt-1 text-sm text-foreground">
                           已记录 {profile.arenaPortfolio.trainingSummary.total} 次训练
-                          {profile.arenaPortfolio.trainingSummary.averageQualityScore !== null && (
-                            <> · 平均质量 {Math.round(profile.arenaPortfolio.trainingSummary.averageQualityScore)} 分</>
+                          {profile.arenaPortfolio.trainingSummary.recentAverageQualityScore !== null && (
+                            <>
+                              {' · '}最近 {profile.arenaPortfolio.trainingSummary.recentWindowSize} 次平均质量{' '}
+                              {Math.round(profile.arenaPortfolio.trainingSummary.recentAverageQualityScore)} 分
+                            </>
                           )}
                         </p>
                       </div>

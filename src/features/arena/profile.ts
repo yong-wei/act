@@ -137,9 +137,10 @@ export interface ArenaPortfolioRecentTrainingRun {
 
 export interface ArenaPortfolioTrainingSummary {
   total: number;
-  previewCount: number;
+  recentWindowSize: number;
+  recentPreviewCount: number;
   latestTrainedAt?: string;
-  averageQualityScore: number | null;
+  recentAverageQualityScore: number | null;
   recentRuns: ArenaPortfolioRecentTrainingRun[];
 }
 
@@ -244,9 +245,10 @@ function buildTrainingSummary(
 
   return {
     total: stats.total ?? recentRuns.length,
-    previewCount: recentRuns.filter((run) => run.preview).length,
+    recentWindowSize: PORTFOLIO_RECENT_LIMIT,
+    recentPreviewCount: recentRuns.filter((run) => run.preview).length,
     latestTrainedAt: recentRuns[0]?.trainedAt,
-    averageQualityScore: qualityScores.length > 0
+    recentAverageQualityScore: qualityScores.length > 0
       ? roundSignal(qualityScores.reduce((sum, score) => sum + score, 0) / qualityScores.length)
       : null,
     recentRuns: recentRuns.slice(0, PORTFOLIO_RECENT_LIMIT),

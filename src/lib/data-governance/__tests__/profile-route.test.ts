@@ -844,8 +844,9 @@ describe('GET /api/user/profile', () => {
     });
     expect(body.arenaPortfolio.trainingSummary).toMatchObject({
       total: 12,
-      previewCount: 1,
-      averageQualityScore: 82.4,
+      recentWindowSize: 5,
+      recentPreviewCount: 1,
+      recentAverageQualityScore: 82.4,
       recentRuns: [
         expect.objectContaining({
           taskId: 'task-cruise-roll-blackbox-identification',
