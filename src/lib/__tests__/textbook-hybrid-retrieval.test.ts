@@ -1,0 +1,857 @@
+import { createHash } from 'node:crypto';
+import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+
+import { afterEach, describe, expect, it, vi } from 'vitest';
+
+vi.mock('server-only', () => ({}));
+
+import {
+  getSharedTextbookRetrievalIndex,
+  lexicalTokens,
+  loadTextbookRetrievalIndex,
+  normalizeText,
+  resetTextbookRetrievalForTests,
+  retrieve,
+  SiliconFlowTextbookEmbeddingClient,
+  TEXTBOOK_RETRIEVAL_FORMAT_VERSION,
+  TEXTBOOK_RETRIEVAL_NORMALIZATION_VERSION,
+  TextbookRetrievalContractError,
+} from '@/lib/textbook-retrieval';
+import type {
+  TextbookEmbeddingClient,
+  TextbookRerankClient,
+} from '@/lib/textbook-retrieval';
+
+const sha256 = (value: Uint8Array | string) =>
+  `sha256:${createHash('sha256').update(value).digest('hex')}`;
+
+function encodeUnsignedVarint(value: number): Buffer {
+  const bytes: number[] = [];
+  while (value >= 0x80) {
+    bytes.push((value & 0x7f) | 0x80);
+    value = Math.floor(value / 0x80);
+  }
+  bytes.push(value);
+  return Buffer.from(bytes);
+}
+
+interface FixtureWindow {
+  id: string;
+  body: string;
+  sourcePath: string;
+  bookId?: string;
+}
+
+interface RankingFixtureOptions {
+  windows?: FixtureWindow[];
+  vectors?: number[][];
+  books?: Array<{ bookId: string; edition: string }>;
+  sourcePriority?: string[];
+}
+
+async function buildIndexFixture(
+  firstBody = '反馈控制 feedback control',
+  options: RankingFixtureOptions = {},
+): Promise<string> {
+  const root = await mkdtemp(path.join(tmpdir(), 'textbook-hybrid-node-'));
+  const windows: FixtureWindow[] = options.windows ?? [
+    {
+      id: 'textbook-window:fixture/feedback',
+      body: firstBody,
+      sourcePath: 'chapter-01/feedback.md',
+    },
+    {
+      id: 'textbook-window:fixture/formula',
+      body: '单位阶跃响应 G(s)=1/(s+1)',
+      sourcePath: 'chapter-01/formula.md',
+    },
+    {
+      id: 'textbook-window:fixture/stability',
+      body: '稳定裕度 phase margin',
+      sourcePath: 'chapter-02/stability.md',
+    },
+  ];
+  const vectors = options.vectors ?? [
+    [1, 0],
+    [0, 1],
+    [Math.SQRT1_2, Math.SQRT1_2],
+  ];
+  const books = options.books ?? [{
+    bookId: 'fixture-book',
+    edition: 'fixture-edition',
+  }];
+  const sourcePriority = options.sourcePriority
+    ?? books.map((book) => book.bookId);
+  const dimension = vectors[0].length;
+  const bodies = Buffer.concat(windows.map((window) => Buffer.from(window.body)));
+  const metadata = [];
+  const postings = new Map<string, Map<number, number>>();
+  let offset = 0;
+  for (const [row, window] of windows.entries()) {
+    const body = Buffer.from(window.body);
+    const counts = new Map<string, number>();
+    for (const token of lexicalTokens(window.body)) {
+      counts.set(token, (counts.get(token) ?? 0) + 1);
+    }
+    for (const [token, frequency] of counts) {
+      const rows = postings.get(token) ?? new Map<number, number>();
+      rows.set(row, frequency);
+      postings.set(token, rows);
+    }
+    metadata.push({
+      recordType: 'index-window',
+      formatVersion: TEXTBOOK_RETRIEVAL_FORMAT_VERSION,
+      id: window.id,
+      sourceWindowId: window.id,
+      bookId: window.bookId ?? books[0].bookId,
+      sourceRevision: 'fixture-revision',
+      primaryUnitId: `textbook-unit:fixture/${row}`,
+      owningUnitIds: [`textbook-unit:fixture/${row}`],
+      sourcePaths: [window.sourcePath],
+      vectorRow: row,
+      bodyOffset: offset,
+      bodyLength: body.length,
+      bodyHash: sha256(body),
+      contentHash: sha256(Buffer.from(normalizeText(window.body))),
+      tokenCount: lexicalTokens(window.body).length,
+    });
+    offset += body.length;
+  }
+
+  const windowsBytes = Buffer.from(
+    `${metadata.map((row) => JSON.stringify(row)).join('\n')}\n`,
+  );
+  const lexicalPostingParts: Buffer[] = [];
+  const terms: Array<{
+    token: string;
+    byteOffset: number;
+    byteLength: number;
+    postingCount: number;
+  }> = [];
+  let lexicalOffset = 0;
+  for (const [token, rows] of [...postings].sort(
+    ([left], [right]) => Buffer.compare(
+      Buffer.from(left, 'utf8'),
+      Buffer.from(right, 'utf8'),
+    ),
+  )) {
+    let previous = -1;
+    const encodedRows: Buffer[] = [];
+    for (const [row, frequency] of rows) {
+      encodedRows.push(encodeUnsignedVarint(row - previous));
+      encodedRows.push(encodeUnsignedVarint(frequency));
+      previous = row;
+    }
+    const encoded = Buffer.concat(encodedRows);
+    terms.push({
+      token,
+      byteOffset: lexicalOffset,
+      byteLength: encoded.length,
+      postingCount: rows.size,
+    });
+    lexicalPostingParts.push(encoded);
+    lexicalOffset += encoded.length;
+  }
+  const lexicalTermsBytes = Buffer.from(`${[
+    {
+      recordType: 'lexical-terms-header',
+      formatVersion: TEXTBOOK_RETRIEVAL_FORMAT_VERSION,
+      normalizationVersion: TEXTBOOK_RETRIEVAL_NORMALIZATION_VERSION,
+    },
+    ...terms.map((term) => ({ recordType: 'lexical-term', ...term })),
+  ].map((record) => JSON.stringify(record)).join('\n')}\n`);
+  const lexicalPostingsBytes = Buffer.concat(lexicalPostingParts);
+  const vectorBytes = Buffer.alloc(vectors.length * dimension * 4);
+  vectors.flat().forEach((value, index) => vectorBytes.writeFloatLE(value, index * 4));
+
+  await Promise.all([
+    writeFile(path.join(root, 'bodies.utf8'), bodies),
+    writeFile(path.join(root, 'windows.jsonl'), windowsBytes),
+    writeFile(path.join(root, 'lexical-terms.jsonl'), lexicalTermsBytes),
+    writeFile(path.join(root, 'lexical-postings.bin'), lexicalPostingsBytes),
+    writeFile(path.join(root, 'vectors.f32'), vectorBytes),
+  ]);
+  const coreHashes = {
+    'bodies.utf8': sha256(bodies),
+    'windows.jsonl': sha256(windowsBytes),
+    'lexical-terms.jsonl': sha256(lexicalTermsBytes),
+    'lexical-postings.bin': sha256(lexicalPostingsBytes),
+    'vectors.f32': sha256(vectorBytes),
+  };
+  const buildReportBytes = Buffer.from(`${JSON.stringify({
+    recordType: 'build-report',
+    formatVersion: TEXTBOOK_RETRIEVAL_FORMAT_VERSION,
+    status: 'complete',
+    sourceRevision: 'fixture-revision',
+    model: 'fixture/embedding',
+    observedDimension: dimension,
+    normalizationVersion: TEXTBOOK_RETRIEVAL_NORMALIZATION_VERSION,
+    bookCount: books.length,
+    windowCount: windows.length,
+    cacheHits: 0,
+    cacheMisses: windows.length,
+    providerBatches: 1,
+    providerUsageTokens: 42,
+    providerLatencyMs: {
+      batchCount: 1,
+      samples: [12],
+      p50: 12,
+      p95: 12,
+      total: 12,
+    },
+    providerTraceIds: ['fixture-build-trace'],
+    fileHashes: coreHashes,
+  }, null, 2)}\n`);
+  await writeFile(path.join(root, 'build-report.json'), buildReportBytes);
+  await writeFile(path.join(root, 'manifest.json'), `${JSON.stringify({
+    recordType: 'index-manifest',
+    formatVersion: TEXTBOOK_RETRIEVAL_FORMAT_VERSION,
+    sourceRevision: 'fixture-revision',
+    model: 'fixture/embedding',
+    observedDimension: dimension,
+    normalizationVersion: TEXTBOOK_RETRIEVAL_NORMALIZATION_VERSION,
+    vectorNormalization: 'l2',
+    vectorEncoding: 'float32-le',
+    books: books.map((book) => ({
+      ...book,
+      manifestHash: sha256('fixture-manifest'),
+      sourceHashes: Object.fromEntries(
+        windows.filter((window) =>
+          (window.bookId ?? books[0].bookId) === book.bookId)
+          .map((window) => [window.sourcePath, sha256(window.body)]),
+      ),
+    })),
+    sourcePriority,
+    counts: {
+      books: books.length,
+      windows: windows.length,
+      vectors: windows.length,
+      bodyBytes: bodies.length,
+      lexicalTerms: postings.size,
+    },
+    files: {
+      ...coreHashes,
+      'build-report.json': sha256(buildReportBytes),
+    },
+    productionConnected: false,
+  }, null, 2)}\n`);
+  return root;
+}
+
+async function refreshManifestHashes(
+  root: string,
+  names: string[],
+): Promise<void> {
+  const manifestPath = path.join(root, 'manifest.json');
+  const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+  for (const name of names) {
+    manifest.files[name] = sha256(await readFile(path.join(root, name)));
+  }
+  await writeFile(manifestPath, `${JSON.stringify(manifest)}\n`);
+}
+
+const embedding = (
+  vector: number[],
+  responseModel = 'fixture/embedding',
+): TextbookEmbeddingClient => ({
+  embed: vi.fn(async () => ({
+    embedding: vector,
+    model: responseModel,
+  })),
+});
+
+afterEach(async () => {
+  vi.unstubAllEnvs();
+  await resetTextbookRetrievalForTests();
+});
+
+describe('textbook hybrid retrieval runtime', () => {
+  it('reads the SiliconFlow trace header from embedding responses', async () => {
+    vi.stubEnv('SILICONFLOW_API_KEY', 'test-only-key');
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({
+      data: [{ embedding: [1, 0] }],
+      model: 'fixture/embedding',
+    }), {
+      status: 200,
+      headers: {
+        'content-type': 'application/json',
+        'x-siliconcloud-trace-id': 'siliconflow-trace-1047',
+        'x-request-id': 'fallback-request-id',
+      },
+    })));
+    const client = new SiliconFlowTextbookEmbeddingClient();
+    await expect(client.embed({
+      model: 'fixture/embedding',
+      input: '反馈控制',
+      signal: new AbortController().signal,
+    })).resolves.toMatchObject({
+      traceId: 'siliconflow-trace-1047',
+    });
+  });
+
+  it('matches Python NFKC, CJK unigram/bigram, and technical token rules', () => {
+    expect(normalizeText('ＡＢＣ 控制')).toBe('abc 控制');
+    expect(new Set(lexicalTokens('控制系统 G(s)=１.０ STEP_response ω_n≈ζ')))
+      .toEqual(expect.objectContaining(new Set([
+        '控', '制', '控制', '系统', 'g', 's', '=', '1.0',
+        'step_response', 'ω_n', '≈', 'ζ',
+      ])));
+  });
+
+  it('shares one manifest-hash keyed instance and closes it deterministically', async () => {
+    const root = await buildIndexFixture();
+    const [first, second] = await Promise.all([
+      loadTextbookRetrievalIndex(root),
+      getSharedTextbookRetrievalIndex(path.join(root, '.')),
+    ]);
+    expect(second).toBe(first);
+    expect(first.windows[0].sourceWindowId).toBe(first.windows[0].id);
+    expect(first.windows[0]).not.toHaveProperty('recordType');
+    expect(first.windows[0]).not.toHaveProperty('formatVersion');
+    expect(first.windows[0]).not.toHaveProperty('vectorRow');
+    expect(first.windows[0]).not.toHaveProperty('bodyHash');
+    expect(first.windows[0]).not.toHaveProperty('contentHash');
+    expect(first.windows[0].tokenCount).toBeGreaterThan(0);
+    await first.close();
+    expect(first.closed).toBe(true);
+    const reopened = await loadTextbookRetrievalIndex(root);
+    expect(reopened).not.toBe(first);
+  });
+
+  it('fails closed for file hash and vector dimension corruption', async () => {
+    const hashRoot = await buildIndexFixture();
+    await writeFile(path.join(hashRoot, 'vectors.f32'), Buffer.alloc(24));
+    await expect(loadTextbookRetrievalIndex(hashRoot)).rejects.toThrow(
+      /file hash mismatch: vectors\.f32/u,
+    );
+
+    const dimensionRoot = await buildIndexFixture();
+    const manifestPath = path.join(dimensionRoot, 'manifest.json');
+    const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+    manifest.observedDimension = 3;
+    await writeFile(manifestPath, `${JSON.stringify(manifest)}\n`);
+    await expect(loadTextbookRetrievalIndex(dimensionRoot)).rejects.toThrow(
+      /build report is inconsistent|vector file size is invalid/u,
+    );
+  });
+
+  it('fails closed for legacy, noncanonical, overlapping, and trailing lexical layouts', async () => {
+    const legacyRoot = await buildIndexFixture();
+    const legacyManifestPath = path.join(legacyRoot, 'manifest.json');
+    const legacyManifest = JSON.parse(await readFile(legacyManifestPath, 'utf8'));
+    delete legacyManifest.files['lexical-terms.jsonl'];
+    delete legacyManifest.files['lexical-postings.bin'];
+    legacyManifest.files['lexical-terms.json'] = sha256('legacy');
+    await writeFile(legacyManifestPath, `${JSON.stringify(legacyManifest)}\n`);
+    await expect(loadTextbookRetrievalIndex(legacyRoot)).rejects.toThrow(
+      /index manifest file inventory is invalid/u,
+    );
+
+    const overlapRoot = await buildIndexFixture();
+    const overlapTermsPath = path.join(overlapRoot, 'lexical-terms.jsonl');
+    const overlapTerms = (await readFile(overlapTermsPath, 'utf8'))
+      .trim().split('\n').map((line) => JSON.parse(line));
+    overlapTerms[2].byteOffset = 0;
+    await writeFile(
+      overlapTermsPath,
+      `${overlapTerms.map((row) => JSON.stringify(row)).join('\n')}\n`,
+    );
+    await refreshManifestHashes(overlapRoot, ['lexical-terms.jsonl']);
+    await expect(loadTextbookRetrievalIndex(overlapRoot)).rejects.toThrow(
+      /offsets are not contiguous/u,
+    );
+
+    const trailingRoot = await buildIndexFixture();
+    const trailingPath = path.join(trailingRoot, 'lexical-postings.bin');
+    const trailing = Buffer.concat([await readFile(trailingPath), Buffer.from([0])]);
+    await writeFile(trailingPath, trailing);
+    await refreshManifestHashes(trailingRoot, ['lexical-postings.bin']);
+    await expect(loadTextbookRetrievalIndex(trailingRoot)).rejects.toThrow(
+      /do not close over postings binary/u,
+    );
+
+    const noncanonicalRoot = await buildIndexFixture();
+    const noncanonicalTermsPath = path.join(noncanonicalRoot, 'lexical-terms.jsonl');
+    const noncanonicalTerms = (await readFile(noncanonicalTermsPath, 'utf8'))
+      .trim().split('\n').map((line) => JSON.parse(line));
+    const first = noncanonicalTerms[1];
+    const original = await readFile(path.join(noncanonicalRoot, 'lexical-postings.bin'));
+    const noncanonical = Buffer.concat([
+      Buffer.from([0x81, 0x00]),
+      original.subarray(1),
+    ]);
+    first.byteLength += 1;
+    for (const term of noncanonicalTerms.slice(2)) {
+      term.byteOffset += 1;
+    }
+    await writeFile(
+      noncanonicalTermsPath,
+      `${noncanonicalTerms.map((row) => JSON.stringify(row)).join('\n')}\n`,
+    );
+    await writeFile(
+      path.join(noncanonicalRoot, 'lexical-postings.bin'),
+      noncanonical,
+    );
+    await refreshManifestHashes(noncanonicalRoot, [
+      'lexical-terms.jsonl',
+      'lexical-postings.bin',
+    ]);
+    await expect(loadTextbookRetrievalIndex(noncanonicalRoot)).rejects.toThrow(
+      /noncanonical varint/u,
+    );
+  });
+
+  it('rejects tampered source window identity and body offset layout', async () => {
+    const identityRoot = await buildIndexFixture();
+    const windowsPath = path.join(identityRoot, 'windows.jsonl');
+    const rows = (await readFile(windowsPath, 'utf8'))
+      .trim()
+      .split('\n')
+      .map((line) => JSON.parse(line));
+    rows[0].sourceWindowId = 'textbook-window:fixture/tampered';
+    const windowsBytes = Buffer.from(
+      `${rows.map((row) => JSON.stringify(row)).join('\n')}\n`,
+    );
+    await writeFile(windowsPath, windowsBytes);
+    const manifestPath = path.join(identityRoot, 'manifest.json');
+    const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+    manifest.files['windows.jsonl'] = sha256(windowsBytes);
+    await writeFile(manifestPath, `${JSON.stringify(manifest)}\n`);
+    await expect(loadTextbookRetrievalIndex(identityRoot)).rejects.toThrow(
+      /window metadata is invalid/u,
+    );
+
+    const offsetRoot = await buildIndexFixture();
+    const offsetPath = path.join(offsetRoot, 'windows.jsonl');
+    const offsetRows = (await readFile(offsetPath, 'utf8'))
+      .trim().split('\n').map((line) => JSON.parse(line));
+    offsetRows[1].bodyOffset += 1;
+    await writeFile(
+      offsetPath,
+      `${offsetRows.map((row) => JSON.stringify(row)).join('\n')}\n`,
+    );
+    await refreshManifestHashes(offsetRoot, ['windows.jsonl']);
+    await expect(loadTextbookRetrievalIndex(offsetRoot)).rejects.toThrow(
+      /body offsets are not contiguous/u,
+    );
+  });
+
+  it('rejects tampered metadata that is discarded after loading', async () => {
+    const cases = [
+      ['recordType', 'tampered'],
+      ['formatVersion', 'tampered'],
+      ['vectorRow', 1],
+      ['bodyHash', 'sha256:tampered'],
+      ['contentHash', 'sha256:tampered'],
+      ['tokenCount', -1],
+    ] as const;
+
+    for (const [field, value] of cases) {
+      const root = await buildIndexFixture();
+      const windowsPath = path.join(root, 'windows.jsonl');
+      const rows = (await readFile(windowsPath, 'utf8'))
+        .trim().split('\n').map((line) => JSON.parse(line));
+      rows[0][field] = value;
+      await writeFile(
+        windowsPath,
+        `${rows.map((row) => JSON.stringify(row)).join('\n')}\n`,
+      );
+      await refreshManifestHashes(root, ['windows.jsonl']);
+      await expect(loadTextbookRetrievalIndex(root)).rejects.toThrow(
+        /window metadata is invalid/u,
+      );
+    }
+  });
+
+  it('rejects body tampering through the manifest file hash', async () => {
+    const root = await buildIndexFixture();
+    const bodyPath = path.join(root, 'bodies.utf8');
+    const body = await readFile(bodyPath);
+    body[0] ^= 1;
+    await writeFile(bodyPath, body);
+    await expect(loadTextbookRetrievalIndex(root)).rejects.toThrow(
+      /file hash mismatch: bodies\.utf8/u,
+    );
+  });
+
+  it('fails closed when build provider evidence violates the new contract', async () => {
+    const root = await buildIndexFixture();
+    const reportPath = path.join(root, 'build-report.json');
+    const report = JSON.parse(await readFile(reportPath, 'utf8'));
+    report.providerUsageTokens = -1;
+    const reportBytes = Buffer.from(`${JSON.stringify(report)}\n`);
+    await writeFile(reportPath, reportBytes);
+    const manifestPath = path.join(root, 'manifest.json');
+    const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+    manifest.files['build-report.json'] = sha256(reportBytes);
+    await writeFile(manifestPath, `${JSON.stringify(manifest)}\n`);
+    await expect(loadTextbookRetrievalIndex(root)).rejects.toThrow(
+      /build report is inconsistent/u,
+    );
+  });
+
+  it('uses exact vector dot ranking without lexical hits', async () => {
+    const root = await buildIndexFixture();
+    const response = await retrieve('unseen-query', {
+      indexRoot: root,
+      embeddingClient: embedding([0, 1]),
+    });
+    expect(response.mode).toBe('lexical-vector');
+    expect(response.results[0]).toMatchObject({
+      windowId: 'textbook-window:fixture/formula',
+      primaryUnitId: 'textbook-unit:fixture/1',
+      owningUnitIds: ['textbook-unit:fixture/1'],
+      bookId: 'fixture-book',
+      sourcePaths: ['chapter-01/formula.md'],
+      body: '单位阶跃响应 G(s)=1/(s+1)',
+      scores: { vector: 1 },
+    });
+  });
+
+  it('falls back to lexical ranking with stable development diagnostics', async () => {
+    const root = await buildIndexFixture();
+    const response = await retrieve('单位阶跃响应', {
+      indexRoot: root,
+      embeddingClient: {
+        embed: vi.fn(async () => {
+          throw new Error('private vendor response');
+        }),
+      },
+    });
+    expect(response.mode).toBe('lexical');
+    expect(response.results[0].windowId).toBe('textbook-window:fixture/formula');
+    expect(response.diagnostics).toEqual([
+      expect.objectContaining({
+        stage: 'embedding',
+        code: 'provider-unavailable',
+      }),
+    ]);
+    expect(JSON.stringify(response)).not.toContain('private vendor response');
+  });
+
+  it('preserves the prior lexical frequency ranking exactly', async () => {
+    const root = await buildIndexFixture();
+    const query = '反馈控制 feedback control';
+    const bodies = [
+      '反馈控制 feedback control',
+      '单位阶跃响应 G(s)=1/(s+1)',
+      '稳定裕度 phase margin',
+    ];
+    const expected = bodies.map((body, row) => {
+      const frequencies = new Map<string, number>();
+      for (const token of lexicalTokens(body)) {
+        frequencies.set(token, (frequencies.get(token) ?? 0) + 1);
+      }
+      return {
+        row,
+        score: lexicalTokens(query).reduce(
+          (score, token) => score + (frequencies.get(token) ?? 0),
+          0,
+        ),
+      };
+    }).filter(({ score }) => score > 0)
+      .sort((left, right) => right.score - left.score || left.row - right.row);
+    const response = await retrieve(query, {
+      indexRoot: root,
+      embeddingClient: {
+        embed: vi.fn(async () => {
+          throw new Error('offline');
+        }),
+      },
+    });
+    expect(response.results.map((result) => result.scores.lexical))
+      .toEqual(expected.map(({ score }) => score));
+    expect(response.results.map((result) => result.windowId))
+      .toEqual(expected.map(({ row }) => [
+        'textbook-window:fixture/feedback',
+        'textbook-window:fixture/formula',
+        'textbook-window:fixture/stability',
+      ][row]));
+  });
+
+  it('gates BM25 and source-local vector ranks and exposes all four score bases', async () => {
+    const root = await buildIndexFixture('', {
+      windows: [
+        {
+          id: 'textbook-window:hu/primary',
+          body: '中文 中文 术语 反馈控制',
+          sourcePath: 'hu/primary.md',
+          bookId: 'hu-shousong-auto-control-8th',
+        },
+        {
+          id: 'textbook-window:hu/secondary',
+          body: '中文 术语 反馈控制',
+          sourcePath: 'hu/secondary.md',
+          bookId: 'hu-shousong-auto-control-8th',
+        },
+        {
+          id: 'textbook-window:dorf/control',
+          body: '中文 术语 现代控制',
+          sourcePath: 'dorf/control.md',
+          bookId: 'dorf-modern-control-systems',
+        },
+        {
+          id: 'textbook-window:reference/stability',
+          body: '普通查询 稳定裕度',
+          sourcePath: 'reference/stability.md',
+          bookId: 'reference-work',
+        },
+      ],
+      vectors: [
+        [1, 0],
+        [0.8, 0.6],
+        [0, 1],
+        [-1, 0],
+      ],
+      books: [
+        { bookId: 'hu-shousong-auto-control-8th', edition: '第八版' },
+        { bookId: 'dorf-modern-control-systems', edition: '14th Global Edition' },
+        { bookId: 'reference-work', edition: '2015版' },
+      ],
+    });
+    const ordinary = await retrieve('反馈控制', {
+      indexRoot: root,
+      embeddingClient: embedding([1, 0]),
+    });
+    expect(ordinary.results.every((result) =>
+      result.scores.bm25 === undefined
+      && result.scores.sourceLocalVector === undefined)).toBe(true);
+
+    const bilingual = await retrieve('反馈控制中文叫什么', {
+      indexRoot: root,
+      embeddingClient: embedding([1, 0]),
+    });
+    expect(bilingual.results.some((result) => result.scores.bm25 !== undefined))
+      .toBe(true);
+    expect(bilingual.results.every((result) =>
+      result.scores.sourceLocalVector === undefined)).toBe(true);
+
+    const bookIdMatch = await retrieve('hu shousong 反馈控制', {
+      indexRoot: root,
+      embeddingClient: embedding([1, 0]),
+    });
+    expect(bookIdMatch.results.filter((result) =>
+      result.bookId === 'hu-shousong-auto-control-8th')
+      .every((result) => result.scores.sourceLocalVector !== undefined)).toBe(true);
+    expect(bookIdMatch.results.filter((result) =>
+      result.bookId !== 'hu-shousong-auto-control-8th')
+      .every((result) => result.scores.sourceLocalVector === undefined)).toBe(true);
+
+    const editionMatch = await retrieve('第八版 反馈控制', {
+      indexRoot: root,
+      embeddingClient: embedding([1, 0]),
+    });
+    expect(editionMatch.results.filter((result) =>
+      result.bookId === 'hu-shousong-auto-control-8th')
+      .every((result) => result.scores.sourceLocalVector !== undefined)).toBe(true);
+
+    const fourChannel = await retrieve(
+      'hu shousong 8th 第八版 反馈控制中文叫什么',
+      {
+        indexRoot: root,
+        embeddingClient: embedding([1, 0]),
+      },
+    );
+    const primary = fourChannel.results.find((result) =>
+      result.windowId === 'textbook-window:hu/primary');
+    expect(primary?.scores).toMatchObject({
+      lexical: expect.any(Number),
+      vector: 1,
+      bm25: expect.any(Number),
+      sourceLocalVector: 1,
+    });
+    expect(primary?.scores.fused).toBeCloseTo(3 / 61 + 1.5 / 62, 12);
+  });
+
+  it('breaks a final fused-score tie by source priority before row', async () => {
+    const root = await buildIndexFixture('', {
+      windows: [
+        {
+          id: 'textbook-window:lower-priority/lexical-first',
+          body: '反馈反馈',
+          sourcePath: 'lower/lexical.md',
+          bookId: 'lower-priority-book',
+        },
+        {
+          id: 'textbook-window:higher-priority/vector-first',
+          body: '反馈',
+          sourcePath: 'higher/vector.md',
+          bookId: 'higher-priority-book',
+        },
+      ],
+      vectors: [
+        [0, 1],
+        [1, 0],
+      ],
+      books: [
+        { bookId: 'lower-priority-book', edition: 'lower' },
+        { bookId: 'higher-priority-book', edition: 'higher' },
+      ],
+      sourcePriority: ['higher-priority-book', 'lower-priority-book'],
+    });
+    const response = await retrieve('反馈', {
+      indexRoot: root,
+      embeddingClient: embedding([1, 0]),
+    });
+    expect(response.results.map((result) => result.windowId)).toEqual([
+      'textbook-window:higher-priority/vector-first',
+      'textbook-window:lower-priority/lexical-first',
+    ]);
+    expect(response.results[0].scores.fused)
+      .toBeCloseTo(response.results[1].scores.fused, 15);
+  });
+
+  it('rejects model and dimension mismatch into lexical fallback', async () => {
+    const root = await buildIndexFixture();
+    const modelMismatch = await retrieve('反馈控制', {
+      indexRoot: root,
+      embeddingClient: embedding([1, 0], 'other/model'),
+    });
+    expect(modelMismatch.mode).toBe('lexical');
+    expect(modelMismatch.diagnostics?.[0].code).toBe('model-mismatch');
+
+    const dimensionMismatch = await retrieve('反馈控制', {
+      indexRoot: root,
+      embeddingClient: embedding([1, 0, 0]),
+    });
+    expect(dimensionMismatch.mode).toBe('lexical');
+    expect(dimensionMismatch.diagnostics?.[0].code).toBe('dimension-mismatch');
+  });
+
+  it('keeps local fused order on malformed rerank and timeout', async () => {
+    const root = await buildIndexFixture();
+    const base = await retrieve('反馈控制', {
+      indexRoot: root,
+      embeddingClient: embedding([1, 0]),
+    });
+    const malformed: TextbookRerankClient = {
+      rerank: vi.fn(async () => ({
+        results: [{ index: 0, score: 1 }, { index: 0, score: 0 }],
+      })),
+    };
+    const malformedResult = await retrieve('反馈控制', {
+      indexRoot: root,
+      embeddingClient: embedding([1, 0]),
+      rerankClient: malformed,
+      rerankModel: 'fixture/rerank',
+    });
+    expect(malformedResult.results.map((row) => row.windowId))
+      .toEqual(base.results.map((row) => row.windowId));
+    expect(malformedResult.diagnostics?.at(-1)?.code).toBe('invalid-response');
+
+    const timeout: TextbookRerankClient = {
+      rerank: vi.fn(() => new Promise<never>(() => undefined)),
+    };
+    const timeoutResult = await retrieve('反馈控制', {
+      indexRoot: root,
+      embeddingClient: embedding([1, 0]),
+      rerankClient: timeout,
+      rerankModel: 'fixture/rerank',
+      rerankTimeoutMs: 5,
+    });
+    expect(timeoutResult.results.map((row) => row.windowId))
+      .toEqual(base.results.map((row) => row.windowId));
+    expect(timeoutResult.diagnostics?.at(-1)?.code).toBe('timeout');
+  });
+
+  it('sends only normalized query, model, and bounded candidate bodies', async () => {
+    const root = await buildIndexFixture();
+    const embedClient = embedding([1, 0]);
+    const rerankClient: TextbookRerankClient = {
+      rerank: vi.fn(async () => ({ results: [{ index: 1, score: 2 }] })),
+    };
+    const response = await retrieve('ＦＥＥＤＢＡＣＫ Control', {
+      indexRoot: root,
+      embeddingClient: embedClient,
+      rerankClient,
+      rerankModel: 'fixture/rerank',
+    });
+    expect(embedClient.embed).toHaveBeenCalledWith({
+      model: 'fixture/embedding',
+      input: 'feedback control',
+      signal: expect.any(AbortSignal),
+    });
+    expect(rerankClient.rerank).toHaveBeenCalledWith({
+      model: 'fixture/rerank',
+      query: 'feedback control',
+      documents: expect.arrayContaining([
+        expect.objectContaining({
+          index: expect.any(Number),
+          text: expect.any(String),
+        }),
+      ]),
+      signal: expect.any(AbortSignal),
+    });
+    const rerankRequest = vi.mocked(rerankClient.rerank).mock.calls[0][0];
+    expect(rerankRequest.documents.length).toBeLessThanOrEqual(24);
+    expect(Object.keys(rerankRequest).sort())
+      .toEqual(['documents', 'model', 'query', 'signal']);
+    expect(response.results[0].scores.rerank).toBe(2);
+    await expect(retrieve({ learnerId: 'private' } as unknown as string, {
+      indexRoot: root,
+      embeddingClient: embedClient,
+    })).rejects.toThrow(TypeError);
+  });
+
+  it('reads UTF-8 bodies by positional offsets and exposes measurable budgets', async () => {
+    const root = await buildIndexFixture();
+    const index = await loadTextbookRetrievalIndex(root);
+    const response = await retrieve('稳定裕度', {
+      indexRoot: root,
+      embeddingClient: embedding([Math.SQRT1_2, Math.SQRT1_2]),
+    });
+    expect(response.results.find(
+      (row) => row.windowId === 'textbook-window:fixture/stability',
+    )?.body).toBe('稳定裕度 phase margin');
+    expect(index.vectorBuffer.buffer).toBe(index.vectors.buffer);
+    expect(index.stats).toMatchObject({
+      bodyResidentBytes: 0,
+      residentArtifactBudgetBytes: 150 * 1024 * 1024,
+      residentArtifactPassed: true,
+      lexicalTermsBytes: expect.any(Number),
+      lexicalPostingsBytes: expect.any(Number),
+      windows: 3,
+      dimensions: 2,
+    });
+    expect(index.stats.residentArtifactBytes).toBeGreaterThanOrEqual(
+      index.stats.lexicalTermsBytes + index.stats.lexicalPostingsBytes,
+    );
+    expect(index.stats.residentArtifactBytes).toBeLessThan(150 * 1024 * 1024);
+    expect(index.stats.artifactBytes).toBeGreaterThan(index.vectorBuffer.length);
+  });
+
+  it('decodes posting slices only for query tokens present in the dictionary', async () => {
+    const root = await buildIndexFixture();
+    const index = await loadTextbookRetrievalIndex(root);
+    const decode = vi.spyOn(index, 'decodePostings');
+    await retrieve('稳定裕度 absent_token', {
+      indexRoot: root,
+      embeddingClient: {
+        embed: vi.fn(async () => {
+          throw new Error('offline');
+        }),
+      },
+    });
+    expect(decode.mock.calls.map(([token]) => token))
+      .toEqual(lexicalTokens('稳定裕度').filter(
+        (token) => index.lexicalTerms.has(token),
+      ));
+  });
+
+  it('hides provider diagnostics in production', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    const root = await buildIndexFixture();
+    const response = await retrieve('反馈控制', {
+      indexRoot: root,
+      embeddingClient: {
+        embed: vi.fn(async () => {
+          throw new TextbookRetrievalContractError('vendor body');
+        }),
+      },
+    });
+    expect(response.diagnostics).toBeUndefined();
+    expect(JSON.stringify(response)).not.toContain('vendor body');
+  });
+});
