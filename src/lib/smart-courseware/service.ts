@@ -35,15 +35,19 @@ export async function createSmartCoursewareDraft(db: CoursewareDb, input: {
   const planRevisionId = validateId(input.planRevisionId);
   const idempotencyKey = validateIdempotencyKey(input.idempotencyKey);
   const requestHash = contentHash({ planRevisionId });
+
+  const revision = await db.smartLessonRevision.findFirst({
+    where: { id: planRevisionId, ownerId: actor.id },
+    include: { task: { select: { revision: true } } },
+  });
+  if (!revision) throw new SmartCoursewareError('approved-plan-revision-not-found', 404);
+  if (revision.taskRevision !== revision.task.revision) {
+    throw new SmartCoursewareError('approved-plan-revision-stale', 409);
+  }
   const replay = await db.smartCoursewareDraft.findFirst({
     where: { ownerId: actor.id, creationIdempotencyKey: idempotencyKey },
   });
   if (replay) return assertCreateReplay(replay, requestHash);
-
-  const revision = await db.smartLessonRevision.findFirst({
-    where: { id: planRevisionId, ownerId: actor.id },
-  });
-  if (!revision) throw new SmartCoursewareError('approved-plan-revision-not-found', 404);
   validateSmartLessonPlan(revision.content);
   if (contentHash(revision.content) !== revision.contentHash) {
     throw new SmartCoursewareError('approved-plan-revision-hash-mismatch', 409);

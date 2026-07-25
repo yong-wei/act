@@ -1,13 +1,12 @@
 import { redirect } from 'next/navigation';
 import { UserRole } from '@prisma/client';
 
-import { CourseBasisWorkspace } from '@/features/teacher/course-basis-workspace';
-import { SmartLessonPlanWorkspace } from '@/features/teacher/smart-lesson-plan-workspace';
-import { publicTask } from '@/app/api/teacher/smart-lesson-tasks/_shared';
+import { SmartPreparationWorkspace } from '@/features/teacher/smart-preparation-workspace';
+import { publicTask, publicTaskSummary } from '@/app/api/teacher/smart-lesson-tasks/_shared';
 import { getServerAuthSession } from '@/lib/auth';
 import { listCourseBases } from '@/lib/course-basis';
 import { prisma } from '@/lib/prisma';
-import { listSmartLessonTasks } from '@/lib/smart-lesson-plan';
+import { getSmartLessonTask, listSmartLessonTaskSummaries } from '@/lib/smart-lesson-plan';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,9 +16,9 @@ export default async function SmartPrepPage() {
   if (session.user.role !== UserRole.TEACHER) redirect(session.user.role === UserRole.ADMIN ? '/admin' : '/dashboard');
 
   const actor = { id: session.user.id, role: 'TEACHER' as const };
-  const [courseBases, tasks, classes] = await Promise.all([
+  const [courseBases, taskSummaries, classes] = await Promise.all([
     listCourseBases(prisma, actor),
-    listSmartLessonTasks(prisma, actor),
+    listSmartLessonTaskSummaries(prisma, actor),
     prisma.class.findMany({
       where: { teacherId: session.user.id, isActive: true },
       orderBy: { name: 'asc' },
@@ -37,5 +36,15 @@ export default async function SmartPrepPage() {
     const snapshot = latestByClass.get(item.id);
     return snapshot ? [{ classId: item.id, className: item.name, diagnosisRef: snapshot.id, generatedAt: snapshot.generatedAt.toISOString() }] : [];
   });
-  return <main className="space-y-8"><CourseBasisWorkspace initialCourseBases={courseBases} /><SmartLessonPlanWorkspace courseBases={courseBases} classDiagnosisOptions={classDiagnosisOptions} initialTasks={tasks.map((task) => publicTask(task))} /></main>;
+  const firstTask = taskSummaries[0]
+    ? await getSmartLessonTask(prisma, { actor, taskId: taskSummaries[0].id })
+    : null;
+  const initialTasks = taskSummaries.map((task, index) => index === 0 && firstTask
+    ? publicTask(firstTask as unknown as Record<string, unknown>)
+    : publicTaskSummary(task as unknown as Record<string, unknown>));
+  return <SmartPreparationWorkspace
+    courseBases={courseBases}
+    classDiagnosisOptions={classDiagnosisOptions}
+    initialTasks={initialTasks}
+  />;
 }

@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 describe('smart lesson persistence contract', () => {
   const schema = readFileSync(join(process.cwd(), 'prisma/schema.prisma'), 'utf8');
   const migration = readFileSync(join(process.cwd(), 'prisma/migrations/20260719180000_add_smart_lesson_plan_core/migration.sql'), 'utf8');
+  const archiveMigration = readFileSync(join(process.cwd(), 'prisma/migrations/20260725235000_add_smart_lesson_task_archive/migration.sql'), 'utf8');
 
   it('persists the owner-scoped aggregate, durable stages, provider audit, advisory review, and approval ledger', () => {
     for (const model of [
@@ -48,5 +49,17 @@ describe('smart lesson persistence contract', () => {
     expect(schema).toContain('@@unique([ownerId, approvalIdempotencyKey])');
     expect(migration).toContain('SmartLessonRevision_immutable');
     expect(migration).toContain('BEFORE UPDATE OR DELETE ON "SmartLessonRevision"');
+  });
+
+  it('persists task archival independently from the immutable preparation graph', () => {
+    expect(schema).toMatch(/archivedAt\s+DateTime\?/);
+    expect(schema).toContain('@@index([ownerId, archivedAt, updatedAt])');
+    expect(archiveMigration).toContain('ADD COLUMN "archivedAt" TIMESTAMP(3)');
+    expect(archiveMigration).toContain('"SmartLessonTask_ownerId_archivedAt_updatedAt_idx"');
+    expect(archiveMigration).toContain("current_setting('app.smart_lesson_task_delete', true)");
+    expect(archiveMigration).toContain('CREATE OR REPLACE FUNCTION "reject_smart_lesson_revision_mutation"');
+    expect(archiveMigration).toContain('CREATE OR REPLACE FUNCTION "reject_smart_courseware_revision_mutation"');
+    expect(archiveMigration).toContain('CREATE OR REPLACE FUNCTION "reject_smart_courseware_module_revision_mutation"');
+    expect(archiveMigration).toContain('CREATE OR REPLACE FUNCTION "reject_smart_courseware_publication_mutation"');
   });
 });

@@ -19,6 +19,7 @@ import {
   createSmartLessonTask,
   deriveDraftFromRevision,
   failGenerationStage,
+  listSmartLessonTaskSummaries,
   listSmartLessonTasks,
   recordAdvisoryReview,
   resumeGenerationJob,
@@ -182,7 +183,7 @@ describe('smart lesson aggregate service', () => {
     const findMany = vi.fn(async () => []);
     await listSmartLessonTasks({ smartLessonTask: { findMany } } as never, teacher);
     expect(findMany).toHaveBeenCalledWith(expect.objectContaining({
-      where: { ownerId: teacher.id },
+      where: { ownerId: teacher.id, archivedAt: null },
       include: expect.objectContaining({
         drafts: expect.objectContaining({
           take: 1,
@@ -191,6 +192,28 @@ describe('smart lesson aggregate service', () => {
             reviews: expect.objectContaining({ take: 5 }),
           },
         }),
+      }),
+    }));
+  });
+
+  it('queries bounded archived task summaries with only projection facts', async () => {
+    const findMany = vi.fn(async () => []);
+    await listSmartLessonTaskSummaries({ smartLessonTask: { findMany } } as never, teacher, {
+      archived: true,
+      query: '闭环',
+    });
+    expect(findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        ownerId: teacher.id,
+        archivedAt: { not: null },
+        topic: { contains: '闭环', mode: 'insensitive' },
+      },
+      take: 50,
+      select: expect.objectContaining({
+        sources: expect.any(Object),
+        knowledgePoints: expect.any(Object),
+        goals: expect.any(Object),
+        coursewarePublicationSeries: expect.any(Object),
       }),
     }));
   });
