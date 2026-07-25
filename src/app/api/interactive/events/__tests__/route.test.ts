@@ -728,11 +728,13 @@ describe('POST /api/interactive/events', () => {
           sceneId: 'frequency-workbench',
           plantRef: 'second-order-plant',
           disturbancePolicy: {
-            wave: args.where?.id === 'workbench-simulation-run-2' ? 2 : 1,
+            wave: args.where?.id === 'workbench-simulation-run' ? 1 : 2,
           },
+          evaluationSpecRef: { id: 'frequency-workbench-quality-v1' },
         },
         controllerSnapshotRef: 'lead-controller-snapshot',
         summary: {
+          qualityTargetMet: args.where?.id !== 'workbench-simulation-run-invalid',
           metrics: {
             settlingTime: 2.5,
             stable: true,
@@ -763,6 +765,7 @@ describe('POST /api/interactive/events', () => {
         derivedResultRefs: [
           { kind: 'SimulationRun', id: 'workbench-simulation-run' },
           { kind: 'SimulationRun', id: 'workbench-simulation-run-2' },
+          { kind: 'SimulationRun', id: 'workbench-simulation-run-invalid' },
         ],
         answerPayload: { responseContractId: 'parameter.set' },
         releaseState: 'released',

@@ -36,6 +36,7 @@ import {
   type AnnotatedMediaDiagnosticEvent,
 } from '@/features/interactive/shared/manifest-runtime/annotated-media-evidence';
 import {
+  evaluatePersistedSimulationRunQuality,
   materializeControlWorkbenchTaskEvidence,
   materializeVirtualSimulationTaskEvidence,
 } from '@/lib/data-governance/simulation-task-materialization';
@@ -504,6 +505,10 @@ async function persistControlWorkbenchTaskEvidenceRows(
       if (!completedAt) continue;
       const taskSpec = readRecord(resultRun.taskSpecSnapshot);
       const metrics = buildSafeSimulationMetrics(resultRun.summary);
+      const quality = evaluatePersistedSimulationRunQuality(
+        resultRun.taskSpecSnapshot,
+        resultRun.summary,
+      );
       const taskEvidence = materializeControlWorkbenchTaskEvidence({
         actor: { userId, role: 'student' },
         eventType: 'workspace_submission',
@@ -532,6 +537,8 @@ async function persistControlWorkbenchTaskEvidenceRows(
           label: 'Control workbench persisted submission',
         },
         hasPersistedDesign: Object.keys(selectedDesignState).length > 0,
+        hasQualityTarget: quality.hasQualityTarget,
+        meetsQualityTarget: quality.meetsQualityTarget,
         capabilityMappingTags: capabilityId ? [capabilityId] : [],
       });
       await persistAcceptedSimulationTaskEvidence(prisma, taskEvidence, {

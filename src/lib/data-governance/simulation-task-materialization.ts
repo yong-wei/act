@@ -43,6 +43,57 @@ export interface TaskMaterializationResult {
   reason?: string;
 }
 
+export interface PersistedSimulationRunQuality {
+  hasQualityTarget: boolean;
+  meetsQualityTarget: boolean;
+}
+
+function qualityRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+function firstBoolean(...values: unknown[]): boolean | undefined {
+  return values.find((value): value is boolean => typeof value === 'boolean');
+}
+
+/**
+ * Reads only the canonical SimulationRun task spec and server-persisted summary.
+ * A declared evaluation target fails closed unless the summary contains an
+ * explicit evaluator verdict.
+ */
+export function evaluatePersistedSimulationRunQuality(
+  taskSpecSnapshot: unknown,
+  summary: unknown,
+): PersistedSimulationRunQuality {
+  const taskSpec = qualityRecord(taskSpecSnapshot);
+  const evaluationSpecRef = qualityRecord(taskSpec.evaluationSpecRef);
+  const qualityTarget = qualityRecord(taskSpec.qualityTarget);
+  const hasQualityTarget = (
+    typeof evaluationSpecRef.id === 'string'
+    && evaluationSpecRef.id.trim().length > 0
+  ) || Object.keys(qualityTarget).length > 0;
+
+  if (!hasQualityTarget) {
+    return { hasQualityTarget: false, meetsQualityTarget: false };
+  }
+
+  const summaryRecord = qualityRecord(summary);
+  const evaluation = qualityRecord(summaryRecord.evaluation);
+  const verdict = firstBoolean(
+    summaryRecord.qualityTargetMet,
+    summaryRecord.meetsQualityTarget,
+    evaluation.meetsQualityTarget,
+    evaluation.passed,
+  );
+
+  return {
+    hasQualityTarget: true,
+    meetsQualityTarget: verdict === true,
+  };
+}
+
 export interface VirtualSimulationArtifactInput {
   actor: TaskMaterializationActor;
   eventType: string;

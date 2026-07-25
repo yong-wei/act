@@ -9,6 +9,7 @@ import {
   hashSemanticFingerprintValue,
   hashSimulationTaskSpecKeyInputs,
 } from '../../src/lib/data-governance/simulation-task-evidence';
+import { evaluatePersistedSimulationRunQuality } from '../../src/lib/data-governance/simulation-task-materialization';
 
 const prisma = createPrismaClient();
 
@@ -143,6 +144,10 @@ async function collectHistoricalRecords(): Promise<HistoricalRecord[]> {
     const runsForRecord = verifiedRuns.length > 0 ? verifiedRuns : [undefined];
     for (const verifiedRun of runsForRecord) {
       const taskSpec = readRecord(verifiedRun?.taskSpecSnapshot);
+      const quality = evaluatePersistedSimulationRunQuality(
+        verifiedRun?.taskSpecSnapshot,
+        verifiedRun?.summary,
+      );
       records.push({
         id: verifiedRun
           ? `StudentStepResponse:${response.id}:SimulationRun:${verifiedRun.id}`
@@ -156,6 +161,8 @@ async function collectHistoricalRecords(): Promise<HistoricalRecord[]> {
         tier: 'submission',
         hasPersistedDesign: Object.keys(selectedDesignState).length > 0
           && verifiedRun !== undefined,
+        hasQualityTarget: quality.hasQualityTarget,
+        meetsQualityTarget: quality.meetsQualityTarget,
         fingerprint: {
           plantRef: readString(taskSpec, 'plantRef')
             ?? readString(taskSpec, 'sceneId')

@@ -31,6 +31,7 @@ import {
   isNovelRun,
 } from '../simulation-task-completion';
 import {
+  evaluatePersistedSimulationRunQuality,
   materializeArenaTaskEvidence,
   materializeControlWorkbenchTaskEvidence,
   materializeOdysseyTaskEvidence,
@@ -311,6 +312,37 @@ describe('simulation-task-learning-fact', () => {
 });
 
 // ─── Materialization Tests ───────────────────────────────────────────────────
+
+describe('persisted simulation run quality', () => {
+  it('fails a declared target closed unless the persisted evaluator verdict passes', () => {
+    const taskSpec = {
+      evaluationSpecRef: { id: 'course-keeping-quality-v1' },
+    };
+
+    expect(evaluatePersistedSimulationRunQuality(taskSpec, {
+      qualityTargetMet: true,
+    })).toEqual({
+      hasQualityTarget: true,
+      meetsQualityTarget: true,
+    });
+    expect(evaluatePersistedSimulationRunQuality(taskSpec, {
+      qualityTargetMet: false,
+    })).toEqual({
+      hasQualityTarget: true,
+      meetsQualityTarget: false,
+    });
+    expect(evaluatePersistedSimulationRunQuality(taskSpec, {
+      metrics: { valid: true, settlingTime: 2.5 },
+    })).toEqual({
+      hasQualityTarget: true,
+      meetsQualityTarget: false,
+    });
+    expect(evaluatePersistedSimulationRunQuality({}, {})).toEqual({
+      hasQualityTarget: false,
+      meetsQualityTarget: false,
+    });
+  });
+});
 
 describe('simulation-task-materialization', () => {
   const studentActor = { userId: 'student-1', role: 'student' as const };
