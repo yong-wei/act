@@ -1,0 +1,137 @@
+{
+  "configVersion": "textbook-structure-parser.v2",
+  "resourceId": "hu-shousong-auto-control-8th",
+  "sourceKind": "textbook",
+  "edition": "第八版",
+  "markdownHeadingLevels": { "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6 },
+  "enabledNumberingRules": ["chinese-chapter", "chinese-example", "solution-boundary", "arabic-compound", "arabic-ordinal", "parenthesized"],
+  "allowLevelSkips": false,
+  "unnumberedHeadingPolicy": "ordinal-within-parent",
+  "atomicRegions": ["fenced-code", "display-math"],
+  "retrievalWindow": { "beforeUnits": 1, "afterUnits": 1, "maxBytes": 12000 },
+  "auditThresholds": { "minimumUnitBytes": 32, "maximumUnitBytes": 24000 },
+  "reviewLedger": "review-ledgers/hu-shousong-auto-control-8th.json",
+  "overrides": [
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-01/textbook.md",
+        "line": 492
+      },
+      "action": "set-boundary",
+      "level": 2,
+      "kind": "exercise",
+      "pathComponent": "exercise-1-1",
+      "reason": "The 1-1 label starts the chapter exercise sequence and is distinct from section 1.1."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-01/textbook.md",
+        "line": 469
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "item",
+      "pathComponent": "tool-2",
+      "reason": "This is the second software-tool heading under section 1.5 and is distinct from toolbox item 2 within MATLAB."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-01/textbook.md",
+        "line": 474
+      },
+      "action": "set-boundary",
+      "level": 5,
+      "kind": "item",
+      "pathComponent": "python-package-1",
+      "reason": "This starts the Python package list and is distinct from the MATLAB toolbox list."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-01/textbook.md",
+        "line": 476
+      },
+      "action": "set-boundary",
+      "level": 5,
+      "kind": "item",
+      "pathComponent": "python-package-2",
+      "reason": "This is Python package item 2 and must remain in the Python package namespace."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-01/textbook.md",
+        "line": 478
+      },
+      "action": "set-boundary",
+      "level": 5,
+      "kind": "item",
+      "pathComponent": "python-package-3",
+      "reason": "This is Python package item 3 and must remain in the Python package namespace."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-01/textbook.md",
+        "line": 480
+      },
+      "action": "set-boundary",
+      "level": 5,
+      "kind": "item",
+      "pathComponent": "python-package-4",
+      "reason": "This is Python package item 4 and must remain in the Python package namespace."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-01/textbook.md",
+        "line": 486
+      },
+      "action": "set-boundary",
+      "level": 5,
+      "kind": "item",
+      "pathComponent": "python-package-5",
+      "reason": "This is Python package item 5 and must remain in the Python package namespace."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-03/textbook.md",
+        "line": 45
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "item",
+      "pathComponent": "performance-dynamic-1",
+      "reason": "This starts the dynamic/steady performance pair and is distinct from item 1 in the preceding process pair."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-03/textbook.md",
+        "line": 74
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "item",
+      "pathComponent": "performance-steady-2",
+      "reason": "This is the steady-performance sibling of dynamic performance."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-03/textbook.md",
+        "line": 490
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "subsection",
+      "pathComponent": "second-order-analysis-3",
+      "reason": "This starts analysis topic 3 and is distinct from nested item 3 in the preceding response classification."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-8th/chapter-03/textbook.md",
+        "line": 503
+      },
+      "action": "set-boundary",
+      "level": 5,
+      "kind": "item",
+      "pathComponent": "dynamic-metric-rise-time-1",
+      "reason": "This starts the dynamic-metric derivation sequence and is distinct from item 1 in the preceding damping classification."
+    }
+  ]
+}

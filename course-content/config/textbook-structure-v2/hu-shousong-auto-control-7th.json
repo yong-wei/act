@@ -1,0 +1,134 @@
+{
+  "configVersion": "textbook-structure-parser.v2",
+  "resourceId": "hu-shousong-auto-control-7th",
+  "sourceKind": "textbook",
+  "edition": "第七版",
+  "markdownHeadingLevels": { "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6 },
+  "enabledNumberingRules": ["chinese-chapter", "chinese-example", "solution-boundary", "arabic-compound", "arabic-ordinal", "parenthesized"],
+  "allowLevelSkips": false,
+  "unnumberedHeadingPolicy": "ordinal-within-parent",
+  "atomicRegions": ["fenced-code", "display-math"],
+  "retrievalWindow": { "beforeUnits": 1, "afterUnits": 1, "maxBytes": 12000 },
+  "auditThresholds": { "minimumUnitBytes": 32, "maximumUnitBytes": 24000 },
+  "reviewLedger": "review-ledgers/hu-shousong-auto-control-7th.json",
+  "overrides": [
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-7th/chapter-01/textbook.md",
+        "line": 289
+      },
+      "action": "allow-level-skip",
+      "reason": "The parenthesized classification list is a genuine item sequence directly under the section-level source boundary."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-7th/chapter-01/textbook.md",
+        "line": 298
+      },
+      "action": "set-boundary",
+      "level": 3,
+      "kind": "subsection",
+      "pathComponent": "system-classification-2",
+      "reason": "This heading starts the second top-level system classification and is distinct from item 2 in the preceding classification list."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-7th/chapter-01/textbook.md",
+        "line": 313
+      },
+      "action": "set-boundary",
+      "level": 3,
+      "kind": "subsection",
+      "pathComponent": "system-classification-3",
+      "reason": "This heading starts the third top-level system classification and is distinct from item 3 in the preceding classification list."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-7th/chapter-01/textbook.md",
+        "line": 347
+      },
+      "action": "set-boundary",
+      "level": 3,
+      "kind": "subsection",
+      "pathComponent": "performance-topic-2",
+      "reason": "This heading starts the second performance topic and is distinct from item 2 in the preceding requirement list."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-7th/chapter-02/textbook.md",
+        "line": 1402
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "subsection",
+      "pathComponent": "signal-flow-topic-3",
+      "reason": "This starts signal-flow topic 3 and is distinct from nested item 3 in the preceding derivation."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-7th/chapter-03/textbook.md",
+        "line": 46
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "item",
+      "pathComponent": "performance-dynamic-1",
+      "reason": "This starts the dynamic/steady performance pair and is distinct from item 1 in the preceding process pair."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-7th/chapter-03/textbook.md",
+        "line": 75
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "item",
+      "pathComponent": "performance-steady-2",
+      "reason": "This is the steady-performance sibling of dynamic performance."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-7th/chapter-03/textbook.md",
+        "line": 482
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "subsection",
+      "pathComponent": "second-order-analysis-3",
+      "reason": "This starts analysis topic 3 and is distinct from nested item 3 in the preceding response classification."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-7th/chapter-03/textbook.md",
+        "line": 500
+      },
+      "action": "set-boundary",
+      "level": 5,
+      "kind": "item",
+      "pathComponent": "dynamic-metric-rise-time-1",
+      "reason": "This starts the dynamic-metric derivation sequence and is distinct from item 1 in the preceding damping classification."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-7th/chapter-03/textbook.md",
+        "line": 657
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "subsection",
+      "pathComponent": "second-order-analysis-4",
+      "reason": "This starts analysis topic 4 and is distinct from dynamic-metric item 4."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/hu-shousong-auto-control-7th/chapter-03/textbook.md",
+        "line": 662
+      },
+      "action": "set-boundary",
+      "level": 5,
+      "kind": "item",
+      "pathComponent": "overdamped-rise-time-1",
+      "reason": "This starts the overdamped metric sequence and is distinct from earlier item 1."
+    }
+  ]
+}

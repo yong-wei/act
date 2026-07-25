@@ -1,0 +1,95 @@
+{
+  "configVersion": "textbook-structure-parser.v2",
+  "resourceId": "feedback-control-of-dynamic-systems",
+  "sourceKind": "textbook",
+  "edition": "7th edition",
+  "markdownHeadingLevels": { "1": 1, "2": 2, "3": 3, "4": 3, "5": 5, "6": 6 },
+  "enabledNumberingRules": ["english-chapter", "arabic-compound", "english-example", "parenthesized"],
+  "allowLevelSkips": false,
+  "unnumberedHeadingPolicy": "ordinal-within-parent",
+  "atomicRegions": ["fenced-code", "display-math"],
+  "retrievalWindow": { "beforeUnits": 1, "afterUnits": 1, "maxBytes": 12000 },
+  "auditThresholds": { "minimumUnitBytes": 32, "maximumUnitBytes": 24000 },
+  "reviewLedger": "review-ledgers/feedback-control-of-dynamic-systems.json",
+  "overrides": [
+    {
+      "selector": {
+        "sourcePath": "textbooks/feedback-control-of-dynamic-systems/chapter-01/textbook.md",
+        "line": 302
+      },
+      "action": "allow-level-skip",
+      "reason": "Mathpix emits the figure description label as h4 under the active h2 section; it is an intentional local formatting level."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/feedback-control-of-dynamic-systems/chapter-02/textbook.md",
+        "line": 514
+      },
+      "action": "set-boundary",
+      "level": 3,
+      "kind": "unnumbered",
+      "pathComponent": "simulink",
+      "reason": "The Simulink heading is local content within section 2.1.2 rather than a new top-level section."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/feedback-control-of-dynamic-systems/chapter-02/textbook.md",
+        "line": 562
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "unnumbered",
+      "pathComponent": "simulink-nonlinear-motion",
+      "reason": "This heading is the subtitle of Example 2.6 and must not close section 2.1."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/feedback-control-of-dynamic-systems/chapter-02/textbook.md",
+        "line": 569
+      },
+      "action": "allow-level-skip",
+      "reason": "Mathpix promoted intervening Simulink labels and no longer retains section 2.1 on the heading stack; the explicit 2.1.3 number remains authoritative."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/feedback-control-of-dynamic-systems/chapter-07/textbook.md",
+        "line": 6954
+      },
+      "action": "set-boundary",
+      "level": 3,
+      "kind": "exercise",
+      "pathComponent": "exercise-set-b-7.16",
+      "reason": "This is a second exercise 7.16 in a separate problem set under the same Mathpix heading path."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/feedback-control-of-dynamic-systems/chapter-08/textbook.md",
+        "line": 823
+      },
+      "action": "ignore-boundary",
+      "reason": "This is a figure-caption continuation referring to Example 8.3, not a second example boundary."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/feedback-control-of-dynamic-systems/chapter-09/textbook.md",
+        "line": 2080
+      },
+      "action": "set-boundary",
+      "level": 3,
+      "kind": "exercise",
+      "pathComponent": "exercise-9.6",
+      "reason": "This is problem 9.6 in the chapter exercise set and is distinct from section 9.6."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/feedback-control-of-dynamic-systems/chapter-10/textbook.md",
+        "line": 2567
+      },
+      "action": "set-boundary",
+      "level": 3,
+      "kind": "exercise",
+      "pathComponent": "exercise-10.8",
+      "reason": "This is problem 10.8 following its figure and is distinct from section 10.8."
+    }
+  ]
+}

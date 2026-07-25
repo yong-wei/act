@@ -1,0 +1,126 @@
+{
+  "configVersion": "textbook-structure-parser.v2",
+  "resourceId": "liu-sheng-auto-control-2015",
+  "sourceKind": "textbook",
+  "edition": "2015版",
+  "markdownHeadingLevels": { "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6 },
+  "enabledNumberingRules": ["chinese-chapter", "chinese-example", "solution-boundary", "arabic-compound", "arabic-ordinal", "parenthesized"],
+  "allowLevelSkips": false,
+  "unnumberedHeadingPolicy": "ordinal-within-parent",
+  "atomicRegions": ["fenced-code", "display-math"],
+  "retrievalWindow": { "beforeUnits": 1, "afterUnits": 1, "maxBytes": 12000 },
+  "auditThresholds": { "minimumUnitBytes": 32, "maximumUnitBytes": 24000 },
+  "reviewLedger": "review-ledgers/liu-sheng-auto-control-2015.json",
+  "overrides": [
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-01/textbook.md",
+        "line": 479
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "item",
+      "pathComponent": "item-1",
+      "reason": "This numbered heading is the first child classification under section 1.5.3, not a sibling subsection."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-01/textbook.md",
+        "line": 502
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "item",
+      "pathComponent": "system-type-1",
+      "reason": "This starts the continuous/discrete classification under section 1.5.4 and is distinct from earlier item 1 classifications."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-01/textbook.md",
+        "line": 517
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "item",
+      "pathComponent": "io-cardinality-1",
+      "reason": "This starts the SISO/MIMO classification under section 1.5.5 and is distinct from earlier item 1 classifications."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-01/textbook.md",
+        "line": 520
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "item",
+      "pathComponent": "io-cardinality-2",
+      "reason": "This is the MIMO sibling in the section 1.5.5 classification."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-01/textbook.md",
+        "line": 533
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "item",
+      "pathComponent": "certainty-class-1",
+      "reason": "This starts the deterministic/uncertain classification under section 1.5.6."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-01/textbook.md",
+        "line": 548
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "item",
+      "pathComponent": "parameter-distribution-2",
+      "reason": "This is the distributed-parameter sibling under section 1.5.7 and is distinct from earlier item 2 classifications."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-02/textbook.md",
+        "line": 1443
+      },
+      "action": "set-boundary",
+      "level": 4,
+      "kind": "item",
+      "pathComponent": "advance-theorem-solution-2",
+      "reason": "This is solution part 2 for the advance theorem and is distinct from earlier solution item 2 under the Mathpix heading."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-02/textbook.md",
+        "line": 1800
+      },
+      "action": "set-boundary",
+      "level": 3,
+      "kind": "subsection",
+      "pathComponent": "z-transform-method-3",
+      "reason": "This starts z-transform method 3 and is distinct from nested item 3 in the preceding method."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-02/textbook.md",
+        "line": 1920
+      },
+      "action": "set-boundary",
+      "level": 3,
+      "kind": "subsection",
+      "pathComponent": "s-plane-mapping-2",
+      "reason": "This starts mapping topic 2 and is distinct from earlier item 2 in section 2.6."
+    },
+    {
+      "selector": {
+        "sourcePath": "textbooks/liu-sheng-auto-control-2015/chapter-02/textbook.md",
+        "line": 1924
+      },
+      "action": "set-boundary",
+      "level": 3,
+      "kind": "subsection",
+      "pathComponent": "s-plane-mapping-3",
+      "reason": "This is mapping topic 3 and is distinct from earlier item 3 in section 2.6."
+    }
+  ]
+}

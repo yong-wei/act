@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "structured-textbook-runtime.v2",
+  "configVersion": "textbook-structure-parser.v2",
+  "sourceRevision": "a3bb46557fd23840e36bde766ba56af4ee9d9486+dirty",
+  "productionConnected": false,
+  "validationMode": "audit-only",
+  "runtimeWriteStatus": "pending-clean-commit",
+  "closureValidation": {
+    "auditBuild": "passed",
+    "books": 7,
+    "unresolvedAnomalies": 0,
+    "pendingSamples": 0,
+    "fullWrittenRuntimeSchemaValidation": "pending-clean-commit",
+    "fixtureSchemaValidation": "passed"
+  },
+  "reviewLedger": {
+    "policy": "exact anomaly id or exact sourcePath+line+kind; exact sample id and source locator",
+    "legacyReviewedAnomaliesPreserved": 2552,
+    "newAnomaliesDefault": "unresolved",
+    "newSamplesDefault": "pending"
+  },
+  "sourceCorrections": [
+    {
+      "sourcePath": "textbooks/hu-shousong-exercise-analysis-3rd/chapter-03/textbook.md",
+      "line": 1767,
+      "disposition": "source-corrected",
+      "reason": "Mathpix inserted stray 步 before exercise 3-24; adjacent numbering and the following requirements/figure prove a new exercise boundary.",
+      "markdownSha256": "29993bf0e56552434e8f75f2b4ab89a2aedf890a7900dffd2c8ef796f9256494"
+    }
+  ],
+  "books": {
+    "control-encyclopedia": {"structureUnits": 3249, "fragmentAnchors": 3906, "retrievalWindows": 3249, "anomalies": 157, "unresolvedAnomalies": 0, "samples": 125, "pendingSamples": 0},
+    "dorf-modern-control-systems": {"structureUnits": 586, "fragmentAnchors": 4211, "retrievalWindows": 586, "anomalies": 37, "unresolvedAnomalies": 0, "samples": 198, "pendingSamples": 0},
+    "feedback-control-of-dynamic-systems": {"structureUnits": 1179, "fragmentAnchors": 2691, "retrievalWindows": 1179, "anomalies": 373, "unresolvedAnomalies": 0, "samples": 388, "pendingSamples": 0},
+    "hu-shousong-auto-control-7th": {"structureUnits": 1325, "fragmentAnchors": 3835, "retrievalWindows": 1325, "anomalies": 453, "unresolvedAnomalies": 0, "samples": 572, "pendingSamples": 0},
+    "hu-shousong-auto-control-8th": {"structureUnits": 1319, "fragmentAnchors": 3943, "retrievalWindows": 1319, "anomalies": 422, "unresolvedAnomalies": 0, "samples": 575, "pendingSamples": 0},
+    "hu-shousong-exercise-analysis-3rd": {"structureUnits": 1125, "fragmentAnchors": 3055, "retrievalWindows": 1125, "anomalies": 562, "unresolvedAnomalies": 0, "samples": 394, "pendingSamples": 0},
+    "liu-sheng-auto-control-2015": {"structureUnits": 1732, "fragmentAnchors": 2934, "retrievalWindows": 1732, "anomalies": 709, "unresolvedAnomalies": 0, "samples": 795, "pendingSamples": 0}
+  }
+}
