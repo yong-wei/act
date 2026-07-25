@@ -17,6 +17,8 @@ import {
 import type { TeacherStudentInsightsPayload } from '@/app/api/teacher/classes/[classId]/students/[studentId]/insights/route';
 import { DiagnosisSurfacePanel } from '@/features/adaptive/diagnosis-surface-panel';
 
+type PortraitRefreshState = 'idle' | 'submitted' | 'processing' | 'completed' | 'failed';
+
 export default function TeacherStudentInsightsPage() {
   const router = useRouter();
   const params = useParams();
@@ -26,6 +28,9 @@ export default function TeacherStudentInsightsPage() {
   const [data, setData] = useState<TeacherStudentInsightsPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [portraitRefreshState, setPortraitRefreshState] = useState<PortraitRefreshState>('idle');
+  const [portraitRefreshGeneration, setPortraitRefreshGeneration] = useState<number | null>(null);
+  const [portraitRefreshError, setPortraitRefreshError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -40,6 +45,65 @@ export default function TeacherStudentInsightsPage() {
       setLoading(false);
     }
   }, [classId, studentId]);
+
+  const requestPortraitRefresh = useCallback(async () => {
+    try {
+      setPortraitRefreshState('submitted');
+      setPortraitRefreshError(null);
+      const response = await fetch(
+        `/api/teacher/classes/${classId}/students/${studentId}/portrait-refresh`,
+        { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' },
+      );
+      const payload = await response.json() as { generation?: number; error?: string };
+      if (!response.ok || !Number.isInteger(payload.generation)) {
+        throw new Error(payload.error || '提交画像更新失败');
+      }
+      setPortraitRefreshGeneration(payload.generation!);
+    } catch (refreshError) {
+      setPortraitRefreshState('failed');
+      setPortraitRefreshError(refreshError instanceof Error ? refreshError.message : '提交画像更新失败');
+    }
+  }, [classId, studentId]);
+
+  useEffect(() => {
+    if (
+      portraitRefreshGeneration === null ||
+      (portraitRefreshState !== 'submitted' && portraitRefreshState !== 'processing')
+    ) return;
+    const timer = window.setTimeout(async () => {
+      try {
+        const response = await fetch(
+          `/api/teacher/classes/${classId}/students/${studentId}/portrait-refresh?generation=${portraitRefreshGeneration}`,
+        );
+        const payload = await response.json() as {
+          status?: 'queued' | 'processing' | 'completed' | 'failed' | 'superseded';
+          errorCode?: string | null;
+        };
+        if (!response.ok) throw new Error('读取画像更新状态失败');
+        if (payload.status === 'completed') {
+          setPortraitRefreshState('completed');
+          await fetchData();
+          return;
+        }
+        if (payload.status === 'failed' || payload.status === 'superseded') {
+          setPortraitRefreshState('failed');
+          setPortraitRefreshError(payload.errorCode || '画像更新失败');
+          return;
+        }
+        setPortraitRefreshState(payload.status === 'processing' ? 'processing' : 'submitted');
+      } catch (refreshError) {
+        setPortraitRefreshState('failed');
+        setPortraitRefreshError(refreshError instanceof Error ? refreshError.message : '读取画像更新状态失败');
+      }
+    }, 1000);
+    return () => window.clearTimeout(timer);
+  }, [
+    classId,
+    fetchData,
+    portraitRefreshGeneration,
+    portraitRefreshState,
+    studentId,
+  ]);
 
   useEffect(() => {
     if (status !== 'authenticated' || !session?.user?.id || !classId || !studentId) return;
@@ -82,11 +146,35 @@ export default function TeacherStudentInsightsPage() {
               <h1 className="text-xl font-bold text-foreground">{data.student.name} 的累计能力达成</h1>
             </div>
           </div>
-          <button type="button" onClick={fetchData} className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm">
-            <RefreshCw className="h-4 w-4" />
-            刷新数据
-          </button>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <button type="button" onClick={fetchData} className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm">
+              <RefreshCw className="h-4 w-4" />
+              刷新数据
+            </button>
+            <button
+              type="button"
+              onClick={() => void requestPortraitRefresh()}
+              disabled={portraitRefreshState === 'submitted' || portraitRefreshState === 'processing'}
+              className="cta-primary rounded-lg px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {portraitRefreshState === 'submitted'
+                ? '画像更新已提交'
+                : portraitRefreshState === 'processing'
+                  ? '画像更新处理中'
+                  : portraitRefreshState === 'failed' ? '重试更新画像' : '更新画像'}
+            </button>
+          </div>
         </div>
+        {portraitRefreshState === 'completed' ? (
+          <p className="mt-2 text-right text-sm text-emerald-600" role="status">
+            画像更新完成，已读取最新结果。
+          </p>
+        ) : null}
+        {portraitRefreshState === 'failed' ? (
+          <p className="mt-2 text-right text-sm text-red-500" role="alert">
+            {portraitRefreshError || '画像更新失败，可重试。'}
+          </p>
+        ) : null}
       </header>
 
       <main className="space-y-8 px-6 py-8">
@@ -178,6 +266,55 @@ export default function TeacherStudentInsightsPage() {
             ))}
           </div>
         </section>
+
+        {data.taskAttainment.personal?.state === 'EVIDENCE' ? (
+          <details className="surface-card p-6" data-simulation-task-attainment>
+            <summary className="cursor-pointer font-medium text-foreground">
+              仿真任务构成：已完成 {data.taskAttainment.personal.completedTaskCount} / 相关 {data.taskAttainment.personal.relatedTaskCount}
+            </summary>
+            <div className="mt-4 space-y-4">
+              {data.taskAttainment.personal.groupedTaskSummary.map((group) => (
+                <div key={group.source}>
+                  <p className="text-sm font-medium text-foreground">
+                    {group.displayGroup}：{group.completedTaskCount}/{group.relatedTaskCount}
+                  </p>
+                  <ul className="mt-2 grid gap-2 text-sm text-subtle sm:grid-cols-2">
+                    {group.tasks.map((task) => (
+                      <li key={task.taskKey}>
+                        {task.completed ? '已完成' : '未完成'} · {task.displayName}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+              <p className="text-xs text-subtle">
+                仅显示二元完成结论；部分进度、原始答案、轨迹和隐藏评分不在此处展示。
+              </p>
+              <p className="text-xs text-subtle">
+                限制：{data.taskAttainment.personal.limitations.join('；')} · {data.taskAttainment.personal.calculationVersion}
+              </p>
+              {data.taskAttainment.classAggregate ? (
+                <p className="text-xs text-subtle">
+                  班级可用成员 {data.taskAttainment.classAggregate.usableMemberCount}/
+                  {data.taskAttainment.classAggregate.rosterTotal}
+                  {data.taskAttainment.classAggregate.meanScore === null
+                    ? '，班级任务均值不可用。'
+                    : `，任务达成均值 ${Math.round(data.taskAttainment.classAggregate.meanScore)}%。`}
+                </p>
+              ) : null}
+            </div>
+          </details>
+        ) : data.taskAttainment.personal?.state === 'NO_EVIDENCE' ? (
+          <div className="surface-card p-6" data-simulation-task-no-evidence>
+            <p className="font-medium text-foreground">该学生暂无合格的仿真任务达成证据</p>
+            <p className="mt-2 text-sm text-subtle">
+              当前仅保留受治理的审计上下文；部分进度不会显示为未完成任务清单或能力结论。
+            </p>
+            <p className="mt-2 text-xs text-subtle">
+              限制：{data.taskAttainment.personal.limitations.join('；')}
+            </p>
+          </div>
+        ) : null}
 
         <section className="grid gap-4 lg:grid-cols-[0.9fr,1.1fr]">
           <div className="surface-card p-6">

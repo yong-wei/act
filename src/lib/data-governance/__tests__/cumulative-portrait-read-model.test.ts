@@ -13,6 +13,7 @@ import {
   createPortraitV2Payload,
   PORTRAIT_V2_CALCULATION_VERSION,
 } from '@/lib/data-governance/portrait-v2-model';
+import { projectSimulationTaskAttainment } from '@/lib/data-governance/simulation-task-portrait-projection';
 
 const GENERATED_AT = new Date('2025-12-01T08:00:00.000Z');
 
@@ -94,6 +95,7 @@ function fixture(overrides: {
     generation: BigInt(4),
     queueGeneration: BigInt(9),
     stateWatermark: BigInt(12),
+    taskInputDigest: 'task-input-1',
     stateKind: 'SNAPSHOT',
     snapshotId: 'snapshot-1',
     overallScore: 73,
@@ -131,6 +133,7 @@ function fixture(overrides: {
         generation: BigInt(4),
         queueGeneration: BigInt(9),
         stateWatermark: BigInt(12),
+        taskInputDigest: 'task-input-1',
         cutoverFence: BigInt(7),
         stateVersion,
       }
@@ -242,6 +245,54 @@ describe('readCurrentCumulativePortrait', () => {
       current: {
         ...(base.current as Record<string, unknown>),
         queueGeneration: BigInt(8),
+      },
+    });
+
+    await expect(readCurrentCumulativePortrait(db, 'student-1')).resolves.toMatchObject({
+      stateKind: 'UNAVAILABLE',
+      payload: null,
+      availabilityReason: 'current-state-version-mismatch',
+    });
+  });
+
+  it('fails closed when the task input identity differs from the selected state version', async () => {
+    const base = fixture();
+    const { db } = fixture({
+      current: {
+        ...(base.current as Record<string, unknown>),
+        taskInputDigest: 'task-input-drifted',
+      },
+    });
+
+    await expect(readCurrentCumulativePortrait(db, 'student-1')).resolves.toMatchObject({
+      stateKind: 'UNAVAILABLE',
+      payload: null,
+      availabilityReason: 'current-state-version-mismatch',
+    });
+  });
+
+  it('fails closed when persisted task attainment uses a stale catalog digest', async () => {
+    const base = fixture();
+    const payload = structuredClone(
+      (base.stateVersion.snapshot as { payload: ReturnType<typeof nativePayload> }).payload,
+    );
+    const simulation = payload.dimensions.find((dimension) =>
+      dimension.id === 'simulationValidationEvidence')!;
+    simulation.taskAttainment = {
+      ...projectSimulationTaskAttainment([]),
+      catalogDigest: '0'.repeat(64),
+    };
+    const stateVersion = {
+      ...base.stateVersion,
+      snapshot: {
+        ...(base.stateVersion.snapshot as Record<string, unknown>),
+        payload,
+      },
+    };
+    const { db } = fixture({
+      current: {
+        ...(base.current as Record<string, unknown>),
+        stateVersion,
       },
     });
 

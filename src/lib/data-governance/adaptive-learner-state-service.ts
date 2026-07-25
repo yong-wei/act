@@ -1,5 +1,10 @@
-import { COMPETENCY_DIMENSIONS, type CompetencyDimension, type CompetencyVector } from './competency-model';
-// PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: primaryCompetencies remains a non-authoritative compatibility field.
+// PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: these six-dimensional types remain non-authoritative compatibility inputs.
+import {
+  COMPETENCY_DIMENSIONS,
+  createEmptyCompetencyVector,
+  type CompetencyDimension,
+  type CompetencyVector, // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: non-authoritative compatibility type.
+} from './competency-model';
 import { getArenaEvaluationProtocolVersion } from '@/features/arena/evaluation/protocol';
 import {
   readStudentEvidenceFeatures,
@@ -19,12 +24,15 @@ import {
   type PortraitV2ConsumerDb,
   type PortraitV2Consumer,
 } from './portrait-v2-consumer';
+import { readCurrentCumulativePortrait } from './cumulative-portrait-read-model';
 import {
   mapAdaptiveGoalSliceDimensionToPortraitV2,
   mapLegacyCompetencyDimensionToPortraitV2,
 } from './kaq-objective-taxonomy';
 import {
   PORTRAIT_V2_FRESHNESS_CURRENT_MAX_AGE_DAYS,
+  derivePortraitV2Compatibility,
+  projectPortraitV2ForConsumer,
   type PortraitV2ProjectedPayload,
 } from './portrait-v2-model';
 
@@ -480,6 +488,10 @@ export interface AdaptiveLearnerState {
 }
 
 interface AdaptiveLearnerStateDb extends PortraitV2ConsumerDb {
+  cumulativePortraitCutoverFence?: { findUnique?: (args: any) => Promise<any | null> };
+  cumulativePortraitMigrationRun?: { findUnique?: (args: any) => Promise<any | null> };
+  learningMaterializationRebuildRequest?: { findFirst?: (args: any) => Promise<any | null> };
+  learnerPortraitCurrentState?: { findUnique?: (args: any) => Promise<any | null> };
   studentEvidenceFeatureCache?: {
     findUnique?: (args: any) => Promise<any | null>;
   };
@@ -786,12 +798,25 @@ export async function readAdaptiveLearnerState(
   const controlCorrectionArenaSubmissionsWithWriteback = shouldBuildControlCorrectionGoalSlice
     ? await attachPersistedArenaWritebacks(db, controlCorrectionArenaSubmissions)
     : controlCorrectionArenaSubmissions;
-  const portraitResolution = await resolvePrimaryPortraitV2(
-    db,
-    input.userId,
-    portraitConsumerForInput(input),
-    { now, legacySnapshot: latestSnapshot, featureCache },
+  const portraitConsumer = portraitConsumerForInput(input);
+  const supportsFencedCumulativePortrait = Boolean(
+    db.cumulativePortraitCutoverFence?.findUnique &&
+    db.cumulativePortraitMigrationRun?.findUnique &&
+    db.learnerPortraitCurrentState?.findUnique,
   );
+  const portraitResolution = supportsFencedCumulativePortrait
+    ? await resolveFencedAdaptivePortrait(db, {
+        userId: input.userId,
+        consumer: portraitConsumer,
+        now,
+        legacySnapshot: latestSnapshot,
+      })
+    : await resolvePrimaryPortraitV2(
+        db,
+        input.userId,
+        portraitConsumer,
+        { now, legacySnapshot: latestSnapshot, featureCache },
+      );
   const {
     vector: legacyCompatibilityVector,
     source: compatibilitySource,
@@ -908,6 +933,49 @@ export async function readAdaptiveLearnerState(
     ...(goalSlices ? { goalSlices } : {}),
     fieldContracts: ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS,
     missingEvidence,
+  };
+}
+
+async function resolveFencedAdaptivePortrait(
+  db: AdaptiveLearnerStateDb,
+  input: {
+    userId: string;
+    consumer: PortraitV2Consumer;
+    now: Date;
+    legacySnapshot: any;
+  },
+) {
+  const current = await readCurrentCumulativePortrait(db, input.userId, input.consumer);
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: the legacy vector is retained only as non-authoritative compatibility output.
+  const legacyVector = input.legacySnapshot?.competencyVector &&
+    typeof input.legacySnapshot.competencyVector === 'object'
+    ? input.legacySnapshot.competencyVector as CompetencyVector
+    : createEmptyCompetencyVector();
+  const primaryPortrait = current.stateKind === 'SNAPSHOT' && current.payload
+    ? current.payload
+    : projectPortraitV2ForConsumer(derivePortraitV2Compatibility({
+        userId: input.userId,
+        snapshotAt: input.now.toISOString(),
+        sourceFamily: null,
+        vector: createEmptyCompetencyVector(),
+        limitations: [`cumulative-portrait-${current.availabilityReason}`],
+        now: input.now,
+      }), input.consumer, { now: input.now });
+  return {
+    primaryPortrait,
+    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: this source label documents non-authoritative legacy provenance.
+    legacyCompatibility: {
+      authority: 'legacy-compatibility-only' as const,
+      source: input.legacySnapshot ? 'StudentCompetencySnapshot' as const : 'fallback-empty' as const,
+      vector: legacyVector,
+      snapshotId: typeof input.legacySnapshot?.id === 'string' ? input.legacySnapshot.id : null,
+      snapshotAt: input.legacySnapshot?.snapshotAt instanceof Date
+        ? input.legacySnapshot.snapshotAt.toISOString()
+        : input.now.toISOString(),
+    },
+    limitations: current.stateKind === 'SNAPSHOT'
+      ? []
+      : [`cumulative-portrait-${current.availabilityReason}`],
   };
 }
 

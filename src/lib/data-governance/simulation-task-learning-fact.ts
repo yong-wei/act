@@ -16,20 +16,31 @@ export interface PersistSimulationTaskEvidenceInput {
   userId: string;
   evidence: GovernedTaskEvidenceContext;
   sourceLogId: string;
+  historicalCandidatePlanDigest?: string;
   courseId?: string | null;
   lessonId?: string | null;
   sessionId?: string | null;
 }
 
+export const SIMULATION_TASK_EVIDENCE_FACT_IDENTITY_VERSION =
+  'simulation-task-evidence:v2';
+
 export function buildSimulationTaskLearningFact(
   input: PersistSimulationTaskEvidenceInput,
 ): Prisma.LearningFactCreateManyInput {
+  if (!input.evidence.completionAuthority) {
+    throw new Error('simulation-task-evidence-completion-authority-required');
+  }
   const occurredAt = new Date(input.evidence.occurredAt);
   if (!Number.isFinite(occurredAt.getTime())) {
     throw new Error('Simulation task evidence occurredAt must be a valid timestamp.');
   }
   const sourceDigest = createHash('sha256')
-    .update(`${input.evidence.artifactKey}\u001f${input.evidence.tier}`)
+    .update([
+      input.evidence.artifactKey,
+      input.evidence.tier,
+      input.evidence.completionAuthority,
+    ].join('\u001f'))
     .digest('hex');
 
   return {
@@ -45,12 +56,18 @@ export function buildSimulationTaskLearningFact(
     score: null,
     timeSpent: null,
     competencyContribution: {},
-    sourceEventId: `simulation-task-evidence:${sourceDigest}`,
+    sourceEventId: `${SIMULATION_TASK_EVIDENCE_FACT_IDENTITY_VERSION}:${sourceDigest}`,
     sourceLogId: input.sourceLogId,
     courseId: input.courseId ?? null,
     lessonId: input.lessonId ?? null,
     contextJson: {
       simulationTaskEvidence: input.evidence,
+      ...(input.historicalCandidatePlanDigest ? {
+        simulationTaskHistoricalCandidate: {
+          schemaVersion: 'simulation-task-historical-candidate.v1',
+          planDigest: input.historicalCandidatePlanDigest,
+        },
+      } : {}),
     } as unknown as Prisma.InputJsonValue,
   };
 }

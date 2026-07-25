@@ -61,7 +61,7 @@ async function scheduleJobs() {
 
   await studentQueue.add(
     'active-student-snapshot-coordinator',
-    { coordinator: true },
+    { coordinator: true, simulationTaskCatalogRefresh: true },
     {
       repeat: { cron: SCHEDULES.ACTIVE_STUDENT_SNAPSHOT },
       jobId: 'coordinator-active-student-snapshot',

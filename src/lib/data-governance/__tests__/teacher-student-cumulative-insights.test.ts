@@ -84,6 +84,39 @@ function cumulativePortrait() {
           privacyScope: 'teacher-scoped',
         }],
         calculationVersion: 'portrait-v2.cumulative.2',
+        ...(id === 'simulationValidationEvidence'
+          ? {
+              taskAttainment: {
+                state: 'EVIDENCE',
+                score: 50,
+                completedTaskCount: 2,
+                relatedTaskCount: 4,
+                groupedTaskSummary: [{
+                  source: 'arena',
+                  displayGroup: 'Arena',
+                  completedTaskCount: 1,
+                  relatedTaskCount: 1,
+                  tasks: [{ taskKey: 'arena-1', displayName: 'Arena 任务', completed: true }],
+                }, {
+                  source: 'simulation',
+                  displayGroup: '虚拟仿真',
+                  completedTaskCount: 1,
+                  relatedTaskCount: 3,
+                  tasks: [
+                    { taskKey: 'sim-1', displayName: '仿真一', completed: true },
+                    { taskKey: 'sim-2', displayName: '仿真二', completed: false },
+                    { taskKey: 'sim-3', displayName: '仿真三', completed: false },
+                  ],
+                }],
+                evidenceAsOf: OLD_EVIDENCE_AT,
+                sourceLineage: [],
+                calculationVersion: 'simulation-task-attainment-portrait.v1',
+                catalogDigest: 'a'.repeat(64),
+                limitations: ['simulation-task-partial-progress-does-not-contribute'],
+                hasGovernedTaskEvidence: true,
+              },
+            }
+          : {}),
       })),
     },
     overallScore: 77,
@@ -127,6 +160,16 @@ function cumulativeClassPortrait() {
         missingCount: 8,
       },
       dimensions,
+      taskAttainment: {
+        meanRatio: 0.5,
+        meanScore: 50,
+        usableMemberCount: 12,
+        rosterTotal: 20,
+        missingMemberCount: 8,
+        relatedTaskCount: 4,
+        calculationVersion: 'simulation-task-attainment-portrait.v1',
+        limitations: ['missing-member-task-attainment-is-not-zero'],
+      },
     },
     dimensionCoverage: null,
     trendDistribution: null,
@@ -235,6 +278,20 @@ describe('teacher student cumulative insights', () => {
       includedCount: 0,
       missingCount: 20,
       availabilityReason: 'class-no-evidence',
+    });
+    expect(body.taskAttainment.personal).toMatchObject({
+      completedTaskCount: 2,
+      relatedTaskCount: 4,
+      groupedTaskSummary: expect.any(Array),
+      calculationVersion: 'simulation-task-attainment-portrait.v1',
+    });
+    expect(body.taskAttainment.personal).not.toHaveProperty('score');
+    expect(body.taskAttainment.personal).not.toHaveProperty('catalogDigest');
+    expect(body.taskAttainment.personal).not.toHaveProperty('sourceLineage');
+    expect(body.taskAttainment.classAggregate).toMatchObject({
+      meanScore: 50,
+      usableMemberCount: 12,
+      rosterTotal: 20,
     });
     expect(JSON.stringify(body)).not.toContain('no-recent-evidence');
   });

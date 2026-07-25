@@ -198,6 +198,7 @@ export function materializeVirtualSimulationTaskEvidence(
     normalizedSourceArtifactId: input.sourceArtifactId,
     semanticFingerprint: input.fingerprint,
     summary: input.summary,
+    completionAuthority: 'validated-distinct-runs',
     capabilityMappingTags: input.capabilityMappingTags,
   };
 
@@ -245,6 +246,7 @@ export function materializeControlWorkbenchTaskEvidence(
     normalizedSourceArtifactId: input.sourceArtifactId,
     semanticFingerprint: input.fingerprint,
     summary: input.summary,
+    completionAuthority: 'validated-distinct-runs',
     capabilityMappingTags: input.capabilityMappingTags,
   };
 
@@ -295,6 +297,7 @@ export function materializeArenaTaskEvidence(
     normalizedSourceArtifactId: input.submissionId,
     semanticFingerprint: input.fingerprint,
     summary: input.summary,
+    completionAuthority: 'arena-accepted-submission',
     capabilityMappingTags: input.capabilityMappingTags,
   };
 
@@ -326,20 +329,17 @@ export function materializeOdysseyTaskEvidence(
     return { status: 'rejected', reason: 'not-persistent-clear' };
   }
 
-  // Arena 指派运行优先归入 Arena 任务
+  // Arena 指派只能由正式 Arena 提交写入边界产生完成证据。
+  if (input.isArenaAssigned) {
+    return { status: 'rejected', reason: 'arena-assignment-requires-arena-submission' };
+  }
+
   const taskKey = resolveOdysseyTaskKey(input.levelId, input.isArenaAssigned);
   if (!taskKey) {
     return { status: 'rejected', reason: 'odyssey-level-not-in-catalog' };
   }
-  if (input.isArenaAssigned && taskKey !== `arena:${input.arenaTaskId ?? ''}`) {
-    return { status: 'rejected', reason: 'arena-assignment-task-mismatch' };
-  }
-
-  const source: SimulationTaskSource = input.isArenaAssigned && taskKey.startsWith('arena:')
-    ? 'arena'
-    : 'odyssey';
-
-  const tier: TaskEvidenceTier = source === 'arena' ? 'submission' : 'clear';
+  const source: SimulationTaskSource = 'odyssey';
+  const tier: TaskEvidenceTier = 'clear';
 
   const evidenceInput: BuildTaskEvidenceInput = {
     studentUserId: input.actor.userId,
@@ -350,6 +350,7 @@ export function materializeOdysseyTaskEvidence(
     normalizedSourceArtifactId: input.sourceArtifactId,
     semanticFingerprint: input.fingerprint,
     summary: input.summary,
+    completionAuthority: 'odyssey-persistent-clear',
     capabilityMappingTags: input.capabilityMappingTags,
   };
 
