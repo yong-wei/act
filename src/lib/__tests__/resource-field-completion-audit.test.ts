@@ -53,6 +53,7 @@ import {
   loadRuntimeLessonMediaSemanticReviewMap,
   parseResourceFieldCompletionAuditCliArgs,
   refreshFrozenPathGenerationDiagnostics,
+  resolveResourceFieldCompletionGeneratedAt,
   runtimeLessonReviewSourceHash,
   runtimeLessonMediaSemanticFormalReviewOverlaysForRows,
   reviewedRuntimeStepCompletionForSource,
@@ -668,6 +669,21 @@ describe('resource field completion audit', () => {
       '--materialize-core-semantic-review',
       '--unknown',
     ])).toThrow('Unsupported arguments');
+  });
+
+  it('keeps frozen capture time separate from the current audit generation time', () => {
+    expect(resolveResourceFieldCompletionGeneratedAt({
+      now: () => '2026-07-25T10:30:00.000Z',
+    })).toBe('2026-07-25T10:30:00.000Z');
+    expect(resolveResourceFieldCompletionGeneratedAt({
+      configuredGeneratedAt: '2026-07-25T10:00:00.000Z',
+      now: () => '2026-07-25T10:30:00.000Z',
+    })).toBe('2026-07-25T10:00:00.000Z');
+    expect(resolveResourceFieldCompletionGeneratedAt({
+      frozenGeneratedAt: '2026-07-23T08:30:00.000Z',
+      configuredGeneratedAt: '2026-07-25T10:00:00.000Z',
+      now: () => '2026-07-25T10:30:00.000Z',
+    })).toBe('2026-07-23T08:30:00.000Z');
   });
 
   it('uses only tracked or staged authoring textbook manifests as candidate sources', () => {

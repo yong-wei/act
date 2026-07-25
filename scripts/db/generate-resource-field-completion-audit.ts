@@ -218,6 +218,16 @@ export function parseResourceFieldCompletionAuditCliArgs(args: readonly string[]
   );
 }
 
+export function resolveResourceFieldCompletionGeneratedAt(input: {
+  frozenGeneratedAt?: string;
+  configuredGeneratedAt?: string;
+  now?: () => string;
+}) {
+  return input.frozenGeneratedAt
+    ?? input.configuredGeneratedAt
+    ?? (input.now ?? (() => new Date().toISOString()))();
+}
+
 export interface AtomicWriteFile {
   path: string;
   content: string;
@@ -1302,10 +1312,10 @@ async function main() {
         longformReviewSources,
       )
     : null;
-  const generatedAt = frozenInput?.summary.generatedAt
-    ?? process.env.RESOURCE_FIELD_COMPLETION_GENERATED_AT
-    ?? deliveryLongformInput?.generatedAt
-    ?? new Date().toISOString();
+  const generatedAt = resolveResourceFieldCompletionGeneratedAt({
+    frozenGeneratedAt: frozenInput?.summary.generatedAt,
+    configuredGeneratedAt: process.env.RESOURCE_FIELD_COMPLETION_GENERATED_AT,
+  });
   const materializationPhase = frozenInput && materializationManifest && rawCoreSemanticReviewSourceText
     ? assertCoreSemanticMaterializationManifest({
         manifest: materializationManifest,

@@ -279,7 +279,8 @@ describe('derived learning materialization revocation', () => {
     const worker = readFileSync(new URL('../../../../scripts/workers/data-governance-worker.ts', import.meta.url), 'utf8');
     expect(worker).toContain("if (requestedScope && requestedScope !== 'cumulative')");
     expect(worker).toContain('if (!matchesClassFence(expectation, fence))');
-    expect(worker).toContain('return materializeCumulativeClassPortrait(db as any, classId, {');
+    expect(worker).toContain('const result = await materializeCumulativeClassPortrait(db as any, classId, {');
+    expect(worker).toContain('return toJsonSafeWorkerResult(result);');
     expect(worker).not.toContain('classCompetencySnapshot.create(');
   });
 
