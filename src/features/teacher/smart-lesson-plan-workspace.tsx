@@ -50,10 +50,10 @@ type ClassDiagnosisOption = { classId: string; className: string; diagnosisRef: 
 type KonlingSuggestion = { id: string; agentSessionId: string; expectedRevision?: number; turnId: string; proposedTask?: unknown; clarification?: { question: string; alternatives: string[] }; confirmedTaskId?: string; createdAt: string };
 type PublicSourceState = 'verified' | 'ai_generated_source_pending' | 'teacher_created_source_pending';
 
-export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, initialTasks }: { courseBases: any[]; classDiagnosisOptions: ClassDiagnosisOption[]; initialTasks: Record<string, unknown>[] }) {
+export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, initialTasks, initialSelectedTaskId }: { courseBases: any[]; classDiagnosisOptions: ClassDiagnosisOption[]; initialTasks: Record<string, unknown>[]; initialSelectedTaskId?: string }) {
   const [tasks, setTasks] = useState(initialTasks as Task[]);
   const [availableCourseBases, setAvailableCourseBases] = useState(courseBases);
-  const [selectedTaskId, setSelectedTaskId] = useState((initialTasks[0] as Task | undefined)?.id ?? '');
+  const [selectedTaskId, setSelectedTaskId] = useState(initialSelectedTaskId ?? (initialTasks[0] as Task | undefined)?.id ?? '');
   const [query, setQuery] = useState('');
   const [showArchived, setShowArchived] = useState(false);
   const [taskIndexOpen, setTaskIndexOpen] = useState(false);
@@ -341,26 +341,11 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
     }
   }
 
-  async function editPausedOutline(task: Task) {
+  function editPausedOutline(task: Task) {
     const job = task.drafts?.[0]?.jobs?.[0];
     const outline = job?.stages?.find((stage) => stage.kind === 'OUTLINE')?.output;
     if (!job || job.state !== 'PAUSED' || !outline || typeof outline !== 'object' || Array.isArray(outline)) return;
-    const current = outline as Record<string, unknown>;
-    const keyContent = window.prompt('重点内容（每行一项）', stringList(current.keyContent).join('\n'));
-    if (keyContent === null) return;
-    const difficultContent = window.prompt('难点内容（每行一项）', stringList(current.difficultContent).join('\n'));
-    if (difficultContent === null) return;
-    const output = {
-      ...current,
-      keyContent: splitLines(keyContent),
-      difficultContent: splitLines(difficultContent),
-    };
-    const response = await fetch(`/api/teacher/smart-lesson-tasks/jobs/${job.id}/outline`, {
-      method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ output }),
-    });
-    const payload = await response.json();
-    setMessage(response.ok ? '提纲已保存；请检查后确认继续。' : errorText(payload));
-    await refreshTask(task.id);
+    window.location.assign(`/teacher/smart-prep/editor/lesson/${encodeURIComponent(job.id)}?kind=outline&taskId=${encodeURIComponent(task.id)}`);
   }
 
   async function deriveDraft(task: Task, revisionId: string) {
@@ -382,22 +367,10 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
     await refreshTask(task.id);
   }
 
-  async function editDraft(task: Task) {
+  function editDraft(task: Task) {
     const draft = task.drafts?.[0];
     if (!draft?.content || typeof draft.content !== 'object' || Array.isArray(draft.content)) return;
-    const current = draft.content as Record<string, unknown>;
-    const title = window.prompt('教案标题', String(current.title ?? current.topic ?? task.topic));
-    if (title === null || !title.trim()) return;
-    const limitations = window.prompt('教学限制与待补信息（每行一项）', stringList(current.limitations).join('\n'));
-    if (limitations === null) return;
-    const content = { ...current, title: title.trim(), limitations: splitLines(limitations) };
-    const response = await fetch(`/api/teacher/smart-lesson-tasks/drafts/${draft.id}`, {
-      method: 'PATCH', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ expectedVersion: draft.version, content }),
-    });
-    const payload = await response.json();
-    setMessage(response.ok ? '教案草稿已更新并重新执行确定性检查。' : errorText(payload));
-    await refreshTask(task.id);
+    window.location.assign(`/teacher/smart-prep/editor/lesson/${encodeURIComponent(draft.id)}?kind=draft&taskId=${encodeURIComponent(task.id)}`);
   }
 
   async function approve(task: Task) {
@@ -516,10 +489,10 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
             <div className="flex flex-wrap gap-2">
               <button onClick={() => void refreshTask(task.id)} className="rounded border border-border px-3 py-1.5 text-sm">刷新进度</button>
               <button onClick={() => void startGeneration(task)} disabled={!draft || hasBlockingJob || draft.state === 'APPROVED'} className="inline-flex items-center gap-1 rounded border border-border px-3 py-1.5 text-sm disabled:opacity-50"><LoaderCircle className="h-4 w-4" />开始生成</button>
-              {job?.state === 'PAUSED' && !job.supersededAt ? <button onClick={() => void editPausedOutline(task)} className="rounded border border-border px-3 py-1.5 text-sm">编辑提纲</button> : null}
+              {job?.state === 'PAUSED' && !job.supersededAt ? <button onClick={() => editPausedOutline(task)} className="rounded border border-border px-3 py-1.5 text-sm">编辑提纲</button> : null}
               {job && !job.supersededAt && ['PAUSED', 'RETRYABLE', 'FAILED', 'CANCELLED'].includes(job.state) ? <button onClick={() => void runJobAction(task, job.state === 'RETRYABLE' || job.state === 'FAILED' ? 'retry' : 'resume')} className="rounded border border-border px-3 py-1.5 text-sm">{job.state === 'PAUSED' ? '确认当前提纲并继续' : '恢复/重试'}</button> : null}
               {job && !job.supersededAt && ['QUEUED', 'RUNNING', 'PAUSED', 'RETRYABLE'].includes(job.state) ? <button onClick={() => void runJobAction(task, 'cancel')} className="rounded border border-border px-3 py-1.5 text-sm">取消</button> : null}
-              <button onClick={() => void editDraft(task)} disabled={!draft?.content || task.workspace?.unsupportedPayload || draft.state === 'GENERATING' || draft.state === 'APPROVED'} className="rounded border border-border px-3 py-1.5 text-sm disabled:opacity-50">编辑教案</button>
+              <button onClick={() => editDraft(task)} disabled={!draft?.content || task.workspace?.unsupportedPayload || draft.state === 'GENERATING' || draft.state === 'APPROVED'} className="rounded border border-border px-3 py-1.5 text-sm disabled:opacity-50">编辑教案</button>
               <button onClick={() => void requestAdvisoryReview(task)} disabled={!draft?.content || draft.state !== 'READY'} className="rounded border border-border px-3 py-1.5 text-sm disabled:opacity-50">AI 建议</button>
               <button onClick={() => void approve(task)} disabled={!draft || draft.state !== 'READY'} className="inline-flex items-center gap-1 rounded border border-primary px-3 py-1.5 text-sm text-primary disabled:opacity-50"><CheckCircle2 className="h-4 w-4" />批准版本</button>
               {task.revisions?.[0] ? <button onClick={() => void deriveDraft(task, task.revisions![0].id)} className="rounded border border-border px-3 py-1.5 text-sm">基于{task.revisions[0].displayName}继续修订</button> : null}
@@ -585,6 +558,7 @@ function PreparationStageDetails({
 }) {
   const [open, setOpen] = useState(initiallyOpen);
   return <details
+    id={`smart-prep-stage-${stage.id}`}
     open={open}
     onToggle={(event) => setOpen(event.currentTarget.open)}
     className="group rounded-lg border border-border bg-card"
@@ -682,14 +656,6 @@ function bopppsStageLabel(value: string) {
     postAssessment: '后测',
     summary: '总结',
   } as Record<string, string>)[value];
-}
-
-function stringList(value: unknown) {
-  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
-}
-
-function splitLines(value: string) {
-  return value.split('\n').map((item) => item.trim()).filter(Boolean);
 }
 
 function generationStageLabel(value: string) {

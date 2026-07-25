@@ -16,6 +16,8 @@ const mocks = vi.hoisted(() => ({
   createTask: vi.fn(),
   updateTask: vi.fn(),
   deriveDraft: vi.fn(),
+  getDraftForEditing: vi.fn(),
+  getOutlineForEditing: vi.fn(),
   updateOutline: vi.fn(),
   updateDraft: vi.fn(),
   start: vi.fn(),
@@ -41,6 +43,8 @@ vi.mock('@/lib/smart-lesson-plan', async (importOriginal) => ({
   createSmartLessonTask: mocks.createTask,
   updateSmartLessonTask: mocks.updateTask,
   deriveDraftFromRevision: mocks.deriveDraft,
+  getSmartLessonDraftForEditing: mocks.getDraftForEditing,
+  getPausedGenerationOutlineForEditing: mocks.getOutlineForEditing,
   updatePausedGenerationOutline: mocks.updateOutline,
   listSmartLessonTasks: mocks.listTasks,
   listSmartLessonTaskSummaries: mocks.listTaskSummaries,
@@ -447,7 +451,15 @@ describe('smart lesson task routes', () => {
   });
 
   it('updates only a persisted paused outline', async () => {
-    mocks.updateOutline.mockResolvedValue({ id: 'stage-1', kind: 'OUTLINE', state: 'COMPLETED', output: { title: '提纲' } });
+    const expectedOutputHash = 'a'.repeat(64);
+    mocks.updateOutline.mockResolvedValue({
+      id: 'stage-1',
+      kind: 'OUTLINE',
+      state: 'COMPLETED',
+      output: { title: '提纲' },
+      outputHash: 'b'.repeat(64),
+      updatedAt: new Date('2026-07-25T00:00:00Z'),
+    });
     const { validPlanFixture } = await import('@/lib/smart-lesson-plan/__tests__/fixtures');
     const plan = validPlanFixture();
     const output = {
@@ -459,10 +471,55 @@ describe('smart lesson task routes', () => {
     };
     const { PATCH } = await import('../jobs/[jobId]/outline/route');
     const response = await PATCH(new Request('http://localhost', {
-      method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ output }),
+      method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ expectedOutputHash, output }),
     }), jobParams('job-1'));
     expect(response.status).toBe(200);
-    expect(mocks.updateOutline).toHaveBeenCalledWith(expect.anything(), { actor: { id: 'teacher-1', role: 'TEACHER' }, jobId: 'job-1', output });
+    expect(mocks.updateOutline).toHaveBeenCalledWith(expect.anything(), {
+      actor: { id: 'teacher-1', role: 'TEACHER' },
+      jobId: 'job-1',
+      expectedOutputHash,
+      output,
+    });
+    expect(await response.json()).toMatchObject({ stage: { outputHash: 'b'.repeat(64) } });
+  });
+
+  it('returns owner-scoped draft and paused-outline editor documents', async () => {
+    mocks.getDraftForEditing.mockResolvedValue({
+      id: 'draft-1',
+      taskId: 'task-1',
+      version: 3,
+      state: 'EDITABLE',
+      content: { keyContent: [] },
+      task: { id: 'task-1', topic: '稳定性' },
+    });
+    mocks.getOutlineForEditing.mockResolvedValue({
+      job: { id: 'job-1', state: 'PAUSED', draft: { task: { id: 'task-1', topic: '稳定性' } } },
+      outline: {
+        output: { keyContent: [] },
+        outputHash: 'c'.repeat(64),
+        updatedAt: new Date('2026-07-25T00:00:00Z'),
+      },
+    });
+    const [{ GET: getDraft }, { GET: getOutline }] = await Promise.all([
+      import('../drafts/[draftId]/route'),
+      import('../jobs/[jobId]/outline/route'),
+    ]);
+
+    const draftResponse = await getDraft(new Request('http://localhost'), draftParams('draft-1'));
+    const outlineResponse = await getOutline(new Request('http://localhost'), jobParams('job-1'));
+
+    expect(draftResponse.status).toBe(200);
+    expect(mocks.getDraftForEditing).toHaveBeenCalledWith(expect.anything(), {
+      actor: { id: 'teacher-1', role: 'TEACHER' },
+      draftId: 'draft-1',
+    });
+    expect(await draftResponse.json()).toMatchObject({ draft: { id: 'draft-1', version: 3 }, task: { id: 'task-1' } });
+    expect(outlineResponse.status).toBe(200);
+    expect(mocks.getOutlineForEditing).toHaveBeenCalledWith(expect.anything(), {
+      actor: { id: 'teacher-1', role: 'TEACHER' },
+      jobId: 'job-1',
+    });
+    expect(await outlineResponse.json()).toMatchObject({ outline: { outputHash: 'c'.repeat(64) } });
   });
 
   it('returns a recoverable 503 instead of leaving a Redis delivery failure queued', async () => {

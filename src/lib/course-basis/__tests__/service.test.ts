@@ -13,6 +13,7 @@ import {
   rejectCourseBasisVersion,
   retireCourseBasisVersion,
   retryCourseBasisExtraction,
+  saveCourseBasisVersionEdit,
 } from '../service';
 
 const teacher = { id: 'teacher-1', role: 'TEACHER' as const };
@@ -160,6 +161,133 @@ describe('course-basis service', () => {
     await expect(confirmCourseBasisVersion(db, { actor: teacher, versionId: rejected.id }))
       .rejects.toMatchObject({ code: 'rejected-version-immutable' });
     expect(db.courseBasisProjection.createMany).not.toHaveBeenCalled();
+  });
+
+  it('updates an unfrozen pending version in place through content-hash CAS', async () => {
+    const current = {
+      id: 'version-1',
+      documentId: 'document-1',
+      versionNumber: 1,
+      sourceType: 'MARKDOWN',
+      sourceName: 'syllabus.md',
+      mimeType: 'text/markdown',
+      originalContent: new TextEncoder().encode('# Old'),
+      normalizedText: '# Old',
+      contentHash: 'old-content-hash',
+      extractionState: 'EXTRACTED',
+      reviewState: 'PENDING',
+      retiredAt: null,
+      document: { title: 'Syllabus', courseBasis: { id: 'basis-1', ownerId: teacher.id } },
+      segments: [],
+    };
+    const tx: any = {
+      courseBasisDocumentVersion: {
+        updateMany: vi.fn(async () => ({ count: 1 })),
+        findUniqueOrThrow: vi.fn(async () => ({ ...current, contentHash: 'new-content-hash', _count: { segments: 1, projections: 0 } })),
+      },
+      courseBasisSegment: {
+        deleteMany: vi.fn(async () => ({ count: 0 })),
+        createMany: vi.fn(async () => ({ count: 1 })),
+      },
+    };
+    const db: any = {
+      courseBasisDocumentVersion: { findFirst: vi.fn(async () => current) },
+      courseBasisProjection: { count: vi.fn(async () => 0) },
+      courseBasisReferenceLink: { count: vi.fn(async () => 0) },
+      smartLessonSourceSelection: { count: vi.fn(async () => 0) },
+      $transaction: vi.fn(async (run: (transaction: any) => unknown, options: unknown) => {
+        expect(options).toEqual({ isolationLevel: 'Serializable' });
+        return run(tx);
+      }),
+    };
+
+    await expect(saveCourseBasisVersionEdit(db, {
+      actor: teacher,
+      versionId: current.id,
+      expectedContentHash: current.contentHash,
+      markdown: '# Revised\n\nUpdated basis.',
+    })).resolves.toMatchObject({ createdSuccessor: false, version: { id: current.id } });
+    expect(tx.courseBasisDocumentVersion.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        id: current.id,
+        contentHash: current.contentHash,
+        reviewState: 'PENDING',
+        retiredAt: null,
+      }),
+      data: expect.objectContaining({
+        sourceType: 'MARKDOWN',
+        mimeType: 'text/markdown',
+        normalizedText: 'Updated basis.',
+      }),
+    }));
+    expect(tx.courseBasisSegment.deleteMany).toHaveBeenCalledWith({ where: { versionId: current.id } });
+    expect(tx.courseBasisSegment.createMany).toHaveBeenCalledOnce();
+  });
+
+  it('keeps a frozen version immutable and creates a successor version', async () => {
+    const current = {
+      id: 'version-1',
+      documentId: 'document-1',
+      versionNumber: 1,
+      sourceType: 'MARKDOWN',
+      sourceName: 'syllabus.md',
+      mimeType: 'text/markdown',
+      originalContent: new TextEncoder().encode('# Confirmed'),
+      normalizedText: '# Confirmed',
+      contentHash: 'confirmed-content-hash',
+      extractionState: 'EXTRACTED',
+      reviewState: 'CONFIRMED',
+      retiredAt: null,
+      document: { title: 'Syllabus', courseBasis: { id: 'basis-1', ownerId: teacher.id } },
+      segments: [],
+    };
+    const create = vi.fn(async ({ data }: any) => ({
+      id: 'version-2',
+      versionNumber: 2,
+      extractionState: data.extractionState,
+      _count: { segments: data.segments.create.length },
+    }));
+    const db: any = {
+      courseBasisDocument: { findFirst: vi.fn(async () => ({ id: current.documentId })) },
+      courseBasisDocumentVersion: {
+        findFirst: vi.fn(async ({ where }: any) => where.id ? current : { versionNumber: 1 }),
+        create,
+        updateMany: vi.fn(),
+      },
+      courseBasisProjection: { count: vi.fn(async () => 0) },
+      courseBasisReferenceLink: { count: vi.fn(async () => 0) },
+      smartLessonSourceSelection: { count: vi.fn(async () => 0) },
+    };
+    db.$transaction = vi.fn(async (run: (transaction: any) => unknown) => run(db));
+
+    await expect(saveCourseBasisVersionEdit(db, {
+      actor: teacher,
+      versionId: current.id,
+      expectedContentHash: current.contentHash,
+      markdown: '# Successor\n\nRevised content.',
+    })).resolves.toMatchObject({ createdSuccessor: true, version: { id: 'version-2', versionNumber: 2 } });
+    expect(db.courseBasisDocumentVersion.updateMany).not.toHaveBeenCalled();
+    expect(create).toHaveBeenCalledOnce();
+  });
+
+  it('rejects an editor save when the source content hash is stale', async () => {
+    const db: any = {
+      courseBasisDocumentVersion: {
+        findFirst: vi.fn(async () => ({
+          id: 'version-1',
+          contentHash: 'current-content-hash',
+          document: { courseBasis: { id: 'basis-1', ownerId: teacher.id } },
+          segments: [],
+        })),
+      },
+    };
+
+    await expect(saveCourseBasisVersionEdit(db, {
+      actor: teacher,
+      versionId: 'version-1',
+      expectedContentHash: 'stale-content-hash',
+      markdown: '# Stale edit',
+    })).rejects.toMatchObject({ code: 'version-edit-conflict' });
   });
 
   it('keeps the first rejection audit immutable on repeated requests', async () => {

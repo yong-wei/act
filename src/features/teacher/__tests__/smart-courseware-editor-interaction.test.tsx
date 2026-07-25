@@ -137,12 +137,16 @@ describe('smart courseware editor activity creation', () => {
       expectedOutput: expect.any(String),
       reviewPoints: [expect.any(String)],
     });
-    expect(container.textContent).toContain('编辑活动');
+    expect(container.textContent).toContain('所选内容可视编辑');
     expect(container.textContent).toContain('组合已保存');
   });
 
   it('edits activity responseKind, payload, and teacherFields in one PATCH and clears stale evidence', async () => {
     const composition = validCompositionInput();
+    Object.assign(composition.moduleMetadata[2].teacherFields, {
+      expectedOutput: '旧开放题输出',
+      reviewPoints: ['旧开放题标准'],
+    });
     let submitted: ReturnType<typeof validCompositionInput> | null = null;
     const fetch = vi.fn(async (_url: string, init?: RequestInit) => {
       if (init?.method === 'PATCH') {
@@ -161,17 +165,6 @@ describe('smart courseware editor activity creation', () => {
       return { ok: false, json: async () => ({}) } as Response;
     });
     vi.stubGlobal('fetch', fetch);
-    vi.spyOn(window, 'prompt').mockReturnValue(JSON.stringify({
-      responseKind: 'choice.multi',
-      payload: {
-        prompt: '选择全部稳定条件。',
-        options: [{ value: 'a', label: '条件 A' }, { value: 'b', label: '条件 B' }],
-      },
-      teacherFields: {
-        referenceAnswer: 'a,b', explanation: '两个条件都需要满足。', scoring: { maxPoints: 2 },
-        expectedOutput: '旧开放题输出', reviewPoints: ['旧开放题标准'], inclusionRationale: '覆盖目标。',
-      },
-    }));
     const envelope: SmartCoursewareTeacherEnvelope = {
       draftId: 'draft-1', planRevisionId: 'plan-1', state: 'ready', version: 1,
       manifest: composition.runtimeManifest, stalePlan: false, teacherModules: {},
@@ -186,15 +179,31 @@ describe('smart courseware editor activity creation', () => {
       stepSelect.value = 'step-3';
       stepSelect.dispatchEvent(new Event('change', { bubbles: true }));
     });
-    const edit = [...container.querySelectorAll('button')].find((button) => button.textContent === '编辑活动')!;
-    await act(async () => edit.click());
+    const responseKind = [...container.querySelectorAll('select')]
+      .find((select) => select.parentElement?.textContent?.startsWith('作答类型'))!;
+    const prompt = [...container.querySelectorAll('textarea')]
+      .find((textarea) => textarea.parentElement?.textContent?.startsWith('prompt'))!;
+    await act(async () => {
+      responseKind.value = 'choice.multi';
+      responseKind.dispatchEvent(new Event('change', { bubbles: true }));
+      Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')?.set?.call(prompt, '选择全部稳定条件。');
+      prompt.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    const approve = [...container.querySelectorAll('button')].find((button) => button.textContent === '批准整课版本')!;
+    expect(approve.disabled).toBe(true);
+    const save = [...container.querySelectorAll('button')].find((button) => button.textContent === '保存所选内容')!;
+    await act(async () => save.click());
 
     expect(fetch.mock.calls.filter(([, init]) => init?.method === 'PATCH')).toHaveLength(1);
     const activity = submitted!.runtimeManifest.stages[2].steps[0].modules[0];
     expect(activity).toMatchObject({ responseKind: 'choice.multi', payload: expect.objectContaining({ prompt: '选择全部稳定条件。' }) });
     expect(submitted!.moduleMetadata[2].teacherFields).toEqual({
-      referenceAnswer: 'a,b', explanation: '两个条件都需要满足。', scoring: { maxPoints: 2 }, inclusionRationale: '覆盖目标。',
+      referenceAnswer: 'a',
+      explanation: '教师专用解释',
+      scoring: { strategy: 'exact-match', maxPoints: 1 },
+      inclusionRationale: '该来源直接支撑本模块的教学内容。',
     });
+    expect(approve.disabled).toBe(false);
   });
 
   it('selects the first copied module after splitting so module actions target the new step', async () => {

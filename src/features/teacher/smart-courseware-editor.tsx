@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { createManifestContentModuleRegistry } from '@/features/interactive/shared/manifest-runtime/content-renderers';
 import {
@@ -30,6 +30,7 @@ import { renderInteractiveManifestStep } from '@/features/interactive/shared/man
 import { useManifestSubmissionController } from '@/features/interactive/shared/manifest-runtime/submission-controller';
 import type { InteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest';
 import { isObjectiveInteractiveResponseKind, isSubjectiveInteractiveResponseKind } from '@/lib/interactive-response-contracts';
+import { PreparationDocumentEditorShell } from './preparation-document-editor/editor-shell';
 import { SmartCoursewarePublicationPanel } from './smart-courseware-publication-panel';
 
 export type SmartCoursewareSourceState =
@@ -369,6 +370,8 @@ export function SmartCoursewareEditor({
   const [approvedRevisionId, setApprovedRevisionId] = useState(sourceRevisionId);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
+  const [visualDirty, setVisualDirty] = useState(false);
+  const visualSaveRef = useRef<() => Promise<void>>(async () => undefined);
   const [selectedStepId, setSelectedStepId] = useState(initialEnvelope.manifest?.stages[0]?.steps[0]?.id ?? '');
   const [selectedModuleId, setSelectedModuleId] = useState(initialEnvelope.manifest?.stages[0]?.steps[0]?.modules[0]?.id ?? '');
   const [newModuleClass, setNewModuleClass] = useState<string>('content.rich');
@@ -377,6 +380,14 @@ export function SmartCoursewareEditor({
     : null;
   const selectedStep = envelope.manifest?.stages.flatMap((stage) => stage.steps).find((step) => step.id === selectedStepId);
   const selectedModule = selectedStep?.modules.find((module) => module.id === selectedModuleId);
+
+  function confirmVisualDiscard() {
+    if (!visualDirty || window.confirm('所选内容尚未保存。放弃这些修改并切换吗？')) {
+      setVisualDirty(false);
+      return true;
+    }
+    return false;
+  }
 
   async function startGeneration() {
     setBusy(true);
@@ -436,11 +447,15 @@ export function SmartCoursewareEditor({
         body: JSON.stringify({ expectedVersion: envelope.version, runtimeManifest, moduleMetadata: writableModuleMetadata }),
       });
       const payload = await response.json();
-      if (!response.ok) return setMessage(errorMessage(payload));
+      if (!response.ok) {
+        setMessage(errorMessage(payload));
+        return false;
+      }
       const next = createSmartCoursewareTeacherEnvelopeFromProjection(payload.preview, envelope.stalePlan);
       setEnvelope(next);
       setStudentPreview(await fetchStudentPreview(next));
       setMessage('组合已保存，并通过服务器共享运行时校验。');
+      return true;
     } finally {
       setBusy(false);
     }
@@ -502,14 +517,6 @@ export function SmartCoursewareEditor({
     await persistComposition(result.manifest, result.moduleMetadata);
   }
 
-  async function editStep() {
-    if (!selectedStep) return;
-    const title = window.prompt('编辑步骤标题', selectedStep.title)?.trim();
-    if (!title) return;
-    const next = replaceSelectedStep((step) => ({ ...step, title }));
-    if (next) await persistComposition(next);
-  }
-
   async function deleteStep() {
     if (!envelope.manifest || !selectedStep) return;
     const result = mergeAndDeleteCoursewareStep({
@@ -540,51 +547,31 @@ export function SmartCoursewareEditor({
     await persistComposition(next);
   }
 
-  async function editSelectedModule() {
-    if (!selectedModule) return;
+  async function saveSelectedVisual(
+    stepTitle: string,
+    payload: Record<string, unknown>,
+    teacherFields: SmartCoursewareCompositionMetadata['teacherFields'],
+    responseKind = selectedModule?.responseKind,
+  ) {
+    if (!selectedModule || !selectedStep || !stepTitle.trim()) return;
     const metadata = envelope.compositionMetadata.find((item) => item.moduleId === selectedModule.id);
     if (!metadata) return;
     const activity = selectedModule.canonicalClass === GENERATED_ACTIVITY_CLASS;
-    const edited = window.prompt(
-      activity ? '原子编辑活动 JSON（responseKind、payload、teacherFields）' : '编辑模块 payload JSON',
-      JSON.stringify(activity ? {
-        responseKind: selectedModule.responseKind,
-        payload: selectedModule.payload,
-        teacherFields: metadata.teacherFields,
-      } : selectedModule.payload, null, 2),
-    );
-    if (!edited) return;
-    let payload: Record<string, unknown>;
-    let responseKind = selectedModule.responseKind;
-    let teacherFields = metadata.teacherFields;
-    try {
-      const value = JSON.parse(edited);
-      if (activity) {
-        if (!value || typeof value !== 'object' || Array.isArray(value)
-          || !GENERATED_RESPONSE_KINDS.includes(value.responseKind as GeneratedResponseKind)
-          || !value.payload || typeof value.payload !== 'object' || Array.isArray(value.payload)
-          || !value.teacherFields || typeof value.teacherFields !== 'object' || Array.isArray(value.teacherFields)) {
-          throw new Error('invalid');
-        }
-        responseKind = value.responseKind;
-        payload = value.payload;
-        teacherFields = teacherFieldsForResponseKind(responseKind, value.teacherFields);
-      } else {
-        if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('invalid');
-        payload = value;
-      }
-    } catch {
-      return setMessage(activity ? '活动编辑 JSON 无效。' : '模块 payload JSON 无效。');
-    }
+    if (activity && !GENERATED_RESPONSE_KINDS.includes(responseKind as GeneratedResponseKind)) return setMessage('活动响应类型无效。');
+    const normalizedTeacherFields = activity ? teacherFieldsForResponseKind(responseKind, teacherFields) : teacherFields;
     const next = replaceSelectedStep((step) => ({
       ...step,
+      title: stepTitle.trim(),
       modules: step.modules.map((module) => module.id === selectedModule.id
         ? { ...module, payload, ...(activity ? { responseKind } : {}) }
         : module),
     }));
-    if (next) await persistComposition(next, envelope.compositionMetadata.map((item) => (
-      item.moduleId === selectedModule.id ? { ...item, teacherFields } : item
-    )));
+    if (next) {
+      const saved = await persistComposition(next, envelope.compositionMetadata.map((item) => (
+        item.moduleId === selectedModule.id ? { ...item, teacherFields: normalizedTeacherFields } : item
+      )));
+      if (saved) setVisualDirty(false);
+    }
   }
 
   async function deleteModule() {
@@ -700,7 +687,54 @@ export function SmartCoursewareEditor({
     }
   }
 
+  const editorSections = envelope.manifest?.stages.flatMap((stage) => stage.steps.map((step) => ({
+    id: step.id,
+    title: step.title,
+    complete: step.modules.length > 0,
+  }))) ?? [];
+  const editorSuggestions = [
+    ...(envelope.aiReview?.findings ?? []).map((finding, index) => ({
+      id: `finding:${index}`,
+      message: finding.message,
+      anchor: finding.path,
+      status: 'open' as const,
+    })),
+    ...(envelope.aiReview?.suggestions ?? []).map((message, index) => ({
+      id: `suggestion:${index}`,
+      message,
+      anchor: '课件',
+      status: 'open' as const,
+    })),
+  ];
+
   return (
+    <PreparationDocumentEditorShell
+      title={envelope.manifest?.title ?? '互动课件'}
+      subtitle={`草稿 ${envelope.draftId} · 版本 ${envelope.version}`}
+      sections={editorSections}
+      activeSection={selectedStepId}
+      onSelectSection={(stepId) => {
+        if (!confirmVisualDiscard()) return;
+        setSelectedStepId(stepId);
+        const step = envelope.manifest?.stages.flatMap((stage) => stage.steps).find((candidate) => candidate.id === stepId);
+        setSelectedModuleId(step?.modules[0]?.id ?? '');
+      }}
+      suggestions={editorSuggestions}
+      saveState={busy ? 'saving' : visualDirty ? 'dirty' : 'saved'}
+      onSave={() => visualSaveRef.current()}
+      onExit={() => {
+        try {
+          const referrer = new URL(window.document.referrer);
+          if (referrer.origin === window.location.origin && referrer.pathname === '/teacher/smart-prep') {
+            window.history.back();
+            return;
+          }
+        } catch {
+          // Use the governed fallback when the referrer is absent or invalid.
+        }
+        window.location.assign('/teacher/smart-prep');
+      }}
+    >
     <main className="space-y-5" data-smart-courseware-editor data-courseware-draft-id={envelope.draftId}>
       <header className="rounded-xl border border-border bg-background p-5">
         <p className="text-sm font-medium text-primary">智能备课 · 互动课件</p>
@@ -738,7 +772,7 @@ export function SmartCoursewareEditor({
             <h2 className="font-semibold">整课批准</h2>
             <p className="text-sm text-subtle">批准冻结当前有效组合；来源待补项保留在版本快照中，不创建已确认记录。</p>
           </div>
-          <button type="button" disabled={busy || envelope.state === 'accepted' || Boolean(validation && !validation.valid)} onClick={() => void approveCourseware()} className="rounded bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-50">
+          <button type="button" disabled={busy || visualDirty || envelope.state === 'accepted' || Boolean(validation && !validation.valid)} onClick={() => void approveCourseware()} className="rounded bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-50">
             {envelope.state === 'accepted' ? '已批准' : '批准整课版本'}
           </button>
         </section>
@@ -783,29 +817,43 @@ export function SmartCoursewareEditor({
       ) : null}
 
       {envelope.manifest && envelope.state !== 'accepted' ? <CoursewareCompositionControls
-        busy={busy}
+        busy={busy || visualDirty}
         manifest={envelope.manifest}
         selectedStepId={selectedStepId}
         selectedModuleId={selectedModuleId}
         newModuleClass={newModuleClass}
         onSelectStep={(stepId) => {
+          if (!confirmVisualDiscard()) return;
           setSelectedStepId(stepId);
           const step = envelope.manifest?.stages.flatMap((stage) => stage.steps).find((candidate) => candidate.id === stepId);
           setSelectedModuleId(step?.modules[0]?.id ?? '');
         }}
-        onSelectModule={setSelectedModuleId}
+        onSelectModule={(moduleId) => {
+          if (!confirmVisualDiscard()) return;
+          setSelectedModuleId(moduleId);
+        }}
         onNewModuleClass={setNewModuleClass}
         onAdd={addModule}
         onAddStep={splitSelectedStep}
-        onEditStep={editStep}
         onDeleteStep={deleteStep}
         onMoveStep={moveStep}
-        onEdit={editSelectedModule}
         onDelete={deleteModule}
         onMove={moveModule}
         onSlot={updateModuleSlot}
         onLayout={switchLayout}
         onRegenerate={requestModuleRegeneration}
+      /> : null}
+      {envelope.manifest && envelope.state !== 'accepted' && selectedStep && selectedModule ? <CoursewareVisualFields
+        key={`${selectedStep.id}:${selectedModule.id}:${envelope.version}`}
+        step={selectedStep}
+        module={selectedModule}
+        metadata={envelope.compositionMetadata.find((item) => item.moduleId === selectedModule.id)}
+        busy={busy}
+        onDirty={() => setVisualDirty(true)}
+        onRegisterSave={(save) => {
+          visualSaveRef.current = save;
+        }}
+        onSave={saveSelectedVisual}
       /> : null}
 
       {validation ? (
@@ -820,6 +868,7 @@ export function SmartCoursewareEditor({
         </section>
       ) : null}
     </main>
+    </PreparationDocumentEditorShell>
   );
 }
 
@@ -1004,10 +1053,8 @@ function CoursewareCompositionControls({
   onNewModuleClass,
   onAdd,
   onAddStep,
-  onEditStep,
   onDeleteStep,
   onMoveStep,
-  onEdit,
   onDelete,
   onMove,
   onSlot,
@@ -1024,10 +1071,8 @@ function CoursewareCompositionControls({
   onNewModuleClass: (value: string) => void;
   onAdd: () => Promise<void>;
   onAddStep: () => Promise<void>;
-  onEditStep: () => Promise<void>;
   onDeleteStep: () => Promise<void>;
   onMoveStep: (offset: -1 | 1) => Promise<void>;
-  onEdit: () => Promise<void>;
   onDelete: () => Promise<void>;
   onMove: (offset: -1 | 1) => Promise<void>;
   onSlot: (slotId: string) => Promise<void>;
@@ -1052,18 +1097,112 @@ function CoursewareCompositionControls({
     </div>
     <div className="flex flex-wrap gap-2">
       <button type="button" disabled={busy} onClick={() => void onAddStep()} className="rounded border border-primary px-3 py-1.5 text-sm text-primary">拆分当前步骤</button>
-      <button type="button" disabled={!step || busy} onClick={() => void onEditStep()} className="rounded border border-border px-3 py-1.5 text-sm">编辑步骤</button>
       <button type="button" disabled={!step || busy} onClick={() => void onMoveStep(-1)} className="rounded border border-border px-3 py-1.5 text-sm">步骤前移</button>
       <button type="button" disabled={!step || busy} onClick={() => void onMoveStep(1)} className="rounded border border-border px-3 py-1.5 text-sm">步骤后移</button>
       <button type="button" disabled={!step || busy} onClick={() => void onDeleteStep()} className="rounded border border-destructive px-3 py-1.5 text-sm text-destructive">合并并删除步骤</button>
       <button type="button" disabled={busy} onClick={() => void onAdd()} className="rounded border border-primary px-3 py-1.5 text-sm text-primary">添加模块</button>
-      <button type="button" disabled={!selectedModule || busy} onClick={() => void onEdit()} className="rounded border border-border px-3 py-1.5 text-sm">{selectedModule?.canonicalClass === GENERATED_ACTIVITY_CLASS ? '编辑活动' : '编辑内容'}</button>
       <button type="button" disabled={!selectedModule || busy} onClick={() => void onMove(-1)} className="rounded border border-border px-3 py-1.5 text-sm">前移</button>
       <button type="button" disabled={!selectedModule || busy} onClick={() => void onMove(1)} className="rounded border border-border px-3 py-1.5 text-sm">后移</button>
       <button type="button" disabled={!selectedModule || busy} onClick={() => void onDelete()} className="rounded border border-destructive px-3 py-1.5 text-sm text-destructive">删除模块</button>
       <button type="button" disabled={!selectedModule || busy} onClick={() => void onRegenerate()} className="rounded bg-primary px-3 py-1.5 text-sm text-primary-foreground">重新生成所选模块</button>
     </div>
   </section>;
+}
+
+function CoursewareVisualFields({
+  step,
+  module,
+  metadata,
+  busy,
+  onDirty,
+  onRegisterSave,
+  onSave,
+}: {
+  step: GeneratedSlideManifest['stages'][number]['steps'][number];
+  module: GeneratedSlideModule;
+  metadata?: SmartCoursewareCompositionMetadata;
+  busy: boolean;
+  onDirty: () => void;
+  onRegisterSave: (save: () => Promise<void>) => void;
+  onSave: (
+    stepTitle: string,
+    payload: Record<string, unknown>,
+    teacherFields: SmartCoursewareCompositionMetadata['teacherFields'],
+    responseKind?: string,
+  ) => Promise<void>;
+}) {
+  const [stepTitle, setStepTitle] = useState(step.title);
+  const [payload, setPayload] = useState<Record<string, unknown>>({ ...module.payload });
+  const [teacherFields, setTeacherFields] = useState<SmartCoursewareCompositionMetadata['teacherFields']>({ ...(metadata?.teacherFields ?? {}) });
+  const [responseKind, setResponseKind] = useState(module.responseKind ?? 'text.long');
+  const activity = module.canonicalClass === GENERATED_ACTIVITY_CLASS;
+  useEffect(() => {
+    onRegisterSave(() => onSave(stepTitle, payload, teacherFields, responseKind));
+  }, [onRegisterSave, onSave, payload, responseKind, stepTitle, teacherFields]);
+  const changeStepTitle = (value: string) => {
+    setStepTitle(value);
+    onDirty();
+  };
+  const changePayload = (value: Record<string, unknown>) => {
+    setPayload(value);
+    onDirty();
+  };
+  const changeTeacherFields = (value: SmartCoursewareCompositionMetadata['teacherFields']) => {
+    setTeacherFields(value);
+    onDirty();
+  };
+  return <section className="space-y-4 rounded-xl border border-border p-4" data-courseware-visual-editor>
+    <div>
+      <h2 className="font-semibold">所选内容可视编辑</h2>
+      <p className="mt-1 text-sm text-subtle">字段按课件领域结构保存；页面不暴露原始 JSON。</p>
+    </div>
+    <label className="grid gap-1 text-sm">步骤标题<input value={stepTitle} onChange={(event) => changeStepTitle(event.target.value)} className="rounded border border-border bg-background px-3 py-2" /></label>
+    {activity ? <label className="grid max-w-sm gap-1 text-sm">作答类型<select value={responseKind} onChange={(event) => { setResponseKind(event.target.value); onDirty(); }} className="rounded border border-border bg-background px-3 py-2">{GENERATED_RESPONSE_KINDS.map((kind) => <option key={kind} value={kind}>{kind}</option>)}</select></label> : null}
+    <fieldset className="space-y-3 rounded-lg bg-muted/30 p-3">
+      <legend className="px-1 text-sm font-medium">学生可见内容</legend>
+      <VisualObjectEditor value={payload} onChange={changePayload} />
+    </fieldset>
+    {activity ? <fieldset className="space-y-3 rounded-lg bg-muted/30 p-3">
+      <legend className="px-1 text-sm font-medium">教师审阅字段</legend>
+      <VisualObjectEditor value={teacherFields} onChange={changeTeacherFields} />
+    </fieldset> : null}
+    <button type="button" disabled={busy || !stepTitle.trim()} onClick={() => void onSave(stepTitle, payload, teacherFields, responseKind)} className="rounded bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-50">保存所选内容</button>
+  </section>;
+}
+
+function VisualObjectEditor({
+  value,
+  onChange,
+  path = [],
+}: {
+  value: Record<string, unknown>;
+  onChange: (value: Record<string, unknown>) => void;
+  path?: string[];
+}) {
+  const entries = Object.entries(value);
+  if (!entries.length) {
+    return <p className="text-sm text-muted-foreground">当前类型没有可编辑文本字段。</p>;
+  }
+  return <div className="grid gap-3">{entries.map(([key, child]) => {
+    const label = [...path, key].join(' / ');
+    if (typeof child === 'string') return <label key={key} className="grid gap-1 text-sm"><span>{label}</span><textarea rows={child.length > 100 ? 4 : 2} value={child} onChange={(event) => onChange({ ...value, [key]: event.target.value })} className="rounded border border-border bg-background px-3 py-2" /></label>;
+    if (typeof child === 'number') return <label key={key} className="grid gap-1 text-sm"><span>{label}</span><input type="number" value={child} onChange={(event) => onChange({ ...value, [key]: Number(event.target.value) })} className="rounded border border-border bg-background px-3 py-2" /></label>;
+    if (typeof child === 'boolean') return <label key={key} className="flex items-center gap-2 text-sm"><input type="checkbox" checked={child} onChange={(event) => onChange({ ...value, [key]: event.target.checked })} />{label}</label>;
+    if (Array.isArray(child) && child.every((item) => ['string', 'number'].includes(typeof item))) {
+      const numeric = child.length > 0 && child.every((item) => typeof item === 'number');
+      return <label key={key} className="grid gap-1 text-sm"><span>{label}（每行一项）</span><textarea rows={4} value={child.map(String).join('\n')} onChange={(event) => {
+        const items = event.target.value.split('\n').map((item) => item.trim()).filter(Boolean);
+        onChange({ ...value, [key]: numeric ? items.map(Number) : items });
+      }} className="rounded border border-border bg-background px-3 py-2" /></label>;
+    }
+    if (Array.isArray(child) && child.every((item) => item && typeof item === 'object' && !Array.isArray(item))) {
+      return <fieldset key={key} className="space-y-3 rounded border border-border p-3"><legend className="px-1 text-sm">{label}</legend>{child.map((item, index) => <VisualObjectEditor key={index} value={item as Record<string, unknown>} path={[...path, key, String(index + 1)]} onChange={(next) => onChange({ ...value, [key]: child.map((candidate, itemIndex) => itemIndex === index ? next : candidate) })} />)}</fieldset>;
+    }
+    if (child && typeof child === 'object' && !Array.isArray(child)) {
+      return <fieldset key={key} className="rounded border border-border p-3"><legend className="px-1 text-sm">{label}</legend><VisualObjectEditor value={child as Record<string, unknown>} path={[...path, key]} onChange={(next) => onChange({ ...value, [key]: next })} /></fieldset>;
+    }
+    return null;
+  })}</div>;
 }
 
 function CoursewareModuleCandidateDiff({

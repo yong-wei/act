@@ -10,12 +10,18 @@ export function SmartPreparationWorkspace({
   courseBases,
   classDiagnosisOptions,
   initialTasks,
+  initialSelectedTaskId,
+  initialView = 'tasks',
+  initialCourseBasisId,
 }: {
   courseBases: any[];
   classDiagnosisOptions: Array<{ classId: string; className: string; diagnosisRef: string; generatedAt: string }>;
   initialTasks: Record<string, unknown>[];
+  initialSelectedTaskId?: string;
+  initialView?: 'tasks' | 'basis';
+  initialCourseBasisId?: string;
 }) {
-  const [view, setView] = useState<'tasks' | 'basis'>('tasks');
+  const [view, setView] = useState<'tasks' | 'basis'>(initialView);
   const scrollPositions = useRef({ tasks: 0, basis: 0 });
 
   useEffect(() => {
@@ -41,10 +47,10 @@ export function SmartPreparationWorkspace({
       </nav>
     </header>
     <div className={view === 'basis' ? '' : 'hidden'}>
-      <CourseBasisWorkspace initialCourseBases={courseBases} onChanged={() => window.dispatchEvent(new Event('course-basis:changed'))} />
+      <CourseBasisWorkspace initialCourseBases={courseBases} initialSelectedId={initialCourseBasisId} onChanged={() => window.dispatchEvent(new Event('course-basis:changed'))} />
     </div>
     <div className={view === 'tasks' ? '' : 'hidden'}>
-      <SmartLessonPlanWorkspace courseBases={courseBases} classDiagnosisOptions={classDiagnosisOptions} initialTasks={initialTasks} />
+      <SmartLessonPlanWorkspace courseBases={courseBases} classDiagnosisOptions={classDiagnosisOptions} initialTasks={initialTasks} initialSelectedTaskId={initialSelectedTaskId} />
     </div>
   </main>;
 }
