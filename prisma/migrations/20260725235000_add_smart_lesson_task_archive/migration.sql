@@ -1,6 +1,27 @@
 ALTER TABLE "SmartLessonTask"
 ADD COLUMN "archivedAt" TIMESTAMP(3);
 
+DROP TRIGGER IF EXISTS "SmartLessonRevision_immutable" ON "SmartLessonRevision";
+
+ALTER TABLE "SmartLessonRevision"
+ADD COLUMN "taskRevision" INTEGER;
+
+UPDATE "SmartLessonRevision" revision
+SET "taskRevision" = COALESCE(
+  (
+    SELECT job."taskRevision"
+    FROM "SmartLessonGenerationJob" job
+    WHERE job."draftId" = revision."draftId"
+      AND job."state" = 'COMPLETED'
+    ORDER BY job."completedAt" DESC NULLS LAST, job."createdAt" DESC
+    LIMIT 1
+  ),
+  1
+);
+
+ALTER TABLE "SmartLessonRevision"
+ALTER COLUMN "taskRevision" SET NOT NULL;
+
 CREATE INDEX "SmartLessonTask_ownerId_archivedAt_updatedAt_idx"
 ON "SmartLessonTask"("ownerId", "archivedAt", "updatedAt");
 

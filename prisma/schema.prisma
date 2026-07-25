@@ -798,6 +798,7 @@ model SmartLessonRevision {
   id                     String   @id @default(cuid())
   ownerId                String
   taskId                 String
+  taskRevision           Int
   draftId                String   @unique
   revisionNumber         Int
   displayName            String

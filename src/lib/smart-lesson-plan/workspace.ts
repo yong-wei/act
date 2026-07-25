@@ -55,11 +55,15 @@ export function projectSmartPreparationTask(task: Record<string, unknown>): Smar
   const jobs = records(draft?.jobs);
   const job = jobs[0];
   const revisions = records(task.revisions);
+  const currentTaskRevision = number(task.revision);
+  const currentRevisions = revisions.filter((revision) => number(revision.taskRevision) === currentTaskRevision);
+  const currentRevisionIds = new Set(currentRevisions.map((revision) => text(revision.id)).filter(Boolean));
   const publicationSeries = record(task.coursewarePublicationSeries);
-  const publications = records(publicationSeries?.revisions);
-  const coursewareDrafts = revisions.flatMap((revision) => records(revision.coursewareDrafts));
+  const publications = records(publicationSeries?.revisions)
+    .filter((publication) => currentRevisionIds.has(text(publication.planRevisionId)));
+  const coursewareDrafts = currentRevisions.flatMap((revision) => records(revision.coursewareDrafts));
   const coursewareContentAvailable = publications.length > 0
-    || coursewareDrafts.some((item) => item.state === 'APPROVED');
+    || coursewareDrafts.some((item) => item.state === 'ACCEPTED');
 
   const sourceComplete = sources.length > 0;
   const scopeComplete = sourceComplete
@@ -67,7 +71,7 @@ export function projectSmartPreparationTask(task: Record<string, unknown>): Smar
     && points.length > 0
     && goals.length > 0;
   const classComplete = scopeComplete && Boolean(task.scopeConfirmedAt);
-  const lessonContentAvailable = revisions.length > 0;
+  const lessonContentAvailable = currentRevisions.length > 0;
   const lessonComplete = classComplete && lessonContentAvailable;
   const coursewareReady = lessonComplete && coursewareContentAvailable;
   const jobState = text(job?.state);
@@ -155,4 +159,8 @@ function record(value: unknown): Record<string, unknown> | null {
 
 function text(value: unknown) {
   return typeof value === 'string' ? value : '';
+}
+
+function number(value: unknown) {
+  return typeof value === 'number' && Number.isSafeInteger(value) ? value : -1;
 }

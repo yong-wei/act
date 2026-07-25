@@ -109,7 +109,7 @@ async function addTeacherSession(context: BrowserContext) {
 type FixtureJob = { id: string; state: string; firstIncompleteStage?: string; stages: Array<Record<string, unknown>> };
 type FixtureReview = { id: string; advisoryOnly: boolean; state: string; report: Record<string, unknown> };
 type FixtureDraft = { id: string; state: string; version: number; content?: unknown; jobs: FixtureJob[]; reviews: FixtureReview[] };
-type FixtureRevision = { id: string; displayName: string; revisionNumber: number };
+type FixtureRevision = { id: string; displayName: string; revisionNumber: number; taskRevision: number; coursewareDrafts: Array<{ state: string }> };
 type FixtureTask = {
   id: string; courseBasisId: string; revision: number; topic: string; audience: string; prerequisites: string;
   durationMinutes: number; outlineConfirmationRequired: boolean;
@@ -189,7 +189,7 @@ async function installSmartLessonRoutes(page: Page) {
       return fulfill(route, { review: task.drafts[0].reviews[0] }, 201);
     }
     if (path === '/api/teacher/smart-lesson-tasks/drafts/draft-1/approve') {
-      const revision = { id: 'revision-1', displayName: '教案第1版', revisionNumber: 1 };
+      const revision = { id: 'revision-1', displayName: '教案第1版', revisionNumber: 1, taskRevision: task.revision, coursewareDrafts: [] };
       task = { ...task, drafts: [{ ...task.drafts[0], state: 'APPROVED' }], revisions: [revision] };
       return fulfill(route, { revision }, 201);
     }
@@ -227,7 +227,12 @@ test('teacher completes the visible smart lesson authoring flow through version 
   for (const stage of ['课程依据', '主题与目标', '班级学情', '生成与审核教案', '生成课件']) {
     await expect(workspace.getByText(stage, { exact: true })).toBeVisible();
   }
+  const searchRequest = page.waitForRequest((request) => (
+    request.url().includes('/api/teacher/smart-lesson-tasks?')
+    && new URL(request.url()).searchParams.get('query') === '闭环'
+  ));
   await workspace.getByPlaceholder('搜索任务主题').fill('闭环');
+  await searchRequest;
   await page.getByRole('button', { name: '课程依据' }).click();
   await page.getByRole('button', { name: '备课任务' }).click();
   await expect(workspace.getByPlaceholder('搜索任务主题')).toHaveValue('闭环');

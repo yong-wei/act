@@ -36,7 +36,7 @@ type Task = {
     jobs?: Array<{ id: string; state: string; firstIncompleteStage?: string; failureCode?: string | null; supersededAt?: string | null; stages?: Array<{ kind: string; state: string; output?: unknown; outputTruncated?: boolean }> }>;
     reviews?: Array<{ id: string; advisoryOnly: boolean; state?: string; report?: unknown; failureCode?: string | null }>;
   }>;
-  revisions?: Array<{ id: string; displayName: string; revisionNumber: number }>;
+  revisions?: Array<{ id: string; displayName: string; revisionNumber: number; taskRevision: number; coursewareDrafts?: Array<{ state: string }> }>;
   workspace?: {
     currentStage: string;
     statusLabel: string;
@@ -82,7 +82,7 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
     }),
   )), [availableCourseBases]);
   const selected = sourceOptions.find((option) => option.versionId === selectedSource) ?? sourceOptions[0];
-  const visibleTasks = tasks.filter((task) => task.topic.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
+  const visibleTasks = tasks;
   const activeTask = visibleTasks.find((task) => task.id === selectedTaskId) ?? visibleTasks[0] ?? null;
   const detailedActiveTask = activeTask?.workspace?.stages.length === 5 ? activeTask : null;
   const activeTaskId = activeTask?.id;
@@ -119,6 +119,36 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
     const timer = window.setInterval(() => void refreshTask(detailedActiveTaskId), 2500);
     return () => window.clearInterval(timer);
   }, [detailedActiveTaskId, activeJobState]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      try {
+        const params = new URLSearchParams({
+          view: 'summary',
+          archived: String(showArchived),
+        });
+        if (query.trim()) params.set('query', query.trim());
+        const response = await fetch(`/api/teacher/smart-lesson-tasks?${params.toString()}`, {
+          cache: 'no-store',
+          signal: controller.signal,
+        });
+        const payload = await response.json();
+        if (!response.ok) return setMessage(errorText(payload));
+        setTasks(payload.tasks);
+        setSelectedTaskId((current) => (
+          payload.tasks.some((task: Task) => task.id === current) ? current : payload.tasks[0]?.id ?? ''
+        ));
+      } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') return;
+        setMessage('任务索引加载失败，请稍后重试。');
+      }
+    }, 250);
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [query, showArchived]);
 
   function createCourseware(planRevisionId: string) {
     if (coursewareCreationInFlight.current) return;
@@ -181,13 +211,8 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
     setTasks((current) => current.map((task) => task.id === taskId ? payload.task : task));
   }
 
-  async function loadTaskCollection(archived: boolean) {
-    const response = await fetch(`/api/teacher/smart-lesson-tasks?view=summary&archived=${archived}`, { cache: 'no-store' });
-    const payload = await response.json();
-    if (!response.ok) return setMessage(errorText(payload));
+  function loadTaskCollection(archived: boolean) {
     setShowArchived(archived);
-    setTasks(payload.tasks);
-    setSelectedTaskId(payload.tasks[0]?.id ?? '');
   }
 
   async function changeTaskLifecycle(task: Task, action: 'archive' | 'restore' | 'delete') {

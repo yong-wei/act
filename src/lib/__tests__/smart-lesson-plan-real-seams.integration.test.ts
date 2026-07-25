@@ -9,16 +9,16 @@ import { Pool } from 'pg';
 
 import { createPrismaClient } from '@/lib/prisma-client';
 
-import { enqueueSmartLessonGenerationJob } from '../queue';
-import { deleteSmartLessonTask } from '../lifecycle';
+import { enqueueSmartLessonGenerationJob } from '../smart-lesson-plan/queue';
+import { deleteSmartLessonTask } from '../smart-lesson-plan/lifecycle';
 import {
   cancelGenerationJob,
   createSmartLessonTask,
   resumeGenerationJob,
   startGenerationJob,
   updateSmartLessonTask,
-} from '../service';
-import { SMART_LESSON_GENERATION_QUEUE } from '../worker';
+} from '../smart-lesson-plan/service';
+import { SMART_LESSON_GENERATION_QUEUE } from '../smart-lesson-plan/worker';
 
 const enabled = process.env.SMART_LESSON_REAL_SEAM_TEST === '1';
 const schemaName = `smart_lesson939_it_${process.pid}_${randomBytes(4).toString('hex')}`;
@@ -187,6 +187,7 @@ describe.runIf(enabled)('smart lesson real PostgreSQL and BullMQ seams', () => {
       data: {
         ownerId: actor.id,
         taskId: task.id,
+        taskRevision: task.revision,
         draftId: approvedDraft.id,
         revisionNumber: 1,
         displayName: '教案第1版',

@@ -172,6 +172,7 @@ export async function listSmartLessonTaskSummaries(
         take: 1,
         select: {
           id: true,
+          taskRevision: true,
           revisionNumber: true,
           coursewareDrafts: {
             where: { state: 'ACCEPTED' },
@@ -184,7 +185,7 @@ export async function listSmartLessonTaskSummaries(
         select: {
           revisions: {
             take: 1,
-            select: { id: true },
+            select: { id: true, planRevisionId: true },
           },
         },
       },
@@ -214,7 +215,17 @@ export async function getSmartLessonTask(db: SmartLessonDb, input: {
           reviews: { orderBy: { createdAt: 'desc' }, take: 5 },
         },
       },
-      revisions: { orderBy: { revisionNumber: 'desc' }, take: 20 },
+      revisions: {
+        orderBy: { revisionNumber: 'desc' },
+        take: 20,
+        include: {
+          coursewareDrafts: {
+            where: { state: 'ACCEPTED' },
+            take: 1,
+            select: { state: true },
+          },
+        },
+      },
       coursewarePublicationSeries: {
         include: { revisions: { orderBy: { revisionNumber: 'desc' }, take: 1 } },
       },
@@ -1315,6 +1326,7 @@ export async function approveSmartLessonDraft(db: SmartLessonDb, input: {
         data: {
           ownerId: draft.ownerId,
           taskId: draft.taskId,
+          taskRevision: draft.task.revision,
           draftId: draft.id,
           revisionNumber,
           displayName: `教案第${revisionNumber}版`,

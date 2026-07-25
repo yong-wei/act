@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { archiveSmartLessonTask, deleteSmartLessonTask } from '../lifecycle';
+import { archiveSmartLessonTask, deleteSmartLessonTask } from '../smart-lesson-plan/lifecycle';
 
 const teacher = { id: 'teacher-1', role: 'TEACHER' as const };
 

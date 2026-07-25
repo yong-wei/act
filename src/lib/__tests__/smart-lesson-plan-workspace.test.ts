@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { projectSmartPreparationTask, smartPreparationStatusLabel } from '../workspace';
+import { projectSmartPreparationTask, smartPreparationStatusLabel } from '../smart-lesson-plan/workspace';
 
 function taskFixture() {
   return {
     id: 'task-1',
+    revision: 1,
     topic: '闭环稳定性',
     audience: '本科生',
     scopeConfirmedAt: '2026-07-25T00:00:00.000Z',
@@ -13,7 +14,7 @@ function taskFixture() {
     knowledgePoints: [{ state: 'CONFIRMED', title: '稳定性判据' }],
     goals: [{ state: 'CONFIRMED', content: '判断稳定性' }],
     drafts: [{ state: 'READY', content: { title: '教案', stages: [] }, jobs: [{ state: 'COMPLETED' }] }],
-    revisions: [{ id: 'revision-1', coursewareDrafts: [] }],
+    revisions: [{ id: 'revision-1', taskRevision: 1, coursewareDrafts: [] }],
   };
 }
 
@@ -74,6 +75,35 @@ describe('smart preparation task workspace projection', () => {
       }],
     });
     expect(projection.unsupportedPayload).toBe(false);
+  });
+
+  it('invalidates approved lesson and courseware facts from an earlier task revision', () => {
+    const stale = projectSmartPreparationTask({
+      ...taskFixture(),
+      revision: 2,
+      revisions: [{
+        id: 'revision-1',
+        taskRevision: 1,
+        coursewareDrafts: [{ state: 'ACCEPTED' }],
+      }],
+      coursewarePublicationSeries: {
+        revisions: [{ id: 'publication-1', planRevisionId: 'revision-1' }],
+      },
+    });
+    expect(stale.stages[3]).toMatchObject({ complete: false, state: 'current' });
+    expect(stale.stages[4]).toMatchObject({ complete: false, state: 'blocked' });
+  });
+
+  it('recognizes accepted courseware only for the current task revision', () => {
+    const accepted = projectSmartPreparationTask({
+      ...taskFixture(),
+      revisions: [{
+        id: 'revision-1',
+        taskRevision: 1,
+        coursewareDrafts: [{ state: 'ACCEPTED' }],
+      }],
+    });
+    expect(accepted.stages[4]).toMatchObject({ complete: true });
   });
 
   it('uses the shared Chinese presentation map without exposing raw enum values', () => {
