@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
-import { Bot, CheckCircle2, LoaderCircle, Plus } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
+import { Archive, Bot, CheckCircle2, LoaderCircle, Menu, Plus, RotateCcw, Search, Trash2 } from 'lucide-react';
 import { KonlingEntryPointButton } from '@/components/ai/konling-entry-point-button';
 
 type SourceOption = {
@@ -16,13 +17,18 @@ type Task = {
   id: string;
   courseBasisId: string;
   revision: number;
+  archivedAt?: string | null;
+  updatedAt?: string;
+  currentStage?: string;
+  currentStageTitle?: string;
+  statusLabel?: string;
   topic: string;
   audience: string;
   prerequisites?: string;
   durationMinutes: number;
   outlineConfirmationRequired?: boolean;
   aggregateClassContextRef?: string | null;
-  sources?: Array<{ sourceVersionId: string; state: string }>;
+  sources?: Array<{ sourceVersionId: string; state: string; sourceValid?: boolean }>;
   knowledgePoints?: Array<{ id: string; lineageId: string; title: string; origin: 'SUGGESTED' | 'TEACHER_CREATED'; sourceState: 'verified' | 'ai_generated_source_pending' | 'teacher_created_source_pending'; sourceBindings: SourceOption['binding'][]; supersedesIds?: string[]; state: string }>;
   goals?: Array<{ id: string; lineageId: string; content: string; sourceState: 'verified' | 'ai_generated_source_pending' | 'teacher_created_source_pending'; sourceBindings: SourceOption['binding'][]; standardsMappings?: Array<{ standardId: string; label: string }>; state: string }>;
   drafts?: Array<{
@@ -31,6 +37,13 @@ type Task = {
     reviews?: Array<{ id: string; advisoryOnly: boolean; state?: string; report?: unknown; failureCode?: string | null }>;
   }>;
   revisions?: Array<{ id: string; displayName: string; revisionNumber: number }>;
+  workspace?: {
+    currentStage: string;
+    statusLabel: string;
+    resumable: boolean;
+    unsupportedPayload: boolean;
+    stages: Array<{ id: string; title: string; state: string; statusLabel: string; complete: boolean; blockingReason?: string | null; nextAction?: string | null }>;
+  };
 };
 
 type ClassDiagnosisOption = { classId: string; className: string; diagnosisRef: string; generatedAt: string };
@@ -39,13 +52,18 @@ type PublicSourceState = 'verified' | 'ai_generated_source_pending' | 'teacher_c
 
 export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, initialTasks }: { courseBases: any[]; classDiagnosisOptions: ClassDiagnosisOption[]; initialTasks: Record<string, unknown>[] }) {
   const [tasks, setTasks] = useState(initialTasks as Task[]);
+  const [availableCourseBases, setAvailableCourseBases] = useState(courseBases);
+  const [selectedTaskId, setSelectedTaskId] = useState((initialTasks[0] as Task | undefined)?.id ?? '');
+  const [query, setQuery] = useState('');
+  const [showArchived, setShowArchived] = useState(false);
+  const [taskIndexOpen, setTaskIndexOpen] = useState(false);
   const [selectedSource, setSelectedSource] = useState('');
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const [suggestions, setSuggestions] = useState<Record<string, KonlingSuggestion[]>>({});
   const [bootstrapSuggestions, setBootstrapSuggestions] = useState<KonlingSuggestion[]>([]);
   const coursewareCreationInFlight = useRef(false);
-  const sourceOptions = useMemo<SourceOption[]>(() => courseBases.flatMap((basis) => basis.documents.flatMap((document: any) =>
+  const sourceOptions = useMemo<SourceOption[]>(() => availableCourseBases.flatMap((basis: any) => basis.documents.flatMap((document: any) =>
     document.versions.flatMap((version: any) => {
       const segment = version.segments?.[0];
       if (version.reviewState !== 'CONFIRMED' || version.retiredAt || !segment) return [];
@@ -62,8 +80,45 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
         },
       }];
     }),
-  )), [courseBases]);
+  )), [availableCourseBases]);
   const selected = sourceOptions.find((option) => option.versionId === selectedSource) ?? sourceOptions[0];
+  const visibleTasks = tasks.filter((task) => task.topic.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
+  const activeTask = visibleTasks.find((task) => task.id === selectedTaskId) ?? visibleTasks[0] ?? null;
+  const detailedActiveTask = activeTask?.workspace?.stages.length === 5 ? activeTask : null;
+  const activeTaskId = activeTask?.id;
+  const detailedActiveTaskId = detailedActiveTask?.id;
+  const activeJobState = detailedActiveTask?.drafts?.[0]?.jobs?.[0]?.state;
+
+  useEffect(() => {
+    const refreshCourseBases = async () => {
+      const [basisResponse, taskResponse] = await Promise.all([
+        fetch('/api/teacher/course-bases', { cache: 'no-store' }),
+        selectedTaskId
+          ? fetch(`/api/teacher/smart-lesson-tasks/${selectedTaskId}`, { cache: 'no-store' })
+          : Promise.resolve(null),
+      ]);
+      const basisPayload = await basisResponse.json();
+      if (basisResponse.ok) setAvailableCourseBases(basisPayload.courseBases);
+      if (taskResponse) {
+        const taskPayload = await taskResponse.json();
+        if (taskResponse.ok) {
+          setTasks((current) => current.map((task) => task.id === selectedTaskId ? taskPayload.task : task));
+        }
+      }
+    };
+    window.addEventListener('course-basis:changed', refreshCourseBases);
+    return () => window.removeEventListener('course-basis:changed', refreshCourseBases);
+  }, [selectedTaskId]);
+
+  useEffect(() => {
+    if (activeTaskId && !detailedActiveTaskId) void refreshTask(activeTaskId);
+  }, [activeTaskId, detailedActiveTaskId]);
+
+  useEffect(() => {
+    if (!detailedActiveTaskId || !activeJobState || !['QUEUED', 'RUNNING', 'PAUSED', 'RETRYABLE'].includes(activeJobState)) return;
+    const timer = window.setInterval(() => void refreshTask(detailedActiveTaskId), 2500);
+    return () => window.clearInterval(timer);
+  }, [detailedActiveTaskId, activeJobState]);
 
   function createCourseware(planRevisionId: string) {
     if (coursewareCreationInFlight.current) return;
@@ -100,6 +155,7 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
       const payload = await response.json();
       if (!response.ok) return setMessage(errorText(payload));
       setTasks((current) => [payload.task, ...current]);
+      setSelectedTaskId(payload.task.id);
       setMessage('单课任务已确认，可以启动分阶段生成。');
     } finally {
       setBusy(false);
@@ -125,6 +181,35 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
     setTasks((current) => current.map((task) => task.id === taskId ? payload.task : task));
   }
 
+  async function loadTaskCollection(archived: boolean) {
+    const response = await fetch(`/api/teacher/smart-lesson-tasks?view=summary&archived=${archived}`, { cache: 'no-store' });
+    const payload = await response.json();
+    if (!response.ok) return setMessage(errorText(payload));
+    setShowArchived(archived);
+    setTasks(payload.tasks);
+    setSelectedTaskId(payload.tasks[0]?.id ?? '');
+  }
+
+  async function changeTaskLifecycle(task: Task, action: 'archive' | 'restore' | 'delete') {
+    if (action === 'delete' && !window.confirm(`永久删除“${task.topic}”及其未发布内容？此操作不可撤销。`)) return;
+    const response = await fetch(`/api/teacher/smart-lesson-tasks/${task.id}`, {
+      method: action === 'delete' ? 'DELETE' : 'PUT',
+      headers: { 'content-type': 'application/json' },
+      ...(action === 'delete' ? {} : { body: JSON.stringify({ action }) }),
+    });
+    const payload = await response.json();
+    if (!response.ok) {
+      const blockers = payload?.error?.blockers as Array<{ category: string; count: number }> | undefined;
+      setMessage(blockers?.length
+        ? `无法永久删除：${blockers.map((item) => `${item.category === 'classroom' ? '课堂引用' : '正式发布'} ${item.count} 项`).join('、')}。请改为归档。`
+        : errorText(payload));
+      return;
+    }
+    setTasks((current) => current.filter((item) => item.id !== task.id));
+    setSelectedTaskId((current) => current === task.id ? '' : current);
+    setMessage(action === 'archive' ? '任务已归档。' : action === 'restore' ? '任务已恢复到进行中列表。' : '任务及未发布内容已永久删除。');
+  }
+
   async function runJobAction(task: Task, action: 'resume' | 'retry' | 'cancel') {
     const job = task.drafts?.[0]?.jobs?.[0];
     if (!job) return;
@@ -138,19 +223,31 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
   }
 
   async function editTask(task: Task) {
-    const current = {
+    const topic = window.prompt('单课主题', task.topic);
+    if (topic === null) return;
+    const audience = window.prompt('授课对象', task.audience);
+    if (audience === null) return;
+    const prerequisites = window.prompt('先修要求', task.prerequisites ?? '');
+    if (prerequisites === null) return;
+    const durationInput = window.prompt('课时长度（分钟）', String(task.durationMinutes));
+    if (durationInput === null) return;
+    const durationMinutes = Number(durationInput);
+    if (!topic.trim() || !audience.trim() || !Number.isInteger(durationMinutes) || durationMinutes < 30 || durationMinutes > 120) {
+      return setMessage('请填写主题、授课对象和 30 至 120 分钟的整数课时。');
+    }
+    const next = {
       ...taskUpdateInput(task),
+      topic: topic.trim(),
+      audience: audience.trim(),
+      prerequisites: prerequisites.trim(),
+      durationMinutes,
       aggregateClassContextRef: classDiagnosisOptions.find((option) => option.diagnosisRef === task.aggregateClassContextRef)
         ? { classId: classDiagnosisOptions.find((option) => option.diagnosisRef === task.aggregateClassContextRef)!.classId, diagnosisRef: task.aggregateClassContextRef }
         : null,
     };
-    const edited = window.prompt('编辑任务 JSON；可改名知识点，删除条目，或用 supersedesIds 记录合并来源', JSON.stringify(current, null, 2));
-    if (!edited) return;
-    let next: unknown;
-    try { next = JSON.parse(edited); } catch { return setMessage('任务 JSON 格式无效。'); }
     const response = await fetch(`/api/teacher/smart-lesson-tasks/${task.id}`, {
       method: 'PATCH', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ ...(next as object), expectedRevision: task.revision, confirmingTurnId: `structured:${crypto.randomUUID()}` }),
+      body: JSON.stringify({ ...next, expectedRevision: task.revision, confirmingTurnId: `structured:${crypto.randomUUID()}` }),
     });
     const payload = await response.json();
     setMessage(response.ok ? `任务约束已确认，当前修订 ${payload.task.revision}。` : errorText(payload));
@@ -222,11 +319,17 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
   async function editPausedOutline(task: Task) {
     const job = task.drafts?.[0]?.jobs?.[0];
     const outline = job?.stages?.find((stage) => stage.kind === 'OUTLINE')?.output;
-    if (!job || job.state !== 'PAUSED' || !outline) return;
-    const edited = window.prompt('编辑提纲 JSON；保存后仍保持暂停，需再次明确确认', JSON.stringify(outline, null, 2));
-    if (!edited) return;
-    let output: unknown;
-    try { output = JSON.parse(edited); } catch { return setMessage('提纲 JSON 格式无效。'); }
+    if (!job || job.state !== 'PAUSED' || !outline || typeof outline !== 'object' || Array.isArray(outline)) return;
+    const current = outline as Record<string, unknown>;
+    const keyContent = window.prompt('重点内容（每行一项）', stringList(current.keyContent).join('\n'));
+    if (keyContent === null) return;
+    const difficultContent = window.prompt('难点内容（每行一项）', stringList(current.difficultContent).join('\n'));
+    if (difficultContent === null) return;
+    const output = {
+      ...current,
+      keyContent: splitLines(keyContent),
+      difficultContent: splitLines(difficultContent),
+    };
     const response = await fetch(`/api/teacher/smart-lesson-tasks/jobs/${job.id}/outline`, {
       method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ output }),
     });
@@ -256,11 +359,13 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
 
   async function editDraft(task: Task) {
     const draft = task.drafts?.[0];
-    if (!draft?.content) return;
-    const edited = window.prompt('编辑完整教案 JSON', JSON.stringify(draft.content, null, 2));
-    if (!edited) return;
-    let content: unknown;
-    try { content = JSON.parse(edited); } catch { return setMessage('教案 JSON 格式无效。'); }
+    if (!draft?.content || typeof draft.content !== 'object' || Array.isArray(draft.content)) return;
+    const current = draft.content as Record<string, unknown>;
+    const title = window.prompt('教案标题', String(current.title ?? current.topic ?? task.topic));
+    if (title === null || !title.trim()) return;
+    const limitations = window.prompt('教学限制与待补信息（每行一项）', stringList(current.limitations).join('\n'));
+    if (limitations === null) return;
+    const content = { ...current, title: title.trim(), limitations: splitLines(limitations) };
     const response = await fetch(`/api/teacher/smart-lesson-tasks/drafts/${draft.id}`, {
       method: 'PATCH', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ expectedVersion: draft.version, content }),
@@ -285,14 +390,40 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
   return <section className="space-y-6 rounded-xl border border-border p-5" data-smart-lesson-plan-workspace>
     <header className="flex items-start gap-3"><Bot className="mt-1 h-5 w-5 text-primary" /><div><h2 className="text-xl font-semibold">智能教案共创</h2><p className="text-sm text-subtle">确认单课范围与目标后，生成可恢复的 BOPPPS 文本教案；AI 审核仅提供建议。</p></div></header>
     {message ? <p role="status" className="rounded-lg bg-muted/40 px-4 py-3 text-sm">{message}</p> : null}
+    <button type="button" onClick={() => setTaskIndexOpen(true)} className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm lg:hidden"><Menu className="h-4 w-4" />选择备课任务</button>
+    <div className="grid min-w-0 gap-5 lg:grid-cols-[18rem_minmax(0,1fr)]">
+      <aside className={`${taskIndexOpen ? 'fixed inset-x-4 bottom-4 top-20 z-50 block overflow-auto bg-background shadow-2xl' : 'hidden'} rounded-xl border border-border p-3 lg:static lg:block lg:shadow-none`} aria-label="备课任务列表">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="font-medium">{showArchived ? '已归档任务' : '进行中任务'}</h3>
+          <button type="button" onClick={() => setTaskIndexOpen(false)} className="text-xs text-muted-foreground lg:hidden">关闭</button>
+        </div>
+        <a href="#smart-preparation-new-task" onClick={() => setTaskIndexOpen(false)} className="mb-3 block rounded-lg bg-primary px-3 py-2 text-center text-sm text-primary-foreground">新建备课任务</a>
+        <label className="relative block">
+          <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索任务主题" className="w-full rounded-lg border border-border bg-background py-2 pl-9 pr-3 text-sm" />
+        </label>
+        <div className="my-3 grid grid-cols-2 gap-2">
+          <button type="button" onClick={() => void loadTaskCollection(false)} className={`rounded-lg px-2 py-1.5 text-xs ${!showArchived ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>进行中</button>
+          <button type="button" onClick={() => void loadTaskCollection(true)} className={`rounded-lg px-2 py-1.5 text-xs ${showArchived ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>已归档</button>
+        </div>
+        <div className="space-y-2">
+          {visibleTasks.map((task) => <button key={task.id} type="button" onClick={() => { setSelectedTaskId(task.id); setTaskIndexOpen(false); }} className={`w-full rounded-lg border p-3 text-left ${activeTask?.id === task.id ? 'border-primary bg-primary/5' : 'border-border'}`}>
+            <span className="block truncate text-sm font-medium">{task.topic}</span>
+            <span className="mt-1 block text-xs text-muted-foreground">{task.workspace?.stages.find((stage) => stage.id === task.workspace?.currentStage)?.title ?? task.currentStageTitle ?? '课程依据'} · {task.workspace?.statusLabel ?? task.statusLabel ?? '尚未开始'} · {task.durationMinutes} 分钟</span>
+            <span className="mt-1 block text-xs text-muted-foreground">更新于 {task.updatedAt ? new Date(task.updatedAt as unknown as string).toLocaleDateString() : '未知'}</span>
+          </button>)}
+          {!visibleTasks.length ? <p className="rounded-lg bg-muted p-3 text-sm text-muted-foreground">没有符合条件的任务。</p> : null}
+        </div>
+      </aside>
+      <div className="min-w-0 space-y-6">
     <div className="space-y-3 rounded-lg border border-border p-4">
       <div className="flex flex-wrap items-center gap-2">
         <KonlingEntryPointButton entryPoint={{ mode: 'prep-coauthor', promptContext: 'smart-task:bootstrap', serverContext: { smartPrepBootstrap: 'true' } }} label="用自然语言创建任务" />
         <button type="button" onClick={() => void loadBootstrapSuggestions()} className="rounded border border-border px-3 py-1.5 text-sm">查看待确认创建建议</button>
       </div>
-      {bootstrapSuggestions.length ? <div className="space-y-2">{bootstrapSuggestions.map((suggestion) => <div key={suggestion.id} className="rounded bg-muted/50 p-3 text-xs">{suggestion.clarification ? <div><p>{suggestion.clarification.question}</p><p>{suggestion.clarification.alternatives.join(' / ')}</p></div> : <pre className="max-h-52 overflow-auto whitespace-pre-wrap">{JSON.stringify(suggestion.proposedTask, null, 2)}</pre>}{suggestion.proposedTask && !suggestion.confirmedTaskId ? <button type="button" onClick={() => void confirmBootstrapSuggestion(suggestion)} className="mt-2 rounded border border-primary px-2 py-1 text-primary">确认并创建任务</button> : null}</div>)}</div> : null}
+      {bootstrapSuggestions.length ? <div className="space-y-2">{bootstrapSuggestions.map((suggestion) => <div key={suggestion.id} className="rounded bg-muted/50 p-3 text-xs">{suggestion.clarification ? <div><p>{suggestion.clarification.question}</p><p>{suggestion.clarification.alternatives.join(' / ')}</p></div> : <SuggestionSummary value={suggestion.proposedTask} />}{suggestion.proposedTask && !suggestion.confirmedTaskId ? <button type="button" onClick={() => void confirmBootstrapSuggestion(suggestion)} className="mt-2 rounded border border-primary px-2 py-1 text-primary">确认并创建任务</button> : null}</div>)}</div> : null}
     </div>
-    <form action={createTask} className="grid gap-3 md:grid-cols-2">
+    <form id="smart-preparation-new-task" action={createTask} className="grid scroll-mt-24 gap-3 md:grid-cols-2">
       <select value={selected?.versionId ?? ''} onChange={(event) => setSelectedSource(event.target.value)} className="rounded-lg border border-border bg-background px-3 py-2 md:col-span-2">
         {sourceOptions.length ? sourceOptions.map((option) => <option key={option.versionId} value={option.versionId}>{option.label}</option>) : <option value="">暂无已确认来源版本</option>}
       </select>
@@ -309,44 +440,81 @@ export function SmartLessonPlanWorkspace({ courseBases, classDiagnosisOptions, i
       <label className="flex items-center gap-2 text-sm"><input name="outlineConfirmationRequired" type="checkbox" />生成提纲后暂停确认</label>
       <button disabled={busy || !selected} className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-primary-foreground disabled:opacity-50"><Plus className="h-4 w-4" />{busy ? '创建中…' : '确认并创建单课任务'}</button>
     </form>
-    <div className="grid gap-3">{tasks.map((task) => {
+    {!detailedActiveTask && activeTask ? <p className="rounded-lg bg-muted p-4 text-sm text-muted-foreground">正在载入任务详情…</p> : null}
+    <div className="grid min-w-0 gap-3">{(detailedActiveTask ? [detailedActiveTask] : []).map((task) => {
       const draft = task.drafts?.[0];
       const job = draft?.jobs?.[0];
       const hasBlockingJob = Boolean(job && !job.supersededAt && !['COMPLETED', 'CANCELLED'].includes(job.state));
       const outline = job?.stages?.find((stage) => stage.kind === 'OUTLINE');
+      const stageDetails = (id: string, children: ReactNode) => {
+        const stage = task.workspace?.stages.find((item) => item.id === id);
+        if (!stage) return null;
+        return <PreparationStageDetails
+          key={stage.id}
+          stage={stage}
+          index={task.workspace!.stages.indexOf(stage)}
+          initiallyOpen={stage.id === task.workspace?.currentStage}
+        >
+          {children}
+        </PreparationStageDetails>;
+      };
       return <article key={task.id} className="space-y-3 rounded-lg border border-border p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div><h3 className="font-medium">{task.topic}</h3><p className="text-sm text-subtle">修订 {task.revision} · {task.audience} · {task.durationMinutes} 分钟 · 草稿 {draft?.state ?? '未创建'}{job ? ` · 任务 ${job.state}` : ''}</p></div>
+          <div><h3 className="font-medium">{task.topic}</h3><p className="text-sm text-subtle">修订 {task.revision} · {task.audience} · {task.durationMinutes} 分钟 · 草稿 {draftStateLabel(draft?.state)}{job ? ` · 生成 ${generationStateLabel(job.state)}` : ''}</p></div>
           <div className="flex flex-wrap gap-2">
-            <KonlingEntryPointButton entryPoint={{ mode: 'prep-coauthor', promptContext: `smart-task:${task.id}`, serverContext: { smartTaskId: task.id, smartTaskRevision: String(task.revision) } }} label="与孔灵共创" />
-            <button onClick={() => void loadKonlingSuggestions(task.id)} className="rounded border border-border px-3 py-1.5 text-sm">查看孔灵建议</button>
-            <button onClick={() => void editTask(task)} disabled={Boolean(job && !job.supersededAt && ['QUEUED', 'RUNNING', 'PAUSED', 'RETRYABLE'].includes(job.state))} className="rounded border border-border px-3 py-1.5 text-sm disabled:opacity-50">修订任务</button>
-            <button onClick={() => void refreshTask(task.id)} className="rounded border border-border px-3 py-1.5 text-sm">刷新进度</button>
-            <button onClick={() => void startGeneration(task)} disabled={!draft || hasBlockingJob || draft.state === 'APPROVED'} className="inline-flex items-center gap-1 rounded border border-border px-3 py-1.5 text-sm disabled:opacity-50"><LoaderCircle className="h-4 w-4" />开始生成</button>
-            {job?.state === 'PAUSED' && !job.supersededAt ? <button onClick={() => void editPausedOutline(task)} className="rounded border border-border px-3 py-1.5 text-sm">编辑提纲</button> : null}
-            {job && !job.supersededAt && ['PAUSED', 'RETRYABLE', 'FAILED', 'CANCELLED'].includes(job.state) ? <button onClick={() => void runJobAction(task, job.state === 'RETRYABLE' || job.state === 'FAILED' ? 'retry' : 'resume')} className="rounded border border-border px-3 py-1.5 text-sm">{job.state === 'PAUSED' ? '确认当前提纲并继续' : '恢复/重试'}</button> : null}
-            {job && !job.supersededAt && ['QUEUED', 'RUNNING', 'PAUSED', 'RETRYABLE'].includes(job.state) ? <button onClick={() => void runJobAction(task, 'cancel')} className="rounded border border-border px-3 py-1.5 text-sm">取消</button> : null}
-            <button onClick={() => void editDraft(task)} disabled={!draft?.content || draft.state === 'GENERATING' || draft.state === 'APPROVED'} className="rounded border border-border px-3 py-1.5 text-sm disabled:opacity-50">编辑教案</button>
-            <button onClick={() => void requestAdvisoryReview(task)} disabled={!draft?.content || draft.state !== 'READY'} className="rounded border border-border px-3 py-1.5 text-sm disabled:opacity-50">AI 建议</button>
-            <button onClick={() => void approve(task)} disabled={!draft || draft.state !== 'READY'} className="inline-flex items-center gap-1 rounded border border-primary px-3 py-1.5 text-sm text-primary disabled:opacity-50"><CheckCircle2 className="h-4 w-4" />批准版本</button>
-            {task.revisions?.[0] ? <button onClick={() => void deriveDraft(task, task.revisions![0].id)} className="rounded border border-border px-3 py-1.5 text-sm">基于{task.revisions[0].displayName}继续修订</button> : null}
-            {task.revisions?.[0] ? <button type="button" onClick={() => createCourseware(task.revisions![0].id)} className="rounded border border-primary px-3 py-1.5 text-sm text-primary">生成互动课件</button> : null}
+            {showArchived
+              ? <button type="button" onClick={() => void changeTaskLifecycle(task, 'restore')} className="inline-flex items-center gap-1 rounded border border-border px-3 py-1.5 text-sm"><RotateCcw className="h-4 w-4" />恢复</button>
+              : <button type="button" onClick={() => void changeTaskLifecycle(task, 'archive')} className="inline-flex items-center gap-1 rounded border border-border px-3 py-1.5 text-sm"><Archive className="h-4 w-4" />归档</button>}
+            {!showArchived ? <button type="button" onClick={() => void changeTaskLifecycle(task, 'delete')} className="inline-flex items-center gap-1 rounded border border-destructive/40 px-3 py-1.5 text-sm text-destructive"><Trash2 className="h-4 w-4" />永久删除</button> : null}
           </div>
         </div>
-        <div className="grid gap-2 md:grid-cols-2">
-          <div><h4 className="text-sm font-medium">知识点与来源</h4>{task.knowledgePoints?.filter((item) => item.state !== 'REMOVED').map((item) => <p key={item.id} className="text-sm">{item.title} · <SourceStateLabel state={item.sourceState} /></p>)}</div>
-          <div><h4 className="text-sm font-medium">教学目标与来源</h4>{task.goals?.filter((item) => item.state !== 'REMOVED').map((item) => <p key={item.id} className="text-sm">{item.content} · <SourceStateLabel state={item.sourceState} /></p>)}</div>
+        <div className="grid gap-2" aria-label="五阶段备课进度">
+          {stageDetails('course-basis', <div className="space-y-2">
+            <p>已选择 {task.sources?.filter((source) => source.state === 'SELECTED').length ?? 0} 个课程依据版本。</p>
+            <p className="text-muted-foreground">可在上方“课程依据”视图管理文档，返回后本阶段会读取最新持久化状态。</p>
+          </div>)}
+          {stageDetails('topic-goals', <div className="space-y-3">
+            <div className="flex flex-wrap gap-2">
+              <KonlingEntryPointButton entryPoint={{ mode: 'prep-coauthor', promptContext: `smart-task:${task.id}`, serverContext: { smartTaskId: task.id, smartTaskRevision: String(task.revision) } }} label="与孔灵共创" />
+              <button onClick={() => void loadKonlingSuggestions(task.id)} className="rounded border border-border px-3 py-1.5 text-sm">查看孔灵建议</button>
+              <button onClick={() => void editTask(task)} disabled={Boolean(job && !job.supersededAt && ['QUEUED', 'RUNNING', 'PAUSED', 'RETRYABLE'].includes(job.state))} className="rounded border border-border px-3 py-1.5 text-sm disabled:opacity-50">修订任务</button>
+            </div>
+            <div className="grid gap-2 md:grid-cols-2">
+              <div><h4 className="text-sm font-medium">知识点与来源</h4>{task.knowledgePoints?.filter((item) => item.state !== 'REMOVED').map((item) => <p key={item.id} className="text-sm">{item.title} · <SourceStateLabel state={item.sourceState} /></p>)}</div>
+              <div><h4 className="text-sm font-medium">教学目标与来源</h4>{task.goals?.filter((item) => item.state !== 'REMOVED').map((item) => <p key={item.id} className="text-sm">{item.content} · <SourceStateLabel state={item.sourceState} /></p>)}</div>
+            </div>
+            {suggestions[task.id]?.length ? <div className="space-y-2 rounded bg-muted/50 p-3"><h4 className="text-sm font-medium">待确认的孔灵建议</h4>{suggestions[task.id].map((suggestion) => <div key={suggestion.id} className="rounded border border-border bg-background p-2 text-xs">{suggestion.clarification ? <div><p>{suggestion.clarification.question}</p><p>{suggestion.clarification.alternatives.join(' / ')}</p></div> : <SuggestionSummary value={suggestion.proposedTask} />}{suggestion.proposedTask ? <button onClick={() => void confirmKonlingSuggestion(task, suggestion)} disabled={suggestion.expectedRevision !== task.revision} className="mt-2 rounded border border-primary px-2 py-1 text-primary disabled:opacity-50">确认并应用</button> : null}</div>)}</div> : null}
+          </div>)}
+          {stageDetails('class-attainment', <label className="grid max-w-md gap-1 text-sm">班级学情（仅使用治理后的累计聚合诊断）<select value={task.aggregateClassContextRef ?? ''} onChange={(event) => void updateClassDiagnosis(task, event.target.value)} disabled={Boolean(job && ['QUEUED', 'RUNNING', 'PAUSED', 'RETRYABLE'].includes(job.state))} className="rounded border border-border bg-background px-3 py-2 disabled:opacity-50"><option value="">不使用班级学情</option>{classDiagnosisOptions.map((option) => <option key={option.diagnosisRef} value={option.diagnosisRef}>{option.className} · {new Date(option.generatedAt).toLocaleDateString()}</option>)}</select></label>)}
+          {stageDetails('lesson-generation', <div className="space-y-3">
+            <div className="flex flex-wrap gap-2">
+              <button onClick={() => void refreshTask(task.id)} className="rounded border border-border px-3 py-1.5 text-sm">刷新进度</button>
+              <button onClick={() => void startGeneration(task)} disabled={!draft || hasBlockingJob || draft.state === 'APPROVED'} className="inline-flex items-center gap-1 rounded border border-border px-3 py-1.5 text-sm disabled:opacity-50"><LoaderCircle className="h-4 w-4" />开始生成</button>
+              {job?.state === 'PAUSED' && !job.supersededAt ? <button onClick={() => void editPausedOutline(task)} className="rounded border border-border px-3 py-1.5 text-sm">编辑提纲</button> : null}
+              {job && !job.supersededAt && ['PAUSED', 'RETRYABLE', 'FAILED', 'CANCELLED'].includes(job.state) ? <button onClick={() => void runJobAction(task, job.state === 'RETRYABLE' || job.state === 'FAILED' ? 'retry' : 'resume')} className="rounded border border-border px-3 py-1.5 text-sm">{job.state === 'PAUSED' ? '确认当前提纲并继续' : '恢复/重试'}</button> : null}
+              {job && !job.supersededAt && ['QUEUED', 'RUNNING', 'PAUSED', 'RETRYABLE'].includes(job.state) ? <button onClick={() => void runJobAction(task, 'cancel')} className="rounded border border-border px-3 py-1.5 text-sm">取消</button> : null}
+              <button onClick={() => void editDraft(task)} disabled={!draft?.content || task.workspace?.unsupportedPayload || draft.state === 'GENERATING' || draft.state === 'APPROVED'} className="rounded border border-border px-3 py-1.5 text-sm disabled:opacity-50">编辑教案</button>
+              <button onClick={() => void requestAdvisoryReview(task)} disabled={!draft?.content || draft.state !== 'READY'} className="rounded border border-border px-3 py-1.5 text-sm disabled:opacity-50">AI 建议</button>
+              <button onClick={() => void approve(task)} disabled={!draft || draft.state !== 'READY'} className="inline-flex items-center gap-1 rounded border border-primary px-3 py-1.5 text-sm text-primary disabled:opacity-50"><CheckCircle2 className="h-4 w-4" />批准版本</button>
+              {task.revisions?.[0] ? <button onClick={() => void deriveDraft(task, task.revisions![0].id)} className="rounded border border-border px-3 py-1.5 text-sm">基于{task.revisions[0].displayName}继续修订</button> : null}
+            </div>
+            {job?.stages?.length ? <div className="space-y-2">{job.stages.map((stage) => <div key={stage.kind} className="rounded bg-muted px-3 py-2 text-xs"><strong>{generationStageLabel(stage.kind)}：{generationStateLabel(stage.state)}</strong>{stage.output ? <p className="mt-1 text-muted-foreground">该阶段结果已保存，可在教案文档中查看。</p> : null}{stage.outputTruncated ? <p>阶段输出较大，请在完整教案中查看。</p> : null}</div>)}</div> : null}
+            {job?.state === 'PAUSED' && outline?.output ? <p className="text-sm">提纲已持久化。可先编辑，或明确确认当前提纲后继续生成。</p> : null}
+            {job?.failureCode ? <p className="text-sm text-destructive">生成未完成，请使用恢复或重试操作。</p> : null}
+            {draft?.content ? <details><summary className="cursor-pointer text-sm font-medium">查看完整教案</summary><TeachingDocument value={draft.content} unsupported={task.workspace?.unsupportedPayload} /></details> : null}
+            {draft?.reviews?.length ? <div className="space-y-2"><h4 className="text-sm font-medium">AI 审核报告（仅建议）</h4>{draft.reviews.map((review) => <div key={review.id} className="rounded bg-muted p-3 text-sm"><p>{review.state === 'COMPLETED' ? '审核建议已生成' : review.failureCode ? '审核未完成，请稍后重试。' : '审核处理中'}</p>{review.state === 'COMPLETED' ? <AdvisoryReviewSummary value={review.report} /> : null}</div>)}</div> : null}
+            {task.revisions?.length ? <p className="text-xs text-subtle">最新：{task.revisions[0].displayName}</p> : null}
+          </div>)}
+          {stageDetails('courseware-generation', <div className="space-y-2">
+            {task.revisions?.[0]
+              ? <button type="button" onClick={() => createCourseware(task.revisions![0].id)} className="rounded border border-primary px-3 py-1.5 text-sm text-primary">生成互动课件</button>
+              : <p className="text-muted-foreground">批准教案版本后可生成互动课件。</p>}
+          </div>)}
         </div>
-        <label className="grid max-w-md gap-1 text-sm">班级学情（仅使用治理后的聚合诊断）<select value={task.aggregateClassContextRef ?? ''} onChange={(event) => void updateClassDiagnosis(task, event.target.value)} disabled={Boolean(job && ['QUEUED', 'RUNNING', 'PAUSED', 'RETRYABLE'].includes(job.state))} className="rounded border border-border bg-background px-3 py-2 disabled:opacity-50"><option value="">不使用班级学情</option>{classDiagnosisOptions.map((option) => <option key={option.diagnosisRef} value={option.diagnosisRef}>{option.className} · {new Date(option.generatedAt).toLocaleDateString()}</option>)}</select></label>
-        {suggestions[task.id]?.length ? <div className="space-y-2 rounded bg-muted/50 p-3"><h4 className="text-sm font-medium">待确认的孔灵建议</h4>{suggestions[task.id].map((suggestion) => <div key={suggestion.id} className="rounded border border-border bg-background p-2 text-xs">{suggestion.clarification ? <div><p>{suggestion.clarification.question}</p><p>{suggestion.clarification.alternatives.join(' / ')}</p></div> : <pre className="max-h-52 overflow-auto whitespace-pre-wrap">{JSON.stringify(suggestion.proposedTask, null, 2)}</pre>}{suggestion.proposedTask ? <button onClick={() => void confirmKonlingSuggestion(task, suggestion)} disabled={suggestion.expectedRevision !== task.revision} className="mt-2 rounded border border-primary px-2 py-1 text-primary disabled:opacity-50">确认并应用</button> : null}</div>)}</div> : null}
-        {job?.stages?.length ? <div className="space-y-2">{job.stages.map((stage) => <div key={stage.kind} className="rounded bg-muted px-3 py-2 text-xs"><strong>{stage.kind}: {stage.state}</strong>{stage.output ? <pre className="mt-2 max-h-52 overflow-auto whitespace-pre-wrap">{JSON.stringify(stage.output, null, 2)}</pre> : null}{stage.outputTruncated ? <p>阶段输出过大，请在完整草稿中查看。</p> : null}</div>)}</div> : null}
-        {job?.state === 'PAUSED' && outline?.output ? <p className="text-sm">提纲已持久化。可先编辑，或明确确认当前提纲后继续生成。</p> : null}
-        {job?.failureCode ? <p className="text-sm text-destructive">{job.failureCode}</p> : null}
-        {draft?.content ? <details><summary className="cursor-pointer text-sm font-medium">查看完整教案</summary><pre className="mt-2 max-h-[36rem] overflow-auto whitespace-pre-wrap rounded bg-muted p-3 text-xs">{JSON.stringify(draft.content, null, 2)}</pre></details> : null}
-        {draft?.reviews?.length ? <div className="space-y-2"><h4 className="text-sm font-medium">AI 审核报告（仅建议）</h4>{draft.reviews.map((review) => <pre key={review.id} className="max-h-72 overflow-auto whitespace-pre-wrap rounded bg-muted p-3 text-xs">{JSON.stringify(review.report ?? { state: review.state, failureCode: review.failureCode }, null, 2)}</pre>)}</div> : null}
-        {task.revisions?.length ? <p className="text-xs text-subtle">最新：{task.revisions[0].displayName}</p> : null}
       </article>;
     })}</div>
+      </div>
+    </div>
   </section>;
 }
 
@@ -375,7 +543,160 @@ function taskUpdateInput(task: Task) {
 function SourceStateLabel({ state }: { state: PublicSourceState }) {
   const pending = state !== 'verified';
   const label = state === 'verified' ? '来源已验证' : state === 'ai_generated_source_pending' ? 'AI 生成，来源待补' : '教师创建，来源待补';
-  return <span className={pending ? 'rounded bg-amber-100 px-1.5 py-0.5 text-amber-900 dark:bg-amber-950 dark:text-amber-200' : 'text-emerald-700 dark:text-emerald-300'}>{label}</span>;
+  return <span className={pending ? 'rounded bg-muted px-1.5 py-0.5 text-foreground' : 'text-primary'}>{label}</span>;
+}
+
+function PreparationStageDetails({
+  stage,
+  index,
+  initiallyOpen,
+  children,
+}: {
+  stage: NonNullable<Task['workspace']>['stages'][number];
+  index: number;
+  initiallyOpen: boolean;
+  children?: ReactNode;
+}) {
+  const [open, setOpen] = useState(initiallyOpen);
+  return <details
+    open={open}
+    onToggle={(event) => setOpen(event.currentTarget.open)}
+    className="group rounded-lg border border-border bg-card"
+  >
+    <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3">
+      <span className="flex items-center gap-2">
+        <span className={`grid h-6 w-6 place-items-center rounded-full text-xs ${stage.complete ? 'bg-primary text-primary-foreground' : stage.state === 'blocked' ? 'bg-muted text-muted-foreground' : 'bg-primary text-primary-foreground'}`}>
+          {stage.complete ? '✓' : index + 1}
+        </span>
+        <strong className="text-sm">{stage.title}</strong>
+      </span>
+      <span className="text-xs text-muted-foreground">{stage.statusLabel}</span>
+    </summary>
+    <div className="border-t border-border px-4 py-3 text-sm">
+      {stage.blockingReason ? <p className="text-destructive">{stage.blockingReason}</p> : null}
+      {stage.nextAction ? <p className="text-muted-foreground">下一步：{stage.nextAction}</p> : <p className="text-primary">该阶段的持久化数据有效。</p>}
+      <div className="mt-3 min-w-0">{children}</div>
+    </div>
+  </details>;
+}
+
+function TeachingDocument({ value, unsupported }: { value: unknown; unsupported?: boolean }) {
+  if (unsupported || !value || typeof value !== 'object' || Array.isArray(value)) {
+    return <div className="mt-2 rounded-lg border border-border bg-muted p-4 text-sm text-foreground">
+      该历史内容无法按当前教案结构显示。请基于最近批准版本继续修订，或重新生成首个未完成阶段。
+    </div>;
+  }
+  const document = value as Record<string, unknown>;
+  const boppps = document.boppps && typeof document.boppps === 'object' && !Array.isArray(document.boppps)
+    ? document.boppps as Record<string, unknown>
+    : null;
+  const sections = Array.isArray(document.stages)
+    ? document.stages
+    : Array.isArray(document.sections)
+      ? document.sections
+      : boppps
+        ? Object.entries(boppps).map(([stage, content]) => ({ stage, ...(content && typeof content === 'object' && !Array.isArray(content) ? content : {}) }))
+        : [];
+  return <div className="mt-2 max-h-[36rem] space-y-4 overflow-auto rounded-lg bg-muted/60 p-4">
+    {typeof document.title === 'string' || typeof document.topic === 'string' ? <h4 className="font-semibold">{String(document.title ?? document.topic)}</h4> : null}
+    {sections.map((section, index) => {
+      const item = section && typeof section === 'object' ? section as Record<string, unknown> : {};
+      const body = typeof item.content === 'string'
+        ? item.content
+        : typeof item.description === 'string'
+          ? item.description
+          : typeof item.summary === 'string'
+            ? item.summary
+            : [item.teacherActivity, item.studentActivity, item.assessment].filter((text): text is string => typeof text === 'string').join('；') || null;
+      return <section key={String(item.id ?? item.stage ?? index)} className="rounded-lg border border-border bg-background p-3">
+        <h5 className="text-sm font-medium">{String(item.title ?? bopppsStageLabel(String(item.stage ?? '')) ?? `教学环节 ${index + 1}`)}</h5>
+        {body ? <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">{body}</p> : <p className="mt-1 text-xs text-muted-foreground">结构化内容已保存，可进入统一编辑器继续查看和编辑。</p>}
+      </section>;
+    })}
+    {!sections.length && typeof document.title !== 'string' ? <p className="text-sm text-muted-foreground">结构化教案已保存，可进入统一编辑器继续查看。</p> : null}
+  </div>;
+}
+
+function AdvisoryReviewSummary({ value }: { value: unknown }) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const review = value as Record<string, unknown>;
+  const summaries = [review.goalCoverage, review.sourceConsistency, review.bopppsStructure]
+    .filter((item): item is string => typeof item === 'string');
+  const suggestions = Array.isArray(review.suggestions)
+    ? review.suggestions.filter((item): item is string => typeof item === 'string')
+    : [];
+  return <div className="mt-2 space-y-1 text-muted-foreground">
+    {summaries.map((item) => <p key={item}>{item}</p>)}
+    {suggestions.map((item) => <p key={item}>建议：{item}</p>)}
+  </div>;
+}
+
+function SuggestionSummary({ value }: { value: unknown }) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return <p className="text-muted-foreground">建议内容暂不可显示。</p>;
+  }
+  const suggestion = value as Record<string, unknown>;
+  const topic = typeof suggestion.topic === 'string' ? suggestion.topic : null;
+  const audience = typeof suggestion.audience === 'string' ? suggestion.audience : null;
+  const duration = typeof suggestion.durationMinutes === 'number' ? suggestion.durationMinutes : null;
+  return <div className="space-y-1">
+    <p className="font-medium">{topic ?? '备课任务调整建议'}</p>
+    {audience ? <p>授课对象：{audience}</p> : null}
+    {duration ? <p>课时长度：{duration} 分钟</p> : null}
+    <p className="text-muted-foreground">确认后将按建议更新已保存的任务字段。</p>
+  </div>;
+}
+
+function bopppsStageLabel(value: string) {
+  return ({
+    bridgeIn: '导入',
+    objectives: '学习目标',
+    preAssessment: '前测',
+    participatoryLearning: '参与式学习',
+    postAssessment: '后测',
+    summary: '总结',
+  } as Record<string, string>)[value];
+}
+
+function stringList(value: unknown) {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+}
+
+function splitLines(value: string) {
+  return value.split('\n').map((item) => item.trim()).filter(Boolean);
+}
+
+function generationStageLabel(value: string) {
+  return ({
+    OUTLINE: '教学提纲',
+    BRIDGE_IN: '导入',
+    OBJECTIVES: '学习目标',
+    PRE_ASSESSMENT: '前测',
+    PARTICIPATORY_LEARNING: '参与式学习',
+    POST_ASSESSMENT: '后测',
+    SUMMARY: '总结',
+  } as Record<string, string>)[value] ?? '未知阶段';
+}
+
+function draftStateLabel(value: string | null | undefined) {
+  return ({
+    EDITABLE: '可编辑',
+    GENERATING: '生成中',
+    READY: '待审核',
+    APPROVED: '已批准',
+  } as Record<string, string>)[value ?? ''] ?? '未创建';
+}
+
+function generationStateLabel(value: string) {
+  return ({
+    PENDING: '等待处理',
+    RUNNING: '正在生成',
+    PAUSED: '等待确认',
+    RETRYABLE: '可以重试',
+    FAILED: '生成失败',
+    CANCELLED: '已取消',
+    COMPLETED: '已完成',
+  } as Record<string, string>)[value] ?? '状态不可用';
 }
 
 function errorText(payload: any) {

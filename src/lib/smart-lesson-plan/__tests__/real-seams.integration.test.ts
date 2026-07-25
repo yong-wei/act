@@ -10,6 +10,7 @@ import { Pool } from 'pg';
 import { createPrismaClient } from '@/lib/prisma-client';
 
 import { enqueueSmartLessonGenerationJob } from '../queue';
+import { deleteSmartLessonTask } from '../lifecycle';
 import {
   cancelGenerationJob,
   createSmartLessonTask,
@@ -178,6 +179,129 @@ describe.runIf(enabled)('smart lesson real PostgreSQL and BullMQ seams', () => {
     await verifyCancellationRedelivery('before-claim');
     await verifyCancellationRedelivery('after-claim');
   }, 30_000);
+
+  it('deletes an unpublished approved lesson and courseware graph through the fenced transaction', async () => {
+    const task = await createTask('lifecycle-delete');
+    const approvedDraft = task.drafts[0];
+    const lessonRevision = await prisma.smartLessonRevision.create({
+      data: {
+        ownerId: actor.id,
+        taskId: task.id,
+        draftId: approvedDraft.id,
+        revisionNumber: 1,
+        displayName: '教案第1版',
+        content: { topic: task.topic },
+        contentHash: 'lesson-content-hash',
+        sourcesSnapshot: [],
+        knowledgeSnapshot: [],
+        goalsSnapshot: [],
+        provenanceSnapshot: {},
+        approvalIdempotencyKey: `approval-${task.id}`,
+        approvalRequestHash: 'lesson-approval-request',
+        approvedById: actor.id,
+      },
+    });
+    await prisma.smartLessonDraft.create({
+      data: {
+        ownerId: actor.id,
+        taskId: task.id,
+        basedOnRevisionId: lessonRevision.id,
+        content: { topic: task.topic },
+        contentHash: 'derived-content-hash',
+      },
+    });
+    const coursewareDraft = await prisma.smartCoursewareDraft.create({
+      data: {
+        ownerId: actor.id,
+        planRevisionId: lessonRevision.id,
+        planRevisionNumber: 1,
+        planContentHash: lessonRevision.contentHash,
+        state: 'ACCEPTED',
+        creationIdempotencyKey: `courseware-${task.id}`,
+        creationRequestHash: 'courseware-request-hash',
+      },
+    });
+    const coursewareModule = await prisma.smartCoursewareModule.create({
+      data: {
+        ownerId: actor.id,
+        draftId: coursewareDraft.id,
+        runtimeModuleId: 'module-1',
+        activeIdentity: `${coursewareDraft.id}:module-1`,
+        contentHash: 'module-content-hash',
+        sourceState: 'TEACHER_CREATED_SOURCE_PENDING',
+        sourceBindings: [],
+        sourceBindingSetHash: 'module-binding-hash',
+        gapIdentity: `module-gap:${coursewareDraft.id}`,
+        provenance: 'TEACHER_CREATED',
+      },
+    });
+    await prisma.smartCoursewareModuleRevision.create({
+      data: {
+        ownerId: actor.id,
+        moduleRecordId: coursewareModule.id,
+        revisionNumber: 1,
+        changeKind: 'CREATE',
+        runtimeModuleSnapshot: { type: 'text' },
+        teacherMetadataSnapshot: {},
+        contentHash: coursewareModule.contentHash,
+        sourceState: coursewareModule.sourceState,
+        sourceBindings: [],
+        sourceBindingSetHash: coursewareModule.sourceBindingSetHash,
+        gapIdentity: coursewareModule.gapIdentity,
+        provenance: coursewareModule.provenance,
+        actorId: actor.id,
+      },
+    });
+    const coursewareRevision = await prisma.smartCoursewareRevision.create({
+      data: {
+        ownerId: actor.id,
+        draftId: coursewareDraft.id,
+        planRevisionId: lessonRevision.id,
+        planRevisionNumber: 1,
+        planContentHash: lessonRevision.contentHash,
+        manifestSnapshot: {},
+        manifestHash: 'manifest-hash',
+        moduleMetadataSnapshot: {},
+        moduleMetadataHash: 'module-metadata-hash',
+        gapsSnapshot: [],
+        provenanceSnapshot: {},
+        validationSnapshot: {},
+        contentHash: 'courseware-content-hash',
+        approvalIdempotencyKey: `courseware-approval-${task.id}`,
+        approvalRequestHash: 'courseware-approval-request',
+        approvedById: actor.id,
+      },
+    });
+    await prisma.smartCoursewarePublicationReceipt.create({
+      data: {
+        ownerId: actor.id,
+        sourceRevisionId: coursewareRevision.id,
+        kind: 'STATIC',
+        contentHash: coursewareRevision.contentHash,
+        validatorVersion: 'test.v1',
+        profileHash: 'profile-hash',
+        completedById: actor.id,
+      },
+    });
+    const [trigger] = await prisma.$queryRaw<Array<{ definition: string }>>`
+      SELECT pg_get_functiondef(trigger.tgfoid) AS definition
+      FROM pg_trigger trigger
+      JOIN pg_class relation ON relation.oid = trigger.tgrelid
+      JOIN pg_namespace namespace ON namespace.oid = relation.relnamespace
+      WHERE relation.relname = 'SmartCoursewarePublicationReceipt'
+        AND namespace.nspname = ${schemaName}
+        AND NOT trigger.tgisinternal
+    `;
+    expect(trigger.definition).toContain("current_setting('app.smart_lesson_task_delete', true)");
+
+    await expect(deleteSmartLessonTask(prisma, { actor, taskId: task.id })).resolves.toEqual({
+      deleted: true,
+      blockers: [],
+    });
+    expect(await prisma.smartLessonTask.findUnique({ where: { id: task.id } })).toBeNull();
+    expect(await prisma.smartLessonRevision.count({ where: { taskId: task.id } })).toBe(0);
+    expect(await prisma.smartCoursewareDraft.count({ where: { id: coursewareDraft.id } })).toBe(0);
+  });
 });
 
 async function createTask(label: string) {

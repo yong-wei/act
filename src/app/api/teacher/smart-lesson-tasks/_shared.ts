@@ -3,7 +3,11 @@ import { NextResponse } from 'next/server';
 import { ZodError } from 'zod';
 
 import { getServerAuthSession } from '@/lib/auth';
-import { SmartLessonPlanError, type SmartLessonActor } from '@/lib/smart-lesson-plan';
+import {
+  SmartLessonPlanError,
+  projectSmartPreparationTask,
+  type SmartLessonActor,
+} from '@/lib/smart-lesson-plan';
 
 export {
   createTaskSchema,
@@ -43,7 +47,7 @@ export function smartLessonErrorResponse(error: unknown): NextResponse {
 
 export function publicTask(task: Record<string, unknown>) {
   const drafts = optionalArray(task.drafts, (draft) => publicDraft(recordValue(draft)));
-  return compact({
+  const projected = compact({
     id: task.id,
     courseBasisId: task.courseBasisId,
     lineageId: task.lineageId,
@@ -56,16 +60,62 @@ export function publicTask(task: Record<string, unknown>) {
     goalsConfirmedAt: task.goalsConfirmedAt,
     aggregateClassContextRef: task.aggregateClassContextRef,
     revision: task.revision,
+    archivedAt: task.archivedAt,
     createdAt: task.createdAt,
     updatedAt: task.updatedAt,
     sources: optionalArray(task.sources, (source) => {
       const item = recordValue(source);
-      return compact({ id: item.id, sourceVersionId: item.sourceVersionId, state: item.state, selectedAt: item.selectedAt, removedAt: item.removedAt });
+      const sourceVersion = recordValue(item.sourceVersion);
+      return compact({
+        id: item.id,
+        sourceVersionId: item.sourceVersionId,
+        state: item.state,
+        sourceValid: sourceVersion.reviewState === undefined
+          ? true
+          : sourceVersion.reviewState === 'CONFIRMED' && !sourceVersion.retiredAt,
+        selectedAt: item.selectedAt,
+        removedAt: item.removedAt,
+      });
     }),
     knowledgePoints: optionalArray(task.knowledgePoints, publicKnowledgePoint),
     goals: optionalArray(task.goals, publicGoal),
     drafts,
     revisions: optionalArray(task.revisions, (revision) => publicRevision(recordValue(revision))),
+    coursewarePublicationSeries: publicPublicationSeries(task.coursewarePublicationSeries),
+  });
+  return { ...projected, workspace: projectSmartPreparationTask(projected) };
+}
+
+export function publicTaskSummary(task: Record<string, unknown>) {
+  const workspace = projectSmartPreparationTask({
+    ...task,
+    sources: optionalArray(task.sources, (source) => {
+      const item = recordValue(source);
+      const sourceVersion = recordValue(item.sourceVersion);
+      return {
+        state: item.state,
+        sourceValid: sourceVersion.reviewState === undefined
+          ? true
+          : sourceVersion.reviewState === 'CONFIRMED' && !sourceVersion.retiredAt,
+      };
+    }),
+  });
+  const currentStage = workspace.stages.find((stage) => stage.id === workspace.currentStage);
+  return compact({
+    id: task.id,
+    courseBasisId: task.courseBasisId,
+    topic: task.topic,
+    audience: task.audience,
+    durationMinutes: task.durationMinutes,
+    revision: task.revision,
+    archivedAt: task.archivedAt,
+    updatedAt: task.updatedAt,
+    currentStage: workspace.currentStage,
+    currentStageTitle: currentStage?.title,
+    statusLabel: workspace.statusLabel,
+    nextAction: currentStage?.nextAction,
+    blockingReason: currentStage?.blockingReason,
+    complete: workspace.stages.every((stage) => stage.complete),
   });
 }
 
@@ -194,6 +244,18 @@ function publicGoal(value: unknown) {
     sourceState: publicSourceState(item.sourceState), sourceBindings: publicJson(item.sourceBindings, 64_000),
     gapIdentity: item.gapIdentity, standardsMappings: publicJson(item.standardsMappings, 64_000),
     confirmedAt: item.confirmedAt, removedAt: item.removedAt, createdAt: item.createdAt, updatedAt: item.updatedAt,
+  });
+}
+
+function publicPublicationSeries(value: unknown) {
+  const item = recordValue(value);
+  if (!item.id && !Array.isArray(item.revisions)) return undefined;
+  return compact({
+    id: item.id,
+    revisions: optionalArray(item.revisions, (revision) => {
+      const record = recordValue(revision);
+      return compact({ id: record.id, revisionNumber: record.revisionNumber, publishedAt: record.publishedAt });
+    }),
   });
 }
 

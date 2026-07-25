@@ -25,7 +25,13 @@ type CourseBasis = {
   documentPagination: Pagination;
 };
 
-export function CourseBasisWorkspace({ initialCourseBases }: { initialCourseBases: CourseBasis[] }) {
+export function CourseBasisWorkspace({
+  initialCourseBases,
+  onChanged,
+}: {
+  initialCourseBases: CourseBasis[];
+  onChanged?: () => void;
+}) {
   const [courseBases, setCourseBases] = useState(initialCourseBases);
   const [selectedId, setSelectedId] = useState(initialCourseBases[0]?.id ?? '');
   const [hasMoreBases, setHasMoreBases] = useState(initialCourseBases.length === 50);
@@ -53,6 +59,7 @@ export function CourseBasisWorkspace({ initialCourseBases }: { initialCourseBase
       setHasMoreBases(payload.pagination?.hasMore ?? false);
     }
     setSelectedId(targetId || payload.courseBases[0]?.id || '');
+    onChanged?.();
   }
 
   async function loadMoreBases() {

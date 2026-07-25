@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
   agentSessionUpdateMany: vi.fn(),
   transaction: vi.fn(),
   listTasks: vi.fn(),
+  listTaskSummaries: vi.fn(),
   getTask: vi.fn(),
   createTask: vi.fn(),
   updateTask: vi.fn(),
@@ -24,6 +25,8 @@ const mocks = vi.hoisted(() => ({
   enqueue: vi.fn(),
   review: vi.fn(),
   approve: vi.fn(),
+  archiveTask: vi.fn(),
+  deleteTask: vi.fn(),
 }));
 
 vi.mock('@/lib/auth', () => ({ getServerAuthSession: mocks.session }));
@@ -40,6 +43,7 @@ vi.mock('@/lib/smart-lesson-plan', async (importOriginal) => ({
   deriveDraftFromRevision: mocks.deriveDraft,
   updatePausedGenerationOutline: mocks.updateOutline,
   listSmartLessonTasks: mocks.listTasks,
+  listSmartLessonTaskSummaries: mocks.listTaskSummaries,
   getSmartLessonTask: mocks.getTask,
   updateSmartLessonDraft: mocks.updateDraft,
   startGenerationJob: mocks.start,
@@ -49,6 +53,8 @@ vi.mock('@/lib/smart-lesson-plan', async (importOriginal) => ({
   enqueueSmartLessonGenerationJob: mocks.enqueue,
   recordAdvisoryReview: mocks.review,
   approveSmartLessonDraft: mocks.approve,
+  archiveSmartLessonTask: mocks.archiveTask,
+  deleteSmartLessonTask: mocks.deleteTask,
 }));
 
 const teacher = { user: { id: 'teacher-1', role: 'TEACHER' } };
@@ -83,8 +89,10 @@ describe('smart lesson task routes', () => {
     mocks.listTasks.mockResolvedValue([{ id: 'task-1' }]);
     const { GET } = await import('../route');
     const response = await GET(new Request('http://localhost/api/teacher/smart-lesson-tasks'));
-    expect(mocks.listTasks).toHaveBeenCalledWith(expect.anything(), { id: 'teacher-1', role: 'TEACHER' });
-    expect(await response.json()).toEqual({ tasks: [{ id: 'task-1' }] });
+    expect(mocks.listTasks).toHaveBeenCalledWith(expect.anything(), { id: 'teacher-1', role: 'TEACHER' }, { archived: false });
+    expect(await response.json()).toMatchObject({
+      tasks: [{ id: 'task-1', workspace: { currentStage: 'course-basis' } }],
+    });
   });
 
   it('allows admin list scope without owner filtering', async () => {
@@ -92,7 +100,39 @@ describe('smart lesson task routes', () => {
     mocks.listTasks.mockResolvedValue([]);
     const { GET } = await import('../route');
     await GET(new Request('http://localhost/api/teacher/smart-lesson-tasks'));
-    expect(mocks.listTasks).toHaveBeenCalledWith(expect.anything(), { id: 'admin-1', role: 'ADMIN' });
+    expect(mocks.listTasks).toHaveBeenCalledWith(expect.anything(), { id: 'admin-1', role: 'ADMIN' }, { archived: false });
+  });
+
+  it('returns searchable archived summaries with the persisted five-stage next action', async () => {
+    mocks.listTaskSummaries.mockResolvedValue([{
+      id: 'task-1',
+      topic: '闭环稳定性',
+      audience: '本科生',
+      durationMinutes: 45,
+      scopeConfirmedAt: new Date(),
+      goalsConfirmedAt: new Date(),
+      archivedAt: new Date(),
+      sources: [{ state: 'SELECTED' }],
+      knowledgePoints: [{ state: 'CONFIRMED' }],
+      goals: [{ state: 'CONFIRMED' }],
+      drafts: [{ state: 'EDITABLE', jobs: [{ state: 'FAILED', supersededAt: null }] }],
+      revisions: [],
+    }]);
+    const { GET } = await import('../route');
+    const response = await GET(new Request('http://localhost/api/teacher/smart-lesson-tasks?view=summary&archived=true&query=%E9%97%AD%E7%8E%AF'));
+    expect(mocks.listTaskSummaries).toHaveBeenCalledWith(expect.anything(), { id: 'teacher-1', role: 'TEACHER' }, {
+      archived: true,
+      query: '闭环',
+    });
+    expect(await response.json()).toMatchObject({
+      tasks: [{
+        id: 'task-1',
+        currentStage: 'lesson-generation',
+        statusLabel: '已归档',
+        nextAction: '从首个未完成阶段恢复',
+        complete: false,
+      }],
+    });
   });
 
   it('redacts provider and aggregate learner internals from task reads', async () => {
@@ -108,11 +148,50 @@ describe('smart lesson task routes', () => {
     });
     const { GET } = await import('../[taskId]/route');
     const response = await GET(new Request('http://localhost'), taskParams('task-1'));
-    expect(await response.json()).toEqual({ task: {
+    expect(await response.json()).toMatchObject({ task: {
       id: 'task-1',
       goals: [{ id: 'goal-1', sourceState: 'ai_generated_source_pending' }],
       drafts: [{ reviews: [{ id: 'review-1' }], jobs: [{ id: 'job-1', state: 'RUNNING', stages: [{ id: 'stage-1', kind: 'OUTLINE', state: 'COMPLETED', output: { sourceState: 'verified' }, outputTruncated: false }] }] }],
+      workspace: {
+        currentStage: 'course-basis',
+        statusLabel: '正在生成',
+        unsupportedPayload: false,
+      },
     } });
+  });
+
+  it('archives and restores an owner-scoped task', async () => {
+    mocks.archiveTask.mockResolvedValue({ id: 'task-1', archivedAt: new Date('2026-07-25T00:00:00Z') });
+    mocks.getTask.mockResolvedValue({ id: 'task-1', archivedAt: new Date('2026-07-25T00:00:00Z') });
+    const { PUT } = await import('../[taskId]/route');
+    const response = await PUT(new Request('http://localhost', {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ action: 'archive' }),
+    }), taskParams('task-1'));
+    expect(response.status).toBe(200);
+    expect(mocks.archiveTask).toHaveBeenCalledWith(expect.anything(), {
+      actor: { id: 'teacher-1', role: 'TEACHER' },
+      taskId: 'task-1',
+      archived: true,
+    });
+  });
+
+  it('returns reference categories when permanent deletion is blocked', async () => {
+    mocks.deleteTask.mockResolvedValue({
+      deleted: false,
+      blockers: [{ category: 'publication', count: 1, managementPath: '/teacher/preset-lessons' }],
+    });
+    const { DELETE } = await import('../[taskId]/route');
+    const response = await DELETE(new Request('http://localhost', { method: 'DELETE' }), taskParams('task-1'));
+    expect(response.status).toBe(409);
+    expect(await response.json()).toMatchObject({
+      error: {
+        code: 'smart-lesson-task-referenced',
+        blockers: [{ category: 'publication', count: 1 }],
+        nextAction: 'archive',
+      },
+    });
   });
 
   it('atomically revises the owner-scoped task and carries the confirming turn', async () => {

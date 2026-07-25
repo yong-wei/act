@@ -77,14 +77,25 @@ export type UpdateSmartLessonTaskInput = Omit<CreateSmartLessonTaskInput, 'actor
   agentSessionId?: string;
 };
 
-export async function listSmartLessonTasks(db: SmartLessonDb, actorInput: SmartLessonActor) {
+export async function listSmartLessonTasks(
+  db: SmartLessonDb,
+  actorInput: SmartLessonActor,
+  options: { archived?: boolean } = {},
+) {
   const actor = validateActor(actorInput);
   return db.smartLessonTask.findMany({
-    where: actor.role === 'ADMIN' ? {} : { ownerId: actor.id },
+    where: {
+      ...(actor.role === 'ADMIN' ? {} : { ownerId: actor.id }),
+      archivedAt: options.archived ? { not: null } : null,
+    },
     orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
     take: 50,
     include: {
-      sources: true,
+      sources: {
+        include: {
+          sourceVersion: { select: { reviewState: true, retiredAt: true } },
+        },
+      },
       knowledgePoints: { orderBy: { createdAt: 'asc' } },
       goals: { orderBy: { createdAt: 'asc' } },
       drafts: {
@@ -96,6 +107,87 @@ export async function listSmartLessonTasks(db: SmartLessonDb, actorInput: SmartL
         },
       },
       revisions: { orderBy: { revisionNumber: 'desc' }, take: 10 },
+      coursewarePublicationSeries: {
+        include: { revisions: { orderBy: { revisionNumber: 'desc' }, take: 1 } },
+      },
+    },
+  });
+}
+
+export async function listSmartLessonTaskSummaries(
+  db: SmartLessonDb,
+  actorInput: SmartLessonActor,
+  options: { archived?: boolean; query?: string } = {},
+) {
+  const actor = validateActor(actorInput);
+  const query = optionalText(options.query, 200);
+  return db.smartLessonTask.findMany({
+    where: {
+      ...(actor.role === 'ADMIN' ? {} : { ownerId: actor.id }),
+      archivedAt: options.archived ? { not: null } : null,
+      ...(query ? { topic: { contains: query, mode: 'insensitive' as const } } : {}),
+    },
+    orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
+    take: 50,
+    select: {
+      id: true,
+      courseBasisId: true,
+      topic: true,
+      audience: true,
+      durationMinutes: true,
+      revision: true,
+      scopeConfirmedAt: true,
+      goalsConfirmedAt: true,
+      archivedAt: true,
+      updatedAt: true,
+      sources: {
+        where: { state: 'SELECTED' },
+        select: {
+          state: true,
+          sourceVersion: { select: { reviewState: true, retiredAt: true } },
+        },
+      },
+      knowledgePoints: {
+        where: { state: { not: 'REMOVED' } },
+        select: { state: true },
+      },
+      goals: {
+        where: { state: { not: 'REMOVED' } },
+        select: { state: true },
+      },
+      drafts: {
+        orderBy: { updatedAt: 'desc' },
+        take: 1,
+        select: {
+          state: true,
+          jobs: {
+            orderBy: { createdAt: 'desc' },
+            take: 1,
+            select: { state: true, firstIncompleteStage: true, supersededAt: true },
+          },
+        },
+      },
+      revisions: {
+        orderBy: { revisionNumber: 'desc' },
+        take: 1,
+        select: {
+          id: true,
+          revisionNumber: true,
+          coursewareDrafts: {
+            where: { state: 'ACCEPTED' },
+            take: 1,
+            select: { state: true },
+          },
+        },
+      },
+      coursewarePublicationSeries: {
+        select: {
+          revisions: {
+            take: 1,
+            select: { id: true },
+          },
+        },
+      },
     },
   });
 }
@@ -108,7 +200,11 @@ export async function getSmartLessonTask(db: SmartLessonDb, input: {
   const task = await db.smartLessonTask.findFirst({
     where: readableWhere(actor, { id: validateId(input.taskId) }),
     include: {
-      sources: true,
+      sources: {
+        include: {
+          sourceVersion: { select: { reviewState: true, retiredAt: true } },
+        },
+      },
       knowledgePoints: { orderBy: { createdAt: 'asc' } },
       goals: { orderBy: { createdAt: 'asc' } },
       drafts: {
@@ -119,6 +215,9 @@ export async function getSmartLessonTask(db: SmartLessonDb, input: {
         },
       },
       revisions: { orderBy: { revisionNumber: 'desc' }, take: 20 },
+      coursewarePublicationSeries: {
+        include: { revisions: { orderBy: { revisionNumber: 'desc' }, take: 1 } },
+      },
     },
   });
   if (!task) throw new SmartLessonPlanError('smart-lesson-task-not-found', 404);

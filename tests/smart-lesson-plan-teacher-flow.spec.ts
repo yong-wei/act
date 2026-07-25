@@ -3,6 +3,7 @@ import 'dotenv/config';
 import { expect, test, type BrowserContext, type Page, type Route } from '@playwright/test';
 import { encode } from 'next-auth/jwt';
 import { prisma } from '../src/lib/prisma';
+import { projectSmartPreparationTask } from '../src/lib/smart-lesson-plan/workspace';
 
 const teacherId = 'smart-lesson-playwright-teacher';
 const courseBasisId = 'smart-lesson-playwright-basis';
@@ -112,6 +113,9 @@ type FixtureRevision = { id: string; displayName: string; revisionNumber: number
 type FixtureTask = {
   id: string; courseBasisId: string; revision: number; topic: string; audience: string; prerequisites: string;
   durationMinutes: number; outlineConfirmationRequired: boolean;
+  archivedAt?: string | null;
+  scopeConfirmedAt: string; goalsConfirmedAt: string; updatedAt: string;
+  sources: Array<{ sourceVersionId: string; state: string }>;
   knowledgePoints: Array<Record<string, unknown>>; goals: Array<Record<string, unknown>>;
   drafts: FixtureDraft[]; revisions: FixtureRevision[];
 };
@@ -120,11 +124,19 @@ function baseTask(): FixtureTask {
   return {
     id: 'task-939', courseBasisId, revision: 1, topic: '闭环稳定性', audience: '自动化专业本科生', prerequisites: '传递函数', durationMinutes: 30,
     outlineConfirmationRequired: true,
+    scopeConfirmedAt: '2026-07-25T00:00:00.000Z',
+    goalsConfirmedAt: '2026-07-25T00:00:00.000Z',
+    updatedAt: '2026-07-25T00:00:00.000Z',
+    sources: [{ sourceVersionId: versionId, state: 'SELECTED' }],
     knowledgePoints: [{ id: 'point-1', lineageId: 'point-lineage-1', title: '稳定性判据', origin: 'TEACHER_CREATED', sourceState: 'teacher_created_source_pending', sourceBindings: [], state: 'CONFIRMED' }],
     goals: [{ id: 'goal-1', lineageId: 'goal-lineage-1', content: '判断闭环系统稳定性', sourceState: 'teacher_created_source_pending', sourceBindings: [], state: 'CONFIRMED' }],
     drafts: [{ id: 'draft-1', state: 'EDITABLE', version: 1, jobs: [], reviews: [] }],
     revisions: [],
   };
+}
+
+function publicTask(task: FixtureTask) {
+  return { ...task, workspace: projectSmartPreparationTask(task as unknown as Record<string, unknown>) };
 }
 
 async function installSmartLessonRoutes(page: Page) {
@@ -138,14 +150,32 @@ async function installSmartLessonRoutes(page: Page) {
   const fulfill = (route: Route, body: unknown, status = 200) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) });
 
   await page.route('**/api/teacher/smart-lesson-tasks', async (route) => {
+    if (route.request().method() === 'GET') {
+      const archived = new URL(route.request().url()).searchParams.get('archived') === 'true';
+      const taskIsArchived = Boolean(task.archivedAt);
+      return fulfill(route, { tasks: archived === taskIsArchived ? [publicTask(task)] : [] });
+    }
     if (route.request().method() !== 'POST') return route.fallback();
     task = baseTask();
-    return fulfill(route, { task }, 201);
+    return fulfill(route, { task: publicTask(task) }, 201);
   });
   await page.route('**/api/teacher/smart-lesson-tasks/**', async (route) => {
     const url = new URL(route.request().url());
     const path = url.pathname;
-    if (path === '/api/teacher/smart-lesson-tasks/task-939' && route.request().method() === 'GET') return fulfill(route, { task });
+    if (path === '/api/teacher/smart-lesson-tasks/task-939' && route.request().method() === 'GET') return fulfill(route, { task: publicTask(task) });
+    if (path === '/api/teacher/smart-lesson-tasks/task-939' && route.request().method() === 'PUT') {
+      const action = (await route.request().postDataJSON()) as { action: 'archive' | 'restore' };
+      task = { ...task, archivedAt: action.action === 'archive' ? '2026-07-25T00:00:00.000Z' : null };
+      return fulfill(route, { task: publicTask(task) });
+    }
+    if (path === '/api/teacher/smart-lesson-tasks/task-939' && route.request().method() === 'DELETE') {
+      return fulfill(route, {
+        error: {
+          code: 'smart-lesson-task-delete-blocked',
+          blockers: [{ category: 'publication', count: 1, managementPath: '/teacher/preset-lessons' }],
+        },
+      }, 409);
+    }
     if (path === '/api/teacher/smart-lesson-tasks/drafts/draft-1/generation') {
       task = { ...task, drafts: [{ ...task.drafts[0], state: 'GENERATING', jobs: [{ id: 'job-1', state: 'PAUSED', firstIncompleteStage: 'BRIDGE_IN', stages: pausedStages }], reviews: [] }] };
       return fulfill(route, { job: task.drafts[0].jobs[0] }, 202);
@@ -169,12 +199,17 @@ async function installSmartLessonRoutes(page: Page) {
     }
     return fulfill(route, { error: { code: `unhandled-test-route:${path}` } }, 500);
   });
+  await page.route('**/api/teacher/smart-lesson-tasks?**', async (route) => {
+    const archived = new URL(route.request().url()).searchParams.get('archived') === 'true';
+    const taskIsArchived = Boolean(task.archivedAt);
+    return fulfill(route, { tasks: archived === taskIsArchived ? [publicTask(task)] : [] });
+  });
 }
 
 test('teacher completes the visible smart lesson authoring flow through version 2 derivation', async ({ page, context }) => {
   await addTeacherSession(context);
   await installSmartLessonRoutes(page);
-  await page.setViewportSize({ width: 1280, height: 1000 });
+  await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto('/teacher/smart-prep');
 
   const workspace = page.locator('[data-smart-lesson-plan-workspace]');
@@ -189,15 +224,24 @@ test('teacher completes the visible smart lesson authoring flow through version 
   await workspace.getByRole('button', { name: '确认并创建单课任务' }).click();
 
   await expect(workspace.getByText('教师创建，来源待补')).toHaveCount(2);
+  for (const stage of ['课程依据', '主题与目标', '班级学情', '生成与审核教案', '生成课件']) {
+    await expect(workspace.getByText(stage, { exact: true })).toBeVisible();
+  }
+  await workspace.getByPlaceholder('搜索任务主题').fill('闭环');
+  await page.getByRole('button', { name: '课程依据' }).click();
+  await page.getByRole('button', { name: '备课任务' }).click();
+  await expect(workspace.getByPlaceholder('搜索任务主题')).toHaveValue('闭环');
+  await expect(workspace.getByRole('heading', { name: '闭环稳定性', level: 3 })).toBeVisible();
   await workspace.getByRole('button', { name: '开始生成' }).click();
-  await expect(workspace.getByText('OUTLINE: COMPLETED')).toBeVisible();
+  await expect(workspace.getByText('教学提纲：已完成')).toBeVisible();
   await expect(workspace.getByText('提纲已持久化。可先编辑，或明确确认当前提纲后继续生成。')).toBeVisible();
   await workspace.getByRole('button', { name: '确认当前提纲并继续' }).click();
-  await expect(workspace.getByText('SUMMARY: COMPLETED')).toBeVisible();
+  await expect(workspace.getByText('总结：已完成')).toBeVisible();
   await expect(workspace.getByRole('button', { name: '开始生成' })).toBeEnabled();
 
   await workspace.getByText('查看完整教案').click();
-  await expect(workspace.getByText('smart-lesson-plan.boppps.v1')).toBeVisible();
+  await expect(workspace.getByRole('heading', { name: '闭环稳定性', level: 4 })).toBeVisible();
+  await expect(workspace.getByRole('heading', { name: '总结' })).toBeVisible();
   await workspace.getByRole('button', { name: 'AI 建议' }).click();
   await expect(workspace.getByRole('heading', { name: 'AI 审核报告（仅建议）' })).toBeVisible();
   await expect(workspace.getByText('目标覆盖完整')).toBeVisible();
@@ -205,5 +249,30 @@ test('teacher completes the visible smart lesson authoring flow through version 
   await expect(workspace.getByText('教案第1版 已冻结。')).toBeVisible();
   await workspace.getByRole('button', { name: '基于教案第1版继续修订' }).click();
   await expect(workspace.getByText('已从批准版本建立新的可编辑草稿。')).toBeVisible();
-  await expect(workspace.getByText(/草稿 EDITABLE/)).toBeVisible();
+  await expect(workspace.getByText(/草稿 可编辑/)).toBeVisible();
+
+  page.once('dialog', (dialog) => dialog.accept());
+  await workspace.getByRole('button', { name: '永久删除' }).click();
+  await expect(workspace.getByText('无法永久删除：正式发布 1 项。请改为归档。')).toBeVisible();
+  await workspace.getByRole('button', { name: '归档', exact: true }).click();
+  await expect(workspace.getByText('任务已归档。')).toBeVisible();
+  await workspace.getByRole('button', { name: '已归档' }).click();
+  await expect(workspace.getByRole('heading', { name: '闭环稳定性', level: 3 })).toBeVisible();
+  await workspace.getByRole('button', { name: '恢复' }).click();
+  await expect(workspace.getByText('任务已恢复到进行中列表。')).toBeVisible();
+  await workspace.getByRole('button', { name: '进行中' }).click();
+  await expect(workspace.getByRole('heading', { name: '闭环稳定性', level: 3 })).toBeVisible();
+});
+
+test('narrow workspace uses a task drawer without horizontal page overflow', async ({ page, context }) => {
+  await addTeacherSession(context);
+  await installSmartLessonRoutes(page);
+  await page.setViewportSize({ width: 320, height: 844 });
+  await page.goto('/teacher/smart-prep');
+
+  const workspace = page.locator('[data-smart-lesson-plan-workspace]');
+  await expect(workspace.getByRole('button', { name: '选择备课任务' })).toBeVisible();
+  await workspace.getByRole('button', { name: '选择备课任务' }).click();
+  await expect(workspace.getByRole('complementary', { name: '备课任务列表' })).toBeVisible();
+  await expect.poll(async () => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 });
