@@ -70,6 +70,18 @@ describe('PID turn scenario calibration', () => {
     }));
   });
 
+  it('evaluates both the initial candidate and each search iteration', () => {
+    const result = optimizePIDParams(
+      { nomotoK: 0.08, nomotoT: 55, shipSpeed: 15 },
+      DEFAULT_TARGET,
+      { kpRange: [3, 3], kiRange: [0.001, 0.001], kdRange: [5, 5] },
+      1,
+    );
+
+    expect(result.score).toBeGreaterThanOrEqual(60);
+    expect(computeVirtualSimulationServerStepMock).toHaveBeenCalledTimes(2);
+  });
+
   it('builds the calibrated heading schedule from the requested target heading', () => {
     optimizePIDParams(
       { nomotoK: 0.08, nomotoT: 55, shipSpeed: 15 },

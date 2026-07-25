@@ -1,0 +1,50 @@
+{
+  "route": "/evidence-pid",
+  "viewport": {
+    "width": 1440,
+    "height": 1000,
+    "name": "1440"
+  },
+  "requestBody": {
+    "config": {
+      "seaState": {
+        "level": 3,
+        "waveHeight": 1.2,
+        "windSpeed": 8
+      },
+      "shipSpeed": 15
+    },
+    "target": {
+      "targetHeading": 90,
+      "maxError": 150,
+      "maxRudderRate": 5,
+      "maxOvershoot": 20
+    },
+    "maxIterations": 50
+  },
+  "result": {
+    "recommendedParams": {
+      "kp": 2.4,
+      "ki": 0.05,
+      "kd": 1.2
+    },
+    "score": 86,
+    "metrics": {
+      "avgError": 74.2,
+      "maxRudderRate": 4.2,
+      "settlingTime": 31,
+      "overshoot": 7.5
+    },
+    "searchInfo": {
+      "iterations": 50,
+      "timeMs": 312
+    },
+    "advice": "当前推荐针对 90°右转目标；在 5°/s 舵角速度约束下保持稳定余量。"
+  },
+  "consoleErrors": [],
+  "documentScrollWidth": 1440,
+  "viewportWidth": 1440,
+  "panelVisible": true,
+  "scoreVisible": true,
+  "adviceVisible": true
+}
