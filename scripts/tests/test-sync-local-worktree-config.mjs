@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -196,7 +197,7 @@ assert.match(
 );
 assert.match(
   dryRun.stdout,
-  /would replace existing runtime directory with real files: course-content\/runtime\/resources/,
+  /would replace existing synchronized directory with real files: course-content\/runtime\/resources/,
   'dry-run 应说明会以真实文件替换旧 runtime 软链接',
 );
 
@@ -1222,6 +1223,144 @@ assert.match(
   fs.readFileSync(primaryPreCommitPath, 'utf8'),
   /keep no-op hook/,
   '主工作树非 hooks-only 调用不应改写 hooks',
+);
+
+writeFile('public/assets/demo.glb', 'source model\n');
+writeFile('public/assets/models-opt/demo.glb', 'stale optimized model\n');
+writeFile(
+  'public/assets/models-opt/manifest.json',
+  JSON.stringify({
+    models: {
+      'demo.glb': {
+        status: 'meshopt',
+        url: '/assets/models-opt/demo.glb',
+      },
+    },
+  }),
+);
+writeFile(
+  'public/assets/models-opt.failed-manifest.json',
+  JSON.stringify({
+    models: {
+      'demo.glb': {
+        status: 'fallback-original',
+        url: '/assets/demo.glb',
+      },
+    },
+  }),
+);
+fs.rmSync(path.join(source, 'public/assets/models-opt'), { recursive: true });
+const invalidOptimizedAssets = spawnSync(
+  'bash',
+  [
+    path.join(root, 'scripts/dev/sync-local-worktree-config.sh'),
+    '--source',
+    source,
+    '--target',
+    target,
+    '--apply',
+  ],
+  { cwd: root, encoding: 'utf8' },
+);
+assert.notEqual(
+  invalidOptimizedAssets.status,
+  0,
+  '失败或不完整的优化模型 manifest 必须阻止工作树同步',
+);
+assert.match(
+  invalidOptimizedAssets.stderr,
+  /Invalid optimized model asset set: failed production marker exists:/,
+  '同步拒绝应指出失败生产标记',
+);
+assert.equal(
+  fs.existsSync(path.join(target, 'public/assets/models-opt/demo.glb')),
+  false,
+  '正式目录缺失时，失败优化模型也不得同步到隔离工作树',
+);
+
+fs.rmSync(path.join(source, 'public/assets/models-opt.failed-manifest.json'));
+writeFile(
+  'public/assets/models-opt.in-progress.json',
+  JSON.stringify({ startedAt: '2026-07-24T00:00:00.000Z' }),
+);
+const inProgressOptimizedAssets = spawnSync(
+  'bash',
+  [
+    path.join(root, 'scripts/dev/sync-local-worktree-config.sh'),
+    '--source',
+    source,
+    '--target',
+    target,
+    '--apply',
+  ],
+  { cwd: root, encoding: 'utf8' },
+);
+assert.notEqual(
+  inProgressOptimizedAssets.status,
+  0,
+  '正在生产的优化模型集必须阻止工作树同步',
+);
+assert.match(
+  inProgressOptimizedAssets.stderr,
+  /Invalid optimized model asset set: production in-progress marker exists:/,
+  '同步拒绝应指出生产进行中标记',
+);
+
+fs.rmSync(path.join(source, 'public/assets/models-opt.in-progress.json'));
+writeFile('public/assets/models-opt/demo.glb', 'optimized model\n');
+writeFile(
+  'public/assets/models-opt/manifest.json',
+  JSON.stringify({
+    models: {
+      'demo.glb': {
+        status: 'meshopt',
+        url: '/assets/models-opt/demo.glb',
+        sourceSha256: createHash('sha256').update('source model\n').digest('hex'),
+      },
+    },
+  }),
+);
+writeTargetFile('public/assets/demo.glb', 'different target model\n');
+const driftedTargetAssets = spawnSync(
+  'bash',
+  [
+    path.join(root, 'scripts/dev/sync-local-worktree-config.sh'),
+    '--source',
+    source,
+    '--target',
+    target,
+    '--apply',
+  ],
+  { cwd: root, encoding: 'utf8' },
+);
+assert.notEqual(
+  driftedTargetAssets.status,
+  0,
+  '目标工作树源 GLB 与生产源不一致时必须拒绝同步',
+);
+assert.match(
+  driftedTargetAssets.stderr,
+  /demo\.glb target source digest does not match producer source/,
+  '同步拒绝应指出目标工作树源模型摘要漂移',
+);
+
+writeTargetFile('public/assets/demo.glb', 'source model\n');
+run(
+  'bash',
+  [
+    path.join(root, 'scripts/dev/sync-local-worktree-config.sh'),
+    '--source',
+    source,
+    '--target',
+    target,
+    '--apply',
+  ],
+  root,
+);
+assert.equal(
+  fs.readFileSync(path.join(target, 'public/assets/models-opt/demo.glb'), 'utf8'),
+  'optimized model\n',
+  '目标源模型与生产源一致时应同步优化模型',
 );
 
 const unrelatedTarget = path.join(tmpRoot, 'unrelated-target');

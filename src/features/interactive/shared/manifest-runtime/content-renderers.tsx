@@ -17,6 +17,7 @@ import { buildStructureDiagramClientEvidenceDraft } from './structure-diagram-ev
 import { isControlWorkbenchComputeCapabilityRef } from './module-taxonomy';
 import type { ControlAnalysisRequest, ControlAnalysisResult } from '@/resources/control-system/analysis/types';
 import { ControlFigureWorkspace } from '@/resources/control-system/charts/control-figure-workspace';
+import { persistControlWorkbenchRun } from '@/resources/simulations/persisted-run-client';
 import { StaticSurface3DPanel, type StaticSurface3DPanelProps, type StaticSurfaceDataset } from './static-surface-3d-panel';
 import { ControlWorkbenchComparisonPanel } from './control-workbench-comparison-panel';
 import {
@@ -2803,26 +2804,35 @@ function SharedControlWorkbenchComputePanel({
     ...content.bullets,
   ];
   const submitCurrent = async () => {
-    if (!onPanelSubmit || !capabilityRef || !canSubmit || !currentResult
+    if (!onPanelSubmit || !capabilityRef || !canSubmit || !currentResult || !dynamicRequest
       || !tryBeginControlWorkbenchSubmission(submitPendingRef)) return;
     setSubmitPending(true);
     setSubmitError(null);
     const submittedAt = Date.now();
-    const eventDraft = buildSharedControlWorkbenchEvidenceDraft({
-      manifest,
-      step,
-      module,
-      submittedAt,
-      submissionValues,
-      validationSnapshot: buildControlWorkbenchValidationSnapshot(currentResult),
-      comparisonSnapshots,
-    });
-    if (!eventDraft) {
-      submitPendingRef.current = false;
-      setSubmitPending(false);
-      return;
-    }
     try {
+      const clientRunId = `${step.id}:${module.id}:${submittedAt}`;
+      const { simulationRunId } = await persistControlWorkbenchRun({
+        clientRunId,
+        capabilityId: capabilityRef,
+        request: dynamicRequest,
+        launchContext: {
+          lessonId: manifest.lessonId,
+          stepId: step.id,
+          moduleId: module.id,
+          resourceId: module.id,
+        },
+      });
+      const eventDraft = buildSharedControlWorkbenchEvidenceDraft({
+        manifest,
+        step,
+        module,
+        submittedAt,
+        submissionValues,
+        validationSnapshot: buildControlWorkbenchValidationSnapshot(currentResult),
+        comparisonSnapshots,
+        derivedResultRefs: [{ kind: 'SimulationRun', id: simulationRunId }],
+      });
+      if (!eventDraft) return;
       await onPanelSubmit({
         stepId: step.id,
         submittedAt,
@@ -5998,6 +6008,7 @@ export function buildSharedControlWorkbenchEvidenceDraft({
   submissionValues,
   validationSnapshot,
   comparisonSnapshots,
+  derivedResultRefs,
 }: {
   manifest: InteractiveRuntimeManifest;
   step: InteractiveRuntimeStepManifest;
@@ -6006,6 +6017,7 @@ export function buildSharedControlWorkbenchEvidenceDraft({
   submissionValues?: Record<string, string | number | boolean>;
   validationSnapshot?: Record<string, unknown>;
   comparisonSnapshots?: ControlWorkbenchComparisonSnapshot[];
+  derivedResultRefs?: Array<{ kind: string; id: string }>;
 }) {
   const capabilityRef = computeCapabilityRef(module.payload);
   if (!capabilityRef) return null;
@@ -6028,6 +6040,7 @@ export function buildSharedControlWorkbenchEvidenceDraft({
     visiblePanelIds,
     parameterSnapshot: parameterSnapshotFromSubmissionValues(module.payload, request, submissionValues),
     selectedDesignState: { releaseState, fallbackState },
+    derivedResultRefs,
     answerPayload: {
       responseContractId: responseContractId ?? 'parameter.set',
       submissionFieldKeys: controlWorkbenchSubmissionFieldsFromPayload(module.payload).map((field) => field.key),

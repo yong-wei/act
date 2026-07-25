@@ -6,11 +6,13 @@ import {
   ELIGIBLE_SIMULATION_SCENES,
   getSimulationCourseCompletionEventType,
   getSimulationCourseLaunchEventType,
+  requiresPersistedSimulationRun,
   resolveSimulationCourseResourceConfig,
 } from '../course-resource-config';
 import { getAllRegisteredResources, getRegisteredResource } from '@/lib/resource-registry';
 import { getEventMetadata } from '@/lib/data-governance/event-types';
 import type { ResourceRendererLaunchContext } from '@/features/lesson-engine/resource-renderer-config';
+import { resolveClassroomSessionIdFromPathname } from '../persisted-run-client';
 
 const courseLaunchContext: ResourceRendererLaunchContext = {
   provenance: 'db-boppps',
@@ -65,7 +67,7 @@ describe('simulation course resource config', () => {
       sceneId: 'cruise',
       telemetryPolicy: 'course-context',
     });
-    const href = buildSimulationCourseLaunchHref(config, courseLaunchContext);
+    const href = buildSimulationCourseLaunchHref(config, courseLaunchContext, 'completion-channel-1');
 
     expect(href).toContain('/simulations/cruise?');
     expect(href).toContain('courseResource=1');
@@ -74,6 +76,7 @@ describe('simulation course resource config', () => {
     expect(href).toContain('lessonItemId=item-1');
     expect(href).toContain('classId=class-1');
     expect(href).toContain('sceneId=cruise');
+    expect(href).toContain('completionChannelId=completion-channel-1');
   });
 
   it('builds Arena workbench launch hrefs from override task ids', () => {
@@ -198,5 +201,28 @@ describe('simulation course resource config', () => {
       sessionId: 'session-1',
     });
     expect(payload).not.toHaveProperty('score');
+  });
+
+  it('requires a trusted persisted run only for the scene that implements that protocol', () => {
+    expect(requiresPersistedSimulationRun(
+      resolveSimulationCourseResourceConfig({ sceneId: 'cruise' }),
+    )).toBe(true);
+    for (const sceneId of ['destroyer', 'dredger', 'drilling', 'icebreaker', 'lng', 'container']) {
+      expect(requiresPersistedSimulationRun(
+        resolveSimulationCourseResourceConfig({ sceneId }),
+      )).toBe(false);
+    }
+  });
+
+  it('extracts only a non-demo student classroom session as the server lookup key', () => {
+    expect(resolveClassroomSessionIdFromPathname(
+      '/interactive-learning/courses/unit-1-4/student/session-1',
+    )).toBe('session-1');
+    expect(resolveClassroomSessionIdFromPathname(
+      '/interactive-learning/courses/unit-1-4/student/demo',
+    )).toBeUndefined();
+    expect(resolveClassroomSessionIdFromPathname(
+      '/interactive-learning/control-workbench',
+    )).toBeUndefined();
   });
 });
