@@ -1,0 +1,20 @@
+{
+  "name": "profile-training-320",
+  "viewport": {
+    "width": 320,
+    "height": 900
+  },
+  "screenshot": "profile-training-320.png",
+  "documentWidth": 320,
+  "scrollWidth": 320,
+  "horizontalOverflow": false,
+  "expectedLabels": {
+    "training": "虚拟仿真训练",
+    "preview": "非官方预览",
+    "run": "Cruise roll black-box identification"
+  },
+  "expectedFragments": [
+    "已记录 6 次训练",
+    "最近 5 次平均质量 82 分"
+  ]
+}

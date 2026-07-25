@@ -1,0 +1,52 @@
+{
+  "change": "surface-arena-training-evidence",
+  "capturedAt": "2026-07-25T12:46:25.494Z",
+  "server": "http://localhost:3011",
+  "browser": "Playwright Chromium",
+  "role": "student",
+  "authState": "authenticated",
+  "evidenceMode": "COMMERCIAL_UI_EVIDENCE=1",
+  "routes": [
+    {
+      "href": "/profile",
+      "routeFile": "src/app/(main)/profile/page.tsx",
+      "testHarnessRoute": "/evidence-profile/profile",
+      "viewports": [
+        {
+          "width": 1440,
+          "screenshot": "artifacts/commercial-ui/arena-training-evidence-1042/profile-training-1440.png",
+          "metrics": "artifacts/commercial-ui/arena-training-evidence-1042/profile-training-1440-metrics.json",
+          "consoleErrors": [],
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "taskControlsVisible": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "horizontalOverflow": false,
+          "result": "passed"
+        },
+        {
+          "width": 320,
+          "screenshot": "artifacts/commercial-ui/arena-training-evidence-1042/profile-training-320.png",
+          "metrics": "artifacts/commercial-ui/arena-training-evidence-1042/profile-training-320-metrics.json",
+          "consoleErrors": [],
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "taskControlsVisible": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "horizontalOverflow": false,
+          "result": "passed"
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "The evidence route is available only when COMMERCIAL_UI_EVIDENCE=1 and renders the production profile client component with deterministic authenticated session and profile API fixtures.",
+    "Production database and object storage are not exercised; persistence behavior remains covered by focused route and domain tests."
+  ]
+}

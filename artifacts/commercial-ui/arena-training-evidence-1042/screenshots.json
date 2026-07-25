@@ -1,0 +1,22 @@
+{
+  "generatedAt": "2026-07-25T12:46:25.494Z",
+  "route": "/profile",
+  "testHarnessRoute": "/evidence-profile/profile",
+  "evidenceBoundary": "Authenticated UI with deterministic session and profile API mocks; production database and object store are not exercised.",
+  "entries": [
+    {
+      "name": "profile-training-1440",
+      "viewport": 1440,
+      "screenshot": "profile-training-1440.png",
+      "metrics": "profile-training-1440-metrics.json",
+      "consoleErrors": []
+    },
+    {
+      "name": "profile-training-320",
+      "viewport": 320,
+      "screenshot": "profile-training-320.png",
+      "metrics": "profile-training-320-metrics.json",
+      "consoleErrors": []
+    }
+  ]
+}
