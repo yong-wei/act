@@ -605,6 +605,7 @@ async function persistVirtualSimulationTaskEvidenceEvents(
       },
       select: {
         id: true,
+        sessionId: true,
         resourceId: true,
         taskSpecSnapshot: true,
         controllerSnapshotRef: true,
@@ -614,6 +615,7 @@ async function persistVirtualSimulationTaskEvidenceEvents(
       },
     });
     if (!run?.completedAt) continue;
+    if ((run.sessionId ?? null) !== (eventData.sessionId ?? null)) continue;
 
     const taskSpec = readRecord(run.taskSpecSnapshot);
     const runTaskId = run.resourceId

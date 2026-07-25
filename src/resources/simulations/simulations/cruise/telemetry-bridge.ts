@@ -241,3 +241,17 @@ export function buildCruiseTelemetryBridgeSummary(input: CruiseTelemetryBridgeIn
     },
   };
 }
+
+export function validateCruiseTelemetryBridgeSummary(
+  value: CruiseTelemetryBridgeSummary,
+): boolean {
+  const { checksum, ...envelopeWithoutChecksum } = value.trace.envelope;
+  return value.trace.envelope.sceneId === CRUISE_TRACE_SCENE_ID
+    && value.trace.envelope.scenarioId === CRUISE_TRACE_SCENARIO_ID
+    && value.trace.envelope.modelVersion === CRUISE_SCENE_MODEL_VERSION
+    && checksum === computeBrowserStableChecksum({
+      envelope: envelopeWithoutChecksum,
+      samples: value.trace.samples,
+      summary: value.trace.summary,
+    });
+}

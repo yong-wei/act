@@ -147,6 +147,7 @@ function formatLaunchUrl(url: URL, originalHref: string): string {
 export function buildSimulationCourseLaunchHref(
   config: SimulationCourseResourceConfig,
   launchContext: ResourceRendererLaunchContext,
+  completionChannelId?: string,
 ): string {
   const url = new URL(config.routeHref, 'https://course-resource.local');
   const { searchParams: params } = url;
@@ -168,6 +169,7 @@ export function buildSimulationCourseLaunchHref(
   appendQueryParam(params, 'stage', launchContext.stage ?? undefined);
   appendQueryParam(params, 'sceneId', config.sceneId ?? undefined);
   appendQueryParam(params, 'arenaTask', config.arenaTaskId ?? undefined);
+  appendQueryParam(params, 'completionChannelId', completionChannelId);
 
   return formatLaunchUrl(url, config.routeHref);
 }

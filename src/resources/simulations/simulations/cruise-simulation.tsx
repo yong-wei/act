@@ -19,6 +19,7 @@ import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 import { Compass, Video, Orbit, ArrowDownFromLine } from 'lucide-react';
 import { SimulationClock } from '@/lib/simulation';
+import { persistSceneTraceRun } from '../persisted-run-client';
 import { RightClickFreeModeBridge } from '../components/camera-controller';
 import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
@@ -1616,6 +1617,32 @@ function TelemetryBridge({
 
     emittedRunIdRef.current = runId;
     window.dispatchEvent(new CustomEvent<CruiseTelemetryBridgeSummary>('simulation:trace-summary', { detail: summary }));
+    const query = new URLSearchParams(window.location.search);
+    void persistSceneTraceRun({
+      traceSummary: summary,
+      launchContext: {
+        classId: query.get('classId') ?? undefined,
+        courseId: query.get('courseId') ?? undefined,
+        lessonId: query.get('lessonPlanId') ?? undefined,
+        publicationId: query.get('publicationId') ?? undefined,
+        registryId: query.get('registryId') ?? undefined,
+        resourceId: query.get('resourceId') ?? undefined,
+        sessionId: query.get('sessionId') ?? undefined,
+      },
+    }).then(({ simulationRunId }) => {
+      const completionChannelId = query.get('completionChannelId');
+      if (!completionChannelId || typeof BroadcastChannel === 'undefined') return;
+      const channel = new BroadcastChannel(`simulation-run:${completionChannelId}`);
+      channel.postMessage({
+        type: 'simulation-run-persisted',
+        sceneId: 'cruise',
+        simulationRunId,
+      });
+      channel.close();
+    }).catch((error) => {
+      emittedRunIdRef.current = null;
+      console.error('[Cruise Simulation] Failed to persist completed run:', error);
+    });
     if (window.parent && window.parent !== window) {
       window.parent.postMessage(
         {

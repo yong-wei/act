@@ -65,7 +65,7 @@ describe('simulation course resource config', () => {
       sceneId: 'cruise',
       telemetryPolicy: 'course-context',
     });
-    const href = buildSimulationCourseLaunchHref(config, courseLaunchContext);
+    const href = buildSimulationCourseLaunchHref(config, courseLaunchContext, 'completion-channel-1');
 
     expect(href).toContain('/simulations/cruise?');
     expect(href).toContain('courseResource=1');
@@ -74,6 +74,7 @@ describe('simulation course resource config', () => {
     expect(href).toContain('lessonItemId=item-1');
     expect(href).toContain('classId=class-1');
     expect(href).toContain('sceneId=cruise');
+    expect(href).toContain('completionChannelId=completion-channel-1');
   });
 
   it('builds Arena workbench launch hrefs from override task ids', () => {

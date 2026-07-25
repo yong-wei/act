@@ -1018,6 +1018,48 @@ describe('POST /api/interactive/events', () => {
     }));
   });
 
+  it('does not reuse a completed simulation run in a different classroom session', async () => {
+    mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
+    mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([
+      {
+        id: 'cross-session-log',
+        clientEventId: 'cross-session-finish',
+        eventData: { clientEventId: 'cross-session-finish' },
+      },
+    ]);
+    mocks.prisma.simulationRun.findFirst.mockResolvedValue({
+      id: 'run-from-another-session',
+      sessionId: 'cmoxloe52000uq5bcojma7r79',
+      resourceId: 'sim-pid-v1',
+      taskSpecSnapshot: { sceneId: 'sim-pid-v1' },
+      controllerSnapshotRef: 'controller-snapshot-cross-session',
+      summary: {},
+      modelVersion: 'ship-v1',
+      completedAt: new Date('2026-06-18T00:00:00.000Z'),
+    });
+
+    const response = await POST(createPostRequest({
+      events: [
+        {
+          id: 'cross-session-finish',
+          type: 'complete',
+          timestamp: Date.parse('2026-06-18T00:00:00.000Z'),
+          resourceKey: 'sim-pid-v1',
+          sessionId: 'cmoxloe52000uq5bcojma7r78',
+          data: {
+            clientEventId: 'cross-session-finish',
+            eventType: 'simulation_finish',
+            registryId: 'sim-pid-v1',
+            simulationRunId: 'run-from-another-session',
+          },
+        },
+      ],
+    }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.learningFact.createMany).not.toHaveBeenCalled();
+  });
+
   it('does not materialize virtual task evidence without an owned durable completed run', async () => {
     mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
     mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([
